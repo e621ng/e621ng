@@ -32,8 +32,8 @@
       <% if !@post.is_video? %>
         <option value="large">Sample (<%= Danbooru.config.large_image_width %>px)</option>
       <% end %>
-      <% Danbooru.config.video_rescales.keys.each do |size| %>
-        <% next unless @post.has_sample_size?(size) %>
+      <% Danbooru.config.video_samples.keys.each do |size| %>
+        <% next unless @post.has_sample_size?(size.to_s) %>
         <option value="<%= size %>">Sample (<%= size %>)</option>
       <% end %>
   </select>

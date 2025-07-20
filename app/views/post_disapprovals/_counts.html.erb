@@ -1,18 +1,25 @@
 <% if CurrentUser.can_approve_posts? && disapprovals.length > 0 %>
+  <% quality_dis = disapprovals.map(&:reason).grep("borderline_quality").count %>
+  <% relevancy_dis = disapprovals.map(&:reason).grep("borderline_relevancy").count %>
+  <% custom_dis = disapprovals.select(&:message) %>
   <p>
-    It has been reviewed by <%= link_to pluralize(disapprovals.length, "approver"), moderator_post_disapprovals_path(search: { post_id: post.id }) %>.
+    It has been reviewed by <%= link_to pluralize(disapprovals.length, "approver"), moderator_post_disapprovals_path(search: { post_id: post.id }) %>:
 
-    <% if disapprovals.map(&:reason).grep("borderline_quality").count > 0 %>
-      <%= disapprovals.map(&:reason).grep("borderline_quality").count %> believe it doesn't meet the quality standards.
-    <% end %>
+    <ul>
+      <% if quality_dis > 0 %>
+        <li><%= pluralize(quality_dis, "approver") %> <%= quality_dis > 1 ? "believe" : "believes" %> it does not meet the quality standards.</li>
+      <% end %>
 
-    <% if disapprovals.map(&:reason).grep("borderline_relevancy").count > 0 %>
-      <%= disapprovals.map(&:reason).grep("borderline_relevancy").count %> believe it isn't relevant.
-    <% end %>
+      <% if relevancy_dis > 0 %>
+        <li><%= pluralize(relevancy_dis, "approver") %> <%= relevancy_dis > 1 ? "believe" : "believes" %> it is not relevant to the site.</li>
+      <% end %>
 
-    <% if disapprovals.map(&:message).any?(&:present?) %>
-      Messages: <%= disapprovals.map(&:message).select(&:present?).map { |msg| format_text(msg, inline: true) }.to_sentence.html_safe %>.
-    <% end %>
+      <% if custom_dis.count > 0 %>
+        <% custom_dis.each do |disapproval| %>
+          <li><%= link_to_user disapproval.user %>: <%= format_text(disapproval.message, inline: true).html_safe %></li>
+        <% end %>
+      <% end %>
+    </ul>
 
     <% @our_disapproval = disapprovals.select {|x| x.user_id == CurrentUser.id }.first %>
     <% if @our_disapproval.present? %>

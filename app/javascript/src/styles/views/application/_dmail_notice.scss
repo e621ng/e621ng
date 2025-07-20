@@ -1,0 +1,62 @@
+.dmail-notice {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+
+  // Override the default UI styles
+  background: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+
+  margin: 0.5rem; // Squished on mobile otherwise
+  @include window-larger-than(50rem) {
+    margin: 0;
+  }
+
+  // Main content section
+  a.dmail-notice-body {
+    display: flex;
+    align-items: center;
+
+    background: themed("color-section");
+    font-size: 1.125rem;
+    font-weight: bold;
+    line-height: 1.25rem;
+    @include st-radius;
+
+    color: themed("color-text");
+    .dmail-notice-highlight { color: themed("color-link"); }
+    &:hover .dmail-notice-highlight { color: themed("color-link-hover"); }
+    &:active .dmail-notice-highlight { color: themed("color-link-active"); }
+
+    svg {
+      height: 100%; // Proper height if the message linebreaks
+      padding: 0 0.625rem;
+      background-color: palette("background-red");
+      @include st-radius;
+    }
+
+    .dmail-notice-text {
+      padding: 0.75rem;
+    }
+  }
+
+  // Hide button
+  & &-hide {
+    display: flex;
+    align-items: center;
+    background: themed("color-section");
+    padding: 0.625rem;
+    @include st-radius;
+
+    color: themed("color-link");
+    &:hover { color: themed("color-link-hover"); }
+    &:active { color: themed("color-link-active"); }
+  }
+
+  svg {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+}

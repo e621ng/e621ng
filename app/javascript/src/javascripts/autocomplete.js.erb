@@ -4,7 +4,7 @@ let Autocomplete = {};
 
 Autocomplete.METATAGS = <%= TagQuery::METATAGS.to_json.html_safe %>;
 Autocomplete.TAG_CATEGORIES = <%= TagCategory::MAPPING.to_json.html_safe %>;
-Autocomplete.ORDER_METATAGS = <%= TagQuery::ORDER_METATAGS.to_json.html_safe %>;
+Autocomplete.ORDER_METATAGS = <%= TagQuery::ORDER_METATAGS_AUTOCOMPLETE.to_json.html_safe %>;
 
 Autocomplete.TAG_PREFIXES = "-|~|" + Object.keys(Autocomplete.TAG_CATEGORIES).map(category => category + ":").join("|");
 Autocomplete.TAG_PREFIXES_REGEX = new RegExp("^(" + Autocomplete.TAG_PREFIXES + ")(.*)$", "i");
@@ -210,7 +210,7 @@ Autocomplete.insert_completion = function(input, completion) {
   var regexp = new RegExp("(" + Autocomplete.TAG_PREFIXES + ")?\\S+$", "g");
   before_caret_text = before_caret_text.replace(regexp, "$1") + completion;
 
-  // Only insert a space if we're at the end or if there's some text and it doesn't alreay start with a space
+  // Only insert a space if we're at the end or if there's some text and it doesn't already start with a space
   if(after_caret_text.length === 0 || (after_caret_text.length !== 0 && !after_caret_text.startsWith(" "))) {
     before_caret_text += " ";
   }

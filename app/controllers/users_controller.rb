@@ -6,6 +6,7 @@ class UsersController < ApplicationController
   before_action :logged_in_only, only: %i[edit upload_limit update]
   before_action :member_only, only: %i[custom_style]
   before_action :janitor_only, only: %i[toggle_uploads fix_counts]
+  before_action :admin_only, only: %i[flush_favorites]
 
   def new
     raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
@@ -54,6 +55,14 @@ class UsersController < ApplicationController
     @user.no_uploading = !@user.no_uploading
     ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
     @user.save
+
+    redirect_to user_path(@user)
+  end
+
+  def flush_favorites
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    FlushFavoritesJob.perform_later(@user.id)
+    ModAction.log(:user_flush_favorites, { user_id: @user.id })
 
     redirect_to user_path(@user)
   end

@@ -1,0 +1,17 @@
+#avoid-posting-label {
+  background: themed("color-section");
+
+  width: max-content;
+  min-width: 20rem;
+
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  @include st-padding(050);
+  @include st-radius;
+
+  border-left: 0.25rem solid themed("color-tag-artist");
+
+  h3 {
+    margin-bottom: 0.5rem;
+  }
+}

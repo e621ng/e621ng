@@ -5,6 +5,25 @@ class DmailsController < ApplicationController
   respond_to :json, except: %i[new create]
   before_action :member_only
 
+  def index
+    if params[:folder] && params[:set_default_folder]
+      cookies.permanent[:dmail_folder] = params[:folder]
+    end
+    @query = Dmail.active.visible.search(search_params).includes(:to, :from)
+    @dmails = @query.paginate(params[:page], limit: params[:limit])
+    respond_with(@dmails)
+  end
+
+  def show
+    @dmail = Dmail.find(params[:id])
+    check_privilege(@dmail)
+    respond_with(@dmail) do |format|
+      format.html do
+        @dmail.mark_as_read! unless @dmail.is_read
+      end
+    end
+  end
+
   def new
     if params[:respond_to_id]
       parent = Dmail.find(params[:respond_to_id])
@@ -15,23 +34,6 @@ class DmailsController < ApplicationController
     end
 
     respond_with(@dmail)
-  end
-
-  def index
-    if params[:folder] && params[:set_default_folder]
-      cookies.permanent[:dmail_folder] = params[:folder]
-    end
-    @query = Dmail.active.visible.search(search_params)
-    @dmails = @query.paginate(params[:page], limit: params[:limit])
-    respond_with(@dmails)
-  end
-
-  def show
-    @dmail = Dmail.find(params[:id])
-    check_privilege(@dmail)
-    respond_with(@dmail) do |format|
-      format.html { @dmail.mark_as_read! }
-    end
   end
 
   def create
@@ -70,7 +72,8 @@ class DmailsController < ApplicationController
     Dmail.visible.unread.each do |x|
       x.update_column(:is_read, true)
     end
-    CurrentUser.user.update(unread_dmail_count: 0)
+    CurrentUser.user.update_columns(unread_dmail_count: 0)
+
     respond_to do |format|
       format.html { redirect_to dmails_path, notice: "All messages marked as read" }
       format.json
@@ -80,9 +83,7 @@ class DmailsController < ApplicationController
   private
 
   def check_privilege(dmail)
-    if !dmail.visible_to?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+    raise User::PrivilegeError unless dmail.visible_to?(CurrentUser.user)
   end
 
   def create_params

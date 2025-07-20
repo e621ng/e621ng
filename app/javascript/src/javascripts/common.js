@@ -36,12 +36,10 @@ $(function () {
   }
 
   // Account notices
-  $("#hide-dmail-notice").on("click.danbooru", function (e) {
-    var $dmail_notice = $("#dmail-notice");
-    $dmail_notice.hide();
-    var dmail_id = $dmail_notice.data("id");
-    Cookie.put("hide_dmail_notice", dmail_id);
-    e.preventDefault();
+  $(".dmail-notice-hide").on("click.danbooru", function (event) {
+    event.preventDefault();
+    $(".dmail-notice").hide();
+    Cookie.put("hide_dmail_notice", "true");
   });
 
   $("#close-notice-link").on("click.danbooru", function (e) {

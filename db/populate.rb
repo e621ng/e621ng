@@ -13,8 +13,10 @@ presets = {
   favorites: ENV.fetch("FAVORITES", 0).to_i,
   forums: ENV.fetch("FORUMS", 0).to_i,
   postvotes: ENV.fetch("POSTVOTES", 0).to_i,
+  commentvotes: ENV.fetch("COMVOTES", 0).to_i,
   pools: ENV.fetch("POOLS", 0).to_i,
   furids: ENV.fetch("FURIDS", 0).to_i,
+  dmails: ENV.fetch("DM", 0).to_i,
 }
 if presets.values.sum == 0
   puts "DEFAULTS"
@@ -25,8 +27,10 @@ if presets.values.sum == 0
     favorites: 100,
     forums: 100,
     postvotes: 100,
+    commentvotes: 100,
     pools: 100,
     furids: 0,
+    dmails: 0,
   }
 end
 
@@ -36,8 +40,10 @@ COMMENTS  = presets[:comments]
 FAVORITES = presets[:favorites]
 FORUMS    = presets[:forums]
 POSTVOTES = presets[:postvotes]
+COMVOTES  = presets[:commentvotes]
 POOLS     = presets[:pools]
 FURIDS    = presets[:furids]
+DMAILS    = presets[:dmails]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
@@ -189,8 +195,9 @@ def fill_avatars(users = [], posts = [])
 end
 
 def populate_comments(number, users: [])
-  return unless number > 0
+  return [] unless number > 0
   puts "* Creating #{number} comments"
+  output = []
 
   users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
   posts = Post.limit(DISTRIBUTION).order("random()")
@@ -208,7 +215,10 @@ def populate_comments(number, users: [])
     end
 
     puts "  - ##{comment_obj.id} by #{CurrentUser.user.name}"
+    output << comment_obj if comment_obj.valid?
   end
+
+  output
 end
 
 def populate_favorites(number, users: [])
@@ -282,7 +292,7 @@ end
 
 def populate_post_votes(number, users: [], posts: [])
   return unless number > 0
-  puts "* Generating votes"
+  puts "* Generating post votes"
 
   users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
   posts = Post.limit(100).order("random()") if posts.empty?
@@ -302,6 +312,40 @@ def populate_post_votes(number, users: [], posts: [])
       next
     else
       puts "    vote ##{vote.id} on post ##{post.id}"
+    end
+  end
+end
+
+def populate_comment_votes(number, users: [], comments: [])
+  return unless number > 0
+  puts "* Generating comment votes"
+
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+  comments = Comment.limit(100).order("random()") if comments.empty?
+
+  number.times do
+    CurrentUser.user = users.sample
+    comment = comments.sample
+
+    if comment.creator_id == CurrentUser.user.id
+      puts "    error: can't vote on your own comment"
+      next
+    elsif comment.is_sticky?
+      puts "    error: can't vote on a sticky comment"
+      next
+    end
+
+    vote = VoteManager.comment_vote!(
+      user: CurrentUser.user,
+      comment: comment,
+      score: Faker::Boolean.boolean(true_ratio: 0.2) ? -1 : 1,
+    )
+
+    if vote == :need_unvote
+      puts "    error: #{vote}"
+      next
+    else
+      puts "    vote ##{vote.id} on comment ##{comment.id}"
     end
   end
 end
@@ -327,6 +371,34 @@ def populate_pools(number, posts: [])
   end
 end
 
+def populate_dmails(number)
+  return unless number > 0
+  puts "* Generating DMs"
+
+  users = User.where("users.created_at < ?", 14.days.ago).limit(100).order("random()")
+
+  number.times do
+    sender = users.sample
+    recipient = users.sample
+
+    next if sender == recipient
+
+    dm_obj = Dmail.create_split(
+      from_id: sender.id,
+      to_id: recipient.id,
+      title: Faker::Hipster.sentence(word_count: rand(3..10)),
+      body: Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false),
+      bypass_limits: true,
+    )
+
+    puts "  - DM ##{dm_obj.id} from #{sender.name} to #{recipient.name}"
+
+    unless dm_obj.valid?
+      puts "    #{dm_obj.errors.full_messages.join('; ')}"
+    end
+  end
+end
+
 puts "Populating the Database"
 CurrentUser.user = User.find(1)
 CurrentUser.ip_addr = "127.0.0.1"
@@ -337,8 +409,10 @@ fill_avatars(users, posts)
 
 populate_posts(FURIDS, search: "furid_(e621)") if FURIDS
 
-populate_comments(COMMENTS, users: users)
+comments = populate_comments(COMMENTS, users: users)
 populate_favorites(FAVORITES, users: users)
 populate_forums(FORUMS, users: users)
 populate_post_votes(POSTVOTES, users: users, posts: posts)
+populate_comment_votes(COMVOTES, users: users, comments: comments)
 populate_pools(POOLS, posts: posts)
+populate_dmails(DMAILS)

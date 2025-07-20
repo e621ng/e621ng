@@ -34,3 +34,10 @@ en:
       user_feedback:
         creator: "You"
         creator_id: "You"
+    errors:
+      models:
+        ticket:
+          attributes:
+            report_reason:
+              format: "%{message}"
+              blank: "Select a category for this ticket"

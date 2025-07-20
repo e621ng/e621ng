@@ -1,4 +1,15 @@
-<div class="ui-corner-all ui-state-highlight site-notice" id="dmail-notice" data-id="<%= CurrentUser.dmails.unread.first.id %>">
-  <h1>You have <%= link_to "unread mail", dmails_path(:search => {:owner_id => CurrentUser.id, :to_id => CurrentUser.id}, :folder => "received") %>.</h1>
-  <p><%= link_to "Close this", "#", :id => "hide-dmail-notice" %></p>
+<div class="dmail-notice">
+  <a href="<%= dmails_path(:search => { :to_id => CurrentUser.id }, :folder => "received") %>" class="dmail-notice-body">
+    <%= svg_icon(:mail, class: "dmail-notice-icon dmail-notice-highlight") %>
+    <span class="dmail-notice-text">
+      <% if CurrentUser.user.unread_dmail_count > 1 %>
+        You have <span class="dmail-notice-highlight"><%= CurrentUser.user.unread_dmail_count %></span> unread messages.
+      <% else %>
+        You have <span class="dmail-notice-highlight">unread mail</span>.
+      <% end %>
+    </span>
+  </a>
+  <button class="dmail-notice-hide">
+    <%= svg_icon(:times) %>
+  </button>
 </div>

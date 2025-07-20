@@ -11,7 +11,7 @@ class DTextTest < ActiveSupport::TestCase
   context "APNG inspector" do
     should "correctly parse normal APNG file" do
       apng = inspect('normal_apng.png')
-      assert_equal(3, apng.frames)
+      assert_equal(14, apng.frames)
       assert_equal(true, apng.animated?)
       assert_equal(false, apng.corrupted?)
     end

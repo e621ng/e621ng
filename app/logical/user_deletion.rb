@@ -18,7 +18,7 @@ class UserDeletion
     clear_user_settings
     reset_password
     create_mod_action
-    UserDeletionJob.perform_later(user.id)
+    FlushFavoritesJob.perform_later(user.id)
   end
 
   private

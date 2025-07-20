@@ -2,11 +2,6 @@
 table.striped {
   width: 100%;
 
-  // DText formatting fix
-  *:last-child {
-    margin: 0;
-  }
-
   td, th {
     padding: 4px 6px;
   }

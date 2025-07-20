@@ -37,7 +37,7 @@
   </div>
   <% end %>
   <div class="quick-mod-group">
-    <%= link_to "Delete", confirm_delete_moderator_post_post_path(id: post.id), class: "button btn-neutral btn-important" %>
+    <%= link_to "Delete", confirm_delete_moderator_post_post_path(id: post.id, q: params[:q]), class: "button btn-neutral btn-important" %>
     |
     <%= link_to "Artistic", "#", class: "delete-with-reason-link button btn-neutral", data: { prompt: "artistic standards", reason: "Does not meet minimum quality standards (Artistic)", post_id: post.id } %> &bull;
     <%= link_to "Human", "#", class: "delete-with-reason-link button btn-neutral", data: { prompt: "being human only", reason: "Irrelevant to site (Human only)", post_id: post.id } %> &bull;

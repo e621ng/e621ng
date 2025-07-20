@@ -49,6 +49,6 @@ class ForumPostVotesController < ApplicationController
   end
 
   def ensure_lockdown_disabled
-    access_denied if Security::Lockdown.votes_disabled? && !CurrentUser.is_staff?
+    render_expected_error(403, "Votes are disabled") if Security::Lockdown.votes_disabled? && !CurrentUser.is_staff?
   end
 end

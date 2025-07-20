@@ -1,6 +1,8 @@
-<%= tag.video(id: "image", class: post.display_class_for(CurrentUser.user), loop: "true", controls: "controls", poster: post.large_file_url) do %>
-  <%= tag.source(src: post.file_url_ext_for(CurrentUser.user, "webm"), type: "video/webm") %>
-  <%= tag.source(src: post.file_url_ext_for(CurrentUser.user, "mp4"), type: "video/mp4") %>
+<%= tag.video(id: "image", class: post.display_class_for, loop: "true", controls: "controls") do %>
+  <% post.initial_video_urls.each do |video| %>
+    <%= tag.source(src: video[:url], type: video[:codec]) %>
+  <% end %>
+  Playback not available in your browser.
 <% end %>
 
 <%= javascript_tag nonce: true do -%>

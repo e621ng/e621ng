@@ -13,6 +13,17 @@ class PostReplacement < ApplicationRecord
   validate :set_file_name, on: :create
   validate :fetch_source_file, on: :create
   validate :update_file_attributes, on: :create
+  validate :reason, on: :create do
+    next if status == "original"
+
+    # ensure reason is not blank or disallowed
+    if reason.to_s.strip.squeeze(" ").casecmp("Backup of original file") == 0
+      errors.add(:base, "You cannot use 'Backup of original file' as a reason.")
+    end
+    if reason.to_s.strip.blank?
+      errors.add(:base, "You must provide a reason.")
+    end
+  end
   validate on: :create do |replacement|
     FileValidator.new(replacement, replacement_file.path).validate
     throw :abort if errors.any?
@@ -22,6 +33,7 @@ class PostReplacement < ApplicationRecord
   validates :reason, length: { in: 5..150 }, presence: true, on: :create
 
   before_create :create_original_backup
+  before_create :set_previous_uploader
   after_create -> { post.update_index }
   before_destroy :remove_files
   after_destroy -> { post.update_index }
@@ -77,7 +89,7 @@ class PostReplacement < ApplicationRecord
 
   def sequence_number
     return 0 if status == "original"
-    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids.reverse
+    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids
     1 + siblings.index(id)
   end
 
@@ -161,10 +173,7 @@ class PostReplacement < ApplicationRecord
     def write_storage_file
       self.storage_id = SecureRandom.hex(16)
       Danbooru.config.storage_manager.store_replacement(replacement_file, self, :original)
-      thumbnail_file = PostThumbnailer.generate_thumbnail(replacement_file, is_video? ? :video : :image)
-      Danbooru.config.storage_manager.store_replacement(thumbnail_file, self, :preview)
-    ensure
-      thumbnail_file.try(:close!)
+      ImageSampler.generate_replacement_images(self)
     end
 
     def replacement_file_path
@@ -192,9 +201,13 @@ class PostReplacement < ApplicationRecord
 
   module ProcessingMethods
     def approve!(penalize_current_uploader:)
-      unless %w[pending original].include? status
-        errors.add(:status, "must be pending or original to approve")
+      if is_current? || is_promoted?
+        errors.add(:status, "version is already active")
         return
+      end
+
+      if is_rejected? # We need to undo the rejection count
+        UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count - 1")
       end
 
       processor = UploadService::Replacer.new(post: post, replacement: self)
@@ -209,6 +222,9 @@ class PostReplacement < ApplicationRecord
         return
       end
 
+      # Record the change in a PostEvent
+      PostEvent.add(post.id, CurrentUser.user, :replacement_penalty_changed, { replacement_id: id, penalize: !penalize_uploader_on_approve })
+
       if penalize_uploader_on_approve
         UserStatus.for_user(uploader_on_approve).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count - 1")
       else
@@ -218,7 +234,7 @@ class PostReplacement < ApplicationRecord
     end
 
     def promote!
-      if status != "pending"
+      unless %w[rejected pending].include?(status) || (is_approved? && !is_current?)
         errors.add(:status, "must be pending to promote")
         return
       end
@@ -228,6 +244,7 @@ class PostReplacement < ApplicationRecord
         new_upload = processor.start!
         if new_upload.valid? && new_upload.post&.valid?
           update_attribute(:status, "promoted")
+          update_attribute(:approver_id, CurrentUser.user.id)
           PostEvent.add(new_upload.post.id, CurrentUser.user, :replacement_promoted, { source_post_id: post.id })
         end
         new_upload
@@ -244,6 +261,7 @@ class PostReplacement < ApplicationRecord
 
       PostEvent.add(post.id, CurrentUser.user, :replacement_rejected, { replacement_id: id })
       update_attribute(:status, "rejected")
+      update_attribute(:approver_id, CurrentUser.user.id)
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index
     end
@@ -264,11 +282,12 @@ class PostReplacement < ApplicationRecord
         source: post.source,
         reason: "Backup of original file",
         is_backup: true,
+        approver_id: post.approver_id,
       )
 
       begin
         backup.replacement_file = Danbooru.config.storage_manager.open(
-          Danbooru.config.storage_manager.file_path(post, post.file_ext, :original),
+          Danbooru.config.storage_manager.post_file_path(post),
         )
       rescue StandardError => e
         raise ProcessingError, "Failed to create backup: #{e.message}"
@@ -313,6 +332,27 @@ class PostReplacement < ApplicationRecord
 
         if params[:post_id].present?
           q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
+        end
+
+        if params[:reason].present?
+          q = q.attribute_matches(:reason, params[:reason])
+        end
+
+        if params[:penalized].to_s.truthy?
+          q = q.where("penalize_uploader_on_approve IS true")
+        elsif params[:penalized].to_s.falsy?
+          q = q.where("penalize_uploader_on_approve IS false")
+        end
+
+        if params[:source].present?
+          url_query = params[:source].strip
+          url_query = "*#{url_query}*" if params[:source].exclude?("*")
+          # prefer 'ilike %#{url_query}%', but it doesn't work with `where_ilike`?
+          q = q.where_ilike(:source, url_query)
+        end
+
+        if params[:file_name].present?
+          q = q.attribute_matches(:file_name, params[:file_name])
         end
 
         direction = params[:order] == "id_asc" ? "ASC" : "DESC"
@@ -361,12 +401,58 @@ class PostReplacement < ApplicationRecord
     end
   end
 
+  def set_previous_uploader
+    return if uploader_id_on_approve.present?
+    uploader = post.uploader_id
+    if uploader == creator_id
+      self.penalize_uploader_on_approve = false
+    end
+    self.uploader_on_approve = User.find_by(id: uploader)
+  end
+
   def original_file_visible_to?(user)
     user.is_janitor?
   end
 
   def upload_as_pending?
     as_pending.to_s.truthy?
+  end
+
+  def is_current?
+    md5 == post.md5
+  end
+
+  def is_pending?
+    status == "pending"
+  end
+
+  def is_backup?
+    status == "original"
+  end
+
+  def is_approved?
+    status == "approved"
+  end
+
+  def is_rejected?
+    status == "rejected"
+  end
+
+  def is_promoted?
+    status == "promoted"
+  end
+
+  def is_retired?
+    status == "approved" && !is_current?
+  end
+
+  def promoted_id
+    return nil unless is_promoted?
+    if post.has_children?
+      id = post.children.where(md5: md5)&.first&.id
+    end
+    return id unless id.nil?
+    Post.find_by(md5: md5)&.id
   end
 
   include ApiMethods

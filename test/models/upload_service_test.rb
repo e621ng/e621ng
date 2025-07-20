@@ -58,130 +58,6 @@ class UploadServiceTest < ActiveSupport::TestCase
         end
       end
     end
-
-    context ".generate_resizes" do
-      context "for a video" do
-        context "for a webm" do
-          setup do
-            @file = file_fixture("test-512x512.webm").open
-            @upload = UploadService.new(attributes_for(:upload).merge(file: @file, uploader: @user)).start!
-          end
-
-          teardown do
-            @file.close
-          end
-
-          should "generate a video" do
-            preview, crop, sample = subject.generate_resizes(@file, @upload)
-            assert_operator(File.size(preview.path), :>, 0)
-            assert_operator(File.size(crop.path), :>, 0)
-            preview_image = Vips::Image.new_from_file(preview.path)
-            crop_image = Vips::Image.new_from_file(crop.path)
-            assert_equal(150, preview_image.width)
-            assert_equal(150, preview_image.height)
-            assert_equal(150, crop_image.width)
-            assert_equal(150, crop_image.height)
-            preview.close
-            preview.unlink
-            crop.close
-            crop.unlink
-          end
-        end
-      end
-
-      context "for an image" do
-        teardown do
-          @file.close
-        end
-
-        setup do
-          @upload = mock
-          @upload.stubs(:is_video?).returns(false)
-          @upload.stubs(:is_image?).returns(true)
-          @upload.stubs(:image_width).returns(1200)
-          @upload.stubs(:image_height).returns(200)
-        end
-
-        context "for a jpeg" do
-          setup do
-            @file = file_fixture("test.jpg").open
-          end
-
-          should "generate a preview" do
-            preview, crop, sample = subject.generate_resizes(@file, @upload)
-            assert_operator(File.size(preview.path), :>, 0)
-            assert_operator(File.size(crop.path), :>, 0)
-            assert_operator(File.size(sample.path), :>, 0)
-            preview.close
-            preview.unlink
-            sample.close
-            sample.unlink
-          end
-        end
-
-        context "for a png" do
-          setup do
-            @file = file_fixture("test.png").open
-          end
-
-          should "generate a preview" do
-            preview, crop, sample = subject.generate_resizes(@file, @upload)
-            assert_operator(File.size(preview.path), :>, 0)
-            assert_operator(File.size(crop.path), :>, 0)
-            assert_operator(File.size(sample.path), :>, 0)
-            preview.close
-            preview.unlink
-            sample.close
-            sample.unlink
-          end
-        end
-
-        context "for a gif" do
-          setup do
-            @file = file_fixture("test.gif").open
-          end
-
-          should "generate a preview" do
-            preview, crop, sample = subject.generate_resizes(@file, @upload)
-            assert_operator(File.size(preview.path), :>, 0)
-            assert_operator(File.size(crop.path), :>, 0)
-            assert_operator(File.size(sample.path), :>, 0)
-            preview.close
-            preview.unlink
-            sample.close
-            sample.unlink
-          end
-        end
-      end
-    end
-
-    context ".generate_video_preview_for" do
-      context "for an mp4" do
-        setup do
-          @path = file_fixture("test-300x300.mp4").to_s
-        end
-
-        should "generate a video" do
-          sample = PostThumbnailer.generate_video_preview_for(@path, 100)
-          assert_operator(File.size(sample.path), :>, 0)
-          sample.close
-          sample.unlink
-        end
-      end
-
-      context "for a webm" do
-        setup do
-          @path = file_fixture("test-512x512.webm").to_s
-        end
-
-        should "generate a video" do
-          sample = PostThumbnailer.generate_video_preview_for(@path, 100)
-          assert_operator(File.size(sample.path), :>, 0)
-          sample.close
-          sample.unlink
-        end
-      end
-    end
   end
 
   context "#start!" do
@@ -195,19 +71,19 @@ class UploadServiceTest < ActiveSupport::TestCase
 
     context "automatic tagging" do
       should "tag animated png files" do
-        service = @build_service.call(file: fixture_file_upload("apng/normal_apng.png"))
+        service = @build_service.call(file: fixture_file_upload("bread-animated.png"))
         upload = service.start!
         assert_match(/animated_png/, upload.tag_string)
       end
 
       should "tag animated gif files" do
-        service = @build_service.call(file: fixture_file_upload("test-animated-86x52.gif"))
+        service = @build_service.call(file: fixture_file_upload("bread-animated.gif"))
         upload = service.start!
         assert_match(/animated_gif/, upload.tag_string)
       end
 
       should "not tag static gif files" do
-        service = @build_service.call(file: fixture_file_upload("test-static-32x32.gif"))
+        service = @build_service.call(file: fixture_file_upload("bread-static.gif"))
         upload = service.start!
         assert_no_match(/animated_gif/, upload.tag_string)
       end
@@ -222,6 +98,18 @@ class UploadServiceTest < ActiveSupport::TestCase
         service = @build_service.call(file: fixture_file_upload("test-large.jpg"))
         upload = service.start!
         assert_match(/image resolution is too large/, upload.status)
+      end
+    end
+
+    context "that is too small" do
+      setup do
+        Danbooru.config.stubs(:max_image_resolution).returns(31 * 31)
+      end
+
+      should "should fail validation" do
+        service = @build_service.call(file: fixture_file_upload("bread-small.png"))
+        upload = service.start!
+        assert_match(/Image width is too small/, upload.status)
       end
     end
 

@@ -4,7 +4,15 @@
   flex-wrap: wrap;
 
   .post-search-title { flex: 1; }
-  .post-search-help { font-size: 90%; }
+  .post-search-help {
+    font-size: 90%;
+
+    // Make way for the settings button
+    margin-right: 2.5rem;
+    @include window-larger-than(50rem) {
+      margin-right: unset;
+    }
+  }
 
   form.post-search-form {
     display: flex;

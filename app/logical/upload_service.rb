@@ -62,7 +62,6 @@ class UploadService
       p.uploader_id = upload.uploader_id
       p.uploader_ip_addr = upload.uploader_ip_addr
       p.parent_id = upload.parent_id
-      p.has_cropped = upload.is_image?
       p.duration = upload.video_duration(upload.file.path)
 
       if !upload.uploader.can_upload_free? || (!upload.uploader.can_approve_posts? && p.avoid_posting_artists.any?) || upload.upload_as_pending?

@@ -26,17 +26,6 @@ class PostsDecorator < ApplicationDecorator
     { data: object.thumbnail_attributes }
   end
 
-  def cropped_url(options)
-    cropped_url = if Danbooru.config.enable_image_cropping? && options[:show_cropped] && object.has_cropped? && !CurrentUser.user.disable_cropped_thumbnails?
-                    object.crop_file_url
-                  else
-                    object.preview_file_url
-                  end
-
-    cropped_url = Danbooru.config.deleted_preview_url if object.deleteblocked?
-    cropped_url
-  end
-
   def score_class(score)
     return "score-neutral" if score == 0
     score > 0 ? "score-positive" : "score-negative"
@@ -97,30 +86,15 @@ class PostsDecorator < ApplicationDecorator
     end
     tooltip += "\n\n#{post.tag_string}"
 
-    cropped_url = if Danbooru.config.enable_image_cropping? &&
-                     options[:show_cropped] && post.has_cropped? &&
-                     !CurrentUser.user.disable_cropped_thumbnails?
-                    post.crop_file_url
-                  else
-                    post.preview_file_url
-                  end
-
-    cropped_url = Danbooru.config.deleted_preview_url if post.deleteblocked?
-    preview_url = if post.deleteblocked?
-                    Danbooru.config.deleted_preview_url
-                  else
-                    post.preview_file_url
-                  end
+    preview_url = preview_file_url_pair
 
     alt_text = "post ##{post.id}"
 
-    has_cropped = post.has_cropped?
-
     img_contents = template.link_to template.polymorphic_path(link_target, link_params) do
       template.tag.picture do
-        template.concat template.tag.source media: "(max-width: 800px)", srcset: cropped_url
-        template.concat template.tag.source media: "(min-width: 800px)", srcset: preview_url
-        template.concat template.tag.img class: "has-cropped-#{has_cropped}", src: preview_url, title: tooltip, alt: alt_text
+        template.concat template.tag.source type: "image/webp", srcset: preview_url[0] if Danbooru.config.webp_previews_enabled?
+        template.concat template.tag.source type: "image/jpeg", srcset: preview_url[1]
+        template.concat template.tag.img src: preview_url[1], title: tooltip, alt: alt_text
       end
     end
     desc_contents = options[:stats] ? stats_section(template) : "".html_safe

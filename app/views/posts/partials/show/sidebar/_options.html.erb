@@ -34,7 +34,7 @@
             <li><%= link_to "Move favorites", confirm_move_favorites_moderator_post_post_path(post) %></li>
           <% end %>
         <% else %>
-          <li><%= link_to "Delete", confirm_delete_moderator_post_post_path(post) %></li>
+          <li><%= link_to "Delete", confirm_delete_moderator_post_post_path(post, q: params[:q]) %></li>
         <% end %>
 
         <% if post.is_approvable? %>

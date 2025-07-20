@@ -124,7 +124,8 @@ class PostVersion < ApplicationRecord
   end
 
   def diff(version = nil)
-    latest_tags = post.tag_array + parent_rating_tags(post)
+    # There is precisely one orphaned post version, but better safe than sorry.
+    latest_tags = post.nil? ? tag_array : post.tag_array + parent_rating_tags(post)
 
     new_tags = tag_array + parent_rating_tags(self)
 
@@ -167,6 +168,9 @@ class PostVersion < ApplicationRecord
       obsolete_added_tags: [],
       unchanged_tags: [],
     }
+
+    # There is precisely one orphaned post version, but better safe than sorry.
+    return delta if post.nil?
 
     latest_tags = post.tag_array
     latest_tags << "rating:#{post.rating}" if post.rating.present?

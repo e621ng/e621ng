@@ -1,15 +1,13 @@
 # frozen_string_literal: true
 
-class UserDeletionJob < ApplicationJob
+# This job is used to remove all of the user's favorites.
+# It is intended to be run when a user is deleted or when they request to clear their favorites.
+class FlushFavoritesJob < ApplicationJob
   queue_as :low_prio
 
   def perform(*args)
     user = User.find(args[0])
 
-    remove_favorites(user)
-  end
-
-  def remove_favorites(user)
     Favorite.without_timeout do
       Favorite.for_user(user.id).includes(:post).find_each do |fav|
         tries = 5

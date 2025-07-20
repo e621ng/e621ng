@@ -93,13 +93,13 @@ class StorageManager::Match < StorageManager
 
   def file_url(post, type, **)
     find(id: post.id, type: type) do |manager|
-      manager.file_url(post, type, **)
+      manager.file_url(post.md5, type, **)
     end
   end
 
   def file_path(post, file_ext, type, **)
     find(id: post.id, type: type) do |manager|
-      manager.file_path(post, file_ext, type, **)
+      manager.file_path(post.md5, file_ext, type, **)
     end
   end
 end

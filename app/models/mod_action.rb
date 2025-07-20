@@ -85,6 +85,7 @@ class ModAction < ApplicationRecord
     user_feedback_delete: { user_id: :integer, reason: :string, reason_was: :string, type: :string, type_was: :string, record_id: :integer },
     user_feedback_undelete: { user_id: :integer, reason: :string, reason_was: :string, type: :string, type_was: :string, record_id: :integer },
     user_feedback_destroy: { user_id: :integer, reason: :string, type: :string, record_id: :integer },
+    user_flush_favorites: { user_id: :integer },
     wiki_page_rename: { new_title: :string, old_title: :string },
     wiki_page_delete: { wiki_page: :string, wiki_page_id: :integer },
     wiki_page_lock: { wiki_page: :string },

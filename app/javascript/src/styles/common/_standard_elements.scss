@@ -24,6 +24,7 @@
   padding: math.div(st-value(100), 2);
   height: st-value(100) * 2;
   box-sizing: border-box;
+  justify-content: center;
 
   // TODO What if button is on a light background
   background: $button-background;
@@ -39,6 +40,7 @@
     padding: math.div(st-value(100), 4);       // 0.25rem
 
     border-radius: radius(025);
+    pointer-events: none; // Simplifies event targetting
   }
   & > span {
     text-align: left;
@@ -66,6 +68,11 @@
   &.icon {
     padding: math.div(st-value(100), 2) 0;
   }
+
+  &.active {
+    background-color: themed("color-link-active");
+    color: palette("plain-black");
+  }
 }
 
 
@@ -74,6 +81,13 @@
   background: palette("background-red");
   &:hover, &:active {
     background: palette("background-red-d5")
+  }
+}
+.st-button.submit {
+  background: themed("color-tag-artist");
+  color: palette("plain-black");
+  &:hover, &:active {
+    background: themed("color-tag-artist-alt");
   }
 }
 
@@ -129,5 +143,98 @@ input[type="checkbox"].st-toggle:checked + label.st-toggle {
     content: "";
     left: 1.5rem;
     background: themed("color-link-active");
+  }
+}
+
+
+
+// Toggle with text
+label.sto-toggle {
+
+  display: flex;
+  width: 100%;
+  height: 1.5rem;
+  box-sizing: border-box;
+  position: relative;
+
+  cursor: pointer;
+  @include st-radius;
+  background-color: themed("color-section-darken-5");
+  font-size: 1rem;
+  line-height: 1rem;
+
+  align-items: center;
+  text-align: center;
+  font-weight: normal;
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+
+  &::after {
+    content: "";
+    width: 50%;
+    height: 1.5rem;
+    position: absolute;
+    top: 0rem;
+    left: 0rem;
+
+    background: themed("color-link-active");
+    @include st-radius;
+    transition: left 100ms;
+  }
+
+  .sto-on, .sto-off {
+    width: 50%;
+    z-index: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .sto-off { color: palette("plain-black"); }
+  .sto-on { color: themed("color-text");}
+}
+input[type="checkbox"].sto-toggle { display: none; }
+input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
+  .sto-off { color: themed("color-text");}
+  .sto-on { color: palette("plain-black"); }
+  &::after {
+    content: "";
+    left: 50%;
+  }
+}
+
+
+
+// Radio toggle
+.stm-toggle {
+  display: grid;
+  grid-template-columns: auto;
+
+  input[type="radio"] { display: none; }
+  label {
+    display: flex;
+    gap: 0.25rem;
+
+    background: themed("color-section-darken-5");
+    padding: 0.25rem 0.5rem;
+
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-weight: normal;
+    line-height: 1rem;
+    font-size: 1rem;
+
+    user-select: none;
+    cursor: pointer;
+
+    &:first-of-type { @include st-radius-top;}
+    &:last-of-type { @include st-radius-bottom;}
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+  input[type="radio"]:checked + label {
+    background: themed("color-link-active");
+    color: palette("plain-black");
+    @include st-radius;
   }
 }

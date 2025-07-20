@@ -148,6 +148,8 @@ class ModActionDecorator < ApplicationDecorator
       "#{vals['disabled'] ? 'Disabled' : 'Enabled'} uploading for #{user}"
     when "user_name_change"
       "Changed name of #{user}"
+    when "user_flush_favorites"
+      "Cleared favorites of #{user}"
 
       ### User Record ###
 

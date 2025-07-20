@@ -8,15 +8,15 @@
 
   <%= render "layouts/nav" %>
 
+  <% if CurrentUser.has_mail? && cookies[:hide_dmail_notice] != "true" %>
+    <%= render "users/dmail_notice" %>
+  <% end %>
+
   <div id="page">
     <%= render "news_updates/notice", news_update: NewsUpdate.recent %>
 
     <% if CurrentUser.user.is_banned? %>
       <%= render "users/ban_notice" %>
-    <% end %>
-
-    <% if CurrentUser.has_mail? && CurrentUser.dmails.unread.first.present? && (cookies[:hide_dmail_notice].blank? || cookies[:hide_dmail_notice].to_i < CurrentUser.dmails.unread.first.id) %>
-      <%= render "users/dmail_notice" %>
     <% end %>
 
     <% if !CurrentUser.is_anonymous? && !CurrentUser.is_verified? %>
@@ -37,6 +37,9 @@
   <%= render "static/footer" %>
   <% if Danbooru.config.enable_visitor_metrics? %>
     <%= javascript_include_tag "https://plausible.dragonfru.it/js/script.js", nonce: true, async: true, data: { domain: Danbooru.config.domain } %>
+  <% end %>
+  <% if Danbooru.config.fsc_modal_enabled? %>
+    <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js"></script>
   <% end %>
   <%= render "static/deferred_posts" %>
 <% end %>

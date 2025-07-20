@@ -59,12 +59,17 @@ def setup_upload_whitelist
   end
 end
 
+def setup_report_reasons
+  PostReportReason.create!(reason: "Malicious File", description: "The file contains either malicious code or contains a hidden file archive. This is not for imagery depicted in the image itself.")
+end
+
 unless Rails.env.test?
   CurrentUser.user = admin
   CurrentUser.ip_addr = "127.0.0.1"
   begin
     import_mascots
     setup_upload_whitelist
+    setup_report_reasons
   rescue StandardError => e
     puts "--------"
     puts "#{e.class}: #{e.message}"
