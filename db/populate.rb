@@ -5,45 +5,79 @@
 
 require "faker"
 
+DEFAULT_PRESET = {
+  users: 10,
+  posts: 100,
+  comments: 100,
+  favorites: 100,
+  forum_posts: 10,
+  forum_topics: 5,
+  post_votes: 100,
+  pools: 50,
+  posts_per_pool: 5,
+}.freeze
+SMALL_PRESET = {
+  users: 5,
+  posts: 50,
+  comments: 50,
+  favorites: 50,
+  forum_posts: 20,
+  forum_topics: 5,
+  post_votes: 50,
+  pools: 25,
+  posts_per_pool: 10,
+}.freeze
+LARGE_PRESET = {
+  users: 20,
+  posts: 200,
+  comments: 200,
+  favorites: 200,
+  forum_posts: 30,
+  forum_topics: 10,
+  post_votes: 200,
+  pools: 100,
+  posts_per_pool: 20,
+}.freeze
+
 # Environmental variables that govern how much content to generate
-presets = {
-  users: ENV.fetch("USERS", 0).to_i,
-  posts: ENV.fetch("POSTS", 0).to_i,
-  comments: ENV.fetch("COMMENTS", 0).to_i,
-  favorites: ENV.fetch("FAVORITES", 0).to_i,
-  forums: ENV.fetch("FORUMS", 0).to_i,
-  postvotes: ENV.fetch("POSTVOTES", 0).to_i,
-  commentvotes: ENV.fetch("COMVOTES", 0).to_i,
-  pools: ENV.fetch("POOLS", 0).to_i,
-  furids: ENV.fetch("FURIDS", 0).to_i,
-  dmails: ENV.fetch("DM", 0).to_i,
-}
+populate_preset = ENV.fetch("PRESET", nil)
+presets = {}
+case populate_preset.to_s
+when "DEFAULT"
+  puts "Loading DEFAULT preset..."
+  presets.merge!(DEFAULT_PRESET)
+when "SMALL"
+  puts "Loading SMALL preset..."
+  presets.merge!(SMALL_PRESET)
+when "LARGE"
+  puts "Loading LARGE preset..."
+  presets.merge!(LARGE_PRESET)
+else
+  puts "No preset selected..."
+end
+preset[:users] = ENV["USERS"].to_i if ENV["USERS"]
+preset[:posts] = ENV["POSTS"].to_i if ENV["POSTS"]
+preset[:comments] = ENV["COMMENTS"].to_i if ENV["COMMENTS"]
+preset[:favorites] = ENV["FAVORITES"].to_i if ENV["FAVORITES"]
+preset[:forum_posts] = (ENV["FORUMS"] || ENV["FORUM_POSTS"]).to_i if ENV["FORUMS"] || ENV["FORUM_POSTS"]
+preset[:forum_topics] = ENV["FORUM_TOPICS"].to_i if ENV["FORUM_TOPICS"]
+preset[:post_votes] = (ENV["POSTVOTES"] || ENV["POST_VOTES"]).to_i if ENV["POSTVOTES"] || ENV["POST_VOTES"]
+preset[:pools] = ENV["POOLS"].to_i if ENV["POOLS"]
+preset[:posts_per_pool] = ENV["POSTS_PER_POOL"].to_i if ENV["POSTS_PER_POOL"]
 if presets.values.sum == 0
   puts "DEFAULTS"
-  presets = {
-    users: 10,
-    posts: 100,
-    comments: 100,
-    favorites: 100,
-    forums: 100,
-    postvotes: 100,
-    commentvotes: 100,
-    pools: 100,
-    furids: 0,
-    dmails: 0,
-  }
+  presets.merge!(DEFAULT_PRESET)
 end
 
-USERS     = presets[:users]
-POSTS     = presets[:posts]
-COMMENTS  = presets[:comments]
-FAVORITES = presets[:favorites]
-FORUMS    = presets[:forums]
-POSTVOTES = presets[:postvotes]
-COMVOTES  = presets[:commentvotes]
-POOLS     = presets[:pools]
-FURIDS    = presets[:furids]
-DMAILS    = presets[:dmails]
+USERS          = presets[:users]
+POSTS          = presets[:posts]
+COMMENTS       = presets[:comments]
+FAVORITES      = presets[:favorites]
+FORUM_POSTS    = presets[:forum_posts]
+FORUM_TOPICS   = presets[:forum_topics]
+POST_VOTES     = presets[:post_votes]
+POOLS          = presets[:pools]
+POSTS_PER_POOL = presets[:pools]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
@@ -102,7 +136,7 @@ def generate_username
   @username
 end
 
-def populate_posts(number, search: "order:random+score:>150+-grandfathered_content", users: [], batch_size: 320)
+def populate_posts(number, users: [], batch_size: 320)
   return [] unless number > 0
   puts "* Creating #{number} posts"
 
@@ -110,27 +144,11 @@ def populate_posts(number, search: "order:random+score:>150+-grandfathered_conte
   users = User.where("users.created_at < ?", 7.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
   output = []
 
-  seed = Faker::Number.within(range: 100_000..100_000_000)
-  puts "  Seed #{seed}"
+  # Generate posts in batches of 200 (by default)
+  number.times.each_slice(batch_size).map(&:size).each do |count|
+    posts = api_request("/posts.json?tags=rating:s+order:random+score:>250+-grandfathered_content+#{ENV['SEARCH_STRING']}&limit=#{count}")["posts"] # rubocop:disable Style/FetchEnvVar
 
-  total = 0
-  skipped = 0
-  page = 1
-
-  while total < number
-    posts = api_request("/posts.json?tags=#{search}+-young+-type:swf+randseed:#{seed}&limit=#{batch_size}&page=#{page + 1}")["posts"]
-    if posts&.length != batch_size
-      puts "  End of Content"
-      break
-    end
-
-    imported = posts.reject do |post|
-      Post.where(md5: post["file"]["md5"]).exists?
-    end
-
-    puts "  Page #{page}, skipped #{skipped}"
-
-    imported.each do |post|
+    posts.each do |post|
       post["tags"].each do |category, tags|
         Tag.find_or_create_by_name_list(tags.map { |tag| "#{category}:#{tag}" })
       end
@@ -145,24 +163,16 @@ def populate_posts(number, search: "order:random+score:>150+-grandfathered_conte
       end
 
       if @upload.invalid? || @upload.post.nil?
-        puts "    invalid: #{@upload.errors.full_messages.join('; ')}"
+        puts "    #{@upload.errors.full_messages.join('; ')}"
       else
         puts "    post: ##{@upload.post.id}"
         CurrentUser.scoped(admin) do
           @upload.post.approve!
         end
-
-        total += 1
         output << @upload.post
       end
-
-      break if total >= number
     end
-
-    page += 1
   end
-
-  puts "  Created #{total}, skipped #{skipped} posts from #{page - 1} pages"
 
   output
 end
@@ -195,9 +205,8 @@ def fill_avatars(users = [], posts = [])
 end
 
 def populate_comments(number, users: [])
-  return [] unless number > 0
+  return unless number > 0
   puts "* Creating #{number} comments"
-  output = []
 
   users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
   posts = Post.limit(DISTRIBUTION).order("random()")
@@ -215,10 +224,7 @@ def populate_comments(number, users: [])
     end
 
     puts "  - ##{comment_obj.id} by #{CurrentUser.user.name}"
-    output << comment_obj if comment_obj.valid?
   end
-
-  output
 end
 
 def populate_favorites(number, users: [])
@@ -243,56 +249,56 @@ def populate_favorites(number, users: [])
   end
 end
 
-def populate_forums(number, users: [])
-  return unless number > 0
-  number -= 1 # Accounts for the first post in the thread
-  puts "* Creating a topic with #{number} replies"
+def populate_forums(num_posts, num_topics = 1, users: [])
+  return unless num_posts > 0 && num_topics > 0
+  num_posts -= num_topics # Accounts for the first post in each thread
+  puts "* Creating #{num_topics} topic(s) with #{num_posts} replies each"
 
   users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
 
-  category = ForumCategory.find_or_create_by!(name: "General") do |cat|
-    cat.can_view = 0
-  end
+  num_topics.times do
+    category = ForumCategory.find_or_create_by!(name: "General") { |cat| cat.can_view = 0 }
 
-  CurrentUser.user = users.sample
-  CurrentUser.ip_addr = "127.0.0.1"
-  forum_topic = ForumTopic.create do |topic|
-    topic.creator = CurrentUser.user
-    topic.creator_ip_addr = "127.0.0.1"
-    topic.title = Faker::Lorem.sentence(word_count: 3, supplemental: true, random_words_to_add: 4)
-    topic.category = category
-    topic.original_post_attributes = {
-      creator: CurrentUser.user,
-      body: Faker::Lorem.paragraphs.join("\n\n"),
-    }
-  end
-
-  puts "  topic ##{forum_topic.id} by #{CurrentUser.user.name}"
-
-  unless forum_topic.valid?
-    puts "  #{forum_topic.errors.full_messages.join('; ')}"
-  end
-
-  number.times do
     CurrentUser.user = users.sample
-
-    forum_post = ForumPost.create do |post|
-      post.creator = CurrentUser.user
-      post.topic_id = forum_topic.id
-      post.body = Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false)
+    CurrentUser.ip_addr = "127.0.0.1"
+    forum_topic = ForumTopic.create do |topic|
+      topic.creator = CurrentUser.user
+      topic.creator_ip_addr = "127.0.0.1"
+      topic.title = Faker::Lorem.sentence(word_count: 3, supplemental: true, random_words_to_add: 4)
+      topic.category = category
+      topic.original_post_attributes = {
+        creator: CurrentUser.user,
+        body: Faker::Lorem.paragraphs.join("\n\n"),
+      }
     end
 
-    puts "  - #{CurrentUser.user.name} | forum post ##{forum_post.id}"
+    puts "  topic ##{forum_topic.id} by #{CurrentUser.user.name}"
 
-    unless forum_post.valid?
-      puts "    #{forum_post.errors.full_messages.join('; ')}"
+    unless forum_topic.valid?
+      puts "  #{forum_topic.errors.full_messages.join('; ')}"
+    end
+
+    num_posts.times do
+      CurrentUser.user = users.sample
+
+      forum_post = ForumPost.create do |post|
+        post.creator = CurrentUser.user
+        post.topic_id = forum_topic.id
+        post.body = Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false)
+      end
+
+      puts "  - #{CurrentUser.user.name} | forum post ##{forum_post.id}"
+
+      unless forum_post.valid?
+        puts "    #{forum_post.errors.full_messages.join('; ')}"
+      end
     end
   end
 end
 
 def populate_post_votes(number, users: [], posts: [])
   return unless number > 0
-  puts "* Generating post votes"
+  puts "* Generating votes"
 
   users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
   posts = Post.limit(100).order("random()") if posts.empty?
@@ -316,85 +322,28 @@ def populate_post_votes(number, users: [], posts: [])
   end
 end
 
-def populate_comment_votes(number, users: [], comments: [])
-  return unless number > 0
-  puts "* Generating comment votes"
+def populate_pools(num_pools, num_posts = 10, posts: [], users: [])
+  return unless num_pools > 0 && (num_posts > 0 || posts.present?)
+  puts "* Generating #{num_pools} pool#{num_pools > 1 ? 's' : ''}"
 
-  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
-  comments = Comment.limit(100).order("random()") if comments.empty?
-
-  number.times do
+  post_selection = posts.dup
+  # users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+  users = User.find(1) if users.empty?
+  num_pools.times do |i|
     CurrentUser.user = users.sample
-    comment = comments.sample
+    posts = post_selection.empty? ? Post.limit(num_posts).order("random()") : post_selection.sample(num_posts)
 
-    if comment.creator_id == CurrentUser.user.id
-      puts "    error: can't vote on your own comment"
-      next
-    elsif comment.is_sticky?
-      puts "    error: can't vote on a sticky comment"
-      next
+    pool_obj = Pool.create do |pool|
+      pool.name = Faker::Lorem.sentence
+      pool.category = i % 2 ? "collection" : "series"
+      pool.post_ids = posts.pluck(:id)
     end
+    puts pool_obj # TODO: Outputs a mem address instead of a stringified representation.
 
-    vote = VoteManager.comment_vote!(
-      user: CurrentUser.user,
-      comment: comment,
-      score: Faker::Boolean.boolean(true_ratio: 0.2) ? -1 : 1,
-    )
-
-    if vote == :need_unvote
-      puts "    error: #{vote}"
-      next
+    if pool_obj.errors.empty?
+      puts "  pool ##{pool_obj.id}"
     else
-      puts "    vote ##{vote.id} on comment ##{comment.id}"
-    end
-  end
-end
-
-def populate_pools(number, posts: [])
-  return unless number > 0
-  puts "* Generating pools"
-
-  CurrentUser.user = User.find(1)
-  posts = Post.limit(number).order("random()") if posts.empty?
-
-  pool_obj = Pool.create do |pool|
-    pool.name = Faker::Lorem.sentence
-    pool.category = "collection"
-    pool.post_ids = posts.pluck(:id)
-  end
-  puts pool_obj
-
-  if pool_obj.errors.empty?
-    puts "  pool ##{pool_obj.id}"
-  else
-    puts "    error: #{pool_obj.errors.full_messages.join('; ')}"
-  end
-end
-
-def populate_dmails(number)
-  return unless number > 0
-  puts "* Generating DMs"
-
-  users = User.where("users.created_at < ?", 14.days.ago).limit(100).order("random()")
-
-  number.times do
-    sender = users.sample
-    recipient = users.sample
-
-    next if sender == recipient
-
-    dm_obj = Dmail.create_split(
-      from_id: sender.id,
-      to_id: recipient.id,
-      title: Faker::Hipster.sentence(word_count: rand(3..10)),
-      body: Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false),
-      bypass_limits: true,
-    )
-
-    puts "  - DM ##{dm_obj.id} from #{sender.name} to #{recipient.name}"
-
-    unless dm_obj.valid?
-      puts "    #{dm_obj.errors.full_messages.join('; ')}"
+      puts "    error: #{pool_obj.errors.full_messages.join('; ')}"
     end
   end
 end
@@ -407,12 +356,8 @@ users = populate_users(USERS)
 posts = populate_posts(POSTS, users: users)
 fill_avatars(users, posts)
 
-populate_posts(FURIDS, search: "furid_(e621)") if FURIDS
-
-comments = populate_comments(COMMENTS, users: users)
+populate_comments(COMMENTS, users: users)
 populate_favorites(FAVORITES, users: users)
-populate_forums(FORUMS, users: users)
-populate_post_votes(POSTVOTES, users: users, posts: posts)
-populate_comment_votes(COMVOTES, users: users, comments: comments)
-populate_pools(POOLS, posts: posts)
-populate_dmails(DMAILS)
+populate_forums(FORUM_POSTS, FORUM_TOPICS, users: users)
+populate_post_votes(POST_VOTES, users: users, posts: posts)
+populate_pools(POOLS, POSTS_PER_POOL, posts: posts)
