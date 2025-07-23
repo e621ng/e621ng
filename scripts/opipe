@@ -1,6 +1,8 @@
 #! /usr/bin/env bash
 
-# cspell:ignore logfile jmor FEWC exitcode ABDG SIGCHLD SIGWINCH infocmp
+# Adds a progress bar to the Rails test runner that displays estimated time & tests remaining & current successful & failed tests.
+
+# cspell:ignore logfile FEWC exitcode ABDG SIGCHLD SIGWINCH infocmp
 
 # https://www.kylheku.com/cgit/basta/tree/basta.sh?id=7fbdc5a088c37bd24da5954474a189cd4c890dce
 # https://www.kylheku.com/cgit/basta/about/
