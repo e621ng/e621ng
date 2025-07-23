@@ -9,7 +9,7 @@ class UploadService
       @replacement = replacement
     end
 
-    def process!(penalize_current_uploader:)
+    def process!(penalize_current_uploader:,credit_replacer:)
       # Prevent trying to replace deleted posts
       raise ProcessingError, "Cannot replace post: post is deleted." if post.is_deleted?
 
@@ -59,8 +59,10 @@ class UploadService
         post.source = "#{replacement.source}\n" + post.source
         post.tag_string = upload.tag_string
         # Reset ownership information on post.
-        post.uploader_id = replacement.creator_id
-        post.uploader_ip_addr = replacement.creator_ip_addr
+        if credit_replacer.penalize_current_uploader.to_s.truthy?
+          post.uploader_id = replacement.creator_id
+          post.uploader_ip_addr = replacement.creator_ip_addr
+        end
         post.save!
 
         # rescaling notes reloads the post, be careful when accessing previous values

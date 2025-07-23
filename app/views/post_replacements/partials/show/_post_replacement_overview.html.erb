@@ -47,9 +47,11 @@
     <div class="replacement-reason-value replacement-collapsible"><%= post_replacement.reason if post_replacement.reason.present?  %></div>
     <div class="replacement-reason-value replacement-exapandable"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present?  %></div>
   </div>
-  <div class="replacement-note">
-    <div class="replacement-note-label">Note: </span><span class="note-handler">(Handler: <%= link_to_user post_replacement.approver %>)</div>
-    <div class="replacement-note-value replacement-collapsible"><%= post_replacement.reason if post_replacement.reason.present? %></div>
-    <div class="replacement-note-value replacement-exapandable"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present? %></div>
-  </div>
+  <% if post_replacement.approver.present? %>
+    <div class="replacement-note">
+      <div class="replacement-note-label">Note: </span><span class="note-handler">(Handler: <%= link_to_user post_replacement.approver %>)</div>
+      <div class="replacement-note-value replacement-collapsible"><%= post_replacement.reason if post_replacement.reason.present? %></div>
+      <div class="replacement-note-value replacement-exapandable"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present? %></div>
+    </div>
+  <% end %>
 </div>

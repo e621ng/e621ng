@@ -200,7 +200,7 @@ class PostReplacement < ApplicationRecord
   end
 
   module ProcessingMethods
-    def approve!(penalize_current_uploader:)
+    def approve!(penalize_current_uploader:, credit_replacer: True)
       if is_current? || is_promoted?
         errors.add(:status, "version is already active")
         return
@@ -264,6 +264,25 @@ class PostReplacement < ApplicationRecord
       update_attribute(:approver_id, CurrentUser.user.id)
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index
+    end
+
+    def note!
+      # TOOD do checks 
+      # update_attribute()
+      post.update_index
+    end
+
+    def transfer(new_post:)
+      # TODO do checks 0. ensure possible to transfer
+      prev = post
+
+      update_attribute(post: new_post)
+
+      PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
+      PostEvent.add(prev.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
+
+      post.update_index
+      prev.update_index
     end
 
     def create_original_backup

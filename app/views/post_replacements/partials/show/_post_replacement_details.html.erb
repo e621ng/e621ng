@@ -5,11 +5,14 @@
       <div class="pending-links">
         <% if post_replacement.status == "pending" %>
           <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %>
-          <!-- TODO: Add an override to keep the current uploader, when the submitter is staff -->
+          <% if post_replacement.creator.is_staff? %>
+            (<%= link_to "silently", "#silent-approve", class: "replacement-transfer-action" %>) <br> <!-- TODO: Add an override to keep the current uploader, when the submitter is staff -->
+          <% end %>
           <br> <br>
           <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %> <br>
-          <!-- TODO: Allow adding note -->
-          <%#= link_to "Transfer", "transfer", class: "replacement-transfer-action" %> <br>
+          
+          <%= link_to "Transfer", "#transfer", class: "replacement-transfer-action" %> <br> <!-- TODO: Allow transfering -->
+          <%= link_to "Note", "#note", class: "replacement-note-action" %> <br> <!-- TODO: Allow adding note -->
         <% end %>
         <% if !post_replacement.is_current? && !post_replacement.is_promoted? %>
           <% if !post_replacement.is_backup? %> <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id } %> <br> <% end %>
