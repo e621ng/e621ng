@@ -16,33 +16,42 @@ div#c-post-versions {
     }
 
     .desc-popup {
-      display: none;
-      z-index: 10;
-      width: 800px;
+      display: flex;
+      flex-flow: column;
+
+      box-sizing: border-box;
+      max-width: 800px;
+      min-width: 400px;
+      width: 100%;
       height: 400px;
+
       position: fixed;
       top: 50%;
       left: 50%;
-      margin: auto;
-      margin-left: -400px;
-      margin-top: -200px;
-      box-shadow: 0px 0px 15px #07162D, 0px 0px 15px #07162D, 0px 0px 15px #07162D !important;
-    }
+      z-index: 10;
+      transform: translate(-50%, -50%);
 
-    .desc-popup-inner {
-      height: 370px;
-      overflow: auto;
-    }
+      background-color: themed("color-section");
+      box-shadow: 0px 0px 1rem themed("color-background");
+      @include st-radius;
 
-    .closebutton {
-      float: right;
-      cursor: pointer;
-      margin-right: 10px;
-      font-size: 14pt;
-      font-weight: bold;
-      color: white;
-      vertical-align: center;
-      margin-top: -3px;
+      h2 {
+        display: flex;
+        padding: 0.5rem;
+        font-size: 1.25rem;
+        line-height: 1.5rem;
+
+        .closebutton {
+          margin: -0.25rem -0.25rem -0.25rem auto;
+          font-weight: bold;
+          width: 2rem;
+        }
+      }
+
+      .desc-popup-inner {
+        padding: 0.5rem;
+        overflow-y: auto;
+      }
     }
 
 
