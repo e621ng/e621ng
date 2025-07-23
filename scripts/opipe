@@ -1,0 +1,441 @@
+#! /usr/bin/env bash
+
+# cspell:ignore logfile jmor FEWC exitcode ABDG SIGCHLD SIGWINCH infocmp
+
+# https://www.kylheku.com/cgit/basta/tree/basta.sh?id=7fbdc5a088c37bd24da5954474a189cd4c890dce
+# https://www.kylheku.com/cgit/basta/about/
+
+declare -ri TIME_START=$(date -u +'%-s')
+##region########################################### CONSTANTS ###########################################
+readonly LOGFILE="$HOME/reposLocal/custom-shell-scripts/log.txt"
+_log() {
+	if eval "$DO_LOG"; then
+		for item in "$@"; do
+			eval "$DO_LOG" && (echo -n "$item" >> "$LOGFILE")
+		done
+	fi
+}
+# https://man7.org/linux/man-pages/man7/signal.7.html
+	# readonly SIGCHLD=17
+	# readonly SIGWINCH=28
+	readonly SIGINT=2
+	readonly SIGQUIT=3
+	readonly SIGTERM=15
+readonly MAX_READ_INT=$(( 2**31 - 1))
+readonly DEFAULT_STATUS_TEXT='WAITING...'
+##region########################################### PROSPECTIVE PARAMETERS ###########################################
+readonly ONE_CHAR_INPUT='false'
+readonly DO_LOG='false'
+declare -r STATUS_MODE_IN='smso'
+declare -r STATUS_MODE_OUT='rmso'
+declare -ir DEFAULT_COLOR_FOREGROUND=7
+# The # of empty lines between the end of the output and the status line.
+declare -ir DEFAULT_STATUS_SPACING=2
+declare -ir ASSUMED_TEST_COUNT=1519
+declare -r TIMEOUT_INTERVAL='.3'
+# The time in seconds after which an update will be forced.
+declare -ir FORCE_REFRESH_INTERVAL=5
+##endregion######################################## PROSPECTIVE PARAMETERS ###########################################
+##region########################################### PATTERNS ###########################################
+readonly FAIL_TEXT="FAILURE"
+readonly V_CTRL_STUB=$'\n\v\f'
+readonly START_TEXT_RAILS=$'\n\n# Running:\n\n'
+readonly START_TEXT_RUBOCOP=$'Inspecting ([[:digit:]]+) files\n'
+readonly START_TEXT="($START_TEXT_RAILS|$START_TEXT_RUBOCOP)"
+readonly START_PATTERN=$( if eval $ONE_CHAR_INPUT; then echo "($START_TEXT)\$"; else echo "^(.*$START_TEXT)"; fi )
+readonly STATUS_CHARACTERS='.FEWC'
+readonly NL_PATTERN='[^[:print:][:blank:]]'
+readonly NON_NL_PATTERN='[[:print:][:blank:]]'
+readonly NON_NL_NOR_STATUS_CHARACTERS=$'[^\n\v\f.FEWC]'
+readonly STATUS_LINE_PATTERN="(^|$NL_PATTERN)([$STATUS_CHARACTERS]+)$"; declare -rn SL_TRAILING_PATTERN=STATUS_LINE_PATTERN
+readonly SL_LEADING_NOT_PATTERN="^[$STATUS_CHARACTERS]*$NON_NL_NOR_STATUS_CHARACTERS"
+##endregion######################################## PATTERNS ###########################################
+readonly -a TERM_CAPS_REQUIRED=('cud1' 'cuu1' 'hpa' 'el' 'ed' "$STATUS_MODE_IN" "$STATUS_MODE_OUT" 'cr' 'civis' 'cnorm')
+readonly TERM_CAPS_AVAILABLE="$(infocmp)"
+##endregion######################################## CONSTANTS ###########################################
+
+##region####################### Check if needed termcap's supported #######################
+for ((i = 0; i < ${#TERM_CAPS_REQUIRED[@]}; i++)); do
+	# shellcheck disable=SC2076
+	if ! [[ "$TERM_CAPS_AVAILABLE" =~ "${TERM_CAPS_REQUIRED[$i]}=" ]]; then
+		err_msg="Missing terminal capability ${TERM_CAPS_REQUIRED[$i]}; executing command w/o status checking"
+		echo "$err_msg"
+		_log "$err_msg" $'\n'
+		exec "$@"
+		exit
+	fi
+done; unset i err_msg
+##endregion#################### Check if needed termcap's supported #######################
+
+##region Determine output terminator/status line precursor (cud1 compatibility)
+declare t_trail=$'\r'; t_trail+="$(tput $STATUS_MODE_IN)"
+declare TPUT_CUD1="$(tput cud1)"
+if [[ $TERM_CAPS_AVAILABLE =~ 'cud1=\n,' ]]; then TPUT_CUD1=$'\n'; fi
+declare -r TPUT_CUD1
+declare dt_pre_sl="$TPUT_CUD1"
+for ((i = 0; i < DEFAULT_STATUS_SPACING; i++)); do dt_pre_sl+=$'\n'; done
+dt_pre_sl+="$t_trail"
+readonly dt_pre_sl
+unset t_trail i
+##endregion Determine output terminator/status line precursor (cud1 compatibility)
+
+##region########################################## CHECK ARGS FOR TEST FILES ##########################################
+
+# The # of tests that will be executed in this run.
+declare -i TEST_COUNT=0
+for arg in "$@"; do
+	if [ -f "$arg" ] || [ -d "$arg" ]; then
+		((TEST_COUNT+=$(count_ruby_tests "$arg")))
+	# elif [[ "$arg" =~ ^(.+\.rb):([[:digit:]]+)$ ]]
+	fi
+done
+##endregion####################################### CHECK ARGS FOR TEST FILES ##########################################
+
+_log $'\n' "$(date)"
+declare colored_cumulative=''
+# display_text STATE:
+	# The last status text printed by `display_text`; used to determine how many lines to shift up in the next iteration.
+	declare last_status=''
+	declare -i current_color=$DEFAULT_COLOR_FOREGROUND
+	declare -a print_colors=()
+	declare -a print_indices=()
+# To account for end of line jank, jumps to the last character's position and rewrites it in a block with the new output (as this ensures proper word wrapping & window resizing).
+function display_text() {
+	local -r l_status_text="$1"
+		# local -r whole_text="$2"
+		local delta="$3"
+		local -r deltaRaw="$delta"
+		local -r prior_whole_text="$4"
+	# The last printed, non-vertical-whitespace character printed by `display_text`.
+	local last_char="${prior_whole_text: -1:1}"
+	if [[ "$last_char" =~ [$V_CTRL_STUB] ]]; then local -r last_char=''; else local -r last_char; fi
+	# If there's a prior character, add it to the delta to redraw it.
+	if [[ -n "${last_char+x}" ]]; then local -r delta="$last_char$delta"; fi
+	local l_cumulative_output=''
+	if ((${#last_status} > 0)); then
+		local -i t_lCharLength=${#last_char}
+		local -ir prior_cols="$(profile_text --display_mode --col_at _ "${prior_whole_text:0:-$t_lCharLength}")"
+		l_cumulative_output+=$'\r' # l_cumulative_output+="$(tput hpa 0)"
+		local -i t_statusRows=$(profile_text --display_mode -r "$last_status")
+		if (("${#deltaRaw}" == 0)); then
+			l_cumulative_output+="$(tput el)"
+			for ((t_statusRows -= 1; t_statusRows > 0; t_statusRows--)); do
+				l_cumulative_output+="$(tput cuu1)"
+				l_cumulative_output+="$(tput el)"
+			done
+			l_cumulative_output+="$(tput $STATUS_MODE_IN)"
+			# Outro
+			l_cumulative_output+="$l_status_text"
+			l_cumulative_output+="$(tput $STATUS_MODE_OUT)"
+			declare -g last_status="$l_status_text"
+			echo -n "$l_cumulative_output"
+			unset print_indices print_colors
+			print_indices=()
+			print_colors=()
+			return
+		fi
+		for ((t_statusRows+=DEFAULT_STATUS_SPACING; t_statusRows > 0; t_statusRows--)); do
+			l_cumulative_output+="$(tput el)"
+			l_cumulative_output+="$(tput cuu1)"
+		done
+		l_cumulative_output+="$(tput hpa "$prior_cols")"
+	fi
+	if ((${#print_colors[@]} == 0)) || ((${#print_colors[@]} == 1)) && [[ "${print_colors[0]}" =~ ^-$|^$current_color$ ]]; then
+		l_cumulative_output+="$(tput setaf $current_color)$delta$(tput setaf $DEFAULT_COLOR_FOREGROUND)"
+		colored_cumulative+="$deltaRaw"
+	else
+		local t_d=''
+		local -i t_last_index=0
+		local -i i=0
+		if ((${#last_char} > 0)); then
+			l_cumulative_output+=$(tput setaf $current_color)
+			l_cumulative_output+="${delta:$t_last_index:${#last_char}}"
+			((t_last_index=${#last_char}))
+			if [[ "${print_colors[0]}" =~ ^-$|^$current_color$ ]]; then
+				((i+=1))
+			fi
+		elif [[ "${print_colors[0]}" =~ ^-$|^$current_color$ ]]; then
+			l_cumulative_output+=$(tput setaf $current_color)
+			((i+=1))
+		elif [[ "${print_indices[0]}" == 0 ]]; then
+			t_d+=$(tput setaf "${print_colors[0]}")
+			# shellcheck disable=SC2004
+			((current_color = print_colors[0], i += 1))
+		fi
+		for ((; i < ${#print_colors[@]}; t_last_index = print_indices[i] + ${#last_char}, i++)); do
+			t_d+="${delta:$t_last_index:$((${print_indices[$i]}+${#last_char}-t_last_index))}"
+			if ! [[ "${print_colors[$i]}" =~ ^-$|^$current_color$ ]]; then
+				t_d+=$(tput setaf "${print_colors[$i]}")
+				((current_color = print_colors[i]))
+			fi
+		done
+		t_d+="${delta:$t_last_index}"
+		l_cumulative_output+="$t_d$(tput setaf $DEFAULT_COLOR_FOREGROUND)"
+		colored_cumulative+="$t_d"
+	fi
+	l_cumulative_output+="$dt_pre_sl"
+	# Outro
+	l_cumulative_output+="$l_status_text"
+	l_cumulative_output+="$(tput $STATUS_MODE_OUT)"
+	declare -g last_status="$l_status_text"
+	echo -n "$l_cumulative_output"
+	unset print_indices print_colors
+	print_indices=()
+	print_colors=()
+	return
+}
+# #1: Former color
+	# #2: New color
+	# #3: Index
+function add_instruction() {
+	if (($1 != $2)); then
+		print_colors+=("$2")
+		print_indices+=("$3")
+	fi
+}
+declare -i i_complete=0
+	declare -i i_successful=0
+	declare -i i_failure=0
+	declare -i i_error=0
+	declare -i i_warning=0
+	declare -i i_correction=0
+# Update the `i_...` variables & the print instructions in `print_colors` & `print_indices`
+	# based on the new text.
+	# #1: text
+	# #2 (optional): - to subtract, anything else (other than an unsigned integer) to add
+	# #3 (optional; -[[:digit:]]+): the index to start processing on; 0 if omitted
+	# ...: an index to skip + either the index to skip to (inclusive) or nothing to skip to the end.
+function parse_status() {
+	# P1
+	local -r appended="$1"; shift
+	# #region P2
+	local operand="+"
+	case "$1" in
+		(-) 	local -r operand="-";;
+		(\+|*)	local -r operand="+";;
+	esac
+	while [[ -n "${1+x}" ]] && [[ "$1" =~ -?[^[:digit:]] ]]; do shift; done
+	# #endregion P2
+	# #region P3
+	local -i l_offset=0
+	if [[ "$1" =~ ^-[[:digit:]]+$ ]]; then l_offset="${1:1}"; shift; fi
+	local -r l_offset
+	# #endregion P3
+	local -n target=i_successful
+	local -i curr_color=$current_color
+	local -i new_color=0
+	if (( ${#print_colors[@]} != 0 )); then
+		unset print_colors
+		declare -g -a print_colors=()
+	fi
+	if (( ${#print_indices[@]} != 0 )); then
+		unset print_indices
+		declare -g -a print_indices=()
+	fi
+	for (( i = l_offset; i < ${#appended}; i += 1 )); do
+		if [[ -n "${1+x}" ]] && (($1 <= i)); then
+			add_instruction $curr_color $DEFAULT_COLOR_FOREGROUND $i
+			((curr_color = DEFAULT_COLOR_FOREGROUND))
+			if [[ -n "${2+x}" ]]; then
+				((i += i < $2 ? $2 - i : 0))
+				shift 2
+				continue
+			else
+				break
+			fi
+		fi
+		if [[ "${appended:$i}" =~ ^$NL_PATTERN*([$STATUS_CHARACTERS]*$NON_NL_NOR_STATUS_CHARACTERS+$NON_NL_PATTERN*)($NL_PATTERN*) ]]; then
+			add_instruction $curr_color $DEFAULT_COLOR_FOREGROUND $i
+			((curr_color = DEFAULT_COLOR_FOREGROUND))
+			if ((${#BASH_REMATCH[2]} > 0)); then
+				((i += ${#BASH_REMATCH[0]} - 1))
+				continue
+			else
+				break
+			fi
+		fi
+		case "${appended:$i:1}" in
+			(F) local -n target=i_failure; ((new_color=1));;
+			(E) local -n target=i_error; ((new_color=1));;
+			(C) local -n target=i_correction; ((new_color=2));;
+			(\.) local -n target=i_successful; ((new_color=2));;
+			(W) local -n target=i_warning; ((new_color=3));;
+			(*)
+				local -n target=FAIL_TEXT
+				echo "Something's wrong"
+				;;
+		esac
+		if [ $target != $FAIL_TEXT ]; then
+			# shellcheck disable=SC2091 disable=SC2271 disable=SC1105
+			((target$operand=1))
+			# shellcheck disable=SC2091 disable=SC2271 disable=SC1105
+			((i_complete$operand=1))
+			add_instruction $curr_color $new_color $i
+			((curr_color=new_color))
+		fi
+	done
+}
+declare -i TIME_TESTS_BEGAN=-1
+declare TIME_TESTS_BEGAN_STRING=''
+function gen_status_text() {
+	if [ -n "$1" ]; then
+		local -i l_currentTime="$1"
+	else
+		local -i l_currentTime="$(date -u +'%-s')"
+	fi
+	local -i elapsed=0;((elapsed=TIME_TESTS_BEGAN > 0 ? l_currentTime - TIME_TESTS_BEGAN : 0)); local -ir elapsed
+	local -ir remaining=$TEST_COUNT-$i_complete
+	local results="${TIME_TESTS_BEGAN_STRING}ELAPSED: $(format_seconds $elapsed) (${elapsed}s)"
+	local test_results="Completed: $i_complete/$TEST_COUNT ($((TEST_COUNT == 0 ? 0 : i_complete * 100 / TEST_COUNT))%; $remaining left)"
+	if ((i_complete > 0)); then
+		if ! type gen_item &> /dev/null; then
+			function gen_item() { echo -n "$2: $(($1 * 100 / i_complete))% ($1)"; }
+		fi
+		test_results+=", $(gen_item $i_successful .), $(gen_item $i_failure F), $(gen_item $i_error E), $(gen_item $i_warning W), $(gen_item $i_correction C)"
+		results+="; REMAINING: $(format_seconds "$(decimal_calc $((remaining * elapsed)) $i_complete 1000)")"
+		results+="; AVG: $(decimal_calc $elapsed $i_complete 1000) s/run"
+		if ((elapsed > 0)); then results+=" / $(decimal_calc $i_complete $elapsed 1000) runs/s"; fi
+	fi
+	results+=$'\n'
+	results+="$test_results"
+	echo -n "$results"
+}
+exec 3< <("$@")
+declare -i -r sub_pid=$!
+# https://www.gnu.org/software/bash/manual/bash.html#Signals
+# https://www.gnu.org/software/bash/manual/bash.html#index-PIPESTATUS
+# https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
+# Check set -b
+# #region Exit handling
+is_active="true"
+function do_stop() {
+	# shellcheck disable=SC2317
+	kill -n "$1" "$sub_pid"
+	# shellcheck disable=SC2317
+	exitcode=$(wait "$sub_pid")
+	# wait "$sub_pid" && exitcode=$?
+	# shellcheck disable=SC2317
+	declare -i -r exitcode
+	# shellcheck disable=SC2317
+	# exec 3>&-
+	# shellcheck disable=SC2317,SC2086,SC2064
+	# exit $exitcode
+	trap - INT
+	# shellcheck disable=SC2317,SC2064
+	trap - QUIT
+	# shellcheck disable=SC2317,SC2064
+	trap - TERM
+}
+# shellcheck disable=SC2064
+	trap "do_stop $SIGINT" INT
+	# shellcheck disable=SC2064
+	trap "do_stop $SIGQUIT" QUIT
+	# shellcheck disable=SC2064
+	trap "do_stop $SIGTERM" TERM
+# #endregion Exit handling
+# #region Input loop
+declare -i c_iterations=0; declare -i start_int=0
+shopt -s extglob globasciiranges patsub_replacement
+tput civis
+status_text=$DEFAULT_STATUS_TEXT
+cumulative=""
+line=""
+function read_input_stream() {
+	if eval $ONE_CHAR_INPUT; then
+		read -s -r -N 1 -u 3 line
+	else
+		read -s -r -t "$TIMEOUT_INTERVAL" -N $MAX_READ_INT -u 3 line
+	fi
+}
+function process_delta() {
+	results_string="${cumulative:start_int}"
+	eval "$DO_LOG" && (echo "$results_string" >> "$LOGFILE")
+	if eval $ONE_CHAR_INPUT; then
+		if [[ "$results_string" =~ $STATUS_LINE_PATTERN ]]; then
+			parse_status "$line" '+'
+		elif [[ "${results_string:0:-1}" =~ $STATUS_LINE_PATTERN ]] && [ "${results_string: -1:1}" != $'\n' ]; then
+			parse_status "${BASH_REMATCH[2]}" '-'
+		fi
+	else
+		if [[ "$line" =~ $SL_LEADING_NOT_PATTERN ]] && [[ "$t_prior" =~ $SL_TRAILING_PATTERN ]]; then
+			parse_status "${BASH_REMATCH[2]}" '-' 
+		fi
+		parse_status "$line"
+	fi
+	status_text="$(gen_status_text)"
+	eval "$DO_LOG" && (echo "$status_text" >> "$LOGFILE")
+}
+declare -i lastUpdate=0
+((lastUpdate = $(date -u +'%-s')))
+while eval $is_active; do
+	declare -i currTime=0
+	((c_iterations+=1))
+	read_input_stream
+	((currTime = $(date -u +'%-s')))
+	if [ -z "$line" ]; then
+		# eval "$DO_LOG" && (echo -n "(empty)" >> "$LOGFILE")
+		if kill -0 $sub_pid > /dev/null 2>&1; then
+			line=''
+		else
+			is_active="false"
+			if [[ -z "${exitcode+x}" ]]; then wait $sub_pid && declare -ir exitcode; fi
+		fi
+	else
+		_log "Newest input (raw): $line" $'\n'
+		((lastUpdate=currTime))
+	fi
+	if eval $is_active && [ -n "$line" ]; then
+		t_prior="$cumulative"
+		cumulative+="$line"
+		if ((start_int != 0)); then
+			process_delta
+		elif [[ $cumulative =~ $START_PATTERN ]]; then
+			if [ -n "${BASH_REMATCH[3]}" ]; then
+				declare -ri TEST_COUNT="${BASH_REMATCH[3]}"
+			elif ((TEST_COUNT != 0)); then
+				declare -ri TEST_COUNT
+			else
+				declare -ri TEST_COUNT=$ASSUMED_TEST_COUNT
+			fi
+			eval $ONE_CHAR_INPUT; ((start_int = $? ? ${#cumulative} : ${#BASH_REMATCH[1]}))
+			declare -ri start_int
+			((TIME_TESTS_BEGAN=currTime, t__t=TIME_START - TIME_TESTS_BEGAN))
+			declare -ri TIME_TESTS_BEGAN
+			declare -r TIME_TESTS_BEGAN_STRING="START DELAY: $(date -u -d "@$t__t" +"$(format_seconds $t__t)"); "
+			unset t__t
+			if ! eval $ONE_CHAR_INPUT; then process_delta; fi
+		fi
+		display_text "$status_text" "$cumulative" "$line" "$t_prior"
+	elif eval $is_active && ((currTime - lastUpdate > FORCE_REFRESH_INTERVAL)); then
+		tput setaf 1
+		if ((TIME_TESTS_BEGAN > 0)); then
+			display_text "$(gen_status_text $currTime)" "$cumulative" '' "$cumulative"
+		else
+			((TIME_TESTS_BEGAN = TIME_START))
+			display_text "$(gen_status_text $currTime)" "$cumulative" '' "$cumulative"
+			((TIME_TESTS_BEGAN = -1))
+		fi
+		((lastUpdate=currTime))
+		tput setaf $DEFAULT_COLOR_FOREGROUND
+	fi
+done
+# #endregion Input loop
+# #region Cleanup and exit
+if [[ -z "${exitcode+x}" ]]; then wait $sub_pid && declare -ir exitcode; fi
+tput cnorm
+exec 3>&-
+output="
+Exitcode: $exitcode
+Iterations: $c_iterations
+start_int: $start_int
+Cumulative length: ${#cumulative}"
+if eval "$DO_LOG"; then output+="
+Cumulative Output:
+$colored_cumulative
+Raw output:
+$cumulative
+"; fi
+echo "$output"
+_log "$output" $'\n'
+exit
+# #endregion Cleanup and exit

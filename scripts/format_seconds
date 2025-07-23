@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+show_help() {
+	cat << __EOF__
+Takes unsigned integer/decimal seconds and prints them as simple hours, minutes, & seconds as the time overflows.
+
+Usage:	$0 SECONDS
+	or:	$0 --help
+	or:	$0 --version
+
+Options:
+	
+__EOF__
+}
+show_version() {
+	cat << __EOF__
+$0 4.0.0
+
+Copyright (C) 2025 Justin Morris
+__EOF__
+}
+
+declare formatStr=''
+declare sign=''
+declare -i timeInput=0
+shopt -s 'extglob'
+allowContinue='true'
+while eval "$allowContinue" && (( $# > 0 )); do
+	case "$1" in
+		(-h | --help)
+			show_help
+			exit
+			;;
+		(-v | --version)
+			show_version
+			exit
+			;;
+		(*)
+			allowContinue='false'
+			;;
+	esac
+done
+
+if [[ "$1" =~ ^(-?)([[:digit:]]+)(\.[[:digit:]]*)$ ]]; then
+	declare -r sign="${BASH_REMATCH[1]}"
+	declare -ir timeInput="${BASH_REMATCH[2]}"
+	declare formatStr="S${BASH_REMATCH[3]}"
+elif [[ "$1" =~ ^(-?)(\.[[:digit:]]+)$ ]]; then
+	declare -r sign="${BASH_REMATCH[1]}"
+	declare -ir timeInput=0
+	declare formatStr="S${BASH_REMATCH[2]}"
+else
+	declare -r sign=''
+	declare -ir timeInput="$1"
+	declare formatStr="S"
+fi
+if ((timeInput >= 86400)); then formatStr="$((timeInput / 86400))days %H hrs %M min %$formatStr s"
+elif ((timeInput >= 3600)); then formatStr="%-H:%M:%$formatStr"
+elif ((timeInput >= 60)); then formatStr="%-M:%$formatStr"
+else formatStr="%-${formatStr}s"
+fi
+date -u -d "@$timeInput" +"$sign$formatStr"
