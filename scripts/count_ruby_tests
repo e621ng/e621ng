@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Gives a rough estimate of how many tests are in the specified files/directories
+
+# https://github.com/jmortiger/custom-shell-scripts
+
+if [ "$1" = '--help' ]; then
+	exit 1
+elif [ "$1" = '--version' ]; then
+	exit 1
+fi
+
+# declare -r TEST_PATTERN='^[[:blank:]]*(should|test)[[:blank:]]+("(\"|[^"]*)+"|'\''(\'\''|[^'\'']*)+'\'')[[:blank:]]+do'
+# declare -r TEST_PATTERN='^[[:blank:]]*((should|test)[[:blank:]]+("[^"]*"|'\''[^'\'']*'\'')[[:blank:]]+do|should(_not)? (allow|validate))'
+declare -r TEST_PATTERN='^[[:blank:]]*(should(_not)?|test)[[:blank:]]+("[^"]*"|'\''[^'\'']*'\'')[[:blank:]]+do|should(_not)? (allow|validate))'
+declare -a params=()
+declare -i testCount=0
+while [ -n "$1" ]; do
+	params+=("$1")
+	if [ -f "$1" ]; then
+		if [ -r "$1" ] && [ -s "$1" ]; then
+			# grep --regexp=^[[:blank:]]*should[[:blank:]]+(\"|\') "$1"
+			((testCount+=$(grep -c -E --regexp="$TEST_PATTERN" "$1")))
+		fi
+	elif [ -d "$1" ]; then
+		mapfile out < <(grep -c -h -R -E --regexp="$TEST_PATTERN" "$1")
+		# declare -a out=($(grep -c -h -R -E --regexp="$TEST_PATTERN" "$1"))
+		# ((testCount+=$(grep -c -h -R -E --regexp="$TEST_PATTERN" "$1")))
+		for item in "${out[@]}"; do
+			((testCount+=item))
+		done
+	fi
+	shift
+done
+echo $testCount
+exit
