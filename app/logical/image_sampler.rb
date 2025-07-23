@@ -5,6 +5,7 @@ module ImageSampler
 
   def generate_post_images(post)
     return unless File.exist?(post.file_path)
+    return if post.is_flash? # Cannot generate any kind of thumbnail
     image = image_from_path(post.file_path, is_video: post.is_video?)
     dimensions = [post.image_width, post.image_height]
 
@@ -21,7 +22,7 @@ module ImageSampler
     # Generate samples
     # Animated GIFs and APNGs are not needed, Flash files are not supported.
     # All video files need samples to be used as a poster in the player.
-    return if post.is_gif? || post.is_animated_png?(post.file_path) || post.is_flash?
+    return if post.is_gif? || post.is_animated_png?(post.file_path)
     return unless post.is_video? || dimensions.min > Danbooru.config.large_image_width || dimensions.max > Danbooru.config.large_image_width * 2
     sample(image, dimensions, background: post.bg_color).each do |ext, file|
       path = sm.post_file_path(post, :"sample_#{ext}")
@@ -33,6 +34,7 @@ module ImageSampler
 
   def generate_replacement_images(replacement)
     return unless File.exist?(replacement.replacement_file_path)
+    return if replacement.file_ext == "swf" # Cannot generate any kind of thumbnail
     image = image_from_path(replacement.replacement_file_path, is_video: replacement.is_video?)
     dimensions = [replacement.image_width, replacement.image_height]
 
