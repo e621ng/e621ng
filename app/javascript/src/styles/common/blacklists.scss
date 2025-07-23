@@ -232,5 +232,5 @@ article.thumbnail.blacklisted {
     background-position: center;
     background-color: unset !important; // Prevent custom color from showing through
   }
-  img { display: none; }
+  img { visibility: hidden; }
 }
