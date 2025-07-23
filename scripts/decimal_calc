@@ -40,8 +40,6 @@ __EOF__
 show_version() {
 	cat << __EOF__
 $0 3.0.0
-
-Copyright (C) 2025 Justin Morris
 __EOF__
 }
 declare -i numerator=0; unset numerator
