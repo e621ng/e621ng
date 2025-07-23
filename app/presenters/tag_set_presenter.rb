@@ -97,18 +97,6 @@ class TagSetPresenter < Presenter
     html << tag_link(tag, name.tr("_", " "))
     html << %(<i title="Uploaded by the artist" class="highlight fa-regular fa-circle-check"></i>) if highlight
 
-    # if count >= 10_000_000
-    #   post_count = "#{count / 1_000_000}m"
-    # elsif count >= 1_000_000
-    #   post_count = "%.1fm" % (count / 1_000_000.0)
-    # elsif count >= 10_000
-    #   post_count = "#{count / 1_000}k"
-    # elsif count >= 1_000
-    #   post_count = "%.1fk" % (count / 1_000.0)
-    # else
-    #   post_count = count
-    # end
-
     # NOTE: Most tags have fewer posts, so the conditional should exit earlier more often in this order.
     if count < 1_000
       post_count = count
