@@ -42,7 +42,7 @@
     </div>
     
   </div>
-  <div class="replacement-reason">
+  <div class="replacement-reason"> <!--TODO: Submitter artist link-->
     <div class="replacement-reason-label">Reason: </span><span class="reason-creator">(Submitter: <%= link_to_user post_replacement.creator %>)</div>
     <div class="replacement-reason-value replacement-collapsible"><%= post_replacement.reason if post_replacement.reason.present?  %></div>
     <div class="replacement-reason-value replacement-exapandable"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present?  %></div>

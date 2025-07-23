@@ -1,12 +1,14 @@
 <div class="replacement-section-bottom replacement-collapsible" id="replacement-bottom-<%= post_replacement.id %>">
-  <div class="replacement-actions">
+  <div class="replacement-actions"> <!--TODO: if status is pending, add a report button-->
     <% if CurrentUser.can_approve_posts? || CurrentUser.is_admin? %><div class="replacements-actions-label">Actions</div><% end %>
     <% if CurrentUser.can_approve_posts? %>
       <div class="pending-links">
         <% if post_replacement.status == "pending" %>
           <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %>
+          <!-- TODO: Add an override to keep the current uploader, when the submitter is staff -->
           <br> <br>
           <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %> <br>
+          <!-- TODO: Allow adding note -->
           <%#= link_to "Transfer", "transfer", class: "replacement-transfer-action" %> <br>
         <% end %>
         <% if !post_replacement.is_current? && !post_replacement.is_promoted? %>

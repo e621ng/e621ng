@@ -3,7 +3,8 @@
     <%= render "new", post_replacement: @post_replacement, post: @post %>
   </div>
 </div>
-
+<!-- TODO: Add an override to keep the current uploader, when the submitter is staff -->
+<!-- TODO: Allow for multiple sources -->
 <% content_for(:page_title) do %>
   New Post Replacement - #<%= @post_replacement.post_id %>
 <% end %>
