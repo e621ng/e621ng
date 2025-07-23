@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+exec docker exec -it e621ng-e621-1 ./docker/cron_tasks/daily/daily_maintenance.sh
+exit $?
