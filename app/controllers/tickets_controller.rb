@@ -103,8 +103,8 @@ class TicketsController < ApplicationController
   def search_params
     current_search_params = params.fetch(:search, {})
     permitted_params = %i[qtype status order]
-    permitted_params += %i[creator_id] if CurrentUser.is_moderator? || (current_search_params[:creator_id].present? && current_search_params[:creator_id].to_i == CurrentUser.id)
-    permitted_params += %i[creator_name accused_name accused_id claimant_id claimant_name reason] if CurrentUser.is_moderator?
+    permitted_params += %i[creator_id] if CurrentUser.is_staff? || (current_search_params[:creator_id].present? && current_search_params[:creator_id].to_i == CurrentUser.id)
+    permitted_params += %i[creator_name accused_name accused_id claimant_id claimant_name reason] if CurrentUser.is_staff?
     permit_search_params permitted_params
   end
 

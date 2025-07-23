@@ -206,6 +206,7 @@
     background-image: url("blacklisted-preview.png") !important;
     background-color: #0003;
     background-size: contain;
+    background-color: unset !important; // Prevent custom color from showing through
 
     @media screen and (max-width: 800px) {
       background-size: 100px !important;
@@ -229,6 +230,7 @@ article.thumbnail.blacklisted {
     background-image: url("blacklisted-preview.png");
     background-size: cover;
     background-position: center;
+    background-color: unset !important; // Prevent custom color from showing through
   }
-  img { display: none; }
+  img { visibility: hidden; }
 }
