@@ -76,6 +76,7 @@ class TagSetPresenter < Presenter
     ordered
   end
 
+  # TODO: Is this actually used? It seems the partial `app/views/posts/partials/common/sidebar/_tag_list_item.html.erb` is used instead.
   def build_list_item(tag, current_query: "", highlight: false)
     name = tag.name
     count = tag.post_count

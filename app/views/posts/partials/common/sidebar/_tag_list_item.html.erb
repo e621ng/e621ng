@@ -17,8 +17,16 @@
 
   <% is_underused_tag = tag.post_count <= 1 && tag.category == Tag.categories.general %>
   <% post_count = tag.post_count %>
-  <% if post_count > 1_000 %>
-    <% post_count = tag.post_count > 10_000 ? "#{post_count / 1_000}k" : format("%.1fk", (tag.post_count / 1_000.0)) %>
+  <% if post_count < 1_000 %>
+    <% post_count = post_count %>
+  <% elsif post_count < 10_000 %>
+    <%post_count = "%.1fk" % (post_count / 1_000.0)%>
+  <% elsif post_count < 1_000_000 %>
+    <% post_count = "#{post_count / 1_000}k" %>
+  <% elsif post_count < 10_000_000 %>
+    <% post_count = "%.1fm" % (post_count / 1_000_000.0) %>
+  <% else %>
+    <% post_count = "#{post_count / 1_000_000}m" %>
   <% end %>
 
   <a
