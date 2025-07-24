@@ -11,7 +11,8 @@ class DmailsController < ApplicationController
     end
     @query = Dmail.active.visible.search(search_params).includes(:to, :from)
     @dmails = @query.paginate(params[:page], limit: params[:limit])
-    respond_with(@dmails)
+
+    respond_with dmails: @dmails
   end
 
   def show
