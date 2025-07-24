@@ -22,7 +22,7 @@ class TagSetPresenter < Presenter
   def post_index_sidebar_tag_list_html(current_query: "")
     html = +""
     if ordered_tags.present?
-      html << '<ul>'
+      html << "<ul>"
       ordered_tags.each do |tag|
         html << build_list_item(tag, current_query: current_query)
       end
@@ -66,7 +66,7 @@ class TagSetPresenter < Presenter
 
   def ordered_tags
     return @_ordered_tags if @_cached[:ordered_tags]
-    names_to_tags = tags.map { |tag| [tag.name, tag] }.to_h
+    names_to_tags = tags.index_by(&:name)
 
     ordered = tag_names.map do |name|
       names_to_tags[name] || Tag.new(name: name).freeze
@@ -82,12 +82,12 @@ class TagSetPresenter < Presenter
     count = tag.post_count
     category = tag.category
 
-    html = %{<li class="category-#{tag.category}">}
+    html = %(<li class="category-#{tag.category}">)
 
     if category == Tag.categories.artist
-      html << %{<a class="wiki-link" rel="nofollow" href="/artists/show_or_new?name=#{u(name)}">?</a> }
+      html << %(<a class="wiki-link" rel="nofollow" href="/artists/show_or_new?name=#{u(name)}">?</a> )
     else
-      html << %{<a class="wiki-link" rel="nofollow" href="/wiki_pages/show_or_new?title=#{u(name)}">?</a> }
+      html << %(<a class="wiki-link" rel="nofollow" href="/wiki_pages/show_or_new?title=#{u(name)}">?</a> )
     end
 
     if current_query.present?
@@ -102,20 +102,20 @@ class TagSetPresenter < Presenter
     if count < 1_000
       post_count = count
     elsif count < 10_000
-      post_count = "%.1fk" % (count / 1_000.0)
+      post_count = format("%.1fk", (count / 1_000.0))
     elsif count < 1_000_000
       post_count = "#{count / 1_000}k"
     elsif count < 10_000_000
-      post_count = "%.1fm" % (count / 1_000_000.0)
+      post_count = format("%.1fm", (count / 1_000_000.0))
     else
       post_count = "#{count / 1_000_000}m"
     end
 
     is_underused_tag = count <= 1 && category == Tag.categories.general
-    klass = "color-muted post-count#{is_underused_tag ? " low-post-count" : ""}"
+    klass = "color-muted post-count#{is_underused_tag ? ' low-post-count' : ''}"
     title = "New general tag detected. Check the spelling or populate it now."
 
-    html << %{<span data-count='#{count}' class="#{klass}"#{is_underused_tag ? " title='#{title}'" : ""}>#{post_count}</span>}
+    html << %(<span data-count='#{count}' class="#{klass}"#{is_underused_tag ? " title='#{title}'" : ''}>#{post_count}</span>)
 
     html << "</li>"
     html
