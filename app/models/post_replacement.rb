@@ -30,7 +30,7 @@ class PostReplacement < ApplicationRecord
   end
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
-  validates :reason, length: { in: 5..150 }, presence: true, on: :create
+  validates :reason, length: { in: 5..300 }, presence: true, on: :create
 
   before_create :create_original_backup
   before_create :set_previous_uploader
@@ -85,6 +85,14 @@ class PostReplacement < ApplicationRecord
       errors.add(:md5, "duplicate of pending replacement on post ##{replacement.post_id}")
     end
     replacements.empty?
+  end
+
+  ## DB!
+  # Fetches the data for the artist tags to find any that have the linked artists matching the creator.
+  # Sends a db request to look up the artist data.
+  def uploader_linked_artists
+    tags = post.artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == creator.id }
+    @uploader_linked_artists ||= tags.map(&:name)
   end
 
   def sequence_number
@@ -210,9 +218,9 @@ class PostReplacement < ApplicationRecord
         UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count - 1")
       end
 
-      processor = UploadService::Replacer.new(post: post, replacement: self)
+      processor = UploadService::Replacer.new(post: post, replacement: self, credit_replacer: credit_replacer) # TODO: Tests 
       processor.process!(penalize_current_uploader: penalize_current_uploader)
-      PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5 })
+      PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5, creator_id: creator.id, replacer_credited: credit_replacer.to_s.truthy? })
       post.update_index
     end
 
@@ -267,13 +275,25 @@ class PostReplacement < ApplicationRecord
     end
 
     def note!
+      # TOOD add db column for note
       # TOOD do checks 
       # update_attribute()
       post.update_index
     end
 
-    def transfer(new_post:)
-      # TODO do checks 0. ensure possible to transfer
+    def transfer(new_post:) # TODO: Tests
+      if status != "pending"
+        errors.add(:status, "must be pending to reject")
+        return
+      end
+      if new_post.nil? || new_post.id == post.id
+        errors.add(:post, "must be a different post")
+        return
+      end
+      if new_post.is_deleted?
+        errors.add(:post, "is deleted")
+        return
+      end
       prev = post
 
       update_attribute(post: new_post)
