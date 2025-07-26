@@ -208,7 +208,7 @@ class PostReplacement < ApplicationRecord
   end
 
   module ProcessingMethods
-    def approve!(penalize_current_uploader:, credit_replacer: True)
+    def approve!(penalize_current_uploader:, credit_replacer: true)
       if is_current? || is_promoted?
         errors.add(:status, "version is already active")
         return
@@ -218,8 +218,8 @@ class PostReplacement < ApplicationRecord
         UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count - 1")
       end
 
-      processor = UploadService::Replacer.new(post: post, replacement: self, credit_replacer: credit_replacer) # TODO: Tests 
-      processor.process!(penalize_current_uploader: penalize_current_uploader)
+      processor = UploadService::Replacer.new(post: post, replacement: self) 
+      processor.process!(penalize_current_uploader: penalize_current_uploader, credit_replacer: credit_replacer) # TODO: Tests
       PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5, creator_id: creator.id, replacer_credited: credit_replacer.to_s.truthy? })
       post.update_index
     end

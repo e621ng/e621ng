@@ -6,7 +6,7 @@
         <% if post_replacement.status == "pending" %>
           <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %>
           <% if post_replacement.creator.is_staff? %>
-            (<%= link_to "silently", "#silent-approve", class: "replacement-silent-approve-action" %>) <br> <!-- TODO: Add an override to keep the current uploader, when the submitter is staff -->
+            (<%= link_to "silently", "#silent-approve", class: "replacement-silent-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %>) <br>
           <% end %>
           <br> <br>
           <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %> <br>

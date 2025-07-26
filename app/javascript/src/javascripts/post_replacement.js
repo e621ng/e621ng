@@ -4,12 +4,12 @@ let PostReplacement = {};
 
 PostReplacement.initialize_all = function () {
   const actions = [
-    { selector: ".replacement-approve-action", handler: (e, $target) => { alert("approve action triggered."); /* PostReplacement.approve($target.data("replacement-id"), $target.data("penalize")) */ }},
-    { selector: ".replacement-reject-action", handler: (e, $target) => { alert("reject action triggered."); /* PostReplacement.reject($target.data("replacement-id")) */ }},
-    { selector: ".replacement-promote-action", handler: (e, $target) => { alert("promote action triggered."); /* PostReplacement.promote($target.data("replacement-id")) */ }},
-    { selector: ".replacement-toggle-penalize-action", handler: (e, $target) => { alert("toggle penalize action triggered."); /* PostReplacement.toggle_penalize($target) */ }},
-    { selector: ".replacement-destroy-action", handler: (e, $target) => { alert("destroy action triggered."); /* PostReplacement.destroy($target.data("replacement-id")) */ }},
-    { selector: ".replacement-silent-approve-action", handler: (e, $target) => { alert("Silent approve action triggered."); /* PostReplacement.approve($target.data("replacement-id"), $target.data("penalize")); */} },
+    { selector: ".replacement-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), true); }},
+    { selector: ".replacement-reject-action", handler: (e, $target) => { PostReplacement.reject($target.data("replacement-id")); }},
+    { selector: ".replacement-promote-action", handler: (e, $target) => { PostReplacement.promote($target.data("replacement-id")); }},
+    { selector: ".replacement-toggle-penalize-action", handler: (e, $target) => { PostReplacement.toggle_penalize($target); }},
+    { selector: ".replacement-destroy-action", handler: (e, $target) => { PostReplacement.destroy($target.data("replacement-id")); }},
+    { selector: ".replacement-silent-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), false); }},
     { selector: ".replacement-transfer-action", handler: (e, $target) => { alert("Transfer action triggered."); /* PostReplacement.promote($target.data("replacement-id")); */} },
     { selector: ".replacement-note-action", handler: (e, $target) => { alert("Note action triggered."); /* PostReplacement.promote($target.data("replacement-id")); */} },
   ];
@@ -23,13 +23,16 @@ PostReplacement.initialize_all = function () {
   });
 };
 
-PostReplacement.approve = function (id, penalize_current_uploader) {
+PostReplacement.approve = function (id, penalize_current_uploader, credit_replacer) {
   const $row = $(`#replacement-${id}`);
   make_processing($row);
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/approve`,
-    data: { penalize_current_uploader },
+    data: {
+      penalize_current_uploader: penalize_current_uploader,
+      credit_replacer: credit_replacer,
+    },
     dataType: "html",
   })
     .done((html) => {

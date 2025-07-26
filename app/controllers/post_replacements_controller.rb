@@ -58,6 +58,8 @@ class PostReplacementsController < ApplicationController
 
   def approve
     @post_replacement = PostReplacement.find(params[:id])
+    puts "Approving post replacement: #{@post_replacement.id} by #{CurrentUser.name}"
+    puts "Params: #{params.inspect}"
     @post_replacement.approve!(
       penalize_current_uploader: params[:penalize_current_uploader],
       credit_replacer: params[:credit_replacer],
