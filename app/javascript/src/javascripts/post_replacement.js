@@ -3,35 +3,23 @@ import Utility from "./utility";
 let PostReplacement = {};
 
 PostReplacement.initialize_all = function () {
-  $(".replacement-approve-action").on("click", (e) => {
-    const $target = $(e.target);
-    e.preventDefault();
-    PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"));
-  });
+  const actions = [
+    { selector: ".replacement-approve-action", handler: (e, $target) => { alert("approve action triggered."); /* PostReplacement.approve($target.data("replacement-id"), $target.data("penalize")) */ }},
+    { selector: ".replacement-reject-action", handler: (e, $target) => { alert("reject action triggered."); /* PostReplacement.reject($target.data("replacement-id")) */ }},
+    { selector: ".replacement-promote-action", handler: (e, $target) => { alert("promote action triggered."); /* PostReplacement.promote($target.data("replacement-id")) */ }},
+    { selector: ".replacement-toggle-penalize-action", handler: (e, $target) => { alert("toggle penalize action triggered."); /* PostReplacement.toggle_penalize($target) */ }},
+    { selector: ".replacement-destroy-action", handler: (e, $target) => { alert("destroy action triggered."); /* PostReplacement.destroy($target.data("replacement-id")) */ }},
+    { selector: ".replacement-silent-approve-action", handler: (e, $target) => { alert("Silent approve action triggered."); /* PostReplacement.approve($target.data("replacement-id"), $target.data("penalize")); */} },
+    { selector: ".replacement-transfer-action", handler: (e, $target) => { alert("Transfer action triggered."); /* PostReplacement.promote($target.data("replacement-id")); */} },
+    { selector: ".replacement-note-action", handler: (e, $target) => { alert("Note action triggered."); /* PostReplacement.promote($target.data("replacement-id")); */} },
+  ];
 
-  $(".replacement-reject-action").on("click", (e) => {
-    const $target = $(e.target);
-    e.preventDefault();
-    PostReplacement.reject($target.data("replacement-id"));
-  });
-
-  $(".replacement-promote-action").on("click", (e) => {
-    const $target = $(e.target);
-    e.preventDefault();
-    PostReplacement.promote($target.data("replacement-id"));
-  });
-
-  $(".replacement-toggle-penalize-action").on("click", (e) => {
-    const $target = $(e.target);
-    e.preventDefault();
-    PostReplacement.toggle_penalize($target);
-  });
-
-  $(".replacement-destroy-action").on("click", (e) => {
-    const $target = $(e.target);
-    const id = $target.data("replacement-id");
-    e.preventDefault();
-    PostReplacement.destroy(id);
+  actions.forEach(({ selector, handler }) => {
+    $(selector).on("click", (e) => {
+      const $target = $(e.target);
+      e.preventDefault();
+      handler(e, $target);
+    });
   });
 };
 
