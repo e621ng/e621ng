@@ -31,7 +31,8 @@ class FavoritesController < ApplicationController
   def create
     @post = Post.find(params[:post_id])
     FavoriteManager.add!(user: CurrentUser.user, post: @post)
-    flash.now[:notice] = "You have favorited this post"
+    VoteManager.vote!(user: CurrentUser.user, post: @post, score: 1)
+    flash.now[:notice] = "You have favorited and upvoted this post"
 
     respond_with(@post)
   rescue Favorite::Error, ActiveRecord::RecordInvalid => e
