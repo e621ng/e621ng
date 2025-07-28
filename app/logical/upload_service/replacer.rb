@@ -59,7 +59,7 @@ class UploadService
         post.source = "#{replacement.source}\n" + post.source
         post.tag_string = upload.tag_string
         # Reset ownership information on post.
-        if credit_replacer.to_s.truthy? # TODO: Tests
+        if credit_replacer.to_s.truthy? # Catt0s_TODO: Tests
           post.uploader_id = replacement.creator_id
           post.uploader_ip_addr = replacement.creator_ip_addr
         end

@@ -3,7 +3,7 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: %i[create new]
-  before_action :approver_only, only: %i[approve reject promote toggle_penalize transfer ]
+  before_action :approver_only, only: %i[approve reject promote toggle_penalize transfer note]
   before_action :admin_only, only: [:destroy]
   before_action :ensure_uploads_enabled, only: %i[new create]
 
@@ -89,8 +89,11 @@ class PostReplacementsController < ApplicationController
     end
   end
 
-  def add_note
+  def note
     @post_replacement = PostReplacement.find(params[:id])
+    # Catt0s_TODO
+    puts "Params: #{params.inspect}"
+    @post_replacement.note(params[:note_content])
 
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
@@ -100,7 +103,7 @@ class PostReplacementsController < ApplicationController
 
   def transfer
     @post_replacement = PostReplacement.find(params[:id])
-        puts "Params: #{params.inspect}"
+    puts "Params: #{params.inspect}"
     @post_replacement.transfer(Post.find(params[:new_post_id]))
     
     respond_with(@post_replacement) do |format|

@@ -240,7 +240,7 @@ Rails.application.routes.draw do
       post :promote
       put :toggle_penalize
       put :transfer
-      # put :add_note
+      put :note
     end
   end
   resources :deleted_posts, only: [:index]

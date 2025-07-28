@@ -11,7 +11,7 @@ PostReplacement.initialize_all = function () {
     { selector: ".replacement-destroy-action", handler: (e, $target) => { PostReplacement.destroy($target.data("replacement-id")); }},
     { selector: ".replacement-silent-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), false); }},
     { selector: ".replacement-transfer-action", handler: (e, $target) => { PostReplacement.transfer($target.data("replacement-id")) } },
-    { selector: ".replacement-note-action", handler: (e, $target) => { alert("Note action triggered."); /* PostReplacement.promote($target.data("replacement-id")); */} },
+    { selector: ".replacement-note-action", handler: (e, $target) => { PostReplacement.note($target.data("replacement-id")) } },
   ];
 
   actions.forEach(({ selector, handler }) => {
@@ -22,6 +22,34 @@ PostReplacement.initialize_all = function () {
     });
   });
 };
+
+PostReplacement.note =  function (id) {
+  const $row = $(`#replacement-${id}`);
+  // Catt0s_TODO: if there is already a note, let the user know, and autofill the prompt
+  const note_text = prompt("Enter a note:");
+  if (!note_text) {
+    Utility.notice("Note cancelled.");
+    return;
+  }
+  make_processing($row);
+  $.ajax({
+    type: "PUT",
+    url: `/post_replacements/${id}/note`,
+    data: {
+      note_content: note_text
+    },
+    dataType: "html",
+  })
+    .done((html) => {
+      Utility.notice("Note added.");
+      $row.replaceWith(html);
+    })
+    .fail((data) => {
+      const msg = data.responseText?.trim() || "Failed to add note to the replacement.";
+      Utility.error(msg);
+      revert_processing($row);
+    });
+}
 
 PostReplacement.transfer = function (id) { 
   const $row = $(`#replacement-${id}`);

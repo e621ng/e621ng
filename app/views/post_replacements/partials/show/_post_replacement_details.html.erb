@@ -11,8 +11,8 @@
           <br> <br>
           <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %> <br>
           
-          <%= link_to "Transfer", "#transfer", class: "replacement-transfer-action", data: { replacement_id: post_replacement.id} %> <br> <!-- TODO: Allow transfering -->
-          <%= link_to "Note", "#note", class: "replacement-note-action", data: { replacement_id: post_replacement.id} %> <br> <!-- TODO: Allow adding note -->
+          <%= link_to "Transfer", "#transfer", class: "replacement-transfer-action", data: { replacement_id: post_replacement.id} %> <br>
+          <%= link_to "Note", "#note", class: "replacement-note-action", data: { replacement_id: post_replacement.id} %> <br>
         <% end %>
         <% if !post_replacement.is_current? && !post_replacement.is_promoted? %>
           <% if !post_replacement.is_backup? %> <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id } %> <br> <% end %>

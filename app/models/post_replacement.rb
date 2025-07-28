@@ -274,14 +274,15 @@ class PostReplacement < ApplicationRecord
       post.update_index
     end
 
-    def note!
-      # TOOD add db column for note
-      # TOOD do checks 
+    def note(note_content)
+      # Catt0s_TODO add db column for note
+      puts "note content: #{note_content}"
+      # Catt0s_TODO do checks 
       # update_attribute()
       post.update_index
     end
 
-    def transfer(new_post) # TODO: Tests
+    def transfer(new_post) # Catt0s_TODO: Tests
       if status != "pending"
         errors.add(:status, "must be pending to reject")
         return
@@ -294,8 +295,14 @@ class PostReplacement < ApplicationRecord
         errors.add(:post, "is deleted")
         return
       end
-      prev = post
+      
+      # @Catt0s_TODO: make a backup if it doesn't exist yet
+      ## find if there is already a backip
+      ## if not, make it
+      
 
+      prev = post
+      # set new "previous uploader"
       update_attribute(:post, new_post)
 
       PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
