@@ -1,7 +1,8 @@
 import Utility from "./utility";
 
 let PostReplacement = {};
-
+// Catt0s_TODO: add expand/collapse button fuctionality
+// Catt0s_TODO: start expand/collapse based on mobile/desktop
 PostReplacement.initialize_all = function () {
   const actions = [
     { selector: ".replacement-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), true); }},

@@ -279,6 +279,12 @@ class PostReplacement < ApplicationRecord
       puts "note content: #{note_content}"
       # Catt0s_TODO do checks 
       # update_attribute()
+      # Catt0s_TODO mod action:: note added, content ? -- should notes be private or public?
+
+
+      # TEMPORARY TESTING STUFF: 
+      update_attribute(:reason, "#{reason}\n\r\n\rTESTING NOTE::#{note_content}")
+      
       post.update_index
     end
 
