@@ -3,7 +3,7 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: %i[create new]
-  before_action :approver_only, only: %i[approve reject promote toggle_penalize]
+  before_action :approver_only, only: %i[approve reject promote toggle_penalize transfer ]
   before_action :admin_only, only: [:destroy]
   before_action :ensure_uploads_enabled, only: %i[new create]
 
@@ -58,8 +58,6 @@ class PostReplacementsController < ApplicationController
 
   def approve
     @post_replacement = PostReplacement.find(params[:id])
-    puts "Approving post replacement: #{@post_replacement.id} by #{CurrentUser.name}"
-    puts "Params: #{params.inspect}"
     @post_replacement.approve!(
       penalize_current_uploader: params[:penalize_current_uploader],
       credit_replacer: params[:credit_replacer],
@@ -102,6 +100,8 @@ class PostReplacementsController < ApplicationController
 
   def transfer
     @post_replacement = PostReplacement.find(params[:id])
+        puts "Params: #{params.inspect}"
+    @post_replacement.transfer(Post.find(params[:new_post_id]))
     
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }

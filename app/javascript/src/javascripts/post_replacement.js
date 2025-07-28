@@ -10,7 +10,7 @@ PostReplacement.initialize_all = function () {
     { selector: ".replacement-toggle-penalize-action", handler: (e, $target) => { PostReplacement.toggle_penalize($target); }},
     { selector: ".replacement-destroy-action", handler: (e, $target) => { PostReplacement.destroy($target.data("replacement-id")); }},
     { selector: ".replacement-silent-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), false); }},
-    { selector: ".replacement-transfer-action", handler: (e, $target) => { alert("Transfer action triggered."); /* PostReplacement.promote($target.data("replacement-id")); */} },
+    { selector: ".replacement-transfer-action", handler: (e, $target) => { PostReplacement.transfer($target.data("replacement-id")) } },
     { selector: ".replacement-note-action", handler: (e, $target) => { alert("Note action triggered."); /* PostReplacement.promote($target.data("replacement-id")); */} },
   ];
 
@@ -22,6 +22,33 @@ PostReplacement.initialize_all = function () {
     });
   });
 };
+
+PostReplacement.transfer = function (id) { 
+  const $row = $(`#replacement-${id}`);
+  const newPostId = prompt("Enter the new post ID to transfer this replacement to:");
+  if (!newPostId) {
+    Utility.notice("Transfer cancelled.");
+    return;
+  }
+  make_processing($row);
+  $.ajax({
+    type: "PUT",
+    url: `/post_replacements/${id}/transfer`,
+    data: {
+      new_post_id: newPostId
+    },
+    dataType: "html",
+  })
+    .done((html) => {
+      Utility.notice("Replacement transferred.");
+      $row.replaceWith(html);
+    })
+    .fail((data) => {
+      const msg = data.responseText?.trim() || "Failed to transfer the replacement.";
+      Utility.error(msg);
+      revert_processing($row);
+    });
+}
 
 PostReplacement.approve = function (id, penalize_current_uploader, credit_replacer) {
   const $row = $(`#replacement-${id}`);

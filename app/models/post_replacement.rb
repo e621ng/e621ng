@@ -281,7 +281,7 @@ class PostReplacement < ApplicationRecord
       post.update_index
     end
 
-    def transfer(new_post:) # TODO: Tests
+    def transfer(new_post) # TODO: Tests
       if status != "pending"
         errors.add(:status, "must be pending to reject")
         return
@@ -296,7 +296,7 @@ class PostReplacement < ApplicationRecord
       end
       prev = post
 
-      update_attribute(post: new_post)
+      update_attribute(:post, new_post)
 
       PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
       PostEvent.add(prev.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
