@@ -4,6 +4,8 @@ module PostSets
   class Favorites < PostSets::Base
     attr_reader :page, :limit
 
+    delegate :related_tags, to: :presenter
+
     def initialize(user, page, limit:)
       super()
       @user = user

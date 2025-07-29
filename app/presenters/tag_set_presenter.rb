@@ -5,32 +5,35 @@
   This class makes it easy to fetch the categories for all the
   tags in one call instead of fetching them sequentially.
 =end
-
+# TODO: Integrate preceding header & surrounding <ul>
 class TagSetPresenter < Presenter
   include Rails.application.routes.url_helpers
 
-  attr_reader :tag_names
+  attr_reader :tag_names, :list_of
 
   # @param [Array<String>] a list of tags to present. Tags will be presented in
   # the order given. The list should not contain duplicates. The list may
   # contain tags that do not exist in the tags table, such as metatags.
-  def initialize(tag_names)
+  def initialize(tag_names, list_of: "all")
     @tag_names = tag_names
+    @list_of = list_of
     @_cached = {}
   end
 
-  def post_index_sidebar_tag_list_html(current_query: "")
-    html = +""
-    if ordered_tags.present?
-      html << "<ul>"
-      ordered_tags.each do |tag|
-        html << build_list_item(tag, current_query: current_query)
-      end
-      html << "</ul>"
-    end
+  # NOTE: It looks like `.tag-list` & `.<list type>-tag-list` classes don't affect styles; are they necessary?
+  # def post_index_sidebar_tag_list_html(current_query: "", post: nil)
+  #   html = +""
+  #   if ordered_tags.present?
+  #     # NOTE: The preceding header gets `data-category="<#{list_of}>"`, the succeeding li's get it; the `ul` doesn't.
+  #     html << "<ul class=\"tag-list #{list_of}-tag-list\">\n"
+  #     ordered_tags.each do |tag|
+  #       html << build_list_item(tag, current_query: current_query, post: post)
+  #     end
+  #     html << "</ul>"
+  #   end
 
-    html.html_safe
-  end
+  #   html.html_safe
+  # end
 
   # compact (horizontal) list, as seen in the /comments index.
   def inline_tag_list_html(link_type = :tag)
@@ -47,6 +50,22 @@ class TagSetPresenter < Presenter
     TagCategory::CATEGORIZED_LIST.map do |category|
       tags_for_category(category).map(&:name).join(" ")
     end.compact_blank.join(" \n")
+  end
+
+  # NOTE: Consistent up to 100 million, follow the pattern to update to billions.
+  def self.post_count_label(count)
+    # NOTE: Most tags have fewer posts, so the conditional should exit earlier more often in this order.
+    if count < 1_000
+      count.to_s
+    elsif count < 10_000
+      format("%.1fk", (count / 1_000.0))
+    elsif count < 1_000_000
+      "#{count / 1_000}k"
+    elsif count < 10_000_000
+      format("%.1fm", (count / 1_000_000.0))
+    else
+      "#{count / 1_000_000}m"
+    end
   end
 
   private
@@ -77,7 +96,10 @@ class TagSetPresenter < Presenter
   end
 
   # TODO: Is this actually used? It seems the partial `app/views/posts/partials/common/sidebar/_tag_list_item.html.erb` is used instead.
-  def build_list_item(tag, current_query: "", highlight: false)
+  # NOTE: Supports something special when `highlight` is true; should this be used?
+  def build_list_item(tag, current_query: "", highlight: false, post: nil)
+    # return ApplicationController.render(partial: "app/views/posts/partials/common/sidebar/_tag_list_item.html.erb", assigns: { post: post, tag: tag, query: current_query, highlight: highlight })
+
     name = tag.name
     count = tag.post_count
     category = tag.category
@@ -98,22 +120,11 @@ class TagSetPresenter < Presenter
     html << tag_link(tag, name.tr("_", " "))
     html << %(<i title="Uploaded by the artist" class="highlight fa-regular fa-circle-check"></i>) if highlight
 
-    # NOTE: Most tags have fewer posts, so the conditional should exit earlier more often in this order.
-    if count < 1_000
-      post_count = count
-    elsif count < 10_000
-      post_count = format("%.1fk", (count / 1_000.0))
-    elsif count < 1_000_000
-      post_count = "#{count / 1_000}k"
-    elsif count < 10_000_000
-      post_count = format("%.1fm", (count / 1_000_000.0))
-    else
-      post_count = "#{count / 1_000_000}m"
-    end
-
     is_underused_tag = count <= 1 && category == Tag.categories.general
     klass = "color-muted post-count#{is_underused_tag ? ' low-post-count' : ''}"
     title = "New general tag detected. Check the spelling or populate it now."
+
+    post_count = post_count_label(count)
 
     html << %(<span data-count='#{count}' class="#{klass}"#{is_underused_tag ? " title='#{title}'" : ''}>#{post_count}</span>)
 
