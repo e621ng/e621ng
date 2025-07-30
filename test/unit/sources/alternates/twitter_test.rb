@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 module Sources
   class TwitterTest < ActiveSupport::TestCase
@@ -6,7 +8,7 @@ module Sources
       alternate_should_work(
         "https://mobile.twitter.com/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408"
+        "https://twitter.com/FalseKnees/status/1555698764622737408",
       )
     end
 
@@ -14,7 +16,7 @@ module Sources
       alternate_should_work(
         "https://fxtwitter.com/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408"
+        "https://twitter.com/FalseKnees/status/1555698764622737408",
       )
     end
 
@@ -22,7 +24,7 @@ module Sources
       alternate_should_work(
         "https://nitter.net/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408"
+        "https://twitter.com/FalseKnees/status/1555698764622737408",
       )
     end
 
@@ -30,7 +32,7 @@ module Sources
       alternate_should_work(
         "https://nitter.moomoo.me/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408"
+        "https://twitter.com/FalseKnees/status/1555698764622737408",
       )
     end
 
@@ -38,7 +40,7 @@ module Sources
       alternate_should_work(
         "https://bibliogram.moomoo.me/u/britishwildlifecentre?track_me=True",
         Sources::Alternates::Twitter,
-        "https://bibliogram.moomoo.me/u/britishwildlifecentre?track_me=True"
+        "https://bibliogram.moomoo.me/u/britishwildlifecentre?track_me=True",
       )
     end
 
@@ -46,7 +48,7 @@ module Sources
       alternate_should_work(
         "https://twitter.com/Idolomantises/status/1554175127855673344?s=20&t=dow0UJIEEOousVoifzpLdg",
         Sources::Alternates::Twitter,
-        "https://twitter.com/Idolomantises/status/1554175127855673344"
+        "https://twitter.com/Idolomantises/status/1554175127855673344",
       )
     end
 
@@ -54,7 +56,7 @@ module Sources
       alternate_should_work(
         "https://nitter.kavin.rocks/Idolomantises/status/1554175127855673344?s=20&t=dow0UJIEEOousVoifzpLdg",
         Sources::Alternates::Twitter,
-        "https://twitter.com/Idolomantises/status/1554175127855673344"
+        "https://twitter.com/Idolomantises/status/1554175127855673344",
       )
     end
 
@@ -62,7 +64,7 @@ module Sources
       alternate_should_work(
         "https://twitter.com/Idolomantises?s=09",
         Sources::Alternates::Twitter,
-        "https://twitter.com/Idolomantises"
+        "https://twitter.com/Idolomantises",
       )
     end
 
@@ -70,7 +72,7 @@ module Sources
       alternate_should_work(
         "https://pbs.twimg.com/media/E8v96meVgAkTKDE.jpg:orig",
         Sources::Alternates::Twitter,
-        "https://pbs.twimg.com/media/E8v96meVgAkTKDE?format=jpg&name=orig"
+        "https://pbs.twimg.com/media/E8v96meVgAkTKDE?format=jpg&name=orig",
       )
     end
 
@@ -78,7 +80,7 @@ module Sources
       alternate_should_work(
         "https://pbs.twimg.com/media/E8v96meVgAkTKDE.jpg?name=orig",
         Sources::Alternates::Twitter,
-        "https://pbs.twimg.com/media/E8v96meVgAkTKDE?format=jpg&name=orig"
+        "https://pbs.twimg.com/media/E8v96meVgAkTKDE?format=jpg&name=orig",
       )
     end
 
@@ -86,7 +88,7 @@ module Sources
       alternate_should_work(
         "https://pbs.twimg.com/media/E8v96meVgAkTKDE:orig?format=jpg",
         Sources::Alternates::Twitter,
-        "https://pbs.twimg.com/media/E8v96meVgAkTKDE?format=jpg&name=orig"
+        "https://pbs.twimg.com/media/E8v96meVgAkTKDE?format=jpg&name=orig",
       )
     end
 
@@ -94,7 +96,7 @@ module Sources
       alternate_should_work(
         "https://pbs.twimg.com/media/E8v96meVgAkTKDE?format=jpg&name=orig",
         Sources::Alternates::Twitter,
-        "https://pbs.twimg.com/media/E8v96meVgAkTKDE?format=jpg&name=orig"
+        "https://pbs.twimg.com/media/E8v96meVgAkTKDE?format=jpg&name=orig",
       )
     end
 
@@ -102,7 +104,7 @@ module Sources
       alternate_should_work(
         "https://nitter.net/pic/media%2FCTNngvZW4AAHvGM.jpg%3Asmall",
         Sources::Alternates::Twitter,
-        "https://pbs.twimg.com/media/CTNngvZW4AAHvGM?format=jpg&name=small"
+        "https://pbs.twimg.com/media/CTNngvZW4AAHvGM?format=jpg&name=small",
       )
     end
 
@@ -110,7 +112,7 @@ module Sources
       alternate_should_work(
         "https://nitter.net/pic/media%2FCTNngvZW4AAHvGM.jpg%3Fname%3Dsmall",
         Sources::Alternates::Twitter,
-        "https://pbs.twimg.com/media/CTNngvZW4AAHvGM?format=jpg&name=small"
+        "https://pbs.twimg.com/media/CTNngvZW4AAHvGM?format=jpg&name=small",
       )
     end
 
@@ -118,7 +120,7 @@ module Sources
       alternate_should_work(
         "https://nitter.net/pic/media%2FCTNngvZW4AAHvGM%3Fformat%3Djpg%26name%3Dsmall",
         Sources::Alternates::Twitter,
-        "https://pbs.twimg.com/media/CTNngvZW4AAHvGM?format=jpg&name=small"
+        "https://pbs.twimg.com/media/CTNngvZW4AAHvGM?format=jpg&name=small",
       )
     end
 
@@ -126,7 +128,7 @@ module Sources
       alternate_should_work(
         "https://twitter.com/FalseKnees/status/1555698764622737408/photo/1",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408"
+        "https://twitter.com/FalseKnees/status/1555698764622737408",
       )
     end
   end

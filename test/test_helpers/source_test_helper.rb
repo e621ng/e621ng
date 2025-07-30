@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SourceTestHelper
   def alternate_should_work(
     url,

@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 module Sources
   class DeviantartTest < ActiveSupport::TestCase
@@ -6,7 +8,7 @@ module Sources
       alternate_should_work(
         "https://www.deviantart.com/yann-s/art/Nostalgia-for-infinity-GIF-animation-749119309",
         Sources::Alternates::Deviantart,
-        "https://www.deviantart.com/yann-s/art/Nostalgia-for-infinity-GIF-animation-749119309"
+        "https://www.deviantart.com/yann-s/art/Nostalgia-for-infinity-GIF-animation-749119309",
       )
     end
 
@@ -14,7 +16,7 @@ module Sources
       alternate_should_work(
         "https://yann-s.deviantart.com/art/Nostalgia-for-infinity-GIF-animation-749119309",
         Sources::Alternates::Deviantart,
-        "https://www.deviantart.com/yann-s/art/Nostalgia-for-infinity-GIF-animation-749119309"
+        "https://www.deviantart.com/yann-s/art/Nostalgia-for-infinity-GIF-animation-749119309",
       )
     end
   end

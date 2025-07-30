@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 module Sources
   class InkbunnyTest < ActiveSupport::TestCase
@@ -6,7 +8,7 @@ module Sources
       alternate_should_work(
         "https://inkbunny.net/s/2082543",
         Sources::Alternates::Inkbunny,
-        "https://inkbunny.net/s/2082543"
+        "https://inkbunny.net/s/2082543",
       )
     end
 
@@ -14,7 +16,7 @@ module Sources
       alternate_should_work(
         "https://gb2.ib.metapix.net/files/full/3012/3012936_MeganBryar_meganbryar.png",
         Sources::Alternates::Inkbunny,
-        "https://gb2.ib.metapix.net/files/full/3012/3012936_MeganBryar_meganbryar.png"
+        "https://gb2.ib.metapix.net/files/full/3012/3012936_MeganBryar_meganbryar.png",
       )
     end
 
@@ -22,7 +24,7 @@ module Sources
       alternate_should_work(
         "https://inkbunny.net/s/2582678-p2-#pictop",
         Sources::Alternates::Inkbunny,
-        "https://inkbunny.net/s/2582678-p2-"
+        "https://inkbunny.net/s/2582678-p2-",
       )
     end
   end

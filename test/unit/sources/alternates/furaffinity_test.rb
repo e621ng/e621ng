@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 module Sources
   class FuraffinityTest < ActiveSupport::TestCase
@@ -14,7 +16,7 @@ module Sources
       alternate_should_work(
         "https://d.facdn.net/art/zephyr42/1530401739/1530401739.zephyr42_zephyrfullscene_fullsize_preview.png",
         Sources::Alternates::Furaffinity,
-        "https://d.furaffinity.net/art/zephyr42/1530401739/1530401739.zephyr42_zephyrfullscene_fullsize_preview.png"
+        "https://d.furaffinity.net/art/zephyr42/1530401739/1530401739.zephyr42_zephyrfullscene_fullsize_preview.png",
       )
     end
 
@@ -22,7 +24,7 @@ module Sources
       alternate_should_work(
         "https://d2.facdn.net/art/zephyr42/1530401739/1530401739.zephyr42_zephyrfullscene_fullsize_preview.png",
         Sources::Alternates::Furaffinity,
-        "https://d.furaffinity.net/art/zephyr42/1530401739/1530401739.zephyr42_zephyrfullscene_fullsize_preview.png"
+        "https://d.furaffinity.net/art/zephyr42/1530401739/1530401739.zephyr42_zephyrfullscene_fullsize_preview.png",
       )
     end
 
@@ -30,7 +32,7 @@ module Sources
       alternate_should_work(
         "https://www.furaffinity.net/full/27836238/",
         Sources::Alternates::Furaffinity,
-        "https://www.furaffinity.net/view/27836238/"
+        "https://www.furaffinity.net/view/27836238/",
       )
     end
 
@@ -38,7 +40,7 @@ module Sources
       alternate_should_work(
         "https://www.furaffinity.net/view/27836238/?upload-successful",
         Sources::Alternates::Furaffinity,
-        "https://www.furaffinity.net/view/27836238/"
+        "https://www.furaffinity.net/view/27836238/",
       )
     end
 
@@ -46,7 +48,7 @@ module Sources
       alternate_should_work(
         "https://www.furaffinity.net/view/27836238/#cid:130552607",
         Sources::Alternates::Furaffinity,
-        "https://www.furaffinity.net/view/27836238/"
+        "https://www.furaffinity.net/view/27836238/",
       )
     end
   end

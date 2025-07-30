@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module Sources
   module Alternates
     class Deviantart < Base
-      BASE_HOSTS = %w[deviantart.com www.deviantart.com]
+      BASE_HOSTS = %w[deviantart.com www.deviantart.com].freeze
 
       def force_https?
         true

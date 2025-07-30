@@ -21,7 +21,7 @@ module Sources
       end
 
       def force_https?
-        return false unless @parsed_url.present?
+        return false if @parsed_url.blank?
         secure_domains = %w[weasyl.com e-hentai.org hentai-foundry.com paheal.net imgur.com]
         secure_domains.include?(@parsed_url.domain)
       end

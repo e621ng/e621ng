@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module Sources
   module Alternates
     class Inkbunny < Base
-
       def force_https?
         true
       end
