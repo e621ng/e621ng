@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 module Sources
   class NullTest < ActiveSupport::TestCase
@@ -6,7 +8,7 @@ module Sources
       alternate_should_work(
         "http://oremuhax.x0.com/yoro1603.jpg",
         Sources::Alternates::Null,
-        "http://oremuhax.x0.com/yoro1603.jpg"
+        "http://oremuhax.x0.com/yoro1603.jpg",
       )
     end
 
@@ -14,7 +16,7 @@ module Sources
       alternate_should_work(
         "http://imgur.com/gallery/qFKojyz",
         Sources::Alternates::Null,
-        "https://imgur.com/gallery/qFKojyz"
+        "https://imgur.com/gallery/qFKojyz",
       )
     end
   end

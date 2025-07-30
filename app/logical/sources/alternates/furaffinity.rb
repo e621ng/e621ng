@@ -28,7 +28,7 @@ module Sources
         end
         # Convert /full/ submission links to /view/ links
         if @parsed_url.path.start_with?("/full/")
-          @parsed_url.path = "/view/" + @parsed_url.path[6..]
+          @parsed_url.path = "/view/#{@parsed_url.path[6..]}"
         end
         # Remove "?upload-successful" query after upload
         if @parsed_url.query == "upload-successful"
