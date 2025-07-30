@@ -409,6 +409,10 @@ div#c-post-replacements {
     background: themed("color-section-lighten-5");
     border-radius: 0.25em;
   }
+
+  .replacement-embedded {
+    margin-bottom: 1rem;
+  }
 }
 
 @media (max-width: 800px) {

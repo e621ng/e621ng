@@ -1,0 +1,11 @@
+<div id="c-post-replacements">
+
+<% if @ticket.content %>
+  <div class: "replacement-embedded">
+    <%= render partial: "post_replacements/partials/show/post_replacement", locals: { post_replacement: @ticket.content } %>
+</div>
+
+<% else %>
+<% end %>
+
+</div>

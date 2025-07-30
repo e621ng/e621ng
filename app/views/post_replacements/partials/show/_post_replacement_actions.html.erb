@@ -54,7 +54,7 @@
   <% if CurrentUser.is_admin? %>
     <% group4 << link_to("Destroy", "#destroy", class: "replacement-destroy-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
   <% end %>
-  <% group4 << link_to("Report", "#report", class: "replacement-report-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
+  <% group4 << link_to("Report", new_ticket_path(disp_id: post_replacement.id, qtype: 'replacement'), class: "replacement-report-action replacement-action-button") %>
   <div class="multi-action-row">
     <%= safe_join(group4) %>
   </div>
