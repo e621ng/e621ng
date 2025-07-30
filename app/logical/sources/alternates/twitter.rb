@@ -44,8 +44,12 @@ module Sources
           end
         end
         # Remove tracking data from links
-        if @parsed_url.domain == "twitter.com" && @parsed_url.query.present?
-          @parsed_url.query = nil
+        if @parsed_url.domain == "x.com" && @parsed_url.query.present?
+          query_values = @parsed_url.query_values || {}
+          query_values.delete("s")
+          query_values.delete("t")
+          query_values.delete_if { |key, _| key.start_with?("utm_") }
+          @parsed_url.query_values = query_values.empty? ? nil : query_values
         end
         # Remove photo specifier from links
         split_path = @parsed_url.path.split("/")
