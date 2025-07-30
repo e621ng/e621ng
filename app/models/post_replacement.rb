@@ -209,7 +209,7 @@ class PostReplacement < ApplicationRecord
   end
 
   module ProcessingMethods
-    def approve!(penalize_current_uploader:, credit_replacer: true)
+    def approve!(penalize_current_uploader:, credit_replacer: true) # @catt0s TODO: if not crediting replacer, handle penalties
       if is_current? || is_promoted?
         errors.add(:status, "version is already active")
         return
