@@ -1,19 +1,21 @@
+# frozen_string_literal: true
+
 module Sources
   module Alternates
     class Twitter < Base
-      TWITFIX_DOMAINS = %w[fxtwitter.com ayytwitter.com twitter64.com vxtwitter.com pxtwitter.com twittpr.com]
-      NITTER_HOSTS = %w[nitter.net nitter.moomoo.me nitter.kavin.rocks nitter.it nitter.domain.glass nitter.ca nitter.fdn.fr]
+      TWITFIX_DOMAINS = %w[fxtwitter.com fixupx.com vxtwitter.com twittpr.com].freeze
+      NITTER_HOSTS = %w[nitter.net nitter.poast.org nitter.space xcancel.com lightbrd.com nitter.tiekoetter.com nuku.trabun.org].freeze
 
       def force_https?
         true
       end
 
       def nitter_domains
-        NITTER_HOSTS.map{ |host| Addressable::URI.heuristic_parse(host).domain }
+        NITTER_HOSTS.map { |host| Addressable::URI.heuristic_parse(host).domain }
       end
 
       def domains
-        ["twitter.com", "twimg.com"] + TWITFIX_DOMAINS + self.nitter_domains
+        ["twitter.com", "twimg.com"] + TWITFIX_DOMAINS + nitter_domains
       end
 
       def original_url
