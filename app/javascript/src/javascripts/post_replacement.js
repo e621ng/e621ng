@@ -1,9 +1,22 @@
 import Utility from "./utility";
 
 let PostReplacement = {};
-// Catt0s_TODO: add expand/collapse button fuctionality
-// Catt0s_TODO: start expand/collapse based on mobile/desktop
+/** TODO List: Assignee: @ME
+ * = sections =
+ *   - Start sections expanded/collapsed based on detected (mobile vs desktop)
+ *   - Add expand/collapse button functionality
+ *  == States == 
+ *   - Collapsed: Hide "replacement-collapsible", show "replacement-expandable"
+ *   - Expanded: Show "replacement-collapsible", Hide "replacement-expandable"
+ *  == buttons == 
+ *   Span Class "replacement-toggle-icon". Each icon is in a "replacement-toggle-chevron" span. All of this inside a button "toggle-expanded-button"
+ *   - SVG "replacement-expandable" with name "chevron_up"
+ *   - SVG "replacement-collapsible" with name "chevron_down"
+ *  = Actions =
+ *   - Add a note to a replacement
+ */
 PostReplacement.initialize_all = function () {
+  PostReplacement.set_initial_section_state();
   const actions = [
     { selector: ".replacement-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), true); }},
     { selector: ".replacement-reject-action", handler: (e, $target) => { PostReplacement.reject($target.data("replacement-id")); }},
@@ -11,13 +24,17 @@ PostReplacement.initialize_all = function () {
     { selector: ".replacement-toggle-penalize-action", handler: (e, $target) => { PostReplacement.toggle_penalize($target); }},
     { selector: ".replacement-destroy-action", handler: (e, $target) => { PostReplacement.destroy($target.data("replacement-id")); }},
     { selector: ".replacement-silent-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), false); }},
-    { selector: ".replacement-transfer-action", handler: (e, $target) => { PostReplacement.transfer($target.data("replacement-id")) } },
+    { selector: ".replacement-transfer-action", handler: (e, $target) => { PostReplacement.transfer($target.data("replacement-id")); } },
     { selector: ".replacement-note-action", handler: (e, $target) => { PostReplacement.note($target.data("replacement-id")) } },
+    { selector: ".toggle-expanded-button", handler: (e, $target) => { 
+      const id = $target.data("replacement-id");
+      PostReplacement.toggle_section(id);
+    }},
   ];
 
   actions.forEach(({ selector, handler }) => {
-    $(selector).on("click", (e) => {
-      const $target = $(e.target);
+    $(document).on("click", selector, function(e) {
+      const $target = $(this);
       e.preventDefault();
       handler(e, $target);
     });
@@ -181,6 +198,25 @@ PostReplacement.destroy = function (id) {
     });
 };
 
+PostReplacement.toggle_section = function(id) {
+  const $row = $(`#replacement-${id}`);
+  $row.find('.replacement-collapsible').toggle();
+  $row.find('.replacement-expandable').toggle();
+};
+
+PostReplacement.set_initial_section_state = function() {
+  const isMobile = window.matchMedia("(max-width: 600px)").matches;
+  $(".replacement-section-top").each(function() {
+    const $row = $(this);
+    if (isMobile) {
+      $row.find('.replacement-collapsible').hide();
+      $row.find('.replacement-expandable').show();
+    } else {
+      $row.find('.replacement-collapsible').show();
+      $row.find('.replacement-expandable').hide();
+    }
+  });
+};
 
 function make_processing ($row) {
   $row.removeClass("replacement-pending-row").addClass("replacement-processing-row");
