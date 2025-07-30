@@ -4,24 +4,27 @@
     <% if CurrentUser.can_approve_posts? %>
       <div class="pending-links">
         <% if post_replacement.status == "pending" %>
-          <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %>
-          <% if post_replacement.creator.is_staff? %>
-            (<%= link_to "silently", "#silent-approve", class: "replacement-silent-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %>) <br>
-          <% end %>
-          <br> <br>
-          <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %> <br>
-          
-          <%= link_to "Transfer", "#transfer", class: "replacement-transfer-action", data: { replacement_id: post_replacement.id} %> <br>
-          <%= link_to "Note", "#note", class: "replacement-note-action", data: { replacement_id: post_replacement.id} %> <br>
+          <div class="pending-approve-row">
+            <%= link_to "Approve", "#approve", class: "replacement-approve-action replacement-action-button", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %>
+            <% if post_replacement.creator.is_staff? %>
+              <%= link_to "(silently)", "#silent-approve", class: "replacement-silent-approve-action replacement-action-button", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %>
+            <% end %>
+          </div>
+          <div class="pending-links-spacer"></div>
+          <%= link_to "Reject", "#reject", class: "replacement-reject-action replacement-action-button", data: { replacement_id: post_replacement.id } %>
+          <%= link_to "Transfer", "#transfer", class: "replacement-transfer-action replacement-action-button", data: { replacement_id: post_replacement.id} %>
+          <%= link_to "Note", "#note", class: "replacement-note-action replacement-action-button", data: { replacement_id: post_replacement.id} %>
         <% end %>
         <% if !post_replacement.is_current? && !post_replacement.is_promoted? %>
-          <% if !post_replacement.is_backup? %> <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id } %> <br> <% end %>
-          <% if !post_replacement.is_pending? %> <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false } %> <br> <% end %>
+          <div class="pending-links-spacer"></div>
+          <% if !post_replacement.is_backup? %> <%= link_to "As New Post", "#promote", class: "replacement-promote-action replacement-action-button", data: { replacement_id: post_replacement.id } %> <% end %>
+          <% if !post_replacement.is_pending? %> <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action replacement-action-button", data: { replacement_id: post_replacement.id, penalize: false } %> <% end %>
         <% end %>
       </div>
     <% end %>
-    <% if CurrentUser.is_admin? %> <br>
-      <dd class="replacement-spaced-row"> <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %> </dd>
+    <% if CurrentUser.is_admin? %>
+      <div class="pending-links-spacer"></div>
+      <dd class="replacement-spaced-row"> <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action replacement-action-button", data: { replacement_id: post_replacement.id } %> </dd>
     <% end %>
   </div>
   <div class="replacement-datetimes">
@@ -68,7 +71,7 @@
     <div class="uploader-penalized">
       <% if CurrentUser.can_approve_posts? && post_replacement.is_approved? %>
         penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
-        <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id } %>
+        <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action replacement-action-button", data: { replacement_id: post_replacement.id } %>
       <% end %>
     </div>
   </div>

@@ -197,7 +197,31 @@ div#c-post-replacements {
     @extend .replacement-label; 
   }
 
-  .replacement-toggle-penalize-action { display: flex; }
+  .replacement-action-button {
+    @extend .st-button;
+    min-width: unset;
+    padding: 0.5em 1em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    border-radius: 0.375em;
+    font-size: 1em;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    color: themed("color-link");
+    margin-bottom: 0.621em; 
+
+    &:hover, &:focus {
+      color: themed("color-link-active");
+      background: themed("color-section-lighten-5");
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  }
+  // .replacement-toggle-penalize-action { display: flex; }
 
   .replacement-actions { 
     grid-area: replacement-actions; 
@@ -352,18 +376,6 @@ div#c-post-replacements {
     box-shadow: 0 4px 16px rgba(0,0,0,0.10);
     border-color: themed("color-link-active");
     z-index: 2;
-  }
-
-  .replacement-actions a:not(.disabled-link) {
-    color: themed("color-link");
-    text-decoration: underline;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-
-  .replacement-actions a:not(.disabled-link):hover {
-    color: themed("color-link-active");
-    text-decoration: underline;
   }
 
   .pending-links a:not(.disabled-link):hover {
