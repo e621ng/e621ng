@@ -317,4 +317,44 @@ div#c-post-replacements {
   .replacement-toggle-icon {
     position: relative; display: inline-block; width: 1.5em; height: 1.5em;
   }
+
+  .post-replacements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .replacement-grid-item {
+    background: themed("color-section");
+    border: 1px solid themed("color-table-border");
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 1.25rem 1rem;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+  }
+
+  .replacement-grid-item:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    border-color: themed("color-link-active");
+    z-index: 2;
+  }
+
+  .replacement-actions a:not(.disabled-link) {
+    color: themed("color-link");
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .replacement-actions a:not(.disabled-link):hover {
+    color: themed("color-link-active");
+    text-decoration: underline;
+  }
+
+  .pending-links a:not(.disabled-link):hover {
+    background: themed("color-section-lighten-5");
+    border-radius: 0.25em;
+  }
 }

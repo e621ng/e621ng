@@ -1,7 +1,7 @@
-<tr id="replacement-<%= post_replacement.id %>" class="mobile-replacement-row" data-replacement-id="<%= post_replacement.id %>">
-  <td colspan="100%">
+<div id="replacement-<%= post_replacement.id %>" class="replacement-grid-item mobile-replacement-row " data-replacement-id="<%= post_replacement.id %>">
+  <div colspan="100%">
     <%= render partial: "post_replacements/partials/show/post_replacement_overview",  locals: { post_replacement: post_replacement }%>
     <div class="replacement-section-separator replacement-collapsible"></div>
     <%= render partial: "post_replacements/partials/show/post_replacement_details", locals: { post_replacement: post_replacement }%>
-  </td>
-</tr>
+  </div>
+</div>
