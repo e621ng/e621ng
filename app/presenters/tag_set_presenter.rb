@@ -5,35 +5,18 @@
   This class makes it easy to fetch the categories for all the
   tags in one call instead of fetching them sequentially.
 =end
-# TODO: Integrate preceding header & surrounding <ul>
 class TagSetPresenter < Presenter
   include Rails.application.routes.url_helpers
 
-  attr_reader :tag_names, :list_of
+  attr_reader :tag_names
 
   # @param [Array<String>] a list of tags to present. Tags will be presented in
   # the order given. The list should not contain duplicates. The list may
   # contain tags that do not exist in the tags table, such as metatags.
-  def initialize(tag_names, list_of: "all")
+  def initialize(tag_names)
     @tag_names = tag_names
-    @list_of = list_of
     @_cached = {}
   end
-
-  # NOTE: It looks like `.tag-list` & `.<list type>-tag-list` classes don't affect styles; are they necessary?
-  # def post_index_sidebar_tag_list_html(current_query: "", post: nil)
-  #   html = +""
-  #   if ordered_tags.present?
-  #     # NOTE: The preceding header gets `data-category="<#{list_of}>"`, the succeeding li's get it; the `ul` doesn't.
-  #     html << "<ul class=\"tag-list #{list_of}-tag-list\">\n"
-  #     ordered_tags.each do |tag|
-  #       html << build_list_item(tag, current_query: current_query, post: post)
-  #     end
-  #     html << "</ul>"
-  #   end
-
-  #   html.html_safe
-  # end
 
   # compact (horizontal) list, as seen in the /comments index.
   def inline_tag_list_html(link_type = :tag)
@@ -90,46 +73,8 @@ class TagSetPresenter < Presenter
     ordered = tag_names.map do |name|
       names_to_tags[name] || Tag.new(name: name).freeze
     end
-    @_ordered_tags = ordered
     @_cached[:ordered_tags] = true
-    ordered
-  end
-
-  # TODO: Is this actually used? It seems the partial `app/views/posts/partials/common/sidebar/_tag_list_item.html.erb` is used instead.
-  # NOTE: Supports something special when `highlight` is true; should this be used?
-  def build_list_item(tag, current_query: "", highlight: false, post: nil)
-    # return ApplicationController.render(partial: "app/views/posts/partials/common/sidebar/_tag_list_item.html.erb", assigns: { post: post, tag: tag, query: current_query, highlight: highlight })
-
-    name = tag.name
-    count = tag.post_count
-    category = tag.category
-
-    html = %(<li class="category-#{tag.category}">)
-
-    if category == Tag.categories.artist
-      html << %(<a class="wiki-link" rel="nofollow" href="/artists/show_or_new?name=#{u(name)}">?</a> )
-    else
-      html << %(<a class="wiki-link" rel="nofollow" href="/wiki_pages/show_or_new?title=#{u(name)}">?</a> )
-    end
-
-    if current_query.present?
-      html << %(<a rel="nofollow" href="/posts?tags=#{u(current_query)}+#{u(name)}" class="search-inc-tag">+</a> )
-      html << %(<a rel="nofollow" href="/posts?tags=#{u(current_query)}+-#{u(name)}" class="search-exl-tag">–</a> )
-    end
-
-    html << tag_link(tag, name.tr("_", " "))
-    html << %(<i title="Uploaded by the artist" class="highlight fa-regular fa-circle-check"></i>) if highlight
-
-    is_underused_tag = count <= 1 && category == Tag.categories.general
-    klass = "color-muted post-count#{is_underused_tag ? ' low-post-count' : ''}"
-    title = "New general tag detected. Check the spelling or populate it now."
-
-    post_count = post_count_label(count)
-
-    html << %(<span data-count='#{count}' class="#{klass}"#{is_underused_tag ? " title='#{title}'" : ''}>#{post_count}</span>)
-
-    html << "</li>"
-    html
+    @_ordered_tags = ordered
   end
 
   def tag_link(tag, link_text = tag.name, link_type = :tag)
