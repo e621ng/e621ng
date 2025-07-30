@@ -30,7 +30,7 @@ module Sources
 
     context "A nitter link at an alternate host" do
       alternate_should_work(
-        "https://nitter.moomoo.me/FalseKnees/status/1555698764622737408",
+        "https://nitter.poast.org/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
         "https://twitter.com/FalseKnees/status/1555698764622737408",
       )
@@ -38,9 +38,9 @@ module Sources
 
     context "A link to another service at a domain hosting a nitter instance" do
       alternate_should_work(
-        "https://bibliogram.moomoo.me/u/britishwildlifecentre?track_me=True",
+        "https://bibliogram.poast.org/u/britishwildlifecentre?track_me=True",
         Sources::Alternates::Twitter,
-        "https://bibliogram.moomoo.me/u/britishwildlifecentre?track_me=True",
+        "https://bibliogram.poast.org/u/britishwildlifecentre?track_me=True",
       )
     end
 
@@ -54,7 +54,7 @@ module Sources
 
     context "A nitter link with tracking" do
       alternate_should_work(
-        "https://nitter.kavin.rocks/Idolomantises/status/1554175127855673344?s=20&t=dow0UJIEEOousVoifzpLdg",
+        "https://nitter.space/Idolomantises/status/1554175127855673344?s=20&t=dow0UJIEEOousVoifzpLdg",
         Sources::Alternates::Twitter,
         "https://twitter.com/Idolomantises/status/1554175127855673344",
       )
