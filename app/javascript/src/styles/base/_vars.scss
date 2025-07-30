@@ -24,6 +24,8 @@ $base_font_family: Verdana, Geneva, sans-serif;
 
 $box-shadow-size: 2px 2px 5px;
 
+$breakpoint-mobile: 50rem; // width at which mobile styles apply
+
 @mixin preview-type-badge($text) {
   position: absolute;
   z-index: 5;

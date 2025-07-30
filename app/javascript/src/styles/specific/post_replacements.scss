@@ -413,7 +413,7 @@ div#c-post-replacements {
   }
 }
 
-@include window-smaller-than(50rem) {
+@include window-smaller-than($breakpoint-mobile) {
   div#c-post-replacements {
     .replacement-grid-item {
       position: relative;

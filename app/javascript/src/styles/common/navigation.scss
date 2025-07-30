@@ -516,7 +516,7 @@ body.c-static.a-home {
     }
   }
 
-  @include window-smaller-than(50rem) {
+  @include window-smaller-than($breakpoint-mobile) {
     // Only show the primary navbar on mobile
     // since the secondary is empty anyways
     nav.navigation {
