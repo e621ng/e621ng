@@ -11,13 +11,15 @@
     <% end %>
     <%= render "posts/partials/index/blacklist" %>
 
-    <section id="tag-box">
-      <%# <h3>Tags</h3> %>
-      <!-- TODO: Lock off these extra items? -->
-      <%# <%= @post_set.presenter.post_index_sidebar_tag_list_html(current_query: params[:tags]) %>
-      <%# <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: "fav:#{@user.name} " } %>
-      <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: [:tags] } %>
-    </section>
+    <% if @post_set.related_tags.any? %>
+      <section id="tag-box">
+        <%# <h3>Tags</h3> %>
+        <!-- TODO: Lock off these extra items? -->
+        <%# <%= @post_set.presenter.post_index_sidebar_tag_list_html(current_query: params[:tags]) %>
+        <%# <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: "fav:#{@user.name} " } %>
+        <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: params[:tags], tags: @post_set.related_tags } %>
+      </section>
+    <% end %>
 
     <section id="related-box">
       <h3>Related</h3>
