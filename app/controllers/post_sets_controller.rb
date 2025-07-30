@@ -81,8 +81,13 @@ class PostSetsController < ApplicationController
   def update_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
-    @post_set.update(update_posts_params)
-    flash[:notice] = @post_set.valid? ? 'Set posts updated.' : @post_set.errors.full_messages.join('; ')
+
+    if @post_set.is_over_limit?(CurrentUser.user)
+      flash[:notice] = "This set contains too many posts and can no longer be edited"
+    else
+      @post_set.update(update_posts_params)
+      flash[:notice] = @post_set.valid? ? "Set posts updated" : @post_set.errors.full_messages.join("; ")
+    end
 
     redirect_back(fallback_location: post_list_post_set_path(@post_set))
   end
@@ -142,8 +147,8 @@ class PostSetsController < ApplicationController
   end
 
   def check_set_post_limit(set)
-    unless set.post_ids.size <= Danbooru.config.set_post_limit(CurrentUser.user) + 100
-      raise "This set's post list can no longer be edited."
+    if set.is_over_limit?(CurrentUser.user)
+      raise "This set contains too many posts and can no longer be edited."
     end
   end
 
