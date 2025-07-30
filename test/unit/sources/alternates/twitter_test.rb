@@ -4,11 +4,11 @@ require "test_helper"
 
 module Sources
   class TwitterTest < ActiveSupport::TestCase
-    context "A mobile twitter link" do
+    context "A mobile x.com link" do
       alternate_should_work(
-        "https://mobile.twitter.com/FalseKnees/status/1555698764622737408",
+        "https://mobile.x.com/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408",
+        "https://x.com/FalseKnees/status/1555698764622737408",
       )
     end
 
@@ -16,7 +16,7 @@ module Sources
       alternate_should_work(
         "https://fxtwitter.com/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408",
+        "https://x.com/FalseKnees/status/1555698764622737408",
       )
     end
 
@@ -24,7 +24,7 @@ module Sources
       alternate_should_work(
         "https://nitter.net/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408",
+        "https://x.com/FalseKnees/status/1555698764622737408",
       )
     end
 
@@ -32,7 +32,7 @@ module Sources
       alternate_should_work(
         "https://nitter.poast.org/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408",
+        "https://x.com/FalseKnees/status/1555698764622737408",
       )
     end
 
@@ -44,11 +44,27 @@ module Sources
       )
     end
 
-    context "A twitter link with tracking" do
+    context "A twitter.com to x.com conversion" do
       alternate_should_work(
-        "https://twitter.com/Idolomantises/status/1554175127855673344?s=20&t=dow0UJIEEOousVoifzpLdg",
+        "https://twitter.com/FalseKnees/status/1555698764622737408",
         Sources::Alternates::Twitter,
-        "https://twitter.com/Idolomantises/status/1554175127855673344",
+        "https://x.com/FalseKnees/status/1555698764622737408",
+      )
+    end
+
+    context "A mobile.twitter.com to x.com conversion" do
+      alternate_should_work(
+        "https://mobile.twitter.com/FalseKnees/status/1555698764622737408",
+        Sources::Alternates::Twitter,
+        "https://x.com/FalseKnees/status/1555698764622737408",
+      )
+    end
+
+    context "An x.com link with tracking" do
+      alternate_should_work(
+        "https://x.com/Idolomantises/status/1554175127855673344?s=20&t=dow0UJIEEOousVoifzpLdg",
+        Sources::Alternates::Twitter,
+        "https://x.com/Idolomantises/status/1554175127855673344",
       )
     end
 
@@ -56,15 +72,15 @@ module Sources
       alternate_should_work(
         "https://nitter.space/Idolomantises/status/1554175127855673344?s=20&t=dow0UJIEEOousVoifzpLdg",
         Sources::Alternates::Twitter,
-        "https://twitter.com/Idolomantises/status/1554175127855673344",
+        "https://x.com/Idolomantises/status/1554175127855673344",
       )
     end
 
-    context "A twitter profile link with tracking" do
+    context "A twitter.com profile link with tracking" do
       alternate_should_work(
         "https://twitter.com/Idolomantises?s=09",
         Sources::Alternates::Twitter,
-        "https://twitter.com/Idolomantises",
+        "https://x.com/Idolomantises",
       )
     end
 
@@ -124,11 +140,19 @@ module Sources
       )
     end
 
-    context "A twitter photo link" do
+    context "An x.com photo link" do
+      alternate_should_work(
+        "https://x.com/FalseKnees/status/1555698764622737408/photo/1",
+        Sources::Alternates::Twitter,
+        "https://x.com/FalseKnees/status/1555698764622737408",
+      )
+    end
+
+    context "A twitter.com photo link" do
       alternate_should_work(
         "https://twitter.com/FalseKnees/status/1555698764622737408/photo/1",
         Sources::Alternates::Twitter,
-        "https://twitter.com/FalseKnees/status/1555698764622737408",
+        "https://x.com/FalseKnees/status/1555698764622737408",
       )
     end
   end

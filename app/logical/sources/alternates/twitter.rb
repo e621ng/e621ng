@@ -15,19 +15,23 @@ module Sources
       end
 
       def domains
-        ["twitter.com", "twimg.com"] + TWITFIX_DOMAINS + nitter_domains
+        ["twitter.com", "x.com", "twimg.com"] + TWITFIX_DOMAINS + nitter_domains
       end
 
       def original_url
         # Convert mobile URLs to base ones
-        if @parsed_url.host == "mobile.twitter.com"
-          @parsed_url.host = "twitter.com"
+        if @parsed_url.host == "mobile.twitter.com" || @parsed_url.host == "mobile.x.com"
+          @parsed_url.host = "x.com"
         end
-        # Replace twitter embed-helper links with twitter links
+        # Convert twitter to 𝕏 links
+        if @parsed_url.host == "twitter.com"
+          @parsed_url.host = "x.com"
+        end
+        # Replace twitter embed-helper links with 𝕏 links
         if TWITFIX_DOMAINS.include?(@parsed_url.host)
-          @parsed_url.host = "twitter.com"
+          @parsed_url.host = "x.com"
         end
-        # Replace nitter links with twitter links, but allow other links on the same domain to skip later checks
+        # Replace nitter links with 𝕏 links, but allow other links on the same domain to skip later checks
         if nitter_domains.include?(@parsed_url.domain)
           if NITTER_HOSTS.include?(@parsed_url.host)
             if @parsed_url.path.start_with?("/pic/")
@@ -36,7 +40,7 @@ module Sources
               # URI must be re-parsed, to ensure query values are parsed
               @parsed_url = Addressable::URI.heuristic_parse(@parsed_url.to_s)
             else
-              @parsed_url.host = "twitter.com"
+              @parsed_url.host = "x.com"
             end
           else
             # Allow non-nitter subdomains, on the same domain, to avoid later handling here
@@ -53,7 +57,7 @@ module Sources
         end
         # Remove photo specifier from links
         split_path = @parsed_url.path.split("/")
-        if @parsed_url.domain == "twitter.com" && split_path.length == 6 && split_path[-2] == "photo"
+        if @parsed_url.domain == "x.com" && split_path.length == 6 && split_path[-2] == "photo"
           @parsed_url.path = split_path[0..-3].join("/")
         end
         # Update old direct image URLs
