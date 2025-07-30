@@ -66,10 +66,10 @@
     <div class="replacement-previous-user-label">Previous uploader</div>
     <div class="uploader-username"><%= link_to_user post_replacement.uploader_on_approve %></div>
     <div class="uploader-penalized">
-      <%# if CurrentUser.can_approve_posts? && post_replacement.is_approved? %>
+      <% if CurrentUser.can_approve_posts? && post_replacement.is_approved? %>
         penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
         <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id } %>
-      <%# end %>
+      <% end %>
     </div>
   </div>
   <div class="replacement-sources">
