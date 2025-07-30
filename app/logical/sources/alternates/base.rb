@@ -8,7 +8,11 @@ module Sources
       def initialize(url)
         @url = url
 
-        @parsed_url = Addressable::URI.heuristic_parse(url) rescue nil
+        @parsed_url = begin
+          Addressable::URI.heuristic_parse(url)
+        rescue StandardError
+          nil
+        end
 
         if @parsed_url.present?
           if force_https?
@@ -36,7 +40,6 @@ module Sources
       end
 
       def parse
-
       end
 
       def remove_duplicates(sources)
