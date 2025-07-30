@@ -3,7 +3,7 @@
 module PostSetPresenters
   class Popular < Base
     delegate :posts, :date, :min_date, :max_date, to: :post_set
-    attr_accessor :post_set, :tag_set_presenter
+    attr_accessor :post_set
 
     def initialize(post_set)
       super()
