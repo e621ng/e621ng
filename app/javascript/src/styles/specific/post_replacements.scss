@@ -372,7 +372,7 @@ div#c-post-replacements {
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 800px) {
   div#c-post-replacements {
     .post-replacements-grid {
       grid-template-columns: 1fr;
@@ -409,6 +409,26 @@ div#c-post-replacements {
     .replacement-grid-item {
       position: relative;
       padding-top: 3em; // More space for the button
+    }
+  }
+}
+
+@include window-smaller-than(50rem) {
+  div#c-post-replacements {
+    .replacement-grid-item {
+      position: relative;
+      padding-top: 3em; // More space for the button
+    }
+    .replacement-toggle-icon {
+      position: absolute;
+      top: 1em;
+      right: 1em;
+      width: 2em;
+      height: 2em;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 }
