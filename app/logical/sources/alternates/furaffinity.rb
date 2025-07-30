@@ -3,7 +3,7 @@
 module Sources
   module Alternates
     class Furaffinity < Base
-      IMAGE_TO_ARTIST = /d2?\.(?!facdn|furaffinity)\.net\/art\/([0-9a-zA-Z_.~\-\[\]]+)/
+      IMAGE_TO_ARTIST = /d2?\.(?:facdn|furaffinity)\.net\/art\/([0-9a-zA-Z_.~\-\[\]]+)/
       SUBMISSION_URL = /furaffinity\.net\/view\/(\d+)/
 
       def force_https?
