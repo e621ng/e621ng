@@ -4,6 +4,7 @@ module Sources
   module Alternates
     class Twitter < Base
       TWITFIX_DOMAINS = %w[fxtwitter.com fixupx.com vxtwitter.com twittpr.com].freeze
+      # The list of nitter instances can be found at https://github.com/zedeus/nitter/wiki/Instances
       NITTER_HOSTS = %w[nitter.net nitter.poast.org nitter.space xcancel.com lightbrd.com nitter.tiekoetter.com nuku.trabun.org].freeze
 
       def force_https?
