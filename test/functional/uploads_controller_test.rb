@@ -29,13 +29,13 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       context "for a post that has already been uploaded" do
         setup do
           as(@user) do
-            @post = create(:post, source: "http://google.com/aaa")
+            @post = create(:post, source: "https://google.com/aaa")
           end
         end
 
         should "initialize the post" do
           assert_difference(-> { Upload.count }, 0) do
-            get_auth new_upload_path, @user, params: { url: "http://google.com/aaa" }
+            get_auth new_upload_path, @user, params: { url: "https://google.com/aaa" }
             assert_response :success
           end
         end
