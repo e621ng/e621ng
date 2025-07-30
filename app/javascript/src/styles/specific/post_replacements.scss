@@ -318,7 +318,15 @@ div#c-post-replacements {
     height: 100%;
   }
   .replacement-toggle-icon {
-    position: relative; display: inline-block; width: 1.5em; height: 1.5em;
+    position: absolute;
+    top: 1em;
+    right: 1em;
+    width: 2em;
+    height: 2em;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .post-replacements-grid {
@@ -336,6 +344,8 @@ div#c-post-replacements {
     padding: 1.25rem 1rem;
     transition: box-shadow 0.2s, border-color 0.2s;
     position: relative;
+
+    // Ensure this is set so absolute children are positioned relative to this
   }
 
   .replacement-grid-item:hover {
