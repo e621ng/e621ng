@@ -11,12 +11,12 @@ class PostSerializer < ActiveModel::Serializer
 
   def file
     file_attributes = {
-        width: object.image_width,
-        height: object.image_height,
-        ext: object.file_ext,
-        size: object.file_size,
-        md5: object.md5,
-        url: nil
+      width: object.image_width,
+      height: object.image_height,
+      ext: object.file_ext,
+      size: object.file_size,
+      md5: object.md5,
+      url: nil,
     }
     if object.visible?
       file_attributes[:url] = object.file_url
@@ -29,9 +29,11 @@ class PostSerializer < ActiveModel::Serializer
       width: object.preview_width,
       height: object.preview_height,
       url: nil,
+      alt: nil,
     }
     if object.visible?
       preview_attributes[:url] = object.preview_file_url
+      preview_attributes[:alt] = object.preview_file_url(:preview_webp)
     end
     preview_attributes
   end
@@ -42,10 +44,12 @@ class PostSerializer < ActiveModel::Serializer
       width: object.sample_width,
       height: object.sample_height,
       url: nil,
+      alt: nil,
       alternates: object.video_sample_list,
     }
-    if object.visible?
+    if object.visible? && object.has_sample?
       sample_attributes[:url] = object.sample_url
+      sample_attributes[:alt] = object.sample_url(:sample_webp)
     end
     sample_attributes
   end
