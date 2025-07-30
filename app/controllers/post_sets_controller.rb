@@ -112,6 +112,7 @@ class PostSetsController < ApplicationController
   def add_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
+    check_set_post_limit(@post_set)
     @post_set.add(add_remove_posts_params.map(&:to_i))
     @post_set.save
     respond_with(@post_set)
@@ -120,6 +121,7 @@ class PostSetsController < ApplicationController
   def remove_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
+    check_set_post_limit(@post_set)
     @post_set.remove(add_remove_posts_params.map(&:to_i))
     @post_set.save
     respond_with(@post_set)
@@ -136,6 +138,12 @@ class PostSetsController < ApplicationController
   def check_post_edit_access(set)
     unless set.can_edit_posts?(CurrentUser.user)
       raise User::PrivilegeError
+    end
+  end
+
+  def check_set_post_limit(set)
+    unless set.post_ids.size <= Danbooru.config.set_post_limit(CurrentUser.user) + 100
+      raise "This set's post list can no longer be edited."
     end
   end
 
