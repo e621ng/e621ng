@@ -93,7 +93,7 @@ class PostReplacementsController < ApplicationController
     @post_replacement = PostReplacement.find(params[:id])
     # Catt0s_TODO
     puts "Params: #{params.inspect}"
-    @post_replacement.note(params[:note_content])
+    @post_replacement.add_note(params[:note_content])
 
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }

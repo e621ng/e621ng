@@ -31,6 +31,7 @@ class PostReplacement < ApplicationRecord
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
   validates :reason, length: { in: 5..300 }, presence: true, on: :create
+  # validates :note, length: { maximum: 1000 }, allow_blank: true
 
   before_create :create_original_backup
   before_create :set_previous_uploader
@@ -274,17 +275,17 @@ class PostReplacement < ApplicationRecord
       post.update_index
     end
 
-    def note(note_content)
-      # Catt0s_TODO add db column for note
-      puts "note content: #{note_content}"
-      # Catt0s_TODO do checks 
-      # update_attribute()
-      # Catt0s_TODO mod action:: note added, content ? -- should notes be private or public?
+    def add_note(note_content)
+      # Only creator or staff can add/update notes
+      unless can_add_note?(CurrentUser.user)
+        errors.add(:base, "You do not have permission to add a note.")
+        return
+      end
 
-
-      # TEMPORARY TESTING STUFF: 
-      update_attribute(:reason, "#{reason}\n\r\n\rTESTING NOTE::#{note_content}")
-      
+      # update_attribute(:note, note_content)
+      update_attribute(:reason, "#{reason}\n\r\n\rTESTING NOTE::#{note_content}") # testing things 
+      # PostEvent.add(post.id, CurrentUser.user, :replacement_note_added, { replacement_id: id, note: note_content })
+      # ModAction.log(:, { forum_category_id: @cat.id })
       post.update_index
     end
 
@@ -474,6 +475,14 @@ class PostReplacement < ApplicationRecord
     md5 == post.md5
   end
 
+  def note_visible_to?(user)
+    user.id == creator_id || user.is_janitor?
+  end
+
+  def can_add_note?(user)
+    return false unless user.is_janitor?
+    true
+  end
   def is_pending?
     status == "pending"
   end
@@ -513,4 +522,5 @@ class PostReplacement < ApplicationRecord
   include ProcessingMethods
   include PromotionMethods
   include PostMethods
+
 end

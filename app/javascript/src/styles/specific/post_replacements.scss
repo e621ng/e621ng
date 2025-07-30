@@ -188,8 +188,8 @@ div#c-post-replacements {
     grid-template-areas:
       "replacement-sources replacement-sources replacement-actions"
       "replacement-datetimes replacement-datetimes replacement-actions"
-      "replacement-image-info replacement-current-info replacement-previous-user"
-      "replacement-file-details replacement-file-details replacement-file-details"
+      "replacement-image-info replacement-current-info replacement-actions"
+      "replacement-file-details replacement-file-details replacement-previous-user"
       ;
   }
 
@@ -232,7 +232,10 @@ div#c-post-replacements {
   }
 
   .replacement-file-details { 
-    grid-area: replacement-file-details; margin-top: 1rem; margin-bottom: 1rem;
+    grid-area: replacement-file-details; 
+    margin-right: 0.25rem;
+    margin-top: 1rem; 
+    margin-bottom: 1rem;
     overflow: auto;
     padding-bottom: 0.75rem; 
   }
@@ -320,7 +323,7 @@ div#c-post-replacements {
 
   .post-replacements-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(640px, 1fr)); // Increased min width
     gap: 1.5rem;
     margin-top: 1rem;
   }
@@ -356,5 +359,46 @@ div#c-post-replacements {
   .pending-links a:not(.disabled-link):hover {
     background: themed("color-section-lighten-5");
     border-radius: 0.25em;
+  }
+}
+
+@media (max-width: 600px) {
+  div#c-post-replacements {
+    .post-replacements-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .replacement-section-top {
+      grid-template-columns: 2fr;
+      grid-template-areas:
+        "replacement-thumbnail replacement-thumbnail"
+        "replacement-version replacement-status"
+        "replacement-reason replacement-reason"
+        "replacement-note replacement-note";
+    }
+
+    .replacement-thumbnail,
+    img.replacement-thumb {
+      max-width: 100%;
+      max-height: 200px;
+    }
+
+    .replacement-toggle-icon {
+      position: absolute;
+      top: 1em;      // Increased space from top
+      right: 1em;    // Increased space from right
+      width: 2em;    // Slightly larger for easier tap
+      height: 2em;
+      z-index: 10;
+    }
+    .replacement-toggle-chevron {
+      width: 2em;
+      height: 2em;
+    }
+    .replacement-grid-item {
+      position: relative;
+      padding-top: 3em; // More space for the button
+    }
   }
 }
