@@ -26,10 +26,7 @@ PostReplacement.initialize_all = function () {
     { selector: ".replacement-silent-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), false); }},
     { selector: ".replacement-transfer-action", handler: (e, $target) => { PostReplacement.transfer($target.data("replacement-id")); } },
     { selector: ".replacement-note-action", handler: (e, $target) => { PostReplacement.note($target.data("replacement-id")) } },
-    { selector: ".toggle-expanded-button", handler: (e, $target) => { 
-      const id = $target.data("replacement-id");
-      PostReplacement.toggle_section(id);
-    }},
+    { selector: ".toggle-expanded-button", handler: (e, $target) => { const id = $target.data("replacement-id");  PostReplacement.toggle_section(id); }},
   ];
 
   actions.forEach(({ selector, handler }) => {
