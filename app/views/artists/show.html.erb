@@ -7,3 +7,5 @@
     <p>The artist requested removal of this page.</p>
   <% end %>
 <% end %>
+
+<% render(partial: "static/embed", locals: { record: @artist, name: @artist.pretty_name, description: @artist.notes || "", post: nil }) %>

@@ -39,6 +39,8 @@
   </div>
 </div>
 
+<% render(partial: "static/embed", locals: { record: @user, name: @user.pretty_name, description: @user.profile_about.present? ? strip_tags(format_text(@user.profile_about)) : @user.level_string, post: @user.avatar, avatar: true }) %>
+
 <%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
