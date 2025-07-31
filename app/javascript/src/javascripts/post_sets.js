@@ -57,10 +57,11 @@ PostSet.add_many_posts = function (set_id, posts = []) {
       type: "POST",
       url: "/post_sets/" + set_id + "/add_posts.json",
       data: {post_ids: posts},
-    }).fail(function (data) {
-      console.log(data, data.responseJSON, data.responseJSON.error);
-      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      $(window).trigger("danbooru:error", "Error: " + message);
+    }).fail(function (response) {
+      const data = response.responseJSON;
+      const errors = $.map(data.errors, (msg) => msg).join("; "),
+        message = data.message;
+      $(window).trigger("danbooru:error", "Error: " + (message || errors));
     }).done(function () {
       $(window).trigger("danbooru:notice", `Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`);
     });
@@ -119,10 +120,11 @@ PostSet.remove_many_posts = function (set_id, posts = []) {
       type: "POST",
       url: "/post_sets/" + set_id + "/remove_posts.json",
       data: { post_ids: posts },
-    }).fail(function (data) {
-      console.log(data, data.responseJSON, data.responseJSON.error);
-      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      $(window).trigger("danbooru:error", "Error: " + message);
+    }).fail(function (response) {
+      const data = response.responseJSON;
+      const errors = $.map(data.errors, (msg) => msg).join("; "),
+        message = data.message;
+      $(window).trigger("danbooru:error", "Error: " + (message || errors));
     }).done(function () {
       $(window).trigger("danbooru:notice", `Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`);
     });

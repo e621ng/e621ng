@@ -176,6 +176,10 @@ class PostSet < ApplicationRecord
       return false if user.is_blocked?
       creator_id == user.id
     end
+
+    def is_over_limit?(user)
+      post_ids.size > Danbooru.config.set_post_limit(user) + 100
+    end
   end
 
   module PostMethods
