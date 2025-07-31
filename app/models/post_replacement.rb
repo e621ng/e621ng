@@ -1,4 +1,23 @@
 # frozen_string_literal: true
+=begin 
+ == TODOs: DataBase
+   - new table for notes to be added to. More effient then having a mostly empty column
+   - rename "approver" to "handler"
+   - ensure reasons can be as long as the new len allowment
+ == Other
+   - mark direct uploads specially in sources
+   - allow many sources
+ == Tests
+   - ensure transfers cant happen to deleted posts
+   - ensure a backup exists before transfering
+   - ensure credit is properly dealt with using the `credit_replacer` param
+   - ensure penalize is properly dealt with using the `penalize_current_uploader`
+=end
+
+# PostReplacement model represents a replacement of an existing post.
+# It includes methods for processing, storage, and API interactions.
+
+
 
 class PostReplacement < ApplicationRecord
   self.table_name = "post_replacements2"
@@ -284,8 +303,7 @@ class PostReplacement < ApplicationRecord
 
       # update_attribute(:note, note_content)
       update_attribute(:reason, "#{reason}\n\r\n\rTESTING NOTE::#{note_content}") # testing things 
-      # PostEvent.add(post.id, CurrentUser.user, :replacement_note_added, { replacement_id: id, note: note_content })
-      # ModAction.log(:, { forum_category_id: @cat.id })
+      ModAction.log(:post_replacement_note_edit, { replacement_id: id, note: note_content }) 
       post.update_index
     end
 
@@ -302,10 +320,10 @@ class PostReplacement < ApplicationRecord
         errors.add(:post, "is deleted")
         return
       end
-      
-      # @Catt0s_TODO: make a backup if it doesn't exist yet
-      ## find if there is already a backip
-      ## if not, make it
+
+      unless new_post.replacements.where(status: "original").exists?
+        new_post.create_original_backup
+      end
       
 
       prev = post

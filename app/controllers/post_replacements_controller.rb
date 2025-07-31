@@ -91,7 +91,6 @@ class PostReplacementsController < ApplicationController
 
   def note
     @post_replacement = PostReplacement.find(params[:id])
-    # Catt0s_TODO
     puts "Params: #{params.inspect}"
     @post_replacement.add_note(params[:note_content])
 
