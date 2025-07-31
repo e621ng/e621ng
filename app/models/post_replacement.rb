@@ -1,23 +1,17 @@
 # frozen_string_literal: true
 =begin 
  == TODOs: DataBase
-   - new table for notes to be added to. More effient then having a mostly empty column
+   - add a new table just for notes to be added to ('Class Table Inheritance'?). More effient then having a mostly empty column
    - rename "approver" to "handler"
    - ensure reasons can be as long as the new len allowment
- == Other
-   - mark direct uploads specially in sources
-   - allow many sources
+ == other
+   - notes should warn if there is already note (JS) 
  == Tests
    - ensure transfers cant happen to deleted posts
    - ensure a backup exists before transfering
    - ensure credit is properly dealt with using the `credit_replacer` param
    - ensure penalize is properly dealt with using the `penalize_current_uploader`
 =end
-
-# PostReplacement model represents a replacement of an existing post.
-# It includes methods for processing, storage, and API interactions.
-
-
 
 class PostReplacement < ApplicationRecord
   self.table_name = "post_replacements2"
@@ -166,7 +160,7 @@ class PostReplacement < ApplicationRecord
       file = download.download!
 
       self.replacement_file = file
-      self.source = "#{source}\n" + replacement_url
+      self.source = "✓ #{source}\n" + replacement_url
     rescue Downloads::File::Error
       errors.add(:replacement_url, "failed to fetch file")
       throw :abort

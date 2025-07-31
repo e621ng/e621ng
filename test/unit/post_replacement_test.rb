@@ -162,6 +162,7 @@ class PostReplacementTest < ActiveSupport::TestCase
   end
 
   context "Approve:" do
+    # TODO: Add tests for silent approval
     setup do
       @note = create(:note, post: @post, x: 100, y: 200, width: 100, height: 50)
       @replacement = create(:png_replacement, creator: @user, post: @post)
@@ -367,4 +368,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal(CurrentUser.user.id, @replacement.approver_id)
     end
   end
+
+  # TODO: Add tests for notes
+  # TODO: Add tests for transfers
 end

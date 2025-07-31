@@ -217,7 +217,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should "dissallow reporting sets you can't see" do
+      should "disallow reporting sets you can't see" do
         assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "set")
         @content.update_columns(is_public: false)
         assert_ticket_create_permissions([[@bystander, false], [@admin, true], [@bad_actor, true]], qtype: "set")
@@ -261,6 +261,24 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "wiki")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+      end
+    end
+
+    context "for a replacement ticket" do
+      setup do 
+        as @bad_actor do
+          @content = create(:post_replacement, creator: @bad_actor)
+        end
+      end
+
+      should "allow reporting replacements" do
+        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "replacement")
+      end
+
+      should "restrict access" do
+        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "replacement", report_reason: "test")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
         assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
