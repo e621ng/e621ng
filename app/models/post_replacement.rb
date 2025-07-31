@@ -233,7 +233,7 @@ class PostReplacement < ApplicationRecord
       end
 
       processor = UploadService::Replacer.new(post: post, replacement: self) 
-      processor.process!(penalize_current_uploader: penalize_current_uploader, credit_replacer: credit_replacer) # TODO: Tests
+      processor.process!(penalize_current_uploader: penalize_current_uploader, credit_replacer: credit_replacer)
       PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5, creator_id: creator.id, replacer_credited: credit_replacer.to_s.truthy? })
       post.update_index
     end
@@ -301,9 +301,9 @@ class PostReplacement < ApplicationRecord
       post.update_index
     end
 
-    def transfer(new_post) # Catt0s_TODO: Tests
-      if status != "pending"
-        errors.add(:status, "must be pending to reject")
+    def transfer(new_post)
+      unless is_pending?
+        errors.add(:status, "must be pending to transfer")
         return
       end
       if new_post.nil? || new_post.id == post.id
@@ -315,14 +315,16 @@ class PostReplacement < ApplicationRecord
         return
       end
 
-      unless new_post.replacements.where(status: "original").exists?
-        new_post.create_original_backup
+      if new_post.replacements.where(md5: md5).exists?
+        # TODO: fix this
+        errors.add(:md5, "duplicate of existing replacement on post ##{@post.id}")
+        return
       end
-      
 
       prev = post
-      # set new "previous uploader"
       update_attribute(:post, new_post)
+      set_previous_uploader
+      create_original_backup
 
       PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
       PostEvent.add(prev.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
@@ -488,12 +490,11 @@ class PostReplacement < ApplicationRecord
   end
 
   def note_visible_to?(user)
-    user.id == creator_id || user.is_janitor?
+    user.id == creator_id || user.is_staff?
   end
 
   def can_add_note?(user)
-    return false unless user.is_janitor?
-    true
+    user.is_staff?
   end
   def is_pending?
     status == "pending"
