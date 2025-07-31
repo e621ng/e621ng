@@ -422,7 +422,7 @@ class PostReplacementTest < ActiveSupport::TestCase
 
       @post_alt.update_columns({ is_pending: false, approver_id: @mod_user.id })
       CurrentUser.user = @user
-      @replacement = create(:png_replacement, creator: @user, post: @post)
+      @replacement = create(:png_replacement, creator: @user, post: @post, reason: "wrong alt replacement")
       assert @replacement
     end
 
@@ -447,11 +447,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     should "create backup replacement if one doesn't exist" do 
       assert_difference(-> { @post_alt.replacements.count }, 2) do
         assert_difference(-> { @post.replacements.count }, -1) do
-          debug_list_replacements(@post)
-          debug_list_replacements(@post_alt)
           @replacement.transfer(@post_alt)
-          debug_list_replacements(@post_alt)
-          debug_list_replacements(@post)
         end
       end
       
@@ -468,21 +464,20 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "not allow duplicates" do 
-      @existing_replacement = @post_alt.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
+      @existing_replacement = @post_alt.replacements.create(attributes_for(:png_replacement).merge(creator: @user, reason: "existing replacement"))
+      @existing_replacement.update_column(:md5, @replacement.md5) # force md5 collission
+      assert @existing_replacement
       @replacement.transfer(@post_alt)
-      assert_equal(["Md5 duplicate of existing replacement on post ##{@post.id}"], @replacement.errors.full_messages)
+      assert_equal(["Md5 duplicate of existing replacement on post ##{@post_alt.id}"], @replacement.errors.full_messages)
     end
     
     should "work on pending replacements" do
       # we other case tested already, make sure we dont create multiple backups
-      @existing_replacement = @post_alt.replacements.create(attributes_for(:apng_replacement).merge(creator: @user))
+      @existing_replacement = @post_alt.replacements.create(attributes_for(:apng_replacement).merge(creator: @user, reason: "existing replacement"))
+      assert @existing_replacement
       assert_difference(-> { @post_alt.replacements.count }, 1) do # @Catt0s TODO: Fix: 2 instead of 1
         assert_difference(-> { @post.replacements.count }, -1) do
-          debug_list_replacements(@post)
-          debug_list_replacements(@post_alt)
           @replacement.transfer(@post_alt)
-          debug_list_replacements(@post_alt)
-          debug_list_replacements(@post)
         end
       end
 
@@ -501,11 +496,4 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert @post_alt.replacements.where(status: "original").exists?
     end
   end
-end
-def debug_list_replacements(post)
-  puts "\n"
-  post.replacements.reload.each_with_index do |r, i|
-    puts "  #{i + 1}/#{post.replacements.count}:\t{ ID: #{r.id}, Status: #{r.status}, Creator: #{r.creator&.name}, MD5: #{r.md5}, File: #{r.file_ext}, Created: #{r.created_at}, Post: #{r.post_id} },"
-  end
-  puts "\n"
 end
