@@ -1,10 +1,11 @@
-<%# locals: (record:, name:, description: "", post: nil) -%>
+<%# locals: (record:, name:, description: "", post: nil, avatar: false) -%>
 
 <% content_for(:html_header) do %>
-  <%= tag.meta(name: "description", content: description.truncate(250)) %>
+  <%= tag.meta(name: "description", content: description.to_s.truncate(250)) %>
   <meta name="<%= record.model_name.singular.tr("_", "-") %>-id" content="<%= record.id %>">
   <%= tag.meta(property: "og:site", content: Danbooru.config.app_name) %>
   <%= tag.meta(property: "og:title", content: "#{name} - #{Danbooru.config.app_name}") %>
+  <%= tag.meta(property: "og:description", content: description.to_s.truncate(250)) %>
   <%= tag.meta(property: "og:url", content: polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https")) %>
   <%= tag.meta(name: "canonical", content: polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https")) %>
 
@@ -25,10 +26,26 @@
     <% end %>
 
     <%# Twitter properties %>
-    <% if post.twitter_card_supported? && post.is_image? %>
+    <% if avatar %>
+      <meta name="twitter:card" content="summary">
+      <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
+      <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
+
+      <% if post.visible? %>
+        <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>
+      <% end %>
+    <% elsif post.twitter_card_supported? && post.is_image? %>
       <meta name="twitter:card" content="summary_large_image">
       <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
-      <%= tag.meta(name: "twitter:description", content: description.truncate(250)) %>
+      <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
+
+      <% if post.visible? %>
+        <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>
+      <% end %>
+    <% else %>
+      <meta name="twitter:card" content="summary">
+      <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
+      <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
 
       <% if post.visible? %>
         <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>

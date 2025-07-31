@@ -39,7 +39,7 @@
   </div>
 </div>
 
-<% render(partial: "static/embed", locals: { record: @user, name: @user.pretty_name, description: @user.level_string, post: @user.avatar }) %>
+<% render(partial: "static/embed", locals: { record: @user, name: @user.pretty_name, description: @user.level_string, post: @user.avatar, avatar: true }) %>
 
 <%= render "secondary_links" %>
 
