@@ -165,5 +165,19 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
     end
+
+=begin @Catt0s TODOs
+  - broken tests: 500 errors:
+    - promote
+    - reject
+    - approve
+    - index
+    - toggle
+  - Add new tests:
+    - transfer
+    - note
+    - report
+    - silent approve?
+=end
   end
 end

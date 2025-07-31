@@ -267,13 +267,14 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     end
 
     context "for a replacement ticket" do
+      # @Catt0s fix "NoMethodError: undefined method `replacements` for nil"
       setup do 
         as @bad_actor do
           @content = create(:post_replacement, creator: @bad_actor)
         end
       end
 
-      should "allow reporting replacements" do
+      should "allow reporting replacements" do 
         assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "replacement")
       end
 
