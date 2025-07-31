@@ -319,7 +319,7 @@ class PostReplacement < ApplicationRecord
       end
 
       if new_post.replacements.where(md5: md5).exists?
-        errors.add(:md5, "duplicate of existing replacement on post ##{@post.id}")
+        errors.add(:md5, "duplicate of existing replacement on post ##{new_post.id}")
         return
       end
 
