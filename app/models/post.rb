@@ -121,9 +121,9 @@ class Post < ApplicationRecord
       sample_url
     end
 
-    def sample_url
+    def sample_url(type = :sample_jpg)
       return file_url unless has_sample?
-      storage_manager.post_file_url(self, :sample)
+      storage_manager.post_file_url(self, type)
     end
 
     def preview_file_url(type = :preview_jpg)
