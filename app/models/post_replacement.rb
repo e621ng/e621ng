@@ -1,16 +1,11 @@
 # frozen_string_literal: true
-=begin 
- == TODOs: DataBase
+=begin @Catt0s TODOs: 
+ == DataBase
    - add a new table just for notes to be added to ('Class Table Inheritance'?). More effient then having a mostly empty column
    - rename "approver" to "handler"
    - ensure reasons can be as long as the new len allowment
  == other
    - notes should warn if there is already note (JS) 
- == Tests
-   - ensure transfers cant happen to deleted posts
-   - ensure a backup exists before transfering
-   - ensure credit is properly dealt with using the `credit_replacer` param
-   - ensure penalize is properly dealt with using the `penalize_current_uploader`
 =end
 
 class PostReplacement < ApplicationRecord
