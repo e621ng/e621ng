@@ -25,6 +25,7 @@ Rails.application.routes.draw do
     resource :reowner, controller: 'reowner', only: [:new, :create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
+    resources :vote_trends, controller: "vote_trends", only: [:index]
   end
 
   namespace :security do
