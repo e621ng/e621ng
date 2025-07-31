@@ -61,4 +61,16 @@
 
 <% content_for(:html_header) do -%>
   <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
+  <%= tag.meta(name: "description", content: Danbooru.config.description) %>
+  <%= tag.meta(property: "og:site", content: Danbooru.config.app_name) %>
+  <%= tag.meta(property: "og:title", content: Danbooru.config.app_name) %>
+  <%= tag.meta(property: "og:url", content: root_url(host: Danbooru.config.hostname, protocol: "https")) %>
+  <%= tag.meta(name: "canonical", content: root_url(host: Danbooru.config.hostname, protocol: "https")) %>
+
+  <meta property="og:type" content="website">
+
+  <%# Twitter properties %>
+  <meta name="twitter:card" content="summary">
+  <%= tag.meta(name: "twitter:title", content: Danbooru.config.app_name) %>
+  <%= tag.meta(name: "twitter:description", content: Danbooru.config.description) %>
 <%- end %>

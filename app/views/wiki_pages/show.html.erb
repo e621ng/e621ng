@@ -39,6 +39,8 @@
   </div>
 </div>
 
+<% render(partial: "static/embed", locals: { record: wiki_content, name: wiki_content.pretty_title, description: wiki_content.body, post: nil }) %>
+
 <% content_for(:page_title) do %>
   Wiki - <%= wiki_content.pretty_title %>
 <% end %>
