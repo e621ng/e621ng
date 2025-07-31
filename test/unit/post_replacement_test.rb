@@ -456,7 +456,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_includes statuses, "pending"
     end
 
-    should "fail if post cannot be backed up" do # @Catt0s TODO: FIX
+    should "fail if post cannot be backed up" do
       @post_alt.md5 = "123" # Breaks file path, should force backup to fail.
       assert_raise(ProcessingError) do
         @replacement.transfer(@post_alt)
@@ -477,7 +477,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       @existing_replacement = @post_alt.replacements.create(attributes_for(:apng_replacement).merge(creator: @user, reason: "existing replacement"))
       @existing_replacement.reject!
       assert @existing_replacement
-      assert_difference(-> { @post_alt.replacements.count }, 1) do # @Catt0s TODO: Fix: 2 instead of 1
+      assert_difference(-> { @post_alt.replacements.count }, 1) do 
         assert_difference(-> { @post.replacements.count }, -1) do
           @replacement.transfer(@post_alt)
         end

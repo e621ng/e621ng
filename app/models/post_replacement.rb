@@ -305,14 +305,6 @@ class PostReplacement < ApplicationRecord
         errors.add(:post, "must be a different post")
         return
       end
-      puts "\n\n"
-      new_post.replacements.reload.each_with_index do |r, i|
-        puts "SN  #{i + 1}/#{post.replacements.count}:\t{ ID: #{r.id}, Status: #{r.status}, Creator: #{r.creator&.name}, MD5: #{r.md5}, File: #{r.file_ext}, Created: #{r.created_at}, Post: #{r.post_id}, Reason: #{r.reason}  },"
-      end
-      puts "\n"
-      post.replacements.reload.each_with_index do |r, i|
-        puts "SO  #{i + 1}/#{post.replacements.count}:\t{ ID: #{r.id}, Status: #{r.status}, Creator: #{r.creator&.name}, MD5: #{r.md5}, File: #{r.file_ext}, Created: #{r.created_at}, Post: #{r.post_id}, Reason: #{r.reason}  },"
-      end
       if new_post.is_deleted?
         errors.add(:post, "is deleted")
         return
@@ -333,13 +325,6 @@ class PostReplacement < ApplicationRecord
 
       post.update_index
       prev.update_index
-      post.replacements.reload.each_with_index do |r, i|
-        puts "EN  #{i + 1}/#{post.replacements.count}:\t{ ID: #{r.id}, Status: #{r.status}, Creator: #{r.creator&.name}, MD5: #{r.md5}, File: #{r.file_ext}, Created: #{r.created_at}, Post: #{r.post_id}, Reason: #{r.reason} },"
-      end
-      prev.replacements.reload.each_with_index do |r, i|
-        puts "EO  #{i + 1}/#{post.replacements.count}:\t{ ID: #{r.id}, Status: #{r.status}, Creator: #{r.creator&.name}, MD5: #{r.md5}, File: #{r.file_ext}, Created: #{r.created_at}, Post: #{r.post_id}, Reason: #{r.reason}  },"
-      end
-
     end
 
     def create_original_backup
