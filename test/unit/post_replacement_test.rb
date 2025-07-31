@@ -397,8 +397,8 @@ class PostReplacementTest < ActiveSupport::TestCase
 
     should "prevent non-staff from adding" do
       CurrentUser.user = @user
-      @replacement.add_note("You do not have permission to add a note.") # @Catt0s Fix: 'Post is deleted' (wtf)
-      assert_equal(["Post is deleted"], @replacement.errors.full_messages)
+      @replacement.add_note("i shouldn't be here")
+      assert_equal(["You do not have permission to add a note."], @replacement.errors.full_messages)
     end
 
     should "enforce viewing permissions" do
@@ -445,9 +445,16 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "create backup replacement if one doesn't exist" do 
-      assert_difference("@post_alt.replacements.size", 2) do # @Catt0s TODO: 1 instead of 2
-        @replacement.transfer(@post_alt)
+      assert_difference(-> { @post_alt.replacements.count }, 2) do
+        assert_difference(-> { @post.replacements.count }, -1) do
+          debug_list_replacements(@post)
+          debug_list_replacements(@post_alt)
+          @replacement.transfer(@post_alt)
+          debug_list_replacements(@post_alt)
+          debug_list_replacements(@post)
+        end
       end
+      
       statuses = @post_alt.replacements.map(&:status)
       assert_includes statuses, "original"
       assert_includes statuses, "pending"
@@ -467,8 +474,16 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
     
     should "work on pending replacements" do
+      # we other case tested already, make sure we dont create multiple backups
+      @existing_replacement = @post_alt.replacements.create(attributes_for(:apng_replacement).merge(creator: @user))
       assert_difference(-> { @post_alt.replacements.count }, 1) do # @Catt0s TODO: Fix: 2 instead of 1
-        @replacement.transfer(@post_alt)
+        assert_difference(-> { @post.replacements.count }, -1) do
+          debug_list_replacements(@post)
+          debug_list_replacements(@post_alt)
+          @replacement.transfer(@post_alt)
+          debug_list_replacements(@post_alt)
+          debug_list_replacements(@post)
+        end
       end
 
       # The replacement should now belong to @post_alt and have status "pending"
@@ -486,4 +501,11 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert @post_alt.replacements.where(status: "original").exists?
     end
   end
+end
+def debug_list_replacements(post)
+  puts "\n"
+  post.replacements.reload.each_with_index do |r, i|
+    puts "  #{i + 1}/#{post.replacements.count}:\t{ ID: #{r.id}, Status: #{r.status}, Creator: #{r.creator&.name}, MD5: #{r.md5}, File: #{r.file_ext}, Created: #{r.created_at}, Post: #{r.post_id} },"
+  end
+  puts "\n"
 end
