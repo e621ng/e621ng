@@ -5,6 +5,24 @@ module ParseValue
   MIN_INT = -2_147_483_648
   extend self
 
+  # Parses the specified time
+  def date_from(target)
+    case target
+    # 10_yesterweeks_ago, 10yesterweekago
+    when /\A(\d{1,2})_?yester(week|month|year)s?_?ago\z/
+      yester_unit($1.to_i, $2)
+    when /\Ayester(week|month|year)\z/
+      yester_unit(1, $1)
+    when /\A(day|week|month|year)\z/
+      Time.zone.now - 1.send($1)
+    # 10_weeks_ago, 10w
+    when /\A(\d+)_?(s(econds?)?|mi(nutes?)?|h(ours?)?|d(ays?)?|w(eeks?)?|mo(nths?)?|y(ears?)?)_?(ago)?\z/i
+      time_string(target)
+    else
+      cast(target, :date)
+    end
+  end
+
   def date_range(target)
     case target
     # 10_yesterweeks_ago, 10yesterweekago
@@ -161,8 +179,12 @@ module ParseValue
     end
   end
 
+  def yester_unit(count, unit)
+    Date.current - count.send(unit)
+  end
+
   def yester_range(count, unit)
-    origin = Date.current - count.send(unit)
+    origin = yester_unit(count, unit)
     start = origin.send("beginning_of_#{unit}")
     stop = origin.send("end_of_#{unit}")
     [:between, start, stop]
