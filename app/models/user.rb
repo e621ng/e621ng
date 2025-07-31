@@ -661,7 +661,7 @@ class User < ApplicationRecord
         :id, :created_at, :name, :level, :base_upload_limit,
         :post_upload_count, :post_update_count, :note_update_count,
         :is_banned, :can_approve_posts, :can_upload_free,
-        :level_string, :avatar_id
+        :level_string, :avatar_id, :is_verified?,
       ]
 
       if id == CurrentUser.user.id
