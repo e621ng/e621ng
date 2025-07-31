@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class TagImplication < TagRelationship
+  POST_LIMIT = 10_000
   has_many :tag_rel_undos, as: :tag_rel
 
   array_attribute :descendant_names
@@ -124,6 +125,7 @@ class TagImplication < TagRelationship
       begin
         CurrentUser.scoped(approver) do
           update!(status: "processing")
+          create_undo_information
           update_posts
           update(status: "active")
           update_descendant_names_for_parents
@@ -141,22 +143,52 @@ class TagImplication < TagRelationship
       end
     end
 
-    def create_undo_information
+    def update_posts
       Post.without_timeout do
-        Post.sql_raw_tag_match(antecedent_name).find_in_batches do |posts|
-          post_info = Hash.new
-          posts.each do |p|
-            post_info[p.id] = p.tag_string
+        page = 1
+        loop do
+          posts = PostSets::Post.new("#{antecedent_name} -#{consequent_name} status:any", page, limit: POST_LIMIT).posts
+          posts.each do |post|
+            post.with_lock do
+              CurrentUser.scoped(creator, creator_ip_addr) do
+                post.do_not_version_changes = true
+                post.tag_string += " "
+                post.save!
+              end
+            end
           end
-          tag_rel_undos.create!(undo_data: post_info)
+
+          if posts.length < POST_LIMIT
+            return
+          end
+
+          page += 1
         end
       end
+    end
 
+    def create_undo_information
+      Post.without_timeout do
+        page = 1
+        loop do
+          posts = PostSets::Post.new("#{antecedent_name} -#{consequent_name} status:any", page, limit: POST_LIMIT).posts
+          post_info = Hash.new
+          posts.each do |post|
+            post_info[post.id] = post.tag_string
+          end
+          tag_rel_undos.create!(undo_data: post_info)
+
+          if posts.length < POST_LIMIT
+            return
+          end
+
+          page += 1
+        end
+      end
     end
 
     def approve!(approver: CurrentUser.user, update_topic: true)
       update(status: "queued", approver_id: approver.id)
-      create_undo_information
       invalidate_cached_descendants
       TagImplicationJob.perform_later(id, update_topic)
     end
