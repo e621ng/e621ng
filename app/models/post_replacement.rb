@@ -4,8 +4,9 @@
    - add a new table just for notes to be added to ('Class Table Inheritance'?). More effient then having a mostly empty column
    - rename "approver" to "handler"
    - ensure reasons can be as long as the new len allowment
- == other
-   - notes should warn if there is already note (JS) 
+ == BUGS
+   - uploader_on_approve is not being set correctly when transferring replacements
+   - during tests, the files refuse to validate
 =end
 
 class PostReplacement < ApplicationRecord
@@ -317,7 +318,7 @@ class PostReplacement < ApplicationRecord
 
       prev = post
       update_attribute(:post, new_post)
-      # TODO - this is not working, need to fix:
+      # @Catt0s TODO - this is not working, need to fix:
       ## docker compose run --rm tests bundle exec rspec test/unit/post_replacement_test.rb:476
       ## docker compose run --rm tests bundle exec rspec test/functional/post_replacements_controller_test.rb:205
       update_attribute(:uploader_on_approve, nil) # reset uploader_on_approve
