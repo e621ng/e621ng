@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 =begin @Catt0s TODOs: 
  == DataBase
-   - add a new table just for notes to be added to ('Class Table Inheritance'?). More effient then having a mostly empty column
-   - rename "approver" to "handler"
+   - add a new table just for notes to be added to ('Class Table Inheritance'?). More effient then having a mostly empty column..
+    - this would need a new model, sadly
+    - rails generate model PostReplacementNote post_replacement:references note:text
+    - has_one :note, class_name: "PostReplacementNote", dependent: :destroy
+    - class PostReplacementNote < ApplicationRecord belongs_to :post_replacement validates :post_replacement_id, uniqueness: true end
+   - rename "approver" to "handler" (also in code)
+     - rails generate migration RenameApproverToHandlerInPostReplacements2
+     - def change rename_column :post_replacements2, :approver_id, :handler_id end
    - ensure reasons can be as long as the new len allowment
+     - rails generate migration ChangeReasonLengthInPostReplacements2
+     - def change change_column :post_replacements2, :reason, :string, limit: 300 end
  == BUGS
    - during tests, the files refuse to validate
 =end
