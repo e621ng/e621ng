@@ -133,7 +133,7 @@ class PostReplacement < ApplicationRecord
   end
 
   def source_list
-    source.split("\n").uniq.compact_blank
+    (source || "").split("\n").uniq.compact_blank # nil safety.
   end
 
   module StorageMethods
@@ -317,6 +317,8 @@ class PostReplacement < ApplicationRecord
 
       prev = post
       update_attribute(:post, new_post)
+      # @Catt0s TODO - this is not working, need to fix
+      uploader_id_on_approve = nil # Reset uploader_id_on_approve
       set_previous_uploader
       create_original_backup
 

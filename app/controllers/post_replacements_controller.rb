@@ -58,10 +58,10 @@ class PostReplacementsController < ApplicationController
 
   def approve
     @post_replacement = PostReplacement.find(params[:id])
-    @post_replacement.approve!(
-      penalize_current_uploader: params[:penalize_current_uploader],
-      credit_replacer: params[:credit_replacer],
-    )
+    approve_options = {}
+    approve_options[:penalize_current_uploader] = params[:penalize_current_uploader] # must be present
+    approve_options[:credit_replacer] = params[:credit_replacer] if params.key?(:credit_replacer)
+    @post_replacement.approve!(**approve_options)
   
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }

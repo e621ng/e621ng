@@ -10,7 +10,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       as(@user) do
         @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
-        @replacement = create(:png_replacement, creator: @user, post: @post)
+        @replacement = create(:png_replacement, creator: @regular_user, post: @post)
       end
     end
 
@@ -126,6 +126,36 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         assert_equal @replacement.md5, @post.md5
         assert_equal @replacement.status, "approved"
       end
+
+      should "credit the creator when credit_replacer is not specified" do
+        put_auth approve_post_replacement_path(@replacement), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @regular_user # for some reason, not working. 
+      end
+
+      should "credit the creator when credit_replacer is true" do
+        put_auth approve_post_replacement_path(@replacement, credit_replacer: true), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @regular_user
+      end
+
+      should "not credit the creator when credit_replacer is false" do
+        put_auth approve_post_replacement_path(@replacement, credit_replacer: false), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @user
+      end
     end
 
     context "promote action" do
@@ -166,18 +196,26 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-=begin @Catt0s TODOs
-  - broken tests: 500 errors:
-    - promote
-    - reject
-    - approve
-    - index
-    - toggle
-  - Add new tests:
-    - transfer
-    - note
-    - report
-    - silent approve?
-=end
+    context "transfer action" do
+      setup do
+        @upload2 = UploadService.new(attributes_for(:gif_upload).merge({ uploader: @regular_user })).start!
+        @post2 = @upload2.post
+      end
+
+      should "transfer replacement to another post" do
+        puts "Orig post uploader: #{@post.uploader_id} - New post uploader: #{@post2.uploader_id} - Replacement log: #{@replacement.uploader_id_on_approve}"
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
+        assert_response :success
+        @replacement.reload
+        assert_equal @post2.id, @replacement.post_id
+        puts "Orig post uploader: #{@post.uploader.id} - New post uploader: #{@post2.uploader_id
+        } - Replacement log: #{@replacement.uploader_id_on_approve}"
+        assert_equal @post2.uploader_id, @replacement.uploader_id_on_approve
+      end
+    end
+
+    context "note action" do
+      # @Catt0s TODO - cannot add until implemented
+    end
   end
 end

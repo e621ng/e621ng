@@ -28,7 +28,7 @@
     <% if post_replacement.is_pending? %>
       <% group2 << link_to("Reject", "#reject", class: "replacement-reject-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
     <% end %>
-    <% group2 << link_to("Note", "#note", class: "replacement-note-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
+    <% group2 << link_to("Note", "#note", class: "replacement-note-action replacement-action-button", data: { replacement_id: post_replacement.id, current_note: post_replacement.reason }) %> <!--CATT0S TODO: Add note info to data-->
   <% end %>
   <% if group2.any? %>
     <div class="multi-action-row">

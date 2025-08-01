@@ -267,11 +267,14 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     end
 
     context "for a replacement ticket" do
-      # @Catt0s fix "NoMethodError: undefined method `replacements` for nil"
-      setup do 
-        as @bad_actor do
-          @content = create(:post_replacement, creator: @bad_actor)
-        end
+      setup do
+        @bystander.update_columns(created_at: 2.weeks.ago)
+        @upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @bystander)).start!
+        assert(@upload.persisted?, "Upload was not created: #{@upload.errors.full_messages.join(', ')}")
+        @post = @upload.post
+        assert(@post.present?, "Upload did not create a post: #{@upload.inspect}")
+        @content = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @bad_actor))
+        assert(@content.persisted?, "Replacement was not created: #{@content.errors.full_messages.join(', ')}")
       end
 
       should "allow reporting replacements" do 

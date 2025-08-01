@@ -1,20 +1,6 @@
 import Utility from "./utility";
 
 let PostReplacement = {};
-/** TODO List: Assignee: @ME
- * = sections =
- *   - Start sections expanded/collapsed based on detected (mobile vs desktop)
- *   - Add expand/collapse button functionality
- *  == States == 
- *   - Collapsed: Hide "replacement-collapsible", show "replacement-expandable"
- *   - Expanded: Show "replacement-collapsible", Hide "replacement-expandable"
- *  == buttons == 
- *   Span Class "replacement-toggle-icon". Each icon is in a "replacement-toggle-chevron" span. All of this inside a button "toggle-expanded-button"
- *   - SVG "replacement-expandable" with name "chevron_up"
- *   - SVG "replacement-collapsible" with name "chevron_down"
- *  = Actions =
- *   - Add a note to a replacement
- */
 PostReplacement.initialize_all = function () {
   PostReplacement.set_initial_section_state();
   const actions = [
@@ -25,7 +11,7 @@ PostReplacement.initialize_all = function () {
     { selector: ".replacement-destroy-action", handler: (e, $target) => { PostReplacement.destroy($target.data("replacement-id")); }},
     { selector: ".replacement-silent-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), false); }},
     { selector: ".replacement-transfer-action", handler: (e, $target) => { PostReplacement.transfer($target.data("replacement-id")); } },
-    { selector: ".replacement-note-action", handler: (e, $target) => { PostReplacement.note($target.data("replacement-id")) } },
+    { selector: ".replacement-note-action", handler: (e, $target) => { PostReplacement.note($target.data("replacement-id"), $target.data("current-note")); } },
     { selector: ".toggle-expanded-button", handler: (e, $target) => { const id = $target.data("replacement-id");  PostReplacement.toggle_section(id); }},
   ];
 
@@ -38,10 +24,16 @@ PostReplacement.initialize_all = function () {
   });
 };
 
-PostReplacement.note =  function (id) {
+PostReplacement.note =  function (id, current_note) {
   const $row = $(`#replacement-${id}`);
-  // Catt0s_TODO: if there is already a note, let the user know, and autofill the prompt
-  const note_text = prompt("Enter a note:");
+  
+  let prompt_message = "Enter a note:";
+  let default_value = "";
+  if (current_note && current_note.trim() !== "") {
+    prompt_message = "This replacement already has a note. Enter a new note (leave blank to remove):";
+    default_value = current_note;
+  }
+  const note_text = prompt(prompt_message, default_value);
   if (!note_text) {
     Utility.notice("Note cancelled.");
     return;

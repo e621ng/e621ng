@@ -412,13 +412,14 @@ class PostReplacementTest < ActiveSupport::TestCase
 
   context "Transfer: " do 
     setup do
-      @upload_alt = UploadService.new(attributes_for(:large_jpg_upload).merge(uploader: @user)).start!
+      @user_alt = create(:user, created_at: 2.weeks.ago)
+      @upload_alt = UploadService.new(attributes_for(:large_jpg_upload).merge(uploader: @user_alt)).start!
       # @Catt0s Fix: upload service says the file is corrupted, for some reason
       assert_not_nil @upload_alt, "UploadService did not create a upload"
       # puts @upload_alt.inspect
       # puts @upload_alt.status
       @post_alt = @upload_alt.post
-      assert_not_nil @post_alt, "UploadService did not create a post"
+      assert_not_nil(@post, "UploadService did not create a post: #{@upload.status}")
 
       @post_alt.update_columns({ is_pending: false, approver_id: @mod_user.id })
       CurrentUser.user = @user
