@@ -5,7 +5,6 @@
    - rename "approver" to "handler"
    - ensure reasons can be as long as the new len allowment
  == BUGS
-   - uploader_on_approve is not being set correctly when transferring replacements
    - during tests, the files refuse to validate
 =end
 
@@ -218,7 +217,7 @@ class PostReplacement < ApplicationRecord
   end
 
   module ProcessingMethods
-    def approve!(penalize_current_uploader:, credit_replacer: true) # @catt0s TODO: if not crediting replacer, handle penalties
+    def approve!(penalize_current_uploader:, credit_replacer: true)
       if is_current? || is_promoted?
         errors.add(:status, "version is already active")
         return
@@ -227,6 +226,8 @@ class PostReplacement < ApplicationRecord
       if is_rejected? # We need to undo the rejection count
         UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count - 1")
       end
+
+      penalize_current_uploader = false unless credit_replacer
 
       processor = UploadService::Replacer.new(post: post, replacement: self) 
       processor.process!(penalize_current_uploader: penalize_current_uploader, credit_replacer: credit_replacer)
@@ -317,13 +318,9 @@ class PostReplacement < ApplicationRecord
       end
 
       prev = post
-      update_attribute(:post, new_post)
-      # @Catt0s TODO - this is not working, need to fix:
-      ## docker compose run --rm tests bundle exec rspec test/unit/post_replacement_test.rb:476
-      ## docker compose run --rm tests bundle exec rspec test/functional/post_replacements_controller_test.rb:205
-      update_attribute(:uploader_on_approve, nil) # reset uploader_on_approve
-      uploader_id_on_approve = nil # reset uploader_id_on_approve
+      update(post: new_post, uploader_id_on_approve: nil)
       set_previous_uploader
+      update_column(:uploader_id_on_approve, uploader_on_approve&.id) 
       create_original_backup
 
       PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })

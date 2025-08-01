@@ -203,13 +203,10 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "transfer replacement to another post" do
-        puts "Orig post uploader: #{@post.uploader_id} - New post uploader: #{@post2.uploader_id} - Replacement log: #{@replacement.uploader_id_on_approve}"
         put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
         assert_response :success
         @replacement.reload
         assert_equal @post2.id, @replacement.post_id
-        puts "Orig post uploader: #{@post.uploader.id} - New post uploader: #{@post2.uploader_id
-        } - Replacement log: #{@replacement.uploader_id_on_approve}"
         assert_equal @post2.uploader_id, @replacement.uploader_id_on_approve
       end
     end

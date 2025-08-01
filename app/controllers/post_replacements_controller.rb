@@ -91,7 +91,6 @@ class PostReplacementsController < ApplicationController
 
   def note
     @post_replacement = PostReplacement.find(params[:id])
-    puts "Params: #{params.inspect}"
     @post_replacement.add_note(params[:note_content])
 
     respond_with(@post_replacement) do |format|
@@ -102,7 +101,6 @@ class PostReplacementsController < ApplicationController
 
   def transfer
     @post_replacement = PostReplacement.find(params[:id])
-    puts "Params: #{params.inspect}"
     @post_replacement.transfer(Post.find(params[:new_post_id]))
     
     respond_with(@post_replacement) do |format|

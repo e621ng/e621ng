@@ -489,7 +489,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal "pending", @replacement.status
 
       # The previous uploader should be set correctly
-      assert_equal @post.uploader_id, @replacement.uploader_on_approve.id
+      assert_equal @post_alt.uploader_id, @replacement.uploader_on_approve.id
 
       # Both posts should have their indexes updated (simulate by checking timestamps)
       assert @post.reload.updated_at <= Time.now
