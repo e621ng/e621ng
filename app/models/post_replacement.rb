@@ -317,8 +317,11 @@ class PostReplacement < ApplicationRecord
 
       prev = post
       update_attribute(:post, new_post)
-      # @Catt0s TODO - this is not working, need to fix
-      uploader_id_on_approve = nil # Reset uploader_id_on_approve
+      # TODO - this is not working, need to fix:
+      ## docker compose run --rm tests bundle exec rspec test/unit/post_replacement_test.rb:476
+      ## docker compose run --rm tests bundle exec rspec test/functional/post_replacements_controller_test.rb:205
+      update_attribute(:uploader_on_approve, nil) # reset uploader_on_approve
+      uploader_id_on_approve = nil # reset uploader_id_on_approve
       set_previous_uploader
       create_original_backup
 
