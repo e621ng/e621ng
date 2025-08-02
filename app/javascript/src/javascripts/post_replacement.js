@@ -12,11 +12,11 @@ PostReplacement.initialize_all = function () {
     { selector: ".replacement-silent-approve-action", handler: (e, $target) => { PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), false); }},
     { selector: ".replacement-transfer-action", handler: (e, $target) => { PostReplacement.transfer($target.data("replacement-id")); } },
     { selector: ".replacement-note-action", handler: (e, $target) => { PostReplacement.note($target.data("replacement-id"), $target.data("current-note")); } },
-    { selector: ".toggle-expanded-button", handler: (e, $target) => { const id = $target.data("replacement-id");  PostReplacement.toggle_section(id); }},
+    { selector: ".toggle-expanded-button", handler: (e, $target) => { const id = $target.data("replacement-id"); PostReplacement.toggle_section(id); }},
   ];
 
   actions.forEach(({ selector, handler }) => {
-    $(document).on("click", selector, function(e) {
+    $(document).on("click", selector, function (e) {
       const $target = $(this);
       e.preventDefault();
       handler(e, $target);
@@ -24,9 +24,9 @@ PostReplacement.initialize_all = function () {
   });
 };
 
-PostReplacement.note =  function (id, current_note) {
+PostReplacement.note = function (id, current_note) {
   const $row = $(`#replacement-${id}`);
-  
+
   let prompt_message = "Enter a note:";
   let default_value = "";
   if (current_note && current_note.trim() !== "") {
@@ -43,7 +43,7 @@ PostReplacement.note =  function (id, current_note) {
     type: "PUT",
     url: `/post_replacements/${id}/note`,
     data: {
-      note_content: note_text
+      note_content: note_text,
     },
     dataType: "html",
   })
@@ -56,9 +56,9 @@ PostReplacement.note =  function (id, current_note) {
       Utility.error(msg);
       revert_processing($row);
     });
-}
+};
 
-PostReplacement.transfer = function (id) { 
+PostReplacement.transfer = function (id) {
   const $row = $(`#replacement-${id}`);
   const newPostId = prompt("Enter the new post ID to transfer this replacement to:");
   if (!newPostId) {
@@ -70,7 +70,7 @@ PostReplacement.transfer = function (id) {
     type: "PUT",
     url: `/post_replacements/${id}/transfer`,
     data: {
-      new_post_id: newPostId
+      new_post_id: newPostId,
     },
     dataType: "html",
   })
@@ -83,7 +83,7 @@ PostReplacement.transfer = function (id) {
       Utility.error(msg);
       revert_processing($row);
     });
-}
+};
 
 PostReplacement.approve = function (id, penalize_current_uploader, credit_replacer) {
   const $row = $(`#replacement-${id}`);
@@ -187,33 +187,33 @@ PostReplacement.destroy = function (id) {
     });
 };
 
-PostReplacement.toggle_section = function(id) {
+PostReplacement.toggle_section = function (id) {
   const $row = $(`#replacement-${id}`);
-  $row.find('.replacement-collapsible').toggle();
-  $row.find('.replacement-expandable').toggle();
+  $row.find(".replacement-collapsible").toggle();
+  $row.find(".replacement-expandable").toggle();
 };
 
-PostReplacement.set_initial_section_state = function() {
+PostReplacement.set_initial_section_state = function () {
   const isMobile = window.matchMedia("(max-width: 600px)").matches;
-  $(".replacement-section-top").each(function() {
+  $(".replacement-section-top").each(function () {
     const $row = $(this);
     if (isMobile) {
-      $row.find('.replacement-collapsible').hide();
-      $row.find('.replacement-expandable').show();
+      $row.find(".replacement-collapsible").hide();
+      $row.find(".replacement-expandable").show();
     } else {
-      $row.find('.replacement-collapsible').show();
-      $row.find('.replacement-expandable').hide();
+      $row.find(".replacement-collapsible").show();
+      $row.find(".replacement-expandable").hide();
     }
   });
 };
 
-function make_processing($row) {
+function make_processing ($row) {
   $row.removeClass("replacement-pending-row").addClass("replacement-processing-row");
   $row.find(".replacement-status-value-box").text("processing");
   $row.find(".replacement-actions a").addClass("disabled-link");
 }
 
-function revert_processing($row) {
+function revert_processing ($row) {
   $row.removeClass("replacement-processing-row");
   $row.find(".replacement-status-value-box").text("error");
   $row.find(".replacement-actions a").removeClass("disabled-link");
