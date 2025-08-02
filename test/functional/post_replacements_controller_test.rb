@@ -213,7 +213,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
     context "note action" do
       should "create a note on the post" do
-        post_auth note_post_replacement_path(@replacement), @user, params: { body: "This is a test note" }
+        put_auth note_post_replacement_path(@replacement), @user, params: { body: "This is a test note" }
         assert_response :success
         @replacement.reload
         assert_equal 1, @post.notes.size

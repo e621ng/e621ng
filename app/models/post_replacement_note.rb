@@ -6,7 +6,7 @@ class PostReplacementNote < ApplicationRecord
   validates :note, length: { maximum: 1000 }, allow_blank: true
 
   def visible_to?(user)
-    user.id == creator_id || user.is_staff?
+    user.id == post_replacement.creator_id || user.is_staff?
   end
 
   def self.create_or_update_for_replacement!(_user, post_replacement, note_content)

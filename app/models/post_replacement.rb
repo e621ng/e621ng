@@ -5,8 +5,8 @@
  == BUGS
    - during tests, the files refuse to validate
    - post note isnt a valid route | test/functional/post_replacements_controller_test.rb:216
-   - transfer |  test/unit/post_event_test.rb:134
-   - undefined method `visible_to?' for nil | test/unit/post_replacement_test.rb:406
+   x - transfer |  test/unit/post_event_test.rb:134
+   x - undefined method `visible_to?' for nil | test/unit/post_replacement_test.rb:406
 =end
 
 class PostReplacement < ApplicationRecord

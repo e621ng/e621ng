@@ -403,6 +403,8 @@ class PostReplacementTest < ActiveSupport::TestCase
 
     should "enforce viewing permissions" do
       @uninvolved_user = create(:user, created_at: 2.weeks.ago)
+      CurrentUser.user = @mod_user
+      @replacement.note_add("test")
       assert(@replacement.note.visible_to?(@user))
       assert(@replacement.note.visible_to?(@mod_user))
       assert_not(@replacement.note.visible_to?(@uninvolved_user))
