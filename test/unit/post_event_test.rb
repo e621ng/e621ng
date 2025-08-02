@@ -126,6 +126,7 @@ class PostEventTest < ActiveSupport::TestCase
           @replacement.destroy!
         end
       end
+      # TODO: add tests for transfer
     end
   end
 end

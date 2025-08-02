@@ -1,7 +1,7 @@
 <div class="replacement-actions">
   <div class="replacements-actions-label">Actions</div>
 
-  <% # Group 1: Approve, Silently, Reset To %>
+  <%# Group 1: Approve, Silently, Reset To %>
   <% group1 = [] %>
   <% if CurrentUser.can_approve_posts? %>
     <% if post_replacement.is_pending? %>
@@ -22,7 +22,7 @@
     <div class="replacement-actions-spacer"></div>
   <% end %>
 
-  <% # Group 2: Reject, Note %>
+  <%# Group 2: Reject, Note %>
   <% group2 = [] %>
   <% if CurrentUser.can_approve_posts? %>
     <% if post_replacement.is_pending? %>
@@ -36,7 +36,7 @@
     </div>
   <% end %>
 
-  <% # Group 3: As New, Transfer %>
+  <%# Group 3: As New, Transfer %>
   <% group3 = [] %>
   <% if CurrentUser.can_approve_posts? && !post_replacement.is_backup? %>
     <% unless post_replacement.is_current? || post_replacement.is_promoted? %>
@@ -49,12 +49,12 @@
     <div class="replacement-actions-spacer"></div>
   <% end %>
 
-  <% # Group 4: Destroy, Report %>
+  <%# Group 4: Destroy, Report %>
   <% group4 = [] %>
   <% if CurrentUser.is_admin? %>
     <% group4 << link_to("Destroy", "#destroy", class: "replacement-destroy-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
   <% end %>
-  <% group4 << link_to("Report", new_ticket_path(disp_id: post_replacement.id, qtype: 'replacement'), class: "replacement-report-action replacement-action-button") %>
+  <% group4 << link_to("Report", new_ticket_path(disp_id: post_replacement.id, qtype: "replacement"), class: "replacement-report-action replacement-action-button") %>
   <div class="multi-action-row">
     <%= safe_join(group4) %>
   </div>

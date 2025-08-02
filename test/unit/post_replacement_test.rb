@@ -93,7 +93,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "affect user upload limit" do
-      assert_difference(-> { @user.post_replacements.pending.count}, 1) do
+      assert_difference(-> { @user.post_replacements.pending.count }, 1) do
         @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       end
     end
@@ -180,7 +180,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal @replacement.file_size, @post.file_size
     end
 
-    should "work if the approver is above their upload limit" do
+    should "work if the handler is above their upload limit" do
       User.any_instance.stubs(:upload_limit).returns(0)
       Danbooru.config.stubs(:disable_throttles?).returns(false)
 
@@ -222,9 +222,9 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "update the original users upload limit if penalized" do
-      assert_difference(->{@mod_user.own_post_replaced_count}, 1) do
-        assert_difference(->{@mod_user.own_post_replaced_penalize_count}, 1) do
-          assert_difference(->{PostReplacement.penalized.for_uploader_on_approve(@mod_user.id).count}, 1) do
+      assert_difference(-> { @mod_user.own_post_replaced_count }, 1) do
+        assert_difference(-> { @mod_user.own_post_replaced_penalize_count }, 1) do
+          assert_difference(-> { PostReplacement.penalized.for_uploader_on_approve(@mod_user.id).count }, 1) do
             @replacement.approve! penalize_current_uploader: true
             @mod_user.reload
           end
@@ -280,7 +280,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     context "without credit change" do
       should "update post without changing uploader" do
         old_md5 = @post.md5
-        @replacement.approve! penalize_current_uploader: true, credit_replacer:false
+        @replacement.approve! penalize_current_uploader: true, credit_replacer: false
         @post.reload
         assert_not_equal @post.md5, old_md5
         assert_equal @replacement.image_width, @post.image_width
@@ -377,19 +377,19 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal(@post.uploader_id, @replacement.uploader_on_approve.id)
     end
 
-    should "record the approver" do
+    should "record the handler" do
       @replacement.promote!
       assert_equal(CurrentUser.user.id, @replacement.approver_id)
     end
   end
 
-  context "Note: " do 
+  context "Note: " do
     setup do
       @replacement = create(:png_replacement, creator: @user, post: @post)
       assert @replacement
     end
 
-    should "allow staff to edit" do 
+    should "allow staff to edit" do
       CurrentUser.user = @mod_user
       @replacement.add_note("test")
       # @Catt0s TODO - cant assert since it doesnt exist yet
@@ -407,10 +407,9 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert(@replacement.note_visible_to?(@mod_user))
       assert_not(@replacement.note_visible_to?(@uninvolved_user))
     end
-
   end
 
-  context "Transfer: " do 
+  context "Transfer: " do
     setup do
       @user_alt = create(:user, created_at: 2.weeks.ago)
       @upload_alt = UploadService.new(attributes_for(:large_jpg_upload).merge(uploader: @user_alt)).start!
@@ -434,7 +433,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal(["Post is deleted"], @replacement.errors.full_messages)
     end
 
-    should "fail when the post is the same" do 
+    should "fail when the post is the same" do
       @replacement.transfer(@post)
       assert_equal(["Post must be a different post"], @replacement.errors.full_messages)
     end
@@ -445,13 +444,13 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal(["Status must be pending to transfer"], @replacement.errors.full_messages)
     end
 
-    should "create backup replacement if one doesn't exist" do 
+    should "create backup replacement if one doesn't exist" do
       assert_difference(-> { @post_alt.replacements.count }, 2) do
         assert_difference(-> { @post.replacements.count }, -1) do
           @replacement.transfer(@post_alt)
         end
       end
-      
+
       statuses = @post_alt.replacements.map(&:status)
       assert_includes statuses, "original"
       assert_includes statuses, "pending"
@@ -464,7 +463,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       end
     end
 
-    should "not allow duplicates" do 
+    should "not allow duplicates" do
       @existing_replacement = @post_alt.replacements.create(attributes_for(:png_replacement).merge(creator: @user, reason: "existing replacement", md5: @replacement.md5))
       @existing_replacement.reject!
       @existing_replacement.save!
@@ -472,13 +471,13 @@ class PostReplacementTest < ActiveSupport::TestCase
       @replacement.transfer(@post_alt)
       assert_equal(["Md5 duplicate of existing replacement on post ##{@post_alt.id}"], @replacement.errors.full_messages)
     end
-    
+
     should "work on pending replacements" do
       # we other case tested already, make sure we dont create multiple backups
       @existing_replacement = @post_alt.replacements.create(attributes_for(:apng_replacement).merge(creator: @user, reason: "existing replacement"))
       @existing_replacement.reject!
       assert @existing_replacement
-      assert_difference(-> { @post_alt.replacements.count }, 1) do 
+      assert_difference(-> { @post_alt.replacements.count }, 1) do
         assert_difference(-> { @post.replacements.count }, -1) do
           @replacement.transfer(@post_alt)
         end

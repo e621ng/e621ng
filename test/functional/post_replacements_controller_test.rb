@@ -134,7 +134,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         @post.reload
         assert_equal @replacement.md5, @post.md5
         assert_equal @replacement.status, "approved"
-        assert_equal @post.uploader, @regular_user # for some reason, not working. 
+        assert_equal @post.uploader, @regular_user
       end
 
       should "credit the creator when credit_replacer is true" do

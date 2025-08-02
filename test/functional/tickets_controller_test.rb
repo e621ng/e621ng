@@ -277,7 +277,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         assert(@content.persisted?, "Replacement was not created: #{@content.errors.full_messages.join(', ')}")
       end
 
-      should "allow reporting replacements" do 
+      should "allow reporting replacements" do
         assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "replacement")
       end
 

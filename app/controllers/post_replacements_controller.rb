@@ -14,6 +14,7 @@ class PostReplacementsController < ApplicationController
 
   def index
     params[:search][:post_id] = params.delete(:post_id) if params.key?(:post_id)
+    params[:search][:approver] ||= params[:handler] if params[:handler].present?
     @post_replacements = PostReplacement.includes(:post).visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
 
     respond_with(@post_replacements)
@@ -62,7 +63,7 @@ class PostReplacementsController < ApplicationController
     approve_options[:penalize_current_uploader] = params[:penalize_current_uploader] # must be present
     approve_options[:credit_replacer] = params[:credit_replacer] if params.key?(:credit_replacer)
     @post_replacement.approve!(**approve_options)
-  
+
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
       format.json
@@ -102,7 +103,7 @@ class PostReplacementsController < ApplicationController
   def transfer
     @post_replacement = PostReplacement.find(params[:id])
     @post_replacement.transfer(Post.find(params[:new_post_id]))
-    
+
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
       format.json
