@@ -211,7 +211,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not transfer replacement to another post if not pending" do
-        @replacement.update(status: "rejected")
+        @replacement.approve! penalize_current_uploader: true
         put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
         assert_response :not_acceptable
         @replacement.reload
@@ -227,7 +227,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
       should "not transfer if new post is the same as current post" do
         put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post.id }
-        assert_response :not_acceptable
+        assert_response :precondition_failed
       end
 
       should "not transfer if new post is deleted" do
@@ -235,7 +235,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           @post2.delete!("test deletion")
         end
         put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
-        assert_response :not_acceptable
+        assert_response :precondition_failed
         @replacement.reload
         assert_not_equal @post2.id, @replacement.post_id
       end

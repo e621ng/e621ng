@@ -303,8 +303,8 @@ class PostReplacement < ApplicationRecord
     end
 
     def transfer(new_post)
-      unless is_pending?
-        errors.add(:status, "must be pending to transfer")
+      unless is_pending? || is_rejected?
+        errors.add(:status, "must be pending or rejected to transfer")
         return
       end
       if new_post.nil? || new_post.id == post.id

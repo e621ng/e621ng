@@ -207,16 +207,16 @@ PostReplacement.set_initial_section_state = function() {
   });
 };
 
-function make_processing ($row) {
+function make_processing($row) {
   $row.removeClass("replacement-pending-row").addClass("replacement-processing-row");
-  $row.find(".replacement-status").text("processing");
-  $row.find(".pending-links a").addClass("disabled-link");
+  $row.find(".replacement-status-value-box").text("processing");
+  $row.find(".replacement-actions a").addClass("disabled-link");
 }
 
-function revert_processing ($row) {
+function revert_processing($row) {
   $row.removeClass("replacement-processing-row");
-  $row.find(".replacement-status").text("error");
-  $row.find(".pending-links a").removeClass("disabled-link");
+  $row.find(".replacement-status-value-box").text("error");
+  $row.find(".replacement-actions a").removeClass("disabled-link");
 }
 
 $(function () {

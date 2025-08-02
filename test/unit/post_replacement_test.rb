@@ -448,10 +448,10 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal(["Post must be a different post"], @replacement.errors.full_messages)
     end
 
-    should "fail on non-pending replacements" do
-      @replacement.reject!
+    should "fail on replacements that are not pending or rejected" do
+      @replacement.approve! penalize_current_uploader: false
       @replacement.transfer(@post_alt)
-      assert_equal(["Status must be pending to transfer"], @replacement.errors.full_messages)
+      assert_equal(["Status must be pending or rejected to transfer"], @replacement.errors.full_messages)
     end
 
     should "create backup replacement if one doesn't exist" do

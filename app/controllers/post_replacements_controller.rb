@@ -114,6 +114,9 @@ class PostReplacementsController < ApplicationController
 
     if @post_replacement.errors.any?
       respond_to do |format|
+        format.html do
+          return render plain: @post_replacement.errors.full_messages.join("; "), status: 412
+        end
         format.json do
           return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
         end
