@@ -212,7 +212,13 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
     end
 
     context "note action" do
-      # @Catt0s TODO - cannot add until implemented
+      should "create a note on the post" do
+        post_auth note_post_replacement_path(@replacement), @user, params: { body: "This is a test note" }
+        assert_response :success
+        @replacement.reload
+        assert_equal 1, @post.notes.size
+        assert_equal "This is a test note", @post.notes.first.body
+      end
     end
   end
 end

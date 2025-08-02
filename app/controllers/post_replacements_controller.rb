@@ -92,7 +92,7 @@ class PostReplacementsController < ApplicationController
 
   def note
     @post_replacement = PostReplacement.find(params[:id])
-    @post_replacement.add_note(params[:note_content])
+    @post_replacement.note_add(params[:note_content])
 
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }

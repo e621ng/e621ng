@@ -126,7 +126,15 @@ class PostEventTest < ActiveSupport::TestCase
           @replacement.destroy!
         end
       end
-      # TODO: add tests for transfer
+
+      should "transfer" do
+        upload2 = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user, tag_string: "tst2")).start!
+        post2 = upload2.post
+        assert_post_events_created(@admin, :replacement_transferred) do
+          @replacement.transfer(post2)
+        end
+        # Catt0s TODO
+      end
     end
   end
 end

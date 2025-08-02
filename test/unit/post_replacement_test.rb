@@ -391,21 +391,29 @@ class PostReplacementTest < ActiveSupport::TestCase
 
     should "allow staff to edit" do
       CurrentUser.user = @mod_user
-      @replacement.add_note("test")
-      # @Catt0s TODO - cant assert since it doesnt exist yet
+      @replacement.note_add("test")
+      assert_equal(@replacement.note.note, "test")
     end
 
     should "prevent non-staff from adding" do
       CurrentUser.user = @user
-      @replacement.add_note("i shouldn't be here")
+      @replacement.note_add("i shouldn't be here")
       assert_equal(["You do not have permission to add a note."], @replacement.errors.full_messages)
     end
 
     should "enforce viewing permissions" do
       @uninvolved_user = create(:user, created_at: 2.weeks.ago)
-      assert(@replacement.note_visible_to?(@user))
-      assert(@replacement.note_visible_to?(@mod_user))
-      assert_not(@replacement.note_visible_to?(@uninvolved_user))
+      assert(@replacement.note.visible_to?(@user))
+      assert(@replacement.note.visible_to?(@mod_user))
+      assert_not(@replacement.note.visible_to?(@uninvolved_user))
+    end
+
+    should "Allow overwriting existing note" do
+      CurrentUser.user = @mod_user
+      @replacement.note_add("test")
+      assert_equal(@replacement.note.note, "test")
+      @replacement.note_add("new test")
+      assert_equal(@replacement.note.note, "new test")
     end
   end
 

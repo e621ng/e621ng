@@ -55,8 +55,8 @@
   <% if post_replacement.approver.present? %>
     <div class="replacement-note">
       <div class="replacement-note-label">Note: <span class="note-handler">(Handler: <%= link_to_user post_replacement.approver %>)</div></span>
-      <div class="replacement-note-value replacement-collapsible"><%= post_replacement.reason.presence %></div>
-      <div class="replacement-note-value replacement-expandable"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present? %></div> <!--CATT0S TODO: Add note info-->
+      <div class="replacement-note-value replacement-collapsible"><%= post_replacement.note&.note %></div>
+      <div class="replacement-note-value replacement-expandable"><%= truncate(post_replacement.note.note, length: 40) if post_replacement.note.present? %></div>
     </div>
   <% end %>
 </div>

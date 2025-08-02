@@ -1,19 +1,12 @@
 # frozen_string_literal: true
-=begin @Catt0s TODOs: 
- == DataBase
-   - add a new table just for notes to be added to ('Class Table Inheritance'?). More effient then having a mostly empty column..
-    - this would need a new model, sadly
-    - rails generate model PostReplacementNote post_replacement:references note:text
-    - has_one :note, class_name: "PostReplacementNote", dependent: :destroy
-    - class PostReplacementNote < ApplicationRecord belongs_to :post_replacement validates :post_replacement_id, uniqueness: true end
-   - rename "approver" to "handler" (also in code)
-     - rails generate migration RenameApproverToHandlerInPostReplacements2
-     - def change rename_column :post_replacements2, :approver_id, :handler_id end
-   - ensure reasons can be as long as the new len allowment
-     - rails generate migration ChangeReasonLengthInPostReplacements2
-     - def change change_column :post_replacements2, :reason, :string, limit: 300 end
+
+=begin 
+@Catt0s TODOs:
  == BUGS
    - during tests, the files refuse to validate
+   - post note isnt a valid route | test/functional/post_replacements_controller_test.rb:216
+   - transfer |  test/unit/post_event_test.rb:134
+   - undefined method `visible_to?' for nil | test/unit/post_replacement_test.rb:406
 =end
 
 class PostReplacement < ApplicationRecord
@@ -22,6 +15,7 @@ class PostReplacement < ApplicationRecord
   belongs_to :creator, class_name: "User"
   belongs_to :approver, class_name: "User", optional: true
   belongs_to :uploader_on_approve, class_name: "User", foreign_key: :uploader_id_on_approve, optional: true
+  has_one :note, class_name: "PostReplacementNote", foreign_key: :post_replacements2_id, dependent: :destroy
   attr_accessor :replacement_file, :replacement_url, :tags, :is_backup, :as_pending, :is_destroyed_reupload
 
   validate :user_is_not_limited, on: :create
@@ -47,7 +41,7 @@ class PostReplacement < ApplicationRecord
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
   validates :reason, length: { in: 5..300 }, presence: true, on: :create
-  # validates :note, length: { maximum: 1000 }, allow_blank: true
+  delegate :visible_to?, to: :note, prefix: true
 
   before_create :create_original_backup
   before_create :set_previous_uploader
@@ -146,7 +140,7 @@ class PostReplacement < ApplicationRecord
 
   module StorageMethods
     def remove_files
-      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id})
+      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id })
       Danbooru.config.storage_manager.delete_replacement(self)
     end
 
@@ -163,7 +157,7 @@ class PostReplacement < ApplicationRecord
       file = download.download!
 
       self.replacement_file = file
-      self.source = "✓ #{source}\n" + replacement_url
+      self.source = "#{source}\n" + replacement_url
     rescue Downloads::File::Error
       errors.add(:replacement_url, "failed to fetch file")
       throw :abort
@@ -237,7 +231,7 @@ class PostReplacement < ApplicationRecord
 
       penalize_current_uploader = false unless credit_replacer
 
-      processor = UploadService::Replacer.new(post: post, replacement: self) 
+      processor = UploadService::Replacer.new(post: post, replacement: self)
       processor.process!(penalize_current_uploader: penalize_current_uploader, credit_replacer: credit_replacer)
       PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5, creator_id: creator.id, replacer_credited: credit_replacer.to_s.truthy? })
       post.update_index
@@ -293,16 +287,20 @@ class PostReplacement < ApplicationRecord
       post.update_index
     end
 
-    def add_note(note_content)
-      # Only creator or staff can add/update notes
+    def note_add(note_content)
       unless can_add_note?(CurrentUser.user)
         errors.add(:base, "You do not have permission to add a note.")
         return
       end
 
-      # update_attribute(:note, note_content)
-      update_attribute(:reason, "#{reason}\n\r\n\rTESTING NOTE::#{note_content}") # testing things 
-      ModAction.log(:post_replacement_note_edit, { replacement_id: id, note: note_content }) 
+      begin
+        PostReplacementNote.create_or_update_for_replacement!(CurrentUser.user, self, note_content)
+      rescue ActiveRecord::RecordInvalid => e
+        errors.add(:note, e.record.errors.full_messages.to_sentence)
+        return
+      end
+
+      ModAction.log(:post_replacement_note_edit, { replacement_id: id, note: note_content })
       post.update_index
     end
 
@@ -328,7 +326,7 @@ class PostReplacement < ApplicationRecord
       prev = post
       update(post: new_post, uploader_id_on_approve: nil)
       set_previous_uploader
-      update_column(:uploader_id_on_approve, uploader_on_approve&.id) 
+      update_column(:uploader_id_on_approve, uploader_on_approve&.id)
       create_original_backup
 
       PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
@@ -393,6 +391,11 @@ class PostReplacement < ApplicationRecord
     class_methods do
       def search(params)
         q = super
+
+        # # Map :approver to :handler for backward compatibility
+        # if params[:approver].present? && params[:handler].blank?
+        #   params[:handler] = params[:approver]
+        # end
 
         q = q.attribute_exact_matches(:file_ext, params[:file_ext])
         q = q.attribute_exact_matches(:md5, params[:md5])
@@ -494,13 +497,10 @@ class PostReplacement < ApplicationRecord
     md5 == post.md5
   end
 
-  def note_visible_to?(user)
-    user.id == creator_id || user.is_staff?
-  end
-
   def can_add_note?(user)
     user.is_staff?
   end
+
   def is_pending?
     status == "pending"
   end
@@ -546,5 +546,4 @@ class PostReplacement < ApplicationRecord
   include ProcessingMethods
   include PromotionMethods
   include PostMethods
-
 end
