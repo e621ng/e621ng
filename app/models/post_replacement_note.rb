@@ -19,5 +19,4 @@ class PostReplacementNote < ApplicationRecord
     end
     note
   end
-  
 end
