@@ -211,9 +211,9 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "not transfer replacement to another post if not pending" do
-        @replacement.approve! penalize_current_uploader: true
+        put_auth approve_post_replacement_path(@replacement), @user
         put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
-        assert_response :not_acceptable
+        assert_response :precondition_failed
         @replacement.reload
         assert_not_equal @post2.id, @replacement.post_id
       end
