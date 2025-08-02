@@ -27,6 +27,7 @@
         data-modifier="<%= modifier %>">
         <%= svg_icon(:circle_check_small, title: "This is the current version", height: 13.5, width: 13.5, class: "inline-icons") if post_replacement.is_current? %>
         <%= post_replacement.status %>
+        <%= link_to("to post #{post_replacement.promoted_id.to_s}", post_path(post_replacement.promoted_id)) if post_replacement.is_promoted? %>
       </div>
       <% highlighted_tags = post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS %>
       <% icon_names = {

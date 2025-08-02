@@ -209,15 +209,52 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         assert_equal @post2.id, @replacement.post_id
         assert_equal @post2.uploader_id, @replacement.uploader_id_on_approve
       end
+
+      should "not transfer replacement to another post if not pending" do
+        @replacement.update(status: "rejected")
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
+        assert_response :not_acceptable
+        @replacement.reload
+        assert_not_equal @post2.id, @replacement.post_id
+      end
+
+      should "not transfer if new post is nil" do
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: nil }
+        assert_response :not_found
+        @replacement.reload
+        assert_not_nil @replacement.post_id
+      end
+
+      should "not transfer if new post is the same as current post" do
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post.id }
+        assert_response :not_acceptable
+      end
+
+      should "not transfer if new post is deleted" do
+        as(@user) do
+          @post2.delete!("test deletion")
+        end
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
+        assert_response :not_acceptable
+        @replacement.reload
+        assert_not_equal @post2.id, @replacement.post_id
+      end
     end
 
     context "note action" do
-      should "create a note on the post" do
-        put_auth note_post_replacement_path(@replacement), @user, params: { body: "This is a test note" }
+      should "create a note on the post replacement" do
+        put_auth note_post_replacement_path(@replacement), @user, params: { note_content: "This is a test note" }
         assert_response :success
         @replacement.reload
-        assert_equal 1, @post.notes.size
-        assert_equal "This is a test note", @post.notes.first.body
+        assert_equal true, @replacement.note.present?
+        assert_equal "This is a test note", @replacement.note&.note
+      end
+
+      should "give an error if the user is not allowed to create notes" do
+        put_auth note_post_replacement_path(@replacement), @regular_user, params: { note_content: "This is a test note" }
+        assert_response :forbidden
+        @replacement.reload
+        assert_equal false, @replacement.note.present?
       end
     end
   end
