@@ -222,8 +222,14 @@ class PostReplacement < ApplicationRecord
 
       penalize_current_uploader = false unless credit_replacer
 
-      processor = UploadService::Replacer.new(post: post, replacement: self)
-      processor.process!(penalize_current_uploader: penalize_current_uploader, credit_replacer: credit_replacer)
+      begin
+        processor = UploadService::Replacer.new(post: post, replacement: self)
+        processor.process!(penalize_current_uploader: penalize_current_uploader, credit_replacer: credit_replacer)
+      rescue ProcessingError => e
+        errors.add(:base, "Processing failed: #{e.class} - #{e.message}")
+        return
+      end
+
       PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5, creator_id: creator.id, replacer_credited: credit_replacer.to_s.truthy? })
       post.update_index
     end

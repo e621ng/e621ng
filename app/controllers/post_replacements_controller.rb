@@ -64,6 +64,14 @@ class PostReplacementsController < ApplicationController
     approve_options[:credit_replacer] = params[:credit_replacer] if params.key?(:credit_replacer)
     @post_replacement.approve!(**approve_options)
 
+    if @post_replacement.errors.any?
+      respond_to do |format|
+        format.json do
+          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+        end
+      end
+    end
+
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
       format.json
@@ -83,6 +91,14 @@ class PostReplacementsController < ApplicationController
   def reject
     @post_replacement = PostReplacement.find(params[:id])
     @post_replacement.reject!
+
+    if @post_replacement.errors.any?
+      respond_to do |format|
+        format.json do
+          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+        end
+      end
+    end
 
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
