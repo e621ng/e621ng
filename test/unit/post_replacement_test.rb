@@ -77,7 +77,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       @replacement = @post.replacements.create(attributes_for(:empty_replacement).merge(creator: @user))
       assert_match(/File ext \S* is invalid/, @replacement.errors.full_messages.join)
       @replacement = @post.replacements.create(attributes_for(:jpg_invalid_replacement).merge(creator: @user))
-      assert_equal(["File is corrupt"], @replacement.errors.full_messages) # @Catt0s: HACK: this breaks due to the hack in file validator
+      assert_equal(["File is corrupt"], @replacement.errors.full_messages)
     end
 
     should "not allow files that are too large" do
@@ -423,12 +423,9 @@ class PostReplacementTest < ActiveSupport::TestCase
     setup do
       @user_alt = create(:user, created_at: 2.weeks.ago)
       @upload_alt = UploadService.new(attributes_for(:large_jpg_upload).merge(uploader: @user_alt)).start!
-      # @Catt0s Fix: upload service says the file is corrupted, for some reason
       assert_not_nil @upload_alt, "UploadService did not create a upload"
-      # puts @upload_alt.inspect
-      # puts @upload_alt.status
       @post_alt = @upload_alt.post
-      assert_not_nil(@post, "UploadService did not create a post: #{@upload.status}")
+      assert_not_nil(@post_alt, "UploadService did not create a post: #{@upload.status}")
 
       @post_alt.update_columns({ is_pending: false, approver_id: @mod_user.id })
       CurrentUser.user = @user
