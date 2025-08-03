@@ -57,7 +57,7 @@ PostReplacement.note = function (id, current_note) {
           const $el = $(html);
           set_section_state($el, expanded);
           return $el;
-        })()
+        })(),
       );
       Utility.notice("Note added.");
     })
@@ -91,7 +91,7 @@ PostReplacement.transfer = function (id) {
           const $el = $(html);
           set_section_state($el, expanded);
           return $el;
-        })()
+        })(),
       );
       Utility.notice("Replacement transferred.");
     })
@@ -121,7 +121,7 @@ PostReplacement.approve = function (id, penalize_current_uploader, credit_replac
           const $el = $(html);
           set_section_state($el, expanded);
           return $el;
-        })()
+        })(),
       );
       Utility.notice("Replacement approved.");
     })
@@ -148,7 +148,7 @@ PostReplacement.reject = function (id) {
           const $el = $(html);
           set_section_state($el, expanded);
           return $el;
-        })()
+        })(),
       );
       Utility.notice("Replacement rejected.");
     })
@@ -175,7 +175,7 @@ PostReplacement.promote = function (id) {
           const $el = $(html);
           set_section_state($el, expanded);
           return $el;
-        })()
+        })(),
       );
       Utility.notice("Replacement promoted to a new post.");
     })
@@ -202,7 +202,7 @@ PostReplacement.toggle_penalize = function ($target) {
           const $el = $(html);
           set_section_state($el, expanded);
           return $el;
-        })()
+        })(),
       );
       Utility.notice("Penalization toggled.");
     })
@@ -240,15 +240,19 @@ PostReplacement.toggle_section = function (id) {
 };
 
 PostReplacement.set_initial_section_state = function () {
-  const isMobile = window.matchMedia("(max-width: 600px)").matches;
-  $(".replacement-section-top").each(function () {
+  const isMobile = window.matchMedia("(max-width: 50rem)").matches;
+
+  $(".mobile-replacement-row").each(function () {
     const $row = $(this);
+    // Find the collapsible/expandable elements within this row, regardless of nesting
+    const $collapsible = $row.find(".replacement-collapsible");
+    const $expandable = $row.find(".replacement-expandable");
     if (isMobile) {
-      $row.find(".replacement-collapsible").hide();
-      $row.find(".replacement-expandable").show();
+      $collapsible.hide();
+      $expandable.show();
     } else {
-      $row.find(".replacement-collapsible").show();
-      $row.find(".replacement-expandable").hide();
+      $collapsible.show();
+      $expandable.hide();
     }
   });
 };
@@ -265,12 +269,12 @@ function revert_processing ($row) {
   $row.find(".replacement-actions a").removeClass("disabled-link");
 }
 
-function get_section_state($row) {
+function get_section_state ($row) {
   // Returns true if expanded, false if collapsed
   return $row.find(".replacement-collapsible").is(":visible");
 }
 
-function set_section_state($row, expanded) {
+function set_section_state ($row, expanded) {
   if (expanded) {
     $row.find(".replacement-collapsible").show();
     $row.find(".replacement-expandable").hide();
@@ -280,7 +284,7 @@ function set_section_state($row, expanded) {
   }
 }
 
-function extractErrorMessage(responseText, fallbackMsg) {
+function extractErrorMessage (responseText, fallbackMsg) {
   if (!responseText) return fallbackMsg;
 
   // Try to parse JSON and extract message
