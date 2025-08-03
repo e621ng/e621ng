@@ -62,7 +62,11 @@ class PostReplacementsController < ApplicationController
     approve_options = {}
     approve_options[:penalize_current_uploader] = params[:penalize_current_uploader] # must be present
     approve_options[:credit_replacer] = params[:credit_replacer] if params.key?(:credit_replacer)
-    @post_replacement.approve!(**approve_options)
+    begin
+      @post_replacement.approve!(**approve_options)
+    rescue ProcessingError => e
+      @post_replacement.errors.add(:base, e.message)
+    end
 
     if @post_replacement.errors.any?
       respond_to do |format|
