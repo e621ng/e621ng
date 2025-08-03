@@ -293,7 +293,7 @@ function extractErrorMessage (responseText, fallbackMsg) {
     if (json && typeof json.message === "string" && json.message.trim() !== "") {
       return json.message.trim();
     }
-  } catch (e) {
+  } catch {
     // Not JSON, continue
   }
 
