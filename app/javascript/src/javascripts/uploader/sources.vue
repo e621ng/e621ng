@@ -1,11 +1,9 @@
 <template>
-  <div class="box-section background-red source_warning" v-show="showErrors && sourceWarning">
-    A source must be provided or you must select that there is no available source.
-  </div>
+  <div class="box-section background-red source_warning" v-show="showErrors && sourceWarning">A source must be provided or you must select that there is no available source.</div>
   <div v-if="!noSource">
     <file-source :maxSources="maxSources" :last="i === (sources.length-1)" :index="i" v-model="sources[i]"
-                    v-for="s, i in sources"
-                    @delete="removeSource(i)" @add="addSource" :key="i"></file-source>
+      v-for="s, i in sources"
+      @delete="removeSource(i)" @add="addSource" :key="i"></file-source>
   </div>
   <div>
     <label class="section-label"><input type="checkbox" id="no_source" v-model="noSource"/>
