@@ -423,9 +423,9 @@ class PostReplacementTest < ActiveSupport::TestCase
     setup do
       @user_alt = create(:user, created_at: 2.weeks.ago)
       @upload_alt = UploadService.new(attributes_for(:large_jpg_upload).merge(uploader: @user_alt)).start!
-      assert_not_nil @upload_alt, "UploadService did not create a upload"
+      assert_not_nil @upload_alt, "UploadService did not create an alt upload"
       @post_alt = @upload_alt.post
-      assert_not_nil(@post_alt, "UploadService did not create a post: #{@upload.status}")
+      assert_not_nil(@post_alt, "UploadService did not create an alt post: #{@upload.status}")
 
       @post_alt.update_columns({ is_pending: false, approver_id: @mod_user.id })
       CurrentUser.user = @user
@@ -472,18 +472,17 @@ class PostReplacementTest < ActiveSupport::TestCase
 
     should "not allow duplicates" do
       @existing_replacement = @post_alt.replacements.create(attributes_for(:png_replacement).merge(creator: @user, reason: "existing replacement", md5: @replacement.md5))
+      assert_not_nil @existing_replacement
       @existing_replacement.reject!
       @existing_replacement.save!
-      assert @existing_replacement
       @replacement.transfer(@post_alt)
       assert_equal(["Md5 duplicate of existing replacement on post ##{@post_alt.id}"], @replacement.errors.full_messages)
     end
 
     should "work on pending replacements" do
-      # we other case tested already, make sure we dont create multiple backups
       @existing_replacement = @post_alt.replacements.create(attributes_for(:apng_replacement).merge(creator: @user, reason: "existing replacement"))
+      assert_not_nil @existing_replacement
       @existing_replacement.reject!
-      assert @existing_replacement
       assert_difference(-> { @post_alt.replacements.count }, 1) do
         assert_difference(-> { @post.replacements.count }, -1) do
           @replacement.transfer(@post_alt)
