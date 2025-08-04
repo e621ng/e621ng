@@ -63,7 +63,6 @@ div#c-post-replacements {
 
 .source-url {
   font-size: 0.95em;
-  // color: #345;
   word-break: break-all;
   margin-bottom: 0.15em;
 }
@@ -104,7 +103,6 @@ div#c-post-replacements {
     gap: 0.25rem;
     
     grid-template-columns: auto auto auto auto; 
-    // grid-template-rows: auto auto auto auto auto auto; 
     
     grid-template-areas: 
       "replacement-thumbnail replacement-version replacement-status ."
@@ -149,10 +147,6 @@ div#c-post-replacements {
 
   .replacement-reason {
     @extend .info-grid;
-    // display: grid; 
-    // grid-template-columns: 1fr 1fr 1fr; 
-    // grid-template-rows: 1fr 1fr 1fr; 
-    // gap: 0px 0px; 
     grid-template-areas: 
       "replacement-reason-labels replacement-reason-labels replacement-reason-labels"
       "replacement-reason-value replacement-reason-value replacement-reason-value"
@@ -162,11 +156,7 @@ div#c-post-replacements {
   .replacement-reason-value { grid-area: replacement-reason-value; @extend .replacement-long-text; }
   .replacement-reason-labels { grid-area: replacement-reason-labels; @extend .replacement-label; }
   .replacement-note {
-    // display: grid; 
     @extend .info-grid;
-    // grid-template-columns: 1fr 1fr 1fr; 
-    // grid-template-rows: 1fr 1fr 1fr; 
-    // gap: 0px 0px; 
     grid-template-areas: 
       "replacement-note-labels replacement-note-labels replacement-note-labels"
       "replacement-note-value replacement-note-value replacement-note-value"
@@ -191,7 +181,7 @@ div#c-post-replacements {
       "replacement-image-info replacement-current-info replacement-actions"
       "replacement-file-details replacement-file-details replacement-previous-user"
       ;
-    grid-template-columns: 1fr 1fr min-content; // Minimize actions area width
+    grid-template-columns: 1fr 1fr min-content;
   }
 
   .replacements-actions-label { 
@@ -211,7 +201,7 @@ div#c-post-replacements {
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     color: themed("color-link");
     margin-bottom: 0.621em; 
-    white-space: nowrap; // Prevent text wrapping
+    white-space: nowrap;
 
     &:hover, &:focus {
       color: themed("color-link-active");
@@ -237,8 +227,7 @@ div#c-post-replacements {
   .replacement-actions-spacer {
     display: block;
     width: 100%;
-    height: 2em; // Adjust as needed for larger gap
-    /* Optionally, add margin for extra spacing */
+    height: 2em;
     margin: 0.5em 0;
   }
 
@@ -440,9 +429,9 @@ div#c-post-replacements {
 
     .replacement-toggle-icon {
       position: absolute;
-      top: 1em;      // Increased space from top
-      right: 1em;    // Increased space from right
-      width: 2em;    // Slightly larger for easier tap
+      top: 1em;
+      right: 1em;
+      width: 2em;
       height: 2em;
       z-index: 10;
     }
@@ -452,7 +441,7 @@ div#c-post-replacements {
     }
     .replacement-grid-item {
       position: relative;
-      padding-top: 3em; // More space for the button
+      padding-top: 3em;
     }
   }
 }
@@ -461,7 +450,7 @@ div#c-post-replacements {
   div#c-post-replacements {
     .replacement-grid-item {
       position: relative;
-      padding-top: 3em; // More space for the button
+      padding-top: 3em;
     }
     .replacement-toggle-icon {
       position: absolute;
