@@ -1,4 +1,4 @@
-<div id="replacement-<%= post_replacement.id %>" class="replacement-grid-item mobile-replacement-row replacement-<%= post_replacement.status %>-row" data-replacement-id="<%= post_replacement.id %>">
+<div id="replacement-<%= post_replacement.id %>" class="replacement-grid-item mobile-replacement-row" data-replacement-id="<%= post_replacement.id %>" data-replacement-status="<%= post_replacement.status %>">
   <div colspan="100%">
     <%= render partial: "post_replacements/partials/show/post_replacement_overview", locals: { post_replacement: post_replacement }%>
     <div class="replacement-section-separator replacement-collapsible"></div>

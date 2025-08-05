@@ -1,19 +1,20 @@
-/* stylelint-disable scss/at-extend-no-missing-placeholder */
-/* stylelint-disable shorthand-property-no-redundant-values */
-/* stylelint-disable declaration-property-value-keyword-no-deprecated */
-/* stylelint-disable selector-class-pattern */
 div#c-post-replacements {
-  .replacement-pending-row {
-    background-color: themed("color-danger-darken-10");
-  }
-
-  .replacement-processing-row {
-    background-color: themed("color-warning-darken-5");
-  }
-
-  .replacement-current-row {
-    background-color: themed("color-section-darken-5");
-  }
+  $replacement-status-backgrounds: (
+    approved: themed("color-section"),
+    original: themed("color-section"),
+    pending: themed("color-danger-darken-10"),
+    processing: themed("color-section-lighten-5"),
+    rejected: themed("color-section"),
+    promoted: themed("color-section")
+  );
+  $replacement-status-box: (
+    approved: themed("color-success"),
+    original: themed("color-success"),
+    pending: themed("color-section-lighten-5"),
+    processing: themed("color-warning"),
+    rejected: themed("color-danger"),
+    promoted: themed("color-warning-lighten-5")
+  );
 
   .replacement-section-separator {
     border-top: 1px solid themed("color-table-border");
@@ -454,13 +455,18 @@ div#c-post-replacements {
   }
 
   .replacement-grid-item {
-    background: themed("color-section");
     border: 1px solid themed("color-table-border");
     border-radius: 0.5rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     padding: 1.25rem 1rem;
     transition: box-shadow 0.2s, border-color 0.2s;
     position: relative;
+  }
+
+  @each $status, $color in $replacement-status-backgrounds {
+    .replacement-grid-item[data-replacement-status="#{$status}"] {
+      background: #{$color};
+    }
   }
 
   .replacement-grid-item:hover {

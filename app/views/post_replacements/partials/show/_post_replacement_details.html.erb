@@ -51,9 +51,12 @@
   <div class="replacement-sources">
     <div class="replacement-sources-label">Sources</div>
     <ul class="sources-list">
+      <% unless post_replacement.source_list.any? %><li><em>None provided</em></li>
+      <% else %>
         <% post_replacement.source_list.each do |url| %>
           <li class="source-url"><%= url %></li>
         <% end %>
+      <% end %>
     </ul>
   </div>
 </div>
