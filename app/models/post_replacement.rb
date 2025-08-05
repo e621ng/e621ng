@@ -6,6 +6,7 @@ class PostReplacement < ApplicationRecord
   belongs_to :creator, class_name: "User"
   belongs_to :approver, class_name: "User", optional: true
   belongs_to :uploader_on_approve, class_name: "User", foreign_key: :uploader_id_on_approve, optional: true
+  has_one :note, class_name: "PostReplacementNote", foreign_key: :post_replacements2_id, dependent: :destroy
   attr_accessor :replacement_file, :replacement_url, :tags, :is_backup, :as_pending, :is_destroyed_reupload
 
   validate :user_is_not_limited, on: :create
@@ -30,7 +31,8 @@ class PostReplacement < ApplicationRecord
   end
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
-  validates :reason, length: { in: 5..150 }, presence: true, on: :create
+  validates :reason, length: { in: 5..300 }, presence: true, on: :create
+  delegate :visible_to?, to: :note, prefix: true
 
   before_create :create_original_backup
   before_create :set_previous_uploader
@@ -87,6 +89,14 @@ class PostReplacement < ApplicationRecord
     replacements.empty?
   end
 
+  ## DB!
+  # Fetches the data for the artist tags to find any that have the linked artists matching the creator.
+  # Sends a db request to look up the artist data.
+  def uploader_linked_artists
+    tags = post.artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == creator.id }
+    @uploader_linked_artists ||= tags.map(&:name)
+  end
+
   def sequence_number
     return 0 if status == "original"
     siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids
@@ -116,12 +126,12 @@ class PostReplacement < ApplicationRecord
   end
 
   def source_list
-    source.split("\n").uniq.compact_blank
+    (source || "").split("\n").uniq.compact_blank # nil safety.
   end
 
   module StorageMethods
     def remove_files
-      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id})
+      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id })
       Danbooru.config.storage_manager.delete_replacement(self)
     end
 
@@ -200,7 +210,7 @@ class PostReplacement < ApplicationRecord
   end
 
   module ProcessingMethods
-    def approve!(penalize_current_uploader:)
+    def approve!(penalize_current_uploader:, credit_replacer: true)
       if is_current? || is_promoted?
         errors.add(:status, "version is already active")
         return
@@ -210,9 +220,10 @@ class PostReplacement < ApplicationRecord
         UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count - 1")
       end
 
+      penalize_current_uploader = false unless credit_replacer
       processor = UploadService::Replacer.new(post: post, replacement: self)
-      processor.process!(penalize_current_uploader: penalize_current_uploader)
-      PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5 })
+      processor.process!(penalize_current_uploader: penalize_current_uploader, credit_replacer: credit_replacer)
+      PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5, creator_id: creator.id, replacer_credited: credit_replacer.to_s.truthy? })
       post.update_index
     end
 
@@ -264,6 +275,55 @@ class PostReplacement < ApplicationRecord
       update_attribute(:approver_id, CurrentUser.user.id)
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index
+    end
+
+    def note_add(note_content)
+      unless can_add_note?(CurrentUser.user)
+        errors.add(:base, "You do not have permission to add a note.")
+        return
+      end
+
+      begin
+        PostReplacementNote.create_or_update_for_replacement!(CurrentUser.user, self, note_content)
+      rescue ActiveRecord::RecordInvalid => e
+        errors.add(:note, e.record.errors.full_messages.to_sentence)
+        return
+      end
+
+      ModAction.log(:post_replacement_note_edit, { replacement_id: id, note: note_content })
+      post.update_index
+    end
+
+    def transfer(new_post)
+      unless is_pending? || is_rejected?
+        errors.add(:status, "must be pending or rejected to transfer")
+        return
+      end
+      if new_post.nil? || new_post.id == post.id
+        errors.add(:post, "must be a different post")
+        return
+      end
+      if new_post.is_deleted?
+        errors.add(:post, "is deleted")
+        return
+      end
+
+      if new_post.replacements.where(md5: md5).exists?
+        errors.add(:md5, "duplicate of existing replacement on post ##{new_post.id}")
+        return
+      end
+
+      prev = post
+      update(post: new_post, uploader_id_on_approve: nil)
+      set_previous_uploader
+      update_column(:uploader_id_on_approve, uploader_on_approve&.id)
+      create_original_backup
+
+      PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
+      PostEvent.add(prev.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
+
+      post.update_index
+      prev.update_index
     end
 
     def create_original_backup
@@ -321,6 +381,11 @@ class PostReplacement < ApplicationRecord
     class_methods do
       def search(params)
         q = super
+
+        # # Map :approver to :handler for backward compatibility
+        # if params[:approver].present? && params[:handler].blank?
+        #   params[:handler] = params[:approver]
+        # end
 
         q = q.attribute_exact_matches(:file_ext, params[:file_ext])
         q = q.attribute_exact_matches(:md5, params[:md5])
@@ -422,6 +487,10 @@ class PostReplacement < ApplicationRecord
     md5 == post.md5
   end
 
+  def can_add_note?(user)
+    user.is_staff?
+  end
+
   def is_pending?
     status == "pending"
   end
@@ -444,6 +513,12 @@ class PostReplacement < ApplicationRecord
 
   def is_retired?
     status == "approved" && !is_current?
+  end
+
+  def visible_to?(user)
+    return true unless is_rejected?
+    return false unless user.is_staff? # Only staff can see rejected replacements
+    true
   end
 
   def promoted_id

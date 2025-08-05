@@ -1,0 +1,63 @@
+<div class="replacement-actions">
+  <div class="replacements-actions-label">Actions</div>
+
+  <%# Group 1: Approve, Silently, Reset To %>
+  <% group1 = [] %>
+  <% if CurrentUser.can_approve_posts? %>
+    <% if post_replacement.is_pending? %>
+      <% group1 << link_to("Approve", "#approve", class: "replacement-approve-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
+      <% if post_replacement.creator == CurrentUser.user || CurrentUser.is_admin? %>
+        <% group1 << link_to("Silently", "#silent-approve", class: "replacement-silent-approve-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
+      <% end %>
+    <% else %>
+      <% unless post_replacement.is_promoted? || post_replacement.is_current? %>
+        <% group1 << link_to("Reset To", "#reset-to", class: "replacement-approve-action replacement-action-button", data: { replacement_id: post_replacement.id, penalize: false }) %>
+      <% end %>
+    <% end %>
+  <% end %>
+  <% if group1.any? %>
+    <div class="multi-action-row">
+      <%= safe_join(group1) %>
+    </div>
+    <div class="replacement-actions-spacer"></div>
+  <% end %>
+
+  <%# Group 2: Reject, Note %>
+  <% group2 = [] %>
+  <% if CurrentUser.can_approve_posts? %>
+    <% if post_replacement.is_pending? %>
+      <% group2 << link_to("Reject", "#reject", class: "replacement-reject-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
+    <% end %>
+    <% unless post_replacement.is_pending? %>
+      <% group2 << link_to("Note", "#note", class: "replacement-note-action replacement-action-button", data: { replacement_id: post_replacement.id, current_note: post_replacement.note&.note }) %>
+    <% end %>
+  <% end %>
+  <% if group2.any? %>
+    <div class="multi-action-row">
+      <%= safe_join(group2) %>
+    </div>
+  <% end %>
+
+  <%# Group 3: As New, Transfer %>
+  <% group3 = [] %>
+  <% if CurrentUser.can_approve_posts? && !post_replacement.is_backup? %>
+    <% unless post_replacement.is_current? || post_replacement.is_promoted? %>
+      <% group3 << link_to("As New Post", "#promote", class: "replacement-promote-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
+      <% group3 << link_to("Transfer", "#transfer", class: "replacement-transfer-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
+    <% end %>
+  <% end %>
+  <% if group3.any? %>
+    <%= safe_join(group3) %>
+    <div class="replacement-actions-spacer"></div>
+  <% end %>
+
+  <%# Group 4: Destroy, Report %>
+  <% group4 = [] %>
+  <% if CurrentUser.is_admin? %>
+    <% group4 << link_to("Destroy", "#destroy", class: "replacement-destroy-action replacement-action-button", data: { replacement_id: post_replacement.id }) %>
+  <% end %>
+  <% group4 << link_to("Report", new_ticket_path(disp_id: post_replacement.id, qtype: "replacement"), class: "replacement-report-action replacement-action-button") %>
+  <div class="multi-action-row">
+    <%= safe_join(group4) %>
+  </div>
+</div>
