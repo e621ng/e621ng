@@ -3,10 +3,10 @@ import Post from "./posts";
 import Favorite from "./favorites";
 import PostSet from "./post_sets";
 import TagScript from "./tag_script";
-import { SendQueue } from "./send_queue";
 import Rails from "@rails/ujs";
 import Shortcuts from "./shortcuts";
 import LStorage from "./utility/storage";
+import TaskQueue from "./utility/task_queue";
 
 let PostModeMenu = {};
 
@@ -113,7 +113,7 @@ PostModeMenu.tag_script_apply_all = function (event) {
 PostModeMenu.update_sets_menu = function () {
   let target = $("#set-id");
   target.off("change");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "GET",
       url: "/post_sets/for_select.json",
@@ -133,7 +133,7 @@ PostModeMenu.update_sets_menu = function () {
         target.append(group);
       });
     });
-  });
+  }, { name: "PostModeMenu.update_sets_menu" });
 };
 
 PostModeMenu.change = function () {

@@ -1,6 +1,6 @@
 import Post from "./posts";
 import Utility from "./utility";
-import {SendQueue} from "./send_queue";
+import TaskQueue from "./utility/task_queue";
 
 let Favorite = {};
 
@@ -30,7 +30,7 @@ Favorite.after_action = function (post_id, offset) {
 Favorite.create = function (post_id) {
   Post.notice_update("inc");
 
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "POST",
       url: "/favorites.json",
@@ -46,13 +46,13 @@ Favorite.create = function (post_id) {
       console.log(data.responseJSON);
       Utility.error("Error: " + data.responseJSON.message);
     });
-  });
+  }, { name: "Favorite.create" });
 };
 
 Favorite.destroy = function (post_id) {
   Post.notice_update("inc");
 
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "DELETE",
       url: "/favorites/" + post_id + ".json",
@@ -64,7 +64,7 @@ Favorite.destroy = function (post_id) {
     }).fail(function (data) {
       Utility.error("Error: " + data.responseJSON.message);
     });
-  });
+  }, { name: "Favorite.destroy" });
 };
 
 $(Favorite.initialize_actions);
