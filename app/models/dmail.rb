@@ -174,6 +174,7 @@ class Dmail < ApplicationRecord
       errors.add(:to_name, "does not wish to receive DMails from you")
       return false
     end
+    true
   end
 
   def quoted_body
