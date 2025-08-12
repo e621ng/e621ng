@@ -1,6 +1,6 @@
 import Utility from "./utility";
 import Post from "./posts";
-import Favorite from "./favorites";
+import Favorite from "./models/Favorite";
 import PostSet from "./post_sets";
 import TagScript from "./tag_script";
 import Rails from "@rails/ujs";
