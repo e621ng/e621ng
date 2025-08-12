@@ -1025,7 +1025,7 @@ Post.approve = function (post_id, callback) {
 
 Post.disapprove = function (post_id, reason, message) {
   Post.notice_update("inc");
-  TaskQueue.add(() =>{
+  TaskQueue.add(() => {
     $.post(
       "/moderator/post/disapprovals.json",
       {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason, "post_disapproval[message]": message},
