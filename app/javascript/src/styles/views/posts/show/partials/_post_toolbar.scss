@@ -1,0 +1,20 @@
+#ptbr-favorite {
+
+  width: 6rem;
+  text-shadow: 0 0 1rem black;
+  --st-loading-start: var(--color-section-lighten-5);
+  --st-loading-end: var(--palette-background-yellow);
+  
+  &:after {
+    content: "Favorite";
+  }
+
+  &[favorited="true"] {
+    background-color: palette("background-yellow");
+    --st-loading-start: var(--palette-background-yellow);
+    --st-loading-end: var(--color-section-lighten-5);
+
+    &:after { content: "Unfavorite"; }
+    &:hover { background-color: palette("background-yellow-d5"); }
+  }
+}

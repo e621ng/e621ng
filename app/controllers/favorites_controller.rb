@@ -3,7 +3,8 @@
 class FavoritesController < ApplicationController
   before_action :member_only, except: [:index]
   before_action :ensure_lockdown_disabled, except: %i[index]
-  respond_to :html, :json
+  respond_to :json
+  respond_to :html, only: [:index]
   skip_before_action :api_check
 
   def index
@@ -31,9 +32,8 @@ class FavoritesController < ApplicationController
   def create
     @post = Post.find(params[:post_id])
     FavoriteManager.add!(user: CurrentUser.user, post: @post)
-    flash.now[:notice] = "You have favorited this post"
 
-    respond_with(@post)
+    render json: { post_id: @post.id, favorite_count: @post.fav_count }
   rescue Favorite::Error, ActiveRecord::RecordInvalid => e
     render_expected_error(422, e.message)
   end
@@ -42,8 +42,7 @@ class FavoritesController < ApplicationController
     @post = Post.find(params[:id])
     FavoriteManager.remove!(user: CurrentUser.user, post: @post)
 
-    flash.now[:notice] = "You have unfavorited this post"
-    respond_with(@post)
+    render json: { post_id: @post.id, favorite_count: @post.fav_count }
   rescue Favorite::Error => e
     render_expected_error(422, e.message)
   end

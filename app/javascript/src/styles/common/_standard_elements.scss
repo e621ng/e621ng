@@ -73,6 +73,21 @@
     background-color: themed("color-link-active");
     color: palette("plain-black");
   }
+
+  // Loading indicator
+  &[processing="true"] {
+    cursor: progress;
+    animation: st-loading-color 3s ease infinite;
+
+    @keyframes st-loading-color {
+      // The st-loading-start and -end variables should be used to set the colors based
+      // on the button's current state. The st-loading-start is the initial color, matching
+      // the button's background, and st-loading-end is the color it transitions to.
+      0% { background-color: var(--st-loading-start, themed("color-section-lighten-5")); }
+      50% { background-color: var(--st-loading-end, themed("color-button-active")); }
+      100% { background-color: var(--st-loading-start, themed("color-section-lighten-5")); }
+    }
+  }
 }
 
 
