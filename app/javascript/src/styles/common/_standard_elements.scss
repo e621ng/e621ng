@@ -79,6 +79,15 @@
     background-color: themed("color-link-active");
     color: palette("plain-black");
   }
+
+  // Elements that look like physical buttons and animate on click.
+  &.kinetic {
+    box-shadow: 0 0.25rem themed("color-section");
+    &:active, &[processing="true"].anim {
+      translate: 0 0.125rem;
+      box-shadow: 0 0.125rem themed("color-section");
+    }
+  }
 }
 
 
