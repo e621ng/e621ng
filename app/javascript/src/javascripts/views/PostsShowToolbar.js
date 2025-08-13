@@ -82,15 +82,17 @@ export default class PostsShowToolbar {
 
   // Notes toggle button
   initNotesToggle(button) {
-    const container = $("#note-container");
-    container.toggleClass("hidden", !LStorage.Posts.Notes);
-    button.attr("enabled", LStorage.Posts.Notes);
+    PostsShowToolbar.toggleNotes();
 
     button.on("click", () => {
-      LStorage.Posts.Notes = !LStorage.Posts.Notes;
-      container.toggleClass("hidden", !LStorage.Posts.Notes);
-      button.attr("enabled", LStorage.Posts.Notes);
+      LStorage.Posts.Notes = !(button.attr("enabled") == "true");
+      PostsShowToolbar.toggleNotes();
     });
+  }
+
+  static toggleNotes(visible = LStorage.Posts.Notes) {
+    $("#note-container").attr("enabled", visible);
+    $(".ptbr-notes-button").attr("enabled", visible);
   }
 
 }
