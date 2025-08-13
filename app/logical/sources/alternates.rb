@@ -3,8 +3,13 @@
 module Sources
   module Alternates
     def self.all
-      return [Alternates::Furaffinity,
-              Alternates::Pixiv]
+      return [
+        Alternates::Furaffinity,
+        Alternates::Pixiv,
+        Alternates::Deviantart,
+        Alternates::Twitter,
+        Alternates::Inkbunny,
+      ]
     end
 
     def self.find(url, default: Alternates::Null)
