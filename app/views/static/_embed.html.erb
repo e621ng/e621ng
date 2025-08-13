@@ -1,0 +1,61 @@
+<%# locals: (record:, name:, description: "", post: nil, avatar: false) -%>
+
+<% content_for(:html_header) do %>
+  <%= tag.meta(name: "description", content: description.to_s.truncate(250)) %>
+  <meta name="<%= record.model_name.singular.tr("_", "-") %>-id" content="<%= record.id %>">
+  <%= tag.meta(property: "og:site", content: Danbooru.config.app_name) %>
+  <%= tag.meta(property: "og:title", content: "#{name} - #{Danbooru.config.app_name}") %>
+  <%= tag.meta(property: "og:description", content: description.to_s.truncate(250)) %>
+  <%= tag.meta(property: "og:url", content: polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https")) %>
+  <%= tag.meta(name: "canonical", content: polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https")) %>
+
+  <% if post.present? %>
+    <% if post.visible? %>
+      <% if post.is_video? && post.has_sample_size?("original") %>
+        <meta property="og:type" content="video.other">
+        <%= tag.meta(property: "og:video", content: post.open_graph_video_url) %>
+        <%= tag.meta(property: "og:image", content: post.open_graph_image_url) %>
+        <meta property="og:video:height" content="<%= post.image_height %>"/>
+        <meta property="og:video:width" content="<%= post.image_width %>"/>
+      <% else %>
+        <meta property="og:type" content="website">
+        <%= tag.meta(property: "og:image", content: post.open_graph_image_url) %>
+      <% end %>
+      <meta property="og:image:height" content="<%= post.image_height %>"/>
+      <meta property="og:image:width" content="<%= post.image_width %>"/>
+    <% end %>
+
+    <%# Twitter properties %>
+    <% if avatar %>
+      <meta name="twitter:card" content="summary">
+      <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
+      <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
+
+      <% if post.visible? %>
+        <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>
+      <% end %>
+    <% elsif post.twitter_card_supported? && post.is_image? %>
+      <meta name="twitter:card" content="summary_large_image">
+      <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
+      <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
+
+      <% if post.visible? %>
+        <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>
+      <% end %>
+    <% else %>
+      <meta name="twitter:card" content="summary">
+      <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
+      <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
+
+      <% if post.visible? %>
+        <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>
+      <% end %>
+    <% end %>
+
+    <% if post.rating == "e" %>
+      <meta name="rating" content="adult">
+    <% end %>
+  <% else %>
+    <meta property="og:type" content="website">
+  <% end %>
+<% end %>
