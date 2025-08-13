@@ -86,7 +86,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        (content&.visible?(user) && user.is_janitor?) || user.is_admin? || (user.id == creator_id)
+        ((content.nil? || content&.visible?(user)) && user.is_staff?) || user.is_admin? || (user.id == creator_id)
       end
     end
 
@@ -100,7 +100,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_janitor? || (user.id == creator_id)
+        user.is_staff? || (user.id == creator_id)
       end
     end
 
@@ -124,7 +124,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_janitor? || (user.id == creator_id)
+        user.is_staff? || (user.id == creator_id)
       end
     end
 
@@ -138,7 +138,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        (content&.can_view?(user) && user.is_janitor?) || user.is_admin? || (user.id == creator_id)
+        ((content.nil? || content&.can_view?(user)) && user.is_staff?) || user.is_admin? || (user.id == creator_id)
       end
     end
 
@@ -170,7 +170,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_janitor? || user.is_admin? || (user.id == creator_id)
+        user.is_staff? || user.is_admin? || (user.id == creator_id)
       end
     end
   end
