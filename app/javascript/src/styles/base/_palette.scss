@@ -9,10 +9,20 @@ $palette: (
   "background-green": #227d2a,
   "background-grey": #60686f,
 
+  "background-gold": #e8c446,
+  "background-orange": #ec8e49,
+
   "background-red-d5": #{darken(#76312e, 5%)},
+  "background-red-d10": #{darken(#76312e, 10%)},
   "background-yellow-d5": #{darken(#827428, 5%)},
   "background-green-d5": #{darken(#227d2a, 5%)},
+  "background-green-d10": #{darken(#227d2a, 10%)},
   "background-grey-d5": #{darken(#60686f, 5%)},
+
+  "background-gold-d10": #{darken(#e8c446, 10%)},
+  "background-gold-d20": #{darken(#e8c446, 20%)},
+  "background-orange-d5": #{darken(#ec8e49, 5%)},
+  "background-orange-d10": #{darken(#ec8e49, 20%)},
 
   "text-white": #ffffff,
   "text-red": #fe6a64,

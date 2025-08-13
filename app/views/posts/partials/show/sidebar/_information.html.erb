@@ -6,7 +6,7 @@
     <% end %>
   </li>
   <li>Rating: <%= pretty_html_rating(post) %></li>
-  <li>Score: <%= post_vote_block(post, post.own_vote) %>
+  <li>Score: <%= post_score_block(post) %>
     <% if CurrentUser.is_moderator? %><span><%= link_to "(votes)", controller: :post_votes, search: { post_id: post.id } %></span><% end %>
   </li>
   <li>

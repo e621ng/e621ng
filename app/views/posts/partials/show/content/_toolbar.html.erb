@@ -1,25 +1,70 @@
+
+<section id="ptbr-wrapper">
+
 <% if CurrentUser.is_member? %>
-  <div class="image-vote-buttons">
-    <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
+  <div
+    class="ptbr-vote"
+    data-score="<%= @post.score %>"
+    data-up="<%= @post.up_score %>"
+    data-down="<%= @post.down_score %>"
+    data-state="<%= post_score_state(@post) %>"
+    data-vote="<%= @post.own_vote.nil? ? 0 : @post.own_vote.score %>"
+  >
+    <button
+      class="st-button ptbr-vote-button"
+      data-action="1"
+      data-shortcut="d"
+      processing="false"
+    ><%= svg_icon(:chevron_up) %></button>
+    <span
+      class="ptbr-score"
+      title="↑ <%= @post.up_score %> <%= @post.down_score %> ↓"
+      >
+      <%= @post.score %>
+    </span>
+    <button
+      class="st-button ptbr-vote-button"
+      data-action="-1"
+      data-shortcut="u"
+      processing="false"
+    ><%= svg_icon(:chevron_down) %></button>
   </div>
 
   <div class="ptbr-favorite">
     <button
-      id="ptbr-favorite"
-      class="st-button"
+      class="st-button ptbr-favorite-button anim"
       data-shortcut="f"
       favorited="<%= @post.is_favorited? %>"
       processing="false"
-    ></button>
+    >
+      <%= svg_icon(:star) %>
+    </button>
+  </div>
+<% else %>
+  <div
+    class="ptbr-vote"
+    data-score="<%= @post.score %>"
+    data-up="<%= @post.up_score %>"
+    data-down="<%= @post.down_score %>"
+    data-state="<%= post_score_state(@post) %>"
+  >
+    <span
+      class="ptbr-score anonymous"
+      title="↑ <%= @post.up_score %> <%= @post.down_score %> ↓"
+      >
+      <%= @post.score %>
+    </span>
   </div>
 <% end %>
 
 <% if @post.visible? %>
-  <div id="image-download-link">
-    <%= link_to @post.file_url, class: "button btn-warn" do %>
-      <%= tag.i(class: "fa-solid fa-right-to-bracket fa-rotate-90") %>
-      <span>Download</span>
-    <% end %>
+  <div class="ptbr-fullscreen">
+    <a
+      href="<%= @post.file_url %>"
+      class="st-button ptbr-fullscreen-button"
+    >
+      <%= svg_icon(:download) %>
+    </a>
   </div>
 <% end %>
 
@@ -39,3 +84,5 @@
   </select>
   </div>
 <% end %>
+
+</section>

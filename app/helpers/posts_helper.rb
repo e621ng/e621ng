@@ -125,29 +125,13 @@ module PostsHelper
     tag.span(rating_text, id: "post-rating-text", class: rating_class)
   end
 
-  def post_vote_block(post, vote, buttons: false)
-    voted = !vote.nil?
-    vote_score = voted ? vote.score : 0
-    post_score = post.score
+  def post_score_block(post)
+    tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post.score)}", title: "#{post.up_score} up/#{post.down_score} down")
+  end
 
-    up_tag = tag.a(
-      tag.span("▲", class: "post-vote-up-#{post.id} " + confirm_score_class(vote_score, 1, buttons)),
-      class: "post-vote-up-link",
-      data: { id: post.id },
-    )
-    down_tag = tag.a(
-      tag.span("▼", class: "post-vote-down-#{post.id} " + confirm_score_class(vote_score, -1, buttons)),
-      class: "post-vote-down-link",
-      data: { id: post.id },
-    )
-    if buttons
-      score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
-      CurrentUser.is_member? ? up_tag + score_tag + down_tag : ""
-    else
-      vote_block = tag.span(" (".html_safe + up_tag + " vote " + down_tag + ")")
-      score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
-      score_tag + (CurrentUser.is_member? ? vote_block : "")
-    end
+  def post_score_state(post)
+    return 0 if post.nil? || post.score == 0
+    post.score > 0 ? 1 : -1
   end
 
   def score_class(score)
