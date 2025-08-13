@@ -1,39 +1,37 @@
-<div id="c-favorites"><div id="a-index">
-  <div class="post-index">
+<div id="c-favorites"><div id="a-index"><div class="post-index">
 
-    <div class="search">
-      <%= render "posts/partials/common/search", title: "Favorites", :tags => "fav:#{@user.name} " %>
-      <div style="color: darkorange;">Searching favorites does not preserve the order in which they were added.<br/></div>
-    </div>
-
-    <div class="sidebar">
-      <% if CurrentUser.is_member? %>
-        <%= render "posts/partials/index/mode_menu" %>
-      <% end %>
-      <%= render "posts/partials/index/blacklist" %>
-
-      <section id="tag-box">
-        <h3>Tags</h3>
-        <!-- TODO: Lock off these extra items? -->
-        <%= @post_set.presenter.post_index_sidebar_tag_list_html(current_query: params[:tags]) %>
-      </section>
-
-      <section id="related-box">
-        <h3>Related</h3>
-        <ul id="related-list">
-          <li><%= link_to "Random post", random_posts_path(:tags => @post_set.tag_string), :id => "random-post", :rel => "nofollow", :"data-shortcut" => "r" %></li>
-        </ul>
-      </section>
-    </div>
-
-    <div class="content">
-      <%= render "ads/leaderboard", tag_string: @post_set.ad_tag_string %>
-      <%= render "posts/partials/index/edit" %>
-      <%= render "posts/partials/index/posts", :post_set => @post_set %>
-    </div>
-
+  <div class="search">
+    <%= render "posts/partials/common/search", title: "Favorites", tags: "fav:#{@user.name} " %>
+    <div style="color: darkorange;">Searching favorites does not preserve the order in which they were added.<br/></div>
   </div>
-</div></div>
+
+  <div class="sidebar">
+    <% if CurrentUser.is_member? %>
+      <%= render "posts/partials/index/mode_menu" %>
+    <% end %>
+    <%= render "posts/partials/index/blacklist" %>
+
+    <% if @post_set.related_tags.any? %>
+      <section id="tag-box">
+        <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: "fav:#{@user.name} ", tags: @post_set.related_tags } %>
+      </section>
+    <% end %>
+
+    <section id="related-box">
+      <h3>Related</h3>
+      <ul id="related-list">
+        <li><%= link_to "Random post", random_posts_path(tags: @post_set.tag_string), id: "random-post", rel: "nofollow", :"data-shortcut" => "r" %></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="content">
+    <%= render "ads/leaderboard", tag_string: @post_set.ad_tag_string %>
+    <%= render "posts/partials/index/edit" %>
+    <%= render "posts/partials/index/posts", post_set: @post_set %>
+  </div>
+
+</div></div></div>
 
 <%= render "posts/partials/common/secondary_links" %>
 
