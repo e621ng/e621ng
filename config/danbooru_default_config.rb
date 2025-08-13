@@ -111,6 +111,11 @@ module Danbooru
       256
     end
 
+    # All uploads must match this value in both dimensions.
+    def min_image_width
+      256
+    end
+
     def webp_previews_enabled?
       false
     end
