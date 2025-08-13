@@ -58,7 +58,7 @@
         <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
 
         <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
-          <div id="note-container" class="hidden"></div>
+          <div id="note-container" enabled="false"></div>
           <div id="note-preview"></div>
           <%= render "posts/partials/show/content/embedded/embedded", post: @post %>
         <% end -%>

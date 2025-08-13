@@ -1,4 +1,5 @@
 import Utility from "./utility";
+import PostsShowToolbar from "./views/PostsShowToolbar";
 
 let Note = {
   Box: {
@@ -538,6 +539,7 @@ let Note = {
       if (Note.TranslationMode.active) {
         Note.TranslationMode.stop(e);
       } else {
+        PostsShowToolbar.toggleNotes(true);
         Note.TranslationMode.start(e);
       }
     },
