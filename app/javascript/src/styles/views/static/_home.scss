@@ -110,6 +110,25 @@ body.c-static.a-home {
     content: "Search ";
   }
 
+  .home-subscribestar {
+    a {
+      display: flex;
+      flex-flow: column;
+      align-items: center;
+      color: palette("text-white");
+
+      .fake-link { color: themed("color-link"); }
+      &:hover .fake-link { color: themed("color-link-hover"); }
+      &:active .fake-link { color: themed("color-link-active"); }
+    }
+
+    img {
+      width: 100%;
+      max-width: 16rem;
+      margin-top: 0.5rem;
+    }
+  }
+
 
   // Footer
   .home-footer-top {

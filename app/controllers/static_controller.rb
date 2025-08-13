@@ -22,7 +22,8 @@ class StaticController < ApplicationController
   end
 
   def subscribestar
-    @page = format_wiki_page("e621:subscribestar")
+    @page_name = "e621:subscribestar"
+    @page = format_wiki_page(@page_name)
   end
 
   def furid
