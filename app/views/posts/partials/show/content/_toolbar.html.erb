@@ -18,7 +18,7 @@
     ><%= svg_icon(:chevron_up) %></button>
     <span
       class="ptbr-score"
-      title="↑ <%= post.up_score %> <%= post.down_score %> ↓"
+      title="↑ <%= @post.up_score %> <%= @post.down_score %> ↓"
       >
       <%= @post.score %>
     </span>
@@ -50,7 +50,7 @@
   >
     <span
       class="ptbr-score anonymous"
-      title="↑ <%= post.up_score %> <%= post.down_score %> ↓"
+      title="↑ <%= @post.up_score %> <%= @post.down_score %> ↓"
       >
       <%= @post.score %>
     </span>
