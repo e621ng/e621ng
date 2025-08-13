@@ -1,0 +1,43 @@
+#c-static #a-subscribestar {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+
+  a.subscribestar-link {
+    width: 100%;
+    max-width: 50rem;
+    box-sizing: border-box;
+    @include st-radius-top;
+    padding: 1rem;
+
+    background: themed("color-section");
+    text-align: center;
+
+    img {
+      width: 100%;
+      max-width: 16rem;
+    }
+  }
+
+  .dtext-container {
+    width: 100%;
+    max-width: 50rem;
+    box-sizing: border-box;
+    @include st-radius-bottom;
+    padding: 1rem;
+
+    background: themed("color-section");
+  }
+
+  .subscribestar-support-us {
+    background: #ff4081;
+
+    padding: 1.125rem 2rem;
+    border-radius: 1.875rem;
+    margin-top: 1rem;
+
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-size: 1.5rem;
+    color: white;
+  }
+}
