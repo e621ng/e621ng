@@ -139,7 +139,7 @@ class CommentsController < ApplicationController
 
   def search_params
     permitted_params = %i[body_matches post_id post_tags_match creator_name creator_id post_note_updater_name post_note_updater_id poster_id poster_name is_sticky do_not_bump_post order]
-    permitted_params += %i[is_hidden] if CurrentUser.is_moderator?
+    permitted_params += %i[is_hidden] if CurrentUser.is_staff?
     permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
