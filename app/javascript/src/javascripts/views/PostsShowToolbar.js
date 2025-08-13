@@ -2,6 +2,7 @@ import Favorite from "../models/Favorite";
 import PostVote from "../models/PostVote";
 import Post from "../posts";
 import Page from "../utility/page";
+import LStorage from "../utility/storage";
 
 export default class PostsShowToolbar {
 
@@ -25,8 +26,14 @@ export default class PostsShowToolbar {
     $(".ptbr-favorite-button").each((_index, element) => {
       this.initFavoriteButton($(element));
     });
+
+    // Initialize notes toggle
+    $(".ptbr-notes-button").each((_index, element) => {
+      this.initNotesToggle($(element));
+    });
   }
 
+  // Initialize voting buttons
   initVotingButtons(wrapper) {
     const scoreBlock = wrapper.find(".ptbr-score");
 
@@ -70,6 +77,19 @@ export default class PostsShowToolbar {
         Favorite.create(this._currentPost.id)
           .then(() => { button.attr("favorited", "true"); })
           .finally(() => { button.attr("processing", "false"); });
+    });
+  }
+
+  // Notes toggle button
+  initNotesToggle(button) {
+    const container = $("#note-container");
+    container.toggleClass("hidden", !LStorage.Posts.Notes);
+    button.attr("enabled", LStorage.Posts.Notes);
+
+    button.on("click", () => {
+      LStorage.Posts.Notes = !LStorage.Posts.Notes;
+      container.toggleClass("hidden", !LStorage.Posts.Notes);
+      button.attr("enabled", LStorage.Posts.Notes);
     });
   }
 

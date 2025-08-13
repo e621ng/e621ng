@@ -109,6 +109,9 @@ LStorage.Posts = {
 
   /** @returns {string} Preferred thumbnail size */
   Size: ["e6.posts.size", "m"],
+
+  /** @returns {boolean} True if post notes are enabled */
+  Notes: ["e6.posts.notes", true],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 

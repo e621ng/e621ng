@@ -22,12 +22,6 @@
   button {
     svg { margin: -0.5rem -0.5rem; }  // Makes buttons square
 
-    box-shadow: 0 0.25rem themed("color-section");
-    &:active, &[processing="true"].anim {
-      translate: 0 0.125rem;
-      box-shadow: 0 0.125rem themed("color-section");
-    }
-
     &[data-action="-1"] { @include st-radius-right; }
     &[data-action="1"] { @include st-radius-left; }
   }
@@ -150,4 +144,32 @@
     &:after { display: inline; }
     svg { display: none; }
   }
+}
+
+
+// Resize selector
+#ptbr-wrapper .ptbr-resize select {
+  height: 2rem;
+  padding: 0 0.5rem;
+
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+  color: themed("palette-text-white");
+  font-size: 1rem;
+  line-height: 1rem;
+
+  cursor: pointer;
+  background: themed("color-section-lighten-5");
+  box-shadow: 0 0.25rem themed("color-section");
+
+  &:hover, &:focus { background: themed("color-section-lighten-10"); }
+}
+
+
+// Notes toggle
+#ptbr-wrapper .ptbr-notes-button {
+  width: 6rem;
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+  &:after { content: "Notes: On"; }
+
+  &[enabled="false"] { &:after { content: "Notes: Off"; } }
 }

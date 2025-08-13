@@ -11,9 +11,8 @@
     data-vote="<%= @post.own_vote.nil? ? 0 : @post.own_vote.score %>"
   >
     <button
-      class="st-button ptbr-vote-button"
+      class="st-button kinetic ptbr-vote-button"
       data-action="1"
-      data-shortcut="d"
       processing="false"
     ><%= svg_icon(:chevron_up) %></button>
     <span
@@ -23,16 +22,15 @@
       <%= @post.score %>
     </span>
     <button
-      class="st-button ptbr-vote-button"
+      class="st-button kinetic ptbr-vote-button"
       data-action="-1"
-      data-shortcut="u"
       processing="false"
     ><%= svg_icon(:chevron_down) %></button>
   </div>
 
   <div class="ptbr-favorite">
     <button
-      class="st-button ptbr-favorite-button anim"
+      class="st-button kinetic ptbr-favorite-button anim"
       data-shortcut="f"
       favorited="<%= @post.is_favorited? %>"
       processing="false"
@@ -61,7 +59,7 @@
   <div class="ptbr-fullscreen">
     <a
       href="<%= @post.file_url %>"
-      class="st-button ptbr-fullscreen-button"
+      class="st-button kinetic ptbr-fullscreen-button"
     >
       <%= svg_icon(:download) %>
     </a>
@@ -69,8 +67,8 @@
 <% end %>
 
 <% if !@post.force_original_size? %>
-  <div>
-    <select id="image-resize-selector" class="button btn-neutral">
+  <div class="ptbr-resize">
+    <select id="image-resize-selector" class="st-button">
       <option value="original">Original</option>
       <option value="fit">Fit (Horizontal)</option>
       <option value="fitv">Fit (Vertical)</option>
@@ -82,6 +80,15 @@
         <option value="<%= size %>">Sample (<%= size %>)</option>
       <% end %>
   </select>
+  </div>
+<% end %>
+
+<% if @post.has_notes? %>
+  <div class="ptbr-notes">
+    <button
+      class="st-button kinetic ptbr-notes-button"
+      enabled="true"
+    ></button>
   </div>
 <% end %>
 

@@ -8,6 +8,8 @@ div#note-container {
     display: none;
   }
 
+  &.hidden { visibility: hidden !important; }
+
   div.note-body {
     position: absolute;
     border: 1px solid $note-border;
