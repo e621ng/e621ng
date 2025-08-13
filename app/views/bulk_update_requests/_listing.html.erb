@@ -1,6 +1,7 @@
 <table class="striped">
   <thead>
     <tr>
+      <th>Votes</th>
       <th>Creator</th>
       <th>Approver</th>
       <th>Forum</th>
@@ -12,6 +13,11 @@
   <tbody>
     <% bulk_update_requests.each do |request| %>
       <tr id="request-<%= request.id %>">
+        <td>
+          <% if request.forum_post_id %>
+            <%= render "forum_post_votes/overview", votes: request.forum_post.votes, forum_post: request.forum_post %>
+          <% end %>
+        </td>
         <td><%= link_to_user(request.user) %></td>
         <td><% if request.approver %><%= link_to_user(request.approver) %><% end %></td>
         <td>
