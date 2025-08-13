@@ -8,7 +8,7 @@ class FileValidator
     @file_path = file_path
   end
 
-  def validate(max_file_sizes: Danbooru.config.max_file_sizes, max_width: Danbooru.config.max_image_width, max_height: Danbooru.config.max_image_height, min_width: Danbooru.config.small_image_width)
+  def validate(max_file_sizes: Danbooru.config.max_file_sizes, max_width: Danbooru.config.max_image_width, max_height: Danbooru.config.max_image_height, min_width: Danbooru.config.min_image_width)
     validate_file_ext(max_file_sizes)
     validate_file_size(max_file_sizes)
     validate_file_integrity
