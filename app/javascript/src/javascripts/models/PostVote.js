@@ -19,7 +19,7 @@ export default class PostVote {
    */
   static down (postID = null) {
     if (!postID) postID = Post.currentPost().id;
-    this.vote(postID, -1).then();
+    this.vote(postID, -1);
   }
 
   /**
