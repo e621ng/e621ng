@@ -2,6 +2,9 @@
 
 class Ban < ApplicationRecord
   attr_accessor :is_permaban
+
+  before_validation :initialize_banner_id, on: :create
+  before_validation :initialize_permaban, on: %i[update create]
   after_create :create_feedback
   after_create :update_user_on_create
   after_create :create_ban_mod_action
@@ -12,17 +15,15 @@ class Ban < ApplicationRecord
   after_destroy :create_unban_mod_action
   after_destroy :push_pubsub_unban
   belongs_to :user
-  belongs_to :banner, :class_name => "User"
+  belongs_to :banner, class_name: "User"
   validate :user_is_inferior
   validates :user_id, :reason, :duration, presence: true
-  before_validation :initialize_banner_id, :on => :create
-  before_validation :initialize_permaban, on: [:update, :create]
 
   scope :unexpired, -> { where("bans.expires_at > ? OR bans.expires_at IS NULL", Time.now) }
-  scope :expired, -> { where("bans.expires_at IS NOT NULL").where("bans.expires_at <= ?", Time.now) }
+  scope :expired, -> { where.not(bans: { expires_at: nil }).where("bans.expires_at <= ?", Time.now) }
 
   def self.is_banned?(user)
-    exists?(["user_id = ? AND (expires_at > ? OR expires_at IS NULL)", user.id, Time.now])
+    where(["user_id = ? AND (expires_at > ? OR expires_at IS NULL)", user.id, Time.now]).exists?
   end
 
   def self.search(params)
@@ -53,7 +54,7 @@ class Ban < ApplicationRecord
   end
 
   def initialize_banner_id
-    self.banner_id = CurrentUser.id if self.banner_id.blank?
+    self.banner_id = CurrentUser.id if banner_id.blank?
   end
 
   def initialize_permaban
@@ -62,16 +63,19 @@ class Ban < ApplicationRecord
     end
   end
 
+  # IDEA: Most ban attempts are going to be from mods, then from admins; invert logic
   def user_is_inferior
-    if user
+    if user # NOTE: Doesn't directly add an error if user is nil
       if user.is_admin?
         errors.add(:base, "You can never ban an admin.")
         false
-      elsif user.is_moderator? && banner.is_admin?
-        true
       elsif user.is_moderator?
-        errors.add(:base, "Only admins can ban moderators.")
-        false
+        if banner.is_admin?
+          true
+        else
+          errors.add(:base, "Only admins can ban moderators.")
+          false
+        end
       elsif banner.is_admin? || banner.is_moderator?
         true
       else
@@ -95,7 +99,7 @@ class Ban < ApplicationRecord
   end
 
   def user_name
-    user ? user.name : nil
+    user&.name
   end
 
   def user_name=(username)
@@ -112,27 +116,25 @@ class Ban < ApplicationRecord
     @duration = dur if dur != 0
   end
 
-  def duration
-    @duration
-  end
+  attr_reader :duration
 
   def humanized_duration
-    return 'permanent' if expires_at == nil
+    return "permanent" unless expires_at
     ApplicationController.helpers.distance_of_time_in_words(created_at, expires_at)
   end
 
   def humanized_expiration
-    return 'never' if expires_at == nil
+    return "never" unless expires_at
     ApplicationController.helpers.compact_time expires_at
   end
 
   def expire_days
-    return 'never' if expires_at == nil
+    return "never" unless expires_at
     ApplicationController.helpers.time_ago_in_words(expires_at)
   end
 
   def expired?
-    expires_at != nil && expires_at < Time.now
+    !expires_at.nil? && expires_at < Time.now
   end
 
   def create_feedback
