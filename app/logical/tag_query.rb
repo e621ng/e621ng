@@ -75,7 +75,7 @@ class TagQuery
     commenter comm noter noteupdater
   ].concat(CATEGORY_METATAG_MAP.keys).freeze
 
-  METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].concat(
+  METATAGS = %w[md5 order limit child randseed hot_from ratinglocked notelocked statuslocked].concat(
     NEGATABLE_METATAGS, COUNT_METATAGS, BOOLEAN_METATAGS
   ).freeze
 
@@ -143,7 +143,7 @@ class TagQuery
   #
   # IDEA: Add `rank_asc` option
   ORDER_METATAGS = %w[
-    rank random
+    rank random hot
   ].concat(
     ORDER_INVERTIBLE_ALIASES
       .keys.concat(ORDER_INVERTIBLE_ROOTS)
@@ -209,7 +209,7 @@ class TagQuery
   # Therefore, these are pulled out of groups and placed on the top level of searches.
   #
   # Note that this includes all valid prefixes.
-  GLOBAL_METATAGS = %w[order -order limit randseed].freeze
+  GLOBAL_METATAGS = %w[order -order limit randseed hot_from].freeze
 
   # The values for the `status` metatag that will override the automatic hiding of deleted posts
   # from search results. Other tags do also alter this behavior; specifically, a `deletedby` or
@@ -1389,6 +1389,8 @@ class TagQuery
       when "date", "-date", "~date" then add_to_query(type, :date, ParseValue.date_range(g2))
 
       when "age", "-age", "~age" then add_to_query(type, :age, ParseValue.invert_range(ParseValue.range(g2, :age)))
+
+      when "hot_from" then q[:hot_from] = ParseValue.date_from(g2)
 
       when "tagcount", "-tagcount", "~tagcount" then add_to_query(type, :post_tag_count, ParseValue.range(g2))
 
