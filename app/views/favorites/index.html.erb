@@ -13,7 +13,7 @@
 
     <% if @post_set.related_tags.any? %>
       <section id="tag-box">
-        <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: params[:tags], tags: @post_set.related_tags } %>
+        <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: "fav:#{@user.name} ", tags: @post_set.related_tags } %>
       </section>
     <% end %>
 
