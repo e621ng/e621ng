@@ -818,6 +818,10 @@ class Post < ApplicationRecord
         tags -= ["animated_png"]
       end
 
+      unless is_webp?
+        tags -= ["animated_webp"]
+      end
+
       return tags
     end
 
