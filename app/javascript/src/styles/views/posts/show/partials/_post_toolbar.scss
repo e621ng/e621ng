@@ -1,20 +1,153 @@
-#ptbr-favorite {
+// Post Toolbar
+#ptbr-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 
-  width: 6rem;
-  text-shadow: 0 0 1rem black;
-  --st-loading-start: var(--color-section-lighten-5);
-  --st-loading-end: var(--palette-background-yellow);
-  
+  margin: 0.5rem 0;
+  gap: 0.5rem;
+
+  @include window-larger-than(50rem) {
+    justify-content: flex-start;
+  }
+}
+
+
+// Voting section
+#ptbr-wrapper .ptbr-vote {
+  display: flex;
+  @include st-radius;
+
+  // Vote actions buttons
+  button {
+    svg { margin: -0.5rem -0.5rem; }  // Makes buttons square
+
+    box-shadow: 0 0.25rem themed("color-section");
+    &:active, &[processing="true"].anim {
+      translate: 0 0.125rem;
+      box-shadow: 0 0.125rem themed("color-section");
+    }
+
+    &[data-action="-1"] { @include st-radius-right; }
+    &[data-action="1"] { @include st-radius-left; }
+  }
+
+  // Vote states
+  // data-vote on the wrapper indicates user's current vote on the post
+  // data-action on the button indicates whether the button is for upvote or downvote
+  &[data-vote="-1"] button[data-action="-1"] {
+    background-color: palette("background-red");
+    &:hover, &:focus { background-color: palette("background-red-d5"); }
+
+    box-shadow: 0 0.25rem palette("background-red-d10");
+    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette("background-red-d10"); }
+  }
+  &[data-vote="1"] button[data-action="1"] {
+    background-color: palette("background-green");
+    &:hover, &:focus { background-color: palette("background-green-d5"); }
+
+    box-shadow: 0 0.25rem palette("background-green-d10");
+    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette("background-green-d10"); }
+  }
+
+
+  // Score display
+  .ptbr-score {
+    display: flex;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+
+    background-color: themed("color-section-lighten-5");
+    box-shadow: 0 0.25rem themed("color-section");
+
+    padding: 0 0.5rem;
+    min-width: 3rem; // Fits 3-digit scores
+    height: 2rem;
+    font-size: 1rem;
+    line-height: 1rem;
+
+    cursor: help;
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-weight: bold;
+
+    // Separators between buttons and score
+    margin: 0 1.5px;
+    &.anonymous {
+      margin: 0;
+      @include st-radius;
+    }
+  }
+
+  // Score states
+  &[data-state="1"] .ptbr-score { color: palette("text-green"); }
+  &[data-state="-1"] .ptbr-score { color: palette("text-red"); }
+}
+
+
+// Favorite button
+#ptbr-wrapper .ptbr-favorite-button {
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+  color: palette("plain-black");
   &:after {
+    display: none;
     content: "Favorite";
   }
 
-  &[favorited="true"] {
-    background-color: palette("background-yellow");
-    --st-loading-start: var(--palette-background-yellow);
-    --st-loading-end: var(--color-section-lighten-5);
+  background-color: palette("background-gold");
+  &:hover, &:focus { background-color: palette("background-gold-d10"); }
+  &[processing="true"] { background-color: palette("background-gold");}
 
+  box-shadow: 0 0.25rem palette("background-gold-d20");
+  &:active, &[processing="true"].anim {
+    translate: 0 0.125rem;
+    box-shadow: 0 0.125rem palette("background-gold-d20");
+  }
+
+
+  @include window-larger-than(50rem) {
+    width: 6rem;
+    &:after { display: inline; }
+    svg { display: none; }
+  }
+
+  &[favorited="true"] {
+    color: palette("text-white");
     &:after { content: "Unfavorite"; }
-    &:hover { background-color: palette("background-yellow-d5"); }
+
+    background-color: palette("background-red");
+    &:hover, &:focus { background-color: palette("background-red-d5"); }
+    &[processing="true"] { background-color: palette("background-red"); }
+
+    box-shadow: 0 0.25rem palette("background-red-d10");
+    &:active, &[processing="true"].anim {
+      box-shadow: 0 0.125rem palette("background-red-d10");
+    }
+  }
+}
+
+
+// Fullscreen button
+#ptbr-wrapper .ptbr-fullscreen-button {
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+  color: palette("plain-black");
+  &:after {
+    display: none;
+    content: "Fullscreen";
+  }
+
+  background-color: palette("background-orange");
+  &:hover, &:active, &:focus { background-color: palette("background-orange-d5"); }
+
+  box-shadow: 0 0.25rem palette("background-orange-d10");
+  &:active, &[processing="true"].anim {
+    translate: 0 0.125rem;
+    box-shadow: 0 0.125rem palette("background-orange-d10");
+  }
+
+  @include window-larger-than(50rem) {
+    width: 7rem;
+    &:after { display: inline; }
+    svg { display: none; }
   }
 }

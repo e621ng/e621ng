@@ -4,6 +4,7 @@ import Note from "./notes";
 import Shortcuts from "./shortcuts";
 import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
+import PostVote from "./models/PostVote";
 
 let Post = {};
 
@@ -27,12 +28,8 @@ Post.initialize_all = function () {
     this.initialize_post_sections();
     this.initialize_resize();
     this.initialize_gestures();
-    this.initialize_voting();
     this.initialize_moderation();
   }
-
-  if ($("#p-index-by-post").length)
-    this.initialize_voting();
 
   if ($("#c-posts #a-show, #c-uploads #a-new").length) {
     this.initialize_edit_dialog();
@@ -75,11 +72,6 @@ Post.initialize_collapse = function () {
     $(e.target).toggleClass("hidden-category");
     e.preventDefault();
   });
-};
-
-Post.initialize_voting = function () {
-  $(document).on("click.danbooru.post", ".post-vote-up-link", Post.vote_up);
-  $(document).on("click.danbooru.post", ".post-vote-down-link", Post.vote_down);
 };
 
 Post.initialize_edit_dialog = function () {
@@ -1064,52 +1056,9 @@ Post.update_tag_count = function (event) {
   $("#tags-container .options #face").removeClass().addClass(`fa-regular fa-face-${klass}`);
 };
 
-Post.vote_up = function (e) {
-  var id = $(e.target).parent().attr("data-id");
-  Post.vote(id, 1);
-};
-
-Post.vote_down = function (e) {
-  var id = $(e.target).parent().attr("data-id");
-  Post.vote(id, -1);
-};
-
 Post.vote = function (id, score, prevent_unvote) {
-  Post.notice_update("inc");
-  TaskQueue.add(() => {
-    $.ajax({
-      method: "POST",
-      url: `/posts/${id}/votes.json`,
-      data: {
-        score: score,
-        no_unvote: prevent_unvote === true,
-      },
-      dataType: "json",
-      headers: {
-        accept: "*/*;q=0.5,text/javascript",
-      },
-    }).done(function (data) {
-      const scoreClasses = "score-neutral score-positive score-negative";
-      const postID = id;
-      const postScore = data.score;
-      const ourScore = data.our_score;
-      function scoreToClass (inScore) {
-        if (inScore == 0) return "score-neutral";
-        return inScore > 0 ? "score-positive" : "score-negative";
-      }
-      $(".post-score-" + postID).removeClass(scoreClasses);
-      $(".post-vote-up-" + postID).removeClass(scoreClasses);
-      $(".post-vote-down-" + postID).removeClass(scoreClasses);
-      $(".post-score-" + postID).text(postScore);
-      $(".post-score-" + postID).attr("title", `${data.up} up/${data.down} down`);
-      $(".post-score-" + postID).addClass(scoreToClass(postScore));
-      $(".post-vote-up-" + postID).addClass(ourScore > 0 ? "score-positive" : "score-neutral");
-      $(".post-vote-down-" + postID).addClass(ourScore < 0 ? "score-negative" : "score-neutral");
-      $(window).trigger("danbooru:notice", "Vote saved");
-    }).always(function () {
-      Post.notice_update("dec");
-    });
-  }, { name: "Post.vote" });
+  console.log("Post.vote is deprecated and will be removed at a later date. User PostVote.vote instead.");
+  PostVote.vote(id, score, prevent_unvote);
 };
 
 Post.set_as_avatar = function (id) {

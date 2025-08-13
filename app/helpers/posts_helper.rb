@@ -150,6 +150,15 @@ module PostsHelper
     end
   end
 
+  def post_score_block(post)
+    tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post.score)}", title: "#{post.up_score} up/#{post.down_score} down")
+  end
+
+  def post_score_state(post)
+    return 0 if post.nil? || post.score == 0
+    post.score > 0 ? 1 : -1
+  end
+
   def score_class(score)
     return 'score-neutral' if score == 0
     score > 0 ? 'score-positive' : 'score-negative'

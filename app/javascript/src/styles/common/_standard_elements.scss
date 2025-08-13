@@ -31,6 +31,12 @@
   color: $button-text-color;
   &:hover, &:active { background: $button-background-hover; }
 
+  // Overriding the default outline
+  &:focus {
+    outline: none !important;
+    background-color: themed("color-section-lighten-10");
+  }
+
   & > svg {
     // Icon should be slightly larger than text,
     // with padding to fill the entire button height
@@ -73,21 +79,6 @@
     background-color: themed("color-link-active");
     color: palette("plain-black");
   }
-
-  // Loading indicator
-  &[processing="true"] {
-    cursor: progress;
-    animation: st-loading-color 3s ease infinite;
-
-    @keyframes st-loading-color {
-      // The st-loading-start and -end variables should be used to set the colors based
-      // on the button's current state. The st-loading-start is the initial color, matching
-      // the button's background, and st-loading-end is the color it transitions to.
-      0% { background-color: var(--st-loading-start, themed("color-section-lighten-5")); }
-      50% { background-color: var(--st-loading-end, themed("color-button-active")); }
-      100% { background-color: var(--st-loading-start, themed("color-section-lighten-5")); }
-    }
-  }
 }
 
 
@@ -104,6 +95,13 @@
   &:hover, &:active {
     background: themed("color-tag-artist-alt");
   }
+}
+
+
+// Link fixes
+a.st-button {
+  color: inherit;     // Prevent links from using the wrong color
+  user-select: none;  // Avoid accidentally selecting the button text
 }
 
 
