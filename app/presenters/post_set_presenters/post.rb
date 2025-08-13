@@ -3,8 +3,8 @@
 module PostSetPresenters
   class Post < Base
     attr_accessor :post_set
+
     delegate :posts, to: :post_set
-    # delegate :post_index_sidebar_tag_list_html, to: :tag_set_presenter
 
     def initialize(post_set)
       @post_set = post_set

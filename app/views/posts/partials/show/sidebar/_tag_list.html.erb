@@ -3,5 +3,4 @@
   <% next unless type_tags %>
 
   <%= render partial: "/posts/partials/common/sidebar/tag_list", as: :tag, locals: { category_name: category_name, post: post, tags: type_tags, query: query } %>
-  <%# <%= post.presenter.tag_set_presenter.post_index_sidebar_tag_list_html(current_query: query, post: post) %>
 <% end %>
