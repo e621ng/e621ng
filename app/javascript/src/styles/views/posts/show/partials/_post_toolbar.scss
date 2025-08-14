@@ -108,6 +108,7 @@
   &[favorited="true"] {
     color: palette("text-white");
     &:after { content: "Unfavorite"; }
+    svg { stroke: palette("background-gold-d10"); }
 
     background-color: palette("background-red");
     &:hover, &:focus { background-color: palette("background-red-d5"); }

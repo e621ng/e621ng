@@ -4,9 +4,7 @@ div#note-container {
   position: absolute;
   z-index: 50;
 
-  &[data-resizing=true] {
-    display: none;
-  }
+  &[enabled="false"] { display: none; }
 
   &.hidden { visibility: hidden !important; }
 
