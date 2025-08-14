@@ -23,14 +23,11 @@
     <% end %>
 
     <%# Twitter properties %>
-    <% twitter_card =
-         if avatar
-           "summary"
-         elsif post.twitter_card_supported? && post.is_image?
-           "summary_large_image"
-         else
-           "summary"
-         end %>
+    <% twitter_card = if post.twitter_card_supported? && post.is_image? && !avatar
+                        "summary_large_image"
+                else
+                        "summary"
+                      end %>
 
     <meta name="twitter:card" content="<%= twitter_card %>">
     <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
