@@ -36,7 +36,6 @@ require.context("../../../public/images", true);
 
 export { default as LStorage } from "../src/javascripts/utility/storage.js";
 export { default as TaskQueue } from "../src/javascripts/utility/task_queue.js";
-export { default as User } from "../src/javascripts/models/User.js";
 
 export { default as Autocomplete } from "../src/javascripts/autocomplete.js.erb";
 export { default as Blacklist } from "../src/javascripts/blacklists.js";
@@ -66,6 +65,7 @@ export { default as VoteManager } from "../src/javascripts/vote_manager.js";
 importAll(require.context("../src/javascripts/models", true, /\.js(\.erb)?$/));
 export { default as Favorite } from "../src/javascripts/models/Favorite.js";
 export { default as PostVote } from "../src/javascripts/models/PostVote.js";
+export { default as User } from "../src/javascripts/models/User.js";
 
 function inError (msg) {
   $(window).trigger("danbooru:error", msg);
