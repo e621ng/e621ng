@@ -11,45 +11,29 @@
 
   <% if post.present? %>
     <% if post.visible? %>
-      <% if post.is_video? && post.has_sample_size?("original") %>
+      <% if post.is_video? %>
         <meta property="og:type" content="video.other">
         <%= tag.meta(property: "og:video", content: post.open_graph_video_url) %>
-        <%= tag.meta(property: "og:image", content: post.open_graph_image_url) %>
-        <meta property="og:video:height" content="<%= post.image_height %>"/>
-        <meta property="og:video:width" content="<%= post.image_width %>"/>
       <% else %>
         <meta property="og:type" content="website">
-        <%= tag.meta(property: "og:image", content: post.open_graph_image_url) %>
       <% end %>
+      <%= tag.meta(property: "og:image", content: post.open_graph_image_url) %>
       <meta property="og:image:height" content="<%= post.image_height %>"/>
       <meta property="og:image:width" content="<%= post.image_width %>"/>
     <% end %>
 
     <%# Twitter properties %>
-    <% if avatar %>
-      <meta name="twitter:card" content="summary">
-      <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
-      <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
+    <% twitter_card = if post.twitter_card_supported? && post.is_image? && !avatar
+                        "summary_large_image"
+                else
+                        "summary"
+                      end %>
 
-      <% if post.visible? %>
-        <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>
-      <% end %>
-    <% elsif post.twitter_card_supported? && post.is_image? %>
-      <meta name="twitter:card" content="summary_large_image">
-      <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
-      <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
-
-      <% if post.visible? %>
-        <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>
-      <% end %>
-    <% else %>
-      <meta name="twitter:card" content="summary">
-      <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
-      <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
-
-      <% if post.visible? %>
-        <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>
-      <% end %>
+    <meta name="twitter:card" content="<%= twitter_card %>">
+    <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
+    <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
+    <% if post.visible? %>
+      <%= tag.meta(name: "twitter:image", content: post.open_graph_image_url) %>
     <% end %>
 
     <% if post.rating == "e" %>
