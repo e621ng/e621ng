@@ -8,7 +8,7 @@
     <% if post.is_note_locked? %>
       <li id="add-notes-list"><span id="note-locked-notice">Note locked</span></li>
     <% else %>
-      <li id="add-notes-list"><%= link_to "Add note", "#", "id": "translate", "data-shortcut": "n" %></li>
+      <li id="add-notes-list"><%= link_to "Add note", "#", "id": "translate", "data-hotkey": "note" %></li>
     <% end %>
     <% if post.has_notes? %>
       <li id="copy-all-notes-list"><%= link_to "Copy notes", "#", id: "copy-notes" %></li>

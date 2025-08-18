@@ -9,7 +9,7 @@
       <%= hidden_field_tag :random, params[:random] %>
     <% end %>
 
-    <%= text_area_tag("tags", tags, placeholder: "Search posts by tag", rows: 1, data: { shortcut: "q", autocomplete: "tag-query" }) %>
+    <%= text_area_tag("tags", tags, placeholder: "Search posts by tag", rows: 1, data: { hotkey: "search", autocomplete: "tag-query" }) %>
     <%= tag.button(svg_icon(:search), type: "submit", title: "Search") %>
   <% end %>
 </section>
