@@ -115,6 +115,7 @@
 // Resize selector
 #ptbr-wrapper .ptbr-resize select {
   height: 2rem;
+  max-width: 25vw; // Prevent overflow on tiny screens
   padding: 0 0.5rem;
 
   font-family: "Roboto", Verdana, Geneva, sans-serif;
