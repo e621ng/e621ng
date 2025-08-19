@@ -9,38 +9,38 @@ export default class Hotkeys {
    */
   static Definitions = {
     // Generic
-    "search": [ "e6.htk.search", "Q" ],
-    "edit": [ "e6.htk.edit", "E" ],
-    "prev": [ "e6.htk.prev", "A|ArrowLeft"],
-    "next": [ "e6.htk.next", "D|ArrowRight" ],
-    "mark-read": [ "e6.htk.m-read", "Shift+R" ],
-    "scroll-down": [ "e6.htk.scroll-d", "S" ],
-    "scroll-up": [ "e6.htk.scroll-u", "W" ],
+    "search":       [ "e6.htk.search",    "Q" ],
+    "edit":         [ "e6.htk.edit",      "E" ],
+    "prev":         [ "e6.htk.prev",      "A|ArrowLeft"],
+    "next":         [ "e6.htk.next",      "D|ArrowRight" ],
+    "mark-read":    [ "e6.htk.m-read",    "Shift+R" ],
+    "scroll-down":  [ "e6.htk.scroll-d",  "S" ],
+    "scroll-up":    [ "e6.htk.scroll-u",  "W" ],
 
     // Posts
-    "upvote": [ "e6.htk.upvote", "Z" ],
-    "downvote": [ "e6.htk.downvote", "X" ],
-    "favorite": [ "e6.htk.favorite", "F" ],
-    "note": [ "e6.htk.note", "N" ],
-    "random": [ "e6.htk.random", "R" ],
-    "edit-d": [ "e6.htk.edit-alt", "Shift+E" ],
-    "resize": [ "e6.htk.resize", "V" ],
+    "upvote":       [ "e6.htk.upvote",    "Z" ],
+    "downvote":     [ "e6.htk.downvote",  "X" ],
+    "favorite":     [ "e6.htk.favorite",  "F" ],
+    "note":         [ "e6.htk.note",      "N" ],
+    "random":       [ "e6.htk.random",    "R" ],
+    "edit-d":       [ "e6.htk.edit-alt",  "Shift+E" ],
+    "resize":       [ "e6.htk.resize",    "V" ],
 
     // Tag Scripts
-    "tag-script-1": [ "e6.htk.tsc-1", "1" ],
-    "tag-script-2": [ "e6.htk.tsc-2", "2" ],
-    "tag-script-3": [ "e6.htk.tsc-3", "3" ],
-    "tag-script-4": [ "e6.htk.tsc-4", "4" ],
-    "tag-script-5": [ "e6.htk.tsc-5", "5" ],
-    "tag-script-6": [ "e6.htk.tsc-6", "6" ],
-    "tag-script-7": [ "e6.htk.tsc-7", "7" ],
-    "tag-script-8": [ "e6.htk.tsc-8", "8" ],
-    "tag-script-9": [ "e6.htk.tsc-9", "9" ],
+    "tag-script-1": [ "e6.htk.tsc-1",     "1" ],
+    "tag-script-2": [ "e6.htk.tsc-2",     "2" ],
+    "tag-script-3": [ "e6.htk.tsc-3",     "3" ],
+    "tag-script-4": [ "e6.htk.tsc-4",     "4" ],
+    "tag-script-5": [ "e6.htk.tsc-5",     "5" ],
+    "tag-script-6": [ "e6.htk.tsc-6",     "6" ],
+    "tag-script-7": [ "e6.htk.tsc-7",     "7" ],
+    "tag-script-8": [ "e6.htk.tsc-8",     "8" ],
+    "tag-script-9": [ "e6.htk.tsc-9",     "9" ],
 
     // Janitor
-    "approve": [ "e6.htk.apr", "Shift+O" ],
-    "approve-prev": [ "e6.htk.apr-prev", "Shift+Q" ],
-    "approve-next": [ "e6.htk.apr-next", "Shift+W" ],
+    "approve":      [ "e6.htk.apr",       "Shift+O" ],
+    "approve-prev": [ "e6.htk.apr-prev",  "Shift+Q" ],
+    "approve-next": [ "e6.htk.apr-next",  "Shift+W" ],
   };
 
   static ModifierKeys = ["Shift", "Control", "Alt"];
