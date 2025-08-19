@@ -82,41 +82,13 @@
 // Favorite button
 #ptbr-wrapper .ptbr-favorite-button {
   font-family: "Roboto", Verdana, Geneva, sans-serif;
-  color: palette("plain-black");
-  &:after {
-    display: none;
-    content: "Favorite";
-  }
-
-  background-color: palette("background-gold");
-  &:hover, &:focus { background-color: palette("background-gold-d10"); }
-  &[processing="true"] { background-color: palette("background-gold");}
-
-  box-shadow: 0 0.25rem palette("background-gold-d20");
-  &:active, &[processing="true"].anim {
-    translate: 0 0.125rem;
-    box-shadow: 0 0.125rem palette("background-gold-d20");
-  }
-
-
-  @include window-larger-than(50rem) {
-    width: 6rem;
-    &:after { display: inline; }
-    svg { display: none; }
-  }
+  color: palette("background-gold-d10");
 
   &[favorited="true"] {
-    color: palette("text-white");
-    &:after { content: "Unfavorite"; }
-    svg { stroke: palette("background-gold-d10"); }
-
-    background-color: palette("background-red");
-    &:hover, &:focus { background-color: palette("background-red-d5"); }
-    &[processing="true"] { background-color: palette("background-red"); }
-
-    box-shadow: 0 0.25rem palette("background-red-d10");
-    &:active, &[processing="true"].anim {
-      box-shadow: 0 0.125rem palette("background-red-d10");
+    svg {
+      filter: url(#inset-shadow);
+      fill: palette("background-gold-d10");
+      stroke-width: 0;
     }
   }
 }

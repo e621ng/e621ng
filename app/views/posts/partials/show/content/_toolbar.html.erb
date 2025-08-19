@@ -93,3 +93,22 @@
 <% end %>
 
 </section>
+
+<section style="visibility: hidden; height: 0;">
+  <svg height="0" width="0">
+    <filter id="inset-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feComponentTransfer in="SourceAlpha">
+        <feFuncA type="table" tableValues="1 0"></feFuncA>
+      </feComponentTransfer>
+      <feGaussianBlur stdDeviation="1"></feGaussianBlur>
+      <feOffset result="offsetblur" dx="1" dy="1"></feOffset>
+      <feFlood result="color" flood-color="#be9e2f"></feFlood>
+      <feComposite in2="offsetblur" operator="in"></feComposite>
+      <feComposite in2="SourceAlpha" operator="in"></feComposite>
+      <feMerge>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+        <feMergeNode></feMergeNode>
+      </feMerge>
+    </filter>
+  </svg>
+</section>
