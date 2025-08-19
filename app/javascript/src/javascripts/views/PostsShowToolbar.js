@@ -7,8 +7,8 @@ import LStorage from "../utility/storage";
 export default class PostsShowToolbar {
 
   _currentPost = null;
-  
-  init() {
+
+  init () {
     if (!Page.matches("posts", "show")) return;
 
     this._currentPost = Post.currentPost();
@@ -34,8 +34,11 @@ export default class PostsShowToolbar {
   }
 
   // Initialize voting buttons
-  initVotingButtons(wrapper) {
-    const scoreBlock = wrapper.find(".ptbr-score");
+  initVotingButtons (wrapper) {
+    const scoreBreakdown = wrapper.find(".ptbr-breakdown");
+    const scoreBlock = wrapper.find(".ptbr-score").on("click", () => {
+      scoreBreakdown.toggleClass("hidden");
+    });
 
     const buttons = wrapper.find("button.ptbr-vote-button").on("click", (event) => {
       if (buttons.attr("processing") == "true") return;
@@ -46,7 +49,8 @@ export default class PostsShowToolbar {
 
       PostVote.vote(this._currentPost.id, button.data("action")).then((data) => {
         // Update button states for the current voting block.
-        scoreBlock.text(data.score).attr("title", `↑ ${data.up} ${data.down} ↓`);
+        scoreBlock.text(data.score);
+        scoreBreakdown.html(`<span>${data.up}</span><span>${data.down}</span>`);
         wrapper.attr({
           "data-score": data.score,
           "data-up": data.up,
@@ -62,9 +66,9 @@ export default class PostsShowToolbar {
     });
   }
 
-  
+
   // Favorite button
-  initFavoriteButton(button) {
+  initFavoriteButton (button) {
     button.on("click", () => {
       if (button.attr("processing") == "true") return;
       button.attr("processing", "true");
@@ -81,7 +85,7 @@ export default class PostsShowToolbar {
   }
 
   // Notes toggle button
-  initNotesToggle(button) {
+  initNotesToggle (button) {
     PostsShowToolbar.toggleNotes();
 
     button.on("click", () => {
@@ -90,7 +94,7 @@ export default class PostsShowToolbar {
     });
   }
 
-  static toggleNotes(visible = LStorage.Posts.Notes) {
+  static toggleNotes (visible = LStorage.Posts.Notes) {
     $("#note-container").attr("enabled", visible);
     $(".ptbr-notes-button").attr("enabled", visible);
   }
@@ -98,5 +102,5 @@ export default class PostsShowToolbar {
 }
 
 $(() => {
-  (new PostsShowToolbar).init();
+  (new PostsShowToolbar()).init();
 });

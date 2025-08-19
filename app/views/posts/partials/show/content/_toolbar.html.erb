@@ -15,11 +15,11 @@
       data-action="1"
       processing="false"
     ><%= svg_icon(:chevron_up) %></button>
-    <span
-      class="ptbr-score"
-      title="↑ <%= @post.up_score %> <%= @post.down_score %> ↓"
-      >
+    <button class="st-button kinetic ptbr-score">
       <%= @post.score %>
+    </button>
+    <span class="ptbr-breakdown hidden">
+      <span><%= @post.up_score %></span><span><%= @post.down_score %></span>
     </span>
     <button
       class="st-button kinetic ptbr-vote-button"
@@ -46,11 +46,11 @@
     data-down="<%= @post.down_score %>"
     data-state="<%= post_score_state(@post) %>"
   >
-    <span
-      class="ptbr-score anonymous"
-      title="↑ <%= @post.up_score %> <%= @post.down_score %> ↓"
-      >
+    <button class="st-button kinetic ptbr-score anonymous">
       <%= @post.score %>
+    </button>
+    <span class="ptbr-breakdown hidden">
+      <span><%= @post.up_score %></span><span><%= @post.down_score %></span>
     </span>
   </div>
 <% end %>

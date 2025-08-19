@@ -17,6 +17,8 @@
 #ptbr-wrapper .ptbr-vote {
   display: flex;
   @include st-radius;
+  position: relative;
+
 
   // Vote actions buttons
   button {
@@ -47,28 +49,20 @@
 
   // Score display
   .ptbr-score {
-    display: flex;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-
-    background-color: themed("color-section-lighten-5");
-    box-shadow: 0 0.25rem themed("color-section");
-
     padding: 0 0.5rem;
     min-width: 3rem; // Fits 3-digit scores
-    height: 2rem;
-    font-size: 1rem;
-    line-height: 1rem;
 
     cursor: help;
     font-family: "Roboto", Verdana, Geneva, sans-serif;
     font-weight: bold;
+    align-items: center;
 
     // Separators between buttons and score
     border-width: 0 1px;
     border-color: themed("color-foreground");
     border-style: solid;
+    border-radius: 0;
+
     &.anonymous {
       border-color: transparent;
       @include st-radius;
@@ -78,6 +72,59 @@
   // Score states
   &[data-state="1"] .ptbr-score { color: palette("text-green"); }
   &[data-state="-1"] .ptbr-score { color: palette("text-red"); }
+
+
+  // Score breakdown popup
+  .ptbr-breakdown {
+    display: flex;
+    position: absolute;
+    top: -2.75rem;
+    left: 50%;
+    translate: -50% 0;
+    text-wrap: nowrap;
+
+    background: themed("color-section-lighten-5");
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-size: 1rem;
+    line-height: 1rem;
+    @include st-radius;
+
+    box-shadow: 0 0 0.5rem black;
+
+    &::after {
+      content: "";
+
+      position: absolute;
+      bottom: -1rem;
+      left: 50%;
+      translate: -50% 0;
+
+      border-width: 0.5rem;
+      border-style: solid;
+      border-color: themed("color-section-lighten-5") transparent transparent transparent;
+    }
+
+    & > span {
+      padding: 0.5rem;
+      font-weight: bold;
+      &:first-child {
+        &:before {
+          content: "▲";
+          padding-right: 0.25rem;
+        }
+        color: palette("text-green");
+      }
+      &:last-child {
+        &:after {
+          content: "▼";
+          padding-left: 0.25rem;
+        }
+        color: palette("text-red");
+      }
+    }
+
+    &.hidden { display: none; }
+  }
 }
 
 
