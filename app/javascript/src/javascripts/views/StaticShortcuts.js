@@ -111,31 +111,31 @@ export default class StaticShortcuts {
     // Listen to hotkey inputs
     let binding = "";
     $document.on("e6.hotkeys.keyup.bind", (_event, data) => {
-        if (data.size !== 0) return;
+      if (data.size !== 0) return;
 
-        resetInput(element, binding);
+      resetInput(element, binding);
+      $document.off("e6.hotkeys.keyup.bind e6.hotkeys.keydown.bind");
+      Hotkeys.Definitions[action] = collectBindings(action).join("|");
+      Hotkeys.rebuildKeyIndexes();
+    });
+
+    $document.on("e6.hotkeys.keydown.bind", (_event, data) => {
+      // Gracefully abort
+      for (const one of data) {
+        if (!StaticShortcuts.AbortKeys.includes(one)) continue;
+
+        resetInput(element, "");
         $document.off("e6.hotkeys.keyup.bind e6.hotkeys.keydown.bind");
         Hotkeys.Definitions[action] = collectBindings(action).join("|");
         Hotkeys.rebuildKeyIndexes();
-      });
-    
-    $document.on("e6.hotkeys.keydown.bind", (_event, data) => {
-        // Gracefully abort
-        for (const one of data) {
-          if (!StaticShortcuts.AbortKeys.includes(one)) continue;
 
-          resetInput(element, "");
-          $document.off("e6.hotkeys.keyup.bind e6.hotkeys.keydown.bind");
-          Hotkeys.Definitions[action] = collectBindings(action).join("|");
-          Hotkeys.rebuildKeyIndexes();
+        return;
+      }
 
-          return;
-        }
+      binding = Hotkeys.buildKeybindString([...data]);
+      element.text(binding);
+    });
 
-        binding = Hotkeys.buildKeybindString([...data]);
-        element.text(binding);
-      });
-    
     function resetInput($input, value = null) {
       if (value == null) value = $input.attr("old") || "";
       $input
@@ -156,5 +156,5 @@ export default class StaticShortcuts {
 }
 
 $(() => {
-  (new StaticShortcuts).init();
+  (new StaticShortcuts()).init();
 });

@@ -9,44 +9,44 @@ export default class Hotkeys {
    */
   static Definitions = {
     // Generic
-    "search":       [ "e6.htk.search",    "Q" ],
-    "edit":         [ "e6.htk.edit",      "E" ],
-    "prev":         [ "e6.htk.prev",      "A|ArrowLeft"],
-    "next":         [ "e6.htk.next",      "D|ArrowRight" ],
-    "mark-read":    [ "e6.htk.m-read",    "Shift+R" ],
-    "scroll-down":  [ "e6.htk.scroll-d",  "S" ],
-    "scroll-up":    [ "e6.htk.scroll-u",  "W" ],
+    "search":       [ "e6.htk.search", "Q" ],
+    "edit":         [ "e6.htk.edit", "E" ],
+    "prev":         [ "e6.htk.prev", "A|ArrowLeft"],
+    "next":         [ "e6.htk.next", "D|ArrowRight" ],
+    "mark-read":    [ "e6.htk.m-read", "Shift+R" ],
+    "scroll-down":  [ "e6.htk.scroll-d", "S" ],
+    "scroll-up":    [ "e6.htk.scroll-u", "W" ],
 
     // Posts
-    "upvote":       [ "e6.htk.upvote",    "Z" ],
-    "downvote":     [ "e6.htk.downvote",  "X" ],
-    "favorite":     [ "e6.htk.favorite",  "F" ],
-    "note":         [ "e6.htk.note",      "N" ],
-    "random":       [ "e6.htk.random",    "R" ],
-    "edit-d":       [ "e6.htk.edit-alt",  "Shift+E" ],
-    "resize":       [ "e6.htk.resize",    "V" ],
+    "upvote":       [ "e6.htk.upvote", "Z" ],
+    "downvote":     [ "e6.htk.downvote", "X" ],
+    "favorite":     [ "e6.htk.favorite", "F" ],
+    "note":         [ "e6.htk.note", "N" ],
+    "random":       [ "e6.htk.random", "R" ],
+    "edit-d":       [ "e6.htk.edit-alt", "Shift+E" ],
+    "resize":       [ "e6.htk.resize", "V" ],
 
     // Tag Scripts
-    "tag-script-1": [ "e6.htk.tsc-1",     "1" ],
-    "tag-script-2": [ "e6.htk.tsc-2",     "2" ],
-    "tag-script-3": [ "e6.htk.tsc-3",     "3" ],
-    "tag-script-4": [ "e6.htk.tsc-4",     "4" ],
-    "tag-script-5": [ "e6.htk.tsc-5",     "5" ],
-    "tag-script-6": [ "e6.htk.tsc-6",     "6" ],
-    "tag-script-7": [ "e6.htk.tsc-7",     "7" ],
-    "tag-script-8": [ "e6.htk.tsc-8",     "8" ],
-    "tag-script-9": [ "e6.htk.tsc-9",     "9" ],
+    "tag-script-1": [ "e6.htk.tsc-1", "1" ],
+    "tag-script-2": [ "e6.htk.tsc-2", "2" ],
+    "tag-script-3": [ "e6.htk.tsc-3", "3" ],
+    "tag-script-4": [ "e6.htk.tsc-4", "4" ],
+    "tag-script-5": [ "e6.htk.tsc-5", "5" ],
+    "tag-script-6": [ "e6.htk.tsc-6", "6" ],
+    "tag-script-7": [ "e6.htk.tsc-7", "7" ],
+    "tag-script-8": [ "e6.htk.tsc-8", "8" ],
+    "tag-script-9": [ "e6.htk.tsc-9", "9" ],
 
     // Janitor
-    "approve":      [ "e6.htk.apr",       "Shift+O" ],
-    "approve-prev": [ "e6.htk.apr-prev",  "Shift+Q" ],
-    "approve-next": [ "e6.htk.apr-next",  "Shift+W" ],
+    "approve":      [ "e6.htk.apr", "Shift+O" ],
+    "approve-prev": [ "e6.htk.apr-prev", "Shift+Q" ],
+    "approve-next": [ "e6.htk.apr-next", "Shift+W" ],
   };
 
   static ModifierKeys = ["Shift", "Control", "Alt"];
-  static _actionIndex = {};     // List of actions, with hotkeys as an index
-  static _keyIndex = {};        // List of hotkeys, with actions as an index
-  static _listenerIndex = {};   // List of listener functions, with actions as an index.
+  static _actionIndex = {}; // List of actions, with hotkeys as an index
+  static _keyIndex = {}; // List of hotkeys, with actions as an index
+  static _listenerIndex = {}; // List of listener functions, with actions as an index.
   static _heldKeys = new Set(); // List of keys the user is currently holding down
 
   static _enabled = true;
@@ -58,7 +58,7 @@ export default class Hotkeys {
 
 
   /**
-   * Startup task.  
+   * Startup task.
    * Needs to be run before any other modules are initialized.
    */
   static initialize () {
@@ -67,20 +67,20 @@ export default class Hotkeys {
 
     var $root = $("html, body"), $window = $(window);
     Hotkeys.register("scroll-down", () => {
-      $root.animate({ scrollTop: $window.scrollTop() + $window.height() * 0.15 }, 200);
+      $root.animate({ scrollTop: $window.scrollTop() + ($window.height() * 0.15) }, 200);
     });
     Hotkeys.register("scroll-up", () => {
-      $root.animate({ scrollTop: $window.scrollTop() - $window.height() * 0.15 }, 200);
+      $root.animate({ scrollTop: $window.scrollTop() - ($window.height() * 0.15) }, 200);
     });
 
     this.listen();
   }
 
   /**
-   * Creates search indexes for both keys and actions.  
+   * Creates search indexes for both keys and actions.
    * This needs to be done every time the hotkeys are initialized or changed.
    */
-  static rebuildKeyIndexes() {
+  static rebuildKeyIndexes () {
     for (const [action, keybinds] of Object.entries(Hotkeys.Definitions)) {
       if (!keybinds || keybinds.length == 0 || keybinds === "|") continue;
       const keys = keybinds.split("|").filter(n => n);
@@ -94,7 +94,7 @@ export default class Hotkeys {
   }
 
   /**
-   * Listen to keyboard events and trigger an appropriate action.  
+   * Listen to keyboard events and trigger an appropriate action.
    * Multi-key combinations are detected by recording the keys as they are pressed down,
    * and erasing them from the record once they are released.
    */
@@ -102,7 +102,7 @@ export default class Hotkeys {
     const $document = $(document);
     $document.off("keydown.hotkeys, keyup.hotkeys");
 
-    
+
     /** == Key Press Down == */
     $document.on("keydown.hotkeys", (event) => {
       const key = formatKey(event.key);
@@ -110,10 +110,10 @@ export default class Hotkeys {
       this._heldKeys.add(key);
 
       const keybindString = Hotkeys.buildKeybindString([...this._heldKeys]);
-      $document.trigger("e6.hotkeys.keydown", [this._heldKeys])
+      $document.trigger("e6.hotkeys.keydown", [this._heldKeys]);
 
-      if (!Hotkeys.enabled) return;     // Global hotkey toggle
-      if (isInputFocused()) return;     // Input or Textarea focused
+      if (!Hotkeys.enabled) return; // Global hotkey toggle
+      if (isInputFocused()) return; // Input or Textarea focused
 
       // Verify that an action corresponds to this key
       const actions = this._actionIndex[keybindString];
@@ -154,13 +154,13 @@ export default class Hotkeys {
     });
 
 
-    function isInputFocused() { return $(document.activeElement).is("input, textarea"); }
-    function formatKey(input) { return /^\w{1}$/.test(input) ? input.toUpperCase() : input; }
+    function isInputFocused () { return $(document.activeElement).is("input, textarea"); }
+    function formatKey (input) { return /^\w{1}$/.test(input) ? input.toUpperCase() : input; }
   }
 
 
   /** Finds and imports all hotkeys that are defined using data-elements. */
-  static importSimpleActions() {
+  static importSimpleActions () {
     for (const action of Object.keys(this.Definitions)) {
       // Check if the action exists on the page
       const element = $(`[data-hotkey="${action}"]`);
@@ -175,12 +175,12 @@ export default class Hotkeys {
     }
   }
 
-  static _simpleClickHandler(element) {
+  static _simpleClickHandler (element) {
     if (element.is(":disabled")) return;
     element[0].click();
   }
-  
-  static _simpleInputHandler(element) {
+
+  static _simpleInputHandler (element) {
     if (element.is(":disabled")) return;
     element.trigger("focus").selectEnd();
   }
@@ -189,9 +189,8 @@ export default class Hotkeys {
    * Register a custom handler for a hotkey action.
    * @param {string} action Action name, must be present in the definitions
    * @param {function} listener Function that is executed once the action is triggered
-   * @returns 
    */
-  static register(action, listener) {
+  static register (action, listener) {
     if (!action || !listener) return;
 
     // Ensure that the action is defined
@@ -209,7 +208,7 @@ export default class Hotkeys {
    * @param {string} action Action name
    * @returns {string} Hotkey string
    */
-  static getKeyString(action) {
+  static getKeyString (action) {
     const keys = this._keyIndex[action];
     if (!keys || keys.length == 0) return "none";
     return keys.join(" or ");
@@ -220,7 +219,7 @@ export default class Hotkeys {
    * @param {string} action Action name
    * @returns {Array[string]} List of keys
    */
-  static getKeys(action) {
+  static getKeys (action) {
     const keys = this._keyIndex[action];
     if (!keys || keys.length == 0) return ["", ""];
     if (keys.length == 1) keys.push("");
@@ -229,10 +228,10 @@ export default class Hotkeys {
 
   /**
    * Build a keybind string from an array of keys.
-   * @param {Array[string]} keys 
+   * @param {Array[string]} keys Array of string keys
    * @returns {string}
    */
-  static buildKeybindString(keys) {
+  static buildKeybindString (keys) {
     return keys.sort((a, b) => {
       return Hotkeys.ModifierKeys.indexOf(b) - Hotkeys.ModifierKeys.indexOf(a);
     }).join("+");

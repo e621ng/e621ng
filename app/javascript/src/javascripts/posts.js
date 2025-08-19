@@ -36,9 +36,9 @@ Post.initialize_all = function () {
     this.initialize_edit_dialog();
   }
 
-  $(document).on("danbooru:open-post-edit-tab", () => Hotkeys.enabled = false);        // TODO What is this used for?
+  $(document).on("danbooru:open-post-edit-tab", () => Hotkeys.enabled = false);
   $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").trigger("focus"));
-  $(document).on("danbooru:close-post-edit-tab", () => Hotkeys.enabled = true);      // TODO What is this used for?
+  $(document).on("danbooru:close-post-edit-tab", () => Hotkeys.enabled = true);
 
   var $fields_multiple = $("[data-autocomplete=\"tag-edit\"]");
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
