@@ -106,16 +106,17 @@ export default class Hotkeys {
    * Listen to keyboard events and trigger an appropriate action.
    */
   static listen () {
-    $(document).off("keydown.hotkeys, keyup.hotkeys");
+    const $document = $(document);
+
+    $document.off("keydown.hotkeys, keyup.hotkeys");
 
     // Keep track of all keys that are currently held down,
     // evaluating any keybinds every time a new key is held.
 
-    $(document).on("keydown.hotkeys", (event) => {
-      if (!Hotkeys.enabled) return;     // Global hotkey toggle
-      if (isInputFocused()) return;     // Input or Textarea focused
-
+    $document.on("keydown.hotkeys", (event) => {
       // Log key down
+      // This is done even if the hotkeys are disabled
+      // in order to get the rebinding UI to work.
       const key = formatKey(event.key);
       if (this._heldKeys.has(key)) return;
       this._heldKeys.add(key);
@@ -125,37 +126,45 @@ export default class Hotkeys {
         return Hotkeys.ModifierKeys.indexOf(b) - Hotkeys.ModifierKeys.indexOf(a);
       }).join("+");
 
-      console.log(`Key down: ${sortedKeys}`);
-      const action = this._actionIndex[sortedKeys];
-      if (!action) return;
+      $document.trigger("e6.hotkeys.keydown", [this._heldKeys])
 
-      console.log("Found action", action);
-      const listeners = this._listenerIndex[action];
-      if (!listeners || listeners.length == 0) return;
-
-      console.log(`${listeners.length} listener(s) triggered`, action);
-      for (const one of listeners) one();
-
-      event.preventDefault();
-      return false;
-    });
-
-    $(document).on("keyup.hotkeys", (event) => {
       if (!Hotkeys.enabled) return;     // Global hotkey toggle
       if (isInputFocused()) return;     // Input or Textarea focused
 
-      // Log key up
-      const key = formatKey(event.key);
-      this._heldKeys.delete(key);
+      // Verify that an action corresponds to this key
+      const actions = this._actionIndex[sortedKeys];
+      if (!actions || actions.length == 0) return;
 
-      console.log(`Key up: ${key}`);
+      // Multiple actions can be tied to a single keybind
+      for (const action of actions) {
+        const listeners = this._listenerIndex[action];
+        if (!listeners || listeners.length == 0) continue;
 
+        // Trigger the action
+        for (const one of listeners) one();
+      }
+
+      // Avoid default behavior
+      // Otherwise, the key could get inserted into inputs
       event.preventDefault();
       return false;
     });
 
-    $(document).on("blur", () => {
+    $document.on("keyup.hotkeys", (event) => {
+      const key = formatKey(event.key);
+      this._heldKeys.delete(key);
+
+      $document.trigger("e6.hotkeys.keyup", [this._heldKeys]);
+
+      // Avoid default behavior
+      // Otherwise, the key could get inserted into inputs
+      event.preventDefault();
+      return false;
+    });
+
+    $document.on("blur", () => {
       this._heldKeys.clear();
+      $document.trigger("e6.hotkeys.keyup", [this._heldKeys]);
     });
 
     function isInputFocused() { return $(document.activeElement).is("input, textarea"); }
@@ -175,7 +184,7 @@ export default class Hotkeys {
       else this._listenerIndex[action].push(() => this._simpleClickHandler(element));
 
       if (!element.attr("title"))
-        element.attr("title", `Shortcut: ${this.getKeys(action)}`);
+        element.attr("title", `Shortcut: ${this.getKeyString(action)}`);
     }
   }
 
@@ -207,13 +216,18 @@ export default class Hotkeys {
    * @param {string} action Action name
    * @returns {string} Hotkey string
    */
-  static getKeys (action) {
+  static getKeyString(action) {
     const keys = this._keyIndex[action];
     if (!keys || keys.length == 0) return "none";
     return keys.join(" or ");
   }
 
-
+  static getKeys(action) {
+    const keys = this._keyIndex[action];
+    if (!keys || keys.length == 0) return ["", ""];
+    if (keys.length == 1) keys.push("");
+    return keys;
+  }
 }
 
 Hotkeys.initialize();

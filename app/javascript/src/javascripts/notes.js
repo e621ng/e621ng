@@ -564,7 +564,7 @@ let Note = {
       $(document).on("mouseup.danbooru.note", Note.TranslationMode.Drag.stop);
       $("#mark-as-translated-section").show();
 
-      Utility.notice(`Translation mode is on. Drag on the image to create notes. <a href=\"#\">Turn translation mode off</a> (shortcut is <span class=\"key\">${Hotkeys.getKeys("note")}</span>).`);
+      Utility.notice(`Translation mode is on. Drag on the image to create notes. <a href=\"#\">Turn translation mode off</a> (shortcut is <span class=\"key\">${Hotkeys.getKeyString("note")}</span>).`);
       $("#notice a:contains(Turn translation mode off)").on("click.danbooru", Note.TranslationMode.stop);
     },
 
