@@ -60,6 +60,7 @@ export default class StaticShortcuts {
     });
   }
 
+  /** Build the hotkey rebinding UI. */
   build() {
     const wrapper = $("#hotkeys-wrapper");
 
@@ -84,6 +85,11 @@ export default class StaticShortcuts {
     }
   }
 
+
+  /**
+   * Handle hotkey rebinding.
+   * @param {JQuery<HTMLElement>} element 
+   */
   handleInput(element) {
 
     // Clean up any other active rebinding inputs
