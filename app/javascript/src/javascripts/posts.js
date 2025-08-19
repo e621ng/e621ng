@@ -326,7 +326,6 @@ Post.nav_next = function () {
 Post.initialize_shortcuts = function () {
   if (!Page.matches("posts")) return;
 
-  console.log("action", Page.Action);
   if (Page.Action == "show") {
     Hotkeys.register("prev", Post.nav_prev);
     Hotkeys.register("next", Post.nav_next);

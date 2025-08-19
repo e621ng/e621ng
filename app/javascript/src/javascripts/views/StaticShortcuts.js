@@ -116,6 +116,7 @@ export default class StaticShortcuts {
         resetInput(element, binding);
         $document.off("e6.hotkeys.keyup.bind e6.hotkeys.keydown.bind");
         Hotkeys.Definitions[action] = collectBindings(action).join("|");
+        Hotkeys.rebuildKeyIndexes();
       });
     
     $document.on("e6.hotkeys.keydown.bind", (_event, data) => {
@@ -126,19 +127,14 @@ export default class StaticShortcuts {
           resetInput(element, "");
           $document.off("e6.hotkeys.keyup.bind e6.hotkeys.keydown.bind");
           Hotkeys.Definitions[action] = collectBindings(action).join("|");
+          Hotkeys.rebuildKeyIndexes();
 
           return;
         }
 
-        binding = sortKeys(data);
+        binding = Hotkeys.buildKeybindString([...data]);
         element.text(binding);
       });
-
-    function sortKeys(heldKeys) {
-      return [...heldKeys].sort((a, b) => {
-        return Hotkeys.ModifierKeys.indexOf(b) - Hotkeys.ModifierKeys.indexOf(a);
-      }).join("+");
-    }
     
     function resetInput($input, value = null) {
       if (value == null) value = $input.attr("old") || "";

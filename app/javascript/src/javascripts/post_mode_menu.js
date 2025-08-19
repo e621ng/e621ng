@@ -8,6 +8,7 @@ import Hotkeys from "./hotkeys";
 import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
 import PostVote from "./models/PostVote";
+import User from "./models/User";
 
 let PostModeMenu = {};
 
@@ -17,7 +18,7 @@ PostModeMenu.initialize = function () {
     this.initialize_preview_link();
     this.initialize_edit_form();
     this.initialize_tag_script_field();
-    this.initialize_shortcuts();
+    if (User.is.privileged) this.initialize_shortcuts();
     PostModeMenu.change();
   }
 };
@@ -32,7 +33,6 @@ PostModeMenu.show_notice = function (i) {
 };
 
 PostModeMenu.change_tag_script = function (key) {
-  console.log("Changing tag script to:", key);
   if ($("#mode-box-mode").val() !== "tag-script")
     return;
 

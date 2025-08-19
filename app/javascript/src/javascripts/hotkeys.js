@@ -161,7 +161,7 @@ export default class Hotkeys {
 
   /** Finds and imports all hotkeys that are defined using data-elements. */
   static importSimpleActions() {
-    for (const action of Object.values(this._actionIndex)) {
+    for (const action of Object.keys(this.Definitions)) {
       // Check if the action exists on the page
       const element = $(`[data-hotkey="${action}"]`);
       if (element.length == 0) continue;
