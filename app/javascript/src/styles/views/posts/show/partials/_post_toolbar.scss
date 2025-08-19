@@ -99,19 +99,9 @@
 // Fullscreen button
 #ptbr-wrapper .ptbr-fullscreen-button {
   font-family: "Roboto", Verdana, Geneva, sans-serif;
-  color: palette("plain-black");
   &:after {
     display: none;
     content: "Fullscreen";
-  }
-
-  background-color: palette("background-orange");
-  &:hover, &:active, &:focus { background-color: palette("background-orange-d5"); }
-
-  box-shadow: 0 0.25rem palette("background-orange-d10");
-  &:active, &[processing="true"].anim {
-    translate: 0 0.125rem;
-    box-shadow: 0 0.125rem palette("background-orange-d10");
   }
 
   @include window-larger-than(50rem) {
