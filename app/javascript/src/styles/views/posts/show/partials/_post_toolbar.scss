@@ -66,9 +66,11 @@
     font-weight: bold;
 
     // Separators between buttons and score
-    margin: 0 1.5px;
+    border-width: 0 1px;
+    border-color: themed("color-foreground");
+    border-style: solid;
     &.anonymous {
-      margin: 0;
+      border-color: transparent;
       @include st-radius;
     }
   }
