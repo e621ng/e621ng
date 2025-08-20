@@ -1208,6 +1208,7 @@ class TagQueryTest < ActiveSupport::TestCase
       end
 
       # TODO: Add these
+      # when "hot_from" then q[:hot_from] = ParseValue.date_from(g2)
       # when "date", "-date", "~date" then add_to_query(type, :date, ParseValue.date_range(g2))
       # when "age", "-age", "~age" then add_to_query(type, :age, ParseValue.invert_range(ParseValue.range(g2, :age)))
       # when "source", "-source", "~source" add_to_query(type, :sources, g2, any_none_key: :source, wildcard: true) { "#{g2}*" }
