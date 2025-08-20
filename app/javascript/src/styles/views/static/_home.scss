@@ -3,11 +3,12 @@ body.c-static.a-home {
   background-color: themed("bg-color", #012e57);
   background-image: themed("bg-image");
 
-  background-position-y: 3.75rem;
+  background-size: 100vw;
+  @include window-larger-than(500px) { background-size: 500px; }
+  @include window-larger-than(50rem) { background-size: 750px; }
 
-  @include window-larger-than(50rem) {
-    background-position-y: unset;
-  }
+  background-position-y: 3.5rem;
+  @include window-larger-than(50rem) { background-position-y: unset; }
 
   #page {
     background: none;
