@@ -26,6 +26,15 @@
     <% end %>
   </section>
 
+  <% if Danbooru.config.subscribestar_url.present? %>
+    <section class="home-section home-subscribestar">
+      <a href="<%= subscribestar_path %>">
+        <div>Enjoying e621? Consider <span class="fake-link">supporting us</span>.</div>
+        <%= image_tag("ss_logotype.png", width: 256) %>
+      </a>
+    </section>
+  <% end %>
+
   <% if news_update = NewsUpdate.recent %>
     <section class="home-section">
       <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
