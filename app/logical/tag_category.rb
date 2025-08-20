@@ -37,6 +37,15 @@ class TagCategory
     "Lore" => 8,
   }.freeze
 
+  MEMBER_EDITABLE_MAPPING = {
+    "General" => 0,
+    "Artist" => 1,
+    "Contributor" => 2,
+    "Copyright" => 3,
+    "Character" => 4,
+    "Species" => 5,
+  }.freeze
+
   REVERSE_MAPPING = {
     0 => "general",
     1 => "artist",
