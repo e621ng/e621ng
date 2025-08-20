@@ -369,6 +369,19 @@ Post.initialize_shortcuts = function () {
     });
   }
 
+  if (["index", "show"].includes(Page.Action))
+    Hotkeys.register("random", () => {
+      const query = $("#tags").val() + "";
+      if (!query) {
+        location.href = "/posts/random";
+        return;
+      }
+
+      const encodedTags = [];
+      for (const one of query.split(" "))
+        encodedTags.push(encodeURIComponent(one));
+      location.href = "/posts/random?tags=" + encodedTags.join("+");
+    });
 };
 
 Post.initialize_links = function () {
