@@ -184,7 +184,6 @@ export default class PostsShowToolbar {
 
       fetch(url, {
         mode: "cors",
-        credentials: "include",
       })
         .then(response => response.blob())
         .then(blob => {
