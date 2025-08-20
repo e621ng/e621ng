@@ -176,6 +176,7 @@
 #ptbr-wrapper .ptbr-notes {
   display: none;  // In the hamburger menu on mobile
   @include window-larger-than(40rem) { display: flex; }
+  &.hidden { display: none; }
 }
 
 #ptbr-wrapper .ptbr-notes-button {
@@ -246,6 +247,8 @@
       100% { transform: rotate(360deg); }
     }
   }
+
+  .ptbr-notes-button.hidden { display: none; }
 }
 
 
