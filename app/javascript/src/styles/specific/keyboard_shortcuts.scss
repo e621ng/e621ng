@@ -1,21 +1,47 @@
+div#c-static div#a-keyboard-shortcuts {
 
+  #hotkeys-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, max-content 1fr);
+    width: min-content;
+    gap: 0.75rem 1rem;
+    align-items: center;
+  }
 
-div#c-static {
-  div#a-keyboard-shortcuts {
-    overflow: visible;
+  // Category header
+  h3 {
+    grid-column: 1 / -1;
+    margin-left: 1rem;
+  }
 
-    section {
-      min-width: 20%;
-      float: left;
-      margin-bottom: 1em;
-      padding-right: 1em;
+  .hotkey-title {
+    margin-left: 1rem;
+    text-align: right;
+  }
 
-      h1 {
-        font-size: $h3-size;
+  .hotkey-keys {
+    display: flex;
+    gap: 0.25rem;
+
+    button {
+      width: 6rem;
+      height: 1.5rem;
+      text-align: center;
+
+      background: palette("plain-white");
+      font-family: "Roboto", Verdana, Geneva, sans-serif;
+      font-size: 1rem;
+      line-height: 1rem;
+      padding: 0.25rem;
+
+      &[ready="true"] { background-color: palette("background-gold"); }
+      &:hover { background-color: palette("background-gold-l10"); }
+
+      &:first-child {
+        @include st-radius-left;
       }
-
-      li {
-        margin-bottom: 0.5em;
+      &:last-child {
+        @include st-radius-right;
       }
     }
   }

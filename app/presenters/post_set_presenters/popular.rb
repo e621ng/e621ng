@@ -70,7 +70,7 @@ module PostSetPresenters
           ),
           id: link_rel_for_scale?(template, scale) ? "paginator-prev" : nil,
           rel: link_rel_for_scale?(template, scale) ? "prev" : nil,
-          data: { shortcut: link_rel_for_scale?(template, scale) ? "a left" : nil },
+          data: { hotkey: link_rel_for_scale?(template, scale) ? "prev" : nil },
         )
         scale_link = template.link_to(scale.capitalize, template.popular_index_path(date: date, scale: scale), class: "desc")
         next_link = template.link_to(
@@ -81,7 +81,7 @@ module PostSetPresenters
           ),
           id: link_rel_for_scale?(template, scale) ? "paginator-next" : nil,
           rel: link_rel_for_scale?(template, scale) ? "next" : nil,
-          data: { shortcut: link_rel_for_scale?(template, scale) ? "d right" : nil },
+          data: { hotkey: link_rel_for_scale?(template, scale) ? "next" : nil },
         )
         prev_link + scale_link + next_link
       end

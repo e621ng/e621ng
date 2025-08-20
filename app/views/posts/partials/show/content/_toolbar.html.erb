@@ -12,6 +12,7 @@
   >
     <button
       class="st-button kinetic ptbr-vote-button"
+      data-hotkey="upvote"
       data-action="1"
       processing="false"
     ><%= svg_icon(:chevron_up) %></button>
@@ -23,6 +24,7 @@
     </span>
     <button
       class="st-button kinetic ptbr-vote-button"
+      data-hotkey="downvote"
       data-action="-1"
       processing="false"
     ><%= svg_icon(:chevron_down) %></button>
@@ -31,7 +33,7 @@
   <div class="ptbr-favorite">
     <button
       class="st-button kinetic ptbr-favorite-button anim"
-      data-shortcut="f"
+      data-hotkey="favorite"
       favorited="<%= @post.is_favorited? %>"
       processing="false"
     >
