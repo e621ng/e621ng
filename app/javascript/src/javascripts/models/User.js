@@ -112,7 +112,7 @@ export default class User {
   /** @returns {number} Maximum comment score before it is filtered out */
   static get commentThreshold () { return this._get().commentThreshold; }
 
-  /** @returns {number} Maximum comment score before it is filtered out */
+  /** @returns {boolean} True if hotkeys are enabled, false otherwise */
   static get hotkeysEnabled () { return this._get().hotkeysEnabled; }
 
   /** @returns {{tags: string[], users: boolean}} Blacklist data */
