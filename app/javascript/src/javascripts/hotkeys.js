@@ -21,6 +21,8 @@ export default class Hotkeys {
     "upvote":       [ "e6.htk.upvote", "Z" ],
     "downvote":     [ "e6.htk.downvote", "X" ],
     "favorite":     [ "e6.htk.favorite", "F" ],
+    "favorite-add": [ "e6.htk.favorite-add", "Shift+F" ],
+    "favorite-del": [ "e6.htk.favorite-del", "" ],
     "note":         [ "e6.htk.note", "N" ],
     "random":       [ "e6.htk.random", "R" ],
     "edit-d":       [ "e6.htk.edit-alt", "Shift+E" ],
