@@ -84,7 +84,12 @@ export default class Hotkeys {
    */
   static rebuildKeyIndexes () {
     for (const [action, keybinds] of Object.entries(Hotkeys.Definitions)) {
-      if (!keybinds || keybinds.length == 0 || keybinds === "|") continue;
+      if (!keybinds || keybinds.length == 0 || keybinds === "|") {
+        // No keys bound, but we still have to register the action
+        this._keyIndex[action] = [];
+        continue;
+      }
+
       const keys = keybinds.split("|").filter(n => n);
       for (const one of keys) {
         if (!this._actionIndex[one]) this._actionIndex[one] = [];
@@ -196,7 +201,7 @@ export default class Hotkeys {
     if (!action || !listener) return;
 
     // Ensure that the action is defined
-    if (!this._keyIndex[action]) {
+    if (typeof this._keyIndex[action] == "undefined") {
       console.error("Unknown hotkey action:", action);
       return;
     }
