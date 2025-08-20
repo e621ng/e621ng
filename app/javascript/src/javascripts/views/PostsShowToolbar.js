@@ -11,7 +11,8 @@ export default class PostsShowToolbar {
   static _currentPost = null;
   static get currentPost () {
     if (!this._currentPost) this._currentPost = Post.currentPost();
-    return this._currentPost;
+    if (!PostsShowToolbar._currentPost) PostsShowToolbar._currentPost = Post.currentPost();
+    return PostsShowToolbar._currentPost;
   }
 
 
