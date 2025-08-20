@@ -88,12 +88,18 @@
     >
       View
     </a>
-    <button class="st-button kinetic ptbr-fullscreen-toggle">
+  </div>
+
+  <div class="ptbr-etc">
+    <button class="st-button kinetic ptbr-etc-toggle">
       <%= svg_icon(:ellipsis_v) %>
     </button>
-    <div class="ptbr-fullscreen-menu hidden">
-      <a href="<%= @post.file_url %>" class="st-button ptbr-fullscreen-menu-a">Fullscreen</a>
-      <a href="<%= @post.file_url %>" class="st-button ptbr-fullscreen-menu-b" download>Download</a>
+    <div class="ptbr-etc-menu hidden">
+      <a href="<%= @post.file_url %>" class="st-button ptbr-etc-fullscreen">Fullscreen</a>
+      <a href="<%= @post.file_url %>" class="st-button ptbr-etc-download" download="<%= @post.md5 %>.<%= @post.file_ext %>" pending="false">
+        <%= svg_icon(:hexagon) %>
+        <span>Download</span>
+      </a>
       <button class="st-button ptbr-notes-button" enabled="true"></button>
     </div>
   </div>

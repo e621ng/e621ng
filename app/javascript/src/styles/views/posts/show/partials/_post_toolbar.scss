@@ -145,43 +145,11 @@
 
 // Fullscreen button
 #ptbr-wrapper .ptbr-fullscreen {
-  display: flex;
-  position: relative;
-  gap: 0.5rem;
-}
-
-#ptbr-wrapper .ptbr-fullscreen-button {
   display: none;
-  font-family: "Roboto", Verdana, Geneva, sans-serif;
-
   @include window-larger-than(40rem) { display: flex; }
 }
-
-#ptbr-wrapper .ptbr-fullscreen-menu {
-  display: flex;
-  flex-flow: column;
-  gap: 0.25rem;
-
-  position: absolute;
-  right: 0;
-  top: 2rem;
-  padding: 0.25rem 0.25rem;
-  margin-top: 0.5rem;
-
-  background: themed("color-section");
-  @include st-radius;
-
-  &.hidden { display: none; }
-
-  // Mobile-only buttons
-  @include window-larger-than(40rem) {
-    .ptbr-fullscreen-menu-a { display: none; }
-    .ptbr-notes-button { display: none; }
-  }
-
-  .st-button {
-    font-family: "Roboto", Verdana, Geneva, sans-serif;
-  }
+#ptbr-wrapper .ptbr-fullscreen-button {
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
 }
 
 
@@ -217,6 +185,69 @@
 
   &[enabled="false"] { &:after { content: "Notes: Off"; } }
 }
+
+
+// Overflow menu
+#ptbr-wrapper .ptbr-etc {
+  display: flex;
+  position: relative;
+  gap: 0.5rem;
+}
+
+#ptbr-wrapper .ptbr-etc-menu {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+
+  position: absolute;
+  right: 0;
+  top: 2rem;
+  padding: 0.25rem 0.25rem;
+  margin-top: 0.5rem;
+
+  background: themed("color-section");
+  @include st-radius;
+
+  &.hidden { display: none; }
+
+  // Mobile-only buttons
+  @include window-larger-than(40rem) {
+    .ptbr-etc-fullscreen { display: none; }
+    .ptbr-notes-button { display: none; }
+  }
+
+  .st-button {
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+  }
+
+  // Download button
+  .ptbr-etc-download {
+    min-width: 6rem;
+    align-items: center;
+
+    svg {
+      display: none;
+      height: 1rem;
+      width: 1rem;
+
+      animation: spin-animation ease-in-out 1s infinite;
+    }
+    span {
+      text-align: center;
+    }
+
+    &[pending="true"] {
+      svg { display: inline; }
+      span { display: none; }
+    }
+
+    @keyframes spin-animation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  }
+}
+
 
 
 // Section holding SVG filters
