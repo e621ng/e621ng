@@ -28,7 +28,7 @@ Utility.notice = function (msg, permanent) {
     Utility.notice_timeout_id = setTimeout(function () {
       $("#close-notice-link").click();
       Utility.notice_timeout_id = undefined;
-    }, 6000);
+    }, 3000);
   }
 };
 

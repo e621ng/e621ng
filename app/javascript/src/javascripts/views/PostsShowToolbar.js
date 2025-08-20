@@ -67,8 +67,18 @@ export default class PostsShowToolbar {
   }
 
   initVotingHotkeys () {
-    Hotkeys.register("upvote", () => { PostsShowToolbar.vote(1); });
-    Hotkeys.register("downvote", () => { PostsShowToolbar.vote(-1); });
+    Hotkeys.register("upvote", () => {
+      Utility.notice("Updating post...");
+      PostsShowToolbar.vote(1).then(() => {
+        Utility.notice("Post upvoted.");
+      });
+    });
+    Hotkeys.register("downvote", () => {
+      Utility.notice("Updating post...");
+      PostsShowToolbar.vote(-1).then(() => {
+        Utility.notice("Post downvoted.");
+      });
+    });
   }
 
   static async vote (direction) {
@@ -109,19 +119,22 @@ export default class PostsShowToolbar {
     const imageEl = $("#image-container");
 
     Hotkeys.register("favorite", () => {
+      Utility.notice("Updating post...");
       if (imageEl.attr("data-is-favorited") == "true")
-        PostsShowToolbar.deleteFavorite();
-      else PostsShowToolbar.addFavorite();
+        PostsShowToolbar.deleteFavorite().then(() => Utility.notice("Favorite removed."));
+      else PostsShowToolbar.addFavorite().then(() => Utility.notice("Favorite added."));
     });
 
     Hotkeys.register("favorite-add", () => {
       if (imageEl.attr("data-is-favorited") == "true") return;
-      PostsShowToolbar.addFavorite();
+      Utility.notice("Updating post...");
+      PostsShowToolbar.addFavorite().then(() => Utility.notice("Favorite added."));
     });
 
     Hotkeys.register("favorite-del", () => {
       if (imageEl.attr("data-is-favorited") == "false") return;
-      PostsShowToolbar.deleteFavorite();
+      Utility.notice("Updating post...");
+      PostsShowToolbar.deleteFavorite().then(() => Utility.notice("Favorite removed."));
     });
   }
 
