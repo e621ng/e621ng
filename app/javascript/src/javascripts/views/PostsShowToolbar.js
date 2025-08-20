@@ -179,14 +179,12 @@ export default class PostsShowToolbar {
       if (button.attr("pending") == "true") return;
       button.attr("pending", "true");
 
-      button.attr("pending", "true");
-
       const url = PostsShowToolbar.currentPost.file.url;
       console.log("downloading", url);
 
       fetch(url, {
-        headers: new Headers({ "Origin": location.origin }),
         mode: "cors",
+        credentials: "include",
       })
         .then(response => response.blob())
         .then(blob => {
