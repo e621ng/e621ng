@@ -170,7 +170,7 @@ module ApplicationHelper
         controller: controller_param,
         action: action_param,
         **data_attributes_for(user, "user", attributes),
-        disable_cropped_thumbnails: Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails?,
+        hotkeys_enabled: CurrentUser.user.enable_keyboard_navigation?,
       },
     }
   end

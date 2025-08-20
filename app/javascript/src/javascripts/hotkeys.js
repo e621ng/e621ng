@@ -1,3 +1,4 @@
+import User from "./models/User";
 import StorageUtils from "./utility/storage_util";
 
 export default class Hotkeys {
@@ -119,6 +120,7 @@ export default class Hotkeys {
       const keybindString = Hotkeys.buildKeybindString([...this._heldKeys]);
       $document.trigger("e6.hotkeys.keydown", [this._heldKeys]);
 
+      if (!User.hotkeysEnabled) return; // User has disabled hotkeys
       if (!Hotkeys.enabled) return; // Global hotkey toggle
       if (isInputFocused()) return; // Input or Textarea focused
 
