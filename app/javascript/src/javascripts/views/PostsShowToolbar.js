@@ -36,9 +36,7 @@ export default class PostsShowToolbar {
     });
 
     // Initialize fullscreen menu toggle
-    $(".ptbr-fullscreen").each((_index, element) => {
-      this.initFullscreenMenuToggle($(element));
-    });
+    this.initOverflowMenu();
   }
 
 
@@ -169,10 +167,40 @@ export default class PostsShowToolbar {
   }
 
   // Fullscreen / download menu
-  initFullscreenMenuToggle (wrapper) {
-    const menu = wrapper.find(".ptbr-fullscreen-menu");
-    wrapper.find(".ptbr-fullscreen-toggle").on("click", () => {
+  initOverflowMenu () {
+    const menu = $(".ptbr-etc-menu");
+    $(".ptbr-etc-toggle").on("click", () => {
       menu.toggleClass("hidden");
+    });
+
+    const button = $(".ptbr-etc-download").on("click.e6.prepare", async (event) => {
+      event.preventDefault();
+
+      if (button.attr("pending") == "true") return;
+      button.attr("pending", "true");
+
+      button.attr("pending", "true");
+
+      const url = PostsShowToolbar.currentPost.file.url;
+      console.log("downloading", url);
+
+      fetch(url, {
+        headers: new Headers({ "Origin": location.origin }),
+        mode: "cors",
+      })
+        .then(response => response.blob())
+        .then(blob => {
+          let blobUrl = window.URL.createObjectURL(blob);
+          button.attr({
+            href: blobUrl,
+            pending: "false",
+          }).off("click.e6.prepare");
+          button[0].click();
+        })
+        .catch(e => {
+          Utility.error("Failed to download post file.", e);
+          button.attr("pending", "false");
+        });
     });
   }
 }
