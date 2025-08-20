@@ -217,3 +217,11 @@
 
   &[enabled="false"] { &:after { content: "Notes: Off"; } }
 }
+
+
+// Section holding SVG filters
+// Cannot be set to display: none, since that breaks it.
+#ptbr-svg-filters {
+  visibility: hidden;
+  height: 0;
+}
