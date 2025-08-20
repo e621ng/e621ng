@@ -17,6 +17,8 @@
 #ptbr-wrapper .ptbr-vote {
   display: flex;
   @include st-radius;
+  position: relative;
+
 
   // Vote actions buttons
   button {
@@ -47,28 +49,22 @@
 
   // Score display
   .ptbr-score {
-    display: flex;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-
-    background-color: themed("color-section-lighten-5");
-    box-shadow: 0 0.25rem themed("color-section");
-
     padding: 0 0.5rem;
     min-width: 3rem; // Fits 3-digit scores
-    height: 2rem;
-    font-size: 1rem;
-    line-height: 1rem;
 
     cursor: help;
     font-family: "Roboto", Verdana, Geneva, sans-serif;
     font-weight: bold;
+    align-items: center;
 
     // Separators between buttons and score
-    margin: 0 1.5px;
+    border-width: 0 1px;
+    border-color: themed("color-foreground");
+    border-style: solid;
+    border-radius: 0;
+
     &.anonymous {
-      margin: 0;
+      border-color: transparent;
       @include st-radius;
     }
   }
@@ -76,74 +72,115 @@
   // Score states
   &[data-state="1"] .ptbr-score { color: palette("text-green"); }
   &[data-state="-1"] .ptbr-score { color: palette("text-red"); }
+
+
+  // Score breakdown popup
+  .ptbr-breakdown {
+    display: flex;
+    position: absolute;
+    top: -2.75rem;
+    left: 50%;
+    translate: -50% 0;
+    text-wrap: nowrap;
+
+    background: themed("color-section-lighten-5");
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-size: 1rem;
+    line-height: 1rem;
+    @include st-radius;
+
+    box-shadow: 0 0 0.5rem black;
+
+    &::after {
+      content: "";
+
+      position: absolute;
+      bottom: -1rem;
+      left: 50%;
+      translate: -50% 0;
+
+      border-width: 0.5rem;
+      border-style: solid;
+      border-color: themed("color-section-lighten-5") transparent transparent transparent;
+    }
+
+    & > span {
+      padding: 0.5rem;
+      font-weight: bold;
+      &:first-child {
+        &:before {
+          content: "▲";
+          padding-right: 0.25rem;
+        }
+        color: palette("text-green");
+      }
+      &:last-child {
+        &:after {
+          content: "▼";
+          padding-left: 0.25rem;
+        }
+        color: palette("text-red");
+      }
+    }
+
+    &.hidden { display: none; }
+  }
 }
 
 
 // Favorite button
 #ptbr-wrapper .ptbr-favorite-button {
   font-family: "Roboto", Verdana, Geneva, sans-serif;
-  color: palette("plain-black");
-  &:after {
-    display: none;
-    content: "Favorite";
-  }
-
-  background-color: palette("background-gold");
-  &:hover, &:focus { background-color: palette("background-gold-d10"); }
-  &[processing="true"] { background-color: palette("background-gold");}
-
-  box-shadow: 0 0.25rem palette("background-gold-d20");
-  &:active, &[processing="true"].anim {
-    translate: 0 0.125rem;
-    box-shadow: 0 0.125rem palette("background-gold-d20");
-  }
-
-
-  @include window-larger-than(50rem) {
-    width: 6rem;
-    &:after { display: inline; }
-    svg { display: none; }
-  }
+  color: palette("background-gold-d10");
 
   &[favorited="true"] {
-    color: palette("text-white");
-    &:after { content: "Unfavorite"; }
-    svg { stroke: palette("background-gold-d10"); }
-
-    background-color: palette("background-red");
-    &:hover, &:focus { background-color: palette("background-red-d5"); }
-    &[processing="true"] { background-color: palette("background-red"); }
-
-    box-shadow: 0 0.25rem palette("background-red-d10");
-    &:active, &[processing="true"].anim {
-      box-shadow: 0 0.125rem palette("background-red-d10");
+    svg {
+      filter: url(#inset-shadow);
+      fill: palette("background-gold-d10");
+      stroke-width: 0;
     }
   }
 }
 
 
 // Fullscreen button
+#ptbr-wrapper .ptbr-fullscreen {
+  display: flex;
+  position: relative;
+  gap: 0.5rem;
+}
+
 #ptbr-wrapper .ptbr-fullscreen-button {
+  display: none;
   font-family: "Roboto", Verdana, Geneva, sans-serif;
-  color: palette("plain-black");
-  &:after {
-    display: none;
-    content: "Fullscreen";
+
+  @include window-larger-than(40rem) { display: flex; }
+}
+
+#ptbr-wrapper .ptbr-fullscreen-menu {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+
+  position: absolute;
+  right: 0;
+  top: 2rem;
+  padding: 0.25rem 0.25rem;
+  margin-top: 0.5rem;
+
+  background: themed("color-section");
+  @include st-radius;
+
+  &.hidden { display: none; }
+
+  // Mobile-only buttons
+  @include window-larger-than(40rem) {
+    .ptbr-fullscreen-menu-a { display: none; }
+    .ptbr-notes-button { display: none; }
   }
 
-  background-color: palette("background-orange");
-  &:hover, &:active, &:focus { background-color: palette("background-orange-d5"); }
-
-  box-shadow: 0 0.25rem palette("background-orange-d10");
-  &:active, &[processing="true"].anim {
-    translate: 0 0.125rem;
-    box-shadow: 0 0.125rem palette("background-orange-d10");
-  }
-
-  @include window-larger-than(50rem) {
-    width: 7rem;
-    &:after { display: inline; }
-    svg { display: none; }
+  .st-button {
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
   }
 }
 
@@ -151,6 +188,7 @@
 // Resize selector
 #ptbr-wrapper .ptbr-resize select {
   height: 2rem;
+  max-width: 25vw; // Prevent overflow on tiny screens
   padding: 0 0.5rem;
 
   font-family: "Roboto", Verdana, Geneva, sans-serif;
@@ -167,10 +205,23 @@
 
 
 // Notes toggle
+#ptbr-wrapper .ptbr-notes {
+  display: none;  // In the hamburger menu on mobile
+  @include window-larger-than(40rem) { display: flex; }
+}
+
 #ptbr-wrapper .ptbr-notes-button {
   width: 6rem;
   font-family: "Roboto", Verdana, Geneva, sans-serif;
   &:after { content: "Notes: On"; }
 
   &[enabled="false"] { &:after { content: "Notes: Off"; } }
+}
+
+
+// Section holding SVG filters
+// Cannot be set to display: none, since that breaks it.
+#ptbr-svg-filters {
+  visibility: hidden;
+  height: 0;
 }

@@ -16,11 +16,11 @@
       data-action="1"
       processing="false"
     ><%= svg_icon(:chevron_up) %></button>
-    <span
-      class="ptbr-score"
-      title="↑ <%= @post.up_score %> <%= @post.down_score %> ↓"
-      >
+    <button class="st-button kinetic ptbr-score">
       <%= @post.score %>
+    </button>
+    <span class="ptbr-breakdown hidden">
+      <span><%= @post.up_score %></span><span><%= @post.down_score %></span>
     </span>
     <button
       class="st-button kinetic ptbr-vote-button"
@@ -48,23 +48,21 @@
     data-down="<%= @post.down_score %>"
     data-state="<%= post_score_state(@post) %>"
   >
-    <span
-      class="ptbr-score anonymous"
-      title="↑ <%= @post.up_score %> <%= @post.down_score %> ↓"
-      >
+    <button class="st-button kinetic ptbr-score anonymous">
       <%= @post.score %>
+    </button>
+    <span class="ptbr-breakdown hidden">
+      <span><%= @post.up_score %></span><span><%= @post.down_score %></span>
     </span>
   </div>
 <% end %>
 
-<% if @post.visible? %>
-  <div class="ptbr-fullscreen">
-    <a
-      href="<%= @post.file_url %>"
-      class="st-button kinetic ptbr-fullscreen-button"
-    >
-      <%= svg_icon(:download) %>
-    </a>
+<% if @post.visible? && @post.has_notes? %>
+  <div class="ptbr-notes">
+    <button
+      class="st-button kinetic ptbr-notes-button"
+      enabled="true"
+    ></button>
   </div>
 <% end %>
 
@@ -85,13 +83,44 @@
   </div>
 <% end %>
 
-<% if @post.has_notes? %>
-  <div class="ptbr-notes">
-    <button
-      class="st-button kinetic ptbr-notes-button"
-      enabled="true"
-    ></button>
+<% if @post.visible? %>
+  <div class="ptbr-fullscreen">
+    <a
+      href="<%= @post.file_url %>"
+      class="st-button kinetic ptbr-fullscreen-button"
+    >
+      View
+    </a>
+    <button class="st-button kinetic ptbr-fullscreen-toggle">
+      <%= svg_icon(:ellipsis_v) %>
+    </button>
+    <div class="ptbr-fullscreen-menu hidden">
+      <a href="<%= @post.file_url %>" class="st-button ptbr-fullscreen-menu-a">Fullscreen</a>
+      <a href="<%= @post.file_url %>" class="st-button ptbr-fullscreen-menu-b" download>Download</a>
+      <button class="st-button ptbr-notes-button" enabled="true"></button>
+    </div>
   </div>
 <% end %>
 
+</section>
+
+
+<%# SVG Filters %>
+<section id="ptbr-svg-filters">
+  <svg height="0" width="0">
+    <filter id="inset-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feComponentTransfer in="SourceAlpha">
+        <feFuncA type="table" tableValues="1 0"></feFuncA>
+      </feComponentTransfer>
+      <feGaussianBlur stdDeviation="1"></feGaussianBlur>
+      <feOffset result="offsetblur" dx="1" dy="1"></feOffset>
+      <feFlood result="color" flood-color="#be9e2f"></feFlood>
+      <feComposite in2="offsetblur" operator="in"></feComposite>
+      <feComposite in2="SourceAlpha" operator="in"></feComposite>
+      <feMerge>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+        <feMergeNode></feMergeNode>
+      </feMerge>
+    </filter>
+  </svg>
 </section>
