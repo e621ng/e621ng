@@ -55,14 +55,12 @@
   </div>
 <% end %>
 
-<% if @post.visible? %>
-  <div class="ptbr-fullscreen">
-    <a
-      href="<%= @post.file_url %>"
-      class="st-button kinetic ptbr-fullscreen-button"
-    >
-      <%= svg_icon(:download) %>
-    </a>
+<% if @post.visible? && @post.has_notes? %>
+  <div class="ptbr-notes">
+    <button
+      class="st-button kinetic ptbr-notes-button"
+      enabled="true"
+    ></button>
   </div>
 <% end %>
 
@@ -83,12 +81,22 @@
   </div>
 <% end %>
 
-<% if @post.has_notes? %>
-  <div class="ptbr-notes">
-    <button
-      class="st-button kinetic ptbr-notes-button"
-      enabled="true"
-    ></button>
+<% if @post.visible? %>
+  <div class="ptbr-fullscreen">
+    <a
+      href="<%= @post.file_url %>"
+      class="st-button kinetic ptbr-fullscreen-button"
+    >
+      View
+    </a>
+    <button class="st-button kinetic ptbr-fullscreen-toggle">
+      <%= svg_icon(:ellipsis_v) %>
+    </button>
+    <div class="ptbr-fullscreen-menu hidden">
+      <a href="<%= @post.file_url %>" class="st-button ptbr-fullscreen-menu-a">Fullscreen</a>
+      <a href="<%= @post.file_url %>" class="st-button ptbr-fullscreen-menu-b" download>Download</a>
+      <button class="st-button ptbr-notes-button" enabled="true"></button>
+    </div>
   </div>
 <% end %>
 

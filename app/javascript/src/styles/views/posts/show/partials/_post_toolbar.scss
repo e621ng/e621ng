@@ -144,17 +144,43 @@
 
 
 // Fullscreen button
+#ptbr-wrapper .ptbr-fullscreen {
+  display: flex;
+  position: relative;
+  gap: 0.5rem;
+}
+
 #ptbr-wrapper .ptbr-fullscreen-button {
+  display: none;
   font-family: "Roboto", Verdana, Geneva, sans-serif;
-  &:after {
-    display: none;
-    content: "Fullscreen";
+
+  @include window-larger-than(40rem) { display: flex; }
+}
+
+#ptbr-wrapper .ptbr-fullscreen-menu {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+
+  position: absolute;
+  right: 0;
+  top: 2rem;
+  padding: 0.25rem 0.25rem;
+  margin-top: 0.5rem;
+
+  background: themed("color-section");
+  @include st-radius;
+
+  &.hidden { display: none; }
+
+  // Mobile-only buttons
+  @include window-larger-than(40rem) {
+    .ptbr-fullscreen-menu-a { display: none; }
+    .ptbr-notes-button { display: none; }
   }
 
-  @include window-larger-than(50rem) {
-    width: 7rem;
-    &:after { display: inline; }
-    svg { display: none; }
+  .st-button {
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
   }
 }
 
@@ -179,6 +205,11 @@
 
 
 // Notes toggle
+#ptbr-wrapper .ptbr-notes {
+  display: none;  // In the hamburger menu on mobile
+  @include window-larger-than(40rem) { display: flex; }
+}
+
 #ptbr-wrapper .ptbr-notes-button {
   width: 6rem;
   font-family: "Roboto", Verdana, Geneva, sans-serif;

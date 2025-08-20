@@ -28,8 +28,14 @@ export default class PostsShowToolbar {
     });
 
     // Initialize notes toggle
+    PostsShowToolbar.toggleNotes();
     $(".ptbr-notes-button").each((_index, element) => {
       this.initNotesToggle($(element));
+    });
+
+    // Initialize fullscreen menu toggle
+    $(".ptbr-fullscreen").each((_index, element) => {
+      this.initFullscreenMenuToggle($(element));
     });
   }
 
@@ -86,8 +92,6 @@ export default class PostsShowToolbar {
 
   // Notes toggle button
   initNotesToggle (button) {
-    PostsShowToolbar.toggleNotes();
-
     button.on("click", () => {
       LStorage.Posts.Notes = !(button.attr("enabled") == "true");
       PostsShowToolbar.toggleNotes();
@@ -97,6 +101,14 @@ export default class PostsShowToolbar {
   static toggleNotes (visible = LStorage.Posts.Notes) {
     $("#note-container").attr("enabled", visible);
     $(".ptbr-notes-button").attr("enabled", visible);
+  }
+
+  // Fullscreen / download menu
+  initFullscreenMenuToggle (wrapper) {
+    const menu = wrapper.find(".ptbr-fullscreen-menu");
+    wrapper.find(".ptbr-fullscreen-toggle").on("click", () => {
+      menu.toggleClass("hidden");
+    });
   }
 
 }
