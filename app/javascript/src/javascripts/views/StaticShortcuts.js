@@ -18,13 +18,15 @@ export default class StaticShortcuts {
     },
 
     "Posts": {
-      "Vote Up":      "upvote",
-      "Vote Down":    "downvote",
-      "Favorite":     "favorite",
-      "Add Note":     "note",
-      "Random":       "random",
-      "Resize":       "resize",
-      "Edit Inline":  "edit-d",
+      "Vote Up":          "upvote",
+      "Vote Down":        "downvote",
+      "Add Favorite":     "favorite-add",
+      "Remove Favorite":  "favorite-del",
+      "Toggle Favorite":  "favorite",
+      "Add Note":         "note",
+      "Random":           "random",
+      "Resize":           "resize",
+      "Edit Inline":      "edit-d",
     },
   };
 
@@ -77,7 +79,10 @@ export default class StaticShortcuts {
           const keyGroup = $("<div class='hotkey-keys'>").appendTo(wrapper);
           for (const one of Hotkeys.getKeys(action))
             $("<button>")
-              .attr("action", action)
+              .attr({
+                "action": action,
+                "title": one,
+              })
               .text(one)
               .appendTo(keyGroup);
         }
