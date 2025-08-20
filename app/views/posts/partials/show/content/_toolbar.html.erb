@@ -55,7 +55,7 @@
 <% end %>
 
 <% if @post.visible? %>
-  <div class="ptbr-notes <%= @post.has_notes? ? "" : "hidden"%>">
+  <div class="<%= @post.has_notes? ? "ptbr-notes" : "ptbr-notes hidden" %>">
     <button
       class="st-button kinetic ptbr-notes-button"
       enabled="true"
