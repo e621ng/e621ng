@@ -1,10 +1,11 @@
 import Utility from "./utility";
 import ZingTouch from "zingtouch";
 import Note from "./notes";
-import Shortcuts from "./shortcuts";
+import Hotkeys from "./hotkeys";
 import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
 import PostVote from "./models/PostVote";
+import Page from "./utility/page";
 
 let Post = {};
 
@@ -35,9 +36,9 @@ Post.initialize_all = function () {
     this.initialize_edit_dialog();
   }
 
-  $(document).on("danbooru:open-post-edit-tab", () => Shortcuts.disabled = true);
-  $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").focus());
-  $(document).on("danbooru:close-post-edit-tab", () => Shortcuts.disabled = false);
+  $(document).on("danbooru:open-post-edit-tab", () => Hotkeys.enabled = false);
+  $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").trigger("focus"));
+  $(document).on("danbooru:close-post-edit-tab", () => Hotkeys.enabled = true);
 
   var $fields_multiple = $("[data-autocomplete=\"tag-edit\"]");
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
@@ -288,7 +289,7 @@ Post.initialize_gestures = function () {
   $("#image-container").css({overflow: "visible"});
 };
 
-Post.nav_prev = function (e) {
+Post.nav_prev = function () {
   var href = "";
 
   if ($(".search-seq-nav").length) {
@@ -304,11 +305,9 @@ Post.nav_prev = function (e) {
       location.href = href;
     }
   }
-
-  e.preventDefault();
 };
 
-Post.nav_next = function (e) {
+Post.nav_next = function () {
   var href = "";
 
   if ($(".search-seq-nav").length) {
@@ -322,18 +321,14 @@ Post.nav_next = function (e) {
       location.href = href;
     }
   }
-
-  e.preventDefault();
 };
 
 Post.initialize_shortcuts = function () {
-  if ($("#a-show").length) {
-    if ($("#flash-content").length) {
-      Shortcuts.disabled = true;
-      $("#flash-shortcut-notice").show();
-    }
-    Shortcuts.keydown("a", "prev_page", Post.nav_prev);
-    Shortcuts.keydown("d", "next_page", Post.nav_next);
+  if (!Page.matches("posts")) return;
+
+  if (Page.Action == "show") {
+    Hotkeys.register("prev", Post.nav_prev);
+    Hotkeys.register("next", Post.nav_next);
   }
 };
 
@@ -730,10 +725,7 @@ Post.initialize_resize = function () {
   $selector.on("change", () => Post.resize_to($selector.val()));
 };
 
-Post.resize_cycle_mode = function (e) {
-  if (e && e.target)
-    e.preventDefault();
-
+Post.resize_cycle_mode = function () {
   Post.resize_to("next");
 };
 
@@ -742,7 +734,8 @@ Post.initialize_change_resize_mode_link = function () {
     e.preventDefault();
     Post.resize_to("fit");
   }); // For top panel
-  Shortcuts.keydown("v", "resize", Post.resize_cycle_mode);
+
+  Hotkeys.register("resize", Post.resize_cycle_mode);
 };
 
 Post.initialize_post_sections = function () {

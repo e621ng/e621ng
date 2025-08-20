@@ -1,5 +1,3 @@
-import Shortcuts from "./shortcuts";
-
 let Utility = {};
 
 Utility.delay = function (milliseconds) {
@@ -65,23 +63,6 @@ Utility.dialog = function (title, html) {
   $dialog.find("form").on("submit.danbooru", function () {
     $dialog.dialog("close");
   });
-};
-
-// TODO: Remove 2024-05-15
-Object.defineProperty(Utility, "disableShortcuts", {
-  get () {
-    console.log("Utility.disableShortcuts is deprecated and will be removed at a later date, use Shortcuts.disabled instead");
-    return Shortcuts.disabled;
-  },
-  set (value) {
-    console.log("Utility.disableShortcuts is deprecated and will be removed at a later date, use Shortcuts.disabled instead");
-    Shortcuts.disabled = value;
-  },
-});
-
-Utility.keydown = function (keys, namespace, handler) {
-  console.log("Utility.keydown is deprecated and will be removed at a later date, use Shortcuts.keydown instead");
-  Shortcuts.keydown(keys, namespace, handler);
 };
 
 Utility.is_subset = function (array, subarray) {

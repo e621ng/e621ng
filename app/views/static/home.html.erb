@@ -8,7 +8,7 @@
 
       <!-- Primary Searchbar -->
       <div class="home-search">
-        <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { shortcut: "q", autocomplete: "tag-query" }) %>
+        <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { hotkey: "search", autocomplete: "tag-query" }) %>
         <%= tag.button(svg_icon(:search), type: "submit") %>
       </div>
 
