@@ -68,15 +68,15 @@ export default class PostsShowToolbar {
 
   initVotingHotkeys () {
     Hotkeys.register("upvote", () => {
-      Utility.notice("Updating post..");
+      Utility.notice("Updating post...");
       PostsShowToolbar.vote(1).then(() => {
-        Utility.notice("Post upvoted");
+        Utility.notice("Post upvoted.");
       });
     });
     Hotkeys.register("downvote", () => {
       Utility.notice("Updating post...");
       PostsShowToolbar.vote(-1).then(() => {
-        Utility.notice("Post downvoted");
+        Utility.notice("Post downvoted.");
       });
     });
   }
@@ -121,20 +121,20 @@ export default class PostsShowToolbar {
     Hotkeys.register("favorite", () => {
       Utility.notice("Updating post...");
       if (imageEl.attr("data-is-favorited") == "true")
-        PostsShowToolbar.deleteFavorite().then(() => Utility.notice("Favorite removed"));
-      else PostsShowToolbar.addFavorite().then(() => Utility.notice("Favorite added"));
+        PostsShowToolbar.deleteFavorite().then(() => Utility.notice("Favorite removed."));
+      else PostsShowToolbar.addFavorite().then(() => Utility.notice("Favorite added."));
     });
 
     Hotkeys.register("favorite-add", () => {
       if (imageEl.attr("data-is-favorited") == "true") return;
       Utility.notice("Updating post...");
-      PostsShowToolbar.addFavorite().then(() => Utility.notice("Favorite added"));
+      PostsShowToolbar.addFavorite().then(() => Utility.notice("Favorite added."));
     });
 
     Hotkeys.register("favorite-del", () => {
       if (imageEl.attr("data-is-favorited") == "false") return;
       Utility.notice("Updating post...");
-      PostsShowToolbar.deleteFavorite().then(() => Utility.notice("Favorite removed"));
+      PostsShowToolbar.deleteFavorite().then(() => Utility.notice("Favorite removed."));
     });
   }
 
