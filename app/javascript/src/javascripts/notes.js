@@ -541,6 +541,7 @@ let Note = {
         Note.TranslationMode.stop(e);
       } else {
         PostsShowToolbar.toggleNotes(true);
+        $(".ptbr-notes, .ptbr-notes-button").removeClass("hidden");
         Note.TranslationMode.start(e);
       }
     },
