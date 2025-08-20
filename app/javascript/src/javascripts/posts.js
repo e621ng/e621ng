@@ -6,6 +6,7 @@ import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
 import PostVote from "./models/PostVote";
 import Page from "./utility/page";
+import Favorite from "./models/Favorite";
 
 let Post = {};
 
@@ -329,6 +330,43 @@ Post.initialize_shortcuts = function () {
   if (Page.Action == "show") {
     Hotkeys.register("prev", Post.nav_prev);
     Hotkeys.register("next", Post.nav_next);
+
+    // Favorite hotkeys
+    const imageEl = $("#image-container");
+    const postID = Post.currentPost().id;
+
+    const addFav = function () {
+      Favorite.create(postID)
+        .then(() => {
+          $(".ptbr-favorite-button").attr("favorited", "true");
+          imageEl.attr("data-is-favorited", "true");
+          Utility.notice("Favorite added");
+        });
+    };
+
+    const delFav = function () {
+      Favorite.destroy(postID)
+        .then(() => {
+          $(".ptbr-favorite-button").attr("favorited", "false");
+          imageEl.attr("data-is-favorited", "false");
+          Utility.notice("Favorite removed");
+        });
+    };
+
+    Hotkeys.register("favorite", () => {
+      if (imageEl.attr("data-is-favorited") == "true") delFav();
+      else addFav();
+    });
+
+    Hotkeys.register("favorite-add", () => {
+      if (imageEl.attr("data-is-favorited") == "true") return;
+      addFav();
+    });
+
+    Hotkeys.register("favorite-del", () => {
+      if (imageEl.attr("data-is-favorited") == "false") return;
+      delFav();
+    });
   }
 
   if (["index", "show"].includes(Page.Action))

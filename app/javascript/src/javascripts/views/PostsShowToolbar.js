@@ -75,17 +75,25 @@ export default class PostsShowToolbar {
 
   // Favorite button
   initFavoriteButton (button) {
+    const imageEl = $("#image-container");
+
     button.on("click", () => {
       if (button.attr("processing") == "true") return;
       button.attr("processing", "true");
 
       if (button.attr("favorited") == "true")
         Favorite.destroy(this._currentPost.id)
-          .then(() => { button.attr("favorited", "false"); })
+          .then(() => {
+            $(".ptbr-favorite-button").attr("favorited", "false");
+            imageEl.attr("data-is-favorited", "false");
+          })
           .finally(() => { button.attr("processing", "false"); });
       else
         Favorite.create(this._currentPost.id)
-          .then(() => { button.attr("favorited", "true"); })
+          .then(() => {
+            $(".ptbr-favorite-button").attr("favorited", "true");
+            imageEl.attr("data-is-favorited", "true");
+          })
           .finally(() => { button.attr("processing", "false"); });
     });
   }
