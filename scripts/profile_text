@@ -1,0 +1,546 @@
+#! /usr/bin/env bash
+
+# cspell:ignore icos OVERRIDERS
+##region########################################### GET PATH, DIR, & NAME ###########################################
+readonly MY_PATH=$(realpath "$0")
+MY_DIR=''
+MY_NAME=''
+if [[ "$MY_PATH" =~ ^(.*)/([^/]+)$ ]]; then
+	readonly MY_DIR="${BASH_REMATCH[1]}" MY_NAME="${BASH_REMATCH[2]}"
+else
+	readonly MY_DIR="$HOME" MY_NAME="$0"
+	echo "$MY_NAME: Failed to get dir" 1>&2
+	exit 1
+fi
+##endregion######################################## GET PATH, DIR, & NAME ###########################################
+##region########################################### CONSTANTS ###########################################
+readonly C_OUTPUT_ROWS='_0_C_OUTPUT_ROWS'
+readonly C_OUTPUT_MAX_COLS='_1_C_OUTPUT_MAX_COLS'
+readonly C_OUTPUT_MAX_CHARACTERS_IN_A_ROW='_2_C_OUTPUT_MAX_CHARACTERS_IN_A_ROW'
+readonly C_OUTPUT_MAX_COLS_AT='_3_C_OUTPUT_MAX_COLS_AT'
+readonly C_OUTPUT_COLS_AT='_4_C_OUTPUT_COLS_AT'
+readonly C_OUTPUT_CHARS_AT='_5_C_OUTPUT_CHARS_AT'
+readonly C_OUTPUT_ROW_AT='_6_C_OUTPUT_ROW_AT'
+readonly C_OUTPUT_ROW_PRECEDED_BY='_7_C_OUTPUT_ROW_PRECEDED_BY'
+readonly C_OUTPUT_ROW_SUCCEEDED_BY='_8_C_OUTPUT_ROW_SUCCEEDED_BY'
+readonly C_OUTPUT_COLS_AT_REGEX='^[[:digit:]]+$|^_$'
+readonly CTRL_CHAR_PATTERN='[^[:print:][:blank:]]'
+readonly NON_CTRL_CHAR_PATTERN='[[:print:][:blank:]]'
+# Line Feed, Vertical Tab, Form Feed
+readonly V_CTRL_STUB=$'\n\v\f'
+# Horizontal Tab, Carriage Return, Backspace, Delete
+readonly H_CTRL_STUB=$'\t\r\b\x7F'
+readonly C_TRAILING_CTRL_OVERRIDERS='^-[mc]$|^--(max_col|col_at)$'
+##endregion######################################## CONSTANTS ###########################################
+# #region show_help
+show_help() {
+	cat << __EOF__
+Retrieve statistics about the input text.
+
+Usage:	profile_text [OPTIONS] TEXT
+	or: profile_text -h
+	or: profile_text --help
+
+Options:
+Output Modifiers:
+
+	-h, --help: Display this help text.
+
+	-v, --version: Display version info.
+
+	-r, --rows: get the total number of rows
+
+	-c, --col_at INDEX: Get the # of columns on the specified row INDEX (or, if '_', the last index), accounting for lines not starting at 0 (e.g. after a vertical tab). Negative indices are subtracted from length (e.g. -1 = length - 1). By default, turns off appending control characters (See '--no_trailing_control'). Result is incremented by 1 if in edit mode (See '--edit-mode') to count the cursor.
+
+	--chars_at INDEX: Get the # of characters on the specified row INDEX (or, if '_', the last index). Negative indices are subtracted from length (e.g. -1 = length - 1). By default, turns off appending control characters (See '--no_trailing_control').
+
+	-m, --max_col: Get the maximum number of columns (i.e characters +/- offset due to control characters) in any row. By default, turns off appending control characters (See '--no_trailing_control').
+
+	--max_col_at: Get the row index of the maximum number of columns (i.e characters +/- offset due to control characters) in a row. By default, turns off appending control characters (See '--no_trailing_control').
+
+	--max_chars_in_row: Get the maximum number of characters in any row. By default, turns off appending control characters (See '--no_trailing_control').
+
+	--row_at INDEX: Get the text on the row specified by INDEX (or, if '_', the last index).
+
+	--row_preceded_by INDEX REGEX: Does the text preceding the row specified by INDEX (or, if '_', the last index) match the given REGEX. Negative indices are subtracted from length (e.g. -1 = length - 1). If matched, returns \${BASH_REMATCH[*]} and an exit status of true; otherwise, returns nothing with an exit status of false.
+
+	--row_succeeded_by INDEX REGEX: Does the text following the row specified by INDEX (or, if '_', the first index) match the given REGEX. Negative indices are subtracted from length (e.g. -1 = length - 1). If matched, returns \${BASH_REMATCH[*]} and an exit status of true; otherwise, returns nothing with an exit status of false.
+
+	--rows_where [PRE] REGEX [POST]: Get the rows whose preceding rows match PRE (if not '*'), succeeding rows match POST (if not '*'), and body matches the given REGEX. If matched, returns each \${BASH_REMATCH[*]} (for REGEX only) and an exit status of true; otherwise, returns nothing with an exit status of false.
+
+Settings Modifiers:
+
+	--edit_mode: Act as though editing text; inverse of display_mode.
+		* Offset column placements on final (typed) row by 1 to account for an invisible cursor.
+
+	--display_mode: Act as though displaying text; inverse of edit_mode. Default.
+		* All outputs are based on the text entered. (e.g. A row with 10 characters starting on column 0 will end on column 9)
+
+	--initial_column_offset OFFSET: The starting horizontal position of the cursor. Defaults to 0.
+
+	--initial_row_offset OFFSET: The starting vertical position of the cursor. Defaults to 0.
+
+	--no_trailing_control: don't append control characters to the lines they end.
+
+	--trailing_control: do append control characters to the lines they end.
+
+	--output_columns NUMBER: The number of characters permitted in each line of the output. Defaults to 'tput cols'.
+
+	--output_rows NUMBER: The number of lines of text in the output's view. Excess output will be handled with vertical overflow. Defaults to 'tput lines'.
+
+EXIT STATUS:
+	0 if successful
+__EOF__
+}
+show_version() {
+	cat << __EOF__
+$0 1.0.1
+__EOF__
+}
+# #endregion show_help
+
+exit_error() {
+	if [[ "$1" =~ ^[[:digit:]]+$ ]]; then local -ir errorCode=$1; shift; else local -ir errorCode=1; fi
+	mapfile -t val < caller 0
+	# echo "$MY_NAME: $line$*" 1>&2
+	t_out="$MY_NAME: $*"$'\n'"${val[0]}"
+	echo "$t_out" # echo "$t_out" 1>&2
+	exit $errorCode
+} 1>&2 # }
+
+readonly ORIG_IFS=$IFS
+# #region PARAMS
+declare -i TERM_COLS=$(tput cols) TERM_ROWS=$(tput lines) INITIAL_ROW_OFFSET=0
+declare -i initial_column_offset=0 initial_column_offset_unwrapped=0
+declare p_trailing_control_chars='true'
+declare flagTrackRows='false'
+declare flagTrackUnwrapped='false'
+# Add 1 invisible character to values to emulate a cursor (e.g. if TERM_COLS=100 & there are 100 characters w/o a new line, row count would be 1 if false, 2 if true, b/c the cursor would overflow to a new line)
+declare flagEditMode='false'
+# declare flagDebug='false'
+declare -i p_debugLevel=0
+declare -i p_index=0; unset -v p_index
+declare flagMaxCharMode='true'
+shopt -s 'extglob'
+while (( $# > 1 )) || [[ "$1" =~ -[[:alpha:]]|--[[:alpha:]_]+ ]]; do
+	case "$1" in
+		( -h | --help ) show_help; exit 0;;
+		( -v | --version ) show_version; exit 0;;
+		( -d | --debug )
+			# declare -r flagDebug='true'
+			if temp=$(check_number "$2"); then
+				declare -r -i p_debugLevel=$temp
+			else
+				declare -r -i p_debugLevel=255
+			fi
+			unset -v temp
+			;;
+		##region################################# Settings #################################
+		( --output[_-]columns )
+			shift
+			if [[ "$1" =~ ^\+?[123456789]+[[:digit:]]*$ ]]; then
+				if ! declare -r -g -i TERM_COLS="$1"; then exit 1; fi
+			else
+				echo "output_columns must be a positive integer; value was '$1'"
+            	show_help
+            	exit 1
+			fi
+			shift
+			;;
+		( --output[_-]rows )
+			shift
+			if [[ "$1" =~ ^\+?[123456789]+[[:digit:]]*$ ]]; then
+				if ! declare -r -g -i TERM_ROWS="$1"; then exit 1; fi
+			else
+				echo "output_rows must be a positive integer; value was '$1'"
+            	show_help
+            	exit 1
+			fi
+			shift
+			;;
+		( --initial[_-]row[_-]offset )
+			shift
+			if [[ "$1" =~ ^\+?[[:digit:]]+$ ]]; then
+				if ! declare -r -g -i INITIAL_ROW_OFFSET="$1"; then exit 1; fi
+			else
+				echo "initial_row_offset must be a non-negative integer; value was '$1'"
+            	show_help
+            	exit 1
+			fi
+			shift
+			;;
+		( --initial[_-]column[_-]offset )
+			shift
+			if [[ "$1" =~ ^\+?[[:digit:]]+$ ]]; then
+				if ! declare -g -i initial_column_offset="$1" initial_column_offset_unwrapped="$1"; then exit 1; fi
+			else
+				echo "initial_column_offset must be a non-negative integer; value was '$1'"
+            	show_help
+            	exit 1
+			fi
+			shift
+			;;
+		( --edit[_-]mode )
+			if ! declare -r flagEditMode='true'; then exit 1; fi
+			shift
+			;;
+		( --display[_-]mode )
+			if ! declare -r flagEditMode='false'; then exit 1; fi
+			shift
+			;;
+		( --no[_-]trailing[_-]control )
+			if ! declare -r p_trailing_control_chars='false'; then exit 1; fi
+			shift
+			;;
+		( --trailing[_-]control )
+			if ! declare -r p_trailing_control_chars='true'; then exit 1; fi
+			shift
+			;;
+		##endregion############################## Settings #################################
+		##region################################# Output #################################
+		( -r | --rows )
+			if ! declare -r p_output=$C_OUTPUT_ROWS; then exit 1; fi
+			shift
+			;;
+		( --max[_-]col[_-]at )
+			if ! declare -r p_output=$C_OUTPUT_MAX_COLS_AT; then exit 1; fi
+			if ! declare -p p_trailing_control_chars | grep -q -P -e '-r' -; then
+				p_trailing_control_chars='false'
+			fi
+			declare -r flagTrackRows='true' flagMaxCharMode='false'
+			# if [ ! $? ]; then exit 1; fi
+			shift
+			;;
+		( -m | --max[_-]col )
+			if ! declare -r p_output=$C_OUTPUT_MAX_COLS; then exit 1; fi
+			if ! declare -p p_trailing_control_chars | grep -q -P -e '-r' -; then
+				p_trailing_control_chars='false'
+			fi
+			declare -r flagTrackRows='true' flagMaxCharMode='false'
+			# if [ ! $? ]; then exit 1; fi
+			shift
+			;;
+		( --max[_-]chars[_-]in[_-]row )
+			declare -r p_output=$C_OUTPUT_MAX_CHARACTERS_IN_A_ROW
+			if ! declare -r p_output=$C_OUTPUT_MAX_CHARACTERS_IN_A_ROW; then exit 1; fi
+			if ! declare -p p_trailing_control_chars | grep -q -P -e '-r' -; then
+				p_trailing_control_chars='false'
+			fi
+			declare -r flagTrackRows='true' flagMaxCharMode='true'
+			# if [ ! $? ]; then exit 1; fi
+			shift
+			;;
+		( --row[_-]preceded[_-]by )
+			if ! declare -r p_output=$C_OUTPUT_ROW_PRECEDED_BY; then exit 1; fi
+			shift
+			if [[ "$1" =~ ^(-|\+)?[[:digit:]]+$ ]]; then
+				if ! declare -r -g -i p_index="$1"; then exit 1; fi
+			elif [ "$1" = '_' ]; then :; # index is last entry
+			else
+				echo "row_preceded_by's INDEX must be a signed integer or a _; value was '$1'"
+            	show_help
+            	exit 1
+			fi
+			shift
+			declare -r -g p_regex="$1"
+			declare -r flagTrackRows='true'
+			# if [ ! $? ]; then exit 1; fi
+			shift
+			;;
+		( --row[_-]succeeded[_-]by )
+			declare -r p_output=$C_OUTPUT_ROW_SUCCEEDED_BY
+			if [ ! $? ]; then exit 1; fi
+			shift
+			if [[ "$1" =~ ^(-|\+)?[[:digit:]]+$ ]]; then
+		    	declare -r -g -i p_index="$1"
+				if [ ! $? ]; then exit 1; fi
+			elif [ "$1" = '_' ]; then :; # index is last entry
+			else
+				echo "row_succeeded_by's INDEX must be a signed integer or a _; value was '$1'"
+            	show_help
+            	exit 1
+			fi
+			declare -r -g p_regex="$1"
+			shift
+			declare -r flagTrackRows='true'
+			# if [ ! $? ]; then exit 1; fi
+			shift
+			;;
+		( --chars[_-]at )
+			if ! declare -r p_output=$C_OUTPUT_CHARS_AT; then exit 1; fi
+			if ! declare -p p_trailing_control_chars | grep -q -P -e '-r' -; then
+				p_trailing_control_chars='false'
+			fi
+			shift
+			if [[ "$1" =~ ^(-|\+)?[[:digit:]]+$ ]]; then
+				if ! declare -r -g -i p_index="$1"; then exit 1; fi
+			elif [ "$1" = '_' ]; then :; # index is last entry
+			else
+				echo "chars_at must be a signed integer or a _; value was '$1'"
+            	show_help
+            	exit 1
+			fi
+			declare -r flagTrackRows='true'
+			declare -r flagMaxCharMode='true'
+			# if [ ! $? ]; then exit 1; fi
+			shift
+			;;
+		( -c | --col[_-]at )
+			if ! declare -r p_output=$C_OUTPUT_COLS_AT; then exit 1; fi
+			# if ! declare -p p_trailing_control_chars | grep -q -E -e 'declare[[:blank:]]-[[:alpha:]]*r' -; then
+			p_trailing_control_chars='false' &>'/dev/null'
+			# fi
+			shift
+			if [[ "$1" =~ ^(-|\+)?[[:digit:]]+$ ]]; then
+		    	declare -r -g -i p_index="$1"
+				if [ ! $? ]; then exit 1; fi
+			elif [ "$1" = '_' ]; then :; # index is last entry
+			else
+				echo "col_at must be a signed integer or a _; value was '$1'"
+            	show_help
+            	exit 1
+			fi
+			declare -r flagTrackRows='true'
+			declare -r flagMaxCharMode='false'
+			# if [ ! $? ]; then exit 1; fi
+			shift
+			;;
+		( --row[_-]at )
+			if ! declare -r p_output=$C_OUTPUT_ROW_AT; then exit 1; fi
+			shift
+			if [[ "$1" =~ ^(-|\+)?[[:digit:]]+$ ]]; then
+				if ! declare -r -g -i p_index="$1"; then exit 1; fi
+			elif [ "$1" = '_' ]; then :; # index is last entry
+			else
+				echo "row_at must be a signed integer or a _; value was '$1'"
+            	show_help
+            	exit 1
+			fi
+			declare -r flagTrackRows='true'
+			# if [ ! $? ]; then exit 1; fi
+			shift
+			;;
+		##endregion############################## Output #################################
+		( -[[:alpha:]] | --+([[:alpha:]_-]) ) echo "Unrecognized argument '$1'." 1>&2;; #shift;;
+		( ^--$ )
+			shift
+			;&
+		( * ) break;;
+	esac
+done
+if [[ -z "${p_output+SET}" ]]; then declare -r p_output=$C_OUTPUT_ROWS; fi
+# #region Validate
+((initial_column_offset%=TERM_COLS))
+# #endregion Validate
+# #endregion PARAMS
+
+readonly text="$*"
+
+declare -r -i C_LENGTH=${#text}
+
+# declare -r -i TERM_COLS=$(tput cols) TERM_ROWS=$(tput lines)
+
+declare -i c_rows=1 # c_rows_unwrapped=1
+
+declare -a rows=("") # rows_unwrapped=("")
+# declare -i initial_column_offset=0 initial_column_offset_unwrapped=0
+declare -a row_icos=([0]=$initial_column_offset) # row_icos_unwrapped=([0]=$initial_column_offset_unwrapped)
+declare -i char_offset=0 trailing_count=0
+declare uninterrupted_line="" # uninterrupted_line_unwrapped=""
+declare -i max_col=-1 max_col_at=-1
+is_not_at_end() ((char_offset < $C_LENGTH))
+is_at_end() ((char_offset >= $C_LENGTH))
+# echo "Length: $C_LENGTH"
+while is_not_at_end; do
+	# echo "${#rows[@]}"
+	# echo "c_rows at loop start: $c_rows"
+	text_segment=${text:char_offset}
+	# echo -n "char_offset: $char_offset -> "
+	if [[ $text_segment =~ ^($NON_CTRL_CHAR_PATTERN*)($CTRL_CHAR_PATTERN) ]]; then
+		((char_offset+=${#BASH_REMATCH[0]}))
+		uninterrupted_line=${BASH_REMATCH[1]}
+		ctl_char=${BASH_REMATCH[2]}
+	else
+		((char_offset+=${#text_segment}))
+		uninterrupted_line=$text_segment
+		unset ctl_char
+	fi
+	# echo "$char_offset"
+	# [[ -n "${ctl_char+x}" ]] && echo "matched ${BASH_REMATCH[*]}"
+	if ! eval $flagTrackRows; then
+		((initial_column_offset += ${#uninterrupted_line}))
+		((_t = initial_column_offset, _t -= _t <= 0 || _t % TERM_COLS > 0 ? 0 : 1))
+		((c_rows += _t / TERM_COLS)); unset -v _t
+	else
+		((t_ico=initial_column_offset, t_spaceInLine=TERM_COLS-t_ico, initial_column_offset+=${#uninterrupted_line}))
+		for ((t_off=0, t_inc=1; ${#uninterrupted_line} - t_off > 0; t_off+=t_spaceInLine, t_spaceInLine=TERM_COLS, c_rows+=t_inc, t_ico=0)); do
+			if ((${#uninterrupted_line} - t_off <= t_spaceInLine)); then
+				t_seg="${uninterrupted_line:t_off}"
+				((t_inc=0))
+			else
+				t_seg="${uninterrupted_line:t_off:t_spaceInLine}"
+				((t_inc=1))
+			fi
+			# echo "c_rows: $c_rows rows.length: ${#rows[@]} $t_seg"
+			rows[-1]+="$t_seg"
+			if eval $flagMaxCharMode; then
+				if ((max_col < ${#t_seg})); then
+					((max_col = ${#t_seg}, max_col_at = ${#rows[@]} - 1))
+				fi
+			else
+				if ((max_col < ${#t_seg} + t_ico)); then
+					((max_col = ${#t_seg} + t_ico, max_col_at=${#rows[@]}-1))
+				fi
+			fi
+			if ((t_inc > 0)); then
+				rows+=("")
+				row_icos+=("$t_ico")
+			fi
+			# echo "${rows[-1]}"
+			# echo "rows.length: ${#rows[@]}"
+		done
+		# echo -n "Line: $uninterrupted_line; rows.length: ${#rows[@]}"
+		# if [[ -z "$uninterrupted_line" ]]; then rows+=(""); fi
+		# echo "-> ${#rows[@]}"
+	fi
+	# echo "c_rows before: $c_rows"
+	# if [[ -n "${ctl_char+x}" ]]; then
+	[[ -n "${ctl_char+x}" ]] && case "$ctl_char" in
+		($'\v')
+			# echo 'control char=\v'
+			((c_rows+=1, c_rows_unwrapped+=1)) # For the new line
+			((initial_column_offset%=TERM_COLS))
+			if eval $flagTrackRows; then 
+				if eval $p_trailing_control_chars; then rows[-1]+="$ctl_char"; fi
+				row_icos+=("$initial_column_offset") # row_icos+=($((TERM_COLS - t_spaceInLine)))
+				rows+=("")
+			fi
+			;;
+		($'\f')
+			# echo 'control char=\f'
+			((c_rows+=1, c_rows_unwrapped+=1)) # For the new line
+			((initial_column_offset%=TERM_COLS))
+			if eval $flagTrackRows; then 
+				if eval $p_trailing_control_chars; then rows[-1]+="$ctl_char"; fi
+				row_icos+=("$initial_column_offset") # row_icos+=($((TERM_COLS - t_spaceInLine)))
+				rows+=("")
+			fi
+			;;
+		($'\r')
+			# echo 'control char=\r'
+			# ((trailing_count=initial_column_offset_unwrapped))
+			((initial_column_offset=0, initial_column_offset_unwrapped=0))
+			if eval $flagTrackRows; then 
+				if eval $p_trailing_control_chars; then rows[-1]+="$ctl_char"; fi
+				# row_icos[-1]=("$initial_column_offset") # row_icos+=("0")
+			fi
+			;;
+		($'\b')
+			# echo 'control char=\b'
+			# ((trailing_count=initial_column_offset_unwrapped))
+			((initial_column_offset-=1, initial_column_offset_unwrapped-=1))
+			if eval $flagTrackRows; then 
+				if eval $p_trailing_control_chars; then rows[-1]+="$ctl_char"; fi
+				# row_icos[-1]=("$initial_column_offset") # row_icos+=("0")
+			fi
+			;;
+		($'\n')
+			# echo 'control char=\n'
+			((c_rows+=1)) # For the new line
+			((initial_column_offset=0))
+			if eval $flagTrackUnwrapped; then
+				((c_rows_unwrapped+=1)) # For the new line
+				((initial_column_offset_unwrapped=0))
+			fi
+			if eval $flagTrackRows; then 
+				if eval $p_trailing_control_chars; then rows[-1]+="$ctl_char"; fi
+				rows+=("")
+				row_icos+=("$initial_column_offset") # row_icos+=("0")
+			fi
+			;;
+		(*)
+			# echo "control char=idk, $ctl_char"
+			((c_rows+=1)) # For the new line
+			((initial_column_offset=0))
+			if eval $flagTrackUnwrapped; then
+				((c_rows_unwrapped+=1)) # For the new line
+				((initial_column_offset_unwrapped=0))
+			fi
+			if eval $flagTrackRows; then 
+				if eval $p_trailing_control_chars; then rows[-1]+="$ctl_char"; fi
+				rows+=("")
+				row_icos+=("$initial_column_offset") # row_icos+=("0")
+			fi
+			;;
+		# fi
+	# fi
+	esac
+	# If accounting for the cursor, at the end, & the line isn't at the start & perfectly fills the last row...
+	if eval $flagEditMode && is_at_end && ((initial_column_offset > 0 && initial_column_offset%TERM_COLS==0)); then
+		if eval $flagTrackRows; then 
+			rows+=("")
+			row_icos+=("0")
+		fi
+		((c_rows+=1))
+		break
+	fi
+	# echo "c_rows after: $c_rows"
+	if [[ -n "${p_index+x}" ]] && ((p_index+1 < c_rows)); then break; fi
+done
+
+# #region Returning
+case "$p_output" in
+	("$C_OUTPUT_MAX_COLS" | "$C_OUTPUT_MAX_CHARACTERS_IN_A_ROW")
+		echo $max_col
+		;;
+	("$C_OUTPUT_MAX_COLS_AT")
+		echo $max_col_at
+		;;
+	("$C_OUTPUT_COLS_AT")
+		if [[ -z "${p_index+x}" ]]; then ((p_index=${#rows[@]}-1)); fi
+		((temp = ${#rows[$p_index]} + row_icos[p_index]))
+		if eval $flagEditMode && ((p_index == ${#rows[@]} - 1 || p_index == -1)); then
+			((++temp))
+		fi
+		echo "$temp"
+		;;
+	("$C_OUTPUT_CHARS_AT")
+		if [[ -z "${p_index+x}" ]]; then ((p_index = -1)); fi
+		echo "${#rows[$p_index]}"
+		;;
+	("$C_OUTPUT_ROW_AT")
+		if [[ -z "${p_index+x}" ]]; then ((p_index=${#rows[@]}-1)); fi
+		echo "${rows[$p_index]}"
+		;;
+	("$C_OUTPUT_ROW_PRECEDED_BY")
+		if [[ -z "${p_index+x}" ]]; then ((p_index=${#rows[@]}-1)); fi
+		IFS=$'\0'
+		if [[ "${rows[*]:0:$((p_index-1))}" =~ $p_regex ]]; then 
+			IFS="$ORIG_IFS"
+			echo "${BASH_REMATCH[*]}"
+		else
+			exit 1
+		fi
+		IFS="$ORIG_IFS"
+		;;
+	("$C_OUTPUT_ROW_SUCCEEDED_BY")
+		if [[ -z "${p_index+x}" ]]; then ((p_index=0)); fi
+		IFS=$'\0'
+		if [[ "${rows[*]:$p_index}" =~ $p_regex ]]; then 
+			IFS="$ORIG_IFS"
+			echo "${BASH_REMATCH[*]}"
+		else
+			exit 1
+		fi
+		IFS="$ORIG_IFS"
+		;;
+	("$C_OUTPUT_ROWS")
+		echo $c_rows
+		;;
+	(*)
+		echo "I forgot to add the output for $p_output" 1>&2
+		exit 255
+		;;
+esac
+# #endregion Returning
+exit
