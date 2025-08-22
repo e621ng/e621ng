@@ -479,22 +479,27 @@
             Danbooru.notice('Post uploaded successfully.');
             location.assign(data.location);
           },
-          error(data) {
+          error(response, textStatus, errorThrown) {
+            console.log('Error uploading post:', textStatus, errorThrown);
+            if (textStatus === "error") textStatus = "unknown";
+
             self.submitting = false;
-            const data2 = data.responseJSON;
             try {
-              if (data2 && data2.reason === 'duplicate') {
-                self.duplicateId = data2.post_id;
-              }
-              if (data2 && ['duplicate', 'invalid'].indexOf(data2.reason) !== -1) {
-                self.error = data2.message;
-              } else if (data2 && data2.message) {
-                self.error = 'Error: ' + data2.message;
+              const jsonData = response.responseJSON;
+              if (!jsonData) throw new Error("No JSON data returned from server.");
+              else console.log(jsonData);
+
+              if (jsonData && jsonData.reason === 'duplicate') self.duplicateId = jsonData.post_id;
+              if (jsonData && ['duplicate', 'invalid'].indexOf(jsonData.reason) !== -1) {
+                self.error = jsonData.message;
+              } else if (jsonData && jsonData.message) {
+                self.error = 'Error: ' + jsonData.message;
               } else {
-                self.error = 'Error: ' + data2.reason;
+                self.error = 'Error: ' + jsonData.reason;
               }
-            } catch (e) {
-              self.error = 'Error: Unknown error! ' + JSON.stringify(data2);
+            } catch (error) {
+              console.log("An error occurred:", error);
+              self.error = `Error: ${[textStatus, errorThrown].filter(n => n).join(" ")}. Check the browser console for details.`;
             }
           }
         });
