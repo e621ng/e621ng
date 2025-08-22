@@ -59,6 +59,8 @@ export default class Hotkeys {
     this._heldKeys.clear();
   }
 
+  static debug = false;
+
 
   /**
    * Startup task.
@@ -119,6 +121,7 @@ export default class Hotkeys {
 
       const keybindString = Hotkeys.buildKeybindString([...this._heldKeys]);
       $document.trigger("e6.hotkeys.keydown", [this._heldKeys]);
+      if (Hotkeys.debug) console.log("Key Down:", key, keybindString);
 
       if (!User.hotkeysEnabled) return; // User has disabled hotkeys
       if (!Hotkeys.enabled) return; // Global hotkey toggle
@@ -129,11 +132,15 @@ export default class Hotkeys {
       if (!actions || actions.length == 0) return;
 
       // Multiple actions can be tied to a single keybind
+      let triggered = 0;
       for (const action of actions) {
         const listeners = this._listenerIndex[action];
         if (!listeners || listeners.length == 0) continue;
+        triggered += listeners.length;
         for (const one of listeners) one(); // Trigger the action
       }
+
+      if (triggered.length == 0) return;
 
       // Avoid default behavior
       // Otherwise, the key could get inserted into inputs
@@ -148,6 +155,7 @@ export default class Hotkeys {
       this._heldKeys.delete(key);
 
       $document.trigger("e6.hotkeys.keyup", [this._heldKeys]);
+      if (Hotkeys.debug) console.log("Key Up:", key, this.buildKeybindString([...this._heldKeys]));
 
       // Avoid default behavior
       // Otherwise, the key could get inserted into inputs
@@ -164,7 +172,12 @@ export default class Hotkeys {
 
 
     function isInputFocused () { return $(document.activeElement).is("input, textarea"); }
-    function formatKey (input) { return /^\w{1}$/.test(input) ? input.toUpperCase() : input; }
+    function formatKey (input) {
+      if (/^\w{1}$/.test(input)) return input.toUpperCase();
+
+      if (input === " ") input = "Space";
+      return input;
+    }
   }
 
 

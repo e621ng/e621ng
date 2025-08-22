@@ -58,7 +58,12 @@ export default class StaticShortcuts {
     this.build();
 
     $("#hotkeys-wrapper").on("click", "button", (event) => {
-      this.handleInput($(event.currentTarget));
+      event.preventDefault();
+      const element = $(event.target);
+      element.trigger("blur");
+
+      this.handleInput(element);
+      return false;
     });
   }
 
