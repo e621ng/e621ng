@@ -52,7 +52,7 @@ export default class StaticShortcuts {
     },
   };
 
-  init() {
+  init () {
     if (!Page.matches("static", "keyboard-shortcuts")) return;
 
     this.build();
@@ -68,14 +68,14 @@ export default class StaticShortcuts {
   }
 
   /** Build the hotkey rebinding UI. */
-  build() {
+  build () {
     const wrapper = $("#hotkeys-wrapper");
 
     buildDefs(StaticShortcuts.Definitions);
     if (User.is.privileged) buildDefs(StaticShortcuts.PrivilegedDefs);
     if (User.is.janitor) buildDefs(StaticShortcuts.JanitorDefs);
 
-    function buildDefs(list) {
+    function buildDefs (list) {
       for (const [category, definitions] of Object.entries(list)) {
         $("<h3>").text(category).appendTo(wrapper);
 
@@ -98,9 +98,9 @@ export default class StaticShortcuts {
 
   /**
    * Handle hotkey rebinding.
-   * @param {JQuery<HTMLElement>} element 
+   * @param {JQuery<HTMLElement>} element
    */
-  handleInput(element) {
+  handleInput (element) {
 
     // Clean up any other active rebinding inputs
     const $document = $(document);
@@ -146,7 +146,7 @@ export default class StaticShortcuts {
       element.text(binding);
     });
 
-    function resetInput($input, value = null) {
+    function resetInput ($input, value = null) {
       if (value == null) value = $input.attr("old") || "";
       $input
         .text(value)
@@ -154,7 +154,7 @@ export default class StaticShortcuts {
         .removeAttr("old");
     }
 
-    function collectBindings(action) {
+    function collectBindings (action) {
       let allBindings = [];
       for (const one of $("button[action='" + action + "']"))
         allBindings.push(one.innerText);
