@@ -481,7 +481,7 @@
           },
           error(response, textStatus, errorThrown) {
             console.log('Error uploading post:', textStatus, errorThrown);
-            if (textStatus == "error") textStatus = "unknown";
+            if (textStatus === "error") textStatus = "unknown";
 
             self.submitting = false;
             try {
@@ -499,7 +499,7 @@
               }
             } catch (error) {
               console.log("An error occurred:", error);
-              self.error = `Error: ${[textStatus, errorThrown].filter(n => n).join(" ")}. Check the browser console for details.`
+              self.error = `Error: ${[textStatus, errorThrown].filter(n => n).join(" ")}. Check the browser console for details.`;
             }
           }
         });
