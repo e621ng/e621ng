@@ -80,7 +80,7 @@ class Mascot < ApplicationRecord
 
   def self.search(params)
     q = super
-    q.order("lower(artist_name)")
+    q.order("created_at asc")
   end
 
   def method_attributes

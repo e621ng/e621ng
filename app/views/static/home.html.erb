@@ -3,6 +3,8 @@
     var mascots = <%= Mascot.active_for_browser.to_json.html_safe %>;
   <% end -%>
 
+  <section class="mascot-section"></section>
+
   <section class="home-section">
     <%= form_tag(posts_path, method: "get", id: "home-search-form") do %>
 
