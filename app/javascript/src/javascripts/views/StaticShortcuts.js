@@ -59,7 +59,7 @@ export default class StaticShortcuts {
 
     $("#hotkeys-wrapper").on("click", "button", (event) => {
       event.preventDefault();
-      const element = $(event.target);
+      const element = $(event.currentTarget);
       element.trigger("blur");
 
       this.handleInput(element);

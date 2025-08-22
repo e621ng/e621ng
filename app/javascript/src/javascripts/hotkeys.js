@@ -140,7 +140,7 @@ export default class Hotkeys {
         for (const one of listeners) one(); // Trigger the action
       }
 
-      if (triggered.length == 0) return;
+      if (triggered == 0) return;
 
       // Avoid default behavior
       // Otherwise, the key could get inserted into inputs
@@ -155,7 +155,7 @@ export default class Hotkeys {
       this._heldKeys.delete(key);
 
       $document.trigger("e6.hotkeys.keyup", [this._heldKeys]);
-      if (Hotkeys.debug) console.log("Key Up:", key, this.buildKeybindString([...this._heldKeys]));
+      if (Hotkeys.debug) console.log("Key Up:", key, Hotkeys.buildKeybindString([...this._heldKeys]));
 
       // Avoid default behavior
       // Otherwise, the key could get inserted into inputs
