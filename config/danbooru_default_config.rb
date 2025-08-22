@@ -12,6 +12,10 @@ module Danbooru
       "e621"
     end
 
+    def server_name
+      nil
+    end
+
     def description
       "Find good furry art, fast"
     end
