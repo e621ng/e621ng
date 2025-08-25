@@ -148,11 +148,6 @@ export default class Hotkeys {
       this._heldKeys.delete(key);
 
       $document.trigger("e6.hotkeys.keyup", [this._heldKeys]);
-
-      // Avoid default behavior
-      // Otherwise, the key could get inserted into inputs
-      event.preventDefault();
-      return false;
     });
 
 
