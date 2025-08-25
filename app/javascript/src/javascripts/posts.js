@@ -14,9 +14,11 @@ Post.resizeMode = "unknown";
 
 Post.initialize_all = function () {
 
+  if ((Page.Controller == "posts" && ["index", "show"].includes(Page.Action)) || Page.Controller == "favorites")
+    this.initialize_shortcuts();
+
   if ($("#c-posts").length) {
     this.initialize_shortcuts();
-    this.initialize_collapse();
   }
 
   if ($("#c-posts").length && $("#a-index").length) {
@@ -324,26 +326,23 @@ Post.nav_next = function () {
 };
 
 Post.initialize_shortcuts = function () {
-  if (!Page.matches("posts")) return;
-
   if (Page.Action == "show") {
     Hotkeys.register("prev", Post.nav_prev);
     Hotkeys.register("next", Post.nav_next);
   }
 
-  if (["index", "show"].includes(Page.Action))
-    Hotkeys.register("random", () => {
-      const query = $("#tags").val() + "";
-      if (!query) {
-        location.href = "/posts/random";
-        return;
-      }
+  Hotkeys.register("random", () => {
+    const query = $("#tags").val() + "";
+    if (!query) {
+      location.href = "/posts/random";
+      return;
+    }
 
-      const encodedTags = [];
-      for (const one of query.split(" "))
-        encodedTags.push(encodeURIComponent(one));
-      location.href = "/posts/random?tags=" + encodedTags.join("+");
-    });
+    const encodedTags = [];
+    for (const one of query.split(" ").filter(n => n))
+      encodedTags.push(encodeURIComponent(one));
+    location.href = "/posts/random?tags=" + encodedTags.join("+");
+  });
 };
 
 Post.initialize_links = function () {
