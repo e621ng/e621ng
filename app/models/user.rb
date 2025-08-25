@@ -44,7 +44,7 @@ class User < ApplicationRecord
     _has_saved_searches
     can_approve_posts
     can_upload_free
-    disable_cropped_thumbnails
+    _disable_cropped_thumbnails
     _disable_mobile_gestures
     enable_safe_mode
     disable_responsive_mode
@@ -672,7 +672,7 @@ class User < ApplicationRecord
           enable_keyboard_navigation enable_privacy_mode
           style_usernames enable_auto_complete
           can_approve_posts can_upload_free
-          disable_cropped_thumbnails enable_safe_mode
+          enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
           enable_compact_uploader replacements_beta forum_notification_dot
         ]
