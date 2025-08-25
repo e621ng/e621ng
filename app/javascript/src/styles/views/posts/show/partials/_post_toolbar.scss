@@ -203,6 +203,7 @@
   position: absolute;
   right: 0;
   top: 2rem;
+  z-index: 1; // on top of the related posts
   padding: 0.25rem 0.25rem;
   margin-top: 0.5rem;
 
