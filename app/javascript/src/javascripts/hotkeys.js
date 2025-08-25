@@ -171,7 +171,7 @@ export default class Hotkeys {
     });
 
 
-    function isInputFocused () { return $(document.activeElement).is("input, textarea"); }
+    function isInputFocused () { return $(document.activeElement).is("input, textarea, video"); }
     function formatKey (input) {
       if (/^\w{1}$/.test(input)) return input.toUpperCase();
 
