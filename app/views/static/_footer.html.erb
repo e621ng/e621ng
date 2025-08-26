@@ -11,7 +11,7 @@
       <%= link_to "Advertising", help_page_path(id: "advertising") %>
     </span>
     <span class="footer-right">
-      <span class="footer-running">Running e621ng</span>
+      <span class="footer-running">Running <%= CurrentUser.is_staff? && Danbooru.config.server_name.present? ? "on #{Danbooru.config.server_name}" : "e621ng" %></span>
       <span class="footer-version">
         <% if GitHelper.version.empty? %>
           v. unknown
