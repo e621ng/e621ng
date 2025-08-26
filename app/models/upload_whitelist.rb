@@ -69,9 +69,9 @@ class UploadWhitelist < ApplicationRecord
       all
     end
 
-    #if Danbooru.config.bypass_upload_whitelist?(CurrentUser)
-    #  return [true, "bypassed"]
-    #end
+    if Danbooru.config.bypass_upload_whitelist?(CurrentUser)
+      return [true, "bypassed"]
+    end
 
     entries.each do |x|
       if url.host =~ x.domain_regexp && url.path =~ x.path_regexp
