@@ -1,4 +1,4 @@
-\restrict SKW3c0FIEMNAbNTGbA8NKGvk5sPN9JQjLq0vNj81SLIUUn2rUg9jWQB9MgCZuCW
+\restrict sqXsWYbiSrW8Ferz6oSzHv18UGKQenA2Zyp1IazyiaRfbRSHCyx8PXqaAIsdx6v
 
 -- Dumped from database version 15.12
 -- Dumped by pg_dump version 15.14
@@ -2101,7 +2101,7 @@ CREATE TABLE public.upload_whitelists (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     domain character varying,
-    path character varying DEFAULT '.*'::character varying
+    path character varying DEFAULT '/+'::character varying
 );
 
 
@@ -4735,7 +4735,7 @@ ALTER TABLE ONLY public.staff_notes
 -- PostgreSQL database dump complete
 --
 
-\unrestrict SKW3c0FIEMNAbNTGbA8NKGvk5sPN9JQjLq0vNj81SLIUUn2rUg9jWQB9MgCZuCW
+\unrestrict sqXsWYbiSrW8Ferz6oSzHv18UGKQenA2Zyp1IazyiaRfbRSHCyx8PXqaAIsdx6v
 
 SET search_path TO "$user", public;
 
