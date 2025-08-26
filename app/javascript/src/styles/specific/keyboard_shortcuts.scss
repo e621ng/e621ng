@@ -19,30 +19,50 @@ div#c-static div#a-keyboard-shortcuts {
     text-align: right;
   }
 
+  // Buttons
   .hotkey-keys {
     display: flex;
     gap: 0.25rem;
 
-    button {
-      width: 6rem;
-      height: 1.5rem;
-      text-align: center;
+    &[default="true"] button.hotkey-reset { visibility: hidden; }
+  }
 
-      background: palette("plain-white");
-      font-family: "Roboto", Verdana, Geneva, sans-serif;
-      font-size: 1rem;
-      line-height: 1rem;
-      padding: 0.25rem;
+  button.hotkey-rebind {
+    width: 6rem;
+    height: 1.5rem;
+    text-align: center;
 
-      &[ready="true"] { background-color: palette("background-gold"); }
-      &:hover { background-color: palette("background-gold-l10"); }
+    background: palette("plain-white");
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-size: 1rem;
+    line-height: 1rem;
+    padding: 0.25rem;
 
-      &:first-child {
-        @include st-radius-left;
-      }
-      &:last-child {
-        @include st-radius-right;
-      }
+    &[ready="true"] { background-color: palette("background-gold"); }
+    &:hover { background-color: palette("background-gold-l10"); }
+
+    &:first-child {
+      @include st-radius-left;
+    }
+    &:last-child {
+      @include st-radius-right;
     }
   }
+
+  button.hotkey-reset {
+    background: unset;
+    padding: 0 0.25rem;
+    margin: 0;
+    font-size: 0;
+    color: themed("color-link");
+    &:hover { color: themed("color-link-hover"); }
+
+    svg {
+      height: 1.25rem;
+      width: 1.25rem;
+    }
+  }
+
+  // Placeholder icon copied into the reset buttons
+  .hotkey-reset-icon { display: none; }
 }

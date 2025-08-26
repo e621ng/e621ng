@@ -57,7 +57,8 @@ export default class StaticShortcuts {
 
     this.build();
 
-    $("#hotkeys-wrapper").on("click", "button", (event) => {
+    // Rebinding
+    $("#hotkeys-wrapper").on("click", "button.hotkey-rebind", (event) => {
       event.preventDefault();
       const element = $(event.currentTarget);
       element.trigger("blur");
@@ -65,11 +66,22 @@ export default class StaticShortcuts {
       this.handleInput(element);
       return false;
     });
+
+    // Reset to default
+    $("#hotkeys-wrapper").on("click", "button.hotkey-reset", (event) => {
+      event.preventDefault();
+      const element = $(event.currentTarget);
+      element.trigger("blur");
+
+      this.handleReset(element);
+      return false;
+    });
   }
 
   /** Build the hotkey rebinding UI. */
   build () {
     const wrapper = $("#hotkeys-wrapper");
+    const resetIcon = $(".hotkey-reset-icon").clone().removeClass("hotkey-reset-icon");
 
     buildDefs(StaticShortcuts.Definitions);
     if (User.is.privileged) buildDefs(StaticShortcuts.PrivilegedDefs);
@@ -79,17 +91,41 @@ export default class StaticShortcuts {
       for (const [category, definitions] of Object.entries(list)) {
         $("<h3>").text(category).appendTo(wrapper);
 
+        // Build the inputs
         for (const [name, action] of Object.entries(definitions)) {
+          // Title section
           $("<span class='hotkey-title'>").text(name).appendTo(wrapper);
-          const keyGroup = $("<div class='hotkey-keys'>").appendTo(wrapper);
+          const keyGroup = $("<div>")
+            .addClass("hotkey-keys")
+            .attr({
+              action: action,
+              default: Hotkeys.Definitions[action] === Hotkeys.Defaults[action],
+            })
+            .appendTo(wrapper);
+
+          // Key bindings
+          let index = 0;
           for (const one of Hotkeys.getKeys(action))
+            // Rebinding inputs
             $("<button>")
+              .addClass("hotkey-rebind")
               .attr({
-                "action": action,
-                "title": one,
+                action: action,
+                title: one,
+                index: index++,
               })
               .text(one)
               .appendTo(keyGroup);
+
+          // Reset to default
+          $("<button>")
+            .addClass("hotkey-reset")
+            .attr({
+              action: action,
+              title: "Reset the binding to the default value",
+            })
+            .append(resetIcon.clone())
+            .appendTo(keyGroup);
         }
       }
     }
@@ -127,6 +163,7 @@ export default class StaticShortcuts {
       $document.off("e6.hotkeys.keyup.bind e6.hotkeys.keydown.bind");
       Hotkeys.Definitions[action] = collectBindings(action).join("|");
       Hotkeys.rebuildKeyIndexes();
+      toggleResetButton(action);
     });
 
     $document.on("e6.hotkeys.keydown.bind", (_event, data) => {
@@ -138,6 +175,7 @@ export default class StaticShortcuts {
         $document.off("e6.hotkeys.keyup.bind e6.hotkeys.keydown.bind");
         Hotkeys.Definitions[action] = collectBindings(action).join("|");
         Hotkeys.rebuildKeyIndexes();
+        toggleResetButton(action);
 
         return;
       }
@@ -161,6 +199,26 @@ export default class StaticShortcuts {
       allBindings = allBindings.filter(n => n);
       return allBindings;
     }
+
+    function toggleResetButton (action) {
+      const isDefault = Hotkeys.Definitions[action] === Hotkeys.Defaults[action];
+      $(`.hotkey-keys[action="${action}"]`).attr("default", isDefault);
+    }
+  }
+
+  /**
+   * Handle resetting a hotkey to its default value.
+   * @param {JQuery<HTMLElement>} element
+   */
+  handleReset (element) {
+    const action = element.attr("action");
+    Hotkeys.Definitions[action] = Hotkeys.Defaults[action];
+    Hotkeys.rebuildKeyIndexes();
+    $(`.hotkey-keys[action="${action}"]`).attr("default", "true");
+
+    let index = 0;
+    for (const one of Hotkeys.getKeys(action))
+      $(`.hotkey-rebind[action="${action}"][index="${index++}"]`).text(one);
   }
 
 }

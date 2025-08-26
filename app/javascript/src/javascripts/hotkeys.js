@@ -46,6 +46,9 @@ export default class Hotkeys {
     "approve-next": [ "e6.htk.apr-next", "Shift+W" ],
   };
 
+  // Backs up default hotkey bindings
+  static Defaults = {};
+
   static ModifierKeys = ["Shift", "Control", "Alt"];
   static _actionIndex = {}; // List of actions, with hotkeys as an index
   static _keyIndex = {}; // List of hotkeys, with actions as an index
@@ -67,9 +70,14 @@ export default class Hotkeys {
    * Needs to be run before any other modules are initialized.
    */
   static initialize () {
+    // Build the definition indexes
+    for (const [action, params] of Object.entries(this.Definitions))
+      this.Defaults[action] = params[1];
+
     StorageUtils.bootstrapMany(Hotkeys.Definitions);
     this.rebuildKeyIndexes();
 
+    // Set up universal hotkeys
     var $root = $("html, body"), $window = $(window);
     Hotkeys.register("scroll-down", () => {
       $root.animate({ scrollTop: $window.scrollTop() + ($window.height() * 0.15) }, 200);
@@ -78,6 +86,7 @@ export default class Hotkeys {
       $root.animate({ scrollTop: $window.scrollTop() - ($window.height() * 0.15) }, 200);
     });
 
+    // Start listening for inputs
     this.listen();
   }
 
