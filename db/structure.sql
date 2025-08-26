@@ -1,8 +1,3 @@
-\restrict OyY6EkbiqkDA4JCfTs4HqeJ9qcnOdpFYfpVLhf4hZXCQhXiDiqbLo6Ifwhui8Je
-
--- Dumped from database version 15.12
--- Dumped by pg_dump version 15.14
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -4734,8 +4729,6 @@ ALTER TABLE ONLY public.staff_notes
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict OyY6EkbiqkDA4JCfTs4HqeJ9qcnOdpFYfpVLhf4hZXCQhXiDiqbLo6Ifwhui8Je
 
 SET search_path TO "$user", public;
 
