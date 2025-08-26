@@ -15,8 +15,7 @@ class UploadWhitelistTest < ActiveSupport::TestCase
                           path: "\/data\/.*", # rubocop:disable Style/RedundantStringEscape
                           allowed: true,
                           reason: nil,
-                          note: "e621",
-      )
+                          note: "e621")
     end
 
     should "succeed for valid URLs" do

@@ -2,7 +2,7 @@
   <%= error_messages_for "whitelist" %>
 
   <%= f.input :domain, label: "Domain", as: :string %>
-  <%= f.input :path, label: "Path", as: :string, hint: "#{link_to("RegExp", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions")} format is used for both domain and path.".html_safe %>
+  <%= f.input :path, label: "Path", as: :string, hint: "#{link_to('RegExp', 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions')} format is used for both domain and path.".html_safe %>
 
   <%= f.input :pattern, label: "Pattern", as: :string, disabled: true, hint: "Outdated, for reference only" %>
 
