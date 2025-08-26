@@ -156,11 +156,6 @@ export default class Hotkeys {
 
       $document.trigger("e6.hotkeys.keyup", [this._heldKeys]);
       if (Hotkeys.debug) console.log("Key Up:", key, Hotkeys.buildKeybindString([...this._heldKeys]));
-
-      // Avoid default behavior
-      // Otherwise, the key could get inserted into inputs
-      event.preventDefault();
-      return false;
     });
 
 
