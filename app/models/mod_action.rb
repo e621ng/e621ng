@@ -66,7 +66,7 @@ class ModAction < ApplicationRecord
     ticket_claim: { ticket_id: :integer },
     ticket_unclaim: { ticket_id: :integer },
     ticket_update: { ticket_id: :integer, status: :string, response: :string, status_was: :string, response_was: :string },
-    upload_whitelist_create: { pattern: :string, note: :string, hidden: :boolean },
+    upload_whitelist_create: { domain: :string, path: :string, note: :string, hidden: :boolean },
     upload_whitelist_update: { pattern: :string, note: :string, old_pattern: :string, hidden: :boolean },
     upload_whitelist_delete: { pattern: :string, note: :string, hidden: :boolean },
     user_blacklist_changed: { user_id: :integer },

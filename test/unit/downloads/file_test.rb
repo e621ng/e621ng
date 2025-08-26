@@ -17,7 +17,7 @@ module Downloads
       setup do
         CurrentUser.user = create(:user)
         CloudflareService.stubs(:ips).returns([])
-        create(:upload_whitelist, pattern: "https://example.com/*")
+        create(:upload_whitelist, domain: "example.com")
       end
 
       should "not follow redirects to non-whitelisted domains" do
@@ -33,7 +33,7 @@ module Downloads
       setup do
         CurrentUser.user = create(:user)
         CloudflareService.stubs(:ips).returns([])
-        create(:upload_whitelist, pattern: "*")
+        create(:upload_whitelist, domain: ".*")
       end
 
       context "for a banned IP" do

@@ -6,7 +6,8 @@
     <table class="striped">
       <thead>
         <tr>
-          <th>Pattern</th>
+          <th>Domain</th>
+          <th>Path</th>
           <th>Note</th>
           <th>Hidden</th>
           <th>Allowed</th>
@@ -22,7 +23,8 @@
       <tbody>
         <% @whitelists.each do |whitelist| %>
           <tr>
-            <td><%= whitelist.pattern %></td>
+            <td><%= whitelist.domain %></td>
+            <td><%= whitelist.path %></td>
             <td><%= whitelist.note %></td>
             <td><%= whitelist.hidden ? "Yes" : "No" %></td>
             <td><%= whitelist.allowed ? "Yes" : "No" %></td>

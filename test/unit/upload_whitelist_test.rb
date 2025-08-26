@@ -8,7 +8,15 @@ class UploadWhitelistTest < ActiveSupport::TestCase
       user = create(:privileged_user)
       CurrentUser.user = user
 
-      @whitelist = create(:upload_whitelist, pattern: "*.e621.net/data/*", note: "e621")
+      # domain regex matches any subdomain of e621.net
+      # path regex matches /data/ followed by anything
+      @whitelist = create(:upload_whitelist,
+                          domain: "static1\.e621\.net", # rubocop:disable Style/RedundantStringEscape
+                          path: "\/data\/.*", # rubocop:disable Style/RedundantStringEscape
+                          allowed: true,
+                          reason: nil,
+                          note: "e621",
+      )
     end
 
     should "succeed for valid URLs" do

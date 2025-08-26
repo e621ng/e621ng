@@ -55,7 +55,7 @@ end
 
 def setup_upload_whitelist
   UploadWhitelist.create do |entry|
-    entry.pattern = "https://static1.e621.net/*"
+    entry.domain = "static1\.e621\.net" # rubocop:disable Style/RedundantStringEscape
   end
 end
 

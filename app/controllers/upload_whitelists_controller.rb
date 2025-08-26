@@ -2,7 +2,7 @@
 
 class UploadWhitelistsController < ApplicationController
   respond_to :html, :json, :js
-  before_action :admin_only, only: [:new, :create, :edit, :update, :destroy]
+  before_action :admin_only, only: %i[new create edit update destroy]
   before_action :load_whitelist, only: %i[edit update destroy]
 
   def index
@@ -68,10 +68,10 @@ class UploadWhitelistsController < ApplicationController
   end
 
   def search_params
-    permit_search_params %i[allowed order pattern note reason]
+    permit_search_params %i[allowed order domain path note reason]
   end
 
   def whitelist_params
-    params.require(:upload_whitelist).permit(%i[allowed pattern reason note hidden])
+    params.require(:upload_whitelist).permit(%i[allowed domain path reason note hidden])
   end
 end
