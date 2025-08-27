@@ -38,6 +38,8 @@ Post.initialize_all = function () {
     this.initialize_edit_dialog();
   }
 
+  this.initialize_collapse();
+
   $(document).on("danbooru:open-post-edit-tab", () => Hotkeys.enabled = false);
   $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").trigger("focus"));
   $(document).on("danbooru:close-post-edit-tab", () => Hotkeys.enabled = true);
