@@ -73,12 +73,17 @@ class UploadWhitelist < ApplicationRecord
       return [true, "bypassed"]
     end
 
+    reject_reason = "#{url.host.presence || url.to_s} not in whitelist"
     entries.each do |x|
-      if url.host =~ x.domain_regexp && url.path =~ x.path_regexp
-        return [x.allowed, x.reason]
+      if url.host =~ x.domain_regexp
+        if url.path =~ x.path_regexp
+          return [x.allowed, x.reason]
+        else
+          reject_reason = "#{url.host.presence || url.to_s} is in whitelist, but path #{url.path || url.to_s} is not allowed."
+        end
       end
     end
-    [false, "#{url.host.presence || url.to_s} not in whitelist"]
+    [false, reject_reason]
   end
 
   extend SearchMethods
