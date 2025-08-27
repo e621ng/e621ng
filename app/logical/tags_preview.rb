@@ -34,7 +34,9 @@ class TagsPreview
   end
 
   def resolve_implications
-    @implications = TagImplication.descendants_with_originals(@aliased_names)
+    @implications = TagImplication
+                    .descendants_with_originals(@aliased_names)
+                    .transform_values(&:to_a)
   end
 
   def load_tags
