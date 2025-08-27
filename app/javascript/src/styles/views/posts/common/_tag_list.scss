@@ -2,6 +2,9 @@ h5.tag-list-header {
   font-size: 1.25rem;
   cursor: pointer;
 
+  &::before {
+    content: "▼ ";
+  }
   &.hidden-category::before {
     content: "► ";
   }
