@@ -1,28 +1,23 @@
 # frozen_string_literal: true
 
 class UploadWhitelist < ApplicationRecord
-  before_save :clean_pattern
   after_save :clear_cache
 
-  validates :pattern, presence: true
-  validates :pattern, uniqueness: true
-  validates :pattern, format: { with: %r{\A[a-zA-Z0-9.%:_\-*\/?&]+\z} }
   after_create do |rec|
-    ModAction.log(:upload_whitelist_create, {pattern: rec.pattern, note: rec.note, hidden: rec.hidden})
+    ModAction.log(:upload_whitelist_create, { domain: rec.domain, path: rec.path, note: rec.note, hidden: rec.hidden })
   end
   after_save do |rec|
-    ModAction.log(:upload_whitelist_update, {pattern: rec.pattern, note: rec.note, old_pattern: rec.pattern_before_last_save, hidden: rec.hidden})
+    ModAction.log(:upload_whitelist_update, { domain: rec.domain, path: rec.path, note: rec.note, old_domain: rec.domain_before_last_save, old_path: rec.path_before_last_save, hidden: rec.hidden })
   end
   after_destroy do |rec|
-    ModAction.log(:upload_whitelist_delete, {pattern: rec.pattern, note: rec.note, hidden: rec.hidden})
+    ModAction.log(:upload_whitelist_delete, { domain: rec.domain, path: rec.path, note: rec.note, hidden: rec.hidden })
   end
 
-  def clean_pattern
-    self.pattern = self.pattern.downcase.tr('%', '*')
-  end
+  validates :domain, presence: true
+  validates :path, presence: true
 
   def clear_cache
-    Cache.delete('upload_whitelist')
+    Cache.delete("upload_whitelist")
   end
 
   module SearchMethods
@@ -42,8 +37,10 @@ class UploadWhitelist < ApplicationRecord
       end
 
       case params[:order]
-      when "pattern"
-        q = q.order("upload_whitelists.pattern")
+      when "domain"
+        q = q.order("upload_whitelists.domain")
+      when "path"
+        q = q.order("upload_whitelists.path")
       when "updated_at"
         q = q.order("upload_whitelists.updated_at desc")
       when "created_at"
@@ -54,6 +51,14 @@ class UploadWhitelist < ApplicationRecord
 
       q
     end
+  end
+
+  def domain_regexp
+    @domain_regexp ||= Regexp.new("^#{domain}$", Regexp::IGNORECASE)
+  end
+
+  def path_regexp
+    @path_regexp ||= Regexp.new("^#{path}$", Regexp::IGNORECASE)
   end
 
   def self.is_whitelisted?(url)
@@ -69,7 +74,7 @@ class UploadWhitelist < ApplicationRecord
     end
 
     entries.each do |x|
-      if File.fnmatch?(x.pattern, url, File::FNM_CASEFOLD)
+      if url.host =~ x.domain_regexp && url.path =~ x.path_regexp
         return [x.allowed, x.reason]
       end
     end

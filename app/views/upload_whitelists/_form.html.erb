@@ -1,7 +1,11 @@
 <%= custom_form_for(@whitelist) do |f| %>
   <%= error_messages_for "whitelist" %>
 
-  <%= f.input :pattern, label: "Pattern", as: :string, hint: "* matches zero or more, ? matches exactly one character. See more #{link_to('here', 'https://apidock.com/ruby/v2_5_5/File/fnmatch/class')}.".html_safe %>
+  <%= f.input :domain, label: "Domain", as: :string %>
+  <%= f.input :path, label: "Path", as: :string, hint: "#{link_to('RegExp', 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions')} format is used for both domain and path.".html_safe %>
+
+  <%= f.input :pattern, label: "Pattern", as: :string, disabled: true, hint: "Outdated, for reference only" %>
+
   <%= f.input :note, label: "Note", as: :string %>
   <%= f.input :allowed, label: "Upload Allowed", as: :boolean %>
   <%= f.input :reason, label: "Ban Reason", as: :string %>
