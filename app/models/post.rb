@@ -517,7 +517,7 @@ class Post < ApplicationRecord
       end
 
       # Truncate sources to prevent abuse
-      self.source = sources.map{ |s| s[0..2048] }.first(10).join("\n")
+      self.source = sources.map { |s| s[0..2048] }.first(10).join("\n")
     end
 
     def copy_sources_to_parent
