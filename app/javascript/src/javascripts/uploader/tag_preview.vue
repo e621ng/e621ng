@@ -52,7 +52,6 @@ export default {
         data: { tags: missing.join(' ') },
         success: (result) => {
           for (const tag of result) {
-            if (tag.alias && tag.name !== tag.alias) continue;
             this.tagCache[tag.name] = tag;
           }
           this.loading = false;
