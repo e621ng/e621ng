@@ -368,7 +368,7 @@ nav.navigation, html.nav-toggled nav.navigation {
       border-radius: 0.25rem 0 0 0.25rem;
       overflow-y: unset;
 
-      overflow: hidden; // Silly fix for too many links
+      overflow-x: scroll; // Silly fix for too many links
       z-index: 1; // above the avatar
 
       li {
