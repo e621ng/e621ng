@@ -28,6 +28,7 @@ class UploadWhitelistTest < ActiveSupport::TestCase
       assert_equal([false, "123.com not in whitelist"], UploadWhitelist.is_whitelisted?("https://123.com/what.png"))
       assert_equal([false, "aaa not in whitelist"], UploadWhitelist.is_whitelisted?("aaa"))
       assert_equal([false, "example.com not in whitelist"], UploadWhitelist.is_whitelisted?("https://example.com/test?=https://static1.e621.net/data/123.jpeg"))
+      assert_equal([false, "static1.e621.net is in whitelist, but path /other/123.png is not allowed."], UploadWhitelist.is_whitelisted?("https://static1.e621.net/other/123.png"))
     end
 
     should "bypass for admins" do
