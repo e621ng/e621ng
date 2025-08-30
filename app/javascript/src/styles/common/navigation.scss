@@ -234,8 +234,10 @@ body[data-th-stickyheader="true"] nav.navigation {
   position: sticky;
   top: 0;
 
-  background-color: themed("color-background");
-  background-image: themed("image-background");
+  @include window-larger-than(800px) {
+    background-color: themed("color-background");
+    background-image: themed("image-background");
+  }
 }
 
 
