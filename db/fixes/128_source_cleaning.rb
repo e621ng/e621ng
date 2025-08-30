@@ -7,7 +7,9 @@ Post.without_timeout do
   Post.in_batches(load: true, order: :desc).each do |group|
     group.each do |post|
       post.strip_source
-      post.save(validate: false)
+      if post.changed?
+        post.save(validate: false)
+      end
     end
   end
 end
