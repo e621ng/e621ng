@@ -2,9 +2,10 @@ h5.tag-list-header {
   font-size: 1.25rem;
   cursor: pointer;
 
-  &::before {
+  /* Uncomment to add arrow when expanded */
+  /* &::before {
     content: "▼ ";
-  }
+  } */
   &.hidden-category::before {
     content: "► ";
   }
