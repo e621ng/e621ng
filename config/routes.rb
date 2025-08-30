@@ -78,11 +78,11 @@ Rails.application.routes.draw do
       resource :deletion, only: %i[show destroy]
       resource :email_change, only: %i[new create]
       resource :dmail_filter, only: %i[edit update]
-      resource :api_key, only: %i[show update destroy] do
-        post :view
-      end
     end
   end
+
+  # API Keys management
+  resources :api_keys
 
   resources :avoid_postings, constraints: id_name_constraint do
     member do
