@@ -410,7 +410,7 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
         end.each do |p|
           q = -"#{p}order:#{k}"
           r = ElasticPostQueryBuilder.new(q, **DEFAULT_PARAM)
-          comparison = 2.days.ago if k == hot
+          comparison = 2.days.ago if k == "hot"
           msg = -"val: #{k}, TQ(#{q}).q:#{TagQuery.new(q).q}"
           assert_equal(p == "-" ? v.last : v.first, r.order, msg)
 
