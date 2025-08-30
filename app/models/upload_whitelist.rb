@@ -79,7 +79,7 @@ class UploadWhitelist < ApplicationRecord
         if url.path =~ x.path_regexp
           return [x.allowed, x.reason]
         else
-          reject_reason = "#{url.host.presence || url.to_s} is in whitelist, but path #{url.path || url.to_s} is not allowed."
+          reject_reason = "#{url.host.presence || url.to_s} is in whitelist, but path #{url.path.presence || '<no path>'} is not allowed."
         end
       end
     end
