@@ -135,15 +135,13 @@ class TagQuery
   ].concat(COUNT_METATAGS, CATEGORY_METATAG_MAP.keys).freeze
 
   # All possible valid values for `order` metatags; used for autocomplete.
-  # * With the exception of `rank`, `random`, & `hot`, all values have an option to invert the order.
+  # * With the exception of `random` & `hot`, all values have an option to invert the order.
   # * With the exception of `portrait`/`landscape`, all invertible values have a bare, `_asc`, & `_desc` variant.
   # * With the exception of `id`, all bare invertible values are equivalent to their `_desc`-suffixed counterparts.
   #
   # Add non-reversible entries to the array literal here.
-  #
-  # IDEA: Add `rank_asc` option
   ORDER_METATAGS = %w[
-    rank random hot
+    random hot
   ].concat(
     ORDER_INVERTIBLE_ALIASES
       .keys.concat(ORDER_INVERTIBLE_ROOTS)
@@ -170,7 +168,7 @@ class TagQuery
     CATEGORY_METATAG_MAP.keys.flat_map { |e| [e, -"#{e}_asc"] }, # Remove the resolved forms of the full tag category forms
   )).freeze
 
-  # Should currently just be `rank`, `random`, & `hot`; not a constant due to only current use being tests.
+  # Should currently just be `random` & `hot`; not a constant due to only current use being tests.
   def self.order_non_invertible_roots
     (ORDER_METATAGS - ORDER_INVERTIBLE_ALIASES
     .keys.concat(ORDER_INVERTIBLE_ROOTS)
@@ -191,7 +189,7 @@ class TagQuery
   # In the general case, tags have a `_asc` suffix appended/removed.
   #
   # NOTE: With the exception of `id_desc`, values ending in `_desc` are equivalent to the same string
-  # with that suffix removed; as such, these keys, along with `id_asc`, `rank`, `random`, & `hot`,
+  # with that suffix removed; as such, these keys, along with `id_asc`, `random`, & `hot`,
   # are not included in this hash.
   ORDER_VALUE_INVERSIONS = ORDER_INVERTIBLE_ROOTS[1..].flat_map { |str| [str, -"#{str}_asc"] }.push(*ORDER_NON_SUFFIXED_ALIASES.keys, "id", "id_desc").index_with do |e|
     case e

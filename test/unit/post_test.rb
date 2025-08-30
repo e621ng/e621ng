@@ -1909,7 +1909,6 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(posts.reverse, "order:chartags")
       assert_tag_match(posts.reverse, "order:copytags")
       assert_tag_match(posts.reverse, "order:hot")
-      assert_tag_match(posts.reverse, "order:rank")
       assert_tag_match(posts.reverse, "order:note_count")
       assert_tag_match(posts.reverse, "order:note_count_desc")
       assert_tag_match(posts.reverse, "order:notes")

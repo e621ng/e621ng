@@ -134,7 +134,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     "tagcount_asc" => [{ tag_count: :asc }],
     "comment_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "comment_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
-    # "rank" => [{ _score: :desc }],
     # "random" => [{ _score: :desc }],
   }).freeze.each_value(&:freeze)
 
@@ -322,19 +321,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
                                          { gte: two_days_ago }
                                        end } })
       order.push({ _score: :desc })
-
-    when "rank"
-      order.push({ _score: :desc })
-      must.push({ range: { score: { gt: 0 } } })
-      # must.push({ range: { created_at: { gte: 2.days.ago } } })
-      @function_score = {
-        script_score: {
-          script: { # date2005_05_24 = DateTime.new(2005,05,24,12).to_time.to_i
-            params: { log3: Math.log(3), date2005_05_24: 1_116_936_000 }, # rubocop:disable Naming/VariableNumber
-            source: "Math.log(doc['score'].value) / params.log3 + (doc['created_at'].value.millis / 1000 - params.date2005_05_24) / 35000",
-          },
-        },
-      }
 
     when "random"
       order.push({ _score: :desc })
