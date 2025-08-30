@@ -32,14 +32,14 @@ body.c-static.a-home {
     background-position: center center;
     background-repeat: no-repeat;
 
-    @include window-larger-than(50rem) { margin-top: -3.5rem; }
+    @include window-larger-than(50rem) { margin-top: -3.75rem; }
   }
 
 
   // Common
   .home-section {
     // Frosted glass effect
-    background-color: rgba(15, 15, 15, 0.5);
+    background-color: var(--fg-color, #0f0f0f80);
     backdrop-filter: blur(8px);
 
     padding: 1rem;
@@ -148,7 +148,7 @@ body.c-static.a-home {
 
   // Footer
   .home-footer-top {
-    background-color: rgba(15, 15, 15, 0.5);
+    background-color: var(--fg-color, #0f0f0f80);;
     backdrop-filter: blur(8px);
     margin: 0.5rem 0 0;
     padding: 1rem;

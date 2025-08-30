@@ -6,7 +6,7 @@ class Mascot < ApplicationRecord
   array_attribute :available_on, parse: /[^,]+/, join_character: ","
   attr_accessor :mascot_file
 
-  validates :display_name, :background_color, :artist_url, :artist_name, presence: true
+  validates :display_name, :background_color, :foreground_color, :artist_url, :artist_name, presence: true
   validates :artist_url, format: { with: %r{\Ahttps?://}, message: "must start with http:// or https://" }
   validates :mascot_file, presence: true, on: :create
   validate :set_file_properties
@@ -38,7 +38,7 @@ class Mascot < ApplicationRecord
     Cache.fetch("active_mascots", expires_in: 1.day) do
       query = Mascot.where(active: true).where("? = ANY(available_on)", Danbooru.config.app_name)
       mascots = query.map do |mascot|
-        mascot.slice(:id, :background_color, :artist_url, :artist_name).merge(background_url: mascot.url_path)
+        mascot.slice(:id, :background_color, :foreground_color, :artist_url, :artist_name).merge(background_url: mascot.url_path)
       end
       mascots.index_by { |mascot| mascot["id"] }
     end
@@ -80,7 +80,7 @@ class Mascot < ApplicationRecord
 
   def self.search(params)
     q = super
-    q.order("created_at asc")
+    q.order("id asc")
   end
 
   def method_attributes

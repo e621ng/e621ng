@@ -1007,13 +1007,14 @@ CREATE TABLE public.mascots (
     display_name character varying NOT NULL,
     md5 character varying NOT NULL,
     file_ext character varying NOT NULL,
-    background_color character varying NOT NULL,
+    background_color character varying DEFAULT '#012e57'::character varying NOT NULL,
     artist_url character varying NOT NULL,
     artist_name character varying NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    available_on character varying[] DEFAULT '{}'::character varying[] NOT NULL
+    available_on character varying[] DEFAULT '{}'::character varying[] NOT NULL,
+    foreground_color character varying DEFAULT '#0f0f0f80'::character varying NOT NULL
 );
 
 
@@ -4733,6 +4734,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250830192056'),
 ('20250826165528'),
 ('20250611041221'),
 ('20250604020028'),

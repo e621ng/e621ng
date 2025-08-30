@@ -9,6 +9,7 @@ Mascots.showMascot = function (mascot) {
   $("body").css({
     "--bg-image": `url("${mascot.background_url}")`,
     "--bg-color": mascot.background_color,
+    "--fg-color": mascot.foreground_color,
   });
 
   $("#mascot-artist")
