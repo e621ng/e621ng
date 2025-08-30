@@ -148,15 +148,9 @@
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
                     </div>
-                    <div v-show="!tagPreview.show">
-                        <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
-                                  ref="otherTags" data-autocomplete="tag-edit"></textarea>
-                    </div>
-                    <div v-show="tagPreview.show">
-                        <tag-preview :tags="tagPreview.tags" :loading="tagPreview.loading"
-                                     @close="previewFinalTags"></tag-preview>
-                    </div>
-
+                    <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
+                              ref="otherTags" data-autocomplete="tag-edit"></textarea>
+                    <tag-preview :tags="tags" />
                     <div class="related-tag-functions">
                         Related:
                         <a href="#" @click.prevent="findRelated()">Tags</a> |
@@ -165,8 +159,7 @@
                         <a href="#" @click.prevent="findRelated(3)">Copyrights</a> |
                         <a href="#" @click.prevent="findRelated(4)">Characters</a> |
                         <a href="#" @click.prevent="findRelated(5)">Species</a> |
-                        <a href="#" @click.prevent="findRelated(7)">Metatags</a> |
-                        <a href="#" @click.prevent="previewFinalTags">Preview Final Tags</a>
+                        <a href="#" @click.prevent="findRelated(7)">Metatags</a>
                     </div>
                 </div>
             </div>
@@ -353,12 +346,6 @@
           other: "",      // other: '',
         },
 
-        tagPreview: {
-          loading: false,
-          show: false,
-          tags: []
-        },
-
         allowLockedTags: window.uploaderSettings.allowLockedTags,
         lockedTags: '',
         allowRatingLock: window.uploaderSettings.allowRatingLock,
@@ -505,7 +492,6 @@
         });
       },
       pushTag(tag, add) {
-        this.tagPreview.show = false;
         const isCheck = typeof this.checkboxes.all[tag] !== "undefined";
         // In advanced mode we need to push these into the tags area because there are no checkboxes or other
         // tag fields so we can't see them otherwise.
@@ -532,7 +518,6 @@
        * @param {string} input Which of the tagEntries the tags should be added to
        */
       importTags(tags, input) {
-        this.tagPreview.show = false;
         const tagsA = (tags + "").trim().split(" ").filter(n => n);
 
         // Dedupe
@@ -547,35 +532,6 @@
 
         // Without a space at the end, vue panics
         this.tagEntries[this.normalMode ? input : "other"] = tagsB.join(" ") + " ";
-      },
-
-      previewFinalTags() {
-        if (this.tagPreview.loading)
-          return;
-        if (this.tagPreview.show) {
-          this.tagPreview.show = false;
-          return;
-        }
-        this.tagPreview.loading = true;
-        this.tagPreview.show = true;
-        this.tagPreview.tags = [];
-        const self = this;
-        const data = {tags: this.tags};
-        jQuery.ajax("/tags/preview.json", {
-          method: 'POST',
-          type: 'POST',
-          data: data,
-          success: function (result) {
-            self.tagPreview.loading = false;
-            self.tagPreview.tags = result;
-          },
-          error: function (result) {
-            self.tagPreview.loading = false;
-            self.tagPreview.tags = [];
-            self.tagPreview.show = false;
-            Danbooru.error('Error loading tag preview ' + result);
-          }
-        })
       },
       findRelated(categoryId) {
         const self = this;
@@ -652,6 +608,6 @@
       duplicatePath: function () {
         return `/posts/${this.duplicateId}`;
       }
-    }
+    },
   }
 </script>
