@@ -116,7 +116,7 @@ class User < ApplicationRecord
   #after_create :notify_sock_puppets
   after_create :create_user_status
 
-  has_one :api_key
+  has_many :api_keys, dependent: :destroy
   has_one :dmail_filter
   has_one :user_status
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
@@ -288,14 +288,14 @@ class User < ApplicationRecord
         return nil unless api_key.is_a?(String) && api_key.dup.force_encoding("UTF-8").valid_encoding?
         return nil if name.blank? || api_key.blank?
 
-        key = ApiKey.where(key: api_key).first
-        return nil if key.nil?
-
         # The find_by(name: name) will not use an index correctly
         user = find_by_name(name)
         return nil if user.nil?
-        return user if key.user_id == user.id
-        nil
+
+        key = user.api_keys.active.find_by(key: api_key)
+        return nil if key.nil?
+
+        [user, key]
       end
 
       def bcrypt(pass)

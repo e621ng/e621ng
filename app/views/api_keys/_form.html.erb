@@ -1,0 +1,25 @@
+<%= form_with(model: api_key, local: true) do |f| %>
+  <div class="field">
+    <%= f.label :name %>
+    <%= f.text_field :name %>
+    <div class="hint">A name to help you remember what this key is for.</div>
+  </div>
+
+  <div class="field">
+    <%= f.label :expires_at, "Expiration Date (optional)" %>
+    <%= f.datetime_local_field :expires_at %>
+    <div class="hint">Leave blank if you don't want this key to expire automatically.</div>
+  </div>
+
+    <% if api_key.errors.any? %>
+    <div class="section report-errors">
+      <% api_key.errors.full_messages.each do |error| %>
+        <span><%= error %></span>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= f.submit(api_key.persisted? ? "Update" : "Create") %>
+  </div>
+<% end %>

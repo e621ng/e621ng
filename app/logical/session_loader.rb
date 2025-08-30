@@ -44,7 +44,7 @@ class SessionLoader
   end
 
   def has_api_authentication?
-    request.authorization.present? || params[:login].present? || params[:api_key].present?
+    request.authorization.present? || (params[:login].present? && params[:api_key].present?)
   end
 
   def has_remember_token?
@@ -113,9 +113,12 @@ class SessionLoader
       raise AuthenticationFailure
     end
 
-    user = User.authenticate_api_key(name, api_key)
-    raise AuthenticationFailure if user.nil?
+    auth_result = User.authenticate_api_key(name, api_key)
+    raise AuthenticationFailure if auth_result.nil?
+    user, api_key_record = auth_result
     CurrentUser.user = user
+    CurrentUser.api_key = api_key_record
+    api_key_record&.update_usage!(@request.remote_ip)
   rescue ActiveRecord::StatementInvalid => e
     if e.message.include?("invalid byte sequence") || e.message.include?("CharacterNotInRepertoire")
       Rails.logger.warn("Database encoding error during authentication from #{request.remote_ip}: #{e.message}")
@@ -126,10 +129,11 @@ class SessionLoader
   end
 
   def load_session_user
-    user = User.find_by_id(session[:user_id])
+    user = User.find_by(id: session[:user_id])
     raise AuthenticationFailure if user.nil?
     return if session[:ph] != user.password_token
     CurrentUser.user = user
+    CurrentUser.api_key = nil
   end
 
   def update_last_logged_in_at
