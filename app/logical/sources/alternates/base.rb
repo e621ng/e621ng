@@ -15,12 +15,16 @@ module Sources
         end
 
         if @parsed_url.present?
-          if force_https?
-            @parsed_url.scheme = "https"
-            @url = @parsed_url.to_s
-          end
+          begin
+            if force_https?
+              @parsed_url.scheme = "https"
+              @url = @parsed_url.to_s
+            end
 
-          parse
+            parse
+          rescue StandardError
+            @parsed_url = nil
+          end
         end
       end
 
