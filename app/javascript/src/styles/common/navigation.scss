@@ -234,7 +234,7 @@ body[data-th-stickyheader="true"] nav.navigation {
   position: sticky;
   top: 0;
 
-  @include window-larger-than(800px) {
+  @include window-larger-than(50rem) {
     background-color: themed("color-background");
     background-image: themed("image-background");
   }
@@ -257,7 +257,7 @@ nav.navigation .nav-primary li.notification {
     right: 0.2rem;
     top: 1.25rem;
   
-    @include window-larger-than(800px) {
+    @include window-larger-than(50rem) {
       top: 0.2rem;
     }
   }
