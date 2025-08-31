@@ -2,7 +2,7 @@
   <h3>Related</h3>
   <ul id="related-list">
     <% if discover_mode? %>
-      <li id="secondary-links-posts-hot"><%= link_to "Hot", posts_path(:tags => "order:rank") %></li>
+      <li id="secondary-links-posts-hot"><%= link_to "Hot", posts_path(:tags => "order:hot") %></li>
       <li id="secondary-links-posts-popular"><%= link_to "Popular", popular_index_path %></li>
     <% end %>
 

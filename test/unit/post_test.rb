@@ -1881,9 +1881,9 @@ class PostTest < ActiveSupport::TestCase
           fav_count: n,
           file_size: 1.megabyte * n,
           # posts[0] is portrait, posts[1] is landscape. posts[1].mpixels > posts[0].mpixels.
-          image_height: 100*n*n,
-          image_width: 100*(3-n)*n,
-          tag_string: tags[n-1],
+          image_height: 100 * n * n,
+          image_width: 100 * (3 - n) * n,
+          tag_string: tags[n - 1],
         )
 
         create(:comment, post: p, do_not_bump_post: false)
@@ -1908,7 +1908,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(posts.reverse, "order:arttags")
       assert_tag_match(posts.reverse, "order:chartags")
       assert_tag_match(posts.reverse, "order:copytags")
-      assert_tag_match(posts.reverse, "order:rank")
+      assert_tag_match(posts.reverse, "order:hot")
       assert_tag_match(posts.reverse, "order:note_count")
       assert_tag_match(posts.reverse, "order:note_count_desc")
       assert_tag_match(posts.reverse, "order:notes")

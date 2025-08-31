@@ -70,7 +70,7 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       "tagcount" => [[{ tag_count: :desc }], [{ tag_count: :asc }]],
       "tagcount_desc" => [[{ tag_count: :desc }], [{ tag_count: :asc }]],
       "tagcount_asc" => [[{ tag_count: :asc }], [{ tag_count: :desc }]],
-      "rank" => [[{ _score: :desc }]],
+      "hot" => [[{ _score: :desc }]],
       "random" => [[{ _score: :desc }]],
       "portrait" => [[{ aspect_ratio: :asc }], [{ aspect_ratio: :desc }]],
       "landscape" => [[{ aspect_ratio: :desc }], [{ aspect_ratio: :asc }]],
@@ -410,7 +410,7 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
         end.each do |p|
           q = -"#{p}order:#{k}"
           r = ElasticPostQueryBuilder.new(q, **DEFAULT_PARAM)
-          comparison = 2.days.ago if k == "rank"
+          comparison = 2.days.ago if k == "hot"
           msg = -"val: #{k}, TQ(#{q}).q:#{TagQuery.new(q).q}"
           assert_equal(p == "-" ? v.last : v.first, r.order, msg)
 
@@ -418,12 +418,13 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
           case k
           when /\Acomm(?>ent)?_bumped(?>_(?>a|de)sc)?\z/
             assert_includes(r.must, { exists: { field: "comment_bumped_at" } }, msg)
-          when "rank"
+          when "hot" # TODO: Test with `hot_from`
             assert_includes(r.must, { range: { score: { gt: 0 } } }, msg)
             datetime_ago = nil
             assert(r.must.any? { |x| datetime_ago ||= x[:range]&.fetch(:created_at, nil)&.fetch(:gte, nil) }, msg)
             assert_in_delta(comparison, datetime_ago, TIME_DELTA, msg)
           # FIXME: Find a way to test the function score and assert these commented out lines
+          # TODO: Check with `hot`
           #   assert_equals({
           #     script_score: {
           #       script: {
