@@ -28,10 +28,6 @@ class UploadWhitelist < ApplicationRecord
     def search(params)
       q = super
 
-      if params[:pattern].present?
-        q = q.where("pattern ILIKE ?", params[:pattern].to_escaped_for_sql_like)
-      end
-
       if params[:note].present?
         q = q.where("note ILIKE ?", params[:note].to_escaped_for_sql_like)
       end

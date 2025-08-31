@@ -4,8 +4,6 @@
   <%= f.input :domain, label: "Domain", as: :string %>
   <%= f.input :path, label: "Path", as: :string, hint: "#{link_to('RegExp', 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions')} format is used for both domain and path.".html_safe %>
 
-  <%= f.input :pattern, label: "Pattern", as: :string, disabled: true, hint: "Outdated, for reference only" %>
-
   <%= f.input :note, label: "Note", as: :string %>
   <%= f.input :allowed, label: "Upload Allowed", as: :boolean %>
   <%= f.input :reason, label: "Ban Reason", as: :string %>

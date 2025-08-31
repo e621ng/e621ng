@@ -2090,7 +2090,6 @@ ALTER SEQUENCE public.tickets_id_seq OWNED BY public.tickets.id;
 
 CREATE TABLE public.upload_whitelists (
     id bigint NOT NULL,
-    pattern character varying DEFAULT ''::character varying NOT NULL,
     note character varying,
     reason character varying,
     allowed boolean DEFAULT true NOT NULL,
@@ -2098,7 +2097,7 @@ CREATE TABLE public.upload_whitelists (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     domain character varying,
-    path character varying DEFAULT '/.+'::character varying
+    path character varying DEFAULT '\/.+'::character varying
 );
 
 
@@ -4735,6 +4734,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250831040648'),
 ('20250830192056'),
 ('20250826165528'),
 ('20250611041221'),
