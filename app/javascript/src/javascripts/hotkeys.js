@@ -25,6 +25,7 @@ export default class Hotkeys {
     "favorite-add": [ "e6.htk.favorite-add", "Shift+F" ],
     "favorite-del": [ "e6.htk.favorite-del", "" ],
     "note":         [ "e6.htk.note", "N" ],
+    "note-toggle":  [ "e6.htk.note-tgl", "Shift+N" ],
     "random":       [ "e6.htk.random", "R" ],
     "edit-d":       [ "e6.htk.edit-alt", "Shift+E" ],
     "resize":       [ "e6.htk.resize", "V" ],
