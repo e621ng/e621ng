@@ -24,22 +24,31 @@ body.c-static.a-home {
     background-image: themed("bg-image");
 
     display: flex;
-    width: min(750px, 100vw);
-    height: min(750px, 100vw);
-    margin-bottom: max(-300px, -40vw); // search form 40% up the mascot image
+    $mascot-size: 750px;
+    width: min($mascot-size, 100vw);
+    height: min($mascot-size, 100vw);
+
+    // Position the search form 60% down the image.
+    // Extra 0.5rem is needed to clear the flexbox gap.
+    margin-bottom: calc(max(0 - ($mascot-size * 0.4), -40vw) - 0.5rem);
 
     background-size: contain; // Scale the image down with the container
     background-position: center center;
     background-repeat: no-repeat;
 
-    @include window-larger-than(50rem) { margin-top: -3.5rem; }
+    // Layering over the searchbar
+    z-index: 1;
+    pointer-events: none;
+
+    // Offset for the navbar
+    @include window-larger-than(50rem) { margin-top: -3.75rem; }
   }
 
 
   // Common
   .home-section {
     // Frosted glass effect
-    background-color: rgba(15, 15, 15, 0.5);
+    background-color: var(--fg-color, #0f0f0f80);
     backdrop-filter: blur(8px);
 
     padding: 1rem;
@@ -48,7 +57,11 @@ body.c-static.a-home {
 
     box-sizing: border-box;
     width: 100%;
+    z-index: 1;
   }
+
+  // Mascot layering over the searchbar
+  &[layered="true"] .home-search-section { z-index: 0; }
 
 
   // Search
@@ -148,7 +161,7 @@ body.c-static.a-home {
 
   // Footer
   .home-footer-top {
-    background-color: rgba(15, 15, 15, 0.5);
+    background-color: var(--fg-color, #0f0f0f80);
     backdrop-filter: blur(8px);
     margin: 0.5rem 0 0;
     padding: 1rem;
@@ -159,6 +172,7 @@ body.c-static.a-home {
     align-items: center;
     box-sizing: border-box;
     width: 100%;
+    z-index: 1;
 
     @include st-radius-top;
 
@@ -189,6 +203,7 @@ body.c-static.a-home {
     padding: 0.5rem;
     box-sizing: border-box;
     width: 100%;
+    z-index: 1;
 
     @include st-radius-bottom;
 

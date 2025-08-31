@@ -13,14 +13,14 @@ class MascotsController < ApplicationController
     @mascot = Mascot.new
   end
 
+  def edit
+    @mascot = Mascot.find(params[:id])
+  end
+
   def create
     @mascot = Mascot.create(mascot_params.merge(creator: CurrentUser.user))
     ModAction.log(:mascot_create, { id: @mascot.id }) if @mascot.valid?
     respond_with(@mascot, location: mascots_path)
-  end
-
-  def edit
-    @mascot = Mascot.find(params[:id])
   end
 
   def update
@@ -40,6 +40,6 @@ class MascotsController < ApplicationController
   private
 
   def mascot_params
-    params.fetch(:mascot, {}).permit(%i[mascot_file display_name background_color artist_url artist_name available_on_string active])
+    params.fetch(:mascot, {}).permit(%i[mascot_file display_name background_color foreground_color is_layered artist_url artist_name available_on_string active])
   end
 end
