@@ -1014,7 +1014,8 @@ CREATE TABLE public.mascots (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     available_on character varying[] DEFAULT '{}'::character varying[] NOT NULL,
-    foreground_color character varying DEFAULT '#0f0f0f80'::character varying NOT NULL
+    foreground_color character varying DEFAULT '#0f0f0f80'::character varying NOT NULL,
+    is_layered boolean DEFAULT false NOT NULL
 );
 
 
