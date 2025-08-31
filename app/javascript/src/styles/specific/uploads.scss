@@ -108,6 +108,10 @@ div#c-uploads {
       }
     }
 
+    .upload-artist-tags {
+      margin-top: 0.5rem;
+    }
+
     @media only screen and (orientation: portrait), (max-width: 1100px) {
       #preview-sidebar {
         display: none;

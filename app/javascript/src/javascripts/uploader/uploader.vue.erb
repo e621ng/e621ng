@@ -243,7 +243,7 @@
   import tagPreview from './tag_preview.vue';
   import filePreview from './file_preview.vue';
   import fileInput from './file_input.vue';
-
+  
   const sex_checks = [
     {name: 'Male'},
     {name: 'Female'},
@@ -425,6 +425,8 @@
         fillField('lockedTags', 'locked_tags');
       if(this.allowUploadAsPending)
         fillFieldBool("uploadAsPending", "upload_as_pending")
+      
+      this.initVerifiedArtistButtons();
     },
     methods: {
       setCheck(tag, value) {
@@ -574,7 +576,38 @@
         }).always(function () {
           self.loadingRelated = false;
         });
-      }
+      },
+
+      initVerifiedArtistButtons () {
+        if (window.uploaderSettings.verifiedArtistTags.length == 0) return;
+
+        // Compact uploader
+        const artistTextBox = document.querySelector("#post_artist");
+        if (artistTextBox === null) return;
+
+        const artistTextBoxParent = artistTextBox.parentElement;
+        const buttonRow = document.createElement("div");
+        buttonRow.classList.add("upload-artist-tags");
+
+        const hint = document.createElement("div");
+        hint.innerHTML = "Linked artist tags:";
+        buttonRow.appendChild(hint);
+
+        for (const artistName of window.uploaderSettings.verifiedArtistTags) {
+          const newButton = document.createElement("button");
+          newButton.classList.add("toggle-button");
+          newButton.innerHTML = artistName;
+          newButton.onclick = () => {
+            // Likely overkill, but let's be safe
+            let val = artistTextBox.value.trim().split(" ").filter(n => n);
+            if (val.includes(artistName)) val = val.filter(n => n !== artistName);
+            else val.push(artistName);
+            artistTextBox.value = val.join(" ") + " ";
+          };
+          buttonRow.appendChild(newButton);
+        }
+        artistTextBoxParent.appendChild(buttonRow);
+      },
     },
     computed: {
       tags() {
