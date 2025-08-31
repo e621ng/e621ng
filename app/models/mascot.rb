@@ -13,7 +13,7 @@ class Mascot < ApplicationRecord
   validates :md5, uniqueness: true
   validate if: :mascot_file do |mascot|
     max_file_sizes = { "jpg" => 500.kilobytes, "png" => 500.kilobytes }
-    FileValidator.new(mascot, mascot_file.path).validate(max_file_sizes: max_file_sizes, max_width: 1_000, max_height: 1_000)
+    FileValidator.new(mascot, mascot_file.path).validate(max_file_sizes: max_file_sizes, max_width: 1_500, max_height: 1_500)
   end
 
   after_commit :invalidate_cache
