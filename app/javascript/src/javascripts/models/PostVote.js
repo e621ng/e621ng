@@ -48,7 +48,9 @@ export default class PostVote {
     }).then(async (response) => {
       if (!response.ok)
         return response.json().then((data) => {
-          throw new Error(data.reason || "An error occurred while voting.");
+          const message = data.reason || data.message || "An error occurred while voting.";
+          $(window).trigger("danbooru:error", message);
+          throw new Error(message);
         });
 
       return response.json();
