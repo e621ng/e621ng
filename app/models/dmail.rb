@@ -130,11 +130,11 @@ class Dmail < ApplicationRecord
 
   module ApiMethods
     def to_name
-      to.pretty_name
+      to&.pretty_name
     end
 
     def from_name
-      from.pretty_name
+      from&.pretty_name
     end
 
     def method_attributes
