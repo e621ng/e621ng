@@ -128,8 +128,23 @@ class Dmail < ApplicationRecord
     end
   end
 
+  module ApiMethods
+    def to_name
+      to&.pretty_name
+    end
+
+    def from_name
+      from&.pretty_name
+    end
+
+    def method_attributes
+      super + %i[to_name from_name]
+    end
+  end
+
   include AddressMethods
   include FactoryMethods
+  include ApiMethods
   extend SearchMethods
 
   def user_not_limited
