@@ -2,7 +2,7 @@
 
 module FileMethods
   def is_image?
-    is_png? || is_jpg? || is_gif?
+    is_png? || is_jpg? || is_gif? || is_webp?
   end
 
   def is_png?
@@ -27,6 +27,10 @@ module FileMethods
 
   def is_mp4?
     file_ext == "mp4"
+  end
+
+  def is_webp?
+    file_ext == "webp"
   end
 
   def is_video?
@@ -85,6 +89,8 @@ module FileMethods
         "webm"
       when "video/mp4"
         "mp4"
+      when "image/webp"
+        "webp"
       else
         mime_type
       end
