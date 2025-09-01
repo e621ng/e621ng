@@ -1,5 +1,6 @@
 /* eslint-disable quotes */
 import Utility from './utility.js';
+import TextUtils from './utility/text_util.js';
 
 let Blip = {};
 
@@ -31,13 +32,10 @@ Blip.quote = function (id) {
       id: id,
     },
   }).done(function (data) {
-    const stripped_body = data.body.replace(/\[quote\](?:.|\n|\r)+?\[\/quote\][\n\r]*/gm, "");
-    $('#blip_body_for_')[0].value += `[quote]"${data.creator_name}":/users/${data.creator_id} said:
-${stripped_body}
-[/quote]
+    const $textarea = $("#blip_body_for_");
+    TextUtils.processQuote($textarea, data.body, data.creator_name, data.creator_id);
+    $textarea.selectEnd();
 
-`;
-    $("#blip_body_for_")[0].focus();
     $('#blip_response_to')[0].value = data.id;
   }).fail(function (data) {
     Utility.error(data.responseText);

@@ -1,5 +1,6 @@
 import DText from "./dtext";
 import Utility from "./utility";
+import TextUtils from "./utility/text_util";
 
 let Comment = {};
 
@@ -120,22 +121,11 @@ Comment.quote = function (e) {
     dataType: "json",
     accept: "text/javascript",
   }).done(function (data) {
-    let stripped_body = data.body.replace(/\[quote\](?:.|\n|\r)+?\[\/quote\][\n\r]*/gm, "");
-    stripped_body = `[quote]"${parent.data("creator")}":/users/${parent.data("creator-id")} said:
-${stripped_body}
-[/quote]
-
-`;
-    var $div = $(`div.comments-for-post[data-post-id="${pid}"] div.new-comment`);
+    const $div = $(`div.comments-for-post[data-post-id="${pid}"] div.new-comment`);
     $div.find(".expand-comment-response").click();
 
-    var $textarea = $div.find("textarea");
-    var msg = stripped_body;
-    if ($textarea.val().length > 0) {
-      msg = $textarea.val() + "\n\n" + msg;
-    }
-
-    $textarea.val(msg);
+    const $textarea = $div.find("textarea");
+    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
     $textarea.selectEnd();
   }).fail(function (data) {
     Utility.error(data.responseText);
