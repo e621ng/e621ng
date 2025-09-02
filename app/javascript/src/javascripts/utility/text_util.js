@@ -1,6 +1,8 @@
 const TextUtils = {};
 
-TextUtils._quoteRegex = /\[quote\](?!\[quote\])(?:[\S\s](?!\[quote\]))*?\[\/quote\][\n\r]+/sg;
+// https://regex101.com/r/1kVuT1/
+TextUtils._quoteRegex = /\[quote\](?!\[quote\])(?:[\S\s](?!\[quote\]))*?\[\/quote\][\n\r]*/sg;
+
 TextUtils.strip_quotes = function (string) {
   console.log(0, string);
   let iteration = 0;
