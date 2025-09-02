@@ -7,7 +7,7 @@ module Maintenance
       end
 
       def create
-        ::User.with_email(params[:email]).each do |user|
+        ::User.with_email(params[:user][:email]).each do |user|
           next if user.is_moderator?
           LoginReminderMailer.notice(user).deliver_now
         end
