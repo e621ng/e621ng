@@ -72,9 +72,9 @@ Thumbnails.initialize = function () {
     /**
      * @type {JQuery<HTMLAnchorElement>}
      */
-    const link = isProfileAvatar ? 
-      $post.children("a").first() : 
-      $("<a>").appendTo(thumbnail);
+    const link = isProfileAvatar
+      ? $post.children("a").first()
+      : $("<a>").appendTo(thumbnail);
     link.attr("href", `/posts/${postData.id}`);
 
     $("<img>")
@@ -100,8 +100,8 @@ Thumbnails.initialize = function () {
   }
 
   /**
-   * 
-   * @param {JQuery<HTMLElement>} post 
+   *
+   * @param {JQuery<HTMLElement>} post
    * @param {boolean} isProfileAvatar Don't empty profile avatars & they've already had their placeholder class removed.
    */
   function clearPlaceholder (post, isProfileAvatar) {
