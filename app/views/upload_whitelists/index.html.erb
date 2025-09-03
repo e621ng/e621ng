@@ -33,7 +33,7 @@
             <td><%= compact_time whitelist.updated_at %></td>
             <% if CurrentUser.is_admin? %>
               <td><%= link_to "Edit", edit_upload_whitelist_path(whitelist) %></td>
-              <td><%= link_to "Delete", upload_whitelist_path(whitelist),  method: :delete, data: {confirm: "Do your really want to delete #{whitelist.pattern}?"} %></td>
+              <td><%= link_to "Delete", upload_whitelist_path(whitelist),  method: :delete, data: { confirm: "Do you really want to delete #{whitelist.note}?" } %></td>
             <% end %>
           </tr>
         <% end %>
