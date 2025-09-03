@@ -48,12 +48,12 @@ class TagsPreview
     seen = Set.new
 
     (@raw_names + @aliases.values + @implications.values.flatten).uniq.filter_map do |raw_name|
-      resolved = @resolved_names[raw_name]
+      resolved = @resolved_names[raw_name] || raw_name
 
       next if seen.include?(resolved)
       seen << resolved
 
-      canonical = @aliases[resolved]
+      canonical = @aliases[resolved] || resolved
       tag = @tags[canonical]
 
       {
