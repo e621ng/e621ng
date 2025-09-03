@@ -107,8 +107,6 @@ Thumbnails.initialize = function () {
   function clearPlaceholder (post, isProfileAvatar) {
     if (post.hasClass("thumb-placeholder-link"))
       post.removeClass("thumb-placeholder-link");
-    // else if (post.hasClass("placeholder"))
-    //   post.removeClass("placeholder").children(".placeholder").removeClass("placeholder");
     else if (!isProfileAvatar)
       post.empty();
   }
