@@ -102,7 +102,7 @@ Thumbnails.initialize = function () {
   /**
    *
    * @param {JQuery<HTMLElement>} post
-   * @param {boolean} isProfileAvatar Don't empty profile avatars & they've already had their placeholder class removed.
+   * @param {boolean} isProfileAvatar Don't empty profile avatars as they've already had their placeholder class removed.
    */
   function clearPlaceholder (post, isProfileAvatar) {
     if (post.hasClass("thumb-placeholder-link"))
