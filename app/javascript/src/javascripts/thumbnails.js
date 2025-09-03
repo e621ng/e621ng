@@ -5,11 +5,11 @@ const Thumbnails = {};
 
 Thumbnails.initialize = function () {
   const postsData = window.___deferred_posts || {};
-  const posts = $(".post-thumb.placeholder, .thumb-placeholder-link");
+  const posts = $(".post-thumb.placeholder, .thumb-placeholder-link, div.profile-avatar");
   const replacedPosts = [];
 
   // Avatar special case
-  for (const post of $(".simple-avatar.placeholder, .profile-avatar.placeholder")) {
+  for (const post of $(".simple-avatar.placeholder")) {
     const $post = $(post);
     $post.removeClass("placeholder");
 
@@ -33,17 +33,22 @@ Thumbnails.initialize = function () {
   for (const post of posts) {
     const $post = $(post);
 
+    const isProfileAvatar = $post.hasClass("profile-avatar");
+    if (isProfileAvatar) $post.removeClass("placeholder").children(".placeholder").removeClass("placeholder");
+
     // Placeholder is valid
     const postID = $post.data("id");
     if (!postID) {
-      clearPlaceholder($post);
+      clearPlaceholder($post, isProfileAvatar);
       continue;
     }
 
     // Data exists for this post
+    // If there's no preview URL for a profile avatar, leave the single-character placeholder, don't
+    // replace it w/ the deleted thumbnail.
     const postData = postsData[postID];
-    if (!postData) {
-      clearPlaceholder($post);
+    if (!postData || (isProfileAvatar && !postData["preview_url"])) {
+      clearPlaceholder($post, isProfileAvatar);
       continue;
     }
 
@@ -52,7 +57,7 @@ Thumbnails.initialize = function () {
     PostCache.fromDeferredPosts(postID, postData);
 
     // Building the element
-    const thumbnail = $("<div>")
+    const thumbnail = (isProfileAvatar ? $post : $("<div>"))
       .addClass("post-thumbnail")
       .toggleClass("dtext", $post.hasClass("thumb-placeholder-link"));
 
@@ -60,13 +65,17 @@ Thumbnails.initialize = function () {
       thumbnail.addClass("blacklisted");
 
     // Side effect: arrays will be converted to space-separated strings.
-    // Most prominient example is the pools array, which affects the blacklist.
+    // Most prominent example is the pools array, which affects the blacklist.
     for (const key in postData)
       thumbnail.attr("data-" + key.replace(/_/g, "-"), postData[key]);
 
-    const link = $("<a>")
-      .attr("href", `/posts/${postData.id}`)
-      .appendTo(thumbnail);
+    /**
+     * @type {JQuery<HTMLAnchorElement>}
+     */
+    const link = isProfileAvatar
+      ? $post.children("a").first()
+      : $("<a>").appendTo(thumbnail);
+    link.attr("href", `/posts/${postData.id}`);
 
     $("<img>")
       .attr({
@@ -77,9 +86,10 @@ Thumbnails.initialize = function () {
         alt: postData.tags,
         class: "post-thumbnail-img",
       })
-      .appendTo(link);
+      .appendTo(isProfileAvatar ? link.children(".avatar-image").first() : link);
 
-    $post.replaceWith(thumbnail);
+    if (!isProfileAvatar)
+      $post.replaceWith(thumbnail);
     replacedPosts.push(thumbnail);
   }
 
@@ -89,10 +99,16 @@ Thumbnails.initialize = function () {
     Blacklist.update_visibility();
   }
 
-  function clearPlaceholder (post) {
+  /**
+   *
+   * @param {JQuery<HTMLElement>} post
+   * @param {boolean} isProfileAvatar Don't empty profile avatars as they've already had their placeholder class removed.
+   */
+  function clearPlaceholder (post, isProfileAvatar) {
     if (post.hasClass("thumb-placeholder-link"))
       post.removeClass("thumb-placeholder-link");
-    else post.empty();
+    else if (!isProfileAvatar)
+      post.empty();
   }
 };
 
