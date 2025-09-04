@@ -27,7 +27,7 @@ module Moderator
           @post.copy_tags_to_parent if params[:copy_tags].present?
           @post.give_favorites_to_parent if params[:move_favorites].present?
           @post.give_post_sets_to_parent if params[:move_favorites].present?
-          @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present?
+          @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present? || params[:move_favorites].present?
         end
 
         redirect_to(post_path(@post, q: params[:q].presence))
