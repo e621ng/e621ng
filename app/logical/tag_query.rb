@@ -124,6 +124,7 @@ class TagQuery
   ORDER_NON_SUFFIXED_ALIASES = {
     "portrait"    => "aspect_ratio_asc",
     "landscape"   => "aspect_ratio",
+    "rank"        => "hot",
   }.freeze
 
   # rubocop:enable Layout/HashAlignment
