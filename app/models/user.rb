@@ -44,7 +44,7 @@ class User < ApplicationRecord
     _has_saved_searches
     can_approve_posts
     can_upload_free
-    disable_cropped_thumbnails
+    _disable_cropped_thumbnails
     _disable_mobile_gestures
     enable_safe_mode
     disable_responsive_mode
@@ -116,6 +116,7 @@ class User < ApplicationRecord
   has_many :post_votes
   has_many :staff_notes, -> { active.order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
+  has_many :artists, foreign_key: "linked_user"
 
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
@@ -398,7 +399,7 @@ class User < ApplicationRecord
     def is_blacklisting_user?(user)
       return false if blacklisted_tags.blank?
       bltags = blacklisted_tags.split("\n").map(&:downcase)
-      strings = %W[user:#{user.name.downcase} user:!#{user.id} userid:#{user.id}]
+      strings = %W[user:#{user.name.downcase} user:!#{user.id} username:#{user.name.downcase} userid:#{user.id}]
       strings.any? { |str| bltags.include?(str) }
     end
   end
@@ -661,7 +662,7 @@ class User < ApplicationRecord
         :id, :created_at, :name, :level, :base_upload_limit,
         :post_upload_count, :post_update_count, :note_update_count,
         :is_banned, :can_approve_posts, :can_upload_free,
-        :level_string, :avatar_id
+        :level_string, :avatar_id, :is_verified?,
       ]
 
       if id == CurrentUser.user.id
@@ -672,7 +673,7 @@ class User < ApplicationRecord
           enable_keyboard_navigation enable_privacy_mode
           style_usernames enable_auto_complete
           can_approve_posts can_upload_free
-          disable_cropped_thumbnails enable_safe_mode
+          enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
           enable_compact_uploader replacements_beta forum_notification_dot
         ]

@@ -5,8 +5,10 @@
     <table class="striped">
       <thead>
         <tr>
+          <th>ID</th>
           <th>Name</th>
           <th>Background Color</th>
+          <th>Foreground Color</th>
           <th>Artist Name</th>
           <th>Artist URL</th>
           <th>Active</th>
@@ -20,11 +22,13 @@
       <tbody>
         <% @mascots.each do |mascot| %>
           <tr>
+            <td><%= mascot.id %></td>
             <td><%= link_to mascot.display_name, mascot.url_path %></td>
             <td><%= mascot.background_color %></td>
+            <td><%= mascot.foreground_color %></td>
             <td><%= mascot.artist_name %></td>
             <td><%= mascot.artist_url %></td>
-            <td><%= mascot.active %></td>
+            <td><%= svg_icon(:chexagon, width: 12, height: 12) if mascot.active %></td>
             <td><%= mascot.available_on_string %></td>
             <td><%= compact_time mascot.created_at %></td>
             <% if CurrentUser.user.is_admin? %>

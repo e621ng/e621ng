@@ -12,11 +12,17 @@ body.c-posts.a-show-seq {
     flex-flow: column;
     flex: 1;
   }
+
+  #image-resize-notice {
+    margin-bottom: 0;
+  }
 }
 
 // Due to the show-seq page having a different action,
 // using the body classes is not possible here
-#c-posts, #a-show {
+#c-posts #a-show {
   @import "partials/post_information";
   @import "partials/post_related_images";
 }
+
+@import "partials/post_toolbar";

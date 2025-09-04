@@ -48,6 +48,7 @@
     allowUploadAsPending: <%= CurrentUser.can_upload_free?.to_json %>,
     maxFileSize: <%= Danbooru.config.max_file_size %>,
     maxFileSizeMap: <%= sanitize(Danbooru.config.max_file_sizes.to_json) %>,
+    verifiedArtistTags: <%= sanitize(CurrentUser.user.artists.pluck(:name).to_json) %>,
   };
   Danbooru.Uploader.init();
 <% end -%>

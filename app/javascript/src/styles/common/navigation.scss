@@ -234,8 +234,10 @@ body[data-th-stickyheader="true"] nav.navigation {
   position: sticky;
   top: 0;
 
-  background-color: themed("color-background");
-  background-image: themed("image-background");
+  @include window-larger-than(50rem) {
+    background-color: themed("color-background");
+    background-image: themed("image-background");
+  }
 }
 
 
@@ -255,7 +257,7 @@ nav.navigation .nav-primary li.notification {
     right: 0.2rem;
     top: 1.25rem;
   
-    @include window-larger-than(800px) {
+    @include window-larger-than(50rem) {
       top: 0.2rem;
     }
   }
@@ -366,9 +368,12 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       padding: 0 0.25rem;
       border-radius: 0.25rem 0 0 0.25rem;
-      overflow-y: unset;
-
-      overflow: hidden; // Silly fix for too many links
+      overflow-y: hidden;
+      overflow-x: scroll; // Silly fix for too many links
+      /* Hide scrollbar */
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+      &::-webkit-scrollbar { display: none; }
       z-index: 1; // above the avatar
 
       li {

@@ -12,6 +12,10 @@ module Danbooru
       "e621"
     end
 
+    def server_name
+      nil
+    end
+
     def description
       "Find good furry art, fast"
     end
@@ -108,6 +112,11 @@ module Danbooru
 
     # Thumbnail size
     def small_image_width
+      256
+    end
+
+    # All uploads must match this value in both dimensions.
+    def min_image_width
       256
     end
 
@@ -673,6 +682,10 @@ module Danbooru
 
     def ads_zone_mobile
       { zone: nil, revive_id: nil, checksum: nil }
+    end
+
+    def subscribestar_url
+      "https://subscribestar.adult/e621dotnet"
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so

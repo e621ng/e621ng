@@ -7,7 +7,7 @@
       class: "approve-post-link button btn-neutral btn-important",
       data: {
         pid: post.id,
-        shortcut: "shift+o",
+        hotkey: "approve",
       }
     %>
     |
@@ -19,7 +19,7 @@
         data: {
           pid: post.id,
           location: show_seq_post_path(post, q: params[:q], seq: "prev"),
-          shortcut: "shift+q",
+          hotkey: "approve-prev",
         }
       %>
       &bull;
@@ -30,7 +30,7 @@
         data: {
           pid: post.id,
           location: show_seq_post_path(post, q: params[:q], seq: "next"),
-          shortcut: "shift+w",
+          hotkey: "approve-next",
         }
       %>
     <% end %>

@@ -46,6 +46,7 @@ export default class User {
       level: data.userLevel,
       levelString: data.userLevelString,
       commentThreshold: meta["user-comment-threshold"] || -10,
+      hotkeysEnabled: data.hotkeysEnabled === "true",
 
       blacklist: {
         tags: meta["blacklisted-tags"],
@@ -110,6 +111,9 @@ export default class User {
 
   /** @returns {number} Maximum comment score before it is filtered out */
   static get commentThreshold () { return this._get().commentThreshold; }
+
+  /** @returns {boolean} True if hotkeys are enabled, false otherwise */
+  static get hotkeysEnabled () { return this._get().hotkeysEnabled; }
 
   /** @returns {{tags: string[], users: boolean}} Blacklist data */
   static get blacklist () { return this._get().blacklist; }

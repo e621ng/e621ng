@@ -507,7 +507,7 @@ class Post < ApplicationRecord
         alternate_processors << alternate
         gallery_sources << alternate.gallery_url if alternate.gallery_url
         submission_sources << alternate.submission_url if alternate.submission_url
-        direct_sources << alternate.submission_url if alternate.direct_url
+        direct_sources << alternate.direct_url if alternate.direct_url
         additional_sources += alternate.additional_urls if alternate.additional_urls
         alternate.original_url
       end
@@ -516,7 +516,8 @@ class Post < ApplicationRecord
         sources = alt_processor.remove_duplicates(sources)
       end
 
-      self.source = sources.first(10).join("\n")
+      # Truncate sources to prevent abuse
+      self.source = sources.map { |s| s[0..2048] }.first(10).join("\n")
     end
 
     def copy_sources_to_parent

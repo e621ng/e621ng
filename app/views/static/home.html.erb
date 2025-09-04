@@ -3,12 +3,14 @@
     var mascots = <%= Mascot.active_for_browser.to_json.html_safe %>;
   <% end -%>
 
-  <section class="home-section">
+  <section class="mascot-section"></section>
+
+  <section class="home-section home-search-section">
     <%= form_tag(posts_path, method: "get", id: "home-search-form") do %>
 
       <!-- Primary Searchbar -->
       <div class="home-search">
-        <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { shortcut: "q", autocomplete: "tag-query" }) %>
+        <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { hotkey: "search", autocomplete: "tag-query" }) %>
         <%= tag.button(svg_icon(:search), type: "submit") %>
       </div>
 
@@ -18,7 +20,7 @@
           <%= svg_icon(:sparkles) %>
           <span>Latest</span>
         </a>
-        <a href="<%= posts_path(tags: "order:rank") %>" tags="order:rank">
+        <a href="<%= posts_path(tags: "order:hot") %>" tags="order:hot">
           <%= svg_icon(:flame) %>
           <span>Popular</span>
         </a>
@@ -30,6 +32,15 @@
     <section class="home-section">
       <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
       <div class="previous-news-link"><%= link_to "Click here for previous news", news_updates_path %></div>
+    </section>
+  <% end %>
+
+  <% if Danbooru.config.subscribestar_url.present? %>
+    <section class="home-section home-subscribestar">
+      <a href="<%= subscribestar_path %>">
+        <div>Enjoying e621? Consider <span class="fake-link">supporting us</span>.</div>
+        <%= image_tag("ss_logotype.png", width: 256) %>
+      </a>
     </section>
   <% end %>
 
@@ -61,4 +72,19 @@
 
 <% content_for(:html_header) do -%>
   <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
+  <%= tag.meta(name: "description", content: Danbooru.config.description) %>
+  <%= tag.meta(property: "og:site", content: Danbooru.config.app_name) %>
+  <%= tag.meta(property: "og:title", content: Danbooru.config.app_name) %>
+  <%= tag.meta(property: "og:description", content: Danbooru.config.description) %>
+  <%= tag.meta(property: "og:url", content: root_url(host: Danbooru.config.hostname, protocol: "https")) %>
+  <%= tag.meta(property: "og:image", content: asset_url("images/logo/default.svg", host: Danbooru.config.hostname, protocol: "https")) %>
+  <%= tag.meta(name: "canonical", content: root_url(host: Danbooru.config.hostname, protocol: "https")) %>
+
+  <meta property="og:type" content="website">
+
+  <%# Twitter properties %>
+  <meta name="twitter:card" content="summary">
+  <%= tag.meta(name: "twitter:title", content: Danbooru.config.app_name) %>
+  <%= tag.meta(name: "twitter:description", content: Danbooru.config.description) %>
+  <%= tag.meta(name: "twitter:image", content: asset_url("images/logo/default.svg", host: Danbooru.config.hostname, protocol: "https")) %>
 <%- end %>

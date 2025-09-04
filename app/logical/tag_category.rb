@@ -37,6 +37,9 @@ class TagCategory
     "Lore" => 8,
   }.freeze
 
+  MEMBER_EDITABLE_CATEGORIES = %w[General Artist Contributor Copyright Character Species].freeze
+  MEMBER_EDITABLE_MAPPING = CANONICAL_MAPPING.select { |k, _| MEMBER_EDITABLE_CATEGORIES.include?(k) }.freeze
+
   REVERSE_MAPPING = {
     0 => "general",
     1 => "artist",

@@ -31,6 +31,12 @@
   color: $button-text-color;
   &:hover, &:active { background: $button-background-hover; }
 
+  // Overriding the default outline
+  &:focus {
+    outline: none !important;
+    background-color: themed("color-section-lighten-10");
+  }
+
   & > svg {
     // Icon should be slightly larger than text,
     // with padding to fill the entire button height
@@ -73,6 +79,15 @@
     background-color: themed("color-link-active");
     color: palette("plain-black");
   }
+
+  // Elements that look like physical buttons and animate on click.
+  &.kinetic {
+    box-shadow: 0 0.25rem themed("color-section");
+    &:active, &[processing="true"].anim {
+      translate: 0 0.125rem;
+      box-shadow: 0 0.125rem themed("color-section");
+    }
+  }
 }
 
 
@@ -89,6 +104,13 @@
   &:hover, &:active {
     background: themed("color-tag-artist-alt");
   }
+}
+
+
+// Link fixes
+a.st-button {
+  color: inherit;     // Prevent links from using the wrong color
+  user-select: none;  // Avoid accidentally selecting the button text
 }
 
 

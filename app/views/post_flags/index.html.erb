@@ -18,7 +18,12 @@
       </thead>
       <tbody>
         <% @post_flags.each do |post_flag| %>
-          <tr class="flag-type-<%= post_flag.type.to_s.dasherize %> flag-resolved-<%= post_flag.is_resolved? %>">
+          <tr
+            class="flag-type-<%= post_flag.type.to_s.dasherize %> flag-resolved-<%= post_flag.is_resolved? %>"
+            id="post-flag-<%= post_flag.id %>"
+            data-post-flag-id="<%= post_flag.id %>"
+            data-post-id="<%= post_flag.post_id %>"
+          >
             <td><%= PostPresenter.preview(post_flag.post, show_deleted: true) %></td>
             <td>
               <div class="dtext-container">

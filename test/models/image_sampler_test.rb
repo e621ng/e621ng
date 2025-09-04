@@ -6,7 +6,7 @@ class ImageSamplerTest < ActiveSupport::TestCase
   setup do
     @user = create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
-    UploadWhitelist.create!(pattern: "*", reason: "test")
+    UploadWhitelist.create!(domain: ".*", reason: "test")
   end
 
   context "ImageSampler" do

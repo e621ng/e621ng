@@ -69,12 +69,12 @@ module PaginationHelper
     html = "".html_safe
 
     if disabled
-      html << tag.span(class: "prev", id: "paginator-prev", data: { shortcut: "a left" }) do
+      html << tag.span(class: "prev", id: "paginator-prev", data: { hotkey: "prev" }) do
         concat svg_icon(:chevron_left)
         concat tag.span("Prev")
       end
     else
-      html << link_to(link, class: "prev", id: "paginator-prev", rel: "prev", data: { shortcut: "a left" }) do
+      html << link_to(link, class: "prev", id: "paginator-prev", rel: "prev", data: { hotkey: "prev" }) do
         concat svg_icon(:chevron_left)
         concat tag.span("Prev")
       end
@@ -87,12 +87,12 @@ module PaginationHelper
     html = "".html_safe
 
     if disabled
-      html << tag.span(class: "next", id: "paginator-next", data: { shortcut: "d right" }) do
+      html << tag.span(class: "next", id: "paginator-next", data: { hotkey: "next" }) do
         concat tag.span("Next")
         concat svg_icon(:chevron_right)
       end
     else
-      html << link_to(link, class: "next", id: "paginator-next", rel: "next", data: { shortcut: "d right" }) do
+      html << link_to(link, class: "next", id: "paginator-next", rel: "next", data: { hotkey: "next" }) do
         concat tag.span("Next")
         concat svg_icon(:chevron_right)
       end

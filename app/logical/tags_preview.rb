@@ -2,43 +2,69 @@
 
 class TagsPreview
   def initialize(tags: nil)
-    @tags = TagQuery.scan(tags).map { |x| { a: x.downcase, type: "tag" } }
-    aliases
-    implications
-    tag_types
+    @raw_names = TagQuery.scan(tags).map(&:downcase).compact_blank.uniq
+    resolve_categories
+    resolve_aliases
+    resolve_implications
+    load_tags
   end
 
-  def aliases
-    names = @tags.pluck(:a).compact_blank
-    aliased = TagAlias.to_aliased_with_originals(names).reject { |k, v| k == v }
-    @tags.map! do |tag|
-      if aliased[tag[:a]]
-        { a: tag[:a], b: aliased[tag[:a]], type: "alias" }
+  # Tags with a prefix should be either found in the DB or assigned that category in the output.
+  def resolve_categories
+    @resolved_names = {}
+    @name_categories = {}
+
+    @tag_names = @raw_names.map do |name|
+      if name =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
+        resolved = Tag.normalize_name($2).downcase
+        category = Tag.categories.value_for($1)
+        @resolved_names[name] = resolved
+        @name_categories[resolved] = category
+        resolved
       else
-        tag
+        @resolved_names[name] = name
+        name
       end
-    end
+    end.uniq
   end
 
-  def implications
-    names = @tags.map { |tag| tag[:b] || tag[:a] }
-    implications = TagImplication.descendants_with_originals(names)
-    implications.each do |implication, descendants|
-      @tags += descendants.map { |descendant| { a: implication, b: descendant, type: "implication" } }
-    end
+  def resolve_aliases
+    @aliases = TagAlias.to_aliased_with_originals(@tag_names)
+    @aliased_names = @aliases.values.uniq
   end
 
-  def tag_types
-    names = @tags.map { |tag| [tag[:a], tag[:b]] }.flatten.compact.uniq
-    categories = Tag.categories_for(names)
-    @tags.map! do |tag|
-      tag[:tagTypeA] = categories.fetch(tag[:a], -1)
-      tag[:tagTypeB] = categories.fetch(tag[:b], -1) if tag[:b]
-      tag
-    end
+  def resolve_implications
+    @implications = TagImplication
+                    .descendants_with_originals(@aliased_names)
+                    .transform_values(&:to_a)
+  end
+
+  def load_tags
+    all_names = (@tag_names + @aliases.values + @implications.values.flatten).uniq
+    @tags = Tag.where(name: all_names).index_by(&:name)
   end
 
   def serializable_hash(*)
-    @tags
+    seen = Set.new
+
+    (@raw_names + @aliases.values + @implications.values.flatten).uniq.filter_map do |raw_name|
+      resolved = @resolved_names[raw_name] || raw_name
+
+      next if seen.include?(resolved)
+      seen << resolved
+
+      canonical = @aliases[resolved] || resolved
+      tag = @tags[canonical]
+
+      {
+        id: tag&.id,
+        name: raw_name,
+        resolved: (resolved if resolved != raw_name),
+        category: tag&.category || @name_categories[resolved],
+        post_count: tag&.post_count,
+        alias: (canonical if canonical != resolved),
+        implies: (@implications[canonical].map(&:to_s) if @implications.key?(canonical)),
+      }.compact
+    end
   end
 end

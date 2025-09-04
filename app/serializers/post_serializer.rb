@@ -111,6 +111,6 @@ class PostSerializer < ActiveModel::Serializer
   end
 
   attributes :id, :created_at, :updated_at, :file, :preview, :sample, :score, :tags, :locked_tags, :change_seq, :flags,
-             :rating, :fav_count, :sources, :pools, :relationships, :approver_id, :uploader_id, :description,
+             :rating, :fav_count, :sources, :pools, :relationships, :approver_id, :uploader_id, :uploader_name, :description,
              :comment_count, :is_favorited, :has_notes, :duration
 end

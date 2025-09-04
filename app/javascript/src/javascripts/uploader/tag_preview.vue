@@ -1,45 +1,67 @@
 <template>
-    <div>
-        <div v-show="loading">Fetching tags...</div>
-        <div class="related-tags flex-wrap">
-            <div class="related-items" v-for="sTags, i in splitTags" :key="i">
-                <tag-preview-tag v-for="tag, $idx in sTags" :key="$idx" :tag="tag"></tag-preview-tag>
-            </div>
-        </div>
-        <div>
-            <a href="#" @click.prevent="close">Close Preview</a>
-        </div>
+  <div>
+    <div v-if="loading && tagRecords.length === 0">Fetching tags...</div>
+    <div class="tag-preview">
+      <tag-preview-tag v-for="(tag, i) in tagRecords" :key="i" :tag="tag"></tag-preview-tag>
     </div>
+  </div>
 </template>
 
 <script>
-  import tagPreviewTag from './tag_preview_tag.vue';
+import tagPreviewTag from './tag_preview_tag.vue';
 
-  export default {
-    props: ['tags', 'loading'],
-    components: {
-      'tag-preview-tag': tagPreviewTag
+export default {
+  props: ['tags'],
+  components: {
+    'tag-preview-tag': tagPreviewTag,
+  },
+  data() {
+    return {
+      loading: false,
+      tagCache: {},
+      _tagPreviewDebounce: null,
+    };
+  },
+  computed: {
+    tagsArray() {
+      return [...new Set(this.tags.toLowerCase().replace(/\r?\n|\r/g, ' ').trim().split(/\s+/).filter(Boolean))];
     },
-    methods: {
-      close: function () {
-        this.$emit('close');
-      }
+    tagRecords() {
+      return this.tagsArray.map(t => this.tagCache[t]).filter(Boolean);
     },
-    computed: {
-      splitTags: function () {
-        var newTags = this.tags.concat([]);
-        newTags.sort(function (a, b) {
-          return a.a === b.a ? 0 : (a.a < b.a ? -1 : 1);
-        });
-        var chunkArray = function (arr, size) {
-          var chunks = [];
-          for (var i = 0; i < arr.length; i += size) {
-            chunks.push(arr.slice(i, i + size));
-          }
-          return chunks;
-        };
-        return chunkArray(newTags, 15);
+  },
+  watch: {
+    tags: {
+      immediate: true,
+      handler() {
+        clearTimeout(this._tagPreviewDebounce);
+        this._tagPreviewDebounce = setTimeout(() => {
+          this.fetchTagPreview();
+        }, 1000);
       }
     }
-  }
+  },
+  methods: {
+    fetchTagPreview() {
+      const missing = this.tagsArray.filter(t => !this.tagCache[t]);
+      if (missing.length === 0) return;
+
+      this.loading = true;
+      $.ajax('/tags/preview.json', {
+        method: 'POST',
+        data: { tags: missing.join(' ') },
+        success: (result) => {
+          for (const tag of result) {
+            this.tagCache[tag.name] = tag;
+          }
+          this.loading = false;
+        },
+        error: (result) => {
+          this.loading = false;
+          Danbooru.error("Error loading tag preview " + JSON.stringify(result));
+        },
+      });
+    },
+  },
+};
 </script>

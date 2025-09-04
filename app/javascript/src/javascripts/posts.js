@@ -1,9 +1,11 @@
 import Utility from "./utility";
 import ZingTouch from "zingtouch";
 import Note from "./notes";
-import { SendQueue } from "./send_queue";
-import Shortcuts from "./shortcuts";
+import Hotkeys from "./hotkeys";
 import LStorage from "./utility/storage";
+import TaskQueue from "./utility/task_queue";
+import PostVote from "./models/PostVote";
+import Page from "./utility/page";
 
 let Post = {};
 
@@ -12,9 +14,11 @@ Post.resizeMode = "unknown";
 
 Post.initialize_all = function () {
 
+  if ((Page.Controller == "posts" && ["index", "show"].includes(Page.Action)) || Page.Controller == "favorites")
+    this.initialize_shortcuts();
+
   if ($("#c-posts").length) {
     this.initialize_shortcuts();
-    this.initialize_collapse();
   }
 
   if ($("#c-posts").length && $("#a-index").length) {
@@ -27,20 +31,18 @@ Post.initialize_all = function () {
     this.initialize_post_sections();
     this.initialize_resize();
     this.initialize_gestures();
-    this.initialize_voting();
     this.initialize_moderation();
   }
-
-  if ($("#p-index-by-post").length)
-    this.initialize_voting();
 
   if ($("#c-posts #a-show, #c-uploads #a-new").length) {
     this.initialize_edit_dialog();
   }
 
-  $(document).on("danbooru:open-post-edit-tab", () => Shortcuts.disabled = true);
-  $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").focus());
-  $(document).on("danbooru:close-post-edit-tab", () => Shortcuts.disabled = false);
+  this.initialize_collapse();
+
+  $(document).on("danbooru:open-post-edit-tab", () => Hotkeys.enabled = false);
+  $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").trigger("focus"));
+  $(document).on("danbooru:close-post-edit-tab", () => Hotkeys.enabled = true);
 
   var $fields_multiple = $("[data-autocomplete=\"tag-edit\"]");
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
@@ -75,11 +77,6 @@ Post.initialize_collapse = function () {
     $(e.target).toggleClass("hidden-category");
     e.preventDefault();
   });
-};
-
-Post.initialize_voting = function () {
-  $(document).on("click.danbooru.post", ".post-vote-up-link", Post.vote_up);
-  $(document).on("click.danbooru.post", ".post-vote-down-link", Post.vote_down);
 };
 
 Post.initialize_edit_dialog = function () {
@@ -296,7 +293,7 @@ Post.initialize_gestures = function () {
   $("#image-container").css({overflow: "visible"});
 };
 
-Post.nav_prev = function (e) {
+Post.nav_prev = function () {
   var href = "";
 
   if ($(".search-seq-nav").length) {
@@ -312,11 +309,9 @@ Post.nav_prev = function (e) {
       location.href = href;
     }
   }
-
-  e.preventDefault();
 };
 
-Post.nav_next = function (e) {
+Post.nav_next = function () {
   var href = "";
 
   if ($(".search-seq-nav").length) {
@@ -330,19 +325,26 @@ Post.nav_next = function (e) {
       location.href = href;
     }
   }
-
-  e.preventDefault();
 };
 
 Post.initialize_shortcuts = function () {
-  if ($("#a-show").length) {
-    if ($("#flash-content").length) {
-      Shortcuts.disabled = true;
-      $("#flash-shortcut-notice").show();
-    }
-    Shortcuts.keydown("a", "prev_page", Post.nav_prev);
-    Shortcuts.keydown("d", "next_page", Post.nav_next);
+  if (Page.Action == "show") {
+    Hotkeys.register("prev", Post.nav_prev);
+    Hotkeys.register("next", Post.nav_next);
   }
+
+  Hotkeys.register("random", () => {
+    const query = $("#tags").val() + "";
+    if (!query) {
+      location.href = "/posts/random";
+      return;
+    }
+
+    const encodedTags = [];
+    for (const one of query.split(" ").filter(n => n))
+      encodedTags.push(encodeURIComponent(one));
+    location.href = "/posts/random?tags=" + encodedTags.join("+");
+  });
 };
 
 Post.initialize_links = function () {
@@ -738,10 +740,7 @@ Post.initialize_resize = function () {
   $selector.on("change", () => Post.resize_to($selector.val()));
 };
 
-Post.resize_cycle_mode = function (e) {
-  if (e && e.target)
-    e.preventDefault();
-
+Post.resize_cycle_mode = function () {
   Post.resize_to("next");
 };
 
@@ -750,7 +749,8 @@ Post.initialize_change_resize_mode_link = function () {
     e.preventDefault();
     Post.resize_to("fit");
   }); // For top panel
-  Shortcuts.keydown("v", "resize", Post.resize_cycle_mode);
+
+  Hotkeys.register("resize", Post.resize_cycle_mode);
 };
 
 Post.initialize_post_sections = function () {
@@ -819,7 +819,7 @@ Post.tagScript = function (post_id, tags) {
 Post.update = function (post_id, params) {
   Post.notice_update("inc");
 
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "PUT",
       url: "/posts/" + post_id + ".json",
@@ -836,13 +836,13 @@ Post.update = function (post_id, params) {
         $(window).trigger("danbooru:error", `There was an error updating <a href="/posts/${post_id}">post #${post_id}</a>: ${message}`);
       },
     });
-  });
+  }, { name: "Post.update" });
 };
 
 Post.delete_with_reason = function (post_id, reason, reload_after_delete) {
   Post.notice_update("inc");
   let error = false;
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "POST",
       url: `/moderator/post/posts/${post_id}/delete.json`,
@@ -868,12 +868,12 @@ Post.delete_with_reason = function (post_id, reason, reload_after_delete) {
       if (!error)
         Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.delete_with_reason" });
 };
 
 Post.undelete = function (post_id, callback) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "POST",
       url: `/moderator/post/posts/${post_id}/undelete.json`,
@@ -888,13 +888,13 @@ Post.undelete = function (post_id, callback) {
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.undelete" });
 };
 
 Post.unflag = function (post_id, approval, reload = true, callback = null) {
   Post.notice_update("inc");
   let modApproval = approval || "none";
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "DELETE",
       url: `/posts/${post_id}/flag.json`,
@@ -909,12 +909,12 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.unflag" });
 };
 
 Post.flag = function (post_id, reason_name, parent_id = null, reload = true, callback = null) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "POST",
       url: "/post_flags.json",
@@ -935,7 +935,7 @@ Post.flag = function (post_id, reason_name, parent_id = null, reload = true, cal
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.flag" });
 };
 
 Post.move_flag_to_parent = function (post_id, parent_id) {
@@ -949,7 +949,7 @@ Post.move_flag_to_parent = function (post_id, parent_id) {
 
 Post.unapprove = function (post_id) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "DELETE",
       url: "/moderator/post/approval.json",
@@ -963,7 +963,7 @@ Post.unapprove = function (post_id) {
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.unapprove" });
 };
 
 Post.destroy = function (post_id, reason) {
@@ -1000,7 +1000,7 @@ Post.regenerate_video_samples = function (post_id) {
 
 Post.approve = function (post_id, callback) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.post(
       "/moderator/post/approval.json",
       { "post_id": post_id },
@@ -1020,12 +1020,12 @@ Post.approve = function (post_id, callback) {
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.approve" });
 };
 
 Post.disapprove = function (post_id, reason, message) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.post(
       "/moderator/post/disapprovals.json",
       {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason, "post_disapproval[message]": message},
@@ -1039,7 +1039,7 @@ Post.disapprove = function (post_id, reason, message) {
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.disapprove" });
 };
 
 Post.update_tag_count = function (event) {
@@ -1064,56 +1064,13 @@ Post.update_tag_count = function (event) {
   $("#tags-container .options #face").removeClass().addClass(`fa-regular fa-face-${klass}`);
 };
 
-Post.vote_up = function (e) {
-  var id = $(e.target).parent().attr("data-id");
-  Post.vote(id, 1);
-};
-
-Post.vote_down = function (e) {
-  var id = $(e.target).parent().attr("data-id");
-  Post.vote(id, -1);
-};
-
 Post.vote = function (id, score, prevent_unvote) {
-  Post.notice_update("inc");
-  SendQueue.add(function () {
-    $.ajax({
-      method: "POST",
-      url: `/posts/${id}/votes.json`,
-      data: {
-        score: score,
-        no_unvote: prevent_unvote === true,
-      },
-      dataType: "json",
-      headers: {
-        accept: "*/*;q=0.5,text/javascript",
-      },
-    }).done(function (data) {
-      const scoreClasses = "score-neutral score-positive score-negative";
-      const postID = id;
-      const postScore = data.score;
-      const ourScore = data.our_score;
-      function scoreToClass (inScore) {
-        if (inScore == 0) return "score-neutral";
-        return inScore > 0 ? "score-positive" : "score-negative";
-      }
-      $(".post-score-" + postID).removeClass(scoreClasses);
-      $(".post-vote-up-" + postID).removeClass(scoreClasses);
-      $(".post-vote-down-" + postID).removeClass(scoreClasses);
-      $(".post-score-" + postID).text(postScore);
-      $(".post-score-" + postID).attr("title", `${data.up} up/${data.down} down`);
-      $(".post-score-" + postID).addClass(scoreToClass(postScore));
-      $(".post-vote-up-" + postID).addClass(ourScore > 0 ? "score-positive" : "score-neutral");
-      $(".post-vote-down-" + postID).addClass(ourScore < 0 ? "score-negative" : "score-neutral");
-      $(window).trigger("danbooru:notice", "Vote saved");
-    }).always(function () {
-      Post.notice_update("dec");
-    });
-  });
+  console.log("Post.vote is deprecated and will be removed at a later date. User PostVote.vote instead.");
+  PostVote.vote(id, score, prevent_unvote);
 };
 
 Post.set_as_avatar = function (id) {
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       method: "PATCH",
       url: `/users/${Utility.meta("current-user-id")}.json`,
@@ -1126,10 +1083,10 @@ Post.set_as_avatar = function (id) {
     }).done(function () {
       $(window).trigger("danbooru:notice", "Post set as avatar");
     });
-  });
+  }, { name: "Post.set_as_avatar" });
 };
 
-$(document).ready(function () {
+$(() => {
   Post.initialize_all();
 });
 

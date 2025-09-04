@@ -3,6 +3,8 @@
   <%= f.input :mascot_file, as: :file, input_html: { accept: "image/png,image/jpeg,.png,.jpg,.jpeg" } %>
   <%= f.input :display_name %>
   <%= f.input :background_color %>
+  <%= f.input :foreground_color %>
+  <%= f.input :is_layered, label: "Layered", as: :boolean, hint: "The mascot image will be layered above the search form." %>
   <%= f.input :artist_url %>
   <%= f.input :artist_name %>
   <%= f.input :available_on_string, label: "Available on", hint: "Separated by a comma, don't include spaces before/after" %>

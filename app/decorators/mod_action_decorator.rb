@@ -341,28 +341,42 @@ class ModActionDecorator < ApplicationDecorator
       ### Whitelist ###
 
     when "upload_whitelist_create"
-      if vals['hidden'] && !CurrentUser.is_admin?
+      if CurrentUser.is_admin?
+        if vals["pattern"]
+          "Created whitelist entry `#{vals['pattern']}`"
+        else
+          "Created whitelist entry `#{vals['domain']}` `#{vals['path']}`"
+        end
+      elsif vals["hidden"]
         "Created whitelist entry"
       else
-        "Created whitelist entry '#{CurrentUser.is_admin? ? vals['pattern'] : vals['note']}'"
+        "Created whitelist entry '#{vals['note']}'"
       end
 
     when "upload_whitelist_update"
-      if vals['hidden'] && !CurrentUser.is_admin?
+      if CurrentUser.is_admin?
+        if vals["pattern"]
+          "Edited whitelist entry `#{vals['old_pattern']}` → `#{vals['pattern']}`"
+        else
+          "Edited whitelist entry `#{vals['old_domain']}` `#{vals['old_path']}` → `#{vals['domain']}` `#{vals['path']}`"
+        end
+      elsif vals["hidden"]
         "Edited whitelist entry"
       else
-        if vals['old_pattern'] && vals['old_pattern'] != vals['pattern'] && CurrentUser.is_admin?
-          "Edited whitelist entry '#{vals['old_pattern']}' → '#{vals['pattern']}'"
-        else
-          "Edited whitelist entry '#{CurrentUser.is_admin? ? vals['pattern'] : vals['note']}'"
-        end
+        "Edited whitelist entry '#{vals['note']}'"
       end
 
     when "upload_whitelist_delete"
-      if vals['hidden'] && !CurrentUser.is_admin?
+      if CurrentUser.is_admin?
+        if vals["pattern"]
+          "Deleted whitelist entry `#{vals['pattern']}`"
+        else
+          "Deleted whitelist entry `#{vals['domain']}` `#{vals['path']}`"
+        end
+      elsif vals["hidden"]
         "Deleted whitelist entry"
       else
-        "Deleted whitelist entry '#{CurrentUser.is_admin? ? vals['pattern'] : vals['note']}'"
+        "Deleted whitelist entry '#{vals['note']}'"
       end
 
       ### Help ###

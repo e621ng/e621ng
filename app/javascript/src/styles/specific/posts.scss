@@ -35,44 +35,6 @@ div#c-posts, div#c-uploads {
 }
 
 div#c-posts {
-  .fav-buttons {
-    font-size: 14pt;
-
-    button.ui-button {
-      padding: 0.25em 0.75em;
-    }
-  }
-
-  .fav-buttons-true #add-fav-button {
-    display: none;
-  }
-
-  .fav-buttons-false #remove-fav-button {
-    display: none;
-  }
-
-  .fav-buttons,
-  #image-download-link {
-    .button > i {
-      display: none;
-    }
-  }
-
-  @media only screen and (max-width: 500px) {
-    #image-extra-controls {
-      justify-content: center;
-    }
-
-    .fav-buttons,
-    #image-download-link {
-      .button > i {
-        display: inline-block;
-      }
-      .button > span {
-        display: none;
-      }
-    }
-  }
 
   div.parent-children {
     display: flex;
@@ -344,13 +306,6 @@ textarea[data-autocomplete="tag-edit"] {
     max-width: 100%;
     max-height: 95vh;
   }
-}
-
-section#image-extra-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em;
-  margin: 0.5em 0;
 }
 
 .image-vote-buttons {
