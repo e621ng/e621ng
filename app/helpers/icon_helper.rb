@@ -63,7 +63,6 @@ module IconHelper
     chevron_right: %(<path d="m9 18 6-6-6-6"/>),
     chevron_up: %(<path d="m18 15-6-6-6 6"/>),
     chevron_down: %(<path d="m6 9 6 6 6-6"/>),
-    chevron_up: %(<path d="m18 15-6-6-6 6"/>),
     ellipsis: %(<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>),
     ellipsis_v: %(<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>),
     # Posts
