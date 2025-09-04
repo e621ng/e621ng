@@ -6,7 +6,7 @@
       <img src="https://img.shields.io/github/v/release/e621ng/e621ng?label=version&style=flat-square" alt="Releases" />
     </a><br />
     <a href="https://github.com/e621ng/e621ng/issues">
-      <img src="https://img.shields.io/github/issues/e621ng/e621ng?label=open issues&style=flat-square" alt="Issues" />
+      <img src="https://img.shields.io/github/issues/e621ng/e621ng?label=open%20issues&style=flat-square" alt="Issues" />
     </a><br />
     <a href="https://github.com/e621ng/e621ng/pulls">
       <img src="https://img.shields.io/github/issues-pr/e621ng/e621ng?style=flat-square" alt="Pull Requests" />
