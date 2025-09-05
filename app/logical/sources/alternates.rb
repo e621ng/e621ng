@@ -9,6 +9,7 @@ module Sources
         Alternates::Deviantart,
         Alternates::Twitter,
         Alternates::Inkbunny,
+        Alternates::Youtube,
       ]
     end
 
