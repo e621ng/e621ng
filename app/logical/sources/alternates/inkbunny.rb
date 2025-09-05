@@ -15,10 +15,14 @@ module Sources
         # Remove anchor
         if @parsed_url.fragment.present?
           @parsed_url.fragment = nil
-          @url = @parsed_url.to_s
         end
 
-        @url
+        # Remove trailing dash
+        if @parsed_url.path.present? && @parsed_url.path.end_with?("-")
+          @parsed_url.path = @parsed_url.path.chomp("-")
+        end
+
+        @url = @parsed_url.to_s
       end
     end
   end

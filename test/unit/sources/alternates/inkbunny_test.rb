@@ -24,7 +24,15 @@ module Sources
       alternate_should_work(
         "https://inkbunny.net/s/2582678-p2-#pictop",
         Sources::Alternates::Inkbunny,
-        "https://inkbunny.net/s/2582678-p2-",
+        "https://inkbunny.net/s/2582678-p2",
+      )
+    end
+
+    context "An Inkbunny source with trailing dash" do
+      alternate_should_work(
+        "https://inkbunny.net/s/237847384-p3-",
+        Sources::Alternates::Inkbunny,
+        "https://inkbunny.net/s/237847384-p3",
       )
     end
   end
