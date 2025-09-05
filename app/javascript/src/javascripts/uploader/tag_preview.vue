@@ -103,7 +103,9 @@ export default {
         },
         error: (result) => {
           this.loading = false;
-          Danbooru.error("Error loading tag preview " + JSON.stringify(result));
+          let details = result.responseText || "Unknown error";
+          Danbooru.error("Error loading tag preview: " + details);
+          console.error("Tag preview error:", result);
         },
       });
     },
