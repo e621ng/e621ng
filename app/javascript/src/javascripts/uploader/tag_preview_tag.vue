@@ -1,11 +1,11 @@
 <template>
   <div class="tag-preview-tag">
     <div class="main-tag">
-      <tag-link :name="tag.alias || tag.resolved || tag.name" :tagType="tag.category"></tag-link>
+      <tag-link :name="formatTagName(tag.alias || tag.resolved || tag.name)" :tagType="tag.category"></tag-link>
       <span v-if="!tag.id" class="invalid">invalid</span>
       <span v-else-if="tag.implied" class="implied">implied</span>
       <span v-else-if="tag.post_count === 0" class="empty">empty</span>
-      <span v-else :class="{'post-count': true, 'underused': tag.post_count === 1 && tag.category === 0}">{{ tag.post_count }}</span>
+      <span v-else :class="{'post-count': true, 'underused': tag.post_count === 1 && tag.category === 0}">{{ formatTagCount(tag.post_count) }}</span>
     </div>
   </div>
 </template>
@@ -17,6 +17,14 @@ export default {
   props: ["tag"],
   components: {
     "tag-link": tagLink,
+  },
+  methods: {
+    formatTagCount(count) {
+      return new Intl.NumberFormat('en', { notation: 'compact', compactDisplay: 'short' }).format(count).toLowerCase();
+    },
+    formatTagName(name) {
+      return name.replace(/_/g, '_\u200B');
+    },
   },
 };
 </script>
