@@ -10,6 +10,7 @@ module Sources
         Alternates::Twitter,
         Alternates::Inkbunny,
         Alternates::Youtube,
+        Alternates::Derpibooru,
       ]
     end
 
