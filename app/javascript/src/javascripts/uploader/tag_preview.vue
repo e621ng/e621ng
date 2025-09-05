@@ -49,8 +49,8 @@ export default {
         if (tag.implies && Array.isArray(tag.implies)) {
           for (const implied of tag.implies) {
             const impliedTag = this.tagCache[implied];
-            if (impliedTag) {
-              result.set(implied, impliedTag);
+            if (impliedTag && !result.has(implied)) {
+              result.set(implied, { ...impliedTag, implied: true });
               if (impliedTag.alias) {
                 aliases.add(impliedTag.alias);
               }
