@@ -27,7 +27,41 @@ export default {
       return [...new Set(this.tags.toLowerCase().replace(/\r?\n|\r/g, ' ').trim().split(/\s+/).filter(Boolean))];
     },
     tagRecords() {
-      return this.tagsArray.map(t => this.tagCache[t]).filter(Boolean);
+      const result = new Map();
+      const aliases = new Set();
+
+      for (const input of this.tagsArray) {
+        const tag = this.tagCache[input];
+        if (!tag) continue;
+
+        result.set(input, tag);
+
+        if (tag.alias) {
+          aliases.add(tag.alias);
+          const aliased = this.tagCache[tag.alias];
+          if (aliased) {
+            result.set(tag.alias, aliased);
+          }
+        }
+
+        if (tag.implies && Array.isArray(tag.implies)) {
+          for (const implied of tag.implies) {
+            const impliedTag = this.tagCache[implied];
+            if (impliedTag) {
+              result.set(implied, impliedTag);
+              if (impliedTag.alias) {
+                aliases.add(impliedTag.alias);
+              }
+            }
+          }
+        }
+      }
+
+      for (const alias of aliases) {
+        result.delete(alias);
+      }
+
+      return Array.from(result.values());
     },
   },
   watch: {
