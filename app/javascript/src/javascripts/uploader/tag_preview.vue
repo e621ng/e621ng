@@ -1,14 +1,15 @@
 <template>
-  <div>
-    <div v-if="loading && tagRecords.length === 0">Fetching tags...</div>
-    <div class="tag-preview">
+  <div class="tag-preview-area" :disabled="!enabled">
+    <div class="tag-preview" v-if="tagRecords.length && enabled">
       <tag-preview-tag v-for="(tag, i) in tagRecords" :key="i" :tag="tag"></tag-preview-tag>
     </div>
+    <a href="#" @click.prevent="togglePreview()">{{ enabled ? 'Hide' : 'Show' }} tag preview</a>
   </div>
 </template>
 
 <script>
 import tagPreviewTag from './tag_preview_tag.vue';
+import LStorage from '../utility/storage';
 
 export default {
   props: ['tags'],
@@ -20,6 +21,7 @@ export default {
       loading: false,
       tagCache: {},
       _tagPreviewDebounce: null,
+      enabled: LStorage.Posts.TagPreview,
     };
   },
   computed: {
@@ -70,12 +72,21 @@ export default {
       handler() {
         clearTimeout(this._tagPreviewDebounce);
         this._tagPreviewDebounce = setTimeout(() => {
-          this.fetchTagPreview();
+          if (this.enabled) {
+            this.fetchTagPreview();
+          }
         }, 1000);
       }
     }
   },
   methods: {
+    togglePreview() {
+      this.enabled = !this.enabled;
+      LStorage.Posts.TagPreview = this.enabled;
+      if (this.enabled) {
+        this.fetchTagPreview();
+      }
+    },
     fetchTagPreview() {
       const missing = this.tagsArray.filter(t => !this.tagCache[t]);
       if (missing.length === 0) return;
