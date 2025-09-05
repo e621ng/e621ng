@@ -14,3 +14,5 @@
 <% content_for(:page_title) do %>
   Comment
 <% end %>
+
+<% render(partial: "static/embed", locals: { record: @comment, name: "Comment by #{@comment.creator.pretty_name}", description: strip_tags(format_text(@comment.body)).truncate(200) }) %>

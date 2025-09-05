@@ -41,5 +41,8 @@
     <% end %>
   <% else %>
     <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <%= tag.meta(name: "twitter:title", content: "#{name} - #{Danbooru.config.app_name}") %>
+    <%= tag.meta(name: "twitter:description", content: description.to_s.truncate(250)) %>
   <% end %>
 <% end %>
