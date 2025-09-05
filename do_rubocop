@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# Run locally to avoid retyping the full docker command every time.
+
+# cspell:ignore opipe rubocop
+
+# exec opipe docker compose run --rm rubocop "$@"
+exec docker compose run --rm rubocop "$@"
+exit $?
