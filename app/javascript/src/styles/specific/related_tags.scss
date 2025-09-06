@@ -87,7 +87,8 @@ div.tag-preview {
 
     & .empty,
     .underused,
-    .invalid {
+    .invalid,
+    .duplicate {
       color: themed("palette-text-red");
     }
   }

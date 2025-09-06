@@ -3,6 +3,7 @@
     <div class="main-tag">
       <tag-link :name="formatTagName(tag.alias || tag.resolved || tag.name)" :tagType="tag.category"></tag-link>
       <span v-if="!tag.id" class="invalid">invalid</span>
+      <span v-if="tag.duplicate" class="duplicate">duplicate</span>
       <span v-else-if="tag.implied" class="implied">implied</span>
       <span v-else-if="tag.post_count === 0" class="empty">empty</span>
       <span v-else :class="{'post-count': true, 'underused': tag.post_count === 1 && tag.category === 0}">{{ formatTagCount(tag.post_count) }}</span>

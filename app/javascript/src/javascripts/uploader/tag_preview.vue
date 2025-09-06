@@ -29,48 +29,46 @@ export default {
       return [...new Set(this.tags.toLowerCase().replace(/\r?\n|\r/g, ' ').trim().split(/\s+/).filter(Boolean))];
     },
     tagRecords() {
-      const result = new Map();
-      const aliases = new Set();
+      const result = [];
       const implications = new Set();
 
       for (const input of this.tagsArray) {
         const tag = this.tagCache[input];
         if (!tag) continue;
 
-        // Delete previous instance to update order.
-        if (result.has(input)) result.delete(input);
-        result.set(input, tag);
-
-        if (tag.alias) {
-          aliases.add(tag.alias);
-        }
+        result.push(tag);
 
         if (tag.implies && Array.isArray(tag.implies)) {
           implications.add(...tag.implies);
-          // This allows implications to be ordered right after the tag that implies them.
-          // If the tag is in the input, we delete it to defer to original order.
-          for (const implication of tag.implies) {
-            const implied = this.tagCache[implication];
-            if (!implied) continue;
-            result.set(implication, implied);
-          }
         }
       }
 
-      for (const alias of aliases) {
-        // Aliases will be displayed by their original input via the alias field.
-        result.delete(alias);
+      const seen = new Set();
+      for (const tag of result) {
+        const name = tag.alias || tag.resolved || tag.name;
+        if (seen.has(name)) {
+          tag.duplicate = true;
+        } else {
+          seen.add(name);
+        }
       }
+
+      // Aliases do not need to be added. They will be displayed by their original input via the alias field.
 
       for (const implication of implications) {
-        const implied = result.get(implication);
-        if (!implied) continue;
         // Any tag implied by any other is always marked as implied. 
         // This is more useful for quick relation mapping and discovery of the existence of implications.
-        result.set(implication, { ...implied, implied: true });
+        const current = result.find(tag => tag.name === implication);
+        if (current) {
+          current.implied = true;
+        } else {
+          const implied = this.tagCache[implication];
+          if (!implied) continue;
+          result.push({ ...implied, implied: true });
+        }
       }
 
-      return Array.from(result.values());
+      return result;
     },
   },
   watch: {
