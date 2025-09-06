@@ -31,36 +31,43 @@ export default {
     tagRecords() {
       const result = new Map();
       const aliases = new Set();
+      const implications = new Set();
 
       for (const input of this.tagsArray) {
         const tag = this.tagCache[input];
         if (!tag) continue;
 
+        // Delete previous instance to update order.
+        if (result.has(input)) result.delete(input);
         result.set(input, tag);
 
         if (tag.alias) {
           aliases.add(tag.alias);
-          const aliased = this.tagCache[tag.alias];
-          if (aliased) {
-            result.set(tag.alias, aliased);
-          }
         }
 
         if (tag.implies && Array.isArray(tag.implies)) {
-          for (const implied of tag.implies) {
-            const impliedTag = this.tagCache[implied];
-            if (impliedTag && !result.has(implied)) {
-              result.set(implied, { ...impliedTag, implied: true });
-              if (impliedTag.alias) {
-                aliases.add(impliedTag.alias);
-              }
-            }
+          implications.add(...tag.implies);
+          // This allows implications to be ordered right after the tag that implies them.
+          // If the tag is in the input, we delete it to defer to original order.
+          for (const implication of tag.implies) {
+            const implied = this.tagCache[implication];
+            if (!implied) continue;
+            result.set(implication, implied);
           }
         }
       }
 
       for (const alias of aliases) {
+        // Aliases will be displayed by their original input via the alias field.
         result.delete(alias);
+      }
+
+      for (const implication of implications) {
+        const implied = result.get(implication);
+        if (!implied) continue;
+        // Any tag implied by any other is always marked as implied. 
+        // This is more useful for quick relation mapping and discovery of the existence of implications.
+        result.set(implication, { ...implied, implied: true });
       }
 
       return Array.from(result.values());
