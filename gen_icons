@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+# cspell:ignore Inkscape mstile
+
+declare sourceFile="public/images/logo/default.svg"
+while [[ -n "$1" ]]; do
+	case "$1" in
+		-s | --source-file-path)
+			shift
+			sourceFile="$1"
+			shift
+			;;
+		--)
+			shift
+			;;
+		--help | -h)
+			cat <<-EOF
+				Uses Inkscape to generate the icons from the source SVG (defaults to "$sourceFile"). The only ones that must be manually created are "safari-pinned-tab.svg" (requires manual design) & "apple-touch-icon.png" must be manually edited to add the background.
+				Usage:	$0 --source-file-path SOURCE_FILE
+								$0 -s SOURCE_FILE
+								$0 --help
+			EOF
+			exit
+			;;
+	esac
+done
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 256 -o public/images/main-logo.png "$sourceFile"
+# #region android-chrome
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 192 -o public/android-chrome-192x192.png "$sourceFile"
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 512 -o public/android-chrome-512x512.png "$sourceFile"
+# #endregion android-chrome
+# #region Apple
+# TODO: Add blue background
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 180 -o public/apple-touch-icon.png "$sourceFile"
+# TODO: Figure out safari-pinned-tab.svg
+# #endregion Apple
+# #region mstile
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 144 -o public/mstile-144x144.png "$sourceFile"
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 70 -o public/mstile-70x70.png "$sourceFile"
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 150 -o public/mstile-150x150.png "$sourceFile"
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 310 -o public/mstile-310x310.png "$sourceFile"
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 150 -w 310 -o public/mstile-310x150.png "$sourceFile"
+# #endregion mstile
+# #region favicon
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 32 -o public/favicon-32x32.png "$sourceFile"
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 16 -o public/favicon-16x16.png "$sourceFile"
+inkscape -D --export-type=png --export-png-color-mode=RGBA_8 -h 16 -o public/favicon.ico "$sourceFile"
+# NOTE: Must be manually renamed to preserve `.ico` extension
+mv "public/favicon.png" "public/favicon.ico"
+# #endregion favicon
+exit $?
