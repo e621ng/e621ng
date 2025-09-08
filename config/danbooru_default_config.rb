@@ -65,6 +65,11 @@ module Danbooru
       "Anonymous"
     end
 
+    # The path of the daily DB exports. Hidden from the site map if `nil`.
+    def db_export_path
+      "/db_export/"
+    end
+
     def levels
       {
         "Anonymous" => 0,
