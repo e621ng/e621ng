@@ -6,7 +6,7 @@
 
     <% if CurrentUser.can_approve_posts? %>
       <div>
-        <%= link_to "Delete", confirm_delete_moderator_post_post_path(post), class: "button btn-neutral" %>
+        <%= link_to "Delete", confirm_delete_moderator_post_post_path(post, q: params[:q]), class: "button btn-neutral" %>
          | <%= tag.a "Unflag", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "none" } %>
         <% if post.is_approvable? %>
            | <%= tag.a "Unflag+approve", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "approve" } %>
