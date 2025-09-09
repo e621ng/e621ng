@@ -1313,9 +1313,9 @@ class TagQueryTest < ActiveSupport::TestCase
       context "Order:" do
         context "Inversion & Normalization" do
           should "remain the same for Non-aliased and non-invertible values" do
-            assert_equal("rank",             TagQuery.new("order:rank")[:order])
+            assert_equal("hot",              TagQuery.new("order:hot")[:order])
             assert_equal("random",           TagQuery.new("order:random")[:order])
-            assert_equal("rank",             TagQuery.new("-order:rank")[:order])
+            assert_equal("hot",              TagQuery.new("-order:hot")[:order])
             assert_equal("random",           TagQuery.new("-order:random")[:order])
           end
 
@@ -1352,14 +1352,18 @@ class TagQueryTest < ActiveSupport::TestCase
             # Don't resolve
             assert_equal("aspect_ratio",     TagQuery.new("order:aspect_ratio")[:order])
             assert_equal("aspect_ratio_asc", TagQuery.new("order:aspect_ratio_asc")[:order])
+            assert_equal("hot",              TagQuery.new("order:hot")[:order])
 
             # Non-suffixed aliases should be correctly resolved
             assert_equal("aspect_ratio_asc", TagQuery.new("order:portrait")[:order])
             assert_equal("aspect_ratio",     TagQuery.new("order:landscape")[:order])
+            assert_equal("hot",              TagQuery.new("order:rank")[:order])
 
             # Correctly resolved & inverted
             assert_equal("aspect_ratio_asc", TagQuery.new("-order:landscape")[:order])
             assert_equal("aspect_ratio",     TagQuery.new("-order:portrait")[:order])
+            # Correctly resolved & not inverted
+            assert_equal("hot",              TagQuery.new("-order:rank")[:order])
           end
 
           should "correctly handle the id special case" do
