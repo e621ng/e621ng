@@ -246,12 +246,14 @@ class TagQueryTest < ActiveSupport::TestCase
     end
 
     should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      # top level
-      TagQuery.fetch_tags([(0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( #{accumulator} )" }], "aaa", error_on_depth_exceeded: true)
-      # non-top level
-      TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( a #{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
-      # mixed level query
-      TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, v| "#{v.even? ? '( a ' : '( '}#{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
+      assert_nothing_raised do
+        # top level
+        TagQuery.fetch_tags([(0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( #{accumulator} )" }], "aaa", error_on_depth_exceeded: true)
+        # non-top level
+        TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( a #{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
+        # mixed level query
+        TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, v| "#{v.even? ? '( a ' : '( '}#{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
+      end
     end
 
     should "fetch when shallowly nested" do
@@ -814,12 +816,14 @@ class TagQueryTest < ActiveSupport::TestCase
         end
 
         should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-          TagQuery.new("aaa #{(0...(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |prior, _| "( #{prior} )" }}", error_on_depth_exceeded: true)
+          assert_nothing_raised do
+            TagQuery.new("aaa #{(0...(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |prior, _| "( #{prior} )" }}", error_on_depth_exceeded: true)
+          end
         end
       end
 
       should "match w/ case insensitivity" do
-        %w[id:2 Id:2 ID:2 iD:2].map { |e| TagQuery.new(e)[:post_id] }.all?(2)
+        %w[id:2 Id:2 ID:2 iD:2].each { |e| assert_equal([[:eq, 2]], TagQuery.new(e)[:post_id]) }
       end
 
       should "parse boolean metatags correctly" do
@@ -1389,7 +1393,9 @@ class TagQueryTest < ActiveSupport::TestCase
       end
 
       should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-        TagQuery.new((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        assert_nothing_raised do
+          TagQuery.new((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        end
       end
     end
   end
@@ -1422,12 +1428,14 @@ class TagQueryTest < ActiveSupport::TestCase
     end
 
     should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      # top level
-      TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
-      # non-top level
-      TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
-      # mixed level query
-      TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
+      assert_nothing_raised do
+        # top level
+        TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        # non-top level
+        TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
+        # mixed level query
+        TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
+      end
     end
   end
 

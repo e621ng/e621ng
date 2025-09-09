@@ -124,7 +124,9 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
           @artist.update(name: "abc")
         end
         version = @artist.versions.first
-        put_auth revert_artist_path(@artist.id), @user, params: {version_id: version.id}
+        put_auth revert_artist_path(@artist.id), @user, params: { version_id: version.id }
+        assert @artist.name, "xyz"
+        assert_redirected_to(artist_path(@artist.id))
       end
 
       should "not allow reverting to a previous version of another artist" do
