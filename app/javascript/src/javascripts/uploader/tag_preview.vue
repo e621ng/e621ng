@@ -39,7 +39,9 @@ export default {
         result.push(tag);
 
         if (tag.implies && Array.isArray(tag.implies)) {
-          implications.add(...tag.implies);
+          for (const implication of tag.implies) {
+            implications.add(implication);
+          }
         }
       }
 
