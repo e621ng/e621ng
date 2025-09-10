@@ -10,7 +10,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       as(@user) do
         @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
-        @replacement = create(:png_replacement, creator: @user, post: @post)
+        @replacement = create(:png_replacement, creator: @regular_user, post: @post)
       end
     end
 
@@ -126,6 +126,36 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         assert_equal @replacement.md5, @post.md5
         assert_equal @replacement.status, "approved"
       end
+
+      should "credit the creator when credit_replacer is not specified" do
+        put_auth approve_post_replacement_path(@replacement), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @regular_user
+      end
+
+      should "credit the creator when credit_replacer is true" do
+        put_auth approve_post_replacement_path(@replacement, credit_replacer: true), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @regular_user
+      end
+
+      should "not credit the creator when credit_replacer is false" do
+        put_auth approve_post_replacement_path(@replacement, credit_replacer: false), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @user
+      end
     end
 
     context "promote action" do
@@ -163,6 +193,68 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       should "render" do
         get_auth new_post_replacement_path, @user, params: { post_id: @post.id }
         assert_response :success
+      end
+    end
+
+    context "transfer action" do
+      setup do
+        @upload2 = UploadService.new(attributes_for(:gif_upload).merge({ uploader: @regular_user })).start!
+        @post2 = @upload2.post
+      end
+
+      should "transfer replacement to another post" do
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
+        assert_response :success
+        @replacement.reload
+        assert_equal @post2.id, @replacement.post_id
+        assert_equal @post2.uploader_id, @replacement.uploader_id_on_approve
+      end
+
+      should "not transfer replacement to another post if not pending" do
+        put_auth approve_post_replacement_path(@replacement), @user
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
+        assert_response :precondition_failed
+        @replacement.reload
+        assert_not_equal @post2.id, @replacement.post_id
+      end
+
+      should "not transfer if new post is nil" do
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: nil }
+        assert_response :not_found
+        @replacement.reload
+        assert_not_nil @replacement.post_id
+      end
+
+      should "not transfer if new post is the same as current post" do
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post.id }
+        assert_response :precondition_failed
+      end
+
+      should "not transfer if new post is deleted" do
+        as(@user) do
+          @post2.delete!("test deletion")
+        end
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
+        assert_response :precondition_failed
+        @replacement.reload
+        assert_not_equal @post2.id, @replacement.post_id
+      end
+    end
+
+    context "note action" do
+      should "create a note on the post replacement" do
+        put_auth note_post_replacement_path(@replacement), @user, params: { note_content: "This is a test note" }
+        assert_response :success
+        @replacement.reload
+        assert_equal true, @replacement.note.present?
+        assert_equal "This is a test note", @replacement.note&.note
+      end
+
+      should "give an error if the user is not allowed to create notes" do
+        put_auth note_post_replacement_path(@replacement), @regular_user, params: { note_content: "This is a test note" }
+        assert_response :forbidden
+        @replacement.reload
+        assert_equal false, @replacement.note.present?
       end
     end
   end
