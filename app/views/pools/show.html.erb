@@ -28,7 +28,7 @@
 
 <%= render "secondary_links" %>
 
-<% render(partial: "static/embed", locals: { record: @pool, name: @pool.pretty_name, description: @pool.description, post: @pool.cover_post }) %>
+<% render(partial: "static/embed", locals: { record: @pool, name: @pool.pretty_name, description: strip_tags(format_text(@pool.description)).truncate(200), post: @pool.cover_post }) %>
 
 <% content_for(:page_title) do %>
   Pool - <%= @pool.pretty_name %>

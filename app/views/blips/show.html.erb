@@ -30,3 +30,5 @@
 <% content_for(:page_title) do %>
   Blip #<%= @blip.id %>
 <% end %>
+
+<% render(partial: "static/embed", locals: { record: @blip, name: "Blip by #{@blip.creator.pretty_name}", description: strip_tags(format_text(@blip.body)).truncate(200) }) %>
