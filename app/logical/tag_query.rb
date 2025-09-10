@@ -124,6 +124,7 @@ class TagQuery
   ORDER_NON_SUFFIXED_ALIASES = {
     "portrait"    => "aspect_ratio_asc",
     "landscape"   => "aspect_ratio",
+    "rank"        => "hot",
   }.freeze
 
   # rubocop:enable Layout/HashAlignment
@@ -197,6 +198,7 @@ class TagQuery
     when "id_desc"   then "id"
     when "portrait"  then ORDER_NON_SUFFIXED_ALIASES["landscape"]
     when "landscape" then ORDER_NON_SUFFIXED_ALIASES["portrait"]
+    when "rank"      then ORDER_NON_SUFFIXED_ALIASES["rank"]
     else
       raise ArgumentError, -"Unhandled non-invertible alias: #{e}" if ORDER_NON_SUFFIXED_ALIASES.key?(e)
       e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e}_asc"
