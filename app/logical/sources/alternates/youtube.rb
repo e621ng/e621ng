@@ -14,7 +14,7 @@ module Sources
       def original_url
         # Transform youtu.be short URLs to full youtube.com watch URLs
         if @parsed_url.host == "youtu.be"
-          video_id = @parsed_url.path[1..] # Remove leading slash
+          video_id = @parsed_url.path.delete_prefix("/") # Remove leading slash
           @parsed_url.host = "www.youtube.com"
           @parsed_url.path = "/watch"
           @parsed_url.query_values = { "v" => video_id }
@@ -22,7 +22,7 @@ module Sources
 
         # Transform YouTube Shorts URLs to regular watch URLs
         if @parsed_url.host&.include?("youtube.com") && @parsed_url.path.start_with?("/shorts/")
-          video_id = @parsed_url.path.split("/")[2] # Extract video ID from /shorts/VIDEO_ID
+          video_id = @parsed_url.path.split("/").last # Extract video ID from /shorts/VIDEO_ID
           @parsed_url.path = "/watch"
           @parsed_url.query_values = { "v" => video_id }
         end
