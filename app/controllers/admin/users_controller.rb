@@ -32,9 +32,27 @@ module Admin
       @user = User.find(params[:id])
       @user.validate_email_format = true
       @user.is_admin_edit = true
-      @user.update!(user_params(CurrentUser.user))
+      new_values = user_params(CurrentUser.user)
+      if new_values[:profile_about].present? && new_values[:profile_about] != @user.profile_about
+        staff_note_about = "Profile edited by \"#{CurrentUser.name}\":[/users/#{CurrentUser.id}].\nFrom:\n[quote]#{@user.profile_about}[/quote]\nTo:\n[quote]#{new_values[:profile_about]}[/quote]\n"
+      end
+      if new_values[:profile_artinfo].present? && new_values[:profile_artinfo] != @user.profile_artinfo
+        staff_note_artinfo = "Commission Info edited by \"#{CurrentUser.name}\":[/users/#{CurrentUser.id}].\nFrom:\n[quote]#{@user.profile_artinfo}[/quote]\nTo:\n[quote]#{new_values[:profile_artinfo]}[/quote]\n"
+      end
+      @user.update!(new_values)
       if @user.saved_change_to_profile_about || @user.saved_change_to_profile_artinfo
         ModAction.log(:user_text_change, { user_id: @user.id })
+        StaffNote.create!(
+          creator: CurrentUser.user,
+          user: @user,
+          body: if @user.saved_change_to_profile_about && @user.saved_change_to_profile_artinfo
+                  "#{staff_note_about}\n#{staff_note_artinfo}"
+                elsif @user.saved_change_to_profile_about
+                  staff_note_about
+                else
+                  staff_note_artinfo
+                end,
+        )
       end
       if @user.saved_change_to_base_upload_limit
         ModAction.log(:user_upload_limit_change, { user_id: @user.id, old_upload_limit: @user.base_upload_limit_before_last_save, new_upload_limit: @user.base_upload_limit })
