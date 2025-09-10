@@ -1,14 +1,15 @@
 <template>
-  <div>
-    <div v-if="loading && tagRecords.length === 0">Fetching tags...</div>
-    <div class="tag-preview">
+  <div class="tag-preview-area" :disabled="!enabled">
+    <div class="tag-preview" v-if="tagRecords.length && enabled">
       <tag-preview-tag v-for="(tag, i) in tagRecords" :key="i" :tag="tag"></tag-preview-tag>
     </div>
+    <a href="#" @click.prevent="togglePreview()">{{ enabled ? 'Hide' : 'Show' }} tag preview</a>
   </div>
 </template>
 
 <script>
 import tagPreviewTag from './tag_preview_tag.vue';
+import LStorage from '../utility/storage';
 
 export default {
   props: ['tags'],
@@ -20,6 +21,7 @@ export default {
       loading: false,
       tagCache: {},
       _tagPreviewDebounce: null,
+      enabled: LStorage.Posts.TagPreview,
     };
   },
   computed: {
@@ -27,7 +29,48 @@ export default {
       return [...new Set(this.tags.toLowerCase().replace(/\r?\n|\r/g, ' ').trim().split(/\s+/).filter(Boolean))];
     },
     tagRecords() {
-      return this.tagsArray.map(t => this.tagCache[t]).filter(Boolean);
+      const result = [];
+      const implications = new Set();
+
+      for (const input of this.tagsArray) {
+        const tag = this.tagCache[input];
+        if (!tag) continue;
+
+        result.push(tag);
+
+        if (tag.implies && Array.isArray(tag.implies)) {
+          for (const implication of tag.implies) {
+            implications.add(implication);
+          }
+        }
+      }
+
+      const seen = new Set();
+      for (const tag of result) {
+        const name = tag.alias || tag.resolved || tag.name;
+        if (seen.has(name)) {
+          tag.duplicate = true;
+        } else {
+          seen.add(name);
+        }
+      }
+
+      // Aliases do not need to be added. They will be displayed by their original input via the alias field.
+
+      for (const implication of implications) {
+        // Any tag implied by any other is always marked as implied. 
+        // This is more useful for quick relation mapping and discovery of the existence of implications.
+        const current = result.find(tag => tag.name === implication);
+        if (current) {
+          current.implied = true;
+        } else {
+          const implied = this.tagCache[implication];
+          if (!implied) continue;
+          result.push({ ...implied, implied: true });
+        }
+      }
+
+      return result;
     },
   },
   watch: {
@@ -36,12 +79,21 @@ export default {
       handler() {
         clearTimeout(this._tagPreviewDebounce);
         this._tagPreviewDebounce = setTimeout(() => {
-          this.fetchTagPreview();
+          if (this.enabled) {
+            this.fetchTagPreview();
+          }
         }, 1000);
       }
     }
   },
   methods: {
+    togglePreview() {
+      this.enabled = !this.enabled;
+      LStorage.Posts.TagPreview = this.enabled;
+      if (this.enabled) {
+        this.fetchTagPreview();
+      }
+    },
     fetchTagPreview() {
       const missing = this.tagsArray.filter(t => !this.tagCache[t]);
       if (missing.length === 0) return;
@@ -58,7 +110,9 @@ export default {
         },
         error: (result) => {
           this.loading = false;
-          Danbooru.error("Error loading tag preview " + JSON.stringify(result));
+          let details = result.responseText || "Unknown error";
+          Danbooru.error("Error loading tag preview: " + details);
+          console.error("Tag preview error:", result);
         },
       });
     },

@@ -50,6 +50,10 @@ div.related-tags {
   }
 }
 
+div.tag-preview-area {
+  margin-top: 0.5em;
+  margin-bottom: 0.75em;
+}
 
 div.tag-preview {
   box-sizing: border-box;
@@ -62,8 +66,7 @@ div.tag-preview {
   width: 100%;
   max-height: 50vh;
   overflow-y: auto;
-  margin-top: 0.5em;
-  margin-bottom: 1em;
+  margin-bottom: 0.25em;
   padding: 2px;
 
   background: themed("color-section-lighten-5");
@@ -74,13 +77,18 @@ div.tag-preview {
     padding: 1px;
     padding-right: 5px;
 
+    & .post-count {
+      color: themed("color-text-muted");
+    }
+
     & .implied {
       color: themed("palette-text-green");
     }
 
     & .empty,
     .underused,
-    .invalid {
+    .invalid,
+    .duplicate {
       color: themed("palette-text-red");
     }
   }
