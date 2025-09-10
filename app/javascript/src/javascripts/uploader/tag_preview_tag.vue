@@ -7,7 +7,7 @@
        :data-alias="tag.alias"
        :data-implied="tag.implied"
        :data-count="tag.post_count">
-    <tag-link :name="formatTagName(tag.alias || tag.resolved || tag.name)" :tagType="tag.category"></tag-link>
+    <tag-link :name="tag.alias || tag.resolved || tag.name" :tagType="tag.category" :wrap="true"></tag-link>
     <span v-if="!tag.id" class="invalid">invalid</span>
     <span v-else-if="tag.duplicate" class="duplicate">duplicate</span>
     <span v-else-if="tag.implied" class="implied">implied</span>
@@ -27,9 +27,6 @@ export default {
   methods: {
     formatTagCount(count) {
       return new Intl.NumberFormat('en', { notation: 'compact', compactDisplay: 'short' }).format(count).toLowerCase();
-    },
-    formatTagName(name) {
-      return name.replace(/_/g, '_\u200B');
     },
   },
 };
