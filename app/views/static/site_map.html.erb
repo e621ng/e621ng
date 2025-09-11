@@ -33,7 +33,7 @@
         <li><%= link_to("API Documentation", help_page_path(id: "api")) %></li>
         <li><%= link_to("Stats", stats_path) %></li>
         <% if Danbooru.config.db_export_path.present? %>
-          <li><%= link_to("DB Export", "/#{Danbooru.config.db_export_path}/") %></li>
+          <li><%= link_to("DB Export", Danbooru.config.db_export_path) %></li>
         <% end %>
       </ul>
       <ul>
