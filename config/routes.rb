@@ -317,6 +317,7 @@ Rails.application.routes.draw do
       get :home
       get :search
       get :custom_style
+      get :settings
     end
   end
   resources :user_feedbacks do

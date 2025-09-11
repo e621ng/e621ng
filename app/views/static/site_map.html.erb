@@ -97,7 +97,7 @@
           <li><%= link_to("Signup", new_user_path) %></li>
         <% else %>
           <li><%= link_to("Profile", user_path(CurrentUser.user)) %></li>
-          <li><%= link_to("Settings", edit_user_path(CurrentUser.user)) %></li>
+          <li><%= link_to("Settings", settings_users_path) %></li>
           <li><%= link_to("Refresh counts", new_maintenance_user_count_fixes_path) %>
         <% end %>
         <li><%= link_to("Feedback", user_feedbacks_path) %></li>
