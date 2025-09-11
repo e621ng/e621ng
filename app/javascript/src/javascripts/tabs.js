@@ -159,7 +159,6 @@ class TabIndex {
           break;
         }
         matches = true;
-        console.log("match", term, tags);
       }
 
       // Partial match succeeded
