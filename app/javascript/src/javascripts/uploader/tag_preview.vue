@@ -34,14 +34,20 @@ export default {
 
       for (const input of this.tagsArray) {
         const tag = this.tagCache[input];
-        if (!tag) continue;
+        if (tag) {
+          result.push(tag);
 
-        result.push(tag);
-
-        if (tag.implies && Array.isArray(tag.implies)) {
-          for (const implication of tag.implies) {
-            implications.add(implication);
+          if (tag.implies && Array.isArray(tag.implies)) {
+            for (const implication of tag.implies) {
+              implications.add(implication);
+            }
           }
+        } else {
+          result.push({
+            id: -1,
+            name: input,
+            category: 0,
+          });
         }
       }
 
