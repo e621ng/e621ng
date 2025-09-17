@@ -685,7 +685,7 @@ module Danbooru
     end
 
     def subscribestar_url
-      "https://subscribestar.adult/e621dotnet"
+      nil
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so
