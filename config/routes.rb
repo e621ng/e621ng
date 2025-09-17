@@ -28,8 +28,8 @@ Rails.application.routes.draw do
 
   namespace :security do
     root to: "dashboard#index"
-    resource :dashboard, only: [:index]
-    resources :lockdown, only: [:index] do
+    resource :dashboard, only: %i[index]
+    resources :lockdown, only: %i[index] do
       collection do
         put :panic
         put :enact
@@ -41,8 +41,8 @@ Rails.application.routes.draw do
 
   resources :edit_histories
   namespace :moderator do
-    resource :dashboard, only: [:show]
-    resources :ip_addrs, only: [:index] do
+    resource :dashboard, only: %i[show]
+    resources :ip_addrs, only: %i[index] do
       collection do
         get :export
       end
@@ -67,7 +67,7 @@ Rails.application.routes.draw do
       end
     end
   end
-  resources :popular, only: [:index]
+  resources :popular, only: %i[index]
   namespace :maintenance do
     namespace :user do
       resource :count_fixes, only: %i[new create]
@@ -128,8 +128,8 @@ Rails.application.routes.draw do
       get :show_or_new
     end
   end
-  resources :artist_urls, only: [:index]
-  resources :artist_versions, only: [:index] do
+  resources :artist_urls, only: %i[index]
+  resources :artist_versions, only: %i[index] do
     collection do
       get :search
     end
@@ -166,7 +166,7 @@ Rails.application.routes.draw do
       put :mark_all_as_read
     end
   end
-  resource :dtext_preview, only: [:create]
+  resource :dtext_preview, only: %i[create]
   resources :favorites, only: %i[index create destroy]
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes"
@@ -200,7 +200,7 @@ Rails.application.routes.draw do
     end
   end
   resources :email_blacklists, only: %i[new create destroy index]
-  resource :iqdb_queries, only: [:show] do
+  resource :iqdb_queries, only: %i[show] do
     collection do
       post :show
     end
@@ -215,7 +215,7 @@ Rails.application.routes.draw do
       put :revert
     end
   end
-  resources :note_versions, only: [:index]
+  resources :note_versions, only: %i[index]
   resources :pools do
     member do
       put :revert
@@ -223,10 +223,10 @@ Rails.application.routes.draw do
     collection do
       get :gallery
     end
-    resource :order, only: [:edit], controller: "pool_orders"
+    resource :order, only: %i[edit], controller: "pool_orders"
   end
   resource :pool_element, only: %i[create destroy]
-  resources :pool_versions, only: [:index] do
+  resources :pool_versions, only: %i[index] do
     member do
       get :diff
     end
@@ -239,12 +239,12 @@ Rails.application.routes.draw do
       put :toggle_penalize
     end
   end
-  resources :deleted_posts, only: [:index]
+  resources :deleted_posts, only: %i[index]
   resources :posts, only: %i[index show update] do
     resources :replacements, only: %i[index new create], controller: "post_replacements"
     resource :votes, controller: "post_votes", only: %i[create destroy]
-    resource :flag, controller: "post_flags", only: [:destroy]
-    resources :favorites, controller: "post_favorites", only: [:index]
+    resource :flag, controller: "post_flags", only: %i[destroy]
+    resources :favorites, controller: "post_favorites", only: %i[index]
     collection do
       get :random
     end
@@ -265,9 +265,9 @@ Rails.application.routes.draw do
     end
   end
   resources :post_events, only: :index
-  resources :post_flags, except: [:destroy]
-  resources :post_approvals, only: [:index]
-  resources :post_versions, only: [:index] do
+  resources :post_flags, except: %i[destroy]
+  resources :post_approvals, only: %i[index]
+  resources :post_versions, only: %i[index] do
     member do
       put :undo
       put :hide
@@ -279,7 +279,7 @@ Rails.application.routes.draw do
   resource :session, only: %i[new create destroy] do
     get :confirm_password, on: :collection
   end
-  resources :stats, only: [:index]
+  resources :stats, only: %i[index]
   resources :tags, constraints: id_name_constraint do
     resource :correction, only: %i[new create show], controller: "tag_corrections"
     collection do
@@ -301,7 +301,7 @@ Rails.application.routes.draw do
   resource :tag_implication_request, only: %i[new create]
   resources :uploads
   resources :users do
-    resource :password, only: [:edit], controller: "maintenance/user/passwords"
+    resource :password, only: %i[edit], controller: "maintenance/user/passwords"
     resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
 
     member do
