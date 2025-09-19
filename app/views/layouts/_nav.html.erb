@@ -38,7 +38,7 @@
   <menu class="nav-tools desktop <%= CurrentUser.is_anonymous? ? "anonymous" : "" %>">
     <%= decorated_nav_link_to("Themes", :swatch, theme_path, class: "nav-tools-themes", title: "Site Themes") %>
     <% unless CurrentUser.is_anonymous? %>
-      <%= decorated_nav_link_to("Settings", :settings, edit_user_path(CurrentUser.user), class: "nav-tools-settings", title: "User Settings") %>
+      <%= decorated_nav_link_to("Settings", :settings, settings_users_path, class: "nav-tools-settings", title: "User Settings") %>
     <% end %>
   </menu>
 

@@ -37,6 +37,14 @@ class TagsPreview
     @implications = TagImplication
                     .descendants_with_originals(@aliased_names)
                     .transform_values(&:to_a)
+
+    implied_tags = @implications.values.flatten.uniq
+    if implied_tags.any?
+      sub_implications = TagImplication
+                         .descendants_with_originals(implied_tags)
+                         .transform_values(&:to_a)
+      @implications.merge!(sub_implications)
+    end
   end
 
   def load_tags

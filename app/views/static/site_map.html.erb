@@ -32,7 +32,9 @@
         <li><%= link_to("Keyboard Shortcuts", keyboard_shortcuts_path) %></li>
         <li><%= link_to("API Documentation", help_page_path(id: "api")) %></li>
         <li><%= link_to("Stats", stats_path) %></li>
-        <li><%= link_to("DB Export", "/db_export/") %></li>
+        <% if Danbooru.config.db_export_path.present? %>
+          <li><%= link_to("DB Export", Danbooru.config.db_export_path) %></li>
+        <% end %>
       </ul>
       <ul>
         <li><h3>Artists</h3></li>
@@ -97,7 +99,7 @@
           <li><%= link_to("Signup", new_user_path) %></li>
         <% else %>
           <li><%= link_to("Profile", user_path(CurrentUser.user)) %></li>
-          <li><%= link_to("Settings", edit_user_path(CurrentUser.user)) %></li>
+          <li><%= link_to("Settings", settings_users_path) %></li>
           <li><%= link_to("Refresh counts", new_maintenance_user_count_fixes_path) %>
         <% end %>
         <li><%= link_to("Feedback", user_feedbacks_path) %></li>

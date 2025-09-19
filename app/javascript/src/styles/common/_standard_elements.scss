@@ -82,10 +82,28 @@
 
   // Elements that look like physical buttons and animate on click.
   &.kinetic {
-    box-shadow: 0 0.25rem themed("color-section");
+    $kinetic-shadow: 0.25rem;
+    $kinetic-active: $kinetic-shadow / 2;
+
+    box-shadow: 0 $kinetic-shadow themed("color-section");
+    position: relative;
     &:active, &[processing="true"].anim {
-      translate: 0 0.125rem;
-      box-shadow: 0 0.125rem themed("color-section");
+      translate: 0 $kinetic-active;
+      box-shadow: 0 $kinetic-active themed("color-section");
+
+      // Cursed solution for a cursed problem.
+      // Moving the button down when active caused the javascript event to not trigger if the
+      // top 0.125rem of the button was clicked. The solution is to add an invisible element
+      // that covers that gap.
+      &::before {
+        content: "";
+        position: absolute;
+        background: transparent;
+        height: $kinetic-shadow;
+        top: -$kinetic-active;
+        left: 0;
+        right: 0;
+      }
     }
   }
 }

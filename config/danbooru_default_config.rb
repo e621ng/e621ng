@@ -65,6 +65,11 @@ module Danbooru
       "Anonymous"
     end
 
+    # The path of the daily DB exports. Hidden from the site map if `nil`.
+    def db_export_path
+      "/db_export/"
+    end
+
     def levels
       {
         "Anonymous" => 0,
@@ -685,7 +690,7 @@ module Danbooru
     end
 
     def subscribestar_url
-      "https://subscribestar.adult/e621dotnet"
+      nil
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so

@@ -39,7 +39,7 @@
   </div>
 </div>
 
-<% render(partial: "static/embed", locals: { record: wiki_content, name: wiki_content.pretty_title, description: wiki_content.body, post: nil }) %>
+<% render(partial: "static/embed", locals: { record: wiki_content, name: wiki_content.pretty_title, description: wiki_content.body.present? ? strip_tags(format_text(wiki_content.body)).truncate(200) : "" }) %>
 
 <% content_for(:page_title) do %>
   Wiki - <%= wiki_content.pretty_title %>
