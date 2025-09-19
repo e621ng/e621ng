@@ -118,6 +118,8 @@ PostSearch.initialize_controls = function () {
   function updateHoverTextNodes () {
     $("a[data-hover-text]").attr("title", function () {
       const source = $(this).data("hover-text");
+      if (!source) return "";
+
       switch (LStorage.Posts.HoverText) {
         case "none":
           return "";
