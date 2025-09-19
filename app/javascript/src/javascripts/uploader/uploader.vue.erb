@@ -598,11 +598,10 @@
           newButton.classList.add("toggle-button");
           newButton.innerHTML = artistName;
           newButton.onclick = () => {
-            // Likely overkill, but let's be safe
-            let val = artistTextBox.value.trim().split(" ").filter(n => n);
+            let val = this.tagEntries.artist.trim().split(" ").filter(n => n);
             if (val.includes(artistName)) val = val.filter(n => n !== artistName);
             else val.push(artistName);
-            artistTextBox.value = val.join(" ") + " ";
+            this.tagEntries.artist = val.join(" ") + " ";
           };
           buttonRow.appendChild(newButton);
         }
