@@ -1,0 +1,29 @@
+.adzone-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.75rem; // Account for the post counter height
+
+  .adzone {
+    // Center adblock if the image is not the same dimensions as the container
+    display: flex;
+    justify-content: center;
+
+    // Mobile ads are fixed in size
+    height: 50px;
+    width: 320px;
+  }
+
+  img {
+    height: 100%;
+    width: auto;
+  }
+
+  @include window-larger-than(899px) {
+    margin-bottom: unset;
+
+    .adzone {
+      height: 90px;
+      width: 768px;
+    }
+  }
+}

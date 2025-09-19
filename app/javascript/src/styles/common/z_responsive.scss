@@ -2,18 +2,6 @@
   display: none;
 }
 
-@media screen and (max-width: 900px) {
-  #ad-leaderboard {
-    height: 50px;
-    justify-content: center;
-
-    .adzone {
-      height: 50px;
-      width: 320px;
-    }
-  }
-}
-
 @media screen and (max-width: 800px) {
   .mobile-only {
     display: unset;
