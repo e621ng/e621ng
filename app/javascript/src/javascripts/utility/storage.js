@@ -112,6 +112,9 @@ LStorage.Posts = {
 
   /** @returns {boolean} True if post notes are enabled */
   Notes: ["e6.posts.notes", true],
+
+  /** @returns {("short" | "long" | "none")} Short, long or no hover text for post thumbnails */
+  HoverText: ["e6.posts.hovertext", "long"],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 

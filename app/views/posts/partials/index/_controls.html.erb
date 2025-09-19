@@ -53,6 +53,31 @@
     </div>
   </div>
 
+  <div class="ssc-entry">
+    <div class="ssc-label">
+      <label for="ssc-hover-text">Hover Text</label>
+    </div>
+    <div class="ssc-body-g stm-toggle">
+      <input type="radio" id="ssc-hover-text-short" name="ssc-hover-text" value="short">
+      <label for="ssc-hover-text-short">
+        <%= svg_icon(:short_hover_text, stroke_width: 1) %>
+        Short
+      </label>
+
+      <input type="radio" id="ssc-hover-text-long" name="ssc-hover-text" value="long">
+      <label for="ssc-hover-text-long">
+        <%= svg_icon(:long_hover_text, stroke_width: 1) %>
+        Long
+      </label>
+
+      <input type="radio" id="ssc-hover-text-none" name="ssc-hover-text" value="none">
+      <label for="ssc-hover-text-none">
+        <%= svg_icon(:hidden_hover_text, stroke_width: 1) %>
+        None
+      </label>
+    </div>
+  </div>
+
   <div class="ssc-entry ssc-desktop-only">
     <div class="ssc-label">
       <label for="ssc-sticky-searchbar">Sticky Searchbar</label>
