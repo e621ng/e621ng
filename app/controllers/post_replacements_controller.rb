@@ -60,6 +60,11 @@ class PostReplacementsController < ApplicationController
     @post_replacement = PostReplacement.find(params[:id])
     @post_replacement.approve!(penalize_current_uploader: params[:penalize_current_uploader])
 
+    if @post_replacement.errors.any?
+      render plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: 400
+      return
+    end
+
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
       format.json
