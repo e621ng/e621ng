@@ -1,8 +1,8 @@
 <%= tag.article(**article_attrs) do -%>
-  <%= link_to polymorphic_path(link_target, link_params) do -%>
+  <%= link_to polymorphic_path(link_target, link_params), data: { hover_text: tooltip } do -%>
     <%= tag.picture do -%>
       <%= tag.source media: "(min-width: 800px)", srcset: preview_url -%>
-      <%= tag.img src: preview_url, title: tooltip, alt: alt_text -%>
+      <%= tag.img src: preview_url, alt: alt_text -%>
     <% end -%>
   <% end -%>
   <% if stats -%>
