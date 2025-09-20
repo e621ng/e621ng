@@ -1,8 +1,7 @@
 <template>
-    <div class="upload-source-row">
+    <div class="upload-source-row" v-bind:index="index">
         <input type="text" size="50" v-model="realValue" @keyup.enter="add"/>
-        <button @click="remove" v-if="index !== 0">-</button>
-        <button @click="add" v-if="last && index < maxSources - 1">+</button>
+        <button @click="remove">-</button>
     </div>
 </template>
 
