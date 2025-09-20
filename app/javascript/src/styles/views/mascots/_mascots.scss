@@ -1,0 +1,29 @@
+.mascot-preview {
+  background-size: contain;
+  background-position: top center;
+  background-repeat: no-repeat;
+
+  border: 1px solid themed("color-background");
+  @include st-radius;
+
+  height: 9rem;
+  width: 16rem;
+  position: relative;
+  margin: 0.5rem 0;
+
+  & &-search {
+    position: absolute;
+    top: 60%;
+    left: 15%;
+
+    width: 70%;
+    height: 2rem;
+  }
+}
+
+.mascot-thumbnail {
+  height: 2rem;
+  width: 2rem;
+  margin: -0.5rem 0;
+  object-fit: cover;
+}
