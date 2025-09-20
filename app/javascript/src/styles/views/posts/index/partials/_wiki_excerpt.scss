@@ -38,20 +38,20 @@
       content: "."; // Makes it render
       color: transparent; // Hides the content
       display: block;
-	    background: linear-gradient(to bottom, transparent, var(--color-section));
+      background: linear-gradient(to bottom, transparent, var(--color-section));
 
       // Account for left padding if not using `position: relative` on `.styled-dtext` by using `left: 0;`, & if the absence of a `top` value stops working, `top: 3rem;` + whatever top padding there is seemed to work, but is less resilient to change.
-	    position: absolute;
+      position: absolute;
 
       // Needs to match `.styled-dtext`
-	    max-height: 0rem;
-	    min-height: 0rem;
+      max-height: 0rem;
+      min-height: 0rem;
       // Needs to animate w/ `.styled-dtext`
       transition: max-height 0.25s;
       overflow: hidden;
       
-	    box-sizing: border-box;
-	    padding: 0;
+      box-sizing: border-box;
+      padding: 0;
 	    height: 100%;
 	    width: 100%;
     }
