@@ -1,6 +1,15 @@
 <div class="c-mascots">
   <div class="a-edit">
     <h1>Edit Mascot</h1>
+    <div
+      class="mascot-preview"
+      style="background-image: url('<%= @mascot.url_path %>'); background-color: <%= @mascot.background_color %>;">
+      <div
+        class="mascot-preview-search"
+        style="background-color: <%= @mascot.foreground_color %>;"
+      ></div>
+    </div>
+    
     <%= render "form", mascot: @mascot %>
   </div>
 </div>
