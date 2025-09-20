@@ -11,7 +11,7 @@
       v-for="s, i in sources"
       @delete="removeSource(i)"
       @add="addSource"
-      @paste="pasteSource($event, i)"
+      @madd="pasteSource($event, i)"
       :key="i"
     ></file-source>
   </div>
@@ -49,6 +49,7 @@
         }
       },
       pasteSource(event, index) {
+        if (!event.clipboardData) return;
         // Default to vanilla behavior if only one line is pasted
         const pastedText = event.clipboardData.getData("text/plain");
         if (!pastedText) return;

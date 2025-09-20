@@ -1,6 +1,12 @@
 <template>
     <div class="upload-source-row" v-bind:index="index">
-        <input type="text" size="50" v-model="realValue" @keyup.enter="add"/>
+        <input
+          type="text"
+          size="50"
+          v-model="realValue"
+          @keyup.enter="add"
+          @paste="paste"
+        />
         <button @click="remove">-</button>
     </div>
 </template>
@@ -30,7 +36,10 @@
       },
       remove() {
         this.$emit('delete');
-      }
+      },
+      paste($event) {
+        this.$emit('madd', $event);
+      },
     },
     watch: {
       modelValue(v) {
