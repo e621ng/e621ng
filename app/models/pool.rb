@@ -21,10 +21,10 @@ class Pool < ApplicationRecord
   validate :validate_number_of_posts
   before_validation :normalize_post_ids
   before_validation :normalize_name
-  after_save :create_version
-  after_save :synchronize, if: :saved_change_to_post_ids?
   after_create :synchronize!
   before_destroy :remove_all_posts
+  after_save :create_version
+  after_save :synchronize, if: :saved_change_to_post_ids?
 
   attr_accessor :skip_sync
 
@@ -93,7 +93,28 @@ class Pool < ApplicationRecord
     end
   end
 
+  module VersionMethods
+    def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)
+      return unless new_record? || saved_change_to_watched_attributes?
+      PoolVersion.queue(self, updater, updater_ip_addr)
+    end
+
+    def saved_change_to_watched_attributes?
+      saved_change_to_name? || saved_change_to_description? || saved_change_to_post_ids? || saved_change_to_is_active? || saved_change_to_category?
+    end
+
+    def revert_to!(version)
+      raise RevertError, "You cannot revert to a previous version of another pool." if id != version.pool_id
+
+      self.post_ids = version.post_ids
+      self.name = version.name
+      self.description = version.description
+      save
+    end
+  end
+
   extend SearchMethods
+  include VersionMethods
 
   def user_not_create_limited
     allowed = creator.can_pool_with_reason
@@ -162,17 +183,6 @@ class Pool < ApplicationRecord
 
   def normalize_post_ids
     self.post_ids = post_ids.uniq
-  end
-
-  def revert_to!(version)
-    if id != version.pool_id
-      raise RevertError.new("You cannot revert to a previous version of another pool.")
-    end
-
-    self.post_ids = version.post_ids
-    self.name = version.name
-    self.description = version.description
-    save
   end
 
   def contains?(post_id)
@@ -308,10 +318,6 @@ class Pool < ApplicationRecord
 
   def cover_post
     Post.find_by(id: post_ids.first)
-  end
-
-  def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)
-    PoolVersion.queue(self, updater, updater_ip_addr)
   end
 
   def last_page
