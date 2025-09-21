@@ -24,7 +24,7 @@
         <% end %>
 
         <label class="flag-reason-label">
-          <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
+          <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false, data: { require_explanation: flag_reason[:require_explanation] } %>
           <span class="flag-reason-description">
             <b><%= format_text(flag_reason[:reason], inline: true) %></b>
             <span class="dtext-container">
@@ -32,18 +32,18 @@
             </span>
           </span>
         </label>
-        
+
         <% if flag_reason[:parent] %>
           <span class="flag-reason-parent">
             <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
           </span>
         <% end %>
-        
+
       <% end %>
     </div>
 
     <div class="flag-notes">
-      <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size %>
+      <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size, input_html: { id: "flag_note_field" } %>
     </div>
     
     <div>
@@ -55,10 +55,62 @@
 
 <%= javascript_tag nonce: true do -%>
   const flagReasonLabels = document.querySelectorAll(".flag-reason-label");
+  const noteField = document.getElementById("flag_note_field");
+  const radioButtons = document.querySelectorAll('input[name="post_flag[reason_name]"]');
+  const form = noteField.closest('form');
+  let errorMessage = null;
+
+  function updateNoteRequired() {
+    const selected = document.querySelector('input[name="post_flag[reason_name]"]:checked');
+    if (selected && selected.dataset.requireExplanation === "true") {
+      noteField.required = true;
+      noteField.closest('.flag-notes').querySelector('label').textContent = "Additional Details (required)";
+    } else {
+      noteField.required = false;
+      noteField.closest('.flag-notes').querySelector('label').textContent = "Additional Details";
+    }
+  }
+
+  function showError(msg) {
+    if (!errorMessage) {
+      errorMessage = document.createElement('div');
+      errorMessage.className = 'flag-note-error error-text';
+      noteField.closest('.flag-notes').appendChild(errorMessage);
+    }
+    errorMessage.textContent = msg;
+  }
+
+  function clearError() {
+    if (errorMessage) errorMessage.textContent = '';
+  }
+
+  function isNoteRequiredAndEmpty() {
+    const selected = document.querySelector('input[name="post_flag[reason_name]"]:checked');
+    return selected && selected.dataset.requireExplanation === "true" && noteField.value.trim() === "";
+  }
+
+  form.addEventListener('submit', function(e) {
+    updateNoteRequired();
+    if (isNoteRequiredAndEmpty()) {
+      e.preventDefault();
+      showError("Note is required for the selected reason.");
+      noteField.focus();
+    } else {
+      clearError();
+    }
+  });
+
+  radioButtons.forEach(radio => {
+    radio.addEventListener('change', updateNoteRequired);
+  });
+
   flagReasonLabels.forEach(label => {
     label.addEventListener("click", () => {
       flagReasonLabels.forEach(l => l.classList.remove("selected"));
       label.classList.add("selected");
     });
   });
+
+  // Run on page load in case a reason is preselected
+  updateNoteRequired();
 <% end %>
