@@ -1,10 +1,10 @@
-@mixin window-larger-than($value) {
+@mixin window-larger-than($value: $breakpoint-mobile) {
   @media (min-width: $value) {
     @content;
   }
 }
 
-@mixin window-smaller-than($value) {
+@mixin window-smaller-than($value: $breakpoint-mobile) {
   @media (max-width: $value) {
     @content;
   }
