@@ -1,5 +1,6 @@
 import LStorage from "./utility/storage";
 import Page from "./utility/page";
+import Offclick from "./utility/offclick";
 
 const PostSearch = {};
 
@@ -69,34 +70,25 @@ PostSearch.initialize_controls = function () {
     LStorage.Posts.Fullscreen = fullscreen;
   });
 
-  // Menu toggle
-  let settingsVisible = false;
-  const menu = $(".search-settings-container"),
-    menuButton = $("#search-settings");
-  menuButton.on("click", () => {
-    settingsVisible = !settingsVisible;
-    menu.toggleClass("active", settingsVisible);
-    menuButton.toggleClass("active", settingsVisible);
+  // Menu open / close
+  const offclickHandler = Offclick.register("#search-settings", ".search-settings-container", () => {
+    menu.removeClass("active");
+    menuButton.removeClass("active");
+  });
+
+  const menu = $(".search-settings-container");
+  const menuButton = $("#search-settings").on("click", () => {
+    const state = offclickHandler.disabled;
+    menu.toggleClass("active", state);
+    menuButton.toggleClass("active", state);
+    offclickHandler.disabled = !state;
   });
 
   $("#search-settings-close").on("click", (event) => {
     event.preventDefault();
     menu.removeClass("active");
     menuButton.removeClass("active");
-    settingsVisible = false;
-  });
-
-  // click outside the menu
-  $(window).on("mouseup", (event) => {
-    if (!settingsVisible) return;
-
-    const target = $(event.target);
-    if (target.closest(".search-settings-container").length > 0 || target.is("#search-settings"))
-      return;
-
-    menu.removeClass("active");
-    menuButton.removeClass("active");
-    settingsVisible = false;
+    offclickHandler.disabled = true;
   });
 
   // Menu toggles

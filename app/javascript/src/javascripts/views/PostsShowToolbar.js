@@ -3,6 +3,7 @@ import Favorite from "../models/Favorite";
 import PostVote from "../models/PostVote";
 import Post from "../posts";
 import Utility from "../utility";
+import Offclick from "../utility/offclick";
 import Page from "../utility/page";
 import LStorage from "../utility/storage";
 
@@ -169,8 +170,16 @@ export default class PostsShowToolbar {
   // Fullscreen / download menu
   initOverflowMenu () {
     const menu = $(".ptbr-etc-menu");
+    let offclickHandler = null;
     $(".ptbr-etc-toggle").on("click", () => {
-      menu.toggleClass("hidden");
+      // Register offclick handler on the first use
+      if (offclickHandler === null)
+        offclickHandler = Offclick.register(".ptbr-etc-toggle", ".ptbr-etc-menu", () => {
+          menu.addClass("hidden");
+        });
+
+      offclickHandler.disabled = !offclickHandler.disabled;
+      menu.toggleClass("hidden", offclickHandler.disabled);
     });
 
     const button = $(".ptbr-etc-download").on("click.e6.prepare", async (event) => {
