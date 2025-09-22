@@ -35,8 +35,7 @@
     // Gradient overlay
     // Is aligned w/ the parent element, but defaults to the `.styled-dtext` positioning
     &::before {
-      content: "."; // Makes it render
-      color: transparent; // Hides the content
+      content: ""; // Makes it render
       display: block;
       background: linear-gradient(to bottom, transparent, var(--color-section));
 
@@ -52,8 +51,8 @@
       
       box-sizing: border-box;
       padding: 0;
-	    height: 100%;
-	    width: 100%;
+      height: 100%;
+      width: 100%;
     }
 
     min-height: 0rem;
