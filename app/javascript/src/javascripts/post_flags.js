@@ -6,7 +6,7 @@ PostFlags.init = function () {
     return;
   }
   PostFlags._initialized = true;
-  
+
   for (const container of $(".post-flag-note")) {
     if (container.clientHeight > 72) $(container).addClass("expandable");
   }
