@@ -57,6 +57,7 @@ module IconHelper
       <rect width="4" height="4" x="3" y="17"/><rect width="4" height="4" x="10" y="17"/><rect width="4" height="4" x="17" y="17"/>
     ),
     hexagon: %(<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>),
+    trash: %(<path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>),
 
     # Pagination
     chevron_left: %(<path d="m15 18-6-6 6-6"/>),
