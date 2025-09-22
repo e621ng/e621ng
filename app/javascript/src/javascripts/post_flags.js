@@ -34,7 +34,7 @@ PostFlags.init = function () {
   let errorMessage = null;
 
   // Parse dataset boolean values robustly. Treat presence or values like "", "true", "1", "yes" as true.
-  function parseDatasetBoolean(val) {
+  function parseDatasetBoolean (val) {
     if (val === undefined || val === null) return false;
     const v = String(val).trim().toLowerCase();
     if (v === "" || v === "true" || v === "1" || v === "yes") return true;
