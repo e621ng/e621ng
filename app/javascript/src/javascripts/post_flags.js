@@ -171,6 +171,3 @@ if (document.readyState === "loading") {
   PostFlags.init();
 }
 
-// Support Turbo (Rails 7) or Turbolinks navigation
-document.addEventListener("turbo:load", () => PostFlags.init());
-document.addEventListener("turbolinks:load", () => PostFlags.init());
