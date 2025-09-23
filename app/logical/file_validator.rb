@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class FileValidator
-  attr_reader :record, :file_path
+  attr_reader :record, :file_path, :test_resolution
 
-  def initialize(record, file_path)
+  def initialize(record, file_path, test_resolution: true)
     @record = record
     @file_path = file_path
+    @test_resolution = test_resolution
   end
 
   def validate(max_file_sizes: Danbooru.config.max_file_sizes, max_width: Danbooru.config.max_image_width, max_height: Danbooru.config.max_image_height, min_width: Danbooru.config.min_image_width)
@@ -20,7 +21,7 @@ class FileValidator
       validate_colorspace(video)
       validate_sar(video)
     end
-    validate_resolution(max_width, max_height, min_width)
+    validate_resolution(max_width, max_height, min_width) if @test_resolution
   end
 
   def validate_file_integrity
