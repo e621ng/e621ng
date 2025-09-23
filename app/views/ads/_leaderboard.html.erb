@@ -8,7 +8,7 @@
             desktop: <%= raw(Danbooru.config.ads_zone_desktop.to_json) %>,
             mobile: <%= raw(Danbooru.config.ads_zone_mobile.to_json) %>
           };
-          var zone = (window.innerWidth || screen.width) <= 900 ? zones.mobile : zones.desktop;
+          var zone = (window.innerWidth || screen.width) < 800 ? zones.mobile : zones.desktop;
           if (!zone.zone) return;
 
           var el = document.getElementById('ad-insert-element');
@@ -28,8 +28,8 @@
       <% ad_rand = Random.rand(50000000) %>
       <% ad_zone = Danbooru.config.ads_zone_desktop %>
       <noscript class="adzone">
-        <a href='https://ads.dragonfru.it/www/delivery/ck.php?zoneid=<%= ad_zone[:zone] %>&n=<%= ad_zone[:checksum] %>&cb=<%= ad_rand %>' target='_blank' rel="nofollow noopener">
-          <img src='https://ads.dragonfru.it/www/delivery/avw.php?zoneid=<%= ad_zone[:zone] %>&cb=<%= ad_rand %>&n=<%= ad_zone[:checksum] %>' border='0' alt='' />
+        <a href="https://ads.dragonfru.it/www/delivery/ck.php?zoneid=<%= ad_zone[:zone] %>&n=<%= ad_zone[:checksum] %>&cb=<%= ad_rand %>" target="_blank" rel="nofollow noopener">
+          <img src="https://ads.dragonfru.it/www/delivery/avw.php?zoneid=<%= ad_zone[:zone] %>&cb=<%= ad_rand %>&n=<%= ad_zone[:checksum] %>" border="0" alt="" />
         </a>
       </noscript>
     </div>

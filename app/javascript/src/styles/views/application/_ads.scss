@@ -1,7 +1,7 @@
 .adzone-wrapper {
   display: flex;
   justify-content: center;
-  margin-bottom: 0.75rem; // Account for the post counter height
+  margin-bottom: 0.5rem; // Account for the post counter height
 
   .adzone {
     // Center adblock if the image is not the same dimensions as the container
@@ -9,21 +9,28 @@
     justify-content: center;
 
     // Mobile ads are fixed in size
-    height: 50px;
-    width: 320px;
+    max-height: 50px;
+    max-width: 320px;
+    width: 100%;
+    aspect-ratio: 320 / 50; // Prevent layout shift when the ad loads
+
+    @include window-larger-than(800px, true) {
+      max-height: 90px;
+      max-width: 768px;
+      aspect-ratio: 768 / 90;
+    }
   }
 
   img {
+    // Fit the image inside the ad container
     height: 100%;
-    width: auto;
+    width: 100%;
+    object-fit: contain;
   }
 
-  @include window-larger-than(899px) {
-    margin-bottom: unset;
+}
 
-    .adzone {
-      height: 90px;
-      width: 768px;
-    }
-  }
+// Work around the post count margin
+@include window-larger-than(1300px) {
+  #c-posts #a-index .adzone-wrapper { margin-bottom: unset; }
 }
