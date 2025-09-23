@@ -97,17 +97,6 @@ div#c-uploads {
       float: none;
     }
 
-    .upload-source-row {
-      button {
-        width: 1.5em;
-      }
-
-      input {
-        margin-bottom: 2px;
-        width: 100%;
-      }
-    }
-
     .upload-artist-tags {
       margin-top: 0.5rem;
     }
@@ -147,10 +136,6 @@ div#c-uploads {
 
       .flex-grid {
         flex-direction: column;
-      }
-
-      input {
-        max-width: 90%;
       }
     }
   }
