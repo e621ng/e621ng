@@ -23,7 +23,10 @@
         <% @mascots.each do |mascot| %>
           <tr>
             <td><%= mascot.id %></td>
-            <td><%= link_to mascot.display_name, mascot.url_path %></td>
+            <td>
+              <img src="<%= mascot.url_path %>" alt="<%= mascot.display_name %>" class="mascot-thumbnail" />
+              <%= link_to mascot.display_name, mascot.url_path %>
+            </td>
             <td><%= mascot.background_color %></td>
             <td><%= mascot.foreground_color %></td>
             <td><%= mascot.artist_name %></td>
