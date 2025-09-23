@@ -97,4 +97,14 @@
       }
     }
   }
+
+  .post_flag_note label {
+    .required-indicator { display: none; }
+    &.required .required-indicator { display: inline; }
+  }
+
+  .flag-note-hint {
+    color: palette("text-red");
+    font-weight: bold;
+  }
 }

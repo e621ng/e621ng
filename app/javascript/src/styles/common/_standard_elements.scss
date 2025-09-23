@@ -122,6 +122,12 @@
   &:hover, &:active {
     background: themed("color-tag-artist-alt");
   }
+
+  &[disabled] {
+    background: palette("background-grey");
+    color: palette("text-lighten-20");
+    cursor: not-allowed;
+  }
 }
 
 
