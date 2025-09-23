@@ -48,8 +48,8 @@ export default class Offclick {
   /**
    * Register a new offclick handler.
    * @param {string} buttonSelector The selector for the button that toggles the menu.
-   * @param {*} menuSelector The selector for the menu container.
-   * @param {*} callback The callback to invoke when clicking outside the menu.
+   * @param {string} menuSelector The selector for the menu container.
+   * @param {Function} callback The callback to invoke when clicking outside the menu.
    * @returns {Object} An object with a `disabled` property that can be toggled to enable/disable the offclick handler.
    */
   static register (buttonSelector, menuSelector, callback) {
