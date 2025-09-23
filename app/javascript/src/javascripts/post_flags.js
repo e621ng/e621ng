@@ -17,7 +17,7 @@ PostFlags.initExpandableNotes = function () {
 PostFlags.initFlagForm = function () {
   // Form should always be present
   const form = $("#new_post_flag");
-  if (!form) return;
+  if (form.length === 0) return;
 
   // Label the note field as required if the selected reason requires an explanation
   const noteLabel = form.find("label[for='flag_note_field']");
