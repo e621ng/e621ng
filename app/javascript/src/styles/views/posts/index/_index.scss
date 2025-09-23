@@ -98,11 +98,6 @@ body.c-posts.a-index, body.c-favorites.a-index {
     background-position: themed("image-foreground-position");
     background-repeat: themed("image-foreground-repeat");
 
-    // Quick tag edit
-    #edit-dialog textarea {
-      margin-bottom: 0.25rem;
-    }
-
     // Actual content area:
     // posts and pagination
     .post-index-gallery {
