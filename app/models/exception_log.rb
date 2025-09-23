@@ -38,8 +38,9 @@ class ExceptionLog < ApplicationRecord
   end
 
   def user
-    # For reasons that are beyond me, user IDs were not being saved to the correct database column.
-    # It had been fixed now, but old records still need to be looked up from the extra_params field.
+    # Prior to March 2024, user IDs were only stored in the extra_params["user_id"] field,
+    # instead of the user_id database column. As of March 2024, this was fixed and user_id is now
+    # properly stored in the user_id column. This fallback is needed to support old records.
     return super if super.present?
     User.find_by(id: extra_params["user_id"])
   end
