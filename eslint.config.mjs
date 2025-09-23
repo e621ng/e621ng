@@ -1,6 +1,6 @@
 import globals from "globals";
 import eslint from "@eslint/js";
-import stylistic from "@stylistic/eslint-plugin-js";
+import stylistic from "@stylistic/eslint-plugin";
 
 export default [
   eslint.configs.recommended,
@@ -15,7 +15,7 @@ export default [
       },
     },
     plugins: {
-      "@stylistic/js": stylistic,
+      "@stylistic": stylistic,
     },
     rules: {
       "no-unused-vars": "warn",
