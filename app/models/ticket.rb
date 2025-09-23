@@ -389,6 +389,8 @@ class Ticket < ApplicationRecord
           user: creator_id ? User.id_to_name(creator_id) : nil,
           claimant: claimant_id ? User.id_to_name(claimant_id) : nil,
           target: bot_target_name,
+          target_id: disp_id,
+          accused_id: accused_id,
           status: status,
           category: qtype,
           reason: reason,
