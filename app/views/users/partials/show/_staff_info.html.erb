@@ -62,5 +62,12 @@
         <span>Enabled</span>
       <% end %>
     <% end %>
+
+    <% if CurrentUser.is_bd_staff? %>
+      <h4>DMails</h4>
+      <span>
+        <%= link_to "Audit", admin_user_dmails_path(user) %>
+      </span>
+    <% end %>
   </div>
 </div>
