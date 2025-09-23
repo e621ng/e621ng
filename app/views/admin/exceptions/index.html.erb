@@ -1,5 +1,6 @@
 <%= form_search(path: admin_exceptions_path) do |f| %>
-  <%= f.input :commit %>
+  <%= f.user :user %>
+  <%= f.input :code %>
   <%= f.input :class_name %>
   <%= f.input :without_class_name %>
 <% end %>
@@ -7,29 +8,34 @@
 <table class="striped">
   <thead>
     <tr>
-      <th style="width: 200px">Created At</th>
+      <th style="width: 125px;">Created At</th>
+      <th>User</th>
       <th>Code</th>
-      <th style="width: 100px">Commit</th>
-      <th>Controller/Action</th>
-      <th>Class Name</th>
+      <th>Error</th>
       <th>Message</th>
-      <th>Stacktrace</th>
+      <th style="width: 50px;"></th>
     </tr>
   </thead>
   <tbody>
     <% @exception_logs.each do |exception_log| %>
       <tr>
         <td><%= compact_time exception_log.created_at %></td>
+        <td><%= link_to_user(exception_log.user) %></td>
         <td><%= exception_log.code %></td>
-        <td><%= link_to exception_log.version, GitHelper.commit_url(exception_log.version) %></td>
-        <td><%= exception_log.extra_params.dig("params", "controller") %>/<%= exception_log.extra_params.dig("params", "action") %></td>
-        <td><%= exception_log.class_name %></td>
-        <td><%= truncate(exception_log.message, length: 500) %></td>
+        <td>
+          <%= exception_log.extra_params.dig("params", "controller") %>/<%= exception_log.extra_params.dig("params", "action") %>
+        </td>
+        <td>
+          <b><%= exception_log.class_name %></b><br />
+          <%= truncate(exception_log.message, length: 500) %>
+        </td>
         <td><%= link_to "View", admin_exception_path(exception_log) %></td>
       </tr>
     <% end %>
   </tbody>
 </table>
+
+<%= render partial: "secondary_links" %>
 
 <% content_for(:page_title) do %>
   Exceptions
