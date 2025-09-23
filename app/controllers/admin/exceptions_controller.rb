@@ -20,7 +20,7 @@ module Admin
       end
 
       respond_with(@exception_log) do |format|
-        format.json { render json: @exception_log.to_json }
+        format.json { render json: @exception_log }
       end
     end
   end
