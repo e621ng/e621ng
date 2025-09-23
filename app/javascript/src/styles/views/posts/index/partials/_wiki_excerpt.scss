@@ -30,10 +30,30 @@
 
   // body
   .styled-dtext {
-    background: linear-gradient(to top, themed("color-section"), themed("color-text"));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    // Needed for the gradient overlay to work (for when height is between max & min; & helps w/ positioning)
+    position: relative;
+    // Gradient overlay
+    // Is aligned w/ the parent element, but defaults to the `.styled-dtext` positioning
+    &::before {
+      content: ""; // Makes it render
+      display: block;
+      background: linear-gradient(to bottom, transparent, var(--color-section));
+
+      // Account for left padding if not using `position: relative` on `.styled-dtext` by using `left: 0;`, & if the absence of a `top` value stops working, `top: 3rem;` + whatever top padding there is seemed to work, but is less resilient to change.
+      position: absolute;
+
+      // Needs to match `.styled-dtext`
+      max-height: 0rem;
+      min-height: 0rem;
+      // Needs to animate w/ `.styled-dtext`
+      transition: max-height 0.25s;
+      overflow: hidden;
+      
+      box-sizing: border-box;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
 
     min-height: 0rem;
     max-height: 0rem;
@@ -88,7 +108,7 @@
 
   &.open{
     .wiki-excerpt-toggle svg { transform: rotate(90deg); }
-    .styled-dtext {
+    .styled-dtext, .styled-dtext::before {
       max-height: 10rem;
       min-height: 2rem;
     }
