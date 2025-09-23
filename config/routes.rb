@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       collection do
         get :alt_list
       end
+      resources :dmails, only: %i[index show]
     end
     resource :dashboard, only: %i[show]
     resources :exceptions, only: %i[index show]
