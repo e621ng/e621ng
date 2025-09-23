@@ -107,6 +107,31 @@ PostSearch.initialize_controls = function () {
   $("input[type='radio'][name='ssc-card-size'][value='" + LStorage.Posts.Size + "']")
     .prop("checked", true);
 
+  function updateHoverTextNodes () {
+    $("a[data-hover-text]").attr("title", function () {
+      const source = $(this).data("hover-text");
+      if (!source) return "";
+
+      switch (LStorage.Posts.HoverText) {
+        case "none":
+          return "";
+        case "short":
+          return source.split("\n\n")[0];
+        case "long":
+        default:
+          return source;
+      }
+    });
+  }
+  $("input[type='radio'][name='ssc-hover-text']")
+    .on("change", (event) => {
+      LStorage.Posts.HoverText = event.target.value;
+      updateHoverTextNodes();
+    });
+  $("input[type='radio'][name='ssc-hover-text'][value='" + LStorage.Posts.HoverText + "']")
+    .prop("checked", true);
+  updateHoverTextNodes();
+
   $("#ssc-sticky-searchbar")
     .prop("checked", LStorage.Posts.StickySearch)
     .on("change", (event) => {

@@ -113,6 +113,9 @@ LStorage.Posts = {
   /** @returns {boolean} True if post notes are enabled */
   Notes: ["e6.posts.notes", true],
 
+  /** @returns {("short" | "long" | "none")} Short, long or no hover text for post thumbnails */
+  HoverText: ["e6.posts.hovertext", "long"],
+
   /** @returns {boolean} True if tag preview in tag editor is enabled */
   TagPreview: ["e6.posts.tagpreview", true],
 };
