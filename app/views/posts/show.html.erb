@@ -37,6 +37,8 @@
     </div>
 
     <div class="content">
+      <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
+
       <div id="image-and-nav">
         <% if @post.presenter.has_nav_links?(self) %>
           <%= render "posts/partials/show/content/nav_links/nav_links", :post => @post %>
@@ -54,8 +56,6 @@
             <%= render "posts/partials/show/content/notices/notices", post: @post %>
           <% end %>
         </div>
-
-        <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
 
         <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
           <div id="note-container" enabled="false"></div>
