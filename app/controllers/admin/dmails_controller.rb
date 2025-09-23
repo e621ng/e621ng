@@ -14,6 +14,7 @@ module Admin
     end
 
     def show
+      @user = User.find(params[:user_id])
       @dmail = Dmail.find(params[:id])
       respond_with(@dmail)
     end
