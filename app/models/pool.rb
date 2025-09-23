@@ -95,7 +95,7 @@ class Pool < ApplicationRecord
 
   module VersionMethods
     def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)
-      return unless new_record? || saved_change_to_watched_attributes?
+      return unless saved_change_to_watched_attributes?
       PoolVersion.queue(self, updater, updater_ip_addr)
     end
 
@@ -109,6 +109,8 @@ class Pool < ApplicationRecord
       self.post_ids = version.post_ids
       self.name = version.name
       self.description = version.description
+      self.is_active = version.is_active
+      self.category = version.category
       save
     end
   end
