@@ -12,7 +12,7 @@ class PostFlag < ApplicationRecord
   belongs_to :post
   validate :validate_creator_is_not_limited, on: :create
   validate :validate_post
-  validate :validate_reason
+  validate :validate_reason, on: :create
   validate :update_reason, on: :create
   validates :reason, presence: true
   validates :note, length: { maximum: Danbooru.config.comment_max_size }

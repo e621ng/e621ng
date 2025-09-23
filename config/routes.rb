@@ -265,7 +265,11 @@ Rails.application.routes.draw do
     end
   end
   resources :post_events, only: :index
-  resources :post_flags, except: %i[destroy]
+  resources :post_flags, except: %i[destroy] do
+    member do
+      post :clear_note
+    end
+  end
   resources :post_approvals, only: %i[index]
   resources :post_versions, only: %i[index] do
     member do
