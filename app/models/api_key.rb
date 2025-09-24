@@ -63,8 +63,8 @@ class ApiKey < ApplicationRecord
   end
 
   def update_usage!(ip_address = nil)
-    increment!(:uses)
-    update_columns(
+    update!(
+      uses: uses + 1,
       last_used_at: Time.current,
       last_ip_address: ip_address,
     )
