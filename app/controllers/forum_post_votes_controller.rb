@@ -7,10 +7,11 @@ class ForumPostVotesController < ApplicationController
   before_action :validate_forum_post
   before_action :validate_no_vote_on_own_post, only: [:create]
   before_action :load_vote, only: [:destroy]
+  before_action :ensure_lockdown_disabled
 
   def create
     @forum_post_vote = @forum_post.votes.create(forum_post_vote_params)
-    raise User::PrivilegeError.new(@forum_post_vote.errors.full_messages.join('; ')) if @forum_post_vote.errors.size > 0
+    raise User::PrivilegeError, @forum_post_vote.errors.full_messages.join("; ") unless @forum_post_vote.errors.empty?
     respond_with(@forum_post_vote) do |fmt|
       fmt.json { render json: @forum_post_vote, code: 201 }
     end
@@ -23,11 +24,11 @@ class ForumPostVotesController < ApplicationController
     end
   end
 
-private
+  private
 
   def load_vote
     @forum_post_vote = @forum_post.votes.where(creator_id: CurrentUser.id).first
-    raise ActiveRecord::RecordNotFound.new if @forum_post_vote.nil?
+    raise ActiveRecord::RecordNotFound if @forum_post_vote.nil?
   end
 
   def load_forum_post
@@ -35,8 +36,8 @@ private
   end
 
   def validate_forum_post
-    raise User::PrivilegeError.new unless @forum_post.visible?(CurrentUser.user)
-    raise User::PrivilegeError.new unless @forum_post.votable?
+    raise User::PrivilegeError unless @forum_post.visible?(CurrentUser.user)
+    raise User::PrivilegeError unless @forum_post.votable?
   end
 
   def validate_no_vote_on_own_post
@@ -45,5 +46,9 @@ private
 
   def forum_post_vote_params
     params.fetch(:forum_post_vote, {}).permit(:score)
+  end
+
+  def ensure_lockdown_disabled
+    render_expected_error(403, "Votes are disabled") if Security::Lockdown.votes_disabled? && !CurrentUser.is_staff?
   end
 end

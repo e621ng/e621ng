@@ -6,7 +6,7 @@
       <img src="https://img.shields.io/github/v/release/e621ng/e621ng?label=version&style=flat-square" alt="Releases" />
     </a><br />
     <a href="https://github.com/e621ng/e621ng/issues">
-      <img src="https://img.shields.io/github/issues/e621ng/e621ng?label=open issues&style=flat-square" alt="Issues" />
+      <img src="https://img.shields.io/github/issues/e621ng/e621ng?label=open%20issues&style=flat-square" alt="Issues" />
     </a><br />
     <a href="https://github.com/e621ng/e621ng/pulls">
       <img src="https://img.shields.io/github/issues-pr/e621ng/e621ng?style=flat-square" alt="Pull Requests" />
@@ -42,7 +42,7 @@
     docker compose up
     ```
     After running the commands once only `docker compose up` is needed to bring up the containers.
-1. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `qwerty` respectively.
+1. To confirm the installation worked, open the web browser of your choice and enter `http://localhost:3000` into the address bar and see if the website loads correctly. An admin account has been created automatically, the username and password are `admin` and `hexerade` respectively.
 1. By default, the site will lack any content. For testing purposes, you can generate some using the following command:
     ```
     docker exec -it e621ng-e621-1 /app/bin/populate
@@ -77,6 +77,12 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 `docker compose run --rm rubocop` to run the linter.
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
+
+#### Truenas / Local Server Installation
+
+If you decide to deploy this docker image to an external / local server, you do need to remember to change the DANBOORU_HOST variable in the docker-compose.yml file to the IP of your server. Otherwise, you will not be able to access it, or the image links will be broken. 
+
+Specifically for Truenas/NAS boxes users: you need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
 
 ## Production Setup
 

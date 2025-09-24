@@ -1,6 +1,6 @@
 <template>
     <div class="flex-grid-outer">
-        <div class="col box-section" style="flex: 2 0 0;">
+        <div class="col box-section">
             <div class="flex-grid border-bottom">
                 <div class="col">
                     <label class="section-label" for="post_file">File</label>
@@ -28,7 +28,7 @@
             <template v-if="normalMode">
                 <div class="flex-grid border-bottom">
                     <div class="col">
-                        <label class="section-label" for="names">Artists</label>
+                        <label class="section-label" for="names">Artists and Contributors</label>
                         <div><a href="/forum_topics/23553">How do I tag an artist?</a></div>
                         <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
                     </div>
@@ -148,24 +148,18 @@
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
                     </div>
-                    <div v-show="!tagPreview.show">
-                        <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
-                                  ref="otherTags" data-autocomplete="tag-edit"></textarea>
-                    </div>
-                    <div v-show="tagPreview.show">
-                        <tag-preview :tags="tagPreview.tags" :loading="tagPreview.loading"
-                                     @close="previewFinalTags"></tag-preview>
-                    </div>
-
+                    <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
+                              ref="otherTags" data-autocomplete="tag-edit"></textarea>
+                    <tag-preview :tags="tags" />
                     <div class="related-tag-functions">
                         Related:
                         <a href="#" @click.prevent="findRelated()">Tags</a> |
                         <a href="#" @click.prevent="findRelated(1)">Artists</a> |
+                        <a href="#" @click.prevent="findRelated(2)">Contributors</a> |
                         <a href="#" @click.prevent="findRelated(3)">Copyrights</a> |
                         <a href="#" @click.prevent="findRelated(4)">Characters</a> |
                         <a href="#" @click.prevent="findRelated(5)">Species</a> |
-                        <a href="#" @click.prevent="findRelated(7)">Metatags</a> |
-                        <a href="#" @click.prevent="previewFinalTags">Preview Final Tags</a>
+                        <a href="#" @click.prevent="findRelated(7)">Metatags</a>
                     </div>
                 </div>
             </div>
@@ -249,7 +243,7 @@
   import tagPreview from './tag_preview.vue';
   import filePreview from './file_preview.vue';
   import fileInput from './file_input.vue';
-
+  
   const sex_checks = [
     {name: 'Male'},
     {name: 'Female'},
@@ -287,7 +281,7 @@
   }
 
   function unloadWarning() {
-    if (this.allowNavigate || this.uploadValue === "") {
+    if (this.allowNavigate || (this.uploadValue === "" && this.tags === "")) {
       return;
     }
     return true;
@@ -352,12 +346,6 @@
           other: "",      // other: '',
         },
 
-        tagPreview: {
-          loading: false,
-          show: false,
-          tags: []
-        },
-
         allowLockedTags: window.uploaderSettings.allowLockedTags,
         lockedTags: '',
         allowRatingLock: window.uploaderSettings.allowRatingLock,
@@ -394,7 +382,7 @@
       // Import tags from query parameters
       const fillTags = function() {
         const queryList = ["tags-artist", "tags-character", "tags-species", "tags-content"];
-        
+
         if(params.has("tags"))
           self.importTags(params.get("tags"), "other");
 
@@ -437,6 +425,8 @@
         fillField('lockedTags', 'locked_tags');
       if(this.allowUploadAsPending)
         fillFieldBool("uploadAsPending", "upload_as_pending")
+      
+      this.initVerifiedArtistButtons();
     },
     methods: {
       setCheck(tag, value) {
@@ -478,28 +468,32 @@
             Danbooru.notice('Post uploaded successfully.');
             location.assign(data.location);
           },
-          error(data) {
+          error(response, textStatus, errorThrown) {
+            console.log('Error uploading post:', textStatus, errorThrown);
+            if (textStatus === "error") textStatus = "unknown";
+
             self.submitting = false;
-            const data2 = data.responseJSON;
             try {
-              if (data2 && data2.reason === 'duplicate') {
-                self.duplicateId = data2.post_id;
-              }
-              if (data2 && ['duplicate', 'invalid'].indexOf(data2.reason) !== -1) {
-                self.error = data2.message;
-              } else if (data2 && data2.message) {
-                self.error = 'Error: ' + data2.message;
+              const jsonData = response.responseJSON;
+              if (!jsonData) throw new Error("No JSON data returned from server.");
+              else console.log(jsonData);
+
+              if (jsonData && jsonData.reason === 'duplicate') self.duplicateId = jsonData.post_id;
+              if (jsonData && ['duplicate', 'invalid'].indexOf(jsonData.reason) !== -1) {
+                self.error = jsonData.message;
+              } else if (jsonData && jsonData.message) {
+                self.error = 'Error: ' + jsonData.message;
               } else {
-                self.error = 'Error: ' + data2.reason;
+                self.error = 'Error: ' + jsonData.reason;
               }
-            } catch (e) {
-              self.error = 'Error: Unknown error! ' + JSON.stringify(data2);
+            } catch (error) {
+              console.log("An error occurred:", error);
+              self.error = `Error: ${[textStatus, errorThrown].filter(n => n).join(" ")}. Check the browser console for details.`;
             }
           }
         });
       },
       pushTag(tag, add) {
-        this.tagPreview.show = false;
         const isCheck = typeof this.checkboxes.all[tag] !== "undefined";
         // In advanced mode we need to push these into the tags area because there are no checkboxes or other
         // tag fields so we can't see them otherwise.
@@ -526,7 +520,6 @@
        * @param {string} input Which of the tagEntries the tags should be added to
        */
       importTags(tags, input) {
-        this.tagPreview.show = false;
         const tagsA = (tags + "").trim().split(" ").filter(n => n);
 
         // Dedupe
@@ -541,35 +534,6 @@
 
         // Without a space at the end, vue panics
         this.tagEntries[this.normalMode ? input : "other"] = tagsB.join(" ") + " ";
-      },
-
-      previewFinalTags() {
-        if (this.tagPreview.loading)
-          return;
-        if (this.tagPreview.show) {
-          this.tagPreview.show = false;
-          return;
-        }
-        this.tagPreview.loading = true;
-        this.tagPreview.show = true;
-        this.tagPreview.tags = [];
-        const self = this;
-        const data = {tags: this.tags};
-        jQuery.ajax("/tags/preview.json", {
-          method: 'POST',
-          type: 'POST',
-          data: data,
-          success: function (result) {
-            self.tagPreview.loading = false;
-            self.tagPreview.tags = result;
-          },
-          error: function (result) {
-            self.tagPreview.loading = false;
-            self.tagPreview.tags = [];
-            self.tagPreview.show = false;
-            Danbooru.error('Error loading tag preview ' + result);
-          }
-        })
       },
       findRelated(categoryId) {
         const self = this;
@@ -612,7 +576,37 @@
         }).always(function () {
           self.loadingRelated = false;
         });
-      }
+      },
+
+      initVerifiedArtistButtons () {
+        if (window.uploaderSettings.verifiedArtistTags.length == 0) return;
+
+        // Compact uploader
+        const artistTextBox = document.querySelector("#post_artist");
+        if (artistTextBox === null) return;
+
+        const artistTextBoxParent = artistTextBox.parentElement;
+        const buttonRow = document.createElement("div");
+        buttonRow.classList.add("upload-artist-tags");
+
+        const hint = document.createElement("div");
+        hint.innerHTML = "Linked artist tags:";
+        buttonRow.appendChild(hint);
+
+        for (const artistName of window.uploaderSettings.verifiedArtistTags) {
+          const newButton = document.createElement("button");
+          newButton.classList.add("toggle-button");
+          newButton.innerHTML = artistName;
+          newButton.onclick = () => {
+            let val = (this.tagEntries.artist ?? "").trim().split(" ").filter(n => n);
+            if (val.includes(artistName)) val = val.filter(n => n !== artistName);
+            else val.push(artistName);
+            this.tagEntries.artist = val.join(" ") + " ";
+          };
+          buttonRow.appendChild(newButton);
+        }
+        artistTextBoxParent.appendChild(buttonRow);
+      },
     },
     computed: {
       tags() {
@@ -646,6 +640,6 @@
       duplicatePath: function () {
         return `/posts/${this.duplicateId}`;
       }
-    }
+    },
   }
 </script>

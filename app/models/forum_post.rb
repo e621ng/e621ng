@@ -16,6 +16,7 @@ class ForumPost < ApplicationRecord
   before_validation :initialize_is_hidden, :on => :create
   after_create :update_topic_updated_at_on_create
   after_destroy :update_topic_updated_at_on_destroy
+  normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validates :body, :creator_id, presence: true
   validates :body, length: { minimum: 1, maximum: Danbooru.config.forum_post_max_size }
   validate :validate_topic_is_unlocked
@@ -91,6 +92,9 @@ class ForumPost < ApplicationRecord
     bulk_update_request || tag_alias || tag_implication
   end
 
+  # AIBURs must be bulk loaded whenever more than one
+  # forum post is displayed. Otherwise, this results
+  # in N+3 database queries for every forum post.
   def votable?
     TagAlias.where(forum_post_id: id).exists? ||
       TagImplication.where(forum_post_id: id).exists? ||
@@ -217,5 +221,9 @@ class ForumPost < ApplicationRecord
     end
 
     true
+  end
+
+  def method_attributes
+    super + %i[creator_name updater_name]
   end
 end

@@ -19,7 +19,7 @@ module Maintenance
 
         context "#destroy" do
           should "render" do
-            delete_auth maintenance_user_deletion_path, @user, params: { password: "password" }
+            delete_auth maintenance_user_deletion_path, @user, params: { password: "6cQE!wbA" }
             assert_redirected_to(posts_path)
           end
         end

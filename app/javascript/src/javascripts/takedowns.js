@@ -39,8 +39,8 @@ Takedown.add_posts_by_tags_preview = function (id) {
     $("#takedown-add-posts-tags-warning").html(preview_text).show();
     $("#takedown-add-posts-tags").prop("disabled", true);
     $("#takedown-add-posts-tags-preview").hide();
-    $("#takedown-add-posts-tags-confirm").show();
-    $("#takedown-add-posts-tags-cancel").show();
+    $("#takedown-add-posts-tags-confirm").css("display", "inline-block");
+    $("#takedown-add-posts-tags-cancel").css("display", "inline-block");
   }).fail(function (data) {
     Utility.error(data.responseText);
   });

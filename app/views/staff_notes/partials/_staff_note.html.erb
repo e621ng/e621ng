@@ -1,0 +1,39 @@
+<article class="staff-note comment-post-grid" data-is-deleted="<%= staff_note.is_deleted %>" id="staff-note-<%= staff_note.id %>">
+  <div class="author-info">
+    <div class="name-rank">
+      <h4 class="author-name"><%= link_to_user staff_note.creator %></h4>
+      <%= staff_note.creator.level_string %>
+    </div>
+    <div class="post-time">
+      <%= link_to time_ago_in_words_tagged(staff_note.created_at), staff_notes_path(search: { user_id: staff_note.user_id }, anchor: "staff-note-#{staff_note.id}") %>
+    </div>
+  </div>
+  <div class="content">
+    <% if show_receiver_name %>
+    <h4>On <%= link_to_user staff_note.user %></h4>
+    <% end %>
+    <div class="body dtext-container">
+      <%= format_text(staff_note.body, allow_color: true) %>
+    </div>
+
+    <%= render "application/update_notice", record: staff_note %>
+    <div class="content-menu">
+      <menu>
+        <% if staff_note.can_edit?(CurrentUser.user) %>
+          <li><%= link_to "Edit", edit_staff_note_path(staff_note), id: "edit-staff-note-link-#{staff_note.id}", class: "edit-staff-note-link" %></li>
+        <% end %>
+        <% if staff_note.can_delete?(CurrentUser.user) %>
+          <% if staff_note.is_deleted? %>
+            <li><%= link_to "Undelete", undelete_staff_note_path(staff_note), method: :put %></li>
+          <% else %>
+            <li><%= link_to "Delete", delete_staff_note_path(staff_note), method: :put %></li>
+          <% end %>
+        <% end %>
+      </menu>
+    </div>
+
+    <% if staff_note.can_edit?(CurrentUser.user) %>
+      <%= render "staff_notes/partials/edit", staff_note: staff_note, hidden: true %>
+    <% end %>
+  </div>
+</article>

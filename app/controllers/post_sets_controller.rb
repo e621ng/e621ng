@@ -2,7 +2,8 @@
 
 class PostSetsController < ApplicationController
   respond_to :html, :json
-  before_action :member_only, except: [:index, :show]
+  before_action :member_only, except: %i[index show]
+  before_action :ensure_lockdown_disabled, except: %i[index show]
 
   def index
     if !params[:post_id].blank?
@@ -80,8 +81,13 @@ class PostSetsController < ApplicationController
   def update_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
-    @post_set.update(update_posts_params)
-    flash[:notice] = @post_set.valid? ? 'Set posts updated.' : @post_set.errors.full_messages.join('; ')
+
+    if @post_set.is_over_limit?(CurrentUser.user)
+      flash[:notice] = "This set contains too many posts and can no longer be edited"
+    else
+      @post_set.update(update_posts_params)
+      flash[:notice] = @post_set.valid? ? "Set posts updated" : @post_set.errors.full_messages.join("; ")
+    end
 
     redirect_back(fallback_location: post_list_post_set_path(@post_set))
   end
@@ -111,6 +117,7 @@ class PostSetsController < ApplicationController
   def add_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
+    check_set_post_limit(@post_set)
     @post_set.add(add_remove_posts_params.map(&:to_i))
     @post_set.save
     respond_with(@post_set)
@@ -119,6 +126,7 @@ class PostSetsController < ApplicationController
   def remove_posts
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
+    check_set_post_limit(@post_set)
     @post_set.remove(add_remove_posts_params.map(&:to_i))
     @post_set.save
     respond_with(@post_set)
@@ -135,6 +143,12 @@ class PostSetsController < ApplicationController
   def check_post_edit_access(set)
     unless set.can_edit_posts?(CurrentUser.user)
       raise User::PrivilegeError
+    end
+  end
+
+  def check_set_post_limit(set)
+    if set.is_over_limit?(CurrentUser.user)
+      raise "This set contains too many posts and can no longer be edited."
     end
   end
 
@@ -160,5 +174,9 @@ class PostSetsController < ApplicationController
     permitted_params = %i[name shortname creator_id creator_name order]
     permitted_params += %i[is_public] if CurrentUser.is_moderator?
     permit_search_params permitted_params
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.post_sets_disabled? && !CurrentUser.is_staff?
   end
 end

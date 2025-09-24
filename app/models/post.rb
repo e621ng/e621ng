@@ -6,7 +6,8 @@ class Post < ApplicationRecord
   class TimeoutError < Exception ; end
 
   # Tags to copy when copying notes.
-  NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request]
+  NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
+  NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
@@ -18,6 +19,7 @@ class Post < ApplicationRecord
   before_validation :fix_bg_color
   before_validation :blank_out_nonexistent_parents
   before_validation :remove_parent_loops
+  normalizes :description, with: ->(desc) { desc.gsub("\r\n", "\n") }
   validates :md5, uniqueness: { :on => :create, message: ->(obj, data) {"duplicate: #{Post.find_by_md5(obj.md5).id}"} }
   validates :rating, inclusion: { in: %w(s q e), message: "rating must be s, q, or e" }
   validates :bg_color, format: { with: /\A[A-Fa-f0-9]{6}\z/ }, allow_nil: true
@@ -34,9 +36,11 @@ class Post < ApplicationRecord
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
-  after_commit :delete_files, :on => :destroy
-  after_commit :remove_iqdb_async, :on => :destroy
-  after_commit :update_iqdb_async, :on => :create
+  after_commit :delete_files, on: :destroy
+  after_commit :remove_iqdb_async, on: :destroy
+  # after_commit :update_iqdb_async, :on => :create
+  after_commit :handle_thumbnails_on_create, on: :create
+  after_commit :generate_image_samples, on: :create
   after_commit :generate_video_samples, on: :create, if: :is_video?
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
@@ -44,11 +48,11 @@ class Post < ApplicationRecord
   belongs_to :uploader, :class_name => "User"
   user_status_counter :post_count, foreign_key: :uploader_id
   belongs_to :parent, class_name: "Post", optional: true
-  has_one :upload, :dependent => :destroy
+  has_one :upload, dependent: :destroy
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
-  has_many :comments, -> {includes(:creator, :updater).order("comments.is_sticky DESC, comments.id")}, :dependent => :destroy
+  has_many :comments, -> { order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
   has_many :children, -> {order("posts.id")}, :class_name => "Post", :foreign_key => "parent_id"
   has_many :approvals, :class_name => "PostApproval", :dependent => :destroy
   has_many :disapprovals, :class_name => "PostDisapproval", :dependent => :destroy
@@ -58,9 +62,6 @@ class Post < ApplicationRecord
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating,
                 :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason
 
-  # FIXME: Remove this
-  alias_attribute :is_comment_locked, :is_comment_disabled
-
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostVersion", :dependent => :destroy
 
   IMAGE_TYPES = %i[original large preview crop]
@@ -69,9 +70,9 @@ class Post < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def delete_files(post_id, md5, file_ext, force: false)
+      def delete_files(_post_id, md5, file_ext, force: false)
         if Post.where(md5: md5).exists? && !force
-          raise DeletionError.new("Files still in use; skipping deletion.")
+          raise DeletionError, "Files still in use; skipping deletion."
         end
 
         Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
@@ -99,62 +100,73 @@ class Post < ApplicationRecord
     end
 
     def tagged_large_file_url
-      storage_manager.file_url(self, :large)
+      storage_manager.post_file_url(self, :sample)
     end
 
     def file_url
-      storage_manager.file_url(self, :original)
+      storage_manager.post_file_url(self)
     end
 
+    # TODO: Deprecate this method
     def file_url_ext(ext)
-      storage_manager.file_url_ext(self, :original, ext)
+      storage_manager.post_file_url(self, ext: ext)
     end
 
+    # TODO: Deprecate this method
     def scaled_url_ext(scale, ext)
-      storage_manager.file_url_ext(self, :scaled, ext, scale: scale)
+      storage_manager.post_file_url(self, :scaled, ext: ext, scale: scale)
     end
 
     def large_file_url
-      return file_url if !has_large?
-      storage_manager.file_url(self, :large)
+      sample_url
     end
 
-    def preview_file_url
-      storage_manager.file_url(self, :preview)
+    def sample_url(type = :sample_jpg)
+      return file_url unless has_sample?
+      storage_manager.post_file_url(self, type)
+    end
+
+    def preview_file_url(type = :preview_jpg)
+      storage_manager.post_file_url(self, type)
+    end
+
+    def preview_file_url_pair
+      return [Danbooru.config.blank_preview_url, Danbooru.config.blank_preview_url] if is_deleted? && !CurrentUser.is_staff? && !CurrentUser.is_approver?
+      [preview_file_url(:preview_webp), preview_file_url(:preview_jpg)]
     end
 
     def reverse_image_url
-      return large_file_url if has_large?
+      return sample_url if has_sample?
       preview_file_url
     end
 
     def file_path
-      storage_manager.file_path(self, file_ext, :original, is_deleted?)
+      @file_path ||= storage_manager.post_file_path(self)
     end
 
     def large_file_path
-      storage_manager.file_path(self, file_ext, :large, is_deleted?)
+      storage_manager.post_file_path(self, :large)
     end
 
-    def preview_file_path
-      storage_manager.file_path(self, file_ext, :preview, is_deleted?)
-    end
-
-    def crop_file_url
-      storage_manager.file_url(self, :crop)
+    def preview_file_path(type = :preview_jpg)
+      storage_manager.post_file_path(self, type)
     end
 
     def open_graph_video_url
-      if image_height > 720 && has_sample_size?('720p')
-        return scaled_url_ext('720p', 'mp4')
+      return file_url if video_sample_list.blank?
+
+      if video_sample_list[:samples].blank?
+        return file_url if video_sample_list[:variants].blank?
+        video_sample_list[:variants].values.last[:url]
+      else
+        video_sample_list[:samples].values.last[:url]
       end
-      file_url_ext('mp4')
     end
 
     def open_graph_image_url
       if is_image?
-        if has_large?
-          large_file_url
+        if has_sample?
+          sample_url
         else
           file_url
         end
@@ -165,21 +177,52 @@ class Post < ApplicationRecord
 
     def file_url_for(user)
       if user.default_image_size == "large" && image_width > Danbooru.config.large_image_width
-        large_file_url
+        sample_url
       else
         file_url
       end
     end
 
-    def file_url_ext_for(user, ext)
-      if user.default_image_size == "large" && is_video? && has_sample_size?('720p')
-        scaled_url_ext('720p', ext)
+    # Initial video URLs for the post
+    # Should only be relevant if the user has javascript disabled
+    # Otherwise, the sources provided here will be overwritten
+    def initial_video_urls(user = CurrentUser.user)
+      return [] unless is_video? || !visible?
+
+      if video_sample_list.blank?
+        # likely to happen while new samples are being generated
+        [{
+          codec: "video/#{file_ext}",
+          url: file_url,
+        }]
+      elsif user.default_image_size == "large" && video_sample_list[:samples].any?
+        # sample videos
+        sample = video_sample_list[:samples].values.last
+        [{
+          codec: "video/mp4#{sample.key?(:codec) ? "; codec=#{sample[:codec]}" : ''}",
+          url: sample[:url],
+        }]
       else
-        file_url_ext(ext)
+        # original / fit videos
+        output = []
+        video_sample_list[:variants].each do |ext, data|
+          output.push({
+            codec: "video/#{ext}" + (data.key?(:codec) ? "; codec=#{data[:codec]}" : ""),
+            url: data[:url],
+          })
+        end
+
+        original = video_sample_list[:original]
+        output.push({
+          codec: "video/#{file_ext}" + (original.key?(:codec) ? "; codec=#{original[:codec]}" : ""),
+          url: original[:url],
+        })
+
+        output
       end
     end
 
-    def display_class_for(user)
+    def display_class_for(user = CurrentUser.user)
       if user.default_image_size == "original"
         ""
       else
@@ -187,34 +230,64 @@ class Post < ApplicationRecord
       end
     end
 
-    def has_preview?
-      is_image? || is_video?
-    end
-
-    def has_dimensions?
-      image_width.present? && image_height.present?
-    end
-
-    def preview_dimensions(max_px = Danbooru.config.small_image_width)
-      return [max_px, max_px] unless has_dimensions?
-      height = width = max_px
-      dimension_ratio = image_width.to_f / image_height
-      if dimension_ratio > 1
-        height = (width / dimension_ratio).to_i
-      else
-        width = (height * dimension_ratio).to_i
-      end
-      [height, width]
-    end
-
     def has_sample_size?(scale)
-      (generated_samples || []).include?(scale)
+      return false if video_sample_list.blank?
+      return false if video_sample_list[:samples].blank?
+      video_sample_list[:samples].include?(scale)
+    end
+
+    def video_sample_list
+      return {} unless is_video?
+
+      @video_sample_list ||= begin
+        sample_data = {
+          has: false,
+          original: {
+            codec: nil,
+            fps: 0,
+          },
+          variants: {},
+          samples: {},
+        }
+
+        # Data stored by the video conversion job
+        unless video_samples.empty?
+          sample_data[:original] = video_samples["original"]
+
+          sample_data[:variants] = {}
+          sample_data[:has] = true if video_samples["variants"].present?
+          video_samples["variants"].each do |name, video|
+            sample_data[:variants][name] = video
+            sample_data[:variants][name][:codec] = name == "mp4" ? "avc1.4D401E" : "vp9"
+            sample_data[:variants][name][:url] = visible? ? scaled_url_ext("alt", name) : nil
+
+            sample_data[:variants][name].symbolize_keys!
+          end
+
+          sample_data[:samples] = {}
+          video_samples["samples"].each do |name, video|
+            sample_data[:samples][name] = video
+            sample_data[:samples][name][:url] = visible? ? scaled_url_ext(name, "mp4") : nil
+
+            sample_data[:samples][name].symbolize_keys!
+          end
+        end
+
+        # Backfill with the original file data
+        sample_data[:original][:size] = file_size
+        sample_data[:original][:width] = image_width
+        sample_data[:original][:height] = image_height
+        sample_data[:original][:url] = (visible? ? file_url : nil)
+        sample_data[:original].symbolize_keys!
+
+        sample_data
+      end
     end
 
     def scaled_sample_dimensions(box)
       ratio = [box[0] / image_width.to_f, box[1] / image_height.to_f].min
-      width = [([image_width * ratio, 2].max.ceil), box[0]].min & ~1
-      height = [([image_height * ratio, 2].max.ceil), box[1]].min  & ~1
+      width = [[image_width * ratio, 2].max.ceil, box[0]].min & ~1
+      height = [[image_height * ratio, 2].max.ceil, box[1]].min & ~1
       [width, height]
     end
 
@@ -227,20 +300,45 @@ class Post < ApplicationRecord
     end
 
     def regenerate_video_samples!
-      # force code to assume no samples exist
-      update_column(:generated_samples, nil)
       generate_video_samples(later: true)
     end
 
+    # Delete all video samples and fill in some sample metadata
+    # This is typically done while waiting for new samples to be generated
+    def delete_video_samples!
+      return unless is_video?
+
+      storage_manager.delete_video_samples(md5)
+      update_column(:video_samples, {
+        original: {
+          codec: nil,
+          fps: 0,
+        },
+        variants: {},
+        samples: {},
+      })
+      reload
+    end
+
+    def generate_image_samples(later: false)
+      if later
+        PostImageSamplerJob.set(wait: 1.minute).perform_later(id)
+      else
+        ImageSampler.generate_post_images(self)
+      end
+    end
+
     def regenerate_image_samples!
-      file = self.file()
-      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color)
-      storage_manager.store_file(sample_file, self, :large) if sample_file.present?
-      storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
-      storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
-      update({has_cropped: crop_file.present?})
-    ensure
-      file.close
+      if file_size > 10.megabytes
+        generate_image_samples(later: true)
+      else
+        generate_image_samples
+      end
+    end
+
+    def handle_thumbnails_on_create
+      ImageSampler.generate_post_images(self)
+      update_iqdb_async if has_preview?
     end
   end
 
@@ -249,37 +347,78 @@ class Post < ApplicationRecord
       image_width.to_i >= 280 && image_height.to_i >= 150
     end
 
-    def has_large?
-      return true if is_video?
-      return false if is_gif?
-      return false if is_flash?
-      return false if has_tag?("animated_gif", "animated_png")
-      is_image? && image_width.present? && image_width > Danbooru.config.large_image_width
-    end
-
-    def has_large
-      !!has_large?
-    end
-
-    def large_image_width
-      if has_large?
-        [Danbooru.config.large_image_width, image_width].min
-      else
-        image_width
-      end
-    end
-
-    def large_image_height
-      ratio = Danbooru.config.large_image_width.to_f / image_width.to_f
-      if has_large? && ratio < 1
-        (image_height * ratio).to_i
-      else
-        image_height
-      end
-    end
-
     def resize_percentage
-      100 * large_image_width.to_f / image_width.to_f
+      100 * sample_width.to_f / image_width.to_f
+    end
+
+    def has_dimensions?
+      @has_dimensions ||= image_width.present? && image_height.present?
+    end
+
+    ### Preview ###
+    def has_preview?
+      is_image? || is_video?
+    end
+
+    def preview_dimensions(max_px = Danbooru.config.small_image_width)
+      @preview_dimensions ||= begin
+        if has_dimensions?
+          scale = ImageSampler.calc_dimensions_for_preview(image_width, image_height)
+          scale[1].presence || [(image_width * scale[0]).round, (image_height * scale[0]).round]
+        else
+          [max_px, max_px]
+        end
+      end
+    end
+
+    def preview_width
+      preview_dimensions[0]
+    end
+
+    def preview_height
+      preview_dimensions[1]
+    end
+
+    ### Sample ###
+    def has_sample?
+      @has_sample ||= begin
+        if is_video?
+          true
+        elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png")
+          false
+        elsif is_image? && image_width.present?
+          dims = [image_width, image_height].compact
+          dims.min > Danbooru.config.large_image_width || dims.max > Danbooru.config.large_image_width * 2
+        else
+          false
+        end
+      end
+    end
+
+    # This is required for something, but I have absolutely no idea what.
+    def has_sample
+      !!has_sample?
+    end
+
+    def sample_dimensions
+      @sample_dimensions ||= begin
+        if has_sample?
+          scale = ImageSampler.calc_dimensions_for_sample(image_width, image_height)[0]
+          [(image_width * scale).round, (image_height * scale).round]
+        else
+          [image_width, image_height]
+        end
+      end
+    end
+
+    def sample_width
+      return image_width unless has_sample?
+      sample_dimensions[0]
+    end
+
+    def sample_height
+      return image_height unless has_sample?
+      sample_dimensions[1]
     end
   end
 
@@ -315,6 +454,10 @@ class Post < ApplicationRecord
     def approve!(approver = CurrentUser.user)
       return if self.approver != nil
 
+      # Not ideal, but does the job
+      orig = self.replacements.find_by(status: "original")
+      orig&.update(approver: approver)
+
       if uploader == approver
         update(is_pending: false)
       else
@@ -336,7 +479,8 @@ class Post < ApplicationRecord
 
       diff = source_diff.gsub(/\r\n?/, "\n").gsub(/%0A/i, "\n").split(/(?:\r)?\n/)
       to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
-      to_remove = to_remove.map {|x| x[1..-1]}
+      to_remove = to_remove.map {|x| x[1..-1].starts_with?('"') && x.ends_with?('"') ? x[1..-1].delete_prefix('"').delete_suffix('"') : x[1..-1]}
+      to_add = to_add.map {|x| x.starts_with?('"') && x.ends_with?('"') ? x.delete_prefix('"').delete_suffix('"') : x}
 
       current_sources = source_array
       current_sources += to_add
@@ -361,9 +505,8 @@ class Post < ApplicationRecord
         src = src.try(:strip)
         alternate = Sources::Alternates.find(src)
         alternate_processors << alternate
-        gallery_sources << alternate.gallery_url if alternate.gallery_url
         submission_sources << alternate.submission_url if alternate.submission_url
-        direct_sources << alternate.submission_url if alternate.direct_url
+        direct_sources << alternate.direct_url if alternate.direct_url
         additional_sources += alternate.additional_urls if alternate.additional_urls
         alternate.original_url
       end
@@ -372,7 +515,8 @@ class Post < ApplicationRecord
         sources = alt_processor.remove_duplicates(sources)
       end
 
-      self.source = sources.first(10).join("\n")
+      # Truncate sources to prevent abuse
+      self.source = sources.map { |s| s[0..2048] }.first(10).join("\n")
     end
 
     def copy_sources_to_parent
@@ -410,7 +554,11 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present?
+      if @removed_tags.nil?
+        @removed_tags = []
+      end
+
+      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
     end
 
     def tag_array
@@ -469,8 +617,6 @@ class Post < ApplicationRecord
     end
 
     def merge_old_changes
-      @removed_tags = []
-
       if old_tag_string
         # If someone else committed changes to this post before we did,
         # then try to merge the tag changes together.
@@ -503,11 +649,10 @@ class Post < ApplicationRecord
     end
 
     def apply_tag_diff
-      @removed_tags = []
       return unless tag_string_diff.present?
 
       current_tags = tag_array
-      diff = TagQuery.scan(tag_string_diff.downcase)
+      diff = TagQuery.scan(tag_string_diff)
       to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
       to_remove = to_remove.map {|x| x[1..-1]}
       to_remove = TagAlias.to_aliased(to_remove)
@@ -633,9 +778,9 @@ class Post < ApplicationRecord
     end
 
     def add_automatic_tags(tags)
-      return tags if !Danbooru.config.enable_dimension_autotagging?
+      return tags unless Danbooru.config.enable_dimension_autotagging?
 
-      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize flash webm mp4 wide_image long_image]
+      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize wide_image tall_image long_image flash webm mp4 long_playtime short_playtime]
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
@@ -653,27 +798,19 @@ class Post < ApplicationRecord
         end
       end
 
-      if file_size >= 30.megabytes
-        tags << "huge_filesize"
-      end
+      tags << "huge_filesize" if file_size >= 30.megabytes
 
-      if is_flash?
-        tags << "flash"
-      end
+      tags << "flash" if is_flash?
+      tags << "webm" if is_webm?
 
-      if is_webm?
-        tags << "webm"
-      end
+      tags << "long_playtime" if is_video? && duration >= 30
+      tags << "short_playtime" if is_video? && duration < 30
 
-      unless is_gif?
-        tags -= ["animated_gif"]
-      end
+      # TODO: Automatically add animated_* tags without re-testing them on every edit
+      tags -= ["animated_gif"] unless is_gif?
+      tags -= ["animated_png"] unless is_png?
 
-      unless is_png?
-        tags -= ["animated_png"]
-      end
-
-      return tags
+      tags
     end
 
     def apply_casesensitive_metatags(tags)
@@ -694,7 +831,7 @@ class Post < ApplicationRecord
         when /^newpool:(.+)$/i
           pool = Pool.find_by_name($1)
           if pool.nil?
-            pool = Pool.create(:name => $1, :description => "This pool was automatically generated")
+            pool = Pool.create(name: $1, description: "")
           end
         end
       end
@@ -739,7 +876,7 @@ class Post < ApplicationRecord
           end
 
         when /^-pool:(.+)$/i
-          pool = Pool.find_by(name: $1)
+          pool = Pool.find_by_name($1)
           if pool
             pool.remove!(self)
             if pool.errors.any?
@@ -757,7 +894,7 @@ class Post < ApplicationRecord
           end
 
         when /^(?:new)?pool:(.+)$/i
-          pool = Pool.find_by(name: $1)
+          pool = Pool.find_by_name($1)
           if pool
             pool.add!(self)
             if pool.errors.any?
@@ -855,12 +992,21 @@ class Post < ApplicationRecord
       end
     end
 
-    def has_tag?(*)
-      TagQuery.has_tag?(tag_array, *)
+    def has_tag?(*tags_to_find, recurse: false, error_on_depth_exceeded: false)
+      if recurse
+        TagQuery.has_tag?(tags_to_find, *tag_array, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded)
+      else
+        TagQuery.has_tag?(tag_array, *tags_to_find, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded)
+      end
     end
 
-    def fetch_tags(*)
-      TagQuery.fetch_tags(tag_array, *)
+    # Only called by `StuckDnpController`
+    def fetch_tags(*tags_to_find, recurse: false, error_on_depth_exceeded: false)
+      if recurse
+        TagQuery.fetch_tags(tags_to_find, *tag_array, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded)
+      else
+        TagQuery.fetch_tags(tag_array, *tags_to_find, recurse: recurse, error_on_depth_exceeded: error_on_depth_exceeded)
+      end
     end
 
     def ad_tag_string
@@ -899,8 +1045,57 @@ class Post < ApplicationRecord
       return unless parent_id.present?
       parent.tag_string += " #{tag_string}"
     end
-  end
 
+    ## DB!
+    # List of post tags, grouped by their category.
+    # Sends a db request to look up the tag data.
+    def categorized_tags
+      @categorized_tags ||= begin
+        tag_data = Tag.where(name: tag_array).select(:name, :post_count, :category).index_by(&:name)
+        ordered = tag_array.map do |name|
+          tag_data[name] || Tag.new(name: name).freeze
+        end
+
+        ordered.group_by(&:category_name)
+      end
+    end
+
+    ##
+    # List of tags for the specified category name
+    # Supports both category names and IDs
+    def tags_for_category(category)
+      if category.is_a? Integer
+        category = TagCategory::REVERSE_MAPPING[category]
+      else
+        category = category.downcase
+      end
+      categorized_tags[category] || []
+    end
+
+    ##
+    # List of artist tags for the post
+    # Excludes non-artist tags like avoid_posting or sound_warning
+    def artist_tags
+      @artist_tags ||= tags_for_category(Tag.categories.artist).filter do |tag|
+        NON_ARTIST_TAGS.exclude?(tag.name)
+      end
+    end
+
+    ## DB!
+    # Fetches the data for the artist tags to find any that have the linked artists matching the uploader
+    # Sends a db request to look up the artist data.
+    def uploader_linked_artists
+      tags = artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
+      @uploader_linked_artists ||= tags.map(&:name)
+    end
+
+    ## DB!
+    # Fetches the avoid posting data for the post's artist tags.
+    # Sends a db request to lookup avoid posting data.
+    def avoid_posting_artists
+      AvoidPosting.active.joins(:artist).where("artists.name": artist_tags.map(&:name))
+    end
+  end
 
   module FavoriteMethods
     def clean_fav_string!
@@ -1008,7 +1203,7 @@ class Post < ApplicationRecord
 
   module PoolMethods
     def pool_ids
-      pool_string.scan(/pool\:(\d+)/).map {|pool| pool[0].to_i}
+      pool_string.scan(/pool:(\d+)/).map { |pool| pool[0].to_i }
     end
 
     def pools
@@ -1053,21 +1248,31 @@ class Post < ApplicationRecord
   module VoteMethods
     def own_vote(user = CurrentUser.user)
       return nil unless user
-      votes.where('user_id = ?', user.id).first
+      votes.where("user_id = ?", user.id).first
     end
   end
 
   module CountMethods
+    # NOTE: Currently does not properly handle grouped searches.
     def fast_count(tags = "", enable_safe_mode: CurrentUser.safe_mode?)
       tags = tags.to_s
+      # This is technically not redundant, as pre-adding ` rating:s` to the query is necessary to
+      # ensure the correct value exists in the cache. Adding ` -status:deleted` is redundant, as that
+      # is an inherent property of the search itself, and is already properly resolved by
+      # `ElasticPostQueryBuilder` - and by extension, `Post.tag_match`.
       tags += " rating:s" if enable_safe_mode
-      tags += " -status:deleted" unless TagQuery.has_metatag?(tags, "status", "-status")
-      tags = TagQuery.normalize(tags)
+
+      # tags = TagQuery.normalize_search(tags, normalize_tags: true, flatten: true) # This removes any duplicates of `rating:s` on the same search level. # Uncomment to enable searches
+      tags = TagQuery.normalize(tags) # This removes any duplicates of `rating:s`.
 
       cache_key = "pfc:#{tags}"
       count = Cache.fetch(cache_key)
       if count.nil?
-        count = Post.tag_match(tags).count_only
+        # Safe mode is manually disabled as the effect of it is already done by adding ` rating:s` &
+        # this reduces a redundant call to `CurrentUser.safe_mode?` & a redundant search term in the
+        # request sent to OpenSearch.
+        # count = Post.tag_match(tags, enable_safe_mode: false).count_only # Uncomment to enable searches
+        count = Post.tag_match(tags, enable_safe_mode: false, can_have_groups: false).count_only
         expiry = count.seconds.clamp(3.minutes, 20.hours).to_i
         Cache.write(cache_key, count, expires_in: expiry)
       end
@@ -1401,9 +1606,9 @@ class Post < ApplicationRecord
     end
 
     def method_attributes
-      list = super + [:has_large, :has_visible_children, :children_ids, :pool_ids, :is_favorited?]
+      list = super + %i[has_sample has_visible_children children_ids pool_ids is_favorited?]
       if visible?
-        list += [:file_url, :large_file_url, :preview_file_url]
+        list += %i[file_url sample_url preview_file_url]
       end
       list
     end
@@ -1428,16 +1633,16 @@ class Post < ApplicationRecord
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
 
-        pools: pool_ids,
+        pools: pool_ids.join(" "),
       }
 
       if visible?
         attributes[:md5] = md5
         attributes[:preview_url] = preview_file_url
-        attributes[:large_url] = large_file_url
+        attributes[:sample_url] = sample_url
         attributes[:file_url] = file_url
-        attributes[:preview_width] = preview_dimensions[1]
-        attributes[:preview_height] = preview_dimensions[0]
+        attributes[:preview_width] = preview_dimensions[0]
+        attributes[:preview_height] = preview_dimensions[1]
       end
 
       attributes
@@ -1516,13 +1721,30 @@ class Post < ApplicationRecord
       tag_match(query, free_tags_count: free_tags_count, enable_safe_mode: false, always_show_deleted: true)
     end
 
-    def tag_match(query, resolve_aliases: true, free_tags_count: 0, enable_safe_mode: CurrentUser.safe_mode?, always_show_deleted: false)
+    # Uses OpenSearch to find and return matching `Post`s.
+    # ### Parameters
+    # * `query` {`String`}
+    # * `resolve_aliases` [`true`]
+    # * `free_tags_count` [`0`]: How many tags of the maximum allowed per query are outside of `query`?
+    # * `enable_safe_mode` [`CurrentUser.safe_mode?`]: Override any preexisting `rating`'s and
+    # restrict results to safe posts?
+    # * `always_show_deleted` [`false`]
+    # * `can_have_groups` [`true`]
+    def tag_match( # rubocop:disable Metrics/ParameterLists
+      query,
+      resolve_aliases: true,
+      free_tags_count: 0,
+      enable_safe_mode: CurrentUser.safe_mode?,
+      always_show_deleted: false,
+      can_have_groups: true
+    )
       ElasticPostQueryBuilder.new(
         query,
         resolve_aliases: resolve_aliases,
         free_tags_count: free_tags_count,
         enable_safe_mode: enable_safe_mode,
         always_show_deleted: always_show_deleted,
+        can_have_groups: can_have_groups,
       ).search
     end
 
@@ -1569,6 +1791,10 @@ class Post < ApplicationRecord
       end
       if saved_change_to_is_comment_locked?
         action = is_comment_locked? ? :comment_locked : :comment_unlocked
+        PostEvent.add(id, CurrentUser.user, action)
+      end
+      if saved_change_to_is_comment_disabled?
+        action = is_comment_disabled? ? :comment_disabled : :comment_enabled
         PostEvent.add(id, CurrentUser.user, action)
       end
       if saved_change_to_bg_color?
@@ -1644,6 +1870,8 @@ class Post < ApplicationRecord
         unremoved_tags_list = unremoved_tags.map {|t| "[[#{t}]]"}.to_sentence
         self.warnings.add(:base, "#{unremoved_tags_list} could not be removed. Check for implications and locked tags and try again")
       end
+
+      @removed_tags = []
     end
 
     def has_artist_tag
@@ -1688,12 +1916,12 @@ class Post < ApplicationRecord
   include DocumentStore::Model
   include PostIndex
 
-  BOOLEAN_ATTRIBUTES = %w(
+  BOOLEAN_ATTRIBUTES = %w[
     _has_embedded_notes
-    has_cropped
+    _has_cropped
     hide_from_anonymous
     hide_from_search_engines
-  )
+  ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
   def safeblocked?
@@ -1733,6 +1961,16 @@ class Post < ApplicationRecord
     @post_sets = nil
     @tag_categories = nil
     @typed_tags = nil
+    @categorized_tags = nil
+    @artist_tags = nil
+    @uploader_linked_artists = nil
+
+    @has_dimensions = nil
+    @preview_dimensions = nil
+    @has_sample = nil
+    @sample_dimensions = nil
+    @video_sample_list = nil
+
     self
   end
 
@@ -1754,18 +1992,15 @@ class Post < ApplicationRecord
     save
   end
 
-  def uploader_linked_artists
-    linked_artists ||= tags.select { |t| t.category == Tag.categories.artist }.filter_map(&:artist)
-    linked_artists.select { |artist| artist.linked_user_id == uploader_id }
-  end
-
   def flaggable_for_guidelines?
-    return true if is_pending?
-    return true if CurrentUser.is_privileged? && !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
-    false
+    !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
   end
 
-  def visible_comment_count(_user)
-    comment_count
+  def visible_comment_count(user)
+    if user.is_moderator? || !is_comment_disabled?
+      comment_count
+    else
+      comments.visible(user).count
+    end
   end
 end

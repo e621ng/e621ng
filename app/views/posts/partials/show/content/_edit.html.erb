@@ -1,0 +1,85 @@
+<% unless CurrentUser.user.is_janitor? %>
+  <div style="margin-bottom: 1em;">
+    <p>Before editing, read the <%= link_to "how to tag guide", wiki_page_path(id: "e621:tags") %>.</p>
+  </div>
+<% end %>
+
+<%= custom_form_for(post, html: { id: "form" }) do |f| %>
+  <%= hidden_field_tag :tags_query, params[:q] %>
+  <%= hidden_field_tag :pool_id, params[:pool_id] %>
+  <%= hidden_field_tag :post_set_id, params[:post_set_id] %>
+  <%= f.hidden_field :old_tag_string, value: post.tag_string %>
+  <%= f.hidden_field :old_parent_id, value: post.parent_id %>
+  <%= f.hidden_field :old_source, value: post.source %>
+  <%= f.hidden_field :old_rating, value: post.rating %>
+
+  <div class="input" id="tags-container">
+    <div class="header">
+      <%= f.label :tag_string, "Tags" %>
+
+      <span class="options">
+        <i id="face"></i>
+        <span class="count"></span>
+      </span>
+    </div>
+
+    <div id="tag-string-editor"></div>
+
+    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: post.locked_tags || "", spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
+  </div>
+
+  <% if post.is_rating_locked? %>
+    <div class="input">
+      This post is rating locked.
+    </div>
+  <% else %>
+    <%= f.input :rating, as: :button_select, collection: rating_collection.reverse %>
+  <% end %>
+
+
+  <%= f.input :parent_id, as: :string, label: "Parent", input_html: { size: 10 } %>
+  <%= f.input :source, as: :text, label: "Sources", input_html: { size: "60x5", spellcheck: false } %>
+
+  <div class="input">
+    <%= f.input :description, as: :dtext, limit: Danbooru.config.post_descr_max_size, allow_color: true %>
+  </div>
+
+  <% if CurrentUser.is_privileged? %>
+    <div class="input">
+      <%= f.label :blank, "Lock" %>
+
+      <fieldset class="locks">
+        <% if CurrentUser.is_janitor? %>
+          <%= f.input :is_note_locked, label: "Notes" %>
+        <% end %>
+        <%= f.input :is_rating_locked, label: "Rating" %>
+        <% if CurrentUser.is_admin? %>
+        <%= f.input :is_status_locked, label: "Status" %>
+        <% end %>
+        <% if CurrentUser.is_moderator? %>
+          <%= f.input :is_comment_locked, label: "Comments" %>
+        <% end %>
+      </fieldset>
+    </div>
+  <% end %>
+
+  <% if CurrentUser.is_janitor? %>
+    <%= f.input :bg_color, label: "Background Color", input_html: { size: 10 } %>
+  <% end %>
+
+  <% if CurrentUser.is_admin? %>
+    <div class="input">
+      <%= f.label :blank, "Limits" %>
+      <fieldset class="limits">
+        <%= f.input :hide_from_anonymous, as: :boolean, label: "Hide from Anon" %>
+        <%= f.input :hide_from_search_engines, as: :boolean, label: "Hide from search engines" %>
+        <%= f.input :is_comment_disabled, label: "Hide comments" %>
+      </fieldset>
+    </div>
+  <% end %>
+
+  <%= f.input :edit_reason, label: "Edit Reason", input_html: { maxlength: 250, size: 40 } %>
+  <div class="edit-submit input">
+    <%= f.button :submit, "Submit" %>
+  </div>
+<% end %>

@@ -2,7 +2,7 @@
 
 module PostsHelper
   def discover_mode?
-    params[:tags] =~ /order:rank/
+    params[:tags] =~ /order:hot/
   end
 
   def next_page_url
@@ -32,7 +32,7 @@ module PostsHelper
     elsif source.start_with?("-")
       tag.s(source[1..])
     else
-      source
+      tag.span(source, class: "source-invalid")
     end
   end
 
@@ -87,31 +87,29 @@ module PostsHelper
 
   def post_stats_section(post)
     status_flags = []
-    status_flags << 'P' if post.parent_id
-    status_flags << 'C' if post.has_active_children?
-    status_flags << 'U' if post.is_pending?
-    status_flags << 'F' if post.is_flagged?
+    status_flags << "P" if post.parent_id
+    status_flags << "C" if post.has_active_children?
+    status_flags << "U" if post.is_pending?
+    status_flags << "F" if post.is_flagged?
 
     post_score_icon = "#{'↑' if post.score > 0}#{'↓' if post.score < 0}#{'↕' if post.score == 0}"
-    score = tag.span("#{post_score_icon}#{post.score}", class: "post-score-score #{score_class(post.score)}")
-    favs = tag.span("♥#{post.fav_count}", class: "post-score-faves")
-    comments = tag.span "C#{post.visible_comment_count(CurrentUser)}", class: 'post-score-comments'
-    rating =  tag.span(post.rating.upcase, class: "post-score-rating")
-    status = tag.span(status_flags.join(''), class: 'post-score-extras')
-    tag.div score + favs + comments + rating + status, class: 'post-score', id: "post-score-#{post.id}"
+    score = tag.span("#{post_score_icon}#{post.score}", class: "score #{score_class(post.score)}")
+    favs = tag.span("♥#{post.fav_count}", class: "favorites")
+    comments = tag.span "C#{post.visible_comment_count(CurrentUser)}", class: "comments"
+    rating = tag.span(post.rating.upcase, class: "rating")
+    # status = tag.span(status_flags.join, class: "extras")
+    tag.div score + favs + comments + rating, class: "desc"
   end
 
   def user_record_meta(user)
-    positive = user.positive_feedback_count
-    neutral = user.neutral_feedback_count
-    negative = user.negative_feedback_count
+    feedback = user.feedback_pieces
+    return "" if feedback[:active] == 0
 
-    return "" unless positive > 0 || neutral > 0 || negative > 0
-    positive_html = %{<span class="user-feedback-positive">#{positive} Pos</span>}.html_safe if positive > 0
-    neutral_html = %{<span class="user-feedback-neutral">#{neutral} Neutral</span>}.html_safe if neutral > 0
-    negative_html = %{<span class="user-feedback-negative">#{negative} Neg</span>}.html_safe if negative > 0
-
-    link_to(%{(#{positive_html} #{neutral_html} #{negative_html})}.html_safe,  user_feedbacks_path(:search => {:user_id => user.id}))
+    link_to(user_feedbacks_path(search: { user_id: user.id }), class: "user-feedback-list") do
+      concat tag.span(feedback[:positive], class: "user-feedback-positive") if feedback[:positive] > 0
+      concat tag.span(feedback[:neutral], class: "user-feedback-neutral") if feedback[:neutral] > 0
+      concat tag.span(feedback[:negative], class: "user-feedback-negative") if feedback[:negative] > 0
+    end
   end
 
   private
@@ -127,29 +125,13 @@ module PostsHelper
     tag.span(rating_text, id: "post-rating-text", class: rating_class)
   end
 
-  def post_vote_block(post, vote, buttons: false)
-    voted = !vote.nil?
-    vote_score = voted ? vote.score : 0
-    post_score = post.score
+  def post_score_block(post)
+    tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post.score)}", title: "#{post.up_score} up/#{post.down_score} down")
+  end
 
-    up_tag = tag.a(
-      tag.span("▲", class: "post-vote-up-#{post.id} " + confirm_score_class(vote_score, 1, buttons)),
-      class: "post-vote-up-link",
-      data: { id: post.id },
-    )
-    down_tag = tag.a(
-      tag.span("▼", class: "post-vote-down-#{post.id} " + confirm_score_class(vote_score, -1, buttons)),
-      class: "post-vote-down-link",
-      data: { id: post.id },
-    )
-    if buttons
-      score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
-      CurrentUser.is_member? ? up_tag + score_tag + down_tag : ""
-    else
-      vote_block = tag.span(" (".html_safe + up_tag + " vote " + down_tag + ")")
-      score_tag = tag.span(post.score, class: "post-score-#{post.id} post-score #{score_class(post_score)}", title: "#{post.up_score} up/#{post.down_score} down")
-      score_tag + (CurrentUser.is_member? ? vote_block : "")
-    end
+  def post_score_state(post)
+    return 0 if post.nil? || post.score == 0
+    post.score > 0 ? 1 : -1
   end
 
   def score_class(score)

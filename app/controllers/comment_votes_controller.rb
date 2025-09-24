@@ -4,9 +4,19 @@ class CommentVotesController < ApplicationController
   respond_to :json
   respond_to :html, only: [:index]
   before_action :member_only
-  before_action :moderator_only, only: [:index, :lock]
+  before_action :moderator_only, only: %i[index lock]
   before_action :admin_only, only: [:delete]
+  before_action :ensure_lockdown_disabled
   skip_before_action :api_check
+
+  def index
+    @comment_votes = CommentVote.includes(:user, comment: [:creator]).search(search_params).paginate(params[:page], limit: 100)
+
+    if CurrentUser.is_staff?
+      ids = @comment_votes&.map(&:id)
+      @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
+    end
+  end
 
   def create
     @comment = Comment.find(params[:comment_id])
@@ -15,20 +25,16 @@ class CommentVotesController < ApplicationController
       VoteManager.comment_unvote!(comment: @comment, user: CurrentUser.user)
     end
     @comment.reload
-    render json: {score: @comment.score, our_score: @comment_vote != :need_unvote ? @comment_vote.score : 0}
-  rescue UserVote::Error, ActiveRecord::RecordInvalid => x
-    render_expected_error(422, x)
+    render json: { score: @comment.score, our_score: @comment_vote == :need_unvote ? 0 : @comment_vote.score }
+  rescue UserVote::Error, ActiveRecord::RecordInvalid => e
+    render_expected_error(422, e)
   end
 
   def destroy
     @comment = Comment.find(params[:comment_id])
     VoteManager.comment_unvote!(comment: @comment, user: CurrentUser.user)
-  rescue UserVote::Error => x
-    render_expected_error(422, x)
-  end
-
-  def index
-    @comment_votes = CommentVote.includes(:user, comment: [:creator]).search(search_params).paginate(params[:page], limit: 100)
+  rescue UserVote::Error => e
+    render_expected_error(422, e)
   end
 
   def lock
@@ -53,5 +59,9 @@ class CommentVotesController < ApplicationController
     permitted_params = %i[comment_id user_name user_id comment_creator_id comment_creator_name timeframe score]
     permitted_params += %i[user_ip_addr duplicates_only order] if CurrentUser.is_admin?
     permit_search_params permitted_params
+  end
+
+  def ensure_lockdown_disabled
+    render_expected_error(403, "Votes are disabled") if Security::Lockdown.votes_disabled? && !CurrentUser.is_staff?
   end
 end

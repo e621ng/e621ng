@@ -14,6 +14,8 @@ class SessionLoaderTest < ActiveSupport::TestCase
       @request.stubs(:cookie_jar).returns(cookie_jar)
       @request.stubs(:parameters).returns({})
       @request.stubs(:session).returns({})
+
+      SessionLoader.any_instance.stubs(:skip_cookies?).returns(true)
     end
 
     context ".safe_mode?" do

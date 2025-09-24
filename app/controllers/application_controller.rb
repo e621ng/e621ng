@@ -16,6 +16,7 @@ class ApplicationController < ActionController::Base
 
   include TitleHelper
   include DeferredPosts
+  include RenderPartialSafely
   helper_method :deferred_post_ids, :deferred_posts
 
   rescue_from Exception, :with => :rescue_exception
@@ -28,7 +29,8 @@ class ApplicationController < ActionController::Base
 
   def enable_cors
     response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Authorization"
+    response.headers["Access-Control-Allow-Headers"] = "Authorization, User-Agent"
+    response.headers["Access-Control-Allow-Methods"] = "POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS"
   end
 
   def check_valid_username
@@ -84,7 +86,7 @@ class ApplicationController < ActionController::Base
       render_unsupported_format
     when Danbooru::Paginator::PaginationError
       render_expected_error(410, exception.message)
-    when TagQuery::CountExceededError
+    when TagQuery::CountExceededError, TagQuery::DepthExceededError, TagQuery::InvalidTagError
       render_expected_error(422, exception.message)
     when FeatureUnavailable
       render_expected_error(400, "This feature isn't available")
@@ -165,12 +167,21 @@ class ApplicationController < ActionController::Base
 
   def set_current_user
     SessionLoader.new(request).load
+    session.send(:load!) unless session.send(:loaded?)
   end
 
   def reset_current_user
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
     CurrentUser.safe_mode = Danbooru.config.safe_mode?
+  end
+
+  def requires_reauthentication
+    return redirect_to(new_session_path(url: request.fullpath)) if CurrentUser.user.is_anonymous?
+    last_authenticated_at = session[:last_authenticated_at]
+    if last_authenticated_at.blank? || Time.zone.parse(last_authenticated_at) < 1.hour.ago
+      redirect_to(confirm_password_session_path(url: request.fullpath))
+    end
   end
 
   def user_access_check(method)
@@ -185,7 +196,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  %i[is_bd_staff can_view_staff_notes can_handle_takedowns].each do |role|
+  %i[is_bd_staff can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries].each do |role|
     define_method("#{role}_only") do
       user_access_check("#{role}?")
     end

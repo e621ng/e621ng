@@ -26,5 +26,9 @@ FactoryBot.define do
     factory(:png_upload) do
       file { fixture_file_upload("test.png") }
     end
+
+    factory(:gif_upload) do
+      file { fixture_file_upload("test.gif") }
+    end
   end
 end

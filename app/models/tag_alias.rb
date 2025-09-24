@@ -12,7 +12,6 @@ class TagAlias < TagRelationship
     def approve!(update_topic: true, approver: CurrentUser.user)
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
-        create_undo_information
         TagAliasJob.perform_later(id, update_topic)
       end
     end
@@ -216,6 +215,7 @@ class TagAlias < TagRelationship
     begin
       CurrentUser.scoped(approver) do
         update!(status: "processing")
+        create_undo_information
         move_aliases_and_implications
         ensure_category_consistency
         update_posts_locked_tags
@@ -322,9 +322,13 @@ class TagAlias < TagRelationship
   end
 
   def rename_artist
-    if antecedent_tag.category == Tag.categories.artist
-      if antecedent_tag.artist.present? && consequent_tag.artist.blank?
-        antecedent_tag.artist.update!(name: consequent_name)
+    return unless antecedent_tag.category == Tag.categories.artist && antecedent_tag.artist.present?
+    if consequent_tag.artist.blank?
+      antecedent_tag.artist.update!(name: consequent_name)
+    elsif antecedent_tag&.artist&.linked_user_id.present? && consequent_tag&.artist&.linked_user_id.blank?
+      ActiveRecord::Base.transaction do
+        consequent_tag.artist.update!(linked_user_id: antecedent_tag.artist.linked_user_id)
+        antecedent_tag.artist.update!(linked_user_id: nil)
       end
     end
   end

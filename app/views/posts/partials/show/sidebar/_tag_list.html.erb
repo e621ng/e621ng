@@ -1,0 +1,6 @@
+<% TagCategory::SPLIT_HEADER_LIST.each do |category_name| %>
+  <% type_tags = post.categorized_tags[category_name] %>
+  <% next unless type_tags %>
+
+  <%= render partial: "/posts/partials/common/sidebar/tag_list", as: :tag, locals: { category_name: category_name, post: post, tags: type_tags, query: query } %>
+<% end %>

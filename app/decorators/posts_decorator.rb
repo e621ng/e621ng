@@ -9,16 +9,16 @@ class PostsDecorator < ApplicationDecorator
 
   def preview_class(options)
     post = object
-    klass = ["post-preview"]
-    klass << "post-status-pending" if post.is_pending?
-    klass << "post-status-flagged" if post.is_flagged?
-    klass << "post-status-deleted" if post.is_deleted?
-    klass << "post-status-has-parent" if post.parent_id
-    klass << "post-status-has-children" if post.has_visible_children?
-    klass << "post-rating-safe" if post.rating == 's'
-    klass << "post-rating-questionable" if post.rating == 'q'
-    klass << "post-rating-explicit" if post.rating == 'e'
-    klass << "post-no-blacklist" if options[:no_blacklist]
+    klass = ["thumbnail"]
+    klass << "pending" if post.is_pending?
+    klass << "flagged" if post.is_flagged?
+    klass << "deleted" if post.is_deleted?
+    klass << "has-parent" if post.parent_id
+    klass << "has-children" if post.has_visible_children?
+    klass << "rating-safe" if post.rating == "s"
+    klass << "rating-questionable" if post.rating == "q"
+    klass << "rating-explicit" if post.rating == "e"
+    klass << "blacklistable" unless options[:no_blacklist]
     klass
   end
 
@@ -26,56 +26,40 @@ class PostsDecorator < ApplicationDecorator
     { data: object.thumbnail_attributes }
   end
 
-  def cropped_url(options)
-    cropped_url = if Danbooru.config.enable_image_cropping? && options[:show_cropped] && object.has_cropped? && !CurrentUser.user.disable_cropped_thumbnails?
-                    object.crop_file_url
-                  else
-                    object.preview_file_url
-                  end
-
-    cropped_url = Danbooru.config.deleted_preview_url if object.deleteblocked?
-    cropped_url
-  end
-
   def score_class(score)
-    return 'score-neutral' if score == 0
-    score > 0 ? 'score-positive' : 'score-negative'
+    return "score-neutral" if score == 0
+    score > 0 ? "score-positive" : "score-negative"
   end
 
-  def stats_section(t)
+  def stats_section(template)
     post = object
     status_flags = []
-    status_flags << 'P' if post.parent_id
-    status_flags << 'C' if post.has_children?
-    status_flags << 'U' if post.is_pending?
-    status_flags << 'F' if post.is_flagged?
+    status_flags << "P" if post.parent_id
+    status_flags << "C" if post.has_children?
+    status_flags << "U" if post.is_pending?
+    status_flags << "F" if post.is_flagged?
 
     post_score_icon = "#{'↑' if post.score > 0}#{'↓' if post.score < 0}#{'↕' if post.score == 0}"
-    score = t.tag.span("#{post_score_icon}#{post.score}", class: "post-score-score #{score_class(post.score)}")
-    favs = t.tag.span("♥#{post.fav_count}", class: "post-score-faves")
-    comments = t.tag.span "C#{post.visible_comment_count(CurrentUser)}", class: 'post-score-comments'
-    rating =  t.tag.span(post.rating.upcase, class: "post-score-rating")
-    status = t.tag.span(status_flags.join(''), class: 'post-score-extras')
-    t.tag.div score + favs + comments + rating + status, class: 'post-score', id: "post-score-#{post.id}"
+    score = template.tag.span("#{post_score_icon}#{post.score}", class: "score #{score_class(post.score)}")
+    favs = template.tag.span("♥#{post.fav_count}", class: "favorites")
+    comments = template.tag.span "C#{post.visible_comment_count(CurrentUser)}", class: "comments"
+    rating = template.tag.span(post.rating.upcase, class: "rating")
+    # status = template.tag.span(status_flags.join, class: "extras")
+    template.tag.div score + favs + comments + rating, class: "desc"
   end
 
-  def preview_html(t, options = {})
+  def preview_html(template, options = {})
     post = object
-    if post.nil?
-      return ""
-    end
 
-    if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i
-      return ""
-    end
-
-    if post.loginblocked? || post.safeblocked?
+    if post.nil? ||
+       (!options[:show_deleted] && post.is_deleted? && TagQuery.should_hide_deleted_posts?(options[:tags], at_any_level: true)) ||
+       post.loginblocked? || post.safeblocked?
       return ""
     end
 
     article_attrs = {
-        "id" => "post_#{post.id}",
-        "class" => preview_class(options).join(" ")
+      "id" => "post_#{post.id}",
+      "class" => preview_class(options).join(" "),
     }.merge(data_attributes)
 
     link_target = options[:link_target] || post
@@ -102,44 +86,19 @@ class PostsDecorator < ApplicationDecorator
     end
     tooltip += "\n\n#{post.tag_string}"
 
-    cropped_url = if Danbooru.config.enable_image_cropping? && options[:show_cropped] && post.has_cropped? && !CurrentUser.user.disable_cropped_thumbnails?
-                             post.crop_file_url
-                           else
-                             post.preview_file_url
-                           end
+    preview_url = preview_file_url_pair
 
-    cropped_url = Danbooru.config.deleted_preview_url if post.deleteblocked?
-    preview_url = if post.deleteblocked?
-                             Danbooru.config.deleted_preview_url
-                           else
-                             post.preview_file_url
-                           end
+    alt_text = "post ##{post.id}"
 
-    alt_text = post.tag_string
-
-    has_cropped = post.has_cropped?
-
-    pool = options[:pool]
-
-    similarity = options[:similarity]&.round
-
-    size = options[:size] ? post.file_size : nil
-
-    img_contents = t.link_to t.polymorphic_path(link_target, link_params) do
-      t.tag.picture do
-        t.concat t.tag.source media: "(max-width: 800px)", srcset: cropped_url
-        t.concat t.tag.source media: "(min-width: 800px)", srcset: preview_url
-        t.concat t.tag.img class: "has-cropped-#{has_cropped}", src: preview_url, title: tooltip, alt: alt_text
+    img_contents = template.link_to template.polymorphic_path(link_target, link_params), data: { hover_text: tooltip } do
+      template.tag.picture do
+        template.concat template.tag.source type: "image/webp", srcset: preview_url[0] if Danbooru.config.webp_previews_enabled?
+        template.concat template.tag.source type: "image/jpeg", srcset: preview_url[1]
+        template.concat template.tag.img src: preview_url[1], alt: alt_text
       end
     end
-    desc_contents = if options[:stats] || pool || similarity || size
-                      t.tag.div class: "desc" do
-                        stats_section(t) if options[:stats]
-                      end
-                    else
-                      "".html_safe
-                    end
-    t.tag.article(**article_attrs) do
+    desc_contents = options[:stats] ? stats_section(template) : "".html_safe
+    template.tag.article(**article_attrs) do
       img_contents + desc_contents
     end
   end

@@ -1,0 +1,5 @@
+@import "tag_list";
+
+@include window-larger-than(50rem) {
+  @import "tag_list.desktop";
+}

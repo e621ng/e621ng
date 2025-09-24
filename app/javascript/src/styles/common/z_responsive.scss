@@ -2,35 +2,21 @@
   display: none;
 }
 
-@media screen and (max-width: 900px) {
-  #ad-leaderboard {
-    height: 50px;
-    justify-content: center;
-
-    .adzone {
-      height: 50px;
-      width: 320px;
-    }
-  }
-}
-
 @media screen and (max-width: 800px) {
   .mobile-only {
     display: unset;
   }
 
   body.resp {
-    div#c-posts {
-      div#a-show {
-        .pool-nav, .search-seq-nav, .set-nav {
-          li {
-            height: 2rem;
-          }
+    #c-posts #a-show {
+      .nav-block li {
+        padding: 0 0.5em;
+        
+        .first span, .last span {
+          display: none;
         }
       }
     }
-
-    #search-box { display: none; }
 
     .mobile-search {
       display: block;
@@ -61,33 +47,7 @@
       }
     }
 
-    .guest-warning {
-      .guest-warning-dialog {
-        top: 5vh;
-        height: 90vh;
-        width: 80vw;
-      }
-    }
-
-    div#page aside#sidebar {
-      padding: 5px;
-
-      input#tags {
-        width: 80%;
-      }
-
-      button[type=submit] {
-        font-size: 1.2em;
-        background-color: #EEE;
-        height: 42px;
-        padding: 2px 10px;
-        border: 1px solid rgb(197, 197, 197);
-      }
-    }
-
     div#page {
-      padding-left: 0;
-      padding-right: 0;
 
       > div /* div#c-$controller */
       {
@@ -109,33 +69,6 @@
 
     header {
       position: relative;
-    }
-
-    #page-footer {
-      display: revert;
-      text-align: center;
-
-      .left {
-        padding-right: revert;
-      }
-    
-      .right {
-        padding-left: revert;
-      }
-
-      .right::before {
-        content: "–";
-      }
-
-      .logo-container {
-        display: none;
-      }
-    }
-
-    #maintoggle {
-      display: block;
-      font-weight: bold;
-      font-size: 2em;
     }
 
     /* Make the quick search box in the navbar full width. */
@@ -199,53 +132,6 @@
       padding: 0;
     }
 
-    #posts #posts-container {
-      width: 100%;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-evenly;
-    }
-
-    article.post-preview {
-      float: none;
-      margin: 0 0 10px 0;
-      text-align: center;
-      vertical-align: middle;
-      display: inline-block;
-      width: 31vw;
-
-      a {
-        margin: 0 auto;
-      }
-
-      img {
-        max-height: 150px;
-        max-width: 31vw;
-      }
-
-      .desc {
-        font-size: 100%;
-      }
-    }
-
-    .user-disable-cropped-false {
-      article.post-preview {
-        width: 31vw;
-
-        img {
-          height: auto;
-          max-height: none;
-          max-width: none;
-          width: 31vw;
-
-          &.has-cropped-false {
-            object-fit: cover;
-          }
-        }
-      }
-    }
-
     div#options {
       margin-top: 10px;
       font-size: 24pt;
@@ -265,47 +151,6 @@
       }
     }
 
-    #nav {
-      font-size: 2em;
-      line-height: 2em;
-      display: none;
-    }
-
-    header#top {
-      input {
-        font-size: 18pt;
-      }
-
-      menu.main {
-        padding: 5px 10px;
-
-        .mobile-logo {
-          display: inline-block;
-          width: 1.5em;
-          box-sizing: border-box;
-
-          a {
-            display: inline-block;
-            padding: 6px 10px;
-
-            background-image: url("main-logo.png");
-            background-repeat: no-repeat;
-            background-size: contain;
-
-            // Gives the link height
-            &::after {
-              content: "Placeholder";
-              visibility: hidden;
-            }
-          }
-        }
-      }
-
-      menu.secondary.empty {
-        display: none;
-      }
-    }
-
     header {
       text-align: center;
       line-height: 2em;
@@ -314,19 +159,12 @@
         display: inline; //Needed for menu button
       }
     }
-
-    div#page {
-      margin: 0;
-    }
   }
 }
 
 @media screen and (max-width: 660px) {
   body.resp {
     #c-forum-topics, #c-forum-posts {
-      #a-show {
-        padding: 1em 0.5em;
-      }
 
       .creator {
         display: none;

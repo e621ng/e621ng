@@ -50,7 +50,7 @@
       </tbody>
     </table>
 
-    <% if CurrentUser.is_moderator? && params.dig(:search, :user_id).present? && params.dig(:search, :deleted).blank? %>
+    <% if CurrentUser.is_staff? && params.dig(:search, :user_id).present? && params.dig(:search, :deleted).blank? %>
       <% count = UserFeedback.for_user(params.dig(:search, :user_id)).deleted.count %>
       <% if count > 0 %>
         <%= link_to("Show All (#{count})", { search: params[:search].permit!.merge(deleted: "included") }, class: "show-all-user-feedbacks-link button btn-neutral") %>

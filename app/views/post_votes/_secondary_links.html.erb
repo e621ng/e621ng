@@ -1,0 +1,5 @@
+<% content_for(:secondary_links) do %>
+  <% if @latest.present? %>
+    <%= subnav_link_to "Latest", @latest %>
+  <% end %>
+<% end %>

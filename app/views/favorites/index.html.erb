@@ -1,36 +1,37 @@
-<div id="c-favorites">
-  <div id="a-index">
-    <aside id="sidebar">
-      <%= render "posts/partials/common/search", :path => posts_path, :tags => "fav:#{@user.name} ", :tags_dom_id => "tags" %>
-      <div style="color:darkorange;margin-bottom:0.5rem;">*Searching favorites does not preserve the order they were added in.<br/></div>
-      <% if CurrentUser.is_member? %>
-        <%= render "posts/partials/index/mode_menu" %>
-      <% end %>
+<div id="c-favorites"><div id="a-index"><div class="post-index">
 
-      <%= render "posts/partials/index/blacklist" %>
+  <div class="search">
+    <%= render "posts/partials/common/search", title: "Favorites", tags: "fav:#{@user.name} " %>
+    <div style="color: darkorange;">Searching favorites does not preserve the order in which they were added.<br/></div>
+  </div>
 
-      <section id="related-box">
-        <h1>Related</h1>
-        <ul id="related-list">
-          <li><%= link_to "Random post", random_posts_path(:tags => @favorite_set.public_tag_string), :id => "random-post", :rel => "nofollow", :"data-shortcut" => "r" %></li>
-        </ul>
+  <div class="sidebar">
+    <% if CurrentUser.is_member? %>
+      <%= render "posts/partials/index/mode_menu" %>
+    <% end %>
+    <%= render "posts/partials/index/blacklist" %>
+
+    <% if @post_set.related_tags.any? %>
+      <section id="tag-box">
+        <%= render partial: "/posts/partials/index/sidebar/tag_list", locals: { post_set: @post_set, query: "fav:#{@user.name} ", tags: @post_set.related_tags } %>
       </section>
-    </aside>
+    <% end %>
 
-    <section id="content">
-      <h1>Favorites</h1>
-
-      <%= render "posts/partials/index/edit" %>
-
-      <div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
-        <div id="posts-container">
-          <%= @favorite_set.presenter.post_previews_html(self) %>
-        </div>
-        <%= numbered_paginator(@favorite_set.posts) %>
-      </div>
+    <section id="related-box">
+      <h3>Related</h3>
+      <ul id="related-list">
+        <li><%= link_to "Random post", random_posts_path(tags: @post_set.tag_string), id: "random-post", rel: "nofollow" %></li>
+      </ul>
     </section>
   </div>
-</div>
+
+  <div class="content">
+    <%= render "ads/leaderboard", tag_string: @post_set.ad_tag_string %>
+    <%= render "posts/partials/index/edit" %>
+    <%= render "posts/partials/index/posts", post_set: @post_set %>
+  </div>
+
+</div></div></div>
 
 <%= render "posts/partials/common/secondary_links" %>
 

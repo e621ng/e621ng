@@ -1,137 +1,36 @@
-<div id="c-users">
-  <div id="a-edit">
-    <h1>Settings</h1>
+<div id="c-users"><div id="a-edit">
+  <h1>Settings</h1>
 
-    <%= custom_form_for @user do |f| %>
-      <h2 id="edit-options">
-        <%= link_to "Basic", "#basic-settings", :class => "active" %>
-        | <%= link_to "Advanced", "#advanced-settings" %>
-        <% if CurrentUser.user.id == @user.id %>
-          | <%= link_to "Change password", edit_user_password_path(:user_id => @user.id), :id => "change-password" %>
-          | <%= link_to "Delete account", maintenance_user_deletion_path, :id => "delete-account" %>
-        <% end %>
-      </h2>
+  <tabs-menu id="settings-tabs">
+    <button role="tab" name="basic">Basic</button>
+    <button role="tab" name="advanced">Advanced</button>
+    <button role="tab" name="blacklist">Blacklist</button>
+    <span class="spacer"></span>
+    <input type="text" name="search" placeholder="Search Settings" />
+  </tabs-menu>
 
-      <fieldset id="basic-settings-section">
-        <div class="input">
-          <label>Name</label>
+  <%= custom_form_for @user do |form| %>
+  <tabs-content for="settings-tabs">
+    <%= render "users/partials/edit/basic", form: form %>
+    <%= render "users/partials/edit/advanced", form: form %>
+    <%= render "users/partials/edit/blacklist", form: form %>
+    <tab-submit>
+      <%= form.button :submit, "Save Settings" %>
+    </tab-submit>
+  </tabs-content>
+  <% end %>
+</div></div>
 
-          <p><%= link_to "Request a name change", new_user_name_change_request_path %></p>
-        </div>
-
-        <div class="input">
-          <label>Email</label>
-          <p>
-            <% if CurrentUser.user.email.present? %>
-              <%= CurrentUser.user.email %>
-            <% else %>
-              <em>blank</em>
-            <% end %>
-            –
-            <%= link_to "Change your email", new_maintenance_user_email_change_path %>
-          </p>
-        </div>
-
-        <%= f.input :avatar_id, as: :string, label: "Avatar Post ID" %>
-
-        <%= f.input :profile_about, as: :dtext, label: "About Me", limit: Danbooru.config.user_about_max_size, allow_color: true %>
-
-        <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size, allow_color: true %>
-
-        <%= f.input :time_zone, :include_blank => false %>
-
-        <%= f.input :receive_email_notifications, :as => :select, :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
-
-        <%= f.input :comment_threshold, :hint => "Comments below this score will be hidden by default." %>
-
-        <%= f.input :default_image_size, :hint => "Show original image size, scaled to fit, scaled to fit vertically, or show resized #{Danbooru.config.large_image_width} pixel sample version.", :label => "Default image width", :collection => [["Original", "original"], ["Fit (Horizonal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{Danbooru.config.large_image_width}px)", "large"]], :include_blank => false %>
-
-        <%= f.input :per_page, :label => "Posts per page", :as => :select, :collection => (25..250), :include_blank => false %>
-
-        <%= f.input :enable_safe_mode, :label => "Safe mode", :hint => "Show only safe images. Hide questionable and explicit images.", :as => :select, :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
-
-        <%= f.input :blacklisted_tags, :hint => "Put any tag combinations you never want to see here. Each combination should go on a separate line. <a href='/help/blacklist'>View help.</a>".html_safe, autocomplete: "tag-query", input_html: { size: "40x5" } %>
-
-        <%= f.input :blacklist_users, hint: "Hide comments, blips and forum posts from users that have been blacklisted, in addition to posts.", as: :select, include_blank: false, collection: [["Yes", "true"], ["No", "false"]] %>
-      </fieldset>
-
-      <fieldset id="advanced-settings-section">
-        <%= f.input :style_usernames, :as => :select, :label => "Colored usernames",
-                    :hint => raw("Color each user's name depending on their level. See #{link_to 'the legend', wiki_page_path(id: 'e621:colored_usernames')} for what the colors are."),
-                    :include_blank => false, :collection => [["Yes", "true"], ["No", "false"]] %>
-
-        <%= f.input :enable_keyboard_navigation, :as => :select, :include_blank => false, :label => "Enable keyboard shortcuts", :collection => [["Yes", "true"], ["No", "false"]],
-        hint: raw("Enables the use of keyboard shortcuts for a majority of site actions related to posts. A list of keyboard shortcuts is available #{link_to 'here', keyboard_shortcuts_path}.")%>
-
-        <%= f.input :enable_auto_complete, :as => :select, :collection => [["Yes", "true"], ["No", "false"]], :include_blank => false,
-                    hint: "Enables auto-completion on most tag and user entry fields." %>
-
-        <%= f.input :enable_privacy_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
-        hint: "Prevent showing your favorites to others users (except staff)." %>
-
-        <%= f.input :show_post_statistics, as: :select, collection: [["No", "false"],["Yes", "true"]], include_blank: false,
-        hint: "Show post statistics below posts on search pages." %>
-
-        <%= f.input :description_collapsed_initially, as: :select, collection: [["No", "false"],["Yes", "true"]], include_blank: false,
-        hint: "Don't expand post descriptions on page load." %>
-
-        <%= f.input :hide_comments, as: :select, collection: [["No", "false"],["Yes", "true"]], include_blank: false,
-        hint: "Do not show the comments section on post pages." %>
-
-        <% unless CurrentUser.is_janitor? %>
-          <%= f.input :disable_user_dmails, label: "Disable DMails", hint: "Prevent other users from sending you DMails. You will be prevented from sending DMails to non-staff members while this option is enabled. Staff are always allowed to send you DMails.",
-                      :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false %>
-        <% end %>
-
-        <%= f.input :disable_cropped_thumbnails, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
-        hint: "Disables displaying cropped thumbnails on the mobile layout of the site in favor of scaled thumbnails. Has no effect on the desktop site." %>
-
-        <%= f.input :show_hidden_comments, label: "Show Own Hidden Comments", :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false,
-                    hint: "Show your own hidden comments on comment pages." %>
-
-        <% if @user.post_upload_count >= 10 %>
-          <%= f.input :enable_compact_uploader, label: "Enable Compact Uploader", as: :select,
-          collection: [["No", "false"], ["Yes", "true"]], include_blank: false,
-          hint: "Enables a more compact and less guided post uploader." %>
-        <% end %>
-
-        <div class="input text optional field_with_hint">
-          <label class="text optional" for="user_dmail_filter_attributes_words">Dmail filter</label>
-          <%= hidden_field_tag "user[dmail_filter_attributes][id]", @user.dmail_filter.try(:id) %>
-          <%= text_field_tag "user[dmail_filter_attributes][words]", @user.dmail_filter.try(:words), :id => "user_dmail_filter_attributes_words", :class => "text optional", :size => 40 %>
-          <span class="hint">A list of banned words (space delimited). Any dmail you receive with a banned word will automatically be deleted.</span>
-        </div>
-
-        <%= f.input :favorite_tags, :label => "Frequent tags", :hint => "A list of tags that you use often. They will appear when using the list of Related Tags.", autocomplete: "tag-query", input_html: { rows: 5 } %>
-
-        <%= f.input :disable_responsive_mode, :as => :select, :collection => [["No", "false"], ["Yes", "true"]], :include_blank => false, :hint => "Disable alternative layout for mobile and tablet." %>
-
-        <%= f.input :custom_style, :label => "Custom <a href='https://en.wikipedia.org/wiki/Cascading_Style_Sheets'>CSS</a> style".html_safe, :hint => "Style to apply to the whole site.", :input_html => {:size => "40x5"} %>
-      </fieldset>
-
-      <%= f.button :submit, "Submit" %>
-    <% end %>
-  </div>
-</div>
+<noscript>
+  <style>
+    tabs-menu { display: none !important; }
+    tab-group { display: flex !important; }
+    tabs-content tab-entry { display: grid !important; }
+  </style>
+</noscript>
 
 <% content_for(:page_title) do %>
   Settings
-<% end %>
-
-<% content_for(:html_header) do %>
-  <%= javascript_tag nonce: true do -%>
-    $(function() {
-      $("#advanced-settings-section").hide();
-      $("#edit-options a:not(#delete-account):not(#change-password)").on("click", function(e) {
-        var $target = $(e.target);
-        $("h2 a").removeClass("active");
-        $("#basic-settings-section,#advanced-settings-section").hide();
-        $target.addClass("active");
-        $($target.attr("href") + "-section").show();
-        e.preventDefault();
-      });
-    });
-  <% end -%>
 <% end %>
 
 <%= render "secondary_links" %>

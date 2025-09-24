@@ -21,13 +21,14 @@
     "vue": "^3.1.0",
     "vue-loader": "^17.4.2",
     "webpack": "^5.51.1",
-    "zingtouch": "^1.0.6"
+    "zingtouch": "^1.0.6",
+    "zxcvbn": "^4.4.2"
   },
   "version": "0.1.0",
   "devDependencies": {
-    "@eslint/js": "^9.7.0",
-    "@stylistic/eslint-plugin-js": "^2.3.0",
-    "eslint": "9.x",
+    "@eslint/js": "^9.36.0",
+    "@stylistic/eslint-plugin": "^5.4.0",
+    "eslint": "^9.36.0",
     "globals": "^15.8.0"
   },
   "scripts": {

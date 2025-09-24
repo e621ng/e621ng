@@ -5,11 +5,20 @@
 </head>
 <%= tag.body **body_attributes(CurrentUser.user) do %>
   <%= render "layouts/theme_include" %>
+  <%= render "layouts/nav" %>
+
   <% if CurrentUser.is_anonymous? %>
     <%= render "static/guest_warning" %>
   <% end %>
+
   <div id="page">
     <%= yield :layout %>
   </div>
+
+  <% if Danbooru.config.fsc_modal_enabled? %>
+    <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js"></script>
+  <% end %>
+
+  <%= render "static/deferred_posts" %>
 <% end %>
 </html>

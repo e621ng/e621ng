@@ -1,4 +1,4 @@
-import { SendQueue } from "./send_queue";
+import TaskQueue from "./utility/task_queue";
 
 const DText = {};
 
@@ -65,7 +65,7 @@ function update_preview (input, preview, allowColor = false) {
   preview
     .html("")
     .attr("loading", "true");
-  SendQueue.add(() => {
+  TaskQueue.add(() => {
     $.ajax({
       type: "post",
       url: "/dtext_preview.json",
@@ -89,7 +89,7 @@ function update_preview (input, preview, allowColor = false) {
           .text("Unable to fetch DText preview.");
         input.removeData("cache");
       },
-    });
+    }, { name: "DText.update_preview" });
   });
 }
 

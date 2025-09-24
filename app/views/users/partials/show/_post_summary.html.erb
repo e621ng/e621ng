@@ -1,0 +1,51 @@
+<div class="posts-section">
+
+<% if presenter.has_uploads? %>
+  <div class="profile-sample profile-uploads">
+
+    <div class="profile-sample-header">
+      <%= link_to "Uploads", posts_path(tags: "user:#{user.name}"), class: "title" %>
+    </div>
+
+    <div class="profile-sample-links">
+      <%= link_to(sanitize("<b>#{user.post_upload_count - user.post_deleted_count}</b> total"), posts_path(tags: "user:#{user.name}")) %>
+      <%= link_to(sanitize("<b>#{user.post_deleted_count}</b> deleted"), deleted_posts_path(user_id: user.id)) %>
+      <%= link_to(sanitize("<b>#{user.own_post_replaced_count}</b> replaced"), post_replacements_path(search: { uploader_id_on_approve: user.id })) %>
+      <%= link_to(sanitize("<b>#{user.post_replacement_rejected_count}</b> rejected"), post_replacements_path(search: { creator_id: user.id, status: "rejected" })) %>
+      <span class="spacer"></span>
+      <%= link_to("Comments", comments_path(group_by: "comment", search: { poster_id: user.id }), class: "profile-comments-link") %>
+    </div>
+
+    <div class="profile-sample-posts">
+      <% presenter.uploads.each do |post| %>
+        <%= post.preview_html(self, { tags: "user:#{user.name}", show_cropped: true, stats: CurrentUser.show_post_statistics? }) %>
+      <% end %>
+    </div>
+
+  </div>
+<% end %>
+
+<% if presenter.has_favorites? && !@user.hide_favorites? %>
+  <div class="profile-sample profile-favorites">
+
+    <div class="profile-sample-header">
+      <%= link_to "Favorites", favorites_path(user_id: user.id), class: "title" %>
+    </div>
+
+    <div class="profile-sample-links">
+      <%= link_to(sanitize("<b>#{user.favorite_count}</b> total"), favorites_path(user_id: user.id)) %>
+      <% if user.enable_privacy_mode? || user.is_blocked? %>
+        <span>[hidden]</span>
+      <% end %>
+    </div>
+
+    <div class="profile-sample-posts">
+      <% presenter.favorites.each do |post| %>
+        <%= post.preview_html(self, { tags: "fav:#{user.name}", show_cropped: true, stats: CurrentUser.show_post_statistics? }) %>
+      <% end %>
+    </div>
+
+  </div>
+<% end %>
+
+</div>

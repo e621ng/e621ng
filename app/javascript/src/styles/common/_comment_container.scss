@@ -17,8 +17,8 @@
         img {
           height: auto;
           width: auto;
-          max-height: 140px;
-          max-width: 140px;
+          max-height: 150px;
+          max-width: 150px;
         }
       }
     }
@@ -31,6 +31,8 @@
     grid-column: 2;
     grid-row: 1;
     padding: $padding-025 $padding-050;
+
+    .content-menu { margin-top: 1rem; }
   }
 }
 
@@ -58,7 +60,7 @@
           grid-column: 1;
           grid-row-start: 1;
           grid-row-end: 4;
-          .post-thumbnail {
+          .post-thumbnail, .post-thumb.placeholder {
             img {
               height: auto;
               width: auto;

@@ -97,14 +97,8 @@ div#c-uploads {
       float: none;
     }
 
-    .upload-source-row {
-      button {
-        width: 1.5em;
-      }
-
-      input {
-        margin-bottom: 2px;
-      }
+    .upload-artist-tags {
+      margin-top: 0.5rem;
     }
 
     @media only screen and (orientation: portrait), (max-width: 1100px) {
@@ -142,10 +136,6 @@ div#c-uploads {
 
       .flex-grid {
         flex-direction: column;
-      }
-
-      input {
-        max-width: 90%;
       }
     }
   }

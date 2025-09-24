@@ -1212,7 +1212,7 @@ class PostTest < ActiveSupport::TestCase
           post_edited_by_user_b.old_source = ""
           post_edited_by_user_b.old_rating = "q"
           post_edited_by_user_b.parent_id = nil
-          post_edited_by_user_b.source = "http://example.com"
+          post_edited_by_user_b.source = "https://example.com"
           post_edited_by_user_b.rating = "q"
           post_edited_by_user_b.save
 
@@ -1756,7 +1756,12 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "status:any")
       assert_tag_match(all, "status:all")
 
-      # TODO: These don't quite make sense, what should hide deleted posts and what shouldn't?
+      # Perceived inconsistency is due to automatic injection of "-status:deleted" in
+      # ElasticPostQueryBuilder; adding `status:any` disables this.
+      assert_tag_match(all - [flagged, pending], "status:any -status:modqueue")
+      assert_tag_match(all - [pending], "status:any -status:pending")
+      assert_tag_match(all - [flagged], "status:any -status:flagged")
+
       assert_tag_match(all - [deleted, flagged, pending], "-status:modqueue")
       assert_tag_match(all - [deleted, pending], "-status:pending")
       assert_tag_match(all - [deleted, flagged], "-status:flagged")
@@ -1813,7 +1818,7 @@ class PostTest < ActiveSupport::TestCase
     end
 
     should "return posts for a pixiv source search" do
-      url = "http://i1.pixiv.net/img123/img/artist-name/789.png"
+      url = "https://i1.pixiv.net/img123/img/artist-name/789.png"
       post = create(:post, source: url)
 
       assert_tag_match([post], "source:*.pixiv.net/img*/artist-name/*")
@@ -1876,9 +1881,9 @@ class PostTest < ActiveSupport::TestCase
           fav_count: n,
           file_size: 1.megabyte * n,
           # posts[0] is portrait, posts[1] is landscape. posts[1].mpixels > posts[0].mpixels.
-          image_height: 100*n*n,
-          image_width: 100*(3-n)*n,
-          tag_string: tags[n-1],
+          image_height: 100 * n * n,
+          image_width: 100 * (3 - n) * n,
+          tag_string: tags[n - 1],
         )
 
         create(:comment, post: p, do_not_bump_post: false)
@@ -1903,7 +1908,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(posts.reverse, "order:arttags")
       assert_tag_match(posts.reverse, "order:chartags")
       assert_tag_match(posts.reverse, "order:copytags")
-      assert_tag_match(posts.reverse, "order:rank")
+      assert_tag_match(posts.reverse, "order:hot")
       assert_tag_match(posts.reverse, "order:note_count")
       assert_tag_match(posts.reverse, "order:note_count_desc")
       assert_tag_match(posts.reverse, "order:notes")
@@ -1959,9 +1964,11 @@ class PostTest < ActiveSupport::TestCase
     should "not count free tags against the user's search limit" do
       post1 = create(:post, tag_string: "aaa bbb rating:s")
 
-      Danbooru.config.expects(:is_unlimited_tag?).with("rating:s").once.returns(true)
-      Danbooru.config.expects(:is_unlimited_tag?).with(anything).twice.returns(false)
-      assert_tag_match([post1], "aaa bbb rating:s")
+      Danbooru.config.expects(:is_unlimited_tag?).with("rating:s").twice.returns(true)
+      Danbooru.config.expects(:is_unlimited_tag?).with(anything).never.returns(false)
+      query = "aaa bbb rating:s #{(1..38).to_a.map { |x| "-#{x}" }.join(' ')}"
+      assert_tag_match([post1], query)
+      assert_raise(TagQuery::CountExceededError) { Post.tag_match("#{query} one_too_many") }
     end
 
     should "succeed for exclusive tag searches with no other tag" do
@@ -1978,35 +1985,111 @@ class PostTest < ActiveSupport::TestCase
       end
     end
 
+    should "return posts for verified artists" do
+      assert_tag_match([], "artverified:true")
+      assert_tag_match([], "artverified:false")
+      artist = create(:artist, linked_user: @user)
+      post = create(:post, tag_string: artist.name, uploader: @user)
+      assert_tag_match([], "artverified:false")
+      assert_tag_match([post], "artverified:true")
+    end
+
+    should "return posts for verified artists after update" do
+      assert_tag_match([], "artverified:true")
+      assert_tag_match([], "artverified:false")
+      post = create(:post, tag_string: "artist:test", uploader: @user)
+      with_inline_jobs { create(:artist, name: "test", linked_user: @user) }
+      assert_tag_match([], "artverified:false")
+      assert_tag_match([post], "artverified:true")
+    end
+
     should "return posts for replacements" do
       assert_tag_match([], "pending_replacements:true")
       assert_tag_match([], "pending_replacements:false")
-      post = create(:post)
+      upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user)).start!
+      post = upload.post
       replacement = create(:png_replacement, creator: @user, post: post)
       assert_tag_match([post], "pending_replacements:true")
     end
 
     should "return no posts when the replacement is not pending anymore" do
-      post1 = create(:post)
-      upload = UploadService.new(attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, tag_string: "tst")).start!
-      post2 = upload.post
-      post3 = create(:post)
-      post4 = create(:post)
-      replacement1 = create(:png_replacement, creator: @user, post: post1)
-      replacement1.reject!
-      replacement2 = create(:png_replacement, creator: @user, post: post2)
-      replacement2.approve!(penalize_current_uploader: true)
-      replacement3 = create(:jpg_replacement, creator: @user, post: post3)
-      promoted_post = replacement3.promote!.post
-      replacement4 = create(:webm_replacement, creator: @user, post: post4)
-      replacement4.destroy!
+      upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user)).start!
+      post = upload.post
+
+      replacement = create(:png_replacement, creator: @user, post: post)
+      replacement.reject!
 
       assert_tag_match([], "pending_replacements:true")
-      assert_tag_match([promoted_post, post4, post3, post2, post1], "pending_replacements:false")
+      assert_tag_match([post], "pending_replacements:false")
     end
 
     should "not error for values beyond Integer.MAX_VALUE" do
       assert_tag_match([], "id:1234567890987654321")
+    end
+
+    context "With Groups: " do
+      setup do
+        @post1_a = create(:post, tag_string: "a_a aaa")
+        @post2_a = create(:post, tag_string: "aaa bbb")
+        @post3_a = create(:post, tag_string: "bbb ccc")
+        @post4_a = create(:post, tag_string: "ccc ddd")
+        @post5_a = create(:post, tag_string: "aaa ddd")
+        @post1_d = create(:post, tag_string: "a_a aaa", is_deleted: true)
+        @post2_d = create(:post, tag_string: "aaa bbb", is_deleted: true)
+        @post3_d = create(:post, tag_string: "bbb ccc", is_deleted: true)
+        @post4_d = create(:post, tag_string: "ccc ddd", is_deleted: true)
+        @post5_d = create(:post, tag_string: "aaa ddd", is_deleted: true)
+        @post1_f = create(:post, tag_string: "a_a aaa", is_flagged: true, is_deleted: true)
+        @post2_f = create(:post, tag_string: "aaa bbb", is_flagged: true)
+        @post3_f = create(:post, tag_string: "bbb ccc", is_flagged: true)
+        @post4_f = create(:post, tag_string: "ccc ddd", is_flagged: true)
+        @post5_f = create(:post, tag_string: "aaa ddd", is_flagged: true)
+        @post1_p = create(:post, tag_string: "a_a aaa", is_pending: true, is_deleted: true)
+        @post2_p = create(:post, tag_string: "aaa bbb", is_pending: true)
+        @post3_p = create(:post, tag_string: "bbb ccc", is_pending: true)
+        @post4_p = create(:post, tag_string: "ccc ddd", is_pending: true)
+        @post5_p = create(:post, tag_string: "aaa ddd", is_pending: true)
+      end
+      should "return posts" do
+        assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd ) -status:deleted")
+      end
+      should "return posts with proper status:deleted handling" do
+        # Added - no interference
+        assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd )")
+        # Added - flagged
+        assert_tag_match([@post3_f], "~( aaa -bbb ) ~ccc -( ddd ) status:flagged")
+        # Added - pending
+        assert_tag_match([@post3_p], "~( aaa -bbb ) ~ccc -( ddd ) status:pending")
+        # Added - modqueue
+        assert_tag_match([@post3_p, @post3_f], "~( aaa -bbb ) ~ccc -( ddd ) status:modqueue")
+        # Removed - active
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d], "~( aaa -bbb ) ~ccc -( ddd ) -status:active")
+        # Removed - deleted
+        assert_tag_match([@post1_p, @post1_f, @post3_d, @post1_d], "~( aaa -bbb ) ~ccc -( ddd ) status:deleted")
+        # Removed - any
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd ) status:any")
+        # NESTED
+        # Added - flagged
+        assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:flagged ) ~ccc -( ddd )")
+        # Added - pending
+        assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:pending ) ~ccc -( ddd )")
+        # Added - modqueue
+        assert_tag_match([@post3_p, @post3_f, @post3_a], "~( aaa -bbb status:modqueue ) ~ccc -( ddd )")
+        # Removed - active
+        # if ElasticPostQueryBuilder::GLOBAL_DELETED_FILTER
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb -status:active ) ~ccc -( ddd )")
+        # else
+        #   assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb -status:active ) ~ccc -( ddd )")
+        # end
+        # Removed - deleted
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a], "~( aaa -bbb status:deleted ) ~ccc -( ddd )")
+        # Removed - any
+        assert_tag_match([@post3_p, @post1_p, @post3_f, @post1_f, @post3_d, @post1_d, @post3_a, @post1_a], "~( aaa -bbb status:any ) ~ccc -( ddd )")
+      end
+      should "return posts for a grouped tag search with proper global metatag hoisting" do
+        assert_tag_match([@post1_a, @post3_a, @post3_f, @post3_p], "~( aaa -bbb ) ~ccc -( ddd order:id_asc )")
+        assert_tag_match([@post3_p, @post3_f, @post3_a, @post1_a], "~( aaa -bbb ) ~ccc -( ddd order:id_desc )")
+      end
     end
   end
 
@@ -2240,7 +2323,7 @@ class PostTest < ActiveSupport::TestCase
 
       assert_equal("#{Danbooru.config.hostname}/data/preview/deadbeef.jpg", @post.preview_file_url)
 
-      assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.large_file_url)
+      assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.sample_url)
       assert_equal("#{Danbooru.config.hostname}/data/deadbeef.gif", @post.file_url)
     end
   end
@@ -2313,6 +2396,7 @@ class PostTest < ActiveSupport::TestCase
     context "pool:" do
       setup do
         @pool = create(:pool)
+        @pool2 = create(:pool, name: "Test_Pool")
         @post = create(:post)
       end
 
@@ -2339,6 +2423,12 @@ class PostTest < ActiveSupport::TestCase
           assert_equal("pool:#{@pool.id}", @post.pool_string)
         end
 
+        should "work with capital letters" do
+          @post.update(tag_string_diff: "pool:#{@pool2.name}")
+          assert_equal([@post.id], @pool2.reload.post_ids)
+          assert_equal("pool:#{@pool2.id}", @post.pool_string)
+        end
+
         should "gracefully fail if the pool is full" do
           Danbooru.config.stubs(:pool_post_limit).returns(0)
           @post.update(tag_string_diff: "pool:#{@pool.name}")
@@ -2361,6 +2451,17 @@ class PostTest < ActiveSupport::TestCase
         @pool = Pool.last
         assert_equal([@post.id], @pool.reload.post_ids)
         assert_equal("pool:#{@pool.id}", @post.pool_string)
+        assert_equal("test", @pool.name)
+      end
+
+      should "work with capital letters" do
+        assert_difference("Pool.count", 1) do
+          @post.update(tag_string_diff: "newpool:Test2_Pool")
+        end
+        @pool = Pool.last
+        assert_equal([@post.id], @pool.reload.post_ids)
+        assert_equal("pool:#{@pool.id}", @post.pool_string)
+        assert_equal("Test2_Pool", @pool.name)
       end
     end
   end

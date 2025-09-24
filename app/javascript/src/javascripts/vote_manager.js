@@ -3,6 +3,7 @@ import Utility from "./utility";
 class VoteManager {
   constructor (itemType) {
     this._type = itemType;
+    this.displayType = itemType.charAt(0).toUpperCase() + itemType.slice(1);
     this.allSelected = false;
     this.init();
   }
@@ -42,13 +43,15 @@ class VoteManager {
 
   selectedVotes () {
     return $("#votes>tbody>tr.selected").map(function () {
-      return $(this).attr("id").substr(1);
+      return $(this).attr("id").substring(1);
     }).get();
   }
 
   lockVotes () {
     const votes = this.selectedVotes();
     if (!votes.length) return;
+    if (!confirm(`Are you sure that you want to lock ${votes.length} votes?`)) return;
+
     $.ajax({
       url: `/${this._type}_votes/lock.json`,
       method: "post",
@@ -56,13 +59,15 @@ class VoteManager {
         ids: votes.join(","),
       },
     }).done(() => {
-      Utility.notice(`${this._type} votes locked.`);
+      Utility.notice(`${this.displayType} votes locked.`);
     });
   }
 
   deleteVotes () {
     const votes = this.selectedVotes();
     if (!votes.length) return;
+    if (!confirm(`Are you sure that you want to delete ${votes.length} votes?`)) return;
+
     $.ajax({
       url: `/${this._type}_votes/delete.json`,
       method: "post",
@@ -70,7 +75,7 @@ class VoteManager {
         ids: votes.join(","),
       },
     }).done(() => {
-      Utility.notice(`${this._type} votes deleted.`);
+      Utility.notice(`${this.displayType} votes deleted.`);
     });
   }
 }

@@ -1,20 +1,12 @@
-
-
 div#c-static {
   div#a-site-map {
-    width: 80em;
+    display: flex;
+    flex-flow: row wrap;
+    max-width: 80em;
 
     section {
       width: 20em;
-      float: left;
-
-      h1 {
-        font-size: $h3-size;
-      }
-
-      ul {
-        margin-bottom: 1.5em;
-      }
+      ul { margin-bottom: 1.5em; }
     }
   }
 }

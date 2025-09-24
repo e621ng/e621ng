@@ -4,7 +4,7 @@ class StorageManager::Local < StorageManager
   DEFAULT_PERMISSIONS = 0644
 
   def store(io, dest_path)
-    temp_path = dest_path + "-" + SecureRandom.uuid + ".tmp"
+    temp_path = "#{dest_path}-#{SecureRandom.uuid}.tmp"
 
     FileUtils.mkdir_p(File.dirname(temp_path))
     io.rewind
@@ -30,40 +30,48 @@ class StorageManager::Local < StorageManager
 
   def move_file_delete(post)
     IMAGE_TYPES.each do |type|
-      path = file_path(post, post.file_ext, type, false)
-      new_path = file_path(post, post.file_ext, type, true)
+      path = post_file_path(post, type, protect: false)
+      new_path = post_file_path(post, type, protect: true)
       move_file(path, new_path)
     end
     return unless post.is_video?
-    Danbooru.config.video_rescales.each_key do |k|
-      ['mp4','webm'].each do |ext|
-        path = file_path(post, ext, :scaled, false, scale_factor: k.to_s)
-        new_path = file_path(post, ext, :scaled, true, scale_factor: k.to_s)
-        move_file(path, new_path)
-      end
+
+    # Move variants
+    post.video_sample_list[:variants].each_key do
+      path = post_file_path(post, :scaled, scale: "alt", protect: false)
+      new_path = post_file_path(post, :scaled, scale: "alt", protect: true)
+      move_file(path, new_path)
     end
-    path = file_path(post, 'mp4', :original, false)
-    new_path = file_path(post, 'mp4', :original, true)
-    move_file(path, new_path)
+
+    # Move sampled videos
+    Danbooru.config.video_samples.each_key do |scale|
+      path = post_file_path(post, :scaled, scale: scale, protect: false)
+      new_path = post_file_path(post, :scaled, scale: scale, protect: true)
+      move_file(path, new_path)
+    end
   end
 
   def move_file_undelete(post)
     IMAGE_TYPES.each do |type|
-      path = file_path(post, post.file_ext, type, true)
-      new_path = file_path(post, post.file_ext, type, false)
+      path = post_file_path(post, type, protect: true)
+      new_path = post_file_path(post, type, protect: false)
       move_file(path, new_path)
     end
     return unless post.is_video?
-    Danbooru.config.video_rescales.each_key do |k|
-      ['mp4','webm'].each do |ext|
-        path = file_path(post, ext, :scaled, true, scale_factor: k.to_s)
-        new_path = file_path(post, ext, :scaled, false, scale_factor: k.to_s)
-        move_file(path, new_path)
-      end
+
+    # Move variants
+    post.video_sample_list[:variants].each_key do
+      path = post_file_path(post, :scaled, scale: "alt", protect: true)
+      new_path = post_file_path(post, :scaled, scale: "alt", protect: false)
+      move_file(path, new_path)
     end
-    path = file_path(post, 'mp4', :original, true)
-    new_path = file_path(post, 'mp4', :original, false)
-    move_file(path, new_path)
+
+    # Move sampled videos
+    Danbooru.config.video_samples.each_key do |scale|
+      path = post_file_path(post, :scaled, scale: scale, protect: true)
+      new_path = post_file_path(post, :scaled, scale: scale, protect: false)
+      move_file(path, new_path)
+    end
   end
 
   private

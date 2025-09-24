@@ -17,7 +17,14 @@ class UserPresenter
 
   def ban_reason
     if user.is_banned?
-      "#{user.recent_ban.reason}\n\n Expires #{user.recent_ban.expires_at || 'never'} (#{user.bans.count} bans total)"
+      text = "#{user.recent_ban.reason}\n\n"
+      if user.recent_ban.expires_at.nil?
+        text << "Expires never (#{user.bans.count} bans total)"
+        text << "\nCreated on #{user.recent_ban.created_at&.strftime('%Y-%m-%d %H:%M')}" if user.recent_ban.expires_at.nil?
+      else
+        text << "Expires on #{user.recent_ban.expires_at&.strftime('%Y-%m-%d %H:%M')} (#{user.bans.count} bans total)"
+      end
+      text
     end
   end
 
@@ -53,8 +60,15 @@ class UserPresenter
     = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
   end
 
+  def upload_limit_short
+    return "0 / 0" if user.no_uploading?
+    return "none" if user.can_upload_free?
+    "#{user.upload_limit} / #{user.upload_limit_max}"
+  end
+
   def uploads
-    Post.tag_match("user:#{user.name}").limit(6)
+    posts = Post.tag_match("user:#{user.name}").limit(8)
+    PostsDecorator.decorate_collection(posts)
   end
 
   def has_uploads?
@@ -62,8 +76,9 @@ class UserPresenter
   end
 
   def favorites
-    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(50).pluck(:post_id)[0..5]
-    Post.where(id: ids)
+    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(8).pluck(:post_id)
+    posts = Post.where(id: ids).sort_by { |post| ids.index(post.id) }
+    PostsDecorator.decorate_collection(posts)
   end
 
   def has_favorites?
@@ -148,16 +163,19 @@ class UserPresenter
     positive = user.positive_feedback_count
     neutral = user.neutral_feedback_count
     negative = user.negative_feedback_count
+    deleted = CurrentUser.user.is_staff? ? user.deleted_feedback_count : 0
 
-    return "0" unless positive > 0 || neutral > 0 || negative > 0
+    return "0" if (positive + neutral + negative + deleted) == 0
 
     total_class = (positive - negative) > 0 ? "user-feedback-positive" : "user-feedback-negative"
     total_class = "" if (positive - negative) == 0
-    positive_html = %{<span class="user-feedback-positive">#{positive} Pos</span>}.html_safe if positive > 0
-    neutral_html = %{<span class="user-feedback-neutral">#{neutral} Neutral</span>}.html_safe if neutral > 0
-    negative_html = %{<span class="user-feedback-negative">#{negative} Neg</span>}.html_safe if negative > 0
+    positive_html = %{<span class="user-feedback-positive">#{positive}</span>}.html_safe if positive > 0
+    neutral_html = %{<span class="user-feedback-neutral">#{neutral}</span>}.html_safe if neutral > 0
+    negative_html = %{<span class="user-feedback-negative">#{negative}</span>}.html_safe if negative > 0
+    deleted_html = %{<span class="user-feedback-deleted">#{deleted}</span>}.html_safe if deleted > 0
+    list_html = "#{positive_html} #{neutral_html} #{negative_html} #{deleted_html}".strip
 
-    %{<span class="#{total_class}">#{positive - negative}</span> ( #{positive_html} #{neutral_html} #{negative_html} ) }.html_safe
+    %{<span class="#{total_class}">#{positive - negative}</span> (#{list_html})}.html_safe
   end
 
   def previous_names(template)

@@ -3,21 +3,10 @@
 class UsersController < ApplicationController
   respond_to :html, :json
   skip_before_action :api_check
-  before_action :logged_in_only, only: [:edit, :upload_limit, :update]
-  before_action :member_only, only: [:custom_style, :upload_limit]
-
-  def new
-    raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
-    return access_denied("Signups are disabled") unless Danbooru.config.enable_signups?
-    @user = User.new
-    respond_with(@user)
-  end
-
-  def edit
-    @user = User.find(CurrentUser.id)
-    check_privilege(@user)
-    respond_with(@user)
-  end
+  before_action :logged_in_only, only: %i[edit upload_limit update]
+  before_action :member_only, only: %i[custom_style]
+  before_action :janitor_only, only: %i[toggle_uploads fix_counts]
+  before_action :admin_only, only: %i[flush_favorites]
 
   def index
     if params[:name].present?
@@ -33,35 +22,80 @@ class UsersController < ApplicationController
     end
   end
 
-  def home
-    @user = CurrentUser.user
-  end
-
-  def search
-  end
-
-  def upload_limit
-    @presenter = UserPresenter.new(CurrentUser.user)
-    pieces = CurrentUser.upload_limit_pieces
-    @approved_count = pieces[:approved]
-    @deleted_count = pieces[:deleted]
-    @pending_count = pieces[:pending]
-    respond_with(CurrentUser.user)
-  end
-
   def show
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
     @presenter = UserPresenter.new(@user)
     respond_with(@user, methods: @user.full_attributes)
   end
 
+  def new
+    raise User::PrivilegeError, "Already signed in" unless CurrentUser.is_anonymous?
+    return access_denied("Signups are disabled") unless Danbooru.config.enable_signups?
+    @user = User.new
+    respond_with(@user)
+  end
+
+  def edit
+    @user = User.find(CurrentUser.id)
+    check_privilege(@user)
+    respond_with(@user)
+  end
+
+  def home
+    @user = CurrentUser.user
+  end
+
+  def settings
+    @user = CurrentUser.user
+    check_privilege(@user)
+
+    render :edit
+  end
+
+  def search
+  end
+
+  def upload_limit
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    @presenter = UserPresenter.new(@user)
+
+    @page = WikiPage.titled("e621:upload_limit").presence || WikiPage.new(body: "Wiki page \"e621:upload_limit\" not found.")
+    respond_with(@user, methods: @user.full_attributes)
+  end
+
+  def toggle_uploads
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    @user.no_uploading = !@user.no_uploading
+    ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
+    @user.save
+
+    redirect_to user_path(@user)
+  end
+
+  def flush_favorites
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    FlushFavoritesJob.perform_later(@user.id)
+    ModAction.log(:user_flush_favorites, { user_id: @user.id })
+
+    redirect_to user_path(@user)
+  end
+
+  def fix_counts
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+
+    @user.refresh_counts!
+    flash[:notice] = "Counts have been refreshed"
+
+    redirect_to user_path(@user)
+  end
+
   def create
-    raise User::PrivilegeError.new("Already signed in") unless CurrentUser.is_anonymous?
-    raise User::PrivilegeError.new("Signups are disabled") unless Danbooru.config.enable_signups?
+    raise User::PrivilegeError, "Already signed in" unless CurrentUser.is_anonymous?
+    raise User::PrivilegeError, "Signups are disabled" unless Danbooru.config.enable_signups?
     User.transaction do
-      @user = User.new(user_params(:create).merge({last_ip_addr: request.remote_ip}))
+      @user = User.new(user_params(:create).merge({ last_ip_addr: request.remote_ip }))
       @user.validate_email_format = true
-      @user.email_verification_key = '1' if Danbooru.config.enable_email_verification?
+      @user.email_verification_key = "1" if Danbooru.config.enable_email_verification?
       if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
         @user.save
         if @user.errors.empty?
@@ -71,7 +105,7 @@ class UsersController < ApplicationController
             Maintenance::User::EmailConfirmationMailer.confirmation(@user).deliver_now
           end
         else
-          flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join("; ")}"
+          flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join('; ')}"
         end
         set_current_user
         respond_with(@user)
@@ -95,11 +129,9 @@ class UsersController < ApplicationController
     @user.update(user_params(:update))
     if @user.errors.any?
       flash[:notice] = @user.errors.full_messages.join("; ")
-    else
-      flash[:notice] = "Settings updated"
     end
     respond_with(@user) do |format|
-      format.html { redirect_back fallback_location: edit_user_path(@user) }
+      format.html { redirect_back fallback_location: settings_users_path }
     end
   end
 
@@ -112,7 +144,7 @@ class UsersController < ApplicationController
 
   def check_privilege(user)
     raise User::PrivilegeError unless user.id == CurrentUser.id || CurrentUser.is_admin?
-    raise User::PrivilegeError.new("Must verify account email") unless CurrentUser.is_verified?
+    raise User::PrivilegeError, "Must verify account email" unless CurrentUser.is_verified?
   end
 
   def user_params(context)
@@ -125,14 +157,14 @@ class UsersController < ApplicationController
       enable_privacy_mode disable_user_dmails blacklist_users show_post_statistics
       style_usernames show_hidden_comments
       enable_auto_complete
-      disable_cropped_thumbnails
       enable_safe_mode disable_responsive_mode
+      forum_notification_dot
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
-    permitted_params += [:profile_about, :profile_artinfo, :avatar_id] if CurrentUser.is_member? # Prevent editing when blocked
-    permitted_params += [:enable_compact_uploader] if context != :create && CurrentUser.post_upload_count >= 10
-    permitted_params += [:name, :email] if context == :create
+    permitted_params += %i[profile_about profile_artinfo avatar_id] if CurrentUser.is_member? # Prevent editing when blocked
+    permitted_params += %i[enable_compact_uploader] if context != :create && CurrentUser.post_upload_count >= 10
+    permitted_params += %i[name email] if context == :create
 
     params.require(:user).permit(permitted_params)
   end

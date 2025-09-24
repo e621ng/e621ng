@@ -2,19 +2,36 @@
 
 class StaticController < ApplicationController
   def privacy
-    @page = WikiPage.find_by(title: "e621:privacy_policy")
+    @page_name = "e621:privacy_policy"
+    @page = format_wiki_page(@page_name)
   end
 
   def terms_of_service
-    @page = WikiPage.find_by(title: "e621:terms_of_service")
+    @page_name = "e621:terms_of_service"
+    @page = format_wiki_page(@page_name)
   end
 
   def contact
-    @page = WikiPage.find_by(title: "e621:contact")
+    @page_name = "e621:contact"
+    @page = format_wiki_page(@page_name)
   end
 
   def takedown
-    @page = WikiPage.find_by(title: "e621:takedown")
+    @page_name = "e621:takedown"
+    @page = format_wiki_page(@page_name)
+  end
+
+  def avoid_posting
+    @page_name = "e621:avoid_posting_notice"
+    @page = format_wiki_page(@page_name)
+  end
+
+  def subscribestar
+    @page_name = "e621:subscribestar"
+    @page = format_wiki_page(@page_name)
+  end
+
+  def furid
   end
 
   def not_found
@@ -39,23 +56,19 @@ class StaticController < ApplicationController
       user = CurrentUser.user
       user.disable_responsive_mode = !user.disable_responsive_mode
       user.save
+    elsif cookies[:nmm]
+      cookies.delete(:nmm)
     else
-      if cookies[:nmm]
-        cookies.delete(:nmm)
-      else
-        cookies.permanent[:nmm] = '1'
-      end
+      cookies.permanent[:nmm] = "1"
     end
     redirect_back fallback_location: posts_path
   end
 
   def discord
-    unless CurrentUser.can_discord?
-      raise User::PrivilegeError.new("You must have an account for at least one week in order to join the Discord server.")
-      return
-    end
+    raise User::PrivilegeError, "You must have an account for at least one week in order to join the Discord server." unless CurrentUser.can_discord?
+
     if request.post?
-      time = (Time.now + 5.minute).to_i
+      time = (Time.now + 5.minutes).to_i
       secret = Danbooru.config.discord_secret
       # TODO: Proper HMAC
       hashed_values = Digest::SHA256.hexdigest("#{CurrentUser.name} #{CurrentUser.id} #{time} #{secret}")
@@ -63,5 +76,13 @@ class StaticController < ApplicationController
 
       redirect_to(Danbooru.config.discord_site + user_hash, allow_other_host: true)
     end
+  end
+
+  private
+
+  def format_wiki_page(name)
+    wiki = WikiPage.titled(name)
+    return WikiPage.new(body: "Wiki page \"#{name}\" not found.") if wiki.blank?
+    wiki
   end
 end

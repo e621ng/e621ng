@@ -8,10 +8,46 @@ module ApplicationHelper
     cookies[:nmm].present?
   end
 
-
   def diff_list_html(new, old, latest)
     diff = SetDiff.new(new, old, latest)
     render "diff_list", diff: diff
+  end
+
+  def decorated_nav_link_to(text, icon, url, **options)
+    klass = options.delete(:class)
+    title = options.delete(:title)
+
+    if nav_link_match(params[:controller], url)
+      klass = "#{klass} current"
+    end
+
+    id = "nav-#{text.downcase.gsub(/[^a-z ]/, '').parameterize}"
+
+    tag.li(id: id, class: klass, title: title) do
+      link_to(url, id: "#{id}-link", **options) do
+        concat svg_icon(icon)
+        concat " "
+        concat tag.span(text)
+      end
+    end
+  end
+
+  def custom_image_nav_link_to(text, image, url, **options)
+    klass = options.delete(:class)
+
+    if nav_link_match(params[:controller], url)
+      klass = "#{klass} current"
+    end
+
+    id = "nav-#{text.downcase.gsub(/[^a-z ]/, '').parameterize}"
+
+    tag.li(id: id, class: klass) do
+      link_to(url, id: "#{id}-link", **options) do
+        concat image_pack_tag(image)
+        concat " "
+        concat tag.span(text)
+      end
+    end
   end
 
   def nav_link_to(text, url, **options)
@@ -86,6 +122,10 @@ module ApplicationHelper
     time_tag(time.strftime("%Y-%m-%d %H:%M"), time)
   end
 
+  def compact_date(time)
+    time_tag(time.strftime("%Y-%m-%d"), time)
+  end
+
   def external_link_to(url, truncate: nil, strip_scheme: false, link_options: {})
     text = url
     text = text.gsub(%r!\Ahttps?://!i, "") if strip_scheme
@@ -117,7 +157,7 @@ module ApplicationHelper
   end
 
   def body_attributes(user = CurrentUser.user)
-    attributes = [:id, :name, :level, :level_string, :can_approve_posts?, :can_upload_free?, :per_page]
+    attributes = %i[id name level level_string can_approve_posts? can_upload_free? per_page]
     attributes += User::Roles.map { |role| :"is_#{role}?" }
 
     controller_param = params[:controller].parameterize.dasherize
@@ -125,12 +165,13 @@ module ApplicationHelper
 
     {
       lang: "en",
-      class: "c-#{controller_param} a-#{action_param} #{"resp" unless disable_mobile_mode?}",
+      class: "c-#{controller_param} a-#{action_param} #{'resp' unless disable_mobile_mode?}",
       data: {
         controller: controller_param,
         action: action_param,
-        **data_attributes_for(user, "user", attributes)
-      }
+        **data_attributes_for(user, "user", attributes),
+        hotkeys_enabled: CurrentUser.user.enable_keyboard_navigation?,
+      },
     }
   end
 
@@ -148,8 +189,8 @@ module ApplicationHelper
     post_id = user.avatar_id
     return "" unless post_id
     deferred_post_ids.add(post_id)
-    tag.div class: 'post-thumb placeholder', id: "tp-#{post_id}", 'data-id': post_id do
-      tag.img class: 'thumb-img placeholder', src: '/images/thumb-preview.png', height: 100, width: 100
+    tag.div class: "post-thumb placeholder", id: "tp-#{post_id}", data: { id: post_id } do
+      tag.img class: "thumb-img placeholder", src: "/images/thumb-preview.png", height: 150, width: 150
     end
   end
 

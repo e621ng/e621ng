@@ -29,13 +29,13 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       context "for a post that has already been uploaded" do
         setup do
           as(@user) do
-            @post = create(:post, source: "http://google.com/aaa")
+            @post = create(:post, source: "https://google.com/aaa")
           end
         end
 
         should "initialize the post" do
           assert_difference(-> { Upload.count }, 0) do
-            get_auth new_upload_path, @user, params: { url: "http://google.com/aaa" }
+            get_auth new_upload_path, @user, params: { url: "https://google.com/aaa" }
             assert_response :success
           end
         end
@@ -43,11 +43,11 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
       context "when uploads are disabled" do
         setup do
-          DangerZone.min_upload_level = User::Levels::PRIVILEGED
+          Security::Lockdown.uploads_min_level = User::Levels::PRIVILEGED
         end
 
         teardown do
-          DangerZone.min_upload_level = User::Levels::MEMBER
+          Security::Lockdown.uploads_min_level = User::Levels::MEMBER
         end
 
         should "prevent uploads" do

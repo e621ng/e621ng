@@ -1,13 +1,26 @@
-<div id="posts" class="user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
-  <div id="posts-container">
+<div id="posts" class="post-index-gallery">
+  <% if @wiki_text.present? %>
+    <section class="wiki-excerpt loading hidden">
+      <h3 role="button" class="wiki-excerpt-toggle">
+        <%= svg_icon(:chevron_right) %>
+        <span><%= @wiki_page.pretty_title %></span>
+        <button class="st-button icon wiki-excerpt-dismiss">
+          <%= svg_icon(:times) %>
+        </button>
+      </h3>
+      <%= format_text(@wiki_text, allow_color: true, max_thumbs: 0) %>
+      <a href="<%= wiki_page_path(@wiki_page) %>" class="wiki-excerpt-readmore"><span>Read More</span></a>
+    </section>
+  <% end %>
+  <section class="posts-container">
     <% if @posts.empty? %>
       <%= render "posts/blank" %>
     <% else %>
       <% @posts.each do |post| %>
-        <%= post.preview_html(self, {tags: @post_set.public_tag_string, show_cropped: true, stats: CurrentUser.show_post_statistics?}) %>
+        <%= post.preview_html(self, {tags: @post_set.tag_string, show_cropped: true, stats: CurrentUser.show_post_statistics?}) %>
       <% end %>
     <% end %>
-  </div>
+  </section>
 
   <% if post_set.hidden_posts.present? %>
     <div class="info hidden-posts-notice">

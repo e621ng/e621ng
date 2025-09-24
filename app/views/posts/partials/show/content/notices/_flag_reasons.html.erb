@@ -1,0 +1,37 @@
+<%# locals: (post:) -%>
+<ul>
+  <% post.flags.includes(:creator).order(id: :desc).each do |flag| %>
+    <li>
+      <%= flag.is_deletion ? "[DELETION]" : "[FLAG]" %>
+      <%= format_text(flag.reason, inline: true) unless flag.reason.empty? %>
+
+      <% if CurrentUser.can_view_flagger_on_post?(flag) %>
+        - <%= link_to_user(flag.creator) %>
+        <% if CurrentUser.is_admin? %>
+          (<%= link_to_ip(flag.creator_ip_addr) %>)
+        <% end %>
+      <% end %>
+
+      - <%= time_ago_in_words_tagged(flag.created_at) %>
+
+      <% if flag.is_resolved? %>
+        <span class="resolved">RESOLVED</span>
+      <% end %>
+      
+      <% if flag.note.present? && flag.can_see_note? %>
+        <div class="post-flag-note">
+          <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
+          <div class="dtext-container post-flag-note-body">
+            <% if CurrentUser.is_staff? %>
+              <%= link_to svg_icon(:trash), clear_note_post_flag_path(flag), method: :post, data: { confirm: "Are you sure you want to clear this note?" }, class: "post-flag-clear-note-link" %>
+            <% end %>
+            <%= format_text flag.note %>
+          </div>
+        </div>
+      <% end %>
+    </li>
+    <% if post.is_deleted? && flag.is_deletion && !CurrentUser.is_janitor? %>
+      <% break %>
+    <% end %>
+  <% end %>
+</ul>

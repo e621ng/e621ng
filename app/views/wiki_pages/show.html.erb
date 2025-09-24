@@ -21,23 +21,25 @@
       <% end %>
 
       <div id="wiki-page-body" class="dtext-container">
-        <% if wiki_content.visible? %>
-          <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>
-
-          <% if wiki_content.artist %>
-            <p><%= link_to "View artist", wiki_content.artist %></p>
-          <% end %>
-
-          <%= wiki_page_alias_and_implication_list(wiki_content) %>
+        <% if wiki_content.body.present? %>
+          <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>  
         <% else %>
-          <p>This artist has requested removal of their information.</p>
+          <p>This wiki page is empty. <%= link_to "Click here to add details", edit_wiki_page_path(@wiki_page) %>.</p>
         <% end %>
+
+        <% if wiki_content.artist %>
+          <p><%= link_to "View artist", wiki_content.artist %></p>
+        <% end %>
+
+        <%= wiki_page_alias_and_implication_list(wiki_content) %>
       </div>
 
         <%= wiki_page_post_previews(wiki_content) %>
     </section>
   </div>
 </div>
+
+<% render(partial: "static/embed", locals: { record: wiki_content, name: wiki_content.pretty_title, description: wiki_content.body.present? ? strip_tags(format_text(wiki_content.body)).truncate(200) : "" }) %>
 
 <% content_for(:page_title) do %>
   Wiki - <%= wiki_content.pretty_title %>

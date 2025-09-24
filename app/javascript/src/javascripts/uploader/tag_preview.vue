@@ -1,45 +1,127 @@
 <template>
-    <div>
-        <div v-show="loading">Fetching tags...</div>
-        <div class="related-tags flex-wrap">
-            <div class="related-items" v-for="sTags, i in splitTags" :key="i">
-                <tag-preview-tag v-for="tag, $idx in sTags" :key="$idx" :tag="tag"></tag-preview-tag>
-            </div>
-        </div>
-        <div>
-            <a href="#" @click.prevent="close">Close Preview</a>
-        </div>
+  <div class="tag-preview-area" :disabled="!enabled">
+    <div class="tag-preview" v-if="tagRecords.length && enabled">
+      <tag-preview-tag v-for="(tag, i) in tagRecords" :key="i" :tag="tag"></tag-preview-tag>
     </div>
+    <a href="#" @click.prevent="togglePreview()">{{ enabled ? 'Hide' : 'Show' }} tag preview</a>
+  </div>
 </template>
 
 <script>
-  import tagPreviewTag from './tag_preview_tag.vue';
+import tagPreviewTag from './tag_preview_tag.vue';
+import LStorage from '../utility/storage';
 
-  export default {
-    props: ['tags', 'loading'],
-    components: {
-      'tag-preview-tag': tagPreviewTag
+export default {
+  props: ['tags'],
+  components: {
+    'tag-preview-tag': tagPreviewTag,
+  },
+  data() {
+    return {
+      loading: false,
+      tagCache: {},
+      _tagPreviewDebounce: null,
+      enabled: LStorage.Posts.TagPreview,
+    };
+  },
+  computed: {
+    tagsArray() {
+      return [...new Set(this.tags.toLowerCase().replace(/\r?\n|\r/g, ' ').trim().split(/\s+/).filter(Boolean))];
     },
-    methods: {
-      close: function () {
-        this.$emit('close');
-      }
-    },
-    computed: {
-      splitTags: function () {
-        var newTags = this.tags.concat([]);
-        newTags.sort(function (a, b) {
-          return a.a === b.a ? 0 : (a.a < b.a ? -1 : 1);
-        });
-        var chunkArray = function (arr, size) {
-          var chunks = [];
-          for (var i = 0; i < arr.length; i += size) {
-            chunks.push(arr.slice(i, i + size));
+    tagRecords() {
+      const result = [];
+      const implications = new Set();
+
+      for (const input of this.tagsArray) {
+        const tag = this.tagCache[input];
+        if (tag) {
+          result.push(tag);
+
+          if (tag.implies && Array.isArray(tag.implies)) {
+            for (const implication of tag.implies) {
+              implications.add(implication);
+            }
           }
-          return chunks;
-        };
-        return chunkArray(newTags, 15);
+        } else {
+          result.push({
+            id: -1,
+            name: input,
+            category: 0,
+          });
+        }
+      }
+
+      const seen = new Set();
+      for (const tag of result) {
+        const name = tag.alias || tag.resolved || tag.name;
+        if (seen.has(name)) {
+          tag.duplicate = true;
+        } else {
+          seen.add(name);
+        }
+      }
+
+      // Aliases do not need to be added. They will be displayed by their original input via the alias field.
+
+      for (const implication of implications) {
+        // Any tag implied by any other is always marked as implied. 
+        // This is more useful for quick relation mapping and discovery of the existence of implications.
+        const current = result.find(tag => tag.name === implication);
+        if (current) {
+          current.implied = true;
+        } else {
+          const implied = this.tagCache[implication];
+          if (!implied) continue;
+          result.push({ ...implied, implied: true });
+        }
+      }
+
+      return result;
+    },
+  },
+  watch: {
+    tags: {
+      immediate: true,
+      handler() {
+        clearTimeout(this._tagPreviewDebounce);
+        this._tagPreviewDebounce = setTimeout(() => {
+          if (this.enabled) {
+            this.fetchTagPreview();
+          }
+        }, 1000);
       }
     }
-  }
+  },
+  methods: {
+    togglePreview() {
+      this.enabled = !this.enabled;
+      LStorage.Posts.TagPreview = this.enabled;
+      if (this.enabled) {
+        this.fetchTagPreview();
+      }
+    },
+    fetchTagPreview() {
+      const missing = this.tagsArray.filter(t => !this.tagCache[t]);
+      if (missing.length === 0) return;
+
+      this.loading = true;
+      $.ajax('/tags/preview.json', {
+        method: 'POST',
+        data: { tags: missing.join(' ') },
+        success: (result) => {
+          for (const tag of result) {
+            this.tagCache[tag.name] = tag;
+          }
+          this.loading = false;
+        },
+        error: (result) => {
+          this.loading = false;
+          let details = result.responseText || "Unknown error";
+          Danbooru.error("Error loading tag preview: " + details);
+          console.error("Tag preview error:", result);
+        },
+      });
+    },
+  },
+};
 </script>

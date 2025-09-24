@@ -11,6 +11,8 @@ require "shoulda-context"
 require "shoulda-matchers"
 require "webmock/minitest"
 
+require_relative "test_helpers/source_test_helper"
+
 require "sidekiq/testing"
 Sidekiq::Testing.fake!
 # https://github.com/sidekiq/sidekiq/issues/5907#issuecomment-1536457365
@@ -46,6 +48,7 @@ PostVersion.document_store.create_index!(delete_existing: true)
 class ActiveSupport::TestCase
   include ActionDispatch::TestProcess::FixtureFile
   include FactoryBot::Syntax::Methods
+  extend SourceTestHelper
 
   setup do
     Socket.stubs(:gethostname).returns("www.example.com")
@@ -95,7 +98,7 @@ end
 
 class ActionDispatch::IntegrationTest
   def method_authenticated(method_name, url, user, options)
-    post session_path, params: { name: user.name, password: user.password }
+    post session_path, params: { session: { name: user.name, password: user.password } }
     self.send(method_name, url, **options)
   end
 

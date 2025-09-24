@@ -2,8 +2,64 @@ div#c-post-flags {
   tr.flag-resolved-true {
     background: $negative-record-background !important;
   }
+}
 
-  .flag-reason-title, .flag-reason-text {
-    white-space: pre-wrap;
+.post-flag-note {
+  background: themed("color-section-lighten-5");
+  margin: 0.5rem 0;
+  @include st-radius;
+
+  &-header {
+    display: none; // flex
+    gap: 0.25rem;
+
+    padding: 0.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+
+    svg {
+      width: 1.5rem;
+      height: 1.5rem;
+      margin: -0.25rem;
+    }
   }
+
+  &-body {
+    padding: 0.5rem;
+  }
+
+  .post-flag-clear-note-link {
+    float: right;
+    display: flex;
+    align-items: center;
+    height: 1.25rem;
+
+    svg {
+      height: 1.25rem;
+      margin: -0.125rem 0;
+    }
+  }
+
+  &.expandable {
+    .post-flag-note-header { display: flex; }
+    .post-flag-note-body {
+      padding-top: 0;
+      display: none;
+    }
+    &.expanded {
+      .post-flag-note-header svg {
+        transform: rotate(90deg);
+      }
+      .post-flag-note-body {
+        display: block;
+      }
+    }
+  }
+}
+
+  // Overrides notices style overrides
+div#c-posts div.notice .dtext-container.post-flag-note p {
+  margin-bottom: 1em;
+  &:last-child { margin-bottom: 0; }
 }

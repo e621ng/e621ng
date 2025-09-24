@@ -1,33 +1,41 @@
 import LStorage from "./utility/storage";
+import Page from "./utility/page";
 
 const Mascots = {
   current: 0,
 };
 
-function showMascot (mascot) {
-  $("body").css("background-image", "url(" + mascot.background_url + ")");
-  $("body").css("background-color", mascot.background_color);
-  $(".mascotbox").css("background-image", "url(" + mascot.background_url + ")");
-  $(".mascotbox").css("background-color", mascot.background_color);
+Mascots.showMascot = function (mascot) {
+  const $body = $("body").css({
+    "--bg-image": `url("${mascot.background_url}")`,
+    "--bg-color": mascot.background_color,
+    "--fg-color": mascot.foreground_color,
+  });
 
-  const artistLink = $("<span>").text("Mascot by ").append($("<a>").text(mascot.artist_name).attr("href", mascot.artist_url));
-  $("#mascot_artist").empty().append(artistLink);
-}
+  if (mascot.is_layered)
+    $body.attr("layered", "true");
+  else $body.removeAttr("layered");
 
-function changeMascot () {
+  $("#mascot-artist")
+    .text("Mascot by ")
+    .append($("<a>").text(mascot.artist_name).attr("href", mascot.artist_url));
+};
+
+Mascots.changeMascot = function (event) {
+  event.preventDefault();
+
   const mascots = window.mascots;
 
   const availableMascotIds = Object.keys(mascots);
   const currentMascotIndex = availableMascotIds.indexOf(Mascots.current + "");
 
   Mascots.current = availableMascotIds[(currentMascotIndex + 1) % availableMascotIds.length];
-  showMascot(mascots[Mascots.current]);
+  Mascots.showMascot(mascots[Mascots.current]);
 
   LStorage.Site.Mascot = Mascots.current;
-}
+};
 
-function initMascots () {
-  $("#change-mascot").on("click", changeMascot);
+Mascots.initMascots = function () {
   const mascots = window.mascots;
   Mascots.current = LStorage.Site.Mascot;
   if (!mascots[Mascots.current]) {
@@ -35,10 +43,14 @@ function initMascots () {
     const mascotIndex = Math.floor(Math.random() * availableMascotIds.length);
     Mascots.current = availableMascotIds[mascotIndex];
   }
-  showMascot(mascots[Mascots.current]);
-}
+  Mascots.showMascot(mascots[Mascots.current]);
+
+  $("#mascot-swap").on("click", Mascots.changeMascot);
+};
 
 $(function () {
-  if ($("#c-static > #a-home").length)
-    initMascots();
+  if (!Page.matches("static", "home")) return;
+  Mascots.initMascots();
 });
+
+export default Mascots;

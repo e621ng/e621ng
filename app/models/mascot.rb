@@ -6,14 +6,14 @@ class Mascot < ApplicationRecord
   array_attribute :available_on, parse: /[^,]+/, join_character: ","
   attr_accessor :mascot_file
 
-  validates :display_name, :background_color, :artist_url, :artist_name, presence: true
+  validates :display_name, :background_color, :foreground_color, :artist_url, :artist_name, presence: true
   validates :artist_url, format: { with: %r{\Ahttps?://}, message: "must start with http:// or https://" }
   validates :mascot_file, presence: true, on: :create
   validate :set_file_properties
   validates :md5, uniqueness: true
   validate if: :mascot_file do |mascot|
     max_file_sizes = { "jpg" => 500.kilobytes, "png" => 500.kilobytes }
-    FileValidator.new(mascot, mascot_file.path).validate(max_file_sizes: max_file_sizes, max_width: 1_000, max_height: 1_000)
+    FileValidator.new(mascot, mascot_file.path).validate(max_file_sizes: max_file_sizes, max_width: 1_500, max_height: 1_500)
   end
 
   after_commit :invalidate_cache
@@ -38,7 +38,7 @@ class Mascot < ApplicationRecord
     Cache.fetch("active_mascots", expires_in: 1.day) do
       query = Mascot.where(active: true).where("? = ANY(available_on)", Danbooru.config.app_name)
       mascots = query.map do |mascot|
-        mascot.slice(:id, :background_color, :artist_url, :artist_name).merge(background_url: mascot.url_path)
+        mascot.slice(:id, :background_color, :foreground_color, :is_layered, :artist_url, :artist_name).merge(background_url: mascot.url_path)
       end
       mascots.index_by { |mascot| mascot["id"] }
     end
@@ -80,7 +80,7 @@ class Mascot < ApplicationRecord
 
   def self.search(params)
     q = super
-    q.order("lower(artist_name)")
+    q.order("id asc")
   end
 
   def method_attributes

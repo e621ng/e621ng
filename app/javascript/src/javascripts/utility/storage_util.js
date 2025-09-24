@@ -13,6 +13,11 @@ StorageUtils.bootstrap = function (object, accessor, key, fallback) {
   });
 };
 
+StorageUtils.bootstrapSome = function (object, accessors = []) {
+  for (const one of accessors)
+    StorageUtils.bootstrap(object, one, object[one][0], object[one][1]);
+};
+
 StorageUtils.bootstrapMany = function (object) {
   for (const [accessor, params] of Object.entries(object))
     StorageUtils.bootstrap(object, accessor, params[0], params[1]);
@@ -33,6 +38,7 @@ StorageUtils.getProxy = function (key, type, fallback) {
 };
 
 StorageUtils.setProxy = function (key, value, type, fallback) {
+  if (type == "boolean" && typeof value != "boolean") value = value === "true";
   if (value == fallback) {
     localStorage.removeItem(key);
     return;

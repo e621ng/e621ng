@@ -5,11 +5,7 @@
     <section id="content">
       <h1>Edit Wiki</h1>
 
-      <% if @wiki_page.visible? %>
-        <%= render "form" %>
-      <% else %>
-        <p>The artist requested removal of this page.</p>
-      <% end %>
+      <%= render "form" %>
 
       <%= wiki_page_alias_and_implication_list(@wiki_page)%>
       <%= wiki_page_post_previews(@wiki_page) %>

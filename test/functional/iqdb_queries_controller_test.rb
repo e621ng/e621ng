@@ -13,7 +13,7 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
       context "with a url parameter" do
         should "render a response" do
           post = create(:post)
-          create(:upload_whitelist, pattern: "https://google.com/*")
+          create(:upload_whitelist, domain: "google.com")
           stub_request(:get, "https://google.com/foo.jpg")
             .to_return(body: file_fixture("test.jpg").read)
           response = [{ "post_id" => post.id, "score" => 80 }]

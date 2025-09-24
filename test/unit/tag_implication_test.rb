@@ -5,9 +5,9 @@ require "test_helper"
 class TagImplicationTest < ActiveSupport::TestCase
   context "A tag implication" do
     setup do
-      user = create(:admin_user)
-      CurrentUser.user = user
-      @user = create(:user)
+      @admin = create(:admin_user)
+      CurrentUser.user = @admin
+      @user = create(:user, created_at: 1.month.ago)
     end
 
     context "on validation" do
@@ -54,6 +54,58 @@ class TagImplicationTest < ActiveSupport::TestCase
 
       should "get the right count" do
         assert_equal(1, @implication.estimate_update_count)
+      end
+    end
+
+    context "#approvable_by?" do
+      setup do
+        @mod = create(:moderator_user)
+        @bd = create(:bd_staff_user)
+        @ti = as(@user) { create(:tag_implication, status: "pending") }
+        @dnp = as(@bd) { create(:avoid_posting) }
+        @ti2 = as(@user) { create(:tag_implication, antecedent_name: @dnp.artist_name, consequent_name: "ccc", status: "pending") }
+        @ti3 = as(@user) { create(:tag_implication, antecedent_name: "ddd", consequent_name: @dnp.artist_name, status: "pending") }
+      end
+
+      should "not allow creator" do
+        assert_equal(false, @ti.approvable_by?(@user))
+      end
+
+      should "allow admins" do
+        assert_equal(true, @ti.approvable_by?(@admin))
+      end
+
+      should "now allow mods" do
+        assert_equal(false, @ti.approvable_by?(@mod))
+      end
+
+      should "not allow admins if antecedent/consequent is dnp" do
+        assert_equal(false, @ti2.approvable_by?(@admin))
+        assert_equal(false, @ti3.approvable_by?(@admin))
+      end
+
+      should "allow bd staff" do
+        assert_equal(true, @ti2.approvable_by?(@bd))
+        assert_equal(true, @ti3.approvable_by?(@bd))
+      end
+    end
+
+    context "#deletable_by?" do
+      setup do
+        @mod = create(:moderator_user)
+        @ti = as(@user) { create(:tag_implication, status: "pending") }
+      end
+
+      should "allow creator" do
+        assert_equal(true, @ti.deletable_by?(@user))
+      end
+
+      should "allow admins" do
+        assert_equal(true, @ti.deletable_by?(@admin))
+      end
+
+      should "now allow mods" do
+        assert_equal(false, @ti.deletable_by?(@mod))
       end
     end
 

@@ -1,4 +1,6 @@
+import Hotkeys from "./hotkeys";
 import Utility from "./utility";
+import PostsShowToolbar from "./views/PostsShowToolbar";
 
 let Note = {
   Box: {
@@ -108,6 +110,26 @@ let Note = {
           e.stopPropagation();
         },
       );
+
+      if (Utility.meta("current-user-name") !== "Anonymous") {
+        $note_box.on("dblclick.danbooru", function (e) {
+          if (e.target.tagName !== "A") {
+            var note_id = $note_box.data("id");
+            var note_body = Note.Body.find(note_id);
+            Note.Edit.show(note_body);
+          }
+          e.stopPropagation();
+        });
+      } else {
+        $note_box.on("dblclick.danbooru", function (e) {
+          var note_id = $note_box.data("id");
+          var note_body = Note.Body.find(note_id);
+          if (note_body.tagName !== "A") {
+            Utility.error("You must be logged in to edit notes");
+          }
+          e.stopPropagation();
+        });
+      }
     },
 
     find: function (id) {
@@ -518,6 +540,8 @@ let Note = {
       if (Note.TranslationMode.active) {
         Note.TranslationMode.stop(e);
       } else {
+        PostsShowToolbar.toggleNotes(true);
+        $(".ptbr-notes, .ptbr-notes-button").removeClass("hidden");
         Note.TranslationMode.start(e);
       }
     },
@@ -543,7 +567,7 @@ let Note = {
       $(document).on("mouseup.danbooru.note", Note.TranslationMode.Drag.stop);
       $("#mark-as-translated-section").show();
 
-      Utility.notice("Translation mode is on. Drag on the image to create notes. <a href=\"#\">Turn translation mode off</a> (shortcut is <span class=\"key\">n</span>).");
+      Utility.notice(`Translation mode is on. Drag on the image to create notes. <a href="#">Turn translation mode off</a> (shortcut is <span class="key">${Hotkeys.getKeyString("note")}</span>).`);
       $("#notice a:contains(Turn translation mode off)").on("click.danbooru", Note.TranslationMode.stop);
     },
 
@@ -752,7 +776,6 @@ let Note = {
 
   initialize_shortcuts: function () {
     $("#translate").on("click.danbooru", Note.TranslationMode.toggle);
-    $("#image").on("click.danbooru", Note.Box.toggle_all);
   },
 
   initialize_highlight: function () {

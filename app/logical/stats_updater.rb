@@ -27,14 +27,15 @@ class StatsUpdater
     stats[:average_posts_per_pool] = Pool.average(Arel.sql("cardinality(post_ids)")) || 0
     stats[:average_posts_per_set] = PostSet.average(Arel.sql("cardinality(post_ids)")) || 0
 
-    stats[:safe_posts] = Post.tag_match("status:any rating:s").count_only
-    stats[:questionable_posts] = Post.tag_match("status:any rating:q").count_only
-    stats[:explicit_posts] = Post.tag_match("status:any rating:e").count_only
-    stats[:jpg_posts] = Post.tag_match("status:any type:jpg").count_only
-    stats[:png_posts] = Post.tag_match("status:any type:png").count_only
-    stats[:gif_posts] = Post.tag_match("status:any type:gif").count_only
-    stats[:swf_posts] = Post.tag_match("status:any type:swf").count_only
-    stats[:webm_posts] = Post.tag_match("status:any type:webm").count_only
+    stats[:safe_posts] = Post.tag_match("rating:s", always_show_deleted: true).count_only
+    stats[:questionable_posts] = Post.tag_match("rating:q", always_show_deleted: true).count_only
+    stats[:explicit_posts] = Post.tag_match("rating:e", always_show_deleted: true).count_only
+    stats[:jpg_posts] = Post.tag_match("type:jpg", always_show_deleted: true).count_only
+    stats[:png_posts] = Post.tag_match("type:png", always_show_deleted: true).count_only
+    stats[:gif_posts] = Post.tag_match("type:gif", always_show_deleted: true).count_only
+    stats[:swf_posts] = Post.tag_match("type:swf", always_show_deleted: true).count_only
+    stats[:webm_posts] = Post.tag_match("type:webm", always_show_deleted: true).count_only
+    stats[:mp4_posts] = Post.tag_match("type:mp4", always_show_deleted: true).count_only
     stats[:average_file_size] = Post.average("file_size")
     stats[:total_file_size] = Post.sum("file_size")
     stats[:average_posts_per_day] = daily_average.call(stats[:total_posts])
@@ -61,7 +62,8 @@ class StatsUpdater
 
     stats[:total_forum_threads] = ForumTopic.count
     stats[:total_forum_posts] = ForumPost.maximum("id") || 0
-    stats[:average_posts_per_thread] = (stats[:total_forum_posts] / stats[:total_forum_threads]).round
+    stats[:average_posts_per_thread] = 0
+    stats[:average_posts_per_thread] = (stats[:total_forum_posts] / stats[:total_forum_threads]).round if stats[:total_forum_threads] > 0
     stats[:average_forum_posts_per_day] = daily_average.call(stats[:total_forum_posts])
 
     ### Blips ###

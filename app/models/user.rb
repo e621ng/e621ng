@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "zxcvbn"
+
 class User < ApplicationRecord
   class Error < Exception ; end
   class PrivilegeError < Exception
@@ -21,6 +23,9 @@ class User < ApplicationRecord
     :approver,
   ]
 
+  # unintended consequences
+  # * _has_mail -> forum_notification_dot
+  # * _no_feedback -> no_uploading
   BOOLEAN_ATTRIBUTES = %w[
     _show_avatars
     _blacklist_avatars
@@ -30,7 +35,7 @@ class User < ApplicationRecord
     show_hidden_comments
     show_post_statistics
     is_banned
-    _has_mail
+    forum_notification_dot
     receive_email_notifications
     enable_keyboard_navigation
     enable_privacy_mode
@@ -39,13 +44,13 @@ class User < ApplicationRecord
     _has_saved_searches
     can_approve_posts
     can_upload_free
-    disable_cropped_thumbnails
+    _disable_cropped_thumbnails
     _disable_mobile_gestures
     enable_safe_mode
     disable_responsive_mode
     _disable_post_tooltips
     no_flagging
-    _no_feedback
+    no_uploading
     disable_user_dmails
     enable_compact_uploader
     replacements_beta
@@ -65,12 +70,14 @@ class User < ApplicationRecord
   validates :email, length: { maximum: 100 }
   validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
+  normalizes :profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") }
   validates :name, user_name: true, on: :create
   validates :default_image_size, inclusion: { :in => %w(large fit fitv original) }
   validates :per_page, inclusion: { :in => 1..320 }
   validates :comment_threshold, presence: true
   validates :comment_threshold, numericality: { only_integer: true, less_than: 50_000, greater_than: -50_000 }
-  validates :password, length: { :minimum => 6, :if => ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? } }
+  validates :password, length: { minimum: 8, if: ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? } }
+  validate :password_is_secure, if: ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? }
   validates :password, confirmation: true
   validates :password_confirmation, presence: { if: ->(rec) { rec.new_record? || rec.old_password.present? } }
   validate :validate_ip_addr_is_not_banned, :on => :create
@@ -96,7 +103,7 @@ class User < ApplicationRecord
   has_many :bans, -> { order("bans.id desc") }
   has_many :dmails, -> { order("dmails.id desc") }, foreign_key: "owner_id"
   has_many :favorites, -> { order(id: :desc) }
-  has_many :feedback, -> { active }, class_name: "UserFeedback", dependent: :destroy
+  has_many :feedback, class_name: "UserFeedback", dependent: :destroy
   has_many :forum_posts, -> { order("forum_posts.created_at, forum_posts.id") }, foreign_key: "creator_id"
   has_many :forum_topic_visits
   has_many :note_versions, foreign_key: "updater_id"
@@ -107,8 +114,9 @@ class User < ApplicationRecord
   has_many :post_sets, -> { order(name: :asc) }, foreign_key: :creator_id
   has_many :post_versions
   has_many :post_votes
-  has_many :staff_notes, -> { order("staff_notes.id desc") }
+  has_many :staff_notes, -> { active.order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
+  has_many :artists, foreign_key: "linked_user"
 
   belongs_to :avatar, class_name: 'Post', optional: true
   accepts_nested_attributes_for :dmail_filter
@@ -226,6 +234,16 @@ class User < ApplicationRecord
     def upgrade_password(pass)
       self.update_columns(password_hash: '', bcrypt_password_hash: User.bcrypt(pass))
     end
+
+    def password_is_secure
+      analysis = Zxcvbn.test(password, [name, email])
+      return unless analysis.score < 2
+      if analysis.feedback.warning
+        errors.add(:password, "is insecure: #{analysis.feedback.warning}")
+      else
+        errors.add(:password, "is insecure")
+      end
+    end
   end
 
   module AuthenticationMethods
@@ -319,6 +337,10 @@ class User < ApplicationRecord
       is_bd_staff
     end
 
+    def is_staff?
+      is_janitor?
+    end
+
     def is_approver?
       can_approve_posts?
     end
@@ -377,14 +399,14 @@ class User < ApplicationRecord
     def is_blacklisting_user?(user)
       return false if blacklisted_tags.blank?
       bltags = blacklisted_tags.split("\n").map(&:downcase)
-      strings = %W[user:#{user.name.downcase} user:!#{user.id} userid:#{user.id}]
+      strings = %W[user:#{user.name.downcase} user:!#{user.id} username:#{user.name.downcase} userid:#{user.id}]
       strings.any? { |str| bltags.include?(str) }
     end
   end
 
   module ForumMethods
     def has_forum_been_updated?
-      return false unless is_member?
+      return false unless is_member? && forum_notification_dot
       max_updated_at = ForumTopic.visible(self).order(updated_at: :desc).first&.updated_at
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
@@ -408,10 +430,11 @@ class User < ApplicationRecord
 
     def upload_reason_string(reason)
       reasons = {
-          REJ_UPLOAD_HOURLY: "have reached your hourly upload limit",
-          REJ_UPLOAD_EDIT: "have no remaining tag edits available",
-          REJ_UPLOAD_LIMIT: "have reached your upload limit",
-          REJ_UPLOAD_NEWBIE: "cannot upload during your first week"
+        REJ_UPLOAD_HOURLY: "have reached your hourly upload limit",
+        REJ_UPLOAD_EDIT: "have no remaining tag edits available",
+        REJ_UPLOAD_LIMIT: "have reached your upload limit",
+        REJ_UPLOAD_NEWBIE: "cannot upload during your first week",
+        REJ_UPLOAD_DISABLED: "are not allowed to upload posts",
       }
       reasons.fetch(reason, "unknown upload rejection reason")
     end
@@ -476,9 +499,17 @@ class User < ApplicationRecord
                          nil, 7.days)
     create_user_throttle(:comment_vote, ->{ Danbooru.config.comment_vote_limit - CommentVote.for_user(id).where("created_at > ?", 1.hour.ago).count },
                          :general_bypass_throttle?, 3.days)
-    create_user_throttle(:post_vote, ->{ Danbooru.config.post_vote_limit - PostVote.for_user(id).where("created_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, nil)
-    create_user_throttle(:post_flag, ->{ Danbooru.config.post_flag_limit - PostFlag.for_creator(id).where("created_at > ?", 1.hour.ago).count },
+    create_user_throttle(:post_vote, -> {
+      # This looks horrid, but it does seem to be the fastest way to check if the user has hit the hourly post vote limit.
+      # With a limited dataset, this query is about 3-4 times faster than a straightforward count.
+      result = ApplicationRecord.connection.execute(ApplicationRecord.sanitize_sql([
+        "SELECT COUNT(*) FROM ( SELECT post_id FROM post_votes WHERE user_id = ? AND created_at > ? LIMIT ? ) as a;",
+        id, 1.hour.ago, Danbooru.config.post_vote_limit + 1,
+      ]))
+      return false if result.blank?
+      Danbooru.config.post_vote_limit - result[0].count
+    }, :general_bypass_throttle?, nil)
+    create_user_throttle(:post_flag, -> { Danbooru.config.post_flag_limit - PostFlag.for_creator(id).where("created_at > ?", 1.hour.ago).count },
                          :can_approve_posts?, 3.days)
     create_user_throttle(:ticket, ->{ Danbooru.config.ticket_limit - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago).count },
                          :general_bypass_throttle?, 3.days)
@@ -508,10 +539,14 @@ class User < ApplicationRecord
     end
 
     def can_view_staff_notes?
-      is_janitor?
+      is_staff?
     end
 
     def can_handle_takedowns?
+      is_bd_staff?
+    end
+
+    def can_edit_avoid_posting_entries?
       is_bd_staff?
     end
 
@@ -524,10 +559,12 @@ class User < ApplicationRecord
     end
 
     def can_upload_with_reason
-      if hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
+      if no_uploading?
+        :REJ_UPLOAD_DISABLED
+      elsif hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_HOURLY
       elsif can_upload_free? || is_admin?
-          true
+        true
       elsif younger_than(7.days)
         :REJ_UPLOAD_NEWBIE
       elsif !is_privileged? && post_edit_limit <= 0 && !Danbooru.config.disable_throttles?
@@ -548,8 +585,15 @@ class User < ApplicationRecord
     end
 
     def upload_limit
+      return 0 if no_uploading
+
       pieces = upload_limit_pieces
       base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
+    end
+
+    def upload_limit_max
+      pieces = upload_limit_pieces
+      base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4)
     end
 
     def upload_limit_pieces
@@ -603,13 +647,7 @@ class User < ApplicationRecord
     end
 
     def statement_timeout
-      if is_former_staff?
-        9_000
-      elsif is_privileged?
-        6_000
-      else
-        3_000
-      end
+      3_000
     end
   end
 
@@ -624,7 +662,7 @@ class User < ApplicationRecord
         :id, :created_at, :name, :level, :base_upload_limit,
         :post_upload_count, :post_update_count, :note_update_count,
         :is_banned, :can_approve_posts, :can_upload_free,
-        :level_string, :avatar_id
+        :level_string, :avatar_id, :is_verified?,
       ]
 
       if id == CurrentUser.user.id
@@ -635,9 +673,9 @@ class User < ApplicationRecord
           enable_keyboard_navigation enable_privacy_mode
           style_usernames enable_auto_complete
           can_approve_posts can_upload_free
-          disable_cropped_thumbnails enable_safe_mode
+          enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
-          enable_compact_uploader replacements_beta
+          enable_compact_uploader replacements_beta forum_notification_dot
         ]
         list += boolean_attributes + [
           :updated_at, :email, :last_logged_in_at, :last_forum_read_at,
@@ -646,7 +684,7 @@ class User < ApplicationRecord
           :custom_style, :favorite_count,
           :api_regen_multiplier, :api_burst_limit, :remaining_api_limit,
           :statement_timeout, :favorite_limit,
-          :tag_query_limit, :has_mail?
+          :tag_query_limit, :has_mail?, :unread_dmail_count,
         ]
       end
 
@@ -717,16 +755,49 @@ class User < ApplicationRecord
       user_status.ticket_count
     end
 
+    ## !DB
+    # UserFeedback entries for the user.
+    # Preferable to using individual methods below, since these are almost always displayed together.
+    def feedback_pieces
+      @feedback_pieces ||= begin
+        count = {
+          deleted: 0,
+          negative: 0,
+          neutral: 0,
+          positive: 0,
+
+          active: 0,
+        }
+
+        feedback.each do |one|
+          if one.is_deleted
+            count[:deleted] += 1
+            next
+          end
+
+          count[one.category.to_sym] += 1
+        end
+
+        count[:active] = count[:negative] + count[:neutral] + count[:positive]
+
+        count
+      end
+    end
+
     def positive_feedback_count
-      feedback.positive.count
+      feedback_pieces[:positive]
     end
 
     def neutral_feedback_count
-      feedback.neutral.count
+      feedback_pieces[:neutral]
     end
 
     def negative_feedback_count
-      feedback.negative.count
+      feedback_pieces[:negative]
+    end
+
+    def deleted_feedback_count
+      feedback_pieces[:deleted]
     end
 
     def post_replacement_rejected_count
@@ -772,7 +843,6 @@ class User < ApplicationRecord
 
     def search(params)
       q = super
-      q = q.joins(:user_status)
 
       q = q.attribute_matches(:level, params[:level])
 
@@ -804,33 +874,37 @@ class User < ApplicationRecord
       bitprefs_include = nil
       bitprefs_exclude = nil
 
-      [:can_approve_posts, :can_upload_free].each do |x|
-        if params[x].present?
-          attr_idx = BOOLEAN_ATTRIBUTES.index(x.to_s)
-          if params[x].to_s.truthy?
-            bitprefs_include ||= "0"*bitprefs_length
-            bitprefs_include[attr_idx] = '1'
-          elsif params[x].to_s.falsy?
-            bitprefs_exclude ||= "0"*bitprefs_length
-            bitprefs_exclude[attr_idx] = '1'
-          end
+      %i[can_approve_posts can_upload_free].each do |x|
+        next if params[x].blank?
+        attr_idx = BOOLEAN_ATTRIBUTES.index(x.to_s)
+        if params[x].to_s.truthy?
+          bitprefs_include ||= "0" * bitprefs_length
+          bitprefs_include[attr_idx] = "1"
+        elsif params[x].to_s.falsy?
+          bitprefs_exclude ||= "0" * bitprefs_length
+          bitprefs_exclude[attr_idx] = "1"
         end
       end
 
       if bitprefs_include
         bitprefs_include.reverse!
-        q = q.where("bit_prefs::bit(:len) & :bits::bit(:len) = :bits::bit(:len)",
-                    {:len => bitprefs_length, :bits => bitprefs_include})
+        q = q.where("bit_prefs::bit(#{bitprefs_length}) & :bits::bit(#{bitprefs_length}) = :bits::bit(#{bitprefs_length})",
+                    { bits: bitprefs_include })
       end
 
       if bitprefs_exclude
         bitprefs_exclude.reverse!
-        q = q.where("bit_prefs::bit(:len) & :bits::bit(:len) = 0::bit(:len)",
-                    {:len => bitprefs_length, :bits => bitprefs_exclude})
+        q = q.where("bit_prefs::bit(#{bitprefs_length}) & :bits::bit(#{bitprefs_length}) = 0::bit(#{bitprefs_length})",
+                    { bits: bitprefs_exclude })
       end
 
       if params[:ip_addr].present?
         q = q.where("last_ip_addr <<= ?", params[:ip_addr])
+      end
+
+      # Check if the join is necessary
+      if params[:order].present? && %w[post_upload_count note_count post_update_count].include?(params[:order])
+        q = q.joins(:user_status)
       end
 
       case params[:order]
@@ -876,6 +950,15 @@ class User < ApplicationRecord
     unread_dmail_count > 0
   end
 
+  def recalculate_unread_dmail_count!
+    update_columns(unread_dmail_count: dmails.unread.count)
+    reload
+  end
+
+  def has_custom_style?
+    custom_style.present? && !custom_style.strip.empty?
+  end
+
   def hide_favorites?
     return false if CurrentUser.is_moderator?
     return true if is_blocked?
@@ -911,5 +994,12 @@ class User < ApplicationRecord
     elsif name =~ /\A[0-9]+\z/
       "cannot consist of numbers only"
     end
+  end
+
+  def reload(options = nil)
+    super
+    @upload_limit_pieces = nil
+    @feedback_pieces = nil
+    self
   end
 end

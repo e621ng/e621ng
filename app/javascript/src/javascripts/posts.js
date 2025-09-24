@@ -1,9 +1,11 @@
 import Utility from "./utility";
 import ZingTouch from "zingtouch";
 import Note from "./notes";
-import { SendQueue } from "./send_queue";
-import Shortcuts from "./shortcuts";
+import Hotkeys from "./hotkeys";
 import LStorage from "./utility/storage";
+import TaskQueue from "./utility/task_queue";
+import PostVote from "./models/PostVote";
+import Page from "./utility/page";
 
 let Post = {};
 
@@ -12,9 +14,11 @@ Post.resizeMode = "unknown";
 
 Post.initialize_all = function () {
 
+  if ((Page.Controller == "posts" && ["index", "show"].includes(Page.Action)) || Page.Controller == "favorites")
+    this.initialize_shortcuts();
+
   if ($("#c-posts").length) {
     this.initialize_shortcuts();
-    this.initialize_collapse();
   }
 
   if ($("#c-posts").length && $("#a-index").length) {
@@ -27,20 +31,14 @@ Post.initialize_all = function () {
     this.initialize_post_sections();
     this.initialize_resize();
     this.initialize_gestures();
-    this.initialize_voting();
     this.initialize_moderation();
   }
 
-  if ($("#p-index-by-post").length)
-    this.initialize_voting();
+  this.initialize_collapse();
 
-  if ($("#c-posts #a-show, #c-uploads #a-new").length) {
-    this.initialize_edit_dialog();
-  }
-
-  $(document).on("danbooru:open-post-edit-tab", () => Shortcuts.disabled = true);
-  $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").focus());
-  $(document).on("danbooru:close-post-edit-tab", () => Shortcuts.disabled = false);
+  $(document).on("danbooru:open-post-edit-tab", () => Hotkeys.enabled = false);
+  $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").trigger("focus"));
+  $(document).on("danbooru:close-post-edit-tab", () => Hotkeys.enabled = true);
 
   var $fields_multiple = $("[data-autocomplete=\"tag-edit\"]");
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
@@ -57,6 +55,15 @@ Post.initialize_moderation = function () {
     Post.unflag($e.data("pid"), $e.data("type"));
     e.preventDefault();
   });
+  $(".move-flag-to-parent-link").on("click", e => {
+    e.preventDefault();
+    const $e = $(e.target);
+    const post_id = $e.data("pid");
+    const parent_id = $e.data("parent-id");
+
+    if (confirm("Move flag to parent?"))
+      Post.move_flag_to_parent(post_id, parent_id);
+  });
 };
 
 Post.initialize_collapse = function () {
@@ -66,99 +73,6 @@ Post.initialize_collapse = function () {
     $(e.target).toggleClass("hidden-category");
     e.preventDefault();
   });
-};
-
-Post.initialize_voting = function () {
-  $(document).on("click.danbooru.post", ".post-vote-up-link", Post.vote_up);
-  $(document).on("click.danbooru.post", ".post-vote-down-link", Post.vote_down);
-};
-
-Post.initialize_edit_dialog = function () {
-  $("#open-edit-dialog").show().on("click.danbooru", function (e) {
-    Post.open_edit_dialog();
-    e.preventDefault();
-  });
-};
-
-Post.open_edit_dialog = function () {
-  if ($("#edit-dialog").length === 1) {
-    return;
-  }
-
-  $(document).trigger("danbooru:open-post-edit-dialog");
-
-  $("#edit").show();
-  $("#comments").hide();
-  $("#post-sections li").removeClass("active");
-  $("#post-edit-link").parent("li").addClass("active");
-
-  var $tag_string = $("#post_tag_string");
-  $("div.input").has($tag_string).prevAll().hide();
-  $("#open-edit-dialog").hide();
-
-  var dialog = $("<div/>").attr("id", "edit-dialog");
-  $("#form").appendTo(dialog);
-  dialog.dialog({
-    title: "Edit tags",
-    width: $(window).width() * 0.6,
-    position: {
-      my: "right",
-      at: "right-20",
-      of: window,
-    },
-    drag: function () {
-      if (Utility.meta("enable-auto-complete") === "true") {
-        $tag_string.data("uiAutocomplete").close();
-      }
-    },
-    close: Post.close_edit_dialog,
-  });
-  dialog.dialog("widget").draggable("option", "containment", "none");
-
-  var pin_button = $("<button/>").button({icons: {primary: "ui-icon-pin-w"}, label: "pin", text: false});
-  pin_button.css({width: "20px", height: "20px", position: "absolute", right: "28.4px"});
-  dialog.parent().children(".ui-dialog-titlebar").append(pin_button);
-  pin_button.on("click.danbooru", function () {
-    var dialog_widget = $(".ui-dialog:has(#edit-dialog)");
-    var pos = dialog_widget.offset();
-
-    if (dialog_widget.css("position") === "absolute") {
-      pos.left -= $(window).scrollLeft();
-      pos.top -= $(window).scrollTop();
-      dialog_widget.offset(pos).css({ position: "fixed" });
-      dialog.dialog("option", "resize", function () {
-        dialog_widget.css({ position: "fixed" });
-      });
-
-      pin_button.button("option", "icons", {primary: "ui-icon-pin-s"});
-    } else {
-      pos.left += $(window).scrollLeft();
-      pos.top += $(window).scrollTop();
-      dialog_widget.offset(pos).css({ position: "absolute" });
-      dialog.dialog("option", "resize", function () { /* do nothing */ });
-
-      pin_button.button("option", "icons", {primary: "ui-icon-pin-w"});
-    }
-  });
-
-  dialog.parent().mouseout(function () {
-    dialog.parent().css({"opacity": 0.6, "transition": "opacity .4s ease"});
-  }).mouseover(function () {
-    dialog.parent().css({"opacity": 1, "transition": "opacity .2s ease"});
-  });
-
-  $tag_string.css({"resize": "none", "width": "100%"});
-  $tag_string.focus().selectEnd().height($tag_string[0].scrollHeight);
-};
-
-Post.close_edit_dialog = function () {
-  $("#form").appendTo($("#c-posts #edit,#c-uploads #a-new"));
-  $("#edit-dialog").remove();
-  var $tag_string = $("#post_tag_string");
-  $("div.input").has($tag_string).prevAll().show();
-  $("#open-edit-dialog").show();
-  $tag_string.css({"resize": "", "width": ""});
-  $(document).trigger("danbooru:close-post-edit-dialog");
 };
 
 Post.has_next_target = function () {
@@ -256,7 +170,7 @@ class E6Swipe extends ZingTouch.Swipe {
 }
 
 Post.initialize_gestures = function () {
-  if (!LStorage.Posts.Gestures) return;
+  if (!LStorage.Theme.Gestures) return;
   if (!(("ontouchstart" in window) || (navigator.maxTouchPoints > 0)))
     return;
   // Need activeElement to make sure that this doesn't go off during input.
@@ -287,7 +201,7 @@ Post.initialize_gestures = function () {
   $("#image-container").css({overflow: "visible"});
 };
 
-Post.nav_prev = function (e) {
+Post.nav_prev = function () {
   var href = "";
 
   if ($(".search-seq-nav").length) {
@@ -303,11 +217,9 @@ Post.nav_prev = function (e) {
       location.href = href;
     }
   }
-
-  e.preventDefault();
 };
 
-Post.nav_next = function (e) {
+Post.nav_next = function () {
   var href = "";
 
   if ($(".search-seq-nav").length) {
@@ -321,19 +233,26 @@ Post.nav_next = function (e) {
       location.href = href;
     }
   }
-
-  e.preventDefault();
 };
 
 Post.initialize_shortcuts = function () {
-  if ($("#a-show").length) {
-    if ($("#flash-content").length) {
-      Shortcuts.disabled = true;
-      $("#flash-shortcut-notice").show();
-    }
-    Shortcuts.keydown("a", "prev_page", Post.nav_prev);
-    Shortcuts.keydown("d", "next_page", Post.nav_next);
+  if (Page.Action == "show") {
+    Hotkeys.register("prev", Post.nav_prev);
+    Hotkeys.register("next", Post.nav_next);
   }
+
+  Hotkeys.register("random", () => {
+    const query = $("#tags").val() + "";
+    if (!query) {
+      location.href = "/posts/random";
+      return;
+    }
+
+    const encodedTags = [];
+    for (const one of query.split(" ").filter(n => n))
+      encodedTags.push(encodeURIComponent(one));
+    location.href = "/posts/random?tags=" + encodedTags.join("+");
+  });
 };
 
 Post.initialize_links = function () {
@@ -468,9 +387,11 @@ Post.resize_notes = function () {
 };
 
 Post.resize_video = function (post, target_size) {
+  if (!post || !post.file) return;
+
   const $video = $("video#image");
+  if (!$video.length) return; // Caused by the video being deleted
   const videoTag = $video[0];
-  videoTag.pause(); // Otherwise size changes won't take effect.
   const $notice = $("#image-resize-notice");
   const update_resize_percentage = function (width, orig_width) {
     const $percentage = $("#image-resize-size");
@@ -481,55 +402,115 @@ Post.resize_video = function (post, target_size) {
   let target_sources = [];
   let desired_classes = [];
 
-  function original_sources () {
-    target_sources.push({type: "video/webm; codecs=\"vp9\"", url: post?.file?.url});
-    if (typeof post?.sample?.alternates?.original !== "undefined")
-      target_sources.push({type: "video/mp4", url: post?.sample?.alternates?.original?.urls[1]});
-  }
-
   switch (target_size) {
+    case "source":
+      target_sources = calculate_original_sources(post, true);
+      break;
     case "original":
-      original_sources();
+      target_sources = calculate_original_sources(post);
       break;
     case "fit":
-      original_sources();
+      target_sources = calculate_original_sources(post);
       desired_classes.push("fit-window");
       break;
     case "fitv":
-      original_sources();
+      target_sources = calculate_original_sources(post);
       desired_classes.push("fit-window-vertical");
       break;
     default: {
       $notice.show();
-      const alternate = post?.sample?.alternates[target_size];
-      target_sources.push({type: "video/webm; codecs=\"vp9\"", url: alternate.urls[0]});
-      target_sources.push({type: "video/mp4", url: alternate.urls[1]});
-      desired_classes.push("fit-window");
-      update_resize_percentage(post?.sample?.alternates[target_size]?.width, post?.file?.width);
-      break;
-    }
-  }
-  $video.removeClass();
-  $video.empty(); // Yank any sources out of the list to prevent browsers from being pants on head.
-  for (const source of target_sources) {
-    // This works around some annoying choices where W3C said that changing source attributes for video tags doesn't work
-    // and that automatic media type selection can't be performed again, so you have to do it by hand. To add bonus points
-    // to this asshattery, the responses from the API are at best, vague and there are three of them. Seems that the best
-    // any browser can give me is a "maybe".
-    const canPlay = videoTag.canPlayType(source.type);
-    if (canPlay === "probably" || canPlay === "maybe") {
-      // This comparison fixes reloading the media on changing between fit modes.
-      if (source.url !== $video.attr("src")) {
-        $video.attr("src", source.url);
-        videoTag.load(); // Forces changed source to take effect. *SOME* browsers ignore changes otherwise.
+
+      const targetVideo = post.sample.alternates?.samples[target_size];
+      if (!targetVideo) {
+        console.error(`No video found for target size: ${target_size}`);
+        return;
       }
+
+      target_sources.push({
+        type: "video/mp4; codecs=\"avc1.4D401E\"",
+        url: targetVideo?.url,
+      });
+
+      desired_classes.push("fit-window");
+      update_resize_percentage(targetVideo.width, post.file.width);
       break;
     }
   }
+
+  $video.empty(); // Yank any sources out of the list to prevent browsers from being pants on head.
+
+  let foundPlayable = false;
+  for (const source of target_sources) {
+    // canPlayType can return "probably", "maybe" or "".
+    // * "maybe" means that the browser cannot determine whether it can play the file until playback is attempted.
+    // * "probably" indicates that the browser thinks it can play the file, and seems to be returned only if the codec is provided.
+    // * "" means that the browser cannot play the file. It will also throw an error in the console.
+    if (!videoTag.canPlayType(source.type)) continue;
+    foundPlayable = true;
+
+    // No need to reload the video if we are just changing the scale
+    if (source.url === $video.attr("src")) break;
+
+    play_video_file(videoTag, source.url);
+    break;
+  }
+
+  // Fallback if no playable source was found.
+  if (!foundPlayable) play_video_file(videoTag, post.file.url);
+
+  // Adjust the classes last, to prevent video from
+  // getting resized before the source is set.
+  $video.removeClass();
   for (const class_name of desired_classes) {
     $video.addClass(class_name);
   }
 };
+
+/** Collates the non-downscaled video sources */
+function calculate_original_sources (post, skipVariants = LStorage.Posts.SkipVariants) {
+  if (!post || !post.file || !post.sample?.alternates) return [];
+
+  const result = [];
+
+  // Add the original file first.
+  // Unprocessed posts will not have a codec string on file, which makes feature detection harder
+  let originalCodec = post.sample.alternates?.original?.codec;
+  result.push({
+    type: originalCodec ? `video/${post.file.ext}; codecs="${originalCodec}"` : `video/${post.file.ext}`,
+    url: post.file.url,
+  });
+
+  // Add fallback variants if they exist.
+  // The "Source" view does not display these.
+  if (post.sample.alternates.variants && !skipVariants)
+    for (const [filetype, data] of Object.entries(post.sample.alternates.variants)) {
+      if (!data.url) continue;
+      result.push({
+        type: `video/${filetype}; codecs="${data.codec}"`,
+        url: data.url,
+      });
+    }
+
+  return result;
+}
+
+/**
+ * Plays a video file in the specified video tag.
+ * @param {HTMLVideoElement} videoTag HTML tag of the video player
+ * @param {string} sourceURL New video source URL
+ */
+function play_video_file (videoTag, sourceURL) {
+  const wasPaused = videoTag.paused;
+  if (!wasPaused) videoTag.pause(); // Otherwise size changes won't take effect.
+  const time = videoTag.currentTime;
+
+  videoTag.setAttribute("src", sourceURL);
+  videoTag.load(); // Forces changed source to take effect. *SOME* browsers ignore changes otherwise.
+
+  // Resume playback at the original time
+  videoTag.currentTime = time;
+  if (!wasPaused) videoTag.play();
+}
 
 Post.resize_image = function (post, target_size) {
   const $image = $("img#image");
@@ -619,17 +600,23 @@ function update_size_selector (choice) {
   return "fit";
 }
 
-function most_relevant_sample_size (post) {
-  let samples = Object.entries(Post.currentPost().sample.alternates);
-  samples = samples.filter((x) => x[0] !== "original");
-  if (samples.length === 0) {
-    return "fit";
+function most_relevant_sample_size () {
+  const sampleList = Post.currentPost().sample?.alternates?.samples;
+  if (!sampleList) return "fitv";
+
+  const samples = Object.entries(sampleList);
+  if (samples.length === 0) return "fitv";
+
+  const fitWidth = $("#image-container").width(),
+    fitHeight = window.outerHeight;
+
+  let latest = "fitv";
+  for (const [name, data] of samples.reverse()) {
+    latest = name;
+    if ((fitHeight - data.height) < 0 || (fitWidth - data.width) < 0) continue;
+    return name;
   }
-  if (post?.file?.width <= 1280 && post?.file?.height <= 720) {
-    return "fit"; // Don't force people onto 480p samples for <720 videos.
-  }
-  const differences = samples.map((x) => [x[0], Math.abs(window.outerHeight - x[1].height) * Math.abs(window.outerWidth - x[1].width)]).sort((a, b) => (a[1] < b[1] ? -1 : 1));
-  return differences[0][0];
+  return latest;
 }
 
 Post.initialize_resize = function () {
@@ -654,17 +641,14 @@ Post.initialize_resize = function () {
   }
   let image_size = Utility.meta("image-override-size") || Utility.meta("default-image-size");
   if (is_post_video && image_size === "large") {
-    image_size = most_relevant_sample_size(post);
+    image_size = most_relevant_sample_size();
   }
   Post.resize_to(image_size);
   const $selector = $("#image-resize-selector");
   $selector.on("change", () => Post.resize_to($selector.val()));
 };
 
-Post.resize_cycle_mode = function (e) {
-  if (e && e.target)
-    e.preventDefault();
-
+Post.resize_cycle_mode = function () {
   Post.resize_to("next");
 };
 
@@ -673,7 +657,8 @@ Post.initialize_change_resize_mode_link = function () {
     e.preventDefault();
     Post.resize_to("fit");
   }); // For top panel
-  Shortcuts.keydown("v", "resize", Post.resize_cycle_mode);
+
+  Hotkeys.register("resize", Post.resize_cycle_mode);
 };
 
 Post.initialize_post_sections = function () {
@@ -742,7 +727,7 @@ Post.tagScript = function (post_id, tags) {
 Post.update = function (post_id, params) {
   Post.notice_update("inc");
 
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "PUT",
       url: "/posts/" + post_id + ".json",
@@ -759,19 +744,27 @@ Post.update = function (post_id, params) {
         $(window).trigger("danbooru:error", `There was an error updating <a href="/posts/${post_id}">post #${post_id}</a>: ${message}`);
       },
     });
-  });
+  }, { name: "Post.update" });
 };
 
 Post.delete_with_reason = function (post_id, reason, reload_after_delete) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  let error = false;
+  TaskQueue.add(() => {
     $.ajax({
       type: "POST",
       url: `/moderator/post/posts/${post_id}/delete.json`,
       data: {commit: "Delete", reason: reason, move_favorites: true},
     }).fail(function (data) {
+      if (data.responseJSON && data.responseJSON.reason) {
+        $(window).trigger("danbooru:error", "Error: " + data.responseJSON.reason);
+        error = true;
+        return;
+      }
+
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
       $(window).trigger("danbooru:error", "Error: " + message);
+      error = true;
     }).done(function () {
       $(window).trigger("danbooru:notice", "Deleted post.");
       if (reload_after_delete) {
@@ -780,14 +773,15 @@ Post.delete_with_reason = function (post_id, reason, reload_after_delete) {
         $(`article#post_${post_id}`).attr("data-flags", "deleted");
       }
     }).always(function () {
-      Post.notice_update("dec");
+      if (!error)
+        Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.delete_with_reason" });
 };
 
 Post.undelete = function (post_id, callback) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "POST",
       url: `/moderator/post/posts/${post_id}/undelete.json`,
@@ -802,13 +796,13 @@ Post.undelete = function (post_id, callback) {
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.undelete" });
 };
 
-Post.unflag = function (post_id, approval, reload = true) {
+Post.unflag = function (post_id, approval, reload = true, callback = null) {
   Post.notice_update("inc");
   let modApproval = approval || "none";
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "DELETE",
       url: `/posts/${post_id}/flag.json`,
@@ -818,18 +812,52 @@ Post.unflag = function (post_id, approval, reload = true) {
       $(window).trigger("danbooru:error", "Error: " + message);
     }).done(function () {
       $(window).trigger("danbooru:notice", "Unflagged post");
-      if (reload) {
-        location.reload();
-      }
+      if (callback) callback();
+      if (reload) location.reload();
     }).always(function () {
       Post.notice_update("dec");
+    });
+  }, { name: "Post.unflag" });
+};
+
+Post.flag = function (post_id, reason_name, parent_id = null, reload = true, callback = null) {
+  Post.notice_update("inc");
+  TaskQueue.add(() => {
+    $.ajax({
+      type: "POST",
+      url: "/post_flags.json",
+      data: {
+        post_flag: {
+          post_id: parseInt(post_id),
+          reason_name,
+          parent_id,
+        },
+      },
+    }).fail(function (data) {
+      const message = data.responseJSON.message;
+      $(window).trigger("danbooru:error", "Error: " + message);
+    }).done(function () {
+      $(window).trigger("danbooru:notice", "Flagged post");
+      if (callback) callback();
+      if (reload) location.reload();
+    }).always(function () {
+      Post.notice_update("dec");
+    });
+  }, { name: "Post.flag" });
+};
+
+Post.move_flag_to_parent = function (post_id, parent_id) {
+  Post.unflag(post_id, false, false, function () {
+    Post.flag(parent_id, "inferior", post_id, false, function () {
+      location.href = `/moderator/post/posts/${parent_id}/confirm_delete`;
     });
   });
 };
 
+
 Post.unapprove = function (post_id) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "DELETE",
       url: "/moderator/post/approval.json",
@@ -843,7 +871,7 @@ Post.unapprove = function (post_id) {
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.unapprove" });
 };
 
 Post.destroy = function (post_id, reason) {
@@ -861,7 +889,11 @@ Post.regenerate_image_samples = function (post_id) {
   ).fail(data => {
     Utility.error("Error: " + data.responseJSON.reason);
   }).done(() => {
-    Utility.notice("Image samples regenerated.");
+    if ($("#image-container").data("size") >= 10 * 1024 * 1024) {
+      Utility.notice("Large file: Image samples will be regenerated soon.");
+    } else {
+      Utility.notice("Image samples regenerated successfully.");
+    }
   });
 };
 
@@ -876,7 +908,7 @@ Post.regenerate_video_samples = function (post_id) {
 
 Post.approve = function (post_id, callback) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.post(
       "/moderator/post/approval.json",
       { "post_id": post_id },
@@ -896,12 +928,12 @@ Post.approve = function (post_id, callback) {
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.approve" });
 };
 
 Post.disapprove = function (post_id, reason, message) {
   Post.notice_update("inc");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.post(
       "/moderator/post/disapprovals.json",
       {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason, "post_disapproval[message]": message},
@@ -915,7 +947,7 @@ Post.disapprove = function (post_id, reason, message) {
     }).always(function () {
       Post.notice_update("dec");
     });
-  });
+  }, { name: "Post.disapprove" });
 };
 
 Post.update_tag_count = function (event) {
@@ -940,56 +972,13 @@ Post.update_tag_count = function (event) {
   $("#tags-container .options #face").removeClass().addClass(`fa-regular fa-face-${klass}`);
 };
 
-Post.vote_up = function (e) {
-  var id = $(e.target).parent().attr("data-id");
-  Post.vote(id, 1);
-};
-
-Post.vote_down = function (e) {
-  var id = $(e.target).parent().attr("data-id");
-  Post.vote(id, -1);
-};
-
 Post.vote = function (id, score, prevent_unvote) {
-  Post.notice_update("inc");
-  SendQueue.add(function () {
-    $.ajax({
-      method: "POST",
-      url: `/posts/${id}/votes.json`,
-      data: {
-        score: score,
-        no_unvote: prevent_unvote === true,
-      },
-      dataType: "json",
-      headers: {
-        accept: "*/*;q=0.5,text/javascript",
-      },
-    }).done(function (data) {
-      const scoreClasses = "score-neutral score-positive score-negative";
-      const postID = id;
-      const postScore = data.score;
-      const ourScore = data.our_score;
-      function scoreToClass (inScore) {
-        if (inScore == 0) return "score-neutral";
-        return inScore > 0 ? "score-positive" : "score-negative";
-      }
-      $(".post-score-" + postID).removeClass(scoreClasses);
-      $(".post-vote-up-" + postID).removeClass(scoreClasses);
-      $(".post-vote-down-" + postID).removeClass(scoreClasses);
-      $(".post-score-" + postID).text(postScore);
-      $(".post-score-" + postID).attr("title", `${data.up} up/${data.down} down`);
-      $(".post-score-" + postID).addClass(scoreToClass(postScore));
-      $(".post-vote-up-" + postID).addClass(ourScore > 0 ? "score-positive" : "score-neutral");
-      $(".post-vote-down-" + postID).addClass(ourScore < 0 ? "score-negative" : "score-neutral");
-      $(window).trigger("danbooru:notice", "Vote saved");
-    }).always(function () {
-      Post.notice_update("dec");
-    });
-  });
+  console.log("Post.vote is deprecated and will be removed at a later date. User PostVote.vote instead.");
+  PostVote.vote(id, score, prevent_unvote);
 };
 
 Post.set_as_avatar = function (id) {
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       method: "PATCH",
       url: `/users/${Utility.meta("current-user-id")}.json`,
@@ -1002,10 +991,10 @@ Post.set_as_avatar = function (id) {
     }).done(function () {
       $(window).trigger("danbooru:notice", "Post set as avatar");
     });
-  });
+  }, { name: "Post.set_as_avatar" });
 };
 
-$(document).ready(function () {
+$(() => {
   Post.initialize_all();
 });
 

@@ -11,11 +11,28 @@
 @import "../themes/extra_autumn";
 @import "../themes/extra_winter";
 @import "../themes/extra_spring";
+@import "../themes/extra_fennec";
 @import "../themes/extra_aurora";
 @import "../themes/extra_hexagons";
 @import "../themes/extra_space";
 @import "../themes/extra_stars";
 
-@function themed($key) {
-  @return var(--#{$key});
+@function themed($key, $default: "") {
+  @if $default != "" {
+    @return var(--#{$key}, $default);
+  } @else {
+    @return var(--#{$key});
+  }
+}
+
+@mixin with-theme($key, $value) {
+  body[data-th-#{$key}="#{$value}"] {
+    @content;
+  }
+}
+
+@mixin with-setting($key, $value) {
+  body[data-st-#{$key}="#{$value}"] {
+    @content;
+  }
 }

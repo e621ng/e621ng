@@ -1,6 +1,6 @@
 import Utility from "./utility";
-import {SendQueue} from "./send_queue";
 import Post from "./posts";
+import TaskQueue from "./utility/task_queue";
 
 let PostVersion = {};
 
@@ -42,11 +42,11 @@ PostVersion.undo_selected = function (event) {
   for (let row of selected_rows) {
     let id = $(row).data("post-version-id");
 
-    SendQueue.add(function () {
+    TaskQueue.add(() => {
       $.ajax(`/post_versions/${id}/undo.json`, {method: "PUT"});
 
       Utility.notice(`${++PostVersion.updated}/${selected_rows.length} changes undone.`);
-    });
+    }, { name: "PostVersion.undo_selected" });
   }
 };
 
@@ -62,11 +62,11 @@ PostVersion.tag_script_selected = function (event) {
   for (let row of selected_rows) {
     let id = $(row).data("post-id");
 
-    SendQueue.add(function () {
+    TaskQueue.add(() => {
       Post.tagScript(id, script);
 
       Utility.notice(`${++PostVersion.updated}/${selected_rows.length} changes applied.`);
-    });
+    }, { name: "PostVersion.tag_script_selected" });
   }
 };
 

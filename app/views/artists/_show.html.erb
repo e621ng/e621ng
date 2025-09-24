@@ -7,6 +7,22 @@
       <% end %>
     </h1>
 
+    <% if @artist.is_dnp? %>
+      <div id="avoid-posting-label">
+        <h3><%= link_to "Avoid Posting", avoid_posting_path(@artist.avoid_posting) %></h3>
+        <% if @artist.avoid_posting.pretty_details.present? %>
+          <div class="dtext-container">
+            <%= format_text(@artist.avoid_posting.pretty_details, inline: true) %>
+          </div>
+        <% end %>
+        <% if CurrentUser.is_staff? && @artist.avoid_posting.staff_notes.present? %>
+          <div class="dtext-container">
+            <b>Note:</b> <%= format_text(@artist.avoid_posting.staff_notes, inline: true) %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
     <% if @artist.notes.present? && @artist.visible? %>
       <div class="dtext-container">
         <%= format_text(@artist.notes, allow_color: true) %>
@@ -25,9 +41,9 @@
 
       <%= render "posts/partials/common/inline_blacklist" %>
 
-      <div style="margin: 1em 0;">
+      <section class="posts-container" style="margin: 1em 0;">
         <%= @post_set.presenter.post_previews_html(self) %>
-      </div>
+      </section>
     </div>
   </div>
 </div>

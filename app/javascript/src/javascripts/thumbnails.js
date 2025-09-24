@@ -1,73 +1,114 @@
 import Blacklist from "./blacklists";
-import LStorage from "./utility/storage";
+import PostCache from "./models/PostCache";
 
 const Thumbnails = {};
 
 Thumbnails.initialize = function () {
   const postsData = window.___deferred_posts || {};
-  const posts = $(".post-thumb.placeholder, .thumb-placeholder-link");
-  const DAB = LStorage.get("dab") === "1";
+  const posts = $(".post-thumb.placeholder, .thumb-placeholder-link, div.profile-avatar");
+  const replacedPosts = [];
 
+  // Avatar special case
+  for (const post of $(".simple-avatar.placeholder")) {
+    const $post = $(post);
+    $post.removeClass("placeholder");
+
+    const postID = $post.data("id");
+    if (!postID) continue;
+
+    const postData = postsData[postID];
+    if (!postData || !postData["preview_url"]) continue;
+
+    $("<img>")
+      .attr("src", postData["preview_url"])
+      .appendTo($post.find("span.avatar-image"));
+
+    if ($post.hasClass("profile-avatar"))
+      $post.attr("href", "/posts/" + postID);
+
+    continue;
+  }
+
+  // Reset of the deferred posts
   for (const post of posts) {
     const $post = $(post);
+
+    const isProfileAvatar = $post.hasClass("profile-avatar");
+    if (isProfileAvatar) $post.removeClass("placeholder").children(".placeholder").removeClass("placeholder");
 
     // Placeholder is valid
     const postID = $post.data("id");
     if (!postID) {
-      clearPlaceholder($post);
-      return;
+      clearPlaceholder($post, isProfileAvatar);
+      continue;
     }
 
     // Data exists for this post
+    // If there's no preview URL for a profile avatar, leave the single-character placeholder, don't
+    // replace it w/ the deleted thumbnail.
     const postData = postsData[postID];
-    if (!postData) {
-      clearPlaceholder($post);
-      return;
+    if (!postData || (isProfileAvatar && !postData["preview_url"])) {
+      clearPlaceholder($post, isProfileAvatar);
+      continue;
     }
 
+    // Add data to cache right away, instead of
+    // getting it from data-attributes later
+    PostCache.fromDeferredPosts(postID, postData);
+
     // Building the element
-    const thumbnail = $("<div>")
-      .addClass("post-thumbnail blacklistable")
+    const thumbnail = (isProfileAvatar ? $post : $("<div>"))
+      .addClass("post-thumbnail")
       .toggleClass("dtext", $post.hasClass("thumb-placeholder-link"));
+
+    if (Danbooru.Blacklist.hiddenPosts.has(postID))
+      thumbnail.addClass("blacklisted");
+
+    // Side effect: arrays will be converted to space-separated strings.
+    // Most prominent example is the pools array, which affects the blacklist.
     for (const key in postData)
       thumbnail.attr("data-" + key.replace(/_/g, "-"), postData[key]);
 
-    const link = $("<a>")
-      .attr("href", `/posts/${postData.id}`)
-      .appendTo(thumbnail);
+    /**
+     * @type {JQuery<HTMLAnchorElement>}
+     */
+    const link = isProfileAvatar
+      ? $post.children("a").first()
+      : $("<a>").appendTo(thumbnail);
+    link.attr("href", `/posts/${postData.id}`);
 
     $("<img>")
       .attr({
         src: postData["preview_url"] || "/images/deleted-preview.png",
-        height: postData["preview_url"] ? postData["preview_height"] : 150,
-        width: postData["preview_url"] ? postData["preview_width"] : 150,
+        // height: postData["preview_url"] ? postData["preview_height"] : 150,
+        // width: postData["preview_url"] ? postData["preview_width"] : 150,
         title: `Rating: ${postData.rating}\r\nID: ${postData.id}\r\nStatus: ${postData.flags}\r\nDate: ${postData["created_at"]}\r\n\r\n${postData.tags}`,
         alt: postData.tags,
         class: "post-thumbnail-img",
       })
-      .appendTo(link);
+      .appendTo(isProfileAvatar ? link.children(".avatar-image").first() : link);
 
-    // Disgusting implementation of the blacklist
-    if (!DAB) {
-      let blacklist_hit_count = 0;
-      for (const entry of Blacklist.entries) {
-        if (!Blacklist.postMatchObject(postData, entry))
-          continue;
-        entry.hits += 1;
-        blacklist_hit_count += 1;
-      }
-
-      if (blacklist_hit_count > 0)
-        thumbnail.addClass("blacklisted");
-    }
-
-    $post.replaceWith(thumbnail);
+    if (!isProfileAvatar)
+      $post.replaceWith(thumbnail);
+    replacedPosts.push(thumbnail);
   }
 
-  function clearPlaceholder (post) {
+  if (replacedPosts.length > 0) {
+    Blacklist.add_posts(replacedPosts);
+    Blacklist.update_styles();
+    Blacklist.update_visibility();
+  }
+
+  /**
+   *
+   * @param {JQuery<HTMLElement>} post
+   * @param {boolean} isProfileAvatar Don't empty profile avatars as they've already had their placeholder class removed.
+   */
+  function clearPlaceholder (post, isProfileAvatar) {
     if (post.hasClass("thumb-placeholder-link"))
       post.removeClass("thumb-placeholder-link");
-    else post.empty();
+    else if (!isProfileAvatar)
+      post.empty();
   }
 };
 

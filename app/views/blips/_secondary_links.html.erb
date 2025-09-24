@@ -3,7 +3,7 @@
   <%= subnav_link_to "List", blips_path %>
   <%= subnav_link_to "New", new_blip_path %>
   <% unless @blip&.response_to.nil? %>
-    <li>|</li>
+    <li class="divider"></li>
     <%= subnav_link_to "Parent", blip_path(@blip.response_to) %>
   <% end %>
 <% end %>

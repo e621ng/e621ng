@@ -14,17 +14,21 @@ module Moderator
         @post = ::Post.find(params[:id])
         @reason = @post.pending_flag&.reason || ""
         @reason = "" if @reason =~ /uploading_guidelines/
+
+        @dnp = @post.avoid_posting_artists
       end
 
       def delete
         @post = ::Post.find(params[:id])
+
         if params[:commit] == "Delete"
           @post.delete!(params[:reason], move_favorites: params[:move_favorites].present?)
           @post.copy_sources_to_parent if params[:copy_sources].present?
           @post.copy_tags_to_parent if params[:copy_tags].present?
           @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present?
         end
-        redirect_to(post_path(@post))
+
+        redirect_to(post_path(@post, q: params[:q].presence))
       end
 
       def undelete
@@ -53,7 +57,6 @@ module Moderator
 
       def regenerate_thumbnails
         @post = ::Post.find(params[:id])
-        raise ::User::PrivilegeError, "Cannot regenerate thumbnails on deleted images" if @post.is_deleted?
         @post.regenerate_image_samples!
         respond_with(@post)
       end

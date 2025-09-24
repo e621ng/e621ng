@@ -2,18 +2,29 @@ div#search {
   margin-bottom: 1em;
 }
 
+body {
+  display: flex;
+  flex-flow: column;
+  min-height: 100vh;
+}
+
 div#page {
-  border-radius: $border-radius-full;
+  flex: 1;
   overflow: visible;
-  margin: 0 1rem;
-  padding: $padding-050;
+  padding: $padding-050 $padding-025 themed("content-padding-bottom");
+
+  @include window-larger-than(800px) {
+    border-radius: $border-radius-full;
+    margin: 0.5rem 1rem 0;
+    padding-left: $padding-050;
+    padding-right: $padding-050;
+  }
 
   background-color: $hexagon-color-foreground;
   background-color: themed("color-foreground");
   background-image: themed("image-foreground");
   background-position: themed("image-foreground-position");
   background-repeat: themed("image-foreground-repeat");
-  padding-bottom: themed("content-padding-bottom");
 
   // Fix failure to contain contents in bounding box.
   &:after {
@@ -37,6 +48,20 @@ div#page {
     
     p:last-child {
       margin-bottom: 0;
+    }
+  }
+
+  div.ban-notice {
+    background-color: themed("color-section");
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+
+    .id {
+      color: #ffffff03;
+      font-family: monospace;
+      font-size: 1.5rem;
+      line-height: 0;
+      user-select: none;
     }
   }
 
@@ -83,33 +108,6 @@ div#page {
 
 .mobile-search {
   display: none;
-}
-
-footer#page-footer {
-  display: grid;
-  grid-template-columns: 1fr 5em 1fr;
-  align-items: center;
-
-  margin: 1em;
-  margin-bottom: 0;
-  border-radius: $border-radius-full $border-radius-full 0 0;
-  padding: 0.75em 0 0.75em;
-  line-height: 1.75em;
-  background-color: themed("color-foreground");
-
-  .footer-logo {
-    width: 5em;
-  }
-
-  .left {
-    text-align: right;
-    padding-right: 0.75em;
-  }
-
-  .right {
-    text-align: left;
-    padding-left: 0.75em;
-  }
 }
 
 div.clearfix {

@@ -1,0 +1,73 @@
+<div class="profile-section hidden pending" name="StaffStats" role="button" aria-expanded="false">
+  <div class="profile-section-header">
+    <%= svg_icon(:chevron_down) %>
+    <span>Staff Info</span>
+  </div>
+  <div class="profile-section-body profile-staff-info">
+    <% if presenter.previous_names(self).present? %>
+      <h4 class="block">Previous Names</h4>
+      <span class="block"><%= presenter.previous_names(self) %> -> <%= user.name %></span>
+    <% end %>
+
+    <% if CurrentUser.is_admin? %>
+      <h4>Email</h4>
+      <span>
+        <%= user.email %>
+        <%= email_domain_search(user.email) %>
+      </span>
+
+      <h4>Last IP</h4>
+      <span><%= link_to_ip(user.last_ip_addr) %></span>
+    <% end %>
+
+    <% if CurrentUser.is_moderator? %>
+      <h4>Votes</h4>
+      <span>
+        <%= link_to "Posts", action: "index", controller: "post_votes", search: { user_name: user.name } %>
+        | <%= link_to "Comments", action: "index", controller: "comment_votes", search: { user_name: user.name } %>
+      </span>
+    <% end %>
+
+    <h4>Pending</h4>
+    <span>
+      <%= link_to "Posts", posts_path(tags: "user:#{user.name} status:pending") %>
+      | <%= link_to "Replacements", post_replacements_path(search: { creator_name: user.name }) %>
+    </span>
+
+    <h4>Uploads</h4>
+    <span>
+      <% if user.no_uploading %>
+        <%= link_to "Disabled", toggle_uploads_user_path(user), class: "text-red text-bold" %>
+      <% else %>
+        <%= link_to "Enabled", toggle_uploads_user_path(user) %>
+      <% end %>
+      | <%= link_to "Refresh counts", fix_counts_user_path(user) %>
+    </span>
+
+    <% if CurrentUser.is_moderator? && UserRevert.can_revert?(user) %>
+      <h4>Tag Changes</h4>
+      <span>
+        <%= link_to "Revert All", new_user_revert_path(user_id: user.id) %>
+      </span>
+    <% end %>
+
+    <% if CurrentUser.is_admin? %>
+      <h4>Favorites</h4>
+      <span>
+        <%= link_to "Remove all", flush_favorites_user_path(user), method: :post, data: { confirm: "Are you certain that you want to clear this user's favorites?\nTHIS IS IRREVERSIBLE." } %>
+      </span>
+
+      <% if user.has_custom_style? %>
+        <h4>Custom CSS</h4>
+        <span>Enabled</span>
+      <% end %>
+    <% end %>
+
+    <% if CurrentUser.is_bd_staff? %>
+      <h4>DMails</h4>
+      <span>
+        <%= link_to "Audit", admin_user_dmails_path(user) %>
+      </span>
+    <% end %>
+  </div>
+</div>

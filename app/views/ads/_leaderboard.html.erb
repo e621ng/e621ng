@@ -1,5 +1,5 @@
 <% if Danbooru.config.ads_enabled? %>
-  <div id="ad-leaderboard" class='section'>
+  <div id="ad-leaderboard" class="adzone-wrapper">
     <div id="ad-leaderboard-content" class="adzone">
       <ins id="ad-insert-element"></ins>
       <%= javascript_tag nonce: true do -%>
@@ -8,32 +8,28 @@
             desktop: <%= raw(Danbooru.config.ads_zone_desktop.to_json) %>,
             mobile: <%= raw(Danbooru.config.ads_zone_mobile.to_json) %>
           };
-          var zone = zones.desktop;
-          var width = window.innerWidth || screen.width;
-          if(width <= 900) {
-            zone = zones.mobile;
-          }
-          if(!zone.zone) {
-            return;
-          }
+          var zone = (window.innerWidth || screen.width) < 800 ? zones.mobile : zones.desktop;
+          if (!zone.zone) return;
+
           var el = document.getElementById('ad-insert-element');
-          if(!el)
-            return;
+          if (!el) return;
+
           el.setAttribute("data-revive-zoneid", zone.zone.toString());
           el.setAttribute("data-revive-id", zone.revive_id);
           // We run our own ad network. Tags are not logged anywhere, and are only used for filtering ads based on tags.
           el.setAttribute("data-revive-tags", <%= raw(tag_string.to_json) %>);
+
           var s = document.createElement('script');
           s.async = true;
-          s.src = "//ads.dragonfru.it/www/delivery/asyncjs.php";
+          s.src = "//ads.e621.net/www/delivery/asyncjs.php";
           document.body.appendChild(s);
         })();
       <% end -%>
       <% ad_rand = Random.rand(50000000) %>
       <% ad_zone = Danbooru.config.ads_zone_desktop %>
       <noscript class="adzone">
-        <a href='https://ads.dragonfru.it/www/delivery/ck.php?zoneid=<%= ad_zone[:zone] %>&n=<%= ad_zone[:checksum] %>&cb=<%= ad_rand %>' target='_blank' rel="nofollow noopener">
-          <img src='https://ads.dragonfru.it/www/delivery/avw.php?zoneid=<%= ad_zone[:zone] %>&cb=<%= ad_rand %>&n=<%= ad_zone[:checksum] %>' border='0' alt='' />
+        <a href="https://ads.e621.net/www/delivery/ck.php?zoneid=<%= ad_zone[:zone] %>&n=<%= ad_zone[:checksum] %>&cb=<%= ad_rand %>" target="_blank" rel="nofollow noopener">
+          <img src="https://ads.e621.net/www/delivery/avw.php?zoneid=<%= ad_zone[:zone] %>&cb=<%= ad_rand %>&n=<%= ad_zone[:checksum] %>" border="0" alt="" />
         </a>
       </noscript>
     </div>

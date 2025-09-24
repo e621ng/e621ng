@@ -1,0 +1,19 @@
+<div id="c-staff-notes">
+  <div id="a-index">
+    <% if @user %>
+      <h1>Staff Notes for <%= link_to_user @user %></h1>
+    <% else %>
+      <h1>Staff Notes</h1>
+    <% end %>
+    <%= render "search" %>
+
+    <%= render "staff_notes/partials/list_of_notes", staff_notes: @notes, show_receiver_name: @user.blank? %>
+    <%= numbered_paginator(@notes) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  <%= @user ? "#{@user.name} - Staff Notes" : "Staff Notes" %>
+<% end %>

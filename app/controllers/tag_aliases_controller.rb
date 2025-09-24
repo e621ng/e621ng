@@ -34,18 +34,16 @@ class TagAliasesController < ApplicationController
 
   def destroy
     @tag_alias = TagAlias.find(params[:id])
-    if @tag_alias.deletable_by?(CurrentUser.user)
-      @tag_alias.reject!
-      respond_with(@tag_alias, :location => tag_aliases_path)
-    else
-      access_denied
-    end
+    return access_denied unless @tag_alias.deletable_by?(CurrentUser.user)
+    @tag_alias.reject!
+    respond_with(@tag_alias, location: tag_aliases_path)
   end
 
   def approve
     @tag_alias = TagAlias.find(params[:id])
+    return access_denied unless @tag_alias.approvable_by?(CurrentUser.user)
     @tag_alias.approve!(approver: CurrentUser.user)
-    respond_with(@tag_alias, :location => tag_alias_path(@tag_alias))
+    respond_with(@tag_alias, location: tag_alias_path(@tag_alias))
   end
 
   private

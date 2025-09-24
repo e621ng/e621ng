@@ -1,0 +1,55 @@
+<nav class="navigation">
+  <menu class="nav-logo">
+    <a href="/" class="nav-logo-link"></a>
+  </menu>
+
+  <menu class="nav-primary desktop">
+    <%= render "layouts/main_links" %>
+  </menu>
+
+  <menu class="nav-offset-left mobile"></menu>
+  <menu class="nav-offset-bott mobile"></menu>
+
+  <menu class="nav-secondary desktop <%= "empty" unless content_for(:secondary_links) %>">
+    <%= yield :secondary_links %>
+  </menu>
+
+  <menu class="nav-controls desktop">
+    <a role="button" id="nav-toggle" class="nav-controls-toggle">
+      <span>
+        <%= svg_icon(:hamburger, class: "off") %>
+        <%= svg_icon(:times, class: "on") %>
+      </span>
+    </a>
+    <% if CurrentUser.is_anonymous? %>
+      <a href="<%= new_session_path %>" class="simple-login nav-controls-profile collapse-2">
+        <span class="login-name">
+          Sign In
+        </span>
+        <span class="login-image">
+          <%= svg_icon(:log_in) %>
+        </span>
+      </a>
+    <% else %>
+      <%= simple_avatar(CurrentUser.user, named: true, class: "nav-controls-profile collapse-2") %>
+    <% end %>
+  </menu>
+
+  <menu class="nav-tools desktop <%= CurrentUser.is_anonymous? ? "anonymous" : "" %>">
+    <%= decorated_nav_link_to("Themes", :swatch, theme_path, class: "nav-tools-themes", title: "Site Themes") %>
+    <% unless CurrentUser.is_anonymous? %>
+      <%= decorated_nav_link_to("Settings", :settings, settings_users_path, class: "nav-tools-settings", title: "User Settings") %>
+    <% end %>
+  </menu>
+
+  <menu class="nav-help desktop <%= CurrentUser.is_anonymous? ? "anonymous" : "" %>">
+    <%= nav_link_to("Wiki", wiki_pages_path(title: "help:home"), class: "nav-help-wiki") %>
+    <%= nav_link_to("Help", help_pages_path, class: "nav-help-help") %>
+    <% unless CurrentUser.is_anonymous? %>
+      <%= custom_image_nav_link_to("Discord", "discord.com.png", discord_get_path, class: "nav-help-discord collapse-1") %>
+    <% end %>
+    <%= custom_image_nav_link_to("SubscribeStar", "subscribestar.adult.png", subscribestar_path, class: "nav-help-subscribestar collapse-1") if Danbooru.config.subscribestar_url.present? %>
+    <%= nav_link_to("More", site_map_path, class: "nav-help-map") %>
+  </menu>
+
+</nav>

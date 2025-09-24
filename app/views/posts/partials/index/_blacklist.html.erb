@@ -1,10 +1,16 @@
-<section id="blacklist-box" class="sidebar-blacklist">
-  <div class="blacklist-header">
-    <h1 id="blacklist-collapse" class="hidden">Blacklisted<span id="blacklisted-count"></span></h1>
+<%# locals: (post_id: nil) %>
+
+<section class="blacklist-ui"
+  filters="0"
+  collapsed="true"
+  <% if post_id.present? %>
+    post="<%= post_id %>"
+  <% end %>
+>
+  <div class="blacklist-header">Blacklisted <span class="blacklisted-count"></span></div>
+  <div class="blacklist-filters"></div>
+  <span class="blacklist-footer">
+    <a class="blacklist-toggle-all"></a>
     <div class="blacklist-help"><%= link_to "(help)", help_page_path(id: "blacklist") %></div>
-  </div>
-  <ul id="blacklist-list" style="display: none;">
-  </ul>
-  <%= link_to "Disable all", "#", :id => "disable-all-blacklists", :style => "display: none;" %>
-  <%= link_to "Re-enable all", "#", :id => "re-enable-all-blacklists", :style => "display: none;" %>
+  </span>
 </section>

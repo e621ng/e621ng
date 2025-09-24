@@ -8,7 +8,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       @admin = create(:admin_user)
       @user = create(:user)
       as(@user) do
-        @artist = create(:artist, notes: "message")
+        @artist = create(:artist, name: "artist1", notes: "message")
         @masao = create(:artist, name: "masao", url_string: "http://www.pixiv.net/member.php?id=32777")
         @artgerm = create(:artist, name: "artgerm", url_string: "http://artgerm.deviantart.com/")
       end
@@ -44,15 +44,18 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
     end
 
-    should "create an artist" do
-      attributes = attributes_for(:artist)
-      assert_difference("Artist.count", 1) do
-        attributes.delete(:is_active)
-        post_auth artists_path, @user, params: {artist: attributes}
+    context "when creating an artist" do
+      should "work" do
+        attributes = attributes_for(:artist)
+        assert_difference("Artist.count", 1) do
+          attributes.delete(:is_active)
+          post_auth artists_path, @user, params: { artist: attributes }
+        end
+
+        artist = Artist.find_by_name(attributes[:name])
+        assert_not_nil(artist)
+        assert_redirected_to(artist_path(artist.id))
       end
-      artist = Artist.find_by_name(attributes[:name])
-      assert_not_nil(artist)
-      assert_redirected_to(artist_path(artist.id))
     end
 
     context "with an artist that has notes" do
@@ -121,7 +124,9 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
           @artist.update(name: "abc")
         end
         version = @artist.versions.first
-        put_auth revert_artist_path(@artist.id), @user, params: {version_id: version.id}
+        put_auth revert_artist_path(@artist.id), @user, params: { version_id: version.id }
+        assert_equal("artist1", @artist.reload.name)
+        assert_redirected_to(artist_path(@artist.id))
       end
 
       should "not allow reverting to a previous version of another artist" do
@@ -132,6 +137,45 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         @artist.reload
         assert_not_equal(@artist.name, @artist2.name)
         assert_redirected_to(artist_path(@artist.id))
+      end
+    end
+
+    context "with a dnp entry" do
+      setup do
+        @bd_user = create(:bd_staff_user)
+        CurrentUser.user = @bd_user
+        @avoid_posting = create(:avoid_posting, artist: @artist)
+      end
+
+      should "not allow destroying" do
+        assert_no_difference("Artist.count") do
+          delete_auth artist_path(@artist), @bd_user
+        end
+      end
+
+      # technical restriction
+      should "not allow destroying even if the dnp is inactive" do
+        @avoid_posting.update(is_active: false)
+        assert_no_difference("Artist.count") do
+          delete_auth artist_path(@artist), @bd_user
+        end
+      end
+
+      should "not allow editing protected properties" do
+        @janitor = create(:janitor_user)
+        name = @artist.name
+        group_name = @artist.group_name
+        other_names = @artist.other_names
+        assert_no_difference("ModAction.count") do
+          put_auth artist_path(@artist), @janitor, params: { artist: { name: "another_name", group_name: "some_group", other_names: "some other names" } }
+        end
+
+        @artist.reload
+        assert_equal(name, @artist.name)
+        assert_equal(group_name, @artist.group_name)
+        assert_equal(other_names, @artist.other_names)
+        assert_equal(name, @artist.wiki_page.reload.title)
+        assert_equal(name, @avoid_posting.reload.artist_name)
       end
     end
   end

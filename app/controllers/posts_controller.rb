@@ -3,6 +3,7 @@
 class PostsController < ApplicationController
   before_action :member_only, except: %i[show show_seq index random]
   before_action :admin_only, only: [:update_iqdb]
+  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
   respond_to :html, :json
 
   def index
@@ -14,9 +15,28 @@ class PostsController < ApplicationController
     else
       @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
       @posts = PostsDecorator.decorate_collection(@post_set.posts)
+
+      @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
+      if @query.length == 1
+        @wiki_page = WikiPage.titled(@query[0])
+
+        # redirect?
+        if @wiki_page.present? && @wiki_page.parent.present?
+          @wiki_page = WikiPage.titled(@wiki_page.parent)
+        end
+
+        @wiki_text = @wiki_page.present? ? @wiki_page.body : ""
+        if @wiki_text.present?
+          @wiki_text = @wiki_text
+                       .gsub(/thumb #\d+ ?/, "")
+                       .strip
+                       .truncate(512)
+        end
+      end
+
       respond_with(@posts) do |format|
         format.json do
-          render json: @post_set.api_posts, root: 'posts'
+          render json: @post_set.api_posts, root: "posts"
         end
         format.atom
       end
@@ -24,28 +44,48 @@ class PostsController < ApplicationController
   end
 
   def show
-    @post = Post.find(params[:id])
+    @post = Post.includes(:uploader, :approver).find(params[:id])
+
+    raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
 
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
-    @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, :include_deleted => include_deleted, want_parent: true)
-    @children_post_set = PostSets::PostRelationship.new(@post.id, :include_deleted => include_deleted, want_parent: false)
-    @comment_votes = {}
-    @comment_votes = CommentVote.for_comments_and_user(@post.comments.visible(CurrentUser.user).map(&:id), CurrentUser.id) if request.format.html?
+    @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)
+    @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
+
+    @has_samples = @post.is_image? || @post.video_sample_list[:has]
+
+    if request.format.html? && @post.comment_count > 0
+      @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
+      @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+    else
+      @comments = Comment.none
+      @comment_votes = CommentVote.none
+    end
 
     respond_with(@post)
   end
 
   def show_seq
     @post = PostSearchContext.new(params).post
+
+    raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
+
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
-    @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, :include_deleted => include_deleted, want_parent: true)
-    @children_post_set = PostSets::PostRelationship.new(@post.id, :include_deleted => include_deleted, want_parent: false)
-    @comment_votes = {}
-    @comment_votes = CommentVote.for_comments_and_user(@post.comments.visible(CurrentUser.user).map(&:id), CurrentUser.id) if request.format.html?
+    @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)
+    @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
+
+    if request.format.html? && @post.comment_count > 0
+      @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
+      @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+    else
+      @comments = Comment.none
+      @comment_votes = CommentVote.none
+    end
+
     @fixup_post_url = true
 
-    respond_with(@post) do |fmt|
-      fmt.html { render 'posts/show'}
+    respond_with(@post) do |format|
+      format.html { render "posts/show" }
     end
   end
 
@@ -67,9 +107,7 @@ class PostsController < ApplicationController
 
     @post.revert_to!(@version)
 
-    respond_with(@post) do |format|
-      format.js
-    end
+    respond_with(@post, &:js)
   end
 
   def copy_notes
@@ -80,18 +118,18 @@ class PostsController < ApplicationController
 
     if @post.errors.any?
       @error_message = @post.errors.full_messages.join("; ")
-      render :json => {:success => false, :reason => @error_message}.to_json, :status => 400
+      render json: { success: false, reason: @error_message }.to_json, status: 400
     else
-      head :no_content
+      head 204
     end
   end
 
   def random
-    tags = params[:tags] || ''
-    @post = Post.tag_match(tags + " order:random").limit(1).first
+    tags = params[:tags] || ""
+    @post = Post.tag_match("#{tags} order:random").limit(1).first
     raise ActiveRecord::RecordNotFound if @post.nil?
     respond_with(@post) do |format|
-      format.html { redirect_to post_path(@post, :tags => params[:tags]) }
+      format.html { redirect_to post_path(@post, q: params[:tags]) }
     end
   end
 
@@ -121,17 +159,17 @@ class PostsController < ApplicationController
           warnings = post.warnings.full_messages.join(".\n \n")
           if warnings.length > 45_000
             Dmail.create_automated({
-                                       to_id: CurrentUser.id,
-                                       title: "Post update notices for post ##{post.id}",
-                                       body: "While editing post ##{post.id} some notices were generated. Please review them below:\n\n#{warnings[0..45_000]}"
-                                   })
+              to_id: CurrentUser.id,
+              title: "Post update notices for post ##{post.id}",
+              body: "While editing post ##{post.id} some notices were generated. Please review them below:\n\n#{warnings[0..45_000]}",
+            })
             flash[:notice] = "What the heck did you even do to this poor post? That generated way too many warnings. But you get a dmail with most of them anyways"
           elsif warnings.length > 1500
             Dmail.create_automated({
-                                       to_id: CurrentUser.id,
-                                       title: "Post update notices for post ##{post.id}",
-                                       body: "While editing post ##{post.id} some notices were generated. Please review them below:\n\n#{warnings}"
-                                   })
+              to_id: CurrentUser.id,
+              title: "Post update notices for post ##{post.id}",
+              body: "While editing post ##{post.id} some notices were generated. Please review them below:\n\n#{warnings}",
+            })
             flash[:notice] = "This edit created a LOT of notices. They have been dmailed to you. Please review them"
           else
             flash[:notice] = warnings
@@ -141,7 +179,7 @@ class PostsController < ApplicationController
         if post.errors.any?
           @message = post.errors.full_messages.join("; ")
           if flash[:notice].present?
-            flash[:notice] += "\n\n" + @message
+            flash[:notice] += "\n\n#{@message}"
           else
             flash[:notice] = @message
           end
@@ -150,12 +188,20 @@ class PostsController < ApplicationController
         response_params.compact_blank!
         redirect_to post_path(post, response_params)
       end
+
+      format.json do
+        render json: post
+      end
     end
   end
 
-  def ensure_can_edit(post)
+  def ensure_can_edit(_post)
     can_edit = CurrentUser.can_post_edit_with_reason
-    raise User::PrivilegeError.new("Updater #{User.throttle_reason(can_edit)}") unless can_edit == true
+    raise User::PrivilegeError, "Updater #{User.throttle_reason(can_edit)}" unless can_edit == true
+  end
+
+  def ensure_lockdown_disabled
+    access_denied if Security::Lockdown.uploads_disabled? && !CurrentUser.is_staff?
   end
 
   def post_params
@@ -170,7 +216,8 @@ class PostsController < ApplicationController
     ]
     permitted_params += %i[is_rating_locked] if CurrentUser.is_privileged?
     permitted_params += %i[is_note_locked bg_color] if CurrentUser.is_janitor?
-    permitted_params += %i[is_status_locked is_comment_locked locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
+    permitted_params += %i[is_comment_locked] if CurrentUser.is_moderator?
+    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)
   end

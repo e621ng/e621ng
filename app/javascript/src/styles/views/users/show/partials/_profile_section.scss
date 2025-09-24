@@ -1,0 +1,39 @@
+.profile-section {
+  background: themed("color-section");
+
+  .profile-section-header {
+    background: themed("color-section-lighten-5");
+    @include st-radius;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+
+    display: flex;
+    gap: 0.25rem;
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    // This prevents the icon from animating on initial page load
+    &:hover svg { transition: transform ease-in-out 100ms; }
+  }
+
+  .profile-section-body {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0 0 radius() radius();
+    overflow: hidden;
+  }
+
+  // Collapsed
+  &.hidden {
+    .profile-section-header svg {
+      transform: rotate(-90deg);
+    }
+
+    .profile-section-body {
+      padding: 0 0.5rem;
+      height: 0;
+    }
+  }
+}

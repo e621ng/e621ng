@@ -5,6 +5,7 @@
                                                       ["Partially Approved", "partial"],
                                                       ["Approved", "approved"]], include_blank: true %>
   <% if CurrentUser.is_moderator? %>
+    <br />
     <%= f.input :source, label: 'Source' %>
     <%= f.input :reason, label: 'Reason' %>
     <%= f.input :notes, label: 'Admin Response' %>
@@ -14,8 +15,12 @@
     ], include_blank: true %>
     <%= f.input :instructions, label: "Instructions" %>
     <%= f.input :post_id, label: "Post ID" %>
+    <br />
+    <%= f.input :creator_name, label: "Creator" %>
+    <%= f.input :creator_logged_in, label: "Has Account?", collection: %w[yes no], include_blank: true %>
   <% end %>
   <% if CurrentUser.is_admin? %>
+    <br />
     <%= f.input :email, label: "Email" %>
     <%= f.input :ip_addr, label: "IP Address" %>
     <%= f.input :vericode, label: "Vericode" %>

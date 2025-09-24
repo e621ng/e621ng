@@ -1,0 +1,37 @@
+// Desktop-only
+// Rollout at 50rem
+.post-index {
+  grid-template-areas:
+    "search  content" 
+    "sidebar content";
+  grid-template-columns: 16rem 1fr;
+  grid-template-rows: min-content 1fr;
+
+  & > .search {
+    box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
+    padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+
+    .search-controls {
+      top: unset;
+      bottom: -1.633rem;
+      right: 0.5rem;
+
+      #search-fullscreen { display: flex; }
+      #search-settings {
+        height: inherit;
+        width: inherit;
+        svg { height: inherit;}
+      }
+    }
+  }
+
+  & > .sidebar {
+    box-shadow: inset -0.25rem 0px 0.25rem -0.25rem themed("color-background");
+    padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+  }
+
+  & > .content {
+    border-radius: 0 0.25rem 0.25rem 0;
+    padding: 0.5rem 0.75rem themed("content-padding-bottom");
+  }
+}

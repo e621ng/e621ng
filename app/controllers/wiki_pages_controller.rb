@@ -103,7 +103,7 @@ class WikiPagesController < ApplicationController
     if @wiki_page
       redirect_to wiki_page_path(@wiki_page)
     else
-      @wiki_page = WikiPage.new(:title => params[:title])
+      @wiki_page = WikiPage.new(title: WikiPage.normalize_name(params[:title] || ""))
       respond_with(@wiki_page)
     end
   end
@@ -123,9 +123,10 @@ class WikiPagesController < ApplicationController
   end
 
   def wiki_page_params(context)
-    permitted_params = %i[body skip_secondary_validations edit_reason]
+    permitted_params = %i[body category_id edit_reason]
     permitted_params += %i[parent] if CurrentUser.is_privileged?
-    permitted_params += %i[is_locked is_deleted] if CurrentUser.is_janitor?
+    permitted_params += %i[is_locked is_deleted skip_secondary_validations] if CurrentUser.is_janitor?
+    permitted_params += %i[category_is_locked] if CurrentUser.is_admin?
     permitted_params += %i[title] if context == :create || CurrentUser.is_janitor?
 
     params.fetch(:wiki_page, {}).permit(permitted_params)

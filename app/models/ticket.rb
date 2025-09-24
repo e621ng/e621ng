@@ -7,9 +7,10 @@ class Ticket < ApplicationRecord
   belongs_to :handler, class_name: "User", optional: true
   belongs_to :accused, class_name: "User", optional: true
   belongs_to :post_report_reason, foreign_key: "report_reason", optional: true
-  before_validation :initialize_fields, on: :create
   after_initialize :validate_type
   after_initialize :classify
+  before_validation :initialize_fields, on: :create
+  normalizes :reason, with: ->(reason) { reason.gsub("\r\n", "\n") }
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
@@ -20,7 +21,7 @@ class Ticket < ApplicationRecord
   validate :validate_content_exists, on: :create
   validate :validate_creator_is_not_limited, on: :create
 
-  scope :for_creator, ->(uid) {where('creator_id = ?', uid)}
+  scope :for_creator, ->(uid) { where("creator_id = ?", uid) }
 
   attr_accessor :record_type, :send_update_dmail
 
@@ -46,7 +47,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        (content&.visible_to?(user) && user.is_janitor?) || (user.id == creator_id)
+        (user.is_staff? && content&.visible_to?(user)) || user.is_admin? || (user.id == creator_id)
       end
     end
 
@@ -56,7 +57,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        (content&.visible_to?(user) && user.is_janitor?) || (user.id == creator_id)
+        (user.is_staff? && content&.visible_to?(user)) || user.is_admin? || (user.id == creator_id)
       end
     end
 
@@ -85,12 +86,12 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        (content&.visible?(user) && user.is_janitor?) || (user.id == creator_id)
+        ((content.nil? || content&.visible?(user)) && user.is_staff?) || user.is_admin? || (user.id == creator_id)
       end
     end
 
     module Pool
-      def can_create_for?(user)
+      def can_create_for?(_user)
         true
       end
 
@@ -99,13 +100,13 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_janitor? || (user.id == creator_id)
+        user.is_staff? || (user.id == creator_id)
       end
     end
 
     module Post
-      def self.extended(m)
-        m.class_eval do
+      def self.extended(modul)
+        modul.class_eval do
           validates :report_reason, presence: true
         end
       end
@@ -114,7 +115,7 @@ class Ticket < ApplicationRecord
         reason.split("\n")[0] || "Unknown Report Type"
       end
 
-      def can_create_for?(user)
+      def can_create_for?(_user)
         true
       end
 
@@ -123,7 +124,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_janitor? || (user.id == creator_id)
+        user.is_staff? || (user.id == creator_id)
       end
     end
 
@@ -137,12 +138,12 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        (content&.can_view?(user) && user.is_janitor?) || (user.id == creator_id)
+        ((content.nil? || content&.can_view?(user)) && user.is_staff?) || user.is_admin? || (user.id == creator_id)
       end
     end
 
     module User
-      def can_create_for?(user)
+      def can_create_for?(_user)
         true
       end
 
@@ -160,7 +161,7 @@ class Ticket < ApplicationRecord
         ::WikiPage
       end
 
-      def can_create_for?(user)
+      def can_create_for?(_user)
         true
       end
 
@@ -169,7 +170,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_janitor? || (user.id == creator_id)
+        user.is_staff? || user.is_admin? || (user.id == creator_id)
       end
     end
   end
@@ -247,7 +248,7 @@ class Ticket < ApplicationRecord
       q = q.where_user(:accused_id, :accused, params)
 
       if params[:qtype].present?
-        q = q.where('qtype = ?', params[:qtype])
+        q = q.where("qtype = ?", params[:qtype])
       end
 
       if params[:reason].present?
@@ -257,15 +258,19 @@ class Ticket < ApplicationRecord
       if params[:status].present?
         case params[:status]
         when "pending_claimed"
-          q = q.where('status = ? and claimant_id is not null', 'pending')
+          q = q.where("status = ? and claimant_id is not null", "pending")
         when "pending_unclaimed"
-          q = q.where('status = ? and claimant_id is null', 'pending')
+          q = q.where("status = ? and claimant_id is null", "pending")
         else
-          q = q.where('status = ?', params[:status])
+          q = q.where("status = ?", params[:status])
         end
       end
 
-      q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
+      if params[:order].present?
+        q.apply_basic_order(params)
+      else
+        q.order(Arel.sql("CASE status WHEN 'pending' THEN 0 WHEN 'partial' THEN 1 ELSE 2 END ASC, id DESC"))
+      end
     end
   end
 
@@ -296,7 +301,7 @@ class Ticket < ApplicationRecord
     user.is_moderator? || (user.id == creator_id)
   end
 
-  def can_create_for?(user)
+  def can_create_for?(_user)
     false
   end
 
@@ -317,7 +322,11 @@ class Ticket < ApplicationRecord
   end
 
   def open_duplicates
-    Ticket.where('qtype = ? and disp_id = ? and status = ?', qtype, disp_id, 'pending')
+    Ticket.where(
+      qtype: qtype,
+      disp_id: disp_id,
+      status: "pending",
+    ).where.not(id: id)
   end
 
   def warnable?
@@ -327,17 +336,17 @@ class Ticket < ApplicationRecord
   module ClaimMethods
     def claim!(user = CurrentUser)
       transaction do
-        ModAction.log(:ticket_claim, {ticket_id: id})
+        ModAction.log(:ticket_claim, { ticket_id: id })
         update_attribute(:claimant_id, user.id)
-        push_pubsub('claim')
+        push_pubsub("claim")
       end
     end
 
-    def unclaim!(user = CurrentUser)
+    def unclaim!(_user = CurrentUser)
       transaction do
-        ModAction.log(:ticket_unclaim, {ticket_id: id})
+        ModAction.log(:ticket_unclaim, { ticket_id: id })
         update_attribute(:claimant_id, nil)
-        push_pubsub('unclaim')
+        push_pubsub("unclaim")
       end
     end
   end
@@ -366,7 +375,7 @@ class Ticket < ApplicationRecord
     def log_update
       return unless saved_change_to_response? || saved_change_to_status?
 
-      ModAction.log(:ticket_update, { ticket_id: id })
+      ModAction.log(:ticket_update, { ticket_id: id, status: status, response: response, status_was: status_before_last_save, response_was: response_before_last_save })
     end
   end
 
@@ -380,10 +389,12 @@ class Ticket < ApplicationRecord
           user: creator_id ? User.id_to_name(creator_id) : nil,
           claimant: claimant_id ? User.id_to_name(claimant_id) : nil,
           target: bot_target_name,
+          target_id: disp_id,
+          accused_id: accused_id,
           status: status,
           category: qtype,
           reason: reason,
-        }
+        },
       }
     end
 

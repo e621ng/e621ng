@@ -1,0 +1,40 @@
+$user-levels: (
+  "unactivated"
+  "blocked"
+  "member"
+  "privileged"
+  "former-staff"
+  "janitor"
+  "moderator"
+  "admin"
+);
+$user-level-text: (
+  "moderator": #ffffff,
+  "janitor": #ffffff,
+);
+
+.level-badge {
+  font-weight: bold;
+  font-size: 0.65rem;
+  color: black;
+
+  background: themed("color-user-member");
+  padding: 0.1rem 0.25rem;
+  @include st-radius;
+
+  @each $level in $user-levels {
+    &.level-#{$level} {
+      background: themed("color-user-" + $level);
+    }
+  }
+  @each $level, $color in $user-level-text {
+    &.level-#{$level} {
+      color: $color;
+    }
+  }
+
+  &.level-unactivated {
+    background: themed("palette-background-red");
+    color: #ffffff;
+  }
+}

@@ -1,23 +1,45 @@
 <div id="c-users">
   <div id="a-show">
-    <div class="profile-container">
-      <%= render "statistics", :presenter => @presenter, :user => @user %>
-      <%= render "admin/staff_notes/partials/for_user", user: @user %>
 
-      <div class="bottom-section">
-        <div class="posts-section">
-          <div class="blacklist">
-            <%= render "posts/partials/common/inline_blacklist" %>
-          </div>
-          <div class="posts">
-            <%= render "post_summary", presenter: @presenter, user: @user %>
-          </div>
-        </div>
-        <%= render "about", presenter: @presenter, user: @user %>
-      </div>
-    </div>
+    <!-- Header -->
+    <%= render "/users/partials/show/card", :presenter => @presenter, :user => @user %>
+    <%= render "/users/partials/show/ban_banner", :presenter => @presenter, :user => @user %>
+
+    <% if CurrentUser.is_staff? %>
+      <!-- Staff Info -->
+      <%= render "/users/partials/show/staff_info", :presenter => @presenter, :user => @user %>
+      <%= render "staff_notes/partials/for_user", user: @user %>
+    <% end %>
+
+    <!-- Blacklist -->
+    <%= render "posts/partials/common/inline_blacklist" %>
+
+    <!-- Central panel -->
+    <% has_about = @user.profile_about.present? %>
+    <% has_artinfo = @user.profile_artinfo.present? %>
+    <tabs-menu
+      id="profile-tabs"
+      data-has-about="<%= has_about %>"
+      data-has-artinfo="<%= has_artinfo %>"
+    >
+      <% if has_about %>
+        <button role="tab" name="about">About</button>
+      <% end %>
+      <% if has_artinfo %>
+        <button role="tab" name="artinfo">Commission Info</button>
+      <% end %>
+      <button role="tab" name="stats">Stats</button>
+    </tabs-menu>
+
+    <tabs-content for="profile-tabs">
+      <%= render "/users/partials/show/user_info", :presenter => @presenter, :user => @user %>
+      <%= render "/users/partials/show/about", presenter: @presenter, user: @user, has_about: has_about, has_artinfo: has_artinfo %>
+      <%= render "/users/partials/show/post_summary", presenter: @presenter, user: @user %>
+    </tabs-content>
   </div>
 </div>
+
+<% render(partial: "static/embed", locals: { record: @user, name: @user.pretty_name, description: @user.profile_about.present? ? strip_tags(format_text(@user.profile_about)) : @user.level_string, post: @user.avatar, avatar: true }) %>
 
 <%= render "secondary_links" %>
 

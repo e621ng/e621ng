@@ -53,14 +53,14 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
 
       should "update the tag" do
         put_auth tag_path(@tag), @user, params: { tag: { category: Tag.categories.general } }
-        assert_redirected_to tag_path(@tag)
+        assert_redirected_to(tags_path(search: { name_matches: @tag.name, hide_empty: "no" }))
         assert_equal(Tag.categories.general, @tag.reload.category)
       end
 
       should "lock the tag for an admin" do
         put_auth tag_path(@tag), create(:admin_user), params: { tag: { is_locked: true } }
 
-        assert_redirected_to @tag
+        assert_redirected_to(tags_path(search: { name_matches: @tag.name, hide_empty: "no" }))
         assert_equal(true, @tag.reload.is_locked)
       end
 
@@ -87,7 +87,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
           @admin = create(:admin_user)
           put_auth tag_path(@tag), @admin, params: { tag: { category: Tag.categories.general } }
 
-          assert_redirected_to @tag
+          assert_redirected_to(tags_path(search: { name_matches: @tag.name, hide_empty: "no" }))
           assert_equal(Tag.categories.general, @tag.reload.category)
         end
       end

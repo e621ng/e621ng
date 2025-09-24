@@ -87,7 +87,7 @@ class StorageManagerTest < ActiveSupport::TestCase
         @storage_manager.store_file(StringIO.new("data"), @post, :original)
 
         @file_path = "#{BASE_DIR}/preview/#{@post.md5}.jpg"
-        @large_file_path = "#{BASE_DIR}/sample/sample-#{@post.md5}.jpg"
+        @large_file_path = "#{BASE_DIR}/sample/#{@post.md5}.jpg"
         @preview_file_path = "#{BASE_DIR}/#{@post.md5}.#{@post.file_ext}"
       end
 
@@ -112,19 +112,16 @@ class StorageManagerTest < ActiveSupport::TestCase
       should "return the correct urls" do
         @post = create(:post, file_ext: "png")
 
-        assert_equal("/data/#{@post.md5}.png", @storage_manager.file_url(@post, :original))
-        assert_equal("/data/sample/sample-#{@post.md5}.jpg", @storage_manager.file_url(@post, :large))
-        assert_equal("/data/preview/#{@post.md5}.jpg", @storage_manager.file_url(@post, :preview))
+        assert_equal("#{BASE_DIR}/#{@post.md5}.png", @storage_manager.post_file_path(@post, :original))
+        assert_equal("#{BASE_DIR}/sample/#{@post.md5}.jpg", @storage_manager.post_file_path(@post, :sample_jpg))
+        assert_equal("#{BASE_DIR}/preview/#{@post.md5}.jpg", @storage_manager.post_file_path(@post, :preview_jpg))
       end
 
       should "return the correct url for flash files" do
         @post = create(:post, file_ext: "swf")
 
         @storage_manager.stubs(:base_url).returns("/data")
-        assert_equal("/images/download-preview.png", @storage_manager.file_url(@post, :preview))
-
-        @storage_manager.stubs(:base_url).returns("http://localhost/data")
-        assert_equal("http://localhost/images/download-preview.png", @storage_manager.file_url(@post, :preview))
+        assert_equal("/images/download-preview.png", @storage_manager.post_file_path(@post, :preview_jpg))
       end
     end
   end
@@ -159,8 +156,8 @@ class StorageManagerTest < ActiveSupport::TestCase
 
     context "#file_url method" do
       should "generate /i1 urls for odd posts and /i2 urls for even posts" do
-        assert_equal("/i1/data/#{@post1.md5}.png", @storage_manager.file_url(@post1, :original))
-        assert_equal("/i2/data/#{@post2.md5}.png", @storage_manager.file_url(@post2, :original))
+        assert_equal("/i1/data/#{@post1.md5}.png", @storage_manager.post_file_url(@post1))
+        assert_equal("/i2/data/#{@post2.md5}.png", @storage_manager.post_file_url(@post2))
       end
     end
   end

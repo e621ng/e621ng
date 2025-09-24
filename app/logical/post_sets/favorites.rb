@@ -11,7 +11,7 @@ module PostSets
       @limit = limit
     end
 
-    def public_tag_string
+    def tag_string
       "fav:#{@user.name}"
     end
 
@@ -28,11 +28,27 @@ module PostSets
       end
     end
 
+    def has_explicit?
+      !CurrentUser.safe_mode?
+    end
+
+    def hidden_posts
+      @hidden_posts ||= posts.reject(&:visible?)
+    end
+
+    def login_blocked_posts
+      @login_blocked_posts ||= posts.select(&:loginblocked?)
+    end
+
+    def safe_posts
+      @safe_posts ||= posts.select { |p| p.safeblocked? && !p.deleteblocked? }
+    end
+
     def api_posts
-      _posts = posts
-      fill_children(_posts)
-      fill_tag_types(_posts)
-      _posts
+      result = posts
+      fill_children(result)
+      fill_tag_types(result)
+      result
     end
 
     def tag_array
@@ -41,6 +57,10 @@ module PostSets
 
     def presenter
       ::PostSetPresenters::Post.new(self)
+    end
+
+    def is_random?
+      false
     end
   end
 end

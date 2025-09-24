@@ -1,4 +1,4 @@
-<% if comment.should_see?(CurrentUser.user) %>
+<% if comment.should_see?(CurrentUser.user) || (params[:controller] == "comments" && params[:action] == "show" && CurrentUser.id == comment.creator_id) %>
   <article class="comment comment-post-grid <%= "below-threshold" if comment.below_threshold? %>" data-post-id="<%= comment.post_id %>"
            data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>"
            data-creator="<%= comment.creator&.name.downcase %>" data-is-sticky="<%= comment.is_sticky %>" data-creator-id="<%= comment.creator_id %>"
@@ -23,7 +23,7 @@
         <%= format_text(comment.body, allow_color: comment.creator.is_privileged?) %>
       </div>
       <%= render "application/update_notice", record: comment %>
-      <%= render "application/warned_notice", record: comment %>
+      <%= render "application/warned_notice", record: comment if comment.was_warned? %>
         <div class="content-menu">
           <menu>
             <% if post && comment.can_reply?(CurrentUser.user) %>
