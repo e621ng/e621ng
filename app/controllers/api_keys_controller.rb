@@ -16,27 +16,25 @@ class ApiKeysController < ApplicationController
     respond_with(@api_key)
   end
 
-  def edit
-    respond_with(@api_key)
-  end
-
   def create
-    @api_key = ApiKey.create(api_key_params.merge(user: CurrentUser.user))
+    params = api_key_params.merge(user: CurrentUser.user)
+
+    if params[:duration] == "never"
+      params[:expires_at] = nil
+    elsif params[:duration] != "custom" && params[:duration].present?
+      days = params[:duration].to_i
+      params[:expires_at] = days.days.from_now
+    end
+
+    params.delete(:duration)
+
+    @api_key = ApiKey.create(params)
 
     if @api_key.errors.any?
       respond_with(@api_key)
     else
       flash[:notice] = "API key created"
       respond_with(@api_key, location: api_keys_path)
-    end
-  end
-
-  def update
-    if @api_key.update(api_key_params)
-      flash[:notice] = "API key updated"
-      respond_with(@api_key, location: api_keys_path)
-    else
-      respond_with(@api_key)
     end
   end
 
@@ -53,7 +51,7 @@ class ApiKeysController < ApplicationController
   end
 
   def api_key_params
-    params.fetch(:api_key, {}).permit(:name, :expires_at)
+    params.fetch(:api_key, {}).permit(:name, :expires_at, :duration)
   end
 
   def search_params

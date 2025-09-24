@@ -44,8 +44,7 @@ body.c-api-keys.a-index {
 }
 
 body.c-api-keys.a-new,
-body.c-api-keys.a-edit,
-body.c-api-keys.a-update {
+body.c-api-keys.a-create {
   form {
     max-width: 50rem;
     background: themed("color-section");
@@ -63,8 +62,8 @@ body.c-api-keys.a-update {
         font-size: 0.9rem;
       }
 
-      input[type="text"],
-      input[type="datetime-local"] {
+      input,
+      select {
         width: 100%;
         max-width: 24rem;
         box-sizing: border-box;

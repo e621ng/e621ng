@@ -6,12 +6,30 @@
   </div>
 
   <div class="field">
-    <%= f.label :expires_at, "Expiration Date (optional)" %>
-    <%= f.datetime_local_field :expires_at %>
-    <div class="hint">Leave blank if you don't want this key to expire automatically.</div>
+    <%= f.label :duration, "Expiration" %>
+        <%= f.select :duration, 
+        options_for_select([
+          ["1 week", "7"],
+          ["1 month", "30"],
+          ["3 months", "90"],
+          ["6 months", "180"],
+          ["1 year", "365"],
+          ["2 years", "730"],
+          ["Custom", "custom"],
+          ["No expiration", "never"]
+        ], selected: "365"), 
+        {}, 
+        { class: "duration-select" } %>
+    <div class="hint">Select when this API key should expire.</div>
   </div>
 
-    <% if api_key.errors.any? %>
+  <div class="field custom-date-field" style="display: none;">
+    <%= f.label :expires_at, "Expiration Date" %>
+    <%= f.date_field :expires_at %>
+    <div class="hint">Enter an expiration date.</div>
+  </div>
+
+  <% if api_key.errors.any? %>
     <div class="section report-errors">
       <% api_key.errors.full_messages.each do |error| %>
         <span><%= error %></span>
@@ -20,6 +38,6 @@
   <% end %>
 
   <div class="actions">
-    <%= f.submit(api_key.persisted? ? "Update" : "Create") %>
+    <%= f.submit("Create") %>
   </div>
 <% end %>

@@ -52,16 +52,47 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(api_keys_path)
       end
 
-      should "create API key with expiration date" do
-        expiry_date = 1.month.from_now.to_date
-
+      should "create API key with duration" do
         assert_difference("ApiKey.count", 1) do
-          post_auth(api_keys_path, @user, params: { api_key: { name: "expiring_key", expires_at: expiry_date } })
+          post_auth(api_keys_path, @user, params: { api_key: { name: "week_key", duration: "7" } })
         end
 
         api_key = ApiKey.last
-        assert_equal("expiring_key", api_key.name)
-        assert_equal(expiry_date.to_time.to_date, api_key.expires_at.to_date)
+        assert_equal("week_key", api_key.name)
+        assert_in_delta(7.days.from_now.to_i, api_key.expires_at.to_i, 60)
+      end
+
+      should "create API key which never expires" do
+        assert_difference("ApiKey.count", 1) do
+          post_auth(api_keys_path, @user, params: { api_key: { name: "permanent_key", duration: "never" } })
+        end
+
+        api_key = ApiKey.last
+        assert_equal("permanent_key", api_key.name)
+        assert_nil(api_key.expires_at)
+      end
+
+      should "create API key with custom expiration" do
+        expiry_date = 2.months.from_now
+
+        assert_difference("ApiKey.count", 1) do
+          post_auth(api_keys_path, @user, params: { api_key: { name: "custom_key", duration: "custom", expires_at: expiry_date } })
+        end
+
+        api_key = ApiKey.last
+        assert_equal("custom_key", api_key.name)
+        assert_equal(expiry_date.to_date, api_key.expires_at.to_date)
+      end
+
+      should "create API key with empty custom duration" do
+        assert_difference("ApiKey.count", 1) do
+          post_auth(api_keys_path, @user, params: { api_key: { name: "no_date_key", duration: "custom" } })
+        end
+
+        api_key = ApiKey.last
+        assert_equal("no_date_key", api_key.name)
+        assert_nil(api_key.expires_at)
+        assert_redirected_to(api_keys_path)
       end
 
       should "fail with duplicate name for same user" do
@@ -69,45 +100,17 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
           post_auth(api_keys_path, @user, params: { api_key: { name: "test_key" } })
         end
 
-        assert_response(:success) # Should render new template with errors
-        assert_match(/Name has already been taken/, response.body)
-      end
-    end
-
-    context "edit action" do
-      should "render for the API key owner" do
-        get_auth(edit_api_key_path(@api_key), @user)
         assert_response(:success)
+        assert_match(/Name has already been taken/, @response.body)
       end
 
-      should "fail for someone else" do
-        get_auth(edit_api_key_path(@api_key), @other_user)
-        assert_response(:not_found)
-      end
-    end
+      should "fail with empty name" do
+        assert_no_difference("ApiKey.count") do
+          post_auth(api_keys_path, @user, params: { api_key: { name: "" } })
+        end
 
-    context "update action" do
-      should "update the API key for the owner" do
-        put_auth(api_key_path(@api_key), @user, params: { api_key: { name: "updated_name" } })
-
-        assert_redirected_to(api_keys_path)
-        assert_equal("updated_name", @api_key.reload.name)
-      end
-
-      should "fail for someone else" do
-        put_auth(api_key_path(@api_key), @other_user, params: { api_key: { name: "hacked" } })
-
-        assert_response(:not_found)
-        assert_equal("test_key", @api_key.reload.name)
-      end
-
-      should "fail with duplicate name" do
-        create(:api_key, user: @user, name: "other_key")
-        put_auth(api_key_path(@api_key), @user, params: { api_key: { name: "other_key" } })
-
-        assert_response(:success) # Should render edit template with errors
-        assert_match(/Name has already been taken/, response.body)
-        assert_equal("test_key", @api_key.reload.name)
+        assert_response(:success)
+        assert_match(/Name can&#39;t be blank/, @response.body)
       end
     end
 

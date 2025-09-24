@@ -67,8 +67,7 @@
           </td>
           <td><%= time_ago_in_words(api_key.created_at) %> ago</td>
           <td>
-            <%= link_to("Edit", edit_api_key_path(api_key)) %>
-            | <%= link_to("Delete", api_key, method: :delete, 
+            <%= link_to("Delete", api_key, method: :delete, 
                 confirm: "Are you sure you want to delete this API key?") %>
           </td>
         </tr>
