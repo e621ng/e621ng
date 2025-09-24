@@ -32,7 +32,7 @@ FactoryBot.define do
     end
 
     factory(:png_replacement) do
-      replacement_file { fixture_file_upload("test.png") }
+      replacement_file { fixture_file_upload("bread-static.alt.png") }
     end
 
     factory(:apng_replacement) do

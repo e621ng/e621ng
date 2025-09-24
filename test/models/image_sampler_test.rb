@@ -47,7 +47,7 @@ class ImageSamplerTest < ActiveSupport::TestCase
 
       context "png" do
         setup do
-          @file = file_fixture("test.png").open
+          @file = file_fixture("bread-static.alt.png").open
         end
 
         teardown do
@@ -58,7 +58,7 @@ class ImageSamplerTest < ActiveSupport::TestCase
           image = subject.image_from_path(@file.path)
 
           # Thumbnail
-          subject.thumbnail(image, [768, 1024]).each_value do |file|
+          subject.thumbnail(image, [512, 512]).each_value do |file|
             s_image = Vips::Image.new_from_file(file.path)
             assert_operator(File.size(file.path), :>, 0)
             assert_equal(Danbooru.config.small_image_width, s_image.width)
@@ -67,7 +67,7 @@ class ImageSamplerTest < ActiveSupport::TestCase
           end
 
           # Sample
-          subject.sample(image, [768, 1024]).each_value do |file|
+          subject.sample(image, [512, 512]).each_value do |file|
             s_image = Vips::Image.new_from_file(file.path)
             assert_operator(File.size(file.path), :>, 0)
             assert_equal(Danbooru.config.large_image_width, s_image.width)
