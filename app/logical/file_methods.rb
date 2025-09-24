@@ -64,6 +64,17 @@ module FileMethods
     end
   end
 
+  def is_animated_webp?(file_path)
+    return false unless is_webp?
+
+    image = Vips::Image.new_from_file(file_path, n: -1)
+    begin
+      image.get("n-pages") > 1
+    rescue Vips::Error
+      false
+    end
+  end
+
   def file_header_to_file_ext(file_path)
     File.open file_path do |bin|
       mime_type = Marcel::MimeType.for(bin)
