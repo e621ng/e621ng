@@ -24,7 +24,7 @@ FactoryBot.define do
     end
 
     factory(:gif_replacement) do
-      replacement_file { fixture_file_upload("test.gif") }
+      replacement_file { fixture_file_upload("bread-animated.gif") }
     end
 
     factory(:empty_replacement) do

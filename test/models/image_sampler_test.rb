@@ -79,7 +79,7 @@ class ImageSamplerTest < ActiveSupport::TestCase
 
       context "gif" do
         setup do
-          @file = file_fixture("test.gif").open
+          @file = file_fixture("bread-animated.gif").open
         end
 
         teardown do
@@ -90,7 +90,7 @@ class ImageSamplerTest < ActiveSupport::TestCase
           image = subject.image_from_path(@file.path)
 
           # Thumbnail
-          subject.thumbnail(image, [400, 400]).each_value do |file|
+          subject.thumbnail(image, [256, 256]).each_value do |file|
             s_image = Vips::Image.new_from_file(file.path)
             assert_operator(File.size(file.path), :>, 0)
             assert_equal(Danbooru.config.small_image_width, s_image.width)
@@ -99,7 +99,7 @@ class ImageSamplerTest < ActiveSupport::TestCase
           end
 
           # Sample
-          subject.sample(image, [400, 400]).each_value do |file|
+          subject.sample(image, [256, 256]).each_value do |file|
             s_image = Vips::Image.new_from_file(file.path)
             assert_operator(File.size(file.path), :>, 0)
             assert_equal(Danbooru.config.large_image_width, s_image.width)

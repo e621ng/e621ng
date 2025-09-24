@@ -57,7 +57,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "always upload as pending if user can't approve posts" do
-          file = fixture_file_upload("test.gif")
+          file = fixture_file_upload("bread-animated.gif")
           params = {
             format: :json,
             post_id: @post.id,
@@ -71,8 +71,8 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           post_auth post_replacements_path, @regular_user, params: params
           @post.reload
 
-          # 1e2edf6bdbd971d8c3cc4da0f98f38ab is the md5 of test.gif
-          assert_not_equal "1e2edf6bdbd971d8c3cc4da0f98f38ab", @post.md5
+          # 96dcf41ba7d63865918b187ede8e6993 is the md5 of bread-animated.gif
+          assert_not_equal "96dcf41ba7d63865918b187ede8e6993", @post.md5
           assert_equal @response.parsed_body["location"], post_path(@post)
         end
       end
