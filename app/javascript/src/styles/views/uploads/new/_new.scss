@@ -11,6 +11,8 @@ body.c-uploads.a-new {
   gap: 0.25rem;
   margin-bottom: 0.25rem;
 
+  max-width: 50rem; // Overflows on the replacements page
+
   .upload-source-row {
     display: flex;
 
