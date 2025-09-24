@@ -52,6 +52,10 @@ div#c-post-replacements {
   #avoid-posting-notice ul {
     margin-left: 1em;
   }
+
+  #a-new {
+    input[type="text"] { max-width: unset !important; }
+  }
 }
 
 // Lost both thumbs in an industrial accident.
