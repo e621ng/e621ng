@@ -46,6 +46,55 @@ class TagAliasTest < ActiveSupport::TestCase
           create(:tag_alias, status: "pending")
         end
       end
+
+      context "while validating the antecedent" do
+        should "not allow tag names to start with dashes" do
+          assert_raises(ActiveRecord::RecordInvalid) do
+            create(:tag_alias, antecedent_name: "-foo", consequent_name: "bar")
+          end
+        end
+
+        should "not allow blank tag names" do
+          assert_raises(ActiveRecord::RecordInvalid) do
+            create(:tag_alias, antecedent_name: "", consequent_name: "bar")
+          end
+        end
+
+        %w|~ + _ ` ( ) { } [ ] /|.each do |x|
+          should "not allow tag names starting with #{x}" do
+            assert_raises(ActiveRecord::RecordInvalid) do
+              create(:tag_alias, antecedent_name: "#{x}foo", consequent_name: "bar")
+            end
+          end
+        end
+
+        should "not allow zero-width spaces within tag names" do
+          # There is a zero width space between the two o's
+          assert_raises(ActiveRecord::RecordInvalid) do
+            create(:tag_alias, antecedent_name: "fo​o", consequent_name: "bar")
+          end
+        end
+
+        should "allow non-ascii characters within the tag names" do
+          ta1 = create(:tag_alias, antecedent_name: "可极", consequent_name: "bar")
+          assert(ta1.valid?)
+        end
+
+        should "allow tags to start with :" do
+          ta1 = create(:tag_alias, antecedent_name: ":foo", consequent_name: "bar")
+          assert(ta1.valid?)
+        end
+
+        should "allow tags to contain $" do
+          ta1 = create(:tag_alias, antecedent_name: "fo$o", consequent_name: "bar")
+          assert(ta1.valid?)
+        end
+
+        should "allow tags to contain \\" do
+          ta1 = create(:tag_alias, antecedent_name: "fo\\o", consequent_name: "bar")
+          assert(ta1.valid?)
+        end
+      end
     end
 
     context "#estimate_update_count" do
