@@ -1,4 +1,3 @@
-import Utility from "./utility";
 import Post from "./posts";
 import LStorage from "./utility/storage";
 import Dialog from "./utility/dialog";
