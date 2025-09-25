@@ -247,11 +247,13 @@ $(() => {
   // This seems extraordinarily uncommon, so it's here
   // just for feature parity with the old blacklist.
   if (!Page.matches("posts", "show")) return;
-  let container = $("#image-container[data-file-ext='webm']").on("blk:hide", () => {
-    const video = container.find("video");
-    if (!video.length) return;
-    video[0].pause();
-  });
+  let container = $("#image-container[data-file-ext='mp4'], \
+                    #image-container[data-file-ext='webm']")
+    .on("blk:hide", () => {
+      const video = container.find("video");
+      if (!video.length) return;
+      video[0].pause();
+    });
 });
 
 /**
