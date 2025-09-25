@@ -1,0 +1,22 @@
+#add-to-pool-dialog, #add-to-set-dialog {
+  &.simple_form { padding: 0; }
+  .add-to-pool-inputs {
+    padding: 0.5rem;
+    background: themed("color-section-lighten-5");
+    margin: 0.5rem 0.5rem 0;
+    @include st-radius;
+  }
+  .add-to-pool-submit {
+    padding: 0.5rem;
+  }
+
+  select { width: 100%; }
+  input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    max-width: unset;
+  }
+  .hint { max-width: unset; }
+
+  div.input:last-child { margin-bottom: 0; }
+}

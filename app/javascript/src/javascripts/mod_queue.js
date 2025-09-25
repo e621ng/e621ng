@@ -1,22 +1,36 @@
-import Utility from "./utility";
 import Post from "./posts";
 import LStorage from "./utility/storage";
+import Dialog from "./utility/dialog";
 
 let ModQueue = {};
 
+let rejectionDialog = null;
 ModQueue.detailed_rejection_dialog = function () {
-  const postID = $(this).data("post-id");
-  $("#post_disapproval_post_id").val(postID);
-  $("#detailed-rejection-dialog").find("form")[0].reset();
+  if (rejectionDialog == null) {
+    // Initialize the dialog
+    rejectionDialog = new Dialog("#detailed-rejection-dialog");
 
-  $("#new_post_disapproval")
-    .off("submit.danbooru")
-    .on("submit.danbooru", () => {
-      Post.disapprove(postID, $("#post_disapproval_reason").val(), $("#post_disapproval_message").val());
-      return false;
+    // Fill in the form data
+    const postID = $(this).data("post-id");
+    $("#post_disapproval_post_id").val(postID);
+    $("#detailed-rejection-dialog").find("form")[0].reset();
+
+    $("#new_post_disapproval")
+      .off("submit.danbooru")
+      .on("submit.danbooru", (event) => {
+        event.preventDefault();
+        Post.disapprove(postID, $("#post_disapproval_reason").val(), $("#post_disapproval_message").val());
+        rejectionDialog.close();
+        return false;
+      });
+
+    $("#detailed-rejection-cancel").on("click", (event) => {
+      event.preventDefault();
+      rejectionDialog.close();
     });
+  }
 
-  Utility.dialog("Detailed Rejection", "#detailed-rejection-dialog");
+  rejectionDialog.toggle();
   return false;
 };
 
@@ -43,6 +57,8 @@ $(function () {
 
   // Toolbar buttons
   $(document).on("click.danbooru", ".quick-mod .detailed-rejection-link", ModQueue.detailed_rejection_dialog);
+
+
   $(".delete-with-reason-link").on("click", function (e) {
     e.preventDefault();
     const post_id = $(e.target).attr("data-post-id");

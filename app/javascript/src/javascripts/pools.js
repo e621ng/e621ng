@@ -1,8 +1,7 @@
 import Utility from "./utility";
+import Dialog from "./utility/dialog";
 
 let Pool = {};
-
-Pool.dialog_setup = false;
 
 Pool.initialize_all = function () {
   if ($("#c-posts").length && $("#a-show").length) {
@@ -15,13 +14,13 @@ Pool.initialize_all = function () {
 };
 
 Pool.initialize_add_to_pool_link = function () {
-  $("#pool").on("click.danbooru", function (e) {
-    if (!Pool.dialog_setup) {
-      $("#add-to-pool-dialog").dialog({autoOpen: false});
-      Pool.dialog_setup = true;
-    }
-    e.preventDefault();
-    $("#add-to-pool-dialog").dialog("open");
+  let poolDialog = null;
+  $(".add-to-pool").on("click.danbooru", function (event) {
+    event.preventDefault();
+
+    if (!poolDialog)
+      poolDialog = new Dialog("#add-to-pool-dialog");
+    poolDialog.toggle();
   });
 
   $("#recent-pools li").on("click.danbooru", function (e) {

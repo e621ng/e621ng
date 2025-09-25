@@ -206,7 +206,16 @@ export default class PostsShowToolbar {
         .catch(e => {
           Utility.error("Failed to download post file.", e);
           button.attr("pending", "false");
+        })
+        .finally(() => {
+          offclickHandler.disabled = true;
+          menu.addClass("hidden");
         });
+    });
+
+    $(".ptbr-etc-pool, .ptbr-etc-set").on("click", () => {
+      offclickHandler.disabled = true;
+      menu.addClass("hidden");
     });
   }
 }
