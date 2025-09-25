@@ -2,6 +2,7 @@ import Filter from "./models/Filter";
 import PostCache from "./models/PostCache";
 import User from "./models/User";
 import Utility from "./utility";
+import Dialog from "./utility/dialog";
 import Page from "./utility/page";
 import LStorage from "./utility/storage";
 
@@ -19,14 +20,14 @@ Blacklist.ui = [];
 Blacklist.init_blacklist_editor = function () {
   let windowWidth = $(window).width(),
     windowHeight = $(window).height();
-  $("#blacklist-edit-dialog").dialog({
-    autoOpen: false,
+
+  const blacklistDialog = new Dialog("#blacklist-edit-dialog", {
     width: windowWidth > 400 ? 400 : windowWidth,
     height: windowHeight > 400 ? 400 : windowHeight,
   });
 
   $("#blacklist-cancel").on("click", function () {
-    $("#blacklist-edit-dialog").dialog("close");
+    blacklistDialog.close();
   });
 
   $("#blacklist-save").on("click", function () {
@@ -46,7 +47,7 @@ Blacklist.init_blacklist_editor = function () {
   $("#blacklist-edit-link").on("click", function (event) {
     event.preventDefault();
     $("#blacklist-edit").val(User.blacklist.tags.join("\n"));
-    $("#blacklist-edit-dialog").dialog("open");
+    blacklistDialog.open();
   });
 };
 

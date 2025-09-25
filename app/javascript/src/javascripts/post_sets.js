@@ -1,10 +1,10 @@
+import { post } from "jquery";
 import Page from "./utility/page";
 import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
+import Dialog from "./utility/dialog";
 
 let PostSet = {};
-
-PostSet.dialog_setup = false;
 
 let addPostTimeout = null;
 const addPostCache = {};
@@ -132,14 +132,16 @@ PostSet.remove_many_posts = function (set_id, posts = []) {
 };
 
 PostSet.initialize_add_to_set_link = function () {
-  $("#set").on("click.danbooru", function (e) {
-    if (!PostSet.dialog_setup) {
-      $("#add-to-set-dialog").dialog({autoOpen: false});
-      PostSet.dialog_setup = true;
-    }
+
+  let postSetDialog = null;
+  $(".add-to-set").on("click.danbooru", function (e) {
     e.preventDefault();
+
+    if (!postSetDialog)
+      postSetDialog = new Dialog("#add-to-set-dialog");
     PostSet.update_sets_menu();
-    $("#add-to-set-dialog").dialog("open");
+
+    postSetDialog.toggle();
   });
 
   $("#add-to-set-submit").on("click", function (e) {

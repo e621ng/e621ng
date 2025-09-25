@@ -145,12 +145,15 @@
   </div>
 
   <% if CurrentUser.is_member? %>
-    <div id="add-to-pool-dialog" title="Add to pool" style="display: none;">
+    <div class="dialog-staging" style="display: none;">
       <%= render "pool_elements/new" %>
-    </div>
-    <div id="add-to-set-dialog" title="Add to set" style="display: none;">
       <%= render "post_sets/add_dialog" %>
+
+      <% if CurrentUser.can_approve_posts? %>
+        <%= render "post_disapprovals/detailed_rejection_dialog" %>
+      <% end %>
     </div>
+
     <%= javascript_tag nonce: true do -%>
       var uploaderSettings = {
         postTags: <%= (@post.presenter.categorized_tag_list_text + " ").to_json.html_safe %>,

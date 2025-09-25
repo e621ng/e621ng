@@ -1,4 +1,4 @@
-<div id="blacklist-edit-dialog" title="<% if CurrentUser.is_anonymous? %> Anonymous <% end %>Blacklist" style="display: none;">
+<div id="blacklist-edit-dialog" data-title="<% if CurrentUser.is_anonymous? %> Anonymous <% end %>Blacklist">
   <h4>Tag Blacklist</h4>
   <p><%= link_to "Blacklist Help", help_page_path(id: "blacklist") %></p>
   <textarea id="blacklist-edit" rows="8" cols="30"></textarea>
