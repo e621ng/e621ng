@@ -32,8 +32,11 @@ export default class PostsShowToolbar {
     this.initFavoriteHotkeys();
 
     // Initialize notes toggle
-    $(".ptbr-notes-button").each((_index, element) => {
-      $(element).on("click", () => { PostsShowToolbar.toggleNotes(); });
+    const noteToggleButtons = $(".ptbr-notes-button")
+      .attr("enabled", NoteManager.enabled + "")
+      .on("click", () => { NoteManager.enabled = !NoteManager.enabled; });
+    $("#note-container").on("visible:true visible:false", () => {
+      noteToggleButtons.attr("enabled", NoteManager.enabled + "");
     });
 
     // Initialize fullscreen menu toggle
@@ -151,11 +154,6 @@ export default class PostsShowToolbar {
         $(".ptbr-favorite-button").attr("favorited", "false");
         $("#image-container").attr("data-is-favorited", "false");
       });
-  }
-
-  static toggleNotes (visible = !NoteManager.enabled) {
-    NoteManager.enabled = visible;
-    $(".ptbr-notes-button").attr("enabled", visible + "");
   }
 
   // Fullscreen / download menu

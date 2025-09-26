@@ -13,11 +13,26 @@ export default class NoteManager {
       event.preventDefault();
       NoteUtilities.toggleEditing();
 
-      if (NoteUtilities.editing)
+      if (NoteUtilities.editing) {
         $("html, body").animate({ scrollTop: NoteUtilities.containerOffset.top }, 200);
+        NoteUtilities.visible = true;
+      }
     });
 
-    // Listen to clicks on note bodies
+    // Initialize interactivity once editing is enabled
+    $("#note-container").one("editing:true", () => {
+      this.handleNoteEditing();
+      this.handleNoteDrawing();
+      this.handleNoteResizing();
+      this.handleNoteMoving();
+    });
+  }
+
+  // ====================== //
+  // ==== Note Editing ==== //
+  // ====================== //
+
+  handleNoteEditing () {
     $("#note-container").on("click", ".note-body", (event) => {
       if (!NoteUtilities.editing) return;
       event.preventDefault();
@@ -30,11 +45,6 @@ export default class NoteManager {
 
       NoteManager.Editor.open(noteID);
     });
-
-    // Set up interactivity
-    this.handleNoteDrawing();
-    this.handleNoteResizing();
-    this.handleNoteMoving();
   }
 
 
@@ -481,14 +491,8 @@ export default class NoteManager {
   static get editing () { return NoteUtilities.editing; }
   static set editing (value) { NoteUtilities.editing = value; }
 
-
-  static _enabled = LStorage.Posts.Notes;
-  static get enabled () { return this._enabled; }
-  static set enabled (value) {
-    this._enabled = value;
-    LStorage.Posts.Notes = value;
-    NoteUtilities.container.attr("enabled", value);
-  }
+  static get enabled () { return NoteUtilities.visible; }
+  static set enabled (value) { NoteUtilities.visible = value; }
 
 
   // ====================== //
@@ -875,6 +879,7 @@ class NoteUtilities {
   static _containerDimensions = null;
   static _containerOffset = null;
   static _editing = false;
+  static _visible = LStorage.Posts.Notes;
 
   /** Returns the container to which all notes are appended */
   static get container () {
@@ -916,7 +921,10 @@ class NoteUtilities {
   static get editing () { return this._editing; }
   static set editing (value) {
     this._editing = value;
-    this.container.attr("editing", value ? "true" : "false");
+    this.container
+      .trigger(`editing:${value}`)
+      .attr("editing", value ? "true" : "false");
+
     if (value) {
       $("#mark-as-translated-section").show();
     } else {
@@ -925,6 +933,15 @@ class NoteUtilities {
     }
   }
 
+  /** Whether the note container is visible */
+  static get visible () { return this._visible; }
+  static set visible (value) {
+    this._visible = value;
+    LStorage.Posts.Notes = value;
+    NoteUtilities.container
+      .attr("enabled", value)
+      .trigger(`visible:${value}`);
+  }
 
   // ==================== //
   // ==== Scaling ======= //
