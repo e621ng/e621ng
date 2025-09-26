@@ -61,6 +61,7 @@ class TagAlias < TagRelationship
       @transitives
     end
 
+    # TODO: Follow convention of appending `?` to boolean methods.
     def has_transitives
       @has_transitives ||= list_transitives.size > 0
     end
