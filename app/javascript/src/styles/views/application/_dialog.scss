@@ -16,6 +16,7 @@
     position: absolute;
     pointer-events: all;
     z-index: 250; // Individual dialogs are focused higher
+    outline: none !important; // Disable focus outline for dialogs
     &.hidden { display: none; }
 
     // Styles

@@ -1,6 +1,7 @@
 import Filter from "./models/Filter";
 import PostCache from "./models/PostCache";
 import User from "./models/User";
+import NoteManager from "./notes";
 import Utility from "./utility";
 import Dialog from "./utility/dialog";
 import Page from "./utility/page";
@@ -61,7 +62,7 @@ Blacklist.init_reveal_on_click = function () {
       container.removeClass("blacklisted");
 
       $("#note-container").css("visibility", "visible");
-      Danbooru.Note.Box.scale_all();
+      NoteManager.updateScale();
     });
 };
 
@@ -206,7 +207,7 @@ Blacklist.update_visibility = function () {
     $("#note-container").css("visibility", "hidden");
   } else {
     $("#note-container").css("visibility", "visible");
-    Danbooru.Note.Box.scale_all();
+    NoteManager.updateScale();
   }
 };
 
