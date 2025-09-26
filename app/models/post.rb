@@ -809,6 +809,7 @@ class Post < ApplicationRecord
       # TODO: Automatically add animated_* tags without re-testing them on every edit
       tags -= ["animated_gif"] unless is_gif?
       tags -= ["animated_png"] unless is_png?
+      tags -= ["animated_webp"] unless is_webp?
 
       tags
     end

@@ -55,7 +55,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal @replacement.errors.size, 0
       assert_equal %w[original pending].sort, @post.replacements.map(&:status).sort
       assert @replacement.storage_id
-      assert_equal Digest::MD5.file(file_fixture("test.png")).hexdigest, Digest::MD5.file(@replacement.replacement_file_path).hexdigest
+      assert_equal Digest::MD5.file(file_fixture("bread-static.alt.png")).hexdigest, Digest::MD5.file(@replacement.replacement_file_path).hexdigest
     end
 
     should "not allow duplicate replacement submission" do
@@ -246,10 +246,10 @@ class PostReplacementTest < ActiveSupport::TestCase
     should "correctly resize the posts notes" do
       @replacement.approve! penalize_current_uploader: true
       @note.reload
-      assert_equal 153, @note.x
-      assert_equal 611, @note.y
-      assert_equal 153, @note.width
-      assert_equal 152, @note.height
+      assert_equal 102, @note.x
+      assert_equal 305, @note.y
+      assert_equal 102, @note.width
+      assert_equal 76, @note.height
     end
 
     should "only work on unpromoted and non-current replacements" do

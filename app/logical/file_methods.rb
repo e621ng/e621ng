@@ -2,7 +2,7 @@
 
 module FileMethods
   def is_image?
-    is_png? || is_jpg? || is_gif?
+    is_png? || is_jpg? || is_gif? || is_webp?
   end
 
   def is_png?
@@ -29,6 +29,10 @@ module FileMethods
     file_ext == "mp4"
   end
 
+  def is_webp?
+    file_ext == "webp"
+  end
+
   def is_video?
     is_webm? || is_mp4?
   end
@@ -48,6 +52,17 @@ module FileMethods
       false
     else
       raise result
+    end
+  end
+
+  def is_animated_webp?(file_path)
+    return false unless is_webp?
+
+    image = Vips::Image.new_from_file(file_path, n: -1)
+    begin
+      image.get("n-pages") > 1
+    rescue Vips::Error
+      false
     end
   end
 
@@ -85,6 +100,8 @@ module FileMethods
         "webm"
       when "video/mp4"
         "mp4"
+      when "image/webp"
+        "webp"
       else
         mime_type
       end
