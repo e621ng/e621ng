@@ -222,7 +222,8 @@ export default class NoteManager {
         height: NoteUtilities.scaleDown(note.height),
       };
 
-      $noteBox.addClass("editing pending");
+      note.editing = true;
+      note.pending = true;
     });
 
     // Mousemove to resize the note
@@ -385,7 +386,8 @@ export default class NoteManager {
       };
 
       // Add visual feedback
-      $noteBox.addClass("editing pending");
+      note.editing = true;
+      note.pending = true;
       $("#note-container").addClass("note-dragging");
     });
 
@@ -438,7 +440,7 @@ export default class NoteManager {
       }
 
       // Remove visual feedback
-      $movingNote.$box.removeClass("editing");
+      $movingNote.editing = false;
       $("#note-container").removeClass("note-dragging");
 
       // Open the note editor to let user save the new position
@@ -461,7 +463,7 @@ export default class NoteManager {
       }
 
       // Clean up moving state
-      $movingNote.$box.removeClass("editing");
+      $movingNote.editing = false;
       $("#note-container").removeClass("note-dragging");
       isMoving = false;
       $movingNote = null;
@@ -571,7 +573,10 @@ class Note {
 
   get focused () { return this.$box.hasClass("focused"); }
   set focused (value) { this.$box.toggleClass("focused", value); }
-
+  get pending () { return this.$box.hasClass("pending"); }
+  set pending (value) { this.$box.toggleClass("pending", value); }
+  get editing () { return this.$box.hasClass("editing"); }
+  set editing (value) { this.$box.toggleClass("editing", value); }
 
   // Set attributes using container-relative coordinates
   set containerX (value) { this.x = NoteUtilities.scaleUp(value); }
@@ -646,7 +651,8 @@ class NoteEditor {
 
     // Mark note as pending when user starts typing
     this.input.on("input", () => {
-      this.currentNote?.$box.addClass("pending");
+      if (!this.id) return;
+      this.currentNote.pending = true;
     });
 
     // Save note on form submit
@@ -778,7 +784,7 @@ class NoteEditor {
         note.updateScale();
 
         // Remove pending changes indicator
-        note.$element.removeClass("pending");
+        note.pending = false;
 
         if (data.posts) {
           $(window).trigger("e621:add_deferred_posts", data.posts);
