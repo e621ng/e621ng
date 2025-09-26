@@ -1,5 +1,6 @@
 import Utility from "./utility.js";
 import Dialog from "./utility/dialog";
+import LStorage from "./utility/storage.js";
 
 export default class NoteManager {
 
@@ -481,6 +482,15 @@ export default class NoteManager {
   static set editing (value) { NoteUtilities.editing = value; }
 
 
+  static _enabled = LStorage.Posts.Notes;
+  static get enabled () { return this._enabled; }
+  static set enabled (value) {
+    this._enabled = value;
+    LStorage.Posts.Notes = value;
+    NoteUtilities.container.attr("enabled", value);
+  }
+
+
   // ====================== //
   // ==== Persistence ===== //
   // ====================== //
@@ -870,6 +880,9 @@ class NoteUtilities {
   static get container () {
     if (this._container !== null) return this._container;
     this._container = $("#note-container");
+
+    // Load container state from storage
+    this._container.attr("enabled", LStorage.Posts.Notes + "");
 
     // Set up ResizeObserver to track size changes
     const resizeObserver = new ResizeObserver(() => {

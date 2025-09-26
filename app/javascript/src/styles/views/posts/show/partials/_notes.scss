@@ -13,6 +13,8 @@
   pointer-events: none;
   user-select: none;
 
+  &[enabled="false"] .note-box { display: none; }
+
   .note-box {
     display: flex;
     &.hidden { display: none; }
