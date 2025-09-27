@@ -25,6 +25,8 @@ export default class NoteManager {
       this.handleNoteDrawing();
       this.handleNoteResizing();
       this.handleNoteMoving();
+
+      this.handleAbortEvents();
     });
   }
 
@@ -181,7 +183,7 @@ export default class NoteManager {
       }
     });
 
-    NoteUtilities.container.on("mouseleave", abortDrawing);
+    NoteUtilities.container.on("note:abort mouseleave", abortDrawing);
 
     NoteUtilities.container.on("contextmenu", (event) => {
       if (!isDrawing) return;
@@ -325,8 +327,7 @@ export default class NoteManager {
       resizeOriginalBounds = null;
     });
 
-    // Abort if mouse leaves the container
-    NoteUtilities.container.on("mouseleave", () => {
+    NoteUtilities.container.on("note:abort mouseleave", () => {
       if (!isResizing || !$resizingNote) return;
 
       // Revert to original bounds
@@ -345,6 +346,13 @@ export default class NoteManager {
         cancelAnimationFrame(resizeThrottleId);
         resizeThrottleId = null;
       }
+    });
+
+    // Handle context menu during resizing
+    NoteUtilities.container.on("contextmenu", (event) => {
+      if (!isResizing) return;
+      event.preventDefault();
+      NoteUtilities.container.trigger("note:abort");
     });
   }
 
@@ -452,7 +460,7 @@ export default class NoteManager {
     });
 
     // Handle mouse leave to cancel moving
-    NoteUtilities.container.on("mouseleave", () => {
+    NoteUtilities.container.on("note:abort mouseleave", () => {
       if (!isMoving || !$movingNote) return;
 
       // Revert to original position
@@ -471,6 +479,39 @@ export default class NoteManager {
         cancelAnimationFrame(moveThrottleId);
         moveThrottleId = null;
       }
+    });
+
+    // Handle context menu during moving
+    NoteUtilities.container.on("contextmenu", (event) => {
+      if (!isMoving) return;
+      event.preventDefault();
+      NoteUtilities.container.trigger("note:abort");
+    });
+  }
+
+
+  // ====================== //
+  //  Abort Events Handler  //
+  // ====================== //
+
+  handleAbortEvents () {
+
+    // Window losing focus causes the script to think that the mouse button is still held down
+    // Resize events will affect coordinate calculations
+    $(window).on("blur resize", () => {
+      NoteUtilities.container.trigger("note:abort");
+    });
+
+    // Escape key is pressed
+    $(document).on("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      NoteUtilities.container.trigger("note:abort");
+    });
+
+    // Ppage visibility changes
+    $(document).on("visibilitychange", () => {
+      if (!document.hidden) return;
+      NoteUtilities.container.trigger("note:abort");
     });
   }
 
