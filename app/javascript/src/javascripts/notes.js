@@ -1,3 +1,4 @@
+import User from "./models/User.js";
 import Utility from "./utility.js";
 import Dialog from "./utility/dialog";
 import LStorage from "./utility/storage.js";
@@ -8,6 +9,8 @@ export default class NoteManager {
   /** Initialize the manager and load existing notes from the staging area. */
   constructor () {
     $("#note-staging article").each((_, note) => { Note.fromStaged(note); });
+
+    if (!User.is.member) return;
 
     // Switch to note editing mode when the "Edit Notes" button is clicked
     $("#translate").on("click", (event) => {
