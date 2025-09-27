@@ -19,6 +19,11 @@ export default class NoteManager {
       }
     });
 
+    $("#translation-cancel").on("click", (event) => {
+      event.preventDefault();
+      NoteUtilities.editing = false;
+    });
+
     // Initialize interactivity once editing is enabled
     NoteUtilities.container.one("editing:true", () => {
       this.handleNoteEditing();
@@ -1004,6 +1009,7 @@ class NoteUtilities {
     } else {
       $("#mark-as-translated-section").hide();
       NoteEditor.instance.close();
+      this.container.trigger("note:abort");
     }
   }
 

@@ -189,3 +189,13 @@
     }
   }
 }
+
+// Translation options form
+#mark-as-translated-section {
+  fieldset {
+    display: flex;
+    flex-flow: column;
+    gap: 0.25rem;
+  }
+  div.input { margin-bottom: 0; }
+}
