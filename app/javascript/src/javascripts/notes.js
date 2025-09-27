@@ -514,7 +514,7 @@ export default class NoteManager {
       NoteUtilities.container.trigger("note:abort");
     });
 
-    // Ppage visibility changes
+    // Page visibility changes
     $(document).on("visibilitychange", () => {
       if (!document.hidden) return;
       NoteUtilities.container.trigger("note:abort");
