@@ -20,7 +20,7 @@ export default class NoteManager {
     });
 
     // Initialize interactivity once editing is enabled
-    $("#note-container").one("editing:true", () => {
+    NoteUtilities.container.one("editing:true", () => {
       this.handleNoteEditing();
       this.handleNoteDrawing();
       this.handleNoteResizing();
@@ -33,7 +33,7 @@ export default class NoteManager {
   // ====================== //
 
   handleNoteEditing () {
-    $("#note-container").on("click", ".note-body", (event) => {
+    NoteUtilities.container.on("click", ".note-body", (event) => {
       if (!NoteUtilities.editing) return;
       event.preventDefault();
       event.stopPropagation();
@@ -57,12 +57,14 @@ export default class NoteManager {
     let isDrawing = false;
     let startX = 0;
     let startY = 0;
-    let $drawingNote = null;
     let drawingNoteId = null;
     let mouseMoveThrottleId = null;
 
+    /** @type {Note} Note currently being drawn */
+    let $drawingNote = null;
+
     // Initial click to start drawing
-    $("#note-container").on("mousedown", (event) => {
+    NoteUtilities.container.on("mousedown", (event) => {
       if (!NoteUtilities.editing) return;
 
       // Don't start drawing if clicking on an existing note
@@ -89,37 +91,33 @@ export default class NoteManager {
         html: "",
       });
 
-      $drawingNote.containerX = startX;
-      $drawingNote.containerY = startY;
-      $drawingNote.updateScale();
-
-      $drawingNote.$box.addClass("editing");
+      $drawingNote.moveTo({ x: startX, y: startY });
+      $drawingNote.editing = true;
     });
 
     // Mousemove to update the drawing
-    $("#note-container").on("mousemove", (event) => {
+    NoteUtilities.container.on("mousemove", (event) => {
       if (!isDrawing || !$drawingNote) return;
 
       event.preventDefault();
 
       // Throttle mousemove events
       if (mouseMoveThrottleId) cancelAnimationFrame(mouseMoveThrottleId);
-
       mouseMoveThrottleId = requestAnimationFrame(() => {
         const currentX = event.pageX - NoteUtilities.containerOffset.left;
         const currentY = event.pageY - NoteUtilities.containerOffset.top;
 
-        // Update the note dimensions
-        $drawingNote.containerX = Math.min(startX, currentX);
-        $drawingNote.containerY = Math.min(startY, currentY);
-        $drawingNote.containerWidth = Math.abs(currentX - startX);
-        $drawingNote.containerHeight = Math.abs(currentY - startY);
-        $drawingNote.updateScale();
+        $drawingNote.adjustTo({
+          x: Math.min(startX, currentX),
+          y: Math.min(startY, currentY),
+          width: Math.abs(currentX - startX),
+          height: Math.abs(currentY - startY),
+        });
       });
     });
 
     // Mouseup to finalize the drawing
-    $("#note-container").on("mouseup", (event) => {
+    NoteUtilities.container.on("mouseup", (event) => {
       if (!isDrawing || !$drawingNote) return;
 
       event.preventDefault();
@@ -141,11 +139,12 @@ export default class NoteManager {
 
       // Only create note if the area is large enough (minimum 20x20 pixels)
       if (width >= 20 && height >= 20) {
-        $drawingNote.containerX = Math.min(startX, endX);
-        $drawingNote.containerY = Math.min(startY, endY);
-        $drawingNote.containerWidth = width;
-        $drawingNote.containerHeight = height;
-        $drawingNote.updateScale();
+        $drawingNote.adjustTo({
+          x: Math.min(startX, endX),
+          y: Math.min(startY, endY),
+          width: width,
+          height: height,
+        });
 
         $drawingNote.$box.removeClass("editing");
         NoteManager.Editor.open(drawingNoteId);
@@ -160,7 +159,7 @@ export default class NoteManager {
     });
 
     // Abort if mouse leaves the container
-    $("#note-container").on("mouseleave", () => {
+    NoteUtilities.container.on("mouseleave", () => {
       if (!isDrawing || !$drawingNote) return;
 
       $drawingNote.destroy();
@@ -174,7 +173,6 @@ export default class NoteManager {
         mouseMoveThrottleId = null;
       }
     });
-
   }
 
 
@@ -187,14 +185,16 @@ export default class NoteManager {
     // Handle note resizing
     let isResizing = false;
     let resizeHandle = null; // 'nw' or 'se'
-    let $resizingNote = null;
     let resizeStartX = 0;
     let resizeStartY = 0;
     let resizeOriginalBounds = null;
     let resizeThrottleId = null;
 
+    /** @type {Note} Note currently being resized */
+    let $resizingNote = null;
+
     // Mousedown to start resizing
-    $("#note-container").on("mousedown", ".note-handle", (event) => {
+    NoteUtilities.container.on("mousedown", ".note-handle", (event) => {
       if (!NoteUtilities.editing) return;
 
       event.preventDefault();
@@ -227,16 +227,13 @@ export default class NoteManager {
     });
 
     // Mousemove to resize the note
-    $("#note-container").on("mousemove", (event) => {
+    NoteUtilities.container.on("mousemove", (event) => {
       if (!isResizing || !$resizingNote) return;
 
       event.preventDefault();
 
       // Throttle resize events
-      if (resizeThrottleId) {
-        cancelAnimationFrame(resizeThrottleId);
-      }
-
+      if (resizeThrottleId) cancelAnimationFrame(resizeThrottleId);
       resizeThrottleId = requestAnimationFrame(() => {
         const currentX = event.pageX - NoteUtilities.containerOffset.left;
         const currentY = event.pageY - NoteUtilities.containerOffset.top;
@@ -275,16 +272,17 @@ export default class NoteManager {
         }
 
         // Update the note's bounds
-        $resizingNote.containerX = newX;
-        $resizingNote.containerY = newY;
-        $resizingNote.containerWidth = newWidth;
-        $resizingNote.containerHeight = newHeight;
-        $resizingNote.updateScale();
+        $resizingNote.adjustTo({
+          x: newX,
+          y: newY,
+          width: newWidth,
+          height: newHeight,
+        });
       });
     });
 
     // Mouseup to finalize resizing
-    $("#note-container").on("mouseup", (event) => {
+    NoteUtilities.container.on("mouseup", (event) => {
       // Handle note resizing
       if (!isResizing || !$resizingNote) return;
 
@@ -313,20 +311,15 @@ export default class NoteManager {
     });
 
     // Abort if mouse leaves the container
-    $("#note-container").on("mouseleave", () => {
+    NoteUtilities.container.on("mouseleave", () => {
       if (!isResizing || !$resizingNote) return;
 
-      // Cancel resize operation and revert to original bounds
-      if (resizeOriginalBounds) {
-        $resizingNote.containerX = resizeOriginalBounds.x;
-        $resizingNote.containerY = resizeOriginalBounds.y;
-        $resizingNote.containerWidth = resizeOriginalBounds.width;
-        $resizingNote.containerHeight = resizeOriginalBounds.height;
-        $resizingNote.updateScale();
-      }
+      // Revert to original bounds
+      if (resizeOriginalBounds)
+        $resizingNote.adjustTo(resizeOriginalBounds);
 
       // Clean up resizing state
-      $resizingNote.$box.removeClass("editing");
+      $resizingNote.editing = false;
       isResizing = false;
       $resizingNote = null;
       resizeHandle = null;
@@ -348,29 +341,26 @@ export default class NoteManager {
   handleNoteMoving () {
 
     let isMoving = false;
-    let $movingNote = null;
     let moveStartX = 0;
     let moveStartY = 0;
     let moveOriginalPosition = null;
     let moveThrottleId = null;
 
-    $("#note-container").on("mousedown", ".note-box", (event) => {
+    /** @type {Note} Note currently being moved */
+    let $movingNote = null;
+
+    NoteUtilities.container.on("mousedown", ".note-box", (event) => {
       if (!NoteUtilities.editing) return;
 
-      // Don't start moving if clicking on a handle (those are for resizing)
-      const $target = $(event.target);
-      if ($target.hasClass("note-handle") || $target.closest(".note-handle").length > 0) return;
-
-      // Don't start moving if clicking on the note body (that opens the editor)
-      if ($target.hasClass("note-body") || $target.closest(".note-body").length > 0) return;
+      // Ignore clicks on handles or body
+      const $noteBox = $(event.target);
+      if (!$noteBox.hasClass("note-box")) return;
 
       event.preventDefault();
       event.stopPropagation();
 
-      const $noteBox = $(event.currentTarget);
       const noteId = $noteBox.attr("nid");
       const note = Note.getByID(noteId);
-
       if (!note) return;
 
       isMoving = true;
@@ -381,27 +371,24 @@ export default class NoteManager {
 
       // Store original position in container coordinates
       moveOriginalPosition = {
-        x: note.containerX,
-        y: note.containerY,
+        x: note.relX,
+        y: note.relY,
       };
 
       // Add visual feedback
       note.editing = true;
       note.pending = true;
-      $("#note-container").addClass("note-dragging");
+      NoteUtilities.busy = true;
     });
 
     // Handle mousemove for note moving
-    $("#note-container").on("mousemove", (event) => {
+    NoteUtilities.container.on("mousemove", (event) => {
       if (!isMoving || !$movingNote) return;
 
       event.preventDefault();
 
       // Throttle move events
-      if (moveThrottleId) {
-        cancelAnimationFrame(moveThrottleId);
-      }
-
+      if (moveThrottleId) cancelAnimationFrame(moveThrottleId);
       moveThrottleId = requestAnimationFrame(() => {
         const currentX = event.pageX - NoteUtilities.containerOffset.left;
         const currentY = event.pageY - NoteUtilities.containerOffset.top;
@@ -413,18 +400,16 @@ export default class NoteManager {
         const newY = moveOriginalPosition.y + deltaY;
 
         // Keep the note within the container bounds
-        const clampedX = Math.max(0, Math.min(newX, NoteUtilities.containerDimensions.width - $movingNote.containerWidth));
-        const clampedY = Math.max(0, Math.min(newY, NoteUtilities.containerDimensions.height - $movingNote.containerHeight));
+        const clampedX = Math.max(0, Math.min(newX, NoteUtilities.containerDimensions.width - $movingNote.relWidth));
+        const clampedY = Math.max(0, Math.min(newY, NoteUtilities.containerDimensions.height - $movingNote.relHeight));
 
         // Update the note's position
-        $movingNote.containerX = clampedX;
-        $movingNote.containerY = clampedY;
-        $movingNote.updateScale();
+        $movingNote.moveTo({ x: clampedX, y: clampedY });
       });
     });
 
     // Handle mouseup for note moving
-    $("#note-container").on("mouseup", (event) => {
+    NoteUtilities.container.on("mouseup", (event) => {
       if (!isMoving || !$movingNote) return;
 
       event.preventDefault();
@@ -441,7 +426,7 @@ export default class NoteManager {
 
       // Remove visual feedback
       $movingNote.editing = false;
-      $("#note-container").removeClass("note-dragging");
+      NoteUtilities.busy = false;
 
       // Open the note editor to let user save the new position
       NoteManager.Editor.open($movingNote.id);
@@ -452,19 +437,16 @@ export default class NoteManager {
     });
 
     // Handle mouse leave to cancel moving
-    $("#note-container").on("mouseleave", () => {
+    NoteUtilities.container.on("mouseleave", () => {
       if (!isMoving || !$movingNote) return;
 
-      // Cancel move operation and revert to original position
-      if (moveOriginalPosition) {
-        $movingNote.containerX = moveOriginalPosition.x;
-        $movingNote.containerY = moveOriginalPosition.y;
-        $movingNote.updateScale();
-      }
+      // Revert to original position
+      if (moveOriginalPosition)
+        $movingNote.moveTo(moveOriginalPosition);
 
       // Clean up moving state
       $movingNote.editing = false;
-      $("#note-container").removeClass("note-dragging");
+      NoteUtilities.busy = false;
       isMoving = false;
       $movingNote = null;
       moveOriginalPosition = null;
@@ -563,11 +545,12 @@ class Note {
   }
 
   updateScale () {
+    const scale = NoteUtilities.scaleRatio;
     this.$box.css({
-      width: `${NoteUtilities.scaleDown(this.width)}px`,
-      height: `${NoteUtilities.scaleDown(this.height)}px`,
-      left: `${NoteUtilities.scaleDown(this.x)}px`,
-      top: `${NoteUtilities.scaleDown(this.y)}px`,
+      width: `${Math.round(this.width * scale)}px`,
+      height: `${Math.round(this.height * scale)}px`,
+      left: `${Math.round(this.x * scale)}px`,
+      top: `${Math.round(this.y * scale)}px`,
     });
   }
 
@@ -579,33 +562,56 @@ class Note {
   set editing (value) { this.$box.toggleClass("editing", value); }
 
   // Set attributes using container-relative coordinates
-  set containerX (value) { this.x = NoteUtilities.scaleUp(value); }
-  set containerY (value) { this.y = NoteUtilities.scaleUp(value); }
-  set containerWidth (value) { this.width = Math.max(1, NoteUtilities.scaleUp(value)); }
-  set containerHeight (value) { this.height = Math.max(1, NoteUtilities.scaleUp(value)); }
-  get containerX () { return NoteUtilities.scaleDown(this.x); }
-  get containerY () { return NoteUtilities.scaleDown(this.y); }
-  get containerWidth () { return NoteUtilities.scaleDown(this.width); }
-  get containerHeight () { return NoteUtilities.scaleDown(this.height); }
+  // Using `moveTo` and `resizeTo` is generally preferred for setting multiple attributes
+  // at once, since they do not require recalculating the scale multiple times.
+  set relX (value) { this.x = NoteUtilities.scaleUp(value); }
+  set relY (value) { this.y = NoteUtilities.scaleUp(value); }
+  set relWidth (value) { this.width = Math.max(1, NoteUtilities.scaleUp(value)); }
+  set relHeight (value) { this.height = Math.max(1, NoteUtilities.scaleUp(value)); }
+  get relX () { return NoteUtilities.scaleDown(this.x); }
+  get relY () { return NoteUtilities.scaleDown(this.y); }
+  get relWidth () { return NoteUtilities.scaleDown(this.width); }
+  get relHeight () { return NoteUtilities.scaleDown(this.height); }
+
 
   /** Set position using container-relative coordinates */
-  setContainerPosition (x, y) {
-    this.x = NoteUtilities.scaleUp(x);
-    this.y = NoteUtilities.scaleUp(y);
+  moveTo ({x, y}) {
+    const scale = NoteUtilities.scaleRatio;
+    this.x = Math.round(x / scale);
+    this.y = Math.round(y / scale);
+    this.$box.css({
+      left: x + "px",
+      top: y + "px",
+    });
   }
 
   /** Set dimensions using container-relative coordinates */
-  setContainerDimensions (width, height) {
-    this.width = Math.max(1, NoteUtilities.scaleUp(width));
-    this.height = Math.max(1, NoteUtilities.scaleUp(height));
+  resizeTo ({width, height}) {
+    const scale = NoteUtilities.scaleRatio;
+    this.width = Math.round(width / scale);
+    this.height = Math.round(height / scale);
+    this.$box.css({
+      width: width + "px",
+      height: height + "px",
+    });
   }
 
   /** Set both position and dimensions using container-relative coordinates */
-  setContainerBounds (x, y, width, height) {
-    this.setContainerPosition(x, y);
-    this.setContainerDimensions(width, height);
+  adjustTo ({x, y, width, height}) {
+    const scale = NoteUtilities.scaleRatio;
+    this.x = Math.round(x / scale);
+    this.y = Math.round(y / scale);
+    this.width = Math.max(1, Math.round(width / scale));
+    this.height = Math.max(1, Math.round(height / scale));
+    this.$box.css({
+      left: x + "px",
+      top: y + "px",
+      width: width + "px",
+      height: height + "px",
+    });
   }
 
+  /** Remove the note from the DOM and index */
   destroy () {
     this.$box.remove();
     delete Note._noteIndex[this.id];
@@ -881,11 +887,17 @@ class NoteUtilities {
   // ==== Container ===== //
   // ==================== //
 
-  static _container = null;
+  static _container = null; // Container element to which notes are appended
+
+  // Cached container properties
   static _containerDimensions = null;
   static _containerOffset = null;
-  static _editing = false;
-  static _visible = LStorage.Posts.Notes;
+
+  // Container states
+  static _editing = false; // Editing mode is engaged
+  static _visible = LStorage.Posts.Notes; // Container is visible
+  static _busy = false; // Dragging, moving, or resizing is in progress
+
 
   /** Returns the container to which all notes are appended */
   static get container () {
@@ -947,6 +959,13 @@ class NoteUtilities {
     NoteUtilities.container
       .attr("enabled", value)
       .trigger(`visible:${value}`);
+  }
+
+  /** Whether a note is currently being moved, resized, or drawn */
+  static get busy () { return this._busy; }
+  static set busy (value) {
+    this._busy = value;
+    this.container.attr("busy", value ? "true" : "false");
   }
 
   // ==================== //

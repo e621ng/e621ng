@@ -145,6 +145,17 @@
       }
     }
   }
+
+  // Moving, resizing, or drawing a note
+  // Disable interactions with notes except the one being dragged.
+  // This helps with performance, and prevents accidental interactions.
+  &[busy="true"] {
+    .note-box {
+      .note-body { display: none !important; }
+      .note-handle { display: none !important; }
+    }
+    .note-box:not(.editing) { pointer-events: none; }
+  }
 }
 
 #note-editor {
