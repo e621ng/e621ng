@@ -63,9 +63,32 @@ export default class NoteManager {
     /** @type {Note} Note currently being drawn */
     let $drawingNote = null;
 
+    const abortDrawing = () => {
+      if (!isDrawing || !$drawingNote) return;
+
+      $drawingNote.destroy();
+      $drawingNote = null;
+      drawingNoteId = null;
+      isDrawing = false;
+
+      // Cancel any pending animation frame
+      if (mouseMoveThrottleId) {
+        cancelAnimationFrame(mouseMoveThrottleId);
+        mouseMoveThrottleId = null;
+      }
+    };
+
     // Initial click to start drawing
     NoteUtilities.container.on("mousedown", (event) => {
       if (!NoteUtilities.editing) return;
+
+      // Only respond to left mouse button
+      if (event.button !== 0) {
+        if (!isDrawing) return;
+        event.preventDefault();
+        abortDrawing();
+        return;
+      }
 
       // Don't start drawing if clicking on an existing note
       const $target = $(event.target);
@@ -158,20 +181,12 @@ export default class NoteManager {
       }
     });
 
-    // Abort if mouse leaves the container
-    NoteUtilities.container.on("mouseleave", () => {
-      if (!isDrawing || !$drawingNote) return;
+    NoteUtilities.container.on("mouseleave", abortDrawing);
 
-      $drawingNote.destroy();
-      $drawingNote = null;
-      drawingNoteId = null;
-      isDrawing = false;
-
-      // Cancel any pending animation frame
-      if (mouseMoveThrottleId) {
-        cancelAnimationFrame(mouseMoveThrottleId);
-        mouseMoveThrottleId = null;
-      }
+    NoteUtilities.container.on("contextmenu", (event) => {
+      if (!isDrawing) return;
+      event.preventDefault();
+      abortDrawing();
     });
   }
 
