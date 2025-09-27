@@ -1,6 +1,5 @@
 import Utility from "./utility";
 import ZingTouch from "zingtouch";
-import Note from "./notes";
 import Hotkeys from "./hotkeys";
 import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
