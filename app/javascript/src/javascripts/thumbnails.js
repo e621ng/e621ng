@@ -31,7 +31,6 @@ Thumbnails.initialize = function () {
 
   // Reset of the deferred posts
   for (const post of posts) {
-    console.log("Processing deferred post", post);
     const $post = $(post);
 
     const isProfileAvatar = $post.hasClass("profile-avatar");

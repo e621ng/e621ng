@@ -1,6 +1,7 @@
 import Utility from "./utility.js";
 import Dialog from "./utility/dialog";
 import LStorage from "./utility/storage.js";
+import TaskQueue from "./utility/task_queue";
 
 export default class NoteManager {
 
@@ -716,10 +717,18 @@ class NoteEditor {
 
     this.id = null;
 
-    // Mark note as pending when user starts typing
+    // Update note preview when the user makes changes
+    this.previewTimeout = null;
     this.input.on("input", () => {
       if (!this.id) return;
       this.currentNote.pending = true;
+
+      // Wait for the user to stop typing
+      if (this.previewTimeout) clearTimeout(this.previewTimeout);
+      this.previewTimeout = setTimeout(() => {
+        this.updatePreview();
+        this.previewTimeout = null;
+      }, 300);
     });
 
     // Save note on form submit
@@ -784,6 +793,46 @@ class NoteEditor {
 
   getInputText () {
     return (this.input.val() + "").trim();
+  }
+
+  /** Updates the note body preview with DText rendering */
+  updatePreview () {
+    const note = this.currentNote;
+    if (!note) return;
+
+    const currentText = this.getInputText();
+    if (!currentText) {
+      note.$body.html("");
+      this.input.removeData("cache");
+      return;
+    }
+
+    // Input has not changed since last time
+    if (this.input.data("cache") === currentText) return;
+    this.input.data("cache", currentText);
+
+    TaskQueue.add(() => {
+      $.ajax({
+        type: "POST",
+        url: "/dtext_preview.json",
+        dataType: "json",
+        data: {
+          body: currentText,
+          allow_color: true,
+        },
+        success: (response) => {
+          if (this.input.data("cache") !== currentText || !this.currentNote) return;
+
+          note.$body.html(response.html);
+          if (response.posts)
+            $(window).trigger("e621:add_deferred_posts", response.posts);
+        },
+        error: () => {
+          // Force retry even if input hasn't changed
+          this.input.removeData("cache");
+        },
+      });
+    }, { name: "NoteEditor.updatePreview" });
   }
 
   /** Saves the current note */
@@ -888,13 +937,11 @@ class NoteEditor {
     $(".note-box.focused").removeClass("focused");
     note.focused = true;
 
-    // Check if this is a temporary note (needs to be created)
+    // Check if this is a new note being created
     const isTemporary = note.isTemporary;
     this.dialog.setTitle(isTemporary ? "Create new note" : `Edit note #${noteID}`);
+    this.form.toggleClass("temporary", isTemporary);
     this.input.val(note.content || "");
-
-    // Add class to form to indicate temporary note
-    this.form.toggleClass("note-temporary", isTemporary);
 
     this.dialog.open();
   }
@@ -918,10 +965,16 @@ class NoteEditor {
     // Clean up editor state
     this.dialog.setTitle("");
     this.input.val("");
-    this.id = null;
+    this.form.removeClass("temporary");
 
-    // Remove temporary class
-    this.form.removeClass("note-temporary");
+    // Clear DText preview
+    this.input.removeData("cache");
+    if (this.previewTimeout) {
+      clearTimeout(this.previewTimeout);
+      this.previewTimeout = null;
+    }
+
+    this.id = null;
   }
 
 

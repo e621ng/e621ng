@@ -182,7 +182,7 @@
   }
 
   // Hide delete and history buttons for temporary notes
-  &.note-temporary {
+  &.temporary {
     button[name='note-delete'],
     button[name='note-history'] {
       display: none;
