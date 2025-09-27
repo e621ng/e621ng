@@ -6,8 +6,14 @@ import TaskQueue from "./utility/task_queue";
 
 export default class NoteManager {
 
+  static PermittedFileTypes = ["jpg", "png", "webp"];
+
   /** Initialize the manager and load existing notes from the staging area. */
   constructor () {
+    const container = $("#image-container");
+    if (container.length == 0) return;
+    if (!NoteManager.PermittedFileTypes.includes((container.data("file-ext") + ""))) return;
+
     $("#note-staging article").each((_, note) => { Note.fromStaged(note); });
 
     if (!User.is.member) return;
