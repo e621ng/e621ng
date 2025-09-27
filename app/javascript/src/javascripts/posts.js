@@ -1,11 +1,11 @@
 import Utility from "./utility";
 import ZingTouch from "zingtouch";
-import Note from "./notes";
 import Hotkeys from "./hotkeys";
 import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
 import PostVote from "./models/PostVote";
 import Page from "./utility/page";
+import NoteManager from "./notes";
 
 let Post = {};
 
@@ -383,7 +383,7 @@ Post.fromDOM = function (element) {
 };
 
 Post.resize_notes = function () {
-  Note.Box.scale_all();
+  NoteManager.updateScale();
 };
 
 Post.resize_video = function (post, target_size) {
