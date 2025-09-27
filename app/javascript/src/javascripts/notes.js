@@ -535,12 +535,6 @@ export default class NoteManager {
   //  Pass-through Methods  //
   // ====================== //
 
-  static updateScale () {
-    // This may no longer be necessary, since ResizeObserver
-    // is used to automatically track size changes.
-    return true;
-  }
-
   // Pass-throughs to NoteUtilities
   static get container () { return NoteUtilities.container; }
   static get editing () { return NoteUtilities.editing; }
