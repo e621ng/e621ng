@@ -1,0 +1,121 @@
+:root {
+  --post-events-columns: max-content max-content max-content 1fr;
+}
+
+div#c-post-events {
+  /* make the listing itself the grid container so header cells and event cells
+     are aligned by the same grid tracks */
+  .post-events-listing {
+    display: grid;
+    grid-template-columns: var(--post-events-columns);
+    column-gap: $padding-025;
+    grid-auto-rows: auto;
+  }
+
+  /* unwrap the list-items container so rows' cells participate in the
+    parent .post-events-listing grid (implemented in the nested block below) */
+
+  /* the header wrapper and each row wrapper should not create their own grid
+     contexts; use display:contents so their child cells become grid items
+     in the parent .post-events-listing grid */
+  .post-events-listing-header,
+  .post-event-item {
+    display: contents;
+  }
+
+  /* header cell styles (these are grid items now) */
+  .post-events-listing-header > .post-events-header-item {
+    padding: $padding-050 $padding-025;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: themed("color-section-darken-5");
+    border-bottom: 1px solid themed("color-foreground");
+    color: themed("color-text-table-header");
+    font-weight: bold;
+  }
+
+  // /* explicitly assign columns so header cells and event cells always align */
+  .post-events-listing-header > .event-post,
+  .post-event-item > .event-post {
+    grid-column: 1;
+  }
+
+  .post-events-listing-header > .event-type,
+  .post-event-item > .event-type {
+    grid-column: 2;
+  }
+
+  .post-events-listing-header > .event-user,
+  .post-event-item > .event-user {
+    grid-column: 3;
+  }
+
+  .post-events-listing-header > .event-info,
+  .post-event-item > .event-info {
+    grid-column: 4;
+  }
+
+  .post-events-list-items {
+    display: contents;
+    
+    /* .post-event-item is display:contents above; keep selector for nested rules */
+    .post-event-item {
+      /* padding/layers live on the individual .event-data cells now */
+
+      &:hover {
+        background-color: themed("color-section-lighten-10");
+      }
+
+      &.selected {
+        background-color: themed("color-section-lighten-10");
+      }
+
+      .event-data {
+        padding: $padding-050 $padding-025;
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+        background-color: themed("color-section");
+        border-bottom: 1px solid themed("color-table-border");
+
+        /* Small columns shouldn't wrap */
+        &.event-post,
+        &.event-type {
+          white-space: nowrap;
+        }
+
+        /* Keep user reasonably constrained but allow the column to size to content */
+        &.event-user {
+          max-width: none;
+          word-break: keep-all;
+          white-space: nowrap;
+        }
+
+        /* Info column expands to fill remaining space */
+        &.event-info {
+          /* use the same horizontal padding as header cells so content lines up */
+          padding: $padding-050 $padding-025;
+
+          .col-expand {
+            width: 100%;
+            white-space: normal;
+          }
+
+          /* mimic table full-width-link behavior */
+          .full-width-link {
+            padding: 0;
+            overflow-wrap: anywhere;
+
+            > a {
+              width: 100%;
+              display: inline-block;
+              padding: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}

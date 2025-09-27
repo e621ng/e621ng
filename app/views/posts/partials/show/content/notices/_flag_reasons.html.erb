@@ -18,17 +18,7 @@
         <span class="resolved">RESOLVED</span>
       <% end %>
       
-      <% if flag.note.present? && flag.can_see_note? %>
-        <div class="post-flag-note">
-          <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
-          <div class="dtext-container post-flag-note-body">
-            <% if CurrentUser.is_staff? %>
-              <%= link_to svg_icon(:trash), clear_note_post_flag_path(flag), method: :post, data: { confirm: "Are you sure you want to clear this note?" }, class: "post-flag-clear-note-link" %>
-            <% end %>
-            <%= format_text flag.note %>
-          </div>
-        </div>
-      <% end %>
+      <%= render partial: "post_flags/partials/show/flag_note", locals: { post_flag: flag } %>
     </li>
     <% if post.is_deleted? && flag.is_deletion && !CurrentUser.is_janitor? %>
       <% break %>

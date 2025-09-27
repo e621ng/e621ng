@@ -430,7 +430,7 @@ class Post < ApplicationRecord
     def unflag!
       flags.each(&:resolve!)
       update(is_flagged: false)
-      PostEvent.add(id, CurrentUser.user, :flag_removed)
+      PostEvent.add(id, CurrentUser.user, :flag_removed) #add flag id
     end
 
     def approved_by?(user)

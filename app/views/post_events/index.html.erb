@@ -4,45 +4,17 @@
 
     <%= render "search" %>
 
-    <table class="striped autofit">
-      <thead>
-        <tr>
-          <th>Post</th>
-          <th>Type</th>
-          <th>User</th>
-          <th>Info</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @events.each do |event| %>
-          <tr>
-            <td>
-              <%= link_to "post ##{event.post_id}", post_path(event.post_id) %>
-              <%= link_to "»", post_events_path(search: params[:search].merge(post_id: event.post_id)) %>
-            </td>
-            <td>
-              <% if event.action.nil? %>
-                Unknown
-              <% else %>
-                <%= event.action.capitalize.tr("_"," ") %>
-                <%= link_to "»", post_events_path(search: params[:search].merge(action: event.action)) %>
-              <% end %>
-            </td>
-            <td>
-              <% if event.is_creator_visible?(CurrentUser.user) %>
-                <%= link_to_user event.creator %>
-                <%= link_to "»", post_events_path(search: params[:search].merge(creator_name: event.creator.name)) %>
-              <% else %>
-                <i>hidden</i>
-              <% end %>
-              <br><%= time_ago_in_words_tagged event.created_at %>
-            </td>
-            <td class="col-expand dtext-container"><%= format_text event.format_description %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-
+    <div class="post-events-listing">
+      <div class="post-events-listing-header">
+        <span class="post-events-header-item event-post">Post</span>
+        <span class="post-events-header-item event-type">Type</span>
+        <span class="post-events-header-item event-user">User</span>
+        <span class="post-events-header-item event-info">Info</span>
+      </div>
+      <div class="post-events-list-items">
+        <%= render partial: "post_events/partials/show/post_event", collection: @events, as: :event %>
+      </div>
+    </div>
     <%= numbered_paginator(@events) %>
   </div>
 </div>

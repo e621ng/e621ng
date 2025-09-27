@@ -1,0 +1,34 @@
+<div 
+    class="post-event-item" 
+    id="event-<%= event.id %>" 
+    data-event-id="<%= event.id %>"
+    data-post-id="<%= event.post_id %>"
+    data-action="<%= event.action %>" >
+  
+  <span class="event-data event-post">
+    <%= link_to "post ##{event.post_id}", post_path(event.post_id) %>
+    <%= link_to "»", post_events_path(search: params[:search].merge(post_id: event.post_id)) %>
+  </span>
+  <span class="event-data event-type">
+    <% if event.action.nil? %>
+      Unknown
+    <% else %>
+      <%= event.action.capitalize.tr("_"," ") %>
+      <%= link_to "»", post_events_path(search: params[:search].merge(action: event.action)) %>
+    <% end %>
+  </span>
+  <span class="event-data event-user">
+    <% if event.is_creator_visible?(CurrentUser.user) %>
+      <%= link_to_user event.creator %>
+      <%= link_to "»", post_events_path(search: params[:search].merge(creator_name: event.creator.name)) %>
+    <% else %>
+      <i>hidden</i>
+    <% end %>
+    <br><%= time_ago_in_words_tagged event.created_at %>
+  </span>
+  <div class="event-data event-info">
+    <span class="col-expand dtext-container"><%= format_text event.format_description %></span>
+
+    <%= render partial: "post_flags/partials/show/flag_note", locals: { post_flag: PostFlag.find(1) } %>
+  </div>
+</div>
