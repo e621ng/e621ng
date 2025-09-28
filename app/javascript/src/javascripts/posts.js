@@ -5,7 +5,6 @@ import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
 import PostVote from "./models/PostVote";
 import Page from "./utility/page";
-import NoteManager from "./notes";
 
 let Post = {};
 
