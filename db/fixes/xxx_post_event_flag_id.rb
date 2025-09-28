@@ -24,14 +24,11 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config",
 PostFlag.where().find_in_batches(batch_size: 10_000) do |batch|
   next if batch.empty?
   updates = []
-  batch.pluck().each do | flag |
+  batch.pluck().each do |flag|
     # find associated PostEvent (same post_id, `flag create` or `deletion`, around the same time)
     # replace it's `extra_data` (which is something like `{reason: "reason goes here"}`) with `{flag_id: 1234}` (if not already done)
     # push it into the update stack
   end
   updates.each do |update| # apply each update in the batch
-
   end
 end
-
-# notes: destoryed posts have postevents but lost their actual flag. 

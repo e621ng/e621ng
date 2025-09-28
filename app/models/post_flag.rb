@@ -27,7 +27,8 @@ class PostFlag < ApplicationRecord
 
   attr_accessor :parent_id, :reason_name, :force_flag
 
-  module SearchMethods # TODO: ensure safe_post isn't a problem here.
+  module SearchMethods
+    # TODO: ensure safe_post isn't a problem here.
     def post_tags_match(query)
       where(post_id: Post.tag_match_sql(query))
     end
@@ -200,7 +201,7 @@ class PostFlag < ApplicationRecord
 
   def create_post_event
     # Deletions also create flags, but they create a deletion event instead
-    PostEvent.add(post.id, CurrentUser.user, :flag_created, {flag_id: id }) unless is_deletion
+    PostEvent.add(post.id, CurrentUser.user, :flag_created, { flag_id: id }) unless is_deletion
   end
 
   def can_see_note?(user = CurrentUser.user)
@@ -210,21 +211,40 @@ class PostFlag < ApplicationRecord
 
   class NullPost
     attr_reader :id
+
     def initialize(id)
       @id = id
     end
 
     # Invent data since it no longer exists
-    def created_at; Time.at(0); end
-    def uploader; User.system; end
+    def created_at
+      Time.at(0)
+    end
 
-    def approver; nil; end
-    def flags; PostFlag.where(post_id: id); end
+    def uploader
+      User.system
+    end
+
+    def approver
+      nil
+    end
+
+    def flags
+      PostFlag.where(post_id: id)
+    end
 
     # Tell PostDecorator not to render anything, since it doesn't exist
-    def is_deleted?; true; end
-    def loginblocked?; true; end 
-    def safeblocked?; true; end
+    def is_deleted?
+      true
+    end
+
+    def loginblocked?
+      true
+    end
+
+    def safeblocked?
+      true
+    end
   end
 
   # Returns the associated post or a safe null-proxy preserving post_id.

@@ -80,13 +80,13 @@ class PostEvent < ApplicationRecord
   end
 
   def has_postflag?
-    %w[flag_created deleted].include?(action) && extra_data&.key?('flag_id')
+    %w[flag_created deleted].include?(action) && extra_data&.key?("flag_id")
   end
 
   def flag
     return unless has_postflag?
 
-    flag_id = extra_data && extra_data['flag_id']
+    flag_id = extra_data && extra_data["flag_id"]
     PostFlag.find_by(id: flag_id) || (raise ActiveRecord::RecordNotFound, "PostFlag not found for post_event #{id}")
   end
 end
