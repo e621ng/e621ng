@@ -14,7 +14,12 @@ export default class NoteManager {
     if (container.length == 0) return;
     if (!NoteManager.PermittedFileTypes.includes((container.data("file-ext") + ""))) return;
 
+    // Load notes from the staging area
     $("#note-staging article").each((_, note) => { Note.fromStaged(note); });
+
+    // Highlight notes based on URL hash
+    this.highlightHashNotes();
+    $(window).on("hashchange.notes", this.highlightHashNotes);
 
     if (!User.is.member) return;
 
@@ -43,6 +48,22 @@ export default class NoteManager {
 
       this.handleAbortEvents();
     });
+  }
+
+  // ====================== //
+  // ==== Highlighting ==== //
+  // ====================== //
+
+  highlightHashNotes () {
+    $(".note-box.highlighted").removeClass("highlighted");
+
+    const anchorMatch = window.location.hash.match(/^#note-(\d+)$/);
+    if (!anchorMatch) return;
+    const note = Note.getByID(anchorMatch[1]);
+    if (!note) return;
+
+    note.highlighted = true;
+    note.$box[0].scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   // ====================== //
@@ -625,6 +646,8 @@ class Note {
   set pending (value) { this.$box.toggleClass("pending", value); }
   get editing () { return this.$box.hasClass("editing"); }
   set editing (value) { this.$box.toggleClass("editing", value); }
+  get highlighted () { return this.$box.hasClass("highlighted"); }
+  set highlighted (value) { this.$box.toggleClass("highlighted", value); }
 
   // Set attributes using container-relative coordinates
   // Using `moveTo` and `resizeTo` is generally preferred for setting multiple attributes

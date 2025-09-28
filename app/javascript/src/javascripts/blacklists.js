@@ -1,7 +1,6 @@
 import Filter from "./models/Filter";
 import PostCache from "./models/PostCache";
 import User from "./models/User";
-import NoteManager from "./notes";
 import Utility from "./utility";
 import Dialog from "./utility/dialog";
 import Page from "./utility/page";

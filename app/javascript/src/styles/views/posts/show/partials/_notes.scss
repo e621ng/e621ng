@@ -27,6 +27,11 @@
     @include st-radius;
     box-shadow: 0 0 0.25rem themed("color-background");
 
+    // Note highlighted by URL anchor
+    &.highlighted {
+      box-shadow: 0 0 0.5rem #0800FF;
+    }
+
     // Note with pending unsaved changes
     &.pending::before {
       content: "Pending";
