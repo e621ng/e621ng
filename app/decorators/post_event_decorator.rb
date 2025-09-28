@@ -11,8 +11,8 @@ class PostEventDecorator < ApplicationDecorator
     vals = object.extra_data
 
     case object.action
-    when "deleted", "flag_created"
-      "#{vals['reason']}"
+    # when "deleted", "flag_created"
+    #   "#{vals['reason']}"
     when "favorites_moved"
       "Target: post ##{vals['parent_id']}"
     when "favorites_received"

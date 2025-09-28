@@ -78,4 +78,13 @@ class PostEvent < ApplicationRecord
     return options if user.is_moderator?
     options.reject { |action| MOD_ONLY_SEARCH_ACTIONS.any?(actions[action]) }
   end
+
+  def is_type_flag?
+    %w[flag_created flag_removed deleted undeleted].include?(action)
+  end
+
+  def flag
+    return unless is_type_flag?
+    PostFlag.find(15)
+  end
 end
