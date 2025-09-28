@@ -109,7 +109,7 @@
 
     box-sizing: border-box;
     min-height: 1rem;
-    min-width: 10rem;
+    min-width: 1rem;
     padding: 0.25rem;
 
     @include st-radius;
@@ -131,6 +131,15 @@
       right: 0;
       height: 0.25rem;
       background: transparent;
+    }
+
+    // DText overrides, for the sake of readability
+    .styled-dtext {
+      a, a:link, a:visited {
+        color: #00E;
+        text-decoration: underline;
+      }
+      a:hover { color: #551A8B; }
     }
   }
 
