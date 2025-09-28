@@ -9,7 +9,7 @@ class PostFlag < ApplicationRecord
 
   belongs_to_creator :class_name => "User"
   user_status_counter :post_flag_count
-  belongs_to :post
+  belongs_to :post # Not optional, even though post may be destroyed
   validate :validate_creator_is_not_limited, on: :create
   validate :validate_post
   validate :validate_reason, on: :create
