@@ -208,6 +208,7 @@ export default class NoteManager {
         });
 
         $drawingNote.$box.removeClass("editing");
+        $drawingNote.adjustBodyPosition();
         NoteManager.Editor.open(drawingNoteId);
 
         $drawingNote = null;
@@ -342,25 +343,25 @@ export default class NoteManager {
       event.preventDefault();
       event.stopPropagation();
 
-      // Clean up resizing state
-      isResizing = false;
-
       // Cancel any pending animation frame
       if (resizeThrottleId) {
         cancelAnimationFrame(resizeThrottleId);
         resizeThrottleId = null;
       }
 
-      // Remove visual feedback
-      $resizingNote.$box.removeClass("editing");
+      // Clean up
+      $resizingNote.editing = false;
+      resizeOriginalBounds = null;
+      resizeHandle = null;
+      isResizing = false;
 
-      // Open the note editor to let user save when ready
       NoteManager.Editor.open($resizingNote.id);
 
-      // Clean up resizing state
-      $resizingNote = null;
-      resizeHandle = null;
-      resizeOriginalBounds = null;
+      // Wait for the UI to settle
+      requestAnimationFrame(() => {
+        $resizingNote.adjustBodyPosition();
+        $resizingNote = null;
+      });
     });
 
     NoteUtilities.container.on("note:abort mouseleave", () => {
@@ -370,18 +371,23 @@ export default class NoteManager {
       if (resizeOriginalBounds)
         $resizingNote.adjustTo(resizeOriginalBounds);
 
-      // Clean up resizing state
-      $resizingNote.editing = false;
-      isResizing = false;
-      $resizingNote = null;
-      resizeHandle = null;
-      resizeOriginalBounds = null;
-
       // Cancel any pending animation frame
       if (resizeThrottleId) {
         cancelAnimationFrame(resizeThrottleId);
         resizeThrottleId = null;
       }
+
+      // Clean up resizing state
+      $resizingNote.editing = false;
+      resizeOriginalBounds = null;
+      resizeHandle = null;
+      isResizing = false;
+
+      // Wait for the UI to settle
+      requestAnimationFrame(() => {
+        $resizingNote.adjustBodyPosition();
+        $resizingNote = null;
+      });
     });
 
     // Handle context menu during resizing
@@ -474,47 +480,51 @@ export default class NoteManager {
       event.preventDefault();
       event.stopPropagation();
 
-      // Clean up moving state
-      isMoving = false;
-
       // Cancel any pending animation frame
       if (moveThrottleId) {
         cancelAnimationFrame(moveThrottleId);
         moveThrottleId = null;
       }
 
-      // Remove visual feedback
+      // Clean up
       $movingNote.editing = false;
       NoteUtilities.busy = false;
+      moveOriginalPosition = null;
+      isMoving = false;
 
-      // Open the note editor to let user save the new position
       NoteManager.Editor.open($movingNote.id);
 
-      // Clean up moving state
-      $movingNote = null;
-      moveOriginalPosition = null;
+      // Wait for the UI to settle
+      requestAnimationFrame(() => {
+        $movingNote.adjustBodyPosition();
+        $movingNote = null;
+      });
     });
 
     // Handle mouse leave to cancel moving
     NoteUtilities.container.on("note:abort mouseleave", () => {
       if (!isMoving || !$movingNote) return;
 
-      // Revert to original position
       if (moveOriginalPosition)
         $movingNote.moveTo(moveOriginalPosition);
-
-      // Clean up moving state
-      $movingNote.editing = false;
-      NoteUtilities.busy = false;
-      isMoving = false;
-      $movingNote = null;
-      moveOriginalPosition = null;
 
       // Cancel any pending animation frame
       if (moveThrottleId) {
         cancelAnimationFrame(moveThrottleId);
         moveThrottleId = null;
       }
+
+      // Clean up
+      $movingNote.editing = false;
+      NoteUtilities.busy = false;
+      moveOriginalPosition = null;
+      isMoving = false;
+
+      // Wait for the UI to settle
+      requestAnimationFrame(() => {
+        $movingNote.adjustBodyPosition();
+        $movingNote = null;
+      });
     });
 
     // Handle context menu during moving
@@ -603,9 +613,8 @@ class Note {
     this.$box = $("<div>")
       .addClass("note-box hidden")
       .attr("nid", id)
-      .on("note:scale", () => {
-        this.updateScale();
-      });
+      .on("note:scale", () => { this.updateScale(); })
+      .on("note:adjust", () => { this.adjustBodyPosition(); });
 
     // Handles
     $("<div>")
@@ -637,6 +646,35 @@ class Note {
       height: `${Math.round(this.height * scale)}px`,
       left: `${Math.round(this.x * scale)}px`,
       top: `${Math.round(this.y * scale)}px`,
+    });
+
+    this.adjustBodyPosition();
+  }
+
+  /** Adjusts the note body position to keep it within the container bounds */
+  adjustBodyPosition () {
+    if (!this.$box.is(":visible")) return;
+
+    const containerDimensions = NoteUtilities.containerDimensions;
+    const boxPosition = this.$box.position();
+    const boxHeight = this.$box.outerHeight();
+
+    let relativeLeft = 0;
+    let relativeTop = boxHeight + 5;
+
+    // Overflows to the right
+    const bodyWidth = this.$body.outerWidth();
+    if (boxPosition.left + relativeLeft + bodyWidth > containerDimensions.width)
+      relativeLeft = containerDimensions.width - boxPosition.left - bodyWidth - 10;
+
+    // Overflows to the bottom
+    const bodyHeight = this.$body.outerHeight();
+    if (boxPosition.top + relativeTop + bodyHeight > containerDimensions.height)
+      relativeTop = -bodyHeight - 5;
+
+    this.$body.css({
+      left: relativeLeft + "px",
+      top: relativeTop + "px",
     });
   }
 
@@ -852,6 +890,7 @@ class NoteEditor {
           note.$body.html(response.html);
           if (response.posts)
             $(window).trigger("e621:add_deferred_posts", response.posts);
+          note.adjustBodyPosition();
         },
         error: () => {
           // Force retry even if input hasn't changed
@@ -1100,6 +1139,9 @@ class NoteUtilities {
     NoteUtilities.container
       .attr("enabled", value)
       .trigger(`visible:${value}`);
+
+    // Cannot scale note bodies if notes are hidden
+    if (value) $("#note-container .note-box").trigger("note:scale");
   }
 
   /** Whether a note is currently being moved, resized, or drawn */
