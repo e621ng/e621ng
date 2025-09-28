@@ -27,7 +27,7 @@ class PostFlag < ApplicationRecord
 
   attr_accessor :parent_id, :reason_name, :force_flag
 
-  module SearchMethods
+  module SearchMethods # TODO: ensure safe_post isn't a problem here.
     def post_tags_match(query)
       where(post_id: Post.tag_match_sql(query))
     end
@@ -235,5 +235,12 @@ class PostFlag < ApplicationRecord
   # Count flags for the stored post_id even if Post record is gone.
   def post_flags_count
     PostFlag.where(post_id: post_id).count
+  end
+
+  # Hide certain flags from non-staff
+  def is_viewable?
+    return true unless post.nil?
+    return false unless CurrentUser.is_staff?
+    true
   end
 end

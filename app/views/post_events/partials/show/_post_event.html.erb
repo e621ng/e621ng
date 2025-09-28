@@ -30,7 +30,7 @@
     <% unless event.is_type_flag? %>
       <span class="col-expand dtext-container"><%= format_text event.format_description %></span>
     <% else %>
-      <%= event.flag.reason %>
+      <%= format_text event.flag.reason %>
       <%= render partial: "post_flags/partials/show/flag_note", locals: { post_flag: event.flag } %>
     <% end %>
   </div>

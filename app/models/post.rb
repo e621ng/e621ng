@@ -49,7 +49,7 @@ class Post < ApplicationRecord
   user_status_counter :post_count, foreign_key: :uploader_id
   belongs_to :parent, class_name: "Post", optional: true
   has_one :upload, dependent: :destroy
-  has_many :flags, :class_name => "PostFlag" # do not destory or nullify flags
+  has_many :flags, :class_name => "PostFlag" # do not destroy or nullify flags
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
   has_many :comments, -> { order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
