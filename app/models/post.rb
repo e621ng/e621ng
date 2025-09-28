@@ -430,7 +430,7 @@ class Post < ApplicationRecord
     def unflag!
       flags.each(&:resolve!)
       update(is_flagged: false)
-      PostEvent.add(id, CurrentUser.user, :flag_removed) #add flag id
+      PostEvent.add(id, CurrentUser.user, :flag_removed)
     end
 
     def approved_by?(user)
@@ -1464,7 +1464,7 @@ class Post < ApplicationRecord
           )
           decrement_tag_post_counts
           move_files_on_delete
-          PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
+          PostEvent.add(id, CurrentUser.user, :deleted, { flag_id: flag.id })
         end
       end
 
