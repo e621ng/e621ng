@@ -631,7 +631,7 @@ class Note {
       .appendTo(this.$box);
 
     // Append to container
-    Note._noteIndex[id] = this;
+    Note._noteIndex.set(id, this);
     this.$box.appendTo(NoteUtilities.container);
 
     // Initial scale
@@ -740,7 +740,7 @@ class Note {
   /** Remove the note from the DOM and index */
   destroy () {
     this.$box.remove();
-    delete Note._noteIndex[this.id];
+    Note._noteIndex.delete(this.id);
   }
 
   /** Retrieves data from saved notes and converts it into a Note instance */
@@ -765,10 +765,10 @@ class Note {
   // ==== Note Lookup ===== //
   // ====================== //
 
-  static _noteIndex = {};
+  static _noteIndex = new Map();
 
   /** Returns a Note instance by its ID, or null if not found */
-  static getByID (id) { return this._noteIndex[id] || null; }
+  static getByID (id) { return this._noteIndex.get(id) || null; }
 }
 
 
@@ -942,7 +942,7 @@ class NoteEditor {
         const newData = JSON.parse(data.note);
         if (note.isTemporary) {
           // Remove the temporary note from the index
-          delete Note._noteIndex[this.id];
+          Note._noteIndex.delete(this.id);
 
           // Update the note with the real ID and data from server
           // Convert to string to maintain consistency
@@ -952,7 +952,7 @@ class NoteEditor {
           this.id = note.id;
 
           // Add back to index with new ID
-          Note._noteIndex[note.id] = note;
+          Note._noteIndex.set(note.id, note);
         }
 
         // Update note properties
