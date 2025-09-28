@@ -125,17 +125,18 @@
     font-size: 0.875rem;
     line-height: 1rem;
 
-    &:before {
+    &:before, &:after {
       // Cover the gap between the note box and the body
       // So that the user can mouse over it without the body disappearing
       content: "";
       position: absolute;
-      top: -0.25rem;
       left: 0;
       right: 0;
-      height: 0.25rem;
+      height: 0.33rem;
       background: transparent;
     }
+    &:after { bottom: -0.33rem; }
+    &::before { top: -0.33rem; }
 
     // DText overrides, for the sake of readability
     .styled-dtext {

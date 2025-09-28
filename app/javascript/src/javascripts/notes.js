@@ -659,23 +659,22 @@ class Note {
     const boxPosition = this.$box.position();
     const boxHeight = this.$box.outerHeight();
 
-    let relativeLeft = 0;
-    let relativeTop = boxHeight + 5;
+    const css = {};
 
     // Overflows to the right
     const bodyWidth = this.$body.outerWidth();
-    if (boxPosition.left + relativeLeft + bodyWidth > containerDimensions.width)
-      relativeLeft = containerDimensions.width - boxPosition.left - bodyWidth - 10;
+    if (boxPosition.left + bodyWidth > containerDimensions.width)
+      css.left = `${containerDimensions.width - boxPosition.left - bodyWidth - 10}px`;
 
     // Overflows to the bottom
     const bodyHeight = this.$body.outerHeight();
-    if (boxPosition.top + relativeTop + bodyHeight > containerDimensions.height)
-      relativeTop = -bodyHeight - 5;
+    if (boxPosition.top + boxHeight + bodyHeight + 5 > containerDimensions.height) {
+      css.top = `${-bodyHeight - 5}px`;
+      css.bottom = "unset";
+    }
 
-    this.$body.css({
-      left: relativeLeft + "px",
-      top: relativeTop + "px",
-    });
+    this.$body.css({ left: "", top: "", bottom: "" });
+    this.$body.css(css);
   }
 
   get focused () { return this.$box.hasClass("focused"); }
