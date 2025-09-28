@@ -8,7 +8,10 @@ div#c-post-events {
   .post-events-listing {
     display: grid;
     grid-template-columns: var(--post-events-columns);
-    column-gap: $padding-025;
+
+   /* remove vertical gap so rows sit flush; the visual separator is the
+     per-cell border-bottom */
+   gap: 0;
     grid-auto-rows: auto;
   }
 
