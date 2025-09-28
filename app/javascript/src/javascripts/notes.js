@@ -278,6 +278,7 @@ export default class NoteManager {
 
       note.editing = true;
       note.pending = true;
+      NoteUtilities.resizing = true;
     });
 
     // Mousemove to resize the note
@@ -351,6 +352,7 @@ export default class NoteManager {
 
       // Clean up
       $resizingNote.editing = false;
+      NoteUtilities.resizing = false;
       resizeOriginalBounds = null;
       resizeHandle = null;
       isResizing = false;
@@ -379,6 +381,7 @@ export default class NoteManager {
 
       // Clean up resizing state
       $resizingNote.editing = false;
+      NoteUtilities.resizing = false;
       resizeOriginalBounds = null;
       resizeHandle = null;
       isResizing = false;
@@ -443,7 +446,7 @@ export default class NoteManager {
       // Add visual feedback
       note.editing = true;
       note.pending = true;
-      NoteUtilities.busy = true;
+      NoteUtilities.dragging = true;
     });
 
     // Handle mousemove for note moving
@@ -488,7 +491,7 @@ export default class NoteManager {
 
       // Clean up
       $movingNote.editing = false;
-      NoteUtilities.busy = false;
+      NoteUtilities.dragging = false;
       moveOriginalPosition = null;
       isMoving = false;
 
@@ -516,7 +519,7 @@ export default class NoteManager {
 
       // Clean up
       $movingNote.editing = false;
-      NoteUtilities.busy = false;
+      NoteUtilities.dragging = false;
       moveOriginalPosition = null;
       isMoving = false;
 
@@ -1074,7 +1077,8 @@ class NoteUtilities {
   // Container states
   static _editing = false; // Editing mode is engaged
   static _visible = LStorage.Posts.Notes; // Container is visible
-  static _busy = false; // Dragging, moving, or resizing is in progress
+  static _dragging = false;
+  static _resizing = false;
 
 
   /** Returns the container to which all notes are appended */
@@ -1144,10 +1148,16 @@ class NoteUtilities {
   }
 
   /** Whether a note is currently being moved, resized, or drawn */
-  static get busy () { return this._busy; }
-  static set busy (value) {
-    this._busy = value;
-    this.container.attr("busy", value ? "true" : "false");
+  static get dragging () { return this._dragging; }
+  static set dragging (value) {
+    this._dragging = value;
+    this.container.attr("dragging", value ? "true" : "false");
+  }
+
+  static get resizing () { return this._resizing; }
+  static set resizing (value) {
+    this._resizing = value;
+    this.container.attr("resizing", value ? "true" : "false");
   }
 
   // ==================== //
