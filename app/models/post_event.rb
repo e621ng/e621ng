@@ -79,16 +79,14 @@ class PostEvent < ApplicationRecord
     options.reject { |action| MOD_ONLY_SEARCH_ACTIONS.any?(actions[action]) }
   end
 
-  def is_type_flag?
-    %w[flag_created deleted].include?(action)
+  def has_postflag?
+    %w[flag_created deleted].include?(action) && extra_data&.key?('flag_id')
   end
 
   def flag
-    return unless is_type_flag?
+    return unless has_postflag?
 
     flag_id = extra_data && extra_data['flag_id']
-    PostFlag.find_by(id: flag_id) ||
-      PostFlag.where(post_id: post_id).order(created_at: :desc).first ||
-      (raise ActiveRecord::RecordNotFound, "PostFlag not found for post_event #{id}")
+    PostFlag.find_by(id: flag_id) || (raise ActiveRecord::RecordNotFound, "PostFlag not found for post_event #{id}")
   end
 end

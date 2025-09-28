@@ -27,11 +27,13 @@
     <br><%= time_ago_in_words_tagged event.created_at %>
   </span>
   <div class="event-data event-info">
-    <% unless event.is_type_flag? %>
+    <% unless event.has_postflag? %>
       <span class="col-expand dtext-container"><%= format_text event.format_description %></span>
     <% else %>
-      <%= format_text event.flag.reason %>
-      <%= render partial: "post_flags/partials/show/flag_note", locals: { post_flag: event.flag } %>
+      <span class="col-expand dtext-container">
+        <%= format_text event.flag.reason %>
+        <%= render partial: "post_flags/partials/show/flag_note", locals: { post_flag: event.flag } %>
+      </span>
     <% end %>
   </div>
 </div>
