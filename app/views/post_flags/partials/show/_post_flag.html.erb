@@ -1,10 +1,11 @@
+
 <tr
   class="flag-type-<%= post_flag.type.to_s.dasherize %> flag-resolved-<%= post_flag.is_resolved? %>"
   id="post-flag-<%= post_flag.id %>"
   data-post-flag-id="<%= post_flag.id %>"
-  data-post-id="<%= post_flag.post_id %>"
+  data-post-id="<%= post_flag.safe_post.id %>"
 >
-  <td><%= PostPresenter.preview(post, show_deleted: true) %></td>
+  <td><%= PostPresenter.preview(post_flag.safe_post, show_deleted: true) %></td>
   <td>
     <div class="dtext-container">
       <%= format_text post_flag.reason %>
@@ -12,7 +13,7 @@
     <%= render partial: "post_flags/partials/show/flag_note", locals: { post_flag: post_flag } %>
   </td>
   <td>
-    <%= link_to post_flag.post.flags.size, post_flags_path(search: { post_id: post_flag.post_id }) %>
+    <%= link_to post_flag.post_flags_count, post_flags_path(search: { post_id: post_flag.safe_post.id }) %>
   </td>
   <td>
     <%= post_flag.type.to_s.humanize %>
@@ -23,9 +24,9 @@
     <%= link_to "»", post_flags_path(search: @search_params.merge(is_resolved: post_flag.is_resolved?)) %>
   </td>
   <td>
-    <%= compact_time post_flag.post.created_at %>
-    <br> by <%= link_to_user post_flag.post.uploader %>
-    <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} user:#{post_flag.post.uploader.name}".strip)) %>
+    <%= compact_time post_flag.safe_post.created_at %>
+    <br> by <%= link_to_user post_flag.safe_post.uploader %>
+    <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} user:#{post_flag.safe_post.uploader.name}".strip)) %>
   </td>
   <td>
     <%= compact_time post_flag.created_at %>
@@ -35,9 +36,9 @@
     <% end %>
   </td>
   <td>
-    <% if post_flag.post.approver %>
-      <%= link_to_user post_flag.post.approver %>
-      <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} approver:#{post_flag.post.approver.name}".strip)) %>
+    <% if post_flag.safe_post.approver %>
+      <%= link_to_user post_flag.safe_post.approver %>
+      <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} approver:#{post_flag.safe_post.approver.name}".strip)) %>
     <% else %>
       <em>none</em>
       <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} approver:none".strip)) %>
