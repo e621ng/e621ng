@@ -34,17 +34,22 @@
     }
 
     // Note with pending unsaved changes
-    &.pending::before {
-      content: "Pending";
-      position: absolute;
-      top: 0.125rem;
-      left: 50%;
-      transform: translateX(-50%);
+    &.pending{
+      border: 2px dotted palette("background-orange-d10");
 
-      background: palette("background-orange-d10");
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
-      padding: 0.125rem 0.25rem;
+      &:not(.tiny)::before {
+        content: "Not Saved";
+        position: absolute;
+        top: 0.125rem;
+        left: 50%;
+        transform: translateX(-50%);
+
+        background: palette("background-orange-d10");
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        padding: 0.125rem 0.25rem;
+        white-space: nowrap;
+      }
     }
 
     // Note being edited (drawing new notes or resizing existing ones)

@@ -702,6 +702,7 @@ class Note {
     });
 
     this.adjustBodyPosition();
+    this.updateIsTiny();
   }
 
   /** Adjusts the note body position to keep it within the container bounds */
@@ -728,6 +729,11 @@ class Note {
 
     this.$body.css({ left: "", top: "", bottom: "" });
     this.$body.css(css);
+  }
+
+  updateIsTiny () {
+    const scale = NoteUtilities.scaleRatio;
+    this.$box.toggleClass("tiny", (this.width * scale < 70) || (this.height * scale < 70));
   }
 
   get focused () { return this.$box.hasClass("focused"); }
@@ -766,6 +772,7 @@ class Note {
       width: width + "px",
       height: height + "px",
     });
+    this.updateIsTiny();
   }
 
   /** Set both position and dimensions using container-relative coordinates */
@@ -781,6 +788,7 @@ class Note {
       width: width + "px",
       height: height + "px",
     });
+    this.updateIsTiny();
   }
 
   /** Remove the note from the DOM and index */
