@@ -24,117 +24,66 @@ const Autocomplete = {
 
   instances: new Map(),
 
+  get AUTOCOMPLETE_CONFIGS () {
+    return {
+      "tag-query": {
+        searchFn: this.searchTagQuery.bind(this),
+        insertFn: this.insertTagQueryCompletion.bind(this),
+        renderFn: this.renderTagItem.bind(this),
+      },
+      "tag-edit": {
+        searchFn: this.searchTagQuery.bind(this),
+        insertFn: this.insertTagQueryCompletion.bind(this),
+        renderFn: this.renderTagItem.bind(this),
+      },
+      "tag": {
+        searchFn: (query) => this.searchItems(query, this.getTags.bind(this)),
+        insertFn: this.insertSimpleCompletion.bind(this),
+        renderFn: this.renderTagItem.bind(this),
+      },
+      "artist": {
+        searchFn: (query) => this.searchItems(query, this.getArtists.bind(this)),
+        insertFn: this.insertSimpleCompletion.bind(this),
+        renderFn: this.renderItem.bind(this),
+      },
+      "pool": {
+        searchFn: (query) => this.searchItems(query, this.getPools.bind(this)),
+        insertFn: this.insertSimpleCompletion.bind(this),
+        renderFn: this.renderPoolItem.bind(this),
+      },
+      "user": {
+        searchFn: (query) => this.searchItems(query, this.getUsers.bind(this)),
+        insertFn: this.insertSimpleCompletion.bind(this),
+        renderFn: this.renderItem.bind(this),
+      },
+      "wiki-page": {
+        searchFn: (query) => this.searchItems(query, this.getWikis.bind(this)),
+        insertFn: this.insertSimpleCompletion.bind(this),
+        renderFn: this.renderWikiItem.bind(this),
+      },
+    };
+  },
+
   initialize_all () {
     if (Utility.meta("enable-auto-complete") !== "true") {
       return;
     }
 
-    this.initialize_tag_query_autocomplete();
-    this.initialize_tag_autocomplete();
-    this.initialize_artist_autocomplete();
-    this.initialize_pool_autocomplete();
-    this.initialize_user_autocomplete();
-    this.initialize_wiki_autocomplete();
-  },
-
-  initialize_tag_query_autocomplete () {
-    const tagQueryFields = document.querySelectorAll("[data-autocomplete=\"tag-query\"]");
-
-    tagQueryFields.forEach(field => {
-      if (this.instances.has(field)) {
-        this.instances.get(field).destroy();
-      }
-
-      const instance = new Autocompleter(field, {
-        searchFn: this.searchTagQuery.bind(this),
-        insertFn: this.insertTagQueryCompletion.bind(this),
-        renderFn: this.renderTagItem.bind(this),
-      });
-      this.instances.set(field, instance);
+    Object.keys(this.AUTOCOMPLETE_CONFIGS).forEach(type => {
+      this.initialize_autocomplete(type);
     });
   },
 
-  initialize_tag_autocomplete () {
-    const tagFields = document.querySelectorAll("[data-autocomplete=\"tag\"]");
+  initialize_autocomplete (type) {
+    const fields = document.querySelectorAll(`[data-autocomplete="${type}"]`);
+    const config = this.AUTOCOMPLETE_CONFIGS[type];
 
-    tagFields.forEach(field => {
+    fields.forEach(field => {
       if (this.instances.has(field)) {
         this.instances.get(field).destroy();
       }
 
-      const instance = new Autocompleter(field, {
-        searchFn: (query) => this.searchItems(query, this.getTags.bind(this)),
-        insertFn: this.insertSimpleCompletion.bind(this),
-        renderFn: this.renderTagItem.bind(this),
-      });
-      this.instances.set(field, instance);
-    });
-  },
-
-  initialize_artist_autocomplete () {
-    const artistFields = document.querySelectorAll("[data-autocomplete=\"artist\"]");
-
-    artistFields.forEach(field => {
-      if (this.instances.has(field)) {
-        this.instances.get(field).destroy();
-      }
-
-      const instance = new Autocompleter(field, {
-        searchFn: (query) => this.searchItems(query, this.getArtists.bind(this)),
-        insertFn: this.insertSimpleCompletion.bind(this),
-        renderFn: this.renderItem.bind(this),
-      });
-      this.instances.set(field, instance);
-    });
-  },
-
-  initialize_pool_autocomplete () {
-    const poolFields = document.querySelectorAll("[data-autocomplete=\"pool\"]");
-
-    poolFields.forEach(field => {
-      if (this.instances.has(field)) {
-        this.instances.get(field).destroy();
-      }
-
-      const instance = new Autocompleter(field, {
-        searchFn: (query) => this.searchItems(query, this.getPools.bind(this)),
-        insertFn: this.insertSimpleCompletion.bind(this),
-        renderFn: this.renderPoolItem.bind(this),
-      });
-      this.instances.set(field, instance);
-    });
-  },
-
-  initialize_user_autocomplete () {
-    const userFields = document.querySelectorAll("[data-autocomplete=\"user\"]");
-
-    userFields.forEach(field => {
-      if (this.instances.has(field)) {
-        this.instances.get(field).destroy();
-      }
-
-      const instance = new Autocompleter(field, {
-        searchFn: (query) => this.searchItems(query, this.getUsers.bind(this)),
-        insertFn: this.insertSimpleCompletion.bind(this),
-        renderFn: this.renderItem.bind(this),
-      });
-      this.instances.set(field, instance);
-    });
-  },
-
-  initialize_wiki_autocomplete () {
-    const wikiFields = document.querySelectorAll("[data-autocomplete=\"wiki-page\"]");
-
-    wikiFields.forEach(field => {
-      if (this.instances.has(field)) {
-        this.instances.get(field).destroy();
-      }
-
-      const instance = new Autocompleter(field, {
-        searchFn: (query) => this.searchItems(query, this.getWikis.bind(this)),
-        insertFn: this.insertSimpleCompletion.bind(this),
-        renderFn: this.renderWikiItem.bind(this),
-      });
+      const instance = new Autocompleter(field, config);
       this.instances.set(field, instance);
     });
   },
@@ -370,11 +319,10 @@ const Autocomplete = {
   },
 
   formatCount (count) {
-    const formatter = new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-US", {
       notation: "compact",
       compactDisplay: "short",
-    });
-    return formatter.format(count).toLowerCase();
+    }).format(count).toLowerCase();
   },
 
   formatLabel (text) {

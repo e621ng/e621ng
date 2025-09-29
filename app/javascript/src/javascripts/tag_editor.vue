@@ -61,7 +61,7 @@ export default {
     }, 20);
     if (Utility.meta("enable-auto-complete") !== "true")
       return;
-    Autocomplete.initialize_tag_autocomplete();
+    Autocomplete.initialize_autocomplete('tag-edit');
   },
   computed: {
     tagsArray() {
