@@ -20,6 +20,7 @@
     &.hidden { display: none; }
     position: absolute;
     pointer-events: all;
+    cursor: help;
 
     background: #ffffee10;
     border: 1px solid white;

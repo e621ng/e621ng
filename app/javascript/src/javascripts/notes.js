@@ -23,6 +23,20 @@ export default class NoteManager {
 
     if (!User.is.member) return;
 
+    // Open editor when a note is double-clicked
+    NoteUtilities.container.on("dblclick", ".note-box", (event) => {
+      if (NoteUtilities.editing) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const box = $(event.currentTarget);
+      const noteID = box.attr("nid");
+      if (!noteID) return;
+
+      NoteUtilities.editing = true;
+      NoteManager.Editor.open(noteID);
+    });
+
     // Switch to note editing mode when the "Edit Notes" button is clicked
     $("#translate").on("click", (event) => {
       event.preventDefault();
