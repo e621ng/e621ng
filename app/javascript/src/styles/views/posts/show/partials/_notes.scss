@@ -108,14 +108,11 @@
     left: 0;
     z-index: 1; // Above the note box
 
-    box-sizing: border-box;
-    min-height: 1rem;
-    padding: 0.25rem;
-
-    // Allow the note body to expand horizontally as needed
+    // Limit size to prevent overflow
     min-width: 1rem;
     max-width: 10rem;
     width: max-content;
+    box-sizing: border-box;
 
     @include st-radius;
     border: 1px solid white;
@@ -126,9 +123,8 @@
     font-size: 0.875rem;
     line-height: 1rem;
 
+    // Create a small gap buffer above and below the note body
     &:before, &:after {
-      // Cover the gap between the note box and the body
-      // So that the user can mouse over it without the body disappearing
       content: "";
       position: absolute;
       left: 0;
@@ -139,8 +135,15 @@
     &:after { bottom: -0.33rem; }
     &::before { top: -0.33rem; }
 
-    // DText overrides, for the sake of readability
     .styled-dtext {
+      // Must be done here, otherwise the gap buffers won't work
+      min-height: 1rem;
+      max-height: 10rem;
+      overflow: hidden auto;
+      box-sizing: border-box;
+      padding: 0.25rem;
+
+      // DText overrides, for the sake of readability
       a, a:link, a:visited {
         color: #00E;
         text-decoration: underline;
