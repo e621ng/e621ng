@@ -6,7 +6,7 @@ import TaskQueue from "./utility/task_queue";
 
 export default class NoteManager {
 
-  static PermittedFileTypes = ["jpg", "png", "webp"];
+  static PermittedFileTypes = ["jpg", "png", "gif", "webp"];
 
   /** Initialize the manager and load existing notes from the staging area. */
   constructor () {

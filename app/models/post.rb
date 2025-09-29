@@ -1557,7 +1557,7 @@ class Post < ApplicationRecord
 
   module NoteMethods
     def can_have_notes?
-      is_png? || is_jpg?
+      is_png? || is_jpg? || is_gif?
     end
 
     def has_notes?
