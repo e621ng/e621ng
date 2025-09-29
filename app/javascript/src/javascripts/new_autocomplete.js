@@ -30,6 +30,7 @@ const NewAutocomplete = {
     }
 
     this.initialize_tag_query_autocomplete();
+    this.initialize_artist_autocomplete();
   },
 
   initialize_tag_query_autocomplete () {
@@ -40,7 +41,26 @@ const NewAutocomplete = {
         this.instances.get(field).destroy();
       }
 
-      const instance = new AutocompleteInstance(field, this);
+      const instance = new AutocompleteInstance(field, {
+        searchFn: this.searchTagQuery.bind(this),
+        insertFn: this.insertTagQueryCompletion.bind(this),
+      });
+      this.instances.set(field, instance);
+    });
+  },
+
+  initialize_artist_autocomplete () {
+    const artistFields = document.querySelectorAll("[data-autocomplete=\"artist-new\"]");
+
+    artistFields.forEach(field => {
+      if (this.instances.has(field)) {
+        this.instances.get(field).destroy();
+      }
+
+      const instance = new AutocompleteInstance(field, {
+        searchFn: this.searchArtist.bind(this),
+        insertFn: this.insertSimpleCompletion.bind(this),
+      });
       this.instances.set(field, instance);
     });
   },
@@ -138,6 +158,21 @@ const NewAutocomplete = {
     }));
   },
 
+  async getArtistData (term) {
+    const searchTerm = term.trim().replace(/\s+/g, "_") + "*";
+    const response = await fetch(`/artists.json?search[name]=${encodeURIComponent(searchTerm)}&search[order]=post_count&limit=10&expiry=7`);
+    const data = await response.json();
+
+    return data.map(artist => ({
+      name: artist.name,
+      label: artist.name.replace(/_/g, " "),
+      category: "artist",
+      post_count: artist.post_count,
+      type: "artist",
+      id: artist.id,
+    }));
+  },
+
   getStaticMetatagData (metatag, term) {
     const options = this.STATIC_METATAGS[metatag];
     if (!options) {
@@ -156,7 +191,41 @@ const NewAutocomplete = {
       .slice(0, 10);
   },
 
-  insertCompletion (input, completion) {
+  async searchTagQuery (query, input) {
+    if (!query.trim()) {
+      return [];
+    }
+
+    const parsed = this.parseQuery(query, input.selectionStart);
+
+    if (!parsed.term && !parsed.metatag) {
+      return [];
+    }
+
+    if (!parsed.metatag && parsed.term.length < 3) {
+      return [];
+    }
+
+    let results;
+    if (parsed.metatag) {
+      results = await this.getMetatagData(parsed.metatag, parsed.term || "");
+    } else {
+      results = await this.getTagData(parsed.term);
+    }
+
+    return results.slice(0, 15);
+  },
+
+  async searchArtist (query) {
+    if (!query.trim() || query.length < 1) {
+      return [];
+    }
+
+    const results = await this.getArtistData(query);
+    return results.slice(0, 15);
+  },
+
+  insertTagQueryCompletion (input, completion) {
     const beforeCaret = input.value.substring(0, input.selectionStart).trim();
     const afterCaret = input.value.substring(input.selectionStart).trim();
 
@@ -170,34 +239,49 @@ const NewAutocomplete = {
 
     input.dispatchEvent(new Event("input", {bubbles: true}));
   },
+
+  insertSimpleCompletion (input, completion) {
+    input.value = completion;
+    input.selectionStart = input.selectionEnd = completion.length;
+    input.dispatchEvent(new Event("input", {bubbles: true}));
+  },
 };
 
 class AutocompleteInstance {
-  constructor (input, autocomplete) {
+  constructor (input, { searchFn, insertFn }) {
     this.input = input;
-    this.autocomplete = autocomplete;
+    this.searchFn = searchFn;
+    this.insertFn = insertFn;
     this.isOpen = false;
     this.selectedIndex = -1;
     this.results = [];
     this.debounceTimer = null;
+    this.justSelected = false;
 
     this.createDropdown();
     this.bindEvents();
   }
 
   createDropdown () {
-    this.wrapper = document.createElement("div");
-    this.wrapper.className = "new-ui-autocomplete-wrapper";
-
     this.dropdown = document.createElement("ul");
+    this.dropdown.className = "new-ui-autocomplete-dropdown";
     this.dropdown.setAttribute("hidden", "");
     this.dropdown.setAttribute("role", "listbox");
     this.dropdown.setAttribute("aria-label", "Autocomplete results");
 
-    this.wrapper.appendChild(this.dropdown);
+    document.body.appendChild(this.dropdown);
+  }
 
-    this.input.parentNode.insertBefore(this.wrapper, this.input.nextSibling);
-    this.wrapper.insertBefore(this.input, this.dropdown);
+  positionDropdown () {
+    const rect = this.input.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+    this.dropdown.style.position = "absolute";
+    this.dropdown.style.left = (rect.left + scrollLeft) + "px";
+    this.dropdown.style.top = (rect.bottom + scrollTop) + "px";
+    this.dropdown.style.width = rect.width + "px";
+    this.dropdown.style.minWidth = rect.width + "px";
   }
 
   bindEvents () {
@@ -208,9 +292,18 @@ class AutocompleteInstance {
 
     this.dropdown.addEventListener("mousedown", (e) => e.preventDefault());
     this.dropdown.addEventListener("click", this.handleDropdownClick.bind(this));
+
+    this.repositionHandler = this.positionDropdown.bind(this);
+    window.addEventListener("scroll", this.repositionHandler);
+    window.addEventListener("resize", this.repositionHandler);
   }
 
   handleInput () {
+    if (this.justSelected) {
+      this.justSelected = false;
+      return;
+    }
+
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
       this.search();
@@ -270,7 +363,6 @@ class AutocompleteInstance {
 
   async search () {
     const query = this.input.value;
-    const parsed = this.autocomplete.parseQuery(query, this.input.selectionStart);
 
     if (!query.trim()) {
       this.results = [];
@@ -280,31 +372,8 @@ class AutocompleteInstance {
       return;
     }
 
-    if (!parsed.term && !parsed.metatag) {
-      this.results = [];
-      this.selectedIndex = -1;
-      this.render();
-      this.close();
-      return;
-    }
-
-    if (!parsed.metatag && parsed.term.length < 3) {
-      this.results = [];
-      this.selectedIndex = -1;
-      this.render();
-      this.close();
-      return;
-    }
-
     try {
-      let results;
-      if (parsed.metatag) {
-        results = await this.autocomplete.getMetatagData(parsed.metatag, parsed.term || "");
-      } else {
-        results = await this.autocomplete.getTagData(parsed.term);
-      }
-
-      this.results = results.slice(0, 15);
+      this.results = await this.searchFn(query, this.input);
       this.selectedIndex = -1;
       this.render();
 
@@ -415,7 +484,8 @@ class AutocompleteInstance {
   }
 
   selectItem (item) {
-    this.autocomplete.insertCompletion(this.input, item.name);
+    this.justSelected = true;
+    this.insertFn(this.input, item.name);
     this.close();
     this.input.focus();
   }
@@ -423,6 +493,7 @@ class AutocompleteInstance {
   open () {
     if (!this.isOpen) {
       this.isOpen = true;
+      this.positionDropdown();
       this.dropdown.removeAttribute("hidden");
       this.input.setAttribute("aria-expanded", "true");
     }
@@ -440,9 +511,11 @@ class AutocompleteInstance {
     this.close();
     clearTimeout(this.debounceTimer);
 
-    if (this.wrapper && this.wrapper.parentNode) {
-      this.wrapper.parentNode.insertBefore(this.input, this.wrapper);
-      this.wrapper.remove();
+    window.removeEventListener("scroll", this.repositionHandler);
+    window.removeEventListener("resize", this.repositionHandler);
+
+    if (this.dropdown && this.dropdown.parentNode) {
+      this.dropdown.remove();
     }
   }
 }
