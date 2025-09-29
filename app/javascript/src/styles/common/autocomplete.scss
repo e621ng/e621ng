@@ -10,28 +10,28 @@
   background-color: var(--color-section-lighten-10);
   font-size: 0.9em;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-}
 
-.ui-autocomplete-dropdown > li {
-  padding: 3px .5em 3px .4em;
-  cursor: pointer;
-}
+  > li {
+    padding: 3px .5em 3px .4em;
+    cursor: pointer;
 
-.ui-autocomplete-dropdown > li > a {
-  margin-right: 1em;
-}
+    > a {
+      margin-right: 1em;
+    }
 
-.ui-autocomplete-dropdown > li:hover,
-.ui-autocomplete-dropdown > li[aria-selected="true"] {
-  background-color: var(--color-section-darken-5);
-}
+    &:hover,
+    &[aria-selected="true"] {
+      background-color: var(--color-section-darken-5);
+    }
 
-.ui-autocomplete-dropdown > li mark {
-  background-color: transparent;
-  font-weight: normal;
-  color: inherit;
-}
+    mark {
+      background-color: transparent;
+      font-weight: normal;
+      color: inherit;
+    }
 
-.autocomplete-count {
-  float: right;
+    .ui-autocomplete-count {
+      float: right;
+    }
+  }
 }

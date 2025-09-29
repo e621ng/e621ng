@@ -407,7 +407,7 @@ const Autocomplete = {
 
   createCountSpan (count) {
     const countSpan = document.createElement("span");
-    countSpan.className = "autocomplete-count";
+    countSpan.className = "ui-autocomplete-count";
     countSpan.textContent = this.formatCount(count);
     return countSpan;
   },
