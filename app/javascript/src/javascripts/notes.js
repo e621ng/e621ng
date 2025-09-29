@@ -19,12 +19,12 @@ export default class NoteManager {
 
     // Highlight notes based on URL hash
     this.highlightHashNotes();
-    $(window).on("hashchange.notes", this.highlightHashNotes);
+    $(window).on("hashchange.e6.note", this.highlightHashNotes);
 
     if (!User.is.member) return;
 
     // Open editor when a note is double-clicked
-    NoteUtilities.container.on("dblclick", ".note-box", (event) => {
+    NoteUtilities.container.on("dblclick.e6.note", ".note-box", (event) => {
       if (NoteUtilities.editing) return;
       event.preventDefault();
       event.stopPropagation();
@@ -38,7 +38,7 @@ export default class NoteManager {
     });
 
     // Switch to note editing mode when the "Edit Notes" button is clicked
-    $("#translate").on("click", (event) => {
+    $("#translate").on("click.e6.note", (event) => {
       event.preventDefault();
       NoteUtilities.toggleEditing();
 
@@ -48,13 +48,13 @@ export default class NoteManager {
       }
     });
 
-    $("#translation-cancel").on("click", (event) => {
+    $("#translation-cancel").on("click.e6.note", (event) => {
       event.preventDefault();
       NoteUtilities.editing = false;
     });
 
     // Initialize interactivity once editing is enabled
-    NoteUtilities.container.one("editing:true", () => {
+    NoteUtilities.container.one("note:editing:true", () => {
       this.handleNoteEditing();
       this.handleNoteDrawing();
       this.handleNoteResizing();
@@ -85,7 +85,7 @@ export default class NoteManager {
   // ====================== //
 
   handleNoteEditing () {
-    NoteUtilities.container.on("click", ".note-body", (event) => {
+    NoteUtilities.container.on("click.e6.note", ".note-body", (event) => {
       if (!NoteUtilities.editing) return;
       event.preventDefault();
       event.stopPropagation();
@@ -131,7 +131,7 @@ export default class NoteManager {
     };
 
     // Initial click to start drawing
-    NoteUtilities.container.on("mousedown", (event) => {
+    NoteUtilities.container.on("mousedown.e6.note", (event) => {
       if (!NoteUtilities.editing) return;
 
       // Only respond to left mouse button
@@ -171,7 +171,7 @@ export default class NoteManager {
     });
 
     // Mousemove to update the drawing
-    NoteUtilities.container.on("mousemove", (event) => {
+    NoteUtilities.container.on("mousemove.e6.note", (event) => {
       if (!isDrawing || !$drawingNote) return;
 
       event.preventDefault();
@@ -192,7 +192,7 @@ export default class NoteManager {
     });
 
     // Mouseup to finalize the drawing
-    NoteUtilities.container.on("mouseup", (event) => {
+    NoteUtilities.container.on("mouseup.e6.note", (event) => {
       if (!isDrawing || !$drawingNote) return;
 
       event.preventDefault();
@@ -234,9 +234,9 @@ export default class NoteManager {
       }
     });
 
-    NoteUtilities.container.on("note:abort mouseleave", abortDrawing);
+    NoteUtilities.container.on("note:abort mouseleave.e6.note", abortDrawing);
 
-    NoteUtilities.container.on("contextmenu", (event) => {
+    NoteUtilities.container.on("contextmenu.e6.note", (event) => {
       if (!isDrawing) return;
       event.preventDefault();
       abortDrawing();
@@ -262,7 +262,7 @@ export default class NoteManager {
     let $resizingNote = null;
 
     // Mousedown to start resizing
-    NoteUtilities.container.on("mousedown", ".note-handle", (event) => {
+    NoteUtilities.container.on("mousedown.e6.note", ".note-handle", (event) => {
       if (!NoteUtilities.editing) return;
 
       event.preventDefault();
@@ -296,7 +296,7 @@ export default class NoteManager {
     });
 
     // Mousemove to resize the note
-    NoteUtilities.container.on("mousemove", (event) => {
+    NoteUtilities.container.on("mousemove.e6.note", (event) => {
       if (!isResizing || !$resizingNote) return;
 
       event.preventDefault();
@@ -351,7 +351,7 @@ export default class NoteManager {
     });
 
     // Mouseup to finalize resizing
-    NoteUtilities.container.on("mouseup", (event) => {
+    NoteUtilities.container.on("mouseup.e6.note", (event) => {
       // Handle note resizing
       if (!isResizing || !$resizingNote) return;
 
@@ -380,7 +380,7 @@ export default class NoteManager {
       });
     });
 
-    NoteUtilities.container.on("note:abort mouseleave", () => {
+    NoteUtilities.container.on("note:abort mouseleave.e6.note", () => {
       if (!isResizing || !$resizingNote) return;
 
       // Revert to original bounds
@@ -408,7 +408,7 @@ export default class NoteManager {
     });
 
     // Handle context menu during resizing
-    NoteUtilities.container.on("contextmenu", (event) => {
+    NoteUtilities.container.on("contextmenu.e6.note", (event) => {
       if (!isResizing) return;
       event.preventDefault();
       NoteUtilities.container.trigger("note:abort");
@@ -431,7 +431,7 @@ export default class NoteManager {
     /** @type {Note} Note currently being moved */
     let $movingNote = null;
 
-    NoteUtilities.container.on("mousedown", ".note-box", (event) => {
+    NoteUtilities.container.on("mousedown.e6.note", ".note-box", (event) => {
       if (!NoteUtilities.editing) return;
 
       // Ignore clicks on handles or body
@@ -464,7 +464,7 @@ export default class NoteManager {
     });
 
     // Handle mousemove for note moving
-    NoteUtilities.container.on("mousemove", (event) => {
+    NoteUtilities.container.on("mousemove.e6.note", (event) => {
       if (!isMoving || !$movingNote) return;
 
       event.preventDefault();
@@ -491,7 +491,7 @@ export default class NoteManager {
     });
 
     // Handle mouseup for note moving
-    NoteUtilities.container.on("mouseup", (event) => {
+    NoteUtilities.container.on("mouseup.e6.note", (event) => {
       if (!isMoving || !$movingNote) return;
 
       event.preventDefault();
@@ -519,7 +519,7 @@ export default class NoteManager {
     });
 
     // Handle mouse leave to cancel moving
-    NoteUtilities.container.on("note:abort mouseleave", () => {
+    NoteUtilities.container.on("note:abort mouseleave.e6.note", () => {
       if (!isMoving || !$movingNote) return;
 
       if (moveOriginalPosition)
@@ -545,7 +545,7 @@ export default class NoteManager {
     });
 
     // Handle context menu during moving
-    NoteUtilities.container.on("contextmenu", (event) => {
+    NoteUtilities.container.on("contextmenu.e6.note", (event) => {
       if (!isMoving) return;
       event.preventDefault();
       NoteUtilities.container.trigger("note:abort");
@@ -561,18 +561,18 @@ export default class NoteManager {
 
     // Window losing focus causes the script to think that the mouse button is still held down
     // Resize events will affect coordinate calculations
-    $(window).on("blur resize", () => {
+    $(window).on("blur.e6.note resize.e6.note", () => {
       NoteUtilities.container.trigger("note:abort");
     });
 
     // Escape key is pressed
-    $(document).on("keydown", (event) => {
+    $(document).on("keydown.e6.note", (event) => {
       if (event.key !== "Escape") return;
       NoteUtilities.container.trigger("note:abort");
     });
 
     // Page visibility changes
-    $(document).on("visibilitychange", () => {
+    $(document).on("visibilitychange.e6.note", () => {
       if (!document.hidden) return;
       NoteUtilities.container.trigger("note:abort");
     });
@@ -799,7 +799,7 @@ class NoteEditor {
 
     // Update note preview when the user makes changes
     this.previewTimeout = null;
-    this.input.on("input", () => {
+    this.input.on("input.e6.note", () => {
       if (!this.id) return;
       this.currentNote.pending = true;
 
@@ -812,7 +812,7 @@ class NoteEditor {
     });
 
     // Save note on form submit
-    this.form.on("submit", (event) => {
+    this.form.on("submit.e6.note", (event) => {
       event.preventDefault();
 
       if (!this.id) {
@@ -830,13 +830,13 @@ class NoteEditor {
     });
 
     // Cancel without saving
-    this.form.find("button[name='note-cancel']").on("click", () => { this.close(); });
+    this.form.find("button[name='note-cancel']").on("click.e6.note", () => { this.close(); });
 
     // Close the dialog when the 'X' is clicked
     this.form.on("dialog:close", () => { this.close(true); });
 
     // Delete note
-    this.form.find("button[name='note-delete']").on("click", () => {
+    this.form.find("button[name='note-delete']").on("click.e6.note", () => {
       if (!this.id) {
         Utility.error("Error: No note is currently being edited.");
         return false;
@@ -849,7 +849,7 @@ class NoteEditor {
     });
 
     // Note history
-    this.form.find("button[name='note-history']").on("click", () => {
+    this.form.find("button[name='note-history']").on("click.e6.note", () => {
       if (!this.id) {
         Utility.error("Error: No note is currently being edited.");
         return false;
@@ -1136,7 +1136,7 @@ class NoteUtilities {
   static set editing (value) {
     this._editing = value;
     this.container
-      .trigger(`editing:${value}`)
+      .trigger(`note:editing:${value}`)
       .attr("editing", value ? "true" : "false");
 
     if (value) {
@@ -1155,7 +1155,7 @@ class NoteUtilities {
     LStorage.Posts.Notes = value;
     NoteUtilities.container
       .attr("enabled", value)
-      .trigger(`visible:${value}`);
+      .trigger(`note:visible:${value}`);
 
     // Cannot scale note bodies if notes are hidden
     if (value) $("#note-container .note-box").trigger("note:scale");

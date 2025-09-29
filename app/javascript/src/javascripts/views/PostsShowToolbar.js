@@ -35,7 +35,7 @@ export default class PostsShowToolbar {
     const noteToggleButtons = $(".ptbr-notes-button")
       .attr("enabled", NoteManager.enabled + "")
       .on("click", () => { NoteManager.enabled = !NoteManager.enabled; });
-    $("#note-container").on("visible:true visible:false", () => {
+    $("#note-container").on("note:visible:true note:visible:false", () => {
       noteToggleButtons.attr("enabled", NoteManager.enabled + "");
     });
 
