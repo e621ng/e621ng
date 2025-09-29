@@ -47,6 +47,7 @@ importAll(require.context("../src/javascripts", true, /\.js(\.erb)?$/));
 require.context("../../../public/images", true);
 
 export { default as Autocomplete } from "../src/javascripts/autocomplete.js.erb";
+export { default as NewAutocomplete } from "../src/javascripts/new_autocomplete.js";
 export { default as Blacklist } from "../src/javascripts/blacklists.js";
 export { default as Blip } from "../src/javascripts/blips.js";
 export { default as Comment } from "../src/javascripts/comments.js";

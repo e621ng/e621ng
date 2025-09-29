@@ -26,6 +26,9 @@
 <% end %>
 <meta name="enable-js-navigation" content="<%= CurrentUser.user.enable_keyboard_navigation %>">
 <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
+<meta name="metatags" content="<%= TagQuery::METATAGS.to_json %>">
+<meta name="order-metatags" content="<%= TagQuery::ORDER_METATAGS_AUTOCOMPLETE.to_json %>">
+<meta name="tag-categories" content="<%= TagCategory::MAPPING.keys.to_json %>">
 <meta name="style-usernames" content="<%= CurrentUser.user.style_usernames? %>">
 <meta name="last-forum-read-at" content="<%= CurrentUser.user.last_forum_read_at %>">
 <% if CurrentUser.user.custom_style.present? %>

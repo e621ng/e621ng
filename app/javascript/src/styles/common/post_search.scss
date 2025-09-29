@@ -45,6 +45,11 @@
       &:focus, &:focus + button[type="submit"] { background: #FFC; }
     }
 
+    .autoComplete_wrapper:focus-within > textarea,
+    .autoComplete_wrapper:focus-within + button[type="submit"] {
+      background: #FFC;
+    }
+
     button[type="submit"] {
 
       // Remove old styles from z_responsive
