@@ -32,6 +32,7 @@ const NewAutocomplete = {
     this.initialize_tag_query_autocomplete();
     this.initialize_artist_autocomplete();
     this.initialize_pool_autocomplete();
+    this.initialize_user_autocomplete();
   },
 
   initialize_tag_query_autocomplete () {
@@ -80,6 +81,23 @@ const NewAutocomplete = {
         searchFn: this.searchPool.bind(this),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderPoolItem.bind(this),
+      });
+      this.instances.set(field, instance);
+    });
+  },
+
+  initialize_user_autocomplete () {
+    const userFields = document.querySelectorAll("[data-autocomplete=\"user-new\"]");
+
+    userFields.forEach(field => {
+      if (this.instances.has(field)) {
+        this.instances.get(field).destroy();
+      }
+
+      const instance = new AutocompleteInstance(field, {
+        searchFn: this.searchUser.bind(this),
+        insertFn: this.insertSimpleCompletion.bind(this),
+        renderFn: this.renderGenericItem.bind(this),
       });
       this.instances.set(field, instance);
     });
@@ -253,6 +271,15 @@ const NewAutocomplete = {
     }
 
     const results = await this.getPoolData(query);
+    return results.slice(0, 15);
+  },
+
+  async searchUser (query) {
+    if (!query.trim() || query.length < 1) {
+      return [];
+    }
+
+    const results = await this.getUserData(query);
     return results.slice(0, 15);
   },
 
