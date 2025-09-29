@@ -1,5 +1,5 @@
 <%= form_search(path: request.path) do |f| %>
-  <%= f.input :name_matches, label: "Name", autocomplete: "pool-new" %>
+  <%= f.input :name_matches, label: "Name", autocomplete: "pool" %>
   <%= f.input :description_matches, label: "Description" %>
   <%= f.user :creator %>
   <%= f.input :is_active, label: "Status", collection: [["Active", "true"], ["Inactive", "false"]], :include_blank => true %>
