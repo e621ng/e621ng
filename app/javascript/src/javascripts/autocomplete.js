@@ -63,7 +63,7 @@ const Autocomplete = {
       }
 
       const instance = new AutocompleteInstance(field, {
-        searchFn: this.searchTag.bind(this),
+        searchFn: (query) => this.searchItems(query, this.getTags.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderTagItem.bind(this),
       });
@@ -80,7 +80,7 @@ const Autocomplete = {
       }
 
       const instance = new AutocompleteInstance(field, {
-        searchFn: this.searchArtist.bind(this),
+        searchFn: (query) => this.searchItems(query, this.getArtists.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderItem.bind(this),
       });
@@ -97,7 +97,7 @@ const Autocomplete = {
       }
 
       const instance = new AutocompleteInstance(field, {
-        searchFn: this.searchPool.bind(this),
+        searchFn: (query) => this.searchItems(query, this.getPools.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderPoolItem.bind(this),
       });
@@ -114,9 +114,9 @@ const Autocomplete = {
       }
 
       const instance = new AutocompleteInstance(field, {
-        searchFn: this.searchUser.bind(this),
+        searchFn: (query) => this.searchItems(query, this.getUsers.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
-        renderFn: this.renderGenericItem.bind(this),
+        renderFn: this.renderItem.bind(this),
       });
       this.instances.set(field, instance);
     });
@@ -131,7 +131,7 @@ const Autocomplete = {
       }
 
       const instance = new AutocompleteInstance(field, {
-        searchFn: this.searchWiki.bind(this),
+        searchFn: (query) => this.searchItems(query, this.getWikis.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderWikiItem.bind(this),
       });
@@ -168,7 +168,7 @@ const Autocomplete = {
     return { metatag, term };
   },
 
-  async getTagData (term) {
+  async getTags (term) {
     const params = new URLSearchParams({
       "search[name_matches]": term,
       "expiry": "7",
@@ -187,9 +187,9 @@ const Autocomplete = {
     }));
   },
 
-  async getMetatagData (metatag, term) {
+  async getMetatags (metatag, term) {
     if (this.STATIC_METATAGS[metatag]) {
-      return this.getStaticMetatagData(metatag, term);
+      return this.getStaticMetatags(metatag, term);
     }
 
     switch (metatag) {
@@ -204,16 +204,16 @@ const Autocomplete = {
       case "flagger":
       case "upvote":
       case "downvote":
-        return this.getUserData(term).then(results => results.map(user => ({ ...user, name: `${metatag}:${user.name}` })));
+        return this.getUsers(term).then(results => results.map(user => ({ ...user, name: `${metatag}:${user.name}` })));
       case "pool":
-        return this.getPoolData(term).then(results => results.map(pool => ({ ...pool, name: `${metatag}:${pool.name}` })),
+        return this.getPools(term).then(results => results.map(pool => ({ ...pool, name: `${metatag}:${pool.name}` })),
         );
       default:
         return [];
     }
   },
 
-  async getUserData (term) {
+  async getUsers (term) {
     const params = new URLSearchParams({
       "search[order]": "post_upload_count",
       "search[name_matches]": term + "*",
@@ -231,7 +231,7 @@ const Autocomplete = {
     }));
   },
 
-  async getPoolData (term) {
+  async getPools (term) {
     const params = new URLSearchParams({
       "search[order]": "post_count",
       "search[name_matches]": term,
@@ -251,7 +251,7 @@ const Autocomplete = {
     }));
   },
 
-  async getArtistData (term) {
+  async getArtists (term) {
     const searchTerm = term.trim().replace(/\s+/g, "_") + "*";
     const params = new URLSearchParams({
       "search[name]": searchTerm,
@@ -273,7 +273,7 @@ const Autocomplete = {
     }));
   },
 
-  async getWikiData (term) {
+  async getWikis (term) {
     const params = new URLSearchParams({
       "search[title]": term + "*",
       "search[hide_deleted]": "Yes",
@@ -294,7 +294,16 @@ const Autocomplete = {
     }));
   },
 
-  getStaticMetatagData (metatag, term) {
+  async searchItems (query, dataFetcher, { minLength = 1, maxResults = 15 } = {}) {
+    if (!query.trim() || query.length < minLength) {
+      return [];
+    }
+
+    const results = await dataFetcher(query);
+    return results.slice(0, maxResults);
+  },
+
+  getStaticMetatags (metatag, term) {
     const options = this.STATIC_METATAGS[metatag];
     if (!options) {
       return [];
@@ -329,56 +338,11 @@ const Autocomplete = {
 
     let results;
     if (parsed.metatag) {
-      results = await this.getMetatagData(parsed.metatag, parsed.term || "");
+      results = await this.getMetatags(parsed.metatag, parsed.term || "");
     } else {
-      results = await this.getTagData(parsed.term);
+      results = await this.getTags(parsed.term);
     }
 
-    return results.slice(0, 15);
-  },
-
-  async searchTag (query) {
-    if (!query.trim() || query.length < 1) {
-      return [];
-    }
-
-    const results = await this.getTagData(query);
-    return results.slice(0, 15);
-  },
-
-  async searchArtist (query) {
-    if (!query.trim() || query.length < 1) {
-      return [];
-    }
-
-    const results = await this.getArtistData(query);
-    return results.slice(0, 15);
-  },
-
-  async searchPool (query) {
-    if (!query.trim() || query.length < 1) {
-      return [];
-    }
-
-    const results = await this.getPoolData(query);
-    return results.slice(0, 15);
-  },
-
-  async searchUser (query) {
-    if (!query.trim() || query.length < 1) {
-      return [];
-    }
-
-    const results = await this.getUserData(query);
-    return results.slice(0, 15);
-  },
-
-  async searchWiki (query) {
-    if (!query.trim() || query.length < 1) {
-      return [];
-    }
-
-    const results = await this.getWikiData(query);
     return results.slice(0, 15);
   },
 
