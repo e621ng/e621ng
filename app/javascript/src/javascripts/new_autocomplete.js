@@ -31,6 +31,7 @@ const NewAutocomplete = {
 
     this.initialize_tag_query_autocomplete();
     this.initialize_artist_autocomplete();
+    this.initialize_pool_autocomplete();
   },
 
   initialize_tag_query_autocomplete () {
@@ -44,6 +45,7 @@ const NewAutocomplete = {
       const instance = new AutocompleteInstance(field, {
         searchFn: this.searchTagQuery.bind(this),
         insertFn: this.insertTagQueryCompletion.bind(this),
+        renderFn: this.renderTagQueryItem.bind(this),
       });
       this.instances.set(field, instance);
     });
@@ -60,6 +62,24 @@ const NewAutocomplete = {
       const instance = new AutocompleteInstance(field, {
         searchFn: this.searchArtist.bind(this),
         insertFn: this.insertSimpleCompletion.bind(this),
+        renderFn: this.renderItem.bind(this),
+      });
+      this.instances.set(field, instance);
+    });
+  },
+
+  initialize_pool_autocomplete () {
+    const poolFields = document.querySelectorAll("[data-autocomplete=\"pool-new\"]");
+
+    poolFields.forEach(field => {
+      if (this.instances.has(field)) {
+        this.instances.get(field).destroy();
+      }
+
+      const instance = new AutocompleteInstance(field, {
+        searchFn: this.searchPool.bind(this),
+        insertFn: this.insertSimpleCompletion.bind(this),
+        renderFn: this.renderPoolItem.bind(this),
       });
       this.instances.set(field, instance);
     });
@@ -125,20 +145,21 @@ const NewAutocomplete = {
       case "flagger":
       case "upvote":
       case "downvote":
-        return await this.getUserData(term, metatag + ":");
+        return this.getUserData(term).then(results => results.map(user => ({ ...user, name: `${metatag}:${user.name}` })));
       case "pool":
-        return await this.getPoolData(term);
+        return this.getPoolData(term).then(results => results.map(pool => ({ ...pool, name: `${metatag}:${pool.name}` })),
+        );
       default:
         return [];
     }
   },
 
-  async getUserData (term, prefix) {
+  async getUserData (term) {
     const response = await fetch(`/users.json?search[order]=post_upload_count&search[name_matches]=${encodeURIComponent(term)}*&limit=10`);
     const data = await response.json();
 
     return data.map(user => ({
-      name: prefix + user.name,
+      name: user.name,
       label: user.name.replace(/_/g, " "),
       category: "user",
       type: "user",
@@ -150,11 +171,12 @@ const NewAutocomplete = {
     const data = await response.json();
 
     return data.map(pool => ({
-      name: "pool:" + pool.name,
+      name: pool.name,
       label: pool.name.replace(/_/g, " "),
-      category: "pool",
+      category: pool.category,
       post_count: pool.post_count,
       type: "pool",
+      id: pool.id,
     }));
   },
 
@@ -225,6 +247,15 @@ const NewAutocomplete = {
     return results.slice(0, 15);
   },
 
+  async searchPool (query) {
+    if (!query.trim() || query.length < 1) {
+      return [];
+    }
+
+    const results = await this.getPoolData(query);
+    return results.slice(0, 15);
+  },
+
   insertTagQueryCompletion (input, completion) {
     const beforeCaret = input.value.substring(0, input.selectionStart).trim();
     const afterCaret = input.value.substring(input.selectionStart).trim();
@@ -245,13 +276,101 @@ const NewAutocomplete = {
     input.selectionStart = input.selectionEnd = completion.length;
     input.dispatchEvent(new Event("input", {bubbles: true}));
   },
+
+  formatCount (count) {
+    const formatter = new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      compactDisplay: "short",
+    });
+    return formatter.format(count).toLowerCase();
+  },
+
+  getHref (item) {
+    switch (item.type) {
+      case "user":
+        return "/users/" + item.id;
+      case "pool":
+        return "/pools/" + item.id;
+      case "artist":
+        return "/artists/" + item.id;
+      case "wiki_page":
+        return "/wiki_pages/" + item.id;
+      case "tag":
+        return "/posts?tags=" + encodeURIComponent(item.name);
+      default:
+        return "#";
+    }
+  },
+
+  createLink (item) {
+    const link = document.createElement("a");
+    link.href = this.getHref(item);
+    link.addEventListener("click", (e) => e.preventDefault());
+    return link;
+  },
+
+  createCountSpan (count) {
+    const countSpan = document.createElement("span");
+    countSpan.className = "autocomplete-count";
+    countSpan.textContent = this.formatCount(count);
+    return countSpan;
+  },
+
+  renderItem (li, item) {
+    const link = this.createLink(item);
+
+    link.appendChild(document.createTextNode(item.label || item.name));
+
+    if (item.post_count !== undefined) {
+      link.appendChild(this.createCountSpan(item.post_count));
+    }
+
+    li.appendChild(link);
+  },
+
+  createAntecedentElements (antecedent) {
+    const antecedentSpan = document.createElement("span");
+    antecedentSpan.textContent = antecedent.replace(/_/g, " ");
+
+    const arrowSpan = document.createElement("span");
+    arrowSpan.textContent = " → ";
+
+    return [antecedentSpan, arrowSpan];
+  },
+
+  renderTagQueryItem (li, item) {
+    this.renderItem(li, item);
+
+    const link = li.querySelector("a");
+
+    if (item.antecedent) {
+      const textNode = link.childNodes[0];
+      const [antecedentSpan, arrowSpan] = this.createAntecedentElements(item.antecedent);
+      link.insertBefore(antecedentSpan, textNode);
+      link.insertBefore(arrowSpan, textNode);
+    }
+
+    if (item.category !== undefined) {
+      link.classList.add("tag-type-" + item.category);
+    }
+  },
+
+  renderPoolItem (li, item) {
+    this.renderItem(li, item);
+
+    if (item.category !== undefined) {
+      const link = li.querySelector("a");
+      link.classList.add("pool-category-" + item.category);
+    }
+  },
 };
 
 class AutocompleteInstance {
-  constructor (input, { searchFn, insertFn }) {
+  constructor (input, { searchFn, insertFn, renderFn }) {
     this.input = input;
     this.searchFn = searchFn;
     this.insertFn = insertFn;
+    this.renderFn = renderFn;
     this.isOpen = false;
     this.selectedIndex = -1;
     this.results = [];
@@ -265,7 +384,7 @@ class AutocompleteInstance {
   createDropdown () {
     this.dropdown = document.createElement("ul");
     this.dropdown.className = "new-ui-autocomplete-dropdown";
-    this.dropdown.setAttribute("hidden", "");
+    this.dropdown.style.display = "none";
     this.dropdown.setAttribute("role", "listbox");
     this.dropdown.setAttribute("aria-label", "Autocomplete results");
 
@@ -280,7 +399,6 @@ class AutocompleteInstance {
     this.dropdown.style.position = "absolute";
     this.dropdown.style.left = (rect.left + scrollLeft) + "px";
     this.dropdown.style.top = (rect.bottom + scrollTop) + "px";
-    this.dropdown.style.width = rect.width + "px";
     this.dropdown.style.minWidth = rect.width + "px";
   }
 
@@ -400,45 +518,14 @@ class AutocompleteInstance {
       li.setAttribute("aria-selected", "false");
       li.setAttribute("data-index", index);
 
-      const link = document.createElement("a");
-      link.href = "#";
-
-      if (item.antecedent) {
-        const antecedentSpan = document.createElement("span");
-        antecedentSpan.className = "autoComplete-antecedent";
-        antecedentSpan.textContent = item.antecedent.replace(/_/g, " ");
-
-        const arrowSpan = document.createElement("span");
-        arrowSpan.className = "new-autocomplete-arrow";
-        arrowSpan.textContent = " → ";
-
-        link.appendChild(antecedentSpan);
-        link.appendChild(arrowSpan);
+      if (this.renderFn) {
+        this.renderFn(li, item);
+      } else {
+        const span = document.createElement("span");
+        span.textContent = item.label || item.name;
+        li.appendChild(span);
       }
 
-      const mainText = document.createTextNode(item.label || item.name);
-      link.appendChild(mainText);
-
-      if (item.post_count !== undefined) {
-        const formatter = new Intl.NumberFormat("en-US", {
-          notation: "compact",
-          compactDisplay: "short",
-        });
-        const count = formatter.format(item.post_count).toLowerCase();
-
-        const postCountSpan = document.createElement("span");
-        postCountSpan.className = "post-count";
-        postCountSpan.style.float = "right";
-        postCountSpan.textContent = count;
-        link.appendChild(postCountSpan);
-      }
-
-      if (item.category !== undefined && item.type === "tag") {
-        link.classList.add("tag-type-" + item.category);
-      }
-
-      link.addEventListener("click", (e) => e.preventDefault());
-      li.appendChild(link);
       this.dropdown.appendChild(li);
     });
 
@@ -494,7 +581,7 @@ class AutocompleteInstance {
     if (!this.isOpen) {
       this.isOpen = true;
       this.positionDropdown();
-      this.dropdown.removeAttribute("hidden");
+      this.dropdown.style.display = "block";
       this.input.setAttribute("aria-expanded", "true");
     }
   }
@@ -502,7 +589,7 @@ class AutocompleteInstance {
   close () {
     if (this.isOpen) {
       this.isOpen = false;
-      this.dropdown.setAttribute("hidden", "");
+      this.dropdown.style.display = "none";
       this.input.setAttribute("aria-expanded", "false");
     }
   }
