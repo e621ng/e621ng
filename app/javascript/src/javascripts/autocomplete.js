@@ -139,35 +139,6 @@ const Autocomplete = {
     });
   },
 
-  parseQuery (text, caret) {
-    const TAG_PREFIXES_REGEX = new RegExp("^(" + this.TAG_PREFIXES + ")(.*)$", "i");
-    const METATAGS_REGEX = new RegExp("^(" + this.METATAGS.join("|") + "):(.*)$", "i");
-
-    const beforeCaret = text.substring(0, caret);
-    const match = beforeCaret.match(/\S+$/);
-
-    if (!match) {
-      return {};
-    }
-
-    let term = match[0];
-    let metatag = "";
-
-    const prefixMatch = term.match(TAG_PREFIXES_REGEX);
-    if (prefixMatch) {
-      metatag = prefixMatch[1].toLowerCase();
-      term = prefixMatch[2];
-    } else {
-      const metagMatch = term.match(METATAGS_REGEX);
-      if (metagMatch) {
-        metatag = metagMatch[1].toLowerCase();
-        term = metagMatch[2];
-      }
-    }
-
-    return { metatag, term };
-  },
-
   async getTags (term) {
     const params = new URLSearchParams({
       "search[name_matches]": term,
@@ -185,6 +156,24 @@ const Autocomplete = {
       antecedent: tag.antecedent_name,
       type: "tag",
     }));
+  },
+
+  getStaticMetatags (metatag, term) {
+    const options = this.STATIC_METATAGS[metatag];
+    if (!options) {
+      return [];
+    }
+
+    return options
+      .filter(option => !term || option.toLowerCase().startsWith(term.toLowerCase()))
+      .map(option => ({
+        name: `${metatag}:${option}`,
+        label: `${metatag}:${option}`,
+        category: "metatag",
+        type: "metatag",
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(0, 10);
   },
 
   async getMetatags (metatag, term) {
@@ -303,22 +292,33 @@ const Autocomplete = {
     return results.slice(0, maxResults);
   },
 
-  getStaticMetatags (metatag, term) {
-    const options = this.STATIC_METATAGS[metatag];
-    if (!options) {
-      return [];
+  parseTagQuery (text, caret) {
+    const TAG_PREFIXES_REGEX = new RegExp("^(" + this.TAG_PREFIXES + ")(.*)$", "i");
+    const METATAGS_REGEX = new RegExp("^(" + this.METATAGS.join("|") + "):(.*)$", "i");
+
+    const beforeCaret = text.substring(0, caret);
+    const match = beforeCaret.match(/\S+$/);
+
+    if (!match) {
+      return {};
     }
 
-    return options
-      .filter(option => !term || option.toLowerCase().startsWith(term.toLowerCase()))
-      .map(option => ({
-        name: `${metatag}:${option}`,
-        label: `${metatag}:${option}`,
-        category: "metatag",
-        type: "metatag",
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .slice(0, 10);
+    let term = match[0];
+    let metatag = "";
+
+    const prefixMatch = term.match(TAG_PREFIXES_REGEX);
+    if (prefixMatch) {
+      metatag = prefixMatch[1].toLowerCase();
+      term = prefixMatch[2];
+    } else {
+      const metagMatch = term.match(METATAGS_REGEX);
+      if (metagMatch) {
+        metatag = metagMatch[1].toLowerCase();
+        term = metagMatch[2];
+      }
+    }
+
+    return { metatag, term };
   },
 
   async searchTagQuery (query, input) {
@@ -326,7 +326,7 @@ const Autocomplete = {
       return [];
     }
 
-    const parsed = this.parseQuery(query, input.selectionStart);
+    const parsed = this.parseTagQuery(query, input.selectionStart);
 
     if (!parsed.term && !parsed.metatag) {
       return [];
