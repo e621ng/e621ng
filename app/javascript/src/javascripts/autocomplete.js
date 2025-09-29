@@ -45,7 +45,7 @@ const Autocomplete = {
         this.instances.get(field).destroy();
       }
 
-      const instance = new AutocompleteInstance(field, {
+      const instance = new Autocompleter(field, {
         searchFn: this.searchTagQuery.bind(this),
         insertFn: this.insertTagQueryCompletion.bind(this),
         renderFn: this.renderTagItem.bind(this),
@@ -62,7 +62,7 @@ const Autocomplete = {
         this.instances.get(field).destroy();
       }
 
-      const instance = new AutocompleteInstance(field, {
+      const instance = new Autocompleter(field, {
         searchFn: (query) => this.searchItems(query, this.getTags.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderTagItem.bind(this),
@@ -79,7 +79,7 @@ const Autocomplete = {
         this.instances.get(field).destroy();
       }
 
-      const instance = new AutocompleteInstance(field, {
+      const instance = new Autocompleter(field, {
         searchFn: (query) => this.searchItems(query, this.getArtists.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderItem.bind(this),
@@ -96,7 +96,7 @@ const Autocomplete = {
         this.instances.get(field).destroy();
       }
 
-      const instance = new AutocompleteInstance(field, {
+      const instance = new Autocompleter(field, {
         searchFn: (query) => this.searchItems(query, this.getPools.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderPoolItem.bind(this),
@@ -113,7 +113,7 @@ const Autocomplete = {
         this.instances.get(field).destroy();
       }
 
-      const instance = new AutocompleteInstance(field, {
+      const instance = new Autocompleter(field, {
         searchFn: (query) => this.searchItems(query, this.getUsers.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderItem.bind(this),
@@ -130,7 +130,7 @@ const Autocomplete = {
         this.instances.get(field).destroy();
       }
 
-      const instance = new AutocompleteInstance(field, {
+      const instance = new Autocompleter(field, {
         searchFn: (query) => this.searchItems(query, this.getWikis.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
         renderFn: this.renderWikiItem.bind(this),
@@ -469,7 +469,7 @@ const Autocomplete = {
   },
 };
 
-class AutocompleteInstance {
+class Autocompleter {
   constructor (input, { searchFn, insertFn, renderFn }) {
     this.input = input;
     this.searchFn = searchFn;
