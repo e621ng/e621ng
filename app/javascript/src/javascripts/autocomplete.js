@@ -193,10 +193,12 @@ const Autocomplete = {
       case "flagger":
       case "upvote":
       case "downvote":
-        return this.getUsers(term).then(results => results.map(user => ({ ...user, name: `${metatag}:${user.name}` })));
+        return this.getUsers(term).then(results => results.map(user => ({
+          ...user,
+          name: `${metatag}:${user.name}`,
+        })));
       case "pool":
-        return this.getPools(term).then(results => results.map(pool => ({ ...pool, name: `${metatag}:${pool.name}` })),
-        );
+        return this.getPools(term).then(results => results.map(pool => ({ ...pool, name: `${metatag}:${pool.name}` })));
       default:
         return [];
     }
@@ -457,7 +459,6 @@ const Autocomplete = {
       link.classList.add("pool-category-" + item.category);
     }
   },
-
 
   renderWikiItem (li, item) {
     this.renderItem(li, item);
