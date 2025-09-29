@@ -842,6 +842,7 @@ class NoteEditor {
 
       if (!this.currentNote.hasBackup) this.currentNote.backup();
       this.currentNote.pending = true;
+      this.currentNote.content = this.getInputText();
 
       // Wait for the user to stop typing
       if (this.previewTimeout) clearTimeout(this.previewTimeout);
