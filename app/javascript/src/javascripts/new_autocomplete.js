@@ -33,6 +33,7 @@ const NewAutocomplete = {
     this.initialize_artist_autocomplete();
     this.initialize_pool_autocomplete();
     this.initialize_user_autocomplete();
+    this.initialize_wiki_autocomplete();
   },
 
   initialize_tag_query_autocomplete () {
@@ -103,6 +104,23 @@ const NewAutocomplete = {
     });
   },
 
+  initialize_wiki_autocomplete () {
+    const wikiFields = document.querySelectorAll("[data-autocomplete=\"wiki-page-new\"]");
+
+    wikiFields.forEach(field => {
+      if (this.instances.has(field)) {
+        this.instances.get(field).destroy();
+      }
+
+      const instance = new AutocompleteInstance(field, {
+        searchFn: this.searchWiki.bind(this),
+        insertFn: this.insertSimpleCompletion.bind(this),
+        renderFn: this.renderWikiItem.bind(this),
+      });
+      this.instances.set(field, instance);
+    });
+  },
+
   parseQuery (text, caret) {
     const TAG_PREFIXES_REGEX = new RegExp("^(" + this.TAG_PREFIXES + ")(.*)$", "i");
     const METATAGS_REGEX = new RegExp("^(" + this.METATAGS.join("|") + "):(.*)$", "i");
@@ -138,7 +156,7 @@ const NewAutocomplete = {
 
     return data.map(tag => ({
       name: tag.name,
-      label: tag.name.replace(/_/g, " "),
+      label: this.formatLabel(tag.name),
       category: tag.category,
       post_count: tag.post_count,
       antecedent: tag.antecedent_name,
@@ -178,7 +196,7 @@ const NewAutocomplete = {
 
     return data.map(user => ({
       name: user.name,
-      label: user.name.replace(/_/g, " "),
+      label: this.formatLabel(user.name),
       category: "user",
       type: "user",
     }));
@@ -190,7 +208,7 @@ const NewAutocomplete = {
 
     return data.map(pool => ({
       name: pool.name,
-      label: pool.name.replace(/_/g, " "),
+      label: this.formatLabel(pool.name),
       category: pool.category,
       post_count: pool.post_count,
       type: "pool",
@@ -205,11 +223,24 @@ const NewAutocomplete = {
 
     return data.map(artist => ({
       name: artist.name,
-      label: artist.name.replace(/_/g, " "),
+      label: this.formatLabel(artist.name),
       category: "artist",
       post_count: artist.post_count,
       type: "artist",
       id: artist.id,
+    }));
+  },
+
+  async getWikiData (term) {
+    const response = await fetch(`/wiki_pages.json?search[title]=${encodeURIComponent(term)}*&search[hide_deleted]=Yes&search[order]=post_count&limit=10&expiry=7`);
+    const data = await response.json();
+
+    return data.map(wiki => ({
+      name: wiki.title,
+      label: this.formatLabel(wiki.title),
+      category: wiki.category_id,
+      type: "wiki_page",
+      id: wiki.id,
     }));
   },
 
@@ -283,6 +314,15 @@ const NewAutocomplete = {
     return results.slice(0, 15);
   },
 
+  async searchWiki (query) {
+    if (!query.trim() || query.length < 1) {
+      return [];
+    }
+
+    const results = await this.getWikiData(query);
+    return results.slice(0, 15);
+  },
+
   insertTagQueryCompletion (input, completion) {
     const beforeCaret = input.value.substring(0, input.selectionStart).trim();
     const afterCaret = input.value.substring(input.selectionStart).trim();
@@ -310,6 +350,10 @@ const NewAutocomplete = {
       compactDisplay: "short",
     });
     return formatter.format(count).toLowerCase();
+  },
+
+  formatLabel (text) {
+    return text.replace(/_/g, " ");
   },
 
   getHref (item) {
@@ -357,7 +401,7 @@ const NewAutocomplete = {
 
   createAntecedentElements (antecedent) {
     const antecedentSpan = document.createElement("span");
-    antecedentSpan.textContent = antecedent.replace(/_/g, " ");
+    antecedentSpan.textContent = this.formatLabel(antecedent);
 
     const arrowSpan = document.createElement("span");
     arrowSpan.textContent = " → ";
@@ -388,6 +432,16 @@ const NewAutocomplete = {
     if (item.category !== undefined) {
       const link = li.querySelector("a");
       link.classList.add("pool-category-" + item.category);
+    }
+  },
+
+
+  renderWikiItem (li, item) {
+    this.renderItem(li, item);
+
+    if (item.category !== undefined) {
+      const link = li.querySelector("a");
+      link.classList.add("tag-type-" + item.category);
     }
   },
 };
