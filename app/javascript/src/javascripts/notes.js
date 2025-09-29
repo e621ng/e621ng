@@ -276,6 +276,7 @@ export default class NoteManager {
 
       if (!note) return;
 
+      if (!note.hasBackup) note.backup();
       isResizing = true;
       $resizingNote = note;
       resizeHandle = $handle.hasClass("note-handle-nw") ? "nw" : "se";
@@ -331,7 +332,6 @@ export default class NoteManager {
 
         // Enforce minimum dimensions
         const minSize = NoteUtilities.noteMinWidth;
-        console.log("max", minSize, newWidth, newHeight);
         if (newWidth < minSize) {
           if (resizeHandle === "nw")
             newX = resizeOriginalBounds.x + resizeOriginalBounds.width - minSize;
@@ -448,6 +448,7 @@ export default class NoteManager {
       const note = Note.getByID(noteId);
       if (!note) return;
 
+      if (!note.hasBackup) note.backup();
       isMoving = true;
       $movingNote = note;
 
@@ -659,6 +660,38 @@ class Note {
     this.$box.removeClass("hidden");
   }
 
+  backup () {
+    this.backupData = {
+      id: this.id,
+      x: this.x,
+      y: this.y,
+      width: this.width,
+      height: this.height,
+      content: this.content,
+      html: this.$body.html(),
+    };
+  }
+
+  restore () {
+    if (!this.hasBackup) return;
+
+    this.id = this.backupData.id;
+    this.x = this.backupData.x;
+    this.y = this.backupData.y;
+    this.width = this.backupData.width;
+    this.height = this.backupData.height;
+    this.content = this.backupData.content;
+    this.$body.html(this.backupData.html);
+
+    this.updateScale();
+    this.adjustBodyPosition();
+
+    delete this.backupData;
+    this.pending = false;
+  }
+
+  get hasBackup () { return typeof this.backupData !== "undefined"; }
+
   updateScale () {
     const scale = NoteUtilities.scaleRatio;
     this.$box.css({
@@ -798,6 +831,8 @@ class NoteEditor {
     this.previewTimeout = null;
     this.input.on("input.e6.note", () => {
       if (!this.id) return;
+
+      if (!this.currentNote.hasBackup) this.currentNote.backup();
       this.currentNote.pending = true;
 
       // Wait for the user to stop typing
@@ -827,10 +862,10 @@ class NoteEditor {
     });
 
     // Cancel without saving
-    this.form.find("button[name='note-cancel']").on("click.e6.note", () => { this.close(); });
+    this.form.find("button[name='note-cancel']").on("click.e6.note", () => { this.close(true); });
 
     // Close the dialog when the 'X' is clicked
-    this.form.on("dialog:close", () => { this.close(true); });
+    this.form.on("dialog:close", () => { this.close(false, false); });
 
     // Delete note
     this.form.find("button[name='note-delete']").on("click.e6.note", () => {
@@ -977,8 +1012,8 @@ class NoteEditor {
         note.$body.html(data.dtext);
         note.updateScale();
 
-        // Remove pending changes indicator
         note.pending = false;
+        if (note.hasBackup) delete note.backupData;
 
         if (data.posts) {
           $(window).trigger("e621:add_deferred_posts", data.posts);
@@ -1025,19 +1060,18 @@ class NoteEditor {
   }
 
   /** Close the editor and clean up */
-  close (onClose = false) {
+  close (restoreBackup = false, closeDialog = true) {
     // Check if content was changed and remove pending class if not
     if (this.id) {
       const note = Note.getByID(this.id);
       if (note) {
         // If we're closing a temporary note without saving, remove it
-        if (note.isTemporary) {
-          note.destroy();
-        }
+        if (note.isTemporary) note.destroy();
+        else if (restoreBackup) note.restore();
       }
     }
 
-    if (!onClose) this.dialog.close();
+    if (closeDialog) this.dialog.close();
     $(".note-box.focused").removeClass("focused");
 
     // Clean up editor state
