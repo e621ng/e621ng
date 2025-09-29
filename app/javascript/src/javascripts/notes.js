@@ -213,7 +213,8 @@ export default class NoteManager {
       }
 
       // Only create note if the area is large enough (minimum 20x20 pixels)
-      if (width >= 20 && height >= 20) {
+      let minSize = NoteUtilities.noteMinWidth;
+      if (width >= minSize && height >= minSize) {
         $drawingNote.adjustTo({
           x: Math.min(startX, endX),
           y: Math.min(startY, endY),
@@ -283,11 +284,12 @@ export default class NoteManager {
       resizeStartY = event.pageY - NoteUtilities.containerOffset.top;
 
       // Store original bounds in container coordinates
+      const ratio = NoteUtilities.scaleRatio;
       resizeOriginalBounds = {
-        x: NoteUtilities.scaleDown(note.x),
-        y: NoteUtilities.scaleDown(note.y),
-        width: NoteUtilities.scaleDown(note.width),
-        height: NoteUtilities.scaleDown(note.height),
+        x: Math.round(note.x * ratio),
+        y: Math.round(note.y * ratio),
+        width: Math.round(note.width * ratio),
+        height: Math.round(note.height * ratio),
       };
 
       note.editing = true;
@@ -327,8 +329,9 @@ export default class NoteManager {
           newHeight = resizeOriginalBounds.height + deltaY;
         }
 
-        // Enforce minimum dimensions (20x20 pixels in container coordinates)
-        const minSize = 20;
+        // Enforce minimum dimensions
+        const minSize = NoteUtilities.noteMinWidth;
+        console.log("max", minSize, newWidth, newHeight);
         if (newWidth < minSize) {
           if (resizeHandle === "nw")
             newX = resizeOriginalBounds.x + resizeOriginalBounds.width - minSize;
@@ -703,17 +706,11 @@ class Note {
   get highlighted () { return this.$box.hasClass("highlighted"); }
   set highlighted (value) { this.$box.toggleClass("highlighted", value); }
 
-  // Set attributes using container-relative coordinates
-  // Using `moveTo` and `resizeTo` is generally preferred for setting multiple attributes
-  // at once, since they do not require recalculating the scale multiple times.
-  set relX (value) { this.x = NoteUtilities.scaleUp(value); }
-  set relY (value) { this.y = NoteUtilities.scaleUp(value); }
-  set relWidth (value) { this.width = Math.max(1, NoteUtilities.scaleUp(value)); }
-  set relHeight (value) { this.height = Math.max(1, NoteUtilities.scaleUp(value)); }
-  get relX () { return NoteUtilities.scaleDown(this.x); }
-  get relY () { return NoteUtilities.scaleDown(this.y); }
-  get relWidth () { return NoteUtilities.scaleDown(this.width); }
-  get relHeight () { return NoteUtilities.scaleDown(this.height); }
+  // Automatically converted attributes using container-relative coordinates
+  get relX () { return Math.round(this.x * NoteUtilities.scaleRatio); }
+  get relY () { return Math.round(this.y * NoteUtilities.scaleRatio); }
+  get relWidth () { return Math.round(this.width * NoteUtilities.scaleRatio); }
+  get relHeight () { return Math.round(this.height * NoteUtilities.scaleRatio); }
 
 
   /** Set position using container-relative coordinates */
@@ -1196,12 +1193,9 @@ class NoteUtilities {
     return this._scaleRatio;
   }
 
-  static scaleDown (value) {
-    return Math.round(value * this.scaleRatio);
-  }
-
-  static scaleUp (value) {
-    return Math.round(value / this.scaleRatio);
+  /** Returns the minimum width of a note in container coordinates */
+  static get noteMinWidth () {
+    return Math.round(20 * NoteUtilities.scaleRatio);
   }
 }
 
