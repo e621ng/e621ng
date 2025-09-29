@@ -1,6 +1,6 @@
 import Utility from "./utility";
 
-const NewAutocomplete = {
+const Autocomplete = {
   METATAGS: JSON.parse(Utility.meta("metatags") || "[]"),
   ORDER_METATAGS: JSON.parse(Utility.meta("order-metatags") || "[]"),
   TAG_CATEGORIES: JSON.parse(Utility.meta("tag-categories") || "[]"),
@@ -38,7 +38,7 @@ const NewAutocomplete = {
   },
 
   initialize_tag_query_autocomplete () {
-    const tagQueryFields = document.querySelectorAll("[data-autocomplete=\"tag-query-new\"]");
+    const tagQueryFields = document.querySelectorAll("[data-autocomplete=\"tag-query\"]");
 
     tagQueryFields.forEach(field => {
       if (this.instances.has(field)) {
@@ -55,7 +55,7 @@ const NewAutocomplete = {
   },
 
   initialize_tag_autocomplete () {
-    const tagFields = document.querySelectorAll("[data-autocomplete=\"tag-new\"]");
+    const tagFields = document.querySelectorAll("[data-autocomplete=\"tag\"]");
 
     tagFields.forEach(field => {
       if (this.instances.has(field)) {
@@ -72,7 +72,7 @@ const NewAutocomplete = {
   },
 
   initialize_artist_autocomplete () {
-    const artistFields = document.querySelectorAll("[data-autocomplete=\"artist-new\"]");
+    const artistFields = document.querySelectorAll("[data-autocomplete=\"artist\"]");
 
     artistFields.forEach(field => {
       if (this.instances.has(field)) {
@@ -89,7 +89,7 @@ const NewAutocomplete = {
   },
 
   initialize_pool_autocomplete () {
-    const poolFields = document.querySelectorAll("[data-autocomplete=\"pool-new\"]");
+    const poolFields = document.querySelectorAll("[data-autocomplete=\"pool\"]");
 
     poolFields.forEach(field => {
       if (this.instances.has(field)) {
@@ -106,7 +106,7 @@ const NewAutocomplete = {
   },
 
   initialize_user_autocomplete () {
-    const userFields = document.querySelectorAll("[data-autocomplete=\"user-new\"]");
+    const userFields = document.querySelectorAll("[data-autocomplete=\"user\"]");
 
     userFields.forEach(field => {
       if (this.instances.has(field)) {
@@ -123,7 +123,7 @@ const NewAutocomplete = {
   },
 
   initialize_wiki_autocomplete () {
-    const wikiFields = document.querySelectorAll("[data-autocomplete=\"wiki-page-new\"]");
+    const wikiFields = document.querySelectorAll("[data-autocomplete=\"wiki-page\"]");
 
     wikiFields.forEach(field => {
       if (this.instances.has(field)) {
@@ -491,7 +491,7 @@ class AutocompleteInstance {
 
   createDropdown () {
     this.dropdown = document.createElement("ul");
-    this.dropdown.className = "new-ui-autocomplete-dropdown";
+    this.dropdown.className = "ui-autocomplete-dropdown";
     this.dropdown.style.display = "none";
     this.dropdown.setAttribute("role", "listbox");
     this.dropdown.setAttribute("aria-label", "Autocomplete results");
@@ -716,7 +716,7 @@ class AutocompleteInstance {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  NewAutocomplete.initialize_all();
+  Autocomplete.initialize_all();
 });
 
-export default NewAutocomplete;
+export default Autocomplete;
