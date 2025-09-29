@@ -169,7 +169,12 @@ const Autocomplete = {
   },
 
   async getTagData (term) {
-    const response = await fetch(`/tags/autocomplete.json?search[name_matches]=${encodeURIComponent(term)}&expiry=7`);
+    const params = new URLSearchParams({
+      "search[name_matches]": term,
+      "expiry": "7",
+    });
+
+    const response = await fetch(`/tags/autocomplete.json?${params}`);
     const data = await response.json();
 
     return data.map(tag => ({
@@ -209,7 +214,13 @@ const Autocomplete = {
   },
 
   async getUserData (term) {
-    const response = await fetch(`/users.json?search[order]=post_upload_count&search[name_matches]=${encodeURIComponent(term)}*&limit=10`);
+    const params = new URLSearchParams({
+      "search[order]": "post_upload_count",
+      "search[name_matches]": term + "*",
+      "limit": "10",
+    });
+
+    const response = await fetch(`/users.json?${params}`);
     const data = await response.json();
 
     return data.map(user => ({
@@ -221,7 +232,13 @@ const Autocomplete = {
   },
 
   async getPoolData (term) {
-    const response = await fetch(`/pools.json?search[order]=post_count&search[name_matches]=${encodeURIComponent(term)}&limit=10`);
+    const params = new URLSearchParams({
+      "search[order]": "post_count",
+      "search[name_matches]": term,
+      "limit": "10",
+    });
+
+    const response = await fetch(`/pools.json?${params}`);
     const data = await response.json();
 
     return data.map(pool => ({
@@ -236,7 +253,14 @@ const Autocomplete = {
 
   async getArtistData (term) {
     const searchTerm = term.trim().replace(/\s+/g, "_") + "*";
-    const response = await fetch(`/artists.json?search[name]=${encodeURIComponent(searchTerm)}&search[order]=post_count&limit=10&expiry=7`);
+    const params = new URLSearchParams({
+      "search[name]": searchTerm,
+      "search[order]": "post_count",
+      "limit": "10",
+      "expiry": "7",
+    });
+
+    const response = await fetch(`/artists.json?${params}`);
     const data = await response.json();
 
     return data.map(artist => ({
@@ -250,7 +274,15 @@ const Autocomplete = {
   },
 
   async getWikiData (term) {
-    const response = await fetch(`/wiki_pages.json?search[title]=${encodeURIComponent(term)}*&search[hide_deleted]=Yes&search[order]=post_count&limit=10&expiry=7`);
+    const params = new URLSearchParams({
+      "search[title]": term + "*",
+      "search[hide_deleted]": "Yes",
+      "search[order]": "post_count",
+      "limit": "10",
+      "expiry": "7",
+    });
+
+    const response = await fetch(`/wiki_pages.json?${params}`);
     const data = await response.json();
 
     return data.map(wiki => ({
