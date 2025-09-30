@@ -4,6 +4,8 @@ export default class Dialog {
   static _container = null;
   static containerWidth = 0;
   static containerHeight = 0;
+  // Used to store the current timeout
+  static _currentTimeout = null;
   static get container () {
     if (this._container !== null) return this._container;
 
@@ -15,7 +17,8 @@ export default class Dialog {
 
     // Fullscreen changes
     $(document).on("fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange", () => {
-      setTimeout(() => this.updateContainerDimensions(), 100); // Small delay to ensure layout has settled
+      if (this._currentTimeout) clearTimeout(this._currentTimeout); // Stops quickly toggling fullscreen causing trouble
+      this._currentTimeout = setTimeout(() => this.updateContainerDimensions(), 100); // Small delay to ensure layout has settled
     });
 
     return this._container;
@@ -74,7 +77,7 @@ export default class Dialog {
 
   /**
    * Create a new dialog.
-   * Parmeters could be passed in via a data-attribute on the element as well.
+   * Parameters could be passed in via a data-attribute on the element as well.
    * @param {JQuery<HTMLElement> | string} element Either a jQuery element or a selector string for the dialog content.
    * @param {any} params Configuration parameters.
    *   - title: Title text for the dialog header.
