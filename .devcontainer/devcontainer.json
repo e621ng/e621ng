@@ -1,53 +1,38 @@
 {
-  "name": "cat621 (dev)",
-  "dockerComposeFile": [
-    "../docker-compose.yml",
-    "docker-compose.extend.yml"
-  ],
-  "service": "devcontainer",
-  "workspaceFolder": "/app",
-  "remoteUser": "${localEnv:DOCKER_USER-root}",
-  "overrideCommand": false,
-  "shutdownAction": "none",
+  "name": "E621ng project development",
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.extend.yml"],
+  "service": "dev-container",
+  "overrideCommand": true,
+  "workspaceFolder": "app",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {},
-    // "ghcr.io/devcontainers-extra/features/fnm:2": {},
-    "ghcr.io/devcontainers/features/git:1": {}
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/ruby:1": {}
+
   },
-  "postCreateCommand": "git config --global --add safe.directory /app",
+  "remoteUser": "${localEnv:DOCKER_USER-root}",
+  // Workaround for https://github.com/microsoft/vscode-remote-release/issues/6810
+  "onCreateCommand": {
+    "remove-gitconfig": "rm ~/.gitconfig"
+  },
+  "postAttachCommand": {
+    "git-safe-dir": "git config --global --add safe.directory /app"
+  },
+  "postCreateCommand": {
+    "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
+  },
   "customizations": {
     "vscode": {
       "extensions": [
-        "Shopify.ruby-extensions-pack",
-        "castwide.solargraph",
-        "rebornix.ruby",
-        "sianglim.slim",
-        "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
-        "eamodio.gitlens",
-        "ms-azuretools.vscode-docker"
+        "Shopify.ruby-lsp",
+        "Vue.volar",
+        "dbaeumer.vscode-eslint"
       ],
       "settings": {
-        "files.watcherExclude": {
-          "**/node_modules/**": true,
-          "**/.git/**": true,
-          "**/tmp/**": true
-        },
-        "editor.formatOnSave": true,
-        "ruby.useLanguageServer": true
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   },
-  "runServices": [
-    "postgres",
-    "redis",
-    "memcached",
-    "opensearch",
-    "iqdb",
-    "autocompleted",
-    "e621",
-    "nginx"
-  ],
   "remoteEnv": {
     "EXPOSED_SERVER_PORT": "${localEnv:EXPOSED_SERVER_PORT-3000}",
     "EXPOSED_POSTGRES_PORT": "${localEnv:EXPOSED_POSTGRES_PORT-34517}",
