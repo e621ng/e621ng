@@ -222,7 +222,18 @@ export default class Dialog {
       y: Dialog.containerHeight - this.dialogHeight,
     };
 
+    // Don't adjust unless it's not pinned or any part of it would be outside the container.
+    if (this.isPinned &&
+      this.xMin >= 0 && this.xMax <= _max.x &&
+      this.yMin >= 0 && this.yMax <= _max.y)
+      return;
+
     const positionDef = this.currentNormalizedPosition;
+
+    const projectedPosition = {
+      x: (_max.x) * positionDef[0],
+      y: (_max.y) * positionDef[1],
+    };
 
     const positionCoords = {
       left: Math.max(0, Math.min((_max.x) * positionDef[0], _max.x)),
@@ -293,6 +304,24 @@ export default class Dialog {
     if (this.isOpen) this.close();
     else this.open();
   }
+
+  get xMin() { return Number(this.$dialog.css("left")); }
+  get yMin() { return Number(this.$dialog.css("top")); }
+  get xMax() { return Number(this.$dialog.css("left")) + this.dialogWidth; }
+  get yMax() { return Number(this.$dialog.css("top")) + this.dialogHeight; }
+
+  _isPinned = true;
+  /** True if the dialog is currently pinned */
+  get isPinned () { return this._isPinned; }
+  /** If changed to true, will trigger an update */
+  set isPinned (value) {
+    if (this._isPinned !== value) {
+      this._isPinned = value;
+      if (!value) this.recalculatePosition();
+    }
+  }
+
+  togglePin() { return this.isPinned = !this.isPinned; }
 
   /** Completely destroy the dialog and clean up all resources */
   destroy () {
