@@ -240,12 +240,7 @@ export default class Dialog {
       top:  Math.max(0, Math.min((_max.y) * positionDef[1], _max.y)),
     };
 
-    this.$dialog.css({
-      width: this.dialogWidth,
-      height: this.dialogHeight,
-      left: positionCoords.left,
-      top: positionCoords.top,
-    });
+    this._updatePosition(positionCoords.left, positionCoords.top);
   }
 
   setZIndex (z) {
@@ -305,10 +300,23 @@ export default class Dialog {
     else this.open();
   }
 
-  get xMin() { return Number(this.$dialog.css("left")); }
-  get yMin() { return Number(this.$dialog.css("top")); }
-  get xMax() { return Number(this.$dialog.css("left")) + this.dialogWidth; }
-  get yMax() { return Number(this.$dialog.css("top")) + this.dialogHeight; }
+  _xMin = null;
+  _yMin = null;
+  get xMin() { return this._xMin == 0 ? this._xMin : this._xMin ||= Number(this.$dialog.css("left")); }
+  get yMin() { return this._yMin == 0 ? this._yMin : this._yMin ||= Number(this.$dialog.css("top")); }
+  get xMax() { return this.xMin + this.dialogWidth; }
+  get yMax() { return this.yMin + this.dialogHeight; }
+
+  _updatePosition(xMin, yMin, width = this.dialogWidth, height = this.dialogHeight) {
+    this._xMin = xMin;
+    this._yMin = yMin;
+    this.$dialog.css({
+      width: width,
+      height: height,
+      left: xMin,
+      top: yMin,
+    });
+  }
 
   _isPinned = true;
   /** True if the dialog is currently pinned */
@@ -408,10 +416,7 @@ export default class Dialog {
       newY / (Dialog.containerHeight - this.dialogHeight),
     ];
 
-    this.$dialog.css({
-      left: newX,
-      top: newY,
-    });
+    this._updatePosition(newX, newY);
   }
 
   /** Stop dragging the dialog */
