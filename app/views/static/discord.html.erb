@@ -1,14 +1,18 @@
-<div class='content'>
-  <p>e621 has a discord server where you can chat with other e621 users. All site rules apply in the discord server.
-    There is no voice chat, and there never will be.</p>
-  <h4>In order to limit access to the server to e621 members we have employed a system where you must authorize e621 to
-    join the server on your behalf. You will be asked to authorize the "E621 Joiner" application to do this.</h4>
-  <p>Once you have joined the server this authorization serves no purpose and you can safely deauthorize the application
-    if you wish to.</p>
+<div id="c-static"><div id="a-discord">
+  <h1>Discord Server</h1>
+  <div class="dtext-container">
+    <%= format_text(@page.body, allow_color: true) %>
+  </div>
   <%= form_tag(discord_post_path) do %>
-    <%= submit_tag 'Join the server.' %>
+    <%= submit_tag "Join the Server", class: "st-button submit" %>
   <% end %>
-</div>
+</div></div>
+
+<% content_for(:secondary_links) do %>
+  <% if CurrentUser.is_staff? %>
+    <%= subnav_link_to "Wiki Page", show_or_new_wiki_pages_path(title: @page_name) %>
+  <% end %>
+<% end %>
 
 <% content_for(:page_title) do %>
   Discord Server
