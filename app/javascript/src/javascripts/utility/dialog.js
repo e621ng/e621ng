@@ -191,8 +191,8 @@ export default class Dialog {
     if (params.position) {
       const parts = params.position.trim().split(/\s+/);
       this.currentNormalizedPosition = [
-        Dialog.resolveToNormalizedPosition(parts[0]) || Dialog.normalizedPositionLabel["center"],
-        Dialog.resolveToNormalizedPosition(parts[1]) || Dialog.normalizedPositionLabel["center"],
+        Dialog.resolveToNormalizedPosition(parts[0]),
+        Dialog.resolveToNormalizedPosition(parts[1]),
       ];
     }
 
@@ -203,7 +203,7 @@ export default class Dialog {
 
     this.recalculatePosition();
 
-    $(window).on("dialogContainer:resize", { obj: this }, this.onResize)
+    $(window).on("dialogContainer:resize", { obj: this }, this.onResize);
 
     // Start open
     // Must be called after setting width/height and position
@@ -405,15 +405,17 @@ export default class Dialog {
 
     let newX = this.dialogStartX + (event.clientX - this.dragStartX);
     let newY = this.dialogStartY + (event.clientY - this.dragStartY);
+    const maxX = Dialog.containerWidth - this.dialogWidth;
+    const maxY = Dialog.containerHeight - this.dialogHeight;
 
     // Keep dialog within container bounds
-    newX = Math.max(0, Math.min(newX, Dialog.containerWidth - this.dialogWidth));
-    newY = Math.max(0, Math.min(newY, Dialog.containerHeight - this.dialogHeight));
+    newX = Math.max(0, Math.min(newX, maxX));
+    newY = Math.max(0, Math.min(newY, maxY));
 
     // Update for next resize
     this.currentNormalizedPosition = [
-      newX / (Dialog.containerWidth - this.dialogWidth),
-      newY / (Dialog.containerHeight - this.dialogHeight),
+      (maxX > 0 ? newX / maxX : 0),
+      (maxY > 0 ? newY / maxY : 0),
     ];
 
     this._updatePosition(newX, newY);
