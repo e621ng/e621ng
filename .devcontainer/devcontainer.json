@@ -15,7 +15,7 @@
     "git-safe-dir": "git config --global --add safe.directory /app"
   },
   "postCreateCommand": {
-    "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile",
+    "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
   },
   "customizations": {
     "vscode": {
