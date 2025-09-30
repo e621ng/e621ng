@@ -2,14 +2,12 @@
   "name": "E621ng project development",
   "dockerComposeFile": ["../docker-compose.yml", "docker-compose.extend.yml"],
   "service": "dev-container",
-  "overrideCommand": true, // Use the command defined in the Dockerfile
+  "overrideCommand": true,
   "workspaceFolder": "/app",
   "features": {
-    // "ghcr.io/devcontainers/features/ruby": {"version": "3.3.1"}, // Alpine incompatible
     "ghcr.io/devcontainers/features/common-utils:2": {},
     "ghcr.io/devcontainers/features/git:1": {}
   },
-  // Workaround for https://github.com/microsoft/vscode-remote-release/issues/6810
   "onCreateCommand": {
     "remove-gitconfig": "rm ~/.gitconfig"
   },
@@ -17,27 +15,27 @@
     "git-safe-dir": "git config --global --add safe.directory /app"
   },
   "postCreateCommand": {
-    "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
+    "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile",
   },
   "customizations": {
     "vscode": {
       "extensions": [
-        /* General */
+        /** General **/
         // "EditorConfig.EditorConfig",
         // "ms-azuretools.vscode-docker",
 
-        /* CSS / SCSS / HTML */
+        /** CSS / SCSS / HTML **/
         // "stylelint.vscode-stylelint",
         // "ecmel.vscode-html-css",
 
-        /* SQL */
+        /** SQL **/
         // "ckolkman.vscode-postgres",
 
-        /* JavaScript / TypeScript / Vue */
+        /** JavaScript / TypeScript / Vue **/
         "Vue.volar",
         "dbaeumer.vscode-eslint",
 
-        /* Ruby / Rails */
+        /** Ruby / Rails **/
         "Shopify.ruby-lsp"
       ],
       "settings": {
@@ -45,9 +43,5 @@
         "dev.containers.openTerminal": "on"
       }
     }
-  },
-  "mounts": [ 
-    // Mount GPG keys for git commit signing
-    "source=${localEnv:HOME}/.gnupg,target=/home/vsc/.gnupg,type=bind"
-  ]
+  }
 }
