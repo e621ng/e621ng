@@ -1,11 +1,12 @@
 export default class Dialog {
 
-  // Container to which all dialogs are appended
+  /** Container to which all dialogs are appended */
   static _container = null;
   static containerWidth = 0;
   static containerHeight = 0;
-  // Used to store the current timeout
+  /** Used to store the current timeout */
   static _currentTimeout = null;
+  /** Container to which all dialogs are appended */
   static get container () {
     if (this._container !== null) return this._container;
 
@@ -13,12 +14,12 @@ export default class Dialog {
     this.updateContainerDimensions();
 
     // Window dimension changes
-    $(window).on("resize orientationchange", () => this.updateContainerDimensions());
+    $(window).on("resize orientationchange", this.onUpdateContainerDimensions);
 
     // Fullscreen changes
     $(document).on("fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange", () => {
       if (this._currentTimeout) clearTimeout(this._currentTimeout); // Stops quickly toggling fullscreen causing trouble
-      this._currentTimeout = setTimeout(() => this.updateContainerDimensions(), 100); // Small delay to ensure layout has settled
+      this._currentTimeout = setTimeout(this.onUpdateContainerDimensions, 100); // Small delay to ensure layout has settled
     });
 
     return this._container;
@@ -29,15 +30,43 @@ export default class Dialog {
     this.containerHeight = this._container.innerHeight() || 600;
   }
 
-  static positionDefinitions = {
-    "top":    { "left": [0, 0], "center": [0.5, 0], "right": [1, 0] },
-    "center": { "left": [0, 0.5], "center": [0.5, 0.5], "right": [1, 0.5] },
-    "bottom": { "left": [0, 1], "center": [0.5, 1], "right": [1, 1] },
-    "left":   { "top": [0, 0], "center": [0, 0.5], "bottom": [0, 1] },
-    "right":  { "top": [1, 0], "center": [1, 0.5], "bottom": [1, 1] },
+  /**
+   * The event handler for autonomic container resizing.
+   * 
+   * Updates the container dimensions, cancels & resets the stored timeout reference (if set), & fires the `dialogContainer:resize` event if the dimensions changed.
+   * 
+   * Ignores the value of `this`.
+   */
+  static onUpdateContainerDimensions() {
+    const priorWidth = Dialog.containerWidth, priorHeight = Dialog.containerHeight;
+    Dialog.updateContainerDimensions();
+    if (Dialog._currentTimeout) {
+      clearTimeout(Dialog._currentTimeout); // Stops quickly toggling fullscreen causing trouble
+      Dialog._currentTimeout = null;
+    }
+    if (priorWidth !== Dialog.containerWidth || priorHeight !== Dialog.containerHeight)
+      $(window).trigger("dialogContainer:resize");
+  }
+
+  static normalizedPositionLabel = {
+    "center": 0.5,
+    "top":    0.0,
+    "bottom": 1.0,
+    "left":   0.0,
+    "right":  1.0,
   };
 
-  // Dialog z-stacking and focus management
+  /**
+   * 
+   * @param {string|number} value 
+   * @returns {number} A normalized number reflecting the bounded value (or a fallback if given bad input).
+   */
+  static resolveToNormalizedPosition(value) {
+    return Dialog.normalizedPositionLabel[value] || (typeof(value) === "number" ? Math.max(Math.min(value, 1), 0) : 0.5);
+  }
+
+  // #region Dialog z-stacking and focus management
+  /** @type {Dialog[]} */
   static dialogStack = [];
   static dialogIndex = {};
   static dialogCount = 0;
@@ -66,13 +95,24 @@ export default class Dialog {
       index++;
     }
   }
+  // #endregion Dialog z-stacking and focus management
 
-
-  $dialog = null; // The main dialog element
-  $element = null; // Content element attached to the dialog
+  /**
+   * The main dialog element
+   * @type {JQuery<HTMLDivElement>?}
+   */
+  $dialog = null;
+  /**
+   * Content element attached to the dialog
+   * @type {JQuery<HTMLElement>?}
+   */
+  $element = null;
   dialogWidth = 0;
   dialogHeight = 0;
-  initialPosition = ["center", "center"];
+  currentNormalizedPosition = [
+    Dialog.normalizedPositionLabel["center"],
+    Dialog.normalizedPositionLabel["center"],
+  ];
   id = 0;
 
   /**
@@ -150,9 +190,9 @@ export default class Dialog {
     // Initial Position
     if (params.position) {
       const parts = params.position.trim().split(/\s+/);
-      this.initialPosition = [
-        parts[0] || "center",
-        parts[1] || "center",
+      this.currentNormalizedPosition = [
+        Dialog.resolveToNormalizedPosition(parts[0]) || Dialog.normalizedPositionLabel["center"],
+        Dialog.resolveToNormalizedPosition(parts[1]) || Dialog.normalizedPositionLabel["center"],
       ];
     }
 
@@ -163,25 +203,30 @@ export default class Dialog {
 
     this.recalculatePosition();
 
+    $(window).on("dialogContainer:resize", { obj: this }, this.onResize)
+
     // Start open
     // Must be called after setting width/height and position
     if (params.startOpen) this.open();
   }
 
-  /** Recalculate the dialog's position based on its initial position and the container size. */
+  /** Stop the rebinding. */
+  onResize(e) { e.data.obj.recalculatePosition(); }
+
+  /**
+   * Recalculate the dialog's position based on the given normalized position and the container size.
+   */
   recalculatePosition () {
-    const [horizontal, vertical] = this.initialPosition;
-    const positionDef = Dialog.positionDefinitions[horizontal]?.[vertical] || [0.5, 0.5];
+    const _max = {
+      x: Dialog.containerWidth - this.dialogWidth,
+      y: Dialog.containerHeight - this.dialogHeight,
+    };
+
+    const positionDef = this.currentNormalizedPosition;
 
     const positionCoords = {
-      left: Math.max(0, Math.min(
-        (Dialog.containerWidth - this.dialogWidth) * positionDef[0],
-        Dialog.containerWidth - this.dialogWidth,
-      )),
-      top: Math.max(0, Math.min(
-        (Dialog.containerHeight - this.dialogHeight) * positionDef[1],
-        Dialog.containerHeight - this.dialogHeight,
-      )),
+      left: Math.max(0, Math.min((_max.x) * positionDef[0], _max.x)),
+      top:  Math.max(0, Math.min((_max.y) * positionDef[1], _max.y)),
     };
 
     this.$dialog.css({
@@ -259,6 +304,7 @@ export default class Dialog {
     Dialog.resetFocus();
 
     // Remove DOM and clean up references
+    $(window).off("dialogContainer:resize", this.onResize);
     this.$element.trigger("dialog:destroy");
     this.$dialog.remove();
     this.$dialog = null;
@@ -326,6 +372,12 @@ export default class Dialog {
     // Keep dialog within container bounds
     newX = Math.max(0, Math.min(newX, Dialog.containerWidth - this.dialogWidth));
     newY = Math.max(0, Math.min(newY, Dialog.containerHeight - this.dialogHeight));
+
+    // Update for next resize
+    this.currentNormalizedPosition = [
+      newX / (Dialog.containerWidth - this.dialogWidth),
+      newY / (Dialog.containerHeight - this.dialogHeight),
+    ];
 
     this.$dialog.css({
       left: newX,
