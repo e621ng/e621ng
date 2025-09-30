@@ -3,14 +3,10 @@
   "dockerComposeFile": ["../docker-compose.yml", "docker-compose.extend.yml"],
   "service": "dev-container",
   "overrideCommand": true,
-  "workspaceFolder": "app",
+  "workspaceFolder": "/app",
   "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {},
-    "ghcr.io/devcontainers/features/git:1": {},
-    "ghcr.io/devcontainers/features/ruby:1": {}
-
+    "ghcr.io/devcontainers/features/common-utils:2": {}
   },
-  "remoteUser": "${localEnv:DOCKER_USER-root}",
   // Workaround for https://github.com/microsoft/vscode-remote-release/issues/6810
   "onCreateCommand": {
     "remove-gitconfig": "rm ~/.gitconfig"
@@ -32,12 +28,5 @@
         "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
-  },
-  "remoteEnv": {
-    "EXPOSED_SERVER_PORT": "${localEnv:EXPOSED_SERVER_PORT-3000}",
-    "EXPOSED_POSTGRES_PORT": "${localEnv:EXPOSED_POSTGRES_PORT-34517}",
-    "HOST_UID": "${localEnv:HOST_UID-1000}",
-    "HOST_GID": "${localEnv:HOST_GID-1000}",
-    "DOCKER_USER": "${localEnv:DOCKER_USER-root}"
   }
 }
