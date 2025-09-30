@@ -526,8 +526,11 @@ export default class NoteManager {
     NoteUtilities.container.on("note:abort mouseleave.e6.note", () => {
       if (!isMoving || !$movingNote) return;
 
-      if (moveOriginalPosition)
-        $movingNote.moveTo(moveOriginalPosition);
+      // Clamp the note to the edge of the container
+      const currentPosition = $movingNote.$box.position();
+      const clampedX = Math.max(0, Math.min(currentPosition.left, NoteUtilities.containerDimensions.width - $movingNote.relWidth));
+      const clampedY = Math.max(0, Math.min(currentPosition.top, NoteUtilities.containerDimensions.height - $movingNote.relHeight));
+      $movingNote.moveTo({ x: clampedX, y: clampedY });
 
       // Cancel any pending animation frame
       if (moveThrottleId) {
