@@ -1,11 +1,13 @@
 export default class Dialog {
 
-  /** Container to which all dialogs are appended */
+  id = 0;
+
   static _container = null;
   static containerWidth = 0;
   static containerHeight = 0;
-  /** Used to store the current timeout */
+
   static _currentTimeout = null;
+
   /** Container to which all dialogs are appended */
   static get container () {
     if (this._container !== null) return this._container;
@@ -18,7 +20,7 @@ export default class Dialog {
 
     // Fullscreen changes
     $(document).on("fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange", () => {
-      if (this._currentTimeout) clearTimeout(this._currentTimeout); // Stops quickly toggling fullscreen causing trouble
+      if (this._currentTimeout) clearTimeout(this._currentTimeout);
       this._currentTimeout = setTimeout(this.onUpdateContainerDimensions, 100); // Small delay to ensure layout has settled
     });
 
@@ -32,12 +34,10 @@ export default class Dialog {
 
   /**
    * The event handler for autonomic container resizing.
-   * 
    * Updates the container dimensions, cancels & resets the stored timeout reference (if set), & fires the `dialogContainer:resize` event if the dimensions changed.
-   * 
    * Ignores the value of `this`.
    */
-  static onUpdateContainerDimensions() {
+  static onUpdateContainerDimensions () {
     const priorWidth = Dialog.containerWidth, priorHeight = Dialog.containerHeight;
     Dialog.updateContainerDimensions();
     if (Dialog._currentTimeout) {
@@ -57,12 +57,12 @@ export default class Dialog {
   };
 
   /**
-   * 
-   * @param {string|number} value 
+   * Takes a string label or number and returns a normalized position value between 0 and 1.
+   * @param {string|number} value The position label or number to resolve.
    * @returns {number} A normalized number reflecting the bounded value (or a fallback if given bad input).
    */
-  static resolveToNormalizedPosition(value) {
-    return Dialog.normalizedPositionLabel[value] || (typeof(value) === "number" ? Math.max(Math.min(value, 1), 0) : 0.5);
+  static resolveToNormalizedPosition (value) {
+    return Dialog.normalizedPositionLabel[value] || (typeof (value) === "number" ? Math.max(Math.min(value, 1), 0) : 0.5);
   }
 
   // #region Dialog z-stacking and focus management
@@ -97,15 +97,7 @@ export default class Dialog {
   }
   // #endregion Dialog z-stacking and focus management
 
-  /**
-   * The main dialog element
-   * @type {JQuery<HTMLDivElement>?}
-   */
   $dialog = null;
-  /**
-   * Content element attached to the dialog
-   * @type {JQuery<HTMLElement>?}
-   */
   $element = null;
   dialogWidth = 0;
   dialogHeight = 0;
@@ -113,7 +105,6 @@ export default class Dialog {
     Dialog.normalizedPositionLabel["center"],
     Dialog.normalizedPositionLabel["center"],
   ];
-  id = 0;
 
   /**
    * Create a new dialog.
@@ -211,11 +202,9 @@ export default class Dialog {
   }
 
   /** Stop the rebinding. */
-  onResize(e) { e.data.obj.recalculatePosition(); }
+  onResize (e) { e.data.obj.recalculatePosition(); }
 
-  /**
-   * Recalculate the dialog's position based on the given normalized position and the container size.
-   */
+  /** Recalculate the dialog's position based on the given normalized position and the container size. */
   recalculatePosition () {
     const _max = {
       x: Dialog.containerWidth - this.dialogWidth,
@@ -223,9 +212,9 @@ export default class Dialog {
     };
 
     // Don't adjust unless it's not pinned or any part of it would be outside the container.
-    if (this.isPinned &&
-      this.xMin >= 0 && this.xMax <= _max.x &&
-      this.yMin >= 0 && this.yMax <= _max.y)
+    if (this.isPinned
+      && this.xMin >= 0 && this.xMax <= _max.x
+      && this.yMin >= 0 && this.yMax <= _max.y)
       return;
 
     const positionDef = this.currentNormalizedPosition;
@@ -302,12 +291,12 @@ export default class Dialog {
 
   _xMin = null;
   _yMin = null;
-  get xMin() { return this._xMin == 0 ? this._xMin : this._xMin ||= Number(this.$dialog.css("left")); }
-  get yMin() { return this._yMin == 0 ? this._yMin : this._yMin ||= Number(this.$dialog.css("top")); }
-  get xMax() { return this.xMin + this.dialogWidth; }
-  get yMax() { return this.yMin + this.dialogHeight; }
+  get xMin () { return this._xMin == 0 ? this._xMin : this._xMin ||= Number(this.$dialog.css("left")); }
+  get yMin () { return this._yMin == 0 ? this._yMin : this._yMin ||= Number(this.$dialog.css("top")); }
+  get xMax () { return this.xMin + this.dialogWidth; }
+  get yMax () { return this.yMin + this.dialogHeight; }
 
-  _updatePosition(xMin, yMin, width = this.dialogWidth, height = this.dialogHeight) {
+  _updatePosition (xMin, yMin, width = this.dialogWidth, height = this.dialogHeight) {
     this._xMin = xMin;
     this._yMin = yMin;
     this.$dialog.css({
@@ -329,7 +318,7 @@ export default class Dialog {
     }
   }
 
-  togglePin() { return this.isPinned = !this.isPinned; }
+  togglePin () { return this.isPinned = !this.isPinned; }
 
   /** Completely destroy the dialog and clean up all resources */
   destroy () {
