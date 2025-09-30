@@ -11,33 +11,31 @@
   "onCreateCommand": {
     "remove-gitconfig": "rm ~/.gitconfig"
   },
-
-  // Forward host SSH agent socket (dynamic for every user; no private key files are copied)
-  "mounts": [
-    "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent.sock,type=bind,consistency=cached"
-  ],
-  "containerEnv": {
-    "SSH_AUTH_SOCK": "/ssh-agent.sock"
+  "postAttachCommand": {
+    "git-safe-dir": "git config --global --add safe.directory /app"
   },
-
-  // post-attach: mark repo safe and import any .asc files found in .devcontainer/keys
-  // Put exported GPG files into .devcontainer/keys on the host before opening the container:
-  //   ~/.gnupg is NOT mounted. Drop only the .asc files you want imported and add them to .gitignore.
-  "postAttachCommand": "git config --global --add safe.directory /app && \
-    if [ -d /app/.devcontainer/keys ]; then \
-      export GNUPGHOME=/home/vscode/.gnupg; mkdir -p \"$GNUPGHOME\"; chmod 700 \"$GNUPGHOME\"; \
-      for f in /app/.devcontainer/keys/*.asc; do [ -f \"$f\" ] || continue; gpg --batch --import \"$f\" || true; done; \
-      chown -R $(id -u vscode):$(id -g vscode) \"$GNUPGHOME\"; \
-    fi"
-  ,
   "postCreateCommand": {
     "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
   },
   "customizations": {
     "vscode": {
       "extensions": [
+        /** General **/
+        // "EditorConfig.EditorConfig",
+        // "ms-azuretools.vscode-docker",
+
+        /** CSS / SCSS / HTML **/
+        // "stylelint.vscode-stylelint",
+        // "ecmel.vscode-html-css",
+
+        /** SQL **/
+        // "ckolkman.vscode-postgres",
+
+        /** JavaScript / TypeScript / Vue **/
         "Vue.volar",
         "dbaeumer.vscode-eslint",
+
+        /** Ruby / Rails **/
         "Shopify.ruby-lsp"
       ],
       "settings": {
