@@ -8,7 +8,7 @@
           The Terms of Service content is cached for performance reasons.<br />
           If you edit the TOS wiki page, you must clear the cache to have your changes take effect.<br />
           <b>Note:</b> This page reflects the cached version of the TOS, not the live wiki page.
-          <%= form_tag(clear_cache_terms_of_service_path, method: :post, class: "tos-options" ) do %>
+          <%= form_tag(clear_cache_terms_of_service_path, method: :post, class: "tos-options") do %>
             <%= submit_tag("Clear Cache", class: "st-button") %>
           <% end %>
         </p>
@@ -18,7 +18,7 @@
           Increasing the version will require all users to re-accept the Terms of Service.<br />
           Do not increase the version unless you are absolutely sure about what you are doing.<br />
           <b>Note:</b> This will also clear the TOS cache.
-          <%= form_tag(bump_version_terms_of_service_path, method: :post, class: "tos-options" ) do %>
+          <%= form_tag(bump_version_terms_of_service_path, method: :post, class: "tos-options") do %>
             <%= submit_tag("Bump Version", class: "st-button") %>
           <% end %>
         </p>
