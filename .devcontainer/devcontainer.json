@@ -25,7 +25,7 @@
         // "ms-azuretools.vscode-docker",
 
         /** CSS / SCSS / HTML **/
-        // "stylelint.vscode-stylelint",
+        // "stylelint.vscode-stylelint", // stylelint is also available as a ESLint plugin. This should be removed when that is implemented.
         // "ecmel.vscode-html-css",
 
         /** SQL **/
