@@ -472,6 +472,10 @@
             console.log('Error uploading post:', textStatus, errorThrown);
             if (textStatus === "error") textStatus = "unknown";
 
+            console.log(`Status: ${response.status} ${response.statusText}`);
+            console.log("Response:", response.responseText);
+            console.log(response);
+
             self.submitting = false;
             try {
               const jsonData = response.responseJSON;
