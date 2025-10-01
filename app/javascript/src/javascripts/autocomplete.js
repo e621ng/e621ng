@@ -536,6 +536,7 @@ class Autocompleter {
         break;
       case "Enter":
         event.preventDefault();
+        event.stopPropagation();
         if (this.selectedIndex >= 0) {
           this.selectItem(this.results[this.selectedIndex]);
         }
