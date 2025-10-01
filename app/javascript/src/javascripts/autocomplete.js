@@ -164,6 +164,7 @@ const Autocomplete = {
     const data = await response.json();
 
     return data.map(user => ({
+      id: user.id,
       name: user.name,
       label: this.formatLabel(user.name),
       category: "user",
@@ -182,12 +183,12 @@ const Autocomplete = {
     const data = await response.json();
 
     return data.map(pool => ({
+      id: pool.id,
       name: pool.name,
       label: this.formatLabel(pool.name),
       category: pool.category,
       post_count: pool.post_count,
       type: "pool",
-      id: pool.id,
     }));
   },
 
@@ -204,12 +205,12 @@ const Autocomplete = {
     const data = await response.json();
 
     return data.map(artist => ({
+      id: artist.id,
       name: artist.name,
       label: this.formatLabel(artist.name),
       category: "artist",
       post_count: artist.post_count,
       type: "artist",
-      id: artist.id,
     }));
   },
 
@@ -226,11 +227,11 @@ const Autocomplete = {
     const data = await response.json();
 
     return data.map(wiki => ({
+      id: wiki.id,
       name: wiki.title,
       label: this.formatLabel(wiki.title),
       category: wiki.category_id,
       type: "wiki_page",
-      id: wiki.id,
     }));
   },
 
