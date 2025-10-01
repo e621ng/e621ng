@@ -20,8 +20,8 @@
     "copy-env": "[ ! -f .env ] && cp .env.sample .env"
   },
   "postCreateCommand": {
-    "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile",
-    "install-docker": "sudo apk add docker"
+    "bash-completion": "apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile",
+    "install-docker": "apk add docker"
   },
   "customizations": {
     "vscode": {
