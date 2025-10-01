@@ -2,7 +2,7 @@
 
 require "active_support/core_ext/integer/time"
 
-Rails.application.configure do
+Rails.application.configure do # rubocop:disable Metrics/BlockLength
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded any time
@@ -66,4 +66,12 @@ Rails.application.configure do
   config.action_controller.raise_on_missing_callback_actions = true
 
   config.hosts << "e621ng.local"
+
+  # Allow access from GitHub Codespaces, if applicable
+  if ENV["CODESPACE_NAME"].present? && ENV["GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN"].present?
+    codespace_host = "#{ENV.fetch('CODESPACE_NAME', nil)}-3000.#{ENV.fetch('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN', nil)}"
+    config.hosts << codespace_host
+  elsif ENV["GITHUB_CODESPACE_HOST"].present?
+    config.hosts << ENV["GITHUB_CODESPACE_HOST"]
+  end
 end

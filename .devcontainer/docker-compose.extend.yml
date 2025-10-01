@@ -15,5 +15,5 @@ services:
       LD_PRELOAD:
     volumes:
       - .:/app
-      - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
+      # - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
       - node_modules:/app/node_modules
