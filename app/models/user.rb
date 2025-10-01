@@ -23,9 +23,25 @@ class User < ApplicationRecord
     :approver,
   ]
 
-  # unintended consequences
-  # * _has_mail -> forum_notification_dot
-  # * _no_feedback -> no_uploading
+  # ================================================================================================#
+  # UNDER NO CIRCUMSTANCES should new boolean attributes be added or removed from the middle of the #
+  # list. Deprecated / unused bitflags should be prefixed with an underscore, and left in place.    #
+  # Note: some users may still have the unused flags, so repurposing them can lead to unintended    #
+  # consequences. Procede with extreme caution.                                                     #
+  # ================================================================================================#
+
+  # ================================================================================================#
+  # The following flags have corresponding database indexes:                                        #
+  # * can_approve_posts                                                                             #
+  # * can_upload_free                                                                               #
+  # ================================================================================================#
+
+  # ================================================================================================#
+  # Renaming history (in order):                                                                    #
+  # * _has_mail -> forum_notification_dot                                                           #
+  # * _no_feedback -> no_uploading                                                                  #
+  # ================================================================================================#
+
   BOOLEAN_ATTRIBUTES = %w[
     _show_avatars
     _blacklist_avatars
@@ -58,7 +74,7 @@ class User < ApplicationRecord
   ].freeze
 
   include Danbooru::HasBitFlags
-  has_bit_flags BOOLEAN_ATTRIBUTES, :field => "bit_prefs"
+  has_bit_flags BOOLEAN_ATTRIBUTES, field: "bit_prefs"
 
   attr_accessor :password, :old_password, :validate_email_format, :is_admin_edit
 
@@ -870,6 +886,11 @@ class User < ApplicationRecord
         q = q.where("level <= ?", params[:max_level].to_i)
       end
 
+      if params[:ip_addr].present?
+        q = q.where("last_ip_addr <<= ?", params[:ip_addr])
+      end
+
+      # Handle boolean params
       include_mask = 0
       exclude_mask = 0
 
@@ -886,16 +907,12 @@ class User < ApplicationRecord
         end
       end
 
-      if include_mask.positive?
+      if include_mask > 0
         q = q.where("(bit_prefs & :mask) = :mask", mask: include_mask)
       end
 
-      if exclude_mask.positive?
+      if exclude_mask > 0
         q = q.where("(bit_prefs & :mask) = 0", mask: exclude_mask)
-      end
-
-      if params[:ip_addr].present?
-        q = q.where("last_ip_addr <<= ?", params[:ip_addr])
       end
 
       # Check if the join is necessary
