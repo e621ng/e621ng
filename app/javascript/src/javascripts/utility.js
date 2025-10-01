@@ -69,8 +69,102 @@ Utility.intersect = function (a, b) {
   return result;
 };
 
-Utility.regexp_escape = function (string) {
+/**
+ * @type {Function}
+ */
+Utility.regexp_escape = RegExp.escape || function (string) {
   return string.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+};
+
+/**
+ * An analog for the Rails [`blank?`](<https://apidock.com/rails/Object/blank%3F>) method.
+ * @param {any} e The object to check.
+ * @returns `true` if the object is `null`, `undefined`, an `Array`/`string`(/object with a `length`
+ * property) that has 0 elements, or a `string` of only whitespace characters; `false` otherwise.
+ */
+Utility.isBlank = function (e) {
+  return e === undefined || e === null || (e.length !== undefined && (e.length === 0 || (typeof(e) === "string" && e.trim().length === 0)));
+};
+
+/**
+ * An analog for the Rails [`present?`](<https://apidock.com/rails/Object/present%3F>) method.
+ * @param {any} e The object to check.
+ * @returns `true` if the object is not blank (see `isBlank`); `false` otherwise.
+ */
+Utility.isPresent = (e) => !Utility.isBlank(e);
+
+/**
+ * An analog for the Rails [`presence`](<https://apidock.com/rails/Object/presence>) method.
+ * @param {any} e The object to check.
+ * @returns The object if it's not blank (see `isBlank`); `undefined` otherwise.
+ */
+Utility.presence = (e) => Utility.isPresent(e) ? e : undefined;
+
+/**
+ * Validates that a text input element expecting an id that receives a URL has its value replaced
+ * with the URL's id (should an appropriate one exist).
+ * 
+ * Register on `blur` or `focusout` on an element that has a `id-input` class (or contains applicable
+ * elements if delegating).
+ * 
+ * Use the `id-type` attribute to accept only ids for the given resource.
+ * 
+ * IDEA: Handle multi-value entries w/ `multi-value` attribute?
+ * 
+ * IDEA: Leverage [HTML's `pattern` attribute](<https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/pattern>)?
+ * 
+ * @param {FocusEvent} event 
+ */
+Utility.validateIdInput = function (event) {
+  /**
+   * @type {HTMLInputElement|HTMLTextAreaElement}
+   */
+  const e = event.target;
+  e.classList.remove("invalid-input");
+  // If it's not an applicable element or is properly formatted or is permissibly omitted, abort.
+  if (
+    !(e instanceof HTMLInputElement || e instanceof HTMLTextAreaElement) ||
+    !e.classList.contains("id-input") ||
+    /^[0-9]+$/.test(e.value) ||
+    ((e.value?.length || 0) === 0 && !e.hasAttribute("required"))) {
+      return;
+    }
+  // If there's only non-numeric characters in the input, mark invalid & abort.
+  if (/^[^0-9]*$/.test(e.value)) {
+    e.className += " invalid-input";
+    e.value = "";
+    return;
+  }
+  let s0 = `(?:https?://)(?:www\\.)?${Utility.regexp_escape(window.location.host)}/`, s1, s2;
+  switch (e.getAttribute("id-type")) {
+    case "post":
+      s1 = "posts?";
+      s2 = "post";
+      break;
+    case "comment":
+      s1 = "comments?";
+      s2 = "comment";
+      break;
+    case "forum_post":
+      // TODO: Account for other valid paths.
+      s1 = "forum_posts?";
+      s2 = "forum_post";
+      break;
+  
+    default:
+      s1 = "[^0-9]*"
+      s2 = "[^-0-9]*"
+      break;//http://localhost:3000/posts/88
+  }
+  const match = RegExp(`${s0}(?:${s1}/([0-9]+)|.+?${s2}-([0-9]+))`).exec(e.value);
+  if (!match) {
+    e.value = "";
+    if (e.hasAttribute("required"))
+      e.className += " invalid-input";
+    return;
+  }
+  e.value = Utility.presence(match[1]) || match[2];
+  return;
 };
 
 $.fn.selectEnd = function () {
@@ -81,6 +175,8 @@ $.fn.selectEnd = function () {
 };
 
 $(function () {
+  $('.id-input').on("focusout", Utility.validateIdInput);
+
   $(window).on("danbooru:notice", function (event, msg) {
     Utility.notice(msg);
   });
