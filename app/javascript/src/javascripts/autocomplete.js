@@ -54,7 +54,7 @@ const Autocomplete = {
       "user": {
         searchFn: (query) => this.searchItems(query, this.getUsers.bind(this)),
         insertFn: this.insertSimpleCompletion.bind(this),
-        renderFn: this.renderItem.bind(this),
+        renderFn: this.renderUserItem.bind(this),
       },
       "wiki-page": {
         searchFn: (query) => this.searchItems(query, this.getWikis.bind(this)),
@@ -169,6 +169,7 @@ const Autocomplete = {
       label: this.formatLabel(user.name),
       category: "user",
       type: "user",
+      level: user.level_string,
     }));
   },
 
@@ -415,6 +416,19 @@ const Autocomplete = {
     if (item.category !== undefined) {
       const link = li.querySelector("a");
       link.classList.add("tag-type-" + item.category);
+    }
+  },
+
+  renderUserItem (li, item) {
+    this.renderItem(li, item);
+
+    if (item.level) {
+      const link = li.querySelector("a");
+      const levelClass = "user-" + item.level.replace(/ /g, "-").toLowerCase();
+      link.classList.add(levelClass);
+      if (Utility.meta("style-usernames") === "true") {
+        link.classList.add("with-style");
+      }
     }
   },
 };
