@@ -468,6 +468,7 @@ class Autocompleter {
     this.results = [];
     this.debounceTimer = null;
     this.justSelected = false;
+    this.query = "";
 
     this.createDropdown();
     this.bindEvents();
@@ -573,18 +574,25 @@ class Autocompleter {
   }
 
   async search () {
-    const query = this.input.value;
+    const currentQuery = this.input.value;
 
-    if (!query.trim()) {
+    if (!currentQuery.trim()) {
       this.results = [];
       this.selectedIndex = -1;
+      this.query = "";
       this.render();
       this.close();
       return;
     }
 
+    if (currentQuery === this.query) {
+      return;
+    }
+
+    this.query = currentQuery;
+
     try {
-      this.results = await this.searchFn(query, this.input);
+      this.results = await this.searchFn(this.query, this.input);
       this.selectedIndex = -1;
       this.render();
 
