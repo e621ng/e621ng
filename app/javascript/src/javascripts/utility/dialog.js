@@ -16,7 +16,7 @@ export default class Dialog {
     this.updateContainerDimensions();
 
     // Window dimension changes
-    $(window).on("resize orientationchange", this.onUpdateContainerDimensions);
+    $(window).on("resize orientationchange", () => this.onUpdateContainerDimensions());
 
     // Fullscreen changes
     $(document).on("fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange", () => {
@@ -219,11 +219,6 @@ export default class Dialog {
 
     const positionDef = this.currentNormalizedPosition;
 
-    const projectedPosition = {
-      x: (_max.x) * positionDef[0],
-      y: (_max.y) * positionDef[1],
-    };
-
     const positionCoords = {
       left: Math.max(0, Math.min((_max.x) * positionDef[0], _max.x)),
       top:  Math.max(0, Math.min((_max.y) * positionDef[1], _max.y)),
@@ -291,8 +286,8 @@ export default class Dialog {
 
   _xMin = null;
   _yMin = null;
-  get xMin () { return this._xMin == 0 ? this._xMin : this._xMin ||= Number(this.$dialog.css("left")); }
-  get yMin () { return this._yMin == 0 ? this._yMin : this._yMin ||= Number(this.$dialog.css("top")); }
+  get xMin () { return (this._xMin == 0) ? this._xMin : (this._xMin ||= parseInt(this.$dialog.css("left"))); }
+  get yMin () { return (this._yMin == 0) ? this._yMin : (this._yMin ||= parseInt(this.$dialog.css("top"))); }
   get xMax () { return this.xMin + this.dialogWidth; }
   get yMax () { return this.yMin + this.dialogHeight; }
 
@@ -310,7 +305,7 @@ export default class Dialog {
   _isPinned = true;
   /** True if the dialog is currently pinned */
   get isPinned () { return this._isPinned; }
-  /** If changed to true, will trigger an update */
+  /** If unpinned, will trigger an update */
   set isPinned (value) {
     if (this._isPinned !== value) {
       this._isPinned = value;
