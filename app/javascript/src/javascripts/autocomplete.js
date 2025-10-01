@@ -612,7 +612,7 @@ class Autocompleter {
       return;
     }
 
-    if (currentQuery === this.query) return;
+    if (currentQuery.trim() === this.query.trim()) return;
 
     this.query = currentQuery;
 
