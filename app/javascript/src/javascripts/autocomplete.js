@@ -142,12 +142,12 @@ const Autocomplete = {
       case "flagger":
       case "upvote":
       case "downvote":
-        return this.getUsers(term).then(results => results.map(user => ({
+        return this.searchItems(term, this.getUsers.bind(this)).then(results => results.map(user => ({
           ...user,
           name: `${metatag}:${user.name}`,
         })));
       case "pool":
-        return this.getPools(term).then(results => results.map(pool => ({ ...pool, name: `${metatag}:${pool.name}` })));
+        return this.searchItems(term, this.getPools.bind(this)).then(results => results.map(pool => ({ ...pool, name: `${metatag}:${pool.name}` })));
       default:
         return [];
     }
@@ -235,12 +235,12 @@ const Autocomplete = {
     }));
   },
 
-  async searchItems (query, dataFetcher, { minLength = 1, maxResults = 15 } = {}) {
+  async searchItems (query, fetchFn, { minLength = 3, maxResults = 15 } = {}) {
     if (!query.trim() || query.length < minLength) {
       return [];
     }
 
-    const results = await dataFetcher(query);
+    const results = await fetchFn(query);
     return results.slice(0, maxResults);
   },
 
