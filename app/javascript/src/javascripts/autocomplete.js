@@ -144,14 +144,20 @@ const Autocomplete = {
       case "downvote":
         return this.searchItems(term, this.getUsers.bind(this)).then(results => results.map(user => ({
           ...user,
-          name: metatag + ":" + user.name,
+          name: `${metatag}:${user.name}`,
         })));
       case "pool":
         return this.searchItems(term, this.getPools.bind(this)).then(results => results.map(pool => ({
           ...pool,
-          name: metatag + ":" + pool.name,
+          name: `${metatag}:${pool.name}`,
         })));
       default:
+        if (this.TAG_CATEGORIES.includes(metatag)) {
+          // Autocomplete does not support searching by category.
+          // Additionally, the backend does not match tags on posts with category prefix, so the result is empty.
+          // For that reason, we skip adding the category prefix here.
+          return this.searchItems(term, this.getTags.bind(this));
+        }
         return [];
     }
   },
@@ -352,13 +358,13 @@ const Autocomplete = {
   getHref (item) {
     switch (item.type) {
       case "user":
-        return "/users/" + item.id;
+        return `/users/${item.id}`;
       case "pool":
-        return "/pools/" + item.id;
+        return `/pools/${item.id}`;
       case "artist":
-        return "/artists/" + item.id;
+        return `/artists/${item.id}`;
       case "wiki_page":
-        return "/wiki_pages/" + item.id;
+        return `/wiki_pages/${item.id}`;
       case "tag":
         return "/posts?tags=" + encodeURIComponent(item.name);
       default:
@@ -415,7 +421,7 @@ const Autocomplete = {
     }
 
     if (item.category !== undefined) {
-      link.classList.add("tag-type-" + item.category);
+      link.classList.add(`tag-type-${item.category}`);
     }
   },
 
@@ -424,7 +430,7 @@ const Autocomplete = {
 
     if (item.category !== undefined) {
       const link = li.querySelector("a");
-      link.classList.add("pool-category-" + item.category);
+      link.classList.add(`pool-category-${item.category}`);
     }
   },
 
@@ -433,7 +439,7 @@ const Autocomplete = {
 
     if (item.category !== undefined) {
       const link = li.querySelector("a");
-      link.classList.add("tag-type-" + item.category);
+      link.classList.add(`tag-type-${item.category}`);
     }
   },
 
@@ -442,7 +448,7 @@ const Autocomplete = {
 
     if (item.level) {
       const link = li.querySelector("a");
-      const levelClass = "user-" + item.level.replace(/ /g, "-").toLowerCase();
+      const levelClass = `user-${item.level.replace(/ /g, "-").toLowerCase()}`;
       link.classList.add(levelClass);
       if (Utility.meta("style-usernames") === "true") {
         link.classList.add("with-style");
