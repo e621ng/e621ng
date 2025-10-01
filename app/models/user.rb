@@ -27,7 +27,7 @@ class User < ApplicationRecord
   # UNDER NO CIRCUMSTANCES should new boolean attributes be added or removed from the middle of the #
   # list. Deprecated / unused bitflags should be prefixed with an underscore, and left in place.    #
   # Note: some users may still have the unused flags, so repurposing them can lead to unintended    #
-  # consequences. Procede with extreme caution.                                                     #
+  # consequences. Proceed with extreme caution.                                                     #
   # ================================================================================================#
 
   # ================================================================================================#
