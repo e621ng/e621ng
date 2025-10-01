@@ -1,14 +1,14 @@
-<%= form_tag(pool_element_path, :class => "simple_form", :remote => true, :format => :js) do %>
+<%= form_tag(pool_element_path, :class => "simple_form", :remote => true, :format => :js, id: "add-to-pool-dialog", data: { title: "Add to Pool", width: "250" }) do %>
   <%= hidden_field_tag "post_id", @post.id %>
 
-  <div class="input">
+  <div class="input add-to-pool-inputs">
     <label>Pool Name</label>
     <span id="pool-name-container"><%= text_field_tag "pool_name", "", :size => 20, :data => { autocomplete: "pool" } %></span>
     <span id="pool-name-hint" class="hint">Search for a pool containing (<%= link_to "see full list", gallery_pools_path %>)</span>
   </div>
 
-  <div class="input">
-    <%= submit_tag "Submit" %>
+  <div class="input add-to-pool-submit">
+    <%= submit_tag "Submit", class: "st-button" %>
   </div>
 <% end %>
 

@@ -5,6 +5,10 @@
   grid-template-rows: min-content 1fr min-content;
   gap: 0.5rem;
 
+  height: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+
   textarea {
     grid-column: -1 / 1;
   }

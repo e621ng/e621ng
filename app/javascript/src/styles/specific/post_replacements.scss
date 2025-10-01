@@ -58,6 +58,9 @@ div#c-post-replacements {
     margin-left: 1em;
   }
 
+  #a-new {
+    input[type="text"] { max-width: unset !important; }
+  }
 
   .sources-list {
     list-style: none;

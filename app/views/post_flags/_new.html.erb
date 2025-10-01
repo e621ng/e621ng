@@ -24,41 +24,36 @@
         <% end %>
 
         <label class="flag-reason-label">
-          <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false %>
+          <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false, data: { require_explanation: flag_reason[:require_explanation] } %>
           <span class="flag-reason-description">
-            <b><%= format_text(flag_reason[:reason], inline: true) %></b>
+            <b>
+              <%= format_text(flag_reason[:reason], inline: true) %>
+              <% if flag_reason[:require_explanation] %>
+                <span class="flag-reason-explanation">Additional Details Required</span>
+              <% end %>
+            </b>
             <span class="dtext-container">
               <%= format_text(flag_reason[:text]) %>
             </span>
           </span>
         </label>
-        
+
         <% if flag_reason[:parent] %>
           <span class="flag-reason-parent">
             <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
           </span>
         <% end %>
-        
+
       <% end %>
     </div>
 
     <div class="flag-notes">
-      <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size %>
+      <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size, input_html: { id: "flag_note_field" } %>
     </div>
     
     <div>
-      <%= f.submit "Submit", class: "st-button submit" %>
+      <span class="flag-note-hint" style="display: none;">Error: Additional note is required for this flag type.</span>
+      <%= f.submit "Submit", class: "st-button submit", data: { disable_with: false } %>
     </div>
   <% end %>
 </div>
-
-
-<%= javascript_tag nonce: true do -%>
-  const flagReasonLabels = document.querySelectorAll(".flag-reason-label");
-  flagReasonLabels.forEach(label => {
-    label.addEventListener("click", () => {
-      flagReasonLabels.forEach(l => l.classList.remove("selected"));
-      label.classList.add("selected");
-    });
-  });
-<% end %>

@@ -37,6 +37,8 @@
     </div>
 
     <div class="content">
+      <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
+
       <div id="image-and-nav">
         <% if @post.presenter.has_nav_links?(self) %>
           <%= render "posts/partials/show/content/nav_links/nav_links", :post => @post %>
@@ -54,8 +56,6 @@
             <%= render "posts/partials/show/content/notices/notices", post: @post %>
           <% end %>
         </div>
-
-        <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
 
         <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
           <div id="note-container" enabled="false"></div>
@@ -145,12 +145,15 @@
   </div>
 
   <% if CurrentUser.is_member? %>
-    <div id="add-to-pool-dialog" title="Add to pool" style="display: none;">
+    <div class="dialog-staging" style="display: none;">
       <%= render "pool_elements/new" %>
-    </div>
-    <div id="add-to-set-dialog" title="Add to set" style="display: none;">
       <%= render "post_sets/add_dialog" %>
+
+      <% if CurrentUser.can_approve_posts? %>
+        <%= render "post_disapprovals/detailed_rejection_dialog" %>
+      <% end %>
     </div>
+
     <%= javascript_tag nonce: true do -%>
       var uploaderSettings = {
         postTags: <%= (@post.presenter.categorized_tag_list_text + " ").to_json.html_safe %>,

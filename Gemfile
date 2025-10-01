@@ -4,7 +4,7 @@ source "https://rubygems.org/"
 
 gem "dotenv", require: "dotenv/load"
 
-gem "rails", "~> 7.1.0"
+gem "rails", "~> 7.2.0"
 gem "pg"
 gem "dalli", platforms: :ruby
 gem "simple_form"
@@ -57,7 +57,7 @@ group :development do
   gem "rubocop", require: false
   gem "rubocop-erb", require: false
   gem "rubocop-rails", require: false
-  gem "rexml", ">= 3.3.6"
+  gem "rexml", ">= 3.4.2"
   gem "ruby-lsp"
   gem "ruby-lsp-rails", "~> 0.3.13"
   gem "faker", require: false

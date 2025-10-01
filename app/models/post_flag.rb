@@ -12,10 +12,11 @@ class PostFlag < ApplicationRecord
   belongs_to :post
   validate :validate_creator_is_not_limited, on: :create
   validate :validate_post
-  validate :validate_reason
+  validate :validate_reason, on: :create
   validate :update_reason, on: :create
   validates :reason, presence: true
   validates :note, length: { maximum: Danbooru.config.comment_max_size }
+  validate :validate_note_required_for_reason
   before_save :update_post
   after_create :create_post_event
   after_commit :index_post
@@ -151,6 +152,14 @@ class PostFlag < ApplicationRecord
       errors.add(:reason, "cannot be used. The post is grandfathered") unless post.flaggable_for_guidelines?
     else
       errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
+    end
+  end
+
+  def validate_note_required_for_reason
+    return if reason_name.blank?
+    reason = Danbooru.config.flag_reasons.find { |r| r[:name].to_s == reason_name.to_s }
+    if reason && reason[:require_explanation] && note.to_s.strip.blank?
+      errors.add(:note, "is required for the selected reason")
     end
   end
 

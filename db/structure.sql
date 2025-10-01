@@ -3840,6 +3840,20 @@ CREATE INDEX index_edit_histories_on_versionable_id_and_versionable_type ON publ
 
 
 --
+-- Name: index_exception_logs_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exception_logs_on_code ON public.exception_logs USING btree (code);
+
+
+--
+-- Name: index_exception_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exception_logs_on_user_id ON public.exception_logs USING btree (user_id);
+
+
+--
 -- Name: index_favorites_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4812,6 +4826,14 @@ ALTER TABLE ONLY public.post_events
 
 
 --
+-- Name: exception_logs fk_rails_c720bf523c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exception_logs
+    ADD CONSTRAINT fk_rails_c720bf523c FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: avoid_postings fk_rails_cccc6419c8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4852,6 +4874,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250801224742'),
 ('20250801224447'),
+('20250921011208'),
 ('20250831040648'),
 ('20250831015612'),
 ('20250830192056'),

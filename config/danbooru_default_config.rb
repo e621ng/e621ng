@@ -65,6 +65,11 @@ module Danbooru
       "Anonymous"
     end
 
+    # The path of the daily DB exports. Hidden from the site map if `nil`.
+    def db_export_path
+      "/db_export/"
+    end
+
     def levels
       {
         "Anonymous" => 0,
@@ -470,6 +475,7 @@ module Danbooru
           name: "uploading_guidelines",
           reason: "Does not meet the [[uploading_guidelines|uploading guidelines]]",
           text: "This post fails to meet the site's standards, be it for artistic worth, image quality, relevancy, or something else.\nKeep in mind that your personal preferences have no bearing on this. If you find the content of a post objectionable, simply [[e621:blacklist|blacklist]] it.",
+          require_explanation: true,
         },
         {
           name: "young_human",
@@ -490,6 +496,7 @@ module Danbooru
           name: "trace",
           reason: "Trace of another artist's work",
           text: "Images traced from other artists' artwork are not accepted on this site. Referencing from something is fine, but outright copying someone else's work is not.\nPlease, leave more information in the comments, or simply add the original artwork as the posts's parent if it's hosted on this site.",
+          require_explanation: true,
         },
         {
           name: "previously_deleted",
@@ -505,6 +512,7 @@ module Danbooru
           name: "corrupt",
           reason: "File is either corrupted, broken, or otherwise does not work",
           text: "Something about this post does not work quite right. This may be a broken video, or a corrupted image.\nEither way, in order to avoid confusion, please explain the situation in the comments.",
+          require_explanation: true,
         },
         {
           name: "inferior",
@@ -685,7 +693,7 @@ module Danbooru
     end
 
     def subscribestar_url
-      "https://subscribestar.adult/e621dotnet"
+      nil
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so

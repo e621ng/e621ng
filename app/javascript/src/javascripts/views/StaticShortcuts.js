@@ -27,7 +27,6 @@ export default class StaticShortcuts {
       "Add Note":         "note",
       "Toggle Notes":     "note-toggle",
       "Resize":           "resize",
-      "Edit Inline":      "edit-d",
     },
   };
 

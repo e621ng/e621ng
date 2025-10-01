@@ -2,7 +2,7 @@
 
 class PostFlagsController < ApplicationController
   before_action :member_only, except: %i[index show]
-  before_action :janitor_only, only: [:destroy]
+  before_action :janitor_only, only: %i[destroy clear_note]
   respond_to :html, :json
 
   def index
@@ -45,6 +45,17 @@ class PostFlagsController < ApplicationController
       @post.approve!
     end
     respond_with(nil)
+  end
+
+  def clear_note
+    @post_flag = PostFlag.find(params[:id])
+    @post_flag.update(note: nil)
+    notice = @post_flag.errors.empty? ? "Note cleared" : @post_flag.errors.full_messages.join("; ")
+
+    respond_with(@post_flag) do |fmt|
+      fmt.html { redirect_back fallback_location: post_flags_path, notice: notice }
+      fmt.json { render json: @post_flag }
+    end
   end
 
   private

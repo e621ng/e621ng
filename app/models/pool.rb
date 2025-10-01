@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Pool < ApplicationRecord
-  class RevertError < Exception;
+  class RevertError < StandardError
   end
 
   array_attribute :post_ids, parse: %r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i, cast: :to_i
@@ -15,16 +15,16 @@ class Pool < ApplicationRecord
   validate :user_not_limited, on: :update, if: :limited_attribute_changed?
   validate :user_not_posts_limited, on: :update, if: :post_ids_changed?
   validate :validate_name, if: :name_changed?
-  validates :category, inclusion: { :in => %w(series collection) }
+  validates :category, inclusion: { in: %w[series collection] }
   validate :updater_can_change_category, on: :update
   validate :updater_can_remove_posts
   validate :validate_number_of_posts
   before_validation :normalize_post_ids
   before_validation :normalize_name
-  after_save :create_version
-  after_save :synchronize, if: :saved_change_to_post_ids?
   after_create :synchronize!
   before_destroy :remove_all_posts
+  after_save :create_version
+  after_save :synchronize, if: :saved_change_to_post_ids?
 
   attr_accessor :skip_sync
 
@@ -93,7 +93,30 @@ class Pool < ApplicationRecord
     end
   end
 
+  module VersionMethods
+    def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)
+      return unless saved_change_to_watched_attributes?
+      PoolVersion.queue(self, updater, updater_ip_addr)
+    end
+
+    def saved_change_to_watched_attributes?
+      saved_change_to_name? || saved_change_to_description? || saved_change_to_post_ids? || saved_change_to_is_active? || saved_change_to_category?
+    end
+
+    def revert_to!(version)
+      raise RevertError, "You cannot revert to a previous version of another pool." if id != version.pool_id
+
+      self.post_ids = version.post_ids
+      self.name = version.name
+      self.description = version.description
+      self.is_active = version.is_active
+      self.category = version.category
+      save
+    end
+  end
+
   extend SearchMethods
+  include VersionMethods
 
   def user_not_create_limited
     allowed = creator.can_pool_with_reason
@@ -116,7 +139,7 @@ class Pool < ApplicationRecord
   def user_not_posts_limited
     allowed = CurrentUser.can_pool_post_edit_with_reason
     if allowed != true
-      errors.add(:updater, User.throttle_reason(allowed) + ": updating unique pools posts")
+      errors.add(:updater, "#{User.throttle_reason(allowed)}: updating unique pools posts")
       return false
     end
     true
@@ -164,17 +187,6 @@ class Pool < ApplicationRecord
     self.post_ids = post_ids.uniq
   end
 
-  def revert_to!(version)
-    if id != version.pool_id
-      raise RevertError.new("You cannot revert to a previous version of another pool.")
-    end
-
-    self.post_ids = version.post_ids
-    self.name = version.name
-    self.description = version.description
-    save
-  end
-
   def contains?(post_id)
     post_ids.include?(post_id)
   end
@@ -188,13 +200,13 @@ class Pool < ApplicationRecord
   end
 
   def create_mod_action_for_delete
-    ModAction.log(:pool_delete, {pool_id: id, pool_name: name, user_id: creator_id})
+    ModAction.log(:pool_delete, { pool_id: id, pool_name: name, user_id: creator_id })
   end
 
   def validate_number_of_posts
     post_ids_before = post_ids_before_last_save || post_ids_was
     added = post_ids - post_ids_before
-    return unless added.size > 0
+    return if added.empty?
     max = Danbooru.config.pool_post_limit(CurrentUser.user)
     if post_ids.size > max
       errors.add(:base, "Pools can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
@@ -224,7 +236,7 @@ class Pool < ApplicationRecord
     return if id.nil?
     return if contains?(id)
 
-    self.post_ids << id
+    post_ids << id
   end
 
   def remove!(post)
@@ -310,16 +322,12 @@ class Pool < ApplicationRecord
     Post.find_by(id: post_ids.first)
   end
 
-  def create_version(updater: CurrentUser.user, updater_ip_addr: CurrentUser.ip_addr)
-    PoolVersion.queue(self, updater, updater_ip_addr)
-  end
-
   def last_page
     (post_count / CurrentUser.user.per_page.to_f).ceil
   end
 
   def method_attributes
-    super + [:creator_name, :post_count]
+    super + %i[creator_name post_count]
   end
 
   def category_changeable_by?(user)
@@ -344,7 +352,7 @@ class Pool < ApplicationRecord
       errors.add(:name, "cannot contain only digits")
     when /,/
       errors.add(:name, "cannot contain commas")
-    when /(__|\-\-|  )/
+    when /(__|--|  )/
       errors.add(:name, "cannot contain consecutive underscores, hyphens or spaces")
     end
   end

@@ -17,7 +17,6 @@
 @import "common/footer";
 @import "common/helper_classes";
 @import "common/helper_palette";
-@import "common/ads.scss";
 @import "common/autocomplete.scss";
 @import "common/blacklists.scss";
 @import "common/containers.scss";
@@ -47,6 +46,7 @@
 @import "views/application/application";
 @import "views/artists/artists";
 @import "views/maintenance/maintenance";
+@import "views/mascots/mascots";
 @import "views/post_flags/post_flags";
 @import "views/posts/posts";
 @import "views/static/static";

@@ -34,10 +34,6 @@ Post.initialize_all = function () {
     this.initialize_moderation();
   }
 
-  if ($("#c-posts #a-show, #c-uploads #a-new").length) {
-    this.initialize_edit_dialog();
-  }
-
   this.initialize_collapse();
 
   $(document).on("danbooru:open-post-edit-tab", () => Hotkeys.enabled = false);
@@ -77,94 +73,6 @@ Post.initialize_collapse = function () {
     $(e.target).toggleClass("hidden-category");
     e.preventDefault();
   });
-};
-
-Post.initialize_edit_dialog = function () {
-  $("#open-edit-dialog").show().on("click.danbooru", function (e) {
-    Post.open_edit_dialog();
-    e.preventDefault();
-  });
-};
-
-Post.open_edit_dialog = function () {
-  if ($("#edit-dialog").length === 1) {
-    return;
-  }
-
-  $(document).trigger("danbooru:open-post-edit-dialog");
-
-  $("#edit").show();
-  $("#comments").hide();
-  $("#post-sections li").removeClass("active");
-  $("#post-edit-link").parent("li").addClass("active");
-
-  var $tag_string = $("#post_tag_string");
-  $("div.input").has($tag_string).prevAll().hide();
-  $("#open-edit-dialog").hide();
-
-  var dialog = $("<div/>").attr("id", "edit-dialog");
-  $("#form").appendTo(dialog);
-  dialog.dialog({
-    title: "Edit tags",
-    width: $(window).width() * 0.6,
-    position: {
-      my: "right",
-      at: "right-20",
-      of: window,
-    },
-    drag: function () {
-      if (Utility.meta("enable-auto-complete") === "true") {
-        $tag_string.data("uiAutocomplete").close();
-      }
-    },
-    close: Post.close_edit_dialog,
-  });
-  dialog.dialog("widget").draggable("option", "containment", "none");
-
-  var pin_button = $("<button/>").button({icons: {primary: "ui-icon-pin-w"}, label: "pin", text: false});
-  pin_button.css({width: "20px", height: "20px", position: "absolute", right: "28.4px"});
-  dialog.parent().children(".ui-dialog-titlebar").append(pin_button);
-  pin_button.on("click.danbooru", function () {
-    var dialog_widget = $(".ui-dialog:has(#edit-dialog)");
-    var pos = dialog_widget.offset();
-
-    if (dialog_widget.css("position") === "absolute") {
-      pos.left -= $(window).scrollLeft();
-      pos.top -= $(window).scrollTop();
-      dialog_widget.offset(pos).css({ position: "fixed" });
-      dialog.dialog("option", "resize", function () {
-        dialog_widget.css({ position: "fixed" });
-      });
-
-      pin_button.button("option", "icons", {primary: "ui-icon-pin-s"});
-    } else {
-      pos.left += $(window).scrollLeft();
-      pos.top += $(window).scrollTop();
-      dialog_widget.offset(pos).css({ position: "absolute" });
-      dialog.dialog("option", "resize", function () { /* do nothing */ });
-
-      pin_button.button("option", "icons", {primary: "ui-icon-pin-w"});
-    }
-  });
-
-  dialog.parent().mouseout(function () {
-    dialog.parent().css({"opacity": 0.6, "transition": "opacity .4s ease"});
-  }).mouseover(function () {
-    dialog.parent().css({"opacity": 1, "transition": "opacity .2s ease"});
-  });
-
-  $tag_string.css({"resize": "none", "width": "100%"});
-  $tag_string.focus().selectEnd().height($tag_string[0].scrollHeight);
-};
-
-Post.close_edit_dialog = function () {
-  $("#form").appendTo($("#c-posts #edit,#c-uploads #a-new"));
-  $("#edit-dialog").remove();
-  var $tag_string = $("#post_tag_string");
-  $("div.input").has($tag_string).prevAll().show();
-  $("#open-edit-dialog").show();
-  $tag_string.css({"resize": "", "width": ""});
-  $(document).trigger("danbooru:close-post-edit-dialog");
 };
 
 Post.has_next_target = function () {

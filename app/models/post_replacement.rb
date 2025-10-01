@@ -26,7 +26,7 @@ class PostReplacement < ApplicationRecord
     end
   end
   validate on: :create do |replacement|
-    FileValidator.new(replacement, replacement_file.path).validate
+    FileValidator.new(replacement, replacement_file.path, test_resolution: !is_backup).validate
     throw :abort if errors.any?
   end
   validate :no_pending_duplicates, on: :create
@@ -218,6 +218,10 @@ class PostReplacement < ApplicationRecord
       if is_rejected? # We need to undo the rejection count
         UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count - 1")
       end
+
+      # Validate the replacement file before processing
+      FileValidator.new(self, replacement_file_path).validate
+      return if errors.any?
 
       penalize_current_uploader = false unless credit_replacer
       processor = UploadService::Replacer.new(post: post, replacement: self)
