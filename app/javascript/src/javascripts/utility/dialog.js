@@ -213,15 +213,15 @@ export default class Dialog {
 
     // Don't adjust unless it's not pinned or any part of it would be outside the container.
     if (this.isPinned
-      && this.xMin >= 0 && this.xMax <= _max.x
-      && this.yMin >= 0 && this.yMax <= _max.y)
+      && this.xMin >= 0 && this.xMin <= _max.x
+      && this.yMin >= 0 && this.yMin <= _max.y)
       return;
 
     const positionDef = this.currentNormalizedPosition;
 
     const positionCoords = {
-      left: Math.max(0, Math.min((_max.x) * positionDef[0], _max.x)),
-      top:  Math.max(0, Math.min((_max.y) * positionDef[1], _max.y)),
+      left: Math.max(0, Math.min(_max.x * positionDef[0], _max.x)),
+      top:  Math.max(0, Math.min(_max.y * positionDef[1], _max.y)),
     };
 
     this._updatePosition(positionCoords.left, positionCoords.top);
