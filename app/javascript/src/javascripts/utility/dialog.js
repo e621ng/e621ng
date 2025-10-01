@@ -16,7 +16,7 @@ export default class Dialog {
     this.updateContainerDimensions();
 
     // Window dimension changes
-    $(window).on("resize orientationchange", () => this.onUpdateContainerDimensions());
+    $(window).on("resize.dialog orientationchange.dialog", () => this.onUpdateContainerDimensions());
 
     // Fullscreen changes
     $(document).on("fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange", () => {
