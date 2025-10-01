@@ -870,32 +870,28 @@ class User < ApplicationRecord
         q = q.where("level <= ?", params[:max_level].to_i)
       end
 
-      bitprefs_length = BOOLEAN_ATTRIBUTES.length
-      bitprefs_include = nil
-      bitprefs_exclude = nil
+      include_mask = 0
+      exclude_mask = 0
 
       %i[can_approve_posts can_upload_free].each do |x|
         next if params[x].blank?
         attr_idx = BOOLEAN_ATTRIBUTES.index(x.to_s)
+        next if attr_idx.nil?
+
+        bit = (1 << attr_idx)
         if params[x].to_s.truthy?
-          bitprefs_include ||= "0" * bitprefs_length
-          bitprefs_include[attr_idx] = "1"
+          include_mask |= bit
         elsif params[x].to_s.falsy?
-          bitprefs_exclude ||= "0" * bitprefs_length
-          bitprefs_exclude[attr_idx] = "1"
+          exclude_mask |= bit
         end
       end
 
-      if bitprefs_include
-        bitprefs_include.reverse!
-        q = q.where("bit_prefs::bit(#{bitprefs_length}) & :bits::bit(#{bitprefs_length}) = :bits::bit(#{bitprefs_length})",
-                    { bits: bitprefs_include })
+      if include_mask.positive?
+        q = q.where("(bit_prefs & :mask) = :mask", mask: include_mask)
       end
 
-      if bitprefs_exclude
-        bitprefs_exclude.reverse!
-        q = q.where("bit_prefs::bit(#{bitprefs_length}) & :bits::bit(#{bitprefs_length}) = 0::bit(#{bitprefs_length})",
-                    { bits: bitprefs_exclude })
+      if exclude_mask.positive?
+        q = q.where("(bit_prefs & :mask) = 0", mask: exclude_mask)
       end
 
       if params[:ip_addr].present?
