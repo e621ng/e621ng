@@ -105,6 +105,18 @@ export default class Dialog {
     Dialog.normalizedPositionLabel["center"],
     Dialog.normalizedPositionLabel["center"],
   ];
+  _priorPlacedX = null;
+  get priorPlacedX() {
+    if (typeof this._priorPlacedX !== "number")
+      this._priorPlacedX = this.currentNormalizedPosition[0] * (Dialog.containerWidth - this.dialogWidth);
+    return this._priorPlacedX;
+  }
+  _priorPlacedY = null;
+  get priorPlacedY() {
+    if (typeof this._priorPlacedY !== "number")
+      this._priorPlacedY = this.currentNormalizedPosition[1] * (Dialog.containerHeight - this.dialogHeight);
+    return this._priorPlacedY;
+  }
 
   /**
    * Create a new dialog.
@@ -211,17 +223,21 @@ export default class Dialog {
       y: Dialog.containerHeight - this.dialogHeight,
     };
 
-    // Don't adjust unless it's not pinned or any part of it would be outside the container.
-    if (this.isPinned
-      && this.xMin >= 0 && this.xMin <= _max.x
-      && this.yMin >= 0 && this.yMin <= _max.y)
-      return;
-
-    const positionDef = this.currentNormalizedPosition;
+    const positionDef = [];
+    if (this.isPinned) {
+      // Don't use the normalized position, just track the last non-automatic placement & attempt to
+      // match it; this will also slide back towards the desired position if the container is
+      // expanding instead of contracting.
+      positionDef[0] = this.priorPlacedX;
+      positionDef[1] = this.priorPlacedY;
+    } else {
+      positionDef[0] = _max.x * this.currentNormalizedPosition[0];
+      positionDef[1] = _max.y * this.currentNormalizedPosition[1];
+    }
 
     const positionCoords = {
-      left: Math.max(0, Math.min(_max.x * positionDef[0], _max.x)),
-      top:  Math.max(0, Math.min(_max.y * positionDef[1], _max.y)),
+      left: Math.max(0, Math.min(positionDef[0], _max.x)),
+      top:  Math.max(0, Math.min(positionDef[1], _max.y)),
     };
 
     this._updatePosition(positionCoords.left, positionCoords.top);
@@ -291,12 +307,22 @@ export default class Dialog {
   get xMax () { return this.xMin + this.dialogWidth; }
   get yMax () { return this.yMin + this.dialogHeight; }
 
-  _updatePosition (xMin, yMin, width = this.dialogWidth, height = this.dialogHeight) {
+  /**
+   * Updates the CSS position & the according cached values.
+   * @param {number} xMin The dialog box's left edge
+   * @param {number} yMin The dialog box's top edge
+   * @param {boolean} [placed=false] Was this manually placed? Default `false`.
+   */
+  _updatePosition (xMin, yMin, placed = false) {
     this._xMin = xMin;
     this._yMin = yMin;
+    if (placed) {
+      this._priorPlacedX = xMin;
+      this._priorPlacedY = yMin;
+    }
     this.$dialog.css({
-      width: width,
-      height: height,
+      width: this.dialogWidth,
+      height: this.dialogHeight,
       left: xMin,
       top: yMin,
     });
@@ -402,7 +428,7 @@ export default class Dialog {
       (maxY > 0 ? newY / maxY : 0),
     ];
 
-    this._updatePosition(newX, newY);
+    this._updatePosition(newX, newY, true);
   }
 
   /** Stop dragging the dialog */
