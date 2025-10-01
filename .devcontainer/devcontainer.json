@@ -15,7 +15,8 @@
   //   "source=/home/${localEnv:USER}/.gnupg,target=/home/vscode/.gnupg,type=bind,consistency=cached"
   // ],
   "postAttachCommand": {
-    "git-safe-dir": "git config --global --add safe.directory /app"
+    "git-safe-dir": "git config --global --add safe.directory /app",
+    "copy-env": "[ ! -f .env ] && cp .env.sample .env"
   },
   "postCreateCommand": {
     "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
