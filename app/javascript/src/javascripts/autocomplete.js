@@ -585,14 +585,16 @@ class Autocompleter {
       return;
     }
 
-    if (currentQuery === this.query) {
-      return;
-    }
+    if (currentQuery === this.query) return;
 
     this.query = currentQuery;
 
     try {
-      this.results = await this.searchFn(this.query, this.input);
+      const results = await this.searchFn(this.query, this.input);
+
+      if (this.query !== currentQuery) return;
+
+      this.results = results;
       this.selectedIndex = -1;
       this.render();
 
