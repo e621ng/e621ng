@@ -202,7 +202,16 @@ module ApplicationHelper
     end
   end
 
-protected
+  def tos_content
+    Cache.fetch("tos_content", expires_in: 1.day) do
+      wiki = WikiPage.titled("e621:terms_of_service")
+      return "Terms of service not found." if wiki.nil?
+      format_text(wiki.body, allow_color: true)
+    end
+  end
+
+  protected
+
   def nav_link_match(controller, url)
     # Static routes must match completely
     return url == request.path if controller == "static"

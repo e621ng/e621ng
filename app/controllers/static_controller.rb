@@ -6,11 +6,6 @@ class StaticController < ApplicationController
     @page = format_wiki_page(@page_name)
   end
 
-  def terms_of_service
-    @page_name = "e621:terms_of_service"
-    @page = format_wiki_page(@page_name)
-  end
-
   def contact
     @page_name = "e621:contact"
     @page = format_wiki_page(@page_name)
