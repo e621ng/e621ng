@@ -520,13 +520,20 @@ class Autocompleter {
   }
 
   bindEvents () {
-    this.input.addEventListener("input", this.handleInput.bind(this));
-    this.input.addEventListener("keydown", this.handleKeydown.bind(this));
-    this.input.addEventListener("blur", this.handleBlur.bind(this));
-    this.input.addEventListener("focus", this.handleFocus.bind(this));
+    this.handleInput = this.handleInput.bind(this);
+    this.handleKeydown = this.handleKeydown.bind(this);
+    this.handleBlur = this.handleBlur.bind(this);
+    this.handleFocus = this.handleFocus.bind(this);
+    this.handleDropdownMousedown = (e) => e.preventDefault();
+    this.handleDropdownClick = this.handleDropdownClick.bind(this);
 
-    this.dropdown.addEventListener("mousedown", (e) => e.preventDefault());
-    this.dropdown.addEventListener("click", this.handleDropdownClick.bind(this));
+    this.input.addEventListener("input", this.handleInput);
+    this.input.addEventListener("keydown", this.handleKeydown);
+    this.input.addEventListener("blur", this.handleBlur);
+    this.input.addEventListener("focus", this.handleFocus);
+
+    this.dropdown.addEventListener("mousedown", this.handleDropdownMousedown);
+    this.dropdown.addEventListener("click", this.handleDropdownClick);
   }
 
   handleInput () {
@@ -720,6 +727,14 @@ class Autocompleter {
   destroy () {
     this.close();
     clearTimeout(this.debounceTimer);
+
+    this.input.removeEventListener("input", this.handleInput);
+    this.input.removeEventListener("keydown", this.handleKeydown);
+    this.input.removeEventListener("blur", this.handleBlur);
+    this.input.removeEventListener("focus", this.handleFocus);
+
+    this.dropdown.removeEventListener("mousedown", this.handleDropdownMousedown);
+    this.dropdown.removeEventListener("click", this.handleDropdownClick);
 
     Autocompleter.instances.delete(this);
 
