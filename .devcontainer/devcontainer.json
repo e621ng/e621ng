@@ -11,6 +11,9 @@
   "onCreateCommand": {
     "remove-gitconfig": "rm ~/.gitconfig"
   },
+  // "mounts": [
+  //   "source=/home/${localEnv:USER}/.gnupg,target=/home/vscode/.gnupg,type=bind,consistency=cached"
+  // ],
   "postAttachCommand": {
     "git-safe-dir": "git config --global --add safe.directory /app"
   },
