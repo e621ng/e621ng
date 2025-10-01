@@ -3,11 +3,14 @@
         <input
           type="text"
           size="50"
+          ref="inputEl"
           v-model="realValue"
-          @keyup.enter="add"
+          @keyup.enter="fadd"
+          @keyup.up="focusPrev"
+          @keyup.down="focusNext"
           @paste="paste"
         />
-        <button @click="remove">-</button>
+        <button @click="remove">&times;</button>
     </div>
 </template>
 
@@ -31,15 +34,18 @@
       }
     },
     methods: {
-      add() {
-        this.$emit('add');
+      // Focus the input element for this source row
+      focus() {
+        if (this.$refs && this.$refs.inputEl) {
+          this.$refs.inputEl.focus();
+        }
       },
-      remove() {
-        this.$emit('delete');
-      },
-      paste($event) {
-        this.$emit('madd', $event);
-      },
+      add() { this.$emit("add"); },
+      fadd() { this.$emit("fadd") },
+      remove() { this.$emit("delete"); },
+      paste($event) { this.$emit("madd", $event); },
+      focusNext() { this.$emit("navigate", this.index + 1); },
+      focusPrev() { this.$emit("navigate", this.index - 1); },
     },
     watch: {
       modelValue(v) {
