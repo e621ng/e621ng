@@ -458,7 +458,29 @@ const Autocomplete = {
 };
 
 class Autocompleter {
+  static instances = new Set();
+  static globalHandlersInitialized = false;
+
+  static initializeGlobalHandlers () {
+    if (this.globalHandlersInitialized) return;
+
+    const repositionAll = () => {
+      this.instances.forEach(instance => {
+        if (instance.isOpen) {
+          instance.positionDropdown();
+        }
+      });
+    };
+
+    window.addEventListener("scroll", repositionAll, { passive: true });
+    window.addEventListener("resize", repositionAll, { passive: true });
+
+    this.globalHandlersInitialized = true;
+  }
+
   constructor (input, { searchFn, insertFn, renderFn }) {
+    Autocompleter.initializeGlobalHandlers();
+
     this.input = input;
     this.searchFn = searchFn;
     this.insertFn = insertFn;
@@ -469,6 +491,8 @@ class Autocompleter {
     this.debounceTimer = null;
     this.justSelected = false;
     this.query = "";
+
+    Autocompleter.instances.add(this);
 
     this.createDropdown();
     this.bindEvents();
@@ -503,10 +527,6 @@ class Autocompleter {
 
     this.dropdown.addEventListener("mousedown", (e) => e.preventDefault());
     this.dropdown.addEventListener("click", this.handleDropdownClick.bind(this));
-
-    this.repositionHandler = this.positionDropdown.bind(this);
-    window.addEventListener("scroll", this.repositionHandler);
-    window.addEventListener("resize", this.repositionHandler);
   }
 
   handleInput () {
@@ -701,8 +721,7 @@ class Autocompleter {
     this.close();
     clearTimeout(this.debounceTimer);
 
-    window.removeEventListener("scroll", this.repositionHandler);
-    window.removeEventListener("resize", this.repositionHandler);
+    Autocompleter.instances.delete(this);
 
     if (this.dropdown && this.dropdown.parentNode) {
       this.dropdown.remove();
