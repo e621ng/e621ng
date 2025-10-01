@@ -2,6 +2,13 @@
   <div class="box-section background-red source_warning" v-show="showErrors && sourceWarning">
     A source must be provided or you must select that there is no available source.
   </div>
+  <div class="upload-source-more">
+    <label class="section-label upload-source-none">
+      <input type="checkbox" id="no_source" v-model="noSource"/>
+      No available source.
+    </label>
+    <button @click="addSource" v-if="sources.length < maxSources && !noSource" class="upload-source-add">Add another source</button>
+  </div>
   <div class="upload-source-list" v-if="!noSource">
     <file-source
       :maxSources="maxSources"
@@ -14,13 +21,6 @@
       @madd="pasteSource($event, i)"
       :key="i"
     ></file-source>
-  </div>
-  <div class="upload-source-more">
-    <label class="section-label upload-source-none">
-      <input type="checkbox" id="no_source" v-model="noSource"/>
-      No available source.
-    </label>
-    <button @click="addSource" v-if="sources.length < maxSources && !noSource" class="upload-source-add">Add another source</button>
   </div>
 </template>
 
