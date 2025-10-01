@@ -4,6 +4,8 @@ services:
   # Dev Container extension doesn't support `depends_on: !reset []`
   # https://github.com/microsoft/vscode-remote-release/issues/8734
   dev-container:
+    build:
+      dockerfile: Dockerfile
     image: e621
     user: ${DOCKER_USER:-root}
     environment:
