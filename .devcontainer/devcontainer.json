@@ -19,9 +19,10 @@
     "git-safe-dir": "git config --global --add safe.directory /app",
     "copy-env": "[ ! -f .env ] && cp .env.sample .env"
   },
+  "forwardPorts": [3000],
   "postCreateCommand": {
     "bash-completion": "apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile",
-    "install-docker": "apk add docker"
+    "install-docker": "apk --no-cache add docker"
   },
   "customizations": {
     "vscode": {
