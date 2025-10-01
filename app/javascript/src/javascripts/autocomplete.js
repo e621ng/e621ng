@@ -19,7 +19,7 @@ const Autocomplete = {
   },
 
   get TAG_PREFIXES () {
-    return "-|~|" + this.TAG_CATEGORIES.map(category => category + ":").join("|");
+    return ["-", "~"];
   },
 
   instances: new Map(),
@@ -144,10 +144,13 @@ const Autocomplete = {
       case "downvote":
         return this.searchItems(term, this.getUsers.bind(this)).then(results => results.map(user => ({
           ...user,
-          name: `${metatag}:${user.name}`,
+          name: metatag + ":" + user.name,
         })));
       case "pool":
-        return this.searchItems(term, this.getPools.bind(this)).then(results => results.map(pool => ({ ...pool, name: `${metatag}:${pool.name}` })));
+        return this.searchItems(term, this.getPools.bind(this)).then(results => results.map(pool => ({
+          ...pool,
+          name: metatag + ":" + pool.name,
+        })));
       default:
         return [];
     }
@@ -246,8 +249,9 @@ const Autocomplete = {
   },
 
   parseTagQuery (text, caret) {
-    const TAG_PREFIXES_REGEX = new RegExp("^(" + this.TAG_PREFIXES + ")(.*)$", "i");
-    const METATAGS_REGEX = new RegExp("^(" + this.METATAGS.join("|") + "):(.*)$", "i");
+    const TAG_PREFIXES_REGEX = new RegExp("^([" + this.TAG_PREFIXES.join("") + "]*)(.*)", "i");
+    const CATEGORY_PREFIXES_REGEX = new RegExp("^(" + this.TAG_CATEGORIES.map(category => category + ":").join("|") + ")(.*)", "i");
+    const METATAGS_REGEX = new RegExp("^(" + this.METATAGS.join("|") + "):(.*)", "i");
 
     const beforeCaret = text.substring(0, caret);
     const match = beforeCaret.match(/\S+$/);
@@ -258,11 +262,18 @@ const Autocomplete = {
 
     let term = match[0];
     let metatag = "";
+    let prefix = "";
 
-    const prefixMatch = term.match(TAG_PREFIXES_REGEX);
-    if (prefixMatch) {
-      metatag = prefixMatch[1].toLowerCase();
-      term = prefixMatch[2];
+    const tagPrefixMatch = term.match(TAG_PREFIXES_REGEX);
+    if (tagPrefixMatch && tagPrefixMatch[1]) {
+      prefix = tagPrefixMatch[1];
+      term = tagPrefixMatch[2];
+    }
+
+    const categoryPrefixMatch = term.match(CATEGORY_PREFIXES_REGEX);
+    if (categoryPrefixMatch) {
+      metatag = categoryPrefixMatch[1].slice(0, -1).toLowerCase();
+      term = categoryPrefixMatch[2];
     } else {
       const metagMatch = term.match(METATAGS_REGEX);
       if (metagMatch) {
@@ -271,7 +282,7 @@ const Autocomplete = {
       }
     }
 
-    return { metatag, term };
+    return { metatag, term, prefix };
   },
 
   async searchTagQuery (query, input) {
@@ -294,6 +305,13 @@ const Autocomplete = {
       results = await this.getMetatags(parsed.metatag, parsed.term || "");
     } else {
       results = await this.getTags(parsed.term);
+    }
+
+    if (parsed.prefix) {
+      results = results.map(item => ({
+        ...item,
+        name: parsed.prefix + item.name,
+      }));
     }
 
     return results.slice(0, 15);
