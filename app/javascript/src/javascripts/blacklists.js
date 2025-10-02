@@ -15,19 +15,23 @@ Blacklist.hiddenPosts = new Set();
 Blacklist.matchedPosts = new Set();
 
 Blacklist.ui = [];
+Blacklist.dialog = null;
 
 /** Set up the modal dialogue with the blacklist editor */
 Blacklist.init_blacklist_editor = function () {
+  const dialogEl = $("#blacklist-edit-dialog");
+  if (!dialogEl.length) return;
+
   let windowWidth = $(window).width(),
     windowHeight = $(window).height();
 
-  const blacklistDialog = new Dialog("#blacklist-edit-dialog", {
+  Blacklist.dialog = new Dialog(dialogEl, {
     width: windowWidth > 400 ? 400 : windowWidth,
     height: windowHeight > 400 ? 400 : windowHeight,
   });
 
   $("#blacklist-cancel").on("click", function () {
-    blacklistDialog.close();
+    Blacklist.dialog.close();
   });
 
   $("#blacklist-save").on("click", function () {
@@ -47,7 +51,7 @@ Blacklist.init_blacklist_editor = function () {
   $("#blacklist-edit-link").on("click", function (event) {
     event.preventDefault();
     $("#blacklist-edit").val(User.blacklist.tags.join("\n"));
-    blacklistDialog.open();
+    Blacklist.dialog.open();
   });
 };
 
