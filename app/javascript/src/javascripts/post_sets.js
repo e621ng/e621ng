@@ -2,7 +2,6 @@ import Page from "./utility/page";
 import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
 import Dialog from "./utility/dialog";
-import { post } from "jquery";
 
 let PostSet = {};
 
