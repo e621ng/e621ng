@@ -20,7 +20,6 @@
     "copy-env": "[ ! -f .env ] && cp .env.sample .env",
     "copy-local-config": "cp /app/docker/danbooru_local_config.rb /app/config/danbooru_local_config.rb"
   },
-  "forwardPorts": [3000],
   "postCreateCommand": {
     "bash-completion": "apk update && apk --no-cache add bash-completion docker && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
   },

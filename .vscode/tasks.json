@@ -4,28 +4,28 @@
     {
       "label": "e621: run_rubocop_all",
       "type": "shell",
-      "command": "docker compose run --rm rubocop",
+  "command": "if [ -f /.dockerenv ]; then bundle exec rubocop; else docker compose run --rm rubocop; fi",
       "detail": "Run rubocop on all files",
       "group": "test"
     },
     {
       "label": "e621: run_tests_all",
       "type": "shell",
-      "command": "docker compose run --rm tests",
+  "command": "if [ -f /.dockerenv ]; then bundle exec rails test; else docker compose run --rm tests; fi",
       "group": "test",
       "detail": "Run all tests",
     },
     {
       "label": "e621: run_tests_file",
       "type": "shell",
-      "command": "docker compose run --rm tests bundle exec rspec ${input:test_file}",
+  "command": "if [ -f /.dockerenv ]; then bin/rails test ${input:test_file}; else docker compose run --rm tests bundle exec rails test ${input:test_file}; fi",
       "group": "test",
       "detail": "Run tests on a specific file",
     },
     {
       "label": "e621: run_tests_current_file",
       "type": "shell",
-      "command": "docker compose run --rm tests bundle exec rspec ${relativeFile}",
+  "command": "if [ -f /.dockerenv ]; then bin/rails test ${relativeFile}; else docker compose run --rm tests bundle exec rails test ${relativeFile}; fi",
       "group": "test",
       "detail": "Run tests on the current file",
     },
@@ -49,7 +49,7 @@
     {
       "label": "e621: dev_populate",
       "type": "shell",
-      "command": "docker exec -it e621ng-e621-1 /app/bin/populate",
+  "command": "if [ -f /.dockerenv ]; then bin/populate; else docker exec -i e621ng-e621-1 /app/bin/populate; fi",
       "detail": "Populate the database with test data",
       "group": "build",
       "hide": true
@@ -57,7 +57,7 @@
     {
       "label": "e621: dev_setup",
       "type": "shell",
-      "command": "docker compose run --rm e621 /app/bin/setup",
+  "command": "if [ -f /.dockerenv ]; then bin/setup; else docker compose run --rm e621 /app/bin/setup; fi",
       "detail": "Setup the application",
       "group": "build",
       "hide": true
@@ -65,7 +65,7 @@
     {
       "label": "e621: dev_rebuild",
       "type": "shell",
-      "command": "docker compose run --rm e621 /app/bin/setup",
+  "command": "if [ -f /.dockerenv ]; then bin/setup; else docker compose run --rm e621 /app/bin/setup; fi",
       "detail": "Rebuild the application",
       "group": "none",
       "hide": true
@@ -73,7 +73,7 @@
     {
       "label": "e621: dev_erase",
       "type": "shell",
-      "command": "docker compose down -v",
+  "command": "docker compose down -v",
       "hide": true,
       "detail": "Stop and remove volumes",
       "group": "none"
@@ -81,14 +81,14 @@
     {
       "label": "e621: dev_console",
       "type": "shell",
-      "command": "docker compose run --rm e621 /app/bin/rails c",
+  "command": "if [ -f /.dockerenv ]; then bin/rails c; else docker compose run --rm e621 /app/bin/rails c; fi",
       "detail": "Open a Rails console",
       "group": "none"
     },
     {
       "label": "e621: dev_make_staff",
       "type": "shell",
-      "command": "docker compose run --rm e621 /app/bin/rails runner 'User.find(${input:user_id}).update(is_bd_staff: true)'",
+  "command": "if [ -f /.dockerenv ]; then bundle exec rails runner \"User.find(${input:user_id}).update(is_bd_staff: true)\"; else docker compose run --rm e621 /app/bin/rails runner 'User.find(${input:user_id}).update(is_bd_staff: true)'; fi",
       "problemMatcher": [],
       "detail": "Make a user a staff member",
       "group": "none",
