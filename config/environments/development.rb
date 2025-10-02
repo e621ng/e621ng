@@ -72,5 +72,22 @@ Rails.application.configure do # rubocop:disable Metrics/BlockLength
     codespace_host = /#{ENV.key?('CODESPACE_NAME') ? Regexp.escape(ENV['CODESPACE_NAME']) : '.*'}-#{ENV.fetch('EXPOSED_SERVER_PORT', '3000')}.#{Regexp.escape(ENV.fetch('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN', 'app.github.dev'))}/
     config.hosts << codespace_host # for some reason, rails doesn't like the full domain
   end
-  # end
+
+  config.action_controller.forgery_protection_origin_allowlist = config.hosts.flat_map do |host|
+    case host
+    when String
+      next if host.blank?
+
+      if host.start_with?(".")
+        %r{\Ahttps?://(?:[^/]+\.)*#{Regexp.escape(host.delete_prefix('.'))}(?::\d+)?\z}i
+      else
+        ["http://#{host}", "https://#{host}"]
+      end
+    when Regexp
+      host
+    when IPAddr
+      literal = host.ipv6? ? "[#{host}]" : host.to_s
+      ["http://#{literal}", "https://#{literal}"]
+    end
+  end.compact
 end
