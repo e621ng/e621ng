@@ -76,6 +76,12 @@ class UploadServiceTest < ActiveSupport::TestCase
         assert_match(/animated_png/, upload.tag_string)
       end
 
+      should "not tag static png files" do
+        service = @build_service.call(file: fixture_file_upload("bread-static.png"))
+        upload = service.start!
+        assert_no_match(/animated_png/, upload.tag_string)
+      end
+
       should "tag animated gif files" do
         service = @build_service.call(file: fixture_file_upload("bread-animated.gif"))
         upload = service.start!

@@ -5,6 +5,52 @@ class ApngInspector
 
   PNG_MAGIC_NUMBER = ["89504E470D0A1A0A"].pack("H*")
 
+  # Fast APNG animation probe.
+  # True if the file is an APNG (has acTL with frames >= 1), false otherwise.
+  # Stops scanning as soon as it sees acTL (animated) or the first IDAT (not animated),
+  #
+  # Does NOT attempt to determine file corruption; for full validation use inspect!.
+  def self.animated_quick?(file_path, chunk_limit: 100_000, bytes_limit: 20 * 1024 * 1024, chunk_len_limit: 128 * 1024 * 1024)
+    File.open(file_path, "rb") do |file|
+      return false unless file.read(8) == PNG_MAGIC_NUMBER
+
+      header = +""
+      chunks = 0
+      bytes_scanned = 8 # initial signature
+
+      while file.read(8, header)
+        return false if header.bytesize < 8
+
+        len = header.unpack1("N")
+        name = header[4, 4]
+
+        return false if name =~ /[^A-Za-z]/ # Chunk names are 4 ASCII letters
+        return false if len > chunk_len_limit # No absurd chunk lengths
+
+        if name == "acTL"
+          # acTL has length 8; first 4 bytes are the number of frames
+          return false unless len >= 4
+          framedata = file.read(4)
+          return false if framedata.nil? || framedata.bytesize != 4
+          frames = framedata.unpack1("N")
+          return frames >= 1
+        elsif %w[IDAT IEND].include?(name) # Per APNG spec, acTL must appear before any IDAT
+          return false
+        end
+
+        # Skip over chunk data + CRC
+        skip_len = len + 4
+        file.seek(file.pos + skip_len, IO::SEEK_SET)
+
+        chunks += 1
+        bytes_scanned += 8 + skip_len
+        return false if chunks > chunk_limit || bytes_scanned > bytes_limit
+      end
+    end
+
+    false
+  end
+
   def initialize(file_path)
     @file_path = file_path
     @corrupted = false

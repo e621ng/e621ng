@@ -62,4 +62,21 @@ class DTextTest < ActiveSupport::TestCase
       assert_equal(true, apng.corrupted?)
     end
   end
+
+  context "animated_quick? helper" do
+    should "return true for animated APNGs" do
+      assert_equal true, ApngInspector.animated_quick?(file_fixture("apng/normal_apng.png"))
+      assert_equal true, ApngInspector.animated_quick?(file_fixture("apng/single_frame.png"))
+    end
+
+    should "return false for non-animated PNGs" do
+      assert_equal false, ApngInspector.animated_quick?(file_fixture("apng/not_apng.png"))
+    end
+
+    should "return false for empty and (some) corrupted files" do
+      assert_equal false, ApngInspector.animated_quick?(file_fixture("apng/empty.png"))
+      assert_equal false, ApngInspector.animated_quick?(file_fixture("apng/actl_zero_frames.png"))
+      assert_equal false, ApngInspector.animated_quick?(file_fixture("apng/jpg.png"))
+    end
+  end
 end
