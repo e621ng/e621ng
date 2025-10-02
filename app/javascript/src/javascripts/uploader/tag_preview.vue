@@ -30,7 +30,7 @@ export default {
     },
     tagRecords() {
       const result = [];
-      const implications = new Set();
+      const implications = new Map();
 
       for (const input of this.tagsArray) {
         const tag = this.tagCache[input];
@@ -39,7 +39,10 @@ export default {
 
           if (tag.implies && Array.isArray(tag.implies)) {
             for (const implication of tag.implies) {
-              implications.add(implication);
+              if (!implications.has(implication)) {
+                implications.set(implication, []);
+              }
+              implications.get(implication).push(tag.name);
             }
           }
         } else {
@@ -63,16 +66,16 @@ export default {
 
       // Aliases do not need to be added. They will be displayed by their original input via the alias field.
 
-      for (const implication of implications) {
+      for (const implication of implications.keys()) {
         // Any tag implied by any other is always marked as implied. 
         // This is more useful for quick relation mapping and discovery of the existence of implications.
         const current = result.find(tag => tag.name === implication);
         if (current) {
-          current.implied = true;
+          current.impliedBy = implications.get(implication);
         } else {
           const implied = this.tagCache[implication];
           if (!implied) continue;
-          result.push({ ...implied, implied: true });
+          result.push({ ...implied, impliedBy: implications.get(implication) });
         }
       }
 
