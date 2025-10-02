@@ -27,10 +27,7 @@ class StorageManager
   end
 
   def default_base_url
-    # return 
     Rails.application.routes.url_helpers.root_url
-    #  unless Rails.env.development?
-    # "/" # This allows for hosts other than `localhost:3000` to be used without prior setup.
   end
 
   # Store the given file at the given path. If a file already exists at that

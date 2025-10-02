@@ -20,3 +20,4 @@ services:
       - .:/app
       # - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
       - node_modules:/app/node_modules
+      - post_data:/app/public/data
