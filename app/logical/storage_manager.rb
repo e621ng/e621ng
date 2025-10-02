@@ -3,7 +3,7 @@
 class StorageManager
   class Error < StandardError; end
 
-  DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
+  DEFAULT_BASE_DIR = "#{Rails.root}/public/data" unless Rails.env.development? "/"
   IMAGE_TYPES = %i[preview_jpg preview_webp sample_jpg sample_webp original].freeze
   MASCOT_PREFIX = "mascots"
 
