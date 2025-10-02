@@ -62,6 +62,7 @@ class UploadService
       tags = []
       tags += %w[animated_gif animated] if upload.is_animated_gif?(file.path)
       tags += %w[animated_png animated] if upload.is_animated_png?(file.path)
+      tags += %w[animated_webp animated] if upload.is_animated_webp?(file.path)
       tags += ["animated"] if upload.is_webm? || upload.is_mp4?
       tags += ["ai_generated"] if upload.is_ai_generated?(file.path)
       tags.join(" ")
