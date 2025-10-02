@@ -4604,6 +4604,27 @@ CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING
 
 
 --
+-- Name: index_users_on_bitprefs_both; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bitprefs_both ON public.users USING btree (id) WHERE ((bit_prefs & (98304)::bigint) = 98304);
+
+
+--
+-- Name: index_users_on_bitprefs_cap; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bitprefs_cap ON public.users USING btree (id) WHERE ((bit_prefs & (32768)::bigint) = 32768);
+
+
+--
+-- Name: index_users_on_bitprefs_cuf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bitprefs_cuf ON public.users USING btree (id) WHERE ((bit_prefs & (65536)::bigint) = 65536);
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4874,6 +4895,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250801224742'),
 ('20250801224447'),
+('20251001213309'),
 ('20250921011208'),
 ('20250831040648'),
 ('20250831015612'),

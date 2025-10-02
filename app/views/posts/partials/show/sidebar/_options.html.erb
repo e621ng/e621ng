@@ -1,17 +1,22 @@
 <ul>
   <% if CurrentUser.is_member? %>
-    <li><%= link_to "Edit", "#edit", id: "side-edit-link" %></li>
-    <li><%= link_to_if post.visible?, "Download", post.file_url %></li>
+    <%# Add to Pool / Set %>
     <li id="add-to-pool-list"><%= link_to "Add to pool", "#", class: "add-to-pool" %></li>
     <li id="add-to-set-list"><%= link_to "Add to set", "#", class: "add-to-set" %></li>
     <li><%= link_to "Set as avatar", "javascript:void", id: "set-as-avatar-link", data: { post_id: post.id } %></li>
-    <% if post.is_note_locked? %>
-      <li id="add-notes-list"><span id="note-locked-notice">Note locked</span></li>
-    <% else %>
-      <li id="add-notes-list"><%= link_to "Add note", "#", "id": "translate", "data-hotkey": "note" %></li>
-    <% end %>
-    <% if post.has_notes? %>
-      <li id="copy-all-notes-list"><%= link_to "Copy notes", "#", id: "copy-notes" %></li>
+    <li>&nbsp;</li>
+
+    <%# Notes %>
+    <% if post.can_have_notes? %>
+      <% if post.is_note_locked? %>
+        <li id="add-notes-list"><span id="note-locked-notice">Note locked</span></li>
+      <% else %>
+        <li id="add-notes-list"><%= link_to "Edit Notes", "#", "id": "translate", "data-hotkey": "note" %></li>
+      <% end %>
+      <% if post.has_notes? %>
+        <li id="copy-all-notes-list"><%= link_to "Copy notes", "#", id: "copy-notes" %></li>
+      <% end %>
+      <li>&nbsp;</li>
     <% end %>
 
     <% if CurrentUser.can_replace? %>

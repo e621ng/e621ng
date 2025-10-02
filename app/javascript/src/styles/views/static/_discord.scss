@@ -1,0 +1,34 @@
+#c-static #a-discord {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  gap: 0.5rem;
+  
+  h1 {
+    width: 100%;
+    max-width: 50rem;
+    box-sizing: border-box;
+    padding: 0 1rem;
+  }
+
+  .dtext-container {
+    width: 100%;
+    max-width: 50rem;
+    box-sizing: border-box;
+    padding: 1rem;
+
+    background: themed("color-section");
+    @include st-radius;
+  }
+
+  form {
+    margin: 1rem;
+
+    input[type="submit"] {
+      font-size: 1.5rem;
+      line-height: 2rem;
+      height: 3rem;
+      padding: 0.5rem 3rem;
+    }
+  }
+}

@@ -1,9 +1,14 @@
 export default class Dialog {
 
-  // Container to which all dialogs are appended
+  id = 0;
+
   static _container = null;
   static containerWidth = 0;
   static containerHeight = 0;
+
+  static _currentTimeout = null;
+
+  /** Container to which all dialogs are appended */
   static get container () {
     if (this._container !== null) return this._container;
 
@@ -11,11 +16,12 @@ export default class Dialog {
     this.updateContainerDimensions();
 
     // Window dimension changes
-    $(window).on("resize orientationchange", () => this.updateContainerDimensions());
+    $(window).on("resize.dialog orientationchange.dialog", () => this.onUpdateContainerDimensions());
 
     // Fullscreen changes
     $(document).on("fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange", () => {
-      setTimeout(() => this.updateContainerDimensions(), 100); // Small delay to ensure layout has settled
+      if (this._currentTimeout) clearTimeout(this._currentTimeout);
+      this._currentTimeout = setTimeout(this.onUpdateContainerDimensions, 100); // Small delay to ensure layout has settled
     });
 
     return this._container;
@@ -26,15 +32,41 @@ export default class Dialog {
     this.containerHeight = this._container.innerHeight() || 600;
   }
 
-  static positionDefinitions = {
-    "top":    { "left": [0, 0], "center": [0.5, 0], "right": [1, 0] },
-    "center": { "left": [0, 0.5], "center": [0.5, 0.5], "right": [1, 0.5] },
-    "bottom": { "left": [0, 1], "center": [0.5, 1], "right": [1, 1] },
-    "left":   { "top": [0, 0], "center": [0, 0.5], "bottom": [0, 1] },
-    "right":  { "top": [1, 0], "center": [1, 0.5], "bottom": [1, 1] },
+  /**
+   * The event handler for autonomic container resizing.
+   * Updates the container dimensions, cancels & resets the stored timeout reference (if set), & fires the `dialogContainer:resize` event if the dimensions changed.
+   * Ignores the value of `this`.
+   */
+  static onUpdateContainerDimensions () {
+    const priorWidth = Dialog.containerWidth, priorHeight = Dialog.containerHeight;
+    Dialog.updateContainerDimensions();
+    if (Dialog._currentTimeout) {
+      clearTimeout(Dialog._currentTimeout); // Stops quickly toggling fullscreen causing trouble
+      Dialog._currentTimeout = null;
+    }
+    if (priorWidth !== Dialog.containerWidth || priorHeight !== Dialog.containerHeight)
+      $(window).trigger("dialogContainer:resize");
+  }
+
+  static normalizedPositionLabel = {
+    "center": 0.5,
+    "top":    0.0,
+    "bottom": 1.0,
+    "left":   0.0,
+    "right":  1.0,
   };
 
-  // Dialog z-stacking and focus management
+  /**
+   * Takes a string label or number and returns a normalized position value between 0 and 1.
+   * @param {string|number} value The position label or number to resolve.
+   * @returns {number} A normalized number reflecting the bounded value (or a fallback if given bad input).
+   */
+  static resolveToNormalizedPosition (value) {
+    return Dialog.normalizedPositionLabel[value] || (typeof (value) === "number" ? Math.max(Math.min(value, 1), 0) : 0.5);
+  }
+
+  // #region Dialog z-stacking and focus management
+  /** @type {Dialog[]} */
   static dialogStack = [];
   static dialogIndex = {};
   static dialogCount = 0;
@@ -59,22 +91,40 @@ export default class Dialog {
       const dialog = this.dialogIndex[dialogID];
       if (!dialog) continue;
 
-      dialog.setZIndex(index);
+      dialog._setZIndex(index);
       index++;
     }
   }
+  // #endregion Dialog z-stacking and focus management
 
 
   $dialog = null; // The main dialog element
   $element = null; // Content element attached to the dialog
+  $title = null; // Title element in the header
   dialogWidth = 0;
   dialogHeight = 0;
-  initialPosition = ["center", "center"];
-  id = 0;
+  currentNormalizedPosition = [
+    Dialog.normalizedPositionLabel["center"],
+    Dialog.normalizedPositionLabel["center"],
+  ];
+
+  _priorPlacedX = null;
+  get priorPlacedX () {
+    if (typeof this._priorPlacedX !== "number")
+      this._priorPlacedX = this.currentNormalizedPosition[0] * (Dialog.containerWidth - this.dialogWidth);
+    return this._priorPlacedX;
+  }
+
+  _priorPlacedY = null;
+  get priorPlacedY () {
+    if (typeof this._priorPlacedY !== "number")
+      this._priorPlacedY = this.currentNormalizedPosition[1] * (Dialog.containerHeight - this.dialogHeight);
+    return this._priorPlacedY;
+  }
 
   /**
    * Create a new dialog.
-   * Parmeters could be passed in via a data-attribute on the element as well.
+   * Parameters could be passed in via a data-attribute on the element as well.
    * @param {JQuery<HTMLElement> | string} element Either a jQuery element or a selector string for the dialog content.
    * @param {any} params Configuration parameters.
    *   - title: Title text for the dialog header.
@@ -89,11 +139,13 @@ export default class Dialog {
       .attr({
         "role": "dialog",
         "tabindex": "-1",
+        "aria-labelledby": `dialog-title-${this.id}`,
       })
       .appendTo(Dialog.container);
 
     // UI Elements
     const header = $("<div class='dialog-header'>").appendTo(this.$dialog);
+    this.$title = $("<span>").attr("id", `dialog-title-${this.id}`).appendTo(header);
     header.on("mousedown", (event) => this.startDrag(event));
 
     $("<button type='button' class='st-button'>&times;</button>")
@@ -130,26 +182,15 @@ export default class Dialog {
     for (const key in data) // Load from data-attributes
       if (params[key] === undefined) params[key] = data[key];
 
-    if (params.title) {
-      $("<span>")
-        .text(params.title)
-        .attr("id", `dialog-title-${this.id}`)
-        .prependTo(header);
-      this.$dialog.attr("aria-labelledby", `dialog-title-${this.id}`);
-    } else this.$dialog.attr("aria-label", "Dialog");
-
-    // Set modal behavior if specified
-    if (params.modal) {
-      this.$dialog.attr("aria-modal", "true");
-    }
+    if (params.title) this.$title.text(params.title);
 
 
     // Initial Position
     if (params.position) {
       const parts = params.position.trim().split(/\s+/);
-      this.initialPosition = [
-        parts[0] || "center",
-        parts[1] || "center",
+      this.currentNormalizedPosition = [
+        Dialog.resolveToNormalizedPosition(parts[0]),
+        Dialog.resolveToNormalizedPosition(parts[1]),
       ];
     }
 
@@ -160,36 +201,48 @@ export default class Dialog {
 
     this.recalculatePosition();
 
+    $(window).on("dialogContainer:resize", { obj: this }, this.onResize);
+
     // Start open
     // Must be called after setting width/height and position
     if (params.startOpen) this.open();
   }
 
-  /** Recalculate the dialog's position based on its initial position and the container size. */
-  recalculatePosition () {
-    const [horizontal, vertical] = this.initialPosition;
-    const positionDef = Dialog.positionDefinitions[horizontal]?.[vertical] || [0.5, 0.5];
+  /** Stop the rebinding. */
+  onResize (e) { e.data.obj.recalculatePosition(); }
 
-    const positionCoords = {
-      left: Math.max(0, Math.min(
-        (Dialog.containerWidth - this.dialogWidth) * positionDef[0],
-        Dialog.containerWidth - this.dialogWidth,
-      )),
-      top: Math.max(0, Math.min(
-        (Dialog.containerHeight - this.dialogHeight) * positionDef[1],
-        Dialog.containerHeight - this.dialogHeight,
-      )),
+  /** Recalculate the dialog's position based on the given normalized position and the container size. */
+  recalculatePosition () {
+    const _max = {
+      x: Dialog.containerWidth - this.dialogWidth,
+      y: Dialog.containerHeight - this.dialogHeight,
     };
 
-    this.$dialog.css({
-      width: this.dialogWidth,
-      height: this.dialogHeight,
-      left: positionCoords.left,
-      top: positionCoords.top,
-    });
+    const positionDef = [];
+    if (this.isPinned) {
+      // Don't use the normalized position, just track the last non-automatic placement & attempt to
+      // match it; this will also slide back towards the desired position if the container is
+      // expanding instead of contracting.
+      positionDef[0] = this.priorPlacedX;
+      positionDef[1] = this.priorPlacedY;
+    } else {
+      positionDef[0] = _max.x * this.currentNormalizedPosition[0];
+      positionDef[1] = _max.y * this.currentNormalizedPosition[1];
+    }
+
+    const positionCoords = {
+      left: Math.max(0, Math.min(positionDef[0], _max.x)),
+      top:  Math.max(0, Math.min(positionDef[1], _max.y)),
+    };
+
+    this._updatePosition(positionCoords.left, positionCoords.top);
   }
 
-  setZIndex (z) {
+  setTitle (html) {
+    this.$title.html(html);
+  }
+
+  _setZIndex (z) {
     this.$dialog.css("z-index", 250 + z);
   }
 
@@ -246,6 +299,47 @@ export default class Dialog {
     else this.open();
   }
 
+  _xMin = null;
+  _yMin = null;
+  get xMin () { return (this._xMin == 0) ? this._xMin : (this._xMin ||= parseInt(this.$dialog.css("left"))); }
+  get yMin () { return (this._yMin == 0) ? this._yMin : (this._yMin ||= parseInt(this.$dialog.css("top"))); }
+  get xMax () { return this.xMin + this.dialogWidth; }
+  get yMax () { return this.yMin + this.dialogHeight; }
+
+  /**
+   * Updates the CSS position & the according cached values.
+   * @param {number} xMin The dialog box's left edge
+   * @param {number} yMin The dialog box's top edge
+   * @param {boolean} [placed=false] Was this manually placed? Default `false`.
+   */
+  _updatePosition (xMin, yMin, placed = false) {
+    this._xMin = xMin;
+    this._yMin = yMin;
+    if (placed) {
+      this._priorPlacedX = xMin;
+      this._priorPlacedY = yMin;
+    }
+    this.$dialog.css({
+      width: this.dialogWidth,
+      height: this.dialogHeight,
+      left: xMin,
+      top: yMin,
+    });
+  }
+
+  _isPinned = true;
+  /** True if the dialog is currently pinned */
+  get isPinned () { return this._isPinned; }
+  /** If unpinned, will trigger an update */
+  set isPinned (value) {
+    if (this._isPinned !== value) {
+      this._isPinned = value;
+      if (!value) this.recalculatePosition();
+    }
+  }
+
+  togglePin () { return this.isPinned = !this.isPinned; }
+
   /** Completely destroy the dialog and clean up all resources */
   destroy () {
     this.close(true);
@@ -256,6 +350,7 @@ export default class Dialog {
     Dialog.resetFocus();
 
     // Remove DOM and clean up references
+    $(window).off("dialogContainer:resize", this.onResize);
     this.$element.trigger("dialog:destroy");
     this.$dialog.remove();
     this.$dialog = null;
@@ -319,15 +414,20 @@ export default class Dialog {
 
     let newX = this.dialogStartX + (event.clientX - this.dragStartX);
     let newY = this.dialogStartY + (event.clientY - this.dragStartY);
+    const maxX = Dialog.containerWidth - this.dialogWidth;
+    const maxY = Dialog.containerHeight - this.dialogHeight;
 
     // Keep dialog within container bounds
-    newX = Math.max(0, Math.min(newX, Dialog.containerWidth - this.dialogWidth));
-    newY = Math.max(0, Math.min(newY, Dialog.containerHeight - this.dialogHeight));
+    newX = Math.max(0, Math.min(newX, maxX));
+    newY = Math.max(0, Math.min(newY, maxY));
 
-    this.$dialog.css({
-      left: newX,
-      top: newY,
-    });
+    // Update for next resize
+    this.currentNormalizedPosition = [
+      (maxX > 0 ? newX / maxX : 0),
+      (maxY > 0 ? newY / maxY : 0),
+    ];
+
+    this._updatePosition(newX, newY, true);
   }
 
   /** Stop dragging the dialog */

@@ -1,6 +1,7 @@
 import Hotkeys from "../hotkeys";
 import Favorite from "../models/Favorite";
 import PostVote from "../models/PostVote";
+import NoteManager from "../notes";
 import Post from "../posts";
 import Utility from "../utility";
 import Offclick from "../utility/offclick";
@@ -31,9 +32,11 @@ export default class PostsShowToolbar {
     this.initFavoriteHotkeys();
 
     // Initialize notes toggle
-    PostsShowToolbar.toggleNotes();
-    $(".ptbr-notes-button").each((_index, element) => {
-      this.initNotesToggle($(element));
+    const noteToggleButtons = $(".ptbr-notes-button")
+      .attr("enabled", NoteManager.enabled + "")
+      .on("click", () => { NoteManager.enabled = !NoteManager.enabled; });
+    $("#note-container").on("note:visible:true note:visible:false", () => {
+      noteToggleButtons.attr("enabled", NoteManager.enabled + "");
     });
 
     // Initialize fullscreen menu toggle
@@ -151,20 +154,6 @@ export default class PostsShowToolbar {
         $(".ptbr-favorite-button").attr("favorited", "false");
         $("#image-container").attr("data-is-favorited", "false");
       });
-  }
-
-
-  // Notes toggle button
-  initNotesToggle (button) {
-    button.on("click", () => {
-      LStorage.Posts.Notes = !(button.attr("enabled") == "true");
-      PostsShowToolbar.toggleNotes();
-    });
-  }
-
-  static toggleNotes (visible = LStorage.Posts.Notes) {
-    $("#note-container").attr("enabled", visible);
-    $(".ptbr-notes-button").attr("enabled", visible);
   }
 
   // Fullscreen / download menu

@@ -1,795 +1,1249 @@
-import Hotkeys from "./hotkeys";
-import Utility from "./utility";
-import PostsShowToolbar from "./views/PostsShowToolbar";
+import User from "./models/User.js";
+import Utility from "./utility.js";
+import Dialog from "./utility/dialog";
+import LStorage from "./utility/storage.js";
+import TaskQueue from "./utility/task_queue";
 
-let Note = {
-  Box: {
-    create: function (id) {
-      var $inner_border = $("<div/>");
-      $inner_border.addClass("note-box-inner-border");
-      $inner_border.css({
-        opacity: 0.5,
-      });
+export default class NoteManager {
 
-      var $note_box = $("<div/>");
-      $note_box.addClass("note-box");
+  static PermittedFileTypes = ["jpg", "png", "gif", "webp"];
 
-      $note_box.data("id", String(id));
-      $note_box.attr("data-id", String(id));
-      $note_box.draggable({
-        containment: $("#image"),
-        stop: function () {
-          Note.Box.update_data_attributes($note_box);
-        },
-      });
-      $note_box.resizable({
-        containment: $("#image"),
-        handles: "se, nw",
-        stop: function () {
-          Note.Box.update_data_attributes($note_box);
-        },
-      });
-      $note_box.css({position: "absolute"});
-      $note_box.append($inner_border);
-      Note.Box.bind_events($note_box);
+  /** Initialize the manager and load existing notes from the staging area. */
+  constructor () {
+    const container = $("#image-container");
+    if (container.length == 0) return;
+    if (!NoteManager.PermittedFileTypes.includes((container.data("file-ext") + ""))) return;
 
-      return $note_box;
-    },
+    // Load notes from the staging area
+    $("#note-staging article").each((_, note) => { Note.fromStaged(note); });
 
-    update_data_attributes: function ($note_box) {
-      var $image = $("#image");
-      var $image_container = $("#image-container");
-      var ratio = $image.width() / parseFloat($image_container.data("width"));
-      var new_x = parseFloat($note_box.css("left"));
-      var new_y = parseFloat($note_box.css("top"));
-      var new_width = parseFloat($note_box.css("width"));
-      var new_height = parseFloat($note_box.css("height"));
-      new_x = parseInt(new_x / ratio);
-      new_y = parseInt(new_y / ratio);
-      new_width = parseInt(new_width / ratio);
-      new_height = parseInt(new_height / ratio);
-      $note_box.data("x", new_x);
-      $note_box.data("y", new_y);
-      $note_box.data("width", new_width);
-      $note_box.data("height", new_height);
-    },
+    // Highlight notes based on URL hash
+    this.highlightHashNotes();
+    $(window).on("hashchange.e6.note", this.highlightHashNotes);
 
-    bind_events: function ($note_box) {
-      $note_box.on(
-        "dragstart.danbooru resizestart.danbooru",
-        function (e) {
-          var $note_box_inner = $(e.currentTarget);
-          $note_box_inner.find(".note-box-inner-border").addClass("unsaved");
-          Note.dragging = true;
-          Note.clear_timeouts();
-          Note.Body.hide_all();
-          e.stopPropagation();
-        },
-      );
+    if (!User.is.member) return;
 
-      $note_box.on("resize.danbooru",
-        function (e) {
-          var $note_box_inner = $(e.currentTarget);
-          Note.Box.resize_inner_border($note_box_inner);
-          e.stopPropagation();
-        },
-      );
+    // Open editor when a note is double-clicked
+    NoteUtilities.container.on("dblclick.e6.note", ".note-box", (event) => {
+      if (NoteUtilities.editing) return;
+      event.preventDefault();
+      event.stopPropagation();
 
-      $note_box.on(
-        "dragstop.danbooru resizestop.danbooru",
-        function (e) {
-          Note.dragging = false;
-          e.stopPropagation();
-        },
-      );
+      const box = $(event.currentTarget);
+      const noteID = box.attr("nid");
+      if (!noteID) return;
 
-      $note_box.on(
-        "mouseover.danbooru mouseout.danbooru",
-        function (e) {
-          if (Note.dragging) {
-            return;
-          }
+      NoteUtilities.editing = true;
+      NoteManager.Editor.open(noteID);
+    });
 
-          var $this = $(this);
-          var $note_box_inner = $(e.currentTarget);
+    // Switch to note editing mode when the "Edit Notes" button is clicked
+    $("#translate").on("click.e6.note", (event) => {
+      event.preventDefault();
+      NoteUtilities.toggleEditing();
 
-          if (e.type === "mouseover") {
-            Note.Body.show($note_box_inner.data("id"));
-            if (Note.editing) {
-              $this.resizable("enable");
-              $this.draggable("enable");
-            }
-          } else if (e.type === "mouseout") {
-            Note.Body.hide($note_box_inner.data("id"));
-            if (Note.editing) {
-              $this.resizable("disable");
-              $this.draggable("disable");
-            }
-          }
-
-          e.stopPropagation();
-        },
-      );
-
-      if (Utility.meta("current-user-name") !== "Anonymous") {
-        $note_box.on("dblclick.danbooru", function (e) {
-          if (e.target.tagName !== "A") {
-            var note_id = $note_box.data("id");
-            var note_body = Note.Body.find(note_id);
-            Note.Edit.show(note_body);
-          }
-          e.stopPropagation();
-        });
-      } else {
-        $note_box.on("dblclick.danbooru", function (e) {
-          var note_id = $note_box.data("id");
-          var note_body = Note.Body.find(note_id);
-          if (note_body.tagName !== "A") {
-            Utility.error("You must be logged in to edit notes");
-          }
-          e.stopPropagation();
-        });
+      if (NoteUtilities.editing) {
+        $("html, body").animate({ scrollTop: NoteUtilities.containerOffset.top }, 200);
+        NoteUtilities.visible = true;
       }
-    },
+    });
 
-    find: function (id) {
-      return $("#note-container div.note-box[data-id=" + id + "]");
-    },
+    $("#translation-cancel").on("click.e6.note", (event) => {
+      event.preventDefault();
+      NoteUtilities.editing = false;
+    });
 
-    show_highlighted: function ($note_box) {
-      var note_id = $note_box.data("id");
+    // Initialize interactivity once editing is enabled
+    NoteUtilities.container.one("note:editing:true", () => {
+      this.handleNoteEditing();
+      this.handleNoteDrawing();
+      this.handleNoteResizing();
+      this.handleNoteMoving();
 
-      Note.Body.show(note_id);
-      $(".note-box-highlighted").removeClass("note-box-highlighted");
-      $note_box.addClass("note-box-highlighted");
-      $note_box[0].scrollIntoView(false);
-    },
+      this.handleAbortEvents();
+    });
+  }
 
-    resize_inner_border: function ($note_box) {
-      var $inner_border = $note_box.find("div.note-box-inner-border");
-      $inner_border.css({
-        height: $note_box.height() - 2,
-        width: $note_box.width() - 2,
-      });
+  // ====================== //
+  // ==== Highlighting ==== //
+  // ====================== //
 
-      if ($inner_border.width() >= $note_box.width() - 2) {
-        $note_box.width($inner_border.width() + 2);
+  highlightHashNotes () {
+    $(".note-box.highlighted").removeClass("highlighted");
+
+    const anchorMatch = window.location.hash.match(/^#note-(\d+)$/);
+    if (!anchorMatch) return;
+    const note = Note.getByID(anchorMatch[1]);
+    if (!note) return;
+
+    note.highlighted = true;
+    note.$box[0].scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  // ====================== //
+  // ==== Note Editing ==== //
+  // ====================== //
+
+  handleNoteEditing () {
+    NoteUtilities.container.on("click.e6.note", ".note-body", (event) => {
+      if (!NoteUtilities.editing) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const box = $(event.currentTarget).parents(".note-box");
+      if (box.length == 0) return;
+      const noteID = box.attr("nid");
+      if (!noteID) return;
+
+      NoteManager.Editor.open(noteID);
+    });
+  }
+
+
+  // ====================== //
+  // ==== Note Drawing ==== //
+  // ====================== //
+
+  handleNoteDrawing () {
+
+    let isDrawing = false;
+    let startX = 0;
+    let startY = 0;
+    let drawingNoteId = null;
+    let mouseMoveThrottleId = null;
+
+    /** @type {Note} Note currently being drawn */
+    let $drawingNote = null;
+
+    const abortDrawing = () => {
+      if (!isDrawing || !$drawingNote) return;
+
+      $drawingNote.destroy();
+      $drawingNote = null;
+      drawingNoteId = null;
+      isDrawing = false;
+
+      // Cancel any pending animation frame
+      if (mouseMoveThrottleId) {
+        cancelAnimationFrame(mouseMoveThrottleId);
+        mouseMoveThrottleId = null;
       }
+    };
 
-      if ($inner_border.height() >= $note_box.height() - 2) {
-        $note_box.height($inner_border.height() + 2);
-      }
-    },
+    // Initial click to start drawing
+    NoteUtilities.container.on("mousedown.e6.note", (event) => {
+      if (!NoteUtilities.editing) return;
 
-    scale: function ($note_box) {
-      var $image = $("#image");
-      var $image_container = $("#image-container");
-      var ratio = $image.width() / parseFloat($image_container.data("width"));
-      var MIN_SIZE = 5;
-      $note_box.css({
-        top: Math.ceil(parseFloat($note_box.data("y")) * ratio),
-        left: Math.ceil(parseFloat($note_box.data("x")) * ratio),
-        width: Math.max(MIN_SIZE, Math.ceil(parseFloat($note_box.data("width")) * ratio)),
-        height: Math.max(MIN_SIZE, Math.ceil(parseFloat($note_box.data("height")) * ratio)),
-      });
-      Note.Box.resize_inner_border($note_box);
-    },
-
-    scale_all: function () {
-      var $container = $("#note-container");
-      if ($container.length === 0) {
-        return;
-      }
-      // Hide notes while rescaling, to prevent unnecessary reflowing
-      $container.data("resizing", true);
-      $(".note-box").each(function (i, v) {
-        Note.Box.scale($(v));
-      });
-      $container.data("resizing", false);
-    },
-
-    toggle_all: function () {
-      var $note_container = $("#note-container");
-      var is_hidden = ($note_container.css("visibility") === "hidden");
-
-      if (is_hidden) {
-        $note_container.css("visibility", "visible");
-      } else {
-        $note_container.css("visibility", "hidden");
-      }
-    },
-  },
-
-  Body: {
-    create: function (id) {
-      var $note_body = $("<div></div>");
-      $note_body.addClass("note-body");
-      $note_body.data("id", String(id));
-      $note_body.attr("data-id", String(id));
-      $note_body.hide();
-      Note.Body.bind_events($note_body);
-      return $note_body;
-    },
-
-    initialize: function ($note_body) {
-      var $note_box = Note.Box.find($note_body.data("id"));
-      $note_body.css({
-        top: $note_box.position().top + $note_box.height() + 5,
-        left: $note_box.position().left,
-      });
-      Note.Body.bound_position($note_body);
-    },
-
-    bound_position: function ($note_body) {
-      var $image = $("#image");
-      var doc_width = $image.offset().left + $image.width();
-
-      if ($note_body.offset().left + $note_body.width() > doc_width) {
-        $note_body.css({
-          left: $note_body.position().left - 10 - ($note_body.offset().left + $note_body.width() - doc_width),
-        });
-      }
-    },
-
-    show: function (id) {
-      Note.Body.hide_all();
-      Note.clear_timeouts();
-      var $note_body = Note.Body.find(id);
-      if (!$note_body.data("resized")) {
-        Note.Body.resize($note_body);
-        $note_body.data("resized", "true");
-      }
-      $note_body.show();
-      Note.Body.initialize($note_body);
-    },
-
-    find: function (id) {
-      return $("#note-container div.note-body[data-id=" + id + "]");
-    },
-
-    hide: function (id) {
-      var $note_body = Note.Body.find(id);
-      Note.timeouts.push(
-        setTimeout(() => { $note_body.hide(); }, 350),
-      );
-    },
-
-    hide_all: function () {
-      $("#note-container div.note-body").hide();
-    },
-
-    resize: function ($note_body) {
-      $note_body.css("min-width", "");
-      var w = $note_body.width();
-      var h = $note_body.height();
-      var golden_ratio = 1.6180339887;
-      var last = 0;
-      var x = 0;
-      var lo = 0;
-      var hi = 0;
-
-      if ((w / h) < golden_ratio) {
-        lo = 140;
-        hi = 400;
-
-        do {
-          last = w;
-          x = (lo + hi) / 2;
-          $note_body.css("min-width", x);
-          w = $note_body.width();
-          h = $note_body.height();
-
-          if ((w / h) < golden_ratio) {
-            lo = x;
-          } else {
-            hi = x;
-          }
-        } while ((lo < hi) && (w > last));
-      } else if ($note_body[0].scrollWidth <= $note_body.width()) {
-        lo = 20;
-        hi = w;
-
-        do {
-          x = (lo + hi) / 2;
-          $note_body.css("min-width", x);
-          if ($note_body.height() > h) {
-            lo = x;
-          } else {
-            hi = x;
-          }
-        } while ((hi - lo) > 4);
-        if ($note_body.height() > h) {
-          $note_body.css("min-width", hi);
-        }
-      }
-    },
-
-    set_text: function ($note_body, $note_box, text) {
-      Note.Body.display_text($note_body, text);
-      Note.Body.resize($note_body);
-      Note.Body.bound_position($note_body);
-    },
-
-    display_text: function ($note_body, text) {
-      $note_body.html(text);
-    },
-
-    bind_events: function ($note_body) {
-      $note_body.on("mouseover.danbooru", function (e) {
-        var $note_body_inner = $(e.currentTarget);
-        Note.Body.show($note_body_inner.data("id"));
-        e.stopPropagation();
-      });
-
-      $note_body.on("mouseout.danbooru", function (e) {
-        var $note_body_inner = $(e.currentTarget);
-        Note.Body.hide($note_body_inner.data("id"));
-        e.stopPropagation();
-      });
-
-      if (Utility.meta("current-user-name") !== "Anonymous") {
-        $note_body.on("click.danbooru", function (e) {
-          if (e.target.tagName !== "A") {
-            var $note_body_inner = $(e.currentTarget);
-            Note.Edit.show($note_body_inner);
-          }
-          e.stopPropagation();
-        });
-      } else {
-        $note_body.on("click.danbooru", function (e) {
-          if (e.target.tagName !== "A") {
-            Utility.error("You must be logged in to edit notes");
-          }
-          e.stopPropagation();
-        });
-      }
-    },
-  },
-
-  Edit: {
-    show: function ($note_body) {
-      var id = $note_body.data("id");
-
-      if (Note.editing) {
+      // Only respond to left mouse button
+      if (event.button !== 0) {
+        if (!isDrawing) return;
+        event.preventDefault();
+        abortDrawing();
         return;
       }
 
-      $(".note-box").resizable("disable");
-      $(".note-box").draggable("disable");
+      // Don't start drawing if clicking on an existing note
+      const $target = $(event.target);
+      if ($target.closest(".note-box").length > 0) return;
 
-      let $textarea = $("<textarea></textarea>");
-      $textarea.css({
-        width: "97%",
-        height: "92%",
-        resize: "none",
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Start drawing
+      isDrawing = true;
+      startX = event.pageX - NoteUtilities.containerOffset.left;
+      startY = event.pageY - NoteUtilities.containerOffset.top;
+
+      // Create a temporary note immediately
+      drawingNoteId = `temp-${Date.now()}`;
+      $drawingNote = new Note({
+        id: drawingNoteId,
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1,
+        content: "",
+        html: "",
       });
 
-      if ($note_body.html() !== "<em>Click to edit</em>") {
-        $textarea.val($note_body.data("original-body"));
+      $drawingNote.moveTo({ x: startX, y: startY });
+      $drawingNote.editing = true;
+    });
+
+    // Mousemove to update the drawing
+    NoteUtilities.container.on("mousemove.e6.note", (event) => {
+      if (!isDrawing || !$drawingNote) return;
+
+      event.preventDefault();
+
+      // Throttle mousemove events
+      if (mouseMoveThrottleId) cancelAnimationFrame(mouseMoveThrottleId);
+      mouseMoveThrottleId = requestAnimationFrame(() => {
+        const currentX = event.pageX - NoteUtilities.containerOffset.left;
+        const currentY = event.pageY - NoteUtilities.containerOffset.top;
+
+        $drawingNote.adjustTo({
+          x: Math.min(startX, currentX),
+          y: Math.min(startY, currentY),
+          width: Math.abs(currentX - startX),
+          height: Math.abs(currentY - startY),
+        });
+      });
+    });
+
+    // Mouseup to finalize the drawing
+    NoteUtilities.container.on("mouseup.e6.note", (event) => {
+      if (!isDrawing || !$drawingNote) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const endX = event.pageX - NoteUtilities.containerOffset.left;
+      const endY = event.pageY - NoteUtilities.containerOffset.top;
+
+      const width = Math.abs(endX - startX);
+      const height = Math.abs(endY - startY);
+
+      isDrawing = false;
+
+      // Cancel any pending animation frame
+      if (mouseMoveThrottleId) {
+        cancelAnimationFrame(mouseMoveThrottleId);
+        mouseMoveThrottleId = null;
       }
 
-      let $dialog = $("<div></div>");
-      $dialog.append($textarea);
-      $dialog.data("id", id);
-      $dialog.dialog({
-        width: 360,
-        height: 210,
-        position: {
-          my: "right",
-          at: "right-20",
-          of: window,
-        },
-        classes: {
-          "ui-dialog": "note-edit-dialog",
-        },
-        title: "Edit note",
-        buttons: {
-          "Save": Note.Edit.save,
-          "Preview": Note.Edit.preview,
-          "Cancel": Note.Edit.cancel,
-          "Delete": Note.Edit.destroy,
-          "History": Note.Edit.history,
-        },
-      });
-      $dialog.data("uiDialog")._title = function (title) {
-        title.html(this.options.title); // Allow unescaped html in dialog title
-      };
-      $dialog.dialog("option", "title", "Edit note #" + id + " (<a href=\"/wiki_pages/e621:notes\">view help</a>)");
+      // Only create note if the area is large enough (minimum 20x20 pixels)
+      let minSize = NoteUtilities.noteMinWidth;
+      if (width >= minSize && height >= minSize) {
+        $drawingNote.adjustTo({
+          x: Math.min(startX, endX),
+          y: Math.min(startY, endY),
+          width: width,
+          height: height,
+        });
 
-      $dialog.on("dialogclose.danbooru", function () {
-        Note.editing = false;
-        $(".note-box").resizable("enable");
-        $(".note-box").draggable("enable");
-      });
+        $drawingNote.$box.removeClass("editing");
+        $drawingNote.adjustBodyPosition();
+        NoteManager.Editor.open(drawingNoteId);
 
-      $textarea.selectEnd();
-      Note.editing = true;
-    },
+        $drawingNote = null;
+        drawingNoteId = null;
+      } else {
+        $drawingNote.destroy();
+        $drawingNote = null;
+        drawingNoteId = null;
+      }
+    });
 
-    parameterize_note: function ($note_box, $note_body) {
-      var $image = $("#image");
-      var $image_container = $("#image-container");
-      var original_width = parseInt($image_container.data("width"));
-      var ratio = parseInt($image.width()) / original_width;
+    NoteUtilities.container.on("note:abort mouseleave.e6.note", abortDrawing);
 
-      var hash = {
-        note: {
-          x: $note_box.position().left / ratio,
-          y: $note_box.position().top / ratio,
-          width: $note_box.width() / ratio,
-          height: $note_box.height() / ratio,
-          body: $note_body.data("original-body"),
-        },
+    NoteUtilities.container.on("contextmenu.e6.note", (event) => {
+      if (!isDrawing) return;
+      event.preventDefault();
+      abortDrawing();
+    });
+  }
+
+
+  // ====================== //
+  // ==== Note Resizing === //
+  // ====================== //
+
+  handleNoteResizing () {
+
+    // Handle note resizing
+    let isResizing = false;
+    let resizeHandle = null; // 'nw' or 'se'
+    let resizeStartX = 0;
+    let resizeStartY = 0;
+    let resizeOriginalBounds = null;
+    let resizeThrottleId = null;
+
+    /** @type {Note} Note currently being resized */
+    let $resizingNote = null;
+
+    // Mousedown to start resizing
+    NoteUtilities.container.on("mousedown.e6.note", ".note-handle", (event) => {
+      if (!NoteUtilities.editing) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const $handle = $(event.currentTarget);
+      const $noteBox = $handle.closest(".note-box");
+      const noteId = $noteBox.attr("nid");
+      const note = Note.getByID(noteId);
+
+      if (!note) return;
+
+      if (!note.hasBackup) note.backup();
+      isResizing = true;
+      $resizingNote = note;
+      resizeHandle = $handle.hasClass("note-handle-nw") ? "nw" : "se";
+
+      resizeStartX = event.pageX - NoteUtilities.containerOffset.left;
+      resizeStartY = event.pageY - NoteUtilities.containerOffset.top;
+
+      // Store original bounds in container coordinates
+      const ratio = NoteUtilities.scaleRatio;
+      resizeOriginalBounds = {
+        x: Math.round(note.x * ratio),
+        y: Math.round(note.y * ratio),
+        width: Math.round(note.width * ratio),
+        height: Math.round(note.height * ratio),
       };
 
-      if ($note_box.data("id").match(/x/)) {
-        hash.note.html_id = $note_box.data("id");
-        hash.note.post_id = Utility.meta("post-id");
-      }
+      note.editing = true;
+      note.pending = true;
+      NoteUtilities.resizing = true;
+    });
 
-      return hash;
-    },
+    // Mousemove to resize the note
+    NoteUtilities.container.on("mousemove.e6.note", (event) => {
+      if (!isResizing || !$resizingNote) return;
 
-    error_handler: function (xhr) {
-      Utility.error("Error: " + (xhr.responseJSON.reason || xhr.responseJSON.reasons.join("; ")));
-    },
+      event.preventDefault();
 
-    success_handler: function (data) {
-      var $note_box = null;
+      // Throttle resize events
+      if (resizeThrottleId) cancelAnimationFrame(resizeThrottleId);
+      resizeThrottleId = requestAnimationFrame(() => {
+        const currentX = event.pageX - NoteUtilities.containerOffset.left;
+        const currentY = event.pageY - NoteUtilities.containerOffset.top;
 
-      if (data.html_id) { // new note
-        var $note_body = Note.Body.find(data.html_id);
-        $note_box = Note.Box.find(data.html_id);
-        $note_body.data("id", String(data.id)).attr("data-id", data.id);
-        $note_box.data("id", String(data.id)).attr("data-id", data.id);
-        $note_box.find(".note-box-inner-border").removeClass("unsaved");
-      } else {
-        $note_box = Note.Box.find(data.id);
-        $note_box.find(".note-box-inner-border").removeClass("unsaved");
-      }
-    },
+        const deltaX = currentX - resizeStartX;
+        const deltaY = currentY - resizeStartY;
 
-    save: function () {
-      var $this = $(this);
-      var $textarea = $this.find("textarea");
-      var id = $this.data("id");
-      var $note_body = Note.Body.find(id);
-      var $note_box = Note.Box.find(id);
-      var text = $textarea.val();
-      $note_body.data("original-body", text);
-      Note.Body.set_text($note_body, $note_box, "Loading...");
-      $.post("/dtext_preview.json", { body: text, allow_color: true }).then(function (data) {
-        Note.Body.set_text($note_body, $note_box, data.html);
-        Note.Box.resize_inner_border($note_box);
-        $note_body.show();
-        $(window).trigger("e621:add_deferred_posts", data.posts);
+        let newX = resizeOriginalBounds.x;
+        let newY = resizeOriginalBounds.y;
+        let newWidth = resizeOriginalBounds.width;
+        let newHeight = resizeOriginalBounds.height;
+
+        if (resizeHandle === "nw") {
+          // Northwest handle: resize from top-left corner
+          newX = resizeOriginalBounds.x + deltaX;
+          newY = resizeOriginalBounds.y + deltaY;
+          newWidth = resizeOriginalBounds.width - deltaX;
+          newHeight = resizeOriginalBounds.height - deltaY;
+        } else if (resizeHandle === "se") {
+          // Southeast handle: resize from bottom-right corner
+          newWidth = resizeOriginalBounds.width + deltaX;
+          newHeight = resizeOriginalBounds.height + deltaY;
+        }
+
+        // Enforce minimum dimensions
+        const minSize = NoteUtilities.noteMinWidth;
+        if (newWidth < minSize) {
+          if (resizeHandle === "nw")
+            newX = resizeOriginalBounds.x + resizeOriginalBounds.width - minSize;
+          newWidth = minSize;
+        }
+        if (newHeight < minSize) {
+          if (resizeHandle === "nw")
+            newY = resizeOriginalBounds.y + resizeOriginalBounds.height - minSize;
+          newHeight = minSize;
+        }
+
+        // Update the note's bounds
+        $resizingNote.adjustTo({
+          x: newX,
+          y: newY,
+          width: newWidth,
+          height: newHeight,
+        });
       });
-      $this.dialog("close");
+    });
 
-      if (id.match(/\d/)) {
-        $.ajax("/notes/" + id + ".json", {
-          type: "PUT",
-          data: Note.Edit.parameterize_note($note_box, $note_body),
-          error: Note.Edit.error_handler,
-          success: Note.Edit.success_handler,
-        });
-      } else {
-        $.ajax("/notes.json", {
-          type: "POST",
-          data: Note.Edit.parameterize_note($note_box, $note_body),
-          error: Note.Edit.error_handler,
-          success: Note.Edit.success_handler,
-        });
+    // Mouseup to finalize resizing
+    NoteUtilities.container.on("mouseup.e6.note", (event) => {
+      // Handle note resizing
+      if (!isResizing || !$resizingNote) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Cancel any pending animation frame
+      if (resizeThrottleId) {
+        cancelAnimationFrame(resizeThrottleId);
+        resizeThrottleId = null;
       }
-    },
 
-    preview: function () {
-      var $this = $(this);
-      var $textarea = $this.find("textarea");
-      var id = $this.data("id");
-      var $note_body = Note.Body.find(id);
-      var text = $textarea.val();
-      var $note_box = Note.Box.find(id);
-      $note_box.find(".note-box-inner-border").addClass("unsaved");
-      Note.Body.set_text($note_body, $note_box, "Loading...");
-      $.post("/dtext_preview.json", { body: text, allow_color: true }).then(function (data) {
-        Note.Body.set_text($note_body, $note_box, data.html);
-        $note_body.show();
-        $(window).trigger("e621:add_deferred_posts", data.posts);
+      // Clean up
+      $resizingNote.editing = false;
+      NoteUtilities.resizing = false;
+      resizeOriginalBounds = null;
+      resizeHandle = null;
+      isResizing = false;
+
+      NoteManager.Editor.open($resizingNote.id);
+
+      // Wait for the UI to settle
+      requestAnimationFrame(() => {
+        $resizingNote.adjustBodyPosition();
+        $resizingNote = null;
       });
-    },
-
-    cancel: function () {
-      $(this).dialog("close");
-    },
-
-    destroy: function () {
-      if (!confirm("Do you really want to delete this note?")) {
-        return;
-      }
-
-      var $this = $(this);
-      var id = $this.data("id");
-
-      if (id.match(/\d/)) {
-        $.ajax("/notes/" + id + ".json", {
-          type: "DELETE",
-          success: function () {
-            Note.Box.find(id).remove();
-            Note.Body.find(id).remove();
-            $this.dialog("close");
-          },
-        });
-      }
-    },
-
-    history: function () {
-      var $this = $(this);
-      var id = $this.data("id");
-      if (id.match(/\d/)) {
-        window.location.href = "/note_versions?search[note_id]=" + id;
-      }
-      $(this).dialog("close");
-    },
-  },
-
-  TranslationMode: {
-    active: false,
-
-    toggle: function (e) {
-      if (Note.TranslationMode.active) {
-        Note.TranslationMode.stop(e);
-      } else {
-        PostsShowToolbar.toggleNotes(true);
-        $(".ptbr-notes, .ptbr-notes-button").removeClass("hidden");
-        Note.TranslationMode.start(e);
-      }
-    },
-
-    start: function (e) {
-      e.preventDefault();
-
-      if (Utility.meta("current-user-id") === "") {
-        Utility.error("You must be logged in to edit notes");
-        return;
-      }
-
-      if (Note.TranslationMode.active) {
-        return;
-      }
-
-      $("#image").css("cursor", "crosshair");
-      Note.TranslationMode.active = true;
-      $(document.body).addClass("mode-translation");
-      $("#original-file-link").click();
-      $("#image").off("click", Note.Box.toggle_all);
-      $("#image").on("mousedown.danbooru.note", Note.TranslationMode.Drag.start);
-      $(document).on("mouseup.danbooru.note", Note.TranslationMode.Drag.stop);
-      $("#mark-as-translated-section").show();
-
-      Utility.notice(`Translation mode is on. Drag on the image to create notes. <a href="#">Turn translation mode off</a> (shortcut is <span class="key">${Hotkeys.getKeyString("note")}</span>).`);
-      $("#notice a:contains(Turn translation mode off)").on("click.danbooru", Note.TranslationMode.stop);
-    },
-
-    stop: function (e) {
-      e.preventDefault();
-
-      Note.TranslationMode.active = false;
-      $("#image").css("cursor", "auto");
-      $("#image").on("click.danbooru", Note.Box.toggle_all);
-      $("#image").off("mousedown", Note.TranslationMode.Drag.start);
-      $(document).off("mouseup", Note.TranslationMode.Drag.stop);
-      $(document.body).removeClass("mode-translation");
-      $("#close-notice-link").click();
-      $("#mark-as-translated-section").hide();
-    },
-
-    create_note: function (e, x, y, w, h) {
-      var offset = $("#image").offset();
-
-      if (w > 9 || h > 9) { /* minimum note size: 10px */
-        if (w <= 9) {
-          w = 10;
-        } else if (h <= 9) {
-          h = 10;
-        }
-        Note.create(x - offset.left, y - offset.top, w, h);
-      }
-
-      $("#note-container").css("visibility", "visible");
-      e.stopPropagation();
-      e.preventDefault();
-    },
-
-    Drag: {
-      dragging: false,
-      dragStartX: 0,
-      dragStartY: 0,
-      dragDistanceX: 0,
-      dragDistanceY: 0,
-      x: 0,
-      y: 0,
-      w: 0,
-      h: 0,
-
-      start: function (e) {
-        if (e.which !== 1) {
-          return;
-        }
-        e.preventDefault(); /* don't drag the image */
-        $(document).on("mousemove.danbooru", Note.TranslationMode.Drag.drag);
-        Note.TranslationMode.Drag.dragStartX = e.pageX;
-        Note.TranslationMode.Drag.dragStartY = e.pageY;
-      },
-
-      drag: function (e) {
-        Note.TranslationMode.Drag.dragDistanceX = e.pageX - Note.TranslationMode.Drag.dragStartX;
-        Note.TranslationMode.Drag.dragDistanceY = e.pageY - Note.TranslationMode.Drag.dragStartY;
-        var $image = $("#image");
-        var offset = $image.offset();
-        var limitX1 = $image.width() - Note.TranslationMode.Drag.dragStartX + offset.left - 1;
-        var limitX2 = offset.left - Note.TranslationMode.Drag.dragStartX;
-        var limitY1 = $image.height() - Note.TranslationMode.Drag.dragStartY + offset.top - 1;
-        var limitY2 = offset.top - Note.TranslationMode.Drag.dragStartY;
-
-        if (Note.TranslationMode.Drag.dragDistanceX > limitX1) {
-          Note.TranslationMode.Drag.dragDistanceX = limitX1;
-        } else if (Note.TranslationMode.Drag.dragDistanceX < limitX2) {
-          Note.TranslationMode.Drag.dragDistanceX = limitX2;
-        }
-
-        if (Note.TranslationMode.Drag.dragDistanceY > limitY1) {
-          Note.TranslationMode.Drag.dragDistanceY = limitY1;
-        } else if (Note.TranslationMode.Drag.dragDistanceY < limitY2) {
-          Note.TranslationMode.Drag.dragDistanceY = limitY2;
-        }
-
-        if (Math.abs(Note.TranslationMode.Drag.dragDistanceX) > 9 && Math.abs(Note.TranslationMode.Drag.dragDistanceY) > 9) {
-          Note.TranslationMode.Drag.dragging = true; /* must drag at least 10pixels (minimum note size) in both dimensions. */
-        }
-        if (Note.TranslationMode.Drag.dragging) {
-          if (Note.TranslationMode.Drag.dragDistanceX >= 0) {
-            Note.TranslationMode.Drag.x = Note.TranslationMode.Drag.dragStartX;
-            Note.TranslationMode.Drag.w = Note.TranslationMode.Drag.dragDistanceX;
-          } else {
-            Note.TranslationMode.Drag.x = Note.TranslationMode.Drag.dragStartX + Note.TranslationMode.Drag.dragDistanceX;
-            Note.TranslationMode.Drag.w = -Note.TranslationMode.Drag.dragDistanceX;
-          }
-
-          if (Note.TranslationMode.Drag.dragDistanceY >= 0) {
-            Note.TranslationMode.Drag.y = Note.TranslationMode.Drag.dragStartY;
-            Note.TranslationMode.Drag.h = Note.TranslationMode.Drag.dragDistanceY;
-          } else {
-            Note.TranslationMode.Drag.y = Note.TranslationMode.Drag.dragStartY + Note.TranslationMode.Drag.dragDistanceY;
-            Note.TranslationMode.Drag.h = -Note.TranslationMode.Drag.dragDistanceY;
-          }
-
-          $("#note-preview").css({
-            display: "block",
-            left: (Note.TranslationMode.Drag.x + 1),
-            top: (Note.TranslationMode.Drag.y + 1),
-            width: (Note.TranslationMode.Drag.w - 3),
-            height: (Note.TranslationMode.Drag.h - 3),
-          });
-        }
-      },
-
-      stop: function (e) {
-        if (e.which !== 1) {
-          return;
-        }
-        if (Note.TranslationMode.Drag.dragStartX === 0) {
-          return; /* 'stop' is bound to window, don't create note if start wasn't triggered */
-        }
-        $(document).off("mousemove", Note.TranslationMode.Drag.drag);
-
-        if (Note.TranslationMode.Drag.dragging) {
-          $("#note-preview").css({ display: "none" });
-          Note.TranslationMode.create_note(e, Note.TranslationMode.Drag.x, Note.TranslationMode.Drag.y, Note.TranslationMode.Drag.w - 1, Note.TranslationMode.Drag.h - 1);
-          Note.TranslationMode.Drag.dragging = false; /* border of the note is pixel-perfect on the preview border */
-        } else { /* no dragging -> toggle display of notes */
-          Note.Box.toggle_all();
-        }
-
-        Note.TranslationMode.Drag.dragStartX = 0;
-        Note.TranslationMode.Drag.dragStartY = 0;
-      },
-    },
-  },
-
-  id: "x",
-  dragging: false,
-  editing: false,
-  timeouts: [],
-  pending: {},
-
-  add: function (container, id, x, y, w, h, original_body, sanitized_body) {
-    var $note_box = Note.Box.create(id);
-    var $note_body = Note.Body.create(id);
-
-    $note_box.data("x", x);
-    $note_box.data("y", y);
-    $note_box.data("width", w);
-    $note_box.data("height", h);
-    container.appendChild($note_box[0]);
-    container.appendChild($note_body[0]);
-    $note_body.data("original-body", original_body);
-    Note.Box.scale($note_box);
-    Note.Body.display_text($note_body, sanitized_body);
-  },
-
-  create: function (x, y, w, h) {
-    var $note_box = Note.Box.create(Note.id);
-    var $note_body = Note.Body.create(Note.id);
-    $note_box.css({
-      top: y,
-      left: x,
-      width: w,
-      height: h,
-    });
-    Note.Box.update_data_attributes($note_box);
-    $note_box.find(".note-box-inner-border").addClass("unsaved");
-    $note_body.html("<em>Click to edit</em>");
-    $("#note-container").append($note_box);
-    $("#note-container").append($note_body);
-    Note.Box.resize_inner_border($note_box);
-    Note.id += "x";
-  },
-
-  clear_timeouts: function () {
-    $.each(Note.timeouts, function (i, v) {
-      clearTimeout(v);
     });
 
-    Note.timeouts = [];
-  },
+    NoteUtilities.container.on("note:abort mouseleave.e6.note", () => {
+      if (!isResizing || !$resizingNote) return;
 
-  load_all: function () {
-    var fragment = document.createDocumentFragment();
-    $.each($("#notes article"), function (i, article) {
-      var $article = $(article);
-      Note.add(
-        fragment,
-        $article.data("id"),
-        $article.data("x"),
-        $article.data("y"),
-        $article.data("width"),
-        $article.data("height"),
-        $article.data("body"),
-        $article.html(),
-      );
+      // Revert to original bounds
+      if (resizeOriginalBounds)
+        $resizingNote.adjustTo(resizeOriginalBounds);
+
+      // Cancel any pending animation frame
+      if (resizeThrottleId) {
+        cancelAnimationFrame(resizeThrottleId);
+        resizeThrottleId = null;
+      }
+
+      // Clean up resizing state
+      $resizingNote.editing = false;
+      NoteUtilities.resizing = false;
+      resizeOriginalBounds = null;
+      resizeHandle = null;
+      isResizing = false;
+
+      // Wait for the UI to settle
+      requestAnimationFrame(() => {
+        $resizingNote.adjustBodyPosition();
+        $resizingNote = null;
+      });
     });
-    $("#note-container").append(fragment);
-  },
 
-  initialize_all: function () {
-    if ($("#c-posts #a-show #image").length === 0 || $("video#image").length) {
+    // Handle context menu during resizing
+    NoteUtilities.container.on("contextmenu.e6.note", (event) => {
+      if (!isResizing) return;
+      event.preventDefault();
+      NoteUtilities.container.trigger("note:abort");
+    });
+  }
+
+
+  // ====================== //
+  // ===== Note Moving ==== //
+  // ====================== //
+
+  handleNoteMoving () {
+
+    let isMoving = false;
+    let moveStartX = 0;
+    let moveStartY = 0;
+    let moveOriginalPosition = null;
+    let moveThrottleId = null;
+
+    /** @type {Note} Note currently being moved */
+    let $movingNote = null;
+
+    NoteUtilities.container.on("mousedown.e6.note", ".note-box", (event) => {
+      if (!NoteUtilities.editing) return;
+
+      // Ignore clicks on handles or body
+      const $noteBox = $(event.target);
+      if (!$noteBox.hasClass("note-box")) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const noteId = $noteBox.attr("nid");
+      const note = Note.getByID(noteId);
+      if (!note) return;
+
+      if (!note.hasBackup) note.backup();
+      isMoving = true;
+      $movingNote = note;
+
+      moveStartX = event.pageX - NoteUtilities.containerOffset.left;
+      moveStartY = event.pageY - NoteUtilities.containerOffset.top;
+
+      // Store original position in container coordinates
+      moveOriginalPosition = {
+        x: note.relX,
+        y: note.relY,
+      };
+
+      // Add visual feedback
+      note.editing = true;
+      note.pending = true;
+      NoteUtilities.dragging = true;
+    });
+
+    // Handle mousemove for note moving
+    NoteUtilities.container.on("mousemove.e6.note", (event) => {
+      if (!isMoving || !$movingNote) return;
+
+      event.preventDefault();
+
+      // Throttle move events
+      if (moveThrottleId) cancelAnimationFrame(moveThrottleId);
+      moveThrottleId = requestAnimationFrame(() => {
+        const currentX = event.pageX - NoteUtilities.containerOffset.left;
+        const currentY = event.pageY - NoteUtilities.containerOffset.top;
+
+        const deltaX = currentX - moveStartX;
+        const deltaY = currentY - moveStartY;
+
+        const newX = moveOriginalPosition.x + deltaX;
+        const newY = moveOriginalPosition.y + deltaY;
+
+        // Keep the note within the container bounds
+        const clampedX = Math.max(0, Math.min(newX, NoteUtilities.containerDimensions.width - $movingNote.relWidth));
+        const clampedY = Math.max(0, Math.min(newY, NoteUtilities.containerDimensions.height - $movingNote.relHeight));
+
+        // Update the note's position
+        $movingNote.moveTo({ x: clampedX, y: clampedY });
+      });
+    });
+
+    // Handle mouseup for note moving
+    NoteUtilities.container.on("mouseup.e6.note", (event) => {
+      if (!isMoving || !$movingNote) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Cancel any pending animation frame
+      if (moveThrottleId) {
+        cancelAnimationFrame(moveThrottleId);
+        moveThrottleId = null;
+      }
+
+      // Clean up
+      $movingNote.editing = false;
+      NoteUtilities.dragging = false;
+      moveOriginalPosition = null;
+      isMoving = false;
+
+      NoteManager.Editor.open($movingNote.id);
+
+      // Wait for the UI to settle
+      requestAnimationFrame(() => {
+        $movingNote.adjustBodyPosition();
+        $movingNote = null;
+      });
+    });
+
+    // Handle mouse leave to cancel moving
+    NoteUtilities.container.on("note:abort mouseleave.e6.note", () => {
+      if (!isMoving || !$movingNote) return;
+
+      // Clamp the note to the edge of the container
+      const currentPosition = $movingNote.$box.position();
+      const clampedX = Math.max(0, Math.min(currentPosition.left, NoteUtilities.containerDimensions.width - $movingNote.relWidth));
+      const clampedY = Math.max(0, Math.min(currentPosition.top, NoteUtilities.containerDimensions.height - $movingNote.relHeight));
+      $movingNote.moveTo({ x: clampedX, y: clampedY });
+
+      // Cancel any pending animation frame
+      if (moveThrottleId) {
+        cancelAnimationFrame(moveThrottleId);
+        moveThrottleId = null;
+      }
+
+      // Clean up
+      $movingNote.editing = false;
+      NoteUtilities.dragging = false;
+      moveOriginalPosition = null;
+      isMoving = false;
+
+      // Wait for the UI to settle
+      requestAnimationFrame(() => {
+        $movingNote.adjustBodyPosition();
+        $movingNote = null;
+      });
+    });
+
+    // Handle context menu during moving
+    NoteUtilities.container.on("contextmenu.e6.note", (event) => {
+      if (!isMoving) return;
+      event.preventDefault();
+      NoteUtilities.container.trigger("note:abort");
+    });
+  }
+
+
+  // ====================== //
+  //  Abort Events Handler  //
+  // ====================== //
+
+  handleAbortEvents () {
+
+    // Window losing focus causes the script to think that the mouse button is still held down
+    // Resize events will affect coordinate calculations
+    $(window).on("blur.e6.note resize.e6.note", () => {
+      NoteUtilities.container.trigger("note:abort");
+    });
+
+    // Escape key is pressed
+    $(document).on("keydown.e6.note", (event) => {
+      if (event.key !== "Escape") return;
+      NoteUtilities.container.trigger("note:abort");
+    });
+
+    // Page visibility changes
+    $(document).on("visibilitychange.e6.note", () => {
+      if (!document.hidden) return;
+      NoteUtilities.container.trigger("note:abort");
+    });
+  }
+
+
+  // ====================== //
+  //  Pass-through Methods  //
+  // ====================== //
+
+  // Pass-throughs to NoteUtilities
+  static get container () { return NoteUtilities.container; }
+  static get editing () { return NoteUtilities.editing; }
+  static set editing (value) { NoteUtilities.editing = value; }
+
+  static get enabled () { return NoteUtilities.visible; }
+  static set enabled (value) { NoteUtilities.visible = value; }
+
+
+  // ====================== //
+  // ==== Persistence ===== //
+  // ====================== //
+
+  // Singleton pattern
+  static _instance = null;
+  static get instance () {
+    if (this._instance === null)
+      this._instance = new NoteManager();
+    return this._instance;
+  }
+
+  // Note editor instance
+  static get Editor () {
+    return NoteEditor.instance;
+  }
+}
+
+
+/**
+ * Represents a single note on the image.
+ * Each note has a position, size, content, and associated DOM element.
+ */
+class Note {
+
+  constructor ({ id, x, y, width, height, content, html }) {
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.content = content;
+    this.isTemporary = typeof id === "string" && id.startsWith("temp-");
+
+    // Build DOM
+    this.$box = $("<div>")
+      .addClass("note-box hidden")
+      .attr("nid", id)
+      .on("note:scale", () => { this.updateScale(); })
+      .on("note:adjust", () => { this.adjustBodyPosition(); });
+
+    // Handles
+    $("<div>")
+      .addClass("note-handle note-handle-nw")
+      .appendTo(this.$box);
+    $("<div>")
+      .addClass("note-handle note-handle-se")
+      .appendTo(this.$box);
+
+    // Body
+    this.$body = $("<div>")
+      .addClass("note-body")
+      .html(html)
+      .appendTo(this.$box);
+
+    // Append to container
+    Note._noteIndex.set(id, this);
+    this.$box.appendTo(NoteUtilities.container);
+
+    // Initial scale
+    this.updateScale();
+    this.$box.removeClass("hidden");
+  }
+
+  backup () {
+    this.backupData = {
+      id: this.id,
+      x: this.x,
+      y: this.y,
+      width: this.width,
+      height: this.height,
+      content: this.content,
+      html: this.$body.html(),
+    };
+  }
+
+  restore () {
+    if (!this.hasBackup) return;
+
+    this.id = this.backupData.id;
+    this.x = this.backupData.x;
+    this.y = this.backupData.y;
+    this.width = this.backupData.width;
+    this.height = this.backupData.height;
+    this.content = this.backupData.content;
+    this.$body.html(this.backupData.html);
+
+    this.updateScale();
+    this.adjustBodyPosition();
+
+    delete this.backupData;
+    this.pending = false;
+  }
+
+  get hasBackup () { return typeof this.backupData !== "undefined"; }
+
+  updateScale () {
+    const scale = NoteUtilities.scaleRatio;
+    this.$box.css({
+      width: `${Math.round(this.width * scale)}px`,
+      height: `${Math.round(this.height * scale)}px`,
+      left: `${Math.round(this.x * scale)}px`,
+      top: `${Math.round(this.y * scale)}px`,
+    });
+
+    this.adjustBodyPosition();
+    this.updateIsTiny();
+  }
+
+  /** Adjusts the note body position to keep it within the container bounds */
+  adjustBodyPosition () {
+    if (!this.$box.is(":visible")) return;
+
+    const containerDimensions = NoteUtilities.containerDimensions;
+    const boxPosition = this.$box.position();
+    const boxHeight = this.$box.outerHeight();
+
+    const css = {};
+
+    // Overflows to the right
+    const bodyWidth = this.$body.outerWidth();
+    if (boxPosition.left + bodyWidth > containerDimensions.width)
+      css.left = `${containerDimensions.width - boxPosition.left - bodyWidth - 10}px`;
+
+    // Overflows to the bottom
+    const bodyHeight = this.$body.outerHeight();
+    if (boxPosition.top + boxHeight + bodyHeight + 5 > containerDimensions.height) {
+      css.top = `${-bodyHeight - 5}px`;
+      css.bottom = "unset";
+    }
+
+    this.$body.css({ left: "", top: "", bottom: "" });
+    this.$body.css(css);
+  }
+
+  updateIsTiny () {
+    const scale = NoteUtilities.scaleRatio;
+    this.$box.toggleClass("tiny", (this.width * scale < 70) || (this.height * scale < 70));
+  }
+
+  get focused () { return this.$box.hasClass("focused"); }
+  set focused (value) { this.$box.toggleClass("focused", value); }
+  get pending () { return this.$box.hasClass("pending"); }
+  set pending (value) { this.$box.toggleClass("pending", value); }
+  get editing () { return this.$box.hasClass("editing"); }
+  set editing (value) { this.$box.toggleClass("editing", value); }
+  get highlighted () { return this.$box.hasClass("highlighted"); }
+  set highlighted (value) { this.$box.toggleClass("highlighted", value); }
+
+  // Automatically converted attributes using container-relative coordinates
+  get relX () { return Math.round(this.x * NoteUtilities.scaleRatio); }
+  get relY () { return Math.round(this.y * NoteUtilities.scaleRatio); }
+  get relWidth () { return Math.round(this.width * NoteUtilities.scaleRatio); }
+  get relHeight () { return Math.round(this.height * NoteUtilities.scaleRatio); }
+
+
+  /** Set position using container-relative coordinates */
+  moveTo ({x, y}) {
+    const scale = NoteUtilities.scaleRatio;
+    this.x = Math.round(x / scale);
+    this.y = Math.round(y / scale);
+    this.$box.css({
+      left: x + "px",
+      top: y + "px",
+    });
+  }
+
+  /** Set dimensions using container-relative coordinates */
+  resizeTo ({width, height}) {
+    const scale = NoteUtilities.scaleRatio;
+    this.width = Math.round(width / scale);
+    this.height = Math.round(height / scale);
+    this.$box.css({
+      width: width + "px",
+      height: height + "px",
+    });
+    this.updateIsTiny();
+  }
+
+  /** Set both position and dimensions using container-relative coordinates */
+  adjustTo ({x, y, width, height}) {
+    const scale = NoteUtilities.scaleRatio;
+    this.x = Math.round(x / scale);
+    this.y = Math.round(y / scale);
+    this.width = Math.max(1, Math.round(width / scale));
+    this.height = Math.max(1, Math.round(height / scale));
+    this.$box.css({
+      left: x + "px",
+      top: y + "px",
+      width: width + "px",
+      height: height + "px",
+    });
+    this.updateIsTiny();
+  }
+
+  /** Remove the note from the DOM and index */
+  destroy () {
+    this.$box.remove();
+    Note._noteIndex.delete(this.id);
+  }
+
+  /** Retrieves data from saved notes and converts it into a Note instance */
+  static fromStaged (stagedElement) {
+    const $staged = $(stagedElement);
+    const noteData = stagedElement.dataset;
+    const html = $staged.html();
+
+    return new Note({
+      id: noteData.id,
+      x: noteData.x,
+      y: noteData.y,
+      width: noteData.width,
+      height: noteData.height,
+      content: noteData.body,
+      html: html,
+    });
+  }
+
+
+  // ====================== //
+  // ==== Note Lookup ===== //
+  // ====================== //
+
+  static _noteIndex = new Map();
+
+  /** Returns a Note instance by its ID, or null if not found */
+  static getByID (id) { return this._noteIndex.get(id) || null; }
+}
+
+
+class NoteEditor {
+
+  constructor () {
+    this.form = $("#note-editor");
+    this.dialog = new Dialog(this.form);
+    this.input = $("#note-editor-input");
+
+    this.id = null;
+
+    // Update note preview when the user makes changes
+    this.previewTimeout = null;
+    this.input.on("input.e6.note", () => {
+      if (!this.id) return;
+
+      if (!this.currentNote.hasBackup) this.currentNote.backup();
+      this.currentNote.pending = true;
+      this.currentNote.content = this.getInputText();
+
+      // Wait for the user to stop typing
+      if (this.previewTimeout) clearTimeout(this.previewTimeout);
+      this.previewTimeout = setTimeout(() => {
+        this.updatePreview();
+        this.previewTimeout = null;
+      }, 300);
+    });
+
+    // Save note on form submit
+    this.form.on("submit.e6.note", (event) => {
+      event.preventDefault();
+
+      if (!this.id) {
+        Utility.error("Error: No note is currently being edited.");
+        return false;
+      }
+
+      if (this.getInputText().length == 0) {
+        Utility.error("Error: Note content cannot be empty.");
+        return false;
+      }
+
+      this.saveNote();
+      return false;
+    });
+
+    // Cancel without saving
+    this.form.find("button[name='note-cancel']").on("click.e6.note", () => { this.close(true); });
+
+    // Close the dialog when the 'X' is clicked
+    this.form.on("dialog:close", () => { this.close(false, false); });
+
+    // Delete note
+    this.form.find("button[name='note-delete']").on("click.e6.note", () => {
+      if (!this.id) {
+        Utility.error("Error: No note is currently being edited.");
+        return false;
+      }
+
+      if (!confirm(`Are you sure you want to delete note #${this.id}? This action cannot be undone.`))
+        return;
+
+      this.deleteNote();
+    });
+
+    // Note history
+    this.form.find("button[name='note-history']").on("click.e6.note", () => {
+      if (!this.id) {
+        Utility.error("Error: No note is currently being edited.");
+        return false;
+      }
+
+      window.location.href = "/note_versions?search[note_id]=" + this.id;
+    });
+  }
+
+  _currentNote = null;
+  get currentNote () {
+    if (!this._currentNote || this._currentNote.id !== this.id)
+      this._currentNote = Note.getByID(this.id);
+    return this._currentNote;
+  }
+
+  getCurrentNote () {
+    if (!this.id) return null;
+    return Note.getByID(this.id);
+  }
+
+  getInputText () {
+    return (this.input.val() + "").trim();
+  }
+
+  /** Updates the note body preview with DText rendering */
+  updatePreview () {
+    const note = this.currentNote;
+    if (!note) return;
+
+    const currentText = this.getInputText();
+    if (!currentText) {
+      note.$body.html("");
+      this.input.removeData("cache");
       return;
     }
 
-    Note.load_all();
+    // Input has not changed since last time
+    if (this.input.data("cache") === currentText) return;
+    this.input.data("cache", currentText);
 
-    this.initialize_shortcuts();
-    this.initialize_highlight();
-    $(document).on("hashchange.danbooru.note", this.initialize_highlight);
-  },
+    TaskQueue.add(() => {
+      $.ajax({
+        type: "POST",
+        url: "/dtext_preview.json",
+        dataType: "json",
+        data: {
+          body: currentText,
+          allow_color: true,
+        },
+        success: (response) => {
+          if (this.input.data("cache") !== currentText || !this.currentNote) return;
 
-  initialize_shortcuts: function () {
-    $("#translate").on("click.danbooru", Note.TranslationMode.toggle);
-  },
+          note.$body.html(response.html);
+          if (response.posts)
+            $(window).trigger("e621:add_deferred_posts", response.posts);
+          note.adjustBodyPosition();
+        },
+        error: () => {
+          // Force retry even if input hasn't changed
+          this.input.removeData("cache");
+        },
+      });
+    }, { name: "NoteEditor.updatePreview" });
+  }
 
-  initialize_highlight: function () {
-    var matches = window.location.hash.match(/^#note-(\d+)$/);
+  /** Saves the current note */
+  saveNote () {
+    const note = this.currentNote;
+    if (!note) return;
 
-    if (matches) {
-      var $note_box = Note.Box.find(matches[1]);
-      Note.Box.show_highlighted($note_box);
+    const url = note.isTemporary ? "/notes.json" : `/notes/${this.id}.json`;
+    const method = note.isTemporary ? "POST" : "PUT";
+
+    const noteData = {
+      x: note.x,
+      y: note.y,
+      width: note.width,
+      height: note.height,
+      body: this.getInputText(),
+    };
+
+    // Add post_id for new notes
+    if (note.isTemporary) {
+      const postId = $("#image-container").data("id");
+      if (!postId) {
+        Utility.error("Error: Could not determine post ID.");
+        return;
+      }
+      noteData.post_id = postId;
     }
-  },
-};
 
-$(function () {
-  Note.initialize_all();
-});
+    $.ajax(url, {
+      type: method,
+      data: { note: noteData },
+      error: (xhr) => {
+        const errorMessage = xhr.responseJSON?.reasons?.join("; ") || xhr.responseJSON?.reason || "Unknown error";
+        Utility.error("Error saving note: " + errorMessage);
+      },
+      success: (data) => {
+        if (!data || !data.note || !data.dtext) {
+          Utility.error("Error: Invalid response from server.");
+          return;
+        }
 
-export default Note;
+        const newData = JSON.parse(data.note);
+        if (note.isTemporary) {
+          // Remove the temporary note from the index
+          Note._noteIndex.delete(this.id);
+
+          // Update the note with the real ID and data from server
+          // Convert to string to maintain consistency
+          note.id = String(newData.id);
+          note.isTemporary = false; // No longer temporary
+          note.$box.attr("nid", note.id);
+          this.id = note.id;
+
+          // Add back to index with new ID
+          Note._noteIndex.set(note.id, note);
+        }
+
+        // Update note properties
+        note.x = newData.x;
+        note.y = newData.y;
+        note.width = newData.width;
+        note.height = newData.height;
+        note.content = newData.body;
+        note.$body.html(data.dtext);
+        note.updateScale();
+
+        note.pending = false;
+        if (note.hasBackup) delete note.backupData;
+
+        if (data.posts) {
+          $(window).trigger("e621:add_deferred_posts", data.posts);
+        }
+
+        this.close();
+      },
+    });
+  }
+
+  /** Deletes the current note */
+  deleteNote () {
+    const note = this.currentNote;
+    if (!note) return;
+
+    $.ajax("/notes/" + this.id + ".json", {
+      type: "DELETE",
+      success: () => {
+        note.destroy();
+        this.close();
+      },
+    });
+  }
+
+  /** Open the editor for a specific note */
+  open (noteID) {
+    if (!NoteUtilities.editing) return;
+    if (!noteID) throw new Error("Note ID is required to open the editor.");
+
+    const note = Note.getByID(noteID);
+    if (!note) throw new Error(`Note with ID ${noteID} not found.`);
+    this.id = noteID;
+
+    $(".note-box.focused").removeClass("focused");
+    note.focused = true;
+
+    // Check if this is a new note being created
+    const isTemporary = note.isTemporary;
+    this.dialog.setTitle(isTemporary ? "Create new note" : `Edit note #${noteID}`);
+    this.form.toggleClass("temporary", isTemporary);
+    this.input.val(note.content || "");
+
+    this.dialog.open();
+  }
+
+  /** Close the editor and clean up */
+  close (restoreBackup = false, closeDialog = true) {
+    // Check if content was changed and remove pending class if not
+    if (this.id) {
+      const note = Note.getByID(this.id);
+      if (note) {
+        // If we're closing a temporary note without saving, remove it
+        if (note.isTemporary) note.destroy();
+        else if (restoreBackup) note.restore();
+      }
+    }
+
+    if (closeDialog) this.dialog.close();
+    $(".note-box.focused").removeClass("focused");
+
+    // Clean up editor state
+    this.dialog.setTitle("");
+    this.input.val("");
+    this.form.removeClass("temporary");
+
+    // Clear DText preview
+    this.input.removeData("cache");
+    if (this.previewTimeout) {
+      clearTimeout(this.previewTimeout);
+      this.previewTimeout = null;
+    }
+
+    this.id = null;
+  }
+
+
+  // ====================== //
+  // ==== Persistence ===== //
+  // ====================== //
+
+  // Singleton pattern
+  static _instance = null;
+  static get instance () {
+    if (this._instance === null)
+      this._instance = new NoteEditor();
+    return this._instance;
+  }
+}
+
+
+/**
+ * Utility class for note-related operations, such as scaling and container management.
+ */
+class NoteUtilities {
+
+  // ==================== //
+  // ==== Container ===== //
+  // ==================== //
+
+  static _container = null; // Container element to which notes are appended
+
+  // Cached container properties
+  static _containerDimensions = null;
+  static _containerOffset = null;
+
+  // Container states
+  static _editing = false; // Editing mode is engaged
+  static _visible = LStorage.Posts.Notes; // Container is visible
+  static _dragging = false;
+  static _resizing = false;
+
+
+  /** Returns the container to which all notes are appended */
+  static get container () {
+    if (this._container !== null) return this._container;
+    this._container = $("#note-container");
+
+    // Load container state from storage
+    this._container.attr("enabled", LStorage.Posts.Notes + "");
+
+    // Set up ResizeObserver to track size changes
+    const resizeObserver = new ResizeObserver(() => {
+      this._scaleRatio = null;
+      this._containerDimensions = null;
+      this._containerOffset = null;
+      $("#note-container .note-box").trigger("note:scale");
+    });
+    resizeObserver.observe(this._container[0]);
+
+    return this._container;
+  }
+
+  static get containerDimensions () {
+    if (this._containerDimensions === null)
+      this._containerDimensions = {
+        width: this.container.width(),
+        height: this.container.height(),
+      };
+    return this._containerDimensions;
+  }
+
+  static get containerOffset () {
+    if (this._containerOffset === null)
+      this._containerOffset = this.container.offset();
+    return this._containerOffset;
+  }
+
+  /** Whether the note editor is currently active */
+  static toggleEditing () { this.editing = !this.editing; }
+  static get editing () { return this._editing; }
+  static set editing (value) {
+    this._editing = value;
+    this.container
+      .trigger(`note:editing:${value}`)
+      .attr("editing", value ? "true" : "false");
+
+    if (value) {
+      $("#mark-as-translated-section").show();
+    } else {
+      $("#mark-as-translated-section").hide();
+      NoteEditor.instance.close();
+      this.container.trigger("note:abort");
+    }
+  }
+
+  /** Whether the note container is visible */
+  static get visible () { return this._visible; }
+  static set visible (value) {
+    this._visible = value;
+    LStorage.Posts.Notes = value;
+    NoteUtilities.container
+      .attr("enabled", value)
+      .trigger(`note:visible:${value}`);
+
+    // Cannot scale note bodies if notes are hidden
+    if (value) $("#note-container .note-box").trigger("note:scale");
+  }
+
+  /** Whether a note is currently being moved, resized, or drawn */
+  static get dragging () { return this._dragging; }
+  static set dragging (value) {
+    this._dragging = value;
+    this.container.attr("dragging", value ? "true" : "false");
+  }
+
+  static get resizing () { return this._resizing; }
+  static set resizing (value) {
+    this._resizing = value;
+    this.container.attr("resizing", value ? "true" : "false");
+  }
+
+  // ==================== //
+  // ==== Scaling ======= //
+  // ==================== //
+
+  static _scaleRatio = null;
+  static _originalImageWidth = null;
+  static _originalImageHeight = null;
+
+  /** Returns the ratio between the current container size and that of the original image */
+  static get scaleRatio () {
+    if (this._scaleRatio !== null) return this._scaleRatio;
+
+    if (!this._originalImageWidth) {
+      const $image = $("#image-container");
+      this._originalImageWidth = parseFloat($image.data("width")) || 1;
+      this._originalImageHeight = parseFloat($image.data("height")) || 1;
+    }
+
+    this._scaleRatio = this.container.width() / this._originalImageWidth;
+    return this._scaleRatio;
+  }
+
+  /** Returns the minimum width of a note in container coordinates */
+  static get noteMinWidth () {
+    return Math.round(20 * NoteUtilities.scaleRatio);
+  }
+}
+
+
+$(() => { NoteManager.instance; });
