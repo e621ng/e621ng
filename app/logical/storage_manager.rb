@@ -9,7 +9,7 @@ class StorageManager
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
-  def initialize(base_url: default_base_url, base_path: default_base_path, base_dir: DEFAULT_BASE_DIR, hierarchical: false,
+  def initialize(base_url: default_base_url, base_path: default_base_path, base_dir: DEFAULT_BASE_DIR, hierarchical: false, # rubocop:disable Metrics/ParameterLists
                  large_image_prefix: Danbooru.config.large_image_prefix,
                  protected_prefix: Danbooru.config.protected_path_prefix,
                  replacement_prefix: Danbooru.config.replacement_path_prefix)
@@ -27,7 +27,8 @@ class StorageManager
   end
 
   def default_base_url
-    Rails.application.routes.url_helpers.root_url
+    return Rails.application.routes.url_helpers.root_url unless Rails.env.development?
+    "/" # This allows for hosts other than `localhost:3000` to be used without prior setup.
   end
 
   # Store the given file at the given path. If a file already exists at that
