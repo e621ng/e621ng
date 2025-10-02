@@ -166,7 +166,7 @@ export default class User {
     }).then(
       () => {
         // Reload the dialog editor box
-        $("#blacklist-edit-dialog").dialog("close");
+        if (Blacklist.dialog) Blacklist.dialog.close();
         $("meta[name=blacklisted-tags]").attr("content", JSON.stringify(this.blacklist.tags));
 
         // Rebuild the filters

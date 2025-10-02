@@ -147,7 +147,7 @@ PostSet.initialize_add_to_set_link = function () {
     e.preventDefault();
     const post_id = $("#image-container").data("id");
     PostSet.add_many_posts($("#add-to-set-id").val(), [post_id]);
-    $("#add-to-set-dialog").dialog("close");
+    postSetDialog.close();
   });
 };
 
