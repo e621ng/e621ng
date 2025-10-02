@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 module FileMethods
-  def is_image?
-    is_png? || is_jpg? || is_gif?
-  end
+  # === File Type methods ===
 
   def is_png?
     file_ext == "png"
@@ -29,27 +27,44 @@ module FileMethods
     file_ext == "mp4"
   end
 
+  def is_image?
+    is_png? || is_jpg? || is_gif?
+  end
+
   def is_video?
     is_webm? || is_mp4?
   end
 
-  def is_animated_png?(file_path)
-    is_png? && ApngInspector.new(file_path).inspect!.animated?
+  # === Animation Methods ===
+
+  def is_animated_png?
+    is_png? && is_animated?
   end
 
-  def is_animated_gif?(file_path)
+  def is_animated_gif?
+    is_gif? && is_animated?
+  end
+
+  def is_animated_file?(file_path)
+    return true if is_video?
+    return is_animated_gif_file?(file_path) if is_gif?
+    return is_animated_png_file?(file_path) if is_png?
+    false
+  end
+
+  def is_animated_png_file?(file_path)
+    is_png? && ApngInspector.animated_quick?(file_path)
+  end
+
+  def is_animated_gif_file?(file_path)
     return false unless is_gif?
 
-    # Check whether the gif has multiple frames by trying to load the second frame.
-    result = Vips::Image.gifload(file_path, page: 1) rescue $ERROR_INFO
-    if result.is_a?(Vips::Image)
-      true
-    elsif result.is_a?(Vips::Error) && result.message =~ /bad page number/
-      false
-    else
-      raise result
-    end
+    image = Vips::Image.new_from_file(file_path, access: :sequential, n: 1)
+    n_pages = image.get_typeof("n-pages") == 0 ? 1 : image.get("n-pages")
+    n_pages.to_i > 1
   end
+
+  # === Other Methods ===
 
   def is_ai_generated?(file_path)
     return false if !is_image?

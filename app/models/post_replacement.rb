@@ -217,6 +217,11 @@ class PostReplacement < ApplicationRecord
       processor = UploadService::Replacer.new(post: post, replacement: self)
       processor.process!(penalize_current_uploader: penalize_current_uploader)
       PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5 })
+
+      # Recalculate post attributes, just in case
+      post.is_animated = is_animated_file?(replacement_file_path)
+      post.duration = video_duration(replacement_file_path) if post.is_video?
+
       post.update_index
     end
 
