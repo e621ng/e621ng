@@ -67,15 +67,10 @@ Rails.application.configure do # rubocop:disable Metrics/BlockLength
 
   config.hosts << "e621ng.local"
 
-  # config.after_initialize do
-    # Allow access from GitHub Codespaces, if applicable
+  # Allow access from GitHub Codespaces, if applicable
   if ENV["CODESPACES"].present? && ENV.fetch("CODESPACES", "false") == "true"
-    # codespace_host = "#{ENV.fetch('CODESPACE_NAME', '')}-#{ENV.fetch('EXPOSED_SERVER_PORT', '3000')}.#{ENV.fetch('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN', 'app.github.dev')}"
     codespace_host = /#{ENV.key?('CODESPACE_NAME') ? Regexp.escape(ENV['CODESPACE_NAME']) : '.*'}-#{ENV.fetch('EXPOSED_SERVER_PORT', '3000')}.#{Regexp.escape(ENV.fetch('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN', 'app.github.dev'))}/
     config.hosts << codespace_host # for some reason, rails doesn't like the full domain
-    # puts "Allowed Codespaces host: #{codespace_host}"
-  # else
-    # puts "Not running in Codespaces"
   end
   # end
 end
