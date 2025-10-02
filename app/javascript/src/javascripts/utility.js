@@ -110,7 +110,7 @@ Utility.presence = (e) => Utility.isPresent(e) ? e : undefined;
  * Use the `id-type` attribute to accept only ids for the given resource.
  *
  * Use the `multi-value` attribute to accept more than 1 value:
- * * `comma`: corrects to a comma-separated list
+ * * `comma`: corrects to a comma-separated list; default value if unspecified.
  * * `space`: corrects to a space-separated list
  *
  * Example:
@@ -128,8 +128,7 @@ Utility.validateIdInput = function (event) {
     !(e instanceof HTMLInputElement || e instanceof HTMLTextAreaElement) ||
     !e.classList.contains("id-input") ||
     /^[0-9]+$/.test(e.value) ||
-    (e.getAttribute("multi-value") == "space" && /^[0-9 ]+$/.test(e.value)) ||
-    (e.getAttribute("multi-value") == "comma" && /^[0-9,]+$/.test(e.value)) ||
+    (e.getAttribute("multi-value") == "space" ? /^[0-9 ]+$/.test(e.value): e.hasAttribute("multi-value") && /^[0-9,]+$/.test(e.value)) ||
     ((e.value?.length || 0) === 0 && !e.hasAttribute("required"))) {
     return;
   }
@@ -137,6 +136,16 @@ Utility.validateIdInput = function (event) {
   if (/^[^0-9]*$/.test(e.value)) {
     e.className += " invalid-input";
     e.value = "";
+    return;
+  }
+  const mv = e.getAttribute("multi-value"), hmv = e.hasAttribute("multi-value");
+  if (hmv && /^[0-9\s,]+$/.test(e.value)) {
+    if (mv == "space") {
+      e.value = e.value.replaceAll(/[,\s]+/g, " ").trim();
+    }
+    else /* if (mv == "comma") */ {
+      e.value = e.value.trim().replaceAll(/[,\s]+/g, ",");
+    }
     return;
   }
   let s0 = `(?:https?://)(?:www\\.)?${Utility.regexp_escape(window.location.host)}/`, s1, s2;
@@ -160,7 +169,7 @@ Utility.validateIdInput = function (event) {
       s2 = "[^-0-9]*"
       break;
   }
-  if (e.hasAttribute("multi-value")) {
+  if (hmv) {
     const initialV = e.value;
     const re = RegExp(`${s0}(?:${s1}/([0-9]+)|.+?${s2}-([0-9]+))`, "g");
     let values = [];
@@ -168,15 +177,12 @@ Utility.validateIdInput = function (event) {
     for (let match = re.exec(initialV); match; match = re.exec(initialV)) {
       values.push(Utility.presence(match[1]) || match[2]);
     }
-    e.value = values.join(e.getAttribute("multi-value") == "space" ? " " : ",");
+    e.value = values.join(mv == "space" ? " " : ",");
     if (Utility.isBlank(e.value) && e.hasAttribute("required")) {
       e.className += " invalid-input";
     }
   } else {
-    const match = RegExp(
-      `${s0}(?:${s1}/([0-9]+)|.+?${s2}-([0-9]+))`,
-      e.hasAttribute("multi-value") ? "g" : undefined,
-    ).exec(e.value);
+    const match = RegExp(`${s0}(?:${s1}/([0-9]+)|.+?${s2}-([0-9]+))`).exec(e.value);
     if (!match) {
       e.value = "";
       if (e.hasAttribute("required"))
