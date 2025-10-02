@@ -64,15 +64,34 @@ module FileMethods
     end
   end
 
+  # Returns true if the WebP file is animated, false otherwise.
+  # Fast-ish approach: scans the file header for animation markers (ANIM/ANMF).
+  # See: https://developers.google.com/speed/webp/docs/riff_container#extended
   def is_animated_webp?(file_path)
     return false unless is_webp?
 
-    image = Vips::Image.new_from_file(file_path, n: -1)
-    begin
-      image.get("n-pages") > 1
-    rescue Vips::Error
-      false
+    File.open(file_path, "rb") do |f|
+      header = f.read(12)
+      # Expect: 'RIFF' <size:LE32> 'WEBP'
+      return false unless header && header.bytesize == 12
+      return false unless header[0, 4] == "RIFF" && header[8, 4] == "WEBP"
+
+      # Iterate over chunks: <FourCC:4><Size:LE32><Payload...> (padded to even length)
+      loop do
+        chunk_header = f.read(8)
+        break false unless chunk_header && chunk_header.bytesize == 8
+
+        # ANIM = animation header, ANMF = animation frame
+        return true if %w[ANIM ANMF].include?(chunk_header[0, 4])
+
+        # Skip payload (+ padding byte if size is odd)
+        chunk_size = chunk_header[4, 4].unpack1("V") # Little-endian uint32
+        skip = chunk_size + (chunk_size.odd? ? 1 : 0)
+        f.seek(skip, IO::SEEK_CUR)
+      end
     end
+  rescue StandardError => _e
+    false
   end
 
   def file_header_to_file_ext(file_path)
