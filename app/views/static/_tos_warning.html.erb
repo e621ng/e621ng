@@ -1,7 +1,7 @@
 <% if cookies.signed[:tos_accepted].blank? || cookies.signed[:tos_accepted].to_i != Setting.tos_version %>
 <div class="tos-modal-container">
   <%= form_tag(
-    accept_terms_of_service_path,
+    accept_terms_of_use_path,
     method: :post,
     class: "tos-modal",
     id: "tos-form",
@@ -14,7 +14,7 @@
   ) do %>
 
     <%# Header %>
-    <h1 class="tos-modal-header">Terms of Service</h1>
+    <h1 class="tos-modal-header">Terms of Use</h1>
 
     <%# Content %>
     <div class="tos-modal-content">
@@ -24,7 +24,7 @@
         <label for="tos-age-checkbox">I am 18 years of age or older.</label>
 
         <input type="checkbox" id="tos-terms-checkbox" name="terms" />
-        <label for="tos-terms-checkbox"> I have read and accept the Terms of Service.</label>
+        <label for="tos-terms-checkbox"> I have read and accept the Terms of Use.</label>
       </div>
     </div>
 

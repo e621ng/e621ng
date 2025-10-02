@@ -75,6 +75,15 @@ body.scroll-lock {
         font-size: 1.1rem;
         margin: unset;
       }
+
+      // Default link styles not suited to light mode
+      a, a:link, a:active {
+        color: #0000EE;
+        text-decoration: underline;
+      }
+      a:visited {
+        color: #551A8B;
+      }
     }
   }
 
