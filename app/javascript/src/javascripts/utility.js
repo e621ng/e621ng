@@ -103,22 +103,24 @@ Utility.presence = (e) => Utility.isPresent(e) ? e : undefined;
 /**
  * Validates that a text input element expecting an id that receives a URL has its value replaced
  * with the URL's id (should an appropriate one exist).
- * 
+ *
  * Register on `blur` or `focusout` on an element that has a `id-input` class (or contains applicable
  * elements if delegating).
- * 
+ *
  * Use the `id-type` attribute to accept only ids for the given resource.
- * 
- * IDEA: Handle multi-value entries w/ `multi-value` attribute?
- * 
- * IDEA: Leverage [HTML's `pattern` attribute](<https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/pattern>)?
- * 
- * @param {FocusEvent} event 
- */
+ *
+ * Use the `multi-value` attribute to accept more than 1 value:
+ * * `comma`: corrects to a comma-separated list
+ * * `space`: corrects to a space-separated list
+ *
+ * Example:
+ * ```erb
+ * <%= f.input :post_ids_string, as: :text, label: "Posts", input_html: { class: "id-input", "multi-value" => "space" } %>
+ * ```
+ * @param {FocusEvent} event The event.
+ */ //IDEA: Leverage [HTML's `pattern` attribute](<https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/pattern>)?
 Utility.validateIdInput = function (event) {
-  /**
-   * @type {HTMLInputElement|HTMLTextAreaElement}
-   */
+  /** @type {HTMLInputElement|HTMLTextAreaElement} */
   const e = event.target;
   e.classList.remove("invalid-input");
   // If it's not an applicable element or is properly formatted or is permissibly omitted, abort.
@@ -126,9 +128,11 @@ Utility.validateIdInput = function (event) {
     !(e instanceof HTMLInputElement || e instanceof HTMLTextAreaElement) ||
     !e.classList.contains("id-input") ||
     /^[0-9]+$/.test(e.value) ||
+    (e.getAttribute("multi-value") == "space" && /^[0-9 ]+$/.test(e.value)) ||
+    (e.getAttribute("multi-value") == "comma" && /^[0-9,]+$/.test(e.value)) ||
     ((e.value?.length || 0) === 0 && !e.hasAttribute("required"))) {
-      return;
-    }
+    return;
+  }
   // If there's only non-numeric characters in the input, mark invalid & abort.
   if (/^[^0-9]*$/.test(e.value)) {
     e.className += " invalid-input";
@@ -154,17 +158,33 @@ Utility.validateIdInput = function (event) {
     default:
       s1 = "[^0-9]*"
       s2 = "[^-0-9]*"
-      break;//http://localhost:3000/posts/88
+      break;
   }
-  const match = RegExp(`${s0}(?:${s1}/([0-9]+)|.+?${s2}-([0-9]+))`).exec(e.value);
-  if (!match) {
+  if (e.hasAttribute("multi-value")) {
+    const initialV = e.value;
+    const re = RegExp(`${s0}(?:${s1}/([0-9]+)|.+?${s2}-([0-9]+))`, "g");
+    let values = [];
     e.value = "";
-    if (e.hasAttribute("required"))
+    for (let match = re.exec(initialV); match; match = re.exec(initialV)) {
+      values.push(Utility.presence(match[1]) || match[2]);
+    }
+    e.value = values.join(e.getAttribute("multi-value") == "space" ? " " : ",");
+    if (Utility.isBlank(e.value) && e.hasAttribute("required")) {
       e.className += " invalid-input";
-    return;
+    }
+  } else {
+    const match = RegExp(
+      `${s0}(?:${s1}/([0-9]+)|.+?${s2}-([0-9]+))`,
+      e.hasAttribute("multi-value") ? "g" : undefined,
+    ).exec(e.value);
+    if (!match) {
+      e.value = "";
+      if (e.hasAttribute("required"))
+        e.className += " invalid-input";
+      return;
+    }
+    e.value = Utility.presence(match[1]) || match[2];
   }
-  e.value = Utility.presence(match[1]) || match[2];
-  return;
 };
 
 $.fn.selectEnd = function () {
