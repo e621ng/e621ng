@@ -8,7 +8,8 @@
        :data-implied="tag.implied"
        :data-count="tag.post_count">
     <tag-link :name="tag.alias || tag.resolved || tag.name" :tagType="tag.category" :wrap="true"></tag-link>
-    <span v-if="tag.id == null" class="invalid">invalid</span>
+    <span v-if="tag.id == null" class="new">new</span>
+    <span v-else-if="tag.category === 6" class="invalid">invalid</span>
     <span v-else-if="tag.duplicate" class="duplicate">duplicate</span>
     <span v-else-if="tag.implied" class="implied">implied</span>
     <span v-else-if="tag.post_count === 0" class="empty">empty</span>
