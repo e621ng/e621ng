@@ -383,7 +383,7 @@ Rails.application.routes.draw do
   end
   resources :mascots, only: %i[index new create edit update destroy]
 
-  resource :terms_of_service, only: %i[show] do
+  resource :terms_of_use, only: %i[show] do
     collection do
       post :accept
       post :clear_cache
@@ -489,7 +489,7 @@ Rails.application.routes.draw do
   get "/static/site_map" => "static#site_map", :as => "site_map"
   get "/static/privacy" => "static#privacy", as: "privacy_policy"
   get "/static/takedown" => "static#takedown", as: "takedown_static"
-  get "/static/terms_of_service" => redirect("/terms_of_service")
+  get "/static/terms_of_service" => redirect("/terms_of_use")
   get "/static/contact" => "static#contact", :as => "contact"
   get "/static/discord" => "static#discord", as: "discord_get"
   post "/static/discord" => "static#discord", as: "discord_post"
