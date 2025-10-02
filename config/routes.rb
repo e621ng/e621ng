@@ -64,6 +64,7 @@ Rails.application.routes.draw do
           post :unban
           post :regenerate_thumbnails
           post :regenerate_videos
+          get :ai_check
         end
       end
     end
