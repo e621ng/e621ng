@@ -2,6 +2,7 @@ import Page from "./utility/page";
 import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
 import Dialog from "./utility/dialog";
+import { post } from "jquery";
 
 let PostSet = {};
 
@@ -147,7 +148,7 @@ PostSet.initialize_add_to_set_link = function () {
     e.preventDefault();
     const post_id = $("#image-container").data("id");
     PostSet.add_many_posts($("#add-to-set-id").val(), [post_id]);
-    $("#add-to-set-dialog").dialog("close");
+    postSetDialog.close();
   });
 };
 
