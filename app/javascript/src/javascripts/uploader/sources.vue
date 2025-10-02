@@ -18,8 +18,11 @@
       v-for="s, i in sources"
       @delete="removeSource(i)"
       @add="addSource"
+      @fadd="addSource(i + 1)"
       @madd="pasteSource($event, i)"
+      @navigate="navigate($event)"
       :key="i"
+      ref="fileSources"
     ></file-source>
   </div>
 </template>
@@ -43,10 +46,25 @@
         if (this.sources.length === 0)
           this.sources.push("");
       },
-      addSource() {
-        if (this.sources.length < this.maxSources) {
+      addSource(i) {
+        if (this.sources.length >= this.maxSources) return;
+
+        let targetIndex;
+        // Insert a new source at the requested index (e.g. after current row)
+        if (typeof i === "number" && i >= 0 && i <= this.sources.length) {
+          this.sources.splice(i, 0, "");
+          targetIndex = i;
+        } else {
           this.sources.push("");
+          targetIndex = this.sources.length - 1;
         }
+
+        // Focus the newly created source after DOM updates
+        this.$nextTick(() => {
+          const refs = this.$refs.fileSources;
+          if (refs[targetIndex])
+            refs[targetIndex].focus();
+        });
       },
       pasteSource(event, index) {
         if (!event.clipboardData) return;
@@ -64,6 +82,14 @@
 
         // Insert the pasted URLs starting at the current index
         this.sources.splice(index, urls.length, ...urls);
+      },
+      navigate($event) {
+        let targetIndex = $event;
+        if (targetIndex >= this.sources.length) targetIndex = 0;
+        else if (targetIndex < 0) targetIndex = this.sources.length - 1;
+
+        const refs = this.$refs.fileSources;
+        if (refs[targetIndex]) refs[targetIndex].focus();
       },
     },
     computed: {
