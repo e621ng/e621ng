@@ -50,6 +50,8 @@
           <li><%= tag.a "Unapprove", href: "#", id: "unapprove-post-link", data: { pid: post.id } %></li>
         <% end %>
 
+        <li><%= link_to "Check for AI", ai_check_moderator_post_post_path(post) %></li>
+
         <% if CurrentUser.is_admin? %>
           <% if IqdbProxy.enabled? %>
             <li><%= link_to "Update IQDB", update_iqdb_post_path(@post) %></li>
