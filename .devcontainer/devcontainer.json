@@ -23,6 +23,7 @@
   "postCreateCommand": {
     "bash-completion": "apk update && apk --no-cache add bash-completion docker && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
   },
+  
   "customizations": {
     "vscode": {
       "extensions": [
