@@ -1,0 +1,134 @@
+// Prevents scrolling of the body when the modal is open
+body.scroll-lock {
+  height: 0;
+  overflow: hidden;
+}
+
+// Modal overlay
+.tos-modal-container {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+
+  background: themed("color-background");
+}
+
+// Dialog element
+.tos-modal {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+
+  max-width: 600px;
+  width: 100%;
+
+  font-family: "Roboto", $base_font_family;
+
+
+  // Header title
+  &-header {
+    margin: 0 0.5rem;  // align with dialog padding
+
+    font-family: "Roboto", $base_font_family;
+    font-size: 1.75rem;
+    line-height: 1.75rem;
+  }
+
+
+  // Content section
+  &-content {
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem; // between text and checkboxes
+
+    box-sizing: border-box;
+    padding: 0.5rem;
+
+    background: themed("color-foreground");
+    @include st-radius;
+  }
+
+  &-text {
+    height: 50vh;
+    min-height: 120px;
+    box-sizing: border-box;
+    padding: 0.5rem;
+
+    background: white;
+    color: black;
+    font-size: 0.85rem;
+    line-height: 1rem;
+    @include st-radius;
+
+    overflow: hidden auto;
+
+    .styled-dtext {
+      h2 {
+        font-size: 1.1rem;
+        margin: unset;
+      }
+    }
+  }
+
+  &-checkboxes {
+    display: grid;
+    grid-template-columns: min-content auto;
+    gap: 0.125rem 0; // vertical between checkboxes
+
+    input[type="checkbox"] {
+      align-self: self-start;
+      margin: 0.25rem 0;
+      height: 1rem;
+      width: 1rem;
+      cursor: pointer;
+    }
+
+    label {
+      // Reset label styles
+      white-space: unset;
+      font-weight: unset;
+
+      padding: 0.25rem 0.25rem 0.25rem 0.5rem;
+      font-size: 1rem;
+      line-height: 1rem;
+
+      cursor: pointer;
+      user-select: none;
+    }
+  }
+
+
+  // Footer buttons
+  &-footer {
+    display: flex;
+    gap: 0.5rem;
+
+    justify-content: space-between;
+
+    #tos-warning-accept {
+      border: 0.125rem solid transparent;
+      padding: 0.375rem 0.75rem;
+      &.disabled {
+        cursor: not-allowed;
+
+        background: none;
+        color: gray;
+        border-color: gray;
+      }
+    }
+  }
+}
+
+
+// TOS Page
+body.c-terms-of-services.a-show .dtext-container {
+  max-width: 50rem;
+}

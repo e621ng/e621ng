@@ -1,0 +1,50 @@
+<% if cookies.signed[:tos_accepted].blank? || cookies.signed[:tos_accepted].to_i != Setting.tos_version %>
+<div class="tos-modal-container">
+  <%= form_tag(
+    accept_terms_of_service_path,
+    method: :post,
+    class: "tos-modal",
+    id: "tos-form",
+    role: "dialog",
+    aria: {
+      modal: "true",
+      labelledby: "tos-modal-header",
+      describedby: "tos-modal-text"
+    }
+  ) do %>
+
+    <%# Header %>
+    <h1 class="tos-modal-header">Terms of Service</h1>
+
+    <%# Content %>
+    <div class="tos-modal-content">
+      <div class="tos-modal-text"><%= tos_content %></div>
+      <div class="tos-modal-checkboxes">
+        <input type="checkbox" id="tos-age-checkbox" name="age" />
+        <label for="tos-age-checkbox">I am 18 years of age or older.</label>
+
+        <input type="checkbox" id="tos-terms-checkbox" name="terms" />
+        <label for="tos-terms-checkbox"> I have read and accept the Terms of Service.</label>
+      </div>
+    </div>
+
+    <%# Footer %>
+    <div class="tos-modal-footer">
+      <button type="submit" name="state" value="declined" id="tos-warning-decline" class="st-button">Decline</button>
+      <button type="submit" name="state" value="accepted" id="tos-warning-accept" class="st-button submit disabled">Accept</button>
+    </div>
+
+  <% end %>
+</div>
+
+<noscript>
+  <style>
+    #tos-warning-accept {
+      cursor: pointer !important;
+      border-color: transparent !important;
+      background: #f2ac08 !important;
+      color: #000 !important;
+    }
+  </style>
+</noscript>
+<% end %>

@@ -7,9 +7,7 @@
   <%= render "layouts/theme_include" %>
   <%= render "layouts/nav" %>
 
-  <% if CurrentUser.is_anonymous? %>
-    <%= render "static/guest_warning" %>
-  <% end %>
+  <%= render "static/tos_warning" %>
 
   <div id="page">
     <%= yield :layout %>

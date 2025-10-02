@@ -31,9 +31,8 @@
     <%= yield :layout %>
   </div>
 
-  <% if CurrentUser.is_anonymous? %>
-    <%= render "static/guest_warning" %>
-  <% end %>
+  <%= render "static/tos_warning" %>
+
   <%= render "static/footer" %>
   <% if Danbooru.config.enable_visitor_metrics? %>
     <%= javascript_include_tag "https://plausible.dragonfru.it/js/script.js", nonce: true, async: true, data: { domain: Danbooru.config.domain } %>
