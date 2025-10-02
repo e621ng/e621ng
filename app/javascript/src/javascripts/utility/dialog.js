@@ -97,6 +97,7 @@ export default class Dialog {
   }
   // #endregion Dialog z-stacking and focus management
 
+
   $dialog = null; // The main dialog element
   $element = null; // Content element attached to the dialog
   $title = null; // Title element in the header
@@ -106,14 +107,16 @@ export default class Dialog {
     Dialog.normalizedPositionLabel["center"],
     Dialog.normalizedPositionLabel["center"],
   ];
+
   _priorPlacedX = null;
-  get priorPlacedX() {
+  get priorPlacedX () {
     if (typeof this._priorPlacedX !== "number")
       this._priorPlacedX = this.currentNormalizedPosition[0] * (Dialog.containerWidth - this.dialogWidth);
     return this._priorPlacedX;
   }
+
   _priorPlacedY = null;
-  get priorPlacedY() {
+  get priorPlacedY () {
     if (typeof this._priorPlacedY !== "number")
       this._priorPlacedY = this.currentNormalizedPosition[1] * (Dialog.containerHeight - this.dialogHeight);
     return this._priorPlacedY;
