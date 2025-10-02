@@ -91,28 +91,32 @@ export default class Dialog {
       const dialog = this.dialogIndex[dialogID];
       if (!dialog) continue;
 
-      dialog.setZIndex(index);
+      dialog._setZIndex(index);
       index++;
     }
   }
   // #endregion Dialog z-stacking and focus management
 
-  $dialog = null;
-  $element = null;
+
+  $dialog = null; // The main dialog element
+  $element = null; // Content element attached to the dialog
+  $title = null; // Title element in the header
   dialogWidth = 0;
   dialogHeight = 0;
   currentNormalizedPosition = [
     Dialog.normalizedPositionLabel["center"],
     Dialog.normalizedPositionLabel["center"],
   ];
+
   _priorPlacedX = null;
-  get priorPlacedX() {
+  get priorPlacedX () {
     if (typeof this._priorPlacedX !== "number")
       this._priorPlacedX = this.currentNormalizedPosition[0] * (Dialog.containerWidth - this.dialogWidth);
     return this._priorPlacedX;
   }
+
   _priorPlacedY = null;
-  get priorPlacedY() {
+  get priorPlacedY () {
     if (typeof this._priorPlacedY !== "number")
       this._priorPlacedY = this.currentNormalizedPosition[1] * (Dialog.containerHeight - this.dialogHeight);
     return this._priorPlacedY;
@@ -135,11 +139,13 @@ export default class Dialog {
       .attr({
         "role": "dialog",
         "tabindex": "-1",
+        "aria-labelledby": `dialog-title-${this.id}`,
       })
       .appendTo(Dialog.container);
 
     // UI Elements
     const header = $("<div class='dialog-header'>").appendTo(this.$dialog);
+    this.$title = $("<span>").attr("id", `dialog-title-${this.id}`).appendTo(header);
     header.on("mousedown", (event) => this.startDrag(event));
 
     $("<button type='button' class='st-button'>&times;</button>")
@@ -176,18 +182,7 @@ export default class Dialog {
     for (const key in data) // Load from data-attributes
       if (params[key] === undefined) params[key] = data[key];
 
-    if (params.title) {
-      $("<span>")
-        .text(params.title)
-        .attr("id", `dialog-title-${this.id}`)
-        .prependTo(header);
-      this.$dialog.attr("aria-labelledby", `dialog-title-${this.id}`);
-    } else this.$dialog.attr("aria-label", "Dialog");
-
-    // Set modal behavior if specified
-    if (params.modal) {
-      this.$dialog.attr("aria-modal", "true");
-    }
+    if (params.title) this.$title.text(params.title);
 
 
     // Initial Position
@@ -243,7 +238,11 @@ export default class Dialog {
     this._updatePosition(positionCoords.left, positionCoords.top);
   }
 
-  setZIndex (z) {
+  setTitle (html) {
+    this.$title.html(html);
+  }
+
+  _setZIndex (z) {
     this.$dialog.css("z-index", 250 + z);
   }
 

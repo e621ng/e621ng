@@ -12,7 +12,7 @@
   $button-stealth-color: themed("color-link");
   $button-stealth-color-hover: themed("color-link-hover");
 
-  display: flex;
+  display: inline-flex;
   gap: math.div(st-value(100), 4);
   border-radius: radius(025);
 

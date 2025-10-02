@@ -1556,6 +1556,10 @@ class Post < ApplicationRecord
   end
 
   module NoteMethods
+    def can_have_notes?
+      is_png? || is_jpg? || is_gif?
+    end
+
     def has_notes?
       last_noted_at.present?
     end

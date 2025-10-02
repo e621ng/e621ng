@@ -1,6 +1,5 @@
 import Utility from "./utility";
 import ZingTouch from "zingtouch";
-import Note from "./notes";
 import Hotkeys from "./hotkeys";
 import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
@@ -382,10 +381,6 @@ Post.fromDOM = function (element) {
   return JSON.parse(post);
 };
 
-Post.resize_notes = function () {
-  Note.Box.scale_all();
-};
-
 Post.resize_video = function (post, target_size) {
   if (!post || !post.file) return;
 
@@ -556,7 +551,6 @@ Post.resize_image = function (post, target_size) {
   for (const class_name of desired_classes) {
     $image.addClass(class_name);
   }
-  Post.resize_notes();
 };
 
 Post.resize_to = function (target_size) {
@@ -628,16 +622,10 @@ Post.initialize_resize = function () {
   const is_post_video = is_video(post);
   if (!is_post_video) {
     const $image = $("img#image");
-    if ($image.length > 0 && $image[0]) {
-      if ($image[0].complete)
-        Post.resize_notes();
-    }
 
     $image.on("load", function () {
-      Post.resize_notes();
       $("#image-container").removeClass("image-loading");
     });
-    $(window).on("resize", Post.resize_notes);
   }
   let image_size = Utility.meta("image-override-size") || Utility.meta("default-image-size");
   if (is_post_video && image_size === "large") {
