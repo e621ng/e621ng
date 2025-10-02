@@ -29,12 +29,21 @@ class AiMethodsTest < ActiveSupport::TestCase
   def stub_vips_image(values: {}, fields: [], raise_on_get_fields: false)
     fake = FakeVipsImage.new(values: values, fields: fields, raise_on_get_fields: raise_on_get_fields)
     Vips::Image.stubs(:new_from_file).returns(fake)
+    # Stub File.exist? to return true for any path since we're using fake paths in tests
+    File.stubs(:exist?).returns(true)
   end
 
   test "returns not an image for non-image files" do
     result = is_ai_generated?("/tmp/readme.txt")
     assert_equal 0, result[:score]
     assert_equal "not an image", result[:reason]
+  end
+
+  test "returns file not found for non-existent files" do
+    # Don't stub File.exist? for this test, so it returns false for non-existent files
+    result = is_ai_generated?("/tmp/nonexistent.jpg")
+    assert_equal 0, result[:score]
+    assert_equal "file not found", result[:reason]
   end
 
   test "detects C2PA manifest via XMP" do
@@ -66,7 +75,7 @@ class AiMethodsTest < ActiveSupport::TestCase
 
     result = is_ai_generated?("/tmp/render.jpeg")
     assert_equal 70, result[:score]
-    assert_includes result[:reason], "ai generator: Midjourney"
+    assert_includes result[:reason], "ai generator: midjourney"
   end
 
   test "detects Stable Diffusion parameter tokens" do
