@@ -1,4 +1,5 @@
 version: "3"
+name: e621ng # Name of the Docker Compose project in the dev container
 
 services:
   # Dev Container extension doesn't support `depends_on: !reset []`

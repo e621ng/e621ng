@@ -3,13 +3,13 @@
 class StorageManager
   class Error < StandardError; end
 
-  DEFAULT_BASE_DIR = Rails.env.development? ? "/" : "#{Rails.root}/public/data"
+  DEFAULT_BASE_DIR = Rails.public_path.join("data").to_s
   IMAGE_TYPES = %i[preview_jpg preview_webp sample_jpg sample_webp original].freeze
   MASCOT_PREFIX = "mascots"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
-  def initialize(base_url: default_base_url, base_path: default_base_path, base_dir: DEFAULT_BASE_DIR, hierarchical: false, # rubocop:disable Metrics/ParameterLists
+  def initialize(base_url: default_base_url, base_path: default_base_path, base_dir: DEFAULT_BASE_DIR, hierarchical: false,
                  large_image_prefix: Danbooru.config.large_image_prefix,
                  protected_prefix: Danbooru.config.protected_path_prefix,
                  replacement_prefix: Danbooru.config.replacement_path_prefix)
@@ -27,8 +27,10 @@ class StorageManager
   end
 
   def default_base_url
-    return Rails.application.routes.url_helpers.root_url unless Rails.env.development?
-    "/" # This allows for hosts other than `localhost:3000` to be used without prior setup.
+    # return 
+    Rails.application.routes.url_helpers.root_url
+    #  unless Rails.env.development?
+    # "/" # This allows for hosts other than `localhost:3000` to be used without prior setup.
   end
 
   # Store the given file at the given path. If a file already exists at that
@@ -118,8 +120,9 @@ class StorageManager
   end
 
   def root_url
-    origin = Addressable::URI.parse(base_url).origin
-    origin = "" if origin == "null" # base_url was relative
+    origin = Addressable::URI.parse(base_url).origin rescue nil # rubocop:disable Style/RescueModifier
+    # Addressable may return nil (or the string "null" in some runtimes) for relative base_urls like "/".
+    return "" if origin.nil? || origin == "null"
     origin
   end
 

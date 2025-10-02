@@ -1,9 +1,6 @@
 {
   "name": "E621ng project development",
   "dockerComposeFile": ["../docker-compose.yml", "docker-compose.extend.yml"],
-  "remoteEnv": {
-    "DOCKER_COMPOSE_PROJECT_NAME": "e621ng" // Change this to your project name
-  },
   "service": "dev-container",
   "overrideCommand": true,
   "workspaceFolder": "/app",
