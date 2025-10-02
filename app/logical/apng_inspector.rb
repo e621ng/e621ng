@@ -39,7 +39,7 @@ class ApngInspector
       chunkheader = +""
       while file.read(8, chunkheader)
         # ensure that first 8 bytes from chunk were read properly
-        if chunkheader == nil || chunkheader.bytesize < 8
+        if chunkheader.nil? || chunkheader.bytesize < 8
           return false
         end
 
@@ -103,10 +103,9 @@ class ApngInspector
   def parse_actl(len, file)
     return -1 if len != 8
     framedata = file.read(4)
-    if framedata == nil || framedata.length != 4
+    if framedata.nil? || framedata.length != 4
       return -1
     end
     framedata.unpack1("N")
   end
-
 end
