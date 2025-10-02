@@ -117,10 +117,6 @@ class StorageManager
   end
 
   def root_url
-    # origin = Addressable::URI.parse(base_url).origin rescue nil # rubocop:disable Style/RescueModifier
-    # # Addressable may return nil (or the string "null" in some runtimes) for relative base_urls like "/".
-    # return "" if origin.nil? || origin == "null"
-    # origin
     origin = Addressable::URI.parse(base_url).origin
     origin = "" if origin == "null" # base_url was relative
     origin
