@@ -6,6 +6,7 @@ class TagImplication < TagRelationship
 
   array_attribute :descendant_names
 
+  validates :antecedent_name, tag_name: { disable_ascii_check: true }, if: :antecedent_name_changed?
   before_save :update_descendant_names
   after_destroy :update_descendant_names_for_parents
   after_save :update_descendant_names_for_parents
