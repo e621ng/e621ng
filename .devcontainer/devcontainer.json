@@ -15,7 +15,7 @@
   //   "source=/home/${localEnv:USER}/.gnupg,target=/home/vscode/.gnupg,type=bind,consistency=cached",
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
-  "postAttachCommand": ["/bin/sh", "/app/.devcontainer/post-attach.sh"],
+  "postAttachCommand": ["/bin/sh", "/app/.devcontainer/post-attach.sh", "bash"],
   "postCreateCommand": {
     "bash-completion": "apk update && apk --no-cache add bash-completion docker && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
   },
