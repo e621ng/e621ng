@@ -85,6 +85,13 @@ export default class PostsShowToolbar {
 
   static async vote (direction) {
     return PostVote.vote(PostsShowToolbar.currentPost.id, direction).then((data) => {
+      // Update Score in Information
+      $(".post-score").text(data.score)
+        .removeClass("score-negative score-neutral score-positive")
+        .addClass(data.score > 0
+          ? "score-positive"
+          : (data.score < 0 ? "score-negative" : "score-neutral"));
+
       // Update button states for the current voting block.
       $(".ptbr-score").text(data.score);
       $(".ptbr-breakdown").html(`<span>${data.up}</span><span>${data.down}</span>`);
