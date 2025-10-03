@@ -170,11 +170,11 @@ Utility.validateIdInput = function (event) {
   }
   if (hmv) {
     const initialV = e.value;
-    const re = RegExp(`${s0}(?:${s1}/([0-9]+)|.+?${s2}-([0-9]+))`, "g");
+    const re = RegExp(`([0-9]+)|[\\s,]*${s0}(?:${s1}/([0-9]+)|.+?${s2}-([0-9]+))`, "gy");
     let values = [];
     e.value = "";
     for (let match = re.exec(initialV); match; match = re.exec(initialV)) {
-      values.push(Utility.presence(match[1]) || match[2]);
+      values.push(Utility.presence(match[1]) || Utility.presence(match[2]) || match[3]);
     }
     e.value = values.join(mv == "space" ? " " : ",");
     if (Utility.isBlank(e.value) && e.hasAttribute("required")) {
