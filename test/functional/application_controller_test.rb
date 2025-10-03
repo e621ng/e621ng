@@ -37,7 +37,7 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
     context "on api authentication" do
       setup do
         @user = create(:user, password: "6cQE!wbA")
-        @api_key = ApiKey.generate!(@user)
+        @api_key = ApiKey.generate!(@user, name: "test")
 
         ActionController::Base.allow_forgery_protection = true
       end
@@ -76,10 +76,10 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
         should "fail for api key mismatches" do
           get edit_user_path(@user), params: { login: @user.name }
-          assert_response 401
+          assert_redirected_to new_session_path(url: edit_user_path(@user, login: @user.name))
 
           get edit_user_path(@user), params: { api_key: @api_key.key }
-          assert_response 401
+          assert_redirected_to new_session_path(url: edit_user_path(@user, api_key: @api_key.key))
 
           get edit_user_path(@user), params: { login: @user.name, api_key: "bad" }
           assert_response 401

@@ -53,7 +53,12 @@ CREATE TABLE public.api_keys (
     user_id integer NOT NULL,
     key character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    name character varying DEFAULT ''::character varying NOT NULL,
+    uses integer DEFAULT 0 NOT NULL,
+    last_used_at timestamp(6) without time zone,
+    last_ip_address inet,
+    expires_at timestamp(6) without time zone
 );
 
 
@@ -3464,10 +3469,10 @@ CREATE UNIQUE INDEX index_api_keys_on_key ON public.api_keys USING btree (key);
 
 
 --
--- Name: index_api_keys_on_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_api_keys_on_name_and_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_api_keys_on_user_id ON public.api_keys USING btree (user_id);
+CREATE UNIQUE INDEX index_api_keys_on_name_and_user_id ON public.api_keys USING btree (name, user_id);
 
 
 --
@@ -4836,6 +4841,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250831040648'),
 ('20250831015612'),
 ('20250830192056'),
+('20250829232928'),
 ('20250826165528'),
 ('20250611041221'),
 ('20250604020028'),
