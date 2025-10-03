@@ -18,7 +18,7 @@ export default [
       "@stylistic": stylistic,
     },
     rules: {
-      "no-unused-vars": "warn",
+      "no-unused-vars": ["warn", { "caughtErrorsIgnorePattern": "^_" }],
 
       // https://eslint.style/packages/js
       "array-bracket-newline": "warn",

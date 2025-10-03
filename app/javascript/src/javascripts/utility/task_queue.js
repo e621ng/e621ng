@@ -16,11 +16,11 @@ export default class TaskQueue {
    * @returns {Promise} Promise that resolves when the task is completed or rejects if the task fails.
    * @throws {Error} If the task is not a function or if the delay is not a non-negative number.
    */
-  static add(task, options = {}) {
+  static add (task, options = {}) {
     if (typeof task !== "function") throw new Error("Task must be a function");
-    
+
     let { delay = 1000, priority = false, name = null } = options;
-    
+
     if (typeof delay !== "number" || delay < 0) throw new Error("Delay must be a non-negative number");
     if (delay < 500) delay = 500; // Minimum delay to prevent throttling server-side
 
@@ -34,11 +34,11 @@ export default class TaskQueue {
   }
 
   /**
-   * Runs the tasks in the queue.  
+   * Runs the tasks in the queue.
    * Should not be called directly; use `add` to enqueue tasks.
    * @returns {Promise<void>}
    */
-  static async _run() {
+  static async _run () {
     if (this._running || this._queue.length === 0) return;
     this._running = true;
 
@@ -47,17 +47,17 @@ export default class TaskQueue {
     try {
       while (this._queue.length > 0 && this._running) {
         await this.sleep(currentDelay);
-        
+
         // Abort if the task was cancelled or the queue was cleared
         if (!this._running || this._queue.length === 0) break;
 
-        const { task, resolve, reject, delay, name } = this._queue.shift();
+        const { task, resolve, reject, delay } = this._queue.shift();
         currentDelay = delay;
-        
+
         try {
           if (typeof task !== "function")
             throw new Error("Invalid task: not a function");
-          
+
           const result = await task();
           resolve(result);
         } catch (error) {
@@ -75,7 +75,7 @@ export default class TaskQueue {
    * @param {number} ms Delay in milliseconds.
    * @returns {Promise<void>}
    */
-  static sleep(ms = 1000) {
+  static sleep (ms = 1000) {
     if (typeof ms !== "number" || ms < 0)
       throw new Error("Sleep duration must be a non-negative number");
     if (ms === 0) return Promise.resolve();
@@ -86,7 +86,7 @@ export default class TaskQueue {
    * Clears the queue and rejects any running tasks with an error.
    * @param {string} reason Optional reason for clearing the queue.
    */
-  static clear(reason = "Queue cleared") {
+  static clear (reason = "Queue cleared") {
     this._running = false;
     this._queue.forEach(({ reject }) => {
       reject(new Error(reason));
@@ -100,7 +100,7 @@ export default class TaskQueue {
    * @param {string} reason Optional reason for cancelling the tasks.
    * @returns {number} The number of tasks that were cancelled.
    */
-  static cancel(taskName, reason = "Task cancelled") {
+  static cancel (taskName, reason = "Task cancelled") {
     if (taskName === null || taskName === undefined) return 0;
 
     let count = 0;
@@ -117,12 +117,12 @@ export default class TaskQueue {
   }
 
   /** @returns {number} The length of the task queue. */
-  static get length() {
+  static get length () {
     return this._queue.length;
   }
 
   /** @returns {boolean} True if the queue is running, false otherwise. */
-  static get isRunning() {
+  static get isRunning () {
     return this._running;
   }
 
@@ -131,7 +131,7 @@ export default class TaskQueue {
    * Each task is represented by an object containing its index, name, and delay.
    * @returns {Array} Array of pending tasks.
    */
-  static get pending() {
+  static get pending () {
     return this._queue.map(({ delay, name }, index) => ({
       index,
       name,

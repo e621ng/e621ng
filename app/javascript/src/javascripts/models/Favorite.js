@@ -10,9 +10,9 @@ export default class Favorite {
    */
   static async create (post_id) {
     if (!post_id) return Promise.reject(new Error("Post ID is required"));
-    
+
     return TaskQueue.add(async () => {
-      return fetch(`/favorites.json`, {
+      return fetch("/favorites.json", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,7 +31,7 @@ export default class Favorite {
         try {
           const errorData = await response.json();
           $(window).trigger("danbooru:error", "Error: " + (errorData.message || "Unknown error"));
-        } catch (error) {
+        } catch (_error) {
           $(window).trigger("danbooru:error", "Error: " + (response.status + " " + response.statusText));
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -50,7 +50,7 @@ export default class Favorite {
       $(window).trigger("danbooru:error", "Error: " + error.message);
       throw error;
     });
-  };
+  }
 
   /**
    * Deletes a favorite for the specified post.
@@ -59,7 +59,7 @@ export default class Favorite {
    */
   static async destroy (post_id) {
     if (!post_id) return Promise.reject(new Error("Post ID is required"));
-    
+
     return TaskQueue.add(async () => {
       return fetch(`/favorites/${post_id}.json`, {
         method: "DELETE",
@@ -80,7 +80,7 @@ export default class Favorite {
         try {
           const errorData = await response.json();
           $(window).trigger("danbooru:error", "Error: " + (errorData.message || "Unknown error"));
-        } catch (error) {
+        } catch (_error) {
           $(window).trigger("danbooru:error", "Error: " + (response.status + " " + response.statusText));
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -99,7 +99,7 @@ export default class Favorite {
       $(window).trigger("danbooru:error", "Error: " + error.message);
       throw error;
     });
-  };
+  }
 }
 
 

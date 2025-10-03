@@ -64,6 +64,6 @@ export default class PostVote {
         $(window).trigger("danbooru:error", "Error: " + error.message);
       return Promise.reject();
     });
-  };
+  }
 
 }
