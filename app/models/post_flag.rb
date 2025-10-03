@@ -4,7 +4,6 @@ class PostFlag < ApplicationRecord
   class Error < Exception; end
 
   COOLDOWN_PERIOD = 1.day
-  MAPPED_REASONS = Danbooru.config.flag_reasons.to_h { |i| [i[:name], i[:reason]] }
 
   # The options for who (in addition to the flagger) can see the provided flag reason.
   #
@@ -170,14 +169,13 @@ class PostFlag < ApplicationRecord
     when "uploading_guidelines"
       errors.add(:reason, "cannot be used. The post is grandfathered") unless post.flaggable_for_guidelines?
     else
-      errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
+      errors.add(:reason, "is not one of the available choices") unless PostFlagReason.map_for_lookup.key?(reason_name)
     end
   end
 
   def validate_note_required_for_reason
     return if reason_name.blank?
-    reason = Danbooru.config.flag_reasons.find { |r| r[:name].to_s == reason_name.to_s }
-    if reason && reason[:require_explanation] && note.to_s.strip.blank?
+    if PostFlagReason.require_explanation?(reason_name) && note.to_s.strip.blank?
       errors.add(:note, "is required for the selected reason")
     end
   end
@@ -201,7 +199,7 @@ class PostFlag < ApplicationRecord
       Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
     else
-      self.reason = MAPPED_REASONS[reason_name]
+      self.reason = PostFlagReason.map_for_lookup[reason_name]
     end
   end
 
@@ -210,11 +208,7 @@ class PostFlag < ApplicationRecord
   end
 
   def parent_post
-    @parent_post ||= begin
-      Post.where("id = ?", parent_id).first
-    rescue
-      nil
-    end
+    @parent_post ||= Post.find_by(id: parent_id)
   end
 
   # Creates an appropriate `PostEvent` unless this is a deletion.
