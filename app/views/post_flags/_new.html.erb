@@ -18,27 +18,27 @@
     <%= f.hidden_field :post_id %>
 
     <div class="flag-reason">
-      <% Danbooru.config.flag_reasons.each do |flag_reason| %>
-        <% if flag_reason[:name] == "uploading_guidelines" && !@post.flaggable_for_guidelines? %>
+      <% PostFlagReason.for_radio.each do |flag_reason| %>
+        <% if flag_reason.name == "uploading_guidelines" && !@post.flaggable_for_guidelines? %>
           <% next %>
         <% end %>
 
         <label class="flag-reason-label">
-          <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false, data: { require_explanation: flag_reason[:require_explanation] } %>
+          <%= radio_button_tag "post_flag[reason_name]", flag_reason.name, false, data: { require_explanation: flag_reason.require_explanation? } %>
           <span class="flag-reason-description">
             <b>
-              <%= format_text(flag_reason[:reason], inline: true) %>
-              <% if flag_reason[:require_explanation] %>
+              <%= format_text(flag_reason.reason, inline: true) %>
+              <% if flag_reason.require_explanation? %>
                 <span class="flag-reason-explanation">Additional Details Required</span>
               <% end %>
             </b>
             <span class="dtext-container">
-              <%= format_text(flag_reason[:text]) %>
+              <%= format_text(flag_reason.text) %>
             </span>
           </span>
         </label>
 
-        <% if flag_reason[:parent] %>
+        <% if flag_reason.parent? %>
           <span class="flag-reason-parent">
             <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
           </span>
