@@ -57,9 +57,9 @@ Utility.intersect = function (a, b) {
   b = b.slice(0).sort();
   var result = [];
   while (a.length > 0 && b.length > 0) {
-    if (a[0] < b[0]) {
+    if (a[ 0 ] < b[ 0 ]) {
       a.shift();
-    } else if (a[0] > b[0]) {
+    } else if (a[ 0 ] > b[ 0 ]) {
       b.shift();
     } else {
       result.push(a.shift());
@@ -83,7 +83,7 @@ Utility.regexp_escape = RegExp.escape || function (string) {
  * property) that has 0 elements, or a `string` of only whitespace characters; `false` otherwise.
  */
 Utility.isBlank = function (e) {
-  return e === undefined || e === null || (e.length !== undefined && (e.length === 0 || (typeof(e) === "string" && e.trim().length === 0)));
+  return e === undefined || e === null || (e.length !== undefined && (e.length === 0 || (typeof e === "string" && e.trim().length === 0)));
 };
 
 /**
@@ -98,7 +98,7 @@ Utility.isPresent = (e) => !Utility.isBlank(e);
  * @param {any} e The object to check.
  * @returns The object if it's not blank (see `isBlank`); `undefined` otherwise.
  */
-Utility.presence = (e) => Utility.isPresent(e) ? e : undefined;
+Utility.presence = (e) => (Utility.isPresent(e) ? e : undefined);
 
 /**
  * Validates that a text input element expecting an id that receives a URL has its value replaced
@@ -128,7 +128,7 @@ Utility.validateIdInput = function (event) {
     !(e instanceof HTMLInputElement || e instanceof HTMLTextAreaElement) ||
     !e.classList.contains("id-input") ||
     /^[0-9]+$/.test(e.value) ||
-    (e.getAttribute("multi-value") == "space" ? /^[0-9 ]+$/.test(e.value): e.hasAttribute("multi-value") && /^[0-9,]+$/.test(e.value)) ||
+    (e.getAttribute("multi-value") == "space" ? /^[0-9 ]+$/.test(e.value) : e.hasAttribute("multi-value") && /^[0-9,]+$/.test(e.value)) ||
     ((e.value?.length || 0) === 0 && !e.hasAttribute("required"))) {
     return;
   }
@@ -163,7 +163,7 @@ Utility.validateIdInput = function (event) {
       s1 = "forum_posts?";
       s2 = "forum_post";
       break;
-  
+
     default:
       s1 = "[^0-9]*"
       s2 = "[^-0-9]*"
@@ -175,7 +175,7 @@ Utility.validateIdInput = function (event) {
     let values = [];
     e.value = "";
     for (let match = re.exec(initialV); match; match = re.exec(initialV)) {
-      values.push(Utility.presence(match[1]) || match[2]);
+      values.push(Utility.presence(match[ 1 ]) || match[ 2 ]);
     }
     e.value = values.join(mv == "space" ? " " : ",");
     if (Utility.isBlank(e.value) && e.hasAttribute("required")) {
@@ -189,7 +189,7 @@ Utility.validateIdInput = function (event) {
         e.className += " invalid-input";
       return;
     }
-    e.value = Utility.presence(match[1]) || match[2];
+    e.value = Utility.presence(match[ 1 ]) || match[ 2 ];
   }
 };
 
