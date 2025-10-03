@@ -1,0 +1,38 @@
+<div id="c-post-flag-reasons">
+  <div id="a-index">
+    <h1>Post Flag Reasons</h1>
+
+    <table class="striped">
+      <thead>
+      <tr>
+        <th></th>
+        <th>Key</th>
+        <th>Label</th>
+        <th>Requires Note</th>
+        <th>Parent?</th>
+        <th>Updated</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <% @reasons.each do |r| %>
+        <tr id="post-flag-reason-<%= r.id %>">
+          <td><%= link_to "Delete", post_flag_reason_path(r), method: :delete, data: { confirm: "Delete this reason?" } %></td>
+          <td><%= link_to r.name, edit_post_flag_reason_path(r) %></td>
+          <td><%= r.reason %></td>
+          <td><%= r.require_explanation? ? "Yes" : "No" %></td>
+          <td><%= r.parent? ? "Yes" : "No" %></td>
+          <td><%= compact_time r.updated_at %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<%= render partial: "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Post Flag Reasons
+<% end %>
