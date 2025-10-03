@@ -57,9 +57,9 @@ Utility.intersect = function (a, b) {
   b = b.slice(0).sort();
   var result = [];
   while (a.length > 0 && b.length > 0) {
-    if (a[ 0 ] < b[ 0 ]) {
+    if (a[0] < b[0]) {
       a.shift();
-    } else if (a[ 0 ] > b[ 0 ]) {
+    } else if (a[0] > b[0]) {
       b.shift();
     } else {
       result.push(a.shift());
@@ -118,18 +118,18 @@ Utility.presence = (e) => (Utility.isPresent(e) ? e : undefined);
  * <%= f.input :post_ids_string, as: :text, label: "Posts", input_html: { class: "id-input", "multi-value" => "space" } %>
  * ```
  * @param {FocusEvent} event The event.
- */ //IDEA: Leverage [HTML's `pattern` attribute](<https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/pattern>)?
+ */ // IDEA: Leverage [HTML's `pattern` attribute](<https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/pattern>)?
 Utility.validateIdInput = function (event) {
   /** @type {HTMLInputElement|HTMLTextAreaElement} */
   const e = event.target;
   e.classList.remove("invalid-input");
   // If it's not an applicable element or is properly formatted or is permissibly omitted, abort.
   if (
-    !(e instanceof HTMLInputElement || e instanceof HTMLTextAreaElement) ||
-    !e.classList.contains("id-input") ||
-    /^[0-9]+$/.test(e.value) ||
-    (e.getAttribute("multi-value") == "space" ? /^[0-9 ]+$/.test(e.value) : e.hasAttribute("multi-value") && /^[0-9,]+$/.test(e.value)) ||
-    ((e.value?.length || 0) === 0 && !e.hasAttribute("required"))) {
+    !(e instanceof HTMLInputElement || e instanceof HTMLTextAreaElement)
+    || !e.classList.contains("id-input")
+    || /^[0-9]+$/.test(e.value)
+    || (e.getAttribute("multi-value") == "space" ? /^[0-9 ]+$/.test(e.value) : e.hasAttribute("multi-value") && /^[0-9,]+$/.test(e.value))
+    || ((e.value?.length || 0) === 0 && !e.hasAttribute("required"))) {
     return;
   }
   // If there's only non-numeric characters in the input, mark invalid & abort.
@@ -142,8 +142,7 @@ Utility.validateIdInput = function (event) {
   if (hmv && /^[0-9\s,]+$/.test(e.value)) {
     if (mv == "space") {
       e.value = e.value.replaceAll(/[,\s]+/g, " ").trim();
-    }
-    else /* if (mv == "comma") */ {
+    } else /* if (mv == "comma") */ {
       e.value = e.value.trim().replaceAll(/[,\s]+/g, ",");
     }
     return;
@@ -165,8 +164,8 @@ Utility.validateIdInput = function (event) {
       break;
 
     default:
-      s1 = "[^0-9]*"
-      s2 = "[^-0-9]*"
+      s1 = "[^0-9]*";
+      s2 = "[^-0-9]*";
       break;
   }
   if (hmv) {
@@ -175,7 +174,7 @@ Utility.validateIdInput = function (event) {
     let values = [];
     e.value = "";
     for (let match = re.exec(initialV); match; match = re.exec(initialV)) {
-      values.push(Utility.presence(match[ 1 ]) || match[ 2 ]);
+      values.push(Utility.presence(match[1]) || match[2]);
     }
     e.value = values.join(mv == "space" ? " " : ",");
     if (Utility.isBlank(e.value) && e.hasAttribute("required")) {
@@ -189,7 +188,7 @@ Utility.validateIdInput = function (event) {
         e.className += " invalid-input";
       return;
     }
-    e.value = Utility.presence(match[ 1 ]) || match[ 2 ];
+    e.value = Utility.presence(match[1]) || match[2];
   }
 };
 
@@ -201,7 +200,7 @@ $.fn.selectEnd = function () {
 };
 
 $(function () {
-  $('.id-input').on("focusout", Utility.validateIdInput);
+  $(".id-input").on("focusout", Utility.validateIdInput);
 
   $(window).on("danbooru:notice", function (event, msg) {
     Utility.notice(msg);
