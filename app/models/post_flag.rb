@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 class PostFlag < ApplicationRecord
-  class Error < Exception;
+  class Error < StandardError
   end
 
-  COOLDOWN_PERIOD = 1.days
-  MAPPED_REASONS = Danbooru.config.flag_reasons.map { |i| [i[:name], i[:reason]] }.to_h
+  COOLDOWN_PERIOD = 1.day
 
-  belongs_to_creator :class_name => "User"
+  belongs_to_creator class_name: "User"
   user_status_counter :post_flag_count
   belongs_to :post
   validate :validate_creator_is_not_limited, on: :create
@@ -139,35 +138,34 @@ class PostFlag < ApplicationRecord
 
   def validate_reason
     case reason_name
-    when 'deletion'
+    when "deletion"
       # You're probably looking at this line as you get this validation failure
       errors.add(:reason, "is not one of the available choices") unless is_deletion
-    when 'inferior'
-      unless parent_post.present?
+    when "inferior"
+      if parent_post.blank?
         errors.add(:parent_id, "must exist")
         return false
       end
       errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
-    when 'uploading_guidelines'
+    when "uploading_guidelines"
       errors.add(:reason, "cannot be used. The post is grandfathered") unless post.flaggable_for_guidelines?
     else
-      errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
+      errors.add(:reason, "is not one of the available choices") unless PostFlagReason.map_for_lookup.key?(reason_name)
     end
   end
 
   def validate_note_required_for_reason
     return if reason_name.blank?
-    reason = Danbooru.config.flag_reasons.find { |r| r[:name].to_s == reason_name.to_s }
-    if reason && reason[:require_explanation] && note.to_s.strip.blank?
+    if PostFlagReason.require_explanation?(reason_name) && note.to_s.strip.blank?
       errors.add(:note, "is required for the selected reason")
     end
   end
 
   def update_reason
     case reason_name
-    when 'deletion'
+    when "deletion"
       # NOP
-    when 'inferior'
+    when "inferior"
       return unless parent_post
       old_parent_id = post.parent_id
       post.update_column(:parent_id, parent_post.id)
@@ -182,7 +180,7 @@ class PostFlag < ApplicationRecord
       Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
     else
-      self.reason = MAPPED_REASONS[reason_name]
+      self.reason = PostFlagReason.map_for_lookup[reason_name]
     end
   end
 
@@ -191,11 +189,7 @@ class PostFlag < ApplicationRecord
   end
 
   def parent_post
-    @parent_post ||= begin
-                       Post.where('id = ?', parent_id).first
-                     rescue
-                       nil
-                     end
+    @parent_post ||= Post.find_by(id: parent_id)
   end
 
   def create_post_event
