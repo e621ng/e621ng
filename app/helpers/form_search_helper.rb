@@ -13,7 +13,7 @@ module FormSearchHelper
       defaults: { required: false },
       html: { class: "inline-form" },
     }) do |f|
-      id_input = f.input(:id, label: "ID", hide_unless_value: true)
+      id_input = f.input(:id, label: "ID", hide_unless_value: true, input_html: { class: "id-input", "multi-value" => "comma" })
       created_at_input = f.input(:created_at, hide_unless_value: true)
       updated_at_input = f.input(:updated_at, hide_unless_value: true)
       id_input + created_at_input + updated_at_input + capture { yield(f) } + f.submit("Search")

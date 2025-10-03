@@ -119,6 +119,8 @@ Utility.presence = (e) => (Utility.isPresent(e) ? e : undefined);
  * ```
  * @param {FocusEvent} event The event.
  */ // IDEA: Leverage [HTML's `pattern` attribute](<https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/pattern>)?
+// IDEA: Make clearing invalid input an attribute toggle?
+// IDEA: Fire on submit w/ `SubmitEvent.submitter`?
 Utility.validateIdInput = function (event) {
   /** @type {HTMLInputElement|HTMLTextAreaElement} */
   const e = event.target;
