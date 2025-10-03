@@ -1,7 +1,5 @@
 <template>
-  <div class="box-section background-red source_warning" v-show="showErrors && sourceWarning">
-    A source must be provided or you must select that there is no available source.
-  </div>
+  <div class="box-section background-red source_warning" v-show="showErrors && sourceWarning">A source must be provided or you must select that there is no available source.</div>
   <div class="upload-source-more">
     <label class="section-label upload-source-none">
       <input type="checkbox" id="no_source" v-model="noSource"/>

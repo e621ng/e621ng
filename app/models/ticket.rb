@@ -39,6 +39,7 @@ class Ticket < ApplicationRecord
   # |    User    |         Any         | Moderator+ / Creator |
   # |  Wiki Page |         Any         |  Janitor+ / Creator  |
   # |    Other   |         None        | Moderator+ / Creator |
+  # |Replacement |         Any         |  Janitor+ / Creator  |
 
   module TicketTypes
     module Blip
@@ -171,6 +172,24 @@ class Ticket < ApplicationRecord
 
       def can_view?(user)
         user.is_staff? || user.is_admin? || (user.id == creator_id)
+      end
+    end
+
+    module Replacement
+      def model
+        ::PostReplacement
+      end
+
+      def can_view?(user)
+        user.is_janitor? || (user.id == creator_id)
+      end
+
+      def can_create_for?(user)
+        content&.visible_to?(user)
+      end
+
+      def subject
+        reason.split("\n")[0] || "Unknown Report Type"
       end
     end
   end
