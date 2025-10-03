@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Launches the Rails test runner w/ the given options with a progress bar.
+
+# cspell:ignore opipe
+
+exec ./scripts/opipe docker compose run --rm tests "$@"
+exit $?
