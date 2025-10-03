@@ -39,7 +39,7 @@ export default class Offclick {
 
   // Singleton pattern
   static _instance = null;
-  static get instance() {
+  static get instance () {
     if (this._instance === null)
       this._instance = new Offclick();
     return this._instance;

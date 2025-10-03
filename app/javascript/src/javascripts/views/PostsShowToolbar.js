@@ -6,7 +6,6 @@ import Post from "../posts";
 import Utility from "../utility";
 import Offclick from "../utility/offclick";
 import Page from "../utility/page";
-import LStorage from "../utility/storage";
 
 export default class PostsShowToolbar {
 
