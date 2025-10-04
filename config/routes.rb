@@ -290,6 +290,8 @@ Rails.application.routes.draw do
       get :random
     end
     member do
+      get :report
+      post :report
       get :update_iqdb
       put :revert
       put :copy_notes
@@ -310,7 +312,7 @@ Rails.application.routes.draw do
     end
   end
   resources :post_events, only: :index
-  resources :post_flags, except: %i[destroy] do
+  resources :post_flags, except: %i[destroy new] do
     member do
       post :clear_note
     end
