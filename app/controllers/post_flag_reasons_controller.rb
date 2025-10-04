@@ -11,7 +11,9 @@ class PostFlagReasonsController < ApplicationController
 
   def new
     @reason = PostFlagReason.new
-    @reason.index ||= PostFlagReason.maximum(:index).to_i + 1
+    puts "HELLOOOOOOOOOOO"
+    puts "MAX #{PostFlagReason.maximum(:index).to_i}"
+    @reason.index = PostFlagReason.maximum(:index).to_i + 1
   end
 
   def edit
