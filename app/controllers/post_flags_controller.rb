@@ -18,12 +18,6 @@ class PostFlagsController < ApplicationController
     end
   end
 
-  def new
-    @post_flag = PostFlag.new(post_flag_params)
-    @post = Post.find(params[:post_flag][:post_id])
-    respond_with(@post_flag)
-  end
-
   def create
     @post_flag = PostFlag.create(post_flag_params)
     respond_with(@post_flag) do |fmt|

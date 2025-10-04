@@ -1,27 +1,33 @@
-// Top
-.flag-dialog-preview {
-  display: flex;
-  flex-flow: column;
-  gap: 0.5rem;
+#c-posts #a-report {
 
-  @include window-larger-than(50rem) {
-    flex-flow: row;
+  form.simple_form {
+    margin: unset;
+    background: unset;
+    border-radius: unset;
+    padding: unset;
   }
 
-  blockquote { border: 0; }
-}
+  // Post thumbnail + blurb
+  .post-report-preview {
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
 
-// Middle
-.flag-dialog-body {
-  #new_post_flag { background-color: unset; }
+    @include window-larger-than(50rem) {
+      flex-flow: row;
+    }
 
-  .flag-reason {
+    blockquote { border: 0; }
+  }
+
+  // Post report reason
+  .report-reason {
     display: flex;
     flex-flow: column;
     gap: 0.125rem;
     margin-bottom: 1rem;
 
-    label.flag-reason-label {
+    label.report-reason-label {
       font-weight: unset;
       white-space: unset;
       display: flex;
@@ -98,13 +104,14 @@
     }
   }
 
-  .post_flag_note label {
+  .posts_report_note label {
     .required-indicator { display: none; }
     &.required .required-indicator { display: inline; }
   }
 
-  .flag-note-hint {
+  .report-note-hint {
     color: palette("text-red");
     font-weight: bold;
   }
+
 }
