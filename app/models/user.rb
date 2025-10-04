@@ -40,6 +40,7 @@ class User < ApplicationRecord
   # Renaming history (in order):                                                                    #
   # * _has_mail -> forum_notification_dot                                                           #
   # * _no_feedback -> no_uploading                                                                  #
+  # show_hidden_comments -> show_deleted_comments                                                   #
   # ================================================================================================#
 
   BOOLEAN_ATTRIBUTES = %w[
@@ -48,7 +49,7 @@ class User < ApplicationRecord
     blacklist_users
     description_collapsed_initially
     hide_comments
-    show_hidden_comments
+    show_deleted_comments
     show_post_statistics
     is_banned
     forum_notification_dot
@@ -684,7 +685,7 @@ class User < ApplicationRecord
       if id == CurrentUser.user.id
         boolean_attributes = %i[
           blacklist_users description_collapsed_initially
-          hide_comments show_hidden_comments show_post_statistics
+          hide_comments show_deleted_comments show_post_statistics
           is_banned receive_email_notifications
           enable_keyboard_navigation enable_privacy_mode
           style_usernames enable_auto_complete

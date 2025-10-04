@@ -438,7 +438,7 @@ CREATE TABLE public.comments (
     updater_id integer,
     updater_ip_addr inet,
     do_not_bump_post boolean DEFAULT false NOT NULL,
-    is_hidden boolean DEFAULT false NOT NULL,
+    is_deleted boolean DEFAULT false NOT NULL,
     is_sticky boolean DEFAULT false NOT NULL,
     warning_type integer,
     warning_user_id integer
@@ -4831,6 +4831,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251004000001'),
 ('20251001213309'),
 ('20250921011208'),
 ('20250831040648'),

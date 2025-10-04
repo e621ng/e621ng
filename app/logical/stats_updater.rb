@@ -53,9 +53,9 @@ class StatsUpdater
     ### Comments ###
 
     stats[:total_comments] = Comment.maximum("id") || 0
-    stats[:active_comments] = Comment.where(is_hidden: false).count
-    stats[:hidden_comments] = Comment.where(is_hidden: true).count
-    stats[:deleted_comments] = stats[:total_comments] - (stats[:active_comments] + stats[:hidden_comments])
+    stats[:active_comments] = Comment.where(is_deleted: false).count
+    stats[:deleted_comments] = Comment.where(is_deleted: true).count
+    stats[:destroyed_comments] = stats[:total_comments] - (stats[:active_comments] + stats[:deleted_comments])
     stats[:average_comments_per_day] = daily_average.call(stats[:total_comments])
 
     ### Forum posts ###

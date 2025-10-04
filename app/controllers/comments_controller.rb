@@ -3,7 +3,7 @@
 class CommentsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index search show for_post]
-  before_action :moderator_only, only: %i[unhide warning]
+  before_action :moderator_only, only: %i[undelete warning]
   before_action :admin_only, only: %i[destroy]
   before_action :ensure_lockdown_disabled, except: %i[index search show for_post]
   skip_before_action :api_check
@@ -72,17 +72,17 @@ class CommentsController < ApplicationController
     respond_with(@comment)
   end
 
-  def hide
+  def delete
     @comment = Comment.find(params[:id])
     check_hidable(@comment)
-    @comment.hide!
+    @comment.delete!
     respond_with(@comment)
   end
 
-  def unhide
+  def undelete
     @comment = Comment.find(params[:id])
     check_hidable(@comment)
-    @comment.unhide!
+    @comment.undelete!
     respond_with(@comment)
   end
 
@@ -134,12 +134,12 @@ class CommentsController < ApplicationController
   end
 
   def check_hidable(comment)
-    raise User::PrivilegeError unless comment.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError unless comment.can_delete?(CurrentUser.user)
   end
 
   def search_params
     permitted_params = %i[body_matches post_id post_tags_match creator_name creator_id post_note_updater_name post_note_updater_id poster_id poster_name is_sticky do_not_bump_post order]
-    permitted_params += %i[is_hidden] if CurrentUser.is_moderator?
+    permitted_params += %i[is_deleted] if CurrentUser.is_moderator?
     permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
@@ -148,7 +148,7 @@ class CommentsController < ApplicationController
     permitted_params = %i[body]
     permitted_params += %i[do_not_bump_post post_id] if context == :create
     permitted_params += %i[is_sticky] if CurrentUser.is_janitor?
-    permitted_params += %i[is_hidden] if CurrentUser.is_moderator?
+    permitted_params += %i[is_deleted] if CurrentUser.is_moderator?
 
     params.fetch(:comment, {}).permit(permitted_params)
   end

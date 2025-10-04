@@ -1682,8 +1682,8 @@ class PostTest < ActiveSupport::TestCase
 
     should "return posts for the commenter:<any|none> metatag" do
       posts = create_list(:post, 2)
-      create(:comment, post: posts[0], is_hidden: false)
-      create(:comment, post: posts[1], is_hidden: true)
+      create(:comment, post: posts[0], is_deleted: false)
+      create(:comment, post: posts[1], is_deleted: true)
 
       assert_tag_match([posts[0]], "commenter:any")
       assert_tag_match([posts[1]], "commenter:none")

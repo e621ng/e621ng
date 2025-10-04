@@ -155,7 +155,7 @@ class UsersController < ApplicationController
 
       receive_email_notifications enable_keyboard_navigation
       enable_privacy_mode disable_user_dmails blacklist_users show_post_statistics
-      style_usernames show_hidden_comments
+      style_usernames show_deleted_comments
       enable_auto_complete
       enable_safe_mode disable_responsive_mode
       forum_notification_dot

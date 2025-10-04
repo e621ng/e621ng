@@ -239,12 +239,12 @@ class CommentTest < ActiveSupport::TestCase
 
         should "create a mod action" do
           assert_difference(-> { ModAction.count }, 1) do
-            @comment.update(is_hidden: true)
+            @comment.update(is_deleted: true)
           end
         end
 
         should "credit the moderator as the updater" do
-          @comment.update(is_hidden: true)
+          @comment.update(is_deleted: true)
           assert_equal(@mod.id, @comment.updater_id)
         end
       end

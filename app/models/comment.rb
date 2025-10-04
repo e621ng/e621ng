@@ -14,16 +14,16 @@ class Comment < ApplicationRecord
   validates :body, length: { minimum: 1, maximum: Danbooru.config.comment_max_size }
 
   after_create :update_last_commented_at_on_create
-  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
+  after_update(if: ->(rec) { !rec.saved_change_to_is_deleted? && CurrentUser.id != rec.creator_id }) do |rec|
     ModAction.log(:comment_update, { comment_id: rec.id, user_id: rec.creator_id })
   end
   after_destroy :update_last_commented_at_on_destroy
   after_destroy do |rec|
-    ModAction.log(:comment_delete, { comment_id: rec.id, user_id: rec.creator_id })
+    ModAction.log(:comment_destroy, { comment_id: rec.id, user_id: rec.creator_id })
   end
-  after_save :update_last_commented_at_on_destroy, if: ->(rec) { rec.is_hidden? && rec.saved_change_to_is_hidden? }
-  after_save(if: ->(rec) { rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
-    action = rec.is_hidden? ? :comment_hide : :comment_unhide
+  after_save :update_last_commented_at_on_destroy, if: ->(rec) { rec.is_deleted? && rec.saved_change_to_is_deleted? }
+  after_save(if: ->(rec) { rec.saved_change_to_is_deleted? && CurrentUser.id != rec.creator_id }) do |rec|
+    action = rec.is_deleted? ? :comment_delete : :comment_undelete
     ModAction.log(action, { comment_id: rec.id, user_id: rec.creator_id })
   end
 
@@ -32,8 +32,8 @@ class Comment < ApplicationRecord
   belongs_to :warning_user, class_name: "User", optional: true
   has_many :votes, :class_name => "CommentVote", :dependent => :destroy
 
-  scope :deleted, -> { where(is_hidden: true) }
-  scope :undeleted, -> { where(is_hidden: false) }
+  scope :deleted, -> { where(is_deleted: true) }
+  scope :undeleted, -> { where(is_deleted: false) }
   scope :stickied, -> { where(is_sticky: true) }
 
   module SearchMethods
@@ -45,9 +45,9 @@ class Comment < ApplicationRecord
       if user.is_moderator?
         where("not(comments.score >= ? or comments.is_sticky = true)", user.comment_threshold)
       elsif user.is_janitor?
-        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?))", user.comment_threshold, user.id)
+        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_sticky = true or comments.is_deleted = false or comments.creator_id = ?))", user.comment_threshold, user.id)
       else
-        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_hidden = false or comments.creator_id = ?))", user.comment_threshold, user.id)
+        where("not((comments.score >= ? or comments.is_sticky = true) and (comments.is_deleted = false or comments.creator_id = ?))", user.comment_threshold, user.id)
       end
     end
 
@@ -56,9 +56,9 @@ class Comment < ApplicationRecord
       unless user.is_moderator?
         q = q.joins(:post).where("comments.is_sticky = true or posts.is_comment_disabled = false or comments.creator_id = ?", user.id)
         if user.is_janitor?
-          q = q.where("comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?", user.id)
+          q = q.where("comments.is_sticky = true or comments.is_deleted = false or comments.creator_id = ?", user.id)
         else
-          q = q.where("comments.is_hidden = false or comments.creator_id = ?", user.id)
+          q = q.where("comments.is_deleted = false or comments.creator_id = ?", user.id)
         end
       end
       q
@@ -95,7 +95,7 @@ class Comment < ApplicationRecord
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
 
-      q = q.attribute_matches(:is_hidden, params[:is_hidden])
+      q = q.attribute_matches(:is_deleted, params[:is_deleted])
       q = q.attribute_matches(:is_sticky, params[:is_sticky])
       q = q.attribute_matches(:do_not_bump_post, params[:do_not_bump_post])
 
@@ -194,7 +194,7 @@ class Comment < ApplicationRecord
     creator_id == user.id
   end
 
-  def can_hide?(user)
+  def can_delete?(user)
     return true if user.is_moderator?
     return false if !visible_to?(user) || was_warned? || post&.is_comment_disabled?
     user.id == creator_id
@@ -203,12 +203,12 @@ class Comment < ApplicationRecord
   def visible_to?(user)
     return true if user.is_staff?
     return false if !is_sticky? && (post&.is_comment_disabled? && creator_id != user.id)
-    return true if is_hidden? == false
-    creator_id == user.id # Can always see your own comments, even if hidden.
+    return true if is_deleted? == false
+    creator_id == user.id # Can always see your own comments, even if deleted.
   end
 
   def should_see?(user)
-    return user.show_hidden_comments? if creator_id == user.id && is_hidden?
+    return user.show_deleted_comments? if creator_id == user.id && is_deleted?
     visible_to?(user)
   end
 
@@ -216,11 +216,11 @@ class Comment < ApplicationRecord
     super + [:creator_name, :updater_name]
   end
 
-  def hide!
-    update(is_hidden: true)
+  def delete!
+    update(is_deleted: true)
   end
 
-  def unhide!
-    update(is_hidden: false)
+  def undelete!
+    update(is_deleted: false)
   end
 end

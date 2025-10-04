@@ -197,10 +197,10 @@ class ModActionDecorator < ApplicationDecorator
       "Edited comment ##{vals['comment_id']} by #{user}"
     when "comment_delete"
       "Deleted comment ##{vals['comment_id']} by #{user}"
-    when "comment_hide"
-      "Hid comment ##{vals['comment_id']} by #{user}"
-    when "comment_unhide"
-      "Unhid comment ##{vals['comment_id']} by #{user}"
+    when "comment_undelete"
+      "Undeleted comment ##{vals['comment_id']} by #{user}"
+    when "comment_destroy"
+      "Destroyed comment ##{vals['comment_id']} by #{user}"
 
       ### Forum Post ###
 

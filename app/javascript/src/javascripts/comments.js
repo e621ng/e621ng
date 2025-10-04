@@ -11,9 +11,9 @@ Comment.initialize_all = function () {
     $(".comment-vote-up-link").on("click", Comment.vote_up);
     $(".comment-vote-down-link").on("click", Comment.vote_down);
     $(".comment-reply-link").on("click", Comment.quote);
-    $(".comment-hide-link").on("click", Comment.hide);
-    $(".comment-unhide-link").on("click", Comment.unhide);
     $(".comment-delete-link").on("click", Comment.delete);
+    $(".comment-undelete-link").on("click", Comment.undelete);
+    $(".comment-destroy-link").on("click", Comment.destroy);
     $(".show-all-comments-for-post-link").on("click", Comment.show_all);
     $(".comment-tag-hide-link").on("click", Comment.toggle_post_tags);
   }
@@ -22,9 +22,9 @@ Comment.initialize_all = function () {
 Comment.reinitialize_all = function () {
   if ($("#c-posts").length || $("#c-comments").length) {
     $(".comment-reply-link").off("click");
-    $(".comment-hide-link").off("click");
-    $(".comment-unhide-link").off("click");
     $(".comment-delete-link").off("click");
+    $(".comment-undelete-link").off("click");
+    $(".comment-destroy-link").off("click");
     $(".show-all-comments-for-post-link").off("click");
     $(".comment-tag-hide-link").off("click");
     $(".edit_comment_link").off("click");
@@ -56,46 +56,46 @@ Comment.show_all = function (e) {
   });
 };
 
-Comment.hide = function (e) {
+Comment.delete = function (e) {
   e.preventDefault();
-  if (!confirm("Are you sure you want to hide this comment?"))
+  if (!confirm("Are you sure you want to delete this comment?"))
     return;
   const parent = $(e.target).parents("article.comment");
   const cid = parent.data("comment-id");
   $.ajax({
-    url: `/comments/${cid}/hide.json`,
+    url: `/comments/${cid}/delete.json`,
     type: "POST",
     dataType: "json",
   }).done(function () {
-    $(`.comment[data-comment-id="${cid}"] div.author h1`).append(" (hidden)");
+    $(`.comment[data-comment-id="${cid}"] div.author h1`).append(" (deleted)");
     $(`.comment[data-comment-id="${cid}"]`).attr("data-is-deleted", "true");
   }).fail(function () {
-    Utility.error("Failed to hide comment.");
+    Utility.error("Failed to delete comment.");
   });
 };
 
-Comment.unhide = function (e) {
+Comment.undelete = function (e) {
   e.preventDefault();
-  if (!confirm("Are you sure you want to unhide this comment?"))
+  if (!confirm("Are you sure you want to undelete this comment?"))
     return;
   const parent = $(e.target).parents("article.comment");
   const cid = parent.data("comment-id");
   $.ajax({
-    url: `/comments/${cid}/unhide.json`,
+    url: `/comments/${cid}/undelete.json`,
     type: "POST",
     dataType: "json",
   }).done(function () {
     const $author = $(`.comment[data-comment-id="${cid}"] div.author h1`);
-    $author.text($author.text().replace(" (hidden)", ""));
+    $author.text($author.text().replace(" (deleted)", ""));
     $(`.comment[data-comment-id="${cid}"]`).attr("data-is-deleted", "false");
   }).fail(function () {
-    Utility.error("Failed to unhide comment.");
+    Utility.error("Failed to undelete comment.");
   });
 };
 
-Comment.delete = function (e) {
+Comment.destroy = function (e) {
   e.preventDefault();
-  if (!confirm("Are you sure you want to permanently delete this comment?"))
+  if (!confirm("Are you sure you want to destroy this comment?"))
     return;
   const parent = $(e.target).parents("article.comment");
   const cid = parent.data("comment-id");
@@ -106,7 +106,7 @@ Comment.delete = function (e) {
   }).done(function () {
     parent.remove();
   }).fail(function () {
-    Utility.error("Failed to delete comment.");
+    Utility.error("Failed to destroy comment.");
   });
 };
 

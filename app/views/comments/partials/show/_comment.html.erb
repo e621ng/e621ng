@@ -2,13 +2,13 @@
   <article class="comment comment-post-grid <%= "below-threshold" if comment.below_threshold? %>" data-post-id="<%= comment.post_id %>"
            data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>"
            data-creator="<%= comment.creator&.name.downcase %>" data-is-sticky="<%= comment.is_sticky %>" data-creator-id="<%= comment.creator_id %>"
-           data-is-deleted="<%= comment.is_hidden? %>" id="comment-<%= comment.id %>">
+           data-is-deleted="<%= comment.is_deleted? %>" id="comment-<%= comment.id %>">
     <div class="author-info">
       <div class="name-rank">
         <h4 class="author-name"><%= link_to_user comment.creator %></h4>
         <%= comment.creator.level_string %>
-        <% if comment.is_hidden? %>
-          (hidden)
+        <% if comment.is_deleted? %>
+          (deleted)
         <% end %>
       </div>
       <div class="avatar">
@@ -32,14 +32,14 @@
             <% if comment.editable_by?(CurrentUser.user) %>
               <li><%= link_to "Edit", edit_comment_path(comment.id), :id => "edit_comment_link_#{comment.id}", :class => "edit_comment_link" %></li>
             <% end %>
-            <% if !comment.is_hidden? && comment.can_hide?(CurrentUser.user) %>
-              <li><%= tag.a "Hide", href: '#', class: 'comment-hide-link' %></li>
+            <% if !comment.is_deleted? && comment.can_delete?(CurrentUser.user) %>
+              <li><%= tag.a "Delete", href: '#', class: 'comment-delete-link' %></li>
             <% elsif CurrentUser.is_moderator? %>
-              <li><%= tag.a "Unhide", href: '#', class: 'comment-unhide-link' %></li>
+              <li><%= tag.a "Undelete", href: '#', class: 'comment-undelete-link' %></li>
             <% end %>
 
             <% if CurrentUser.is_admin? %>
-              <li><%= tag.a "Delete", href: '#', class: 'comment-delete-link' %></li>
+              <li><%= tag.a "Destroy", href: '#', class: 'comment-destroy-link' %></li>
             <% end %>
             <li>|</li>
             <%= comment_vote_block(comment, @comment_votes[comment.id]) %>
