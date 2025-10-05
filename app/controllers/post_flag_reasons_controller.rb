@@ -11,8 +11,6 @@ class PostFlagReasonsController < ApplicationController
 
   def new
     @reason = PostFlagReason.new
-    puts "HELLOOOOOOOOOOO"
-    puts "MAX #{PostFlagReason.maximum(:index).to_i}"
     @reason.index = PostFlagReason.maximum(:index).to_i + 1
   end
 
@@ -49,6 +47,6 @@ class PostFlagReasonsController < ApplicationController
   private
 
   def reason_params
-    params.require(:post_flag_reason).permit(%i[name reason text require_explanation parent index type])
+    params.require(:post_flag_reason).permit(%i[name reason text needs_explanation needs_parent_id index type])
   end
 end

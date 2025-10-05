@@ -2,8 +2,8 @@
   <%= f.input :name, as: :string, hint: "Internal key (e.g. inferior)" %>
   <%= f.input :reason, as: :string, hint: "Short label shown in UI" %>
   <%= f.input :text, as: :dtext, label: "Description", hint: "Detailed guidance; DText supported" %>
-  <%= f.input :require_explanation, as: :boolean, label: "Additional Details Required" %>
-  <%= f.input :parent, as: :boolean, label: "Requires parent post id" %>
+  <%= f.input :needs_explanation, as: :boolean, label: "Additional Details Required" %>
+  <%= f.input :needs_parent_id, as: :boolean, label: "Requires parent post id" %>
   <%= f.input :index, as: :integer, label: "Order index", input_html: { min: 0 } %>
   <%= f.input :type, as: :select, collection: [["Flag", "flag"], ["Report", "report"]], include_blank: false, label: "Creates" %>
   <%= f.button :submit, "Submit" %>

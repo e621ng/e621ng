@@ -32,11 +32,11 @@
           <% end %>
 
           <label class="report-reason-label">
-            <%= radio_button_tag "reason_name", flag_reason.name, false, data: { require_explanation: flag_reason.require_explanation? } %>
+            <%= radio_button_tag "reason_name", flag_reason.name, false, data: { needs_explanation: flag_reason.needs_explanation? } %>
             <span class="report-reason-description">
               <b>
                 <%= format_text(flag_reason.reason, inline: true) %>
-                <% if flag_reason.require_explanation? %>
+                <% if flag_reason.needs_explanation? %>
                   <span class="report-reason-explanation">Additional Details Required</span>
                 <% end %>
               </b>
@@ -46,7 +46,7 @@
             </span>
           </label>
 
-          <% if flag_reason.parent? %>
+          <% if flag_reason.needs_parent_id? %>
             <span class="report-reason-parent">
               <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
             </span>
