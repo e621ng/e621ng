@@ -1,4 +1,4 @@
-<%# locals: (flag_reason:, form:, post:, depth: 0) %>
+<%# locals: (flag_reason:, form:, post:, depth: 0, parents: []) %>
 
 <% if flag_reason.name == "uploading_guidelines" && !post.flaggable_for_guidelines? %>
   <% return %>
@@ -10,6 +10,7 @@
       needs_explanation: flag_reason.needs_explanation?,
       has_children: flag_reason.has_children?,
       id: flag_reason.id,
+      parents: parents.join(" "),
     } %>
     <span class="report-reason-description">
       <b>
@@ -36,7 +37,12 @@
     <%= render partial: "posts/partials/report/reason",
               collection: flag_reason.children,
               as: :flag_reason,
-              locals: { form: form, post: post, depth: depth + 1 }
+              locals: {
+                form: form,
+                post: post,
+                depth: depth + 1,
+                parents: parents + [flag_reason.id],
+              }
     %>
   </div>
 <% end %>

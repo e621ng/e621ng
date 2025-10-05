@@ -185,6 +185,8 @@ class PostsController < ApplicationController
         reason = PostFlagReason.for_flags.find_by(name: reason_name)
       elsif report_type == "report"
         reason = PostFlagReason.for_reports.find_by(name: reason_name)
+      elsif report_type == "none"
+        reason = PostFlagReason.for_none.find_by(name: reason_name)
       else
         flash[:notice] = "Invalid report type"
         redirect_to report_post_path(@post) and return
@@ -201,8 +203,12 @@ class PostsController < ApplicationController
         redirect_to report_post_path(@post) and return
       end
 
-      # Create the flag or report based on type
-      if report_type == "flag"
+      # Create the flag or report based on type (or do nothing for 'none')
+      if report_type == "none"
+        # Don't create anything for 'none' type - just redirect back
+        flash[:notice] = "No action taken - this is a header option"
+        redirect_to @post
+      elsif report_type == "flag"
         @post_flag = PostFlag.create(
           post: @post,
           creator: CurrentUser.user,
