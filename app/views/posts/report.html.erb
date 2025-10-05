@@ -22,46 +22,22 @@
 
     <%= error_messages_for :post_flag %>
 
-    <%= custom_form_for(report_post_path, id: "post-report-form") do |f| %>
-      <%= f.hidden_field :post_id %>
+    <%= custom_form_for(report_post_path, id: "post-report-form") do |form| %>
+      <%= form.hidden_field :post_id %>
 
-      <div class="report-reason">
-        <% PostFlagReason.for_radio.each do |flag_reason| %>
-          <% if flag_reason.name == "uploading_guidelines" && !@post.flaggable_for_guidelines? %>
-            <% next %>
-          <% end %>
-
-          <label class="report-reason-label">
-            <%= radio_button_tag "reason_name", flag_reason.name, false, data: { needs_explanation: flag_reason.needs_explanation? } %>
-            <span class="report-reason-description">
-              <b>
-                <%= format_text(flag_reason.reason, inline: true) %>
-                <% if flag_reason.needs_explanation? %>
-                  <span class="report-reason-explanation">Additional Details Required</span>
-                <% end %>
-              </b>
-              <span class="dtext-container">
-                <%= format_text(flag_reason.text) %>
-              </span>
-            </span>
-          </label>
-
-          <% if flag_reason.needs_parent_id? %>
-            <span class="report-reason-parent">
-              <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
-            </span>
-          <% end %>
-
-        <% end %>
-      </div>
+      <%= render partial: "posts/partials/report/reason",
+                 collection: PostFlagReason.for_radio,
+                 as: :flag_reason,
+                 locals: { form: form, post: @post }
+      %>
 
       <div class="report-notes">
-        <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size, input_html: { id: "report_note_field" } %>
+        <%= form.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size, input_html: { id: "report_note_field" } %>
       </div>
       
       <div>
         <span class="report-note-hint" style="display: none;">Error: Additional note is required for this flag type.</span>
-        <%= f.submit "Submit", class: "st-button submit", data: { disable_with: false } %>
+        <%= form.submit "Submit", class: "st-button submit", data: { disable_with: false } %>
       </div>
     <% end %>
   </div>

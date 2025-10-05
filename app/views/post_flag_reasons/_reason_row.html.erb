@@ -1,0 +1,19 @@
+<% depth ||= 0 %>
+<% css_class = depth > 0 ? "child-reason depth-#{depth}" : "" %>
+
+<tr id="post-flag-reason-<%= flag_reason.id %>" class="<%= css_class %>">
+  <td><%= link_to flag_reason.name, edit_post_flag_reason_path(flag_reason) %></td>
+  <td><%= flag_reason.reason %></td>
+  <td><%= flag_reason.needs_explanation? ? "Yes" : "" %></td>
+  <td><%= flag_reason.needs_parent_id? ? "Yes" : "" %></td>
+  <td><%= compact_time flag_reason.updated_at %></td>
+  <td>
+    <% unless flag_reason.has_children? %>
+      <%= link_to "Delete", post_flag_reason_path(flag_reason), method: :delete, data: { confirm: "Delete this reason?" } %>
+    <% end %>
+  </td>
+</tr>
+
+<% if flag_reason.has_children? %>
+  <%= render partial: "reason_row", collection: flag_reason.children, as: :flag_reason, locals: { depth: depth + 1 } %>
+<% end %>

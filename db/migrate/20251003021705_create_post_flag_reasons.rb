@@ -13,6 +13,8 @@ class CreatePostFlagReasons < ActiveRecord::Migration[6.1]
       t.string :type, null: false, default: "flag"
       t.integer :index, null: false, default: 0
 
+      t.references :parent, foreign_key: { to_table: :post_flag_reasons }, null: true
+
       t.timestamps
     end
 

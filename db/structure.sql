@@ -1467,6 +1467,7 @@ CREATE TABLE public.post_flag_reasons (
     needs_parent_id boolean DEFAULT false NOT NULL,
     type character varying DEFAULT 'flag'::character varying NOT NULL,
     index integer DEFAULT 0 NOT NULL,
+    parent_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -4569,6 +4570,13 @@ CREATE UNIQUE INDEX index_post_flag_reasons_on_name ON public.post_flag_reasons 
 
 
 --
+-- Name: index_post_flag_reasons_on_parent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_flag_reasons_on_parent_id ON public.post_flag_reasons USING btree (parent_id);
+
+
+--
 -- Name: index_post_flag_reasons_on_type; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5255,6 +5263,14 @@ ALTER TABLE ONLY public.search_trend_blacklists
 
 ALTER TABLE ONLY public.staff_audit_logs
     ADD CONSTRAINT fk_rails_02329e5ef9 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: post_flag_reasons fk_rails_0b10fb512f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_flag_reasons
+    ADD CONSTRAINT fk_rails_0b10fb512f FOREIGN KEY (parent_id) REFERENCES public.post_flag_reasons(id);
 
 
 --
