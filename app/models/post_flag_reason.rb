@@ -18,6 +18,7 @@ class PostFlagReason < ApplicationRecord
 
   scope :for_flags, -> { where(type: "flag") }
   scope :for_reports, -> { where(type: "report") }
+  scope :for_none, -> { where(type: "none") }
 
   def self.for_radio
     Rails.cache.fetch("post_flag_reasons:for_radio") { structured.ordered.to_a }
