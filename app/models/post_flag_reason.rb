@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class PostFlagReason < ApplicationRecord
+  belongs_to :parent, class_name: "PostFlagReason", optional: true
+  has_many :children, class_name: "PostFlagReason", foreign_key: "parent_id", dependent: :nullify
+
+  # Disable STI
   self.inheritance_column = :_type_disabled
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
@@ -10,11 +14,13 @@ class PostFlagReason < ApplicationRecord
   after_save :invalidate_cache
 
   scope :ordered, -> { order(index: :asc, id: :asc) }
+  scope :structured, -> { where(parent_id: nil).includes(:children) }
+
   scope :for_flags, -> { where(type: "flag") }
   scope :for_reports, -> { where(type: "report") }
 
   def self.for_radio
-    Rails.cache.fetch("post_flag_reasons:for_radio") { ordered.to_a }
+    Rails.cache.fetch("post_flag_reasons:for_radio") { structured.ordered.to_a }
   end
 
   # Cached mapping of name => reason for validations and display
@@ -26,6 +32,14 @@ class PostFlagReason < ApplicationRecord
   def self.needs_explanation?(reason_name)
     explanation_map = Rails.cache.fetch("post_flag_reasons:needs_explanation_map") { ordered.pluck(:name, :needs_explanation).to_h }
     !!explanation_map[reason_name.to_s]
+  end
+
+  def has_children?
+    children.exists?
+  end
+
+  def children
+    super.ordered.includes(:children)
   end
 
   private

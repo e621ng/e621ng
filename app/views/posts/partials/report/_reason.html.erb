@@ -1,0 +1,42 @@
+<%# locals: (flag_reason:, form:, post:, depth: 0) %>
+
+<% if flag_reason.name == "uploading_guidelines" && !post.flaggable_for_guidelines? %>
+  <% return %>
+<% end %>
+
+<div class="report-reason depth-<%= depth %>">
+  <label class="report-reason-label">
+    <%= radio_button_tag "reason_name", flag_reason.name, false, data: {
+      needs_explanation: flag_reason.needs_explanation?,
+      has_children: flag_reason.has_children?,
+      id: flag_reason.id,
+    } %>
+    <span class="report-reason-description">
+      <b>
+        <%= format_text(flag_reason.reason, inline: true) %>
+        <% if flag_reason.needs_explanation? %>
+          <span class="report-reason-explanation">Additional Details Required</span>
+        <% end %>
+      </b>
+      <span class="dtext-container">
+        <%= format_text(flag_reason.text) %>
+      </span>
+    </span>
+  </label>
+
+  <% if flag_reason.needs_parent_id? %>
+    <span class="report-reason-parent">
+      <%= form.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
+    </span>
+  <% end %>
+</div>
+
+<% if flag_reason.has_children? %>
+  <div class="report-reason-children" style="display: none;" data-parent-id="<%= flag_reason.id %>">
+    <%= render partial: "posts/partials/report/reason",
+              collection: flag_reason.children,
+              as: :flag_reason,
+              locals: { form: form, post: post, depth: depth + 1 }
+    %>
+  </div>
+<% end %>
