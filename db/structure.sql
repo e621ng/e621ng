@@ -1455,6 +1455,7 @@ CREATE TABLE public.post_flag_reasons (
     needs_parent_id boolean DEFAULT false NOT NULL,
     type character varying DEFAULT 'flag'::character varying NOT NULL,
     index integer DEFAULT 0 NOT NULL,
+    parent_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -4556,6 +4557,13 @@ CREATE INDEX index_post_flag_reasons_on_index ON public.post_flag_reasons USING 
 --
 
 CREATE UNIQUE INDEX index_post_flag_reasons_on_name ON public.post_flag_reasons USING btree (name);
+
+
+--
+-- Name: index_post_flag_reasons_on_parent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_flag_reasons_on_parent_id ON public.post_flag_reasons USING btree (parent_id);
 
 
 --

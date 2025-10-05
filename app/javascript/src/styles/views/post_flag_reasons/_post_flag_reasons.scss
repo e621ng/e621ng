@@ -1,0 +1,12 @@
+body.c-post-flag-reasons.a-index {
+
+  table tr.child-reason {
+    @for $i from 1 through 10 {
+      &.depth-#{$i} td:first-child:before {
+        content: "↳";
+        padding: 0.25rem;
+        margin-left: ($i - 1) * 1rem;
+      }
+    }
+  }
+}
