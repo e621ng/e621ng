@@ -23,8 +23,8 @@ class PostFlagReason < ApplicationRecord
   end
 
   # Cached check for whether a reason requires an explanation
-  def self.require_explanation?(reason_name)
-    explanation_map = Rails.cache.fetch("post_flag_reasons:require_explanation_map") { ordered.pluck(:name, :require_explanation).to_h }
+  def self.needs_explanation?(reason_name)
+    explanation_map = Rails.cache.fetch("post_flag_reasons:needs_explanation_map") { ordered.pluck(:name, :needs_explanation).to_h }
     !!explanation_map[reason_name.to_s]
   end
 
@@ -33,6 +33,6 @@ class PostFlagReason < ApplicationRecord
   def invalidate_cache
     Rails.cache.delete("post_flag_reasons:for_radio")
     Rails.cache.delete("post_flag_reasons:map_for_lookup")
-    Rails.cache.delete("post_flag_reasons:require_explanation_map")
+    Rails.cache.delete("post_flag_reasons:needs_explanation_map")
   end
 end

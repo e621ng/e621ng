@@ -156,7 +156,7 @@ class PostFlag < ApplicationRecord
 
   def validate_note_required_for_reason
     return if reason_name.blank?
-    if PostFlagReason.require_explanation?(reason_name) && note.to_s.strip.blank?
+    if PostFlagReason.needs_explanation?(reason_name) && note.to_s.strip.blank?
       errors.add(:note, "is required for the selected reason")
     end
   end
