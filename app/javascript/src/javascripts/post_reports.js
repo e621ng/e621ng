@@ -15,8 +15,6 @@ PostReports.initExpandableNotes = function () {
 
 
 PostReports.initFlagForm = function () {
-  console.log("initializing form");
-
   // Form should always be present
   const form = $("#post-report-form");
   if (form.length === 0) return;
@@ -27,14 +25,26 @@ PostReports.initFlagForm = function () {
     .addClass("required-indicator")
     .text(" (required)")
     .appendTo(noteLabel);
-  form.on("change", "input[type='radio']", updateNoteRequired);
+  form.on("change", "input[type='radio']", onReasonRadioChange);
 
+  function onReasonRadioChange (event) {
+    console.log("target", event.target);
+    updateNoteRequired();
+    displayNoteChildren(event.target);
+  }
+
+  //   Set whether the note field is required
   let isNoteRequired = false;
   function updateNoteRequired () {
     const selected = form.find("input[name='reason_name']:checked");
     isNoteRequired = selected.data("needsExplanation") === true;
     noteLabel.toggleClass("required", isNoteRequired);
     toggleSubmitButton();
+  }
+
+  function displayNoteChildren (element) {
+    $(".report-reason-children").hide();
+    $(".report-reason-children[data-parent-id='" + element.dataset.id + "']").show();
   }
 
 
@@ -66,7 +76,11 @@ PostReports.initFlagForm = function () {
 
 
   // Initial state
-  isNoteRequired = form.find("input[name='reason_name']:checked").data("needsExplanation") === true;
+  const selected = form.find("input[name='reason_name']:checked");
+  if (selected.length > 0) {
+    displayNoteChildren(selected[0]);
+    isNoteRequired = selected.data("needsExplanation") === true;
+  }
   isNoteEmpty = (noteField.val() || "").trim() === "";
   noteLabel.toggleClass("required", isNoteRequired);
   toggleSubmitButton();

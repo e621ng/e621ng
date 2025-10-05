@@ -25,7 +25,14 @@
     display: flex;
     flex-flow: column;
     gap: 0.125rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.25rem;
+
+    // Depth indicator
+    @for $i from 1 through 10 {
+      &.depth-#{$i} {
+        margin-left: $i * 1rem;
+      }
+    }
 
     label.report-reason-label {
       font-weight: unset;
