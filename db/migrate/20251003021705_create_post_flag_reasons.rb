@@ -7,8 +7,8 @@ class CreatePostFlagReasons < ActiveRecord::Migration[6.1]
       t.string :reason, null: false
       t.text :text, null: false, default: ""
 
-      t.boolean :require_explanation, null: false, default: false
-      t.boolean :parent, null: false, default: false
+      t.boolean :needs_explanation, null: false, default: false
+      t.boolean :needs_parent_id, null: false, default: false
 
       t.string :type, null: false, default: "flag"
       t.integer :index, null: false, default: 0
