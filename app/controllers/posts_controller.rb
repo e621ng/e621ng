@@ -189,18 +189,18 @@ class PostsController < ApplicationController
   # POST: Creates either a PostFlag or Ticket based on the report type
   def report
     @post = Post.find(params[:id])
-    
+
     if request.get?
       # Show the report form
       @flag_reasons = PostFlagReason.for_flags.ordered
       @report_reasons = PostFlagReason.for_reports.ordered
-      
+
       # Check if we have any reasons configured
       if @flag_reasons.empty? && @report_reasons.empty?
         flash[:notice] = "No flag or report reasons are currently configured"
         redirect_to @post and return
       end
-      
+
       respond_with(@post) do |format|
         format.html { render :report }
       end
@@ -217,9 +217,9 @@ class PostsController < ApplicationController
       end
 
       # Validate that the reason exists and matches the report type
-      if report_type == 'flag'
+      if report_type == "flag"
         reason = PostFlagReason.for_flags.find_by(name: reason_name)
-      elsif report_type == 'report'
+      elsif report_type == "report"
         reason = PostFlagReason.for_reports.find_by(name: reason_name)
       else
         flash[:notice] = "Invalid report type"
@@ -232,20 +232,20 @@ class PostsController < ApplicationController
       end
 
       # Check if explanation is required
-      if reason.require_explanation && explanation.blank?
+      if reason.needs_explanation && explanation.blank?
         flash[:notice] = "Explanation is required for this reason"
         redirect_to report_post_path(@post) and return
       end
 
       # Create the flag or report based on type
-      if report_type == 'flag'
+      if report_type == "flag"
         @post_flag = PostFlag.create(
           post: @post,
           creator: CurrentUser.user,
           reason: reason.reason,
-          explanation: explanation
+          explanation: explanation,
         )
-        
+
         if @post_flag.errors.empty?
           flash[:notice] = "Post flagged successfully"
           redirect_to @post
@@ -261,9 +261,9 @@ class PostsController < ApplicationController
           creator: CurrentUser.user,
           qtype: "post",
           disp_id: @post.id,
-          reason: explanation.present? ? "#{reason.reason}: #{explanation}" : reason.reason
+          reason: explanation.present? ? "#{reason.reason}: #{explanation}" : reason.reason,
         )
-        
+
         if @ticket.errors.empty?
           flash[:notice] = "Report submitted successfully"
           redirect_to @post

@@ -15,6 +15,8 @@ PostReports.initExpandableNotes = function () {
 
 
 PostReports.initFlagForm = function () {
+  console.log("initializing form");
+
   // Form should always be present
   const form = $("#post-report-form");
   if (form.length === 0) return;
@@ -30,7 +32,7 @@ PostReports.initFlagForm = function () {
   let isNoteRequired = false;
   function updateNoteRequired () {
     const selected = form.find("input[name='reason_name']:checked");
-    isNoteRequired = selected.data("requireExplanation") === true;
+    isNoteRequired = selected.data("needsExplanation") === true;
     noteLabel.toggleClass("required", isNoteRequired);
     toggleSubmitButton();
   }
@@ -64,7 +66,7 @@ PostReports.initFlagForm = function () {
 
 
   // Initial state
-  isNoteRequired = form.find("input[name='reason_name']:checked").data("requireExplanation") === true;
+  isNoteRequired = form.find("input[name='reason_name']:checked").data("needsExplanation") === true;
   isNoteEmpty = (noteField.val() || "").trim() === "";
   noteLabel.toggleClass("required", isNoteRequired);
   toggleSubmitButton();
