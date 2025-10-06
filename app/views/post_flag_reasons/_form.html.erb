@@ -6,6 +6,6 @@
   <%= f.input :needs_parent_id, as: :boolean, label: "Requires parent post id" %>
   <%= f.input :index, as: :integer, label: "Order index", input_html: { min: 0 } %>
   <%= f.input :category, as: :select, collection: [["Flag", "flag"], ["Report", "report"], ["None (Header)", "none"]], include_blank: false, label: "Creates" %>
-  <%= f.input :parent_id, as: :select, collection: PostFlagReason.where.not(id: @reason.id).ordered.pluck(:reason, :id), include_blank: true, label: "Parent reason", hint: "Optional parent reason for hierarchical reasons" %>
+  <%= f.input :parent_id, as: :select, collection: hierarchical_flag_reasons_for_select(@reason), include_blank: true, label: "Parent reason", hint: "Optional parent reason for hierarchical reasons" %>
   <%= f.button :submit, "Submit" %>
 <% end %>
