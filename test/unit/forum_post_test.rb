@@ -41,7 +41,7 @@ class ForumPostTest < ActiveSupport::TestCase
         should "update the topic's updated_at timestamp" do
           @topic.reload
           assert_in_delta(@posts[-1].updated_at.to_i, @topic.updated_at.to_i, 1)
-          @posts[-1].hide!
+          @posts[-1].delete!
           @topic.reload
           assert_in_delta(@posts[-2].updated_at.to_i, @topic.updated_at.to_i, 1)
         end
@@ -120,7 +120,7 @@ class ForumPostTest < ActiveSupport::TestCase
       end
     end
 
-    context "that is hidden by a moderator" do
+    context "that is deleted by a moderator" do
       setup do
         @post = create(:forum_post, topic_id: @topic.id)
         @mod = create(:moderator_user)
@@ -129,12 +129,12 @@ class ForumPostTest < ActiveSupport::TestCase
 
       should "create a mod action" do
         assert_difference(-> { ModAction.count }, 1) do
-          @post.update(is_hidden: true)
+          @post.update(is_deleted: true)
         end
       end
 
       should "credit the moderator as the updater" do
-        @post.update(is_hidden: true)
+        @post.update(is_deleted: true)
         assert_equal(@mod.id, @post.updater_id)
       end
     end

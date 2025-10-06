@@ -153,7 +153,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
       should "restrict reporting" do
         assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "forum")
-        @content.update_columns(is_hidden: true)
+        @content.update_columns(is_deleted: true)
         assert_ticket_create_permissions([[@bystander, false], [@admin, true], [@bad_actor, true]], qtype: "forum")
       end
 
@@ -161,7 +161,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "forum")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
         assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
-        @content.topic.update_columns(is_hidden: true)
+        @content.topic.update_columns(is_deleted: true)
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
       end
     end

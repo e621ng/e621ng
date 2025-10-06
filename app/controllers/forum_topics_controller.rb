@@ -3,11 +3,11 @@
 class ForumTopicsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show]
-  before_action :moderator_only, only: [:unhide]
+  before_action :moderator_only, only: [:undelete]
   before_action :admin_only, only: [:destroy]
   before_action :normalize_search, only: :index
-  before_action :load_topic, only: %i[edit show update destroy hide unhide subscribe unsubscribe]
-  before_action :check_min_level, only: %i[show edit update destroy hide unhide subscribe unsubscribe]
+  before_action :load_topic, only: %i[edit show update destroy delete undelete subscribe unsubscribe]
+  before_action :check_min_level, only: %i[show edit update destroy delete undelete subscribe unsubscribe]
   before_action :ensure_lockdown_disabled, except: %i[index show]
   skip_before_action :api_check
 
@@ -83,19 +83,19 @@ class ForumTopicsController < ApplicationController
     respond_with(@forum_topic)
   end
 
-  def hide
+  def delete
     check_privilege(@forum_topic)
-    @forum_topic.hide!
-    @forum_topic.create_mod_action_for_hide
-    flash[:notice] = "Topic hidden"
+    @forum_topic.delete!
+    @forum_topic.create_mod_action_for_delete
+    flash[:notice] = "Topic deleted"
     respond_with(@forum_topic)
   end
 
-  def unhide
+  def undelete
     check_privilege(@forum_topic)
-    @forum_topic.unhide!
-    @forum_topic.create_mod_action_for_unhide
-    flash[:notice] = "Topic unhidden"
+    @forum_topic.undelete!
+    @forum_topic.create_mod_action_for_undelete
+    flash[:notice] = "Topic undeleted"
     respond_with(@forum_topic)
   end
 

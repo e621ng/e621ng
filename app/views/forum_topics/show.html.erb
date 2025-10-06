@@ -3,8 +3,8 @@
     <h1>
       Topic: <%= @forum_topic.title %>
 
-      <% if @forum_topic.is_hidden? %>
-        <span class="locked-topic">(hidden)</span>
+      <% if @forum_topic.is_deleted? %>
+        <span class="locked-topic">(deleted)</span>
       <% end %>
     </h1>
 

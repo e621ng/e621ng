@@ -44,7 +44,7 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
         assert_equal([1, 2, 2], @forum_posts.map(&:forum_topic_page))
         assert_equal(2, @forum_topic.last_page)
 
-        as(@mod) { @forum_posts.first.hide! }
+        as(@mod) { @forum_posts.first.delete! }
         get_auth forum_topic_path(@forum_topic), @user, params: { page: 2 }
         assert_select "#forum_post_#{@forum_posts.second.id}"
         assert_select "#forum_post_#{@forum_posts.third.id}"
@@ -147,18 +147,18 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    context "unhide action" do
+    context "undelete action" do
       setup do
         as(@mod) do
-          @forum_topic.hide!
+          @forum_topic.delete!
         end
       end
 
       should "restore the topic" do
-        post_auth unhide_forum_topic_path(@forum_topic), @mod
+        post_auth undelete_forum_topic_path(@forum_topic), @mod
         assert_redirected_to(forum_topic_path(@forum_topic))
         @forum_topic.reload
-        assert(!@forum_topic.is_hidden?)
+        assert(!@forum_topic.is_deleted?)
       end
     end
   end

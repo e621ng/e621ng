@@ -14,7 +14,7 @@ div.list-of-forum-posts {
       background-color: $forum-post-highlight-background;
     }
 
-    &[data-is-hidden="true"] {
+    &[data-is-deleted="true"] {
       background-color: $background-article-hidden;
     }
 
@@ -70,7 +70,7 @@ div#c-forum-topics {
   }
 
   tr.forum-topic-row {
-    &[data-topic-is-hidden="true"] {
+    &[data-topic-is-deleted="true"] {
       background-color: $background-article-hidden;
     }
 
@@ -85,12 +85,12 @@ div#c-forum-topics {
 }
 
 #c-forum-posts #a-index {
-  tr[data-topic-is-hidden="true"] .forum-post-topic-title::after,
-  tr[data-is-hidden="true"] .forum-post-excerpt::after {
-    content: " (hidden)";
+  tr[data-topic-is-deleted="true"] .forum-post-topic-title::after,
+  tr[data-is-deleted="true"] .forum-post-excerpt::after {
+    content: " (deleted)";
     color: $forum-topic-except-color;
   }
-  tr[data-is-hidden="true"], tr[data-topic-is-hidden="true"] {
+  tr[data-is-deleted="true"], tr[data-topic-is-deleted="true"] {
     background-color: $background-article-hidden;
   }
 }

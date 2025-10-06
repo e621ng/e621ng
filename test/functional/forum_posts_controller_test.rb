@@ -145,18 +145,18 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    context "unhide action" do
+    context "undelete action" do
       setup do
         as(@mod) do
-          @forum_post.hide!
+          @forum_post.delete!
         end
       end
 
       should "restore the post" do
-        post_auth unhide_forum_post_path(@forum_post), @mod
+        post_auth undelete_forum_post_path(@forum_post), @mod
         assert_redirected_to(forum_post_path(@forum_post))
         @forum_post.reload
-        assert_equal(false, @forum_post.is_hidden?)
+        assert_equal(false, @forum_post.is_deleted?)
       end
     end
   end

@@ -7,7 +7,7 @@ class ForumTopic < ApplicationRecord
   has_many :posts, -> {order("forum_posts.id asc")}, :class_name => "ForumPost", :foreign_key => "topic_id", :dependent => :destroy
   has_one :original_post, -> {order("forum_posts.id asc")}, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic
   has_many :subscriptions, :class_name => "ForumSubscription"
-  before_validation :initialize_is_hidden, :on => :create
+  before_validation :initialize_is_deleted, :on => :create
   validate :category_valid
   validates :title, :creator_id, presence: true
   validates_associated :original_post
@@ -15,7 +15,7 @@ class ForumTopic < ApplicationRecord
   validates :title, :length => {:maximum => 250}
   validate :category_allows_creation, on: :create
   accepts_nested_attributes_for :original_post
-  before_destroy :create_mod_action_for_delete
+  before_destroy :create_mod_action_for_destroy
   after_update :update_original_post
   after_save(:if => ->(rec) {rec.saved_change_to_is_locked?}) do |rec|
     ModAction.log(rec.is_locked ? :forum_topic_lock : :forum_topic_unlock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
@@ -55,7 +55,7 @@ class ForumTopic < ApplicationRecord
   module SearchMethods
     def visible(user)
       q = joins(:category).where("forum_categories.can_view <= ?", user.level)
-      q = q.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
+      q = q.where("forum_topics.is_deleted = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
       q
     end
 
@@ -83,7 +83,7 @@ class ForumTopic < ApplicationRecord
 
       q = q.attribute_matches(:is_sticky, params[:is_sticky])
       q = q.attribute_matches(:is_locked, params[:is_locked])
-      q = q.attribute_matches(:is_hidden, params[:is_hidden])
+      q = q.attribute_matches(:is_deleted, params[:is_deleted])
 
       case params[:order]
       when "sticky"
@@ -144,7 +144,7 @@ class ForumTopic < ApplicationRecord
   end
 
   def visible?(user)
-    return false if is_hidden && !can_hide?(user)
+    return false if is_deleted && !can_delete?(user)
     user.level >= category.can_view
   end
 
@@ -152,11 +152,11 @@ class ForumTopic < ApplicationRecord
     user.level >= category.can_reply
   end
 
-  def can_hide?(user)
+  def can_delete?(user)
     user.is_moderator? || user.id == creator_id
   end
 
-  def can_delete?(user)
+  def can_destroy?(user)
     user.is_admin?
   end
 
@@ -164,28 +164,28 @@ class ForumTopic < ApplicationRecord
     ModAction.log(:forum_topic_delete, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
   end
 
-  def create_mod_action_for_hide
-    ModAction.log(:forum_topic_hide, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
+  def create_mod_action_for_undelete
+    ModAction.log(:forum_topic_undelete, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
   end
 
-  def create_mod_action_for_unhide
-    ModAction.log(:forum_topic_unhide, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
+  def create_mod_action_for_destroy
+    ModAction.log(:forum_topic_destroy, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})
   end
 
-  def initialize_is_hidden
-    self.is_hidden = false if is_hidden.nil?
+  def initialize_is_deleted
+    self.is_deleted = false if is_deleted.nil?
   end
 
   def last_page
     (response_count / Danbooru.config.records_per_page.to_f).ceil
   end
 
-  def hide!
-    update(is_hidden: true)
+  def delete!
+    update(is_deleted: true)
   end
 
-  def unhide!
-    update(is_hidden: false)
+  def undelete!
+    update(is_deleted: false)
   end
 
   def update_original_post

@@ -9,7 +9,7 @@
   </thead>
   <tbody>
     <% forum_topics.each do |topic| %>
-      <tr class="forum-topic-row forum-topic-category-<%= topic.category_id %>" data-topic-is-hidden="<%= topic.is_hidden? %>">
+      <tr class="forum-topic-row forum-topic-category-<%= topic.category_id %>" data-topic-is-deleted="<%= topic.is_deleted? %>">
         <td>
           <% if topic.is_sticky? %>
             <span class="sticky">Sticky:</span>
@@ -28,8 +28,8 @@
           <% if topic.is_locked? %>
             <span class="locked-topic">(locked)</span>
           <% end %>
-          <% if topic.is_hidden? %>
-            <span class="locked-topic">(hidden)</span>
+          <% if topic.is_deleted? %>
+            <span class="locked-topic">(deleted)</span>
           <% end %>
         </td>
         <td class="updated-at updater"><%= link_to_user topic.updater %> <%= time_ago_in_words_tagged topic.updated_at, compact: true %></td>

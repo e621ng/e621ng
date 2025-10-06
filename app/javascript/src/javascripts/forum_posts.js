@@ -20,8 +20,8 @@ ForumPost.initialize_all = function () {
     });
 
     $(".forum-post-reply-link").on("click", ForumPost.quote);
-    $(".forum-post-hide-link").on("click", ForumPost.hide);
-    $(".forum-post-unhide-link").on("click", ForumPost.unhide);
+    $(".forum-post-delete-link").on("click", ForumPost.delete);
+    $(".forum-post-undelete-link").on("click", ForumPost.undelete);
     $(".forum-vote-up").on("click", evt => ForumPost.vote(evt, 1));
     $(".forum-vote-meh").on("click", evt => ForumPost.vote(evt, 0));
     $(".forum-vote-down").on("click", evt => ForumPost.vote(evt, -1));
@@ -34,8 +34,8 @@ ForumPost.reinitialize_all = function () {
     $(".edit_forum_post_link").off("click.danbooru");
     $(".edit_forum_topic_link").off("click.danbooru");
     $(".forum-post-reply-link").off("click");
-    $(".forum-post-hide-link").off("click");
-    $(".forum-post-unhide-link").off("click");
+    $(".forum-post-delete-link").off("click");
+    $(".forum-post-undelete-link").off("click");
     $(".forum-vote-up").off("click");
     $(".forum-vote-meh").off("click");
     $(".forum-vote-down").off("click");
@@ -117,40 +117,40 @@ ForumPost.quote = function (e) {
   });
 };
 
-ForumPost.hide = function (e) {
+ForumPost.delete = function (e) {
   e.preventDefault();
-  if (!confirm("Are you sure you want to hide this post?"))
+  if (!confirm("Are you sure you want to delete this post?"))
     return;
   const parent = $(e.target).parents("article.forum-post");
   const fpid = parent.data("forum-post-id");
   $.ajax({
-    url: `/forum_posts/${fpid}/hide.json`,
+    url: `/forum_posts/${fpid}/delete.json`,
     type: "POST",
     dataType: "json",
   }).done(function () {
-    $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`).append(" (hidden)");
-    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr("data-is-hidden", "true");
+    $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`).append(" (deleted)");
+    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr("data-is-deleted", "true");
   }).fail(function () {
-    Utility.error("Failed to hide post.");
+    Utility.error("Failed to delete post.");
   });
 };
 
-ForumPost.unhide = function (e) {
+ForumPost.undelete = function (e) {
   e.preventDefault();
-  if (!confirm("Are you sure you want to unhide this post?"))
+  if (!confirm("Are you sure you want to undelete this post?"))
     return;
   const parent = $(e.target).parents("article.forum-post");
   const fpid = parent.data("forum-post-id");
   $.ajax({
-    url: `/forum_posts/${fpid}/unhide.json`,
+    url: `/forum_posts/${fpid}/undelete.json`,
     type: "POST",
     dataType: "json",
   }).done(function () {
     const $author = $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`);
-    $author.text($author.text().replace(" (hidden)", ""));
-    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr("data-is-hidden", "false");
+    $author.text($author.text().replace(" (deleted)", ""));
+    $(`.forum-post[data-forum-post-id="${fpid}"]`).attr("data-is-deleted", "false");
   }).fail(function () {
-    Utility.error("Failed to unhide post.");
+    Utility.error("Failed to undelete post.");
   });
 };
 

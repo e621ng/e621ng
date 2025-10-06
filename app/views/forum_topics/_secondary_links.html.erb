@@ -23,10 +23,10 @@
     <% if !@forum_topic.new_record? && @forum_topic.editable_by?(CurrentUser.user) %>
       <%= subnav_link_to "Edit", edit_forum_topic_path(@forum_topic), data: { hotkey: "edit" } %>
       <% if CurrentUser.is_moderator? %>
-        <% if @forum_topic.is_hidden? %>
-          <%= subnav_link_to "Unhide", unhide_forum_topic_path(@forum_topic), method: :post %>
+        <% if @forum_topic.is_deleted? %>
+          <%= subnav_link_to "Undelete", undelete_forum_topic_path(@forum_topic), method: :post %>
         <% else %>
-          <%= subnav_link_to "Hide", hide_forum_topic_path(@forum_topic), method: :post, data: { confirm: "Are you sure you want to hide this forum topic?" } %>
+          <%= subnav_link_to "Delete", delete_forum_topic_path(@forum_topic), method: :post, data: { confirm: "Are you sure you want to delete this forum topic?" } %>
         <% end %>
         <% if @forum_topic.is_locked? %>
           <%= subnav_link_to "Unlock", forum_topic_path(@forum_topic, forum_topic: { is_locked: false }), method: :put, data: { confirm: "Are you sure you want to unlock this forum topic?" } %>

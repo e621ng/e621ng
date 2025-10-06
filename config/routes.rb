@@ -172,8 +172,8 @@ Rails.application.routes.draw do
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes"
     member do
-      post :hide
-      post :unhide
+      post :delete
+      post :undelete
       post :warning
     end
     collection do
@@ -182,8 +182,8 @@ Rails.application.routes.draw do
   end
   resources :forum_topics do
     member do
-      post :hide
-      post :unhide
+      post :delete
+      post :undelete
       post :subscribe
       post :unsubscribe
     end

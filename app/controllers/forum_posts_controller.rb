@@ -3,10 +3,10 @@
 class ForumPostsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show search]
-  before_action :moderator_only, only: %i[unhide warning]
+  before_action :moderator_only, only: %i[undelete warning]
   before_action :admin_only, only: [:destroy]
-  before_action :load_post, only: %i[edit show update destroy hide unhide warning]
-  before_action :check_min_level, only: %i[edit show update destroy hide unhide]
+  before_action :load_post, only: %i[edit show update destroy delete undelete warning]
+  before_action :check_min_level, only: %i[edit show update destroy delete undelete]
   before_action :ensure_lockdown_disabled, except: %i[index show search]
   skip_before_action :api_check
 
@@ -63,15 +63,15 @@ class ForumPostsController < ApplicationController
     respond_with(@forum_post)
   end
 
-  def hide
-    check_hidable(@forum_post)
-    @forum_post.hide!
+  def delete
+    check_deletable(@forum_post)
+    @forum_post.delete!
     respond_with(@forum_post)
   end
 
-  def unhide
-    check_hidable(@forum_post)
-    @forum_post.unhide!
+  def undelete
+    check_deletable(@forum_post)
+    @forum_post.undelete!
     respond_with(@forum_post)
   end
 
@@ -94,16 +94,16 @@ class ForumPostsController < ApplicationController
 
   def check_min_level
     raise User::PrivilegeError unless @forum_topic.visible?(CurrentUser.user)
-    raise User::PrivilegeError if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
-    raise User::PrivilegeError if @forum_post.is_hidden? && !@forum_post.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError if @forum_topic.is_deleted? && !@forum_topic.can_delete?(CurrentUser.user)
+    raise User::PrivilegeError if @forum_post.is_deleted? && !@forum_post.can_delete?(CurrentUser.user)
   end
 
   def check_editable(forum_post)
     raise User::PrivilegeError unless forum_post.editable_by?(CurrentUser.user)
   end
 
-  def check_hidable(forum_post)
-    raise User::PrivilegeError unless forum_post.can_hide?(CurrentUser.user)
+  def check_deletable(forum_post)
+    raise User::PrivilegeError unless forum_post.can_delete?(CurrentUser.user)
   end
 
   def forum_post_params(context)

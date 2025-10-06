@@ -2,13 +2,13 @@
   <article class="forum-post comment-post-grid" id="forum_post_<%= forum_post.id %>"
            data-forum-post-id="<%= forum_post.id %>" data-creator="<%= forum_post.creator&.name.downcase %>"
            data-creator-id="<%= forum_post.creator_id %>"
-           data-is-hidden="<%= forum_post.id == original_forum_post_id ? @forum_topic.is_hidden? : forum_post.is_hidden? %>">
+           data-is-deleted="<%= forum_post.id == original_forum_post_id ? @forum_topic.is_deleted? : forum_post.is_deleted? %>">
     <div class="author-info">
       <div class="name-rank">
         <h4 class="author-name"><%= link_to_user forum_post.creator %></h4>
         <%= forum_post.creator.level_string %>
-        <% if forum_post.is_hidden? %>
-          (hidden)
+        <% if forum_post.is_deleted? %>
+          (deleted)
         <% end %>
       </div>
       <div class="avatar">
@@ -30,22 +30,22 @@
             <li><%= tag.a "Reply", href: '#', class: "reply-link forum-post-reply-link" %></li>
           <% end %>
           <% if !forum_post.is_original_post?(original_forum_post_id) %>
-            <% if forum_post.is_hidden? && CurrentUser.is_moderator? %>
-              <li><%= tag.a "Unhide", href: '#', class: 'forum-post-unhide-link' %></li>
-            <% elsif !forum_post.is_hidden? && forum_post.can_hide?(CurrentUser.user) %>
-              <li><%= tag.a "Hide", href: '#', class: 'forum-post-hide-link' %></li>
+            <% if forum_post.is_deleted? && CurrentUser.is_moderator? %>
+              <li><%= tag.a "Undelete", href: '#', class: 'forum-post-undelete-link' %></li>
+            <% elsif !forum_post.is_deleted? && forum_post.can_delete?(CurrentUser.user) %>
+              <li><%= tag.a "Delete", href: '#', class: 'forum-post-delete-link' %></li>
             <% end %>
-            <% if forum_post.can_delete?(CurrentUser.user) %>
-              <li><%= link_to "Delete", forum_post_path(forum_post.id), :data => {:confirm => "Are you sure you want to delete this forum post?"}, method: :delete %></li>
+            <% if forum_post.can_destroy?(CurrentUser.user) %>
+              <li><%= link_to "Destroy", forum_post_path(forum_post.id), :data => {:confirm => "Are you sure you want to destroy this forum post?"}, method: :delete %></li>
             <% end %>
           <% else %>
-            <% if forum_post.topic.is_hidden? && CurrentUser.is_moderator? %>
-              <li><%= link_to "Unhide", unhide_forum_topic_path(forum_post.topic.id), method: :post %></li>
-            <% elsif forum_post.topic.can_hide?(CurrentUser.user) %>
-              <li><%= link_to "Hide", hide_forum_topic_path(forum_post.topic.id), :data => {:confirm => "Are you sure you want to hide this forum topic?"}, method: :post %></li>
+            <% if forum_post.topic.is_deleted? && CurrentUser.is_moderator? %>
+              <li><%= link_to "Undelete", undelete_forum_topic_path(forum_post.topic.id), method: :post %></li>
+            <% elsif forum_post.topic.can_delete?(CurrentUser.user) %>
+              <li><%= link_to "Delete", delete_forum_topic_path(forum_post.topic.id), :data => {:confirm => "Are you sure you want to delete this forum topic?"}, method: :post %></li>
             <% end %>
-            <% if forum_post.topic.can_delete?(CurrentUser.user) %>
-              <li><%= link_to "Delete", forum_topic_path(forum_post.topic), :data => {:confirm => "Are you sure you want to delete this forum topic?"}, method: :delete %></li>
+            <% if forum_post.topic.can_destroy?(CurrentUser.user) %>
+              <li><%= link_to "Destroy", forum_topic_path(forum_post.topic), :data => {:confirm => "Are you sure you want to destroy this forum topic?"}, method: :delete %></li>
             <% end %>
           <% end %>
           <% if forum_post.editable_by?(CurrentUser.user) %>
