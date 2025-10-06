@@ -150,7 +150,7 @@ class PostFlag < ApplicationRecord
     when "uploading_guidelines"
       errors.add(:reason, "cannot be used. The post is grandfathered") unless post.flaggable_for_guidelines?
     else
-      errors.add(:reason, "is not one of the available choices") unless PostFlagReason.map_for_lookup.key?(reason_name)
+      errors.add(:reason, "is not one of the available choices") unless PostFlagReason.is_valid_reason?(reason_name, :flag)
     end
   end
 

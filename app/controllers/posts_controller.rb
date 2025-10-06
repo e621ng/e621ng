@@ -155,16 +155,7 @@ class PostsController < ApplicationController
     @post = Post.find(params[:id])
 
     if request.get?
-      # Show the report form
-      @flag_reasons = PostFlagReason.for_flags.ordered
-      @report_reasons = PostFlagReason.for_reports.ordered
-
-      # Check if we have any reasons configured
-      if @flag_reasons.empty? && @report_reasons.empty?
-        flash[:notice] = "No flag or report reasons are currently configured"
-        redirect_to @post and return
-      end
-
+      @report_reasons = PostFlagReason.for_radio
       respond_with(@post) do |format|
         format.html { render :report }
       end
