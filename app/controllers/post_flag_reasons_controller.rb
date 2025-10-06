@@ -21,7 +21,6 @@ class PostFlagReasonsController < ApplicationController
   def create
     PostFlagReason.transaction do
       @reason = PostFlagReason.create(reason_params)
-      # If your ModAction keys include logging for flag reason changes, you can add it here similarly to report reasons.
     end
     flash[:notice] = @reason.valid? ? "Post flag reason created" : @reason.errors.full_messages.join("; ")
     redirect_to post_flag_reasons_path
@@ -42,6 +41,12 @@ class PostFlagReasonsController < ApplicationController
       @reason.destroy
     end
     respond_with(@reason)
+  end
+
+  def clear_cache
+    PostFlagReason.invalidate_cache
+    flash[:notice] = "Post flag reason cache cleared"
+    redirect_to post_flag_reasons_path
   end
 
   private
