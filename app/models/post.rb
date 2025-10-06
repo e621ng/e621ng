@@ -780,7 +780,7 @@ class Post < ApplicationRecord
     def add_automatic_tags(tags)
       return tags unless Danbooru.config.enable_dimension_autotagging?
 
-      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize wide_image tall_image long_image flash webm mp4 long_playtime short_playtime]
+      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize wide_image tall_image long_image flash webm mp4 long_playtime short_playtime animated_gif animated_png]
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
@@ -803,12 +803,11 @@ class Post < ApplicationRecord
       tags << "flash" if is_flash?
       tags << "webm" if is_webm?
 
-      tags << "long_playtime" if is_video? && duration >= 30
-      tags << "short_playtime" if is_video? && duration < 30
+      tags << "long_playtime" if is_animated? && duration >= 30
+      tags << "short_playtime" if is_animated? && duration < 30
 
-      # TODO: Automatically add animated_* tags without re-testing them on every edit
-      tags -= ["animated_gif"] unless is_gif?
-      tags -= ["animated_png"] unless is_png?
+      tags << "animated_gif" if is_gif? && is_animated?
+      tags << "animated_png" if is_png? && is_animated?
 
       tags
     end
@@ -1921,7 +1920,7 @@ class Post < ApplicationRecord
   include PostIndex
 
   BOOLEAN_ATTRIBUTES = %w[
-    _has_embedded_notes
+    is_animated
     _has_cropped
     hide_from_anonymous
     hide_from_search_engines
