@@ -1,12 +1,12 @@
 <% if blip.visible_to?(CurrentUser.user) %>
-  <article class="blip comment-post-grid" data-is-deleted="<%= blip.is_hidden? %>" data-creator="<%= blip.creator&.name.downcase %>"
+  <article class="blip comment-post-grid" data-is-deleted="<%= blip.is_deleted? %>" data-creator="<%= blip.creator&.name.downcase %>"
            data-creator-id="<%= blip.creator_id %>">
     <div class="author-info">
       <div class="name-rank">
         <h4 class="author-name"><%= link_to_user blip.creator %></h4>
         <%= blip.creator.level_string %>
-        <% if blip.is_hidden? %>
-          (hidden)
+        <% if blip.is_deleted? %>
+          (deleted)
         <% end %>
       </div>
       <div class="avatar">
@@ -35,14 +35,14 @@
             <li><%= tag.a "@", href: '#', class: 'blip-atme-link', 'data-bid': blip.id %></li>
           <% end %>
 
-          <% if !blip.is_hidden && blip.can_hide?(CurrentUser.user) %>
-            <li><%= link_to "Hide", hide_blip_path(blip), data: {confirm: "Are you sure you want to hide this blip?"}, method: :post %></li>
+          <% if !blip.is_deleted && blip.can_delete?(CurrentUser.user) %>
+            <li><%= link_to "Delete", delete_blip_path(blip), data: {confirm: "Are you sure you want to delete this blip?"}, method: :post %></li>
           <% elsif CurrentUser.is_moderator? %>
-            <li><%= link_to "Unhide", unhide_blip_path(blip), data: {confirm: "Are you sure you want to unhide this blip?"}, method: :post %></li>
+            <li><%= link_to "Undelete", undelete_blip_path(blip), data: {confirm: "Are you sure you want to undelete this blip?"}, method: :post %></li>
           <% end %>
 
           <% if CurrentUser.is_admin? %>
-            <li><%= link_to "Delete", blip_path(blip), data: {confirm: "Are you sure you want to delete this blip?"}, method: :delete %></li>
+            <li><%= link_to "Destroy", blip_path(blip), data: {confirm: "Are you sure you want to destroy this blip?"}, method: :delete %></li>
           <% end %>
 
           <% if blip.has_responses? %>

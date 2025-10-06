@@ -11,14 +11,14 @@ class Blip < ApplicationRecord
   validate :validate_parent_exists, on: :create
   validate :validate_creator_is_not_limited, on: :create
 
-  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
+  after_update(if: ->(rec) { !rec.saved_change_to_is_deleted? && CurrentUser.id != rec.creator_id }) do |rec|
     ModAction.log(:blip_update, { blip_id: rec.id, user_id: rec.creator_id })
   end
   after_destroy do |rec|
-    ModAction.log(:blip_delete, { blip_id: rec.id, user_id: rec.creator_id })
+    ModAction.log(:blip_destroy, { blip_id: rec.id, user_id: rec.creator_id })
   end
-  after_save(if: ->(rec) { rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
-    action = rec.is_hidden? ? :blip_hide : :blip_unhide
+  after_save(if: ->(rec) { rec.saved_change_to_is_deleted? && CurrentUser.id != rec.creator_id }) do |rec|
+    action = rec.is_deleted? ? :blip_delete : :blip_undelete
     ModAction.log(action, { blip_id: rec.id, user_id: rec.creator_id })
   end
 
@@ -63,14 +63,14 @@ class Blip < ApplicationRecord
       creator_id == user.id && created_at > 5.minutes.ago
     end
 
-    def can_hide?(user)
+    def can_delete?(user)
       return true if user.is_moderator?
       return false if was_warned?
       user.id == creator_id
     end
 
     def visible_to?(user)
-      return true unless is_hidden
+      return true unless is_deleted
       user.is_moderator? || user.id == creator_id
     end
   end
@@ -80,7 +80,7 @@ class Blip < ApplicationRecord
       if user.is_moderator?
         all
       else
-        where('is_hidden = ?', false)
+        where('is_deleted = ?', false)
       end
     end
 
@@ -120,11 +120,11 @@ class Blip < ApplicationRecord
   extend SearchMethods
   include ApiMethods
 
-  def hide!
-    update(is_hidden: true)
+  def delete!
+    update(is_deleted: true)
   end
 
-  def unhide!
-    update(is_hidden: false)
+  def undelete!
+    update(is_deleted: false)
   end
 end

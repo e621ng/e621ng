@@ -91,7 +91,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
       should "disallow reporting blips you can't see" do
         assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "blip")
-        @content.update_columns(is_hidden: true)
+        @content.update_columns(is_deleted: true)
         assert_ticket_create_permissions([[@bystander, false], [@admin, true], [@bad_actor, true]], qtype: "blip")
       end
 
@@ -99,7 +99,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "blip")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
         assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
-        @content.update_columns(is_hidden: true)
+        @content.update_columns(is_deleted: true)
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
       end
     end

@@ -350,8 +350,8 @@ Rails.application.routes.draw do
   end
   resources :blips do
     member do
-      post :hide
-      post :unhide
+      post :delete
+      post :undelete
       post :warning
     end
   end
