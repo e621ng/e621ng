@@ -52,6 +52,6 @@ class PostFlagReasonsController < ApplicationController
   private
 
   def reason_params
-    params.require(:post_flag_reason).permit(%i[name reason text needs_explanation needs_parent_id index type parent_id])
+    params.require(:post_flag_reason).permit(%i[name reason text needs_explanation needs_parent_id index category parent_id])
   end
 end
