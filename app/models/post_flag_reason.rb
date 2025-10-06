@@ -8,6 +8,7 @@ class PostFlagReason < ApplicationRecord
   validates :reason, presence: true
   validates :category, presence: true, inclusion: { in: %w[flag report none] }
   validates :index, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validate :parent_cannot_be_circular
 
   after_destroy -> { self.class.invalidate_cache }
   after_save -> { self.class.invalidate_cache }
@@ -55,5 +56,33 @@ class PostFlagReason < ApplicationRecord
     Rails.cache.delete("post_flag_reasons:for_radio")
     Rails.cache.delete("post_flag_reasons:for_name_validation")
     Rails.cache.delete("post_flag_reasons:for_needs_explanation")
+  end
+
+  private
+
+  def parent_cannot_be_circular
+    return if parent_id.blank?
+
+    if parent_id == id
+      errors.add(:parent_id, "cannot be the same as this reason")
+      return
+    end
+
+    # Traverse up the parent chain
+    current_parent_id = parent_id
+    visited_ids = Set.new([id])
+
+    while current_parent_id.present?
+      if visited_ids.include?(current_parent_id)
+        errors.add(:parent_id, "would create a circular reference")
+        return
+      end
+
+      visited_ids.add(current_parent_id)
+      parent_record = PostFlagReason.find_by(id: current_parent_id)
+      break unless parent_record
+
+      current_parent_id = parent_record.parent_id
+    end
   end
 end
