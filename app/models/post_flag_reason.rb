@@ -9,8 +9,8 @@ class PostFlagReason < ApplicationRecord
   validates :category, presence: true, inclusion: { in: %w[flag report none] }
   validates :index, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
-  after_destroy :invalidate_cache
-  after_save :invalidate_cache
+  after_destroy -> { self.class.invalidate_cache }
+  after_save -> { self.class.invalidate_cache }
   # TODO: Log ModAction for changes to flag reasons, similar to report reasons
 
   scope :ordered, -> { order(index: :asc, id: :asc) }
