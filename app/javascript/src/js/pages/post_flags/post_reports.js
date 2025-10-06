@@ -43,8 +43,19 @@ PostReports.initFlagForm = function () {
   }
 
   function displayNoteChildren (element) {
+    const selector = $(element);
+
+    // Show/hide children
     $(".report-reason-children").hide();
-    $(".report-reason-children[data-parent-id='" + element.dataset.id + "']").show();
+    $(".report-reason-children[data-parent-id='" + selector.data("id") + "']").show();
+    const parentString = selector.data("parents") + "";
+    console.log("parentString", parentString);
+    if (!parentString) return;
+    const parentIds = parentString.split(" ").map((x) => x.trim());
+    console.log("parentIds", parentIds);
+    for (const id of parentIds) {
+      $(".report-reason-children[data-parent-id='" + id + "']").show();
+    }
   }
 
 

@@ -33,7 +33,7 @@ CurrentUser.as_system do # rubocop:disable Metrics/BlockLength
         text: text,
         needs_explanation: needs_explanation,
         needs_parent_id: needs_parent_id,
-        type: "flag",
+        category: "flag",
         index: index,
       )
       updated_count += 1
@@ -46,7 +46,7 @@ CurrentUser.as_system do # rubocop:disable Metrics/BlockLength
         text: text,
         needs_explanation: needs_explanation,
         needs_parent_id: needs_parent_id,
-        type: "flag",
+        category: "flag",
         index: index,
       )
       created_count += 1
@@ -62,6 +62,6 @@ puts "Total processed: #{created_count + updated_count} records"
 
 # Clear caches to ensure new data is picked up
 Rails.cache.delete("post_flag_reasons:for_radio")
-Rails.cache.delete("post_flag_reasons:map_for_lookup")
-Rails.cache.delete("post_flag_reasons:needs_explanation_map")
+Rails.cache.delete("post_flag_reasons:for_name_validation")
+Rails.cache.delete("post_flag_reasons:for_needs_explanation")
 puts "Cleared PostFlagReason caches."
