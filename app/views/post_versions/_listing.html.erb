@@ -23,10 +23,10 @@
       </div>
       <div class="pv-spacer pv-label">
         <% if CurrentUser.is_bd_staff? %>
-          <% if post_version.is_hidden? %>
-            <%= link_to "Unhide", unhide_post_version_path(post_version), method: :put %>
+          <% if post_version.is_deleted? %>
+            <%= link_to "Undelete", undelete_post_version_path(post_version), method: :put %>
           <% else %>
-            <%= link_to "Hide", hide_post_version_path(post_version), method: :put %>
+            <%= link_to "Delete", delete_post_version_path(post_version), method: :put %>
           <% end %>
         <% end %>
       </div>
@@ -49,7 +49,7 @@
         <% if post_version.details_visible? %>
           <%= post_version.reason %>
         <% else %>
-          <em>Hidden by staff</em>
+          <em>Deleted by staff</em>
         <% end %>
       </div>
 

@@ -9,6 +9,9 @@ class PostVersion < ApplicationRecord
   before_validation :fill_version, on: :create
   before_validation :fill_changes, on: :create
 
+  scope :deleted, -> { where(is_deleted: true) }
+  scope :undeleted, -> { where(is_deleted: false) }
+
   module SearchMethods
     def for_user(user_id)
       if user_id
@@ -106,7 +109,7 @@ class PostVersion < ApplicationRecord
 
   def details_visible?
     return true if CurrentUser.is_staff?
-    !is_hidden
+    !is_deleted
   end
 
   def diff_sources(version = nil)
@@ -267,19 +270,27 @@ class PostVersion < ApplicationRecord
     version > 1
   end
 
+  def delete!
+    update(is_deleted: true)
+  end
+
+  def undelete!
+    update(is_deleted: false)
+  end
+
   concerning :ApiMethods do
     # Easier and safer to whitelist some methods than to blacklist
-    # almost everything when the post version is hidden
+    # almost everything when the post version is deleted
     def hidden_attributes
       super + attributes.keys.map(&:to_sym)
     end
 
     def method_attributes
       list = super + %i[
-        id post_id version updated_at is_hidden
+        id post_id version updated_at is_deleted
       ]
 
-      if !is_hidden || CurrentUser.is_staff?
+      if !is_deleted || CurrentUser.is_staff?
         list += %i[
           tags added_tags removed_tags
           locked_tags added_locked_tags removed_locked_tags

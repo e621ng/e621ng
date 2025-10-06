@@ -22,24 +22,22 @@ class PostVersionsController < ApplicationController
     @post_version.undo!
   end
 
-  def hide
+  def delete
     raise User::PrivilegeError unless CurrentUser.is_bd_staff?
 
     @post_version = PostVersion.find(params[:id])
-    @post_version.is_hidden = true
-    @post_version.save!
-    ModAction.log(:post_version_hide, { version: @post_version.version, post_id: @post_version.post_id })
+    @post_version.delete!
+    ModAction.log(:post_version_delete, { version: @post_version.version, post_id: @post_version.post_id })
 
     redirect_back fallback_location: post_versions_path(search: { post_id: @post_version.post_id })
   end
 
-  def unhide
+  def undelete
     raise User::PrivilegeError unless CurrentUser.is_bd_staff?
 
     @post_version = PostVersion.find(params[:id])
-    @post_version.is_hidden = false
-    @post_version.save!
-    ModAction.log(:post_version_unhide, { version: @post_version.version, post_id: @post_version.post_id })
+    @post_version.undelete!
+    ModAction.log(:post_version_undelete, { version: @post_version.version, post_id: @post_version.post_id })
 
     redirect_back fallback_location: post_versions_path(search: { post_id: @post_version.post_id })
   end

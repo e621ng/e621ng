@@ -1577,7 +1577,7 @@ CREATE TABLE public.post_versions (
     description_changed boolean DEFAULT false NOT NULL,
     version integer DEFAULT 1 NOT NULL,
     reason character varying,
-    is_hidden boolean DEFAULT false NOT NULL
+    is_deleted boolean DEFAULT false NOT NULL
 );
 
 

@@ -275,8 +275,8 @@ Rails.application.routes.draw do
   resources :post_versions, only: %i[index] do
     member do
       put :undo
-      put :hide
-      put :unhide
+      put :delete
+      put :undelete
     end
   end
   resource :related_tag, only: %i[show update]

@@ -410,9 +410,9 @@ class ModActionDecorator < ApplicationDecorator
       "Processed bulk revert for #{vals['constraints']} by #{user}"
 
       ### Post Versions
-    when "post_version_hide"
-      "Hidden post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
-    when "post_version_unhide"
+    when "post_version_delete"
+      "Deleted post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
+    when "post_version_undelete"
       "Restored post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
 
       ### Legacy Post Events ###
