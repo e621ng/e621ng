@@ -51,6 +51,7 @@ class ApiKey < ApplicationRecord
 
   def regenerate!
     original_duration = calculate_duration
+    self.created_at = Time.current
     self.expires_at = original_duration&.days&.from_now
     regenerate_key
     save!
