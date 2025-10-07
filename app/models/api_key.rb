@@ -32,7 +32,7 @@ class ApiKey < ApplicationRecord
       end
 
       case params[:order]
-      when /\A(id|name|created_at|updated_at|expires_at|last_used_at|uses)(?:_(asc|desc))?\z/i
+      when /\A(id|name|created_at|updated_at|expires_at|last_used_at)(?:_(asc|desc))?\z/i
         dir = $2 || :desc
         q = q.order($1 => dir).order(id: :desc)
       else
@@ -50,6 +50,8 @@ class ApiKey < ApplicationRecord
   end
 
   def regenerate!
+    original_duration = calculate_duration
+    self.expires_at = original_duration&.days&.from_now
     regenerate_key
     save!
   end
@@ -62,11 +64,11 @@ class ApiKey < ApplicationRecord
     !expired?
   end
 
-  def update_usage!(ip_address = nil)
+  def update_usage!(ip_address = nil, user_agent = nil)
     update!(
-      uses: uses + 1,
       last_used_at: Time.current,
       last_ip_address: ip_address,
+      last_user_agent: user_agent,
     )
   end
 
@@ -82,5 +84,10 @@ class ApiKey < ApplicationRecord
     if expires_at <= Time.current
       errors.add(:expires_at, "must be in the future")
     end
+  end
+
+  def calculate_duration
+    return nil if expires_at.blank?
+    ((expires_at - created_at) / 1.day).abs.ceil
   end
 end

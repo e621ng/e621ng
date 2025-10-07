@@ -84,6 +84,12 @@ body.c-api-keys.a-create {
         color: themed("color-text-muted");
         margin-top: 0.25rem;
       }
+
+      .warning {
+        font-size: 90%;
+        color: $state-error-color;
+        margin-top: 0.25rem;
+      }
     }
 
     .actions {

@@ -14,13 +14,15 @@
           ["3 months", "90"],
           ["6 months", "180"],
           ["1 year", "365"],
-          ["2 years", "730"],
           ["Custom", "custom"],
           ["No expiration", "never"]
         ], selected: "365"), 
         {}, 
         { class: "duration-select" } %>
     <div class="hint">Select when this API key should expire.</div>
+    <div class="warning never-expires-warning" style="display: none;">
+      We recommend setting an expiration date to limit access if your key is lost or stolen.
+    </div>
   </div>
 
   <div class="field custom-date-field" style="display: none;">

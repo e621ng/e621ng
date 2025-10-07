@@ -32,7 +32,6 @@
       <tr>
         <th>Name</th>
         <th>Key</th>
-        <th>Uses</th>
         <th>Last Used</th>
         <th>Expires</th>
         <th>Created</th>
@@ -44,12 +43,14 @@
         <tr id="api-key-<%= api_key.id %>">
           <td><%= api_key.name %></td>
           <td><code><%= api_key.key %></code></td>
-          <td><%= number_with_delimiter(api_key.uses) %></td>
           <td>
             <% if api_key.last_used_at %>
-              <%= time_ago_in_words(api_key.last_used_at) %> ago
+              <%= time_ago_in_words_tagged(api_key.last_used_at) %>
               <% if api_key.last_ip_address %>
-                <br>by <%= api_key.last_ip_address %>
+                <br>from <%= api_key.last_ip_address %>
+              <% end %>
+              <% if api_key.last_user_agent.present? %>
+                <br><small title="<%= api_key.last_user_agent %>"><%= truncate(api_key.last_user_agent, length: 50) %></small>
               <% end %>
             <% else %>
               Never
@@ -57,7 +58,7 @@
           </td>
           <td>
             <% if api_key.expires_at %>
-              <%= time_ago_in_words(api_key.expires_at) %>
+              <%= time_ago_in_words_tagged(api_key.expires_at) %>
               <% if api_key.expired? %>
                 <span class="error">(Expired)</span>
               <% end %>
@@ -65,8 +66,14 @@
               Never
             <% end %>
           </td>
-          <td><%= time_ago_in_words(api_key.created_at) %> ago</td>
+          <td><%= time_ago_in_words_tagged(api_key.created_at) %></td>
           <td>
+            <% if api_key.expired? %>
+              <%= link_to("Regenerate", regenerate_api_key_path(api_key), 
+                  data: { method: :post, 
+                  confirm: "Are you sure you want to regenerate this API key?" }) %>
+              |
+            <% end %>
             <%= link_to("Delete", api_key, data: { method: :delete, 
                 confirm: "Are you sure you want to delete this API key?" }) %>
           </td>

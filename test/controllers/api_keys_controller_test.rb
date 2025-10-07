@@ -133,5 +133,44 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
         assert_not_nil(@api_key.reload)
       end
     end
+
+    context "regenerate action" do
+      setup do
+        @expired_api_key = create(:api_key, user: @user, name: "expired_key")
+        @expired_api_key.update_columns(created_at: 2.days.ago, expires_at: 1.day.ago) # skip validation
+        @active_api_key = create(:api_key, user: @user, name: "active_key", expires_at: 1.day.from_now)
+      end
+
+      should "regenerate an expired API key" do
+        old_key = @expired_api_key.key
+        post_auth(regenerate_api_key_path(@expired_api_key), @user)
+
+        @expired_api_key.reload
+        assert_not_equal(old_key, @expired_api_key.key)
+        assert_operator(@expired_api_key.expires_at, :>, Time.current)
+        assert_redirected_to(api_keys_path)
+        assert_equal("API key regenerated", flash[:notice])
+      end
+
+      should "not allow regenerating an active API key" do
+        old_key = @active_api_key.key
+        post_auth(regenerate_api_key_path(@active_api_key), @user)
+
+        @active_api_key.reload
+        assert_equal(old_key, @active_api_key.key)
+        assert_response(:unprocessable_entity)
+      end
+    end
+
+    context "authentication" do
+      setup do
+        @basic_auth_string = "Basic #{::Base64.encode64("#{@user.name}:#{@api_key.key}")}"
+      end
+
+      should "reject API key authenticated requests" do
+        get(api_keys_path, headers: { HTTP_AUTHORIZATION: @basic_auth_string })
+        assert_response(:forbidden)
+      end
+    end
   end
 end

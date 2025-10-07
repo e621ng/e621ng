@@ -2,6 +2,7 @@
 
 class ApiKeysController < ApplicationController
   before_action :member_only
+  before_action :reject_api_key_auth
   before_action :requires_reauthentication
   before_action :load_api_key, except: %i[index new create]
   respond_to :html, :json
@@ -41,6 +42,17 @@ class ApiKeysController < ApplicationController
   def destroy
     @api_key.destroy
     flash[:notice] = "API key deleted"
+    respond_with(@api_key, location: api_keys_path)
+  end
+
+  def regenerate
+    unless @api_key.expired?
+      render_expected_error(:unprocessable_entity, "Only expired API keys can be regenerated")
+      return
+    end
+
+    @api_key.regenerate!
+    flash[:notice] = "API key regenerated"
     respond_with(@api_key, location: api_keys_path)
   end
 

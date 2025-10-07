@@ -83,7 +83,11 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :api_keys, except: %i[edit update]
+  resources :api_keys, except: %i[edit update] do
+    member do
+      post :regenerate
+    end
+  end
 
   resources :avoid_postings, constraints: id_name_constraint do
     member do

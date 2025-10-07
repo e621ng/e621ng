@@ -118,7 +118,7 @@ class SessionLoader
     user, api_key_record = auth_result
     CurrentUser.user = user
     CurrentUser.api_key = api_key_record
-    api_key_record&.update_usage!(@request.remote_ip)
+    UpdateApiKeyUsageJob.set(wait: 1.minute).perform_later(api_key_record.id, @request.remote_ip, @request.user_agent) if api_key_record
   rescue ActiveRecord::StatementInvalid => e
     if e.message.include?("invalid byte sequence") || e.message.include?("CharacterNotInRepertoire")
       Rails.logger.warn("Database encoding error during authentication from #{request.remote_ip}: #{e.message}")

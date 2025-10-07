@@ -55,9 +55,9 @@ CREATE TABLE public.api_keys (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     name character varying DEFAULT ''::character varying NOT NULL,
-    uses integer DEFAULT 0 NOT NULL,
     last_used_at timestamp(6) without time zone,
     last_ip_address inet,
+    last_user_agent text,
     expires_at timestamp(6) without time zone
 );
 
