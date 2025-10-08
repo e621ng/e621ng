@@ -133,17 +133,14 @@ module FileMethods
   # * APNG: not implemented, could defer to ffmpeg if needed.
   # * Other file types: assumed to be non-corrupt.
   def is_corrupt?(file_path)
-    if is_gif?
-      is_corrupt_gif?(file_path)
-    elsif is_image?
-      begin
-        Vips::Image.new_from_file(file_path, fail: true).stats
-        false
-      rescue Vips::Error
-        true
-      end
-    else
+    return false unless is_image?
+    return is_corrupt_gif?(file_path) if is_gif?
+
+    begin
+      Vips::Image.new_from_file(file_path, fail: true).stats
       false
+    rescue Vips::Error
+      true
     end
   end
 end
