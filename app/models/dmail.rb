@@ -191,7 +191,7 @@ class Dmail < ApplicationRecord
   end
 
   def quoted_body
-    "\"Original Message\":[/dmails/#{id}]\n[section=#{from.pretty_name} said:]\n#{body}\n[/section]\n\n"
+    "[section=#{from.pretty_name} said:]\n#{body}\n[/section]\n\n"
   end
 
   def send_email
