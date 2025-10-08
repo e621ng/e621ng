@@ -4,7 +4,7 @@ module Moderator
   module Post
     class PostsController < ApplicationController
       before_action :approver_only, except: %i[regenerate_thumbnails regenerate_videos]
-      before_action :janitor_only, only: %i[regenerate_thumbnails regenerate_videos]
+      before_action :janitor_only, only: %i[regenerate_thumbnails regenerate_videos ai_check]
       before_action :admin_only, only: [:expunge]
       skip_before_action :api_check
 
@@ -66,6 +66,12 @@ module Moderator
         raise ::User::PrivilegeError, "Cannot regenerate thumbnails on deleted images" if @post.is_deleted?
         @post.regenerate_video_samples!
         respond_with(@post)
+      end
+
+      def ai_check
+        @post = ::Post.find(params[:id])
+        @ai_result = @post.check_for_ai_content
+        redirect_back fallback_location: post_path(@post)
       end
     end
   end

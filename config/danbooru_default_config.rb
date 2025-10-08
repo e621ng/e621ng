@@ -523,6 +523,10 @@ module Danbooru
       ]
     end
 
+    def auto_flag_ai_posts?
+      true
+    end
+
     def deletion_reasons
       [
         "Inferior version/duplicate of post #%PARENT_ID%",
