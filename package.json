@@ -31,6 +31,6 @@
     "globals": "^15.8.0"
   },
   "scripts": {
-    "lint": "yarn run eslint ./app/javascript/src/**/*.js --no-fix --max-warnings 0"
+    "lint": "yarn run eslint './app/javascript/src/**/*.js' --no-fix --max-warnings 0"
   }
 }

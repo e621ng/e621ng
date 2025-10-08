@@ -35,7 +35,7 @@ TextUtils.formatQuote = function (message, creatorName, creatorId) {
  * @param {String} creatorName Username of the message creator
  * @param {Number} creatorId ID of the message creator
  */
-TextUtils.processQuote = function($textarea, quotedText, creatorName, creatorId) {
+TextUtils.processQuote = function ($textarea, quotedText, creatorName, creatorId) {
   let message = TextUtils.formatQuote(quotedText, creatorName, creatorId);
 
   const existingInput = $textarea.val();
