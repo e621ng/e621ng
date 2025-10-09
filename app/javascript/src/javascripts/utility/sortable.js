@@ -227,7 +227,7 @@ export default class Sortable {
     const tag = refEl?.tagName || "DIV";
 
     this.$placeholder = $(`<${tag}>`)
-      .addClass("sortable-drop-target")
+      .addClass("sortable-placeholder")
       .attr({
         "aria-hidden": "true",
         "draggable": "false",

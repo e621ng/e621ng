@@ -15,6 +15,7 @@ ul.sortable {
     }
 
     article.thumbnail {
+      a { cursor: inherit; }
       img {
         width: var(--thumb-image-size, 150px);
         height: var(--thumb-image-size, 150px);
@@ -24,19 +25,14 @@ ul.sortable {
     }
   }
 
-  .sortable-drop-target {
+  .sortable-placeholder {
     width: var(--thumb-image-size, 150px);
     height: var(--thumb-image-size, 150px);
-    border: 2px dashed var(--accent, #888);
-    border-radius: 4px;
     box-sizing: border-box;
+
+    background: rgba(0, 124, 186, 0.1);
+    border: 2px dashed #007cba;
+    @include st-radius;
     pointer-events: auto;
-    background: repeating-linear-gradient(
-      45deg,
-      rgba(0,0,0,0.04),
-      rgba(0,0,0,0.04) 8px,
-      rgba(0,0,0,0.06) 8px,
-      rgba(0,0,0,0.06) 16px
-    );
   }
 }
