@@ -48,6 +48,10 @@ export default class Sortable {
       lastBefore: null,
     };
 
+    // requestAnimationFrame coalescing for dragover
+    this._dragOverRafId = 0;
+    this._pendingOver = null;
+
     this.$container.find(this.settings.itemSelector).attr("draggable", "true");
     this.bindAll();
   }
@@ -67,6 +71,12 @@ export default class Sortable {
     this.unbindAll();
     this.$container.find(this.settings.itemSelector).removeAttr("draggable");
     if (this.$placeholder) this.destroyPlaceholder();
+
+    if (this._dragOverRafId) {
+      cancelAnimationFrame(this._dragOverRafId);
+      this._dragOverRafId = 0;
+    }
+    this._pendingOver = null;
   }
 
   /**
@@ -154,25 +164,46 @@ export default class Sortable {
 
   onItemDragOver (event) {
     event.preventDefault();
-    const el = event.currentTarget;
-
     const nativeEvent = event.originalEvent || event;
     if (nativeEvent.dataTransfer) nativeEvent.dataTransfer.dropEffect = "move";
 
     // Not dragging anything, ignore
     if (!this.state.draggingId) return;
 
+    // Process dragover events at most once per frame
+    this._pendingOver = {
+      el: event.currentTarget,
+      clientX: nativeEvent.clientX,
+    };
+
+    if (!this._dragOverRafId) {
+      this._dragOverRafId = requestAnimationFrame(() => {
+        this._dragOverRafId = 0;
+        const pending = this._pendingOver;
+        this._pendingOver = null;
+        if (!pending) return;
+        this._processDragOver(pending.el, pending.clientX);
+      });
+    }
+  }
+
+  _processDragOver (el, clientX) {
+    if (!this.state.draggingId) return;
+
     const rect = el.getBoundingClientRect();
-    const before = (nativeEvent.clientX - rect.left) < rect.width / 2;
+    const before = (clientX - rect.left) < rect.width / 2;
 
     if (this.state.lastTarget === el && this.state.lastBefore === before)
       return; // Already positioned here
 
-    // Show placeholder on first use, or resize if target changed
-    if (!this.$placeholder) this.showPlaceholder(el);
-    else if (this.state.lastTarget !== el) {
-      this.sizePlaceholder(el);
+    // Ensure placeholder exists and matches target size without duplicate layout reads
+    if (!this.$placeholder) {
+      this.createPlaceholder(el);
+      this.sizePlaceholder(el, rect);
       this.$placeholder.show();
+    } else if (this.state.lastTarget !== el) {
+      this.sizePlaceholder(el, rect);
+      if (!this.$placeholder.is(":visible")) this.$placeholder.show();
     }
 
     // Position placeholder around target
@@ -232,11 +263,11 @@ export default class Sortable {
     this.$placeholder = null;
   }
 
-  sizePlaceholder (refEl) {
+  sizePlaceholder (refEl, refRect) {
     if (!refEl || !this.$placeholder) return;
 
     // Match the size of the reference element
-    const rect = refEl.getBoundingClientRect();
+    const rect = refRect || refEl.getBoundingClientRect();
     this.$placeholder.css({ width: `${rect.width}px`, height: `${rect.height}px` });
   }
 
