@@ -15,7 +15,7 @@ class PostReplacementsController < ApplicationController
   def index
     params[:search][:post_id] = params.delete(:post_id) if params.key?(:post_id)
     params[:search][:approver] ||= params[:handler] if params[:handler].present?
-    @post_replacements = PostReplacement.includes(:post).visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
+    @post_replacements = PostReplacement.includes(:post, :creator, :approver, :note, :uploader_on_approve).visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
 
     respond_with(@post_replacements)
   end
