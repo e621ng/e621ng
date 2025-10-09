@@ -9,7 +9,10 @@ ul.sortable {
     overflow: hidden;
     cursor: grab;
 
-    &.dragging { display: none; }
+    &.dragging {
+      display: none;
+      pointer-events: none;
+    }
 
     article.thumbnail {
       img {

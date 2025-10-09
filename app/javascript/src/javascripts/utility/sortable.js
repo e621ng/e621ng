@@ -104,8 +104,6 @@ export default class Sortable {
     // Apply draggable attribute to new items
     this.$container.find(this.settings.itemSelector).attr("draggable", "true");
     this.bindAll();
-
-    // Rebuild caches after refresh
     this._rebuildIndex();
   }
 
@@ -186,21 +184,21 @@ export default class Sortable {
       this.$placeholder.show();
     } else if (this.state.lastTarget !== el) {
       this.sizePlaceholder(el, rect);
-      if (!this.$placeholder.is(":visible"))
-        this.$placeholder.show();
+      this.$placeholder.show();
+    }
+
+    // Position placeholder around target
+    const ph = this.$placeholder[0];
+    if (el.parentNode) {
+      if (before) {
+        if (ph.nextSibling !== el) el.parentNode.insertBefore(ph, el);
+      } else {
+        if (el.nextSibling !== ph) el.parentNode.insertBefore(ph, el.nextSibling);
+      }
     }
 
     this.state.lastTarget = el;
     this.state.lastBefore = before;
-
-    // Position placeholder around target
-    const ph = this.$placeholder[0];
-    if (!el.parentNode) return;
-    if (before) {
-      if (ph.nextSibling !== el) el.parentNode.insertBefore(ph, el);
-    } else {
-      if (el.nextSibling !== ph) el.parentNode.insertBefore(ph, el.nextSibling);
-    }
   }
 
   // ======================================== //
