@@ -1,0 +1,38 @@
+ul.sortable {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--thumb-image-size, 150px));
+  gap: 0.5rem;
+
+  li.sortable-thumbnail {
+    width: var(--thumb-image-size, 150px);
+    height: var(--thumb-image-size, 150px);
+    overflow: hidden;
+    cursor: grab;
+
+    &.dragging {
+      display: none;
+      pointer-events: none;
+    }
+
+    article.thumbnail {
+      a { cursor: inherit; }
+      img {
+        width: var(--thumb-image-size, 150px);
+        height: var(--thumb-image-size, 150px);
+        object-fit: cover;
+      }
+      .desc { display: none; }
+    }
+  }
+
+  .sortable-placeholder {
+    width: var(--thumb-image-size, 150px);
+    height: var(--thumb-image-size, 150px);
+    box-sizing: border-box;
+
+    background: rgba(0, 124, 186, 0.1);
+    border: 2px dashed #007cba;
+    @include st-radius;
+    pointer-events: auto;
+  }
+}

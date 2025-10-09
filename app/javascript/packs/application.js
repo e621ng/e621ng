@@ -10,13 +10,6 @@ export { default as $ } from "jquery";
 import Rails from "@rails/ujs";
 Rails.start();
 
-require("jquery-ui/ui/widgets/sortable");
-require("jquery-ui/ui/widgets/resizable");
-require("jquery-ui/themes/base/core.css");
-require("jquery-ui/themes/base/sortable.css");
-require("jquery-ui/themes/base/resizable.css");
-require("jquery-ui/themes/base/theme.css");
-
 require("../src/styles/base.scss");
 
 // Utilities
