@@ -132,15 +132,31 @@ export default class Sortable {
   }
 
   onItemDragEnd (event) {
+    const dragged = this.state.draggingEl || event.currentTarget;
+    let committed = false;
+
+    // If the placeholder is still attached, the browser likely didn't fire drop on it.
+    // Act as if the item was dropped on the placeholder.
+    const ph = this.$placeholder && this.$placeholder[0];
+    if (ph && ph.parentNode && dragged && dragged !== ph) {
+      ph.parentNode.insertBefore(dragged, ph);
+      committed = true;
+    }
+    this.hidePlaceholder();
+
+    if (committed) {
+      if (dragged && dragged.classList) dragged.classList.remove("dragging");
+      this._rebuildIndex();
+      if (this.settings.onReorder)
+        this.settings.onReorder(this.order);
+    } else $(event.currentTarget).removeClass("dragging");
+
     this.state = {
       draggingId: null,
       draggingEl: null,
       lastTarget: null,
       lastBefore: null,
     };
-
-    this.hidePlaceholder();
-    $(event.currentTarget).removeClass("dragging");
   }
 
   onItemDragOver (event) {
