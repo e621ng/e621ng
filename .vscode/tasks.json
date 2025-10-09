@@ -30,7 +30,7 @@
       "detail": "Run tests on the current file",
     },
     {
-      "label": "e621: run detatched",
+      "label": "e621: run detached",
       "type": "shell",
       "command": "docker compose up -d",
       "detail": "Run the application",
