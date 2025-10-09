@@ -145,8 +145,9 @@ export default class Sortable {
     }
 
     // Replace the dragged element with a placeholder to avoid layout shifts
-    const $ph = this.showPlaceholder(el);
-    $ph.insertBefore($el);
+    this.showPlaceholder(el);
+    const ph = this.$placeholder && this.$placeholder[0];
+    if (ph && el.parentNode) el.parentNode.insertBefore(ph, el);
     $el.addClass("dragging");
   }
 
@@ -196,28 +197,29 @@ export default class Sortable {
     if (this.state.lastTarget === el && this.state.lastBefore === before)
       return; // Already positioned here
 
-    // Ensure placeholder exists and matches target size without duplicate layout reads
+    // Ensure placeholder exists and matches target size
     if (!this.$placeholder) {
       this.createPlaceholder(el);
       this.sizePlaceholder(el, rect);
       this.$placeholder.show();
     } else if (this.state.lastTarget !== el) {
       this.sizePlaceholder(el, rect);
-      if (!this.$placeholder.is(":visible")) this.$placeholder.show();
-    }
-
-    // Position placeholder around target
-    const ph = this.$placeholder[0];
-    if (before) {
-      if (ph.nextSibling !== el) this.$placeholder.insertBefore(el);
-    } else {
-      if (el.nextSibling !== ph) this.$placeholder.insertAfter(el);
+      if (!this.$placeholder.is(":visible"))
+        this.$placeholder.show();
     }
 
     this.state.lastTarget = el;
     this.state.lastBefore = before;
-  }
 
+    // Position placeholder around target
+    const ph = this.$placeholder[0];
+    if (!el.parentNode) return;
+    if (before) {
+      if (ph.nextSibling !== el) el.parentNode.insertBefore(ph, el);
+    } else {
+      if (el.nextSibling !== ph) el.parentNode.insertBefore(ph, el.nextSibling);
+    }
+  }
 
   // ======================================== //
   // ========== Placeholder Methods ========= //
@@ -290,7 +292,10 @@ export default class Sortable {
       const dragged = this.state.draggingEl || this.getItems().find((n) => this.getId(n) === draggedId);
       if (!dragged) return;
 
-      $(dragged).insertBefore(this.$placeholder).removeClass("dragging");
+      // Move dragged element before placeholder using native DOM, then drop CSS class
+      const ph = this.$placeholder && this.$placeholder[0];
+      if (ph && ph.parentNode) ph.parentNode.insertBefore(dragged, ph);
+      dragged.classList.remove("dragging");
       this.hidePlaceholder();
 
       if (this.settings.onReorder)
