@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-if [ -n "${REMOTE_CONTAINERS:-}" ] || [ -n "${DEVCONTAINER:-}" ] ; then
+if [ -n "${REMOTE_CONTAINERS:-}" ] || [ -n "${DEVCONTAINER:-}" ] || [ -n "${CODESPACES:-}" ]; then
   if [ "$#" -eq 1 ]; then # for tests/rubocop, there are no extra args
     exec "$@"
   else
