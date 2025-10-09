@@ -2,15 +2,18 @@
 set -eu
 
 if [ -n "${REMOTE_CONTAINERS:-}" ] || [ -n "${DEVCONTAINER:-}" ] ; then
-  if [ "$#" -eq 1 ]; then
-    exec "$1" # directly execute the command if no service is specified
+  if [ "$#" -eq 1 ]; then # for tests/rubocop, there are no extra args
+    exec "$@"
+  else
+    shift
+    exec "$@"
+  fi
+else # outside the devcontainer
+  if [ "$#" -eq 1 ]; then  # for tests/rubocop, there are no extra args
+    exec docker compose run --rm "$@"
   else
     service="$1"
     shift
-    exec "$@" # inside the devcontainer, execute the command
+    exec docker compose run --rm "$service" sh -lc "$@"
   fi
-else # outside the devcontainer
-  service="$1"
-  shift
-  exec docker compose run --rm "$service" sh -lc "$@"
 fi
