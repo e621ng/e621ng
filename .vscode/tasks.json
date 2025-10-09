@@ -34,6 +34,7 @@
       "type": "shell",
       "command": "docker compose up -d",
       "detail": "Run the application",
+      "hide": true,
       "group": {
         "kind": "build",
         "isDefault": true
@@ -43,6 +44,7 @@
       "label": "e621: stop",
       "type": "shell",
       "command": "docker compose down",
+      "hide": true,
       "detail": "Stop the application",
       "group": "build"
     },
@@ -52,7 +54,6 @@
       "command": ".vscode/run-in-container.sh e621 /app/bin/populate",
       "detail": "Populate the database with test data",
       "group": "build",
-      "hide": true
     },
     {
       "label": "e621: dev_setup",
@@ -60,7 +61,6 @@
       "command": ".vscode/run-in-container.sh e621 /app/bin/setup",
       "detail": "Setup the application",
       "group": "build",
-      // "hide": true
     },
     {
       "label": "e621: dev_rebuild",
