@@ -4,30 +4,30 @@
     {
       "label": "e621: run_rubocop_all",
       "type": "shell",
-  "command": "if [ -f /.dockerenv ]; then bundle exec rubocop; else docker compose run --rm rubocop; fi",
+      "command": "docker compose run --rm rubocop",
       "detail": "Run rubocop on all files",
       "group": "test"
     },
     {
       "label": "e621: run_tests_all",
       "type": "shell",
-  "command": "if [ -f /.dockerenv ]; then bundle exec rails test; else docker compose run --rm tests; fi",
+      "command": "docker compose run --rm tests",
       "group": "test",
-      "detail": "Run all tests",
+      "detail": "Run all tests"
     },
     {
       "label": "e621: run_tests_file",
       "type": "shell",
-  "command": "if [ -f /.dockerenv ]; then bin/rails test ${input:test_file}; else docker compose run --rm tests bundle exec rails test ${input:test_file}; fi",
+      "command": "docker compose run --rm tests bundle exec rails test ${input:test_file}",
       "group": "test",
-      "detail": "Run tests on a specific file",
+      "detail": "Run tests on a specific file"
     },
     {
       "label": "e621: run_tests_current_file",
       "type": "shell",
-  "command": "if [ -f /.dockerenv ]; then bin/rails test ${relativeFile}; else docker compose run --rm tests bundle exec rails test ${relativeFile}; fi",
+      "command": "docker compose run --rm tests bundle exec rails test ${relativeFile}",
       "group": "test",
-      "detail": "Run tests on the current file",
+      "detail": "Run tests on the current file"
     },
     {
       "label": "e621: run detached",
@@ -37,19 +37,19 @@
       "group": {
         "kind": "build",
         "isDefault": true
-      },
+      }
     },
     {
       "label": "e621: stop",
       "type": "shell",
       "command": "docker compose down",
       "detail": "Stop the application",
-      "group": "build",
+      "group": "build"
     },
     {
       "label": "e621: dev_populate",
       "type": "shell",
-  "command": "if [ -f /.dockerenv ]; then bin/populate; else docker exec -i e621ng-e621-1 /app/bin/populate; fi",
+      "command": "docker compose exec -T e621 /app/bin/populate",
       "detail": "Populate the database with test data",
       "group": "build",
       "hide": true
@@ -57,7 +57,7 @@
     {
       "label": "e621: dev_setup",
       "type": "shell",
-  "command": "if [ -f /.dockerenv ]; then bin/setup; else docker compose run --rm e621 /app/bin/setup; fi",
+      "command": "docker compose run --rm e621 /app/bin/setup",
       "detail": "Setup the application",
       "group": "build",
       "hide": true
@@ -65,7 +65,7 @@
     {
       "label": "e621: dev_rebuild",
       "type": "shell",
-  "command": "if [ -f /.dockerenv ]; then bin/setup; else docker compose run --rm e621 /app/bin/setup; fi",
+      "command": "docker compose run --rm e621 /app/bin/setup",
       "detail": "Rebuild the application",
       "group": "none",
       "hide": true
@@ -73,7 +73,7 @@
     {
       "label": "e621: dev_erase",
       "type": "shell",
-  "command": "docker compose down -v",
+      "command": "docker compose down -v",
       "hide": true,
       "detail": "Stop and remove volumes",
       "group": "none"
@@ -81,18 +81,18 @@
     {
       "label": "e621: dev_console",
       "type": "shell",
-  "command": "if [ -f /.dockerenv ]; then bin/rails c; else docker compose run --rm e621 /app/bin/rails c; fi",
+      "command": "docker compose run --rm e621 /app/bin/rails c",
       "detail": "Open a Rails console",
       "group": "none"
     },
     {
       "label": "e621: dev_make_staff",
       "type": "shell",
-  "command": "if [ -f /.dockerenv ]; then bundle exec rails runner \"User.find(${input:user_id}).update(is_bd_staff: true)\"; else docker compose run --rm e621 /app/bin/rails runner 'User.find(${input:user_id}).update(is_bd_staff: true)'; fi",
+      "command": "docker compose run --rm e621 /app/bin/rails runner 'User.find(${input:user_id}).update(is_bd_staff: true)'",
       "problemMatcher": [],
       "detail": "Make a user a staff member",
       "group": "none",
-      "hide": true,
+      "hide": true
     },
     {
       "label": "e621: dev_setup: ignore **ALL** meta dirs",
@@ -116,5 +116,5 @@
       "type": "promptString",
       "description": "Enter a user id (eg, 1)"
     }
-  ],
+  ]
 }
