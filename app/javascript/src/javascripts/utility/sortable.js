@@ -12,7 +12,7 @@
  * });
  *
  * // Get current order
- * const currentOrder = sortable.getOrderedIds();
+ * const currentOrder = sortable.order;
  *
  * // Update after DOM changes
  * sortable.refresh();
@@ -53,17 +53,8 @@ export default class Sortable {
     this._pendingOver = null;
 
     this.$container.find(this.settings.itemSelector).attr("draggable", "true");
+    this._rebuildIndex();
     this.bindAll();
-  }
-
-  getItems () {
-    const nodes = Array.from(this.$container.find(this.settings.itemSelector));
-    return nodes.filter((el) => !this.$placeholder || el !== this.$placeholder[0]);
-  }
-
-  getId (el) {
-    const val = el.dataset[this.settings.idDataKey];
-    return val != null ? String(val) : null;
   }
 
   /** Clean up the sortable instance and remove all event listeners. */
@@ -77,20 +68,8 @@ export default class Sortable {
       this._dragOverRafId = 0;
     }
     this._pendingOver = null;
-  }
 
-  /**
-   * Get the current order of sortable items as an array of IDs.
-   *
-   * @returns {string[]} Array of item IDs in their current DOM order
-   * @example
-   * const order = sortable.getOrderedIds();
-   * // Returns: ["post-123", "post-456", "post-789"]
-   */
-  getOrderedIds () {
-    return this.getItems()
-      .map((el) => this.getId(el))
-      .filter((v) => v != null && v !== "");
+    this._clearCache();
   }
 
 
@@ -125,6 +104,9 @@ export default class Sortable {
     // Apply draggable attribute to new items
     this.$container.find(this.settings.itemSelector).attr("draggable", "true");
     this.bindAll();
+
+    // Rebuild caches after refresh
+    this._rebuildIndex();
   }
 
   onItemDragStart (event) {
@@ -132,7 +114,7 @@ export default class Sortable {
     const $el = $(el);
 
     this.state = {
-      draggingId: this.getId(el),
+      draggingId: this.getIdByElement(el),
       draggingEl: el,
       lastTarget: null,
       lastBefore: null,
@@ -289,17 +271,19 @@ export default class Sortable {
 
       const draggedId = this.state.draggingId || (nativeEvent.dataTransfer ? nativeEvent.dataTransfer.getData("text/plain") : "");
       if (!draggedId) return;
-      const dragged = this.state.draggingEl || this.getItems().find((n) => this.getId(n) === draggedId);
+      const dragged = this.state.draggingEl || this._elementCache.get(draggedId);
       if (!dragged) return;
 
       // Move dragged element before placeholder using native DOM, then drop CSS class
       const ph = this.$placeholder && this.$placeholder[0];
       if (ph && ph.parentNode) ph.parentNode.insertBefore(dragged, ph);
       dragged.classList.remove("dragging");
+
+      this._rebuildIndex();
       this.hidePlaceholder();
 
       if (this.settings.onReorder)
-        this.settings.onReorder(this.getOrderedIds());
+        this.settings.onReorder(this.order);
     });
   }
 
@@ -307,4 +291,40 @@ export default class Sortable {
     if (!this.$placeholder) return;
     this.$placeholder.off(".sortable");
   }
+
+  // ======================================== //
+  // ============ Indexing Helpers ========== //
+  // ======================================== //
+
+  getElementById (id) { return this._elementCache.get(id) || null; }
+  _elementCache = new Map();
+
+  getIdByElement (el) {
+    const val = el.dataset[this.settings.idDataKey];
+    return val != null ? String(val) : null;
+  }
+
+  _rebuildIndex () {
+    this._clearCache();
+
+    const els = Array.from(this.$container.find(this.settings.itemSelector));
+    const phNode = this.$placeholder ? this.$placeholder[0] : null;
+    for (const el of els) {
+      if (phNode && el === phNode) continue;
+      const id = this.getIdByElement(el);
+      if (!id) continue;
+
+      this._elementCache.set(id, el);
+      this._idCache.push(id);
+    }
+  }
+
+  _clearCache () {
+    this._elementCache.clear();
+    this._idCache = [];
+  }
+
+  /** @returns {string[]} Array of item IDs in their current DOM order */
+  get order () { return this._idCache.slice(); }
+  _idCache = [];
 }
