@@ -57,15 +57,15 @@
     {
       "label": "e621: dev_setup",
       "type": "shell",
-      "command": "docker compose run --rm e621 /app/bin/setup",
+      "command": ".vscode/run-in-container.sh /app/bin/setup",
       "detail": "Setup the application",
       "group": "build",
-      "hide": true
+      // "hide": true
     },
     {
       "label": "e621: dev_rebuild",
       "type": "shell",
-      "command": "docker compose run --rm e621 /app/bin/setup",
+      "command": ".vscode/run-in-container.sh /app/bin/setup",
       "detail": "Rebuild the application",
       "group": "none",
       "hide": true
@@ -81,14 +81,14 @@
     {
       "label": "e621: dev_console",
       "type": "shell",
-      "command": "docker compose run --rm e621 /app/bin/rails c",
+      "command": ".vscode/run-in-container.sh /app/bin/rails c",
       "detail": "Open a Rails console",
       "group": "none"
     },
     {
       "label": "e621: dev_make_staff",
       "type": "shell",
-      "command": "docker compose run --rm e621 /app/bin/rails runner 'User.find(${input:user_id}).update(is_bd_staff: true)'",
+      "command": ".vscode/run-in-container.sh /app/bin/rails runner 'User.find(${input:user_id}).update(is_bd_staff: true)'",
       "problemMatcher": [],
       "detail": "Make a user a staff member",
       "group": "none",

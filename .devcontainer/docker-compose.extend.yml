@@ -17,7 +17,6 @@ services:
     env_file:
       - .devcontainer/.env.devcontainer
     volumes:
-      - .:/app
-      # - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
+      - ./:/app:delegated
       - node_modules:/app/node_modules
       - post_data:/app/public/data
