@@ -72,7 +72,11 @@ Rails.application.configure do # rubocop:disable Metrics/BlockLength
 
   # Allow access from GitHub Codespaces, if applicable
   if ENV["CODESPACES"].present? && ENV.fetch("CODESPACES", "false") == "true"
-    codespace_host = /#{ENV.key?('CODESPACE_NAME') ? Regexp.escape(ENV['CODESPACE_NAME']) : '.*'}-#{ENV.fetch('EXPOSED_SERVER_PORT', '3000')}.#{Regexp.escape(ENV.fetch('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN', 'app.github.dev'))}/
+    codespace_name = ENV.key?("CODESPACE_NAME") ? Regexp.escape(ENV["CODESPACE_NAME"]) : ".*"
+    exposed_port = ENV.fetch("EXPOSED_SERVER_PORT", "3000")
+    forwarding_domain = Regexp.escape(ENV.fetch("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN", "app.github.dev"))
+    codespace_host_pattern = "#{codespace_name}-#{exposed_port}.#{forwarding_domain}"
+    codespace_host = Regexp.new(codespace_host_pattern)
     config.hosts << codespace_host # for some reason, rails doesn't like the full domain
   end
 end
