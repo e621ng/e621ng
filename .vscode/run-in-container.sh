@@ -2,7 +2,15 @@
 set -eu
 
 if [ -n "${REMOTE_CONTAINERS:-}" ] || [ -n "${DEVCONTAINER:-}" ] ; then
-  exec "$@" # inside the devcontainer
+  if [ "$#" -eq 1 ]; then
+    exec "$1" # directly execute the command if no service is specified
+  else
+    service="$1"
+    shift
+    exec "$@" # inside the devcontainer, execute the command
+  fi
 else # outside the devcontainer
-  exec docker compose run --rm e621 sh -lc "$@"
+  service="$1"
+  shift
+  exec docker compose run --rm "$service" sh -lc "$@"
 fi

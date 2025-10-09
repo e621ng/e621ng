@@ -4,28 +4,28 @@
     {
       "label": "e621: run_rubocop_all",
       "type": "shell",
-      "command": "docker compose run --rm rubocop",
+      "command": ".vscode/run-in-container.sh rubocop",
       "detail": "Run rubocop on all files",
       "group": "test"
     },
     {
       "label": "e621: run_tests_all",
       "type": "shell",
-      "command": "docker compose run --rm tests",
+      "command": ".vscode/run-in-container.sh tests",
       "group": "test",
       "detail": "Run all tests"
     },
     {
       "label": "e621: run_tests_file",
       "type": "shell",
-      "command": "docker compose run --rm tests bundle exec rails test ${input:test_file}",
+      "command": ".vscode/run-in-container.sh tests bundle exec rails test ${input:test_file}",
       "group": "test",
       "detail": "Run tests on a specific file"
     },
     {
       "label": "e621: run_tests_current_file",
       "type": "shell",
-      "command": "docker compose run --rm tests bundle exec rails test ${relativeFile}",
+      "command": ".vscode/run-in-container.sh tests bundle exec rails test ${relativeFile}",
       "group": "test",
       "detail": "Run tests on the current file"
     },
@@ -49,7 +49,7 @@
     {
       "label": "e621: dev_populate",
       "type": "shell",
-      "command": "docker compose exec -T e621 /app/bin/populate",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/populate",
       "detail": "Populate the database with test data",
       "group": "build",
       "hide": true
@@ -57,7 +57,7 @@
     {
       "label": "e621: dev_setup",
       "type": "shell",
-      "command": ".vscode/run-in-container.sh /app/bin/setup",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/setup",
       "detail": "Setup the application",
       "group": "build",
       // "hide": true
@@ -65,7 +65,7 @@
     {
       "label": "e621: dev_rebuild",
       "type": "shell",
-      "command": ".vscode/run-in-container.sh /app/bin/setup",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/setup",
       "detail": "Rebuild the application",
       "group": "none",
       "hide": true
@@ -81,14 +81,14 @@
     {
       "label": "e621: dev_console",
       "type": "shell",
-      "command": ".vscode/run-in-container.sh /app/bin/rails c",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/rails c",
       "detail": "Open a Rails console",
       "group": "none"
     },
     {
       "label": "e621: dev_make_staff",
       "type": "shell",
-      "command": ".vscode/run-in-container.sh /app/bin/rails runner 'User.find(${input:user_id}).update(is_bd_staff: true)'",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/rails runner 'User.find(${input:user_id}).update(is_bd_staff: true)'",
       "problemMatcher": [],
       "detail": "Make a user a staff member",
       "group": "none",
