@@ -16,7 +16,7 @@
   </div>
   <div class="replacement-version">
     <div class="replacement-version-label">Version</div>
-    <div class="replacement-version-value"><%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></dd></div>
+    <div class="replacement-version-value"><%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></div>
   </div>
   <div class="replacement-status">
     <div class="replacement-status-label">Status</div>
@@ -27,7 +27,7 @@
         data-modifier="<%= modifier %>">
         <%= svg_icon(:circle_check_small, title: "This is the current version", height: 13.5, width: 13.5, class: "inline-icons") if post_replacement.is_current? %>
         <%= post_replacement.status%>
-        <%= link_to("to post #{post_replacement.promoted_id}", post_path(post_replacement.promoted_id)) if post_replacement.is_promoted? %>
+        <%= link_to("to post #{post_replacement.promoted_id}", post_path(post_replacement.promoted_id)) if post_replacement.is_promoted? && post_replacement.promoted_id.present? %>
       </div>
       <% highlighted_tags = post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS %>
       <% icon_names = {
@@ -51,7 +51,7 @@
       </span>
     </div>
     <div class="replacement-reason-value replacement-collapsible"><%= post_replacement.reason.presence %></div>
-    <div class="replacement-reason-value replacement-expandable"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present?  %></div>
+    <div class="replacement-reason-value replacement-expandable"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present? %></div>
   </div>
   <% if post_replacement.approver.present? %>
     <div class="replacement-note">
