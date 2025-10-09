@@ -1,15 +1,12 @@
-import Utility from "./utility";
 import Dialog from "./utility/dialog";
+import Page from "./utility/page";
+import Sortable from "./utility/sortable";
 
 let Pool = {};
 
 Pool.initialize_all = function () {
   if ($("#c-posts").length && $("#a-show").length) {
     this.initialize_add_to_pool_link();
-  }
-
-  if ($("#c-pool-orders").length) {
-    this.initialize_simple_edit();
   }
 };
 
@@ -29,28 +26,24 @@ Pool.initialize_add_to_pool_link = function () {
   });
 };
 
-Pool.initialize_simple_edit = function () {
-  $("#sortable").sortable({
-    placeholder: "ui-state-placeholder",
-  });
-  $("#sortable").disableSelection();
+Pool.initialize_pool_ordering = function () {
+  if (!Page.matches("pool-orders", "edit")) return;
 
-  $("#ordering-form").submit(function (e) {
-    e.preventDefault();
-    $.ajax({
-      type: "post",
-      url: e.target.action,
-      data: $("#sortable").sortable("serialize") + "&" + $(e.target).serialize() + "&format=json",
-    }).done(() => {
-      window.location.href = e.target.action;
-    }).fail((data) => {
-      Utility.error(`Error: ${data.responseText}`);
-    });
-  });
+  const orderForm = $("#ordering-form"),
+    idInput = $("#pool_post_ids_string");
+  const originalIDs = idInput.val();
+
+  new Sortable($("ul.sortable"), { onReorder: (orderedIDs) => {
+    const idString = orderedIDs.join(" ");
+    idInput.val(idString);
+
+    orderForm.toggleClass("changed", idString !== originalIDs);
+  }});
 };
 
-$(document).ready(function () {
+$(() => {
   Pool.initialize_all();
+  Pool.initialize_pool_ordering();
 });
 
 export default Pool;

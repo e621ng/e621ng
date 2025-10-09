@@ -5,16 +5,17 @@
 
     <%= render "posts/partials/common/inline_blacklist" %>
 
-    <ul id="sortable">
+    <ul class="sortable">
       <% @pool.posts.paginate(1, limit: 1_000).each do |post| %>
-        <li class="ui-state-default" id="pool[post_ids]_<%= post.id %>">
-          <%= PostPresenter.preview(post).presence || "Hidden: Post ##{post.id}" %>
+        <li class="sortable-thumbnail" data-id="<%= post.id %>">
+          <%= PostPresenter.preview(post, { show_deleted: true }).presence || "Hidden: Post ##{post.id}" %>
         </li>
       <% end %>
     </ul>
 
     <%= custom_form_for(@pool, html: { id: "ordering-form" }) do |f| %>
-      <%= f.submit "Save" %>
+      <%= f.hidden_field :post_ids_string, id: "pool_post_ids_string", value: @pool.post_ids_string %>
+      <%= f.submit "Save Order", class: "st-button submit" %>
     <% end %>
   </div>
 </div>
