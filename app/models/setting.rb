@@ -23,4 +23,11 @@ class Setting < RailsSettings::Base
   scope :tos do
     field :tos_version, type: :numeric, default: 1, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
   end
+
+  scope :trends do
+    field :trends_enabled, type: :boolean, default: true
+    field :trends_min_today, type: :integer, default: 10, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
+    field :trends_min_delta, type: :integer, default: 10, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
+    field :trends_min_ratio, type: :float, default: 2.0, validates: { presence: true, numericality: { greater_than_or_equal_to: 1.0 } }
+  end
 end
