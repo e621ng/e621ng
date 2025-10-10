@@ -3,7 +3,7 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: %i[create new]
-  before_action :approver_only, only: %i[approve reject promote toggle_penalize]
+  before_action :approver_only, only: %i[approve reject promote toggle_penalize transfer note]
   before_action :admin_only, only: [:destroy]
   before_action :ensure_uploads_enabled, only: %i[new create]
 
@@ -14,7 +14,8 @@ class PostReplacementsController < ApplicationController
 
   def index
     params[:search][:post_id] = params.delete(:post_id) if params.key?(:post_id)
-    @post_replacements = PostReplacement.includes(:post).visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
+    params[:search][:approver] ||= params[:handler] if params[:handler].present?
+    @post_replacements = PostReplacement.includes(:post, :creator, :approver, :note, :uploader_on_approve).visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
 
     respond_with(@post_replacements)
   end
@@ -58,7 +59,22 @@ class PostReplacementsController < ApplicationController
 
   def approve
     @post_replacement = PostReplacement.find(params[:id])
-    @post_replacement.approve!(penalize_current_uploader: params[:penalize_current_uploader])
+    approve_options = {}
+    approve_options[:penalize_current_uploader] = params[:penalize_current_uploader] # must be present
+    approve_options[:credit_replacer] = params[:credit_replacer] if params.key?(:credit_replacer)
+    begin
+      @post_replacement.approve!(**approve_options)
+    rescue ProcessingError => e
+      @post_replacement.errors.add(:base, e.message)
+    end
+
+    if @post_replacement.errors.any?
+      respond_to do |format|
+        format.json do
+          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+        end
+      end
+    end
 
     if @post_replacement.errors.any?
       render plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: 400
@@ -84,6 +100,53 @@ class PostReplacementsController < ApplicationController
   def reject
     @post_replacement = PostReplacement.find(params[:id])
     @post_replacement.reject!
+
+    if @post_replacement.errors.any?
+      respond_to do |format|
+        format.json do
+          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+        end
+      end
+    end
+
+    respond_with(@post_replacement) do |format|
+      format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
+      format.json
+    end
+  end
+
+  def note
+    @post_replacement = PostReplacement.find(params[:id])
+    @post_replacement.note_add(params[:note_content])
+
+    if @post_replacement.errors.any?
+      respond_to do |format|
+        format.json do
+          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+        end
+      end
+    end
+
+    respond_with(@post_replacement) do |format|
+      format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
+      format.json
+    end
+  end
+
+  def transfer
+    @post_replacement = PostReplacement.find(params[:id])
+    @post_replacement.transfer(Post.find(params[:new_post_id]))
+
+    if @post_replacement.errors.any?
+      respond_to do |format|
+        format.html do
+          return render plain: @post_replacement.errors.full_messages.join("; "), status: 412
+        end
+        format.json do
+          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+        end
+      end
+    end
 
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }

@@ -1,0 +1,63 @@
+<div class="replacement-section-top" id="replacement-top-<%= post_replacement.id %>">
+  <div class="toggle-expanded">
+    <button class="toggle-expanded-button" data-replacement-id="<%= post_replacement.id %>">
+      <span class="replacement-toggle-icon">
+        <span class="replacement-toggle-chevron">
+          <%= svg_icon(:chevron_down, stroke_width: 4, class: "replacement-collapsible") %>
+        </span>
+        <span class="replacement-toggle-chevron">
+          <%= svg_icon(:chevron_up, stroke_width: 4, class: "replacement-expandable") %>
+        </span>
+      </span>
+    </button>
+  </div>
+  <div class="replacement-thumbnail">
+    <%= replacement_thumbnail(post_replacement) %>
+  </div>
+  <div class="replacement-version">
+    <div class="replacement-version-label">Version</div>
+    <div class="replacement-version-value"><%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></div>
+  </div>
+  <div class="replacement-status">
+    <div class="replacement-status-label">Status</div>
+    <div class="replacement-status-value">
+      <% modifier = post_replacement.is_current? ? "current" : (post_replacement.is_retired? ? "retired" : "") %>
+      <div class="replacement-status-value-box" 
+        data-status="<%= post_replacement.status %>" 
+        data-modifier="<%= modifier %>">
+        <%= svg_icon(:circle_check_small, title: "This is the current version", height: 13.5, width: 13.5, class: "inline-icons") if post_replacement.is_current? %>
+        <%= post_replacement.status%>
+        <%= link_to("to post #{post_replacement.promoted_id}", post_path(post_replacement.promoted_id)) if post_replacement.is_promoted? && post_replacement.promoted_id.present? %>
+      </div>
+      <% highlighted_tags = post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS %>
+      <% icon_names = {
+          "avoid_posting" => "octagon_x",
+          "conditional_dnp" => "octagon_alert",
+          "better_version_at_source" => "diamond_plus"
+        } %>
+      <% if highlighted_tags.any? %>
+        <div class="replacement-status-icons">
+          <% highlighted_tags.each do |tag| %><%= svg_icon(icon_names[tag].to_sym, title: tag, height: 13.5, width: 13.5, class: "inline-icons") if icon_names[tag].present? %><% end %>
+        </div>
+      <% end %>
+    </div>
+    
+  </div>
+  <div class="replacement-reason">
+    <div class="replacement-reason-label">Reason: 
+      <span class="reason-creator">
+      (Submitter: <%= link_to_user post_replacement.creator %><% if post_replacement.post.uploader_linked_artists.any? %>
+        <%= svg_icon(:chexagon, class: "chexagon", title: "The uploader is linked to one of the artist tags") %><% end %>)
+      </span>
+    </div>
+    <div class="replacement-reason-value replacement-collapsible"><%= post_replacement.reason.presence %></div>
+    <div class="replacement-reason-value replacement-expandable"><%= truncate(post_replacement.reason, length: 40) if post_replacement.reason.present? %></div>
+  </div>
+  <% if post_replacement.approver.present? %>
+    <div class="replacement-note">
+      <div class="replacement-note-label">Note: <span class="note-handler">(Handler: <%= link_to_user post_replacement.approver %>)</div></span>
+      <div class="replacement-note-value replacement-collapsible"><%= post_replacement.note&.note %></div>
+      <div class="replacement-note-value replacement-expandable"><%= truncate(post_replacement.note.note, length: 40) if post_replacement.note.present? %></div>
+    </div>
+  <% end %>
+</div>

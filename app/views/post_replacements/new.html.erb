@@ -3,7 +3,8 @@
     <%= render "new", post_replacement: @post_replacement, post: @post %>
   </div>
 </div>
-
 <% content_for(:page_title) do %>
   New Post Replacement - #<%= @post_replacement.post_id %>
 <% end %>
+
+<%= render "secondary_links" %>
