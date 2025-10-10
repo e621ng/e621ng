@@ -1,5 +1,3 @@
-<% content_for(:page_title) { "Trending tags" } %>
-
 <div id="c-search-trends">
   <div id="a-index">
     <h1>Trending tags (last 24 hours)</h1>
@@ -7,6 +5,11 @@
     <p>
       Showing results for <strong><%= @day.to_s %></strong>.
       <span class="hint">Use ?day=YYYY-MM-DD to view another day.</span>
+    </p>
+
+    <p>
+      <a href="<%= url_for(day: @day - 1) %>">Previous</a>
+      <a href="<%= url_for(day: @day + 1) %>">Next</a>
     </p>
 
     <% if @trending.blank? %>
@@ -33,3 +36,7 @@
     <% end %>
   </div>
 </div>
+
+<% content_for(:page_title) do %>
+  Trending tags
+<% end %>

@@ -43,4 +43,22 @@ class SearchTrend < ApplicationRecord
   def self.top_for_day(day: Date.current, limit: 100)
     for_day(day).order(count: :desc, tag: :asc).limit(limit)
   end
+
+  def self.rising(day: Date.current, limit: 10, min_today: 10, min_delta: 10, min_ratio: 2.0)
+    d = day.to_date
+    y = d - 1.day
+
+    joins(<<~SQL.squish)
+      LEFT JOIN search_trends y
+        ON y.tag = search_trends.tag AND y.day = #{connection.quote(y)}
+    SQL
+      .where(day: d)
+      .where("search_trends.count >= ?", min_today)
+      .where(
+        "(search_trends.count - COALESCE(y.count, 0) >= ?) OR (COALESCE(y.count, 0) > 0 AND search_trends.count::numeric / NULLIF(y.count, 0) >= ?)",
+        min_delta, min_ratio
+      )
+      .order(count: :desc, tag: :asc)
+      .limit(limit)
+  end
 end

@@ -23,4 +23,30 @@ class SearchTrendTest < ActiveSupport::TestCase
     rows = SearchTrend.for_day(Date.current).pluck(:tag, :count).to_h
     assert_equal({ "alpha" => 1, "beta" => 1 }, rows)
   end
+
+  test "rising returns tags with substantial day-over-day increase ordered by today's count" do
+    today = Date.current
+    yesterday = today - 1
+
+    # Not enough today
+    SearchTrend.create!(tag: "low", day: today, count: 5)
+
+    # Delta-based inclusion (30 - 10 >= 10)
+    SearchTrend.create!(tag: "foo", day: yesterday, count: 10)
+    SearchTrend.create!(tag: "foo", day: today, count: 30)
+
+    # Ratio-based inclusion (12 / 5 >= 2.0) but delta 7 < 10
+    SearchTrend.create!(tag: "ratio", day: yesterday, count: 5)
+    SearchTrend.create!(tag: "ratio", day: today, count: 12)
+
+    # Included by delta (15 - 0 >= 10)
+    SearchTrend.create!(tag: "baz", day: today, count: 15)
+
+    # Not included (25-20 < 10 and 25/20 < 2)
+    SearchTrend.create!(tag: "bar", day: yesterday, count: 20)
+    SearchTrend.create!(tag: "bar", day: today, count: 25)
+
+    rising = SearchTrend.rising(day: today, limit: 10)
+    assert_equal %w[foo baz ratio], rising.pluck(:tag)
+  end
 end

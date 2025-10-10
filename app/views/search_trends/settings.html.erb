@@ -1,0 +1,41 @@
+<div id="c-search-trends">
+  <div id="a-settings">
+    <h1>Search trend settings</h1>
+
+    <%= custom_form_for(:search_trends, url: update_settings_search_trends_path, method: :post, local: true, class: "simple_form") do |f| %>
+      <div class="input">
+        <%= f.label :trends_enabled, "Enable trends" %>
+        <%= f.check_box :trends_enabled, { checked: Setting.trends_enabled? }, "true", "false" %>
+      </div>
+
+      <div class="input">
+        <%= f.label :trends_min_today, "Minimum searches today" %>
+        <%= f.number_field :trends_min_today, value: Setting.trends_min_today, min: 0, step: 1 %>
+      </div>
+
+      <div class="input">
+        <%= f.label :trends_min_delta, "Minimum day-over-day delta" %>
+        <%= f.number_field :trends_min_delta, value: Setting.trends_min_delta, min: 0, step: 1 %>
+      </div>
+
+      <div class="input">
+        <%= f.label :trends_min_ratio, "Minimum ratio today/yesterday" %>
+        <%= f.number_field :trends_min_ratio, value: Setting.trends_min_ratio, min: 1, step: 0.1 %>
+      </div>
+
+      <div class="actions">
+        <%= f.submit "Update settings", class: "st-button submit" %>
+      </div>
+    <% end %>
+
+    <%= button_to "Clear rising tags cache", clear_cache_search_trends_path, method: :post, class: "st-button" %>
+
+    <p class="hint">
+      These settings control how the "rising tags" widget and page are calculated. Adjust thresholds to tune sensitivity.
+    </p>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Search trend settings
+<% end %>
