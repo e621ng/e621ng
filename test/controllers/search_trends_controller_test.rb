@@ -14,7 +14,7 @@ class SearchTrendsControllerTest < ActionDispatch::IntegrationTest
     SearchTrend.increment!("fox")
     get "/search_trends.json"
     assert_response :success
-    json = JSON.parse(response.body)
+    json = response.parsed_body
     assert(json.is_a?(Array))
     assert(json.any? { |row| row["tag"] == "fox" })
   end

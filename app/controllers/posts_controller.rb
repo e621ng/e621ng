@@ -34,9 +34,9 @@ class PostsController < ApplicationController
             normalize_at_level: true,
             strip_duplicates_at_level: true,
           )
-          tag_tokens = tokens.select { |t| t.present? && t != "(" && t != ")" && !t.include?(":") }
+          tag_tokens = tokens.select { |t| t.present? && t != "(" && t != ")" && t.exclude?(":") }
           SearchTrend.bulk_increment!(tag_tokens, day: Date.current) if tag_tokens.present?
-        rescue => _e
+        rescue StandardError => _e
           # Fail open: don't block search page if parsing fails
         end
       end

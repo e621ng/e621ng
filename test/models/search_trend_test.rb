@@ -19,7 +19,7 @@ class SearchTrendTest < ActiveSupport::TestCase
   end
 
   test "bulk_increment! handles multiple tags and de-dupes" do
-    SearchTrend.bulk_increment!(["alpha", "beta", "alpha"]) # alpha counted once
+    SearchTrend.bulk_increment!(%w[alpha beta alpha]) # alpha counted once
     rows = SearchTrend.for_day(Date.current).pluck(:tag, :count).to_h
     assert_equal({ "alpha" => 1, "beta" => 1 }, rows)
   end
