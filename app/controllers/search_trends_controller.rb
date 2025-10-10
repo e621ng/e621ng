@@ -17,7 +17,7 @@ class SearchTrendsController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.json { render json: @trending.as_json(only: [:tag, :count, :day]) }
+      format.json { render json: @trending.as_json(only: %i[tag count day]) }
     end
   end
 end
