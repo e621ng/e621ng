@@ -36,6 +36,13 @@
 1. Clone the repo with `git clone https://github.com/e621ng/e621ng.git`.
 1. `cd` into the repo.
 1. Copy the sample environment file with `cp .env.sample .env`.
+1. WSL Only: Run the following commands:
+    ```
+    git config core.fileMode false
+    cp -r hooks .git/hooks
+    ```
+    This will resolve permission issues, and set up a hook that will reset file permissions to what they are supposed to be in the future.  
+    If you are not using WSL, this is likely not a problem for you.
 1. Run the following commands:
     ```
     docker compose run --rm e621 /app/bin/setup
