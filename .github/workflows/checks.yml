@@ -56,6 +56,7 @@ jobs:
       - docker-build
       - rubocop
       - eslint
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
 
     steps:
       - uses: actions/checkout@v3
@@ -68,7 +69,7 @@ jobs:
         run: $DOCKER_RUN --entrypoint bin/rails tests db:schema:load
 
       - name: Run Tests
-        run: $DOCKER_RUN tests
+        run: $DOCKER_RUN tests --fail-fast
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
