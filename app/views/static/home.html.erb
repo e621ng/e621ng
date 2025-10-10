@@ -28,6 +28,12 @@
     <% end %>
   </section>
 
+  <% if Setting.trends_enabled? %>
+  <section class="home-section">
+    <%= rising_tags %>
+  </section>
+  <% end %>
+
   <% if news_update = NewsUpdate.recent %>
     <section class="home-section">
       <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
