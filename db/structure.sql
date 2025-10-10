@@ -3800,6 +3800,13 @@ CREATE INDEX index_exception_logs_on_code ON public.exception_logs USING btree (
 
 
 --
+-- Name: index_exception_logs_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exception_logs_on_created_at ON public.exception_logs USING btree (created_at);
+
+
+--
 -- Name: index_exception_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4831,6 +4838,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251010171207'),
 ('20251001213309'),
 ('20250921011208'),
 ('20250831040648'),

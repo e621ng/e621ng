@@ -20,5 +20,28 @@ class MaintenanceTest < ActiveSupport::TestCase
         assert_equal(false, user.reload.is_banned)
       end
     end
+
+    should "prune old exception logs" do
+      prev = Setting.disable_exception_prune?
+      Setting.disable_exception_prune = false
+
+      ExceptionLog.create!(
+        ip_addr: "127.0.0.1",
+        class_name: "RuntimeError",
+        message: "old",
+        trace: "trace",
+        code: SecureRandom.uuid,
+        version: "abc",
+        created_at: 2.years.ago,
+        updated_at: 2.years.ago,
+      )
+
+      assert_difference({ "ExceptionLog.count" => -1 }) do
+        Maintenance.daily
+      end
+    ensure
+      Setting.disable_exception_prune = prev
+      ExceptionLog.destroy_all
+    end
   end
 end

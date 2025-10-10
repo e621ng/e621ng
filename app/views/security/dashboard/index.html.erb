@@ -45,6 +45,15 @@
         <%= f.button :submit, value: "Submit" %>
       <% end %>
     </section>
+
+    <section class="settings-section">
+      <h2>Exception Log Pruning</h2>
+      Exception logs older than <b>1 year</b> are pruned during daily maintenance.
+      <%= custom_form_for(:maintenance, url: maintenance_security_lockdown_index_path, method: :put) do |f| %>
+        <%= f.input :disable_exception_prune, as: :boolean, label: "Disable automatic exception log pruning", input_html: { checked: Setting.disable_exception_prune? ? "checked" : "" } %>
+        <%= f.button :submit, value: "Submit" %>
+      <% end %>
+    </section>
   </div>
 </div>
 
