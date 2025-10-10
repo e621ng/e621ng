@@ -2,7 +2,7 @@
 
 require "active_support/core_ext/integer/time"
 
-Rails.application.configure do
+Rails.application.configure do # rubocop:disable Metrics/BlockLength
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded any time
@@ -65,5 +65,18 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
 
+  # Disable request forgery protection to simplify local development.
+  config.action_controller.allow_forgery_protection = false
+
   config.hosts << "e621ng.local"
+
+  # Allow access from GitHub Codespaces, if applicable
+  if ENV["CODESPACES"].present? && ENV.fetch("CODESPACES", "false") == "true"
+    codespace_name = ENV.key?("CODESPACE_NAME") ? Regexp.escape(ENV["CODESPACE_NAME"]) : ".*"
+    exposed_port = ENV.fetch("EXPOSED_SERVER_PORT", "3000")
+    forwarding_domain = Regexp.escape(ENV.fetch("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN", "app.github.dev"))
+    codespace_host_pattern = "#{codespace_name}-#{exposed_port}.#{forwarding_domain}"
+    codespace_host = Regexp.new(codespace_host_pattern)
+    config.hosts << codespace_host # for some reason, rails doesn't like the full domain
+  end
 end
