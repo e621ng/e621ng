@@ -28,12 +28,20 @@ fi
 
 echo "Restoring execute permissions for files"
 
-# Get all files that should have execute permissions from Git's object database and restore them on the filesystem
-git ls-tree -r HEAD | grep "^100755" | while read -r mode type hash path; do
+# Get all files that should have execute permissions from Git's object database
+# and collect them into an array for batch processing
+executable_files=()
+while read -r mode type hash path; do
   if [ -f "$path" ]; then
-    chmod +x "$path" 2>/dev/null || true
-    echo "  ✓ $path"
+    executable_files+=("$path")
   fi
-done
+done < <(git ls-tree -r HEAD | grep "^100755")
 
-echo "Execute permissions restored."
+# Apply execute permissions to all files at once if any were found
+if [ ${#executable_files[@]} -gt 0 ]; then
+  chmod +x "${executable_files[@]}" 2>/dev/null || true
+  printf "  ✓ %s\n" "${executable_files[@]}"
+  echo "Execute permissions restored for ${#executable_files[@]} files."
+else
+  echo "No executable files found to restore."
+fi
