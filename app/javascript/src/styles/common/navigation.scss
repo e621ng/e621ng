@@ -351,34 +351,30 @@ nav.navigation, html.nav-toggled nav.navigation {
       background: unset;
     }
 
-    .nav-primary {
-      background: unset;
+    .nav-primary, .nav-secondary {
       height: unset;
       padding-left: 0.25rem;
-      overflow-y: unset;
-
-      li a {
-        border-bottom: 0;
-        svg { display: none; }
-      }
-    }
-
-    .nav-secondary {
-      height: unset;
-
-      padding: 0 0.25rem;
-      border-radius: 0.25rem 0 0 0.25rem;
       overflow-y: hidden;
       overflow-x: scroll; // Silly fix for too many links
       /* Hide scrollbar */
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
-      &::-webkit-scrollbar { display: none; }
+      &::-webkit-scrollbar { display: none; } /* Chrome, Safari and Opera */
+
+      li a { border-bottom: 0; }
+    }
+
+    .nav-primary {
+      background: unset;
+      li a svg { display: none; }
+    }
+
+    .nav-secondary {
+      padding: 0 0.25rem;
+      border-radius: 0.25rem 0 0 0.25rem;
       z-index: 1; // above the avatar
 
       li {
-        a { border-bottom: 0; }
-
         &.divider {
           display: flex;
           align-items: center;
