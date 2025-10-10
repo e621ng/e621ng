@@ -39,7 +39,7 @@
 1. WSL Only: Run the following commands:
     ```
     git config core.fileMode false
-    cp -r hooks .git/hooks
+    cp -ru hooks/ .git
     ```
     This will resolve permission issues, and set up a hook that will reset file permissions to what they are supposed to be in the future.  
     If you are not using WSL, this is likely not a problem for you.
