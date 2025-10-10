@@ -1744,6 +1744,39 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: search_trends; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.search_trends (
+    id bigint NOT NULL,
+    tag character varying NOT NULL,
+    day date NOT NULL,
+    count integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: search_trends_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.search_trends_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: search_trends_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.search_trends_id_seq OWNED BY public.search_trends.id;
+
+
+--
 -- Name: settings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2802,6 +2835,13 @@ ALTER TABLE ONLY public.posts ALTER COLUMN change_seq SET DEFAULT nextval('publi
 
 
 --
+-- Name: search_trends id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.search_trends ALTER COLUMN id SET DEFAULT nextval('public.search_trends_id_seq'::regclass);
+
+
+--
 -- Name: settings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3302,6 +3342,14 @@ ALTER TABLE ONLY public.posts
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: search_trends search_trends_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.search_trends
+    ADD CONSTRAINT search_trends_pkey PRIMARY KEY (id);
 
 
 --
@@ -4382,6 +4430,20 @@ CREATE INDEX index_posts_on_uploader_ip_addr ON public.posts USING btree (upload
 
 
 --
+-- Name: index_search_trends_on_day_and_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_trends_on_day_and_count ON public.search_trends USING btree (day, count);
+
+
+--
+-- Name: index_search_trends_on_tag_and_day; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_search_trends_on_tag_and_day ON public.search_trends USING btree (tag, day);
+
+
+--
 -- Name: index_settings_on_var; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4902,6 +4964,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251014151300'),
 ('20251010171207'),
 ('20251001213309'),
+('20250930034054'),
 ('20250921011208'),
 ('20250831040648'),
 ('20250831015612'),

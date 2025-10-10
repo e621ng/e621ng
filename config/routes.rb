@@ -71,6 +71,7 @@ Rails.application.routes.draw do
     end
   end
   resources :popular, only: %i[index]
+  resources :search_trends, only: %i[index]
   namespace :maintenance do
     namespace :user do
       resource :count_fixes, only: %i[new create]
