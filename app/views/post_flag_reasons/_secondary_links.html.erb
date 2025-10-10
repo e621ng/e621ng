@@ -1,0 +1,7 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "List", post_flag_reasons_path %>
+  <%= subnav_link_to "New", new_post_flag_reason_path %>
+  <% if CurrentUser.is_admin? %>
+    <%= subnav_link_to "Clear Cache", clear_cache_post_flag_reasons_path, method: :post %>
+  <% end %>
+<% end %>

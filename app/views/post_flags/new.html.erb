@@ -1,9 +1,0 @@
-<div id="c-post-flags">
-  <div id="a-new">
-    <%= render "post_flags/new", post_flag: @post_flag %>
-  </div>
-</div>
-
-<% content_for(:page_title) do %>
-  New Flag - #<%= @post_flag.post_id %>
-<% end %>

@@ -1,0 +1,45 @@
+<% content_for(:page_title) do %>
+  Report/Flag Post #<%= @post.id %>
+<% end %>
+
+<div id="c-posts"><div id="a-report">
+  
+  <%# Post thumbnail + text blurb %>
+  <div class="post-report-preview">
+
+    <div class="flag_post">
+      <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+    </div>
+    
+    <div class="dtext-container">
+      <%= format_text(WikiPage.titled("help:flag_notice1")&.body) %>
+    </div>
+  </div>
+
+
+  <%# Post report form body %>
+  <div class="post-report-wrapper">
+
+    <%= error_messages_for :post_flag %>
+
+    <%= custom_form_for(report_post_path, id: "post-report-form") do |form| %>
+      <%= form.hidden_field :post_id %>
+
+      <%= render partial: "posts/partials/report/reason",
+                 collection: PostFlagReason.for_radio,
+                 as: :flag_reason,
+                 locals: { form: form, post: @post }
+      %>
+
+      <div class="report-notes">
+        <%= form.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size, input_html: { id: "report_note_field" } %>
+      </div>
+      
+      <div>
+        <span class="report-note-hint" style="display: none;">Error: Additional note is required for this flag type.</span>
+        <%= form.submit "Submit", class: "st-button submit", data: { disable_with: false } %>
+      </div>
+    <% end %>
+  </div>
+
+</div></div>

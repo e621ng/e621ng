@@ -3,7 +3,7 @@
 class PostsController < ApplicationController
   before_action :member_only, except: %i[show show_seq index random]
   before_action :admin_only, only: [:update_iqdb]
-  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
+  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random report]
   respond_to :html, :json
 
   def index
@@ -146,6 +146,99 @@ class PostsController < ApplicationController
     respond_with_post_after_update(@post)
   end
 
+  # Unified report/flag action for posts
+  # Handles both POST flags (rule violations) and reports (other issues)
+  # Uses the PostFlagReason model to determine available reasons
+  # GET: Shows the report form with flag and report reason options
+  # POST: Creates either a PostFlag or Ticket based on the report type
+  def report
+    @post = Post.find(params[:id])
+
+    if request.get?
+      @report_reasons = PostFlagReason.for_radio
+      respond_with(@post) do |format|
+        format.html { render :report }
+      end
+    elsif request.post?
+      # Handle report submission
+      report_type = params[:report_type]
+      reason_name = params[:reason]
+      explanation = params[:explanation]
+
+      # Basic validation
+      if report_type.blank? || reason_name.blank?
+        flash[:notice] = "Please select a report type and reason"
+        redirect_to report_post_path(@post) and return
+      end
+
+      # Validate that the reason exists and matches the report type
+      if report_type == "flag"
+        reason = PostFlagReason.for_flags.find_by(name: reason_name)
+      elsif report_type == "report"
+        reason = PostFlagReason.for_reports.find_by(name: reason_name)
+      elsif report_type == "none"
+        reason = PostFlagReason.for_none.find_by(name: reason_name)
+      else
+        flash[:notice] = "Invalid report type"
+        redirect_to report_post_path(@post) and return
+      end
+
+      unless reason
+        flash[:notice] = "Invalid reason selected"
+        redirect_to report_post_path(@post) and return
+      end
+
+      # Check if explanation is required
+      if reason.needs_explanation && explanation.blank?
+        flash[:notice] = "Explanation is required for this reason"
+        redirect_to report_post_path(@post) and return
+      end
+
+      # Create the flag or report based on type (or do nothing for 'none')
+      if report_type == "none"
+        # Don't create anything for 'none' type - just redirect back
+        flash[:notice] = "No action taken - this is a header option"
+        redirect_to @post
+      elsif report_type == "flag"
+        @post_flag = PostFlag.create(
+          post: @post,
+          creator: CurrentUser.user,
+          reason: reason.reason,
+          explanation: explanation,
+        )
+
+        if @post_flag.errors.empty?
+          flash[:notice] = "Post flagged successfully"
+          redirect_to @post
+        else
+          flash[:notice] = @post_flag.errors.full_messages.join("; ")
+          redirect_to report_post_path(@post)
+        end
+      else
+        # Create a ticket for reports using PostFlagReason
+        # Note: This assumes the ticket system is updated to work with PostFlagReason
+        # For now, we'll create a simple report record or ticket
+        @ticket = Ticket.create(
+          creator: CurrentUser.user,
+          qtype: "post",
+          disp_id: @post.id,
+          reason: explanation.present? ? "#{reason.reason}: #{explanation}" : reason.reason,
+        )
+
+        if @ticket.errors.empty?
+          flash[:notice] = "Report submitted successfully"
+          redirect_to @post
+        else
+          flash[:notice] = @ticket.errors.full_messages.join("; ")
+          redirect_to report_post_path(@post)
+        end
+      end
+    end
+  rescue ActiveRecord::RecordNotFound
+    flash[:notice] = "Post not found"
+    redirect_to posts_path
+  end
+
   private
 
   def tag_query
@@ -153,8 +246,8 @@ class PostsController < ApplicationController
   end
 
   def respond_with_post_after_update(post)
-    respond_with(post) do |format|
-      format.html do
+    respond_with(post) do |format| # rubocop:disable Metrics/BlockLength
+      format.html do # rubocop:disable Metrics/BlockLength
         if post.warnings.any?
           warnings = post.warnings.full_messages.join(".\n \n")
           if warnings.length > 45_000

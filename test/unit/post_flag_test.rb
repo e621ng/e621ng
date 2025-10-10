@@ -110,7 +110,7 @@ class PostFlagTest < ActiveSupport::TestCase
       end
 
       should "be required on reasons that require explanation" do
-        reasons = Danbooru.config.flag_reasons.select { |r| r[:require_explanation] }
+        reasons = Danbooru.config.flag_reasons.select { |r| r[:needs_explanation] }
         reasons.each do |reason|
           flag = PostFlag.new(post: @post, creator: @user, reason_name: reason[:name], note: "")
           assert_not flag.valid?, "note should be required for reason #{reason[:name]}"
@@ -119,7 +119,7 @@ class PostFlagTest < ActiveSupport::TestCase
       end
 
       should "not be required on reasons that do not require explanation" do
-        reasons = Danbooru.config.flag_reasons.reject { |r| r[:require_explanation] }
+        reasons = Danbooru.config.flag_reasons.reject { |r| r[:needs_explanation] }
         reasons.each do |reason|
           flag = PostFlag.new(post: @post, creator: @user, reason_name: reason[:name], note: "")
           flag.valid?
@@ -128,7 +128,7 @@ class PostFlagTest < ActiveSupport::TestCase
       end
 
       should "be allowed" do
-        reasons = Danbooru.config.flag_reasons.select { |r| r[:require_explanation] }
+        reasons = Danbooru.config.flag_reasons.select { |r| r[:needs_explanation] }
         reasons.each do |reason|
           flag = PostFlag.new(post: @post, creator: @user, reason_name: reason[:name], note: "Some explanation")
           flag.valid?

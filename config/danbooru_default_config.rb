@@ -570,10 +570,6 @@ module Danbooru
       nil
     end
 
-    def flag_notice_wiki_page
-      "help:flag_notice"
-    end
-
     def replacement_notice_wiki_page
       "help:replacement_notice"
     end

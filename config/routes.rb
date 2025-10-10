@@ -253,6 +253,8 @@ Rails.application.routes.draw do
       get :random
     end
     member do
+      get :report
+      post :report
       get :update_iqdb
       put :revert
       put :copy_notes
@@ -269,7 +271,7 @@ Rails.application.routes.draw do
     end
   end
   resources :post_events, only: :index
-  resources :post_flags, except: %i[destroy] do
+  resources :post_flags, except: %i[destroy new] do
     member do
       post :clear_note
     end
@@ -359,6 +361,11 @@ Rails.application.routes.draw do
     end
   end
   resources :post_report_reasons
+  resources :post_flag_reasons do
+    collection do
+      post :clear_cache
+    end
+  end
   resources :post_sets do
     collection do
       get :for_select

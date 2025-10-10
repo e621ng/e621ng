@@ -1,0 +1,29 @@
+<div id="c-post-flag-reasons">
+  <div id="a-index">
+    <h1>Post Flag Reasons</h1>
+
+    <table class="striped">
+      <thead>
+      <tr>
+        <th>Key</th>
+        <th>Label</th>
+        <th>Note?</th>
+        <th>Post ID?</th>
+        <th>Updated</th>
+        <th></th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <%= render partial: "reason_row", collection: @reasons, as: :flag_reason, locals: { depth: 0 } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<%= render partial: "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Post Flag Reasons
+<% end %>
