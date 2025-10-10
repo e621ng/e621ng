@@ -38,9 +38,10 @@ class ExceptionLog < ApplicationRecord
   end
 
   def user
-    # Prior to March 2024, user IDs were only stored in the extra_params["user_id"] field,
+    # Prior to September 2025, user IDs were only stored in the extra_params["user_id"] field,
     # instead of the user_id database column. As of March 2024, this was fixed and user_id is now
     # properly stored in the user_id column. This fallback is needed to support old records.
+    # TODO: Remove this fallback in September 2026.
     return super if super.present?
     User.find_by(id: extra_params["user_id"])
   end
@@ -69,5 +70,23 @@ class ExceptionLog < ApplicationRecord
     end
 
     q.apply_basic_order(params)
+  end
+
+  # Delete exception logs older than the given duration (defaults to 1 year).
+  # Uses batched deletes to avoid long-running transactions and excessive locks.
+  def self.prune!(older_than: 1.year, batch_size: 1_000)
+    cutoff = Time.zone.now - older_than
+
+    # Determine the maximum id for the cutoff set to avoid scanning through irrelevant rows.
+    max_id = where("created_at < ?", cutoff).maximum(:id)
+    return 0 if max_id.nil?
+
+    total = 0
+    where("id <= ? AND created_at < ?", max_id, cutoff)
+      .in_batches(of: batch_size, load: false) do |relation|
+        total += relation.delete_all
+      end
+
+    total
   end
 end

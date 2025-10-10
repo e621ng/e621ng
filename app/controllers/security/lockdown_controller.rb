@@ -62,10 +62,24 @@ module Security
       redirect_to security_root_path
     end
 
+    def maintenance
+      params = maintenance_params
+
+      if params[:disable_exception_prune].present?
+        Setting.disable_exception_prune = params[:disable_exception_prune] == "1"
+      end
+
+      redirect_to security_root_path
+    end
+
     def lockdown_params
       permitted_params = %i[uploads pools post_sets comments forums blips aiburs favorites votes]
-
       params.fetch(:lockdown, {}).permit(permitted_params)
+    end
+
+    def maintenance_params
+      permitted_params = %i[disable_exception_prune]
+      params.fetch(:maintenance, {}).permit(permitted_params)
     end
   end
 end
