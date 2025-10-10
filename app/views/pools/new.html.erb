@@ -2,13 +2,13 @@
   <div id="c-new">
     <h2>New Pool</h2>
 
-    <p style="font-weight: bold;">Before creating a pool, read the <%= link_to "pool guidelines", wiki_page_path(:id => "e621:pools") %>.</p>
+    <p style="font-weight: bold;">Before creating a pool, read the <%= link_to "pool guidelines", wiki_page_path(id: "e621:pools") %>.</p>
 
     <%= custom_form_for(@pool) do |f| %>
-      <%= f.input :name, :as => :string, :required => true %>
+      <%= f.input :name, as: :string, required: true %>
       <%= f.input :description, as: :dtext, limit: Danbooru.config.pool_descr_max_size, allow_color: false %>
-      <%= f.input :post_ids_string, as: :text, label: "Posts" %>
-      <%= f.input :category, :collection => ["series", "collection"], :include_blank => true, :selected => "", :required => true %>
+      <%= f.input :post_ids_string, as: :text, label: "Posts", input_html: { class: "id-input", "multi-value" => "space" } %>
+      <%= f.input :category, collection: %w[series collection], include_blank: true, selected: "", required: true %>
       <%= f.input :is_active %>
       <%= f.button :submit, "Submit" %>
     <% end %>
