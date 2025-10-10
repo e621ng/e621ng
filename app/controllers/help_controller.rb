@@ -5,6 +5,14 @@ class HelpController < ApplicationController
   helper :wiki_pages
   before_action :admin_only, except: %i[index show]
 
+  def index
+    return redirect_to help_page_path(id: Danbooru.config.help_landing_page), status: 303 unless CurrentUser.is_admin?
+    @help_pages = HelpPage.help_index
+    respond_with(@help_pages) do |format|
+      format.json { render json: @help_pages.to_json }
+    end
+  end
+
   def show
     if params[:id] =~ /\A\d+\Z/
       @help = HelpPage.find(params[:id])
@@ -17,14 +25,6 @@ class HelpController < ApplicationController
           redirect_to help_pages_path
         end
       end
-    end
-  end
-
-  def index
-    return redirect_to help_page_path(id: Danbooru.config.help_landing_page), status: 303 unless CurrentUser.is_admin?
-    @help_pages = HelpPage.help_index
-    respond_with(@help_pages) do |format|
-      format.json { render json: @help_pages.to_json }
     end
   end
 
