@@ -21,6 +21,7 @@ class HelpController < ApplicationController
   end
 
   def index
+    return redirect_to help_page_path(id: Danbooru.config.help_landing_page), status: 303 unless CurrentUser.is_admin?
     @help_pages = HelpPage.help_index
     respond_with(@help_pages) do |format|
       format.json { render json: @help_pages.to_json }
