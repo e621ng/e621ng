@@ -48,6 +48,35 @@ export default class Dialog {
       $(window).trigger("dialogContainer:resize");
   }
 
+  // Watch for content size changes and adjust dialog height accordingly
+  // We need the dialog height to always be correct for proper positioning and boundary clamping.
+  // This is only necessary if the dialog height is not explicitly set.
+  static _resizeObserver = null;
+  static get resizeObserver () {
+    if (this._resizeObserver === null)
+      this._resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          const instance = this.dialogIndex[entry.target.getAttribute("data-id")];
+          if (!instance) continue;
+
+          // Determine the new height
+          // Older Firefox versions implemented borderBoxSize as a single object rather than an array of objects.
+          // https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserverEntry/borderBoxSize
+          // https://caniuse.com/mdn-api_resizeobserverentry_borderboxsize
+          const bs = entry.borderBoxSize;
+          const blockSize = Array.isArray(bs) ? bs[0]?.blockSize : bs?.blockSize ?? entry.contentRect.height;
+
+          const newHeight = blockSize + Dialog.remToPx(2); // Header height is hardcoded
+          if (newHeight === 0) continue; // Ignore if the element is hidden
+          if (newHeight === instance.dialogHeight) continue; // No change
+
+          instance.dialogHeight = newHeight;
+          instance.recalculatePosition();
+        }
+      });
+    return this._resizeObserver;
+  }
+
   static normalizedPositionLabel = {
     "center": 0.5,
     "top":    0.0,
@@ -134,12 +163,15 @@ export default class Dialog {
    *   - startOpen: Whether to open the dialog immediately upon creation.
    */
   constructor (element, params = {}) {
+    this.id = Dialog.dialogCount++;
+
     this.$element = (typeof element === "string") ? $(element) : element;
     this.$dialog = $("<div class='dialog hidden'>")
       .attr({
         "role": "dialog",
         "tabindex": "-1",
         "aria-labelledby": `dialog-title-${this.id}`,
+        "data-id": this.id,
       })
       .appendTo(Dialog.container);
 
@@ -163,7 +195,6 @@ export default class Dialog {
       .append(this.$element);
 
     // Focus management
-    this.id = Dialog.dialogCount++;
     Dialog.dialogIndex[this.id] = this;
     Dialog.dialogStack.push(this.id);
     this.$dialog.on("mousedown", () => { Dialog.focusDialog(this); });
@@ -196,8 +227,14 @@ export default class Dialog {
 
     // Width and height
     this.dialogWidth = params.width || this.$dialog.outerWidth() || 250;
-    if (params.height) this.dialogHeight = params.height + 32; // Account for header height
-    else this.dialogHeight = this.$dialog.outerHeight() || 200;
+    if (params.height) this.dialogHeight = params.height + Dialog.remToPx(2); // Account for header height
+    else {
+      this.dialogHeight = this.$dialog.outerHeight() || 200;
+
+      // Watch for content size changes and adjust dialog height accordingly
+      this.$element.attr("data-id", this.id);
+      Dialog.resizeObserver.observe(this.$element[0]);
+    }
 
     this.recalculatePosition();
 
@@ -352,6 +389,7 @@ export default class Dialog {
     // Remove DOM and clean up references
     $(window).off("dialogContainer:resize", this.onResize);
     this.$element.trigger("dialog:destroy");
+    Dialog.resizeObserver.unobserve(this.$element[0]);
     this.$dialog.remove();
     this.$dialog = null;
     this.$element = null;
@@ -444,5 +482,9 @@ export default class Dialog {
     $(document).off("mousemove.dialog-drag mouseup.dialog-drag visibilitychange.dialog-drag");
     $(window).off("blur.dialog-drag");
     this.$dialog.removeClass("dragging");
+  }
+
+  static remToPx (rem) {
+    return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
   }
 }
