@@ -120,8 +120,13 @@ class PostSetsController < ApplicationController
     check_set_post_limit(@post_set)
     ids = add_remove_posts_params.map(&:to_i)
     added = @post_set.add_posts_sql!(ids, user: CurrentUser.user)
-    # Perform a targeted sync for the delta only.
-    @post_set.sync_posts_for_delta(added_ids: added)
+    # posts#show (single id) should be synchronous; posts#index (bulk) can be async.
+    if added.size <= 1
+      @post_set.sync_posts_for_delta(added_ids: added)
+    else
+      PostSetPostsSyncJob.perform_later(@post_set.id, added_ids: added)
+    end
+    @post_set.reload
     respond_with(@post_set)
   end
 
@@ -131,8 +136,13 @@ class PostSetsController < ApplicationController
     check_set_post_limit(@post_set)
     ids = add_remove_posts_params.map(&:to_i)
     removed = @post_set.remove_posts_sql!(ids)
-    # Perform a targeted sync for the delta only.
-    @post_set.sync_posts_for_delta(removed_ids: removed)
+    # Single removal inline; bulk async.
+    if removed.size <= 1
+      @post_set.sync_posts_for_delta(removed_ids: removed)
+    else
+      PostSetPostsSyncJob.perform_later(@post_set.id, removed_ids: removed)
+    end
+    @post_set.reload
     respond_with(@post_set)
   end
 
