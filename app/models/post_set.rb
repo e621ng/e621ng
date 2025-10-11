@@ -184,7 +184,6 @@ class PostSet < ApplicationRecord
 
   module PostMethods
     # SQL-based append that avoids reloading/saving the entire post_ids array.
-    # Returns the IDs that were actually appended (duplicates and over-limit are skipped).
     def add_posts_sql!(ids, user: CurrentUser.user)
       ids = ids.map(&:to_i).uniq
       valid_ids = Post.where(id: ids).pluck(:id)
@@ -200,8 +199,9 @@ class PostSet < ApplicationRecord
       # 1) Compute the delta once, filtered against current post_ids and limited by capacity.
       delta_sql = <<~SQL.squish
         SELECT x
-        FROM unnest(#{input_array_sql}) AS x, post_sets ps
-        WHERE ps.id = #{id} AND NOT (x = ANY(ps.post_ids))
+        FROM unnest(#{input_array_sql}) WITH ORDINALITY AS t(x, ord), post_sets ps
+        WHERE ps.id = #{id} AND NOT (ps.post_ids @> ARRAY[x])
+        ORDER BY ord
         LIMIT #{capacity.to_i}
       SQL
       added_ids = conn.select_values(delta_sql).map!(&:to_i)
@@ -214,7 +214,7 @@ class PostSet < ApplicationRecord
                  ps.post_ids || COALESCE((
                    SELECT ARRAY_AGG(x)
                    FROM UNNEST(ARRAY[#{added_ids.join(',')}]) AS x
-                   WHERE NOT (x = ANY(ps.post_ids))
+                   WHERE NOT (ps.post_ids @> ARRAY[x])
                  ), '{}') AS arr
           FROM post_sets ps
           WHERE ps.id = #{id}
@@ -242,9 +242,9 @@ class PostSet < ApplicationRecord
 
       # 1) Determine which of the requested ids actually exist in the set.
       removed_sql = <<~SQL.squish
-        SELECT e
-        FROM post_sets ps, unnest(ps.post_ids) AS e
-        WHERE ps.id = #{id} AND e = ANY(#{input_array_sql})
+        SELECT x
+        FROM unnest(#{input_array_sql}) AS x, post_sets ps
+        WHERE ps.id = #{id} AND ps.post_ids @> ARRAY[x]
       SQL
       removed_ids = conn.select_values(removed_sql).map!(&:to_i)
       return [] if removed_ids.empty?
@@ -254,9 +254,9 @@ class PostSet < ApplicationRecord
         WITH new_ids AS (
           SELECT ps.id,
                  COALESCE((
-                   SELECT array_agg(e)
-                   FROM unnest(ps.post_ids) AS e
-                   WHERE NOT (e = ANY(ARRAY[#{removed_ids.join(',')}]))
+                   SELECT array_agg(val ORDER BY ord)
+                   FROM unnest(ps.post_ids) WITH ORDINALITY AS t(val, ord)
+                   WHERE NOT (val = ANY(ARRAY[#{removed_ids.join(',')}]))
                  ), '{}') AS arr
           FROM post_sets ps
           WHERE ps.id = #{id}
