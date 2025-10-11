@@ -1,11 +1,11 @@
-<%# locals: (help_pages:) -%>
+<%# locals: (help_pages:, help: nil, params: {}) -%>
 
 <aside id="sidebar">
   <h1>Help Index</h1>
   <div style="width:240px">
     <ul class="link-page">
       <% help_pages.each do |page| %>
-        <% if params[:name] == page.name %>
+        <% if params[:name] == page.name || help&.name == page.name %>
           <li id="active">» <%= page.pretty_title %></li>
         <% else %>
           <li><%= link_to "» #{page.pretty_title}", help_page_path(id: page.name) %></li>
