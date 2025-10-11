@@ -183,6 +183,71 @@ class PostSet < ApplicationRecord
   end
 
   module PostMethods
+    # SQL-based append that avoids reloading/saving the entire post_ids array.
+    # Returns the IDs that were actually appended (duplicates and over-limit are skipped).
+    def add_posts_sql!(ids, user: CurrentUser.user)
+      ids = ids.map(&:to_i).uniq
+      valid_ids = Post.where(id: ids).pluck(:id)
+
+      # Enforce the strict configured limit (different from the +100 edit lock)
+      capacity = Danbooru.config.set_post_limit(user) - post_count.to_i
+      return [] if capacity <= 0
+
+      to_add = valid_ids.first(capacity)
+      added = []
+
+      to_add.each do |pid|
+        updated = PostSet
+                  .where(id: id)
+                  .where("NOT (? = ANY(post_ids))", pid)
+                  .update_all([
+                    "post_ids = array_append(post_ids, ?), post_count = post_count + 1, updated_at = ?",
+                    pid,
+                    Time.zone.now,
+                  ])
+
+        added << pid if updated.to_i > 0
+      end
+
+      added
+    end
+
+    # SQL-based removal; returns the IDs that were actually removed.
+    def remove_posts_sql!(ids)
+      ids = ids.map(&:to_i).uniq
+      removed = []
+
+      ids.each do |pid|
+        updated = PostSet
+                  .where(id: id)
+                  .where("? = ANY(post_ids)", pid)
+                  .update_all([
+                    "post_ids = array_remove(post_ids, ?), post_count = post_count - 1, updated_at = ?",
+                    pid,
+                    Time.zone.now,
+                  ])
+
+        removed << pid if updated.to_i > 0
+      end
+
+      removed
+    end
+
+    # Synchronize Post side for a known delta to avoid computing large diffs.
+    def sync_posts_for_delta(added_ids: [], removed_ids: [])
+      return if skip_sync == true
+
+      Post.where(id: added_ids).find_each do |post|
+        post.add_set!(self, true)
+        post.save
+      end
+
+      Post.where(id: removed_ids).find_each do |post|
+        post.remove_set!(self)
+        post.save
+      end
+    end
+
     def contains?(post_id)
       post_ids.include?(post_id)
     end

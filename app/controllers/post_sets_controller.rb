@@ -118,8 +118,10 @@ class PostSetsController < ApplicationController
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
     check_set_post_limit(@post_set)
-    @post_set.add(add_remove_posts_params.map(&:to_i))
-    @post_set.save
+    ids = add_remove_posts_params.map(&:to_i)
+    added = @post_set.add_posts_sql!(ids, user: CurrentUser.user)
+    # Perform a targeted sync for the delta only.
+    @post_set.sync_posts_for_delta(added_ids: added)
     respond_with(@post_set)
   end
 
@@ -127,8 +129,10 @@ class PostSetsController < ApplicationController
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
     check_set_post_limit(@post_set)
-    @post_set.remove(add_remove_posts_params.map(&:to_i))
-    @post_set.save
+    ids = add_remove_posts_params.map(&:to_i)
+    removed = @post_set.remove_posts_sql!(ids)
+    # Perform a targeted sync for the delta only.
+    @post_set.sync_posts_for_delta(removed_ids: removed)
     respond_with(@post_set)
   end
 
