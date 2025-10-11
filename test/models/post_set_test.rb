@@ -81,5 +81,30 @@ class PostSetTest < ActiveSupport::TestCase
         assert_equal [@set.id], matches.map(&:id)
       end
     end
+
+    should "not duplicate a post when added twice via SQL helper" do
+      as(@user) do
+        p = create(:post)
+        @set.update!(post_ids: [p.id])
+
+        added = @set.add_posts_sql!([p.id], user: @user)
+        assert_equal [], added
+        assert_equal [p.id], @set.reload.post_ids
+        assert_equal 1, @set.post_count
+      end
+    end
+
+    should "ignore removing a post that isn't in the set via SQL helper" do
+      as(@user) do
+        existing = create(:post)
+        missing = create(:post)
+        @set.update!(post_ids: [existing.id])
+
+        removed = @set.remove_posts_sql!([missing.id])
+        assert_equal [], removed
+        assert_equal [existing.id], @set.reload.post_ids
+        assert_equal 1, @set.post_count
+      end
+    end
   end
 end

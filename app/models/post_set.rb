@@ -188,49 +188,89 @@ class PostSet < ApplicationRecord
     def add_posts_sql!(ids, user: CurrentUser.user)
       ids = ids.map(&:to_i).uniq
       valid_ids = Post.where(id: ids).pluck(:id)
+      return [] if valid_ids.empty?
 
-      # Enforce the strict configured limit (different from the +100 edit lock)
       capacity = Danbooru.config.set_post_limit(user) - post_count.to_i
       return [] if capacity <= 0
 
-      to_add = valid_ids.first(capacity)
-      added = []
+      conn = PostSet.connection
+      now = conn.quote(Time.zone.now)
+      input_array_sql = "ARRAY[#{valid_ids.join(',')}]"
 
-      to_add.each do |pid|
-        updated = PostSet
-                  .where(id: id)
-                  .where("NOT (? = ANY(post_ids))", pid)
-                  .update_all([
-                    "post_ids = array_append(post_ids, ?), post_count = post_count + 1, updated_at = ?",
-                    pid,
-                    Time.zone.now,
-                  ])
+      # 1) Compute the delta once, filtered against current post_ids and limited by capacity.
+      delta_sql = <<~SQL.squish
+        SELECT x
+        FROM unnest(#{input_array_sql}) AS x, post_sets ps
+        WHERE ps.id = #{id} AND NOT (x = ANY(ps.post_ids))
+        LIMIT #{capacity.to_i}
+      SQL
+      added_ids = conn.select_values(delta_sql).map!(&:to_i)
+      return [] if added_ids.empty?
 
-        added << pid if updated.to_i > 0
-      end
+      # 2) Single UPDATE to append all addable ids and adjust count.
+      update_sql = <<~SQL.squish
+        WITH new_ids AS (
+          SELECT ps.id,
+                 ps.post_ids || COALESCE((
+                   SELECT ARRAY_AGG(x)
+                   FROM UNNEST(ARRAY[#{added_ids.join(',')}]) AS x
+                   WHERE NOT (x = ANY(ps.post_ids))
+                 ), '{}') AS arr
+          FROM post_sets ps
+          WHERE ps.id = #{id}
+        )
+        UPDATE post_sets ps
+        SET post_ids = new_ids.arr,
+            post_count = COALESCE(array_length(new_ids.arr, 1), 0),
+            updated_at = #{now}
+        FROM new_ids
+        WHERE ps.id = new_ids.id
+      SQL
+      conn.execute(update_sql)
 
-      added
+      added_ids
     end
 
     # SQL-based removal; returns the IDs that were actually removed.
     def remove_posts_sql!(ids)
       ids = ids.map(&:to_i).uniq
-      removed = []
+      return [] if ids.empty?
 
-      ids.each do |pid|
-        updated = PostSet
-                  .where(id: id)
-                  .where("? = ANY(post_ids)", pid)
-                  .update_all([
-                    "post_ids = array_remove(post_ids, ?), post_count = post_count - 1, updated_at = ?",
-                    pid,
-                    Time.zone.now,
-                  ])
+      conn = PostSet.connection
+      now = conn.quote(Time.zone.now)
+      input_array_sql = "ARRAY[#{ids.join(',')}]"
 
-        removed << pid if updated.to_i > 0
-      end
+      # 1) Determine which of the requested ids actually exist in the set.
+      removed_sql = <<~SQL.squish
+        SELECT e
+        FROM post_sets ps, unnest(ps.post_ids) AS e
+        WHERE ps.id = #{id} AND e = ANY(#{input_array_sql})
+      SQL
+      removed_ids = conn.select_values(removed_sql).map!(&:to_i)
+      return [] if removed_ids.empty?
 
-      removed
+      # 2) Single UPDATE to remove all and adjust count while preserving order.
+      update_sql = <<~SQL.squish
+        WITH new_ids AS (
+          SELECT ps.id,
+                 COALESCE((
+                   SELECT array_agg(e)
+                   FROM unnest(ps.post_ids) AS e
+                   WHERE NOT (e = ANY(ARRAY[#{removed_ids.join(',')}]))
+                 ), '{}') AS arr
+          FROM post_sets ps
+          WHERE ps.id = #{id}
+        )
+        UPDATE post_sets ps
+        SET post_ids = new_ids.arr,
+            post_count = COALESCE(array_length(new_ids.arr, 1), 0),
+            updated_at = #{now}
+        FROM new_ids
+        WHERE ps.id = new_ids.id
+      SQL
+      conn.execute(update_sql)
+
+      removed_ids
     end
 
     # Synchronize Post side for a known delta to avoid computing large diffs.
