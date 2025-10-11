@@ -33,15 +33,6 @@ module FileMethods
     file_ext == "webp"
   end
 
-  def is_avif?
-    file_ext == "avif"
-  end
-
-  def is_jxl?
-    # file_ext == "jxl"
-    false # Unsupported in browsers
-  end
-
   def is_video?
     is_webm? || is_mp4?
   end
