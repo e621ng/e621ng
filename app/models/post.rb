@@ -399,7 +399,7 @@ class Post < ApplicationRecord
       @has_sample ||= begin
         if is_video?
           true
-        elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png")
+        elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png", "animated_webp")
           false
         elsif is_image? && image_width.present?
           dims = [image_width, image_height].compact
@@ -824,6 +824,7 @@ class Post < ApplicationRecord
       # TODO: Automatically add animated_* tags without re-testing them on every edit
       tags -= ["animated_gif"] unless is_gif?
       tags -= ["animated_png"] unless is_png?
+      tags -= ["animated_webp"] unless is_webp?
 
       tags
     end
