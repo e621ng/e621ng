@@ -178,7 +178,7 @@ class PostSet < ApplicationRecord
     end
 
     def is_over_limit?(user)
-      post_ids.size > Danbooru.config.set_post_limit(user) + 100
+      post_count.to_i > Danbooru.config.set_post_limit(user) + 100
     end
   end
 
@@ -229,10 +229,6 @@ class PostSet < ApplicationRecord
         post.remove_set!(self)
         post.save
       end
-    end
-
-    def post_count
-      post_ids.size
     end
 
     def first_post?(post_id)
