@@ -5,7 +5,7 @@
   <div style="width:240px">
     <ul class="link-page">
       <% help_pages.each do |page| %>
-        <% if params[:name] == page.name || help&.name == page.name %>
+        <% if [params[:name], help&.name].include?(page.name) %>
           <li id="active">» <%= page.pretty_title %></li>
         <% else %>
           <li><%= link_to "» #{page.pretty_title}", help_page_path(id: page.name) %></li>
