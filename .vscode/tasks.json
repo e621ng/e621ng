@@ -11,7 +11,7 @@
     {
       "label": "e621: run_tests_all",
       "type": "shell",
-      "command": ".vscode/run-in-container.sh tests",
+      "command": ".vscode/run-in-container.sh tests bundle exec rails test",
       "group": "test",
       "detail": "Run all tests"
     },
