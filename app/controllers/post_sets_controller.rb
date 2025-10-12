@@ -82,7 +82,7 @@ class PostSetsController < ApplicationController
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
 
-    if @post_set.is_over_limit?(CurrentUser.user)
+    if @post_set.is_over_limit?
       flash[:notice] = "This set contains too many posts and can no longer be edited"
     else
       @post_set.update(update_posts_params)
@@ -161,7 +161,7 @@ class PostSetsController < ApplicationController
   end
 
   def check_set_post_limit(set)
-    if set.is_over_limit?(CurrentUser.user)
+    if set.is_over_limit?
       raise "This set contains too many posts and can no longer be edited."
     end
   end

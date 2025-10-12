@@ -136,7 +136,7 @@ class PostSet < ApplicationRecord
       post_ids_before = post_ids_before_last_save || post_ids_was
       added = post_ids - post_ids_before
       return unless added.size > 0
-      max = Danbooru.config.set_post_limit(CurrentUser.user)
+      max = max_posts
       if post_ids.size > max
         errors.add(:base, "Sets can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
         false
@@ -177,19 +177,48 @@ class PostSet < ApplicationRecord
       creator_id == user.id
     end
 
-    def is_over_limit?(user)
-      post_count.to_i > Danbooru.config.set_post_limit(user) + 100
+    def is_over_limit?(_user = nil)
+      post_count.to_i > max_posts + 100
     end
   end
 
   module PostMethods
+    # Returns the global max number of posts allowed in a set.
+    def max_posts
+      Danbooru.config.set_post_limit(nil).to_i
+    end
+
+    # Remaining capacity available before hitting the limit.
+    def capacity_for
+      max_posts - post_count.to_i
+    end
+
     # SQL-based append that avoids reloading/saving the entire post_ids array.
     def add_posts_sql!(ids, user: CurrentUser.user)
       ids = ids.map(&:to_i).uniq
+
+      # Fast path for single id: one atomic UPDATE.
+      if ids.length == 1
+        pid = ids.first
+        return [] unless Post.where(id: pid).exists?
+
+        max = max_posts
+        updated = PostSet
+                  .where(id: id)
+                  .where("post_count < ? AND NOT (post_ids @> ARRAY[?]::integer[])", max, pid)
+                  .update_all([
+                    "post_ids = array_append(post_ids, ?), post_count = post_count + 1, updated_at = ?",
+                    pid,
+                    Time.zone.now,
+                  ])
+
+        return updated.to_i > 0 ? [pid] : []
+      end
+
       valid_ids = Post.where(id: ids).pluck(:id)
       return [] if valid_ids.empty?
 
-      capacity = Danbooru.config.set_post_limit(user) - post_count.to_i
+  capacity = capacity_for
       return [] if capacity <= 0
 
       conn = PostSet.connection
@@ -200,7 +229,7 @@ class PostSet < ApplicationRecord
       delta_sql = <<~SQL.squish
         SELECT x
         FROM unnest(#{input_array_sql}) WITH ORDINALITY AS t(x, ord), post_sets ps
-        WHERE ps.id = #{id} AND NOT (ps.post_ids @> ARRAY[x])
+        WHERE ps.id = #{id} AND NOT (ps.post_ids @> ARRAY[x]::integer[])
         ORDER BY ord
         LIMIT #{capacity.to_i}
       SQL
@@ -214,7 +243,7 @@ class PostSet < ApplicationRecord
                  ps.post_ids || COALESCE((
                    SELECT ARRAY_AGG(x)
                    FROM UNNEST(ARRAY[#{added_ids.join(',')}]) AS x
-                   WHERE NOT (ps.post_ids @> ARRAY[x])
+                   WHERE NOT (ps.post_ids @> ARRAY[x]::integer[])
                  ), '{}') AS arr
           FROM post_sets ps
           WHERE ps.id = #{id}
@@ -236,6 +265,20 @@ class PostSet < ApplicationRecord
       ids = ids.map(&:to_i).uniq
       return [] if ids.empty?
 
+      # Fast path for single id: one atomic UPDATE.
+      if ids.length == 1
+        pid = ids.first
+        updated = PostSet
+                  .where(id: id)
+                  .where("post_ids @> ARRAY[?]::integer[]", pid)
+                  .update_all([
+                    "post_ids = array_remove(post_ids, ?), post_count = post_count - 1, updated_at = ?",
+                    pid,
+                    Time.zone.now,
+                  ])
+        return updated.to_i > 0 ? [pid] : []
+      end
+
       conn = PostSet.connection
       now = conn.quote(Time.zone.now)
       input_array_sql = "ARRAY[#{ids.join(',')}]"
@@ -244,7 +287,7 @@ class PostSet < ApplicationRecord
       removed_sql = <<~SQL.squish
         SELECT x
         FROM unnest(#{input_array_sql}) AS x, post_sets ps
-        WHERE ps.id = #{id} AND ps.post_ids @> ARRAY[x]
+        WHERE ps.id = #{id} AND ps.post_ids @> ARRAY[x]::integer[]
       SQL
       removed_ids = conn.select_values(removed_sql).map!(&:to_i)
       return [] if removed_ids.empty?
