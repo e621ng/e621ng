@@ -33,20 +33,20 @@ class PostSetTest < ActiveSupport::TestCase
     should "use post_count for is_over_limit? checks" do
       as(@user) do
         # Make the limit very small so the +100 buffer is easy to hit
-        Danbooru.config.stubs(:set_post_limit).returns(0)
+        Danbooru.config.stubs(:post_set_post_limit).returns(0)
 
         # Bypass validations/callbacks so we can control post_count precisely
         @set.update_columns(post_ids: (1..100).to_a, post_count: 100)
-        assert_not @set.reload.is_over_limit?(@user)
+        assert_not @set.reload.is_over_limit?
 
         @set.update_columns(post_ids: (1..101).to_a, post_count: 101)
-        assert @set.reload.is_over_limit?(@user)
+        assert @set.reload.is_over_limit?
       end
     end
 
     should "validate max posts when exceeding configured limit" do
       as(@user) do
-        Danbooru.config.stubs(:set_post_limit).returns(2)
+        Danbooru.config.stubs(:post_set_post_limit).returns(2)
         @set.update!(post_ids: [1, 2])
 
         @set.post_ids = [1, 2, 3]
@@ -87,7 +87,7 @@ class PostSetTest < ActiveSupport::TestCase
         p = create(:post)
         @set.update!(post_ids: [p.id])
 
-        added = @set.add_posts_sql!([p.id], user: @user)
+        added = @set.add_posts_sql!([p.id])
         assert_equal [], added
         assert_equal [p.id], @set.reload.post_ids
         assert_equal 1, @set.post_count

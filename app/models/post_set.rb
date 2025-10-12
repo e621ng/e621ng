@@ -177,7 +177,7 @@ class PostSet < ApplicationRecord
       creator_id == user.id
     end
 
-    def is_over_limit?(_user = nil)
+    def is_over_limit?
       post_count.to_i > max_posts + 100
     end
   end
@@ -185,16 +185,16 @@ class PostSet < ApplicationRecord
   module PostMethods
     # Returns the global max number of posts allowed in a set.
     def max_posts
-      Danbooru.config.set_post_limit(nil).to_i
+      Danbooru.config.post_set_post_limit.to_i
     end
 
     # Remaining capacity available before hitting the limit.
-    def capacity_for
+    def capacity
       max_posts - post_count.to_i
     end
 
     # SQL-based append that avoids reloading/saving the entire post_ids array.
-    def add_posts_sql!(ids, user: CurrentUser.user)
+    def add_posts_sql!(ids)
       ids = ids.map(&:to_i).uniq
 
       # Fast path for single id: one atomic UPDATE.
@@ -218,8 +218,8 @@ class PostSet < ApplicationRecord
       valid_ids = Post.where(id: ids).pluck(:id)
       return [] if valid_ids.empty?
 
-  capacity = capacity_for
-      return [] if capacity <= 0
+      current_capacity = capacity
+      return [] if current_capacity <= 0
 
       conn = PostSet.connection
       now = conn.quote(Time.zone.now)
@@ -231,7 +231,7 @@ class PostSet < ApplicationRecord
         FROM unnest(#{input_array_sql}) WITH ORDINALITY AS t(x, ord), post_sets ps
         WHERE ps.id = #{id} AND NOT (ps.post_ids @> ARRAY[x]::integer[])
         ORDER BY ord
-        LIMIT #{capacity.to_i}
+        LIMIT #{current_capacity.to_i}
       SQL
       added_ids = conn.select_values(delta_sql).map!(&:to_i)
       return [] if added_ids.empty?

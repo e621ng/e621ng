@@ -119,7 +119,7 @@ class PostSetsController < ApplicationController
     check_post_edit_access(@post_set)
     check_set_post_limit(@post_set)
     ids = add_remove_posts_params.map(&:to_i)
-    added = @post_set.add_posts_sql!(ids, user: CurrentUser.user)
+    added = @post_set.add_posts_sql!(ids)
     # posts#show (single id) should be synchronous; posts#index (bulk) can be async.
     if added.size <= 1
       @post_set.sync_posts_for_delta(added_ids: added)
