@@ -183,17 +183,39 @@ class PostSet < ApplicationRecord
   end
 
   module PostMethods
-    # Returns the global max number of posts allowed in a set.
-    def max_posts
-      Danbooru.config.post_set_post_limit.to_i
+    # ======================================== #
+    # ========== Add posts to a set ========== #
+    # ======================================== #
+
+    # Add specified post IDs.
+    # Delegates to SQL helper and performs synchronization for affected posts.
+    def add(ids)
+      ids = Array(ids)
+      added = add_posts_sql!(ids)
+      if added.size <= 1
+        sync_posts_for_delta(added_ids: added) if added.any?
+      else
+        PostSetPostsSyncJob.perform_later(id, added_ids: added)
+      end
+      added
     end
 
-    # Remaining capacity available before hitting the limit.
-    def capacity
-      max_posts - post_count.to_i
+    # Add a single post to the set.
+    def add!(post)
+      return if post.nil? || post.id.nil?
+      added = add_posts_sql!([post.id])
+      if added.empty?
+        # Surface capacity error similarly to validation path
+        if capacity <= 0 || is_over_limit?
+          max = max_posts
+          errors.add(:base, "Sets can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
+        end
+        return
+      end
+      sync_posts_for_delta(added_ids: added)
     end
 
-    # SQL-based append that avoids reloading/saving the entire post_ids array.
+    # Add specified post IDs to the set using SQL functions.
     def add_posts_sql!(ids)
       ids = ids.map(&:to_i).uniq
 
@@ -215,6 +237,7 @@ class PostSet < ApplicationRecord
         return updated.to_i > 0 ? [pid] : []
       end
 
+      # Slower path: multiple IDs to process
       valid_ids = Post.where(id: ids).pluck(:id)
       return [] if valid_ids.empty?
 
@@ -260,7 +283,32 @@ class PostSet < ApplicationRecord
       added_ids
     end
 
-    # SQL-based removal; returns the IDs that were actually removed.
+    # ======================================== #
+    # ====== Remove posts from the set ======= #
+    # ======================================== #
+
+    # Remove specified post IDs.
+    # Delegates to SQL helper and performs synchronization for affected posts.
+    def remove(ids)
+      ids = Array(ids)
+      removed = remove_posts_sql!(ids)
+      if removed.size <= 1
+        sync_posts_for_delta(removed_ids: removed) if removed.any?
+      else
+        PostSetPostsSyncJob.perform_later(id, removed_ids: removed)
+      end
+      removed
+    end
+
+    # Remove a single post from the set.
+    def remove!(post)
+      return if post.nil? || post.id.nil?
+      removed = remove_posts_sql!([post.id])
+      return if removed.empty?
+      sync_posts_for_delta(removed_ids: removed)
+    end
+
+    # Remove specified post IDs from the set using SQL functions.
     def remove_posts_sql!(ids)
       ids = ids.map(&:to_i).uniq
       return [] if ids.empty?
@@ -316,6 +364,10 @@ class PostSet < ApplicationRecord
       removed_ids
     end
 
+    # ======================================== #
+    # ========= Post Synchronization ========= #
+    # ======================================== #
+
     # Synchronize Post side for a known delta to avoid computing large diffs.
     def sync_posts_for_delta(added_ids: [], removed_ids: [])
       return if skip_sync == true
@@ -329,76 +381,6 @@ class PostSet < ApplicationRecord
         post.remove_set!(self)
         post.save
       end
-    end
-
-    def contains?(post_id)
-      post_ids.include?(post_id)
-    end
-
-    def page_number(post_id)
-      post_ids.find_index(post_id).to_i + 1
-    end
-
-    def add(ids)
-      real_ids = Post.select(:id).where(id: ids)
-      real_ids.each do |post|
-        next if contains?(post.id)
-        self.post_ids = post_ids + [post.id]
-      end
-    end
-
-    def add!(post)
-      return if post.nil?
-      return if post.id.nil?
-      return if contains?(post.id)
-
-      with_lock do
-        reload
-        self.skip_sync = true
-        update(post_ids: post_ids + [post.id])
-        raise(ActiveRecord::Rollback) unless valid?
-        post.add_set!(self, true)
-        post.save
-      end
-    end
-
-    def remove(ids)
-      self.post_ids = post_ids - ids
-    end
-
-    def remove!(post)
-      return unless contains?(post.id)
-
-      with_lock do
-        reload
-        self.skip_sync = true
-        update(post_ids: post_ids - [post.id])
-        raise(ActiveRecord::Rollback) unless valid?
-        post.remove_set!(self)
-        post.save
-      end
-    end
-
-    def first_post?(post_id)
-      post_id == post_ids.first
-    end
-
-    def last_post?(post_id)
-      post_id == post_ids.last
-    end
-
-    def previous_post_id(post_id)
-      return nil if first_post?(post_id) || !contains?(post_id)
-
-      n = post_ids.index(post_id) - 1
-      post_ids[n]
-    end
-
-    def next_post_id(post_id)
-      return nil if last_post?(post_id) || !contains?(post_id)
-
-      n = post_ids.index(post_id) + 1
-      post_ids[n]
     end
 
     def synchronize
@@ -423,6 +405,50 @@ class PostSet < ApplicationRecord
     def synchronize!
       synchronize
       save if will_save_change_to_post_ids?
+    end
+
+    # ======================================== #
+    # ============ Helper Methods ============ #
+    # ======================================== #
+
+    # Returns the global max number of posts allowed in a set.
+    def max_posts
+      Danbooru.config.post_set_post_limit.to_i
+    end
+
+    # Remaining capacity available before hitting the limit.
+    def capacity
+      max_posts - post_count.to_i
+    end
+
+    def contains?(post_id)
+      post_ids.include?(post_id)
+    end
+
+    def page_number(post_id)
+      post_ids.find_index(post_id).to_i + 1
+    end
+
+    def first_post?(post_id)
+      post_id == post_ids.first
+    end
+
+    def last_post?(post_id)
+      post_id == post_ids.last
+    end
+
+    def previous_post_id(post_id)
+      return nil if first_post?(post_id) || !contains?(post_id)
+
+      n = post_ids.index(post_id) - 1
+      post_ids[n]
+    end
+
+    def next_post_id(post_id)
+      return nil if last_post?(post_id) || !contains?(post_id)
+
+      n = post_ids.index(post_id) + 1
+      post_ids[n]
     end
 
     def normalize_post_ids

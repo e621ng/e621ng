@@ -85,8 +85,27 @@ class PostSetsController < ApplicationController
     if @post_set.is_over_limit?
       flash[:notice] = "This set contains too many posts and can no longer be edited"
     else
-      @post_set.update(update_posts_params)
-      flash[:notice] = @post_set.valid? ? "Set posts updated" : @post_set.errors.full_messages.join("; ")
+      # Parse desired target IDs from textarea
+      target_ids = update_posts_params[:post_ids_string].to_s.scan(/\d+/).map!(&:to_i).uniq
+      current_ids = @post_set.post_ids
+      add_ids = target_ids - current_ids
+      remove_ids = current_ids - target_ids
+
+      # Apply delta using SQL helpers
+      # Remove first to free capacity, then add.
+      actually_removed = remove_ids.empty? ? [] : @post_set.remove_posts_sql!(remove_ids)
+      actually_added   = add_ids.empty?    ? [] : @post_set.add_posts_sql!(add_ids)
+
+      # Sync posts inline for tiny changes, otherwise enqueue background sync
+      total_changes = actually_added.size + actually_removed.size
+      if total_changes <= 1
+        @post_set.sync_posts_for_delta(added_ids: actually_added, removed_ids: actually_removed)
+      else
+        PostSetPostsSyncJob.perform_later(@post_set.id, added_ids: actually_added, removed_ids: actually_removed)
+      end
+
+      @post_set.reload
+      flash[:notice] = "Set posts updated"
     end
 
     redirect_back(fallback_location: post_list_post_set_path(@post_set))
@@ -107,8 +126,8 @@ class PostSetsController < ApplicationController
     maintained = PostSet.active_maintainer(CurrentUser.user).order(:name)
 
     @for_select = {
-        "Owned" => owned.map {|x| [x.name.tr("_", " ").truncate(35), x.id]},
-        "Maintained" => maintained.map {|x| [x.name.tr("_", " ").truncate(35), x.id]}
+      "Owned" => owned.map {|x| [x.name.tr("_", " ").truncate(35), x.id]},
+      "Maintained" => maintained.map { |x| [x.name.tr("_", " ").truncate(35), x.id] },
     }
 
     render json: @for_select
@@ -118,15 +137,11 @@ class PostSetsController < ApplicationController
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
     check_set_post_limit(@post_set)
+
     ids = add_remove_posts_params.map(&:to_i)
-    added = @post_set.add_posts_sql!(ids)
-    # posts#show (single id) should be synchronous; posts#index (bulk) can be async.
-    if added.size <= 1
-      @post_set.sync_posts_for_delta(added_ids: added)
-    else
-      PostSetPostsSyncJob.perform_later(@post_set.id, added_ids: added)
-    end
+    @post_set.add(ids)
     @post_set.reload
+
     respond_with(@post_set)
   end
 
@@ -134,15 +149,11 @@ class PostSetsController < ApplicationController
     @post_set = PostSet.find(params[:id])
     check_post_edit_access(@post_set)
     check_set_post_limit(@post_set)
+
     ids = add_remove_posts_params.map(&:to_i)
-    removed = @post_set.remove_posts_sql!(ids)
-    # Single removal inline; bulk async.
-    if removed.size <= 1
-      @post_set.sync_posts_for_delta(removed_ids: removed)
-    else
-      PostSetPostsSyncJob.perform_later(@post_set.id, removed_ids: removed)
-    end
+    @post_set.remove(ids)
     @post_set.reload
+
     respond_with(@post_set)
   end
 
