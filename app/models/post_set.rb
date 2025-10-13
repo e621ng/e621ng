@@ -33,12 +33,16 @@ class PostSet < ApplicationRecord
   validate :set_per_hour_limit, on: :create
   validate :can_create_new_set_limit, on: :create
 
+  before_save :update_post_count
   after_update :send_maintainer_public_dmails
   before_destroy :send_maintainer_destroy_dmails
-  before_save :update_post_count
-  after_save :synchronize, if: :saved_change_to_post_ids?
 
-  attr_accessor :skip_sync
+  # Only synchronize if post_ids were updated manually, not via the SQL helpers.
+  after_save :synchronize, if: :synchronize_after_save?
+  after_save :reset_manual_post_ids_write
+
+  # manual_post_ids_write: set to true when post_ids is changed via the attribute writer
+  attr_accessor :manual_post_ids_write
 
   def self.name_to_id(name)
     if name =~ /\A\d+\z/
@@ -183,6 +187,12 @@ class PostSet < ApplicationRecord
   end
 
   module PostMethods
+    # Track manual changes to post_ids via the attribute writer so we can decide
+    # whether to run after_save synchronization.
+    def post_ids=(value)
+      self.manual_post_ids_write = true
+      super
+    end
     # ======================================== #
     # ========== Add posts to a set ========== #
     # ======================================== #
@@ -370,8 +380,6 @@ class PostSet < ApplicationRecord
 
     # Synchronize Post side for a known delta to avoid computing large diffs.
     def sync_posts_for_delta(added_ids: [], removed_ids: [])
-      return if skip_sync == true
-
       Post.where(id: added_ids).find_each do |post|
         post.add_set!(self, true)
         post.save
@@ -384,7 +392,6 @@ class PostSet < ApplicationRecord
     end
 
     def synchronize
-      return if skip_sync == true
       post_ids_before = post_ids_before_last_save || post_ids_was
       added = post_ids - post_ids_before
       removed = post_ids_before - post_ids
@@ -405,6 +412,16 @@ class PostSet < ApplicationRecord
     def synchronize!
       synchronize
       save if will_save_change_to_post_ids?
+    end
+
+    # Only run after_save synchronization if post_ids changed and it was changed via the attribute writer.
+    # SQL helpers don't use the writer and won't set this flag.
+    def synchronize_after_save?
+      saved_change_to_post_ids? && manual_post_ids_write == true
+    end
+
+    def reset_manual_post_ids_write
+      self.manual_post_ids_write = false
     end
 
     # ======================================== #
@@ -452,7 +469,8 @@ class PostSet < ApplicationRecord
     end
 
     def normalize_post_ids
-      self.post_ids = post_ids.uniq
+      # Bypass the attribute writer to avoid marking this as a manual change.
+      self[:post_ids] = post_ids.uniq
     end
 
     def update_post_count

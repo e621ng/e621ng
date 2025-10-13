@@ -106,5 +106,24 @@ class PostSetTest < ActiveSupport::TestCase
         assert_equal 1, @set.post_count
       end
     end
+
+    should "trigger synchronize after save when post_ids are changed via writer" do
+      as(@user) do
+        p = create(:post)
+        @set.expects(:synchronize).once
+        @set.update!(post_ids: [p.id])
+      end
+    end
+
+    should "not trigger synchronize when using SQL helpers to modify membership" do
+      as(@user) do
+        p = create(:post)
+        @set.expects(:synchronize).never
+        added = @set.add_posts_sql!([p.id])
+        assert_equal [p.id], added
+        # Ensure DB state changed without invoking after_save callback
+        assert_includes PostSet.find(@set.id).post_ids, p.id
+      end
+    end
   end
 end
