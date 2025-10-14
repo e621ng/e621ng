@@ -23,4 +23,8 @@ class Setting < RailsSettings::Base
   scope :tos do
     field :tos_version, type: :numeric, default: 1, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
   end
+
+  scope :maintenance do
+    field :disable_exception_prune, type: :boolean, default: true
+  end
 end
