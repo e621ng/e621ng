@@ -1,3 +1,30 @@
-#active {
-  margin-left: 2em;
+#c-help aside#sidebar {
+
+  h1 {
+    margin-bottom: 0.25rem;
+  }
+
+  ul.link-page {
+    display: flex;
+    flex-flow: column;
+    list-style: circle;
+
+    li {
+      font-size: 0.85rem;
+      line-height: 1rem;
+      margin-left: 0.75rem;
+
+      a {
+        width: 100%;
+        display: flex;
+        padding: 0.125rem 0;
+      }
+
+      &.active {
+        font-weight: bold;
+        list-style: initial;
+        padding: 0.125rem 0;
+      }
+    }
+  }
 }
