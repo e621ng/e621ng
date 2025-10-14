@@ -3,7 +3,7 @@
 class SearchFormBuilder < SimpleForm::FormBuilder
   def input(attribute_name, options = {}, &)
     value = value_for_attribute(attribute_name, options)
-    return "".html_safe if value.nil? && options[:hide_unless_value]
+    return "".html_safe if value.nil? && options[:hide_unless_value] && !CurrentUser.user.is_staff?
     options = insert_autocomplete(options)
     options = insert_value(value, options)
     super
