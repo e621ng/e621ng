@@ -188,9 +188,8 @@ class PostSet < ApplicationRecord
     end
   end
 
-  module PostMethods
-    # Track manual changes to post_ids via the attribute writer so we can decide
-    # whether to run after_save synchronization.
+  module WriteMethods
+    # Track manual changes to post_ids to decide whether to run after_save synchronization.
     def post_ids=(value)
       self.manual_post_ids_write = true
       super
@@ -203,7 +202,7 @@ class PostSet < ApplicationRecord
     # Delegates to SQL helper and performs synchronization for affected posts.
     def add(ids)
       ids = Array(ids)
-      added = add_posts_sql!(ids)
+      added = process_posts_add!(ids)
       if added.size <= 1
         sync_posts_for_delta(added_ids: added) if added.any?
       else
@@ -215,7 +214,7 @@ class PostSet < ApplicationRecord
     # Add a single post to the set.
     def add!(post)
       return if post.nil? || post.id.nil?
-      added = add_posts_sql!([post.id])
+      added = process_posts_add!([post.id])
       if added.empty?
         # Surface capacity error similarly to validation path
         if capacity <= 0 || is_over_limit?
@@ -230,7 +229,8 @@ class PostSet < ApplicationRecord
     end
 
     # Add specified post IDs to the set using SQL functions.
-    def add_posts_sql!(ids)
+    # Does not perform any synchronization; caller is responsible for that.
+    def process_posts_add!(ids)
       ids = ids.map(&:to_i).uniq
 
       # Fast path for single id: one atomic UPDATE.
@@ -305,7 +305,7 @@ class PostSet < ApplicationRecord
     # Delegates to SQL helper and performs synchronization for affected posts.
     def remove(ids)
       ids = Array(ids)
-      removed = remove_posts_sql!(ids)
+      removed = process_posts_remove!(ids)
       if removed.size <= 1
         sync_posts_for_delta(removed_ids: removed) if removed.any?
       else
@@ -317,7 +317,7 @@ class PostSet < ApplicationRecord
     # Remove a single post from the set.
     def remove!(post)
       return if post.nil? || post.id.nil?
-      removed = remove_posts_sql!([post.id])
+      removed = process_posts_remove!([post.id])
       return if removed.empty?
 
       post.remove_set!(self)
@@ -325,7 +325,8 @@ class PostSet < ApplicationRecord
     end
 
     # Remove specified post IDs from the set using SQL functions.
-    def remove_posts_sql!(ids)
+    # Does not perform any synchronization; caller is responsible for that.
+    def process_posts_remove!(ids)
       ids = ids.map(&:to_i).uniq
       return [] if ids.empty?
 
@@ -420,6 +421,8 @@ class PostSet < ApplicationRecord
       save if will_save_change_to_post_ids?
     end
 
+    private
+
     # Only run after_save synchronization if post_ids changed and it was changed via the attribute writer.
     # SQL helpers don't use the writer and won't set this flag.
     def synchronize_after_save?
@@ -433,11 +436,9 @@ class PostSet < ApplicationRecord
     def enqueue_destroy_cleanup
       PostSetCleanupJob.perform_later(id)
     end
+  end
 
-    # ======================================== #
-    # ============ Helper Methods ============ #
-    # ======================================== #
-
+  module PostMethods
     # Returns the global max number of posts allowed in a set.
     def max_posts
       Danbooru.config.post_set_post_limit.to_i
@@ -541,5 +542,6 @@ class PostSet < ApplicationRecord
   extend SearchMethods
   include ValidationMethods
   include AccessMethods
+  include WriteMethods
   include PostMethods
 end

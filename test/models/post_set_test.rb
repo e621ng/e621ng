@@ -87,7 +87,7 @@ class PostSetTest < ActiveSupport::TestCase
         p = create(:post)
         @set.update!(post_ids: [p.id])
 
-        added = @set.add_posts_sql!([p.id])
+        added = @set.process_posts_add!([p.id])
         assert_equal [], added
         assert_equal [p.id], @set.reload.post_ids
         assert_equal 1, @set.post_count
@@ -100,7 +100,7 @@ class PostSetTest < ActiveSupport::TestCase
         missing = create(:post)
         @set.update!(post_ids: [existing.id])
 
-        removed = @set.remove_posts_sql!([missing.id])
+        removed = @set.process_posts_remove!([missing.id])
         assert_equal [], removed
         assert_equal [existing.id], @set.reload.post_ids
         assert_equal 1, @set.post_count
@@ -119,7 +119,7 @@ class PostSetTest < ActiveSupport::TestCase
       as(@user) do
         p = create(:post)
         @set.expects(:synchronize).never
-        added = @set.add_posts_sql!([p.id])
+        added = @set.process_posts_add!([p.id])
         assert_equal [p.id], added
         # Ensure DB state changed without invoking after_save callback
         assert_includes PostSet.find(@set.id).post_ids, p.id

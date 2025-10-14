@@ -93,8 +93,8 @@ class PostSetsController < ApplicationController
 
       # Apply delta using SQL helpers
       # Remove first to free capacity, then add.
-      actually_removed = remove_ids.empty? ? [] : @post_set.remove_posts_sql!(remove_ids)
-      actually_added   = add_ids.empty?    ? [] : @post_set.add_posts_sql!(add_ids)
+      actually_removed = remove_ids.empty? ? [] : @post_set.process_posts_remove!(remove_ids)
+      actually_added   = add_ids.empty?    ? [] : @post_set.process_posts_add!(add_ids)
 
       # Sync posts inline for tiny changes, otherwise enqueue background sync
       total_changes = actually_added.size + actually_removed.size
