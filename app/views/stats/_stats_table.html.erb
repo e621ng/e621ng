@@ -10,7 +10,7 @@
       <tr>
         <td
           <% if data_title_attrib.present? %>
-          title="<%= "#{data_title_attrib}" %>"
+          title="<%= data_title_attrib %>"
           <% end %>
           ><%= data_title %></td>
         <td><%= del(@stats[data_or_stats_key]) || data_or_stats_key %></td>
