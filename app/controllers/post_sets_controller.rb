@@ -6,13 +6,13 @@ class PostSetsController < ApplicationController
   before_action :ensure_lockdown_disabled, except: %i[index show]
 
   def index
-    if !params[:post_id].blank?
+    if params[:post_id].present?
       if CurrentUser.is_moderator?
         @post_sets = PostSet.where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       else
         @post_sets = PostSet.visible(CurrentUser.user).where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       end
-    elsif !params[:maintainer_id].blank?
+    elsif params[:maintainer_id].present?
       if CurrentUser.is_moderator?
         @post_sets = PostSet.where_has_maintainer(params[:maintainer_id].to_i).paginate(params[:page], limit: 50)
       else
@@ -25,21 +25,15 @@ class PostSetsController < ApplicationController
     respond_with(@post_sets)
   end
 
-  def new
-    @post_set = PostSet.new
-  end
-
-  def create
-    @post_set = PostSet.create(set_params)
-    flash[:notice] = @post_set.valid? ? 'Set created' : @post_set.errors.full_messages.join('; ')
-    respond_with(@post_set)
-  end
-
   def show
     @post_set = PostSet.find(params[:id])
     check_view_access(@post_set)
 
     respond_with(@post_set)
+  end
+
+  def new
+    @post_set = PostSet.new
   end
 
   def edit
@@ -48,11 +42,17 @@ class PostSetsController < ApplicationController
     respond_with(@post_set)
   end
 
+  def create
+    @post_set = PostSet.create(set_params)
+    flash[:notice] = @post_set.valid? ? "Set created" : @post_set.errors.full_messages.join("; ")
+    respond_with(@post_set)
+  end
+
   def update
     @post_set = PostSet.find(params[:id])
     check_settings_edit_access(@post_set)
     @post_set.update(set_params)
-    flash[:notice] = @post_set.valid? ? 'Set updated' : @post_set.errors.full_messages.join('; ')
+    flash[:notice] = @post_set.valid? ? "Set updated" : @post_set.errors.full_messages.join("; ")
 
     unless @post_set.is_owner?(CurrentUser.user)
       if @post_set.saved_change_to_is_public?
@@ -117,7 +117,7 @@ class PostSetsController < ApplicationController
     @post_set = PostSet.find(params[:id])
     check_settings_edit_access(@post_set)
     if @post_set.creator != CurrentUser.user
-      ModAction.log(:set_delete, {set_id: @post_set.id, user_id: @post_set.creator_id})
+      ModAction.log(:set_delete, { set_id: @post_set.id, user_id: @post_set.creator_id })
     end
     @post_set.destroy
     respond_with(@post_set)
@@ -128,7 +128,7 @@ class PostSetsController < ApplicationController
     maintained = PostSet.active_maintainer(CurrentUser.user).order(:name)
 
     @for_select = {
-      "Owned" => owned.map {|x| [x.name.tr("_", " ").truncate(35), x.id]},
+      "Owned" => owned.map { |x| [x.name.tr("_", " ").truncate(35), x.id] },
       "Maintained" => maintained.map { |x| [x.name.tr("_", " ").truncate(35), x.id] },
     }
 

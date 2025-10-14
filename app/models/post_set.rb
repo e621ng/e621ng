@@ -5,16 +5,19 @@ class PostSet < ApplicationRecord
 
   has_many :post_set_maintainers, dependent: :destroy do
     def in_cooldown(user)
-      where(creator_id: user.id, status: 'cooldown').where('created_at < ?', 24.hours.ago)
+      where(creator_id: user.id, status: "cooldown").where("created_at < ?", 24.hours.ago)
     end
+
     def active
-      where(status: 'approved')
+      where(status: "approved")
     end
+
     def pending
-      where(status: 'pending')
+      where(status: "pending")
     end
+
     def banned
-      where(status: 'banned')
+      where(status: "banned")
     end
   end
   has_many :maintainers, class_name: "User", through: :post_set_maintainers, source: :user
@@ -24,7 +27,7 @@ class PostSet < ApplicationRecord
   before_validation :normalize_shortname
   validates :name, length: { in: 3..100, message: "must be between three and one hundred characters long" }
   validates :name, :shortname, uniqueness: { case_sensitive: false, message: "is already taken" }, if: :if_names_changed?
-  validates :shortname, length: { in: 3..50, message: 'must be between three and fifty characters long' }
+  validates :shortname, length: { in: 3..50, message: "must be between three and fifty characters long" }
   validates :shortname, format: { with: /\A[\w]+\z/, message: "must only contain numbers, lowercase letters, and underscores" }
   validates :shortname, format: { with: /\A\d*[a-z_][\w]*\z/, message: "must contain at least one lowercase letter or underscore" }
   validates :description, length: { maximum: Danbooru.config.pool_descr_max_size }
@@ -55,17 +58,17 @@ class PostSet < ApplicationRecord
   end
 
   def self.visible(user = CurrentUser.user)
-    return where('is_public = true') if user.nil?
+    return where("is_public = true") if user.nil?
     return all if user.is_moderator?
-    where('is_public = true OR creator_id = ?', user.id)
+    where("is_public = true OR creator_id = ?", user.id)
   end
 
   def self.owned(user = CurrentUser.user)
-    where('creator_id = ?', user.id)
+    where("creator_id = ?", user.id)
   end
 
   def self.active_maintainer(user = CurrentUser.user)
-    joins(:post_set_maintainers).where(post_set_maintainers: {status: 'approved', user_id: user.id})
+    joins(:post_set_maintainers).where(post_set_maintainers: { status: "approved", user_id: user.id })
   end
 
   def if_names_changed?
@@ -79,7 +82,7 @@ class PostSet < ApplicationRecord
   module ValidationMethods
     def normalize_shortname
       if shortname_changed?
-        self.shortname.downcase!
+        shortname.downcase!
       end
     end
 
@@ -89,7 +92,7 @@ class PostSet < ApplicationRecord
       end
       if is_public_changed? && !is_public # If set was made private
         RateLimiter.hit("set.public.#{id}", 24.hours)
-        PostSetMaintainer.active.where(post_set_id: id).each do |maintainer|
+        PostSetMaintainer.active.where(post_set_id: id).find_each do |maintainer|
           Dmail.create_automated(to_id: maintainer.user_id, title: "A set you maintain was made private",
                                  body: "The set \"#{name}\":#{post_set_path(self)} by \"#{creator.name}\":#{user_path(creator)} that you maintain was set to private. You will not be able to view, add posts, or remove posts from the set until the owner makes it public again.")
         end
@@ -97,7 +100,7 @@ class PostSet < ApplicationRecord
         PostSetMaintainer.pending.where(post_set_id: id).delete
       elsif is_public_changed? && is_public # If set was made public
         RateLimiter.hit("set.public.#{id}", 24.hours)
-        PostSetMaintainer.active.where(post_set_id: id).each do |maintainer|
+        PostSetMaintainer.active.where(post_set_id: id).find_each do |maintainer|
           Dmail.create_automated(to_id: maintainer.user_id, titlet: "A private set you had maintained was made public again",
                                  body: "The set \"#{name}\":#{post_set_path(self)} by \"#{creaator.name}\":#{user_path(creator)} that you previously maintained was made public again. You are now able to view the set and add/remove posts.")
         end
@@ -105,7 +108,7 @@ class PostSet < ApplicationRecord
     end
 
     def send_maintainer_destroy_dmails
-      PostSetMaintainer.active.where(post_set_id: id).each do |maintainer|
+      PostSetMaintainer.active.where(post_set_id: id).find_each do |maintainer|
         Dmail.create_automated(to_id: maintainer.user_id,
                                title: "A set you maintain was deleted",
                                body: "The set #{name} by \"#{creator.name}\":#{user_path(creator)} that you maintain was deleted.")
@@ -122,7 +125,7 @@ class PostSet < ApplicationRecord
     end
 
     def can_create_new_set_limit
-      if PostSet.where(creator_id: creator.id).count() >= 75
+      if PostSet.where(creator_id: creator.id).count >= 75
         errors.add(:base, "You can only create 75 sets.")
         return false
       end
@@ -130,7 +133,7 @@ class PostSet < ApplicationRecord
     end
 
     def set_per_hour_limit
-      if PostSet.where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).count() > 6 && !creator.is_janitor?
+      if PostSet.where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).count > 6 && !creator.is_janitor?
         errors.add(:base, "You have already created 6 sets in the last hour.")
         false
       else
@@ -141,7 +144,7 @@ class PostSet < ApplicationRecord
     def validate_number_of_posts
       post_ids_before = post_ids_before_last_save || post_ids_was
       added = post_ids - post_ids_before
-      return unless added.size > 0
+      return if added.empty?
       max = max_posts
       if post_ids.size > max
         errors.add(:base, "Sets can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
@@ -167,15 +170,15 @@ class PostSet < ApplicationRecord
 
     def is_maintainer?(user)
       return false if user.is_blocked?
-      post_set_maintainers.where(user_id: user.id, status: 'approved').count() > 0
+      post_set_maintainers.where(user_id: user.id, status: "approved").count > 0
     end
 
     def is_invited?(user)
-      post_set_maintainers.where(user_id: user.id, status: 'pending').count() > 0
+      post_set_maintainers.where(user_id: user.id, status: "pending").count > 0
     end
 
     def is_blocked?(user)
-      post_set_maintainers.where(user_id: user.id, status: 'blocked').count() > 0
+      post_set_maintainers.where(user_id: user.id, status: "blocked").count > 0
     end
 
     def is_owner?(user)
@@ -508,11 +511,11 @@ class PostSet < ApplicationRecord
     end
 
     def where_has_post(post_id)
-      where('post_ids @> ARRAY[?]::integer[]', post_id)
+      where("post_ids @> ARRAY[?]::integer[]", post_id)
     end
 
     def where_has_maintainer(user_id)
-      joins(:maintainers).where('(post_set_maintainers.user_id = ? AND post_set_maintainers.status = ?) OR creator_id = ?', user_id, 'approved', user_id)
+      joins(:maintainers).where("(post_set_maintainers.user_id = ? AND post_set_maintainers.status = ?) OR creator_id = ?", user_id, "approved", user_id)
     end
 
     def search(params)
@@ -531,15 +534,15 @@ class PostSet < ApplicationRecord
       end
 
       case params[:order]
-      when 'name'
+      when "name"
         q = q.order(:name, id: :desc)
-      when 'shortname'
+      when "shortname"
         q = q.order(:shortname, id: :desc)
-      when 'postcount', 'post_count'
+      when "postcount", "post_count"
         q = q.order(post_count: :desc, id: :desc)
-      when 'created_at'
+      when "created_at"
         q = q.order(:id)
-      when 'update', 'updated_at'
+      when "update", "updated_at"
         q = q.order(updated_at: :desc)
       else
         q = q.order(id: :desc)
