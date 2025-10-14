@@ -18,10 +18,10 @@ module Maintenance
     ignoring_exceptions { DiscordReport::AiburStats.new.run! }
   end
 
-  def ignoring_exceptions
+  def ignoring_exceptions(&)
     ActiveRecord::Base.connection.execute("set statement_timeout = 0")
     yield
-  rescue StandardError => exception
-    DanbooruLogger.log(exception)
+  rescue StandardError => e
+    DanbooruLogger.log(e)
   end
 end
