@@ -251,50 +251,52 @@ class PostSet < ApplicationRecord
         return updated.to_i > 0 ? [pid] : []
       end
 
-      # Slower path: multiple IDs to process
+      # Slower path: multiple IDs to process atomically and return the actual added ids.
       valid_ids = Post.where(id: ids).pluck(:id)
       return [] if valid_ids.empty?
 
-      current_capacity = capacity
-      return [] if current_capacity <= 0
-
       conn = PostSet.connection
       now = conn.quote(Time.zone.now)
-      input_array_sql = "ARRAY[#{valid_ids.join(',')}]"
-
-      # 1) Compute the delta once, filtered against current post_ids and limited by capacity.
-      delta_sql = <<~SQL.squish
-        SELECT x
-        FROM unnest(#{input_array_sql}) WITH ORDINALITY AS t(x, ord), post_sets ps
-        WHERE ps.id = #{id} AND NOT (ps.post_ids @> ARRAY[x]::integer[])
-        ORDER BY ord
-        LIMIT #{current_capacity.to_i}
-      SQL
-      added_ids = conn.select_values(delta_sql).map!(&:to_i)
-      return [] if added_ids.empty?
-
-      # 2) Single UPDATE to append all addable ids and adjust count.
-      update_sql = <<~SQL.squish
-        WITH new_ids AS (
-          SELECT ps.id,
-                 ps.post_ids || COALESCE((
-                   SELECT ARRAY_AGG(x)
-                   FROM UNNEST(ARRAY[#{added_ids.join(',')}]) AS x
-                   WHERE NOT (ps.post_ids @> ARRAY[x]::integer[])
-                 ), '{}') AS arr
+      max = max_posts.to_i
+      sql = <<~SQL.squish
+        WITH input AS (
+          SELECT id, ord
+          FROM unnest($1::int[]) WITH ORDINALITY AS t(id, ord)
+        ),
+        curr AS (
+          SELECT ps.id, ps.post_ids, COALESCE(array_length(ps.post_ids, 1), 0) AS cnt
           FROM post_sets ps
           WHERE ps.id = #{id}
+          FOR UPDATE
+        ),
+        delta AS (
+          SELECT i.id
+          FROM input i, curr c
+          WHERE NOT (c.post_ids @> ARRAY[i.id]::integer[])
+          ORDER BY i.ord
+          LIMIT GREATEST(0, #{max} - (SELECT cnt FROM curr))
+        ),
+        new_ids AS (
+          SELECT c.id,
+                 c.post_ids || COALESCE((SELECT array_agg(d.id) FROM delta d), '{}') AS arr
+          FROM curr c
+        ),
+        upd AS (
+          UPDATE post_sets ps
+          SET post_ids = n.arr,
+              post_count = COALESCE(array_length(n.arr, 1), 0),
+              updated_at = #{now}
+          FROM new_ids n
+          WHERE ps.id = n.id AND EXISTS (SELECT 1 FROM delta)
+          RETURNING 1
         )
-        UPDATE post_sets ps
-        SET post_ids = new_ids.arr,
-            post_count = COALESCE(array_length(new_ids.arr, 1), 0),
-            updated_at = #{now}
-        FROM new_ids
-        WHERE ps.id = new_ids.id
+        SELECT d.id FROM delta d
       SQL
-      conn.execute(update_sql)
 
-      added_ids
+      # Parameterized execution: pass valid_ids as a single int[] bind.
+      pg_array_literal = "{#{valid_ids.join(',')}}"
+      result = conn.raw_connection.exec_params(sql, [pg_array_literal])
+      result.column_values(0).map!(&:to_i)
     end
 
     # ======================================== #
@@ -344,41 +346,49 @@ class PostSet < ApplicationRecord
         return updated.to_i > 0 ? [pid] : []
       end
 
+      # Slower path: multiple IDs to process atomically and return the actual removed ids.
       conn = PostSet.connection
       now = conn.quote(Time.zone.now)
-      input_array_sql = "ARRAY[#{ids.join(',')}]"
-
-      # 1) Determine which of the requested ids actually exist in the set.
-      removed_sql = <<~SQL.squish
-        SELECT x
-        FROM unnest(#{input_array_sql}) AS x, post_sets ps
-        WHERE ps.id = #{id} AND ps.post_ids @> ARRAY[x]::integer[]
-      SQL
-      removed_ids = conn.select_values(removed_sql).map!(&:to_i)
-      return [] if removed_ids.empty?
-
-      # 2) Single UPDATE to remove all and adjust count while preserving order.
-      update_sql = <<~SQL.squish
-        WITH new_ids AS (
-          SELECT ps.id,
-                 COALESCE((
-                   SELECT array_agg(val ORDER BY ord)
-                   FROM unnest(ps.post_ids) WITH ORDINALITY AS t(val, ord)
-                   WHERE NOT (val = ANY(ARRAY[#{removed_ids.join(',')}]))
-                 ), '{}') AS arr
+      sql = <<~SQL.squish
+        WITH input AS (
+          SELECT id FROM unnest($1::int[]) AS t(id)
+        ),
+        curr AS (
+          SELECT ps.id, ps.post_ids
           FROM post_sets ps
           WHERE ps.id = #{id}
+          FOR UPDATE
+        ),
+        delta AS (
+          SELECT i.id
+          FROM input i, curr c
+          WHERE c.post_ids @> ARRAY[i.id]::integer[]
+        ),
+        new_ids AS (
+          SELECT c.id,
+                 COALESCE((
+                   SELECT array_agg(val ORDER BY ord)
+                   FROM unnest(c.post_ids) WITH ORDINALITY AS t(val, ord)
+                   WHERE NOT (val = ANY (SELECT id FROM delta))
+                 ), '{}') AS arr
+          FROM curr c
+        ),
+        upd AS (
+          UPDATE post_sets ps
+          SET post_ids = n.arr,
+              post_count = COALESCE(array_length(n.arr, 1), 0),
+              updated_at = #{now}
+          FROM new_ids n
+          WHERE ps.id = n.id AND EXISTS (SELECT 1 FROM delta)
+          RETURNING 1
         )
-        UPDATE post_sets ps
-        SET post_ids = new_ids.arr,
-            post_count = COALESCE(array_length(new_ids.arr, 1), 0),
-            updated_at = #{now}
-        FROM new_ids
-        WHERE ps.id = new_ids.id
+        SELECT d.id FROM delta d
       SQL
-      conn.execute(update_sql)
 
-      removed_ids
+      # Parameterized execution: pass ids as a single int[] bind.
+      pg_array_literal = "{#{ids.join(',')}}"
+      result = conn.raw_connection.exec_params(sql, [pg_array_literal])
+      result.column_values(0).map!(&:to_i)
     end
 
     # ======================================== #
