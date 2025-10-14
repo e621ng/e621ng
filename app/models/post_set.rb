@@ -41,6 +41,8 @@ class PostSet < ApplicationRecord
   after_save :synchronize, if: :synchronize_after_save?
   after_save :reset_manual_post_ids_write
 
+  after_commit :enqueue_destroy_cleanup, on: :destroy
+
   # manual_post_ids_write: set to true when post_ids is changed via the attribute writer
   attr_accessor :manual_post_ids_write
 
@@ -222,7 +224,9 @@ class PostSet < ApplicationRecord
         end
         return
       end
-      sync_posts_for_delta(added_ids: added)
+
+      post.add_set!(self, true)
+      post.save
     end
 
     # Add specified post IDs to the set using SQL functions.
@@ -315,7 +319,9 @@ class PostSet < ApplicationRecord
       return if post.nil? || post.id.nil?
       removed = remove_posts_sql!([post.id])
       return if removed.empty?
-      sync_posts_for_delta(removed_ids: removed)
+
+      post.remove_set!(self)
+      post.save
     end
 
     # Remove specified post IDs from the set using SQL functions.
@@ -422,6 +428,10 @@ class PostSet < ApplicationRecord
 
     def reset_manual_post_ids_write
       self.manual_post_ids_write = false
+    end
+
+    def enqueue_destroy_cleanup
+      PostSetCleanupJob.perform_later(id)
     end
 
     # ======================================== #

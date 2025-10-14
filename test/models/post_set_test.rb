@@ -125,5 +125,31 @@ class PostSetTest < ActiveSupport::TestCase
         assert_includes PostSet.find(@set.id).post_ids, p.id
       end
     end
+
+    should "enqueue and cleanup posts after set destroy asynchronously" do
+      as(@user) do
+        p1 = create(:post)
+        p2 = create(:post)
+        # Add one-by-one to trigger inline sync for single changes
+        @set.add([p1.id])
+        @set.add([p2.id])
+        # Ensure posts are tagged with the set
+        [p1, p2].each do |p|
+          p.reload
+          assert p.belongs_to_post_set(@set)
+        end
+
+        # Expect cleanup job enqueued on destroy
+        PostSetCleanupJob.expects(:perform_later).with(@set.id).once
+        @set.destroy
+
+        # Simulate job execution inline to verify effect
+        PostSetCleanupJob.new.perform(@set.id)
+        [p1, p2].each do |p|
+          p.reload
+          assert_not p.belongs_to_post_set(@set)
+        end
+      end
+    end
   end
 end
