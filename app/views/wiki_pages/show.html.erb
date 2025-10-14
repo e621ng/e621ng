@@ -28,7 +28,7 @@
         <% end %>
 
         <% if wiki_content.artist %>
-          <p><%= link_to "View artist", wiki_content.artist %></p>
+          <p><%= link_to "View artist", show_or_new_artists_path(name: wiki_content.artist.name) %></p>
         <% end %>
 
         <%= wiki_page_alias_and_implication_list(wiki_content) %>
