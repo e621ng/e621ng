@@ -7,7 +7,7 @@
       <% if [params[:name], help&.name].include?(page.name) %>
         <li class="active"><%= page.pretty_title %></li>
       <% else %>
-        <li><%= link_to "#{page.pretty_title}", help_page_path(id: page.name) %></li>
+        <li><%= link_to page.pretty_title, help_page_path(id: page.name) %></li>
       <% end %>
     <% end %>
   </ul>
