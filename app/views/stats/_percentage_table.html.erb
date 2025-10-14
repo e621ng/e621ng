@@ -7,9 +7,12 @@
     </tr>
   </thead>
   <tbody>
-    <% data.each do |(data_title, data_or_stats_key, data_total_key)| %>
-      <tr>
-        <td><%= data_title %></td>
+    <% data.each do |(data_title, data_or_stats_key, data_total_key, data_title_attrib)| %>
+      <tr><td
+          <% if data_title_attrib.present? %>
+          title="<%= "#{data_title_attrib}" %>"
+          <% end %>
+          ><%= data_title %></td>
         <td><%= del(@stats[data_or_stats_key]) || data_or_stats_key %></td>
         <% if data_total_key %>
           <td class="stats-pct">
