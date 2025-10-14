@@ -140,11 +140,11 @@ class PostSetTest < ActiveSupport::TestCase
         end
 
         # Expect cleanup job enqueued on destroy
-        PostSetCleanupJob.expects(:perform_later).with(@set.id).once
+        PostSetCleanupJob.expects(:perform_later).with(:set, @set.id).once
         @set.destroy
 
         # Simulate job execution inline to verify effect
-        PostSetCleanupJob.new.perform(@set.id)
+        PostSetCleanupJob.new.perform(:set, @set.id)
         [p1, p2].each do |p|
           p.reload
           assert_not p.belongs_to_post_set(@set)

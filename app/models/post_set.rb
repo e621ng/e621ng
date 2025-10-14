@@ -447,7 +447,7 @@ class PostSet < ApplicationRecord
     end
 
     def enqueue_destroy_cleanup
-      PostSetCleanupJob.perform_later(id)
+      PostSetCleanupJob.perform_later(:set, id)
     end
   end
 

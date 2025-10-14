@@ -22,9 +22,9 @@ class Pool < ApplicationRecord
   before_validation :normalize_post_ids
   before_validation :normalize_name
   after_create :synchronize!
-  before_destroy :remove_all_posts
   after_save :create_version
   after_save :synchronize, if: :saved_change_to_post_ids?
+  after_commit :enqueue_destroy_cleanup, on: :destroy
 
   attr_accessor :skip_sync
 
@@ -280,15 +280,8 @@ class Pool < ApplicationRecord
     save if will_save_change_to_post_ids?
   end
 
-  def remove_all_posts
-    with_lock do
-      transaction do
-        Post.where(id: post_ids).find_each do |post|
-          post.remove_pool!(self)
-          post.save
-        end
-      end
-    end
+  def enqueue_destroy_cleanup
+    PostSetCleanupJob.perform_later(:pool, id)
   end
 
   def post_count
