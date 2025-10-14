@@ -101,8 +101,8 @@ class PostSet < ApplicationRecord
       elsif is_public_changed? && is_public # If set was made public
         RateLimiter.hit("set.public.#{id}", 24.hours)
         PostSetMaintainer.active.where(post_set_id: id).find_each do |maintainer|
-          Dmail.create_automated(to_id: maintainer.user_id, titlet: "A private set you had maintained was made public again",
-                                 body: "The set \"#{name}\":#{post_set_path(self)} by \"#{creaator.name}\":#{user_path(creator)} that you previously maintained was made public again. You are now able to view the set and add/remove posts.")
+          Dmail.create_automated(to_id: maintainer.user_id, title: "A private set you had maintained was made public again",
+                                 body: "The set \"#{name}\":#{post_set_path(self)} by \"#{creator.name}\":#{user_path(creator)} that you previously maintained was made public again. You are now able to view the set and add/remove posts.")
         end
       end
     end
