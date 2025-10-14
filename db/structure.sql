@@ -4304,6 +4304,13 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 
 
 --
+-- Name: index_posts_on_pool_string_tokens; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_pool_string_tokens ON public.posts USING gin (string_to_array(pool_string, ' '::text));
+
+
+--
 -- Name: index_posts_on_string_to_array_tag_string; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4838,6 +4845,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251014151300'),
 ('20251010171207'),
 ('20251001213309'),
 ('20250921011208'),
