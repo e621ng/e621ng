@@ -59,7 +59,7 @@ group :development do
   gem "rubocop-rails", require: false
   gem "rexml", ">= 3.4.2"
   gem "ruby-lsp"
-  gem "ruby-lsp-rails", "~> 0.3.13"
+  gem "ruby-lsp-rails", "~> 0.4.8"
   gem "faker", require: false
 end
 
