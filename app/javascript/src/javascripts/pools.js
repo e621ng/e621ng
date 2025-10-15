@@ -1,6 +1,7 @@
 import Dialog from "./utility/dialog";
 import Page from "./utility/page";
 import Sortable from "./utility/sortable";
+import Utility from "./utility";
 
 let Pool = {};
 
