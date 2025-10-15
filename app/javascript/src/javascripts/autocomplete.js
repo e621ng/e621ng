@@ -625,8 +625,14 @@ class Autocompleter {
 
       if (this.query !== currentQuery) return;
 
+      let newSelectedIndex = -1;
+      if (this.selectedIndex >= 0 && this.selectedIndex < this.results.length) {
+        const currentSelectedItem = this.results[this.selectedIndex];
+        newSelectedIndex = results.findIndex(item => item.name === currentSelectedItem.name);
+      }
+
       this.results = results;
-      this.selectedIndex = -1;
+      this.selectedIndex = newSelectedIndex;
       this.render();
 
       if (this.results.length > 0) {
