@@ -18,6 +18,18 @@
 </div>
 <br />
 
+Table of Contents
+* [Installation](#installation-easy-mode---for-development-environments)
+   * [Prerequisites](#prerequisites)
+   * [Instructions](#instructions)
+   * [Development environment](#development-environment)
+      * [Docker Troubleshooting](#docker-troubleshooting)
+      * [windows-executable-bit](#windows-executable-bit)
+      * [Development Tools](#development-tools)
+         * [Helper scripts](#helper-scripts)
+      * [Truenas / Local Server Installation](#truenas--local-server-installation)
+* [Production Setup](#production-setup)
+   * [Production Troubleshooting](#production-troubleshooting)
 
 ## Installation (Easy mode - For development environments)
 
@@ -30,7 +42,7 @@
  If you are on Windows Docker Compose is already included, you do not need to install it yourself.
  If you are on Linux/MacOS you can probably use your package manager.
 
-### Installation
+### Instructions
 
 1. Download and install the [prerequisites](#prerequisites).
 1. Clone the repo with `git clone https://github.com/e621ng/e621ng.git`.
@@ -65,11 +77,13 @@ This repo provides a Dev Container configuration. You can use something like the
 
 #### <a id="docker-troubleshooting"></a>I followed the above instructions but it doesn't work, what should I do?
 
-Try this:
+If, when attempting to launch the container, the main `e621-1` container shuts itself & outputs something along the lines of `There is already a server running`, try removing this main `e621-1` container & running `docker compose up` again to rebuild it.
+
+If that fails, or you have another problem, try this:
 
 1. `docker compose down -v` to remove all volumes.
 1. `docker compose build --no-cache` to rebuild the image from scratch.
-1. Follow the [instructions](#installation) starting from step 5.
+1. Follow the [instructions](#instructions) starting from step 5.
 
 #### <a id="windows-executable-bit"></a>Why are there a bunch of changes I can't revert?
 
@@ -78,12 +92,25 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 `git config core.fileMode false`
 
 #### <a id="development-tools"></a>Things to aid you during development
+> [!NOTE]
+> As you can see in the [Compose file](docker-compose.yml), most tasks will depend on the `opensearch` container having a status of `healthy`, which can take so long that the process times out. It's recommended to manually start this container & wait for it to reach a `healthy` status before performing other tasks & to avoid closing it unnecessarily to have it ready when you need it next.
 
-`docker compose run --rm tests` to execute the test suite.
+`docker compose run --rm tests` to execute the [Rails test runner](https://guides.rubyonrails.org/testing.html#the-rails-test-runner).
 
-`docker compose run --rm rubocop` to run the linter.
+`docker compose run --rm rubocop` to run the linter, [RuboCop](https://docs.rubocop.org/rubocop/usage/basic_usage.html#command-line-flags).
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
+
+##### Helper Scripts
+There are a variety of helper scripts created to assist with frequently performed tasks. Some of these minimize the typing & memorization required for frequently performed tasks.
+Scripts marked with a \* are intended to be run **inside of the Dev Container/Docker Container**, & **not locally**. Scripts not marked a \* can be run from anywhere by adding them to your PATH variable (see [here](https://askubuntu.com/questions/97897/add-bash-script-folder-to-path) & [here](https://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path)).
+> [!NOTE]
+> These scripts are written for [Bash](https://www.gnu.org/software/bash/) running on Linux, though some other sh-derivative shells might work fine. For Windows users, you can try running Bash through WSL, using a Windows port of Bash, or using a terminal emulator like Git Bash; these helper scripts have not been tested with these solutions.
+* `do_tests`: Runs the [Rails test runner](https://guides.rubyonrails.org/testing.html#the-rails-test-runner) w/ argument passthrough, an automatic\* total test estimate, & a real-time reporting of tests remaining, estimated time remaining, elapsed time, & tests completed, failed, passed, & errored.
+* `do_rubocop`: Runs the linter, [RuboCop](https://docs.rubocop.org/rubocop/usage/basic_usage.html#command-line-flags) w/ argument passthrough.
+* `do_daily`: Runs the server's daily maintenance tasks (e.g. Sending emails about forum subscription updates).
+> [!NOTE]
+> \* Because of how tests are created, the `do_tests` script sometimes fails to accurately gauge the number of tests to run when provided w/ a specific path & doesn't even try to estimate the test number for the whole suite; it uses a hard-coded variable (`ASSUMED_TEST_COUNT` in [`scripts/opipe`](scripts/opipe)) instead. If, when running all tests, the end results show more tests than the progress bar, update this variable to get correct estimates.
 
 #### Truenas / Local Server Installation
 

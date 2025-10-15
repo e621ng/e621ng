@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+
+# declare -r MY_PATH="$0"
+readonly MY_PATH=$(realpath "$0")
+MY_NAME=''
+if [[ "$MY_PATH" =~ ^(.*)/([^/]+)$ ]]; then
+	readonly MY_NAME="${BASH_REMATCH[2]}"
+else
+	readonly MY_NAME="$0"
+fi
+readonly MATCH_LINE='^[[:blank:]]*exit_error .*?'
+exit_error() {
+	line=$(grep -m 1 -n -E -e "$MATCH_LINE($1)" "$MY_PATH")
+	if [[ "$line" =~ ^([[:digit:]]+) ]]; then
+		line="${BASH_REMATCH[1]}: "
+	else
+		line=''
+	fi
+	echo "$MY_NAME: $line$*" 1>&2
+	exit 1
+}
+declare -ri DEFAULT_COARSENESS=100
+declare -r DEFAULT_DECIMAL='.'
+show_help() {
+	cat << __EOF__
+Print the result of the given division operation with the specified precision, trimming trailing zeros and rounding excess.
+
+Usage:	$0 NUMERATOR DENOMINATOR [COARSENESS SEPARATOR]
+	or:	$0 [-c COARSENESS] [-d SEPARATOR] NUMERATOR DENOMINATOR
+	or:	$0 --help
+	or:	$0 --version
+
+Options:
+	-c, --coarseness COARSENESS: precision. Defaults to $DEFAULT_COARSENESS.
+	-d, --decimal SEPARATOR: the fractional separator. Defaults to $DEFAULT_DECIMAL
+	-h, --help: Shows this help text.
+	-v, --version: Shows version info.
+__EOF__
+}
+show_version() {
+	cat << __EOF__
+$0 3.0.0
+__EOF__
+}
+declare -i numerator=0; unset numerator
+declare -i denominator=0; unset denominator
+declare coarseInput # ="${coarseInput:-100}"
+declare separator='.'
+while [[ -n "${1+x}" ]]; do
+	case "$1" in
+		(-h | --help)
+			show_help
+			exit
+			;;
+		(-v | --version)
+			show_version
+			exit
+			;;
+		(-c | --coarseness)
+			shift
+			coarseInput="$1"
+			shift
+			;;
+		(-d | --decimal)
+			shift
+			separator="$1"
+			shift
+			;;
+		(*)
+			if [[ -n "${numerator+x}" ]]; then
+				if [[ -n "${denominator+x}" ]]; then
+					if [[ -n "${coarseInput+x}" ]]; then
+						exit 1
+					else
+						coarseInput="$1"
+					fi
+				else
+					((denominator = $1))
+				fi
+			else
+				((numerator = $1))
+			fi
+			shift
+			;;
+	esac
+done
+
+declare -ir numerator denominator
+if ((denominator == 0)); then
+	exit_error 'Divide by zero error: ' "$numerator / $denominator"
+fi
+if ((numerator == 0)); then
+	echo -n '0'
+	exit
+fi
+declare -i n=0 d=0
+declare sign=''
+# Can't be 0 here; simplifies checks
+if ((numerator > 0 && denominator > 0)); then
+	declare -r n=$numerator d=$denominator sign=''
+elif ((numerator < 0 && denominator < 0)); then
+	declare -r n=$((numerator * -1)) d=$((denominator * -1)) sign=''
+else
+	if ((numerator < 0)); then
+		declare -r n=$((numerator * -1)) d=$denominator sign='-'
+	else
+		declare -r d=$((denominator * -1)) n=$numerator sign='-'
+	fi
+fi
+declare -i whole=n/d
+# If there's no remainder
+if (( numerator % denominator == 0 )); then
+	echo -n "$sign$whole"
+	exit
+fi
+declare -r coarseInput="${coarseInput:-$DEFAULT_COARSENESS}"
+declare -ir decimalDigits="${#coarseInput}"
+declare -ir coarseness="$((10 ** decimalDigits))"
+if ((coarseness==1)); then
+	echo -n "$sign$whole"
+	exit
+fi
+declare -i whole_count=0; declare +i whole; ((whole_count=${#whole})); declare -i whole
+declare -i l_intermediate=0; ((l_intermediate=n * coarseness)); 
+if ((l_intermediate < n)); then
+	exit_error 'OVERFLOW ' "($whole $l_intermediate) ($numerator / $denominator)"
+fi
+((l_intermediate /= d)); 
+if ((l_intermediate==0)); then
+	echo -n "$sign$whole"
+	exit
+fi
+declare +i l_intermediate
+while [[ "${l_intermediate: -1}" == '0' ]] && ((${#l_intermediate} > whole_count)); do
+	l_intermediate="${l_intermediate:0:-1}"
+done
+if ((${#l_intermediate} == whole_count)); then
+	echo -n "$sign$whole";
+	exit
+elif ((${#l_intermediate} < whole_count)); then
+	exit_error 'UNDEFINED BEHAVIOR (too small a fraction?): ' "$numerator / $denominator"
+elif ((${#l_intermediate} > whole_count )); then
+	if ((${#l_intermediate} - whole_count >= decimalDigits)); then
+		((t_last=${l_intermediate: -1}))
+		if ((t_last<5)); then
+			declare +i l_intermediate="${l_intermediate:0:-1}"
+		else
+			((t_l=${l_intermediate:0:-1} + 1))
+			declare +i l_intermediate="${l_intermediate:0:-1}"
+			declare +i t_l
+			if (( ${#t_l} > ${#l_intermediate} )); then
+				((whole_count++))
+				whole="${t_l:0:whole_count}"
+			fi
+			declare +i l_intermediate="$t_l"
+			unset t_l
+		fi
+		while [[ "${l_intermediate: -1}" == '0' ]] && ((${#l_intermediate} > whole_count)); do
+			l_intermediate="${l_intermediate:0:-1}"
+		done
+	fi
+	if ((${#l_intermediate} == whole_count)); then
+		echo -n "$sign$l_intermediate"
+		exit
+	else
+		if ((whole_count > 1 || whole != 0)); then
+			echo -n "$sign$whole$separator${l_intermediate:$whole_count}"
+		else
+			echo -n "$sign$separator${l_intermediate}"
+		fi
+		exit
+	fi
+fi
+exit_error 'Should not be able to reach this point: ' "$numerator / $denominator"
