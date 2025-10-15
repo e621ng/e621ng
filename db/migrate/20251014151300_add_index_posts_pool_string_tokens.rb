@@ -8,11 +8,13 @@ class AddIndexPostsPoolStringTokens < ActiveRecord::Migration[7.1]
   def up
     # Create a GIN index on the tokenized pool_string so we can query for a specific token efficiently.
     # This enables queries like: string_to_array(pool_string, ' ') @> ARRAY['set:123']::text[]
-    add_index :posts,
-              "string_to_array(pool_string, ' ')",
-              using: :gin,
-              name: INDEX_NAME,
-              algorithm: :concurrently
+    Post.without_timeout do
+      add_index :posts,
+                "string_to_array(pool_string, ' ')",
+                using: :gin,
+                name: INDEX_NAME,
+                algorithm: :concurrently
+    end
   end
 
   def down
