@@ -574,9 +574,13 @@ class Autocompleter {
         this.close();
         break;
       case "Tab":
-        if (this.selectedIndex < 0 && this.results.length > 0) {
+        if (this.results.length > 0) {
           event.preventDefault();
-          this.selectItem(this.results[0]);
+          if (this.selectedIndex >= 0) {
+            this.selectItem(this.results[this.selectedIndex]);
+          } else {
+            this.selectItem(this.results[0]);
+          }
         }
         break;
     }
