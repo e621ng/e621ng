@@ -94,3 +94,11 @@ input:disabled {
     }
   }
 }
+
+// #region Invalid Input
+// TODO: Avoid immediately having required elements show up as wrong before user interaction.
+.invalid-input/* , input:invalid */ {
+  background-color: $form-invalid-input-background;
+  border: 3px solid $form-invalid-input-border;
+}
+// #endregion Invalid Input
