@@ -563,9 +563,9 @@ class Autocompleter {
         this.navigateUp();
         break;
       case "Enter":
-        event.preventDefault();
-        event.stopPropagation();
         if (this.selectedIndex >= 0) {
+          event.preventDefault();
+          event.stopPropagation();
           this.selectItem(this.results[this.selectedIndex]);
         }
         break;
@@ -574,9 +574,13 @@ class Autocompleter {
         this.close();
         break;
       case "Tab":
-        if (this.selectedIndex < 0 && this.results.length > 0) {
+        if (this.results.length > 0) {
           event.preventDefault();
-          this.selectItem(this.results[0]);
+          if (this.selectedIndex >= 0) {
+            this.selectItem(this.results[this.selectedIndex]);
+          } else {
+            this.selectItem(this.results[0]);
+          }
         }
         break;
     }
@@ -621,8 +625,14 @@ class Autocompleter {
 
       if (this.query !== currentQuery) return;
 
+      let newSelectedIndex = -1;
+      if (this.selectedIndex >= 0 && this.selectedIndex < this.results.length) {
+        const currentSelectedItem = this.results[this.selectedIndex];
+        newSelectedIndex = results.findIndex(item => item.name === currentSelectedItem.name);
+      }
+
       this.results = results;
-      this.selectedIndex = -1;
+      this.selectedIndex = newSelectedIndex;
       this.render();
 
       if (this.results.length > 0) {
