@@ -170,4 +170,11 @@ class AiMethodsTest < ActiveSupport::TestCase
     assert_match(/ai generator:\s*.+/i, result[:reason])
     assert_operator result[:score], :>=, 70
   end
+
+  test "fixture bread-static.png is not AI generated" do
+    path = file_fixture("bread-static.png").to_s
+    result = is_ai_generated?(path)
+    assert_equal 0, result[:score]
+    assert_equal "no ai signals", result[:reason]
+  end
 end
