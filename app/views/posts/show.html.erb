@@ -104,14 +104,9 @@
         <li><a href="#tag-list">Tags/Info</a></li>
       </ul>
 
-      <%= render "posts/partials/common/inline_blacklist" %>
-
       <menu id="post-sections">
         <% unless CurrentUser.hide_comments? %>
           <li class="active"><a href="#comments">Comments</a></li>
-        <% end %>
-        <% if CurrentUser.is_member? %>
-          <li><a href="#edit" id="post-edit-link" data-hotkey="edit">Edit</a></li>
         <% end %>
       </menu>
 
