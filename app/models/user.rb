@@ -112,6 +112,7 @@ class User < ApplicationRecord
   after_save :update_cache
   #after_create :notify_sock_puppets
   after_create :create_user_status
+  validates :flair_color_hex, format: { with: /\A#?(?:[0-9a-fA-F]{6})\z/, allow_blank: true, if: -> { flair_color.present? || flair_color_hex.present? } }
 
   has_one :api_key
   has_one :dmail_filter
@@ -871,8 +872,8 @@ class User < ApplicationRecord
         q = q.where(avatar_id: params[:avatar_id])
       end
 
-      if params[:flair_color].present?
-        q = q.where(flair_color: params[:flair_color])
+      if params[:flair_color_hex].present?
+        q = q.where(flair_color_hex: params[:flair_color_hex])
       end
 
       if params[:email_matches].present?
@@ -1043,8 +1044,19 @@ class User < ApplicationRecord
       self.flair_color = val & 0xFFFFFF
     else
       hex = val.to_s.strip
-      hex = hex[1..-1] if hex.start_with?("#")
-      # If the string contains non-hex characters, to_i(16) will stop at first non-hex, which is acceptable here.
+      hex = hex[1..] if hex.start_with?("#")
+
+      # Normalize 3-digit shorthand (e.g. "f0a" -> "ff00aa") and validate characters/length.
+      if hex.match?(/\A[0-9a-fA-F]{3}\z/)
+        hex = hex.chars.map { |c| c * 2 }.join
+      end
+
+      # Reject invalid input by clearing the flair_color; only allow 6 hex chars.
+      unless hex.match?(/\A[0-9a-fA-F]{6}\z/)
+        self.flair_color = nil
+        return
+      end
+
       self.flair_color = hex.to_i(16) & 0xFFFFFF
     end
   end

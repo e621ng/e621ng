@@ -191,7 +191,7 @@ def fill_avatars(users = [], posts = [])
     puts "post: #{post}"
     puts "  - #{user.name} : ##{post.id}"
     user.update({ avatar_id: post.id })
-    user.update({ flair_color: "##{Digest::MD5.hexdigest(post.id.to_s)[0..5]}" }) # use a color based on avatar
+    user.update({ flair_color_hex: "##{Digest::MD5.hexdigest(post.id.to_s)[0..5]}" }) # use a color based on avatar
   end
 end
 
