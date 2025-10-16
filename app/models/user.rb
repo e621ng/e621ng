@@ -1021,9 +1021,39 @@ class User < ApplicationRecord
   end
 
   def user_color
-    # Returns a hex color code based on the user's ID.
-    return "##{Digest::MD5.hexdigest(id.to_s)[-6..-1]}" unless avatar_id.present?
-    # use avatar id as a placeholder for the setting
-    "#{flare_color}"
+    # If a flare_color (stored as an integer) is set, return it as a hex string (#rrggbb).
+    return flare_color_hex if flare_color.present?
+
+    # Fallback: return a hex color code based on the user's ID.
+    "##{Digest::MD5.hexdigest(id.to_s)[-6..-1]}"
+  end
+
+  # Returns the flare color as a hex string like "#rrggbb", or nil if not set.
+  def flare_color_hex
+    return nil if flare_color.nil?
+    "##{format('%06x', flare_color)}"
+  end
+
+  # Accepts a hex string like "#rrggbb" or "rrggbb", or an integer. Stores as integer.
+  def flare_color_hex=(val)
+    if val.blank?
+      self.flare_color = nil
+    elsif val.is_a?(Integer)
+      self.flare_color = val & 0xFFFFFF
+    else
+      hex = val.to_s.strip
+      hex = hex[1..-1] if hex.start_with?("#")
+      # If the string contains non-hex characters, to_i(16) will stop at first non-hex, which is acceptable here.
+      self.flare_color = hex.to_i(16) & 0xFFFFFF
+    end
+  end
+
+  # Returns an [r, g, b] array (0-255) for the stored flare_color, or nil if not set.
+  def flare_color_rgb
+    return nil if flare_color.nil?
+    r = (flare_color >> 16) & 0xFF
+    g = (flare_color >> 8) & 0xFF
+    b = flare_color & 0xFF
+    [r, g, b]
   end
 end

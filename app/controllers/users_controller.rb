@@ -162,7 +162,7 @@ class UsersController < ApplicationController
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
-    permitted_params += %i[profile_about profile_artinfo avatar_id flare_color] if CurrentUser.is_member? # Prevent editing when blocked
+  permitted_params += %i[profile_about profile_artinfo avatar_id flare_color flare_color_hex] if CurrentUser.is_member? # Prevent editing when blocked
     permitted_params += %i[enable_compact_uploader] if context != :create && CurrentUser.post_upload_count >= 10
     permitted_params += %i[name email] if context == :create
 

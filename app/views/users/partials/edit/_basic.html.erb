@@ -79,6 +79,16 @@
   </tab-hint>
 </tab-entry>
 
+<tab-entry tab="<%= tab_name %>" group="profile" search="update change user flare color profile color">
+  <tab-head><%= form.label :flare_color, "Flare Color" %></tab-head>
+  <tab-body>
+    <%= form.input_field :flare_color_hex, as: :string, label: false, placeholder: CurrentUser.user.user_color %>
+  </tab-body>
+  <tab-hint>
+    A hex color code (e.g. #ff0000) that will be used for your username and other accents on the site. Leave blank to use a color based on your avatar.
+  </tab-hint>
+</tab-entry>
+
 <tab-entry tab="<%= tab_name %>" group="profile" class="bigtext" search="user profile about me">
   <tab-head><%= form.label :profile_about, "About Me" %></tab-head>
   <tab-body>
