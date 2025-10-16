@@ -1018,7 +1018,8 @@ class User < ApplicationRecord
 
   def user_color
     # Returns a hex color code based on the user's ID.
-    hash = Digest::MD5.hexdigest(id.to_s)
-    "##{hash[0..5]}"
+    return "##{Digest::MD5.hexdigest(id.to_s)[0..5]}" unless avatar_id.present?
+    # use avatar id as a placeholder for the setting
+    "##{Digest::MD5.hexdigest(avatar_id.to_s)[0..5]}"
   end
 end
