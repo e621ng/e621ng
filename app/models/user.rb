@@ -1015,4 +1015,10 @@ class User < ApplicationRecord
     @feedback_pieces = nil
     self
   end
+
+  def user_color
+    # Returns a hex color code based on the user's ID.
+    hash = Digest::MD5.hexdigest(id.to_s)
+    "##{hash[0..5]}"
+  end
 end
