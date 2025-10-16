@@ -16,7 +16,7 @@ gem "streamio-ffmpeg"
 gem "responders"
 
 # Use local dtext_rb gem for development if available
-if ENV["USE_LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext_rb")
+if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext_rb")
   gem "dtext_rb", path: "vendor/dtext_rb", require: "dtext"
 else
   gem "dtext_rb", git: "https://github.com/e621ng/dtext_rb.git", branch: "master", require: "dtext"

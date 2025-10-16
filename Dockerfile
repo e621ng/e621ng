@@ -5,7 +5,6 @@ RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat ra
 COPY Gemfile Gemfile.lock ./
 COPY vendor ./vendor/
 
-ENV RAILS_ENV=development
 RUN gem i foreman && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
  && rm -rf /usr/local/bundle/cache/*.gem \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
