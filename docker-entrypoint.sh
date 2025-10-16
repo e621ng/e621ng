@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-if [ -d "vendor/dtext_rb" ] && [ "$USE_LOCAL_DTEXT" = "true" ]; then
+if [ -d "vendor/dtext_rb" ] && [ "$LOCAL_DTEXT" = "true" ]; then
   echo "dtext_rb: Recompiling..."
   cd vendor/dtext_rb
   
