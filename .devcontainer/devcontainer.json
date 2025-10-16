@@ -13,6 +13,7 @@
   },
   "mounts": [
   //   "source=/home/${localEnv:USER}/.gnupg,target=/home/vscode/.gnupg,type=bind,consistency=cached",
+    // "source=../dtext_rb,target=/dtext_rb,type=bind,consistency=cached",
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
   "postAttachCommand": ["/bin/sh", "/app/.devcontainer/post-attach.sh", "bash"],
