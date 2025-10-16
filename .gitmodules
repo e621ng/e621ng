@@ -1,0 +1,3 @@
+[submodule "vendor/dtext_rb"]
+	path = vendor/dtext_rb
+	url = git@github.com:e621ng/dtext_rb.git
