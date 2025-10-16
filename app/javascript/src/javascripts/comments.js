@@ -124,7 +124,7 @@ Comment.quote = function (e) {
     $div.find(".expand-comment-response").click();
 
     const $textarea = $div.find("textarea");
-    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
+    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"), parent.data("creator-color"));
     $textarea.selectEnd();
   }).fail(function (data) {
     Utility.error(data.responseText);

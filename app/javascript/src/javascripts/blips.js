@@ -33,7 +33,7 @@ Blip.quote = function (id) {
     },
   }).done(function (data) {
     const $textarea = $("#blip_body_for_");
-    TextUtils.processQuote($textarea, data.body, data.creator_name, data.creator_id);
+    TextUtils.processQuote($textarea, data.body, data.creator_name, data.creator_id, data.creator_color);
     $textarea.selectEnd();
 
     $('#blip_response_to')[0].value = data.id;
