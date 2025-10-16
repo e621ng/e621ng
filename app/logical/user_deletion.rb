@@ -40,6 +40,7 @@ class UserDeletion
       email: '',
       email_verification_key: '1',
       avatar_id: nil,
+      # flare_color: nil, # TODO: Uncomment when added to model
       profile_about: '',
       profile_artinfo: '',
       custom_style: '',

@@ -678,7 +678,7 @@ class User < ApplicationRecord
         :id, :created_at, :name, :level, :base_upload_limit,
         :post_upload_count, :post_update_count, :note_update_count,
         :is_banned, :can_approve_posts, :can_upload_free,
-        :level_string, :avatar_id, :is_verified?,
+        :level_string, :avatar_id, :is_verified?, :flare_color,
       ]
 
       if id == CurrentUser.user.id
@@ -870,6 +870,10 @@ class User < ApplicationRecord
         q = q.where(avatar_id: params[:avatar_id])
       end
 
+      if params[:flare_color].present?
+        q = q.where(flare_color: params[:flare_color])
+      end
+
       if params[:email_matches].present?
         q = q.where_ilike(:email, params[:email_matches])
       end
@@ -1020,6 +1024,6 @@ class User < ApplicationRecord
     # Returns a hex color code based on the user's ID.
     return "##{Digest::MD5.hexdigest(id.to_s)[-6..-1]}" unless avatar_id.present?
     # use avatar id as a placeholder for the setting
-    "##{Digest::MD5.hexdigest(avatar_id.to_s)[0..5]}"
+    "#{flare_color}"
   end
 end
