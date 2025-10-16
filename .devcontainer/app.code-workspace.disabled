@@ -1,16 +1,16 @@
-// {
-// 	"folders": [
-// 		{
-// 			"path": ".."
-// 		},
-// 		{
-// 			"path": "../../dtext_rb"
-// 		}
-// 	],
-//   "settings": {
-//     "files.associations": {
-//       "*.erb": "erb"
-//     },
-//     "rubyLsp.bundleGemfile": "Gemfile"
-//   }
-// }
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../dtext_rb"
+		}
+	],
+  "settings": {
+    "files.associations": {
+      "*.erb": "erb"
+    },
+    "rubyLsp.bundleGemfile": "Gemfile"
+  }
+}
