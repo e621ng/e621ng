@@ -162,7 +162,7 @@ class UsersController < ApplicationController
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
-    permitted_params += %i[profile_about profile_artinfo avatar_id flare_color flare_color_hex] if CurrentUser.is_member? # Prevent editing when blocked
+  permitted_params += %i[profile_about profile_artinfo avatar_id flair_color flair_color_hex] if CurrentUser.is_member? # Prevent editing when blocked
     permitted_params += %i[enable_compact_uploader] if context != :create && CurrentUser.post_upload_count >= 10
     permitted_params += %i[name email] if context == :create
 
@@ -170,7 +170,7 @@ class UsersController < ApplicationController
   end
 
   def search_params
-    permitted_params = %i[name_matches about_me avatar_id flare_color level min_level max_level can_upload_free can_approve_posts order]
+  permitted_params = %i[name_matches about_me avatar_id flair_color level min_level max_level can_upload_free can_approve_posts order]
     permitted_params += %i[ip_addr email_matches] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end

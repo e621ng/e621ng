@@ -191,7 +191,7 @@ def fill_avatars(users = [], posts = [])
     puts "post: #{post}"
     puts "  - #{user.name} : ##{post.id}"
     user.update({ avatar_id: post.id })
-    # user.update({ flare_color: "##{Digest::MD5.hexdigest(avatar_id.to_s)[0..5]}" }) # TODO: Uncomment when added to model
+    user.update({ flair_color: "##{Digest::MD5.hexdigest(post.id.to_s)[0..5]}" }) # use a color based on avatar
   end
 end
 
