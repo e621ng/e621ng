@@ -4,6 +4,7 @@ require "zxcvbn"
 
 class User < ApplicationRecord
   class Error < Exception ; end
+
   class PrivilegeError < Exception
     attr_accessor :message
 
@@ -678,7 +679,7 @@ class User < ApplicationRecord
         :id, :created_at, :name, :level, :base_upload_limit,
         :post_upload_count, :post_update_count, :note_update_count,
         :is_banned, :can_approve_posts, :can_upload_free,
-  :level_string, :avatar_id, :is_verified?, :flair_color,
+        :level_string, :avatar_id, :is_verified?, :flair_color,
       ]
 
       if id == CurrentUser.user.id
@@ -1021,11 +1022,11 @@ class User < ApplicationRecord
   end
 
   def user_color
-  # If a flair_color (stored as an integer) is set, return it as a hex string (#rrggbb).
-  return flair_color_hex if flair_color.present?
+    # If a flair_color (stored as an integer) is set, return it as a hex string (#rrggbb).
+    return flair_color_hex if flair_color.present?
 
     # Fallback: return a hex color code based on the user's ID.
-    "##{Digest::MD5.hexdigest(id.to_s)[-6..-1]}"
+    "##{Digest::MD5.hexdigest(id.to_s)[-6..]}"
   end
 
   # Returns the flair color as a hex string like "#rrggbb", or nil if not set.

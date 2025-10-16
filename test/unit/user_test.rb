@@ -308,6 +308,34 @@ class UserTest < ActiveSupport::TestCase
       end
     end
 
+    context "flair color handling" do
+      setup do
+        @user = create(:user)
+      end
+
+      should "accept hex strings and return hex and rgb values" do
+        @user.flair_color_hex = "#ff8800"
+        assert_equal(0xff8800, @user.flair_color)
+        assert_equal("#ff8800", @user.flair_color_hex)
+        assert_equal([0xff, 0x88, 0x00], @user.flair_color_rgb)
+
+        @user.flair_color_hex = "00ff00"
+        assert_equal(0x00ff00, @user.flair_color)
+        assert_equal("#00ff00", @user.flair_color_hex)
+        assert_equal([0x00, 0xff, 0x00], @user.flair_color_rgb)
+      end
+
+      should "handle nil and blank values" do
+        @user.flair_color_hex = ""
+        assert_nil(@user.flair_color)
+        assert_nil(@user.flair_color_hex)
+
+        @user.flair_color_hex = nil
+        assert_nil(@user.flair_color)
+        assert_nil(@user.flair_color_hex)
+      end
+    end
+
     context "when fixing counts" do
       should "not raise" do
         assert_nothing_raised { @user.refresh_counts! }

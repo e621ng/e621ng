@@ -108,11 +108,11 @@ class UsersController < ApplicationController
           flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join('; ')}"
         end
         set_current_user
-        respond_with(@user)
       else
         flash[:notice] = "Sign up failed"
         respond_with(@user)
       end
+      respond_with(@user)
     end
   rescue ::Mailgun::CommunicationError
     session[:user_id] = nil
@@ -162,7 +162,7 @@ class UsersController < ApplicationController
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
-  permitted_params += %i[profile_about profile_artinfo avatar_id flair_color flair_color_hex] if CurrentUser.is_member? # Prevent editing when blocked
+    permitted_params += %i[profile_about profile_artinfo avatar_id flair_color flair_color_hex] if CurrentUser.is_member? # Prevent editing when blocked
     permitted_params += %i[enable_compact_uploader] if context != :create && CurrentUser.post_upload_count >= 10
     permitted_params += %i[name email] if context == :create
 
@@ -170,7 +170,7 @@ class UsersController < ApplicationController
   end
 
   def search_params
-  permitted_params = %i[name_matches about_me avatar_id flair_color level min_level max_level can_upload_free can_approve_posts order]
+    permitted_params = %i[name_matches about_me avatar_id flair_color level min_level max_level can_upload_free can_approve_posts order]
     permitted_params += %i[ip_addr email_matches] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
