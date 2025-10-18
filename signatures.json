@@ -135,14 +135,6 @@
       "created_at": "2025-09-25T12:42:31Z",
       "repoId": 169334303,
       "pullRequestNo": 1342
-    },
-    {
-      "name": "FishTailProtocol",
-      "id": 167068617,
-      "comment_id": 3417646709,
-      "created_at": "2025-10-18T00:54:12Z",
-      "repoId": 169334303,
-      "pullRequestNo": 1419
     }
   ]
 }
