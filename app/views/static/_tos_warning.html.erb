@@ -1,4 +1,4 @@
-<% if cookies.signed[:tos_accepted].blank? || cookies.signed[:tos_accepted].to_i != Setting.tos_version %>
+<% if (cookies.signed[:tos_accepted].blank? || cookies.signed[:tos_accepted].to_i != Setting.tos_version) && !skip_tos_check? %>
 <div class="tos-modal-container">
   <%= form_tag(
     accept_terms_of_use_path,

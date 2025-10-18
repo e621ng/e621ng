@@ -3,6 +3,28 @@
     <h1>Admin Dashboard</h1>
 
     <div class="section">
+      <h2>Terms of Service</h2>
+      <p>
+        The Terms of Use content is cached for performance reasons.<br />
+        If you edit the TOU wiki page, you must clear the cache to have your changes take effect.<br />
+        <b>Note:</b> This page reflects the cached version of the TOU, not the live wiki page.
+        <%= form_tag(clear_cache_admin_dashboard_index_path, method: :post, class: "tos-options") do %>
+          <%= submit_tag("Clear Cache", class: "st-button") %>
+        <% end %>
+      </p>
+
+      <h5>Version: <%= @tos_version %></h5>
+      <p>
+        Increasing the version will require all users to re-accept the Terms of Use.<br />
+        Do not increase the version unless you are absolutely sure about what you are doing.<br />
+        <b>Note:</b> This will also clear the TOU cache.
+        <%= form_tag(bump_version_admin_dashboard_index_path, method: :post, class: "tos-options") do %>
+          <%= submit_tag("Bump Version", class: "st-button") %>
+        <% end %>
+      </p>
+    </div>
+
+    <div class="section">
       <h2>Aliases</h2>
       <%= render "tag_relationships/listing", tag_relations: @dashboard.tag_aliases %>
     </div>

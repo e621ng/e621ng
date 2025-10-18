@@ -20,7 +20,12 @@ Rails.application.routes.draw do
       end
       resources :dmails, only: %i[index show]
     end
-    resource :dashboard, only: %i[show]
+    resource :dashboard, only: %i[show] do
+      collection do
+        post :clear_cache
+        post :bump_version
+      end
+    end
     resources :exceptions, only: %i[index show]
     resource :reowner, controller: "reowner", only: %i[new create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
@@ -387,11 +392,10 @@ Rails.application.routes.draw do
   end
   resources :mascots, only: %i[index new create edit update destroy]
 
-  resource :terms_of_use, only: %i[show] do
+  get "/terms_of_use", to: redirect("/static/terms_of_service", status: 301)
+  resource :terms_of_use, only: %i[] do
     collection do
       post :accept
-      post :clear_cache
-      post :bump_version
     end
   end
 
@@ -430,6 +434,7 @@ Rails.application.routes.draw do
   get "/forum/show/:id" => redirect { |_params, req| "/forum_posts/#{req.params[:id]}?page=#{req.params[:page]}" }
   get "/forum/search" => redirect("/forum_posts/search")
 
+  get "/help/api", to: redirect("/static/api", status: 301)
   get "/help/show/:title" => redirect("/help/%{title}")
 
   get "/note" => redirect { |_params, req| "/notes?page=#{req.params[:page]}" }
@@ -491,9 +496,11 @@ Rails.application.routes.draw do
 
   get "/static/keyboard_shortcuts" => "static#keyboard_shortcuts", :as => "keyboard_shortcuts"
   get "/static/site_map" => "static#site_map", :as => "site_map"
+  get "/static/terms_of_service" => "static#terms_of_service", as: "terms_of_service"
   get "/static/privacy" => "static#privacy", as: "privacy_policy"
+  get "/static/rules" => "static#rules", as: "rules"
+  get "/static/api" => "static#api", as: "api"
   get "/static/takedown" => "static#takedown", as: "takedown_static"
-  get "/static/terms_of_service" => redirect("/terms_of_use")
   get "/static/contact" => "static#contact", :as => "contact"
   get "/static/discord" => "static#discord", as: "discord_get"
   post "/static/discord" => "static#discord", as: "discord_post"

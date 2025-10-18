@@ -1,0 +1,18 @@
+<% content_for(:page_title) do %>
+  Terms of Service
+<% end %>
+
+<div id="c-static">
+  <div id="a-terms-of-service">
+    <h1>Terms of Service</h1>
+    <div class="dtext-container">
+      <%= format_text(@page.body, allow_color: true) %>
+    </div>
+  </div>
+</div>
+
+<% content_for(:secondary_links) do %>
+  <% if CurrentUser.is_staff? %>
+    <%= subnav_link_to "Wiki Page", show_or_new_wiki_pages_path(title: @page_name) %>
+  <% end %>
+<% end %>

@@ -238,4 +238,13 @@ class ApplicationController < ActionController::Base
   def permit_search_params(permitted_params)
     params.fetch(:search, {}).permit([:id, :created_at, :updated_at] + permitted_params)
   end
+
+  helper_method :skip_tos_check?
+  def skip_tos_check
+    @skip_tos_check = true
+  end
+
+  def skip_tos_check?
+    @skip_tos_check || false
+  end
 end

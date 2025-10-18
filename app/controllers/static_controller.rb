@@ -1,8 +1,25 @@
 # frozen_string_literal: true
 
 class StaticController < ApplicationController
+  before_action :skip_tos_check, only: %i[terms_of_service privacy rules api]
+
+  def terms_of_service
+    @page_name = "e621:terms_of_service"
+    @page = format_wiki_page(@page_name)
+  end
+
   def privacy
     @page_name = "e621:privacy_policy"
+    @page = format_wiki_page(@page_name)
+  end
+
+  def rules
+    @page_name = "e621:rules"
+    @page = format_wiki_page(@page_name)
+  end
+
+  def api
+    @page_name = "e621:api"
     @page = format_wiki_page(@page_name)
   end
 
