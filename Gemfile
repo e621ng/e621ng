@@ -15,11 +15,11 @@ gem "draper"
 gem "streamio-ffmpeg"
 gem "responders"
 
-# Use local dtext_rb gem for development if available
-if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext_rb")
-  gem "dtext_rb", path: "vendor/dtext_rb", require: "dtext"
+# Use local dtext gem for development if available
+if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext")
+  gem "dtext", path: "vendor/dtext", require: "dtext"
 else
-  gem "dtext_rb", git: "https://github.com/e621ng/dtext_rb.git", tag: "1.12.0", require: "dtext"
+  gem "dtext", git: "https://github.com/e621ng/dtext.git", tag: "2.0.1", require: "dtext"
 end
 
 gem "bootsnap"

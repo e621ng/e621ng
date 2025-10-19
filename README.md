@@ -61,15 +61,15 @@ Note: When gems or js packages are updated you need to execute `docker compose b
 
 ### Local DText gem
 
-You may want to test changes made to the [DText gem](https://github.com/e621ng/dtext_rb) on a local instance.
+You may want to test changes made to the [DText gem](https://github.com/e621ng/dtext) on a local instance.
 You are recommended to reconsider and rethink your life choices.
 
 If you are sure that you want to do this, follow these steps.
 
-1. Clone the repo into a `vendor` directory. Example: `~/e621ng/vendor/dtext_rb/`.
+1. Clone the repo into a `vendor` directory. Example: `~/e621ng/vendor/dtext/`.
    1. `cd ~/e621ng`
    2. `mkdir vendor && cd vendor`
-   3. `git clone https://github.com/e621ng/dtext_rb.git` (substitute your local fork as needed)
+   3. `git clone https://github.com/e621ng/dtext.git` (substitute your local fork as needed)
 2. Rebuild the container
    1. `cd ~/e621ng`
    2. `docker compose build --no-cache`

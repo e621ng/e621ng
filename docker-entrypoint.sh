@@ -1,9 +1,9 @@
 #!/bin/sh
 set -e
 
-if [ -d "vendor/dtext_rb" ] && [ "$LOCAL_DTEXT" = "true" ]; then
-  echo "dtext_rb: Recompiling..."
-  cd vendor/dtext_rb
+if [ -d "vendor/dtext" ] && [ "$LOCAL_DTEXT" = "true" ]; then
+  echo "dtext: Recompiling..."
+  cd vendor/dtext
   
   rm -f lib/dtext/dtext.so
   rm -rf tmp/
@@ -11,7 +11,7 @@ if [ -d "vendor/dtext_rb" ] && [ "$LOCAL_DTEXT" = "true" ]; then
   bundle install --quiet
   bundle exec rake compile
   cd /app
-  echo "dtext_rb: Recompiled successfully"
+  echo "dtext: Recompiled successfully"
 fi
 
 exec "$@"
