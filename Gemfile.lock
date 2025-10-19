@@ -1,9 +1,9 @@
 GIT
-  remote: https://github.com/e621ng/dtext_rb.git
-  revision: 5ef8fd7a5205c832f4c18197911717e7d491494e
-  branch: master
+  remote: https://github.com/e621ng/dtext.git
+  revision: 53281cf3e9510db09196b7a84cf637bbdce3fbae
+  tag: 2.0.1
   specs:
-    dtext_rb (1.11.0)
+    dtext (2.0.1)
 
 GEM
   remote: https://rubygems.org/
@@ -395,7 +395,7 @@ DEPENDENCIES
   diffy
   dotenv
   draper
-  dtext_rb!
+  dtext!
   factory_bot_rails
   faker
   faraday

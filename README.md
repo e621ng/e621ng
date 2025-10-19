@@ -59,6 +59,29 @@
 
 Note: When gems or js packages are updated you need to execute `docker compose build` to reflect them in the container.
 
+### Local DText gem
+
+You may want to test changes made to the [DText gem](https://github.com/e621ng/dtext) on a local instance.
+You are recommended to reconsider and rethink your life choices.
+
+If you are sure that you want to do this, follow these steps.
+
+1. Clone the repo into a `vendor` directory. Example: `~/e621ng/vendor/dtext/`.
+   1. `cd ~/e621ng`
+   2. `mkdir vendor && cd vendor`
+   3. `git clone https://github.com/e621ng/dtext.git` (substitute your local fork as needed)
+2. Rebuild the container
+   1. `cd ~/e621ng`
+   2. `docker compose build --no-cache`
+3. Reset the Gemfile.lock: `git checkout HEAD -- Gemfile.lock`  
+  This is not required, but it will prevent you from accidentally committing bad changes.
+4. Set `LOCAL_DTEXT=true` in the `.env` file.
+
+At this point, the DText repository is set up.
+It will be automatically compiled whenever the docker container is started.
+
+It is recommended to set `LOCAL_DTEXT` to `false` whenever you are not actively working on anything related to the DText repo, and then rebuild the container.
+
 ### Development environment
 
 This repo provides a Dev Container configuration. You can use something like the [Dev Container extension for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) to make use of it. Simply install it, open the folder in VSCode, and click the button in the bottom right to open the folder in the Dev Container.
