@@ -1,4 +1,4 @@
-import DText from "./dtext";
+import DTextFormatter from "./dtext_formatter";
 import Utility from "./utility";
 import TextUtils from "./utility/text_util";
 
@@ -32,7 +32,6 @@ Comment.reinitialize_all = function () {
     $(".comment-vote-up-link").off("click");
     $(".comment-vote-down-link").off("click");
     Comment.initialize_all();
-    DText.initialize_all_inputs();
   }
 };
 
@@ -148,7 +147,20 @@ Comment.show_new_comment_form = function (e) {
 
 Comment.show_edit_form = function (e) {
   e.preventDefault();
-  $(this).closest(".comment").find(".edit_comment").show();
+
+  const editForm = $(this).closest(".comment").find(".edit_comment");
+  if (!editForm.length) return;
+  if (editForm.is(":visible")) {
+    editForm.hide();
+    return;
+  }
+
+  editForm.show();
+
+  if (editForm.data("loaded")) return;
+  const textarea = editForm.find("textarea");
+  DTextFormatter.buildFromTextarea(textarea);
+  editForm.data("loaded", true);
 };
 
 Comment.vote_up = function (e) {

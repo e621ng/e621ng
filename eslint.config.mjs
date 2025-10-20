@@ -68,7 +68,7 @@ export default [
       "padded-blocks": "off",
       "padding-line-between-statements": "off",
       "quote-props": ["warn", "consistent"],
-      "quotes": "warn",
+      "quotes": ["warn", "double", { avoidEscape: true }],
       "rest-spread-spacing": "warn",
       "semi": "warn",
       "semi-spacing": "warn",
