@@ -28,10 +28,13 @@ export default class DTextFormatter {
   ];
 
   constructor ($element) {
-    this.$wrapper = $element.removeClass("pending");
+    this.$wrapper = $element;
     this.$textarea = $element.find("textarea.dtext-formatter-input");
     this.allowColor = $element.data("color") || false;
     this.characterLimit = $element.data("limit") || null;
+
+    $element.data("instance", this);
+
     this.create();
   }
 
@@ -39,37 +42,37 @@ export default class DTextFormatter {
   // ==== Lifecycle Methods ======= //
   // ============================== //
 
+  created = false;
+
   create () {
+    if (this.created) return;
+    this.$wrapper.removeClass("pending");
+
     this.buildTabButtons();
     this.buildFormattingButtons();
     this.buildPreviewArea();
     this.buildCounterArea();
+
+    this.created = true;
   }
 
   destroy () {
-    // Clear cache
+    if (!this.created) return;
     this._parsedInputCache = null;
-
-    // Remove event handlers
     this.$textarea.off("input.dtext_formatter");
 
-    // Remove dynamically created DOM elements in reverse order of creation
+    // Remove created DOM elements
     this.$wrapper.find(".dtext-formatter-footer").remove();
     this.$wrapper.find(".dtext-formatter-preview").remove();
     this.$wrapper.find(".dtext-formatter-overflow").remove();
     this.$wrapper.find(".dtext-formatter-buttons").remove();
     this.$wrapper.find(".dtext-formatter-tabs").remove();
 
-    // Remove custom attributes
-    this.$wrapper.removeAttr("data-state");
-
     // Restore original state
+    this.$wrapper.removeAttr("data-state");
     this.$wrapper.addClass("pending");
 
-    // Clear instance references
-    this.$preview = null;
-    this.$textarea = null;
-    this.$wrapper = null;
+    this.created = false;
   }
 
 
@@ -281,7 +284,6 @@ export default class DTextFormatter {
     const $wrapper = $("<div>")
       .addClass("dtext-formatter pending")
       .attr({
-        "data-state": "write",
         "data-color": $textarea.data("color") || false,
         "data-limit": $textarea.data("limit") || null,
       })
