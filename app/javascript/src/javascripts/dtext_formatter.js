@@ -49,7 +49,6 @@ export default class DTextFormatter {
 
     const tabContainer = this.buildTabButtons();
     const buttonContainer = this.buildFormattingButtons();
-    const buttonOverflow = this.buildButtonOverflow();
     const previewArea = this.buildPreviewArea();
     const footer = this.buildCounterArea();
 
@@ -57,7 +56,6 @@ export default class DTextFormatter {
       .append([
         tabContainer,
         buttonContainer,
-        buttonOverflow,
         previewArea,
         footer,
       ])
@@ -74,7 +72,6 @@ export default class DTextFormatter {
     // Remove created DOM elements
     this.$wrapper.find(".dtext-formatter-footer").remove();
     this.$wrapper.find(".dtext-formatter-preview").remove();
-    this.$wrapper.find(".dtext-formatter-overflow").remove();
     this.$wrapper.find(".dtext-formatter-buttons").remove();
     this.$wrapper.find(".dtext-formatter-tabs").remove();
 
@@ -141,20 +138,6 @@ export default class DTextFormatter {
       $button.append(SVGIcon.render(definition.icon));
     }
 
-    $("<button>")
-      .addClass("dtext-formatter-more")
-      .attr({
-        "type": "button",
-        "title": "More",
-        "aria-label": "More formatting options",
-      })
-      .append(SVGIcon.render("menu"))
-      .appendTo(buttonContainer)
-      .on("click", () => {
-        const modifying = this.$wrapper.attr("data-modifying") === "true";
-        this.$wrapper.attr("data-modifying", modifying ? "false" : "true");
-      });
-
     return buttonContainer;
   }
 
@@ -190,11 +173,6 @@ export default class DTextFormatter {
     }
 
     this.$textarea.trigger("input.dtext_formatter").focus();
-  }
-
-  buildButtonOverflow () {
-    return $("<div>")
-      .addClass("dtext-formatter-overflow");
   }
 
   buildPreviewArea () {

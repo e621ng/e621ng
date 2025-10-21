@@ -2,10 +2,10 @@
   display: grid;
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
-    "df-tabs    df-buttons df-overflow"
-    "df-input   df-input   df-overflow" 
-    "df-preview df-preview df-overflow"
-    "df-footer  df-footer  df-footer  ";
+    "df-tabs    df-buttons"
+    "df-input   df-input  " 
+    "df-preview df-preview"
+    "df-footer  df-footer ";
   
   max-width: 50rem;
   @include st-radius;
@@ -115,6 +115,7 @@
   grid-area: df-buttons;
   display: flex;
   align-items: center;
+
   gap: 0.25rem;
   padding: 0.25rem;
   overflow-x: hidden;
@@ -143,15 +144,6 @@
     border-left: 1px solid var(--color-text-muted);
   }
 }
-
-
-// Overflow
-.dtext-formatter-overflow {
-  grid-area: df-overflow;
-  display: none;
-  background: rgba(0,0,0,.2);
-}
-.dtext-formatter[data-modifying="true"] .dtext-formatter-overflow { display: block; }
 
 
 // Footer
