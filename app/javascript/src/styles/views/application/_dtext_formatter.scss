@@ -82,7 +82,7 @@
   grid-area: df-input;
 
   // Override global textarea styles
-  width: unset !important;
+  width: 100% !important;
   max-width: unset !important;
 }
 
@@ -93,6 +93,10 @@
   display: none;
 
   background: rgba(0,0,0,.1);
+  overflow-y: auto;
+  resize: both;
+  width: 100%  !important;
+  max-width: 50rem;
 
   &[loading="true"]::before {
     content: "Loading . . .";

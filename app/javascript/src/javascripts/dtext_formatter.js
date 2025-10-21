@@ -221,9 +221,13 @@ export default class DTextFormatter {
     if (!this._definedStates.includes(value)) return;
     this.$wrapper.attr("data-state", value);
 
-    if (value === "preview")
+    if (value === "preview") {
+      this.$preview.height(this.$textarea.height());
       this.updatePreview();
-    else this.$preview.attr("loading", "false");
+    } else {
+      this.$textarea.height(this.$preview.height());
+      this.$preview.attr("loading", "false");
+    }
   }
 
 
@@ -231,9 +235,6 @@ export default class DTextFormatter {
   _parsedInputCache = null;
   async updatePreview () {
     if (!this.$preview) return;
-
-    // Resize preview to match textarea height
-    this.$preview.height(this.$textarea.height());
 
     // The input is empty, reset everything
     const currentText = this.$textarea.val().trim();
