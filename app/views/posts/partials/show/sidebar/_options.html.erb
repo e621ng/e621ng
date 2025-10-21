@@ -1,5 +1,7 @@
 <ul>
   <% if CurrentUser.is_member? %>
+    <li><%= link_to "Edit", "#edit", id: "side-edit-link" %></li>
+    <li><%= link_to_if post.visible?, "Download", post.file_url %></li>
     <%# Add to Pool / Set %>
     <li id="add-to-pool-list"><%= link_to "Add to pool", "#", class: "add-to-pool" %></li>
     <li id="add-to-set-list"><%= link_to "Add to set", "#", class: "add-to-set" %></li>
