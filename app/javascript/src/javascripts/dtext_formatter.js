@@ -4,15 +4,15 @@ import TaskQueue from "./utility/task_queue";
 export default class DTextFormatter {
 
   static ButtonDefinitions = {
-    bold: { dtext: "[b]%content%[/b]", icon: "bold", title: "Bold" },
-    italic: { dtext: "[i]%content%[/i]", icon: "italic", title: "Italic" },
-    underline: { dtext: "[u]%content%[/u]", icon: "underline", title: "Underline" },
-    strikethrough: { dtext: "[s]%content%[/s]", icon: "strikethrough", title: "Strikethrough" },
+    bold: { dtext: "[b]%selection%[/b]", icon: "bold", title: "Bold" },
+    italic: { dtext: "[i]%selection%[/i]", icon: "italic", title: "Italic" },
+    underline: { dtext: "[u]%selection%[/u]", icon: "underline", title: "Underline" },
+    strikethrough: { dtext: "[s]%selection%[/s]", icon: "strikethrough", title: "Strikethrough" },
 
-    heading: { dtext: "h2. %content%", icon: "heading", title: "Heading" },
-    spoiler: { dtext: "[spoiler]%content%[/spoiler]", icon: "spoiler", title: "Spoiler" },
-    code: { dtext: "[code]%content%[/code]", icon: "code", title: "Code" },
-    quote: { dtext: "[quote]%content%[/quote]", icon: "quote", title: "Quote" },
+    heading: { dtext: "h2. %selection%", icon: "heading", title: "Heading" },
+    spoiler: { dtext: "[spoiler]%selection%[/spoiler]", icon: "spoiler", title: "Spoiler" },
+    code: { dtext: "[code]%selection%[/code]", icon: "code", title: "Code" },
+    quote: { dtext: "[quote]%selection%[/quote]", icon: "quote", title: "Quote" },
   };
 
   static ButtonOrder = [
@@ -154,14 +154,14 @@ export default class DTextFormatter {
     // Determine selected text
     const currentValue = this.$textarea.val();
     const selectedText = currentValue.substring(selectionStart, selectionEnd);
-    const dtextToInsert = dtextTemplate.replace("%content%", selectedText);
+    const dtextToInsert = dtextTemplate.replace("%selection%", selectedText);
 
     // Substitute new text content
     const newValue = currentValue.substring(0, selectionStart) + dtextToInsert + currentValue.substring(selectionEnd);
     this.$textarea.val(newValue);
 
     // Update cursor position with proper validation
-    const contentPlaceholderIndex = dtextTemplate.indexOf("%content%");
+    const contentPlaceholderIndex = dtextTemplate.indexOf("%selection%");
     if (contentPlaceholderIndex !== -1) {
       const contentStartPos = selectionStart + contentPlaceholderIndex;
       const contentEndPos = contentStartPos + selectedText.length;
@@ -188,7 +188,7 @@ export default class DTextFormatter {
     // Hint
     $("<span>")
       .addClass("dtext-formatter-hint")
-      .html('All text is formatted using <a href="/help/dtext" target="_blank" rel="noopener" tabindex="-1">DText</a>.')
+      .html('<a href="/help/dtext" target="_blank" rel="noopener" tabindex="-1">DText</a> formatting supported.')
       .appendTo(footer);
 
     // Character Counter
