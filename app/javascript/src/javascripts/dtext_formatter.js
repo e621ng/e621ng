@@ -46,12 +46,22 @@ export default class DTextFormatter {
 
   create () {
     if (this.created) return;
-    this.$wrapper.removeClass("pending");
 
-    this.buildTabButtons();
-    this.buildFormattingButtons();
-    this.buildPreviewArea();
-    this.buildCounterArea();
+    const tabContainer = this.buildTabButtons();
+    const buttonContainer = this.buildFormattingButtons();
+    const buttonOverflow = this.buildButtonOverflow();
+    const previewArea = this.buildPreviewArea();
+    const footer = this.buildCounterArea();
+
+    this.$wrapper
+      .append([
+        tabContainer,
+        buttonContainer,
+        buttonOverflow,
+        previewArea,
+        footer,
+      ])
+      .removeClass("pending");
 
     this.created = true;
   }
@@ -82,7 +92,6 @@ export default class DTextFormatter {
 
   buildTabButtons () {
     const tabContainer = $("<div>").addClass("dtext-formatter-tabs")
-      .appendTo(this.$wrapper)
       .on("click", "button.dtext-formatter-tab", (event) => {
         this.state = $(event.currentTarget).attr("action");
       });
@@ -97,12 +106,13 @@ export default class DTextFormatter {
         })
         .appendTo(tabContainer);
     }
+
+    return tabContainer;
   }
 
   buildFormattingButtons () {
     const buttonContainer = $("<div>")
       .addClass("dtext-formatter-buttons")
-      .appendTo(this.$wrapper)
       .on("click", "button.dtext-formatter-button", (event) => {
         this.handleFormattingButtonClick($(event.currentTarget));
       });
@@ -131,10 +141,21 @@ export default class DTextFormatter {
       $button.append(SVGIcon.render(definition.icon));
     }
 
-    // Button Overflow Area
-    $("<div>")
-      .addClass("dtext-formatter-overflow")
-      .appendTo(this.$wrapper);
+    $("<button>")
+      .addClass("dtext-formatter-more")
+      .attr({
+        "type": "button",
+        "title": "More",
+        "aria-label": "More formatting options",
+      })
+      .append(SVGIcon.render("menu"))
+      .appendTo(buttonContainer)
+      .on("click", () => {
+        const modifying = this.$wrapper.attr("data-modifying") === "true";
+        this.$wrapper.attr("data-modifying", modifying ? "false" : "true");
+      });
+
+    return buttonContainer;
   }
 
   handleFormattingButtonClick ($button) {
@@ -171,16 +192,20 @@ export default class DTextFormatter {
     this.$textarea.trigger("input.dtext_formatter").focus();
   }
 
+  buildButtonOverflow () {
+    return $("<div>")
+      .addClass("dtext-formatter-overflow");
+  }
+
   buildPreviewArea () {
     this.$preview = $("<div>")
-      .addClass("dtext-formatter-preview")
-      .appendTo(this.$wrapper);
+      .addClass("dtext-formatter-preview");
+    return this.$preview;
   }
 
   buildCounterArea () {
     const footer = $("<div>")
-      .addClass("dtext-formatter-footer")
-      .appendTo(this.$wrapper);
+      .addClass("dtext-formatter-footer");
 
     // Hint
     $("<span>")
@@ -203,6 +228,8 @@ export default class DTextFormatter {
 
     if (this.$textarea.val().length > 0)
       this.$textarea.trigger("input.dtext_formatter");
+
+    return footer;
   }
 
 
