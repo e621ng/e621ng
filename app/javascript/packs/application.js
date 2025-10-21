@@ -17,6 +17,7 @@ export { default as LStorage } from "../src/javascripts/utility/storage.js";
 export { default as TaskQueue } from "../src/javascripts/utility/task_queue.js";
 export { default as Hotkeys } from "../src/javascripts/hotkeys.js";
 export { default as Dialog } from "../src/javascripts/utility/dialog.js";
+export { default as SVGIcon } from "../src/javascripts/utility/svg_icon.js";
 
 // Models
 importAll(require.context("../src/javascripts/models", true, /\.js(\.erb)?$/));
