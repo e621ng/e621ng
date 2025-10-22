@@ -872,7 +872,7 @@ class User < ApplicationRecord
       end
 
       if params[:flair_color_hex].present?
-        q = q.where(flair_color_hex: params[:flair_color_hex])
+        q = q.where(flair_color: flair_hex_to_int(params[:flair_color_hex]))
       end
 
       if params[:email_matches].present?
@@ -1035,29 +1035,30 @@ class User < ApplicationRecord
     "##{format('%06x', flair_color)}"
   end
 
-  # Accepts a hex string like "#rrggbb" or "rrggbb", or an integer. Stores as integer.
-  def flair_color_hex=(val)
-    if val.blank?
-      self.flair_color = nil
-    elsif val.is_a?(Integer)
-      self.flair_color = val & 0xFFFFFF
+  # Accepts a hex string like "#rrggbb" or "rrggbb", or an integer, and converts it to an integer.
+  def flair_hex_to_int(hex)
+    if hex.blank?
+      nil
+    elsif hex.is_a?(Integer)
+      hex & 0xFFFFFF
     else
-      hex = val.to_s.strip
-      hex = hex[1..] if hex.start_with?("#")
+      str = hex.to_s.strip
+      str = str[1..] if str.start_with?("#")
 
       # Normalize 3-digit shorthand (e.g. "f0a" -> "ff00aa") and validate characters/length.
-      if hex.match?(/\A[0-9a-fA-F]{3}\z/)
-        hex = hex.chars.map { |c| c * 2 }.join
+      if str.match?(/\A[0-9a-fA-F]{3}\z/)
+        str = str.chars.map { |c| c * 2 }.join
       end
 
-      # Reject invalid input by clearing the flair_color; only allow 6 hex chars.
-      unless hex.match?(/\A[0-9a-fA-F]{6}\z/)
-        self.flair_color = nil
-        return
-      end
+      # Reject invalid input; only allow 6 hex chars.
+      return nil unless str.match?(/\A[0-9a-fA-F]{6}\z/)
 
-      self.flair_color = hex.to_i(16) & 0xFFFFFF
+      str.to_i(16) & 0xFFFFFF
     end
+  end
+
+  def flair_color_hex=(val)
+    self.flair_color = flair_hex_to_int(val)
   end
 
   # Returns an [r, g, b] array (0-255) for the stored flair_color, or nil if not set.
