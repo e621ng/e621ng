@@ -211,13 +211,6 @@ module ApplicationHelper
     end
   end
 
-  private
-
-  def replace_cross_domain_links(text)
-    current_domain = Danbooru.config.domain
-    text.gsub(%r{https://(?:e621\.net|e926\.net)(/static/)}, "https://#{current_domain}\\1")
-  end
-
   protected
 
   def nav_link_match(controller, url)
@@ -271,5 +264,12 @@ module ApplicationHelper
     else
       /^#{site_map_path}/
     end
+  end
+
+  private
+
+  def replace_cross_domain_links(text)
+    current_domain = Danbooru.config.domain
+    text.gsub(%r{https://(?:e621\.net|e926\.net)(/static/)}, "https://#{current_domain}\\1")
   end
 end
