@@ -108,11 +108,11 @@ class UsersController < ApplicationController
           flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join('; ')}"
         end
         set_current_user
+        respond_with(@user)
       else
         flash[:notice] = "Sign up failed"
         respond_with(@user)
       end
-      respond_with(@user)
     end
   rescue ::Mailgun::CommunicationError
     session[:user_id] = nil
@@ -170,7 +170,8 @@ class UsersController < ApplicationController
   end
 
   def search_params
-    permitted_params = %i[name_matches about_me avatar_id level min_level max_level can_upload_free can_approve_posts order flair_color_hex]
+    permitted_params = %i[name_matches about_me avatar_id level min_level max_level can_upload_free can_approve_posts order]
+    permitted_params += %i[flair_color_hex] if CurrentUser.is_staff?
     permitted_params += %i[ip_addr email_matches] if CurrentUser.is_admin?
     permit_search_params permitted_params
   end
