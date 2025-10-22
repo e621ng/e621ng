@@ -135,6 +135,38 @@ class PostFlagTest < ActiveSupport::TestCase
           assert_not_includes flag.errors[:note], "is required for the selected reason"
         end
       end
+
+      should "hide note from API for non-staff users" do
+        staff_user = create(:moderator_user)
+        regular_user = create(:user)
+        post = create(:post, uploader: staff_user)
+
+        flag = nil
+        as(regular_user) do
+          flag = create(:post_flag, post: post, note: "Secret note content")
+        end
+
+        # Staff users can see the note
+        as(staff_user) do
+          json = flag.as_json
+          assert_includes json.keys, "note"
+          assert_equal "Secret note content", json["note"]
+        end
+
+        # Creator can see their own note
+        as(regular_user) do
+          json = flag.as_json
+          assert_includes json.keys, "note"
+          assert_equal "Secret note content", json["note"]
+        end
+
+        # Other regular users cannot see the note
+        other_user = create(:user)
+        as(other_user) do
+          json = flag.as_json
+          assert_not_includes json.keys, "note"
+        end
+      end
     end
   end
 end

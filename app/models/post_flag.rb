@@ -87,6 +87,9 @@ class PostFlag < ApplicationRecord
       unless CurrentUser.can_view_flagger_on_post?(self)
         list += [:creator_id]
       end
+      unless can_see_note?
+        list += [:note]
+      end
       super + list
     end
 
