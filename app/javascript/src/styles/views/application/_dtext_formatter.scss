@@ -1,0 +1,166 @@
+.dtext-formatter {
+  display: grid;
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-areas:
+    "df-tabs    df-buttons"
+    "df-input   df-input  " 
+    "df-preview df-preview"
+    "df-footer  df-footer ";
+  
+  max-width: 50rem;
+  @include st-radius;
+
+  &.pending {
+    border-top: 2.25rem solid rgba(0,0,0,.2);
+    border-bottom: 1rem solid transparent;
+  }
+}
+
+
+// Tabs
+.dtext-formatter-tabs {
+  grid-area: df-tabs;
+
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem 0.25rem 0;
+
+  background: rgba(0,0,0,.2);
+  border-top-left-radius: 0.25rem;
+
+  button {
+    background: unset;
+    color: themed("color-text");
+    outline: none !important;
+
+    box-sizing: border-box;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem !important; // Gets overridden by form styles otherwise
+    line-height: 1rem;
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+
+    @include st-radius-top;
+
+    &:hover { background: themed("color-section-lighten-10") !important; }
+  }
+}
+.dtext-formatter {
+  .dtext-formatter-tabs button[action="write"] {
+    background: themed("color-section-lighten-5");
+    pointer-events: none;
+  }
+
+  &[data-state="preview"] {
+    .dtext-formatter-tabs button[action="write"] {
+      background: unset;
+      pointer-events: all;
+    }
+
+    .dtext-formatter-tabs button[action="preview"] {
+      background: themed("color-section-lighten-5");
+      pointer-events: none;
+    }
+  }
+}
+
+
+// Write / Preview
+.dtext-formatter-input,
+.dtext-formatter-preview {
+  box-sizing: border-box;
+  padding: 0.25rem;
+  min-height: 10rem;
+
+  border: 0;
+  outline: 0 !important;
+  @include st-radius-bottom;
+}
+
+
+// Write
+.dtext-formatter-input {
+  grid-area: df-input;
+
+  // Override global textarea styles
+  width: 100% !important;
+  max-width: unset !important;
+}
+
+
+// Preview
+.dtext-formatter-preview {
+  grid-area: df-preview;
+  display: none;
+
+  background: rgba(0,0,0,.1);
+  overflow-y: auto;
+  resize: both;
+  width: 100%  !important;
+  max-width: 50rem;
+
+  &[loading="true"]::before {
+    content: "Loading . . .";
+    display: flex;
+    margin: 1rem 1rem;
+
+    color: themed("color-text-muted");
+    font-size: 1rem;
+    line-height: 1rem;
+  }
+}
+.dtext-formatter[data-state="preview"] {
+  .dtext-formatter-input { display: none; }
+  .dtext-formatter-preview { display: block; }
+}
+
+
+// Buttons
+.dtext-formatter-buttons {
+  grid-area: df-buttons;
+  display: flex;
+  align-items: center;
+
+  gap: 0.25rem;
+  padding: 0.25rem;
+  overflow-x: hidden;
+
+  border-top-right-radius: 0.25rem;
+  background: rgba(0,0,0,.2);
+
+  button {
+    display: flex;
+    box-sizing: border-box;
+    height: min-content;
+    background: none;
+    color: #ffffffbb;
+    padding: 0.5rem;
+    @include st-radius;
+
+    &:hover { background: themed("color-section-lighten-10"); }
+    svg { margin: -0.25rem; }
+  }
+
+  .dtext-formatter-button-separator::before {
+    content: "";
+    display: flex;
+    height: 0.75rem;
+    margin: 0.25rem;
+    border-left: 1px solid var(--color-text-muted);
+  }
+}
+
+
+// Footer
+.dtext-formatter-footer {
+  grid-area: df-footer;
+
+  display: flex;
+  font-size: 0.75rem;
+  line-height: 1rem;
+
+  .dtext-formatter-hint { color: themed("color-text-muted"); }
+  .dtext-formatter-counter {
+    margin-left: auto;
+    font-family: monospace;
+  }
+}

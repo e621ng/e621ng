@@ -197,7 +197,9 @@
                     <label class="section-label" for="post_description">Description</label>
                 </div>
                 <div class="col2">
-                    <%= ApplicationController.new.render_to_string(partial: "dtext_input", locals: { limit: Danbooru.config.post_descr_max_size, textarea: '<textarea  class="dtext-formatter-input tag-textarea dtext" id="post_description" rows="10" v-model="description"></textarea>'.html_safe, allow_color: true }) %>
+                  <div class="dtext-formatter pending" data-state="write" data-allow-color="false" data-limit="50000">
+                    <textarea class="dtext required dtext-formatter-input" id="post_description" rows="10" v-model="description"></textarea>
+                  </div>
                 </div>
             </div>
             <div v-if="allowUploadAsPending" class="flex-grid border-bottom">
