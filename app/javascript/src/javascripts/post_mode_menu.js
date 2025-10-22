@@ -9,6 +9,7 @@ import LStorage from "./utility/storage";
 import TaskQueue from "./utility/task_queue";
 import PostVote from "./models/PostVote";
 import User from "./models/User";
+import Autocomplete from "./autocomplete";
 
 let PostModeMenu = {};
 
@@ -65,7 +66,9 @@ PostModeMenu.initialize_edit_form = function () {
     e.preventDefault();
   });
 
-  $("#quick-edit-form").on("submit.danbooru", function (e) {
+  $("#quick-edit-form").on("submit.danbooru", function (event) {
+    event.preventDefault();
+
     $.ajax({
       type: "put",
       url: $("#quick-edit-form").attr("action"),
@@ -84,7 +87,7 @@ PostModeMenu.initialize_edit_form = function () {
       },
     });
 
-    e.preventDefault();
+    return false;
   });
 };
 
@@ -92,7 +95,9 @@ PostModeMenu.close_edit_form = function () {
   Hotkeys.enabled = true;
   $("#quick-edit-div").slideUp("fast");
   if (Utility.meta("enable-auto-complete") === "true") {
-    $("#post_tag_string").data("uiAutocomplete").close();
+    const field = document.getElementById("post_tag_string");
+    const autocompleter = Autocomplete.instances.get(field);
+    if (autocompleter) autocompleter.close();
   }
 };
 
