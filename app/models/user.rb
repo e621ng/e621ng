@@ -3,7 +3,8 @@
 require "zxcvbn"
 
 class User < ApplicationRecord
-  class Error < Exception ; end
+  class Error < Exception; end
+
   class PrivilegeError < Exception
     attr_accessor :message
 
@@ -1052,8 +1053,8 @@ class User < ApplicationRecord
         prefix = str.split("*", 2).first
         return nil unless prefix.match?(/\A[0-9a-fA-F]{0,6}\z/)
 
-        min_str = prefix.ljust(6, '0')
-        max_str = prefix.ljust(6, 'f')
+        min_str = prefix.ljust(6, "0")
+        max_str = prefix.ljust(6, "f")
 
         min_val = min_str.to_i(16) & 0xFFFFFF
         max_val = max_str.to_i(16) & 0xFFFFFF
@@ -1074,7 +1075,7 @@ class User < ApplicationRecord
   end
 
   def flair_color_hex=(val)
-    converted = flair_hex_to_int(val)
+    converted = self.class.flair_hex_to_int(val)
     # Only assign exact integer values; ignore wildcard ranges in assignment contexts.
     if converted.is_a?(Integer) || converted.nil?
       self.flair_color = converted
