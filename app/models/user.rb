@@ -4,7 +4,6 @@ require "zxcvbn"
 
 class User < ApplicationRecord
   class Error < Exception ; end
-
   class PrivilegeError < Exception
     attr_accessor :message
 
