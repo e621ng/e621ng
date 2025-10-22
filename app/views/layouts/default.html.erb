@@ -32,7 +32,9 @@
     <%= yield :layout %>
   </div>
 
-  <%= render "static/tos_warning" %>
+  <% unless content_for?(:skip_tos_warning) %>
+    <%= render "static/tos_warning" %>
+  <% end %>
 
   <%= render "static/footer" %>
   <% if Danbooru.config.enable_visitor_metrics? %>

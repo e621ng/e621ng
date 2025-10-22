@@ -1,5 +1,7 @@
+<% content_for(:skip_tos_warning, true) %>
+
 <div id="c-static">
-  <div id="a-privacy">
+  <div id="a-code-of-conduct">
 
     <div class="dtext-container">
       <%= format_text(@page.body, allow_color: true) %>
@@ -13,8 +15,6 @@
   <% end %>
 <% end %>
 
-<% content_for(:skip_tos_warning, true) %>
-
 <% content_for(:page_title) do %>
-  Privacy Policy
+  Code of Conduct
 <% end %>
