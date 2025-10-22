@@ -494,8 +494,22 @@ class Autocompleter {
 
     Autocompleter.instances.add(this);
 
+    this.attachInput();
     this.createDropdown();
     this.bindEvents();
+  }
+
+  attachInput () {
+    this.originalAutocomplete = this.input.getAttribute("autocomplete");
+    this.input.setAttribute("autocomplete", "off");
+  }
+
+  detachInput () {
+    if (this.originalAutocomplete !== null) {
+      this.input.setAttribute("autocomplete", this.originalAutocomplete);
+    } else {
+      this.input.removeAttribute("autocomplete");
+    }
   }
 
   createDropdown () {
@@ -506,6 +520,12 @@ class Autocompleter {
     this.dropdown.setAttribute("aria-label", "Autocomplete results");
 
     document.body.appendChild(this.dropdown);
+  }
+
+  destroyDropdown () {
+    if (this.dropdown && this.dropdown.parentNode) {
+      this.dropdown.remove();
+    }
   }
 
   positionDropdown () {
@@ -534,6 +554,16 @@ class Autocompleter {
 
     this.dropdown.addEventListener("mousedown", this.handleDropdownMousedown);
     this.dropdown.addEventListener("click", this.handleDropdownClick);
+  }
+
+  unbindEvents () {
+    this.input.removeEventListener("input", this.handleInput);
+    this.input.removeEventListener("keydown", this.handleKeydown);
+    this.input.removeEventListener("blur", this.handleBlur);
+    this.input.removeEventListener("focus", this.handleFocus);
+
+    this.dropdown.removeEventListener("mousedown", this.handleDropdownMousedown);
+    this.dropdown.removeEventListener("click", this.handleDropdownClick);
   }
 
   handleInput () {
@@ -738,19 +768,11 @@ class Autocompleter {
     this.close();
     clearTimeout(this.debounceTimer);
 
-    this.input.removeEventListener("input", this.handleInput);
-    this.input.removeEventListener("keydown", this.handleKeydown);
-    this.input.removeEventListener("blur", this.handleBlur);
-    this.input.removeEventListener("focus", this.handleFocus);
-
-    this.dropdown.removeEventListener("mousedown", this.handleDropdownMousedown);
-    this.dropdown.removeEventListener("click", this.handleDropdownClick);
+    this.unbindEvents();
+    this.detachInput();
+    this.destroyDropdown();
 
     Autocompleter.instances.delete(this);
-
-    if (this.dropdown && this.dropdown.parentNode) {
-      this.dropdown.remove();
-    }
   }
 }
 
