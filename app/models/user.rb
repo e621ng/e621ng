@@ -1036,7 +1036,8 @@ class User < ApplicationRecord
   end
 
   # Accepts a hex string like "#rrggbb" or "rrggbb", or an integer, and converts it to an integer.
-  def flair_hex_to_int(hex)
+  # Also accepts a wildcard '*' in search contexts (e.g., "a1b*"), returning a Range for querying.
+  def self.flair_hex_to_int(hex)
     if hex.blank?
       nil
     elsif hex.is_a?(Integer)
@@ -1044,6 +1045,21 @@ class User < ApplicationRecord
     else
       str = hex.to_s.strip
       str = str[1..] if str.start_with?("#")
+
+      # Wildcard support for searches: treat '*' as a prefix wildcard and return a numeric Range.
+      # "*" => 0x000000..0xFFFFFF, "abc*" => 0xABC000..0xABCFFF, "ffff*" => 0xFFFF00..0xFFFFFF
+      if str.include?("*")
+        prefix = str.split("*", 2).first
+        return nil unless prefix.match?(/\A[0-9a-fA-F]{0,6}\z/)
+
+        min_str = prefix.ljust(6, '0')
+        max_str = prefix.ljust(6, 'f')
+
+        min_val = min_str.to_i(16) & 0xFFFFFF
+        max_val = max_str.to_i(16) & 0xFFFFFF
+
+        return (min_val..max_val)
+      end
 
       # Normalize 3-digit shorthand (e.g. "f0a" -> "ff00aa") and validate characters/length.
       if str.match?(/\A[0-9a-fA-F]{3}\z/)
@@ -1058,7 +1074,11 @@ class User < ApplicationRecord
   end
 
   def flair_color_hex=(val)
-    self.flair_color = flair_hex_to_int(val)
+    converted = flair_hex_to_int(val)
+    # Only assign exact integer values; ignore wildcard ranges in assignment contexts.
+    if converted.is_a?(Integer) || converted.nil?
+      self.flair_color = converted
+    end
   end
 
   # Returns an [r, g, b] array (0-255) for the stored flair_color, or nil if not set.
