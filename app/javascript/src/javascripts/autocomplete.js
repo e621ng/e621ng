@@ -494,8 +494,22 @@ class Autocompleter {
 
     Autocompleter.instances.add(this);
 
+    this.attachInput();
     this.createDropdown();
     this.bindEvents();
+  }
+
+  attachInput () {
+    this.originalAutocomplete = this.input.getAttribute("autocomplete");
+    this.input.setAttribute("autocomplete", "off");
+  }
+
+  detachInput () {
+    if (this.originalAutocomplete !== null) {
+      this.input.setAttribute("autocomplete", this.originalAutocomplete);
+    } else {
+      this.input.removeAttribute("autocomplete");
+    }
   }
 
   createDropdown () {
@@ -506,6 +520,12 @@ class Autocompleter {
     this.dropdown.setAttribute("aria-label", "Autocomplete results");
 
     document.body.appendChild(this.dropdown);
+  }
+
+  destroyDropdown () {
+    if (this.dropdown && this.dropdown.parentNode) {
+      this.dropdown.remove();
+    }
   }
 
   positionDropdown () {
@@ -536,6 +556,16 @@ class Autocompleter {
     this.dropdown.addEventListener("click", this.handleDropdownClick);
   }
 
+  unbindEvents () {
+    this.input.removeEventListener("input", this.handleInput);
+    this.input.removeEventListener("keydown", this.handleKeydown);
+    this.input.removeEventListener("blur", this.handleBlur);
+    this.input.removeEventListener("focus", this.handleFocus);
+
+    this.dropdown.removeEventListener("mousedown", this.handleDropdownMousedown);
+    this.dropdown.removeEventListener("click", this.handleDropdownClick);
+  }
+
   handleInput () {
     if (this.justSelected) {
       this.justSelected = false;
@@ -563,9 +593,9 @@ class Autocompleter {
         this.navigateUp();
         break;
       case "Enter":
-        event.preventDefault();
-        event.stopPropagation();
         if (this.selectedIndex >= 0) {
+          event.preventDefault();
+          event.stopPropagation();
           this.selectItem(this.results[this.selectedIndex]);
         }
         break;
@@ -574,9 +604,13 @@ class Autocompleter {
         this.close();
         break;
       case "Tab":
-        if (this.selectedIndex < 0 && this.results.length > 0) {
+        if (this.results.length > 0) {
           event.preventDefault();
-          this.selectItem(this.results[0]);
+          if (this.selectedIndex >= 0) {
+            this.selectItem(this.results[this.selectedIndex]);
+          } else {
+            this.selectItem(this.results[0]);
+          }
         }
         break;
     }
@@ -621,8 +655,14 @@ class Autocompleter {
 
       if (this.query !== currentQuery) return;
 
+      let newSelectedIndex = -1;
+      if (this.selectedIndex >= 0 && this.selectedIndex < this.results.length) {
+        const currentSelectedItem = this.results[this.selectedIndex];
+        newSelectedIndex = results.findIndex(item => item.name === currentSelectedItem.name);
+      }
+
       this.results = results;
-      this.selectedIndex = -1;
+      this.selectedIndex = newSelectedIndex;
       this.render();
 
       if (this.results.length > 0) {
@@ -728,19 +768,11 @@ class Autocompleter {
     this.close();
     clearTimeout(this.debounceTimer);
 
-    this.input.removeEventListener("input", this.handleInput);
-    this.input.removeEventListener("keydown", this.handleKeydown);
-    this.input.removeEventListener("blur", this.handleBlur);
-    this.input.removeEventListener("focus", this.handleFocus);
-
-    this.dropdown.removeEventListener("mousedown", this.handleDropdownMousedown);
-    this.dropdown.removeEventListener("click", this.handleDropdownClick);
+    this.unbindEvents();
+    this.detachInput();
+    this.destroyDropdown();
 
     Autocompleter.instances.delete(this);
-
-    if (this.dropdown && this.dropdown.parentNode) {
-      this.dropdown.remove();
-    }
   }
 }
 
