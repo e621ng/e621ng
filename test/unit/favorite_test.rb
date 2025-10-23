@@ -13,6 +13,12 @@ class FavoriteTest < ActiveSupport::TestCase
   end
 
   context "A favorite" do
+    should "be created" do
+      FavoriteManager.add!(user: @user1, post: @p1)
+      assert @p1.favorited_by?(@user1.id)
+      assert_equal(1, Favorite.count)
+    end
+
     should "delete from all tables" do
       FavoriteManager.add!(user: @user1, post: @p1)
       @user1.reload
@@ -51,6 +57,105 @@ class FavoriteTest < ActiveSupport::TestCase
       error = assert_raises(Favorite::Error) { FavoriteManager.add!(user: @user1, post: @p1) }
 
       assert_equal("You can only keep up to 0 favorites.", error.message)
+    end
+
+    should "handle remove when only fav_string entry exists" do
+      # Orphaned fav_string entry
+      @p1.append_user_to_fav_string(@user1.id)
+      @p1.save
+      assert @p1.favorited_by?(@user1.id)
+      assert_equal(0, Favorite.count)
+
+      # Cleanup
+      FavoriteManager.remove!(user: @user1, post: @p1)
+      @p1.reload
+
+      assert_not @p1.favorited_by?(@user1.id)
+      assert_equal(0, Favorite.count)
+    end
+
+    should "handle remove when only database record exists" do
+      # Orphaned database record
+      Favorite.create(user: @user1, post: @p1)
+      assert_not @p1.favorited_by?(@user1.id)
+      assert_equal(1, Favorite.count)
+
+      # Cleanup
+      FavoriteManager.remove!(user: @user1, post: @p1)
+
+      assert_not @p1.favorited_by?(@user1.id)
+      assert_equal(0, Favorite.count)
+    end
+
+    should "handle add when an orphaned database record exists" do
+      # Orphaned database record
+      Favorite.create(user: @user1, post: @p1)
+      @p1.reload
+      assert_not @p1.favorited_by?(@user1.id)
+      assert_equal(1, Favorite.count)
+
+      # Cleanup
+      assert_nothing_raised do
+        FavoriteManager.add!(user: @user1, post: @p1)
+      end
+
+      @p1.reload
+      assert @p1.favorited_by?(@user1.id)
+      assert_equal(1, Favorite.count)
+    end
+
+    should "handle hybrid approach for posts with many favorites" do
+      existing_favs = (1..1001).map { |i| "fav:#{i}" }.join(" ")
+      @p1.update_columns(fav_string: existing_favs, fav_count: 1001)
+
+      # Adding a favorite
+      FavoriteManager.add!(user: @user1, post: @p1)
+      @p1.reload
+
+      assert @p1.favorited_by?(@user1.id)
+      assert_equal(1, Favorite.count)
+      assert_equal(1002, @p1.fav_count)
+      assert_includes @p1.fav_string, "fav:#{@user1.id}"
+
+      # Removing the favorite
+      FavoriteManager.remove!(user: @user1, post: @p1)
+      @p1.reload
+
+      assert_not @p1.favorited_by?(@user1.id)
+      assert_equal(0, Favorite.count)
+      assert_equal(1001, @p1.fav_count)
+      assert_not_includes @p1.fav_string, "fav:#{@user1.id}"
+
+      # Verify original favorites
+      assert_includes @p1.fav_string, "fav:1"
+      assert_includes @p1.fav_string, "fav:1001"
+    end
+
+    should "handle hybrid approach for posts with few favorites" do
+      existing_favs = (1..500).map { |i| "fav:#{i}" }.join(" ")
+      @p1.update_columns(fav_string: existing_favs, fav_count: 500)
+
+      # Adding a favorite
+      FavoriteManager.add!(user: @user1, post: @p1)
+      @p1.reload
+
+      assert @p1.favorited_by?(@user1.id)
+      assert_equal(1, Favorite.count)
+      assert_equal(501, @p1.fav_count)
+      assert_includes @p1.fav_string, "fav:#{@user1.id}"
+
+      # Removing the favorite
+      FavoriteManager.remove!(user: @user1, post: @p1)
+      @p1.reload
+
+      assert_not @p1.favorited_by?(@user1.id)
+      assert_equal(0, Favorite.count)
+      assert_equal(500, @p1.fav_count)
+      assert_not_includes @p1.fav_string, "fav:#{@user1.id}"
+
+      # Verify original favorites
+      assert_includes @p1.fav_string, "fav:1"
+      assert_includes @p1.fav_string, "fav:500"
     end
   end
 end

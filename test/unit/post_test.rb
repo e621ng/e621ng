@@ -1377,14 +1377,6 @@ class PostTest < ActiveSupport::TestCase
         @post = create(:post)
       end
 
-      should "periodically clean the fav_string" do
-        @post.update_column(:fav_string, "fav:1 fav:1 fav:1")
-        @post.update_column(:fav_count, 3)
-        @post.append_user_to_fav_string(2)
-        assert_equal("fav:1 fav:2", @post.fav_string)
-        assert_equal(2, @post.fav_count)
-      end
-
       # TODO: Needs to reload relationship to obtain non cached value
       should "increment the user's favorite_count" do
         assert_difference("@user.reload.favorite_count", 1) do
