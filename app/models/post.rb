@@ -1124,7 +1124,7 @@ class Post < ApplicationRecord
       !!(fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/)
     end
 
-    alias is_favorited? favorited_by?
+    alias_method :is_favorited?, :favorited_by?
 
     def append_user_to_fav_string(user_id)
       # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
