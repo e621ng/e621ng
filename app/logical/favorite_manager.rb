@@ -36,7 +36,7 @@ class FavoriteManager
       Favorite.transaction(**ISOLATION) do
         raise Favorite::Error, "You have already favorited this post" if post.favorited_by?(user.id)
 
-        # Handle orphaned fav_string entry
+        # Handle an orphaned favorite record
         post.append_user_to_fav_string(user.id)
         post.do_not_version_changes = true
         raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
