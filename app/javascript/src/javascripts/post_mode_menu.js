@@ -222,7 +222,7 @@ PostModeMenu.click = function (e) {
   } else if (s === "lock-note") {
     Post.update(post_id, {"post[is_note_locked]": "1"});
   } else if (s === "delete") {
-    Post.delete_with_reason(post_id, $("#quick-mode-reason").val(), false);
+    Post.delete_with_reason(post_id, $("#quick-mode-reason").val());
   } else if (s === "undelete") {
     Post.undelete(post_id);
   } else if (s === "unflag") {
