@@ -68,28 +68,4 @@ class FavoriteManager
       raise e
     end
   end
-
-  # Transfers all favorites from a post to its parent post.
-  def self.give_to_parent!(post)
-    # TODO: Much better and more intelligent logic can exist for this
-    parent = post.parent
-    return false unless parent
-    post.favorites.each do |fav|
-      tries = 5
-      begin
-        FavoriteManager.remove!(user: fav.user, post: post)
-        FavoriteManager.add!(user: fav.user, post: parent, force: true)
-      rescue ActiveRecord::SerializationFailure
-        tries -= 1
-        if tries > 0
-          retry
-        else
-          Rails.logger.warn("Failed to transfer favorite from post #{post.id} to parent #{parent.id} for user #{fav.user.id}")
-        end
-      rescue Favorite::Error => e
-        Rails.logger.warn("Failed to transfer favorite from post #{post.id} to parent #{parent.id} for user #{fav.user.id}: #{e.message}")
-      end
-    end
-    true
-  end
 end
