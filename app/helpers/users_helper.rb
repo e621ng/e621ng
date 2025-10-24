@@ -40,6 +40,14 @@ module UsersHelper
     end
   end
 
+  def user_bd_staff_badge(user)
+    return unless user.is_bd_staff?
+
+    tag.span(class: "level-badge") do
+      "BD STAFF"
+    end
+  end
+
   def user_feedback_badge(user)
     return if user.nil?
 
