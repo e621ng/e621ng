@@ -59,14 +59,11 @@ $(function () {
   $(document).on("click.danbooru", ".quick-mod .detailed-rejection-link", ModQueue.detailed_rejection_dialog);
 
 
-  $(".delete-with-reason-link").on("click", function (e) {
-    e.preventDefault();
-    const post_id = $(e.target).attr("data-post-id");
-    const prompt = $(e.target).data("prompt");
-    const reason = $(e.target).data("reason");
-
-    if (confirm(`Delete post for ${prompt}?`))
-      Post.delete_with_reason(post_id, reason, true);
+  $(".delete-with-reason-link").on("click", function (event) {
+    event.preventDefault();
+    const data = event.target.dataset;
+    if (!confirm(`Delete post for ${data.prompt}?`)) return;
+    Post.delete_with_reason(data.postId, data.reason, { reload_after_delete: true, move_favorites: data.moveFavs === "true" });
   });
 });
 

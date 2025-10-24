@@ -1373,14 +1373,6 @@ class Post < ApplicationRecord
       TransferFavoritesJob.perform_later(id, CurrentUser.id)
     end
 
-    def give_favorites_to_parent!
-      return if parent.nil?
-
-      FavoriteManager.give_to_parent!(self)
-      PostEvent.add(id, CurrentUser.user, :favorites_moved, { parent_id: parent_id })
-      PostEvent.add(parent_id, CurrentUser.user, :favorites_received, { child_id: id })
-    end
-
     def parent_exists?
       Post.exists?(parent_id)
     end
@@ -1960,6 +1952,7 @@ class Post < ApplicationRecord
     _has_cropped
     hide_from_anonymous
     hide_from_search_engines
+    favorites_transfer_in_progress
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
