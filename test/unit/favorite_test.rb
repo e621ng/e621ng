@@ -105,12 +105,16 @@ class FavoriteTest < ActiveSupport::TestCase
     end
 
     should "handle hybrid approach for posts with many favorites" do
-      existing_favs = (1..1001).map { |i| "fav:#{i}" }.join(" ")
+      # Set a range that is guaranteed to not include any test user IDs
+      max_user_id = [@user1.id, @user2.id].max
+      start_id = max_user_id + 1000
+      existing_favs = (start_id..(start_id + 1000)).map { |i| "fav:#{i}" }.join(" ")
       @p1.update_columns(fav_string: existing_favs, fav_count: 1001)
+      @p1.reload
 
       # Adding a favorite
       FavoriteManager.add!(user: @user1, post: @p1)
-      @p1.reload
+      @p1 = Post.find(@p1.id) # Force a database round-trip
 
       assert @p1.favorited_by?(@user1.id)
       assert_equal(1, Favorite.count)
@@ -127,17 +131,22 @@ class FavoriteTest < ActiveSupport::TestCase
       assert_not_includes @p1.fav_string, "fav:#{@user1.id}"
 
       # Verify original favorites
-      assert_includes @p1.fav_string, "fav:1"
-      assert_includes @p1.fav_string, "fav:1001"
+      assert_includes @p1.fav_string, "fav:#{start_id}"
+      assert_includes @p1.fav_string, "fav:#{start_id + 1000}"
     end
 
     should "handle hybrid approach for posts with few favorites" do
-      existing_favs = (1..500).map { |i| "fav:#{i}" }.join(" ")
+      # Set a range that is guaranteed to not include any test user IDs
+      max_user_id = [@user1.id, @user2.id].max
+      start_id = max_user_id + 1000
+      existing_favs = (start_id..(start_id + 499)).map { |i| "fav:#{i}" }.join(" ")
       @p1.update_columns(fav_string: existing_favs, fav_count: 500)
+      @p1.reload
 
       # Adding a favorite
       FavoriteManager.add!(user: @user1, post: @p1)
       @p1.reload
+      @p1 = Post.find(@p1.id) # Force a database round-trip
 
       assert @p1.favorited_by?(@user1.id)
       assert_equal(1, Favorite.count)
@@ -153,9 +162,9 @@ class FavoriteTest < ActiveSupport::TestCase
       assert_equal(500, @p1.fav_count)
       assert_not_includes @p1.fav_string, "fav:#{@user1.id}"
 
-      # Verify original favorites
-      assert_includes @p1.fav_string, "fav:1"
-      assert_includes @p1.fav_string, "fav:500"
+      # Verify original favorites are still there
+      assert_includes @p1.fav_string, "fav:#{start_id}"
+      assert_includes @p1.fav_string, "fav:#{start_id + 499}"
     end
   end
 end
