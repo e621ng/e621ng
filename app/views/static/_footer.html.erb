@@ -4,9 +4,9 @@
       <a href="/"><%= image_pack_tag("static/default.svg") %></a>
     </span>
     <span class="footer-left">
-      <%= link_to "Terms of Use", terms_of_use_path %>
+      <%= link_to "Terms of Use", terms_of_use_path, rel: "terms-of-service" %>
       <%= link_to "Takedowns", takedown_static_path %>
-      <%= link_to "Privacy", privacy_policy_path %>
+      <%= link_to "Privacy", privacy_policy_path, rel: "privacy-policy" %>
       <%= link_to "Contact", contact_path %>
       <%= link_to "Advertising", help_page_path(id: "advertising") %>
     </span>
