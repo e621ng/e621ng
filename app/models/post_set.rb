@@ -236,29 +236,42 @@ class PostSet < ApplicationRecord
     def process_posts_add!(ids)
       ids = ids.map(&:to_i).uniq
 
-      # Fast path for single id: one atomic UPDATE.
+      # Fast path for single id: split into smaller, faster queries
       if ids.length == 1
         pid = ids.first
         return [] unless Post.where(id: pid).exists?
 
         max = max_posts
-        updated = PostSet
-                  .where(id: id)
-                  .where("post_count < ? AND NOT (post_ids @> ARRAY[?]::integer[])", max, pid)
-                  .update_all([
-                    "post_ids = array_append(post_ids, ?), post_count = post_count + 1, updated_at = ?",
-                    pid,
-                    Time.zone.now,
-                  ])
+        return [] if post_count >= max
 
-        return updated.to_i > 0 ? [pid] : []
+        # Increase timeout for large sets where array operations may be slow
+        conn = PostSet.connection
+        conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
+
+        # Use the same connection for all queries to ensure timeout applies
+        already_contains_sql = "SELECT 1 FROM post_sets WHERE id = #{id} AND post_ids @> ARRAY[#{pid}]::integer[] LIMIT 1"
+        already_contains = conn.execute(already_contains_sql).any?
+        return [] if already_contains
+
+        update_sql = <<~SQL.squish
+          UPDATE post_sets
+          SET post_ids = array_append(post_ids, #{pid}),
+              post_count = post_count + 1,
+              updated_at = '#{Time.zone.now.to_fs(:db)}'
+          WHERE id = #{id}
+        SQL
+        result = conn.execute(update_sql)
+
+        return result.cmd_tuples > 0 ? [pid] : []
       end
 
-      # Slower path: multiple IDs to process atomically and return the actual added ids.
+      # Slower path for multiple ids: process the diff in the database
       valid_ids = Post.where(id: ids).pluck(:id)
       return [] if valid_ids.empty?
 
       conn = PostSet.connection
+      conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
+
       now = conn.quote(Time.zone.now)
       max = max_posts.to_i
       sql = <<~SQL.squish
@@ -338,19 +351,31 @@ class PostSet < ApplicationRecord
       # Fast path for single id: one atomic UPDATE.
       if ids.length == 1
         pid = ids.first
-        updated = PostSet
-                  .where(id: id)
-                  .where("post_ids @> ARRAY[?]::integer[]", pid)
-                  .update_all([
-                    "post_ids = array_remove(post_ids, ?), post_count = post_count - 1, updated_at = ?",
-                    pid,
-                    Time.zone.now,
-                  ])
-        return updated.to_i > 0 ? [pid] : []
+
+        # Increase timeout for large sets where array operations may be slow
+        conn = PostSet.connection
+        conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
+
+        # Use the same connection for timeout consistency
+        contains_sql = "SELECT 1 FROM post_sets WHERE id = #{id} AND post_ids @> ARRAY[#{pid}]::integer[] LIMIT 1"
+        contains = conn.execute(contains_sql).any?
+        return [] unless contains
+
+        update_sql = <<~SQL.squish
+          UPDATE post_sets
+          SET post_ids = array_remove(post_ids, #{pid}),
+              post_count = post_count - 1,
+              updated_at = '#{Time.zone.now.to_fs(:db)}'
+          WHERE id = #{id}
+        SQL
+        result = conn.execute(update_sql)
+
+        return result.cmd_tuples > 0 ? [pid] : []
       end
 
       # Slower path: multiple IDs to process atomically and return the actual removed ids.
       conn = PostSet.connection
+      conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
       now = conn.quote(Time.zone.now)
       sql = <<~SQL.squish
         WITH input AS (
