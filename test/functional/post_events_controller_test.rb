@@ -33,24 +33,24 @@ class PostEventsControllerTest < ActionDispatch::IntegrationTest
   context "searching" do
     should "only return your own flags as a normal  user" do
       get_auth post_events_path(search: { creator_id: @user1.id }), @user1
-      assert_select "table tbody tr", 1
+      assert_select ".post-events-listing .post-events-list-items .post-event-item", 1
       get_auth post_events_path(search: { creator_id: @user1.id }), @user2
-      assert_select "table tbody tr", 0
+      assert_select ".post-events-listing .post-events-list-items .post-event-item", 0
     end
 
     should "hide the creator for flags" do
       get_auth post_events_path(search: { action: "flag_created" }), @user1
-      assert_select "table tbody tr", 3
-      assert_select "table tbody tr", { count: 2, text: /hidden/ }
+      assert_select ".post-events-listing .post-events-list-items .post-event-item", 3
+      assert_select ".post-events-listing .post-events-list-items .post-event-item", { count: 2, text: /hidden/ }
       get_auth post_events_path(search: { action: "flag_created" }), @user3
-      assert_select "table tbody tr", { count: 3, text: /hidden/ }
+      assert_select ".post-events-listing .post-events-list-items .post-event-item", { count: 3, text: /hidden/ }
     end
 
     should "show everything for janitors" do
       get_auth post_events_path(search: { creator_id: @user2.id }), @janitor
-      assert_select "table tbody tr", 2
+      assert_select ".post-events-listing .post-events-list-items .post-event-item", 2
       get_auth post_events_path(search: { action: "flag_created" }), @janitor
-      assert_select "table tbody tr", { count: 0, text: /hidden/ }
+      assert_select ".post-events-listing .post-events-list-items .post-event-item", { count: 0, text: /hidden/ }
     end
   end
 

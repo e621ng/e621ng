@@ -9,7 +9,7 @@ class PostFlag < ApplicationRecord
 
   belongs_to_creator :class_name => "User"
   user_status_counter :post_flag_count
-  belongs_to :post
+  belongs_to :post, optional: true
   validate :validate_creator_is_not_limited, on: :create
   validate :validate_post
   validate :validate_reason, on: :create
@@ -28,6 +28,7 @@ class PostFlag < ApplicationRecord
   attr_accessor :parent_id, :reason_name, :force_flag
 
   module SearchMethods
+    # TODO: ensure safe_post isn't a problem here.
     def post_tags_match(query)
       where(post_id: Post.tag_match_sql(query))
     end
@@ -203,11 +204,66 @@ class PostFlag < ApplicationRecord
 
   def create_post_event
     # Deletions also create flags, but they create a deletion event instead
-    PostEvent.add(post.id, CurrentUser.user, :flag_created, { reason: reason }) unless is_deletion
+    PostEvent.add(post.id, CurrentUser.user, :flag_created, { flag_id: id }) unless is_deletion
   end
 
   def can_see_note?(user = CurrentUser.user)
     return true if user.is_staff?
     creator_id == user.id
+  end
+
+  class NullPost
+    attr_reader :id
+
+    def initialize(id)
+      @id = id
+    end
+
+    # Invent data since it no longer exists
+    def created_at
+      Time.at(0)
+    end
+
+    def uploader
+      User.system
+    end
+
+    def approver
+      nil
+    end
+
+    def flags
+      PostFlag.where(post_id: id)
+    end
+
+    # Tell PostDecorator not to render anything, since it doesn't exist
+    def is_deleted?
+      true
+    end
+
+    def loginblocked?
+      true
+    end
+
+    def safeblocked?
+      true
+    end
+  end
+
+  # Returns the associated post or a safe null-proxy preserving post_id.
+  def safe_post
+    post || NullPost.new(post_id)
+  end
+
+  # Count flags for the stored post_id even if Post record is gone.
+  def post_flags_count
+    PostFlag.where(post_id: post_id).count
+  end
+
+  # Hide certain flags from non-staff
+  def is_viewable?
+    return true unless post.nil?
+    return false unless CurrentUser.is_staff?
+    true
   end
 end
