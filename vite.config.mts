@@ -19,6 +19,10 @@ export default defineConfig({
     }),
   ],
   publicDir: false, // Rails handles this
+  build: {
+    // This would inline small assets, but ruins css variables.
+    assetsInlineLimit: 0,
+  },
   css: {
     preprocessorOptions: {
       scss: {
