@@ -60,27 +60,72 @@ def populate_users(number, password: DEFAULT_PASSWORD)
   puts "* Creating #{number} users\n  This may take some time."
 
   output = []
+  batch_size = 100
 
-  number.times do
-    user_name = generate_username
-    puts "  - #{user_name}"
-    user_obj = User.create do |user|
-      user.name = user_name
-      user.password = password
-      user.password_confirmation = password
-      user.email = "#{user_name}@e621.local"
-      user.level = User::Levels::MEMBER
-      user.created_at = Faker::Date.between(from: "2007-02-10", to: 2.weeks.ago)
+  encrypted_password = User.bcrypt(password)
+  existing_names = Set.new(User.pluck(:name))
+  usernames = []
 
-      user.profile_about = Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false) if Faker::Boolean.boolean(true_ratio: 0.2)
-      user.profile_artinfo = Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false) if Faker::Boolean.boolean(true_ratio: 0.2)
+  puts "  Generating #{number} unique usernames..."
+  while usernames.length < number
+    candidate = generate_username_candidate
+    next if existing_names.include?(candidate) || usernames.include?(candidate)
+    usernames << candidate
+    existing_names << candidate # Track locally to avoid duplicates in this batch
+  end
+
+  # Process users in batches
+  usernames.each_slice(batch_size) do |batch_usernames| # rubocop:disable Metrics/BlockLength
+    puts "  Creating batch of #{batch_usernames.size} users..."
+
+    batch_users = batch_usernames.map do |user_name|
+      created_at = Faker::Date.between(from: "2007-02-10", to: 2.weeks.ago)
+      has_about = Faker::Boolean.boolean(true_ratio: 0.2)
+      has_artinfo = Faker::Boolean.boolean(true_ratio: 0.2)
+
+      {
+        name: user_name,
+        password_hash: "", # Required NOT NULL, but should be empty for bcrypt
+        bcrypt_password_hash: encrypted_password,
+        email: "#{user_name}@e621.local",
+        created_at: created_at,
+        updated_at: created_at,
+        last_ip_addr: "127.0.0.1",
+        profile_about: has_about ? Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false) : "",
+        profile_artinfo: has_artinfo ? Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false) : "",
+      }
     end
 
-    if user_obj.errors.empty?
-      output << user_obj
-      puts "    user ##{user_obj.id}"
-    else
-      puts "    error: #{user_obj.errors.full_messages.join('; ')}"
+    begin
+      result = User.insert_all(batch_users, returning: %i[id name])
+
+      user_status_records = result.rows.map do |row|
+        user_id = row[0]
+        now = Time.current
+        {
+          user_id: user_id,
+          created_at: now,
+          updated_at: now,
+        }
+      end
+
+      UserStatus.insert_all(user_status_records) if user_status_records.any?
+
+      result.rows.each do |row|
+        user = User.find(row[0]) # Load the full user object from database
+        output << user
+        puts "    user ##{row[0]} (#{row[1]})"
+      end
+    rescue StandardError => e
+      puts "    error in batch: #{e.message}"
+      # Fall back to individual creation
+      batch_users.each do |user_attrs|
+        user = User.create!(user_attrs.except(:password_hash, :bcrypt_password_hash).merge(password: password, password_confirmation: password))
+        output << user
+        puts "    user ##{user.id} (#{user.name}) - individual"
+      rescue StandardError => user_error
+        puts "    error: #{user_error.message}"
+      end
     end
   end
 
@@ -89,17 +134,20 @@ end
 
 def generate_username
   loop do
-    @username = [
-      Faker::Adjective.positive.split.each(&:capitalize!),
-      Faker::Creature::Animal.name.split.each(&:capitalize!),
-    ].concat.join("_")
-
+    @username = generate_username_candidate
     next unless @username.length >= 3 && @username.length <= 20
     next unless User.find_by(name: @username).nil?
     break
   end
 
   @username
+end
+
+def generate_username_candidate
+  [
+    Faker::Adjective.positive.split.each(&:capitalize!),
+    Faker::Creature::Animal.name.split.each(&:capitalize!),
+  ].concat.join("_")
 end
 
 def populate_posts(number, search: "order:random+score:>150+-grandfathered_content", users: [], batch_size: 320)
@@ -226,21 +274,96 @@ def populate_favorites(number, users: [])
   puts "* Creating #{number} favorites"
 
   users = User.limit(DISTRIBUTION).order("random()") if users.empty?
+  posts = Post.limit([number, 1000].min).order("random()") # Limit posts to avoid too many random queries
+
+  batch_size = 500
+  favorites_data = []
+  post_fav_updates = Hash.new { |h, k| h[k] = [] } # post_id => [user_ids]
+
+  # Generate all favorite combinations upfront
+  puts "  Generating #{number} unique user-post combinations..."
 
   number.times do |index|
-    CurrentUser.user = users[index % DISTRIBUTION]
-    post = Post.order("random()").first
-    puts "  - ##{post.id} faved by #{CurrentUser.user.name}"
+    user = users[index % DISTRIBUTION]
+    post = posts.sample
 
+    # Check for duplicates in this batch
+    next if favorites_data.any? { |fav| fav[:user_id] == user.id && fav[:post_id] == post.id }
+
+    favorites_data << {
+      user_id: user.id,
+      post_id: post.id,
+      created_at: Time.current,
+    }
+
+    post_fav_updates[post.id] << user.id
+  end
+
+  puts "  Creating #{favorites_data.size} favorites in batches..."
+
+  # Process favorites in batches
+  favorites_data.each_slice(batch_size) do |batch_favorites| # rubocop:disable Metrics/BlockLength
     begin
-      Favorite.create do |fav|
-        fav.user = CurrentUser.user
-        fav.post = post
+      # Create favorites in bulk
+      if Favorite.respond_to?(:insert_all)
+        result = Favorite.insert_all(batch_favorites, returning: %i[id user_id post_id])
+        puts "    Created batch of #{result.rows.size} favorites"
+      else
+        # Fallback for older Rails versions
+        batch_favorites.each do |fav_attrs|
+          Favorite.create!(fav_attrs)
+        end
+        puts "    Created batch of #{batch_favorites.size} favorites (individual)"
       end
-    rescue StandardError
-      puts "    Favorite already exists"
+    rescue StandardError => e
+      puts "    Error in batch creation: #{e.message}"
+      # Fall back to individual creation with duplicate checking
+      batch_favorites.each do |fav_attrs|
+        user = User.find(fav_attrs[:user_id])
+        post = Post.find(fav_attrs[:post_id])
+        FavoriteManager.add!(user: user, post: post)
+        puts "    - ##{post.id} faved by #{user.name} (individual)"
+      rescue Favorite::Error => fav_error
+        puts "    - Error: #{fav_error.message}"
+      rescue StandardError => other_error
+        puts "    - Error: #{other_error.message}"
+      end
+      next # Skip bulk post updates for this batch since we used FavoriteManager
+    end
+
+    # Update post fav_strings and fav_counts for this batch
+    batch_post_ids = batch_favorites.pluck(:post_id).uniq
+    batch_post_ids.each do |post_id|
+      user_ids = post_fav_updates[post_id]
+      next if user_ids.empty?
+
+      post = Post.find(post_id)
+      current_fav_string = post.fav_string || ""
+      current_fav_parts = current_fav_string.split
+      new_fav_parts = user_ids.map { |user_id| "fav:#{user_id}" }
+      all_fav_parts = (current_fav_parts + new_fav_parts).uniq
+
+      post.update_columns(
+        fav_string: all_fav_parts.join(" "),
+        fav_count: all_fav_parts.size,
+        updated_at: Time.current,
+      )
+
+      puts "    Updated post ##{post_id} fav_string (#{user_ids.size} new favs)"
+    end
+
+    # Update user favorite counts
+    user_counts = batch_favorites.group_by { |fav| fav[:user_id] }
+                                 .transform_values(&:size)
+
+    user_counts.each do |user_id, count|
+      UserStatus.where(user_id: user_id).update_all(
+        "favorite_count = favorite_count + #{count}",
+      )
     end
   end
+
+  puts "  Completed creating favorites"
 end
 
 def populate_forums(number, users: [])

@@ -202,7 +202,17 @@ module ApplicationHelper
     end
   end
 
-protected
+  def tos_content
+    Cache.fetch("tos_content", expires_in: 1.day) do
+      wiki = WikiPage.titled("e621:terms_of_service")
+      return "Terms of use not found." if wiki.nil?
+      processed_body = replace_cross_domain_links(wiki.body)
+      format_text(processed_body, allow_color: true)
+    end
+  end
+
+  protected
+
   def nav_link_match(controller, url)
     # Static routes must match completely
     return url == request.path if controller == "static"
@@ -254,5 +264,12 @@ protected
     else
       /^#{site_map_path}/
     end
+  end
+
+  private
+
+  def replace_cross_domain_links(text)
+    current_domain = Danbooru.config.domain
+    text.gsub(%r{https://(?:e621\.net|e926\.net)(/static/)}, "https://#{current_domain}\\1")
   end
 end

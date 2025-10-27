@@ -7,13 +7,17 @@
   <%= render "layouts/theme_include" %>
   <%= render "layouts/nav" %>
 
-  <% if CurrentUser.is_anonymous? %>
-    <%= render "static/guest_warning" %>
-  <% end %>
-
   <div id="page">
+    <%# Notification Toasts %>
+    <div class="ui-corner-all ui-state-highlight" id="notice" style="<%= "display: none;" unless flash[:notice] %>">
+      <span><%= format_text(flash[:notice], inline: true) %>.</span>
+      <a href="#" id="close-notice-link">close</a>
+    </div>
+
     <%= yield :layout %>
   </div>
+
+  <%= render "static/tos_warning" %>
 
   <% if Danbooru.config.fsc_modal_enabled? %>
     <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js"></script>

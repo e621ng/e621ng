@@ -1,8 +1,10 @@
+<% content_for(:skip_tos_warning, true) %>
+
 <div id="c-static">
-  <div id="a-terms-of-service">
+  <div id="a-code-of-conduct">
 
     <div class="dtext-container">
-    <%= format_text(@page.body, allow_color: true) %>
+      <%= format_text(@page.body, allow_color: true) %>
     </div>
   </div>
 </div>
@@ -14,5 +16,5 @@
 <% end %>
 
 <% content_for(:page_title) do %>
-  Rules
+  Code of Conduct
 <% end %>

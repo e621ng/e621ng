@@ -36,6 +36,7 @@ Rails.application.routes.draw do
         put :enact
         put :uploads_min_level
         put :uploads_hide_pending
+        put :maintenance
       end
     end
   end
@@ -64,6 +65,7 @@ Rails.application.routes.draw do
           post :unban
           post :regenerate_thumbnails
           post :regenerate_videos
+          get :ai_check
         end
       end
     end
@@ -226,7 +228,9 @@ Rails.application.routes.draw do
     end
     resource :order, only: %i[edit], controller: "pool_orders"
   end
-  resource :pool_element, only: %i[create destroy]
+  resource :pool_element, only: %i[create destroy] do
+    get :recent, on: :collection
+  end
   resources :pool_versions, only: %i[index] do
     member do
       get :diff
@@ -383,6 +387,14 @@ Rails.application.routes.draw do
   end
   resources :mascots, only: %i[index new create edit update destroy]
 
+  resource :terms_of_use, only: %i[show] do
+    collection do
+      post :accept
+      post :clear_cache
+      post :bump_version
+    end
+  end
+
   options "*all", to: "application#enable_cors"
 
   # aliases
@@ -480,8 +492,9 @@ Rails.application.routes.draw do
   get "/static/keyboard_shortcuts" => "static#keyboard_shortcuts", :as => "keyboard_shortcuts"
   get "/static/site_map" => "static#site_map", :as => "site_map"
   get "/static/privacy" => "static#privacy", as: "privacy_policy"
+  get "/static/code_of_conduct" => "static#code_of_conduct", as: "code_of_conduct"
   get "/static/takedown" => "static#takedown", as: "takedown_static"
-  get "/static/terms_of_service" => "static#terms_of_service", :as => "terms_of_service"
+  get "/static/terms_of_service" => redirect("/terms_of_use")
   get "/static/contact" => "static#contact", :as => "contact"
   get "/static/discord" => "static#discord", as: "discord_get"
   post "/static/discord" => "static#discord", as: "discord_post"

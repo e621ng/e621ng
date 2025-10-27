@@ -16,6 +16,10 @@ body.c-posts.a-show-seq {
   #image-resize-notice {
     margin-bottom: 0;
   }
+
+  @import "partials/detailed_rejection";
+  @import "partials/add_to_pool";
+  @import "partials/notes";
 }
 
 // Due to the show-seq page having a different action,

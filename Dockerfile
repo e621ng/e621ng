@@ -1,8 +1,9 @@
 FROM ruby:3.3.1-alpine3.20 AS ruby-builder
 
-RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat
+RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat ragel
 
 COPY Gemfile Gemfile.lock ./
+
 RUN gem i foreman && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
  && rm -rf /usr/local/bundle/cache/*.gem \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
@@ -19,7 +20,7 @@ FROM ruby:3.3.1-alpine3.20
 RUN apk --no-cache add ffmpeg vips \
   postgresql15-client \
   git jemalloc tzdata \
-  sudo gcompat
+  sudo gcompat ragel build-base
 
 WORKDIR /app
 
@@ -51,4 +52,5 @@ RUN addgroup --gid ${HOST_GID} e621ng && \
 # Ignore warnings from git about .git permission differences when running as root
 RUN git config --global --add safe.directory $(pwd)
 
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["foreman", "start"]

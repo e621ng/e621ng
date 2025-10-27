@@ -23,7 +23,6 @@
 @import "common/comment_container";
 @import "common/diffs.scss";
 @import "common/dtext.scss";
-@import "common/dtext_input.scss";
 @import "common/forms.scss";
 @import "common/inline.scss";
 @import "common/jquery_ui_custom.scss";
@@ -45,9 +44,11 @@
 
 @import "views/application/application";
 @import "views/artists/artists";
+@import "views/help/help";
 @import "views/maintenance/maintenance";
 @import "views/mascots/mascots";
 @import "views/post_events/post_events";
+@import "views/pools/pools";
 @import "views/post_flags/post_flags";
 @import "views/posts/posts";
 @import "views/static/static";
@@ -68,14 +69,12 @@
 @import "specific/error.scss";
 @import "specific/favorites.scss";
 @import "specific/forum.scss";
-@import "specific/guest_warning.scss";
 @import "specific/iqdb_queries.scss";
 @import "specific/keyboard_shortcuts.scss";
 @import "specific/lockdown.scss";
 @import "specific/meta_searches.scss";
 @import "specific/moderator_dashboard.scss";
 @import "specific/news_updates.scss";
-@import "specific/notes.scss";
 @import "specific/pools.scss";
 @import "specific/popular.scss";
 @import "specific/post_delete.scss";
@@ -90,7 +89,6 @@
 @import "specific/stats.scss";
 @import "specific/tags.scss";
 @import "specific/takedowns.scss";
-@import "specific/terms_of_service.scss";
 @import "specific/themes.scss";
 @import "specific/uploads.scss";
 @import "specific/uploads_file.scss";

@@ -1,11 +1,11 @@
 import Hotkeys from "../hotkeys";
 import Favorite from "../models/Favorite";
 import PostVote from "../models/PostVote";
+import NoteManager from "../notes";
 import Post from "../posts";
 import Utility from "../utility";
 import Offclick from "../utility/offclick";
 import Page from "../utility/page";
-import LStorage from "../utility/storage";
 
 export default class PostsShowToolbar {
 
@@ -31,9 +31,11 @@ export default class PostsShowToolbar {
     this.initFavoriteHotkeys();
 
     // Initialize notes toggle
-    PostsShowToolbar.toggleNotes();
-    $(".ptbr-notes-button").each((_index, element) => {
-      this.initNotesToggle($(element));
+    const noteToggleButtons = $(".ptbr-notes-button")
+      .attr("enabled", NoteManager.enabled + "")
+      .on("click", () => { NoteManager.enabled = !NoteManager.enabled; });
+    $("#note-container").on("note:visible:true note:visible:false", () => {
+      noteToggleButtons.attr("enabled", NoteManager.enabled + "");
     });
 
     // Initialize fullscreen menu toggle
@@ -82,6 +84,13 @@ export default class PostsShowToolbar {
 
   static async vote (direction) {
     return PostVote.vote(PostsShowToolbar.currentPost.id, direction).then((data) => {
+      // Update Score in Information
+      $(".post-score").text(data.score)
+        .removeClass("score-negative score-neutral score-positive")
+        .addClass(data.score > 0
+          ? "score-positive"
+          : (data.score < 0 ? "score-negative" : "score-neutral"));
+
       // Update button states for the current voting block.
       $(".ptbr-score").text(data.score);
       $(".ptbr-breakdown").html(`<span>${data.up}</span><span>${data.down}</span>`);
@@ -153,20 +162,6 @@ export default class PostsShowToolbar {
       });
   }
 
-
-  // Notes toggle button
-  initNotesToggle (button) {
-    button.on("click", () => {
-      LStorage.Posts.Notes = !(button.attr("enabled") == "true");
-      PostsShowToolbar.toggleNotes();
-    });
-  }
-
-  static toggleNotes (visible = LStorage.Posts.Notes) {
-    $("#note-container").attr("enabled", visible);
-    $(".ptbr-notes-button").attr("enabled", visible);
-  }
-
   // Fullscreen / download menu
   initOverflowMenu () {
     const menu = $(".ptbr-etc-menu");
@@ -206,7 +201,16 @@ export default class PostsShowToolbar {
         .catch(e => {
           Utility.error("Failed to download post file.", e);
           button.attr("pending", "false");
+        })
+        .finally(() => {
+          offclickHandler.disabled = true;
+          menu.addClass("hidden");
         });
+    });
+
+    $(".ptbr-etc-pool, .ptbr-etc-set").on("click", () => {
+      offclickHandler.disabled = true;
+      menu.addClass("hidden");
     });
   }
 }

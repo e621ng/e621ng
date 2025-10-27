@@ -999,12 +999,15 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      context "tagged with animated_gif or animated_png" do
-        should "remove the tag if not a gif or png" do
+      context "tagged with animated_gif, animated_png or animated_webp" do
+        should "remove the tag if not a gif, png, or webp" do
           @post.update(tag_string: "tagme animated_gif")
           assert_equal("tagme", @post.tag_string)
 
           @post.update(tag_string: "tagme animated_png")
+          assert_equal("tagme", @post.tag_string)
+
+          @post.update(tag_string: "tagme animated_webp")
           assert_equal("tagme", @post.tag_string)
         end
       end
@@ -1372,14 +1375,6 @@ class PostTest < ActiveSupport::TestCase
       setup do
         @user = create(:privileged_user)
         @post = create(:post)
-      end
-
-      should "periodically clean the fav_string" do
-        @post.update_column(:fav_string, "fav:1 fav:1 fav:1")
-        @post.update_column(:fav_count, 3)
-        @post.append_user_to_fav_string(2)
-        assert_equal("fav:1 fav:2", @post.fav_string)
-        assert_equal(2, @post.fav_count)
       end
 
       # TODO: Needs to reload relationship to obtain non cached value
@@ -2368,7 +2363,7 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "gracefully fail if the set is full" do
-          Danbooru.config.stubs(:set_post_limit).returns(0)
+          Danbooru.config.stubs(:post_set_post_limit).returns(0)
           @post.update(tag_string_diff: "set:#{@set.id}")
           assert_equal(["Sets can only have up to 0 posts each"], @post.errors.full_messages)
           assert_equal([], @set.reload.post_ids)
@@ -2384,7 +2379,7 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "gracefully fail if the set is full" do
-          Danbooru.config.stubs(:set_post_limit).returns(0)
+          Danbooru.config.stubs(:post_set_post_limit).returns(0)
           @post.update(tag_string_diff: "set:#{@set.shortname}")
           assert_equal(["Sets can only have up to 0 posts each"], @post.errors.full_messages)
           assert_equal([], @set.reload.post_ids)

@@ -27,6 +27,8 @@ class StorageManager
   end
 
   def default_base_url
+    return "" if Rails.env.development?
+
     Rails.application.routes.url_helpers.root_url
   end
 

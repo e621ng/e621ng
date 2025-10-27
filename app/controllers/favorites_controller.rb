@@ -31,6 +31,12 @@ class FavoritesController < ApplicationController
 
   def create
     @post = Post.find(params[:post_id])
+
+    if @post.favorites_transfer_in_progress?
+      render_expected_error(423, "Post favorites are being transferred, please try again later")
+      return
+    end
+
     FavoriteManager.add!(user: CurrentUser.user, post: @post)
 
     render json: { post_id: @post.id, favorite_count: @post.fav_count }
@@ -40,6 +46,12 @@ class FavoritesController < ApplicationController
 
   def destroy
     @post = Post.find(params[:id])
+
+    if @post.favorites_transfer_in_progress?
+      render_expected_error(423, "Post favorites are being transferred, please try again later")
+      return
+    end
+
     FavoriteManager.remove!(user: CurrentUser.user, post: @post)
 
     render json: { post_id: @post.id, favorite_count: @post.fav_count }

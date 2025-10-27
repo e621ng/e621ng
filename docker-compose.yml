@@ -42,6 +42,7 @@ services:
     environment:
       <<: *common-env
       RAILS_ENV: development
+      LOCAL_DTEXT: ${LOCAL_DTEXT:-}
       DD_AGENT_HOST: datadog-agent
       DD_SERVICE: ${DD_SERVICE:-}
       DD_ENV: ${DD_ENV:-}
