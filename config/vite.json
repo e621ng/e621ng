@@ -10,7 +10,8 @@
     "host": "0.0.0.0"
   },
   "test": {
-    "publicOutputDir": "vite-dev",
+    "autoBuild": true,
+    "publicOutputDir": "vite-test",
     "port": 3037
   }
 }
