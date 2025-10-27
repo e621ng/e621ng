@@ -193,7 +193,7 @@ module LinkHelper
     if hostname
       tag.img(
         class: "link-decoration",
-        src: asset_pack_path("static/#{hostname}.png"),
+        src: "/images/favicons/#{hostname}.png",
         data: {
           hostname: hostname,
         },
