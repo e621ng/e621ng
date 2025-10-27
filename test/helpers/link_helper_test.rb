@@ -44,7 +44,7 @@ class LinkHelperTest < ActionView::TestCase
   end
 
   test "all listed images exist" do
-    favicon_folder = Rails.public_path.join("images/favicons")
+    favicon_folder = Rails.root.join("app/javascript/images/favicons")
     all_domains = LinkHelper::DECORATABLE_DOMAINS + LinkHelper::DECORATABLE_ALIASES.values
     all_domains.each do |domain|
       assert(favicon_folder.join("#{domain}.png").exist?, "missing #{domain}")
