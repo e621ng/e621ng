@@ -243,24 +243,20 @@ class PostSet < ApplicationRecord
 
         max = max_posts
         return [] if post_count >= max
+        return [] if post_ids.include?(pid)
 
-        # Increase timeout for large sets where array operations may be slow
         conn = PostSet.connection
         conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
 
-        # Use the same connection for all queries to ensure timeout applies
-        already_contains_sql = "SELECT 1 FROM post_sets WHERE id = #{id} AND post_ids @> ARRAY[#{pid}]::integer[] LIMIT 1"
-        already_contains = conn.execute(already_contains_sql).any?
-        return [] if already_contains
-
         update_sql = <<~SQL.squish
           UPDATE post_sets
-          SET post_ids = array_append(post_ids, #{pid}),
+          SET post_ids = array_append(post_ids, $1),
               post_count = post_count + 1,
-              updated_at = '#{Time.zone.now.to_fs(:db)}'
-          WHERE id = #{id}
+              updated_at = $2
+          WHERE id = $3
+            AND post_count < $4
         SQL
-        result = conn.execute(update_sql)
+        result = conn.raw_connection.exec_params(update_sql, [pid, Time.zone.now, id, max])
 
         return result.cmd_tuples > 0 ? [pid] : []
       end
@@ -269,11 +265,21 @@ class PostSet < ApplicationRecord
       valid_ids = Post.where(id: ids).pluck(:id)
       return [] if valid_ids.empty?
 
+      current_ids = post_ids
+      new_ids = valid_ids - current_ids
+      return [] if new_ids.empty?
+
+      max = max_posts.to_i
+      return [] if post_count >= max
+
+      available_capacity = max - post_count
+      if new_ids.length > available_capacity
+        new_ids = new_ids.first(available_capacity)
+      end
+      return [] if new_ids.empty?
+
       conn = PostSet.connection
       conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
-
-      now = conn.quote(Time.zone.now)
-      max = max_posts.to_i
       sql = <<~SQL.squish
         WITH input AS (
           SELECT id, ord
@@ -282,17 +288,16 @@ class PostSet < ApplicationRecord
         curr AS (
           SELECT ps.id, ps.post_ids, COALESCE(array_length(ps.post_ids, 1), 0) AS cnt
           FROM post_sets ps
-          WHERE ps.id = #{id}
+          WHERE ps.id = $2
           FOR UPDATE
         ),
         delta AS (
           SELECT i.id
           FROM input i, curr c
-          WHERE NOT (c.post_ids @> ARRAY[i.id]::integer[])
           ORDER BY i.ord
-          LIMIT GREATEST(0, #{max} - (SELECT cnt FROM curr))
+          LIMIT GREATEST(0, $3 - (SELECT cnt FROM curr))
         ),
-        new_ids AS (
+        new_array AS (
           SELECT c.id,
                  c.post_ids || COALESCE((SELECT array_agg(d.id) FROM delta d), '{}') AS arr
           FROM curr c
@@ -301,17 +306,16 @@ class PostSet < ApplicationRecord
           UPDATE post_sets ps
           SET post_ids = n.arr,
               post_count = COALESCE(array_length(n.arr, 1), 0),
-              updated_at = #{now}
-          FROM new_ids n
+              updated_at = $4
+          FROM new_array n
           WHERE ps.id = n.id AND EXISTS (SELECT 1 FROM delta)
           RETURNING 1
         )
         SELECT d.id FROM delta d
       SQL
 
-      # Parameterized execution: pass valid_ids as a single int[] bind.
-      pg_array_literal = "{#{valid_ids.join(',')}}"
-      result = conn.raw_connection.exec_params(sql, [pg_array_literal])
+      pg_array_literal = "{#{new_ids.join(',')}}"
+      result = conn.raw_connection.exec_params(sql, [pg_array_literal, id, max, Time.zone.now])
       result.column_values(0).map!(&:to_i)
     end
 
@@ -351,32 +355,30 @@ class PostSet < ApplicationRecord
       # Fast path for single id: one atomic UPDATE.
       if ids.length == 1
         pid = ids.first
+        return [] unless post_ids.include?(pid)
 
-        # Increase timeout for large sets where array operations may be slow
         conn = PostSet.connection
         conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
 
-        # Use the same connection for timeout consistency
-        contains_sql = "SELECT 1 FROM post_sets WHERE id = #{id} AND post_ids @> ARRAY[#{pid}]::integer[] LIMIT 1"
-        contains = conn.execute(contains_sql).any?
-        return [] unless contains
-
         update_sql = <<~SQL.squish
           UPDATE post_sets
-          SET post_ids = array_remove(post_ids, #{pid}),
+          SET post_ids = array_remove(post_ids, $1),
               post_count = post_count - 1,
-              updated_at = '#{Time.zone.now.to_fs(:db)}'
-          WHERE id = #{id}
+              updated_at = $2
+          WHERE id = $3
         SQL
-        result = conn.execute(update_sql)
+        result = conn.raw_connection.exec_params(update_sql, [pid, Time.zone.now, id])
 
         return result.cmd_tuples > 0 ? [pid] : []
       end
 
       # Slower path: multiple IDs to process atomically and return the actual removed ids.
+      current_ids = post_ids
+      existing_ids = ids & current_ids
+      return [] if existing_ids.empty?
+
       conn = PostSet.connection
       conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
-      now = conn.quote(Time.zone.now)
       sql = <<~SQL.squish
         WITH input AS (
           SELECT id FROM unnest($1::int[]) AS t(id)
@@ -384,20 +386,15 @@ class PostSet < ApplicationRecord
         curr AS (
           SELECT ps.id, ps.post_ids
           FROM post_sets ps
-          WHERE ps.id = #{id}
+          WHERE ps.id = $2
           FOR UPDATE
         ),
-        delta AS (
-          SELECT i.id
-          FROM input i, curr c
-          WHERE c.post_ids @> ARRAY[i.id]::integer[]
-        ),
-        new_ids AS (
+        new_array AS (
           SELECT c.id,
                  COALESCE((
                    SELECT array_agg(val ORDER BY ord)
                    FROM unnest(c.post_ids) WITH ORDINALITY AS t(val, ord)
-                   WHERE NOT (val = ANY (SELECT id FROM delta))
+                   WHERE NOT (val = ANY (SELECT id FROM input))
                  ), '{}') AS arr
           FROM curr c
         ),
@@ -405,17 +402,16 @@ class PostSet < ApplicationRecord
           UPDATE post_sets ps
           SET post_ids = n.arr,
               post_count = COALESCE(array_length(n.arr, 1), 0),
-              updated_at = #{now}
-          FROM new_ids n
-          WHERE ps.id = n.id AND EXISTS (SELECT 1 FROM delta)
+              updated_at = $3
+          FROM new_array n
+          WHERE ps.id = n.id
           RETURNING 1
         )
-        SELECT d.id FROM delta d
+        SELECT i.id FROM input i
       SQL
 
-      # Parameterized execution: pass ids as a single int[] bind.
-      pg_array_literal = "{#{ids.join(',')}}"
-      result = conn.raw_connection.exec_params(sql, [pg_array_literal])
+      pg_array_literal = "{#{existing_ids.join(',')}}"
+      result = conn.raw_connection.exec_params(sql, [pg_array_literal, id, Time.zone.now])
       result.column_values(0).map!(&:to_i)
     end
 
