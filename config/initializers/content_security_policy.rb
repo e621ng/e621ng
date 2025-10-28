@@ -16,7 +16,6 @@ Rails.application.configure do
     policy.style_src(*policy.style_src, :unsafe_inline) if Rails.env.development?
 
     policy.connect_src :self, "ads.e621.net", "plausible.dragonfru.it", "static1.e621.net", "static1.e926.net", "api.freespeechcoalition.com"
-    policy.connect_src(*policy.connect_src, "ws://localhost:3036", "http://localhost:3036") if Rails.env.development?
 
     policy.object_src  :self, "static1.e621.net", "static1.e926.net"
     policy.media_src   :self, "static1.e621.net", "static1.e926.net"

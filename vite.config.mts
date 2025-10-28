@@ -37,8 +37,6 @@ export default defineConfig({
     __VUE_OPTIONS_API__: true
   },
   server: {
-    // This does not work because none of our JS files are split,
-    // And causes extreme slowdown. Once we have code splitting in place, we can re-enable HMR.
-    hmr: false
+    hmr: false,
   }
 })
