@@ -6,7 +6,13 @@ PostReplacement.initialize_all = function () {
   $(".replacement-approve-action").on("click", (e) => {
     const $target = $(e.target);
     e.preventDefault();
-    PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"));
+    PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), true);
+  });
+  
+  $(".replacement-silent-approve-action").on("click", (e) => {
+    const $target = $(e.target);
+    e.preventDefault();
+    PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), false);
   });
 
   $(".replacement-reject-action").on("click", (e) => {
@@ -35,13 +41,16 @@ PostReplacement.initialize_all = function () {
   });
 };
 
-PostReplacement.approve = function (id, penalize_current_uploader) {
+PostReplacement.approve = function (id, penalize_current_uploader, credit_replacer) {
   const $row = $(`#replacement-${id}`);
   make_processing($row);
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/approve`,
-    data: { penalize_current_uploader },
+    data: {
+      penalize_current_uploader: penalize_current_uploader,
+      credit_replacer: credit_replacer,
+    },
     dataType: "html",
   })
     .done((html) => {
