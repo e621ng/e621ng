@@ -57,6 +57,8 @@ body.c-users.a-upload-limit {
     align-items: center;
     justify-content: center;
     min-width: 1rem;
+    height: min-content;
+    margin: auto 0;
 
     text-decoration: none;
     line-height: 1rem;
