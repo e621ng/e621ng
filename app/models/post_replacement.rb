@@ -450,6 +450,12 @@ class PostReplacement < ApplicationRecord
     status == "approved" && !is_current?
   end
 
+  def visible_to?(user)
+    return true unless is_rejected?
+    return false unless user.is_staff? # Only staff can see rejected replacements
+    true
+  end
+
   def promoted_id
     return nil unless is_promoted?
     if post.has_children?
