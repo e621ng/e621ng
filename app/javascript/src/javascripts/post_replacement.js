@@ -8,7 +8,7 @@ PostReplacement.initialize_all = function () {
     e.preventDefault();
     PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"), true);
   });
-  
+
   $(".replacement-silent-approve-action").on("click", (e) => {
     const $target = $(e.target);
     e.preventDefault();
