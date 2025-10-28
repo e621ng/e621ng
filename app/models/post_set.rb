@@ -294,6 +294,7 @@ class PostSet < ApplicationRecord
         delta AS (
           SELECT i.id
           FROM input i, curr c
+          WHERE NOT (c.post_ids @> ARRAY[i.id]::integer[])
           ORDER BY i.ord
           LIMIT GREATEST(0, $3 - (SELECT cnt FROM curr))
         ),
@@ -404,7 +405,7 @@ class PostSet < ApplicationRecord
               post_count = COALESCE(array_length(n.arr, 1), 0),
               updated_at = $3
           FROM new_array n
-          WHERE ps.id = n.id
+          WHERE ps.id = n.id AND ps.post_ids IS DISTINCT FROM n.arr
           RETURNING 1
         )
         SELECT i.id FROM input i
