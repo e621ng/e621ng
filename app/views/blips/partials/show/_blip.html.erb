@@ -1,6 +1,10 @@
 <% if blip.visible_to?(CurrentUser.user) %>
-  <article class="blip comment-post-grid" data-is-deleted="<%= blip.is_hidden? %>" data-creator="<%= blip.creator&.name.downcase %>"
-           data-creator-id="<%= blip.creator_id %>">
+  <article class="blip comment-post-grid"
+    data-blip-id="<%= blip.id %>"
+    data-is-deleted="<%= blip.is_hidden? %>"
+    data-creator="<%= blip.creator&.name %>"
+    data-creator-id="<%= blip.creator_id %>"
+  >
     <div class="author-info">
       <div class="name-rank">
         <h4 class="author-name"><%= link_to_user blip.creator %></h4>
