@@ -35,7 +35,6 @@
 <% end %>
 <%= auto_discovery_link_tag :atom, posts_path(:format => "atom", :tags => params[:tags]) %>
 
-<%= vite_client_tag %>
 <%= vite_stylesheet_tag "styles" %>
 <%= vite_javascript_tag "application", nonce: true, defer: false %>
 
