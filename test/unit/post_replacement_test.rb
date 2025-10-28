@@ -367,4 +367,90 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal(CurrentUser.user.id, @replacement.approver_id)
     end
   end
+
+  context "Transfer: " do
+    setup do
+      @user_alt = create(:user, created_at: 2.weeks.ago)
+      @upload_alt = UploadService.new(attributes_for(:large_jpg_upload).merge(uploader: @user_alt)).start!
+      assert_not_nil @upload_alt, "UploadService did not create an alt upload"
+      @post_alt = @upload_alt.post
+      assert_not_nil(@post_alt, "UploadService did not create an alt post: #{@upload.status}")
+
+      @post_alt.update_columns({ is_pending: false, approver_id: @mod_user.id })
+      CurrentUser.user = @user
+      @replacement = create(:png_replacement, creator: @user, post: @post, reason: "wrong alt replacement")
+      assert @replacement
+    end
+
+    should "fail if new post is deleted" do
+      CurrentUser.user = @mod_user
+      @post_alt.delete!("test")
+      @replacement.transfer(@post_alt)
+      assert_equal(["Post is deleted"], @replacement.errors.full_messages)
+    end
+
+    should "fail when the post is the same" do
+      @replacement.transfer(@post)
+      assert_equal(["Post must be a different post"], @replacement.errors.full_messages)
+    end
+
+    should "fail on replacements that are not pending or rejected" do
+      @replacement.approve! penalize_current_uploader: false
+      @replacement.transfer(@post_alt)
+      assert_equal(["Status must be pending or rejected to transfer"], @replacement.errors.full_messages)
+    end
+
+    should "create backup replacement if one doesn't exist" do
+      assert_difference(-> { @post_alt.replacements.count }, 2) do
+        assert_difference(-> { @post.replacements.count }, -1) do
+          @replacement.transfer(@post_alt)
+        end
+      end
+
+      statuses = @post_alt.replacements.map(&:status)
+      assert_includes statuses, "original"
+      assert_includes statuses, "pending"
+    end
+
+    should "fail if post cannot be backed up" do
+      @post_alt.md5 = "123" # Breaks file path, should force backup to fail.
+      assert_raise(ProcessingError) do
+        @replacement.transfer(@post_alt)
+      end
+    end
+
+    should "not allow duplicates" do
+      @existing_replacement = @post_alt.replacements.create(attributes_for(:png_replacement).merge(creator: @user, reason: "existing replacement", md5: @replacement.md5))
+      assert_not_nil @existing_replacement
+      @existing_replacement.reject!
+      @existing_replacement.save!
+      @replacement.transfer(@post_alt)
+      assert_equal(["Md5 duplicate of existing replacement on post ##{@post_alt.id}"], @replacement.errors.full_messages)
+    end
+
+    should "work on pending replacements" do
+      @existing_replacement = @post_alt.replacements.create(attributes_for(:apng_replacement).merge(creator: @user, reason: "existing replacement"))
+      assert_not_nil @existing_replacement
+      @existing_replacement.reject!
+      assert_difference(-> { @post_alt.replacements.count }, 1) do
+        assert_difference(-> { @post.replacements.count }, -1) do
+          @replacement.transfer(@post_alt)
+        end
+      end
+
+      # The replacement should now belong to @post_alt and have status "pending"
+      assert_equal @post_alt.id, @replacement.post_id
+      assert_equal "pending", @replacement.status
+
+      # The previous uploader should be set correctly
+      assert_equal @post_alt.uploader_id, @replacement.uploader_on_approve.id
+
+      # Both posts should have their indexes updated (simulate by checking timestamps)
+      assert @post.reload.updated_at <= Time.now
+      assert @post_alt.reload.updated_at <= Time.now
+
+      # The original backup should exist on the new post
+      assert @post_alt.replacements.where(status: "original").exists?
+    end
+  end
 end

@@ -130,6 +130,20 @@ class PostEventTest < ActiveSupport::TestCase
           @replacement.destroy!
         end
       end
+
+      context "transfer" do
+        setup do
+          upload2 = UploadService.new(attributes_for(:large_jpg_upload).merge(uploader: @user, tag_string: "tst")).start!
+          @post2 = upload2.post
+          @replacement2 = create(:apng_replacement, creator: @user, post: @post2)
+        end
+
+        should "transfer" do
+          assert_post_events_created(@admin, [:replacement_moved, :replacement_moved]) do
+            @replacement1.transfer(@post2)
+          end
+        end
+      end
     end
   end
 end
