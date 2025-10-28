@@ -33,7 +33,7 @@ export default defineConfig({
     }
   },
   define: {
-    // TODO: Migrate Vue components from Options API to Composition API
+    // Our Vue code uses the Options API
     __VUE_OPTIONS_API__: true
   },
   server: {
