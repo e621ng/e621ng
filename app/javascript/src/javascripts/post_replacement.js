@@ -33,6 +33,51 @@ PostReplacement.initialize_all = function () {
     e.preventDefault();
     PostReplacement.destroy(id);
   });
+
+  $(".replacement-note-action").on("click", (e) => {
+    const $target = $(e.target);
+    e.preventDefault();
+    PostReplacement.note($target.data("replacement-id"), $target.data("current-note"));
+  });
+};
+
+PostReplacement.note = function (id, current_note) {
+  const $row = $(`#replacement-${id}`);
+
+  let prompt_message = "Enter a note:";
+  let default_value = "";
+  if (typeof current_note === "string" && current_note.trim() !== "") {
+    prompt_message = "This replacement already has a note. Enter a new note (leave blank to remove):";
+    default_value = current_note;
+  }
+  const note_text = prompt(prompt_message, default_value);
+  if (!note_text) {
+    Utility.notice("Note cancelled.");
+    return;
+  }
+  make_processing($row);
+  $.ajax({
+    type: "PUT",
+    url: `/post_replacements/${id}/note`,
+    data: {
+      note_content: note_text,
+    },
+    dataType: "html",
+  })
+    .done((html) => {
+      $row.replaceWith(
+        (() => {
+          const $el = $(html);
+          return $el;
+        })(),
+      );
+      Utility.notice("Note added.");
+    })
+    .fail((data) => {
+      const msg = data.responseText?.trim() || "Failed to add note to the replacement.";
+      Utility.error(msg);
+      revert_processing($row);
+    });
 };
 
 PostReplacement.approve = function (id, penalize_current_uploader) {
