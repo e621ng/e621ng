@@ -10,7 +10,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       as(@user) do
         @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
-  @replacement = create(:png_replacement, creator: @regular_user, post: @post)
+        @replacement = create(:png_replacement, creator: @regular_user, post: @post)
       end
     end
 
