@@ -178,6 +178,12 @@ class Ticket < ApplicationRecord
   module APIMethods
     def hidden_attributes
       hidden = []
+
+      unless can_view?(CurrentUser.user)
+        hidden += %i[creator_id accused_id reason response report_reason]
+        return super + hidden
+      end
+
       hidden += %i[claimant_id] unless CurrentUser.is_moderator?
       hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
       super + hidden
