@@ -102,6 +102,7 @@
         <% if post_replacement.status == "pending" %>
           <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %><br><br>
           <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %><br>
+          <%= link_to "Transfer", "#transfer", class: "replacement-transfer-action replacement-action-button", data: { replacement_id: post_replacement.id } %>
         <% end %>
       </div>
       <% if !post_replacement.is_current? && !post_replacement.is_promoted? %>
