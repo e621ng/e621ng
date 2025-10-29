@@ -46,9 +46,9 @@
     <%= nav_link_to("Wiki", wiki_pages_path(title: "help:home"), class: "nav-help-wiki") %>
     <%= nav_link_to("Help", help_pages_path, class: "nav-help-help") %>
     <% unless CurrentUser.is_anonymous? %>
-      <%= custom_image_nav_link_to("Discord", "discord.com.png", discord_get_path, class: "nav-help-discord collapse-1") %>
+      <%= custom_image_nav_link_to("Discord", "images/favicons/discord.com.png", discord_get_path, class: "nav-help-discord collapse-1") %>
     <% end %>
-    <%= custom_image_nav_link_to("SubscribeStar", "subscribestar.adult.png", subscribestar_path, class: "nav-help-subscribestar collapse-1") if Danbooru.config.subscribestar_url.present? %>
+    <%= custom_image_nav_link_to("SubscribeStar", "images/favicons/subscribestar.adult.png", subscribestar_path, class: "nav-help-subscribestar collapse-1") if Danbooru.config.subscribestar_url.present? %>
     <%= nav_link_to("More", site_map_path, class: "nav-help-map") %>
   </menu>
 

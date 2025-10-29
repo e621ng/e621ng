@@ -10,8 +10,14 @@ Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self
     policy.script_src  :self, "ads.e621.net", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/", "https://www.recaptcha.net/", "https://assets.freespeechcoalition.com", "https://plausible.dragonfru.it/"
-    policy.style_src   :self, :unsafe_inline
+    policy.script_src(*policy.script_src, :unsafe_eval) if Rails.env.development?
+
+    policy.style_src :self, :unsafe_inline
+    policy.style_src(*policy.style_src, :unsafe_inline) if Rails.env.development?
+
     policy.connect_src :self, "ads.e621.net", "plausible.dragonfru.it", "static1.e621.net", "static1.e926.net", "api.freespeechcoalition.com"
+    policy.connect_src(*policy.connect_src, "ws://localhost:3036", "http://localhost:3036") if Rails.env.development?
+
     policy.object_src  :self, "static1.e621.net", "static1.e926.net"
     policy.media_src   :self, "static1.e621.net", "static1.e926.net"
     policy.frame_ancestors :none

@@ -1,4 +1,4 @@
-import Uploader from "./uploader/uploader.vue.erb";
+import Uploader from "./uploader/uploader.vue";
 import { createApp } from "vue";
 
 export default {
