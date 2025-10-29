@@ -23,16 +23,17 @@ function initSearch () {
 }
 
 $(function () {
+  const isStaticHome = $("body").is(".c-static.a-home");
   $("#theme-switcher").change(function () {
     let theme = $(this).val();
     LStorage.put("theme", theme);
-    $("body").attr("data-th-main", theme);
+    if (!isStaticHome) $("body").attr("data-th-main", theme);
   });
 
   {
     let theme = LStorage.get("theme") || "hexagon";
     // Note: homepage overrides theme colors to `hexagon` manually in SCSS
-    $("body").attr("data-th-main", theme);
+    if (!isStaticHome) $("body").attr("data-th-main", theme);
     $("#theme-switcher").val(theme);
   }
 

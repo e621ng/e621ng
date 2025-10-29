@@ -1,6 +1,9 @@
 <%= javascript_tag nonce: true do -%>
 (function() {
   try {
+    // Server-side flag: true when rendering the static homepage. Used to avoid
+    // applying main/extra theme attributes there so the page uses the default.
+    const isStaticHome = <%= (controller_name == 'static' && action_name == 'home') ? 'true' : 'false' %>;
     const values = {
       // Theme
       "th-main": localStorage.getItem("theme") || "hexagon",
@@ -23,6 +26,9 @@
 
     var b = document.body;
     for (const [name, value] of Object.entries(values)) {
+      // If we're on the static homepage, don't apply the main or extra theme
+      // attributes; leave those unset so the default (hexagon) is used.
+      if (isStaticHome && (name === 'th-main' || name === 'th-extra')) continue;
       b.setAttribute("data-" + name, value);
     }
   } catch(e) {}
