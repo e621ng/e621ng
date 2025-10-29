@@ -3,7 +3,7 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: %i[create new]
-  before_action :approver_only, only: %i[approve reject promote toggle_penalize]
+  before_action :approver_only, only: %i[approve reject promote toggle_penalize note]
   before_action :admin_only, only: [:destroy]
   before_action :ensure_uploads_enabled, only: %i[new create]
 
@@ -14,7 +14,7 @@ class PostReplacementsController < ApplicationController
 
   def index
     params[:search][:post_id] = params.delete(:post_id) if params.key?(:post_id)
-    @post_replacements = PostReplacement.includes(:post).visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
+    @post_replacements = PostReplacement.includes(:post, :creator, :approver, :note, :uploader_on_approve).visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
 
     respond_with(@post_replacements)
   end
@@ -84,6 +84,24 @@ class PostReplacementsController < ApplicationController
   def reject
     @post_replacement = PostReplacement.find(params[:id])
     @post_replacement.reject!
+
+    respond_with(@post_replacement) do |format|
+      format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
+      format.json
+    end
+  end
+
+  def note
+    @post_replacement = PostReplacement.find(params[:id])
+    @post_replacement.note_add(params[:note_content])
+
+    if @post_replacement.errors.any?
+      respond_to do |format|
+        format.json do
+          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+        end
+      end
+    end
 
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }

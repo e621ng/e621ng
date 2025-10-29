@@ -91,6 +91,10 @@
       <dd class="replacement-compact-row"><%= compact_time post_replacement.created_at %></dd>
     <dt class="replacement-spaced-row">Reason</dt>
     <dd class="replacement-reason"><%= post_replacement.reason.presence || "None provided" %></dd>
+    <% if CurrentUser.is_staff? && post_replacement.note.present? %>
+      <dt class="replacement-spaced-row">Note</dt>
+      <dd class="replacement-reason"><%= post_replacement.note.note.presence || "None provided" %></dd>
+    <% end %>
     <% if post_replacement.updated_at != post_replacement.created_at %>
       <dt>Status changed at</dt>
       <dd class="replacement-compact-row"><%= compact_time post_replacement.updated_at %></dd>
@@ -108,6 +112,9 @@
         <% if !post_replacement.is_backup? %> <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id } %><br> <% end %>
         <% if !post_replacement.is_pending? %> <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false } %><br> <% end %>
       <% end %>
+    <% end %>
+    <% if CurrentUser.is_staff? %>
+      <%= link_to("Note", "#note", class: "replacement-note-action replacement-action-button", data: { replacement_id: post_replacement.id, current_note: post_replacement.note&.note }) %>
     <% end %>
     <% if CurrentUser.is_admin? %>
       <dd class="replacement-spaced-row"> <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %> </dd>
