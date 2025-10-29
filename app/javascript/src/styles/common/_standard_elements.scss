@@ -284,3 +284,47 @@ input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
     @include st-radius;
   }
 }
+
+// #region Collapsable header
+body {
+  --st-collapsible-header-anim-speed: 1s;
+  --st-collapsible-header-indicator-spacing: .25rem;
+}
+// The following sibling element will be collapsed on toggle
+// Depends on having the sibling's `height` property set; can be handled by the corresponding
+// `Utility` callback.
+.st-collapsible-header {
+  &[indicator=arrow]::before {
+    content: "▼";
+    margin-right: var(--st-collapsible-header-indicator-spacing);
+
+    transition: rotate --st-collapsible-header-anim-speed ease;
+    rotate: 0deg;
+    display: inline-block;
+  }
+  
+  &[animated] + * {
+    transition: all --st-collapsible-header-anim-speed ease;
+    opacity: 1;
+  }
+  &[collapsed] {
+    /* #region Indicator */
+    &:not([indicator=arrow])::before {
+      content: "▶";
+      margin-right: var(--st-collapsible-header-indicator-spacing);
+    }
+    &[indicator=arrow]::before {
+      rotate: -90deg;
+    }
+    /* #endregion Indicator */
+    &:not([animated]) + * {
+      display: none;
+    }
+    &[animated] + * {
+      overflow: hidden;
+      height: 0px;
+      opacity: 0;
+    }
+  }
+}
+// #endregion Collapsable header
