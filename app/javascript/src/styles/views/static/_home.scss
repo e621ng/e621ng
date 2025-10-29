@@ -1,6 +1,12 @@
 body.c-static.a-home {
   background: #012e57; // I am certain this was needed for something
   background-color: themed("bg-color", #012e57);
+  /* Override themed() by setting the CSS variables they read */
+  --color-text: #ffffff;
+  --fg-color: rgba(255,255,255,0.08); 
+  --color-link: #b4c7d9;
+  --color-link-hover: #e9f2fa;
+  --color-link-active: #f3c400;
 
   #page {
     background: none;

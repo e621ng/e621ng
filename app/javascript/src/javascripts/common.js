@@ -31,6 +31,7 @@ $(function () {
 
   {
     let theme = LStorage.get("theme") || "hexagon";
+    // Note: homepage overrides theme colors to `hexagon` manually in SCSS
     $("body").attr("data-th-main", theme);
     $("#theme-switcher").val(theme);
   }
