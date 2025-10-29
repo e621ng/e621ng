@@ -365,6 +365,9 @@ GEM
     unicode-display_width (2.5.0)
     uri (0.13.2)
     useragent (0.16.11)
+    view_component (4.1.0)
+      activesupport (>= 7.1.0, < 8.2)
+      concurrent-ruby (~> 1)
     webmock (3.23.0)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
@@ -429,6 +432,7 @@ DEPENDENCIES
   sidekiq-unique-jobs
   simple_form
   streamio-ffmpeg
+  view_component
   webmock
   webpacker (>= 4.0.x)
   zxcvbn-ruby

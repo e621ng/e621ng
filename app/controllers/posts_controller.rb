@@ -14,7 +14,7 @@ class PostsController < ApplicationController
       end
     else
       @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
-      @posts = PostsDecorator.decorate_collection(@post_set.posts)
+      @posts = @post_set.posts
 
       @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
       if @query.length == 1
