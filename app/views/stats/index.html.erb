@@ -4,19 +4,19 @@
     <div class="stats-column">
       <%= render "stats_table", header_title: "Site", data: [
           ["Started", compact_time(DateTime.parse(@stats["started"]))],
-          ["Average registrations per day", "average_registrations_per_day"],
-          ["Average posts per day", "average_posts_per_day"],
-          ["Average comments per day", "average_comments_per_day"],
-          ["Average forum posts per day", "average_forum_posts_per_day"],
-          ["Average blips per day", "average_blips_per_day"],
+          ["Average registrations per day", "average_registrations_per_day", "The average number of new registrations made each day since the beginning of the site."],
+          ["Average posts per day", "average_posts_per_day", "The average number of new posts made each day since the beginning of the site."],
+          ["Average comments per day", "average_comments_per_day", "The average number of new comments made each day since the beginning of the site."],
+          ["Average forum posts per day", "average_forum_posts_per_day", "The average number of new forum posts made each day since the beginning of the site."],
+          ["Average blips per day", "average_blips_per_day", "The average number of new blips made each day since the beginning of the site."],
         ]
       %>
 
       <%= render "percentage_table", header_title: "Posts", data: [
-          ["Total posts", "total_posts"],
-          ["Active posts", "active_posts", "total_posts"],
-          ["Deleted posts", "deleted_posts", "total_posts"],
-          ["Destroyed posts", "destroyed_posts", "total_posts"],
+          ["Total posts", "total_posts", nil, "The total number of posts uploaded to the site."],
+          ["Active posts", "active_posts", "total_posts", "The number of currently approved posts on the site."],
+          ["Deleted posts", "deleted_posts", "total_posts", "The number of posts deleted from the site."],
+          ["Destroyed posts", "destroyed_posts", "total_posts", "The number of posts completely & totally wiped from the site."],
           # ["Safe posts", "safe_posts", "existing_posts"],
           # ["Questionable posts", "questionable_posts", "existing_posts"],
           # ["Explicit posts", "explicit_posts", "existing_posts"],
@@ -34,7 +34,7 @@
 
     <div class="stats-column">
       <%= render "percentage_table", header_title: "Image files", data: [
-          ["Total existing posts", "existing_posts"],
+          ["Total existing posts", "existing_posts", nil, "The number of active & deleted posts."],
           ["JPG posts", "jpg_posts", "existing_posts"],
           ["PNG posts", "png_posts", "existing_posts"],
           ["GIF posts", "gif_posts", "existing_posts"],
