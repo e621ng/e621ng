@@ -22,11 +22,7 @@ section.posts-container {
   @include window-smaller-than(800px) {
     article.thumbnail {
       width: unset;
-      a.thm-link {
-        width: 100%;
-        max-width: $image-size;
-      }
-      .thm-desc {
+      a.thm-link, .thm-desc, .thm-extra {
         width: 100%;
         max-width: $image-size;
       }
@@ -69,8 +65,6 @@ article.thumbnail {
 
   &.no-stats a.thm-link { @include st-radius; }
 }
-
-
 
 // Post information bar
 article.thumbnail .thm-desc {
@@ -182,6 +176,22 @@ article.thumbnail[data-tags~=animated] {
   &[data-file-ext=mp4] > a.thm-link:after { content: "MP4"; }
 }
 
+// Extra info (IQDB, pools)
+article.thumbnail .thm-extra {
+  width: $image-size;
+  max-width: 100%;
+  font-family: $font-stack;
+  overflow: hidden;
+
+  background: themed("color-section-lighten-5");
+  @include st-radius;
+  text-align: center;
+
+  padding: 0.25rem;
+  margin-top: 0.25rem;
+  box-sizing: border-box;
+}
+
 
 // ============================== //
 // ==== Deleted / Blacklisted === //
@@ -238,6 +248,7 @@ article.thumbnail.filter-matches .thm-desc-a {
     }
   }
 }
+body section.posts-container.default-size { --thumb-image-size: 200px; }
 
 // Hide comments on small thumbnails
 body[data-st-size="s"] article.thumbnail .thm-desc .thm-comments,

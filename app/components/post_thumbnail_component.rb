@@ -133,4 +133,20 @@ class PostThumbnailComponent < ViewComponent::Base
     return "neutral" if post.score == 0
     post.score > 0 ? "positive" : "negative"
   end
+
+  ##############################
+  ###  IQDB Results Section  ###
+  ##############################
+
+  def should_show_similarity?
+    options[:similarity].present?
+  end
+
+  def similarity_post_info
+    text = []
+    text << number_to_human_size(@post.file_size)
+    text << @post.file_ext.upcase
+    text << "(#{@post.image_width}x#{@post.image_height})"
+    text.join(" ")
+  end
 end
