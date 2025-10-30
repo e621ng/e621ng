@@ -21,6 +21,7 @@ section.posts-container {
   }
   @include window-smaller-than(800px) {
     article.thumbnail {
+      width: unset;
       a.thm-link {
         width: 100%;
         max-width: $image-size;
@@ -45,6 +46,7 @@ article.thumbnail {
   display: flex;
   flex-flow: column;
   align-items: center;
+  width: min-content; // Avoid stretching when outside the posts-container
 
   a.thm-link {
     display: block;
