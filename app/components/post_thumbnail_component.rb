@@ -1,14 +1,16 @@
 # frozen_string_literal: true
 
 class PostThumbnailComponent < ViewComponent::Base
+  include IconHelper
   with_collection_parameter :post
 
   def initialize(post:, **options)
     super()
+
     # Post may be wrapped in a Draper decorator, get the underlying object
     @post = post.respond_to?(:object) ? post.object : post
     @options = options
-    @user = defined?(CurrentUser) ? CurrentUser : nil
+    @user = defined?(CurrentUser) ? CurrentUser.user : nil
 
     if options[:pool].present?
       @pool = options[:pool]
@@ -25,7 +27,7 @@ class PostThumbnailComponent < ViewComponent::Base
 
   private
 
-  attr_reader :post, :options
+  attr_reader :post, :user, :pool, :options
 
   def hidden_deleted_post?
     !options[:show_deleted] &&
@@ -81,19 +83,21 @@ class PostThumbnailComponent < ViewComponent::Base
   end
 
   def tooltip_text
-    tooltip = "Rating: #{@post.rating}\nID: #{@post.id}\nDate: #{@post.created_at}\nStatus: #{@post.status}\nScore: #{@post.score}"
+    @tooltip_text ||= begin
+      tooltip = "Rating: #{@post.rating}\nID: #{@post.id}\nDate: #{@post.created_at}\nStatus: #{@post.status}\nScore: #{@post.score}"
 
-    if defined?(CurrentUser) && CurrentUser.is_janitor?
-      tooltip += "\nUploader: #{@post.uploader_name}"
-      if @post.is_flagged? || @post.is_deleted?
-        flag = @post.flags.order(id: :desc).first
-        tooltip += "\nFlag Reason: #{flag&.reason}" if @post.is_flagged?
-        tooltip += "\nDel Reason: #{flag&.reason}" if @post.is_deleted?
+      if @user.present? && user.is_janitor?
+        tooltip += "\nUploader: #{@post.uploader_name}"
+        if @post.is_flagged? || @post.is_deleted?
+          flag = @post.flags.order(id: :desc).first
+          tooltip += "\nFlag Reason: #{flag&.reason}" if @post.is_flagged?
+          tooltip += "\nDel Reason: #{flag&.reason}" if @post.is_deleted?
+        end
       end
-    end
 
-    tooltip += "\n\n#{@post.tag_string}"
-    tooltip
+      tooltip += "\n\n#{@post.tag_string}"
+      tooltip
+    end
   end
 
   def preview_urls
@@ -117,16 +121,12 @@ class PostThumbnailComponent < ViewComponent::Base
   end
 
   def shortened_score
-    case post.score
-    when nil
-      "0"
-    when (..-1)
-      post.score.abs.to_s
-    when (1000..)
-      "#{(post.score / 1000.0).round(1)}k"
-    else
-      post.score.to_s
-    end
+    score = post.score
+    return "0" if score.nil? || score == 0
+
+    score = score.abs if score < 0
+    return "#{(score / 1000.0).round(1)}k" if score >= 1000
+    score.to_s
   end
 
   def score_icon

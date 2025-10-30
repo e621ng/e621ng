@@ -13,22 +13,22 @@
 
   <%# Stats Section %>
   <% if should_show_stats? %>
-    <div class="thm-desc thm-rating-<%= @post.rating %>">
+    <div class="thm-desc thm-rating-<%= post.rating %>">
       <span class="thm-desc-a">
         <span class="thm-desc-m thm-score thm-score-<%= score_class %>">
-          <%= helpers.svg_icon(score_icon) %>
+          <%= svg_icon(score_icon, width: 16, height: 16) %>
           <%= shortened_score %>
         </span>
         <span class="thm-desc-m thm-favorites">
-          <%= helpers.svg_icon(:star) %>
-          <%= @post.fav_count %>
+          <%= svg_icon(:star, width: 16, height: 16) %>
+          <%= post.fav_count %>
         </span>
         <span class="thm-desc-m thm-comments">
-          <%= helpers.svg_icon(:messages_square) %>
-          <%= @post.visible_comment_count(@user) %>
+          <%= svg_icon(:messages_square, width: 16, height: 16) %>
+          <%= post.visible_comment_count(user) %>
         </span>
       </span>
-      <span class="thm-desc-b thm-rating"><%= @post.rating.upcase %></span>
+      <span class="thm-desc-b thm-rating"><%= post.rating.upcase %></span>
     </div>
   <% end %>
 
@@ -45,7 +45,7 @@
   <%# Pool Cover Page %>
   <% if should_show_pool? %>
     <div class="thm-extra">
-      <%= link_to pool_name, pool_path(@pool), class: "pool-link" %>
+      <%= link_to pool_name, pool_path(pool), class: "pool-link" %>
     </div>
   <% end %>
 <% end %>

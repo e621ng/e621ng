@@ -29,10 +29,10 @@ class PostThumbnailComponentTest < ActionView::TestCase
       assert_select "article#post_#{@post.id}.thumbnail"
       assert_select "article.thumbnail.rating-safe"
       assert_select "img[alt='post ##{@post.id}']"
-      assert_select ".desc .score"
-      assert_select ".desc .favorites"
-      assert_select ".desc .comments"
-      assert_select ".desc .rating"
+      assert_select ".thm-desc .thm-score"
+      assert_select ".thm-desc .thm-favorites"
+      assert_select ".thm-desc .thm-comments"
+      assert_select ".thm-desc .thm-rating"
     end
   end
 
@@ -91,7 +91,7 @@ class PostThumbnailComponentTest < ActionView::TestCase
 
       render component
 
-      assert_select ".score.score-positive"
+      assert_select ".thm-score.thm-score-positive"
     end
   end
 
