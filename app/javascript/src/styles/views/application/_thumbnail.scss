@@ -17,7 +17,7 @@ section.posts-container {
   // On desktop, all thumbnails are the same size, and the grid auto-fills based on that size.
   --thumb-image-size: 200px;
   @include window-larger-than(800px, $or-equal: true) {
-    grid-template-columns: repeat(auto-fill, minmax(#{$image-size}, 1fr));
+    grid-template-columns: repeat(auto-fill, #{$image-size});
   }
   @include window-smaller-than(800px) {
     article.thumbnail {
