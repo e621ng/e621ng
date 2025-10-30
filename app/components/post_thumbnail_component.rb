@@ -28,6 +28,10 @@ class PostThumbnailComponent < ViewComponent::Base
       TagQuery.should_hide_deleted_posts?(options[:tags], at_any_level: true)
   end
 
+  def should_render_image?
+    !@post.is_deleted? || @user&.is_janitor? || @user&.can_approve_posts?
+  end
+
   ##############################
   ####  Article Attributes  ####
   ##############################
@@ -51,6 +55,7 @@ class PostThumbnailComponent < ViewComponent::Base
     klass << "rating-questionable" if post.rating == "q"
     klass << "rating-explicit" if post.rating == "e"
     klass << "blacklistable" unless options[:no_blacklist]
+    klass << "no-stats" unless options[:stats]
     klass
   end
 
@@ -106,13 +111,26 @@ class PostThumbnailComponent < ViewComponent::Base
     options[:stats]
   end
 
+  def shortened_score
+    case post.score
+    when nil
+      "0"
+    when (..-1)
+      post.score.abs.to_s
+    when (1000..)
+      "#{(post.score / 1000.0).round(1)}k"
+    else
+      post.score.to_s
+    end
+  end
+
   def score_icon
-    return "↕" if post.score == 0
-    post.score > 0 ? "↑" : "↓"
+    return :square_slash if post.score == 0
+    post.score > 0 ? :arrow_up_dash : :arrow_down_dash
   end
 
   def score_class
-    return "score-neutral" if post.score == 0
-    post.score > 0 ? "score-positive" : "score-negative"
+    return "neutral" if post.score == 0
+    post.score > 0 ? "positive" : "negative"
   end
 end

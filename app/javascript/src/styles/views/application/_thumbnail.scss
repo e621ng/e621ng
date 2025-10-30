@@ -1,0 +1,255 @@
+$image-size: var(--thumb-image-size, 150px);
+$font-stack: "Roboto", Verdana, Geneva, sans-serif;
+
+
+// ============================== //
+// ====== Posts Container ======= //
+// ============================== //
+
+section.posts-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+
+  // Dynamic grid
+  // On mobile, the grid is driven by the column count, although thumbnails are still limited
+  // in size by the --thumb-image-size variable to prevent images from stretching.
+  // On desktop, all thumbnails are the same size, and the grid auto-fills based on that size.
+  --thumb-image-size: 200px;
+  @include window-larger-than(800px, $or-equal: true) {
+    grid-template-columns: repeat(auto-fill, minmax(#{$image-size}, 1fr));
+  }
+  @include window-smaller-than(800px) {
+    article.thumbnail {
+      a.post-link {
+        width: 100%;
+        max-width: $image-size;
+      }
+      .desc {
+        width: 100%;
+        max-width: $image-size;
+      }
+    }
+  }
+
+  // Headers and placeholders
+  h2.posts-container-header, .no-results { grid-column: -1 / 1; }
+}
+
+
+// ============================== //
+// ====== Thumbnail Proper ====== //
+// ============================== //
+
+article.thumbnail {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+
+  a.post-link {
+    display: block;
+    width: $image-size;
+    max-width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+
+    background: #0003; // For transparent and cropped images
+    overflow: hidden; // Get rounded corners to work on the image
+    @include st-radius-top;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none; // Direct all clicks to the link
+    }
+  }
+
+  &.no-stats a.post-link { @include st-radius; }
+}
+
+
+
+// Post information bar
+article.thumbnail .desc {
+  display: grid;
+  grid-template-columns: auto 1.5rem;
+  width: $image-size;
+  max-width: 100%;
+
+  font-size: 0.75rem;
+  line-height: 0.75rem;
+  font-weight: bold;
+  background-color: orange;
+  border-radius: 0 0 0.25rem 0.25rem;
+  overflow: hidden; // Hide the box-shadow on .desc-a
+
+  // Rating-dependent colors
+  @each $name, $color in ("e": "red", "q": "yellow", "s": "green") {
+    &.rating-#{$name} { background-color: palette("background-#{$color}"); }
+  }
+
+  // Column A: score, favorites, comments
+  &-a {
+    display: flex;
+    column-gap: 5%;
+    justify-content: center;
+    padding: 0.25rem;
+
+    @include st-radius-bottom;
+    background: themed("color-section-lighten-5");
+    overflow: hidden;
+    font-family: $font-stack;
+    box-shadow: 0 0 0.25rem #0005;
+  }
+
+  // Column B: rating
+  &-b {
+    padding: 0.25rem;
+    text-align: center;
+  }
+}
+
+// Post information badges (score, favs, comments)
+article.thumbnail .desc-m {
+  display: flex;
+  justify-content: center;
+  gap: 0.125rem;
+  flex-shrink: 1;
+
+  svg {
+    height: 1rem;
+    width: 1rem;
+    margin: -0.125rem 0;
+  }
+
+  // Score
+  &.score {
+    &.positive { color: palette("text-green"); }
+    &.negative { color: palette("text-red"); }
+    svg {
+      height: 0.9rem;
+      margin: -0.075rem 0;
+    }
+  }
+
+  // Fav
+  &.favorites {
+    color: palette("background-gold-d10");
+    svg {
+      filter: url(#inset-shadow);
+      fill: palette("background-gold-d10");
+      stroke-width: 0;
+    }
+  }
+
+  // Comments
+  &.comments {
+    svg {
+      height: 0.75rem;
+      margin: 0;
+    }
+  }
+}
+
+// Badges
+article.thumbnail[data-tags~=animated] {
+  & > a.post-link:before {
+    content: "ANIM";
+
+    position: absolute;
+    z-index: 5;
+    left: 0;
+    top: 0.5rem;
+    padding: 0.125rem 0.25rem;
+
+    width: 2.125rem; // Inferred height: 1rem
+    font-size: 0.5rem;
+    line-height: 0.5rem;
+    padding: 0.25rem 0; // Vertically centered
+
+    background-color: themed("color-section");
+    color: themed("color-text");
+    font-weight: bold;
+    text-align: center;
+
+    @include st-radius-right;
+  }
+  &[data-file-ext=webm] > a.post-link:before { content: "WEBM"; }
+  &[data-file-ext=mp4] > a.post-link:before { content: "MP4"; }
+}
+
+
+// ============================== //
+// ==== Deleted / Blacklisted === //
+// ============================== //
+
+article.thumbnail.deleted,
+article.thumbnail.blacklisted {
+
+  a.post-link::before {
+    content: "???";
+
+    position: absolute;
+    inset: 0; 
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-family: $font-stack;
+    font-size: calc(#{$image-size} / 5);
+    text-shadow: 0 0 1rem black;
+    pointer-events: none;
+    color: #fffa;
+  }
+}
+
+article.thumbnail.deleted a.post-link::before {
+  content: "deleted";
+}
+
+article.thumbnail.blacklisted {
+  a.post-link::before {
+    content: "blacklisted";
+  }
+  img { visibility: hidden; }
+}
+
+// Post matches blacklist
+article.thumbnail.filter-matches .desc span.desc-a {
+  background-color: palette("background-red");
+}
+
+
+// ============================== //
+// == UI Customization Options == //
+// ============================== //
+
+// Adjustable thumbnail sizes
+@each $size, $width, $cols in ("s" 150px 4, "l" 256px 2) {
+  body[data-st-size="#{$size}"] section.posts-container {
+    --thumb-image-size: #{$width};
+    @include window-smaller-than(800px) {
+      grid-template-columns: repeat(#{$cols}, 1fr);
+    }
+  }
+}
+
+// Hide comments on small thumbnails
+body[data-st-size="s"] article.thumbnail .desc .comments,
+article.thumbnail .desc .comments {
+  @include window-smaller-than(400px) {
+    display: none;
+  }
+}
+body:not([data-st-size="l"]) article.thumbnail .desc .comments {
+  @include window-smaller-than(400px) {
+    display: none;
+  }
+}
+
+// Disable cropping
+body[data-st-contain="true"] article.thumbnail img {
+  object-fit: contain;
+}
