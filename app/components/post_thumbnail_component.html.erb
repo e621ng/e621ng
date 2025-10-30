@@ -1,5 +1,5 @@
 <%= tag.article(**article_attributes) do %>
-  <%= link_to polymorphic_path(link_target, link_params), class: "post-link", data: { hover_text: tooltip_text } do %>
+  <%= link_to polymorphic_path(link_target, link_params), class: "thm-link", data: { hover_text: tooltip_text } do %>
     <% if should_render_image? %>
       <%= tag.picture do %>
         <%= tag.source type: "image/webp", srcset: preview_urls[0] if webp_enabled? %>
@@ -9,22 +9,22 @@
     <% end %>
   <% end %>
   <% if show_stats? %>
-    <div class="desc rating-<%= @post.rating %>">
-      <span class="desc-a">
-        <span class="desc-m score <%= score_class %>">
+    <div class="thm-desc thm-rating-<%= @post.rating %>">
+      <span class="thm-desc-a">
+        <span class="thm-desc-m thm-score thm-score-<%= score_class %>">
           <%= helpers.svg_icon(score_icon) %>
           <%= shortened_score %>
         </span>
-        <span class="desc-m favorites">
+        <span class="thm-desc-m thm-favorites">
           <%= helpers.svg_icon(:star) %>
           <%= @post.fav_count %>
         </span>
-        <span class="desc-m comments">
+        <span class="thm-desc-m thm-comments">
           <%= helpers.svg_icon(:messages_square) %>
           <%= @post.visible_comment_count(@user) %>
         </span>
       </span>
-      <span class="desc-b rating"><%= @post.rating.upcase %></span>
+      <span class="thm-desc-b thm-rating"><%= @post.rating.upcase %></span>
     </div>
   <% end %>
 <% end %>

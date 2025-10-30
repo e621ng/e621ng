@@ -21,11 +21,11 @@ section.posts-container {
   }
   @include window-smaller-than(800px) {
     article.thumbnail {
-      a.post-link {
+      a.thm-link {
         width: 100%;
         max-width: $image-size;
       }
-      .desc {
+      .thm-desc {
         width: 100%;
         max-width: $image-size;
       }
@@ -46,7 +46,7 @@ article.thumbnail {
   flex-flow: column;
   align-items: center;
 
-  a.post-link {
+  a.thm-link {
     display: block;
     width: $image-size;
     max-width: 100%;
@@ -65,28 +65,30 @@ article.thumbnail {
     }
   }
 
-  &.no-stats a.post-link { @include st-radius; }
+  &.no-stats a.thm-link { @include st-radius; }
 }
 
 
 
 // Post information bar
-article.thumbnail .desc {
+article.thumbnail .thm-desc {
   display: grid;
-  grid-template-columns: auto 1.5rem;
+  grid-template-columns: auto 1.25rem;
   width: $image-size;
   max-width: 100%;
 
   font-size: 0.75rem;
   line-height: 0.75rem;
   font-weight: bold;
+  font-family: $font-stack;
+
   background-color: orange;
   border-radius: 0 0 0.25rem 0.25rem;
   overflow: hidden; // Hide the box-shadow on .desc-a
 
   // Rating-dependent colors
   @each $name, $color in ("e": "red", "q": "yellow", "s": "green") {
-    &.rating-#{$name} { background-color: palette("background-#{$color}"); }
+    &.thm-rating-#{$name} { background-color: palette("background-#{$color}"); }
   }
 
   // Column A: score, favorites, comments
@@ -99,7 +101,6 @@ article.thumbnail .desc {
     @include st-radius-bottom;
     background: themed("color-section-lighten-5");
     overflow: hidden;
-    font-family: $font-stack;
     box-shadow: 0 0 0.25rem #0005;
   }
 
@@ -111,7 +112,7 @@ article.thumbnail .desc {
 }
 
 // Post information badges (score, favs, comments)
-article.thumbnail .desc-m {
+article.thumbnail .thm-desc-m {
   display: flex;
   justify-content: center;
   gap: 0.125rem;
@@ -124,9 +125,9 @@ article.thumbnail .desc-m {
   }
 
   // Score
-  &.score {
-    &.positive { color: palette("text-green"); }
-    &.negative { color: palette("text-red"); }
+  &.thm-score {
+    &-positive { color: palette("text-green"); }
+    &-negative { color: palette("text-red"); }
     svg {
       height: 0.9rem;
       margin: -0.075rem 0;
@@ -134,7 +135,7 @@ article.thumbnail .desc-m {
   }
 
   // Fav
-  &.favorites {
+  &.thm-favorites {
     color: palette("background-gold-d10");
     svg {
       filter: url(#inset-shadow);
@@ -144,7 +145,7 @@ article.thumbnail .desc-m {
   }
 
   // Comments
-  &.comments {
+  &.thm-comments {
     svg {
       height: 0.75rem;
       margin: 0;
@@ -154,7 +155,7 @@ article.thumbnail .desc-m {
 
 // Badges
 article.thumbnail[data-tags~=animated] {
-  & > a.post-link:before {
+  & > a.thm-link:before {
     content: "ANIM";
 
     position: absolute;
@@ -175,8 +176,8 @@ article.thumbnail[data-tags~=animated] {
 
     @include st-radius-right;
   }
-  &[data-file-ext=webm] > a.post-link:before { content: "WEBM"; }
-  &[data-file-ext=mp4] > a.post-link:before { content: "MP4"; }
+  &[data-file-ext=webm] > a.thm-link:before { content: "WEBM"; }
+  &[data-file-ext=mp4] > a.thm-link:before { content: "MP4"; }
 }
 
 
@@ -187,7 +188,7 @@ article.thumbnail[data-tags~=animated] {
 article.thumbnail.deleted,
 article.thumbnail.blacklisted {
 
-  a.post-link::before {
+  a.thm-link::before {
     content: "???";
 
     position: absolute;
@@ -205,19 +206,19 @@ article.thumbnail.blacklisted {
   }
 }
 
-article.thumbnail.deleted a.post-link::before {
+article.thumbnail.deleted a.thm-link::before {
   content: "deleted";
 }
 
 article.thumbnail.blacklisted {
-  a.post-link::before {
+  a.thm-link::before {
     content: "blacklisted";
   }
   img { visibility: hidden; }
 }
 
 // Post matches blacklist
-article.thumbnail.filter-matches .desc span.desc-a {
+article.thumbnail.filter-matches .thm-desc-a {
   background-color: palette("background-red");
 }
 
@@ -237,13 +238,13 @@ article.thumbnail.filter-matches .desc span.desc-a {
 }
 
 // Hide comments on small thumbnails
-body[data-st-size="s"] article.thumbnail .desc .comments,
-article.thumbnail .desc .comments {
+body[data-st-size="s"] article.thumbnail .thm-desc .thm-comments,
+article.thumbnail .thm-desc .thm-comments {
   @include window-smaller-than(400px) {
     display: none;
   }
 }
-body:not([data-st-size="l"]) article.thumbnail .desc .comments {
+body:not([data-st-size="l"]) article.thumbnail .thm-desc .thm-comments {
   @include window-smaller-than(400px) {
     display: none;
   }
