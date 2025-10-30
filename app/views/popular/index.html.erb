@@ -8,7 +8,11 @@
 
     <div id="posts">
       <section class="posts-container">
-        <%= render(PostThumbnailComponent.with_collection(@post_set.posts, stats: CurrentUser.show_post_statistics?)) %>
+        <% if @post_set.posts.any? %>
+          <%= render(PostThumbnailComponent.with_collection(@post_set.posts, stats: CurrentUser.show_post_statistics?)) %>
+        <% else %>
+          <p class="no-results">Nobody here but us chickens!</p>
+        <% end %>
       </section>
     </div>
   </div>
