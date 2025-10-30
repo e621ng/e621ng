@@ -1,9 +1,9 @@
 <h2>Post Report</h2>
+<% @post = @ticket.content %>
 
 <div class="report-card">
   <div class="report-card-left">
-    <% @post = @ticket.content %>
-    <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+    <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
   </div>
   <div class="report-card-right">
     <p>
