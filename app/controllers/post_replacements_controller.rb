@@ -29,7 +29,7 @@ class PostReplacementsController < ApplicationController
   def create
     check_allow_create
     @post = Post.find(params[:post_id])
-    @post_replacement = @post.replacements.create(create_params.merge(creator_id: CurrentUser.id, creator_ip_addr: CurrentUser.ip_addr))
+    @post_replacement = @post.replacements.create(create_params.merge(creator_id: CurrentUser.id, creator_ip_addr: CurrentUser.ip_addr, uploader_on_approve: @post.uploader))
     @post_replacement.notify_reupload
     if @post_replacement.errors.none?
       flash.now[:notice] = "Post replacement submitted"
@@ -59,6 +59,11 @@ class PostReplacementsController < ApplicationController
   def approve
     @post_replacement = PostReplacement.find(params[:id])
     @post_replacement.approve!(penalize_current_uploader: params[:penalize_current_uploader])
+
+    if @post_replacement.errors.any?
+      render plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: 400
+      return
+    end
 
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }

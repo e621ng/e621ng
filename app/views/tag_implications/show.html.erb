@@ -17,6 +17,14 @@
         <strong>Commands</strong>
         <%= render "tag_relationships/command_buttons", tag_relation: @tag_implication, with_show_link: false %>
       </li>
+
+      <% if @tag_implication.consequent_tag&.artist&.is_dnp? || @tag_implication.antecedent_tag&.artist&.is_dnp? %>
+        <li>
+          <br />
+          <strong>Note:</strong> This tag alias is associated with a DNP artist.<br />
+          Please check the <%= link_to "artist page", artist_path(@tag_implication.consequent_tag&.artist || @tag_implication.antecedent_tag&.artist) %> for more information.
+        </li>
+      <% end %>
     </ul>
 
     <%= render "tag_change_requests/votes", tag_change_request: @tag_implication %>

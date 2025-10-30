@@ -2,7 +2,7 @@
 
 module FileMethods
   def is_image?
-    is_png? || is_jpg? || is_gif?
+    is_png? || is_jpg? || is_gif? || is_webp?
   end
 
   def is_png?
@@ -29,6 +29,10 @@ module FileMethods
     file_ext == "mp4"
   end
 
+  def is_webp?
+    file_ext == "webp"
+  end
+
   def is_video?
     is_webm? || is_mp4?
   end
@@ -51,23 +55,33 @@ module FileMethods
     end
   end
 
-  def is_ai_generated?(file_path)
-    return false if !is_image?
+  # Returns true if the WebP file is animated, false otherwise.
+  # Fast-ish approach: scans the file header for animation markers (ANIM/ANMF).
+  # See: https://developers.google.com/speed/webp/docs/riff_container#extended
+  def is_animated_webp?(file_path)
+    return false unless is_webp?
 
-    image = Vips::Image.new_from_file(file_path)
-    fetch = ->(key) do
-      value = image.get(key)
-      value.encode("ASCII", invalid: :replace, undef: :replace).gsub("\u0000", "")
-    rescue Vips::Error
-      ""
+    File.open(file_path, "rb") do |f|
+      header = f.read(12)
+      # Expect: 'RIFF' <size:LE32> 'WEBP'
+      return false unless header && header.bytesize == 12
+      return false unless header[0, 4] == "RIFF" && header[8, 4] == "WEBP"
+
+      # Iterate over chunks: <FourCC:4><Size:LE32><Payload...> (padded to even length)
+      loop do
+        chunk_header = f.read(8)
+        break false unless chunk_header && chunk_header.bytesize == 8
+
+        # ANIM = animation header, ANMF = animation frame
+        return true if %w[ANIM ANMF].include?(chunk_header[0, 4])
+
+        # Skip payload (+ padding byte if size is odd)
+        chunk_size = chunk_header[4, 4].unpack1("V") # Little-endian uint32
+        skip = chunk_size + (chunk_size.odd? ? 1 : 0)
+        f.seek(skip, IO::SEEK_CUR)
+      end
     end
-
-    return true if fetch.call("png-comment-0-parameters").present?
-    return true if fetch.call("png-comment-0-Dream").present?
-    return true if fetch.call("exif-ifd0-Software").include?("NovelAI") || fetch.call("png-comment-2-Software").include?("NovelAI")
-    return true if ["exif-ifd0-ImageDescription", "exif-ifd2-UserComment", "png-comment-4-Comment"].any? { |field| fetch.call(field).include?('"sampler": "') }
-    exif_data = fetch.call("exif-data")
-    return true if ["Model hash", "OpenAI", "NovelAI"].any? { |marker| exif_data.include?(marker) }
+  rescue StandardError => _e
     false
   end
 
@@ -85,6 +99,8 @@ module FileMethods
         "webm"
       when "video/mp4"
         "mp4"
+      when "image/webp"
+        "webp"
       else
         mime_type
       end
@@ -114,11 +130,33 @@ module FileMethods
     nil
   end
 
-  def is_corrupt?(file_path)
-    image = Vips::Image.new_from_file(file_path, fail: true)
-    image.stats
-    false
-  rescue
+  def is_corrupt_gif?(file_path)
+    i = 0
+    loop do
+      Vips::Image.gifload(file_path, page: i, fail: true).stats
+      i += 1
+    end
+  rescue Vips::Error => e
+    # Invalid page number indicates we've reached the end of the frames.
+    # Any other error indicates corruption.
+    return false if e.message =~ /bad page number/
     true
+  end
+
+  # Verify whether the file at the provided path is corrupt.
+  # * Regular images: attempt to load the image with libvips.
+  # * GIFs: attempt to load each frame with libvips.
+  # * APNG: not implemented, could defer to ffmpeg if needed.
+  # * Other file types: assumed to be non-corrupt.
+  def is_corrupt?(file_path)
+    return false unless is_image?
+    return is_corrupt_gif?(file_path) if is_gif?
+
+    begin
+      Vips::Image.new_from_file(file_path, fail: true).stats
+      false
+    rescue Vips::Error
+      true
+    end
   end
 end

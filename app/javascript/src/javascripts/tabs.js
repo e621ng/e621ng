@@ -88,10 +88,10 @@ class TabIndex {
         this.pages[tab].push($one);
       }
 
-      // TODO Not a great way of doing this.
-      // Entries with the same search string will get overwriten.
       const search = $one.attr("search");
-      if (search) this.search[search] = $one;
+      if (!search) continue;
+      if (!this.search[search]) this.search[search] = [];
+      this.search[search].push($one);
     }
 
     this.groups = {};
@@ -141,20 +141,33 @@ class TabIndex {
     this._allGroups.removeClass("active");
 
     // Restore the previous session
+    query = query.trim().toLowerCase();
     if (query.length == 0) {
       this.$menu.find("button").first().trigger("click", [ false ]);
       return;
     }
 
-    const terms = query.split(" ");
+    const terms = query.split(" ").filter(n => n);
     const groups = new Set();
-    for (const [tags, $element] of Object.entries(this.search)) {
+    for (const [tags, $elements] of Object.entries(this.search)) {
+
+      // Must have at least partial matches on all terms
+      let matches = false;
       for (const term of terms) {
-        if (!tags.includes(term)) continue;
-        $element.addClass("active");
-        if ($element.attr("group"))
-          groups.add($element.attr("group"));
+        if (!tags.includes(term)) {
+          matches = false;
+          break;
+        }
+        matches = true;
       }
+
+      // Partial match succeeded
+      if (matches)
+        for (const one of $elements) {
+          one.addClass("active");
+          if (one.attr("group"))
+            groups.add(one.attr("group"));
+        }
     }
 
     // Activate group headers

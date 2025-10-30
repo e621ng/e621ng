@@ -4,7 +4,7 @@ source "https://rubygems.org/"
 
 gem "dotenv", require: "dotenv/load"
 
-gem "rails", "~> 7.1.0"
+gem "rails", "~> 7.2.0"
 gem "pg"
 gem "dalli", platforms: :ruby
 gem "simple_form"
@@ -14,7 +14,14 @@ gem "bcrypt", require: "bcrypt"
 gem "draper"
 gem "streamio-ffmpeg"
 gem "responders"
-gem "dtext_rb", git: "https://github.com/e621ng/dtext_rb.git", branch: "master", require: "dtext"
+
+# Use local dtext gem for development if available
+if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext")
+  gem "dtext", path: "vendor/dtext", require: "dtext"
+else
+  gem "dtext", git: "https://github.com/e621ng/dtext.git", tag: "2.0.1", require: "dtext"
+end
+
 gem "bootsnap"
 gem "addressable"
 gem "recaptcha", require: "recaptcha/rails"
@@ -41,6 +48,8 @@ gem "faraday"
 gem "faraday-follow_redirects"
 gem "faraday-retry"
 
+gem "rails-settings-cached", "~> 2.9"
+
 group :production do
   gem "pitchfork"
 end
@@ -55,9 +64,9 @@ group :development do
   gem "rubocop", require: false
   gem "rubocop-erb", require: false
   gem "rubocop-rails", require: false
-  gem "rexml", ">= 3.3.6"
+  gem "rexml", ">= 3.4.2"
   gem "ruby-lsp"
-  gem "ruby-lsp-rails", "~> 0.3.13"
+  gem "ruby-lsp-rails", "~> 0.4.8"
   gem "faker", require: false
 end
 

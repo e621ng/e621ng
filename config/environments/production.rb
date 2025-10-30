@@ -45,7 +45,7 @@ Rails.application.configure do
   #   .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
 
   # Prepend all log lines with the following tags.
-  config.log_tags = [ :request_id ]
+  config.log_tags = [:request_id]
 
   # "info" includes generic and useful information about system operation, but avoids logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII). If you
@@ -60,8 +60,8 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = :mailgun
   config.action_mailer.mailgun_settings = {
-      api_key: Danbooru.config.mailgun_api_key,
-      domain: Danbooru.config.mailgun_domain
+    api_key: Danbooru.config.mailgun_api_key,
+    domain: Danbooru.config.mailgun_domain,
   }
 
   # Ignore bad email addresses and do not raise email delivery errors.

@@ -2,7 +2,12 @@
   <%= f.input :md5, label: "MD5" %>
   <%= f.input :post_id, label: "Post ID" %>
   <%= f.user :creator %>
-  <%= f.user :approver %>
+  <%= f.user :approver, label: "Handler" %>
   <%= f.user %i[uploader_name_on_approve uploader_id_on_approve], label: "Original Uploader" %>
-  <%= f.input :status, collection: ["pending", "rejected", "approved", "promoted"], include_blank: true %>
+  <%= f.input :status, collection: ["pending", "rejected", "approved", "promoted", "original"], include_blank: true %>
+  <%= f.input :type, collection: ["jpg", "png", "gif", "webm", "mp4"], include_blank: true %>
+  <%= f.input :reason, label: "Reason" %>
+  <%= f.input :file_name, label: "File Name" %>
+  <%= f.input :source, label: "Source" %>
+  <%= f.input :penalized, label: "Penalized?", collection: [["Yes", true], ["No", false]], include_blank: true %>
 <% end %>

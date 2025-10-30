@@ -7,6 +7,7 @@ div#c-confirm-delete {
   // "Move to parent" checkboxes
   .post_delete_options {
     display: flex;
+    column-gap: 0.5rem;
   }
 
   // Prebuilt deletion reason buttons

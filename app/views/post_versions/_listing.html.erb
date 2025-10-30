@@ -58,11 +58,13 @@
           <% if post_version.description.present? %>
             <div class="desc-show">
               <%= post_version.description_changed ? "Show Description" : "No change" %></div>
-            <div id='desc-<%= post_version.id %>' class='desc-popup box-section'>
-              <h2>Description</h2>
-              <div class="closebutton">X</div>
-              <div class='desc-popup-inner'>
-                <p class="dtext-container"><%= format_text(post_version.description) %></p>
+            <div id="desc-<%= post_version.id %>" class="desc-popup" style="display: none;">
+              <h2>
+                Description
+                <button class="st-button closebutton">X</button>
+              </h2>
+              <div class="desc-popup-inner dtext-container">
+                <%= format_text(post_version.description) %>
               </div>
             </div>
           <% elsif post_version.description_changed && post_version.version != 1%>

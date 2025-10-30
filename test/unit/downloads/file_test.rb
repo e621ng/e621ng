@@ -17,7 +17,7 @@ module Downloads
       setup do
         CurrentUser.user = create(:user)
         CloudflareService.stubs(:ips).returns([])
-        create(:upload_whitelist, pattern: "https://example.com/*")
+        create(:upload_whitelist, domain: "example.com")
       end
 
       should "not follow redirects to non-whitelisted domains" do
@@ -33,7 +33,7 @@ module Downloads
       setup do
         CurrentUser.user = create(:user)
         CloudflareService.stubs(:ips).returns([])
-        create(:upload_whitelist, pattern: "*")
+        create(:upload_whitelist, domain: ".*")
       end
 
       context "for a banned IP" do
@@ -81,7 +81,7 @@ module Downloads
         end
 
         should "return an uncorrupted file on the second try" do
-          source = "https://example.com"
+          source = "https://example.com/test.jpeg"
           download = Downloads::File.new(source)
           stub_request(:get, source).to_raise(Errno::ETIMEDOUT).then.to_return(body: "abc")
 
@@ -90,15 +90,16 @@ module Downloads
         end
 
         should "raise for 404" do
-          stub_request(:get, "https://example.com").to_return(status: 404)
-          download = Downloads::File.new("https://example.com")
+          source = "https://example.com/test.jpeg"
+          stub_request(:get, source).to_return(status: 404)
+          download = Downloads::File.new(source)
           e = assert_raises(Downloads::File::Error) { download.download! }
           assert_match("Not Found", e.message)
         end
       end
 
       should "throw an exception when the file is larger than the maximum" do
-        source = "https://example.com"
+        source = "https://example.com/test.jpeg"
         download = Downloads::File.new(source)
         stub_request(:get, source).to_return(body: "body")
         assert_raises(Downloads::File::Error) do
@@ -107,7 +108,7 @@ module Downloads
       end
 
       should "store the file in the tempfile path" do
-        source = "https://example.com"
+        source = "https://example.com/test.jpeg"
         download = Downloads::File.new(source)
         stub_request(:get, source).to_return(body: "body")
 
@@ -116,11 +117,12 @@ module Downloads
       end
 
       should "correctly follow redirects" do
+        source_url = "https://example.com/test.jpeg"
         redirect_url = "https://example.com/redirected"
-        initial_request = stub_request(:get, "https://example.com").to_return(body: "Your are being redirected", status: 302, headers: { location: redirect_url })
+        initial_request = stub_request(:get, source_url).to_return(body: "Your are being redirected", status: 302, headers: { location: redirect_url })
         redirect_request = stub_request(:get, redirect_url).to_return(body: "Actual content")
 
-        file = Downloads::File.new("https://example.com").download!
+        file = Downloads::File.new(source_url).download!
 
         assert_requested(initial_request)
         assert_requested(redirect_request)

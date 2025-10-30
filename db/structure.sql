@@ -1007,13 +1007,15 @@ CREATE TABLE public.mascots (
     display_name character varying NOT NULL,
     md5 character varying NOT NULL,
     file_ext character varying NOT NULL,
-    background_color character varying NOT NULL,
+    background_color character varying DEFAULT '#012e57'::character varying NOT NULL,
     artist_url character varying NOT NULL,
     artist_name character varying NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    available_on character varying[] DEFAULT '{}'::character varying[] NOT NULL
+    available_on character varying[] DEFAULT '{}'::character varying[] NOT NULL,
+    foreground_color character varying DEFAULT '#0f0f0f80'::character varying NOT NULL,
+    is_layered boolean DEFAULT false NOT NULL
 );
 
 
@@ -1685,11 +1687,11 @@ CREATE TABLE public.posts (
     change_seq bigint NOT NULL,
     tag_count_lore integer DEFAULT 0 NOT NULL,
     bg_color character varying,
-    generated_samples character varying[],
     duration numeric,
     is_comment_disabled boolean DEFAULT false NOT NULL,
     is_comment_locked boolean DEFAULT false NOT NULL,
-    tag_count_contributor integer DEFAULT 0 NOT NULL
+    tag_count_contributor integer DEFAULT 0 NOT NULL,
+    video_samples jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -1739,6 +1741,38 @@ ALTER SEQUENCE public.posts_id_seq OWNED BY public.posts.id;
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
 );
+
+
+--
+-- Name: settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.settings (
+    id bigint NOT NULL,
+    var character varying NOT NULL,
+    value text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.settings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.settings_id_seq OWNED BY public.settings.id;
 
 
 --
@@ -2088,13 +2122,14 @@ ALTER SEQUENCE public.tickets_id_seq OWNED BY public.tickets.id;
 
 CREATE TABLE public.upload_whitelists (
     id bigint NOT NULL,
-    pattern character varying NOT NULL,
     note character varying,
     reason character varying,
     allowed boolean DEFAULT true NOT NULL,
     hidden boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    domain character varying,
+    path character varying DEFAULT '\/.+'::character varying
 );
 
 
@@ -2767,6 +2802,13 @@ ALTER TABLE ONLY public.posts ALTER COLUMN change_seq SET DEFAULT nextval('publi
 
 
 --
+-- Name: settings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.settings ALTER COLUMN id SET DEFAULT nextval('public.settings_id_seq'::regclass);
+
+
+--
 -- Name: staff_audit_logs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3263,6 +3305,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.settings
+    ADD CONSTRAINT settings_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: staff_audit_logs staff_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3624,6 +3674,13 @@ CREATE INDEX index_comment_votes_on_user_id ON public.comment_votes USING btree 
 
 
 --
+-- Name: index_comment_votes_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comment_votes_on_user_id_and_id ON public.comment_votes USING btree (user_id, id);
+
+
+--
 -- Name: index_comments_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3670,6 +3727,13 @@ CREATE INDEX index_comments_on_to_tsvector_english_body ON public.comments USING
 --
 
 CREATE UNIQUE INDEX index_dmail_filters_on_user_id ON public.dmail_filters USING btree (user_id);
+
+
+--
+-- Name: index_dmails_for_inbox; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_dmails_for_inbox ON public.dmails USING btree (id, owner_id, to_id, is_deleted);
 
 
 --
@@ -3726,6 +3790,27 @@ CREATE INDEX index_edit_histories_on_user_id ON public.edit_histories USING btre
 --
 
 CREATE INDEX index_edit_histories_on_versionable_id_and_versionable_type ON public.edit_histories USING btree (versionable_id, versionable_type);
+
+
+--
+-- Name: index_exception_logs_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exception_logs_on_code ON public.exception_logs USING btree (code);
+
+
+--
+-- Name: index_exception_logs_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exception_logs_on_created_at ON public.exception_logs USING btree (created_at);
+
+
+--
+-- Name: index_exception_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exception_logs_on_user_id ON public.exception_logs USING btree (user_id);
 
 
 --
@@ -4156,6 +4241,20 @@ CREATE INDEX index_post_votes_on_user_id ON public.post_votes USING btree (user_
 
 
 --
+-- Name: index_post_votes_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_votes_on_user_id_and_created_at ON public.post_votes USING btree (user_id, created_at);
+
+
+--
+-- Name: index_post_votes_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_votes_on_user_id_and_id ON public.post_votes USING btree (user_id, id);
+
+
+--
 -- Name: index_post_votes_on_user_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4205,6 +4304,13 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 
 
 --
+-- Name: index_posts_on_pool_string_tokens; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_pool_string_tokens ON public.posts USING gin (string_to_array(pool_string, ' '::text));
+
+
+--
 -- Name: index_posts_on_string_to_array_tag_string; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4224,6 +4330,13 @@ CREATE INDEX index_posts_on_uploader_id ON public.posts USING btree (uploader_id
 --
 
 CREATE INDEX index_posts_on_uploader_ip_addr ON public.posts USING btree (uploader_ip_addr);
+
+
+--
+-- Name: index_settings_on_var; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_settings_on_var ON public.settings USING btree (var);
 
 
 --
@@ -4451,6 +4564,27 @@ CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING
 
 
 --
+-- Name: index_users_on_bitprefs_both; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bitprefs_both ON public.users USING btree (id) WHERE ((bit_prefs & (98304)::bigint) = 98304);
+
+
+--
+-- Name: index_users_on_bitprefs_cap; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bitprefs_cap ON public.users USING btree (id) WHERE ((bit_prefs & (32768)::bigint) = 32768);
+
+
+--
+-- Name: index_users_on_bitprefs_cuf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bitprefs_cuf ON public.users USING btree (id) WHERE ((bit_prefs & (65536)::bigint) = 65536);
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4665,6 +4799,14 @@ ALTER TABLE ONLY public.post_events
 
 
 --
+-- Name: exception_logs fk_rails_c720bf523c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exception_logs
+    ADD CONSTRAINT fk_rails_c720bf523c FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: avoid_postings fk_rails_cccc6419c8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4703,6 +4845,19 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251014151300'),
+('20251010171207'),
+('20251001213309'),
+('20250921011208'),
+('20250831040648'),
+('20250831015612'),
+('20250830192056'),
+('20250826165528'),
+('20250611041221'),
+('20250604020028'),
+('20250512221037'),
+('20250501203333'),
+('20250430193448'),
 ('20250429022022'),
 ('20250423141854'),
 ('20250414000142'),

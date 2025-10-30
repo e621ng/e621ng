@@ -42,6 +42,7 @@ services:
     environment:
       <<: *common-env
       RAILS_ENV: development
+      LOCAL_DTEXT: ${LOCAL_DTEXT:-}
       DD_AGENT_HOST: datadog-agent
       DD_SERVICE: ${DD_SERVICE:-}
       DD_ENV: ${DD_ENV:-}
@@ -168,6 +169,21 @@ services:
     entrypoint: bundle exec rails test
     profiles:
       - tests
+
+  bundle:
+    image: e621
+    environment:
+      <<: *common-env
+      RAILS_ENV: development
+    volumes:
+      - .:/app
+      - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
+      - node_modules:/app/node_modules
+    depends_on:
+      <<: *common-depends-on
+    entrypoint: bundle
+    profiles:
+      - bundle
 
   rails:
     image: e621

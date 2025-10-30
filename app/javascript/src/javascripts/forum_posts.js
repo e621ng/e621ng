@@ -1,4 +1,5 @@
 import Utility from "./utility";
+import TextUtils from "./utility/text_util";
 
 let ForumPost = {};
 
@@ -103,20 +104,10 @@ ForumPost.quote = function (e) {
     dataType: "json",
     accept: "text/javascript",
   }).done(function (data) {
-    let stripped_body = data.body.replace(/\[quote\](?:.|\n|\r)+?\[\/quote\][\n\r]*/gm, "");
-    stripped_body = `[quote]"${parent.data("creator")}":/users/${parent.data("creator-id")} said:
-${stripped_body}
-[/quote]
-
-`;
-    var $textarea = $("#forum_post_body_for_");
-    var msg = stripped_body;
-    if ($textarea.val().length > 0) {
-      msg = $textarea.val() + "\n\n" + msg;
-    }
-
-    $textarea.val(msg);
+    const $textarea = $("#forum_post_body_for_");
+    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
     $textarea.selectEnd();
+
     $("#topic-response").show();
     setTimeout(function () {
       $("#topic-response")[0].scrollIntoView();

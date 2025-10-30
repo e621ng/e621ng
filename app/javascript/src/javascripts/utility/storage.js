@@ -71,6 +71,9 @@ LStorage.Theme = {
 
   /** @returns {boolean} True if the sticky header is enabled */
   StickyHeader: ["theme-sheader", false],
+
+  /** @returns {string} Currently selected logo */
+  Logo: ["theme-logo", "pride"],
 };
 StorageUtils.bootstrapMany(LStorage.Theme);
 
@@ -97,8 +100,28 @@ LStorage.Posts = {
 
   /** @returns {boolean} True if the search should be displayed in fullscreen */
   StickySearch: ["e6.posts.ssearch", false],
+
+  /** @returns {boolean} True to stop limiting videos to 1080p in Original mode */
+  SkipVariants: ["e6.posts.scvideos", false],
+
+  /** @returns {boolean} True to stop cropping thumbnails to square */
+  Contain: ["e6.posts.contain", false],
+
+  /** @returns {string} Preferred thumbnail size */
+  Size: ["e6.posts.size", "m"],
+
+  /** @returns {boolean} True if post notes are enabled */
+  Notes: ["e6.posts.notes", true],
+
+  /** @returns {("short" | "long" | "none")} Short, long or no hover text for post thumbnails */
+  HoverText: ["e6.posts.hovertext", "long"],
+
+  /** @returns {boolean} True if tag preview in tag editor is enabled */
+  TagPreview: ["e6.posts.tagpreview", true],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
+
+if (LStorage.Posts.Size == "true") LStorage.Posts.Size = "s";
 
 LStorage.Posts.TagScript = {
   /** @returns {number} Current tag script ID */

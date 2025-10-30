@@ -9,10 +9,21 @@ $palette: (
   "background-green": #227d2a,
   "background-grey": #60686f,
 
+  "background-gold": #ddc676,
+  "background-orange": #ec8e49,
+
   "background-red-d5": #{darken(#76312e, 5%)},
+  "background-red-d10": #{darken(#76312e, 10%)},
   "background-yellow-d5": #{darken(#827428, 5%)},
   "background-green-d5": #{darken(#227d2a, 5%)},
+  "background-green-d10": #{darken(#227d2a, 10%)},
   "background-grey-d5": #{darken(#60686f, 5%)},
+
+  "background-gold-l10": #{lighten(#ddc676, 10%)},
+  "background-gold-d10": #{darken(#ddc676, 10%)},
+  "background-gold-d20": #{darken(#ddc676, 20%)},
+  "background-orange-d5": #{darken(#ec8e49, 5%)},
+  "background-orange-d10": #{darken(#ec8e49, 20%)},
 
   "text-white": #ffffff,
   "text-red": #fe6a64,
@@ -21,6 +32,7 @@ $palette: (
   "text-grey": #aaaaaa,
 
   // Just here for the post borders, nothing else
+  "plain-white": #fff,
   "plain-black": #000,
   "plain-green": #0F0,
   "plain-yellow": #CC0,

@@ -27,7 +27,6 @@ nav.navigation {
       width: 4rem;
       margin: 0.125rem;
   
-      background-image: url("main-logo.svg");
       background-repeat: no-repeat;
       background-size: contain;
       background-position-y: center;
@@ -231,9 +230,14 @@ nav.navigation {
 
 
 // Sticky header
-body[data-th-sheader="true"] nav.navigation {
+body[data-th-stickyheader="true"] nav.navigation {
   position: sticky;
   top: 0;
+
+  @include window-larger-than(50rem) {
+    background-color: themed("color-background");
+    background-image: themed("image-background");
+  }
 }
 
 
@@ -253,7 +257,7 @@ nav.navigation .nav-primary li.notification {
     right: 0.2rem;
     top: 1.25rem;
   
-    @include window-larger-than(800px) {
+    @include window-larger-than(50rem) {
       top: 0.2rem;
     }
   }
@@ -315,7 +319,6 @@ nav.navigation, html.nav-toggled nav.navigation {
     box-sizing: border-box;
     height: unset;
 
-    background: themed("color-background");
     overflow-y: unset; // overrides mobile hack allowing the menu scrolling
 
     .nav-logo a.nav-logo-link {
@@ -344,6 +347,10 @@ nav.navigation, html.nav-toggled nav.navigation {
       }
     }
 
+    .nav-logo {
+      background: unset;
+    }
+
     .nav-primary {
       background: unset;
       height: unset;
@@ -361,9 +368,12 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       padding: 0 0.25rem;
       border-radius: 0.25rem 0 0 0.25rem;
-      overflow-y: unset;
-
-      overflow: hidden; // Silly fix for too many links
+      overflow-y: hidden;
+      overflow-x: scroll; // Silly fix for too many links
+      /* Hide scrollbar */
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+      &::-webkit-scrollbar { display: none; }
       z-index: 1; // above the avatar
 
       li {
@@ -445,6 +455,7 @@ nav.navigation, html.nav-toggled nav.navigation {
       height: 3.25rem;
       box-sizing: border-box;
       padding: 0;
+      background: unset;
 
       #nav-toggle { display: none; }
       a { padding: 0; }

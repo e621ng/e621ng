@@ -1,5 +1,3 @@
-import Shortcuts from "./shortcuts";
-
 let Utility = {};
 
 Utility.delay = function (milliseconds) {
@@ -30,7 +28,7 @@ Utility.notice = function (msg, permanent) {
     Utility.notice_timeout_id = setTimeout(function () {
       $("#close-notice-link").click();
       Utility.notice_timeout_id = undefined;
-    }, 6000);
+    }, 3000);
   }
 };
 
@@ -40,48 +38,6 @@ Utility.error = function (msg) {
   if (Utility.notice_timeout_id !== undefined) {
     clearTimeout(Utility.notice_timeout_id);
   }
-};
-
-Utility.dialog = function (title, html) {
-  const $dialog = $(html).dialog({
-    title: title,
-    width: 700,
-    modal: true,
-    close: function () {
-      // Defer removing the dialog to avoid detaching the <form> tag before the
-      // form is submitted (which would prevent the submission from going through).
-      $(() => $dialog.dialog("destroy"));
-    },
-    buttons: {
-      "Submit": function () {
-        $dialog.find("form").submit();
-      },
-      "Cancel": function () {
-        $dialog.dialog("close");
-      },
-    },
-  });
-
-  $dialog.find("form").on("submit.danbooru", function () {
-    $dialog.dialog("close");
-  });
-};
-
-// TODO: Remove 2024-05-15
-Object.defineProperty(Utility, "disableShortcuts", {
-  get () {
-    console.log("Utility.disableShortcuts is deprecated and will be removed at a later date, use Shortcuts.disabled instead");
-    return Shortcuts.disabled;
-  },
-  set (value) {
-    console.log("Utility.disableShortcuts is deprecated and will be removed at a later date, use Shortcuts.disabled instead");
-    Shortcuts.disabled = value;
-  },
-});
-
-Utility.keydown = function (keys, namespace, handler) {
-  console.log("Utility.keydown is deprecated and will be removed at a later date, use Shortcuts.keydown instead");
-  Shortcuts.keydown(keys, namespace, handler);
 };
 
 Utility.is_subset = function (array, subarray) {

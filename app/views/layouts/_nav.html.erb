@@ -38,7 +38,7 @@
   <menu class="nav-tools desktop <%= CurrentUser.is_anonymous? ? "anonymous" : "" %>">
     <%= decorated_nav_link_to("Themes", :swatch, theme_path, class: "nav-tools-themes", title: "Site Themes") %>
     <% unless CurrentUser.is_anonymous? %>
-      <%= decorated_nav_link_to("Settings", :settings, edit_user_path(CurrentUser.user), class: "nav-tools-settings", title: "User Settings") %>
+      <%= decorated_nav_link_to("Settings", :settings, settings_users_path, class: "nav-tools-settings", title: "User Settings") %>
     <% end %>
   </menu>
 
@@ -48,7 +48,7 @@
     <% unless CurrentUser.is_anonymous? %>
       <%= custom_image_nav_link_to("Discord", "discord.com.png", discord_get_path, class: "nav-help-discord collapse-1") %>
     <% end %>
-    <%= custom_image_nav_link_to("SubscribeStar", "subscribestar.adult.png", subscribestar_path, class: "nav-help-subscribestar collapse-1") %>
+    <%= custom_image_nav_link_to("SubscribeStar", "subscribestar.adult.png", subscribestar_path, class: "nav-help-subscribestar collapse-1") if Danbooru.config.subscribestar_url.present? %>
     <%= nav_link_to("More", site_map_path, class: "nav-help-map") %>
   </menu>
 

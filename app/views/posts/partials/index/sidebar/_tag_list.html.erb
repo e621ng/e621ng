@@ -1,4 +1,1 @@
-<h5 class="tag-list-header" data-category="all">Tags</h5>
-<ul class="tag-list all-tag-list">
-  <%= render partial: "/posts/partials/common/sidebar/tag_list_item", collection: @post_set.related_tags, as: :tag, locals: { post: nil, tag: tag, query: query } %>
-</ul>
+<%= render partial: "/posts/partials/common/sidebar/tag_list", as: :tag, locals: { post: nil, tags: @post_set.related_tags, query: query, category_name: nil } %>

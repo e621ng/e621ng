@@ -1,6 +1,6 @@
 <div id="c-help">
   <div id="a-show">
-    <%= render "sidebar", help_pages: HelpPage.help_index %>
+    <%= render "sidebar", help_pages: HelpPage.help_index, help: @help, params: params %>
     <section id="content">
       <div style="margin-bottom: 1em;">
         <h1><%= "Help: #{@help.pretty_title}" %></h1>

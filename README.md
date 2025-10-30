@@ -6,7 +6,7 @@
       <img src="https://img.shields.io/github/v/release/e621ng/e621ng?label=version&style=flat-square" alt="Releases" />
     </a><br />
     <a href="https://github.com/e621ng/e621ng/issues">
-      <img src="https://img.shields.io/github/issues/e621ng/e621ng?label=open issues&style=flat-square" alt="Issues" />
+      <img src="https://img.shields.io/github/issues/e621ng/e621ng?label=open%20issues&style=flat-square" alt="Issues" />
     </a><br />
     <a href="https://github.com/e621ng/e621ng/pulls">
       <img src="https://img.shields.io/github/issues-pr/e621ng/e621ng?style=flat-square" alt="Pull Requests" />
@@ -36,6 +36,13 @@
 1. Clone the repo with `git clone https://github.com/e621ng/e621ng.git`.
 1. `cd` into the repo.
 1. Copy the sample environment file with `cp .env.sample .env`.
+1. WSL Only: Run the following commands:
+    ```
+    git config core.fileMode false
+    cp -ru hooks/ .git
+    ```
+    This will resolve permission issues, and set up a hook that will reset file permissions to what they are supposed to be in the future.  
+    If you are not using WSL, this is likely not a problem for you.
 1. Run the following commands:
     ```
     docker compose run --rm e621 /app/bin/setup
@@ -51,6 +58,29 @@
     Environmental variables are available to customize what kind of content is generated.
 
 Note: When gems or js packages are updated you need to execute `docker compose build` to reflect them in the container.
+
+### Local DText gem
+
+You may want to test changes made to the [DText gem](https://github.com/e621ng/dtext) on a local instance.
+You are recommended to reconsider and rethink your life choices.
+
+If you are sure that you want to do this, follow these steps.
+
+1. Clone the repo into a `vendor` directory. Example: `~/e621ng/vendor/dtext/`.
+   1. `cd ~/e621ng`
+   2. `mkdir vendor && cd vendor`
+   3. `git clone https://github.com/e621ng/dtext.git` (substitute your local fork as needed)
+2. Rebuild the container
+   1. `cd ~/e621ng`
+   2. `docker compose build --no-cache`
+3. Reset the Gemfile.lock: `git checkout HEAD -- Gemfile.lock`  
+  This is not required, but it will prevent you from accidentally committing bad changes.
+4. Set `LOCAL_DTEXT=true` in the `.env` file.
+
+At this point, the DText repository is set up.
+It will be automatically compiled whenever the docker container is started.
+
+It is recommended to set `LOCAL_DTEXT` to `false` whenever you are not actively working on anything related to the DText repo, and then rebuild the container.
 
 ### Development environment
 
@@ -77,6 +107,12 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 `docker compose run --rm rubocop` to run the linter.
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
+
+#### Truenas / Local Server Installation
+
+If you decide to deploy this docker image to an external / local server, you do need to remember to change the DANBOORU_HOST variable in the docker-compose.yml file to the IP of your server. Otherwise, you will not be able to access it, or the image links will be broken. 
+
+Specifically for Truenas/NAS boxes users: you need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
 
 ## Production Setup
 

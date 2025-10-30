@@ -5,6 +5,10 @@
   grid-template-rows: min-content 1fr min-content;
   gap: 0.5rem;
 
+  height: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+
   textarea {
     grid-column: -1 / 1;
   }
@@ -203,7 +207,10 @@
     height: 0px !important;
     width: 0px !important;
     padding: 150px 150px 0px 0px !important;
-    background: url("blacklisted-preview.png") !important;
+    background-image: url("blacklisted-preview.png") !important;
+    background-color: #0003;
+    background-size: contain;
+    background-color: unset !important; // Prevent custom color from showing through
 
     @media screen and (max-width: 800px) {
       background-size: 100px !important;
@@ -221,13 +228,13 @@
 }
 
 article.thumbnail.blacklisted {
-  width: 100%;
   & > a {
-    width: 150px;
-    height: 150px;
+    width: var(--thumb-image-size, 150px);
+    height: var(--thumb-image-size, 150px);
     background-image: url("blacklisted-preview.png");
     background-size: cover;
     background-position: center;
+    background-color: unset !important; // Prevent custom color from showing through
   }
-  img { display: none; }
+  img { visibility: hidden; }
 }

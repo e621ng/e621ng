@@ -20,7 +20,6 @@
       <span class="options">
         <i id="face"></i>
         <span class="count"></span>
-        <a href="javascript:void(0)"><i id="open-edit-dialog" class="fa-solid fa-up-down-left-right" title="detach" data-shortcut="shift+e"></i></a>
       </span>
     </div>
 
@@ -38,7 +37,7 @@
   <% end %>
 
 
-  <%= f.input :parent_id, as: :string, label: "Parent", input_html: { size: 5 } %>
+  <%= f.input :parent_id, as: :string, label: "Parent", input_html: { size: 10 } %>
   <%= f.input :source, as: :text, label: "Sources", input_html: { size: "60x5", spellcheck: false } %>
 
   <div class="input">
@@ -65,7 +64,7 @@
   <% end %>
 
   <% if CurrentUser.is_janitor? %>
-    <%= f.input :bg_color, label: "Background Color", input_html: { size: 6 } %>
+    <%= f.input :bg_color, label: "Background Color", input_html: { size: 10 } %>
   <% end %>
 
   <% if CurrentUser.is_admin? %>

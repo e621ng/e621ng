@@ -8,3 +8,43 @@
     &::after { content: ")"; }
   }
 }
+
+.post-sidebar-info {
+  margin-bottom: 1em;
+  &:last-child { margin-bottom: 0; }
+}
+
+.post-sidebar-grid {
+  display: grid;
+  grid-template-columns: min-content auto;
+  gap: 0.125rem 0.5rem;
+
+  .post-sidebar-label {
+    text-align: right;
+    color: palette("text-grey");
+    line-height: 1rem;
+  }
+
+  .post-sidebar-value {
+    line-height: 1rem;
+    svg {
+      height: 0.85rem;
+      width: 0.85rem;
+      margin: -0.125rem 0;
+    }
+  }
+
+  .post-sidebar-break {
+    grid-column: 1 / -1;
+    margin: 0.5rem 0;
+  }
+
+  .no-overflow {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .selectable {
+    user-select: all;
+  }
+}

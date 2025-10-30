@@ -16,7 +16,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
     context "create action" do
       should "accept new non duplicate replacement" do
-        file = fixture_file_upload("alpha.png")
+        file = fixture_file_upload("bread-static.png")
         params = {
           format: :json,
           post_id: @post.id,
@@ -37,7 +37,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
       context "with as_pending false" do
         should "immediately approve a replacement" do
-          file = fixture_file_upload("alpha.png")
+          file = fixture_file_upload("bread-static.png")
           params = {
             format: :json,
             post_id: @post.id,
@@ -51,13 +51,13 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           post_auth post_replacements_path, @user, params: params
           @post.reload
 
-          # 200be2be97a465ecd2054a51522f65b5 is the md5 of alpha.png
-          assert_equal "200be2be97a465ecd2054a51522f65b5", @post.md5
+          # f1abde88aedda37ee41b00f735c92afa is the md5 of bread-static.png
+          assert_equal "f1abde88aedda37ee41b00f735c92afa", @post.md5
           assert_equal @response.parsed_body["location"], post_path(@post)
         end
 
         should "always upload as pending if user can't approve posts" do
-          file = fixture_file_upload("test.gif")
+          file = fixture_file_upload("bread-animated.gif")
           params = {
             format: :json,
             post_id: @post.id,
@@ -71,8 +71,8 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           post_auth post_replacements_path, @regular_user, params: params
           @post.reload
 
-          # 1e2edf6bdbd971d8c3cc4da0f98f38ab is the md5 of test.gif
-          assert_not_equal "1e2edf6bdbd971d8c3cc4da0f98f38ab", @post.md5
+          # 96dcf41ba7d63865918b187ede8e6993 is the md5 of bread-animated.gif
+          assert_not_equal "96dcf41ba7d63865918b187ede8e6993", @post.md5
           assert_equal @response.parsed_body["location"], post_path(@post)
         end
       end
@@ -90,7 +90,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
         should "fail and create ticket" do
           assert_difference({ "PostReplacement.count" => 0, "Ticket.count" => 1 }) do
-            file = fixture_file_upload("test.png")
+            file = fixture_file_upload("bread-static.png")
             post_auth post_replacements_path, @user, params: { post_id: @post.id, post_replacement: { replacement_file: file, reason: "test replacement" }, format: :json }
             Rails.logger.debug PostReplacement.all.map(&:md5).join(", ")
           end
@@ -99,7 +99,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         should "fail and not create ticket if notify=false" do
           DestroyedPost.find_by!(post_id: @post2.id).update_column(:notify, false)
           assert_difference(%(Post.count Ticket.count), 0) do
-            file = fixture_file_upload("test.png")
+            file = fixture_file_upload("bread-static.png")
             post_auth post_replacements_path, @user, params: { post_id: @post.id, post_replacement: { replacement_file: file, reason: "test replacement" }, format: :json }
           end
         end

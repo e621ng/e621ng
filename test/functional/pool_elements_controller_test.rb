@@ -15,14 +15,14 @@ class PoolElementsControllerTest < ActionDispatch::IntegrationTest
 
     context "create action" do
       should "add a post to a pool" do
-        post_auth pool_element_path, @user, params: {:pool_id => @pool.id, :post_id => @post.id, :format => "json"}
+        post_auth pool_element_path, @user, params: { pool_id: @pool.id, post_id: @post.id, format: "json" }
         @pool.reload
         assert_equal([@post.id], @pool.post_ids)
       end
 
       should "add a post to a pool once and only once" do
         as(@user) { @pool.add!(@post) }
-        post_auth pool_element_path, @user, params: {:pool_id => @pool.id, :post_id => @post.id, :format => "json"}
+        post_auth pool_element_path, @user, params: { pool_id: @pool.id, post_id: @post.id, format: "json" }
         @pool.reload
         assert_equal([@post.id], @pool.post_ids)
       end
@@ -34,7 +34,7 @@ class PoolElementsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "remove a post from a pool" do
-        delete_auth pool_element_path, @user, params: {:pool_id => @pool.id, :post_id => @post.id, :format => "json"}
+        delete_auth pool_element_path, @user, params: { pool_id: @pool.id, post_id: @post.id, format: "json" }
         @pool.reload
         assert_equal([], @pool.post_ids)
       end
@@ -44,7 +44,7 @@ class PoolElementsControllerTest < ActionDispatch::IntegrationTest
         as(@user) do
           @pool.remove!(@post)
         end
-        delete_auth pool_element_path, @user, params: {:pool_id => @pool.id, :post_id => @post.id, :format => "json"}
+        delete_auth pool_element_path, @user, params: { pool_id: @pool.id, post_id: @post.id, format: "json" }
         @pool.reload
         assert_equal([], @pool.post_ids)
       end

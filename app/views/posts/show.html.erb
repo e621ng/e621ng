@@ -37,6 +37,8 @@
     </div>
 
     <div class="content">
+      <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
+
       <div id="image-and-nav">
         <% if @post.presenter.has_nav_links?(self) %>
           <%= render "posts/partials/show/content/nav_links/nav_links", :post => @post %>
@@ -55,15 +57,13 @@
           <% end %>
         </div>
 
-        <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
-
         <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
-          <div id="note-container"></div>
+          <div id="note-container" enabled="false"></div>
           <div id="note-preview"></div>
           <%= render "posts/partials/show/content/embedded/embedded", post: @post %>
         <% end -%>
 
-        <% if @post.visible? && @post.has_large? %>
+        <% if @post.visible? && @post.has_sample? %>
           <div class="ui-corner-all ui-state-highlight notice notice-resized" id="image-resize-notice" style="<%= CurrentUser.default_image_size != "large" ? "display: none;" : "" %>">
             <span>Viewing sample resized to <span id="image-resize-size"><%= number_to_percentage @post.resize_percentage.floor, precision: 0 %></span> of original (<%= link_to "view original", @post.file_url, id: "image-resize-link" %>)</span>
             <span style="display: none;">Loading...</span>
@@ -77,9 +77,7 @@
         <% end %>
       </div>
 
-      <section id="image-extra-controls">
-          <%= render "posts/partials/show/content/toolbar", post: @post %>
-      </section>
+      <%= render "posts/partials/show/content/toolbar", post: @post %>
 
       <div class="bottom-notices">
         <div class="parent-children">
@@ -113,7 +111,7 @@
           <li class="active"><a href="#comments">Comments</a></li>
         <% end %>
         <% if CurrentUser.is_member? %>
-          <li><a href="#edit" id="post-edit-link" data-shortcut="e">Edit</a></li>
+          <li><a href="#edit" id="post-edit-link" data-hotkey="edit">Edit</a></li>
         <% end %>
       </menu>
 
@@ -130,8 +128,8 @@
         <% end %>
       </ul>
 
-      <section id="notes" style="display: none;">
-        <% if @post.has_notes? %>
+      <section id="note-staging" style="display: none;">
+        <% if @post.can_have_notes? && @post.has_notes?  %>
           <% cache("p/#{@post.id}/n/#{@post.last_noted_at.to_i}") do %>
             <%= render :partial => "notes/note", :collection => @post.notes.active %>
           <% end %>
@@ -147,12 +145,16 @@
   </div>
 
   <% if CurrentUser.is_member? %>
-    <div id="add-to-pool-dialog" title="Add to pool" style="display: none;">
+    <div class="dialog-staging" style="display: none;">
       <%= render "pool_elements/new" %>
-    </div>
-    <div id="add-to-set-dialog" title="Add to set" style="display: none;">
       <%= render "post_sets/add_dialog" %>
+      <%= render "/notes/dialog" %>
+
+      <% if CurrentUser.can_approve_posts? %>
+        <%= render "post_disapprovals/detailed_rejection_dialog" %>
+      <% end %>
     </div>
+
     <%= javascript_tag nonce: true do -%>
       var uploaderSettings = {
         postTags: <%= (@post.presenter.categorized_tag_list_text + " ").to_json.html_safe %>,
@@ -177,44 +179,7 @@
   <% if @post.hide_from_search_engines? %><meta name="robots" content="noindex" /><% end %>
   <% if @post.force_original_size? %><meta name="image-override-size" content="original"/><% end %>
   <meta name="default-image-size" content="<%= @post.presenter.default_image_size(CurrentUser.user) %>"/>
-
-  <%= tag.meta name: "description", content: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image" %>
-  <meta name="post-id" content="<%= @post.id %>">
-  <%= tag.meta property: "og:site", content: Danbooru.config.app_name %>
-  <%= tag.meta property: "og:title", content: "#{@post.presenter.humanized_essential_tag_string} - #{Danbooru.config.app_name}" %>
-  <%= tag.meta property: "og:url", content: post_url(@post, host: Danbooru.config.hostname, protocol: "https") %>
-
-  <% if @post.visible? %>
-    <% if @post.is_video? && @post.has_sample_size?('original') %>
-      <meta property="og:type" content="video.other">
-      <%= tag.meta property: "og:video", content: @post.open_graph_video_url %>
-      <%= tag.meta property: "og:image", content: @post.open_graph_image_url %>
-      <meta property="og:video:height" content="<%= @post.image_height %>"/>
-      <meta property="og:video:width" content="<%= @post.image_width %>"/>
-    <% else %>
-      <meta property="og:type" content="website">
-      <%= tag.meta property: "og:image", content: @post.open_graph_image_url %>
-    <% end %>
-    <meta property="og:image:height" content="<%= @post.image_height %>"/>
-    <meta property="og:image:width" content="<%= @post.image_width %>"/>
-  <% end %>
-
-  <%= tag.meta name: "canonical", content: post_url(@post, host: Danbooru.config.hostname, protocol: "https") %>
-
-  <%# Twitter properties %>
-  <% if @post.twitter_card_supported? && @post.is_image? %>
-    <meta name="twitter:card" content="summary_large_image">
-    <%= tag.meta name: "twitter:title", content: "#{@post.presenter.humanized_essential_tag_string} - #{Danbooru.config.app_name}" %>
-    <%= tag.meta name: "twitter:description", content: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image" %>
-
-    <% if @post.visible? %>
-      <%= tag.meta name: "twitter:image", content: @post.open_graph_image_url %>
-    <% end %>
-  <% end %>
-
-  <% if @post.rating == "e" %>
-    <meta name="rating" content="adult">
-  <% end %>
 <% end %>
+<% render(partial: "static/embed", locals: { record: @post, name: @post.presenter.humanized_essential_tag_string, description: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image", post: @post }) %>
 
 <%= render "posts/partials/common/secondary_links" %>

@@ -1,49 +1,63 @@
-<tr id="replacement-<%= post_replacement.id %>" class="<%= "replacement-pending-row" if post_replacement.status == "pending" %>">
-  <td><%= PostPresenter.preview(post_replacement.post, show_deleted: true) %></td>
+<% status_class = "" %>
+<% if post_replacement.is_pending? %> <% status_class += " replacement-pending-row" %> <% end %>
+<% if post_replacement.is_current? %> <% status_class += " replacement-current-row" %> <% end %>
+<tr id="replacement-<%= post_replacement.id %>" class="<%= status_class %>">
   <td><%= replacement_thumbnail(post_replacement) %></td>
   <td>
     <dt>Version</dt>
-    <dd><%= post_replacement.post_id %>:<%= post_replacement.sequence_number %></dd>
-    <dt>Status</dt>
     <dd>
-      <% if post_replacement.status == "approved" %>
-        <% if post_replacement.md5 == post_replacement.post.md5 %>
-          approved, current
-        <% else %>
-          approved
+      <%= link_to(post_replacement.post_id.to_s, post_path(post_replacement.post_id)) %>:<%= post_replacement.sequence_number %></dd>
+    <dt>Status</dt>
+    <dd class="replacement-compact-row">
+      <% if post_replacement.status == "pending" %>
+        <% highlighted_tags = post_replacement.post.tag_array & PostReplacement::HIGHLIGHTED_TAGS %>
+        <% icon_names = {
+          "avoid_posting" => "octagon_x",
+          "conditional_dnp" => "octagon_alert",
+          "better_version_at_source" => "diamond_plus"
+        } %>
+        <% highlighted_tags.each do |tag| %>
+          <%= svg_icon(icon_names[tag].to_sym, title: tag, height: 13.5, width: 13.5, class: "inline-icons") if icon_names[tag].present? %>
         <% end %>
-        <dt>Approver</dt>
-        <dd><%= link_to_user post_replacement.approver %></dd>
-      <% elsif post_replacement.status == "original" %>
-        original
-      <% else %>
-        <%= post_replacement.status %>
+      <% end %>
+      <%= post_replacement.status %>
+    </dd>
+    <dd>
+      <% if post_replacement.is_current? %> (current)
+      <% elsif post_replacement.is_approved? %> (retired)
+      <% elsif post_replacement.is_promoted? %> (#<%= link_to(post_replacement.promoted_id.to_s, post_path(post_replacement.promoted_id)) %>)
       <% end %>
     </dd>
+    <% if !post_replacement.approver.nil? %>
+      <dt class="replacement-spaced-row">Handler</dt>
+      <dd><%= link_to_user post_replacement.approver %></dd>
+    <% end %>
   </td>
   <td>
     <dt>Version Uploader</dt>
     <dd><%= link_to_user post_replacement.creator %></dd>
 
-    <% unless post_replacement.status == "original" || post_replacement.status == "pending" %>
-      <dt>Previous Uploader</dt>
+    <% unless post_replacement.is_backup? || post_replacement.is_pending? || post_replacement.uploader_on_approve.nil? %>
+      <dt class="replacement-spaced-row">Previous Uploader</dt>
       <dd>
         <%= link_to_user post_replacement.uploader_on_approve %>
-        <% if CurrentUser.can_approve_posts? %>
+        <% if CurrentUser.can_approve_posts? && post_replacement.is_approved? %>
           | penalized: <span class="penalized-status"><%= post_replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
           <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: post_replacement.id } %><br>
         <% end %>
       </dd>
     <% end %>
 
-    <dt>Sources</dt>
+    <dt class="replacement-spaced-row">Sources</dt>
     <dd>
       <% if post_replacement.source.present? %>
-        <ul>
-          <% post_replacement.source_list.each do |source| %>
-            <li><%= external_link_to source, truncate: 46 %></li>
-          <% end %>
-        </ul>
+        <div class="replacement-sources">
+          <ul>
+            <% post_replacement.source_list.each do |source| %>
+              <li class=replacement-sources-link><%= external_link_to source, truncate: 46 %></li>
+            <% end %>
+          </ul>
+        </div>
       <% else %>
         <em>None provided</em>
       <% end %>
@@ -51,31 +65,36 @@
   </td>
   <td>
     <dt>Image Info</dt>
-    <dd>
-      Replacement:
+    <dd class="replacement-compact-row">
+      <%= svg_icon(:circle_check_small, title: "This is the current version", height: 13.5, width: 13.5, class: "inline-icons") if post_replacement.is_current? %>
+      <% if post_replacement.is_pending? %> Replacement: <% end %>
       <%= post_replacement.image_width %>x<%= post_replacement.image_height %> <%= post_replacement.file_ext %>
       (<%= post_replacement.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.is_video? %>, 
-      <%= post_replacement.post.duration %>s<% end -%>) 
-      <p>
+      <%= post_replacement.post.duration %>s<% end -%>) </dd> 
+    <dd class="replacement-compact-row">
+      <% if post_replacement.is_pending? %>
       Current:
-      <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %> <%= post_replacement.post.file_ext %>
-      (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.post.is_video? %>, 
-      <%= post_replacement.post.duration %>s<% end -%>)
+        <%= post_replacement.post.image_width %>x<%= post_replacement.post.image_height %> <%= post_replacement.post.file_ext %>
+        (<%= post_replacement.post.file_size.to_fs(:human_size, precision: 5) %><% if post_replacement.post.is_video? %>, 
+        <%= post_replacement.post.duration %>s<% end -%>) 
+      <% end %>
     </dd>
-    <dt>File Info</dt>
-    <dd><%= truncate post_replacement.file_name, length: 64 %></dd>
+    <dt class="replacement-spaced-row">File Info</dt>
+    <dd class="replacement-compact-row">File Name: <%= truncate post_replacement.file_name, length: 64 %></dd>
+    <dd class="replacement-compact-row">ID: <%= truncate post_replacement.storage_id, length: 64 %></dd>
     <% if post_replacement.md5.present? %>
-      <dt>Replacement MD5</dt>
-      <dd><%= post_replacement.md5 %></dd>
+      <dd class="replacement-compact-row">MD5: <%= post_replacement.md5 %></dd> 
     <% end %>
   </td>
   <td>
-    <dt>Created at</dt>
-    <%= compact_time post_replacement.created_at %>
-    <dt>Updated at</dt>
-    <%= compact_time post_replacement.updated_at %>
-    <dt>Reason</dt>
+    <dt><%= post_replacement.is_backup? ? "Backup created at" : "Created at" %></dt>
+      <dd class="replacement-compact-row"><%= compact_time post_replacement.created_at %></dd>
+    <dt class="replacement-spaced-row">Reason</dt>
     <dd class="replacement-reason"><%= post_replacement.reason.presence || "None provided" %></dd>
+    <% if post_replacement.updated_at != post_replacement.created_at %>
+      <dt>Status changed at</dt>
+      <dd class="replacement-compact-row"><%= compact_time post_replacement.updated_at %></dd>
+    <% end %>
   </td>
   <td>
     <% if CurrentUser.can_approve_posts? %>
@@ -83,15 +102,15 @@
         <% if post_replacement.status == "pending" %>
           <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %><br><br>
           <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %><br>
-          <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id } %><br>
         <% end %>
       </div>
-      <% if post_replacement.status == "original" %>
-        <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false } %><br>
+      <% if !post_replacement.is_current? && !post_replacement.is_promoted? %>
+        <% if !post_replacement.is_backup? %> <%= link_to "As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id } %><br> <% end %>
+        <% if !post_replacement.is_pending? %> <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false } %><br> <% end %>
       <% end %>
     <% end %>
     <% if CurrentUser.is_admin? %>
-      <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %>
+      <dd class="replacement-spaced-row"> <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %> </dd>
     <% end %>
   </td>
 </tr>

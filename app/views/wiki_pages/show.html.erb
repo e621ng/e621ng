@@ -28,7 +28,7 @@
         <% end %>
 
         <% if wiki_content.artist %>
-          <p><%= link_to "View artist", wiki_content.artist %></p>
+          <p><%= link_to "View artist", show_or_new_artists_path(name: wiki_content.artist.name) %></p>
         <% end %>
 
         <%= wiki_page_alias_and_implication_list(wiki_content) %>
@@ -38,6 +38,8 @@
     </section>
   </div>
 </div>
+
+<% render(partial: "static/embed", locals: { record: wiki_content, name: wiki_content.pretty_title, description: wiki_content.body.present? ? strip_tags(format_text(wiki_content.body)).truncate(200) : "" }) %>
 
 <% content_for(:page_title) do %>
   Wiki - <%= wiki_content.pretty_title %>

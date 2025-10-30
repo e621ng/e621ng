@@ -4,115 +4,93 @@ module Security
   module Lockdown
     # Panic
     def self.uploads_disabled?
-      Cache.redis.get("uploads_disabled") == "true"
-    rescue Redis::CannotConnectError
-      true
+      Setting.uploads_disabled?
     end
 
     def self.uploads_disabled=(state)
-      Cache.redis.set("uploads_disabled", state == "1")
+      Setting.uploads_disabled = state == "1"
     end
 
     def self.pools_disabled?
-      Cache.redis.get("pools_disabled") == "true"
-    rescue Redis::CannotConnectError
-      true
+      Setting.pools_disabled?
     end
 
     def self.pools_disabled=(state)
-      Cache.redis.set("pools_disabled", state == "1")
+      Setting.pools_disabled = state == "1"
     end
 
     def self.post_sets_disabled?
-      Cache.redis.get("post_sets_disabled") == "true"
-    rescue Redis::CannotConnectError
-      true
+      Setting.post_sets_disabled?
     end
 
     def self.post_sets_disabled=(state)
-      Cache.redis.set("post_sets_disabled", state == "1")
+      Setting.post_sets_disabled = state == "1"
     end
 
     def self.comments_disabled?
-      Cache.redis.get("comments_disabled") == "true"
-    rescue Redis::CannotConnectError
-      true
+      Setting.comments_disabled?
     end
 
     def self.comments_disabled=(state)
-      Cache.redis.set("comments_disabled", state == "1")
+      Setting.comments_disabled = state == "1"
     end
 
     def self.forums_disabled?
-      Cache.redis.get("forums_disabled") == "true"
-    rescue Redis::CannotConnectError
-      true
+      Setting.forums_disabled?
     end
 
     def self.forums_disabled=(state)
-      Cache.redis.set("forums_disabled", state == "1")
+      Setting.forums_disabled = state == "1"
     end
 
     def self.blips_disabled?
-      Cache.redis.get("blips_disabled") == "true"
-    rescue Redis::CannotConnectError
-      true
+      Setting.blips_disabled?
     end
 
     def self.blips_disabled=(state)
-      Cache.redis.set("blips_disabled", state == "1")
+      Setting.blips_disabled = state == "1"
     end
 
     def self.aiburs_disabled?
-      Cache.redis.get("aiburs_disabled") == "true"
-    rescue Redis::CannotConnectError
-      true
+      Setting.aiburs_disabled?
     end
 
     def self.aiburs_disabled=(state)
-      Cache.redis.set("aiburs_disabled", state == "1")
+      Setting.aiburs_disabled = state == "1"
     end
 
     def self.favorites_disabled?
-      Cache.redis.get("favorites_disabled") == "true"
-    rescue Redis::CannotConnectError
-      true
+      Setting.favorites_disabled?
     end
 
     def self.favorites_disabled=(state)
-      Cache.redis.set("favorites_disabled", state == "1")
+      Setting.favorites_disabled = state == "1"
     end
 
     def self.votes_disabled?
-      Cache.redis.get("votes_disabled") == "true"
-    rescue Redis::CannotConnectError
-      true
+      Setting.votes_disabled?
     end
 
     def self.votes_disabled=(state)
-      Cache.redis.set("votes_disabled", state == "1")
+      Setting.votes_disabled = state == "1"
     end
 
     # Uploader level override
     def self.uploads_min_level
-      (Cache.redis.get("min_upload_level") || User::Levels::MEMBER).to_i
-    rescue Redis::CannotConnectError
-      User::Levels::ADMIN + 1
+      Setting.uploads_min_level
     end
 
     def self.uploads_min_level=(min_upload_level)
-      Cache.redis.set("min_upload_level", min_upload_level)
+      Setting.uploads_min_level = min_upload_level
     end
 
     # Hiding pending posts
     def self.hide_pending_posts_for
-      Cache.redis.get("hide_pending_posts_for").to_f || 0
-    rescue Redis::CannotConnectError
-      PostPruner::DELETION_WINDOW * 24
+      Setting.hide_pending_posts_for
     end
 
     def self.hide_pending_posts_for=(duration)
-      Cache.redis.set("hide_pending_posts_for", duration)
+      Setting.hide_pending_posts_for = duration
     end
 
     def self.post_visible?(post, user)

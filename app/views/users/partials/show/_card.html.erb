@@ -1,7 +1,5 @@
 <div class="profile-card">
-  <div class="profile-avatar">
-    <%= profile_avatar(@user) %>
-  </div>
+  <%= profile_avatar(@user) %>
   <div class="profile-info">
     <span class="profile-name">
       <%= link_to_user(@user) %>
@@ -12,6 +10,7 @@
     </span>
     <span class="profile-rank">
       <%= user_level_badge(@user) %>
+      <%= user_bd_staff_badge(@user) if CurrentUser.is_bd_staff? %>
       <% unless @user.is_verified? %>
         <span class="level-badge level-unactivated">UNACTIVATED</span>
       <% end %>

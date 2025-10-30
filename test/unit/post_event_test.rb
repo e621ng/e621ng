@@ -48,7 +48,11 @@ class PostEventTest < ActiveSupport::TestCase
         @post.undelete!
       end
 
-      assert_post_events_created(@janitor, [:favorites_moved, :favorites_received]) do
+      assert_post_events_created(@janitor, %i[favorites_moved favorites_received]) do
+        # Add some favorites to the child post first
+        favorite_user = create(:user)
+        FavoriteManager.add!(user: favorite_user, post: @post)
+
         TransferFavoritesJob.new.perform @post.id, @janitor.id
       end
 
@@ -104,7 +108,7 @@ class PostEventTest < ActiveSupport::TestCase
 
     context "replacements" do
       setup do
-        upload = UploadService.new(attributes_for(:upload).merge(file: fixture_file_upload("test.gif"), uploader: @user, tag_string: "tst")).start!
+        upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user, tag_string: "tst")).start!
         @post = upload.post
         @replacement = create(:png_replacement, creator: @user, post: @post)
       end

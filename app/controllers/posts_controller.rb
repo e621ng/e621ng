@@ -10,7 +10,7 @@ class PostsController < ApplicationController
     if params[:md5].present?
       @post = Post.find_by!(md5: params[:md5])
       respond_with(@post) do |format|
-        format.html { redirect_to(@post) }
+        format.html { redirect_to post_path(@post) }
       end
     else
       @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
@@ -52,12 +52,14 @@ class PostsController < ApplicationController
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
 
+    @has_samples = @post.is_image? || @post.video_sample_list[:has]
+
     if request.format.html? && @post.comment_count > 0
       @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
-      @comments = {}
-      @comment_votes = {}
+      @comments = Comment.none
+      @comment_votes = CommentVote.none
     end
 
     respond_with(@post)
@@ -76,8 +78,8 @@ class PostsController < ApplicationController
       @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
-      @comments = {}
-      @comment_votes = {}
+      @comments = Comment.none
+      @comment_votes = CommentVote.none
     end
 
     @fixup_post_url = true
@@ -127,7 +129,7 @@ class PostsController < ApplicationController
     @post = Post.tag_match("#{tags} order:random").limit(1).first
     raise ActiveRecord::RecordNotFound if @post.nil?
     respond_with(@post) do |format|
-      format.html { redirect_to post_path(@post, :tags => params[:tags]) }
+      format.html { redirect_to post_path(@post, q: params[:tags]) }
     end
   end
 

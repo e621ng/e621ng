@@ -12,6 +12,10 @@ module Danbooru
       "e621"
     end
 
+    def server_name
+      nil
+    end
+
     def description
       "Find good furry art, fast"
     end
@@ -61,6 +65,11 @@ module Danbooru
       "Anonymous"
     end
 
+    # The path of the daily DB exports. Hidden from the site map if `nil`.
+    def db_export_path
+      "/db_export/"
+    end
+
     def levels
       {
         "Anonymous" => 0,
@@ -108,7 +117,16 @@ module Danbooru
 
     # Thumbnail size
     def small_image_width
-      150
+      256
+    end
+
+    # All uploads must match this value in both dimensions.
+    def min_image_width
+      256
+    end
+
+    def webp_previews_enabled?
+      false
     end
 
     # Large resize image width. Set to nil to disable.
@@ -138,6 +156,10 @@ module Danbooru
 
     def deleted_preview_url
       "/images/deleted-preview.png"
+    end
+
+    def blank_preview_url
+      "/images/blank.png"
     end
 
     # When calculating statistics based on the posts table, gather this many posts to sample from.
@@ -341,7 +363,7 @@ module Danbooru
       1_000
     end
 
-    def set_post_limit(_user) # rubocop:disable Naming/AccessorMethodName
+    def post_set_post_limit
       10_000
     end
 
@@ -364,6 +386,7 @@ module Danbooru
         "gif" => 20.megabytes,
         "webm" => 100.megabytes,
         "mp4" => 100.megabytes,
+        "webp" => 100.megabytes,
       }
     end
 
@@ -453,6 +476,7 @@ module Danbooru
           name: "uploading_guidelines",
           reason: "Does not meet the [[uploading_guidelines|uploading guidelines]]",
           text: "This post fails to meet the site's standards, be it for artistic worth, image quality, relevancy, or something else.\nKeep in mind that your personal preferences have no bearing on this. If you find the content of a post objectionable, simply [[e621:blacklist|blacklist]] it.",
+          require_explanation: true,
         },
         {
           name: "young_human",
@@ -473,6 +497,7 @@ module Danbooru
           name: "trace",
           reason: "Trace of another artist's work",
           text: "Images traced from other artists' artwork are not accepted on this site. Referencing from something is fine, but outright copying someone else's work is not.\nPlease, leave more information in the comments, or simply add the original artwork as the posts's parent if it's hosted on this site.",
+          require_explanation: true,
         },
         {
           name: "previously_deleted",
@@ -488,6 +513,7 @@ module Danbooru
           name: "corrupt",
           reason: "File is either corrupted, broken, or otherwise does not work",
           text: "Something about this post does not work quite right. This may be a broken video, or a corrupted image.\nEither way, in order to avoid confusion, please explain the situation in the comments.",
+          require_explanation: true,
         },
         {
           name: "inferior",
@@ -496,6 +522,10 @@ module Danbooru
           parent: true,
         },
       ]
+    end
+
+    def auto_flag_ai_posts?
+      true
     end
 
     def deletion_reasons
@@ -525,8 +555,8 @@ module Danbooru
         "Young [[human]]-[[humanoid|like]] character in an explicit situation",
         "",
         "Paysite/commercial content",
-        "Traced artwork",
-        "Traced artwork (post #%PARENT_ID%)",
+        "Trace of another artist's work",
+        "Trace of another artist's work (post #%PARENT_ID%)",
         "Takedown #%OTHER_ID%",
         "The artist of this post is on the \"avoid posting list\":/static/avoid_posting",
         "[[conditional_dnp|Conditional DNP]] (Only the artist is allowed to post)",
@@ -667,10 +697,37 @@ module Danbooru
       { zone: nil, revive_id: nil, checksum: nil }
     end
 
+    def subscribestar_url
+      nil
+    end
+
     # Additional video samples will be generated in these dimensions if it makes sense to do so
     # They will be available as additional scale options on applicable posts in the order they appear here
     def video_rescales
       { "720p" => [1280, 720], "480p" => [640, 480] }
+    end
+
+    # Threshold at which an alternate version of the original video will be generated
+    # The new video will have this value as its smallest dimension.
+    def video_variant
+      1080
+    end
+
+    # Additional video samples will be generated in these dimensions if it makes sense to do so.
+    # They will be available as additional scale options on applicable posts in the order they appear here.
+    def video_samples
+      {
+        "720p": {
+          clamp: 720,
+          maxrate: 1,
+          bufsize: 2,
+        },
+        "480p": {
+          clamp: 480,
+          maxrate: 1,
+          bufsize: 2,
+        },
+      }
     end
 
     def image_rescales
@@ -678,6 +735,10 @@ module Danbooru
     end
 
     def enable_visitor_metrics?
+      false
+    end
+
+    def fsc_modal_enabled?
       false
     end
 

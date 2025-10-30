@@ -13,7 +13,7 @@
   }
 }
 
-div#c-posts {
+div#c-posts, div#c-uploads {
   .source-link {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -29,47 +29,12 @@ div#c-posts {
         max-width: unset;
       }
     }
+
+    .source-invalid { color: palette("text-red"); }
   }
+}
 
-
-  .fav-buttons {
-    font-size: 14pt;
-
-    button.ui-button {
-      padding: 0.25em 0.75em;
-    }
-  }
-
-  .fav-buttons-true #add-fav-button {
-    display: none;
-  }
-
-  .fav-buttons-false #remove-fav-button {
-    display: none;
-  }
-
-  .fav-buttons,
-  #image-download-link {
-    .button > i {
-      display: none;
-    }
-  }
-
-  @media only screen and (max-width: 500px) {
-    #image-extra-controls {
-      justify-content: center;
-    }
-
-    .fav-buttons,
-    #image-download-link {
-      .button > i {
-        display: inline-block;
-      }
-      .button > span {
-        display: none;
-      }
-    }
-  }
+div#c-posts {
 
   div.parent-children {
     display: flex;
@@ -110,6 +75,24 @@ div#c-posts {
     &.notice-no-shortcuts, &.notice-flagged, &.notice-deleted {
       background-color: themed("color-danger-darken-10");
       border: 1px solid themed("color-foreground");
+    }
+
+    .delete-with-reason-link[data-move-favs="true"] {
+      position: relative;
+      margin-bottom: 0.75rem;
+
+      &::after {
+        content: "+ transfer favorites to parent post";
+        position: absolute;
+        left: 0;
+        font-size: 0.75rem;
+        bottom: -0.75rem;
+        line-height: 0.75rem;
+        color: var(--color-text-muted);
+        right: 0;
+        text-align: center;
+        pointer-events: none;
+      }
     }
   }
 
@@ -195,6 +178,7 @@ div#c-posts {
     }
 
     textarea {
+      box-sizing: border-box;
       margin-bottom: 0.25em;
     }
 
@@ -343,13 +327,6 @@ textarea[data-autocomplete="tag-edit"] {
   }
 }
 
-section#image-extra-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em;
-  margin: 0.5em 0;
-}
-
 .image-vote-buttons {
   .post-score {
     padding: 0 $padding-050;
@@ -386,19 +363,4 @@ body[data-user-can-approve-posts="true"] .notice {
       padding: $padding-025 $padding-050;
     }
   }
-}
-
-/* Flag page */
-.flag-dialog-preview {
-  @media only screen and (min-width: 550px) {
-    display: flex;
-  }
-
-  // Overwrite some DText styles to make the header look better
-  blockquote {
-    border: 0;
-    text-align: center;
-    h3 { padding: 0; }
-  }
-  p { margin-bottom: 0.25em; }
 }

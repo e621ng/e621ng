@@ -32,13 +32,16 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
+  after_create :check_for_ai_content, if: -> { Danbooru.config.auto_flag_ai_posts? }
   after_save :create_post_events
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
-  after_commit :delete_files, :on => :destroy
-  after_commit :remove_iqdb_async, :on => :destroy
-  after_commit :update_iqdb_async, :on => :create
+  after_commit :delete_files, on: :destroy
+  after_commit :remove_iqdb_async, on: :destroy
+  # after_commit :update_iqdb_async, :on => :create
+  after_commit :handle_thumbnails_on_create, on: :create
+  after_commit :generate_image_samples, on: :create
   after_commit :generate_video_samples, on: :create, if: :is_video?
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
@@ -68,9 +71,9 @@ class Post < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def delete_files(post_id, md5, file_ext, force: false)
+      def delete_files(_post_id, md5, file_ext, force: false)
         if Post.where(md5: md5).exists? && !force
-          raise DeletionError.new("Files still in use; skipping deletion.")
+          raise DeletionError, "Files still in use; skipping deletion."
         end
 
         Danbooru.config.storage_manager.delete_post_files(md5, file_ext)
@@ -98,62 +101,73 @@ class Post < ApplicationRecord
     end
 
     def tagged_large_file_url
-      storage_manager.file_url(self, :large)
+      storage_manager.post_file_url(self, :sample)
     end
 
     def file_url
-      storage_manager.file_url(self, :original)
+      storage_manager.post_file_url(self)
     end
 
+    # TODO: Deprecate this method
     def file_url_ext(ext)
-      storage_manager.file_url_ext(self, :original, ext)
+      storage_manager.post_file_url(self, ext: ext)
     end
 
+    # TODO: Deprecate this method
     def scaled_url_ext(scale, ext)
-      storage_manager.file_url_ext(self, :scaled, ext, scale: scale)
+      storage_manager.post_file_url(self, :scaled, ext: ext, scale: scale)
     end
 
     def large_file_url
-      return file_url if !has_large?
-      storage_manager.file_url(self, :large)
+      sample_url
     end
 
-    def preview_file_url
-      storage_manager.file_url(self, :preview)
+    def sample_url(type = :sample_jpg)
+      return file_url unless has_sample?
+      storage_manager.post_file_url(self, type)
+    end
+
+    def preview_file_url(type = :preview_jpg)
+      storage_manager.post_file_url(self, type)
+    end
+
+    def preview_file_url_pair
+      return [Danbooru.config.blank_preview_url, Danbooru.config.blank_preview_url] if is_deleted? && !CurrentUser.is_staff? && !CurrentUser.is_approver?
+      [preview_file_url(:preview_webp), preview_file_url(:preview_jpg)]
     end
 
     def reverse_image_url
-      return large_file_url if has_large?
+      return sample_url if has_sample?
       preview_file_url
     end
 
     def file_path
-      storage_manager.file_path(self, file_ext, :original, is_deleted?)
+      @file_path ||= storage_manager.post_file_path(self)
     end
 
     def large_file_path
-      storage_manager.file_path(self, file_ext, :large, is_deleted?)
+      storage_manager.post_file_path(self, :large)
     end
 
-    def preview_file_path
-      storage_manager.file_path(self, file_ext, :preview, is_deleted?)
-    end
-
-    def crop_file_url
-      storage_manager.file_url(self, :crop)
+    def preview_file_path(type = :preview_jpg)
+      storage_manager.post_file_path(self, type)
     end
 
     def open_graph_video_url
-      if image_height > 720 && has_sample_size?('720p')
-        return scaled_url_ext('720p', 'mp4')
+      return file_url if video_sample_list.blank?
+
+      if video_sample_list[:samples].blank?
+        return file_url if video_sample_list[:variants].blank?
+        video_sample_list[:variants].values.last[:url]
+      else
+        video_sample_list[:samples].values.last[:url]
       end
-      file_url_ext('mp4')
     end
 
     def open_graph_image_url
       if is_image?
-        if has_large?
-          large_file_url
+        if has_sample?
+          sample_url
         else
           file_url
         end
@@ -164,21 +178,52 @@ class Post < ApplicationRecord
 
     def file_url_for(user)
       if user.default_image_size == "large" && image_width > Danbooru.config.large_image_width
-        large_file_url
+        sample_url
       else
         file_url
       end
     end
 
-    def file_url_ext_for(user, ext)
-      if user.default_image_size == "large" && is_video? && has_sample_size?('720p')
-        scaled_url_ext('720p', ext)
+    # Initial video URLs for the post
+    # Should only be relevant if the user has javascript disabled
+    # Otherwise, the sources provided here will be overwritten
+    def initial_video_urls(user = CurrentUser.user)
+      return [] unless is_video? || !visible?
+
+      if video_sample_list.blank?
+        # likely to happen while new samples are being generated
+        [{
+          codec: "video/#{file_ext}",
+          url: file_url,
+        }]
+      elsif user.default_image_size == "large" && video_sample_list[:samples].any?
+        # sample videos
+        sample = video_sample_list[:samples].values.last
+        [{
+          codec: "video/mp4#{sample.key?(:codec) ? "; codec=#{sample[:codec]}" : ''}",
+          url: sample[:url],
+        }]
       else
-        file_url_ext(ext)
+        # original / fit videos
+        output = []
+        video_sample_list[:variants].each do |ext, data|
+          output.push({
+            codec: "video/#{ext}" + (data.key?(:codec) ? "; codec=#{data[:codec]}" : ""),
+            url: data[:url],
+          })
+        end
+
+        original = video_sample_list[:original]
+        output.push({
+          codec: "video/#{file_ext}" + (original.key?(:codec) ? "; codec=#{original[:codec]}" : ""),
+          url: original[:url],
+        })
+
+        output
       end
     end
 
-    def display_class_for(user)
+    def display_class_for(user = CurrentUser.user)
       if user.default_image_size == "original"
         ""
       else
@@ -186,34 +231,64 @@ class Post < ApplicationRecord
       end
     end
 
-    def has_preview?
-      is_image? || is_video?
-    end
-
-    def has_dimensions?
-      image_width.present? && image_height.present?
-    end
-
-    def preview_dimensions(max_px = Danbooru.config.small_image_width)
-      return [max_px, max_px] unless has_dimensions?
-      height = width = max_px
-      dimension_ratio = image_width.to_f / image_height
-      if dimension_ratio > 1
-        height = (width / dimension_ratio).to_i
-      else
-        width = (height * dimension_ratio).to_i
-      end
-      [height, width]
-    end
-
     def has_sample_size?(scale)
-      (generated_samples || []).include?(scale)
+      return false if video_sample_list.blank?
+      return false if video_sample_list[:samples].blank?
+      video_sample_list[:samples].include?(scale)
+    end
+
+    def video_sample_list
+      return {} unless is_video?
+
+      @video_sample_list ||= begin
+        sample_data = {
+          has: false,
+          original: {
+            codec: nil,
+            fps: 0,
+          },
+          variants: {},
+          samples: {},
+        }
+
+        # Data stored by the video conversion job
+        unless video_samples.empty?
+          sample_data[:original] = video_samples["original"]
+
+          sample_data[:variants] = {}
+          sample_data[:has] = true if video_samples["variants"].present?
+          video_samples["variants"].each do |name, video|
+            sample_data[:variants][name] = video
+            sample_data[:variants][name][:codec] = name == "mp4" ? "avc1.4D401E" : "vp9"
+            sample_data[:variants][name][:url] = visible? ? scaled_url_ext("alt", name) : nil
+
+            sample_data[:variants][name].symbolize_keys!
+          end
+
+          sample_data[:samples] = {}
+          video_samples["samples"].each do |name, video|
+            sample_data[:samples][name] = video
+            sample_data[:samples][name][:url] = visible? ? scaled_url_ext(name, "mp4") : nil
+
+            sample_data[:samples][name].symbolize_keys!
+          end
+        end
+
+        # Backfill with the original file data
+        sample_data[:original][:size] = file_size
+        sample_data[:original][:width] = image_width
+        sample_data[:original][:height] = image_height
+        sample_data[:original][:url] = (visible? ? file_url : nil)
+        sample_data[:original].symbolize_keys!
+
+        sample_data
+      end
     end
 
     def scaled_sample_dimensions(box)
       ratio = [box[0] / image_width.to_f, box[1] / image_height.to_f].min
-      width = [([image_width * ratio, 2].max.ceil), box[0]].min & ~1
-      height = [([image_height * ratio, 2].max.ceil), box[1]].min  & ~1
+      width = [[image_width * ratio, 2].max.ceil, box[0]].min & ~1
+      height = [[image_height * ratio, 2].max.ceil, box[1]].min & ~1
       [width, height]
     end
 
@@ -226,20 +301,59 @@ class Post < ApplicationRecord
     end
 
     def regenerate_video_samples!
-      # force code to assume no samples exist
-      update_column(:generated_samples, nil)
       generate_video_samples(later: true)
     end
 
+    # Delete all video samples and fill in some sample metadata
+    # This is typically done while waiting for new samples to be generated
+    def delete_video_samples!
+      return unless is_video?
+
+      storage_manager.delete_video_samples(md5)
+      update_column(:video_samples, {
+        original: {
+          codec: nil,
+          fps: 0,
+        },
+        variants: {},
+        samples: {},
+      })
+      reload
+    end
+
+    def generate_image_samples(later: false)
+      if later
+        PostImageSamplerJob.set(wait: 1.minute).perform_later(id)
+      else
+        ImageSampler.generate_post_images(self)
+      end
+    end
+
     def regenerate_image_samples!
-      file = self.file()
-      preview_file, crop_file, sample_file = ::PostThumbnailer.generate_resizes(file, image_height, image_width, is_video? ? :video : :image, background_color: bg_color.presence || "000000")
-      storage_manager.store_file(sample_file, self, :large) if sample_file.present?
-      storage_manager.store_file(preview_file, self, :preview) if preview_file.present?
-      storage_manager.store_file(crop_file, self, :crop) if crop_file.present?
-      update({has_cropped: crop_file.present?})
-    ensure
-      file.close
+      if file_size > 10.megabytes
+        generate_image_samples(later: true)
+      else
+        generate_image_samples
+      end
+    end
+
+    def handle_thumbnails_on_create
+      ImageSampler.generate_post_images(self)
+      update_iqdb_async if has_preview?
+    end
+
+    def check_for_ai_content
+      ai_score = is_ai_generated?(file_path)
+      if ai_score[:score] >= 50
+        PostFlag.create(
+          post: self,
+          reason_name: "uploading_guidelines",
+          note: "AI score: #{ai_score[:score]}\n#{ai_score[:reason]}",
+          creator_id: User.system.id,
+          creator_ip_addr: "192.168.0.1",
+        )
+      end
+      ai_score
     end
   end
 
@@ -248,37 +362,78 @@ class Post < ApplicationRecord
       image_width.to_i >= 280 && image_height.to_i >= 150
     end
 
-    def has_large?
-      return true if is_video?
-      return false if is_gif?
-      return false if is_flash?
-      return false if has_tag?("animated_gif", "animated_png")
-      is_image? && image_width.present? && image_width > Danbooru.config.large_image_width
-    end
-
-    def has_large
-      !!has_large?
-    end
-
-    def large_image_width
-      if has_large?
-        [Danbooru.config.large_image_width, image_width].min
-      else
-        image_width
-      end
-    end
-
-    def large_image_height
-      ratio = Danbooru.config.large_image_width.to_f / image_width.to_f
-      if has_large? && ratio < 1
-        (image_height * ratio).to_i
-      else
-        image_height
-      end
-    end
-
     def resize_percentage
-      100 * large_image_width.to_f / image_width.to_f
+      100 * sample_width.to_f / image_width.to_f
+    end
+
+    def has_dimensions?
+      @has_dimensions ||= image_width.present? && image_height.present?
+    end
+
+    ### Preview ###
+    def has_preview?
+      is_image? || is_video?
+    end
+
+    def preview_dimensions(max_px = Danbooru.config.small_image_width)
+      @preview_dimensions ||= begin
+        if has_dimensions?
+          scale = ImageSampler.calc_dimensions_for_preview(image_width, image_height)
+          scale[1].presence || [(image_width * scale[0]).round, (image_height * scale[0]).round]
+        else
+          [max_px, max_px]
+        end
+      end
+    end
+
+    def preview_width
+      preview_dimensions[0]
+    end
+
+    def preview_height
+      preview_dimensions[1]
+    end
+
+    ### Sample ###
+    def has_sample?
+      @has_sample ||= begin
+        if is_video?
+          true
+        elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png", "animated_webp")
+          false
+        elsif is_image? && image_width.present?
+          dims = [image_width, image_height].compact
+          dims.min > Danbooru.config.large_image_width || dims.max > Danbooru.config.large_image_width * 2
+        else
+          false
+        end
+      end
+    end
+
+    # This is required for something, but I have absolutely no idea what.
+    def has_sample
+      !!has_sample?
+    end
+
+    def sample_dimensions
+      @sample_dimensions ||= begin
+        if has_sample?
+          scale = ImageSampler.calc_dimensions_for_sample(image_width, image_height)[0]
+          [(image_width * scale).round, (image_height * scale).round]
+        else
+          [image_width, image_height]
+        end
+      end
+    end
+
+    def sample_width
+      return image_width unless has_sample?
+      sample_dimensions[0]
+    end
+
+    def sample_height
+      return image_height unless has_sample?
+      sample_dimensions[1]
     end
   end
 
@@ -313,6 +468,10 @@ class Post < ApplicationRecord
 
     def approve!(approver = CurrentUser.user)
       return if self.approver != nil
+
+      # Not ideal, but does the job
+      orig = self.replacements.find_by(status: "original")
+      orig&.update(approver: approver)
 
       if uploader == approver
         update(is_pending: false)
@@ -361,9 +520,8 @@ class Post < ApplicationRecord
         src = src.try(:strip)
         alternate = Sources::Alternates.find(src)
         alternate_processors << alternate
-        gallery_sources << alternate.gallery_url if alternate.gallery_url
         submission_sources << alternate.submission_url if alternate.submission_url
-        direct_sources << alternate.submission_url if alternate.direct_url
+        direct_sources << alternate.direct_url if alternate.direct_url
         additional_sources += alternate.additional_urls if alternate.additional_urls
         alternate.original_url
       end
@@ -372,7 +530,8 @@ class Post < ApplicationRecord
         sources = alt_processor.remove_duplicates(sources)
       end
 
-      self.source = sources.first(10).join("\n")
+      # Truncate sources to prevent abuse
+      self.source = sources.map { |s| s[0..2048] }.first(10).join("\n")
     end
 
     def copy_sources_to_parent
@@ -634,9 +793,9 @@ class Post < ApplicationRecord
     end
 
     def add_automatic_tags(tags)
-      return tags if !Danbooru.config.enable_dimension_autotagging?
+      return tags unless Danbooru.config.enable_dimension_autotagging?
 
-      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize flash webm mp4 wide_image long_image]
+      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize wide_image tall_image long_image flash webm mp4 long_playtime short_playtime]
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
@@ -654,27 +813,20 @@ class Post < ApplicationRecord
         end
       end
 
-      if file_size >= 30.megabytes
-        tags << "huge_filesize"
-      end
+      tags << "huge_filesize" if file_size >= 30.megabytes
 
-      if is_flash?
-        tags << "flash"
-      end
+      tags << "flash" if is_flash?
+      tags << "webm" if is_webm?
 
-      if is_webm?
-        tags << "webm"
-      end
+      tags << "long_playtime" if is_video? && duration >= 30
+      tags << "short_playtime" if is_video? && duration < 30
 
-      unless is_gif?
-        tags -= ["animated_gif"]
-      end
+      # TODO: Automatically add animated_* tags without re-testing them on every edit
+      tags -= ["animated_gif"] unless is_gif?
+      tags -= ["animated_png"] unless is_png?
+      tags -= ["animated_webp"] unless is_webp?
 
-      unless is_png?
-        tags -= ["animated_png"]
-      end
-
-      return tags
+      tags
     end
 
     def apply_casesensitive_metatags(tags)
@@ -975,13 +1127,31 @@ class Post < ApplicationRecord
     alias_method :is_favorited?, :favorited_by?
 
     def append_user_to_fav_string(user_id)
-      self.fav_string = (fav_string + " fav:#{user_id}").strip
-      clean_fav_string!
+      # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
+      # Checking for presence is faster than explicit deduplication for both approaches.
+      if fav_count > 1000
+        unless fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
+          self.fav_string = (fav_string + " fav:#{user_id}").strip
+          self.fav_count = fav_string.split.size
+        end
+      else
+        fav_array = fav_string.split
+        fav_tag = "fav:#{user_id}"
+
+        unless fav_array.include?(fav_tag)
+          fav_array << fav_tag
+          self.fav_string = fav_array.join(" ")
+          self.fav_count = fav_array.size
+        end
+      end
     end
 
     def delete_user_from_fav_string(user_id)
-      self.fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
-      clean_fav_string!
+      new_fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
+      if new_fav_string != fav_string
+        self.fav_string = new_fav_string
+        self.fav_count = new_fav_string.split.size
+      end
     end
 
     # users who favorited this post, ordered by users who favorited it first
@@ -1067,7 +1237,7 @@ class Post < ApplicationRecord
 
   module PoolMethods
     def pool_ids
-      pool_string.scan(/pool\:(\d+)/).map {|pool| pool[0].to_i}
+      pool_string.scan(/pool:(\d+)/).map { |pool| pool[0].to_i }
     end
 
     def pools
@@ -1201,14 +1371,6 @@ class Post < ApplicationRecord
 
     def give_favorites_to_parent
       TransferFavoritesJob.perform_later(id, CurrentUser.id)
-    end
-
-    def give_favorites_to_parent!
-      return if parent.nil?
-
-      FavoriteManager.give_to_parent!(self)
-      PostEvent.add(id, CurrentUser.user, :favorites_moved, { parent_id: parent_id })
-      PostEvent.add(parent_id, CurrentUser.user, :favorites_received, { child_id: id })
     end
 
     def parent_exists?
@@ -1420,6 +1582,10 @@ class Post < ApplicationRecord
   end
 
   module NoteMethods
+    def can_have_notes?
+      is_png? || is_jpg? || is_gif?
+    end
+
     def has_notes?
       last_noted_at.present?
     end
@@ -1470,9 +1636,9 @@ class Post < ApplicationRecord
     end
 
     def method_attributes
-      list = super + [:has_large, :has_visible_children, :children_ids, :pool_ids, :is_favorited?]
+      list = super + %i[has_sample has_visible_children children_ids pool_ids is_favorited?]
       if visible?
-        list += [:file_url, :large_file_url, :preview_file_url]
+        list += %i[file_url sample_url preview_file_url]
       end
       list
     end
@@ -1497,16 +1663,16 @@ class Post < ApplicationRecord
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
 
-        pools: pool_ids,
+        pools: pool_ids.join(" "),
       }
 
       if visible?
         attributes[:md5] = md5
         attributes[:preview_url] = preview_file_url
-        attributes[:large_url] = large_file_url
+        attributes[:sample_url] = sample_url
         attributes[:file_url] = file_url
-        attributes[:preview_width] = preview_dimensions[1]
-        attributes[:preview_height] = preview_dimensions[0]
+        attributes[:preview_width] = preview_dimensions[0]
+        attributes[:preview_height] = preview_dimensions[1]
       end
 
       attributes
@@ -1756,6 +1922,7 @@ class Post < ApplicationRecord
 
   include PostFileMethods
   include FileMethods
+  include AiMethods
   include ImageMethods
   include ApprovalMethods
   include SourceMethods
@@ -1780,12 +1947,13 @@ class Post < ApplicationRecord
   include DocumentStore::Model
   include PostIndex
 
-  BOOLEAN_ATTRIBUTES = %w(
+  BOOLEAN_ATTRIBUTES = %w[
     _has_embedded_notes
-    has_cropped
+    _has_cropped
     hide_from_anonymous
     hide_from_search_engines
-  )
+    favorites_transfer_in_progress
+  ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
   def safeblocked?
@@ -1828,6 +1996,13 @@ class Post < ApplicationRecord
     @categorized_tags = nil
     @artist_tags = nil
     @uploader_linked_artists = nil
+
+    @has_dimensions = nil
+    @preview_dimensions = nil
+    @has_sample = nil
+    @sample_dimensions = nil
+    @video_sample_list = nil
+
     self
   end
 

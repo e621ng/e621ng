@@ -7,5 +7,5 @@
   <%= link_to "Reject", bur, method: :delete, "data-confirm": "Are you sure you want to reject this bulk update request?" %> |
 <% end %>
 <% if bur.editable?(CurrentUser.user) %>
-  <%= link_to "Edit", edit_bulk_update_request_path(bur), :"data-shortcut" => "e" %>
+  <%= link_to "Edit", edit_bulk_update_request_path(bur), :"data-hotkey" => "edit" %>
 <% end %>

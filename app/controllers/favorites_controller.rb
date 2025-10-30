@@ -3,7 +3,8 @@
 class FavoritesController < ApplicationController
   before_action :member_only, except: [:index]
   before_action :ensure_lockdown_disabled, except: %i[index]
-  respond_to :html, :json
+  respond_to :json
+  respond_to :html, only: [:index]
   skip_before_action :api_check
 
   def index
@@ -30,25 +31,35 @@ class FavoritesController < ApplicationController
 
   def create
     @post = Post.find(params[:post_id])
-    FavoriteManager.add!(user: CurrentUser.user, post: @post)
-    flash.now[:notice] = "You have favorited this post"
 
-    respond_with(@post)
-  rescue Favorite::Error, ActiveRecord::RecordInvalid => x
-    render_expected_error(422, x.message)
+    if @post.favorites_transfer_in_progress?
+      render_expected_error(423, "Post favorites are being transferred, please try again later")
+      return
+    end
+
+    FavoriteManager.add!(user: CurrentUser.user, post: @post)
+
+    render json: { post_id: @post.id, favorite_count: @post.fav_count }
+  rescue Favorite::Error, ActiveRecord::RecordInvalid => e
+    render_expected_error(422, e.message)
   end
 
   def destroy
     @post = Post.find(params[:id])
+
+    if @post.favorites_transfer_in_progress?
+      render_expected_error(423, "Post favorites are being transferred, please try again later")
+      return
+    end
+
     FavoriteManager.remove!(user: CurrentUser.user, post: @post)
 
-    flash.now[:notice] = "You have unfavorited this post"
-    respond_with(@post)
-  rescue Favorite::Error => x
-    render_expected_error(422, x.message)
+    render json: { post_id: @post.id, favorite_count: @post.fav_count }
+  rescue Favorite::Error => e
+    render_expected_error(422, e.message)
   end
 
   def ensure_lockdown_disabled
-    access_denied if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
+    render_expected_error(403, "Favorites are disabled") if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
   end
 end

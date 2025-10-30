@@ -8,13 +8,13 @@ class Dmail < ApplicationRecord
   validate :recipient_accepts_dmails, on: :create
   validate :user_not_limited, on: :create
 
-  belongs_to :owner, :class_name => "User"
-  belongs_to :to, :class_name => "User"
-  belongs_to :from, :class_name => "User"
+  belongs_to :owner, class_name: "User"
+  belongs_to :to, class_name: "User"
+  belongs_to :from, class_name: "User"
 
   after_initialize :initialize_attributes, if: :new_record?
   before_create :auto_read_if_filtered
-  after_create :update_recipient
+  after_create :update_recipient_unread_count
   after_commit :send_email, on: :create, unless: :no_email_notification
 
   attr_accessor :bypass_limits, :no_email_notification
@@ -102,7 +102,7 @@ class Dmail < ApplicationRecord
     end
 
     def unread
-      where("is_read = false and is_deleted = false")
+      where("is_read = false AND is_deleted = false")
     end
 
     def visible
@@ -124,12 +124,27 @@ class Dmail < ApplicationRecord
       q = q.read if params[:read].to_s.truthy?
       q = q.unread if params[:read].to_s.falsy?
 
-      q.order(created_at: :desc)
+      q.order(id: :desc)
+    end
+  end
+
+  module ApiMethods
+    def to_name
+      to&.pretty_name
+    end
+
+    def from_name
+      from&.pretty_name
+    end
+
+    def method_attributes
+      super + %i[to_name from_name]
     end
   end
 
   include AddressMethods
   include FactoryMethods
+  include ApiMethods
   extend SearchMethods
 
   def user_not_limited
@@ -151,7 +166,6 @@ class Dmail < ApplicationRecord
     day_allowed = CurrentUser.can_dmail_day_with_reason
     if day_allowed != true
       errors.add(:base, "Sender #{User.throttle_reason(day_allowed, 'daily')}")
-      return
     end
   end
 
@@ -172,12 +186,12 @@ class Dmail < ApplicationRecord
     end
     if to.is_blacklisting_user?(from)
       errors.add(:to_name, "does not wish to receive DMails from you")
-      return false
+      false
     end
   end
 
   def quoted_body
-    "[quote]\n#{from.pretty_name} said:\n\n#{body}\n[/quote]\n\n"
+    "[section=#{from.pretty_name} said:]\n#{body}\n[/section]\n\n"
   end
 
   def send_email
@@ -187,13 +201,23 @@ class Dmail < ApplicationRecord
   end
 
   def mark_as_read!
-    update_column(:is_read, true)
-    owner.update(unread_dmail_count: owner.dmails.unread.count)
+    return if is_read?
+    Dmail.transaction do
+      update_column(:is_read, true)
+      count = owner.unread_dmail_count
+      if count <= 0
+        owner.recalculate_unread_dmail_count!
+      else
+        owner.update_columns(unread_dmail_count: count - 1)
+      end
+    end
   end
 
   def mark_as_unread!
-    update_column(:is_read, false)
-    owner.update(unread_dmail_count: owner.dmails.unread.count)
+    Dmail.transaction do
+      update_column(:is_read, false)
+      owner.update_columns(unread_dmail_count: owner.unread_dmail_count + 1)
+    end
   end
 
   def is_automated?
@@ -210,10 +234,9 @@ class Dmail < ApplicationRecord
     end
   end
 
-  def update_recipient
-    if owner_id != CurrentUser.user.id && !is_deleted? && !is_read?
-      to.update(unread_dmail_count: to.dmails.unread.count)
-    end
+  def update_recipient_unread_count
+    return if owner_id == CurrentUser.user.id || is_deleted? || is_read?
+    to.update_columns(unread_dmail_count: to.unread_dmail_count + 1)
   end
 
   def visible_to?(user)

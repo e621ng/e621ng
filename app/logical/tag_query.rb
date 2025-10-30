@@ -5,7 +5,7 @@ class TagQuery
     attr_reader :query_obj, :resolve_aliases, :tag_count, :free_tags_count, :kwargs_hash
 
     def initialize(
-      msg = "You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time",
+      msg = -"You cannot search for more than #{Danbooru.config.tag_query_limit} tags at a time",
       query_obj: nil,
       resolve_aliases: nil,
       tag_count: nil,
@@ -28,7 +28,7 @@ class TagQuery
   class DepthExceededError < StandardError
     attr_reader :query_obj, :resolve_aliases, :tag_count, :free_tags_count, :kwargs_hash, :depth
 
-    def initialize(msg = "You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time", **kwargs)
+    def initialize(msg = -"You cannot have more than #{TagQuery::DEPTH_LIMIT} levels of grouping at a time", **kwargs)
       @query_obj = kwargs[:query_obj]
       @resolve_aliases = kwargs[:resolve_aliases]
       @tag_count = kwargs[:tag_count]
@@ -66,49 +66,150 @@ class TagQuery
     hassource hasdescription isparent ischild inpool pending_replacements artverified
   ].freeze
 
-  NEGATABLE_METATAGS = (%w[
+  CATEGORY_METATAG_MAP = TagCategory::SHORT_NAME_MAPPING.to_h { |k, v| [-"#{k}tags", -"tag_count_#{v}"] }.freeze
+
+  NEGATABLE_METATAGS = %w[
     id filetype type rating description parent user user_id approver flagger deletedby delreason
     source status pool set fav favoritedby note locked upvote votedup downvote voteddown voted
     width height mpixels ratio filesize duration score favcount date age change tagcount
     commenter comm noter noteupdater
-  ] + TagCategory::SHORT_NAME_LIST.map { |tag_name| "#{tag_name}tags" }).freeze
+  ].concat(CATEGORY_METATAG_MAP.keys).freeze
 
-  # OPTIMIZE: Check what's best
-  # Should avoid additional array allocations
-  METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].concat(
+  METATAGS = %w[md5 order limit child randseed hot_from ratinglocked notelocked statuslocked].concat(
     NEGATABLE_METATAGS, COUNT_METATAGS, BOOLEAN_METATAGS
   ).freeze
-  # Should guarantee at most 1 resize
-  # METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].push(
-  #   *NEGATABLE_METATAGS, *COUNT_METATAGS, *BOOLEAN_METATAGS
-  # ).freeze
-  # Original
-  # METATAGS = (%w[
-  #   md5 order limit child randseed ratinglocked notelocked statuslocked
-  # ] + NEGATABLE_METATAGS + COUNT_METATAGS + BOOLEAN_METATAGS).freeze
 
-  ORDER_METATAGS = (%w[
-    id id_desc
-    score score_asc
-    favcount favcount_asc
-    created_at created_at_asc
-    updated updated_desc updated_asc
-    comment comment_asc
-    comment_bumped comment_bumped_asc
-    note note_asc
-    mpixels mpixels_asc
-    portrait landscape
-    filesize filesize_asc
-    tagcount tagcount_asc
-    change change_desc change_asc
-    duration duration_desc duration_asc
-    rank
-    random
-  ] + COUNT_METATAGS + TagCategory::SHORT_NAME_LIST.flat_map { |str| ["#{str}tags", "#{str}tags_asc"] }).freeze
+  # rubocop:disable Layout/HashAlignment -- Better readability for a constant
+
+  # A hashmap of all `order` metatag value aliases that can be inverted by being suffixed by
+  # `_desc`/`_asc`, to the input value they represent (`comm` -> `comment`).
+  #
+  # All keys must map to a value in `TagQuery::ORDER_INVERTIBLE_ROOTS` (e.g. `order:comm` is an alias for `order:comment`).
+  #
+  # Aliases are used to:
+  # 1. Resolve equivalent inputs to a unified output for `ElasticPostQueryBuilder` (e.g. `comm` & `comm_desc` will automatically be converted to `comment`, `comm_asc` will automatically be converted to `comment_asc`)
+  # 2. Automatically generate all valid related values for autocomplete (e.g. `comm` will have `comm`, `comm_desc`, & `comm_asc` added to autocomplete)
+  ORDER_INVERTIBLE_ALIASES = {
+    "created_at"  => "created",
+    "updated_at"  => "updated",
+    "comm"        => "comment",
+    "comm_bumped" => "comment_bumped",
+    "comm_count"  => "comment_count",
+    "size"        => "filesize",
+    "ratio"       => "aspect_ratio",
+  }.merge(
+    # # Adds `artisttags` -> `arttags`
+    # # Removes duplicate `metatags` -> `metatags`
+    # CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }.index_by do |e|
+    #   "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}tags"
+    # end,
+
+    # If both of the following are added, one must start w/
+    # `CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }` to remove duplicate cause by the
+    # short & long name for `meta` being the same.
+
+    # # Adds `art_tags` -> `arttags`
+    # CATEGORY_METATAG_MAP.keys.delete_if { |e| e == "metatags" }.index_by { |e| "#{e.delete_suffix('tags')}_tags" },
+
+    # Adds `artist_tags` -> `arttags`
+    CATEGORY_METATAG_MAP.keys.index_by do |e|
+      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags"
+    end,
+  ).freeze
+
+  # A hashmap of all `order` metatag value aliases that can't be inverted by being suffixed by
+  # `_desc`/`_asc`, to the input value they represent (e.g. `landscape` -> `aspect_ratio`).
+  #
+  # All keys must map to a normalized value in `TagQuery::ORDER_METATAGS` (e.g. `order:landscape` is an alias for `order:aspect_ratio`, & `order:aspect_ratio` is equivalent to `order:aspect_ratio_desc`, but `landscape` is mapped solely to `aspect_ratio` & not `aspect_ratio_desc`).
+  ORDER_NON_SUFFIXED_ALIASES = {
+    "portrait"    => "aspect_ratio_asc",
+    "landscape"   => "aspect_ratio",
+    "rank"        => "hot",
+  }.freeze
+
+  # rubocop:enable Layout/HashAlignment
+
+  # NOTE: The first element (`id`) is the only one whose value is equivalent to the `_asc`-suffixed variant.
+  ORDER_INVERTIBLE_ROOTS = %w[
+    id score md5 favcount note mpixels filesize tagcount change duration
+    created updated comment comment_bumped aspect_ratio
+  ].concat(COUNT_METATAGS, CATEGORY_METATAG_MAP.keys).freeze
+
+  # All possible valid values for `order` metatags; used for autocomplete.
+  # * With the exception of `random` & `hot`, all values have an option to invert the order.
+  # * With the exception of `portrait`/`landscape`, all invertible values have a bare, `_asc`, & `_desc` variant.
+  # * With the exception of `id`, all bare invertible values are equivalent to their `_desc`-suffixed counterparts.
+  #
+  # Add non-reversible entries to the array literal here.
+  ORDER_METATAGS = %w[
+    random hot
+  ].concat(
+    ORDER_INVERTIBLE_ALIASES
+      .keys.concat(ORDER_INVERTIBLE_ROOTS)
+      .flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] },
+    ORDER_NON_SUFFIXED_ALIASES.keys,
+  ).freeze
+
+  # All `order` metatag values to be included in the autocomplete.
+  #
+  # This is used to cut down on bloat in the autocomplete. All supported values are included in the
+  # autocomplete by default, and must be specifically excluded here; this keeps the autocomplete
+  # from missing values due to an oversight.
+  ORDER_METATAGS_AUTOCOMPLETE = (ORDER_METATAGS - %w[
+    id_asc
+  ].concat(
+    ORDER_INVERTIBLE_ROOTS[1..].map { |e| -"#{e}_desc" }, # Remove superfluous `_desc` suffix from all but `id_desc`
+    CATEGORY_METATAG_MAP.keys.map { |e| -"#{e}_desc" }, # Remove superfluous `_desc` suffix
+    (ORDER_INVERTIBLE_ALIASES.keys - CATEGORY_METATAG_MAP.keys.map do |e| # Remove all aliased forms...
+      "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags" # ...for all but the full tag category names
+    end).flat_map { |e| [e, -"#{e}_desc", -"#{e}_asc"] },
+    CATEGORY_METATAG_MAP.keys.map { |e| "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags" }.map { |e| -"#{e}_desc" }, # Remove superfluous `_desc` suffix
+    ORDER_NON_SUFFIXED_ALIASES.keys - %w[portrait landscape], # Remove all non-suffixed aliases except `portrait` & `landscape`
+    %w[aspect_ratio aspect_ratio_asc], # Remove the forms `portrait` & `landscape` resolve to
+    CATEGORY_METATAG_MAP.keys.flat_map { |e| [e, -"#{e}_asc"] }, # Remove the resolved forms of the full tag category forms
+  )).freeze
+
+  # Should currently just be `random` & `hot`; not a constant due to only current use being tests.
+  def self.order_non_invertible_roots
+    (ORDER_METATAGS - ORDER_INVERTIBLE_ALIASES
+    .keys.concat(ORDER_INVERTIBLE_ROOTS)
+    .flat_map { |str| [str, -"#{str}_desc", -"#{str}_asc"] }
+    .concat(ORDER_NON_SUFFIXED_ALIASES.keys)).freeze
+  end
+
+  # All values of `TagQuery::ORDER_NON_SUFFIXED_ALIASES` should be in this array.
+  # Not a constant due to only current use being tests.
+  def self.order_valid_non_suffixed_alias_values
+    (order_non_invertible_roots + ORDER_INVERTIBLE_ROOTS[1..]
+    .flat_map { |str| [str, -"#{str}_asc"] })
+      .push("id", "id_desc")
+      .freeze
+  end
+
+  # The initial value of a negated `order` metatag mapped to the resultant value.
+  # In the general case, tags have a `_asc` suffix appended/removed.
+  #
+  # NOTE: With the exception of `id_desc`, values ending in `_desc` are equivalent to the same string
+  # with that suffix removed; as such, these keys, along with `id_asc`, `random`, & `hot`,
+  # are not included in this hash.
+  ORDER_VALUE_INVERSIONS = ORDER_INVERTIBLE_ROOTS[1..].flat_map { |str| [str, -"#{str}_asc"] }.push(*ORDER_NON_SUFFIXED_ALIASES.keys, "id", "id_desc").index_with do |e|
+    case e
+    when "id"        then "id_desc"
+    when "id_desc"   then "id"
+    when "portrait"  then ORDER_NON_SUFFIXED_ALIASES["landscape"]
+    when "landscape" then ORDER_NON_SUFFIXED_ALIASES["portrait"]
+    when "rank"      then ORDER_NON_SUFFIXED_ALIASES["rank"]
+    else
+      raise ArgumentError, -"Unhandled non-invertible alias: #{e}" if ORDER_NON_SUFFIXED_ALIASES.key?(e)
+      e.end_with?("_asc") ? e.delete_suffix("_asc") : -"#{e}_asc"
+    end
+  end.freeze
 
   # Only these tags hold global meaning and don't have added meaning by being in a grouped context.
   # Therefore, these are pulled out of groups and placed on the top level of searches.
-  GLOBAL_METATAGS = %w[order limit randseed].freeze
+  #
+  # Note that this includes all valid prefixes.
+  GLOBAL_METATAGS = %w[order -order limit randseed hot_from].freeze
 
   # The values for the `status` metatag that will override the automatic hiding of deleted posts
   # from search results. Other tags do also alter this behavior; specifically, a `deletedby` or
@@ -118,6 +219,8 @@ class TagQuery
   # The metatags that can override the automatic hiding of deleted posts from search results. Note
   # that the `status` metatag alone ***does not*** override filtering; it must also have a value
   # present in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES`.
+  #
+  # Note that this includes all valid prefixes.
   OVERRIDE_DELETED_FILTER_METATAGS = %w[
     status -status
     delreason -delreason ~delreason
@@ -288,6 +391,34 @@ class TagQuery
   # Can a ` -status:deleted` be safely appended to the search without changing it's contents?
   def self.can_append_deleted_filter?(query, at_any_level: true)
     !TagQuery.has_metatags?(query, *OVERRIDE_DELETED_FILTER_METATAGS, prepend_prefix: false, at_any_level: at_any_level, has_all: false)
+  end
+
+  # Convert an order metatag into it's simplest consistent representation.
+  # * Resolves aliases & inversions
+  # * Handles quoted values
+  # * Doesn't strip whitespace
+  # ### Parameters:
+  # * `value`
+  # * `invert` [`false`]
+  # * `processed` [`true`]: is `value` downcased, stripped, & shed of the `order:`/`-order:` prefix?
+  def self.normalize_order_value(value, invert: true, processed: true)
+    value.downcase! unless processed
+    unless processed || !(/\A(-)?order:(.+)\z/ =~ value)
+      invert = $1
+      value = $2.delete_prefix('"').delete_suffix('"')
+    end
+    # Remove suffix when superfluous
+    value = value.delete_suffix(%w[id_asc id_desc].include?(value) ? "_asc" : "_desc")
+    # Resolve all aliases to their root
+    # Wouldn't handle `id_desc`, but irrelevant as `id` isn't aliased.
+    value = if value.delete_suffix!("_asc")
+              -"#{ORDER_NON_SUFFIXED_ALIASES[value] || ORDER_INVERTIBLE_ALIASES[value] || value}_asc"
+            else
+              ORDER_NON_SUFFIXED_ALIASES[value] || ORDER_INVERTIBLE_ALIASES[value] || value
+            end
+    # If inverted, resolve inversion
+    value = ORDER_VALUE_INVERSIONS[value] || value if invert
+    value
   end
 
   # Convert query into a consistent representation.
@@ -1259,6 +1390,8 @@ class TagQuery
 
       when "age", "-age", "~age" then add_to_query(type, :age, ParseValue.invert_range(ParseValue.range(g2, :age)))
 
+      when "hot_from" then q[:hot_from] = ParseValue.date_from(g2)
+
       when "tagcount", "-tagcount", "~tagcount" then add_to_query(type, :post_tag_count, ParseValue.range(g2))
 
       when /[-~]?(#{TagCategory::SHORT_NAME_REGEX})tags/
@@ -1270,7 +1403,7 @@ class TagQuery
 
       when "randseed" then q[:random_seed] = g2.to_i
 
-      when "order" then q[:order] = g2.downcase
+      when "order", "-order" then q[:order] = TagQuery.normalize_order_value(g2.downcase, invert: type == :must_not)
 
       when "limit"
         # Do nothing. The controller takes care of it.
@@ -1285,7 +1418,7 @@ class TagQuery
         q[:status] = nil
         q[:show_deleted] ||= q[:status_must_not].in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
 
-      when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype, g2)
+      when "filetype", "-filetype", "~filetype", "type", "-type", "~type" then add_to_query(type, :filetype, g2.downcase)
 
       when "description", "-description", "~description" then add_to_query(type, :description, g2)
 

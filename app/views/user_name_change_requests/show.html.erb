@@ -39,6 +39,14 @@
         </tr>
       </tbody>
     </table>
+
+    <% if CurrentUser.is_moderator? %>
+      <div class="actions">
+        <%= link_to "Delete", user_name_change_request_path(@change_request), method: :delete, 
+            data: { confirm: "Are you sure you want to delete this name change request?" }, 
+            class: "st-button" %>
+      </div>
+    <% end %>
   </div>
 </div>
 

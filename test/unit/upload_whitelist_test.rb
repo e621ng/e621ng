@@ -8,18 +8,33 @@ class UploadWhitelistTest < ActiveSupport::TestCase
       user = create(:privileged_user)
       CurrentUser.user = user
 
-      @whitelist = create(:upload_whitelist, pattern: "*.e621.net/data/*", note: "e621")
+      # domain regex matches any subdomain of e621.net
+      # path regex matches /data/ followed by anything
+      @whitelist = create(:upload_whitelist,
+                          domain: "static1\.e621\.net", # rubocop:disable Style/RedundantStringEscape
+                          path: "\/data\/.*", # rubocop:disable Style/RedundantStringEscape
+                          allowed: true,
+                          reason: nil,
+                          note: "e621")
     end
 
-    should "match" do
-      assert_equal([true, nil], UploadWhitelist.is_whitelisted?(Addressable::URI.parse("https://static1.e621.net/data/123.png")))
-      assert_equal([false, "123.com not in whitelist"], UploadWhitelist.is_whitelisted?(Addressable::URI.parse("https://123.com/what.png")))
+    should "succeed for valid URLs" do
+      assert_equal([true, nil], UploadWhitelist.is_whitelisted?("https://static1.e621.net/data/123.png"))
+    end
+
+    should "fail for invalid URLs" do
+      assert_equal([false, "invalid url"], UploadWhitelist.is_whitelisted?(""))
+      assert_equal([false, "invalid url"], UploadWhitelist.is_whitelisted?(nil))
+      assert_equal([false, "123.com not in whitelist"], UploadWhitelist.is_whitelisted?("https://123.com/what.png"))
+      assert_equal([false, "aaa not in whitelist"], UploadWhitelist.is_whitelisted?("aaa"))
+      assert_equal([false, "example.com not in whitelist"], UploadWhitelist.is_whitelisted?("https://example.com/test?=https://static1.e621.net/data/123.jpeg"))
+      assert_equal([false, "static1.e621.net is in whitelist, but path /other/123.png is not allowed."], UploadWhitelist.is_whitelisted?("https://static1.e621.net/other/123.png"))
     end
 
     should "bypass for admins" do
       CurrentUser.user.level = 50
       Danbooru.config.stubs(:bypass_upload_whitelist?).returns(true)
-      assert_equal([true, "bypassed"], UploadWhitelist.is_whitelisted?(Addressable::URI.parse("https://123.com/what.png")))
+      assert_equal([true, "bypassed"], UploadWhitelist.is_whitelisted?("https://123.com/what.png"))
     end
   end
 end

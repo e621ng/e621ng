@@ -55,8 +55,12 @@ end
 
 def setup_upload_whitelist
   UploadWhitelist.create do |entry|
-    entry.pattern = "https://static1.e621.net/*"
+    entry.domain = "static1\.e621\.net" # rubocop:disable Style/RedundantStringEscape
   end
+end
+
+def setup_report_reasons
+  PostReportReason.create!(reason: "Malicious File", description: "The file contains either malicious code or contains a hidden file archive. This is not for imagery depicted in the image itself.")
 end
 
 unless Rails.env.test?
@@ -65,6 +69,7 @@ unless Rails.env.test?
   begin
     import_mascots
     setup_upload_whitelist
+    setup_report_reasons
   rescue StandardError => e
     puts "--------"
     puts "#{e.class}: #{e.message}"

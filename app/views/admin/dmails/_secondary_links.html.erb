@@ -1,0 +1,4 @@
+<% content_for(:secondary_links) do %>
+  <li><%= render "quick_search" %></li>
+  <%= subnav_link_to "All", admin_user_dmails_path(@user) %>
+<% end %>

@@ -37,6 +37,9 @@ class TagCategory
     "Lore" => 8,
   }.freeze
 
+  MEMBER_EDITABLE_CATEGORIES = %w[General Artist Contributor Copyright Character Species].freeze
+  MEMBER_EDITABLE_MAPPING = CANONICAL_MAPPING.select { |k, _| MEMBER_EDITABLE_CATEGORIES.include?(k) }.freeze
+
   REVERSE_MAPPING = {
     0 => "general",
     1 => "artist",
@@ -107,9 +110,9 @@ class TagCategory
   }.freeze
 
   CATEGORIES = %w[general species character copyright artist contributor invalid lore meta].freeze
-  CATEGORY_IDS = CANONICAL_MAPPING.values
+  CATEGORY_IDS = CANONICAL_MAPPING.values.freeze
 
-  SHORT_NAME_LIST = SHORT_NAME_MAPPING.keys
+  SHORT_NAME_LIST = SHORT_NAME_MAPPING.keys.freeze
   HUMANIZED_LIST = %w[character copyright artist].freeze
   SPLIT_HEADER_LIST = %w[invalid artist contributor copyright character species general meta lore].freeze
   CATEGORIZED_LIST = %w[invalid artist contributor copyright character species meta general lore].freeze

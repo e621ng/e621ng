@@ -1,0 +1,13 @@
+#add-to-pool-dialog, #add-to-set-dialog {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+
+  div.input { margin: 0; }
+  .add-to-pool-inputs, .add-to-pool-recent {
+    padding: 0.5rem;
+    background: themed("color-section-lighten-5");
+    @include st-radius;
+  }
+}
