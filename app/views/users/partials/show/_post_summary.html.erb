@@ -17,7 +17,7 @@
     </div>
 
     <div class="profile-sample-posts">
-      <%= render(PostThumbnailComponent.with_collection(presenter.uploads, tags: "user:#{user.name}", stats: CurrentUser.show_post_statistics?)) %>
+      <%= render(PostThumbnailComponent.with_collection(presenter.uploads, tags: "user:#{user.name}")) %>
     </div>
 
   </div>
@@ -38,7 +38,7 @@
     </div>
 
     <div class="profile-sample-posts">
-      <%= render(PostThumbnailComponent.with_collection(presenter.favorites, tags: "fav:#{user.name}", stats: CurrentUser.show_post_statistics?)) %>
+      <%= render(PostThumbnailComponent.with_collection(presenter.favorites, tags: "fav:#{user.name}")) %>
     </div>
 
   </div>

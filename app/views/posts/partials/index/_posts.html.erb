@@ -16,7 +16,7 @@
     <% if @posts.empty? %>
       <%= render "posts/blank" %>
     <% else %>
-      <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string, stats: CurrentUser.show_post_statistics?)) %>
+      <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string)) %>
     <% end %>
   </section>
 

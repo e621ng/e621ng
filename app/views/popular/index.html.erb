@@ -9,7 +9,7 @@
     <div id="posts">
       <section class="posts-container">
         <% if @post_set.posts.any? %>
-          <%= render(PostThumbnailComponent.with_collection(@post_set.posts, stats: CurrentUser.show_post_statistics?)) %>
+          <%= render(PostThumbnailComponent.with_collection(@post_set.posts)) %>
         <% else %>
           <p class="no-results">Nobody here but us chickens!</p>
         <% end %>

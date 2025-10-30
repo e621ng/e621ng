@@ -55,7 +55,7 @@ class PostThumbnailComponent < ViewComponent::Base
     klass << "rating-questionable" if post.rating == "q"
     klass << "rating-explicit" if post.rating == "e"
     klass << "blacklistable" unless options[:no_blacklist]
-    klass << "no-stats" unless options[:stats]
+    klass << "no-stats" unless should_show_stats?
     klass
   end
 
@@ -107,8 +107,8 @@ class PostThumbnailComponent < ViewComponent::Base
   ####  Post Stat Section  #####
   ##############################
 
-  def show_stats?
-    options[:stats]
+  def should_show_stats?
+    @should_show_stats ||= options.fetch(:stats) { @user&.show_post_statistics? }
   end
 
   def shortened_score

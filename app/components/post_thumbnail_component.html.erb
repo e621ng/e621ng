@@ -8,7 +8,7 @@
       <% end %>
     <% end %>
   <% end %>
-  <% if show_stats? %>
+  <% if should_show_stats? %>
     <div class="thm-desc thm-rating-<%= @post.rating %>">
       <span class="thm-desc-a">
         <span class="thm-desc-m thm-score thm-score-<%= score_class %>">

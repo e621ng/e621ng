@@ -2,7 +2,7 @@
   <div class="notice notice-child">
     <%= has_parent_message(@post, @parent_post_set) %>
     <div id="has-parent-relationship-preview" style="display: none;">
-      <%= render(PostThumbnailComponent.with_collection(@parent_post_set.posts, tags: @parent_post_set.tag_string, stats: CurrentUser.show_post_statistics?)) %>
+      <%= render(PostThumbnailComponent.with_collection(@parent_post_set.posts, tags: @parent_post_set.tag_string)) %>
     </div>
   </div>
 <% end %>
@@ -11,7 +11,7 @@
   <div class="notice notice-parent">
     <%= has_children_message(@post, @children_post_set) %>
     <div id="has-children-relationship-preview" style="display: none;">
-      <%= render(PostThumbnailComponent.with_collection(@children_post_set.posts, tags: @children_post_set.tag_string, stats: CurrentUser.show_post_statistics?)) %>
+      <%= render(PostThumbnailComponent.with_collection(@children_post_set.posts, tags: @children_post_set.tag_string)) %>
     </div>
   </div>
 <% end %>
