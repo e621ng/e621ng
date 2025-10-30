@@ -1,0 +1,8 @@
+<div class="recent-posts">
+  <h2>Posts (<%= link_to "view all", posts_path(tags: @wiki_page.title) %>)</h2>
+  <%= render "posts/partials/common/inline_blacklist" %>
+
+  <section class="posts-container" style="margin: 1em 0;">
+  <%= render(PostThumbnailComponent.with_collection(@wiki_page.post_set.posts, tags: @wiki_page.title, stats: CurrentUser.show_post_statistics?)) %>
+  </section>
+</div>

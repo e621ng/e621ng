@@ -42,7 +42,7 @@
       <%= render "posts/partials/common/inline_blacklist" %>
 
       <section class="posts-container" style="margin: 1em 0;">
-        <%= @post_set.presenter.post_previews_html(self) %>
+      <%= render(PostThumbnailComponent.with_collection(@post_set.posts, tags: @artist.name, stats: CurrentUser.show_post_statistics?)) %>
       </section>
     </div>
   </div>
