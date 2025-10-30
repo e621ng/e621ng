@@ -157,7 +157,7 @@ article.thumbnail .thm-desc-m {
 
 // Badges
 article.thumbnail[data-tags~=animated] {
-  & > a.thm-link:before {
+  & > a.thm-link:after {
     content: "ANIM";
 
     position: absolute;
@@ -178,8 +178,8 @@ article.thumbnail[data-tags~=animated] {
 
     @include st-radius-right;
   }
-  &[data-file-ext=webm] > a.thm-link:before { content: "WEBM"; }
-  &[data-file-ext=mp4] > a.thm-link:before { content: "MP4"; }
+  &[data-file-ext=webm] > a.thm-link:after { content: "WEBM"; }
+  &[data-file-ext=mp4] > a.thm-link:after { content: "MP4"; }
 }
 
 
