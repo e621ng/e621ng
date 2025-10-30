@@ -9,6 +9,11 @@ class PostThumbnailComponent < ViewComponent::Base
     @post = post.respond_to?(:object) ? post.object : post
     @options = options
     @user = defined?(CurrentUser) ? CurrentUser : nil
+
+    if options[:pool].present?
+      @pool = options[:pool]
+      options[:stats] = false
+    end
   end
 
   def render?
@@ -148,5 +153,17 @@ class PostThumbnailComponent < ViewComponent::Base
     text << @post.file_ext.upcase
     text << "(#{@post.image_width}x#{@post.image_height})"
     text.join(" ")
+  end
+
+  ##############################
+  #####  Pool Cover Page  ######
+  ##############################
+
+  def should_show_pool?
+    options[:pool].present?
+  end
+
+  def pool_name
+    options[:pool]&.pretty_name&.truncate(80)
   end
 end

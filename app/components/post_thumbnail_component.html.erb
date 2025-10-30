@@ -41,4 +41,11 @@
       </div>
     </div>
   <% end %>
+
+  <%# Pool Cover Page %>
+  <% if should_show_pool? %>
+    <div class="thm-extra">
+      <%= link_to pool_name, pool_path(@pool), class: "pool-link" %>
+    </div>
+  <% end %>
 <% end %>
