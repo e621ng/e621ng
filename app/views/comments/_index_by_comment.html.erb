@@ -3,7 +3,7 @@
       <% if comment.post.present? && comment.should_see?(CurrentUser.user) %>
       <div class="comment-post">
         <div class="post-container">
-          <%= PostPresenter.preview(comment.post, inline: true, show_deleted: true) %>
+          <%= render(PostThumbnailComponent.new(post: comment.post, show_deleted: true)) %>
         </div>
         <div class="comments list-of-comments">
           <%= render "comments/partials/show/comment", comment: comment, post: nil %>

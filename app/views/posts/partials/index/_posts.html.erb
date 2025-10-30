@@ -16,9 +16,7 @@
     <% if @posts.empty? %>
       <%= render "posts/blank" %>
     <% else %>
-      <% @posts.each do |post| %>
-        <%= post.preview_html(self, {tags: @post_set.tag_string, show_cropped: true, stats: CurrentUser.show_post_statistics?}) %>
-      <% end %>
+      <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string)) %>
     <% end %>
   </section>
 

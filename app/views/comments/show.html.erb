@@ -1,6 +1,6 @@
 <div id="c-comments">
   <div id="a-show">
-    <%= PostPresenter.preview(@comment.post, inline: true, show_deleted: true) %>
+    <%= render(PostThumbnailComponent.new(post: @comment.post, show_deleted: true)) %>
     <div class="comments-for-post">
       <div class="list-of-comments">
         <%= render "comments/partials/show/comment", comment: @comment, post: nil %>

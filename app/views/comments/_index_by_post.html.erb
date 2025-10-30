@@ -13,7 +13,7 @@
     <% if @comments[post.id].any? %>
       <div class="comment-post">
         <div class="post-container">
-          <%= PostPresenter.preview(post, inline: true, show_deleted: true) %>
+          <%= render(PostThumbnailComponent.new(post: post, show_deleted: true)) %>
           <div class="post-information">
             <%= render "comments/partials/index/header", :post => post %>
           </div>

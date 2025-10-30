@@ -1,0 +1,51 @@
+<%= tag.article(**article_attributes) do %>
+
+  <%# Link & Image %>
+  <%= link_to polymorphic_path(link_target, link_params), class: "thm-link", data: { hover_text: tooltip_text } do %>
+    <% if should_render_image? %>
+      <%= tag.picture do %>
+        <%= tag.source type: "image/webp", srcset: preview_urls[0] if webp_enabled? %>
+        <%= tag.source type: "image/jpeg", srcset: preview_urls[1] %>
+        <%= tag.img src: preview_urls[1], alt: alt_text %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# Stats Section %>
+  <% if should_show_stats? %>
+    <div class="thm-desc thm-rating-<%= post.rating %>">
+      <span class="thm-desc-a">
+        <span class="thm-desc-m thm-score thm-score-<%= score_class %>">
+          <%= svg_icon(score_icon, width: 16, height: 16) %>
+          <%= shortened_score %>
+        </span>
+        <span class="thm-desc-m thm-favorites">
+          <%= svg_icon(:star, width: 16, height: 16) %>
+          <%= post.fav_count %>
+        </span>
+        <span class="thm-desc-m thm-comments">
+          <%= svg_icon(:messages_square, width: 16, height: 16) %>
+          <%= post.visible_comment_count(user) %>
+        </span>
+      </span>
+      <span class="thm-desc-b thm-rating"><%= post.rating.upcase %></span>
+    </div>
+  <% end %>
+
+  <%# IQDB Results %>
+  <% if should_show_similarity? %>
+    <div class="thm-extra">
+      <div>Similarity: <%= options[:similarity].round %></div>
+      <div>
+        <%= similarity_post_info %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Pool Cover Page %>
+  <% if should_show_pool? %>
+    <div class="thm-extra">
+      <%= link_to pool_name, pool_path(pool), class: "pool-link" %>
+    </div>
+  <% end %>
+<% end %>

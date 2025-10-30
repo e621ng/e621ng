@@ -20,7 +20,7 @@ class FavoritesController < ApplicationController
         @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
       end
 
-      @posts = PostsDecorator.decorate_collection(@post_set.posts)
+      @posts = @post_set.posts
       respond_with(@posts) do |fmt|
         fmt.json do
           render json: @post_set.api_posts, root: "posts"

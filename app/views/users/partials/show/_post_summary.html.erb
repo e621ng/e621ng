@@ -17,9 +17,7 @@
     </div>
 
     <div class="profile-sample-posts">
-      <% presenter.uploads.each do |post| %>
-        <%= post.preview_html(self, { tags: "user:#{user.name}", show_cropped: true, stats: CurrentUser.show_post_statistics? }) %>
-      <% end %>
+      <%= render(PostThumbnailComponent.with_collection(presenter.uploads, tags: "user:#{user.name}")) %>
     </div>
 
   </div>
@@ -40,9 +38,7 @@
     </div>
 
     <div class="profile-sample-posts">
-      <% presenter.favorites.each do |post| %>
-        <%= post.preview_html(self, { tags: "fav:#{user.name}", show_cropped: true, stats: CurrentUser.show_post_statistics? }) %>
-      <% end %>
+      <%= render(PostThumbnailComponent.with_collection(presenter.favorites, tags: "fav:#{user.name}")) %>
     </div>
 
   </div>

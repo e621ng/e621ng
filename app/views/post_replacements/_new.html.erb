@@ -5,7 +5,7 @@
 
   <div>
     <% if post.visible? %>
-      <%= PostPresenter.preview(post, show_deleted: true, no_blacklist: true) %>
+      <%= render(PostThumbnailComponent.new(post: post, stats: true, show_deleted: true, no_blacklist: true)) %>
     <% end %>
     <div><%= "#{post.image_width}x#{post.image_height} (#{post.file_size.to_fs(:human_size, precision: 5)})" %></div>
   </div>

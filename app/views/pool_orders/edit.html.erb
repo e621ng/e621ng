@@ -8,7 +8,12 @@
     <ul class="sortable">
       <% @pool.posts.paginate(1, limit: 1_000).each do |post| %>
         <li class="sortable-thumbnail" data-id="<%= post.id %>">
-          <%= PostPresenter.preview(post, { show_deleted: true }).presence || "Hidden: Post ##{post.id}" %>
+          <% component = PostThumbnailComponent.new(post: post, stats: false, show_deleted: true, no_blacklist: true) %>
+          <% if component.render? %>
+            <%= render(component) %>
+          <% else %>
+            Hidden: Post #<%= post.id %>
+          <% end %>
         </li>
       <% end %>
     </ul>

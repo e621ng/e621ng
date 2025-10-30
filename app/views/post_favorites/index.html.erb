@@ -1,7 +1,7 @@
 <div id="c-post-favorites">
   <div id="a-index">
     <h1>Post Favorites</h1>
-    <%= PostPresenter.preview(@post) %>
+    <%= render(PostThumbnailComponent.new(post: @post)) %>
     <table class="striped">
       <thead>
         <tr>

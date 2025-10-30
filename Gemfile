@@ -34,6 +34,7 @@ gem "sidekiq-unique-jobs"
 gem "redis"
 gem "request_store"
 gem "zxcvbn-ruby", require: "zxcvbn"
+gem "view_component"
 
 gem "diffy"
 gem "rugged"

@@ -2,97 +2,12 @@
 
 class PostPresenter < Presenter
   attr_reader :pool
+
   delegate :inline_tag_list_html, to: :tag_set_presenter
 
-  def self.preview(post, options = {})
-    if post.nil?
-      return ""
-    end
-
-    if !options[:show_deleted] && post.is_deleted? && options[:tags] !~ /(?:status:(?:all|any|deleted))|(?:deletedby:)|(?:delreason:)/i
-      return ""
-    end
-
-    if post.loginblocked? || post.safeblocked?
-      return ""
-    end
-
-    options[:stats] |= !options[:avatar] && !options[:inline]
-
-    locals = {}
-
-    locals[:article_attrs] = {
-      "id" => "post_#{post.id}",
-      "class" => preview_class(post, **options).join(" "),
-    }.merge(data_attributes(post))
-
-    locals[:link_target] = options[:link_target] || post
-
-    locals[:link_params] = {}
-    if options[:tags].present?
-      locals[:link_params]["q"] = options[:tags]
-    end
-    if options[:pool_id]
-      locals[:link_params]["pool_id"] = options[:pool_id]
-    end
-    if options[:post_set_id]
-      locals[:link_params]["post_set_id"] = options[:post_set_id]
-    end
-
-    locals[:tooltip] = "Rating: #{post.rating}\nID: #{post.id}\nDate: #{post.created_at}\nStatus: #{post.status}\nScore: #{post.score}\n\n#{post.tag_string}"
-
-    locals[:preview_url] = if post.deleteblocked?
-                             Danbooru.config.deleted_preview_url
-                           else
-                             post.preview_file_url
-                           end
-
-    locals[:alt_text] = "post ##{post.id}"
-
-    if options[:pool]
-      locals[:pool] = options[:pool]
-    else
-      locals[:pool] = nil
-    end
-
-    locals[:width] = post.image_width
-    locals[:height] = post.image_height
-
-    if options[:similarity]
-      locals[:similarity] = options[:similarity].round
-    else
-      locals[:similarity] = nil
-    end
-
-    if options[:size]
-      locals[:size] = post.file_size
-      locals[:file_ext] = post.file_ext
-    else
-      locals[:size] = nil
-    end
-
-    if options[:stats]
-      locals[:post] = post
-      locals[:stats] = true
-    else
-      locals[:stats] = false
-    end
-
-    ApplicationController.render(partial: "posts/partials/index/preview", locals: locals)
-  end
-
-  def self.preview_class(post, pool: nil, size: nil, similarity: nil, **options)
-    klass = ["thumbnail"]
-    klass << "pending" if post.is_pending?
-    klass << "flagged" if post.is_flagged?
-    klass << "deleted" if post.is_deleted?
-    klass << "has-parent" if post.parent_id
-    klass << "has-children" if post.has_visible_children?
-    klass << "rating-safe" if post.rating == "s"
-    klass << "rating-questionable" if post.rating == "q"
-    klass << "rating-explicit" if post.rating == "e"
-    klass << "blacklistable" unless options[:no_blacklist]
-    klass
+  def initialize(post)
+    super()
+    @post = post
   end
 
   def self.data_attributes(post, include_post: false)
@@ -156,29 +71,21 @@ class PostPresenter < Presenter
 
   def image_attributes
     attributes = {
-        :id => "image",
-        class: @post.display_class_for(CurrentUser.user),
-        :alt => humanized_essential_tag_string,
-        "itemprop" => "contentUrl"
+      :id => "image",
+      class: @post.display_class_for(CurrentUser.user),
+      :alt => humanized_essential_tag_string,
+      "itemprop" => "contentUrl",
     }
 
     if @post.bg_color
-      attributes['style'] = "background-color: ##{@post.bg_color};"
+      attributes["style"] = "background-color: ##{@post.bg_color};"
     end
 
     attributes
   end
 
-  def initialize(post)
-    @post = post
-  end
-
   def tag_set_presenter
     @tag_set_presenter ||= TagSetPresenter.new(@post.tag_array)
-  end
-
-  def preview_html
-    PostPresenter.preview(@post)
   end
 
   def humanized_tag_string
