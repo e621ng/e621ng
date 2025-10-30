@@ -130,12 +130,12 @@ class PostThumbnailComponent < ViewComponent::Base
   end
 
   def score_icon
-    return :square_slash if post.score == 0
+    return :square_slash if post.score.nil? || post.score == 0
     post.score > 0 ? :arrow_up_dash : :arrow_down_dash
   end
 
   def score_class
-    return "neutral" if post.score == 0
+    return "neutral" if post.score.nil? || post.score == 0
     post.score > 0 ? "positive" : "negative"
   end
 
