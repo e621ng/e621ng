@@ -569,11 +569,13 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
+      return @should_process_tags unless @should_process_tags.nil?
+
       if @removed_tags.nil?
         @removed_tags = []
       end
 
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
+      @should_process_tags = tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || !@removed_tags.empty? || (tag_array - tag_array_was).any?
     end
 
     def tag_array
@@ -593,7 +595,8 @@ class Post < ApplicationRecord
     end
 
     def added_tags
-      tags - tags_was
+      added_tag_names = tag_array - tag_array_was
+      Tag.where(name: added_tag_names)
     end
 
     def decrement_tag_post_counts
@@ -681,6 +684,7 @@ class Post < ApplicationRecord
     def reset_tag_array_cache
       @tag_array = nil
       @tag_array_was = nil
+      @should_process_tags = nil
     end
 
     def set_tag_string(string)
