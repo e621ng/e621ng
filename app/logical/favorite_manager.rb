@@ -18,10 +18,11 @@ class FavoriteManager
         end
 
         Favorite.create(user_id: user.id, post_id: post.id)
-        post.append_user_to_fav_string(user.id)
-        post.do_not_version_changes = true
-
-        raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
+        post.with_lock do # Avoid SerializationFailure on concurrent fav_string updates
+          post.append_user_to_fav_string(user.id)
+          post.do_not_version_changes = true
+          raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
+        end
       end
     rescue ActiveRecord::SerializationFailure => e
       retries -= 1
@@ -36,10 +37,11 @@ class FavoriteManager
       Favorite.transaction(**ISOLATION) do
         raise Favorite::Error, "You have already favorited this post" if post.favorited_by?(user.id)
 
-        # Handle an orphaned favorite record
-        post.append_user_to_fav_string(user.id)
-        post.do_not_version_changes = true
-        raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
+        post.with_lock do
+          post.append_user_to_fav_string(user.id)
+          post.do_not_version_changes = true
+          raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
+        end
       end
     end
   end
@@ -54,10 +56,11 @@ class FavoriteManager
     begin
       Favorite.transaction(**ISOLATION) do
         Favorite.for_user(user.id).where(post_id: post.id).destroy_all
-        post.delete_user_from_fav_string(user.id)
-        post.do_not_version_changes = true
-
-        raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
+        post.with_lock do # Avoid SerializationFailure on concurrent fav_string updates
+          post.delete_user_from_fav_string(user.id)
+          post.do_not_version_changes = true
+          raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
+        end
       end
     rescue ActiveRecord::SerializationFailure => e
       retries -= 1
