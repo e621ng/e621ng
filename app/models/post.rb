@@ -569,7 +569,20 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
-      return @should_process_tags unless @should_process_tags.nil?
+      # Memoize based on current dirty state to handle multiple save cycles
+      current_state = [
+        tag_string_changed?,
+        locked_tags_changed?,
+        tag_string_diff.present?,
+        tag_string,
+        tag_string_in_database.presence || tag_string_before_last_save || "",
+      ]
+
+      if @should_process_tags_state == current_state
+        return @should_process_tags
+      end
+
+      @should_process_tags_state = current_state
 
       if @removed_tags.nil?
         @removed_tags = []
@@ -685,6 +698,7 @@ class Post < ApplicationRecord
       @tag_array = nil
       @tag_array_was = nil
       @should_process_tags = nil
+      @should_process_tags_state = nil
     end
 
     def set_tag_string(string)
