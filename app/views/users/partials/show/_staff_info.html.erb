@@ -31,7 +31,7 @@
     <h4>Pending</h4>
     <span>
       <%= link_to "Posts", posts_path(tags: "user:#{user.name} status:pending") %>
-      | <%= link_to "Replacements", post_replacements_path(search: { creator_name: user.name }) %>
+      | <%= link_to "Replacements", post_replacements_path(search: { creator_name: user.name, status: "pending" }) %>
     </span>
 
     <h4>Uploads</h4>
