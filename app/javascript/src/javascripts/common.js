@@ -1,6 +1,5 @@
 import Cookie from "./cookie";
 import Utility from "./utility";
-import LStorage from "./utility/storage";
 
 function initSearch () {
   const $searchForm = $("#searchform");
