@@ -17,6 +17,12 @@ for (const [label, settings] of Object.entries(Theme.Values)) {
         // This has the unintended side effect of setting
         // attribute values that don't exist on the body.
         LStorage[label][one] = value;
+        // If we're on the static homepage, don't apply the main or extra theme
+        // attributes; leave those unset so the default (hexagon) is used.
+        if ($("body").is(".c-static.a-home") && (one === "Main" || one === "Extra")) return;
+
+        // Homepage fallback to hexagon is handled elsewhere; just write the
+        // attribute normally for other pages/keys.
         $("body").attr("data-th-" + one.toLowerCase(), value);
       },
     });
