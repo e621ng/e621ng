@@ -23,20 +23,6 @@ function initSearch () {
 }
 
 $(function () {
-  const isStaticHome = $("body").is(".c-static.a-home");
-  $("#theme-switcher").change(function () {
-    let theme = $(this).val();
-    LStorage.put("theme", theme);
-    if (!isStaticHome) $("body").attr("data-th-main", theme);
-  });
-
-  {
-    let theme = LStorage.get("theme") || "hexagon";
-    // Note: homepage overrides theme colors to `hexagon` manually in SCSS
-    if (!isStaticHome) $("body").attr("data-th-main", theme);
-    $("#theme-switcher").val(theme);
-  }
-
   // Account notices
   $(".dmail-notice-hide").on("click.danbooru", function (event) {
     event.preventDefault();
