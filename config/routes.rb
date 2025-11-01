@@ -5,7 +5,7 @@ Rails.application.routes.draw do
   require "sidekiq/web"
   require "sidekiq_unique_jobs/web"
 
-  mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new
+  mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
   namespace :admin do
     resources :users, only: %i[edit update edit_blacklist update_blacklist alt_list] do
