@@ -54,7 +54,9 @@ class Comment < ApplicationRecord
     def visible(user)
       q = where("comments.score >= ? or comments.is_sticky = true", user.comment_threshold)
       unless user.is_moderator?
-        q = q.joins(:post).where("comments.is_sticky = true or posts.is_comment_disabled = false or comments.creator_id = ?", user.id)
+        # Checking whether the post has comments disabled is expensive, especially in COUNT queries for pagination.
+        # Only 19 posts qualify as of Nov 2025. If that number grows significantly, we will need to rethink this approach.
+        q = q.where("comments.is_sticky = true or comments.creator_id = ? or comments.post_id NOT IN (SELECT id FROM posts WHERE is_comment_disabled = true)", user.id)
         if user.is_janitor?
           q = q.where("comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?", user.id)
         else

@@ -4276,6 +4276,13 @@ CREATE INDEX index_posts_on_created_at ON public.posts USING btree (created_at);
 
 
 --
+-- Name: index_posts_on_is_comment_disabled; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_is_comment_disabled ON public.posts USING btree (id) WHERE (is_comment_disabled = true);
+
+
+--
 -- Name: index_posts_on_is_flagged; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4845,6 +4852,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251101144234'),
 ('20251014151300'),
 ('20251010171207'),
 ('20251001213309'),

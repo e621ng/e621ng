@@ -110,11 +110,14 @@ class CommentsController < ApplicationController
   end
 
   def index_by_comment
+    # Disable pagination calculation unless needed to avoid expensive COUNT queries
+    search_params_for_count = params[:search]&.except(:order).presence
+
     @comments = Comment
                 .visible(CurrentUser.user)
                 .includes(:creator, :updater)
                 .search(search_params)
-                .paginate(params[:page], limit: params[:limit], search_count: params[:search])
+                .paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
 
     if CurrentUser.is_staff?
