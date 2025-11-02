@@ -82,12 +82,14 @@
     <% if Danbooru.config.db_export_path.present? %>
       <% tools_section << link_to("DB Export", Danbooru.config.db_export_path) %>
     <% end %>
+
     <% unless CurrentUser.is_anonymous? %>
       <% users_section << link_to("User Home", home_users_path ) %>
       <% users_section << link_to("Profile", user_path(CurrentUser.user)) %>
       <% users_section << link_to("Settings", settings_users_path) %>
       <% users_section << link_to("Refresh counts", new_maintenance_user_count_fixes_path) %>
     <% end %>
+
     <% if CurrentUser.is_anonymous? %>
       <% users_section << link_to("Signup", new_user_path) %>
     <% end %>
@@ -96,9 +98,11 @@
       <% staff_section << link_to("Mod Dashboard", moderator_dashboard_path) %>
       <% posts_section << link_to("Upload Listing", uploads_path) %>
     <% end %>
+
     <% if CurrentUser.can_approve_posts? %>
       <% posts_section << link_to("Disapprovals", moderator_post_disapprovals_path) %>
     <% end %>
+
     <% if CurrentUser.is_moderator? %> <!-- done exclusive -->
       <% staff_section << link_to("Edit Histories", edit_histories_path) %>
       <% staff_section << link_to("Post Votes", index_post_votes_path) %>
@@ -118,12 +122,16 @@
       <% admin_section << link_to("Security", security_root_path) %>
       <% admin_section << link_to("Alt list", alt_list_admin_users_path) %>
       <% admin_section << link_to("SideKiq", sidekiq_path) %>
-
     <% end %>
+
     <% if CurrentUser.is_bd_staff? %> <!-- done exclusive -->
       <% admin_section << link_to("Reowner", new_admin_reowner_path) %>
     <% end %>
-    <% if CurrentUser.can_discord? %><% end %>
+
+    <% if CurrentUser.can_discord? %>
+      <% tools_section << link_to("Discord", discord_path) %>
+    <% end %>
+
     <% if CurrentUser.can_view_staff_notes? %> <!-- done -->
       <% staff_section << link_to("Staff Notes", staff_notes_path) %>
     <% end %>
