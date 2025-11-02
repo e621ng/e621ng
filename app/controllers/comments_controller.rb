@@ -114,7 +114,7 @@ class CommentsController < ApplicationController
     narrowing_params = %i[body_matches post_id post_tags_match creator_name creator_id
                           post_note_updater_name post_note_updater_id poster_id poster_name ip_addr]
     has_narrowing_search = narrowing_params.any? { |param| params[:search]&.dig(param).present? }
-    has_narrowing_search ||= params[:search]&.dig(:is_hidden)&.to_s == "true"
+    has_narrowing_search ||= params[:search]&.dig(:is_hidden)&.to_s == "false"
     has_narrowing_search ||= params[:search]&.dig(:is_sticky)&.to_s == "true"
 
     search_params_for_count = has_narrowing_search ? params[:search] : nil
