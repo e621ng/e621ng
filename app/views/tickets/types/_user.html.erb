@@ -1,4 +1,4 @@
 <tr>
   <td><span class='title'>Reported User</span></td>
-  <td><%= link_to_user(@ticket.content) %></td>
+  <td><%= link_to_user(@ticket.content) %> <%= user_record_meta(@ticket.content) if CurrentUser.is_staff? %></td>
 </tr>
