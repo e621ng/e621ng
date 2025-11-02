@@ -9,10 +9,10 @@ class CommentsController < ApplicationController
   skip_before_action :api_check
 
   def index
-    if params[:group_by] == "comment"
-      index_by_comment
-    else
+    if params[:group_by] == "post"
       index_by_post
+    else
+      index_by_comment
     end
   end
 
