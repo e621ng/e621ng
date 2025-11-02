@@ -33,16 +33,17 @@
 
     <% tools_section << link_to("News Updates", news_updates_path) %>
     <% tools_section << link_to("Mascots", mascots_path) %>
+    <% tools_section << link_to("FurID", furid_path) %>
     <% tools_section << link_to("Source Code", Danbooru.config.source_code_url) %>
     <% tools_section << link_to("Keyboard Shortcuts", keyboard_shortcuts_path) %>
     <% tools_section << link_to("API Documentation", help_page_path(id: "api")) %>
     <% tools_section << link_to("Stats", stats_path) %>
     <% tools_section << link_to("Terms of Use", terms_of_use_path) %>
     <% tools_section << link_to("Privacy Policy", privacy_policy_path) %>
+    <% tools_section << link_to("Code of Conduct", code_of_conduct_path) %>
 
     <% artists_section << link_to("Listing", artists_path) %>
     <% artists_section << link_to("URLs", artist_urls_path) %>
-    <% artists_section << link_to("Changes", artist_versions_path) %>
     <% artists_section << link_to("Avoid Posting Entries", avoid_postings_path) %>
     <% artists_section << link_to("Avoid Posting List", avoid_posting_static_path) %>
     <% artists_section << link_to("Changes", artist_versions_path) %>
@@ -79,9 +80,11 @@
     <% staff_section << link_to("Tickets", tickets_path) %>
 
     <%# For each permission or configuration, add applicable links to the sections %>
-    <% if Danbooru.config.db_export_path.present? %>
-      <% tools_section << link_to("DB Export", Danbooru.config.db_export_path) %>
-    <% end %>
+    <% tools_section << link_to("Subscribestar", Danbooru.config.subscribestar_url) if Danbooru.config.subscribestar_url.present? %>
+    <% tools_section << link_to("DB Export", Danbooru.config.db_export_path) if Danbooru.config.db_export_path.present? %>
+    <% tools_section << link_to("Discord", discord_post_path) if CurrentUser.can_discord? %>
+    <% users_section << link_to("Signup", new_user_path) if CurrentUser.is_anonymous? %>
+
 
     <% unless CurrentUser.is_anonymous? %>
       <% users_section << link_to("User Home", home_users_path) %>
@@ -90,9 +93,7 @@
       <% users_section << link_to("Refresh counts", new_maintenance_user_count_fixes_path) %>
     <% end %>
 
-    <% if CurrentUser.is_anonymous? %>
-      <% users_section << link_to("Signup", new_user_path) %>
-    <% end %>
+    
 
     <% if CurrentUser.is_staff? %>
       <% staff_section << link_to("Mod Dashboard", moderator_dashboard_path) %>
@@ -100,7 +101,7 @@
     <% end %>
 
     <% if CurrentUser.can_approve_posts? %>
-      <% posts_section << link_to("Disapprovals", moderator_post_disapprovals_path) %>
+      <% post_events_section << link_to("Disapprovals", moderator_post_disapprovals_path) %>
     <% end %>
 
     <% if CurrentUser.is_moderator? %> <!-- done exclusive -->
@@ -128,13 +129,7 @@
       <% admin_section << link_to("Reowner", new_admin_reowner_path) %>
     <% end %>
 
-    <% if CurrentUser.can_discord? %>
-      <% tools_section << link_to("Discord", discord_post_path) %>
-    <% end %>
-
-    <% if CurrentUser.can_view_staff_notes? %> <!-- done -->
-      <% staff_section << link_to("Staff Notes", staff_notes_path) %>
-    <% end %>
+    <% users_section << link_to("Staff Notes", staff_notes_path) if CurrentUser.can_view_staff_notes? %>
 
     <%# Help items that come at the end of the lists %>
     <% posts_section << link_to("Help", help_page_path(id: "posts")) %>
@@ -148,6 +143,7 @@
     <% wiki_section << link_to("Help", help_page_path(id: "wiki")) %>
     <% blips_section << link_to("Help", help_page_path(id: "blips")) %>
     <% users_section << link_to("Help", help_page_path(id: "accounts")) %>
+    <% tools_section << link_to("Help Index", help_pages_path) %>
 
     <%# Render the lists %>
     <section>
