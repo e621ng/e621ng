@@ -322,6 +322,75 @@ class CommentTest < ActiveSupport::TestCase
           comment.save
           assert_equal(["Post has comments disabled"], comment.errors.full_messages)
         end
+
+        should "not be visible to regular users" do
+          user = create(:user)
+          other_user = create(:user)
+          post = create(:post)
+          comment = create(:comment, post: post, creator: user)
+          post.update!(is_comment_disabled: true)
+
+          assert_includes(Comment.visible(user), comment)
+          assert_not_includes(Comment.visible(other_user), comment)
+        end
+
+        should "be visible to moderators" do
+          mod = create(:moderator_user)
+          user = create(:user)
+          post = create(:post)
+          comment = create(:comment, post: post, creator: user)
+          post.update!(is_comment_disabled: true)
+
+          assert_includes(Comment.visible(mod), comment)
+        end
+      end
+
+      context "visibility filtering" do
+        should "show sticky comments to all users regardless of score" do
+          user = create(:user, comment_threshold: 0)
+          post = create(:post)
+          sticky_comment = create(:comment, post: post, score: -10, is_sticky: true)
+
+          assert_includes(Comment.visible(user), sticky_comment)
+        end
+
+        should "show own comments regardless of hidden status" do
+          user = create(:user)
+          other_user = create(:user)
+          post = create(:post)
+          hidden_comment = create(:comment, post: post, creator: user, is_hidden: true)
+
+          assert_includes(Comment.visible(user), hidden_comment)
+          assert_not_includes(Comment.visible(other_user), hidden_comment)
+        end
+
+        should "hide comments below threshold for regular users" do
+          user = create(:user, comment_threshold: 0)
+          post = create(:post)
+          low_score_comment = create(:comment, post: post, score: -5)
+
+          assert_not_includes(Comment.visible(user), low_score_comment)
+        end
+
+        should "show hidden comments to janitors" do
+          janitor = create(:janitor_user)
+          post = create(:post)
+          hidden_comment = create(:comment, post: post, is_hidden: true)
+
+          assert_includes(Comment.visible(janitor), hidden_comment)
+        end
+
+        should "hide comments for regular users on disabled posts" do
+          user = create(:user)
+          other_user = create(:user)
+          post = create(:post)
+          comment = create(:comment, post: post, creator: user)
+          post.update!(is_comment_disabled: true)
+
+          # Only creator can see it
+          assert_includes(Comment.visible(user), comment)
+          assert_not_includes(Comment.visible(other_user), comment)
+        end
       end
     end
 

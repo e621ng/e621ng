@@ -3702,6 +3702,20 @@ CREATE INDEX index_comments_on_creator_ip_addr ON public.comments USING btree (c
 
 
 --
+-- Name: index_comments_on_is_hidden; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_is_hidden ON public.comments USING btree (id) WHERE (is_hidden = true);
+
+
+--
+-- Name: index_comments_on_is_sticky; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_is_sticky ON public.comments USING btree (id) WHERE (is_sticky = true);
+
+
+--
 -- Name: index_comments_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
