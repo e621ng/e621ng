@@ -1,15 +1,13 @@
 <div id="c-static">
   <div id="a-site-map">
-    <% sections = @sections || {} %>
-    <% section_titles = @section_titles || {} %>
-    <% section_groups = @section_groups || [] %>
+    <% sections = @sections || [] %>
 
-    <% section_groups.each do |group| %>
+    <% sections.each do |group| %>
       <section>
-        <% group.each do |key| %>
-          <% links = sections[key] %>
+        <% group.each do |section| %>
+          <% links = section[:links] %>
           <% next if links.blank? %>
-          <h3><%= section_titles.fetch(key, key.to_s.titleize) %></h3>
+          <h3><%= section[:title] %></h3>
           <ul>
             <%= safe_join(links.map { |link| content_tag(:li, link) }, "\n") %>
           </ul>
