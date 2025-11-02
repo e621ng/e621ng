@@ -37,6 +37,8 @@
     <% tools_section << link_to("Keyboard Shortcuts", keyboard_shortcuts_path) %>
     <% tools_section << link_to("API Documentation", help_page_path(id: "api")) %>
     <% tools_section << link_to("Stats", stats_path) %>
+    <% tools_section << link_to("Terms of Use", terms_of_use_path) %>
+    <% tools_section << link_to("Privacy Policy", privacy_policy_path) %>
 
     <% artists_section << link_to("Listing", artists_path) %>
     <% artists_section << link_to("URLs", artist_urls_path) %>
@@ -70,8 +72,6 @@
     <% users_section << link_to("Listing", users_path) %>
     <% users_section << link_to("Bans", bans_path) %>
     <% users_section << link_to("Feedback", user_feedbacks_path) %>
-    <% users_section << link_to("Terms of Use", terms_of_use_path) %>
-    <% users_section << link_to("Privacy Policy", privacy_policy_path) %>
 
     <% staff_section << link_to("Upload Whitelist", upload_whitelists_path) %>
     <% staff_section << link_to("Mod Actions", mod_actions_path) %>
@@ -129,7 +129,7 @@
     <% end %>
 
     <% if CurrentUser.can_discord? %>
-      <% tools_section << link_to("Discord", discord_path) %>
+      <% tools_section << link_to("Discord", discord_post_path) %>
     <% end %>
 
     <% if CurrentUser.can_view_staff_notes? %> <!-- done -->
@@ -169,14 +169,14 @@
           <%= safe_join(tools_section.map { |link| content_tag(:li, link) }, "\n") %>
         </ul>
       <% end %>
+    </section>
+    <section>
       <% if artists_section.any? %>
         <h3>Artists</h3>
         <ul>
           <%= safe_join(artists_section.map { |link| content_tag(:li, link) }, "\n") %>
         </ul>
       <% end %>
-    </section>
-    <section>
       <% if tags_section.any? %>
         <h3>Tags</h3>
         <ul>
