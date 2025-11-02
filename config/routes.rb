@@ -263,7 +263,7 @@ Rails.application.routes.draw do
     end
     get :similar, to: "iqdb_queries#index"
   end
-  resources :post_votes, only: %i[index delete lock] do
+  resources :post_votes, only: %i[index delete lock], as: :index_post_votes do
     collection do
       post :lock
       post :delete
