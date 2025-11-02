@@ -21,7 +21,7 @@
     <% posts_section << link_to("Listing", posts_path) %>
     <% posts_section << link_to("Upload", new_upload_path) %>
     <% posts_section << link_to("Popular", popular_index_path) %>
-    <% posts_section << link_to("Changes", post_versions_path ) %>
+    <% posts_section << link_to("Changes", post_versions_path) %>
     <% posts_section << link_to("Similar Images Search", iqdb_queries_path) %>
     <% posts_section << link_to("Deleted Index", deleted_posts_path) %>
 
@@ -84,7 +84,7 @@
     <% end %>
 
     <% unless CurrentUser.is_anonymous? %>
-      <% users_section << link_to("User Home", home_users_path ) %>
+      <% users_section << link_to("User Home", home_users_path) %>
       <% users_section << link_to("Profile", user_path(CurrentUser.user)) %>
       <% users_section << link_to("Settings", settings_users_path) %>
       <% users_section << link_to("Refresh counts", new_maintenance_user_count_fixes_path) %>
