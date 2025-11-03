@@ -212,27 +212,33 @@ article.thumbnail.blacklisted {
     content: "???";
 
     position: absolute;
-    inset: 0; 
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
 
     display: flex;
     justify-content: center;
     align-items: center;
 
     font-family: $font-stack;
-    font-size: calc(#{$image-size} / 5);
-    text-shadow: 0 0 1rem black;
+    font-size: calc(#{$image-size} / 6);
+    line-height: calc(#{$image-size} / 6);
     pointer-events: none;
     color: #fffa;
+    background: #0008;
   }
 }
 
 article.thumbnail.deleted a.thm-link::before {
   content: "deleted";
+  background: #f008;
 }
 
 article.thumbnail.blacklisted {
   a.thm-link::before {
     content: "blacklisted";
+    background: #0008;
   }
   img { visibility: hidden; }
 }
