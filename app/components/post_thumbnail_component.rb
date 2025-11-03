@@ -47,7 +47,7 @@ class PostThumbnailComponent < ViewComponent::Base
     {
       id: "post_#{post.id}",
       class: preview_classes.join(" "),
-      data: post.thumbnail_attributes,
+      data: post.thumbnail_attributes.merge(border_states: border_state_count),
     }
   end
 
@@ -64,6 +64,15 @@ class PostThumbnailComponent < ViewComponent::Base
     klass << "blacklistable" unless options[:no_blacklist]
     klass << "no-stats" unless should_show_stats?
     klass
+  end
+
+  def border_state_count
+    count = 0
+    count += 1 if post.has_visible_children?
+    count += 1 if post.parent_id.present?
+    count += 1 if post.is_pending?
+    count += 1 if post.is_flagged?
+    count
   end
 
   ##############################

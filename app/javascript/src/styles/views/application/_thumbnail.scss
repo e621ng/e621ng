@@ -60,6 +60,7 @@ article.thumbnail {
       height: 100%;
       object-fit: cover;
       pointer-events: none; // Direct all clicks to the link
+      box-sizing: border-box; // Avoid borders getting clipped
     }
   }
 
@@ -273,4 +274,71 @@ body:not([data-st-size="l"]) article.thumbnail .thm-desc .thm-comments {
 // Disable cropping
 body[data-st-contain="true"] article.thumbnail img {
   object-fit: contain;
+}
+
+
+// ============================== //
+// ===== Thumbnail Borders ====== //
+// ============================== //
+
+// Standardized border position system:
+// - top: has_children (green)
+// - right: has_parent (yellow)
+// - bottom: is_flagged (red)
+// - left: is_pending (blue)
+
+$border-has-children: var(--palette-plain-green);
+$border-has-parent: var(--palette-plain-yellow);
+$border-is-pending: var(--palette-plain-blue);
+$border-is-flagged: var(--palette-plain-red);
+
+// Single state: full border
+article.thumbnail[data-border-states="1"] {
+  &.has-children > a.thm-link { border: 2px solid $border-has-children; }
+  &.has-parent > a.thm-link { border: 2px solid $border-has-parent; }
+  &.pending > a.thm-link { border: 2px solid $border-is-pending; }
+  &.flagged > a.thm-link { border: 2px solid $border-is-flagged; }
+}
+
+// Two states: diagonal splits
+article.thumbnail[data-border-states="2"] {
+  > a.thm-link { border: 2px solid transparent; }
+  
+  // has_children: top-left corner
+  &.has-children.has-parent > a.thm-link { border-color: $border-has-children $border-has-parent $border-has-parent $border-has-children; }
+  &.has-children.pending > a.thm-link { border-color: $border-has-children $border-is-pending $border-is-pending $border-has-children; }
+  &.has-children.flagged > a.thm-link { border-color: $border-has-children $border-is-flagged $border-is-flagged $border-has-children; }
+  
+  // has_parent: bottom-right corner
+  &.has-parent.pending > a.thm-link { border-color: $border-is-pending $border-has-parent $border-has-parent $border-is-pending; }
+  &.has-parent.flagged > a.thm-link { border-color: $border-is-flagged $border-has-parent $border-has-parent $border-is-flagged; }
+  
+  // pending + flagged: pending bottom-left, flagged top-right
+  &.pending.flagged > a.thm-link { border-color: $border-is-flagged $border-is-flagged $border-is-pending $border-is-pending; }
+}
+
+// Three states: wild mess
+article.thumbnail[data-border-states="3"] {
+  > a.thm-link { border: 2px solid transparent; }
+  
+  &.has-children.has-parent.pending > a.thm-link {
+    border-color: $border-has-children $border-has-parent $border-is-pending $border-is-pending;
+  }
+  &.has-children.has-parent.flagged > a.thm-link {
+    border-color: $border-has-children $border-has-parent $border-is-flagged $border-is-flagged;
+  }
+  &.has-children.pending.flagged > a.thm-link {
+    border-color: $border-has-children $border-is-pending $border-is-flagged $border-has-children;
+  }
+  &.has-parent.pending.flagged > a.thm-link {
+    border-color: $border-is-flagged $border-has-parent $border-has-parent $border-is-pending;
+  }
+}
+
+// Four states: all edges different
+article.thumbnail[data-border-states="4"] {
+  > a.thm-link {
+    border: 2px solid transparent;
+    border-color: $border-has-children $border-has-parent $border-is-flagged $border-is-pending;
+  }
 }
