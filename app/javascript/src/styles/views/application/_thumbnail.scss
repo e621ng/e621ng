@@ -53,6 +53,7 @@ article.thumbnail {
 
     background: #0003; // For transparent and cropped images
     overflow: hidden; // Get rounded corners to work on the image
+    box-sizing: border-box; // Avoid borders overflowing
     @include st-radius-top;
 
     img {
@@ -60,7 +61,6 @@ article.thumbnail {
       height: 100%;
       object-fit: cover;
       pointer-events: none; // Direct all clicks to the link
-      box-sizing: border-box; // Avoid borders getting clipped
     }
   }
 
