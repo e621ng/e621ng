@@ -694,17 +694,13 @@ Post.update_data = function (data) {
   $post.attr("data-tags", data.tag_string);
   $post.data("rating", data.rating);
 
-  let borderStates = parseInt($post.attr("data-border-states")) || 0;
   $post.removeClass("has-parent has-children");
-  if (data.parent_id) {
-    $post.addClass("has-parent");
-    borderStates++;
-  }
-  if (data.has_visible_children) {
-    $post.addClass("has-children");
-    borderStates++;
-  }
-  $post.attr("data-border-states", borderStates);
+  if (data.parent_id) $post.addClass("has-parent");
+  if (data.has_visible_children) $post.addClass("has-children");
+  $post.attr(
+    "data-border-states",
+    (data.is_pending ? 1 : 0) + (data.is_flagged ? 1 : 0) + (data.parent_id ? 1 : 0) + (data.has_visible_children ? 1 : 0),
+  );
 };
 
 Post.tag = function (post_id, tags) {
