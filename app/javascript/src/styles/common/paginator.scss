@@ -37,7 +37,11 @@ nav.pagination {
   .page {
     order: 20;
     &.lg { display: none; }
-    &.current { cursor: default; }
+    &.current {
+      cursor: default;
+      background-color: rgba(0, 0, 0, .2);
+      font-weight: bold;
+    }
   }
   .prev {
     order: 1;
