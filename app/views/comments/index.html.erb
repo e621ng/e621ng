@@ -5,10 +5,10 @@
     <%= render "posts/partials/common/inline_blacklist" %>
 
     <%= render "search" %>
-    <% if params[:group_by] == "comment" %>
-      <%= render "index_by_comment" %>
-    <% else %>
+    <% if params[:group_by] == "post" %>
       <%= render "index_by_post" %>
+    <% else %>
+      <%= render "index_by_comment" %>
     <% end %>
   </div>
 </div>
