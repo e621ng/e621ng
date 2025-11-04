@@ -1,7 +1,7 @@
 <div id="c-confirm-delete">
   <h1>Delete Post</h1>
 
-  <div>
+  <div class="post_delete_preview">
     <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
   </div>
 

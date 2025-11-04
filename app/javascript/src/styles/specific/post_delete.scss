@@ -4,10 +4,15 @@ div#c-confirm-delete {
   #reason { width: 100%; }
   #delreason-clear { width: 5rem; }
 
+  .post_delete_preview {
+    margin-bottom: 0.5rem;
+  }
+
   // "Move to parent" checkboxes
   .post_delete_options {
     display: flex;
     column-gap: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   // Prebuilt deletion reason buttons
