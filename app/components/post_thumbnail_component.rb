@@ -94,7 +94,7 @@ class PostThumbnailComponent < ViewComponent::Base
     @tooltip_text ||= begin
       tooltip = "Rating: #{@post.rating}\nID: #{@post.id}\nDate: #{@post.created_at}\nStatus: #{@post.status}\nScore: #{@post.score}"
 
-      if @user.present? && user.is_janitor?
+      if @user.present? && @user.is_janitor?
         tooltip += "\nUploader: #{@post.uploader_name}"
         if @post.is_flagged? || @post.is_deleted?
           flag = @post.flags.order(id: :desc).first
