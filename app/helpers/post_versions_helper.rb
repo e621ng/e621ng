@@ -47,15 +47,21 @@ module PostVersionsHelper
     changes = []
 
     diff[:added_locked_tags].each do |tag_name|
-      changes << tag.ins(link_to_wiki_or_new("+#{tag_name}", tag_name))
+      changes << tag.ins(link_to_wiki_or_new("+#{tag_name}", trim_leading_minus(tag_name)))
     end
     diff[:removed_locked_tags].each do |tag_name|
-      changes << tag.del(link_to_wiki_or_new("-#{tag_name}", tag_name))
+      changes << tag.del(link_to_wiki_or_new("-#{tag_name}", trim_leading_minus(tag_name)))
     end
     diff[:unchanged_locked_tags].each do |tag_name|
-      changes << tag.span(link_to_wiki_or_new(tag_name))
+      changes << tag.span(link_to_wiki_or_new(tag_name, trim_leading_minus(tag_name)))
     end
 
     tag.span(safe_join(changes, " "), class: "diff-list")
+  end
+
+  private
+
+  def trim_leading_minus(str)
+    str.start_with?("-") ? str[1..] : str
   end
 end
