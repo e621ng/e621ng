@@ -45,7 +45,6 @@ class PostThumbnailComponent < ViewComponent::Base
 
   def article_attributes
     {
-      id: "post_#{post.id}",
       class: preview_classes.join(" "),
       data: post.thumbnail_attributes.merge(border_states: border_state_count),
     }

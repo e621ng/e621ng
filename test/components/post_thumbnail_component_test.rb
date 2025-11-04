@@ -30,7 +30,7 @@ class PostThumbnailComponentTest < ActionView::TestCase
       component = PostThumbnailComponent.new(post: @post, stats: true)
       render component
 
-      assert_select "article#post_#{@post.id}.thumbnail"
+      assert_select "article.thumbnail[data-id='#{@post.id}']"
       assert_select "article.thumbnail.rating-safe"
       assert_select "img[alt='post ##{@post.id}']"
       assert_select ".thm-desc .thm-score"
@@ -49,7 +49,7 @@ class PostThumbnailComponentTest < ActionView::TestCase
 
       render component
 
-      assert_select "article#post_#{@post.id}.thumbnail"
+      assert_select "article.thumbnail[data-id='#{@post.id}']"
     end
   end
 
