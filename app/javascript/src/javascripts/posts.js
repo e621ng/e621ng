@@ -693,13 +693,18 @@ Post.update_data = function (data) {
   var $post = $(`article.thumbnail[data-id="${data.id}"]`).first();
   $post.attr("data-tags", data.tag_string);
   $post.data("rating", data.rating);
-  $post.removeClass("post-status-has-parent post-status-has-children");
+
+  let borderStates = parseInt($post.attr("data-border-states")) || 0;
+  $post.removeClass("has-parent has-children");
   if (data.parent_id) {
-    $post.addClass("post-status-has-parent");
+    $post.addClass("has-parent");
+    borderStates++;
   }
   if (data.has_visible_children) {
-    $post.addClass("post-status-has-children");
+    $post.addClass("has-children");
+    borderStates++;
   }
+  $post.attr("data-border-states", borderStates);
 };
 
 Post.tag = function (post_id, tags) {
@@ -909,7 +914,8 @@ Post.approve = function (post_id, callback) {
       var $post = $(`article.thumbnail[data-id="${post_id}"]`).first();
       if ($post.length) {
         $post.data("flags", $post.data("flags").replace(/pending/, ""));
-        $post.removeClass("post-status-pending");
+        $post.removeClass("pending");
+        $post.attr("data-border-states", (parseInt($post.attr("data-border-states")) || 1) - 1);
         Danbooru.notice("Approved post #" + post_id);
       }
       if (callback) {
