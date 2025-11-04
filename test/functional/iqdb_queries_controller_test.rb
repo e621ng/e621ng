@@ -21,7 +21,7 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
           get iqdb_queries_path, params: { url: "https://google.com/foo.jpg" }
 
           assert_response :success
-          assert_select("#post_#{post.id}")
+          assert_select("article.thumbnail[data-id='#{post.id}']")
         end
       end
 
@@ -34,7 +34,7 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
 
           get iqdb_queries_path, params: { post_id: post.id }
           assert_response :success
-          assert_select("#post_#{post.id}")
+          assert_select("article.thumbnail[data-id='#{post.id}']")
         end
       end
     end
