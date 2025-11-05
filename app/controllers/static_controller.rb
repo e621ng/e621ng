@@ -121,131 +121,124 @@ class StaticController < ApplicationController
     end
 
     lookup = sections.flatten.index_by { |section| section[:key] }
-    h = helpers
+    add_link = ->(section, label, path) { lookup[section][:links] << { label: label, path: path } }
 
-    lookup[:posts][:links] << h.link_to("Listing", posts_path)
-    lookup[:posts][:links] << h.link_to("Upload", new_upload_path)
-    lookup[:posts][:links] << h.link_to("Popular", popular_index_path)
-    lookup[:posts][:links] << h.link_to("Changes", post_versions_path)
-    lookup[:posts][:links] << h.link_to("Similar Images Search", iqdb_queries_path)
-    lookup[:posts][:links] << h.link_to("Deleted Index", deleted_posts_path)
+    add_link[:posts, "Listing", posts_path]
+    add_link[:posts, "Upload", new_upload_path]
+    add_link[:posts, "Popular", popular_index_path]
+    add_link[:posts, "Changes", post_versions_path]
+    add_link[:posts, "Similar Images Search", iqdb_queries_path]
+    add_link[:posts, "Deleted Index", deleted_posts_path]
 
-    lookup[:post_events][:links] << h.link_to("Listing", post_events_path)
-    lookup[:post_events][:links] << h.link_to("Tag Changes", post_versions_path)
-    lookup[:post_events][:links] << h.link_to("Approvals", post_approvals_path)
-    lookup[:post_events][:links] << h.link_to("Flags", post_flags_path)
-    lookup[:post_events][:links] << h.link_to("Replacements", post_replacements_path)
+    add_link[:post_events, "Listing", post_events_path]
+    add_link[:post_events, "Tag Changes", post_versions_path]
+    add_link[:post_events, "Approvals", post_approvals_path]
+    add_link[:post_events, "Flags", post_flags_path]
+    add_link[:post_events, "Replacements", post_replacements_path]
 
-    lookup[:tools][:links] << h.link_to("News Updates", news_updates_path)
-    lookup[:tools][:links] << h.link_to("Mascots", mascots_path)
-    lookup[:tools][:links] << h.link_to("FurID", furid_path)
-    lookup[:tools][:links] << h.link_to("Source Code", Danbooru.config.source_code_url)
-    lookup[:tools][:links] << h.link_to("Keyboard Shortcuts", keyboard_shortcuts_path)
-    lookup[:tools][:links] << h.link_to("API Documentation", help_page_path(id: "api"))
-    lookup[:tools][:links] << h.link_to("Stats", stats_path)
-    lookup[:tools][:links] << h.link_to("Terms of Use", terms_of_use_path)
-    lookup[:tools][:links] << h.link_to("Privacy Policy", privacy_policy_path)
-    lookup[:tools][:links] << h.link_to("Code of Conduct", code_of_conduct_path)
+    add_link[:tools, "News Updates", news_updates_path]
+    add_link[:tools, "Mascots", mascots_path]
+    add_link[:tools, "FurID", furid_path]
+    add_link[:tools, "Source Code", Danbooru.config.source_code_url]
+    add_link[:tools, "Keyboard Shortcuts", keyboard_shortcuts_path]
+    add_link[:tools, "API Documentation", help_page_path(id: "api")]
+    add_link[:tools, "Stats", stats_path]
+    add_link[:tools, "Terms of Use", terms_of_use_path]
+    add_link[:tools, "Privacy Policy", privacy_policy_path]
+    add_link[:tools, "Code of Conduct", code_of_conduct_path]
 
-    lookup[:artists][:links] << h.link_to("Listing", artists_path)
-    lookup[:artists][:links] << h.link_to("URLs", artist_urls_path)
-    lookup[:artists][:links] << h.link_to("Avoid Posting Entries", avoid_postings_path)
-    lookup[:artists][:links] << h.link_to("Avoid Posting List", avoid_posting_static_path)
-    lookup[:artists][:links] << h.link_to("Changes", artist_versions_path)
+    add_link[:artists, "Listing", artists_path]
+    add_link[:artists, "URLs", artist_urls_path]
+    add_link[:artists, "Avoid Posting Entries", avoid_postings_path]
+    add_link[:artists, "Avoid Posting List", avoid_posting_static_path]
+    add_link[:artists, "Changes", artist_versions_path]
 
-    lookup[:tags][:links] << h.link_to("Listing", tags_path)
-    lookup[:tags][:links] << h.link_to("Type Changes", tag_type_versions_path)
-    lookup[:tags][:links] << h.link_to("MetaSearch", meta_searches_tags_path)
-    lookup[:tags][:links] << h.link_to("Aliases", tag_aliases_path)
-    lookup[:tags][:links] << h.link_to("Implications", tag_implications_path)
-    lookup[:tags][:links] << h.link_to("Bulk Update Requests", bulk_update_requests_path)
-    lookup[:tags][:links] << h.link_to("Cheat sheet", help_page_path(id: "cheatsheet"))
+    add_link[:tags, "Listing", tags_path]
+    add_link[:tags, "Type Changes", tag_type_versions_path]
+    add_link[:tags, "MetaSearch", meta_searches_tags_path]
+    add_link[:tags, "Aliases", tag_aliases_path]
+    add_link[:tags, "Implications", tag_implications_path]
+    add_link[:tags, "Bulk Update Requests", bulk_update_requests_path]
+    add_link[:tags, "Cheat sheet", help_page_path(id: "cheatsheet")]
 
-    lookup[:notes][:links] << h.link_to("Listing", notes_path)
-    lookup[:notes][:links] << h.link_to("Changes", note_versions_path)
+    add_link[:notes, "Listing", notes_path]
+    add_link[:notes, "Changes", note_versions_path]
 
-    lookup[:pools][:links] << h.link_to("Listing", gallery_pools_path)
-    lookup[:pools][:links] << h.link_to("Changes", pool_versions_path)
+    add_link[:pools, "Listing", gallery_pools_path]
+    add_link[:pools, "Changes", pool_versions_path]
 
-    lookup[:wiki][:links] << h.link_to("Listing", wiki_pages_path)
-    lookup[:wiki][:links] << h.link_to("Changes", wiki_page_versions_path)
+    add_link[:wiki, "Listing", wiki_pages_path]
+    add_link[:wiki, "Changes", wiki_page_versions_path]
 
-    lookup[:sets][:links] << h.link_to("Listing", post_sets_path)
-    lookup[:comments][:links] << h.link_to("Listing", comments_path)
-    lookup[:forum][:links] << h.link_to("Listing", forum_topics_path)
-    lookup[:blips][:links] << h.link_to("Listing", blips_path)
+    add_link[:sets, "Listing", post_sets_path]
+    add_link[:comments, "Listing", comments_path]
+    add_link[:forum, "Listing", forum_topics_path]
+    add_link[:blips, "Listing", blips_path]
 
-    lookup[:users][:links] << h.link_to("Listing", users_path)
-    lookup[:users][:links] << h.link_to("Bans", bans_path)
-    lookup[:users][:links] << h.link_to("Feedback", user_feedbacks_path)
+    add_link[:users, "Listing", users_path]
+    add_link[:users, "Bans", bans_path]
+    add_link[:users, "Feedback", user_feedbacks_path]
 
-    lookup[:staff][:links] << h.link_to("Upload Whitelist", upload_whitelists_path)
-    lookup[:staff][:links] << h.link_to("Mod Actions", mod_actions_path)
-    lookup[:staff][:links] << h.link_to("Takedowns", takedowns_path)
-    lookup[:staff][:links] << h.link_to("Tickets", tickets_path)
+    add_link[:staff, "Upload Whitelist", upload_whitelists_path]
+    add_link[:staff, "Mod Actions", mod_actions_path]
+    add_link[:staff, "Takedowns", takedowns_path]
+    add_link[:staff, "Tickets", tickets_path]
 
-    if Danbooru.config.subscribestar_url.present?
-      lookup[:tools][:links] << h.link_to("Subscribestar", Danbooru.config.subscribestar_url)
-    end
-
-    if Danbooru.config.db_export_path.present?
-      lookup[:tools][:links] << h.link_to("DB Export", Danbooru.config.db_export_path)
-    end
-
-    lookup[:tools][:links] << h.link_to("Discord", discord_post_path) if CurrentUser.can_discord?
-    lookup[:users][:links] << h.link_to("Signup", new_user_path) if CurrentUser.is_anonymous?
+    add_link[:tools, "Subscribestar", Danbooru.config.subscribestar_url] if Danbooru.config.subscribestar_url.present?
+    add_link[:tools, "DB Export", Danbooru.config.db_export_path] if Danbooru.config.db_export_path.present?
+    add_link[:tools, "Discord", discord_post_path] if CurrentUser.can_discord?
+    add_link[:users, "Signup", new_user_path] if CurrentUser.is_anonymous?
 
     unless CurrentUser.is_anonymous?
-      lookup[:users][:links] << h.link_to("User Home", home_users_path)
-      lookup[:users][:links] << h.link_to("Profile", user_path(CurrentUser.user))
-      lookup[:users][:links] << h.link_to("Settings", settings_users_path)
-      lookup[:users][:links] << h.link_to("Refresh counts", new_maintenance_user_count_fixes_path)
+      add_link[:users, "User Home", home_users_path]
+      add_link[:users, "Profile", user_path(CurrentUser.user)]
+      add_link[:users, "Settings", settings_users_path]
+      add_link[:users, "Refresh counts", new_maintenance_user_count_fixes_path]
     end
 
     if CurrentUser.is_staff?
-      lookup[:staff][:links] << h.link_to("Mod Dashboard", moderator_dashboard_path)
-      lookup[:posts][:links] << h.link_to("Upload Listing", uploads_path)
+      add_link[:staff, "Mod Dashboard", moderator_dashboard_path]
+      add_link[:posts, "Upload Listing", uploads_path]
     end
 
-    lookup[:post_events][:links] << h.link_to("Disapprovals", moderator_post_disapprovals_path) if CurrentUser.can_approve_posts?
+    add_link[:post_events, "Disapprovals", moderator_post_disapprovals_path] if CurrentUser.can_approve_posts?
 
     if CurrentUser.is_moderator?
-      lookup[:staff][:links] << h.link_to("Edit Histories", edit_histories_path)
-      lookup[:staff][:links] << h.link_to("Post Votes", index_post_votes_path)
-      lookup[:users][:links] << h.link_to("User Name Changes", user_name_change_requests_path)
+      add_link[:staff, "Edit Histories", edit_histories_path]
+      add_link[:staff, "Post Votes", index_post_votes_path]
+      add_link[:users, "User Name Changes", user_name_change_requests_path]
     end
 
     if CurrentUser.is_admin?
-      lookup[:admin][:links] << h.link_to("Admin Dashboard", admin_dashboard_path)
-      lookup[:admin][:links] << h.link_to("Forum Categories", forum_categories_path)
-      lookup[:admin][:links] << h.link_to("IP Addresses", moderator_ip_addrs_path)
-      lookup[:admin][:links] << h.link_to("IP Bans", ip_bans_path)
-      lookup[:admin][:links] << h.link_to("Post Report Reasons", post_report_reasons_path)
-      lookup[:admin][:links] << h.link_to("Email Blacklist", email_blacklists_path)
-      lookup[:admin][:links] << h.link_to("Destroyed Posts", admin_destroyed_posts_path)
-      lookup[:admin][:links] << h.link_to("Exceptions", admin_exceptions_path)
-      lookup[:admin][:links] << h.link_to("Stuck DNP tags", new_admin_stuck_dnp_path)
-      lookup[:admin][:links] << h.link_to("Security", security_root_path)
-      lookup[:admin][:links] << h.link_to("Alt list", alt_list_admin_users_path)
-      lookup[:admin][:links] << h.link_to("SideKiq", sidekiq_path)
+      add_link[:admin, "Admin Dashboard", admin_dashboard_path]
+      add_link[:admin, "Forum Categories", forum_categories_path]
+      add_link[:admin, "IP Addresses", moderator_ip_addrs_path]
+      add_link[:admin, "IP Bans", ip_bans_path]
+      add_link[:admin, "Post Report Reasons", post_report_reasons_path]
+      add_link[:admin, "Email Blacklist", email_blacklists_path]
+      add_link[:admin, "Destroyed Posts", admin_destroyed_posts_path]
+      add_link[:admin, "Exceptions", admin_exceptions_path]
+      add_link[:admin, "Stuck DNP tags", new_admin_stuck_dnp_path]
+      add_link[:admin, "Security", security_root_path]
+      add_link[:admin, "Alt list", alt_list_admin_users_path]
+      add_link[:admin, "SideKiq", sidekiq_path]
     end
 
-    lookup[:admin][:links] << h.link_to("Reowner", new_admin_reowner_path) if CurrentUser.is_bd_staff?
+    add_link[:admin, "Reowner", new_admin_reowner_path] if CurrentUser.is_bd_staff?
+    add_link[:users, "Staff Notes", staff_notes_path] if CurrentUser.can_view_staff_notes?
 
-    lookup[:users][:links] << h.link_to("Staff Notes", staff_notes_path) if CurrentUser.can_view_staff_notes?
-
-    lookup[:posts][:links] << h.link_to("Help", help_page_path(id: "posts"))
-    lookup[:artists][:links] << h.link_to("Help", help_page_path(id: "artists"))
-    lookup[:tags][:links] << h.link_to("Help", help_page_path(id: "tags"))
-    lookup[:notes][:links] << h.link_to("Help", help_page_path(id: "notes"))
-    lookup[:pools][:links] << h.link_to("Help", help_page_path(id: "pools"))
-    lookup[:sets][:links] << h.link_to("Help", help_page_path(id: "sets"))
-    lookup[:comments][:links] << h.link_to("Help", help_page_path(id: "comments"))
-    lookup[:forum][:links] << h.link_to("Help", help_page_path(id: "forum"))
-    lookup[:wiki][:links] << h.link_to("Help", help_page_path(id: "wiki"))
-    lookup[:blips][:links] << h.link_to("Help", help_page_path(id: "blips"))
-    lookup[:users][:links] << h.link_to("Help", help_page_path(id: "accounts"))
-    lookup[:tools][:links] << h.link_to("Help Index", help_pages_path)
+    add_link[:posts, "Help", help_page_path(id: "posts")]
+    add_link[:artists, "Help", help_page_path(id: "artists")]
+    add_link[:tags, "Help", help_page_path(id: "tags")]
+    add_link[:notes, "Help", help_page_path(id: "notes")]
+    add_link[:pools, "Help", help_page_path(id: "pools")]
+    add_link[:sets, "Help", help_page_path(id: "sets")]
+    add_link[:comments, "Help", help_page_path(id: "comments")]
+    add_link[:forum, "Help", help_page_path(id: "forum")]
+    add_link[:wiki, "Help", help_page_path(id: "wiki")]
+    add_link[:blips, "Help", help_page_path(id: "blips")]
+    add_link[:users, "Help", help_page_path(id: "accounts")]
+    add_link[:tools, "Help Index", help_pages_path]
 
     sections
   end

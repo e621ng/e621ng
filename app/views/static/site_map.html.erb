@@ -9,7 +9,9 @@
           <% next if links.blank? %>
           <h3><%= section[:title] %></h3>
           <ul>
-            <%= safe_join(links.map { |link| content_tag(:li, link) }, "\n") %>
+            <% links.each do |link| %>
+              <li><%= link_to link[:label], link[:path] %></li>
+            <% end %>
           </ul>
         <% end %>
       </section>
