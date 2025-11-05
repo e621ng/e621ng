@@ -15,6 +15,7 @@ RelatedTag.init_post_show_editor = async function () {
 
   const app = createApp(TagEditor);
   app.mount("#tag-string-editor");
+  $("#tag-string-editor").trigger("e6ng:vue-mounted");
 };
 
 $(function () {
