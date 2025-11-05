@@ -17,15 +17,15 @@
       <span class="thm-desc-a">
         <span class="thm-desc-m thm-score thm-score-<%= score_class %>">
           <%= svg_icon(score_icon, width: 16, height: 16) %>
-          <%= shortened_score %>
+          <%= shortened_value(post.score) %>
         </span>
         <span class="thm-desc-m thm-favorites">
           <%= svg_icon(:star, width: 16, height: 16) %>
-          <%= post.fav_count %>
+          <%= shortened_value(post.fav_count) %>
         </span>
         <span class="thm-desc-m thm-comments">
           <%= svg_icon(:messages_square, width: 16, height: 16) %>
-          <%= post.visible_comment_count(user) %>
+          <%= shortened_value(post.visible_comment_count(user)) %>
         </span>
       </span>
       <span class="thm-desc-b thm-rating"><%= post.rating.upcase %></span>
