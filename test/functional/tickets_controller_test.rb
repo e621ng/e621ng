@@ -217,7 +217,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should "dissallow reporting sets you can't see" do
+      should "disallow reporting sets you can't see" do
         assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "set")
         @content.update_columns(is_public: false)
         assert_ticket_create_permissions([[@bystander, false], [@admin, true], [@bad_actor, true]], qtype: "set")
@@ -261,6 +261,28 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "wiki")
+        assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+      end
+    end
+
+    context "for a replacement ticket" do
+      setup do
+        @bystander.update_columns(created_at: 2.weeks.ago)
+        @upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @bystander)).start!
+        assert(@upload.persisted?, "Upload was not created: #{@upload.errors.full_messages.join(', ')}")
+        @post = @upload.post
+        assert(@post.present?, "Upload did not create a post: #{@upload.inspect}")
+        @content = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @bad_actor))
+        assert(@content.persisted?, "Replacement was not created: #{@content.errors.full_messages.join(', ')}")
+      end
+
+      should "allow reporting replacements" do
+        assert_ticket_create_permissions([[@bystander, true], [@admin, true], [@bad_actor, true]], qtype: "replacement")
+      end
+
+      should "restrict access" do
+        @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "replacement", report_reason: "test")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
         assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
