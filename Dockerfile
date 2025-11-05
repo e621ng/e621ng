@@ -4,7 +4,7 @@ RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat ra
 
 COPY Gemfile Gemfile.lock ./
 
-RUN gem i foreman && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
+RUN gem i overmind && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
  && rm -rf /usr/local/bundle/cache/*.gem \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
  && find /usr/local/bundle/gems/ -name "*.o" -delete
@@ -20,12 +20,17 @@ FROM ruby:3.3.1-alpine3.20
 RUN apk --no-cache add ffmpeg vips \
   postgresql15-client \
   git jemalloc tzdata \
-  sudo gcompat ragel build-base
+  sudo gcompat ragel build-base \
+  tmux
 
 WORKDIR /app
 
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 ENV RUBY_YJIT_ENABLE=1
+
+# Ensure the entrypoint script is available even without a bind mount
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 # Setup node and yarn
 COPY --from=node-builder /usr/lib /usr/lib
@@ -52,5 +57,5 @@ RUN addgroup --gid ${HOST_GID} e621ng && \
 # Ignore warnings from git about .git permission differences when running as root
 RUN git config --global --add safe.directory $(pwd)
 
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
-CMD ["foreman", "start"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["overmind", "start"]

@@ -41,7 +41,7 @@
       "type": "shell",
       "command": "docker compose up -d",
       "detail": "Run the application",
-      "hide": true,
+      "hide": false,
       "group": {
         "kind": "build",
         "isDefault": true
@@ -51,7 +51,7 @@
       "label": "e621: stop",
       "type": "shell",
       "command": "docker compose down",
-      "hide": true,
+      "hide": false,
       "detail": "Stop the application",
       "group": "build"
     },
@@ -81,7 +81,7 @@
       "label": "e621: dev_erase",
       "type": "shell",
       "command": "docker compose down -v",
-      "hide": true,
+      "hide": false,
       "detail": "Stop and remove volumes",
       "group": "none"
     },

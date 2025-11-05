@@ -17,7 +17,7 @@
   ],
   "postAttachCommand": ["/bin/sh", "/app/.devcontainer/post-attach.sh", "bash"],
   "postCreateCommand": {
-    "bash-completion": "apk update && apk --no-cache add bash-completion docker-cli && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
+    "bash-completion": "apk update && apk --no-cache add bash-completion docker-cli docker-cli-compose && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
   },
   
   "customizations": {
