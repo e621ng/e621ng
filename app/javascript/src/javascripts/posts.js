@@ -38,6 +38,10 @@ Post.initialize_all = function () {
   $(document).on("danbooru:open-post-edit-tab", () => Hotkeys.enabled = false);
   $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").trigger("focus"));
   $(document).on("danbooru:close-post-edit-tab", () => Hotkeys.enabled = true);
+  $("#tag-string-editor").on("e6ng:vue-mounted", () => {
+    Post.update_tag_count();
+    $("#post_tag_string").trigger("focus");
+  });
 
   var $fields_multiple = $("[data-autocomplete=\"tag-edit\"]");
   $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
@@ -658,7 +662,7 @@ Post.initialize_post_sections = function () {
       $("#edit").show();
       $("#comments").hide();
       $(document).trigger("danbooru:open-post-edit-tab");
-      Post.update_tag_count({target: $("#post_tag_string")});
+      Post.update_tag_count();
     } else {
       $("#edit").hide();
       $("#comments").hide();
@@ -942,13 +946,15 @@ Post.disapprove = function (post_id, reason, message) {
   }, { name: "Post.disapprove" });
 };
 
-Post.update_tag_count = function (event) {
+Post.update_tag_count = function () {
   let string = "0 tags";
   let count = 0;
   // let count2 = 1;
 
-  if (event) {
-    let tags = [...new Set($(event.target).val().match(/\S+/g))];
+  const input = $("#post_tag_string");
+  console.log("Updating tag count for:", input);
+  if (input.length) {
+    let tags = [...new Set(input.val().match(/\S+/g))];
     if (tags) {
       count = tags.length;
       string = (count == 1) ? (count + " tag") : (count + " tags");
