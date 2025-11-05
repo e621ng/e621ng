@@ -68,32 +68,3 @@
     <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>" class="st-button">Flag</a>
   </span>
 </div>
-
-
-<%= javascript_tag nonce: true do -%>
-$(() => {
-  const input = $("#report-reason-input"),
-    submit = $("#ticket_submit");
-  const unusualReasons = new Set(["flag", "takedown"]);
-
-  $(".report-reason-radio").on("change", function() {
-    const element = $(this);
-    $(".report-reason-label").removeClass("selected");
-    element.closest(".report-reason-label").addClass("selected");
-
-    const reason = element.val();
-    if (unusualReasons.has(reason)) {
-      $(".report-unusual").hide();
-      $("#report-reason-" + reason).show();
-      input.hide();
-      submit.hide();
-    } else {
-      $(".report-unusual").hide();
-      input.show();
-      submit.show();
-    }
-  });
-
-  $(".report-reason-radio:checked").trigger("change");
-});
-<% end %>
