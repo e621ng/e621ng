@@ -34,14 +34,12 @@ import PostDeletion from "../src/javascripts/post_delete.js";
 import PostModeMenu from "../src/javascripts/post_mode_menu.js";
 import PostReplacement from "../src/javascripts/post_replacement.js";
 import PostVersions from "../src/javascripts/post_versions.js";
-import Replacer from "../src/javascripts/replacer.js";
 import StaffNote from "../src/javascripts/staff_notes.js";
 import Utility from "../src/javascripts/utility.js";
 import TagRelationships from "../src/javascripts/tag_relationships.js";
 import Takedown from "../src/javascripts/takedowns.js";
 import Theme from "../src/javascripts/themes.js";
 import Thumbnails from "../src/javascripts/thumbnails.js";
-import Uploader from "../src/javascripts/uploader.js";
 import VoteManager from "../src/javascripts/vote_manager.js";
 
 function inError (msg) {
@@ -74,14 +72,12 @@ window.Danbooru = {
   PostModeMenu,
   PostReplacement,
   PostVersions,
-  Replacer,
   StaffNote,
   Utility,
   TagRelationships,
   Takedown,
   Theme,
   Thumbnails,
-  Uploader,
   VoteManager,
   error: inError,
   notice: inNotice,
