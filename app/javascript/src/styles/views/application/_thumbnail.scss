@@ -196,7 +196,7 @@ article.thumbnail .thm-extra {
     width: 100%;
     display: block;
     font-size: 1rem;
-    white-space: nowrap;
+    word-break: break-word; // Otherwise long pool names break the layout
   }
 }
 
