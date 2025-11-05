@@ -128,15 +128,6 @@ class PostThumbnailComponent < ViewComponent::Base
     @should_show_stats ||= options.fetch(:stats) { @user&.show_post_statistics? }
   end
 
-  def shortened_score
-    score = post.score
-    return "0" if score.nil? || score == 0
-
-    score = score.abs if score < 0
-    return "#{(score / 1000.0).round(1)}k" if score >= 1000
-    score.to_s
-  end
-
   def score_icon
     return :square_slash if post.score.nil? || post.score == 0
     post.score > 0 ? :arrow_up_dash : :arrow_down_dash
@@ -145,6 +136,13 @@ class PostThumbnailComponent < ViewComponent::Base
   def score_class
     return "neutral" if post.score.nil? || post.score == 0
     post.score > 0 ? "positive" : "negative"
+  end
+
+  def shortened_value(value)
+    return "0" if value.nil? || value == 0
+    value = value.abs if value < 0
+    return "#{(value / 1000.0).round(1)}k" if value >= 1000
+    value.to_s
   end
 
   ##############################
