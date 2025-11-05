@@ -1,0 +1,350 @@
+$image-size: var(--thumb-image-size, 150px);
+$font-stack: "Roboto", Verdana, Geneva, sans-serif;
+
+
+// ============================== //
+// ====== Posts Container ======= //
+// ============================== //
+
+section.posts-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+
+  // Dynamic grid
+  // On mobile, the grid is driven by the column count, although thumbnails are still limited
+  // in size by the --thumb-image-size variable to prevent images from stretching.
+  // On desktop, all thumbnails are the same size, and the grid auto-fills based on that size.
+  --thumb-image-size: 200px;
+  @include window-larger-than(800px, $or-equal: true) {
+    grid-template-columns: repeat(auto-fill, #{$image-size});
+  }
+  @include window-smaller-than(800px) {
+    article.thumbnail {
+      width: unset;
+      a.thm-link, .thm-desc, .thm-extra {
+        width: 100%;
+        max-width: $image-size;
+      }
+    }
+  }
+
+  // Headers and placeholders
+  h2.posts-container-header, .no-results { grid-column: -1 / 1; }
+}
+
+
+// ============================== //
+// ====== Thumbnail Proper ====== //
+// ============================== //
+
+article.thumbnail {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  width: min-content; // Avoid stretching when outside the posts-container
+
+  a.thm-link {
+    display: block;
+    width: $image-size;
+    max-width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+
+    background: #0003; // For transparent and cropped images
+    overflow: hidden; // Get rounded corners to work on the image
+    box-sizing: border-box; // Avoid borders overflowing
+    @include st-radius-top;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none; // Direct all clicks to the link
+    }
+  }
+
+  &.no-stats a.thm-link { @include st-radius; }
+}
+
+// Post information bar
+article.thumbnail .thm-desc {
+  display: grid;
+  grid-template-columns: auto 1.25rem;
+  width: $image-size;
+  max-width: 100%;
+
+  font-size: 0.75rem;
+  line-height: 0.75rem;
+  font-weight: bold;
+  font-family: $font-stack;
+
+  background-color: orange;
+  border-radius: 0 0 0.25rem 0.25rem;
+  overflow: hidden; // Hide the box-shadow on .desc-a
+
+  // Rating-dependent colors
+  @each $name, $color in ("e": "red", "q": "yellow", "s": "green") {
+    &.thm-rating-#{$name} { background-color: palette("background-#{$color}"); }
+  }
+
+  // Column A: score, favorites, comments
+  &-a {
+    display: flex;
+    column-gap: 5%;
+    justify-content: center;
+    padding: 0.25rem;
+
+    @include st-radius-bottom;
+    background: themed("color-section-lighten-5");
+    overflow: hidden;
+    box-shadow: 0 0 0.25rem #0005;
+  }
+
+  // Column B: rating
+  &-b {
+    padding: 0.25rem;
+    text-align: center;
+  }
+}
+
+// Post information badges (score, favs, comments)
+article.thumbnail .thm-desc-m {
+  display: flex;
+  justify-content: center;
+  gap: 0.125rem;
+  flex-shrink: 1;
+
+  svg {
+    height: 1rem;
+    width: 1rem;
+    margin: -0.125rem 0;
+  }
+
+  // Score
+  &.thm-score {
+    &-positive { color: palette("text-green"); }
+    &-negative { color: palette("text-red"); }
+    svg {
+      height: 0.9rem;
+      margin: -0.075rem 0;
+    }
+  }
+
+  // Fav
+  &.thm-favorites {
+    color: palette("background-gold-d10");
+    svg {
+      filter: url(#inset-shadow);
+      fill: palette("background-gold-d10");
+      stroke-width: 0;
+    }
+  }
+
+  // Comments
+  &.thm-comments {
+    svg {
+      height: 0.75rem;
+      margin: 0;
+    }
+  }
+}
+
+// Badges
+article.thumbnail[data-tags~=animated] {
+  & > a.thm-link:after {
+    content: "ANIM";
+
+    position: absolute;
+    z-index: 5;
+    left: 0;
+    top: 0.5rem;
+    padding: 0.125rem 0.25rem;
+
+    width: 2.125rem; // Inferred height: 1rem
+    font-size: 0.5rem;
+    line-height: 0.5rem;
+    padding: 0.25rem 0; // Vertically centered
+
+    background-color: themed("color-section");
+    color: themed("color-text");
+    font-weight: bold;
+    text-align: center;
+
+    @include st-radius-right;
+  }
+  &[data-file-ext=webm] > a.thm-link:after { content: "WEBM"; }
+  &[data-file-ext=mp4] > a.thm-link:after { content: "MP4"; }
+}
+
+// Extra info (IQDB, pools)
+article.thumbnail .thm-extra {
+  width: $image-size;
+  max-width: 100%;
+  font-family: $font-stack;
+  overflow: hidden;
+
+  background: themed("color-section-lighten-5");
+  @include st-radius;
+  text-align: center;
+
+  padding: 0.25rem;
+  margin-top: 0.25rem;
+  box-sizing: border-box;
+
+  a.pool-link {
+    width: 100%;
+    display: block;
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+}
+
+
+// ============================== //
+// ==== Deleted / Blacklisted === //
+// ============================== //
+
+article.thumbnail.deleted,
+article.thumbnail.blacklisted {
+
+  a.thm-link::before {
+    content: "???";
+
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-family: $font-stack;
+    font-size: calc(#{$image-size} / 6);
+    line-height: calc(#{$image-size} / 6);
+    pointer-events: none;
+    color: #fffa;
+    background: #0008;
+  }
+}
+
+article.thumbnail.deleted a.thm-link::before {
+  content: "deleted";
+  background: #f008;
+}
+
+article.thumbnail.blacklisted {
+  a.thm-link::before {
+    content: "blacklisted";
+    background: #0008;
+  }
+  img { visibility: hidden; }
+}
+
+// Post matches blacklist
+article.thumbnail.filter-matches .thm-desc-a {
+  background-color: palette("background-red");
+}
+
+
+// ============================== //
+// == UI Customization Options == //
+// ============================== //
+
+// Adjustable thumbnail sizes
+@each $size, $width, $cols in ("s" 150px 4, "l" 256px 2) {
+  body[data-st-size="#{$size}"] section.posts-container {
+    --thumb-image-size: #{$width};
+    @include window-smaller-than(800px) {
+      grid-template-columns: repeat(#{$cols}, 1fr);
+    }
+  }
+}
+body section.posts-container.default-size { --thumb-image-size: 200px; }
+
+// Hide comments on small thumbnails
+body[data-st-size="s"] article.thumbnail .thm-desc .thm-comments,
+article.thumbnail .thm-desc .thm-comments {
+  @include window-smaller-than(400px) {
+    display: none;
+  }
+}
+body:not([data-st-size="l"]) article.thumbnail .thm-desc .thm-comments {
+  @include window-smaller-than(400px) {
+    display: none;
+  }
+}
+
+// Disable cropping
+body[data-st-contain="true"] article.thumbnail img {
+  object-fit: contain;
+}
+
+
+// ============================== //
+// ===== Thumbnail Borders ====== //
+// ============================== //
+
+// Standardized border position system:
+// - top: has_children (green)
+// - right: has_parent (yellow)
+// - bottom: is_flagged (red)
+// - left: is_pending (blue)
+
+$border-has-children: var(--palette-plain-green);
+$border-has-parent: var(--palette-plain-yellow);
+$border-is-pending: var(--palette-plain-blue);
+$border-is-flagged: var(--palette-plain-red);
+
+// Single state: full border
+article.thumbnail[data-border-states="1"] {
+  &.has-children > a.thm-link { border: 2px solid $border-has-children; }
+  &.has-parent > a.thm-link { border: 2px solid $border-has-parent; }
+  &.pending > a.thm-link { border: 2px solid $border-is-pending; }
+  &.flagged > a.thm-link { border: 2px solid $border-is-flagged; }
+}
+
+// Two states: diagonal splits
+article.thumbnail[data-border-states="2"] {
+  > a.thm-link { border: 2px solid transparent; }
+  
+  // has_children: top-left corner
+  &.has-children.has-parent > a.thm-link { border-color: $border-has-children $border-has-parent $border-has-parent $border-has-children; }
+  &.has-children.pending > a.thm-link { border-color: $border-has-children $border-is-pending $border-is-pending $border-has-children; }
+  &.has-children.flagged > a.thm-link { border-color: $border-has-children $border-is-flagged $border-is-flagged $border-has-children; }
+  
+  // has_parent: bottom-right corner
+  &.has-parent.pending > a.thm-link { border-color: $border-is-pending $border-has-parent $border-has-parent $border-is-pending; }
+  &.has-parent.flagged > a.thm-link { border-color: $border-is-flagged $border-has-parent $border-has-parent $border-is-flagged; }
+  
+  // pending + flagged: pending bottom-left, flagged top-right
+  &.pending.flagged > a.thm-link { border-color: $border-is-flagged $border-is-flagged $border-is-pending $border-is-pending; }
+}
+
+// Three states: wild mess
+article.thumbnail[data-border-states="3"] {
+  > a.thm-link { border: 2px solid transparent; }
+  
+  &.has-children.has-parent.pending > a.thm-link {
+    border-color: $border-has-children $border-has-parent $border-is-pending $border-is-pending;
+  }
+  &.has-children.has-parent.flagged > a.thm-link {
+    border-color: $border-has-children $border-has-parent $border-is-flagged $border-is-flagged;
+  }
+  &.has-children.pending.flagged > a.thm-link {
+    border-color: $border-has-children $border-is-pending $border-is-flagged $border-has-children;
+  }
+  &.has-parent.pending.flagged > a.thm-link {
+    border-color: $border-is-flagged $border-has-parent $border-has-parent $border-is-pending;
+  }
+}
+
+// Four states: all edges different
+article.thumbnail[data-border-states="4"] {
+  > a.thm-link {
+    border: 2px solid transparent;
+    border-color: $border-has-children $border-has-parent $border-is-flagged $border-is-pending;
+  }
+}

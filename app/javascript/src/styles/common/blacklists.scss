@@ -226,15 +226,3 @@
     display: none;
   }
 }
-
-article.thumbnail.blacklisted {
-  & > a {
-    width: var(--thumb-image-size, 150px);
-    height: var(--thumb-image-size, 150px);
-    background-image: url("blacklisted-preview.png");
-    background-size: cover;
-    background-position: center;
-    background-color: unset !important; // Prevent custom color from showing through
-  }
-  img { visibility: hidden; }
-}

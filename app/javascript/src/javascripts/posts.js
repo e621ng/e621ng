@@ -690,16 +690,17 @@ Post.notice_update = function (x) {
 };
 
 Post.update_data = function (data) {
-  var $post = $("#post_" + data.id);
+  var $post = $(`article.thumbnail[data-id="${data.id}"]`).first();
   $post.attr("data-tags", data.tag_string);
   $post.data("rating", data.rating);
-  $post.removeClass("post-status-has-parent post-status-has-children");
-  if (data.parent_id) {
-    $post.addClass("post-status-has-parent");
-  }
-  if (data.has_visible_children) {
-    $post.addClass("post-status-has-children");
-  }
+
+  $post.removeClass("has-parent has-children");
+  if (data.parent_id) $post.addClass("has-parent");
+  if (data.has_visible_children) $post.addClass("has-children");
+  $post.attr(
+    "data-border-states",
+    (data.is_pending ? 1 : 0) + (data.is_flagged ? 1 : 0) + (data.parent_id ? 1 : 0) + (data.has_visible_children ? 1 : 0),
+  );
 };
 
 Post.tag = function (post_id, tags) {
@@ -760,7 +761,7 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
       if (reload_after_delete) {
         location.reload();
       } else {
-        $(`article#post_${post_id}`).attr("data-flags", "deleted");
+        $(`article.thumbnail[data-id="${post_id}"]`).attr("data-flags", "deleted");
       }
     }).always(function () {
       if (!error)
@@ -781,7 +782,7 @@ Post.undelete = function (post_id, callback) {
       $(window).trigger("danbooru:error", "Error: " + message);
     }).done(function () {
       $(window).trigger("danbooru:notice", "Undeleted post.");
-      $(`article#post_${post_id}`).attr("data-flags", "active");
+      $(`article.thumbnail[data-id="${post_id}"]`).attr("data-flags", "active");
       if (callback) callback();
     }).always(function () {
       Post.notice_update("dec");
@@ -906,10 +907,11 @@ Post.approve = function (post_id, callback) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
       Danbooru.error("Error: " + message);
     }).done(function () {
-      var $post = $("#post_" + post_id);
+      var $post = $(`article.thumbnail[data-id="${post_id}"]`).first();
       if ($post.length) {
         $post.data("flags", $post.data("flags").replace(/pending/, ""));
-        $post.removeClass("post-status-pending");
+        $post.removeClass("pending");
+        $post.attr("data-border-states", (parseInt($post.attr("data-border-states")) || 1) - 1);
         Danbooru.notice("Approved post #" + post_id);
       }
       if (callback) {
