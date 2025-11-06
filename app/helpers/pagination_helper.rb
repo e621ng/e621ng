@@ -20,14 +20,17 @@ module PaginationHelper
     else
       pages = records.total_pages
       schar = "~"
-      count = ((pages - 1) * records.records_per_page) + (rand(0.2..0.8) * records.records_per_page).to_i
+
+      # Persistent random count approximation
+      rng = Random.new(params.to_unsafe_h.except(:controller, :action, :id, :page).hash)
+      count = ((pages - 1) * records.records_per_page) + (rng.rand(0.2..0.8) * records.records_per_page).to_i
       title = "Approximately #{number_with_delimiter(count)} results found.\nActual result count may differ."
     end
 
     tag.span(class: "approximate-count", title: title, data: { count: count, pages: pages, per: records.max_numbered_pages }) do
       concat schar
       if should_round
-        concat number_to_human(count, precision: 0, format: "%n%u", units: { thousand: "k" })
+        concat number_to_human(count, precision: 2, format: "%n%u", units: { thousand: "k" })
       else
         concat number_with_delimiter(count)
       end
