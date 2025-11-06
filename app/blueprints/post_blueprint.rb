@@ -111,7 +111,7 @@ class PostBlueprint < Blueprinter::Base
   fields :approver_id, :uploader_id, :uploader_name, :description
 
   field :comment_count do |post|
-    post.visible_comment_count(CurrentUser)
+    post.visible_comment_count(CurrentUser.user)
   end
 
   field :is_favorited do |post|
