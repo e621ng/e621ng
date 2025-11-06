@@ -1,4 +1,6 @@
 $image-size: var(--thumb-image-size, 150px);
+$image-min: var(--thumb-image-min, 135px);
+$image-max: var(--thumb-image-max, 165px);
 $font-stack: "Roboto", Verdana, Geneva, sans-serif;
 
 
@@ -16,16 +18,17 @@ section.posts-container {
   // in size by the --thumb-image-size variable to prevent images from stretching.
   // On desktop, all thumbnails are the same size, and the grid auto-fills based on that size.
   --thumb-image-size: 200px;
+  --thumb-image-min: 180px;
+  --thumb-image-max: 220px;
   @include window-larger-than(800px, $or-equal: true) {
-    grid-template-columns: repeat(auto-fill, #{$image-size});
+    grid-template-columns: repeat(auto-fill, minmax(#{$image-min}, 1fr));
   }
-  @include window-smaller-than(800px) {
-    article.thumbnail {
-      width: unset;
-      a.thm-link, .thm-desc, .thm-extra {
-        width: 100%;
-        max-width: $image-size;
-      }
+
+  article.thumbnail {
+    width: unset;
+    a.thm-link, .thm-desc, .thm-extra {
+      width: 100%;
+      max-width: $image-max;
     }
   }
 
@@ -254,9 +257,11 @@ article.thumbnail.filter-matches .thm-desc-a {
 // ============================== //
 
 // Adjustable thumbnail sizes
-@each $size, $width, $cols in ("s" 150px 4, "l" 256px 2) {
+@each $size, $width, $min, $max, $cols in ("s" 150px 135px 165px 4, "l" 240px 220px 256px 2) {
   body[data-st-size="#{$size}"] section.posts-container {
     --thumb-image-size: #{$width};
+    --thumb-image-min: #{$min};
+    --thumb-image-max: #{$max};
     @include window-smaller-than(800px) {
       grid-template-columns: repeat(#{$cols}, 1fr);
     }
