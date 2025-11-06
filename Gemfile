@@ -8,7 +8,7 @@ gem "rails", "~> 7.2.0"
 gem "pg"
 gem "dalli", platforms: :ruby
 gem "simple_form"
-gem "active_model_serializers", "~> 0.10.0"
+gem "blueprinter"
 gem "ruby-vips"
 gem "bcrypt", require: "bcrypt"
 gem "draper"
