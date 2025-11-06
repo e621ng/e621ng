@@ -1131,7 +1131,11 @@ class Post < ApplicationRecord
     # Fetches the avoid posting data for the post's artist tags.
     # Sends a db request to lookup avoid posting data.
     def avoid_posting_artists
-      AvoidPosting.active.joins(:artist).where("artists.name": artist_tags.map(&:name))
+      @avoid_posting_artists ||= begin
+        artist_names = artist_tags.map(&:name)
+        return [] if artist_names.empty?
+        AvoidPosting.active.joins(:artist).where(artists: { name: artist_names }).includes(:artist).to_a
+      end
     end
   end
 
