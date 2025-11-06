@@ -1,3 +1,5 @@
+import Page from "./utility/page";
+
 const FurID = {};
 
 FurID.baseURL = "";
@@ -7,6 +9,7 @@ FurID.page = 0;
 
 FurID.initialize = async function () {
   FurID.baseURL = window.furidURL;
+  if (!FurID.baseURL) return;
   FurID.wrapper = $("#a-furid");
 
   // Manifest file lists all furID files, ordered by score.
@@ -71,3 +74,8 @@ FurID.loadMore = function () {
 };
 
 export default FurID;
+
+$(() => {
+  if (!Page.matches("static", "furid")) return;
+  FurID.initialize();
+});
