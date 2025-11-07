@@ -9,10 +9,10 @@ class CommentsController < ApplicationController
   skip_before_action :api_check
 
   def index
-    if params[:group_by] == "comment"
-      index_by_comment
-    else
+    if params[:group_by] == "post"
       index_by_post
+    else
+      index_by_comment
     end
   end
 
@@ -110,11 +110,20 @@ class CommentsController < ApplicationController
   end
 
   def index_by_comment
+    # Only enable COUNT for searches that actually narrow results to avoid expensive queries
+    narrowing_params = %i[body_matches post_id post_tags_match creator_name creator_id
+                          post_note_updater_name post_note_updater_id poster_id poster_name ip_addr]
+    has_narrowing_search = narrowing_params.any? { |param| params[:search]&.dig(param).present? }
+    has_narrowing_search ||= params[:search]&.dig(:is_hidden)&.to_s == "false"
+    has_narrowing_search ||= params[:search]&.dig(:is_sticky)&.to_s == "true"
+
+    search_params_for_count = has_narrowing_search ? params[:search] : nil
+
     @comments = Comment
                 .visible(CurrentUser.user)
                 .includes(:creator, :updater)
                 .search(search_params)
-                .paginate(params[:page], limit: params[:limit], search_count: params[:search])
+                .paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
 
     if CurrentUser.is_staff?

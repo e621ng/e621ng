@@ -245,6 +245,8 @@
   import tagPreview from './tag_preview.vue';
   import filePreview from './file_preview.vue';
   import fileInput from './file_input.vue';
+  import Autocomplete from "../autocomplete.js";
+  import DTextFormatter from "../dtext_formatter.js";
   
   const sex_checks = [
     {name: 'Male'},
@@ -429,6 +431,9 @@
         fillFieldBool("uploadAsPending", "upload_as_pending")
       
       this.initVerifiedArtistButtons();
+
+      Autocomplete.initialize_autocomplete('tag-edit');
+      new DTextFormatter($(".dtext-formatter.pending"));
     },
     methods: {
       setCheck(tag, value) {

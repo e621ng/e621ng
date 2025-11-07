@@ -43,7 +43,7 @@ module ApplicationHelper
 
     tag.li(id: id, class: klass) do
       link_to(url, id: "#{id}-link", **options) do
-        concat image_pack_tag(image)
+        concat vite_image_tag(image)
         concat " "
         concat tag.span(text)
       end

@@ -22,10 +22,12 @@ module Moderator
         @post = ::Post.find(params[:id])
 
         if params[:commit] == "Delete"
-          @post.delete!(params[:reason], move_favorites: params[:move_favorites].present?)
+          @post.delete!(params[:reason])
           @post.copy_sources_to_parent if params[:copy_sources].present?
           @post.copy_tags_to_parent if params[:copy_tags].present?
-          @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present?
+          @post.give_favorites_to_parent if params[:move_favorites] == "true"
+          @post.give_post_sets_to_parent if params[:move_favorites] == "true"
+          @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present? || params[:move_favorites] == "true"
         end
 
         redirect_to(post_path(@post, q: params[:q].presence))
@@ -45,6 +47,7 @@ module Moderator
         @post = ::Post.find(params[:id])
         if params[:commit] == "Submit"
           @post.give_favorites_to_parent
+          @post.give_post_sets_to_parent
         end
         redirect_to(post_path(@post))
       end

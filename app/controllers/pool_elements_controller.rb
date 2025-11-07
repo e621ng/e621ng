@@ -47,7 +47,7 @@ class PoolElementsController < ApplicationController
   def recent
     pool_ids = session[:recent_pool_ids].to_s.scan(/\d+/)
     unless pool_ids.any?
-      render json: []
+      render plain: "[]", content_type: "application/json"
       return
     end
 

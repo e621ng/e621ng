@@ -1,7 +1,7 @@
 <div class="flag-dialog-preview">
 
   <div class="flag_post">
-    <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+    <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
   </div>
   
   <div class="dtext-container">

@@ -112,5 +112,6 @@
     <% if CurrentUser.is_admin? %>
       <dd class="replacement-spaced-row"> <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %> </dd>
     <% end %>
+    <%= link_to("Report", new_ticket_path(disp_id: post_replacement.id, qtype: "replacement"), class: "replacement-report-action replacement-action-button") %>
   </td>
 </tr>

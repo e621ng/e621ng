@@ -9,6 +9,13 @@
       "group": "test"
     },
     {
+      "label": "e621: run_eslint_all",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh linter yarn run lint",
+      "detail": "Run eslint on all files",
+      "group": "test"
+    },
+    {
       "label": "e621: run_tests_all",
       "type": "shell",
       "command": ".vscode/run-in-container.sh tests bundle exec rails test",

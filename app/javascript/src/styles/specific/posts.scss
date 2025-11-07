@@ -76,6 +76,24 @@ div#c-posts {
       background-color: themed("color-danger-darken-10");
       border: 1px solid themed("color-foreground");
     }
+
+    .delete-with-reason-link[data-move-favs="true"] {
+      position: relative;
+      margin-bottom: 0.75rem;
+
+      &::after {
+        content: "+ transfer favorites to parent post";
+        position: absolute;
+        left: 0;
+        font-size: 0.75rem;
+        bottom: -0.75rem;
+        line-height: 0.75rem;
+        color: var(--color-text-muted);
+        right: 0;
+        text-align: center;
+        pointer-events: none;
+      }
+    }
   }
 
   div.nav-notice {

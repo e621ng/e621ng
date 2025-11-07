@@ -19,20 +19,27 @@ body.c-users.a-upload-limit {
   .upload-limit-formula {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.25rem;
 
     font-size: 1rem;
     line-height: 1rem;
     margin-bottom: 1em;
 
-    .upl-element {
+    .upl-group {
       display: flex;
       align-items: center;
-      padding: 0.5rem;
-      gap: 0.5rem;
-      @include st-radius;
+      grid-gap: 0.25rem;
 
-      background: themed("color-foreground");
+      .upl-element {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        gap: 0.5rem;
+        @include st-radius;
+
+        background: themed("color-foreground");
+      }
     }
   }
 
@@ -47,8 +54,11 @@ body.c-users.a-upload-limit {
 
   .upload-limit-formula abbr, .upload-limit-explanation abbr {
     display: inline-flex;
+    align-items: center;
     justify-content: center;
     min-width: 1rem;
+    height: min-content;
+    margin: auto 0;
 
     text-decoration: none;
     line-height: 1rem;

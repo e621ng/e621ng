@@ -19,7 +19,7 @@
         <% @post_approvals.each do |post_approval| %>
           <tr>
             <td>
-              <%= PostPresenter.preview(post_approval.post, show_deleted: true) %>
+              <%= render(PostThumbnailComponent.new(post: post_approval.post, show_deleted: true)) %>
             </td>
 
             <td>

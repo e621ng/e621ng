@@ -52,16 +52,15 @@ class Comment < ApplicationRecord
     end
 
     def visible(user)
-      q = where("comments.score >= ? or comments.is_sticky = true", user.comment_threshold)
-      unless user.is_moderator?
-        q = q.joins(:post).where("comments.is_sticky = true or posts.is_comment_disabled = false or comments.creator_id = ?", user.id)
-        if user.is_janitor?
-          q = q.where("comments.is_sticky = true or comments.is_hidden = false or comments.creator_id = ?", user.id)
-        else
-          q = q.where("comments.is_hidden = false or comments.creator_id = ?", user.id)
-        end
-      end
-      q
+      return where("comments.score >= ? OR comments.is_sticky = true", user.comment_threshold) if user.is_moderator?
+
+      # Only 19 posts have comments disabled as of Nov 2025.
+      # If that number grows significantly, we will need to rethink this approach.
+      passes_checks = "(comments.score >= ?) AND comments.post_id NOT IN (SELECT id FROM posts WHERE is_comment_disabled = true)"
+      passes_checks += " AND comments.is_hidden = false" unless user.is_janitor?
+      sticky_or_own = "comments.is_sticky = true OR comments.creator_id = ?"
+
+      where("#{sticky_or_own} OR (#{passes_checks})", user.id, user.comment_threshold)
     end
 
     def post_tags_match(query)

@@ -5,14 +5,14 @@
     <%= render "posts/partials/show/content/notices/flag_reasons", post: post %>
 
     <% if CurrentUser.can_approve_posts? %>
-      <div>
+      <div data-reason="<%= post.pending_flag&.reason %>">
         <%= link_to "Delete", confirm_delete_moderator_post_post_path(post, q: params[:q]), class: "button btn-neutral" %>
          | <%= tag.a "Unflag", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "none" } %>
         <% if post.is_approvable? %>
            | <%= tag.a "Unflag+approve", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "approve" } %>
         <% end %>
         <% unless post.pending_flag&.reason =~ /uploading_guidelines/ %>
-           | <%= tag.a "Delete with given reason", href: "#", class: "delete-with-reason-link button btn-neutral", data: { "post-id": post.id, "reason": "", "prompt": "given reason" } %>
+           | <%= tag.a "Delete with given reason", href: "#", class: "delete-with-reason-link button btn-neutral", data: { "post-id": post.id, "reason": "", "prompt": "given reason", "move-favs": (post.pending_flag&.reason =~ /Inferior/).present? } %>
         <% end %>
         <% if !post.parent_id.nil? && post.pending_flag&.reason =~ %r{Inferior version/duplicate of post #\d+} %>
            | <%= tag.a "Move flag to parent", href: "#", class: "move-flag-to-parent-link button btn-neutral", data: { "pid": post.id, "parent-id": post.parent_id } %>

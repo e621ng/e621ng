@@ -569,11 +569,26 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
+      # Memoize based on current dirty state to handle multiple save cycles
+      current_state = [
+        tag_string_changed?,
+        locked_tags_changed?,
+        tag_string_diff.present?,
+        tag_string,
+        tag_string_in_database.presence || tag_string_before_last_save || "",
+      ]
+
+      if @should_process_tags_state == current_state
+        return @should_process_tags
+      end
+
+      @should_process_tags_state = current_state
+
       if @removed_tags.nil?
         @removed_tags = []
       end
 
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
+      @should_process_tags = tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || !@removed_tags.empty? || (tag_array - tag_array_was).any?
     end
 
     def tag_array
@@ -593,7 +608,8 @@ class Post < ApplicationRecord
     end
 
     def added_tags
-      tags - tags_was
+      added_tag_names = tag_array - tag_array_was
+      Tag.where(name: added_tag_names)
     end
 
     def decrement_tag_post_counts
@@ -681,6 +697,8 @@ class Post < ApplicationRecord
     def reset_tag_array_cache
       @tag_array = nil
       @tag_array_was = nil
+      @should_process_tags = nil
+      @should_process_tags_state = nil
     end
 
     def set_tag_string(string)
@@ -1127,13 +1145,31 @@ class Post < ApplicationRecord
     alias_method :is_favorited?, :favorited_by?
 
     def append_user_to_fav_string(user_id)
-      self.fav_string = (fav_string + " fav:#{user_id}").strip
-      clean_fav_string!
+      # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
+      # Checking for presence is faster than explicit deduplication for both approaches.
+      if fav_count > 1000
+        unless fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
+          self.fav_string = (fav_string + " fav:#{user_id}").strip
+          self.fav_count = fav_string.split.size
+        end
+      else
+        fav_array = fav_string.split
+        fav_tag = "fav:#{user_id}"
+
+        unless fav_array.include?(fav_tag)
+          fav_array << fav_tag
+          self.fav_string = fav_array.join(" ")
+          self.fav_count = fav_array.size
+        end
+      end
     end
 
     def delete_user_from_fav_string(user_id)
-      self.fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
-      clean_fav_string!
+      new_fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
+      if new_fav_string != fav_string
+        self.fav_string = new_fav_string
+        self.fav_count = new_fav_string.split.size
+      end
     end
 
     # users who favorited this post, ordered by users who favorited it first
@@ -1355,14 +1391,6 @@ class Post < ApplicationRecord
       TransferFavoritesJob.perform_later(id, CurrentUser.id)
     end
 
-    def give_favorites_to_parent!
-      return if parent.nil?
-
-      FavoriteManager.give_to_parent!(self)
-      PostEvent.add(id, CurrentUser.user, :favorites_moved, { parent_id: parent_id })
-      PostEvent.add(parent_id, CurrentUser.user, :favorites_received, { child_id: id })
-    end
-
     def parent_exists?
       Post.exists?(parent_id)
     end
@@ -1573,7 +1601,7 @@ class Post < ApplicationRecord
 
   module NoteMethods
     def can_have_notes?
-      is_png? || is_jpg? || is_gif?
+      is_png? || is_jpg? || is_gif? || is_webp?
     end
 
     def has_notes?
@@ -1942,6 +1970,7 @@ class Post < ApplicationRecord
     _has_cropped
     hide_from_anonymous
     hide_from_search_engines
+    favorites_transfer_in_progress
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 

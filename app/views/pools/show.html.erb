@@ -16,9 +16,7 @@
         <% if @posts.none? %>
           <%= render "posts/blank" %>
         <% else %>
-          <% @posts.each do |post| %>
-            <%= PostPresenter.preview(post, pool_id: @pool.id, show_cropped: true, show_deleted: true) %>
-          <% end %>
+          <%= render(PostThumbnailComponent.with_collection(@posts, pool_id: @pool.id, show_deleted: true)) %>
         <% end %>
       </div>
     </div>

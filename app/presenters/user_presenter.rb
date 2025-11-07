@@ -67,8 +67,7 @@ class UserPresenter
   end
 
   def uploads
-    posts = Post.tag_match("user:#{user.name}").limit(8)
-    PostsDecorator.decorate_collection(posts)
+    Post.tag_match("user:#{user.name}").limit(8)
   end
 
   def has_uploads?
@@ -77,8 +76,7 @@ class UserPresenter
 
   def favorites
     ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(8).pluck(:post_id)
-    posts = Post.where(id: ids).sort_by { |post| ids.index(post.id) }
-    PostsDecorator.decorate_collection(posts)
+    Post.where(id: ids).sort_by { |post| ids.index(post.id) }
   end
 
   def has_favorites?

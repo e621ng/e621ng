@@ -24,7 +24,9 @@
             data-post-flag-id="<%= post_flag.id %>"
             data-post-id="<%= post_flag.post_id %>"
           >
-            <td><%= PostPresenter.preview(post_flag.post, show_deleted: true) %></td>
+            <td>
+              <%= render(PostThumbnailComponent.new(post: post_flag.post, stats: true, show_deleted: true)) %>
+            </td>
             <td>
               <div class="dtext-container">
                 <%= format_text post_flag.reason %>

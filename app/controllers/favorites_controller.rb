@@ -20,7 +20,7 @@ class FavoritesController < ApplicationController
         @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
       end
 
-      @posts = PostsDecorator.decorate_collection(@post_set.posts)
+      @posts = @post_set.posts
       respond_with(@posts) do |fmt|
         fmt.json do
           render json: @post_set.api_posts, root: "posts"
@@ -31,6 +31,12 @@ class FavoritesController < ApplicationController
 
   def create
     @post = Post.find(params[:post_id])
+
+    if @post.favorites_transfer_in_progress?
+      render_expected_error(423, "Post favorites are being transferred, please try again later")
+      return
+    end
+
     FavoriteManager.add!(user: CurrentUser.user, post: @post)
 
     render json: { post_id: @post.id, favorite_count: @post.fav_count }
@@ -40,6 +46,12 @@ class FavoritesController < ApplicationController
 
   def destroy
     @post = Post.find(params[:id])
+
+    if @post.favorites_transfer_in_progress?
+      render_expected_error(423, "Post favorites are being transferred, please try again later")
+      return
+    end
+
     FavoriteManager.remove!(user: CurrentUser.user, post: @post)
 
     render json: { post_id: @post.id, favorite_count: @post.fav_count }

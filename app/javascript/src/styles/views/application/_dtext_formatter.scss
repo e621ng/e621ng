@@ -38,6 +38,7 @@
     font-size: 1rem !important; // Gets overridden by form styles otherwise
     line-height: 1rem;
     font-family: "Roboto", Verdana, Geneva, sans-serif;
+    white-space: nowrap; // Fixes overflow on small screens
 
     @include st-radius-top;
 

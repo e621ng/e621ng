@@ -1,8 +1,8 @@
 <div id="c-confirm-delete">
   <h1>Delete Post</h1>
 
-  <div>
-    <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+  <div class="post_delete_preview">
+    <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
   </div>
 
   <%= form_tag(delete_moderator_post_post_path, :style => "clear: both;", :class => "simple_form") do %>
@@ -14,7 +14,7 @@
 
     <% if @post.parent_id %>
       <div class="post_delete_options">
-        <%= PostPresenter.preview(@post.parent, show_deleted: true, no_blacklist: true) %>
+        <%= render(PostThumbnailComponent.new(post: @post.parent, stats: true, show_deleted: true, no_blacklist: true)) %>
         <div class="input">
           <label for="move_favorites">
             <%= check_box_tag "move_favorites", true, @reason.starts_with?("Inferior") %>
