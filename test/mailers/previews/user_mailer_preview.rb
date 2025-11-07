@@ -8,7 +8,7 @@ class UserMailerPreview < ActionMailer::Preview
   def forum_notice
     user = User.first
     forum_topic = ForumTopic.first
-    forum_posts = forum_topic&.forum_posts&.limit(5) || []
+    forum_posts = forum_topic&.posts&.limit(5) || []
     UserMailer.forum_notice(user, forum_topic, forum_posts)
   end
 end
