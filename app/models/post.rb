@@ -860,7 +860,7 @@ class Post < ApplicationRecord
           self.source = $2
 
         when /^\+source:("?)(.*)\1$/i
-          self.source = self.source.blank? ? $2 :  "#{self.source}\n#{$2}"
+          self.source = self.source.blank? ? $2 : "#{self.source}\n#{$2}"
 
         when /^newpool:(.+)$/i
           pool = Pool.find_by_name($1)
