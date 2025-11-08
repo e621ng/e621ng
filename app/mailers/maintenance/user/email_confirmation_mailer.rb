@@ -5,9 +5,7 @@ module Maintenance
     class EmailConfirmationMailer < ApplicationMailer
       def confirmation(user)
         @user = user
-        mail(to: @user.email, subject: "#{Danbooru.config.app_name} Account Confirmation") do |format|
-          format.html
-        end
+        mail(to: @user.email, subject: "#{Danbooru.config.app_name} Account Confirmation")
       end
     end
   end
