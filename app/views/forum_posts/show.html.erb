@@ -10,3 +10,5 @@
 <% content_for(:page_title) do %>
   Forum Post
 <% end %>
+
+<% render(partial: "static/embed", locals: { record: @forum_post, name: "Forum Post in #{@forum_post.topic.title}", description: strip_tags(format_text(@forum_post.body)).truncate(200) }) %>

@@ -48,7 +48,11 @@ class PostEventTest < ActiveSupport::TestCase
         @post.undelete!
       end
 
-      assert_post_events_created(@janitor, [:favorites_moved, :favorites_received]) do
+      assert_post_events_created(@janitor, %i[favorites_moved favorites_received]) do
+        # Add some favorites to the child post first
+        favorite_user = create(:user)
+        FavoriteManager.add!(user: favorite_user, post: @post)
+
         TransferFavoritesJob.new.perform @post.id, @janitor.id
       end
 

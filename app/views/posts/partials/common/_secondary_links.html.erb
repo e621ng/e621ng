@@ -1,9 +1,7 @@
-<%= render "posts/partials/common/blacklist_editor" %>
-
 <% content_for(:secondary_links) do %>
   <%= subnav_link_to "Listing", posts_path %>
   <%= subnav_link_to "Upload", new_upload_path %>
-  <%= subnav_link_to "Hot", posts_path(tags: "order:rank", d: "1") %>
+  <%= subnav_link_to "Hot", posts_path(tags: "order:hot", d: "1") %>
   <%= subnav_link_to("Popular", popular_index_path) %>
   <% unless CurrentUser.is_anonymous? %>
     <%= subnav_link_to "Favorites", favorites_path %>
@@ -16,3 +14,7 @@
   <li><a href="#" id="janitor-toolbar-toggle">Approvals: Off</a></li>
   <% end %>
 <% end %>
+
+<div class="blacklist-staging" style="display: none;">
+  <%= render "posts/partials/common/blacklist_editor" %>
+</div>

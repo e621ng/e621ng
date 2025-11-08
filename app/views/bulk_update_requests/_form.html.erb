@@ -8,8 +8,8 @@
   <div class="input">
     <label class="text optional" for="bulk_update_request_script">Script</label>
     <%= text_area :bulk_update_request, :script, :size => "50x10" %>
-    <p><a href="#" id="script-help-link">Help</a></p>
-    <ul class="hint" id="script-help" title="Bulk Update Request Help">
+    <a href="#" id="script-help-link">Help</a>
+    <ul class="hint" id="script-help" title="Bulk Update Request Help" style="display: none;">
       <li>unalias aaa -> bbb</li>
       <li>unimply aaa -> bbb</li>
       <li>alias aaa -> bbb</li>
@@ -47,10 +47,14 @@
 
 <%= content_for(:html_header) do %>
   <%= javascript_tag nonce: true do -%>
-    $(function() {
-      $("#script-help").hide();
-      $("#script-help-link").click(function() {
-        $("#script-help").dialog({width: "30em"});
+    document.addEventListener("DOMContentLoaded", function() {
+      const help = document.getElementById("script-help");
+      const helpLink = document.getElementById("script-help-link");
+      
+      if (!helpLink || !help) return;
+      helpLink.addEventListener("click", function(event) {
+        event.preventDefault();
+        help.style.display = help.style.display === "none" ? "block" : "none";
         return false;
       });
     });

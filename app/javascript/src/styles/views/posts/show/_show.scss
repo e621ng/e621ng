@@ -1,4 +1,5 @@
-body.c-posts.a-show {
+body.c-posts.a-show,
+body.c-posts.a-show-seq {
   #page {
     // Override the theme to instead
     // project it upon the content area
@@ -11,11 +12,21 @@ body.c-posts.a-show {
     flex-flow: column;
     flex: 1;
   }
+
+  #image-resize-notice {
+    margin-bottom: 0;
+  }
+
+  @import "partials/detailed_rejection";
+  @import "partials/add_to_pool";
+  @import "partials/notes";
 }
 
 // Due to the show-seq page having a different action,
 // using the body classes is not possible here
-#c-posts, #a-show {
+#c-posts #a-show {
   @import "partials/post_information";
   @import "partials/post_related_images";
 }
+
+@import "partials/post_toolbar";

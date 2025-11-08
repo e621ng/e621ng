@@ -2,7 +2,7 @@
   <h3>Related</h3>
   <ul id="related-list">
     <% if discover_mode? %>
-      <li id="secondary-links-posts-hot"><%= link_to "Hot", posts_path(:tags => "order:rank") %></li>
+      <li id="secondary-links-posts-hot"><%= link_to "Hot", posts_path(:tags => "order:hot") %></li>
       <li id="secondary-links-posts-popular"><%= link_to "Popular", popular_index_path %></li>
     <% end %>
 
@@ -12,6 +12,6 @@
       <li><%= link_to "Flagged", posts_path(:tags => "#{params[:tags]} status:flagged"), :rel => "nofollow" %></li>
     <% end %>
 
-    <li><%= link_to "Random", random_posts_path(:tags => params[:tags]), :id => "random-post", :rel => "nofollow", :"data-shortcut" => "r" %></li>
+    <li><%= link_to "Random", random_posts_path(:tags => params[:tags]), :id => "random-post", :rel => "nofollow" %></li>
   </ul>
 </section>

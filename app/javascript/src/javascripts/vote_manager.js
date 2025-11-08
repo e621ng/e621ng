@@ -3,6 +3,7 @@ import Utility from "./utility";
 class VoteManager {
   constructor (itemType) {
     this._type = itemType;
+    this.displayType = itemType.charAt(0).toUpperCase() + itemType.slice(1);
     this.allSelected = false;
     this.init();
   }
@@ -42,7 +43,7 @@ class VoteManager {
 
   selectedVotes () {
     return $("#votes>tbody>tr.selected").map(function () {
-      return $(this).attr("id").substr(1);
+      return $(this).attr("id").substring(1);
     }).get();
   }
 
@@ -58,7 +59,7 @@ class VoteManager {
         ids: votes.join(","),
       },
     }).done(() => {
-      Utility.notice(`${this._type} votes locked.`);
+      Utility.notice(`${this.displayType} votes locked.`);
     });
   }
 
@@ -74,7 +75,7 @@ class VoteManager {
         ids: votes.join(","),
       },
     }).done(() => {
-      Utility.notice(`${this._type} votes deleted.`);
+      Utility.notice(`${this.displayType} votes deleted.`);
     });
   }
 }

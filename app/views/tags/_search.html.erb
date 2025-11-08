@@ -1,7 +1,7 @@
 <%= form_search(path: tags_path) do |f| %>
   <%= f.input :name_matches, label: "Name", hint: "Use * for wildcard", autocomplete: "tag" %>
   <%= f.input :category, label: "Category", collection: TagCategory::CANONICAL_MAPPING.to_a, include_blank: true %>
-  <%= f.input :order, collection: [%w[Newest date], %w[Count count], %w[Name name]], include_blank: false %>
+  <%= f.input :order, collection: [%w[Count count], %w[Name name], %w[Newest date]], include_blank: false %>
   <%= f.input :has_wiki, label: "Has wiki?", collection: %w[yes no], include_blank: true %>
   <%= f.input :has_artist, label: "Has artist?", collection: %w[yes no], include_blank: true %>
   <%= f.input :hide_empty, label: "Hide empty?", as: :boolean, default: true %>

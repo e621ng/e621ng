@@ -13,18 +13,15 @@ class TagsController < ApplicationController
   end
 
   def index
-    @tags = Tag.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @tags = Tag.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
 
     respond_with(@tags)
   end
 
   def preview
+    # This endpoint needs to be a POST request, because long tag strings will exceed the browser URL length limit.
     @preview = TagsPreview.new(tags: params[:tags])
-    respond_to do |format|
-      format.json do
-        render json: @preview.serializable_hash
-      end
-    end
+    render plain: @preview.serializable_hash.to_json, content_type: "application/json"
   end
 
   def show

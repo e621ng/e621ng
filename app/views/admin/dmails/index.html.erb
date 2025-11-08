@@ -1,0 +1,49 @@
+<div id="c-dmails">
+  <div id="a-index">
+    <% if params[:folder] == "sent" %>
+      <h1>Sent Messages</h1>
+    <% elsif params[:folder] == "received" %>
+      <h1>Received Messages</h1>
+    <% else %>
+      <h1>Messages</h1>
+    <% end %>
+
+    <%= render "search" %>
+
+    <table class="striped">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Subject</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @dmails.each do |dmail| %>
+          <tr class="read-<%= dmail.is_read? %>">
+            <td><%= compact_time(dmail.created_at) %></td>
+            <td>
+              <%= link_to_user dmail.from %>
+            </td>
+            <td><%= link_to_user dmail.to %></td>
+            <td>
+              <%= link_to dmail.title, admin_user_dmail_path(@user, dmail), class: "dmail-entry" %>
+              <% if dmail.is_deleted? %>
+                (deleted)
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= numbered_paginator(@dmails) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Messages
+<% end %>

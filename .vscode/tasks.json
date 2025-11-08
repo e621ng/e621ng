@@ -1,0 +1,127 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "e621: run_rubocop_all",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh rubocop",
+      "detail": "Run rubocop on all files",
+      "group": "test"
+    },
+    {
+      "label": "e621: run_eslint_all",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh linter yarn run lint",
+      "detail": "Run eslint on all files",
+      "group": "test"
+    },
+    {
+      "label": "e621: run_tests_all",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh tests bundle exec rails test",
+      "group": "test",
+      "detail": "Run all tests"
+    },
+    {
+      "label": "e621: run_tests_file",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh tests bundle exec rails test ${input:test_file}",
+      "group": "test",
+      "detail": "Run tests on a specific file"
+    },
+    {
+      "label": "e621: run_tests_current_file",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh tests bundle exec rails test ${relativeFile}",
+      "group": "test",
+      "detail": "Run tests on the current file"
+    },
+    {
+      "label": "e621: run detached",
+      "type": "shell",
+      "command": "docker compose up -d",
+      "detail": "Run the application",
+      "hide": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "e621: stop",
+      "type": "shell",
+      "command": "docker compose down",
+      "hide": true,
+      "detail": "Stop the application",
+      "group": "build"
+    },
+    {
+      "label": "e621: dev_populate",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/populate",
+      "detail": "Populate the database with test data",
+      "group": "build",
+    },
+    {
+      "label": "e621: dev_setup",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/setup",
+      "detail": "Setup the application",
+      "group": "build",
+    },
+    {
+      "label": "e621: dev_rebuild",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/setup",
+      "detail": "Rebuild the application",
+      "group": "none",
+      "hide": true
+    },
+    {
+      "label": "e621: dev_erase",
+      "type": "shell",
+      "command": "docker compose down -v",
+      "hide": true,
+      "detail": "Stop and remove volumes",
+      "group": "none"
+    },
+    {
+      "label": "e621: dev_console",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/rails c",
+      "detail": "Open a Rails console",
+      "group": "none"
+    },
+    {
+      "label": "e621: dev_make_staff",
+      "type": "shell",
+      "command": ".vscode/run-in-container.sh e621 /app/bin/rails runner 'User.find(${input:user_id}).update(is_bd_staff: true)'",
+      "problemMatcher": [],
+      "detail": "Make a user a staff member",
+      "group": "none",
+      "hide": true
+    },
+    {
+      "label": "e621: dev_setup: ignore **ALL** meta dirs",
+      "type": "shell",
+      "command": "for dir in .vscode .devcontainer .github; do git update-index --skip-worktree $dir; done",
+      "hide": true,
+      "detail": "Ignore all meta directories",
+      "group": "none"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "test_file",
+      "default": "test/",
+      "type": "promptString",
+      "description": "Enter the test file name (eg, test/unit/model.rb)"
+    },
+    {
+      "id": "user_id",
+      "default": "1",
+      "type": "promptString",
+      "description": "Enter a user id (eg, 1)"
+    }
+  ]
+}

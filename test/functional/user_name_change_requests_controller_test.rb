@@ -73,5 +73,39 @@ class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
         end
       end
     end
+
+    context "destroy action" do
+      setup do
+        as(@user) do
+          @change_request = UserNameChangeRequest.new(
+            user_id: @user.id,
+            original_name: @user.name,
+            desired_name: "new_name",
+            change_reason: "test reason",
+            status: "pending",
+          )
+          @change_request.skip_limited_validation = true
+          @change_request.save!
+        end
+      end
+
+      should "allow admins to delete requests" do
+        delete_auth user_name_change_request_path(@change_request), @admin
+        assert_redirected_to user_name_change_requests_path
+        assert_not UserNameChangeRequest.exists?(@change_request.id)
+      end
+
+      should "not allow regular users to delete requests" do
+        delete_auth user_name_change_request_path(@change_request), @user
+        assert_response :forbidden
+        assert UserNameChangeRequest.exists?(@change_request.id)
+      end
+
+      should "not allow anonymous users to delete requests" do
+        delete user_name_change_request_path(@change_request)
+        assert_redirected_to new_session_path
+        assert UserNameChangeRequest.exists?(@change_request.id)
+      end
+    end
   end
 end

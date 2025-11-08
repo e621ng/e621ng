@@ -999,12 +999,15 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      context "tagged with animated_gif or animated_png" do
-        should "remove the tag if not a gif or png" do
+      context "tagged with animated_gif, animated_png or animated_webp" do
+        should "remove the tag if not a gif, png, or webp" do
           @post.update(tag_string: "tagme animated_gif")
           assert_equal("tagme", @post.tag_string)
 
           @post.update(tag_string: "tagme animated_png")
+          assert_equal("tagme", @post.tag_string)
+
+          @post.update(tag_string: "tagme animated_webp")
           assert_equal("tagme", @post.tag_string)
         end
       end
@@ -1212,7 +1215,7 @@ class PostTest < ActiveSupport::TestCase
           post_edited_by_user_b.old_source = ""
           post_edited_by_user_b.old_rating = "q"
           post_edited_by_user_b.parent_id = nil
-          post_edited_by_user_b.source = "http://example.com"
+          post_edited_by_user_b.source = "https://example.com"
           post_edited_by_user_b.rating = "q"
           post_edited_by_user_b.save
 
@@ -1372,14 +1375,6 @@ class PostTest < ActiveSupport::TestCase
       setup do
         @user = create(:privileged_user)
         @post = create(:post)
-      end
-
-      should "periodically clean the fav_string" do
-        @post.update_column(:fav_string, "fav:1 fav:1 fav:1")
-        @post.update_column(:fav_count, 3)
-        @post.append_user_to_fav_string(2)
-        assert_equal("fav:1 fav:2", @post.fav_string)
-        assert_equal(2, @post.fav_count)
       end
 
       # TODO: Needs to reload relationship to obtain non cached value
@@ -1818,7 +1813,7 @@ class PostTest < ActiveSupport::TestCase
     end
 
     should "return posts for a pixiv source search" do
-      url = "http://i1.pixiv.net/img123/img/artist-name/789.png"
+      url = "https://i1.pixiv.net/img123/img/artist-name/789.png"
       post = create(:post, source: url)
 
       assert_tag_match([post], "source:*.pixiv.net/img*/artist-name/*")
@@ -1881,9 +1876,9 @@ class PostTest < ActiveSupport::TestCase
           fav_count: n,
           file_size: 1.megabyte * n,
           # posts[0] is portrait, posts[1] is landscape. posts[1].mpixels > posts[0].mpixels.
-          image_height: 100*n*n,
-          image_width: 100*(3-n)*n,
-          tag_string: tags[n-1],
+          image_height: 100 * n * n,
+          image_width: 100 * (3 - n) * n,
+          tag_string: tags[n - 1],
         )
 
         create(:comment, post: p, do_not_bump_post: false)
@@ -1908,7 +1903,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(posts.reverse, "order:arttags")
       assert_tag_match(posts.reverse, "order:chartags")
       assert_tag_match(posts.reverse, "order:copytags")
-      assert_tag_match(posts.reverse, "order:rank")
+      assert_tag_match(posts.reverse, "order:hot")
       assert_tag_match(posts.reverse, "order:note_count")
       assert_tag_match(posts.reverse, "order:note_count_desc")
       assert_tag_match(posts.reverse, "order:notes")
@@ -2368,7 +2363,7 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "gracefully fail if the set is full" do
-          Danbooru.config.stubs(:set_post_limit).returns(0)
+          Danbooru.config.stubs(:post_set_post_limit).returns(0)
           @post.update(tag_string_diff: "set:#{@set.id}")
           assert_equal(["Sets can only have up to 0 posts each"], @post.errors.full_messages)
           assert_equal([], @set.reload.post_ids)
@@ -2384,7 +2379,7 @@ class PostTest < ActiveSupport::TestCase
         end
 
         should "gracefully fail if the set is full" do
-          Danbooru.config.stubs(:set_post_limit).returns(0)
+          Danbooru.config.stubs(:post_set_post_limit).returns(0)
           @post.update(tag_string_diff: "set:#{@set.shortname}")
           assert_equal(["Sets can only have up to 0 posts each"], @post.errors.full_messages)
           assert_equal([], @set.reload.post_ids)

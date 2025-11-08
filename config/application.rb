@@ -26,7 +26,7 @@ require_relative "danbooru_local_config"
 module Danbooru
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.1
+    config.load_defaults 7.2
 
     # https://github.com/rails/rails/issues/50897
     config.active_record.raise_on_assign_to_attr_readonly = false
@@ -59,6 +59,7 @@ module Danbooru
     end
 
     config.i18n.enforce_available_locales = false
+    config.active_model.i18n_customize_full_message = true
 
     # Configuration for the application, engines, and railties goes here.
     #

@@ -1,10 +1,12 @@
-@mixin window-larger-than($value) {
+@mixin window-larger-than($value, $or-equal: false) {
+  @if $or-equal { $value: $value - 0.1px; }
   @media (min-width: $value) {
     @content;
   }
 }
 
-@mixin window-smaller-than($value) {
+@mixin window-smaller-than($value, $or-equal: false) {
+  @if $or-equal { $value: $value + 0.1px; }
   @media (max-width: $value) {
     @content;
   }

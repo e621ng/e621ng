@@ -1,31 +1,72 @@
+
+<section id="ptbr-wrapper">
+
 <% if CurrentUser.is_member? %>
-  <div class="image-vote-buttons">
-    <%= post_vote_block(@post, @post.own_vote, buttons: true) %>
+  <div
+    class="ptbr-vote"
+    data-score="<%= @post.score %>"
+    data-up="<%= @post.up_score %>"
+    data-down="<%= @post.down_score %>"
+    data-state="<%= post_score_state(@post) %>"
+    data-vote="<%= @post.own_vote.nil? ? 0 : @post.own_vote.score %>"
+  >
+    <button
+      class="st-button kinetic ptbr-vote-button"
+      data-action="1"
+      processing="false"
+    ><%= svg_icon(:chevron_up) %></button>
+    <button class="st-button kinetic ptbr-score">
+      <%= @post.score %>
+    </button>
+    <span class="ptbr-breakdown hidden">
+      <span><%= @post.up_score %></span><span><%= @post.down_score %></span>
+    </span>
+    <button
+      class="st-button kinetic ptbr-vote-button"
+      data-action="-1"
+      processing="false"
+    ><%= svg_icon(:chevron_down) %></button>
   </div>
-  <%= tag.div(class: "fav-buttons fav-buttons-#{@post.is_favorited?}") do %>
-    <%= button_tag id: "add-fav-button", class: "button btn-success", data: { pid: @post.id, shortcut: "f" } do %>
-      <%= tag.i(class: "fa-regular fa-star") %>
-      <span>Favorite</span>
-    <% end %>
-    <%= button_tag id: "remove-fav-button", class: "button btn-danger", data: { pid: @post.id, shortcut: "shift+f" } do %>
-      <%= tag.i(class: "fa-solid fa-star") %>
-      <span>Unfavorite</span>
-    <% end %>
-  <% end %>
+
+  <div class="ptbr-favorite">
+    <button
+      class="st-button kinetic ptbr-favorite-button anim"
+      favorited="<%= @post.is_favorited? %>"
+      processing="false"
+    >
+      <%= svg_icon(:star) %>
+    </button>
+  </div>
+<% else %>
+  <div
+    class="ptbr-vote"
+    data-score="<%= @post.score %>"
+    data-up="<%= @post.up_score %>"
+    data-down="<%= @post.down_score %>"
+    data-state="<%= post_score_state(@post) %>"
+  >
+    <button class="st-button kinetic ptbr-score anonymous">
+      <%= @post.score %>
+    </button>
+    <span class="ptbr-breakdown hidden">
+      <span><%= @post.up_score %></span><span><%= @post.down_score %></span>
+    </span>
+  </div>
 <% end %>
 
 <% if @post.visible? %>
-  <div id="image-download-link">
-    <%= link_to @post.file_url, class: "button btn-warn" do %>
-      <%= tag.i(class: "fa-solid fa-right-to-bracket fa-rotate-90") %>
-      <span>Download</span>
-    <% end %>
+  <div class="<%= @post.has_notes? ? "ptbr-notes" : "ptbr-notes hidden" %>">
+    <button
+      class="st-button kinetic ptbr-notes-button"
+      enabled="true"
+      data-hotkey="note-toggle"
+    ></button>
   </div>
 <% end %>
 
 <% if !@post.force_original_size? %>
-  <div>
-    <select id="image-resize-selector" class="button btn-neutral">
+  <div class="ptbr-resize">
+    <select id="image-resize-selector" class="st-button">
       <option value="original">Original</option>
       <option value="fit">Fit (Horizontal)</option>
       <option value="fitv">Fit (Vertical)</option>
@@ -39,3 +80,53 @@
   </select>
   </div>
 <% end %>
+
+<% if @post.visible? %>
+  <div class="ptbr-fullscreen">
+    <a
+      href="<%= @post.file_url %>"
+      class="st-button kinetic ptbr-fullscreen-button"
+    >
+      View
+    </a>
+  </div>
+
+  <div class="ptbr-etc">
+    <button class="st-button kinetic ptbr-etc-toggle">
+      <%= svg_icon(:ellipsis_v) %>
+    </button>
+    <div class="ptbr-etc-menu hidden">
+      <a href="<%= @post.file_url %>" class="st-button ptbr-etc-fullscreen">Fullscreen</a>
+      <a href="<%= @post.file_url %>" class="st-button ptbr-etc-download" download="<%= @post.md5 %>.<%= @post.file_ext %>" pending="false">
+        <%= svg_icon(:hexagon) %>
+        <span>Download</span>
+      </a>
+      <button class="st-button ptbr-notes-button <%= @post.has_notes? ? "" : "hidden"%>" enabled="true"></button>
+      <button class="st-button ptbr-etc-pool add-to-pool">Add to Pool</button>
+      <button class="st-button ptbr-etc-set add-to-set">Add to Set</button>
+    </div>
+  </div>
+<% end %>
+
+</section>
+
+
+<%# SVG Filters %>
+<section id="ptbr-svg-filters">
+  <svg height="0" width="0">
+    <filter id="inset-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feComponentTransfer in="SourceAlpha">
+        <feFuncA type="table" tableValues="1 0"></feFuncA>
+      </feComponentTransfer>
+      <feGaussianBlur stdDeviation="1"></feGaussianBlur>
+      <feOffset result="offsetblur" dx="1" dy="1"></feOffset>
+      <feFlood result="color" flood-color="#be9e2f"></feFlood>
+      <feComposite in2="offsetblur" operator="in"></feComposite>
+      <feComposite in2="SourceAlpha" operator="in"></feComposite>
+      <feMerge>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+        <feMergeNode></feMergeNode>
+      </feMerge>
+    </filter>
+  </svg>
+</section>

@@ -23,6 +23,7 @@
       <%= render "users/validation_notice" %>
     <% end %>
 
+    <%# Notification Toasts %>
     <div class="ui-corner-all ui-state-highlight" id="notice" style="<%= "display: none;" unless flash[:notice] %>">
       <span><%= format_text(flash[:notice], inline: true) %>.</span>
       <a href="#" id="close-notice-link">close</a>
@@ -31,9 +32,10 @@
     <%= yield :layout %>
   </div>
 
-  <% if CurrentUser.is_anonymous? %>
-    <%= render "static/guest_warning" %>
+  <% unless content_for?(:skip_tos_warning) %>
+    <%= render "static/tos_warning" %>
   <% end %>
+
   <%= render "static/footer" %>
   <% if Danbooru.config.enable_visitor_metrics? %>
     <%= javascript_include_tag "https://plausible.dragonfru.it/js/script.js", nonce: true, async: true, data: { domain: Danbooru.config.domain } %>

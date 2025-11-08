@@ -39,6 +39,7 @@ class Ticket < ApplicationRecord
   # |    User    |         Any         | Moderator+ / Creator |
   # |  Wiki Page |         Any         |  Janitor+ / Creator  |
   # |    Other   |         None        | Moderator+ / Creator |
+  # |Replacement |         Any         |  Janitor+ / Creator  |
 
   module TicketTypes
     module Blip
@@ -86,7 +87,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        (content&.visible?(user) && user.is_janitor?) || user.is_admin? || (user.id == creator_id)
+        ((content.nil? || content&.visible?(user)) && user.is_staff?) || user.is_admin? || (user.id == creator_id)
       end
     end
 
@@ -100,7 +101,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_janitor? || (user.id == creator_id)
+        user.is_staff? || (user.id == creator_id)
       end
     end
 
@@ -124,7 +125,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_janitor? || (user.id == creator_id)
+        user.is_staff? || (user.id == creator_id)
       end
     end
 
@@ -138,7 +139,7 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        (content&.can_view?(user) && user.is_janitor?) || user.is_admin? || (user.id == creator_id)
+        ((content.nil? || content&.can_view?(user)) && user.is_staff?) || user.is_admin? || (user.id == creator_id)
       end
     end
 
@@ -170,7 +171,25 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_janitor? || user.is_admin? || (user.id == creator_id)
+        user.is_staff? || user.is_admin? || (user.id == creator_id)
+      end
+    end
+
+    module Replacement
+      def model
+        ::PostReplacement
+      end
+
+      def can_view?(user)
+        user.is_janitor? || (user.id == creator_id)
+      end
+
+      def can_create_for?(user)
+        content&.visible_to?(user)
+      end
+
+      def subject
+        reason.split("\n")[0] || "Unknown Report Type"
       end
     end
   end
@@ -178,6 +197,12 @@ class Ticket < ApplicationRecord
   module APIMethods
     def hidden_attributes
       hidden = []
+
+      unless can_view?(CurrentUser.user)
+        hidden += %i[creator_id accused_id reason response report_reason]
+        return super + hidden
+      end
+
       hidden += %i[claimant_id] unless CurrentUser.is_moderator?
       hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
       super + hidden
@@ -389,6 +414,8 @@ class Ticket < ApplicationRecord
           user: creator_id ? User.id_to_name(creator_id) : nil,
           claimant: claimant_id ? User.id_to_name(claimant_id) : nil,
           target: bot_target_name,
+          target_id: disp_id,
+          accused_id: accused_id,
           status: status,
           category: qtype,
           reason: reason,

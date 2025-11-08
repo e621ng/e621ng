@@ -1,0 +1,263 @@
+// Post Toolbar
+#ptbr-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  margin: 0.5rem 0;
+  gap: 0.5rem;
+
+  @include window-larger-than(50rem) {
+    justify-content: flex-start;
+  }
+}
+
+
+// Voting section
+#ptbr-wrapper .ptbr-vote {
+  display: flex;
+  @include st-radius;
+  position: relative;
+
+
+  // Vote actions buttons
+  button {
+    svg { margin: -0.5rem -0.5rem; }  // Makes buttons square
+
+    &[data-action="-1"] { @include st-radius-right; }
+    &[data-action="1"] { @include st-radius-left; }
+  }
+
+  // Vote states
+  // data-vote on the wrapper indicates user's current vote on the post
+  // data-action on the button indicates whether the button is for upvote or downvote
+  &[data-vote="-1"] button[data-action="-1"] {
+    background-color: palette("background-red");
+    &:hover, &:focus { background-color: palette("background-red-d5"); }
+
+    box-shadow: 0 0.25rem palette("background-red-d10");
+    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette("background-red-d10"); }
+  }
+  &[data-vote="1"] button[data-action="1"] {
+    background-color: palette("background-green");
+    &:hover, &:focus { background-color: palette("background-green-d5"); }
+
+    box-shadow: 0 0.25rem palette("background-green-d10");
+    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette("background-green-d10"); }
+  }
+
+
+  // Score display
+  .ptbr-score {
+    padding: 0 0.5rem;
+    min-width: 3rem; // Fits 3-digit scores
+
+    cursor: help;
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-weight: bold;
+    align-items: center;
+
+    // Separators between buttons and score
+    border-width: 0 1px;
+    border-color: themed("color-foreground");
+    border-style: solid;
+    border-radius: 0;
+
+    &.anonymous {
+      border-color: transparent;
+      @include st-radius;
+    }
+  }
+
+  // Score states
+  &[data-state="1"] .ptbr-score { color: palette("text-green"); }
+  &[data-state="-1"] .ptbr-score { color: palette("text-red"); }
+
+
+  // Score breakdown popup
+  .ptbr-breakdown {
+    display: flex;
+    position: absolute;
+    top: -2.75rem;
+    left: 50%;
+    translate: -50% 0;
+    text-wrap: nowrap;
+
+    background: themed("color-section-lighten-5");
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-size: 1rem;
+    line-height: 1rem;
+    @include st-radius;
+
+    box-shadow: 0 0 0.5rem black;
+
+    &::after {
+      content: "";
+
+      position: absolute;
+      bottom: -1rem;
+      left: 50%;
+      translate: -50% 0;
+
+      border-width: 0.5rem;
+      border-style: solid;
+      border-color: themed("color-section-lighten-5") transparent transparent transparent;
+    }
+
+    & > span {
+      padding: 0.5rem;
+      font-weight: bold;
+      &:first-child {
+        &:before {
+          content: "▲";
+          padding-right: 0.25rem;
+        }
+        color: palette("text-green");
+      }
+      &:last-child {
+        &:after {
+          content: "▼";
+          padding-left: 0.25rem;
+        }
+        color: palette("text-red");
+      }
+    }
+
+    &.hidden { display: none; }
+  }
+}
+
+
+// Favorite button
+#ptbr-wrapper .ptbr-favorite-button {
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+  color: palette("background-gold-d10");
+
+  &[favorited="true"] {
+    svg {
+      filter: url(#inset-shadow);
+      fill: palette("background-gold-d10");
+      stroke-width: 0;
+    }
+  }
+}
+
+
+// Fullscreen button
+#ptbr-wrapper .ptbr-fullscreen {
+  display: none;
+  @include window-larger-than(40rem) { display: flex; }
+}
+#ptbr-wrapper .ptbr-fullscreen-button {
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+}
+
+
+// Resize selector
+#ptbr-wrapper .ptbr-resize select {
+  height: 2rem;
+  max-width: 25vw; // Prevent overflow on tiny screens
+  padding: 0 0.5rem;
+
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+  color: themed("palette-text-white");
+  font-size: 1rem;
+  line-height: 1rem;
+
+  cursor: pointer;
+  background: themed("color-section-lighten-5");
+  box-shadow: 0 0.25rem themed("color-section");
+
+  &:hover, &:focus { background: themed("color-section-lighten-10"); }
+}
+
+
+// Notes toggle
+#ptbr-wrapper .ptbr-notes {
+  display: none;  // In the hamburger menu on mobile
+  @include window-larger-than(40rem) { display: flex; }
+  &.hidden { display: none; }
+}
+
+#ptbr-wrapper .ptbr-notes-button {
+  width: 6rem;
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+  &:after { content: "Notes: On"; }
+
+  &[enabled="false"] { &:after { content: "Notes: Off"; } }
+}
+
+
+// Overflow menu
+#ptbr-wrapper .ptbr-etc {
+  display: flex;
+  position: relative;
+  gap: 0.5rem;
+}
+
+#ptbr-wrapper .ptbr-etc-menu {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+
+  position: absolute;
+  right: 0;
+  top: 2rem;
+  z-index: 1; // on top of the related posts
+  padding: 0.25rem 0.25rem;
+  margin-top: 0.5rem;
+
+  background: themed("color-section");
+  @include st-radius;
+
+  &.hidden { display: none; }
+
+  // Mobile-only buttons
+  @include window-larger-than(40rem) {
+    .ptbr-etc-fullscreen { display: none; }
+    .ptbr-notes-button { display: none; }
+  }
+
+  .st-button {
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+  }
+
+  // Download button
+  .ptbr-etc-download {
+    min-width: 6rem;
+    align-items: center;
+
+    svg {
+      display: none;
+      height: 1rem;
+      width: 1rem;
+
+      animation: spin-animation ease-in-out 1s infinite;
+    }
+    span {
+      text-align: center;
+    }
+
+    &[pending="true"] {
+      svg { display: inline; }
+      span { display: none; }
+    }
+
+    @keyframes spin-animation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  }
+
+  .ptbr-notes-button.hidden { display: none; }
+  .ptbr-etc-pool, .ptbr-etc-set { min-width: 6.5rem; }
+}
+
+
+
+// Section holding SVG filters
+// Cannot be set to display: none, since that breaks it.
+#ptbr-svg-filters {
+  visibility: hidden;
+  height: 0;
+}

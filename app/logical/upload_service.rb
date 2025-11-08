@@ -23,8 +23,7 @@ class UploadService
 
       @upload.save!
       @post = create_post_from_upload(@upload)
-      return @upload
-
+      @upload
     rescue Exception => x
       @upload.update(status: "error: #{x.class} - #{x.message}", backtrace: x.backtrace.join("\n"))
       @upload
@@ -33,7 +32,7 @@ class UploadService
 
   def warnings
     return [] if @post.nil?
-    return @post.warnings.full_messages
+    @post.warnings.full_messages
   end
 
   def create_post_from_upload(upload)

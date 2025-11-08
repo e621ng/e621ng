@@ -1,6 +1,5 @@
 import Blip from "./blips.js";
 import Comment from "./comments.js";
-import DText from "./dtext.js";
 import ForumPost from "./forum_posts.js";
 import Utility from "./utility.js";
 
@@ -35,7 +34,6 @@ class UserWarnable {
         Blip.reinitialize_all();
         Comment.reinitialize_all();
         ForumPost.reinitialize_all();
-        DText.initialize_all_inputs();
       }).fail(() => {
         Utility.error("Failed to mark as warned.");
       });

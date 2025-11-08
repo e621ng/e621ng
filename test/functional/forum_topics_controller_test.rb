@@ -128,7 +128,7 @@ class ForumTopicsControllerTest < ActionDispatch::IntegrationTest
       should "fail with expected error if invalid category_id is provided" do
         post_auth forum_topics_path, @user, params: { forum_topic: { title: "bababa", category_id: 0, original_post_attributes: { body: "xaxaxa" } }, format: :json }
 
-        assert_response :unprocessable_entity
+        assert_response :unprocessable_content
         assert_includes(@response.parsed_body.dig("errors", "category"), "is invalid")
       end
     end
