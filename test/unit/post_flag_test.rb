@@ -42,13 +42,13 @@ class PostFlagTest < ActiveSupport::TestCase
     should "not be able to flag grandfathered posts with the uploading_guidelines reason" do
       error = assert_raises(ActiveRecord::RecordInvalid) do
         as(@bob) do
-          @post_flag = create(:post_flag, post: create(:post, tag_string: "grandfathered_content"), reason_name: "uploading_guidelines")
+          @post_flag = create(:post_flag, post: create(:post, tag_string: "grandfathered_content"), reason_name: "uploading_guidelines", note: "Some explanation.")
         end
       end
       assert_match(/grandfathered/, error.message)
 
       as(@bob) do
-        @post_flag = create(:post_flag, post: @post, reason_name: "uploading_guidelines")
+        @post_flag = create(:post_flag, post: @post, reason_name: "uploading_guidelines", note: "Some explanation.")
       end
     end
 
@@ -100,6 +100,72 @@ class PostFlagTest < ActiveSupport::TestCase
           as(@bob) { create(:post_flag, post: @post) }
         end
         assert_match(/You cannot flag posts/, error.message)
+      end
+    end
+
+    context "notes" do
+      setup do
+        @user = create(:user)
+        @post = create(:post, uploader: @user)
+      end
+
+      should "be required on reasons that require explanation" do
+        reasons = Danbooru.config.flag_reasons.select { |r| r[:require_explanation] }
+        reasons.each do |reason|
+          flag = PostFlag.new(post: @post, creator: @user, reason_name: reason[:name], note: "")
+          assert_not flag.valid?, "note should be required for reason #{reason[:name]}"
+          assert_includes flag.errors[:note], "is required for the selected reason"
+        end
+      end
+
+      should "not be required on reasons that do not require explanation" do
+        reasons = Danbooru.config.flag_reasons.reject { |r| r[:require_explanation] }
+        reasons.each do |reason|
+          flag = PostFlag.new(post: @post, creator: @user, reason_name: reason[:name], note: "")
+          flag.valid?
+          assert_not_includes flag.errors[:note], "is required for the selected reason"
+        end
+      end
+
+      should "be allowed" do
+        reasons = Danbooru.config.flag_reasons.select { |r| r[:require_explanation] }
+        reasons.each do |reason|
+          flag = PostFlag.new(post: @post, creator: @user, reason_name: reason[:name], note: "Some explanation")
+          flag.valid?
+          assert_not_includes flag.errors[:note], "is required for the selected reason"
+        end
+      end
+
+      should "hide note from API for non-staff users" do
+        staff_user = create(:moderator_user)
+        regular_user = create(:user)
+        post = create(:post, uploader: staff_user)
+
+        flag = nil
+        as(regular_user) do
+          flag = create(:post_flag, post: post, note: "Secret note content")
+        end
+
+        # Staff users can see the note
+        as(staff_user) do
+          json = flag.as_json
+          assert_includes json.keys, "note"
+          assert_equal "Secret note content", json["note"]
+        end
+
+        # Creator can see their own note
+        as(regular_user) do
+          json = flag.as_json
+          assert_includes json.keys, "note"
+          assert_equal "Secret note content", json["note"]
+        end
+
+        # Other regular users cannot see the note
+        other_user = create(:user)
+        as(other_user) do
+          json = flag.as_json
+          assert_not_includes json.keys, "note"
+        end
       end
     end
   end

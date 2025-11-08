@@ -6,3 +6,5 @@
 !/yarn.lock
 !/Gemfile
 !/Gemfile.lock
+!/vendor/
+!/docker-entrypoint.sh

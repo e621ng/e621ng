@@ -12,6 +12,10 @@ module Danbooru
       "e621"
     end
 
+    def server_name
+      nil
+    end
+
     def description
       "Find good furry art, fast"
     end
@@ -61,6 +65,11 @@ module Danbooru
       "Anonymous"
     end
 
+    # The path of the daily DB exports. Hidden from the site map if `nil`.
+    def db_export_path
+      "/db_export/"
+    end
+
     def levels
       {
         "Anonymous" => 0,
@@ -108,6 +117,11 @@ module Danbooru
 
     # Thumbnail size
     def small_image_width
+      256
+    end
+
+    # All uploads must match this value in both dimensions.
+    def min_image_width
       256
     end
 
@@ -349,7 +363,7 @@ module Danbooru
       1_000
     end
 
-    def set_post_limit(_user) # rubocop:disable Naming/AccessorMethodName
+    def post_set_post_limit
       10_000
     end
 
@@ -372,6 +386,7 @@ module Danbooru
         "gif" => 20.megabytes,
         "webm" => 100.megabytes,
         "mp4" => 100.megabytes,
+        "webp" => 100.megabytes,
       }
     end
 
@@ -461,6 +476,7 @@ module Danbooru
           name: "uploading_guidelines",
           reason: "Does not meet the [[uploading_guidelines|uploading guidelines]]",
           text: "This post fails to meet the site's standards, be it for artistic worth, image quality, relevancy, or something else.\nKeep in mind that your personal preferences have no bearing on this. If you find the content of a post objectionable, simply [[e621:blacklist|blacklist]] it.",
+          require_explanation: true,
         },
         {
           name: "young_human",
@@ -481,6 +497,7 @@ module Danbooru
           name: "trace",
           reason: "Trace of another artist's work",
           text: "Images traced from other artists' artwork are not accepted on this site. Referencing from something is fine, but outright copying someone else's work is not.\nPlease, leave more information in the comments, or simply add the original artwork as the posts's parent if it's hosted on this site.",
+          require_explanation: true,
         },
         {
           name: "previously_deleted",
@@ -496,6 +513,7 @@ module Danbooru
           name: "corrupt",
           reason: "File is either corrupted, broken, or otherwise does not work",
           text: "Something about this post does not work quite right. This may be a broken video, or a corrupted image.\nEither way, in order to avoid confusion, please explain the situation in the comments.",
+          require_explanation: true,
         },
         {
           name: "inferior",
@@ -504,6 +522,10 @@ module Danbooru
           parent: true,
         },
       ]
+    end
+
+    def auto_flag_ai_posts?
+      true
     end
 
     def deletion_reasons
@@ -673,6 +695,10 @@ module Danbooru
 
     def ads_zone_mobile
       { zone: nil, revive_id: nil, checksum: nil }
+    end
+
+    def subscribestar_url
+      nil
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so

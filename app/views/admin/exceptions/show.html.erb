@@ -19,6 +19,8 @@
   <pre class="box-section"><%= @exception_log.trace %></pre>
 </div>
 
+<%= render partial: "secondary_links" %>
+
 <% content_for(:page_title) do %>
   Exceptions - <%= @exception_log.code %>
 <% end %>

@@ -30,7 +30,7 @@
       <%= subnav_link_to "History", wiki_page_versions_path(search: { wiki_page_id: @wiki_page.id }) %>
 
       <% if CurrentUser.is_member? && params[:action] != "edit" %>
-        <%= subnav_link_to "Edit", edit_wiki_page_path(@wiki_page), data: { shortcut: "e" } %>
+        <%= subnav_link_to "Edit", edit_wiki_page_path(@wiki_page), data: { hotkey: "edit" } %>
       <% end %>
 
       <% if CurrentUser.is_admin? && !@wiki_page.is_deleted? %>

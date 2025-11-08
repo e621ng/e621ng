@@ -11,6 +11,8 @@ require "shoulda-context"
 require "shoulda-matchers"
 require "webmock/minitest"
 
+require_relative "test_helpers/source_test_helper"
+
 require "sidekiq/testing"
 Sidekiq::Testing.fake!
 # https://github.com/sidekiq/sidekiq/issues/5907#issuecomment-1536457365
@@ -46,14 +48,18 @@ PostVersion.document_store.create_index!(delete_existing: true)
 class ActiveSupport::TestCase
   include ActionDispatch::TestProcess::FixtureFile
   include FactoryBot::Syntax::Methods
+  extend SourceTestHelper
 
   setup do
     Socket.stubs(:gethostname).returns("www.example.com")
     Danbooru.config.stubs(:enable_sock_puppet_validation?).returns(false)
     Danbooru.config.stubs(:disable_throttles?).returns(true)
 
-    FileUtils.mkdir_p("#{Rails.root}/tmp/test-storage2")
-    storage_manager = StorageManager::Local.new(base_dir: "#{Rails.root}/tmp/test-storage2")
+    FileUtils.mkdir_p(Rails.root.join("tmp/test-storage2").to_s)
+    storage_manager = StorageManager::Local.new(
+      base_dir: Rails.root.join("tmp/test-storage2").to_s,
+      base_url: Danbooru.config.hostname,
+    )
     Danbooru.config.stubs(:storage_manager).returns(storage_manager)
     Danbooru.config.stubs(:backup_storage_manager).returns(StorageManager::Null.new)
     Danbooru.config.stubs(:enable_email_verification?).returns(false)
@@ -113,15 +119,6 @@ class ActionDispatch::IntegrationTest
 
   def delete_auth(url, user, options = {})
     method_authenticated(:delete, url, user, options)
-  end
-end
-
-module ActionView
-  class TestCase
-    # Stub webpacker method so these tests don't compile assets
-    def asset_pack_path(name, **_options)
-      name
-    end
   end
 end
 

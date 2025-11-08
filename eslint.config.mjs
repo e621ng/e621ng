@@ -1,6 +1,6 @@
 import globals from "globals";
 import eslint from "@eslint/js";
-import stylistic from "@stylistic/eslint-plugin-js";
+import stylistic from "@stylistic/eslint-plugin";
 
 export default [
   eslint.configs.recommended,
@@ -15,10 +15,10 @@ export default [
       },
     },
     plugins: {
-      "@stylistic/js": stylistic,
+      "@stylistic": stylistic,
     },
     rules: {
-      "no-unused-vars": "warn",
+      "no-unused-vars": ["warn", { "caughtErrorsIgnorePattern": "^_" }],
 
       // https://eslint.style/packages/js
       "array-bracket-newline": "warn",
@@ -43,9 +43,9 @@ export default [
       "line-comment-position": "off",
       "linebreak-style": "error",
       "lines-around-comment": "off",
-      "lines-between-class-members": "warn",
+      "lines-between-class-members": ["warn", "always", { exceptAfterSingleLine: true }],
       // "max-len": ["warn", { code: 100, tabWidth: 2, ignoreComments: true }], // Might get annoying, see https://eslint.style/rules/js/max-len
-      "max-statements-per-line": "warn",
+      "max-statements-per-line": ["warn", { "max": 2 }],
       "multiline-comment-style": "off",
       "multiline-ternary": ["warn", "always-multiline"],
       "new-parens": "warn",
@@ -68,7 +68,7 @@ export default [
       "padded-blocks": "off",
       "padding-line-between-statements": "off",
       "quote-props": ["warn", "consistent"],
-      "quotes": "warn",
+      "quotes": ["warn", "double", { avoidEscape: true }],
       "rest-spread-spacing": "warn",
       "semi": "warn",
       "semi-spacing": "warn",

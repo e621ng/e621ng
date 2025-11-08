@@ -22,6 +22,9 @@
         <div class="post-flag-note">
           <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
           <div class="dtext-container post-flag-note-body">
+            <% if CurrentUser.is_staff? %>
+              <%= link_to svg_icon(:trash), clear_note_post_flag_path(flag), method: :post, data: { confirm: "Are you sure you want to clear this note?" }, class: "post-flag-clear-note-link" %>
+            <% end %>
             <%= format_text flag.note %>
           </div>
         </div>

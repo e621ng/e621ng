@@ -42,6 +42,7 @@ services:
     environment:
       <<: *common-env
       RAILS_ENV: development
+      LOCAL_DTEXT: ${LOCAL_DTEXT:-}
       DD_AGENT_HOST: datadog-agent
       DD_SERVICE: ${DD_SERVICE:-}
       DD_ENV: ${DD_ENV:-}
@@ -51,7 +52,6 @@ services:
         condition: service_started
       iqdb:
         condition: service_started
-    tty: true
 
   autocompleted:
     image: ghcr.io/e621ng/autocompleted:8807bc8658f594cd0de04de1c272c3a2f917fc48

@@ -1,6 +1,6 @@
 <li
   class="tag-list-item tag-<%= tag.category_name %>"
-  data-name="<%=u tag.name %>"
+  data-name="<%= u tag.name %>"
   data-category="<%= tag.category_name %>"
   data-count="<%= tag.post_count %>"
 >
@@ -11,14 +11,8 @@
   >?</a>
 
   <% if query.present? %>
-    <a rel="nofollow" href="/posts?tags=<%=u query %>+<%=u tag.name %>" class="tag-list-inc">+</a>
-    <a rel="nofollow" href="/posts?tags=<%=u query %>+-<%=u tag.name %>" class="tag-list-exl">–</a>
-  <% end %>
-
-  <% is_underused_tag = tag.post_count <= 1 && tag.category == Tag.categories.general %>
-  <% post_count = tag.post_count %>
-  <% if post_count > 1_000 %>
-    <% post_count = tag.post_count > 10_000 ? "#{post_count / 1_000}k" : format("%.1fk", (tag.post_count / 1_000.0)) %>
+    <a rel="nofollow" href="/posts?tags=<%=u query %>+<%=  u tag.name %>" class="tag-list-inc">+</a>
+    <a rel="nofollow" href="/posts?tags=<%=u query %>+-<%= u tag.name %>" class="tag-list-exl">–</a>
   <% end %>
 
   <a
@@ -34,19 +28,22 @@
       <% end %>
     </span>
 
+    <%# TODO: Make a "low post count" vs "single post count" %>
+    <% is_underused_tag = tag.post_count <= 1 && tag.category == Tag.categories.general %>
+
     <span
       data-count="<%= tag.post_count %>"
       class="tag-list-count<%= is_underused_tag ? " low-post-count" : "" %>"
       <% if is_underused_tag %>
         title="New general tag detected. Check the spelling or populate it now."
       <% end %>
-    ><%= post_count %></span>
+    ><%= TagSetPresenter.post_count_label(tag.post_count) %></span>
   </a>
 
   <span class="tag-list-actions">
     <button
       class="tag-list-quick-blacklist"
-      title="Add <%== tag.name %> to your blacklist"
+      title="Add <%= tag.name %> to your blacklist"
       data-tag="<%= tag.name %>"
     ><%= svg_icon(:eye_off) %></button>
   </span>

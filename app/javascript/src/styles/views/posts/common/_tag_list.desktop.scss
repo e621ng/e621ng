@@ -55,9 +55,15 @@ ul.tag-list {
   }
 
   .tag-list-quick-blacklist { visibility: hidden; }
-  li:hover, li.blacklisted {
-    .tag-list-quick-blacklist { visibility: visible; }
+
+  // Media query to prevent Webkit users on touch devices from
+  // having to double tap the tag to perform a navigation
+  @media (hover: hover) and (pointer: fine) {
+    li:hover, li.blacklisted {
+      .tag-list-quick-blacklist { visibility: visible; }
+    }
   }
+
   li.blacklisted {
     .tag-list-quick-blacklist svg {
       color: themed("color-text-muted");

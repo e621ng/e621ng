@@ -94,18 +94,24 @@
 
         <tr>
           <td><span class='title'>Reason</span></td>
-          <td class="dtext-container">
+          <td>
             <% if @ticket.qtype == "post" && @ticket.post_report_reason.present? %>
-              <p><%= @ticket.post_report_reason.reason %></p>
+              <span class="ticket-reason"><%= @ticket.post_report_reason.reason %></span>
             <% end %>
-            <%= format_text(@ticket.reason) %>
+            <div class="dtext-container ticket-block">
+              <%= format_text(@ticket.reason) %>
+            </div>
           </td>
         </tr>
 
         <% if @ticket.response.present? %>
           <tr>
             <td><span class='title'>Response</span></td>
-            <td class="dtext-container"><%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %></td>
+            <td>
+              <div class="dtext-container ticket-block unmargined">
+                <%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %>
+              </div>
+            </td>
           </tr>
         <% end %>
       </table>
@@ -123,7 +129,7 @@
           <% end %>
           <table>
             <tr>
-              <td><%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size %></td>
+              <td><%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size, allow_color: false %></td>
             </tr>
           </table>
           <%= tag.input name: "force_claim", type: "hidden", value: params[:force_claim] %>

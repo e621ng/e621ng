@@ -7,7 +7,7 @@
     <%= subnav_link_to "Request alias", new_tag_alias_request_path %>
     <%= subnav_link_to "Request implication", new_tag_implication_request_path %>
     <%= subnav_link_to "Request BUR", new_bulk_update_request_path %>
-    <%= subnav_link_to "Mark all as read", mark_all_as_read_forum_topics_path, method: :post, data: { shortcut: "shift+r" } %>
+    <%= subnav_link_to "Mark all as read", mark_all_as_read_forum_topics_path, method: :post, data: { hotkey: "mark-read" } %>
   <% end %>
 
   <%= subnav_link_to "Search", search_forum_posts_path %>
@@ -21,7 +21,7 @@
       <%= subnav_link_to "Subscribe", subscribe_forum_topic_path(@forum_topic), method: :post, data: { confirm: "Are you sure you want to receive email notifications for this forum topic?" } %>
     <% end %>
     <% if !@forum_topic.new_record? && @forum_topic.editable_by?(CurrentUser.user) %>
-      <%= subnav_link_to "Edit", edit_forum_topic_path(@forum_topic), data: { shortcut: "e" } %>
+      <%= subnav_link_to "Edit", edit_forum_topic_path(@forum_topic), data: { hotkey: "edit" } %>
       <% if CurrentUser.is_moderator? %>
         <% if @forum_topic.is_hidden? %>
           <%= subnav_link_to "Unhide", unhide_forum_topic_path(@forum_topic), method: :post %>

@@ -24,11 +24,15 @@ FactoryBot.define do
     end
 
     factory(:png_upload) do
-      file { fixture_file_upload("test.png") }
+      file { fixture_file_upload("bread-static.png") }
     end
 
     factory(:gif_upload) do
-      file { fixture_file_upload("test.gif") }
+      file { fixture_file_upload("bread-animated.gif") }
+    end
+
+    factory(:webp_upload) do
+      file { fixture_file_upload("bread-animated.webp") }
     end
   end
 end

@@ -40,14 +40,19 @@
   Forum - <%= @forum_topic.title %>
 <% end %>
 
+<% render(partial: "static/embed", locals: { record: @forum_topic, name: @forum_topic.title, description: strip_tags(format_text(@forum_topic.original_post.body)).truncate(200) }) %>
+
 <% content_for(:html_header) do %>
   <%= javascript_tag nonce: true do -%>
-    $(function() {
-      $("#new-response-link").click(function(e) {
-        $("#topic-response").show();
+    document.addEventListener("DOMContentLoaded", function() {
+      const newResponseLink = document.getElementById("new-response-link"),
+            topicResponse = document.getElementById("topic-response");
+      if (!newResponseLink || !topicResponse) return;
+      newResponseLink.addEventListener("click", function(e) {
+        topicResponse.style.display = "block";
         document.body.scrollIntoView(false);
         e.preventDefault();
-      })
+      });
     });
   <% end -%>
 <% end %>

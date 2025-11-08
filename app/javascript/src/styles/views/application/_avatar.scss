@@ -39,6 +39,9 @@
     }
   }
 }
+// When blacklisted, just show the letter preview & not the blacklisted preview
+// IDEA: I had trouble getting the blacklisted preview image to be properly sized; you could fix this & hide the span::after instead.
+.profile-avatar.blacklisted img { display: none; }
 
 
 nav.navigation .simple-avatar {
@@ -106,7 +109,7 @@ nav.navigation .simple-avatar {
   // Desktop
   @include window-larger-than(50rem) {
     .avatar-name {
-      background: none;
+      background: themed("color-background");
       color: inherit;
 
       height: 1.5rem;
@@ -127,7 +130,7 @@ nav.navigation .simple-avatar {
     }
 
     &:hover, &:active {
-      .avatar-name { background: none; }
+      .avatar-name { background: themed("color-background"); }
     }
 
     .avatar-more {

@@ -1,5 +1,0 @@
-<% if @error %>
-  $(window).trigger("danbooru:error", "<%= j @error.to_s %>");
-<% else %>
-  location.reload();
-<% end %>

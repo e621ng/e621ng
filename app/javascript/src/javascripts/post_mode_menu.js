@@ -1,12 +1,15 @@
 import Utility from "./utility";
 import Post from "./posts";
-import Favorite from "./favorites";
+import Favorite from "./models/Favorite";
 import PostSet from "./post_sets";
 import TagScript from "./tag_script";
-import { SendQueue } from "./send_queue";
 import Rails from "@rails/ujs";
-import Shortcuts from "./shortcuts";
+import Hotkeys from "./hotkeys";
 import LStorage from "./utility/storage";
+import TaskQueue from "./utility/task_queue";
+import PostVote from "./models/PostVote";
+import User from "./models/User";
+import Autocomplete from "./autocomplete";
 
 let PostModeMenu = {};
 
@@ -16,25 +19,25 @@ PostModeMenu.initialize = function () {
     this.initialize_preview_link();
     this.initialize_edit_form();
     this.initialize_tag_script_field();
-    this.initialize_shortcuts();
+    if (User.is.privileged) this.initialize_shortcuts();
     PostModeMenu.change();
   }
 };
 
 PostModeMenu.initialize_shortcuts = function () {
-  Shortcuts.keydown("1 2 3 4 5 6 7 8 9 0", "change_tag_script", PostModeMenu.change_tag_script);
+  for (let i = 1; i < 10; i++)
+    Hotkeys.register(`tag-script-${i}`, () => PostModeMenu.change_tag_script(i));
 };
 
 PostModeMenu.show_notice = function (i) {
   Utility.notice("Switched to tag script #" + i + ". To switch tag scripts, use the number keys.");
 };
 
-PostModeMenu.change_tag_script = function (e) {
+PostModeMenu.change_tag_script = function (key) {
   if ($("#mode-box-mode").val() !== "tag-script")
     return;
-  e.preventDefault();
 
-  const newScriptID = Number(e.key);
+  const newScriptID = Number(key);
   if (!newScriptID || newScriptID == LStorage.Posts.TagScript.ID)
     return;
 
@@ -63,7 +66,9 @@ PostModeMenu.initialize_edit_form = function () {
     e.preventDefault();
   });
 
-  $("#quick-edit-form").on("submit.danbooru", function (e) {
+  $("#quick-edit-form").on("submit.danbooru", function (event) {
+    event.preventDefault();
+
     $.ajax({
       type: "put",
       url: $("#quick-edit-form").attr("action"),
@@ -82,15 +87,17 @@ PostModeMenu.initialize_edit_form = function () {
       },
     });
 
-    e.preventDefault();
+    return false;
   });
 };
 
 PostModeMenu.close_edit_form = function () {
-  Shortcuts.disabled = false;
+  Hotkeys.enabled = true;
   $("#quick-edit-div").slideUp("fast");
   if (Utility.meta("enable-auto-complete") === "true") {
-    $("#post_tag_string").data("uiAutocomplete").close();
+    const field = document.getElementById("post_tag_string");
+    const autocompleter = Autocomplete.instances.get(field);
+    if (autocompleter) autocompleter.close();
   }
 };
 
@@ -113,7 +120,7 @@ PostModeMenu.tag_script_apply_all = function (event) {
 PostModeMenu.update_sets_menu = function () {
   let target = $("#set-id");
   target.off("change");
-  SendQueue.add(function () {
+  TaskQueue.add(() => {
     $.ajax({
       type: "GET",
       url: "/post_sets/for_select.json",
@@ -133,7 +140,7 @@ PostModeMenu.update_sets_menu = function () {
         target.append(group);
       });
     });
-  });
+  }, { name: "PostModeMenu.update_sets_menu" });
 };
 
 PostModeMenu.change = function () {
@@ -161,8 +168,8 @@ PostModeMenu.change = function () {
 };
 
 PostModeMenu.open_edit = function (post_id) {
-  Shortcuts.disabled = true;
-  var $post = $("#post_" + post_id);
+  Hotkeys.enabled = false;
+  var $post = $(`article.thumbnail[data-id="${post_id}"]`).first();
   $("#quick-edit-div").slideDown("fast");
   $("#quick-edit-form").attr("action", "/posts/" + post_id + ".json");
   $("#post_tag_string").val($post.data("tags") + " ").focus().selectEnd();
@@ -179,15 +186,27 @@ PostModeMenu.click = function (e) {
   var post_id = $(e.currentTarget).data("id");
 
   if (s === "add-fav") {
-    Favorite.create(post_id);
+    Post.notice_update("inc");
+    Favorite.create(post_id)
+      .then(() => { $(window).trigger("danbooru:notice", "Favorite added"); })
+      .finally(() => { Post.notice_update("dec"); });
   } else if (s === "remove-fav") {
-    Favorite.destroy(post_id);
+    Post.notice_update("inc");
+    Favorite.destroy(post_id)
+      .then(() => { $(window).trigger("danbooru:notice", "Favorite removed"); })
+      .finally(() => { Post.notice_update("dec"); });
   } else if (s === "edit") {
     PostModeMenu.open_edit(post_id);
   } else if (s === "vote-down") {
-    Post.vote(post_id, -1, true);
+    Post.notice_update("inc");
+    PostVote.vote(post_id, -1, true)
+      .then(() => { $(window).trigger("danbooru:notice", "Vote saved"); })
+      .finally(() => { Post.notice_update("dec"); });
   } else if (s === "vote-up") {
-    Post.vote(post_id, 1, true);
+    Post.notice_update("inc");
+    PostVote.vote(post_id, 1, true)
+      .then(() => { $(window).trigger("danbooru:notice", "Vote saved"); })
+      .finally(() => { Post.notice_update("dec"); });
   } else if (s === "add-to-set") {
     PostSet.add_post($("#set-id").val(), post_id);
   } else if (s === "remove-from-set") {
@@ -203,7 +222,7 @@ PostModeMenu.click = function (e) {
   } else if (s === "lock-note") {
     Post.update(post_id, {"post[is_note_locked]": "1"});
   } else if (s === "delete") {
-    Post.delete_with_reason(post_id, $("#quick-mode-reason").val(), false);
+    Post.delete_with_reason(post_id, $("#quick-mode-reason").val());
   } else if (s === "undelete") {
     Post.undelete(post_id);
   } else if (s === "unflag") {
@@ -218,7 +237,7 @@ PostModeMenu.click = function (e) {
       e.preventDefault();
       return;
     }
-    const postTags = $("#post_" + post_id).data("tags").split(" ");
+    const postTags = $(`article.thumbnail[data-id="${post_id}"]`).first().data("tags").split(" ");
     const tags = new Set(postTags);
     const changes = TagScript.run(tags, tag_script);
     Post.tagScript(post_id, changes);
