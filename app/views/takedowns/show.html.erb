@@ -185,8 +185,9 @@
   </div>
 </div>
 
-
 <%= render partial: "secondary_links" %>
+
+<% content_for(:skip_tos_warning, true) %>
 
 <% content_for(:page_title) do %>
   Takedown #<%= @takedown.id %>

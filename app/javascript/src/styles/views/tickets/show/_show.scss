@@ -1,0 +1,19 @@
+#c-tickets #a-show {
+  .ticket-block {
+    background-color: themed("color-section");
+    @include st-margin-tb(050);
+    @include st-radius;
+    @include st-padding(050);
+    width: 100%;
+
+    &.unmargined {
+      margin-top: 0;
+    }
+  }
+
+  .ticket-reason {
+    font-weight: bold;
+    display: block;
+    margin: 0.5rem 0.25rem -0.25rem;
+  }
+}

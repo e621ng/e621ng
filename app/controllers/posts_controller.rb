@@ -10,11 +10,11 @@ class PostsController < ApplicationController
     if params[:md5].present?
       @post = Post.find_by!(md5: params[:md5])
       respond_with(@post) do |format|
-        format.html { redirect_to(@post) }
+        format.html { redirect_to post_path(@post) }
       end
     else
       @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
-      @posts = PostsDecorator.decorate_collection(@post_set.posts)
+      @posts = @post_set.posts
 
       @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
       if @query.length == 1
@@ -129,7 +129,7 @@ class PostsController < ApplicationController
     @post = Post.tag_match("#{tags} order:random").limit(1).first
     raise ActiveRecord::RecordNotFound if @post.nil?
     respond_with(@post) do |format|
-      format.html { redirect_to post_path(@post, :tags => params[:tags]) }
+      format.html { redirect_to post_path(@post, q: params[:tags]) }
     end
   end
 

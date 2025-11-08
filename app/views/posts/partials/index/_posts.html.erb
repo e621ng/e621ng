@@ -1,4 +1,4 @@
-<div id="posts" class="post-index-gallery user-disable-cropped-<%= Danbooru.config.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
+<div id="posts" class="post-index-gallery">
   <% if @wiki_text.present? %>
     <section class="wiki-excerpt loading hidden">
       <h3 role="button" class="wiki-excerpt-toggle">
@@ -16,9 +16,7 @@
     <% if @posts.empty? %>
       <%= render "posts/blank" %>
     <% else %>
-      <% @posts.each do |post| %>
-        <%= post.preview_html(self, {tags: @post_set.tag_string, show_cropped: true, stats: CurrentUser.show_post_statistics?}) %>
-      <% end %>
+      <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string)) %>
     <% end %>
   </section>
 

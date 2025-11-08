@@ -1,45 +1,22 @@
 version: "3"
+name: e621ng # Name of the Docker Compose project in the dev container
 
 services:
   # Dev Container extension doesn't support `depends_on: !reset []`
   # https://github.com/microsoft/vscode-remote-release/issues/8734
   dev-container:
+    build:
+      dockerfile: Dockerfile
     image: e621
     user: ${DOCKER_USER:-root}
     environment:
       RAILS_ENV: development
       SECRET_TOKEN: 1c58518a891eff4520cadc59afa9e378a9325f1247544ff258096e497f095f45
       SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
+      LD_PRELOAD:
+    env_file:
+      - .devcontainer/.env.devcontainer
     volumes:
-      - .:/app
-      - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
+      - ./:/app:delegated
       - node_modules:/app/node_modules
-
-  # Don't start any other services
-  e621:
-    profiles:
-      - dev-container
-  autocompleted:
-    profiles:
-      - dev-container
-  nginx:
-    profiles:
-      - dev-container
-  postgres:
-    profiles:
-      - dev-container
-  redis:
-    profiles:
-      - dev-container
-  memcached:
-    profiles:
-      - dev-container
-  opensearch:
-    profiles:
-      - dev-container
-  iqdb:
-    profiles:
-      - dev-container
-  discord_joiner:
-    profiles:
-      - dev-container
+      - post_data:/app/public/data

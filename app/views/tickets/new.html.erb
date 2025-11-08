@@ -12,6 +12,7 @@
           To submit a ticket about a problematic set, click "Report" on the set page itself.<br/>
           To submit a ticket about a problematic user, click "Report" on the user's profile page.<br/>
           To submit a ticket about a problematic private message, click "Report PM" above the PM itself.<br/>
+          To submit a ticket about a problematic replacement, click "Report" on the replacement itself.<br/>
           To submit a username request, click "Request Username Change" on <a href='/user/home'>the user home page</a>.<br/>
         </div>
       <% else %>
@@ -29,7 +30,15 @@
         <%= f.hidden_field :disp_id %>
         <%= f.hidden_field :qtype %>
 
-        <div class="section">
+        <% if @ticket.errors.any? %>
+          <div class="section report-errors">
+            <% @ticket.errors.full_messages.each do |error| %>
+              <span><%= error %></span>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="section" id="report-reason-input">
           <span class="ticket-warning">
             <strong>Note:</strong> Abuse of this system will lead to disciplinary action
           </span>
@@ -37,7 +46,7 @@
           <%= f.input :reason, as: :dtext, limit: Danbooru.config.ticket_max_size %>
 
         </div>
-        <%= submit_tag "Submit Ticket" %>
+        <%= submit_tag "Submit Ticket", class: "st-button submit", id: "ticket_submit" %>
       <% end %>
     <% end %>
   </div>

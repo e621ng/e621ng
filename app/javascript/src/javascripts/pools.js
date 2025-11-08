@@ -1,57 +1,93 @@
+import Dialog from "./utility/dialog";
+import Page from "./utility/page";
+import Sortable from "./utility/sortable";
 import Utility from "./utility";
 
 let Pool = {};
-
-Pool.dialog_setup = false;
 
 Pool.initialize_all = function () {
   if ($("#c-posts").length && $("#a-show").length) {
     this.initialize_add_to_pool_link();
   }
-
-  if ($("#c-pool-orders").length) {
-    this.initialize_simple_edit();
-  }
 };
 
 Pool.initialize_add_to_pool_link = function () {
-  $("#pool").on("click.danbooru", function (e) {
-    if (!Pool.dialog_setup) {
-      $("#add-to-pool-dialog").dialog({autoOpen: false});
-      Pool.dialog_setup = true;
+  let poolDialog = null;
+  $(".add-to-pool").on("click.danbooru", function (event) {
+    event.preventDefault();
+
+    if (!poolDialog) {
+      poolDialog = new Dialog("#add-to-pool-dialog");
+      loadRecentPools();
     }
-    e.preventDefault();
-    $("#add-to-pool-dialog").dialog("open");
+    poolDialog.toggle();
   });
 
-  $("#recent-pools li").on("click.danbooru", function (e) {
-    e.preventDefault();
-    $("#pool_name").val($(this).attr("data-value"));
+  $("#recent-pools").on("click.danbooru", "li", (event) => {
+    event.preventDefault();
+    $("#pool_name").val($(event.currentTarget).attr("data-value"));
   });
-};
 
-Pool.initialize_simple_edit = function () {
-  $("#sortable").sortable({
-    placeholder: "ui-state-placeholder",
-  });
-  $("#sortable").disableSelection();
+  // Form submission
+  $("#add-to-pool-dialog").on("submit", handleAddToPool);
+  function handleAddToPool (event) {
+    event.preventDefault();
+    const pool_name = $("#pool_name").val();
+    const post_id = $("#post_id").val();
 
-  $("#ordering-form").submit(function (e) {
-    e.preventDefault();
     $.ajax({
-      type: "post",
-      url: e.target.action,
-      data: $("#sortable").sortable("serialize") + "&" + $(e.target).serialize() + "&format=json",
+      type: "POST",
+      url: "/pool_element",
+      data: {
+        pool_name: pool_name,
+        post_id: post_id,
+        format: "json",
+      },
     }).done(() => {
-      window.location.href = e.target.action;
+      window.location.reload();
     }).fail((data) => {
-      Utility.error(`Error: ${data.responseText}`);
+      Utility.error(`Error: ${data.status == 404 ? "Not Found" : data.responseText}`);
     });
-  });
+
+    return false;
+  }
+
+  // Load recent pools when the dialog is shown
+  function loadRecentPools () {
+    $.ajax({
+      type: "GET",
+      url: "/pool_element/recent",
+      dataType: "json",
+    }).done((data) => {
+      const recentPoolsList = $("#recent-pools");
+      if (data.length === 0) return;
+
+      data.forEach((pool) => {
+        recentPoolsList.append(`<li data-value="${pool.name}" role="button"><a href="/pools/${pool.id}">${pool.name}</a></li>`);
+      });
+      $(".add-to-pool-recent").show();
+    });
+  }
 };
 
-$(document).ready(function () {
+Pool.initialize_pool_ordering = function () {
+  if (!Page.matches("pool-orders", "edit")) return;
+
+  const orderForm = $("#ordering-form"),
+    idInput = $("#pool_post_ids_string");
+  const originalIDs = idInput.val();
+
+  new Sortable($("ul.sortable"), { onReorder: (orderedIDs) => {
+    const idString = orderedIDs.join(" ");
+    idInput.val(idString);
+
+    orderForm.toggleClass("changed", idString !== originalIDs);
+  }});
+};
+
+$(() => {
   Pool.initialize_all();
+  Pool.initialize_pool_ordering();
 });
 
 export default Pool;

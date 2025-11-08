@@ -2,6 +2,7 @@ import Filter from "./models/Filter";
 import PostCache from "./models/PostCache";
 import User from "./models/User";
 import Utility from "./utility";
+import Dialog from "./utility/dialog";
 import Page from "./utility/page";
 import LStorage from "./utility/storage";
 
@@ -14,19 +15,23 @@ Blacklist.hiddenPosts = new Set();
 Blacklist.matchedPosts = new Set();
 
 Blacklist.ui = [];
+Blacklist.dialog = null;
 
 /** Set up the modal dialogue with the blacklist editor */
 Blacklist.init_blacklist_editor = function () {
+  const dialogEl = $("#blacklist-edit-dialog");
+  if (!dialogEl.length) return;
+
   let windowWidth = $(window).width(),
     windowHeight = $(window).height();
-  $("#blacklist-edit-dialog").dialog({
-    autoOpen: false,
+
+  Blacklist.dialog = new Dialog(dialogEl, {
     width: windowWidth > 400 ? 400 : windowWidth,
     height: windowHeight > 400 ? 400 : windowHeight,
   });
 
   $("#blacklist-cancel").on("click", function () {
-    $("#blacklist-edit-dialog").dialog("close");
+    Blacklist.dialog.close();
   });
 
   $("#blacklist-save").on("click", function () {
@@ -46,7 +51,7 @@ Blacklist.init_blacklist_editor = function () {
   $("#blacklist-edit-link").on("click", function (event) {
     event.preventDefault();
     $("#blacklist-edit").val(User.blacklist.tags.join("\n"));
-    $("#blacklist-edit-dialog").dialog("open");
+    Blacklist.dialog.open();
   });
 };
 
@@ -60,7 +65,6 @@ Blacklist.init_reveal_on_click = function () {
       container.removeClass("blacklisted");
 
       $("#note-container").css("visibility", "visible");
-      Danbooru.Note.Box.scale_all();
     });
 };
 
@@ -205,7 +209,6 @@ Blacklist.update_visibility = function () {
     $("#note-container").css("visibility", "hidden");
   } else {
     $("#note-container").css("visibility", "visible");
-    Danbooru.Note.Box.scale_all();
   }
 };
 
@@ -246,11 +249,13 @@ $(() => {
   // This seems extraordinarily uncommon, so it's here
   // just for feature parity with the old blacklist.
   if (!Page.matches("posts", "show")) return;
-  let container = $("#image-container[data-file-ext='webm']").on("blk:hide", () => {
-    const video = container.find("video");
-    if (!video.length) return;
-    video[0].pause();
-  });
+  let container = $("#image-container[data-file-ext='mp4'], \
+                    #image-container[data-file-ext='webm']")
+    .on("blk:hide", () => {
+      const video = container.find("video");
+      if (!video.length) return;
+      video[0].pause();
+    });
 });
 
 /**

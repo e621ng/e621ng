@@ -2,7 +2,7 @@
 
 class PoolVersion < ApplicationRecord
   user_status_counter :pool_edit_count, foreign_key: :updater_id
-  belongs_to :updater, :class_name => "User"
+  belongs_to :updater, class_name: "User"
   before_validation :fill_version, on: :create
   before_validation :fill_changes, on: :create
 
@@ -35,16 +35,16 @@ class PoolVersion < ApplicationRecord
   extend SearchMethods
 
   def self.queue(pool, updater, updater_ip_addr)
-    self.create({
-                    pool_id: pool.id,
-                    post_ids: pool.post_ids,
-                    updater_id: updater.id,
-                    updater_ip_addr: updater_ip_addr,
-                    description: pool.description,
-                    name: pool.name,
-                    is_active: pool.is_active?,
-                    category: pool.category
-                })
+    create({
+      pool_id: pool.id,
+      post_ids: pool.post_ids,
+      updater_id: updater.id,
+      updater_ip_addr: updater_ip_addr,
+      description: pool.description,
+      name: pool.name,
+      is_active: pool.is_active?,
+      category: pool.category,
+    })
   end
 
   def self.calculate_version(pool_id)
@@ -52,7 +52,7 @@ class PoolVersion < ApplicationRecord
   end
 
   def fill_version
-    self.version = PoolVersion.calculate_version(self.pool_id)
+    self.version = PoolVersion.calculate_version(pool_id)
   end
 
   def fill_changes
@@ -85,6 +85,6 @@ class PoolVersion < ApplicationRecord
   end
 
   def pretty_name
-    name&.tr("_", " ") || '(Unknown Name)'
+    name&.tr("_", " ") || "(Unknown Name)"
   end
 end

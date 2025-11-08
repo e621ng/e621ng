@@ -1,3 +1,5 @@
+import Offclick from "./utility/offclick";
+
 const Navigation = {};
 
 Navigation.init = function () {
@@ -13,27 +15,20 @@ Navigation.init = function () {
   });
 
 
-  // Profile menu, both desktop and mobile
-  let avatarMenuOpen = false;
-
   // regular click
+  let offclickHandler = null;
   $(".simple-avatar").on("click", (event) => {
     event.preventDefault();
 
-    avatarMenuOpen = !avatarMenuOpen;
-    simpleMenu.toggleClass("hidden");
+    // Register offclick handler on the first use
+    if (offclickHandler === null)
+      offclickHandler = Offclick.register(".simple-avatar", ".simple-avatar-menu", () => {
+        simpleMenu.addClass("hidden");
+      });
+
+    offclickHandler.disabled = !offclickHandler.disabled;
+    simpleMenu.toggleClass("hidden", offclickHandler.disabled);
     wrapper.removeClass("nav-toggled");
-  });
-
-  // click outside the menu
-  $(window).on("mouseup", (event) => {
-    if (!avatarMenuOpen) return;
-
-    const target = $(event.target);
-    if (target.closest(".nav-controls").length > 0) return;
-
-    simpleMenu.addClass("hidden");
-    avatarMenuOpen = false;
   });
 };
 

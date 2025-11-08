@@ -1,5 +1,5 @@
 <%= form_search path: tickets_path do |f| %>
-  <% if CurrentUser.is_moderator? %>
+  <% if CurrentUser.is_staff? %>
     <%= f.user :creator, label: "Reporter" %>
     <%= f.user :accused %>
     <%= f.user :claimant %>

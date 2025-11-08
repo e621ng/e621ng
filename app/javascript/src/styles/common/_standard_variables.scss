@@ -4,6 +4,7 @@
 
 $st-values: (
   000: 0rem,
+  012: 0.125rem,
   025: 0.25rem,
   050: 0.50rem,
   075: 0.75rem,
@@ -19,6 +20,12 @@ $st-values: (
 @mixin st-padding-lr($value: 025) { padding: 0 padding($value); }
 @mixin st-padding-tb($value: 025) { padding: padding($value) 0; }
 @mixin st-padding-yx($tb: 025, $lr: 025) { padding: padding($tb) padding($lr); }
+
+@function margin($value) { @return st-value($value); }
+@mixin st-margin($value: 025) { margin: margin($value); }
+@mixin st-margin-lr($value: 025) { margin: 0 margin($value); }
+@mixin st-margin-tb($value: 025) { margin: margin($value) 0; }
+@mixin st-margin-yx($tb: 025, $lr: 025) { margin: margin($tb) margin($lr); }
 
 @function radius($value: 025) { @return st-value($value); }
 @mixin st-radius($value: 025) { border-radius: radius($value); }

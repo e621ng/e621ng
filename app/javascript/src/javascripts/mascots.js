@@ -6,10 +6,15 @@ const Mascots = {
 };
 
 Mascots.showMascot = function (mascot) {
-  $("body").css({
+  const $body = $("body").css({
     "--bg-image": `url("${mascot.background_url}")`,
     "--bg-color": mascot.background_color,
+    "--fg-color": mascot.foreground_color,
   });
+
+  if (mascot.is_layered)
+    $body.attr("layered", "true");
+  else $body.removeAttr("layered");
 
   $("#mascot-artist")
     .text("Mascot by ")

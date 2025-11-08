@@ -5,27 +5,45 @@
   "overrideCommand": true,
   "workspaceFolder": "/app",
   "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {}
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/git:1": {}
   },
-  // Workaround for https://github.com/microsoft/vscode-remote-release/issues/6810
   "onCreateCommand": {
     "remove-gitconfig": "rm ~/.gitconfig"
   },
-  "postAttachCommand": {
-    "git-safe-dir": "git config --global --add safe.directory /app"
-  },
+  "mounts": [
+  //   "source=/home/${localEnv:USER}/.gnupg,target=/home/vscode/.gnupg,type=bind,consistency=cached",
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "postAttachCommand": ["/bin/sh", "/app/.devcontainer/post-attach.sh", "bash"],
   "postCreateCommand": {
-    "bash-completion": "sudo apk --no-cache add bash-completion && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
+    "bash-completion": "apk update && apk --no-cache add bash-completion docker-cli && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
   },
+  
   "customizations": {
     "vscode": {
       "extensions": [
-        "Shopify.ruby-lsp",
+        /** General **/
+        // "EditorConfig.EditorConfig",
+        "ms-azuretools.vscode-containers",
+
+        /** CSS / SCSS / HTML **/
+        // "stylelint.vscode-stylelint", // stylelint is also available as a ESLint plugin. This should be removed when that is implemented.
+        // "ecmel.vscode-html-css",
+
+        /** SQL **/
+        // "ckolkman.vscode-postgres",
+
+        /** JavaScript / TypeScript / Vue **/
         "Vue.volar",
-        "dbaeumer.vscode-eslint"
+        "dbaeumer.vscode-eslint",
+
+        /** Ruby / Rails **/
+        "Shopify.ruby-lsp"
       ],
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash"
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "dev.containers.openTerminal": "on"
       }
     }
   }

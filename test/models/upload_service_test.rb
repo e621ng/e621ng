@@ -6,7 +6,7 @@ class UploadServiceTest < ActiveSupport::TestCase
   setup do
     @user = create(:user, created_at: 2.weeks.ago)
     CurrentUser.user = @user
-    UploadWhitelist.create!(pattern: '*', reason: 'test')
+    UploadWhitelist.create!(domain: ".*", reason: "test")
   end
 
   context "::Utils" do
@@ -86,6 +86,18 @@ class UploadServiceTest < ActiveSupport::TestCase
         service = @build_service.call(file: fixture_file_upload("bread-static.gif"))
         upload = service.start!
         assert_no_match(/animated_gif/, upload.tag_string)
+      end
+
+      should "tag animated webp files" do
+        service = @build_service.call(file: fixture_file_upload("bread-animated.webp"))
+        upload = service.start!
+        assert_match(/animated_webp/, upload.tag_string)
+      end
+
+      should "not tag static webp files" do
+        service = @build_service.call(file: fixture_file_upload("bread-static.webp"))
+        upload = service.start!
+        assert_no_match(/animated_webp/, upload.tag_string)
       end
     end
 

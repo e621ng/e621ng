@@ -1008,13 +1008,15 @@ CREATE TABLE public.mascots (
     display_name character varying NOT NULL,
     md5 character varying NOT NULL,
     file_ext character varying NOT NULL,
-    background_color character varying NOT NULL,
+    background_color character varying DEFAULT '#012e57'::character varying NOT NULL,
     artist_url character varying NOT NULL,
     artist_name character varying NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    available_on character varying[] DEFAULT '{}'::character varying[] NOT NULL
+    available_on character varying[] DEFAULT '{}'::character varying[] NOT NULL,
+    foreground_color character varying DEFAULT '#0f0f0f80'::character varying NOT NULL,
+    is_layered boolean DEFAULT false NOT NULL
 );
 
 
@@ -1743,6 +1745,38 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.settings (
+    id bigint NOT NULL,
+    var character varying NOT NULL,
+    value text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.settings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.settings_id_seq OWNED BY public.settings.id;
+
+
+--
 -- Name: staff_audit_logs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2089,13 +2123,14 @@ ALTER SEQUENCE public.tickets_id_seq OWNED BY public.tickets.id;
 
 CREATE TABLE public.upload_whitelists (
     id bigint NOT NULL,
-    pattern character varying NOT NULL,
     note character varying,
     reason character varying,
     allowed boolean DEFAULT true NOT NULL,
     hidden boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    domain character varying,
+    path character varying DEFAULT '\/.+'::character varying
 );
 
 
@@ -2768,6 +2803,13 @@ ALTER TABLE ONLY public.posts ALTER COLUMN change_seq SET DEFAULT nextval('publi
 
 
 --
+-- Name: settings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.settings ALTER COLUMN id SET DEFAULT nextval('public.settings_id_seq'::regclass);
+
+
+--
 -- Name: staff_audit_logs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3264,6 +3306,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.settings
+    ADD CONSTRAINT settings_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: staff_audit_logs staff_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3653,6 +3703,20 @@ CREATE INDEX index_comments_on_creator_ip_addr ON public.comments USING btree (c
 
 
 --
+-- Name: index_comments_on_is_hidden; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_is_hidden ON public.comments USING btree (id) WHERE (is_hidden = true);
+
+
+--
+-- Name: index_comments_on_is_sticky; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_is_sticky ON public.comments USING btree (id) WHERE (is_sticky = true);
+
+
+--
 -- Name: index_comments_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3741,6 +3805,27 @@ CREATE INDEX index_edit_histories_on_user_id ON public.edit_histories USING btre
 --
 
 CREATE INDEX index_edit_histories_on_versionable_id_and_versionable_type ON public.edit_histories USING btree (versionable_id, versionable_type);
+
+
+--
+-- Name: index_exception_logs_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exception_logs_on_code ON public.exception_logs USING btree (code);
+
+
+--
+-- Name: index_exception_logs_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exception_logs_on_created_at ON public.exception_logs USING btree (created_at);
+
+
+--
+-- Name: index_exception_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exception_logs_on_user_id ON public.exception_logs USING btree (user_id);
 
 
 --
@@ -4206,6 +4291,13 @@ CREATE INDEX index_posts_on_created_at ON public.posts USING btree (created_at);
 
 
 --
+-- Name: index_posts_on_is_comment_disabled; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_is_comment_disabled ON public.posts USING btree (id) WHERE (is_comment_disabled = true);
+
+
+--
 -- Name: index_posts_on_is_flagged; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4234,6 +4326,13 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 
 
 --
+-- Name: index_posts_on_pool_string_tokens; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_pool_string_tokens ON public.posts USING gin (string_to_array(pool_string, ' '::text));
+
+
+--
 -- Name: index_posts_on_string_to_array_tag_string; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4253,6 +4352,13 @@ CREATE INDEX index_posts_on_uploader_id ON public.posts USING btree (uploader_id
 --
 
 CREATE INDEX index_posts_on_uploader_ip_addr ON public.posts USING btree (uploader_ip_addr);
+
+
+--
+-- Name: index_settings_on_var; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_settings_on_var ON public.settings USING btree (var);
 
 
 --
@@ -4480,6 +4586,27 @@ CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING
 
 
 --
+-- Name: index_users_on_bitprefs_both; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bitprefs_both ON public.users USING btree (id) WHERE ((bit_prefs & (98304)::bigint) = 98304);
+
+
+--
+-- Name: index_users_on_bitprefs_cap; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bitprefs_cap ON public.users USING btree (id) WHERE ((bit_prefs & (32768)::bigint) = 32768);
+
+
+--
+-- Name: index_users_on_bitprefs_cuf; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_bitprefs_cuf ON public.users USING btree (id) WHERE ((bit_prefs & (65536)::bigint) = 65536);
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4694,6 +4821,14 @@ ALTER TABLE ONLY public.post_events
 
 
 --
+-- Name: exception_logs fk_rails_c720bf523c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exception_logs
+    ADD CONSTRAINT fk_rails_c720bf523c FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: avoid_postings fk_rails_cccc6419c8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4733,6 +4868,15 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250220212831'),
+('20251101144234'),
+('20251014151300'),
+('20251010171207'),
+('20251001213309'),
+('20250921011208'),
+('20250831040648'),
+('20250831015612'),
+('20250830192056'),
+('20250826165528'),
 ('20250611041221'),
 ('20250604020028'),
 ('20250512221037'),
