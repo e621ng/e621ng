@@ -22,6 +22,6 @@ class UserPasswordResetNonce < ApplicationRecord
   end
 
   def expired?
-    created_at < 24.hours.ago
+    created_at < 6.hours.ago
   end
 end
