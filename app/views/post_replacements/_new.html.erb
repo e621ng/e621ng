@@ -5,7 +5,7 @@
 
   <div>
     <% if post.visible? %>
-      <%= PostPresenter.preview(post, show_deleted: true, no_blacklist: true) %>
+      <%= render(PostThumbnailComponent.new(post: post, stats: true, show_deleted: true, no_blacklist: true)) %>
     <% end %>
     <div><%= "#{post.image_width}x#{post.image_height} (#{post.file_size.to_fs(:human_size, precision: 5)})" %></div>
   </div>
@@ -13,13 +13,10 @@
   
   <%= render "posts/partials/show/content/notices/avoid_posting", post: post %>
   <br />
-  <div id="replacement-uploader" class="simple_form"></div>
+  <div
+    id="replacement-uploader"
+    class="simple_form"
+    data-max-file-size="<%= Danbooru.config.max_file_size %>"
+    data-max-file-size-map="<%= html_escape(Danbooru.config.max_file_sizes.to_json) %>"
+  ></div>
 </div>
-
-<%= javascript_tag nonce: true do -%>
-  var uploaderSettings = {
-    maxFileSize: <%= Danbooru.config.max_file_size %>,
-    maxFileSizeMap: <%= sanitize(Danbooru.config.max_file_sizes.to_json) %>,
-  };
-  Danbooru.Replacer.init();
-<% end -%>

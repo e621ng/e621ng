@@ -1,11 +1,10 @@
-<% if @matches.present? %>
-  <h3>Similar Posts</h3>
-  <p class="hint">Found <%= pluralize(@matches.length, "similar post") %>:</p>
-
-  <% @matches.each do |match| %>
-    <%= PostPresenter.preview(match["post"], show_deleted: true, similarity: match["score"], size: true) %>
+<h3>Similar Posts</h3>
+<section class="posts-container default-size">
+  <% if @matches.empty? %>
+    <p class="no-results">No similar posts found.</p>
+  <% else %>
+    <% @matches.each do |match| %>
+      <%= render(PostThumbnailComponent.new(post: match["post"], show_deleted: true, similarity: match["score"])) %>
+    <% end %>
   <% end %>
-<% else %>
-  <h3>Similar Posts</h3>
-  <p class="hint">No similar posts found.</p>
-<% end %>
+</section>

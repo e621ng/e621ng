@@ -169,7 +169,7 @@ PostModeMenu.change = function () {
 
 PostModeMenu.open_edit = function (post_id) {
   Hotkeys.enabled = false;
-  var $post = $("#post_" + post_id);
+  var $post = $(`article.thumbnail[data-id="${post_id}"]`).first();
   $("#quick-edit-div").slideDown("fast");
   $("#quick-edit-form").attr("action", "/posts/" + post_id + ".json");
   $("#post_tag_string").val($post.data("tags") + " ").focus().selectEnd();
@@ -237,7 +237,7 @@ PostModeMenu.click = function (e) {
       e.preventDefault();
       return;
     }
-    const postTags = $("#post_" + post_id).data("tags").split(" ");
+    const postTags = $(`article.thumbnail[data-id="${post_id}"]`).first().data("tags").split(" ");
     const tags = new Set(postTags);
     const changes = TagScript.run(tags, tag_script);
     Post.tagScript(post_id, changes);

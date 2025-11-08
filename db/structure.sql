@@ -3702,6 +3702,20 @@ CREATE INDEX index_comments_on_creator_ip_addr ON public.comments USING btree (c
 
 
 --
+-- Name: index_comments_on_is_hidden; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_is_hidden ON public.comments USING btree (id) WHERE (is_hidden = true);
+
+
+--
+-- Name: index_comments_on_is_sticky; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_is_sticky ON public.comments USING btree (id) WHERE (is_sticky = true);
+
+
+--
 -- Name: index_comments_on_lower_body_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4276,6 +4290,13 @@ CREATE INDEX index_posts_on_created_at ON public.posts USING btree (created_at);
 
 
 --
+-- Name: index_posts_on_is_comment_disabled; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_is_comment_disabled ON public.posts USING btree (id) WHERE (is_comment_disabled = true);
+
+
+--
 -- Name: index_posts_on_is_flagged; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4845,6 +4866,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251101144234'),
 ('20251014151300'),
 ('20251010171207'),
 ('20251001213309'),

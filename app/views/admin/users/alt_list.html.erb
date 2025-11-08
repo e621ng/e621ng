@@ -36,11 +36,16 @@
 </div>
 
 <%= javascript_tag nonce: true do -%>
-$(function() {
-  $(".alt-header").on('click', function(evt) {
-    var target = $(evt.currentTarget);
-    var altid = target.data('alt');
-    $('#alt-details-' + altid).toggle();
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.alt-header').forEach(function(header) {
+    header.addEventListener('click', function(evt) {
+      const target = evt.currentTarget;
+      const altid = target.dataset.alt;
+      const details = document.getElementById('alt-details-' + altid);
+      if (details) {
+        details.style.display = details.style.display === 'none' ? 'block' : 'none';
+      }
+    });
   });
 });
 <% end -%>

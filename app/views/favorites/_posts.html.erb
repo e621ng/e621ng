@@ -3,24 +3,22 @@
     <% if @posts.empty? %>
       <%= render "posts/blank" %>
     <% else %>
-      <% @posts.each do |post| %>
-        <%= post.preview_html(self, { tags: @post_set.tag_string, show_cropped: true, stats: CurrentUser.show_post_statistics? }) %>
-      <% end %>
+      <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string)) %>
     <% end %>
   </section>
 
-  <% if post_set.hidden_posts.present? %>
+  <% if @post_set.hidden_posts.present? %>
     <div class="info hidden-posts-notice">
-      <% if post_set.safe_posts.present? %>
-        <%= post_set.safe_posts.size %> post(s) on this page were hidden by safe mode (<%= Danbooru.config.app_name %>). Go to <%= link_to "e621", "https://e621.net/" %> or disable safe mode to view (<%= link_to "learn more", help_page_path(id: "user_settings") %>).<br>
+      <% if @post_set.safe_posts.present? %>
+        <%= @post_set.safe_posts.size %> post(s) on this page were hidden by safe mode (<%= Danbooru.config.app_name %>). Go to <%= link_to "e621", "https://e621.net/" %> or disable safe mode to view (<%= link_to "learn more", help_page_path(id: "user_settings") %>).<br>
       <% end %>
-      <% if post_set.login_blocked_posts.present? %>
-        <%= post_set.login_blocked_posts.size %> post(s) on this page were hidden because you need to be logged in to view them. <%= link_to "(learn more)", help_page_path(id: "global_blacklist") %>
+      <% if @post_set.login_blocked_posts.present? %>
+        <%= @post_set.login_blocked_posts.size %> post(s) on this page were hidden because you need to be logged in to view them. <%= link_to "(learn more)", help_page_path(id: "global_blacklist") %>
       <% end %>
     </div>
   <% end %>
 
-  <% unless post_set.is_random? %>
-    <%= numbered_paginator(post_set.posts) %>
+  <% unless @post_set.is_random? %>
+    <%= numbered_paginator(@post_set.posts) %>
   <% end %>
 </div>

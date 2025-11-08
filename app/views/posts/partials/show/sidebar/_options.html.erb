@@ -52,7 +52,7 @@
           <li><%= tag.a "Unapprove", href: "#", id: "unapprove-post-link", data: { pid: post.id } %></li>
         <% end %>
 
-        <li><%= link_to "Check for AI", ai_check_moderator_post_post_path(post) %></li>
+        <li><%= link_to "Check for AI", ai_check_moderator_post_post_path(post), "data-confirm": "This may create a new AI flag.\nAre you sure that you want to proceed?" %></li>
 
         <% if CurrentUser.is_admin? %>
           <% if IqdbProxy.enabled? %>

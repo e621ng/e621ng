@@ -25,7 +25,7 @@ end
 gem "bootsnap"
 gem "addressable"
 gem "recaptcha", require: "recaptcha/rails"
-gem "webpacker", ">= 4.0.x"
+gem "vite_rails"
 gem "sidekiq", "~> 7.0"
 gem "marcel"
 # bookmarks for later, if they are needed
@@ -34,6 +34,7 @@ gem "sidekiq-unique-jobs"
 gem "redis"
 gem "request_store"
 gem "zxcvbn-ruby", require: "zxcvbn"
+gem "view_component"
 
 gem "diffy"
 gem "rugged"

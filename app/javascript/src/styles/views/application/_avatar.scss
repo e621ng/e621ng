@@ -109,7 +109,7 @@ nav.navigation .simple-avatar {
   // Desktop
   @include window-larger-than(50rem) {
     .avatar-name {
-      background: none;
+      background: themed("color-background");
       color: inherit;
 
       height: 1.5rem;
@@ -130,7 +130,7 @@ nav.navigation .simple-avatar {
     }
 
     &:hover, &:active {
-      .avatar-name { background: none; }
+      .avatar-name { background: themed("color-background"); }
     }
 
     .avatar-more {
