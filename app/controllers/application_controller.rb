@@ -214,6 +214,10 @@ class ApplicationController < ActionController::Base
   # => /tags?search[name]=touhou
   def normalize_search
     return unless request.get? || request.head?
+
+    # Sanitize q parameter - must be a String or nil, not a nested hash
+    params[:q] = nil if params[:q].present? && !params[:q].is_a?(String)
+
     params[:search] ||= ActionController::Parameters.new
 
     deep_reject_blank = ->(hash) do
