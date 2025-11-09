@@ -70,7 +70,7 @@ class ApplicationRecord < ActiveRecord::Base
       end
 
       def add_range_relation(arr, field)
-        return all if arr.nil?
+        return all if arr.nil? || arr[1].nil?
 
         case arr[0]
         when :eq

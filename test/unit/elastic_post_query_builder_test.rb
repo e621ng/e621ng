@@ -198,6 +198,15 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       assert_equal(ElasticPostQueryBuilder::ORDER_TABLE["score"], ElasticPostQueryBuilder.new("order:favcount ( order:score )", **DEFAULT_PARAM).order)
     end
 
+    should "gracefully ignore dates with years outside OpenSearch range" do
+      query_invalid = build_query("date:23025-05-24")
+      assert(query_invalid.has_invalid_input, "Should detect invalid date input")
+
+      query_valid = build_query("date:2025-05-24")
+      assert_not(query_valid.has_invalid_input, "Should not flag valid date as invalid")
+      assert(query_valid.must.any? { |m| m.dig(:range, :created_at) }, "Valid date should add date range to query")
+    end
+
     should "properly handle locked metatags" do
       assert_includes(ElasticPostQueryBuilder.new("locked:rating", **DEFAULT_PARAM).must, { term: { rating_locked: true } }, "locked:rating")
       assert_includes(ElasticPostQueryBuilder.new("locked:note", **DEFAULT_PARAM).must, { term: { note_locked: true } }, "locked:note")
