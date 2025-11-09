@@ -565,6 +565,10 @@ module Danbooru
       ]
     end
 
+    def auto_deletion_window
+      30
+    end
+
     # Any custom code you want to insert into the default layout without
     # having to modify the templates.
     def custom_html_header_content
