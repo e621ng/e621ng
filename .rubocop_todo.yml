@@ -885,7 +885,6 @@ Rails/ApplicationMailer:
     - 'app/mailers/maintenance/user/email_confirmation_mailer.rb'
     - 'app/mailers/maintenance/user/login_reminder_mailer.rb'
     - 'app/mailers/maintenance/user/password_reset_mailer.rb'
-    - 'app/mailers/user_mailer.rb'
 
 # Offense count: 21
 # This cop supports safe autocorrection (--autocorrect).

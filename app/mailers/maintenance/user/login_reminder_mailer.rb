@@ -2,14 +2,11 @@
 
 module Maintenance
   module User
-    class LoginReminderMailer < ActionMailer::Base
-      default :from => Danbooru.config.mail_from_addr, :content_type => "text/html"
-
+    class LoginReminderMailer < ApplicationMailer
       def notice(user)
         @user = user
-        if user.email.present?
-          mail(:to => user.email, :subject => "#{Danbooru.config.app_name} login reminder")
-        end
+        return if user.email.blank? # TODO: Ensure that UI also prevents this, rather than silently failing.
+        mail(to: user.email, subject: "#{Danbooru.config.app_name} Login Reminder")
       end
     end
   end

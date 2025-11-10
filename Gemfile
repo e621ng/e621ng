@@ -44,6 +44,8 @@ gem "datadog", require: "datadog/auto_instrument"
 gem "opensearch-ruby"
 
 gem "mailgun-ruby"
+gem "mjml-rails"
+gem "mrml"
 
 gem "faraday"
 gem "faraday-follow_redirects"

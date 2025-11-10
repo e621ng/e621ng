@@ -16,12 +16,12 @@ class UserPasswordResetNonce < ApplicationRecord
   end
 
   def reset_user!(pass, confirm)
-    return false if !ActiveSupport::SecurityUtils.secure_compare(pass, confirm)
+    return false unless ActiveSupport::SecurityUtils.secure_compare(pass, confirm)
     user.upgrade_password(pass)
     true
   end
 
   def expired?
-    created_at < 24.hours.ago
+    created_at < 6.hours.ago
   end
 end
