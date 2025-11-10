@@ -516,6 +516,7 @@ body.c-static.a-home {
       position: static;
       height: unset;
       padding: 0;
+      .avatar-name { background-color: unset; }
       .avatar-image, .login-image, .avatar-more { display: none; }
       .simple-avatar-menu { top: 2rem; }
     }
