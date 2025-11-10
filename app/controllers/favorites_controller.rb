@@ -23,7 +23,7 @@ class FavoritesController < ApplicationController
       @posts = @post_set.posts
       respond_with(@posts) do |fmt|
         fmt.json do
-          render json: @post_set.api_posts, root: "posts"
+          render json: { posts: PostBlueprint.render_as_hash(@post_set.api_posts) }
         end
       end
     end

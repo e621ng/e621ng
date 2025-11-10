@@ -36,7 +36,7 @@ class PostsController < ApplicationController
 
       respond_with(@posts) do |format|
         format.json do
-          render json: @post_set.api_posts, root: "posts"
+          render json: { posts: PostBlueprint.render_as_hash(@post_set.api_posts) }
         end
         format.atom
       end
@@ -62,7 +62,11 @@ class PostsController < ApplicationController
       @comment_votes = CommentVote.none
     end
 
-    respond_with(@post)
+    respond_with(@post) do |format|
+      format.json do
+        render json: { post: PostBlueprint.render_as_hash(@post) }
+      end
+    end
   end
 
   def show_seq
