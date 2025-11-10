@@ -61,4 +61,16 @@ class ParseValueTest < ActiveSupport::TestCase
     assert_equal([:between, 15, 5], subject.invert_range(subject.range("5..15")))
     assert_equal([:in, [8, 9, 10, 11, 12]], subject.invert_range(subject.range("8,9,10,11,12")))
   end
+
+  should "return nil for dates with years outside OpenSearch range" do
+    # Invalid years in OpenSearch
+    assert_nil(eq_value("23025-05-24", :date))
+    assert_nil(eq_value("10000-01-01", :date))
+    assert_nil(eq_value("-1-01-01", :date))
+
+    # Valid years
+    assert_not_nil(eq_value("2025-05-24", :date))
+    assert_not_nil(eq_value("0001-01-01", :date))
+    assert_not_nil(eq_value("9999-12-31", :date))
+  end
 end
