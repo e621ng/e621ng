@@ -26,7 +26,7 @@ require_relative "danbooru_local_config"
 module Danbooru
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.2
+    config.load_defaults 8.0
 
     # https://github.com/rails/rails/issues/50897
     config.active_record.raise_on_assign_to_attr_readonly = false
@@ -37,7 +37,7 @@ module Danbooru
     # config.autoload_lib(ignore: %w(assets tasks))
 
     config.active_record.schema_format = :sql
-    config.log_tags = [->(req) {"PID:#{Process.pid}"}]
+    config.log_tags = [->(_req) { "PID:#{Process.pid}" }]
     config.action_controller.action_on_unpermitted_parameters = :raise
     config.force_ssl = true
     config.active_job.queue_adapter = :sidekiq
@@ -48,7 +48,7 @@ module Danbooru
       config.ssl_options = {
         hsts: false,
         secure_cookies: false,
-        redirect: { exclude: ->(request) { true } }
+        redirect: { exclude: ->(_request) { true } },
       }
     end
 

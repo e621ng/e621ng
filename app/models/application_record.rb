@@ -179,7 +179,7 @@ class ApplicationRecord < ActiveRecord::Base
     extend ActiveSupport::Concern
 
     def as_json(options = {})
-      options ||= {}
+      options = options.dup
       options[:except] ||= []
       options[:except] += hidden_attributes
 
@@ -197,7 +197,7 @@ class ApplicationRecord < ActiveRecord::Base
     protected
 
     def hidden_attributes
-      [:uploader_ip_addr, :updater_ip_addr, :creator_ip_addr, :user_ip_addr, :ip_addr]
+      %i[uploader_ip_addr updater_ip_addr creator_ip_addr user_ip_addr ip_addr]
     end
 
     def method_attributes
