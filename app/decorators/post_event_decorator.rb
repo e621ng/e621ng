@@ -12,7 +12,8 @@ class PostEventDecorator < ApplicationDecorator
 
     case object.action
     when "deleted", "flag_created"
-      "#{vals['reason']}"
+      # Fallback only, in case a PostEvent doesn't have a proper `flag_id` attached.
+      "Reason: #{vals['reason'] || '`None`'}"
     when "favorites_moved"
       "Target: post ##{vals['parent_id']}"
     when "favorites_received"

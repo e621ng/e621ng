@@ -50,7 +50,7 @@ class Post < ApplicationRecord
   user_status_counter :post_count, foreign_key: :uploader_id
   belongs_to :parent, class_name: "Post", optional: true
   has_one :upload, dependent: :destroy
-  has_many :flags, :class_name => "PostFlag", :dependent => :destroy
+  has_many :flags, :class_name => "PostFlag" # do not destroy or nullify flags
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
   has_many :comments, -> { order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
@@ -1508,7 +1508,7 @@ class Post < ApplicationRecord
           )
           decrement_tag_post_counts
           move_files_on_delete
-          PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
+          PostEvent.add(id, CurrentUser.user, :deleted, { flag_id: flag.id })
         end
       end
 

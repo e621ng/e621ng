@@ -17,66 +17,7 @@
         </tr>
       </thead>
       <tbody>
-        <% @post_flags.each do |post_flag| %>
-          <tr
-            class="flag-type-<%= post_flag.type.to_s.dasherize %> flag-resolved-<%= post_flag.is_resolved? %>"
-            id="post-flag-<%= post_flag.id %>"
-            data-post-flag-id="<%= post_flag.id %>"
-            data-post-id="<%= post_flag.post_id %>"
-          >
-            <td>
-              <%= render(PostThumbnailComponent.new(post: post_flag.post, stats: true, show_deleted: true)) %>
-            </td>
-            <td>
-              <div class="dtext-container">
-                <%= format_text post_flag.reason %>
-              </div>
-              <% if post_flag.note.present? && post_flag.can_see_note? %>
-                <div class="post-flag-note">
-                  <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
-                  <div class="dtext-container post-flag-note-body">
-                    <% if CurrentUser.is_staff? %>
-                      <%= link_to svg_icon(:trash), clear_note_post_flag_path(post_flag), method: :post, data: { confirm: "Are you sure you want to clear this note?" }, class: "post-flag-clear-note-link" %>
-                    <% end %>
-                    <%= format_text post_flag.note %>
-                  </div>
-                </div>
-              <% end %>
-            </td>
-            <td>
-              <%= link_to post_flag.post.flags.size, post_flags_path(search: { post_id: post_flag.post_id }) %>
-            </td>
-            <td>
-              <%= post_flag.type.to_s.humanize %>
-              <%= link_to "»", post_flags_path(search: @search_params.merge(type: post_flag.type))%>
-            </td>
-            <td>
-              <%= post_flag.is_resolved.to_s %>
-              <%= link_to "»", post_flags_path(search: @search_params.merge(is_resolved: post_flag.is_resolved?)) %>
-            </td>
-            <td>
-              <%= compact_time post_flag.post.created_at %>
-              <br> by <%= link_to_user post_flag.post.uploader %>
-              <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} user:#{post_flag.post.uploader.name}".strip)) %>
-            </td>
-            <td>
-              <%= compact_time post_flag.created_at %>
-              <% if CurrentUser.can_view_flagger_on_post?(post_flag) %>
-                <br> by <%= link_to_user post_flag.creator %>
-                <%= link_to "»", post_flags_path(search: @search_params.merge(creator_name: post_flag.creator.name)) %>
-              <% end %>
-            </td>
-            <td>
-              <% if post_flag.post.approver %>
-                <%= link_to_user post_flag.post.approver %>
-                <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} approver:#{post_flag.post.approver.name}".strip)) %>
-              <% else %>
-                <em>none</em>
-                <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} approver:none".strip)) %>
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
+        <%= render partial: "post_flags/partials/show/post_flag", collection: @post_flags, as: :post_flag %>
       </tbody>
     </table>
 
