@@ -159,4 +159,57 @@ class VoteManager
     end
     Post.where(id: post.id).update_all(vote_cols)
   end
+
+  module VoteAbuseMethods
+    def self.vote_abuse_patterns(user:, limit: 10, threshold: 0.0001, duration: nil, vote_normality: true)
+      # Create a KV pair of tags and their weighted vote counts
+      tag_votes = Hash.new(0)
+      scope = user.post_votes.order(updated_at: :desc)
+      if duration
+        time_ago =
+          if duration.is_a?(String)
+            duration.to_f.days.ago
+          else
+            duration.ago
+          end
+        scope = scope.where("updated_at >= ?", time_ago)
+      end
+      scope.limit(limit).each do |vote|
+        post = vote.post
+        next unless post
+
+        post.tags.each do |tag|
+          weight = calculate_vote_weight(vote, post, vote_normality: vote_normality)
+          tag_votes[tag] += weight
+        end
+      end
+      # weight tags by their total usage over the whole site
+      tag_votes.each_key do |tag|
+        tag_votes[tag] /= tag.post_count.to_f # if tag.post_count && tag.post_count != 0
+      end
+      # Sort the tags by their absolute vote counts and return the top N
+      result = tag_votes.select { |_, count| count.abs > threshold } # rubocop:disable Style/RedundantAssignment
+                        .sort_by { |_, count| -count.abs }
+                        .to_h
+                        .sort_by { |_, count| count }
+      result
+    end
+
+    def self.calculate_vote_weight(vote, post, vote_normality: true)
+      tag_count = post.tag_count_general + post.tag_count_artist + post.tag_count_contributor + post.tag_count_copyright + post.tag_count_character + post.tag_count_species + post.tag_count_meta + post.tag_count_lore + post.tag_count_invalid
+      return 0 unless tag_count && tag_count > 0
+      # Calculate the score ratio of the posts
+      up_score = post.up_score.to_f
+      down_score = post.down_score.to_f || 0.0
+      total_score = up_score + down_score
+      if vote_normality
+        score_ratio = total_score == 0 ? 1.0 : (up_score - down_score) / total_score
+      else
+        score_ratio = 1.0
+      end
+      # Calculate the weight based on the user's vote and the post's score ratio
+      vote.score * (score_ratio / tag_count.to_f)
+    end
+  end
+  include VoteAbuseMethods
 end

@@ -1,0 +1,19 @@
+<div id="c-admin-vote-trends">
+  <h1>Vote Trends</h1>
+  <p>
+    This page shows the voting trends for a specific user. You can filter the results by various parameters.
+  </p>
+  <%= render "admin/vote_trends/partials/show/options" %>
+  <br>
+  <table>
+    <thead>
+      <tr>
+        <th>Score</th>
+        <th style="text-align:left">Tag Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: "admin/vote_trends/partials/show/ranked_tag", collection: @vote_trends, as: :trend_tag %>
+    </tbody>
+  </table>
+</div>

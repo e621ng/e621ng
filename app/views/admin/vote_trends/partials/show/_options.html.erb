@@ -1,0 +1,8 @@
+<%= form_search(path: admin_vote_trends_path, always_display: true, hideable: false) do %>
+  <%= text_field_tag "user", params[:user], placeholder: "User name or ID", data: { autocomplete: "user" } %>
+  <%= text_field_tag "limit", params[:limit], placeholder: "Last n votes", class: "form-control", min: 1, title: "Limit to last n post votes" %>
+  <%= text_field_tag "threshold", params[:threshold], placeholder: "Threshold", class: "form-control", min: 0, step: "any", title: "Threshold for vote count" %>
+  <%= text_field_tag "duration", params[:duration], placeholder: "Limit to last n days", class: "form-control", min: 0, step: "any", title: "Limit to last n days" %>
+  <%= check_box_tag "vote_normality", "1", params[:vote_normality].present? && params[:vote_normality].to_s != "0", title: "Vote normality on/off" %>
+  <label for="vote_normality" title="Don't account for the post's score">Vote Abuse Mode</label>
+<% end %>
