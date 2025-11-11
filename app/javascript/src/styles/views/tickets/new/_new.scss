@@ -15,10 +15,10 @@
 
   .ticket-warning {
     display: block;
-    background: themed("color-section-lighten-5");
+    background: themed("color-danger-darken-10");
     @include st-radius;
     padding: 0.5rem;
-    margin-bottom: 1rem;
+    margin: .5rem 0;
   
     ul {
       list-style: disc;
