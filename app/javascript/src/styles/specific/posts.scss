@@ -149,7 +149,14 @@ div#c-posts {
     }
 
     div.notices {
+      display: flex;
+      align-items: flex-start;
       margin: 1em 0;
+      gap: 5em;
+
+      .threshold-comments-notice {
+        padding-top: 1em;
+      }
     }
 
     #pending-approval-notice {
