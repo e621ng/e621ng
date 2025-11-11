@@ -504,6 +504,7 @@ Rails.application.routes.draw do
   get "/static/subscribestar" => "static#subscribestar", as: "subscribestar" if Danbooru.config.subscribestar_url.present?
   get "/static/furid" => "static#furid", as: "furid"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
+  get "status" => "rails/health#show", as: :rails_health_check
 
   root to: "static#home"
 
