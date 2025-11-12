@@ -23,7 +23,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@mod_actions) %>
+    <%= render PaginatorComponent.new(records: @mod_actions) %>
   </div>
 </div>
 

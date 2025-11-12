@@ -30,7 +30,7 @@
       <h5 id="respond-link"><%= link_to "Login to respond »", new_session_path %></h5>
     <% end %>
 
-    <%= numbered_paginator(@forum_posts) %>
+    <%= render PaginatorComponent.new(records: @forum_posts) %>
   </div>
 </div>
 
