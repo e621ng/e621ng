@@ -5,8 +5,11 @@ module Maintenance
     class LoginReminderMailer < ApplicationMailer
       def notice(user)
         @user = user
-        return if user.email.blank? # TODO: Ensure that UI also prevents this, rather than silently failing.
-        mail(to: user.email, subject: "#{Danbooru.config.app_name} Login Reminder")
+        return if user.email.blank?
+        mail(
+          to: user_email(@user),
+          subject: "#{Danbooru.config.app_name} Login Reminder",
+        )
       end
     end
   end
