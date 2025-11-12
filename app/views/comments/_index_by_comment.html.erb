@@ -13,4 +13,4 @@
     <% end %>
 </div>
 
-<%= numbered_paginator(@comments) %>
+<%= render PaginatorComponent.new(records: @comments) %>

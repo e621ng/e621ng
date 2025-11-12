@@ -36,7 +36,7 @@
       </table>
     </div>
 
-    <%= numbered_paginator(@tag_versions) %>
+    <%= render PaginatorComponent.new(records: @tag_versions) %>
   </div>
 </div>
 

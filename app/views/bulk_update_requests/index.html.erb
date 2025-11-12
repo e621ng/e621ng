@@ -5,7 +5,7 @@
     <%= render "search" %>
     <%= render "listing", :bulk_update_requests => @bulk_update_requests %>
 
-    <%= numbered_paginator(@bulk_update_requests) %>
+    <%= render PaginatorComponent.new(records: @bulk_update_requests) %>
   </div>
 </div>
 

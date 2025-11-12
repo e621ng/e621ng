@@ -27,7 +27,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@news_updates) %>
+    <%= render PaginatorComponent.new(records: @news_updates) %>
   </div>
 </div>
 

@@ -64,7 +64,7 @@
       Destroyed Posts
     <% end %>
 
-    <%= numbered_paginator(@destroyed_posts) %>
+    <%= render PaginatorComponent.new(records: @destroyed_posts) %>
 
   </div>
 </div>
