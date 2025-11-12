@@ -138,9 +138,9 @@ article.thumbnail .thm-desc-m {
   &.thm-favorites {
     color: palette("background-gold-d10");
     svg {
-      filter: url(#inset-shadow);
-      fill: palette("background-gold-d10");
-      stroke-width: 0;
+      height: 0.9rem;
+      width: 0.95rem;
+      margin: -0.075rem 0;
     }
   }
 
@@ -151,6 +151,11 @@ article.thumbnail .thm-desc-m {
       margin: 0;
     }
   }
+}
+article.thumbnail[data-is-favorited="true"] .thm-desc-m.thm-favorites svg {
+  filter: url(#inset-shadow);
+  fill: palette("background-gold-d10");
+  stroke-width: 0;
 }
 
 // Badges
