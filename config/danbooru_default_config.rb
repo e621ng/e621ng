@@ -31,7 +31,7 @@ module Danbooru
 
     # The canonical hostname of the site.
     def hostname
-      Socket.gethostname
+      "localhost:3000"
     end
 
     # Contact email address of the admin.
@@ -653,7 +653,7 @@ module Danbooru
     end
 
     def mail_from_addr
-      "noreply@localhost"
+      "E621.net <noreply@e621.net>"
     end
 
     # disable this for tests

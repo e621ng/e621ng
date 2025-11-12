@@ -6,7 +6,10 @@ module Maintenance
       def reset_request(user, nonce)
         @user = user
         @nonce = nonce
-        mail(to: @user.email, subject: "#{Danbooru.config.app_name} Password Reset")
+        mail(
+          to: user_email(@user),
+          subject: "#{Danbooru.config.app_name} Password Reset",
+        )
       end
     end
   end
