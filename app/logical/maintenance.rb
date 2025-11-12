@@ -13,6 +13,7 @@ module Maintenance
     ignoring_exceptions { UserPasswordResetNonce.prune! }
     ignoring_exceptions { ExceptionLog.prune! unless Setting.disable_exception_prune? }
     ignoring_exceptions { StatsUpdater.run! }
+    ignoring_exceptions { Post.cleanup_stuck_favorite_transfer_flags! }
     ignoring_exceptions { DiscordReport::JanitorStats.new.run! }
     ignoring_exceptions { DiscordReport::ModeratorStats.new.run! }
     ignoring_exceptions { DiscordReport::AiburStats.new.run! }
