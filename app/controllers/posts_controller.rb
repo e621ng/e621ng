@@ -90,6 +90,9 @@ class PostsController < ApplicationController
 
     respond_with(@post) do |format|
       format.html { render "posts/show" }
+      format.json do
+        render json: { post: PostBlueprint.render_as_hash(@post) }
+      end
     end
   end
 
@@ -157,8 +160,8 @@ class PostsController < ApplicationController
   end
 
   def respond_with_post_after_update(post)
-    respond_with(post) do |format|
-      format.html do
+    respond_with(post) do |format| # rubocop:disable Metrics/BlockLength
+      format.html do # rubocop:disable Metrics/BlockLength
         if post.warnings.any?
           warnings = post.warnings.full_messages.join(".\n \n")
           if warnings.length > 45_000
@@ -194,7 +197,7 @@ class PostsController < ApplicationController
       end
 
       format.json do
-        render json: post
+        render json: { post: PostBlueprint.render_as_hash(post) }
       end
     end
   end
