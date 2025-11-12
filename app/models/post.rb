@@ -372,7 +372,11 @@ class Post < ApplicationRecord
 
     ### Preview ###
     def has_preview?
-      is_image? || is_video?
+      return false unless is_image? || is_video?
+
+      # Some legacy files are corrupt and cannot be processed.
+      # They report dimensions of 1x1, although the actual dimensions are larger.
+      image_width.to_i > 1 && image_height.to_i > 1
     end
 
     def preview_dimensions(max_px = Danbooru.config.small_image_width)

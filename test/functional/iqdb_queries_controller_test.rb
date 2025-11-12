@@ -36,6 +36,15 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
           assert_response :success
           assert_select("article.thumbnail[data-id='#{post.id}']")
         end
+
+        should "return empty results for posts with corrupt 1x1 dimensions" do
+          post = create(:post, image_width: 1, image_height: 1)
+          # No IQDB request should be made since has_preview? returns false
+
+          get iqdb_queries_path, params: { post_id: post.id }
+          assert_response :success
+          # Should render page with no results
+        end
       end
     end
   end
