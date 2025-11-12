@@ -463,7 +463,7 @@ class Post < ApplicationRecord
       # Prevent unapproving self approvals by someone else
       return false if approver.nil? && uploader != user
       # Allow unapproval when the post is not pending anymore and is not at risk of auto deletion
-      !is_pending? && !is_deleted? && created_at.after?(PostPruner::DELETION_WINDOW.days.ago)
+      !is_pending? && !is_deleted? && created_at.after?(Danbooru.config.unapproved_post_deletion_window.ago)
     end
 
     def approve!(approver = CurrentUser.user)
