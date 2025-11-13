@@ -11,6 +11,9 @@ class PostsController < ApplicationController
       @post = Post.find_by!(md5: params[:md5])
       respond_with(@post) do |format|
         format.html { redirect_to post_path(@post) }
+        format.json do
+          render json: { post: PostBlueprint.render_as_hash(@post) }
+        end
       end
     else
       @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
