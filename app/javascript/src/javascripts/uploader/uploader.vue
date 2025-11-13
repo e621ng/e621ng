@@ -69,7 +69,7 @@
                                             :key="check.name"></image-checkbox>
                         </div>
                         <textarea class="tag-textarea" rows="2" v-model="tagEntries.character" id="post_character"
-                                  placeholder="Ex: character_name solo_focus etc."
+                                  placeholder="Ex: character_name"
                                   data-autocomplete="tag-edit"></textarea>
                     </div>
                 </div>
@@ -149,6 +149,7 @@
                         towards this total.
                     </div>
                     <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
+                              placeholder="Ex: standing orange_fur white_shirt outside smile 4_toes etc."
                               ref="otherTags" data-autocomplete="tag-edit"></textarea>
                     <tag-preview :tags="tags" />
                     <div class="related-tag-functions">
