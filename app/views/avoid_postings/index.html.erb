@@ -64,7 +64,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@avoid_postings) %>
+    <%= render PaginatorComponent.new(records: @avoid_postings) %>
   </div>
 </div>
 

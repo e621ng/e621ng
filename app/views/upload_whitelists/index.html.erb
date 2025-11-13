@@ -40,7 +40,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@whitelists) %>
+    <%= render PaginatorComponent.new(records: @whitelists) %>
   </div>
 </div>
 

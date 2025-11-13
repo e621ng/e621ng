@@ -7,7 +7,7 @@ nav.pagination {
   border-radius: 0.25rem;
 
   width: max-content;
-  margin: 0 auto;
+  margin: 1rem auto;
   max-width: calc(100vw - 1rem);
 
   & > a, & > span {
@@ -33,29 +33,21 @@ nav.pagination {
   }
 
   // Ordering
-  // Oh boy
   .page {
     order: 20;
-    &.lg { display: none; }
     &.current {
       cursor: default;
       background-color: rgba(0, 0, 0, .2);
       font-weight: bold;
     }
+    &.spacer {
+      padding: 0.75rem 0.3rem;
+      svg { height: 1rem; }
+    }
   }
   .prev {
     order: 1;
     margin-right: auto;
-  }
-  .spacer {
-    order: 20;
-    padding: 0;
-
-    &:last-child { display: none; }
-    svg {
-      height: 1rem;
-      transform: rotate(90deg);
-    }
   }
   .next {
     order: 9;
@@ -79,10 +71,6 @@ nav.pagination {
     }
 
     .break { display: none; }
-    .spacer {
-      padding: inherit;
-      svg { transform: unset; }
-    }
 
     .prev { margin-right: 1rem; }
     .next { margin-left: 1rem; }
@@ -98,15 +86,11 @@ nav.pagination {
       span { display: none; }
     }
   }
-
-  @include window-larger-than(65rem) {
-    a.page.lg { display: flex; }
-  }
 }
 
 
 // Sequential paginator
 nav.pagination.sequential {
   gap: 5rem;
-  a span { display: block; }
+  a > span, span > span { display: block; }
 }
