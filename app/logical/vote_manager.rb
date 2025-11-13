@@ -8,14 +8,14 @@ class VoteManager
     retries = 5
     score = score.to_i
     begin
-      raise UserVote::Error.new("Invalid vote") unless [1, -1].include?(score)
-      raise UserVote::Error.new("You do not have permission to vote") unless user.is_member?
+      raise UserVote::Error, "Invalid vote" unless [1, -1].include?(score)
+      raise UserVote::Error, "You do not have permission to vote" unless user.is_member?
       PostVote.transaction(**ISOLATION) do
         PostVote.uncached do
           score_modifier = score
           old_vote = PostVote.where(user_id: user.id, post_id: post.id).first
           if old_vote
-            raise UserVote::Error.new("Vote is locked") if old_vote.score == 0
+            raise UserVote::Error, "Vote is locked" if old_vote.score == 0
             if old_vote.score == score
               return :need_unvote
             else
@@ -36,12 +36,12 @@ class VoteManager
           post.reload
         end
       end
-    rescue ActiveRecord::SerializationFailure => e
+    rescue ActiveRecord::SerializationFailure
       retries -= 1
       retry if retries > 0
-      raise UserVote::Error.new("Failed to vote, please try again later")
+      raise UserVote::Error, "Failed to vote, please try again later"
     rescue ActiveRecord::RecordNotUnique
-      raise UserVote::Error.new("You have already voted for this post")
+      raise UserVote::Error, "You have already voted for this post"
     end
     post.update_index
     @vote
@@ -54,7 +54,7 @@ class VoteManager
         PostVote.uncached do
           vote = PostVote.where(user_id: user.id, post_id: post.id).first
           return unless vote
-          raise UserVote::Error.new "You can't remove locked votes" if vote.score == 0 && !force
+          raise UserVote::Error, "You can't remove locked votes" if vote.score == 0 && !force
           post.votes.where(user: user).delete_all
           subtract_vote(post, vote)
           post.reload
@@ -63,7 +63,7 @@ class VoteManager
     rescue ActiveRecord::SerializationFailure
       retries -= 1
       retry if retries > 0
-      raise UserVote::Error.new("Failed to unvote, please try again later")
+      raise UserVote::Error, "Failed to unvote, please try again later"
     end
     post.update_index
   end
