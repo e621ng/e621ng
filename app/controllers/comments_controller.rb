@@ -111,7 +111,7 @@ class CommentsController < ApplicationController
 
   def index_by_comment
     # Only enable COUNT for searches that actually narrow results to avoid expensive queries
-    narrowing_params = %i[body_matches post_id post_tags_match creator_name creator_id
+    narrowing_params = %i[id body_matches post_id post_tags_match creator_name creator_id
                           post_note_updater_name post_note_updater_id poster_id poster_name ip_addr]
     has_narrowing_search = narrowing_params.any? { |param| params[:search]&.dig(param).present? }
     has_narrowing_search ||= params[:search]&.dig(:is_hidden)&.to_s == "false"
