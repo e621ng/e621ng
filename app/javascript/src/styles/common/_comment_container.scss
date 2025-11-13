@@ -32,7 +32,14 @@
     grid-row: 1;
     padding: $padding-025 $padding-050;
 
-    .content-menu { margin-top: 1rem; }
+    .content-menu {
+      margin-top: 1rem;
+      
+      .post-report {
+        font-size: 90%;
+        float: right;
+      }
+    }
   }
 }
 

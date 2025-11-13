@@ -54,7 +54,7 @@
           <% end %>
 
           <% if CurrentUser.is_member? %>
-            <li><%= link_to "Report", new_ticket_path(disp_id: blip.id, qtype: 'blip') %></li>
+            <li class="post-report"><%= link_to "Report", new_ticket_path(disp_id: blip.id, qtype: 'blip') %></li>
           <% end %>
 
           <% if CurrentUser.is_moderator? %>
