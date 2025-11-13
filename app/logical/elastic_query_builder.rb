@@ -162,7 +162,7 @@ class ElasticQueryBuilder
     elsif q[key].to_s.falsy?
       must.push({ term: { index_field => false } })
     else
-      raise ArgumentError, "value must be truthy or falsy"
+      @has_invalid_input = true
     end
   end
 
