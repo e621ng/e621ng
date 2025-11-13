@@ -720,23 +720,23 @@ class User < ApplicationRecord
 
   module CountMethods
     def wiki_page_version_count
-      user_status.wiki_edit_count
+      user_status&.wiki_edit_count || 0
     end
 
     def post_update_count
-      user_status.post_update_count
+      user_status&.post_update_count || 0
     end
 
     def post_upload_count
-      user_status.post_count
+      user_status&.post_count || 0
     end
 
     def post_deleted_count
-      user_status.post_deleted_count
+      user_status&.post_deleted_count || 0
     end
 
     def note_version_count
-      user_status.note_count
+      user_status&.note_count || 0
     end
 
     def note_update_count
@@ -744,31 +744,31 @@ class User < ApplicationRecord
     end
 
     def artist_version_count
-      user_status.artist_edit_count
+      user_status&.artist_edit_count || 0
     end
 
     def pool_version_count
-      user_status.pool_edit_count
+      user_status&.pool_edit_count || 0
     end
 
     def forum_post_count
-      user_status.forum_post_count
+      user_status&.forum_post_count || 0
     end
 
     def favorite_count
-      user_status.favorite_count
+      user_status&.favorite_count || 0
     end
 
     def comment_count
-      user_status.comment_count
+      user_status&.comment_count || 0
     end
 
     def flag_count
-      user_status.post_flag_count
+      user_status&.post_flag_count || 0
     end
 
     def ticket_count
-      user_status.ticket_count
+      user_status&.ticket_count || 0
     end
 
     ## !DB
@@ -817,15 +817,15 @@ class User < ApplicationRecord
     end
 
     def post_replacement_rejected_count
-      user_status.post_replacement_rejected_count
+      user_status&.post_replacement_rejected_count || 0
     end
 
     def own_post_replaced_count
-      user_status.own_post_replaced_count
+      user_status&.own_post_replaced_count || 0
     end
 
     def own_post_replaced_penalize_count
-      user_status.own_post_replaced_penalize_count
+      user_status&.own_post_replaced_penalize_count || 0
     end
 
     def refresh_counts!
