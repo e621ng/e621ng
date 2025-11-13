@@ -3548,6 +3548,13 @@ CREATE INDEX index_artists_on_group_name_trgm ON public.artists USING gin (group
 
 
 --
+-- Name: index_artists_on_linked_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_artists_on_linked_user_id ON public.artists USING btree (linked_user_id);
+
+
+--
 -- Name: index_artists_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4866,6 +4873,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251113060711'),
 ('20251101144234'),
 ('20251014151300'),
 ('20251010171207'),

@@ -6,21 +6,22 @@ class ArtistsController < ApplicationController
   before_action :admin_only, only: %i[destroy]
   before_action :load_artist, only: %i[edit update destroy revert]
 
-  def new
-    @artist = Artist.new(artist_params)
-    respond_with(@artist)
-  end
-
-  def edit
-    ensure_can_edit(CurrentUser.user)
-    respond_with(@artist)
-  end
-
   def index
-    @artists = Artist.includes(:urls).search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    # Only enable COUNT for searches that actually narrow results to avoid expensive queries
+    narrowing_params = %i[id name group_name any_other_name_like any_name_matches
+                          any_name_or_url_matches url_matches creator_name creator_id]
+    has_narrowing_search = narrowing_params.any? { |param| params[:search]&.dig(param).present? }
+    has_narrowing_search ||= params[:search]&.dig(:has_tag)&.to_s == "false"
+    has_narrowing_search ||= params[:search]&.dig(:is_linked)&.to_s == "true"
+
+    search_params_for_count = has_narrowing_search ? params[:search] : nil
+
+    @artists = Artist.search(search_params).paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
     respond_with(@artists) do |format|
       format.json do
-        render :json => @artists.to_json(:include => [:urls])
+        # Eager load URLs only for JSON response to avoid N+1 queries
+        ActiveRecord::Associations::Preloader.new(records: @artists, associations: :urls).call
+        render json: @artists.to_json(include: [:urls])
         expires_in params[:expiry].to_i.days if params[:expiry]
       end
     end
@@ -45,6 +46,16 @@ class ArtistsController < ApplicationController
     end
     @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
     respond_with(@artist, methods: [:domains], include: [:urls])
+  end
+
+  def new
+    @artist = Artist.new(artist_params)
+    respond_with(@artist)
+  end
+
+  def edit
+    ensure_can_edit(CurrentUser.user)
+    respond_with(@artist)
   end
 
   def create

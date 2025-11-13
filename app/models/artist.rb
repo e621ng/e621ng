@@ -482,9 +482,9 @@ class Artist < ApplicationRecord
       end
 
       if params[:is_linked].to_s.truthy?
-        q = q.where("linked_user_id IS NOT NULL")
+        q = q.where.not(linked_user_id: nil)
       elsif params[:is_linked].to_s.falsy?
-        q = q.where("linked_user_id IS NULL")
+        q = q.where(linked_user_id: nil)
       end
 
       case params[:order]
