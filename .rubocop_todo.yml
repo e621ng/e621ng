@@ -737,7 +737,6 @@ Lint/UselessAssignment:
 # AllowedMethods: refine
 Metrics/BlockLength:
   Exclude:
-    - 'app/controllers/posts_controller.rb'
     - 'app/indexes/post_index.rb'
     - 'app/logical/bulk_update_request_importer.rb'
     - 'app/logical/storage_manager/match.rb'
