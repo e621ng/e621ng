@@ -1,4 +1,4 @@
-import TaskQueue from "../utility/task_queue";
+import TaskQueue, { TaskCancelled } from "../utility/task_queue";
 import User from "./User";
 
 export default class Favorite {
@@ -25,7 +25,7 @@ export default class Favorite {
           authenticity_token: encodeURIComponent(User._authToken),
         }),
       });
-    }, { name: "Favorite.create" }).then(async (response) => {
+    }, { name: "Post.favorite", unique: true, delay: 500 }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
         try {
@@ -46,6 +46,7 @@ export default class Favorite {
         throw new Error("Failed to parse response as JSON: " + error.message);
       }
     }, (error) => {
+      if (error instanceof TaskCancelled) return Promise.reject(error);
       console.error(error);
       $(window).trigger("danbooru:error", "Error: " + error.message);
       throw error;
@@ -74,7 +75,7 @@ export default class Favorite {
           authenticity_token: encodeURIComponent(User._authToken),
         }),
       });
-    }, { name: "Favorite.destroy" }).then(async (response) => {
+    }, { name: "Post.favorite", unique: true, delay: 500 }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
         try {
@@ -95,6 +96,7 @@ export default class Favorite {
         throw new Error("Failed to parse response as JSON: " + error.message);
       }
     }, (error) => {
+      if (error instanceof TaskCancelled) return Promise.reject(error);
       console.error(error);
       $(window).trigger("danbooru:error", "Error: " + error.message);
       throw error;

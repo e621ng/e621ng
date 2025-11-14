@@ -1,4 +1,4 @@
-import TaskQueue from "../utility/task_queue";
+import TaskQueue, { TaskCancelled } from "../utility/task_queue";
 import User from "./User";
 import Post from "../posts";
 
@@ -45,7 +45,7 @@ export default class PostVote {
           authenticity_token: encodeURIComponent(User._authToken),
         }),
       });
-    }).then(async (response) => {
+    }, { name: "Post.vote", unique: true, delay: 500 }).then(async (response) => {
       if (!response.ok)
         return response.json().then((data) => {
           const message = data.reason || data.message || "An error occurred while voting.";
@@ -55,6 +55,8 @@ export default class PostVote {
 
       return response.json();
     }, (error) => {
+      if (error instanceof TaskCancelled) return Promise.reject(error);
+
       console.error(error);
       if (error.status === 403)
         $(window).trigger("danbooru:error", "Permission denied.");
