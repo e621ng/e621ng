@@ -40,6 +40,7 @@ class UserDeletion
       email: '',
       email_verification_key: '1',
       avatar_id: nil,
+      flair_color: nil,
       profile_about: '',
       profile_artinfo: '',
       custom_style: '',
