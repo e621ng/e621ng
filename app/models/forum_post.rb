@@ -101,6 +101,11 @@ class ForumPost < ApplicationRecord
       BulkUpdateRequest.where(forum_post_id: id).exists?
   end
 
+  def vote_score_calculation
+    return 0.0 unless votable? && votes.count > 0
+    ((votes.up.count - votes.down.count) / votes.count.to_d).to_d
+  end
+
   def validate_topic_is_unlocked
     return if CurrentUser.is_moderator?
     return if topic.nil?
@@ -221,6 +226,10 @@ class ForumPost < ApplicationRecord
     end
 
     true
+  end
+
+  def update_vote_score
+    update_column(:vote_score, vote_score)
   end
 
   def method_attributes
