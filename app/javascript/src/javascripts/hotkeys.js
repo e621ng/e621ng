@@ -18,6 +18,8 @@ export default class Hotkeys {
     "scroll-down":  [ "e6.htk.scroll-d", "S" ],
     "scroll-up":    [ "e6.htk.scroll-u", "W" ],
 
+    "history":      [ "e6.htk.history", "" ],
+
     // Posts
     "upvote":       [ "e6.htk.upvote", "Z" ],
     "downvote":     [ "e6.htk.downvote", "X" ],
@@ -28,6 +30,12 @@ export default class Hotkeys {
     "note-toggle":  [ "e6.htk.note-tgl", "Shift+N" ],
     "random":       [ "e6.htk.random", "R" ],
     "resize":       [ "e6.htk.resize", "V" ],
+
+    "fullscreen":   [ "e6.htk.fullscreen", "" ],
+    "download":     [ "e6.htk.download", "" ],
+    "add-to-set":   [ "e6.htk.add-to-set", "" ],
+    "add-to-pool":  [ "e6.htk.add-to-pool", "" ],
+
 
     // Tag Scripts
     "tag-script-1": [ "e6.htk.tsc-1", "1" ],
