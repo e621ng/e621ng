@@ -1,69 +1,67 @@
 <ul>
-  <% if CurrentUser.is_member? %>
-    <li><%= link_to "Edit", "#edit", id: "side-edit-link" %></li>
-    <li><%= link_to_if post.visible?, "Download", post.file_url %></li>
-    <%# Add to Pool / Set %>
-    <li id="add-to-pool-list"><%= link_to "Add to pool", "#", class: "add-to-pool" %></li>
-    <li id="add-to-set-list"><%= link_to "Add to set", "#", class: "add-to-set" %></li>
-    <li><%= link_to "Set as avatar", "javascript:void", id: "set-as-avatar-link", data: { post_id: post.id } %></li>
-    <li>&nbsp;</li>
+  <li><%= link_to "Edit", "#edit", id: "side-edit-link" %></li>
+  <li><%= link_to_if post.visible?, "Download", post.file_url %></li>
+  <%# Add to Pool / Set %>
+  <li id="add-to-pool-list"><%= link_to "Add to pool", "#", class: "add-to-pool" %></li>
+  <li id="add-to-set-list"><%= link_to "Add to set", "#", class: "add-to-set" %></li>
+  <li><%= link_to "Set as avatar", "javascript:void", id: "set-as-avatar-link", data: { post_id: post.id } %></li>
+  <li>&nbsp;</li>
 
-    <%# Notes %>
-    <% if post.can_have_notes? %>
-      <% if post.is_note_locked? %>
-        <li id="add-notes-list"><span id="note-locked-notice">Note locked</span></li>
-      <% else %>
-        <li id="add-notes-list"><%= link_to "Edit Notes", "#", "id": "translate", "data-hotkey": "note" %></li>
-      <% end %>
-      <% if post.has_notes? %>
-        <li id="copy-all-notes-list"><%= link_to "Copy notes", "#", id: "copy-notes" %></li>
-      <% end %>
-      <li>&nbsp;</li>
-    <% end %>
-
-    <% if CurrentUser.can_replace? %>
-      <li><%= link_to post.is_video? ? "Replace video" : "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
-    <% end %>
-    <% if post.is_status_locked? %>
-      <li><span id="status-locked-notice">Status locked</span></li>
+  <%# Notes %>
+  <% if post.can_have_notes? %>
+    <% if post.is_note_locked? %>
+      <li id="add-notes-list"><span id="note-locked-notice">Note locked</span></li>
     <% else %>
-      <% unless CurrentUser.no_flagging? %>
-        <% if !post.is_deleted? && !post.is_flagged? %>
-          <li><%= link_to "Flag", new_post_flag_path(post_flag: { post_id: post.id }), id: "flag" %></li>
-        <% end %>
+      <li id="add-notes-list"><%= link_to "Edit Notes", "#", "id": "translate", "data-hotkey": "note" %></li>
+    <% end %>
+    <% if post.has_notes? %>
+      <li id="copy-all-notes-list"><%= link_to "Copy notes", "#", id: "copy-notes" %></li>
+    <% end %>
+    <li>&nbsp;</li>
+  <% end %>
+
+  <% if CurrentUser.can_replace? %>
+    <li><%= link_to post.is_video? ? "Replace video" : "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
+  <% end %>
+  <% if post.is_status_locked? %>
+    <li><span id="status-locked-notice">Status locked</span></li>
+  <% else %>
+    <% unless CurrentUser.no_flagging? %>
+      <% if !post.is_deleted? && !post.is_flagged? %>
+        <li><%= link_to "Flag", new_post_flag_path(post_flag: { post_id: post.id }), id: "flag" %></li>
       <% end %>
-      <li><%= link_to "Report", new_ticket_path(disp_id: post.id, qtype: "post") %></li>
+    <% end %>
+    <li><%= link_to "Report", new_ticket_path(disp_id: post.id, qtype: "post") %></li>
 
-      <% if CurrentUser.can_approve_posts? %>
-        <% if post.is_deleted? %>
-          <li><%= tag.a "Undelete", href: "#", class: "undelete-post-link", data: { pid: post.id } %></li>
-          <% if post.fav_count > 0 && post.parent_id %>
-            <li><%= link_to "Move favorites", confirm_move_favorites_moderator_post_post_path(post) %></li>
-          <% end %>
-        <% else %>
-          <li><%= link_to "Delete", confirm_delete_moderator_post_post_path(post, q: params[:q]) %></li>
+    <% if CurrentUser.can_approve_posts? %>
+      <% if post.is_deleted? %>
+        <li><%= tag.a "Undelete", href: "#", class: "undelete-post-link", data: { pid: post.id } %></li>
+        <% if post.fav_count > 0 && post.parent_id %>
+          <li><%= link_to "Move favorites", confirm_move_favorites_moderator_post_post_path(post) %></li>
         <% end %>
-
-        <% if post.is_approvable? %>
-          <li><%= tag.a "Approve", href: "#", class: "approve-post-link", data: { pid: post.id } %></li>
-        <% end %>
-
-        <% if post.is_unapprovable?(CurrentUser.user) %>
-          <li><%= tag.a "Unapprove", href: "#", id: "unapprove-post-link", data: { pid: post.id } %></li>
-        <% end %>
-
-        <% if CurrentUser.is_admin? %>
-          <% if IqdbProxy.enabled? %>
-            <li><%= link_to "Update IQDB", update_iqdb_post_path(@post) %></li>
-          <% end %>
-          <li><%= tag.a "Destroy", href: "#", id: "destroy-post-link", data: { pid: post.id } %></li>
-        <% end %>
+      <% else %>
+        <li><%= link_to "Delete", confirm_delete_moderator_post_post_path(post, q: params[:q]) %></li>
       <% end %>
-      <% if CurrentUser.is_janitor? %>
-        <li><%= tag.a "Regenerate Thumbnails", href: "#", id: "regenerate-image-samples-link", data: { pid: post.id } %></li>
-        <% if post.is_video? %>
-          <li><%= tag.a "Regenerate Video Samples", href: "#", id: "regenerate-video-samples-link", data: { pid: post.id } %></li>
+
+      <% if post.is_approvable? %>
+        <li><%= tag.a "Approve", href: "#", class: "approve-post-link", data: { pid: post.id } %></li>
+      <% end %>
+
+      <% if post.is_unapprovable?(CurrentUser.user) %>
+        <li><%= tag.a "Unapprove", href: "#", id: "unapprove-post-link", data: { pid: post.id } %></li>
+      <% end %>
+
+      <% if CurrentUser.is_admin? %>
+        <% if IqdbProxy.enabled? %>
+          <li><%= link_to "Update IQDB", update_iqdb_post_path(@post) %></li>
         <% end %>
+        <li><%= tag.a "Destroy", href: "#", id: "destroy-post-link", data: { pid: post.id } %></li>
+      <% end %>
+    <% end %>
+    <% if CurrentUser.is_janitor? %>
+      <li><%= tag.a "Regenerate Thumbnails", href: "#", id: "regenerate-image-samples-link", data: { pid: post.id } %></li>
+      <% if post.is_video? %>
+        <li><%= tag.a "Regenerate Video Samples", href: "#", id: "regenerate-video-samples-link", data: { pid: post.id } %></li>
       <% end %>
     <% end %>
   <% end %>
