@@ -23,6 +23,9 @@ class TakedownsController < ApplicationController
   end
 
   def new
+    @wiki = WikiPage.titled("e621:takedown_new")
+    @wiki = WikiPage.new(body: "Wiki page \"e621:takedown_new\" not found.") if @wiki.blank?
+
     @takedown = Takedown.new
     respond_with(@takedown)
   end
