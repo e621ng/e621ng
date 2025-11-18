@@ -56,7 +56,7 @@ module Danbooru
 
       def validate_bigint(value)
         int_value = value.to_i
-        if int_value > 9_223_372_036_854_775_807 || int_value < 1
+        if int_value > 9_223_372_036_854_775_807 || int_value < 0
           raise Danbooru::Paginator::PaginationError, "Page parameter is out of valid range."
         end
         int_value
