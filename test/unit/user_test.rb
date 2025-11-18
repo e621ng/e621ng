@@ -120,6 +120,39 @@ class UserTest < ActiveSupport::TestCase
       assert_not(User.authenticate(@user.name, "password2"), "Authentication should not have succeeded")
     end
 
+    context "API key authentication" do
+      setup do
+        @api_key = ApiKey.generate!(@user)
+      end
+
+      should "authenticate with valid credentials" do
+        result = User.authenticate_api_key(@user.name, @api_key.key)
+        assert_equal(@user, result)
+      end
+
+      should "reject invalid UTF-8 in username" do
+        invalid_name = String.new("user\xee\xce\x0d", encoding: "ASCII-8BIT")
+        result = User.authenticate_api_key(invalid_name, @api_key.key)
+        assert_nil(result)
+      end
+
+      should "reject invalid UTF-8 in api_key" do
+        invalid_key = String.new("key\xee\xce\x0d", encoding: "ASCII-8BIT")
+        result = User.authenticate_api_key(@user.name, invalid_key)
+        assert_nil(result)
+      end
+
+      should "reject blank username" do
+        result = User.authenticate_api_key("", @api_key.key)
+        assert_nil(result)
+      end
+
+      should "reject blank api_key" do
+        result = User.authenticate_api_key(@user.name, "")
+        assert_nil(result)
+      end
+    end
+
     should "normalize its level" do
       user = create(:user, level: User::Levels::ADMIN)
       assert(user.is_moderator?)
