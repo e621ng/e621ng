@@ -45,6 +45,25 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
           assert_response :success
           # Should render page with no results
         end
+
+        should "reject non-numeric values" do
+          get iqdb_queries_path, params: { post_id: "invalid" }
+          assert_response 400
+        end
+      end
+
+      context "with a file parameter" do
+        should "reject non-file objects" do
+          get iqdb_queries_path, params: { file: { foo: "bar" } }
+          assert_response 400
+        end
+      end
+
+      context "with a hash parameter" do
+        should "reject non-hex hash values" do
+          get iqdb_queries_path, params: { hash: "not-a-valid-hex-hash" }
+          assert_response 400
+        end
       end
     end
   end
