@@ -1227,7 +1227,8 @@ class TagQuery
   #
   # IDEA: Sort groups like metatags
   def parse_query(query, depth: 0, **kwargs)
-    return if (query = query.to_s.unicode_normalize(:nfc).strip.freeze).blank?
+    # Remove invalid UTF-8 sequences and null bytes before processing
+    return if (query = query.to_s.scrub("").delete("\u0000").unicode_normalize(:nfc).strip.freeze).blank?
     can_have_groups = kwargs.fetch(:can_have_groups, true) && TagQuery.has_groups?(query)
     out_of_metatags = false
     params = { preformatted_query: true, ensure_delimiting_whitespace: true, compact: true, force_delim_metatags: true, segregate_metatags: true, delim_metatags: true }.freeze
