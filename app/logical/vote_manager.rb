@@ -3,79 +3,97 @@
 class VoteManager
   ISOLATION = Rails.env.test? ? {} : { isolation: :repeatable_read }
 
+  # ============================== #
+  # ========= Post Votes ========= #
+  # ============================== #
+
   def self.vote!(user:, post:, score:)
     @vote = nil
-    retries = 5
     score = score.to_i
-    begin
-      raise UserVote::Error.new("Invalid vote") unless [1, -1].include?(score)
-      raise UserVote::Error.new("You do not have permission to vote") unless user.is_member?
-      PostVote.transaction(**ISOLATION) do
-        PostVote.uncached do
-          score_modifier = score
-          old_vote = PostVote.where(user_id: user.id, post_id: post.id).first
-          if old_vote
-            raise UserVote::Error.new("Vote is locked") if old_vote.score == 0
-            if old_vote.score == score
-              return :need_unvote
-            else
-              score_modifier *= 2
-            end
-            old_vote.destroy
-          end
-          @vote = vote = PostVote.create!(user: user, score: score, post: post)
-          vote_cols = "score = score + #{score_modifier}"
-          if vote.score > 0
-            vote_cols += ", up_score = up_score + #{vote.score}"
-            vote_cols += ", down_score = down_score - #{old_vote.score}" if old_vote
-          else
-            vote_cols += ", down_score = down_score + #{vote.score}"
-            vote_cols += ", up_score = up_score - #{old_vote.score}" if old_vote
-          end
-          Post.where(id: post.id).update_all(vote_cols)
-          post.reload
-        end
+    raise UserVote::Error, "Invalid vote" unless [1, -1].include?(score)
+    raise UserVote::Error, "You do not have permission to vote" unless user.is_member?
+
+    result = PostVote.transaction do
+      post.lock!
+      post.reload
+
+      old_vote = PostVote.where(user_id: user.id, post_id: post.id).first
+
+      if old_vote
+        raise UserVote::Error, "Vote is locked" if old_vote.score == 0
+        next :need_unvote if old_vote.score == score
+        old_vote.destroy
       end
-    rescue ActiveRecord::SerializationFailure => e
-      retries -= 1
-      retry if retries > 0
-      raise UserVote::Error.new("Failed to vote, please try again later")
-    rescue ActiveRecord::RecordNotUnique
-      raise UserVote::Error.new("You have already voted for this post")
+
+      @vote = PostVote.create!(user: user, score: score, post: post)
+
+      # If replacing an opposite vote, the change is doubled
+      score_delta = old_vote ? score * 2 : score
+      vote_cols = ["score = score + #{score_delta}"]
+
+      if score > 0
+        vote_cols << "up_score = up_score + 1"
+        vote_cols << "down_score = down_score - 1" if old_vote
+      else
+        vote_cols << "down_score = down_score + 1"
+        vote_cols << "up_score = up_score - 1" if old_vote
+      end
+      Post.where(id: post.id).update_all(vote_cols.join(", "))
+
+      post.reload
+      @vote
     end
-    post.update_index
-    @vote
+
+    post.update_index if result != :need_unvote
+    result
+  rescue ActiveRecord::RecordNotUnique
+    raise UserVote::Error, "You have already voted for this post"
   end
 
   def self.unvote!(user:, post:, force: false)
-    retries = 5
-    begin
-      PostVote.transaction(**ISOLATION) do
-        PostVote.uncached do
-          vote = PostVote.where(user_id: user.id, post_id: post.id).first
-          return unless vote
-          raise UserVote::Error.new "You can't remove locked votes" if vote.score == 0 && !force
-          post.votes.where(user: user).delete_all
-          subtract_vote(post, vote)
-          post.reload
-        end
+    did_unvote = PostVote.transaction do
+      post.lock!
+      post.reload
+
+      vote = PostVote.where(user_id: user.id, post_id: post.id).first # Query after acquiring lock to prevent deadlocks
+      next false unless vote
+      raise UserVote::Error, "You can't remove locked votes" if vote.score == 0 && !force
+
+      post.votes.where(user: user).delete_all # Delete after acquiring lock to prevent deadlocks
+
+      vote_cols = ["score = score - #{vote.score}"]
+      if vote.score > 0
+        vote_cols << "up_score = up_score - 1"
+      else
+        vote_cols << "down_score = down_score - 1"
       end
-    rescue ActiveRecord::SerializationFailure
-      retries -= 1
-      retry if retries > 0
-      raise UserVote::Error.new("Failed to unvote, please try again later")
+      Post.where(id: post.id).update_all(vote_cols.join(", "))
+
+      post.reload
+      true
     end
-    post.update_index
+
+    post.update_index if did_unvote
   end
 
   def self.lock!(id)
-    post = nil
-    PostVote.transaction(**ISOLATION) do
+    post = PostVote.transaction do
       vote = PostVote.find_by(id: id)
-      return unless vote
+      next nil unless vote
       post = vote.post
-      subtract_vote(post, vote)
+      post.lock!
+      post.reload
+
+      vote_cols = ["score = score - #{vote.score}"]
+      if vote.score > 0
+        vote_cols << "up_score = up_score - 1"
+      else
+        vote_cols << "down_score = down_score - 1"
+      end
+      Post.where(id: post.id).update_all(vote_cols.join(", "))
+
       vote.update_column(:score, 0)
+      post
     end
     post&.update_index
   end
@@ -84,6 +102,10 @@ class VoteManager
     vote = PostVote.find_by(id: id)
     unvote!(post: vote.post, user: vote.user, force: true) if vote
   end
+
+  # ============================== #
+  # ======== Comment Votes ======= #
+  # ============================== #
 
   def self.comment_vote!(user:, comment:, score:)
     retries = 5
@@ -146,17 +168,5 @@ class VoteManager
   def self.admin_comment_unvote!(id)
     vote = CommentVote.find_by(id: id)
     comment_unvote!(comment: vote.comment, user: vote.user, force: true) if vote
-  end
-
-  private
-
-  def self.subtract_vote(post, vote)
-    vote_cols = "score = score - #{vote.score}"
-    if vote.score > 0
-      vote_cols += ", up_score = up_score - #{vote.score}"
-    else
-      vote_cols += ", down_score = down_score - #{vote.score}"
-    end
-    Post.where(id: post.id).update_all(vote_cols)
   end
 end
