@@ -103,9 +103,9 @@ class AvoidPosting < ApplicationRecord
       when "artist_name_desc"
         q = q.joins(:artist).order("artists.name DESC")
       when "created_at"
-        q = q.order("created_at DESC")
+        q = q.order("avoid_postings.created_at DESC")
       when "updated_at"
-        q = q.order("updated_at DESC")
+        q = q.order("avoid_postings.updated_at DESC")
       else
         q = q.apply_basic_order(params)
       end
