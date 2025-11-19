@@ -83,7 +83,7 @@ class AvoidPosting < ApplicationRecord
 
     def search(params)
       q = super
-      
+
       # Avoid redundant joins
       artist_keys = %i[artist_id artist_name any_name_matches any_other_name_matches]
       has_artist_join = artist_keys.any? { |key| params.key?(key) }
@@ -100,7 +100,7 @@ class AvoidPosting < ApplicationRecord
       q = q.attribute_matches(:staff_notes, params[:staff_notes])
       q = q.where_user(:creator_id, :creator, params)
       q = q.where("avoid_postings.creator_ip_addr <<= ?", params[:ip_addr]) if params[:ip_addr].present?
-      
+
       # Handle ordering
       case params[:order]
       when "artist_name", "artist_name_asc"
@@ -124,7 +124,7 @@ class AvoidPosting < ApplicationRecord
       end
 
       q = q.includes(:artist) unless has_artist_join
-      
+
       q
     end
   end
