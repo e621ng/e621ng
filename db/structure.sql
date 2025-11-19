@@ -4122,6 +4122,13 @@ CREATE INDEX index_pools_on_name_trgm ON public.pools USING gin (lower((name)::t
 
 
 --
+-- Name: index_pools_on_post_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pools_on_post_ids ON public.pools USING gin (post_ids);
+
+
+--
 -- Name: index_pools_on_updated_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4873,6 +4880,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251114015027'),
 ('20251113060711'),
 ('20251101144234'),
 ('20251014151300'),
