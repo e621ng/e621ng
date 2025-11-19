@@ -6,7 +6,13 @@ module PostSets
 
     def initialize(date, scale)
       super()
-      @date = date.blank? ? Time.zone.now : Time.zone.parse(date)
+      @date = if date.blank?
+                Time.zone.now
+              else
+                parsed = Time.zone.parse(date)
+                raise ArgumentError, "Invalid date: #{date}" if parsed.nil?
+                parsed
+              end
       @scale = scale
     end
 
