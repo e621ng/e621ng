@@ -87,15 +87,42 @@ class SessionLoader
   end
 
   def authenticate_basic_auth
-    credentials = ::Base64.decode64(request.authorization.split(' ', 2).last || '')
+    auth_data = request.authorization.split(" ", 2).last || ""
+    credentials = ::Base64.decode64(auth_data)
+
+    # Validate inputs: PostgreSQL expects UTF-8
+    unless credentials.dup.force_encoding("UTF-8").valid_encoding?
+      Rails.logger.warn("Invalid UTF-8 in Basic Auth credentials from #{request.remote_ip}")
+      raise AuthenticationFailure
+    end
+
     login, api_key = credentials.split(":", 2)
     authenticate_api_key(login, api_key)
+  rescue ArgumentError => e
+    Rails.logger.warn("Invalid Base64 in Basic Auth from #{request.remote_ip}: #{e.message}")
+    raise AuthenticationFailure
   end
 
   def authenticate_api_key(name, api_key)
+    if name && !name.dup.force_encoding("UTF-8").valid_encoding?
+      Rails.logger.warn("Invalid UTF-8 in login parameter from #{request.remote_ip}")
+      raise AuthenticationFailure
+    end
+    if api_key && !api_key.dup.force_encoding("UTF-8").valid_encoding?
+      Rails.logger.warn("Invalid UTF-8 in api_key parameter from #{request.remote_ip}")
+      raise AuthenticationFailure
+    end
+
     user = User.authenticate_api_key(name, api_key)
     raise AuthenticationFailure if user.nil?
     CurrentUser.user = user
+  rescue ActiveRecord::StatementInvalid => e
+    if e.message.include?("invalid byte sequence") || e.message.include?("CharacterNotInRepertoire")
+      Rails.logger.warn("Database encoding error during authentication from #{request.remote_ip}: #{e.message}")
+      raise AuthenticationFailure
+    else
+      raise
+    end
   end
 
   def load_session_user

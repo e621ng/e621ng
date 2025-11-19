@@ -279,9 +279,14 @@ class User < ApplicationRecord
       end
 
       def authenticate_api_key(name, api_key)
-        key = ApiKey.where(:key => api_key).first
+        # Validate inputs: PostgreSQL expects UTF-8
+        return nil unless name.is_a?(String) && name.dup.force_encoding("UTF-8").valid_encoding?
+        return nil unless api_key.is_a?(String) && api_key.dup.force_encoding("UTF-8").valid_encoding?
+        return nil if name.blank? || api_key.blank?
+
+        key = ApiKey.where(key: api_key).first
         return nil if key.nil?
-        user = find_by_name(name)
+        user = find_by(name: name)
         return nil if user.nil?
         return user if key.user_id == user.id
         nil
