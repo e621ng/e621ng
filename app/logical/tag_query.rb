@@ -1551,7 +1551,7 @@ class TagQuery
   def pull_wildcard_tags(tag)
     Tag.name_matches(tag)
        .limit(Danbooru.config.tag_query_limit) # .limit(tag_query_limit)
-       .order("post_count DESC")
+       .order("post_count DESC", "name ASC")
        .pluck(:name)
        .presence || ["~~not_found~~"]
   end
