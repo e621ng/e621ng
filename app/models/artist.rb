@@ -461,6 +461,10 @@ class Artist < ApplicationRecord
         q = q.any_other_name_like(params[:any_other_name_like])
       end
 
+      if params[:any_other_name_matches].present?
+        q = q.any_other_name_matches(params[:any_other_name_matches])
+      end
+
       if params[:any_name_matches].present?
         q = q.any_name_matches(params[:any_name_matches])
       end

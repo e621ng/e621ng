@@ -3604,6 +3604,13 @@ CREATE INDEX index_avoid_postings_on_creator_id ON public.avoid_postings USING b
 
 
 --
+-- Name: index_avoid_postings_on_is_active_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_avoid_postings_on_is_active_and_id ON public.avoid_postings USING btree (is_active, id);
+
+
+--
 -- Name: index_avoid_postings_on_updater_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4882,6 +4889,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20251114015027'),
 ('20251113060711'),
+('20251106175207'),
 ('20251101144234'),
 ('20251014151300'),
 ('20251010171207'),
