@@ -54,7 +54,7 @@ class ApplicationRecord < ActiveRecord::Base
         elsif value.to_s.falsy?
           value = false
         else
-          raise ArgumentError, "value must be truthy or falsy"
+          return none
         end
 
         where(attribute => value)
