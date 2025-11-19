@@ -33,9 +33,9 @@ class VoteManager
 
       if score > 0
         vote_cols << "up_score = up_score + 1"
-        vote_cols << "down_score = down_score - 1" if old_vote
+        vote_cols << "down_score = down_score + 1" if old_vote
       else
-        vote_cols << "down_score = down_score + 1"
+        vote_cols << "down_score = down_score - 1"
         vote_cols << "up_score = up_score - 1" if old_vote
       end
       Post.where(id: post.id).update_all(vote_cols.join(", "))
@@ -65,7 +65,7 @@ class VoteManager
       if vote.score > 0
         vote_cols << "up_score = up_score - 1"
       else
-        vote_cols << "down_score = down_score - 1"
+        vote_cols << "down_score = down_score + 1"
       end
       Post.where(id: post.id).update_all(vote_cols.join(", "))
 
