@@ -147,7 +147,7 @@ class Pool < ApplicationRecord
 
   def self.name_to_id(name)
     if name =~ /\A\d+\z/
-      name.to_i
+      ParseValue.safe_id(name)
     else
       Pool.where("lower(name) = ?", name.downcase.tr(" ", "_")).pick(:id).to_i
     end
@@ -159,7 +159,7 @@ class Pool < ApplicationRecord
 
   def self.find_by_name(name)
     if name =~ /\A\d+\z/
-      where("pools.id = ?", name.to_i).first
+      where("pools.id = ?", ParseValue.safe_id(name)).first
     elsif name
       where("lower(pools.name) = ?", normalize_name(name).downcase).first
     else

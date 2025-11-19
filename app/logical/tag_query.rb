@@ -1307,7 +1307,7 @@ class TagQuery
       when "user", "-user", "~user" then add_to_query(type, :uploader_ids, user_id_or_invalid(g2))
 
       # NOTE: This doesn't match the behavior of `User.name_or_id_to_id`, as that ensures an integral, whereas this will convert leading digits of a non-numeric string.
-      when "user_id", "-user_id", "~user_id" then add_to_query(type, :uploader_ids, g2.to_i)
+      when "user_id", "-user_id", "~user_id" then add_to_query(type, :uploader_ids, ParseValue.safe_id(g2))
 
       when "approver", "-approver", "~approver"
         add_to_query(type, :approver_ids, g2, any_none_key: :approver) { user_id_or_invalid(g2) }
@@ -1398,11 +1398,11 @@ class TagQuery
       when /[-~]?(#{TagCategory::SHORT_NAME_REGEX})tags/
         add_to_query(type, :"#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count", ParseValue.range(g2))
 
-      when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, g2, any_none_key: :parent) { g2.to_i }
+      when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, g2, any_none_key: :parent) { ParseValue.safe_id(g2) }
 
       when "child" then q[:child] = g2.downcase
 
-      when "randseed" then q[:random_seed] = g2.to_i
+      when "randseed" then q[:random_seed] = ParseValue.safe_id(g2)
 
       when "order", "-order" then q[:order] = TagQuery.normalize_order_value(g2.downcase, invert: type == :must_not)
 

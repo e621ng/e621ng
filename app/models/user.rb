@@ -169,14 +169,14 @@ class User < ApplicationRecord
 
       def name_or_id_to_id(name)
         if name =~ /\A!\d+\z/
-          return name[1..-1].to_i
+          return ParseValue.safe_id(name[1..-1])
         end
         User.name_to_id(name)
       end
 
       def name_or_id_to_id_forced(name)
         if name =~ /\A\d+\z/
-          return name.to_i
+          return ParseValue.safe_id(name)
         end
         User.name_to_id(name)
       end
