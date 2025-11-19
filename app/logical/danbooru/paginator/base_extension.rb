@@ -44,12 +44,22 @@ module Danbooru
           end
           [[page.to_i, 1].max, :numbered]
         elsif page =~ /b(\d+)/
-          [$1.to_i, :sequential_before]
+          id = validate_bigint($1)
+          [id, :sequential_before]
         elsif page =~ /a(\d+)/
-          [$1.to_i, :sequential_after]
+          id = validate_bigint($1)
+          [id, :sequential_after]
         else
           raise Danbooru::Paginator::PaginationError, "Invalid page number."
         end
+      end
+
+      def validate_bigint(value)
+        int_value = value.to_i
+        if int_value > 9_223_372_036_854_775_807 || int_value < 0
+          raise Danbooru::Paginator::PaginationError, "Page parameter is out of valid range."
+        end
+        int_value
       end
 
       def max_numbered_pages
