@@ -102,7 +102,7 @@ class CommentsController < ApplicationController
 
   def index_by_post
     tags = params[:tags] || ""
-    @posts = Post.includes(comments: %i[creator updater]).tag_match("#{tags} order:comment_bumped").paginate(params[:page], limit: 5, search_count: params[:search])
+    @posts = Post.includes(:uploader).includes(comments: %i[creator updater]).tag_match("#{tags} order:comment_bumped").paginate(params[:page], limit: 5, search_count: params[:search])
 
     @comments = @posts.to_h { |post| [post.id, post.comments.visible(CurrentUser.user).includes(:creator, :updater).recent.reverse] }
     @comment_votes = CommentVote.for_comments_and_user(CurrentUser.id ? @comments.values.flatten.map(&:id) : [], CurrentUser.id)
@@ -121,7 +121,7 @@ class CommentsController < ApplicationController
 
     @comments = Comment
                 .visible(CurrentUser.user)
-                .includes(:creator, :updater)
+                .includes(:creator, :updater, post: :uploader)
                 .search(search_params)
                 .paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
