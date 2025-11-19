@@ -21,7 +21,7 @@ module Moderator
       def delete
         @post = ::Post.find(params[:id])
 
-        if params[:reason].blank?
+        if params[:reason].blank? && (@post.pending_flag.nil? || params[:from_flag].blank?)
           flash[:notice] = "You must provide a reason for the deletion"
           return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
         end
@@ -43,7 +43,9 @@ module Moderator
           end
         end
 
-        redirect_to(post_path(@post, q: params[:q].presence))
+        respond_with(@post) do |format|
+          format.html { redirect_to(post_path(@post, q: params[:q].presence)) }
+        end
       end
 
       def undelete

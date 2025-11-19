@@ -63,7 +63,11 @@ $(function () {
     event.preventDefault();
     const data = event.target.dataset;
     if (!confirm(`Delete post for ${data.prompt}?`)) return;
-    Post.delete_with_reason(data.postId, data.reason, { reload_after_delete: true, move_favorites: data.moveFavs === "true" });
+    Post.delete_with_reason(data.postId, data.reason, {
+      reload_after_delete: true,
+      from_flag: data.fromFlag === "true",
+      move_favorites: data.moveFavs === "true",
+    });
   });
 });
 
