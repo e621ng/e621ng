@@ -73,4 +73,45 @@ class ParseValueTest < ActiveSupport::TestCase
     assert_not_nil(eq_value("0001-01-01", :date))
     assert_not_nil(eq_value("9999-12-31", :date))
   end
+
+  should "return nil for malformed date formats" do
+    # Malformed date with comma instead of underscore should return nil array element
+    result = subject.date_range("2_,years_ago")
+    assert_equal(:in, result[0])
+    assert_includes(result[1], nil) # Contains nil which will trigger @has_invalid_input
+
+    # Invalid date returns nil
+    assert_nil(subject.date_from("invalid_date"))
+    assert_equal([:eq, nil], subject.date_range("invalid_date"))
+
+    # Comma-separated list with invalid dates contains nil values
+    result = subject.date_range("2025-01-01,invalid,2025-06-01")
+    assert_equal(:in, result[0])
+    assert_equal(3, result[1].length)
+    assert_includes(result[1], nil) # Contains nil which will trigger @has_invalid_input
+  end
+
+  should "parse valid date formats correctly" do
+    # Standard date format
+    result = subject.date_range("2025-11-18")
+    assert_equal(:eq, result[0])
+    assert result[1].is_a?(Time)
+
+    # Ago format
+    result = subject.date_range("2_years_ago")
+    assert_equal(:gte, result[0])
+    assert result[1].is_a?(Time)
+
+    # Yesterday format returns :eq with a Date
+    result = subject.date_range("yesterday")
+    assert_equal(:eq, result[0])
+    assert result[1].is_a?(Date)
+
+    # Valid comma-separated dates (no nils)
+    result = subject.date_range("2025-01-01,2025-06-01")
+    assert_equal(:in, result[0])
+    assert_equal(2, result[1].length)
+    assert(result[1].all? { |date| date.is_a?(Time) })
+    assert result[1].none?(&:nil?)
+  end
 end
