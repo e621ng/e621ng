@@ -1,9 +1,7 @@
 <div id="c-takedowns">
   <div id="c-new">
-    <h4>You may request a takedown by submitting the following form.</h4>
-    <p>Please read our <%= link_to "takedown policy page", takedown_static_path %> before submitting a takedown request form. This form is for use ONLY by people who have a legitimate copyright/trademark infringement claim.</p>
-    <p>If you feel you need to handle a takedown request with an admin personally, you can email <%= Danbooru.config.takedown_email %></p>
-    <br>
+    <%= format_text(@wiki.body, allow_color: true) %>
+    <br />
 
     <%= custom_form_for(@takedown) do |f| %>
       <div class='section' style='width:600px;'>
