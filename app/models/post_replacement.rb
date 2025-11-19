@@ -471,7 +471,13 @@ class PostReplacement < ApplicationRecord
         id = found_post&.id
       end
 
-      # Fallback 2: PostEvent lookup
+      # Fallback 2: Backup lookup
+      if id.nil?
+        backup = PostReplacement.where(status: "original", md5: md5).first
+        id = backup&.post_id
+      end
+
+      # Fallback 3: PostEvent lookup
       if id.nil?
         event = PostEvent.where(action: :replacement_promoted)
                          .where("extra_data->>'source_post_id' = ?", post_id.to_s)
