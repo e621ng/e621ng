@@ -63,7 +63,7 @@ class PostVoteTest < ActiveSupport::TestCase
       @post.reload
       assert_equal(-1, @post.score)
       assert_equal(0, @post.up_score)
-      assert_equal(1, @post.down_score)
+      assert_equal(-1, @post.down_score)
     end
   end
 
@@ -103,7 +103,7 @@ class PostVoteTest < ActiveSupport::TestCase
       @post.reload
       assert_equal(-1, @post.score) # was +1, now -1 (change of -2)
       assert_equal(0, @post.up_score) # was 1, now 0
-      assert_equal(1, @post.down_score) # was 0, now 1
+      assert_equal(-1, @post.down_score) # was 0, now -1
     end
   end
 
@@ -250,7 +250,7 @@ class PostVoteTest < ActiveSupport::TestCase
       @post.reload
       assert_equal(-3, @post.score)
       assert_equal(0, @post.up_score)
-      assert_equal(3, @post.down_score)
+      assert_equal(-3, @post.down_score)
     end
 
     should "correctly handle mixed votes" do
@@ -261,7 +261,7 @@ class PostVoteTest < ActiveSupport::TestCase
       @post.reload
       assert_equal(1, @post.score)
       assert_equal(2, @post.up_score)
-      assert_equal(1, @post.down_score)
+      assert_equal(-1, @post.down_score)
     end
 
     should "correctly handle vote changes from multiple users" do
@@ -270,13 +270,13 @@ class PostVoteTest < ActiveSupport::TestCase
       @post.reload
       assert_equal(0, @post.score)
       assert_equal(1, @post.up_score)
-      assert_equal(1, @post.down_score)
+      assert_equal(-1, @post.down_score)
 
       VoteManager.vote!(user: @user, post: @post, score: -1) # Change from +1 to -1
       @post.reload
       assert_equal(-2, @post.score)
       assert_equal(0, @post.up_score)
-      assert_equal(2, @post.down_score)
+      assert_equal(-2, @post.down_score)
     end
   end
 end

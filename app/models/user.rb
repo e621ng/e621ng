@@ -288,7 +288,7 @@ class User < ApplicationRecord
         return nil if key.nil?
 
         # The find_by(name: name) will not use an index correctly
-        user = find_by_name(name) # rubocop:disable Rails/DynamicFindBy
+        user = find_by_name(name)
         return nil if user.nil?
         return user if key.user_id == user.id
         nil
