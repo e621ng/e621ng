@@ -17,11 +17,7 @@ module PostSets
     end
 
     def posts
-      @posts ||= begin
-        query = ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day).order("score desc").paginate_posts(1)
-        query.each # hack to force rails to eager load
-        query
-      end
+      @posts ||= ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day).order("score desc").paginate_posts(1)
     end
 
     def min_date
