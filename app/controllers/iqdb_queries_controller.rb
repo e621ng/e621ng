@@ -13,16 +13,24 @@ class IqdbQueriesController < ApplicationController
 
     @matches = []
     if search_params[:file].present?
+      raise ProcessingError, "Invalid file parameter" unless search_params[:file].respond_to?(:tempfile)
       @matches = IqdbProxy.query_file(search_params[:file].tempfile, search_params[:score_cutoff])
     elsif search_params[:url].present?
-      parsed_url = Addressable::URI.heuristic_parse(search_params[:url]) rescue nil
-      raise User::PrivilegeError, "Invalid URL" unless parsed_url
+      raise ProcessingError, "Invalid URL parameter" unless search_params[:url].is_a?(String)
+      parsed_url = begin
+        Addressable::URI.heuristic_parse(search_params[:url])
+      rescue StandardError
+        nil
+      end
+      raise ProcessingError, "Invalid URL" unless parsed_url
       whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
-      raise User::PrivilegeError, "Not allowed to request content from this URL" unless whitelist_result[0]
+      raise ProcessingError, "Not allowed to request content from this URL" unless whitelist_result[0]
       @matches = IqdbProxy.query_url(search_params[:url], search_params[:score_cutoff])
     elsif search_params[:post_id].present?
+      raise ProcessingError, "Invalid post_id parameter" unless search_params[:post_id].to_s =~ /\A\d+\z/
       @matches = IqdbProxy.query_post(Post.find_by(id: search_params[:post_id]), search_params[:score_cutoff])
     elsif search_params[:hash].present?
+      raise ProcessingError, "Invalid hash parameter" unless search_params[:hash].is_a?(String) && search_params[:hash] =~ /\A[0-9a-fA-F]+\z/
       @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff])
     end
 
