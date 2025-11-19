@@ -929,7 +929,6 @@ Rails/DynamicFindBy:
     - 'app/logical/user_name_validator.rb'
     - 'app/models/post.rb'
     - 'app/models/tag.rb'
-    - 'app/models/tag_type_version.rb'
     - 'app/models/user.rb'
     - 'app/models/wiki_page.rb'
     - 'test/functional/artists_controller_test.rb'
