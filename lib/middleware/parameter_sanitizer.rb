@@ -12,6 +12,7 @@ module Middleware
       env["QUERY_STRING"] = sanitize_string(env["QUERY_STRING"]) if env["QUERY_STRING"].present?
       env["REQUEST_URI"] = sanitize_string(env["REQUEST_URI"]) if env["REQUEST_URI"].present?
       env["REQUEST_PATH"] = sanitize_string(env["REQUEST_PATH"]) if env["REQUEST_PATH"].present?
+      env["HTTP_COOKIE"] = sanitize_string(env["HTTP_COOKIE"]) if env["HTTP_COOKIE"].present?
 
       # For POST/PUT requests, sanitize the request body if it's form data
       if env["CONTENT_TYPE"]&.include?("application/x-www-form-urlencoded")
