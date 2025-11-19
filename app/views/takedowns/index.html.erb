@@ -53,7 +53,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@takedowns) %>
+    <%= render PaginatorComponent.new(records: @takedowns) %>
   </div>
 </div>
 

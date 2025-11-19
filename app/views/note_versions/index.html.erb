@@ -10,7 +10,7 @@
       <%= render "standard_listing" %>
     <% end %>
 
-    <%= numbered_paginator(@note_versions) %>
+    <%= render PaginatorComponent.new(records: @note_versions) %>
 
     <%= render "notes/secondary_links" %>
   </div>

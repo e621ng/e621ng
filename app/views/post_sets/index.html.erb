@@ -50,7 +50,7 @@
       </table>
     </div>
 
-    <%= numbered_paginator(@post_sets) %>
+    <%= render PaginatorComponent.new(records: @post_sets) %>
   </div>
 </div>
 

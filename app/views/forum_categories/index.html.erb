@@ -28,7 +28,7 @@
       </div>
     <% end %>
 
-    <%= numbered_paginator(@forum_cats) %>
+    <%= render PaginatorComponent.new(records: @forum_cats) %>
   </div>
 </div>
 

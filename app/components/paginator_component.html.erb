@@ -1,0 +1,71 @@
+<nav
+  class="pagination <%= display_class %>"
+  aria-label="Pagination"
+  data-total="<% last_page %>"
+  data-current="<% current_page %>"
+>
+  <%# Prev button %>
+  <% if has_prev? %>
+    <%= link_to(
+      prev_path,
+      "class": "prev",
+      "id": "paginator-prev",
+      "aria-label": "Previous Page",
+      "data-hotkey": "prev"
+    ) do %>
+      <%= svg_icon(:chevron_left) %>
+      <span>Prev</span>
+    <% end %>
+  <% else %>
+    <span
+      class="prev"
+      id="paginator-prev"
+      aria-label="Previous Page"
+      data-hotkey="prev"
+    >
+      <%= svg_icon(:chevron_left) %>
+      <span>Prev</span>
+    </span>
+  <% end %>
+
+  <%# Page numbers %>
+  <% if @mode == :numbered %>
+    <div class="break"></div>
+
+    <% numbered_pages.each do |page, klass| %>
+      <% if klass == "spacer" %>
+        <%= link_to(svg_icon(:ellipsis), nav_params_for(0), class: "page spacer", title: "Jump to page") %>
+      <% elsif page == current_page %>
+        <span class="page current" aria-current="page"><%= page %></span>
+      <% elsif klass.present? %>
+        <%= link_to(page, nav_params_for(page), class: "page #{klass}") %>
+      <% else %>
+        <%= link_to(page, nav_params_for(page), class: "page") %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# Next button %>
+  <% if has_next? %>
+    <%= link_to(
+      next_path,
+      "class": "next",
+      "id": "paginator-next",
+      "aria-label": "Next Page",
+      "data-hotkey": "next"
+    ) do %>
+      <span>Next</span>
+      <%= svg_icon(:chevron_right) %>
+    <% end %>
+  <% else %>
+    <span
+      class="next"
+      id="paginator-next"
+      aria-label="Next Page"
+      data-hotkey="next"
+    >
+      <span>Next</span>
+      <%= svg_icon(:chevron_right) %>
+    </span>
+  <% end %>
+</nav>
