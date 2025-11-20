@@ -30,7 +30,6 @@ class UserDeletion
       original_name: user.name,
       desired_name: "user_#{user.id}",
       change_reason: admin_deletion ? "Administrative deletion" : "User deletion",
-      status: "approved",
       skip_limited_validation: true,
     )
   end

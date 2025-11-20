@@ -50,14 +50,12 @@ module Admin
       old_username = @user.name
       desired_username = params[:user][:name]
       if old_username != desired_username && desired_username.present?
-        change_request = UserNameChangeRequest.create!(
+        UserNameChangeRequest.create!(
           original_name: @user.name,
           user_id: @user.id,
           desired_name: desired_username,
           change_reason: "Administrative change",
-          skip_limited_validation: true,
         )
-        change_request.approve!
         ModAction.log(:user_name_change, { user_id: @user.id })
       end
       redirect_to user_path(@user), notice: "User updated"
