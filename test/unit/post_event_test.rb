@@ -108,26 +108,40 @@ class PostEventTest < ActiveSupport::TestCase
 
     context "replacements" do
       setup do
-        upload = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user, tag_string: "tst")).start!
-        @post = upload.post
-        @replacement = create(:png_replacement, creator: @user, post: @post)
+        upload1 = UploadService.new(attributes_for(:jpg_upload).merge(uploader: @user, tag_string: "tst")).start!
+        @post1 = upload1.post
+        @replacement1 = create(:png_replacement, creator: @user, post: @post1)
       end
 
       should "reject" do
         assert_post_events_created(@admin, :replacement_rejected) do
-          @replacement.reject!
+          @replacement1.reject!
         end
       end
 
       should "approve" do
         assert_post_events_created(@admin, :replacement_accepted) do
-          @replacement.approve! penalize_current_uploader: true
+          @replacement1.approve! penalize_current_uploader: true
         end
       end
 
       should "destroy" do
         assert_post_events_created(@admin, :replacement_deleted) do
-          @replacement.destroy!
+          @replacement1.destroy!
+        end
+      end
+
+      context "transfer" do
+        setup do
+          upload2 = UploadService.new(attributes_for(:large_jpg_upload).merge(uploader: @user, tag_string: "tst")).start!
+          @post2 = upload2.post
+          @replacement2 = create(:apng_replacement, creator: @user, post: @post2)
+        end
+
+        should "transfer" do
+          assert_post_events_created(@admin, [:replacement_moved, :replacement_moved]) do
+            @replacement1.transfer(@post2)
+          end
         end
       end
     end
