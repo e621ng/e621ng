@@ -891,7 +891,6 @@ Rails/DynamicFindBy:
     - 'app/logical/related_tag_query.rb'
     - 'app/logical/session_creator.rb'
     - 'app/logical/session_loader.rb'
-    - 'app/logical/user_name_validator.rb'
     - 'app/models/post.rb'
     - 'app/models/tag.rb'
     - 'app/models/user.rb'
