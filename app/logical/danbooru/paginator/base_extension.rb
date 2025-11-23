@@ -56,7 +56,9 @@ module Danbooru
 
       def validate_bigint(value)
         int_value = value.to_i
-        if int_value > 9_223_372_036_854_775_807 || int_value < 0
+        # NOTE: Despite the method name, many tables still use integer for IDs.
+        # Integer max is 2_147_483_647, while bigint max is 9_223_372_036_854_775_807.
+        if int_value > 2_147_483_647 || int_value < 0
           raise Danbooru::Paginator::PaginationError, "Page parameter is out of valid range."
         end
         int_value
