@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class CommentsController < ApplicationController
+  include ConditionalSearchCount
+
   respond_to :html, :json
   before_action :member_only, except: %i[index search show for_post]
   before_action :moderator_only, only: %i[unhide warning]
@@ -111,13 +113,12 @@ class CommentsController < ApplicationController
 
   def index_by_comment
     # Only enable COUNT for searches that actually narrow results to avoid expensive queries
-    narrowing_params = %i[id body_matches post_id post_tags_match creator_name creator_id
-                          post_note_updater_name post_note_updater_id poster_id poster_name ip_addr]
-    has_narrowing_search = narrowing_params.any? { |param| params[:search]&.dig(param).present? }
-    has_narrowing_search ||= params[:search]&.dig(:is_hidden)&.to_s == "false"
-    has_narrowing_search ||= params[:search]&.dig(:is_sticky)&.to_s == "true"
-
-    search_params_for_count = has_narrowing_search ? params[:search] : nil
+    search_params_for_count = search_count_params(
+      narrowing: %i[id body_matches post_id post_tags_match creator_name creator_id
+                    post_note_updater_name post_note_updater_id poster_id poster_name ip_addr],
+      falsy: %i[is_hidden],
+      truthy: %i[is_sticky],
+    )
 
     @comments = Comment
                 .visible(CurrentUser.user)
