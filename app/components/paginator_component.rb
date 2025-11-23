@@ -15,8 +15,11 @@ class PaginatorComponent < ViewComponent::Base
   attr_reader :records, :mode
 
   def last_page
-    return nil if mode == :sequential || records.total_pages.nil?
-    @last_page ||= [records.total_pages, records.max_numbered_pages].min
+    return nil if mode == :sequential
+    @last_page ||= begin
+      total = records.total_pages
+      total.nil? ? nil : [total, records.max_numbered_pages].min
+    end
   end
 
   def current_page
