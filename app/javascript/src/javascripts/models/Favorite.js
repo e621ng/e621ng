@@ -8,7 +8,7 @@ export default class Favorite {
    * @param {number} post_id The ID of the post to favorite.
    * @returns {Promise<Response>} The response from the server.
    */
-  static async create (post_id) {
+  static async create (post_id, delay = 1000) {
     if (!post_id) return Promise.reject(new Error("Post ID is required"));
 
     return TaskQueue.add(async () => {
@@ -25,7 +25,7 @@ export default class Favorite {
           authenticity_token: encodeURIComponent(User._authToken),
         }),
       });
-    }, { name: "Post.favorite", unique: true, delay: 500 }).then(async (response) => {
+    }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
         try {
@@ -58,7 +58,7 @@ export default class Favorite {
    * @param {number} post_id The ID of the post to unfavorite.
    * @returns {Promise<Response>} The response from the server.
    */
-  static async destroy (post_id) {
+  static async destroy (post_id, delay = 1000) {
     if (!post_id) return Promise.reject(new Error("Post ID is required"));
 
     return TaskQueue.add(async () => {
@@ -75,7 +75,7 @@ export default class Favorite {
           authenticity_token: encodeURIComponent(User._authToken),
         }),
       });
-    }, { name: "Post.favorite", unique: true, delay: 500 }).then(async (response) => {
+    }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
         try {
