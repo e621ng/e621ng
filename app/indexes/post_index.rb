@@ -162,8 +162,8 @@ module PostIndex
         # Run queries
         conn = ApplicationRecord.connection
         deletions        = conn.execute(deletion_sql)
-        deleter_ids      = deletions.values.map {|p,did,dr| [p,did]}.to_h
-        del_reasons      = deletions.values.map {|p,did,dr| [p,dr]}.to_h
+        deleter_ids      = deletions.values.map { |p, did, dr| [p, did] }.to_h
+        del_reasons      = deletions.values.map { |p, did, dr| [p, dr] }.to_h
         comment_counts   = conn.execute(comments_sql).values.to_h
         pool_ids         = conn.execute(pools_sql).values.map(&array_parse).to_h
         set_ids          = conn.execute(sets_sql).values.map(&array_parse).to_h
@@ -172,8 +172,8 @@ module PostIndex
         noter_ids        = conn.execute(noter_sql).values.map(&array_parse).to_h
         child_ids        = conn.execute(child_sql).values.map(&array_parse).to_h
         verified_artists = conn.execute(verified_artists_sql).values.to_h
-        notes            = Hash.new { |h,k| h[k] = [] }
-        conn.execute(note_sql).values.each { |p,b| notes[p] << b }
+        notes            = Hash.new { |h, k| h[k] = [] }
+        conn.execute(note_sql).values.each { |p, b| notes[p] << b }
         pending_replacements = conn.execute(pending_replacements_sql).values.to_h
 
         # Special handling for votes to do it with one query
@@ -183,8 +183,8 @@ module PostIndex
           [pid.to_i, uids.zip(scores)]
         end
 
-        upvote_ids   = vote_ids.map { |pid, user| [pid, user.reject { |uid, s| s <= 0 }.map {|uid, _| uid}] }.to_h
-        downvote_ids = vote_ids.map { |pid, user| [pid, user.reject { |uid, s| s >= 0 }.map {|uid, _| uid}] }.to_h
+        upvote_ids   = vote_ids.map { |pid, user| [pid, user.reject { |uid, s| s <= 0 }.map { |uid, _| uid }] }.to_h
+        downvote_ids = vote_ids.map { |pid, user| [pid, user.reject { |uid, s| s >= 0 }.map { |uid, _| uid }] }.to_h
 
         empty = []
         batch.map! do |p|
@@ -209,7 +209,7 @@ module PostIndex
             index: {
               _id:  p.id,
               data: p.as_indexed_json(index_options),
-            }
+            },
           }
         end
 
@@ -223,65 +223,65 @@ module PostIndex
 
   def as_indexed_json(options = {})
     {
-      created_at:        created_at,
-      updated_at:        updated_at,
-      commented_at:      last_commented_at,
-      comment_bumped_at: last_comment_bumped_at,
-      noted_at:          last_noted_at,
-      id:                id,
-      up_score:          up_score,
-      down_score:        down_score,
-      score:             score,
-      fav_count:         fav_count,
-      tag_count:         tag_count,
-      change_seq:        change_seq,
+      created_at:               created_at,
+      updated_at:               updated_at,
+      commented_at:             last_commented_at,
+      comment_bumped_at:        last_comment_bumped_at,
+      noted_at:                 last_noted_at,
+      id:                       id,
+      up_score:                 up_score,
+      down_score:               down_score,
+      score:                    score,
+      fav_count:                fav_count,
+      tag_count:                tag_count,
+      change_seq:               change_seq,
 
-      tag_count_general:     tag_count_general,
-      tag_count_artist:      tag_count_artist,
-      tag_count_contributor: tag_count_contributor,
-      tag_count_character:   tag_count_character,
-      tag_count_copyright:   tag_count_copyright,
-      tag_count_meta:        tag_count_meta,
-      tag_count_species:     tag_count_species,
-      tag_count_invalid:     tag_count_invalid,
-      tag_count_lore:        tag_count_lore,
+      tag_count_general:        tag_count_general,
+      tag_count_artist:         tag_count_artist,
+      tag_count_contributor:    tag_count_contributor,
+      tag_count_character:      tag_count_character,
+      tag_count_copyright:      tag_count_copyright,
+      tag_count_meta:           tag_count_meta,
+      tag_count_species:        tag_count_species,
+      tag_count_invalid:        tag_count_invalid,
+      tag_count_lore:           tag_count_lore,
 
-      comment_count: options[:comment_count] || comment_count,
-      file_size:     file_size,
-      parent:        parent_id,
-      pools:         options[:pools]      || ::Pool.where("post_ids @> ARRAY[?]::int[]", id).pluck(:id),
-      sets:          options[:sets]       || ::PostSet.where("post_ids @> ARRAY[?]::int[]", id).pluck(:id),
-      commenters:    options[:commenters] || ::Comment.undeleted.where(post_id: id).pluck(:creator_id),
-      noters:        options[:noters]     || ::Note.active.where(post_id: id).pluck(:creator_id),
-      faves:         options[:faves]      || ::Favorite.where(post_id: id).pluck(:user_id),
-      upvotes:       options[:upvotes]    || ::PostVote.where(post_id: id).where("score > 0").pluck(:user_id),
-      downvotes:     options[:downvotes]  || ::PostVote.where(post_id: id).where("score < 0").pluck(:user_id),
-      children:      options[:children]   || ::Post.where(parent_id: id).pluck(:id),
-      notes:         options[:notes]      || ::Note.active.where(post_id: id).pluck(:body),
-      uploader:      uploader_id,
-      approver:      approver_id,
-      deleter:       options[:deleter]    || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.creator_id,
-      del_reason:    options[:del_reason] || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.reason&.downcase,
-      width:         image_width,
-      height:        image_height,
-      mpixels:       image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
-      aspect_ratio:  image_width && image_height ? (image_width.to_f / [image_height, 1].max).round(2) : 1.0,
-      duration:      duration,
+      comment_count:            options[:comment_count] || comment_count,
+      file_size:                file_size,
+      parent:                   parent_id,
+      pools:                    options[:pools]      || ::Pool.where("post_ids @> ARRAY[?]::int[]", id).pluck(:id),
+      sets:                     options[:sets]       || ::PostSet.where("post_ids @> ARRAY[?]::int[]", id).pluck(:id),
+      commenters:               options[:commenters] || ::Comment.undeleted.where(post_id: id).pluck(:creator_id),
+      noters:                   options[:noters]     || ::Note.active.where(post_id: id).pluck(:creator_id),
+      faves:                    options[:faves]      || ::Favorite.where(post_id: id).pluck(:user_id),
+      upvotes:                  options[:upvotes]    || ::PostVote.where(post_id: id).where("score > 0").pluck(:user_id),
+      downvotes:                options[:downvotes]  || ::PostVote.where(post_id: id).where("score < 0").pluck(:user_id),
+      children:                 options[:children]   || ::Post.where(parent_id: id).pluck(:id),
+      notes:                    options[:notes]      || ::Note.active.where(post_id: id).pluck(:body),
+      uploader:                 uploader_id,
+      approver:                 approver_id,
+      deleter:                  options[:deleter]    || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.creator_id,
+      del_reason:               options[:del_reason] || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.reason&.downcase,
+      width:                    image_width,
+      height:                   image_height,
+      mpixels:                  image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
+      aspect_ratio:             image_width && image_height ? (image_width.to_f / [image_height, 1].max).round(2) : 1.0,
+      duration:                 duration,
 
-      tags:        tag_string.split(" "),
-      md5:         md5,
-      rating:      rating,
-      file_ext:    file_ext,
-      source:      source_array,
-      description: description.present? ? description : nil,
+      tags:                     tag_string.split,
+      md5:                      md5,
+      rating:                   rating,
+      file_ext:                 file_ext,
+      source:                   source_array,
+      description:              description.presence,
 
-      rating_locked:  is_rating_locked,
-      note_locked:    is_note_locked,
-      status_locked:  is_status_locked,
-      flagged:        is_flagged,
-      pending:        is_pending,
-      deleted:        is_deleted,
-      has_children:   has_children,
+      rating_locked:            is_rating_locked,
+      note_locked:              is_note_locked,
+      status_locked:            is_status_locked,
+      flagged:                  is_flagged,
+      pending:                  is_pending,
+      deleted:                  is_deleted,
+      has_children:             has_children,
       has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
       artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
     }
