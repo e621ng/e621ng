@@ -4,7 +4,7 @@
 
     <%= render "search" %>
 
-    <% if params.dig(:search, :post_id).present? || params.dig(:search, :note_id).present? %>
+    <% if @revertable %>
       <%= render "revert_listing" %>
     <% else %>
       <%= render "standard_listing" %>
