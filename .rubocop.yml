@@ -29,10 +29,10 @@ Layout/FirstHashElementIndentation:
   EnforcedStyle: consistent
 
 Layout/HashAlignment:
-  EnforcedHashRocketStyle: 
+  EnforcedHashRocketStyle:
     - key
     - table
-  EnforcedColonStyle: 
+  EnforcedColonStyle:
     - key
     - table
 
