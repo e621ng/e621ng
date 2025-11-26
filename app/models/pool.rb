@@ -146,10 +146,10 @@ class Pool < ApplicationRecord
   end
 
   def self.name_to_id(name)
-    if name =~ /\A\d+\z/
+    if name.to_s =~ /\A\d+\z/
       ParseValue.safe_id(name)
     else
-      Pool.where("lower(name) = ?", name.downcase.tr(" ", "_")).pick(:id).to_i
+      Pool.where("lower(name) = ?", normalize_name(name).downcase).pick(:id).to_i
     end
   end
 
