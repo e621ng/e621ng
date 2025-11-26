@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require "zxcvbn"
+require "mail"
 
 class User < ApplicationRecord
-  class Error < Exception ; end
+  class Error < Exception; end
+
   class PrivilegeError < Exception
     attr_accessor :message
 
@@ -14,7 +16,7 @@ class User < ApplicationRecord
 
   module Levels
     Danbooru.config.levels.each do |name, level|
-      const_set(name.upcase.tr(' ', '_'), level)
+      const_set(name.upcase.tr(" ", "_"), level)
     end
   end
 
@@ -80,11 +82,12 @@ class User < ApplicationRecord
 
   after_initialize :initialize_attributes, if: :new_record?
 
+  before_validation :normalize_email_address, if: :email_changed?
   validates :email, presence: { if: :enable_email_verification? }
   validates :email, uniqueness: { case_sensitive: false, if: :enable_email_verification? }
-  validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, if: :enable_email_verification? }
+  validates :email, email_address: true, if: :enable_email_verification?
   validates :email, length: { maximum: 100 }
-  validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
+  validate :validate_email_address_allowed, on: %i[create update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   normalizes :profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") }
   validates :name, user_name: true, on: :create
@@ -407,10 +410,24 @@ class User < ApplicationRecord
     end
 
     def validate_email_address_allowed
-      if EmailBlacklist.is_banned?(self.email)
-        self.errors.add(:base, "Email address may not be used")
-        return false
+      if EmailBlacklist.is_banned?(email)
+        errors.add(:base, "Email address may not be used")
+        false
       end
+    end
+
+    def normalize_email_address
+      address = email.to_s.strip
+      return if address.blank?
+
+      parsed = Mail::Address.new(address)
+      local, domain = parsed.split("@", 2)
+      return if local.nil? || domain.nil?
+      address = "#{local}@#{domain.downcase}"
+
+      self.email = address
+    rescue Mail::Field::ParseError
+      # Do nothing; validation will catch this later
     end
   end
 
