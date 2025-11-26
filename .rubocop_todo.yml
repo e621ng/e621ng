@@ -197,7 +197,6 @@ Layout/FirstHashElementIndentation:
 # SupportedLastArgumentHashStyles: always_inspect, always_ignore, ignore_implicit, ignore_explicit
 Layout/HashAlignment:
   Exclude:
-    - 'app/indexes/post_index.rb'
     - 'config/initializers/secret_token.rb'
     - 'config/initializers/simple_form.rb'
 
