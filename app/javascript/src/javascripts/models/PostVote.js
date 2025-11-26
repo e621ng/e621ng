@@ -45,7 +45,7 @@ export default class PostVote {
           authenticity_token: encodeURIComponent(User._authToken),
         }),
       });
-    }, { name: "Post.vote", unique: true, delay: 500 }).then(async (response) => {
+    }, { name: `Post.vote.${post_id}`, unique: true, delay: 500 }).then(async (response) => {
       if (!response.ok)
         return response.json().then((data) => {
           const message = data.reason || data.message || "An error occurred while voting.";

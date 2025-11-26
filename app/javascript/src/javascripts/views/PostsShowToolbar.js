@@ -147,7 +147,7 @@ export default class PostsShowToolbar {
   }
 
   static async addFavorite () {
-    return Favorite.create(PostsShowToolbar.currentPost.id)
+    return Favorite.create(PostsShowToolbar.currentPost.id, 500)
       .then(() => {
         $(".ptbr-favorite-button").attr("favorited", "true");
         $("#image-container").attr("data-is-favorited", "true");
@@ -155,7 +155,7 @@ export default class PostsShowToolbar {
   }
 
   static async deleteFavorite () {
-    return Favorite.destroy(PostsShowToolbar.currentPost.id)
+    return Favorite.destroy(PostsShowToolbar.currentPost.id, 500)
       .then(() => {
         $(".ptbr-favorite-button").attr("favorited", "false");
         $("#image-container").attr("data-is-favorited", "false");
