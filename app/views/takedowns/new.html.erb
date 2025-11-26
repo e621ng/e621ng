@@ -1,6 +1,6 @@
 <div id="c-takedowns">
   <div id="c-new">
-    <%= format_text(@wiki.body, allow_color: true) %>
+    <%= format_text(@wiki&.body, allow_color: true) %>
     <br />
 
     <%= custom_form_for(@takedown) do |f| %>
