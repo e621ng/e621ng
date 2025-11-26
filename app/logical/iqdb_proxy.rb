@@ -48,6 +48,8 @@ module IqdbProxy
     File.open(post.preview_file_path) do |f|
       query_file(f, score_cutoff)
     end
+  rescue Errno::ENOENT # Preview file not found
+    []
   end
 
   def query_file(file, score_cutoff)
