@@ -107,7 +107,7 @@ class Pool < ApplicationRecord
       raise RevertError, "You cannot revert to a previous version of another pool." if id != version.pool_id
 
       self.post_ids = version.post_ids
-      self.name = version.name
+      self.name = version.name if version.name.present?
       self.description = version.description
       self.is_active = version.is_active
       self.category = version.category
@@ -146,10 +146,10 @@ class Pool < ApplicationRecord
   end
 
   def self.name_to_id(name)
-    if name =~ /\A\d+\z/
+    if name.to_s =~ /\A\d+\z/
       ParseValue.safe_id(name)
     else
-      Pool.where("lower(name) = ?", name.downcase.tr(" ", "_")).pick(:id).to_i
+      Pool.where("lower(name) = ?", normalize_name(name).downcase).pick(:id).to_i
     end
   end
 
@@ -158,12 +158,10 @@ class Pool < ApplicationRecord
   end
 
   def self.find_by_name(name)
-    if name =~ /\A\d+\z/
+    if name.to_s =~ /\A\d+\z/
       where("pools.id = ?", ParseValue.safe_id(name)).first
-    elsif name
+    elsif name.present?
       where("lower(pools.name) = ?", normalize_name(name).downcase).first
-    else
-      nil
     end
   end
 
