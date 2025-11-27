@@ -18,8 +18,8 @@ class TagCategory
     "oc" => 4,
     "form" => 5,
     "frm" => 5,
-    "group" => 6,
-    "grp" => 6,
+    "studio" => 6,
+    "std" => 6,
     "category" => 7,
     "cat" => 7,
     "genre" => 8,
@@ -30,7 +30,7 @@ class TagCategory
     "ent" => 10,
     "demographics" => 11,
     "demo" => 11,
-    "outfit" => 12,
+    "attire" => 12,
     "otf" => 12,
     "garment" => 13,
     "garm" => 13,
@@ -73,14 +73,15 @@ class TagCategory
     "meta" => 32,
     "invalid" => 33,
     "inv" => 33,
-    "shipping" => 34,
-    "ship" => 34,
+    "group" => 34,
+    "grp" => 34,
   }.freeze
 
   CANONICAL_MAPPING = {
     "Action" => 21,
     "Adornment" => 14,
     "Artist" => 1,
+    "Attire" => 12,
     "Body" => 17,
     "Category" => 7,
     "Contributor" => 2,
@@ -95,7 +96,7 @@ class TagCategory
     "Garment" => 13,
     "General" => 0,
     "Genre" => 8,
-    "Group" => 6,
+    "Group" => 34,
     "Hair" => 16,
     "Invalid" => 33,
     "Lore" => 27,
@@ -104,18 +105,17 @@ class TagCategory
     "Name" => 4,
     "Object" => 25,
     "Other" => 29,
-    "Outfit" => 12,
     "Position" => 19,
     "Request" => 30,
     "Role" => 15,
     "Setting" => 23,
+    "Studio" => 6,
     "Substance" => 26,
     "Unique" => 28,
     "View" => 20,
-    "Shipping" => 34,
   }.freeze
 
-  MEMBER_EDITABLE_CATEGORIES = %w[General Artist Contributor Copyright Name Form Group Category Genre Creature Entity Demographics Outfit Garment Adornment Role Hair Body Expression Position View Action Explicit Setting Flora Object Substance Lore Unique Other Request Medium Meta Invalid Shipping].freeze
+  MEMBER_EDITABLE_CATEGORIES = %w[General Artist Contributor Copyright Name Form Studio Category Genre Creature Entity Demographics Attire Garment Adornment Role Hair Body Expression Position View Action Explicit Setting Flora Object Substance Lore Unique Other Request Medium Meta Invalid Group].freeze
   MEMBER_EDITABLE_MAPPING = CANONICAL_MAPPING.select { |k, _| MEMBER_EDITABLE_CATEGORIES.include?(k) }.freeze
 
   REVERSE_MAPPING = {
@@ -125,13 +125,13 @@ class TagCategory
     3 => "copyright",
     4 => "name",
     5 => "form",
-    6 => "group",
+    6 => "studio",
     7 => "category",
     8 => "genre",
     9 => "creature",
     10 => "entity",
     11 => "demographics",
-    12 => "outfit",
+    12 => "attire",
     13 => "garment",
     14 => "adornment",
     15 => "role",
@@ -153,7 +153,7 @@ class TagCategory
     31 => "medium",
     32 => "meta",
     33 => "invalid",
-    34 => "shipping",
+    34 => "group",
   }.freeze
 
   SHORT_NAME_MAPPING = {
@@ -163,13 +163,13 @@ class TagCategory
     "copy" => "copyright",
     "nam" => "name",
     "frm" => "form",
-    "grp" => "group",
+    "std" => "studio",
     "cat" => "category",
     "gnr" => "genre",
     "crea" => "creature",
     "ent" => "entity",
     "demo" => "demographics",
-    "otf" => "outfit",
+    "atr" => "attire",
     "garm" => "garment",
     "adorn" => "adornment",
     "rl" => "role",
@@ -191,7 +191,7 @@ class TagCategory
     "med" => "medium",
     "meta" => "meta",
     "inv" => "invalid",
-    "ship" => "shipping",
+    "grp" => "group",
   }.freeze
 
   HEADER_MAPPING = {
@@ -201,13 +201,13 @@ class TagCategory
     "copyright" => "Copyrights",
     "name" => "Names",
     "form" => "Forms",
-    "group" => "Groups",
+    "studio" => "Studios",
     "category" => "Categories",
     "genre" => "Genres",
     "creature" => "Creatures",
     "entity" => "Entities",
     "demographics" => "Demographics",
-    "outfit" => "Outfits",
+    "attire" => "Attire",
     "garment" => "Garments",
     "adornment" => "Adornments",
     "role" => "Roles",
@@ -229,7 +229,7 @@ class TagCategory
     "medium" => "Medium",
     "meta" => "Meta",
     "invalid" => "Invalid",
-    "shipping" => "Shippings",
+    "group" => "Groups",
   }.freeze
 
   ADMIN_ONLY_MAPPING = {
@@ -239,13 +239,13 @@ class TagCategory
     "copyright" => false,
     "name" => false,
     "form" => false,
-    "group" => false,
+    "studio" => false,
     "category" => false,
     "genre" => false,
     "creature" => false,
     "entity" => false,
     "demographics" => false,
-    "outfit" => false,
+    "attire" => false,
     "garment" => false,
     "adornment" => false,
     "role" => false,
@@ -267,7 +267,7 @@ class TagCategory
     "medium" => false,
     "meta" => true,
     "invalid" => true,
-    "shipping" => false,
+    "group" => false,
   }.freeze
 
   HUMANIZED_MAPPING = {
@@ -291,13 +291,13 @@ class TagCategory
     },
   }.freeze
 
-  CATEGORIES = %w[general artist contributor copyright name form group category genre creature entity demographics outfit garment adornment role hair body expression position view action explicit setting flora object substance lore unique other request medium meta invalid shipping].freeze
+  CATEGORIES = %w[general artist contributor copyright name form studio category genre creature entity demographics attire garment adornment role hair body expression position view action explicit setting flora object substance lore unique other request medium meta invalid group].freeze
   CATEGORY_IDS = CANONICAL_MAPPING.values.freeze
 
   SHORT_NAME_LIST = SHORT_NAME_MAPPING.keys.freeze
   HUMANIZED_LIST = %w[name copyright artist].freeze
-  SPLIT_HEADER_LIST = %w[name form copyright shipping artist contributor group category genre creature entity demographics role outfit garment adornment hair body expression position view action explicit setting flora object substance lore unique other medium meta request invalid general].freeze
-  CATEGORIZED_LIST = %w[name form copyright shipping artist contributor group category genre creature entity demographics role outfit garment adornment hair body expression position view action explicit setting flora object substance lore unique other medium meta request invalid general].freeze
+  SPLIT_HEADER_LIST = %w[name form copyright group artist contributor studio category genre creature entity demographics role attire garment adornment hair body expression position view action explicit setting flora object substance lore unique other medium meta request invalid general].freeze
+  CATEGORIZED_LIST = %w[name form copyright group artist contributor studio category genre creature entity demographics role attire garment adornment hair body expression position view action explicit setting flora object substance lore unique other medium meta request invalid general].freeze
 
   SHORT_NAME_REGEX = SHORT_NAME_LIST.join("|").freeze
   ALL_NAMES_REGEX = MAPPING.keys.join("|").freeze
