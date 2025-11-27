@@ -2,7 +2,7 @@
   <article class="comment comment-post-grid <%= "below-threshold" if comment.below_threshold? %>" data-post-id="<%= comment.post_id %>"
            data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>"
            data-creator="<%= comment.creator&.name.downcase %>" data-is-sticky="<%= comment.is_sticky %>" data-creator-id="<%= comment.creator_id %>"
-           data-is-deleted="<%= comment.is_hidden? %>" id="comment-<%= comment.id %>">
+           data-is-deleted="<%= comment.is_hidden? %>" id="comment-<%= comment.id %>" data-creator-color="<%= comment.creator&.user_color %>">
     <div class="author-info">
       <div class="name-rank">
         <h4 class="author-name"><%= link_to_user comment.creator %></h4>
