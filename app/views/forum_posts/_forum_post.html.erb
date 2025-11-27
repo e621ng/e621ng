@@ -59,7 +59,7 @@
             <li><%= link_to "Parent", forum_topic_path(forum_post.topic, :page => forum_post.forum_topic_page, :anchor => "forum_post_#{forum_post.id}") %></li>
           <% end %>
           <% if CurrentUser.is_member? %>
-            <li><%= link_to "Report", new_ticket_path(disp_id: forum_post.id, qtype: 'forum') %></li>
+            <li class="post-report"><%= link_to "Report", new_ticket_path(disp_id: forum_post.id, qtype: 'forum') %></li>
           <% end %>
           <% if CurrentUser.is_moderator? %>
             <li>|</li>
