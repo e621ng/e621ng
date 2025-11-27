@@ -66,26 +66,34 @@ class Comment < ApplicationRecord
 
       # Comment must meet any of the following:
       # 1. Comment is sticky
-      # 2. Comment created by the user
+      # 2. Comment created by the user (if not anonymous)
       # 3. All of the following are true:
       #    a. Comment score meets threshold
       #    b. Comment is not hidden (unless user is janitor)
       #    c. Comment is not on a post with comments disabled (unless user is janitor)
 
-      passes_checks = ["comments.score >= ?"]
+      arguments = []
+      sticky_or_own = "comments.is_sticky = true" # 1
+      unless user.is_anonymous?
+        sticky_or_own += " OR comments.creator_id = ?" # 2
+        arguments << user.id
+      end
+
+      passes_checks = ["comments.score >= ?"] # 3a
+      arguments << user.comment_threshold
       unless user.is_janitor?
-        passes_checks << "comments.is_hidden = false"
-        disabled_post_ids = SearchMethods.comment_disabled_post_ids # Comments disabled: only 19 posts as of Nov 2025.
-        passes_checks << "comments.post_id NOT IN (#{disabled_post_ids.join(',')})" unless disabled_post_ids.empty?
+        passes_checks << "comments.is_hidden = false" # 3b
+
+        # Comments disabled: only 19 posts as of Nov 2025.
+        disabled_post_ids = SearchMethods.comment_disabled_post_ids
+        unless disabled_post_ids.empty?
+          passes_checks << "comments.post_id NOT IN (?)" # 3c
+          arguments << disabled_post_ids
+        end
       end
       passes_checks = passes_checks.join(" AND ")
 
-      if user.is_anonymous? # Anonymous users can't leave comments, skip own comment check
-        where("comments.is_sticky = true OR (#{passes_checks})", user.comment_threshold)
-      else
-        sticky_or_own = "comments.is_sticky = true OR comments.creator_id = ?"
-        where("#{sticky_or_own} OR (#{passes_checks})", user.id, user.comment_threshold)
-      end
+      where("#{sticky_or_own} OR (#{passes_checks})", *arguments)
     end
 
     def post_tags_match(query)
@@ -99,7 +107,7 @@ class Comment < ApplicationRecord
     def search(params)
       q = super.includes(:creator).includes(:updater).includes(:post)
 
-      # Body seach subquery: prevent timeouts on broad searches
+      # Body search subquery: prevent timeouts on broad searches
       if params[:body_matches].present? && params[:body_matches].exclude?("*")
         subquery = Comment
                    .unscoped
