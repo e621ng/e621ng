@@ -89,20 +89,20 @@ body {
   --color-tag-copyright:          #d0d;
   --color-tag-copyright-alt:      #ff5eff;
 
-  --color-tag-character:          #0a0;
-  --color-tag-character-alt:      #2bff2b;
+  --color-tag-name:               #0a0;
+  --color-tag-name-alt:           #2bff2b;
 
-  --color-tag-species:            #ed5d1f;
-  --color-tag-species-alt:        #f6b295;
+  --color-tag-form:            #ed5d1f;
+  --color-tag-form-alt:        #f6b295;
 
-  --color-tag-invalid:            #ff3d3d;
-  --color-tag-invalid-alt:        #{lighten(#ff3d3d, 25%)};
+  --color-tag-group:            #ff3d3d;
+  --color-tag-group-alt:        #{lighten(#ff3d3d, 25%)};
 
-  --color-tag-meta:               #fff;
-  --color-tag-meta-alt:           #666;
+  --color-tag-category:               #fff;
+  --color-tag-category-alt:           #666;
 
-  --color-tag-lore:               #282;
-  --color-tag-lore-alt:           #5fdb5f;
+  --color-tag-genre:               #282;
+  --color-tag-genre-alt:           #5fdb5f;
 
   --color-tag-pool:               wheat;
   --color-tag-pool-alt:           #d0b27a;

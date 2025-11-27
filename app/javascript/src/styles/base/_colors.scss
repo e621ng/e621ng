@@ -158,11 +158,11 @@ $tag-categories: (
   "1": "artist",
   "2": "contributor",
   "3": "copyright",
-  "4": "character",
-  "5": "species",
-  "6": "invalid",
-  "7": "meta",
-  "8": "lore"
+  "4": "name",
+  "5": "form",
+  "6": "group",
+  "7": "category",
+  "8": "genre"
 );
 
 $tag-categories-short: (
@@ -170,9 +170,9 @@ $tag-categories-short: (
   "art": "artist",
   "cont": "contributor",
   "copy": "copyright",
-  "char": "character",
-  "spec": "species",
-  "inv": "invalid",
-  "meta": "meta",
-  "lor": "lore"
+  "nam": "name",
+  "frm": "form",
+  "grp": "group",
+  "cat": "category",
+  "gnr": "genre"
 )

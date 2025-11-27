@@ -16,8 +16,8 @@ FactoryBot.define do
       category {Tag.categories.copyright}
     end
 
-    factory(:character_tag) do
-      category {Tag.categories.character}
+    factory(:name_tag) do
+      category {Tag.categories.name}
     end
   end
 end
