@@ -1869,6 +1869,7 @@ class Post < ApplicationRecord
       if saved_change_to_is_comment_disabled?
         action = is_comment_disabled? ? :comment_disabled : :comment_enabled
         PostEvent.add(id, CurrentUser.user, action)
+        Comment::SearchMethods.clear_comment_disabled_cache
       end
       if saved_change_to_bg_color?
         PostEvent.add(id, CurrentUser.user, :changed_bg_color, { bg_color: bg_color })

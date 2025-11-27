@@ -37,6 +37,16 @@ class Comment < ApplicationRecord
   scope :stickied, -> { where(is_sticky: true) }
 
   module SearchMethods
+    def self.comment_disabled_post_ids
+      Rails.cache.fetch("comment_disabled_post_ids", expires_in: 1.hour) do
+        Post.where(is_comment_disabled: true).pluck(:id)
+      end
+    end
+
+    def self.clear_comment_disabled_cache
+      Rails.cache.delete("comment_disabled_post_ids")
+    end
+
     def recent
       reorder("comments.id desc").limit(RECENT_COUNT)
     end
@@ -54,13 +64,28 @@ class Comment < ApplicationRecord
     def visible(user)
       return where("comments.score >= ? OR comments.is_sticky = true", user.comment_threshold) if user.is_moderator?
 
-      # Only 19 posts have comments disabled as of Nov 2025.
-      # If that number grows significantly, we will need to rethink this approach.
-      passes_checks = "(comments.score >= ?) AND comments.post_id NOT IN (SELECT id FROM posts WHERE is_comment_disabled = true)"
-      passes_checks += " AND comments.is_hidden = false" unless user.is_janitor?
-      sticky_or_own = "comments.is_sticky = true OR comments.creator_id = ?"
+      # Comment must meet any of the following:
+      # 1. Comment is sticky
+      # 2. Comment created by the user
+      # 3. All of the following are true:
+      #    a. Comment score meets threshold
+      #    b. Comment is not hidden (unless user is janitor)
+      #    c. Comment is not on a post with comments disabled (unless user is janitor)
 
-      where("#{sticky_or_own} OR (#{passes_checks})", user.id, user.comment_threshold)
+      passes_checks = ["comments.score >= ?"]
+      unless user.is_janitor?
+        passes_checks << "comments.is_hidden = false"
+        disabled_post_ids = SearchMethods.comment_disabled_post_ids # Comments disabled: only 19 posts as of Nov 2025.
+        passes_checks << "comments.post_id NOT IN (#{disabled_post_ids.join(',')})" unless disabled_post_ids.empty?
+      end
+      passes_checks = passes_checks.join(" AND ")
+
+      if user.is_anonymous? # Anonymous users can't leave comments, skip own comment check
+        where("comments.is_sticky = true OR (#{passes_checks})", user.comment_threshold)
+      else
+        sticky_or_own = "comments.is_sticky = true OR comments.creator_id = ?"
+        where("#{sticky_or_own} OR (#{passes_checks})", user.id, user.comment_threshold)
+      end
     end
 
     def post_tags_match(query)
@@ -74,7 +99,24 @@ class Comment < ApplicationRecord
     def search(params)
       q = super.includes(:creator).includes(:updater).includes(:post)
 
-      q = q.attribute_matches(:body, params[:body_matches])
+      # Body seach subquery: prevent timeouts on broad searches
+      if params[:body_matches].present? && params[:body_matches].exclude?("*")
+        subquery = Comment
+                   .unscoped
+                   .select(:id)
+                   .where("to_tsvector('english', body) @@ plainto_tsquery('english', ?)", params[:body_matches])
+
+        # Search by creator, if specified
+        Comment.with_resolved_user_ids(:creator, params) do |user_ids|
+          subquery = subquery.where(creator_id: user_ids)
+        end
+
+        subquery = subquery.order(created_at: :desc).limit(10_000)
+
+        q = q.where("comments.id IN (#{subquery.to_sql})")
+      else
+        q = q.attribute_matches(:body, params[:body_matches])
+      end
 
       if params[:post_id].present?
         q = q.where("post_id in (?)", params[:post_id].split(",").map(&:to_i))
