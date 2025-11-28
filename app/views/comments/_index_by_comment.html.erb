@@ -1,6 +1,6 @@
 <div id="p-index-by-comment" class="comments-for-post">
     <% @comments.each do |comment| %>
-      <% if comment.post.present? && comment.should_see?(CurrentUser.user) %>
+      <% if comment.post.present? %>
       <div class="comment-post">
         <div class="post-container">
           <%= render(PostThumbnailComponent.new(post: comment.post, show_deleted: true)) %>
