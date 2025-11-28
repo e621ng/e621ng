@@ -34,7 +34,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@edit_history) %>
+    <%= render PaginatorComponent.new(records: @edit_history) %>
   </div>
 </div>
 

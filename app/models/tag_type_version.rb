@@ -9,7 +9,7 @@ class TagTypeVersion < ApplicationRecord
       q = super.includes(:creator, :tag)
 
       if params[:tag].present?
-        tag = Tag.find_by_normalized_name(params[:tag])
+        tag = Tag.find_by_normalized_name(params[:tag]) # rubocop:disable Rails/DynamicFindBy
         q = q.where(tag: tag)
       end
 

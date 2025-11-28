@@ -44,7 +44,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@post_disapprovals) %>
+    <%= render PaginatorComponent.new(records: @post_disapprovals) %>
   </div>
 </div>
 

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PostVotesController < ApplicationController
+  include ConditionalSearchCount
+
   respond_to :json
   respond_to :html, only: [:index]
   before_action :member_only
@@ -10,7 +12,16 @@ class PostVotesController < ApplicationController
   skip_before_action :api_check
 
   def index
-    @post_votes = PostVote.includes(:user).includes(post: [:uploader]).search(search_params).paginate(params[:page], limit: 100)
+    # Only enable COUNT for searches that actually narrow results to avoid expensive queries
+    search_params_for_count = search_count_params(
+      narrowing: %i[id post_id user_name user_id post_creator_id post_creator_name timeframe user_ip_addr],
+    )
+
+    @post_votes = PostVote
+                  .includes(:user)
+                  .includes(post: [:uploader])
+                  .search(search_params)
+                  .paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
 
     if CurrentUser.is_staff?
       ids = @post_votes&.map(&:id)

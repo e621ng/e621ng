@@ -1227,7 +1227,8 @@ class TagQuery
   #
   # IDEA: Sort groups like metatags
   def parse_query(query, depth: 0, **kwargs)
-    return if (query = query.to_s.unicode_normalize(:nfc).strip.freeze).blank?
+    # Remove invalid UTF-8 sequences and null bytes before processing
+    return if (query = query.to_s.scrub("").delete("\u0000").unicode_normalize(:nfc).strip.freeze).blank?
     can_have_groups = kwargs.fetch(:can_have_groups, true) && TagQuery.has_groups?(query)
     out_of_metatags = false
     params = { preformatted_query: true, ensure_delimiting_whitespace: true, compact: true, force_delim_metatags: true, segregate_metatags: true, delim_metatags: true }.freeze
@@ -1306,7 +1307,7 @@ class TagQuery
       when "user", "-user", "~user" then add_to_query(type, :uploader_ids, user_id_or_invalid(g2))
 
       # NOTE: This doesn't match the behavior of `User.name_or_id_to_id`, as that ensures an integral, whereas this will convert leading digits of a non-numeric string.
-      when "user_id", "-user_id", "~user_id" then add_to_query(type, :uploader_ids, g2.to_i)
+      when "user_id", "-user_id", "~user_id" then add_to_query(type, :uploader_ids, ParseValue.safe_id(g2))
 
       when "approver", "-approver", "~approver"
         add_to_query(type, :approver_ids, g2, any_none_key: :approver) { user_id_or_invalid(g2) }
@@ -1397,11 +1398,11 @@ class TagQuery
       when /[-~]?(#{TagCategory::SHORT_NAME_REGEX})tags/
         add_to_query(type, :"#{TagCategory::SHORT_NAME_MAPPING[$1]}_tag_count", ParseValue.range(g2))
 
-      when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, g2, any_none_key: :parent) { g2.to_i }
+      when "parent", "-parent", "~parent" then add_to_query(type, :parent_ids, g2, any_none_key: :parent) { ParseValue.safe_id(g2) }
 
       when "child" then q[:child] = g2.downcase
 
-      when "randseed" then q[:random_seed] = g2.to_i
+      when "randseed" then q[:random_seed] = ParseValue.safe_id(g2)
 
       when "order", "-order" then q[:order] = TagQuery.normalize_order_value(g2.downcase, invert: type == :must_not)
 
@@ -1551,7 +1552,7 @@ class TagQuery
   def pull_wildcard_tags(tag)
     Tag.name_matches(tag)
        .limit(Danbooru.config.tag_query_limit) # .limit(tag_query_limit)
-       .order("post_count DESC")
+       .order("post_count DESC", "name ASC")
        .pluck(:name)
        .presence || ["~~not_found~~"]
   end

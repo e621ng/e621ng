@@ -47,7 +47,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@dmails) %>
+    <%= render PaginatorComponent.new(records: @dmails) %>
   </div>
 </div>
 

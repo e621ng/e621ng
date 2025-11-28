@@ -169,14 +169,14 @@ class User < ApplicationRecord
 
       def name_or_id_to_id(name)
         if name =~ /\A!\d+\z/
-          return name[1..-1].to_i
+          return ParseValue.safe_id(name[1..-1])
         end
         User.name_to_id(name)
       end
 
       def name_or_id_to_id_forced(name)
         if name =~ /\A\d+\z/
-          return name.to_i
+          return ParseValue.safe_id(name)
         end
         User.name_to_id(name)
       end
@@ -279,8 +279,15 @@ class User < ApplicationRecord
       end
 
       def authenticate_api_key(name, api_key)
-        key = ApiKey.where(:key => api_key).first
+        # Validate inputs: PostgreSQL expects UTF-8
+        return nil unless name.is_a?(String) && name.dup.force_encoding("UTF-8").valid_encoding?
+        return nil unless api_key.is_a?(String) && api_key.dup.force_encoding("UTF-8").valid_encoding?
+        return nil if name.blank? || api_key.blank?
+
+        key = ApiKey.where(key: api_key).first
         return nil if key.nil?
+
+        # The find_by(name: name) will not use an index correctly
         user = find_by_name(name)
         return nil if user.nil?
         return user if key.user_id == user.id

@@ -83,8 +83,11 @@ class AvoidPosting < ApplicationRecord
 
     def search(params)
       q = super
+
+      # Avoid redundant joins
       artist_keys = %i[artist_id artist_name any_name_matches any_other_name_matches]
-      q = q.joins(:artist).merge(artist_search(params)) if artist_keys.any? { |key| params.key?(key) }
+      has_artist_join = artist_keys.any? { |key| params.key?(key) }
+      q = q.joins(:artist).merge(artist_search(params)) if has_artist_join
 
       if params[:is_active].present?
         q = q.active if params[:is_active].to_s.truthy?
@@ -96,19 +99,32 @@ class AvoidPosting < ApplicationRecord
       q = q.attribute_matches(:details, params[:details])
       q = q.attribute_matches(:staff_notes, params[:staff_notes])
       q = q.where_user(:creator_id, :creator, params)
-      q = q.where("creator_ip_addr <<= ?", params[:ip_addr]) if params[:ip_addr].present?
+      q = q.where("avoid_postings.creator_ip_addr <<= ?", params[:ip_addr]) if params[:ip_addr].present?
+
+      # Handle ordering
       case params[:order]
       when "artist_name", "artist_name_asc"
-        q = q.joins(:artist).order("artists.name ASC")
+        unless has_artist_join
+          q = q.joins(:artist)
+          has_artist_join = true
+        end
+        q = q.order("artists.name ASC", "avoid_postings.id DESC")
       when "artist_name_desc"
-        q = q.joins(:artist).order("artists.name DESC")
+        unless has_artist_join
+          q = q.joins(:artist)
+          has_artist_join = true
+        end
+        q = q.order("artists.name DESC", "avoid_postings.id DESC")
       when "created_at"
-        q = q.order("created_at DESC")
+        q = q.order("avoid_postings.created_at DESC")
       when "updated_at"
-        q = q.order("updated_at DESC")
+        q = q.order("avoid_postings.updated_at DESC")
       else
         q = q.apply_basic_order(params)
       end
+
+      q = q.includes(:artist) unless has_artist_join
+
       q
     end
   end

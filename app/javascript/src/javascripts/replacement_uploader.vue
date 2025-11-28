@@ -14,7 +14,13 @@
   <div class="input">
     <label>
       <div>Reason</div>
-      <autocompletable-input listId="reason-datalist" :addToList="submittedReason" size="50" placeholder="Higher quality, artwork updated, official uncensored version, ..." v-model="reason"></autocompletable-input>
+      <autocompletable-input
+        id="replacement-reason"
+        listId="reason-datalist"
+        :addToList="submittedReason"
+        placeholder="Higher quality, artwork updated, official uncensored version, ..."
+        v-model="reason"
+      ></autocompletable-input>
     </label>
     <span class="hint">Tell us why this file should replace the original.</span>
   </div>

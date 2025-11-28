@@ -31,7 +31,6 @@
 @import "common/navigation.scss";
 @import "common/news.scss";
 @import "common/notices.scss";
-@import "common/paginator.scss";
 @import "common/post_search.scss";
 @import "common/scores";
 @import "common/simple_form.scss";
@@ -41,6 +40,7 @@
 @import "common/user_styles.scss";
 @import "common/voting.scss";
 
+@import "components/paginator_component.scss";
 @import "components/post_thumbnail_component.scss";
 
 @import "views/application/application";
@@ -50,6 +50,7 @@
 @import "views/mascots/mascots";
 @import "views/pools/pools";
 @import "views/post_flags/post_flags";
+@import "views/post_replacements/post_replacements";
 @import "views/posts/posts";
 @import "views/static/static";
 @import "views/tickets/tickets";

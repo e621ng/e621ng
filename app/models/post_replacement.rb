@@ -458,11 +458,36 @@ class PostReplacement < ApplicationRecord
 
   def promoted_id
     return nil unless is_promoted?
-    if post.has_children?
-      id = post.children.where(md5: md5)&.first&.id
+
+    @promoted_id ||= begin
+      id = nil
+      if post.has_children?
+        id = post.children.where(md5: md5)&.first&.id
+      end
+
+      # Fallback 1: md5 lookup
+      if id.nil?
+        found_post = Post.find_by(md5: md5)
+        id = found_post&.id
+      end
+
+      # Fallback 2: Backup lookup
+      if id.nil?
+        backup = PostReplacement.where(status: "original", md5: md5).first
+        id = backup&.post_id
+      end
+
+      # Fallback 3: PostEvent lookup
+      if id.nil?
+        event = PostEvent.where(action: :replacement_promoted)
+                         .where("extra_data->>'source_post_id' = ?", post_id.to_s)
+                         .order(created_at: :desc)
+                         .first
+        id = event&.post_id
+      end
+
+      id
     end
-    return id unless id.nil?
-    Post.find_by(md5: md5)&.id
   end
 
   include ApiMethods

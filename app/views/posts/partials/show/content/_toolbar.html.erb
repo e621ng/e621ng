@@ -86,6 +86,7 @@
     <a
       href="<%= @post.file_url %>"
       class="st-button kinetic ptbr-fullscreen-button"
+      data-hotkey="fullscreen"
     >
       View
     </a>
@@ -97,13 +98,19 @@
     </button>
     <div class="ptbr-etc-menu hidden">
       <a href="<%= @post.file_url %>" class="st-button ptbr-etc-fullscreen">Fullscreen</a>
-      <a href="<%= @post.file_url %>" class="st-button ptbr-etc-download" download="<%= @post.md5 %>.<%= @post.file_ext %>" pending="false">
+      <a
+        href="<%= @post.file_url %>"
+        class="st-button ptbr-etc-download"
+        download="<%= @post.md5 %>.<%= @post.file_ext %>"
+        pending="false"
+        data-hotkey="download"
+      >
         <%= svg_icon(:hexagon) %>
         <span>Download</span>
       </a>
       <button class="st-button ptbr-notes-button <%= @post.has_notes? ? "" : "hidden"%>" enabled="true"></button>
-      <button class="st-button ptbr-etc-pool add-to-pool">Add to Pool</button>
-      <button class="st-button ptbr-etc-set add-to-set">Add to Set</button>
+      <button class="st-button ptbr-etc-pool add-to-pool" data-hotkey="add-to-pool">Add to Pool</button>
+      <button class="st-button ptbr-etc-set add-to-set" data-hotkey="add-to-set">Add to Set</button>
     </div>
   </div>
 <% end %>

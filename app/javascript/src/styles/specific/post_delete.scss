@@ -11,8 +11,15 @@ div#c-confirm-delete {
   // "Move to parent" checkboxes
   .post_delete_options {
     display: flex;
-    column-gap: 0.5rem;
+    gap: 0.5rem;
     margin-bottom: 0.5rem;
+
+    flex-flow: column;
+    @include window-larger-than(500px) {
+      flex-flow: row;
+    }
+
+    div.input { margin-bottom: unset; }
   }
 
   // Prebuilt deletion reason buttons

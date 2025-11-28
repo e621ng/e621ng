@@ -103,8 +103,12 @@ class ElasticQueryBuilder
     when :lte
       { range: { field => { lte: arr[1] } } }
     when :in
+      return if arr[1].is_a?(Array) && arr[1].any?(&:nil?) # malformed input
+
       { terms: { field => arr[1] } }
     when :between
+      return if arr[1].nil? || arr[2].nil? # malformed input
+
       { range: { field => { gte: arr[1], lte: arr[2] } } }
     end
   end
@@ -162,7 +166,7 @@ class ElasticQueryBuilder
     elsif q[key].to_s.falsy?
       must.push({ term: { index_field => false } })
     else
-      raise ArgumentError, "value must be truthy or falsy"
+      @has_invalid_input = true
     end
   end
 

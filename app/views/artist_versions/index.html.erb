@@ -4,7 +4,7 @@
 
     <%= render "search" %>
     <%= render "standard_listing" %>
-    <%= numbered_paginator(@artist_versions) %>
+    <%= render PaginatorComponent.new(records: @artist_versions) %>
   </div>
 </div>
 

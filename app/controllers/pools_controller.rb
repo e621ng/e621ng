@@ -6,6 +6,25 @@ class PoolsController < ApplicationController
   before_action :janitor_only, only: %i[destroy]
   before_action :ensure_lockdown_disabled, except: %i[index show gallery]
 
+  def index
+    @pools = Pool.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
+    respond_with(@pools) do |format|
+      format.json do
+        render json: @pools.to_json
+        expires_in params[:expiry].to_i.days if params[:expiry]
+      end
+    end
+  end
+
+  def show
+    @pool = Pool.find(params[:id])
+    respond_with(@pool) do |format|
+      format.html do
+        @posts = @pool.posts.paginate_posts(params[:page], limit: params[:limit], total_count: @pool.post_ids.count)
+      end
+    end
+  end
+
   def new
     @pool = Pool.new
     respond_with(@pool)
@@ -16,27 +35,8 @@ class PoolsController < ApplicationController
     respond_with(@pool)
   end
 
-  def index
-    @pools = Pool.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
-    respond_with(@pools) do |format|
-      format.json do
-        render json: @pools.to_json
-        expires_in params[:expiry].to_i.days if params[:expiry]
-      end
-    end
-  end
-
   def gallery
     @pools = Pool.search(search_params).paginate_posts(params[:page], limit: params[:limit], search_count: params[:search])
-  end
-
-  def show
-    @pool = Pool.find(params[:id])
-    respond_with(@pool) do |format|
-      format.html do
-        @posts = @pool.posts.paginate_posts(params[:page], limit: params[:limit], total_count: @pool.post_ids.count)
-      end
-    end
   end
 
   def create
@@ -58,9 +58,7 @@ class PoolsController < ApplicationController
 
   def destroy
     @pool = Pool.find(params[:id])
-    if !@pool.deletable_by?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
+    raise User::PrivilegeError unless @pool.deletable_by?(CurrentUser.user)
     @pool.create_mod_action_for_delete
     @pool.destroy
     flash[:notice] = "Pool deleted"
@@ -72,9 +70,7 @@ class PoolsController < ApplicationController
     @version = @pool.versions.find(params[:version_id])
     @pool.revert_to!(@version)
     flash[:notice] = "Pool reverted"
-    respond_with(@pool) do |format|
-      format.js
-    end
+    respond_with(@pool, &:js)
   end
 
   private

@@ -29,7 +29,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@blacklists) %>
+    <%= render PaginatorComponent.new(records: @blacklists) %>
   </div>
 </div>
 

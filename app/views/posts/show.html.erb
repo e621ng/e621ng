@@ -18,10 +18,12 @@
         <%= render "posts/partials/show/sidebar/information", :post => @post %>
       </section>
 
-      <section id="post-options">
-        <h3>Options</h3>
-        <%= render "posts/partials/show/sidebar/options", :post => @post %>
-      </section>
+      <% if CurrentUser.is_member? %>
+        <section id="post-options">
+          <h3>Options</h3>
+          <%= render "posts/partials/show/sidebar/options", :post => @post %>
+        </section>
+      <% end %>
 
       <% if CurrentUser.is_member? %>
         <section id="post-history">

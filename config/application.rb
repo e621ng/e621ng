@@ -22,6 +22,7 @@ Bundler.require(*Rails.groups)
 
 require_relative "danbooru_default_config"
 require_relative "danbooru_local_config"
+require_relative "../lib/middleware/parameter_sanitizer"
 
 module Danbooru
   class Application < Rails::Application
@@ -41,6 +42,8 @@ module Danbooru
     config.action_controller.action_on_unpermitted_parameters = :raise
     config.force_ssl = true
     config.active_job.queue_adapter = :sidekiq
+
+    config.middleware.insert_before 0, Middleware::ParameterSanitizer
 
     if Rails.env.production? && Danbooru.config.ssl_options.present?
       config.ssl_options = Danbooru.config.ssl_options

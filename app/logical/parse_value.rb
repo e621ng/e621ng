@@ -117,6 +117,12 @@ module ParseValue
     range
   end
 
+  # Ensures that the value is a safe integer ID (0 to MAX_INT)
+  def safe_id(value)
+    int_val = value.to_i
+    int_val >= 0 && int_val <= MAX_INT ? int_val : -1
+  end
+
   private
 
   def cast(object, type)

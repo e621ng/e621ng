@@ -160,5 +160,17 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
     end
+
+    context "parameter sanitization" do
+      should "remove null bytes from string parameters" do
+        get posts_path, params: { tags: "test\u0000malicious" }
+        assert_response :success
+      end
+
+      should "remove null bytes from nested parameters" do
+        get comments_path, params: { search: { body_matches: "test\u0000null" } }
+        assert_response :success
+      end
+    end
   end
 end

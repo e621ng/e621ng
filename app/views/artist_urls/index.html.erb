@@ -35,7 +35,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@artist_urls) %>
+    <%= render PaginatorComponent.new(records: @artist_urls) %>
   </div>
 </div>
 

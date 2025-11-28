@@ -741,15 +741,16 @@ Post.update = function (post_id, params) {
 };
 
 Post.delete_with_reason = function (post_id, reason, options = {}) {
-  const { reload_after_delete = false, move_favorites = false } = options;
+  const { reload_after_delete = false, from_flag = false, move_favorites = false } = options;
 
   Post.notice_update("inc");
   let error = false;
   TaskQueue.add(() => {
+    console.log(`Deleting post ${post_id} for reason: ${reason}`);
     $.ajax({
       type: "POST",
       url: `/moderator/post/posts/${post_id}/delete.json`,
-      data: {commit: "Delete", reason: reason, move_favorites: move_favorites},
+      data: {commit: "Delete", reason: reason, from_flag: from_flag, move_favorites: move_favorites},
     }).fail(function (data) {
       if (data.responseJSON && data.responseJSON.reason) {
         $(window).trigger("danbooru:error", "Error: " + data.responseJSON.reason);
