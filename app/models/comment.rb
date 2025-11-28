@@ -286,10 +286,6 @@ class Comment < ApplicationRecord
     true
   end
 
-  def below_threshold?(user = CurrentUser.user)
-    score < user.comment_threshold
-  end
-
   def method_attributes
     super + %i[creator_name updater_name]
   end

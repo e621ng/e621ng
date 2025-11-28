@@ -1,4 +1,4 @@
-<article class="comment comment-post-grid <%= "below-threshold" if comment.below_threshold? %>" data-post-id="<%= comment.post_id %>"
+<article class="comment comment-post-grid <%= "below-threshold" if comment.is_below_threshold? %>" data-post-id="<%= comment.post_id %>"
          data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>"
          data-creator="<%= comment.creator&.name.downcase %>" data-is-sticky="<%= comment.is_sticky %>" data-creator-id="<%= comment.creator_id %>"
          data-is-deleted="<%= comment.is_hidden? %>" id="comment-<%= comment.id %>">
