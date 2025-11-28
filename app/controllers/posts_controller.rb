@@ -58,7 +58,7 @@ class PostsController < ApplicationController
     @has_samples = @post.is_image? || @post.video_sample_list[:has]
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
       @comments = Comment.none

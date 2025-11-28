@@ -152,13 +152,13 @@
 </tab-entry>
 
 <tab-entry tab="<%= tab_name %>" group="posts" class="inline" search="posts comments show hide display own hidden">
-  <tab-head><%= form.label :show_hidden_comments, "Show own hidden comments" %></tab-head>
+  <tab-head><%= form.label :show_hidden_comments, "Show #{CurrentUser.user.is_staff? ? 'all' : 'your'} hidden comments" %></tab-head>
   <tab-body>
     <%= form.input_field :show_hidden_comments, as: :boolean, class: "st-toggle" %>
     <%= form.label :show_hidden_comments, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
-    Show your hidden comments on comment pages.
+    Show <%= CurrentUser.user.is_staff? ? "all" : "your" %> hidden comments on comment pages.
   </tab-hint>
 </tab-entry>
 

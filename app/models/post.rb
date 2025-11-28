@@ -53,7 +53,7 @@ class Post < ApplicationRecord
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
-  has_many :comments, -> { order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
+  has_many :comments, -> { accessible.order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
   has_many :children, -> {order("posts.id")}, :class_name => "Post", :foreign_key => "parent_id"
   has_many :approvals, :class_name => "PostApproval", :dependent => :destroy
   has_many :disapprovals, :class_name => "PostDisapproval", :dependent => :destroy
@@ -1869,6 +1869,7 @@ class Post < ApplicationRecord
       if saved_change_to_is_comment_disabled?
         action = is_comment_disabled? ? :comment_disabled : :comment_enabled
         PostEvent.add(id, CurrentUser.user, action)
+        Comment::SearchMethods.clear_comment_disabled_cache
       end
       if saved_change_to_bg_color?
         PostEvent.add(id, CurrentUser.user, :changed_bg_color, { bg_color: bg_color })
@@ -2072,10 +2073,10 @@ class Post < ApplicationRecord
   end
 
   def visible_comment_count(user)
-    if user.is_moderator? || !is_comment_disabled?
-      comment_count
+    if is_comment_disabled? && !user.is_staff?
+      0
     else
-      comments.visible(user).count
+      comment_count
     end
   end
 end

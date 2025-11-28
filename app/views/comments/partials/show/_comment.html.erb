@@ -1,72 +1,69 @@
-<% if comment.should_see?(CurrentUser.user) || (params[:controller] == "comments" && params[:action] == "show" && CurrentUser.id == comment.creator_id) %>
-  <article class="comment comment-post-grid <%= "below-threshold" if comment.below_threshold? %>" data-post-id="<%= comment.post_id %>"
-           data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>"
-           data-creator="<%= comment.creator&.name.downcase %>" data-is-sticky="<%= comment.is_sticky %>" data-creator-id="<%= comment.creator_id %>"
-           data-is-deleted="<%= comment.is_hidden? %>" id="comment-<%= comment.id %>">
-    <div class="author-info">
-      <div class="name-rank">
-        <h4 class="author-name"><%= link_to_user comment.creator %></h4>
-        <%= comment.creator.level_string %>
-        <% if comment.is_hidden? %>
-          (hidden)
-        <% end %>
-      </div>
-      <div class="avatar">
-        <%= user_avatar(comment.creator) %>
-      </div>
-      <div class="post-time">
-        <%= link_to time_ago_in_words_tagged(comment.created_at), post_path(id: comment.post_id, anchor: "comment-#{comment.id}") %>
-      </div>
+<article class="comment comment-post-grid <%= "below-threshold" if comment.is_below_threshold? %>" data-post-id="<%= comment.post_id %>"
+         data-comment-id="<%= comment.id %>" data-score="<%= comment.score %>"
+         data-creator="<%= comment.creator&.name.downcase %>" data-is-sticky="<%= comment.is_sticky %>" data-creator-id="<%= comment.creator_id %>"
+         data-is-deleted="<%= comment.is_hidden? %>" id="comment-<%= comment.id %>">
+  <div class="author-info">
+    <div class="name-rank">
+      <h4 class="author-name"><%= link_to_user comment.creator %></h4>
+      <%= comment.creator.level_string %>
+      <% if comment.is_hidden? %>
+        (hidden)
+      <% end %>
     </div>
-    <div class="content">
-      <div class="body dtext-container">
-        <%= format_text(comment.body, allow_color: comment.creator.is_privileged?) %>
-      </div>
-      <%= render "application/update_notice", record: comment %>
-      <%= render "application/warned_notice", record: comment if comment.was_warned? %>
-        <div class="content-menu">
-          <menu>
-            <% if post && comment.can_reply?(CurrentUser.user) %>
-              <li><%= tag.a "Reply", href: '#', class: "reply-link comment-reply-link" %></li>
-            <% end %>
-            <% if comment.editable_by?(CurrentUser.user) %>
-              <li><%= link_to "Edit", edit_comment_path(comment.id), :id => "edit_comment_link_#{comment.id}", :class => "edit_comment_link" %></li>
-            <% end %>
-            <% if !comment.is_hidden? && comment.can_hide?(CurrentUser.user) %>
-              <li><%= tag.a "Hide", href: '#', class: 'comment-hide-link' %></li>
-            <% elsif CurrentUser.is_moderator? %>
-              <li><%= tag.a "Unhide", href: '#', class: 'comment-unhide-link' %></li>
-            <% end %>
-
-            <% if CurrentUser.is_admin? %>
-              <li><%= tag.a "Delete", href: '#', class: 'comment-delete-link' %></li>
-            <% end %>
-            <li>|</li>
-            <%= comment_vote_block(comment, @comment_votes[comment.id]) %>
-            <% if CurrentUser.is_moderator? %>
-              <li><%= link_to "(List)", controller: 'comment_votes', search: { comment_id: comment.id } %></li>
-            <% end %>
-            <% if CurrentUser.is_member? && !comment.is_sticky %>
-              <li>|</li>
-              <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, qtype: 'comment') %></li>
-            <% end %>
-            <% if CurrentUser.is_moderator? %>
-              <li>|</li>
-              <li><%= link_to "Show Edits", edit_history_path(id: comment.id, type: 'Comment') %></li>
-              <%= render "user_warnable/buttons", model: comment %>
-            <% end %>
-            <% if CurrentUser.is_admin? %>
-              <li>|</li>
-              <li>
-                <strong>IP</strong>
-                <span><%= link_to_ip comment.creator_ip_addr %></span>
-              </li>
-            <% end %>
-          </menu>
-          <% if comment.editable_by?(CurrentUser.user) %>
-            <%= render "comments/form", comment: comment, hidden: true %>
+    <div class="avatar">
+      <%= user_avatar(comment.creator) %>
+    </div>
+    <div class="post-time">
+      <%= link_to time_ago_in_words_tagged(comment.created_at), post_path(id: comment.post_id, anchor: "comment-#{comment.id}") %>
+    </div>
+  </div>
+  <div class="content">
+    <div class="body dtext-container">
+      <%= format_text(comment.body, allow_color: comment.creator.is_privileged?) %>
+    </div>
+    <%= render "application/update_notice", record: comment %>
+    <%= render "application/warned_notice", record: comment if comment.was_warned? %>
+      <div class="content-menu">
+        <menu>
+          <% if post && comment.can_reply? %>
+            <li><%= tag.a "Reply", href: '#', class: "reply-link comment-reply-link" %></li>
           <% end %>
-      </div>
+          <% if comment.can_edit? %>
+            <li><%= link_to "Edit", edit_comment_path(comment.id), :id => "edit_comment_link_#{comment.id}", :class => "edit_comment_link" %></li>
+          <% end %>
+          <% if !comment.is_hidden? && comment.can_hide? %>
+            <li><%= tag.a "Hide", href: '#', class: 'comment-hide-link' %></li>
+          <% elsif CurrentUser.is_moderator? %>
+            <li><%= tag.a "Unhide", href: '#', class: 'comment-unhide-link' %></li>
+          <% end %>
+          <% if CurrentUser.is_admin? %>
+            <li><%= tag.a "Delete", href: '#', class: 'comment-delete-link' %></li>
+          <% end %>
+          <li>|</li>
+          <%= comment_vote_block(comment, @comment_votes[comment.id]) %>
+          <% if CurrentUser.is_moderator? %>
+            <li><%= link_to "(List)", controller: 'comment_votes', search: { comment_id: comment.id } %></li>
+          <% end %>
+          <% if CurrentUser.is_member? && !comment.is_sticky %>
+            <li>|</li>
+            <li><%= link_to "Report", new_ticket_path(disp_id: comment.id, qtype: 'comment') %></li>
+          <% end %>
+          <% if CurrentUser.is_moderator? %>
+            <li>|</li>
+            <li><%= link_to "Show Edits", edit_history_path(id: comment.id, type: 'Comment') %></li>
+            <%= render "user_warnable/buttons", model: comment %>
+          <% end %>
+          <% if CurrentUser.is_admin? %>
+            <li>|</li>
+            <li>
+              <strong>IP</strong>
+              <span><%= link_to_ip comment.creator_ip_addr %></span>
+            </li>
+          <% end %>
+        </menu>
+        <% if comment.can_edit? %>
+          <%= render "comments/form", comment: comment, hidden: true %>
+        <% end %>
     </div>
-  </article>
-<% end %>
+  </div>
+</article>
