@@ -284,6 +284,83 @@ class CommentTest < ActiveSupport::TestCase
           assert_match(/LIKE/i, query)
         end
       end
+
+      should "support advanced search with websearch_to_tsquery" do
+        cat_comment = as(@user) { create(:comment, body: "I love cats and dogs") }
+        dog_only = as(@user) { create(:comment, body: "Dogs are great pets") }
+        cat_only = as(@user) { create(:comment, body: "Cats are independent") }
+        bird_comment = as(@user) { create(:comment, body: "Birds can fly") }
+
+        CurrentUser.scoped(@user) do
+          # Boolean AND search
+          and_matches = Comment.search(body_matches: "cats AND dogs", advanced_search: true)
+          assert_includes(and_matches, cat_comment)
+          assert_not_includes(and_matches, dog_only)
+          assert_not_includes(and_matches, cat_only)
+          assert_not_includes(and_matches, bird_comment)
+
+          # Boolean OR search
+          or_matches = Comment.search(body_matches: "cats OR birds", advanced_search: true)
+          assert_includes(or_matches, cat_comment)
+          assert_not_includes(or_matches, dog_only)
+          assert_includes(or_matches, cat_only)
+          assert_includes(or_matches, bird_comment)
+
+          # Negation search
+          not_matches = Comment.search(body_matches: "pets -cats", advanced_search: true)
+          assert_not_includes(not_matches, cat_comment)
+          assert_includes(not_matches, dog_only)
+          assert_not_includes(not_matches, cat_only)
+          assert_not_includes(not_matches, bird_comment)
+
+          # Phrase search in advanced mode
+          phrase_matches = Comment.search(body_matches: '"are great"', advanced_search: true)
+          assert_not_includes(phrase_matches, cat_comment)
+          assert_includes(phrase_matches, dog_only)
+          assert_not_includes(phrase_matches, cat_only)
+          assert_not_includes(phrase_matches, bird_comment)
+        end
+      end
+
+      should "fall back to quote-based logic when advanced_search is false" do
+        as(@user) { create(:comment, body: "test content") }
+
+        CurrentUser.scoped(@user) do
+          unquoted_query = Comment.search(body_matches: "test content", advanced_search: false).to_sql
+          assert_match(/plainto_tsquery/i, unquoted_query)
+          assert_no_match(/websearch_to_tsquery/i, unquoted_query)
+        end
+      end
+
+      should "handle complex boolean expressions in advanced search" do
+        fox_comment = as(@user) { create(:comment, body: "I see a fox running") }
+        cat_comment = as(@user) { create(:comment, body: "A lazy cat sleeps") }
+        both_comment = as(@user) { create(:comment, body: "The fox and cat are friends") }
+        neither_comment = as(@user) { create(:comment, body: "Just some birds flying") }
+
+        CurrentUser.scoped(@user) do
+          # Simple OR test
+          or_matches = Comment.search(body_matches: "fox OR cat", advanced_search: true)
+          assert_includes(or_matches, fox_comment)
+          assert_includes(or_matches, cat_comment)
+          assert_includes(or_matches, both_comment)
+          assert_not_includes(or_matches, neither_comment)
+
+          # Simple AND test
+          and_matches = Comment.search(body_matches: "fox AND cat", advanced_search: true)
+          assert_not_includes(and_matches, fox_comment) # only has fox
+          assert_not_includes(and_matches, cat_comment) # only has cat
+          assert_includes(and_matches, both_comment) # has both
+          assert_not_includes(and_matches, neither_comment) # has neither
+
+          # Test phrase search in advanced mode
+          phrase_matches = Comment.search(body_matches: '"lazy cat"', advanced_search: true)
+          assert_not_includes(phrase_matches, fox_comment)
+          assert_includes(phrase_matches, cat_comment) # has "lazy cat"
+          assert_not_includes(phrase_matches, both_comment) # has "cat" but not "lazy cat"
+          assert_not_includes(phrase_matches, neither_comment)
+        end
+      end
     end
 
     context "with creator filtering" do

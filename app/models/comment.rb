@@ -103,10 +103,21 @@ class Comment < ApplicationRecord
 
       # Body search subquery: prevent timeouts on broad searches
       if params[:body_matches].present? && params[:body_matches].exclude?("*")
-        subquery = Comment
-                   .unscoped
-                   .select(:id)
-                   .where("to_tsvector('english', body) @@ plainto_tsquery('english', ?)", params[:body_matches])
+        search_term = params[:body_matches].strip.gsub(/\s+/, " ")
+
+        if params[:advanced_search]
+          # Advanced search using websearch_to_tsquery
+          subquery = Comment
+                     .unscoped
+                     .select(:id)
+                     .where("to_tsvector('english', body) @@ websearch_to_tsquery('english', ?)", search_term)
+        else
+          # Loose word search
+          subquery = Comment
+                     .unscoped
+                     .select(:id)
+                     .where("to_tsvector('english', body) @@ plainto_tsquery('english', ?)", search_term)
+        end
 
         # Search by creator, if specified
         Comment.with_resolved_user_ids(:creator, params) do |user_ids|
