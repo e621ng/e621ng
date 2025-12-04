@@ -41,7 +41,7 @@ Navigation.init = function () {
       url: "/users/avatar_menu",
       dataType: "html",
       timeout: 10000,
-      success: async (data) => { simpleMenu.html(data); },
+      success: (data) => { simpleMenu.html(data); },
       error: () => { console.error("Avatar menu: failed to load content"); },
       complete: () => { simpleMenu.attr("data-state", "loaded"); },
     });
