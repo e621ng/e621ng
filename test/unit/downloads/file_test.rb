@@ -129,6 +129,24 @@ module Downloads
         assert_equal("Actual content", file.read)
       end
 
+      context "url validation" do
+        should "handle URLs without scheme gracefully" do
+          # URLs without schemes should trigger validation errors but not crash with DNS resolution errors
+          error = assert_raises(ActiveModel::ValidationError) do
+            Downloads::File.new("d.furaffinity.net/art/test.png")
+          end
+          assert_includes(error.message, "not a valid url")
+          assert_includes(error.message, "Did you mean 'http://")
+        end
+
+        should "handle blank URLs" do
+          error = assert_raises(ActiveModel::ValidationError) do
+            Downloads::File.new("")
+          end
+          assert_includes(error.message, "URL must not be blank")
+        end
+      end
+
       context "url normalization" do
         should "correctly escapes cyrilic characters" do
           input = "https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_заливать-гитару.jpg"
