@@ -59,6 +59,18 @@ class IqdbQueriesControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
+      context "with a url parameter" do
+        should "handle URLs without scheme properly" do
+          create(:upload_whitelist, domain: "d.furaffinity.net")
+          stub_request(:get, "http://d.furaffinity.net/art/test.png")
+            .to_return(body: file_fixture("test.jpg").read)
+          stub_request(:post, "#{IqdbProxy.endpoint}/query").to_return_json(body: [])
+
+          get iqdb_queries_path, params: { url: "d.furaffinity.net/art/test.png" }
+          assert_response 200
+        end
+      end
+
       context "with a hash parameter" do
         should "reject non-hex hash values" do
           get iqdb_queries_path, params: { hash: "not-a-valid-hex-hash" }
