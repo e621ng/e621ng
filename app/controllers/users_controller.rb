@@ -140,6 +140,13 @@ class UsersController < ApplicationController
     expires_in 10.years
   end
 
+  def avatar_menu
+    return unless CurrentUser.is_member?
+    respond_to do |format|
+      format.html { render partial: "layouts/navigation/avatar_menu_full" }
+    end
+  end
+
   private
 
   def check_privilege(user)
