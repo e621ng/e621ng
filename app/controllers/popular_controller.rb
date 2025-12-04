@@ -2,7 +2,7 @@
 
 class PopularController < ApplicationController
   include JsonResponseHelper
-  
+
   respond_to :html, :json
 
   def index
