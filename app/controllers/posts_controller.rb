@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PostsController < ApplicationController
+  include JsonResponseHelper
+  
   before_action :member_only, except: %i[show show_seq index random]
   before_action :admin_only, only: [:update_iqdb]
   before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
@@ -12,7 +14,7 @@ class PostsController < ApplicationController
       respond_with(@post) do |format|
         format.html { redirect_to post_path(@post) }
         format.json do
-          render json: { post: PostBlueprint.render_as_hash(@post) }
+          render_posts_json(PostBlueprint.render_as_hash(@post))
         end
       end
     else
@@ -39,7 +41,7 @@ class PostsController < ApplicationController
 
       respond_with(@posts) do |format|
         format.json do
-          render json: { posts: PostBlueprint.render_as_hash(@post_set.api_posts) }
+          render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
         end
         format.atom
       end
@@ -67,7 +69,7 @@ class PostsController < ApplicationController
 
     respond_with(@post) do |format|
       format.json do
-        render json: { post: PostBlueprint.render_as_hash(@post) }
+        render_posts_json(PostBlueprint.render_as_hash(@post))
       end
     end
   end
@@ -94,7 +96,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { render "posts/show" }
       format.json do
-        render json: { post: PostBlueprint.render_as_hash(@post) }
+        render_posts_json(PostBlueprint.render_as_hash(@post))
       end
     end
   end
@@ -200,7 +202,7 @@ class PostsController < ApplicationController
       end
 
       format.json do
-        render json: { post: PostBlueprint.render_as_hash(post) }
+        render_posts_json(PostBlueprint.render_as_hash(post))
       end
     end
   end
