@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PostEventsController < ApplicationController
+  include JsonResponseHelper
+
   respond_to :html, :json
 
   def index
@@ -9,7 +11,7 @@ class PostEventsController < ApplicationController
     )
     respond_with(@events) do |format|
       format.json do
-        render json: { post_events: PostEventBlueprint.render_as_hash(Draper.undecorate(@events)) }
+        render_events_json(PostEventBlueprint.render_as_hash(Draper.undecorate(@events)))
       end
     end
   end
