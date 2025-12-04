@@ -20,7 +20,7 @@ class CommentsController < ApplicationController
 
   def show
     @comment = Comment.find(params[:id])
-    check_visible(@comment)
+    check_accessible(@comment, bypass_user_settings: true)
     @comment_votes = CommentVote.for_comments_and_user([@comment.id], CurrentUser.id)
     respond_with(@comment)
   end
@@ -106,7 +106,7 @@ class CommentsController < ApplicationController
     tags = params[:tags] || ""
     @posts = Post.includes(:uploader).includes(comments: %i[creator updater]).tag_match("#{tags} order:comment_bumped").paginate(params[:page], limit: 5, search_count: params[:search])
 
-    @comments = @posts.to_h { |post| [post.id, post.comments.visible(CurrentUser.user).includes(:creator, :updater).recent.reverse] }
+    @comments = @posts.to_h { |post| [post.id, post.comments.above_threshold.includes(:creator, :updater).recent.reverse] }
     @comment_votes = CommentVote.for_comments_and_user(CurrentUser.id ? @comments.values.flatten.map(&:id) : [], CurrentUser.id)
     respond_with(@posts)
   end
@@ -121,9 +121,9 @@ class CommentsController < ApplicationController
     )
 
     @comments = Comment
-                .visible(CurrentUser.user)
                 .includes(:creator, :updater, post: :uploader)
                 .search(search_params)
+                .above_threshold
                 .paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
     @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
 
@@ -135,16 +135,16 @@ class CommentsController < ApplicationController
     respond_with(@comments)
   end
 
-  def check_editable(comment)
-    raise User::PrivilegeError unless comment.editable_by?(CurrentUser.user)
+  def check_accessible(comment, bypass_user_settings: false)
+    raise User::PrivilegeError unless comment.is_accessible?(CurrentUser.user, bypass_user_settings: bypass_user_settings)
   end
 
-  def check_visible(comment)
-    raise User::PrivilegeError unless comment.visible_to?(CurrentUser.user)
+  def check_editable(comment)
+    raise User::PrivilegeError unless comment.is_accessible?(CurrentUser.user, bypass_user_settings: true) && comment.can_edit?
   end
 
   def check_hidable(comment)
-    raise User::PrivilegeError unless comment.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError unless comment.is_accessible?(CurrentUser.user, bypass_user_settings: true) && comment.can_hide?
   end
 
   def search_params

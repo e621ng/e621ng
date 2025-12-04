@@ -3695,6 +3695,13 @@ CREATE INDEX index_comment_votes_on_user_id_and_id ON public.comment_votes USING
 
 
 --
+-- Name: index_comments_on_created_at_desc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_created_at_desc ON public.comments USING btree (created_at DESC, id DESC);
+
+
+--
 -- Name: index_comments_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4887,6 +4894,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251127000001'),
 ('20251114015027'),
 ('20251113060711'),
 ('20251106175207'),

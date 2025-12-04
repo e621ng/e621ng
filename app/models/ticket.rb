@@ -54,11 +54,11 @@ class Ticket < ApplicationRecord
 
     module Comment
       def can_create_for?(user)
-        content&.visible_to?(user)
+        content&.is_accessible?(user, bypass_user_settings: true)
       end
 
       def can_view?(user)
-        (user.is_staff? && content&.visible_to?(user)) || user.is_admin? || (user.id == creator_id)
+        (user.is_staff? && content&.is_accessible?(user, bypass_user_settings: true)) || user.is_admin? || (user.id == creator_id)
       end
     end
 
