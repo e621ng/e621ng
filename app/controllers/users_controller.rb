@@ -4,7 +4,7 @@ class UsersController < ApplicationController
   respond_to :html, :json
   skip_before_action :api_check
   before_action :logged_in_only, only: %i[edit upload_limit update]
-  before_action :member_only, only: %i[custom_style]
+  before_action :member_only, only: %i[custom_style avatar_menu]
   before_action :janitor_only, only: %i[toggle_uploads fix_counts]
   before_action :admin_only, only: %i[flush_favorites]
 
@@ -138,6 +138,12 @@ class UsersController < ApplicationController
   def custom_style
     @css = CustomCss.parse(CurrentUser.user.custom_style)
     expires_in 10.years
+  end
+
+  def avatar_menu
+    respond_to do |format|
+      format.html { render partial: "layouts/navigation/avatar_menu_full" }
+    end
   end
 
   private

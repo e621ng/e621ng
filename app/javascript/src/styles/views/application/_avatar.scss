@@ -224,6 +224,30 @@ nav.navigation .simple-avatar-menu {
   }
 }
 
+// Avatar menu states
+nav.navigation .simple-avatar-menu {
+
+  &[data-state="idle"], 
+  &[data-state="loading"] {
+    a, hr, h4 {
+      display: none;
+    }
+  }
+
+  &[data-state="loading"] {
+
+    height: 2rem;
+    width: 2rem;
+    justify-content: center;
+    align-items: center;
+
+    &::after {
+      content: "Loading . . .";
+      color: themed("color-text-muted");
+    }
+  }
+}
+
 
 nav.navigation .simple-login {
 
