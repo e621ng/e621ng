@@ -17,8 +17,8 @@ class EmailAddressValidator < ActiveModel::EachValidator
     end
 
     # No display names, comments, etc.
-    # We are stripping these out earlier, so they should not be present here.
-    if address.nil? || email != address
+    # Check if normalization detected display names in original input
+    if address.nil? || rec.instance_variable_get(:@email_had_display_name)
       rec.errors.add(attr, "is invalid")
       return
     end

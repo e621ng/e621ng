@@ -420,12 +420,15 @@ class User < ApplicationRecord
       address = email.to_s.strip
       return if address.blank?
 
+      @email_had_display_name = false # Used in validation later
       parsed = Mail::Address.new(address)
-      local, domain = parsed.split("@", 2)
-      return if local.nil? || domain.nil?
-      address = "#{local}@#{domain.downcase}"
+      return if parsed.address.nil?
+      @email_had_display_name = true if address != parsed.address
 
-      self.email = address
+      local, domain = parsed.address.split("@", 2)
+      return if local.nil? || domain.nil?
+
+      self.email = "#{local}@#{domain.downcase}"
     rescue Mail::Field::ParseError
       # Do nothing; validation will catch this later
     end

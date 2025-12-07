@@ -346,5 +346,98 @@ class UserTest < ActiveSupport::TestCase
         assert_nothing_raised { @user.refresh_counts! }
       end
     end
+
+    context "with email validation" do
+      setup do
+        @user.stubs(:enable_email_verification?).returns(true)
+        @user.validate_email_format = true
+      end
+
+      should "reject emails with consecutive dots in local part" do
+        @user.email = "john..doe@example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "cannot have consecutive dots in the local part")
+      end
+
+      should "reject emails with leading dots in local part" do
+        @user.email = ".john@example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "cannot have dots at the beginning or end of the local part")
+      end
+
+      should "reject emails with trailing dots in local part" do
+        @user.email = "john.@example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "cannot have dots at the beginning or end of the local part")
+      end
+
+      should "reject emails with unquoted spaces" do
+        @user.email = "john doe@example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "reject emails with domain labels starting with hyphens" do
+        @user.email = "john@-example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "has a domain label that starts or ends with a hyphen")
+      end
+
+      should "reject emails with domain labels ending with hyphens" do
+        @user.email = "john@example-.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "has a domain label that starts or ends with a hyphen")
+      end
+
+      should "reject emails with underscores in domain" do
+        @user.email = "john@exam_ple.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "has invalid characters in the domain")
+      end
+
+      should "reject emails with consecutive dots in domain" do
+        @user.email = "john@example..com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "has an invalid domain structure")
+      end
+
+      should "reject emails with display names" do
+        @user.email = "Foo Bar <foo.bar@example.com>"
+        @user.valid?
+        assert_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "accept valid simple emails" do
+        @user.email = "user@example.com"
+        @user.valid?
+        assert_not_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "accept emails with dots in local part and hyphens in domain" do
+        @user.email = "user.name@example-domain.com"
+        @user.valid?
+        assert_not_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "accept emails with plus addressing" do
+        @user.email = "user+tag@example.co.uk"
+        @user.valid?
+        assert_not_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "normalize email by lowercasing domain" do
+        @user.email = "User@EXAMPLE.COM"
+        @user.valid?
+        assert_equal("User@example.com", @user.email)
+      end
+
+      should "strip display names during normalization when validation is disabled" do
+        # Test that normalization works when validation is bypassed
+        @user.stubs(:enable_email_verification?).returns(false)
+        @user.email = "John Doe <john@example.com>"
+        @user.valid?
+        assert_equal("john@example.com", @user.email)
+      end
+    end
   end
 end
