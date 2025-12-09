@@ -396,7 +396,7 @@ class User < ApplicationRecord
     end
 
     def mark_unverified!
-      update_attribute(:email_verification_key, '1')
+      update_attribute(:email_verification_key, "1")
     end
 
     def mark_verified!
