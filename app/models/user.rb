@@ -71,6 +71,7 @@ class User < ApplicationRecord
     enable_compact_uploader
     replacements_beta
     is_bd_staff
+    is_bd_auditor
   ].freeze
 
   include Danbooru::HasBitFlags
