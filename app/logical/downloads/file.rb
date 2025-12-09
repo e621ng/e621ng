@@ -42,7 +42,11 @@ module Downloads
     end
 
     def validate_url
-      errors.add(:base, "URL must not be blank") if url.blank?
+      if url.blank?
+        errors.add(:base, "URL must not be blank")
+        return
+      end
+
       if url.scheme.in?(%w[http https])
         errors.add(:base, "'#{url}' is not a valid url") if url.host.blank?
       else
