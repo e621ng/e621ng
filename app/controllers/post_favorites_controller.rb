@@ -8,7 +8,7 @@ class PostFavoritesController < ApplicationController
 
     # Base query: users who favorited this post
     query = User.includes(:user_status)
-                .joins("INNER JOIN favorites ON favorites.user_id = users.id AND favorites.post_id = #{@post.id.to_i}")
+                .joins(favorites: {}).where(favorites: { post_id: @post.id })
 
     # Privacy filter for non-moderators
     unless CurrentUser.is_moderator?
