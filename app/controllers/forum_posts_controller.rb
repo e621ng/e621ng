@@ -90,6 +90,7 @@ class ForumPostsController < ApplicationController
   def load_post
     @forum_post = ForumPost.includes(topic: [:category]).find(params[:id])
     @forum_topic = @forum_post.topic
+    raise ActiveRecord::RecordNotFound, "Forum post has no associated topic" if @forum_topic.nil?
   end
 
   def check_min_level
