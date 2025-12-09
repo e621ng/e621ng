@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class FavoritesController < ApplicationController
+  include JsonResponseHelper
+
   before_action :member_only, except: [:index]
   before_action :ensure_lockdown_disabled, except: %i[index]
   respond_to :json
@@ -23,7 +25,7 @@ class FavoritesController < ApplicationController
       @posts = @post_set.posts
       respond_with(@posts) do |fmt|
         fmt.json do
-          render json: { posts: PostBlueprint.render_as_hash(@post_set.api_posts) }
+          render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
         end
       end
     end
@@ -58,6 +60,8 @@ class FavoritesController < ApplicationController
   rescue Favorite::Error => e
     render_expected_error(422, e.message)
   end
+
+  private
 
   def ensure_lockdown_disabled
     render_expected_error(403, "Favorites are disabled") if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
