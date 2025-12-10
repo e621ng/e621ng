@@ -84,7 +84,7 @@ class PostsController < ApplicationController
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
       @comments = Comment.none
