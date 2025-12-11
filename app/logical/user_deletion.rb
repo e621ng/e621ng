@@ -24,7 +24,7 @@ class UserDeletion
   private
 
   def create_name_history
-    UserNameChangeRequest.create(desired_name: "user_#{user.id}", change_reason: "user deletion", status: "approved", skip_limited_validation: true)
+    UserNameChangeRequest.create(desired_name: "user_#{user.id}", change_reason: "user deletion")
   end
 
   def create_mod_action
