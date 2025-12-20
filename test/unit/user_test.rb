@@ -122,7 +122,7 @@ class UserTest < ActiveSupport::TestCase
 
     context "API key authentication" do
       setup do
-        @api_key = ApiKey.generate!(@user)
+        @api_key = ApiKey.generate!(@user, name: "test")
       end
 
       should "authenticate with valid credentials" do
