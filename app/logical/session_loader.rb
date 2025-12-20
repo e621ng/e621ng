@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SessionLoader
-  class AuthenticationFailure < Exception ; end
+  class AuthenticationFailure < StandardError; end
 
   attr_reader :session, :cookies, :request, :params
 
@@ -34,8 +34,7 @@ class SessionLoader
       end
       raise AuthenticationFailure.new(ban_message)
     end
-    update_last_logged_in_at
-    update_last_ip_addr
+    update_user_login_tracking
     set_time_zone
     set_safe_mode
     refresh_old_remember_token
@@ -118,7 +117,6 @@ class SessionLoader
     user, api_key_record = auth_result
     CurrentUser.user = user
     CurrentUser.api_key = api_key_record
-    UpdateApiKeyUsageJob.set(wait: 1.minute).perform_later(api_key_record.id, @request.remote_ip, @request.user_agent) if api_key_record
   rescue ActiveRecord::StatementInvalid => e
     if e.message.include?("invalid byte sequence") || e.message.include?("CharacterNotInRepertoire")
       Rails.logger.warn("Database encoding error during authentication from #{request.remote_ip}: #{e.message}")
@@ -136,16 +134,23 @@ class SessionLoader
     CurrentUser.api_key = nil
   end
 
-  def update_last_logged_in_at
+  def update_user_login_tracking
     return if CurrentUser.is_anonymous?
-    return if CurrentUser.last_logged_in_at && CurrentUser.last_logged_in_at > 1.week.ago
-    CurrentUser.user.update_attribute(:last_logged_in_at, Time.now)
-  end
 
-  def update_last_ip_addr
-    return if CurrentUser.is_anonymous?
-    return if CurrentUser.user.last_ip_addr == @request.remote_ip
-    CurrentUser.user.update_attribute(:last_ip_addr, @request.remote_ip)
+    cache_key = "user_login_tracking:#{CurrentUser.id}"
+    return if Cache.redis.exists?(cache_key)
+
+    Cache.redis.setex(cache_key, 60, "1")
+
+    if CurrentUser.last_logged_in_at.nil? || CurrentUser.last_logged_in_at <= 1.day.ago
+      CurrentUser.user.update_attribute(:last_logged_in_at, Time.now)
+    end
+
+    if CurrentUser.user.last_ip_addr != @request.remote_ip
+      CurrentUser.user.update_attribute(:last_ip_addr, @request.remote_ip)
+    end
+
+    CurrentUser.api_key&.update_usage!(@request.remote_ip, @request.user_agent)
   end
 
   def set_time_zone
