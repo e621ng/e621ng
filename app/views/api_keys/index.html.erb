@@ -27,23 +27,23 @@
 <%= link_to("Create API key", new_api_key_path, class: "button create-api-key") %>
 
 <% if @api_keys.any? %>
-  <table class="striped" width="100%">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Key</th>
-        <th>Last Used</th>
-        <th>Expires</th>
-        <th>Created</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
+  <div class="api-keys-container">
+    <div class="api-keys-list">
+      <div class="header">Name</div>
+      <div class="header">Key</div>
+      <div class="header">Last Used</div>
+      <div class="header">Expires</div>
+      <div class="header">Created</div>
+      <div class="header">Actions</div>
+
       <% @api_keys.each do |api_key| %>
-        <tr id="api-key-<%= api_key.id %>">
-          <td><%= api_key.name %></td>
-          <td><code><%= api_key.key %></code></td>
-          <td>
+      <div class="row" id="api-key-<%= api_key.id %>">
+        <div class="cell" data-label="Name"><%= api_key.name %></div>
+        
+        <div class="cell" data-label="Key"><code><%= api_key.key %></code></div>
+        
+        <div class="cell" data-label="Last Used">
+          <div>
             <% if api_key.last_used_at %>
               <%= time_ago_in_words_tagged(api_key.last_used_at) %>
               <% if api_key.last_ip_address %>
@@ -55,19 +55,26 @@
             <% else %>
               Never
             <% end %>
-          </td>
-          <td>
+          </div>
+        </div>
+        
+        <div class="cell" data-label="Expires">
+          <div>
             <% if api_key.expires_at %>
               <%= time_ago_in_words_tagged(api_key.expires_at) %>
               <% if api_key.expired? %>
-                <span class="error">(Expired)</span>
+                <span class="api-key-expired"> (Expired)</span>
               <% end %>
             <% else %>
               Never
             <% end %>
-          </td>
-          <td><%= time_ago_in_words_tagged(api_key.created_at) %></td>
-          <td>
+          </div>
+        </div>
+        
+        <div class="cell" data-label="Created"><%= time_ago_in_words_tagged(api_key.created_at) %></div>
+        
+        <div class="cell" data-label="Actions">
+          <div>
             <% if api_key.expired? %>
               <%= link_to("Regenerate", regenerate_api_key_path(api_key), 
                   data: { method: :post, 
@@ -76,11 +83,12 @@
             <% end %>
             <%= link_to("Delete", api_key, data: { method: :delete, 
                 confirm: "Are you sure you want to delete this API key?" }) %>
-          </td>
-        </tr>
+          </div>
+        </div>
+      </div>
       <% end %>
-    </tbody>
-  </table>
+    </div>
+  </div>
 <% else %>
   <p>You don't have any API keys yet.</p>
 <% end %>
