@@ -2,7 +2,6 @@
 set -e
 
 yarn install --frozen-lockfile
-rm -f .overmind.sock
 
 if [ -d "vendor/dtext" ] && [ "$LOCAL_DTEXT" = "true" ]; then
   echo "dtext: Recompiling..."
