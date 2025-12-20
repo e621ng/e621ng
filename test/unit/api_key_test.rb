@@ -20,7 +20,9 @@ class ApiKeyTest < ActiveSupport::TestCase
     end
 
     should "authenticate via api key" do
-      assert_not_nil(User.authenticate_api_key(@user.name, @api_key.key))
+      user, key = User.authenticate_api_key(@user.name, @api_key.key)
+      assert_not_nil(user)
+      assert_not_nil(key)
     end
 
     should "not authenticate with the wrong api key" do
