@@ -5,7 +5,7 @@
       <%= f.input :destroyer_ip_addr, label: "Destroyer IP Address" %>
       <%= f.user :uploader %>
       <%= f.input :uploader_ip_addr, label: "Uploader IP Address" %>
-      <%= f.input :post_id, label: "Post ID" %>
+      <%= f.input :post_id, label: "Post ID", input_html: { class: "id-input", "multi-value" => "comma" } %>
       <%= f.input :md5 %>
     <% end %>
 
