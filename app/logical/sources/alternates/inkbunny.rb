@@ -46,7 +46,7 @@ module Sources
             return "#{id}-p#{page}" if page > 1
           end
 
-          id
+          return id
         end
 
         nil
