@@ -10,10 +10,7 @@ class UpgradeApiKeys < ActiveRecord::Migration[7.1]
       add_column :api_keys, :expires_at, :datetime
 
       ApiKey.where(name: nil).find_each do |api_key|
-        api_key.update_columns(
-          name: "Legacy API Key ##{api_key.id}",
-          expires_at: 6.months.from_now,
-        )
+        api_key.update_column(:name, "Legacy API Key ##{api_key.id}")
       end
       change_column_null :api_keys, :name, false
 
