@@ -24,7 +24,7 @@ class FavoriteManager
       raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
     end
 
-    VoteManager.vote!(post:, user:, score: 1) if user.enable_combined_upvote_and_favorite
+    VoteManager.vote!(post: post, user: user, score: 1) if user.enable_combined_upvote_and_favorite
   rescue ActiveRecord::RecordNotUnique
     return if force
     raise Favorite::Error, "You have already favorited this post" if post.favorited_by?(user.id)
