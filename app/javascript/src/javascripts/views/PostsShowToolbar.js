@@ -82,27 +82,32 @@ export default class PostsShowToolbar {
     });
   }
 
-  static async vote (direction) {
-    return PostVote.vote(PostsShowToolbar.currentPost.id, direction).then((data) => {
-      // Update Score in Information
-      $(".post-score").text(data.score)
-        .removeClass("score-negative score-neutral score-positive")
-        .addClass(data.score > 0
-          ? "score-positive"
-          : (data.score < 0 ? "score-negative" : "score-neutral"));
+  /**
+   * @param data {{up: Number, down: Number, score: Number, our_score: Number}}
+   */
+  static updateVoteButtons (data) {
+    // Update Score in Information
+    $(".post-score").text(data.score)
+      .removeClass("score-negative score-neutral score-positive")
+      .addClass(data.score > 0
+        ? "score-positive"
+        : (data.score < 0 ? "score-negative" : "score-neutral"));
 
-      // Update button states for the current voting block.
-      $(".ptbr-score").text(data.score);
-      $(".ptbr-breakdown").html(`<span>${data.up}</span><span>${data.down}</span>`);
-      $(".ptbr-vote").attr({
-        "data-score": data.score,
-        "data-up": data.up,
-        "data-down": data.down,
-        "data-state": data.score > 0 ? 1 : (data.score < 0 ? -1 : 0),
-        "data-vote": data.our_score,
-      });
-      return data;
+    // Update button states for the current voting block.
+    $(".ptbr-score").text(data.score);
+    $(".ptbr-breakdown").html(`<span>${data.up}</span><span>${data.down}</span>`);
+    $(".ptbr-vote").attr({
+      "data-score": data.score,
+      "data-up": data.up,
+      "data-down": data.down,
+      "data-state": data.score > 0 ? 1 : (data.score < 0 ? -1 : 0),
+      "data-vote": data.our_score,
     });
+    return data;
+  }
+
+  static async vote (direction) {
+    return PostVote.vote(PostsShowToolbar.currentPost.id, direction).then(PostsShowToolbar.updateVoteButtons);
   }
 
 
@@ -118,7 +123,7 @@ export default class PostsShowToolbar {
           .finally(() => { button.attr("processing", "false"); });
       else
         PostsShowToolbar
-          .addFavorite()
+          .addFavorite(button.attr("increment-score") === "true")
           .finally(() => { button.attr("processing", "false"); });
     });
   }
@@ -146,9 +151,16 @@ export default class PostsShowToolbar {
     });
   }
 
-  static async addFavorite () {
+  static async addFavorite (incrementScore) {
     return Favorite.create(PostsShowToolbar.currentPost.id, 500)
       .then(() => {
+        if (incrementScore)
+          this.updateVoteButtons({
+            up: this.currentPost.score.up + 1,
+            down: this.currentPost.score.down,
+            score: this.currentPost.score.total + 1,
+            our_score: 1,
+          });
         $(".ptbr-favorite-button").attr("favorited", "true");
         $("#image-container").attr("data-is-favorited", "true");
       });
