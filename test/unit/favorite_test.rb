@@ -3,16 +3,16 @@
 require "test_helper"
 
 class FavoriteTest < ActiveSupport::TestCase
-  setup do
-    @user1 = create(:user)
-    @user2 = create(:user)
-    @p1 = create(:post)
-    @p2 = create(:post)
-
-    CurrentUser.user = @user1
-  end
-
   context "A favorite" do
+    setup do
+      @user1 = create(:user)
+      @user2 = create(:user)
+      @p1 = create(:post)
+      @p2 = create(:post)
+
+      CurrentUser.user = @user1
+    end
+
     should "be created" do
       FavoriteManager.add!(user: @user1, post: @p1)
       assert @p1.favorited_by?(@user1.id)
@@ -165,6 +165,36 @@ class FavoriteTest < ActiveSupport::TestCase
       # Verify original favorites are still there
       assert_match(/(?:\A| )fav:#{start_id}(?:\Z| )/, @p1.fav_string)
       assert_match(/(?:\A| )fav:#{start_id + 499}(?:\Z| )/, @p1.fav_string)
+    end
+  end
+
+  context "A favorite with combined upvotes and favorites enabled" do
+    setup do
+      @user = create(:user, enable_combined_upvote_and_favorite: true)
+      @post = create(:post)
+      CurrentUser.user = @user
+    end
+
+    should "be created alongside an upvote" do
+      FavoriteManager.add!(user: @user, post: @post)
+      @post.reload
+      assert @post.favorited_by?(@user.id)
+      assert_equal(1, Favorite.count)
+      assert_equal(1, @post.score)
+    end
+
+    should "should record upvote for provided user and post" do
+      FavoriteManager.add!(user: @user, post: @post)
+      assert_equal(@user, PostVote.last.user)
+      assert_equal(@post, PostVote.last.post)
+    end
+
+    should "leave upvote if deleted" do
+      FavoriteManager.add!(user: @user, post: @post)
+      FavoriteManager.remove!(user: @user, post: @post)
+      @post.reload
+      assert_equal(0, Favorite.count)
+      assert_equal(1, @post.score)
     end
   end
 end
