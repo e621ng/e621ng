@@ -165,6 +165,7 @@ class UsersController < ApplicationController
       enable_auto_complete
       enable_safe_mode disable_responsive_mode
       forum_notification_dot
+      enable_combined_upvote_and_favorite
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
