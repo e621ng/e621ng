@@ -2,6 +2,7 @@
 
 class TermsOfUsesController < ApplicationController
   respond_to :html, only: [:show]
+  respond_to :json, only: [:accept]
   before_action :admin_only, only: %i[clear_cache bump_version]
 
   def show
@@ -13,11 +14,25 @@ class TermsOfUsesController < ApplicationController
   def accept
     if params[:state] == "accepted" && params[:age] == "on" && params[:terms] == "on"
       cookies.permanent.signed[:tos_accepted] = Setting.tos_version
+      success = true
+      message = nil
     else
-      notice = "You must accept the TOU and confirm that you are at least 18 years old to use this site"
+      success = false
+      message = "You must accept the TOU and confirm that you are at least 18 years old to use this site"
     end
 
-    redirect_back fallback_location: root_path, notice: notice
+    respond_to do |format|
+      format.html do
+        redirect_back fallback_location: root_path, notice: (message unless success)
+      end
+      format.json do
+        if success
+          render json: { success: true, version: Setting.tos_version }
+        else
+          render json: { success: false, message: message }
+        end
+      end
+    end
   end
 
   def clear_cache
