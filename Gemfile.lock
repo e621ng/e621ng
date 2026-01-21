@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/e621ng/dtext.git
-  revision: 53281cf3e9510db09196b7a84cf637bbdce3fbae
-  tag: 2.0.1
+  revision: 8c835c238fbdd5bf8f09b93907b149caada4d0dc
+  tag: 2.0.2
   specs:
-    dtext (2.0.1)
+    dtext (2.0.2)
 
 GEM
   remote: https://rubygems.org/
@@ -370,7 +370,7 @@ GEM
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.5.0)
-    uri (0.13.2)
+    uri (1.1.1)
     useragent (0.16.11)
     view_component (4.1.0)
       activesupport (>= 7.1.0, < 8.2)
