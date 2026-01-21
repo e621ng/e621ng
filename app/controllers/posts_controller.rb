@@ -142,6 +142,9 @@ class PostsController < ApplicationController
     raise ActiveRecord::RecordNotFound if @post.nil?
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, q: params[:tags]) }
+      format.json do
+        render_posts_json(PostBlueprint.render_as_hash(@post))
+      end
     end
   end
 
