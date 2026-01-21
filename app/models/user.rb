@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "zxcvbn"
+require "mail"
 
 class User < ApplicationRecord
   class Error < Exception; end
@@ -15,7 +16,7 @@ class User < ApplicationRecord
 
   module Levels
     Danbooru.config.levels.each do |name, level|
-      const_set(name.upcase.tr(' ', '_'), level)
+      const_set(name.upcase.tr(" ", "_"), level)
     end
   end
 
@@ -72,6 +73,7 @@ class User < ApplicationRecord
     enable_compact_uploader
     replacements_beta
     is_bd_staff
+    is_bd_auditor
   ].freeze
 
   include Danbooru::HasBitFlags
@@ -81,11 +83,12 @@ class User < ApplicationRecord
 
   after_initialize :initialize_attributes, if: :new_record?
 
+  before_validation :normalize_email_address, if: :email_changed?
   validates :email, presence: { if: :enable_email_verification? }
   validates :email, uniqueness: { case_sensitive: false, if: :enable_email_verification? }
-  validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, if: :enable_email_verification? }
+  validates :email, email_address: true, if: :enable_email_verification?
   validates :email, length: { maximum: 100 }
-  validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
+  validate :validate_email_address_allowed, on: %i[create update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   normalizes :profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") }
   validates :name, user_name: true, on: :create
@@ -171,14 +174,14 @@ class User < ApplicationRecord
 
       def name_or_id_to_id(name)
         if name =~ /\A!\d+\z/
-          return name[1..-1].to_i
+          return ParseValue.safe_id(name[1..-1])
         end
         User.name_to_id(name)
       end
 
       def name_or_id_to_id_forced(name)
         if name =~ /\A\d+\z/
-          return name.to_i
+          return ParseValue.safe_id(name)
         end
         User.name_to_id(name)
       end
@@ -281,8 +284,15 @@ class User < ApplicationRecord
       end
 
       def authenticate_api_key(name, api_key)
-        key = ApiKey.where(:key => api_key).first
+        # Validate inputs: PostgreSQL expects UTF-8
+        return nil unless name.is_a?(String) && name.dup.force_encoding("UTF-8").valid_encoding?
+        return nil unless api_key.is_a?(String) && api_key.dup.force_encoding("UTF-8").valid_encoding?
+        return nil if name.blank? || api_key.blank?
+
+        key = ApiKey.where(key: api_key).first
         return nil if key.nil?
+
+        # The find_by(name: name) will not use an index correctly
         user = find_by_name(name)
         return nil if user.nil?
         return user if key.user_id == user.id
@@ -388,7 +398,7 @@ class User < ApplicationRecord
     end
 
     def mark_unverified!
-      update_attribute(:email_verification_key, '1')
+      update_attribute(:email_verification_key, "1")
     end
 
     def mark_verified!
@@ -402,10 +412,27 @@ class User < ApplicationRecord
     end
 
     def validate_email_address_allowed
-      if EmailBlacklist.is_banned?(self.email)
-        self.errors.add(:base, "Email address may not be used")
-        return false
+      if EmailBlacklist.is_banned?(email)
+        errors.add(:base, "Email address may not be used")
+        false
       end
+    end
+
+    def normalize_email_address
+      address = email.to_s.strip
+      return if address.blank?
+
+      @email_had_display_name = false # Used in validation later
+      parsed = Mail::Address.new(address)
+      return if parsed.address.nil?
+      @email_had_display_name = true if address != parsed.address
+
+      local, domain = parsed.address.split("@", 2)
+      return if local.nil? || domain.nil?
+
+      self.email = "#{local}@#{domain.downcase}"
+    rescue Mail::Field::ParseError
+      # Do nothing; validation will catch this later
     end
   end
 
@@ -722,23 +749,23 @@ class User < ApplicationRecord
 
   module CountMethods
     def wiki_page_version_count
-      user_status.wiki_edit_count
+      user_status&.wiki_edit_count || 0
     end
 
     def post_update_count
-      user_status.post_update_count
+      user_status&.post_update_count || 0
     end
 
     def post_upload_count
-      user_status.post_count
+      user_status&.post_count || 0
     end
 
     def post_deleted_count
-      user_status.post_deleted_count
+      user_status&.post_deleted_count || 0
     end
 
     def note_version_count
-      user_status.note_count
+      user_status&.note_count || 0
     end
 
     def note_update_count
@@ -746,31 +773,31 @@ class User < ApplicationRecord
     end
 
     def artist_version_count
-      user_status.artist_edit_count
+      user_status&.artist_edit_count || 0
     end
 
     def pool_version_count
-      user_status.pool_edit_count
+      user_status&.pool_edit_count || 0
     end
 
     def forum_post_count
-      user_status.forum_post_count
+      user_status&.forum_post_count || 0
     end
 
     def favorite_count
-      user_status.favorite_count
+      user_status&.favorite_count || 0
     end
 
     def comment_count
-      user_status.comment_count
+      user_status&.comment_count || 0
     end
 
     def flag_count
-      user_status.post_flag_count
+      user_status&.post_flag_count || 0
     end
 
     def ticket_count
-      user_status.ticket_count
+      user_status&.ticket_count || 0
     end
 
     ## !DB
@@ -819,15 +846,15 @@ class User < ApplicationRecord
     end
 
     def post_replacement_rejected_count
-      user_status.post_replacement_rejected_count
+      user_status&.post_replacement_rejected_count || 0
     end
 
     def own_post_replaced_count
-      user_status.own_post_replaced_count
+      user_status&.own_post_replaced_count || 0
     end
 
     def own_post_replaced_penalize_count
-      user_status.own_post_replaced_penalize_count
+      user_status&.own_post_replaced_penalize_count || 0
     end
 
     def refresh_counts!

@@ -21,16 +21,31 @@ module Moderator
       def delete
         @post = ::Post.find(params[:id])
 
-        if params[:commit] == "Delete"
-          @post.delete!(params[:reason])
-          @post.copy_sources_to_parent if params[:copy_sources].present?
-          @post.copy_tags_to_parent if params[:copy_tags].present?
-          @post.give_favorites_to_parent if params[:move_favorites] == "true"
-          @post.give_post_sets_to_parent if params[:move_favorites] == "true"
-          @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present? || params[:move_favorites] == "true"
+        if params[:reason].blank? && (@post.pending_flag.nil? || params[:from_flag].blank?)
+          flash[:notice] = "You must provide a reason for the deletion"
+          return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
         end
 
-        redirect_to(post_path(@post, q: params[:q].presence))
+        if params[:commit] == "Delete"
+          @post.delete!(params[:reason])
+
+          # Transfer data to parent
+          if @post.parent_id.present?
+            @post.copy_sources_to_parent if params[:copy_sources].present?
+            @post.copy_tags_to_parent if params[:copy_tags].present?
+
+            if params[:move_favorites].present?
+              @post.give_favorites_to_parent
+              @post.give_post_sets_to_parent
+            end
+
+            @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present? || params[:move_favorites].present?
+          end
+        end
+
+        respond_with(@post) do |format|
+          format.html { redirect_to(post_path(@post, q: params[:q].presence)) }
+        end
       end
 
       def undelete

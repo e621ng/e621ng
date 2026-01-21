@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
 class BulkRelatedTagQuery
-  include ActiveModel::Serializers::JSON
-
   attr_reader :query, :category_id
 
   def initialize(query: nil, category_id: nil)
     @query = TagQuery.normalize(query).split.slice(0, 25)
     @category_id = category_id
+  end
+
+  def as_json(_options = {})
+    tags
   end
 
   def tags

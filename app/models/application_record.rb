@@ -54,7 +54,7 @@ class ApplicationRecord < ActiveRecord::Base
         elsif value.to_s.falsy?
           value = false
         else
-          raise ArgumentError, "value must be truthy or falsy"
+          return none
         end
 
         where(attribute => value)
@@ -70,7 +70,7 @@ class ApplicationRecord < ActiveRecord::Base
       end
 
       def add_range_relation(arr, field)
-        return all if arr.nil?
+        return all if arr.nil? || arr[1].nil?
 
         case arr[0]
         when :eq
@@ -179,7 +179,7 @@ class ApplicationRecord < ActiveRecord::Base
     extend ActiveSupport::Concern
 
     def as_json(options = {})
-      options ||= {}
+      options = options.dup
       options[:except] ||= []
       options[:except] += hidden_attributes
 
@@ -197,7 +197,7 @@ class ApplicationRecord < ActiveRecord::Base
     protected
 
     def hidden_attributes
-      [:uploader_ip_addr, :updater_ip_addr, :creator_ip_addr, :user_ip_addr, :ip_addr]
+      %i[uploader_ip_addr updater_ip_addr creator_ip_addr user_ip_addr ip_addr]
     end
 
     def method_attributes

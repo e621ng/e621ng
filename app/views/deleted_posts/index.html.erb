@@ -24,7 +24,7 @@
   </tbody>
 </table>
 
-<%= numbered_paginator(@posts) %>
+<%= render PaginatorComponent.new(records: @posts) %>
 
 <% content_for(:page_title) do %>
   Deleted Posts

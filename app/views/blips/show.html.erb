@@ -20,7 +20,7 @@
     <% end %>
 
     <% unless @children.nil? %>
-      <%= numbered_paginator(@children) %>
+      <%= render PaginatorComponent.new(records: @children) %>
     <% end %>
   </div>
 </div>

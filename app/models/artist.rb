@@ -461,6 +461,10 @@ class Artist < ApplicationRecord
         q = q.any_other_name_like(params[:any_other_name_like])
       end
 
+      if params[:any_other_name_matches].present?
+        q = q.any_other_name_matches(params[:any_other_name_matches])
+      end
+
       if params[:any_name_matches].present?
         q = q.any_name_matches(params[:any_name_matches])
       end
@@ -482,9 +486,9 @@ class Artist < ApplicationRecord
       end
 
       if params[:is_linked].to_s.truthy?
-        q = q.where("linked_user_id IS NOT NULL")
+        q = q.where.not(linked_user_id: nil)
       elsif params[:is_linked].to_s.falsy?
-        q = q.where("linked_user_id IS NULL")
+        q = q.where(linked_user_id: nil)
       end
 
       case params[:order]

@@ -1,4 +1,4 @@
-import TaskQueue from "../utility/task_queue";
+import TaskQueue, { TaskCancelled } from "../utility/task_queue";
 import User from "./User";
 
 export default class Favorite {
@@ -8,7 +8,7 @@ export default class Favorite {
    * @param {number} post_id The ID of the post to favorite.
    * @returns {Promise<Response>} The response from the server.
    */
-  static async create (post_id) {
+  static async create (post_id, delay = 1000) {
     if (!post_id) return Promise.reject(new Error("Post ID is required"));
 
     return TaskQueue.add(async () => {
@@ -25,7 +25,7 @@ export default class Favorite {
           authenticity_token: encodeURIComponent(User._authToken),
         }),
       });
-    }, { name: "Favorite.create" }).then(async (response) => {
+    }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
         try {
@@ -46,6 +46,7 @@ export default class Favorite {
         throw new Error("Failed to parse response as JSON: " + error.message);
       }
     }, (error) => {
+      if (error instanceof TaskCancelled) return Promise.reject(error);
       console.error(error);
       $(window).trigger("danbooru:error", "Error: " + error.message);
       throw error;
@@ -57,7 +58,7 @@ export default class Favorite {
    * @param {number} post_id The ID of the post to unfavorite.
    * @returns {Promise<Response>} The response from the server.
    */
-  static async destroy (post_id) {
+  static async destroy (post_id, delay = 1000) {
     if (!post_id) return Promise.reject(new Error("Post ID is required"));
 
     return TaskQueue.add(async () => {
@@ -74,7 +75,7 @@ export default class Favorite {
           authenticity_token: encodeURIComponent(User._authToken),
         }),
       });
-    }, { name: "Favorite.destroy" }).then(async (response) => {
+    }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
         try {
@@ -95,6 +96,7 @@ export default class Favorite {
         throw new Error("Failed to parse response as JSON: " + error.message);
       }
     }, (error) => {
+      if (error instanceof TaskCancelled) return Promise.reject(error);
       console.error(error);
       $(window).trigger("danbooru:error", "Error: " + error.message);
       throw error;

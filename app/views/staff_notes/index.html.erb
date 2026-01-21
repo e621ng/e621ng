@@ -8,7 +8,7 @@
     <%= render "search" %>
 
     <%= render "staff_notes/partials/list_of_notes", staff_notes: @notes, show_receiver_name: @user.blank? %>
-    <%= numbered_paginator(@notes) %>
+    <%= render PaginatorComponent.new(records: @notes) %>
   </div>
 </div>
 

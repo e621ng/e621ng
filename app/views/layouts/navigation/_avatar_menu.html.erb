@@ -1,0 +1,33 @@
+<%# locals: (user: CurrentUser.user, avatar_id: CurrentUser.user&.avatar_id.presence, has_mail: CurrentUser.has_mail?) %>
+
+<% deferred_post_ids.add(avatar_id) if avatar_id %>
+<a
+  href="<%= user_path(user) %>"
+  class="simple-avatar placeholder nav-controls-profile collapse-2"
+  data-user-id="<%= user.id %>"
+  data-id="<%= avatar_id %>"
+  data-name="<%= user.name %>"
+  data-has-mail="<%= has_mail %>"
+>
+  <span class="avatar-name"><%= user.pretty_name %></span>
+  <span class="avatar-image" data-name="<%= user.name[0].capitalize %>"></span>
+  <span class="avatar-more"><%= svg_icon(:chevron_down) %></span>
+</a>
+
+<span
+  class="simple-avatar-menu hidden"
+  data-state="idle"
+  data-has-mail="<%= has_mail %>"
+>
+  <a href="<%= user_path(user) %>">
+    <%= svg_icon(:user_square) %> Profile
+  </a>
+  <a href="<%= has_mail ? dmails_path(search: { to_id: user.id }, folder: "received") : dmails_path %>" class="simple-avatar-dmails">
+    <%= svg_icon(:mail) %> Messages
+  </a>
+  <hr />
+
+  <a href="<%= session_path %>" data-method="delete">
+    <%= svg_icon(:log_out) %> Sign Out
+  </a>
+</span>

@@ -22,12 +22,15 @@ class PostSetCleanupJob < ApplicationJob
     tag = "#{token_prefix}#{obj_id}"
     scope = Post.where("string_to_array(pool_string, ' ') @> ARRAY[?]::text[]", tag)
 
-    scope.find_in_batches(batch_size: 1000) do |batch|
-      Post.transaction do
-        batch.each do |post|
-          stub = Struct.new(:id).new(obj_id)
-          post.public_send(removal_method, stub)
-          post.save!
+    # Pools check for whether the user account is older than 7 days.
+    CurrentUser.as_system do
+      scope.find_in_batches(batch_size: 1000) do |batch|
+        Post.transaction do
+          batch.each do |post|
+            stub = Struct.new(:id).new(obj_id)
+            post.public_send(removal_method, stub)
+            post.save!
+          end
         end
       end
     end

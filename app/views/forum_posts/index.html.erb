@@ -26,7 +26,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@forum_posts) %>
+    <%= render PaginatorComponent.new(records: @forum_posts) %>
   </div>
 </div>
 

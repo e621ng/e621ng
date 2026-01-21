@@ -3548,6 +3548,13 @@ CREATE INDEX index_artists_on_group_name_trgm ON public.artists USING gin (group
 
 
 --
+-- Name: index_artists_on_linked_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_artists_on_linked_user_id ON public.artists USING btree (linked_user_id);
+
+
+--
 -- Name: index_artists_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3594,6 +3601,13 @@ CREATE UNIQUE INDEX index_avoid_postings_on_artist_id ON public.avoid_postings U
 --
 
 CREATE INDEX index_avoid_postings_on_creator_id ON public.avoid_postings USING btree (creator_id);
+
+
+--
+-- Name: index_avoid_postings_on_is_active_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_avoid_postings_on_is_active_and_id ON public.avoid_postings USING btree (is_active, id);
 
 
 --
@@ -3678,6 +3692,13 @@ CREATE INDEX index_comment_votes_on_user_id ON public.comment_votes USING btree 
 --
 
 CREATE INDEX index_comment_votes_on_user_id_and_id ON public.comment_votes USING btree (user_id, id);
+
+
+--
+-- Name: index_comments_on_created_at_desc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_created_at_desc ON public.comments USING btree (created_at DESC, id DESC);
 
 
 --
@@ -4112,6 +4133,13 @@ CREATE INDEX index_pools_on_name ON public.pools USING btree (name);
 --
 
 CREATE INDEX index_pools_on_name_trgm ON public.pools USING gin (lower((name)::text) public.gin_trgm_ops);
+
+
+--
+-- Name: index_pools_on_post_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pools_on_post_ids ON public.pools USING gin (post_ids);
 
 
 --
@@ -4866,6 +4894,10 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251127000001'),
+('20251114015027'),
+('20251113060711'),
+('20251106175207'),
 ('20251101144234'),
 ('20251014151300'),
 ('20251010171207'),

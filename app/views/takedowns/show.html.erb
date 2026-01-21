@@ -112,7 +112,7 @@
       <% if !@takedown.instructions.blank? %>
         <h3>Special instructions</h3>
         <div class="box-section">
-          <%= h @takedown.instructions %>
+          <%= format_text(@takedown.instructions) %>
         </div>
       <% end %>
     <% end %>
@@ -124,7 +124,7 @@
       <% if !@takedown.instructions.blank? %>
         <h3>Special instructions</h3>
         <div class="box-section">
-          <%= h @takedown.instructions %>
+          <%= format_text(@takedown.instructions) %>
         </div>
       <% end %>
 

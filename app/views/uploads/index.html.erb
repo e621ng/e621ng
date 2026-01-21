@@ -72,7 +72,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@uploads) %>
+    <%= render PaginatorComponent.new(records: @uploads) %>
   </div>
 </div>
 

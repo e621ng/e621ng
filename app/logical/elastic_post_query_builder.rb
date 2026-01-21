@@ -297,7 +297,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({ -"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => $2 ? :asc : :desc })
 
     when "hot"
-      two_days_ago = 2.days.ago(q[:hot_from] || Time.current)
+      hot_from_time = q[:hot_from].is_a?(Date) ? q[:hot_from].to_time : q[:hot_from]
+      two_days_ago = 2.days.ago(hot_from_time || Time.current)
       @function_score = {
         script_score: {
           script: {
@@ -315,8 +316,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         },
       }
       must.push({ range: { score: { gt: 0 } } })
-      must.push({ range: { created_at: if q[:hot_from]
-                                         { gte: two_days_ago, lte: q[:hot_from] }
+      must.push({ range: { created_at: if hot_from_time
+                                         { gte: two_days_ago, lte: hot_from_time }
                                        else
                                          { gte: two_days_ago }
                                        end } })

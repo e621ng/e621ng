@@ -51,7 +51,7 @@ class PostSet < ApplicationRecord
 
   def self.name_to_id(name)
     if name =~ /\A\d+\z/
-      name.to_i
+      ParseValue.safe_id(name)
     else
       PostSet.where("lower(shortname) = ?", name.downcase.tr(" ", "_")).pick(:id).to_i
     end

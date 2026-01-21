@@ -1020,6 +1020,30 @@ class PostTest < ActiveSupport::TestCase
         assert_equal(%w(tag1 tag2), post.tag_array_was)
       end
 
+      context "with corrupt 1x1 dimensions" do
+        setup do
+          @post.image_width = 1
+          @post.image_height = 1
+          @post.file_ext = "jpg"
+        end
+
+        should "not have a preview" do
+          assert_equal(false, @post.has_preview?, "Post with 1x1 dimensions should not have preview")
+        end
+      end
+
+      context "with valid dimensions" do
+        setup do
+          @post.image_width = 100
+          @post.image_height = 100
+          @post.file_ext = "jpg"
+        end
+
+        should "have a preview" do
+          assert_equal(true, @post.has_preview?, "Post with valid dimensions should have preview")
+        end
+      end
+
       context "with large dimensions" do
         setup do
           @post.image_width = 10_000

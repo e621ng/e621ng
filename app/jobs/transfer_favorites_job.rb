@@ -66,10 +66,31 @@ class TransferFavoritesJob < ApplicationJob
       post.update_index(queue: :low_prio)
       parent.update_index(queue: :low_prio)
     ensure
-      post.reload
-      parent.reload
-      post.update_columns(bit_flags: post.bit_flags & ~transfer_flag)
-      parent.update_columns(bit_flags: parent.bit_flags & ~transfer_flag)
+      # Clean up flags even if post/parent was deleted during transfer
+      begin
+        post.reload
+        parent.reload
+        post.update_columns(bit_flags: post.bit_flags & ~transfer_flag)
+        parent.update_columns(bit_flags: parent.bit_flags & ~transfer_flag)
+      rescue ActiveRecord::RecordNotFound => e
+        Rails.logger.warn("TransferFavoritesJob: Post or parent was deleted during transfer: #{e.message}")
+
+        begin
+          Post.where(id: post.id).update_all("bit_flags = bit_flags & ~#{transfer_flag}")
+          Post.where(id: parent.id).update_all("bit_flags = bit_flags & ~#{transfer_flag}")
+        rescue StandardError => cleanup_error
+          Rails.logger.error("TransferFavoritesJob: Failed to cleanup flags after deletion: #{cleanup_error.message}")
+        end
+      rescue StandardError => e
+        Rails.logger.error("TransferFavoritesJob: Failed to cleanup transfer flags: #{e.message}")
+
+        begin
+          Post.where(id: post.id).update_all("bit_flags = bit_flags & ~#{transfer_flag}")
+          Post.where(id: parent.id).update_all("bit_flags = bit_flags & ~#{transfer_flag}")
+        rescue StandardError => final_error
+          Rails.logger.error("TransferFavoritesJob: Final cleanup attempt failed: #{final_error.message}")
+        end
+      end
     end
 
     true
