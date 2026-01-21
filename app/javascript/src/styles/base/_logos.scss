@@ -1,7 +1,7 @@
 // Picker
 body {
   a.nav-logo-link { background-image: url("~/images/logo/default.svg"); }
-  @each $name in ("pride", "ace", "aro", "bi", "french", "gay", "genderfluid", "lesbian", "nonbinary", "omni", "pan", "trans") {
+  @each $name in ("pride", "pride_progressive", "ace", "androgyne", "aro", "bi", "demiboy", "demigirl", "french", "gay", "genderfluid", "lesbian", "nonbinary", "omni", "pan", "polyamory", "trans") {
     &[data-th-logo="#{$name}"] a.nav-logo-link { background-image: url("~/images/logo/#{$name}.svg"); }
   }
 
