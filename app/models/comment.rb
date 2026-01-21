@@ -98,7 +98,7 @@ class Comment < ApplicationRecord
 
     def search(params)
       q = super.includes(:creator).includes(:updater).includes(:post)
-      q = q.accessible
+      q = q.accessible(CurrentUser.user, bypass_user_settings: params[:id].present?)
       creator_filter_applied = false
 
       # Body search subquery: prevent timeouts on broad searches
