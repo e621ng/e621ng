@@ -118,6 +118,8 @@
 
 </section>
 
+
+<% if @post.visible? %>
 <section id="ptbr-share-menu" class="hidden">
 
   <h4>Share Post</h4>
@@ -127,6 +129,7 @@
     <button class="st-button ptbr-share-copy" data-value="<%= post_short_url(@post) %>">Copy</button>
   </div>
 </section>
+<% end %>
 
 
 <%# SVG Filters %>
