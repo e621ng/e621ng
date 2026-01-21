@@ -81,7 +81,8 @@ export default class PostCache {
     const pools = [];
     for (let one of (data.pools + "").split(" ")) {
       one = parseInt(one);
-      if (one) pools.push(one);
+      // NOTE: Will now work for a pool with ID 0
+      if (Number.isFinite(one)) pools.push(one);
     }
 
     const value = {
