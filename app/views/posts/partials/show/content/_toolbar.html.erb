@@ -108,6 +108,7 @@
         <%= svg_icon(:hexagon) %>
         <span>Download</span>
       </a>
+      <button class="st-button ptbr-share-button" data-hotkey="share">Share</button>
       <button class="st-button ptbr-notes-button <%= @post.has_notes? ? "" : "hidden"%>" enabled="true"></button>
       <button class="st-button ptbr-etc-pool add-to-pool" data-hotkey="add-to-pool">Add to Pool</button>
       <button class="st-button ptbr-etc-set add-to-set" data-hotkey="add-to-set">Add to Set</button>
@@ -116,6 +117,19 @@
 <% end %>
 
 </section>
+
+
+<% if @post.visible? %>
+<section id="ptbr-share-menu" class="hidden">
+
+  <h4>Share Post</h4>
+
+  <div class="ptbr-share-input">
+    <input type="text" class="ptbr-share-link" readonly value="<%= post_short_url(@post) %>" />
+    <button class="st-button ptbr-share-copy" data-value="<%= post_short_url(@post) %>">Copy</button>
+  </div>
+</section>
+<% end %>
 
 
 <%# SVG Filters %>

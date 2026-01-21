@@ -40,6 +40,25 @@ export default class PostsShowToolbar {
 
     // Initialize fullscreen menu toggle
     this.initOverflowMenu();
+
+    // Initialize share button
+    $(".ptbr-share-button").on("click", () => {
+      $("#ptbr-share-menu").toggleClass("hidden");
+    });
+
+    $(".ptbr-share-link").on("click", function () {
+      $(this).trigger("select");
+    });
+
+    $(".ptbr-share-copy").on("click", (event) => {
+      const button = $(event.currentTarget);
+      const value = button.data("value");
+      navigator.clipboard.writeText(value).then(() => {
+        Utility.notice("Link copied to clipboard.");
+      }).catch((e) => {
+        Utility.error("Failed to copy link to clipboard.", e);
+      });
+    });
   }
 
 
@@ -208,7 +227,7 @@ export default class PostsShowToolbar {
         });
     });
 
-    $(".ptbr-etc-pool, .ptbr-etc-set").on("click", () => {
+    $(".ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
       offclickHandler.disabled = true;
       menu.addClass("hidden");
     });

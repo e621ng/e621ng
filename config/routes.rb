@@ -245,6 +245,7 @@ Rails.application.routes.draw do
     end
   end
   resources :deleted_posts, only: %i[index]
+  resources :p, only: %i[show], controller: "posts_short"
   resources :posts, only: %i[index show update] do
     resources :replacements, only: %i[index new create], controller: "post_replacements"
     resource :votes, controller: "post_votes", only: %i[create destroy]
