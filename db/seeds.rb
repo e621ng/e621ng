@@ -16,6 +16,9 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.can_upload_free = true
   user.can_approve_posts = true
   user.level = User::Levels::ADMIN
+
+  user.is_bd_staff = true
+  user.is_bd_auditor = true
 end
 
 User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
