@@ -272,6 +272,8 @@ class Ticket < ApplicationRecord
       q = q.where_user(:claimant_id, :claimant, params)
       q = q.where_user(:accused_id, :accused, params)
 
+      q = q.attribute_matches(:disp_id, params[:disp_id])
+
       if params[:qtype].present?
         q = q.where("qtype = ?", params[:qtype])
       end
