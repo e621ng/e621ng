@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class EditHistoriesController < ApplicationController
-  respond_to :html
+  respond_to :html, :json
   before_action :moderator_only
 
   def index
