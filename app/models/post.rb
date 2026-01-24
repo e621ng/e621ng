@@ -53,7 +53,7 @@ class Post < ApplicationRecord
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
-  has_many :comments, -> { order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
+  has_many :comments, -> { accessible.order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
   has_many :children, -> {order("posts.id")}, :class_name => "Post", :foreign_key => "parent_id"
   has_many :approvals, :class_name => "PostApproval", :dependent => :destroy
   has_many :disapprovals, :class_name => "PostDisapproval", :dependent => :destroy
@@ -372,7 +372,11 @@ class Post < ApplicationRecord
 
     ### Preview ###
     def has_preview?
-      is_image? || is_video?
+      return false unless is_image? || is_video?
+
+      # Some legacy files are corrupt and cannot be processed.
+      # They report dimensions of 1x1, although the actual dimensions are larger.
+      image_width.to_i > 1 && image_height.to_i > 1
     end
 
     def preview_dimensions(max_px = Danbooru.config.small_image_width)
@@ -463,7 +467,7 @@ class Post < ApplicationRecord
       # Prevent unapproving self approvals by someone else
       return false if approver.nil? && uploader != user
       # Allow unapproval when the post is not pending anymore and is not at risk of auto deletion
-      !is_pending? && !is_deleted? && created_at.after?(PostPruner::DELETION_WINDOW.days.ago)
+      !is_pending? && !is_deleted? && created_at.after?(Danbooru.config.unapproved_post_deletion_window.ago)
     end
 
     def approve!(approver = CurrentUser.user)
@@ -569,11 +573,26 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
+      # Memoize based on current dirty state to handle multiple save cycles
+      current_state = [
+        tag_string_changed?,
+        locked_tags_changed?,
+        tag_string_diff.present?,
+        tag_string,
+        tag_string_in_database.presence || tag_string_before_last_save || "",
+      ]
+
+      if @should_process_tags_state == current_state
+        return @should_process_tags
+      end
+
+      @should_process_tags_state = current_state
+
       if @removed_tags.nil?
         @removed_tags = []
       end
 
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
+      @should_process_tags = tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || !@removed_tags.empty? || (tag_array - tag_array_was).any?
     end
 
     def tag_array
@@ -593,7 +612,8 @@ class Post < ApplicationRecord
     end
 
     def added_tags
-      tags - tags_was
+      added_tag_names = tag_array - tag_array_was
+      Tag.where(name: added_tag_names)
     end
 
     def decrement_tag_post_counts
@@ -681,6 +701,8 @@ class Post < ApplicationRecord
     def reset_tag_array_cache
       @tag_array = nil
       @tag_array_was = nil
+      @should_process_tags = nil
+      @should_process_tags_state = nil
     end
 
     def set_tag_string(string)
@@ -919,7 +941,7 @@ class Post < ApplicationRecord
           end
 
         when /^set:(\d+)$/i
-          set = PostSet.find_by(id: $1.to_i)
+          set = PostSet.find_by(id: ParseValue.safe_id($1))
           if set&.can_edit_posts?(CurrentUser.user)
             set.add!(self)
             if set.errors.any?
@@ -928,7 +950,7 @@ class Post < ApplicationRecord
           end
 
         when /^-set:(\d+)$/i
-          set = PostSet.find_by(id: $1.to_i)
+          set = PostSet.find_by(id: ParseValue.safe_id($1))
           if set&.can_edit_posts?(CurrentUser.user)
             set.remove!(self)
             if set.errors.any?
@@ -1109,7 +1131,11 @@ class Post < ApplicationRecord
     # Fetches the avoid posting data for the post's artist tags.
     # Sends a db request to lookup avoid posting data.
     def avoid_posting_artists
-      AvoidPosting.active.joins(:artist).where("artists.name": artist_tags.map(&:name))
+      @avoid_posting_artists ||= begin
+        artist_names = artist_tags.map(&:name)
+        return [] if artist_names.empty?
+        AvoidPosting.active.joins(:artist).where(artists: { name: artist_names }).includes(:artist).to_a
+      end
     end
   end
 
@@ -1187,7 +1213,7 @@ class Post < ApplicationRecord
 
   module SetMethods
     def set_ids
-      pool_string.scan(/set\:(\d+)/).map {|set| set[0].to_i}
+      pool_string.scan(/set:(\d+)/).map { |set| ParseValue.safe_id(set[0]) }
     end
 
     def post_sets
@@ -1237,7 +1263,7 @@ class Post < ApplicationRecord
 
   module PoolMethods
     def pool_ids
-      pool_string.scan(/pool:(\d+)/).map { |pool| pool[0].to_i }
+      pool_string.scan(/pool:(\d+)/).map { |pool| ParseValue.safe_id(pool[0]) }
     end
 
     def pools
@@ -1317,6 +1343,8 @@ class Post < ApplicationRecord
   end
 
   module ParentMethods
+    extend ActiveSupport::Concern
+
     # A parent has many children. A child belongs to a parent.
     # A parent cannot have a parent.
     #
@@ -1329,6 +1357,21 @@ class Post < ApplicationRecord
     # After expunging a parent:
     # - Move favorites to the first child.
     # - Reparent all children to the first child.
+
+    class_methods do
+      def cleanup_stuck_favorite_transfer_flags!
+        transfer_flag = flag_value_for("favorites_transfer_in_progress")
+
+        stuck_posts = where("bit_flags & ? != 0", transfer_flag)
+        count = stuck_posts.count
+        return 0 if count == 0
+
+        Rails.logger.warn("Post.cleanup_stuck_favorite_transfer_flags: Found #{count} posts with stuck flags")
+        stuck_posts.update_all("bit_flags = bit_flags & ~#{transfer_flag}")
+
+        count
+      end
+    end
 
     def update_has_children_flag
       update(has_children: children.exists?, has_active_children: children.undeleted.exists?)
@@ -1583,7 +1626,7 @@ class Post < ApplicationRecord
 
   module NoteMethods
     def can_have_notes?
-      is_png? || is_jpg? || is_gif?
+      is_png? || is_jpg? || is_gif? || is_webp?
     end
 
     def has_notes?
@@ -1826,6 +1869,7 @@ class Post < ApplicationRecord
       if saved_change_to_is_comment_disabled?
         action = is_comment_disabled? ? :comment_disabled : :comment_enabled
         PostEvent.add(id, CurrentUser.user, action)
+        Comment::SearchMethods.clear_comment_disabled_cache
       end
       if saved_change_to_bg_color?
         PostEvent.add(id, CurrentUser.user, :changed_bg_color, { bg_color: bg_color })
@@ -2029,10 +2073,10 @@ class Post < ApplicationRecord
   end
 
   def visible_comment_count(user)
-    if user.is_moderator? || !is_comment_disabled?
-      comment_count
+    if is_comment_disabled? && !user.is_staff?
+      0
     else
-      comments.visible(user).count
+      comment_count
     end
   end
 end

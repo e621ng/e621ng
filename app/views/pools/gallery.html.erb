@@ -11,11 +11,11 @@
         <%= render "posts/blank" %>
       <% else %>
         <% @pools.each do |pool| %>
-          <%= PostPresenter.preview(pool.cover_post, inline: true, link_target: pool, pool: pool, show_deleted: true) %>
+          <%= render(PostThumbnailComponent.new(post: pool.cover_post, show_deleted: true, link_target: pool, pool: pool)) %>
         <% end %>
       <% end %>
     </section>
-    <%= numbered_paginator(@pools) %>
+    <%= render PaginatorComponent.new(records: @pools) %>
   </div>
 </div>
 

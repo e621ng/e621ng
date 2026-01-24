@@ -23,17 +23,30 @@
         <p><%= link_to "Revert this user's changes", new_user_revert_path(:user_id => params[:lr]) %></p>
       <% end %>
 
-      <%= numbered_paginator(@post_versions) %>
+      <%= render PaginatorComponent.new(records: @post_versions) %>
     <% end %>
   </div>
 </div>
 
 <%= javascript_tag nonce: true do -%>
-  $(".closebutton").on("click", function(e) {
-    $(e.target).parents(".desc-popup").hide();
-  });
-  $(".desc-show").on("click", function(e) {
-    $(e.target).next().toggle();
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.closebutton').forEach(function(button) {
+      button.addEventListener('click', function(e) {
+        const popup = e.target.closest('.desc-popup');
+        if (popup) {
+          popup.style.display = 'none';
+        }
+      });
+    });
+    
+    document.querySelectorAll('.desc-show').forEach(function(button) {
+      button.addEventListener('click', function(e) {
+        const next = e.target.nextElementSibling;
+        if (next) {
+          next.style.display = next.style.display === 'none' ? 'block' : 'none';
+        }
+      });
+    });
   });
 <% end -%>
 

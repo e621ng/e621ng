@@ -78,6 +78,23 @@ module Maintenance
               assert_response :success
             end
           end
+
+          context "with uid containing non-numeric characters (translation software)" do
+            setup do
+              @user = create(:user)
+              @nonce = create(:user_password_reset_nonce, user: @user)
+              ActionMailer::Base.deliveries.clear
+              # Simulate Chinese translation appending text to the UID
+              get edit_maintenance_user_password_reset_path, params: { uid: "#{@user.id}关闭网页", key: @nonce.key }
+            end
+
+            should "succeed by sanitizing the uid" do
+              assert_response :success
+              # Should render the form, not show "Invalid reset" message
+              assert_select "h1", text: "Reset Password"
+              assert_select "input[type=password]"
+            end
+          end
         end
 
         context "update action" do
@@ -95,6 +112,30 @@ module Maintenance
             end
 
             should "change the password" do
+              @user.reload
+              assert_not_equal(@old_password, @user.bcrypt_password_hash)
+            end
+
+            should "delete the nonce" do
+              assert_equal(0, UserPasswordResetNonce.count)
+            end
+          end
+
+          context "with uid containing non-numeric characters (translation software)" do
+            setup do
+              @user = create(:user)
+              @nonce = create(:user_password_reset_nonce, user: @user)
+              ActionMailer::Base.deliveries.clear
+              @old_password = @user.bcrypt_password_hash
+              # Simulate Chinese translation appending text to the UID
+              put maintenance_user_password_reset_path, params: { uid: "#{@user.id}关闭网页", key: @nonce.key, password: "newpass123", password_confirm: "newpass123" }
+            end
+
+            should "succeed by sanitizing the uid" do
+              assert_redirected_to new_maintenance_user_password_reset_path
+            end
+
+            should "change the password despite the extra characters" do
               @user.reload
               assert_not_equal(@old_password, @user.bcrypt_password_hash)
             end

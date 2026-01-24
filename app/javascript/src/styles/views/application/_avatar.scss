@@ -109,7 +109,7 @@ nav.navigation .simple-avatar {
   // Desktop
   @include window-larger-than(50rem) {
     .avatar-name {
-      background: none;
+      background: themed("color-background");
       color: inherit;
 
       height: 1.5rem;
@@ -130,7 +130,7 @@ nav.navigation .simple-avatar {
     }
 
     &:hover, &:active {
-      .avatar-name { background: none; }
+      .avatar-name { background: themed("color-background"); }
     }
 
     .avatar-more {
@@ -221,6 +221,30 @@ nav.navigation .simple-avatar-menu {
   // Desktop
   @include window-larger-than(50rem) {
     right: 0;
+  }
+}
+
+// Avatar menu states
+nav.navigation .simple-avatar-menu {
+
+  &[data-state="idle"], 
+  &[data-state="loading"] {
+    a, hr, h4 {
+      display: none;
+    }
+  }
+
+  &[data-state="loading"] {
+
+    height: 2rem;
+    width: 2rem;
+    justify-content: center;
+    align-items: center;
+
+    &::after {
+      content: "Loading . . .";
+      color: themed("color-text-muted");
+    }
   }
 }
 

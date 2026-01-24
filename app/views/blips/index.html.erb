@@ -23,7 +23,7 @@
         <%= render "form", blip: Blip.new %>
       <% end %>
 
-      <%= numbered_paginator(@blips) %>
+      <%= render PaginatorComponent.new(records: @blips) %>
     </div>
   </div>
 </div>

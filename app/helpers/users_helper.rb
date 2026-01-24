@@ -12,16 +12,6 @@ module UsersHelper
     link_to "»", users_path(search: { email_matches: "*@#{domain}" })
   end
 
-  def simple_avatar(user, **options)
-    return "" if user.nil?
-    post_id = user.avatar_id
-    deferred_post_ids.add(post_id) if post_id
-
-    klass = options.delete(:class)
-
-    render "/application/simple_avatar", user: user, post_id: post_id, klass: klass
-  end
-
   def profile_avatar(user, **options)
     return if user.nil?
     post_id = user.avatar_id
@@ -37,6 +27,14 @@ module UsersHelper
 
     tag.span(class: "level-badge level-#{user.level_string.downcase}") do
       user.level_string.upcase
+    end
+  end
+
+  def user_bd_staff_badge(user)
+    return unless user.is_bd_staff?
+
+    tag.span(class: "level-badge") do
+      "BD STAFF"
     end
   end
 

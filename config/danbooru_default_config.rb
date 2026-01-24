@@ -31,7 +31,7 @@ module Danbooru
 
     # The canonical hostname of the site.
     def hostname
-      Socket.gethostname
+      "localhost:3000"
     end
 
     # Contact email address of the admin.
@@ -268,6 +268,16 @@ module Danbooru
 
     def post_flag_limit
       20
+    end
+
+    # Pending posts older than this period are deleted automatically.
+    def unapproved_post_deletion_window
+      30.days
+    end
+
+    # Uploads older than this window are pruned during maintenance.
+    def upload_deletion_window
+      1.week
     end
 
     # Flat limit that applies to all users, regardless of level
@@ -643,7 +653,7 @@ module Danbooru
     end
 
     def mail_from_addr
-      "noreply@localhost"
+      "E621.net <noreply@e621.net>"
     end
 
     # disable this for tests

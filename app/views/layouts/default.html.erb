@@ -6,7 +6,7 @@
 <%= tag.body(**body_attributes(CurrentUser.user)) do %>
   <%= render "layouts/theme_include" %>
 
-  <%= render "layouts/nav" %>
+  <%= render "layouts/navigation/navigation" %>
 
   <% if CurrentUser.has_mail? && cookies[:hide_dmail_notice] != "true" %>
     <%= render "users/dmail_notice" %>

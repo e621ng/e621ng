@@ -117,6 +117,12 @@ module ParseValue
     range
   end
 
+  # Ensures that the value is a safe integer ID (0 to MAX_INT)
+  def safe_id(value)
+    int_val = value.to_i
+    int_val >= 0 && int_val <= MAX_INT ? int_val : -1
+  end
+
   private
 
   def cast(object, type)
@@ -144,7 +150,11 @@ module ParseValue
       return ago if ago.present?
 
       begin
-        Time.zone.parse(object)
+        parsed_date = Time.zone.parse(object)
+
+        # OpenSearch's strict_date_optional_time format only supports years 0-9999
+        return nil if parsed_date && (parsed_date.year < 0 || parsed_date.year > 9999)
+        parsed_date
       rescue ArgumentError
         nil
       end

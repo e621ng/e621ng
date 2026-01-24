@@ -25,7 +25,8 @@
     <dd>
       <% if post_replacement.is_current? %> (current)
       <% elsif post_replacement.is_approved? %> (retired)
-      <% elsif post_replacement.is_promoted? %> (#<%= link_to(post_replacement.promoted_id.to_s, post_path(post_replacement.promoted_id)) %>)
+      <% elsif post_replacement.is_promoted? && post_replacement.promoted_id.present? %>
+        (#<%= link_to(post_replacement.promoted_id.to_s, post_path(post_replacement.promoted_id)) %>)
       <% end %>
     </dd>
     <% if !post_replacement.approver.nil? %>
@@ -113,5 +114,6 @@
     <% if CurrentUser.is_admin? %>
       <dd class="replacement-spaced-row"> <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action", data: { replacement_id: post_replacement.id } %> </dd>
     <% end %>
+    <%= link_to("Report", new_ticket_path(disp_id: post_replacement.id, qtype: "replacement"), class: "replacement-report-action replacement-action-button") %>
   </td>
 </tr>

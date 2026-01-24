@@ -2,13 +2,14 @@
 
 module Maintenance
   module User
-    class PasswordResetMailer < ActionMailer::Base
-      default :from => Danbooru.config.mail_from_addr, :content_type => "text/html"
-
+    class PasswordResetMailer < ApplicationMailer
       def reset_request(user, nonce)
         @user = user
         @nonce = nonce
-        mail(:to => @user.email, :subject => "#{Danbooru.config.app_name} password reset")
+        mail(
+          to: user_email(@user),
+          subject: "#{Danbooru.config.app_name} Password Reset",
+        )
       end
     end
   end

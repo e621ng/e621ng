@@ -1,8 +1,16 @@
 <% content_for(:secondary_links) do %>
   <li><%= render "comments/quick_search" %></li>
-  <%= subnav_link_to "Listing", comments_path(group_by: "post") %>
+  <%= subnav_link_to "Listing", comments_path %>
   <%= subnav_link_to "Search", search_comments_path %>
   <%= subnav_link_to "Help", help_page_path(id: "comments") %>
+
+  <li class="divider"></li>
+  <% if params[:group_by] == "post" %>
+    <%= subnav_link_to "By Comment", comments_path(group_by: "comment") %>
+  <% else %>
+    <%= subnav_link_to "By Post", comments_path(group_by: "post") %>
+  <% end %>
+
   <% if @latest.present? %>
     <li class="divider"></li>
     <%= subnav_link_to "Latest", @latest %>

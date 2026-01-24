@@ -3,7 +3,10 @@
 class NoteVersion < ApplicationRecord
   user_status_counter :note_count, foreign_key: :updater_id
   belongs_to_updater
-  scope :for_user, ->(user_id) {where("updater_id = ?", user_id)}
+  belongs_to :note
+  belongs_to :post
+
+  scope :for_user, ->(user_id) { where("updater_id = ?", user_id) }
 
   def self.search(params)
     q = super

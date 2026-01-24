@@ -71,6 +71,14 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         get new_user_path
         assert_response :success
       end
+
+      should "render as json without error" do
+        get new_user_path, params: { format: :json }
+        assert_response :success
+        json = JSON.parse(response.body)
+        assert_equal(0, json["post_upload_count"])
+        assert_equal(0, json["post_update_count"])
+      end
     end
 
     context "create action" do

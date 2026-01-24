@@ -39,6 +39,7 @@ class Ticket < ApplicationRecord
   # |    User    |         Any         | Moderator+ / Creator |
   # |  Wiki Page |         Any         |  Janitor+ / Creator  |
   # |    Other   |         None        | Moderator+ / Creator |
+  # |Replacement |         Any         |  Janitor+ / Creator  |
 
   module TicketTypes
     module Blip
@@ -53,11 +54,11 @@ class Ticket < ApplicationRecord
 
     module Comment
       def can_create_for?(user)
-        content&.visible_to?(user)
+        content&.is_accessible?(user, bypass_user_settings: true)
       end
 
       def can_view?(user)
-        (user.is_staff? && content&.visible_to?(user)) || user.is_admin? || (user.id == creator_id)
+        (user.is_staff? && content&.is_accessible?(user, bypass_user_settings: true)) || user.is_admin? || (user.id == creator_id)
       end
     end
 
@@ -173,11 +174,35 @@ class Ticket < ApplicationRecord
         user.is_staff? || user.is_admin? || (user.id == creator_id)
       end
     end
+
+    module Replacement
+      def model
+        ::PostReplacement
+      end
+
+      def can_view?(user)
+        user.is_janitor? || (user.id == creator_id)
+      end
+
+      def can_create_for?(user)
+        content&.visible_to?(user)
+      end
+
+      def subject
+        reason.split("\n")[0] || "Unknown Report Type"
+      end
+    end
   end
 
   module APIMethods
     def hidden_attributes
       hidden = []
+
+      unless can_view?(CurrentUser.user)
+        hidden += %i[creator_id accused_id reason response report_reason]
+        return super + hidden
+      end
+
       hidden += %i[claimant_id] unless CurrentUser.is_moderator?
       hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
       super + hidden

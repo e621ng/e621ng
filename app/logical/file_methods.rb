@@ -131,15 +131,9 @@ module FileMethods
   end
 
   def is_corrupt_gif?(file_path)
-    i = 0
-    loop do
-      Vips::Image.gifload(file_path, page: i, fail: true).stats
-      i += 1
-    end
-  rescue Vips::Error => e
-    # Invalid page number indicates we've reached the end of the frames.
-    # Any other error indicates corruption.
-    return false if e.message =~ /bad page number/
+    Vips::Image.gifload(file_path, n: -1, fail: true).stats
+    false
+  rescue Vips::Error
     true
   end
 

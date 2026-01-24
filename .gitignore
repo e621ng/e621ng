@@ -1,31 +1,46 @@
+# Environment & Configuration
 .env
 .env.production
-.bundle
-.yardoc
+.env*.local
 config/danbooru_local_config.rb
 config/deploy/*.rb
 config/application.yml
-doc/*
-/log
-tmp/*
-public/data
-public/assets
+
+# Ruby / Bundler
+.bundle
+.yardoc
 vendor/cache/*.gem
-.DS_Store
-coverage
-*~
-*.swp
-tmp/*.jpg
-tmp/*.png
-.gitconfig
-test/reports
+vendor/*
 
-.idea
-
-/public/packs
-/public/packs-test
+# Node / Yarn
 /node_modules
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
-vendor/*
+
+# Build artifacts
+public/assets
+/public/vite*
+/public/packs*
+coverage
+doc/*
+
+# Runtime files
+/log
+tmp/*
+tmp/*.jpg
+tmp/*.png
+public/data
+.overmind.sock
+
+# Test output
+test/reports
+
+# Editor files
+.idea
+.DS_Store
+.gitconfig
+*~
+*.swp
+*.local
+

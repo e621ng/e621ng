@@ -193,7 +193,7 @@ module LinkHelper
     if hostname
       tag.img(
         class: "link-decoration",
-        src: asset_pack_path("static/#{hostname}.png"),
+        src: vite_asset_path("images/favicons/#{hostname}.png"),
         data: {
           hostname: hostname,
         },
@@ -214,7 +214,7 @@ module LinkHelper
     end
     return nil unless uri.host
 
-    hostname = uri.host.delete_prefix("www.")
+    hostname = uri.host.delete_prefix("www.").downcase
 
     # 1: direct match
     return hostname if DECORATABLE_DOMAINS.include?(hostname)

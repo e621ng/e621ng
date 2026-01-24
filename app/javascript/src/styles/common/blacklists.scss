@@ -207,7 +207,7 @@
     height: 0px !important;
     width: 0px !important;
     padding: 150px 150px 0px 0px !important;
-    background-image: url("blacklisted-preview.png") !important;
+    background-image: url("~/images/blacklisted-preview.png") !important;
     background-color: #0003;
     background-size: contain;
     background-color: unset !important; // Prevent custom color from showing through
@@ -225,16 +225,4 @@
   #note-container {
     display: none;
   }
-}
-
-article.thumbnail.blacklisted {
-  & > a {
-    width: var(--thumb-image-size, 150px);
-    height: var(--thumb-image-size, 150px);
-    background-image: url("blacklisted-preview.png");
-    background-size: cover;
-    background-position: center;
-    background-color: unset !important; // Prevent custom color from showing through
-  }
-  img { visibility: hidden; }
 }

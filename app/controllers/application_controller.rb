@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
 
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
   before_action :reset_current_user
+  before_action :sanitize_params
   before_action :set_current_user
   before_action :normalize_search
   before_action :api_check
@@ -42,6 +43,26 @@ class ApplicationController < ActionController::Base
   end
 
   protected
+
+  def sanitize_params
+    sanitize_hash = ->(hash) do
+      hash.each do |key, value|
+        hash[key] = case value
+                    when String
+                      # Remove invalid UTF-8 sequences and null bytes
+                      value.scrub("").delete("\u0000")
+                    when Hash, ActionController::Parameters
+                      sanitize_hash.call(value)
+                    when Array
+                      value.map { |v| v.is_a?(String) ? v.scrub("").delete("\u0000") : v }
+                    else
+                      value
+                    end
+      end
+    end
+
+    sanitize_hash.call(params)
+  end
 
   def api_check
     if !CurrentUser.is_anonymous? && !request.get? && !request.head?
@@ -196,7 +217,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  %i[is_bd_staff can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries].each do |role|
+  %i[is_bd_staff is_bd_auditor can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries].each do |role|
     define_method("#{role}_only") do
       user_access_check("#{role}?")
     end
@@ -214,6 +235,10 @@ class ApplicationController < ActionController::Base
   # => /tags?search[name]=touhou
   def normalize_search
     return unless request.get? || request.head?
+
+    # Sanitize q parameter - must be a String or nil, not a nested hash
+    params[:q] = nil if params[:q].present? && !params[:q].is_a?(String)
+
     params[:search] ||= ActionController::Parameters.new
 
     deep_reject_blank = ->(hash) do

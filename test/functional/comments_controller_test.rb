@@ -63,13 +63,13 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     context "update action" do
       context "when updating another user's comment" do
         should "succeed if updater is a moderator" do
-          put_auth comment_path(@comment.id), @user, params: {comment: {body: "abc"}}
+          put_auth comment_path(@comment.id), @user, params: { comment: { body: "abc" } }
           assert_equal("abc", @comment.reload.body)
           assert_redirected_to post_path(@comment.post)
         end
 
         should "fail if updater is not a moderator" do
-          put_auth comment_path(@mod_comment.id), @user, params: {comment: {body: "abc"}}
+          put_auth comment_path(@mod_comment.id), @user, params: { comment: { body: "abc" } }
           assert_not_equal("abc", @mod_comment.reload.body)
           assert_response 403
         end
@@ -78,25 +78,25 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       context "when stickying a comment" do
         should "succeed if updater is a moderator" do
           @comment = create(:comment, creator: @mod)
-          put_auth comment_path(@comment.id), @mod, params: {comment: {is_sticky: true}}
+          put_auth comment_path(@comment.id), @mod, params: { comment: { is_sticky: true } }
           assert_equal(true, @comment.reload.is_sticky)
           assert_redirected_to @comment.post
         end
 
         should "fail if updater is not a moderator" do
-          put_auth comment_path(@comment.id), @user, params: {comment: {is_sticky: true}}
+          put_auth comment_path(@comment.id), @user, params: { comment: { is_sticky: true } }
           assert_equal(false, @comment.reload.is_sticky)
         end
       end
 
       should "update the body" do
-        put_auth comment_path(@comment.id), @user, params: {comment: {body: "abc"}}
+        put_auth comment_path(@comment.id), @user, params: { comment: { body: "abc" } }
         assert_equal("abc", @comment.reload.body)
         assert_redirected_to post_path(@comment.post)
       end
 
       should "not allow changing is_hidden" do
-        put_auth comment_path(@comment.id), @user, params: {comment: {body: "herp derp", is_hidden: true}}
+        put_auth comment_path(@comment.id), @user, params: { comment: { body: "herp derp", is_hidden: true } }
         assert_equal(false, @comment.is_hidden)
       end
 
@@ -104,7 +104,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         as(@user) do
           @another_post = create(:post)
         end
-        put_auth comment_path(@comment.id), @comment.creator, params: {do_not_bump_post: true, post_id: @another_post.id}
+        put_auth comment_path(@comment.id), @comment.creator, params: { comment: { do_not_bump_post: true, post_id: @another_post.id } }
         assert_equal(false, @comment.reload.do_not_bump_post)
         assert_equal(@post.id, @comment.post_id)
       end
@@ -133,7 +133,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    context "create action"do
+    context "create action" do
       should "create a comment" do
         assert_difference("Comment.count", 1) do
           post_auth comments_path, @user, params: { comment: { body: "abc", post_id: @post.id } }

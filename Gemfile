@@ -4,11 +4,11 @@ source "https://rubygems.org/"
 
 gem "dotenv", require: "dotenv/load"
 
-gem "rails", "~> 7.2.0"
+gem "rails", "~> 8.0.0"
 gem "pg"
 gem "dalli", platforms: :ruby
 gem "simple_form"
-gem "active_model_serializers", "~> 0.10.0"
+gem "blueprinter"
 gem "ruby-vips"
 gem "bcrypt", require: "bcrypt"
 gem "draper"
@@ -19,13 +19,13 @@ gem "responders"
 if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext")
   gem "dtext", path: "vendor/dtext", require: "dtext"
 else
-  gem "dtext", git: "https://github.com/e621ng/dtext.git", tag: "2.0.1", require: "dtext"
+  gem "dtext", git: "https://github.com/e621ng/dtext.git", tag: "2.0.2", require: "dtext"
 end
 
 gem "bootsnap"
 gem "addressable"
 gem "recaptcha", require: "recaptcha/rails"
-gem "webpacker", ">= 4.0.x"
+gem "vite_rails"
 gem "sidekiq", "~> 7.0"
 gem "marcel"
 # bookmarks for later, if they are needed
@@ -34,6 +34,7 @@ gem "sidekiq-unique-jobs"
 gem "redis"
 gem "request_store"
 gem "zxcvbn-ruby", require: "zxcvbn"
+gem "view_component"
 
 gem "diffy"
 gem "rugged"
@@ -43,6 +44,8 @@ gem "datadog", require: "datadog/auto_instrument"
 gem "opensearch-ruby"
 
 gem "mailgun-ruby"
+gem "mjml-rails"
+gem "mrml"
 
 gem "faraday"
 gem "faraday-follow_redirects"
