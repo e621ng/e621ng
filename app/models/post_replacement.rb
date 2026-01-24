@@ -200,7 +200,7 @@ class PostReplacement < ApplicationRecord
   end
 
   module ProcessingMethods
-    def approve!(penalize_current_uploader:)
+    def approve!(penalize_current_uploader:, credit_replacer: true)
       if is_current? || is_promoted?
         errors.add(:status, "version is already active")
         return
@@ -214,9 +214,10 @@ class PostReplacement < ApplicationRecord
       FileValidator.new(self, replacement_file_path).validate
       return if errors.any?
 
+      penalize_current_uploader = false unless credit_replacer
       processor = UploadService::Replacer.new(post: post, replacement: self)
-      processor.process!(penalize_current_uploader: penalize_current_uploader)
-      PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5 })
+      processor.process!(penalize_current_uploader: penalize_current_uploader, credit_replacer: credit_replacer)
+      PostEvent.add(post.id, CurrentUser.user, :replacement_accepted, { replacement_id: id, old_md5: post.md5, new_md5: md5, creator_id: creator.id, replacer_credited: credit_replacer.to_s.truthy? })
       post.update_index
     end
 

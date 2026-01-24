@@ -10,7 +10,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       as(@user) do
         @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
-        @replacement = create(:png_replacement, creator: @user, post: @post)
+        @replacement = create(:png_replacement, creator: @regular_user, post: @post)
       end
     end
 
@@ -125,6 +125,36 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         @post.reload
         assert_equal @replacement.md5, @post.md5
         assert_equal @replacement.status, "approved"
+      end
+
+      should "credit the creator when credit_replacer is not specified" do # failure -- user isn't credited
+        put_auth approve_post_replacement_path(@replacement), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @regular_user
+      end
+
+      should "credit the creator when credit_replacer is true" do # failure -- user isn't credited
+        put_auth approve_post_replacement_path(@replacement, credit_replacer: true), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @regular_user
+      end
+
+      should "not credit the creator when credit_replacer is false" do
+        put_auth approve_post_replacement_path(@replacement, credit_replacer: false), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @user
       end
     end
 
