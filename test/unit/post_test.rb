@@ -911,6 +911,21 @@ class PostTest < ActiveSupport::TestCase
             @post.update(:tag_string => "source:none")
             assert_equal("", @post.source)
           end
+          should "add a source with +source:foo_bar" do
+            @post.update(:source => "foobar")
+            @post.update(:tag_string => "+source:foo_bar")
+            assert_equal("foobar\nfoo_bar", @post.source)
+          end
+          should 'add a source with +source:"baz_quux"' do
+            @post.update(:source => "foobar")
+            @post.update(:tag_string => '+source:"baz_quux"')
+            assert_equal("foobar\nbaz_quux", @post.source)
+          end
+          should "not add a blank line before +source:bee's_knees" do
+            @post.update(:source => "")
+            @post.update(:tag_string => "+source:bee's_knees")
+            assert_equal("bee's_knees", @post.source)
+          end
         end
 
         context "of" do
