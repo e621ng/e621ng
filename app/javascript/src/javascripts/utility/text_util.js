@@ -22,10 +22,11 @@ TextUtils.strip_quotes = function (string) {
  * @param {String} message The message to quote
  * @param {String} creatorName Username of the message creator
  * @param {Number} creatorId ID of the message creator
+ * @param {String} [messagePath=undefined] The URL path to the quoted message; should have domain removed to remove external link icon
  * @returns {String} The formatted quote
  */
-TextUtils.formatQuote = function (message, creatorName, creatorId) {
-  return `[quote]"${creatorName}":/users/${creatorId} said:\n${TextUtils.strip_quotes(message)}\n[/quote]\n\n`;
+TextUtils.formatQuote = function (message, creatorName, creatorId, messagePath = undefined) {
+  return `[quote]"${creatorName}":/users/${creatorId} ${messagePath ? `"said":[${messagePath.replaceAll("]", "%5D").replaceAll("[", "%5B")}]` : "said"}:\n${TextUtils.strip_quotes(message)}\n[/quote]\n\n`;
 };
 
 /**
@@ -34,9 +35,10 @@ TextUtils.formatQuote = function (message, creatorName, creatorId) {
  * @param {String} quotedText The message to quote
  * @param {String} creatorName Username of the message creator
  * @param {Number} creatorId ID of the message creator
+ * @param {String} [messagePath=undefined] The URL path to the quoted message; should have domain removed to remove external link icon
  */
-TextUtils.processQuote = function ($textarea, quotedText, creatorName, creatorId) {
-  let message = TextUtils.formatQuote(quotedText, creatorName, creatorId);
+TextUtils.processQuote = function ($textarea, quotedText, creatorName, creatorId, messagePath = undefined) {
+  let message = TextUtils.formatQuote(quotedText, creatorName, creatorId, messagePath);
 
   const existingInput = $textarea.val();
   if (existingInput.length > 0)
