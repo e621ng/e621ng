@@ -190,6 +190,7 @@ class Dmail < ApplicationRecord
     end
   end
 
+  # IDEA: If sections ever support links in titles, change to match comment, forum, & blip quotes.
   def quoted_body
     "[section=#{from.pretty_name} said:]\n#{body}\n[/section]\n\n"
   end
