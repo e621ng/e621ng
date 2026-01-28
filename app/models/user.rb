@@ -74,6 +74,7 @@ class User < ApplicationRecord
     replacements_beta
     is_bd_staff
     is_bd_auditor
+    enable_combined_upvote_and_favorite
   ].freeze
 
   include Danbooru::HasBitFlags
