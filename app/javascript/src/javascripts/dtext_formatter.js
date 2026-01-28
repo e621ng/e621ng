@@ -181,9 +181,8 @@ export default class DTextFormatter {
 
   // Vue will not detect jQuery-based event triggers.
   // Without triggering a native event, Vue's v-model will not update.
-  triggerVueCompatibleEvent($element) {
-    const event = new Event("input", { bubbles: true, cancelable: true });
-    $element[0].dispatchEvent(event);
+  triggerVueCompatibleEvent ($element) {
+    $element[0].dispatchEvent(new Event("input", {bubbles: true}));
   }
 
   buildPreviewArea () {
