@@ -16,7 +16,7 @@
   <% end %>
 
   <a
-    rel="nofollow"
+    rel="nofollow tag"
     class="tag-list-search"
     <%= "itemprop=author" if tag.category == Tag.categories.artist %>
     href="<%= posts_path(tags: tag.name) %>"
