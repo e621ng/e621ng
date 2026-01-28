@@ -21,10 +21,11 @@
   </div>
 
   <div class="content">
-    <%= render "ads/leaderboard", tag_string: @post_set.ad_tag_string %>
+    <%= render "ads/leaderboard", area: :top, tag_string: @post_set.ad_tag_string %>
     <%= render "posts/partials/index/edit" %>
     <%= render "posts/partials/index/stats", :post_set => @post_set %>
     <%= render "posts/partials/index/posts", :post_set => @post_set %>
+    <%= render "ads/leaderboard", area: :bottom, tag_string: @post_set.ad_tag_string %>
   </div>
 
 </div></div></div>
