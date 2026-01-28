@@ -699,12 +699,23 @@ module Danbooru
       []
     end
 
-    def ads_zone_desktop
-      { zone: nil, revive_id: nil, checksum: nil }
-    end
-
-    def ads_zone_mobile
-      { zone: nil, revive_id: nil, checksum: nil }
+    def ads_config
+      {
+        revive: {
+          domain: "rv.e621.net",
+          id: nil,
+        },
+        areas: {
+          top: {
+            desktop: { zone: nil, checksum: nil },
+            mobile: { zone: nil, checksum: nil },
+          },
+          bottom: {
+            desktop: { zone: nil, checksum: nil },
+            mobile: { zone: nil, checksum: nil },
+          },
+        },
+      }
     end
 
     def subscribestar_url
