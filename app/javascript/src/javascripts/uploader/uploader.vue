@@ -199,7 +199,7 @@
                 </div>
                 <div class="col2">
                   <div class="dtext-formatter pending" data-state="write" data-allow-color="false" data-limit="50000">
-                    <textarea class="dtext required dtext-formatter-input" id="post_description" rows="10" v-model="description"></textarea>
+                    <textarea class="dtext required dtext-formatter-input dtext-vue" id="post_description" rows="10" v-model="description"></textarea>
                   </div>
                 </div>
             </div>
