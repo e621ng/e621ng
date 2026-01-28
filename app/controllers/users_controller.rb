@@ -64,15 +64,16 @@ class UsersController < ApplicationController
     respond_with(@user, methods: @user.full_attributes)
   end
 
-  # Toggles a user's ability to upload posts. If the uploads are being disabled, requires staff
-  # documentation of the reason why; otherwise, auto-enables them & redirects to the user's profile
-  # page.
-  # ### Parameters
-  # ### Returns
+  # Toggles a user's ability to upload posts.
+  #
+  # If the uploads are being disabled, loads the page to accept the reason why (which is sent to
+  # `disable_uploads`); otherwise, auto-enables them & redirects to the user's profile page.
+  #
+  # TODO: Add unit(/integration?) test
   def toggle_uploads
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
     # If the user's uploads are being turned off, then require a reason.
-    unless @user.no_uploading # && params[:staff_note_body].blank?
+    unless @user.no_uploading
       return access_denied unless CurrentUser.can_view_staff_notes?
       @presenter = UserPresenter.new(@user)
       respond_with(@user)
@@ -86,7 +87,6 @@ class UsersController < ApplicationController
   end
 
   # Disables a user's uploads. Destination for `toggle_uploads`.
-  # ### Parameters
   # ### Notes
   # This is structured to prevent odd fall-through behavior with redirects (see
   # [here](<https://jasongong83.medium.com/observations-about-redirect-to-and-return-in-rails-controller-actions-e9879776920e>)).
@@ -94,7 +94,10 @@ class UsersController < ApplicationController
   # * They don't return from the controller action
   # * Directly returning doesn't seem to work
   #
-  # Using `before_action` circumvents this. The staff note is created & validated there. Also ensures the user's uploads aren't already disabled before this method starts.
+  # Using the `check_upload_disable_reason` `before_action` to create & validate the staff note and
+  # ensure the user's uploads aren't already disabled circumvents this.
+  #
+  # TODO: Add unit(/integration?) test
   def disable_uploads
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
     @user.no_uploading = true
@@ -180,33 +183,26 @@ class UsersController < ApplicationController
   private
 
   # Checks if the user's uploads are already disabled & if the reason is left blank.
-  # ### Parameters
+  #
   # IDEA: Get errors showing up correctly (the green banner & empty error message box)
   def check_upload_disable_reason
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
     # If their uploads are already disabled, then this shouldn't be called.
     if @user.no_uploading
-      flash[:error] = flash[:notice] = "Their uploads are already disabled"
-      # redirect_back_or_to user_path(@user)
+      flash[:notice] = "Their uploads are already disabled"
       redirect_to user_path(@user)
       return
     end
     # If the user's uploads are being turned off, then require a reason.
-    # if params[:staff_note_body].blank?
     if params[:staff_note][:body].blank?
-      # @staff_note ||= StaffNote.new(user_id: @user.id)
-      # @staff_note.errors.add(:body, "cannot be left blank")
-      # @staff_note.errors.add(:base, "Reason cannot be left blank")
-      flash[:error] = flash[:notice] = "You must include a reason to put in a staff note"
+      flash[:notice] = "You must include a reason to put in a staff note"
       redirect_back_or_to toggle_uploads_user_path(@user)
     else
-      # @staff_note = StaffNote.new(body: params[:staff_note][:body], creator: CurrentUser.user, user: @user)
-      # @staff_note = StaffNote.create(staff_note_params.merge({ user_id: @user.id }))
       @staff_note = StaffNote.create(params.fetch(:staff_note, {}).permit(%i[body]).merge({ user_id: @user.id }))
       if @staff_note.valid?
         flash[:notice] = "Staff Note added"
       else
-        flash[:error] = flash[:notice] = @staff_note.errors.full_messages.join("; ")
+        flash[:notice] = @staff_note.errors.full_messages.join("; ")
         redirect_back_or_to toggle_uploads_user_path(@user)
       end
     end
