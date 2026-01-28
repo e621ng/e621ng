@@ -229,6 +229,12 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def reject_api_key_auth
+    if CurrentUser.api_key.present?
+      render_expected_error(:forbidden, "This action requires browser authentication")
+    end
+  end
+
   # Remove blank `search` params from the url.
   #
   # /tags?search[name]=touhou&search[category]=&search[order]=
