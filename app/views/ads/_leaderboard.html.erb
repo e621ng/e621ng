@@ -1,11 +1,13 @@
 <%# locals: (area: :top, tag_string: "") %>
 
 <% if Danbooru.config.ads_enabled? %>
+  <% area ||= :top %>
   <div id="ad-leaderboard-<%= area.to_s %>" class="adzone-wrapper">
     <div class="adzone">
       <ins
         id="ad-insert-element-<%= area.to_s %>"
         data-revive-id="<%= Danbooru.config.ads_config[:revive][:id] %>"
+        <%# We run our own ad network. Tags are not logged anywhere, and are only used for filtering ads based on tags. %>
         data-revive-tags="<%= tag_string %>"
         data-revive-zoneid=""
       ></ins>
