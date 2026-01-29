@@ -18,6 +18,8 @@ $form-disabled-background: #DDD;
 $button-background: white;
 $button-hover-background: darken($button-background, 10%);
 $form-submit-button-background: #eee;
+$form-invalid-input-background: #f07e7e;
+$form-invalid-input-border: #e00;
 
 // Page Header
 $page-header-sign-in-link-color: #e00;

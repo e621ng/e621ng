@@ -72,7 +72,7 @@
 <tab-entry tab="<%= tab_name %>" group="profile" search="update change user avatar profile image pfp">
   <tab-head><%= form.label :avatar_id, "Avatar Post ID" %></tab-head>
   <tab-body>
-    <%= form.input_field :avatar_id, as: :string, label: false %>
+    <%= form.input_field :avatar_id, as: :string, label: false, class: "id-input" %>
   </tab-body>
   <tab-hint>
     The image with this ID will be set as your avatar.
