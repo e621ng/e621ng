@@ -41,6 +41,15 @@ class UsersController < ApplicationController
     respond_with(@user)
   end
 
+  def me
+    respond_with(CurrentUser.user) do |format|
+      format.html do
+        next render_404 if CurrentUser.user.is_anonymous?
+        redirect_to(user_path(CurrentUser.user))
+      end
+    end
+  end
+
   def home
     @user = CurrentUser.user
   end

@@ -326,6 +326,7 @@ Rails.application.routes.draw do
       get :search
       get :custom_style
       get :settings
+      get :me
 
       get :avatar_menu
     end
