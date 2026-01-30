@@ -185,24 +185,26 @@ class UsersController < ApplicationController
   # Checks if the user's uploads are already disabled & if the reason is left blank.
   #
   # IDEA: Get errors showing up correctly (the green banner & empty error message box)
+  # TODO: Gracefully handle API requests (& failures).
   def check_upload_disable_reason
+    return access_denied unless CurrentUser.can_view_staff_notes?
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
     # If their uploads are already disabled, then this shouldn't be called.
     if @user.no_uploading
-      flash[:notice] = "Their uploads are already disabled"
+      flash[:notice] = "Error: Their uploads are already disabled"
       redirect_to user_path(@user)
       return
     end
     # If the user's uploads are being turned off, then require a reason.
-    if params[:staff_note][:body].blank?
-      flash[:notice] = "You must include a reason to put in a staff note"
-      redirect_back_or_to toggle_uploads_user_path(@user)
+    if params.dig(:staff_note, :body).blank?
+      flash[:notice] = "Error: You must include a reason to put in a staff note"
+      redirect_to toggle_uploads_user_path(@user)
     else
       @staff_note = StaffNote.create(params.fetch(:staff_note, {}).permit(%i[body]).merge({ user_id: @user.id }))
       if @staff_note.valid?
         flash[:notice] = "Staff Note added"
       else
-        flash[:notice] = @staff_note.errors.full_messages.join("; ")
+        flash[:notice] = "Error: #{@staff_note.errors.full_messages.join('; ')}"
         redirect_back_or_to toggle_uploads_user_path(@user)
       end
     end
