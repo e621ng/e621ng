@@ -81,7 +81,7 @@ class ApngInspector
         if framecount < 1
           actl_corrupted = true
         else
-          @animated = true
+          @animated = framecount > 1
           @frames = framecount
         end
       end
