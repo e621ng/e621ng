@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CreateSearchTrends < ActiveRecord::Migration[7.1]
+class CreateSearchTrends < ActiveRecord::Migration[7.2]
   def change
     create_table :search_trends do |t|
       t.string :tag, null: false
