@@ -117,7 +117,7 @@ class User < ApplicationRecord
   after_create :create_user_status
   validates :flair_color_hex, format: { with: /\A#?(?:[0-9a-fA-F]{6})\z/, allow_blank: true, if: -> { flair_color.present? || flair_color_hex.present? } }
 
-  has_one :api_key
+  has_many :api_keys, dependent: :destroy
   has_one :dmail_filter
   has_one :user_status
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
@@ -289,14 +289,14 @@ class User < ApplicationRecord
         return nil unless api_key.is_a?(String) && api_key.dup.force_encoding("UTF-8").valid_encoding?
         return nil if name.blank? || api_key.blank?
 
-        key = ApiKey.where(key: api_key).first
-        return nil if key.nil?
-
         # The find_by(name: name) will not use an index correctly
         user = find_by_name(name)
         return nil if user.nil?
-        return user if key.user_id == user.id
-        nil
+
+        key = user.api_keys.active.find_by(key: api_key)
+        return nil if key.nil?
+
+        [user, key]
       end
 
       def bcrypt(pass)
@@ -694,6 +694,16 @@ class User < ApplicationRecord
     def statement_timeout
       3_000
     end
+
+    def api_key_limit
+      if is_staff?
+        20
+      elsif is_privileged?
+        10
+      else
+        5
+      end
+    end
   end
 
   module ApiMethods
@@ -798,6 +808,10 @@ class User < ApplicationRecord
 
     def ticket_count
       user_status&.ticket_count || 0
+    end
+
+    def set_count
+      user_status&.set_count || 0
     end
 
     ## !DB

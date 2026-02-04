@@ -24,12 +24,20 @@ class CurrentUser
     RequestStore[:current_user] = user
   end
 
+  def self.api_key=(api_key)
+    RequestStore[:current_api_key] = api_key
+  end
+
   def self.ip_addr=(ip_addr)
     RequestStore[:current_ip_addr] = ip_addr
   end
 
   def self.user
     RequestStore[:current_user]
+  end
+
+  def self.api_key
+    RequestStore[:current_api_key]
   end
 
   def self.ip_addr

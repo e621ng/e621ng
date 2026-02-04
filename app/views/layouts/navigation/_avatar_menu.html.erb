@@ -16,7 +16,6 @@
 
 <span
   class="simple-avatar-menu hidden"
-  data-state="idle"
   data-has-mail="<%= has_mail %>"
 >
   <a href="<%= user_path(user) %>">
@@ -26,6 +25,46 @@
     <%= svg_icon(:mail) %> Messages
   </a>
   <hr />
+
+
+  <%# has_uploads %>
+  <a href="<%= posts_path(tags: "user:#{user.name}") %>" class="must-uploads">
+    <%= svg_icon(:images) %> Uploads
+  </a>
+  <a href="<%= comments_path(group_by: "comment", search: { poster_id: user.id }) %>" class="must-uploads secondary">
+    <%= svg_icon(:corner_down_right) %> Responses
+  </a>
+  <a href="<%= posts_path(tags: "user:#{user.name} status:pending") %>" class="must-uploads secondary">
+    <%= svg_icon(:clock_fading) %> Pending
+  </a>
+
+  <%# has_favorites %>
+  <a href="<%= favorites_path %>" class="must-favorites">
+    <%= svg_icon(:heart) %> Favorites
+  </a>
+
+  <%# has_sets %>
+  <a href="<%= post_sets_path(search: { creator_id: user.id }) %>" class="must-sets">
+    <%= svg_icon(:group) %> Sets
+  </a>
+
+  <hr class="must-uploads-favorites-sets" />
+
+
+  <h4 class="must-comments-forums">Mentions</h4>
+
+  <%# has_comments %>
+  <a href="<%= comments_path(group_by: :comment, search: { body_matches: user.name }) %>" class="must-comments">
+    <%= svg_icon(:message_square) %> Comments
+  </a>
+
+  <%# has_forums %>
+  <a href="<%= forum_posts_path(search: { body_matches: user.name }) %>" class="must-forums">
+    <%= svg_icon(:lectern) %> Forums
+  </a>
+
+  <hr class="must-comments-forums" />
+
 
   <a href="<%= session_path %>" data-method="delete">
     <%= svg_icon(:log_out) %> Sign Out

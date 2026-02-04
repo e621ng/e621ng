@@ -7,6 +7,7 @@ class UsersController < ApplicationController
   before_action :member_only, only: %i[custom_style avatar_menu]
   before_action :janitor_only, only: %i[toggle_uploads fix_counts]
   before_action :admin_only, only: %i[flush_favorites]
+  before_action :check_upload_disable_reason, only: %i[disable_uploads]
 
   def index
     if params[:name].present?
@@ -41,6 +42,16 @@ class UsersController < ApplicationController
     respond_with(@user)
   end
 
+  def me
+    user = CurrentUser.user
+    respond_with(user, methods: user.full_attributes) do |format|
+      format.html do
+        next render_404 if user.is_anonymous?
+        redirect_to(user_path(user))
+      end
+    end
+  end
+
   def home
     @user = CurrentUser.user
   end
@@ -63,9 +74,43 @@ class UsersController < ApplicationController
     respond_with(@user, methods: @user.full_attributes)
   end
 
+  # Toggles a user's ability to upload posts.
+  #
+  # If the uploads are being disabled, loads the page to accept the reason why (which is sent to
+  # `disable_uploads`); otherwise, auto-enables them & redirects to the user's profile page.
+  #
+  # TODO: Add unit(/integration?) test
   def toggle_uploads
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    # If the user's uploads are being turned off, then require a reason.
+    unless @user.no_uploading
+      return access_denied unless CurrentUser.can_view_staff_notes?
+      @presenter = UserPresenter.new(@user)
+      respond_with(@user)
+      return
+    end
     @user.no_uploading = !@user.no_uploading
+    ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
+    @user.save
+
+    redirect_back_or_to user_path(@user)
+  end
+
+  # Disables a user's uploads. Destination for `toggle_uploads`.
+  # ### Notes
+  # This is structured to prevent odd fall-through behavior with redirects (see
+  # [here](<https://jasongong83.medium.com/observations-about-redirect-to-and-return-in-rails-controller-actions-e9879776920e>)).
+  # Redirects only change the response header:
+  # * They don't return from the controller action
+  # * Directly returning doesn't seem to work
+  #
+  # Using the `check_upload_disable_reason` `before_action` to create & validate the staff note and
+  # ensure the user's uploads aren't already disabled circumvents this.
+  #
+  # TODO: Add unit(/integration?) test
+  def disable_uploads
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    @user.no_uploading = true
     ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
     @user.save
 
@@ -108,11 +153,10 @@ class UsersController < ApplicationController
           flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join('; ')}"
         end
         set_current_user
-        respond_with(@user)
       else
         flash[:notice] = "Sign up failed"
-        respond_with(@user)
       end
+      respond_with(@user)
     end
   rescue ::Mailgun::CommunicationError
     session[:user_id] = nil
@@ -142,11 +186,48 @@ class UsersController < ApplicationController
 
   def avatar_menu
     respond_to do |format|
-      format.html { render partial: "layouts/navigation/avatar_menu_full" }
+      format.json do
+        user = CurrentUser.user
+        render json: {
+          has_uploads: user.post_upload_count > 0,
+          has_favorites: user.favorite_count > 0,
+          has_sets: user.set_count > 0,
+          has_comments: user.comment_count > 0,
+          has_forums: user.forum_post_count > 0,
+        }
+      end
     end
   end
 
   private
+
+  # Checks if the user's uploads are already disabled & if the reason is left blank.
+  #
+  # IDEA: Get errors showing up correctly (the green banner & empty error message box)
+  # TODO: Gracefully handle API requests (& failures).
+  def check_upload_disable_reason
+    return access_denied unless CurrentUser.can_view_staff_notes?
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    # If their uploads are already disabled, then this shouldn't be called.
+    if @user.no_uploading
+      flash[:notice] = "Error: Their uploads are already disabled"
+      redirect_to user_path(@user)
+      return
+    end
+    # If the user's uploads are being turned off, then require a reason.
+    if params.dig(:staff_note, :body).blank?
+      flash[:notice] = "Error: You must include a reason to put in a staff note"
+      redirect_to toggle_uploads_user_path(@user)
+    else
+      @staff_note = StaffNote.create(params.fetch(:staff_note, {}).permit(%i[body]).merge({ user_id: @user.id }))
+      if @staff_note.valid?
+        flash[:notice] = "Staff Note added"
+      else
+        flash[:notice] = "Error: #{@staff_note.errors.full_messages.join('; ')}"
+        redirect_back_or_to toggle_uploads_user_path(@user)
+      end
+    end
+  end
 
   def check_privilege(user)
     raise User::PrivilegeError unless user.id == CurrentUser.id || CurrentUser.is_admin?

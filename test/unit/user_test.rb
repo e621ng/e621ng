@@ -122,12 +122,13 @@ class UserTest < ActiveSupport::TestCase
 
     context "API key authentication" do
       setup do
-        @api_key = ApiKey.generate!(@user)
+        @api_key = ApiKey.generate!(@user, name: "test")
       end
 
       should "authenticate with valid credentials" do
-        result = User.authenticate_api_key(@user.name, @api_key.key)
-        assert_equal(@user, result)
+        user, key = User.authenticate_api_key(@user.name, @api_key.key)
+        assert_equal(@user, user)
+        assert_equal(@api_key, key)
       end
 
       should "reject invalid UTF-8 in username" do

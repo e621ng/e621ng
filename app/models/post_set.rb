@@ -256,7 +256,7 @@ class PostSet < ApplicationRecord
           WHERE id = $3
             AND post_count < $4
         SQL
-        result = conn.raw_connection.exec_params(update_sql, [pid, Time.zone.now, id, max])
+        result = conn.raw_connection.exec_params(update_sql, [pid, Time.current.utc, id, max])
 
         return result.cmd_tuples > 0 ? [pid] : []
       end
@@ -316,7 +316,7 @@ class PostSet < ApplicationRecord
       SQL
 
       pg_array_literal = "{#{new_ids.join(',')}}"
-      result = conn.raw_connection.exec_params(sql, [pg_array_literal, id, max, Time.zone.now])
+      result = conn.raw_connection.exec_params(sql, [pg_array_literal, id, max, Time.current.utc])
       result.column_values(0).map!(&:to_i)
     end
 
@@ -368,7 +368,7 @@ class PostSet < ApplicationRecord
               updated_at = $2
           WHERE id = $3
         SQL
-        result = conn.raw_connection.exec_params(update_sql, [pid, Time.zone.now, id])
+        result = conn.raw_connection.exec_params(update_sql, [pid, Time.current.utc, id])
 
         return result.cmd_tuples > 0 ? [pid] : []
       end
@@ -412,7 +412,7 @@ class PostSet < ApplicationRecord
       SQL
 
       pg_array_literal = "{#{existing_ids.join(',')}}"
-      result = conn.raw_connection.exec_params(sql, [pg_array_literal, id, Time.zone.now])
+      result = conn.raw_connection.exec_params(sql, [pg_array_literal, id, Time.current.utc])
       result.column_values(0).map!(&:to_i)
     end
 

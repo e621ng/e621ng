@@ -478,6 +478,7 @@ class Artist < ApplicationRecord
       end
 
       q = q.where_user(:creator_id, :creator, params)
+      q = q.where_user(:linked_user_id, :linked_user, params)
 
       if params[:has_tag].to_s.truthy?
         q = q.joins(:tag).where("tags.post_count > 0")

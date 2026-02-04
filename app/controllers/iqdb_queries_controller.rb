@@ -2,7 +2,8 @@
 
 class IqdbQueriesController < ApplicationController
   respond_to :html, :json
-  # Show uses POST because it needs a file parameter. This would be GET otherwise.
+  # CSRF is skipped only for read-only image similarity queries that don't modify data.
+  # This enables API access for external tools while the queries themselves are harmless.
   skip_forgery_protection only: :show
   before_action :validate_enabled
 
