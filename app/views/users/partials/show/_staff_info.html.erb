@@ -69,5 +69,12 @@
         <%= link_to "Audit", admin_user_dmails_path(user) %>
       </span>
     <% end %>
+
+    <% if CurrentUser.is_bd_staff? && !user.is_staff? %>
+      <h4>Delete User</h4>
+      <span>
+        <%= link_to "Delete", admin_user_path(user), method: :delete, data: { confirm: "Are you sure you want to permanently delete this user?" } %>
+      </span>
+    <% end %>
   </div>
 </div>

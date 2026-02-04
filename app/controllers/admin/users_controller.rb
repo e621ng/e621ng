@@ -3,7 +3,7 @@
 module Admin
   class UsersController < ApplicationController
     before_action :admin_only
-    before_action :is_bd_staff_only, only: %i[request_password_reset password_reset]
+    before_action :is_bd_staff_only, only: %i[request_password_reset password_reset destroy]
     respond_to :html, :json
 
     def alt_list
@@ -87,6 +87,24 @@ module Admin
       @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params[:admin][:invalidate_old_password]&.truthy?
 
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
+    end
+
+    def destroy
+      @user = User.find(params[:id])
+      user_name = @user.name
+
+      # Additional safety check
+      if @user.is_staff?
+        return redirect_to user_path(@user), alert: "Staff accounts cannot be deleted"
+      end
+
+      deletion = UserDeletion.new(@user, params[:password], admin_deletion: true)
+      deletion.delete!
+
+      ModAction.log(:admin_user_delete, { user_id: @user.id })
+      redirect_to user_path(@user), notice: "User account '#{user_name}' deleted successfully"
+    rescue UserDeletion::ValidationError => e
+      redirect_to user_path(@user), alert: e.message
     end
 
     private

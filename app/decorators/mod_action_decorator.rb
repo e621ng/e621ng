@@ -103,6 +103,8 @@ class ModActionDecorator < ApplicationDecorator
 
       ### User ###
 
+    when "admin_user_delete"
+      "Deleted user #{user}"
     when "user_delete"
       "Deleted user #{user}"
     when "user_ban"
