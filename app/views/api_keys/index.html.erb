@@ -54,7 +54,7 @@
                 <br>from <%= api_key.last_ip_address %>
               <% end %>
               <% if api_key.last_user_agent.present? %>
-                <br><small title="<%= api_key.last_user_agent %>"><%= truncate(api_key.last_user_agent, length: 50) %></small>
+                <br><small title="<%= h(api_key.last_user_agent) %>"><%= truncate(api_key.last_user_agent, length: 50) %></small>
               <% end %>
             <% else %>
               Never
