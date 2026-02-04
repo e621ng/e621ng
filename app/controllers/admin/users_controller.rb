@@ -119,7 +119,6 @@ module Admin
       deletion = UserDeletion.new(@user, params[:password], admin_deletion: true)
       deletion.delete!
 
-      ModAction.log(:admin_user_delete, { user_id: @user.id })
       redirect_to user_path(@user), notice: "User account '#{user_name}' deleted successfully"
     rescue UserDeletion::ValidationError => e
       redirect_to user_path(@user), alert: e.message

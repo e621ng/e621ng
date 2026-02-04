@@ -36,7 +36,7 @@ class UserDeletion
   end
 
   def create_mod_action
-    ModAction.log(:user_delete, { user_id: user.id })
+    ModAction.log(@admin_deletion ? :admin_user_delete : :user_delete, { user_id: user.id })
   end
 
   def clear_user_settings
