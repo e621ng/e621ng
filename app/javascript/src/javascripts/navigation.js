@@ -68,16 +68,12 @@ Navigation.sync_user_data = async function () {
       has_favorites: data.has_favorites,
       has_sets: data.has_sets,
       has_comments: data.has_comments,
-      has_forum_posts: data.has_forum_posts,
+      has_forums: data.has_forums,
     };
 
     return data;
   }).catch(error => {
-    if (error.name === "AbortError")
-      console.error("Avatar menu: request timed out");
-    else
-      console.error("Avatar menu: failed to load content", error);
-
+    console.error("Avatar menu: failed to load content", error);
     return Promise.reject(error);
   }).finally(() => {
     Navigation._syncInProgress = null;
@@ -94,7 +90,7 @@ Navigation.build_avatar_menu = function () {
     .toggleClass("has-favorites", userStats.has_favorites)
     .toggleClass("has-sets", userStats.has_sets)
     .toggleClass("has-comments", userStats.has_comments)
-    .toggleClass("has-forum-posts", userStats.has_forum_posts);
+    .toggleClass("has-forums", userStats.has_forum_posts);
 };
 
 $(() => {

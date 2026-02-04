@@ -55,7 +55,7 @@ LStorage.Site = {
       has_favorites: false,
       has_sets: false,
       has_comments: false,
-      has_forum_posts: false,
+      has_forums: false,
     },
   ],
 };
