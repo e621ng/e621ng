@@ -1,7 +1,9 @@
 <%# locals: (area: :top, tag_string: "") %>
 
-<% if Danbooru.config.ads_enabled? %>
-  <% area ||= :top %>
+<% area ||= :top %>
+<% tag_string ||= "" %>
+
+<% if Danbooru.config.ads_enabled? && Danbooru.config.ads_config[:areas][area].present? %>
   <div id="ad-leaderboard-<%= area.to_s %>" class="adzone-wrapper">
     <div class="adzone">
       <ins
@@ -26,8 +28,8 @@
       <% ad_rand = Random.rand(50000000) %>
       <% ad_zone = Danbooru.config.ads_config[:areas][area][:desktop] %>
       <noscript class="adzone">
-        <a href="https://<%= Danbooru.config.ads_config[:revive][:domain] %>/www/delivery/ck.php?zoneid=<%= ad_zone[:zone] %>&n=<%= ad_zone[:checksum] %>&cb=<%= ad_rand %>" target="_blank" rel="nofollow noopener">
-          <img src="https://<%= Danbooru.config.ads_config[:revive][:domain] %>/www/delivery/avw.php?zoneid=<%= ad_zone[:zone] %>&cb=<%= ad_rand %>&n=<%= ad_zone[:checksum] %>" border="0" alt="" />
+        <a href="https://<%= Danbooru.config.ads_config[:revive][:domain] %>/www/delivery/ck.php?zoneid=<%= ad_zone[:zone] %>&cb=<%= ad_rand %>" target="_blank" rel="nofollow noopener">
+          <img src="https://<%= Danbooru.config.ads_config[:revive][:domain] %>/www/delivery/avw.php?zoneid=<%= ad_zone[:zone] %>&cb=<%= ad_rand %>" border="0" alt="" />
         </a>
       </noscript>
     </div>

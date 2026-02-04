@@ -707,12 +707,12 @@ module Danbooru
         },
         areas: {
           top: {
-            desktop: { zone: nil, checksum: nil },
-            mobile: { zone: nil, checksum: nil },
+            desktop: { zone: nil },
+            mobile: { zone: nil },
           },
           bottom: {
-            desktop: { zone: nil, checksum: nil },
-            mobile: { zone: nil, checksum: nil },
+            desktop: { zone: nil },
+            mobile: { zone: nil },
           },
         },
       }
