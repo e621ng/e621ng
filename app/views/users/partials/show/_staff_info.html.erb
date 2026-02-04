@@ -70,10 +70,10 @@
       </span>
     <% end %>
 
-    <% if CurrentUser.is_bd_staff? && !user.is_staff? %>
+    <% if CurrentUser.is_bd_staff? && !user.is_staff? && !user.name.match?(/\Auser_#{user.id}~*\z/) %>
       <h4>Delete User</h4>
       <span>
-        <%= link_to "Delete", admin_user_path(user), method: :delete, data: { confirm: "Are you sure you want to permanently delete this user?" } %>
+        <%= link_to "Delete", anonymize_admin_user_path(user) %>
       </span>
     <% end %>
   </div>

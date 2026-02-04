@@ -3,7 +3,8 @@
 module Admin
   class UsersController < ApplicationController
     before_action :admin_only
-    before_action :is_bd_staff_only, only: %i[request_password_reset password_reset destroy]
+    before_action :is_bd_staff_only, only: %i[request_password_reset password_reset anonymize anonymize_confirm]
+    before_action :requires_reauthentication, only: %i[anonymize_confirm]
     respond_to :html, :json
 
     def alt_list
@@ -89,13 +90,30 @@ module Admin
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
     end
 
-    def destroy
+    def anonymize
+      @user = User.find(params[:id])
+
+      # Additional safety checks
+      if @user.is_staff?
+        return redirect_to user_path(@user), alert: "Staff accounts cannot be deleted"
+      end
+
+      if @user.name.match?(/\Auser_#{@user.id}~*\z/)
+        redirect_to user_path(@user), alert: "User account has already been deleted"
+      end
+    end
+
+    def anonymize_confirm
       @user = User.find(params[:id])
       user_name = @user.name
 
-      # Additional safety check
+      # Additional safety checks
       if @user.is_staff?
         return redirect_to user_path(@user), alert: "Staff accounts cannot be deleted"
+      end
+
+      if @user.name.match?(/\Auser_#{@user.id}~*\z/)
+        return redirect_to user_path(@user), alert: "User account has already been deleted"
       end
 
       deletion = UserDeletion.new(@user, params[:password], admin_deletion: true)

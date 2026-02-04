@@ -8,12 +8,14 @@ Rails.application.routes.draw do
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
   namespace :admin do
-    resources :users, only: %i[edit update destroy] do
+    resources :users, only: %i[edit update] do
       member do
         get :edit_blacklist
         post :update_blacklist
         get :request_password_reset
         post :password_reset
+        get :anonymize
+        post :anonymize, action: :anonymize_confirm
       end
       collection do
         get :alt_list
