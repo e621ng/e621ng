@@ -53,7 +53,13 @@ CREATE TABLE public.api_keys (
     user_id integer NOT NULL,
     key character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    name character varying NOT NULL,
+    last_used_at timestamp(6) without time zone,
+    last_ip_address inet,
+    last_user_agent text,
+    expires_at timestamp(6) without time zone,
+    notified_at timestamp(6) without time zone
 );
 
 
@@ -3457,6 +3463,13 @@ ALTER TABLE ONLY public.wiki_pages
 
 
 --
+-- Name: index_api_keys_on_expires_at_and_notified_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_keys_on_expires_at_and_notified_at ON public.api_keys USING btree (expires_at, notified_at) WHERE (expires_at IS NOT NULL);
+
+
+--
 -- Name: index_api_keys_on_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3464,10 +3477,10 @@ CREATE UNIQUE INDEX index_api_keys_on_key ON public.api_keys USING btree (key);
 
 
 --
--- Name: index_api_keys_on_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_api_keys_on_name_and_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_api_keys_on_user_id ON public.api_keys USING btree (user_id);
+CREATE UNIQUE INDEX index_api_keys_on_name_and_user_id ON public.api_keys USING btree (name, user_id);
 
 
 --
@@ -4894,6 +4907,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260204011446'),
 ('20251127000001'),
 ('20251114015027'),
 ('20251113060711'),

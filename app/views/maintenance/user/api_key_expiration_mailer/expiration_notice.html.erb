@@ -1,0 +1,35 @@
+<mj-section mj-class="container hex-bg" >
+  <mj-column>
+
+    <mj-text mj-class="text">
+      <h2>Hi, <%= @user.name %>!</h2>
+
+      <p>
+        This is a courtesy email to let you know that one of your API keys is about to expire.
+        Once expired, it will no longer function for authenticating requests to <%= Danbooru.config.app_name %>.
+      </p>
+
+      <ul style="font-family: monospace; list-style-type: none;">
+        <li><b>API Key:</b> <%= @api_key.name %></li>
+        <li><b>Expires:</b> <%= @api_key.expires_at&.strftime("%B %d, %Y") %></li>
+      </ul>
+    </mj-text>
+
+    <mj-button
+      mj-class="button"
+      align="center"
+      href="<%= api_keys_url %>"
+    >
+      Renew your API keys
+    </mj-button>
+
+    <mj-text mj-class="text">
+      <p>If you do not wish to renew this API key, please ignore this email.</p>
+      <p>
+        Thanks,<br />
+        ~ <%= Danbooru.config.app_name %> Team
+      </p>
+    </mj-text>
+
+  </mj-column>
+</mj-section>
