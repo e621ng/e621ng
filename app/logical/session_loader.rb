@@ -137,7 +137,11 @@ class SessionLoader
   def update_user_login_tracking
     return if CurrentUser.is_anonymous?
 
-    cache_key = "user_login_tracking:#{CurrentUser.id}"
+    cache_key = if CurrentUser.api_key
+                  "user_login_tracking:api_key:#{CurrentUser.api_key.id}"
+                else
+                  "user_login_tracking:user:#{CurrentUser.id}"
+                end
     return if Cache.redis.exists?(cache_key)
 
     Cache.redis.setex(cache_key, 60, "1")
