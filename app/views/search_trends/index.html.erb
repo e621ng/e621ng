@@ -1,0 +1,42 @@
+<div id="c-search-trends">
+  <div id="a-index">
+    <h1>Trending tags (last 24 hours)</h1>
+
+    <p>
+      Showing results for <strong><%= @day.to_s %></strong>.
+      <span class="hint">Use ?day=YYYY-MM-DD to view another day.</span>
+    </p>
+
+    <p>
+      <a href="<%= url_for(day: @day - 1) %>">Previous</a>
+      <a href="<%= url_for(day: @day + 1) %>">Next</a>
+    </p>
+
+    <% if @trending.blank? %>
+      <p>No trending data for this day yet.</p>
+    <% else %>
+      <table class="striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tag</th>
+            <th>Searches</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @trending.each_with_index do |row, idx| %>
+            <tr>
+              <td><%= idx + 1 %></td>
+              <td><%= link_to row.tag, posts_path(tags: row.tag) %></td>
+              <td><%= row.count %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Trending tags
+<% end %>
