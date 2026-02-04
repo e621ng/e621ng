@@ -11,6 +11,7 @@ class ApiKey < ApplicationRecord
   scope :for_user, ->(user_id) { where(user_id: user_id) }
   scope :active, -> { where("expires_at IS NULL OR expires_at > ?", Time.current) }
   scope :expired, -> { where("expires_at <= ?", Time.current) }
+  scope :expiring_soon, -> { where(expires_at: Time.current..7.days.from_now, notified_at: nil).includes(:user) }
 
   module SearchMethods
     def visible(user)
@@ -54,6 +55,7 @@ class ApiKey < ApplicationRecord
     original_duration = calculate_duration
     self.created_at = Time.current
     self.expires_at = original_duration&.days&.from_now
+    self.notified_at = nil # Reset notification flag for new expiration
     regenerate_key
     save!
   end
