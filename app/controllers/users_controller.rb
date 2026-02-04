@@ -42,10 +42,11 @@ class UsersController < ApplicationController
   end
 
   def me
-    respond_with(CurrentUser.user) do |format|
+    user = CurrentUser.user
+    respond_with(user, methods: user.full_attributes) do |format|
       format.html do
-        next render_404 if CurrentUser.user.is_anonymous?
-        redirect_to(user_path(CurrentUser.user))
+        next render_404 if user.is_anonymous?
+        redirect_to(user_path(user))
       end
     end
   end
