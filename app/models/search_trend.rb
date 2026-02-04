@@ -7,9 +7,20 @@ class SearchTrend < ApplicationRecord
   scope :for_day, ->(day) { where(day: day.to_date) }
 
   # Increment count for tag on a given day (default: today). Sanitizes tag to downcase.
-  def self.increment!(tag, day: Date.current)
+  def self.increment!(tag, day: Date.current, ip: nil)
     t = tag.to_s.downcase.strip
     return if t.blank?
+    return unless Setting.trends_enabled
+
+    # Rate limiting checks
+    if ip.present?
+      ip_key = "trends:ip:#{ip}"
+      return if RateLimiter.check_limit(ip_key, Setting.trends_ip_limit, Setting.trends_ip_window.seconds)
+    end
+
+    tag_key = "trends:tag:#{t}"
+    return if RateLimiter.check_limit(tag_key, Setting.trends_tag_limit, Setting.trends_tag_window.seconds)
+
     date = day.to_date
     now = Time.current
     values_sql = "(#{connection.quote(t)}, #{connection.quote(date)}, 1, #{connection.quote(now)}, #{connection.quote(now)})"
@@ -20,16 +31,35 @@ class SearchTrend < ApplicationRecord
       DO UPDATE SET count = search_trends.count + 1, updated_at = EXCLUDED.updated_at
     SQL
     connection.execute(sql)
+
+    # Increment rate limit counters after successful database operation
+    RateLimiter.hit(ip_key, Setting.trends_ip_window.seconds) if ip.present?
+    RateLimiter.hit(tag_key, Setting.trends_tag_window.seconds)
   end
 
   # Bulk increment for an array of tags for the day. Upsert w/ increment on conflict.
-  def self.bulk_increment!(tags, day: Date.current)
+  def self.bulk_increment!(tags, day: Date.current, ip: nil)
     ts = Array(tags).map { |tg| tg.to_s.downcase.strip }.select(&:present?).uniq
     return if ts.empty?
-    date = day.to_date
+    return unless Setting.trends_enabled
 
+    # Rate limiting checks
+    if ip.present?
+      ip_key = "trends:ip:#{ip}"
+      return if RateLimiter.check_limit(ip_key, Setting.trends_ip_limit, Setting.trends_ip_window.seconds)
+    end
+
+    # Filter out tags that would exceed tag-specific rate limits
+    allowed_tags = ts.select do |tag|
+      tag_key = "trends:tag:#{tag}"
+      !RateLimiter.check_limit(tag_key, Setting.trends_tag_limit, Setting.trends_tag_window.seconds)
+    end
+
+    return if allowed_tags.empty?
+
+    date = day.to_date
     now = Time.current
-    values_sql = ts.map { |tg| "(#{connection.quote(tg)}, #{connection.quote(date)}, 1, #{connection.quote(now)}, #{connection.quote(now)})" }.join(", ")
+    values_sql = allowed_tags.map { |tg| "(#{connection.quote(tg)}, #{connection.quote(date)}, 1, #{connection.quote(now)}, #{connection.quote(now)})" }.join(", ")
     sql = <<~SQL.squish
       INSERT INTO search_trends (tag, day, count, created_at, updated_at)
       VALUES #{values_sql}
@@ -37,6 +67,13 @@ class SearchTrend < ApplicationRecord
       DO UPDATE SET count = search_trends.count + 1, updated_at = EXCLUDED.updated_at
     SQL
     connection.execute(sql)
+
+    # Increment rate limit counters after successful database operation
+    RateLimiter.hit(ip_key, Setting.trends_ip_window.seconds) if ip.present?
+    allowed_tags.each do |tag|
+      tag_key = "trends:tag:#{tag}"
+      RateLimiter.hit(tag_key, Setting.trends_tag_window.seconds)
+    end
   end
 
   # Top tags for given day, ordered by count desc then tag asc
