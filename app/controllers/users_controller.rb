@@ -176,7 +176,16 @@ class UsersController < ApplicationController
 
   def avatar_menu
     respond_to do |format|
-      format.html { render partial: "layouts/navigation/avatar_menu_full" }
+      format.json do
+        user = CurrentUser.user
+        render json: {
+          has_uploads: user.post_upload_count > 0,
+          has_favorites: user.favorite_count > 0,
+          has_sets: user.set_count > 0,
+          has_comments: user.comment_count > 0,
+          has_forums: user.forum_post_count > 0,
+        }
+      end
     end
   end
 

@@ -799,6 +799,10 @@ class User < ApplicationRecord
       user_status&.ticket_count || 0
     end
 
+    def set_count
+      user_status&.set_count || 0
+    end
+
     ## !DB
     # UserFeedback entries for the user.
     # Preferable to using individual methods below, since these are almost always displayed together.
