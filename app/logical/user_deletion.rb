@@ -36,7 +36,7 @@ class UserDeletion
   end
 
   def create_mod_action
-    ModAction.log(:user_delete, {user_id: user.id})
+    ModAction.log(:user_delete, { user_id: user.id })
   end
 
   def clear_user_settings
@@ -93,9 +93,9 @@ class UserDeletion
     if user.level >= User::Levels::ADMIN
       raise ValidationError, "Admins cannot delete their account"
     end
-    
-    # Additional safety check: prevent deletion of moderators and above via admin deletion
-    if admin_deletion && user.level >= User::Levels::MODERATOR
+
+    # Prevent deletion of staff accounts via admin deletion
+    if admin_deletion && user.level >= User::Levels::JANITOR
       raise ValidationError, "Staff accounts cannot be deleted via admin deletion"
     end
   end
