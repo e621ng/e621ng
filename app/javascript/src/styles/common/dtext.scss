@@ -145,6 +145,14 @@
     .dtext-color-#{$tag-category-name} {
       color: themed("color-tag-#{$tag-category-name}");
     }
+
+    .dtext-sidebar-colored-#{$tag-category} {
+      border-left-color: themed("color-tag-#{$tag-category-name}");
+    }
+
+    .dtext-sidebar-colored-#{$tag-category-name} {
+      border-left-color: themed("color-tag-#{$tag-category-name}");
+    }
   }
 }
 

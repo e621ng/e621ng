@@ -342,6 +342,65 @@ class UserTest < ActiveSupport::TestCase
       end
     end
 
+    context "when searched by flair color" do
+      should "match wildcard hex prefixes" do
+        u1 = create(:user)
+        u2 = create(:user)
+        u3 = create(:user)
+
+        u1.update!(flair_color_hex: "#abcdef")
+        u2.update!(flair_color_hex: "abc123")
+        u3.update!(flair_color_hex: "00ff00")
+
+        # 'abc*' should match both u1 (ABCDEF) and u2 (ABC123), but not u3
+        result_ids = User.search(flair_color_hex: "abc*").pluck(:id)
+        assert_includes(result_ids, u1.id)
+        assert_includes(result_ids, u2.id)
+        assert_not_includes(result_ids, u3.id)
+
+        # '*' should match any non-nil flair_color
+        all_color_ids = User.search(flair_color_hex: "*").pluck(:id)
+        assert_includes(all_color_ids, u1.id)
+        assert_includes(all_color_ids, u2.id)
+        assert_includes(all_color_ids, u3.id)
+      end
+
+      should "ignore wildcard assignment in setter" do
+        u = create(:user)
+        u.flair_color_hex = "abc*"
+        # Should not assign a range; flair_color remains nil
+        assert_nil u.flair_color
+      end
+    end
+
+    context "flair color handling" do
+      setup do
+        @user = create(:user)
+      end
+
+      should "accept hex strings and return hex and rgb values" do
+        @user.flair_color_hex = "#ff8800"
+        assert_equal(0xff8800, @user.flair_color)
+        assert_equal("#ff8800", @user.flair_color_hex)
+        assert_equal([0xff, 0x88, 0x00], @user.flair_color_rgb)
+
+        @user.flair_color_hex = "00ff00"
+        assert_equal(0x00ff00, @user.flair_color)
+        assert_equal("#00ff00", @user.flair_color_hex)
+        assert_equal([0x00, 0xff, 0x00], @user.flair_color_rgb)
+      end
+
+      should "handle nil and blank values" do
+        @user.flair_color_hex = ""
+        assert_nil(@user.flair_color)
+        assert_nil(@user.flair_color_hex)
+
+        @user.flair_color_hex = nil
+        assert_nil(@user.flair_color)
+        assert_nil(@user.flair_color_hex)
+      end
+    end
+
     context "when fixing counts" do
       should "not raise" do
         assert_nothing_raised { @user.refresh_counts! }
