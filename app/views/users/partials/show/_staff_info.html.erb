@@ -69,5 +69,12 @@
         <%= link_to "Audit", admin_user_dmails_path(user) %>
       </span>
     <% end %>
+
+    <% if CurrentUser.is_bd_staff? && !user.is_staff? && !user.name.match?(/\Auser_#{user.id}~*\z/) %>
+      <h4>Delete User</h4>
+      <span>
+        <%= link_to "Delete", anonymize_admin_user_path(user) %>
+      </span>
+    <% end %>
   </div>
 </div>

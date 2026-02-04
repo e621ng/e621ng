@@ -14,6 +14,8 @@ Rails.application.routes.draw do
         post :update_blacklist
         get :request_password_reset
         post :password_reset
+        get :anonymize
+        post :anonymize, action: :anonymize_confirm
       end
       collection do
         get :alt_list
