@@ -35,7 +35,7 @@ class PostsController < ApplicationController
             strip_duplicates_at_level: true,
           )
           tag_tokens = tokens.select { |t| t.present? && t != "(" && t != ")" && t.exclude?(":") }
-          SearchTrend.bulk_increment!(tag_tokens, day: Date.current) if tag_tokens.present?
+          SearchTrend.bulk_increment!(tag_tokens, day: Date.current, ip: request.remote_ip) if tag_tokens.present?
         rescue StandardError => _e
           # Fail open: don't block search page if parsing fails
         end

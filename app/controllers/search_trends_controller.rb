@@ -38,6 +38,18 @@ class SearchTrendsController < ApplicationController
     if params[:trends_min_ratio].present?
       Setting.trends_min_ratio = params[:trends_min_ratio].to_f
     end
+    if params[:trends_ip_limit].present?
+      Setting.trends_ip_limit = params[:trends_ip_limit].to_i
+    end
+    if params[:trends_ip_window].present?
+      Setting.trends_ip_window = params[:trends_ip_window].to_i
+    end
+    if params[:trends_tag_limit].present?
+      Setting.trends_tag_limit = params[:trends_tag_limit].to_i
+    end
+    if params[:trends_tag_window].present?
+      Setting.trends_tag_window = params[:trends_tag_window].to_i
+    end
 
     Cache.delete("rising_tags")
 
