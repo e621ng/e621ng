@@ -24,7 +24,7 @@
   </p>
 </div>
 
-<% if @api_keys.count < CurrentUser.user.api_key_limit %>
+<% if @api_keys.size < CurrentUser.user.api_key_limit %>
   <%= link_to("Create API key", new_api_key_path, class: "button create-api-key") %>
 <% else %>
   <p>You have reached the maximum number of API keys.</p>

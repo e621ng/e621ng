@@ -67,7 +67,7 @@ class ApiKeysController < ApplicationController
   end
 
   def search_params
-    permitted_params = %i[name_matches user_name user_id is_expired order]
+    permitted_params = %i[name_matches is_expired order]
     permit_search_params permitted_params
   end
 end

@@ -91,7 +91,7 @@ class ApiKey < ApplicationRecord
   end
 
   def validate_api_key_limit
-    if user.api_keys.count >= user.api_key_limit
+    if user.api_keys.size >= user.api_key_limit
       errors.add(:base, "API key limit reached")
     end
   end

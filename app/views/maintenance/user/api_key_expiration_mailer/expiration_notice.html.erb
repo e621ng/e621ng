@@ -5,13 +5,13 @@
       <h2>Hi, <%= @user.name %>!</h2>
 
       <p>
-        This is a courtesy email to let your know that one of your API keys is about to expire.
+        This is a courtesy email to let you know that one of your API keys is about to expire.
         Once expired, it will no longer function for authenticating requests to <%= Danbooru.config.app_name %>.
       </p>
 
-      <ul style="font-family: monospace;">
-        <b>API Key:</b> <%= @api_key.name %><br />
-        <b>Expires:</b> <%= @api_key.expires_at&.strftime("%B %d, %Y") %><br />
+      <ul style="font-family: monospace; list-style-type: none;">
+        <li><b>API Key:</b> <%= @api_key.name %></li>
+        <li><b>Expires:</b> <%= @api_key.expires_at&.strftime("%B %d, %Y") %></li>
       </ul>
     </mj-text>
 
