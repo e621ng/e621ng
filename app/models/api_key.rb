@@ -5,6 +5,7 @@ class ApiKey < ApplicationRecord
   validates :name, uniqueness: { scope: :user_id }, presence: true
   validates :key, uniqueness: true
   validate :validate_expiration_date, if: :expires_at?
+  validate :validate_api_key_limit, on: :create
   has_secure_token :key
 
   scope :for_user, ->(user_id) { where(user_id: user_id) }
@@ -84,6 +85,12 @@ class ApiKey < ApplicationRecord
 
     if expires_at <= Time.current
       errors.add(:expires_at, "must be in the future")
+    end
+  end
+
+  def validate_api_key_limit
+    if user.api_keys.count >= user.api_key_limit
+      errors.add(:base, "API key limit reached")
     end
   end
 

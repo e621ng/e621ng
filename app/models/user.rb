@@ -693,6 +693,16 @@ class User < ApplicationRecord
     def statement_timeout
       3_000
     end
+
+    def api_key_limit
+      if is_staff?
+        20
+      elsif is_privileged?
+        10
+      else
+        5
+      end
+    end
   end
 
   module ApiMethods

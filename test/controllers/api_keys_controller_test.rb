@@ -112,6 +112,24 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
         assert_match(/Name can&#39;t be blank/, @response.body)
       end
+
+      should "fail when API key limit is reached" do
+        # Create keys up to the limit
+        limit = @user.api_key_limit
+        (limit - 1).times do |i|
+          create(:api_key, user: @user, name: "key_#{i}")
+        end
+
+        assert_equal(limit, @user.api_keys.count)
+
+        # Try to create one more - should fail
+        assert_no_difference("ApiKey.count") do
+          post_auth(api_keys_path, @user, params: { api_key: { name: "over_limit_key" } })
+        end
+
+        assert_response(:success)
+        assert_match(/API key limit reached/, @response.body)
+      end
     end
 
     context "destroy action" do
