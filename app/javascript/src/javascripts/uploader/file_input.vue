@@ -183,7 +183,10 @@ export default {
         return;
       }
       this.disableFileUpload = true;
-      const domain = $("<a>").prop("href", this.uploadURL).prop("hostname");
+
+      let domain;
+      try { domain = new URL(this.uploadURL).hostname; }
+      catch { domain = ""; }
 
       if (domain && domain !== this.whitelist.oldDomain) {
         $.getJSON("/upload_whitelists/is_allowed.json", {url: this.uploadURL}, data => {
