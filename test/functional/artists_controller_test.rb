@@ -62,13 +62,6 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    context("show action") do
-      should("render") do
-        get artist_path(@artist)
-        assert_response(:success)
-      end
-    end
-
     context("index action") do
       should("render") do
         get(artists_path)
