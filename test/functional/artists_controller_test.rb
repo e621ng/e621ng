@@ -14,6 +14,28 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    context("show action") do
+      should("work") do
+        get artist_path(@artist)
+        assert_response(:success)
+      end
+
+      should("work with name") do
+        get artist_path(id: @artist.name)
+        assert_response(:success)
+      end
+      
+      should("work (json)") do
+        get artist_path(@artist, format: :json)
+        assert_response(:success)
+      end
+
+      should("work with name (json)") do
+        get artist_path(id: @artist.name, format: :json)
+        assert_response(:success)
+      end
+    end
+
     should "get the new page" do
       get_auth new_artist_path, @user
       assert_response :success
