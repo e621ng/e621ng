@@ -223,7 +223,15 @@ class PostFlag < ApplicationRecord
   end
 
   def can_see_note?(user = CurrentUser.user)
-    return true if user.is_staff?
-    creator_id == user.id
+    case Setting.flag_reason_visibility
+    when :all, "all", FLAG_REASON_VISIBILITY_LEVEL_MAP[:all]
+      true
+    when :users, "users", FLAG_REASON_VISIBILITY_LEVEL_MAP[:users]
+      !user.is_anonymous?
+    when :uploader, "uploader", FLAG_REASON_VISIBILITY_LEVEL_MAP[:uploader]
+      post.uploader_id == user.id
+    else
+      false
+    end || user.is_staff? || creator_id == user.id
   end
 end

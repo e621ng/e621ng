@@ -136,7 +136,7 @@ class PostFlagTest < ActiveSupport::TestCase
         end
       end
 
-      should "hide note from API for non-staff users" do
+      should "always reveal note to staff & creator from API" do
         staff_user = create(:moderator_user)
         regular_user = create(:user)
         post = create(:post, uploader: staff_user)
@@ -146,25 +146,89 @@ class PostFlagTest < ActiveSupport::TestCase
           flag = create(:post_flag, post: post, note: "Secret note content")
         end
 
-        # Staff users can see the note
-        as(staff_user) do
-          json = flag.as_json
-          assert_includes json.keys, "note"
-          assert_equal "Secret note content", json["note"]
+        check = -> do
+          # Staff users can see the note
+          as(staff_user) do
+            json = flag.as_json
+            assert_includes json.keys, "note"
+            assert_equal "Secret note content", json["note"]
+          end
+
+          # Creator can see their own note
+          as(regular_user) do
+            json = flag.as_json
+            assert_includes json.keys, "note"
+            assert_equal "Secret note content", json["note"]
+          end
         end
 
-        # Creator can see their own note
-        as(regular_user) do
-          json = flag.as_json
-          assert_includes json.keys, "note"
-          assert_equal "Secret note content", json["note"]
+        unless Danbooru.config.use_settings_for?(:flag_reason_visibility)
+          check.call
+          next
         end
 
-        # Other regular users cannot see the note
+        PostFlag::FLAG_REASON_VISIBILITY_LEVELS.each do |l|
+          Setting.flag_reason_visibility = l
+          check.call
+        end
+      end
+
+      unless Danbooru.config.use_settings_for?(:flag_reason_visibility)
+        should_eventually "BE TESTED WITH `Danbooru.config.use_settings_for?(:flag_reason_visibility)` SET TO `true`" do
+          raise NotImplementedError
+        end
+      end
+
+      should "hide note from API for disallowed users" do
+        staff_user = create(:moderator_user)
+        flagging_user = create(:user)
         other_user = create(:user)
-        as(other_user) do
-          json = flag.as_json
-          assert_not_includes json.keys, "note"
+        uploader = create(:user)
+        post = create(:post, uploader: uploader)
+
+        flag = nil
+        as(flagging_user) do
+          flag = create(:post_flag, post: post, note: "Secret note content")
+        end
+
+        check = ->(user, can = false) do
+          # The user can(not?) see the note
+          as(user) do
+            json = flag.as_json
+            if can
+              assert_includes json.keys, "note"
+              assert_equal "Secret note content", json["note"]
+            else
+              assert_not_includes json.keys, "note"
+            end
+          end
+        end
+
+        collection = Danbooru.config.use_settings_for?(:flag_reason_visibility) ? PostFlag::FLAG_REASON_VISIBILITY_LEVELS : [Danbooru.config.flag_reason_visibility]
+        collection.each do |value|
+          Setting.flag_reason_visibility = value if Danbooru.config.use_settings_for?(:flag_reason_visibility)
+          # Staff users can always see the note
+          check.call(staff_user, true)
+          # Creator can always see their own note
+          check.call(flagging_user, true)
+          case Setting.flag_reason_visibility
+          when :staff # No additional users can see the note
+            check.call(uploader, false)
+            check.call(other_user, false)
+            check.call(User.anonymous, false)
+          when :uploader # The post's uploader can see the note
+            check.call(uploader, true)
+            check.call(other_user, false)
+            check.call(User.anonymous, false)
+          when :users # All users can see the note
+            check.call(uploader, true)
+            check.call(other_user, true)
+            check.call(User.anonymous, false)
+          when :all # Everyone can see the note
+            check.call(uploader, true)
+            check.call(other_user, true)
+            check.call(User.anonymous, true)
+          end
         end
       end
     end
