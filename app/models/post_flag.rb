@@ -6,6 +6,21 @@ class PostFlag < ApplicationRecord
   COOLDOWN_PERIOD = 1.day
   MAPPED_REASONS = Danbooru.config.flag_reasons.to_h { |i| [i[:name], i[:reason]] }
 
+  # The options for who (in addition to the flagger) can see the provided flag reason.
+  #
+  # * `:staff`: Staff members (default)
+  # * `:uploader`: Staff members & the post's uploader
+  # * `:users`: All logged-in users
+  # * `:all`: Everyone
+  FLAG_REASON_VISIBILITY_LEVELS = %i[
+    staff
+    uploader
+    users
+    all
+  ].freeze
+
+  FLAG_REASON_VISIBILITY_LEVEL_MAP = FLAG_REASON_VISIBILITY_LEVELS.map.with_index { |e, i| [e, i] }.to_h.freeze
+
   belongs_to_creator class_name: "User"
   user_status_counter :post_flag_count
   belongs_to :post
