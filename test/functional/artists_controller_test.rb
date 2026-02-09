@@ -44,7 +44,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     end
 
     context("show_or_new action") do
-      should("render for a nonexistant artist") do
+      should("render for a nonexistent artist") do
         get_auth(show_or_new_artists_path(name: "nobody"), @user)
         assert_response(:success)
       end
