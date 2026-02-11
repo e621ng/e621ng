@@ -10,6 +10,8 @@ class UserNameChangeRequest < ApplicationRecord
 
   belongs_to :user
 
+  attr_accessor :skip_limited_validation
+
   def initialize_attributes
     self.user_id ||= CurrentUser.user.id
     self.original_name ||= CurrentUser.user.name
@@ -36,6 +38,7 @@ class UserNameChangeRequest < ApplicationRecord
   end
 
   def not_limited
+    return true if skip_limited_validation == true
     if UserNameChangeRequest.where("user_id = ? and created_at >= ?", CurrentUser.user.id, 1.week.ago).exists?
       errors.add(:base, "You can only submit one name change request per week")
       false

@@ -55,6 +55,7 @@ module Admin
           user_id: @user.id,
           desired_name: desired_username,
           change_reason: "Administrative change",
+          skip_limited_validation: true,
         )
         ModAction.log(:user_name_change, { user_id: @user.id })
       end
