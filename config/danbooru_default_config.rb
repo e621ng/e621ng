@@ -480,6 +480,31 @@ module Danbooru
       true
     end
 
+    # For the given setting, should `Setting` be used, or this config?
+    # ### Parameters
+    # * `setting` [`Symbol`]: The setting to check.
+    # ### Returns
+    # `true` if `Setting` should be used, `false` if it shouldn't, `nil` if it's unaccounted for.
+    def use_settings_for?(setting)
+      case setting
+      when :flag_reason_visibility
+        true
+      end
+    end
+
+    # Who can see the provided flag reason.
+    # ### Returns
+    # One of the values from `PostFlag::FLAG_REASON_VISIBILITY_LEVELS`:
+    # * `:staff`: Only staff members (default)
+    # * `:uploader`: Only staff members & the post's uploader
+    # * `:users`: All logged-in users
+    # * `:all`: Everyone
+    # NOTE: Is overridden by `Setting.flag_reason_visibility` if `use_settings_for?(:flag_reason_visibility)` is `true`.
+    def flag_reason_visibility
+      return Setting.flag_reason_visibility if use_settings_for?(:flag_reason_visibility)
+      :staff
+    end
+
     def flag_reasons
       [
         {

@@ -1,13 +1,27 @@
 # frozen_string_literal: true
 
 class PostFlag < ApplicationRecord
-  class Error < Exception;
-  end
+  class Error < Exception; end
 
-  COOLDOWN_PERIOD = 1.days
-  MAPPED_REASONS = Danbooru.config.flag_reasons.map { |i| [i[:name], i[:reason]] }.to_h
+  COOLDOWN_PERIOD = 1.day
+  MAPPED_REASONS = Danbooru.config.flag_reasons.to_h { |i| [i[:name], i[:reason]] }
 
-  belongs_to_creator :class_name => "User"
+  # The options for who (in addition to the flagger) can see the provided flag reason.
+  #
+  # * `:staff`: Staff members (default)
+  # * `:uploader`: Staff members & the post's uploader
+  # * `:users`: All logged-in users
+  # * `:all`: Everyone
+  FLAG_REASON_VISIBILITY_LEVELS = %i[
+    staff
+    uploader
+    users
+    all
+  ].freeze
+
+  FLAG_REASON_VISIBILITY_LEVEL_MAP = FLAG_REASON_VISIBILITY_LEVELS.map.with_index { |e, i| [e, i] }.to_h.freeze
+
+  belongs_to_creator class_name: "User"
   user_status_counter :post_flag_count
   belongs_to :post
   validate :validate_creator_is_not_limited, on: :create
@@ -142,16 +156,16 @@ class PostFlag < ApplicationRecord
 
   def validate_reason
     case reason_name
-    when 'deletion'
+    when "deletion"
       # You're probably looking at this line as you get this validation failure
       errors.add(:reason, "is not one of the available choices") unless is_deletion
-    when 'inferior'
-      unless parent_post.present?
+    when "inferior"
+      if parent_post.blank?
         errors.add(:parent_id, "must exist")
         return false
       end
       errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
-    when 'uploading_guidelines'
+    when "uploading_guidelines"
       errors.add(:reason, "cannot be used. The post is grandfathered") unless post.flaggable_for_guidelines?
     else
       errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
@@ -168,9 +182,9 @@ class PostFlag < ApplicationRecord
 
   def update_reason
     case reason_name
-    when 'deletion'
+    when "deletion"
       # NOP
-    when 'inferior'
+    when "inferior"
       return unless parent_post
       old_parent_id = post.parent_id
       post.update_column(:parent_id, parent_post.id)
@@ -195,19 +209,29 @@ class PostFlag < ApplicationRecord
 
   def parent_post
     @parent_post ||= begin
-                       Post.where('id = ?', parent_id).first
-                     rescue
-                       nil
-                     end
+      Post.where("id = ?", parent_id).first
+    rescue
+      nil
+    end
   end
 
+  # Creates an appropriate `PostEvent` unless this is a deletion.
+  #
+  # NOTE: Deletions also create flags, but they create a deletion event instead
   def create_post_event
-    # Deletions also create flags, but they create a deletion event instead
     PostEvent.add(post.id, CurrentUser.user, :flag_created, { reason: reason }) unless is_deletion
   end
 
   def can_see_note?(user = CurrentUser.user)
-    return true if user.is_staff?
-    creator_id == user.id
+    case Setting.flag_reason_visibility
+    when :all, "all", FLAG_REASON_VISIBILITY_LEVEL_MAP[:all]
+      true
+    when :users, "users", FLAG_REASON_VISIBILITY_LEVEL_MAP[:users]
+      !user.is_anonymous?
+    when :uploader, "uploader", FLAG_REASON_VISIBILITY_LEVEL_MAP[:uploader]
+      post.uploader_id == user.id
+    else
+      false
+    end || user.is_staff? || creator_id == user.id
   end
 end

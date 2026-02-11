@@ -222,6 +222,7 @@ class StaticController < ApplicationController
       add_link[:admin, "Security", security_root_path]
       add_link[:admin, "Alt list", alt_list_admin_users_path]
       add_link[:admin, "SideKiq", sidekiq_path]
+      add_link[:admin, "Settings", admin_settings_path] if CurrentUser.is_bd_staff?
     end
 
     add_link[:admin, "Reowner", new_admin_reowner_path] if CurrentUser.is_bd_staff?
