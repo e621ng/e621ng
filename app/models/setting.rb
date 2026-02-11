@@ -14,7 +14,7 @@ class Setting < RailsSettings::Base
           raise ArgumentError, "Must provide a Hash for 'options[:map]'." unless options.is_a?(Hash) && options[:map].is_a?(Hash)
           default_proc = ->(hash, key) do
             begin
-              EnumField.coerce(key, throw_on_failure: true) { |v| hash.include?(v) }
+              hash[EnumField.coerce(key, throw_on_failure: true) { |v| hash.include?(v) }]
             rescue ArgumentError
               raise ArgumentError, "Invalid value; No '#{key}' key in hash.\n#{hash}"
             end
@@ -92,7 +92,7 @@ class Setting < RailsSettings::Base
           # `invert` doesn't copy the default
           inverted.default_proc = ->(hash, k) do
             begin
-              EnumField.coerce(k, throw_on_failure: true) { |v| hash.include?(v) }
+              hash[EnumField.coerce(k, throw_on_failure: true) { |v| hash.include?(v) }]
             rescue ArgumentError
               raise ArgumentError, "Invalid value; No '#{k}' key in hash.\n#{hash}"
             end
