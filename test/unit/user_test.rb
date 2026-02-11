@@ -184,13 +184,13 @@ class UserTest < ActiveSupport::TestCase
         # U+2007: https://en.wikipedia.org/wiki/Figure_space
         user = build(:user, name: "foo\u2007bar")
         user.save
-        assert_equal(["Name must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"], user.errors.full_messages)
+        assert_equal(["Name must contain only alphanumeric characters, hyphens, apostrophes, tildes and underscores"], user.errors.full_messages)
       end
 
       should "not contain a colon" do
         user = build(:user, name: "a:b")
         user.save
-        assert_equal(["Name must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"], user.errors.full_messages)
+        assert_equal(["Name must contain only alphanumeric characters, hyphens, apostrophes, tildes and underscores"], user.errors.full_messages)
       end
 
       should "not begin with an underscore" do

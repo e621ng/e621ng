@@ -5,12 +5,12 @@ class UserNameChangeRequest < ApplicationRecord
   after_create :apply!
 
   validates :original_name, :desired_name, presence: true
-  validates :desired_name, user_name: { user_id: ->(rec) { rec.user_id } }
+  validates :desired_name, user_name: { user_id: ->(rec) { rec.user_id } }, unless: :skip_user_name_validation
   validate :not_limited, on: :create
 
   belongs_to :user
 
-  attr_accessor :skip_limited_validation
+  attr_accessor :skip_limited_validation, :skip_user_name_validation
 
   def initialize_attributes
     self.user_id ||= CurrentUser.user.id
@@ -19,8 +19,6 @@ class UserNameChangeRequest < ApplicationRecord
 
   def self.search(params)
     q = super
-
-    q = q.where_user(:user_id, :current, params)
 
     if params[:original_name].present?
       q = q.where_ilike(:original_name, User.normalize_name(params[:original_name]))

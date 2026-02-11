@@ -27,7 +27,7 @@ class UserNameChangeRequestsController < ApplicationController
     if @change_request.errors.any?
       render action: "new"
     else
-      redirect_to user_path(@change_request.user), notice: "Your name has been changed"
+      redirect_to user_name_change_request_path(@change_request), notice: "Your name has been changed"
     end
   end
 

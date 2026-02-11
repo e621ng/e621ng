@@ -4,6 +4,9 @@ class UserNameValidator < ActiveModel::EachValidator
   def validate_each(rec, attr, value)
     name = value
 
+    # Should be handled by presence validator instead
+    return if name.blank?
+
     # For User model, check against rec.id
     # For other models (like UserNameChangeRequest), check against the user_id option
     user_id = rec.is_a?(User) ? rec.id : options[:user_id]&.call(rec)
