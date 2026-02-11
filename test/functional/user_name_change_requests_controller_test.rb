@@ -115,7 +115,7 @@ class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
 
       should "require authentication" do
         get user_name_change_request_path(@change_request)
-        assert_redirected_to(/session\/new/)
+        assert_redirected_to(%r{session/new})
       end
     end
 
@@ -146,7 +146,7 @@ class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
 
       should "require authentication" do
         get user_name_change_requests_path
-        assert_redirected_to(/session\/new/)
+        assert_redirected_to(%r{session/new})
       end
     end
 
@@ -186,7 +186,7 @@ class UserNameChangeRequestsControllerTest < ActionDispatch::IntegrationTest
         assert_no_difference(-> { UserNameChangeRequest.count }) do
           delete user_name_change_request_path(@change_request)
         end
-        assert_redirected_to(/session\/new/)
+        assert_redirected_to(%r{session/new})
       end
     end
   end

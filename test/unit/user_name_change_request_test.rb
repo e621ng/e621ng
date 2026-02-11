@@ -46,7 +46,7 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
       end
 
       should "reject desired names that already exist" do
-        existing_user = create(:user, name: "taken")
+        create(:user, name: "taken")
         request = UserNameChangeRequest.new(desired_name: "taken")
         assert_not request.valid?
         assert_includes request.errors[:desired_name], "already exists"
@@ -119,7 +119,7 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
         as(@u2) { UserNameChangeRequest.create(desired_name: "Alice", skip_limited_validation: true) }
         @u2.reload
 
-        # User 1 takes User 2's old name  
+        # User 1 takes User 2's old name
         as(@u1) { UserNameChangeRequest.create(desired_name: "Bob", skip_limited_validation: true) }
         @u1.reload
 
