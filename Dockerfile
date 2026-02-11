@@ -54,4 +54,4 @@ RUN addgroup --gid ${HOST_GID} e621ng && \
 RUN git config --global --add safe.directory $(pwd)
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-CMD ["overmind", "start"]
+CMD ["overmind", "start", "-s", "/tmp/.overmind.sock"]
