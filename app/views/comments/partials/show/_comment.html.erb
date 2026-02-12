@@ -4,7 +4,12 @@
          data-is-deleted="<%= comment.is_hidden? %>" id="comment-<%= comment.id %>">
   <div class="author-info">
     <div class="name-rank">
-      <h4 class="author-name"><%= link_to_user comment.creator %></h4>
+      <h4 class="author-name">
+        <%= link_to_user comment.creator %> 
+        <% if !post.nil? %>
+          <%= svg_icon(:chexagon, class: "chexagon", title: "Comment by an artist on this post") if comment.post.linked_users.include?(comment.creator_id) %>
+        <% end %>
+      </h4>
       <%= comment.creator.level_string %>
       <% if comment.is_hidden? %>
         (hidden)
