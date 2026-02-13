@@ -172,3 +172,15 @@
     Only show images rated safe.
   </tab-hint>
 </tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="posts" class="inline" search="posts like upvote favourite favourite save star">
+  <tab-head><%= form.label :enable_combined_upvote_and_favorite, "Combined Upvote and Favorite" %></tab-head>
+  <tab-body>
+    <%= form.input_field :enable_combined_upvote_and_favorite, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_combined_upvote_and_favorite, "!", class: "st-toggle", role: "switch" %>
+  </tab-body>
+  <tab-hint>
+    Favoriting a post will also upvote it automatically.
+  </tab-hint>
+</tab-entry>
+
