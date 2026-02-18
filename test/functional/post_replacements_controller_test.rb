@@ -140,6 +140,51 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    context "transfer action" do
+      setup do
+        @upload2 = UploadService.new(attributes_for(:gif_upload).merge({ uploader: @regular_user })).start!
+        @post2 = @upload2.post
+      end
+
+      should "transfer replacement to another post" do
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
+        assert_response :success
+        @replacement.reload
+        assert_equal @post2.id, @replacement.post_id
+        assert_equal @post2.uploader_id, @replacement.uploader_id_on_approve
+      end
+
+      should "not transfer replacement to another post if not pending" do
+        put_auth approve_post_replacement_path(@replacement), @user
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
+        assert_response :precondition_failed
+        @replacement.reload
+        assert_not_equal @post2.id, @replacement.post_id
+      end
+
+      should "not transfer if new post is nil" do
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: nil }
+        assert_response :not_found
+        @replacement.reload
+        assert_not_nil @replacement.post_id
+      end
+
+      should "not transfer if new post is the same as current post" do
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post.id }
+        assert_response :precondition_failed
+      end
+
+      should "not transfer if new post is deleted" do
+        as(@user) do
+          @post2.delete!("test deletion")
+        end
+        put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
+        assert_response :precondition_failed
+        @replacement.reload
+        assert_not_equal @post2.id, @replacement.post_id
+      end
+    end
+
     context "toggle action" do
       should "change penalize_uploader flag" do
         put_auth approve_post_replacement_path(@replacement, penalize_current_uploader: true), @user
