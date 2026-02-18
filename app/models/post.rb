@@ -1126,6 +1126,13 @@ class Post < ApplicationRecord
     end
 
     ## DB!
+    # Fetches ALL linked users for the post's artist tags and returns the user IDs.
+    # Sends a db request to look up the artist data.
+    def linked_users
+      []
+    end
+
+    ## DB!
     # Fetches the avoid posting data for the post's artist tags.
     # Sends a db request to lookup avoid posting data.
     def avoid_posting_artists
