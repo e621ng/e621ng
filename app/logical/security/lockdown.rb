@@ -84,7 +84,7 @@ module Security
       Setting.uploads_min_level = min_upload_level
     end
 
-    # Hiding pending posts
+    # `Integer`:&nbsp; The number of hours pending posts should be hidden for.
     def self.hide_pending_posts_for
       Setting.hide_pending_posts_for
     end
