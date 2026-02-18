@@ -7,7 +7,7 @@
       <h4 class="author-name">
         <%= link_to_user comment.creator %> 
         <% if !post.nil? %>
-          <%= svg_icon(:chexagon, class: "chexagon", title: "Comment by an artist on this post") if comment.post.linked_users.include?(comment.creator_id) %>
+          <%= svg_icon(:chexagon, class: "chexagon", title: "Comment by an artist on this post") if post.linked_users.include?(comment.creator_id) %>
         <% end %>
       </h4>
       <%= comment.creator.level_string %>
