@@ -285,7 +285,15 @@ module Danbooru
       30
     end
 
-    def ticket_limit
+    def ticket_hourly_limit
+      5
+    end
+
+    def ticket_daily_limit
+      15
+    end
+
+    def ticket_active_limit
       30
     end
 
