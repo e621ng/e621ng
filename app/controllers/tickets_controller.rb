@@ -14,6 +14,7 @@ class TicketsController < ApplicationController
     @ticket = Ticket.new(qtype: params[:qtype], disp_id: params[:disp_id])
     @existing_similar = Ticket
                         .visible(CurrentUser.user)
+                        .where(creator_id: CurrentUser.id)
                         .where(qtype: @ticket.qtype)
                         .where(status: "pending")
                         .where("created_at >= ?", 1.week.ago)
