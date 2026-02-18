@@ -723,6 +723,11 @@ module Danbooru
             desktop: { zone: nil },
             mobile: { zone: nil },
           },
+          side: {
+            orientation: :vertical,
+            desktop: { zone: nil },
+            mobile: { zone: nil },
+          },
         },
       }
     end
