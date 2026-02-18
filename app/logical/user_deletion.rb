@@ -14,8 +14,15 @@ class UserDeletion
 
   def delete!
     validate
-    create_name_history
-    rename_user
+
+    original_name = user.name
+    final_name = calculate_final_name
+
+    # Create name change history if the name will actually change
+    if final_name != original_name
+      create_name_history(original_name, final_name)
+    end
+
     clear_user_settings
     reset_password
     create_mod_action
@@ -24,14 +31,14 @@ class UserDeletion
 
   private
 
-  def create_name_history
+  def create_name_history(original_name, final_name)
     UserNameChangeRequest.create!(
       user_id: user.id,
-      original_name: user.name,
-      desired_name: "user_#{user.id}",
+      original_name: original_name,
+      desired_name: final_name,
       change_reason: admin_deletion ? "Administrative deletion" : "User deletion",
-      status: "approved",
       skip_limited_validation: true,
+      skip_user_name_validation: true,
     )
   end
 
@@ -59,22 +66,25 @@ class UserDeletion
     user.update_columns(password_hash: "", bcrypt_password_hash: "*LK*")
   end
 
-  def rename_user
+  def calculate_final_name
     base_name = "user_#{user.id}"
+
+    # If the user already has the target name, no change needed
+    return user.name if user.name == base_name
+
     name = base_name
     n = 0
 
-    while User.where(name: name).exists? && n < 10
+    while User.where(name: name).where.not(id: user.id).exists? && n < 1000
       n += 1
-      name = base_name + ("~" * n)
+      name = "#{base_name}_#{n}"
     end
 
-    if n >= 10
+    if n >= 1000
       raise ValidationError, "New name could not be found"
     end
 
-    user.update_column(:name, name)
-    user.update_cache
+    name
   end
 
   def validate

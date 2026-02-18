@@ -467,7 +467,7 @@ class User < ApplicationRecord
     def throttle_reason(reason, timeframe = "hourly")
       reasons = {
         REJ_NEWBIE: "can not yet perform this action. Account is too new",
-        REJ_LIMITED: "have reached the #{timeframe} limit for this action",
+        REJ_LIMITED: "reached the #{timeframe} limit for this action",
       }
       reasons.fetch(reason, "unknown throttle reason, please report this as a bug")
     end
@@ -555,8 +555,27 @@ class User < ApplicationRecord
     }, :general_bypass_throttle?, nil)
     create_user_throttle(:post_flag, -> { Danbooru.config.post_flag_limit - PostFlag.for_creator(id).where("created_at > ?", 1.hour.ago).count },
                          :can_approve_posts?, 3.days)
-    create_user_throttle(:ticket, ->{ Danbooru.config.ticket_limit - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, 3.days)
+
+    # Ticket Throttles
+    create_user_throttle(
+      :ticket_hourly,
+      -> { (Danbooru.config.ticket_hourly_limit || Float::INFINITY) - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago).count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+    create_user_throttle(
+      :ticket_daily,
+      -> { (Danbooru.config.ticket_daily_limit || Float::INFINITY) - Ticket.for_creator(id).where("created_at > ?", 1.day.ago).count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+    create_user_throttle(
+      :ticket_active,
+      -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Ticket.for_creator(id).active.count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+
     create_user_throttle(:suggest_tag, -> { Danbooru.config.tag_suggestion_limit - (TagAlias.for_creator(id).where("created_at > ?", 1.hour.ago).count + TagImplication.for_creator(id).where("created_at > ?", 1.hour.ago).count + BulkUpdateRequest.for_creator(id).where("created_at > ?", 1.hour.ago).count) },
                          :is_janitor?, 7.days)
     create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },

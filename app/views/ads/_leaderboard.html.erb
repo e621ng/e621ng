@@ -4,8 +4,16 @@
 <% tag_string ||= "" %>
 
 <% if Danbooru.config.ads_enabled? && Danbooru.config.ads_config[:areas][area].present? %>
-  <div id="ad-leaderboard-<%= area.to_s %>" class="adzone-wrapper">
-    <div class="adzone">
+  <% orientation = Danbooru.config.ads_config[:areas][area][:orientation] || :horizontal %>
+  <div
+    id="ad-leaderboard-<%= area.to_s %>"
+    class="adzone-wrapper"
+    data-zone="<%= area.to_s %>"
+    data-orientation="<%= orientation.to_s %>"
+    data-has-desktop="<%= Danbooru.config.ads_config[:areas][area][:desktop].present? %>"
+    data-has-mobile="<%= Danbooru.config.ads_config[:areas][area][:mobile].present? %>"
+  >
+    <div class="adzone adzone-<%= orientation.to_s %>" id="adzone-<%= area.to_s %>">
       <ins
         id="ad-insert-element-<%= area.to_s %>"
         data-revive-id="<%= Danbooru.config.ads_config[:revive][:id] %>"
