@@ -12,6 +12,17 @@ class TicketsController < ApplicationController
 
   def new
     @ticket = Ticket.new(qtype: params[:qtype], disp_id: params[:disp_id])
+    @existing_similar = Ticket
+                        .visible(CurrentUser.user)
+                        .where({
+                          creator_id: CurrentUser.id,
+                          qtype: @ticket.qtype,
+                          status: "pending",
+                          created_at: 1.week.ago..,
+                        })
+                        .order(created_at: :desc)
+                        .limit(5)
+
     check_new_permission(@ticket)
   end
 

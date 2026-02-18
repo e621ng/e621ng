@@ -22,7 +22,7 @@ class PostFlagTest < ActiveSupport::TestCase
         error = assert_raises(ActiveRecord::RecordInvalid) do
           @post_flag = create(:post_flag, post: @post)
         end
-        assert_match(/You have reached the hourly limit for this action/, error.message)
+        assert_match(/You reached the hourly limit for this action/, error.message)
       end
     end
 
