@@ -717,6 +717,7 @@ module Danbooru
           side: {
             orientation: :vertical,
             desktop: { zone: nil },
+            mobile: { zone: nil },
           },
         },
       }
