@@ -73,6 +73,33 @@ Utility.regexp_escape = function (string) {
   return string.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
+/**
+ * Register on click for the next sibling element of a `.st-collapsible-header`.
+ * @param {MouseEvent} e The event args.
+ */
+Utility.st_collapse_cb_full = function (e) {
+  // HACK: Manually sets up the shrinking animation for browsers that don't support `calc-size()` by manually setting the `height` property.
+  // IDEA: Should it be cleared after expansion?
+  // Is only needed for animated ones, & can only be set on non-collapsed elements.
+  if (e.target.hasAttribute("animated") && !e.target.hasAttribute("collapsed")) {
+    /** @type {HTMLElement} */
+    const t = e.target.nextElementSibling;
+    if (!t.style.height || t.style.height === "") {
+      t.style.height = `${t.clientHeight}px`;
+      // HACK: Prevents race condition on first collapse.
+      setTimeout(() => e.target.toggleAttribute("collapsed"), 10);
+      return;
+    }
+  }
+  e.target.toggleAttribute("collapsed");
+};
+
+Utility.initialize_collapse = function () {
+  for (const element of document.querySelectorAll(".st-collapsible-header")) {
+    element.addEventListener("click", Utility.st_collapse_cb_full);
+  }
+};
+
 $.fn.selectEnd = function () {
   return this.each(function () {
     this.focus();
@@ -88,6 +115,8 @@ $(function () {
   $(window).on("danbooru:error", function (event, msg) {
     Utility.error(msg);
   });
+
+  Utility.initialize_collapse();
 });
 
 export default Utility;
