@@ -1,5 +1,6 @@
 import Utility from "./utility";
 import TextUtils from "./utility/text_util";
+import TextPost from "./utility/text_post.js";
 
 let ForumPost = {};
 
@@ -94,10 +95,17 @@ ForumPost.vote_remove = function (evt) {
   });
 };
 
+/**
+ * Generates a DText-formatted quote of the given text post.
+ *
+ * @todo Pull into a static method on `TextPost`.
+ * @param {Event} e
+ */
 ForumPost.quote = function (e) {
   e.preventDefault();
   const parent = $(e.target).parents("article.forum-post");
   const fpid = parent.data("forum-post-id");
+  const link = TextPost.retrieveOwnUrlSegment(parent);
   $.ajax({
     url: `/forum_posts/${fpid}.json`,
     type: "GET",
@@ -105,7 +113,7 @@ ForumPost.quote = function (e) {
     accept: "text/javascript",
   }).done(function (data) {
     const $textarea = $("#forum_post_body_for_");
-    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
+    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"), link);
     $textarea.selectEnd();
 
     $("#topic-response").show();
