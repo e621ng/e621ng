@@ -150,6 +150,21 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal ["Status must be pending to reject"], @replacement.errors.full_messages
     end
 
+    context "without credit change" do
+      should "update post without changing uploader" do
+        old_md5 = @post.md5
+        @replacement.approve! penalize_current_uploader: true, credit_replacer: false
+        @post.reload
+        assert_not_equal @post.md5, old_md5
+        assert_equal @replacement.image_width, @post.image_width
+        assert_equal @replacement.image_height, @post.image_height
+        assert_equal @replacement.md5, @post.md5
+        assert_not_equal @replacement.creator_id, @post.uploader_id
+        assert_equal @replacement.file_ext, @post.file_ext
+        assert_equal @replacement.file_size, @post.file_size
+      end
+    end
+
     should "retain record of previous uploader" do
       @replacement.reject!
       assert_equal(@post.uploader_id, @replacement.uploader_on_approve.id)
