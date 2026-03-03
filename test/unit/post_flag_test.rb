@@ -136,7 +136,7 @@ class PostFlagTest < ActiveSupport::TestCase
         end
       end
 
-      should "always reveal note to staff & creator from API" do
+      should "reveal note to staff & creator from API" do
         staff_user = create(:moderator_user)
         regular_user = create(:user)
         post = create(:post, uploader: staff_user)
@@ -162,24 +162,47 @@ class PostFlagTest < ActiveSupport::TestCase
           end
         end
 
-        unless Danbooru.config.use_settings_for?(:flag_reason_visibility)
-          check.call
-          next
+        check.call
+      end
+
+      should_eventually "always reveal note to staff & creator from API" do
+        staff_user = create(:moderator_user)
+        regular_user = create(:user)
+        post = create(:post, uploader: staff_user)
+
+        flag = nil
+        as(regular_user) do
+          flag = create(:post_flag, post: post, note: "Secret note content")
         end
 
+        check = -> do
+          # Staff users can see the note
+          as(staff_user) do
+            json = flag.as_json
+            assert_includes json.keys, "note"
+            assert_equal "Secret note content", json["note"]
+          end
+
+          # Creator can see their own note
+          as(regular_user) do
+            json = flag.as_json
+            assert_includes json.keys, "note"
+            assert_equal "Secret note content", json["note"]
+          end
+        end
+
+        # TODO: Look into mocks https://mocha.jamesmead.org/Mocha/Mock.html#stubs-instance_method
+        backup = Danbooru.config
+        Danbooru.config = Danbooru.config.dup
         PostFlag::FLAG_REASON_VISIBILITY_LEVELS.each do |l|
-          Setting.flag_reason_visibility = l
+          Danbooru.config.stubs(:flag_reason_visibility).returns(l)
           check.call
+          Danbooru.config.unstub(:flag_reason_visibility)
         end
+        Danbooru.config = backup
       end
 
-      unless Danbooru.config.use_settings_for?(:flag_reason_visibility)
-        should_eventually "BE TESTED WITH `Danbooru.config.use_settings_for?(:flag_reason_visibility)` SET TO `true`" do
-          raise NotImplementedError
-        end
-      end
-
-      should "hide note from API for disallowed users" do
+      should_eventually "hide note from API for disallowed users" do
         staff_user = create(:moderator_user)
         flagging_user = create(:user)
         other_user = create(:user)
@@ -204,9 +227,11 @@ class PostFlagTest < ActiveSupport::TestCase
           end
         end
 
-        collection = Danbooru.config.use_settings_for?(:flag_reason_visibility) ? PostFlag::FLAG_REASON_VISIBILITY_LEVELS : [Danbooru.config.flag_reason_visibility]
-        collection.each do |value|
-          Setting.flag_reason_visibility = value if Danbooru.config.use_settings_for?(:flag_reason_visibility)
+        # TODO: Look into mocks https://mocha.jamesmead.org/Mocha/Mock.html#stubs-instance_method
+        backup = Danbooru.config
+        Danbooru.config = Danbooru.config.dup
+        PostFlag::FLAG_REASON_VISIBILITY_LEVELS.each do |value|
+          Danbooru.config.stubs(:flag_reason_visibility).returns(value)
           # Staff users can always see the note
           check.call(staff_user, true)
           # Creator can always see their own note
@@ -229,7 +254,9 @@ class PostFlagTest < ActiveSupport::TestCase
             check.call(other_user, true)
             check.call(User.anonymous, true)
           end
+          Danbooru.config.unstub(:flag_reason_visibility)
         end
+        Danbooru.config = backup
       end
     end
   end

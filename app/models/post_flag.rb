@@ -223,7 +223,7 @@ class PostFlag < ApplicationRecord
   end
 
   def can_see_note?(user = CurrentUser.user)
-    case Setting.flag_reason_visibility
+    case Danbooru.config.flag_reason_visibility
     when :all, "all", FLAG_REASON_VISIBILITY_LEVEL_MAP[:all]
       true
     when :users, "users", FLAG_REASON_VISIBILITY_LEVEL_MAP[:users]

@@ -480,18 +480,6 @@ module Danbooru
       true
     end
 
-    # For the given setting, should `Setting` be used, or this config?
-    # ### Parameters
-    # * `setting` [`Symbol`]: The setting to check.
-    # ### Returns
-    # `true` if `Setting` should be used, `false` if it shouldn't, `nil` if it's unaccounted for.
-    def use_settings_for?(setting)
-      case setting
-      when :flag_reason_visibility
-        true
-      end
-    end
-
     # Who can see the provided flag reason.
     # ### Returns
     # One of the values from `PostFlag::FLAG_REASON_VISIBILITY_LEVELS`:
@@ -499,9 +487,7 @@ module Danbooru
     # * `:uploader`: Only staff members & the post's uploader
     # * `:users`: All logged-in users
     # * `:all`: Everyone
-    # NOTE: Is overridden by `Setting.flag_reason_visibility` if `use_settings_for?(:flag_reason_visibility)` is `true`.
     def flag_reason_visibility
-      return Setting.flag_reason_visibility if use_settings_for?(:flag_reason_visibility)
       :staff
     end
 
@@ -806,6 +792,10 @@ module Danbooru
       @custom_configuration ||= CustomConfiguration.new
     end
 
+    if Rails.env.test?
+      attr_writer :custom_configuration
+    end
+
     def env_to_boolean(method, var)
       is_boolean = method.to_s.end_with? "?"
       return true if is_boolean && var.truthy?
@@ -829,4 +819,10 @@ module Danbooru
   end
 
   module_function :config
+
+  if Rails.env.test?
+    attr_writer :config
+
+    module_function :config=
+  end
 end
