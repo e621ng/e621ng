@@ -686,7 +686,7 @@ class User < ApplicationRecord
     end
 
     def favorite_limit
-      Danbooru.config.legacy_favorite_limit.fetch(id, 80_000)
+      Danbooru.config.legacy_favorite_limit.fetch(id, 100_000_000)
     end
 
     def api_regen_multiplier
