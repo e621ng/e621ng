@@ -79,9 +79,9 @@ class FileValidator
       record.errors.add(:base, "video isn't valid")
       return
     end
-    valid_webm = video.container == "matroska,webm" && %w[vp8 vp9].include?(video.video_codec)
+    valid_webm = video.container == "matroska,webm" && %w[vp8 vp9 av1 h264 h265 avc hevc].include?(video.video_codec)
     # In the future, we want to allow "h264".
-    valid_mp4  = video.container == "mov,mp4,m4a,3gp,3g2,mj2" && %w[av1].include?(video.video_codec)
+    valid_mp4  = video.container == "mov,mp4,m4a,3gp,3g2,mj2" && %w[vp8 vp9 av1 h264 h265 avc hevc].include?(video.video_codec)
     unless valid_webm || valid_mp4
       record.errors.add(:base, "video must be WebM with VP8/VP9 or MP4 with AV1, but found #{video.container} with #{video.video_codec}")
     end
