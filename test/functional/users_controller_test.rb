@@ -49,16 +49,29 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
         assert_response :success
         assert_not_nil(json["last_logged_in_at"])
+        assert_not_nil(json["email"])
       end
 
       should "not show hidden attributes to others" do
         @another = create(:user)
 
-        get_auth user_path(@another), @user, params: { format: :json }
+        get_auth user_path(@user), @another, params: { format: :json }
         json = JSON.parse(response.body)
 
         assert_response :success
         assert_nil(json["last_logged_in_at"])
+        assert_nil(json["email"])
+      end
+
+      should "show only the `last_logged_in_at` hidden attribute to admins" do
+        admin = create(:admin_user)
+
+        get_auth user_path(@user), admin, params: { format: :json }
+        json = JSON.parse(response.body)
+
+        assert_response :success
+        assert_not_nil(json["last_logged_in_at"])
+        assert_nil(json["email"])
       end
     end
 
