@@ -53,7 +53,13 @@ CREATE TABLE public.api_keys (
     user_id integer NOT NULL,
     key character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    name character varying NOT NULL,
+    last_used_at timestamp(6) without time zone,
+    last_ip_address inet,
+    last_user_agent text,
+    expires_at timestamp(6) without time zone,
+    notified_at timestamp(6) without time zone
 );
 
 
@@ -1667,8 +1673,35 @@ CREATE TABLE public.posts (
     tag_count integer DEFAULT 0 NOT NULL,
     tag_count_general integer DEFAULT 0 NOT NULL,
     tag_count_artist integer DEFAULT 0 NOT NULL,
-    tag_count_character integer DEFAULT 0 NOT NULL,
+    tag_count_name integer DEFAULT 0 NOT NULL,
     tag_count_copyright integer DEFAULT 0 NOT NULL,
+    tag_count_form integer DEFAULT 0 NOT NULL,
+    tag_count_studio integer DEFAULT 0 NOT NULL,
+    tag_count_category integer DEFAULT 0 NOT NULL,
+    tag_count_genre integer DEFAULT 0 NOT NULL,
+    tag_count_creature integer DEFAULT 0 NOT NULL,
+    tag_count_entity integer DEFAULT 0 NOT NULL,
+    tag_count_demographics integer DEFAULT 0 NOT NULL,
+    tag_count_attire integer DEFAULT 0 NOT NULL,
+    tag_count_garment integer DEFAULT 0 NOT NULL,
+    tag_count_adornment integer DEFAULT 0 NOT NULL,
+    tag_count_role integer DEFAULT 0 NOT NULL,
+    tag_count_hair integer DEFAULT 0 NOT NULL,
+    tag_count_body integer DEFAULT 0 NOT NULL,
+    tag_count_expression integer DEFAULT 0 NOT NULL,
+    tag_count_position integer DEFAULT 0 NOT NULL,
+    tag_count_view integer DEFAULT 0 NOT NULL,
+    tag_count_action integer DEFAULT 0 NOT NULL,
+    tag_count_explicit integer DEFAULT 0 NOT NULL,
+    tag_count_setting integer DEFAULT 0 NOT NULL,
+    tag_count_flora integer DEFAULT 0 NOT NULL,
+    tag_count_object integer DEFAULT 0 NOT NULL,
+    tag_count_substance integer DEFAULT 0 NOT NULL,
+    tag_count_unique integer DEFAULT 0 NOT NULL,
+    tag_count_other integer DEFAULT 0 NOT NULL,
+    tag_count_request integer DEFAULT 0 NOT NULL,
+    tag_count_medium integer DEFAULT 0 NOT NULL,
+    tag_count_group integer DEFAULT 0 NOT NULL,
     file_ext character varying NOT NULL,
     file_size integer NOT NULL,
     image_width integer NOT NULL,
@@ -1680,7 +1713,6 @@ CREATE TABLE public.posts (
     bit_flags bigint DEFAULT 0 NOT NULL,
     tag_count_meta integer DEFAULT 0 NOT NULL,
     locked_tags text,
-    tag_count_species integer DEFAULT 0 NOT NULL,
     tag_count_invalid integer DEFAULT 0 NOT NULL,
     description text DEFAULT ''::text NOT NULL,
     comment_count integer DEFAULT 0 NOT NULL,
@@ -3457,6 +3489,13 @@ ALTER TABLE ONLY public.wiki_pages
 
 
 --
+-- Name: index_api_keys_on_expires_at_and_notified_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_keys_on_expires_at_and_notified_at ON public.api_keys USING btree (expires_at, notified_at) WHERE (expires_at IS NOT NULL);
+
+
+--
 -- Name: index_api_keys_on_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3464,10 +3503,10 @@ CREATE UNIQUE INDEX index_api_keys_on_key ON public.api_keys USING btree (key);
 
 
 --
--- Name: index_api_keys_on_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_api_keys_on_name_and_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_api_keys_on_user_id ON public.api_keys USING btree (user_id);
+CREATE UNIQUE INDEX index_api_keys_on_name_and_user_id ON public.api_keys USING btree (name, user_id);
 
 
 --
@@ -3692,6 +3731,13 @@ CREATE INDEX index_comment_votes_on_user_id ON public.comment_votes USING btree 
 --
 
 CREATE INDEX index_comment_votes_on_user_id_and_id ON public.comment_votes USING btree (user_id, id);
+
+
+--
+-- Name: index_comments_on_created_at_desc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_created_at_desc ON public.comments USING btree (created_at DESC, id DESC);
 
 
 --
@@ -4887,6 +4933,8 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260204011446'),
+('20251127000001'),
 ('20251114015027'),
 ('20251113060711'),
 ('20251106175207'),

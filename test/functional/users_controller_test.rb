@@ -198,5 +198,29 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_equal("body { display:none !important; }", @response.body.strip)
       end
     end
+
+    context("me action") do
+      should("redirect for authenticated html") do
+        get_auth(me_users_path, @user)
+        assert_redirected_to(user_path(@user))
+      end
+
+      should("404 for unauthenticated html") do
+        get(me_users_path)
+        assert_response(:not_found)
+      end
+
+      should("return the correct id for authenticated json") do
+        get_auth(me_users_path(format: :json), @user)
+        assert_response(:success)
+        assert_equal(@user.id, @response.parsed_body["id"])
+      end
+
+      should("return nil id for unauthenticated json") do
+        get(me_users_path(format: :json))
+        assert_response(:success)
+        assert_nil(@response.parsed_body["id"])
+      end
+    end
   end
 end

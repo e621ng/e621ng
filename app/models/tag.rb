@@ -155,10 +155,10 @@ class Tag < ApplicationRecord
         return false
       end
       if cat == "lore"
-        unless name =~ /\A.*_\(lore\)\z/
-          errors.add(:category, "can only be applied to tags that end with '_(lore)'")
-          return false
-        end
+        # unless name =~ /\A.*_\(lore\)\z/
+        #   errors.add(:category, "can only be applied to tags that end with '_(lore)'")
+        #   return false
+        # end
       end
     end
 
@@ -405,11 +405,11 @@ class Tag < ApplicationRecord
   end
 
   def user_can_create_tag?
-    if name =~ /\A.*_\(lore\)\z/ && !CurrentUser.user.is_admin?
-      errors.add(:base, "Can not create lore tags unless admin")
-      errors.add(:name, "is invalid")
-      return false
-    end
+    # if name =~ /\A.*_\(lore\)\z/ && !CurrentUser.user.is_admin?
+    #   errors.add(:base, "Can not create lore tags unless admin")
+    #   errors.add(:name, "is invalid")
+    #   return false
+    # end
     true
   end
 

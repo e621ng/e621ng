@@ -217,7 +217,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  %i[is_bd_staff can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries].each do |role|
+  %i[is_bd_staff is_bd_auditor can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries].each do |role|
     define_method("#{role}_only") do
       user_access_check("#{role}?")
     end
@@ -226,6 +226,12 @@ class ApplicationController < ActionController::Base
   def logged_in_only
     if CurrentUser.is_anonymous?
       access_denied("Must be logged in")
+    end
+  end
+
+  def reject_api_key_auth
+    if CurrentUser.api_key.present?
+      render_expected_error(:forbidden, "This action requires browser authentication")
     end
   end
 

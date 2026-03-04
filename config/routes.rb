@@ -14,6 +14,8 @@ Rails.application.routes.draw do
         post :update_blacklist
         get :request_password_reset
         post :password_reset
+        get :anonymize
+        post :anonymize, action: :anonymize_confirm
       end
       collection do
         get :alt_list
@@ -80,9 +82,12 @@ Rails.application.routes.draw do
       resource :deletion, only: %i[show destroy]
       resource :email_change, only: %i[new create]
       resource :dmail_filter, only: %i[edit update]
-      resource :api_key, only: %i[show update destroy] do
-        post :view
-      end
+    end
+  end
+
+  resources :api_keys, except: %i[edit update] do
+    member do
+      post :regenerate
     end
   end
 
@@ -245,6 +250,7 @@ Rails.application.routes.draw do
     end
   end
   resources :deleted_posts, only: %i[index]
+  resources :p, only: %i[show], controller: "posts_short"
   resources :posts, only: %i[index show update] do
     resources :replacements, only: %i[index new create], controller: "post_replacements"
     resource :votes, controller: "post_votes", only: %i[create destroy]
@@ -316,6 +322,7 @@ Rails.application.routes.draw do
     member do
       get :upload_limit
       get :toggle_uploads
+      post :disable_uploads
       post :flush_favorites
       get :fix_counts
     end
@@ -325,6 +332,9 @@ Rails.application.routes.draw do
       get :search
       get :custom_style
       get :settings
+      get :me
+
+      get :avatar_menu
     end
   end
   resources :user_feedbacks do

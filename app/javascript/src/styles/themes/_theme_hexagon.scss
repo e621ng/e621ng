@@ -89,23 +89,102 @@ body {
   --color-tag-copyright:          #d0d;
   --color-tag-copyright-alt:      #ff5eff;
 
-  --color-tag-character:          #0a0;
-  --color-tag-character-alt:      #2bff2b;
+  --color-tag-name:               #0a0;
+  --color-tag-name-alt:           #2bff2b;
 
-  --color-tag-species:            #ed5d1f;
-  --color-tag-species-alt:        #f6b295;
+  --color-tag-form:            #ed5d1f;
+  --color-tag-form-alt:        #f6b295;
 
-  --color-tag-invalid:            #ff3d3d;
-  --color-tag-invalid-alt:        #{lighten(#ff3d3d, 25%)};
+  --color-tag-studio:            #ff3d3d;
+  --color-tag-studio-alt:        #{lighten(#ff3d3d, 25%)};
 
-  --color-tag-meta:               #fff;
-  --color-tag-meta-alt:           #666;
+  --color-tag-category:               #a200ff;
+  --color-tag-category-alt:           #c300ff;
 
-  --color-tag-lore:               #282;
-  --color-tag-lore-alt:           #5fdb5f;
+  --color-tag-genre:               #282;
+  --color-tag-genre-alt:           #5fdb5f;
+
+  --color-tag-creature:           #ff7f00;
+  --color-tag-creature-alt:       #ffb87f;
+
+  --color-tag-entity:             #ffbf00;
+  --color-tag-entity-alt:         #ffe680;
+
+  --color-tag-demographics:      #ff00bf;
+  --color-tag-demographics-alt:  #ff80e0;
+
+  --color-tag-attire:            #ff69b4;
+  --color-tag-attire-alt:        #ff9fce;
+
+  --color-tag-garment:           #ff1493;
+  --color-tag-garment-alt:       #ff6fb1;
+
+  --color-tag-adornment:         #ff4500;
+  --color-tag-adornment-alt:     #ff9266;
+
+  --color-tag-role:              #1e90ff;
+  --color-tag-role-alt:          #6eaaff;
+
+  --color-tag-hair:              #ffa500;
+  --color-tag-hair-alt:          #ffd580; 
+
+  --color-tag-body:              #ff6347;
+  --color-tag-body-alt:          #ff9b87;
+
+  --color-tag-expression:       #40e0d0;
+  --color-tag-expression-alt:   #8afff7;
+
+  --color-tag-position:        #7b68ee;
+  --color-tag-position-alt:    #b3a9ff;
+
+  --color-tag-view:            #32cd32;
+  --color-tag-view-alt:        #85ff85;
+
+  --color-tag-action:          #ff4500;
+  --color-tag-action-alt:      #ff9266;
+
+  --color-tag-explicit:        #e45f5f;
+  --color-tag-explicit-alt:    #{lighten(#e45f5f, 25%)};
+
+  --color-tag-setting:         #8a2be2;
+  --color-tag-setting-alt:     #b88aff;
+
+  --color-tag-flora:           #228b22;
+  --color-tag-flora-alt:       #66d466; 
+
+  --color-tag-object:          #ff8c00;
+  --color-tag-object-alt:      #ffbf66;
+
+  --color-tag-substance:      #00ced1;
+  --color-tag-substance-alt:  #66f0f2;
+
+  --color-tag-lore:           #dc143c;
+  --color-tag-lore-alt:       #ff6f85;
+
+  --color-tag-unique:         #ff1493;
+  --color-tag-unique-alt:     #ff6fb1;
+
+  --color-tag-other:          #b4c7d9;
+  --color-tag-other-alt:      #2e76b4;
+
+  --color-tag-request:        #6b6b6b;
+  --color-tag-request-alt:    #a8a8a8;
+
+  --color-tag-medium:         #20b2aa;
+  --color-tag-medium-alt:     #66e2dd;
+
+  --color-tag-meta:           #ffffff;
+  --color-tag-meta-alt:       #ffffff;
+
+  --color-tag-invalid:        #ff0000;
+  --color-tag-invalid-alt:    #ff3f3f;
 
   --color-tag-pool:               wheat;
   --color-tag-pool-alt:           #d0b27a;
+
+  --color-tag-group:             #87ceeb;
+  --color-tag-group-alt:         #b3e0ff;
+
 
   // Spoilers
   --color-spoiler-link:           #{$hexagon-color-link};

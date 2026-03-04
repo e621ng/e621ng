@@ -9,9 +9,37 @@
       <a href="#" @click.prevent="findRelated(1)">Artists</a> |
       <a href="#" @click.prevent="findRelated(2)">Contributors</a> |
       <a href="#" @click.prevent="findRelated(3)">Copyrights</a> |
-      <a href="#" @click.prevent="findRelated(4)">Characters</a> |
-      <a href="#" @click.prevent="findRelated(5)">Species</a> |
-      <a href="#" @click.prevent="findRelated(7)">Metatags</a>
+      <a href="#" @click.prevent="findRelated(4)">Names</a> |
+      <a href="#" @click.prevent="findRelated(5)">Forms</a> |
+      <a href="#" @click.prevent="findRelated(6)">Studios</a> |
+      <a href="#" @click.prevent="findRelated(7)">Categories</a> |
+      <a href="#" @click.prevent="findRelated(8)">Genres</a> |
+      <a href="#" @click.prevent="findRelated(9)">Creatures</a> |
+      <a href="#" @click.prevent="findRelated(10)">Entities</a> |
+      <a href="#" @click.prevent="findRelated(11)">Demographics</a> |
+      <a href="#" @click.prevent="findRelated(12)">Attire</a> |
+      <a href="#" @click.prevent="findRelated(13)">Garments</a> |
+      <a href="#" @click.prevent="findRelated(14)">Adornments</a> |
+      <a href="#" @click.prevent="findRelated(15)">Roles</a> |
+      <a href="#" @click.prevent="findRelated(16)">Hair</a> |
+      <a href="#" @click.prevent="findRelated(17)">Body</a>
+      <a href="#" @click.prevent="findRelated(18)">Expressions</a> |
+      <a href="#" @click.prevent="findRelated(19)">Positions</a> |
+      <a href="#" @click.prevent="findRelated(20)">View</a> |
+      <a href="#" @click.prevent="findRelated(21)">Actions</a> |
+      <a href="#" @click.prevent="findRelated(22)">Explicit</a> |
+      <a href="#" @click.prevent="findRelated(23)">Setting</a> |
+      <a href="#" @click.prevent="findRelated(24)">Flora</a> |
+      <a href="#" @click.prevent="findRelated(25)">Objects</a> |
+      <a href="#" @click.prevent="findRelated(26)">Substances</a> |
+      <a href="#" @click.prevent="findRelated(27)">Lore</a> |
+      <a href="#" @click.prevent="findRelated(28)">Unique</a>
+      <a href="#" @click.prevent="findRelated(29)">Other</a> |
+      <a href="#" @click.prevent="findRelated(30)">Requests</a> |
+      <a href="#" @click.prevent="findRelated(31)">Mediums</a>
+      <a href="#" @click.prevent="findRelated(32)">Metatags</a>
+      <a href="#" @click.prevent="findRelated(33)">Invalid</a> |
+      <a href="#" @click.prevent="findRelated(34)">Groups</a>
     </div>
     <div>
       <h3>Related Tags <a href="#" @click.prevent="toggleRelated">{{ relatedText }}</a></h3>

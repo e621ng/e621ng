@@ -12,7 +12,8 @@ class ArtistsController < ApplicationController
     # Only enable COUNT for searches that actually narrow results to avoid expensive queries
     search_params_for_count = search_count_params(
       narrowing: %i[id name group_name any_other_name_like any_name_matches
-                    any_name_or_url_matches url_matches creator_name creator_id],
+                    any_name_or_url_matches url_matches creator_name creator_id
+                    linked_user_id linked_user_name],
       falsy: %i[has_tag],
       truthy: %i[is_linked],
     )
@@ -32,7 +33,7 @@ class ArtistsController < ApplicationController
     if params[:id] =~ /\A\d+\z/
       @artist = Artist.find(params[:id])
     else
-      @artist = Artist.named(name: params[:id])
+      @artist = Artist.named(params[:id])
       unless @artist
         respond_to do |format|
           format.html do
@@ -105,7 +106,7 @@ class ArtistsController < ApplicationController
     if params[:id] =~ /\A\d+\z/
       @artist = Artist.find(params[:id])
     else
-      @artist = Artist.named(name: params[:id])
+      @artist = Artist.named(params[:id])
       raise ActiveRecord::RecordNotFound if @artist.blank?
     end
   end

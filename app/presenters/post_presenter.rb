@@ -111,7 +111,7 @@ class PostPresenter < Presenter
         type_tags = type_tags.map { |tag| tag.match(regexmap)[1] }
       end
 
-      if category == "copyright" && @post.tags_for_category("character").blank?
+      if category == "copyright" && @post.tags_for_category("name").blank?
         type_tags.to_sentence
       else
         formatstr % type_tags.to_sentence

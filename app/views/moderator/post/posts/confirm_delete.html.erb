@@ -57,7 +57,7 @@
       <% else %>
         <a class="button delreason-button" data-text="<%= deletion_reason.gsub(/%(PARENT|OTHER)_ID%/, "%ID%") %>">
           <%= deletion_reason
-                .gsub("%PARENT_ID%", "<input type=\"text\" value=\"" + (@post.parent_id || "").to_s + "\" />")
+                .gsub("%PARENT_ID%", "<input type=\"text\" value=\"" + html_escape((@post.parent_id || "").to_s) + "\" />")
                 .gsub("%OTHER_ID%", "<input type=\"text\" />")
                 .html_safe
           %>

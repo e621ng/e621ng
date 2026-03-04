@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require "zxcvbn"
+require "mail"
 
 class User < ApplicationRecord
-  class Error < Exception ; end
+  class Error < Exception; end
+
   class PrivilegeError < Exception
     attr_accessor :message
 
@@ -14,7 +16,7 @@ class User < ApplicationRecord
 
   module Levels
     Danbooru.config.levels.each do |name, level|
-      const_set(name.upcase.tr(' ', '_'), level)
+      const_set(name.upcase.tr(" ", "_"), level)
     end
   end
 
@@ -71,6 +73,7 @@ class User < ApplicationRecord
     enable_compact_uploader
     replacements_beta
     is_bd_staff
+    is_bd_auditor
   ].freeze
 
   include Danbooru::HasBitFlags
@@ -80,11 +83,12 @@ class User < ApplicationRecord
 
   after_initialize :initialize_attributes, if: :new_record?
 
+  before_validation :normalize_email_address, if: :email_changed?
   validates :email, presence: { if: :enable_email_verification? }
   validates :email, uniqueness: { case_sensitive: false, if: :enable_email_verification? }
-  validates :email, format: { with: /\A.+@[^ ,;@]+\.[^ ,;@]+\z/, if: :enable_email_verification? }
+  validates :email, email_address: true, if: :enable_email_verification?
   validates :email, length: { maximum: 100 }
-  validate :validate_email_address_allowed, on: [:create, :update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
+  validate :validate_email_address_allowed, on: %i[create update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   normalizes :profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") }
   validates :name, user_name: true, on: :create
@@ -112,7 +116,7 @@ class User < ApplicationRecord
   #after_create :notify_sock_puppets
   after_create :create_user_status
 
-  has_one :api_key
+  has_many :api_keys, dependent: :destroy
   has_one :dmail_filter
   has_one :user_status
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
@@ -284,14 +288,14 @@ class User < ApplicationRecord
         return nil unless api_key.is_a?(String) && api_key.dup.force_encoding("UTF-8").valid_encoding?
         return nil if name.blank? || api_key.blank?
 
-        key = ApiKey.where(key: api_key).first
-        return nil if key.nil?
-
         # The find_by(name: name) will not use an index correctly
         user = find_by_name(name)
         return nil if user.nil?
-        return user if key.user_id == user.id
-        nil
+
+        key = user.api_keys.active.find_by(key: api_key)
+        return nil if key.nil?
+
+        [user, key]
       end
 
       def bcrypt(pass)
@@ -393,7 +397,7 @@ class User < ApplicationRecord
     end
 
     def mark_unverified!
-      update_attribute(:email_verification_key, '1')
+      update_attribute(:email_verification_key, "1")
     end
 
     def mark_verified!
@@ -407,10 +411,27 @@ class User < ApplicationRecord
     end
 
     def validate_email_address_allowed
-      if EmailBlacklist.is_banned?(self.email)
-        self.errors.add(:base, "Email address may not be used")
-        return false
+      if EmailBlacklist.is_banned?(email)
+        errors.add(:base, "Email address may not be used")
+        false
       end
+    end
+
+    def normalize_email_address
+      address = email.to_s.strip
+      return if address.blank?
+
+      @email_had_display_name = false # Used in validation later
+      parsed = Mail::Address.new(address)
+      return if parsed.address.nil?
+      @email_had_display_name = true if address != parsed.address
+
+      local, domain = parsed.address.split("@", 2)
+      return if local.nil? || domain.nil?
+
+      self.email = "#{local}@#{domain.downcase}"
+    rescue Mail::Field::ParseError
+      # Do nothing; validation will catch this later
     end
   end
 
@@ -446,7 +467,7 @@ class User < ApplicationRecord
     def throttle_reason(reason, timeframe = "hourly")
       reasons = {
         REJ_NEWBIE: "can not yet perform this action. Account is too new",
-        REJ_LIMITED: "have reached the #{timeframe} limit for this action",
+        REJ_LIMITED: "reached the #{timeframe} limit for this action",
       }
       reasons.fetch(reason, "unknown throttle reason, please report this as a bug")
     end
@@ -534,8 +555,27 @@ class User < ApplicationRecord
     }, :general_bypass_throttle?, nil)
     create_user_throttle(:post_flag, -> { Danbooru.config.post_flag_limit - PostFlag.for_creator(id).where("created_at > ?", 1.hour.ago).count },
                          :can_approve_posts?, 3.days)
-    create_user_throttle(:ticket, ->{ Danbooru.config.ticket_limit - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, 3.days)
+
+    # Ticket Throttles
+    create_user_throttle(
+      :ticket_hourly,
+      -> { (Danbooru.config.ticket_hourly_limit || Float::INFINITY) - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago).count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+    create_user_throttle(
+      :ticket_daily,
+      -> { (Danbooru.config.ticket_daily_limit || Float::INFINITY) - Ticket.for_creator(id).where("created_at > ?", 1.day.ago).count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+    create_user_throttle(
+      :ticket_active,
+      -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Ticket.for_creator(id).active.count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+
     create_user_throttle(:suggest_tag, -> { Danbooru.config.tag_suggestion_limit - (TagAlias.for_creator(id).where("created_at > ?", 1.hour.ago).count + TagImplication.for_creator(id).where("created_at > ?", 1.hour.ago).count + BulkUpdateRequest.for_creator(id).where("created_at > ?", 1.hour.ago).count) },
                          :is_janitor?, 7.days)
     create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },
@@ -672,6 +712,16 @@ class User < ApplicationRecord
     def statement_timeout
       3_000
     end
+
+    def api_key_limit
+      if is_staff?
+        20
+      elsif is_privileged?
+        10
+      else
+        5
+      end
+    end
   end
 
   module ApiMethods
@@ -776,6 +826,10 @@ class User < ApplicationRecord
 
     def ticket_count
       user_status&.ticket_count || 0
+    end
+
+    def set_count
+      user_status&.set_count || 0
     end
 
     ## !DB

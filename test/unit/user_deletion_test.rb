@@ -73,4 +73,43 @@ class UserDeletionTest < ActiveSupport::TestCase
       assert_equal(0, @post.fav_count)
     end
   end
+
+  context "a valid user deletion when user already has target name" do
+    setup do
+      @user = create(:privileged_user, created_at: 2.weeks.ago)
+      # Set the user's name to what the deletion would rename it to
+      @user.update!(name: "user_#{@user.id}")
+      CurrentUser.user = @user
+
+      @deletion = UserDeletion.new(@user, "6cQE!wbA")
+      with_inline_jobs { @deletion.delete! }
+      @user.reload
+    end
+
+    should "not change the name" do
+      assert_equal("user_#{@user.id}", @user.name)
+    end
+
+    should "still reset other attributes" do
+      assert_empty(@user.email)
+      assert_equal(User::Levels::MEMBER, @user.level)
+    end
+  end
+
+  context "a valid user deletion with name collision" do
+    setup do
+      @user = create(:privileged_user, created_at: 2.weeks.ago)
+      # Create another user with the target name to force collision
+      @other_user = create(:user, name: "user_#{@user.id}")
+      CurrentUser.user = @user
+
+      @deletion = UserDeletion.new(@user, "6cQE!wbA")
+      with_inline_jobs { @deletion.delete! }
+      @user.reload
+    end
+
+    should "append number to avoid collision" do
+      assert_equal("user_#{@user.id}_1", @user.name)
+    end
+  end
 end

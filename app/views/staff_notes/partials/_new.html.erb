@@ -1,6 +1,8 @@
+<%# locals: (staff_note: @staff_note, user: @user, hidden: false, url: staff_notes_path(user_id: user.id), required: false) %>
+<%# NOTE: `required` currently does nothing b/c `novalidate` can't be disabled. %>
 <%= error_messages_for :staff_note %>
 
-<%= custom_form_for(staff_note, html: { style: ("display: none;" if local_assigns[:hidden]) }, url: staff_notes_path(user_id: user.id), method: :post) do |f| %>
-  <%= f.input :body, as: :dtext, label: false, allow_color: true %>
+<%= custom_form_for(staff_note, html: { style: ("display: none;" if local_assigns[:hidden]) }, url: url, method: :post) do |f| %>
+  <%= f.input :body, as: :dtext, label: false, allow_color: true, required: required %>
   <%= f.button :submit, "Submit" %>
 <% end %>
