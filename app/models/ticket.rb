@@ -54,11 +54,11 @@ class Ticket < ApplicationRecord
 
     module Comment
       def can_create_for?(user)
-        content&.visible_to?(user)
+        content&.is_accessible?(user, bypass_user_settings: true)
       end
 
       def can_view?(user)
-        (user.is_staff? && content&.visible_to?(user)) || user.is_admin? || (user.id == creator_id)
+        (user.is_staff? && content&.is_accessible?(user, bypass_user_settings: true)) || user.is_admin? || (user.id == creator_id)
       end
     end
 
@@ -217,11 +217,28 @@ class Ticket < ApplicationRecord
 
     def validate_creator_is_not_limited
       return if creator == User.system
-      allowed = creator.can_ticket_with_reason
-      if allowed != true
-        errors.add(:creator, User.throttle_reason(allowed))
+
+      # Hourly limit
+      hourly_allowed = creator.can_ticket_hourly_with_reason
+      if hourly_allowed != true
+        errors.add(:creator, User.throttle_reason(hourly_allowed, "hourly"))
         return false
       end
+
+      # Daily limit
+      daily_allowed = creator.can_ticket_daily_with_reason
+      if daily_allowed != true
+        errors.add(:creator, User.throttle_reason(daily_allowed, "daily"))
+        return false
+      end
+
+      # Active limit
+      active_allowed = creator.can_ticket_active_with_reason
+      if active_allowed != true
+        errors.add(:creator, User.throttle_reason(active_allowed, "active"))
+        return false
+      end
+
       true
     end
 
@@ -271,6 +288,8 @@ class Ticket < ApplicationRecord
       q = q.where_user(:creator_id, :creator, params)
       q = q.where_user(:claimant_id, :claimant, params)
       q = q.where_user(:accused_id, :accused, params)
+
+      q = q.attribute_matches(:disp_id, params[:disp_id])
 
       if params[:qtype].present?
         q = q.where("qtype = ?", params[:qtype])

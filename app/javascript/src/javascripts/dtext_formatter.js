@@ -27,6 +27,8 @@ export default class DTextFormatter {
     "quote",
   ];
 
+  isVueComponent = false;
+
   constructor ($element) {
     this.$wrapper = $element;
     this.$textarea = $element.find("textarea.dtext-formatter-input");
@@ -34,6 +36,7 @@ export default class DTextFormatter {
     this.characterLimit = $element.data("limit") || null;
 
     $element.data("instance", this);
+    this.isVueComponent = this.$textarea.hasClass("dtext-vue");
 
     this.create();
   }
@@ -172,7 +175,14 @@ export default class DTextFormatter {
       textarea.setSelectionRange(newCursorPos, newCursorPos);
     }
 
+    if (this.isVueComponent) this.triggerVueCompatibleEvent(this.$textarea);
     this.$textarea.trigger("input.dtext_formatter").focus();
+  }
+
+  // Vue will not detect jQuery-based event triggers.
+  // Without triggering a native event, Vue's v-model will not update.
+  triggerVueCompatibleEvent ($element) {
+    $element[0].dispatchEvent(new Event("input", {bubbles: true}));
   }
 
   buildPreviewArea () {

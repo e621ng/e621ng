@@ -33,6 +33,10 @@ LStorage.isAvailable = function () {
   return true;
 };
 
+LStorage.has = function (name) {
+  return localStorage.getItem(name) !== null;
+};
+
 // Content that does not belong anywhere else
 LStorage.Site = {
   /** @returns {number} Currently displayed Mascot ID, or 0 if none is selected */
@@ -43,6 +47,17 @@ LStorage.Site = {
 
   /** @returns {boolean} True to enable events, false to opt out */
   Events: ["e6.events", true],
+
+  /** @returns {object} User avatar menu statistics */
+  AvatarMenu: [
+    "e6.avatar.menu", {
+      has_uploads: false,
+      has_favorites: false,
+      has_sets: false,
+      has_comments: false,
+      has_forums: false,
+    },
+  ],
 };
 StorageUtils.bootstrapMany(LStorage.Site);
 

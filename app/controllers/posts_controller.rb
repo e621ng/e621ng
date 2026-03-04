@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PostsController < ApplicationController
+  include JsonResponseHelper
+
   before_action :member_only, except: %i[show show_seq index random]
   before_action :admin_only, only: [:update_iqdb]
   before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
@@ -12,7 +14,7 @@ class PostsController < ApplicationController
       respond_with(@post) do |format|
         format.html { redirect_to post_path(@post) }
         format.json do
-          render json: { post: PostBlueprint.render_as_hash(@post) }
+          render_posts_json(PostBlueprint.render_as_hash(@post))
         end
       end
     else
@@ -39,7 +41,7 @@ class PostsController < ApplicationController
 
       respond_with(@posts) do |format|
         format.json do
-          render json: { posts: PostBlueprint.render_as_hash(@post_set.api_posts) }
+          render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
         end
         format.atom
       end
@@ -58,7 +60,7 @@ class PostsController < ApplicationController
     @has_samples = @post.is_image? || @post.video_sample_list[:has]
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
       @comments = Comment.none
@@ -67,7 +69,7 @@ class PostsController < ApplicationController
 
     respond_with(@post) do |format|
       format.json do
-        render json: { post: PostBlueprint.render_as_hash(@post) }
+        render_posts_json(PostBlueprint.render_as_hash(@post))
       end
     end
   end
@@ -82,7 +84,7 @@ class PostsController < ApplicationController
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
       @comments = Comment.none
@@ -94,7 +96,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { render "posts/show" }
       format.json do
-        render json: { post: PostBlueprint.render_as_hash(@post) }
+        render_posts_json(PostBlueprint.render_as_hash(@post))
       end
     end
   end
@@ -140,6 +142,9 @@ class PostsController < ApplicationController
     raise ActiveRecord::RecordNotFound if @post.nil?
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, q: params[:tags]) }
+      format.json do
+        render_posts_json(PostBlueprint.render_as_hash(@post))
+      end
     end
   end
 
@@ -200,7 +205,7 @@ class PostsController < ApplicationController
       end
 
       format.json do
-        render json: { post: PostBlueprint.render_as_hash(post) }
+        render_posts_json(PostBlueprint.render_as_hash(post))
       end
     end
   end

@@ -2,7 +2,8 @@
 
 class IqdbQueriesController < ApplicationController
   respond_to :html, :json
-  # Show uses POST because it needs a file parameter. This would be GET otherwise.
+  # CSRF is skipped only for read-only image similarity queries that don't modify data.
+  # This enables API access for external tools while the queries themselves are harmless.
   skip_forgery_protection only: :show
   before_action :validate_enabled
 
@@ -25,7 +26,7 @@ class IqdbQueriesController < ApplicationController
       raise ProcessingError, "Invalid URL" unless parsed_url
       whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
       raise ProcessingError, "Not allowed to request content from this URL" unless whitelist_result[0]
-      @matches = IqdbProxy.query_url(search_params[:url], search_params[:score_cutoff])
+      @matches = IqdbProxy.query_url(parsed_url.to_s, search_params[:score_cutoff])
     elsif search_params[:post_id].present?
       raise ProcessingError, "Invalid post_id parameter" unless search_params[:post_id].to_s =~ /\A\d+\z/
       @matches = IqdbProxy.query_post(Post.find_by(id: search_params[:post_id]), search_params[:score_cutoff])
