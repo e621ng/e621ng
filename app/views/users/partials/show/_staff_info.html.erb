@@ -16,8 +16,9 @@
         <%= email_domain_search(user.email) %>
       </span>
 
-      <h4>Last IP</h4>
-      <span><%= link_to_ip(user.last_ip_addr) %></span>
+      <h4>Last IP & Login Time</h4>
+      <%# TODO: nil check for compact_date %>
+      <span><%= link_to_ip(user.last_ip_addr) %> | <%= user.last_logged_in_at ? compact_date(user.last_logged_in_at) : "(none)" %></span>
     <% end %>
 
     <% if CurrentUser.is_moderator? %>
