@@ -285,7 +285,15 @@ module Danbooru
       30
     end
 
-    def ticket_limit
+    def ticket_hourly_limit
+      5
+    end
+
+    def ticket_daily_limit
+      15
+    end
+
+    def ticket_active_limit
       30
     end
 
@@ -563,11 +571,12 @@ module Danbooru
         "Does not meet minimum quality standards (Compression)",
         "Does not meet minimum quality standards (Trivial or low quality edit)",
         "Does not meet minimum quality standards (Bad digitization of traditional media)",
-        "Does not meet minimum quality standards (Photo)",
         "Does not meet minimum quality standards (%OTHER_ID%)",
         "Broken/corrupted file",
         "JPG resaved as PNG",
         "",
+        "Irrelevant to site",
+        "Irrelevant to site (Photo)",
         "Irrelevant to site (Human only)",
         "Irrelevant to site (Screencap)",
         "Irrelevant to site (Zero pictured)",
@@ -722,6 +731,11 @@ module Danbooru
             mobile: { zone: nil },
           },
           bottom: {
+            desktop: { zone: nil },
+            mobile: { zone: nil },
+          },
+          side: {
+            orientation: :vertical,
             desktop: { zone: nil },
             mobile: { zone: nil },
           },
