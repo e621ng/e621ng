@@ -817,14 +817,20 @@ class Post < ApplicationRecord
     def add_automatic_tags(tags)
       return tags unless Danbooru.config.enable_dimension_autotagging?
 
-      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize wide_image tall_image long_image flash webm mp4 long_playtime short_playtime]
+      tags -= %w[thumbnail low_res hi_res ultra_res super_res absurd_res huge_filesize wide_image tall_image long_image flash webm mp4 long_playtime short_playtime widescreen ultrawide superwide]
 
       if has_dimensions?
-        tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
-        tags << "absurd_res" if image_width >= 3200 || image_height >= 2400
-        tags << "hi_res" if image_width >= 1600 || image_height >= 1200
-        tags << "low_res" if image_width <= 500 && image_height <= 500
+        tags << "widescreen" if (image_width.to_f/image_height.to_f) >= 1.49 || (image_width.to_f/image_height.to_f) <= 0.65 # 3:2 or 2:3 with slight wiggle room
+        tags << "ultrawide" if (image_width.to_f/image_height.to_f) >= 2.3 || (image_width.to_f/image_height.to_f) <= 0.43 # 21:9 or 9:21 with slight wiggle room
+        tags << "superwide" if (image_width.to_f/image_height.to_f) >= 2.95 || (image_width.to_f/image_height.to_f) <= 0.32 # 3:1 or 1:3 with slight wiggle room (double widescreen)
+
         tags << "thumbnail" if image_width <= 250 && image_height <= 250
+        tags << "low_res" if image_width <= 500 && image_height <= 500
+        tags << "hi_res" if (image_width >= 1500 && image_height >= 1000) || (image_width >= 1000 && image_height >= 1500) # 1500x1000 or 1000x1500
+        tags << "ultra_res" if (image_width >= 3000 && image_height >= 2000) || (image_width >= 2000 && image_height >= 3000) # 3000x2000 or 2000x3000
+        tags << "super_res" if (image_width >= 6000 && image_height >= 4000) || (image_width >= 4000 && image_height >= 6000) # 6000x4000 or 4000x6000
+        tags << "absurd_res" if (image_width >= 10_000 && image_height >= 6500) || (image_width >= 6500 && image_height >= 10_000) # 10,000x6500 or 6500x10,000
+
 
         if image_width >= 1024 && image_width.to_f / image_height >= 4
           tags << "wide_image"
@@ -839,6 +845,7 @@ class Post < ApplicationRecord
 
       tags << "flash" if is_flash?
       tags << "webm" if is_webm?
+      tags << "mp4" if is_mp4?
 
       tags << "long_playtime" if is_video? && duration >= 30
       tags << "short_playtime" if is_video? && duration < 30
