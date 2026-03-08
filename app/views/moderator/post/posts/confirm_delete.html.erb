@@ -82,6 +82,7 @@
               .gsub("%POST_ID%", @post.id.to_s)
               .gsub("%STAFF_NAME%", CurrentUser.name)
               .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+              .gsub("%UPLOADER_ID%", @post.uploader_id.to_s)
             %>">
             <%= key %>
           </option>

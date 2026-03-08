@@ -33,6 +33,7 @@ module Moderator
             flash[:notice] = "You must directly provide a reason for deletions due to an uploading guidelines flag."
             return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
           end
+          # Pre-replace the reason so it's not found later
           options[:dmail] = options[:dmail].presence&.gsub!("%REASON%", @post.pending_flag.reason)
         end
 
@@ -60,6 +61,7 @@ module Moderator
                 .gsub("%POST_ID%", params[:id].to_s)
                 .gsub("%STAFF_NAME%", CurrentUser.name)
                 .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+                .gsub("%UPLOADER_ID%", @post.uploader_id.to_s)
                 .gsub("%REASON%", params[:reason].to_s),
             })
           end
