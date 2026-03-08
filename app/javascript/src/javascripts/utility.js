@@ -73,12 +73,22 @@ Utility.regexp_escape = function (string) {
   return string.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
+/**
+ * An analogue for Rail's `blank?` method.
+ * @param {*} o The object to check.
+ * @returns `true` for `undefined`, `string`s with non-whitespace characters, and `object`s with either no `length` property or one with a value of `0`.
+ */
 Utility.blank = function (o) {
-  if (o === 0 || o === false) return false;
-  if (!o) return true;
-  if (o.toString().trim().length <= 0) return true;
-  if (!o.length) return true;
-  return false;
+  switch (typeof o) {
+    case "undefined":
+      return true;
+    case "string":
+      return o.trim().length <= 0;
+    case "object":
+      return !o || !o.length;
+    default:
+      return false;
+  }
 };
 
 $.fn.selectEnd = function () {
