@@ -598,6 +598,35 @@ module Danbooru
       "help:replacement_notice"
     end
 
+    # Strings used as templates for the auto-dispatched DMail on post deletion. Replaces the following strings with their values:
+    # * `%POST_ID%`: The id of the deleted post
+    # * `%STAFF_NAME%`: The name of the deleting staff member
+    # * `%STAFF_ID%`: The id of the deleting staff member
+    # * `%REASON%`: The deletion reason
+    def post_deletion_dmail_templates
+      {
+        default: "Post #%POST_ID% was deleted by \"%STAFF_NAME%\":[/users/%STAFF_ID%] for the following reason(s):
+[quote]
+%REASON%
+[/quote]
+
+This is a courtesy notification; you don't need to take further action if you don't want to.
+* If you would like to contest the deletion, you can follow the procedure outlined \"here\":[/help/faq#deleted]
+* If you would like to replace your post with an improved version that fixes the problems that caused this deletion, you can follow the instructions \"here\":[/help/replacements].",
+      }
+    end
+
+    # Pages used as templates for the auto-dispatched DMail on post deletion. Replaces the following strings with their values:
+    # * `$POST_ID`: The id of the deleted post
+    # * `$STAFF_NAME`: The name of the deleting staff member
+    # * `$STAFF_ID`: The id of the deleting staff member
+    # * `$REASON`: The deletion reason
+    def post_deletion_dmail_wiki_pages
+      [
+        "#{app_name}:default_post_deletion_dmail",
+      ]
+    end
+
     # The number of records displayed per page. Posts use `user.per_page` which is configurable by the user
     def records_per_page
       75

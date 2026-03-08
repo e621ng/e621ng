@@ -18,12 +18,22 @@ module Moderator
         @dnp = @post.avoid_posting_artists
       end
 
+      # Deletes the given post
+      # ### Parameters
+      # * `send_message` [`boolean | nil`]: whether or not to send a DMail notifying the uploader of the post's deletion.
       def delete
         @post = ::Post.find(params[:id])
 
-        if params[:reason].blank? && (@post.pending_flag.nil? || params[:from_flag].blank?)
-          flash[:notice] = "You must provide a reason for the deletion"
-          return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
+        # NOTE: Kinda redundant, as it's checked in `Post.delete!`, but wouldn't surface the error to the user otherwise.
+        if params[:reason].blank?
+          if @post.pending_flag.nil? || params[:from_flag].blank?
+            flash[:notice] = "You must provide a reason for the deletion"
+            return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
+          elsif @post.pending_flag.reason =~ /uploading_guidelines/
+            flash[:notice] = "You must directly provide a reason for deletions due to an uploading guidelines flag."
+            return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
+          end
+          options[:dmail] = options[:dmail].presence&.gsub!("%REASON%", @post.pending_flag.reason)
         end
 
         if params[:commit] == "Delete"
@@ -40,6 +50,18 @@ module Moderator
             end
 
             @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present? || params[:move_favorites].present?
+          end
+
+          if options[:dmail].present?
+            Dmail.create_automated({
+              to_id: @post.uploader.id,
+              title: "Post ##{params[:id]} was deleted",
+              body: options[:dmail]
+                .gsub("%POST_ID%", params[:id].to_s)
+                .gsub("%STAFF_NAME%", CurrentUser.name)
+                .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+                .gsub("%REASON%", params[:reason].to_s),
+            })
           end
         end
 

@@ -32,6 +32,12 @@
       </div>
     <% end %>
 
+    <label for="send-dmail">Send Dmail?<input type="checkbox" name="send-dmail" id="send-dmail"></label>
+    <%# TODO: Figure out using <%= f.input :dmail, as: :dtext, limit: Danbooru.config.dmail_max_size %>
+    <div class="dtext-formatter pending" data-color="true" data-limit="<%= Danbooru.config.dmail_max_size %>">
+      <textarea class="dtext dtext-formatter-input dtext dtext-formatter-input" cols="80" rows="10" id="dmail_for_" name="dmail"></textarea>
+    </div>
+
     <%= submit_tag "Delete" %>
     <%= submit_tag "Cancel" %>
     <%= button_tag "Clear", :type => "button", :id => "delreason-clear" %>
@@ -64,6 +70,24 @@
         </a>
       <% end %>
     <% end %>
+  </div>
+
+  <div id="del-dmail-prebuilt" class="simple_form">
+    <b>DMail</b>
+    <select id="del-dmail-template">
+      <% Danbooru.config.post_deletion_dmail_templates.each_pair do |key, message| %>
+        <% unless message.nil? || message.empty? %>
+          <option class="button del-dmail-button" value="<%= 
+            message
+              .gsub("%POST_ID%", @post.id.to_s)
+              .gsub("%STAFF_NAME%", CurrentUser.name)
+              .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+            %>">
+            <%= key %>
+          </option>
+        <% end %>
+      <% end %>
+    </select>
   </div>
 </div>
 

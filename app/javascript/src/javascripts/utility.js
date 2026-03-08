@@ -73,6 +73,14 @@ Utility.regexp_escape = function (string) {
   return string.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
+Utility.blank = function (o) {
+  if (o === 0 || o === false) return false;
+  if (!o) return true;
+  if (o.toString().trim().length <= 0) return true;
+  if (!o.length) return true;
+  return false;
+};
+
 $.fn.selectEnd = function () {
   return this.each(function () {
     this.focus();
