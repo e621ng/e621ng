@@ -757,7 +757,7 @@ class User < ApplicationRecord
           statement_timeout favorite_limit
           tag_query_limit has_mail? unread_dmail_count
         ]
-      # Expose logged-in time to admin.
+      # Expose logged-in time to admins.
       elsif CurrentUser.is_admin?
         list << :last_logged_in_at
       end
