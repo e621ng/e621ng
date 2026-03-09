@@ -9,15 +9,21 @@ module DiscordReport
     def report
       current_stats = stats
       previous_pending_posts = Cache.redis.get("janitor_reports:previous_pending_posts") || current_stats[:pending][:posts]
+      previous_pending_replacements = Cache.redis.get("janitor_reports:previous_pending_replacements") || current_stats[:pending][:replacements]
+      previous_pending_flags = Cache.redis.get("janitor_reports:previous_pending_flags") || current_stats[:pending][:flags]
       Cache.redis.set("janitor_reports:previous_pending_posts", current_stats[:pending][:posts])
+      Cache.redis.set("janitor_reports:previous_pending_replacements", current_stats[:pending][:replacements])
+      Cache.redis.set("janitor_reports:previous_pending_flags", current_stats[:pending][:flags])
 
-      diff = current_stats[:pending][:posts] - previous_pending_posts.to_i
+      diff_posts = current_stats[:pending][:posts] - previous_pending_posts.to_i
+      diff_replacements = current_stats[:pending][:replacements] - previous_pending_replacements.to_i
+      diff_flags = current_stats[:pending][:flags] - previous_pending_flags.to_i
       <<~REPORT.chomp
         Janitor report for <t:#{Time.now.to_i}:D>
         Currently, there are:
-        #{formatted_number(current_stats[:pending][:posts])} pending posts. That is #{more_fewer(diff)} than the day before.
-        #{formatted_number(current_stats[:pending][:flags])} pending flags.
-        #{formatted_number(current_stats[:pending][:replacements])} pending replacements.
+        #{formatted_number(current_stats[:pending][:posts])} pending posts. That is #{more_fewer(diff_posts)} than the day before.
+        #{formatted_number(current_stats[:pending][:flags])} pending flags. That is #{more_fewer(diff_flags)} than the day before.
+        #{formatted_number(current_stats[:pending][:replacements])} pending replacements. That is #{more_fewer(diff_replacements)} than the day before.
 
         #{formatted_number(current_stats[:posts])} posts were uploaded yesterday.
 
