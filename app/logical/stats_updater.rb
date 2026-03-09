@@ -50,6 +50,7 @@ class StatsUpdater
     stats[:unactivated_users] = User.where.not(email_verification_key: nil).count
     stats[:total_dmails] = (Dmail.maximum("id") || 0) / 2
     stats[:average_registrations_per_day] = daily_average.call(stats[:total_users])
+    stats[:active_users] = User.where("last_logged_in_at >= ?", 3.months.ago).count
 
     ### Comments ###
 
