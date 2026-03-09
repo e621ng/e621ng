@@ -9,6 +9,8 @@ module DiscordReport
     def report
       current_stats = stats
 
+      # This could be optimized by using a single Redis hash instead of multiple keys.
+      # However, since this runs once per day and the number of keys is small, the performance impact is negligible.
       previous_pending_posts = Cache.redis.get("janitor_reports:previous_pending_posts") || current_stats[:pending][:posts]
       previous_pending_replacements = Cache.redis.get("janitor_reports:previous_pending_replacements") || current_stats[:pending][:replacements]
       previous_pending_flags = Cache.redis.get("janitor_reports:previous_pending_flags") || current_stats[:pending][:flags]
@@ -39,7 +41,7 @@ module DiscordReport
     def stats
       deletions = PostFlag.where(is_deletion: true).where("created_at >= ?", 1.day.ago)
       oldest_pending_post = Post.pending.order(id: :asc).first&.created_at || Time.now
-      oldest_pending_flag = Post.where(is_flagged: true).order(id: :asc).first&.created_at || Time.now
+      oldest_pending_flag = PostFlag.where(is_deletion: false, is_resolved: false).order(id: :asc).first&.created_at || Time.now
       oldest_pending_replacement = PostReplacement.pending.order(id: :asc).first&.created_at || Time.now
       {
         pending: {
