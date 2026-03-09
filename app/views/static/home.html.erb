@@ -30,7 +30,7 @@
 
   <% if news_update = NewsUpdate.recent %>
     <section class="home-section">
-      <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
+      <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, allow_color: true) %></div>
       <div class="previous-news-link"><%= link_to "Click here for previous news", news_updates_path %></div>
     </section>
   <% end %>
