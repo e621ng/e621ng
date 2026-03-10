@@ -14,16 +14,18 @@ class Comment < ApplicationRecord
   validates :body, length: { minimum: 1, maximum: Danbooru.config.comment_max_size }
 
   after_create :update_last_commented_at_on_create
-  after_create :run_automod
-  after_update :run_automod
+  after_destroy :update_last_commented_at_on_destroy
+  after_save :update_last_commented_at_on_destroy, if: ->(rec) { rec.is_hidden? && rec.saved_change_to_is_hidden? }
+
+  after_create_commit :enqueue_automod_check
+  after_update_commit :enqueue_automod_check, if: :saved_change_to_body? # rubocop:disable Rails/AfterCommitOverride
+
   after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
     ModAction.log(:comment_update, { comment_id: rec.id, user_id: rec.creator_id })
   end
-  after_destroy :update_last_commented_at_on_destroy
   after_destroy do |rec|
     ModAction.log(:comment_delete, { comment_id: rec.id, user_id: rec.creator_id })
   end
-  after_save :update_last_commented_at_on_destroy, if: ->(rec) { rec.is_hidden? && rec.saved_change_to_is_hidden? }
   after_save(if: ->(rec) { rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
     action = rec.is_hidden? ? :comment_hide : :comment_unhide
     ModAction.log(action, { comment_id: rec.id, user_id: rec.creator_id })
@@ -313,18 +315,7 @@ class Comment < ApplicationRecord
 
   private
 
-  def run_automod
-    return if Ticket.where(qtype: "comment", disp_id: id).exists?
-    rule = AutomodRule.enabled.find { |r| r.match?(body) }
-    return unless rule
-
-    Ticket.create!(
-      creator_id: User.system.id,
-      creator_ip_addr: "127.0.0.1",
-      disp_id: id,
-      status: "pending",
-      qtype: "comment",
-      reason: "AutoMod: #{rule.name}\n#{rule.description}",
-    )
+  def enqueue_automod_check
+    AutomodCheckJob.perform_later(id)
   end
 end
