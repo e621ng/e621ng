@@ -16,6 +16,7 @@ class Note < ApplicationRecord
   after_save :update_post
   after_save :create_version
   validate :post_must_not_be_note_locked
+  validate :note_not_duplicate
 
   module SearchMethods
     def active
@@ -92,6 +93,11 @@ class Note < ApplicationRecord
       self.errors.add(:note, "must be inside the image")
       return false
     end
+  end
+
+  def note_not_duplicate
+    duplicate = Note.active.where(post_id: post_id, x: x, y: y, width: width, height: height).where.not(id: id).exists?
+    errors.add(:note, "already exists with the same position and size") if duplicate
   end
 
   def is_locked?

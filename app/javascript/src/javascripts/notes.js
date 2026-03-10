@@ -869,6 +869,8 @@ class NoteEditor {
         return false;
       }
 
+      if (this.saving) return false;
+
       this.saveNote();
       return false;
     });
@@ -908,6 +910,14 @@ class NoteEditor {
     if (!this._currentNote || this._currentNote.id !== this.id)
       this._currentNote = Note.getByID(this.id);
     return this._currentNote;
+  }
+
+  _saving = false;
+  get saving () { return this._saving; }
+  set saving (value) {
+    this._saving = value;
+    this.form.find("button[type='submit']").prop("disabled", value);
+    this.form.find("button[name='note-delete']").prop("disabled", value || this.currentNote?.isTemporary);
   }
 
   getCurrentNote () {
@@ -965,6 +975,8 @@ class NoteEditor {
     const note = this.currentNote;
     if (!note) return;
 
+    this.saving = true;
+
     const url = note.isTemporary ? "/notes.json" : `/notes/${this.id}.json`;
     const method = note.isTemporary ? "POST" : "PUT";
 
@@ -990,6 +1002,7 @@ class NoteEditor {
       type: method,
       data: { note: noteData },
       error: (xhr) => {
+        this.saving = false;
         const errorMessage = xhr.responseJSON?.reasons?.join("; ") || xhr.responseJSON?.reason || "Unknown error";
         Utility.error("Error saving note: " + errorMessage);
       },
@@ -1031,6 +1044,7 @@ class NoteEditor {
           $(window).trigger("e621:add_deferred_posts", data.posts);
         }
 
+        this.saving = false;
         this.close();
       },
     });
@@ -1087,6 +1101,7 @@ class NoteEditor {
     $(".note-box.focused").removeClass("focused");
 
     // Clean up editor state
+    this.saving = false;
     this.dialog.setTitle("");
     this.input.val("");
     this.form.removeClass("temporary");
