@@ -10,7 +10,7 @@ class AutomodRule < ApplicationRecord
   scope :enabled, -> { where(enabled: true) }
 
   def match?(text)
-    Regexp.new(regex).match?(text)
+    Regexp.new(Regexp.escape(regex), Regexp::IGNORECASE).match?(text)
   rescue RegexpError
     false
   end

@@ -324,7 +324,7 @@ class Comment < ApplicationRecord
       disp_id: id,
       status: "pending",
       qtype: "comment",
-      reason: "AutoMod: #{rule.name}",
+      reason: "AutoMod: #{rule.name}\n#{rule.description}",
     )
   end
 end

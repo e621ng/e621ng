@@ -4,8 +4,6 @@
   <div id="a-index">
     <h1>Automod Rules</h1>
 
-    <%= link_to "New Rule", new_admin_automod_rule_path, class: "button" %>
-
     <table class="striped">
       <thead>
         <tr>
@@ -40,6 +38,8 @@
       </tbody>
     </table>
 
-    <%= paginate(@automod_rules) %>
+    <%= render PaginatorComponent.new(records: @automod_rules) %>
   </div>
 </div>
+
+<%= render "secondary_links" %>

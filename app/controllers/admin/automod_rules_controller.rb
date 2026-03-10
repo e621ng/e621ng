@@ -14,21 +14,22 @@ module Admin
       @automod_rule = AutomodRule.new
     end
 
+    def edit
+    end
+
     def create
       @automod_rule = AutomodRule.new(automod_rule_params)
       @automod_rule.creator = CurrentUser.user
       if @automod_rule.save
-        redirect_to admin_automod_rules_path, notice: "Automod rule created."
+        redirect_to admin_automod_rules_path, notice: "Automod rule created"
       else
         render :new
       end
     end
 
-    def edit; end
-
     def update
       if @automod_rule.update(automod_rule_params)
-        redirect_to admin_automod_rules_path, notice: "Automod rule updated."
+        redirect_to admin_automod_rules_path, notice: "Automod rule updated"
       else
         render :edit
       end
@@ -36,7 +37,7 @@ module Admin
 
     def destroy
       @automod_rule.destroy
-      redirect_to admin_automod_rules_path, notice: "Automod rule deleted."
+      redirect_to admin_automod_rules_path, notice: "Automod rule deleted"
     end
 
     private
