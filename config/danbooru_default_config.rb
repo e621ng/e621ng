@@ -598,7 +598,8 @@ module Danbooru
       "help:replacement_notice"
     end
 
-    # Strings used as templates for the auto-dispatched DMail on post deletion. Replaces the following strings with their values:
+    # Strings used as templates for the optional notification DMail to uploaders on post deletion.
+    # Replaces the following strings with their values:
     # * `%POST_ID%`: The id of the deleted post
     # * `%STAFF_NAME%`: The name of the deleting staff member
     # * `%STAFF_ID%`: The id of the deleting staff member
@@ -606,7 +607,9 @@ module Danbooru
     # * `%REASON%`: The deletion reason
     def post_deletion_dmail_templates
       {
-        default: "Post #%POST_ID% was deleted by \"%STAFF_NAME%\":[/users/%STAFF_ID%] for the following reason(s):
+        default: {
+          title: "Post #%POST_ID% has been deleted",
+          body: "Post #%POST_ID% was deleted by \"%STAFF_NAME%\":[/users/%STAFF_ID%] for the following reason(s):
 [quote]
 %REASON%
 [/quote]
@@ -616,6 +619,7 @@ This is a courtesy notification; you don't need to take further action if you do
 If you would like to contest the deletion, you can follow the procedure outlined \"here\":[/help/faq#deleted]
 
 You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at anytime by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
+        },
       }
     end
 
