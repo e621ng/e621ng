@@ -11,16 +11,16 @@ PostDeletion.init = function () {
   const cBox = document.querySelector("input#send-dmail"),
     /** @type {HTMLSelectElement} */
     dMailTemplate = document.querySelector("select#del-dmail-template"),
-    /** @type {HTMLDivElement} */
-    message = document.querySelector(":has(#send-dmail) + .dtext-formatter"),
+    /** @type {HTMLElement} */
+    message = document.querySelector("label[for=send-dmail] ~ .dtext-formatter"),
     /** @type {JQuery<HTMLTextAreaElement>} */
     dMailTextArea = $(message).children("textarea.dtext-formatter-input");
   function updateDMailActivation () {
     if (cBox.checked) {
-      message.style = "";
+      message.style = dMailTemplate.parentElement.style = "";
       dMailTextArea.removeAttr("disabled");
     } else {
-      message.style = " display: none;";
+      message.style = dMailTemplate.parentElement.style = " display: none;";
       dMailTextArea.attr("disabled", "disabled");
     }
   }
