@@ -1,0 +1,11 @@
+<%= custom_form_for(@automod_rule, url: @automod_rule.new_record? ? admin_automod_rules_path : admin_automod_rule_path(@automod_rule)) do |f| %>
+  <%= f.input :name %>
+  <%= f.input :description %>
+  <%= f.input :regex, label: "Regex Pattern", hint: "Ruby regular expression (case-sensitive). Example: (?i)spam|scam" %>
+  <div class="input boolean optional">
+    <label class="block" for="automod_rule_enabled">Enabled</label>
+    <%= select_tag("automod_rule[enabled]", options_for_select([["Yes", true], ["No", false]], @automod_rule.enabled?)) %>
+  </div>
+
+  <%= f.submit %>
+<% end %>

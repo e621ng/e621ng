@@ -14,6 +14,8 @@ class Comment < ApplicationRecord
   validates :body, length: { minimum: 1, maximum: Danbooru.config.comment_max_size }
 
   after_create :update_last_commented_at_on_create
+  after_create :run_automod
+  after_update :run_automod
   after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
     ModAction.log(:comment_update, { comment_id: rec.id, user_id: rec.creator_id })
   end
@@ -307,5 +309,22 @@ class Comment < ApplicationRecord
 
   def unhide!
     update(is_hidden: false)
+  end
+
+  private
+
+  def run_automod
+    return if Ticket.where(qtype: "comment", disp_id: id).exists?
+    rule = AutomodRule.enabled.find { |r| r.match?(body) }
+    return unless rule
+
+    Ticket.create!(
+      creator_id: User.system.id,
+      creator_ip_addr: "127.0.0.1",
+      disp_id: id,
+      status: "pending",
+      qtype: "comment",
+      reason: "AutoMod: #{rule.name}",
+    )
   end
 end
