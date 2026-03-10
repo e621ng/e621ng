@@ -17,8 +17,8 @@ class Comment < ApplicationRecord
   after_destroy :update_last_commented_at_on_destroy
   after_save :update_last_commented_at_on_destroy, if: ->(rec) { rec.is_hidden? && rec.saved_change_to_is_hidden? }
 
-  after_create_commit :enqueue_automod_check
-  after_update_commit :enqueue_automod_check, if: :saved_change_to_body? # rubocop:disable Rails/AfterCommitOverride
+  after_create_commit :enqueue_automod_create_check
+  after_update_commit :enqueue_automod_update_check, if: :saved_change_to_body?
 
   after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && CurrentUser.id != rec.creator_id }) do |rec|
     ModAction.log(:comment_update, { comment_id: rec.id, user_id: rec.creator_id })
@@ -315,7 +315,11 @@ class Comment < ApplicationRecord
 
   private
 
-  def enqueue_automod_check
+  def enqueue_automod_create_check
+    AutomodCheckJob.perform_later(id)
+  end
+
+  def enqueue_automod_update_check
     AutomodCheckJob.perform_later(id)
   end
 end
