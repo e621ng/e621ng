@@ -7,5 +7,10 @@
     <%= select_tag("automod_rule[enabled]", options_for_select([["Yes", true], ["No", false]], @automod_rule.enabled?)) %>
   </div>
 
-  <%= f.submit %>
+  <div style="margin: 1rem;">
+    Automod rules are checked against new and edited comments in the order they are listed.<br />
+    If a comment matches a rule, a ticket will be automatically created for a moderator to review.
+  </div>
+
+  <%= f.submit class: "st-button submit" %>
 <% end %>
