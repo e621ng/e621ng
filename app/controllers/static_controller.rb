@@ -211,6 +211,7 @@ class StaticController < ApplicationController
 
     if CurrentUser.is_admin?
       add_link[:admin, "Admin Dashboard", admin_dashboard_path]
+      add_link[:admin, "AutoMod Rules", admin_automod_rules_path]
       add_link[:admin, "Forum Categories", forum_categories_path]
       add_link[:admin, "IP Addresses", moderator_ip_addrs_path]
       add_link[:admin, "IP Bans", ip_bans_path]
