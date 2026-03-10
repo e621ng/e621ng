@@ -40,7 +40,7 @@
       DMail Template
       <select id="del-dmail-template">
         <% Danbooru.config.post_deletion_dmail_templates.each_pair do |key, message| %>
-          <% if message && message[:body].present? %>
+          <% if message.is_a?(Hash) && message[:body].present? %>
             <option class="button del-dmail-button" value="<%= 
               message[:body]
                 .gsub("%POST_ID%", @post.id.to_s)
