@@ -33,7 +33,7 @@
     <% end %>
 
     <label for="send-dmail">
-      Send Dmail? <input type="checkbox" name="send-dmail" id="send-dmail" />
+      Send Dmail? <input type="checkbox" name="send-dmail" id="send-dmail"<%= " checked" if Danbooru.config.enable_post_deletion_dmail %> />
     </label>
 
     <label for="del-dmail-template">

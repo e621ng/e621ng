@@ -623,6 +623,11 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       }
     end
 
+    # If true, the post deletion DMail will be enabled by default.
+    def enable_post_deletion_dmail
+      false
+    end
+
     # The number of records displayed per page. Posts use `user.per_page` which is configurable by the user
     def records_per_page
       75
