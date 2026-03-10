@@ -24,20 +24,21 @@ module Moderator
       def delete
         @post = ::Post.find(params[:id])
 
-        # NOTE: Kinda redundant, as it's checked in `Post.delete!`, but wouldn't surface the error to the user otherwise.
-        if params[:reason].blank?
-          if @post.pending_flag.nil? || params[:from_flag].blank?
-            flash[:notice] = "You must provide a reason for the deletion"
-            return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
-          elsif @post.pending_flag.reason =~ /uploading_guidelines/
-            flash[:notice] = "You must directly provide a reason for deletions due to an uploading guidelines flag."
-            return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
-          end
-          # Pre-replace the reason so it's not found later
-          params[:dmail] = params[:dmail].presence&.gsub!("%REASON%", @post.pending_flag.reason)
-        end
-
         if params[:commit] == "Delete"
+          # Needs to be in here to prevent `Cancel` from getting rejected w/ empty reason.
+          # NOTE: Kinda redundant, as it's checked in `Post.delete!`, but wouldn't surface the error to the user otherwise.
+          if params[:reason].blank?
+            if @post.pending_flag.nil? || params[:from_flag].blank?
+              flash[:notice] = "You must provide a reason for the deletion"
+              return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
+            elsif @post.pending_flag.reason =~ /uploading_guidelines/
+              flash[:notice] = "You must directly provide a reason for deletions due to an uploading guidelines flag."
+              return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
+            end
+            # Pre-replace the reason so it's not found later
+            params[:dmail] = params[:dmail].presence&.gsub!("%REASON%", @post.pending_flag.reason)
+          end
+
           @post.delete!(params[:reason])
 
           # Transfer data to parent
