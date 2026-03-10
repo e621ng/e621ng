@@ -62,8 +62,7 @@ class AutomodRuleTest < ActiveSupport::TestCase
       end
 
       should "return false when the regex is invalid" do
-        rule = build(:automod_rule)
-        rule.instance_variable_set(:@regex, "[invalid")
+        rule = build(:automod_rule, regex: "[invalid")
         assert_not(rule.match?("text"))
       end
     end
