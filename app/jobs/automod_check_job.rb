@@ -5,7 +5,7 @@ class AutomodCheckJob < ApplicationJob
 
   def perform(comment_id)
     comment = Comment.find(comment_id)
-    return if Ticket.where(qtype: "comment", disp_id: comment.id, status: "pending").exists?
+    return if Ticket.active.where(qtype: "comment", disp_id: comment.id).exists?
 
     rule = AutomodRule.enabled.find { |r| r.match?(comment.body) }
     return unless rule
