@@ -2009,6 +2009,7 @@ class Post < ApplicationRecord
     hide_from_anonymous
     hide_from_search_engines
     favorites_transfer_in_progress
+    hide_favorites_list
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
