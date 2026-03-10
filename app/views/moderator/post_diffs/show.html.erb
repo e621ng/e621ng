@@ -1,0 +1,46 @@
+<div id="c-moderator-post-diffs">
+  <div id="a-show">
+    <h1>Post Diff</h1>
+
+    <%= form_tag(moderator_post_diff_path, method: :get, class: "simple_form") do %>
+      <div class="input">
+        <%= label_tag :post_a, "Post A" %>
+        <%= number_field_tag :post_a, params[:post_a], min: 1, placeholder: "Post ID" %>
+      </div>
+      <div class="input">
+        <%= label_tag :post_b, "Post B" %>
+        <%= number_field_tag :post_b, params[:post_b], min: 1, placeholder: "Post ID" %>
+      </div>
+      <%= submit_tag "Compare" %>
+    <% end %>
+
+    <% if @post_a && @post_b %>
+      <% if @post_a.is_image? && @post_b.is_image? %>
+        <div id="post-diff-container">
+          <%= tag.img id: "post-diff-a", src: @post_b.file_url, alt: "Post #{@post_b.id}" %>
+          <%= tag.img id: "post-diff-b", src: @post_a.file_url, alt: "Post #{@post_a.id}" %>
+          <div id="post-diff-slider">
+            <div id="post-diff-slider-handle">&#8596;</div>
+          </div>
+          <div id="post-diff-label-a" class="post-diff-label">
+            <%= link_to "Post ##{@post_a.id}", post_path(@post_a) %>
+          </div>
+          <div id="post-diff-label-b" class="post-diff-label">
+            <%= link_to "Post ##{@post_b.id}", post_path(@post_b) %>
+          </div>
+        </div>
+      <% else %>
+        <% unless @post_a.is_image? %>
+          <p class="notice">Post A (#<%= @post_a.id %>) is not an image (<%= @post_a.file_ext %>)</p>
+        <% end %>
+        <% unless @post_b.is_image? %>
+          <p class="notice">Post B (#<%= @post_b.id %>) is not an image (<%= @post_b.file_ext %>)</p>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Post Diff
+<% end %>
