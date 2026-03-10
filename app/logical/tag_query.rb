@@ -63,7 +63,7 @@ class TagQuery
 
   # Tags with parsed values of `true` or `false`. See `TagQuery#parse_boolean` for details.
   BOOLEAN_METATAGS = %w[
-    hassource hasdescription isparent ischild inpool pending_replacements artverified
+    hassource hasdescription isparent ischild hasparent haschild haschildren inpool pending_replacements artverified
   ].freeze
 
   CATEGORY_METATAG_MAP = TagCategory::SHORT_NAME_MAPPING.to_h { |k, v| [-"#{k}tags", -"tag_count_#{v}"] }.freeze
