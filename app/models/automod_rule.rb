@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "timeout"
-
 class AutomodRule < ApplicationRecord
   belongs_to_creator
 
@@ -12,8 +10,8 @@ class AutomodRule < ApplicationRecord
   scope :enabled, -> { where(enabled: true) }
 
   def match?(text)
-    Regexp.new(regex, Regexp::IGNORECASE).match?(text)
-  rescue RegexpError
+    Regexp.new(regex, Regexp::IGNORECASE, timeout: 1.0).match?(text)
+  rescue RegexpError, Regexp::TimeoutError # rubocop:disable Lint/ShadowedException
     false
   end
 
@@ -22,11 +20,11 @@ class AutomodRule < ApplicationRecord
   def validate_regex
     return if regex.blank?
 
-    compiled = Regexp.new(regex, Regexp::IGNORECASE)
-    Timeout.timeout(0.5) { compiled.match?("#{'a' * 100}\u0000") }
-  rescue RegexpError => e
+    compiled = Regexp.new(regex, Regexp::IGNORECASE, timeout: 0.5)
+    compiled.match?("#{'a' * 100}\u0000")
+  rescue RegexpError => e # rubocop:disable Lint/ShadowedException
     errors.add(:regex, "is invalid: #{e.message}")
-  rescue Timeout::Error
+  rescue Regexp::TimeoutError
     errors.add(:regex, "causes catastrophic backtracking and cannot be used")
   end
 end
