@@ -88,11 +88,11 @@
     </div>
   <% end %>
 
-  <% if CurrentUser.user.id == user.id || CurrentUser.is_moderator? %>
+  <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
     <div class="profile-line">
       <h4><%= svg_icon(:ticket) %> Tickets</h4>
       <span class="profile-line-number"><%= presenter.ticket_count(self) %></span>
-      <% if CurrentUser.is_moderator? %>
+      <% if CurrentUser.is_janitor? %>
         <span class="profile-line-extra">
           [<%= link_to "pending", tickets_path(search: { creator_id: user.id, status: "pending" }) %>]
           [<%= link_to "accused", tickets_path(search: { accused_id: user.id }) %>]
