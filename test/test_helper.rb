@@ -113,6 +113,10 @@ class ActionDispatch::IntegrationTest
     method_authenticated(:post, url, user, options)
   end
 
+  def patch_auth(url, user, options = {})
+    method_authenticated(:patch, url, user, options)
+  end
+
   def put_auth(url, user, options = {})
     method_authenticated(:put, url, user, options)
   end

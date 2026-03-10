@@ -65,7 +65,9 @@
   <div class="post-sidebar-label">Faves</div>
   <div class="post-sidebar-value">
     <span class="selectable" id="sidebar-favcount"><%= post.fav_count %></span>
-    <%= link_to "Show", post_favorites_path(post.id), style: ("display: none;" if post.fav_count == 0) %>
+    <% unless post.hide_favorites_list? && !CurrentUser.is_staff? %>
+      <%= link_to "Show", post_favorites_path(post.id), style: ("display: none;" if post.fav_count == 0) %>
+    <% end %>
   </div>
 </div>
 

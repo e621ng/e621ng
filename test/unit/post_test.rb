@@ -916,6 +916,7 @@ class PostTest < ActiveSupport::TestCase
         context "of" do
           setup do
             @janitor = create(:janitor_user)
+            @privileged = create(:privileged_user)
           end
 
           context "locked:notes" do
@@ -942,18 +943,18 @@ class PostTest < ActiveSupport::TestCase
           context "locked:rating" do
             context "by a member" do
               should "not lock the rating" do
-                @post.update(:tag_string => "locked:rating")
+                @post.update(tag_string: "locked:rating")
                 assert_equal(false, @post.is_rating_locked)
               end
             end
 
-            context "by a janitor" do
+            context "by a privileged user" do
               should "lock/unlock the rating" do
-                as(@janitor) do
-                  @post.update(:tag_string => "locked:rating")
+                as(@privileged) do
+                  @post.update(tag_string: "locked:rating")
                   assert_equal(true, @post.is_rating_locked)
 
-                  @post.update(:tag_string => "-locked:rating")
+                  @post.update(tag_string: "-locked:rating")
                   assert_equal(false, @post.is_rating_locked)
                 end
               end
