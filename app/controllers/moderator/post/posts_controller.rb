@@ -56,7 +56,7 @@ module Moderator
           if options[:dmail].present?
             Dmail.create_automated({
               to_id: @post.uploader.id,
-              title: "Post ##{params[:id]} was deleted",
+              title: "Post ##{params[:id]} has been deleted",
               body: options[:dmail]
                 .gsub("%POST_ID%", params[:id].to_s)
                 .gsub("%STAFF_NAME%", CurrentUser.name)

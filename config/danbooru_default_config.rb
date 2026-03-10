@@ -612,8 +612,8 @@ module Danbooru
 [/quote]
 
 This is a courtesy notification; you don't need to take further action if you don't want to.
-* If you would like to contest the deletion, you can follow the procedure outlined \"here\":[/help/faq#deleted]
-* If you would like to replace your post with an improved version that fixes the problems that caused this deletion, you can follow the instructions \"here\":[/help/replacements].
+
+If you would like to contest the deletion, you can follow the procedure outlined \"here\":[/help/faq#deleted]
 
 You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at anytime by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
       }
