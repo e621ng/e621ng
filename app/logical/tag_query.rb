@@ -1428,7 +1428,7 @@ class TagQuery
       when "delreason", "-delreason", "~delreason"
         q[:status] ||= "any" unless q[:status_must_not]
         q[:show_deleted] ||= true
-        add_to_query(type, :delreason, g2, wildcard: true)
+        add_to_query(type, :delreason, g2.downcase, wildcard: true)
 
       when "deletedby", "-deletedby", "~deletedby"
         q[:status] ||= "any" unless q[:status_must_not]
