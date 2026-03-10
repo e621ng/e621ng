@@ -17,7 +17,7 @@ class AutomodCheckJob < ApplicationJob
         disp_id: comment.id,
         status: "pending",
         qtype: "comment",
-        reason: "AutoMod: #{rule.name}\n#{rule.description}",
+        reason: "AutoMod: #{rule.name} \n#{rule.description}",
       )
     end
   rescue ActiveRecord::RecordNotFound
