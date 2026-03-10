@@ -76,4 +76,7 @@
   }
 
   #post-diff-label-a { left: 1rem; }
-  #post-diff-label-b { right: 1rem; }
+  #post-diff-label-b {
+    right: 1rem;
+    text-align: right;
+  }

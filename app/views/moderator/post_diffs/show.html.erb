@@ -24,9 +24,13 @@
           </div>
           <div id="post-diff-label-a" class="post-diff-label">
             <%= link_to "Post ##{@post_a.id}", post_path(@post_a) %>
+            <div class="post-diff-file-info"><%= @post_a.file_ext.upcase %>, <%= number_to_human_size(@post_a.file_size) %></div>
+            <div class="post-diff-file-info"><%= @post_a.image_width %>x<%= @post_a.image_height %></div>
           </div>
           <div id="post-diff-label-b" class="post-diff-label">
             <%= link_to "Post ##{@post_b.id}", post_path(@post_b) %>
+            <div class="post-diff-file-info"><%= @post_b.file_ext.upcase %>, <%= number_to_human_size(@post_b.file_size) %></div>
+            <div class="post-diff-file-info"><%= @post_b.image_width %>x<%= @post_b.image_height %></div>
           </div>
         </div>
       <% else %>
