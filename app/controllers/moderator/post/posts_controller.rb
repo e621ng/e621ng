@@ -34,7 +34,7 @@ module Moderator
             return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
           end
           # Pre-replace the reason so it's not found later
-          options[:dmail] = options[:dmail].presence&.gsub!("%REASON%", @post.pending_flag.reason)
+          params[:dmail] = params[:dmail].presence&.gsub!("%REASON%", @post.pending_flag.reason)
         end
 
         if params[:commit] == "Delete"
@@ -53,11 +53,11 @@ module Moderator
             @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present? || params[:move_favorites].present?
           end
 
-          if options[:dmail].present?
+          if params[:dmail].present?
             Dmail.create_automated({
               to_id: @post.uploader.id,
               title: "Post ##{params[:id]} has been deleted",
-              body: options[:dmail]
+              body: params[:dmail]
                 .gsub("%POST_ID%", params[:id].to_s)
                 .gsub("%STAFF_NAME%", CurrentUser.name)
                 .gsub("%STAFF_ID%", CurrentUser.id.to_s)
