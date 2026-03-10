@@ -619,17 +619,6 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       }
     end
 
-    # Pages used as templates for the auto-dispatched DMail on post deletion. Replaces the following strings with their values:
-    # * `$POST_ID`: The id of the deleted post
-    # * `$STAFF_NAME`: The name of the deleting staff member
-    # * `$STAFF_ID`: The id of the deleting staff member
-    # * `$REASON`: The deletion reason
-    def post_deletion_dmail_wiki_pages
-      [
-        "#{app_name}:default_post_deletion_dmail",
-      ]
-    end
-
     # The number of records displayed per page. Posts use `user.per_page` which is configurable by the user
     def records_per_page
       75
