@@ -11,7 +11,7 @@
 
   <% if post.present? %>
     <% if post.visible? %>
-      <% if post.is_video? %>
+      <% if post.is_video? && !avatar %>
         <meta property="og:type" content="video.other">
         <%= tag.meta(property: "og:video", content: post.open_graph_video_url) %>
       <% else %>
