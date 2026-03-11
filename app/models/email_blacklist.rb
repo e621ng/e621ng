@@ -5,7 +5,8 @@ class EmailBlacklist < ApplicationRecord
 
   belongs_to_creator
 
-  validates :domain, uniqueness: { case_sensitive: false, message: 'already exists' }
+  validates :domain, presence: true
+  validates :domain, uniqueness: { case_sensitive: false, message: "already exists" }
   after_create :invalidate_cache
   after_create :unverify_accounts
   after_destroy :invalidate_cache
