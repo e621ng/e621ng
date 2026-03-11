@@ -74,9 +74,10 @@ Utility.regexp_escape = function (string) {
 };
 
 /**
- * An analogue for Rail's `blank?` method.
+ * An analogue for Rails' `blank?` method.
  * @param {*} o The object to check.
- * @returns `true` for `undefined`, `string`s with non-whitespace characters, and `object`s with either no `length` property or one with a value of `0`.
+ * @returns `true` for `undefined`, `string`s that are empty or contain only whitespace, and
+ * `object`s that are falsy, have no `length` property, or a `length` property with a value of `0`.
  */
 Utility.blank = function (o) {
   switch (typeof o) {

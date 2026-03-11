@@ -607,7 +607,7 @@ module Danbooru
     # ```ruby
     # {
     #     title: "Post #%POST_ID% has been deleted",
-    #     body: "Post #%POST_ID% has been automatically deleted, as it has not been approved within #{unapproved_post_deletion_window.inspect}.\n\nThis is a courtesy notification; you don't need to take further action if you don't want to. If you would like to request this post to be reviewed, you can ask one of \"our janitors\":[/users?commit=Search&search%5Blevel%5D=#{Danbooru.config.levels['Janitor']}].\n\nYou can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at anytime by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
+    #     body: "Post #%POST_ID% has been automatically deleted, as it has not been approved within #{unapproved_post_deletion_window.inspect}.\n\nThis is a courtesy notification; you don't need to take further action if you don't want to. If you would like to request this post to be reviewed, you can ask one of \"our janitors\":[/users?commit=Search&search%5Blevel%5D=#{Danbooru.config.levels['Janitor']}].\n\nYou can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
     #   }
     # ```
     def post_pruned_dmail_template
@@ -633,7 +633,7 @@ This is a courtesy notification; you don't need to take further action if you do
 
 If you would like to contest the deletion, you can follow the procedure outlined \"here\":[/help/faq#deleted]
 
-You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at anytime by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
+You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
         },
         DNP: {
           title: "Post #%POST_ID% has been deleted",
@@ -649,7 +649,7 @@ Please note that repeatedly uploading DNP material without permission can & will
 * Losing uploading privileges (temporarily or permanently)
 * Site bans (temporary & permanent)
 
-You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at anytime by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
+You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
         },
       }
     end

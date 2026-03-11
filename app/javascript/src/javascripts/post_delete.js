@@ -17,10 +17,10 @@ PostDeletion.init = function () {
     dMailTextArea = $(message).children("textarea.dtext-formatter-input");
   function updateDMailActivation () {
     if (cBox.checked) {
-      message.style = dMailTemplate.parentElement.style = "";
+      message.style.display = dMailTemplate.parentElement.style.display = "";
       dMailTextArea.removeAttr("disabled");
     } else {
-      message.style = dMailTemplate.parentElement.style = " display: none;";
+      message.style.display = dMailTemplate.parentElement.style.display = "none";
       dMailTextArea.attr("disabled", "disabled");
     }
   }

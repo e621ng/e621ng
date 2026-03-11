@@ -15,6 +15,7 @@ class PostPruner
 
     CurrentUser.as_system do
       Post.where("is_deleted = ? and is_pending = ? and created_at < ?", false, true, window.ago).find_each do |post|
+        post.delete!("Unapproved in #{window.inspect}")
         if dmail.is_a?(Hash) && dmail[:body].presence
           Dmail.create_automated({
             to_id: post.uploader.id,
@@ -24,7 +25,6 @@ class PostPruner
               .gsub("%UPLOADER_ID%", post.uploader_id.to_s),
           })
         end
-        post.delete!("Unapproved in #{window.inspect}")
       rescue PostFlag::Error
         # swallow
       end

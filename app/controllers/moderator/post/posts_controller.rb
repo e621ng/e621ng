@@ -20,7 +20,8 @@ module Moderator
 
       # Deletes the given post
       # ### Parameters
-      # * `send_message` [`boolean | nil`]: whether or not to send a DMail notifying the uploader of the post's deletion.
+      # * `dmail` [`String | nil`]: optional DMail body/template. If present, a DMail notifying the
+      # uploader of the post's deletion will be sent. Does replace supported variables.
       def delete
         @post = ::Post.find(params[:id])
 
@@ -36,7 +37,7 @@ module Moderator
               return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
             end
             # Pre-replace the reason so it's not found later
-            params[:dmail] = params[:dmail].presence&.gsub!("%REASON%", @post.pending_flag.reason)
+            params[:dmail] = params[:dmail].presence&.gsub("%REASON%", @post.pending_flag.reason)
           end
 
           @post.delete!(params[:reason])
@@ -56,7 +57,7 @@ module Moderator
 
           if params[:dmail].present?
             Dmail.create_automated({
-              to_id: @post.uploader.id,
+              to_id: @post.uploader_id,
               title: "Post ##{params[:id]} has been deleted",
               body: params[:dmail]
                 .gsub("%POST_ID%", params[:id].to_s)
