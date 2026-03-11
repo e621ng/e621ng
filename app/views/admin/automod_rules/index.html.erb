@@ -1,0 +1,45 @@
+<% content_for(:page_title) { "Automod Rules" } %>
+
+<div id="c-admin-automod-rules">
+  <div id="a-index">
+    <h1>Automod Rules</h1>
+
+    <table class="striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Regex</th>
+          <th>Description</th>
+          <th>Enabled</th>
+          <th>Created By</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @automod_rules.each do |rule| %>
+          <tr>
+            <td><%= rule.name %></td>
+            <td><code><%= truncate(rule.regex, length: 60) %></code></td>
+            <td><%= rule.description %></td>
+            <td><%= rule.enabled? ? "Yes" : "No" %></td>
+            <td><%= link_to_user(rule.creator) %></td>
+            <td>
+              <%= link_to "Edit", edit_admin_automod_rule_path(rule) %>
+              |
+              <%= link_to "Delete", admin_automod_rule_path(rule), method: :delete, data: { confirm: "Delete rule \"#{rule.name}\"?" } %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @automod_rules.empty? %>
+          <tr>
+            <td colspan="6">No automod rules defined.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render PaginatorComponent.new(records: @automod_rules) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
