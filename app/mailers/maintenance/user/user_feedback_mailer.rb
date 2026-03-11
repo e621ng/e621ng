@@ -8,6 +8,7 @@ module Maintenance
       def feedback_notice(user, feedback)
         @user = user
         @feedback = feedback
+        @is_ban = feedback.body.match(/^Banned (for |permanently)/)
         mail(
           to: user_email(@user),
           subject: "New #{Danbooru.config.app_name} Account Record",
