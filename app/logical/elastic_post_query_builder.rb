@@ -255,14 +255,12 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       (q[:hasdescription] ? must : must_not).push({ exists: { field: :description } })
     end
 
-    has_parent_key = %i[ischild hasparent].find { |k| q.include?(k) }
-    if has_parent_key
-      (q[has_parent_key] ? must : must_not).push({ exists: { field: :parent } })
+    if q.include?(:ischild)
+      (q[:ischild] ? must : must_not).push({ exists: { field: :parent } })
     end
 
-    has_children_key = %i[isparent haschild haschildren].find { |k| q.include?(k) }
-    if has_children_key
-      must.push({ term: { has_children: q[has_children_key] } })
+    if q.include?(:isparent)
+      must.push({ term: { has_children: q[:isparent] } })
     end
 
     if q.include?(:inpool)
