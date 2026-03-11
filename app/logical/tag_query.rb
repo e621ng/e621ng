@@ -63,8 +63,14 @@ class TagQuery
 
   # Tags with parsed values of `true` or `false`. See `TagQuery#parse_boolean` for details.
   BOOLEAN_METATAGS = %w[
-    hassource hasdescription isparent ischild inpool pending_replacements artverified
+    hassource hasdescription isparent ischild hasparent haschild haschildren inpool pending_replacements artverified
   ].freeze
+
+  BOOLEAN_METATAG_ALIASES = {
+    "hasparent"   => "ischild",
+    "haschild"    => "isparent",
+    "haschildren" => "isparent",
+  }.freeze
 
   CATEGORY_METATAG_MAP = TagCategory::SHORT_NAME_MAPPING.to_h { |k, v| [-"#{k}tags", -"tag_count_#{v}"] }.freeze
 
@@ -1445,7 +1451,9 @@ class TagQuery
 
       when *COUNT_METATAGS then q[metatag_name.downcase.to_sym] = ParseValue.range(g2)
 
-      when *BOOLEAN_METATAGS then q[metatag_name.downcase.to_sym] = parse_boolean(g2)
+      when *BOOLEAN_METATAGS
+        canonical = BOOLEAN_METATAG_ALIASES.fetch(metatag_name.downcase, metatag_name.downcase)
+        q[canonical.to_sym] = parse_boolean(g2)
 
       else
         add_tag(token)
