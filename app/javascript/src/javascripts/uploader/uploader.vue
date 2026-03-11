@@ -33,10 +33,7 @@
                         <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
                     </div>
                     <div class="col2">
-                        <div>
-            <textarea class="tag-textarea" v-model="tagEntries.artist" id="post_artist" rows="2"
-                      placeholder="Ex: artist_name, unknown_artist, anonymous_artist etc." data-autocomplete="tag-edit"></textarea>
-                        </div>
+                        <artist-tag-input v-model="tagEntries.artist" />
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
@@ -247,6 +244,7 @@
   import filePreview from './file_preview.vue';
   import fileInput from './file_input.vue';
   import parentPostInput from './parent_post_input.vue';
+  import artistTagInput from './artist_tag_input.vue';
   import Autocomplete from "../autocomplete.js";
   import DTextFormatter from "../dtext_formatter.js";
   
@@ -302,6 +300,7 @@
       'file-preview': filePreview,
       'file-input': fileInput,
       'parent-post-input': parentPostInput,
+      'artist-tag-input': artistTagInput,
     },
     data() {
       const allChecks = {};
