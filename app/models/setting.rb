@@ -13,6 +13,7 @@ class Setting < RailsSettings::Base
     field :aiburs_disabled,     type: :boolean, default: false
     field :favorites_disabled,  type: :boolean, default: false
     field :votes_disabled,      type: :boolean, default: false
+    field :takedowns_disabled,  type: :boolean, default: false
   end
 
   scope :limits do
