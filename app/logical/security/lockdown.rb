@@ -75,6 +75,14 @@ module Security
       Setting.votes_disabled = state == "1"
     end
 
+    def self.takedowns_disabled?
+      Setting.takedowns_disabled?
+    end
+
+    def self.takedowns_disabled=(state)
+      Setting.takedowns_disabled = state == "1"
+    end
+
     # Uploader level override
     def self.uploads_min_level
       Setting.uploads_min_level
