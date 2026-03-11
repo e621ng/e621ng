@@ -52,14 +52,12 @@
     <% end %>
 
     <dt class="replacement-spaced-row">Sources</dt>
-    <dd>
+    <dd class="replacement-sources-list">
       <% if post_replacement.source.present? %>
         <div class="replacement-sources">
-          <ul>
-            <% post_replacement.source_list.each do |source| %>
-              <li class=replacement-sources-link><%= external_link_to source, truncate: 46 %></li>
-            <% end %>
-          </ul>
+          <% post_replacement.source_list.partition { |s| !s.start_with?("-") }.flatten.each do |source| %>
+            <div class="source-link"><%= post_source_tag(source) %></div>
+          <% end %>
         </div>
       <% else %>
         <em>None provided</em>
