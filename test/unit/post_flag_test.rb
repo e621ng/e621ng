@@ -194,12 +194,15 @@ class PostFlagTest < ActiveSupport::TestCase
         # TODO: Look into mocks https://mocha.jamesmead.org/Mocha/Mock.html#stubs-instance_method
         backup = Danbooru.config
         Danbooru.config = Danbooru.config.dup
-        PostFlag::FLAG_REASON_VISIBILITY_LEVELS.each do |l|
-          Danbooru.config.stubs(:flag_reason_visibility).returns(l)
-          check.call
-          Danbooru.config.unstub(:flag_reason_visibility)
+        begin
+          PostFlag::FLAG_REASON_VISIBILITY_LEVELS.each do |l|
+            Danbooru.config.stubs(:flag_reason_visibility).returns(l)
+            check.call
+            Danbooru.config.unstub(:flag_reason_visibility)
+          end
+        ensure
+          Danbooru.config = backup
         end
-        Danbooru.config = backup
       end
 
       should_eventually "hide note from API for disallowed users" do
@@ -230,33 +233,36 @@ class PostFlagTest < ActiveSupport::TestCase
         # TODO: Look into mocks https://mocha.jamesmead.org/Mocha/Mock.html#stubs-instance_method
         backup = Danbooru.config
         Danbooru.config = Danbooru.config.dup
-        PostFlag::FLAG_REASON_VISIBILITY_LEVELS.each do |value|
-          Danbooru.config.stubs(:flag_reason_visibility).returns(value)
-          # Staff users can always see the note
-          check.call(staff_user, true)
-          # Creator can always see their own note
-          check.call(flagging_user, true)
-          case Setting.flag_reason_visibility
-          when :staff # No additional users can see the note
-            check.call(uploader, false)
-            check.call(other_user, false)
-            check.call(User.anonymous, false)
-          when :uploader # The post's uploader can see the note
-            check.call(uploader, true)
-            check.call(other_user, false)
-            check.call(User.anonymous, false)
-          when :users # All users can see the note
-            check.call(uploader, true)
-            check.call(other_user, true)
-            check.call(User.anonymous, false)
-          when :all # Everyone can see the note
-            check.call(uploader, true)
-            check.call(other_user, true)
-            check.call(User.anonymous, true)
+        begin
+          PostFlag::FLAG_REASON_VISIBILITY_LEVELS.each do |value|
+            Danbooru.config.stubs(:flag_reason_visibility).returns(value)
+            # Staff users can always see the note
+            check.call(staff_user, true)
+            # Creator can always see their own note
+            check.call(flagging_user, true)
+            case Danbooru.config.flag_reason_visibility
+            when :staff # No additional users can see the note
+              check.call(uploader, false)
+              check.call(other_user, false)
+              check.call(User.anonymous, false)
+            when :uploader # The post's uploader can see the note
+              check.call(uploader, true)
+              check.call(other_user, false)
+              check.call(User.anonymous, false)
+            when :users # All users can see the note
+              check.call(uploader, true)
+              check.call(other_user, true)
+              check.call(User.anonymous, false)
+            when :all # Everyone can see the note
+              check.call(uploader, true)
+              check.call(other_user, true)
+              check.call(User.anonymous, true)
+            end
+            Danbooru.config.unstub(:flag_reason_visibility)
           end
-          Danbooru.config.unstub(:flag_reason_visibility)
+        ensure
+          Danbooru.config = backup
         end
-        Danbooru.config = backup
       end
     end
   end
