@@ -2,7 +2,7 @@
 
 class Maintenance::User::UserFeedbackMailerPreview < ActionMailer::Preview # rubocop:disable Style/ClassAndModuleChildren
   def feedback_notice
-    feedback = UserFeedback.first || UserFeedback.new(user: User.first, creator: User.system, category: "negative", body: %(Don't be a troll. "[Source]":/comments/9690824
+    feedback = UserFeedback.new(user: User.first, creator: User.system, category: "negative", body: %(Don't be a troll. "[Source]":/comments/9690824
 
 [section=Disruptive Behavior]
 e621 is an open and friendly community that people visit to share and enjoy furry artwork.
