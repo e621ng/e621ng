@@ -12,6 +12,7 @@ class UserFeedback < ApplicationRecord
   validate :creator_is_moderator, on: :create
   validate :user_is_not_creator
   after_create :log_create
+  after_create :create_email
   after_update :log_update
   after_destroy :log_destroy
   after_save :create_dmail
@@ -107,6 +108,10 @@ class UserFeedback < ApplicationRecord
     action = saved_change_to_id? ? "created" : "updated"
     body = %(#{updater_name} #{action} a "#{category} record":/user_feedbacks?search[user_id]=#{user_id} for your account:\n\n#{self.body})
     Dmail.create_automated(to_id: user_id, title: "Your user record has been updated", body: body)
+  end
+
+  def create_email
+    Maintenance::User::UserFeedbackMailer.feedback_notice(user, self).deliver_now
   end
 
   def creator_is_moderator
