@@ -1,5 +1,9 @@
   #post-diff {
 
+    &-form {
+      &.hidden { display: none; }
+    }
+
     &-container {
       position: relative;
       overflow: hidden;
@@ -12,14 +16,6 @@
     }
 
     &-a {
-      display: block;
-      width: 100%;
-      height: auto;
-      max-height: 80vh;
-      object-fit: contain;
-    }
-
-    &-b {
       position: absolute;
       top: 0;
       left: 0;
@@ -28,6 +24,14 @@
       object-fit: contain;
       clip-path: inset(0 calc(100% - var(--split)) 0 0);
       pointer-events: none;
+    }
+
+    &-b {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 80vh;
+      object-fit: contain;
     }
 
     &-slider {

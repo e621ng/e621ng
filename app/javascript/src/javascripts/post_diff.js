@@ -46,9 +46,18 @@ PostDiff.init = function () {
   });
 };
 
+PostDiff.initSearch = function () {
+  const form = $("#post-diff-form");
+  $("#post-diff-form-toggle").on("click", (event) => {
+    event.preventDefault();
+    form.toggleClass("hidden");
+  });
+};
+
 $(() => {
   if (!Page.matches("moderator-post-diffs", "show")) return;
   PostDiff.init();
+  PostDiff.initSearch();
 });
 
 export default PostDiff;

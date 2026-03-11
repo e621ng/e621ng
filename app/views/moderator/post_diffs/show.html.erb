@@ -2,36 +2,29 @@
   <div id="a-show">
     <h1>Post Diff</h1>
 
-    <%= form_tag(moderator_post_diff_path, method: :get, class: "simple_form") do %>
+    <a id="post-diff-form-toggle" href="#">Show search options</a>
+    <%= form_tag(moderator_post_diff_path, method: :get, class: "simple_form hidden", id: "post-diff-form") do %>
       <div class="input">
         <%= label_tag :post_a, "Post A" %>
-        <%= number_field_tag :post_a, params[:post_a], min: 1, placeholder: "Post ID" %>
+        <%= text_field_tag :post_a, params[:post_a], placeholder: "Post ID or MD5" %>
       </div>
       <div class="input">
         <%= label_tag :post_b, "Post B" %>
-        <%= number_field_tag :post_b, params[:post_b], min: 1, placeholder: "Post ID" %>
+        <%= text_field_tag :post_b, params[:post_b], placeholder: "Post ID or MD5" %>
       </div>
       <%= submit_tag "Compare" %>
     <% end %>
 
-    <% if @post_a && @post_b %>
+    <% if !@post_a %>
+      <p class="notice">Post A is unavailable.</p>
+    <% elsif !@post_b %>
+      <p class="notice">Post B is unavailable.</p>
+    <% else %>
       <% if @post_a.is_image? && @post_b.is_image? %>
         <div id="post-diff-container">
-          <%= tag.img id: "post-diff-a", src: @post_b.file_url, alt: "Post #{@post_b.id}" %>
-          <%= tag.img id: "post-diff-b", src: @post_a.file_url, alt: "Post #{@post_a.id}" %>
-          <div id="post-diff-slider">
-            <div id="post-diff-slider-handle">&#8596;</div>
-          </div>
-          <div id="post-diff-label-a" class="post-diff-label">
-            <%= link_to "Post ##{@post_a.id}", post_path(@post_a) %>
-            <div class="post-diff-file-info"><%= @post_a.file_ext.upcase %>, <%= number_to_human_size(@post_a.file_size) %></div>
-            <div class="post-diff-file-info"><%= @post_a.image_width %>x<%= @post_a.image_height %></div>
-          </div>
-          <div id="post-diff-label-b" class="post-diff-label">
-            <%= link_to "Post ##{@post_b.id}", post_path(@post_b) %>
-            <div class="post-diff-file-info"><%= @post_b.file_ext.upcase %>, <%= number_to_human_size(@post_b.file_size) %></div>
-            <div class="post-diff-file-info"><%= @post_b.image_width %>x<%= @post_b.image_height %></div>
-          </div>
+          <%= render partial: "diff_image", locals: { label: "a", post: @post_a, replacement: @replacement_a } %>
+          <%= render partial: "diff_image", locals: { label: "b", post: @post_b, replacement: @replacement_b } %>
+          <div id="post-diff-slider"><div id="post-diff-slider-handle">&#8596;</div></div>
         </div>
       <% else %>
         <% unless @post_a.is_image? %>
