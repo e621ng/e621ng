@@ -16,6 +16,7 @@
         <% end %>
         <% if !post.parent_id.nil? && post.pending_flag&.reason =~ %r{Inferior version/duplicate of post #\d+} %>
            | <%= tag.a "Move flag to parent", href: "#", class: "move-flag-to-parent-link button btn-neutral", data: { "pid": post.id, "parent-id": post.parent_id } %>
+           | <%= tag.a "Compare", href: moderator_post_diff_path(post_a: post.id, post_b: post.parent_id), class: "button btn-neutral" %>
         <% end %>
       </div>
     <% end %>
