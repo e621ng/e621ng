@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/e621ng/dtext.git
-  revision: 8c835c238fbdd5bf8f09b93907b149caada4d0dc
-  tag: 2.0.2
+  revision: 133a07b120778053164719d0c62dd293048b7140
+  tag: 2.0.3
   specs:
-    dtext (2.0.2)
+    dtext (2.0.3)
 
 GEM
   remote: https://rubygems.org/
@@ -212,7 +212,7 @@ GEM
       net-protocol
     netrc (0.11.0)
     nio4r (2.7.5)
-    nokogiri (1.18.10)
+    nokogiri (1.19.1)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     opensearch-ruby (3.2.0)

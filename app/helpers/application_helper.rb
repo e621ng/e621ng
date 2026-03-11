@@ -88,6 +88,11 @@ module ApplicationHelper
     end
   end
 
+  def format_plaintext(text)
+    return "" if text.nil?
+    strip_tags(format_text(text).gsub(/<[^>]+>/, " ")).squish
+  end
+
   def custom_form_for(object, *args, &)
     options = args.extract_options!
     simple_form_for(object, *(args << options.merge(builder: CustomFormBuilder)), &)
