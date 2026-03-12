@@ -217,6 +217,11 @@ Rails.application.routes.draw do
     end
   end
   resources :email_blacklists, only: %i[new create destroy index]
+  resources :search_trend_blacklists, only: %i[index new create destroy] do
+    member do
+      delete :purge
+    end
+  end
   resource :iqdb_queries, only: %i[show] do
     collection do
       post :show

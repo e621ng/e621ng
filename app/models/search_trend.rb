@@ -11,6 +11,7 @@ class SearchTrend < ApplicationRecord
     t = tag.to_s.downcase.strip
     return if t.blank?
     return unless Setting.trends_enabled
+    return if SearchTrendBlacklist.blacklisted?(t)
 
     # Rate limiting checks
     if ip.present?
@@ -49,8 +50,13 @@ class SearchTrend < ApplicationRecord
       return if RateLimiter.check_limit(ip_key, Setting.trends_ip_limit, Setting.trends_ip_window.seconds)
     end
 
-    # Filter out tags that would exceed tag-specific rate limits
+    # Fetch blacklist patterns once for the whole batch
+    blacklist_patterns = SearchTrendBlacklist.cached_patterns
+
+    # Filter out blacklisted tags and tags that would exceed tag-specific rate limits
     allowed_tags = ts.reject do |tag|
+      next true if blacklist_patterns.any? { |pat| File.fnmatch(pat, tag, File::FNM_CASEFOLD) }
+
       tag_key = "trends:tag:#{tag}"
       RateLimiter.check_limit(tag_key, Setting.trends_tag_limit, Setting.trends_tag_window.seconds)
     end
