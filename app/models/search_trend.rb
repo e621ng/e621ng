@@ -76,6 +76,13 @@ class SearchTrend < ApplicationRecord
     end
   end
 
+  # Delete SearchTrend records from before today that fall below the minimum count threshold.
+  def self.prune!(min_count: Danbooru.config.search_trend_minimum_count)
+    where("day < ? AND count < ?", Date.current, min_count)
+      .in_batches(load: false)
+      .delete_all
+  end
+
   # Top tags for given day, ordered by count desc then tag asc
   def self.top_for_day(day: Date.current, limit: 100)
     for_day(day).order(count: :desc, tag: :asc).limit(limit)
