@@ -4725,6 +4725,13 @@ CREATE INDEX index_users_on_last_ip_addr ON public.users USING btree (last_ip_ad
 
 
 --
+-- Name: index_users_on_last_logged_in_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_last_logged_in_at ON public.users USING btree (last_logged_in_at);
+
+
+--
 -- Name: index_users_on_lower_profile_about_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4979,6 +4986,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260311194405'),
 ('20260310162913'),
 ('20260204011446'),
 ('20251127000001'),
