@@ -6,12 +6,12 @@
       @input="handleInput"
       id="post_artist"
       rows="2"
-      placeholder="Ex: artist_name, unknown_artist, anonymous_artist etc."
+      placeholder="Ex: artist_name unknown_artist anonymous_artist etc."
       data-autocomplete="tag-edit"
     ></textarea>
     <div v-if="notices.length" class="artist-tag-notices">
       <div class="artist-tag-label">Click to select an option:</div>
-      <div v-for="notice in notices" :key="notice.tag" class="artist-tag-notice" :data-type="notice.type">
+      <div v-for="(notice, index) in notices" :key="`${notice.type}:${notice.tag}:${index}`" class="artist-tag-notice" :data-type="notice.type">
         <template v-if="notice.type === 'make_artist'">
           <a href="#" @click.prevent="makeArtistTag(notice.tag)">
             <div><b>{{ notice.tag }}</b> can be made into an artist tag</div>
@@ -51,13 +51,17 @@ export default {
       this.debounceTimer = setTimeout(() => this.checkTags(), 1000);
     },
   },
+  beforeUnmount() {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = null;
+  },
   methods: {
     handleInput(event) {
       this.$emit('update:modelValue', event.target.value);
     },
 
     async checkTags() {
-      const tags = (this.modelValue || '').trim().split(/[\s,]+/).filter(t => t && !t.startsWith('artist:'));
+      const tags = (this.modelValue || '').trim().split(/\s+/).filter(t => t && !t.startsWith('artist:'));
       if (tags.length === 0) {
         this.notices = [];
         return;
@@ -67,13 +71,17 @@ export default {
       try {
         const params = new URLSearchParams({ 'search[name]': tags.join(','), 'search[hide_empty]': 'false' });
         const response = await fetch(`/tags.json?${params}`);
-        if (!response.ok) return;
+        if (!response.ok) {
+          this.notices = [];
+          return;
+        }
         data = await response.json();
       } catch (_) {
+        this.notices = [];
         return;
       }
 
-      const tagMap = {};
+      const tagMap = Object.create(null);
       for (const tag of data) {
         tagMap[tag.name] = tag;
       }
@@ -86,7 +94,6 @@ export default {
         } else if (tag.category === 1) {
           // Already an artist tag — nothing to show
         } else if (tag.category === 0) {
-          const count = tag.post_count;
           notices.push({ tag: tagName, type: 'wrong', detail: `a populated general tag` });
         } else {
           const categoryName = CATEGORY_NAMES[tag.category] || 'unknown';

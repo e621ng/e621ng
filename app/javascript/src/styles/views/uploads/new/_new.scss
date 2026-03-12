@@ -84,10 +84,10 @@ body.c-uploads.a-new {
     }
     
     &[data-type="wrong"] {
-      border-left-color: palette("background-red")
+      border-left-color: palette("background-red");
     }
     &[data-type="make_artist"] {
-      border-left-color: palette("background-green")
+      border-left-color: palette("background-green");
     }
   }
 }
