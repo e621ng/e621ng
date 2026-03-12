@@ -4,6 +4,14 @@ require "test_helper"
 
 class SearchTrendsControllerTest < ActionDispatch::IntegrationTest
   context "with trends enabled" do
+    setup do
+      Setting.trends_enabled = true
+    end
+
+    teardown do
+      Setting.trends_enabled = false
+    end
+
     should "index renders html" do
       SearchTrend.increment!("wolf")
       get "/search_trends"
@@ -23,7 +31,12 @@ class SearchTrendsControllerTest < ActionDispatch::IntegrationTest
 
   context "settings page" do
     setup do
+      Setting.trends_enabled = true
       @admin = create(:admin_user)
+    end
+
+    teardown do
+      Setting.trends_enabled = false
     end
 
     should "settings page renders for admin" do
@@ -41,10 +54,12 @@ class SearchTrendsControllerTest < ActionDispatch::IntegrationTest
 
     should "form submission updates settings" do
       post_auth update_settings_search_trends_path, @admin, params: {
-        trends_enabled: false,
-        trends_min_today: 11,
-        trends_min_delta: 12,
-        trends_min_ratio: 2.5,
+        search_trends: {
+          trends_enabled: false,
+          trends_min_today: 11,
+          trends_min_delta: 12,
+          trends_min_ratio: 2.5,
+        },
       }
       assert_redirected_to search_trends_path
       assert_equal false, Setting.trends_enabled?

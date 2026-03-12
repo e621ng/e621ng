@@ -72,7 +72,9 @@ class SearchTrendBlacklistsControllerTest < ActionDispatch::IntegrationTest
 
   context "destroy" do
     should "delete a blacklist entry as admin" do
-      bl = as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      bl = as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       assert_difference -> { SearchTrendBlacklist.count }, -1 do
         delete_auth search_trend_blacklist_path(bl), @admin
       end
@@ -80,7 +82,9 @@ class SearchTrendBlacklistsControllerTest < ActionDispatch::IntegrationTest
     end
 
     should "return 403 for non-admin" do
-      bl = as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      bl = as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       user = create(:member_user)
       assert_no_difference -> { SearchTrendBlacklist.count } do
         delete_auth search_trend_blacklist_path(bl), user

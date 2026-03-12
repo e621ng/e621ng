@@ -4,11 +4,13 @@ require "test_helper"
 
 class SearchTrendBlacklistTest < ActiveSupport::TestCase
   setup do
+    Setting.trends_enabled = true
     @admin = create(:admin_user)
     Cache.delete(SearchTrendBlacklist::CACHE_KEY)
   end
 
   teardown do
+    Setting.trends_enabled = false
     Cache.delete(SearchTrendBlacklist::CACHE_KEY)
   end
 
@@ -20,8 +22,12 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
     end
 
     should "reject duplicate tags (case-insensitive)" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
-      bl = as_user(@admin) { SearchTrendBlacklist.new(tag: "Wolf", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
+      bl = as @admin do
+        SearchTrendBlacklist.new(tag: "Wolf", reason: "")
+      end
       assert bl.invalid?
       assert_includes bl.errors[:tag], "already exists"
     end
@@ -33,7 +39,7 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
     end
 
     should "allow valid glob patterns" do
-      as_user(@admin) do
+      as @admin do
         bl = SearchTrendBlacklist.new(tag: "*_species", reason: "test")
         assert bl.valid?
       end
@@ -46,28 +52,36 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
     end
 
     should "match exact tags" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       assert SearchTrendBlacklist.blacklisted?("wolf")
       assert SearchTrendBlacklist.blacklisted?("WOLF")
       assert_equal false, SearchTrendBlacklist.blacklisted?("fox")
     end
 
     should "match wildcard patterns" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "*_species", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "*_species", reason: "")
+      end
       assert SearchTrendBlacklist.blacklisted?("canine_species")
       assert SearchTrendBlacklist.blacklisted?("feline_species")
       assert_equal false, SearchTrendBlacklist.blacklisted?("wolf")
     end
 
     should "match single-character wildcard" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "f?x", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "f?x", reason: "")
+      end
       assert SearchTrendBlacklist.blacklisted?("fox")
       assert SearchTrendBlacklist.blacklisted?("fax")
       assert_equal false, SearchTrendBlacklist.blacklisted?("wolf")
     end
 
     should "return false for blank input" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       assert_equal false, SearchTrendBlacklist.blacklisted?("")
       assert_equal false, SearchTrendBlacklist.blacklisted?(nil)
     end
@@ -75,23 +89,31 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
 
   context "cached_patterns" do
     should "cache patterns and return them" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       patterns = SearchTrendBlacklist.cached_patterns
       assert_includes patterns, "wolf"
     end
 
     should "invalidate cache on create" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       # Warm the cache
       SearchTrendBlacklist.cached_patterns
       assert_not_nil Rails.cache.read(SearchTrendBlacklist::CACHE_KEY)
       # Create a new entry — should bust cache
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "fox", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "fox", reason: "")
+      end
       assert_nil Rails.cache.read(SearchTrendBlacklist::CACHE_KEY)
     end
 
     should "invalidate cache on destroy" do
-      bl = as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      bl = as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       # Warm the cache
       SearchTrendBlacklist.cached_patterns
       assert_not_nil Rails.cache.read(SearchTrendBlacklist::CACHE_KEY)
@@ -101,22 +123,34 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
   end
 
   context "SearchTrend integration" do
+    setup do
+      Setting.trends_enabled = true
+    end
+
+    teardown do
+      Setting.trends_enabled = false
+    end
+
     should "increment! skips blacklisted tags" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       assert_no_difference -> { SearchTrend.count } do
         SearchTrend.increment!("wolf")
       end
     end
 
     should "increment! does not skip non-blacklisted tags" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       assert_difference -> { SearchTrend.count }, +1 do
         SearchTrend.increment!("fox")
       end
     end
 
     should "bulk_increment! skips blacklisted tags" do
-      as_user(@admin) do
+      as @admin do
         SearchTrendBlacklist.create!(tag: "wolf", reason: "")
         SearchTrendBlacklist.create!(tag: "*_species", reason: "")
       end
@@ -128,7 +162,9 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
     end
 
     should "bulk_increment! skips all tags when all are blacklisted" do
-      as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       assert_no_difference -> { SearchTrend.count } do
         SearchTrend.bulk_increment!(%w[wolf])
       end
@@ -138,14 +174,20 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
   context "ModAction logging" do
     should "log create" do
       assert_difference -> { ModAction.where(action: "search_trend_blacklist_create").count }, +1 do
-        as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "testing") }
+        as @admin do
+          SearchTrendBlacklist.create!(tag: "wolf", reason: "testing")
+        end
       end
     end
 
     should "log destroy" do
-      bl = as_user(@admin) { SearchTrendBlacklist.create!(tag: "wolf", reason: "") }
+      bl = as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
       assert_difference -> { ModAction.where(action: "search_trend_blacklist_delete").count }, +1 do
-        bl.destroy
+        as @admin do
+          bl.destroy
+        end
       end
     end
   end

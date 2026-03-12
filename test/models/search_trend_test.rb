@@ -3,6 +3,14 @@
 require "test_helper"
 
 class SearchTrendTest < ActiveSupport::TestCase
+  setup do
+    Setting.trends_enabled = true
+  end
+
+  teardown do
+    Setting.trends_enabled = false
+  end
+
   test "increment! creates and increments counts" do
     assert_difference -> { SearchTrend.count }, +1 do
       SearchTrend.increment!("Test_Tag")
