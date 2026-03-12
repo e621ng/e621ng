@@ -60,6 +60,34 @@ export default {
       this.$emit('update:modelValue', event.target.value);
     },
 
+    async fetchTagsByName(tagNames) {
+      try {
+        const params = new URLSearchParams({ 'search[name]': tagNames.join(','), 'search[hide_empty]': 'false' });
+        const response = await fetch(`/tags.json?${params}`);
+        if (!response.ok) return {};
+        const data = await response.json();
+        const map = Object.create(null);
+        for (const tag of data) map[tag.name] = tag;
+        return map;
+      } catch (_) {
+        return {};
+      }
+    },
+
+    async fetchAliases(tagNames) {
+      try {
+        const params = new URLSearchParams({ 'search[status]': 'active', 'search[antecedent_name]': tagNames.join(',') });
+        const response = await fetch(`/tag_aliases.json?${params}`);
+        if (!response.ok) return {};
+        const data = await response.json();
+        const map = Object.create(null);
+        for (const alias of data) map[alias.antecedent_name] = alias.consequent_name;
+        return map;
+      } catch (_) {
+        return {};
+      }
+    },
+
     async checkTags() {
       const tags = (this.modelValue || '').trim().split(/\s+/).filter(t => t && !t.startsWith('artist:'));
       if (tags.length === 0) {
@@ -67,23 +95,19 @@ export default {
         return;
       }
 
-      let data;
-      try {
-        const params = new URLSearchParams({ 'search[name]': tags.join(','), 'search[hide_empty]': 'false' });
-        const response = await fetch(`/tags.json?${params}`);
-        if (!response.ok) {
-          this.notices = [];
-          return;
-        }
-        data = await response.json();
-      } catch (_) {
-        this.notices = [];
-        return;
-      }
+      const tagMap = await this.fetchTagsByName(tags);
 
-      const tagMap = Object.create(null);
-      for (const tag of data) {
-        tagMap[tag.name] = tag;
+      // For zero-post tags, check if they're aliased away and use the consequent's data instead
+      const zeroPostTags = tags.filter(t => { const tag = tagMap[t.toLowerCase()]; return !tag || tag.post_count === 0; });
+      if (zeroPostTags.length > 0) {
+        const aliasMap = await this.fetchAliases(zeroPostTags);
+        const consequentNames = Object.values(aliasMap);
+        if (consequentNames.length > 0) {
+          const consequentTagMap = await this.fetchTagsByName(consequentNames);
+          for (const [antecedent, consequent] of Object.entries(aliasMap)) {
+            if (consequentTagMap[consequent]) tagMap[antecedent.toLowerCase()] = consequentTagMap[consequent];
+          }
+        }
       }
 
       const notices = [];
