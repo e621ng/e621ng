@@ -736,6 +736,23 @@ class TagQueryTest < ActiveSupport::TestCase
       end
     end
 
+    should "handle null bytes and invalid UTF-8" do
+      query_with_both = "\xee\xce\u0000 fluffy -bad".dup.force_encoding("UTF-8")
+      expected_result = {
+        tags: {
+          must: ["fluffy"],
+          must_not: ["bad"],
+          should: [],
+        },
+        show_deleted: false,
+      }
+
+      assert_nothing_raised do
+        result = TagQuery.new(query_with_both)
+        assert_equal(expected_result, result.q)
+      end
+    end
+
     should "not accept invalid standard tags" do # rubocop:disable Style/MultilineIfModifier
       expected_result = {
         tags: {

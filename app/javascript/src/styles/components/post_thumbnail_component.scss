@@ -106,7 +106,7 @@ article.thumbnail .thm-desc {
 
   // Column B: rating
   &-b {
-    padding: 0.25rem;
+    padding: 0.25rem 0;
     text-align: center;
   }
 }
@@ -138,9 +138,9 @@ article.thumbnail .thm-desc-m {
   &.thm-favorites {
     color: palette("background-gold-d10");
     svg {
-      filter: url(#inset-shadow);
-      fill: palette("background-gold-d10");
-      stroke-width: 0;
+      height: 0.9rem;
+      width: 0.95rem;
+      margin: -0.075rem 0;
     }
   }
 
@@ -151,6 +151,11 @@ article.thumbnail .thm-desc-m {
       margin: 0;
     }
   }
+}
+article.thumbnail[data-is-favorited="true"] .thm-desc-m.thm-favorites svg {
+  filter: url(#inset-shadow);
+  fill: palette("background-gold-d10");
+  stroke-width: 0;
 }
 
 // Badges
@@ -270,15 +275,12 @@ article.thumbnail.filter-matches .thm-desc-a {
 body section.posts-container.default-size { --thumb-image-size: 200px; }
 
 // Hide comments on small thumbnails
-body[data-st-size="s"] article.thumbnail .thm-desc .thm-comments,
-article.thumbnail .thm-desc .thm-comments {
-  @include window-smaller-than(400px) {
-    display: none;
-  }
-}
-body:not([data-st-size="l"]) article.thumbnail .thm-desc .thm-comments {
-  @include window-smaller-than(400px) {
-    display: none;
+body:not([data-st-size="l"]) article.thumbnail {
+  @include window-smaller-than(500px) {
+    .thm-desc {
+      grid-template-columns: auto 0.75rem;
+      .thm-comments { display: none; }
+    }
   }
 }
 

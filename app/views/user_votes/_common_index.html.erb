@@ -66,11 +66,7 @@
       <%= tag.button "Delete Votes", id: "delete-votes" %> Remove the votes
     <% end %>
 
-    <%= javascript_tag nonce: true do -%>
-      new Danbooru.VoteManager('<%= type.model_type %>');
-    <% end -%>
-
-    <%= numbered_paginator(votes) %>
+    <%= render PaginatorComponent.new(records: votes) %>
   </div>
 </div>
 

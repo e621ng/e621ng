@@ -2,6 +2,7 @@
 
 class ElasticQueryBuilder
   attr_accessor :q, :must, :must_not, :should, :order
+  attr_reader :has_invalid_input
 
   def initialize(query)
     @q = query
@@ -13,6 +14,7 @@ class ElasticQueryBuilder
     @should = []
     @order = []
     @function_score = nil
+    @has_invalid_input = false
     build
   end
 
@@ -49,6 +51,16 @@ class ElasticQueryBuilder
   end
 
   def search
+    # Return empty result set if invalid input was detected (e.g., dates with years outside 0-9999)
+    if @has_invalid_input
+      search_body = {
+        query: { match_none: {} },
+        sort: order,
+        _source: false,
+      }
+      return model_class.document_store.search(search_body)
+    end
+
     query = create_query_obj(return_nil_if_empty: false)
 
     search_body = {
@@ -91,23 +103,33 @@ class ElasticQueryBuilder
     when :lte
       { range: { field => { lte: arr[1] } } }
     when :in
+      return if arr[1].is_a?(Array) && arr[1].any?(&:nil?) # malformed input
+
       { terms: { field => arr[1] } }
     when :between
+      return if arr[1].nil? || arr[2].nil? # malformed input
+
       { range: { field => { gte: arr[1], lte: arr[2] } } }
     end
   end
 
   def add_array_range_relation(key, index_field)
     if q[key]
-      must.concat(q[key].map { |x| range_relation(x, index_field) })
+      relations = q[key].map { |x| range_relation(x, index_field) }
+      @has_invalid_input = true if relations.any?(&:nil?)
+      must.concat(relations.compact)
     end
 
     if q[:"#{key}_must_not"]
-      must_not.concat(q[:"#{key}_must_not"].map { |x| range_relation(x, index_field) })
+      relations = q[:"#{key}_must_not"].map { |x| range_relation(x, index_field) }
+      @has_invalid_input = true if relations.any?(&:nil?)
+      must_not.concat(relations.compact)
     end
 
     if q[:"#{key}_should"]
-      should.concat(q[:"#{key}_should"].map { |x| range_relation(x, index_field) })
+      relations = q[:"#{key}_should"].map { |x| range_relation(x, index_field) }
+      @has_invalid_input = true if relations.any?(&:nil?)
+      should.concat(relations.compact)
     end
   end
 
@@ -144,13 +166,14 @@ class ElasticQueryBuilder
     elsif q[key].to_s.falsy?
       must.push({ term: { index_field => false } })
     else
-      raise ArgumentError, "value must be truthy or falsy"
+      @has_invalid_input = true
     end
   end
 
   def add_range_relation(key, index_field, type: :integer)
     if q[key].present?
-      must.push(range_relation(ParseValue.range(q[key], type), index_field))
+      relation = range_relation(ParseValue.range(q[key], type), index_field)
+      must.push(relation) if relation.present?
     end
   end
 

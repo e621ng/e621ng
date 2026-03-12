@@ -33,8 +33,18 @@ Rails.application.configure do # rubocop:disable Metrics/BlockLength
     config.action_controller.perform_caching = false
   end
 
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  if Danbooru.config.mailgun_api_key.present? && Danbooru.config.mailgun_domain.present?
+    config.action_mailer.raise_delivery_errors = true
+    config.action_mailer.delivery_method = :mailgun
+    config.action_mailer.mailgun_settings = {
+      api_key: Danbooru.config.mailgun_api_key,
+      domain: Danbooru.config.mailgun_domain,
+    }
+    config.action_mailer.default_url_options = { host: Danbooru.config.hostname, protocol: "https" }
+    config.action_mailer.asset_host = "https://#{Danbooru.config.hostname}"
+  else
+    config.action_mailer.raise_delivery_errors = false
+  end
 
   config.action_mailer.perform_caching = false
 
@@ -66,7 +76,7 @@ Rails.application.configure do # rubocop:disable Metrics/BlockLength
   config.action_controller.raise_on_missing_callback_actions = true
 
   # Disable request forgery protection to simplify local development.
-  config.action_controller.allow_forgery_protection = false
+  config.action_controller.allow_forgery_protection = ENV.fetch("DISABLE_CSRF_PROTECTION", "true") == "true"
 
   config.hosts << "e621ng.local"
 

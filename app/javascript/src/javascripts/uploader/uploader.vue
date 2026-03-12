@@ -69,7 +69,7 @@
                                             :key="check.name"></image-checkbox>
                         </div>
                         <textarea class="tag-textarea" rows="2" v-model="tagEntries.character" id="post_character"
-                                  placeholder="Ex: character_name solo_focus etc."
+                                  placeholder="Ex: character_name"
                                   data-autocomplete="tag-edit"></textarea>
                     </div>
                 </div>
@@ -149,6 +149,7 @@
                         towards this total.
                     </div>
                     <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
+                              placeholder="Ex: standing orange_fur white_shirt outside smile 4_toes etc."
                               ref="otherTags" data-autocomplete="tag-edit"></textarea>
                     <tag-preview :tags="tags" />
                     <div class="related-tag-functions">
@@ -173,7 +174,7 @@
                     <label class="section-label">Parent Post ID</label>
                 </div>
                 <div class="col2">
-                    <input v-model.number="parentID" placeholder="Ex. 12345"/>
+                    <parent-post-input v-model="parentID" />
                 </div>
             </div>
             <div v-if="allowLockedTags" class="flex-grid border-bottom">
@@ -198,7 +199,7 @@
                 </div>
                 <div class="col2">
                   <div class="dtext-formatter pending" data-state="write" data-allow-color="false" data-limit="50000">
-                    <textarea class="dtext required dtext-formatter-input" id="post_description" rows="10" v-model="description"></textarea>
+                    <textarea class="dtext required dtext-formatter-input dtext-vue" id="post_description" rows="10" v-model="description"></textarea>
                   </div>
                 </div>
             </div>
@@ -245,6 +246,7 @@
   import tagPreview from './tag_preview.vue';
   import filePreview from './file_preview.vue';
   import fileInput from './file_input.vue';
+  import parentPostInput from './parent_post_input.vue';
   import Autocomplete from "../autocomplete.js";
   import DTextFormatter from "../dtext_formatter.js";
   
@@ -299,6 +301,7 @@
       'tag-preview': tagPreview,
       'file-preview': filePreview,
       'file-input': fileInput,
+      'parent-post-input': parentPostInput,
     },
     data() {
       const allChecks = {};

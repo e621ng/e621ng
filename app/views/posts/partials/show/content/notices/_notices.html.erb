@@ -12,7 +12,7 @@
            | <%= tag.a "Unflag+approve", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "approve" } %>
         <% end %>
         <% unless post.pending_flag&.reason =~ /uploading_guidelines/ %>
-           | <%= tag.a "Delete with given reason", href: "#", class: "delete-with-reason-link button btn-neutral", data: { "post-id": post.id, "reason": "", "prompt": "given reason", "move-favs": (post.pending_flag&.reason =~ /Inferior/).present? } %>
+           | <%= tag.a "Delete with given reason", href: "#", class: "delete-with-reason-link button btn-neutral", data: { "post-id": post.id, "reason": "", "from-flag": true, "prompt": "given reason", "move-favs": (post.pending_flag&.reason =~ /Inferior/).present? } %>
         <% end %>
         <% if !post.parent_id.nil? && post.pending_flag&.reason =~ %r{Inferior version/duplicate of post #\d+} %>
            | <%= tag.a "Move flag to parent", href: "#", class: "move-flag-to-parent-link button btn-neutral", data: { "pid": post.id, "parent-id": post.parent_id } %>

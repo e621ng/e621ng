@@ -19,7 +19,7 @@
     "@vitejs/plugin-vue": "^6.0.1",
     "eslint": "^9.36.0",
     "globals": "^15.8.0",
-    "vite": "^5.0.0",
+    "vite": "^7.3.0",
     "vite-plugin-ruby": "^5.1.0"
   },
   "scripts": {

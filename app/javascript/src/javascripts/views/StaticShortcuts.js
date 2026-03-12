@@ -15,6 +15,7 @@ export default class StaticShortcuts {
       "Scroll Up":    "scroll-up",
       "Scroll Down":  "scroll-down",
       "Mark as Read": "mark-read",
+      "History":      "history",
     },
 
     "Posts": {
@@ -23,10 +24,15 @@ export default class StaticShortcuts {
       "Add Favorite":     "favorite-add",
       "Remove Favorite":  "favorite-del",
       "Toggle Favorite":  "favorite",
-      "Random Post":           "random",
+      "Random Post":      "random",
       "Add Note":         "note",
       "Toggle Notes":     "note-toggle",
       "Resize":           "resize",
+
+      "Fullscreen":       "fullscreen",
+      "Download":         "download",
+      "Add to Set":       "add-to-set",
+      "Add to Pool":      "add-to-pool",
     },
   };
 

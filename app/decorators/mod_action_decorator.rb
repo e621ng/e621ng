@@ -103,7 +103,7 @@ class ModActionDecorator < ApplicationDecorator
 
       ### User ###
 
-    when "user_delete"
+    when "user_delete", "admin_user_delete"
       "Deleted user #{user}"
     when "user_ban"
       if (vals["duration"].is_a?(Numeric) && vals["duration"] < 0) || vals["duration"] == "permanent"

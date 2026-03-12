@@ -4,7 +4,7 @@
   </menu>
 
   <menu class="nav-primary desktop">
-    <%= render "layouts/main_links" %>
+    <%= render "layouts/navigation/main_links" %>
   </menu>
 
   <menu class="nav-offset-left mobile"></menu>
@@ -31,7 +31,7 @@
         </span>
       </a>
     <% else %>
-      <%= simple_avatar(CurrentUser.user, named: true, class: "nav-controls-profile collapse-2") %>
+      <%= render "/layouts/navigation/avatar_menu" %>
     <% end %>
   </menu>
 

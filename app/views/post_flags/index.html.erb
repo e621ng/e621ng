@@ -80,7 +80,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@post_flags) %>
+    <%= render PaginatorComponent.new(records: @post_flags) %>
   </div>
 </div>
 

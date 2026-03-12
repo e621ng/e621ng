@@ -6,6 +6,7 @@ class ModAction < ApplicationRecord
   validates :creator_id, presence: true
 
   KnownActions = {
+    admin_user_delete: { user_id: :integer },
     artist_page_rename: { old_name: :string, new_name: :string },
     artist_page_lock: { artist_page: :string },
     artist_page_unlock: { artist_page: :string },

@@ -1,7 +1,37 @@
+@use 'sass:list';
+
+// Logo configuration - organized by category for easier maintenance
+$pride-logos: (
+  "pride",
+  "pride_philadelphia",
+  "pride_progressive",
+);
+
+$sexuality-logos: (
+  "ace", "aegosexual", "agender", "androgyne", "aro",
+  "bigender", "bi", "bear",
+  "demibisexual", "demiboy", "demigirl", "demiromantic", "demisexual",
+  "gay", "genderfluid", "genderqueer", 
+  "intersex",
+  "lesbian",
+  "nonbinary",
+  "omni",
+  "pan", "polyamory",
+  "queer",
+  "trans",
+);
+
+$other-logos: (
+  "french",
+  "renamon",
+);
+
+$all-logos: list.join($sexuality-logos, list.join($pride-logos, $other-logos));
+
 // Picker
 body {
   a.nav-logo-link { background-image: url("~/images/logo/default.svg"); }
-  @each $name in ("pride", "ace", "aro", "bi", "french", "gay", "genderfluid", "lesbian", "nonbinary", "omni", "pan", "trans") {
+  @each $name in $all-logos {
     &[data-th-logo="#{$name}"] a.nav-logo-link { background-image: url("~/images/logo/#{$name}.svg"); }
   }
 
@@ -9,5 +39,9 @@ body {
     a.nav-logo-link { background-image: url("~/images/logo/default.svg"); }
     &[data-th-main="bloodlust"] a.nav-logo-link { background-image: url("~/images/logo/default_bloodlust.svg"); }
     &[data-th-main="pony"] a.nav-logo-link { background-image: url("~/images/logo/default_pony.svg"); }
+  }
+
+  &[data-th-logo="default_blue"] {
+    a.nav-logo-link { background-image: url("~/images/logo/default.svg"); }
   }
 }

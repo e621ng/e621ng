@@ -25,7 +25,8 @@
     <dd>
       <% if post_replacement.is_current? %> (current)
       <% elsif post_replacement.is_approved? %> (retired)
-      <% elsif post_replacement.is_promoted? %> (#<%= link_to(post_replacement.promoted_id.to_s, post_path(post_replacement.promoted_id)) %>)
+      <% elsif post_replacement.is_promoted? && post_replacement.promoted_id.present? %>
+        (#<%= link_to(post_replacement.promoted_id.to_s, post_path(post_replacement.promoted_id)) %>)
       <% end %>
     </dd>
     <% if !post_replacement.approver.nil? %>

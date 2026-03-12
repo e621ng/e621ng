@@ -31,7 +31,7 @@ module Danbooru
 
     # The canonical hostname of the site.
     def hostname
-      Socket.gethostname
+      "localhost:3000"
     end
 
     # Contact email address of the admin.
@@ -270,12 +270,30 @@ module Danbooru
       20
     end
 
+    # Pending posts older than this period are deleted automatically.
+    def unapproved_post_deletion_window
+      30.days
+    end
+
+    # Uploads older than this window are pruned during maintenance.
+    def upload_deletion_window
+      1.week
+    end
+
     # Flat limit that applies to all users, regardless of level
     def hourly_upload_limit
       30
     end
 
-    def ticket_limit
+    def ticket_hourly_limit
+      5
+    end
+
+    def ticket_daily_limit
+      15
+    end
+
+    def ticket_active_limit
       30
     end
 
@@ -542,11 +560,12 @@ module Danbooru
         "Does not meet minimum quality standards (Compression)",
         "Does not meet minimum quality standards (Trivial or low quality edit)",
         "Does not meet minimum quality standards (Bad digitization of traditional media)",
-        "Does not meet minimum quality standards (Photo)",
         "Does not meet minimum quality standards (%OTHER_ID%)",
         "Broken/corrupted file",
         "JPG resaved as PNG",
         "",
+        "Irrelevant to site",
+        "Irrelevant to site (Photo)",
         "Irrelevant to site (Human only)",
         "Irrelevant to site (Screencap)",
         "Irrelevant to site (Zero pictured)",
@@ -643,7 +662,7 @@ module Danbooru
     end
 
     def mail_from_addr
-      "noreply@localhost"
+      "E621.net <noreply@e621.net>"
     end
 
     # disable this for tests
@@ -689,12 +708,28 @@ module Danbooru
       []
     end
 
-    def ads_zone_desktop
-      { zone: nil, revive_id: nil, checksum: nil }
-    end
-
-    def ads_zone_mobile
-      { zone: nil, revive_id: nil, checksum: nil }
+    def ads_config
+      {
+        revive: {
+          domain: "rv.e621.net",
+          id: nil,
+        },
+        areas: {
+          top: {
+            desktop: { zone: nil },
+            mobile: { zone: nil },
+          },
+          bottom: {
+            desktop: { zone: nil },
+            mobile: { zone: nil },
+          },
+          side: {
+            orientation: :vertical,
+            desktop: { zone: nil },
+            mobile: { zone: nil },
+          },
+        },
+      }
     end
 
     def subscribestar_url

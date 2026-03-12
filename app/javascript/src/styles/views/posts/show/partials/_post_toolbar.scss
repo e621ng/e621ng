@@ -153,6 +153,45 @@
 }
 
 
+// Share button
+#ptbr-share-menu {
+  background: themed("color-section-lighten-5");
+  @include st-radius;
+  padding: 0.75rem 0.5rem;
+
+  &.hidden { display: none; }
+
+  h4 {
+    margin-bottom: 0.5rem;
+  }
+
+  .ptbr-share-input {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 20rem;
+
+    background: themed("color-foreground");
+    @include st-radius;
+    @include st-padding(050);
+
+    input {
+      background: transparent;
+      color: themed("color-text");
+      width: 100%;
+      border: 1px solid transparent;
+
+      font-family: monospace;
+      font-size: 1rem;
+
+      &:focus {
+        border-color: themed("color-section-lighten-5");
+        outline: none;
+      }
+    }
+  }
+}
+
+
 // Resize selector
 #ptbr-wrapper .ptbr-resize select {
   height: 2rem;

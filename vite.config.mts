@@ -23,6 +23,8 @@ export default defineConfig({
   build: {
     // This would inline small assets, but ruins css variables.
     assetsInlineLimit: 0,
+    // Relatively modern browser support is required
+    target: "es2018",
   },
   css: {
     preprocessorOptions: {

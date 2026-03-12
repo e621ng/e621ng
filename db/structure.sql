@@ -53,7 +53,13 @@ CREATE TABLE public.api_keys (
     user_id integer NOT NULL,
     key character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    name character varying NOT NULL,
+    last_used_at timestamp(6) without time zone,
+    last_ip_address inet,
+    last_user_agent text,
+    expires_at timestamp(6) without time zone,
+    notified_at timestamp(6) without time zone
 );
 
 
@@ -3457,6 +3463,13 @@ ALTER TABLE ONLY public.wiki_pages
 
 
 --
+-- Name: index_api_keys_on_expires_at_and_notified_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_keys_on_expires_at_and_notified_at ON public.api_keys USING btree (expires_at, notified_at) WHERE (expires_at IS NOT NULL);
+
+
+--
 -- Name: index_api_keys_on_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3464,10 +3477,10 @@ CREATE UNIQUE INDEX index_api_keys_on_key ON public.api_keys USING btree (key);
 
 
 --
--- Name: index_api_keys_on_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_api_keys_on_name_and_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_api_keys_on_user_id ON public.api_keys USING btree (user_id);
+CREATE UNIQUE INDEX index_api_keys_on_name_and_user_id ON public.api_keys USING btree (name, user_id);
 
 
 --
@@ -3548,6 +3561,13 @@ CREATE INDEX index_artists_on_group_name_trgm ON public.artists USING gin (group
 
 
 --
+-- Name: index_artists_on_linked_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_artists_on_linked_user_id ON public.artists USING btree (linked_user_id);
+
+
+--
 -- Name: index_artists_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3594,6 +3614,13 @@ CREATE UNIQUE INDEX index_avoid_postings_on_artist_id ON public.avoid_postings U
 --
 
 CREATE INDEX index_avoid_postings_on_creator_id ON public.avoid_postings USING btree (creator_id);
+
+
+--
+-- Name: index_avoid_postings_on_is_active_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_avoid_postings_on_is_active_and_id ON public.avoid_postings USING btree (is_active, id);
 
 
 --
@@ -3678,6 +3705,13 @@ CREATE INDEX index_comment_votes_on_user_id ON public.comment_votes USING btree 
 --
 
 CREATE INDEX index_comment_votes_on_user_id_and_id ON public.comment_votes USING btree (user_id, id);
+
+
+--
+-- Name: index_comments_on_created_at_desc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_created_at_desc ON public.comments USING btree (created_at DESC, id DESC);
 
 
 --
@@ -4112,6 +4146,13 @@ CREATE INDEX index_pools_on_name ON public.pools USING btree (name);
 --
 
 CREATE INDEX index_pools_on_name_trgm ON public.pools USING gin (lower((name)::text) public.gin_trgm_ops);
+
+
+--
+-- Name: index_pools_on_post_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pools_on_post_ids ON public.pools USING gin (post_ids);
 
 
 --
@@ -4866,6 +4907,11 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260204011446'),
+('20251127000001'),
+('20251114015027'),
+('20251113060711'),
+('20251106175207'),
 ('20251101144234'),
 ('20251014151300'),
 ('20251010171207'),

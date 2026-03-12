@@ -1,0 +1,52 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-class name="container" background-color="#152f56" border-radius="4px" padding="16px 8px 8px 8px" />
+      <mj-class name="hex-bg" background-url="<%= image_url("mailers/hex.png") %>" background-repeat="repeat-x" />
+
+      <mj-class name="text" color="#ffffff" font-size="16px" line-height="20px" />
+      <mj-class name="hint" color="#bbbbbb" font-size="12px" line-height="16px" />
+
+      <mj-class name="button" border-radius="4px" background-color="#d3b54d" color="#000" font-weight="bold" />
+    </mj-attributes>
+    <mj-style>
+      a {
+        color: #d3b54d;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </mj-style>
+  </mj-head>
+	<mj-body background-color="#020f23">
+    <mj-section padding="16px">
+      <mj-column>
+        <mj-image
+          src="<%= image_url("mailers/logo.svg") %>"
+          href="<%= root_url %>"
+          width="64px"
+          height="64px"
+          padding="0"
+          align="center"
+          alt="<%= Danbooru.config.app_name %>"
+        />
+      </mj-column>
+    </mj-section>
+
+    <%= yield %>
+
+    <mj-section>
+      <mj-column>
+        <mj-text align="left" color="#bbbbbb" font-size="12px" line-height="16px">
+          &copy; <%= Time.current.year %> <%= Danbooru.config.app_name %>
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text align="right" mj-class="hint" color="#bbbbbb" font-size="12px" line-height="16px">
+          <a href="<%= privacy_policy_url %>">Privacy Policy</a>&emsp;&bull;&emsp;<a href="<%= terms_of_use_url %>">Terms of Use</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
