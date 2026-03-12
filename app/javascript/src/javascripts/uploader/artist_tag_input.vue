@@ -43,6 +43,7 @@ export default {
     return {
       notices: [],
       debounceTimer: null,
+      checkId: 0,
     };
   },
   watch: {
@@ -89,21 +90,32 @@ export default {
     },
 
     async checkTags() {
-      const tags = (this.modelValue || '').trim().split(/\s+/).filter(t => t && !t.startsWith('artist:'));
+      const id = ++this.checkId;
+
+      const tags = (this.modelValue || '')
+        .trim()
+        .split(/\s+/)
+        .filter((t) => {
+          t = t.toLowerCase();
+          return t && !(t.startsWith("artist:") || t.startsWith("art:"))
+        });
       if (tags.length === 0) {
         this.notices = [];
         return;
       }
 
       const tagMap = await this.fetchTagsByName(tags);
+      if (id !== this.checkId) return;
 
       // For zero-post tags, check if they're aliased away and use the consequent's data instead
       const zeroPostTags = tags.filter(t => { const tag = tagMap[t.toLowerCase()]; return !tag || tag.post_count === 0; });
       if (zeroPostTags.length > 0) {
         const aliasMap = await this.fetchAliases(zeroPostTags);
+        if (id !== this.checkId) return;
         const consequentNames = Object.values(aliasMap);
         if (consequentNames.length > 0) {
           const consequentTagMap = await this.fetchTagsByName(consequentNames);
+          if (id !== this.checkId) return;
           for (const [antecedent, consequent] of Object.entries(aliasMap)) {
             if (consequentTagMap[consequent]) tagMap[antecedent.toLowerCase()] = consequentTagMap[consequent];
           }
