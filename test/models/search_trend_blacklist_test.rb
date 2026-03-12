@@ -29,7 +29,7 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
     should "reject a bare wildcard" do
       bl = SearchTrendBlacklist.new(tag: "*", reason: "test")
       assert bl.invalid?
-      assert bl.errors[:tag].any? { |e| e.include?("bare wildcard") }
+      assert(bl.errors[:tag].any? { |e| e.include?("bare wildcard") })
     end
 
     should "allow valid glob patterns" do
