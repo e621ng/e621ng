@@ -43,11 +43,12 @@ class SearchTrendBlacklist < ApplicationRecord
   end
 
   # Translate a glob pattern (* and ?) to a SQL LIKE pattern.
+  # Escaping is done with blocks to avoid gsub replacement-string ambiguity.
   def self.glob_to_sql_like(pattern)
     pattern
-      .gsub("\\\\", "\\\\\\\\")
-      .gsub("%", "\\%")
-      .gsub("_", "\\_")
+      .gsub("\\") { "\\\\" }
+      .gsub("%") { "\\%" }
+      .gsub("_") { "\\_" }
       .gsub("*", "%")
       .gsub("?", "_")
   end
