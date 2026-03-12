@@ -1,0 +1,62 @@
+<mj-section mj-class="container hex-bg">
+  <mj-column>
+    <mj-text mj-class="text">
+      <h2>Hi, <%= @user.name %>!</h2>
+      <p>
+        A new <a href="<%= user_feedbacks_url(search: { user_id: @user.id }) %>"><%= @is_ban ? "ban" : "#{@feedback.category} record" %></a> was added to your account on <%= Danbooru.config.app_name %>.
+      </p>
+      <blockquote class="quote">
+        <%= format_text(@feedback.body) %>
+      </blockquote>
+    </mj-text>
+    
+
+    <% if @is_ban %>
+      <mj-text mj-class="text">
+        <p>
+          If you believe that this record was created in error, please contact us at <a href="mailto:<%= Danbooru.config.contact_email %>"><%= Danbooru.config.contact_email %></a>.
+        </p>
+        <p>
+          Regards,<br />
+          ~ <%= Danbooru.config.app_name %> Team
+        </p>
+      </mj-text>
+    <% else %>
+      <mj-button
+        mj-class="button"
+        align="center"
+        href="<%= new_dmail_url(dmail: { to_id: @feedback.creator_id, title: "Record appeal" }) %>"
+      >
+        Send Appeal
+      </mj-button>
+
+      <mj-text mj-class="text">
+        <p>
+          If you believe that this record was created in error, please contact the staff member who created it using the button above.
+        </p>
+        <p>
+          Regards,<br />
+          ~ <%= Danbooru.config.app_name %> Team
+        </p>
+      </mj-text>
+    <% end %>
+  </mj-column>
+</mj-section>
+
+<% content_for :head do %>
+  <mj-style>
+    blockquote.quote {
+      background: #1f3c67;
+      margin: 0;
+      padding: 0.75em;
+      border-radius: 0.25em;
+      border-left: 0.25em solid #25477b;
+    }
+    blockquote.quote div.styled-dtext p:first-child {
+      margin-top: 0;
+    }
+    blockquote.quote div.styled-dtext p:last-child {
+      margin-bottom: 0;
+    }
+  </mj-style>
+<% end %>

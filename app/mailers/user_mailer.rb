@@ -3,6 +3,8 @@
 class UserMailer < ActionMailer::Base # rubocop:disable Rails/ApplicationMailer
   helper ApplicationHelper
   helper UsersHelper
+  helper DtextHelper
+
   default from: Danbooru.config.mail_from_addr, content_type: "text/html"
 
   def dmail_notice(dmail)
