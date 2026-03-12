@@ -219,6 +219,7 @@ class StaticController < ApplicationController
       add_link[:admin, "Email Blacklist", email_blacklists_path]
       add_link[:admin, "Destroyed Posts", admin_destroyed_posts_path]
       add_link[:admin, "Exceptions", admin_exceptions_path]
+      add_link[:admin, "Search Trends", search_trends_path]
       add_link[:admin, "Stuck DNP tags", new_admin_stuck_dnp_path]
       add_link[:admin, "Security", security_root_path]
       add_link[:admin, "Alt list", alt_list_admin_users_path]

@@ -280,6 +280,11 @@ module Danbooru
       1.week
     end
 
+    # SearchTrend records older than the current day with fewer than this many hits will be pruned during maintenance.
+    def search_trend_minimum_count
+      100
+    end
+
     # Flat limit that applies to all users, regardless of level
     def hourly_upload_limit
       30
