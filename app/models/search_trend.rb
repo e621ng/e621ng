@@ -123,4 +123,11 @@ class SearchTrend < ApplicationRecord
       .order(count: :desc, tag: :asc)
       .limit(limit)
   end
+
+  def self.rising_tags_list
+    Cache.fetch("rising_tags", expires_in: 15.minutes) do
+      tags = SearchTrend.rising(min_today: Setting.trends_min_today, min_delta: Setting.trends_min_delta, min_ratio: Setting.trends_min_ratio).pluck(:tag)
+      TagAlias.to_aliased(tags)
+    end
+  end
 end

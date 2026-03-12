@@ -139,65 +139,6 @@ body.c-static.a-home {
     content: "Search ";
   }
 
-  .home-trends {
-    background-image: themed("image-foreground");
-    background-position: themed("image-foreground-position");
-    background-repeat: themed("image-foreground-repeat");
-
-    h3 {
-      display: flex;
-      justify-content: center;
-      gap: 0.25rem;
-      align-items: center;
-      font-size: 1rem;
-      line-height: 1rem;
-      margin-bottom: 0.5rem;
-      text-shadow: 0 0 1rem black;
-
-      svg {
-        width: 1.25rem;
-        height: 1.25rem;
-        margin: -0.125rem 0;
-      }
-    }
-
-    ul.rising-tags {
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      counter-reset: list-number;
-
-      // Single column on mobile
-      @include window-smaller-than(480px) {
-        ul:last-child { display: none; }
-      }
-
-      ul {
-        list-style: none;
-        text-align: left;
-      }
-
-      li a {
-        display: flex;
-        width: 100%;
-        padding: 0.25rem;
-        counter-increment: list-number;
-
-        &:before {
-          content: counter(list-number) ". ";
-          color: themed("color-text");
-          font-family: monospace;
-          font-size: 0.8rem;
-
-          display: inline-block;
-          margin-right: 0.25rem;
-          text-align: right;
-          width: 1.5rem;
-        }
-      }
-    }
-  }
-
   .home-subscribestar {
     a {
       display: flex;

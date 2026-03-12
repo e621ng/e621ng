@@ -23,6 +23,13 @@ class SearchTrendsController < ApplicationController
     end
   end
 
+  def rising
+    respond_to do |format|
+      format.html
+      format.json { render json: SearchTrend.rising_tags_list.as_json(only: %i[tag]) }
+    end
+  end
+
   def settings
   end
 

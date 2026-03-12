@@ -77,6 +77,7 @@ Rails.application.routes.draw do
   resources :popular, only: %i[index]
   resources :search_trends, only: %i[index] do
     collection do
+      get :rising
       get :settings
       post :update_settings
       post :clear_cache

@@ -2,12 +2,7 @@
 
 module SearchTrendsHelper
   def rising_tags
-    return "" unless Setting.trends_enabled?
-
-    rising_tags = Cache.fetch("rising_tags", expires_in: 5.minutes) do
-      tags = SearchTrend.rising(min_today: Setting.trends_min_today, min_delta: Setting.trends_min_delta, min_ratio: Setting.trends_min_ratio).pluck(:tag)
-      TagAlias.to_aliased(tags)
-    end
+    rising_tags = SearchTrend.rising_tags_list
 
     return "" if rising_tags.empty?
 
