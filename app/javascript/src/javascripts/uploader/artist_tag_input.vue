@@ -88,7 +88,7 @@ export default {
 
       const notices = [];
       for (const tagName of tags) {
-        const tag = tagMap[tagName];
+        const tag = tagMap[tagName.toLowerCase()];
         if (!tag || (tag.category === 0 && tag.post_count === 0)) {
           notices.push({ tag: tagName, type: 'make_artist' });
         } else if (tag.category === 1) {
