@@ -50,9 +50,9 @@ class SearchTrend < ApplicationRecord
     end
 
     # Filter out tags that would exceed tag-specific rate limits
-    allowed_tags = ts.select do |tag|
+    allowed_tags = ts.reject do |tag|
       tag_key = "trends:tag:#{tag}"
-      !RateLimiter.check_limit(tag_key, Setting.trends_tag_limit, Setting.trends_tag_window.seconds)
+      RateLimiter.check_limit(tag_key, Setting.trends_tag_limit, Setting.trends_tag_window.seconds)
     end
 
     return if allowed_tags.empty?
