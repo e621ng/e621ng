@@ -29,7 +29,11 @@
   </section>
 
   <% if Setting.trends_enabled? %>
-  <section class="home-section">
+  <section class="home-section home-trends">
+    <h3>
+      <%= svg_icon(:trending_up) %>
+      Trending
+    </h3>
     <%= rising_tags %>
   </section>
   <% end %>
