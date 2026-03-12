@@ -15,7 +15,7 @@ class SearchTrendsController < ApplicationController
       @day = Date.current
     end
     @trending = SearchTrend.for_day(@day).order(count: :desc, tag: :asc).paginate(params[:page], limit: params[:limit])
-    @count_offset = ((params[:page]&.to_i || 1) - 1) * (params[:limit]&.to_i || 75)
+    @count_offset = (@trending.current_page - 1) * @trending.records_per_page
 
     respond_to do |format|
       format.html
@@ -27,6 +27,8 @@ class SearchTrendsController < ApplicationController
   end
 
   def update_settings
+    params = trends_params
+
     if params.key?(:trends_enabled)
       Setting.trends_enabled = ActiveModel::Type::Boolean.new.cast(params[:trends_enabled])
     end
@@ -66,5 +68,10 @@ class SearchTrendsController < ApplicationController
       format.html { redirect_to search_trends_path, notice: "Rising tags cache cleared" }
       format.json { render json: { success: true, message: "Rising tags cache cleared" } }
     end
+  end
+
+  def trends_params
+    permitted_params = %i[trends_enabled trends_min_today trends_min_delta trends_min_ratio trends_ip_limit trends_ip_window trends_tag_limit trends_tag_window]
+    params.fetch(:search_trends, {}).permit(permitted_params)
   end
 end

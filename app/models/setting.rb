@@ -30,9 +30,9 @@ class Setting < RailsSettings::Base
   end
 
   scope :trends do
-    field :trends_enabled, type: :boolean, default: true
-    field :trends_min_today, type: :integer, default: 100, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
-    field :trends_min_delta, type: :integer, default: 10, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
+    field :trends_enabled, type: :boolean, default: false
+    field :trends_min_today, type: :integer, default: 500, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
+    field :trends_min_delta, type: :integer, default: 100, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
     field :trends_min_ratio, type: :float, default: 2.0, validates: { presence: true, numericality: { greater_than_or_equal_to: 1.0 } }
     field :trends_ip_limit, type: :integer, default: 200, validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
     field :trends_ip_window, type: :integer, default: 3600, validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }

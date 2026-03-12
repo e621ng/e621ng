@@ -19,9 +19,10 @@ class SearchTrendBlacklistsControllerTest < ActionDispatch::IntegrationTest
       assert_response 403
     end
 
-    should "return 403 for anonymous" do
+    should "redirect to login page" do
       get search_trend_blacklists_path
-      assert_response 403
+      assert_response 302
+      assert_includes response.location, "/session/new"
     end
   end
 

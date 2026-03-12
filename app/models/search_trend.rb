@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class SearchTrend < ApplicationRecord
-  validates :tag, presence: true
+  validates :tag, presence: true, tag_name: true, on: :create
+  validates :tag, length: { in: 1..100 }
   validates :day, presence: true
 
   scope :for_day, ->(day) { where(day: day.to_date) }
@@ -11,6 +12,7 @@ class SearchTrend < ApplicationRecord
     t = tag.to_s.downcase.strip
     return if t.blank?
     return unless Setting.trends_enabled
+    return unless valid_tag?(t)
     return if SearchTrendBlacklist.blacklisted?(t)
 
     # Rate limiting checks
@@ -43,6 +45,9 @@ class SearchTrend < ApplicationRecord
     ts = Array(tags).map { |tg| tg.to_s.downcase.strip }.select(&:present?).uniq
     return if ts.empty?
     return unless Setting.trends_enabled
+
+    ts.select! { |tg| valid_tag?(tg) }
+    return if ts.empty?
 
     # Rate limiting checks
     if ip.present?
@@ -87,6 +92,13 @@ class SearchTrend < ApplicationRecord
     where("day < ? AND count < ?", Date.current, min_count)
       .in_batches(load: false)
       .delete_all
+  end
+
+  private_class_method def self.valid_tag?(tag)
+    return false unless tag.length.between?(1, 100)
+    record = new(tag: tag, day: Date.current)
+    TagNameValidator.new(attributes: [:tag]).validate_each(record, :tag, tag)
+    record.errors[:tag].empty?
   end
 
   # Top tags for given day, ordered by count desc then tag asc

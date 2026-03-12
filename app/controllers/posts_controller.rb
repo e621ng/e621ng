@@ -38,6 +38,7 @@ class PostsController < ApplicationController
           SearchTrend.bulk_increment!(tag_tokens, day: Date.current, ip: request.remote_ip) if tag_tokens.present?
         rescue StandardError => _e
           # Fail open: don't block search page if parsing fails
+          Rails.logger.warn("Failed to record search trends for query #{tag_query.inspect}: #{e.class}: #{e.message}")
         end
       end
 
