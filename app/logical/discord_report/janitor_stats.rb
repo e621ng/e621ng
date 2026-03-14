@@ -49,7 +49,7 @@ module DiscordReport
       {
         pending: {
           posts: Post.pending.count,
-          flags: flags.count, # use the count instead of doing another query
+          flags: flagged_posts.count, # use the count instead of doing another query
           replacements: PostReplacement.pending.count,
         },
         deletions: {
