@@ -1,0 +1,47 @@
+# frozen_string_literal: true
+
+# Backfills the duration field for GIF files based on their actual content
+module Fixes
+  class BackfillGifDuration
+    def self.run
+      posts = Post.where(file_ext: "gif", duration: nil)
+      total = posts.size
+      puts "Found #{total} GIFs to process"
+      return if total == 0
+
+      processed = 0
+      updated = 0
+      posts.find_each do |post|
+        begin
+          file_path = post.file_path
+          if File.exist?(file_path)
+            if post.is_animated_gif?(file_path)
+              post.duration = calculate_gif_duration(file_path)
+              post.save!(validate: false)
+              updated += 1
+            end
+          else
+            puts "File not found for post #{post.id}: #{file_path}"
+          end
+        rescue StandardError => e
+          puts "Error processing post #{post.id}: #{e.message}"
+        end
+
+        processed += 1
+        print "\rProcessed #{processed}/#{total} posts" if processed % 10 == 0
+      end
+
+      puts "\nDone! Updated duration for #{updated}/#{total} posts (#{total - updated} were static GIFs or missing)"
+    end
+
+    def self.calculate_gif_duration(file_path)
+      video = FFMPEG::Movie.new(file_path)
+      return video.duration if video.duration
+      0
+    end
+
+    private_class_method :calculate_gif_duration
+  end
+end
+
+Fixes::BackfillGifDuration.run
