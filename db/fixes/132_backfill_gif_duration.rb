@@ -17,14 +17,8 @@ module Fixes
             file_path = post.file_path
             if File.exist?(file_path)
               if post.is_animated_gif?(file_path)
-                duration = calculate_gif_duration(file_path)
-                post.update_columns(duration: duration)
-
-                unless post.tags.include?("long_playtime") || post.tags.include?("short_playtime")
-                  post.tags << (duration >= 30 ? "long_playtime" : "short_playtime") # rubocop:disable Metrics/BlockNesting
-                  post.save!
-                end
-
+                post.duration = calculate_gif_duration(file_path)
+                post.save! # Automatically fix the playtime tags
                 updated += 1
               end
             else
