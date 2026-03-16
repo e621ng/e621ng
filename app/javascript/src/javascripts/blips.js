@@ -1,6 +1,7 @@
 /* eslint-disable quotes */
 import Utility from './utility.js';
 import TextUtils from './utility/text_util.js';
+import TextPost from './utility/text_post.js';
 
 let Blip = {};
 
@@ -15,10 +16,17 @@ Blip.atme = function (e) {
   $('#blip_response_to')[0].value = blipId;
 };
 
+/**
+ * Generates a DText-formatted quote of the given text post.
+ *
+ * @todo Pull into a static method on `TextPost`.
+ * @param {Event} e
+ */
 Blip.quote = function (e) {
   e.preventDefault();
-  const $parent = $(e.target).parents("article.blip");
-  const blipId = $parent.data("blip-id");
+  const parent = $(e.target).parents("article.blip");
+  const blipId = parent.data("blip-id");
+  const link = TextPost.retrieveOwnUrlSegment(parent);
 
   $.ajax({
     url: `/blips/${blipId}.json`,
@@ -27,7 +35,7 @@ Blip.quote = function (e) {
     accept: 'text/javascript',
   }).done(function (data) {
     const $textarea = $("#blip_body_for_");
-    TextUtils.processQuote($textarea, data.body, $parent.data("creator"), $parent.data("creator-id"));
+    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"), link);
     $textarea.selectEnd();
 
     $('#blip_response_to')[0].value = blipId;

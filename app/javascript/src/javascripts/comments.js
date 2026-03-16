@@ -1,6 +1,7 @@
 import DTextFormatter from "./dtext_formatter";
 import Utility from "./utility";
 import TextUtils from "./utility/text_util";
+import TextPost from "./utility/text_post.js";
 
 let Comment = {};
 
@@ -109,11 +110,18 @@ Comment.delete = function (e) {
   });
 };
 
+/**
+ * Generates a DText-formatted quote of the given text post.
+ *
+ * @todo Pull into a static method on `TextPost`.
+ * @param {Event} e
+ */
 Comment.quote = function (e) {
   e.preventDefault();
   const parent = $(e.target).parents("article.comment");
   const pid = parent.data("post-id");
   const cid = parent.data("comment-id");
+  const link = TextPost.retrieveOwnUrlSegment(parent);
   $.ajax({
     url: `/comments/${cid}.json`,
     type: "GET",
@@ -121,10 +129,10 @@ Comment.quote = function (e) {
     accept: "text/javascript",
   }).done(function (data) {
     const $div = $(`div.comments-for-post[data-post-id="${pid}"] div.new-comment`);
-    $div.find(".expand-comment-response").click();
+    $div.find(".expand-comment-response").trigger("click");
 
     const $textarea = $div.find("textarea");
-    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
+    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"), link);
     $textarea.selectEnd();
   }).fail(function (data) {
     Utility.error(data.responseText);
