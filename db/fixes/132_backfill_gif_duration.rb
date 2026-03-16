@@ -17,11 +17,16 @@ module Fixes
             file_path = post.file_path
             if File.exist?(file_path)
               if post.is_animated_gif?(file_path)
-                post.duration = calculate_gif_duration(file_path)
-                post.tag_string_will_change!
-                post.do_not_version_changes = true
-                post.save!
-                updated += 1
+                duration = calculate_gif_duration(file_path)
+                if duration.present?
+                  post.duration = duration
+                  post.tag_string_will_change!
+                  post.do_not_version_changes = true
+                  post.save!
+                  updated += 1
+                else
+                  puts "Could not determine duration for post #{post.id}: #{file_path}"
+                end
               end
             else
               puts "File not found for post #{post.id}: #{file_path}"
@@ -40,8 +45,9 @@ module Fixes
 
     def self.calculate_gif_duration(file_path)
       video = FFMPEG::Movie.new(file_path)
-      return video.duration if video.duration
-      0
+      duration = video.duration
+      return nil unless duration && duration > 0
+      duration
     end
 
     private_class_method :calculate_gif_duration
