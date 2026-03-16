@@ -4,7 +4,7 @@
 module Fixes
   class BackfillGifDuration
     def self.run
-      Post.without_timeout do
+      Post.without_timeout do # rubocop:disable Metrics/BlockLength
         posts = Post.where(file_ext: "gif", duration: nil)
         total = posts.size
         puts "Found #{total} GIFs to process"
