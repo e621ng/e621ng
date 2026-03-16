@@ -4,7 +4,7 @@
 module Fixes
   class BackfillGifDuration
     def self.run
-      Post.without_timeout do # rubocop:disable Metrics/BlockLength
+      Post.without_timeout do
         posts = Post.where(file_ext: "gif", duration: nil)
         total = posts.size
         puts "Found #{total} GIFs to process"
@@ -18,7 +18,7 @@ module Fixes
             if File.exist?(file_path)
               if post.is_animated_gif?(file_path)
                 post.duration = calculate_gif_duration(file_path)
-                post.save! # Automatically fix the playtime tags
+                post.save!(validate: false) # Automatically fix the playtime tags
                 updated += 1
               end
             else
