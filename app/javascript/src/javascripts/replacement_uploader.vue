@@ -18,7 +18,7 @@
         id="replacement-reason"
         listId="reason-datalist"
         :addToList="submittedReason"
-        placeholder="Higher quality, artwork updated, official uncensored version, ..."
+        placeholder="Higher quality / Updated Artwork / etc."
         v-model="reason"
       ></autocompletable-input>
     </label>
