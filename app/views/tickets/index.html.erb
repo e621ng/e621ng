@@ -7,7 +7,7 @@
       <thead>
         <tr>
           <th style="width:5%">ID</th>
-          <% if CurrentUser.is_moderator? %>
+          <% if CurrentUser.is_janitor? %>
             <th style="width:10%">Reporter</th>
             <th style="width:10%">Accused</th>
             <th style="width:10%">Claimed By</th>
@@ -22,12 +22,13 @@
 
       <tbody>
         <% @tickets.each do |ticket| %>
+          <% can_view = ticket.can_view?(CurrentUser.user) %>
           <tr data-link="<%= ticket_path(ticket) %>">
             <td><%= link_to ticket.id, ticket_path(ticket) %></td>
-            <% if CurrentUser.is_moderator? %>
+            <% if CurrentUser.is_janitor? %>
               <td><%= link_to_user ticket.creator %></td>
               <td>
-                <% if ticket.accused %>
+                <% if ticket.accused && can_view %>
                   <%= link_to_user ticket.accused %>
                 <% end %>
               </td>
@@ -41,8 +42,12 @@
             <% end %>
             <td><%= link_to ticket.type_title, ticket_path(ticket) %></td>
 
-            <%= tag.td class: "ticket-subject full-width-link", title: truncate(strip_tags(format_text(ticket.reason)), length: 200) do %>
-              <%= link_to truncate(strip_tags(format_text(ticket.subject)), length: 200), ticket_path(ticket.id) %>
+            <% if can_view %>
+              <%= tag.td class: "ticket-subject full-width-link", title: truncate(strip_tags(format_text(ticket.reason)), length: 200) do %>
+                <%= link_to truncate(strip_tags(format_text(ticket.subject)), length: 200), ticket_path(ticket.id) %>
+              <% end %>
+            <% else %>
+              <td class="ticket-subject">Restricted</td>
             <% end %>
 
             <td class="<%= ticket.status %>-ticket"><%= pretty_ticket_status(ticket) %></td>
