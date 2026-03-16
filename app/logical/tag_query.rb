@@ -308,6 +308,8 @@ class TagQuery
     else
       parse_query(query, **)
     end
+
+    q[:order] = "random" if q[:random_seed].present? && q[:order].nil?
     # raise CountExceededError if @tag_count > Danbooru.config.tag_query_limit - free_tags_count
   end
 
