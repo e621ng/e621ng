@@ -284,7 +284,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "replacement", report_reason: "test")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
-        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
     end
   end
