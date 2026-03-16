@@ -317,6 +317,74 @@ ALTER SEQUENCE public.avoid_postings_id_seq OWNED BY public.avoid_postings.id;
 
 
 --
+-- Name: award_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.award_types (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    description text,
+    has_icon boolean DEFAULT false NOT NULL,
+    creator_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: award_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.award_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: award_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.award_types_id_seq OWNED BY public.award_types.id;
+
+
+--
+-- Name: awards; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.awards (
+    id bigint NOT NULL,
+    award_type_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    reason text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: awards_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.awards_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: awards_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.awards_id_seq OWNED BY public.awards.id;
+
+
+--
 -- Name: bans; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2684,6 +2752,20 @@ ALTER TABLE ONLY public.avoid_postings ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: award_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.award_types ALTER COLUMN id SET DEFAULT nextval('public.award_types_id_seq'::regclass);
+
+
+--
+-- Name: awards id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.awards ALTER COLUMN id SET DEFAULT nextval('public.awards_id_seq'::regclass);
+
+
+--
 -- Name: bans id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3165,6 +3247,22 @@ ALTER TABLE ONLY public.avoid_posting_versions
 
 ALTER TABLE ONLY public.avoid_postings
     ADD CONSTRAINT avoid_postings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: award_types award_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.award_types
+    ADD CONSTRAINT award_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: awards awards_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.awards
+    ADD CONSTRAINT awards_pkey PRIMARY KEY (id);
 
 
 --
@@ -3837,6 +3935,48 @@ CREATE INDEX index_avoid_postings_on_is_active_and_id ON public.avoid_postings U
 --
 
 CREATE INDEX index_avoid_postings_on_updater_id ON public.avoid_postings USING btree (updater_id);
+
+
+--
+-- Name: index_award_types_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_award_types_on_creator_id ON public.award_types USING btree (creator_id);
+
+
+--
+-- Name: index_award_types_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_award_types_on_name ON public.award_types USING btree (name);
+
+
+--
+-- Name: index_awards_on_award_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_awards_on_award_type_id ON public.awards USING btree (award_type_id);
+
+
+--
+-- Name: index_awards_on_award_type_id_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_awards_on_award_type_id_and_user_id ON public.awards USING btree (award_type_id, user_id);
+
+
+--
+-- Name: index_awards_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_awards_on_creator_id ON public.awards USING btree (creator_id);
+
+
+--
+-- Name: index_awards_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_awards_on_user_id ON public.awards USING btree (user_id);
 
 
 --
@@ -5082,6 +5222,14 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
+-- Name: award_types fk_rails_075544e565; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.award_types
+    ADD CONSTRAINT fk_rails_075544e565 FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
 -- Name: avoid_posting_versions fk_rails_1d1f54e17a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5098,6 +5246,22 @@ ALTER TABLE ONLY public.blips
 
 
 --
+-- Name: awards fk_rails_37369770d2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.awards
+    ADD CONSTRAINT fk_rails_37369770d2 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: awards fk_rails_45041e7ea9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.awards
+    ADD CONSTRAINT fk_rails_45041e7ea9 FOREIGN KEY (award_type_id) REFERENCES public.award_types(id);
+
+
+--
 -- Name: tickets fk_rails_45cd696dba; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5111,6 +5275,14 @@ ALTER TABLE ONLY public.tickets
 
 ALTER TABLE ONLY public.avoid_posting_versions
     ADD CONSTRAINT fk_rails_4c48affea5 FOREIGN KEY (avoid_posting_id) REFERENCES public.avoid_postings(id);
+
+
+--
+-- Name: awards fk_rails_62146e761f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.awards
+    ADD CONSTRAINT fk_rails_62146e761f FOREIGN KEY (creator_id) REFERENCES public.users(id);
 
 
 --
@@ -5216,10 +5388,12 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260402163101'),
 ('20260329181337'),
 ('20260325154501'),
 ('20260324195504'),
 ('20260324153600'),
+('20260316163101'),
 ('20260312140702'),
 ('20260311194405'),
 ('20260310162913'),

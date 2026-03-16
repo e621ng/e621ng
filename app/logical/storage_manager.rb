@@ -6,6 +6,7 @@ class StorageManager
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
   IMAGE_TYPES = %i[preview_jpg preview_webp sample_jpg sample_webp original].freeze
   MASCOT_PREFIX = "mascots"
+  AWARD_TYPE_ICON_PREFIX = "awards"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
@@ -160,6 +161,22 @@ class StorageManager
 
   def delete_mascot(md5, file_ext)
     delete(mascot_path(md5, file_ext))
+  end
+
+  def store_award_type_icon(io, award_type)
+    store(io, award_type_icon_path(award_type.id))
+  end
+
+  def delete_award_type_icon(award_type_id)
+    delete(award_type_icon_path(award_type_id))
+  end
+
+  def award_type_icon_path(award_type_id)
+    "#{base_dir}/#{AWARD_TYPE_ICON_PREFIX}/#{award_type_id}.png"
+  end
+
+  def award_type_icon_url(award_type_id)
+    "#{base_url}#{base_path}/#{AWARD_TYPE_ICON_PREFIX}/#{award_type_id}.png"
   end
 
   def furids_url

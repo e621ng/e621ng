@@ -1,0 +1,11 @@
+<% content_for(:page_title) { "Edit Award Type: #{@award_type.name}" } %>
+
+<div id="c-admin-award-types">
+  <div id="a-edit">
+    <h1>Edit Award Type: <%= @award_type.name %></h1>
+
+    <%= render "form" %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>

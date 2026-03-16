@@ -3,6 +3,10 @@
   grid-template-columns: min-content auto;
   gap: 1rem;
 
+  @include window-larger-than(600px) {
+    grid-template-columns: min-content auto 1fr;
+  }
+
   // Info block
   .profile-info {
     display: flex;
@@ -28,6 +32,40 @@
     font-size: 0.75rem;
     color: themed("color-text-muted");
     margin-top: -0.25rem;
+  }
+
+  .profile-awards {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.5rem;
+    grid-column: 1 / -1;
+
+    @include window-larger-than(600px) {
+      grid-column: unset;
+    }
+
+    .user-award-new {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+
+      width: 2rem;
+      height: 2rem;
+
+      border-radius: 0.25rem;
+      border: 1px dashed themed("color-text-muted");
+      color: themed("color-text-muted");
+      font-weight: bold;
+      line-height: 0;
+
+      &:hover {
+        background-color: themed("color-link");
+        color: themed("color-foreground");
+        border: 0;
+      }
+    }
   }
 }
 

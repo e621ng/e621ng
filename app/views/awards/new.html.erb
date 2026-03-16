@@ -1,0 +1,11 @@
+<div id="c-awards">
+  <div id="a-new">
+    <h1>Give Award</h1>
+
+    <%= render "form", award: @award %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) { "Give Award" } %>

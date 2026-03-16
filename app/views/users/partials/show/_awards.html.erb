@@ -1,0 +1,6 @@
+<div class="user-awards-list">
+  <%= render AwardComponent.with_collection(@user.award_list) %>
+  <% if CurrentUser.is_staff? %>
+    <a href="<%= new_award_path(award: { user_name: @user.name }) %>" class="user-award-new">+</a>
+  <% end %>
+</div>

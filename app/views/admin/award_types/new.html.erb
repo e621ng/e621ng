@@ -1,0 +1,13 @@
+<% content_for(:page_title) { "New Award Type" } %>
+
+<div id="c-admin-award-types">
+  <div id="a-new">
+    <h1>New Award Type</h1>
+
+    <%= render "form" %>
+
+    <%= link_to "Back", admin_award_types_path %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>

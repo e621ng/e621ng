@@ -134,6 +134,7 @@ class User < ApplicationRecord
   has_many :post_sets, -> { order(name: :asc) }, foreign_key: :creator_id
   has_many :post_versions
   has_many :post_votes
+  has_many :awards, -> { order("awards.id desc") }
   has_many :staff_notes, -> { active.order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
   has_many :artists, foreign_key: "linked_user_id"
@@ -726,6 +727,20 @@ class User < ApplicationRecord
     end
   end
 
+  module AwardMethods
+    def award_list
+      @award_list ||= awards.includes(:award_type, :creator)
+    end
+
+    def has_awards?
+      award_list.any?
+    end
+
+    def has_award_type?(award_type_id)
+      award_list.any? { |award| award.award_type_id == award_type_id }
+    end
+  end
+
   module ApiMethods
     # blacklist all attributes by default. whitelist only safe attributes.
     def hidden_attributes
@@ -1026,6 +1041,7 @@ class User < ApplicationRecord
   include LimitMethods
   include ApiMethods
   include CountMethods
+  include AwardMethods
   extend SearchMethods
   extend ThrottleMethods
 

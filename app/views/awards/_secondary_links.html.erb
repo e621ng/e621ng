@@ -1,0 +1,10 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "Listing", awards_path %>
+  <% if CurrentUser.is_janitor? %>
+    <%= subnav_link_to "Give Award", new_award_path %>
+  <% end %>
+  <% if CurrentUser.is_admin? %>
+    <li class="divider"></li>
+    <%= subnav_link_to "Manage Award Types", admin_award_types_path %>
+  <% end %>
+<% end %>

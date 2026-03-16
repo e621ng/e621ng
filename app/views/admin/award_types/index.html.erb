@@ -1,0 +1,47 @@
+<% content_for(:page_title) { "Award Types" } %>
+
+<div id="c-admin-award-types">
+  <div id="a-index">
+    <h1>Award Types</h1>
+
+    <table class="striped">
+      <thead>
+        <tr>
+          <th>Icon</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Created By</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @award_types.each do |award_type| %>
+          <tr>
+            <td>
+              <% if award_type.has_icon? %>
+                <img src="<%= award_type.icon_url %>" alt="<%= award_type.name %>" style="max-width: 32px; max-height: 32px;" />
+              <% end %>
+            </td>
+            <td><%= award_type.name %></td>
+            <td><%= award_type.description %></td>
+            <td><%= link_to_user(award_type.creator) %></td>
+            <td>
+              <%= link_to "Edit", edit_admin_award_type_path(award_type) %>
+              |
+              <%= link_to "Delete", admin_award_type_path(award_type), method: :delete, data: { confirm: "Delete award type \"#{award_type.name}\"?" } %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @award_types.empty? %>
+          <tr>
+            <td colspan="5">No award types defined.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render PaginatorComponent.new(records: @award_types) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>

@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
   namespace :admin do
+    resources :award_types
     resources :automod_rules, only: %i[index new create edit update destroy]
     resources :users, only: %i[edit update] do
       member do
@@ -44,6 +45,7 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :awards, only: %i[index new create destroy]
   resources :edit_histories
   namespace :moderator do
     resource :dashboard, only: %i[show]

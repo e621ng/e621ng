@@ -16,4 +16,12 @@
       <% end %>
     </span>
   </div>
+  <div class="profile-awards">
+    <% if @user.has_awards? %>
+      <%= render AwardComponent.with_collection(@user.award_list) %>
+    <% end %>
+    <% if CurrentUser.is_staff? %>
+      <a href="<%= new_award_path(award: { user_name: @user.name }) %>" class="user-award-new">+</a>
+    <% end %>
+  </div>
 </div>

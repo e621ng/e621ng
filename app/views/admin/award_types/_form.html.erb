@@ -1,0 +1,12 @@
+<%= custom_form_for(@award_type, url: @award_type.new_record? ? admin_award_types_path : admin_award_type_path(@award_type), html: { enctype: "multipart/form-data" }) do |f| %>
+  <%= f.input :name %>
+  <%= f.input :description %>
+  <%= f.input :icon_file, as: :file, label: "Icon (PNG)", input_html: { accept: "image/png,.png" } %>
+  <% if @award_type.has_icon? %>
+    <div class="input">
+      <label>Current Icon</label>
+      <img src="<%= @award_type.icon_url %>" alt="Current icon" style="max-width: 64px; max-height: 64px;" />
+    </div>
+  <% end %>
+  <%= f.submit class: "st-button submit" %>
+<% end %>

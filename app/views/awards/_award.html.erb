@@ -1,0 +1,12 @@
+<tr id="award-<%= award.id %>">
+  <td><%= render AwardComponent.new(award: award) %></td>
+  <td><%= link_to_user(award.user) %></td>
+  <td><%= link_to_user(award.creator) %></td>
+  <td><%= award.reason %></td>
+  <td><%= time_ago_in_words_tagged(award.created_at) %></td>
+  <td>
+    <% if award.can_destroy?(CurrentUser.user) %>
+      <%= link_to "Revoke", award_path(award), method: :delete, data: { confirm: "Revoke this award?" } %>
+    <% end %>
+  </td>
+</tr>

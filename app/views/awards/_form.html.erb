@@ -1,0 +1,10 @@
+<%= custom_form_for(award, url: awards_path) do |f| %>
+  <%= error_messages_for("award") %>
+  <%= f.input :user_name, as: :string, autocomplete: "user" %>
+  <div class="input select optional">
+    <label class="label" for="award_award_type_id">Award Type</label>
+    <%= f.select :award_type_id, AwardType.order(:name).pluck(:name, :id), include_blank: "Select award type...", required: true %>
+  </div>
+  <%= f.input :reason, as: :text, hint: "Optional reason for giving this award" %>
+  <%= f.button :submit, value: "Give Award" %>
+<% end %>

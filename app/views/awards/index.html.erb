@@ -1,0 +1,36 @@
+<div id="c-awards">
+  <div id="a-index">
+    <h1>Awards</h1>
+
+    <%= render "search" %>
+
+    <table class="striped autofit">
+      <thead>
+        <tr>
+          <th>Award</th>
+          <th>User</th>
+          <th>Given By</th>
+          <th>Reason</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @awards.each do |award| %>
+          <%= render partial: "award", locals: { award: award } %>
+        <% end %>
+        <% if @awards.empty? %>
+          <tr>
+            <td colspan="6">No awards found.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render PaginatorComponent.new(records: @awards) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) { "Awards" } %>
