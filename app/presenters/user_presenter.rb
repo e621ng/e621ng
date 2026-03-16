@@ -84,7 +84,10 @@ class UserPresenter
   end
 
   def artist_posts(artist)
-    Post.tag_match(artist.name).limit(8)
+    # Almost all verified artists only have one artist tag.
+    # If this changes, we may need to come up with a way to bulk search for posts with any of the artist's tags.
+    @artist_posts_cache ||= {}
+    @artist_posts_cache[artist.id] ||= Post.tag_match(artist.name).limit(8)
   end
 
   def upload_count(template)

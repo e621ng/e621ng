@@ -1079,6 +1079,7 @@ class User < ApplicationRecord
     super
     @upload_limit_pieces = nil
     @feedback_pieces = nil
+    @is_artist = nil
     self
   end
 end
