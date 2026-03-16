@@ -18,11 +18,14 @@
         id="replacement-reason"
         listId="reason-datalist"
         :addToList="submittedReason"
-        placeholder="Higher quality, artwork updated, official uncensored version, ..."
+        placeholder="Better image quality / Fixed by the artist / etc."
         v-model="reason"
       ></autocompletable-input>
     </label>
-    <span class="hint">Tell us why this file should replace the original.</span>
+    <span class="hint">
+      Tell us why this file should replace the original.<br />
+      See <a href="/help/replacements">the help page</a> for more information.
+    </span>
   </div>
 
   <div class="input" v-if="canApprove">
