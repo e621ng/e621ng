@@ -636,7 +636,7 @@ class User < ApplicationRecord
         :REJ_UPLOAD_EDIT
       elsif upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_LIMIT
-      else # rubocop:disable Lint/DuplicateBranch
+      else
         true
       end
     end
