@@ -1,9 +1,44 @@
+import Utility from "./utility";
+
 let PostDeletion = {};
 
 PostDeletion.init = function () {
   const input = $("#reason");
   let inputVal = input.val() + "";
 
+  // #region DMail Notification
+  /** @type {HTMLInputElement} */
+  const cBox = document.querySelector("input#send-dmail"),
+    /** @type {HTMLSelectElement} */
+    dMailTemplate = document.querySelector("select#del-dmail-template"),
+    /** @type {HTMLElement} */
+    message = document.querySelector("label[for=send-dmail] ~ .dtext-formatter"),
+    /** @type {JQuery<HTMLTextAreaElement>} */
+    dMailTextArea = $(message).children("textarea.dtext-formatter-input");
+  function updateDMailActivation () {
+    if (cBox.checked) {
+      message.style.display = dMailTemplate.parentElement.style.display = "";
+      dMailTextArea.removeAttr("disabled");
+    } else {
+      message.style.display = dMailTemplate.parentElement.style.display = "none";
+      dMailTextArea.attr("disabled", "disabled");
+    }
+  }
+  function updateReason () {
+    let newVal = input.val()?.toString();
+    dMailTextArea.val(
+      Utility.blank(newVal)
+        ? dMailTemplate.value
+        : dMailTemplate.value.replaceAll("%REASON%", newVal),
+    );
+  }
+  cBox.addEventListener("click", () => updateDMailActivation());
+  dMailTemplate.addEventListener("change", () => updateReason());
+  updateDMailActivation();
+  updateReason();
+  // #endregion DMail Notification
+
+  // #region Delete Reason
   const buttons = $("a.delreason-button")
     .on("click", (event) => {
       event.stopPropagation();
@@ -44,11 +79,13 @@ PostDeletion.init = function () {
   input.on("input", () => {
     inputVal = input.val() + "";
     buttons.trigger("e621:refresh");
+    updateReason();
   });
 
   $("#delreason-clear").on("click", () => {
     input.val("").trigger("input");
   });
+  // #endregion Delete Reason
 };
 
 $(function () {

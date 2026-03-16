@@ -22,6 +22,9 @@ div#c-confirm-delete {
     div.input { margin-bottom: unset; }
   }
 
+  .delete-send-dmail { margin-bottom: 0.5rem; }
+  #del-dmail-template option { color: unset; }
+
   // Prebuilt deletion reason buttons
   #delreason-prebuilt {
     a.delreason-button {
@@ -75,6 +78,10 @@ div#c-confirm-delete {
         }
       }
     }
+  }
+
+  label[for=send-dmail] {
+    display: block;
   }
 
 }
