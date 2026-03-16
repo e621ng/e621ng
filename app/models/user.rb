@@ -136,7 +136,7 @@ class User < ApplicationRecord
   has_many :post_votes
   has_many :staff_notes, -> { active.order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
-  has_many :artists, foreign_key: "linked_user"
+  has_many :artists, foreign_key: "linked_user_id"
 
   belongs_to :avatar, class_name: "Post", optional: true
   accepts_nested_attributes_for :dmail_filter
@@ -368,6 +368,10 @@ class User < ApplicationRecord
 
     def is_approver?
       can_approve_posts?
+    end
+
+    def is_artist?
+      @is_artist ||= artists.any?
     end
 
     def blank_out_nonexistent_avatars
@@ -632,7 +636,7 @@ class User < ApplicationRecord
         :REJ_UPLOAD_EDIT
       elsif upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_LIMIT
-      else
+      else # rubocop:disable Lint/DuplicateBranch
         true
       end
     end

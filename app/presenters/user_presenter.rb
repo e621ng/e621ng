@@ -83,6 +83,10 @@ class UserPresenter
     user.favorite_count > 0
   end
 
+  def artist_posts(artist)
+    Post.tag_match(artist.name).limit(8)
+  end
+
   def upload_count(template)
     template.link_to(user.post_upload_count, template.posts_path(tags: "user:#{user.name}"))
   end
