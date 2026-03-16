@@ -18,7 +18,9 @@ module Fixes
             if File.exist?(file_path)
               if post.is_animated_gif?(file_path)
                 post.duration = calculate_gif_duration(file_path)
-                post.save!(validate: false) # Automatically fix the playtime tags
+                post.tag_string_will_change!
+                post.do_not_version_changes = true
+                post.save!
                 updated += 1
               end
             else
