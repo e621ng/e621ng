@@ -137,7 +137,7 @@ class Comment < ApplicationRecord
       end
 
       if params[:post_id].present?
-        q = q.where("post_id in (?)", params[:post_id].split(",").map(&:to_i))
+        q = q.where("post_id in (?)", params[:post_id].split(",").map { |id| ParseValue.safe_id(id) })
       end
 
       if params[:post_tags_match].present?
