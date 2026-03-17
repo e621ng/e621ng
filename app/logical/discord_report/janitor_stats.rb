@@ -41,12 +41,15 @@ module DiscordReport
     def stats
       deletions = PostFlag.where(is_deletion: true).where("created_at >= ?", 1.day.ago)
       oldest_pending_post = Post.pending.order(id: :asc).first&.created_at || Time.now
-      oldest_pending_flag = PostFlag.where(is_deletion: false, is_resolved: false).order(id: :asc).first&.created_at || Time.now
+      # HACK: This method doesn't work because flags are not resolved when a post is deleted.
+      # For now, we will get our valid flags based on post status instead - adding a post_id constraint. We have an index of `index_post_flags_on_post_id`, so this should be efficient.
+      flagged_posts = Post.where(is_flagged: true) # relation of flagged posts
+      oldest_pending_flag = PostFlag.where(is_deletion: false, is_resolved: false, post_id: flagged_posts).order(id: :asc).first&.created_at || Time.now
       oldest_pending_replacement = PostReplacement.pending.order(id: :asc).first&.created_at || Time.now
       {
         pending: {
           posts: Post.pending.count,
-          flags: Post.where(is_flagged: true).count,
+          flags: flagged_posts.count, # use the relation count instead of loading ids into memory
           replacements: PostReplacement.pending.count,
         },
         deletions: {

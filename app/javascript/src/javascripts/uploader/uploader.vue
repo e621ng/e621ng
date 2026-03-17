@@ -31,10 +31,7 @@
                         <div>A director is the individual/s that directed the model to produce content. Usually you.<br>Please don't use <a href="/wiki_pages/anonymous_director">anonymous_director</a> or <a href="/wiki_pages/unknown_director">unknown_director</a> tags unless they fall under those definitions on the wiki.</div>
                     </div>
                     <div class="col2">
-                        <div>
-            <textarea class="tag-textarea" v-model="tagEntries.director" id="post_director" rows="2"
-                      placeholder="Ex: director_name, unknown_director, anonymous_director etc." data-autocomplete="tag-edit"></textarea>
-                        </div>
+                        <artist-tag-input v-model="tagEntries.director" />
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
@@ -244,6 +241,7 @@
   import filePreview from './file_preview.vue';
   import fileInput from './file_input.vue';
   import parentPostInput from './parent_post_input.vue';
+  import artistTagInput from './artist_tag_input.vue';
   import Autocomplete from "../autocomplete.js";
   import DTextFormatter from "../dtext_formatter.js";
   
@@ -299,6 +297,7 @@
       'file-preview': filePreview,
       'file-input': fileInput,
       'parent-post-input': parentPostInput,
+      'artist-tag-input': artistTagInput,
     },
     data() {
       const allChecks = {};
@@ -593,7 +592,7 @@
         if (window.uploaderSettings.verifiedArtistTags.length == 0) return;
 
         // Compact uploader
-        const artistTextBox = document.querySelector("#post_artist");
+        const artistTextBox = document.querySelector("#post_directors");
         if (artistTextBox === null) return;
 
         const artistTextBoxParent = artistTextBox.parentElement;

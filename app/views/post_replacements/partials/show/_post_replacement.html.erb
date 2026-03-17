@@ -2,7 +2,9 @@
 <% if post_replacement.is_pending? %> <% status_class += " replacement-pending-row" %> <% end %>
 <% if post_replacement.is_current? %> <% status_class += " replacement-current-row" %> <% end %>
 <tr id="replacement-<%= post_replacement.id %>" class="<%= status_class %>">
-  <td><%= replacement_thumbnail(post_replacement) %></td>
+  <td>
+    <%= replacement_thumbnail(post_replacement) %>
+  </td>
   <td>
     <dt>Version</dt>
     <dd>
@@ -50,14 +52,12 @@
     <% end %>
 
     <dt class="replacement-spaced-row">Sources</dt>
-    <dd>
+    <dd class="replacement-sources-list">
       <% if post_replacement.source.present? %>
         <div class="replacement-sources">
-          <ul>
-            <% post_replacement.source_list.each do |source| %>
-              <li class=replacement-sources-link><%= external_link_to source, truncate: 46 %></li>
-            <% end %>
-          </ul>
+          <% post_replacement.source_list.partition { |s| !s.start_with?("-") }.flatten.each do |source| %>
+            <div class="source-link"><%= post_source_tag(source) %></div>
+          <% end %>
         </div>
       <% else %>
         <em>None provided</em>
@@ -101,8 +101,9 @@
     <% if CurrentUser.can_approve_posts? %>
       <div class="pending-links">
         <% if post_replacement.status == "pending" %>
-          <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %><br><br>
-          <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %><br>
+          <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %><br />
+          <%= link_to "Compare", moderator_post_diff_path(post_a: post_replacement.post_id, post_b: post_replacement.md5) %><br /><br />
+          <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %><br />
         <% end %>
       </div>
       <% if !post_replacement.is_current? && !post_replacement.is_promoted? %>

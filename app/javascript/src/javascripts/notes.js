@@ -869,6 +869,8 @@ class NoteEditor {
         return false;
       }
 
+      if (this.saving) return false;
+
       this.saveNote();
       return false;
     });
@@ -889,6 +891,8 @@ class NoteEditor {
       if (!confirm(`Are you sure you want to delete note #${this.id}? This action cannot be undone.`))
         return;
 
+      if (this.saving) return false;
+
       this.deleteNote();
     });
 
@@ -908,6 +912,14 @@ class NoteEditor {
     if (!this._currentNote || this._currentNote.id !== this.id)
       this._currentNote = Note.getByID(this.id);
     return this._currentNote;
+  }
+
+  _saving = false;
+  get saving () { return this._saving; }
+  set saving (value) {
+    this._saving = value;
+    this.form.find("button[type='submit']").prop("disabled", value);
+    this.form.find("button[name='note-delete']").prop("disabled", value || this.currentNote?.isTemporary);
   }
 
   getCurrentNote () {
@@ -965,6 +977,8 @@ class NoteEditor {
     const note = this.currentNote;
     if (!note) return;
 
+    this.saving = true;
+
     const url = note.isTemporary ? "/notes.json" : `/notes/${this.id}.json`;
     const method = note.isTemporary ? "POST" : "PUT";
 
@@ -981,6 +995,7 @@ class NoteEditor {
       const postId = $("#image-container").data("id");
       if (!postId) {
         Utility.error("Error: Could not determine post ID.");
+        this.saving = false;
         return;
       }
       noteData.post_id = postId;
@@ -990,12 +1005,14 @@ class NoteEditor {
       type: method,
       data: { note: noteData },
       error: (xhr) => {
+        this.saving = false;
         const errorMessage = xhr.responseJSON?.reasons?.join("; ") || xhr.responseJSON?.reason || "Unknown error";
         Utility.error("Error saving note: " + errorMessage);
       },
       success: (data) => {
         if (!data || !data.note || !data.dtext) {
           Utility.error("Error: Invalid response from server.");
+          this.saving = false;
           return;
         }
 
@@ -1031,6 +1048,7 @@ class NoteEditor {
           $(window).trigger("e621:add_deferred_posts", data.posts);
         }
 
+        this.saving = false;
         this.close();
       },
     });
@@ -1041,11 +1059,19 @@ class NoteEditor {
     const note = this.currentNote;
     if (!note) return;
 
+    this.saving = true;
+
     $.ajax("/notes/" + this.id + ".json", {
       type: "DELETE",
       success: () => {
         note.destroy();
+        this.saving = false;
         this.close();
+      },
+      error: (xhr) => {
+        this.saving = false;
+        const errorMessage = xhr.responseJSON?.reasons?.join("; ") || xhr.responseJSON?.reason || "Unknown error";
+        Utility.error("Error deleting note: " + errorMessage);
       },
     });
   }
@@ -1068,6 +1094,7 @@ class NoteEditor {
     this.form.toggleClass("temporary", isTemporary);
     this.input.val(note.content || "");
 
+    this.saving = false;
     this.dialog.open();
   }
 
@@ -1087,6 +1114,7 @@ class NoteEditor {
     $(".note-box.focused").removeClass("focused");
 
     // Clean up editor state
+    this.saving = false;
     this.dialog.setTitle("");
     this.input.val("");
     this.form.removeClass("temporary");
