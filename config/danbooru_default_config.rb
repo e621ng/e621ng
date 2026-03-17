@@ -851,6 +851,10 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       false
     end
 
+    def analytics_client_id
+      nil
+    end
+
     def fsc_modal_enabled?
       false
     end
