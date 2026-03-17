@@ -98,7 +98,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "blip")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
-        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
         @content.update_columns(is_hidden: true)
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
       end
@@ -120,7 +120,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "comment")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
-        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
         @content.update_columns(is_hidden: true)
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
       end
@@ -160,7 +160,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "forum")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
-        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
         @content.topic.update_columns(is_hidden: true)
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
       end
@@ -180,7 +180,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "pool")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
-        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
     end
 
@@ -206,7 +206,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         create(:post_report_reason, reason: "test")
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "post", report_reason: "test")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
-        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
     end
 
@@ -226,7 +226,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should "not restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "set")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
-        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
         @content.update_columns(is_public: false)
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, false], [@admin, true]], @ticket)
       end
@@ -262,7 +262,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "wiki")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
-        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
     end
 
@@ -284,7 +284,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should "restrict access" do
         @ticket = create(:ticket, creator: @reporter, content: @content, qtype: "replacement", report_reason: "test")
         assert_ticket_view_permissions([[@bystander, false], [@reporter, true], [@janitor, true], [@admin, true]], @ticket)
-        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: nil }], [@admin, { creator_id: @reporter.id }]], @ticket)
+        assert_ticket_json([[@reporter, { creator_id: @reporter.id }], [@janitor, { creator_id: @reporter.id }], [@admin, { creator_id: @reporter.id }]], @ticket)
       end
     end
   end

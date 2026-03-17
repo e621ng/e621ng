@@ -74,6 +74,10 @@ class Ticket < ApplicationRecord
       def bot_target_name
         content&.from&.name
       end
+
+      def is_restricted?
+        true
+      end
     end
 
     module Forum
@@ -154,6 +158,10 @@ class Ticket < ApplicationRecord
 
       def bot_target_name
         content&.name
+      end
+
+      def is_restricted?
+        true
       end
     end
 
@@ -342,6 +350,14 @@ class Ticket < ApplicationRecord
   end
 
   def can_see_reporter?(user)
+    user.is_janitor? || (user.id == creator_id)
+  end
+
+  def is_restricted?
+    false
+  end
+
+  def can_view_restricted?(user)
     user.is_moderator? || (user.id == creator_id)
   end
 
