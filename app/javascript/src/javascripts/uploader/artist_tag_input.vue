@@ -4,9 +4,9 @@
       class="tag-textarea"
       :value="modelValue"
       @input="handleInput"
-      id="post_artist"
+      id="post_directors"
       rows="2"
-      placeholder="Ex: artist_name unknown_artist anonymous_artist etc."
+      placeholder="Ex: director_name unknown_director anonymous_director etc."
       data-autocomplete="tag-edit"
     ></textarea>
     <div v-if="notices.length" class="artist-tag-notices">
@@ -14,12 +14,12 @@
       <div v-for="(notice, index) in notices" :key="`${notice.type}:${notice.tag}:${index}`" class="artist-tag-notice" :data-type="notice.type">
         <template v-if="notice.type === 'make_artist'">
           <a href="#" @click.prevent="makeArtistTag(notice.tag)">
-            <div><b>{{ notice.tag }}</b> can be made into an artist tag</div>
+            <div><b>{{ notice.tag }}</b> can be made into a director tag</div>
           </a>
         </template>
         <template v-else>
           <a href="#" @click.prevent="removeWrongTag(notice.tag)">
-            <div><b>{{ notice.tag }}</b> is a {{ notice.detail }}</div>
+            <div><b>{{ notice.tag }}</b> is {{ notice.detail }}</div>
           </a>
         </template>
       </div>
@@ -28,7 +28,7 @@
 </template>
 
 <script>
-const CATEGORY_NAMES = ['general', 'artist', 'contributor', 'copyright', 'character', 'species', 'invalid', 'meta', 'lore'];
+const CATEGORY_NAMES = ['general', 'director', 'contributor', 'franchise', 'character', 'species', 'invalid', 'meta', 'lore'];
 
 export default {
   name: 'ArtistTagInput',
@@ -97,7 +97,7 @@ export default {
         .split(/\s+/)
         .filter((t) => {
           t = t.toLowerCase();
-          return t && !(t.startsWith("artist:") || t.startsWith("art:"))
+          return t && !(t.startsWith("director:") || t.startsWith("dir:"))
         });
       if (tags.length === 0) {
         this.notices = [];
@@ -143,7 +143,7 @@ export default {
       const parts = (this.modelValue || '').trim().split(/\s+/).filter(t => t);
       const idx = parts.indexOf(tagName);
       if (idx !== -1) {
-        parts[idx] = `artist:${tagName}`;
+        parts[idx] = `director:${tagName}`;
       }
       this.$emit('update:modelValue', parts.join(' ') + ' ');
     },
