@@ -44,3 +44,5 @@ test/reports
 *.swp
 *.local
 
+# Local docs
+/docs
