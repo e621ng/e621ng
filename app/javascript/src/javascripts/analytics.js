@@ -14,7 +14,8 @@ export default class Analytics {
       trackAttributes: true,
     });
 
-    this.bootstrapSearchData();
+    // Disabled for performance reasons, for now.
+    // this.bootstrapSearchData();
   }
 
   bootstrapSearchData () {
