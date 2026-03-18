@@ -7,7 +7,7 @@ export default class Analytics {
     if (!clientID) throw new Error("clientID is required");
 
     this._op = new OpenPanel({
-      apiUrl: "/op/api",
+      apiUrl: "https://op.dragonfru.it/api",
       clientId: clientID,
       trackScreenViews: true,
       trackOutgoingLinks: true,
