@@ -32,7 +32,7 @@ jobs:
         run: ssh e621@$HOST /app/bin/deploy "$TAG"
 
   # Triggered when a release is finalized (pre-release unchecked, or full release published
-  # directly) — deploys to e621 production servers in rolling order: app4 → app2 → app3.
+  # directly) — deploys to e621 production servers in rolling order: app4 → app3 → app2.
   # Migrations run on app4 only, before the rolling restart begins.
   deploy-e621:
     name: Deploy to e621
@@ -54,14 +54,14 @@ jobs:
           HOST: ${{ vars.PROD_APP4_HOST }}
         run: ssh e621@$HOST /app/bin/deploy "$TAG" --migrate
 
-      - name: Deploy to app2
-        env:
-          TAG: ${{ github.event.release.tag_name }}
-          HOST: ${{ vars.PROD_APP2_HOST }}
-        run: ssh e621@$HOST /app/bin/deploy "$TAG"
-
       - name: Deploy to app3
         env:
           TAG: ${{ github.event.release.tag_name }}
           HOST: ${{ vars.PROD_APP3_HOST }}
+        run: ssh e621@$HOST /app/bin/deploy "$TAG"
+
+      - name: Deploy to app2
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          HOST: ${{ vars.PROD_APP2_HOST }}
         run: ssh e621@$HOST /app/bin/deploy "$TAG"
