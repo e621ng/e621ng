@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Usage: bin/deploy <tag> [--migrate]
+#
+# Deploys the given git tag on the current server.
+# Pass --migrate to run database migrations (should only be done on one server
+# per release, before the rolling restart reaches the others).
+
+set -euo pipefail
+
+TAG="${1:?Usage: bin/deploy <tag> [--migrate]}"
+MIGRATE=false
+if [[ "${2:-}" == "--migrate" ]]; then
+  MIGRATE=true
+fi
+
+cd /app
+
+PREV=$(cat /app/REVISION 2>/dev/null || git rev-list --max-parents=0 HEAD)
+
+git fetch --tags
+git checkout "$TAG"
+
+# Update gems - only if Gemfile.lock changed
+if ! git diff --quiet "$PREV" "$TAG" -- Gemfile.lock; then
+  bundle install --quiet
+fi
+
+# Run migrations
+if [[ "$MIGRATE" == "true" ]]; then
+  bundle exec rails db:migrate
+fi
+
+# Update JS packages - only if yarn.lock changed
+ASSETS_CHANGED=false
+if ! git diff --quiet "$PREV" "$TAG" -- yarn.lock; then
+  yarn install --frozen-lockfile
+  ASSETS_CHANGED=true
+fi
+
+# Precompile assets - only if relevant files changed
+if ! git diff --quiet "$PREV" "$TAG" -- app/javascript app/assets; then
+  ASSETS_CHANGED=true
+fi
+if [[ "$ASSETS_CHANGED" == "true" ]]; then
+  bundle exec rails assets:precompile
+fi
+
+# Restart the app
+sudo systemctl restart e621
+
+# Health check - wait for the app to come back up
+HEALTH=0
+for i in $(seq 1 12); do
+  if curl -sf --max-time 5 http://localhost/status; then
+    HEALTH=1
+    break
+  fi
+  sleep 5
+done
+[[ "$HEALTH" -eq 1 ]] || { echo "Health check failed after restart" >&2; exit 1; }
+
+# Save the deployed tag for reference
+echo "$TAG" > /app/REVISION
+
+# Restart sidekiq
+sudo systemctl restart e621-jobs

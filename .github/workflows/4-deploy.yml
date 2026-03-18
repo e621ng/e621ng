@@ -4,7 +4,7 @@ on:
   release:
     types: [published, released]
 
-# Never cancel an in-progress deploy — queue instead to avoid leaving servers mid-update
+# Never cancel an in-progress deploy — do not leave servers mid-update
 concurrency:
   group: deploy-${{ github.event.release.prerelease && 'e926' || 'e621' }}
   cancel-in-progress: false
@@ -29,40 +29,7 @@ jobs:
         env:
           TAG: ${{ github.event.release.tag_name }}
           HOST: ${{ vars.E926_HOST }}
-        run: |
-          ssh e621@$HOST bash << ENDSSH
-            set -euo pipefail
-            cd /app
-
-            TAG="$TAG"
-            PREV=\$(cat /app/REVISION 2>/dev/null || git rev-list --max-parents=0 HEAD)
-
-            git fetch --tags
-            git checkout "\$TAG"
-
-            git diff --quiet "\$PREV" "\$TAG" -- Gemfile.lock \
-              || bundle install --quiet
-
-            git diff --quiet "\$PREV" "\$TAG" -- app/javascript app/assets \
-              || bundle exec rails assets:precompile
-
-            sudo systemctl restart e621
-
-            HEALTH=0
-            for i in \$(seq 1 12); do
-              if curl -sf --max-time 5 http://localhost/status; then
-                HEALTH=1
-                break
-              fi
-              sleep 5
-            done
-            [ "\$HEALTH" -eq 1 ] || { echo "Health check failed" >&2; exit 1; }
-
-            echo "\$TAG" > /app/REVISION
-
-            git diff --quiet "\$PREV" "\$TAG" -- config/sidekiq.yml \
-              || sudo systemctl restart e621-jobs
-          ENDSSH
+        run: ssh e621@$HOST /app/bin/deploy "$TAG"
 
   # Triggered when a release is finalized (pre-release unchecked, or full release published
   # directly) — deploys to e621 production servers in rolling order: app4 → app2 → app3.
@@ -85,117 +52,16 @@ jobs:
         env:
           TAG: ${{ github.event.release.tag_name }}
           HOST: ${{ vars.PROD_APP4_HOST }}
-        run: |
-          ssh e621@$HOST bash << ENDSSH
-            set -euo pipefail
-            cd /app
-
-            TAG="$TAG"
-            PREV=\$(cat /app/REVISION 2>/dev/null || git rev-list --max-parents=0 HEAD)
-
-            git fetch --tags
-            git checkout "\$TAG"
-
-            git diff --quiet "\$PREV" "\$TAG" -- Gemfile.lock \
-              || bundle install --quiet
-
-            bundle exec rails db:migrate
-
-            git diff --quiet "\$PREV" "\$TAG" -- app/javascript app/assets \
-              || bundle exec rails assets:precompile
-
-            sudo systemctl restart e621
-
-            HEALTH=0
-            for i in \$(seq 1 12); do
-              if curl -sf --max-time 5 http://localhost/status; then
-                HEALTH=1
-                break
-              fi
-              sleep 5
-            done
-            [ "\$HEALTH" -eq 1 ] || { echo "Health check failed" >&2; exit 1; }
-
-            echo "\$TAG" > /app/REVISION
-
-            git diff --quiet "\$PREV" "\$TAG" -- config/sidekiq.yml \
-              || sudo systemctl restart e621-jobs
-          ENDSSH
+        run: ssh e621@$HOST /app/bin/deploy "$TAG" --migrate
 
       - name: Deploy to app2
         env:
           TAG: ${{ github.event.release.tag_name }}
           HOST: ${{ vars.PROD_APP2_HOST }}
-        run: |
-          ssh e621@$HOST bash << ENDSSH
-            set -euo pipefail
-            cd /app
-
-            TAG="$TAG"
-            PREV=\$(cat /app/REVISION 2>/dev/null || git rev-list --max-parents=0 HEAD)
-
-            git fetch --tags
-            git checkout "\$TAG"
-
-            git diff --quiet "\$PREV" "\$TAG" -- Gemfile.lock \
-              || bundle install --quiet
-
-            git diff --quiet "\$PREV" "\$TAG" -- app/javascript app/assets \
-              || bundle exec rails assets:precompile
-
-            sudo systemctl restart e621
-
-            HEALTH=0
-            for i in \$(seq 1 12); do
-              if curl -sf --max-time 5 http://localhost/status; then
-                HEALTH=1
-                break
-              fi
-              sleep 5
-            done
-            [ "\$HEALTH" -eq 1 ] || { echo "Health check failed" >&2; exit 1; }
-
-            echo "\$TAG" > /app/REVISION
-
-            git diff --quiet "\$PREV" "\$TAG" -- config/sidekiq.yml \
-              || sudo systemctl restart e621-jobs
-          ENDSSH
+        run: ssh e621@$HOST /app/bin/deploy "$TAG"
 
       - name: Deploy to app3
         env:
           TAG: ${{ github.event.release.tag_name }}
           HOST: ${{ vars.PROD_APP3_HOST }}
-        run: |
-          ssh e621@$HOST bash << ENDSSH
-            set -euo pipefail
-            cd /app
-
-            TAG="$TAG"
-            PREV=\$(cat /app/REVISION 2>/dev/null || git rev-list --max-parents=0 HEAD)
-
-            git fetch --tags
-            git checkout "\$TAG"
-
-            git diff --quiet "\$PREV" "\$TAG" -- Gemfile.lock \
-              || bundle install --quiet
-
-            git diff --quiet "\$PREV" "\$TAG" -- app/javascript app/assets \
-              || bundle exec rails assets:precompile
-
-            sudo systemctl restart e621
-
-            HEALTH=0
-            for i in \$(seq 1 12); do
-              if curl -sf --max-time 5 http://localhost/status; then
-                HEALTH=1
-                break
-              fi
-              sleep 5
-            done
-            [ "\$HEALTH" -eq 1 ] || { echo "Health check failed" >&2; exit 1; }
-
-            echo "\$TAG" > /app/REVISION
-
-            git diff --quiet "\$PREV" "\$TAG" -- config/sidekiq.yml \
-              || sudo systemctl restart e621-jobs
-          ENDSSH
+        run: ssh e621@$HOST /app/bin/deploy "$TAG"
