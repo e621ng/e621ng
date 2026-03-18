@@ -9,6 +9,11 @@
       </div>
 
       <div class="input">
+        <%= f.label :trends_displayed, "Display trends on homepage" %>
+        <%= f.check_box :trends_displayed, { checked: Setting.trends_displayed? }, "true", "false" %>
+      </div>
+
+      <div class="input">
         <%= f.label :trends_min_today, "Minimum searches today" %>
         <%= f.number_field :trends_min_today, value: Setting.trends_min_today, min: 0, step: 1 %>
       </div>
