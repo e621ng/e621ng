@@ -24,11 +24,11 @@ class UsersController < ApplicationController
   end
 
   def show
-    if request.format.html?
+    if request.format.json?
+      @user = User.includes(:user_status).find(User.name_or_id_to_id_forced(params[:id]))
+    else
       @user = User.includes(:user_status, artists: [:tag]).find(User.name_or_id_to_id_forced(params[:id]))
       @presenter = UserPresenter.new(@user)
-    else
-      @user = User.includes(:user_status).find(User.name_or_id_to_id_forced(params[:id]))
     end
     respond_with(@user, methods: @user.full_attributes)
   end
