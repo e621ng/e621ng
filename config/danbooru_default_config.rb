@@ -848,11 +848,11 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     end
 
     def enable_visitor_metrics?
-      true
+      false
     end
 
     def analytics_client_id
-      "c1315786-0095-4643-9347-f176ed69d40b"
+      nil
     end
 
     def fsc_modal_enabled?
