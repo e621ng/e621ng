@@ -39,6 +39,9 @@ class SearchTrendsController < ApplicationController
     if params.key?(:trends_enabled)
       Setting.trends_enabled = ActiveModel::Type::Boolean.new.cast(params[:trends_enabled])
     end
+    if params.key?(:trends_displayed)
+      Setting.trends_displayed = ActiveModel::Type::Boolean.new.cast(params[:trends_displayed])
+    end
     if params[:trends_min_today].present?
       Setting.trends_min_today = params[:trends_min_today].to_i
     end
@@ -78,7 +81,7 @@ class SearchTrendsController < ApplicationController
   end
 
   def trends_params
-    permitted_params = %i[trends_enabled trends_min_today trends_min_delta trends_min_ratio trends_ip_limit trends_ip_window trends_tag_limit trends_tag_window]
+    permitted_params = %i[trends_enabled trends_displayed trends_min_today trends_min_delta trends_min_ratio trends_ip_limit trends_ip_window trends_tag_limit trends_tag_window]
     params.fetch(:search_trends, {}).permit(permitted_params)
   end
 end
