@@ -39,16 +39,8 @@
   <%= render "static/footer" %>
   <% if Danbooru.config.enable_visitor_metrics? && Danbooru.config.analytics_client_id.present? %>
     <script nonce="<%= content_security_policy_nonce %>">
-      window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return"q"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return"q"===r}}) }();
-      window.op("init", {
-        clientId: "<%= Danbooru.config.analytics_client_id %>",
-        trackScreenViews: true,
-        trackOutgoingLinks: true,
-        trackAttributes: true,
-        apiUrl: "/op/api",
-      });
+      window.op_client_id = "<%= Danbooru.config.analytics_client_id %>";
     </script>
-    <script src="/op/op1.js" defer async></script>
   <% end %>
 
   <%= render "ads/revive" %>
