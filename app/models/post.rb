@@ -840,13 +840,13 @@ class Post < ApplicationRecord
       tags << "flash" if is_flash?
       tags << "webm" if is_webm?
 
-      tags << "long_playtime" if is_video? && duration >= 30
-      tags << "short_playtime" if is_video? && duration < 30
-
       # TODO: Automatically add animated_* tags without re-testing them on every edit
       tags -= ["animated_gif"] unless is_gif?
       tags -= ["animated_png"] unless is_png?
       tags -= ["animated_webp"] unless is_webp?
+
+      tags << "long_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration >= 30
+      tags << "short_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration < 30
 
       tags
     end
