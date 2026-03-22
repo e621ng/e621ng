@@ -63,7 +63,7 @@ class Blip < ApplicationRecord
       creator_id == user.id && created_at > 5.minutes.ago
     end
 
-    def can_hide?(user)
+    def can_delete?(user)
       return true if user.is_moderator?
       return false if was_warned?
       user.id == creator_id
@@ -120,11 +120,11 @@ class Blip < ApplicationRecord
   extend SearchMethods
   include ApiMethods
 
-  def hide!
+  def delete!
     update(is_hidden: true)
   end
 
-  def unhide!
+  def undelete!
     update(is_hidden: false)
   end
 end
