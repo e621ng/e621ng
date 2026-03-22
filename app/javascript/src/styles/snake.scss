@@ -1,0 +1,32 @@
+body {
+  overflow-x: hidden;
+}
+:has(#snake-pane) {
+  overflow-y: hidden;
+}
+#snake-pane {
+  position: absolute;
+  top: 0;
+  left: 100vw;
+  width: 100vw;
+  height: 100vh;
+  z-index: 500;
+  box-sizing: border-box;
+  padding: 2.5rem;
+
+  background-color: rgb(0, 64, 16);
+  border: 1px solid rgb(0, 64, 16);
+  border-radius: 2.5rem;
+
+  left: 100vw;
+
+  &[hidden=false] {
+    left: 0;
+  }
+}
+canvas#snake-game {
+  
+}
+#snake-settings {
+  
+}
