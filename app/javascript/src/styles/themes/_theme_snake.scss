@@ -5,6 +5,12 @@ $snake-link:           #32cd32; // 005500
 $snake-link-hover:     #60cd60; // 3A8F3A
 body, // TODO: REMOVE AFTER APRIL FOOLS
 body[data-th-main="snake"] {
+  // Theme-specific images
+  --image-background: url("~/images/themes/extras/roundedScale.svg");
+  --image-background-position: left top;
+  --image-background-repeat: repeat;
+  --image-background-size: 3rem;
+
   // Layout Colors
   --color-background:             #{$snake-background}; // 44a544
   --color-foreground:             #{$snake-fg}; // dacf6b
