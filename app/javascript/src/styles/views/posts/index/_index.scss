@@ -97,6 +97,7 @@ body.c-posts.a-index, body.c-favorites.a-index {
     background-image: themed("image-foreground");
     background-position: themed("image-foreground-position");
     background-repeat: themed("image-foreground-repeat");
+    background-size: themed("image-foreground-size");
 
     // Actual content area:
     // posts and pagination
