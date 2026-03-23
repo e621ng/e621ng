@@ -983,10 +983,18 @@ class TouchInputHandler extends InputHandler {
 }
 
 // HtmlTemplate.ts
+/**
+ * 
+ * @param {*} render 
+ * @param {*} wrapper 
+ * @returns {htmlTemplate}
+ */
 function template (render, wrapper) {
   return function (strings, ...args) {
     const parts = [];
-    let string = strings[0] || "", part, root = null, node, nodes, walker, i, n, j, m, k = -1;
+    let string = strings[0] || "", part, 
+    /** @type {HTMLElement} */
+    root = null, node, nodes, walker, i, n, j, m, k = -1;
     args.unshift(strings);
     for (i = 1, n = args.length; i < n; ++i) {
       part = args[i];
@@ -1030,6 +1038,13 @@ function template (render, wrapper) {
     return root.childNodes.length === 1 ? root.removeChild(root.firstChild) : root.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? ((node = wrapper()).appendChild(root), node) : root;
   };
 }
+/**
+ * @callback htmlTemplate
+ * @returns {HTMLElement}
+ */
+/**
+ * @returns {HTMLElement}
+ */
 var html = template(function (string) {
   const template2 = document.createElement("template");
   template2.innerHTML = string.trim();

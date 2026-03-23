@@ -1,13 +1,10 @@
-import { EngineConfig, SnakeEngine, SnakeRenderer_default, SnakeRenderer, html } from "./snake_game";
+import { EngineConfig, SnakeRenderer, html } from "./snake_game";
 
 function initialize () {
   if (!/^\/$|^$/.test(window.location.pathname)) return;
-  var canvas = /* document.querySelector("canvas") ??  */(() => {
-    const c = document.createElement("canvas");
-    c.id = "snake-game";
-    // container.prepend(c); // document.body.prepend(c);
-    return c;
-  })();
+  const canvas = document.createElement("canvas");
+  canvas.id = "snake-game";
+  // container.prepend(canvas); // document.body.prepend(canvas);
   canvas.width = 300;
   canvas.height = 300;
   var ctx = canvas.getContext("2d");
@@ -15,16 +12,19 @@ function initialize () {
     throw Error("Failed to retrieve canvas context.");
   }
   var state = EngineConfig.toUI(EngineConfig.defaults, initialize);
-  /** @type {HTMLDivElement} */
   const container = html`
   <div id=snake-pane>
+    ${(() => {
+    const t = html`<div id=snake-tab></div>`;
+    t.onclick = (e) => container.setAttribute("set-offscreen", (container.getAttribute("set-offscreen") ?? "true") === "false" ? "true" : "false");
+    return t;
+  })()}
     <div id=snake-container>
       ${canvas}
       ${state.form}
     </div>
   </div>
   `;
-  container.click((e) => container.setAttribute("hidden", container.getAttribute("hidden") ?? "true" === "false" ? "true" : "false"));
   document.body.appendChild(container);
   var lastEngineStats;
   function initialize (cfg) {

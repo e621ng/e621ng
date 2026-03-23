@@ -1,32 +1,65 @@
-body {
+:root {
+  --pane-padding: 2.5rem;
+  --pane-bg-color: rgb(0, 64, 16);
+  --pane-anim-time: 1s;
+  --pane-anim-function: ease-in-out;
+}
+
+body:has(> #snake-pane),
+html:has(> body > #snake-pane) {
   overflow-x: hidden;
 }
-:has(#snake-pane) {
-  overflow-y: hidden;
-}
+
 #snake-pane {
   position: absolute;
   top: 0;
-  left: 100vw;
   width: 100vw;
-  height: 100vh;
   z-index: 500;
   box-sizing: border-box;
-  padding: 2.5rem;
+  padding: var(--pane-padding);
 
-  background-color: rgb(0, 64, 16);
-  border: 1px solid rgb(0, 64, 16);
-  border-radius: 2.5rem;
+  background-color: var(--pane-bg-color);
+  border: 1px solid var(--pane-bg-color);
+  border-radius: var(--pane-padding);
 
+  transition: all var(--pane-anim-time) var(--pane-anim-function);
   left: 100vw;
 
-  &[hidden=false] {
+  &>#snake-tab {
+    position: relative;
+    width: 3rem;
+    height: 3rem;
+    background-image: url("/images/snake/head.svg");
+    background-size: cover;
+
+    transition: all var(--pane-anim-time) var(--pane-anim-function);
+    left: calc(-3rem - var(--pane-padding));
+    rotate: 0deg;
+  }
+
+  &:not([set-offscreen=false])>#snake-tab {
+    animation: bouncing 3s ease-in-out 3s infinite alternate;
+    @keyframes bouncing {
+      0%, 50%, 100% {
+        translate: 0;
+      }
+
+      75% {
+        translate: -.5rem;
+      }
+    }
+  }
+
+  &[set-offscreen=false] {
     left: 0;
+
+    &>#snake-tab {
+      left: calc(var(--pane-padding) * -1);
+      rotate: 180deg;
+    }
   }
 }
-canvas#snake-game {
-  
-}
-#snake-settings {
-  
-}
+
+canvas#snake-game {}
+
+#snake-settings {}
