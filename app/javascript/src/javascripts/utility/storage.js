@@ -67,7 +67,7 @@ StorageUtils.bootstrapMany(LStorage.Site);
 // Any changes here must be reflected there as well
 LStorage.Theme = {
   /** @returns {string} Main theme */
-  Main: ["theme", "hexagon"],
+  Main: ["theme", "snake"], // TODO: RESTORE TO "hexagon" AFTER APRIL FOOLS
 
   /** @returns {string} Extra theme / seasonal decotrations */
   Extra: ["theme-extra", "hexagon"],
