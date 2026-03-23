@@ -17,6 +17,7 @@
 @import "../themes/extra_hexagons";
 @import "../themes/extra_space";
 @import "../themes/extra_stars";
+@import "../themes/extra_scales";
 
 @function themed($key, $default: "") {
   @if $default != "" {
