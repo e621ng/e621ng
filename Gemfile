@@ -4,7 +4,7 @@ source "https://rubygems.org/"
 
 gem "dotenv", require: "dotenv/load"
 
-gem "rails", "~> 8.0.0"
+gem "rails", "~> 8.1.0"
 gem "pg"
 gem "dalli", platforms: :ruby
 gem "simple_form"

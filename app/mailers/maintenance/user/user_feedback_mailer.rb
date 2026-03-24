@@ -6,6 +6,8 @@ module Maintenance
       helper DtextHelper
 
       def feedback_notice(user, feedback)
+        return if user.email.blank?
+
         @user = user
         @feedback = feedback
         @is_ban = feedback.body.match(/^Banned (for |permanently)/)

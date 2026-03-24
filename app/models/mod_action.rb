@@ -50,6 +50,7 @@ class ModAction < ApplicationRecord
     ip_ban_create: { ip_addr: :string, reason: :string },
     ip_ban_delete: { ip_addr: :string, reason: :string },
     search_trend_blacklist_create: { tag: :string, reason: :string },
+    search_trend_blacklist_update: { tag: :string, reason: :string },
     search_trend_blacklist_delete: { tag: :string, reason: :string },
     search_trend_blacklist_purge: { tag: :string, reason: :string, deleted_count: :integer },
     mascot_create: { id: :integer },

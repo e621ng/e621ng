@@ -3,4 +3,8 @@
   <%= subnav_link_to "Settings", settings_search_trends_path %>
   <li class="divider"></li>
   <%= subnav_link_to "Blacklist", search_trend_blacklists_path %>
+  <% if @tag.present? %>
+    <li class="divider"></li>
+    <%= subnav_link_to "Purge", purge_search_trends_path(tag: @tag), method: :delete, data: { confirm: "Are you sure you want to purge all trend records for \"#{@tag}\"?" } %>
+  <% end %>
 <% end %>

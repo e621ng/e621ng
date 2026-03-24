@@ -70,6 +70,61 @@ class SearchTrendBlacklistsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  context "edit" do
+    should "render for admin" do
+      bl = as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
+      get_auth edit_search_trend_blacklist_path(bl), @admin
+      assert_response :success
+    end
+
+    should "return 403 for non-admin" do
+      bl = as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
+      user = create(:member_user)
+      get_auth edit_search_trend_blacklist_path(bl), user
+      assert_response 403
+    end
+  end
+
+  context "update" do
+    should "update a blacklist entry as admin" do
+      bl = as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "old reason")
+      end
+      put_auth search_trend_blacklist_path(bl), @admin, params: {
+        search_trend_blacklist: { tag: "wolf", reason: "new reason" },
+      }
+      assert_redirected_to search_trend_blacklists_path
+      assert_equal "new reason", bl.reload.reason
+    end
+
+    should "return 403 for non-admin" do
+      bl = as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "old reason")
+      end
+      user = create(:member_user)
+      put_auth search_trend_blacklist_path(bl), user, params: {
+        search_trend_blacklist: { tag: "wolf", reason: "new reason" },
+      }
+      assert_response 403
+      assert_equal "old reason", bl.reload.reason
+    end
+
+    should "show errors for invalid input" do
+      bl = as @admin do
+        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
+      end
+      put_auth search_trend_blacklist_path(bl), @admin, params: {
+        search_trend_blacklist: { tag: "" },
+      }
+      assert_response :success
+      assert_equal "wolf", bl.reload.tag
+    end
+  end
+
   context "destroy" do
     should "delete a blacklist entry as admin" do
       bl = as @admin do

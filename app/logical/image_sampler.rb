@@ -47,8 +47,16 @@ module ImageSampler
   # Creates a Vips::Image object from the provided file path.
   # If the file is a video, generates a snapshot using ffmpeg.
   def image_from_path(file_path, is_video: false)
-    file_path = gen_video_snapshot(file_path) if is_video
-    Vips::Image.new_from_file file_path
+    if is_video
+      snapshot = gen_video_snapshot(file_path)
+      # Keep `snapshot` referenced here so Ruby's GC doesn't finalize
+      # (and unlink) the Tempfile before libvips has fully read it.
+      image = Vips::Image.new_from_file(snapshot.path).copy_memory
+      snapshot.close!
+      image
+    else
+      Vips::Image.new_from_file(file_path)
+    end
   end
 
   # Generates a pair of thumbnails from the provided image.
@@ -98,7 +106,7 @@ module ImageSampler
     end
 
     output_file.close
-    output_file.path
+    output_file
   end
 
   # Calculates the dimensions of the generated image.

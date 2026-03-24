@@ -87,7 +87,8 @@ class TagRelationship < ApplicationRecord
 
   module SearchMethods
     def name_matches(name)
-      where("(antecedent_name like ? escape E'\\\\' or consequent_name like ? escape E'\\\\')", name.downcase.to_escaped_for_sql_like, name.downcase.to_escaped_for_sql_like)
+      name = name.downcase.strip.to_escaped_for_sql_like
+      where("(antecedent_name like ? escape E'\\\\' or consequent_name like ? escape E'\\\\')", name, name)
     end
 
     def status_matches(status)

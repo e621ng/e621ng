@@ -1826,7 +1826,8 @@ CREATE TABLE public.search_trends (
     day date NOT NULL,
     count integer DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    hour integer
 );
 
 
@@ -4476,6 +4477,13 @@ CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON public.post_votes
 
 
 --
+-- Name: index_posts_on_approver_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_approver_id ON public.posts USING btree (approver_id);
+
+
+--
 -- Name: index_posts_on_change_seq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4568,6 +4576,13 @@ CREATE UNIQUE INDEX index_search_trend_blacklists_on_tag ON public.search_trend_
 
 
 --
+-- Name: index_search_trends_on_all; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_trends_on_all ON public.search_trends USING btree (tag, day, hour);
+
+
+--
 -- Name: index_search_trends_on_day_and_count; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4575,10 +4590,17 @@ CREATE INDEX index_search_trends_on_day_and_count ON public.search_trends USING 
 
 
 --
--- Name: index_search_trends_on_tag_and_day; Type: INDEX; Schema: public; Owner: -
+-- Name: index_search_trends_on_tag_and_day_daily; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_search_trends_on_tag_and_day ON public.search_trends USING btree (tag, day);
+CREATE UNIQUE INDEX index_search_trends_on_tag_and_day_daily ON public.search_trends USING btree (tag, day) WHERE (hour IS NULL);
+
+
+--
+-- Name: index_search_trends_on_tag_day_hour; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_search_trends_on_tag_day_hour ON public.search_trends USING btree (tag, day, hour) WHERE (hour IS NOT NULL);
 
 
 --
@@ -5117,6 +5139,8 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260324195504'),
+('20260324153600'),
 ('20260312140702'),
 ('20260311194405'),
 ('20260310162913'),

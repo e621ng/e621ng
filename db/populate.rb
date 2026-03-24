@@ -527,6 +527,9 @@ end
 
 # Seed search trend data for testing: the same selection of `tags_count` tags across the
 # past `days` days, with a subset showing a substantial rise today vs yesterday.
+# Hourly records are written for the most recent 50 hours; older data is stored as daily
+# aggregate records. This allows testing both the rising calculation (which reads hourly
+# records) and the coalesce_hourly! job (which targets records older than 48 hours).
 def populate_search_trends(days: 7, tags_count: 100, rising_ratio: 0.25)
   return unless days > 0 && tags_count > 0
   puts "* Seeding search trends for past #{days} days (#{tags_count} tags)"
@@ -545,16 +548,21 @@ def populate_search_trends(days: 7, tags_count: 100, rising_ratio: 0.25)
   tags ||= []
   return if tags.empty?
 
+  now               = Time.current
+  hourly_cutoff     = now - 50.hours # hourly records start here
+  hourly_cutoff_day = hourly_cutoff.to_date
+  hourly_cutoff_hour = hourly_cutoff.hour
+
   start_day = Date.current - (days - 1)
   rising_count = [(tags.size * rising_ratio).to_i, 1].max.clamp(1, tags.size)
   rising_tags = tags.sample(rising_count)
 
-  tags.each do |tag|
+  tags.each do |tag| # rubocop:disable Metrics/BlockLength
     # Establish a baseline that can be below today's min threshold on some days.
     base = rand(6..25)
     prev = nil
 
-    (start_day..Date.current).each do |day|
+    (start_day..Date.current).each do |day| # rubocop:disable Metrics/BlockLength
       if day == start_day
         prev = base + rand(0..5)
       else
@@ -575,13 +583,36 @@ def populate_search_trends(days: 7, tags_count: 100, rising_ratio: 0.25)
         end
       end
 
-      st = SearchTrend.find_or_initialize_by(tag: tag, day: day)
-      st.count = prev
-      st.save!
+      if day < hourly_cutoff_day
+        # Entirely old — write a single daily aggregate record.
+        st = SearchTrend.find_or_initialize_by(tag: tag, day: day, hour: nil)
+        st.count = prev
+        st.save!
+      else
+        # Within the 50-hour hourly window. Spread the day's implied total evenly across hours.
+        per_hour = [((prev.to_f / 24) + 0.5).to_i, 1].max
+
+        # On the cutoff day, hours before hourly_cutoff_hour are summarised in a daily record.
+        if day == hourly_cutoff_day && hourly_cutoff_hour > 0
+          st = SearchTrend.find_or_initialize_by(tag: tag, day: day, hour: nil)
+          st.count = [per_hour * hourly_cutoff_hour, 1].max
+          st.save!
+        end
+
+        # Write individual hourly records from the cutoff hour onward (or from 0 on later days).
+        first_hour = day == hourly_cutoff_day ? hourly_cutoff_hour : 0
+        last_hour  = day == Date.current      ? now.hour           : 23
+
+        (first_hour..last_hour).each do |h|
+          st = SearchTrend.find_or_initialize_by(tag: tag, day: day, hour: h)
+          st.count = per_hour
+          st.save!
+        end
+      end
     end
   end
 
-  puts "  Seeded #{tags.size} tags across #{days} days (#{rising_tags.size} rising today)."
+  puts "  Seeded #{tags.size} tags across #{days} days (#{rising_tags.size} rising today, hourly records for last 50 hours)."
 end
 
 puts "Populating the Database"
