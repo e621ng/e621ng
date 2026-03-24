@@ -23,7 +23,6 @@
             <td>
               <%= link_to "Edit", edit_search_trend_blacklist_path(blacklist) %>
               <%= link_to "Delete", search_trend_blacklist_path(blacklist), method: :delete, data: { confirm: "Delete blacklist entry for \"#{blacklist.tag}\"?" } %>
-              <%= link_to "Purge", search_trend_path(blacklist.tag), method: :delete, data: { confirm: "Delete all search trend data for \"#{blacklist.tag}\"? This cannot be undone." } %>
             </td>
           </tr>
         <% end %>
