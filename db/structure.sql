@@ -5140,7 +5140,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20260312220000'),
+('20260324195504'),
 ('20260324153600'),
 ('20260312140702'),
 ('20260311194405'),
