@@ -26,6 +26,8 @@ class SearchTrend < ApplicationRecord
     from("(#{subquery}) AS search_trends").order(Arel.sql("count DESC, tag ASC"))
   }
 
+  scope :for_tag, ->(tag) { where(tag: tag.to_s.downcase.strip) }
+
   # Increment the hourly count for a tag. Sanitizes tag to downcase.
   def self.increment!(tag, day: Time.now.utc.to_date, ip: nil)
     t = tag.to_s.downcase.strip

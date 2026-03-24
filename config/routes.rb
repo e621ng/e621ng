@@ -75,7 +75,7 @@ Rails.application.routes.draw do
     end
   end
   resources :popular, only: %i[index]
-  resources :search_trends, only: %i[index] do
+  resources :search_trends, only: %i[index show destroy] do
     collection do
       get :rising
       get :settings
@@ -218,11 +218,7 @@ Rails.application.routes.draw do
     end
   end
   resources :email_blacklists, only: %i[new create destroy index]
-  resources :search_trend_blacklists, only: %i[index new create destroy] do
-    member do
-      delete :purge
-    end
-  end
+  resources :search_trend_blacklists, only: %i[index new create edit update destroy]
   resource :iqdb_queries, only: %i[show] do
     collection do
       post :show

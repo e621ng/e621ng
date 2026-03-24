@@ -2,7 +2,7 @@
 
 class SearchTrendsController < ApplicationController
   respond_to :html, :json
-  before_action :admin_only, only: %i[settings update_settings clear_cache]
+  before_action :admin_only, only: %i[destroy settings update_settings clear_cache]
 
   def index
     if params[:day].present?
@@ -20,6 +20,24 @@ class SearchTrendsController < ApplicationController
     respond_to do |format|
       format.html
       format.json { render json: @trending.as_json(only: %i[tag count day]) }
+    end
+  end
+
+  def show
+    @tag = params[:id]
+    @trends = SearchTrend.for_tag(@tag).limit(100).order(day: :desc, hour: :desc)
+    respond_to do |format|
+      format.html
+      format.json { render json: @trends.as_json(only: %i[tag count day hour]) }
+    end
+  end
+
+  def destroy
+    @tag = params[:id]
+    deleted = SearchTrend.for_tag(@tag).delete_all
+    respond_to do |format|
+      format.html { redirect_to search_trends_path, notice: "Purged #{deleted} trend record(s) for \"#{@tag}\"" }
+      format.json { render json: { deleted_count: deleted } }
     end
   end
 

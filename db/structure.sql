@@ -4570,6 +4570,13 @@ CREATE UNIQUE INDEX index_search_trend_blacklists_on_tag ON public.search_trend_
 
 
 --
+-- Name: index_search_trends_on_all; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_trends_on_all ON public.search_trends USING btree (tag, day, hour);
+
+
+--
 -- Name: index_search_trends_on_day_and_count; Type: INDEX; Schema: public; Owner: -
 --
 
