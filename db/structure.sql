@@ -4478,6 +4478,13 @@ CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON public.post_votes
 
 
 --
+-- Name: index_posts_on_approver_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_approver_id ON public.posts USING btree (approver_id);
+
+
+--
 -- Name: index_posts_on_change_seq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5133,6 +5140,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260324195504'),
 ('20260324153600'),
 ('20260312140702'),
 ('20260311194405'),
