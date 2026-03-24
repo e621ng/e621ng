@@ -31,7 +31,7 @@
           <% @trending.each_with_index do |row, idx| %>
             <tr>
               <td><%= @count_offset + idx + 1 %></td>
-              <td><%= link_to row.tag, search_trend_path(row.tag) %></td>
+              <td><%= link_to row.tag, track_search_trends_path(tag: row.tag) %></td>
               <td><%= row.count %></td>
             </tr>
           <% end %>
