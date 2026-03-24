@@ -11,7 +11,13 @@ permissions:
   contents: write
 
 jobs:
+  checks:
+    uses: ./.github/workflows/run-checks.yml
+    with:
+      run_tests: true
+
   release:
+    needs: checks
     runs-on: ubuntu-latest
 
     steps:
