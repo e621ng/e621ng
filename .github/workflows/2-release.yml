@@ -36,5 +36,7 @@ jobs:
             echo "Error: invalid version format: '$VERSION'" >&2
             exit 1
           fi
+          git config user.email "action@github.com"
+          git config user.name "github-actions[bot]"
           git tag -a "$VERSION" -m "Release $VERSION"
           git push origin "$VERSION"
