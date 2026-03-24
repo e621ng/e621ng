@@ -27,7 +27,7 @@ class SearchTrend < ApplicationRecord
   }
 
   # Increment the hourly count for a tag. Sanitizes tag to downcase.
-  def self.increment!(tag, day: Date.current, ip: nil)
+  def self.increment!(tag, day: Time.now.utc.to_date, ip: nil)
     t = tag.to_s.downcase.strip
     return if t.blank?
     return unless Setting.trends_enabled
@@ -43,7 +43,7 @@ class SearchTrend < ApplicationRecord
     tag_key = "trends:tag:#{t}"
     return if RateLimiter.check_limit(tag_key, Setting.trends_tag_limit, Setting.trends_tag_window.seconds)
 
-    now  = Time.current
+    now  = Time.now.utc
     date = day.to_date
     hour = now.hour
     values_sql = "(#{connection.quote(t)}, #{connection.quote(date)}, #{hour}, 1, #{connection.quote(now)}, #{connection.quote(now)})"
@@ -64,7 +64,7 @@ class SearchTrend < ApplicationRecord
   # Tags with a `-` prefix (negated) are excluded entirely; tags with only a `~` prefix
   # have that prefix stripped before recording. Metatags (containing `:`) are ignored.
   # Errors in query parsing are logged and swallowed so the caller is never disrupted.
-  def self.record_query!(query, day: Date.current, ip: nil)
+  def self.record_query!(query, day: Time.now.utc.to_date, ip: nil)
     return if query.blank?
 
     tokens = TagQuery.scan_recursive(
@@ -100,7 +100,7 @@ class SearchTrend < ApplicationRecord
   end
 
   # Bulk increment hourly counts for an array of tags. Upsert w/ increment on conflict.
-  def self.bulk_increment!(tags, day: Date.current, ip: nil)
+  def self.bulk_increment!(tags, day: Time.now.utc.to_date, ip: nil)
     ts = Array(tags).map { |tg| tg.to_s.downcase.strip }.select(&:present?).uniq
     return if ts.empty?
     return unless Setting.trends_enabled
@@ -127,7 +127,7 @@ class SearchTrend < ApplicationRecord
 
     return if allowed_tags.empty?
 
-    now  = Time.current
+    now  = Time.now.utc
     date = day.to_date
     hour = now.hour
     values_sql = allowed_tags.map { |tg| "(#{connection.quote(tg)}, #{connection.quote(date)}, #{hour}, 1, #{connection.quote(now)}, #{connection.quote(now)})" }.join(", ")
@@ -149,16 +149,16 @@ class SearchTrend < ApplicationRecord
 
   # Coalesce hourly records older than `before` into daily aggregate records, then delete
   # the originals. Called during daily maintenance so the hourly buffer stays bounded.
-  def self.coalesce_hourly!(before: 48.hours.ago)
+  def self.coalesce_hourly!(before: Time.now.utc - 48.hours)
     cutoff      = before
-    cutoff_day  = cutoff.to_date
-    cutoff_hour = cutoff.hour
-    now         = Time.current
+    cutoff_day  = cutoff.utc.to_date
+    cutoff_hour = cutoff.utc.hour
+    now         = Time.now.utc
 
     # Step 1: merge hourly totals into daily records (upsert, adding to any existing count).
     connection.execute(<<~SQL.squish)
       INSERT INTO search_trends (tag, day, hour, count, created_at, updated_at)
-      SELECT   tag, day, NULL, SUM(count), #{connection.quote(now)}, #{connection.quote(now)}
+      SELECT   tag, day, NULL, SUM(count)::integer, #{connection.quote(now)}, #{connection.quote(now)}
       FROM     search_trends
       WHERE    hour IS NOT NULL
         AND    (day < #{connection.quote(cutoff_day)}
@@ -179,20 +179,20 @@ class SearchTrend < ApplicationRecord
   # Delete daily aggregate records from before today that fall below the minimum count.
   # Hourly records are managed exclusively by coalesce_hourly! and are never pruned here.
   def self.prune!(min_count: Danbooru.config.search_trend_minimum_count)
-    where("hour IS NULL AND day < ? AND count < ?", Date.current, min_count)
+    where("hour IS NULL AND day < ? AND count < ?", Time.now.utc.to_date, min_count)
       .in_batches(load: false)
       .delete_all
   end
 
   private_class_method def self.valid_tag?(tag)
     return false unless tag.length.between?(1, 100)
-    record = new(tag: tag, day: Date.current)
+    record = new(tag: tag, day: Time.now.utc.to_date)
     TagNameValidator.new(attributes: [:tag]).validate_each(record, :tag, tag)
     record.errors[:tag].empty?
   end
 
   # Top tags for a given day by total search count, aggregated across any hourly records.
-  def self.top_for_day(day: Date.current, limit: 100)
+  def self.top_for_day(day: Time.now.utc.to_date, limit: 100)
     for_day_totals(day).limit(limit)
   end
 
@@ -201,7 +201,7 @@ class SearchTrend < ApplicationRecord
   #
   # Both sides of the comparison span the same number of hours, eliminating the partial-day
   # bias inherent in a simple today-vs-yesterday daily comparison.
-  def self.rising(at: Time.current, limit: 10, min_today: 10, min_delta: 10, min_ratio: 2.0)
+  def self.rising(at: Time.now.utc, limit: 10, min_today: 10, min_delta: 10, min_ratio: 2.0)
     h = at.hour
     d = at.to_date
 

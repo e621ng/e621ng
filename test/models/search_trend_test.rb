@@ -12,10 +12,11 @@ class SearchTrendTest < ActiveSupport::TestCase
   end
 
   test "increment! creates an hourly record and increments it" do
+    hour = Time.now.utc.hour
     assert_difference -> { SearchTrend.count }, +1 do
       SearchTrend.increment!("Test_Tag")
     end
-    rec = SearchTrend.find_by(tag: "test_tag", day: Date.current, hour: Time.current.hour)
+    rec = SearchTrend.find_by(tag: "test_tag", day: Time.now.utc.to_date, hour: hour)
     assert_not_nil rec
     assert_equal 1, rec.count
 
