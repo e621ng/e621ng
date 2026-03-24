@@ -131,4 +131,79 @@ class SearchTrendTest < ActiveSupport::TestCase
     assert     SearchTrend.exists?(keep_daily.id), "high-count daily should be kept"
     assert     SearchTrend.exists?(hourly.id),     "hourly record should never be pruned"
   end
+
+  # --- record_query! ---
+
+  test "record_query! records plain tags" do
+    SearchTrend.record_query!("cat dog")
+    tags = SearchTrend.for_day(Date.current).pluck(:tag)
+    assert_includes tags, "cat"
+    assert_includes tags, "dog"
+  end
+
+  test "record_query! strips the ~ prefix and records the tag" do
+    SearchTrend.record_query!("~wolf")
+    assert SearchTrend.for_day(Date.current).where(tag: "wolf").exists?
+  end
+
+  test "record_query! excludes tags with the - prefix" do
+    SearchTrend.record_query!("-fox")
+    assert_not SearchTrend.for_day(Date.current).where(tag: "fox").exists?
+  end
+
+  test "record_query! excludes tags with a ~- compound prefix" do
+    SearchTrend.record_query!("~-cat")
+    assert_not SearchTrend.for_day(Date.current).where(tag: "cat").exists?
+  end
+
+  test "record_query! handles a mixed query correctly" do
+    SearchTrend.record_query!("cat ~dog -fox ~-bird")
+    tags = SearchTrend.for_day(Date.current).pluck(:tag)
+    assert_includes     tags, "cat"
+    assert_includes     tags, "dog"   # ~ stripped
+    assert_not_includes tags, "fox"   # - excluded
+    assert_not_includes tags, "bird"  # ~- excluded
+  end
+
+  test "record_query! excludes all tags inside a negated group" do
+    SearchTrend.record_query!("-( cat dog )")
+    tags = SearchTrend.for_day(Date.current).pluck(:tag)
+    assert_not_includes tags, "cat"
+    assert_not_includes tags, "dog"
+  end
+
+  test "record_query! records tags from a ~ group without prefix" do
+    SearchTrend.record_query!("~( cat dog )")
+    tags = SearchTrend.for_day(Date.current).pluck(:tag)
+    assert_includes tags, "cat"
+    assert_includes tags, "dog"
+  end
+
+  test "record_query! excludes tags inside a doubly-negated group" do
+    SearchTrend.record_query!("-( ~( cat ) )")
+    assert_not SearchTrend.for_day(Date.current).where(tag: "cat").exists?
+  end
+
+  test "record_query! skips metatags" do
+    SearchTrend.record_query!("cat rating:s score:>10")
+    tags = SearchTrend.for_day(Date.current).pluck(:tag)
+    assert_includes     tags, "cat"
+    assert_not_includes tags, "rating:s"
+    assert_not_includes tags, "score:>10"
+  end
+
+  test "record_query! does nothing for a blank query" do
+    assert_no_difference -> { SearchTrend.count } do
+      SearchTrend.record_query!(nil)
+      SearchTrend.record_query!("")
+      SearchTrend.record_query!("   ")
+    end
+  end
+
+  test "record_query! swallows errors and does not raise" do
+    # Pass an object whose #blank? returns false but causes scan_recursive to blow up.
+    bad_query = Object.new
+    def bad_query.blank? = false
+    assert_nothing_raised { SearchTrend.record_query!(bad_query) }
+  end
 end
