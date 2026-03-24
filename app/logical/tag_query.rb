@@ -993,12 +993,12 @@ class TagQuery
       end
       last_index += curr_match.end(0)
     end
-    plus_one = nil
     # For each quoted metatag, match all the non-quoted queried metatags between the end of the last
     # quoted metatag and the start of this one, then check and process this quoted metatag.
     #
     # If there's no (more) quoted metatags, then just search each metatag between the last index and the end.
-    while (quoted_m = query[last_index...query.length].presence&.match(REGEX_ANY_QUOTED_METATAG)) || (!plus_one && (plus_one = true)) # rubocop:disable Lint/LiteralAssignmentInCondition
+    loop do
+      quoted_m = query[last_index...query.length].presence&.match(REGEX_ANY_QUOTED_METATAG)
       # If there are non-quoted matches before current quoted & current quoted doesn't match, manual
       # update of last index requires the offset quoted_m was found with.
       prior_last_index = last_index
