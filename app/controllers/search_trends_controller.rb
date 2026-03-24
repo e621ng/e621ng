@@ -2,7 +2,7 @@
 
 class SearchTrendsController < ApplicationController
   respond_to :html, :json
-  before_action :admin_only, only: %i[settings update_settings clear_cache]
+  before_action :admin_only, only: %i[purge settings update_settings clear_cache]
 
   def index
     if params[:day].present?
@@ -14,12 +14,30 @@ class SearchTrendsController < ApplicationController
     else
       @day = Date.current
     end
-    @trending = SearchTrend.for_day(@day).order(count: :desc, tag: :asc).paginate(params[:page], limit: params[:limit])
+    @trending = SearchTrend.for_day_totals(@day).paginate(params[:page], limit: params[:limit])
     @count_offset = (@trending.current_page - 1) * @trending.records_per_page
 
     respond_to do |format|
       format.html
       format.json { render json: @trending.as_json(only: %i[tag count day]) }
+    end
+  end
+
+  def track
+    @tag = params[:tag]
+    @trends = SearchTrend.for_tag(@tag).limit(100).order(day: :desc, hour: :desc)
+    respond_to do |format|
+      format.html
+      format.json { render json: @trends.as_json(only: %i[tag count day hour]) }
+    end
+  end
+
+  def purge
+    @tag = params[:tag]
+    deleted = SearchTrend.for_tag(@tag).delete_all
+    respond_to do |format|
+      format.html { redirect_to search_trends_path, notice: "Purged #{deleted} trend record(s) for \"#{@tag}\"" }
+      format.json { render json: { deleted_count: deleted } }
     end
   end
 

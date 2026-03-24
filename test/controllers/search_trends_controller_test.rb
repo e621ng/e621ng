@@ -16,7 +16,7 @@ class SearchTrendsControllerTest < ActionDispatch::IntegrationTest
       SearchTrend.increment!("wolf")
       get "/search_trends"
       assert_response :success
-      assert_match(/Trending tags/, response.body)
+      assert_match(/Trending Tags/, response.body)
     end
 
     should "index returns json" do

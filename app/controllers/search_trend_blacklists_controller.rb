@@ -13,8 +13,18 @@ class SearchTrendBlacklistsController < ApplicationController
     @blacklist = SearchTrendBlacklist.new
   end
 
+  def edit
+    @blacklist = SearchTrendBlacklist.find(params[:id])
+  end
+
   def create
     @blacklist = SearchTrendBlacklist.create(blacklist_params)
+    respond_with(@blacklist, location: search_trend_blacklists_path)
+  end
+
+  def update
+    @blacklist = SearchTrendBlacklist.find(params[:id])
+    @blacklist.update(blacklist_params)
     respond_with(@blacklist, location: search_trend_blacklists_path)
   end
 
@@ -22,15 +32,6 @@ class SearchTrendBlacklistsController < ApplicationController
     @blacklist = SearchTrendBlacklist.find(params[:id])
     @blacklist.destroy
     respond_with(@blacklist)
-  end
-
-  def purge
-    @blacklist = SearchTrendBlacklist.find(params[:id])
-    deleted = @blacklist.purge!
-    respond_to do |format|
-      format.html { redirect_to search_trend_blacklists_path, notice: "Purged #{deleted} trend record(s) for \"#{@blacklist.tag}\"." }
-      format.json { render json: { deleted_count: deleted } }
-    end
   end
 
   private
