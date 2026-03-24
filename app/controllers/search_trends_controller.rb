@@ -14,7 +14,7 @@ class SearchTrendsController < ApplicationController
     else
       @day = Date.current
     end
-    @trending = SearchTrend.for_day(@day).order(count: :desc, tag: :asc).paginate(params[:page], limit: params[:limit])
+    @trending = SearchTrend.for_day_totals(@day).paginate(params[:page], limit: params[:limit])
     @count_offset = (@trending.current_page - 1) * @trending.records_per_page
 
     respond_to do |format|
