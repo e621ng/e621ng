@@ -88,5 +88,7 @@ body.c-search-trends.a-index {
     padding: 0.5rem;
     background: themed("color-section");
     width: min-content;
+
+    input[type="text"] { width: unset !important }
   }
 }
