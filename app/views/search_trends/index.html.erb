@@ -11,10 +11,10 @@
     </div>
 
     <div class="search-trend-nav">
-      <a href="<%= url_for(request.query_parameters.except('day').merge('day' => (@day - 1).to_s)) %>"><%= svg_icon(:chevron_left) %> Previous</a>
+      <a href="<%= url_for(request.query_parameters.except("day").merge(day: (@day - 1).to_s)) %>"><%= svg_icon(:chevron_left) %> Previous</a>
       <strong><%= @day.to_s %></strong>
       <% if @has_tomorrow %>
-        <a href="<%= url_for(request.query_parameters.except('day').merge('day' => (@day + 1).to_s)) %>">Next <%= svg_icon(:chevron_right) %></a>
+        <a href="<%= url_for(request.query_parameters.except("day").merge(day: (@day + 1).to_s)) %>">Next <%= svg_icon(:chevron_right) %></a>
       <% else %>
         <span class="disabled">Next <%= svg_icon(:chevron_right) %></span>
       <% end %>
