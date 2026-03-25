@@ -4,7 +4,7 @@ class SearchTrendPruneJob < ApplicationJob
   queue_as :low_prio
 
   def perform
-    SearchTrend.coalesce_hourly!
+    SearchTrendHourly.prune!
     SearchTrend.prune!
   end
 end

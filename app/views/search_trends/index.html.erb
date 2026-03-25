@@ -11,10 +11,16 @@
     </div>
 
     <div class="search-trend-nav">
-      <a href="<%= url_for(day: @day - 1) %>"><%= svg_icon(:chevron_left) %> Previous</a>
+      <a href="<%= url_for(request.query_parameters.except('day').merge('day' => (@day - 1).to_s)) %>"><%= svg_icon(:chevron_left) %> Previous</a>
       <strong><%= @day.to_s %></strong>
-      <a href="<%= url_for(day: @day + 1) %>">Next <%= svg_icon(:chevron_right) %></a>
+      <% if @has_tomorrow %>
+        <a href="<%= url_for(request.query_parameters.except('day').merge('day' => (@day + 1).to_s)) %>">Next <%= svg_icon(:chevron_right) %></a>
+      <% else %>
+        <span class="disabled">Next <%= svg_icon(:chevron_right) %></span>
+      <% end %>
     </div>
+
+    <%= render "search" %>
 
     <% if @trending.blank? %>
       <p>No trending data for this day yet.</p>
@@ -30,7 +36,7 @@
         <tbody>
           <% @trending.each_with_index do |row, idx| %>
             <tr>
-              <td><%= @count_offset + idx + 1 %></td>
+              <td><%= @using_calculated_ranks ? row.daily_rank : @count_offset + idx + 1 %></td>
               <td><%= link_to row.tag, track_search_trends_path(tag: row.tag) %></td>
               <td><%= row.count %></td>
             </tr>

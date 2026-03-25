@@ -4,14 +4,33 @@
       Search Trends for <%= @tag %>
     </h1>
 
+    <% unless @hourlies.blank? %>
+      <table class="striped">
+        <thead>
+          <tr>
+            <th>Hour</th>
+            <th>Searches</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @hourlies.each do |row| %>
+            <tr>
+              <td><%= row.hour.to_s %></td>
+              <td><%= row.count %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <br />
+    <% end %>
+
     <% if @trends.blank? %>
-      <p>No data for this tag yet.</p>
+      <p>No historic data for this tag yet.</p>
     <% else %>
       <table class="striped">
         <thead>
           <tr>
             <th>Date</th>
-            <th>Hour</th>
             <th>Searches</th>
           </tr>
         </thead>
@@ -19,7 +38,6 @@
           <% @trends.each do |row| %>
             <tr>
               <td><%= row.day.to_s %></td>
-              <td><%= row.hour %></td>
               <td><%= row.count %></td>
             </tr>
           <% end %>

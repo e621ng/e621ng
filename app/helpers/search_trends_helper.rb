@@ -2,7 +2,7 @@
 
 module SearchTrendsHelper
   def rising_tags
-    rising_tags = SearchTrend.rising_tags_list
+    rising_tags = SearchTrendHourly.rising_tags_list
 
     return "" if rising_tags.blank?
 
