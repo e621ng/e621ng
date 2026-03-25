@@ -5,8 +5,12 @@ require "test_helper"
 class SearchTrendHourlyTest < ActiveSupport::TestCase
   context "search trend hourly" do
     setup do
-      Setting.trends_enabled = true # Enable trends for testing
+      Setting.trends_enabled = true
       @trend = SearchTrendHourly.create!(tag: "test", hour: 1.hour.ago.beginning_of_hour, count: 5)
+    end
+
+    teardown do
+      Setting.trends_enabled = false
     end
 
     should "validate required fields" do

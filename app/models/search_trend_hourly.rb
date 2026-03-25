@@ -131,8 +131,8 @@ class SearchTrendHourly < ApplicationRecord
                      .group(:tag)
                      .sum(:count)
 
-    # Aggregate counts for previous window
-    previous_counts = where(hour: previous_start..previous_end)
+    # Aggregate counts for previous window (use exclusive end to avoid overlap)
+    previous_counts = where(hour: previous_start...previous_end)
                       .group(:tag)
                       .sum(:count)
 
@@ -160,7 +160,7 @@ class SearchTrendHourly < ApplicationRecord
 
   def self.rising_tags_list
     Cache.fetch("rising_tags", expires_in: 15.minutes) do
-      tags = SearchTrendHourly.rising(min_today: Setting.trends_min_today, min_delta: Setting.trends_min_delta, min_ratio: Setting.trends_min_ratio).pluck(:tag)
+      tags = SearchTrendHourly.rising(min_today: Setting.trends_min_today, min_delta: Setting.trends_min_delta, min_ratio: Setting.trends_min_ratio).map(&:tag)
       TagAlias.to_aliased(tags)
     end
   end

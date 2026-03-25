@@ -64,7 +64,7 @@ class SearchTrendTest < ActiveSupport::TestCase
     SearchTrendHourly.create!(tag: "bar", hour: today.beginning_of_day + 10.hours, count: 25)
 
     rising = SearchTrendHourly.rising(at: at, limit: 10)
-    assert_equal %w[foo baz ratio], rising.pluck(:tag)
+    assert_equal %w[foo baz ratio], rising.map(&:tag)
   end
 
   test "rising spans midnight correctly when window crosses into the previous day" do
@@ -84,7 +84,7 @@ class SearchTrendTest < ActiveSupport::TestCase
 
     # tag "cross" today_sum = 20+5 = 25, prev_sum = 2+1 = 3; delta 22 >= 10, ratio 8.3 >= 2.0
     rising = SearchTrendHourly.rising(at: at, limit: 10)
-    assert_includes rising.pluck(:tag), "cross"
+    assert_includes rising.map(&:tag), "cross"
   end
 
   test "prune! only removes old low-count daily records" do
