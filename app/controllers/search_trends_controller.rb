@@ -35,7 +35,7 @@ class SearchTrendsController < ApplicationController
   end
 
   def track
-    @tag = params[:tag]
+    @tag = params[:tag].to_s.downcase.strip
 
     @trends = SearchTrend.for_tag(@tag).limit(30).order(day: :desc)
 
@@ -48,7 +48,7 @@ class SearchTrendsController < ApplicationController
   end
 
   def purge
-    @tag = params[:tag]
+    @tag = params[:tag].to_s.downcase.strip
     deleted_daily = SearchTrend.for_tag(@tag).delete_all
     deleted_hourly = SearchTrendHourly.where(tag: @tag).delete_all
     respond_to do |format|

@@ -8,11 +8,14 @@ class SearchTrend < ApplicationRecord
   scope :for_day, ->(day) { where(day: day.to_date).order(count: :desc, tag: :asc) }
   scope :for_day_ranked, ->(day) {
     from(
-      <<~SQL.squish,
-        (SELECT *, ROW_NUMBER() OVER (PARTITION BY day ORDER BY count DESC, tag ASC) AS daily_rank
-         FROM "search_trends"
-         WHERE day = '#{day.to_date}') AS "search_trends"
-      SQL
+      sanitize_sql([
+        <<~SQL.squish,
+          (SELECT *, ROW_NUMBER() OVER (PARTITION BY day ORDER BY count DESC, tag ASC) AS daily_rank
+           FROM "search_trends"
+           WHERE day = ?) AS "search_trends"
+        SQL
+        day.to_date,
+      ]),
     ).order(count: :desc, tag: :asc)
   }
   scope :for_tag, ->(tag) { where(tag: tag.to_s.downcase.strip).order(count: :desc, tag: :asc) }

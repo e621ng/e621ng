@@ -590,7 +590,7 @@ def populate_search_trends(days: 7, tags_count: 100, rising_ratio: 0.25)
 end
 
 # Creates SearchTrendHourly records for testing. All records are marked as unprocessed.
-def populate_search_trend_dailies(hours: 48, tags_count: 50)
+def populate_search_trend_hourlies(hours: 48, tags_count: 50)
   return unless hours > 0 && tags_count > 0
   puts "* Creating SearchTrendHourly records for past #{hours} hours (#{tags_count} tags)"
 
@@ -659,4 +659,4 @@ populate_dmails(DMAILS)
 
 # Seed search trends last
 populate_search_trends(days: TRENDS, tags_count: 100)
-populate_search_trend_dailies(hours: TRENDS_HOURS, tags_count: 50)
+populate_search_trend_hourlies(hours: TRENDS_HOURS, tags_count: 50)

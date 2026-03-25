@@ -8,7 +8,7 @@ class SearchTrendHourly < ApplicationRecord
   validates :tag, presence: true, tag_name: true, on: :create
   validates :tag, length: { in: 1..100 }
   validates :hour, presence: true
-  validates :count, presence: true, numericality: { integer: true, greater_than_or_equal_to: 0 }
+  validates :count, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
   validates :hour, uniqueness: { scope: [:tag] }
 
@@ -20,6 +20,7 @@ class SearchTrendHourly < ApplicationRecord
 
   scope :unprocessed, -> { where(processed: false) }
   scope :processed, -> { where(processed: true) }
+  scope :unprocessed_before, ->(time) { unprocessed.where("hour < ?", time) }
 
   # Parse a raw tag query string, extract plain affirmative tags, and record them.
   # Tags with a `-` prefix (negated) are excluded entirely; tags with only a `~` prefix
@@ -174,7 +175,7 @@ class SearchTrendHourly < ApplicationRecord
       .delete_all
   end
 
-  def search(params)
+  def self.search(params)
     q = super
 
     if params[:name_matches].present?
