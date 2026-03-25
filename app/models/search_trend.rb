@@ -18,7 +18,7 @@ class SearchTrend < ApplicationRecord
       ]),
     ).order(count: :desc, tag: :asc)
   }
-  scope :for_tag, ->(tag) { where(tag: tag.to_s.downcase.strip).order(count: :desc, tag: :asc) }
+  scope :for_tag, ->(tag) { where(tag: tag.to_s.downcase.strip) }
 
   # Delete historic data that is below the minimum threshold.
   # Runs daily through SearchTrendPruneJob.
