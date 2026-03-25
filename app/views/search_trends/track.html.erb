@@ -1,57 +1,16 @@
 <div id="c-search-trends">
   <div id="a-show">
     <h1>
-      Search Trends for <%= @tag %>
+      Search Trends for <%= @tags.length > 3 ? "#{@tags.length} tags" : @tags.join(", ") %>
     </h1>
 
-    <% unless @hourlies.blank? %>
-      <table class="striped">
-        <thead>
-          <tr>
-            <th>Hour</th>
-            <th>Searches</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @hourlies.each do |row| %>
-            <tr>
-              <td><%= row.hour.strftime("%Y-%m-%d %H:00") %></td>
-              <td><%= row.count %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-      <br />
-    <% end %>
-
-    <% if @trends.blank? %>
-      <p>No historic data for this tag yet.</p>
-    <% else %>
-      <table class="striped">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Searches</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @trends.each do |row| %>
-            <tr>
-              <td><%= row.day.to_s %></td>
-              <td><%= row.count %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% end %>
-
-    <%= link_to "Back to trending tags", search_trends_path(day: @trends.first&.day || Time.now.utc.to_date) %>
+    <canvas id="search-trend-chart" data-tags="<%= @tags.join(",") %>"></canvas>
   </div>
 </div>
 
 <%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Trending Tags - <%= @tag %>
+  Trending Tags - <%= @tags.join(", ") %>
 <% end %>
 
