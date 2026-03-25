@@ -92,3 +92,12 @@ body.c-search-trends.a-index {
     input[type="text"] { width: unset !important }
   }
 }
+
+body.c-search-trends.a-track {
+  #search-trend-chart {
+    background-color: themed("color-section");
+    @include st-radius;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+  }
+}
