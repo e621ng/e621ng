@@ -19,7 +19,7 @@ Sidekiq.configure_server do |config|
   # Schedule recurring jobs
   schedule = {
     "SearchTrendAggregateJob" => {
-      "cron" => "0 * * * *", # Every hour at minute 0
+      "cron" => "30 * * * *", # Every hour at minute 30
       "class" => "SearchTrendAggregateJob",
       "description" => "Aggregate unprocessed hourly search trends into daily totals",
     },
