@@ -31,6 +31,7 @@ gem "marcel"
 # bookmarks for later, if they are needed
 # gem 'sidekiq-worker-killer'
 gem "sidekiq-unique-jobs"
+gem "sidekiq-cron"
 gem "redis"
 gem "request_store"
 gem "zxcvbn-ruby", require: "zxcvbn"

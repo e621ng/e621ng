@@ -1,0 +1,4 @@
+<%= form_tag(search_trends_path, method: :get, id: "trends_search_form") do %>
+  <%= text_field "search", "name_matches", placeholder: "Search Trends" %>
+  <%= submit_tag "Search" %>
+<% end %>

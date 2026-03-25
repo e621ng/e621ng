@@ -23,7 +23,7 @@ class PostsController < ApplicationController
 
       # Record trending tags for page 1 queries to avoid double-counting pagination
       if tag_query.present? && (params[:page].blank? || params[:page].to_i <= 1)
-        SearchTrend.record_query!(tag_query, day: Time.now.utc.to_date, ip: request.remote_ip)
+        SearchTrendHourly.record_query!(tag_query, ip: request.remote_ip)
       end
 
       @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
