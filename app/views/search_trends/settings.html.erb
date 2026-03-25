@@ -2,7 +2,7 @@
   <div id="a-settings">
     <h1>Search trend settings</h1>
 
-    <%= custom_form_for(:search_trends, url: update_settings_search_trends_path, method: :post, local: true, class: "simple_form") do |f| %>
+    <%= custom_form_for(:search_trend_settings, url: update_settings_search_trends_path, method: :post, local: true, class: "simple_form") do |f| %>
       <div class="input">
         <%= f.label :trends_enabled, "Enable trends" %>
         <%= f.check_box :trends_enabled, { checked: Setting.trends_enabled? }, "true", "false" %>

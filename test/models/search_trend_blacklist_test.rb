@@ -131,21 +131,12 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
       Setting.trends_enabled = false
     end
 
-    should "increment! skips blacklisted tags" do
+    should "bulk_increment! does not skip non-blacklisted tags" do
       as @admin do
         SearchTrendBlacklist.create!(tag: "wolf", reason: "")
       end
-      assert_no_difference -> { SearchTrend.count } do
-        SearchTrend.increment!("wolf")
-      end
-    end
-
-    should "increment! does not skip non-blacklisted tags" do
-      as @admin do
-        SearchTrendBlacklist.create!(tag: "wolf", reason: "")
-      end
-      assert_difference -> { SearchTrend.count }, +1 do
-        SearchTrend.increment!("fox")
+      assert_difference -> { SearchTrendHourly.count }, +1 do
+        SearchTrendHourly.bulk_increment!([{ tag: "fox", hour: 1.hour.ago }])
       end
     end
 
@@ -154,8 +145,12 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
         SearchTrendBlacklist.create!(tag: "wolf", reason: "")
         SearchTrendBlacklist.create!(tag: "*_species", reason: "")
       end
-      SearchTrend.bulk_increment!(%w[wolf fox canine_species])
-      tags = SearchTrend.for_day(Date.current).pluck(:tag)
+      SearchTrendHourly.bulk_increment!([
+        { tag: "wolf", hour: 1.hour.ago },
+        { tag: "fox", hour: 1.hour.ago },
+        { tag: "canine_species", hour: 1.hour.ago },
+      ])
+      tags = SearchTrendHourly.for_day(Date.current).pluck(:tag)
       assert_includes tags, "fox"
       assert_not_includes tags, "wolf"
       assert_not_includes tags, "canine_species"
@@ -165,8 +160,8 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
       as @admin do
         SearchTrendBlacklist.create!(tag: "wolf", reason: "")
       end
-      assert_no_difference -> { SearchTrend.count } do
-        SearchTrend.bulk_increment!(%w[wolf])
+      assert_no_difference -> { SearchTrendHourly.count } do
+        SearchTrendHourly.bulk_increment!([{ tag: "wolf", hour: 1.hour.ago }])
       end
     end
   end

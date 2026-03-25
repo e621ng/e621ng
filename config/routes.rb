@@ -85,6 +85,7 @@ Rails.application.routes.draw do
       delete :purge
     end
   end
+  resources :search_trend_hourlies, only: %i[index]
   namespace :maintenance do
     namespace :user do
       resource :count_fixes, only: %i[new create]
