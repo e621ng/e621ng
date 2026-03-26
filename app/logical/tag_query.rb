@@ -1349,7 +1349,7 @@ class TagQuery
 
       when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
         add_to_query(type, :fav_ids) do
-          favuser = User.find_by_name_or_id(g2) # rubocop:disable Rails/DynamicFindBy
+          favuser = User.find_by_name_or_id(g2)
 
           next -1 unless favuser # next 0 unless favuser
           raise Favorite::HiddenError if favuser.hide_favorites?
