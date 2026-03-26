@@ -24,6 +24,24 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 
 --
+-- Name: log_favorite_delete(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.log_favorite_delete() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$ BEGIN INSERT INTO public.favorite_events (favorite_id, user_id, post_id, action, created_at) VALUES (OLD.id, OLD.user_id, OLD.post_id, -1, now()); RETURN OLD; END; $$;
+
+
+--
+-- Name: log_favorite_insert(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.log_favorite_insert() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$ BEGIN INSERT INTO public.favorite_events (favorite_id, user_id, post_id, action, created_at) VALUES (NEW.id, NEW.user_id, NEW.post_id, 1, NEW.created_at); RETURN NEW; END; $$;
+
+
+--
 -- Name: posts_trigger_change_seq(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -724,6 +742,39 @@ CREATE SEQUENCE public.exception_logs_id_seq
 --
 
 ALTER SEQUENCE public.exception_logs_id_seq OWNED BY public.exception_logs.id;
+
+
+--
+-- Name: favorite_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.favorite_events (
+    event_id bigint NOT NULL,
+    favorite_id bigint,
+    user_id integer NOT NULL,
+    post_id integer NOT NULL,
+    action smallint NOT NULL,
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: favorite_events_event_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.favorite_events_event_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: favorite_events_event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.favorite_events_event_id_seq OWNED BY public.favorite_events.event_id;
 
 
 --
@@ -2761,6 +2812,13 @@ ALTER TABLE ONLY public.exception_logs ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: favorite_events event_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_events ALTER COLUMN event_id SET DEFAULT nextval('public.favorite_events_event_id_seq'::regclass);
+
+
+--
 -- Name: favorites id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3253,6 +3311,14 @@ ALTER TABLE ONLY public.email_blacklists
 
 ALTER TABLE ONLY public.exception_logs
     ADD CONSTRAINT exception_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: favorite_events favorite_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_events
+    ADD CONSTRAINT favorite_events_pkey PRIMARY KEY (event_id);
 
 
 --
@@ -4071,6 +4137,27 @@ CREATE INDEX index_exception_logs_on_user_id ON public.exception_logs USING btre
 
 
 --
+-- Name: index_favorite_events_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorite_events_on_created_at ON public.favorite_events USING btree (created_at);
+
+
+--
+-- Name: index_favorite_events_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorite_events_on_post_id ON public.favorite_events USING btree (post_id);
+
+
+--
+-- Name: index_favorite_events_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorite_events_on_user_id ON public.favorite_events USING btree (user_id);
+
+
+--
 -- Name: index_favorites_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4523,13 +4610,6 @@ CREATE INDEX index_post_votes_on_user_id_and_id ON public.post_votes USING btree
 --
 
 CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON public.post_votes USING btree (user_id, post_id);
-
-
---
--- Name: index_posts_on_approver_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_approver_id ON public.posts USING btree (approver_id);
 
 
 --
@@ -5059,6 +5139,20 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 
 
 --
+-- Name: favorites favorites_delete_event; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER favorites_delete_event AFTER DELETE ON public.favorites FOR EACH ROW EXECUTE FUNCTION public.log_favorite_delete();
+
+
+--
+-- Name: favorites favorites_insert_event; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER favorites_insert_event AFTER INSERT ON public.favorites FOR EACH ROW EXECUTE FUNCTION public.log_favorite_insert();
+
+
+--
 -- Name: posts posts_update_change_seq; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5217,6 +5311,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260329181337'),
+('20260326172356'),
 ('20260325154501'),
 ('20260324195504'),
 ('20260324153600'),

@@ -86,6 +86,26 @@
           <%= render "posts/partials/show/content/children", post: @post %>
         </div>
 
+        <% if Danbooru.config.recommender_enabled? %>
+        <div
+          id="post-recommendations"
+          data-selected="tags"
+          data-status="waiting"
+          data-post-id="<%= @post.id %>"
+        >
+          <div id="post-recommendations-tabs">
+            <button class="st-button" data-action="tags">Similar</button>
+            <button class="st-button" data-action="favorites">Others Also Liked</button>
+            <button class="st-button" data-action="closed"><%= svg_icon(:times) %></button>
+          </div>
+          <div id="post-recommendations-list">
+            <% 6.times do %>
+              <div class="thumbnail placeholder"></div>
+            <% end %>
+          </div>
+        </div>
+        <% end %>
+
         <% if !CurrentUser.is_janitor? %>
           <%= render "posts/partials/show/content/notices/notices", post: @post %>
         <% end %>
