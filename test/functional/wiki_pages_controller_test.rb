@@ -105,6 +105,16 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
+      should("not create tag") do
+        assert_difference({ "WikiPage.count" => 1, "Tag.count" => 0 }) do
+          post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "abc", body: "def" }, format: :json })
+          assert_response(:success)
+        end
+        @wiki_page = WikiPage.last
+        assert_equal("abc", @wiki_page.title)
+        assert_not(Tag.exists?(name: "abc"))
+      end
+
       context("with prefix") do
         should("work") do
           assert_difference(%w[WikiPage.count Tag.count], 1) do
