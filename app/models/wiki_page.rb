@@ -7,8 +7,8 @@ class WikiPage < ApplicationRecord
   before_validation :normalize_other_names
   before_validation :normalize_parent
   before_save :log_changes
+  before_save :create_tag
   before_save :update_tag
-  before_create :create_tag
   before_destroy :validate_not_used_as_help_page
   before_destroy :log_destroy
   after_save :create_version
@@ -21,6 +21,7 @@ class WikiPage < ApplicationRecord
   validates :title, tag_name: true, if: :title_changed?
   validates :title, length: { minimum: 1, maximum: 100 }
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
+  validates :body, length: { minimum: 1, message: "cannot be blank" }, on: :create
   validate :user_not_limited
   validate :validate_rename
   validate :validate_redirect
@@ -128,6 +129,10 @@ class WikiPage < ApplicationRecord
     def method_attributes
       super + %i[creator_name category_id]
     end
+
+    def empty?
+      body.blank?
+    end
   end
 
   module HelpPageMethods
@@ -153,26 +158,54 @@ class WikiPage < ApplicationRecord
     end
 
     def category_id
-      @category_id ||= tag&.category
+      @category_id ||= begin
+        reset_tag_update_map
+        tag&.category
+      end
     end
 
     def category_id=(value)
+      reset_tag_update_map
       @category_id = value.to_i if value.present?
     end
 
     def category_is_locked
-      @category_is_locked ||= tag&.is_locked || false
+      @category_is_locked ||= begin
+        reset_tag_update_map
+        tag&.is_locked || false
+      end
     end
 
     def category_is_locked=(value)
+      reset_tag_update_map
       @category_is_locked = value
     end
 
     def tag_update_map
-      updates = {}
-      updates[:category] = @category_id if defined?(@category_id)
-      updates[:is_locked] = @category_is_locked if defined?(@category_is_locked)
-      updates
+      @tag_update_map ||= {}.tap do |updates|
+        if defined?(@category_id) && @category_id.present?
+          # prevent attempting to set category=general on new tags
+          if tag.nil?
+            updates[:category] = @category_id if @category_id.to_i != Tag.categories.general
+            # prevent attempting to set category to the existing value
+          elsif tag.category != @category_id.to_i
+            updates[:category] = @category_id
+          end
+        end
+        if defined?(@category_is_locked) && @category_is_locked.present?
+          # prevent attempting to set is_locked=false on new tags
+          if tag.nil?
+            updates[:is_locked] = true if @category_is_locked.to_s.truthy?
+            # prevent attempting to set is_locked to the existing value
+          elsif tag.is_locked != @category_is_locked.to_s.truthy?
+            updates[:is_locked] = @category_is_locked
+          end
+        end
+      end
+    end
+
+    def tag_will_change?
+      tag_update_map.any?
     end
 
     def category_editable_by?(user = CurrentUser.user)
@@ -180,36 +213,23 @@ class WikiPage < ApplicationRecord
     end
 
     def create_tag
-      return if tag
+      return if tag || !tag_will_change?
 
-      updates = tag_update_map
-      return if updates.empty?
+      return tag_error("cannot be used") unless category_editable_by?
 
-      unless category_editable_by?
-        tag_error("Cannot be picked")
-      end
-
-      self.tag = Tag.create({ name: title }.merge(updates))
-      unless tag.persisted?
-        tag_error(tag.errors.full_messages.join(", "))
-      end
+      self.tag = Tag.create({ name: title }.merge(tag_update_map))
+      return tag_error(tag.errors.full_messages.join(", ")) if tag.errors.any?
 
       reload_tag_attributes
     end
 
     def update_tag
-      return unless tag
+      return unless tag && tag_will_change?
 
-      updates = tag_update_map
-      return if updates.empty?
+      return tag_error("cannot be changed") unless category_editable_by?
 
-      unless category_editable_by?
-        tag_error("Cannot be changed")
-      end
-
-      unless tag.update(updates)
-        tag_error(tag.errors.full_messages.join(", "))
-      end
+      tag.update(tag_update_map)
+      return tag_error(tag.errors.full_messages.join(", ")) if tag.errors.any?
 
       reload_tag_attributes
     end
@@ -226,6 +246,11 @@ class WikiPage < ApplicationRecord
       remove_instance_variable(:@category_id) if defined?(@category_id)
       remove_instance_variable(:@category_is_locked) if defined?(@category_is_locked)
       remove_instance_variable(:@tag) if defined?(@tag)
+      reset_tag_update_map
+    end
+
+    def reset_tag_update_map
+      remove_instance_variable(:@tag_update_map) if defined?(@tag_update_map)
     end
   end
 
@@ -295,7 +320,11 @@ class WikiPage < ApplicationRecord
   def normalize_title
     title = self.title.downcase.tr(" ", "_")
     if title =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
-      self.category_id = Tag.categories.value_for($1)
+      category = Tag.categories.value_for($1)
+      # Only use prefix if the record is new, and the category is not set or is set to general, anything else is likely to be a deliberate selection
+      if new_record? && (@category_id.nil? || @category_id == Tag.categories.general)
+        self.category_id = category
+      end
       title = $2
     end
     self.title = title
