@@ -2,19 +2,30 @@
 
 class SearchTrendsController < ApplicationController
   respond_to :html, :json
-  before_action :admin_only, only: %i[settings update_settings clear_cache]
+  before_action :admin_only, only: %i[purge settings update_settings clear_cache]
 
   def index
     if params[:day].present?
       @day = begin
         Date.parse(params[:day])
       rescue StandardError
-        Date.current
+        Time.now.utc.to_date
       end
     else
-      @day = Date.current
+      @day = Time.now.utc.to_date
     end
-    @trending = SearchTrend.for_day(@day).order(count: :desc, tag: :asc).paginate(params[:page], limit: params[:limit])
+
+    search_filters_present = search_params[:name_matches].present?
+
+    if search_filters_present
+      @trending = SearchTrend.for_day_ranked(@day).search(search_params).paginate(params[:page], limit: params[:limit])
+      @using_calculated_ranks = true
+    else
+      @trending = SearchTrend.for_day(@day).search(search_params).paginate(params[:page], limit: params[:limit])
+      @using_calculated_ranks = false
+    end
+
+    @has_tomorrow = @day < Time.now.utc.to_date
     @count_offset = (@trending.current_page - 1) * @trending.records_per_page
 
     respond_to do |format|
@@ -23,10 +34,33 @@ class SearchTrendsController < ApplicationController
     end
   end
 
+  def track
+    @tag = params[:tag].to_s.downcase.strip
+
+    @trends = SearchTrend.for_tag(@tag).limit(30).order(day: :desc)
+
+    respond_to do |format|
+      format.html do
+        @hourlies = SearchTrendHourly.where(tag: @tag).order(hour: :desc).limit(50)
+      end
+      format.json { render json: @trends.as_json(only: %i[tag count day]) }
+    end
+  end
+
+  def purge
+    @tag = params[:tag].to_s.downcase.strip
+    deleted_daily = SearchTrend.for_tag(@tag).delete_all
+    deleted_hourly = SearchTrendHourly.where(tag: @tag).delete_all
+    respond_to do |format|
+      format.html { redirect_to search_trends_path, notice: "Purged #{deleted_daily} historic record(s) and #{deleted_hourly} hourly record(s) for \"#{@tag}\"" }
+      format.json { render json: { daily_count: deleted_daily, hourly_count: deleted_hourly } }
+    end
+  end
+
   def rising
     respond_to do |format|
       format.html
-      format.json { render json: SearchTrend.rising_tags_list.as_json(only: %i[tag]) }
+      format.json { render json: SearchTrendHourly.rising_tags_list.as_json(only: %i[tag]) }
     end
   end
 
@@ -34,7 +68,7 @@ class SearchTrendsController < ApplicationController
   end
 
   def update_settings
-    params = trends_params
+    params = trend_settings_params
 
     if params.key?(:trends_enabled)
       Setting.trends_enabled = ActiveModel::Type::Boolean.new.cast(params[:trends_enabled])
@@ -80,8 +114,13 @@ class SearchTrendsController < ApplicationController
     end
   end
 
-  def trends_params
+  def search_params
+    permitted_params = %i[name_matches]
+    permit_search_params permitted_params
+  end
+
+  def trend_settings_params
     permitted_params = %i[trends_enabled trends_displayed trends_min_today trends_min_delta trends_min_ratio trends_ip_limit trends_ip_window trends_tag_limit trends_tag_window]
-    params.fetch(:search_trends, {}).permit(permitted_params)
+    params.fetch(:search_trend_settings, {}).permit(permitted_params)
   end
 end

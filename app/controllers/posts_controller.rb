@@ -23,23 +23,7 @@ class PostsController < ApplicationController
 
       # Record trending tags for page 1 queries to avoid double-counting pagination
       if tag_query.present? && (params[:page].blank? || params[:page].to_i <= 1)
-        # Extract plain tags (no metatags, no grouping markers) in a normalized form
-        begin
-          tokens = TagQuery.scan_recursive(
-            tag_query,
-            flatten: true,
-            strip_prefixes: true,
-            delimit_groups: true,
-            sort_at_level: false,
-            normalize_at_level: true,
-            strip_duplicates_at_level: true,
-          )
-          tag_tokens = tokens.select { |t| t.present? && t != "(" && t != ")" && t.exclude?(":") }
-          SearchTrend.bulk_increment!(tag_tokens, day: Date.current, ip: request.remote_ip) if tag_tokens.present?
-        rescue StandardError => e
-          # Fail open: don't block search page if parsing fails
-          Rails.logger.warn("Failed to record search trends for query #{tag_query.inspect}: #{e.class}: #{e.message}")
-        end
+        SearchTrendHourly.record_query!(tag_query, ip: request.remote_ip)
       end
 
       @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank

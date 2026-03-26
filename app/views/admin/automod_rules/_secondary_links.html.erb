@@ -2,5 +2,5 @@
   <%= subnav_link_to "Index", admin_automod_rules_path %>
   <%= subnav_link_to "New Rule", new_admin_automod_rule_path %>
   <li class="divider"></li>
-  <%= subnav_link_to "Tickets", tickets_path %>
+  <%= subnav_link_to "Tickets", tickets_path(search: { creator_id: User.system.id }) %>
 <% end %>

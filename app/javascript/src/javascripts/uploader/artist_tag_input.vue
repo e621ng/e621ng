@@ -19,7 +19,7 @@
         </template>
         <template v-else>
           <a href="#" @click.prevent="removeWrongTag(notice.tag)">
-            <div><b>{{ notice.tag }}</b> is a {{ notice.detail }}</div>
+            <div><b>{{ notice.tag }}</b> is {{ notice.detail }}</div>
           </a>
         </template>
       </div>

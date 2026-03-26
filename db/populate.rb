@@ -18,6 +18,7 @@ presets = {
   furids: ENV.fetch("FURIDS", 0).to_i,
   dmails: ENV.fetch("DM", 0).to_i,
   trends: ENV.fetch("TRENDS", 0).to_i,
+  trends_hours: ENV.fetch("TRENDS_HOURS", 0).to_i,
 }
 if presets.values.sum == 0
   puts "DEFAULTS"
@@ -33,6 +34,7 @@ if presets.values.sum == 0
     furids: 0,
     dmails: 0,
     trends: 7,
+    trends_hours: 48,
   }
 end
 
@@ -47,6 +49,7 @@ POOLS     = presets[:pools]
 FURIDS    = presets[:furids]
 DMAILS    = presets[:dmails]
 TRENDS    = presets[:trends]
+TRENDS_HOURS = presets[:trends_hours]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
@@ -525,11 +528,10 @@ def populate_dmails(number)
   end
 end
 
-# Seed search trend data for testing: the same selection of `tags_count` tags across the
-# past `days` days, with a subset showing a substantial rise today vs yesterday.
+# Creates SearchTrend daily aggregate records for testing.
 def populate_search_trends(days: 7, tags_count: 100, rising_ratio: 0.25)
   return unless days > 0 && tags_count > 0
-  puts "* Seeding search trends for past #{days} days (#{tags_count} tags)"
+  puts "* Creating SearchTrend daily records for past #{days} days (#{tags_count} tags)"
 
   # Prefer existing tags; if not enough exist, synthesize the remainder.
   existing = Tag.order("random()").limit(tags_count).pluck(:name)
@@ -581,7 +583,60 @@ def populate_search_trends(days: 7, tags_count: 100, rising_ratio: 0.25)
     end
   end
 
-  puts "  Seeded #{tags.size} tags across #{days} days (#{rising_tags.size} rising today)."
+  daily_trends = SearchTrend.count
+  puts "  Created #{tags.size} tags across #{days} days:"
+  puts "    #{rising_tags.size} rising today"
+  puts "    #{daily_trends} daily aggregate records"
+end
+
+# Creates SearchTrendHourly records for testing. All records are marked as unprocessed.
+def populate_search_trend_hourlies(hours: 48, tags_count: 50)
+  return unless hours > 0 && tags_count > 0
+  puts "* Creating SearchTrendHourly records for past #{hours} hours (#{tags_count} tags)"
+
+  # Prefer existing tags; if not enough exist, synthesize the remainder.
+  existing = Tag.order("random()").limit(tags_count).pluck(:name)
+  if existing.size < tags_count
+    missing = tags_count - existing.size
+    generated = (1..missing).map { |i| "hourly_tag_#{format('%03d', i)}" }
+    tags = existing + generated
+  else
+    tags = existing
+    tags << "alpha"
+    tags << "beta"
+  end
+
+  tags.map! { |t| t.to_s.downcase.strip }.uniq!
+  tags ||= []
+  return if tags.empty?
+
+  now = Time.current
+  start_hour = now.beginning_of_hour - (hours - 1).hours
+
+  tags.each do |tag|
+    base_per_hour = rand(1..10)
+
+    (0...hours).each do |i|
+      hour_time = start_hour + i.hours
+      next if hour_time > now # Don't create future records
+
+      # Add some variance to the hourly count
+      count = [base_per_hour + rand(-2..3), 1].max
+
+      st = SearchTrendHourly.find_or_initialize_by(tag: tag, hour: hour_time)
+      st.count = count
+      st.processed = false # All records should be unprocessed as requested
+      st.save!
+    end
+  end
+
+  total_hourly = SearchTrendHourly.count
+  unprocessed_hourly = SearchTrendHourly.unprocessed.count
+
+  puts "  Created #{tags.size} tags across #{hours} hours:"
+  puts "    #{total_hourly} total hourly records"
+  puts "    #{unprocessed_hourly} unprocessed hourly records"
+  puts "  Ready to test aggregation job functionality!"
 end
 
 puts "Populating the Database"
@@ -604,3 +659,4 @@ populate_dmails(DMAILS)
 
 # Seed search trends last
 populate_search_trends(days: TRENDS, tags_count: 100)
+populate_search_trend_hourlies(hours: TRENDS_HOURS, tags_count: 50)

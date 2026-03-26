@@ -14,6 +14,10 @@ class SearchTrendBlacklist < ApplicationRecord
   after_create do |rec|
     ModAction.log(:search_trend_blacklist_create, { tag: rec.tag, reason: rec.reason })
   end
+  after_update :invalidate_cache
+  after_update do |rec|
+    ModAction.log(:search_trend_blacklist_update, { tag: rec.tag, reason: rec.reason })
+  end
   after_destroy :invalidate_cache
   after_destroy do |rec|
     ModAction.log(:search_trend_blacklist_delete, { tag: rec.tag, reason: rec.reason })

@@ -81,8 +81,11 @@ Rails.application.routes.draw do
       get :settings
       post :update_settings
       post :clear_cache
+      get :track
+      delete :purge
     end
   end
+  resources :search_trend_hourlies, only: %i[index]
   namespace :maintenance do
     namespace :user do
       resource :count_fixes, only: %i[new create]
@@ -218,11 +221,7 @@ Rails.application.routes.draw do
     end
   end
   resources :email_blacklists, only: %i[new create destroy index]
-  resources :search_trend_blacklists, only: %i[index new create destroy] do
-    member do
-      delete :purge
-    end
-  end
+  resources :search_trend_blacklists, only: %i[index new create edit update destroy]
   resource :iqdb_queries, only: %i[show] do
     collection do
       post :show

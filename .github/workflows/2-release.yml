@@ -11,7 +11,13 @@ permissions:
   contents: write
 
 jobs:
+  checks:
+    uses: ./.github/workflows/run-checks.yml
+    with:
+      run_tests: true
+
   release:
+    needs: checks
     runs-on: ubuntu-latest
 
     steps:
@@ -36,5 +42,7 @@ jobs:
             echo "Error: invalid version format: '$VERSION'" >&2
             exit 1
           fi
+          git config user.email "action@github.com"
+          git config user.name "github-actions[bot]"
           git tag -a "$VERSION" -m "Release $VERSION"
           git push origin "$VERSION"

@@ -1818,6 +1818,40 @@ ALTER SEQUENCE public.search_trend_blacklists_id_seq OWNED BY public.search_tren
 
 
 --
+-- Name: search_trend_hourlies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.search_trend_hourlies (
+    id bigint NOT NULL,
+    tag character varying NOT NULL,
+    hour timestamp(6) without time zone NOT NULL,
+    count integer DEFAULT 0 NOT NULL,
+    processed boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: search_trend_hourlies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.search_trend_hourlies_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: search_trend_hourlies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.search_trend_hourlies_id_seq OWNED BY public.search_trend_hourlies.id;
+
+
+--
 -- Name: search_trends; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2923,6 +2957,13 @@ ALTER TABLE ONLY public.search_trend_blacklists ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: search_trend_hourlies id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.search_trend_hourlies ALTER COLUMN id SET DEFAULT nextval('public.search_trend_hourlies_id_seq'::regclass);
+
+
+--
 -- Name: search_trends id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3446,6 +3487,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 ALTER TABLE ONLY public.search_trend_blacklists
     ADD CONSTRAINT search_trend_blacklists_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: search_trend_hourlies search_trend_hourlies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.search_trend_hourlies
+    ADD CONSTRAINT search_trend_hourlies_pkey PRIMARY KEY (id);
 
 
 --
@@ -4477,6 +4526,13 @@ CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON public.post_votes
 
 
 --
+-- Name: index_posts_on_approver_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_approver_id ON public.posts USING btree (approver_id);
+
+
+--
 -- Name: index_posts_on_change_seq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4569,6 +4625,41 @@ CREATE UNIQUE INDEX index_search_trend_blacklists_on_tag ON public.search_trend_
 
 
 --
+-- Name: index_search_trend_hourlies_on_hour; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_trend_hourlies_on_hour ON public.search_trend_hourlies USING btree (hour);
+
+
+--
+-- Name: index_search_trend_hourlies_on_hour_unprocessed; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_trend_hourlies_on_hour_unprocessed ON public.search_trend_hourlies USING btree (hour) WHERE (processed = false);
+
+
+--
+-- Name: index_search_trend_hourlies_on_processed; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_trend_hourlies_on_processed ON public.search_trend_hourlies USING btree (processed);
+
+
+--
+-- Name: index_search_trend_hourlies_on_processed_and_hour; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_trend_hourlies_on_processed_and_hour ON public.search_trend_hourlies USING btree (processed, hour);
+
+
+--
+-- Name: index_search_trend_hourlies_on_tag_and_hour; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_search_trend_hourlies_on_tag_and_hour ON public.search_trend_hourlies USING btree (tag, hour);
+
+
+--
 -- Name: index_search_trends_on_day_and_count; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4580,6 +4671,13 @@ CREATE INDEX index_search_trends_on_day_and_count ON public.search_trends USING 
 --
 
 CREATE UNIQUE INDEX index_search_trends_on_tag_and_day ON public.search_trends USING btree (tag, day);
+
+
+--
+-- Name: index_search_trends_on_tag_trigram; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_trends_on_tag_trigram ON public.search_trends USING gin (tag public.gin_trgm_ops);
 
 
 --
@@ -5118,6 +5216,9 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260325154501'),
+('20260324195504'),
+('20260324153600'),
 ('20260312140702'),
 ('20260311194405'),
 ('20260310162913'),

@@ -1,0 +1,88 @@
+<% content_for(:page_title, "Hourly Search Trends") %>
+
+<div id="c-search-trend-hourlies">
+  <div class="box-section">
+    <h1>Hourly Search Trends</h1>
+    
+    <%= form_with model: false, url: search_trend_hourlies_path, method: :get do |form| %>
+      <div class="input">
+        <%= form.label :start_time, "Start Time" %>
+        <%= form.datetime_local_field :start_time, value: @start_time&.strftime("%Y-%m-%dT%H:%M") %>
+      </div>
+      
+      <div class="input">
+        <%= form.label :end_time, "End Time" %>
+        <%= form.datetime_local_field :end_time, value: @end_time&.strftime("%Y-%m-%dT%H:%M") %>
+      </div>
+      
+      <div class="input">
+        <%= form.label :name_matches, "Tag Name" %>
+        <%= form.text_field :name_matches, placeholder: "Search by tag name..." %>
+      </div>
+      
+      <%= form.submit "Search", class: "ui-button ui-widget ui-state-default ui-corner-all" %>
+    <% end %>
+  </div>
+
+  <div class="box-section">
+    <h2>
+      Hourly Records 
+      <span class="count">(<%= @start_time.strftime("%Y-%m-%d %H:%M") %> to <%= @end_time.strftime("%Y-%m-%d %H:%M") %>)</span>
+    </h2>
+
+    <% if @hourlies.any? %>
+      <table class="striped">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Tag</th>
+            <th>Hour</th>
+            <th>Count</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @hourlies.each_with_index do |hourly, index| %>
+            <tr>
+              <td><%= @count_offset + index + 1 %></td>
+              <td>
+                <%= link_to hourly.tag, track_search_trends_path(tag: hourly.tag), class: "search-tag" %>
+              </td>
+              <td><%= time_tag hourly.hour, hourly.hour %></td>
+              <td><%= number_with_delimiter hourly.count %></td>
+              <td>
+                <% if hourly.processed? %>
+                  <span class="status-processed">Processed</span>
+                <% else %>
+                  <span class="status-unprocessed">Unprocessed</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <%= render PaginatorComponent.new(records: @hourlies) %>
+    <% else %>
+      <p>No hourly trends found for the selected time period.</p>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .status-processed {
+    color: #0c5928;
+    font-weight: bold;
+  }
+  
+  .status-unprocessed {
+    color: #8b4513;
+    font-weight: bold;
+  }
+  
+  .count {
+    font-weight: normal;
+    font-size: 0.9em;
+    color: #666;
+  }
+</style>
