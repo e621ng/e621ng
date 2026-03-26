@@ -86,6 +86,13 @@
           <%= render "posts/partials/show/content/children", post: @post %>
         </div>
 
+        <% if Danbooru.config.recommender_enabled? %>
+        <div id="post-recommendations">
+          <h3>Similar Posts</h3>
+          <div id="post-recommendations-list" data-post-id="<%= @post.id %>"></div>
+        </div>
+        <% end %>
+
         <% if !CurrentUser.is_janitor? %>
           <%= render "posts/partials/show/content/notices/notices", post: @post %>
         <% end %>

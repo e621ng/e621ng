@@ -48,6 +48,24 @@ div#c-posts {
     }
   }
 
+  div#post-recommendations {
+    background: themed("color-section");
+    padding: 0.5rem;
+    margin-bottom: 0.25rem;
+    @include st-radius;
+
+    h3 { margin-bottom: 0.5rem; }
+
+    &-list {
+      display: flex;
+      overflow: scroll hidden;
+      gap: 0.5rem;
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+      &::-webkit-scrollbar { display: none; }
+    }
+  }
+
   div.notice {
     border-radius: $border-radius-half;
     padding: 0.5em;
