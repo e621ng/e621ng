@@ -112,7 +112,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         end
         @wiki_page = WikiPage.last
         assert_equal("abc", @wiki_page.title)
-        assert_not(Tag.exists?(name: "abc"))
+        assert_not(Tag.where(name: "abc").exists?)
       end
 
       context("with prefix") do
