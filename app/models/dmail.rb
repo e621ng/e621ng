@@ -15,9 +15,9 @@ class Dmail < ApplicationRecord
   after_initialize :initialize_attributes, if: :new_record?
   before_create :auto_read_if_filtered
   after_create :update_recipient_unread_count
-  after_commit :send_email, on: :create, unless: :no_email_notification
+  after_commit :send_email, on: :create, unless: :no_email_notification, if: :force_email_notification
 
-  attr_accessor :bypass_limits, :no_email_notification
+  attr_accessor :bypass_limits, :no_email_notification, :force_email_notification
 
   module AddressMethods
     def to_name=(name)
@@ -150,8 +150,8 @@ class Dmail < ApplicationRecord
   def user_not_limited
     # System user must be able to send dmails at a very high rate, do not rate limit the system user.
     return true if bypass_limits == true
-    return true if from_id == User.system.id
-    return true if from.is_janitor?
+    return true if is_automated?
+    return true if from.is_staff?
 
     allowed = CurrentUser.can_dmail_with_reason
     if allowed != true
@@ -174,13 +174,12 @@ class Dmail < ApplicationRecord
       errors.add(:to_name, "not found")
       return false
     end
-    return true if from_id == User.system.id
-    return true if from.is_janitor?
+    return true if is_automated? || from.is_staff?
     if to.disable_user_dmails
       errors.add(:to_name, "has disabled DMails")
       return false
     end
-    if from.disable_user_dmails && !to.is_janitor?
+    if from.disable_user_dmails && !to.is_staff?
       errors.add(:to_name, "is not a valid recipient while blocking DMails from others. You may only message janitors and above")
       return false
     end
@@ -188,6 +187,7 @@ class Dmail < ApplicationRecord
       errors.add(:to_name, "does not wish to receive DMails from you")
       false
     end
+    true
   end
 
   def quoted_body
@@ -195,7 +195,7 @@ class Dmail < ApplicationRecord
   end
 
   def send_email
-    if to.receive_email_notifications? && to.email =~ /@/ && owner_id == to.id
+    if ((to.receive_email_notifications? && !to.is_banned?) || is_automated? || force_email_notification) && to.email =~ /@/ && owner_id == to.id
       UserMailer.dmail_notice(self).deliver_now
     end
   end
@@ -240,7 +240,7 @@ class Dmail < ApplicationRecord
   end
 
   def visible_to?(user)
-    return true if user.is_moderator? && (from_id == User.system.id || Ticket.where(qtype: "dmail", disp_id: id).exists?)
+    return true if user.is_moderator? && (is_automated? || Ticket.where(qtype: "dmail", disp_id: id).exists?)
     return true if user.is_admin? && (to.is_admin? || from.is_admin?)
     owner_id == user.id
   end
