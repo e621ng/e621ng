@@ -49,20 +49,50 @@ div#c-posts {
   }
 
   div#post-recommendations {
-    background: themed("color-section");
-    padding: 0.5rem;
-    margin-bottom: 0.25rem;
-    @include st-radius;
 
-    h3 { margin-bottom: 0.5rem; }
+    // Tabs
+    &-tabs {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0 0.5rem;
 
+      button {
+        background: unset;
+        color: themed("color-text");
+        @include st-radius-top;
+        &[data-action="closed"] { margin-left: auto; }
+      }
+    }
+
+    // Selected tab
+    &[data-action="favorites"] button[data-action="favorites"],
+    &[data-action="tags"] button[data-action="tags"] {
+      background-color: themed("color-section");
+    }
+
+
+    // Recommendations list
     &-list {
       display: flex;
       overflow: scroll hidden;
       gap: 0.5rem;
+
+      background: themed("color-section");
+      padding: 0.5rem;
+      margin-bottom: 0.25rem;
+      @include st-radius;
+
+      --thumb-image-size: 128px; // Passed on to thumbnails
+      height: calc(var(--thumb-image-size) + 1.25rem);
+
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
       &::-webkit-scrollbar { display: none; }
+    }
+
+    &[data-status="error"] #post-recommendations-list {
+      justify-content: center;
+      align-items: center;
     }
   }
 
