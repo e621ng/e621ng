@@ -1,7 +1,45 @@
 import { EngineConfig, SnakeRenderer, html } from "./snake_game";
 
-function initialize () {
-  if (!/^\/$|^$/.test(window.location.pathname)) return;
+function rootInit () {
+  // if (!/^\/$|^$/.test(window.location.pathname)) return;
+  const touchControls = html`
+  <div id="touch-container">
+    <span id="up">▲</span>
+    <span id="left">◀</span>
+    <span id="down">▼</span>
+    <span id="right">▶</span>
+  </div>
+  `;
+  document.querySelector("head").appendChild(html`<style>
+    #touch-container {
+      display: grid;
+      grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
+      justify-content: space-evenly;
+      align-content: space-evenly;
+      align-items: stretch;
+      justify-items: stretch;
+      & * {
+        box-sizing: border-box;
+        text-align: center;
+      }
+    }
+    #up {
+      grid-row: 1 / 2;
+      grid-column: 2 / 3;
+    }
+    #down {
+      grid-row: 3 / 4;
+      grid-column: 2 / 3;
+    }
+    #left {
+      grid-row: 2 / 3;
+      grid-column: 1 / 2;
+    }
+    #right {
+      grid-row: 2 / 3;
+      grid-column: 3 / 4;
+    }
+  </style>`);
   const canvas = document.createElement("canvas");
   canvas.id = "snake-game";
   // container.prepend(canvas); // document.body.prepend(canvas);
@@ -16,11 +54,12 @@ function initialize () {
   <div id=snake-pane>
     ${(() => {
     const t = html`<div id=snake-tab></div>`;
-    t.onclick = (e) => container.setAttribute("set-offscreen", (container.getAttribute("set-offscreen") ?? "true") === "false" ? "true" : "false");
+    t.onclick = () => container.setAttribute("set-offscreen", (container.getAttribute("set-offscreen") ?? "true") === "false" ? "true" : "false");
     return t;
   })()}
     <div id=snake-container>
       ${canvas}
+      ${touchControls}
       ${state.form}
     </div>
   </div>
@@ -66,5 +105,5 @@ function initialize () {
   initialize(state.defaults);
 }
 
-if (document.readyState !== "loading") initialize();
-else document.addEventListener("load", initialize);
+if (document.readyState !== "loading") rootInit();
+else document.addEventListener("load", rootInit);
