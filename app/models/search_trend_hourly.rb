@@ -180,7 +180,7 @@ class SearchTrendHourly < ApplicationRecord
     q = super
 
     if params[:name_matches].present?
-      q = q.where_like(:tag, params[:name_matches])
+      q = q.where_ilike(:tag, Tag.normalize_name(params[:name_matches]))
     end
 
     q
