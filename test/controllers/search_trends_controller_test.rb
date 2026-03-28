@@ -30,13 +30,13 @@ class SearchTrendsControllerTest < ActionDispatch::IntegrationTest
     end
 
     should "index displays correct ranks without search filters" do
-      day = Date.current
+      day = Time.now.utc.to_date
       # Create SearchTrend records for consistent ranking tests
       SearchTrend.create!(tag: "alpha", day: day, count: 300)
       SearchTrend.create!(tag: "beta", day: day, count: 200)
       SearchTrend.create!(tag: "gamma", day: day, count: 100)
 
-      get "/search_trends"
+      get "/search_trends", params: { day: day.to_s }
       assert_response :success
 
       # Should use offset-based ranking (current behavior)
@@ -45,7 +45,7 @@ class SearchTrendsControllerTest < ActionDispatch::IntegrationTest
     end
 
     should "index preserves original ranks with search filters" do
-      day = Date.current
+      day = Time.now.utc.to_date
       # Create test data with clear ranking
       SearchTrend.create!(tag: "wolf", day: day, count: 300)    # rank 1
       SearchTrend.create!(tag: "fox", day: day, count: 200)     # rank 2
@@ -53,7 +53,7 @@ class SearchTrendsControllerTest < ActionDispatch::IntegrationTest
       SearchTrend.create!(tag: "dog", day: day, count: 50)      # rank 4
 
       # Search for tags containing 'o' (wolf, fox, dog)
-      get "/search_trends", params: { search: { name_matches: "*o*" } }
+      get "/search_trends", params: { day: day.to_s, search: { name_matches: "*o*" } }
       assert_response :success
 
       # Parse the response to check that original daily ranks are preserved
