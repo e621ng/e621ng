@@ -11,7 +11,7 @@ module Downloads
 
     def initialize(url)
       begin
-        @url = Addressable::URI.heuristic_parse(url).normalize
+        @url = Addressable::URI.parse(url).normalize
       rescue Addressable::URI::InvalidURIError
         @url = nil
       end
