@@ -78,7 +78,7 @@ class TagQuery
     id filetype type rating description parent user user_id approver flagger deletedby delreason
     source status pool set fav favoritedby note locked upvote votedup downvote voteddown voted
     width height mpixels ratio filesize duration score favcount date age change tagcount
-    commenter comm noter noteupdater
+    commenter comm noter noteupdater flagreason flagnote flaggedby
   ].concat(CATEGORY_METATAG_MAP.keys).freeze
 
   METATAGS = %w[md5 order limit child randseed hot_from ratinglocked notelocked statuslocked].concat(
@@ -1446,6 +1446,18 @@ class TagQuery
         q[:status] ||= "any" unless q[:status_must_not]
         q[:show_deleted] ||= true
         add_to_query(type, :deleter, user_id_or_invalid(g2))
+
+      # For flag metatags, intentionally allow deleted posts to be included.
+      when "flaggedby", "-flaggedby", "~flaggedby"
+        next unless CurrentUser.is_staff?
+        add_to_query(type, :flagger, user_id_or_invalid(g2))
+
+      when "flagreason", "-flagreason", "~flagreason"
+        add_to_query(type, :flagreason, g2.downcase, wildcard: true)
+
+      when "flagnote", "-flagnote", "~flagnote"
+        next unless CurrentUser.is_staff?
+        add_to_query(type, :flagnote, g2, wildcard: true)
 
       when "upvote", "-upvote", "~upvote", "votedup", "-votedup", "~votedup"
         add_to_query(type, :upvote, privileged_user_id_or_invalid(g2))

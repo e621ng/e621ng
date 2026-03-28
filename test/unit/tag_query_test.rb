@@ -689,6 +689,9 @@ class TagQueryTest < ActiveSupport::TestCase
     note: :note,
     delreason: :delreason,
     deletedby: :deleter,
+    flaggedby: :flagger, # todo
+    flagreason: :flag_reason, # todo
+    flagnote: :flag_note, # todo
     upvote: :upvote,
     votedup: :upvote,
     downvote: :downvote,
