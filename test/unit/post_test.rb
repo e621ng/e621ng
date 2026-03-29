@@ -2051,22 +2051,20 @@ class PostTest < ActiveSupport::TestCase
         @staff_user = create(:mod_user)
         # post flags
         as(@flagger) do
-          create(:post_flag, post: @post4, reason: "This post was previously deleted", note: "Post #12345 was deleted. This post is the same as it")
-          create(:post_flag, post: @post6, reason: "This post is an inferior version of post #1234", note: "This post is an inferior version of post #1234")
-          create(:post_flag, post: @post2, reason: "This post is an inferior version of post #1234", note: "This post is an inferior version of post #1234")
+          create(:post_flag, post: @post4, note: "Post #12345 was deleted. This post is the same as it")
+          create(:post_flag, post: @post6, note: "This post is an inferior version of post #1234")
+          create(:post_flag, post: @post2, note: "This post is an inferior version of post #1234")
         end
         # post deletions and flag handling
         as(@staff_user) do
           @post3.delete!("First deletion")
-          @post2.flags.first.resolve!
+          @post2.unflag!
           @post4.delete!("Second deletion")
           @post1.delete!("Third deletion")
-          @post1.flags.first.resolve! # undo the deletion
+          @post1.undelete!
         end
-        # do we need a reload of some kind here?
         # final posts ordering: active, flag2, active, delete2+flag1, delete1, active, active
         # TODO: fix current issues only showing in tests:
-        # 1. resolved PostFlags are still being treated as unresolved.
         # 2. deletions are seen as flags even when `is_deletion:false` is specified.
       end
 

@@ -314,7 +314,6 @@ module PostIndex
       has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
       artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
 
-      # TODO: Fix BUG: resolved items do not get filtered here properly.
       flagged_at:               options.key?(:flagged_at) ? options[:flagged_at] : ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).limit(1).pick(:created_at),
       deleted_at:               options.key?(:deleted_at) ? options[:deleted_at] : ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).limit(1).pick(:created_at),
     }
