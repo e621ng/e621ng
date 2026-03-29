@@ -15,7 +15,7 @@
         <tbody>
           <% @hourlies.each do |row| %>
             <tr>
-              <td><%= row.hour.to_s %></td>
+              <td><%= row.hour.strftime("%Y-%m-%d %H:00") %></td>
               <td><%= row.count %></td>
             </tr>
           <% end %>
