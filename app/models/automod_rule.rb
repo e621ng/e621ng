@@ -30,9 +30,9 @@ class AutomodRule < ApplicationRecord
 
     compiled = Regexp.new(regex, Regexp::IGNORECASE, timeout: 0.5)
     compiled.match?("#{'a' * 100}\u0000")
-  rescue RegexpError => e # rubocop:disable Lint/ShadowedException
-    errors.add(:regex, "is invalid: #{e.message}")
   rescue Regexp::TimeoutError
     errors.add(:regex, "causes catastrophic backtracking and cannot be used")
+  rescue RegexpError => e
+    errors.add(:regex, "is invalid: #{e.message}")
   end
 end

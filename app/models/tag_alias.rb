@@ -91,6 +91,7 @@ class TagAlias < TagRelationship
   end
 
   def self.to_aliased_query(query, overrides: nil, comments: false)
+    query = query.dup
     # Remove tag types (newline syntax)
     query.gsub!(/(^| )(-)?(#{TagCategory::MAPPING.keys.sort_by { |x| -x.size }.join('|')}):([\S])/i, '\1\2\4')
     # Remove tag types (comma syntax)
