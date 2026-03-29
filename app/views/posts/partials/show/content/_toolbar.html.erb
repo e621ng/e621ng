@@ -32,6 +32,7 @@
     <button
       class="st-button kinetic ptbr-favorite-button anim"
       favorited="<%= @post.is_favorited? %>"
+      increment-score="<%= CurrentUser.enable_combined_upvote_and_favorite %>"
       processing="false"
     >
       <%= svg_icon(:star) %>
