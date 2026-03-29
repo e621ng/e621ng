@@ -1457,7 +1457,7 @@ class TagQuery
 
       when "flagnote", "-flagnote", "~flagnote"
         next unless CurrentUser.is_staff?
-        add_to_query(type, :flagnote, g2, wildcard: true)
+        add_to_query(type, :flagnote, g2.downcase, wildcard: true)
 
       when "upvote", "-upvote", "~upvote", "votedup", "-votedup", "~votedup"
         add_to_query(type, :upvote, privileged_user_id_or_invalid(g2))
