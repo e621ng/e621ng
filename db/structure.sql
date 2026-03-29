@@ -361,7 +361,7 @@ CREATE TABLE public.blips (
     creator_id integer NOT NULL,
     body character varying NOT NULL,
     response_to integer,
-    is_hidden boolean DEFAULT false,
+    is_deleted boolean DEFAULT false,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     warning_type integer,
@@ -5216,6 +5216,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260329181337'),
 ('20260325154501'),
 ('20260324195504'),
 ('20260324153600'),
