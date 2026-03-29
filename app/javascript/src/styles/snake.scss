@@ -3,7 +3,6 @@ html:has(> body > #snake-pane) {
   overflow-x: hidden;
   --pane-padding: 2.5rem;
   --pane-tab-size: 3rem;
-  --pane-bg-color: rgb(0, 64, 16);
   --pane-anim-time: 1s;
   --pane-anim-function: ease-in-out;
   --mobile-nav-height: 3.75rem;
@@ -17,8 +16,8 @@ html:has(> body > #snake-pane) {
   box-sizing: border-box;
   padding: var(--pane-padding);
 
-  background-color: var(--pane-bg-color);
-  border: 1px solid var(--pane-bg-color);
+  background-color: var(--color-foreground);
+  border: 1px solid var(--color-foreground);
   border-radius: var(--pane-padding);
 
   transition: all var(--pane-anim-time) var(--pane-anim-function);
