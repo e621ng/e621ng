@@ -1,7 +1,10 @@
 import { EngineConfig, SnakeRenderer, html } from "./snake_game";
+import LStorage from "./utility/storage";
 
 function rootInit () {
-  // if (!/^\/$|^$/.test(window.location.pathname)) return;
+  if (!LStorage.Site.Events) {
+    return;
+  }
   const touchControls = html`
   <div id="touch-container">
     <span id="up">▲</span>
