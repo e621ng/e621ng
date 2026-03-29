@@ -87,7 +87,7 @@ class ActiveSupport::TestCase
     FileUtils.rm_rf("#{Rails.root}/tmp/test-storage2")
     Cache.clear
     RequestStore.clear!
-    assert_equal "UTC", Time.zone.name, "Time.zone was not restored to UTC after this test — check for Time.zone= calls without Time.use_zone"
+    assert_equal Rails.application.config.time_zone, Time.zone.name, "Time.zone was not restored to the default time zone after this test — check for Time.zone= calls without Time.use_zone"
   end
 
   def as(user, ip_addr = "127.0.0.1", &)
