@@ -99,6 +99,7 @@ function rootInit () {
   document.body.appendChild(container);
   overlay.style.top = `${canvas.offsetTop}px`;
   overlay.style.left = `${canvas.offsetLeft}px`;
+  playButton.addEventListener("click", () => canvas.focus());
   /** @type {HTMLElement} **/ let lastEngineStats;
   function initialize (cfg) {
     if (lastEngineStats)

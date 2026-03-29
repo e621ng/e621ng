@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Point2d.ts
 class Direction2d {
   x;
@@ -7,21 +8,18 @@ class Direction2d {
   static left = new Direction2d(-1, 0);
   static right = new Direction2d(1, 0);
   static directions = Object.freeze([this.up, this.down, this.left, this.right]);
-  constructor (x, y) {
+  constructor(x, y) {
     this.x = x;
     this.y = y;
     Object.freeze(this);
   }
-
-  get opposite () {
+  get opposite() {
     return Direction2d.fromParameters(Point2d.scale(this, -1));
   }
-
-  get asPoint () {
+  get asPoint() {
     return Point2d.fromIPoint2d(this);
   }
-
-  static fromCardinalDisplacement (from, to) {
+  static fromCardinalDisplacement(from, to) {
     const matchingAxis = Point2d.fromIPoint2d(from).matchingAxes(to);
     if (matchingAxis.length !== 1)
       return;
@@ -29,8 +27,7 @@ class Direction2d {
       return from.y > to.y ? this.up : this.down;
     return from.x > to.x ? this.left : this.right;
   }
-
-  static fromParameters ({ x, y }) {
+  static fromParameters({ x, y }) {
     if (x === 0) {
       return y > 0 ? this.down : y !== 0 ? this.up : undefined;
     } else if (y === 0) {
@@ -45,53 +42,43 @@ class Point2d {
   x;
   y;
   static terseToString = false;
-  toString () {
+  toString() {
     return `(${this.x}, ${this.y})`;
   }
-
-  constructor (x, y) {
+  constructor(x, y) {
     this.x = x;
     this.y = y;
   }
-
-  toIntPoint2d () {
+  toIntPoint2d() {
     return { x: Math.floor(this.x), y: Math.floor(this.y) };
   }
-
-  static toIntPoint2d (p) {
+  static toIntPoint2d(p) {
     return { x: Math.floor(p.x), y: Math.floor(p.y) };
   }
-
-  toIPoint2d () {
+  toIPoint2d() {
     return { x: this.x, y: this.y };
   }
-
-  static toIPoint2d (p) {
+  static toIPoint2d(p) {
     return { x: p.x, y: p.y };
   }
-
-  static fromIPoint2d (p) {
+  static fromIPoint2d(p) {
     return p instanceof Point2d ? p : new Point2d(p.x, p.y);
   }
-
   toIntObj = this.toIntPoint2d;
   static toIntObj = this.toIntPoint2d;
   toObj = this.toIPoint2d;
   static toObj = this.toIPoint2d;
   static fromObj = this.fromIPoint2d;
-  getAxis (a) {
+  getAxis(a) {
     return a === 0 /* x */ ? this.x : this.y;
   }
-
-  static getAxis (p, a) {
+  static getAxis(p, a) {
     return a === 0 /* x */ ? p.x : p.y;
   }
-
-  setAxis (a, value) {
+  setAxis(a, value) {
     return a === 0 /* x */ ? this.x = value : this.y = value;
   }
-
-  matchingAxes (v) {
+  matchingAxes(v) {
     const r = [];
     if (this.x === v.x)
       r.push(0 /* x */);
@@ -99,8 +86,7 @@ class Point2d {
       r.push(1 /* y */);
     return r;
   }
-
-  static matchingAxes (p1, p2) {
+  static matchingAxes(p1, p2) {
     const r = [];
     if (p1.x === p2.x)
       r.push(0 /* x */);
@@ -108,8 +94,7 @@ class Point2d {
       r.push(1 /* y */);
     return r;
   }
-
-  isAxisAligned (other) {
+  isAxisAligned(other) {
     let r = false;
     if (this.x === other.x)
       r = !r;
@@ -117,8 +102,7 @@ class Point2d {
       r = !r;
     return r;
   }
-
-  static isAxisAligned (p1, p2) {
+  static isAxisAligned(p1, p2) {
     let r = false;
     if (p1.x === p2.x)
       r = !r;
@@ -126,8 +110,7 @@ class Point2d {
       r = !r;
     return r;
   }
-
-  allAxisAligned (...others) {
+  allAxisAligned(...others) {
     const axes = this.matchingAxes(others[0]);
     switch (axes.length) {
       case 0:
@@ -138,8 +121,7 @@ class Point2d {
         return axes.some((e1) => others.every((e) => this.matchingAxes(e).includes(e1)));
     }
   }
-
-  static allAxisAligned (...points) {
+  static allAxisAligned(...points) {
     const axes = Point2d.matchingAxes(points[0], points[1]);
     switch (axes.length) {
       case 0:
@@ -150,93 +132,73 @@ class Point2d {
         return axes.some((e1) => points.every((e) => Point2d.matchingAxes(points[0], e).includes(e1)));
     }
   }
-
-  included (a) {
+  included(a) {
     return a.find((e) => this.equals(e)) ? true : false;
   }
-
-  static included (p, a) {
+  static included(p, a) {
     return a.find((e) => this.equals(p, e)) ? true : false;
   }
-
   static includes = this.included;
-  indexIn (a, fromIndex) {
+  indexIn(a, fromIndex) {
     return a.findIndex(fromIndex === undefined ? (e) => this.equals(e) : (e, i) => i >= fromIndex && this.equals(e));
   }
-
-  static indexIn (p, a, fromIndex) {
+  static indexIn(p, a, fromIndex) {
     return a.findIndex(fromIndex === undefined ? (e) => this.equals(p, e) : (e, i) => i >= fromIndex && this.equals(p, e));
   }
-
-  static subtract (p1, p2) {
+  static subtract(p1, p2) {
     return new Point2d(p1.x - p2.x, p1.y - p2.y);
   }
-
-  subtract ({ x = 0, y = 0 }) {
+  subtract({ x = 0, y = 0 }) {
     this.x -= x;
     this.y -= y;
     return this;
   }
-
-  static add (p1, p2) {
+  static add(p1, p2) {
     return new Point2d(p1.x + p2.x, p1.y + p2.y);
   }
-
-  add ({ x = 0, y = 0 }) {
+  add({ x = 0, y = 0 }) {
     this.x += x;
     this.y += y;
     return this;
   }
-
-  static equals (p1, p2) {
+  static equals(p1, p2) {
     return !!p1 && !!p2 && p1.x == p2.x && p1.y == p2.y;
   }
-
-  equals (p) {
+  equals(p) {
     return !!p && this.x == p.x && this.y == p.y;
   }
-
-  static scale (p, v) {
+  static scale(p, v) {
     return new Point2d(p.x * v, p.y * v);
   }
-
-  scale (v) {
+  scale(v) {
     this.x *= v;
     this.y *= v;
     return this;
   }
-
-  static abs (p) {
+  static abs(p) {
     return new Point2d(Math.abs(p.x), Math.abs(p.y));
   }
-
-  abs () {
+  abs() {
     this.x = Math.abs(this.x);
     this.y = Math.abs(this.y);
     return this;
   }
-
-  static magnitude (p) {
+  static magnitude(p) {
     return Math.sqrt(p.x * p.x + p.y * p.y);
   }
-
-  magnitude () {
+  magnitude() {
     return Math.sqrt(this.x * this.x + this.y * this.y);
   }
-
-  static hasMagnitudeOf (p1, magnitude, p2) {
+  static hasMagnitudeOf(p1, magnitude, p2) {
     return !!p1 && !!p2 && Point2d.magnitude(Point2d.abs(Point2d.subtract(p1, p2))) == Math.abs(magnitude);
   }
-
-  hasMagnitudeOf (magnitude, p) {
+  hasMagnitudeOf(magnitude, p) {
     return !!p && Point2d.magnitude(Point2d.abs(Point2d.subtract(this, p))) == Math.abs(magnitude);
   }
-
-  static midpoint (p1, p2) {
+  static midpoint(p1, p2) {
     return new Point2d((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
   }
-
-  intersects (p1, p2) {
+  intersects(p1, p2) {
     const m1 = this.matchingAxes(p1);
     switch (m1.length) {
       case 0:
@@ -278,156 +240,126 @@ class Point2d {
 class RectInt2d {
   _width;
   _height;
-  get width () {
+  get width() {
     return this._width;
   }
-
-  set width (v) {
+  set width(v) {
     this._width = Math.abs(v);
   }
-
-  get height () {
+  get height() {
     return this._height;
   }
-
-  set height (v) {
+  set height(v) {
     this._height = Math.abs(v);
   }
-
-  get dimensions () {
+  get dimensions() {
     return { x: this.width, y: this.height };
   }
-
-  set dimensions (v) {
+  set dimensions(v) {
     ({ x: this.width, y: this.height } = v);
   }
-
   min;
-  get max () {
+  get max() {
     return Point2d.add(this.min, Point2d.subtract(this.dimensions, { x: 1, y: 1 }));
   }
-
-  get xExtent () {
+  get xExtent() {
     return this.width / 2;
   }
-
-  set xExtent (v) {
+  set xExtent(v) {
     this.width = v * 2;
   }
-
-  get yExtent () {
+  get yExtent() {
     return this.height / 2;
   }
-
-  set yExtent (v) {
+  set yExtent(v) {
     this.height = v * 2;
   }
-
-  get extents () {
+  get extents() {
     return { x: this.xExtent, y: this.yExtent };
   }
-
-  set extents (v) {
+  set extents(v) {
     ({ x: this.xExtent, y: this.yExtent } = v);
   }
-
-  get center () {
+  get center() {
     return Point2d.add(this.min, this.extents);
   }
-
-  get centerInt () {
+  get centerInt() {
     return Point2d.toIntPoint2d(this.center);
   }
-
-  get xMin () {
+  get xMin() {
     return this.min.x;
   }
-
-  get xMax () {
+  get xMax() {
     return this.max.x;
   }
-
-  get yMin () {
+  get yMin() {
     return this.min.y;
   }
-
-  get yMax () {
+  get yMax() {
     return this.max.y;
   }
-
-  get leftEdge () {
+  get leftEdge() {
     return [
       new Point2d(this.xMin, this.yMin),
-      new Point2d(this.xMin, this.yMax),
+      new Point2d(this.xMin, this.yMax)
     ];
   }
-
-  get rightEdge () {
+  get rightEdge() {
     return [
       new Point2d(this.xMax, this.yMin),
-      new Point2d(this.xMax, this.yMax),
+      new Point2d(this.xMax, this.yMax)
     ];
   }
-
-  get topEdge () {
+  get topEdge() {
     return [
       new Point2d(this.xMin, this.yMin),
-      new Point2d(this.xMax, this.yMin),
+      new Point2d(this.xMax, this.yMin)
     ];
   }
-
-  get bottomEdge () {
+  get bottomEdge() {
     return [
       new Point2d(this.xMin, this.yMax),
-      new Point2d(this.xMax, this.yMax),
+      new Point2d(this.xMax, this.yMax)
     ];
   }
-
-  get edges () {
+  get edges() {
     return [this.leftEdge, this.rightEdge, this.topEdge, this.bottomEdge];
   }
-
-  get leftBorderEdge () {
+  get leftBorderEdge() {
     return [
       new Point2d(this.xMin - 1, this.yMin - 1),
-      new Point2d(this.xMin - 1, this.yMax + 1),
+      new Point2d(this.xMin - 1, this.yMax + 1)
     ];
   }
-
-  get rightBorderEdge () {
+  get rightBorderEdge() {
     return [
       new Point2d(this.xMax + 1, this.yMin - 1),
-      new Point2d(this.xMax + 1, this.yMax + 1),
+      new Point2d(this.xMax + 1, this.yMax + 1)
     ];
   }
-
-  get topBorderEdge () {
+  get topBorderEdge() {
     return [
       new Point2d(this.xMin - 1, this.yMin - 1),
-      new Point2d(this.xMax + 1, this.yMin - 1),
+      new Point2d(this.xMax + 1, this.yMin - 1)
     ];
   }
-
-  get bottomBorderEdge () {
+  get bottomBorderEdge() {
     return [
       new Point2d(this.xMin - 1, this.yMax + 1),
-      new Point2d(this.xMax + 1, this.yMax + 1),
+      new Point2d(this.xMax + 1, this.yMax + 1)
     ];
   }
-
-  get borderEdges () {
+  get borderEdges() {
     return [this.leftBorderEdge, this.rightBorderEdge, this.topBorderEdge, this.bottomBorderEdge];
   }
-
-  get points () {
+  get points() {
     const rv = [];
-    for (let i = 0; i < this.width; i++)
-      for (let j = 0; j < this.height; j++)
+    for (let i = 0;i < this.width; i++)
+      for (let j = 0;j < this.height; j++)
         rv.push({ x: i, y: j });
     return rv;
   }
-
-  static fromMinMax (min, max) {
+  static fromMinMax(min, max) {
     if (min.x > max.x) {
       const t = min.x;
       min.x = max.x;
@@ -441,16 +373,13 @@ class RectInt2d {
     const dimensions = Point2d.add(Point2d.subtract(max, min), { x: 1, y: 1 });
     return this.fromDimensionsAndMin(dimensions.x, dimensions.y, min);
   }
-
-  static fromDimensionsAndCenter (width, height, point) {
+  static fromDimensionsAndCenter(width, height, point) {
     return new RectInt2d(width, height, point, true);
   }
-
-  static fromDimensionsAndMin (width, height, point = { x: 0, y: 0 }) {
+  static fromDimensionsAndMin(width, height, point = { x: 0, y: 0 }) {
     return new RectInt2d(width, height, point);
   }
-
-  constructor (_width, _height, point, isCenter = false) {
+  constructor(_width, _height, point, isCenter = false) {
     this._width = _width;
     this._height = _height;
     if (_width < 0)
@@ -459,28 +388,24 @@ class RectInt2d {
       this._height *= -1;
     this.min = isCenter ? Point2d.subtract(point, this.extents) : point;
   }
-
-  intersects (p) {
+  intersects(p) {
     return this.xMin <= p.x && this.xMax >= p.x && this.yMin <= p.y && this.yMax >= p.y;
   }
-
-  findIntersection (p) {
+  findIntersection(p) {
     for (const edge of this.edges) {
       if (p.intersects(edge[0], edge[1]))
         return edge;
     }
     return false;
   }
-
-  findBorderIntersection (p) {
+  findBorderIntersection(p) {
     for (const edge of this.borderEdges) {
       if (p.intersects(edge[0], edge[1]))
         return edge;
     }
     return false;
   }
-
-  wrap (p) {
+  wrap(p) {
     while (p.x > this.xMax)
       p.x -= this.width;
     while (p.x < this.xMin)
@@ -491,8 +416,7 @@ class RectInt2d {
       p.y += this.height;
     return p;
   }
-
-  unwrap (p, axis, operation) {
+  unwrap(p, axis, operation) {
     if (axis === 0 /* x */) {
       if (operation === "decrement")
         p.x -= this.width;
@@ -506,17 +430,15 @@ class RectInt2d {
     }
     return p;
   }
-
-  unwrapRelative (p, reference) {
-    const axis = Point2d.matchingAxes(p, reference)[0] === 0 /* x */ ? 1 /* y */ : 0;
+  unwrapRelative(p, reference) {
+    const axis = Point2d.matchingAxes(p, reference)[0] === 0 /* x */ ? 1 /* y */ : 0 /* x */;
     const op = Point2d.getAxis(reference, axis) > Point2d.getAxis(p, axis) ? "increment" : "decrement";
     return this.unwrap(p, axis, op);
   }
-
-  generatePointsWhere (predicate) {
+  generatePointsWhere(predicate) {
     const rv = [];
-    for (let i = 0; i < this.width; i++)
-      for (let j = 0, e = { x: i, y: j }; j < this.height; j++, e = { x: i, y: j })
+    for (let i = 0;i < this.width; i++)
+      for (let j = 0, e = { x: i, y: j };j < this.height; j++, e = { x: i, y: j })
         if (predicate(e, i * this.width + j))
           rv.push({ x: i, y: j });
     return rv;
@@ -533,17 +455,16 @@ class DebugLevel {
   static INFO = new DebugLevel(3, console.info);
   static LOG = new DebugLevel(4, console.log);
   static DEBUG = new DebugLevel(5, console.debug);
-  constructor (index, _print) {
+  constructor(index, _print) {
     this.index = index;
     this._print = _print;
   }
-
   static clone = false;
   static stringify = true;
   static parse = true;
-  static handleParams (data) {
+  static handleParams(data) {
     if (this.clone)
-      return data.map((e) => (typeof e !== "object" ? e : structuredClone(e)));
+      return data.map((e) => typeof e !== "object" ? e : structuredClone(e));
     if (!this.stringify)
       return data;
     return data.map((e) => {
@@ -552,40 +473,33 @@ class DebugLevel {
       return this.parse ? JSON.parse(JSON.stringify(e)) : JSON.stringify(e);
     });
   }
-
-  eval (level) {
+  eval(level) {
     return this.index >= level.index && this.index !== 0;
   }
-
-  print (level, ...data) {
+  print(level, ...data) {
     if (this.eval(level))
       level._print(...DebugLevel.handleParams(data));
   }
-
-  do (level, cb, or) {
+  do(level, cb, or) {
     return this.eval(level) ? cb(level._print) : or ? or(level._print) : undefined;
   }
-
-  debugger (level = DebugLevel.DEBUG) {
+  debugger(level = DebugLevel.DEBUG) {
     if (this.eval(level))
       debugger;
   }
-
-  group (level, ...data) {
+  group(level, ...data) {
     if (this.eval(level))
       console.group(...DebugLevel.handleParams(data));
   }
-
-  groupEnd (level) {
+  groupEnd(level) {
     if (this.eval(level))
       console.groupEnd();
   }
-
-  static tableFromPointsAndPlayfield (points, playfield, asIndex = true) {
+  static tableFromPointsAndPlayfield(points, playfield, asIndex = true) {
     const arr = [];
-    for (let j = 0; j < playfield.height; j++) {
+    for (let j = 0;j < playfield.height; j++) {
       const temp = [];
-      for (let i = 0; i < playfield.width; i++) {
+      for (let i = 0;i < playfield.width; i++) {
         if (asIndex) {
           temp.push(points.findIndex((e) => Point2d.equals(e, { x: i, y: j })));
           continue;
@@ -597,12 +511,11 @@ class DebugLevel {
     }
     console.table(arr);
   }
-
-  static tableFromPointsAndDimensions (points, width, height, asIndex = true) {
+  static tableFromPointsAndDimensions(points, width, height, asIndex = true) {
     const arr = [];
-    for (let j = 0; j < height; j++) {
+    for (let j = 0;j < height; j++) {
       const temp = [];
-      for (let i = 0; i < width; i++) {
+      for (let i = 0;i < width; i++) {
         if (asIndex) {
           temp.push(points.findIndex((e) => Point2d.equals(e, { x: i, y: j })));
           continue;
@@ -627,25 +540,22 @@ class SnakeEvent {
   listeners;
   onAdd;
   onRemove;
-  constructor (listeners = [], onAdd, onRemove) {
+  constructor(listeners = [], onAdd, onRemove) {
     this.listeners = listeners;
     this.onAdd = onAdd;
     this.onRemove = onRemove;
   }
-
-  fire (args) {
+  fire(args) {
     this.listeners.forEach((f) => f(args));
   }
-
-  add (...funcs) {
+  add(...funcs) {
     for (const func of funcs) {
       this.listeners.push(func);
       if (this.onAdd)
         this.onAdd(func, this);
     }
   }
-
-  remove (func) {
+  remove(func) {
     const i = this.listeners.indexOf(func);
     if (i < 0)
       return false;
@@ -654,18 +564,16 @@ class SnakeEvent {
       this.onRemove(removed, this);
     return true;
   }
-
-  removeEvery (func) {
+  removeEvery(func) {
     let count = 0;
-    for (let i = this.listeners.indexOf(func); i >= 0; i = this.listeners.indexOf(func), count++) {
+    for (let i = this.listeners.indexOf(func);i >= 0; i = this.listeners.indexOf(func), count++) {
       const removed = this.listeners.splice(i, 1)[0];
       if (this.onRemove)
         this.onRemove(removed, this);
     }
     return count;
   }
-
-  clear () {
+  clear() {
     const cbs = this.listeners.splice(0);
     if (this.onRemove)
       cbs.forEach((e) => this.onRemove(e, this));
@@ -682,7 +590,7 @@ class InputAction {
   static left = new InputAction("left", Direction2d.left);
   static right = new InputAction("right", Direction2d.right);
   static actions = [this.up, this.down, this.left, this.right];
-  constructor (name, direction) {
+  constructor(name, direction) {
     this.name = name;
     this.direction = direction;
   }
@@ -697,7 +605,7 @@ class InputDisplay {
   onInputUp;
   onInputDown;
   onKeyStateChange;
-  constructor (inputHandler, up, down, left, right, onInputUp = this.defaultOnInputUp, onInputDown = this.defaultOnInputDown, onKeyStateChange = this.defaultOnKeyStateChange) {
+  constructor(inputHandler, up, down, left, right, onInputUp = this.defaultOnInputUp, onInputDown = this.defaultOnInputDown, onKeyStateChange = this.defaultOnKeyStateChange) {
     this.inputHandler = inputHandler;
     this.up = up;
     this.down = down;
@@ -712,12 +620,10 @@ class InputDisplay {
     const t = { up: false, down: false, left: false, right: false };
     this.onKeyStateChange({ priorState: t, state: t });
   }
-
-  static fromTouchInputHandler (inputHandler, onInputUp, onInputDown, onKeyStateChange) {
+  static fromTouchInputHandler(inputHandler, onInputUp, onInputDown, onKeyStateChange) {
     return new InputDisplay(inputHandler, inputHandler.inputElements.up, inputHandler.inputElements.down, inputHandler.inputElements.left, inputHandler.inputElements.right, onInputUp, onInputDown, onKeyStateChange);
   }
-
-  dispatchInputDown (args) {
+  dispatchInputDown(args) {
     switch (args.action) {
       case InputAction.up:
         this.onInputDown(args, this.up);
@@ -733,8 +639,7 @@ class InputDisplay {
         break;
     }
   }
-
-  dispatchInputUp (args) {
+  dispatchInputUp(args) {
     switch (args.action) {
       case InputAction.up:
         this.onInputUp(args, this.up, args.state.up);
@@ -750,28 +655,24 @@ class InputDisplay {
         break;
     }
   }
-
-  defaultOnInputDown (args, element, state = true) {
+  defaultOnInputDown(args, element, state = true) {
     element.style.backgroundColor = state ? "rgba(0, 255, 0, 1)" : "rgba(255, 0, 0, .5)";
     this.defaultBorder(args);
   }
-
-  defaultOnInputUp (args, element, state = false) {
+  defaultOnInputUp(args, element, state = false) {
     element.style.backgroundColor = state ? "rgba(255, 255, 0, .5)" : "";
     this.defaultBorder(args);
   }
-
-  defaultOnKeyStateChange (args) {
+  defaultOnKeyStateChange(args) {
     this.up.style.backgroundColor = args.state.up ? args.action === InputAction.up ? "rgba(0, 255, 0, 1)" : "rgba(255, 255, 0, .5)" : "";
     this.down.style.backgroundColor = args.state.down ? args.action === InputAction.down ? "rgba(0, 255, 0, 1)" : "rgba(255, 255, 0, .5)" : "";
     this.left.style.backgroundColor = args.state.left ? args.action === InputAction.left ? "rgba(0, 255, 0, 1)" : "rgba(255, 255, 0, .5)" : "";
     this.right.style.backgroundColor = args.state.right ? args.action === InputAction.right ? "rgba(0, 255, 0, 1)" : "rgba(255, 255, 0, .5)" : "";
     this.defaultBorder(args);
   }
-
   setBorderStyle = "4px solid rgba(0, 255, 0, 1)";
   borderStyle = "4px solid rgba(0,0,0,0)";
-  defaultBorder (args) {
+  defaultBorder(args) {
     this.up.style.border = args.state.up ? this.setBorderStyle : this.borderStyle;
     this.down.style.border = args.state.down ? this.setBorderStyle : this.borderStyle;
     this.left.style.border = args.state.left ? this.setBorderStyle : this.borderStyle;
@@ -780,28 +681,30 @@ class InputDisplay {
 }
 
 class InputHandler {
+  watchedElement;
   currentStateOnly = false;
-  keyStateChanged = new SnakeEvent();
-  inputDown = new SnakeEvent();
-  inputUp = new SnakeEvent();
-  constructor () {
+  keyStateChanged = new SnakeEvent;
+  inputDown = new SnakeEvent;
+  inputUp = new SnakeEvent;
+  watchGlobal = true;
+  constructor(watchedElement = undefined) {
+    this.watchedElement = watchedElement;
+    if (watchedElement && (!watchedElement.isContentEditable || typeof watchedElement.tabIndex !== "number" || watchedElement.tabIndex === -1))
+      watchedElement.tabIndex = 0;
     this.initDefaultInputs();
   }
-
-  setInputState (i, value = true) {
+  setInputState(i, value = true) {
     if (!this.currentStateOnly && !value)
       return;
     const prior = structuredClone(this._keyState);
     this._keyState[i.name] = value;
     this.keyStateChanged.fire({ action: i, state: structuredClone(this._keyState), priorState: prior });
   }
-
-  isKeyDown (action) {
+  isKeyDown(action) {
     return this._keyState[action.name];
   }
-
   wasKeyPressed = this.isKeyDown;
-  getKeysDown () {
+  getKeysDown() {
     const r = [];
     if (this._keyState.up)
       r.push(InputAction.up);
@@ -813,20 +716,17 @@ class InputHandler {
       r.push(InputAction.right);
     return r;
   }
-
   getKeysPressed = this.getKeysDown;
   _useDefaultInputSystem = true;
-  get useDefaultInputSystem () {
+  get useDefaultInputSystem() {
     return this._useDefaultInputSystem;
   }
-
-  set useDefaultInputSystem (v) {
+  set useDefaultInputSystem(v) {
     if (v === this._useDefaultInputSystem)
       return;
     this.toggleDefaultInputSystem();
   }
-
-  toggleDefaultInputSystem () {
+  toggleDefaultInputSystem() {
     this._useDefaultInputSystem = !this._useDefaultInputSystem;
     if (this._useDefaultInputSystem) {
       this.initDefaultInputs();
@@ -834,35 +734,34 @@ class InputHandler {
       this.clearDefaultInputs();
     }
   }
-
   static defaultBindings = {
     up: ["ArrowUp", "Up", "w", "W"],
     down: ["ArrowDown", "Down", "s", "S"],
     left: ["ArrowLeft", "Left", "a", "A"],
-    right: ["ArrowRight", "Right", "d", "D"],
+    right: ["ArrowRight", "Right", "d", "D"]
   };
-
   static _defaultBindingsReversed;
-  static get defaultBindingsReversed () {
+  static get defaultBindingsReversed() {
     if (this._defaultBindingsReversed)
       return this._defaultBindingsReversed;
-    this._defaultBindingsReversed = new Map();
+    this._defaultBindingsReversed = new Map;
     InputAction.actions.forEach((e) => this.defaultBindings[e.name].forEach((e1) => this._defaultBindingsReversed?.getOrInsert(e1, []).push(e)));
     return this._defaultBindingsReversed;
   }
-
   _keyState = {
     up: false,
     down: false,
     left: false,
-    right: false,
+    right: false
   };
-
-  get keyState () {
+  get keyState() {
     return this._keyState;
   }
-
-  onKeyShell (e, value) {
+  onKeyShell(e, value) {
+    if (e.target === this.watchedElement)
+      e.preventDefault();
+    else if (!this.watchGlobal)
+      return;
     const event = value ? this.inputDown : this.inputUp, prior = structuredClone(this._keyState), actions = InputHandler.defaultBindingsReversed.get(e.key);
     if (!this.currentStateOnly && !value) {
       const after2 = structuredClone(this._keyState);
@@ -887,26 +786,23 @@ class InputHandler {
     const after = structuredClone(this._keyState);
     event.fire({ action: a, state: after, priorState: prior });
   }
-
   onKeyDownCb = (e) => this.onKeyShell(e, true);
   onKeyUpCb = (e) => this.onKeyShell(e, false);
-  initDefaultInputs () {
-    document.addEventListener("keydown", this.onKeyDownCb);
-    document.addEventListener("keyup", this.onKeyUpCb);
+  initDefaultInputs() {
+    (this.watchedElement ?? document).addEventListener("keydown", this.onKeyDownCb);
+    (this.watchedElement ?? document).addEventListener("keyup", this.onKeyUpCb);
   }
-
-  clearDefaultInputs () {
-    document.removeEventListener("keydown", this.onKeyDownCb);
-    document.removeEventListener("keyup", this.onKeyUpCb);
+  clearDefaultInputs() {
+    (this.watchedElement ?? document).removeEventListener("keydown", this.onKeyDownCb);
+    (this.watchedElement ?? document).removeEventListener("keyup", this.onKeyUpCb);
   }
-
-  resetState () {
+  resetState() {
     const prior = structuredClone(this._keyState);
     this._keyState = {
       up: false,
       down: false,
       left: false,
-      right: false,
+      right: false
     };
     this.keyStateChanged.fire({ state: structuredClone(this._keyState), priorState: prior });
   }
@@ -914,24 +810,21 @@ class InputHandler {
 
 class TouchInputHandler extends InputHandler {
   inputElements;
-  constructor (inputElements) {
-    super();
+  constructor(inputElements, watchedElement) {
+    super(watchedElement);
     this.inputElements = inputElements;
     this.initDefaultTouchInputs();
   }
-
   _useDefaultTouchInputSystem = true;
-  get useDefaultTouchInputSystem () {
+  get useDefaultTouchInputSystem() {
     return this._useDefaultTouchInputSystem;
   }
-
-  set useDefaultTouchInputSystem (v) {
+  set useDefaultTouchInputSystem(v) {
     if (v === this._useDefaultTouchInputSystem)
       return;
     this.toggleDefaultTouchInputSystem();
   }
-
-  toggleDefaultTouchInputSystem () {
+  toggleDefaultTouchInputSystem() {
     this._useDefaultTouchInputSystem = !this._useDefaultTouchInputSystem;
     if (this._useDefaultTouchInputSystem) {
       this.initDefaultTouchInputs();
@@ -939,8 +832,7 @@ class TouchInputHandler extends InputHandler {
       this.clearDefaultTouchInputs();
     }
   }
-
-  initDefaultTouchInputs () {
+  initDefaultTouchInputs() {
     this.inputElements.up.addEventListener("mousedown", this.cbMatrix.up.pressed);
     this.inputElements.up.addEventListener("mouseup", this.cbMatrix.up.released);
     this.inputElements.down.addEventListener("mousedown", this.cbMatrix.down.pressed);
@@ -950,8 +842,7 @@ class TouchInputHandler extends InputHandler {
     this.inputElements.right.addEventListener("mousedown", this.cbMatrix.right.pressed);
     this.inputElements.right.addEventListener("mouseup", this.cbMatrix.right.released);
   }
-
-  clearDefaultTouchInputs () {
+  clearDefaultTouchInputs() {
     this.inputElements.up.removeEventListener("mousedown", this.cbMatrix.up.pressed);
     this.inputElements.up.removeEventListener("mouseup", this.cbMatrix.up.released);
     this.inputElements.down.removeEventListener("mousedown", this.cbMatrix.down.pressed);
@@ -961,48 +852,39 @@ class TouchInputHandler extends InputHandler {
     this.inputElements.right.removeEventListener("mousedown", this.cbMatrix.right.pressed);
     this.inputElements.right.removeEventListener("mouseup", this.cbMatrix.right.released);
   }
-
   cbMatrix = {
     up: {
       pressed: (_e) => this.setInputState(InputAction.up, true),
-      released: (_e) => this.setInputState(InputAction.up, false),
+      released: (_e) => this.setInputState(InputAction.up, false)
     },
     down: {
       pressed: (_e) => this.setInputState(InputAction.down, true),
-      released: (_e) => this.setInputState(InputAction.down, false),
+      released: (_e) => this.setInputState(InputAction.down, false)
     },
     left: {
       pressed: (_e) => this.setInputState(InputAction.left, true),
-      released: (_e) => this.setInputState(InputAction.left, false),
+      released: (_e) => this.setInputState(InputAction.left, false)
     },
     right: {
       pressed: (_e) => this.setInputState(InputAction.right, true),
-      released: (_e) => this.setInputState(InputAction.right, false),
-    },
+      released: (_e) => this.setInputState(InputAction.right, false)
+    }
   };
 }
 
 // HtmlTemplate.ts
-/**
- * 
- * @param {*} render 
- * @param {*} wrapper 
- * @returns {htmlTemplate}
- */
-function template (render, wrapper) {
-  return function (strings, ...args) {
+function template(render, wrapper) {
+  return function(strings, ...args) {
     const parts = [];
-    let string = strings[0] || "", part, 
-    /** @type {HTMLElement} */
-    root = null, node, nodes, walker, i, n, j, m, k = -1;
+    let string = strings[0] || "", part, root = null, node, nodes, walker, i, n, j, m, k = -1;
     args.unshift(strings);
-    for (i = 1, n = args.length; i < n; ++i) {
+    for (i = 1, n = args.length;i < n; ++i) {
       part = args[i];
       if (part instanceof Node) {
         parts[++k] = part;
         string += "<!--o:" + k + "-->";
       } else if (Array.isArray(part)) {
-        for (j = 0, m = part.length; j < m; ++j) {
+        for (j = 0, m = part.length;j < m; ++j) {
           node = part[j];
           if (node instanceof Node) {
             if (root === null) {
@@ -1031,25 +913,18 @@ function template (render, wrapper) {
           nodes[+node.nodeValue.slice(2)] = node;
         }
       }
-      for (i = 0, node = nodes[i]; i < k; node = nodes[++i]) {
+      for (i = 0, node = nodes[i];i < k; node = nodes[++i]) {
         node?.parentNode?.replaceChild(parts[i], node);
       }
     }
     return root.childNodes.length === 1 ? root.removeChild(root.firstChild) : root.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? ((node = wrapper()).appendChild(root), node) : root;
   };
 }
-/**
- * @callback htmlTemplate
- * @returns {HTMLElement}
- */
-/**
- * @returns {HTMLElement}
- */
-var html = template(function (string) {
+var html = template(function(string) {
   const template2 = document.createElement("template");
   template2.innerHTML = string.trim();
   return document.importNode(template2.content, true);
-}, function () {
+}, function() {
   return document.createElement("span");
 });
 
@@ -1064,7 +939,7 @@ class EngineConfig {
   startingLength;
   startingDirection;
   startingNodes;
-  constructor (gridWidth, gridHeight, pelletConfig, obstacleConfig, millisecondsPerUpdate, wallBehavior, startingLength, startingDirection, startingNodes) {
+  constructor(gridWidth, gridHeight, pelletConfig, obstacleConfig, millisecondsPerUpdate, wallBehavior, startingLength, startingDirection, startingNodes) {
     this.gridWidth = gridWidth;
     this.gridHeight = gridHeight;
     this.pelletConfig = pelletConfig;
@@ -1075,51 +950,42 @@ class EngineConfig {
     this.startingDirection = startingDirection;
     this.startingNodes = startingNodes;
   }
-
-  static fromObj (i) {
+  static fromObj(i) {
     return new EngineConfig(i.gridWidth, i.gridHeight, i.pelletConfig, i.obstacleConfig, i.millisecondsPerUpdate, i.wallBehavior, i.startingLength, i.startingDirection, i.startingNodes);
   }
-
-  static get defaults () {
+  static get defaults() {
     return {
-      gridWidth: 4,
-      gridHeight: 4,
+      gridWidth: 10,
+      gridHeight: 10,
       startingDirection: Direction2d.up,
       startingLength: 5,
-      wallBehavior: 1 /* wrap */,
+      wallBehavior: 0 /* endGame */,
       pelletConfig: { startingObjs: 1, maxObjs: 1 },
       obstacleConfig: { startingObjs: 0, maxObjs: 0 },
       millisecondsPerUpdate: 1000 * 0.45,
-      startingNodes: undefined,
+      startingNodes: undefined
     };
   }
-
   static defaultConfig = Object.freeze(this.defaults);
-  static isValidConfig (c) {
+  static isValidConfig(c) {
     return this.hasValidDimensions(c) && (c.startingLength || 0) > 2 && c.startingLength < NodeGeneration.MAX_GENERATED_LENGTH && this.hasValidObstacleConfig(c) && this.hasValidPelletConfig(c) && c.startingLength + c.pelletConfig.maxObjs + c.obstacleConfig.maxObjs <= c.gridWidth * c.gridHeight && c.millisecondsPerUpdate > 0 && (!c.startingNodes || c.startingNodes.length === c.startingLength && (!c.startingDirection || c.startingDirection === Direction2d.fromCardinalDisplacement(c.startingNodes[1], c.startingNodes[0])));
   }
-
-  static hasValidDimensions (c) {
+  static hasValidDimensions(c) {
     return Number.isSafeInteger(c.gridWidth) && Number.isSafeInteger(c.gridHeight) && c.gridWidth > 2 && c.gridHeight > 2;
   }
-
-  static hasValidIGridObjectConfig (c, minObjs, maxFreeSpaces) {
+  static hasValidIGridObjectConfig(c, minObjs, maxFreeSpaces) {
     return c.maxObjs >= minObjs && c.maxObjs >= (c.startingObjs instanceof Array ? c.startingObjs.length : c.startingObjs) && (c.startingObjs instanceof Array ? c.startingObjs.length : c.startingObjs) >= 0 && (!maxFreeSpaces || c.maxObjs < maxFreeSpaces);
   }
-
-  static hasValidPelletConfig (c) {
+  static hasValidPelletConfig(c) {
     return this.hasValidIGridObjectConfig(c.pelletConfig, 1, c.gridWidth * c.gridHeight - c.startingLength);
   }
-
-  static hasValidObstacleConfig (c) {
+  static hasValidObstacleConfig(c) {
     return this.hasValidIGridObjectConfig(c.obstacleConfig, 0, c.gridWidth * c.gridHeight - c.startingLength);
   }
-
-  static hasValidSnakeConfig (c) {
+  static hasValidSnakeConfig(c) {
     return (c.startingLength || 0) > 2 && c.startingLength < NodeGeneration.MAX_GENERATED_LENGTH;
   }
-
-  static inputType (element) {
+  static inputType(element) {
     if (element instanceof HTMLInputElement) {
       switch (element.type) {
         case "number":
@@ -1138,21 +1004,19 @@ class EngineConfig {
       return "string";
     return "undefined";
   }
-
-  static inputTypeSpecific (element) {
+  static inputTypeSpecific(element) {
     const v = this.inputType(element);
     if (v !== "enum")
       return v;
     return element.dataset["enum"];
   }
-
-  static fromFormAndData (form, data, defaults = this.defaultConfig) {
+  static fromFormAndData(form, data, defaults = this.defaultConfig) {
     const rv = {};
     data.forEach((value, key) => {
       let actingObj = rv, actingKey = key;
       if (key.includes(".")) {
         const keys = key.split(".");
-        for (let i = 0; i < keys.length - 1; actingObj = actingObj[keys[i++]]) {
+        for (let i = 0;i < keys.length - 1; actingObj = actingObj[keys[i++]]) {
           actingObj[keys[i]] ||= {};
         }
         actingKey = keys.at(-1);
@@ -1166,7 +1030,7 @@ class EngineConfig {
         case "enum":
           switch (this.inputTypeSpecific(element)) {
             case "WallBehavior":
-              parsedValue = value.toString().includes("wrap") || value.valueOf() == 1 /* wrap */.valueOf() ? 1 /* wrap */ : 0;
+              parsedValue = value.toString().includes("wrap") || value.valueOf() == 1 /* wrap */.valueOf() ? 1 /* wrap */ : 0 /* endGame */;
               break;
             case "string":
             default:
@@ -1183,24 +1047,21 @@ class EngineConfig {
     });
     return Object.assign({}, defaults, rv);
   }
-
-  static fromFormDataEvent (e, defaults = this.defaultConfig) {
+  static fromFormDataEvent(e, defaults = this.defaultConfig) {
     if (!(e.target instanceof HTMLFormElement)) {
       console.warn("`FormDataEvent.target` is not an instance of `HTMLFormElement`");
       return this.defaultConfig;
     }
     return this.fromFormAndData(e.target, e.formData, defaults);
   }
-
-  static fromSubmitEvent (e, defaults = this.defaultConfig) {
+  static fromSubmitEvent(e, defaults = this.defaultConfig) {
     if (!(e.target instanceof HTMLFormElement)) {
       console.warn("`FormDataEvent.target` is not an instance of `HTMLFormElement`");
       return this.defaultConfig;
     }
     return this.fromFormAndData(e.target, new FormData(e.target, e.submitter), defaults);
   }
-
-  static refreshOnResolution (obj, onParsed) {
+  static refreshOnResolution(obj, onParsed) {
     const cb = (v) => {
       obj.defaults = v;
       obj.promise = this.createPromise(obj.form, obj.defaults, cb, onParsed);
@@ -1208,8 +1069,7 @@ class EngineConfig {
     obj.promise = this.createPromise(obj.form, obj.defaults, cb, onParsed);
     return obj;
   }
-
-  static createPromise (form, defaults, preResolution, postResolution) {
+  static createPromise(form, defaults, preResolution, postResolution) {
     return new Promise((resolve, _reject) => {
       const listener = (e) => {
         e.preventDefault();
@@ -1223,8 +1083,7 @@ class EngineConfig {
       form.addEventListener("submit", listener);
     });
   }
-
-  static toUI (c, onParsed) {
+  static toUI(c, onParsed) {
     const elem = html`
     <form id="snake-settings" style="display: inline-flex; flex-direction: column;">
       <label>Starting Length: <input type=number value=${c.startingLength} name="startingLength" min=2 step=1 /></label>
@@ -1252,12 +1111,12 @@ class EngineConfig {
     return this.refreshOnResolution({ form: elem, defaults: c }, onParsed);
   }
 }
-function randomIndex (a) {
+function randomIndex(a) {
   return Math.floor(a.length * Math.random());
 }
 class NodeGeneration {
   static DEBUG_LEVEL = DebugLevel.INFO;
-  static findValidNeighborIndices (node, validNodes) {
+  static findValidNeighborIndices(node, validNodes) {
     return Direction2d.directions.reduce((accumulator, direction) => {
       const neighbor = Point2d.add(node, direction), t = validNodes.findIndex((e) => neighbor.equals(e));
       if (t !== -1)
@@ -1265,8 +1124,7 @@ class NodeGeneration {
       return accumulator;
     }, []);
   }
-
-  static generateFacingDirection (validNodes, desiredLength, direction) {
+  static generateFacingDirection(validNodes, desiredLength, direction) {
     const newDesiredLength = desiredLength;
     const starts = validNodes.reduce((acc, potentialHead, i) => {
       const secondNodeIndex = validNodes.findIndex((e) => Point2d.equals(Point2d.subtract(potentialHead, direction), e));
@@ -1274,7 +1132,7 @@ class NodeGeneration {
         const [i1, i2] = i < secondNodeIndex ? [i, secondNodeIndex] : [secondNodeIndex, i];
         acc.push({
           nodes: [Point2d.fromIPoint2d(potentialHead), Point2d.fromIPoint2d(validNodes[secondNodeIndex])],
-          validNodes: validNodes.slice(0, i1).concat(validNodes.slice(i1 + 1, i2), validNodes.slice(i2 + 1)),
+          validNodes: validNodes.slice(0, i1).concat(validNodes.slice(i1 + 1, i2), validNodes.slice(i2 + 1))
         });
       }
       return acc;
@@ -1288,26 +1146,22 @@ class NodeGeneration {
     } while (!rv.success && starts.length > 0);
     return rv;
   }
-
-  static generateFromValidNodes (desiredLength, validNodes, startingDirection) {
+  static generateFromValidNodes(desiredLength, validNodes, startingDirection) {
     if (startingDirection)
       return this.generateFacingDirection(validNodes, desiredLength, startingDirection);
     else
       return this.depthFirst([], validNodes, desiredLength);
   }
-
-  static generateFromPlayfield (desiredLength, playfield, claimedNodes, startingDirection) {
+  static generateFromPlayfield(desiredLength, playfield, claimedNodes, startingDirection) {
     this.depthFirst_playfield = playfield;
     const rv = this.generateFromValidNodes(desiredLength, this.getInitialValidNodes(playfield, claimedNodes), startingDirection);
     this.depthFirst_playfield = undefined;
     return rv;
   }
-
-  static generateFromSnakeConfig (config, playfield, claimedNodes) {
+  static generateFromSnakeConfig(config, playfield, claimedNodes) {
     return this.generateFromPlayfield(config.startingLength, playfield, claimedNodes, config.startingDirection);
   }
-
-  static generateFromEngineConfig (config) {
+  static generateFromEngineConfig(config) {
     const claimedNodes = [];
     if (typeof config.obstacleConfig.startingObjs === "object")
       claimedNodes.concat(config.obstacleConfig.startingObjs);
@@ -1315,14 +1169,13 @@ class NodeGeneration {
       claimedNodes.concat(config.pelletConfig.startingObjs);
     return this.generateFromSnakeConfig(config, RectInt2d.fromDimensionsAndMin(config.gridWidth, config.gridHeight), claimedNodes);
   }
-
   static MAX_GENERATED_LENGTH = 75;
   static depthFirst_iterations = 0;
   static depthFirst_maxLength = 0;
   static depthFirst_playfield;
   static depthFirst_iterationLimit = 1e5;
   static depthFirst_depth = 0;
-  static depthFirst (nodes, validNodes, desiredLength) {
+  static depthFirst(nodes, validNodes, desiredLength) {
     this.depthFirst_depth++;
     this.depthFirst_iterations++;
     this.DEBUG_LEVEL.do(LOG, (print) => {
@@ -1375,13 +1228,11 @@ class NodeGeneration {
       this.depthFirst_iterations = 0;
     return { success: false, nodes, validNodes };
   }
-
   static ALLOW_STARTING_NODES_ON_PERIMETER = true;
-  static isOnPerimeter (e, playfield) {
+  static isOnPerimeter(e, playfield) {
     return e.x > playfield.xMin && e.x < playfield.xMax - 1 && e.y > playfield.yMin && e.y < playfield.yMax - 1;
   }
-
-  static getInitialValidNodes (playfield, claimedNodes) {
+  static getInitialValidNodes(playfield, claimedNodes) {
     if (this.ALLOW_STARTING_NODES_ON_PERIMETER) {
       if (claimedNodes) {
         return playfield.generatePointsWhere((e) => !Point2d.included(e, claimedNodes));
@@ -1392,9 +1243,8 @@ class NodeGeneration {
       return playfield.generatePointsWhere(claimedNodes ? (e) => this.isOnPerimeter(e, playfield) && !Point2d.included(e, claimedNodes) : (e) => this.isOnPerimeter(e, playfield));
     }
   }
-
-  static removeSurplusNodes (nodes) {
-    for (let i = 1; i < nodes.length - 1; i++) {
+  static removeSurplusNodes(nodes) {
+    for (let i = 1;i < nodes.length - 1; i++) {
       if (nodes[i + 1].matchingAxes(nodes[i])[0] == nodes[i].matchingAxes(nodes[i - 1])[0]) {
         this.DEBUG_LEVEL.print(LOG, "Removing redundant segment");
         nodes.splice(i, 1);
@@ -1410,61 +1260,54 @@ class Snake {
   playfield;
   static DEBUG_LEVEL = DebugLevel.INFO;
   _snakeLength;
-  get snakeLength () {
+  get snakeLength() {
     return Snake.STORES_SEGMENTS_ONLY ? this._snakeLength : this._snakeNodes.length;
   }
-
-  constructor (config, startingNodes, playfield) {
+  constructor(config, startingNodes, playfield) {
     this.config = config;
     this.playfield = playfield;
     this._lastDirection = Direction2d.fromCardinalDisplacement(startingNodes[1], startingNodes[0]);
     this._snakeLength = this.config.startingLength;
     this._snakeNodes = startingNodes.slice();
   }
-
-  static fromPreferences (config, playfield, claimedNodes) {
+  static fromPreferences(config, playfield, claimedNodes) {
     if (config.startingNodes)
       return new Snake(config, config.startingNodes, playfield);
     if (!config.startingLength || config.startingLength > NodeGeneration.MAX_GENERATED_LENGTH || config.startingLength < 2)
       throw new Error("Invalid Config");
     let rv = { success: false, nodes: [], validNodes: [] };
-    for (let i = 0; !rv.success && i < 20; i++)
+    for (let i = 0;!rv.success && i < 20; i++)
       rv = NodeGeneration.generateFromSnakeConfig(config, playfield, claimedNodes);
     if (!rv.success)
       throw new Error(`Only Generated ${rv.nodes.length} of ${config.startingLength}`);
     return new Snake(config, Snake.STORES_SEGMENTS_ONLY ? NodeGeneration.removeSurplusNodes(rv.nodes) : rv.nodes, playfield);
   }
-
   _lastDirection;
-  get lastDirection () {
+  get lastDirection() {
     return this._lastDirection;
   }
-
   _snakeNodes = [];
-  get head () {
+  get head() {
     return this._snakeNodes[0];
   }
-
-  get tail () {
+  get tail() {
     return this._snakeNodes.at(-1);
   }
-
-  get snakeNodesDebug () {
+  get snakeNodesDebug() {
     return this._snakeNodes.slice();
   }
-
-  get filledNodes () {
+  get filledNodes() {
     if (!Snake.STORES_SEGMENTS_ONLY)
       return this._snakeNodes.slice();
     const rv = this.segmentPoints.reduce((acc, c) => {
       const p = acc.at(-1);
       if (p.equals(c))
         return acc;
-      const deltaAxis = p.x === c.x ? p.y === c.y ? undefined : 1 /* y */ : 0;
+      const deltaAxis = p.x === c.x ? p.y === c.y ? undefined : 1 /* y */ : 0 /* x */;
       if (deltaAxis === undefined)
         return acc;
       const [pDeltaAxis, cDeltaAxis] = [p.getAxis(deltaAxis), c.getAxis(deltaAxis)];
-      for (let i = pDeltaAxis; cDeltaAxis > pDeltaAxis ? ++i <= cDeltaAxis : --i >= cDeltaAxis;) {
+      for (let i = pDeltaAxis;cDeltaAxis > pDeltaAxis ? ++i <= cDeltaAxis : --i >= cDeltaAxis; ) {
         const newPoint = new Point2d(c.x, c.y);
         newPoint.setAxis(deltaAxis, i);
         if (!p.equals(newPoint))
@@ -1481,8 +1324,7 @@ class Snake {
     }
     return rv;
   }
-
-  get segmentPoints () {
+  get segmentPoints() {
     if (Snake.STORES_SEGMENTS_ONLY)
       return this._snakeNodes.slice();
     return this._snakeNodes.reduce((acc, e) => {
@@ -1493,8 +1335,7 @@ class Snake {
       return acc;
     }, []);
   }
-
-  get segments () {
+  get segments() {
     if (!Snake.STORES_SEGMENTS_ONLY) {
       return this._snakeNodes.reduce((acc, e) => {
         if (acc.length <= 0) {
@@ -1516,8 +1357,7 @@ class Snake {
     t.pop();
     return t;
   }
-
-  get headSegment () {
+  get headSegment() {
     if (this.segmentPoints.length < 2) {
       Snake.DEBUG_LEVEL.print(WARN, "Can't get head segment; less than 2 nodes.");
       Snake.DEBUG_LEVEL.print(DEBUG, "\tNodes: %o", this.segmentPoints);
@@ -1525,8 +1365,7 @@ class Snake {
     }
     return this.segmentPoints.slice(0, 2);
   }
-
-  get tailSegment () {
+  get tailSegment() {
     if (this.segmentPoints.length < 2) {
       Snake.DEBUG_LEVEL.print(WARN, "Can't get tail segment; less than 2 nodes.");
       Snake.DEBUG_LEVEL.print(DEBUG, "\tNodes: %o", this.segmentPoints);
@@ -1534,18 +1373,16 @@ class Snake {
     }
     return this.segmentPoints.slice(-2);
   }
-
-  get facingDirections () {
+  get facingDirections() {
     return this.segments.map((e, i) => Snake.directionFromPoints(e, `#${i}`, this.config, this.playfield));
   }
-
-  static isWrappedSegment (s, config) {
+  static isWrappedSegment(s, config) {
     if (config?.wallBehavior === 1 /* wrap */ && !Snake.STORES_SEGMENTS_ONLY && (s?.at(0) && s?.at(1) && !s[0].hasMagnitudeOf(1, s[1]))) {
       return true;
     }
+    return false;
   }
-
-  static directionFromPoints (s, label, config, playfield) {
+  static directionFromPoints(s, label, config, playfield) {
     if (this.isWrappedSegment(s, config)) {
       Snake.DEBUG_LEVEL.print(DebugLevel.INFO, "%o is Wrapped Segment", s);
       if (!playfield)
@@ -1561,17 +1398,13 @@ class Snake {
     }
     return d;
   }
-
-  get headDirection () {
+  get headDirection() {
     return Snake.directionFromPoints(this._snakeNodes.slice(0, 2), "Head", this.config, this.playfield);
   }
-
-  get tailDirection () {
+  get tailDirection() {
     return Snake.directionFromPoints(this.tailSegment, "Tail", this.config, this.playfield);
   }
-
-  cachedDirection;
-  advance (d, grow = false, playfield = this.playfield) {
+  advance(d, grow = false, playfield = this.playfield) {
     Snake.DEBUG_LEVEL.group(LOG, "Snake.advance(%o, %o, %o)", d, grow, playfield);
     Snake.DEBUG_LEVEL.print(LOG, "Initial nodes (%s): %o", this._snakeNodes.length, this._snakeNodes);
     const backedUpState = this._snakeNodes.slice();
@@ -1612,9 +1445,8 @@ New: %o`, oldTail, this.tail);
     Snake.DEBUG_LEVEL.groupEnd(LOG);
     return rv;
   }
-
   static STORES_SEGMENTS_ONLY = false;
-  updateHead (d, playfield, ignoreFirstSeg = false) {
+  updateHead(d, playfield, ignoreFirstSeg = false) {
     Snake.DEBUG_LEVEL.group(INFO, "Snake.updateHead(%o, %o, %o)", d, playfield, ignoreFirstSeg);
     const projectedPosition = Point2d.add(this.head, d);
     Snake.DEBUG_LEVEL.print(INFO, `Current Position: %o
@@ -1636,22 +1468,18 @@ Direction: %o`, this.head, projectedPosition, d);
           Snake.DEBUG_LEVEL.print(WARN, "Collided with wall");
         break;
     }
-    const checkSelfIntersection = Snake.STORES_SEGMENTS_ONLY
-      ? () => {
+    const checkSelfIntersection = Snake.STORES_SEGMENTS_ONLY ? () => {
+      return (!ignoreFirstSeg ? this.segments : this.segments.slice(1)).find((e) => projectedPosition.intersects(e[0], e[1]));
+    } : () => {
+      const i = projectedPosition.indexIn(this.filledNodes);
+      if (i >= 0) {
         return (!ignoreFirstSeg ? this.segments : this.segments.slice(1)).find((e) => projectedPosition.intersects(e[0], e[1]));
       }
-      : () => {
-        const i = projectedPosition.indexIn(this.filledNodes);
-        if (i >= 0) {
-          return (!ignoreFirstSeg ? this.segments : this.segments.slice(1)).find((e) => projectedPosition.intersects(e[0], e[1]));
-        }
-      };
-    const assignNewHead = Snake.STORES_SEGMENTS_ONLY
-      ? () => {
-        this.head.x = projectedPosition.x;
-        this.head.y = projectedPosition.y;
-      }
-      : () => this._snakeNodes.unshift(projectedPosition);
+    };
+    const assignNewHead = Snake.STORES_SEGMENTS_ONLY ? () => {
+      this.head.x = projectedPosition.x;
+      this.head.y = projectedPosition.y;
+    } : () => this._snakeNodes.unshift(projectedPosition);
     intersection ||= checkSelfIntersection();
     if (intersection) {
       Snake.DEBUG_LEVEL.print(WARN, "Collided on segment %o", intersection);
@@ -1661,8 +1489,7 @@ Direction: %o`, this.head, projectedPosition, d);
     assignNewHead();
     Snake.DEBUG_LEVEL.groupEnd(INFO);
   }
-
-  findProjectedHeadPosition (d, playfield) {
+  findProjectedHeadPosition(d, playfield) {
     let projectedPosition = Point2d.add(this.head, d);
     if (this.config.wallBehavior === 1 /* wrap */) {
       projectedPosition = (playfield || this.playfield).wrap(projectedPosition);
@@ -1675,21 +1502,18 @@ var Snake_default = Snake;
 // EngineDriver.ts
 class EngineDriver {
   engine;
-  get onManualUpdateMode () {
+  get onManualUpdateMode() {
     return SnakeEngine.debugLevel.eval(DebugLevel.DEBUG);
   }
-
   timerId;
   _isDriving = true;
-  get isDriving () {
+  get isDriving() {
     return this._isDriving;
   }
-
-  constructor (engine) {
+  constructor(engine) {
     this.engine = engine;
   }
-
-  startDriving () {
+  startDriving() {
     if (this.isDriving && this.timerId)
       return false;
     this._isDriving = true;
@@ -1699,14 +1523,12 @@ class EngineDriver {
       this.timerId = window.setInterval(() => this.engine.update(), this.engine.config.millisecondsPerUpdate);
     return true;
   }
-
-  playOnSpaceBar (e) {
+  playOnSpaceBar(e) {
     if (e.key === " ")
       this.engine.update();
   }
-
   bound_playOnSpaceBar = this.playOnSpaceBar.bind(this);
-  stopDriving (force = false) {
+  stopDriving(force = false) {
     if (!force && !this.timerId && document.onkeyup !== this.playOnSpaceBar && document.onkeyup !== this.bound_playOnSpaceBar)
       return false;
     if (!this.onManualUpdateMode) {
@@ -1721,7 +1543,7 @@ class EngineDriver {
 }
 
 // UiStat.ts
-function _shellMappedElements (gen, initial) {
+function _shellMappedElements(gen, initial) {
   return (v) => {
     const newEs = gen(v);
     for (const key in initial) {
@@ -1735,7 +1557,7 @@ function _shellMappedElements (gen, initial) {
     initial = newEs;
   };
 }
-function bindMappedElementsToEvent (event, generator, initialValue, generateInitialElements = true) {
+function bindMappedElementsToEvent(event, generator, initialValue, generateInitialElements = true) {
   const e = generateInitialElements ? generator(initialValue) : initialValue;
   event.add(_shellMappedElements(generator, e));
   return e;
@@ -1746,41 +1568,37 @@ class SnakeEngine {
   config;
   inputHandler;
   static debugLevel = DebugLevel.LOG;
-  onGameOver = new SnakeEvent();
-  onGameLost = new SnakeEvent();
-  onGameWon = new SnakeEvent();
-  onGamePaused = new SnakeEvent();
-  onGameResumed = new SnakeEvent();
-  onPelletEaten = new SnakeEvent();
-  onTickCompleted = new SnakeEvent();
-  onTickStarted = new SnakeEvent();
+  onGameOver = new SnakeEvent;
+  onGameLost = new SnakeEvent;
+  onGameWon = new SnakeEvent;
+  onGamePaused = new SnakeEvent;
+  onGameResumed = new SnakeEvent;
+  onPelletEaten = new SnakeEvent;
+  onTickCompleted = new SnakeEvent;
+  onTickStarted = new SnakeEvent;
   _isGameOver = false;
-  get isGameOver () {
+  get isGameOver() {
     return this._isGameOver;
   }
-
   _isGameWon = false;
-  get isGameWon () {
+  get isGameWon() {
     return this._isGameWon;
   }
-
   _pelletsEaten = 0;
   movesSinceLastPellet = 0;
   pellets = [];
-  get currPellets () {
+  get currPellets() {
     return [...this.pellets];
   }
-
   obstacles = [];
-  get currObstacles () {
+  get currObstacles() {
     return [...this.obstacles];
   }
-
-  getValidSpawnLocations () {
+  getValidSpawnLocations() {
     const ret = [];
     const nodes = this.snake.filledNodes;
-    for (let x = this.playfieldRect.xMin; x <= this.playfieldRect.xMax; x++) {
-      for (let y = this.playfieldRect.yMin; y <= this.playfieldRect.yMax; y++) {
+    for (let x = this.playfieldRect.xMin;x <= this.playfieldRect.xMax; x++) {
+      for (let y = this.playfieldRect.yMin;y <= this.playfieldRect.yMax; y++) {
         const p = new Point2d(x, y);
         if (!p.included(this.pellets) && !p.included(this.obstacles) && (!nodes?.length || !nodes.find((e) => p.equals(e))))
           ret.push(p);
@@ -1788,18 +1606,15 @@ class SnakeEngine {
     }
     return ret;
   }
-
   playfieldRect;
-  get currentDirection () {
+  get currentDirection() {
     return this.snake.headDirection;
   }
-
   _snake;
-  get snake () {
+  get snake() {
     return this._snake;
   }
-
-  constructor (config = EngineConfig.defaultConfig, inputHandler = new InputHandler()) {
+  constructor(config = EngineConfig.defaultConfig, inputHandler = new InputHandler) {
     this.config = config;
     this.inputHandler = inputHandler;
     this.playfieldRect = RectInt2d.fromDimensionsAndMin(config.gridWidth, config.gridHeight);
@@ -1807,13 +1622,12 @@ class SnakeEngine {
 Playfield: %o`, config, this.playfieldRect);
     this.initGame();
   }
-
-  initPointObjectArray (config, objArray, validPoints, clearArray = true) {
+  initPointObjectArray(config, objArray, validPoints, clearArray = true) {
     if (clearArray)
       objArray.splice(0);
     if (typeof config.startingObjs === "number") {
       const max = Math.min(validPoints.length, config.startingObjs);
-      for (let i = 0; i < max; i++) {
+      for (let i = 0;i < max; i++) {
         const index = Math.floor(Math.random() * validPoints.length);
         objArray.push(validPoints[index]);
         validPoints.splice(index, 1);
@@ -1833,8 +1647,7 @@ Playfield: %o`, config, this.playfieldRect);
         return acc;
       }, []));
   }
-
-  initGame () {
+  initGame() {
     this._snake = Snake_default.fromPreferences(this.config, this.playfieldRect);
     this._isGameOver = this._isGameWon = false;
     this._tickCount = this._pelletsEaten = 0;
@@ -1845,33 +1658,28 @@ Playfield: %o`, config, this.playfieldRect);
     this.initPointObjectArray(this.config.pelletConfig, this.pellets, t);
     this.initPointObjectArray(this.config.obstacleConfig, this.obstacles, t);
   }
-
-  get isGamePaused () {
+  get isGamePaused() {
     return !this.engineDriver.isDriving;
   }
-
   engineDriver = new EngineDriver(this);
-  startGame () {
+  startGame() {
     this.resumeGame();
   }
-
-  resumeGame () {
+  resumeGame() {
     if (!this.engineDriver.startDriving())
       return;
     this.lastUpdateTimestamp = performance.now();
     SnakeEngine.debugLevel.print(DebugLevel.LOG, "Unpaused at %s", this.lastUpdateTimestamp);
     this.onGameResumed.fire({ engine: this });
   }
-
-  pauseGame () {
+  pauseGame() {
     if (!this.engineDriver.stopDriving())
       return;
     this.inGameTime += this.updateLastTimestamp();
     SnakeEngine.debugLevel.print(DebugLevel.LOG, "Paused at %s", this.lastUpdateTimestamp);
     this.onGamePaused.fire({ engine: this });
   }
-
-  transferToNewInstance (other) {
+  transferToNewInstance(other) {
     other.onGameLost.add(...this.onGameLost.clear());
     other.onGameOver.add(...this.onGameOver.clear());
     other.onGamePaused.add(...this.onGamePaused.clear());
@@ -1881,8 +1689,7 @@ Playfield: %o`, config, this.playfieldRect);
     other.onTickCompleted.add(...this.onTickCompleted.clear());
     other.onTickStarted.add(...this.onTickStarted.clear());
   }
-
-  endGame (reason) {
+  endGame(reason) {
     this.engineDriver.stopDriving();
     this._isGameOver = true;
     if (!reason)
@@ -1898,28 +1705,25 @@ Playfield: %o`, config, this.playfieldRect);
       default:
         args = {
           ...args,
-          collision: reason,
+          collision: reason
         };
         this.onGameLost.fire(args);
         break;
     }
     this.onGameOver.fire(args);
   }
-
   _tickCount = 0;
   penultimateUpdateTimestamp = -1;
   lastUpdateTimestamp = -1;
   firstUpdateTimestamp = -1;
   inGameTime = 0;
-  get currentOverallTime () {
+  get currentOverallTime() {
     return performance.now() - this.firstUpdateTimestamp;
   }
-
-  updateLastTimestamp (timestamp = performance.now()) {
+  updateLastTimestamp(timestamp = performance.now()) {
     return -this.lastUpdateTimestamp + (this.lastUpdateTimestamp = timestamp);
   }
-
-  update () {
+  update() {
     if (this.lastUpdateTimestamp < 0) {
       if (this.firstUpdateTimestamp < 0) {
         this.firstUpdateTimestamp = this.lastUpdateTimestamp = performance.now();
@@ -1941,8 +1745,7 @@ Playfield: %o`, config, this.playfieldRect);
     this.advance(d);
     this.onTickCompleted.fire({ ...args, timeOverall: this.currentOverallTime });
   }
-
-  advance (d = this.currentDirection) {
+  advance(d = this.currentDirection) {
     const projectedPosition = this.snake.findProjectedHeadPosition(d, this.playfieldRect);
     const eatenIndex = this.pellets.findIndex((e) => e.equals(projectedPosition));
     const intersection = this.obstacles.find((e) => e.equals(projectedPosition)) ?? this.snake.advance(d, eatenIndex > -1);
@@ -1954,7 +1757,7 @@ Playfield: %o`, config, this.playfieldRect);
         pelletCoordinates: this.pellets.splice(eatenIndex, 1)[0],
         snakeLength: this.snake.snakeLength,
         totalEaten: ++this._pelletsEaten,
-        movesSinceLast: this.movesSinceLastPellet,
+        movesSinceLast: this.movesSinceLastPellet
       };
       this.movesSinceLastPellet = 0;
       const emptySpaces = this.getValidSpawnLocations();
@@ -1972,13 +1775,12 @@ Playfield: %o`, config, this.playfieldRect);
       this.movesSinceLastPellet++;
     }
   }
-
-  renderStats () {
+  renderStats() {
     const initTickArgs = { engine: this, tickCount: this._tickCount, inGameTime: this.inGameTime, timeOverall: this.currentOverallTime };
     const elements = bindMappedElementsToEvent(this.onTickCompleted, (e) => ({
       tickCount: html`<p>Turns Completed: ${e.tickCount}</b></p>`,
       inGameTime: html`<p>In Game Time: ${e.inGameTime}</b></p>`,
-      timeOverall: html`<p>Overall Time: ${e.timeOverall}</b></p>`,
+      timeOverall: html`<p>Overall Time: ${e.timeOverall}</b></p>`
     }), initTickArgs);
     return html`
     <p id="engine-stats">
@@ -1995,23 +1797,21 @@ class SnakeImage {
   identifier;
   url;
   sourceRect;
-  static imgMap = new Map();
+  static imgMap = new Map;
   _isLoaded = false;
-  get isLoaded () {
+  get isLoaded() {
     return this._isLoaded;
   }
-
   _promise;
-  get promise () {
+  get promise() {
     return this._promise;
   }
-
   image;
-  constructor (identifier, url, sourceRect) {
+  constructor(identifier, url, sourceRect) {
     this.identifier = identifier;
     this.url = url;
     this.sourceRect = sourceRect;
-    this.image = new Image();
+    this.image = new Image;
     this._promise = new Promise((resolve, _reject) => {
       this.image.addEventListener("load", (e) => {
         this.onLoad(e);
@@ -2021,45 +1821,36 @@ class SnakeImage {
     });
     SnakeImage.imgMap.set(this.identifier, this);
   }
-
-  static loadWithRect (identifier, url, sourceRect) {
+  static loadWithRect(identifier, url, sourceRect) {
     return new SnakeImage(identifier, url, sourceRect).promise;
   }
-
-  static loadWithDimensions (identifier, url, sourceDimensions) {
+  static loadWithDimensions(identifier, url, sourceDimensions) {
     return new SnakeImage(identifier, url, sourceDimensions ? RectInt2d.fromDimensionsAndMin(sourceDimensions.x, sourceDimensions.y) : undefined).promise;
   }
-
-  static loadImage (identifier, url, sourceRect) {
+  static loadImage(identifier, url, sourceRect) {
     if (sourceRect instanceof RectInt2d)
       return this.loadWithRect(identifier, url, sourceRect);
     return this.loadWithDimensions(identifier, url, sourceRect);
   }
-
-  static loadImageParams ({ identifier, url, sourceRect }) {
+  static loadImageParams({ identifier, url, sourceRect }) {
     return this.loadImage(identifier, url, sourceRect);
   }
-
-  static loadImages (...images) {
+  static loadImages(...images) {
     return Promise.all(images.map((e) => this.loadImageParams(e)));
   }
-
-  onLoad (_e) {
+  onLoad(_e) {
     this._isLoaded = true;
   }
-
-  static getImage (identifier) {
+  static getImage(identifier) {
     return this.imgMap.get(identifier);
   }
-
-  static tryDrawImage (ctx, identifier, x, y, dimensions) {
+  static tryDrawImage(ctx, identifier, x, y, dimensions) {
     const i = this.imgMap.get(identifier);
     if (i)
       return i.tryDrawImage(ctx, x, y, dimensions);
     return false;
   }
-
-  tryDrawImage (ctx, x, y, dimensions) {
+  tryDrawImage(ctx, x, y, dimensions) {
     if (!this.isLoaded)
       return false;
     if (this.sourceRect) {
@@ -2079,10 +1870,9 @@ class SnakeRenderer {
   config;
   renderConfig;
   static DEBUG_LEVEL = DebugLevel.INFO;
-  get _dbgLvl () {
+  get _dbgLvl() {
     return SnakeRenderer.DEBUG_LEVEL;
   }
-
   static defaultConfig = {
     assets: [
       { identifier: "head", url: "assets/head.svg" },
@@ -2091,37 +1881,31 @@ class SnakeRenderer {
       { identifier: "bgTile", url: "assets/bgTile.png" },
       { identifier: "corner", url: "assets/bgCornerTopLeft.png" },
       { identifier: "border", url: "assets/bgBorderLeft.png" },
-      { identifier: "background", url: "assets/scale.svg" },
+      { identifier: "background", url: "assets/scale.svg" }
     ],
     rotateBorders: true,
-    makeOverlay: false,
+    makeOverlay: false
   };
-
   engine;
   wrapper;
-  get canvas () {
+  get canvas() {
     return this.ctx.canvas;
   }
-
-  get outputSquareWidth () {
+  get outputSquareWidth() {
     return this.canvas.width <= this.canvas.height ? this.canvas.width : this.canvas.height;
   }
-
-  get renderedCellWidth () {
+  get renderedCellWidth() {
     return Math.floor(this.outputSquareWidth / this.engine.playfieldRect.width);
   }
-
-  get playfieldRenderedWidth () {
+  get playfieldRenderedWidth() {
     return this.renderedCellWidth * this.engine.playfieldRect.width;
   }
-
-  get renderedCellRect () {
+  get renderedCellRect() {
     return RectInt2d.fromDimensionsAndMin(this.playfieldRenderedWidth, this.playfieldRenderedWidth);
   }
-
   assetPromise;
   inputDisplayManager;
-  constructor (ctx, config = EngineConfig.defaultConfig, renderConfig = SnakeRenderer.defaultConfig) {
+  constructor(ctx, config = EngineConfig.defaultConfig, renderConfig = SnakeRenderer.defaultConfig) {
     this.ctx = ctx;
     this.config = config;
     this.renderConfig = renderConfig;
@@ -2131,8 +1915,8 @@ class SnakeRenderer {
         up: touchControls.querySelector("#up"),
         down: touchControls.querySelector("#down"),
         left: touchControls.querySelector("#left"),
-        right: touchControls.querySelector("#right"),
-      });
+        right: touchControls.querySelector("#right")
+      }, ctx.canvas);
       this.engine = new SnakeEngine(config, inputHandler);
       this.inputDisplayManager = InputDisplay.fromTouchInputHandler(inputHandler);
       const t = DebugLevel.stringify;
@@ -2145,9 +1929,8 @@ class SnakeRenderer {
     this.wrapper = new CtxWrapper(this.ctx);
     this.assetPromise = renderConfig.assets ? SnakeImage.loadImages(...renderConfig.assets) : undefined;
   }
-
   _wasInitialized = false;
-  async initGame () {
+  async initGame() {
     await this.assetPromise;
     if (this._wasInitialized)
       this.engine.initGame();
@@ -2155,7 +1938,7 @@ class SnakeRenderer {
     this.engine.onGameLost.add((_e) => this.endGame(false));
     this.engine.onGameWon.add((_e) => this.endGame(true));
     this.engine.onGamePaused.add((_e) => this.renderPausedOverlay());
-    document.addEventListener("keypress", (e) => {
+    document.addEventListener("keydown", (e) => {
       if (e.key === "p") {
         if (this.engine.isGamePaused) {
           this.engine.resumeGame();
@@ -2166,21 +1949,17 @@ class SnakeRenderer {
     });
     this._wasInitialized = true;
   }
-
-  startGame () {
+  startGame() {
     this.engine.startGame();
     this.draw({ engine: this.engine });
   }
-
-  endGame (won) {
+  endGame(won) {
     alert(`Game over: ${won ? "You Won!" : "Sorry, you lost!"}`);
   }
-
-  renderPausedOverlay () {
+  renderPausedOverlay() {
     this.wrapper.fillSquareFull(0, 0, this.outputSquareWidth, { lineWidth: 2, fillStyle: "rgba(0, 0, 0, .5)" });
   }
-
-  getTileType (x, y) {
+  getTileType(x, y) {
     const width = this.engine.playfieldRect.width;
     const height = this.engine.playfieldRect.height;
     const isTopEdge = y === 0;
@@ -2195,8 +1974,7 @@ class SnakeRenderer {
       return "tile";
     }
   }
-
-  getRotationAngle (x, y, tileType) {
+  getRotationAngle(x, y, tileType) {
     const width = this.engine.playfieldRect.width;
     const height = this.engine.playfieldRect.height;
     if (tileType === "corner") {
@@ -2220,8 +1998,7 @@ class SnakeRenderer {
     }
     return 0;
   }
-
-  drawRotatedTile (identifier, x, y, angle) {
+  drawRotatedTile(identifier, x, y, angle) {
     this.ctx.save();
     this.ctx.translate(x + this.renderedCellWidth / 2, y + this.renderedCellWidth / 2);
     this.ctx.rotate(angle * Math.PI / 180);
@@ -2229,8 +2006,7 @@ class SnakeRenderer {
     this.ctx.restore();
     return imageDrawn;
   }
-
-  getSnakeHeadRotationAngle () {
+  getSnakeHeadRotationAngle() {
     const direction = this.engine.currentDirection;
     if (direction === Direction2d.left)
       return 0;
@@ -2242,8 +2018,7 @@ class SnakeRenderer {
       return 270;
     return 0;
   }
-
-  get bgFillColor () {
+  get bgFillColor() {
     if (this.engine.isGameOver) {
       if (this.engine.isGameWon) {
         return "rgba(0, 255, 0, .5)";
@@ -2252,8 +2027,7 @@ class SnakeRenderer {
     }
     return "rgb(50, 88, 146)";
   }
-
-  draw (args) {
+  draw(args) {
     this.wrapper.fillSquareFull(0, 0, this.outputSquareWidth, { lineWidth: 2, fillStyle: this.bgFillColor });
     const backgroundImg = SnakeImage.getImage("background");
     if (backgroundImg && backgroundImg.isLoaded) {
@@ -2269,8 +2043,8 @@ class SnakeRenderer {
     const snakeSegmentPoints = args.engine.snake.segmentPoints;
     SnakeRenderer.DEBUG_LEVEL.print(DebugLevel.LOG, "Drawn nodes (%s): %o", snakeSquares.length, snakeSquares);
     this.wrapper.autoSave = this.wrapper.autoRestore = true;
-    for (let i = 0, offsetWidth = 0; i < this.engine.playfieldRect.width; i++, offsetWidth = i * this.renderedCellWidth) {
-      for (let j = 0, offsetHeight = 0; j < this.engine.playfieldRect.height; j++, offsetHeight = j * this.renderedCellWidth) {
+    for (let i = 0, offsetWidth = 0;i < this.engine.playfieldRect.width; i++, offsetWidth = i * this.renderedCellWidth) {
+      for (let j = 0, offsetHeight = 0;j < this.engine.playfieldRect.height; j++, offsetHeight = j * this.renderedCellWidth) {
         let backgroundDrawn = false;
         if (this.renderConfig.rotateBorders) {
           const tileType = this.getTileType(i, j);
@@ -2317,15 +2091,14 @@ class SnakeRenderer {
       this.wrapper.strokeSquareFull(0, 0, this.outputSquareWidth, { lineWidth: 2, strokeStyle: "black" });
     this.wrapper.autoSave = this.wrapper.autoRestore = false;
   }
-
-  drawGrid () {
+  drawGrid() {
     this.wrapper.autoSave = true;
     this.wrapper.autoRestore = false;
     this.wrapper.strokeSquareFull(0, 0, this.outputSquareWidth, { lineWidth: 2, strokeStyle: "black" });
     this.wrapper.autoSave = false;
     this.wrapper.autoRestore = false;
-    for (let i = 0; i < this.engine.playfieldRect.width; i++) {
-      for (let j = 0; j < this.engine.playfieldRect.height; j++) {
+    for (let i = 0;i < this.engine.playfieldRect.width; i++) {
+      for (let j = 0;j < this.engine.playfieldRect.height; j++) {
         this.wrapper.strokeSquareFull(i * this.renderedCellWidth, j * this.renderedCellWidth, this.renderedCellWidth);
       }
     }
@@ -2339,7 +2112,7 @@ class CtxWrapper {
   saveStack;
   static autoSave = false;
   static autoRestore = false;
-  static prepRect (ctx, x, y, width, height, { strokeStyle, fillStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
+  static prepRect(ctx, x, y, width, height, { strokeStyle, fillStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
     if (wrapperSettings.autoSave ?? this.autoSave)
       ctx.save();
     if (strokeStyle)
@@ -2355,98 +2128,82 @@ class CtxWrapper {
     height -= ctx.lineWidth;
     return { x, y, width, height, w: width, h: height };
   }
-
-  static prepSquare (ctx, x, y, width, options, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
+  static prepSquare(ctx, x, y, width, options, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
     return this.prepRect(ctx, x, y, width, width, options, wrapperSettings);
   }
-
-  static strokeRectFull (ctx, x, y, width, height, { strokeStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
+  static strokeRectFull(ctx, x, y, width, height, { strokeStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
     const p = this.prepRect(ctx, x, y, width, height, { strokeStyle, lineWidth }, wrapperSettings);
     ctx.strokeRect(p.x, p.y, p.width, p.height);
     if (wrapperSettings.autoRestore ?? this.autoRestore)
       ctx.restore();
   }
-
-  static strokeSquareFull (ctx, x, y, width, { strokeStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
+  static strokeSquareFull(ctx, x, y, width, { strokeStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
     const p = this.prepRect(ctx, x, y, width, width, { strokeStyle, lineWidth }, wrapperSettings);
     ctx.strokeRect(p.x, p.y, p.width, p.height);
     if (wrapperSettings.autoRestore ?? this.autoRestore)
       ctx.restore();
   }
-
-  static fillRectFull (ctx, x, y, width, height, { fillStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
+  static fillRectFull(ctx, x, y, width, height, { fillStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
     const p = this.prepRect(ctx, x, y, width, height, { fillStyle, lineWidth }, wrapperSettings);
     ctx.fillRect(p.x, p.y, p.width, p.height);
     if (wrapperSettings.autoRestore ?? this.autoRestore)
       ctx.restore();
   }
-
-  static fillSquareFull (ctx, x, y, width, { fillStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
+  static fillSquareFull(ctx, x, y, width, { fillStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
     const p = this.prepRect(ctx, x, y, width, width, { fillStyle, lineWidth }, wrapperSettings);
     ctx.fillRect(p.x, p.y, p.width, p.height);
     if (wrapperSettings.autoRestore ?? this.autoRestore)
       ctx.restore();
   }
-
-  static clearRectFull (ctx, x, y, width, height, { strokeStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
+  static clearRectFull(ctx, x, y, width, height, { strokeStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
     const p = this.prepRect(ctx, x, y, width, height, { strokeStyle, lineWidth }, wrapperSettings);
     ctx.clearRect(p.x, p.y, p.width, p.height);
     if (wrapperSettings.autoRestore ?? this.autoRestore)
       ctx.restore();
   }
-
-  static clearSquareFull (ctx, x, y, width, { strokeStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
+  static clearSquareFull(ctx, x, y, width, { strokeStyle, lineWidth }, wrapperSettings = { autoRestore: this.autoRestore, autoSave: this.autoSave }) {
     const p = this.prepRect(ctx, x, y, width, width, { strokeStyle, lineWidth }, wrapperSettings);
     ctx.clearRect(p.x, p.y, p.width, p.height);
     if (wrapperSettings.autoRestore ?? this.autoRestore)
       ctx.restore();
   }
-
-  onSave () {
+  onSave() {
     if (this.autoSave)
       this.saveStack++;
   }
-
-  onRestore () {
+  onRestore() {
     if (this.autoRestore)
       this.saveStack--;
   }
-
-  save () {
+  save() {
     this.ctx.save();
     this.onSave();
   }
-
-  restore () {
+  restore() {
     this.ctx.restore();
     this.onRestore();
   }
-
-  constructor (ctx, autoRestore = true, autoSave = true, saveStack = 0) {
+  constructor(ctx, autoRestore = true, autoSave = true, saveStack = 0) {
     this.ctx = ctx;
     this.autoRestore = autoRestore;
     this.autoSave = autoSave;
     this.saveStack = saveStack;
   }
-
-  prepRect (x, y, width, height, options = {}) {
+  prepRect(x, y, width, height, options = {}) {
     this.onSave();
     return CtxWrapper.prepRect(this.ctx, x, y, width, height, options, this);
   }
-
-  strokeRectFull (x, y, width, height, options = {}) {
+  strokeRectFull(x, y, width, height, options = {}) {
     this.onSave();
     CtxWrapper.strokeRectFull(this.ctx, x, y, width, height, options, this);
     this.onRestore();
   }
-
-  strokeSquareFull (x, y, width, options = {}) {
+  strokeSquareFull(x, y, width, options = {}) {
     this.onSave();
     CtxWrapper.strokeSquareFull(this.ctx, x, y, width, options, this);
     this.onRestore();
   }
-
-  fillSquareFull (x, y, width, options = {}) {
+  fillSquareFull(x, y, width, options = {}) {
     this.onSave();
     CtxWrapper.fillSquareFull(this.ctx, x, y, width, options, this);
     this.onRestore();
@@ -2476,12 +2233,15 @@ function initialize(cfg) {
   canvas.insertAdjacentElement("afterend", lastEngineStats);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   r.initGame().then(() => {
-    document.onkeyup = (e) => {
+    const _t = (e) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+        return;
       if (e.key === " ") {
         r.startGame();
-        document.onkeyup = null;
+        document.removeEventListener("keyup", _t);
       }
     };
+    document.addEventListener("keyup", _t);
     r.draw({ engine: r.engine });
   }).catch((error) => {
     console.error("Failed to load game assets:", error);
@@ -2489,7 +2249,6 @@ function initialize(cfg) {
 }
 canvas.parentElement.appendChild(state.form);
 initialize(state.defaults); */
-
 
 export {
   DebugLevel,
