@@ -1250,6 +1250,7 @@ class TagQueryTest < ActiveSupport::TestCase
           assert_equal(@val_u, TagQuery.new("-flaggedby:#{@u_name}")[:flagger_must_not])
           assert_equal(@val_u, TagQuery.new("~flaggedby:#{@u_name}")[:flagger_should])
           assert_equal([404], TagQuery.new("flaggedby:!404")[:flagger])
+          # Failure case
           assert_equal([-1], TagQuery.new("flaggedby:missing_user")[:flagger])
         end
 
