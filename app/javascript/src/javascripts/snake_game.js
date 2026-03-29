@@ -745,7 +745,7 @@ class InputHandler {
     if (this._defaultBindingsReversed)
       return this._defaultBindingsReversed;
     this._defaultBindingsReversed = new Map;
-    InputAction.actions.forEach((e) => this.defaultBindings[e.name].forEach((e1) => this._defaultBindingsReversed?.getOrInsert(e1, []).push(e)));
+    InputAction.actions.forEach((e) => this.defaultBindings[e.name].forEach((e1) => (this._defaultBindingsReversed?.get(e1) ?? this._defaultBindingsReversed?.set(e1, [])?.get(e1))?.push(e)));
     return this._defaultBindingsReversed;
   }
   _keyState = {
