@@ -37,6 +37,7 @@ function rootInit () {
       & * {
         box-sizing: border-box;
         text-align: center;
+        cursor: pointer;
       }
     }
     #up {
