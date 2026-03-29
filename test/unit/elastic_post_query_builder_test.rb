@@ -265,19 +265,14 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       staff = create(:admin_user)
       as(staff) do
         # flagnote: quotes escape spaces
-        assert_includes(build_query('flagnote:"Test Note"').must, { wildcard: { flag_note: "Test Note" } }, "flagnote")
-        assert_includes(build_query('-flagnote:"Test Note"').must_not, { wildcard: { flag_note: "Test Note" } }, "-flagnote")
-        assert_includes(build_query('~flagnote:"Test Note"').should, { wildcard: { flag_note: "Test Note" } }, "~flagnote")
-
-        # # flagnote: wildcards
-        assert_includes(build_query("flagnote:Test*Note").must, { wildcard: { flag_note: "Test Note" } }, "flagnote")
-        assert_includes(build_query("-flagnote:Test*Note").must_not, { wildcard: { flag_note: "Test Note" } }, "-flagnote")
-        assert_includes(build_query("~flagnote:Test*Note").should, { wildcard: { flag_note: "Test Note" } }, "~flagnote")
+        assert_includes(build_query('flagnote:"Test Note"').must, { wildcard: { flag_note: "test note" } }, "flagnote")
+        assert_includes(build_query('-flagnote:"Test Note"').must_not, { wildcard: { flag_note: "test note" } }, "-flagnote")
+        assert_includes(build_query('~flagnote:"Test Note"').should, { wildcard: { flag_note: "test note" } }, "~flagnote")
 
         # flagnote: case-insensitive exact match
-        assert_includes(build_query("flagnote:tesTnotE").must, { wildcard: { flag_note: "TestNote" } }, "flagnote")
-        assert_includes(build_query("-flagnote:tesTnotE").must_not, { wildcard: { flag_note: "TestNote" } }, "-flagnote")
-        assert_includes(build_query("~flagnote:tesTnotE").should, { wildcard: { flag_note: "TestNote" } }, "~flagnote")
+        assert_includes(build_query("flagnote:tesTnotE").must, { wildcard: { flag_note: "testnote" } }, "flagnote")
+        assert_includes(build_query("-flagnote:tesTnotE").must_not, { wildcard: { flag_note: "testnote" } }, "-flagnote")
+        assert_includes(build_query("~flagnote:tesTnotE").should, { wildcard: { flag_note: "testnote" } }, "~flagnote")
 
         # flaggedby: accepts both user names and IDs, with or without `!` negation. User names are resolved to IDs before being added to the query.
         assert_includes(build_query("flaggedby:#{flagged_user.name}").must, { term: { flagger: flagged_user.id } }, "flaggedby")

@@ -222,11 +222,11 @@ module PostIndex
             notes:                    notes[p.id]          || empty,
             deleter:                  deleter_ids[p.id]    || empty,
             del_reason:               del_reasons[p.id]    || empty,
-            deleted_at:               del_dates[p.id]      || empty,
+            deleted_at:               del_dates[p.id],
             flagger:                  flagger_ids[p.id]    || empty,
             flag_reason:              flag_reasons[p.id]   || empty,
             flag_note:                flag_notes[p.id]     || empty,
-            flagged_at:               flag_dates[p.id]     || empty,
+            flagged_at:               flag_dates[p.id],
             has_pending_replacements: pending_replacements[p.id],
             artverified:              p.tag_array.any? { |tag| verified_artists.key?(tag) && verified_artists[tag] == p.uploader_id },
           }
@@ -317,8 +317,8 @@ module PostIndex
       # TODO: fix this, they don't work as expected. In general, posts that have PostFlags do appear first, but being resolved doesn't seem to work.
       # Might just be my index out of date?
       # Looks like nil is being treated as 0.. we need to exclude it.
-      flagged_at:               options[:flagged_at]  || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).limit(1).pick(:created_at),
-      deleted_at:               options[:deleted_at]  || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).limit(1).pick(:created_at),
+      flagged_at:               options.key?(:flagged_at) ? options[:flagged_at] : ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).limit(1).pick(:created_at),
+      deleted_at:               options.key?(:deleted_at) ? options[:deleted_at] : ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).limit(1).pick(:created_at),
     }
   end
 end
