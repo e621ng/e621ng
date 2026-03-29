@@ -35,7 +35,6 @@ class SessionLoader
       raise AuthenticationFailure.new(ban_message)
     end
     update_user_login_tracking
-    set_time_zone
     set_safe_mode
     refresh_old_remember_token
     refresh_unread_dmails
@@ -155,11 +154,6 @@ class SessionLoader
     end
 
     CurrentUser.api_key&.update_usage!(@request.remote_ip, @request.user_agent)
-  end
-
-  def set_time_zone
-    time_zone = ActiveSupport::TimeZone[params[:time_zone].presence.to_s] || CurrentUser.user.time_zone
-    Time.zone = time_zone
   end
 
   def set_safe_mode
