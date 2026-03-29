@@ -1,7 +1,7 @@
 body:has(> #snake-pane),
 html:has(> body > #snake-pane) {
   overflow-x: hidden;
-  --pane-padding: 2.5rem;
+  --pane-padding: 3rem;
   --pane-tab-size: 3rem;
   --pane-anim-time: 1s;
   --pane-anim-function: ease-in-out;
@@ -11,14 +11,17 @@ html:has(> body > #snake-pane) {
 #snake-pane {
   position: absolute;
   top: 0;
-  width: 100vw;
+  width: calc(100vw - 1rem);
   z-index: 500;
   box-sizing: border-box;
   padding: var(--pane-padding);
+  margin: 0.5rem;
 
-  background-color: var(--color-foreground);
+  background-color: var(--color-section); // background-color: var(--color-foreground);
   border: 1px solid var(--color-foreground);
-  border-radius: var(--pane-padding);
+  border-radius: 0.25rem;
+
+  box-shadow: 0 0 0.5rem -0.25rem var(--color-background);
 
   transition: all var(--pane-anim-time) var(--pane-anim-function);
   left: 100vw;
@@ -38,8 +41,12 @@ html:has(> body > #snake-pane) {
 
   &:not([set-offscreen=false])>#snake-tab {
     animation: bouncing 3s ease-in-out 3s infinite alternate;
+
     @keyframes bouncing {
-      0%, 50%, 100% {
+
+      0%,
+      50%,
+      100% {
         translate: 0;
       }
 
