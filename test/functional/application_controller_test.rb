@@ -23,13 +23,13 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
     context "on a PaginationError" do
       should "return 410 Gone even with a bad file extension" do
-        get posts_path, params: { page: 999999999 }, as: :json
+        get posts_path, params: { page: 999_999_999 }, as: :json
         assert_response 410
 
-        get posts_path, params: { page: 999999999 }, as: :jpg
+        get posts_path, params: { page: 999_999_999 }, as: :jpg
         assert_response 410
 
-        get posts_path, params: { page: 999999999 }, as: :blah
+        get posts_path, params: { page: 999_999_999 }, as: :blah
         assert_response 410
       end
     end
