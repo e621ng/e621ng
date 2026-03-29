@@ -5,7 +5,11 @@ if [ -n "${REMOTE_CONTAINERS:-}" ] || [ -n "${DEVCONTAINER:-}" ] || [ -n "${CODE
   if [ "$#" -eq 1 ]; then # for tests/rubocop, there are no extra args
     exec "$@"
   else
+    service="$1"
     shift
+    if [ "$service" = "tests" ]; then
+      export RAILS_ENV=test
+    fi
     exec "$@"
   fi
 else # outside the devcontainer

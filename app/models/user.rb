@@ -91,6 +91,7 @@ class User < ApplicationRecord
   validate :validate_email_address_allowed, on: %i[create update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   normalizes :profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") }
+  validates :name, presence: true
   validates :name, user_name: true, on: :create
   validates :default_image_size, inclusion: { in: %w[large fit fitv original] }
   validates :per_page, inclusion: { in: 1..320 }
@@ -164,6 +165,11 @@ class User < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
+      # TODO: find_by_name overrides the Rails dynamic finder of the same name (User has a name column).
+      # find_by_name_or_id mimics the Rails dynamic finder naming convention but is purely custom.
+      # name_to_id, name_or_id_to_id, name_or_id_to_id_forced, and id_to_name are also custom with
+      # no Rails equivalent. All predate modern Rails conventions and add caching and custom ID syntax
+      # (e.g. !<id>). Do not rename or remove without understanding the callers first.
       def name_to_id(name)
         normalized_name = normalize_name(name)
         Cache.fetch("uni:#{normalized_name}", expires_in: 4.hours) do
