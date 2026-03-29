@@ -2071,8 +2071,8 @@ class PostTest < ActiveSupport::TestCase
         ordered = [@post4, @post6] # Posts that should be ordered by flag creation time
         assert_tag_match(ordered + untouched, "status:any order:flagged")
         assert_tag_match(ordered + untouched, "status:any order:flagged_desc")
-        assert_tag_match((ordered + untouched).reverse, "status:any -order:flagged")
-        assert_tag_match((ordered + untouched).reverse, "status:any order:flagged_asc")
+        assert_tag_match(ordered.reverse + untouched.reverse, "status:any -order:flagged")
+        assert_tag_match(ordered.reverse + untouched.reverse, "status:any order:flagged_asc")
       end
 
       should "order by deletion" do
@@ -2080,8 +2080,8 @@ class PostTest < ActiveSupport::TestCase
         ordered = [@post4, @post3] # Posts that should be ordered by deletion time
         assert_tag_match(ordered + untouched, "status:any order:deleted")
         assert_tag_match(ordered + untouched, "status:any order:deleted_desc")
-        assert_tag_match((ordered + untouched).reverse, "status:any -order:deleted")
-        assert_tag_match((ordered + untouched).reverse, "status:any order:deleted_asc")
+        assert_tag_match(ordered.reverse + untouched.reverse, "status:any -order:deleted")
+        assert_tag_match(ordered.reverse + untouched.reverse, "status:any order:deleted_asc")
       end
     end
 
