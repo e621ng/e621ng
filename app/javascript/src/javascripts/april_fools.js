@@ -2,7 +2,17 @@ import { EngineConfig, SnakeRenderer, html } from "./snake_game";
 import LStorage from "./utility/storage";
 
 function rootInit () {
+  if (!/^\/?$/.test(window.location.pathname)) {
+    if (localStorage.getItem("e6.latestTheme") !== "snake") {
+      if (/^\/static\/theme\/?$/.test(window.location.pathname)) {
+        localStorage.setItem("e6.latestTheme", "snake");
+      } else {
+        document.querySelector("#nav-themes").className += " notification";
+      }
+    }
+  }
   if (!LStorage.Site.Events) {
+    // Does force people who actually did manually select the new embellishment out of it, but whatever, they're no fun anyways.
     if (LStorage.Theme.Extra === "scales" && document.body.getAttribute("data-th-extra") === "scales") {
       document.body.setAttribute("data-th-extra", "hexagon");
     }

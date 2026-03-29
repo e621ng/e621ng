@@ -245,7 +245,7 @@ body[data-th-stickyheader="true"] nav.navigation {
 
 
 // Forum notification
-nav.navigation .nav-primary li.notification {
+li.notification {
   position: relative;
 
   &::after {
