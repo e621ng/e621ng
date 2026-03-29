@@ -9,7 +9,11 @@ class SessionLoader
     @request = request
     @session = request.session
     @cookies = request.cookie_jar
-    @params = request.parameters
+    @params = begin
+      request.parameters
+    rescue ActionDispatch::Http::Parameters::ParseError
+      {}
+    end
     @remember_validator = ActiveSupport::MessageVerifier.new(Danbooru.config.remember_key, serializer: JSON, digest: "SHA256")
   end
 
