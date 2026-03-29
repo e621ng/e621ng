@@ -1,5 +1,6 @@
 :root {
   --pane-padding: 2.5rem;
+  --pane-tab-size: 3rem;
   --pane-bg-color: rgb(0, 64, 16);
   --pane-anim-time: 1s;
   --pane-anim-function: ease-in-out;
@@ -26,14 +27,14 @@ html:has(> body > #snake-pane) {
   left: 100vw;
 
   &>#snake-tab {
-    position: relative;
-    width: 3rem;
-    height: 3rem;
+    position: absolute;
+    width: var(--pane-tab-size);
+    height: var(--pane-tab-size);
     background-image: url("/images/snake/head.svg");
     background-size: cover;
 
     transition: all var(--pane-anim-time) var(--pane-anim-function);
-    left: calc(-3rem - var(--pane-padding));
+    left: calc(-1 * var(--pane-tab-size));
     rotate: 0deg;
   }
 
@@ -54,7 +55,7 @@ html:has(> body > #snake-pane) {
     left: 0;
 
     &>#snake-tab {
-      left: calc(var(--pane-padding) * -1);
+      left: 0rem;
       rotate: 180deg;
     }
   }
