@@ -13,6 +13,23 @@ require "webmock/minitest"
 
 require_relative "test_helpers/source_test_helper"
 
+# shoulda-context 2.0.0 patches Rails::TestUnitReporter#format_rerun_snippet
+# using `executable`, but Rails 8.1 exposes this as `self.class.executable`.
+if defined?(Rails::TestUnitReporter)
+  Rails::TestUnitReporter.class_eval do
+    def format_rerun_snippet(result)
+      location, line =
+        if result.respond_to?(:source_location)
+          result.source_location
+        else
+          result.method(result.name).source_location
+        end
+
+      "#{self.class.executable} #{relative_path_for(location)}:#{line}"
+    end
+  end
+end
+
 require "sidekiq/testing"
 Sidekiq::Testing.fake!
 # https://github.com/sidekiq/sidekiq/issues/5907#issuecomment-1536457365

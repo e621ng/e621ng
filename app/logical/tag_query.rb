@@ -138,7 +138,7 @@ class TagQuery
   # NOTE: The first element (`id`) is the only one whose value is equivalent to the `_asc`-suffixed variant.
   ORDER_INVERTIBLE_ROOTS = %w[
     id score md5 favcount note mpixels filesize tagcount change duration
-    created updated comment comment_bumped aspect_ratio
+    created updated comment comment_bumped aspect_ratio deleted flagged
   ].concat(COUNT_METATAGS, CATEGORY_METATAG_MAP.keys).freeze
 
   # All possible valid values for `order` metatags; used for autocomplete.
