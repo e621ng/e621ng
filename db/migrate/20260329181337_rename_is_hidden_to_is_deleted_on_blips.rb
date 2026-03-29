@@ -19,9 +19,9 @@ class RenameIsHiddenToIsDeletedOnBlips < ActiveRecord::Migration[8.0]
     end
 
     ModAction.without_timeout do
-      execute("UPDATE mod_actions SET action = 'blip_delete' WHERE action = 'blip_destroy'")
       execute("UPDATE mod_actions SET action = 'blip_hide' WHERE action = 'blip_delete'")
       execute("UPDATE mod_actions SET action = 'blip_unhide' WHERE action = 'blip_undelete'")
+      execute("UPDATE mod_actions SET action = 'blip_delete' WHERE action = 'blip_destroy'")
     end
   end
 end
