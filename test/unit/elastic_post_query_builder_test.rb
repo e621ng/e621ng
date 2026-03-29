@@ -49,6 +49,12 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       "comm_bumped" => [[{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }], [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }]],
       "comm_bumped_desc" => [[{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }], [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }]],
       "comm_bumped_asc" => [[{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }], [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }]],
+      # "deleted"
+      # "deleted_desc"
+      # "deleted_asc"
+      # "flagged"
+      # "flagged_desc"
+      # "flagged_asc"
       "note" => [[{ noted_at: { order: :desc, missing: :_last } }], [{ noted_at: { order: :asc, missing: :_first } }]],
       "note_desc" => [[{ noted_at: { order: :desc, missing: :_last } }], [{ noted_at: { order: :asc, missing: :_first } }]],
       "note_asc" => [[{ noted_at: { order: :asc, missing: :_first } }], [{ noted_at: { order: :desc, missing: :_last } }]],

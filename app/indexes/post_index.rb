@@ -18,6 +18,8 @@ module PostIndex
           commented_at: { type: "date" },
           comment_bumped_at: { type: "date" },
           noted_at: { type: "date" },
+          flagged_at: { type: "date" },
+          deleted_at: { type: "date" },
           id: { type: "integer" },
           up_score: { type: "integer" },
           down_score: { type: "integer" },
@@ -304,6 +306,9 @@ module PostIndex
       has_children:             has_children,
       has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
       artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
+      # use SQL to get most recent flag id for a given post, which will make it in order without needing the date
+      flagged_at:               ::PostFlag.where(post_id: id, is_resolved: false).order(id: :desc).limit(1).pick(:created_at),
+      deleted_at:               ::PostFlag.where(post_id: id, is_resolved: true).order(id: :desc).limit(1).pick(:created_at),
     }
   end
 end
