@@ -381,7 +381,6 @@ Rails.application.routes.draw do
       post :delete
       post :undelete
       post :warning
-      delete :destroy
     end
   end
   resources :post_report_reasons
