@@ -1141,7 +1141,7 @@ class NodeGeneration {
     do {
       const args = starts.splice(randomIndex(starts), 1)[0];
       rv = this.depthFirst(args.nodes, args.validNodes, newDesiredLength);
-      if (!best || rv.success || rv.nodes.length > rv.nodes.length)
+      if (!best || rv.success || rv.nodes.length > best.nodes.length)
         best = rv;
     } while (!rv.success && starts.length > 0);
     return rv;
