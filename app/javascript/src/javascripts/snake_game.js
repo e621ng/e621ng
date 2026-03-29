@@ -1884,7 +1884,8 @@ class SnakeRenderer {
       { identifier: "background", url: "assets/scale.svg" }
     ],
     rotateBorders: true,
-    makeOverlay: false
+    makeOverlay: false,
+    makePauseOverlay: true
   };
   engine;
   wrapper;
@@ -1937,7 +1938,11 @@ class SnakeRenderer {
     this.engine.onTickCompleted.add((e) => this.draw(e));
     this.engine.onGameLost.add((_e) => this.endGame(false));
     this.engine.onGameWon.add((_e) => this.endGame(true));
-    this.engine.onGamePaused.add((_e) => this.renderPausedOverlay());
+    this.engine.onGamePaused.add((_e) => {
+      if (this.renderConfig.makePauseOverlay)
+        this.renderPausedOverlay();
+    });
+    this.engine.onGameResumed.add((_e) => this.draw(_e));
     document.addEventListener("keydown", (e) => {
       if (e.key === "p") {
         if (this.engine.isGamePaused) {

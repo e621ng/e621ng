@@ -82,7 +82,8 @@ function rootInit () {
     ${playButton}
   </span>
   `;
-  // Update overlay on canvas change
+
+  // #region Update overlay on canvas change
   (new ResizeObserver((entries, _observer) => {
     const width = canvas.clientWidth || (entries && entries[0] && ((entries[0].borderBoxSize && entries[0].borderBoxSize[0]?.inlineSize) || entries[0].contentRect?.width)) || undefined;
     const height = canvas.clientHeight || (entries && entries[0] && ((entries[0].borderBoxSize && entries[0].borderBoxSize[0]?.blockSize) || entries[0].contentRect?.height)) || undefined;
@@ -111,6 +112,8 @@ function rootInit () {
   document.body.appendChild(container);
   overlay.style.top = `${canvas.offsetTop}px`;
   overlay.style.left = `${canvas.offsetLeft}px`;
+  // #endregion Update overlay on canvas change
+
   playButton.addEventListener("click", () => canvas.focus());
   /** @type {HTMLElement} **/ let lastEngineStats;
   function initialize (cfg) {
@@ -131,6 +134,7 @@ function rootInit () {
         ],
         rotateBorders: true,
         makeOverlay: false,
+        makePauseOverlay: false,
       },
     );
     const toggleOverlay = () => {
@@ -145,10 +149,12 @@ function rootInit () {
           state.form.requestSubmit();
           playButton.innerText = "▶";
         };
-      };
+      },
+      triggerPause = () => r.engine.pauseGame();
     r.engine.onGameOver.add(toggleOverlay, changeToReplayButton);
     r.engine.onGamePaused.add(toggleOverlay);
     r.engine.onGameResumed.add(toggleOverlay);
+    canvas.addEventListener("blur", triggerPause);
 
     lastEngineStats = r.engine.renderStats();
     canvas.insertAdjacentElement("afterend", lastEngineStats);
@@ -158,18 +164,11 @@ function rootInit () {
         r.startGame();
         playButton.onclick = playClicked;
       };
-      // document.onkeyup = (e) => {
-      //   if (e.key === " ") {
-      //     r.startGame();
-      //     document.onkeyup = null;
-      //   }
-      // };
       r.draw({ engine: r.engine });
     }).catch((error) => {
       console.error("Failed to load game assets:", error);
     });
   }
-  // canvas.parentElement.appendChild(state.form);
   initialize(state.defaults);
 }
 
