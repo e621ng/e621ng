@@ -3,8 +3,17 @@ import LStorage from "./utility/storage";
 
 function rootInit () {
   if (!LStorage.Site.Events) {
+    if (LStorage.Theme.Extra === "scales" && document.body.getAttribute("data-th-extra") === "scales") {
+      document.body.setAttribute("data-th-extra", "hexagon");
+    }
     return;
   }
+  // if (!/^\/$|^$/.test(window.location.pathname)) {
+  //   document.querySelector("#nav-themes").appendChild(html`
+  //     <div></div>
+  //     `);
+  //   // TODO: New theme indicator
+  // }
   const touchControls = html`
   <div id="touch-container">
     <span id="up">▲</span>
