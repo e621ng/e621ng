@@ -23,14 +23,21 @@ module Middleware
           env["rack.input"] = StringIO.new(sanitized_body)
           env["CONTENT_LENGTH"] = sanitized_body.bytesize.to_s
         end
-      elsif content_type.include?("application/json")
+      elsif content_type.include?("application/json") && env["rack.input"]
         body = env["rack.input"].read
         env["rack.input"] = StringIO.new(body)
         if body.present?
           begin
             JSON.parse(body)
           rescue JSON::ParserError
-            return [400, { "Content-Type" => "application/json" }, [{ success: false, reason: "Invalid JSON body" }.to_json]]
+            headers = {
+              "Content-Type" => "application/json",
+              "Access-Control-Allow-Origin" => "*",
+              "Access-Control-Allow-Headers" => "Authorization, User-Agent",
+              "Access-Control-Allow-Methods" => "POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS",
+            }
+            body = { success: false, message: "Invalid JSON body", code: nil }.to_json
+            return [400, headers, [body]]
           end
         end
       end
