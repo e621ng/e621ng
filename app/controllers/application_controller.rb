@@ -8,6 +8,7 @@ class ApplicationController < ActionController::Base
   before_action :reset_current_user
   before_action :sanitize_params
   before_action :set_current_user
+  around_action :set_time_zone
   before_action :normalize_search
   before_action :api_check
   before_action :enable_cors
@@ -189,6 +190,12 @@ class ApplicationController < ActionController::Base
   def set_current_user
     SessionLoader.new(request).load
     session.send(:load!) unless session.send(:loaded?)
+  end
+
+  def set_time_zone(&block)
+    time_zone = ActiveSupport::TimeZone[params[:time_zone].presence.to_s] ||
+                ActiveSupport::TimeZone[CurrentUser.user.time_zone]
+    Time.use_zone(time_zone || "UTC", &block)
   end
 
   def reset_current_user
