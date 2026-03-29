@@ -161,6 +161,18 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    context "with a malformed JSON body" do
+      should "return 400 Bad Request" do
+        post posts_path, headers: { "Content-Type" => "application/json" }, params: "{ invalid json :"
+        assert_response 400
+      end
+
+      should "accept a valid JSON body" do
+        post posts_path, headers: { "Content-Type" => "application/json" }, params: { tags: "fluffy" }.to_json
+        assert_response :not_found
+      end
+    end
+
     context "parameter sanitization" do
       should "remove null bytes from string parameters" do
         get posts_path, params: { tags: "test\u0000malicious" }
