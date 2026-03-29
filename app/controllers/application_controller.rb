@@ -92,7 +92,7 @@ class ApplicationController < ActionController::Base
       render_expected_error(429, "Throttled: Too many requests")
     when ActiveRecord::QueryCanceled
       render_error_page(500, exception, message: "The database timed out running your query.")
-    when ActionController::BadRequest, PostVersion::UndoError
+    when ActionDispatch::Http::Parameters::ParseError, ActionController::BadRequest, PostVersion::UndoError
       render_error_page(400, exception)
     when SessionLoader::AuthenticationFailure
       session.delete(:user_id)
