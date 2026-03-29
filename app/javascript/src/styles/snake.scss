@@ -1,14 +1,12 @@
-:root {
+body:has(> #snake-pane),
+html:has(> body > #snake-pane) {
+  overflow-x: hidden;
   --pane-padding: 2.5rem;
   --pane-tab-size: 3rem;
   --pane-bg-color: rgb(0, 64, 16);
   --pane-anim-time: 1s;
   --pane-anim-function: ease-in-out;
-}
-
-body:has(> #snake-pane),
-html:has(> body > #snake-pane) {
-  overflow-x: hidden;
+  --mobile-nav-height: 3.75rem;
 }
 
 #snake-pane {
@@ -28,6 +26,7 @@ html:has(> body > #snake-pane) {
 
   &>#snake-tab {
     position: absolute;
+    top: var(--mobile-nav-height);
     width: var(--pane-tab-size);
     height: var(--pane-tab-size);
     background-image: url("/images/snake/head.svg");
