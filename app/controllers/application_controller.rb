@@ -192,10 +192,10 @@ class ApplicationController < ActionController::Base
     session.send(:load!) unless session.send(:loaded?)
   end
 
-  def set_time_zone(&block)
+  def set_time_zone(&)
     time_zone = ActiveSupport::TimeZone[params[:time_zone].presence.to_s] ||
                 ActiveSupport::TimeZone[CurrentUser.user.time_zone]
-    Time.use_zone(time_zone || "UTC", &block)
+    Time.use_zone(time_zone || "UTC", &)
   end
 
   def reset_current_user
