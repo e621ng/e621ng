@@ -71,8 +71,8 @@ class StatsUpdater
     ### Blips ###
 
     stats[:total_blips] = Blip.maximum("id") || 0
-    stats[:active_blips] = Blip.where(is_hidden: false).count
-    stats[:hidden_blips] = Blip.where(is_hidden: true).count
+    stats[:active_blips] = Blip.where(is_deleted: false).count
+    stats[:hidden_blips] = Blip.where(is_deleted: true).count
     stats[:deleted_blips] = stats[:total_blips] - (stats[:active_blips] + stats[:hidden_blips])
     stats[:average_blips_per_day] = daily_average.call(stats[:total_blips])
 
