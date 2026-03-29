@@ -1894,21 +1894,21 @@ class PostTest < ActiveSupport::TestCase
       setup do
         @flagger = create(:user)
         @post1 = create(:post)
-        @post2 = create(:post)
+        @post2 = create(:post, parent_id: @post1.id) # post1 is the parent of post2
         @post3 = create(:post) # normal post with no flags
         as(@flagger) do
-          create(:post_flag, post: @post1, reason: "This post was previously deleted", note: "Post #12345 was deleted. This post is the same as it")
-          create(:post_flag, post: @post2, reason: "This post is an inferior version of post #1234", note: "This post is an inferior version of post #1234")
+          create(:post_flag, post: @post1, reason_name: "trace", note: "Post #12345 was deleted. This post is the same as it. It was a trace.")
+          create(:post_flag, post: @post2, parent_id: @post1.id, reason_name: "inferior", note: "This post is an inferior version of post #1234")
         end
         @staff_user = create(:mod_user)
         @nonstaff_user = create(:user)
       end
 
       should "flagreason:<text>" do
-        assert_tag_match([@post1], 'flagreason:"previously deleted"') # TODO: fix - works in dev
-        assert_tag_match([@post1], "flagreason:*previous*") # TODO: fix - works in dev
+        assert_tag_match([@post1], 'flagreason:"Trace of *"')
+        assert_tag_match([@post2], "flagreason:*inferior*")
         assert_tag_match([], "flagreason:*guidelines*")
-        assert_tag_match([@post2, @post1], "flagreason:*This*post*")
+        assert_tag_match([@post2, @post1], "flagreason:*er*")
       end
 
       context "flagnote:<text>" do
@@ -1916,7 +1916,7 @@ class PostTest < ActiveSupport::TestCase
           as(@staff_user) do
             assert_tag_match([@post1], "flagnote:*12345*")
             assert_tag_match([], "flagnote:*guidelines*")
-            assert_tag_match([@post2, @post1], "flagreason:*This*post*")
+            assert_tag_match([@post2, @post1], "flagnote:*This*post*")
           end
         end
 
