@@ -68,6 +68,12 @@ function rootInit () {
       height: 3rem;
       font-size: x-large;
     }
+
+    #snake-settings {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+    }
   </style>`);
   const canvas = document.createElement("canvas");
   canvas.id = "snake-game";
