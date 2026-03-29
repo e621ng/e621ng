@@ -15,10 +15,10 @@ class Blip < ApplicationRecord
     ModAction.log(:blip_update, { blip_id: rec.id, user_id: rec.creator_id })
   end
   after_destroy do |rec|
-    ModAction.log(:blip_delete, { blip_id: rec.id, user_id: rec.creator_id })
+    ModAction.log(:blip_destroy, { blip_id: rec.id, user_id: rec.creator_id })
   end
   after_save(if: ->(rec) { rec.saved_change_to_is_deleted? && CurrentUser.id != rec.creator_id }) do |rec|
-    action = rec.is_deleted ? :blip_hide : :blip_unhide
+    action = rec.is_deleted ? :blip_delete : :blip_undelete
     ModAction.log(action, { blip_id: rec.id, user_id: rec.creator_id })
   end
 
