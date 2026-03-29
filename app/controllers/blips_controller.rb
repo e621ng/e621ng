@@ -19,7 +19,7 @@ class BlipsController < ApplicationController
     @blip = Blip.find(params[:id])
     check_visible(@blip)
     @parent = @blip.response_to
-    @children = Blip.visible.where('response_to = ?', @blip.id).paginate(params[:page])
+    @children = Blip.visible.where("response_to = ?", @blip.id).paginate(params[:page])
     respond_with(@blip)
   end
 
@@ -33,7 +33,7 @@ class BlipsController < ApplicationController
     @blip = Blip.find(params[:id])
     check_edit_privilege(@blip)
     @blip.update(blip_params(:update))
-    flash[:notice] = 'Blip updated'
+    flash[:notice] = "Blip updated"
     respond_with(@blip)
   end
 
@@ -78,7 +78,7 @@ class BlipsController < ApplicationController
 
   def warning
     @blip = Blip.find(params[:id])
-    if params[:record_type] == 'unmark'
+    if params[:record_type] == "unmark"
       @blip.remove_user_warning!
     else
       @blip.user_warned!(params[:record_type], CurrentUser.user)

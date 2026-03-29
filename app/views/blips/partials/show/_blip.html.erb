@@ -10,7 +10,7 @@
         <h4 class="author-name"><%= link_to_user blip.creator %></h4>
         <%= blip.creator.level_string %>
         <% if blip.is_deleted? %>
-          (hidden)
+          (deleted)
         <% end %>
       </div>
       <div class="avatar">
