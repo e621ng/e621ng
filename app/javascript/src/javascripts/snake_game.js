@@ -1780,12 +1780,14 @@ Playfield: %o`, config, this.playfieldRect);
     const initTickArgs = { engine: this, tickCount: this._tickCount, inGameTime: this.inGameTime, timeOverall: this.currentOverallTime };
     const elements = bindMappedElementsToEvent(this.onTickCompleted, (e) => ({
       tickCount: html`<span><span>Turns</span><b>${e.tickCount}</b></span>`,
+      snakeLength: html`<span><span>Score</span><b>${e.engine.snake.snakeLength - e.engine.config.startingLength}</b></span>`,
       // inGameTime: html`<span><span>In Game Time</span><b>${e.inGameTime}</b></span>`,
       // timeOverall: html`<span><span>Overall Time</span><b>${e.timeOverall}</b></span>`
     }), initTickArgs);
     return html`
     <div id="engine-stats">
       ${elements.tickCount || ""}
+      ${elements.snakeLength || ""}
       ${elements.inGameTime || ""}
       ${elements.timeOverall || ""}
     </div>

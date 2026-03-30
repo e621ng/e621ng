@@ -43,6 +43,7 @@ function rootInit () {
       display: flex;
       flex-flow: column;
       justify-content: center;
+      align-items: center;
       gap: 0.5rem;
     }
     #snake-header {
@@ -87,6 +88,7 @@ function rootInit () {
       align-items: stretch;
       justify-items: stretch;
       gap: 0.25rem;
+      width: 300px;
 
       & * {
         box-sizing: border-box;
@@ -141,6 +143,9 @@ function rootInit () {
 
     #engine-stats {
       line-height: 1rem;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 0.5rem;
     }
     #engine-stats > span {
       font-family: monospace;
@@ -149,7 +154,8 @@ function rootInit () {
       gap: 1rem;
     }
     #engine-stats > span b {
-      width: 5ch;
+      width: 3ch;
+      text-align: right;
     }
   </style>`);
   const canvas = document.createElement("canvas");
