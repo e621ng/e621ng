@@ -2,6 +2,7 @@
   background-image: themed("image-foreground");
   background-position: themed("image-foreground-position");
   background-repeat: themed("image-foreground-repeat");
+  background-size: themed("image-foreground-size");
 
   h3 {
     display: flex;
@@ -57,7 +58,8 @@
   }
 }
 
-body.c-search-trends.a-index {
+body.c-search-trends.a-index,
+body.c-search-trend-hourlies.a-index {
   .search-trend-container {
     display: flex;
     flex-flow: column;
@@ -88,5 +90,16 @@ body.c-search-trends.a-index {
     padding: 0.5rem;
     background: themed("color-section");
     width: min-content;
+
+    input[type="text"] { width: unset !important }
+  }
+}
+
+body.c-search-trends.a-track {
+  #search-trend-chart {
+    background-color: themed("color-section");
+    @include st-radius;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
   }
 }

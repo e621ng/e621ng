@@ -16,6 +16,7 @@ class SearchTrendHourly < ApplicationRecord
     day_date = day.to_date
     where(hour: day_date.all_day)
   }
+  scope :for_hour, ->(hour) { where(hour: hour.utc.beginning_of_hour).order(count: :desc, tag: :asc) }
   scope :for_tag, ->(tag) { where(tag: tag.to_s.downcase.strip) }
 
   scope :unprocessed, -> { where(processed: false) }
@@ -179,8 +180,7 @@ class SearchTrendHourly < ApplicationRecord
     q = super
 
     if params[:name_matches].present?
-      name_cond = TagQueryBuilder.build_like_condition("tag", params[:name_matches])
-      q = q.where(name_cond) if name_cond
+      q = q.where_ilike(:tag, Tag.normalize_name(params[:name_matches]))
     end
 
     q

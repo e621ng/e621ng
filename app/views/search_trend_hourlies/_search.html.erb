@@ -1,0 +1,5 @@
+<%= form_tag(search_trend_hourlies_path, method: :get, id: "trends_search_form") do %>
+  <%= text_field "search", "name_matches", placeholder: "Search Trends" %>
+  <%= hidden_field_tag :hour, params[:hour] %>
+  <%= submit_tag "Search" %>
+<% end %>

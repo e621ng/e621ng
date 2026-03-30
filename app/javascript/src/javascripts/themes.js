@@ -21,8 +21,8 @@ for (const [label, settings] of Object.entries(Theme.Values)) {
         // attributes; leave those unset so the default (hexagon) is used.
         if ($("body").is(".c-static.a-home") && (one === "Main" || one === "Extra")) return;
 
-        // Homepage fallback to hexagon is handled elsewhere; just write the
-        // attribute normally for other pages/keys.
+        // Homepage fallback to hexagon is handled in `app/views/layouts/_theme_include.html.erb`;
+        // just write the attribute normally for other pages/keys.
         $("body").attr("data-th-" + one.toLowerCase(), value);
       },
     });
