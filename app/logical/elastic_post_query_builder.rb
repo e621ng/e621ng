@@ -135,9 +135,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     "comment_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "comment_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
     # "random" => [{ _score: :desc }],
-    "flagged" => [{ flagged: :desc }, { flagged_at: { order: :desc, missing: :_last } }, { id: :desc }],
+    "flagged" => [{ flagged_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "flagged_asc" => [{ flagged_at: { order: :asc, missing: :_last } }, { id: :asc }],
-    "deleted" => [{ deleted: :desc }, { deleted_at: { order: :desc, missing: :_last } }, { id: :desc }],
+    "deleted" => [{ deleted_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "deleted_asc" => [{ deleted_at: { order: :asc, missing: :_last } }, { id: :asc }],
   }).freeze.each_value(&:freeze)
 
