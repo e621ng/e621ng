@@ -40,6 +40,7 @@ function rootInit () {
     #touch-container {
       display: grid;
       grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
+      grid-template-rows: 3rem 3rem 3rem;
       justify-content: space-evenly;
       align-content: space-evenly;
       align-items: stretch;
@@ -48,6 +49,7 @@ function rootInit () {
         box-sizing: border-box;
         text-align: center;
         cursor: pointer;
+        align-content: center;
       }
     }
     #up {
