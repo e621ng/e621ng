@@ -49,6 +49,12 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       "comm_bumped" => [[{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }], [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }]],
       "comm_bumped_desc" => [[{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }], [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }]],
       "comm_bumped_asc" => [[{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }], [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }]],
+      "deleted" => [[{ deleted_at: { order: :desc, missing: :_last } }, { id: :desc }], [{ deleted_at: { order: :asc, missing: :_last } }, { id: :asc }]],
+      "deleted_desc" => [[{ deleted_at: { order: :desc, missing: :_last } }, { id: :desc }], [{ deleted_at: { order: :asc, missing: :_last } }, { id: :asc }]],
+      "deleted_asc" => [[{ deleted_at: { order: :asc, missing: :_last } }, { id: :asc }], [{ deleted_at: { order: :desc, missing: :_last } }, { id: :desc }]],
+      "flagged" => [[{ flagged_at: { order: :desc, missing: :_last } }, { id: :desc }], [{ flagged_at: { order: :asc, missing: :_last } }, { id: :asc }]],
+      "flagged_desc" => [[{ flagged_at: { order: :desc, missing: :_last } }, { id: :desc }], [{ flagged_at: { order: :asc, missing: :_last } }, { id: :asc }]],
+      "flagged_asc" => [[{ flagged_at: { order: :asc, missing: :_last } }, { id: :asc }], [{ flagged_at: { order: :desc, missing: :_last } }, { id: :desc }]],
       "note" => [[{ noted_at: { order: :desc, missing: :_last } }], [{ noted_at: { order: :asc, missing: :_first } }]],
       "note_desc" => [[{ noted_at: { order: :desc, missing: :_last } }], [{ noted_at: { order: :asc, missing: :_first } }]],
       "note_asc" => [[{ noted_at: { order: :asc, missing: :_first } }], [{ noted_at: { order: :desc, missing: :_last } }]],
@@ -237,6 +243,45 @@ class ElasticPostQueryBuilderTest < ActiveSupport::TestCase
       assert_includes(ElasticPostQueryBuilder.new("statuslocked:anything", **DEFAULT_PARAM).must, { term: { status_locked: false } }, "statuslocked:anything")
 
       # TODO: Add tests for `~` & `-` prefixed `___locked` tags being processed as tags & not metatags
+    end
+
+    should "properly handle flag metatags" do
+      # `flagreason` is available to everyone and always lowercased.
+      assert_includes(build_query("flagreason:SpAm").must, { wildcard: { flag_reason: "spam" } }, "flagreason")
+      assert_includes(build_query("-flagreason:SpAm").must_not, { wildcard: { flag_reason: "spam" } }, "-flagreason")
+      assert_includes(build_query("~flagreason:SpAm").should, { wildcard: { flag_reason: "spam" } }, "~flagreason")
+
+      non_staff = create(:user)
+      flagged_user = create(:user)
+
+      # `flagnote` and `flaggedby` are staff-only metatags.
+      as(non_staff) do
+        assert_not_includes(build_query("flagnote:test").must, { wildcard: { flag_note: "test" } }, "flagnote non-staff")
+        assert_not_includes(build_query("flagnote:*").must, { wildcard: { flag_note: "test" } }, "flagnote non-staff")
+        assert_not_includes(build_query("flaggedby:#{flagged_user.name}").must, { term: { flagger: flagged_user.id } }, "flaggedby non-staff")
+        assert_not_includes(build_query("flaggedby:!#{flagged_user.id}").must, { term: { flagger: flagged_user.id } }, "flaggedby non-staff")
+      end
+
+      staff = create(:admin_user)
+      as(staff) do
+        # flagnote: quotes escape spaces
+        assert_includes(build_query('flagnote:"Test Note"').must, { wildcard: { flag_note: "test note" } }, "flagnote")
+        assert_includes(build_query('-flagnote:"Test Note"').must_not, { wildcard: { flag_note: "test note" } }, "-flagnote")
+        assert_includes(build_query('~flagnote:"Test Note"').should, { wildcard: { flag_note: "test note" } }, "~flagnote")
+
+        # flagnote: case-insensitive exact match
+        assert_includes(build_query("flagnote:tesTnotE").must, { wildcard: { flag_note: "testnote" } }, "flagnote")
+        assert_includes(build_query("-flagnote:tesTnotE").must_not, { wildcard: { flag_note: "testnote" } }, "-flagnote")
+        assert_includes(build_query("~flagnote:tesTnotE").should, { wildcard: { flag_note: "testnote" } }, "~flagnote")
+
+        # flaggedby: accepts both user names and IDs, with or without `!` negation. User names are resolved to IDs before being added to the query.
+        assert_includes(build_query("flaggedby:#{flagged_user.name}").must, { term: { flagger: flagged_user.id } }, "flaggedby")
+        assert_includes(build_query("flaggedby:!#{flagged_user.id}").must, { term: { flagger: flagged_user.id } }, "flaggedby")
+        assert_includes(build_query("-flaggedby:#{flagged_user.name}").must_not, { term: { flagger: flagged_user.id } }, "-flaggedby")
+        assert_includes(build_query("-flaggedby:!#{flagged_user.id}").must_not, { term: { flagger: flagged_user.id } }, "-flaggedby")
+        assert_includes(build_query("~flaggedby:#{flagged_user.name}").should, { term: { flagger: flagged_user.id } }, "~flaggedby")
+        assert_includes(build_query("~flaggedby:!#{flagged_user.id}").should, { term: { flagger: flagged_user.id } }, "~flaggedby")
+      end
     end
 
     # TODO: Test `ElasticPostQueryBuilder::GLOBAL_DELETED_FILTER`
