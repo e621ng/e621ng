@@ -657,26 +657,15 @@ class InputDisplay {
   }
   defaultOnInputDown(args, element, state = true) {
     element.style.backgroundColor = state ? "rgb(42, 82, 142, 1)" : "rgba(255, 0, 0, .5)";
-    this.defaultBorder(args);
   }
   defaultOnInputUp(args, element, state = false) {
-    element.style.backgroundColor = state ? "rgba(255, 255, 0, .5)" : "";
-    this.defaultBorder(args);
+    element.style.backgroundColor = "";
   }
   defaultOnKeyStateChange(args) {
-    this.up.style.backgroundColor = args.state.up ? args.action === InputAction.up ? "" : "rgb(42, 82, 142, 1)" : "";
-    this.down.style.backgroundColor = args.state.down ? args.action === InputAction.down ? "" : "rgb(42, 82, 142, 1)" : "";
-    this.left.style.backgroundColor = args.state.left ? args.action === InputAction.left ? "" : "rgb(42, 82, 142, 1)" : "";
-    this.right.style.backgroundColor = args.state.right ? args.action === InputAction.right ? "" : "rgb(42, 82, 142, 1)" : "";
-    this.defaultBorder(args);
-  }
-  setBorderStyle = "0px solid rgba(0, 255, 0, 1)";
-  borderStyle = "0px solid rgba(0,0,0,0)";
-  defaultBorder(args) {
-    this.up.style.border = args.state.up ? this.setBorderStyle : this.borderStyle;
-    this.down.style.border = args.state.down ? this.setBorderStyle : this.borderStyle;
-    this.left.style.border = args.state.left ? this.setBorderStyle : this.borderStyle;
-    this.right.style.border = args.state.right ? this.setBorderStyle : this.borderStyle;
+    this.up.style.backgroundColor = args.state.up ? "rgb(42, 82, 142, 1)" : "";
+    this.down.style.backgroundColor = args.state.down ? "rgb(42, 82, 142, 1)" : "";
+    this.left.style.backgroundColor = args.state.left ? "rgb(42, 82, 142, 1)" : "";
+    this.right.style.backgroundColor = args.state.right ? "rgb(42, 82, 142, 1)" : "";
   }
 }
 
@@ -696,8 +685,6 @@ class InputHandler {
     this.initDefaultInputs();
   }
   setInputState(i, value = true) {
-    if (!this.currentStateOnly && !value)
-      return;
     const prior = structuredClone(this._keyState);
     this._keyState[i.name] = value;
     if (value)

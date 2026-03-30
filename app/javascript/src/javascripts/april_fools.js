@@ -64,7 +64,7 @@ function rootInit () {
     return t;
   })()}
     <div id=snake-container>
-      <pre id="snake-header">
+      <div id="snake-header"><pre id="snake-header-text">
  ::::::::  ::::    ::: :::::::::: :::    ::: 
 :+:    :+: :+:+:   :+: :+:        :+:   :+:  
 +:+        :+:+:+  +:+ +:+        +:+  +:+   
@@ -72,7 +72,7 @@ function rootInit () {
        +#+ +#+  +#+#+# +#+        +#+  +#+   
 #+#    #+# #+#   #+#+# #+#        #+#   #+#  
  ########  ###    #### ########## ###    ### 
-      </pre>
+      </pre></div>
       ${canvasShell}
       ${touchControls}
       ${state.form}
