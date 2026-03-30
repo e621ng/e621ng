@@ -36,7 +36,9 @@ function rootInit () {
   touchControls.addEventListener("pointerdown", markTouchControlInteraction);
   document.querySelector("head").appendChild(html`<style>
     #snake-container {
-      text-align: center;
+      display: flex;
+      flex-flow: column;
+      justify-content: center;
     }
     #snake-header {
       font-size: 0.4rem;
@@ -44,6 +46,11 @@ function rootInit () {
       background: -webkit-linear-gradient(var(--color-text), var(--color-link-active));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+    }
+    #snake-game {
+      width: 300px;
+      height: 300px;
+      align-self: center;
     }
     #touch-container {
       display: grid;
