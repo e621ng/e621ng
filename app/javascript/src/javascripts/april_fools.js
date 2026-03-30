@@ -26,6 +26,14 @@ function rootInit () {
     <span id="right">▶</span>
   </div>
   `;
+  let handlingTouchControls = false;
+  const markTouchControlInteraction = () => {
+    handlingTouchControls = true;
+    window.setTimeout(() => {
+      handlingTouchControls = false;
+    }, 0);
+  };
+  touchControls.addEventListener("pointerdown", markTouchControlInteraction);
   document.querySelector("head").appendChild(html`<style>
     #snake-container {
       text-align: center;
@@ -192,7 +200,13 @@ function rootInit () {
           playButton.innerText = "▶";
         };
       },
-      triggerPause = () => r.engine.pauseGame();
+      triggerPause = (e) => {
+        if (handlingTouchControls || (e.relatedTarget instanceof Node && touchControls.contains(e.relatedTarget))) {
+          canvas.focus();
+          return;
+        }
+        r.engine.pauseGame();
+      };
     r.engine.onGameOver.add(toggleOverlay, changeToReplayButton);
     r.engine.onGamePaused.add(toggleOverlay);
     r.engine.onGameResumed.add(toggleOverlay);
