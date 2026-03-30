@@ -683,9 +683,11 @@ class InputDisplay {
 class InputHandler {
   watchedElement;
   currentStateOnly = false;
+  static INPUT_QUEUE_LIMIT = 2;
   keyStateChanged = new SnakeEvent;
   inputDown = new SnakeEvent;
   inputUp = new SnakeEvent;
+  _inputQueue = [];
   watchGlobal = true;
   constructor(watchedElement = undefined) {
     this.watchedElement = watchedElement;
@@ -698,7 +700,37 @@ class InputHandler {
       return;
     const prior = structuredClone(this._keyState);
     this._keyState[i.name] = value;
+    if (value)
+      this.enqueueInputAction(i);
     this.keyStateChanged.fire({ action: i, state: structuredClone(this._keyState), priorState: prior });
+  }
+  enqueueInputAction(action) {
+    if (!action)
+      return false;
+    const queue = this._inputQueue;
+    const tail = queue.at(-1);
+    if (tail?.direction === action.direction)
+      return false;
+    if (tail?.direction === action.direction.opposite)
+      return false;
+    if (queue.length >= InputHandler.INPUT_QUEUE_LIMIT)
+      return false;
+    queue.push(action);
+    return true;
+  }
+  dequeueNextValidDirection(currentDirection) {
+    while (this._inputQueue.length > 0) {
+      const action = this._inputQueue.shift();
+      if (!action)
+        continue;
+      if (currentDirection && action.direction === currentDirection.opposite)
+        continue;
+      return action.direction;
+    }
+    return undefined;
+  }
+  clearInputQueue() {
+    this._inputQueue.splice(0);
   }
   isKeyDown(action) {
     return this._keyState[action.name];
@@ -763,6 +795,8 @@ class InputHandler {
       e.stopPropagation();
     } else if (!this.watchGlobal)
       return;
+    if (value && e.repeat)
+      return;
     const event = value ? this.inputDown : this.inputUp, prior = structuredClone(this._keyState), actions = InputHandler.defaultBindingsReversed.get(e.key);
     if (!this.currentStateOnly && !value) {
       const after2 = structuredClone(this._keyState);
@@ -784,6 +818,7 @@ class InputHandler {
       a = InputAction.right;
     } else
       return;
+    this.enqueueInputAction(a);
     const after = structuredClone(this._keyState);
     event.fire({ action: a, state: after, priorState: prior });
   }
@@ -1675,6 +1710,7 @@ Playfield: %o`, config, this.playfieldRect);
   }
   initGame() {
     this.resetTickRate();
+    this.inputHandler.clearInputQueue?.();
     this._snake = Snake_default.fromPreferences(this.config, this.playfieldRect);
     this._isGameOver = this._isGameWon = false;
     this._tickCount = this._pelletsEaten = 0;
@@ -1718,6 +1754,7 @@ Playfield: %o`, config, this.playfieldRect);
   }
   endGame(reason) {
     this.engineDriver.stopDriving();
+    this.inputHandler.clearInputQueue?.();
     this._isGameOver = true;
     if (!reason)
       return;
@@ -1762,9 +1799,9 @@ Playfield: %o`, config, this.playfieldRect);
     SnakeEngine.debugLevel.print(DebugLevel.INFO, "Delta: %s; time in game: %s", deltaTime, this.inGameTime);
     const args = { engine: this, tickCount: ++this._tickCount, inGameTime: this.inGameTime, timeOverall: this.currentOverallTime };
     this.onTickStarted.fire(args);
-    const keys = this.inputHandler.getKeysDown();
+    const queuedDirection = this.inputHandler.dequeueNextValidDirection(this.snake.headDirection);
     this.inputHandler.resetState();
-    let d = Point2d.included(this.snake.headDirection, keys.map((e) => e.direction)) ? this.snake.headDirection : keys[0]?.direction || this.snake.headDirection;
+    let d = queuedDirection || this.snake.headDirection;
     if (Point2d.equals(this.snake.headDirection, d.opposite)) {
       SnakeEngine.debugLevel.print(DebugLevel.WARN, "Ignoring 180 degree turn");
       d = this.snake.headDirection;
