@@ -41,6 +41,7 @@ function rootInit () {
       justify-content: center;
     }
     #snake-header {
+      align-self: center;
       font-size: 0.4rem;
       font-family: monospace;
       background: -webkit-linear-gradient(var(--color-text), var(--color-link-active));
