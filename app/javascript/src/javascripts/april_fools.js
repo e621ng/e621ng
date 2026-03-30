@@ -39,6 +39,7 @@ function rootInit () {
       display: flex;
       flex-flow: column;
       justify-content: center;
+      gap: 0.5rem;
     }
     #snake-header {
       align-self: center;
@@ -59,6 +60,7 @@ function rootInit () {
       width: 300px;
       height: 300px;
       align-self: center;
+      margin-bottom: 1rem;
     }
     #snake-game-shell::after {
       content: "";
@@ -80,11 +82,14 @@ function rootInit () {
       align-content: space-evenly;
       align-items: stretch;
       justify-items: stretch;
+      gap: 0.25rem;
+
       & * {
         box-sizing: border-box;
         text-align: center;
         cursor: pointer;
         align-content: center;
+        border-radius: 0.25rem;
       }
     }
     #up {
@@ -130,13 +135,16 @@ function rootInit () {
       opacity: 0;
     }
 
-    #engine-stats p {
+    #engine-stats {
+      line-height: 1rem;
+    }
+    #engine-stats > span {
       font-family: monospace;
       display: flex;
       justify-content: center;
       gap: 1rem;
     }
-    #engine-stats p b {
+    #engine-stats > span b {
       width: 5ch;
     }
   </style>`);
