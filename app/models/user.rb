@@ -825,6 +825,10 @@ class User < ApplicationRecord
       user_status&.comment_count || 0
     end
 
+    def blip_count
+      user_status&.blip_count || 0
+    end
+
     def flag_count
       user_status&.post_flag_count || 0
     end
