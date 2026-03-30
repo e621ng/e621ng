@@ -42,6 +42,8 @@ html:has(> body > #snake-pane) {
     transition: all var(--pane-anim-time) var(--pane-anim-function);
     left: calc(-1 * var(--pane-tab-size));
     rotate: 0deg;
+
+    cursor: pointer;
   }
 
   &:not([set-offscreen=false])>#snake-tab {
@@ -192,6 +194,18 @@ html:has(> body > #snake-pane) {
     border-radius: 50%;
     border: 2px solid #ffffff20;
     pointer-events: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: var(--color-section);
+    z-index: 1;
+    top: calc(50% - 0.75rem);
+    left: calc(50% - 0.75rem);
+    border-radius: 50%;
   }
 }
 
