@@ -1568,7 +1568,10 @@ function bindMappedElementsToEvent(event, generator, initialValue, generateIniti
 class SnakeEngine {
   config;
   inputHandler;
+  _baseMillisecondsPerUpdate;
   static debugLevel = DebugLevel.LOG;
+  static DYNAMIC_TICK_CAP_MS = 100;
+  static DYNAMIC_TICK_GROWTH_SPAN = 10;
   onGameOver = new SnakeEvent;
   onGameLost = new SnakeEvent;
   onGameWon = new SnakeEvent;
@@ -1618,10 +1621,32 @@ class SnakeEngine {
   constructor(config = EngineConfig.defaultConfig, inputHandler = new InputHandler) {
     this.config = config;
     this.inputHandler = inputHandler;
+    this._baseMillisecondsPerUpdate = config.millisecondsPerUpdate;
     this.playfieldRect = RectInt2d.fromDimensionsAndMin(config.gridWidth, config.gridHeight);
     SnakeEngine.debugLevel.print(DebugLevel.INFO, `Config: %o
 Playfield: %o`, config, this.playfieldRect);
     this.initGame();
+  }
+  resetTickRate() {
+    this.config.millisecondsPerUpdate = this._baseMillisecondsPerUpdate;
+  }
+  calculateDynamicTickRate() {
+    if (this._baseMillisecondsPerUpdate <= SnakeEngine.DYNAMIC_TICK_CAP_MS)
+      return this._baseMillisecondsPerUpdate;
+    const growth = Math.max(0, this.snake.snakeLength - this.config.startingLength);
+    const progress = Math.min(growth / SnakeEngine.DYNAMIC_TICK_GROWTH_SPAN, 1);
+    return this._baseMillisecondsPerUpdate + (SnakeEngine.DYNAMIC_TICK_CAP_MS - this._baseMillisecondsPerUpdate) * progress;
+  }
+  applyDynamicTickRate() {
+    const nextTickRate = this.calculateDynamicTickRate();
+    if (Math.abs(this.config.millisecondsPerUpdate - nextTickRate) < 0.5)
+      return;
+    const wasDriving = !this.isGamePaused;
+    if (wasDriving)
+      this.engineDriver.stopDriving();
+    this.config.millisecondsPerUpdate = nextTickRate;
+    if (wasDriving)
+      this.engineDriver.startDriving();
   }
   initPointObjectArray(config, objArray, validPoints, clearArray = true) {
     if (clearArray)
@@ -1649,6 +1674,7 @@ Playfield: %o`, config, this.playfieldRect);
       }, []));
   }
   initGame() {
+    this.resetTickRate();
     this._snake = Snake_default.fromPreferences(this.config, this.playfieldRect);
     this._isGameOver = this._isGameWon = false;
     this._tickCount = this._pelletsEaten = 0;
@@ -1771,6 +1797,7 @@ Playfield: %o`, config, this.playfieldRect);
         this.pellets.push(newPellet);
         args.newPellets = [newPellet];
       }
+      this.applyDynamicTickRate();
       this.onPelletEaten.fire(args);
     } else {
       this.movesSinceLastPellet++;
