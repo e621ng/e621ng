@@ -656,7 +656,7 @@ class InputDisplay {
     }
   }
   defaultOnInputDown(args, element, state = true) {
-    element.style.backgroundColor = state ? "rgba(0, 255, 0, 1)" : "rgba(255, 0, 0, .5)";
+    element.style.backgroundColor = state ? "rgb(42, 82, 142, 1)" : "rgba(255, 0, 0, .5)";
     this.defaultBorder(args);
   }
   defaultOnInputUp(args, element, state = false) {
@@ -664,14 +664,14 @@ class InputDisplay {
     this.defaultBorder(args);
   }
   defaultOnKeyStateChange(args) {
-    this.up.style.backgroundColor = args.state.up ? args.action === InputAction.up ? "rgba(0, 255, 0, 1)" : "rgba(255, 255, 0, .5)" : "";
-    this.down.style.backgroundColor = args.state.down ? args.action === InputAction.down ? "rgba(0, 255, 0, 1)" : "rgba(255, 255, 0, .5)" : "";
-    this.left.style.backgroundColor = args.state.left ? args.action === InputAction.left ? "rgba(0, 255, 0, 1)" : "rgba(255, 255, 0, .5)" : "";
-    this.right.style.backgroundColor = args.state.right ? args.action === InputAction.right ? "rgba(0, 255, 0, 1)" : "rgba(255, 255, 0, .5)" : "";
+    this.up.style.backgroundColor = args.state.up ? args.action === InputAction.up ? "rgb(42, 82, 142, 1)" : "rgba(255, 255, 0, .5)" : "";
+    this.down.style.backgroundColor = args.state.down ? args.action === InputAction.down ? "rgb(42, 82, 142, 1)" : "rgba(255, 255, 0, .5)" : "";
+    this.left.style.backgroundColor = args.state.left ? args.action === InputAction.left ? "rgb(42, 82, 142, 1)" : "rgba(255, 255, 0, .5)" : "";
+    this.right.style.backgroundColor = args.state.right ? args.action === InputAction.right ? "rgb(42, 82, 142, 1)" : "rgba(255, 255, 0, .5)" : "";
     this.defaultBorder(args);
   }
-  setBorderStyle = "4px solid rgba(0, 255, 0, 1)";
-  borderStyle = "4px solid rgba(0,0,0,0)";
+  setBorderStyle = "0px solid rgba(0, 255, 0, 1)";
+  borderStyle = "0px solid rgba(0,0,0,0)";
   defaultBorder(args) {
     this.up.style.border = args.state.up ? this.setBorderStyle : this.borderStyle;
     this.down.style.border = args.state.down ? this.setBorderStyle : this.borderStyle;
@@ -1779,15 +1779,15 @@ Playfield: %o`, config, this.playfieldRect);
   renderStats() {
     const initTickArgs = { engine: this, tickCount: this._tickCount, inGameTime: this.inGameTime, timeOverall: this.currentOverallTime };
     const elements = bindMappedElementsToEvent(this.onTickCompleted, (e) => ({
-      tickCount: html`<p>Turns Completed: ${e.tickCount}</b></p>`,
-      inGameTime: html`<p>In Game Time: ${e.inGameTime}</b></p>`,
-      timeOverall: html`<p>Overall Time: ${e.timeOverall}</b></p>`
+      tickCount: html`<p><span>Turns</span><b>${e.tickCount}</b></p>`,
+      // inGameTime: html`<p>In Game Time: ${e.inGameTime}</b></p>`,
+      // timeOverall: html`<p>Overall Time: ${e.timeOverall}</b></p>`
     }), initTickArgs);
     return html`
     <p id="engine-stats">
-      ${elements.tickCount}
-      ${elements.inGameTime}
-      ${elements.timeOverall}
+      ${elements.tickCount || ""}
+      ${elements.inGameTime || ""}
+      ${elements.timeOverall || ""}
     </p>
     `;
   }

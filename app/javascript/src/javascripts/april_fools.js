@@ -27,6 +27,15 @@ function rootInit () {
   </div>
   `;
   document.querySelector("head").appendChild(html`<style>
+    #snake-container {
+      text-align: center;
+    }
+    #snake-header {
+      font-family: monospace;
+      background: -webkit-linear-gradient(var(--color-text), var(--color-link-active));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
     #touch-container {
       display: grid;
       grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
@@ -79,6 +88,16 @@ function rootInit () {
       z-index: -1;
       opacity: 0;
     }
+
+    #engine-stats p {
+      font-family: monospace;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    #engine-stats p b {
+      width: 5ch;
+    }
   </style>`);
   const canvas = document.createElement("canvas");
   canvas.id = "snake-game";
@@ -113,6 +132,15 @@ function rootInit () {
     return t;
   })()}
     <div id=snake-container>
+      <pre id="snake-header">
+ ::::::::  ::::    :::     :::     :::    ::: :::::::::: 
+:+:    :+: :+:+:   :+:   :+: :+:   :+:   :+:  :+:        
++:+        :+:+:+  +:+  +:+   +:+  +:+  +:+   +:+        
++#++:++#++ +#+ +:+ +#+ +#++:++#++: +#++:++    +#++:++#   
+       +#+ +#+  +#+#+# +#+     +#+ +#+  +#+   +#+        
+#+#    #+# #+#   #+#+# #+#     #+# #+#   #+#  #+#        
+ ########  ###    #### ###     ### ###    ### ########## 
+      </pre>
       ${canvas}
       ${overlay}
       ${touchControls}
