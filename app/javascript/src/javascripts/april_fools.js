@@ -48,10 +48,12 @@ function rootInit () {
   if (!ctx) throw Error("Failed to retrieve canvas context.");
   const state = EngineConfig.toUI(EngineConfig.defaults, initialize);
   const playButton = html`<button id=snake-play class=overlay-button>▶</button>`;
+  const scoreDisplay = html`<div id=snake-score>PLAY</div>`;
   const canvasShell = html`
   <div id=snake-game-shell class=is-paused>
     ${canvas}
     ${playButton}
+    ${scoreDisplay}
   </div>
   `;
   const container = html`
@@ -78,6 +80,7 @@ function rootInit () {
   </div>
   `;
   document.body.appendChild(container);
+  let runs = 0;
 
   /** @type {HTMLElement} **/ let lastEngineStats;
   let keydownShellToggle;
@@ -109,6 +112,8 @@ function rootInit () {
         canvasShell.classList.toggle("is-paused", !hasStarted || r.engine.isGamePaused);
       },
       shellClicked = () => {
+        scoreDisplay.style.display = "none";
+
         if (r.engine.isGameOver) {
           shouldAutoStartNextGame = true;
           hasStarted = false;
@@ -127,10 +132,21 @@ function rootInit () {
         }
 
         r.engine.isGamePaused ? r.engine.resumeGame() : r.engine.pauseGame();
+        if (r.engine.isGamePaused) {
+          scoreDisplay.style.display = "";
+          scoreDisplay.innerText = "PAUSED";
+        }
         canvas.focus();
       },
       changeToReplayButton = () => {
         playButton.innerText = "⟳";
+
+        const score = r.engine.score;
+        console.log("run", { score, runs });
+
+        scoreDisplay.style.display = "";
+        scoreDisplay.innerText = generateLoseMessage(score, runs);
+        runs++;
       },
       triggerPause = (e) => {
         if (handlingTouchControls || (e.relatedTarget instanceof Node && touchControls.contains(e.relatedTarget))) {
@@ -171,6 +187,47 @@ function rootInit () {
     });
   }
   initialize(state.defaults);
+}
+
+// Returns some fun messages in place of the score sometimes.
+// Nothing on the first run, just the score.
+function generateLoseMessage (score, runs) {
+  if (runs === 0 || Math.random() >= 0.25) return "SCORE: " + score;
+
+  let message = "SCORE: " + score;
+  if (score < 2) {
+    if (runs < 3) message = "Hewwo?";
+    else if (runs < 6) message = "Hewwo??";
+    else message = "Hewwo???";
+  } else if (score < 5) {
+    if (runs < 5) message = "Snek? Snek!!!";
+    else message = "Oh, come on.";
+  } else if (score < 15) {
+    message = arrRand([
+      "Snek? Snek!!!",
+      "Fast as hekk!",
+      "Hiss!!!",
+      "Waoh!",
+    ]);
+  } else if (score < 90) {
+    message = arrRand([
+      "Nope rope.",
+      "Danger noodle!",
+      "Sssserpent!",
+      "Land eel!!",
+      "Fang ramen...",
+      "Murder spagurter",
+    ]);
+  } else {
+    message = "... are you cheating?";
+  }
+
+  // Returns a random element from the array
+  function arrRand (arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  return message;
 }
 
 if (document.readyState !== "loading") rootInit();

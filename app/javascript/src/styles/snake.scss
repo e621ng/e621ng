@@ -122,6 +122,22 @@ html:has(> body > #snake-pane) {
     pointer-events: none;
   }
   &.is-paused #snake-play { display: block; }
+
+  #snake-score {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    display: flex;
+    justify-content: center;
+    padding-top: 70px;
+
+    font-family: monospace;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 0.5rem #000;
+  }
 }
 
 #touch-container {
