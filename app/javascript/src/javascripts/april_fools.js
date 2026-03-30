@@ -49,9 +49,28 @@ function rootInit () {
       -webkit-text-fill-color: transparent;
     }
     #snake-game {
+      width: 100%;
+      height: 100%;
+      display: block;
+      align-self: center;
+    }
+    #snake-game-shell {
+      position: relative;
       width: 300px;
       height: 300px;
       align-self: center;
+    }
+    #snake-game-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms ease;
+    }
+    #snake-game-shell.is-paused::after {
+      opacity: 1;
     }
     #touch-container {
       display: grid;
@@ -85,14 +104,17 @@ function rootInit () {
       grid-column: 3 / 4;
     }
 
-    #snake-overlay {
-      display: flex;
-      background-color: rgba(0, 0, 0, 0.5);
-      align-items: center;
-      justify-content: space-around;
+    #snake-play {
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      display: none;
+      pointer-events: none;
+    }
+    #snake-game-shell.is-paused #snake-play {
+      display: block;
     }
     .overlay-button {
       background-color: rgba(0, 0, 0, 0.5);
@@ -126,23 +148,12 @@ function rootInit () {
   if (!ctx) throw Error("Failed to retrieve canvas context.");
   const state = EngineConfig.toUI(EngineConfig.defaults, initialize);
   const playButton = html`<button id=snake-play class=overlay-button>▶</button>`;
-  const overlay = html`
-  <span id=snake-overlay>
+  const canvasShell = html`
+  <div id=snake-game-shell class=is-paused>
+    ${canvas}
     ${playButton}
-  </span>
+  </div>
   `;
-
-  // #region Update overlay on canvas change
-  (new ResizeObserver((entries, _observer) => {
-    const width = canvas.clientWidth || (entries && entries[0] && ((entries[0].borderBoxSize && entries[0].borderBoxSize[0]?.inlineSize) || entries[0].contentRect?.width)) || undefined;
-    const height = canvas.clientHeight || (entries && entries[0] && ((entries[0].borderBoxSize && entries[0].borderBoxSize[0]?.blockSize) || entries[0].contentRect?.height)) || undefined;
-    const left = canvas.offsetLeft || (entries && entries[0] && entries[0].contentRect?.left) || undefined;
-    const top = canvas.offsetTop || (entries && entries[0] && entries[0].contentRect?.top) || undefined;
-    if (width) overlay.style.width = `${width}px`;
-    if (height) overlay.style.height = `${height}px`;
-    if (left) overlay.style.left = `${left}px`;
-    if (top) overlay.style.top = `${top}px`;
-  })).observe(canvas);
   const container = html`
   <div id=snake-pane>
     ${(() => {
@@ -160,19 +171,14 @@ function rootInit () {
 #+#    #+# #+#   #+#+# #+#     #+# #+#   #+#  #+#        
  ########  ###    #### ###     ### ###    ### ########## 
       </pre>
-      ${canvas}
-      ${overlay}
+      ${canvasShell}
       ${touchControls}
       ${state.form}
     </div>
   </div>
   `;
   document.body.appendChild(container);
-  overlay.style.top = `${canvas.offsetTop}px`;
-  overlay.style.left = `${canvas.offsetLeft}px`;
-  // #endregion Update overlay on canvas change
 
-  playButton.addEventListener("click", () => canvas.focus());
   /** @type {HTMLElement} **/ let lastEngineStats;
   function initialize (cfg) {
     if (lastEngineStats)
@@ -195,18 +201,33 @@ function rootInit () {
         makePauseOverlay: false,
       },
     );
+    playButton.innerText = "▶";
+    let hasStarted = false;
     const toggleOverlay = () => {
-        overlay.style.display = r.engine.isGamePaused ? "" : "none";
+        canvasShell.classList.toggle("is-paused", !hasStarted || r.engine.isGamePaused);
       },
-      playClicked = () => {
+      shellClicked = () => {
+        if (r.engine.isGameOver) {
+          hasStarted = false;
+          state.form.requestSubmit();
+          playButton.innerText = "▶";
+          canvasShell.classList.add("is-paused");
+          return;
+        }
+
+        if (!hasStarted) {
+          r.startGame();
+          hasStarted = true;
+          toggleOverlay();
+          canvas.focus();
+          return;
+        }
+
         r.engine.isGamePaused ? r.engine.resumeGame() : r.engine.pauseGame();
+        canvas.focus();
       },
       changeToReplayButton = () => {
         playButton.innerText = "⟳";
-        playButton.onclick = () => {
-          state.form.requestSubmit();
-          playButton.innerText = "▶";
-        };
       },
       triggerPause = (e) => {
         if (handlingTouchControls || (e.relatedTarget instanceof Node && touchControls.contains(e.relatedTarget))) {
@@ -218,16 +239,14 @@ function rootInit () {
     r.engine.onGameOver.add(toggleOverlay, changeToReplayButton);
     r.engine.onGamePaused.add(toggleOverlay);
     r.engine.onGameResumed.add(toggleOverlay);
+    canvasShell.onclick = shellClicked;
     canvas.addEventListener("blur", triggerPause);
 
     lastEngineStats = r.engine.renderStats();
     canvas.insertAdjacentElement("afterend", lastEngineStats);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     r.initGame().then(() => {
-      playButton.onclick = () => {
-        r.startGame();
-        playButton.onclick = playClicked;
-      };
+      toggleOverlay();
       r.draw({ engine: r.engine });
     }).catch((error) => {
       console.error("Failed to load game assets:", error);
