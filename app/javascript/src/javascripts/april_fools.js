@@ -24,10 +24,10 @@ function rootInit () {
 
   const touchControls = html`
   <div id="touch-container">
-    <span id="up">▲</span>
-    <span id="left">◀</span>
-    <span id="down">▼</span>
-    <span id="right">▶</span>
+    <span id="up"><i>▲</i></span>
+    <span id="right"><i>▶</i></span>
+    <span id="left"><i>◀</i></span>
+    <span id="down"><i>▼</i></span>
   </div>
   `;
   let handlingTouchControls = false;
@@ -39,124 +39,6 @@ function rootInit () {
   };
   touchControls.addEventListener("pointerdown", markTouchControlInteraction);
   document.querySelector("head").appendChild(html`<style>
-    #snake-container {
-      display: flex;
-      flex-flow: column;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    #snake-header {
-      align-self: center;
-      font-size: 0.4rem;
-      font-family: monospace;
-      background: -webkit-linear-gradient(var(--color-text), var(--color-link-active));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    #snake-game {
-      width: 100%;
-      height: 100%;
-      display: block;
-      align-self: center;
-    }
-    #snake-game-shell {
-      position: relative;
-      width: 300px;
-      height: 300px;
-      align-self: center;
-      margin-bottom: 1rem;
-    }
-    #snake-game-shell::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-color: rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 120ms ease;
-    }
-    #snake-game-shell.is-paused::after {
-      opacity: 1;
-    }
-    #touch-container {
-      display: grid;
-      grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
-      grid-template-rows: 3rem 3rem 3rem;
-      justify-content: space-evenly;
-      align-content: space-evenly;
-      align-items: stretch;
-      justify-items: stretch;
-      gap: 0.25rem;
-      width: 300px;
-
-      & * {
-        box-sizing: border-box;
-        text-align: center;
-        cursor: pointer;
-        align-content: center;
-        border-radius: 0.25rem;
-      }
-    }
-    #up {
-      grid-row: 1 / 2;
-      grid-column: 2 / 3;
-    }
-    #down {
-      grid-row: 3 / 4;
-      grid-column: 2 / 3;
-    }
-    #left {
-      grid-row: 2 / 3;
-      grid-column: 1 / 2;
-    }
-    #right {
-      grid-row: 2 / 3;
-      grid-column: 3 / 4;
-    }
-
-    #snake-play {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1;
-      display: none;
-      pointer-events: none;
-    }
-    #snake-game-shell.is-paused #snake-play {
-      display: block;
-    }
-    .overlay-button {
-      background-color: rgba(0, 0, 0, 0.5);
-      color: rgba(255, 255, 255, 1);
-      width: 3rem;
-      height: 3rem;
-      font-size: x-large;
-    }
-
-    #snake-settings {
-      position: absolute;
-      z-index: -1;
-      opacity: 0;
-    }
-
-    #engine-stats {
-      line-height: 1rem;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 0.5rem;
-    }
-    #engine-stats > span {
-      font-family: monospace;
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-    }
-    #engine-stats > span b {
-      width: 3ch;
-      text-align: right;
-    }
   </style>`);
   const canvas = document.createElement("canvas");
   canvas.id = "snake-game";
@@ -181,13 +63,13 @@ function rootInit () {
   })()}
     <div id=snake-container>
       <pre id="snake-header">
- ::::::::  ::::    :::     :::     :::    ::: :::::::::: 
-:+:    :+: :+:+:   :+:   :+: :+:   :+:   :+:  :+:        
-+:+        :+:+:+  +:+  +:+   +:+  +:+  +:+   +:+        
-+#++:++#++ +#+ +:+ +#+ +#++:++#++: +#++:++    +#++:++#   
-       +#+ +#+  +#+#+# +#+     +#+ +#+  +#+   +#+        
-#+#    #+# #+#   #+#+# #+#     #+# #+#   #+#  #+#        
- ########  ###    #### ###     ### ###    ### ########## 
+ ::::::::  ::::    ::: :::::::::: :::    ::: 
+:+:    :+: :+:+:   :+: :+:        :+:   :+:  
++:+        :+:+:+  +:+ +:+        +:+  +:+   
++#++:++#++ +#+ +:+ +#+ +#++:++#   +#++:++    
+       +#+ +#+  +#+#+# +#+        +#+  +#+   
+#+#    #+# #+#   #+#+# #+#        #+#   #+#  
+ ########  ###    #### ########## ###    ### 
       </pre>
       ${canvasShell}
       ${touchControls}

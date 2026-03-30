@@ -664,10 +664,10 @@ class InputDisplay {
     this.defaultBorder(args);
   }
   defaultOnKeyStateChange(args) {
-    this.up.style.backgroundColor = args.state.up ? args.action === InputAction.up ? "rgb(42, 82, 142, 1)" : "rgba(255, 255, 0, .5)" : "";
-    this.down.style.backgroundColor = args.state.down ? args.action === InputAction.down ? "rgb(42, 82, 142, 1)" : "rgba(255, 255, 0, .5)" : "";
-    this.left.style.backgroundColor = args.state.left ? args.action === InputAction.left ? "rgb(42, 82, 142, 1)" : "rgba(255, 255, 0, .5)" : "";
-    this.right.style.backgroundColor = args.state.right ? args.action === InputAction.right ? "rgb(42, 82, 142, 1)" : "rgba(255, 255, 0, .5)" : "";
+    this.up.style.backgroundColor = args.state.up ? args.action === InputAction.up ? "" : "rgb(42, 82, 142, 1)" : "";
+    this.down.style.backgroundColor = args.state.down ? args.action === InputAction.down ? "" : "rgb(42, 82, 142, 1)" : "";
+    this.left.style.backgroundColor = args.state.left ? args.action === InputAction.left ? "" : "rgb(42, 82, 142, 1)" : "";
+    this.right.style.backgroundColor = args.state.right ? args.action === InputAction.right ? "" : "rgb(42, 82, 142, 1)" : "";
     this.defaultBorder(args);
   }
   setBorderStyle = "0px solid rgba(0, 255, 0, 1)";

@@ -24,7 +24,8 @@ html:has(> body > #snake-pane) {
   box-shadow: 0 0 0.5rem -0.25rem var(--color-background);
 
   transition: all var(--pane-anim-time) var(--pane-anim-function);
-  left: 100vw;
+  right: -350px;
+  max-width: 350px;
 
   &>#snake-tab {
     position: absolute;
@@ -57,11 +58,143 @@ html:has(> body > #snake-pane) {
   }
 
   &[set-offscreen=false] {
-    left: 0;
+    right: 0;
 
     &>#snake-tab {
       left: 0rem;
       rotate: 180deg;
+    }
+  }
+}
+
+
+/// Imported styles - formerly inlines ///
+#snake-container {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+#snake-header {
+  align-self: center;
+  font-size: 0.4rem;
+  font-family: monospace;
+  color: themed("color-text");
+  background: -webkit-linear-gradient(themed("color-text"), themed("color-link-active"));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+#snake-game {
+  width: 100%;
+  height: 100%;
+  display: block;
+  align-self: center;
+}
+#snake-game-shell {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  align-self: center;
+  margin-bottom: 1rem;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+  }
+  &.is-paused::after {
+    opacity: 1;
+  }
+
+  #snake-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    display: none;
+    pointer-events: none;
+  }
+  &.is-paused #snake-play { display: block; }
+}
+
+#touch-container {
+  display: grid;
+
+  grid-template: 5rem 5rem / 5rem 5rem;
+  transform: rotate(45deg);
+
+  justify-content: space-evenly;
+  align-content: space-evenly;
+  align-items: stretch;
+  justify-items: stretch;
+  gap: 0.25rem;
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+
+  & > span {
+    box-sizing: border-box;
+    text-align: center;
+    cursor: pointer;
+    align-content: center;
+    border-radius: 0.25rem;
+
+    background-color: themed("color-section");
+
+    i {
+      display: block;
+      font-style: unset;
+      transform: rotate(-45deg);
+    }
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #ffffff05;
+    border-radius: 50%;
+    border: 2px solid #ffffff20;
+    pointer-events: none;
+  }
+}
+
+.overlay-button {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 1);
+  width: 3rem;
+  height: 3rem;
+  font-size: x-large;
+}
+
+#snake-settings {
+  position: absolute;
+  z-index: -1;
+  opacity: 0;
+}
+
+#engine-stats {
+  line-height: 1rem;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+
+  & > span {
+    font-family: monospace;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+
+    b {
+      width: 3ch;
+      text-align: right;
     }
   }
 }
