@@ -5,7 +5,10 @@ class UserNameValidator < ActiveModel::EachValidator
     name = value
 
     # Should be handled by presence validator instead
-    return if name.blank?
+    if name.blank?
+      rec.errors.add(attr, "can't be blank")
+      return
+    end
 
     # For User model, check against rec.id
     # For other models (like UserNameChangeRequest), check against the user_id option
