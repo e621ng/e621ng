@@ -1774,7 +1774,6 @@ Style/StringLiterals:
     - 'app/models/artist.rb'
     - 'app/models/ban.rb'
     - 'app/models/blip.rb'
-    - 'app/models/email_blacklist.rb'
     - 'app/models/forum_category.rb'
     - 'app/models/forum_topic.rb'
     - 'app/models/post.rb'

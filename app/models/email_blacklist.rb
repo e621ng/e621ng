@@ -61,7 +61,7 @@ class EmailBlacklist < ApplicationRecord
   end
 
   def invalidate_cache
-    Cache.delete('banned_emails')
+    Cache.delete("banned_emails")
   end
 
   def unverify_accounts
