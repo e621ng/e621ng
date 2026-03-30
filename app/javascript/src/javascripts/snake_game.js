@@ -758,9 +758,10 @@ class InputHandler {
     return this._keyState;
   }
   onKeyShell(e, value) {
-    if (e.target === this.watchedElement)
+    if (e.target === this.watchedElement) {
       e.preventDefault();
-    else if (!this.watchGlobal)
+      e.stopPropagation();
+    } else if (!this.watchGlobal)
       return;
     const event = value ? this.inputDown : this.inputUp, prior = structuredClone(this._keyState), actions = InputHandler.defaultBindingsReversed.get(e.key);
     if (!this.currentStateOnly && !value) {
