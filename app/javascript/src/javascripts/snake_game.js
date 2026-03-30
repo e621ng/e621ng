@@ -1960,7 +1960,8 @@ class SnakeRenderer {
     this.draw({ engine: this.engine });
   }
   endGame(won) {
-    alert(`Game over: ${won ? "You Won!" : "Sorry, you lost!"}`);
+    // nothing
+    // alert(`Game over: ${won ? "You Won!" : "Sorry, you lost!"}`);
   }
   renderPausedOverlay() {
     this.wrapper.fillSquareFull(0, 0, this.outputSquareWidth, { lineWidth: 2, fillStyle: "rgba(0, 0, 0, .5)" });
