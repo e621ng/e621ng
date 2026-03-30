@@ -42,6 +42,24 @@ class SessionLoaderTest < ActiveSupport::TestCase
       end
     end
 
+    context "with a malformed request body" do
+      setup do
+        @parse_error = ActionDispatch::Http::Parameters::ParseError.new(StandardError.new("invalid JSON"))
+      end
+
+      should "not raise and fall back to empty params" do
+        @request.stubs(:parameters).raises(@parse_error)
+        loader = SessionLoader.new(@request)
+        assert_equal({}, loader.params)
+      end
+
+      should "treat has_api_authentication? as false" do
+        @request.stubs(:parameters).raises(@parse_error)
+        loader = SessionLoader.new(@request)
+        assert_equal(false, loader.has_api_authentication?)
+      end
+    end
+
     context "authentication with invalid UTF-8" do
       should "reject Basic Auth with invalid UTF-8 bytes" do
         # Create invalid UTF-8 sequence and encode it

@@ -5,29 +5,20 @@ class SearchTrendHourliesController < ApplicationController
   before_action :admin_only
 
   def index
-    @start_time = if params[:start_time].present?
-                    begin
-                      Time.parse(params[:start_time])
-                    rescue StandardError
-                      48.hours.ago
-                    end
-                  else
-                    48.hours.ago
-                  end
+    @hour = if params[:hour].present?
+              begin
+                Time.parse(params[:hour]).utc.beginning_of_hour
+              rescue StandardError
+                Time.now.utc.beginning_of_hour
+              end
+            else
+              Time.now.utc.beginning_of_hour
+            end
 
-    @end_time = if params[:end_time].present?
-                  begin
-                    Time.parse(params[:end_time])
-                  rescue StandardError
-                    Time.current
-                  end
-                else
-                  Time.current
-                end
+    @has_next_hour = @hour < Time.now.utc.beginning_of_hour
 
-    @hourlies = SearchTrendHourly.where(hour: @start_time..@end_time)
+    @hourlies = SearchTrendHourly.for_hour(@hour)
                                  .search(hourly_params)
-                                 .order(hour: :desc, count: :desc)
                                  .paginate(params[:page], limit: params[:limit])
 
     @count_offset = (@hourlies.current_page - 1) * @hourlies.records_per_page
@@ -41,7 +32,7 @@ class SearchTrendHourliesController < ApplicationController
   private
 
   def hourly_params
-    permitted_params = %i[start_time end_time name_matches]
-    params.fetch(:search_trend_hourlies, {}).permit(permitted_params)
+    permitted_params = %i[name_matches]
+    params.fetch(:search, {}).permit(permitted_params)
   end
 end

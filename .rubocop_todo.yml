@@ -756,7 +756,6 @@ Naming/VariableName:
 # AllowedIdentifiers: capture3, iso8601, rfc1123_date, rfc822, rfc2822, rfc3339, x86_64
 Naming/VariableNumber:
   Exclude:
-    - 'app/controllers/application_controller.rb'
     - 'app/controllers/maintenance/user/email_notifications_controller.rb'
     - 'test/functional/dmails_controller_test.rb'
     - 'test/functional/note_versions_controller_test.rb'

@@ -57,7 +57,8 @@
   }
 }
 
-body.c-search-trends.a-index {
+body.c-search-trends.a-index,
+body.c-search-trend-hourlies.a-index {
   .search-trend-container {
     display: flex;
     flex-flow: column;
