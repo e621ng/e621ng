@@ -39,7 +39,7 @@ class SearchTrendsController < ApplicationController
 
     respond_to do |format|
       format.html do
-        # @hourlies = SearchTrendHourly.where(tag: @tags).order(hour: :desc).limit(50)
+        @hourlies = SearchTrendHourly.where(tag: @tags).order(hour: :desc).limit(50)
       end
       format.json do
         @trends = SearchTrend.for_graph(@tags)
