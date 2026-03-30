@@ -188,6 +188,7 @@ function rootInit () {
   document.body.appendChild(container);
 
   /** @type {HTMLElement} **/ let lastEngineStats;
+  let keydownShellToggle;
   function initialize (cfg) {
     if (lastEngineStats)
       lastEngineStats.remove();
@@ -248,6 +249,15 @@ function rootInit () {
     r.engine.onGamePaused.add(toggleOverlay);
     r.engine.onGameResumed.add(toggleOverlay);
     canvasShell.onclick = shellClicked;
+    if (keydownShellToggle)
+      canvas.removeEventListener("keydown", keydownShellToggle);
+    keydownShellToggle = (e) => {
+      if (e.key.toLowerCase() !== " ")
+        return;
+      e.preventDefault();
+      shellClicked();
+    };
+    canvas.addEventListener("keydown", keydownShellToggle);
     canvas.addEventListener("blur", triggerPause);
 
     lastEngineStats = r.engine.renderStats();

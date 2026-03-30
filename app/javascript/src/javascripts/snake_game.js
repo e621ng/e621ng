@@ -1944,15 +1944,6 @@ class SnakeRenderer {
         this.renderPausedOverlay();
     });
     this.engine.onGameResumed.add((_e) => this.draw(_e));
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "p") {
-        if (this.engine.isGamePaused) {
-          this.engine.resumeGame();
-        } else {
-          this.engine.pauseGame();
-        }
-      }
-    });
     this._wasInitialized = true;
   }
   startGame() {
