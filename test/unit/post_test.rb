@@ -2064,13 +2064,11 @@ class PostTest < ActiveSupport::TestCase
           @post1.undelete!
         end
         # final posts ordering: active, flag2, active, delete2+flag1, delete1, active, active
-        # TODO: fix current issues only showing in tests:
-        # 2. deletions are seen as flags even when `is_deletion:false` is specified.
       end
 
       should "order by flag creation" do
         untouched = [@post7, @post5, @post3, @post2, @post1] # Posts that shouldn't be effected by ordering
-        ordered = [@post4, @post6] # Posts that should be ordered by flag creation time
+        ordered = [@post6, @post4] # Posts that should be ordered by flag creation time
         assert_tag_match(ordered + untouched, "status:any order:flagged")
         assert_tag_match(ordered + untouched, "status:any order:flagged_desc")
         assert_tag_match(ordered.reverse + untouched.reverse, "status:any -order:flagged")
