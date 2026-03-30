@@ -1544,16 +1544,16 @@ class PostTest < ActiveSupport::TestCase
 
     should "return posts for the age:<1minute tag when the user is in Pacific time zone" do
       post = create(:post)
-      Time.zone = "Pacific Time (US & Canada)"
-      assert_tag_match([post], "age:<1minute")
-      Time.zone = "Eastern Time (US & Canada)"
+      Time.use_zone("Pacific Time (US & Canada)") do
+        assert_tag_match([post], "age:<1minute")
+      end
     end
 
     should "return posts for the age:<1minute tag when the user is in Tokyo time zone" do
       post = create(:post)
-      Time.zone = "Asia/Tokyo"
-      assert_tag_match([post], "age:<1minute")
-      Time.zone = "Eastern Time (US & Canada)"
+      Time.use_zone("Asia/Tokyo") do
+        assert_tag_match([post], "age:<1minute")
+      end
     end
 
     should "return posts for the ' tag" do

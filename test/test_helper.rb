@@ -11,6 +11,22 @@ require "shoulda-context"
 require "shoulda-matchers"
 require "webmock/minitest"
 
+# shoulda-context 2.0.0 patches format_rerun_snippet using bare `executable`,
+# which no longer exists as an instance method in Rails 8.1 (it became a class
+# accessor). Re-patch it here with the correct reference.
+Rails::TestUnitReporter.class_eval do
+  def format_rerun_snippet(result)
+    location, line =
+      if result.respond_to?(:source_location)
+        result.source_location
+      else
+        result.method(result.name).source_location
+      end
+
+    "#{self.class.executable} #{relative_path_for(location)}:#{line}"
+  end
+end
+
 require_relative "test_helpers/source_test_helper"
 
 require "sidekiq/testing"
@@ -71,6 +87,7 @@ class ActiveSupport::TestCase
     FileUtils.rm_rf("#{Rails.root}/tmp/test-storage2")
     Cache.clear
     RequestStore.clear!
+    assert_equal Rails.application.config.time_zone, Time.zone.name, "Time.zone was not restored to the default time zone after this test — check for Time.zone= calls without Time.use_zone"
   end
 
   def as(user, ip_addr = "127.0.0.1", &)

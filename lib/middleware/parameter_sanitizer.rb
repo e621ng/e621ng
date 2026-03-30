@@ -14,13 +14,31 @@ module Middleware
       env["REQUEST_PATH"] = sanitize_string(env["REQUEST_PATH"]) if env["REQUEST_PATH"].present?
       env["HTTP_COOKIE"] = sanitize_string(env["HTTP_COOKIE"]) if env["HTTP_COOKIE"].present?
 
-      # For POST/PUT requests, sanitize the request body if it's form data
-      if env["CONTENT_TYPE"]&.include?("application/x-www-form-urlencoded")
+      content_type = env["CONTENT_TYPE"].to_s
+
+      if content_type.include?("application/x-www-form-urlencoded")
         body = env["rack.input"].read
         if body.present?
           sanitized_body = sanitize_string(body)
           env["rack.input"] = StringIO.new(sanitized_body)
           env["CONTENT_LENGTH"] = sanitized_body.bytesize.to_s
+        end
+      elsif content_type.include?("application/json") && env["rack.input"]
+        body = env["rack.input"].read
+        env["rack.input"] = StringIO.new(body)
+        if body.present?
+          begin
+            JSON.parse(body)
+          rescue JSON::ParserError
+            headers = {
+              "Content-Type" => "application/json",
+              "Access-Control-Allow-Origin" => "*",
+              "Access-Control-Allow-Headers" => "Authorization, User-Agent",
+              "Access-Control-Allow-Methods" => "POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS",
+            }
+            body = { success: false, message: "Invalid JSON body", code: nil }.to_json
+            return [400, headers, [body]]
+          end
         end
       end
 
