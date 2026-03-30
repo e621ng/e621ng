@@ -1606,7 +1606,7 @@ class SnakeEngine {
   _baseMillisecondsPerUpdate;
   static debugLevel = DebugLevel.LOG;
   static DYNAMIC_TICK_CAP_MS = 100;
-  static DYNAMIC_TICK_GROWTH_SPAN = 10;
+  static DYNAMIC_TICK_GROWTH_SPAN = 15;
   onGameOver = new SnakeEvent;
   onGameLost = new SnakeEvent;
   onGameWon = new SnakeEvent;
