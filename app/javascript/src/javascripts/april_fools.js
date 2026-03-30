@@ -2,6 +2,16 @@ import { EngineConfig, SnakeRenderer, html } from "./snake_game";
 import LStorage from "./utility/storage";
 
 function rootInit () {
+  // Escape hatch for people who hate fun.
+  if (!LStorage.Site.Events) return;
+
+  // Turn on the snake game on midnight of April 1st (Arizona time), turn it off at next midnight.
+  const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Phoenix"}));
+  const isAprilFools = now.getMonth() === 3 && now.getDate() === 1;
+  const hasStaffBypass = LStorage.get("e6.eventsBypass") === "true";
+  if (!isAprilFools && !hasStaffBypass) return;
+
+  // Notify people about the theme
   if (!/^\/?$/.test(window.location.pathname)) {
     if (localStorage.getItem("e6.latestTheme") !== "snake") {
       if (/^\/static\/theme\/?$/.test(window.location.pathname)) {
@@ -11,13 +21,7 @@ function rootInit () {
       }
     }
   }
-  if (!LStorage.Site.Events) {
-    // Does force people who actually did manually select the new embellishment out of it, but whatever, they're no fun anyways.
-    if (LStorage.Theme.Extra === "scales" && document.body.getAttribute("data-th-extra") === "scales") {
-      document.body.setAttribute("data-th-extra", "hexagon");
-    }
-    return;
-  }
+
   const touchControls = html`
   <div id="touch-container">
     <span id="up">▲</span>
