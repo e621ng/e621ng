@@ -11,11 +11,15 @@ html:has(> body > #snake-pane) {
 #snake-pane {
   position: absolute;
   top: var(--mobile-nav-height);
-  width: calc(100vw - 1rem);
+  right: -368px; // 350 + 2*8 (margin) + 2*1 (border)
   z-index: 500;
+
+  width: 100%;
+  max-width: 350px;
+
   box-sizing: border-box;
   padding: 0.5rem;
-  margin: 0.5rem;
+  margin: 8px; // deliberate
 
   background-color: var(--color-section); // background-color: var(--color-foreground);
   border: 1px solid var(--color-foreground);
@@ -26,8 +30,6 @@ html:has(> body > #snake-pane) {
     0 0 0.5rem -0.25rem var(--color-background);
 
   transition: all var(--pane-anim-time) var(--pane-anim-function);
-  right: -350px;
-  max-width: 350px;
 
   &>#snake-tab {
     position: absolute;
