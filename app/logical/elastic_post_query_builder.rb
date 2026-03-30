@@ -134,6 +134,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     "tagcount_asc" => [{ tag_count: :asc }],
     "comment_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "comment_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
+    # "random" => [{ _score: :desc }],
     "flagged" => [{ flagged: :desc }, { flagged_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "flagged_asc" => [{ flagged_at: { order: :asc, missing: :_last } }, { id: :asc }],
     "deleted" => [{ deleted: :desc }, { deleted_at: { order: :desc, missing: :_last } }, { id: :desc }],
