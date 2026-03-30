@@ -189,6 +189,7 @@ function rootInit () {
 
   /** @type {HTMLElement} **/ let lastEngineStats;
   let keydownShellToggle;
+  let shouldAutoStartNextGame = false;
   function initialize (cfg) {
     if (lastEngineStats)
       lastEngineStats.remove();
@@ -217,6 +218,7 @@ function rootInit () {
       },
       shellClicked = () => {
         if (r.engine.isGameOver) {
+          shouldAutoStartNextGame = true;
           hasStarted = false;
           state.form.requestSubmit();
           playButton.innerText = "▶";
@@ -264,6 +266,12 @@ function rootInit () {
     canvas.insertAdjacentElement("afterend", lastEngineStats);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     r.initGame().then(() => {
+      if (shouldAutoStartNextGame) {
+        shouldAutoStartNextGame = false;
+        hasStarted = true;
+        r.startGame();
+        canvas.focus();
+      }
       toggleOverlay();
       r.draw({ engine: r.engine });
     }).catch((error) => {
