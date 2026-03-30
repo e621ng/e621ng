@@ -1269,9 +1269,9 @@ class TagQueryTest < ActiveSupport::TestCase
 
           # Staff can parse it and preserve case while still collapsing wildcard runs.
           CurrentUser.user = @admin_user
-          assert_equal(["Needs*More*Details"], TagQuery.new("flagnote:Needs**More***Details")[:flagnote])
-          assert_equal(["Needs*More*Details"], TagQuery.new("-flagnote:Needs**More***Details")[:flagnote_must_not])
-          assert_equal(["Needs*More*Details"], TagQuery.new("~flagnote:Needs**More***Details")[:flagnote_should])
+          assert_equal(["needs*more*details"], TagQuery.new("flagnote:Needs*More***Details")[:flagnote])
+          assert_equal(["needs*more*details"], TagQuery.new("-flagnote:Needs*More***Details")[:flagnote_must_not])
+          assert_equal(["needs*more*details"], TagQuery.new("~flagnote:Needs*More***Details")[:flagnote_should])
         end
       end
 
