@@ -115,7 +115,6 @@ class User < ApplicationRecord
   after_create :create_user_status
   before_update :encrypt_password_on_update
   after_save :update_cache
-  after_create :create_user_status
   validates :flair_color_hex, format: { with: /\A#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\z/ }, allow_blank: true
 
   has_many :api_keys, dependent: :destroy
@@ -739,7 +738,8 @@ class User < ApplicationRecord
         id created_at name level base_upload_limit
         post_upload_count post_update_count note_update_count
         is_banned can_approve_posts can_upload_free
-        level_string avatar_id is_verified? flair_color      ]
+        level_string avatar_id is_verified? flair_color      
+      ]
 
       if id == CurrentUser.user.id
         boolean_attributes = %i[
