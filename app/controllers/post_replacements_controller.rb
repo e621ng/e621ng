@@ -44,7 +44,10 @@ class PostReplacementsController < ApplicationController
         end
       end
 
-      @post_replacement.approve!(penalize_current_uploader: CurrentUser.id != @post.uploader_id)
+      @post_replacement.approve!(
+        penalize_current_uploader: CurrentUser.id != @post.uploader_id,
+        credit_replacer: !@post_replacement.upload_as_silent?,
+      )
     end
 
     respond_to do |format|
@@ -148,7 +151,7 @@ class PostReplacementsController < ApplicationController
   end
 
   def create_params
-    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source, :as_pending)
+    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source, :as_pending, :as_silent)
   end
 
   def ensure_uploads_enabled
