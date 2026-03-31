@@ -73,6 +73,25 @@ Utility.regexp_escape = function (string) {
   return string.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
+/**
+ * An analogue for Rails' `blank?` method.
+ * @param {*} o The object to check.
+ * @returns `true` for `undefined`, `string`s that are empty or contain only whitespace, and
+ * `object`s that are falsy, have no `length` property, or a `length` property with a value of `0`.
+ */
+Utility.blank = function (o) {
+  switch (typeof o) {
+    case "undefined":
+      return true;
+    case "string":
+      return o.trim().length <= 0;
+    case "object":
+      return !o || !o.length;
+    default:
+      return false;
+  }
+};
+
 $.fn.selectEnd = function () {
   return this.each(function () {
     this.focus();

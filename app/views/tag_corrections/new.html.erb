@@ -12,6 +12,15 @@
     </div>
 
     <% if CurrentUser.user.is_bd_staff? %>
+      <% if @true_post_ids.present? %>
+        <div style="margin-bottom: 1em;">
+          <b>Warning:</b> Stuck posts may be present.<br />
+          <pre>
+            <%= @true_post_ids %>
+          </pre>
+        </div>
+      <% end %>
+
       <div style="margin-bottom: 1em;">
         <ul>
           <li><strong>Real count:</strong> <%= link_to(@true_count, posts_path(tags: "#{@tag.name} status:any")) %>

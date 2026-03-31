@@ -217,11 +217,28 @@ class Ticket < ApplicationRecord
 
     def validate_creator_is_not_limited
       return if creator == User.system
-      allowed = creator.can_ticket_with_reason
-      if allowed != true
-        errors.add(:creator, User.throttle_reason(allowed))
+
+      # Hourly limit
+      hourly_allowed = creator.can_ticket_hourly_with_reason
+      if hourly_allowed != true
+        errors.add(:creator, User.throttle_reason(hourly_allowed, "hourly"))
         return false
       end
+
+      # Daily limit
+      daily_allowed = creator.can_ticket_daily_with_reason
+      if daily_allowed != true
+        errors.add(:creator, User.throttle_reason(daily_allowed, "daily"))
+        return false
+      end
+
+      # Active limit
+      active_allowed = creator.can_ticket_active_with_reason
+      if active_allowed != true
+        errors.add(:creator, User.throttle_reason(active_allowed, "active"))
+        return false
+      end
+
       true
     end
 

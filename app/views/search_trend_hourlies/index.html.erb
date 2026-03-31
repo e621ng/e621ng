@@ -1,0 +1,67 @@
+<% content_for(:page_title, "Hourly Search Trends") %>
+
+<div id="c-search-trend-hourlies"><div id="a-index">
+  <h1>Hourly Search Trends</h1>
+
+  <div class="search-trend-nav">
+    <a href="<%= url_for(request.query_parameters.except("hour").merge(hour: (@hour - 1.hour).iso8601)) %>"><%= svg_icon(:chevron_left) %> Previous</a>
+    <strong><%= @hour.strftime("%Y-%m-%d %H:%M UTC") %></strong>
+    <% if @has_next_hour %>
+      <a href="<%= url_for(request.query_parameters.except("hour").merge(hour: (@hour + 1.hour).iso8601)) %>">Next <%= svg_icon(:chevron_right) %></a>
+    <% else %>
+      <span class="disabled">Next <%= svg_icon(:chevron_right) %></span>
+    <% end %>
+  </div>
+
+  <%= render "search" %>
+
+  <% if @hourlies.any? %>
+    <table class="striped">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Tag</th>
+          <th>Hour</th>
+          <th>Count</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @hourlies.each_with_index do |hourly, index| %>
+          <tr>
+            <td><%= @count_offset + index + 1 %></td>
+            <td>
+              <%= link_to hourly.tag, track_search_trends_path(tag: hourly.tag), class: "search-tag" %>
+            </td>
+            <td><%= time_tag hourly.hour, hourly.hour %></td>
+            <td><%= number_with_delimiter hourly.count %></td>
+            <td>
+              <% if hourly.processed? %>
+                <span class="status-processed">Processed</span>
+              <% else %>
+                <span class="status-unprocessed">Unprocessed</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render PaginatorComponent.new(records: @hourlies) %>
+  <% else %>
+    <p>No hourly trends found for this hour.</p>
+  <% end %>
+</div></div>
+
+<style>
+  .status-processed {
+    color: #0c5928;
+    font-weight: bold;
+  }
+  .status-unprocessed {
+    color: #8b4513;
+    font-weight: bold;
+  }
+</style>
+
+<%= render "secondary_links" %>

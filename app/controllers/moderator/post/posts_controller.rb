@@ -18,15 +18,28 @@ module Moderator
         @dnp = @post.avoid_posting_artists
       end
 
+      # Deletes the given post
+      # ### Parameters
+      # * `dmail` [`String | nil`]: optional DMail body/template. If present, a DMail notifying the
+      # uploader of the post's deletion will be sent. Does replace supported variables.
       def delete
         @post = ::Post.find(params[:id])
 
-        if params[:reason].blank? && (@post.pending_flag.nil? || params[:from_flag].blank?)
-          flash[:notice] = "You must provide a reason for the deletion"
-          return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
-        end
-
         if params[:commit] == "Delete"
+          # Needs to be in here to prevent `Cancel` from getting rejected w/ empty reason.
+          # NOTE: Kinda redundant, as it's checked in `Post.delete!`, but wouldn't surface the error to the user otherwise.
+          if params[:reason].blank?
+            if @post.pending_flag.nil? || params[:from_flag].blank?
+              flash[:notice] = "You must provide a reason for the deletion"
+              return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
+            elsif @post.pending_flag.reason =~ /uploading_guidelines/
+              flash[:notice] = "You must directly provide a reason for deletions due to an uploading guidelines flag."
+              return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
+            end
+            # Pre-replace the reason so it's not found later
+            params[:dmail] = params[:dmail].presence&.gsub("%REASON%", @post.pending_flag.reason)
+          end
+
           @post.delete!(params[:reason])
 
           # Transfer data to parent
@@ -40,6 +53,19 @@ module Moderator
             end
 
             @post.parent.save if params[:copy_tags].present? || params[:copy_sources].present? || params[:move_favorites].present?
+          end
+
+          if params[:dmail].present?
+            Dmail.create_automated({
+              to_id: @post.uploader_id,
+              title: "Post ##{params[:id]} has been deleted",
+              body: params[:dmail]
+                .gsub("%POST_ID%", params[:id].to_s)
+                .gsub("%STAFF_NAME%", CurrentUser.name)
+                .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+                .gsub("%UPLOADER_ID%", @post.uploader_id.to_s)
+                .gsub("%REASON%", params[:reason].to_s),
+            })
           end
         end
 

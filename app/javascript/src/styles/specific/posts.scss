@@ -13,7 +13,7 @@
   }
 }
 
-div#c-posts, div#c-uploads {
+div#c-posts, div#c-uploads, div#c-post-replacements {
   .source-link {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -22,7 +22,7 @@ div#c-posts, div#c-uploads {
 
     @include window-larger-than(50rem) {
       &:hover {
-        a { background: themed("color-background"); }
+        a, s { background: themed("color-background"); }
         z-index: 2;
         overflow: visible;
         position: relative;

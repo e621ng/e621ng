@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
   namespace :admin do
+    resources :automod_rules, only: %i[index new create edit update destroy]
     resources :users, only: %i[edit update] do
       member do
         get :edit_blacklist
@@ -46,6 +47,7 @@ Rails.application.routes.draw do
   resources :edit_histories
   namespace :moderator do
     resource :dashboard, only: %i[show]
+    resource :post_diff, only: %i[show]
     resources :ip_addrs, only: %i[index] do
       collection do
         get :export
@@ -73,6 +75,17 @@ Rails.application.routes.draw do
     end
   end
   resources :popular, only: %i[index]
+  resources :search_trends, only: %i[index] do
+    collection do
+      get :rising
+      get :settings
+      post :update_settings
+      post :clear_cache
+      get :track
+      delete :purge
+    end
+  end
+  resources :search_trend_hourlies, only: %i[index]
   namespace :maintenance do
     namespace :user do
       resource :count_fixes, only: %i[new create]
@@ -208,6 +221,7 @@ Rails.application.routes.draw do
     end
   end
   resources :email_blacklists, only: %i[new create destroy index]
+  resources :search_trend_blacklists, only: %i[index new create edit update destroy]
   resource :iqdb_queries, only: %i[show] do
     collection do
       post :show
@@ -364,8 +378,8 @@ Rails.application.routes.draw do
   end
   resources :blips do
     member do
-      post :hide
-      post :unhide
+      post :delete
+      post :undelete
       post :warning
     end
   end
