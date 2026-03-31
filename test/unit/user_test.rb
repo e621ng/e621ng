@@ -399,6 +399,23 @@ class UserTest < ActiveSupport::TestCase
         assert_nil(@user.flair_color)
         assert_nil(@user.flair_color_hex)
       end
+
+      should "not accept invalid hex strings" do
+        ["gghhii", "#12345", "#xyz", "1234567"].each do |invalid_hex|
+          @user.flair_color_hex = invalid_hex
+          assert_not_equal(invalid_hex, @user.flair_color_hex, "Invalid hex string should not be accepted: #{invalid_hex}")
+        end
+      end
+
+      should "fallback if no value is set" do
+        @user.flair_color_hex = nil
+        fallback_color = @user.user_color
+        assert_not_nil(fallback_color, "Expected a fallback color when flair_color_hex is nil")
+        assert_match(/\A#?[0-9a-fA-F]{6}\z/i, fallback_color, "Expected fallback color to be a hex string")
+        # assert the fallback is deterministic based on the user id
+        fallback_color_call = @user.user_color
+        assert_equal(fallback_color, fallback_color_call, "Expected fallback color to be consistent across calls")
+      end
     end
 
     context "when fixing counts" do

@@ -115,8 +115,7 @@ class User < ApplicationRecord
   after_save :update_cache
   #after_create :notify_sock_puppets
   after_create :create_user_status
-  validates :flair_color_hex, format: { with: /\A#?(?:[0-9a-fA-F]{6})\z/, allow_blank: true, if: -> { flair_color.present? || flair_color_hex.present? } }
-
+  validates :flair_color_hex, format: { with: /\A#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\z/ }, allow_blank: true
   has_many :api_keys, dependent: :destroy
   has_one :dmail_filter
   has_one :user_status
@@ -1067,6 +1066,9 @@ class User < ApplicationRecord
     # If a flair_color (stored as an integer) is set, return it as a hex string (#rrggbb).
     return flair_color_hex if flair_color.present?
 
+    # Since this is only called for logged in users, the id cannot be nil.
+    # Just to be safe though, in case a future method calls this on an anonymous user
+    return "#808080" if id.nil?
     # Fallback: return a hex color code based on the user's ID.
     "##{Digest::MD5.hexdigest(id.to_s)[-6..]}"
   end
