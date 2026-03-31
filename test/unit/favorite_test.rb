@@ -119,7 +119,7 @@ class FavoriteTest < ActiveSupport::TestCase
       assert @p1.favorited_by?(@user1.id)
       assert_equal(1, Favorite.count)
       assert_equal(1002, @p1.fav_count)
-      assert_includes @p1.fav_string, "fav:#{@user1.id}"
+      assert_match(/(?:\A| )fav:#{@user1.id}(?:\Z| )/, @p1.fav_string)
 
       # Removing the favorite
       FavoriteManager.remove!(user: @user1, post: @p1)
@@ -128,11 +128,11 @@ class FavoriteTest < ActiveSupport::TestCase
       assert_not @p1.favorited_by?(@user1.id)
       assert_equal(0, Favorite.count)
       assert_equal(1001, @p1.fav_count)
-      assert_not_includes @p1.fav_string, "fav:#{@user1.id}"
+      assert_no_match(/(?:\A| )fav:#{@user1.id}(?:\Z| )/, @p1.fav_string)
 
       # Verify original favorites
-      assert_includes @p1.fav_string, "fav:#{start_id}"
-      assert_includes @p1.fav_string, "fav:#{start_id + 1000}"
+      assert_match(/(?:\A| )fav:#{start_id}(?:\Z| )/, @p1.fav_string)
+      assert_match(/(?:\A| )fav:#{start_id + 1000}(?:\Z| )/, @p1.fav_string)
     end
 
     should "handle hybrid approach for posts with few favorites" do
@@ -151,7 +151,7 @@ class FavoriteTest < ActiveSupport::TestCase
       assert @p1.favorited_by?(@user1.id)
       assert_equal(1, Favorite.count)
       assert_equal(501, @p1.fav_count)
-      assert_includes @p1.fav_string, "fav:#{@user1.id}"
+      assert_match(/(?:\A| )fav:#{@user1.id}(?:\Z| )/, @p1.fav_string)
 
       # Removing the favorite
       FavoriteManager.remove!(user: @user1, post: @p1)
@@ -160,11 +160,11 @@ class FavoriteTest < ActiveSupport::TestCase
       assert_not @p1.favorited_by?(@user1.id)
       assert_equal(0, Favorite.count)
       assert_equal(500, @p1.fav_count)
-      assert_not_includes @p1.fav_string, "fav:#{@user1.id}"
+      assert_no_match(/(?:\A| )fav:#{@user1.id}(?:\Z| )/, @p1.fav_string)
 
       # Verify original favorites are still there
-      assert_includes @p1.fav_string, "fav:#{start_id}"
-      assert_includes @p1.fav_string, "fav:#{start_id + 499}"
+      assert_match(/(?:\A| )fav:#{start_id}(?:\Z| )/, @p1.fav_string)
+      assert_match(/(?:\A| )fav:#{start_id + 499}(?:\Z| )/, @p1.fav_string)
     end
   end
 end

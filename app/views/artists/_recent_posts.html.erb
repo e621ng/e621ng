@@ -1,0 +1,12 @@
+<div class="recent-posts">
+  <h1>Recent Posts (<%= link_to "view all", posts_path(tags: @artist.name) %>)</h1>
+  <%= render "posts/partials/common/inline_blacklist" %>
+
+  <section class="posts-container" style="margin: 1em 0;">
+    <% if @post_set.posts.any? %>
+      <%= render(PostThumbnailComponent.with_collection(@post_set.posts, tags: @artist.name)) %>
+    <% else %>
+      <p class="no-results">Nobody here but us chickens!</p>
+    <% end %>
+  </section>
+</div>

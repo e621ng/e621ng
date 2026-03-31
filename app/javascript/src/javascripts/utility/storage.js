@@ -33,6 +33,10 @@ LStorage.isAvailable = function () {
   return true;
 };
 
+LStorage.has = function (name) {
+  return localStorage.getItem(name) !== null;
+};
+
 // Content that does not belong anywhere else
 LStorage.Site = {
   /** @returns {number} Currently displayed Mascot ID, or 0 if none is selected */
@@ -43,6 +47,17 @@ LStorage.Site = {
 
   /** @returns {boolean} True to enable events, false to opt out */
   Events: ["e6.events", true],
+
+  /** @returns {object} User avatar menu statistics */
+  AvatarMenu: [
+    "e6.avatar.menu", {
+      has_uploads: false,
+      has_favorites: false,
+      has_sets: false,
+      has_comments: false,
+      has_forums: false,
+    },
+  ],
 };
 StorageUtils.bootstrapMany(LStorage.Site);
 
@@ -55,7 +70,7 @@ LStorage.Theme = {
   Main: ["theme", "hexagon"],
 
   /** @returns {string} Extra theme / seasonal decotrations */
-  Extra: ["theme-extra", "hexagon"],
+  Extra: ["theme-extra", "scales"], // TODO: RESTORE TO "hexagon" AFTER APRIL FOOLS
 
   /** @returns {string} Colorblind-friendly palette (default / deut / trit) */
   Palette: ["theme-palette", "default"],

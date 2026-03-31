@@ -31,25 +31,29 @@
 @import "common/navigation.scss";
 @import "common/news.scss";
 @import "common/notices.scss";
-@import "common/paginator.scss";
 @import "common/post_search.scss";
 @import "common/scores";
 @import "common/simple_form.scss";
 @import "common/spoiler.scss";
 @import "common/tables.scss";
 @import "common/tags.scss";
-@import "common/thumbnails.scss";
 @import "common/user_styles.scss";
 @import "common/voting.scss";
+
+@import "components/paginator_component.scss";
+@import "components/post_thumbnail_component.scss";
 
 @import "views/application/application";
 @import "views/artists/artists";
 @import "views/help/help";
 @import "views/maintenance/maintenance";
 @import "views/mascots/mascots";
+@import "views/moderator/moderator";
 @import "views/pools/pools";
 @import "views/post_flags/post_flags";
+@import "views/post_replacements/post_replacements";
 @import "views/posts/posts";
+@import "views/search_trends/search_trends";
 @import "views/static/static";
 @import "views/tickets/tickets";
 @import "views/uploads/uploads";
@@ -68,7 +72,6 @@
 @import "specific/error.scss";
 @import "specific/favorites.scss";
 @import "specific/forum.scss";
-@import "specific/iqdb_queries.scss";
 @import "specific/keyboard_shortcuts.scss";
 @import "specific/lockdown.scss";
 @import "specific/meta_searches.scss";
@@ -99,3 +102,5 @@
 @import "specific/wiki_page_versions.scss";
 
 @import "common/z_responsive.scss";
+
+@import "snake.scss";

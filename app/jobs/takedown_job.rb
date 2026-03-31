@@ -8,6 +8,7 @@ class TakedownJob < ApplicationJob
     [args[0]]
   end
 
+  # IDEA: Does not trigger a DMail notification to uploaders; should one be made for each unique uploader?
   def perform(id, approver, del_reason)
     @takedown = Takedown.find(id)
     @approver = User.find(approver)

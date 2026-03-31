@@ -6,6 +6,7 @@ class ModAction < ApplicationRecord
   validates :creator_id, presence: true
 
   KnownActions = {
+    admin_user_delete: { user_id: :integer },
     artist_page_rename: { old_name: :string, new_name: :string },
     artist_page_lock: { artist_page: :string },
     artist_page_unlock: { artist_page: :string },
@@ -48,6 +49,10 @@ class ModAction < ApplicationRecord
     help_update: { name: :string, wiki_page: :string },
     ip_ban_create: { ip_addr: :string, reason: :string },
     ip_ban_delete: { ip_addr: :string, reason: :string },
+    search_trend_blacklist_create: { tag: :string, reason: :string },
+    search_trend_blacklist_update: { tag: :string, reason: :string },
+    search_trend_blacklist_delete: { tag: :string, reason: :string },
+    search_trend_blacklist_purge: { tag: :string, reason: :string, deleted_count: :integer },
     mascot_create: { id: :integer },
     mascot_update: { id: :integer },
     mascot_delete: { id: :integer },

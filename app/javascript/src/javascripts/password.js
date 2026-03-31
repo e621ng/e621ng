@@ -1,7 +1,7 @@
-import zxcvbn from "zxcvbn";
 import Page from "./utility/page";
 
 let Password = {};
+let zxcvbn = null;
 
 Password.init_validation = function () {
   if (Page.matches("users", "new") || Page.matches("users", "create"))
@@ -14,7 +14,12 @@ Password.init_validation = function () {
     Password.bootstrap_input($("#user_password"));
 };
 
-Password.bootstrap_input = function ($password, $inputs = []) {
+Password.bootstrap_input = async function ($password, $inputs = []) {
+  // Lazy load zxcvbn library only when needed (saves ~400KB in main bundle)
+  if (!zxcvbn) {
+    const module = await import("zxcvbn");
+    zxcvbn = module.default;
+  }
   // Set up the UI
   $password.parent().addClass("password-input");
 
