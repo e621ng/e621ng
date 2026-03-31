@@ -40,6 +40,10 @@ module Moderator
             params[:dmail] = params[:dmail].presence&.gsub("%REASON%", @post.pending_flag.reason)
           end
 
+          if @post.is_deleted?
+            flash[:notice] = "Post ##{@post.id} is already deleted"
+            return redirect_to(post_path(@post, q: params[:q].presence))
+          end
           @post.delete!(params[:reason])
 
           # Transfer data to parent
