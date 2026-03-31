@@ -1349,8 +1349,8 @@ class TagQuery
 
       when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
         add_to_query(type, :fav_ids) do
-          if g2.downcase == "me" && CurrentUser.user
-            favuser = CurrentUser.user
+          if g2.downcase == "me"
+            favuser = CurrentUser.user.is_member? ? CurrentUser.user : nil
           else
             favuser = User.find_by_name_or_id(g2) # rubocop:disable Rails/DynamicFindBy
           end
