@@ -38,7 +38,7 @@
   </td>
   <td>
     <dt>Version Uploader</dt>
-    <dd><%= link_to_user post_replacement.creator %><% if post_replacement.post.uploader_linked_artists.any? %>
+    <dd><%= link_to_user post_replacement.creator %><% if post_replacement.uploader_linked_artists.any? %>
       <%= svg_icon(:chexagon, class: "chexagon", title: "The uploader is linked to one of the artist tags") %><% end %>
     </dd>
 
