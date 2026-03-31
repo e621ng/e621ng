@@ -1065,10 +1065,10 @@ class User < ApplicationRecord
   # Copied from UserNameValidator. Check back later how effective this was.
   # Users with invalid names may be automatically renamed in the future.
   def name_error
-    if name.length > 20
+    if name.length > 20 || name.length < 2
       "must be 2 to 20 characters long"
     elsif name !~ /\A[a-zA-Z0-9\-_~']+\z/
-      "must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"
+      "must contain only alphanumeric characters, hyphens, apostrophes, tildes and underscores"
     elsif name =~ /\A[_\-~']/
       "must not begin with a special character"
     elsif name =~ /_{2}|-{2}|~{2}|'{2}/
