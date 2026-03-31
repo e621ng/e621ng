@@ -43,8 +43,24 @@ PostReplacement.initialize_all = function () {
 
 PostReplacement.transfer = function (id) {
   const $row = $(`#replacement-${id}`);
-  const newPostId = prompt("Enter the new post ID to transfer this replacement to:");
+  const rawNewPostId = prompt("Enter the new post ID to transfer this replacement to:");
+  if (rawNewPostId === null) {
+    Utility.notice("No post ID specified. Transfer cancelled.");
+    return;
+  }
+  const newPostId = rawNewPostId.trim();
+  if (!newPostId || isNaN(Number(newPostId))) { // ensure it's a valid number
+    Utility.notice("Invalid post ID. Transfer cancelled.");
+    return;
+  }
   if (!newPostId) {
+    Utility.notice("No valid post ID found. Transfer cancelled.");
+    return;
+  }
+  const confirmed = confirm(
+    `Are you sure you want to transfer this replacement to post ID ${newPostId}?`,
+  );
+  if (!confirmed) {
     Utility.notice("Transfer cancelled.");
     return;
   }

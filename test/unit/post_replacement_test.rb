@@ -452,5 +452,22 @@ class PostReplacementTest < ActiveSupport::TestCase
       # The original backup should exist on the new post
       assert @post_alt.replacements.where(status: "original").exists?
     end
+
+    should "work on rejected replacements without resetting status" do
+      @replacement.reject!
+
+      assert_difference(-> { @post_alt.replacements.count }, 2) do
+        assert_difference(-> { @post.replacements.count }, -1) do
+          @replacement.transfer(@post_alt)
+        end
+      end
+
+      @replacement.reload
+
+      assert_equal @post_alt.id, @replacement.post_id
+      assert_equal "rejected", @replacement.status
+      assert_equal @post_alt.uploader_id, @replacement.uploader_on_approve.id
+      assert @post_alt.replacements.where(status: "original").exists?
+    end
   end
 end
