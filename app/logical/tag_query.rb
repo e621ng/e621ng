@@ -1406,7 +1406,8 @@ class TagQuery
       when "change", "-change", "~change" then add_to_query(type, :change_seq, ParseValue.range(g2))
 
       when "source", "-source", "~source"
-        add_to_query(type, :sources, g2, any_none_key: :source, wildcard: true) { "#{g2.first(MAX_SOURCE_WILDCARD_LENGTH)}*" }
+        truncated_source = "#{g2.first(MAX_SOURCE_WILDCARD_LENGTH)}*"
+        add_to_query(type, :sources, g2, any_none_key: :source, wildcard: true) { truncated_source }
 
       when "date", "-date", "~date" then add_to_query(type, :date, ParseValue.date_range(g2))
 
