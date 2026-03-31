@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
 class PostFavoritesController < ApplicationController
-  respond_to :html
+  respond_to :html, :json
 
   def index
     @post = Post.find(params[:post_id])
+
+    if @post.hide_favorites_list? && !CurrentUser.is_staff?
+      raise User::PrivilegeError, "Favorites list is hidden for this post"
+    end
 
     # Base query: users who favorited this post
     query = User.includes(:user_status)
@@ -23,5 +27,9 @@ class PostFavoritesController < ApplicationController
     paginate_options[:total_count] = @post.fav_count if @post.fav_count > 1000
 
     @users = query.paginate(params[:page], paginate_options)
+
+    respond_with(@users) do |format|
+      format.json { render json: UserMinimalBlueprint.render(@users) }
+    end
   end
 end

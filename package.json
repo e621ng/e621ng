@@ -4,7 +4,9 @@
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.2.1",
+    "@openpanel/web": "^1.2.0",
     "@rails/ujs": "^7.0.4",
+    "chart.js": "^4.5.1",
     "jquery": "^3.6.3",
     "sass": "^1.42.1",
     "vue": "^3.5.0",

@@ -541,6 +541,7 @@ class Post < ApplicationRecord
     def copy_sources_to_parent
       return unless parent_id.present?
       parent.source += "\n#{self.source}"
+      set_merge_edit_reason
     end
   end
 
@@ -840,13 +841,13 @@ class Post < ApplicationRecord
       tags << "flash" if is_flash?
       tags << "webm" if is_webm?
 
-      tags << "long_playtime" if is_video? && duration >= 30
-      tags << "short_playtime" if is_video? && duration < 30
-
       # TODO: Automatically add animated_* tags without re-testing them on every edit
       tags -= ["animated_gif"] unless is_gif?
       tags -= ["animated_png"] unless is_png?
       tags -= ["animated_webp"] unless is_webp?
+
+      tags << "long_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration >= 30
+      tags << "short_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration < 30
 
       tags
     end
@@ -1021,7 +1022,7 @@ class Post < ApplicationRecord
           self.is_note_locked = ($1 != "-") if CurrentUser.is_janitor?
 
         when /^(-?)locked:rating$/i
-          self.is_rating_locked = ($1 != "-") if CurrentUser.is_janitor?
+          self.is_rating_locked = ($1 != "-") if CurrentUser.is_privileged?
 
         when /^(-?)locked:status$/i
           self.is_status_locked = ($1 != "-") if CurrentUser.is_admin?
@@ -1082,6 +1083,7 @@ class Post < ApplicationRecord
     def copy_tags_to_parent
       return unless parent_id.present?
       parent.tag_string += " #{tag_string}"
+      set_merge_edit_reason
     end
 
     ## DB!
@@ -1123,8 +1125,20 @@ class Post < ApplicationRecord
     # Fetches the data for the artist tags to find any that have the linked artists matching the uploader
     # Sends a db request to look up the artist data.
     def uploader_linked_artists
-      tags = artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
-      @uploader_linked_artists ||= tags.map(&:name)
+      @uploader_linked_artists ||= begin
+        tags = artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
+        tags.map(&:name)
+      end
+    end
+
+    ## DB!
+    # Fetches ALL linked users for the post's artist tags and returns the user IDs.
+    # Sends a db request to look up the artist data.
+    def linked_users
+      @linked_users ||= begin
+        tags = artist_tags.filter_map(&:artist).select(&:linked_user_id?)
+        tags.map(&:linked_user_id)
+      end
     end
 
     ## DB!
@@ -1439,6 +1453,11 @@ class Post < ApplicationRecord
       if has_children?
         @children_ids ||= children.map {|p| p.id}.join(' ')
       end
+    end
+
+    def set_merge_edit_reason
+      return unless parent_id.present?
+      parent.edit_reason = "Merged from post ##{self.id}"
     end
   end
 
@@ -1997,6 +2016,7 @@ class Post < ApplicationRecord
     hide_from_anonymous
     hide_from_search_engines
     favorites_transfer_in_progress
+    hide_favorites_list
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 

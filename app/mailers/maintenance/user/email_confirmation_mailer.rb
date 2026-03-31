@@ -4,6 +4,8 @@ module Maintenance
   module User
     class EmailConfirmationMailer < ApplicationMailer
       def confirmation(user)
+        return if user.email.blank?
+
         @user = user
         mail(
           to: user_email(@user),

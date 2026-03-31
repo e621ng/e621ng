@@ -48,10 +48,12 @@
 @import "views/help/help";
 @import "views/maintenance/maintenance";
 @import "views/mascots/mascots";
+@import "views/moderator/moderator";
 @import "views/pools/pools";
 @import "views/post_flags/post_flags";
 @import "views/post_replacements/post_replacements";
 @import "views/posts/posts";
+@import "views/search_trends/search_trends";
 @import "views/static/static";
 @import "views/tickets/tickets";
 @import "views/uploads/uploads";
@@ -100,3 +102,5 @@
 @import "specific/wiki_page_versions.scss";
 
 @import "common/z_responsive.scss";
+
+@import "snake.scss";

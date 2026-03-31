@@ -39,7 +39,7 @@
     </div>
 
     <div class="content">
-      <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
+      <%= render "ads/leaderboard", area: :top, tag_string: @post.ad_tag_string %>
 
       <div id="image-and-nav">
         <% if @post.presenter.has_nav_links?(self) %>
@@ -129,6 +129,8 @@
           <li><a href="#comments">Comments</a></li>
         <% end %>
       </ul>
+
+      <%= render "ads/leaderboard", area: :bottom, tag_string: @post.ad_tag_string %>
 
       <section id="note-staging" style="display: none;">
         <% if @post.can_have_notes? && @post.has_notes?  %>

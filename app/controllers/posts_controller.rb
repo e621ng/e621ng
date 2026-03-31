@@ -21,6 +21,11 @@ class PostsController < ApplicationController
       @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
       @posts = @post_set.posts
 
+      # Record trending tags for page 1 queries to avoid double-counting pagination
+      if tag_query.present? && (params[:page].blank? || params[:page].to_i <= 1)
+        SearchTrendHourly.record_query!(tag_query, ip: request.remote_ip)
+      end
+
       @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
       if @query.length == 1
         @wiki_page = WikiPage.titled(@query[0])
@@ -232,7 +237,7 @@ class PostsController < ApplicationController
     permitted_params += %i[is_rating_locked] if CurrentUser.is_privileged?
     permitted_params += %i[is_note_locked bg_color] if CurrentUser.is_janitor?
     permitted_params += %i[is_comment_locked] if CurrentUser.is_moderator?
-    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
+    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines hide_favorites_list] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)
   end

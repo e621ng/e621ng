@@ -194,6 +194,12 @@ class TagQueryTest < ActiveSupport::TestCase
         # Ensure tag hoisting works on negated order tags
         assert_equal("random", TagQuery.new("( -order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
         assert_equal(123, TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:random_seed])
+        # randseed without order should default to order:random
+        assert_equal("random", TagQuery.new("randseed:123")[:order])
+        # randseed with a non-random order should leave order unchanged
+        assert_equal("score", TagQuery.new("randseed:123 order:score")[:order])
+        # randseed with order:random already set should remain random
+        assert_equal("random", TagQuery.new("randseed:123 order:random")[:order])
       end
     end
 
@@ -846,6 +852,7 @@ class TagQueryTest < ActiveSupport::TestCase
       should "parse boolean metatags correctly" do
         TagQuery::BOOLEAN_METATAGS.each do |e|
           label = "Failed on #{e}".freeze
+          canonical = TagQuery::BOOLEAN_METATAG_ALIASES.fetch(e, e).downcase.to_sym
           # Doesn't accept prefixes
           bad_parse = TagQuery.new("-#{e}:true".freeze)
           assert_nil(bad_parse[e.downcase.to_sym], label)
@@ -857,12 +864,12 @@ class TagQueryTest < ActiveSupport::TestCase
           assert_equal("#{e}:false", bad_parse[:tags][:should][0], label)
 
           # true & false give true & false
-          assert_equal(true, TagQuery.new("#{e}:true")[e.downcase.to_sym], label)
-          assert_equal(false, TagQuery.new("#{e}:false")[e.downcase.to_sym], label)
+          assert_equal(true, TagQuery.new("#{e}:true")[canonical], label)
+          assert_equal(false, TagQuery.new("#{e}:false")[canonical], label)
 
           # Doesn't behave like `Danbooru::Extensions::String#truthy?`
-          assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[e.downcase.to_sym], label)
-          assert_equal(false, TagQuery.new("#{e}:t")[e.downcase.to_sym], label)
+          assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[canonical], label)
+          assert_equal(false, TagQuery.new("#{e}:t")[canonical], label)
         end
 
         # ratinglocked, statuslocked, & notelocked

@@ -3,6 +3,7 @@
 @import "../themes/theme_bloodlust";
 @import "../themes/theme_serpent";
 @import "../themes/theme_hotdog";
+@import "../themes/theme_snake";
 
 @import "../themes/palette_deutranomaly";
 @import "../themes/palette_tritanomaly";
@@ -16,6 +17,7 @@
 @import "../themes/extra_hexagons";
 @import "../themes/extra_space";
 @import "../themes/extra_stars";
+@import "../themes/extra_scales";
 
 @function themed($key, $default: "") {
   @if $default != "" {

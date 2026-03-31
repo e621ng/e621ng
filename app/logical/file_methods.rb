@@ -126,8 +126,8 @@ module FileMethods
   end
 
   def video_duration(file_path)
-    return video(file_path).duration if is_video? && video(file_path).duration
-    nil
+    return nil unless is_video? || (is_gif? && is_animated_gif?(file_path))
+    video(file_path).duration
   end
 
   def is_corrupt_gif?(file_path)

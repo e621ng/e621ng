@@ -66,3 +66,28 @@ body.c-uploads.a-new {
     box-sizing: border-box;
   }
 }
+
+/** Artist tag input */
+.artist-tag-notices {
+  .artist-tag-label { padding: 0.25rem; }
+  .artist-tag-notice {
+    display: flex;
+    background: themed("color-section-lighten-5");
+    border-radius: 0.125rem;
+    margin: 0.25rem 0;
+    border-left: 0.25rem solid orange;
+
+    a {
+      padding: 0.25rem;
+      width: 100%;
+      b { color: white; }
+    }
+    
+    &[data-type="wrong"] {
+      border-left-color: palette("background-red");
+    }
+    &[data-type="make_artist"] {
+      border-left-color: palette("background-green");
+    }
+  }
+}

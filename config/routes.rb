@@ -8,12 +8,15 @@ Rails.application.routes.draw do
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
   namespace :admin do
+    resources :automod_rules, only: %i[index new create edit update destroy]
     resources :users, only: %i[edit update] do
       member do
         get :edit_blacklist
         post :update_blacklist
         get :request_password_reset
         post :password_reset
+        get :anonymize
+        post :anonymize, action: :anonymize_confirm
       end
       collection do
         get :alt_list
@@ -44,6 +47,7 @@ Rails.application.routes.draw do
   resources :edit_histories
   namespace :moderator do
     resource :dashboard, only: %i[show]
+    resource :post_diff, only: %i[show]
     resources :ip_addrs, only: %i[index] do
       collection do
         get :export
@@ -71,6 +75,17 @@ Rails.application.routes.draw do
     end
   end
   resources :popular, only: %i[index]
+  resources :search_trends, only: %i[index] do
+    collection do
+      get :rising
+      get :settings
+      post :update_settings
+      post :clear_cache
+      get :track
+      delete :purge
+    end
+  end
+  resources :search_trend_hourlies, only: %i[index]
   namespace :maintenance do
     namespace :user do
       resource :count_fixes, only: %i[new create]
@@ -80,9 +95,12 @@ Rails.application.routes.draw do
       resource :deletion, only: %i[show destroy]
       resource :email_change, only: %i[new create]
       resource :dmail_filter, only: %i[edit update]
-      resource :api_key, only: %i[show update destroy] do
-        post :view
-      end
+    end
+  end
+
+  resources :api_keys, except: %i[edit update] do
+    member do
+      post :regenerate
     end
   end
 
@@ -203,6 +221,7 @@ Rails.application.routes.draw do
     end
   end
   resources :email_blacklists, only: %i[new create destroy index]
+  resources :search_trend_blacklists, only: %i[index new create edit update destroy]
   resource :iqdb_queries, only: %i[show] do
     collection do
       post :show
@@ -317,6 +336,7 @@ Rails.application.routes.draw do
     member do
       get :upload_limit
       get :toggle_uploads
+      post :disable_uploads
       post :flush_favorites
       get :fix_counts
     end
@@ -326,6 +346,7 @@ Rails.application.routes.draw do
       get :search
       get :custom_style
       get :settings
+      get :me
 
       get :avatar_menu
     end
@@ -357,8 +378,8 @@ Rails.application.routes.draw do
   end
   resources :blips do
     member do
-      post :hide
-      post :unhide
+      post :delete
+      post :undelete
       post :warning
     end
   end

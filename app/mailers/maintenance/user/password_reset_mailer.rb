@@ -4,6 +4,8 @@ module Maintenance
   module User
     class PasswordResetMailer < ApplicationMailer
       def reset_request(user, nonce)
+        return if user.email.blank?
+
         @user = user
         @nonce = nonce
         mail(

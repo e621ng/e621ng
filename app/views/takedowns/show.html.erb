@@ -63,7 +63,14 @@
         <% if CurrentUser.is_moderator? %>
           <tr>
             <td><label>User</label></td>
-            <td><%= link_to_user @takedown.creator %></td>
+            <td>
+              <%= link_to_user @takedown.creator %>
+              <%# TODO: When proper tag-based requests are added, use those to filter the verified status check. %>
+              <% if @takedown.creator.present? && (linked_artists = Artist.where(linked_user: @takedown.creator).presence) %>
+                <%# TODO: Make a helper to properly pretty-print collections with 1, 2 (joined by "and"/"&"), & 3 ("1, 2, & 3") elements %>
+                <%= svg_icon(:chexagon, class: "chexagon", title: "Verified uploader for #{linked_artists.map(&:name).join(', ')}") %>
+              <% end %>
+            </td>
           </tr>
 
           <tr><td colspan="2">&nbsp;</td></tr>

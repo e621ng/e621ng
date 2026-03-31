@@ -34,20 +34,23 @@ Thumbnails.initialize = function () {
     const $post = $(post);
 
     const isProfileAvatar = $post.hasClass("profile-avatar");
-    if (isProfileAvatar) $post.removeClass("placeholder").children(".placeholder").removeClass("placeholder");
-
-    // Placeholder is valid
-    const postID = $post.data("id");
-    if (!postID) {
-      clearPlaceholder($post, isProfileAvatar);
-      continue;
+    if (isProfileAvatar) {
+      if ($post.hasClass("placeholder") || $post.children(".placeholder").length) {
+        $post.removeClass("placeholder").children(".placeholder").removeClass("placeholder");
+      } else {
+        // If the placeholder class is gone, it's already been taken care of.
+        continue;
+      }
     }
 
-    // Data exists for this post
-    // If there's no preview URL for a profile avatar, leave the single-character placeholder, don't
-    // replace it w/ the deleted thumbnail.
-    const postData = postsData[postID];
-    if (!postData || (isProfileAvatar && !postData["preview_url"])) {
+    // If:
+    // * the placeholder is invalid,
+    // * no data exists for this post, or
+    // * there's no preview URL for a profile avatar,
+    // then abort; for a profile avatar, this leaves the single-character placeholder, avoiding
+    // replacing it w/ the deleted thumbnail.
+    const postID = $post.data("id"), postData = postsData[postID || -1];
+    if (!postID || !postData || (isProfileAvatar && !postData["preview_url"])) {
       clearPlaceholder($post, isProfileAvatar);
       continue;
     }
@@ -85,8 +88,8 @@ Thumbnails.initialize = function () {
         title: `Rating: ${postData.rating}\r\nID: ${postData.id}\r\nStatus: ${postData.flags}\r\nDate: ${postData["created_at"]}\r\n\r\n${postData.tags}`,
         alt: postData.tags,
         class: "post-thumbnail-img",
-      })
-      .appendTo(isProfileAvatar ? link.children(".avatar-image").first() : link);
+      }) // Just in case, empties the avatar of dead items
+      .appendTo(isProfileAvatar ? link.children(".avatar-image").first().empty() : link);
 
     if (!isProfileAvatar)
       $post.replaceWith(thumbnail);
@@ -115,8 +118,16 @@ Thumbnails.initialize = function () {
 $(() => {
   Thumbnails.initialize();
   $(window).on("e621:add_deferred_posts", (_, posts) => {
-    window.___deferred_posts = window.___deferred_posts || {};
-    window.___deferred_posts = $.extend(window.___deferred_posts, posts);
+    // No need to continue if nothing's been added.
+    if ($.isEmptyObject(posts)) return;
+    // If there weren't any deferred posts previously, then empty the new ones into the store.
+    if (!window.___deferred_posts || $.isEmptyObject(window.___deferred_posts)) {
+      window.___deferred_posts = { ...posts };
+    } else {
+      // DText thumbnail previews don't get rendered if you don't run them through the init, so even
+      // if there's no *new* posts, it still needs to be run. No point in checking & exiting early.
+      window.___deferred_posts = $.extend(window.___deferred_posts, posts);
+    }
     Thumbnails.initialize();
   });
   $(document).on("thumbnails:apply", Thumbnails.initialize);
