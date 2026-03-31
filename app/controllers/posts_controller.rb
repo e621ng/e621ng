@@ -26,7 +26,7 @@ class PostsController < ApplicationController
         SearchTrendHourly.record_query!(tag_query, ip: request.remote_ip)
       end
 
-      @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
+      @query = tag_query.blank? ? [] : tag_query.strip.split(/ /, 2).compact_blank
       if @query.length == 1
         @wiki_page = WikiPage.titled(@query[0])
 
@@ -169,7 +169,9 @@ class PostsController < ApplicationController
   private
 
   def tag_query
-    params[:tags] || (params[:post] && params[:post][:tags])
+    return params[:tags].to_s if params[:tags].present?
+    return "" unless params[:post].is_a?(ActionController::Parameters)
+    params[:post][:tags].to_s
   end
 
   def respond_with_post_after_update(post)

@@ -10,8 +10,12 @@ class FavoritesController < ApplicationController
   skip_before_action :api_check
 
   def index
-    if params[:tags]
-      redirect_to(posts_path(tags: params[:tags]))
+    if params[:tags].present?
+      if params[:tags].is_a?(String)
+        redirect_to(posts_path(tags: params[:tags]))
+      else
+        raise ActionController::BadRequest, "Invalid tags parameter"
+      end
     else
       user_id = params[:user_id] || CurrentUser.user.id
       @user = User.find(user_id)
