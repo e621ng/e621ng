@@ -109,7 +109,7 @@ nav.navigation .simple-avatar {
   // Desktop
   @include window-larger-than(50rem) {
     .avatar-name {
-      background: none;
+      background: themed("color-background");
       color: inherit;
 
       height: 1.5rem;
@@ -130,7 +130,7 @@ nav.navigation .simple-avatar {
     }
 
     &:hover, &:active {
-      .avatar-name { background: none; }
+      .avatar-name { background: themed("color-background"); }
     }
 
     .avatar-more {
@@ -222,6 +222,31 @@ nav.navigation .simple-avatar-menu {
   @include window-larger-than(50rem) {
     right: 0;
   }
+}
+
+// Avatar menu conditional visibility
+nav.navigation .simple-avatar-menu {
+  --display-uploads: none;
+  --display-favorites: none;
+  --display-sets: none;
+  --display-comments: none;
+  --display-forums: none;
+  --display-content-divider: none;
+  --display-mentions-divider: none;
+
+  &.has-uploads { --display-uploads: unset; --display-content-divider: unset; }
+  &.has-favorites { --display-favorites: unset; --display-content-divider: unset; }
+  &.has-sets { --display-sets: unset; --display-content-divider: unset; }
+  &.has-comments { --display-comments: unset; --display-mentions-divider: unset; }
+  &.has-forums { --display-forums: unset; --display-mentions-divider: unset; }
+
+  .must-uploads { display: var(--display-uploads); }
+  .must-favorites { display: var(--display-favorites); }
+  .must-sets { display: var(--display-sets); }
+  .must-comments { display: var(--display-comments); }
+  .must-forums { display: var(--display-forums); }
+  .must-uploads-favorites-sets { display: var(--display-content-divider); }
+  .must-comments-forums { display: var(--display-mentions-divider); }
 }
 
 

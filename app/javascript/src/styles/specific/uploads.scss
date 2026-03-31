@@ -138,6 +138,16 @@ div#c-uploads {
         flex-direction: column;
       }
     }
+
+    // Parent preview
+    .upload-parent-error, .upload-parent-preview {
+      margin-top: 10px;
+
+      img {
+        max-width: 150px;
+        max-height: 150px;
+      }
+    }
   }
   div#a-index {
     .post-info {

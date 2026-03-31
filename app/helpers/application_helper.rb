@@ -43,7 +43,7 @@ module ApplicationHelper
 
     tag.li(id: id, class: klass) do
       link_to(url, id: "#{id}-link", **options) do
-        concat image_pack_tag(image)
+        concat vite_image_tag(image)
         concat " "
         concat tag.span(text)
       end
@@ -68,24 +68,6 @@ module ApplicationHelper
     klass = options.delete(:class)
     id = id_prefix + text.downcase.gsub(/[^a-z ]/, "").parameterize
     tag.li(link_to(text, url, id: "#{id}-link", **options), id: id, class: klass)
-  end
-
-  def dtext_ragel(text, **)
-    parsed = DText.parse(text, **)
-    return raw "" if parsed.nil?
-    deferred_post_ids.merge(parsed[1]) if parsed[1].present?
-    raw parsed[0]
-  rescue DText::Error => e
-    raw ""
-  end
-
-  def format_text(text, **options)
-    # preserve the currrent inline behaviour
-    if options[:inline]
-      dtext_ragel(text, **options)
-    else
-      raw %(<div class="styled-dtext">#{dtext_ragel(text, **options)}</div>)
-    end
   end
 
   def custom_form_for(object, *args, &)

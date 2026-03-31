@@ -28,9 +28,19 @@
     <% end %>
   </section>
 
+  <% if Setting.trends_displayed? %>
+  <section class="home-section search-trend-list">
+    <h3>
+      <%= svg_icon(:trending_up) %>
+      Trending
+    </h3>
+    <%= rising_tags %>
+  </section>
+  <% end %>
+
   <% if news_update = NewsUpdate.recent %>
     <section class="home-section">
-      <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
+      <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, allow_color: true) %></div>
       <div class="previous-news-link"><%= link_to "Click here for previous news", news_updates_path %></div>
     </section>
   <% end %>
@@ -63,9 +73,9 @@
       <span class="separator"></span>
       <%= link_to "Advertising", help_page_path(id: "advertising") %>
       <br />
-      <%= link_to "Terms of Use", terms_of_use_path %>
+      <%= link_to "Terms of Use", terms_of_use_path, rel: "terms-of-service" %>
       <span class="separator"></span>
-      <%= link_to "Privacy", privacy_policy_path %>
+      <%= link_to "Privacy", privacy_policy_path, rel: "privacy-policy" %>
     </div>
   </section>
 </div></div>
@@ -75,9 +85,9 @@
   <%= tag.meta(name: "description", content: Danbooru.config.description) %>
   <%= tag.meta(property: "og:site", content: Danbooru.config.app_name) %>
   <%= tag.meta(property: "og:title", content: Danbooru.config.app_name) %>
-  <%= tag.meta(property: "og:description", content: Danbooru.config.description) %>
+    <%= tag.meta(property: "og:description", content: Danbooru.config.description) %>
   <%= tag.meta(property: "og:url", content: root_url(host: Danbooru.config.hostname, protocol: "https")) %>
-  <%= tag.meta(property: "og:image", content: asset_url("images/logo/default.svg", host: Danbooru.config.hostname, protocol: "https")) %>
+  <%= tag.meta(property: "og:image", content: vite_asset_url("images/logo/default.svg")) %>
   <%= tag.meta(name: "canonical", content: root_url(host: Danbooru.config.hostname, protocol: "https")) %>
 
   <meta property="og:type" content="website">
@@ -86,5 +96,5 @@
   <meta name="twitter:card" content="summary">
   <%= tag.meta(name: "twitter:title", content: Danbooru.config.app_name) %>
   <%= tag.meta(name: "twitter:description", content: Danbooru.config.description) %>
-  <%= tag.meta(name: "twitter:image", content: asset_url("images/logo/default.svg", host: Danbooru.config.hostname, protocol: "https")) %>
+  <%= tag.meta(name: "twitter:image", content: vite_asset_url("images/logo/default.svg")) %>
 <%- end %>

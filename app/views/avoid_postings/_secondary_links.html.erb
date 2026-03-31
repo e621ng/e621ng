@@ -14,7 +14,7 @@
       <%= subnav_link_to "Destroy", avoid_posting_path(@avoid_posting), method: :delete, data: { confirm: "Are you sure you want to destroy this avoid posting entry? This will remove all related history, and cannot be undone." } %>
     <% end %>
     <%= subnav_link_to "Implications", tag_implications_path(search: { antecedent_name: @avoid_posting.artist_name }) %>
-    <%= subnav_link_to "History", avoid_posting_versions_path(search: { artist_name: @avoid_posting.artist_name }) %>
+    <%= subnav_link_to "History", avoid_posting_versions_path(search: { artist_name: @avoid_posting.artist_name }), data: { hotkey: "history" } %>
   <% else %>
     <%= subnav_link_to "History", avoid_posting_versions_path %>
   <% end %>

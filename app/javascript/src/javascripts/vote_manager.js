@@ -1,3 +1,4 @@
+import Page from "./utility/page";
 import Utility from "./utility";
 
 class VoteManager {
@@ -81,3 +82,8 @@ class VoteManager {
 }
 
 export default VoteManager;
+
+$(() => {
+  if (Page.matches("post-votes")) new VoteManager("post");
+  else if (Page.matches("comment-votes")) new VoteManager("comment");
+});

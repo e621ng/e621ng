@@ -10,7 +10,19 @@
       Unsure what to tag your post
       with? <%= link_to "Tagging Checklist", help_page_path(id: "tagging_checklist") %></p>
   </div>
-  <div id="uploader"></div>
+  <div
+    id="uploader" 
+    data-compact-mode="<%= CurrentUser.compact_uploader? %>"
+    data-safe-site="<%= CurrentUser.safe_mode? %>"
+    data-upload-tags="<%= html_escape(CurrentUser.presenter.favorite_tags_with_types.to_json) %>"
+    data-recent-tags="<%= html_escape(CurrentUser.presenter.recent_tags_with_types.to_json) %>"
+    data-allow-locked-tags="<%= CurrentUser.is_admin? %>"
+    data-allow-rating-lock="<%= CurrentUser.is_privileged? %>"
+    data-allow-upload-as-pending="<%= CurrentUser.can_upload_free? %>"
+    data-max-file-size="<%= Danbooru.config.max_file_size %>"
+    data-max-file-size-map="<%= html_escape(Danbooru.config.max_file_sizes.to_json) %>"
+    data-verified-artist-tags="<%= html_escape(CurrentUser.user.artists.pluck(:name).to_json) %>"
+  ></div>
   <% if CurrentUser.no_uploading? %>
     <div id="post-uploads-remaining" class="box-section section background-red">
       Your ability to upload posts had been manually disabled by a staff member.<br />
@@ -37,21 +49,6 @@
   <% end %>
 </div>
 </div>
-<%= javascript_tag nonce: true do -%>
-  var uploaderSettings = {
-    compactMode: <%= CurrentUser.compact_uploader?.to_json %>,
-    safeSite: <%= CurrentUser.safe_mode?.to_json %>,
-    uploadTags: <%= CurrentUser.presenter.favorite_tags_with_types.to_json.html_safe %>,
-    recentTags: <%= CurrentUser.presenter.recent_tags_with_types.to_json.html_safe %>,
-    allowLockedTags: <%= CurrentUser.is_admin?.to_json %>,
-    allowRatingLock: <%= CurrentUser.is_privileged?.to_json %>,
-    allowUploadAsPending: <%= CurrentUser.can_upload_free?.to_json %>,
-    maxFileSize: <%= Danbooru.config.max_file_size %>,
-    maxFileSizeMap: <%= sanitize(Danbooru.config.max_file_sizes.to_json) %>,
-    verifiedArtistTags: <%= sanitize(CurrentUser.user.artists.pluck(:name).to_json) %>,
-  };
-  Danbooru.Uploader.init();
-<% end -%>
 <%= render "posts/partials/common/secondary_links" %>
 
 <% content_for(:page_title) do %>

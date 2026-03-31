@@ -152,4 +152,9 @@ module PostsHelper
       ["Explicit", "e"]
     ]
   end
+
+  def post_short_url(post)
+    short_id = post.id.to_s(32)
+    url_for(controller: "posts_short", action: "show", id: short_id, only_path: false)
+  end
 end

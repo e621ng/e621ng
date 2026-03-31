@@ -1,0 +1,21 @@
+<div id="c-search-trend-blacklists">
+  <div id="a-edit">
+    <h1>Edit Search Trend Blacklist Entry</h1>
+
+    <p class="hint">Use <code>*</code> and <code>?</code> for glob-style wildcards (e.g. <code>*_species</code>).</p>
+
+    <%= error_messages_for "search_trend_blacklist" %>
+
+    <%= custom_form_for(@blacklist) do |f| %>
+      <%= f.input :tag, label: "Tag Pattern", as: :string %>
+      <%= f.input :reason, label: "Reason", as: :string %>
+      <%= f.button :submit, "Save" %>
+    <% end %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Edit Search Trend Blacklist Entry
+<% end %>

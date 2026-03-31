@@ -45,7 +45,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@mascots) %>
+    <%= render PaginatorComponent.new(records: @mascots) %>
   </div>
 </div>
 

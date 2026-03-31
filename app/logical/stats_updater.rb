@@ -32,6 +32,7 @@ class StatsUpdater
     stats[:explicit_posts] = Post.tag_match("rating:e", always_show_deleted: true).count_only
     stats[:jpg_posts] = Post.tag_match("type:jpg", always_show_deleted: true).count_only
     stats[:png_posts] = Post.tag_match("type:png", always_show_deleted: true).count_only
+    stats[:webp_posts] = Post.tag_match("type:webp", always_show_deleted: true).count_only
     stats[:gif_posts] = Post.tag_match("type:gif", always_show_deleted: true).count_only
     stats[:swf_posts] = Post.tag_match("type:swf", always_show_deleted: true).count_only
     stats[:webm_posts] = Post.tag_match("type:webm", always_show_deleted: true).count_only
@@ -49,6 +50,7 @@ class StatsUpdater
     stats[:unactivated_users] = User.where.not(email_verification_key: nil).count
     stats[:total_dmails] = (Dmail.maximum("id") || 0) / 2
     stats[:average_registrations_per_day] = daily_average.call(stats[:total_users])
+    stats[:active_users] = User.where("last_logged_in_at >= ?", 3.months.ago).count
 
     ### Comments ###
 
@@ -69,9 +71,9 @@ class StatsUpdater
     ### Blips ###
 
     stats[:total_blips] = Blip.maximum("id") || 0
-    stats[:active_blips] = Blip.where(is_hidden: false).count
-    stats[:hidden_blips] = Blip.where(is_hidden: true).count
-    stats[:deleted_blips] = stats[:total_blips] - (stats[:active_blips] + stats[:hidden_blips])
+    stats[:active_blips] = Blip.where(is_deleted: false).count
+    stats[:deleted_blips] = Blip.where(is_deleted: true).count
+    stats[:destroyed_blips] = stats[:total_blips] - (stats[:active_blips] + stats[:deleted_blips])
     stats[:average_blips_per_day] = daily_average.call(stats[:total_blips])
 
     ### Tags ###

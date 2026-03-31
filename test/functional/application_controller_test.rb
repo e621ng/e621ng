@@ -23,13 +23,13 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
     context "on a PaginationError" do
       should "return 410 Gone even with a bad file extension" do
-        get posts_path, params: { page: 999999999 }, as: :json
+        get posts_path, params: { page: 999_999_999 }, as: :json
         assert_response 410
 
-        get posts_path, params: { page: 999999999 }, as: :jpg
+        get posts_path, params: { page: 999_999_999 }, as: :jpg
         assert_response 410
 
-        get posts_path, params: { page: 999999999 }, as: :blah
+        get posts_path, params: { page: 999_999_999 }, as: :blah
         assert_response 410
       end
     end
@@ -37,7 +37,7 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
     context "on api authentication" do
       setup do
         @user = create(:user, password: "6cQE!wbA")
-        @api_key = ApiKey.generate!(@user)
+        @api_key = ApiKey.generate!(@user, name: "test")
 
         ActionController::Base.allow_forgery_protection = true
       end
@@ -76,10 +76,10 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
         should "fail for api key mismatches" do
           get edit_user_path(@user), params: { login: @user.name }
-          assert_response 401
+          assert_redirected_to new_session_path(url: edit_user_path(@user, login: @user.name))
 
           get edit_user_path(@user), params: { api_key: @api_key.key }
-          assert_response 401
+          assert_redirected_to new_session_path(url: edit_user_path(@user, api_key: @api_key.key))
 
           get edit_user_path(@user), params: { login: @user.name, api_key: "bad" }
           assert_response 401
@@ -157,6 +157,30 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
       should "not redirect for json requests" do
         get_auth posts_path, @user, params: { format: :json }
+        assert_response :success
+      end
+    end
+
+    context "with a malformed JSON body" do
+      should "return 400 Bad Request" do
+        post posts_path, headers: { "Content-Type" => "application/json" }, params: "{ invalid json :"
+        assert_response 400
+      end
+
+      should "accept a valid JSON body" do
+        post posts_path, headers: { "Content-Type" => "application/json" }, params: { tags: "fluffy" }.to_json
+        assert_response :not_found
+      end
+    end
+
+    context "parameter sanitization" do
+      should "remove null bytes from string parameters" do
+        get posts_path, params: { tags: "test\u0000malicious" }
+        assert_response :success
+      end
+
+      should "remove null bytes from nested parameters" do
+        get comments_path, params: { search: { body_matches: "test\u0000null" } }
         assert_response :success
       end
     end
