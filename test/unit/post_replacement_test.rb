@@ -368,7 +368,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
   end
 
-  context "Note: " do
+  context "Note:" do
     setup do
       @replacement = create(:png_replacement, creator: @user, post: @post)
       assert @replacement
@@ -377,6 +377,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     should "allow staff to edit" do
       CurrentUser.user = @mod_user
       @replacement.note_add("test")
+      @replacement.reload
       assert_equal(@replacement.note.note, "test")
     end
 
@@ -395,11 +396,13 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_not(@replacement.note.visible_to?(@uninvolved_user))
     end
 
-    should "Allow overwriting existing note" do
+    should "allow overwriting existing note" do
       CurrentUser.user = @mod_user
       @replacement.note_add("test")
+      @replacement.reload
       assert_equal(@replacement.note.note, "test")
       @replacement.note_add("new test")
+      @replacement.reload
       assert_equal(@replacement.note.note, "new test")
     end
   end

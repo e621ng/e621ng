@@ -92,7 +92,7 @@
       <dd class="replacement-compact-row"><%= compact_time post_replacement.created_at %></dd>
     <dt class="replacement-spaced-row">Reason</dt>
     <dd class="replacement-reason"><%= post_replacement.reason.presence || "None provided" %></dd>
-    <% if CurrentUser.is_staff? && post_replacement.note.present? %>
+    <% if post_replacement.note&.visible_to?(CurrentUser.user) && post_replacement.note.present? %>
       <dt class="replacement-spaced-row">Note</dt>
       <dd class="replacement-reason"><%= post_replacement.note.note.presence || "None provided" %></dd>
     <% end %>

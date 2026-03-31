@@ -51,7 +51,7 @@ PostReplacement.note = function (id, current_note) {
     default_value = current_note;
   }
   const note_text = prompt(prompt_message, default_value);
-  if (!note_text) {
+  if (note_text === null) {
     Utility.notice("Note cancelled.");
     return;
   }

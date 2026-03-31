@@ -1,8 +1,3 @@
-\restrict McdD6QZs7eXcS361aeSJmnwgdx32ghaEdR0ddyZT4iHr4lN5fp9PXDBYCVlAx15
-
--- Dumped from database version 15.13
--- Dumped by pg_dump version 15.14
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -5202,6 +5197,9 @@ ALTER TABLE ONLY public.favorites
 
 ALTER TABLE ONLY public.post_replacement_notes
     ADD CONSTRAINT fk_rails_a7c5a27cc0 FOREIGN KEY (post_replacements2_id) REFERENCES public.post_replacements2(id);
+
+
+--
 -- Name: automod_rules fk_rails_af3a8c8cd0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5276,8 +5274,6 @@ ALTER TABLE ONLY public.staff_notes
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict McdD6QZs7eXcS361aeSJmnwgdx32ghaEdR0ddyZT4iHr4lN5fp9PXDBYCVlAx15
 
 SET search_path TO "$user", public;
 

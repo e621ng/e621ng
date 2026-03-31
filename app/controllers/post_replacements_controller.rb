@@ -3,7 +3,8 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: %i[create new]
-  before_action :approver_only, only: %i[approve reject promote toggle_penalize note]
+  before_action :approver_only, only: %i[approve reject promote toggle_penalize]
+  before_action :janitor_only, only: %i[note]
   before_action :admin_only, only: [:destroy]
   before_action :ensure_uploads_enabled, only: %i[new create]
 
@@ -93,14 +94,17 @@ class PostReplacementsController < ApplicationController
 
   def note
     @post_replacement = PostReplacement.find(params[:id])
-    @post_replacement.note_add(params[:note_content])
+    # Notes can be empty (deleting the contents), but cannot be longer than 1000 characters
+    @post_replacement.note_add(params[:note_content].to_s.strip[0, 1000])
 
     if @post_replacement.errors.any?
       respond_to do |format|
+        format.html { head 422 }
         format.json do
-          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+          render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 422
         end
       end
+      return
     end
 
     respond_with(@post_replacement) do |format|
