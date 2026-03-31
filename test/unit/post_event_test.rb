@@ -139,7 +139,7 @@ class PostEventTest < ActiveSupport::TestCase
         end
 
         should "transfer" do
-          assert_post_events_created(@admin, [:replacement_moved, :replacement_moved]) do
+          assert_post_events_created(@admin, %i[replacement_moved replacement_moved]) do
             @replacement1.transfer(@post2)
           end
         end
