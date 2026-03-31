@@ -169,7 +169,7 @@ class PostsController < ApplicationController
   private
 
   def tag_query
-    params[:tags] || (params[:post] && params[:post][:tags])
+    params[:tags] || (params[:post] && params[:post].is_a?(Hash) && params[:post][:tags]) || ""
   end
 
   def respond_with_post_after_update(post)
