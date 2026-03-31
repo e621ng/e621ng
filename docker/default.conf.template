@@ -1,3 +1,5 @@
+limit_req_zone $binary_remote_addr zone=openpanel:10m rate=10r/s;
+
 server {
   listen ${NGINX_PORT};
   server_name localhost;

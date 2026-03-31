@@ -1,0 +1,21 @@
+name: "CodeQL Configuration"
+
+# Exclude files that use bundler-specific syntax that CodeQL cannot parse
+paths-ignore:
+  # Vite entrypoints use import.meta.glob() syntax which CodeQL doesn't understand
+  - "app/javascript/entrypoints/**"
+  
+  # Exclude other generated or build files if needed
+  - "public/packs/**"
+  - "public/vite/**"
+  - "public/vite-dev/**"
+  - "public/vite-test/**"
+
+# Include additional queries for security analysis
+queries:
+  - uses: security-and-quality
+
+# Configure languages
+languages:
+  - javascript
+  - ruby

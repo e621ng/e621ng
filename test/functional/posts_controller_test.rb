@@ -45,6 +45,13 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
           assert_response :success
         end
       end
+
+      context "with an invalid date search" do
+        should "return empty results for dates with years outside OpenSearch range" do
+          get posts_path, params: { tags: "date:23025-05-24" }
+          assert_response :success
+        end
+      end
     end
 
     context "show_seq action" do

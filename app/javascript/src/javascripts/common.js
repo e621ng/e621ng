@@ -1,6 +1,5 @@
 import Cookie from "./cookie";
 import Utility from "./utility";
-import LStorage from "./utility/storage";
 
 function initSearch () {
   const $searchForm = $("#searchform");
@@ -23,18 +22,6 @@ function initSearch () {
 }
 
 $(function () {
-  $("#theme-switcher").change(function () {
-    let theme = $(this).val();
-    LStorage.put("theme", theme);
-    $("body").attr("data-th-main", theme);
-  });
-
-  {
-    let theme = LStorage.get("theme") || "hexagon";
-    $("body").attr("data-th-main", theme);
-    $("#theme-switcher").val(theme);
-  }
-
   // Account notices
   $(".dmail-notice-hide").on("click.danbooru", function (event) {
     event.preventDefault();

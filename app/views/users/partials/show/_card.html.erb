@@ -10,6 +10,7 @@
     </span>
     <span class="profile-rank">
       <%= user_level_badge(@user) %>
+      <%= user_bd_staff_badge(@user) if CurrentUser.is_bd_staff? %>
       <% unless @user.is_verified? %>
         <span class="level-badge level-unactivated">UNACTIVATED</span>
       <% end %>

@@ -1,7 +1,25 @@
 <div id="c-post-favorites">
   <div id="a-index">
     <h1>Post Favorites</h1>
-    <%= PostPresenter.preview(@post) %>
+    <%= render(PostThumbnailComponent.new(post: @post)) %>
+
+    <div class="styled-dtext" style="margin: 1rem 0;">
+      <blockquote>
+        <p>
+          Some users may be excluded from this list due to their <a href="/users/settings?find=privacy">privacy settings</a>.
+          <% if CurrentUser.user.enable_privacy_mode? %>
+            <br /><b>This includes you.</b>
+          <% end %>
+        </p>
+        <% if @post.fav_count > 1000 %>
+          <p>
+            <b>Note:</b> This post has a large number of favorites.<br />
+            Page count may or may not be accurate.
+          </p>
+        <% end %>
+      </blockquote>
+    </div>
+
     <table class="striped">
       <thead>
         <tr>
@@ -22,7 +40,7 @@
         <% end %>
       </tbody>
     </table>
-    <%= numbered_paginator(@users) %>
+    <%= render PaginatorComponent.new(records: @users) %>
   </div>
 </div>
 

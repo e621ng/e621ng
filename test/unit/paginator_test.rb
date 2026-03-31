@@ -71,6 +71,10 @@ class PaginatorTest < ActiveSupport::TestCase
         assert_invalid_page_number(model, "a")
         assert_invalid_page_number(model, "751")
         assert_invalid_page_number(model, "c1")
+        # Sequential pagination IDs must be within integer range (most tables use integer, not bigint)
+        assert_invalid_page_number(model, "b2147483648") # Integer max + 1
+        assert_invalid_page_number(model, "a2147483648") # Integer max + 1
+        assert_invalid_page_number(model, "b9999999999999999999") # Way over integer max
       end
 
       should "apply the correct limit" do

@@ -1,0 +1,56 @@
+<div id="c-search-trends">
+  <div id="a-index">
+    <h1>Search Trends</h1>
+
+    <div class="search-trend-container search-trend-list">
+      <h3>
+        <%= svg_icon(:trending_up) %>
+        Trending
+      </h3>
+      <%= rising_tags %>
+    </div>
+
+    <div class="search-trend-nav">
+      <a href="<%= url_for(request.query_parameters.except("day").merge(day: (@day - 1).to_s)) %>"><%= svg_icon(:chevron_left) %> Previous</a>
+      <strong><%= @day.to_s %></strong>
+      <% if @has_tomorrow %>
+        <a href="<%= url_for(request.query_parameters.except("day").merge(day: (@day + 1).to_s)) %>">Next <%= svg_icon(:chevron_right) %></a>
+      <% else %>
+        <span class="disabled">Next <%= svg_icon(:chevron_right) %></span>
+      <% end %>
+    </div>
+
+    <%= render "search" %>
+
+    <% if @trending.blank? %>
+      <p>No trending data for this day yet.</p>
+    <% else %>
+      <table class="striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tag</th>
+            <th>Searches</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @trending.each_with_index do |row, idx| %>
+            <tr>
+              <td><%= @using_calculated_ranks ? row.daily_rank : @count_offset + idx + 1 %></td>
+              <td><%= link_to row.tag, track_search_trends_path(tag: row.tag) %></td>
+              <td><%= row.count %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <%= render PaginatorComponent.new(records: @trending) %>
+    <% end %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Trending Tags
+<% end %>

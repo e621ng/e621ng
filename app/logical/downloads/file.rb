@@ -3,7 +3,7 @@
 module Downloads
   class File
     include ActiveModel::Validations
-    class Error < Exception ; end
+    class Error < StandardError; end
 
     attr_reader :url
 
@@ -11,9 +11,8 @@ module Downloads
 
     def initialize(url)
       begin
-        unencoded = Addressable::URI.unencode(url)
-        escaped = Addressable::URI.escape(unencoded)
-        @url = Addressable::URI.parse(escaped)
+        uri = url.is_a?(Addressable::URI) ? url.dup : Addressable::URI.parse(url.to_s)
+        @url = uri.normalize
       rescue Addressable::URI::InvalidURIError
         @url = nil
       end
@@ -42,9 +41,16 @@ module Downloads
     end
 
     def validate_url
-      errors.add(:base, "URL must not be blank") if url.blank?
-      errors.add(:base, "'#{url}' is not a valid url") if !url.host.present?
-      errors.add(:base, "'#{url}' is not a valid url. Did you mean 'http://#{url}'?") if !url.scheme.in?(%w[http https])
+      if url.blank?
+        errors.add(:base, "URL must not be blank")
+        return
+      end
+
+      if url.scheme.in?(%w[http https])
+        errors.add(:base, "'#{url}' is not a valid url") if url.host.blank?
+      else
+        errors.add(:base, "'#{url}' is not a valid url. Did you mean 'http://#{url}'?")
+      end
       validate_uri_allowed!(url)
     end
 
@@ -71,6 +77,8 @@ module Downloads
     end
 
     def validate_uri_allowed!(uri)
+      return if uri.hostname.blank?
+
       ip_addr = IPAddr.new(Resolv.getaddress(uri.hostname))
       if ip_addr.private? || ip_addr.loopback? || ip_addr.link_local?
         raise Downloads::File::Error, "Downloads from #{ip_addr} are not allowed"

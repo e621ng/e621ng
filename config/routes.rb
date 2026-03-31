@@ -5,15 +5,18 @@ Rails.application.routes.draw do
   require "sidekiq/web"
   require "sidekiq_unique_jobs/web"
 
-  mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new
+  mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
   namespace :admin do
-    resources :users, only: %i[edit update edit_blacklist update_blacklist alt_list] do
+    resources :automod_rules, only: %i[index new create edit update destroy]
+    resources :users, only: %i[edit update] do
       member do
         get :edit_blacklist
         post :update_blacklist
         get :request_password_reset
         post :password_reset
+        get :anonymize
+        post :anonymize, action: :anonymize_confirm
       end
       collection do
         get :alt_list
@@ -29,7 +32,7 @@ Rails.application.routes.draw do
 
   namespace :security do
     root to: "dashboard#index"
-    resource :dashboard, only: %i[index]
+    resources :dashboard, only: %i[index]
     resources :lockdown, only: %i[index] do
       collection do
         put :panic
@@ -44,6 +47,7 @@ Rails.application.routes.draw do
   resources :edit_histories
   namespace :moderator do
     resource :dashboard, only: %i[show]
+    resource :post_diff, only: %i[show]
     resources :ip_addrs, only: %i[index] do
       collection do
         get :export
@@ -52,7 +56,7 @@ Rails.application.routes.draw do
     namespace :post do
       resource :approval, only: %i[create destroy]
       resources :disapprovals, only: %i[create index]
-      resources :posts, only: %i[delete undelete expunge confirm_delete] do
+      resources :posts, only: [] do
         member do
           get :confirm_delete
           post :expunge
@@ -71,6 +75,17 @@ Rails.application.routes.draw do
     end
   end
   resources :popular, only: %i[index]
+  resources :search_trends, only: %i[index] do
+    collection do
+      get :rising
+      get :settings
+      post :update_settings
+      post :clear_cache
+      get :track
+      delete :purge
+    end
+  end
+  resources :search_trend_hourlies, only: %i[index]
   namespace :maintenance do
     namespace :user do
       resource :count_fixes, only: %i[new create]
@@ -80,9 +95,12 @@ Rails.application.routes.draw do
       resource :deletion, only: %i[show destroy]
       resource :email_change, only: %i[new create]
       resource :dmail_filter, only: %i[edit update]
-      resource :api_key, only: %i[show update destroy] do
-        post :view
-      end
+    end
+  end
+
+  resources :api_keys, except: %i[edit update] do
+    member do
+      post :regenerate
     end
   end
 
@@ -154,7 +172,7 @@ Rails.application.routes.draw do
       post :warning
     end
   end
-  resources :comment_votes, only: %i[index delete lock] do
+  resources :comment_votes, only: %i[index] do
     collection do
       post :lock
       post :delete
@@ -203,6 +221,7 @@ Rails.application.routes.draw do
     end
   end
   resources :email_blacklists, only: %i[new create destroy index]
+  resources :search_trend_blacklists, only: %i[index new create edit update destroy]
   resource :iqdb_queries, only: %i[show] do
     collection do
       post :show
@@ -246,6 +265,7 @@ Rails.application.routes.draw do
     end
   end
   resources :deleted_posts, only: %i[index]
+  resources :p, only: %i[show], controller: "posts_short"
   resources :posts, only: %i[index show update] do
     resources :replacements, only: %i[index new create], controller: "post_replacements"
     resource :votes, controller: "post_votes", only: %i[create destroy]
@@ -264,7 +284,7 @@ Rails.application.routes.draw do
     end
     get :similar, to: "iqdb_queries#index"
   end
-  resources :post_votes, only: %i[index delete lock] do
+  resources :post_votes, only: %i[index], as: :index_post_votes do
     collection do
       post :lock
       post :delete
@@ -317,6 +337,7 @@ Rails.application.routes.draw do
     member do
       get :upload_limit
       get :toggle_uploads
+      post :disable_uploads
       post :flush_favorites
       get :fix_counts
     end
@@ -326,6 +347,9 @@ Rails.application.routes.draw do
       get :search
       get :custom_style
       get :settings
+      get :me
+
+      get :avatar_menu
     end
   end
   resources :user_feedbacks do
@@ -348,15 +372,15 @@ Rails.application.routes.draw do
       get :show_or_new
     end
   end
-  resources :wiki_page_versions, only: %i[index show diff] do
+  resources :wiki_page_versions, only: %i[index show] do
     collection do
       get :diff
     end
   end
   resources :blips do
     member do
-      post :hide
-      post :unhide
+      post :delete
+      post :undelete
       post :warning
     end
   end
@@ -505,6 +529,7 @@ Rails.application.routes.draw do
   get "/static/subscribestar" => "static#subscribestar", as: "subscribestar" if Danbooru.config.subscribestar_url.present?
   get "/static/furid" => "static#furid", as: "furid"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
+  get "status" => "rails/health#show", as: :rails_health_check
 
   root to: "static#home"
 

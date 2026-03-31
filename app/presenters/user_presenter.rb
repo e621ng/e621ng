@@ -67,8 +67,7 @@ class UserPresenter
   end
 
   def uploads
-    posts = Post.tag_match("user:#{user.name}").limit(8)
-    PostsDecorator.decorate_collection(posts)
+    Post.tag_match("user:#{user.name}").limit(8)
   end
 
   def has_uploads?
@@ -77,12 +76,18 @@ class UserPresenter
 
   def favorites
     ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(8).pluck(:post_id)
-    posts = Post.where(id: ids).sort_by { |post| ids.index(post.id) }
-    PostsDecorator.decorate_collection(posts)
+    Post.where(id: ids).sort_by { |post| ids.index(post.id) }
   end
 
   def has_favorites?
     user.favorite_count > 0
+  end
+
+  def artist_posts(artist)
+    # Almost all verified artists only have one artist tag.
+    # If this changes, we may need to come up with a way to bulk search for posts with any of the artist's tags.
+    @artist_posts_cache ||= {}
+    @artist_posts_cache[artist.id] ||= Post.tag_match(artist.name).limit(8)
   end
 
   def upload_count(template)
@@ -111,6 +116,10 @@ class UserPresenter
 
   def comment_count(template)
     template.link_to(user.comment_count, template.comments_path(search: { creator_id: user.id }, group_by: "comment"))
+  end
+
+  def blip_count(template)
+    template.link_to(user.blip_count, template.blips_path(search: { creator_id: user.id }))
   end
 
   def commented_posts_count(template)
