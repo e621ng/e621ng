@@ -235,6 +235,11 @@ class TagQuery
 
   STATUS_VALUES = %w[all any pending modqueue deleted flagged active].freeze
 
+  # OpenSearch rejects bool queries with more than this many clauses. A wildcard tag like `*play*`
+  # expands to many concrete tag clauses, so we enforce the limit here with a user-facing error
+  # rather than letting the search reach OpenSearch and return a cryptic 400 response.
+  OPENSEARCH_MAX_CLAUSE_COUNT = 1024
+
   # Used for quickly profiling optimizations, tweaking desired behavior, etc. Should be removed
   # after reviews are completed.
   # * `COUNT_TAGS_WITH_SCAN_RECURSIVE` [`false`]: Use `TagQuery.scan_recursive` to increment
@@ -1501,6 +1506,7 @@ class TagQuery
       end
       if tag.include?("*")
         q[:tags][:must_not] += pull_wildcard_tags(tag.downcase)
+        check_opensearch_clause_count
       else
         q[:tags][:must_not] << tag.downcase
       end
@@ -1518,6 +1524,7 @@ class TagQuery
       end
       if tag.include?("*")
         q[:tags][:should] += pull_wildcard_tags(tag)
+        check_opensearch_clause_count
       else
         q[:tags][:must] << tag.downcase
       end
@@ -1560,6 +1567,16 @@ class TagQuery
     when :must then q[key] = value
     when :must_not then q[key] = value == "none" ? "any" : "none"
     when :should then q[:"#{key}_should"] = value
+    end
+  end
+
+  def check_opensearch_clause_count
+    total = q[:tags][:must].size + q[:tags][:must_not].size + q[:tags][:should].size
+    if total > OPENSEARCH_MAX_CLAUSE_COUNT
+      raise CountExceededError.new(
+        "Tag search query is too large (#{total} tags after wildcard expansion). Reduce the number of wildcard tags or use more specific patterns.",
+        query_obj: self,
+      )
     end
   end
 
