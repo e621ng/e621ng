@@ -231,7 +231,7 @@ class Pool < ApplicationRecord
 
     return if invalid_ids.empty?
 
-    errors.add(:base, "Cannot add posts to pool. Invalid IDs: #{invalid_ids.join(", ")}")
+    errors.add(:base, "Cannot add posts to pool. Invalid IDs: #{invalid_ids.join(', ')}")
     false
   end
 
