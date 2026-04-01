@@ -486,6 +486,14 @@
             console.log(response);
 
             self.submitting = false;
+            if (response.getResponseHeader('cf-mitigated') === 'challenge') {
+              self.error = 'Error: The upload was blocked by a security challenge. Please try again in a moment. If the issue persists, contact support.';
+              return;
+            }
+            if (response.status === 403 && response.getResponseHeader('server') === 'cloudflare') {
+              self.error = 'Error: The upload was blocked by Cloudflare (403). Please try again in a moment. If the issue persists, contact support.';
+              return;
+            }
             try {
               const jsonData = response.responseJSON;
               if (!jsonData) throw new Error("No JSON data returned from server.");
