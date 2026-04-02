@@ -322,8 +322,8 @@ class WikiPage < ApplicationRecord
     title = self.title.downcase.tr(" ", "_")
     if title =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
       category = Tag.categories.value_for($1)
-      # Only use prefix if the category is not set or is set to general, anything else is likely to be a deliberate selection
-      if @category_id.nil? || @category_id == Tag.categories.general
+      # Only use prefix if the category is not set, is set to general, or is unchanged, anything else is likely to be a deliberate selection
+      if @category_id.nil? || (@category_id == Tag.categories.general || (!new_record? && tag.present? && @category_id == tag.category))
         self.category_id = category
       end
       title = $2

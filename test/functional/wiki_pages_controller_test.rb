@@ -480,16 +480,6 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
             assert_equal(Tag.categories.copyright, @wiki_page.reload.category_id)
           end
 
-          should("prioritize category_id and respect title change") do
-            assert_difference(%w[WikiPageVersion.count Tag.count], 1) do
-              put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.copyright }, format: :json })
-              assert_response(:success)
-            end
-            @wiki_page.reload
-            assert_equal("abc", @wiki_page.title)
-            assert_equal(Tag.categories.copyright, @wiki_page.category_id)
-          end
-
           should("prioritize prefix if category_id is general") do
             assert_difference(%w[WikiPageVersion.count TagTypeVersion.count], 1) do
               put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:#{@wiki_page.title}", body: "abc", category_id: Tag.categories.general }, format: :json })
@@ -498,14 +488,37 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
             assert_equal(Tag.categories.character, @wiki_page.reload.category_id)
           end
 
-          should("prioritize prefix if category_id is general and respect title change") do
-            assert_difference(%w[WikiPageVersion.count Tag.count], 1) do
-              put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.general }, format: :json })
-              assert_response(:success)
+          context("with title change") do
+            should("respect title change and prioritize category_id") do
+              assert_difference(%w[WikiPageVersion.count Tag.count], 1) do
+                put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.copyright }, format: :json })
+                assert_response(:success)
+              end
+              @wiki_page.reload
+              assert_equal("abc", @wiki_page.title)
+              assert_equal(Tag.categories.copyright, @wiki_page.category_id)
             end
-            @wiki_page.reload
-            assert_equal("abc", @wiki_page.title)
-            assert_equal(Tag.categories.character, @wiki_page.category_id)
+
+            should("respect title change and prioritize prefix if category_id is general") do
+              assert_difference(%w[WikiPageVersion.count Tag.count], 1) do
+                put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.general }, format: :json })
+                assert_response(:success)
+              end
+              @wiki_page.reload
+              assert_equal("abc", @wiki_page.title)
+              assert_equal(Tag.categories.character, @wiki_page.category_id)
+            end
+
+            should("respect title change and prioritize prefix if category_id is unchanged") do
+              as(@user) { @tag.update(category: Tag.categories.copyright) }
+              assert_difference(%w[WikiPageVersion.count Tag.count], 1) do
+                put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.copyright }, format: :json })
+                assert_response(:success)
+              end
+              @wiki_page.reload
+              assert_equal("abc", @wiki_page.title)
+              assert_equal(Tag.categories.character, @wiki_page.category_id)
+            end
           end
         end
       end
