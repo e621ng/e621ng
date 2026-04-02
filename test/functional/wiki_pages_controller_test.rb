@@ -231,6 +231,13 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
             assert_equal(Tag.categories.character, wiki.category_id)
           end
         end
+
+        should("gracefully handle errors") do
+          assert_no_difference(%w[WikiPage.count Tag.count]) do
+            post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "abc", category_id: 999 }, format: :json })
+            assert_response(:unprocessable_entity)
+          end
+        end
       end
 
       context("with category_is_locked") do
