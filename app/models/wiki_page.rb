@@ -322,8 +322,9 @@ class WikiPage < ApplicationRecord
     title = self.title.downcase.tr(" ", "_")
     if title =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
       category = Tag.categories.value_for($1)
-      # Only use prefix if the category is not set, is set to general, or is unchanged, anything else is likely to be a deliberate selection
-      if @category_id.nil? || (@category_id == Tag.categories.general || (!new_record? && tag.present? && @category_id == tag.category))
+      # Only use prefix if the category is not set, is set to general, or is unchanged - anything else is likely to be a deliberate selection
+      # We avoid using the tag property on the wiki page model to prevent inserting a value before later methods are called
+      if @category_id.nil? || (@category_id == Tag.categories.general || (!new_record? && (tag = Tag.find_by(name: $2)) && @category_id == tag.category))
         self.category_id = category
       end
       title = $2

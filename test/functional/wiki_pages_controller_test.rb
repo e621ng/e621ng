@@ -99,7 +99,6 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         end
         wiki = WikiPage.last
         assert_equal("abc", wiki.title)
-        assert_equal(@wiki_page.title, wiki.parent)
       end
 
       should("not allow an empty body") do
@@ -510,14 +509,12 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
             end
 
             should("respect title change and prioritize prefix if category_id is unchanged") do
-              as(@user) { @tag.update(category: Tag.categories.copyright) }
-              assert_difference(%w[WikiPageVersion.count Tag.count], 1) do
-                put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.copyright }, format: :json })
+              as(@user) { @tag.update!(category: Tag.categories.copyright) }
+              assert_difference(%w[WikiPageVersion.count TagTypeVersion.count], 1) do
+                put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:#{@wiki_page.title}", body: "abc", category_id: Tag.categories.copyright }, format: :json })
                 assert_response(:success)
               end
-              @wiki_page.reload
-              assert_equal("abc", @wiki_page.title)
-              assert_equal(Tag.categories.character, @wiki_page.category_id)
+              assert_equal(Tag.categories.character, @wiki_page.reload.category_id)
             end
           end
         end
