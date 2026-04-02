@@ -134,6 +134,10 @@ class WikiPage < ApplicationRecord
     def empty?
       body.blank?
     end
+
+    def no_content?
+      empty? && parent.nil?
+    end
   end
 
   module HelpPageMethods

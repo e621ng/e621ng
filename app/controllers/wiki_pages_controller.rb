@@ -69,7 +69,7 @@ class WikiPagesController < ApplicationController
   def create
     @wiki_page = WikiPage.new(wiki_page_params(:create))
     # avoid creating blank wiki pages when only tag attributes are modified
-    if @wiki_page.tag_will_change? && @wiki_page.empty?
+    if @wiki_page.tag_will_change? && @wiki_page.no_content?
       WikiPage.transaction do
         tag_updated = catch(:abort) do
           @wiki_page.create_tag
