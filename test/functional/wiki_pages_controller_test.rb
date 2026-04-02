@@ -261,7 +261,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
           end
         end
 
-        context("fox existing tags") do
+        context("for existing tags") do
           setup do
             @tag = create(:tag, is_locked: false)
           end
@@ -335,17 +335,6 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
             assert_response(:success)
           end
           assert_equal("bar", @wiki_page.reload.title)
-        end
-      end
-
-      context("with a prefix") do
-        should("ignore the prefix") do
-          old_category = @wiki_page.category_id
-          assert_no_difference(%w[WikiPageVersion.count TagTypeVersion.count]) do
-            put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:#{@wiki_page.title}" }, format: :json })
-            assert_response(:success)
-          end
-          assert_equal(old_category, @wiki_page.reload.category_id)
         end
       end
 
@@ -451,87 +440,127 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
         context("and prefix") do
           should("prioritize category_id") do
-            assert_difference(%w[WikiPage.count Tag.count], 1) do
-              post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.copyright }, format: :json })
+            assert_difference(%w[WikiPageVersion.count TagTypeVersion.count], 1) do
+              put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:#{@wiki_page.title}", body: "abc", category_id: Tag.categories.copyright }, format: :json })
               assert_response(:success)
             end
-            wiki = WikiPage.last
-            assert_equal("abc", wiki.title)
-            assert_equal(Tag.categories.copyright, wiki.category_id)
+            assert_equal(Tag.categories.copyright, @wiki_page.reload.category_id)
+          end
+
+          should("prioritize category_id and respect title change") do
+            assert_difference(%w[WikiPageVersion.count Tag.count], 1) do
+              put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.copyright }, format: :json })
+              assert_response(:success)
+            end
+            @wiki_page.reload
+            assert_equal("abc", @wiki_page.title)
+            assert_equal(Tag.categories.copyright, @wiki_page.category_id)
           end
 
           should("prioritize prefix if category_id is general") do
-            assert_difference(%w[WikiPage.count Tag.count], 1) do
-              post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.general }, format: :json })
+            assert_difference(%w[WikiPageVersion.count TagTypeVersion.count], 1) do
+              put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:#{@wiki_page.title}", body: "abc", category_id: Tag.categories.general }, format: :json })
               assert_response(:success)
             end
-            wiki = WikiPage.last
-            assert_equal("abc", wiki.title)
-            assert_equal(Tag.categories.character, wiki.category_id)
+            assert_equal(Tag.categories.character, @wiki_page.reload.category_id)
+          end
+
+          should("prioritize prefix if category_id is general and respect title change") do
+            assert_difference(%w[WikiPageVersion.count Tag.count], 1) do
+              put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:abc", body: "abc", category_id: Tag.categories.general }, format: :json })
+              assert_response(:success)
+            end
+            @wiki_page.reload
+            assert_equal("abc", @wiki_page.title)
+            assert_equal(Tag.categories.character, @wiki_page.category_id)
           end
         end
       end
 
       context("with category_is_locked") do
         context("for new tags") do
-          should("not work for normal users") do
-            assert_no_difference(%w[WikiPage.count Tag.count]) do
-              post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "abc", body: "abc", category_is_locked: "true" }, format: :json })
-              assert_response(:forbidden)
+          setup do
+            @wiki_page = as(@user) { create(:wiki_page) }
+          end
+
+          context("with body") do
+            should("not work for normal users") do
+              assert_no_difference(%w[WikiPageVersion.count Tag.count]) do
+                put_auth(wiki_page_path(@wiki_page), @user, params: { wiki_page: { body: "abc", category_is_locked: "true" }, format: :json })
+                assert_response(:forbidden)
+              end
+            end
+
+            should("work for admins") do
+              assert_difference(%w[WikiPageVersion.count Tag.count], 1) do
+                put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { body: "abc", category_is_locked: "true" }, format: :json })
+                assert_response(:success)
+              end
+              @wiki = WikiPage.last
+              assert_equal("abc", @wiki.body)
+              assert_equal(true, @wiki.category_is_locked)
             end
           end
 
-          should("work for admins") do
-            assert_difference(%w[WikiPage.count Tag.count], 1) do
-              post_auth(wiki_pages_path, @admin, params: { wiki_page: { title: "abc", body: "abc", category_is_locked: "true" }, format: :json })
-              assert_response(:success)
+          context("without body") do
+            should("not work for normal users") do
+              assert_no_difference(%w[WikiPageVersion.count Tag.count]) do
+                put_auth(wiki_page_path(@wiki_page), @user, params: { wiki_page: { category_is_locked: "true" }, format: :json })
+                assert_response(:forbidden)
+              end
             end
-            @wiki = WikiPage.last
-            assert_equal("abc", @wiki.title)
-            assert_equal(true, @wiki.category_is_locked)
-          end
 
-          should("not create wiki pages for tag only changes") do
-            assert_difference({ "WikiPage.count" => 0, "Tag.count" => 1 }) do
-              post_auth(wiki_pages_path, @admin, params: { wiki_page: { title: "abc", category_is_locked: "true" }, format: :json })
-              assert_response(:success)
+            should("work for admins") do
+              assert_difference({ "WikiPageVersion.count" => 0, "Tag.count" => 1 }) do
+                put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { category_is_locked: "true" }, format: :json })
+                assert_response(:success)
+              end
+              @wiki = WikiPage.last
+              assert_equal(true, @wiki.category_is_locked)
             end
-            assert_equal(true, Tag.last.is_locked)
           end
         end
 
-        context("fox existing tags") do
-          setup do
-            @tag = create(:tag, is_locked: false)
+        context("for existing tags") do
+          context("with body") do
+            should("not work for normal users") do
+              assert_no_difference(%w[WikiPageVersion.count TagTypeVersion.count]) do
+                put_auth(wiki_page_path(@wiki_page), @user, params: { wiki_page: { body: "abc", category_is_locked: "true" }, format: :json })
+                assert_response(:forbidden)
+              end
+              assert_equal(false, @tag.reload.is_locked)
+            end
+
+            should("work for admins") do
+              # TODO: tags do not log any change if only is_locked is changed, so we cannot check for that
+              # assert_difference(%w[WikiPageVersion.count TagTypeVersion.count], 1) do
+              assert_difference("WikiPageVersion.count", 1) do
+                put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { body: "abc", category_is_locked: "true" }, format: :json })
+                assert_response(:success)
+              end
+              assert_equal("abc", @wiki_page.reload.body)
+              assert_equal(true, @tag.reload.is_locked)
+            end
           end
 
-          should("not work for normal users") do
-            assert_no_difference(%w[WikiPage.count TagTypeVersion.count]) do
-              post_auth(wiki_pages_path, @user, params: { wiki_page: { title: @tag.name, body: "abc", category_is_locked: "true" }, format: :json })
-              assert_response(:forbidden)
+          context("without body") do
+            should("not work for normal users") do
+              assert_no_difference(%w[WikiPageVersion.count TagTypeVersion.count]) do
+                put_auth(wiki_page_path(@wiki_page), @user, params: { wiki_page: { category_is_locked: "true" }, format: :json })
+                assert_response(:forbidden)
+              end
+              assert_equal(false, @tag.reload.is_locked)
             end
-            assert_equal(false, @tag.reload.is_locked)
-          end
 
-          should("work for admins") do
-            # TODO: tags do not log any change if only is_locked is changed, so we cannot check for that
-            # assert_difference(%w[WikiPage.count TagTypeVersion.count], 1) do
-            assert_difference("WikiPage.count", 1) do
-              post_auth(wiki_pages_path, @admin, params: { wiki_page: { title: @tag.name, body: "abc", category_is_locked: "true" }, format: :json })
-              assert_response(:success)
+            should("work for admins") do
+              # TODO: tags do not log any change if only is_locked is changed, so we cannot check for that
+              # assert_difference({ "WikiPageVersion.count" => 0, "TagTypeVersion.count" => 1 }) do
+              assert_no_difference("WikiPageVersion.count") do
+                put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { category_is_locked: "true" }, format: :json })
+                assert_response(:success)
+              end
+              assert_equal(true, @tag.reload.is_locked)
             end
-            assert_equal(@tag.name, WikiPage.last.title)
-            assert_equal(true, @tag.reload.is_locked)
-          end
-
-          should("not create wiki pages for tag only changes") do
-            # TODO: tags do not log any change if only is_locked is changed, so we cannot check for that
-            # assert_difference({ "WikiPage.count" => 0, "TagTypeVersion.count" => 1 }) do
-            assert_no_difference(%w[WikiPage.count]) do
-              post_auth(wiki_pages_path, @admin, params: { wiki_page: { title: @tag.name, category_is_locked: "true" }, format: :json })
-              assert_response(:success)
-            end
-            assert_equal(true, @tag.reload.is_locked)
           end
         end
       end

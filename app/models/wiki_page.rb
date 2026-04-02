@@ -321,8 +321,8 @@ class WikiPage < ApplicationRecord
     title = self.title.downcase.tr(" ", "_")
     if title =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
       category = Tag.categories.value_for($1)
-      # Only use prefix if the record is new, and the category is not set or is set to general, anything else is likely to be a deliberate selection
-      if new_record? && (@category_id.nil? || @category_id == Tag.categories.general)
+      # Only use prefix if the category is not set or is set to general, anything else is likely to be a deliberate selection
+      if @category_id.nil? || @category_id == Tag.categories.general
         self.category_id = category
       end
       title = $2
@@ -395,5 +395,10 @@ class WikiPage < ApplicationRecord
         match
       end
     end.map { |x| x.downcase.tr(" ", "_").to_s }.uniq
+  end
+
+  def reload(options = nil)
+    reload_tag_attributes
+    super
   end
 end
