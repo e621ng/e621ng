@@ -41,8 +41,14 @@ module Moderator
           end
 
           if @post.is_deleted?
-            flash[:notice] = "Post ##{@post.id} is already deleted"
-            return redirect_to(post_path(@post, q: params[:q].presence))
+            respond_to do |format|
+              format.html do
+                flash[:notice] = "Post ##{@post.id} is already deleted"
+                redirect_to(post_path(@post, q: params[:q].presence))
+              end
+              format.json { render json: { reason: "Post ##{@post.id} is already deleted" }, status: 409 }
+            end
+            return
           end
           @post.delete!(params[:reason])
 
