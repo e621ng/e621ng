@@ -54,7 +54,7 @@ class ParseValueTest < ActiveSupport::TestCase
 
   should "clamp filesizes" do
     assert_equal(0, eq_value("-5mb", :filesize))
-    assert_equal(Danbooru.config.max_file_size, eq_value("999999mb", :filesize))
+    assert_equal(ParseValue::MAX_INT, eq_value("999999mb", :filesize))
   end
 
   should "invert ranges" do

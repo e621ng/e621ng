@@ -185,7 +185,7 @@ module ParseValue
         size.to_f.megabytes
       else
         size.to_f
-      end.to_i.clamp(0, Danbooru.config.max_file_size)
+      end.to_i.clamp(0, MAX_INT)
     end
   end
 
