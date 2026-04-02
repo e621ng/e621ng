@@ -232,10 +232,22 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
           end
         end
 
-        should("gracefully handle errors") do
-          assert_no_difference(%w[WikiPage.count Tag.count]) do
-            post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "abc", category_id: 999 }, format: :json })
-            assert_response(:unprocessable_entity)
+        context("for tag only changes") do
+          should("gracefully handle errors") do
+            assert_no_difference(%w[WikiPage.count Tag.count]) do
+              post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "abc", category_id: 999 }, format: :json })
+              assert_response(:unprocessable_entity)
+            end
+          end
+
+          should("normalize title") do
+            assert_difference({ "WikiPage.count" => 0, "Tag.count" => 1 }) do
+              post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "character:abc" }, format: :json })
+              assert_response(:success)
+            end
+            tag = Tag.last
+            assert_equal("abc", tag.name)
+            assert_equal(Tag.categories.character, tag.category)
           end
         end
       end

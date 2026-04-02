@@ -3,6 +3,7 @@
 class WikiPage < ApplicationRecord
   class RevertError < Exception; end
 
+  after_initialize :normalize_title, if: -> { new_record? && title_changed? }
   before_validation :normalize_title
   before_validation :normalize_other_names
   before_validation :normalize_parent
