@@ -105,7 +105,7 @@ ForumPost.quote = function (e) {
     accept: "text/javascript",
   }).done(function (data) {
     const $textarea = $("#forum_post_body_for_");
-    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
+    TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"), parent.data("creator-color"));
     $textarea.selectEnd();
 
     $("#topic-response").show();

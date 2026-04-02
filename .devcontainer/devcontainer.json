@@ -19,7 +19,7 @@
   "postCreateCommand": {
     "bash-completion": "apk update && apk --no-cache add bash-completion docker-cli && echo 'source /etc/bash/bash_completion.sh' >> ~/.bash_profile"
   },
-  
+
   "customizations": {
     "vscode": {
       "extensions": [
@@ -33,6 +33,9 @@
 
         /** SQL **/
         // "ckolkman.vscode-postgres",
+
+        /** Dtext **/
+        // "RReverser.ragel",
 
         /** JavaScript / TypeScript / Vue **/
         "Vue.volar",

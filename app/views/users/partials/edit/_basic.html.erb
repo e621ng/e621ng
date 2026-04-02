@@ -79,6 +79,16 @@
   </tab-hint>
 </tab-entry>
 
+<tab-entry tab="<%= tab_name %>" group="profile" search="update change user flair color profile color">
+  <tab-head><%= form.label :flair_color, "Flair Color" %></tab-head>
+  <tab-body>
+  <%= form.input_field :flair_color_hex, as: :string, label: false, placeholder: CurrentUser.user.user_color %>
+  </tab-body>
+  <tab-hint>
+    A hex color code (e.g. #ff0000) for accents that will be used when mentioning you on the site.
+  </tab-hint>
+</tab-entry>
+
 <tab-entry tab="<%= tab_name %>" group="profile" class="bigtext" search="user profile about me">
   <tab-head><%= form.label :profile_about, "About Me" %></tab-head>
   <tab-body>

@@ -115,6 +115,7 @@ class User < ApplicationRecord
   after_create :create_user_status
   before_update :encrypt_password_on_update
   after_save :update_cache
+  validates :flair_color_hex, format: { with: /\A#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\z/ }, allow_blank: true
 
   has_many :api_keys, dependent: :destroy
   has_one :dmail_filter
@@ -737,7 +738,7 @@ class User < ApplicationRecord
         id created_at name level base_upload_limit
         post_upload_count post_update_count note_update_count
         is_banned can_approve_posts can_upload_free
-        level_string avatar_id is_verified?
+        level_string avatar_id is_verified? flair_color
       ]
 
       if id == CurrentUser.user.id
@@ -940,6 +941,10 @@ class User < ApplicationRecord
         q = q.where(avatar_id: params[:avatar_id])
       end
 
+      if params[:flair_color_hex].present?
+        q = q.where(flair_color: flair_hex_to_int(params[:flair_color_hex]))
+      end
+
       if params[:email_matches].present?
         q = q.where_ilike(:email, params[:email_matches])
       end
@@ -1085,5 +1090,77 @@ class User < ApplicationRecord
     @feedback_pieces = nil
     @is_artist = nil
     self
+  end
+
+  def user_color
+    # If a flair_color (stored as an integer) is set, return it as a hex string (#rrggbb).
+    return flair_color_hex if flair_color.present?
+
+    # Since this is only called for logged in users, the id cannot be nil.
+    # Just to be safe though, in case a future method calls this on an anonymous user
+    return "#808080" if id.nil?
+    # Fallback: return a hex color code based on the user's ID.
+    "##{Digest::MD5.hexdigest(id.to_s)[-6..]}"
+  end
+
+  # Returns the flair color as a hex string like "#rrggbb", or nil if not set.
+  def flair_color_hex
+    return nil if flair_color.nil?
+    "##{format('%06x', flair_color)}"
+  end
+
+  # Accepts a hex string like "#rrggbb" or "rrggbb", or an integer, and converts it to an integer.
+  # Also accepts a wildcard '*' in search contexts (e.g., "a1b*"), returning a Range for querying.
+  def self.flair_hex_to_int(hex)
+    if hex.blank?
+      nil
+    elsif hex.is_a?(Integer)
+      hex & 0xFFFFFF
+    else
+      str = hex.to_s.strip
+      str = str[1..] if str.start_with?("#")
+
+      # Wildcard support for searches: treat '*' as a prefix wildcard and return a numeric Range.
+      # "*" => 0x000000..0xFFFFFF, "abc*" => 0xABC000..0xABCFFF, "ffff*" => 0xFFFF00..0xFFFFFF
+      if str.include?("*")
+        prefix = str.split("*", 2).first
+        return nil unless prefix.match?(/\A[0-9a-fA-F]{0,6}\z/)
+
+        min_str = prefix.ljust(6, "0")
+        max_str = prefix.ljust(6, "f")
+
+        min_val = min_str.to_i(16) & 0xFFFFFF
+        max_val = max_str.to_i(16) & 0xFFFFFF
+
+        return (min_val..max_val)
+      end
+
+      # Normalize 3-digit shorthand (e.g. "f0a" -> "ff00aa") and validate characters/length.
+      if str.match?(/\A[0-9a-fA-F]{3}\z/)
+        str = str.chars.map { |c| c * 2 }.join
+      end
+
+      # Reject invalid input; only allow 6 hex chars.
+      return nil unless str.match?(/\A[0-9a-fA-F]{6}\z/)
+
+      str.to_i(16) & 0xFFFFFF
+    end
+  end
+
+  def flair_color_hex=(val)
+    converted = self.class.flair_hex_to_int(val)
+    # Only assign exact integer values; ignore wildcard ranges in assignment contexts.
+    if converted.is_a?(Integer) || converted.nil?
+      self.flair_color = converted
+    end
+  end
+
+  # Returns an [r, g, b] array (0-255) for the stored flair_color, or nil if not set.
+  def flair_color_rgb
+    return nil if flair_color.nil?
+    r = (flair_color >> 16) & 0xFF
+    g = (flair_color >> 8) & 0xFF
+    b = flair_color & 0xFF
+    [r, g, b]
   end
 end

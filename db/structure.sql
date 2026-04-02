@@ -2530,7 +2530,8 @@ furry -rating:s'::text,
     unread_dmail_count integer DEFAULT 0 NOT NULL,
     profile_about text DEFAULT ''::text NOT NULL,
     profile_artinfo text DEFAULT ''::text NOT NULL,
-    avatar_id integer
+    avatar_id integer,
+    flair_color integer
 );
 
 
@@ -4940,6 +4941,13 @@ CREATE INDEX index_users_on_email ON public.users USING btree (email);
 
 
 --
+-- Name: index_users_on_flair_color; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_flair_color ON public.users USING btree (flair_color);
+
+
+--
 -- Name: index_users_on_last_ip_addr; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5216,6 +5224,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260204120000'),
 ('20260329181337'),
 ('20260325154501'),
 ('20260324195504'),
