@@ -689,6 +689,9 @@ class TagQueryTest < ActiveSupport::TestCase
     note: :note,
     delreason: :delreason,
     deletedby: :deleter,
+    flaggedby: :flagger,
+    flagreason: :flagreason,
+    flagnote: :flagnote,
     upvote: :upvote,
     votedup: :upvote,
     downvote: :downvote,
@@ -1232,6 +1235,43 @@ class TagQueryTest < ActiveSupport::TestCase
             assert_equal(@val_u, TagQuery.new("#{x}:#{@u_name}")[MAPPING[x]])
             CurrentUser.user = @user
           end
+        end
+
+        should "parse flaggedby metatags correctly" do
+          # Non-staff users can't use this metatag.
+          assert_nil(TagQuery.new("flaggedby:#{@u_name}")[:flagger])
+          assert_nil(TagQuery.new("-flaggedby:#{@u_name}")[:flagger_must_not])
+          assert_nil(TagQuery.new("~flaggedby:#{@u_name}")[:flagger_should])
+
+          # Staff can parse normal username/id forms.
+          CurrentUser.user = @admin_user
+          assert_equal(@val_u, TagQuery.new("flaggedby:#{@u_name}")[:flagger])
+          assert_equal(@val_u, TagQuery.new("flaggedby:!#{@u_id}")[:flagger])
+          assert_equal(@val_u, TagQuery.new("-flaggedby:#{@u_name}")[:flagger_must_not])
+          assert_equal(@val_u, TagQuery.new("~flaggedby:#{@u_name}")[:flagger_should])
+          assert_equal([404], TagQuery.new("flaggedby:!404")[:flagger])
+          # Failure case
+          assert_equal([-1], TagQuery.new("flaggedby:missing_user")[:flagger])
+        end
+
+        should "parse flagreason metatags correctly" do
+          # Available to non-staff.
+          assert_equal(["inferior*quality"], TagQuery.new("flagreason:Inferior**Quality")[:flagreason])
+          assert_equal(["uploading*guidelines"], TagQuery.new("-flagreason:UPLOADING***GUIDELINES")[:flagreason_must_not])
+          assert_equal(["breaks*tos"], TagQuery.new("~flagreason:Breaks****ToS")[:flagreason_should])
+        end
+
+        should "parse flagnote metatags correctly" do
+          # Non-staff users can't use this metatag.
+          assert_nil(TagQuery.new("flagnote:details")[:flagnote])
+          assert_nil(TagQuery.new("-flagnote:details")[:flagnote_must_not])
+          assert_nil(TagQuery.new("~flagnote:details")[:flagnote_should])
+
+          # Staff can parse it and preserve case while still collapsing wildcard runs.
+          CurrentUser.user = @admin_user
+          assert_equal(["needs*more*details"], TagQuery.new("flagnote:Needs*More***Details")[:flagnote])
+          assert_equal(["needs*more*details"], TagQuery.new("-flagnote:Needs*More***Details")[:flagnote_must_not])
+          assert_equal(["needs*more*details"], TagQuery.new("~flagnote:Needs*More***Details")[:flagnote_should])
         end
       end
 

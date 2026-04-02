@@ -1892,6 +1892,65 @@ class PostTest < ActiveSupport::TestCase
       end
     end
 
+    context "with flag metatag" do
+      setup do
+        @flagger = create(:user)
+        @post1 = create(:post)
+        @post2 = create(:post, parent_id: @post1.id) # post1 is the parent of post2
+        @post3 = create(:post) # normal post with no flags
+        as(@flagger) do
+          create(:post_flag, post: @post1, reason_name: "trace", note: "Post #12345 was deleted. This post is the same as it. It was a trace.")
+          create(:post_flag, post: @post2, parent_id: @post1.id, reason_name: "inferior", note: "This post is an inferior version of post #1234")
+        end
+        @staff_user = create(:mod_user)
+        @nonstaff_user = create(:user)
+      end
+
+      should "flagreason:<text>" do
+        assert_tag_match([@post1], 'flagreason:"Trace of *"')
+        assert_tag_match([@post2], "flagreason:*inferior*")
+        assert_tag_match([], "flagreason:*guidelines*")
+        assert_tag_match([@post2, @post1], "flagreason:*er*")
+      end
+
+      context "flagnote:<text>" do
+        should "work for staff" do
+          as(@staff_user) do
+            assert_tag_match([@post1], "flagnote:*12345*")
+            assert_tag_match([], "flagnote:*guidelines*")
+            assert_tag_match([@post2, @post1], "flagnote:*This*post*")
+          end
+        end
+
+        should "ignore for non-staff" do
+          as(@nonstaff_user) do
+            assert_tag_match([@post3, @post2, @post1], 'flagnote:"Post*"')
+            assert_tag_match([@post3, @post2, @post1], "flagnote:*12345*")
+            assert_tag_match([@post3, @post2, @post1], "flagnote:*guidelines*")
+            assert_tag_match([@post3, @post2, @post1], "flagnote:*This*post*")
+          end
+        end
+      end
+
+      context "flaggedby:<user>" do
+        should "work for staff" do
+          as(@staff_user) do
+            assert_tag_match([@post2, @post1], "flaggedby:#{@flagger.name}")
+            assert_tag_match([@post2, @post1], "flaggedby:!#{@flagger.id}")
+            assert_tag_match([], "flaggedby:#{@nonstaff_user.name}")
+          end
+        end
+
+        should "ignore for non-staff" do
+          as(@nonstaff_user) do
+            assert_tag_match([@post3, @post2, @post1], "flaggedby:#{@flagger.name}")
+            assert_tag_match([@post3, @post2, @post1], "flaggedby:!#{@flagger.id}")
+            assert_tag_match([@post3, @post2, @post1], "flaggedby:#{@nonstaff_user.name}")
+          end
+        end
+      end
+    end
+
     # FIXME: This test fails randomly at different assertions
     should_eventually "return posts ordered by a particular attribute" do
       posts = (1..2).map do |n|
@@ -1935,6 +1994,8 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(posts.reverse, "order:note_count_desc")
       assert_tag_match(posts.reverse, "order:notes")
       assert_tag_match(posts.reverse, "order:notes_desc")
+      assert_tag_match(posts.reverse, "order:deleted")
+      assert_tag_match(posts.reverse, "order:flagged")
 
       assert_tag_match(posts, "order:id_asc")
       assert_tag_match(posts, "order:score_asc")
@@ -1953,6 +2014,8 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(posts, "order:copytags_asc")
       assert_tag_match(posts, "order:note_count_asc")
       assert_tag_match(posts, "order:notes_asc")
+      assert_tag_match(posts, "order:deleted_asc")
+      assert_tag_match(posts, "order:flagged_asc")
     end
 
     should "return posts for order:comment_bumped" do
@@ -1973,6 +2036,55 @@ class PostTest < ActiveSupport::TestCase
 
       assert_tag_match([post2, post3, post1], "order:comment_bumped")
       assert_tag_match([post1, post3, post2], "order:comment_bumped_asc")
+    end
+
+    context "with postflag-based ordering" do
+      setup do
+        # normal posts
+        @post1 = create(:post)
+        @post2 = create(:post)
+        @post3 = create(:post)
+        @post4 = create(:post)
+        @post5 = create(:post)
+        @post6 = create(:post)
+        @post7 = create(:post)
+        # actors
+        @flagger = create(:user)
+        @staff_user = create(:mod_user)
+        # post flags
+        as(@flagger) do
+          create(:post_flag, post: @post4, note: "Post #12345 was deleted. This post is the same as it")
+          create(:post_flag, post: @post6, note: "This post is an inferior version of post #1234")
+          create(:post_flag, post: @post2, note: "This post is an inferior version of post #1234")
+        end
+        # post deletions and flag handling
+        as(@staff_user) do
+          @post3.delete!("First deletion")
+          @post2.unflag!
+          @post4.delete!("Second deletion")
+          @post1.delete!("Third deletion")
+          @post1.undelete!
+        end
+        # final posts ordering: active, flag2, active, delete2+flag1, delete1, active, active
+      end
+
+      should "order by flag creation" do
+        untouched = [@post7, @post5, @post3, @post2, @post1] # Posts that shouldn't be effected by ordering
+        ordered = [@post6, @post4] # Posts that should be ordered by flag creation time
+        assert_tag_match(ordered + untouched, "status:any order:flagged")
+        assert_tag_match(ordered + untouched, "status:any order:flagged_desc")
+        assert_tag_match(ordered.reverse + untouched.reverse, "status:any -order:flagged")
+        assert_tag_match(ordered.reverse + untouched.reverse, "status:any order:flagged_asc")
+      end
+
+      should "order by deletion" do
+        untouched = [@post7, @post6, @post5, @post2, @post1] # Posts that shouldn't be effected by ordering
+        ordered = [@post4, @post3] # Posts that should be ordered by deletion time
+        assert_tag_match(ordered + untouched, "status:any order:deleted")
+        assert_tag_match(ordered + untouched, "status:any order:deleted_desc")
+        assert_tag_match(ordered.reverse + untouched.reverse, "status:any -order:deleted")
+        assert_tag_match(ordered.reverse + untouched.reverse, "status:any order:deleted_asc")
+      end
     end
 
     should "return posts for a filesize search" do
