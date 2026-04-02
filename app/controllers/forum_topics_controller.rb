@@ -12,7 +12,7 @@ class ForumTopicsController < ApplicationController
   skip_before_action :api_check
 
   def index
-    params[:search] ||= {}
+    params[:search] = {} unless params[:search].is_a?(Hash)
     params[:search][:order] ||= "sticky" if request.format == Mime::Type.lookup("text/html")
 
     @query = ForumTopic.visible(CurrentUser.user).search(search_params)
@@ -130,12 +130,12 @@ class ForumTopicsController < ApplicationController
 
   def normalize_search
     if params[:title_matches]
-      params[:search] ||= {}
+      params[:search] = {} unless params[:search].is_a?(Hash)
       params[:search][:title_matches] = params.delete(:title_matches)
     end
 
     if params[:title]
-      params[:search] ||= {}
+      params[:search] = {} unless params[:search].is_a?(Hash)
       params[:search][:title] = params.delete(:title)
     end
   end
