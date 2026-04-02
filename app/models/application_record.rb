@@ -112,11 +112,13 @@ class ApplicationRecord < ActiveRecord::Base
         user_name_key = query_field.is_a?(Symbol) ? "#{query_field}_name" : query_field[0]
         user_id_key = query_field.is_a?(Symbol) ? "#{query_field}_id" : query_field[1]
 
+        params = params.with_indifferent_access unless params.is_a?(ActionController::Parameters)
+
         if params[user_name_key].present?
           user_ids = [User.name_to_id(params[user_name_key]) || 0]
         end
         if params[user_id_key].present?
-          user_ids = params[user_id_key].split(",").first(100).map(&:to_i)
+          user_ids = params[user_id_key].to_s.split(",").first(100).map(&:to_i)
         end
 
         yield(user_ids) if user_ids
