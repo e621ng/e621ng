@@ -22,7 +22,7 @@ class WikiPage < ApplicationRecord
   validates :title, tag_name: true, if: :title_changed?
   validates :title, length: { minimum: 1, maximum: 100 }
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
-  validates :body, presence: true, on: :create
+  validates :body, presence: true, on: :create, unless: :parent_changed?
   validate :user_not_limited
   validate :validate_rename
   validate :validate_redirect

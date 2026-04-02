@@ -6,6 +6,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
   context("The wiki pages controller") do
     setup do
       @user = create(:user)
+      @privileged = create(:privileged_user)
       @mod = create(:moderator_user)
       @admin = create(:admin_user)
       @tag = create(:tag)
@@ -96,6 +97,9 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
           post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "abc", body: "abc" }, format: :json })
           assert_response(:success)
         end
+        wiki = WikiPage.last
+        assert_equal("abc", wiki.title)
+        assert_equal(@wiki_page.title, wiki.parent)
       end
 
       should("not allow an empty body") do
@@ -103,6 +107,16 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
           post_auth(wiki_pages_path, @user, params: { wiki_page: { title: "abc", body: "" }, format: :json })
           assert_response(:unprocessable_entity)
         end
+      end
+
+      should("allow empty body if parent is set") do
+        assert_difference("WikiPage.count", 1) do
+          post_auth(wiki_pages_path, @privileged, params: { wiki_page: { title: "abc", body: "", parent: @wiki_page.title }, format: :json })
+          assert_response(:success)
+        end
+        wiki = WikiPage.last
+        assert_equal("abc", wiki.title)
+        assert_equal(@wiki_page.title, wiki.parent)
       end
 
       should("not create tag") do
