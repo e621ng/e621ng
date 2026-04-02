@@ -30,6 +30,18 @@ class EmailBlacklistTest < ActiveSupport::TestCase
     end
   end
 
+  should "return false for empty domain" do
+    assert_nothing_raised do
+      assert_equal(false, EmailBlacklist.is_banned?("user.email@"))
+    end
+  end
+
+  should "return false for empty user" do
+    assert_nothing_raised do
+      assert_equal(false, EmailBlacklist.is_banned?("@domain.com"))
+    end
+  end
+
   should "return false for malformed email without at-sign" do
     assert_nothing_raised do
       assert_equal(false, EmailBlacklist.is_banned?("not-an-email"))
