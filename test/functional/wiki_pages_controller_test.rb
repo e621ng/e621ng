@@ -539,7 +539,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
             should("prioritize prefix if category_id is unchanged") do
               as(@user) { @tag.update!(category: Tag.categories.copyright) }
-                assert_difference({ "WikiPageVersion.count" => 0, "TagTypeVersion.count" => 1 }) do
+              assert_difference({ "WikiPageVersion.count" => 0, "TagTypeVersion.count" => 1 }) do
                 put_auth(wiki_page_path(@wiki_page), @admin, params: { wiki_page: { title: "character:#{@wiki_page.title}", category_id: Tag.categories.copyright }, format: :json })
                 assert_response(:success)
               end
