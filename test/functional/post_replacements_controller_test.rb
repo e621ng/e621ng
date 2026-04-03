@@ -10,7 +10,7 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       as(@user) do
         @upload = UploadService.new(attributes_for(:jpg_upload).merge({ uploader: @user })).start!
         @post = @upload.post
-        @replacement = create(:png_replacement, creator: @user, post: @post)
+        @replacement = create(:png_replacement, creator: @regular_user, post: @post)
       end
     end
 
@@ -54,6 +54,54 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
           # f1abde88aedda37ee41b00f735c92afa is the md5 of bread-static.png
           assert_equal "f1abde88aedda37ee41b00f735c92afa", @post.md5
           assert_equal @response.parsed_body["location"], post_path(@post)
+        end
+
+        should "credit the replacer by default" do
+          @post.update_column(:uploader_id, @regular_user.id)
+
+          file = fixture_file_upload("bread-static.png")
+          params = {
+            format: :json,
+            post_id: @post.id,
+            post_replacement: {
+              replacement_file: file,
+              reason: "test replacement",
+              as_pending: false,
+            },
+          }
+
+          post_auth post_replacements_path, @user, params: params
+          @post.reload
+
+          replacement = PostReplacement.where(post: @post).order(:id).last
+          assert_not_nil replacement
+          assert_equal "approved", replacement.status
+          assert_equal @user, @post.uploader
+        end
+
+        should "not credit the replacer when uploaded as silent" do
+          @post.update_column(:uploader_id, @regular_user.id)
+
+          file = fixture_file_upload("bread-static.png")
+          params = {
+            format: :json,
+            post_id: @post.id,
+            post_replacement: {
+              replacement_file: file,
+              reason: "test replacement",
+              as_pending: false,
+              as_silent: true,
+            },
+          }
+
+          post_auth post_replacements_path, @user, params: params
+          @post.reload
+
+          replacement = PostReplacement.where(post: @post).order(:id).last
+          assert_not_nil replacement
+          assert_predicate replacement, :is_approved?
+
+          assert_equal @regular_user, @post.uploader
         end
 
         should "always upload as pending if user can't approve posts" do
@@ -125,6 +173,36 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         @post.reload
         assert_equal @replacement.md5, @post.md5
         assert_equal @replacement.status, "approved"
+      end
+
+      should "credit the creator when credit_replacer is not specified" do # failure -- user isn't credited
+        put_auth approve_post_replacement_path(@replacement), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @regular_user
+      end
+
+      should "credit the creator when credit_replacer is true" do # failure -- user isn't credited
+        put_auth approve_post_replacement_path(@replacement, credit_replacer: true), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @regular_user
+      end
+
+      should "not credit the creator when credit_replacer is false" do
+        put_auth approve_post_replacement_path(@replacement, credit_replacer: false), @user
+        assert_response :success
+        @replacement.reload
+        @post.reload
+        assert_equal @replacement.md5, @post.md5
+        assert_equal @replacement.status, "approved"
+        assert_equal @post.uploader, @user
       end
     end
 
