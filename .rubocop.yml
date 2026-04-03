@@ -164,3 +164,10 @@ Style/TrailingCommaInArrayLiteral:
 
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: consistent_comma
+
+Rails/DynamicFindBy:
+  Enabled: true
+  Whitelist:
+    - find_by_normalized_name
+    - find_by_name_or_id
+    - find_by_name_list

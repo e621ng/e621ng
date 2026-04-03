@@ -1361,7 +1361,7 @@ class TagQuery
           if g2.downcase == "me"
             favuser = CurrentUser.is_member? ? CurrentUser.user : nil
           else
-            favuser = User.find_by_name_or_id(g2) # rubocop:disable Rails/DynamicFindBy
+            favuser = User.find_by_name_or_id(g2)
           end
 
           next -1 unless favuser # next 0 unless favuser

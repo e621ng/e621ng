@@ -67,8 +67,30 @@ class WikiPagesController < ApplicationController
   end
 
   def create
-    @wiki_page = WikiPage.create(wiki_page_params(:create))
-    respond_with(@wiki_page)
+    @wiki_page = WikiPage.new(wiki_page_params(:create))
+    # avoid creating blank wiki pages when only tag attributes are modified
+    if @wiki_page.tag_will_change? && @wiki_page.no_content?
+      WikiPage.transaction do
+        tag_updated = catch(:abort) do
+          @wiki_page.create_tag
+          @wiki_page.update_tag
+          true
+        end
+
+        if tag_updated
+          tag = Tag.find_by_normalized_name(@wiki_page.title)
+          respond_to do |format|
+            format.html { redirect_to(show_or_new_wiki_pages_path(title: @wiki_page.title)) }
+            format.json { render(json: { tag: tag }) }
+          end
+        else
+          respond_with(@wiki_page)
+        end
+      end
+    else
+      @wiki_page.save
+      respond_with(@wiki_page)
+    end
   end
 
   def update
