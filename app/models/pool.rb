@@ -13,6 +13,7 @@ class Pool < ApplicationRecord
   validates :description, length: { maximum: Danbooru.config.pool_descr_max_size }
   validate :user_not_create_limited, on: :create
   validate :user_not_limited, on: :update, if: :limited_attribute_changed?
+  validate :validate_post_ids, if: :post_ids_changed?
   validate :user_not_posts_limited, on: :update, if: :post_ids_changed?
   validate :validate_name, if: :name_changed?
   validates :category, inclusion: { in: %w[series collection] }
@@ -212,6 +213,26 @@ class Pool < ApplicationRecord
     else
       true
     end
+  end
+
+  def validate_post_ids
+    post_ids_before = post_ids_before_last_save || post_ids_was
+    added = post_ids - post_ids_before
+
+    return if added.empty?
+
+    invalid_ids = []
+
+    added.each do |id|
+      if id <= 0 || ParseValue.safe_id(id) == -1 || !Post.exists?(id)
+        invalid_ids.push(id)
+      end
+    end
+
+    return if invalid_ids.empty?
+
+    errors.add(:base, "Cannot add posts to pool. Invalid IDs: #{invalid_ids.join(', ')}")
+    false
   end
 
   def add!(post)
