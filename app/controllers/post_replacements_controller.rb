@@ -3,7 +3,7 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: %i[create new]
-  before_action :approver_only, only: %i[approve reject promote toggle_penalize]
+  before_action :approver_only, only: %i[approve reject promote toggle_penalize transfer]
   before_action :admin_only, only: [:destroy]
   before_action :ensure_uploads_enabled, only: %i[new create]
 
@@ -84,6 +84,27 @@ class PostReplacementsController < ApplicationController
   def reject
     @post_replacement = PostReplacement.find(params[:id])
     @post_replacement.reject!
+
+    respond_with(@post_replacement) do |format|
+      format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
+      format.json
+    end
+  end
+
+  def transfer
+    @post_replacement = PostReplacement.find(params[:id])
+    @post_replacement.transfer(Post.find(params[:new_post_id]))
+
+    if @post_replacement.errors.any?
+      respond_to do |format|
+        format.html do
+          return render plain: @post_replacement.errors.full_messages.join("; "), status: 412
+        end
+        format.json do
+          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
+        end
+      end
+    end
 
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
