@@ -140,6 +140,23 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    context "note action" do
+      should "create a note on the post replacement" do
+        put_auth note_post_replacement_path(@replacement), @user, params: { note_content: "This is a test note" }
+        assert_response :success
+        @replacement.reload
+        assert_equal true, @replacement.note.present?
+        assert_equal "This is a test note", @replacement.note&.note
+      end
+
+      should "give an error if the user is not allowed to create notes" do
+        put_auth note_post_replacement_path(@replacement), @regular_user, params: { note_content: "This is a test note" }
+        assert_response :forbidden
+        @replacement.reload
+        assert_equal false, @replacement.note.present?
+      end
+    end
+
     context "toggle action" do
       should "change penalize_uploader flag" do
         put_auth approve_post_replacement_path(@replacement, penalize_current_uploader: true), @user

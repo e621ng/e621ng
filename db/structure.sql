@@ -1440,6 +1440,38 @@ ALTER SEQUENCE public.post_flags_id_seq OWNED BY public.post_flags.id;
 
 
 --
+-- Name: post_replacement_notes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_replacement_notes (
+    id bigint NOT NULL,
+    post_replacements2_id bigint NOT NULL,
+    note text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: post_replacement_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_replacement_notes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_replacement_notes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_replacement_notes_id_seq OWNED BY public.post_replacement_notes.id;
+
+
+--
 -- Name: post_replacements2; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2894,6 +2926,13 @@ ALTER TABLE ONLY public.post_flags ALTER COLUMN id SET DEFAULT nextval('public.p
 
 
 --
+-- Name: post_replacement_notes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_replacement_notes ALTER COLUMN id SET DEFAULT nextval('public.post_replacement_notes_id_seq'::regclass);
+
+
+--
 -- Name: post_replacements2 id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3413,6 +3452,14 @@ ALTER TABLE ONLY public.post_events
 
 ALTER TABLE ONLY public.post_flags
     ADD CONSTRAINT post_flags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_replacement_notes post_replacement_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_replacement_notes
+    ADD CONSTRAINT post_replacement_notes_pkey PRIMARY KEY (id);
 
 
 --
@@ -4442,6 +4489,13 @@ CREATE INDEX index_post_flags_on_reason_tsvector ON public.post_flags USING gin 
 
 
 --
+-- Name: index_post_replacement_notes_on_post_replacements2_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_replacement_notes_on_post_replacements2_id ON public.post_replacement_notes USING btree (post_replacements2_id);
+
+
+--
 -- Name: index_post_replacements2_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5138,6 +5192,14 @@ ALTER TABLE ONLY public.favorites
 
 
 --
+-- Name: post_replacement_notes fk_rails_a7c5a27cc0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_replacement_notes
+    ADD CONSTRAINT fk_rails_a7c5a27cc0 FOREIGN KEY (post_replacements2_id) REFERENCES public.post_replacements2(id);
+
+
+--
 -- Name: automod_rules fk_rails_af3a8c8cd0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5231,6 +5293,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251101144234'),
 ('20251014151300'),
 ('20251010171207'),
+('20251010005633'),
 ('20251001213309'),
 ('20250921011208'),
 ('20250831040648'),

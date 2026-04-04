@@ -8,6 +8,8 @@ class PostReplacement < ApplicationRecord
   belongs_to :uploader_on_approve, class_name: "User", foreign_key: :uploader_id_on_approve, optional: true
   attr_accessor :replacement_file, :replacement_url, :tags, :is_backup, :as_pending, :is_destroyed_reupload
 
+  has_one :note, class_name: "PostReplacementNote", foreign_key: :post_replacements2_id, dependent: :destroy
+
   validate :user_is_not_limited, on: :create
   validate :post_is_valid, on: :create
   validate :set_file_name, on: :create
@@ -31,6 +33,7 @@ class PostReplacement < ApplicationRecord
   validate :no_pending_duplicates, on: :create
   validate :write_storage_file, on: :create
   validates :reason, length: { in: 5..150 }, presence: true, on: :create
+  delegate :visible_to?, to: :note, prefix: true, allow_nil: true
 
   before_create :create_original_backup
   before_create :set_previous_uploader
@@ -270,6 +273,23 @@ class PostReplacement < ApplicationRecord
       post.update_index
     end
 
+    def note_add(note_content)
+      unless can_add_note?(CurrentUser.user)
+        errors.add(:base, "You do not have permission to add a note.")
+        return
+      end
+
+      begin
+        PostReplacementNote.create_or_update_for_replacement!(CurrentUser.user, self, note_content)
+      rescue ActiveRecord::RecordInvalid => e
+        errors.add(:note, e.record.errors.full_messages.to_sentence)
+        return
+      end
+
+      ModAction.log(:post_replacement_note_edit, { replacement_id: id, note: note_content })
+      post.update_index
+    end
+
     def create_original_backup
       return if is_backup || post.replacements.where(status: "original").exists?
 
@@ -424,6 +444,10 @@ class PostReplacement < ApplicationRecord
 
   def is_current?
     md5 == post.md5
+  end
+
+  def can_add_note?(user)
+    user.is_staff?
   end
 
   def is_pending?
