@@ -152,7 +152,6 @@ class TagAlias < TagRelationship
     begin
       CurrentUser.scoped(approver) do
         update!(status: "processing")
-        create_undo_information
         move_aliases_and_implications
         ensure_category_consistency
         update_posts_locked_tags
@@ -242,18 +241,6 @@ class TagAlias < TagRelationship
       Post.where_ilike(:locked_tags, "*#{antecedent_name}*").find_each(batch_size: 50) do |post|
         fixed_tags = TagAlias.to_aliased_query(post.locked_tags)
         post.update_column(:locked_tags, fixed_tags)
-      end
-    end
-  end
-
-  def create_undo_information
-    post_ids = []
-    Post.transaction do
-      Post.without_timeout do
-        Post.sql_raw_tag_match(antecedent_name).find_each do |post|
-          post_ids << post.id
-        end
-        tag_rel_undos.create!(undo_data: post_ids)
       end
     end
   end
