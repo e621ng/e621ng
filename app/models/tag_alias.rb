@@ -16,11 +16,6 @@ class TagAlias < TagRelationship
       end
     end
 
-    def undo!(approver: CurrentUser.user)
-      CurrentUser.scoped(approver) do
-        TagAliaseUndoJob.perform_later(id, true)
-      end
-    end
   end
 
   module ForumMethods
@@ -149,64 +144,6 @@ class TagAlias < TagRelationship
     # TODO: This causes every empty line except for the very first one will get stripped.
     # At the end of the day, it's not a huge deal.
     output.uniq.join("\n")
-  end
-
-  def process_undo!(update_topic: true)
-    unless valid?
-      raise errors.full_messages.join("; ")
-    end
-
-    CurrentUser.scoped(approver) do
-      update(status: "pending")
-      update_posts_locked_tags_undo
-      update_blacklists_undo
-      update_posts_undo
-      rename_artist_undo
-      forum_updater.update(retirement_message, "UNDONE") if update_topic
-    end
-    tag_rel_undos.update_all(applied: true)
-  end
-
-  def update_posts_locked_tags_undo
-    Post.without_timeout do
-      Post.where_ilike(:locked_tags, "*#{consequent_name}*").find_each(batch_size: 50) do |post|
-        fixed_tags = TagAlias.to_aliased_query(post.locked_tags, overrides: { consequent_name => antecedent_name })
-        post.update_column(:locked_tags, fixed_tags)
-      end
-    end
-  end
-
-  def update_blacklists_undo
-    User.without_timeout do
-      User.where_ilike(:blacklisted_tags, "*#{consequent_name}*").find_each(batch_size: 50) do |user|
-        fixed_blacklist = TagAlias.to_aliased_query(user.blacklisted_tags, overrides: { consequent_name => antecedent_name }, comments: true)
-        user.update_column(:blacklisted_tags, fixed_blacklist)
-      end
-    end
-  end
-
-  def update_posts_undo
-    Post.without_timeout do
-      tag_rel_undos.where(applied: false).each do |tu|
-        Post.where(id: tu.undo_data).find_each do |post|
-          post.do_not_version_changes = true
-          post.tag_string_diff = "-#{consequent_name} #{antecedent_name}"
-          post.save
-        end
-      end
-
-      # TODO: Race condition with indexing jobs here.
-      antecedent_tag.fix_post_count if antecedent_tag
-      consequent_tag.fix_post_count if consequent_tag
-    end
-  end
-
-  def rename_artist_undo
-    if consequent_tag.category == Tag.categories.artist
-      if consequent_tag.artist.present? && antecedent_tag.artist.blank?
-        consequent_tag.artist.update!(name: antecedent_name)
-      end
-    end
   end
 
   def process!(update_topic: true)
