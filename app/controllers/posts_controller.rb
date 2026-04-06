@@ -155,7 +155,7 @@ class PostsController < ApplicationController
 
   def recommended
     @original_post = Post.find(params[:id])
-    unless Security::Lockdown.post_visible?(@original_post)
+    unless Security::Lockdown.post_visible?(@original_post, CurrentUser.user)
       render json: {
         post_id: @original_post.id,
         model_version: "opensearch",

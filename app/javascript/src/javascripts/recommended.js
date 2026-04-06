@@ -144,13 +144,13 @@ Recommended.loadState = async function (action = Recommended.action) {
     Recommended.setCachedRecommendations(action, data);
   } else Recommended.debugLog("Using cached recommendations:", data);
 
-  const resultsById = data.results.reduce((acc, result) => {
-    acc[result.post_id] = result;
-    return acc;
-  }, {});
+  const resultsById = {};
+  for (const result of data.results)
+    resultsById[result.post_id] = result;
+  data.results = resultsById;
 
   // 3. Fetch post data for recommended posts
-  const recommendedPostIds = Object.keys(resultsById);
+  const recommendedPostIds = Object.keys(data.results);
   let posts = Recommended.getCachedPosts(recommendedPostIds);
   let missingPostIds = recommendedPostIds.filter(id => !posts[id]);
   if (missingPostIds.length > 0) {
@@ -166,11 +166,11 @@ Recommended.loadState = async function (action = Recommended.action) {
   }
 
   // 4. Render thumbnails
-  for (const [postId, post] of Object.entries(posts)) {
-    if (post.flags.deleted) continue;
-
-    const entry = resultsById[postId];
+  for (const postId of recommendedPostIds) {
+    const entry = data.results[postId];
     if (!entry) continue;
+    const post = posts[postId];
+    if (post.flags.deleted) continue;
     entry.post = post;
 
     // Prevent layout shifts by replacing placeholders

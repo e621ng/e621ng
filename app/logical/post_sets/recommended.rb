@@ -4,20 +4,14 @@ module PostSets
   class Recommended < PostSets::Base
     attr_reader :tag_array, :page, :limit, :random, :post_count
 
-    def invalid_tags
-      %w[sound_warning conditional_dnp avoid_posting unknown_artist anonymous_artist third-party_edit]
-    end
-
     def initialize(post, page = 1, limit: nil, random: nil)
       super()
       @original_post = post
 
-      tags = post.typed_tags(1)
-                 .reject { |t| invalid_tags.include?(t) }
-                 .map { |t| "~#{t}" }
+      tags = post.known_artist_tags.map { |t| "~#{t.name}" }
       tags << "-id:#{post.id}"
-      tags << "-isparent:#{post.id}"
-      tags << "-ischild:#{post.id}"
+      tags << "-parent:#{post.id}"
+      tags << "-child:#{post.id}"
       tags << "order:random"
       tags << "rating:safe" if CurrentUser.safe_mode?
       tags << "randseed:#{post.id}"
