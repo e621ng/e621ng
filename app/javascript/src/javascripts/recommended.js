@@ -212,20 +212,23 @@ Recommended.render = function (data) {
   $("<span>")
     .addClass("thm-desc-m")
     .addClass("thm-score")
-    .addClass(data.post.score > 0 ? "thm-score-positive" : data.post.score < 0 ? "thm-score-negative" : "thm-score-neutral")
+    .addClass(data.post.score.total > 0 ? "thm-score-positive" : data.post.score.total < 0 ? "thm-score-negative" : "thm-score-neutral")
     .append(SVGIcon.render("score"))
+    .append(data.post.score.total)
     .appendTo(descA);
 
   $("<span>")
     .addClass("thm-desc-m")
     .addClass("thm-favorites")
     .append(SVGIcon.render("favorites"))
+    .append(data.post.fav_count)
     .appendTo(descA);
 
   $("<span>")
     .addClass("thm-desc-m")
     .addClass("thm-comments")
     .append(SVGIcon.render("comments"))
+    .append(data.post.comment_count)
     .appendTo(descA);
 
   $("<span>")
