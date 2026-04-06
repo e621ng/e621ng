@@ -123,7 +123,7 @@ Recommended.loadState = async function (action = Recommended.action) {
     action = "artist";
   }
 
-  // Loading steps:
+  // 1. Render skeleton placeholders
   if (Recommended.status !== "waiting") {
     Recommended.status = "waiting";
     $container.empty();
@@ -133,12 +133,16 @@ Recommended.loadState = async function (action = Recommended.action) {
 
   // 2. Fetch recommendations data
   Recommended.status = "loading";
-  const data = await Recommended.getData(Recommended.postId, action);
-  if (!data || !data.results) {
-    Recommended.status = "error";
-    $container.html("<p class='error'>Failed to load recommendations.</p>");
-    return;
-  }
+  let data = Recommended.getCachedRecommendations(action);
+  if (!data) {
+    data = await Recommended.getData(Recommended.postId, action);
+    if (!data || !data.results) {
+      Recommended.status = "error";
+      $container.html("<p class='error'>Failed to load recommendations.</p>");
+      return;
+    }
+    Recommended.setCachedRecommendations(action, data);
+  } else Recommended.debugLog("Using cached recommendations:", data);
 
   const resultsById = data.results.reduce((acc, result) => {
     acc[result.post_id] = result;
@@ -147,21 +151,29 @@ Recommended.loadState = async function (action = Recommended.action) {
 
   // 3. Fetch post data for recommended posts
   const recommendedPostIds = Object.keys(resultsById);
-  const posts = await Recommended.getPosts(recommendedPostIds);
-  if (!posts) {
-    Recommended.status = "error";
-    $container.html("<p class='error'>Failed to load recommended posts.</p>");
-    return;
+  let posts = Recommended.getCachedPosts(recommendedPostIds);
+  let missingPostIds = recommendedPostIds.filter(id => !posts[id]);
+  if (missingPostIds.length > 0) {
+    const postLookup = await Recommended.getPosts(missingPostIds);
+    if (postLookup) {
+      for (const post of postLookup) posts[post.id] = post;
+      Recommended.setCachedPosts(postLookup);
+    } else {
+      Recommended.status = "error";
+      $container.html("<p class='error'>Failed to load recommended posts.</p>");
+      return;
+    }
   }
 
   // 4. Render thumbnails
-  for (const post of posts) {
+  for (const [postId, post] of Object.entries(posts)) {
     if (post.flags.deleted) continue;
 
-    const entry = resultsById[post.id];
+    const entry = resultsById[postId];
     if (!entry) continue;
     entry.post = post;
 
+    // Prevent layout shifts by replacing placeholders
     $container
       .find(".thumbnail.placeholder").first()
       .replaceWith(Recommended.render(entry));
@@ -314,6 +326,43 @@ Recommended.getPosts = async function (postIds) {
       Recommended.debugLog("API response:", data);
       return data.posts;
     });
+};
+
+
+// ============================== //
+// ========== Caching =========== //
+// ============================== //
+
+Recommended._recommendationCache = {};
+Recommended.getCachedRecommendations = function (action) {
+  const data = Recommended._recommendationCache[action];
+  if (!data) return null;
+  return data;
+};
+
+Recommended.setCachedRecommendations = function (action, data) {
+  Recommended._recommendationCache[action] = data;
+};
+
+Recommended._postCache = {};
+Recommended.getCachedPosts = function (postIds) {
+  const posts = {};
+  for (const postId of postIds) {
+    if (Recommended._postCache[postId]) {
+      posts[postId] = Recommended._postCache[postId];
+    }
+  }
+
+  const count = Object.keys(posts).length;
+  Recommended.debugLog(`Posts: ${count}/${postIds.length} cached`);
+  if (count === 0) return {};
+  return posts;
+};
+
+Recommended.setCachedPosts = function (posts) {
+  posts.forEach(post => {
+    Recommended._postCache[post.id] = post;
+  });
 };
 
 
