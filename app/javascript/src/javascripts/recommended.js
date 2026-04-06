@@ -6,10 +6,9 @@ const Recommended = {};
 
 Recommended.RESULT_COUNT = 6;
 Recommended.SHOW_ENGINE_RESULTS = false;
-Recommended.all_states = ["artist", "favorites", "tags", "closed"];
+Recommended.debug = LStorage.get("e6.debug", false);
+Recommended.allStates = ["artist", "favorites", "tags", "closed"];
 Recommended.validStates = ["artist", "closed"];
-if (Recommended.SHOW_ENGINE_RESULTS)
-  Recommended.validStates.push("favorites", "tags");
 
 Recommended.remote_actions = ["favorites", "tags"];
 
@@ -19,6 +18,16 @@ Recommended.init = function () {
     Recommended.$wrapper.remove();
     return;
   }
+
+  Recommended.SHOW_ENGINE_RESULTS = Recommended.$wrapper.attr("data-remote") === "true";
+  if (Recommended.SHOW_ENGINE_RESULTS)
+    Recommended.validStates.push("favorites", "tags");
+  Recommended.debugLog("Loaded", {
+    action: Recommended.action,
+    showEngineResults: Recommended.SHOW_ENGINE_RESULTS,
+    validStates: Recommended.validStates,
+  });
+
   Recommended.$wrapper.attr("data-action", Recommended.action);
 
   // Detect when the recommendations section is in view.
@@ -77,13 +86,17 @@ Object.defineProperty(Recommended, "$wrapper", {
 
 Object.defineProperty(Recommended, "action", {
   get: function () {
-    return LStorage.Posts.Recommendations;
+    let action = LStorage.Posts.Recommendations;
+    if (!Recommended.validStates.includes(action))
+      action = Recommended.validStates[0];
+    return action;
   },
   set: function (value) {
-    if (Recommended.all_states.includes(value)) {
-      LStorage.Posts.Recommendations = value;
-      this.$wrapper.attr("data-action", value);
-    }
+    if (!Recommended.validStates.includes(value))
+      value = Recommended.validStates[0];
+
+    LStorage.Posts.Recommendations = value;
+    this.$wrapper.attr("data-action", value);
   },
 });
 
@@ -102,6 +115,7 @@ Object.defineProperty(Recommended, "status", {
 // ============================== //
 
 Recommended.loadState = async function (action = Recommended.action) {
+  Recommended.debugLog(`Loading state: "${action}"`);
   const $container = Recommended.$container;
 
   if (!Recommended.validStates.includes(action)) {
@@ -257,6 +271,7 @@ Recommended.getData = async function (postId, action = "favorites") {
   const url = Recommended.remote_actions.includes(action)
     ? `/posts/recommended.json?post_id=${postId}&mode=${action}&limit=${Recommended.RESULT_COUNT}`
     : `/posts/${postId}/recommended.json?limit=${Recommended.RESULT_COUNT}`;
+  Recommended.debugLog(`Fetching data: "${postId}/${action}"`);
 
   return fetch(url)
     .then(
@@ -273,14 +288,14 @@ Recommended.getData = async function (postId, action = "favorites") {
     )
     .then((data) => {
       if (!data) return;
-      console.log("fetched recommendations");
-      console.log(data);
+      Recommended.debugLog("Engine response:", data);
       return data;
     });
 };
 
 // Fetches post data for the given post IDs
 Recommended.getPosts = async function (postIds) {
+  Recommended.debugLog("Fetching posts:", postIds);
   return fetch(`/posts.json?tags=id:${postIds.join(",")}`)
     .then(
       (response) => {
@@ -296,8 +311,7 @@ Recommended.getPosts = async function (postIds) {
     )
     .then((data) => {
       if (!data) return;
-      console.log("fetched posts");
-      console.log(data);
+      Recommended.debugLog("API response:", data);
       return data.posts;
     });
 };
@@ -306,6 +320,11 @@ Recommended.getPosts = async function (postIds) {
 // ============================== //
 // =========== Other ============ //
 // ============================== //
+
+Recommended.debugLog = function (...args) {
+  if (!Recommended.debug) return;
+  console.log("\x1B[36m[Recommended]\x1B[0m", ...args);
+};
 
 $(() => {
   if (!Page.matches("posts", "show")) return;
