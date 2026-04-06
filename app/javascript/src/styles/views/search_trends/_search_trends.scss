@@ -29,6 +29,11 @@ body.c-static.a-home .home-section.search-rising-list {
 
       background: unset;
       align-items: center;
+
+      &:hover, &:focus {
+        color: themed("color-link-active");
+        background: unset;
+      }
     }
   }
 

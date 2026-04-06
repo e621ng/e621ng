@@ -37,14 +37,19 @@ Home.init = function () {
 
   /* Trends toggle */
   let trendsShown = LStorage.Site.RisingShown;
-  const trends = $("#home-trends");
-  if (trendsShown) trends.removeClass("hidden");
+  const trends = $("#home-trends"),
+    trendsToggle = $("#home-trends h3");
+  if (trendsShown) {
+    trends.removeClass("hidden");
+    trendsToggle.attr("aria-expanded", "true");
+  }
   window.setTimeout(() => trends.addClass("animated"), 500); // Don't animate on page load
 
-  $("#home-trends h3").on("click", () => {
+  trendsToggle.on("click", () => {
     trendsShown = !trendsShown;
     LStorage.Site.RisingShown = trendsShown;
     trends.toggleClass("hidden", !trendsShown);
+    trendsToggle.attr("aria-expanded", trendsShown);
   });
 };
 
