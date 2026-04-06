@@ -1,0 +1,19 @@
+#delete-with-reason-dialog {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+
+  & > .input { margin-bottom: 0; }
+  input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    resize: none;
+  }
+
+  div.delete-with-reason-dialog-submit {
+    display: flex;
+    gap: 0.5rem;
+
+    button { width: 25%; }
+  }
+}

@@ -741,7 +741,7 @@ Post.update = function (post_id, params) {
 };
 
 Post.delete_with_reason = function (post_id, reason, options = {}) {
-  const { reload_after_delete = false, from_flag = false, move_favorites = false } = options;
+  const { reload_after_delete = false, from_flag = false, move_favorites = false, dmail = null } = options;
 
   Post.notice_update("inc");
   let error = false;
@@ -750,7 +750,7 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
     $.ajax({
       type: "POST",
       url: `/moderator/post/posts/${post_id}/delete.json`,
-      data: {commit: "Delete", reason: reason, from_flag: from_flag, move_favorites: move_favorites},
+      data: {commit: "Delete", reason: reason, from_flag: from_flag, move_favorites: move_favorites, dmail: dmail},
     }).fail(function (data) {
       if (data.status === 409) {
         E621.Flash.notice("Post already deleted.");

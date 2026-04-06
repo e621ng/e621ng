@@ -1,0 +1,29 @@
+<form class="simple_form" id="delete-with-reason-dialog" data-title="Delete Post" data-width="500" data-position="center">
+  <div class="input delete-with-reason-dialog-inputs">
+    <input type="text" id="delete-with-reason-dialog-input" placeholder="Enter reason here...">
+    <label for="delete-with-reason-dialog-enable-dmail">
+      Send DMail (default template)? <input type="checkbox" id="delete-with-reason-dialog-enable-dmail"
+        <%= " checked" if Danbooru.config.enable_post_deletion_dmail %>
+        <% message = Danbooru.config.post_deletion_dmail_templates.values.first %>
+        <% if message.is_a?(Hash) %>
+          <% if message[:body].present? %>
+            data-dmail-message="<%= message[:body]
+              .gsub("%POST_ID%", @post.id.to_s)
+              .gsub("%STAFF_NAME%", CurrentUser.name)
+              .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+              .gsub("%UPLOADER_ID%", @post.uploader_id.to_s)
+            %>"
+          <% else %>
+            data-dmail-message=""
+          <% end %>
+          data-dmail-title="<%= message[:title] || "" %>"
+        <% end %>
+        >
+    </label>
+  </div>
+
+  <div class="input delete-with-reason-dialog-submit">
+    <button type="button" class="st-button" id="delete-with-reason-dialog-cancel">Cancel</button>
+    <button type="submit" class="st-button submit" id="delete-with-reason-dialog-ok">OK</button>
+  </div>
+</form>
