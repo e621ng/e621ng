@@ -16,14 +16,13 @@ module SearchTrendsHelper
       }
     end
 
-    first_tag = categorized_tags.shift
-    if categorized_tags.size >= 2
-      medium_tags = categorized_tags.shift(2)
-    else
-      medium_tags = categorized_tags.shift(categorized_tags.size)
-    end
-    small_tags = categorized_tags
+    half = (categorized_tags.size / 2.0).ceil
+    left_tags, right_tags = categorized_tags.each_slice(half).to_a
 
-    render partial: "search_trends/rising_inline", locals: { first_tag: first_tag, medium_tags: medium_tags, small_tags: small_tags }
+    left_tags.each { |tag| tag[:place] = 2 }
+    left_tags.first[:place] = 1
+    right_tags.each { |tag| tag[:place] = 3 }
+
+    render partial: "search_trends/rising_inline", locals: { left_tags: left_tags, right_tags: right_tags }
   end
 end

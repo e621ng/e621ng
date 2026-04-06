@@ -2,21 +2,11 @@
 
 <div class="rising-wrapper"><div class="rising-list">
 
-  <% if first_tag.present? %>
-    <div class="rising-top">
-      <a href="<%= posts_path(tags: first_tag[:name]) %>" class="tag-type-<%= first_tag[:category] %>">
-        <span class="rising-rank">#<%= index %></span>
-        <span class="rising-link"><%= first_tag[:pretty_name] %></span>
-      </a>
-    </div>
-    <% index += 1 %>
-  <% end %>
-
-  <% if medium_tags.present? %>
-    <div class="rising-medium">
-      <% medium_tags.each_with_index do |row, idx| %>
+  <% if left_tags.present? %>
+    <div class="rising-left">
+      <% left_tags.each_with_index do |row, idx| %>
         <div class="rising-item">
-          <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>">
+          <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>" data-place="<%= row[:place] %>">
             <span class="rising-rank">#<%= index %></span>
             <span class="rising-link"><%= row[:pretty_name] %></span>
           </a>
@@ -26,11 +16,11 @@
     </div>
   <% end %>
 
-  <% if small_tags.present? %>
-    <div class="rising-bottom">
-      <% small_tags.each_with_index do |row, idx| %>
+  <% if right_tags.present? %>
+    <div class="rising-right">
+      <% right_tags.each_with_index do |row, idx| %>
         <div class="rising-item">
-          <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>">
+          <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>" data-place="<%= row[:place] %>">
             <span class="rising-rank">#<%= index %></span>
             <span class="rising-link"><%= row[:pretty_name] %></span>
           </a>

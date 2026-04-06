@@ -13,7 +13,7 @@ body.c-static.a-home .home-section.search-rising-list {
     font-size: 1rem;
     line-height: 1rem;
     text-shadow: 0 0 1rem black;
-    padding: 0.5rem 0;
+    padding: 0.75rem 0;
     cursor: pointer;
 
     svg {
@@ -25,7 +25,7 @@ body.c-static.a-home .home-section.search-rising-list {
     button {
       position: absolute;
       left: 0;
-      top: 0;
+      top: 0.25rem;
 
       background: unset;
       align-items: center;
@@ -56,6 +56,7 @@ div.rising-wrapper {
   display: grid;
   justify-content: center;
   grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
   overflow: hidden;
 }
 
@@ -64,6 +65,10 @@ div.rising-list {
   display: flex;
   flex-flow: column;
   gap: 0.25rem;
+
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
 
   & > div {
     display: flex;
@@ -98,18 +103,9 @@ div.rising-list {
     border-left: 0.25rem solid;
   }
 
-  .rising-top {
-    a span.rising-rank { color: gold; }
-  }
-
-  .rising-medium {
-    a span.rising-rank { color: silver; }
-  }
-
-  .rising-bottom {
-    a span.rising-rank { color: sandybrown; }
-    margin-bottom: 0;
-  }
+  a[data-place="1"] span.rising-rank { color: gold; }
+  a[data-place="2"] span.rising-rank { color: silver; }
+  a[data-place="3"] span.rising-rank { color: sandybrown; }
 }
 
 body.c-search-trends.a-index,
