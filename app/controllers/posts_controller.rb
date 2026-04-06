@@ -159,7 +159,17 @@ class PostsController < ApplicationController
       PostSets::Recommended.new(@original_post, params[:page], limit: params[:limit]).post_ids
     end
     # Matches the format of the recommendation engine
-    render json: { results: post_ids.map { |id| { post_id: id } } }
+    render json: {
+      post_id: @original_post.id,
+      model_version: "opensearch",
+      results: post_ids.map do |id|
+        {
+          post_id: id,
+          score: 1,
+          explanation: nil,
+        }
+      end,
+    }
   end
 
   def mark_as_translated
