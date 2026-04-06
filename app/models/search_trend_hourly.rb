@@ -118,7 +118,7 @@ class SearchTrendHourly < ApplicationRecord
   end
 
   # Find tags that are trending upward compared to the previous equivalent time window
-  def self.rising(at: Time.now.utc, limit: 10, min_today: 10, min_delta: 10, min_ratio: 2.0)
+  def self.rising(at: Time.now.utc, limit: 6, min_today: 10, min_delta: 10, min_ratio: 2.0)
     # Current time window: last WINDOW_HOURS hours up to 'at'
     current_end = at.utc
     current_start = current_end - WINDOW_HOURS
