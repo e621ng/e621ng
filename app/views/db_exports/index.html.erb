@@ -1,0 +1,49 @@
+<div id="c-db-exports">
+  <div id="a-index">
+    <h1>Database Exports</h1>
+
+    <div class="exports-description">
+      <p>Database exports in gzipped CSV format, updated daily.</p>
+      <p>For programmatic access, use the <%= link_to "JSON endpoint", db_exports_path(format: :json) %>.</p>
+    </div>
+
+    <% if @exports.any? %>
+      <div class="exports-list">
+        <div class="header">Name</div>
+        <div class="header">Size</div>
+        <div class="header">Updated</div>
+        <div class="header"></div>
+
+        <% @exports.each do |export| %>
+          <div class="row">
+            <div class="cell" data-label="Name"><strong><%= export[:name] %></strong></div>
+            <div class="cell" data-label="Size"><%= number_to_human_size(export[:file_size]) %></div>
+            <div class="cell" data-label="Updated"><%= time_ago_in_words_tagged(export[:updated_at]) %></div>
+            <div class="cell" data-label="Actions">
+              <%= link_to db_export_path(export[:name], date: @date), class: "export-download-link" do %>
+                <%= svg_icon(:download, width: 16, height: 16) %> Download
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p>No exports are currently available.</p>
+    <% end %>
+
+    <% if CurrentUser.user.favorite_count > 0 %>
+      <h2>Favorites</h2>
+
+      <div class="exports-favorites-section">
+        <p>Export your <%= number_with_delimiter(CurrentUser.user.favorite_count) %> favorites as a CSV file.</p>
+        <%= link_to favorites_db_exports_path, class: "export-download-link" do %>
+          <%= svg_icon(:download, width: 16, height: 16) %> Download
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Database Exports
+<% end %>

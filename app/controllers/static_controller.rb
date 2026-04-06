@@ -185,7 +185,7 @@ class StaticController < ApplicationController
     add_link[:staff, "Tickets", tickets_path]
 
     add_link[:tools, "Subscribestar", Danbooru.config.subscribestar_url] if Danbooru.config.subscribestar_url.present?
-    add_link[:tools, "DB Export", Danbooru.config.db_export_path] if Danbooru.config.db_export_path.present?
+    add_link[:tools, "DB Export", db_exports_path] if Danbooru.config.db_export_enabled?
     add_link[:tools, "Discord", discord_post_path] if CurrentUser.can_discord?
     add_link[:users, "Signup", new_user_path] if CurrentUser.is_anonymous?
 
