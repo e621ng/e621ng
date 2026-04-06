@@ -155,6 +155,14 @@ class PostsController < ApplicationController
 
   def recommended
     @original_post = Post.find(params[:id])
+    unless Security::Lockdown.post_visible?(@original_post)
+      render json: {
+        post_id: @original_post.id,
+        model_version: "opensearch",
+        results: [],
+      }
+    end
+
     post_ids = Cache.fetch("post_recommendations:#{@original_post.id}:#{params[:page]}:#{params[:limit]}", expires_in: 15.minutes) do
       PostSets::Recommended.new(@original_post, params[:page], limit: params[:limit]).post_ids
     end
