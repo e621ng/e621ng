@@ -35,6 +35,7 @@ public/data
 
 # Test output
 test/reports
+/spec/examples.txt
 
 # Editor files
 .idea

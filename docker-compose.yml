@@ -159,13 +159,14 @@ services:
     environment:
       <<: *common-env
       RAILS_ENV: test
+      # PARALLEL_TEST_PROCESSORS: ${PARALLEL_TEST_PROCESSORS:-4}
     volumes:
       - .:/app
       - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
       - node_modules:/app/node_modules
     depends_on:
       <<: *common-depends-on
-    entrypoint: bundle exec rails test
+    entrypoint: bundle exec parallel_rspec --serialize-stdout --runtime-log tmp/spec_runtime.log
     profiles:
       - tests
 

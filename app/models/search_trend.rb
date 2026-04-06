@@ -25,7 +25,7 @@ class SearchTrend < ApplicationRecord
     where(tag: tags.map { |t| t.to_s.downcase.strip })
       .where("day >= ?", 30.days.ago.to_date)
       .group(:tag, :day)
-      .select("tag, day, SUM(count) AS count")
+      .select("tag, day, SUM(count) AS count") # FIXME: SUM(count) may no longer be necessary
       .order(:tag, day: :asc)
   }
 
@@ -61,6 +61,7 @@ class SearchTrend < ApplicationRecord
 
   private
 
+  # FIXME: Dead code, method moved to SearchTrendHourly
   private_class_method def self.valid_tag?(tag)
     return false unless tag.length.between?(1, 100)
     record = new(tag: tag, day: Time.now.utc.to_date)

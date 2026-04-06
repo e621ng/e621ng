@@ -100,19 +100,46 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 
 `git config core.fileMode false`
 
-#### <a id="development-tools"></a>Things to aid you during development
-
-`docker compose run --rm tests` to execute the test suite.
-
-`docker compose run --rm rubocop` to run the linter.
-
-The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 
 #### Truenas / Local Server Installation
 
 If you decide to deploy this docker image to an external / local server, you do need to remember to change the DANBOORU_HOST variable in the docker-compose.yml file to the IP of your server. Otherwise, you will not be able to access it, or the image links will be broken. 
 
 Specifically for Truenas/NAS boxes users: you need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
+
+
+### <a id="development-tools"></a>Testing and Linting
+
+#### Testing Suite
+
+The test suite runs in parallel using `parallel_tests`. Before running tests for the first time (or after a schema change), set up the parallel test databases:
+
+```shell
+docker compose run --rm --entrypoint bin/rake tests parallel:create
+docker compose run --rm --entrypoint bin/rake tests parallel:load_schema
+docker compose run --rm --entrypoint bin/rake tests parallel:seed
+```
+
+Then run the suite:
+
+```shell
+docker compose run --rm tests
+```
+
+This defaults to 4 parallel workers. Override with `PARALLEL_TEST_PROCESSORS`:
+
+```shell
+PARALLEL_TEST_PROCESSORS=8 docker compose run --rm tests
+```
+
+#### Linters
+
+`docker compose run --rm rubocop` to lint the ruby code
+`docker compose run --rm linter` to lint javascript
+
+#### Database
+
+The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 
 ## Production Setup
 
