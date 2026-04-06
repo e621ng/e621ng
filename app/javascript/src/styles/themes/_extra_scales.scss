@@ -1,4 +1,3 @@
-body:not([data-th-extra]), // TODO: REMOVE AFTER APRIL FOOLS
 body[data-th-extra="scales"] {
   --image-foreground: url("~/images/themes/extras/roundedScale.svg");
   --image-foreground-position: left top;
