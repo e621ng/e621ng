@@ -163,7 +163,7 @@ class PostsController < ApplicationController
       }
     end
 
-    post_ids = Cache.fetch("post_recommendations:#{@original_post.id}:#{params[:page]}:#{params[:limit]}", expires_in: 15.minutes) do
+    post_ids = Cache.fetch("post_recommendations:#{@original_post.id}:#{params[:page]}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
       PostSets::Recommended.new(@original_post, params[:page], limit: params[:limit]).post_ids
     end
     # Matches the format of the recommendation engine
