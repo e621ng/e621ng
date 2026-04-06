@@ -70,7 +70,7 @@ LStorage.Theme = {
   Main: ["theme", "hexagon"],
 
   /** @returns {string} Extra theme / seasonal decotrations */
-  Extra: ["theme-extra", "scales"], // TODO: RESTORE TO "hexagon" AFTER APRIL FOOLS
+  Extra: ["theme-extra", "hexagon"],
 
   /** @returns {string} Colorblind-friendly palette (default / deut / trit) */
   Palette: ["theme-palette", "default"],
