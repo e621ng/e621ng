@@ -337,11 +337,11 @@ Recommended._recommendationCache = {};
 Recommended.getCachedRecommendations = function (action) {
   const data = Recommended._recommendationCache[action];
   if (!data) return null;
-  return data;
+  return {...data};
 };
 
 Recommended.setCachedRecommendations = function (action, data) {
-  Recommended._recommendationCache[action] = data;
+  Recommended._recommendationCache[action] = {...data};
 };
 
 Recommended._postCache = {};
