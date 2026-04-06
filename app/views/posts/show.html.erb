@@ -94,8 +94,11 @@
           data-post-id="<%= @post.id %>"
         >
           <div id="post-recommendations-tabs">
+            <button class="st-button" data-action="artist">From the Artist</button>
+            <!--
             <button class="st-button" data-action="tags">Similar</button>
             <button class="st-button" data-action="favorites">Others Also Liked</button>
+            -->
             <button class="st-button" data-action="closed"><%= svg_icon(:times) %></button>
           </div>
           <div id="post-recommendations-list">

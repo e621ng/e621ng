@@ -5,6 +5,13 @@ import LStorage from "./utility/storage";
 const Recommended = {};
 
 Recommended.RESULT_COUNT = 6;
+Recommended.SHOW_ENGINE_RESULTS = false;
+Recommended.all_states = ["artist", "favorites", "tags", "closed"];
+Recommended.validStates = ["artist", "closed"];
+if (Recommended.SHOW_ENGINE_RESULTS)
+  Recommended.validStates.push("favorites", "tags");
+
+Recommended.remote_actions = ["favorites", "tags"];
 
 Recommended.init = function () {
   if (Recommended.$container.length === 0) return;
@@ -73,7 +80,7 @@ Object.defineProperty(Recommended, "action", {
     return LStorage.Posts.Recommendations;
   },
   set: function (value) {
-    if (["favorites", "tags", "closed"].includes(value)) {
+    if (Recommended.all_states.includes(value)) {
       LStorage.Posts.Recommendations = value;
       this.$wrapper.attr("data-action", value);
     }
@@ -96,6 +103,11 @@ Object.defineProperty(Recommended, "status", {
 
 Recommended.loadState = async function (action = Recommended.action) {
   const $container = Recommended.$container;
+
+  if (!Recommended.validStates.includes(action)) {
+    Recommended.action = "artist";
+    action = "artist";
+  }
 
   // Loading steps:
   if (Recommended.status !== "waiting") {
@@ -239,7 +251,11 @@ Recommended.render_placeholder = function () {
 
 // Fetches recommendation data from the server
 Recommended.getData = async function (postId, action = "favorites") {
-  return fetch(`/posts/recommended.json?post_id=${postId}&mode=${action}&limit=${Recommended.RESULT_COUNT}`)
+  const url = Recommended.remote_actions.includes(action)
+    ? `/posts/recommended.json?post_id=${postId}&mode=${action}&limit=${Recommended.RESULT_COUNT}`
+    : `/posts/${postId}/recommended.json?limit=${Recommended.RESULT_COUNT}`;
+
+  return fetch(url)
     .then(
       (response) => {
         if (!response.ok) {
