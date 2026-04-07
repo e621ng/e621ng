@@ -116,8 +116,8 @@ class WikiPagesController < ApplicationController
   end
 
   def normalize_search_params
-    if params[:title]
-      params[:search] = {} unless params[:search].is_a?(Hash)
+    if params[:title].is_a?(String)
+      params[:search] = {} unless params[:search].is_a?(ActionController::Parameters)
       params[:search][:title] = params.delete(:title)
     end
   end
