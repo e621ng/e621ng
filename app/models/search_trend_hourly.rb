@@ -28,7 +28,7 @@ class SearchTrendHourly < ApplicationRecord
   # have that prefix stripped before recording. Metatags (containing `:`) are ignored.
   # Errors in query parsing are logged and swallowed so the caller is never disrupted.
   def self.record_query!(query, hour: Time.now.utc.beginning_of_hour, ip: nil)
-    return if query.blank?
+    return if query.blank? || !Setting.trends_enabled
 
     tokens = TagQuery.scan_recursive(
       query,
@@ -36,7 +36,7 @@ class SearchTrendHourly < ApplicationRecord
       strip_prefixes: false,
       delimit_groups: true,
       sort_at_level: false,
-      normalize_at_level: true,
+      normalize_at_level: false,
       strip_duplicates_at_level: true,
     )
 
@@ -56,6 +56,9 @@ class SearchTrendHourly < ApplicationRecord
       next if prefix.include?("-") || negated_stack.last == true
       t[prefix.length..].presence
     end
+
+    # Resolve aliases in one batch query instead of one query per tag
+    tag_tokens = TagAlias.to_aliased(tag_tokens) if tag_tokens.present?
 
     bulk_increment!(tag_tokens.map { |tag| { tag: tag, hour: hour } }, ip: ip) if tag_tokens.present?
   rescue StandardError => e
