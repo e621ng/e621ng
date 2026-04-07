@@ -88,7 +88,7 @@ class UserDeletion
   end
 
   def validate
-    if user.is_blocked? && CurrentUser.user.is_bd_staff? && CurrentUser.user.is_admin?
+    if user.is_blocked? && !admin_deletion
       raise ValidationError, "Banned users cannot delete their own accounts (request deletion at #{Danbooru.config.contact_email})"
     end
 
