@@ -4,7 +4,7 @@
 
   <% if left_tags.present? %>
     <div class="rising-left">
-      <% left_tags.each_with_index do |row, idx| %>
+      <% left_tags.each do |row| %>
         <div class="rising-item">
           <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>" data-place="<%= row[:place] %>">
             <span class="rising-rank">#<%= index %></span>
@@ -18,7 +18,7 @@
 
   <% if right_tags.present? %>
     <div class="rising-right">
-      <% right_tags.each_with_index do |row, idx| %>
+      <% right_tags.each do |row| %>
         <div class="rising-item">
           <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>" data-place="<%= row[:place] %>">
             <span class="rising-rank">#<%= index %></span>
