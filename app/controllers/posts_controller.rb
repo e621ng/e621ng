@@ -178,7 +178,7 @@ class PostsController < ApplicationController
   def tag_query
     return params[:tags] if params[:tags].present?
     return "" unless params[:post].is_a?(ActionController::Parameters)
-    params[:post][:tags]
+    params[:post][:tags].presence || ""
   end
 
   def respond_with_post_after_update(post)
