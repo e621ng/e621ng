@@ -140,7 +140,7 @@ class User < ApplicationRecord
   has_many :artists, foreign_key: "linked_user_id"
 
   belongs_to :avatar, class_name: "Post", optional: true
-  accepts_nested_attributes_for :dmail_filter
+  accepts_nested_attributes_for :dmail_filter, update_only: true
 
   module BanMethods
     def validate_ip_addr_is_not_banned
