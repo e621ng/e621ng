@@ -26,7 +26,7 @@ gem "bootsnap"
 gem "addressable"
 gem "recaptcha", require: "recaptcha/rails"
 gem "vite_rails"
-gem "sidekiq", "~> 7.0"
+gem "sidekiq", "~> 8.1"
 gem "marcel"
 # bookmarks for later, if they are needed
 # gem 'sidekiq-worker-killer'
