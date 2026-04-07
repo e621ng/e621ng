@@ -6,7 +6,7 @@
     <div>
       Error Code: <%= @exception_log.code %><br/>
       Created At: <%= compact_time @exception_log.created_at %><br/>
-      Commit: <%= Danbooru.config.source_code_url.present? ? link_to(@exception_log.version, "#{Danbooru.config.source_code_url}/tree/#{@exception_log.version}", target: "_blank") : @exception_log.version %><br/>
+      Commit: <%= link_to(@exception_log.version, GitHelper.tree_url(@exception_log.version), target: "_blank", rel: "noopener noreferrer") %><br/>
       IP Address: <%= link_to_ip @exception_log.ip_addr %><br/>
       User: <%= link_to_user @exception_log.user %>
     </div>
