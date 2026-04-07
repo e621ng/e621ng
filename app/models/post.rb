@@ -1117,7 +1117,7 @@ class Post < ApplicationRecord
     # List of artist tags for the post
     # Excludes non-artist tags like avoid_posting or sound_warning
     def artist_tags
-      @artist_tags ||= begin # rubocop:disable Style/RedundantBegin
+      @artist_tags ||= begin
         if @categorized_tags.nil?
           Tag.where(name: tag_array, category: Tag.categories.artist).select(:name, :post_count, :category).filter do |tag|
             NON_ARTIST_TAGS.exclude?(tag.name)
