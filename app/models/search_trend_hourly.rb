@@ -28,7 +28,7 @@ class SearchTrendHourly < ApplicationRecord
   # have that prefix stripped before recording. Metatags (containing `:`) are ignored.
   # Errors in query parsing are logged and swallowed so the caller is never disrupted.
   def self.record_query!(query, hour: Time.now.utc.beginning_of_hour, ip: nil)
-    return if query.blank?
+    return if query.blank? || !Setting.trends_enabled
 
     tokens = TagQuery.scan_recursive(
       query,
@@ -36,7 +36,7 @@ class SearchTrendHourly < ApplicationRecord
       strip_prefixes: false,
       delimit_groups: true,
       sort_at_level: false,
-      normalize_at_level: true,
+      normalize_at_level: false,
       strip_duplicates_at_level: true,
     )
 
@@ -57,7 +57,12 @@ class SearchTrendHourly < ApplicationRecord
       t[prefix.length..].presence
     end
 
-    bulk_increment!(tag_tokens.map { |tag| { tag: tag, hour: hour } }, ip: ip) if tag_tokens.present?
+    # Normalize names (unicode NFC + downcase) then resolve aliases in one batch query,
+    # then deduplicate — order matters since aliasing can introduce new duplicates.
+    if tag_tokens.present?
+      tag_tokens = TagAlias.to_aliased(tag_tokens.map { |t| Tag.normalize_name(t) }).uniq
+      bulk_increment!(tag_tokens.map { |tag| { tag: tag, hour: hour } }, ip: ip)
+    end
   rescue StandardError => e
     Rails.logger.warn("Failed to record search trends for query #{query.inspect}: #{e.class}: #{e.message}")
   end
