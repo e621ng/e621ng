@@ -120,6 +120,10 @@ body.c-search-trend-hourlies.a-index {
     width: min-content;
     background: themed("color-foreground");
 
+    width: 100%;
+    max-width: 448px;
+    background: #00000030;
+
     padding: 1rem;
     margin-bottom: 1rem;
     @include st-radius;

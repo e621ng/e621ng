@@ -61,7 +61,7 @@ class SearchTrendsController < ApplicationController
   def rising
     respond_to do |format|
       format.html
-      format.json { render json: SearchTrendHourly.rising_tags_list.as_json(only: %i[tag]) }
+      format.json { render json: SearchTrendHourly.rising_tags_list.as_json }
     end
   end
 
