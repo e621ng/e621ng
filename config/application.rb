@@ -62,9 +62,14 @@ module Danbooru
     end
 
     config.after_initialize do
-      if ActiveRecord::Base.connection.table_exists?(:favorite_events)
+      next unless ActiveRecord::Base.connection.table_exists?(:favorite_events)
+      if Rails.env.test?
+        FavoriteEvent.ensure_upcoming_partitions!
+      else
         FavoriteEventPartitionJob.perform_later
       end
+    rescue ActiveRecord::NoDatabaseError, PG::ConnectionBad
+      nil
     end
 
     config.i18n.enforce_available_locales = false
