@@ -222,7 +222,10 @@ Recommended.render = function (data) {
     .appendTo(article);
 
   $("<img>")
-    .attr("src", data.post.preview.url)
+    .attr({
+      "src": data.post.preview.url,
+      "alt": "post #" + data.post.id,
+    })
     .appendTo(link);
 
   // Footer

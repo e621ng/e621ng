@@ -2,9 +2,9 @@
 
 module PostSets
   class Recommended < PostSets::Base
-    attr_reader :tag_array, :page, :limit, :random, :post_count
+    attr_reader :tag_array, :page, :limit, :post_count
 
-    def initialize(post, page = 1, limit: nil, random: nil)
+    def initialize(post, page = 1, limit: nil)
       super()
       @original_post = post
 
@@ -19,7 +19,6 @@ module PostSets
       @tag_array = TagQuery.scan_search(tags.join(" "), error_on_depth_exceeded: true)
       @page = [page.to_i, 1].max
       @limit = limit
-      @random = random.present?
     end
 
     def tag_string

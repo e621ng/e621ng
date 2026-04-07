@@ -10,7 +10,7 @@ class FavoriteEvent < ApplicationRecord
 
   def self.drop_old_partitions!(retention_days: RETENTION_DAYS)
     cutoff_name = "favorite_events_#{(Time.zone.today - retention_days).strftime('%Y_%m_%d')}"
-    partitions = connection.execute(<<~SQL.squish).pluck("relname")
+    partitions = connection.exec_query(<<~SQL.squish).pluck("relname")
       SELECT c.relname
       FROM pg_class c
       JOIN pg_inherits i ON c.oid = i.inhrelid
