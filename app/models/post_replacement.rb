@@ -128,7 +128,7 @@ class PostReplacement < ApplicationRecord
 
   module StorageMethods
     def remove_files
-      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id})
+      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id })
       Danbooru.config.storage_manager.delete_replacement(self)
     end
 
@@ -301,7 +301,12 @@ class PostReplacement < ApplicationRecord
         update(post: new_post, uploader_id_on_approve: nil)
         set_previous_uploader
         update_column(:uploader_id_on_approve, uploader_on_approve&.id)
-        create_original_backup
+
+        begin
+          create_original_backup
+        rescue ProcessingError => e
+          errors.add(:base, "Failed to create backup on new post: #{e.message}")
+        end
 
         PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
         PostEvent.add(prev.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })

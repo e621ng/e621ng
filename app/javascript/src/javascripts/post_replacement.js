@@ -53,10 +53,6 @@ PostReplacement.transfer = function (id) {
     Utility.notice("Invalid post ID. Transfer cancelled.");
     return;
   }
-  if (!newPostId) {
-    Utility.notice("No valid post ID found. Transfer cancelled.");
-    return;
-  }
   const confirmed = confirm(
     `Are you sure you want to transfer this replacement to post ID ${newPostId}?`,
   );

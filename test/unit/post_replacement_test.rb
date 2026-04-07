@@ -93,7 +93,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "affect user upload limit" do
-      assert_difference(-> { @user.post_replacements.pending.count}, 1) do
+      assert_difference(-> { @user.post_replacements.pending.count }, 1) do
         @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       end
     end
@@ -222,9 +222,9 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should "update the original users upload limit if penalized" do
-      assert_difference(->{@mod_user.own_post_replaced_count}, 1) do
-        assert_difference(->{@mod_user.own_post_replaced_penalize_count}, 1) do
-          assert_difference(->{PostReplacement.penalized.for_uploader_on_approve(@mod_user.id).count}, 1) do
+      assert_difference(-> { @mod_user.own_post_replaced_count }, 1) do
+        assert_difference(-> { @mod_user.own_post_replaced_penalize_count }, 1) do
+          assert_difference(-> { PostReplacement.penalized.for_uploader_on_approve(@mod_user.id).count }, 1) do
             @replacement.approve! penalize_current_uploader: true
             @mod_user.reload
           end
@@ -412,13 +412,6 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_includes statuses, "pending"
     end
 
-    should "fail if post cannot be backed up" do
-      @post_alt.md5 = "123" # Breaks file path, should force backup to fail.
-      assert_raise(ProcessingError) do
-        @replacement.transfer(@post_alt)
-      end
-    end
-
     should "not allow duplicates" do
       @existing_replacement = @post_alt.replacements.create(attributes_for(:png_replacement).merge(creator: @user, reason: "existing replacement", md5: @replacement.md5))
       assert_not_nil @existing_replacement
@@ -468,6 +461,19 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal "rejected", @replacement.status
       assert_equal @post_alt.uploader_id, @replacement.uploader_on_approve.id
       assert @post_alt.replacements.where(status: "original").exists?
+    end
+
+    should "add an error if backup creation fails during transfer" do
+      @replacement.stubs(:create_original_backup).raises(ProcessingError.new("boom"))
+
+      assert_no_difference(-> { @post_alt.replacements.where(status: "original").count }) do
+        @replacement.transfer(@post_alt)
+      end
+
+      assert_includes @replacement.errors.full_messages, "Failed to create backup on new post: boom"
+    end
+  end
+
   context "Uploader linked artists:" do
     should "return only artist tags linked to the replacement creator" do
       create(:artist, name: "test_match_(artist)", linked_user: @user)
