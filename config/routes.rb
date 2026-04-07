@@ -280,6 +280,7 @@ Rails.application.routes.draw do
       get :show_seq
       put :mark_as_translated
       get :comments, to: "comments#for_post"
+      get :recommended
     end
     get :similar, to: "iqdb_queries#index"
   end

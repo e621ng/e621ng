@@ -25,6 +25,7 @@
   height: st-value(100) * 2;
   box-sizing: border-box;
   justify-content: center;
+  align-items: center;
 
   // TODO What if button is on a light background
   background: $button-background;

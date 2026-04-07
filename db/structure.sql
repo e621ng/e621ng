@@ -24,6 +24,24 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 
 --
+-- Name: log_favorite_delete(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.log_favorite_delete() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$ BEGIN INSERT INTO public.favorite_events (favorite_id, user_id, post_id, action, created_at) VALUES (OLD.id, OLD.user_id, OLD.post_id, -1, now()); RETURN OLD; END; $$;
+
+
+--
+-- Name: log_favorite_insert(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.log_favorite_insert() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$ BEGIN INSERT INTO public.favorite_events (favorite_id, user_id, post_id, action, created_at) VALUES (NEW.id, NEW.user_id, NEW.post_id, 1, NEW.created_at); RETURN NEW; END; $$;
+
+
+--
 -- Name: posts_trigger_change_seq(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -724,6 +742,40 @@ CREATE SEQUENCE public.exception_logs_id_seq
 --
 
 ALTER SEQUENCE public.exception_logs_id_seq OWNED BY public.exception_logs.id;
+
+
+--
+-- Name: favorite_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.favorite_events (
+    event_id bigint NOT NULL,
+    favorite_id bigint NOT NULL,
+    user_id integer NOT NULL,
+    post_id integer NOT NULL,
+    action smallint NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+)
+PARTITION BY RANGE (created_at);
+
+
+--
+-- Name: favorite_events_event_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.favorite_events_event_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: favorite_events_event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.favorite_events_event_id_seq OWNED BY public.favorite_events.event_id;
 
 
 --
@@ -2761,6 +2813,13 @@ ALTER TABLE ONLY public.exception_logs ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: favorite_events event_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_events ALTER COLUMN event_id SET DEFAULT nextval('public.favorite_events_event_id_seq'::regclass);
+
+
+--
 -- Name: favorites id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3256,6 +3315,14 @@ ALTER TABLE ONLY public.exception_logs
 
 
 --
+-- Name: favorite_events favorite_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_events
+    ADD CONSTRAINT favorite_events_pkey PRIMARY KEY (event_id, created_at);
+
+
+--
 -- Name: favorites favorites_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3655,6 +3722,27 @@ ALTER TABLE ONLY public.wiki_page_versions
 
 ALTER TABLE ONLY public.wiki_pages
     ADD CONSTRAINT wiki_pages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: favorite_events_created_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX favorite_events_created_at_idx ON ONLY public.favorite_events USING btree (created_at);
+
+
+--
+-- Name: favorite_events_post_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX favorite_events_post_id_idx ON ONLY public.favorite_events USING btree (post_id);
+
+
+--
+-- Name: favorite_events_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX favorite_events_user_id_idx ON ONLY public.favorite_events USING btree (user_id);
 
 
 --
@@ -5059,6 +5147,20 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 
 
 --
+-- Name: favorites favorites_delete_event; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER favorites_delete_event AFTER DELETE ON public.favorites FOR EACH ROW EXECUTE FUNCTION public.log_favorite_delete();
+
+
+--
+-- Name: favorites favorites_insert_event; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER favorites_insert_event AFTER INSERT ON public.favorites FOR EACH ROW EXECUTE FUNCTION public.log_favorite_insert();
+
+
+--
 -- Name: posts posts_update_change_seq; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5216,6 +5318,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260406172356'),
 ('20260329181337'),
 ('20260325154501'),
 ('20260324195504'),

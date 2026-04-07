@@ -8,6 +8,7 @@ class Post < ApplicationRecord
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
+  NON_KNOWN_ARTIST_TAGS = %w[unknown_artist anonymous_artist third-party_edit].freeze
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
@@ -1112,12 +1113,28 @@ class Post < ApplicationRecord
       categorized_tags[category] || []
     end
 
-    ##
+    ## DB!
     # List of artist tags for the post
     # Excludes non-artist tags like avoid_posting or sound_warning
     def artist_tags
-      @artist_tags ||= tags_for_category(Tag.categories.artist).filter do |tag|
-        NON_ARTIST_TAGS.exclude?(tag.name)
+      @artist_tags ||= begin
+        if @categorized_tags.nil?
+          Tag.where(name: tag_array, category: Tag.categories.artist).select(:name, :post_count, :category).filter do |tag|
+            NON_ARTIST_TAGS.exclude?(tag.name)
+          end
+        else
+          tags_for_category(Tag.categories.artist).filter do |tag|
+            NON_ARTIST_TAGS.exclude?(tag.name)
+          end
+        end
+      end
+    end
+
+    ## DB!
+    # Like `artist_tags`, but also excludes artist tags that aren't known to be actual artists
+    def known_artist_tags
+      @known_artist_tags ||= artist_tags.filter do |tag|
+        NON_KNOWN_ARTIST_TAGS.exclude?(tag.name)
       end
     end
 

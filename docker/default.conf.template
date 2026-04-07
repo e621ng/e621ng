@@ -42,6 +42,11 @@ server {
     proxy_redirect off;
   }
 
+  location /posts/recommended.json {
+    proxy_pass http://host.docker.internal:8000/similar;
+    proxy_redirect off;
+  }
+
   location @app_server {
     proxy_pass http://app_server;
     proxy_redirect off;

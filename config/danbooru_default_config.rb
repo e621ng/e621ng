@@ -870,6 +870,10 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     def aibur_stats_discord_webhook_url
       nil
     end
+
+    def recommender_enabled?
+      false
+    end
   end
 
   class EnvironmentConfiguration
