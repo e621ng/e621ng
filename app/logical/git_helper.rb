@@ -37,6 +37,7 @@ module GitHelper
   end
 
   def self.tree_url(commit_hash)
+    commit_hash = commit_hash.gsub(/[^a-zA-Z0-9.\-_]/, "")
     "#{Danbooru.config.source_code_url}/tree/#{commit_hash}"
   end
 
