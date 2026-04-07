@@ -58,6 +58,9 @@ LStorage.Site = {
       has_forums: false,
     },
   ],
+
+  /** @returns {boolean} True if the rising tags section on the homepage is shown */
+  RisingShown: ["e6.rising.shown", true],
 };
 StorageUtils.bootstrapMany(LStorage.Site);
 
