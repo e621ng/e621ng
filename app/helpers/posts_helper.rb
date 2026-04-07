@@ -2,7 +2,7 @@
 
 module PostsHelper
   def discover_mode?
-    params[:tags] =~ /order:hot/
+    params[:tags].to_s =~ /order:hot/
   end
 
   def next_page_url

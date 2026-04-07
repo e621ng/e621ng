@@ -16,7 +16,7 @@ Rails.application.configure do
     policy.style_src(*policy.style_src, :unsafe_inline) if Rails.env.development?
 
     policy.connect_src :self, "rv.e6ai.net", "op.dragonfru.it", "static1.e6ai.net", "api.freespeechcoalition.com"
-    policy.connect_src(*policy.connect_src, "ws://localhost:3036", "http://localhost:3036") if Rails.env.development?
+    policy.connect_src(*policy.connect_src, "ws://localhost:3036", "http://localhost:3036", "http://host.docker.internal:8000") if Rails.env.development?
 
     policy.object_src  :self, "static1.e6ai.net"
     policy.media_src   :self, "static1.e6ai.net"

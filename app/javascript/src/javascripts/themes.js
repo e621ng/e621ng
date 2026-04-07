@@ -51,11 +51,22 @@ Theme.initialize_selector = function () {
 Theme.initialize_buttons = function () {
   if (!LStorage.isAvailable()) return;
 
-  $("#mascot-value").text(LStorage.Site.Mascot);
-  $("#mascot-reset").on("click", () => {
-    LStorage.Site.Mascot = 0;
+  if (LStorage.Site.Mascot !== 0) {
+    $("#mascot-state").show();
     $("#mascot-value").text(LStorage.Site.Mascot);
-  });
+    $("#mascot-reset").on("click", () => {
+      LStorage.Site.Mascot = 0;
+      $("#mascot-state").hide();
+    });
+  }
+
+  if (LStorage.Posts.Recommendations === "closed") {
+    $("#recommended-state").show();
+    $("#recommended-reset").on("click", () => {
+      LStorage.Posts.Recommendations = "artist";
+      $("#recommended-state").hide();
+    });
+  }
 };
 
 $(() => {

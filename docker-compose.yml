@@ -68,6 +68,8 @@ services:
     environment:
       <<: *common-env
       NGINX_PORT: ${EXPOSED_SERVER_PORT:-3001}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - autocompleted
       - e6ai

@@ -1,4 +1,6 @@
-body.c-posts.a-index, body.c-favorites.a-index {
+body.c-posts.a-index,
+body.c-posts.a-recommended,
+body.c-favorites.a-index {
   #page {
     // Override the theme to instead
     // project it upon the content area
@@ -9,7 +11,7 @@ body.c-posts.a-index, body.c-favorites.a-index {
   // Exhibit A
   // Makes the content area take up the
   // full height of the page. Yes, really.
-  #page, #c-posts, #c-favorites, #a-index {
+  #page, #c-posts, #c-favorites, #a-index, #a-recommended {
     // I hate both this and myself
     display: flex;
     flex-flow: column;
