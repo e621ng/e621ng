@@ -750,12 +750,13 @@ ALTER SEQUENCE public.exception_logs_id_seq OWNED BY public.exception_logs.id;
 
 CREATE TABLE public.favorite_events (
     event_id bigint NOT NULL,
-    favorite_id bigint,
+    favorite_id bigint NOT NULL,
     user_id integer NOT NULL,
     post_id integer NOT NULL,
     action smallint NOT NULL,
-    created_at timestamp(6) without time zone DEFAULT now() NOT NULL
-);
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+)
+PARTITION BY RANGE (created_at);
 
 
 --
@@ -3318,7 +3319,7 @@ ALTER TABLE ONLY public.exception_logs
 --
 
 ALTER TABLE ONLY public.favorite_events
-    ADD CONSTRAINT favorite_events_pkey PRIMARY KEY (event_id);
+    ADD CONSTRAINT favorite_events_pkey PRIMARY KEY (event_id, created_at);
 
 
 --
@@ -3721,6 +3722,27 @@ ALTER TABLE ONLY public.wiki_page_versions
 
 ALTER TABLE ONLY public.wiki_pages
     ADD CONSTRAINT wiki_pages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: favorite_events_created_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX favorite_events_created_at_idx ON ONLY public.favorite_events USING btree (created_at);
+
+
+--
+-- Name: favorite_events_post_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX favorite_events_post_id_idx ON ONLY public.favorite_events USING btree (post_id);
+
+
+--
+-- Name: favorite_events_user_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX favorite_events_user_id_idx ON ONLY public.favorite_events USING btree (user_id);
 
 
 --
@@ -4134,27 +4156,6 @@ CREATE INDEX index_exception_logs_on_created_at ON public.exception_logs USING b
 --
 
 CREATE INDEX index_exception_logs_on_user_id ON public.exception_logs USING btree (user_id);
-
-
---
--- Name: index_favorite_events_on_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_favorite_events_on_created_at ON public.favorite_events USING btree (created_at);
-
-
---
--- Name: index_favorite_events_on_post_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_favorite_events_on_post_id ON public.favorite_events USING btree (post_id);
-
-
---
--- Name: index_favorite_events_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_favorite_events_on_user_id ON public.favorite_events USING btree (user_id);
 
 
 --

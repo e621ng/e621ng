@@ -61,6 +61,12 @@ module Danbooru
       }
     end
 
+    config.after_initialize do
+      if ActiveRecord::Base.connection.table_exists?(:favorite_events)
+        FavoriteEventPartitionJob.perform_later
+      end
+    end
+
     config.i18n.enforce_available_locales = false
     config.active_model.i18n_customize_full_message = true
 
