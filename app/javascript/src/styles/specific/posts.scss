@@ -413,3 +413,31 @@ body[data-user-can-approve-posts="true"] .notice {
     }
   }
 }
+
+// GenInfo
+#gen-info-container {
+  &.hidden { display: none; }
+  &:empty { display: none; }
+
+  #gen-info { margin-bottom: 0; }
+
+  .gen-info-item {
+    margin-top: 0.5em;
+
+    .gen-info-key {
+      font-weight: bold;
+      font-size: 0.9em;
+      margin-bottom: 0.25em;
+    }
+
+    .gen-info-value {
+      display: block;
+      word-break: break-word;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+      font-size: 0.85em;
+      line-height: 1.4;
+    }
+  }
+}

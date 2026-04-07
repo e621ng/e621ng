@@ -81,6 +81,10 @@
 
       <%= render "posts/partials/show/content/toolbar", post: @post %>
 
+      <% if @post.file_ext.in?(%w[png jpg jpeg]) %>
+        <div id="gen-info-container" class="styled-dtext"></div>
+      <% end %>
+
       <div class="bottom-notices">
         <div class="parent-children">
           <%= render "posts/partials/show/content/children", post: @post %>

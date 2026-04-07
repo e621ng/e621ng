@@ -227,6 +227,17 @@
 }
 
 
+// Prompt toggle
+#ptbr-wrapper .ptbr-prompt {
+  display: none;
+  @include window-larger-than(40rem) { display: flex; }
+}
+
+#ptbr-wrapper .ptbr-prompt-button {
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+}
+
+
 // Overflow menu
 #ptbr-wrapper .ptbr-etc {
   display: flex;
@@ -255,6 +266,7 @@
   @include window-larger-than(40rem) {
     .ptbr-etc-fullscreen { display: none; }
     .ptbr-notes-button { display: none; }
+    .ptbr-prompt-button { display: none; }
   }
 
   .st-button {
