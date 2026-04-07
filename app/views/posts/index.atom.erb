@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <% tags = params[:tags].is_a?(String) ? params[:tags] : nil %>
+  <% tags = @tag_query.presence %>
   <title><%= Danbooru.config.app_name %><% if tags.present? %>: <%= tags %><% end %></title>
   <link href="<%= posts_url(tags: tags, format: :atom) %>" rel="self"/>
   <link href="<%= posts_url(tags: tags) %>" rel="alternate"/>
