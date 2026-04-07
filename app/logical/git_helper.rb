@@ -36,6 +36,11 @@ module GitHelper
     "#{Danbooru.config.source_code_url}/releases/tag/#{tag_name}"
   end
 
+  def self.tree_url(commit_hash)
+    commit_hash = commit_hash.gsub(/[^a-zA-Z0-9.\-_]/, "")
+    "#{Danbooru.config.source_code_url}/tree/#{commit_hash}"
+  end
+
   def self.version_url
     return release_url(@tag) if @tag.present?
     commit_url(@hash)
