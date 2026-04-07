@@ -29,10 +29,13 @@
   </section>
 
   <% if Setting.trends_displayed? %>
-  <section class="home-section search-trend-list">
-    <h3>
+  <section class="home-section search-rising-list hidden" id="home-trends">
+    <h3 aria-controls="home-trends" aria-expanded="false">
       <%= svg_icon(:trending_up) %>
       Trending
+      <button id="hide-trends" class="st-button" aria-label="Hide trending">
+        <%= svg_icon(:chevron_down) %>
+      </button>
     </h3>
     <%= rising_tags %>
   </section>

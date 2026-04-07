@@ -1,0 +1,33 @@
+<% index = 1 %>
+
+<div class="rising-wrapper"><div class="rising-list">
+
+  <% if left_tags.present? %>
+    <div class="rising-left">
+      <% left_tags.each do |row| %>
+        <div class="rising-item">
+          <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>" data-place="<%= row[:place] %>">
+            <span class="rising-rank">#<%= index %></span>
+            <span class="rising-link"><%= row[:pretty_name] %></span>
+          </a>
+        </div>
+        <% index += 1 %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if right_tags.present? %>
+    <div class="rising-right">
+      <% right_tags.each do |row| %>
+        <div class="rising-item">
+          <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>" data-place="<%= row[:place] %>">
+            <span class="rising-rank">#<%= index %></span>
+            <span class="rising-link"><%= row[:pretty_name] %></span>
+          </a>
+        </div>
+        <% index += 1 %>
+      <% end %>
+    </div>
+  <% end %>
+
+</div></div>

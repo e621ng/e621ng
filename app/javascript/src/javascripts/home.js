@@ -1,3 +1,4 @@
+import LStorage from "./utility/storage";
 import Page from "./utility/page";
 
 const Home = {};
@@ -32,6 +33,23 @@ Home.init = function () {
 
     $form.trigger("submit");
     return false;
+  });
+
+  /* Trends toggle */
+  let trendsShown = LStorage.Site.RisingShown;
+  const trends = $("#home-trends"),
+    trendsToggle = $("#home-trends h3");
+  if (trendsShown) {
+    trends.removeClass("hidden");
+    trendsToggle.attr("aria-expanded", "true");
+  }
+  window.setTimeout(() => trends.addClass("animated"), 500); // Don't animate on page load
+
+  trendsToggle.on("click", () => {
+    trendsShown = !trendsShown;
+    LStorage.Site.RisingShown = trendsShown;
+    trends.toggleClass("hidden", !trendsShown);
+    trendsToggle.attr("aria-expanded", trendsShown);
   });
 };
 

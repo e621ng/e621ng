@@ -58,6 +58,9 @@ LStorage.Site = {
       has_forums: false,
     },
   ],
+
+  /** @returns {boolean} True if the rising tags section on the homepage is shown */
+  RisingShown: ["e6.rising.shown", true],
 };
 StorageUtils.bootstrapMany(LStorage.Site);
 
@@ -70,7 +73,7 @@ LStorage.Theme = {
   Main: ["theme", "hexagon"],
 
   /** @returns {string} Extra theme / seasonal decotrations */
-  Extra: ["theme-extra", "scales"], // TODO: RESTORE TO "hexagon" AFTER APRIL FOOLS
+  Extra: ["theme-extra", "hexagon"],
 
   /** @returns {string} Colorblind-friendly palette (default / deut / trit) */
   Palette: ["theme-palette", "default"],
@@ -133,6 +136,9 @@ LStorage.Posts = {
 
   /** @returns {boolean} True if tag preview in tag editor is enabled */
   TagPreview: ["e6.posts.tagpreview", true],
+
+  /** @returns {("artist" | "favorites" | "tags" | "closed")} Default recommendation type */
+  Recommendations: ["e6.posts.recommendations", "artist"],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 

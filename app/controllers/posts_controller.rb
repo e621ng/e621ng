@@ -3,9 +3,9 @@
 class PostsController < ApplicationController
   include JsonResponseHelper
 
-  before_action :member_only, except: %i[show show_seq index random]
+  before_action :member_only, except: %i[show show_seq index random recommended]
   before_action :admin_only, only: [:update_iqdb]
-  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
+  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random recommended]
   respond_to :html, :json
 
   def index
@@ -18,15 +18,22 @@ class PostsController < ApplicationController
         end
       end
     else
-      @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
+      @tag_query = tag_query
+      unless @tag_query.is_a?(String)
+        @tag_query = ""
+        render_expected_error(400, "Invalid tags parameter")
+        return
+      end
+
+      @post_set = PostSets::Post.new(@tag_query, params[:page], limit: params[:limit], random: params[:random])
       @posts = @post_set.posts
 
       # Record trending tags for page 1 queries to avoid double-counting pagination
-      if tag_query.present? && (params[:page].blank? || params[:page].to_i <= 1)
-        SearchTrendHourly.record_query!(tag_query, ip: request.remote_ip)
+      if @tag_query.present? && (params[:page].blank? || params[:page].to_i <= 1)
+        SearchTrendHourly.record_query!(@tag_query, ip: request.remote_ip)
       end
 
-      @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
+      @query = @tag_query.blank? ? [] : @tag_query.strip.split(/ /, 2).compact_blank
       if @query.length == 1
         @wiki_page = WikiPage.titled(@query[0])
 
@@ -153,6 +160,34 @@ class PostsController < ApplicationController
     end
   end
 
+  def recommended
+    @original_post = Post.find(params[:id])
+    unless Security::Lockdown.post_visible?(@original_post, CurrentUser.user)
+      render json: {
+        post_id: @original_post.id,
+        model_version: "opensearch",
+        results: [],
+      }
+      return
+    end
+
+    post_ids = Cache.fetch("post_recommendations:#{@original_post.id}:#{params[:page]}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
+      PostSets::Recommended.new(@original_post, params[:page], limit: params[:limit]).post_ids
+    end
+    # Matches the format of the recommendation engine
+    render json: {
+      post_id: @original_post.id,
+      model_version: "opensearch",
+      results: post_ids.map do |id|
+        {
+          post_id: id,
+          score: 1,
+          explanation: nil,
+        }
+      end,
+    }
+  end
+
   def mark_as_translated
     @post = Post.find(params[:id])
     ensure_can_edit(@post)
@@ -169,7 +204,9 @@ class PostsController < ApplicationController
   private
 
   def tag_query
-    params[:tags] || (params[:post] && params[:post][:tags])
+    return params[:tags] if params[:tags].present?
+    return "" unless params[:post].is_a?(ActionController::Parameters)
+    params[:post][:tags].presence || ""
   end
 
   def respond_with_post_after_update(post)

@@ -752,6 +752,11 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
       url: `/moderator/post/posts/${post_id}/delete.json`,
       data: {commit: "Delete", reason: reason, from_flag: from_flag, move_favorites: move_favorites},
     }).fail(function (data) {
+      if (data.status === 409) {
+        $(window).trigger("danbooru:notice", "Post already deleted.");
+        location.reload();
+        return;
+      }
       if (data.responseJSON && data.responseJSON.reason) {
         $(window).trigger("danbooru:error", "Error: " + data.responseJSON.reason);
         error = true;

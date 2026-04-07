@@ -126,6 +126,24 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         assert_equal @replacement.md5, @post.md5
         assert_equal @replacement.status, "approved"
       end
+
+      should "return flash error for approve when target post is deleted" do
+        @post.update_column(:is_deleted, true)
+
+        put_auth approve_post_replacement_path(@replacement, penalize_current_uploader: true), @user
+
+        assert_response 422
+        assert_equal "Error: Cannot approve replacement for deleted target post", flash[:notice]
+      end
+
+      should "return flash error for reset to when target post is deleted" do
+        @post.update_column(:is_deleted, true)
+
+        put_auth approve_post_replacement_path(@replacement, penalize_current_uploader: false), @user
+
+        assert_response 422
+        assert_equal "Error: Cannot reset to replacement for deleted target post", flash[:notice]
+      end
     end
 
     context "promote action" do

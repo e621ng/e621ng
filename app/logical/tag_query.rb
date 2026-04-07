@@ -240,6 +240,10 @@ class TagQuery
   # rather than letting the search reach OpenSearch and return a cryptic 400 response.
   OPENSEARCH_MAX_CLAUSE_COUNT = 1024
 
+  # OpenSearch limits wildcard query automaton states to ~1000. A prefix wildcard `term*` generates
+  # roughly `len(term) + 1` states, so cap the prefix at 999 characters to stay within the limit.
+  MAX_SOURCE_WILDCARD_LENGTH = 999
+
   # Used for quickly profiling optimizations, tweaking desired behavior, etc. Should be removed
   # after reviews are completed.
   # * `COUNT_TAGS_WITH_SCAN_RECURSIVE` [`false`]: Use `TagQuery.scan_recursive` to increment
@@ -1354,8 +1358,8 @@ class TagQuery
 
       when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
         add_to_query(type, :fav_ids) do
-          if g2.downcase == "me" && CurrentUser.user
-            favuser = CurrentUser.user
+          if g2.downcase == "me"
+            favuser = CurrentUser.is_member? ? CurrentUser.user : nil
           else
             favuser = User.find_by_name_or_id(g2) # rubocop:disable Rails/DynamicFindBy
           end
@@ -1402,7 +1406,8 @@ class TagQuery
       when "change", "-change", "~change" then add_to_query(type, :change_seq, ParseValue.range(g2))
 
       when "source", "-source", "~source"
-        add_to_query(type, :sources, g2, any_none_key: :source, wildcard: true) { "#{g2}*" }
+        truncated_source = "#{g2.first(MAX_SOURCE_WILDCARD_LENGTH)}*"
+        add_to_query(type, :sources, g2, any_none_key: :source, wildcard: true) { truncated_source }
 
       when "date", "-date", "~date" then add_to_query(type, :date, ParseValue.date_range(g2))
 

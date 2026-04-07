@@ -185,7 +185,7 @@ module ParseValue
         size.to_f.megabytes
       else
         size.to_f
-      end.to_i
+      end.to_i.clamp(0, MAX_INT)
     end
   end
 

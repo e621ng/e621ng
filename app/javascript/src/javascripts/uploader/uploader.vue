@@ -486,6 +486,23 @@
             console.log(response);
 
             self.submitting = false;
+
+            // Cloudflare
+            const cfRay = response.getResponseHeader('cf-ray');
+            if (cfRay) console.log(`Cloudflare Ray ID: ${cfRay}`);
+
+            const cfMitigated = (response.getResponseHeader('cf-mitigated') || '').trim().toLowerCase();
+            const serverHeader = (response.getResponseHeader('server') || '').trim().toLowerCase();
+            if (cfMitigated.includes('challenge')) {
+              self.error = 'Error: The upload was blocked by a security challenge. Please try again in a moment.';
+              return;
+            }
+            if (response.status === 403 && (serverHeader.includes('cloudflare') || !!cfRay)) {
+              self.error = 'Error: The upload was blocked by Cloudflare (403). Please try again in a moment.';
+              return;
+            }
+
+            // Try to extract useful info from the JSON response
             try {
               const jsonData = response.responseJSON;
               if (!jsonData) throw new Error("No JSON data returned from server.");

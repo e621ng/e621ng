@@ -28,7 +28,7 @@ class SearchTrendHourly < ApplicationRecord
   # have that prefix stripped before recording. Metatags (containing `:`) are ignored.
   # Errors in query parsing are logged and swallowed so the caller is never disrupted.
   def self.record_query!(query, hour: Time.now.utc.beginning_of_hour, ip: nil)
-    return if query.blank?
+    return if query.blank? || !Setting.trends_enabled
 
     tokens = TagQuery.scan_recursive(
       query,
@@ -36,7 +36,7 @@ class SearchTrendHourly < ApplicationRecord
       strip_prefixes: false,
       delimit_groups: true,
       sort_at_level: false,
-      normalize_at_level: true,
+      normalize_at_level: false,
       strip_duplicates_at_level: true,
     )
 
@@ -57,7 +57,12 @@ class SearchTrendHourly < ApplicationRecord
       t[prefix.length..].presence
     end
 
-    bulk_increment!(tag_tokens.map { |tag| { tag: tag, hour: hour } }, ip: ip) if tag_tokens.present?
+    # Normalize names (unicode NFC + downcase) then resolve aliases in one batch query,
+    # then deduplicate — order matters since aliasing can introduce new duplicates.
+    if tag_tokens.present?
+      tag_tokens = TagAlias.to_aliased(tag_tokens.map { |t| Tag.normalize_name(t) }).uniq
+      bulk_increment!(tag_tokens.map { |tag| { tag: tag, hour: hour } }, ip: ip)
+    end
   rescue StandardError => e
     Rails.logger.warn("Failed to record search trends for query #{query.inspect}: #{e.class}: #{e.message}")
   end
@@ -118,7 +123,7 @@ class SearchTrendHourly < ApplicationRecord
   end
 
   # Find tags that are trending upward compared to the previous equivalent time window
-  def self.rising(at: Time.now.utc, limit: 10, min_today: 10, min_delta: 10, min_ratio: 2.0)
+  def self.rising(at: Time.now.utc, limit: 6, min_today: 10, min_delta: 10, min_ratio: 2.0)
     # Current time window: last WINDOW_HOURS hours up to 'at'
     current_end = at.utc
     current_start = current_end - WINDOW_HOURS
@@ -162,7 +167,16 @@ class SearchTrendHourly < ApplicationRecord
   def self.rising_tags_list
     Cache.fetch("rising_tags", expires_in: 15.minutes) do
       tags = SearchTrendHourly.rising(min_today: Setting.trends_min_today, min_delta: Setting.trends_min_delta, min_ratio: Setting.trends_min_ratio).map(&:tag)
-      TagAlias.to_aliased(tags)
+      aliased_tags = TagAlias.to_aliased(tags)
+      tag_data = Tag.where(name: aliased_tags).index_by(&:name)
+      aliased_tags.map do |tag|
+        {
+          name: tag,
+          pretty_name: tag.gsub(/_+/, " "),
+          post_count: tag_data[tag]&.post_count || 0,
+          category: tag_data[tag]&.category || 0,
+        }
+      end
     end
   end
 

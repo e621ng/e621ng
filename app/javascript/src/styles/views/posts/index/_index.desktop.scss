@@ -4,7 +4,7 @@
   grid-template-areas:
     "search  content" 
     "sidebar content";
-  grid-template-columns: 16rem 1fr;
+  grid-template-columns: 16rem minmax(0, 1fr);
   grid-template-rows: min-content 1fr;
 
   & > .search {
@@ -33,5 +33,6 @@
   & > .content {
     border-radius: 0 0.25rem 0.25rem 0;
     padding: 0.5rem 0.75rem themed("content-padding-bottom");
+    max-width: 100%;
   }
 }
