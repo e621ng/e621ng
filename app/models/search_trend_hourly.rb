@@ -57,10 +57,12 @@ class SearchTrendHourly < ApplicationRecord
       t[prefix.length..].presence
     end
 
-    # Resolve aliases in one batch query instead of one query per tag
-    tag_tokens = TagAlias.to_aliased(tag_tokens) if tag_tokens.present?
-
-    bulk_increment!(tag_tokens.map { |tag| { tag: tag, hour: hour } }, ip: ip) if tag_tokens.present?
+    # Normalize names (unicode NFC + downcase) then resolve aliases in one batch query,
+    # then deduplicate — order matters since aliasing can introduce new duplicates.
+    if tag_tokens.present?
+      tag_tokens = TagAlias.to_aliased(tag_tokens.map { |t| Tag.normalize_name(t) }).uniq
+      bulk_increment!(tag_tokens.map { |tag| { tag: tag, hour: hour } }, ip: ip)
+    end
   rescue StandardError => e
     Rails.logger.warn("Failed to record search trends for query #{query.inspect}: #{e.class}: #{e.message}")
   end
