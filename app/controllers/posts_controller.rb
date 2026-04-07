@@ -161,6 +161,7 @@ class PostsController < ApplicationController
         model_version: "opensearch",
         results: [],
       }
+      return
     end
 
     post_ids = Cache.fetch("post_recommendations:#{@original_post.id}:#{params[:page]}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
