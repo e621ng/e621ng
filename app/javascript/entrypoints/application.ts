@@ -8,6 +8,7 @@ Rails.start();
 // Common imports for all controllers
 import Autocomplete from "@/components/autocomplete";
 import "@/core/analytics";
+import "@/core/auth";
 import Blacklist from "@/core/blacklists";
 import "@/core/common";
 import "@/core/dtext_formatter_loader";

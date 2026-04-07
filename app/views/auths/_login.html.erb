@@ -1,0 +1,27 @@
+<div class="auth-flow-wrapper">
+  <%= simple_form_for(:session, url: session_path, html: { id: "auth-login-form", class: "auth-form auth-login" }) do |form| %>
+    <h1>Sign in</h1>
+    <%= form.input(:url, as: :hidden, input_html: { value: params[:url] }) %>
+
+    <div class="auth-input">
+      <%= form.label :name, class: "st-immersive-input" do %>
+        <span class="label-text">Username</span>
+        <%= form.input_field :name %>
+      <% end %>
+    </div>
+
+    <div class="auth-input">
+      <%= form.label :password, class: "st-immersive-input" do %>
+        <span class="label-text">Password</span>
+        <%= form.input_field :password %>
+      <% end %>
+    </div>
+
+    <div class="auth-input">
+      <%= form.input_field :remember, as: :boolean, class: "st-toggle", input_html: { checked: "checked" } %>
+      <%= form.label :remember, "!", class: "st-toggle", role: "switch" %>
+    </div>
+
+    <%= form.submit("Continue") %>
+  <% end %>
+</div>

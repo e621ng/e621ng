@@ -1,0 +1,70 @@
+#auth-overlay {
+  position: fixed;
+  top: 3.75rem;
+  z-index: 10;
+  right: 1rem;
+
+  &.hidden { display: none; }
+}
+
+.auth-flow-wrapper {
+  display: grid;
+  grid-template-columns: minmax(0, 300px);
+  width: max-content;
+
+  background: themed("color-section");
+  margin: 0;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+
+  form.simple_form {
+    // Revert changes from .simple_form
+    background: unset;
+    margin: 0;
+    padding: 0;
+    border-radius: unset;
+
+    .auth-input {
+      // Temporary, switch to flex later
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+.st-immersive-input {
+  display: flex;
+  flex-flow: column;
+  background: white;
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+
+  span.label-text {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 0.85rem;
+    color: black;
+    font-weight: normal;
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+
+    transition: all 0.15s ease-out;
+  }
+  &.focused {
+    box-shadow: 0 0 0.25rem themed("color-link-active") inset;
+  }
+  &.focused, &.contentful {
+    span.label-text {
+      margin: -0.25rem 0 0.25rem;
+      font-size: 0.65rem;
+    }
+  }
+
+  input {
+    border-radius: unset;
+    padding: 0;
+    line-height: 1rem;
+    font-size: 1rem;
+    height: 1rem;
+    background: transparent !important;
+  }
+}
