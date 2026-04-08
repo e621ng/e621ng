@@ -280,10 +280,10 @@ Rails.application.routes.draw do
       get :show_seq
       put :mark_as_translated
       get :comments, to: "comments#for_post"
-      resource :similar, controller: "post_recommendations" do
+      resource :similar, only: [], controller: "post_recommendations" do
         get :artist
         get :remote
-        get :index, to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
+        get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
       end
     end
   end
