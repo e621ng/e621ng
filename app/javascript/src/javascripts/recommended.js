@@ -236,16 +236,16 @@ Recommended.render = function (data) {
   const article = $("<article>")
     .addClass("thumbnail")
     .attr({
-      "data-tags": tagArray.join(" "),
+      "data-tags": tagArray.join(" ") || "",
 
       "data-id": data.post.id,
-      "data-flags": flagArray.join(" "),
+      "data-flags": flagArray.join(" ") || "",
       "data-rating": data.post.rating,
-      "data-file-ext": data.post.file_ext,
+      "data-file-ext": data.post.file.ext,
 
-      "data-width": data.post.width,
-      "data-height": data.post.height,
-      "data-size": data.post.size,
+      "data-width": data.post.file.width,
+      "data-height": data.post.file.height,
+      "data-size": data.post.file.size,
 
       "data-score": data.post.score.total,
       "data-fav-count": data.post.fav_count,
@@ -254,7 +254,7 @@ Recommended.render = function (data) {
       "data-uploader": data.post.uploader,
       "data-uploader-id": data.post.uploader_id,
 
-      "data-pools": data.post.pools.join(" "),
+      "data-pools": data.post.pools.join(" ") || "",
     });
 
   // Core
