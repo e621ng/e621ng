@@ -170,7 +170,7 @@ Recommended.loadState = async function (action = Recommended.action) {
     const entry = data.results[postId];
     if (!entry) continue;
     const post = posts[postId];
-    if (post.flags.deleted) continue;
+    if (!post || !post.flags || post.flags.deleted) continue;
     entry.post = post;
 
     // Prevent layout shifts by replacing placeholders
