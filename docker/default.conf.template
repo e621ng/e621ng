@@ -42,8 +42,8 @@ server {
     proxy_redirect off;
   }
 
-  location /posts/recommended.json {
-    proxy_pass ${RECOMMENDER_URL}/similar;
+  location ~ ^/posts/(\d+)/similar/remote\.json$ {
+    proxy_pass ${RECOMMENDER_URL}/similar?post_id=$1&$args;
     proxy_redirect off;
   }
 

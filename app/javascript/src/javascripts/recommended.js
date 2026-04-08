@@ -362,15 +362,21 @@ Recommended.render_placeholder = function () {
 
 // Fetches recommendation data from the server
 Recommended.getData = async function (postId, action = "favorites") {
-  const url = Recommended.remote_actions.includes(action)
-    ? `/posts/recommended.json?post_id=${postId}&mode=${action}&limit=${Recommended.RESULT_COUNT}`
-    : `/posts/${postId}/recommended.json?limit=${Recommended.RESULT_COUNT}`;
+  const target = Recommended.remote_actions.includes(action) ? "remote" : "artist";
   Recommended.debugLog(`Fetching data: "${postId}/${action}"`);
 
-  return fetch(url)
+  return fetch(`/posts/${postId}/similar/${target}.json?mode=${action}&limit=${Recommended.RESULT_COUNT}`)
     .then(
       (response) => {
         if (!response.ok) {
+          if (response.status === 502 && target === "remote") {
+            Recommended.debugLog("Recommendation engine is unavailable (502)");
+            return {
+              post_id: postId,
+              model_version: "unavailable",
+              results: [],
+            };
+          }
           console.error(`Failed to fetch recommendations: ${response.statusText}`);
           return;
         }
