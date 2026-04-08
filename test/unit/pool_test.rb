@@ -56,7 +56,16 @@ class PoolTest < ActiveSupport::TestCase
     end
 
     should "error when post ids are invalid" do
-      assert_raises(ActiveRecord::RecordInvalid) { create(:pool, post_ids: @posts.map { |p| p.id << 3 }) }
+      assert_raises(ActiveRecord::RecordInvalid) do 
+        create(:pool, post_ids: @posts.map { |p| p.id << 3 })
+      end
+    end
+
+    should "error when post ids are out of range" do
+      invalid_id = ParseValue::MAX_INT + 1
+      assert_raises(ActiveRecord::RecordInvalid) do
+        create(:pool, post_ids: [invalid_id])
+      end
     end
   end
 
