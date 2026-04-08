@@ -219,10 +219,42 @@ Recommended.render = function (data) {
   // Login-blocked, Safe-blocked, or just missing preview = can't render thumbnail
   if (!data || !data.post || !data.post.preview || !data.post.preview.url) return null;
 
+  // Tags are returned from the API in a category-sorted format, but we need a tag string
+  let tagArray = [];
+  for (const tags of Object.values(data.post.tags)) {
+    if (!Array.isArray(tags)) continue;
+    tagArray = [...tagArray, ...tags];
+  }
+  console.log("Tag array:", tagArray);
+
+  // Flags are returned as an object with boolean values, but we need an array
+  let flagArray = [];
+  if (data.post.flags.deleted) flagArray.push("deleted");
+  if (data.post.flags.pending) flagArray.push("pending");
+  if (data.post.flags.flagged) flagArray.push("flagged");
+
   const article = $("<article>")
     .addClass("thumbnail")
-    .data({
-      id: data.post.id,
+    .attr({
+      "data-tags": tagArray.join(" "),
+
+      "data-id": data.post.id,
+      "data-flags": flagArray.join(" "),
+      "data-rating": data.post.rating,
+      "data-file-ext": data.post.file_ext,
+
+      "data-width": data.post.width,
+      "data-height": data.post.height,
+      "data-size": data.post.size,
+
+      "data-score": data.post.score.total,
+      "data-fav-count": data.post.fav_count,
+      "data-is-favorited": data.post.is_favorited,
+
+      "data-uploader": data.post.uploader,
+      "data-uploader-id": data.post.uploader_id,
+
+      "data-pools": data.post.pools.join(" "),
     });
 
   // Core
