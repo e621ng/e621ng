@@ -49,6 +49,7 @@ Recommended.init = function () {
     if (action == "closed") {
       Recommended.requestID++; // Invalidate any in-flight requests
       Recommended.$wrapper.remove();
+      Danbooru.notice("You can re-enable recommendations in the <a href=\"/static/theme\">Themes menu</a>.");
       return;
     }
 
