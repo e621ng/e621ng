@@ -30,7 +30,7 @@ class SearchTrendTest < ActiveSupport::TestCase
   test "bulk_increment! handles multiple tags and de-dupes" do
     hour = 1.hour.ago.utc.beginning_of_hour
     SearchTrendHourly.bulk_increment!([{ tag: "alpha", hour: hour }, { tag: "beta", hour: hour }, { tag: "alpha", hour: hour }]) # alpha counted twice
-    rows = SearchTrendHourly.for_day(Time.now.utc.to_date).pluck(:tag, :count).to_h
+    rows = SearchTrendHourly.for_day(hour.to_date).pluck(:tag, :count).to_h
     assert_equal({ "alpha" => 2, "beta" => 1 }, rows)
   end
 
