@@ -1,6 +1,7 @@
 import Page from "./utility/page";
 import SVGIcon from "./utility/svg_icon";
 import LStorage from "./utility/storage";
+import Blacklist from "./blacklists";
 
 const Recommended = {};
 
@@ -166,6 +167,7 @@ Recommended.loadState = async function (action = Recommended.action) {
   }
 
   // 4. Render thumbnails
+  const renderedPosts = [];
   for (const postId of recommendedPostIds) {
     const entry = data.results[postId];
     if (!entry) continue;
@@ -174,10 +176,15 @@ Recommended.loadState = async function (action = Recommended.action) {
     entry.post = post;
 
     // Prevent layout shifts by replacing placeholders
+    const rendered = Recommended.render(entry);
+    if (!rendered) continue;
     $container
       .find(".thumbnail.placeholder").first()
-      .replaceWith(Recommended.render(entry));
+      .replaceWith(rendered);
+    renderedPosts.push(rendered);
   }
+  Blacklist.add_posts(renderedPosts);
+  Blacklist.update_visibility();
 
   // 5. Finalize
   Recommended.status = "ready";
@@ -209,10 +216,44 @@ Recommended.waitUntilReady = function () {
 };
 
 Recommended.render = function (data) {
+  // Login-blocked, Safe-blocked, or just missing preview = can't render thumbnail
+  if (!data || !data.post || !data.post.preview || !data.post.preview.url) return null;
+
+  // Tags are returned from the API in a category-sorted format, but we need a tag string
+  let tagArray = [];
+  for (const tags of Object.values(data.post.tags)) {
+    if (!Array.isArray(tags)) continue;
+    tagArray.push(...tags);
+  }
+
+  // Flags are returned as an object with boolean values, but we need an array
+  let flagArray = [];
+  if (data.post.flags.deleted) flagArray.push("deleted");
+  if (data.post.flags.pending) flagArray.push("pending");
+  if (data.post.flags.flagged) flagArray.push("flagged");
+
   const article = $("<article>")
     .addClass("thumbnail")
-    .data({
-      id: data.post.id,
+    .attr({
+      "data-tags": tagArray.join(" ") || "",
+
+      "data-id": data.post.id,
+      "data-flags": flagArray.join(" ") || "",
+      "data-rating": data.post.rating,
+      "data-file-ext": data.post.file.ext,
+
+      "data-width": data.post.file.width,
+      "data-height": data.post.file.height,
+      "data-size": data.post.file.size,
+
+      "data-score": data.post.score.total,
+      "data-fav-count": data.post.fav_count,
+      "data-is-favorited": data.post.is_favorited,
+
+      "data-uploader": data.post.uploader_name,
+      "data-uploader-id": data.post.uploader_id,
+
+      "data-pools": data.post.pools.join(" ") || "",
     });
 
   // Core
@@ -230,8 +271,7 @@ Recommended.render = function (data) {
 
   // Footer
   const footer = $("<div>")
-    .addClass("thm-desc")
-    .addClass(`thm-rating-${data.post.rating}`)
+    .addClass(`thm-desc thm-rating-${data.post.rating}`)
     .appendTo(article);
 
   const descA = $("<span>")
@@ -239,30 +279,26 @@ Recommended.render = function (data) {
     .appendTo(footer);
 
   $("<span>")
-    .addClass("thm-desc-m")
-    .addClass("thm-score")
+    .addClass("thm-desc-m thm-score")
     .addClass(data.post.score.total > 0 ? "thm-score-positive" : data.post.score.total < 0 ? "thm-score-negative" : "thm-score-neutral")
     .append(SVGIcon.render("score"))
     .append(data.post.score.total)
     .appendTo(descA);
 
   $("<span>")
-    .addClass("thm-desc-m")
-    .addClass("thm-favorites")
+    .addClass("thm-desc-m thm-favorites")
     .append(SVGIcon.render("favorites"))
     .append(data.post.fav_count)
     .appendTo(descA);
 
   $("<span>")
-    .addClass("thm-desc-m")
-    .addClass("thm-comments")
+    .addClass("thm-desc-m thm-comments")
     .append(SVGIcon.render("comments"))
     .append(data.post.comment_count)
     .appendTo(descA);
 
   $("<span>")
-    .addClass("thm-desc-b")
-    .addClass("thm-rating")
+    .addClass("thm-desc-b thm-rating")
     .text(data.post.rating.toUpperCase())
     .appendTo(footer);
 
