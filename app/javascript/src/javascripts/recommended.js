@@ -10,6 +10,7 @@ Recommended.SHOW_ENGINE_RESULTS = false;
 Recommended.debug = LStorage.get("e6.debug", false);
 Recommended.allStates = ["artist", "favorites", "tags", "closed"];
 Recommended.validStates = ["artist", "closed"];
+Recommended.requestID = 0;
 
 Recommended.remote_actions = ["favorites", "tags"];
 
@@ -35,6 +36,7 @@ Recommended.init = function () {
   let isInitialized = false;
   Recommended.waitUntilReady().then(() => {
     isInitialized = true;
+    Recommended.status = "loading";
     Recommended.loadState();
   });
 
@@ -42,12 +44,10 @@ Recommended.init = function () {
   $("#post-recommendations-tabs").on("click", "button", (event) => {
     if (!isInitialized) return;
 
-    if (Recommended.status === "loading")
-      return;
-
     const action = $(event.currentTarget).data("action");
     Recommended.action = action;
     if (action == "closed") {
+      Recommended.requestID++; // Invalidate any in-flight requests
       Recommended.$wrapper.remove();
       return;
     }
@@ -116,13 +116,20 @@ Object.defineProperty(Recommended, "status", {
 // ============================== //
 
 Recommended.loadState = async function (action = Recommended.action) {
-  Recommended.debugLog(`Loading state: "${action}"`);
+  const requestId = ++Recommended.requestID;
+  const requestExpired = function () {
+    return requestId !== Recommended.requestID;
+  };
+
+
+  Recommended.debugLog(`Loading state: "${action}" (Req ID: ${requestId})`);
   const $container = Recommended.$container;
 
   if (!Recommended.validStates.includes(action)) {
     Recommended.action = "artist";
     action = "artist";
   }
+
 
   // 1. Render skeleton placeholders
   if (Recommended.status !== "waiting") {
@@ -132,50 +139,72 @@ Recommended.loadState = async function (action = Recommended.action) {
       $container.append(Recommended.render_placeholder());
   }
 
+
   // 2. Fetch recommendations data
   Recommended.status = "loading";
   let data = Recommended.getCachedRecommendations(action);
   if (!data) {
     data = await Recommended.getData(Recommended.postId, action);
     if (!data || !data.results) {
+      if (requestExpired()) return;
       Recommended.status = "error";
       $container.html("<p class='error'>Failed to load recommendations.</p>");
       return;
     }
+
+    // Load post data provided by the local recommender
+    // Not available for the remote recommender service
+    if (data.post_data) {
+      Recommended.debugLog("Found included post data", data.post_data);
+      Recommended.setCachedPosts(data.post_data);
+      delete data.post_data; // Don't pollute main cache
+    }
+
+    // Reformat results for easier access
+    const resultsById = {},
+      resultsOrder = [];
+    for (const result of data.results) {
+      resultsById[result.post_id] = result;
+      resultsOrder.push(result.post_id);
+    }
+    data.results = resultsById;
+    data.order = resultsOrder;
+
+    // Cache to avoid reloading when switching tabs
     Recommended.setCachedRecommendations(action, data);
   } else Recommended.debugLog("Using cached recommendations:", data);
 
-  const resultsById = {};
-  for (const result of data.results)
-    resultsById[result.post_id] = result;
-  data.results = resultsById;
-
-  // 2.5 Check if recommendation data includes post data
-  if (data.post_data) {
-    Recommended.debugLog("Found included post data", data.post_data);
-    Recommended.setCachedPosts(data.post_data);
-    delete data.post_data; // Cached separately
-  }
 
   // 3. Fetch post data for recommended posts
-  const recommendedPostIds = Object.keys(data.results);
-  let posts = Recommended.getCachedPosts(recommendedPostIds);
-  let missingPostIds = recommendedPostIds.filter(id => !posts[id]);
+  let posts = Recommended.getCachedPosts(data.order);
+  let missingPostIds = data.order.filter(id => !posts[id]);
   if (missingPostIds.length > 0) {
     const postLookup = await Recommended.getPosts(missingPostIds);
     if (postLookup) {
       for (const post of postLookup) posts[post.id] = post;
       Recommended.setCachedPosts(postLookup);
     } else {
+      if (requestExpired()) return;
       Recommended.status = "error";
       $container.html("<p class='error'>Failed to load recommended posts.</p>");
       return;
     }
   }
 
-  // 4. Render thumbnails
+
+  // 4. Request ID Check
+  if (requestExpired()) {
+    // We still want to cache both the recommendation data and posts, but
+    // if the user has switched tabs while we were loading, we don't want
+    // multiple requests to compete with each other, rendering out of order.
+    Recommended.debugLog("Aborted rendering due to newer request. Req ID:", requestId);
+    return;
+  }
+
+
+  // 5. Render thumbnails
   const renderedPosts = [];
-  for (const postId of recommendedPostIds) {
+  for (const postId of data.order) {
     const entry = data.results[postId];
     if (!entry) continue;
     const post = posts[postId];
@@ -190,13 +219,20 @@ Recommended.loadState = async function (action = Recommended.action) {
       .replaceWith(rendered);
     renderedPosts.push(rendered);
   }
-  Blacklist.add_posts(renderedPosts);
-  Blacklist.update_visibility();
 
-  // 5. Finalize
+
+  // 6. Apply blacklist
+  if (renderedPosts.length > 0) {
+    Blacklist.add_posts(renderedPosts);
+    Blacklist.update_visibility();
+  }
+
+
+  // 7. Finalize
   Recommended.status = "ready";
   $container.find(".thumbnail.placeholder").remove();
   if ($container.children().length === 0) {
+    if (requestExpired()) return; // Unlikely to happen
     Recommended.status = "error";
     $container.html("<p class='info'>No recommendations found.</p>");
   }

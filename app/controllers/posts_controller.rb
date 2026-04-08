@@ -171,23 +171,19 @@ class PostsController < ApplicationController
       return
     end
 
-    posts = Cache.fetch("post_recs:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
-      PostSets::Recommended.new(@original_post, limit: params[:limit]).posts
+    post_data = Cache.fetch("post_recs:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
+      posts = PostSets::Recommended.new(@original_post, limit: params[:limit]).posts
+
+      # Matches the format of the recommendation engine
+      {
+        post_id: @original_post.id,
+        model_version: "opensearch",
+        results: posts.map { |post| { post_id: post.id, score: 1, explanation: nil } },
+        post_data: PostBlueprint.render_as_hash(posts),
+      }
     end
 
-    # Matches the format of the recommendation engine
-    render json: {
-      post_id: @original_post.id,
-      model_version: "opensearch",
-      results: posts.map do |post|
-        {
-          post_id: post.id,
-          score: 1,
-          explanation: nil,
-        }
-      end,
-      post_data: PostBlueprint.render_as_hash(posts),
-    }
+    render json: post_data
   end
 
   def mark_as_translated
