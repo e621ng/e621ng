@@ -43,7 +43,7 @@ server {
   }
 
   location /posts/recommended.json {
-    proxy_pass http://host.docker.internal:8000/similar;
+    proxy_pass ${RECOMMENDER_URL}/similar;
     proxy_redirect off;
   }
 
