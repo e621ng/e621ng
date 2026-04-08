@@ -6,17 +6,8 @@
         <%= " checked" if Danbooru.config.enable_post_deletion_dmail %>
         <% message = Danbooru.config.post_deletion_dmail_templates.values.first %>
         <% if message.is_a?(Hash) %>
-          <% if message[:body].present? %>
-            data-dmail-message="<%= message[:body]
-              .gsub("%POST_ID%", @post.id.to_s)
-              .gsub("%STAFF_NAME%", CurrentUser.name)
-              .gsub("%STAFF_ID%", CurrentUser.id.to_s)
-              .gsub("%UPLOADER_ID%", @post.uploader_id.to_s)
-            %>"
-          <% else %>
-            data-dmail-message=""
-          <% end %>
-          data-dmail-title="<%= message[:title] || "" %>"
+          data-dmail-message="<%= @post.substitute_deletion_dmail_template(message[:body]) %>"
+          data-dmail-title="<%= @post.substitute_deletion_dmail_template(message[:title]) %>"
         <% end %>
         >
     </label>

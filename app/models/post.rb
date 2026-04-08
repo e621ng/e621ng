@@ -1621,6 +1621,19 @@ class Post < ApplicationRecord
     def pending_flag
       flags.unresolved.order(id: :desc).first
     end
+
+    def substitute_deletion_dmail_template(text, reason = nil)
+      unless text.presence
+        return nil
+      end
+      if reason
+        text = text.gsub("%REASON%", reason)
+      end
+      text.gsub("%POST_ID%", id.to_s)
+          .gsub("%STAFF_NAME%", CurrentUser.name)
+          .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+          .gsub("%UPLOADER_ID%", uploader_id.to_s)
+    end
   end
 
   module VersionMethods
