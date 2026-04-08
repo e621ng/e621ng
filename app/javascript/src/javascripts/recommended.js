@@ -223,9 +223,8 @@ Recommended.render = function (data) {
   let tagArray = [];
   for (const tags of Object.values(data.post.tags)) {
     if (!Array.isArray(tags)) continue;
-    tagArray = [...tagArray, ...tags];
+    tagArray.push(...tags);
   }
-  console.log("Tag array:", tagArray);
 
   // Flags are returned as an object with boolean values, but we need an array
   let flagArray = [];
@@ -251,7 +250,7 @@ Recommended.render = function (data) {
       "data-fav-count": data.post.fav_count,
       "data-is-favorited": data.post.is_favorited,
 
-      "data-uploader": data.post.uploader,
+      "data-uploader": data.post.uploader_name,
       "data-uploader-id": data.post.uploader_id,
 
       "data-pools": data.post.pools.join(" ") || "",
