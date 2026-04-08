@@ -49,10 +49,6 @@ div#c-posts {
   }
 
   div#post-recommendations {
-    display: flex;
-    flex-flow: column;
-    max-width: calc(100vw - 0.5rem); // Bad, will fix later
-
     // Tabs
     &-tabs {
       display: flex;
@@ -79,6 +75,7 @@ div#c-posts {
     &-list {
       display: flex;
       overflow: scroll hidden;
+      flex-wrap: wrap; // Second row gets hidden
       gap: 0.5rem;
 
       background: themed("color-section");
