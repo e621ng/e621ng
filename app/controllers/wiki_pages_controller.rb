@@ -78,7 +78,7 @@ class WikiPagesController < ApplicationController
         end
 
         if tag_updated
-          tag = Tag.find_by_normalized_name(@wiki_page.title)
+          tag = Tag.find_by_normalized_name(@wiki_page.title) # rubocop:disable Rails/DynamicFindBy
           respond_to do |format|
             format.html { redirect_to(show_or_new_wiki_pages_path(title: @wiki_page.title)) }
             format.json { render(json: { tag: tag }) }
