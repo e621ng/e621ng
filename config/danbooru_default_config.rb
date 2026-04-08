@@ -872,7 +872,7 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     end
 
     def recommender_enabled?
-      true
+      false
     end
   end
 
