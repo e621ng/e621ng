@@ -224,7 +224,7 @@ class Pool < ApplicationRecord
     invalid_ids = []
 
     added.each do |id|
-      safe_id = ParseValue.safe_id(safe_id)
+      safe_id = ParseValue.safe_id(id)
       if safe_id <= 0 || !Post.exists?(id)
         invalid_ids.push(safe_id)
       end
