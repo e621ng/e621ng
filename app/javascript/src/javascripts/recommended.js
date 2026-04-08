@@ -177,6 +177,7 @@ Recommended.loadState = async function (action = Recommended.action) {
 
     // Prevent layout shifts by replacing placeholders
     const rendered = Recommended.render(entry);
+    if (!rendered) continue;
     $container
       .find(".thumbnail.placeholder").first()
       .replaceWith(rendered);
@@ -215,6 +216,9 @@ Recommended.waitUntilReady = function () {
 };
 
 Recommended.render = function (data) {
+  // Login-blocked, Safe-blocked, or just missing preview = can't render thumbnail
+  if (!data || !data.post || !data.post.preview || !data.post.preview.url) return null;
+
   const article = $("<article>")
     .addClass("thumbnail")
     .data({
