@@ -59,7 +59,21 @@ div#c-posts {
         background: unset;
         color: themed("color-text");
         @include st-radius-top;
-        &[data-action="closed"] { margin-left: auto; }
+        &:hover, &:focus {
+          background: themed("color-section-lighten-5");
+        }
+
+        &[data-action="closed"] {
+          margin-left: auto;
+          background: transparent;
+          color: themed("color-text-muted");
+          &:hover { color: themed("color-link-active"); }
+
+          svg {
+            width: 1rem;
+            height: 1rem;
+          }
+        }
       }
     }
 
