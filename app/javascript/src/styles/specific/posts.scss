@@ -49,6 +49,9 @@ div#c-posts {
   }
 
   div#post-recommendations {
+    display: flex;
+    flex-flow: column;
+    max-width: calc(100vw - 0.5rem); // Bad, will fix later
 
     // Tabs
     &-tabs {
