@@ -222,12 +222,21 @@ class Pool < ApplicationRecord
     return if added.empty?
 
     invalid_ids = []
+    sanitized_ids = []
 
     added.each do |id|
       safe_id = ParseValue.safe_id(id)
       if safe_id <= 0 || !Post.exists?(id)
-        invalid_ids.push(safe_id)
+        invalid_ids.push(id)
+      elsif safe_id > 0
+        sanitized_ids.push(safe_id)
       end
+    end
+
+    if sanitized_ids.any?
+      existing_ids = Post.where(id: sanitized_ids).pluck(:id)
+      missing_ids = sanitized_ids - existing_ids
+      invalid_ids.concat(missing_ids)
     end
 
     return if invalid_ids.empty?
