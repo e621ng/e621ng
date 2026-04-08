@@ -56,7 +56,7 @@ class PoolTest < ActiveSupport::TestCase
     end
 
     should "error when post ids are invalid" do
-      assert_raises(ActiveRecord::RecordInvalid) do 
+      assert_raises(ActiveRecord::RecordInvalid) do
         create(:pool, post_ids: @posts.map { |p| p.id << 3 })
       end
     end
