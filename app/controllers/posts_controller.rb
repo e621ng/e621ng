@@ -171,20 +171,22 @@ class PostsController < ApplicationController
       return
     end
 
-    post_ids = Cache.fetch("post_recommendations:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
-      PostSets::Recommended.new(@original_post, limit: params[:limit]).post_ids
+    posts = Cache.fetch("post_recs:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
+      PostSets::Recommended.new(@original_post, limit: params[:limit]).posts
     end
+
     # Matches the format of the recommendation engine
     render json: {
       post_id: @original_post.id,
       model_version: "opensearch",
-      results: post_ids.map do |id|
+      results: posts.map do |post|
         {
-          post_id: id,
+          post_id: post.id,
           score: 1,
           explanation: nil,
         }
       end,
+      post_data: PostBlueprint.render_as_hash(posts),
     }
   end
 

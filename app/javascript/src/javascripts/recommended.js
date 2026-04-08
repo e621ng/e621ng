@@ -150,6 +150,13 @@ Recommended.loadState = async function (action = Recommended.action) {
     resultsById[result.post_id] = result;
   data.results = resultsById;
 
+  // 2.5 Check if recommendation data includes post data
+  if (data.post_data) {
+    Recommended.debugLog("Found included post data", data.post_data);
+    Recommended.setCachedPosts(data.post_data);
+    delete data.post_data; // Cached separately
+  }
+
   // 3. Fetch post data for recommended posts
   const recommendedPostIds = Object.keys(data.results);
   let posts = Recommended.getCachedPosts(recommendedPostIds);
