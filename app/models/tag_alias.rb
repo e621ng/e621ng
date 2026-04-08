@@ -16,11 +16,6 @@ class TagAlias < TagRelationship
       end
     end
 
-    def undo!(approver: CurrentUser.user)
-      CurrentUser.scoped(approver) do
-        TagAliaseUndoJob.perform_later(id, true)
-      end
-    end
   end
 
   module ForumMethods
