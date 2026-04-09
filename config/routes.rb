@@ -283,6 +283,7 @@ Rails.application.routes.draw do
       resource :similar, only: [], controller: "post_recommendations" do
         get :artist
         get :remote
+        get :lookup
         get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
       end
     end
