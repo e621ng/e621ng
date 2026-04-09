@@ -2,6 +2,7 @@ import Page from "./utility/page";
 import SVGIcon from "./utility/svg_icon";
 import LStorage from "./utility/storage";
 import Blacklist from "./blacklists";
+import Analytics from "./analytics";
 
 const Recommended = {};
 
@@ -20,6 +21,17 @@ Recommended.init = function () {
     Recommended.$wrapper.remove();
     return;
   }
+
+  // Bootstrap analytics
+  if (Analytics.enabled)
+    Recommended.$wrapper.one("click", "a", (event) => {
+      const data = event.currentTarget.dataset;
+      if (!data.target) return;
+      Analytics.track(Analytics.Event.Recommendation, {
+        target: "/posts/" + data.target,
+        action: Recommended.action,
+      });
+    });
 
   Recommended.SHOW_ENGINE_RESULTS = Recommended.$wrapper.attr("data-remote") === "true";
   if (Recommended.SHOW_ENGINE_RESULTS)
@@ -259,7 +271,7 @@ Recommended.waitUntilReady = function () {
   });
 };
 
-Recommended.render = function (data) {
+Recommended.render = function (data, currentPostId = Recommended.postId) {
   // Login-blocked, Safe-blocked, or just missing preview = can't render thumbnail
   if (!data || !data.post || !data.post.preview || !data.post.preview.url) return null;
 
@@ -303,7 +315,11 @@ Recommended.render = function (data) {
   // Core
   const link = $("<a>")
     .addClass("thm-link")
-    .attr("href", `/posts/${data.post.id}`)
+    .attr({
+      "href": `/posts/${data.post.id}`,
+      "data-target": data.post.id,
+      "data-current": currentPostId,
+    })
     .appendTo(article);
 
   $("<img>")
