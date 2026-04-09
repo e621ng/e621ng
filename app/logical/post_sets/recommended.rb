@@ -8,6 +8,7 @@ module PostSets
       super()
       @original_post = post
       @limit = limit.to_i.clamp(1, 20)
+      @original_post.categorized_tags # Preload categorized tags to avoid duplicate queries later
       @no_results = post.known_artist_tags.empty?
     end
 
