@@ -2,13 +2,20 @@
 
 module PostSets
   class Recommended < PostSets::Base
-    attr_reader :tag_array, :page, :limit, :post_count
+    attr_reader :tag_array, :limit
 
-    def initialize(post, page = 1, limit: nil)
+    def initialize(post, limit: 6)
       super()
       @original_post = post
+      @limit = limit.to_i.clamp(1, 20)
 
-      tags = post.known_artist_tags.map { |t| "~#{t.name}" }
+      tags = post.known_artist_tags.sort_by(&:name).first(10).map { |t| "~#{t.name}" }
+      if tags.empty?
+        @no_results = true
+        @tag_array = []
+        return
+      end
+
       tags << "-id:#{post.id}"
       tags << "-parent:#{post.id}"
       tags << "-child:#{post.id}"
@@ -17,37 +24,18 @@ module PostSets
       tags << "randseed:#{post.id}"
 
       @tag_array = TagQuery.scan_search(tags.join(" "), error_on_depth_exceeded: true)
-      @page = [page.to_i, 1].max
-      @limit = limit
     end
 
     def tag_string
-      @tag_string ||= TagQuery.scan_recursive(
-        tag_array.uniq.join(" "),
-        strip_duplicates_at_level: true,
-        delimit_groups: true,
-        flatten: true,
-        strip_prefixes: false,
-        sort_at_level: false,
-        normalize_at_level: false,
-      ).join(" ")
-    end
-
-    def humanized_tag_string
-      tag_array.slice(0, 25).join(" ").tr("_", " ")
+      @tag_string ||= @tag_array.join(" ")
     end
 
     def post_ids
-      @post_ids ||= ::Post.tag_match(tag_string).paginate_posts(page, limit: limit).pluck(:id)
+      @post_ids ||= posts.map(&:id)
     end
 
     def posts
-      @posts ||= begin
-        temp = ::Post.tag_match(tag_string).paginate_posts(page, limit: limit, includes: [:uploader])
-
-        @post_count = temp.total_count
-        temp
-      end
+      @posts ||= @no_results ? [] : ::Post.tag_match(tag_string).limit(@limit).to_a
     end
   end
 end

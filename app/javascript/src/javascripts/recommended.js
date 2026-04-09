@@ -1,6 +1,7 @@
 import Page from "./utility/page";
 import SVGIcon from "./utility/svg_icon";
 import LStorage from "./utility/storage";
+import Blacklist from "./blacklists";
 
 const Recommended = {};
 
@@ -9,6 +10,7 @@ Recommended.SHOW_ENGINE_RESULTS = false;
 Recommended.debug = LStorage.get("e6.debug", false);
 Recommended.allStates = ["artist", "favorites", "tags", "closed"];
 Recommended.validStates = ["artist", "closed"];
+Recommended.requestID = 0;
 
 Recommended.remote_actions = ["favorites", "tags"];
 
@@ -34,6 +36,7 @@ Recommended.init = function () {
   let isInitialized = false;
   Recommended.waitUntilReady().then(() => {
     isInitialized = true;
+    Recommended.status = "loading";
     Recommended.loadState();
   });
 
@@ -41,13 +44,12 @@ Recommended.init = function () {
   $("#post-recommendations-tabs").on("click", "button", (event) => {
     if (!isInitialized) return;
 
-    if (Recommended.status === "loading")
-      return;
-
     const action = $(event.currentTarget).data("action");
     Recommended.action = action;
     if (action == "closed") {
+      Recommended.requestID++; // Invalidate any in-flight requests
       Recommended.$wrapper.remove();
+      Danbooru.notice("You can re-enable recommendations in the <a href=\"/static/theme\">Themes menu</a>.");
       return;
     }
 
@@ -115,13 +117,20 @@ Object.defineProperty(Recommended, "status", {
 // ============================== //
 
 Recommended.loadState = async function (action = Recommended.action) {
-  Recommended.debugLog(`Loading state: "${action}"`);
+  const requestId = ++Recommended.requestID;
+  const requestExpired = function () {
+    return requestId !== Recommended.requestID;
+  };
+
+
+  Recommended.debugLog(`Loading state: "${action}" (Req ID: ${requestId})`);
   const $container = Recommended.$container;
 
   if (!Recommended.validStates.includes(action)) {
     Recommended.action = "artist";
     action = "artist";
   }
+
 
   // 1. Render skeleton placeholders
   if (Recommended.status !== "waiting") {
@@ -131,58 +140,100 @@ Recommended.loadState = async function (action = Recommended.action) {
       $container.append(Recommended.render_placeholder());
   }
 
+
   // 2. Fetch recommendations data
   Recommended.status = "loading";
   let data = Recommended.getCachedRecommendations(action);
   if (!data) {
     data = await Recommended.getData(Recommended.postId, action);
     if (!data || !data.results) {
+      if (requestExpired()) return;
       Recommended.status = "error";
       $container.html("<p class='error'>Failed to load recommendations.</p>");
       return;
     }
+
+    // Load post data provided by the local recommender
+    // Not available for the remote recommender service
+    if (data.post_data) {
+      Recommended.debugLog("Found included post data", data.post_data);
+      Recommended.setCachedPosts(data.post_data);
+      delete data.post_data; // Don't pollute main cache
+    }
+
+    // Reformat results for easier access
+    const resultsById = {},
+      resultsOrder = [];
+    for (const result of data.results) {
+      resultsById[result.post_id] = result;
+      resultsOrder.push(result.post_id);
+    }
+    data.results = resultsById;
+    data.order = resultsOrder;
+
+    // Cache to avoid reloading when switching tabs
     Recommended.setCachedRecommendations(action, data);
   } else Recommended.debugLog("Using cached recommendations:", data);
 
-  const resultsById = {};
-  for (const result of data.results)
-    resultsById[result.post_id] = result;
-  data.results = resultsById;
 
   // 3. Fetch post data for recommended posts
-  const recommendedPostIds = Object.keys(data.results);
-  let posts = Recommended.getCachedPosts(recommendedPostIds);
-  let missingPostIds = recommendedPostIds.filter(id => !posts[id]);
+  let posts = Recommended.getCachedPosts(data.order);
+  let missingPostIds = data.order.filter(id => !posts[id]);
   if (missingPostIds.length > 0) {
     const postLookup = await Recommended.getPosts(missingPostIds);
     if (postLookup) {
       for (const post of postLookup) posts[post.id] = post;
       Recommended.setCachedPosts(postLookup);
     } else {
+      if (requestExpired()) return;
       Recommended.status = "error";
       $container.html("<p class='error'>Failed to load recommended posts.</p>");
       return;
     }
   }
 
-  // 4. Render thumbnails
-  for (const postId of recommendedPostIds) {
+
+  // 4. Request ID Check
+  if (requestExpired()) {
+    // We still want to cache both the recommendation data and posts, but
+    // if the user has switched tabs while we were loading, we don't want
+    // multiple requests to compete with each other, rendering out of order.
+    Recommended.debugLog("Aborted rendering due to newer request. Req ID:", requestId);
+    return;
+  }
+
+
+  // 5. Render thumbnails
+  const renderedPosts = [];
+  for (const postId of data.order) {
     const entry = data.results[postId];
     if (!entry) continue;
     const post = posts[postId];
-    if (post.flags.deleted) continue;
+    if (!post || !post.flags || post.flags.deleted) continue;
     entry.post = post;
 
     // Prevent layout shifts by replacing placeholders
+    const rendered = Recommended.render(entry);
+    if (!rendered) continue;
     $container
       .find(".thumbnail.placeholder").first()
-      .replaceWith(Recommended.render(entry));
+      .replaceWith(rendered);
+    renderedPosts.push(rendered);
   }
 
-  // 5. Finalize
+
+  // 6. Apply blacklist
+  if (renderedPosts.length > 0) {
+    Blacklist.add_posts(renderedPosts);
+    Blacklist.update_visibility();
+  }
+
+
+  // 7. Finalize
   Recommended.status = "ready";
   $container.find(".thumbnail.placeholder").remove();
   if ($container.children().length === 0) {
+    if (requestExpired()) return; // Unlikely to happen
     Recommended.status = "error";
     $container.html("<p class='info'>No recommendations found.</p>");
   }
@@ -209,10 +260,44 @@ Recommended.waitUntilReady = function () {
 };
 
 Recommended.render = function (data) {
+  // Login-blocked, Safe-blocked, or just missing preview = can't render thumbnail
+  if (!data || !data.post || !data.post.preview || !data.post.preview.url) return null;
+
+  // Tags are returned from the API in a category-sorted format, but we need a tag string
+  let tagArray = [];
+  for (const tags of Object.values(data.post.tags)) {
+    if (!Array.isArray(tags)) continue;
+    tagArray.push(...tags);
+  }
+
+  // Flags are returned as an object with boolean values, but we need an array
+  let flagArray = [];
+  if (data.post.flags.deleted) flagArray.push("deleted");
+  if (data.post.flags.pending) flagArray.push("pending");
+  if (data.post.flags.flagged) flagArray.push("flagged");
+
   const article = $("<article>")
     .addClass("thumbnail")
-    .data({
-      id: data.post.id,
+    .attr({
+      "data-tags": tagArray.join(" ") || "",
+
+      "data-id": data.post.id,
+      "data-flags": flagArray.join(" ") || "",
+      "data-rating": data.post.rating,
+      "data-file-ext": data.post.file.ext,
+
+      "data-width": data.post.file.width,
+      "data-height": data.post.file.height,
+      "data-size": data.post.file.size,
+
+      "data-score": data.post.score.total,
+      "data-fav-count": data.post.fav_count,
+      "data-is-favorited": data.post.is_favorited,
+
+      "data-uploader": data.post.uploader_name,
+      "data-uploader-id": data.post.uploader_id,
+
+      "data-pools": data.post.pools.join(" ") || "",
     });
 
   // Core
@@ -230,8 +315,7 @@ Recommended.render = function (data) {
 
   // Footer
   const footer = $("<div>")
-    .addClass("thm-desc")
-    .addClass(`thm-rating-${data.post.rating}`)
+    .addClass(`thm-desc thm-rating-${data.post.rating}`)
     .appendTo(article);
 
   const descA = $("<span>")
@@ -239,30 +323,26 @@ Recommended.render = function (data) {
     .appendTo(footer);
 
   $("<span>")
-    .addClass("thm-desc-m")
-    .addClass("thm-score")
+    .addClass("thm-desc-m thm-score")
     .addClass(data.post.score.total > 0 ? "thm-score-positive" : data.post.score.total < 0 ? "thm-score-negative" : "thm-score-neutral")
     .append(SVGIcon.render("score"))
     .append(data.post.score.total)
     .appendTo(descA);
 
   $("<span>")
-    .addClass("thm-desc-m")
-    .addClass("thm-favorites")
+    .addClass("thm-desc-m thm-favorites")
     .append(SVGIcon.render("favorites"))
     .append(data.post.fav_count)
     .appendTo(descA);
 
   $("<span>")
-    .addClass("thm-desc-m")
-    .addClass("thm-comments")
+    .addClass("thm-desc-m thm-comments")
     .append(SVGIcon.render("comments"))
     .append(data.post.comment_count)
     .appendTo(descA);
 
   $("<span>")
-    .addClass("thm-desc-b")
-    .addClass("thm-rating")
+    .addClass("thm-desc-b thm-rating")
     .text(data.post.rating.toUpperCase())
     .appendTo(footer);
 
@@ -283,15 +363,21 @@ Recommended.render_placeholder = function () {
 
 // Fetches recommendation data from the server
 Recommended.getData = async function (postId, action = "favorites") {
-  const url = Recommended.remote_actions.includes(action)
-    ? `/posts/recommended.json?post_id=${postId}&mode=${action}&limit=${Recommended.RESULT_COUNT}`
-    : `/posts/${postId}/recommended.json?limit=${Recommended.RESULT_COUNT}`;
+  const target = Recommended.remote_actions.includes(action) ? "remote" : "artist";
   Recommended.debugLog(`Fetching data: "${postId}/${action}"`);
 
-  return fetch(url)
+  return fetch(`/posts/${postId}/similar/${target}.json?mode=${action}&limit=${Recommended.RESULT_COUNT}`)
     .then(
       (response) => {
         if (!response.ok) {
+          if (response.status === 502 && target === "remote") {
+            Recommended.debugLog("Recommendation engine is unavailable (502)");
+            return {
+              post_id: postId,
+              model_version: "unavailable",
+              results: [],
+            };
+          }
           console.error(`Failed to fetch recommendations: ${response.statusText}`);
           return;
         }
