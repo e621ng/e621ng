@@ -31,7 +31,11 @@ module PostSets
     end
 
     def post_ids
-      @post_ids ||= @no_results ? [] : ::Post.tag_match(tag_string).limit(@limit).pluck(:id)
+      @post_ids ||= posts.map(&:id)
+    end
+
+    def posts
+      @posts ||= @no_results ? [] : ::Post.tag_match(tag_string).limit(@limit).to_a
     end
   end
 end

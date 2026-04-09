@@ -280,9 +280,12 @@ Rails.application.routes.draw do
       get :show_seq
       put :mark_as_translated
       get :comments, to: "comments#for_post"
-      get :recommended
+      resource :similar, only: [], controller: "post_recommendations" do
+        get :artist
+        get :remote
+        get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
+      end
     end
-    get :similar, to: "iqdb_queries#index"
   end
   resources :post_votes, only: %i[index], as: :index_post_votes do
     collection do

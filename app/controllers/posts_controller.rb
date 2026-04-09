@@ -3,9 +3,9 @@
 class PostsController < ApplicationController
   include JsonResponseHelper
 
-  before_action :member_only, except: %i[show show_seq index random recommended]
+  before_action :member_only, except: %i[show show_seq index random]
   before_action :admin_only, only: [:update_iqdb]
-  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random recommended]
+  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
   respond_to :html, :json
 
   def index
@@ -158,34 +158,6 @@ class PostsController < ApplicationController
         render_posts_json(PostBlueprint.render_as_hash(@post))
       end
     end
-  end
-
-  def recommended
-    @original_post = Post.find(params[:id])
-    unless Security::Lockdown.post_visible?(@original_post, CurrentUser.user)
-      render json: {
-        post_id: @original_post.id,
-        model_version: "opensearch",
-        results: [],
-      }
-      return
-    end
-
-    post_ids = Cache.fetch("post_recommendations:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
-      PostSets::Recommended.new(@original_post, limit: params[:limit]).post_ids
-    end
-    # Matches the format of the recommendation engine
-    render json: {
-      post_id: @original_post.id,
-      model_version: "opensearch",
-      results: post_ids.map do |id|
-        {
-          post_id: id,
-          score: 1,
-          explanation: nil,
-        }
-      end,
-    }
   end
 
   def mark_as_translated
