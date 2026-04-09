@@ -49,6 +49,9 @@ div#c-posts {
   }
 
   div#post-recommendations {
+    max-width: (8rem * 6) + (0.5rem * 5) + (0.5rem * 2);
+    box-sizing: border-box;
+
     // Tabs
     &-tabs {
       display: flex;
@@ -59,13 +62,15 @@ div#c-posts {
         background: unset;
         color: themed("color-text");
         @include st-radius-top;
+        user-select: none;
+
         &:hover, &:focus {
           background: themed("color-section-lighten-5");
         }
 
         &[data-action="closed"] {
           margin-left: auto;
-          background: transparent;
+          background: transparent !important;
           color: themed("color-text-muted");
           &:hover { color: themed("color-link-active"); }
 
@@ -82,6 +87,7 @@ div#c-posts {
     &[data-action="favorites"] button[data-action="favorites"],
     &[data-action="tags"] button[data-action="tags"] {
       background-color: themed("color-section");
+      pointer-events: none;
     }
 
 
@@ -97,12 +103,17 @@ div#c-posts {
       margin-bottom: 0.25rem;
       @include st-radius;
 
-      --thumb-image-size: 128px; // Passed on to thumbnails
+      --thumb-image-size: 8rem; // Passed on to thumbnails
       height: calc(var(--thumb-image-size) + 1.25rem);
 
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
       &::-webkit-scrollbar { display: none; }
+
+      @include window-smaller-than(30rem) {
+        --thumb-image-size: calc((100vw - 2.55rem) / 3);
+        justify-content: center;
+      }
     }
 
     &[data-status="error"] #post-recommendations-list {
