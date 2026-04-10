@@ -15,6 +15,13 @@ class PostRecommendationsController < ApplicationController
       return
     end
 
+    if params[:limit].present?
+      # Don't write random stuff into the cache key
+      params[:limit] = params[:limit].to_i.clamp(1, 20)
+    else
+      params[:limit] = 6
+    end
+
     post_data = Cache.fetch("post_recs:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
       post_ids = PostSets::Recommended.new(@original_post, limit: params[:limit]).post_ids
 
