@@ -2,40 +2,31 @@
 
 module PostSets
   class Recommended < PostSets::Base
-    attr_reader :tag_array, :limit
+    attr_reader :limit
 
     def initialize(post, limit: 6)
       super()
       @original_post = post
       @limit = limit.to_i.clamp(1, 20)
-
-      tags = post.known_artist_tags.sort_by(&:name).first(10).map { |t| "~#{t.name}" }
-      if tags.empty?
-        @no_results = true
-        @tag_array = []
-        return
-      end
-
-      tags << "-id:#{post.id}"
-      tags << "-parent:#{post.id}"
-      tags << "-child:#{post.id}"
-      tags << "order:random"
-      tags << "rating:safe" if CurrentUser.safe_mode?
-      tags << "randseed:#{post.id}"
-
-      @tag_array = TagQuery.scan_search(tags.join(" "), error_on_depth_exceeded: true)
-    end
-
-    def tag_string
-      @tag_string ||= @tag_array.join(" ")
+      @original_post.categorized_tags # Preload categorized tags to avoid duplicate queries later
+      @no_results = post.known_artist_tags.empty?
     end
 
     def post_ids
-      @post_ids ||= posts.map(&:id)
+      @post_ids ||= @no_results ? [] : search_response.ids
     end
 
     def posts
-      @posts ||= @no_results ? [] : ::Post.tag_match(tag_string).limit(@limit).to_a
+      @posts ||= if @no_results
+                   []
+                 else
+                   ids = post_ids
+                   ::Post.where(id: ids).sort_by { |p| ids.index(p.id) }
+                 end
+    end
+
+    def search_response
+      @search_response ||= RecommendedQueryBuilder.new(@original_post).search.limit(@limit)
     end
   end
 end

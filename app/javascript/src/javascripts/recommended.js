@@ -292,6 +292,11 @@ Recommended.render = function (data) {
       "data-uploader-id": data.post.uploader_id,
 
       "data-pools": data.post.pools,
+
+      "data-md5": data.post.md5,
+      "data-preview-url": data.post.preview_url,
+      "data-sample-url": data.post.sample_url,
+      "data-file-url": data.post.file_url,
     });
 
   // Core
