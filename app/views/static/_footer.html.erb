@@ -1,7 +1,9 @@
 <footer class="footer-wrapper">
   <div class="footer-grid">
     <span class="footer-logo">
-      <a href="/"><%= vite_image_tag("images/logo/default.svg") %></a>
+      <a href="/" aria-label="Home Page">
+        <%= vite_image_tag("images/logo/default.svg", width: 96, height: 96, alt: "#{Danbooru.config.server_name || 'e621ng'} Logo") %>
+      </a>
     </span>
     <span class="footer-left">
       <%= link_to "Terms of Use", terms_of_use_path, rel: "terms-of-service" %>
