@@ -23,7 +23,7 @@ class PostRecommendationsController < ApplicationController
         post_id: @original_post.id,
         model_version: "opensearch",
         results: posts.map { |post| { post_id: post.id, score: 1, explanation: nil } },
-        post_data: PostBlueprint.render_as_hash(posts),
+        post_data: posts.map(&:thumbnail_attributes),
       }
     end
 
@@ -46,5 +46,17 @@ class PostRecommendationsController < ApplicationController
       model_version: "not_implemented",
       results: [],
     }
+  end
+
+  def lookup
+    @post_ids = params[:post_ids]
+                .to_s
+                .split(",", 21)
+                .filter_map { |post_id| post_id.match?(/\A[1-9]\d*\z/) ? post_id.to_i : nil }
+                .uniq
+                .first(20)
+    @posts = Post.where(id: @post_ids).includes(:uploader)
+
+    render json: @posts.map(&:thumbnail_attributes)
   end
 end

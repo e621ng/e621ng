@@ -209,7 +209,7 @@ Recommended.loadState = async function (action = Recommended.action) {
     const entry = data.results[postId];
     if (!entry) continue;
     const post = posts[postId];
-    if (!post || !post.flags || post.flags.deleted) continue;
+    if (!post || post.flags?.includes("deleted")) continue;
     entry.post = post;
 
     // Prevent layout shifts by replacing placeholders
@@ -220,6 +220,7 @@ Recommended.loadState = async function (action = Recommended.action) {
       .replaceWith(rendered);
     renderedPosts.push(rendered);
   }
+  Recommended.debugLog(`Rendered ${renderedPosts.length} posts`, renderedPosts);
 
 
   // 6. Apply blacklist
@@ -261,14 +262,7 @@ Recommended.waitUntilReady = function () {
 
 Recommended.render = function (data) {
   // Login-blocked, Safe-blocked, or just missing preview = can't render thumbnail
-  if (!data || !data.post || !data.post.preview || !data.post.preview.url) return null;
-
-  // Tags are returned from the API in a category-sorted format, but we need a tag string
-  let tagArray = [];
-  for (const tags of Object.values(data.post.tags)) {
-    if (!Array.isArray(tags)) continue;
-    tagArray.push(...tags);
-  }
+  if (!data || !data.post || !data.post.preview_url) return null;
 
   // Flags are returned as an object with boolean values, but we need an array
   let flagArray = [];
@@ -279,25 +273,25 @@ Recommended.render = function (data) {
   const article = $("<article>")
     .addClass("thumbnail")
     .attr({
-      "data-tags": tagArray.join(" ") || "",
+      "data-tags": data.post.tags,
 
       "data-id": data.post.id,
-      "data-flags": flagArray.join(" ") || "",
+      "data-flags": data.post.flags,
       "data-rating": data.post.rating,
-      "data-file-ext": data.post.file.ext,
+      "data-file-ext": data.post.file_ext,
 
-      "data-width": data.post.file.width,
-      "data-height": data.post.file.height,
-      "data-size": data.post.file.size,
+      "data-width": data.post.width,
+      "data-height": data.post.height,
+      "data-size": data.post.size,
 
-      "data-score": data.post.score.total,
+      "data-score": data.post.score,
       "data-fav-count": data.post.fav_count,
       "data-is-favorited": data.post.is_favorited,
 
-      "data-uploader": data.post.uploader_name,
+      "data-uploader": data.post.uploader,
       "data-uploader-id": data.post.uploader_id,
 
-      "data-pools": data.post.pools.join(" ") || "",
+      "data-pools": data.post.pools,
     });
 
   // Core
@@ -308,7 +302,7 @@ Recommended.render = function (data) {
 
   $("<img>")
     .attr({
-      "src": data.post.preview.url,
+      "src": data.post.preview_url,
       "alt": "post #" + data.post.id,
     })
     .appendTo(link);
@@ -324,9 +318,9 @@ Recommended.render = function (data) {
 
   $("<span>")
     .addClass("thm-desc-m thm-score")
-    .addClass(data.post.score.total > 0 ? "thm-score-positive" : data.post.score.total < 0 ? "thm-score-negative" : "thm-score-neutral")
+    .addClass(data.post.score > 0 ? "thm-score-positive" : data.post.score < 0 ? "thm-score-negative" : "thm-score-neutral")
     .append(SVGIcon.render("score"))
-    .append(data.post.score.total)
+    .append(data.post.score)
     .appendTo(descA);
 
   $("<span>")
@@ -397,7 +391,7 @@ Recommended.getData = async function (postId, action = "favorites") {
 // Fetches post data for the given post IDs
 Recommended.getPosts = async function (postIds) {
   Recommended.debugLog("Fetching posts:", postIds);
-  return fetch(`/posts.json?tags=id:${postIds.join(",")}`)
+  return fetch(`/posts/${Recommended.postId}/similar/lookup.json?post_ids=${postIds.join(",")}`)
     .then(
       (response) => {
         if (!response.ok) {
@@ -413,7 +407,7 @@ Recommended.getPosts = async function (postIds) {
     .then((data) => {
       if (!data) return;
       Recommended.debugLog("API response:", data);
-      return data.posts;
+      return data;
     });
 };
 

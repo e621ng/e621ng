@@ -1741,6 +1741,7 @@ class Post < ApplicationRecord
         score: score,
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
+        comment_count: comment_count,
 
         pools: pool_ids.join(" "),
       }
