@@ -194,6 +194,7 @@ module LinkHelper
       tag.img(
         class: "link-decoration",
         src: vite_asset_path("images/favicons/#{hostname}.png"),
+        alt: hostname,
         data: {
           hostname: hostname,
         },

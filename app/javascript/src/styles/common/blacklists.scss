@@ -126,8 +126,20 @@
   .blacklist-footer {
     display: flex;
 
-    a.blacklist-toggle-all {
+    button.blacklist-toggle-all {
       cursor: pointer;
+      appearance: none;
+      background: none;
+      border: none;
+      margin: 0;
+      padding: 0;
+      font-family: inherit;
+      text-decoration: none;
+
+      color: themed("color-link");
+      &:hover, &:focus {
+        color: themed("color-link-hover");
+      }
     }
 
     .blacklist-help {

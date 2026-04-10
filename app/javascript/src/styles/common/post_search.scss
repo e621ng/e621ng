@@ -3,7 +3,10 @@
   display: flex;
   flex-wrap: wrap;
 
-  .post-search-title { flex: 1; }
+  .post-search-title {
+    flex: 1;
+    font-size: 1.16667em;
+  }
   .post-search-help {
     font-size: 90%;
 
