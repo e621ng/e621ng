@@ -33,7 +33,7 @@ module DocumentStore
     end
 
     def ids
-      hits.pluck("_id").map(&:to_i)
+      hits.map { |h| h["_id"].to_i }
     end
   end
 end
