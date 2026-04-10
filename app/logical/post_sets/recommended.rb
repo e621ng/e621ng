@@ -13,11 +13,20 @@ module PostSets
     end
 
     def post_ids
-      @post_ids ||= posts.map(&:id)
+      @post_ids ||= @no_results ? [] : search_response.ids
     end
 
     def posts
-      @posts ||= @no_results ? [] : RecommendedQueryBuilder.new(@original_post).search.limit(@limit).to_a
+      @posts ||= if @no_results
+                   []
+                 else
+                   ids = post_ids
+                   ::Post.where(id: ids).sort_by { |p| ids.index(p.id) }
+                 end
+    end
+
+    def search_response
+      @search_response ||= RecommendedQueryBuilder.new(@original_post).search.limit(@limit)
     end
   end
 end

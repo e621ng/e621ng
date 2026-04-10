@@ -31,5 +31,9 @@ module DocumentStore
         sql_records.records.sort_by { |sql_record| hits.index { |hit| hit["_id"] == sql_record.id.to_s } }
       end
     end
+
+    def ids
+      hits.pluck("_id").map(&:to_i)
+    end
   end
 end

@@ -16,16 +16,19 @@ class PostRecommendationsController < ApplicationController
     end
 
     post_data = Cache.fetch("post_recs:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
-      posts = PostSets::Recommended.new(@original_post, limit: params[:limit]).posts
+      post_ids = PostSets::Recommended.new(@original_post, limit: params[:limit]).post_ids
 
       # Matches the format of the recommendation engine
       {
         post_id: @original_post.id,
         model_version: "opensearch",
-        results: posts.map { |post| { post_id: post.id, score: 1, explanation: nil } },
-        post_data: posts.map(&:thumbnail_attributes),
+        order: post_ids,
+        results: post_ids.map { |post_id| { post_id: post_id, score: 1, explanation: nil } },
       }
     end
+
+    post_data[:post_data] = Post.where(id: post_data[:order]).map(&:thumbnail_attributes)
+    post_data.delete(:order) # Don't pollute the response with redundant data
 
     render json: post_data
   end
