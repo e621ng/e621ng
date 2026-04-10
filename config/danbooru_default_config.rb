@@ -559,6 +559,10 @@ module Danbooru
       ]
     end
 
+    def grandfathered_post_cutoff
+      "2015-01-01"
+    end
+
     def auto_flag_ai_posts?
       true
     end
