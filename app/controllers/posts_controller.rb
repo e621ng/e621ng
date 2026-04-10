@@ -15,7 +15,11 @@ class PostsController < ApplicationController
       respond_with(@post) do |format|
         format.html { redirect_to post_path(@post) }
         format.json do
-          render_posts_json(PostBlueprint.render_as_hash(@post))
+          if params[:v2] == "true"
+            render json: PostBlueprint.render(@post, view: params[:extended] == "true" ? :api_extended : :api)
+          else
+            render_posts_json(LegacyPostBlueprint.render_as_hash(@post))
+          end
         end
       end
     else
@@ -54,7 +58,12 @@ class PostsController < ApplicationController
 
       respond_with(@posts) do |format|
         format.json do
-          render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
+          if params[:v2] == "true"
+            mode = %w[thumbnail api extended].include?(params[:mode]) ? params[:mode] : "api"
+            render json: PostBlueprint.render(@post_set.api_posts, view: mode.to_sym, collection: true)
+          else
+            render_posts_json(LegacyPostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
+          end
         end
         format.atom
       end
@@ -86,7 +95,7 @@ class PostsController < ApplicationController
 
     respond_with(@post) do |format|
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post))
+        render_posts_json(LegacyPostBlueprint.render_as_hash(@post))
       end
     end
   end
@@ -117,7 +126,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { render "posts/show" }
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post))
+        render_posts_json(LegacyPostBlueprint.render_as_hash(@post))
       end
     end
   end
@@ -164,7 +173,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, q: params[:tags]) }
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post))
+        render_posts_json(LegacyPostBlueprint.render_as_hash(@post))
       end
     end
   end
@@ -228,7 +237,7 @@ class PostsController < ApplicationController
       end
 
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(post))
+        render_posts_json(LegacyPostBlueprint.render_as_hash(post))
       end
     end
   end

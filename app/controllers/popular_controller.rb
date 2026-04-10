@@ -10,7 +10,7 @@ class PopularController < ApplicationController
     @posts = @post_set.posts
     respond_with(@posts) do |format|
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
+        render_posts_json(LegacyPostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
       end
     end
   rescue ArgumentError => e
