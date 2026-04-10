@@ -25,6 +25,8 @@ Recommended.init = function () {
   // Bootstrap analytics
   if (Analytics.enabled)
     Recommended.$wrapper.one("click", "a", (event) => {
+      // Only track the first click to prevent multiple events from being fired if the user clicks
+      // multiple times. The links navigate away from the page regardless, so this is acceptable.
       const data = event.currentTarget.dataset;
       if (!data.target) return;
       Analytics.track(Analytics.Event.Recommendation, {

@@ -1,9 +1,18 @@
 let _data = {}, loaded = false;
 const _get = function () {
   if (loaded) return _data;
-  _data = JSON.parse(document.getElementById("site-settings").textContent);
-  loaded = true;
-  return _data;
+  try {
+    const base64 = document.getElementById("site-settings").textContent;
+    const json = atob(base64);
+    _data = JSON.parse(json);
+    loaded = true;
+    return _data;
+  } catch (e) {
+    _data = {};
+    loaded = true;
+    console.error("Failed to load site settings:", e);
+    return {};
+  }
 };
 
 /*

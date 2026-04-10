@@ -25,14 +25,16 @@ export default class Analytics {
 
   track (event, attributes = {}) {
     if (!this.enabledEvents[event]) return;
-    console.log(`Tracking event: ${event}`, attributes);
     this._op.track(event, attributes);
   }
 
   bootstrapSearchTrendClicks () {
     if (!Page.matches("static", "home")) return;
     if (!Settings.Analytics.events.search_trend) return;
+
     $(".rising-list").one("click", "a", (event) => {
+      // Only track the first click to prevent multiple events from being fired if the user clicks
+      // multiple times. The links navigate away from the page regardless, so this is acceptable.
       const data = event.currentTarget.dataset;
       if (!data.tag || !data.category) return;
       this.track(Analytics.Event.SearchTrend, {
