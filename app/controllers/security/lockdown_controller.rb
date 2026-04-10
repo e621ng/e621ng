@@ -77,14 +77,14 @@ module Security
     end
 
     def analytics
-      analytics = analytics_params
+      settings = analytics_params
 
-      if analytics[:collect_recommendation_events].present?
-        Setting.collect_recommendation_events = analytics[:collect_recommendation_events] == "1"
+      if settings[:collect_recommendation_events].present?
+        Setting.collect_recommendation_events = settings[:collect_recommendation_events] == "1"
       end
 
-      if analytics[:collect_search_trend_events].present?
-        Setting.collect_search_trend_events = analytics[:collect_search_trend_events] == "1"
+      if settings[:collect_search_trend_events].present?
+        Setting.collect_search_trend_events = settings[:collect_search_trend_events] == "1"
       end
 
       redirect_to security_root_path

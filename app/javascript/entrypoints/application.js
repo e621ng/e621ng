@@ -84,4 +84,6 @@ window.E621 = {
   error: inError,
   notice: inNotice,
 };
+
+// We will eventually want to remove the Danbooru object, and use E621 instead.
 window.Danbooru = window.E621;

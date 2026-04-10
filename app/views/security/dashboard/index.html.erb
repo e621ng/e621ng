@@ -51,8 +51,8 @@
     <section class="settings-section">
       <h2>Analytics</h2>
       <%= custom_form_for(:analytics, url: analytics_security_lockdown_index_path, method: :put) do |f| %>
-        <%= f.input :collect_recommendation_events, as: :boolean, label: "Recommendation events", input_html: { checked: Setting.collect_recommendation_events? ? "checked" : "" } %>
-        <%= f.input :collect_search_trend_events, as: :boolean, label: "Search Trend events", input_html: { checked: Setting.collect_search_trend_events? ? "checked" : "" } %>
+        <%= f.input :collect_recommendation_events, as: :boolean, label: "Recommendation events", input_html: { checked: Setting.collect_recommendation_events? } %>
+        <%= f.input :collect_search_trend_events, as: :boolean, label: "Search Trend events", input_html: { checked: Setting.collect_search_trend_events? } %>
         <%= f.button :submit, value: "Submit" %>
       <% end %>
     </section>

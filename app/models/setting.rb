@@ -42,7 +42,7 @@ class Setting < RailsSettings::Base
   end
 
   scope :analytics do
-    field :collect_recommendation_events, type: :boolean, default: true
-    field :collect_search_trend_events, type: :boolean, default: true
+    field :collect_recommendation_events, type: :boolean, default: false
+    field :collect_search_trend_events, type: :boolean, default: false
   end
 end

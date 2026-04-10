@@ -273,7 +273,7 @@ Recommended.waitUntilReady = function () {
   });
 };
 
-Recommended.render = function (data, currentPostId = Recommended.postId) {
+Recommended.render = function (data) {
   // Login-blocked, Safe-blocked, or just missing preview = can't render thumbnail
   if (!data || !data.post || !data.post.preview || !data.post.preview.url) return null;
 
@@ -320,7 +320,6 @@ Recommended.render = function (data, currentPostId = Recommended.postId) {
     .attr({
       "href": `/posts/${data.post.id}`,
       "data-target": data.post.id,
-      "data-current": currentPostId,
     })
     .appendTo(article);
 

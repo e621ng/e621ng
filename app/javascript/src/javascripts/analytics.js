@@ -38,8 +38,8 @@ export default class Analytics {
       const data = event.currentTarget.dataset;
       if (!data.tag || !data.category) return;
       this.track(Analytics.Event.SearchTrend, {
-        tag: data.tag || null,
-        category: data.category || null,
+        tag: data.tag,
+        category: data.category,
       });
     });
   }
