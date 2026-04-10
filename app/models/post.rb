@@ -2107,7 +2107,7 @@ class Post < ApplicationRecord
   end
 
   def flaggable_for_guidelines?
-    !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
+    !has_tag?("grandfathered_content") && created_at.after?(Danbooru.config.grandfathered_post_cutoff)
   end
 
   def visible_comment_count(user)
