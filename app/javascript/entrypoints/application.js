@@ -14,6 +14,7 @@ import.meta.glob("../src/javascripts/**/*.js", { eager: true });
 // TODO: Remove this global Danbooru object and migrate all code to use ES6 imports instead.
 // This mimics the old webpacker output.library behavior for backward compatibility.
 import LStorage from "../src/javascripts/utility/storage.js";
+import Settings from "../src/javascripts/utility/settings.js";
 import TaskQueue from "../src/javascripts/utility/task_queue.js";
 import Hotkeys from "../src/javascripts/hotkeys.js";
 import Dialog from "../src/javascripts/utility/dialog.js";
@@ -50,8 +51,9 @@ function inNotice (msg) {
   $(window).trigger("danbooru:notice", msg);
 }
 
-window.Danbooru = {
+window.E621 = {
   LStorage,
+  Settings,
   TaskQueue,
   Hotkeys,
   Dialog,
@@ -82,3 +84,6 @@ window.Danbooru = {
   error: inError,
   notice: inNotice,
 };
+
+// We will eventually want to remove the Danbooru object, and use E621 instead.
+window.Danbooru = window.E621;

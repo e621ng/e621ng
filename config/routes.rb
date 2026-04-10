@@ -40,6 +40,7 @@ Rails.application.routes.draw do
         put :uploads_min_level
         put :uploads_hide_pending
         put :maintenance
+        put :analytics
       end
     end
   end

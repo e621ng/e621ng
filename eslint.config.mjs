@@ -59,7 +59,7 @@ export default [
       "no-multi-spaces": ["warn", { ignoreEOLComments: false }],
       "no-multiple-empty-lines": "warn",
       "no-tabs": "warn",
-      "no-trailing-spaces": "warn",
+      "no-trailing-spaces": ["warn", { ignoreComments: true, }],
       "no-whitespace-before-property": "warn",
       "nonblock-statement-body-position": "off",
       "object-curly-newline": ["warn", { consistent: true }],

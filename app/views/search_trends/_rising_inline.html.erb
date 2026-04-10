@@ -6,7 +6,13 @@
     <div class="rising-left">
       <% left_tags.each do |row| %>
         <div class="rising-item">
-          <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>" data-place="<%= row[:place] %>">
+          <a
+            href="<%= posts_path(tags: row[:name]) %>"
+            class="tag-type-<%= row[:category] %>"
+            data-place="<%= row[:place] %>"
+            data-tag="<%= row[:name] %>"
+            data-category="<%= row[:category] %>"
+          >
             <span class="rising-rank">#<%= index %></span>
             <span class="rising-link"><%= row[:pretty_name] %></span>
           </a>
@@ -20,7 +26,13 @@
     <div class="rising-right">
       <% right_tags.each do |row| %>
         <div class="rising-item">
-          <a href="<%= posts_path(tags: row[:name]) %>" class="tag-type-<%= row[:category] %>" data-place="<%= row[:place] %>">
+          <a
+            href="<%= posts_path(tags: row[:name]) %>"
+            class="tag-type-<%= row[:category] %>"
+            data-place="<%= row[:place] %>"
+            data-tag="<%= row[:name] %>"
+            data-category="<%= row[:category] %>"
+          >
             <span class="rising-rank">#<%= index %></span>
             <span class="rising-link"><%= row[:pretty_name] %></span>
           </a>
