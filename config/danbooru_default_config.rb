@@ -560,7 +560,7 @@ module Danbooru
     end
 
     def grandfathered_post_cutoff
-      "2015-01-01"
+      Time.zone.local(2015, 1, 1)
     end
 
     def auto_flag_ai_posts?
