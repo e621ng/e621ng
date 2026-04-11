@@ -1,9 +1,15 @@
 import { defineConfig } from 'vite'
+import { fileURLToPath, URL } from 'node:url'
 import RubyPlugin from 'vite-plugin-ruby'
 import vue from '@vitejs/plugin-vue'
 import inject from '@rollup/plugin-inject'
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./app/javascript/src/javascripts', import.meta.url)),
+    },
+  },
   plugins: [
     RubyPlugin(),
     vue({

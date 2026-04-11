@@ -12,6 +12,7 @@ export default [
         ...globals.browser,
         $: false,
         Danbooru: false,
+        E621: false,
       },
     },
     plugins: {

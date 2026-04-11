@@ -1,6 +1,6 @@
-import TaskQueue, { TaskCancelled } from "../utility/task_queue";
+import TaskQueue, { TaskCancelled } from "@/utility/task_queue";
 import User from "./User";
-import Post from "../posts";
+import Post from "@/pages/posts/posts";
 
 export default class PostVote {
 

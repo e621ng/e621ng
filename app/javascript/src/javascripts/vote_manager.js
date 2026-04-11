@@ -1,5 +1,5 @@
 import Page from "./utility/page";
-import Utility from "./utility";
+import Utility from "./utility/utility";
 
 class VoteManager {
   constructor (itemType) {

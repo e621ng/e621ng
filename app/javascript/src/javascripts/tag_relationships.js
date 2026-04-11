@@ -1,4 +1,4 @@
-import Utility from "./utility.js";
+import Utility from "./utility/utility.js";
 
 class TagRelationships {
   static approve (e) {

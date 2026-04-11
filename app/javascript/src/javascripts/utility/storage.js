@@ -39,6 +39,9 @@ LStorage.has = function (name) {
 
 // Content that does not belong anywhere else
 LStorage.Site = {
+  /** @returns {boolean} True to enable debug mode, false to disable it */
+  Debug: ["e6.debug", false],
+
   /** @returns {number} Currently displayed Mascot ID, or 0 if none is selected */
   Mascot: ["mascot", 0],
 

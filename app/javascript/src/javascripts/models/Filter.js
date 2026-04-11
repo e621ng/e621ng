@@ -1,4 +1,4 @@
-import Blacklist from "../blacklists";
+import Blacklist from "../core/blacklists";
 import FilterUtils from "../utility/filter_util";
 import LStorage from "../utility/storage";
 import PostCache from "./PostCache";

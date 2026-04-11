@@ -1,7 +1,7 @@
-import Blip from "./blips.js";
-import Comment from "./comments.js";
+import Blip from "./pages/blips/blips.js";
+import Comment from "./pages/comments/comments.js";
 import ForumPost from "./forum_posts.js";
-import Utility from "./utility.js";
+import Utility from "./utility/utility.js";
 
 class UserWarnable {
   static initialize_click_handlers () {

@@ -1,5 +1,3 @@
-/* eslint no-console:0 */
-
 import $ from "jquery";
 window.jQuery = $;
 window.$ = $;
@@ -7,41 +5,25 @@ window.$ = $;
 import Rails from "@rails/ujs";
 Rails.start();
 
+// Common imports for all controllers
+import "@/core/analytics.js";
+import "@/core/autocomplete_loader.js";
+import "@/core/common.js";
+import "@/core/dtext_formatter_loader.js";
+import "@/core/hotkeys.js";
+import "@/core/navigation.js";
+import "@/core/news_updates.js";
+import "@/core/paginator.js";
+import "@/core/password.js";
+import "@/core/themes.js";
+import "@/core/thumbnails.js";
+import "@/core/tos_warning.js";
 
-import.meta.glob("../src/javascripts/models/**/*.js", { eager: true });
-import.meta.glob("../src/javascripts/**/*.js", { eager: true });
-
-// TODO: Remove this global Danbooru object and migrate all code to use ES6 imports instead.
-// This mimics the old webpacker output.library behavior for backward compatibility.
-import LStorage from "../src/javascripts/utility/storage.js";
-import Settings from "../src/javascripts/utility/settings.js";
-import TaskQueue from "../src/javascripts/utility/task_queue.js";
-import Hotkeys from "../src/javascripts/hotkeys.js";
-import Dialog from "../src/javascripts/utility/dialog.js";
-import SVGIcon from "../src/javascripts/utility/svg_icon.js";
-import Favorite from "../src/javascripts/models/Favorite.js";
-import PostVote from "../src/javascripts/models/PostVote.js";
-import User from "../src/javascripts/models/User.js";
-import Autocomplete from "../src/javascripts/autocomplete.js";
-import Blacklist from "../src/javascripts/blacklists.js";
-import Blip from "../src/javascripts/blips.js";
-import Comment from "../src/javascripts/comments.js";
-import DTextFormatter from "../src/javascripts/dtext_formatter.js";
-import FurID from "../src/javascripts/furid.js";
-import ModAction from "../src/javascripts/mod_actions.js";
-import Note from "../src/javascripts/notes.js";
-import Post from "../src/javascripts/posts.js";
-import PostDeletion from "../src/javascripts/post_delete.js";
-import PostModeMenu from "../src/javascripts/post_mode_menu.js";
-import PostReplacement from "../src/javascripts/post_replacement.js";
-import PostVersions from "../src/javascripts/post_versions.js";
-import StaffNote from "../src/javascripts/staff_notes.js";
-import Utility from "../src/javascripts/utility.js";
-import TagRelationships from "../src/javascripts/tag_relationships.js";
-import Takedown from "../src/javascripts/takedowns.js";
-import Theme from "../src/javascripts/themes.js";
-import Thumbnails from "../src/javascripts/thumbnails.js";
-import VoteManager from "../src/javascripts/vote_manager.js";
+// Exported to window.E621 for debugging and legacy support.
+import LStorage from "@/utility/storage.js";
+import Settings from "@/utility/settings.js";
+import Blacklist from "@/core/blacklists.js";
+import Logger from "@/components/debug_logger.js";
 
 function inError (msg) {
   $(window).trigger("danbooru:error", msg);
@@ -54,36 +36,11 @@ function inNotice (msg) {
 window.E621 = {
   LStorage,
   Settings,
-  TaskQueue,
-  Hotkeys,
-  Dialog,
-  SVGIcon,
-  Favorite,
-  PostVote,
-  User,
-  Autocomplete,
   Blacklist,
-  Blip,
-  Comment,
-  DTextFormatter,
-  FurID,
-  ModAction,
-  Note,
-  Post,
-  PostDeletion,
-  PostModeMenu,
-  PostReplacement,
-  PostVersions,
-  StaffNote,
-  Utility,
-  TagRelationships,
-  Takedown,
-  Theme,
-  Thumbnails,
-  VoteManager,
+  Logger,
   error: inError,
   notice: inNotice,
 };
-
-// We will eventually want to remove the Danbooru object, and use E621 instead.
 window.Danbooru = window.E621;
+
+Logger.log("Initialized");
