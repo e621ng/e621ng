@@ -342,7 +342,7 @@ class PostReplacement < ApplicationRecord
         q = q.where_user(:uploader_id_on_approve, %i[uploader_name_on_approve uploader_id_on_approve], params)
 
         if params[:post_id].present?
-          q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
+          q = q.where("post_id in (?)", params[:post_id].split(",").first(CurrentUser.request_limit).map(&:to_i))
         end
 
         if params[:reason].present?

@@ -134,11 +134,11 @@ class TagRelationship < ApplicationRecord
 
       if params[:antecedent_name].present?
         # Split at both space and , to preserve backwards compatibility
-        q = q.where(antecedent_name: params[:antecedent_name].split(/[ ,]/).first(100))
+        q = q.where(antecedent_name: params[:antecedent_name].split(/[ ,]/).first(CurrentUser.request_limit))
       end
 
       if params[:consequent_name].present?
-        q = q.where(consequent_name: params[:consequent_name].split(/[ ,]/).first(100))
+        q = q.where(consequent_name: params[:consequent_name].split(/[ ,]/).first(CurrentUser.request_limit))
       end
 
       if params[:status].present?
@@ -146,11 +146,11 @@ class TagRelationship < ApplicationRecord
       end
 
       if params[:antecedent_tag_category].present?
-        q = q.join_antecedent.where("antecedent_tag.category": params[:antecedent_tag_category].split(",").first(100))
+        q = q.join_antecedent.where("antecedent_tag.category": params[:antecedent_tag_category].split(",").first(CurrentUser.request_limit))
       end
 
       if params[:consequent_tag_category].present?
-        q = q.join_consequent.where("consequent_tag.category": params[:consequent_tag_category].split(",").first(100))
+        q = q.join_consequent.where("consequent_tag.category": params[:consequent_tag_category].split(",").first(CurrentUser.request_limit))
       end
 
       q = q.where_user(:creator_id, :creator, params)

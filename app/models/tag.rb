@@ -348,7 +348,7 @@ class Tag < ApplicationRecord
       end
 
       if params[:category].present?
-        category_ids = params[:category].split(",").first(100).grep(/^\d+$/)
+        category_ids = params[:category].split(",").first(CurrentUser.request_limit).grep(/^\d+$/)
         q = q.where(category: category_ids)
       end
 

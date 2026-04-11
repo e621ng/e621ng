@@ -10,6 +10,7 @@ class ApplicationController < ActionController::Base
   before_action :set_current_user
   around_action :set_time_zone
   before_action :normalize_search
+  before_action :set_request_limit
   before_action :api_check
   before_action :enable_cors
   before_action :check_valid_username
@@ -198,7 +199,13 @@ class ApplicationController < ActionController::Base
   def reset_current_user
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
+    CurrentUser.request_limit = nil
     CurrentUser.safe_mode = Danbooru.config.safe_mode?
+  end
+
+  def set_request_limit
+    max = Danbooru.config.max_per_page
+    CurrentUser.request_limit = (params[:limit].presence || max).to_i.clamp(1, max)
   end
 
   def requires_reauthentication

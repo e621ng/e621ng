@@ -32,6 +32,10 @@ class CurrentUser
     RequestStore[:current_ip_addr] = ip_addr
   end
 
+  def self.request_limit=(limit)
+    RequestStore[:current_request_limit] = limit
+  end
+
   def self.user
     RequestStore[:current_user]
   end
@@ -42,6 +46,10 @@ class CurrentUser
 
   def self.ip_addr
     RequestStore[:current_ip_addr]
+  end
+
+  def self.request_limit
+    RequestStore[:current_request_limit] || Danbooru.config.max_per_page
   end
 
   def self.id

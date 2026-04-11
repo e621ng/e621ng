@@ -52,6 +52,19 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
           assert_response :success
         end
       end
+
+      context "with an id list longer than the limit" do
+        should "truncate the id list to the limit" do
+          posts = nil
+          as(@user) do
+            posts = create_list(:post, 5)
+          end
+          ordered_ids = posts.map(&:id)
+          get posts_path(format: :json), params: { limit: 2, tags: "id:#{ordered_ids.join(',')}" }
+          assert_response :success
+          assert_equal(ordered_ids.first(2).sort.reverse, @response.parsed_body["posts"].pluck("id"))
+        end
+      end
     end
 
     context "show_seq action" do

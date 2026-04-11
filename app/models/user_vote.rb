@@ -44,7 +44,7 @@ class UserVote < ApplicationRecord
       q = super
 
       if params["#{model_type}_id"].present?
-        q = q.where("#{model_type}_id" => params["#{model_type}_id"].split(",").first(100))
+        q = q.where("#{model_type}_id" => params["#{model_type}_id"].split(",").first(CurrentUser.request_limit))
       end
 
       q = q.where_user(:user_id, :user, params)

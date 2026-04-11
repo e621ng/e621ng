@@ -685,6 +685,12 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       75
     end
 
+    # The hard upper bound for the `limit` parameter and the user's `per_page` setting.
+    # Also caps list-style search params like `id:1,2,3` or `?search[id]=1,2,3`.
+    def max_per_page
+      320
+    end
+
     def is_post_restricted?(_post)
       false
     end
