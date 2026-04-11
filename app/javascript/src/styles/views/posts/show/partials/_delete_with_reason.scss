@@ -5,7 +5,9 @@
 
   & > .input { margin-bottom: 0; }
   input[type="text"] {
+    max-width: none;
     width: 100%;
+    margin: 0.25rem 0 0.25rem 0;
     box-sizing: border-box;
     resize: none;
   }

@@ -32,30 +32,32 @@
       </div>
     <% end %>
 
-    <label for="send-dmail"  class="delete-send-dmail">
-      Send Dmail? <input type="checkbox" form="unused" name="send-dmail" id="send-dmail"<%= " checked" if Danbooru.config.enable_post_deletion_dmail %> />
-    </label>
+    <% unless Danbooru.config.post_deletion_dmail_templates.blank? %>
+      <label for="send-dmail"  class="delete-send-dmail">
+        Send DMail? <input type="checkbox" form="unused" name="send-dmail" id="send-dmail"<%= " checked" if Danbooru.config.enable_post_deletion_dmail %> />
+      </label>
 
-    <label for="del-dmail-template">
-      DMail Template
-      <select id="del-dmail-template">
-        <% Danbooru.config.post_deletion_dmail_templates.each_pair do |key, message| %>
-          <% if message.is_a?(Hash) && message[:body].present? %>
-            <option class="button del-dmail-button"
-              value="<%= @post.substitute_deletion_dmail_template(message[:body]) %>"
-              data-dmail-title="<%= @post.substitute_deletion_dmail_template(message[:title]) %>">
-              <%= key.to_s.titleize %>
-            </option>
+      <label for="del-dmail-template">
+        DMail Template
+        <select id="del-dmail-template">
+          <% Danbooru.config.post_deletion_dmail_templates.each_pair do |key, message| %>
+            <% if message.is_a?(Hash) && message[:body].present? %>
+              <option class="button del-dmail-button"
+                value="<%= @post.substitute_deletion_dmail_template(message[:body]) %>"
+                data-dmail-title="<%= @post.substitute_deletion_dmail_template(message[:title]) %>">
+                <%= key.to_s.titleize %>
+              </option>
+            <% end %>
           <% end %>
-        <% end %>
-      </select>
-    </label>
+        </select>
+      </label>
 
-    <input type="text" size="50" name="dmail_title" id="dmail-title">
-    <%# TODO: Figure out using <%= f.input :dmail, as: :dtext, limit: Danbooru.config.dmail_max_size %>
-    <div class="dtext-formatter pending" data-color="true" data-limit="<%= Danbooru.config.dmail_max_size %>">
-      <textarea class="dtext dtext-formatter-input dtext dtext-formatter-input" cols="80" rows="10" id="dmail-message" name="dmail"></textarea>
-    </div>
+      <input type="text" size="50" name="dmail_title" id="dmail-title">
+      <%# TODO: Figure out using <%= f.input :dmail, as: :dtext, limit: Danbooru.config.dmail_max_size %>
+      <div class="dtext-formatter pending" data-color="true" data-limit="<%= Danbooru.config.dmail_max_size %>">
+        <textarea class="dtext dtext-formatter-input dtext dtext-formatter-input" cols="80" rows="10" id="dmail-message" name="dmail"></textarea>
+      </div>
+    <% end %>
 
     <%= submit_tag "Delete" %>
     <%= submit_tag "Cancel" %>

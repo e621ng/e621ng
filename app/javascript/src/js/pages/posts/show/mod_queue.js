@@ -60,9 +60,10 @@ ModQueue.delete_with_reason_dialog = function (event) {
   form.off("submit").on("submit", (event) => {
     event.preventDefault();
     const dmailOption = $("#delete-with-reason-dialog-enable-dmail");
-    const sendDMail = dmailOption.prop("checked");
-    const dmailMessage = sendDMail ? dmailOption.attr("data-dmail-message") : null;
-    const dmailTitle = sendDMail ? dmailOption.attr("data-dmail-title") : null;
+    // Absent if no DMail template is configured
+    const sendDMail = dmailOption?.prop("checked");
+    const dmailMessage = sendDMail ? dmailOption?.attr("data-dmail-message") : null;
+    const dmailTitle = sendDMail ? dmailOption?.attr("data-dmail-title") : null;
     const finalReason = hasReason ? reasonInput.val() : reason;
     Post.delete_with_reason(data.postId, finalReason, {
       reload_after_delete: true,

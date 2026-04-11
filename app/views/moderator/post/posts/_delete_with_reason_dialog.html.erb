@@ -1,16 +1,19 @@
 <form class="simple_form" id="delete-with-reason-dialog" data-title="Delete Post" data-width="500" data-position="center">
   <div class="input delete-with-reason-dialog-inputs">
+    <label for=delete-with-reason-dialog-input>Reason</label>
     <input type="text" id="delete-with-reason-dialog-input" placeholder="Enter reason here...">
-    <label for="delete-with-reason-dialog-enable-dmail">
-      Send DMail (default template)? <input type="checkbox" id="delete-with-reason-dialog-enable-dmail"
-        <%= " checked" if Danbooru.config.enable_post_deletion_dmail %>
-        <% message = Danbooru.config.post_deletion_dmail_templates.values.first %>
-        <% if message.is_a?(Hash) %>
-          data-dmail-message="<%= @post.substitute_deletion_dmail_template(message[:body]) %>"
-          data-dmail-title="<%= @post.substitute_deletion_dmail_template(message[:title]) %>"
-        <% end %>
-        >
-    </label>
+    <% unless Danbooru.config.post_deletion_dmail_templates.blank? %>
+      <label for="delete-with-reason-dialog-enable-dmail">
+        Send DMail (default template)? <input type="checkbox" id="delete-with-reason-dialog-enable-dmail"
+          <%= " checked" if Danbooru.config.enable_post_deletion_dmail %>
+          <% message = Danbooru.config.post_deletion_dmail_templates.values.first %>
+          <% if message.is_a?(Hash) %>
+            data-dmail-message="<%= @post.substitute_deletion_dmail_template(message[:body]) %>"
+            data-dmail-title="<%= @post.substitute_deletion_dmail_template(message[:title]) %>"
+          <% end %>
+          >
+      </label>
+    <% end %>
   </div>
 
   <div class="input delete-with-reason-dialog-submit">

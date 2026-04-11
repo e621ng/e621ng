@@ -1623,9 +1623,7 @@ class Post < ApplicationRecord
     end
 
     def substitute_deletion_dmail_template(text, reason = nil)
-      unless text.presence
-        return nil
-      end
+      return nil if text.blank?
       if reason
         text = text.gsub("%REASON%", reason)
       end
