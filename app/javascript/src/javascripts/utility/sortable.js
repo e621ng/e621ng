@@ -61,7 +61,10 @@ export default class Sortable {
   destroy () {
     this.unbindAll();
     if (this._drag) this._endDrag(true);
-    if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = 0; }
+    if (this._rafId) {
+      cancelAnimationFrame(this._rafId);
+      this._rafId = 0;
+    }
     this._pendingMove = null;
     this._clearCache();
   }
@@ -196,14 +199,20 @@ export default class Sortable {
     const { el, originNextSibling } = this._drag;
 
     // Cancel any pending placeholder RAF
-    if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = 0; }
+    if (this._rafId) {
+      cancelAnimationFrame(this._rafId);
+      this._rafId = 0;
+    }
     this._pendingMove = null;
 
     // Unbind per-element drag events (pointer capture auto-releases)
     $(this._drag.captureEl).off(".sortable-drag");
 
     // Remove ghost
-    if (this.$ghost) { this.$ghost.remove(); this.$ghost = null; }
+    if (this.$ghost) {
+      this.$ghost.remove();
+      this.$ghost = null;
+    }
 
     // Commit or revert the item's DOM position
     const ph = this.$placeholder && this.$placeholder[0];
