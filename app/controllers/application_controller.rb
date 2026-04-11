@@ -204,8 +204,7 @@ class ApplicationController < ActionController::Base
   end
 
   def set_request_limit
-    max = Danbooru.config.max_per_page
-    CurrentUser.request_limit = (params[:limit].presence || max).to_i.clamp(1, max)
+    CurrentUser.request_limit = (params[:limit].presence || Danbooru.config.records_per_page).to_i.clamp(0, Danbooru.config.max_per_page)
   end
 
   def requires_reauthentication
