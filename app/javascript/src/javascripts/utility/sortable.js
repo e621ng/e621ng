@@ -1,8 +1,12 @@
 /**
- * HTML5 drag-and-drop sortable utility for grid layouts.
+ * Pointer-events-based sortable utility for grid layouts.
  *
- * Provides intuitive drag-and-drop reordering with visual feedback via placeholders.
- * Uses CSS Grid/Flexbox compatible positioning and CSS-based styling.
+ * Works on desktop (mouse) and mobile (touch/stylus) via the unified
+ * Pointer Events API — no HTML5 drag-and-drop involved.
+ *
+ * A ghost clone follows the pointer while dragging; a placeholder shows
+ * the pending drop position. Pointer capture routes all move/up events
+ * to the grabbed element so no document-level listeners are needed.
  *
  * @example
  * const sortable = new Sortable(containerEl, {
@@ -41,18 +45,13 @@ export default class Sortable {
       onReorder: typeof options.onReorder === "function" ? options.onReorder : null,
     };
 
-    this.state = {
-      draggingId: null,
-      draggingEl: null,
-      lastTarget: null,
-      lastBefore: null,
-    };
+    // Active drag state; null when idle
+    this._drag = null;
 
-    // requestAnimationFrame coalescing for dragover
-    this._dragOverRafId = 0;
-    this._pendingOver = null;
+    // requestAnimationFrame coalescing for placeholder repositioning
+    this._rafId = 0;
+    this._pendingMove = null;
 
-    this.$container.find(this.settings.itemSelector).attr("draggable", "true");
     this._rebuildIndex();
     this.bindAll();
   }
@@ -60,38 +59,30 @@ export default class Sortable {
   /** Clean up the sortable instance and remove all event listeners. */
   destroy () {
     this.unbindAll();
-    this.$container.find(this.settings.itemSelector).removeAttr("draggable");
-    if (this.$placeholder) this.destroyPlaceholder();
-
-    if (this._dragOverRafId) {
-      cancelAnimationFrame(this._dragOverRafId);
-      this._dragOverRafId = 0;
-    }
-    this._pendingOver = null;
-
+    if (this._drag) this._endDrag(true);
+    if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = 0; }
+    this._pendingMove = null;
     this._clearCache();
   }
 
 
   // ======================================== //
-  // ====== Dragged Item Event Handlers ===== //
+  // ============ Binding Helpers =========== //
   // ======================================== //
 
   bindAll () {
-    this.$container.on("dragstart.sortable", this.settings.itemSelector, (evt) => this.onItemDragStart(evt));
-    this.$container.on("dragend.sortable", this.settings.itemSelector, (evt) => this.onItemDragEnd(evt));
-    this.$container.on("dragover.sortable", this.settings.itemSelector, (evt) => this.onItemDragOver(evt));
+    this.$container.on("pointerdown.sortable", this.settings.itemSelector, (evt) => this.onPointerDown(evt));
   }
 
   unbindAll () {
-    this.$container.off("dragstart.sortable dragend.sortable dragover.sortable");
+    this.$container.off(".sortable");
   }
 
   /**
    * Refresh the sortable after DOM changes.
    *
    * Call this method when items are added, removed, or modified in the container
-   * to ensure new items become draggable and event listeners are properly bound.
+   * to ensure event listeners are properly bound.
    *
    * @example
    * // After adding new items to the container
@@ -100,211 +91,181 @@ export default class Sortable {
    */
   refresh () {
     this.unbindAll();
-
-    // Apply draggable attribute to new items
-    this.$container.find(this.settings.itemSelector).attr("draggable", "true");
     this.bindAll();
     this._rebuildIndex();
   }
 
-  onItemDragStart (event) {
+
+  // ======================================== //
+  // =========== Pointer Handlers =========== //
+  // ======================================== //
+
+  onPointerDown (event) {
+    // Primary button only (left mouse / first touch / pen contact)
+    if (event.button !== 0) return;
+    // Don't start a second drag while one is active
+    if (this._drag) return;
+
+    const nativeEvent = event.originalEvent || event;
     const el = event.currentTarget;
-    const $el = $(el);
+    const rect = el.getBoundingClientRect();
 
-    this.state = {
-      draggingId: this.getIdByElement(el),
-      draggingEl: el,
-      lastTarget: null,
-      lastBefore: null,
-    };
-
-    const nativeEvent = event.originalEvent || event;
-    if (nativeEvent.dataTransfer) {
-      nativeEvent.dataTransfer.effectAllowed = "move";
-      nativeEvent.dataTransfer.setData("text/plain", this.state.draggingId || "");
-    }
-
-    // Replace the dragged element with a placeholder to avoid layout shifts
-    this.showPlaceholder(el);
-    const ph = this.$placeholder && this.$placeholder[0];
-    if (ph && el.parentNode) el.parentNode.insertBefore(ph, el);
-    $el.addClass("dragging");
-  }
-
-  onItemDragEnd (event) {
-    const dragged = this.state.draggingEl || event.currentTarget;
-    let committed = false;
-
-    // If the placeholder is still attached, the browser likely didn't fire drop on it.
-    // Act as if the item was dropped on the placeholder.
-    const ph = this.$placeholder && this.$placeholder[0];
-    if (ph && ph.parentNode && dragged && dragged !== ph) {
-      ph.parentNode.insertBefore(dragged, ph);
-      committed = true;
-    }
-    this.hidePlaceholder();
-
-    if (committed) {
-      if (dragged && dragged.classList) dragged.classList.remove("dragging");
-      this._rebuildIndex();
-      if (this.settings.onReorder)
-        this.settings.onReorder(this.order);
-    } else $(event.currentTarget).removeClass("dragging");
-
-    this.state = {
-      draggingId: null,
-      draggingEl: null,
-      lastTarget: null,
-      lastBefore: null,
-    };
-  }
-
-  onItemDragOver (event) {
+    // Prevent text selection and touch-scroll during drag
     event.preventDefault();
-    const nativeEvent = event.originalEvent || event;
-    if (nativeEvent.dataTransfer) nativeEvent.dataTransfer.dropEffect = "move";
 
-    // Not dragging anything, ignore
-    if (!this.state.draggingId) return;
-
-    // Process dragover events at most once per frame
-    this._pendingOver = {
-      el: event.currentTarget,
-      clientX: nativeEvent.clientX,
+    this._drag = {
+      pointerId: nativeEvent.pointerId,
+      el,
+      originNextSibling: el.nextSibling,
+      offsetX: nativeEvent.clientX - rect.left,
+      offsetY: nativeEvent.clientY - rect.top,
     };
 
-    if (!this._dragOverRafId) {
-      this._dragOverRafId = requestAnimationFrame(() => {
-        this._dragOverRafId = 0;
-        const pending = this._pendingOver;
-        this._pendingOver = null;
-        if (!pending) return;
-        this._processDragOver(pending.el, pending.clientX);
+    // Route all subsequent pointer events for this pointer ID to el,
+    // even when the pointer moves outside it. Releases automatically on pointerup/cancel.
+    el.setPointerCapture(nativeEvent.pointerId);
+
+    // Bind move/end events directly on the captured element
+    $(el).on("pointermove.sortable-drag", (e) => this.onPointerMove(e));
+    $(el).on("pointerup.sortable-drag pointercancel.sortable-drag", (e) => this.onPointerUp(e));
+
+    // Insert placeholder at original position, then hide original
+    this._createPlaceholder(el);
+    el.parentNode.insertBefore(this.$placeholder[0], el);
+    $(el).addClass("dragging");
+
+    // Create ghost clone that follows the pointer
+    this._createGhost(el, rect, nativeEvent.clientX, nativeEvent.clientY);
+  }
+
+  onPointerMove (event) {
+    if (!this._drag) return;
+    const nativeEvent = event.originalEvent || event;
+    if (nativeEvent.pointerId !== this._drag.pointerId) return;
+
+    // Update ghost position immediately for smooth visual feedback
+    if (this.$ghost) {
+      this.$ghost.css({
+        left: `${nativeEvent.clientX - this._drag.offsetX}px`,
+        top: `${nativeEvent.clientY - this._drag.offsetY}px`,
+      });
+    }
+
+    // Coalesce placeholder updates to at most one per animation frame
+    this._pendingMove = { clientX: nativeEvent.clientX, clientY: nativeEvent.clientY };
+    if (!this._rafId) {
+      this._rafId = requestAnimationFrame(() => {
+        this._rafId = 0;
+        const m = this._pendingMove;
+        this._pendingMove = null;
+        if (m) this._repositionPlaceholder(m.clientX, m.clientY);
       });
     }
   }
 
-  _processDragOver (el, clientX) {
-    if (!this.state.draggingId) return;
+  onPointerUp (event) {
+    if (!this._drag) return;
+    const nativeEvent = event.originalEvent || event;
+    if (nativeEvent.pointerId !== this._drag.pointerId) return;
 
-    const rect = el.getBoundingClientRect();
-    const before = (clientX - rect.left) < rect.width / 2;
-
-    if (this.state.lastTarget === el && this.state.lastBefore === before)
-      return; // Already positioned here
-
-    // Ensure placeholder exists and matches target size
-    if (!this.$placeholder) {
-      this.createPlaceholder(el);
-      this.sizePlaceholder(el, rect);
-      this.$placeholder.show();
-    } else if (this.state.lastTarget !== el) {
-      this.sizePlaceholder(el, rect);
-      this.$placeholder.show();
-    }
-
-    // Position placeholder around target
-    const ph = this.$placeholder[0];
-    if (el.parentNode) {
-      if (before) {
-        if (ph.nextSibling !== el) el.parentNode.insertBefore(ph, el);
-      } else {
-        if (el.nextSibling !== ph) el.parentNode.insertBefore(ph, el.nextSibling);
-      }
-    }
-
-    this.state.lastTarget = el;
-    this.state.lastBefore = before;
+    const cancelled = nativeEvent.type === "pointercancel";
+    this._endDrag(cancelled);
   }
 
+
   // ======================================== //
-  // ========== Placeholder Methods ========= //
+  // ============= Drag Lifecycle =========== //
   // ======================================== //
 
-  createPlaceholder (refEl) {
-    if (this.$placeholder) return;
+  _endDrag (cancelled) {
+    if (!this._drag) return;
+    const { el, originNextSibling } = this._drag;
 
-    const tag = refEl?.tagName || "DIV";
+    // Cancel any pending placeholder RAF
+    if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = 0; }
+    this._pendingMove = null;
 
+    // Unbind per-element drag events (pointer capture auto-releases)
+    $(el).off(".sortable-drag");
+
+    // Remove ghost
+    if (this.$ghost) { this.$ghost.remove(); this.$ghost = null; }
+
+    // Commit or revert the item's DOM position
+    const ph = this.$placeholder && this.$placeholder[0];
+    if (cancelled) {
+      // Restore to original position before the drag started
+      if (el.parentNode) el.parentNode.insertBefore(el, originNextSibling || null);
+    } else if (ph && ph.parentNode) {
+      ph.parentNode.insertBefore(el, ph);
+    }
+    $(el).removeClass("dragging");
+
+    // Remove placeholder
+    if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+    this.$placeholder = null;
+
+    this._drag = null;
+
+    if (!cancelled) {
+      this._rebuildIndex();
+      if (this.settings.onReorder) this.settings.onReorder(this.order);
+    }
+  }
+
+
+  // ======================================== //
+  // ========== Ghost & Placeholder ========= //
+  // ======================================== //
+
+  _createGhost (refEl, rect, clientX, clientY) {
+    this.$ghost = $(refEl.cloneNode(true))
+      .addClass("sortable-ghost")
+      .removeAttr("data-id") // exclude ghost from any id lookups
+      .css({
+        position: "fixed",
+        left: `${clientX - this._drag.offsetX}px`,
+        top: `${clientY - this._drag.offsetY}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+        margin: "0",
+        pointerEvents: "none",
+        zIndex: "9999",
+      })
+      .appendTo(document.body);
+  }
+
+  _createPlaceholder (refEl) {
+    const tag = refEl?.tagName || "LI";
     this.$placeholder = $(`<${tag}>`)
       .addClass("sortable-placeholder")
-      .attr({
-        "aria-hidden": "true",
-        "draggable": "false",
-      })
-      .hide();
-
-    // Bind placeholder events once
-    this.bindPlaceholderEvents();
+      .attr("aria-hidden", "true");
   }
 
-  showPlaceholder (refEl) {
-    if (!refEl) return null;
+  _repositionPlaceholder (clientX, clientY) {
+    const ph = this.$placeholder && this.$placeholder[0];
+    if (!ph) return;
 
-    if (!this.$placeholder) this.createPlaceholder(refEl);
-    this.sizePlaceholder(refEl);
-    this.$placeholder.show();
+    // The ghost has pointer-events:none and the original has display:none,
+    // so elementFromPoint sees straight through both to find real items.
+    const hit = document.elementFromPoint(clientX, clientY);
+    if (!hit) return;
 
-    return this.$placeholder;
+    // Traverse up to find the nearest sortable item under the pointer
+    const itemEl = $(hit).closest(this.settings.itemSelector, this.$container[0])[0];
+    if (!itemEl || itemEl === ph || itemEl === this._drag.el) return;
+    if (!this.$container[0].contains(itemEl)) return;
+
+    const rect = itemEl.getBoundingClientRect();
+    const before = (clientX - rect.left) < rect.width / 2;
+
+    if (before) {
+      if (ph.nextSibling !== itemEl) itemEl.parentNode.insertBefore(ph, itemEl);
+    } else {
+      if (itemEl.nextSibling !== ph) itemEl.parentNode.insertBefore(ph, itemEl.nextSibling);
+    }
   }
 
-  hidePlaceholder () {
-    if (!this.$placeholder) return;
-    this.$placeholder.detach().hide();
-  }
-
-  destroyPlaceholder () {
-    if (!this.$placeholder) return;
-
-    this.unbindPlaceholderEvents();
-    this.$placeholder.remove();
-    this.$placeholder = null;
-  }
-
-  sizePlaceholder (refEl, refRect) {
-    if (!refEl || !this.$placeholder) return;
-
-    // Match the size of the reference element
-    const rect = refRect || refEl.getBoundingClientRect();
-    this.$placeholder.css({ width: `${rect.width}px`, height: `${rect.height}px` });
-  }
-
-  bindPlaceholderEvents () {
-    if (!this.$placeholder) return;
-
-    this.$placeholder.on("dragover.sortable", (event) => {
-      event.preventDefault();
-      const nativeEvent = event.originalEvent || event;
-      if (nativeEvent.dataTransfer)
-        nativeEvent.dataTransfer.dropEffect = "move";
-    });
-
-    this.$placeholder.on("drop.sortable", (event) => {
-      event.preventDefault();
-      const nativeEvent = event.originalEvent || event;
-
-      const draggedId = this.state.draggingId || (nativeEvent.dataTransfer ? nativeEvent.dataTransfer.getData("text/plain") : "");
-      if (!draggedId) return;
-      const dragged = this.state.draggingEl || this._elementCache.get(draggedId);
-      if (!dragged) return;
-
-      // Move dragged element before placeholder using native DOM, then drop CSS class
-      const ph = this.$placeholder && this.$placeholder[0];
-      if (ph && ph.parentNode) ph.parentNode.insertBefore(dragged, ph);
-      dragged.classList.remove("dragging");
-
-      this._rebuildIndex();
-      this.hidePlaceholder();
-
-      if (this.settings.onReorder)
-        this.settings.onReorder(this.order);
-    });
-  }
-
-  unbindPlaceholderEvents () {
-    if (!this.$placeholder) return;
-    this.$placeholder.off(".sortable");
-  }
 
   // ======================================== //
   // ============ Indexing Helpers ========== //
