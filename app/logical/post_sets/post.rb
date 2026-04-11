@@ -63,6 +63,7 @@ module PostSets
 
     def posts
       @posts ||= begin
+        CurrentUser.request_limit = (limit || CurrentUser.user.per_page).to_i.clamp(0, Danbooru.config.max_per_page)
         temp = ::Post.tag_match(tag_string).paginate_posts(page, limit: limit, includes: [:uploader])
 
         @post_count = temp.total_count
