@@ -4,21 +4,39 @@ ul.sortable {
   gap: 0.5rem;
 
   li.sortable-thumbnail {
+    position: relative;
     width: var(--thumb-image-size, 150px);
-    height: var(--thumb-image-size, 150px);
+    height: calc(var(--thumb-image-size, 150px) + 1.5rem);
     overflow: hidden;
-    cursor: grab;
-    touch-action: none; // required for pointermove to fire on touch instead of scrolling
-
-    &:active { cursor: grabbing; }
 
     &.dragging {
       display: none;
       pointer-events: none;
     }
 
+    .sortable-handle {
+      display: flex;
+      justify-content: center;
+      height: 1.5rem;
+      line-height: 1.5rem;
+      font-size: 1rem;
+      border-radius: 0 0 0.25rem 0.25rem;
+
+      background: themed("color-section-lighten-5");
+      cursor: grab;
+      touch-action: none; // required for pointermove to fire on touch instead of scrolling
+
+      // Six-dot grip icon
+      &::before {
+        content: ":::";
+        display: block;
+      }
+
+      &:active { cursor: grabbing; }
+    }
+
     article.thumbnail {
-      a { cursor: inherit; }
+      a.thm-link { border-radius: 0 0 0.25rem 0.25rem; }
       img {
         width: var(--thumb-image-size, 150px);
         height: var(--thumb-image-size, 150px);

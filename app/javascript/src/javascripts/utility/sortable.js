@@ -41,6 +41,7 @@ export default class Sortable {
 
     this.settings = {
       itemSelector: options.itemSelector || "li",
+      handleSelector: options.handleSelector || null,
       idDataKey: options.idDataKey || "id",
       onReorder: typeof options.onReorder === "function" ? options.onReorder : null,
     };
@@ -71,7 +72,12 @@ export default class Sortable {
   // ======================================== //
 
   bindAll () {
-    this.$container.on("pointerdown.sortable", this.settings.itemSelector, (evt) => this.onPointerDown(evt));
+    // If a handle selector is configured, only start drags from the handle;
+    // otherwise the whole item is the drag target.
+    const pointerTarget = this.settings.handleSelector
+      ? `${this.settings.itemSelector} ${this.settings.handleSelector}`
+      : this.settings.itemSelector;
+    this.$container.on("pointerdown.sortable", pointerTarget, (evt) => this.onPointerDown(evt));
   }
 
   unbindAll () {
@@ -107,35 +113,43 @@ export default class Sortable {
     if (this._drag) return;
 
     const nativeEvent = event.originalEvent || event;
-    const el = event.currentTarget;
-    const rect = el.getBoundingClientRect();
+    // captureEl is the element that received pointerdown (handle or item).
+    // itemEl is always the sortable item (the li), found via closest() when a handle is in use.
+    const captureEl = event.currentTarget;
+    const itemEl = this.settings.handleSelector
+      ? $(captureEl).closest(this.settings.itemSelector)[0]
+      : captureEl;
+    if (!itemEl) return;
+
+    const rect = itemEl.getBoundingClientRect();
 
     // Prevent text selection and touch-scroll during drag
     event.preventDefault();
 
     this._drag = {
       pointerId: nativeEvent.pointerId,
-      el,
-      originNextSibling: el.nextSibling,
+      el: itemEl,
+      captureEl,
+      originNextSibling: itemEl.nextSibling,
       offsetX: nativeEvent.clientX - rect.left,
       offsetY: nativeEvent.clientY - rect.top,
     };
 
-    // Route all subsequent pointer events for this pointer ID to el,
+    // Route all subsequent pointer events for this pointer ID to captureEl,
     // even when the pointer moves outside it. Releases automatically on pointerup/cancel.
-    el.setPointerCapture(nativeEvent.pointerId);
+    captureEl.setPointerCapture(nativeEvent.pointerId);
 
-    // Bind move/end events directly on the captured element
-    $(el).on("pointermove.sortable-drag", (e) => this.onPointerMove(e));
-    $(el).on("pointerup.sortable-drag pointercancel.sortable-drag", (e) => this.onPointerUp(e));
+    // Bind move/end events on the captured element
+    $(captureEl).on("pointermove.sortable-drag", (e) => this.onPointerMove(e));
+    $(captureEl).on("pointerup.sortable-drag pointercancel.sortable-drag", (e) => this.onPointerUp(e));
 
     // Insert placeholder at original position, then hide original
-    this._createPlaceholder(el);
-    el.parentNode.insertBefore(this.$placeholder[0], el);
-    $(el).addClass("dragging");
+    this._createPlaceholder(itemEl);
+    itemEl.parentNode.insertBefore(this.$placeholder[0], itemEl);
+    $(itemEl).addClass("dragging");
 
     // Create ghost clone that follows the pointer
-    this._createGhost(el, rect, nativeEvent.clientX, nativeEvent.clientY);
+    this._createGhost(itemEl, rect, nativeEvent.clientX, nativeEvent.clientY);
   }
 
   onPointerMove (event) {
@@ -186,7 +200,7 @@ export default class Sortable {
     this._pendingMove = null;
 
     // Unbind per-element drag events (pointer capture auto-releases)
-    $(el).off(".sortable-drag");
+    $(this._drag.captureEl).off(".sortable-drag");
 
     // Remove ghost
     if (this.$ghost) { this.$ghost.remove(); this.$ghost = null; }
@@ -221,7 +235,6 @@ export default class Sortable {
   _createGhost (refEl, rect, clientX, clientY) {
     this.$ghost = $(refEl.cloneNode(true))
       .addClass("sortable-ghost")
-      .removeAttr("data-id") // exclude ghost from any id lookups
       .css({
         position: "fixed",
         left: `${clientX - this._drag.offsetX}px`,
