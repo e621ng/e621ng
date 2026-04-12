@@ -248,20 +248,20 @@ module ApplicationHelper
     end
   end
 
-  VITE_ENTRYPOINTS = Rails.root.glob("app/javascript/entrypoints/v_*.js")
-                          .to_set { |f| File.basename(f, ".js") }
+  VITE_ENTRYPOINTS = Rails.root.glob("app/javascript/entrypoints/v_*.ts")
+                          .to_set { |f| File.basename(f, ".ts") }
                           .freeze
 
   def vite_script_for_controller
     name = "v_#{params[:controller].parameterize.underscore}"
     return unless VITE_ENTRYPOINTS.include?(name)
-    vite_javascript_tag(name, nonce: true, defer: false)
+    vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
   end
 
   def vite_script_for_controller_and_action
     name = "v_#{params[:controller].parameterize.underscore}_#{params[:action].parameterize.underscore}"
     return unless VITE_ENTRYPOINTS.include?(name)
-    vite_javascript_tag(name, nonce: true, defer: false)
+    vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
   end
 
   private

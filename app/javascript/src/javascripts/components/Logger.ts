@@ -11,8 +11,12 @@ export default class Logger {
    * @param args The items to log, passed directly to console.log after the title.
    */
   public static log (...args: any[]): void {
-    if (!Logger._instance) Logger._instance = new Logger("E6NG");
+    if (!Logger._instance) Logger._instance = new Logger("E6NG", null, [30, 60, 100]);
     Logger._instance.log(...args);
+  }
+
+  public static loaded (value: string): void {
+    console.log(`\x1B[97;48;2;${30};${60};${100}mE6NG\x1B[m Loaded: \x1B[94m${value}\x1B[m`);
   }
 
 
@@ -25,8 +29,8 @@ export default class Logger {
    * @param controller The name of the controller.
    * @param action The name of the action, optional.
    */
-  constructor (controller: string, action: string = null) {
-    const c1 = Logger.stringToColor(controller),
+  constructor (controller: string, action: string = null, color: [number, number, number] = null) {
+    const c1 = color || Logger.stringToColor(controller),
       c2 = action ? Logger.stringToColor(action) : c1;
 
     this.title = [

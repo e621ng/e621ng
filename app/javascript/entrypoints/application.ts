@@ -27,6 +27,7 @@ import Settings from "@/utility/settings";
 import Blacklist from "@/core/blacklists";
 import Flash from "@/components/Flash";
 import Logger from "@/components/Logger";
+import E621Type from "@/interfaces/E621";
 
 window["E621"] = {
   LStorage,
@@ -38,11 +39,3 @@ window["E621"] = {
 window["Danbooru"] = window["E621"];
 
 Logger.log("Initialized");
-
-interface E621Type {
-  LStorage: typeof LStorage;
-  Settings: typeof Settings;
-  Blacklist: typeof Blacklist;
-  Logger: typeof Logger;
-  Flash: typeof Flash;
-}
