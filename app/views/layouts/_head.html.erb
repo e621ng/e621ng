@@ -36,7 +36,7 @@
 <%= auto_discovery_link_tag :atom, posts_path(format: "atom", tags: params[:tags].is_a?(String) ? params[:tags] : nil) %>
 
 <%= vite_stylesheet_tag "styles" %>
-<%= vite_javascript_tag "application", nonce: true, defer: false %>
+<%= vite_javascript_tag "application.ts", nonce: true, defer: false %>
 <%= vite_script_for_controller %>
 <%= vite_script_for_controller_and_action %>
 

@@ -1,5 +1,5 @@
 import $ from "jquery";
-window.jQuery = $;
+window["jQuery"] = $;
 window.$ = $;
 
 import Rails from "@rails/ujs";
@@ -27,15 +27,15 @@ import Settings from "@/utility/settings";
 import Blacklist from "@/core/blacklists";
 import Logger from "@/components/debug_logger";
 
-function inError (msg) {
-  $(window).trigger("danbooru:error", msg);
+function inError (message: string) {
+  $(window).trigger("danbooru:error", message);
 }
 
-function inNotice (msg) {
-  $(window).trigger("danbooru:notice", msg);
+function inNotice (message: string) {
+  $(window).trigger("danbooru:notice", message);
 }
 
-window.E621 = {
+window["E621"] = {
   LStorage,
   Settings,
   Blacklist,
@@ -43,6 +43,6 @@ window.E621 = {
   error: inError,
   notice: inNotice,
 };
-window.Danbooru = window.E621;
+window["Danbooru"] = window["E621"];
 
 Logger.log("Initialized");
