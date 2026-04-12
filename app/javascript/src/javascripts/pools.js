@@ -77,7 +77,7 @@ Pool.initialize_pool_ordering = function () {
     idInput = $("#pool_post_ids_string");
   const originalIDs = idInput.val();
 
-  new Sortable($("ul.sortable"), { onReorder: (orderedIDs) => {
+  new Sortable($("ul.sortable"), { handleSelector: ".sortable-handle", onReorder: (orderedIDs) => {
     const idString = orderedIDs.join(" ");
     idInput.val(idString);
 
