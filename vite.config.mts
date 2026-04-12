@@ -7,7 +7,7 @@ import RubyPlugin from 'vite-plugin-ruby'
 export default defineConfig({
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./app/javascript/src/javascripts', import.meta.url)),
+      '@': fileURLToPath(new URL('./app/javascript/src/js', import.meta.url)),
     },
   },
   plugins: [
