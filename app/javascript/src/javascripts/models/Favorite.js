@@ -1,5 +1,5 @@
-import TaskQueue, { TaskCancelled } from "../utility/task_queue";
-import User from "./User";
+import TaskQueue, { TaskCancelled } from "@/utility/task_queue";
+import User from "@/models/User";
 
 export default class Favorite {
 

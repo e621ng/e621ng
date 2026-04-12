@@ -2,6 +2,6 @@
 
 window.E621.vLogger = new E621.Logger("PostReplacements", "New");
 
-import "@/pages/post_replacements/new/replacer.js";
+import "@/pages/post_replacements/new/replacer";
 
 window.E621.vLogger.log("Initialized");

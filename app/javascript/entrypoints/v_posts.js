@@ -2,8 +2,8 @@
 
 window.E621.vLogger = new E621.Logger("Posts");
 
-import "@/pages/posts/post_mode_menu.js";
-import "@/pages/posts/post_search.js";
-import "@/pages/posts/posts.js";
+import "@/pages/posts/post_mode_menu";
+import "@/pages/posts/post_search";
+import "@/pages/posts/posts";
 
 window.E621.vLogger.log("Initialized");

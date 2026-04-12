@@ -2,6 +2,6 @@
 
 window.E621.vLogger = new E621.Logger("ModeratorPostPosts");
 
-import "@/pages/moderator/post/posts/post_delete.js";
+import "@/pages/moderator/post/posts/post_delete";
 
 window.E621.vLogger.log("Initialized");

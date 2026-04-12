@@ -2,6 +2,6 @@
 
 window.E621.vLogger = new E621.Logger("Uploads", "New");
 
-import "@/pages/uploads/new/uploader.js";
+import "@/pages/uploads/new/uploader";
 
 window.E621.vLogger.log("Initialized");

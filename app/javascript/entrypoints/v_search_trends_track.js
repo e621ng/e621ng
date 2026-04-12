@@ -2,6 +2,6 @@
 
 window.E621.vLogger = new E621.Logger("SearchTrends", "Track");
 
-import "@/pages/search_trends/track/search_trends_track.js";
+import "@/pages/search_trends/track/search_trends_track";
 
 window.E621.vLogger.log("Initialized");
