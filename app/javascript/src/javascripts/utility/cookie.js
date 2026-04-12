@@ -17,7 +17,7 @@ Cookie.put = function (name, value, days) {
     document.cookie = new_val;
     return true;
   } else {
-    Danbooru.error("You have too many cookies on this site. Consider deleting them all.");
+    E621.Flash.error("You have too many cookies on this site. Consider deleting them all.");
     return false;
   }
 };

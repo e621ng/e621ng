@@ -70,9 +70,9 @@ ForumPost.vote = function (evt, score) {
     $(`#forum-post-votes-for-${id} .forum-post-vote-block`).hide();
   }).fail(function (data) {
     if (data?.responseJSON?.reason) {
-      Utility.error(data.responseJSON.reason);
+      E621.Flash.error(data.responseJSON.reason);
     } else {
-      Utility.error("Failed to vote on forum post.");
+      E621.Flash.error("Failed to vote on forum post.");
     }
   });
 };
@@ -88,9 +88,9 @@ ForumPost.vote_remove = function (evt) {
   }).done(function () {
     $(evt.target).parents(".own-forum-vote").remove();
     $(`#forum-post-votes-for-${id} .forum-post-vote-block`).show();
-    Utility.notice("Vote removed.");
+    E621.Flash.notice("Vote removed.");
   }).fail(function () {
-    Utility.error("Failed to unvote on forum post.");
+    E621.Flash.error("Failed to unvote on forum post.");
   });
 };
 
@@ -113,7 +113,7 @@ ForumPost.quote = function (e) {
       $("#topic-response")[0].scrollIntoView();
     }, 15);
   }).fail(function (data) {
-    Utility.error(data.responseText);
+    E621.Flash.error(data.responseText);
   });
 };
 
@@ -131,7 +131,7 @@ ForumPost.hide = function (e) {
     $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`).append(" (hidden)");
     $(`.forum-post[data-forum-post-id="${fpid}"]`).attr("data-is-hidden", "true");
   }).fail(function () {
-    Utility.error("Failed to hide post.");
+    E621.Flash.error("Failed to hide post.");
   });
 };
 
@@ -150,7 +150,7 @@ ForumPost.unhide = function (e) {
     $author.text($author.text().replace(" (hidden)", ""));
     $(`.forum-post[data-forum-post-id="${fpid}"]`).attr("data-is-hidden", "false");
   }).fail(function () {
-    Utility.error("Failed to unhide post.");
+    E621.Flash.error("Failed to unhide post.");
   });
 };
 

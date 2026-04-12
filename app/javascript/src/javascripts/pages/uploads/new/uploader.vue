@@ -474,7 +474,7 @@
           success(data) {
             self.submitting = false;
             self.allowNavigate = true;
-            Danbooru.notice('Post uploaded successfully.');
+            E621.Flash.notice('Post uploaded successfully.');
             location.assign(data.location);
           },
           error(response, textStatus, errorThrown) {

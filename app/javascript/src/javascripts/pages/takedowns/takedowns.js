@@ -3,7 +3,7 @@ import Utility from "@/utility/utility.js";
 let Takedown = {};
 
 Takedown.destroy = function (id) {
-  Utility.notice("Deleting takedown #" + id + "...");
+  E621.Flash.notice("Deleting takedown #" + id + "...");
 
   $.ajax({
     url: "/takedown/destroy.json",
@@ -14,10 +14,10 @@ Takedown.destroy = function (id) {
       "id": id,
     },
   }).done(function () {
-    Utility.notice("Takedown deleted");
+    E621.Flash.notice("Takedown deleted");
     $("#takedown-" + id).fadeOut("fast");
   }).fail(function (data) {
-    Utility.error(data.responseText);
+    E621.Flash.error(data.responseText);
   });
 };
 
@@ -42,7 +42,7 @@ Takedown.add_posts_by_tags_preview = function (id) {
     $("#takedown-add-posts-tags-confirm").css("display", "inline-block");
     $("#takedown-add-posts-tags-cancel").css("display", "inline-block");
   }).fail(function (data) {
-    Utility.error(data.responseText);
+    E621.Flash.error(data.responseText);
   });
 };
 
@@ -57,7 +57,7 @@ Takedown.add_posts_by_tags_cancel = function () {
 Takedown.add_posts_by_tags = function (id) {
   event.preventDefault();
   const tags = $("#takedown-add-posts-tags").val();
-  Utility.notice("Adding posts with tags '" + tags + "' to takedown...");
+  E621.Flash.notice("Adding posts with tags '" + tags + "' to takedown...");
 
   $.ajax({
     url: `/takedowns/${id}/add_by_tags.json`,
@@ -72,7 +72,7 @@ Takedown.add_posts_by_tags = function (id) {
     const added_post_ids = data.added_post_ids;
     const count = added_post_ids.length;
 
-    Utility.notice(count + " post" + (count == 1 ? "" : "s") + " with tags '" + tags + "' added to takedown");
+    E621.Flash.notice(count + " post" + (count == 1 ? "" : "s") + " with tags '" + tags + "' added to takedown");
 
     for (var i = 0; i < count; i++) {
       var html = Takedown.post_button_html(added_post_ids[i]);
@@ -82,14 +82,14 @@ Takedown.add_posts_by_tags = function (id) {
     $("#takedown-add-posts-tags-submit").prop("disabled", true);
     Takedown.add_posts_by_tags_cancel();
   }).fail(function (data) {
-    Utility.error(data.responseText);
+    E621.Flash.error(data.responseText);
   });
 };
 
 Takedown.add_posts_by_ids = function (id) {
   event.preventDefault();
   const post_ids = $("#takedown-add-posts-ids").val();
-  Utility.notice("Adding posts to takedown...");
+  E621.Flash.notice("Adding posts to takedown...");
 
   $.ajax({
     url: `/takedowns/${id}/add_by_ids.json`,
@@ -101,7 +101,7 @@ Takedown.add_posts_by_ids = function (id) {
       post_ids: post_ids,
     },
   }).done(function (data) {
-    Utility.notice(data.added_count + " post" + (data.added_count == 1 ? "" : "s") + " added to takedown");
+    E621.Flash.notice(data.added_count + " post" + (data.added_count == 1 ? "" : "s") + " added to takedown");
 
     var added_post_ids = data.added_post_ids;
     for (var i = 0; i < added_post_ids.length; i++) {
@@ -112,12 +112,12 @@ Takedown.add_posts_by_ids = function (id) {
     $("#takedown-add-posts-ids").val("");
     $("#takedown-add-posts-ids-submit").prop("disabled", true);
   }).fail(function (data) {
-    Utility.error(data.responseText);
+    E621.Flash.error(data.responseText);
   });
 };
 
 Takedown.remove_post = function (id, post_id) {
-  Utility.notice("Removing post #" + post_id + " from takedown...");
+  E621.Flash.notice("Removing post #" + post_id + " from takedown...");
 
   $.ajax({
     url: `/takedowns/${id}/remove_by_ids.json`,
@@ -129,10 +129,10 @@ Takedown.remove_post = function (id, post_id) {
       post_ids: post_id,
     },
   }).done(function () {
-    Utility.notice("Post #" + post_id + " removed from takedown");
+    E621.Flash.notice("Post #" + post_id + " removed from takedown");
     $("#takedown-post-" + post_id).remove();
   }).fail(function (data) {
-    Utility.error(data.responseText);
+    E621.Flash.error(data.responseText);
   });
 };
 

@@ -45,7 +45,7 @@ PostVersion.undo_selected = function (event) {
     TaskQueue.add(() => {
       $.ajax(`/post_versions/${id}/undo.json`, {method: "PUT"});
 
-      Utility.notice(`${++PostVersion.updated}/${selected_rows.length} changes undone.`);
+      E621.Flash.notice(`${++PostVersion.updated}/${selected_rows.length} changes undone.`);
     }, { name: "PostVersion.undo_selected" });
   }
 };
@@ -65,7 +65,7 @@ PostVersion.tag_script_selected = function (event) {
     TaskQueue.add(() => {
       Post.tagScript(id, script);
 
-      Utility.notice(`${++PostVersion.updated}/${selected_rows.length} changes applied.`);
+      E621.Flash.notice(`${++PostVersion.updated}/${selected_rows.length} changes applied.`);
     }, { name: "PostVersion.tag_script_selected" });
   }
 };

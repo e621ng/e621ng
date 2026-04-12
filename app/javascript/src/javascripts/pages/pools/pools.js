@@ -46,7 +46,7 @@ Pool.initialize_add_to_pool_link = function () {
     }).done(() => {
       window.location.reload();
     }).fail((data) => {
-      Utility.error(`Error: ${data.status == 404 ? "Not Found" : data.responseText}`);
+      E621.Flash.error(`Error: ${data.status == 404 ? "Not Found" : data.responseText}`);
     });
 
     return false;

@@ -27,7 +27,7 @@ PostSet.add_post = function (set_id, post_id) {
     addPostCache[set_id] = cache;
   }
   cache.add(post_id);
-  $(window).trigger("danbooru:notice", `Updating posts (${cache.size} pending)`);
+  E621.Flash.notice(`Updating posts (${cache.size} pending)`);
 
   // Queue up the request
   if (addPostTimeout) window.clearTimeout(addPostTimeout);
@@ -60,9 +60,9 @@ PostSet.add_many_posts = function (set_id, posts = []) {
       const data = response.responseJSON;
       const errors = $.map(data.errors, (msg) => msg).join("; "),
         message = data.message;
-      $(window).trigger("danbooru:error", "Error: " + (message || errors));
+      E621.Flash.error("Error: " + (message || errors));
     }).done(function () {
-      $(window).trigger("danbooru:notice", `Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`);
+      E621.Flash.notice(`Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`);
     });
   }, { name: "PostSet.add_many_posts" });
 };
@@ -90,7 +90,7 @@ PostSet.remove_post = function (set_id, post_id) {
     removePostCache[set_id] = cache;
   }
   cache.add(post_id);
-  $(window).trigger("danbooru:notice", `Updating posts (${cache.size} pending)`);
+  E621.Flash.notice(`Updating posts (${cache.size} pending)`);
 
   // Queue up the request
   if (removePostTimeout) window.clearTimeout(removePostTimeout);
@@ -123,9 +123,9 @@ PostSet.remove_many_posts = function (set_id, posts = []) {
       const data = response.responseJSON;
       const errors = $.map(data.errors, (msg) => msg).join("; "),
         message = data.message;
-      $(window).trigger("danbooru:error", "Error: " + (message || errors));
+      E621.Flash.error("Error: " + (message || errors));
     }).done(function () {
-      $(window).trigger("danbooru:notice", `Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`);
+      E621.Flash.notice(`Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`);
     });
   }, { name: "PostSet.remove_many_posts" });
 };

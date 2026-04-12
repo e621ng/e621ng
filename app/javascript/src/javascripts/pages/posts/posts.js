@@ -316,15 +316,15 @@ Post.initialize_links = function () {
           other_post_id: other_post_id,
         },
         success: function () {
-          $(window).trigger("danbooru:notice", "Successfully copied notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
+          E621.Flash.notice("Successfully copied notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
         },
         error: function (data) {
           if (data.status === 404) {
-            $(window).trigger("danbooru:error", "Error: Invalid destination post");
+            E621.Flash.error("Error: Invalid destination post");
           } else if (data.responseJSON && data.responseJSON.reason) {
-            $(window).trigger("danbooru:error", "Error: " + data.responseJSON.reason);
+            E621.Flash.error("Error: " + data.responseJSON.reason);
           } else {
-            $(window).trigger("danbooru:error", "There was an error copying notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
+            E621.Flash.error("There was an error copying notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
           }
         },
       });
@@ -681,14 +681,14 @@ Post.initialize_post_sections = function () {
 Post.notice_update = function (x) {
   if (x === "inc") {
     Post.pending_update_count += 1;
-    $(window).trigger("danbooru:notice", "Updating posts (" + Post.pending_update_count + " pending)...", true);
+    E621.Flash.notice("Updating posts (" + Post.pending_update_count + " pending)...", true);
   } else {
     Post.pending_update_count -= 1;
 
     if (Post.pending_update_count < 1) {
-      $(window).trigger("danbooru:notice", "Posts updated");
+      E621.Flash.notice("Posts updated");
     } else {
-      $(window).trigger("danbooru:notice", "Updating posts (" + Post.pending_update_count + " pending)...", true);
+      E621.Flash.notice("Updating posts (" + Post.pending_update_count + " pending)...", true);
     }
   }
 };
@@ -753,21 +753,21 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
       data: {commit: "Delete", reason: reason, from_flag: from_flag, move_favorites: move_favorites},
     }).fail(function (data) {
       if (data.status === 409) {
-        $(window).trigger("danbooru:notice", "Post already deleted.");
+        E621.Flash.notice("Post already deleted.");
         location.reload();
         return;
       }
       if (data.responseJSON && data.responseJSON.reason) {
-        $(window).trigger("danbooru:error", "Error: " + data.responseJSON.reason);
+        E621.Flash.error("Error: " + data.responseJSON.reason);
         error = true;
         return;
       }
 
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      $(window).trigger("danbooru:error", "Error: " + message);
+      E621.Flash.error("Error: " + message);
       error = true;
     }).done(function () {
-      $(window).trigger("danbooru:notice", "Deleted post.");
+      E621.Flash.notice("Deleted post.");
       if (reload_after_delete) {
         location.reload();
       } else {
@@ -789,9 +789,9 @@ Post.undelete = function (post_id, callback) {
     }).fail(function (data) {
       //      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
       const message = data.responseJSON.message;
-      $(window).trigger("danbooru:error", "Error: " + message);
+      E621.Flash.error("Error: " + message);
     }).done(function () {
-      $(window).trigger("danbooru:notice", "Undeleted post.");
+      E621.Flash.notice("Undeleted post.");
       $(`article.thumbnail[data-id="${post_id}"]`).attr("data-flags", "active");
       if (callback) callback();
     }).always(function () {
@@ -810,9 +810,9 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
       data: {approval: modApproval},
     }).fail(function (data) {
       const message = data.responseJSON.message;
-      $(window).trigger("danbooru:error", "Error: " + message);
+      E621.Flash.error("Error: " + message);
     }).done(function () {
-      $(window).trigger("danbooru:notice", "Unflagged post");
+      E621.Flash.notice("Unflagged post");
       if (callback) callback();
       if (reload) location.reload();
     }).always(function () {
@@ -836,9 +836,9 @@ Post.flag = function (post_id, reason_name, parent_id = null, reload = true, cal
       },
     }).fail(function (data) {
       const message = data.responseJSON.message;
-      $(window).trigger("danbooru:error", "Error: " + message);
+      E621.Flash.error("Error: " + message);
     }).done(function () {
-      $(window).trigger("danbooru:notice", "Flagged post");
+      E621.Flash.notice("Flagged post");
       if (callback) callback();
       if (reload) location.reload();
     }).always(function () {
@@ -865,9 +865,9 @@ Post.unapprove = function (post_id) {
       data: {post_id: post_id},
     }).fail(function (data) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      $(window).trigger("danbooru:error", "Error: " + message);
+      E621.Flash.error("Error: " + message);
     }).done(function () {
-      $(window).trigger("danbooru:notice", "Unapproved post.");
+      E621.Flash.notice("Unapproved post.");
       location.reload();
     }).always(function () {
       Post.notice_update("dec");
@@ -888,12 +888,12 @@ Post.destroy = function (post_id, reason) {
 Post.regenerate_image_samples = function (post_id) {
   $.post(`/moderator/post/posts/${post_id}/regenerate_thumbnails.json`, {},
   ).fail(data => {
-    Utility.error("Error: " + data.responseJSON.reason);
+    E621.Flash.error("Error: " + data.responseJSON.reason);
   }).done(() => {
     if ($("#image-container").data("size") >= 10 * 1024 * 1024) {
-      Utility.notice("Large file: Image samples will be regenerated soon.");
+      E621.Flash.notice("Large file: Image samples will be regenerated soon.");
     } else {
-      Utility.notice("Image samples regenerated successfully.");
+      E621.Flash.notice("Image samples regenerated successfully.");
     }
   });
 };
@@ -901,9 +901,9 @@ Post.regenerate_image_samples = function (post_id) {
 Post.regenerate_video_samples = function (post_id) {
   $.post(`/moderator/post/posts/${post_id}/regenerate_videos.json`, {},
   ).fail(data => {
-    Utility.error("Error: " + data.responseJSON.reason);
+    E621.Flash.error("Error: " + data.responseJSON.reason);
   }).done(() => {
-    Utility.notice("Video samples will be regenerated in a few minutes.");
+    E621.Flash.notice("Video samples will be regenerated in a few minutes.");
   });
 };
 
@@ -915,14 +915,14 @@ Post.approve = function (post_id, callback) {
       { "post_id": post_id },
     ).fail(function (data) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      Danbooru.error("Error: " + message);
+      E621.Flash.error("Error: " + message);
     }).done(function () {
       var $post = $(`article.thumbnail[data-id="${post_id}"]`).first();
       if ($post.length) {
         $post.data("flags", $post.data("flags").replace(/pending/, ""));
         $post.removeClass("pending");
         $post.attr("data-border-states", (parseInt($post.attr("data-border-states")) || 1) - 1);
-        Danbooru.notice("Approved post #" + post_id);
+        E621.Flash.notice("Approved post #" + post_id);
       }
       if (callback) {
         callback();
@@ -993,7 +993,7 @@ Post.set_as_avatar = function (id) {
         accept: "*/*;q=0.5,text/javascript",
       },
     }).done(function () {
-      $(window).trigger("danbooru:notice", "Post set as avatar");
+      E621.Flash.notice("Post set as avatar");
     });
   }, { name: "Post.set_as_avatar" });
 };

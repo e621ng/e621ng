@@ -18,6 +18,7 @@
     "@eslint/js": "^9.36.0",
     "@rollup/plugin-inject": "^5.0.5",
     "@stylistic/eslint-plugin": "^5.4.0",
+    "@types/jquery": "^4.0.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "eslint": "^9.36.0",
     "globals": "^15.8.0",

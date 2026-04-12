@@ -30,7 +30,7 @@ class UserWarnable {
         this.reinitialize_click_handlers();
         $(window).trigger("e621:warnable:reinitialize");
       }).fail(() => {
-        Utility.error("Failed to mark as warned.");
+        E621.Flash.error("Failed to mark as warned.");
       });
     });
   }

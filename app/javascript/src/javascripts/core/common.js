@@ -47,7 +47,7 @@ $(function () {
     }).done(() => {
       location.reload();
     }).fail(() => {
-      Danbooru.error("Failed to revert to specified version.");
+      E621.Flash.error("Failed to revert to specified version.");
     });
   });
 

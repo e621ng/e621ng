@@ -177,7 +177,7 @@ export default class User {
         return Promise.resolve();
       },
       (error) => {
-        Danbooru.error(error);
+        E621.Flash.error(error);
         return Promise.reject();
       },
     );

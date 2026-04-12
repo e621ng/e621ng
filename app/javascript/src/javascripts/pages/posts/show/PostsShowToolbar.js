@@ -52,9 +52,9 @@ export default class PostsShowToolbar {
       const button = $(event.currentTarget);
       const value = button.data("value");
       navigator.clipboard.writeText(value).then(() => {
-        Utility.notice("Link copied to clipboard.");
+        E621.Flash.notice("Link copied to clipboard.");
       }).catch((e) => {
-        Utility.error("Failed to copy link to clipboard.", e);
+        E621.Flash.error("Failed to copy link to clipboard.", e);
       });
     });
   }
@@ -86,15 +86,15 @@ export default class PostsShowToolbar {
 
   initVotingHotkeys () {
     Hotkeys.register("upvote", () => {
-      Utility.notice("Updating post...");
+      E621.Flash.notice("Updating post...");
       PostsShowToolbar.vote(1).then(() => {
-        Utility.notice("Post upvoted.");
+        E621.Flash.notice("Post upvoted.");
       });
     });
     Hotkeys.register("downvote", () => {
-      Utility.notice("Updating post...");
+      E621.Flash.notice("Updating post...");
       PostsShowToolbar.vote(-1).then(() => {
-        Utility.notice("Post downvoted.");
+        E621.Flash.notice("Post downvoted.");
       });
     });
   }
@@ -144,22 +144,22 @@ export default class PostsShowToolbar {
     const imageEl = $("#image-container");
 
     Hotkeys.register("favorite", () => {
-      Utility.notice("Updating post...");
+      E621.Flash.notice("Updating post...");
       if (imageEl.attr("data-is-favorited") == "true")
-        PostsShowToolbar.deleteFavorite().then(() => Utility.notice("Favorite removed."));
-      else PostsShowToolbar.addFavorite().then(() => Utility.notice("Favorite added."));
+        PostsShowToolbar.deleteFavorite().then(() => E621.Flash.notice("Favorite removed."));
+      else PostsShowToolbar.addFavorite().then(() => E621.Flash.notice("Favorite added."));
     });
 
     Hotkeys.register("favorite-add", () => {
       if (imageEl.attr("data-is-favorited") == "true") return;
-      Utility.notice("Updating post...");
-      PostsShowToolbar.addFavorite().then(() => Utility.notice("Favorite added."));
+      E621.Flash.notice("Updating post...");
+      PostsShowToolbar.addFavorite().then(() => E621.Flash.notice("Favorite added."));
     });
 
     Hotkeys.register("favorite-del", () => {
       if (imageEl.attr("data-is-favorited") == "false") return;
-      Utility.notice("Updating post...");
-      PostsShowToolbar.deleteFavorite().then(() => Utility.notice("Favorite removed."));
+      E621.Flash.notice("Updating post...");
+      PostsShowToolbar.deleteFavorite().then(() => E621.Flash.notice("Favorite removed."));
     });
   }
 
@@ -216,7 +216,7 @@ export default class PostsShowToolbar {
           button[0].click();
         })
         .catch(e => {
-          Utility.error("Failed to download post file.", e);
+          E621.Flash.error("Failed to download post file.", e);
           button.attr("pending", "false");
         })
         .finally(() => {

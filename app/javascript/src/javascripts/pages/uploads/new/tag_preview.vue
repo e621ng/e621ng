@@ -120,7 +120,7 @@ export default {
         error: (result) => {
           this.loading = false;
           let details = result.responseText || "Unknown error";
-          Danbooru.error("Error loading tag preview: " + details);
+          E621.Flash.error("Error loading tag preview: " + details);
           console.error("Tag preview error:", result);
         },
       });

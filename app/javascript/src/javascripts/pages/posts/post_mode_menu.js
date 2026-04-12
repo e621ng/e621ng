@@ -30,7 +30,7 @@ PostModeMenu.initialize_shortcuts = function () {
 };
 
 PostModeMenu.show_notice = function (i) {
-  Utility.notice("Switched to tag script #" + i + ". To switch tag scripts, use the number keys.");
+  E621.Flash.notice("Switched to tag script #" + i + ". To switch tag scripts, use the number keys.");
 };
 
 PostModeMenu.change_tag_script = function (key) {
@@ -82,7 +82,7 @@ PostModeMenu.initialize_edit_form = function () {
       },
       success: function (data) {
         Post.update_data(data);
-        Utility.notice("Post #" + data.post.id + " updated");
+        E621.Flash.notice("Post #" + data.post.id + " updated");
         PostModeMenu.close_edit_form();
       },
     });
@@ -188,24 +188,24 @@ PostModeMenu.click = function (e) {
   if (s === "add-fav") {
     Post.notice_update("inc");
     Favorite.create(post_id)
-      .then(() => { $(window).trigger("danbooru:notice", "Favorite added"); })
+      .then(() => { E621.Flash.notice("Favorite added"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "remove-fav") {
     Post.notice_update("inc");
     Favorite.destroy(post_id)
-      .then(() => { $(window).trigger("danbooru:notice", "Favorite removed"); })
+      .then(() => { E621.Flash.notice("Favorite removed"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "edit") {
     PostModeMenu.open_edit(post_id);
   } else if (s === "vote-down") {
     Post.notice_update("inc");
     PostVote.vote(post_id, -1, true)
-      .then(() => { $(window).trigger("danbooru:notice", "Vote saved"); })
+      .then(() => { E621.Flash.notice("Vote saved"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "vote-up") {
     Post.notice_update("inc");
     PostVote.vote(post_id, 1, true)
-      .then(() => { $(window).trigger("danbooru:notice", "Vote saved"); })
+      .then(() => { E621.Flash.notice("Vote saved"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "add-to-set") {
     PostSet.add_post($("#set-id").val(), post_id);

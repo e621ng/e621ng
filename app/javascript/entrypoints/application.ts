@@ -25,24 +25,24 @@ import "@/core/user_warning"; // Realistically, should only be on specific pages
 import LStorage from "@/utility/storage";
 import Settings from "@/utility/settings";
 import Blacklist from "@/core/blacklists";
-import Logger from "@/components/debug_logger";
-
-function inError (message: string) {
-  $(window).trigger("danbooru:error", message);
-}
-
-function inNotice (message: string) {
-  $(window).trigger("danbooru:notice", message);
-}
+import Flash from "@/components/Flash";
+import Logger from "@/components/Logger";
 
 window["E621"] = {
   LStorage,
   Settings,
   Blacklist,
   Logger,
-  error: inError,
-  notice: inNotice,
-};
+  Flash,
+} as E621Type;
 window["Danbooru"] = window["E621"];
 
 Logger.log("Initialized");
+
+interface E621Type {
+  LStorage: typeof LStorage;
+  Settings: typeof Settings;
+  Blacklist: typeof Blacklist;
+  Logger: typeof Logger;
+  Flash: typeof Flash;
+}

@@ -18,10 +18,10 @@ class TagRelationships {
       type: "POST",
       dataType: "json",
     }).done(function () {
-      Utility.notice(`Accepted ${human}.`);
+      E621.Flash.notice(`Accepted ${human}.`);
       parent.slideUp("fast");
     }).fail(function () {
-      Utility.error(`Failed to accept ${human}.`);
+      E621.Flash.error(`Failed to accept ${human}.`);
     });
   }
 
@@ -42,10 +42,10 @@ class TagRelationships {
       type: "DELETE",
       dataType: "json",
     }).done(function () {
-      Utility.notice(`Rejected ${human}.`);
+      E621.Flash.notice(`Rejected ${human}.`);
       parent.slideUp("fast");
     }).fail(function () {
-      Utility.error(`Failed to reject ${human}.`);
+      E621.Flash.error(`Failed to reject ${human}.`);
     });
   }
 }

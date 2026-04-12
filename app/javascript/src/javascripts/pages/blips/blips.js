@@ -32,7 +32,7 @@ Blip.quote = function (e) {
 
     $('#blip_response_to')[0].value = blipId;
   }).fail(function (data) {
-    Utility.error(data.responseText);
+    E621.Flash.error(data.responseText);
   });
 };
 

@@ -45,12 +45,12 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
     dataType: "html",
   })
     .done((html) => {
-      Utility.notice("Replacement approved.");
+      E621.Flash.notice("Replacement approved.");
       $row.replaceWith(html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to approve the replacement.";
-      Utility.error(msg);
+      E621.Flash.error(msg);
       revert_processing($row);
     });
 };
@@ -65,12 +65,12 @@ PostReplacement.reject = function (id) {
     dataType: "html",
   })
     .done((html) => {
-      Utility.notice("Replacement rejected.");
+      E621.Flash.notice("Replacement rejected.");
       $row.replaceWith(html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to reject the replacement.";
-      Utility.error(msg);
+      E621.Flash.error(msg);
       revert_processing($row);
     });
 };
@@ -85,12 +85,12 @@ PostReplacement.promote = function (id) {
     dataType: "html",
   })
     .done((html) => {
-      Utility.notice("Replacement promoted to a new post.");
+      E621.Flash.notice("Replacement promoted to a new post.");
       $row.replaceWith(html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to promote the replacement.";
-      Utility.error(msg);
+      E621.Flash.error(msg);
       revert_processing($row);
     });
 };
@@ -104,12 +104,12 @@ PostReplacement.toggle_penalize = function ($target) {
     dataType: "html",
   })
     .done((html) => {
-      Utility.notice("Penalization toggled.");
+      E621.Flash.notice("Penalization toggled.");
       $(`#replacement-${id}`).replaceWith(html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to toggle penalization.";
-      Utility.error(msg);
+      E621.Flash.error(msg);
       $target.removeClass("disabled-link");
     });
 };
@@ -124,12 +124,12 @@ PostReplacement.destroy = function (id) {
     dataType: "html",
   })
     .done(() => {
-      Utility.notice("Replacement destroyed.");
+      E621.Flash.notice("Replacement destroyed.");
       $row.remove();
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to destroy the replacement.";
-      Utility.error(msg);
+      E621.Flash.error(msg);
       revert_processing($row);
     });
 };

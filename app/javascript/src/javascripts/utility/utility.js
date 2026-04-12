@@ -16,30 +16,6 @@ Utility.test_max_width = function (width) {
   return mq.matches;
 };
 
-Utility.notice_timeout_id = undefined;
-
-Utility.notice = function (msg, permanent) {
-  $("#notice").addClass("ui-state-highlight").removeClass("ui-state-error").fadeIn("fast").children("span").html(msg);
-
-  if (Utility.notice_timeout_id !== undefined) {
-    clearTimeout(Utility.notice_timeout_id);
-  }
-  if (!permanent) {
-    Utility.notice_timeout_id = setTimeout(function () {
-      $("#close-notice-link").click();
-      Utility.notice_timeout_id = undefined;
-    }, 3000);
-  }
-};
-
-Utility.error = function (msg) {
-  $("#notice").removeClass("ui-state-highlight").addClass("ui-state-error").fadeIn("fast").children("span").html(msg);
-
-  if (Utility.notice_timeout_id !== undefined) {
-    clearTimeout(Utility.notice_timeout_id);
-  }
-};
-
 Utility.is_subset = function (array, subarray) {
   var all = true;
 
@@ -98,15 +74,5 @@ $.fn.selectEnd = function () {
     this.setSelectionRange(this.value.length, this.value.length);
   });
 };
-
-$(function () {
-  $(window).on("danbooru:notice", function (event, msg) {
-    Utility.notice(msg);
-  });
-
-  $(window).on("danbooru:error", function (event, msg) {
-    Utility.error(msg);
-  });
-});
 
 export default Utility;
