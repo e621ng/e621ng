@@ -44,7 +44,7 @@ class UserVote < ApplicationRecord
       q = super
 
       if params["#{model_type}_id"].present?
-        q = q.where("#{model_type}_id" => params["#{model_type}_id"].split(",").first(CurrentUser.request_limit))
+        q = q.where("#{model_type}_id" => params["#{model_type}_id"].split(",").first(Danbooru.config.max_per_page))
       end
 
       q = q.where_user(:user_id, :user, params)
