@@ -7,9 +7,6 @@ Rails.start();
 
 // Common imports for all controllers
 import Autocomplete from "@/components/autocomplete";
-import Flash from "@/components/Flash";
-import Logger from "@/components/Logger";
-import ModuleRegistry from "@/components/ModuleRegistry";
 import "@/core/analytics";
 import Blacklist from "@/core/blacklists";
 import "@/core/common";
@@ -24,6 +21,9 @@ import Thumbnails from "@/core/thumbnails";
 import "@/core/tos_warning";
 import "@/core/user_warning"; // Realistically, should only be on specific pages
 import E621Type from "@/interfaces/E621";
+import Flash from "@/utility/Flash";
+import Logger from "@/utility/Logger";
+import ModuleRegistry from "@/utility/ModuleRegistry";
 import Settings from "@/utility/settings";
 import LStorage from "@/utility/storage";
 

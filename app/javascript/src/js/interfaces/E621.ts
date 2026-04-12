@@ -1,7 +1,7 @@
-import Flash from "@/components/Flash";
-import Logger from "@/components/Logger";
-import ModuleRegistry from "@/components/ModuleRegistry";
 import Blacklist from "@/core/blacklists";
+import Flash from "@/utility/Flash";
+import Logger from "@/utility/Logger";
+import ModuleRegistry from "@/utility/ModuleRegistry";
 import Settings from "@/utility/settings";
 import LStorage from "@/utility/storage";
 

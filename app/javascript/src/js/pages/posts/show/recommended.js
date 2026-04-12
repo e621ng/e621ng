@@ -3,7 +3,7 @@ import SVGIcon from "@/utility/svg_icon";
 import LStorage from "@/utility/storage";
 import Blacklist from "@/core/blacklists";
 import Analytics from "@/core/analytics";
-import Logger from "@/components/Logger";
+import Logger from "@/utility/Logger";
 
 const Recommended = {};
 
