@@ -15,7 +15,6 @@ import Hotkeys from "@/core/hotkeys";
 import "@/core/navigation";
 import "@/core/news_updates";
 import "@/core/paginator";
-import "@/core/password";
 import "@/core/themes";
 import Thumbnails from "@/core/thumbnails";
 import "@/core/tos_warning";

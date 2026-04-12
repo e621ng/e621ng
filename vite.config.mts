@@ -31,13 +31,6 @@ export default defineConfig({
     assetsInlineLimit: 0,
     // Relatively modern browser support is required
     target: "es2018",
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          zxcvbn: ['zxcvbn'],
-        }
-      },
-    },
   },
   css: {
     preprocessorOptions: {
