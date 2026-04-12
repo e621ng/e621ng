@@ -15,8 +15,13 @@ export default class Logger {
     Logger._instance.log(...args);
   }
 
-  public static loaded (value: string): void {
-    console.log(`\x1B[97;48;2;${30};${60};${100}mE6NG\x1B[m Loaded: \x1B[94m${value}\x1B[m`);
+  public static loaded (value: string, exports = 0): void {
+    const message = [
+      `\x1B[97;48;2;30;60;100mE6NG\x1B[m`,
+      `Loaded: \x1B[94m${value}\x1B[m`,
+    ];
+    if (exports) message.push(`(${exports} exports)`);
+    console.log(message.join(" "));
   }
 
 

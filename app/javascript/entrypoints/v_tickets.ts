@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/tickets/ticket_report_form";
 
-E621.Logger.loaded("v_tickets");
+E621.Registry.register("v_tickets");

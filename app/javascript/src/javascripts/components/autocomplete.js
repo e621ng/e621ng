@@ -776,4 +776,8 @@ class Autocompleter {
   }
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  Autocomplete.initialize_all();
+});
+
 export default Autocomplete;

@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/blips/blips.js";
 
-E621.Logger.loaded("v_blips");
+E621.Registry.register("v_blips");

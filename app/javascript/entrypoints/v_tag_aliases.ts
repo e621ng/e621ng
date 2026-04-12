@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/tag_aliases/tag_relationships";
 
-E621.Logger.loaded("v_tag_aliases");
+E621.Registry.register("v_tag_aliases");

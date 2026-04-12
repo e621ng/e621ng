@@ -5,7 +5,7 @@ declare const E621: E621Type;
 
 import "@/pages/comments/comments";
 import "@/pages/posts/show/mod_queue";
-import "@/pages/posts/show/notes";
+import Note from "@/pages/posts/show/notes";
 import "@/pages/posts/show/post_sets";
 import "@/pages/posts/show/PostsShowToolbar";
 import "@/pages/posts/show/recommended";
@@ -13,4 +13,4 @@ import "@/pages/posts/show/related_tag";
 
 import "@/pages/post_flags/post_flags"; // We only need expandable notes from here
 
-E621.Logger.loaded("v_posts_show");
+E621.Registry.register("v_posts_show", { Note });

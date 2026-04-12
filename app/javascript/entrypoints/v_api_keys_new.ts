@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/api_keys/new/api_keys";
 
-E621.Logger.loaded("v_api_keys_new");
+E621.Registry.register("v_api_keys_new");

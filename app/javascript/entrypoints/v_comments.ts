@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/comments/comments";
 
-E621.Logger.loaded("v_comments");
+E621.Registry.register("v_comments");

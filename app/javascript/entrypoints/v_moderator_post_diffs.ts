@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/moderator/post_diffs/post_diff";
 
-E621.Logger.loaded("v_moderator_post_diffs");
+E621.Registry.register("v_moderator_post_diffs");

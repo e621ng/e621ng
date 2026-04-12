@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/post_replacements/new/replacer";
 
-E621.Logger.loaded("v_post_replacements_new");
+E621.Registry.register("v_post_replacements_new");

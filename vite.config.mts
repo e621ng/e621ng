@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
-import { fileURLToPath, URL } from 'node:url'
-import RubyPlugin from 'vite-plugin-ruby'
-import vue from '@vitejs/plugin-vue'
 import inject from '@rollup/plugin-inject'
+import vue from '@vitejs/plugin-vue'
+import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite'
+import RubyPlugin from 'vite-plugin-ruby'
 
 export default defineConfig({
   resolve: {
@@ -31,6 +31,13 @@ export default defineConfig({
     assetsInlineLimit: 0,
     // Relatively modern browser support is required
     target: "es2018",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          zxcvbn: ['zxcvbn'],
+        }
+      },
+    },
   },
   css: {
     preprocessorOptions: {

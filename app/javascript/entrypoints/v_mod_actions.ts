@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/mod_actions/mod_actions";
 
-E621.Logger.loaded("v_mod_actions");
+E621.Registry.register("v_mod_actions");

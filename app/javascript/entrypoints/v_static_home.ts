@@ -6,4 +6,4 @@ declare const E621: E621Type;
 import "@/pages/static/home/home";
 import "@/pages/static/home/mascots";
 
-E621.Logger.loaded("v_static_home");
+E621.Registry.register("v_static_home");

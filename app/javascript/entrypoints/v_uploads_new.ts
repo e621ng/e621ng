@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/uploads/new/uploader";
 
-E621.Logger.loaded("v_uploads_new");
+E621.Registry.register("v_uploads_new");

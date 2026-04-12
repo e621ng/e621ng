@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/post_votes/vote_manager";
 
-E621.Logger.loaded("v_post_votes");
+E621.Registry.register("v_post_votes");

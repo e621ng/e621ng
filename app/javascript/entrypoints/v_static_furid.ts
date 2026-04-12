@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/pages/static/furid/furid";
 
-E621.Logger.loaded("v_static_furid");
+E621.Registry.register("v_static_furid");

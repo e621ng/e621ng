@@ -5,4 +5,4 @@ declare const E621: E621Type;
 
 import "@/components/tabs";
 
-E621.Logger.loaded("v_users_edit");
+E621.Registry.register("v_users_edit");
