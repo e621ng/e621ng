@@ -1,7 +1,7 @@
-import Page from "./utility/page";
-import LStorage from "./utility/storage";
-import TaskQueue from "./utility/task_queue";
-import Dialog from "./utility/dialog";
+import Page from "@/utility/page";
+import LStorage from "@/utility/storage";
+import TaskQueue from "@/utility/task_queue";
+import Dialog from "@/utility/dialog";
 
 let PostSet = {};
 

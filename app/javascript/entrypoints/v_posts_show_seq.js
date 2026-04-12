@@ -1,4 +1,4 @@
-// posts # show
+// posts # show_seq
 
 window.E621.vLogger = new E621.Logger("Posts", "ShowSeq");
 

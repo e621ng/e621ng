@@ -1,7 +1,4 @@
-import Blip from "./pages/blips/blips.js";
-import Comment from "./pages/comments/comments.js";
-import ForumPost from "./forum_posts.js";
-import Utility from "./utility/utility.js";
+import Utility from "@/utility/utility.js";
 
 class UserWarnable {
   static initialize_click_handlers () {
@@ -31,9 +28,7 @@ class UserWarnable {
         $(window).trigger("e621:add_deferred_posts", data.posts);
 
         this.reinitialize_click_handlers();
-        Blip.reinitialize_all();
-        Comment.reinitialize_all();
-        ForumPost.reinitialize_all();
+        $(window).trigger("e621:warnable:reinitialize");
       }).fail(() => {
         Utility.error("Failed to mark as warned.");
       });

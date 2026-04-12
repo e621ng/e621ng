@@ -1,4 +1,4 @@
-// posts # show
+// pools # show
 
 window.E621.vLogger = new E621.Logger("Pools");
 

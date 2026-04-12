@@ -1,6 +1,6 @@
-import LStorage from "./utility/storage";
-import Page from "./utility/page";
-import Offclick from "./utility/offclick";
+import LStorage from "@/utility/storage";
+import Page from "@/utility/page";
+import Offclick from "@/utility/offclick";
 
 const PostSearch = {};
 

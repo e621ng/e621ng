@@ -10,6 +10,7 @@ import "@/core/analytics.js";
 import "@/core/autocomplete_loader.js";
 import "@/core/common.js";
 import "@/core/dtext_formatter_loader.js";
+import "@/core/forum_topics.js"; // This is bad, see file for details.
 import "@/core/hotkeys.js";
 import "@/core/navigation.js";
 import "@/core/news_updates.js";
@@ -18,6 +19,7 @@ import "@/core/password.js";
 import "@/core/themes.js";
 import "@/core/thumbnails.js";
 import "@/core/tos_warning.js";
+import "@/core/user_warning.js"; // Realistically, should only be on specific pages
 
 // Exported to window.E621 for debugging and legacy support.
 import LStorage from "@/utility/storage.js";

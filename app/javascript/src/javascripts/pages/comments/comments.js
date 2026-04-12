@@ -205,6 +205,7 @@ Comment.vote = function (id, score) {
 
 $(document).ready(function () {
   Comment.initialize_all();
+  $(window).on("e621:warnable:reinitialize", Comment.reinitialize_all);
 });
 
 export default Comment;

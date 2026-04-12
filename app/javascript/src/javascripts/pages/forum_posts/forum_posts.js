@@ -1,5 +1,5 @@
-import Utility from "./utility/utility";
-import TextUtils from "./utility/text_util";
+import Utility from "@/utility/utility";
+import TextUtils from "@/utility/text_util";
 
 let ForumPost = {};
 
@@ -156,6 +156,7 @@ ForumPost.unhide = function (e) {
 
 $(document).ready(function () {
   ForumPost.initialize_all();
+  $(window).on("e621:warnable:reinitialize", ForumPost.reinitialize_all);
 });
 
 export default ForumPost;

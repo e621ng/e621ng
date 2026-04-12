@@ -53,6 +53,7 @@ Blip.reinitialize_all = function () {
 
 $(function () {
   Blip.initialize_all();
+  $(window).on("e621:warnable:reinitialize", Blip.reinitialize_all);
 });
 
 export default Blip;
