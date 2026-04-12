@@ -253,13 +253,13 @@ module ApplicationHelper
                           .freeze
 
   def vite_script_for_controller
-    name = "v_#{params[:controller].parameterize.underscore}"
+    name = "v-#{params[:controller].parameterize.underscore}"
     return unless VITE_ENTRYPOINTS.include?(name)
     vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
   end
 
   def vite_script_for_controller_and_action
-    name = "v_#{params[:controller].parameterize.underscore}_#{params[:action].parameterize.underscore}"
+    name = "v-#{params[:controller].parameterize.underscore}-#{params[:action].parameterize.underscore}"
     return unless VITE_ENTRYPOINTS.include?(name)
     vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
   end

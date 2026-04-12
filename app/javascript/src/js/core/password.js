@@ -17,6 +17,7 @@ Password.init_validation = function () {
 Password.bootstrap_input = async function ($password, $inputs = []) {
   // Lazy load zxcvbn library only when needed (saves ~400KB in main bundle)
   if (!zxcvbn) {
+    console.log("Loading password strength library...");
     const module = await import("zxcvbn");
     zxcvbn = module.default;
   }
