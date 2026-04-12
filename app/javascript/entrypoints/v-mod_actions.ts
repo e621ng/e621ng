@@ -1,8 +1,8 @@
 // mod_actions
 
-import E621Type from "../src/js/interfaces/E621";
+import E621Type from "@/interfaces/E621";
 declare const E621: E621Type;
 
-import "../src/js/pages/mod_actions/mod_actions";
+import "@/pages/mod_actions/mod_actions";
 
-E621.Registry.register("v_mod_actions");
+E621.Registry.register("v-mod_actions");

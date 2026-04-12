@@ -1,5 +1,5 @@
-import Utility from "../../utility/utility";
-import TextUtils from "../../utility/text_util";
+import Utility from "@/utility/utility";
+import TextUtils from "@/utility/text_util";
 
 let ForumPost = {};
 

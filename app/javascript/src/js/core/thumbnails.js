@@ -1,5 +1,5 @@
-import Blacklist from "./blacklists";
-import PostCache from "../models/PostCache";
+import Blacklist from "@/core/blacklists";
+import PostCache from "@/models/PostCache";
 
 const Thumbnails = {};
 

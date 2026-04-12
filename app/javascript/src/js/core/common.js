@@ -1,4 +1,4 @@
-import Cookie from "../utility/cookie";
+import Cookie from "@/utility/cookie";
 
 function initSearch () {
   const $searchForm = $("#searchform");

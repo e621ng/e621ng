@@ -1,10 +1,10 @@
-import Utility from "../../utility/utility";
+import Utility from "@/utility/utility";
 import ZingTouch from "zingtouch";
-import Hotkeys from "../../core/hotkeys";
-import LStorage from "../../utility/storage";
-import TaskQueue from "../../utility/task_queue";
-import PostVote from "../../models/PostVote";
-import Page from "../../utility/page";
+import Hotkeys from "@/core/hotkeys";
+import LStorage from "@/utility/storage";
+import TaskQueue from "@/utility/task_queue";
+import PostVote from "@/models/PostVote";
+import Page from "@/utility/page";
 
 let Post = {};
 

@@ -1,10 +1,10 @@
-import Filter from "../models/Filter";
-import PostCache from "../models/PostCache";
-import User from "../models/User";
-import Utility from "../utility/utility";
-import Dialog from "../utility/dialog";
-import Page from "../utility/page";
-import LStorage from "../utility/storage";
+import Filter from "@/models/Filter";
+import PostCache from "@/models/PostCache";
+import User from "@/models/User";
+import Utility from "@/utility/utility";
+import Dialog from "@/utility/dialog";
+import Page from "@/utility/page";
+import LStorage from "@/utility/storage";
 
 let Blacklist = {};
 

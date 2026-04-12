@@ -1,5 +1,5 @@
-import User from "../models/User";
-import StorageUtils from "../utility/storage_util";
+import User from "@/models/User";
+import StorageUtils from "@/utility/storage_util";
 
 export default class Hotkeys {
 

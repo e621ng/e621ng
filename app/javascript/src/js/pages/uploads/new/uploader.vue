@@ -245,8 +245,8 @@
   import fileInput from './file_input.vue';
   import parentPostInput from './parent_post_input.vue';
   import artistTagInput from './artist_tag_input.vue';
-  import Autocomplete from "../../../components/autocomplete.js";
-  import DTextFormatter from "../../../components/dtext_formatter.js";
+  import Autocomplete from "@/components/autocomplete.js";
+  import DTextFormatter from "@/components/dtext_formatter.js";
   
   const sex_checks = [
     {name: 'Male'},

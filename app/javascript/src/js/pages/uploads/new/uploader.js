@@ -1,4 +1,4 @@
-import Page from "../../../utility/page.js";
+import Page from "@/utility/page.js";
 import $ from "jquery";
 
 const UploaderModule = {

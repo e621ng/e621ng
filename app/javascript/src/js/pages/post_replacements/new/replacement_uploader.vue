@@ -50,7 +50,7 @@ import autocompletableInput from "@/components/autocompletable_input.vue";
 import filePreview from "@/pages/uploads/new/file_preview.vue";
 import fileInput from "@/pages/uploads/new/file_input.vue";
 import sources from "@/pages/uploads/new/sources.vue";
-import Utility from "../../../utility/utility";
+import Utility from "@/utility/utility";
 
 export default {
   components: {

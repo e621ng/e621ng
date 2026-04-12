@@ -1,6 +1,6 @@
-import LStorage from "../utility/storage";
-import Blacklist from "../core/blacklists";
-import PostCache from "./PostCache";
+import LStorage from "@/utility/storage";
+import Blacklist from "@/core/blacklists";
+import PostCache from "@/models/PostCache";
 
 export default class User {
 

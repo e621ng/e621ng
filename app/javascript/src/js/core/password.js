@@ -1,4 +1,4 @@
-import Page from "../utility/page";
+import Page from "@/utility/page";
 
 let Password = {};
 let zxcvbn = null;

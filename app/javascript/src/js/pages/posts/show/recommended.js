@@ -1,9 +1,9 @@
-import Page from "../../../utility/page";
-import SVGIcon from "../../../utility/svg_icon";
-import LStorage from "../../../utility/storage";
-import Blacklist from "../../../core/blacklists";
-import Analytics from "../../../core/analytics";
-import Logger from "../../../components/Logger";
+import Page from "@/utility/page";
+import SVGIcon from "@/utility/svg_icon";
+import LStorage from "@/utility/storage";
+import Blacklist from "@/core/blacklists";
+import Analytics from "@/core/analytics";
+import Logger from "@/components/Logger";
 
 const Recommended = {};
 

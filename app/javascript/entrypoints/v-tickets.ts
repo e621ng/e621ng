@@ -1,8 +1,8 @@
 // tickets
 
-import E621Type from "../src/js/interfaces/E621";
+import E621Type from "@/interfaces/E621";
 declare const E621: E621Type;
 
-import "../src/js/pages/tickets/ticket_report_form";
+import "@/pages/tickets/ticket_report_form";
 
-E621.Registry.register("v_tickets");
+E621.Registry.register("v-tickets");

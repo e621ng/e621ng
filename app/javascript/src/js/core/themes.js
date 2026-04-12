@@ -1,5 +1,5 @@
-import Page from "../utility/page";
-import LStorage from "../utility/storage";
+import Page from "@/utility/page";
+import LStorage from "@/utility/storage";
 
 const Theme = {};
 

@@ -1,4 +1,4 @@
-import Utility from "../utility/utility.js";
+import Utility from "@/utility/utility.js";
 
 class UserWarnable {
   static initialize_click_handlers () {

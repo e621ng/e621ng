@@ -1,15 +1,15 @@
-import Utility from "../../utility/utility";
-import Post from "./posts";
-import Favorite from "../../models/Favorite";
-import PostSet from "./show/post_sets";
-import TagScript from "../../models/tag_script";
+import Utility from "@/utility/utility";
+import Post from "@/pages/posts/posts";
+import Favorite from "@/models/Favorite";
+import PostSet from "@/pages/posts/show/post_sets";
+import TagScript from "@/models/tag_script";
 import Rails from "@rails/ujs";
-import Hotkeys from "../../core/hotkeys";
-import LStorage from "../../utility/storage";
-import TaskQueue from "../../utility/task_queue";
-import PostVote from "../../models/PostVote";
-import User from "../../models/User";
-import Autocomplete from "../../components/autocomplete";
+import Hotkeys from "@/core/hotkeys";
+import LStorage from "@/utility/storage";
+import TaskQueue from "@/utility/task_queue";
+import PostVote from "@/models/PostVote";
+import User from "@/models/User";
+import Autocomplete from "@/components/autocomplete";
 
 let PostModeMenu = {};
 

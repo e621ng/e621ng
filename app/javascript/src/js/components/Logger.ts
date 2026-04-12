@@ -20,7 +20,7 @@ export default class Logger {
       `\x1B[97;48;2;30;60;100mE6NG\x1B[m`,
       `Loaded: \x1B[94m${value}\x1B[m`,
     ];
-    if (exports) message.push(`(${exports} exports)`);
+    if (exports) message.push(`\n\tExports: ${exports}`);
     console.log(message.join(" "));
   }
 

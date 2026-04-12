@@ -248,7 +248,7 @@ module ApplicationHelper
     end
   end
 
-  VITE_ENTRYPOINTS = Rails.root.glob("app/javascript/entrypoints/v_*.ts")
+  VITE_ENTRYPOINTS = Rails.root.glob("app/javascript/entrypoints/v-*.ts")
                           .to_set { |f| File.basename(f, ".ts") }
                           .freeze
 

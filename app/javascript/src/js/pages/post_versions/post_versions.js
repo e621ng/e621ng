@@ -1,6 +1,5 @@
-import Utility from "../../utility/utility";
-import Post from "../posts/posts";
-import TaskQueue from "../../utility/task_queue";
+import Post from "@/pages/posts/posts";
+import TaskQueue from "@/utility/task_queue";
 
 let PostVersion = {};
 

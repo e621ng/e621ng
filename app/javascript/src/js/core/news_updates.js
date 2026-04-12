@@ -1,4 +1,4 @@
-import LStorage from "../utility/storage";
+import LStorage from "@/utility/storage";
 
 let NewsUpdate = {};
 

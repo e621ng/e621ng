@@ -1,4 +1,4 @@
-import E621Type from "../interfaces/E621";
+import E621Type from "@/interfaces/E621";
 declare const E621: E621Type;
 
 export default class ModuleRegistry {

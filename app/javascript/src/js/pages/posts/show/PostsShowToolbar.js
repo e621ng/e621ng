@@ -1,11 +1,10 @@
-import Hotkeys from "../../../core/hotkeys";
-import Favorite from "../../../models/Favorite";
-import PostVote from "../../../models/PostVote";
-import NoteManager from "./notes";
-import Post from "../posts";
-import Utility from "../../../utility/utility";
-import Offclick from "../../../utility/offclick";
-import Page from "../../../utility/page";
+import Hotkeys from "@/core/hotkeys";
+import Favorite from "@/models/Favorite";
+import PostVote from "@/models/PostVote";
+import NoteManager from "@/pages/posts/show/notes";
+import Post from "@/pages/posts/posts";
+import Offclick from "@/utility/offclick";
+import Page from "@/utility/page";
 
 export default class PostsShowToolbar {
 

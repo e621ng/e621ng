@@ -1,6 +1,6 @@
-import Post from "../posts";
-import LStorage from "../../../utility/storage";
-import Dialog from "../../../utility/dialog";
+import Post from "@/pages/posts/posts";
+import LStorage from "@/utility/storage";
+import Dialog from "@/utility/dialog";
 
 let ModQueue = {};
 

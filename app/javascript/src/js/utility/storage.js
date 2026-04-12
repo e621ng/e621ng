@@ -1,4 +1,4 @@
-import StorageUtils from "./storage_util";
+import StorageUtils from "@/utility/storage_util";
 
 const LStorage = {};
 
