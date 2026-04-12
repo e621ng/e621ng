@@ -1,5 +1,3 @@
-import Utility from "@/utility/utility.js";
-
 let Takedown = {};
 
 Takedown.destroy = function (id) {

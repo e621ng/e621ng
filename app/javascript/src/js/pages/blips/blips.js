@@ -1,5 +1,4 @@
 /* eslint-disable quotes */
-import Utility from '../../utility/utility.js';
 import TextUtils from '../../utility/text_util.js';
 
 let Blip = {};

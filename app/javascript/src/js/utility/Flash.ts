@@ -20,7 +20,7 @@ export default class Flash {
         $("#close-notice-link").click();
         this.timeout_id = undefined;
       }, 3000);
-  };
+  }
 
   public static error (message: string) {
     $("#notice")
@@ -32,6 +32,6 @@ export default class Flash {
 
     if (this.timeout_id !== undefined)
       clearTimeout(this.timeout_id);
-  };
+  }
 
 }

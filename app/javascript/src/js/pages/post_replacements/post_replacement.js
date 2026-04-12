@@ -1,5 +1,3 @@
-import Utility from "@/utility/utility";
-
 let PostReplacement = {};
 
 PostReplacement.initialize_all = function () {

@@ -29,7 +29,7 @@ export default class Sortable {
   /**
    * Create a new Sortable instance.
    *
-   * @param {Element|jQuery} container Container element holding sortable items
+   * @param {Element|JQuery<HTMLElement>} container Container element holding sortable items
    * @param {Object} [options={}] Configuration options
    * @param {string} [options.itemSelector="li"] CSS selector for sortable items within container
    * @param {string|null} [options.handleSelector=null] CSS selector for drag handle within each item; if null, the entire item is the handle

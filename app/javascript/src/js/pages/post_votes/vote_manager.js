@@ -1,5 +1,4 @@
 import Page from "@/utility/page";
-import Utility from "@/utility/utility";
 
 class VoteManager {
   constructor (itemType) {
@@ -10,6 +9,7 @@ class VoteManager {
   }
 
   init () {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     self.lastSelected = 0;
     $("#votes").on("click", "tbody tr", function (evt) {

@@ -1,5 +1,3 @@
-import Utility from "@/utility/utility.js";
-
 class TagRelationships {
   static approve (e) {
     e.preventDefault();

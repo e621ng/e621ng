@@ -1,5 +1,3 @@
-import Utility from "@/utility/utility.js";
-
 class UserWarnable {
   static initialize_click_handlers () {
     $(".item-mark-user-warned").on("click", evt => {
