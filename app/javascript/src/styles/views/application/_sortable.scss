@@ -14,27 +14,6 @@ ul.sortable {
       pointer-events: none;
     }
 
-    .sortable-handle {
-      display: flex;
-      justify-content: center;
-      height: 1.5rem;
-      line-height: 1.5rem;
-      font-size: 1rem;
-      border-radius: 0 0 0.25rem 0.25rem;
-
-      background: themed("color-section-lighten-5");
-      cursor: grab;
-      touch-action: none; // required for pointermove to fire on touch instead of scrolling
-
-      // Six-dot grip icon
-      &::before {
-        content: ":::";
-        display: block;
-      }
-
-      &:active { cursor: grabbing; }
-    }
-
     article.thumbnail {
       a.thm-link { border-radius: 0 0 0.25rem 0.25rem; }
       img {
@@ -48,7 +27,7 @@ ul.sortable {
 
   .sortable-placeholder {
     width: var(--thumb-image-size, 150px);
-    height: var(--thumb-image-size, 150px);
+    height: calc(var(--thumb-image-size, 150px) + 1.5rem);
     box-sizing: border-box;
 
     background: rgba(0, 124, 186, 0.1);
@@ -74,5 +53,29 @@ ul.sortable {
       object-fit: cover;
     }
     .desc { display: none; }
+  }
+}
+
+.sortable-ghost, .sortable-thumbnail {
+  .sortable-handle {
+    display: flex;
+    justify-content: center;
+    height: 1.5rem;
+    line-height: 1.5rem;
+    font-size: 1rem;
+    border-radius: 0 0 0.25rem 0.25rem;
+
+    background: themed("color-section-lighten-5");
+    cursor: grab;
+    touch-action: none; // required for pointermove to fire on touch instead of scrolling
+
+    // Six-dot grip icon
+    &::before {
+      content: ":::";
+      display: block;
+      color: themed("color-text-muted");
+    }
+
+    &:active { cursor: grabbing; }
   }
 }

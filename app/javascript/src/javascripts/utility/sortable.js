@@ -32,6 +32,7 @@ export default class Sortable {
    * @param {Element|jQuery} container Container element holding sortable items
    * @param {Object} [options={}] Configuration options
    * @param {string} [options.itemSelector="li"] CSS selector for sortable items within container
+   * @param {string|null} [options.handleSelector=null] CSS selector for drag handle within each item; if null, the entire item is the handle
    * @param {string} [options.idDataKey="id"] Data attribute key for item IDs (e.g., "postId" for data-post-id)
    * @param {Function} [options.onReorder] Callback fired when items are reordered, receives array of IDs
    */
