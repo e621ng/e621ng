@@ -1,10 +1,10 @@
 export default class Page {
 
-  static _controller;
+  static _controller: string;
 
-  static _action;
+  static _action: string;
 
-  static _init () {
+  static _init (): void {
     const data = document.body.dataset;
     this._controller = data.controller;
     this._action = data.action;
@@ -14,13 +14,13 @@ export default class Page {
   }
 
   /** @returns {string} Controller for the current page */
-  static get Controller () {
+  static get Controller (): string {
     if (!this._controller) this._init();
     return this._controller;
   }
 
   /** @returns {string} Action for the current page */
-  static get Action () {
+  static get Action (): string {
     if (!this._action) this._init();
     return this._action;
   }
@@ -33,7 +33,7 @@ export default class Page {
    * @param {string} action Action to match against
    * @returns {boolean} True if the params match, false otherwise
    */
-  static matches (controller, action = "") {
+  static matches (controller: string, action: string = ""): boolean {
     if (!this._controller) this._init();
 
     if (action)

@@ -1,6 +1,6 @@
 import $ from "jquery";
 window["jQuery"] = $;
-window.$ = $;
+window["$"] = $;
 
 import Rails from "@rails/ujs";
 Rails.start();

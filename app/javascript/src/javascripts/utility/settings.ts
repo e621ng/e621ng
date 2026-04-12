@@ -22,20 +22,32 @@ const _get = function () {
   and contents of the Settings object exposed to the rest of the codebase.
 */
 
-const Settings = {
-  get Analytics () {
-    const obj = _get().analytics || {};
-    delete Settings.Analytics;
-    Settings.Analytics = {
+const Settings = {} as {
+  Analytics: {
+    enabled: boolean,
+    client_id: string | null,
+    events: {
+      recommendation: boolean,
+      search_trend: boolean,
+    }
+  }
+};
+
+Object.defineProperty(Settings, "Analytics", {
+  configurable: true,
+  get () {
+    const obj = _get()["analytics"] || {};
+    const value = {
       enabled: obj.enabled || false,
       client_id: obj.client_id || null,
-      events: { // Synchronize with Analytics.Event enum
+      events: {
         recommendation: obj.events?.recommendation || false,
         search_trend: obj.events?.search_trend || false,
       },
     };
-    return Settings.Analytics;
+    Object.defineProperty(Settings, "Analytics", { value, writable: false });
+    return value;
   },
-};
+});
 
 export default Settings;
