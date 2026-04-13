@@ -26,6 +26,9 @@ import ModuleRegistry from "@/utility/ModuleRegistry";
 import Settings from "@/utility/settings";
 import LStorage from "@/utility/storage";
 
+Logger.log("Loading");
+performance.mark("app-start");
+
 window["E621"] = {
   Registry: new ModuleRegistry(),
   LStorage,
@@ -43,4 +46,3 @@ window["E621"] = {
 } as E621Type;
 window["Danbooru"] = window["E621"];
 
-Logger.log("Initialized");

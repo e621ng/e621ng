@@ -21,10 +21,15 @@ export default class ModuleRegistry {
     this.exports += exportCount;
 
     E621.Logger.loaded(name, exportCount);
+    window.performance.mark(`app-module-${name}`);
   }
 
   public get list (): string[] {
     return this.modules;
+  }
+
+  public get exportCount (): number {
+    return this.exports;
   }
 
 }

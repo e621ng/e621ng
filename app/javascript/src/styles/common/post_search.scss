@@ -6,14 +6,23 @@
   .post-search-title {
     flex: 1;
     font-size: 1.16667em;
+    line-height: 1.5rem;
   }
   .post-search-help {
     font-size: 90%;
+    line-height: 1rem;
+    align-content: center;
 
     // Make way for the settings button
     margin-right: 2.5rem;
     @include window-larger-than(50rem) {
       margin-right: unset;
+    }
+
+    a {
+      line-height: 1rem;
+      display: block;
+      padding: 0.25rem 0;
     }
   }
 
