@@ -1,33 +1,92 @@
 #auth-overlay {
   position: fixed;
-  top: 3.75rem;
+  inset: 0;
   z-index: 10;
-  right: 1rem;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--fg-color, rgba(15, 15, 15, .5019607843));
+  backdrop-filter: blur(8px);
 
   &.hidden { display: none; }
+
+  button.close-button {
+    width: 2rem;
+    margin-left: auto;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    padding: 0.25rem;
+    box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+  }
 }
 
 .auth-flow-wrapper {
   display: grid;
-  grid-template-columns: minmax(0, 300px);
+  grid-template-columns: minmax(0, 350px);
   width: max-content;
 
-  background: themed("color-section");
   margin: 0;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
 
   form.simple_form {
     // Revert changes from .simple_form
     background: unset;
     margin: 0;
-    padding: 0;
+    padding: 1rem;
     border-radius: unset;
 
+    // Layout
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
+
+    // Theme
+    background-color: themed("color-section");
+    background-image: themed("image-foreground");
+    background-position: themed("image-foreground-position");
+    background-repeat: themed("image-foreground-repeat");
+    background-size: themed("image-foreground-size");
+    box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+    @include st-radius;
+
+    h1 { margin-bottom: 1rem; }
+
     .auth-input {
-      // Temporary, switch to flex later
-      margin-bottom: 0.5rem;
+      display: flex;
+      flex-flow: column;
+
+      label.st-immersive-input { width: 100%; }
+      a.hint { margin-left: auto; }
+
+      &.toggle-wrapper {
+        display: flex;
+        flex-flow: row;
+        align-items: center;
+        label.st-toggle { margin-left: auto; }
+      }
+    }
+
+    // Override for default styles
+    div.input {
+      margin-bottom: unset;
+      &.hidden { display: none; }
+    }
+
+    hr {
+      width: 100%;
+      border-color: themed("color-section-lighten-10");
+      border-style: solid;
+    }
+
+    .auth-reminder {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #auth-error {
+      text-align: center;
+      font-weight: bold;
+      color: palette("text-red");
     }
   }
 }
@@ -60,11 +119,14 @@
   }
 
   input {
+    // NOTE: a lot of these properties are reverting changes from the responsive styles
     border-radius: unset;
     padding: 0;
     line-height: 1rem;
-    font-size: 1rem;
+    font-size: 1rem !important;
     height: 1rem;
     background: transparent !important;
+    border: none !important;
+    width: 100% !important;
   }
 }

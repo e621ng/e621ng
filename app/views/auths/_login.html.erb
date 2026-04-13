@@ -17,11 +17,24 @@
       <% end %>
     </div>
 
-    <div class="auth-input">
-      <%= form.input_field :remember, as: :boolean, class: "st-toggle", input_html: { checked: "checked" } %>
+    <div class="auth-spacer"></div>
+
+    <div class="auth-input toggle-wrapper">
+      <%= form.label :remember, "Remember me" %>
+      <%= form.input_field :remember, as: :boolean, class: "st-toggle", checked: "checked" %>
       <%= form.label :remember, "!", class: "st-toggle", role: "switch" %>
     </div>
 
-    <%= form.submit("Continue") %>
+    <%= form.submit("Sign in", class: "st-button submit") %>
+
+    <div class="auth-spacer" id="auth-error"></div>
+    <div class="auth-reminder">
+      <%= link_to("Forgot username?", new_maintenance_user_login_reminder_path, class: "hint-link") %>
+      <%= link_to("Reset Password", new_maintenance_user_password_reset_path, class: "hint-link") %>
+    </div>
+
+    <hr />
+
+    <%= link_to("Create an account", new_user_path, class: "st-button") %>
   <% end %>
 </div>
