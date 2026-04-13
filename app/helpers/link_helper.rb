@@ -195,6 +195,8 @@ module LinkHelper
         class: "link-decoration",
         src: vite_asset_path("images/favicons/#{hostname}.png"),
         alt: hostname,
+        width: 16,
+        height: 16,
         data: {
           hostname: hostname,
         },

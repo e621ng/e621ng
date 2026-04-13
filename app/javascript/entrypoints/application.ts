@@ -23,11 +23,15 @@ import E621Type from "@/interfaces/E621";
 import Flash from "@/utility/Flash";
 import Logger from "@/utility/Logger";
 import ModuleRegistry from "@/utility/ModuleRegistry";
+import PerformanceTracker from "@/utility/PerformanceTracker";
 import Settings from "@/utility/settings";
 import LStorage from "@/utility/storage";
 
+Logger.log("Loading");
+
 window["E621"] = {
   Registry: new ModuleRegistry(),
+  Performance: new PerformanceTracker("app"),
   LStorage,
   Settings,
   Blacklist,
@@ -43,4 +47,3 @@ window["E621"] = {
 } as E621Type;
 window["Danbooru"] = window["E621"];
 
-Logger.log("Initialized");

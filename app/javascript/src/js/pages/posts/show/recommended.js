@@ -4,6 +4,7 @@ import LStorage from "@/utility/storage";
 import Blacklist from "@/core/blacklists";
 import Analytics from "@/core/analytics";
 import Logger from "@/utility/Logger";
+import PerformanceTracker from "@/utility/PerformanceTracker";
 
 const Recommended = {};
 
@@ -137,6 +138,21 @@ Recommended.loadState = async function (action = Recommended.action) {
     return requestId !== Recommended.requestID;
   };
 
+  const perf = new PerformanceTracker(`loadState-${action}-${requestId}`);
+  const measurePerformance = function () {
+    perf.mark("end");
+
+    const output = [ `Loaded in ${perf.measurePretty("start", "end")}` ];
+    if (perf.hasMark("data-fetched"))
+      output.push(`\n ⤷ Data fetched in ${perf.measurePretty("start", "data-fetched")}`);
+    if (perf.hasMark("posts-fetched"))
+      output.push(`\n ⤷ Posts fetched in ${perf.measurePretty("data-fetched", "posts-fetched")}`);
+    if (perf.hasMark("rendered"))
+      output.push(`\n ⤷ Rendered in ${perf.measurePretty("posts-fetched", "rendered")}`);
+
+    Recommended.Logger.log(...output);
+    perf.clear();
+  };
 
   Recommended.Logger.log(`Loading state: "${action}" (Req ID: ${requestId})`);
   const $container = Recommended.$container;
@@ -162,6 +178,7 @@ Recommended.loadState = async function (action = Recommended.action) {
   if (!data) {
     data = await Recommended.getData(Recommended.postId, action);
     if (!data || !data.results) {
+      measurePerformance();
       if (requestExpired()) return;
       Recommended.status = "error";
       $container.html("<p class='error'>Failed to load recommendations.</p>");
@@ -188,7 +205,11 @@ Recommended.loadState = async function (action = Recommended.action) {
 
     // Cache to avoid reloading when switching tabs
     Recommended.setCachedRecommendations(action, data);
-  } else Recommended.Logger.log("Using cached recommendations:", data);
+    perf.mark("data-fetched");
+  } else {
+    Recommended.Logger.log("Using cached recommendations:", data);
+    perf.mark("data-fetched", "cached");
+  }
 
 
   // 3. Fetch post data for recommended posts
@@ -200,11 +221,15 @@ Recommended.loadState = async function (action = Recommended.action) {
       for (const post of postLookup) posts[post.id] = post;
       Recommended.setCachedPosts(postLookup);
     } else {
+      measurePerformance();
       if (requestExpired()) return;
       Recommended.status = "error";
       $container.html("<p class='error'>Failed to load recommended posts.</p>");
       return;
     }
+    perf.mark("posts-fetched");
+  } else {
+    perf.mark("posts-fetched", "cached");
   }
 
 
@@ -214,6 +239,7 @@ Recommended.loadState = async function (action = Recommended.action) {
     // if the user has switched tabs while we were loading, we don't want
     // multiple requests to compete with each other, rendering out of order.
     Recommended.Logger.log("Aborted rendering due to newer request. Req ID:", requestId);
+    measurePerformance();
     return;
   }
 
@@ -236,6 +262,7 @@ Recommended.loadState = async function (action = Recommended.action) {
     renderedPosts.push(rendered);
   }
   Recommended.Logger.log(`Rendered ${renderedPosts.length} posts`, renderedPosts);
+  perf.mark("rendered");
 
 
   // 6. Apply blacklist
@@ -249,10 +276,15 @@ Recommended.loadState = async function (action = Recommended.action) {
   Recommended.status = "ready";
   $container.find(".thumbnail.placeholder").remove();
   if ($container.children().length === 0) {
-    if (requestExpired()) return; // Unlikely to happen
+    if (requestExpired()) {
+      measurePerformance();
+      return; // Unlikely to happen
+    }
     Recommended.status = "error";
-    $container.html("<p class='info'>No recommendations found.</p>");
+    $container.html("<p class='info'>Nobody here but us chickens!</p>");
   }
+
+  measurePerformance();
 };
 
 // ============================== //

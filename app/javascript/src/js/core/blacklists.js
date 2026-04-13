@@ -360,9 +360,13 @@ class BlacklistUI {
     this.$counter.text("(" + Blacklist.hiddenPosts.size + ")");
 
     // Change the toggle state accordingly
+    const text = inactiveFilters ? "Enable All Filters" : "Disable All Filters";
     this.$toggle
-      .text(inactiveFilters ? "Enable All Filters" : "Disable All Filters")
-      .attr("is-enabling", inactiveFilters > 0);
+      .text(text)
+      .attr({
+        "is-enabling": inactiveFilters > 0,
+        "aria-label": text,
+      });
   }
 }
 

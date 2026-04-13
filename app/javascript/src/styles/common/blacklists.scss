@@ -132,9 +132,14 @@
       background: none;
       border: none;
       margin: 0;
-      padding: 0;
       font-family: inherit;
       text-decoration: none;
+
+      // Better touch target
+      display: block;
+      font-size: 0.85rem;
+      line-height: 1rem;
+      padding: 0.25rem 0;
 
       color: themed("color-link");
       &:hover, &:focus {
@@ -144,6 +149,11 @@
 
     .blacklist-help {
       margin-left: auto;
+
+      display: block;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      padding: 0.25rem 0;
     }
   }
 }
@@ -154,6 +164,8 @@
   flex-flow: row;
   flex-wrap: wrap;
   padding: 1em 0;
+  align-items: center;
+  line-height: 1rem;
 
   .blacklist-header {
     margin-left: 0;
@@ -166,7 +178,7 @@
 
   .blacklist-filters {
     flex-flow: row;
-    gap: 0.75rem;
+    gap: 0.125rem 0.5rem;
     margin: 0 0.75rem;
     flex-wrap: wrap;
     font-size: 1em;
@@ -174,6 +186,10 @@
     li {
       &::before {
         display: none; 
+      }
+      a {
+        line-height: 1rem;
+        padding: 0.25rem;
       }
     }
   }
@@ -187,6 +203,10 @@
   }
   
   .blacklist-footer {
+    button.blacklist-toggle-all {
+      font-size: 0.75rem;
+    }
+
     .blacklist-help {
       display: none;
     }
