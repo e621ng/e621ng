@@ -4,7 +4,10 @@ export default class PerformanceTracker {
    * Checks if the Performance API is available in the current environment.
    * @returns True if the Performance API is available, false otherwise.
    */
-  public static available = window.performance && typeof window.performance.mark === "function" && typeof window.performance.measure === "function";
+  public static available = localStorage.getItem("e6.debug") === "true"
+    && !!window.performance
+    && typeof window.performance.mark === "function"
+    && typeof window.performance.measure === "function";
 
   private name: string;
 

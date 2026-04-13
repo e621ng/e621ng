@@ -178,10 +178,8 @@ Recommended.loadState = async function (action = Recommended.action) {
   if (!data) {
     data = await Recommended.getData(Recommended.postId, action);
     if (!data || !data.results) {
-      if (requestExpired()) {
-        measurePerformance();
-        return;
-      }
+      measurePerformance();
+      if (requestExpired()) return;
       Recommended.status = "error";
       $container.html("<p class='error'>Failed to load recommendations.</p>");
       return;
@@ -223,10 +221,8 @@ Recommended.loadState = async function (action = Recommended.action) {
       for (const post of postLookup) posts[post.id] = post;
       Recommended.setCachedPosts(postLookup);
     } else {
-      if (requestExpired()) {
-        measurePerformance();
-        return;
-      }
+      measurePerformance();
+      if (requestExpired()) return;
       Recommended.status = "error";
       $container.html("<p class='error'>Failed to load recommended posts.</p>");
       return;
