@@ -14,7 +14,7 @@ $(() => {
   if (E621.Registry.list.length) {
     data.push(`\n ⤷ with ${E621.Registry.list.length} module${E621.Registry.list.length > 1 ? "s" : ""}`);
     for (const module of E621.Registry.list) {
-      data.push(`\n   - ${module}: ${perf.measurePretty(`start`, `module-${module}`)}`);
+      data.push(`\n   - ${module}: ${perf.measurePretty("start", `module-${module}`)}`);
     }
   }
   if (E621.Registry.exportCount) data.push(`\n ⤷ with ${E621.Registry.exportCount} export${E621.Registry.exportCount > 1 ? "s" : ""}`);
