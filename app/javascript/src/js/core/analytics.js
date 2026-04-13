@@ -14,6 +14,9 @@ export default class Analytics {
       trackScreenViews: true,
       trackOutgoingLinks: true,
       trackAttributes: true,
+      sessionReplay: {
+        enabled: false,
+      },
     });
 
     this.enabledEvents = Settings.Analytics.events || {};
