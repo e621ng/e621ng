@@ -1,0 +1,15 @@
+import Blacklist from "@/core/blacklists";
+import Flash from "@/utility/Flash";
+import Logger from "@/utility/Logger";
+import ModuleRegistry from "@/utility/ModuleRegistry";
+import Settings from "@/utility/settings";
+import LStorage from "@/utility/storage";
+
+export default interface E621Type {
+  Registry: ModuleRegistry;
+  LStorage: typeof LStorage;
+  Settings: typeof Settings;
+  Blacklist: typeof Blacklist;
+  Logger: typeof Logger;
+  Flash: typeof Flash;
+}
