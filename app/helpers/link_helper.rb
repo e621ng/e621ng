@@ -200,10 +200,7 @@ module LinkHelper
         },
       )
     else
-      tag.i(
-        class: "fa-solid fa-globe link-decoration",
-        data: { hostname: "none" },
-      )
+      svg_icon(:globe, class: "link-decoration", width: 16, height: 16)
     end
   end
 
