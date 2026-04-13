@@ -4,7 +4,7 @@ import LStorage from "@/utility/storage";
 import Blacklist from "@/core/blacklists";
 import Analytics from "@/core/analytics";
 import Logger from "@/utility/Logger";
-import Performance from "@/utility/Performance";
+import PerformanceTracker from "@/utility/PerformanceTracker";
 
 const Recommended = {};
 
@@ -138,8 +138,7 @@ Recommended.loadState = async function (action = Recommended.action) {
     return requestId !== Recommended.requestID;
   };
 
-  const perf = new Performance(`loadState-${action}-${requestId}`);
-
+  const perf = new PerformanceTracker(`loadState-${action}-${requestId}`);
   const measurePerformance = function () {
     perf.mark("end");
 
@@ -155,7 +154,6 @@ Recommended.loadState = async function (action = Recommended.action) {
     perf.clear();
   };
 
-  perf.mark("start");
   Recommended.Logger.log(`Loading state: "${action}" (Req ID: ${requestId})`);
   const $container = Recommended.$container;
 

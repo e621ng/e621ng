@@ -21,7 +21,7 @@ export default class ModuleRegistry {
     this.exports += exportCount;
 
     E621.Logger.loaded(name, exportCount);
-    window.performance.mark(`app-module-${name}`);
+    E621.Performance.mark(`module-${name}`);
   }
 
   public get list (): string[] {

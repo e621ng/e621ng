@@ -1,4 +1,10 @@
-export default class Performance {
+export default class PerformanceTracker {
+
+  /**
+   * Checks if the Performance API is available in the current environment.
+   * @returns True if the Performance API is available, false otherwise.
+   */
+  public static available = window.performance && typeof window.performance.mark === "function" && typeof window.performance.measure === "function";
 
   private name: string;
 
@@ -11,6 +17,7 @@ export default class Performance {
   }
 
   public mark (label: string, note: string | null = null): void {
+    if (!PerformanceTracker.available) return;
     this.marks.push(label);
     if (note) this.notes[label] = note;
 
@@ -22,6 +29,7 @@ export default class Performance {
   }
 
   public measure (startLabel: string, endLabel: string): number {
+    if (!PerformanceTracker.available) return -1;
     const measureName = `${this.name}-${startLabel}-to-${endLabel}`;
     try {
       const result = performance.measure(measureName, `${this.name}-${startLabel}`, `${this.name}-${endLabel}`).duration;
@@ -44,6 +52,7 @@ export default class Performance {
   }
 
   public clear (): void {
+    if (!PerformanceTracker.available) return;
     for (const mark of this.marks)
       performance.clearMarks(`${this.name}-${mark}`);
     this.marks = [];
