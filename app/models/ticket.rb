@@ -16,6 +16,8 @@ class Ticket < ApplicationRecord
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   validates :response, length: { minimum: 2 }, on: :update
   enum :status, %i[pending partial approved].index_with(&:to_s)
+  after_create :push_pubsub_create
+  after_update :push_pubsub_update_notification
   after_update :log_update
   after_update :create_dmail
   validate :validate_content_exists, on: :create
@@ -444,6 +446,14 @@ class Ticket < ApplicationRecord
 
     def push_pubsub(action)
       Cache.redis.publish("ticket_updates", pubsub_hash(action).to_json)
+    end
+
+    def push_pubsub_create
+      push_pubsub("create")
+    end
+
+    def push_pubsub_update_notification
+      push_pubsub("update")
     end
   end
 
