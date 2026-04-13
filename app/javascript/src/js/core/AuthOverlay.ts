@@ -23,7 +23,7 @@ export default class AuthOverlay {
         const $form = await this.renderLoginForm();
         $form.prepend(this.renderCloseButton());
         $form.find("#session_url").val(this.getPathWithParams());
-  
+
         this.$overlay.append($form);
         this.bootstrapImmersiveInputs();
         this.bootstrapFormSubmission();
@@ -47,9 +47,11 @@ export default class AuthOverlay {
   // ============================== //
 
   private _overlayHidden = true;
+
   private get isOverlayHidden () {
     return this._overlayHidden;
   }
+
   private set isOverlayHidden (value: boolean) {
     this._overlayHidden = value;
     this.$overlay.toggleClass("hidden", value);
