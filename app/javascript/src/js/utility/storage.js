@@ -1,4 +1,5 @@
 import StorageUtils from "@/utility/storage_util";
+import Logger from "@/utility/Logger";
 
 const LStorage = {};
 
@@ -37,11 +38,21 @@ LStorage.has = function (name) {
   return localStorage.getItem(name) !== null;
 };
 
+
+// Debug state
+LStorage.Debug = false;
+Object.defineProperty(LStorage, "Debug", {
+  get () { return localStorage.getItem("e6.debug") === "true"; },
+  set (value) {
+    value = !!value;
+    localStorage.setItem("e6.debug", value ? "true" : "false");
+    Logger.setEnabled(value);
+  },
+});
+
+
 // Content that does not belong anywhere else
 LStorage.Site = {
-  /** @returns {boolean} True to enable debug mode, false to disable it */
-  Debug: ["e6.debug", false],
-
   /** @returns {number} Currently displayed Mascot ID, or 0 if none is selected */
   Mascot: ["mascot", 0],
 

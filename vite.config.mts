@@ -31,6 +31,7 @@ export default defineConfig({
     assetsInlineLimit: 0,
     // Relatively modern browser support is required
     target: "es2018",
+    sourcemap: true,
   },
   css: {
     preprocessorOptions: {

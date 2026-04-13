@@ -9,7 +9,7 @@ const Recommended = {};
 
 Recommended.RESULT_COUNT = 6;
 Recommended.SHOW_ENGINE_RESULTS = false;
-Recommended.logger = new Logger("Recommended");
+Recommended.Logger = new Logger("Recommended");
 Recommended.allStates = ["artist", "favorites", "tags", "closed"];
 Recommended.validStates = ["artist", "closed"];
 Recommended.requestID = 0;
@@ -39,7 +39,7 @@ Recommended.init = function () {
   Recommended.SHOW_ENGINE_RESULTS = Recommended.$wrapper.attr("data-remote") === "true";
   if (Recommended.SHOW_ENGINE_RESULTS)
     Recommended.validStates.push("favorites", "tags");
-  Recommended.debugLog("Loaded", {
+  Recommended.Logger.log("Loaded", {
     action: Recommended.action,
     showEngineResults: Recommended.SHOW_ENGINE_RESULTS,
     validStates: Recommended.validStates,
@@ -138,7 +138,7 @@ Recommended.loadState = async function (action = Recommended.action) {
   };
 
 
-  Recommended.debugLog(`Loading state: "${action}" (Req ID: ${requestId})`);
+  Recommended.Logger.log(`Loading state: "${action}" (Req ID: ${requestId})`);
   const $container = Recommended.$container;
 
   if (!Recommended.validStates.includes(action)) {
@@ -171,7 +171,7 @@ Recommended.loadState = async function (action = Recommended.action) {
     // Load post data provided by the local recommender
     // Not available for the remote recommender service
     if (data.post_data) {
-      Recommended.debugLog("Found included post data", data.post_data);
+      Recommended.Logger.log("Found included post data", data.post_data);
       Recommended.setCachedPosts(data.post_data);
       delete data.post_data; // Don't pollute main cache
     }
@@ -188,7 +188,7 @@ Recommended.loadState = async function (action = Recommended.action) {
 
     // Cache to avoid reloading when switching tabs
     Recommended.setCachedRecommendations(action, data);
-  } else Recommended.debugLog("Using cached recommendations:", data);
+  } else Recommended.Logger.log("Using cached recommendations:", data);
 
 
   // 3. Fetch post data for recommended posts
@@ -213,7 +213,7 @@ Recommended.loadState = async function (action = Recommended.action) {
     // We still want to cache both the recommendation data and posts, but
     // if the user has switched tabs while we were loading, we don't want
     // multiple requests to compete with each other, rendering out of order.
-    Recommended.debugLog("Aborted rendering due to newer request. Req ID:", requestId);
+    Recommended.Logger.log("Aborted rendering due to newer request. Req ID:", requestId);
     return;
   }
 
@@ -235,7 +235,7 @@ Recommended.loadState = async function (action = Recommended.action) {
       .replaceWith(rendered);
     renderedPosts.push(rendered);
   }
-  Recommended.debugLog(`Rendered ${renderedPosts.length} posts`, renderedPosts);
+  Recommended.Logger.log(`Rendered ${renderedPosts.length} posts`, renderedPosts);
 
 
   // 6. Apply blacklist
@@ -381,14 +381,14 @@ Recommended.render_placeholder = function () {
 // Fetches recommendation data from the server
 Recommended.getData = async function (postId, action = "favorites") {
   const target = Recommended.remote_actions.includes(action) ? "remote" : "artist";
-  Recommended.debugLog(`Fetching data: "${postId}/${action}"`);
+  Recommended.Logger.log(`Fetching data: "${postId}/${action}"`);
 
   return fetch(`/posts/${postId}/similar/${target}.json?mode=${action}&limit=${Recommended.RESULT_COUNT}`)
     .then(
       (response) => {
         if (!response.ok) {
           if (response.status === 502 && target === "remote") {
-            Recommended.debugLog("Recommendation engine is unavailable (502)");
+            Recommended.Logger.log("Recommendation engine is unavailable (502)");
             return {
               post_id: postId,
               model_version: "unavailable",
@@ -406,14 +406,14 @@ Recommended.getData = async function (postId, action = "favorites") {
     )
     .then((data) => {
       if (!data) return;
-      Recommended.debugLog("Engine response:", data);
+      Recommended.Logger.log("Engine response:", data);
       return data;
     });
 };
 
 // Fetches post data for the given post IDs
 Recommended.getPosts = async function (postIds) {
-  Recommended.debugLog("Fetching posts:", postIds);
+  Recommended.Logger.log("Fetching posts:", postIds);
   return fetch(`/posts/${Recommended.postId}/similar/lookup.json?post_ids=${postIds.join(",")}`)
     .then(
       (response) => {
@@ -429,7 +429,7 @@ Recommended.getPosts = async function (postIds) {
     )
     .then((data) => {
       if (!data) return;
-      Recommended.debugLog("API response:", data);
+      Recommended.Logger.log("API response:", data);
       return data;
     });
 };
@@ -460,7 +460,7 @@ Recommended.getCachedPosts = function (postIds) {
   }
 
   const count = Object.keys(posts).length;
-  Recommended.debugLog(`Posts: ${count}/${postIds.length} cached`);
+  Recommended.Logger.log(`Posts: ${count}/${postIds.length} cached`);
   if (count === 0) return {};
   return posts;
 };
@@ -475,10 +475,6 @@ Recommended.setCachedPosts = function (posts) {
 // ============================== //
 // =========== Other ============ //
 // ============================== //
-
-Recommended.debugLog = function (...args) {
-  Recommended.logger.log(...args);
-};
 
 $(() => {
   if (!Page.matches("posts", "show")) return;

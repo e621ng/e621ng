@@ -5,32 +5,52 @@ export default class Logger {
   // a simple static method for logging without needing to create a logger first.
 
   private static _instance: Logger = null;
+  private static instantiate (): Logger {
+    if (!Logger._instance) Logger._instance = new Logger("E6NG", null, [30, 60, 100]);
+    return Logger._instance;
+  }
 
   /**
    * Logs a message to the console with a title colored based on the input strings.
    * @param args The items to log, passed directly to console.log after the title.
    */
   public static log (...args: any[]): void {
-    if (!Logger._instance) Logger._instance = new Logger("E6NG", null, [30, 60, 100]);
-    Logger._instance.log(...args);
+    Logger.instantiate().log(...args);
   }
 
   public static loaded (value: string, exports = 0): void {
-    const message = [
-      "\x1B[97;48;2;30;60;100mE6NG\x1B[m",
-      `Loaded: \x1B[94m${value}\x1B[m`,
-    ];
-    if (exports) message.push(`\n\tExports: ${exports}`);
-    console.log(message.join(" "));
+    if (!Logger.instantiate().isEnabled) return;
+
+    const parts: string[] = [`%cE6NG%c Loaded: %c${value}%c`];
+    if (exports) parts.push(`\n ⤷ Exports: ${exports}`);
+    console.log(
+      parts.join(""),
+      "color:white;background:rgb(30,60,100);padding:1px 4px",
+      "background:none;color:inherit;padding:unset;",
+      "color:#6af",
+      "color:inherit;",
+    );
+  }
+
+
+  // Logger registry
+  // Used to enable/disable loggers when the LStorage value changes.
+
+  private static loggers: Logger[] = [];
+  public static setEnabled (enabled: boolean): void {
+    for (const logger of Logger.loggers)
+      logger.isEnabled = enabled;
   }
 
 
   // Class methods
 
-  private title: string;
+  private titleFormat: string;
+  private titleStyles: string[];
+  private isEnabled: boolean;
 
   /**
-   * Creates a logger with a title colored based on the input strings.  
+   * Creates a logger with a title colored based on the input strings.
    * @param controller The name of the controller.
    * @param action The name of the action, optional.
    */
@@ -38,30 +58,44 @@ export default class Logger {
     const c1 = color || Logger.stringToColor(controller),
       c2 = action ? Logger.stringToColor(action) : c1;
 
-    this.title = [
-      `\x1B[97;48;2;${c1[0]};${c1[1]};${c1[2]}m`,
-      controller,
-      (action ? ("\x1B[0m" + ":" + `\x1B[97;48;2;${c2[0]};${c2[1]};${c2[2]}m` + action) : ""),
-      "\x1B[0m",
-    ].join("");
+    if (action) {
+      this.titleFormat = `%c${controller}%c:%c${action}%c`;
+      this.titleStyles = [
+        `color:white;background:rgb(${c1.join(",")});padding:1px 4px`,
+        "background:none;color:inherit;padding:none;",
+        `color:white;background:rgb(${c2.join(",")});padding:1px 4px`,
+        "background:none;color:inherit;padding:none;",
+      ];
+    } else {
+      this.titleFormat = `%c${controller}%c`;
+      this.titleStyles = [
+        `color:white;background:rgb(${c1.join(",")});padding:1px 4px`,
+        "background:none;color:inherit;padding:none;",
+      ];
+    }
+
+    this.isEnabled = window.localStorage.getItem("e6.debug") === "true";
+    Logger.loggers.push(this);
   }
 
   /**
-   * Checks if logging is enabled by looking for a specific key in localStorage.
-   * Deliberately not using LStorage here to avoid dependencies.
-   * @returns True if logging is enabled, false otherwise.
+   * Proxy for console.log that prepends the logger's title to the log message.
+   * If logging is disabled, this will be a no-op function.
+   * @returns A function that can be used to log messages with the logger's title.
    */
-  public get isEnabled (): boolean {
-    return window.localStorage.getItem("e6.debug") === "true";
+  public get log (): (...args: any[]) => void {
+    if (!this.isEnabled) return () => {};
+    return console.log.bind(console, this.titleFormat, ...this.titleStyles);
   }
 
   /**
-   * Logs a message to the console with a title colored based on the input strings.
-   * @param args The items to log, passed directly to console.log after the title.
+   * Proxy for console.error that prepends the logger's title to the error message.
+   * If logging is disabled, this will be a no-op function.
+   * @returns A function that can be used to log errors with the logger's title.
    */
-  public log (...args: any[]): void {
-    if (!this.isEnabled) return;
-    console.log(this.title, ...args);
+  public get error (): (...args: any[]) => void {
+    if (!this.isEnabled) return () => {};
+    return console.error.bind(console, this.titleFormat, ...this.titleStyles);
   }
 
   /**
