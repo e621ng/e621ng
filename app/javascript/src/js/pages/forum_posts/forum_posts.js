@@ -1,4 +1,5 @@
 import TextUtils from "@/utility/text_util";
+import SVGIcon from "@/utility/svg_icon";
 
 let ForumPost = {};
 
@@ -47,11 +48,11 @@ ForumPost.vote = function (evt, score) {
   evt.preventDefault();
   const create_post = function (new_vote) {
     const score_map = {
-      "1": { fa_class:  "fa-thumbs-up", e6_class: "up" },
-      "0": { fa_class:  "fa-face-meh", e6_class: "meh" },
-      "-1": { fa_class:  "fa-thumbs-down", e6_class: "down" },
+      "1": { icon:  "thumbs_up", e6_class: "up" },
+      "0": { icon:  "face_meh", e6_class: "meh" },
+      "-1": { icon:  "thumbs_down", e6_class: "down" },
     };
-    const icon = $("<a>").attr("href", "#").attr("data-forum-id", new_vote.forum_post_id).addClass("forum-vote-remove").append($("<i>").addClass("fa-regular").addClass(score_map[new_vote.score.toString()].fa_class));
+    const icon = $("<a>").attr("href", "#").attr("data-forum-id", new_vote.forum_post_id).addClass("forum-vote-remove").append($(SVGIcon.render(score_map[new_vote.score.toString()].icon)));
     const username = $("<a>").attr("href", `/users/${new_vote.creator_id}`).text(new_vote.creator_name);
     const container = $("<li>").addClass(`vote-score-${score_map[new_vote.score].e6_class}`).addClass("own-forum-vote");
     container.append(icon).append(" ").append(username);
