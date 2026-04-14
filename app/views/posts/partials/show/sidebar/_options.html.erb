@@ -20,13 +20,18 @@
     <li>&nbsp;</li>
   <% end %>
 
-  <% if CurrentUser.can_replace? %>
-    <li><%= link_to post.is_video? ? "Replace video" : "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
-  <% end %>
-  <% if post.is_status_locked? %>
-    <li><span id="status-locked-notice">Status locked</span></li>
-  <% else %>
-      <li><%= link_to "Report", report_post_path(post), id: "report" %></li>
+    <% if CurrentUser.can_replace? %>
+      <li><%= link_to post.is_video? ? "Replace video" : "Replace image", new_post_replacement_path(post_id: post.id), id: "replace-image" %></li>
+    <% end %>
+    <% if post.is_status_locked? %>
+      <li><span id="status-locked-notice">Status locked</span></li>
+    <% else %>
+      <% unless CurrentUser.no_flagging? %>
+        <% if !post.is_deleted? && !post.is_flagged? %>
+          <li><%= link_to "Flag", new_post_flag_path(post_flag: { post_id: post.id }), id: "flag" %></li>
+        <% end %>
+      <% end %>
+      <li><%= link_to "Report", new_ticket_path(disp_id: post.id, qtype: "post") %></li>
 
     <% if CurrentUser.can_approve_posts? %>
       <% if post.is_deleted? %>
