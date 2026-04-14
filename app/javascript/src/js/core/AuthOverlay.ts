@@ -9,24 +9,25 @@ export default class AuthOverlay {
   constructor () {
     this.$overlay = $("<div id='auth-overlay' class='hidden'>")
       .appendTo("body")
-      .on("click", (event) => {
+      .on("mousedown", (event) => {
         if (event.target !== this.$overlay[0]) return;
         this.isOverlayHidden = true;
       });
 
     let isAlreadyRendered = false;
     $(".auth-login-link").on("click", async (event) => {
+      // Only trigger on plain clicks (not modified with ctrl/cmd/shift/alt)
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
 
       if (!isAlreadyRendered) {
-        this.$overlay.html("");
-        const $form = await this.renderLoginForm();
-        $form.prepend(this.renderCloseButton());
-        $form.find("#session_url").val(this.getPathWithParams());
+        const success = await this.loadLoginForm();
+        if (!success) {
+          isAlreadyRendered = true;
+          window.location.href = $(event.currentTarget).attr("href");
+          return;
+        }
 
-        this.$overlay.append($form);
-        this.bootstrapImmersiveInputs();
-        this.bootstrapFormSubmission();
         isAlreadyRendered = true;
       }
 
@@ -39,6 +40,26 @@ export default class AuthOverlay {
         }, 100);
       }
     });
+  }
+
+  private loadLoginForm (): Promise<boolean> {
+    this.$overlay.html("");
+
+    return this.renderLoginForm().then(
+      ($form) => {
+        $form.prepend(this.renderCloseButton());
+        $form.find("#session_url").val(this.getPathWithParams());
+
+        this.$overlay.append($form);
+        this.bootstrapImmersiveInputs();
+        this.bootstrapFormSubmission();
+        return true;
+      },
+      (error) => {
+        console.error("Auth overlay: failed to load content", error);
+        return false;
+      }
+    );
   }
 
 
@@ -82,6 +103,11 @@ export default class AuthOverlay {
 
   private renderCloseButton () {
     return $("<button type='button' class='st-button close-button'>&times;</button>")
+      .attr({
+        "aria-label": "Close",
+        "aria-controls": "auth-overlay",
+        "title": "Close",
+      })
       .on("click", () => this.isOverlayHidden = true);
   }
 
