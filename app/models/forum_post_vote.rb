@@ -37,29 +37,11 @@ class ForumPostVote < ApplicationRecord
   end
 
   def icon
-    case score
-    when 1
-      :thumbs_up
-    when -1
-      :thumbs_down
-    when 0
-      :face_meh
-    else
-      :flame
-    end
+    ForumPostVote.score_to_icon(score)
   end
 
   def vote_type
-    case score
-    when 1
-      "up"
-    when -1
-      "down"
-    when 0
-      "meh"
-    else
-      raise
-    end
+    ForumPostVote.score_to_str(score)
   end
 
   def self.score_to_icon(score)

@@ -4,12 +4,23 @@
 <% is_votable = forum_post.tag_change_request&.is_pending? && votable && forum_post.tag_change_request&.creator_id != CurrentUser.user.id %>
 <% categorized_votes = { 1 => [], 0 => [], -1 => [] }.merge(votes.group_by(&:score)) %>
 
-<ul class="forum-post-vote-list" id="forum-post-votes-for-<%= forum_post.id %>" data-user-vote="<%= own_vote&.vote_type || 'none' %>" data-forum-id="<%= forum_post.id %>">
+<ul
+  class="forum-post-vote-list"
+  id="forum-post-votes-for-<%= forum_post.id %>"
+  data-user-vote="<%= own_vote&.vote_type || 'none' %>"
+  data-forum-id="<%= forum_post.id %>"
+  data-vote-count="<%= votes.size %>"
+>
   <% categorized_votes.each do |score, votes| %>
     <% score_str = ForumPostVote.score_to_str(score) %>
     <li class="forum-post-vote-category" data-score="<%= score %>" data-vote="<%= score_str %>">
       <% if is_votable %>
-        <button title="Vote <%= score_str.capitalize %>" class="st-button forum-vote forum-vote-<%= score_str %>" data-action="1" data-forum-id="<%= forum_post.id %>">
+        <button
+          title="Vote <%= score_str.capitalize %>"
+          class="st-button forum-vote forum-vote-<%= score_str %>"
+          data-action="1"
+          data-forum-id="<%= forum_post.id %>"
+        >
           <%= svg_icon(ForumPostVote.score_to_icon(score), width: 16, height: 16) %>
         </button>
       <% else %>
@@ -17,7 +28,7 @@
           <%= svg_icon(ForumPostVote.score_to_icon(score), width: 16, height: 16) %>
         </span>
       <% end %>
-      <ul class="forum-post-votes" data-count="<%= votes.size %>">
+      <ul class="forum-post-votes" data-count="<%= votes.size %>" data-vote="<%= score_str %>">
         <%= render partial: "forum_post_votes/vote", collection: votes, locals: { forum_post: forum_post, votable: votable } %>
       </ul>
     </li>

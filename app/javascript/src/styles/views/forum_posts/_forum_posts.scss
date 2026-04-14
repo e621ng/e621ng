@@ -28,6 +28,17 @@ ul.forum-post-vote-list {
     border-radius: 0.25rem;
 
     max-width: 30rem;
+
+    line-height: 1rem;
+    height: 2rem;
+    box-sizing: border-box;
+  }
+
+  &[data-vote-count="0"] {
+    width: max-content;
+    flex-flow: row;
+
+    .forum-post-votes { display: none; }
   }
 }
 
