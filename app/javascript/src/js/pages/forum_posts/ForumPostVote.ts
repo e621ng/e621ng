@@ -33,18 +33,26 @@ export default class ForumPostVote {
     if (!buttons.length) return;
     buttons.on("click", (event) => {
       event.preventDefault();
+      if (this.state !== "ready") {
+        Flash.error("Please wait for the current vote to finish processing.");
+        return;
+      }
+
       const action = parseInt($(event.currentTarget).data("action"), 10);
 
       if (this.currentVote === scoreToStr(action))
         this.deleteVote()
-          .then(() => this.recalculateCounts());
+          .then(() => this.recalculateCounts())
+          .then(() => this.state = "ready");
       else if (this.currentVote === "none")
         this.createVote(action)
-          .then(() => this.recalculateCounts());
+          .then(() => this.recalculateCounts())
+          .then(() => this.state = "ready");
       else
         this.deleteVote()
           .then(() => this.createVote(action))
-          .then(() => this.recalculateCounts());
+          .then(() => this.recalculateCounts())
+          .then(() => this.state = "ready");
     });
   }
 
@@ -76,9 +84,6 @@ export default class ForumPostVote {
   // ============================== //
 
   private createVote (score: number): JQuery.jqXHR {
-    if (this.state !== "ready") return;
-    this.state = "loading";
-
     return $.ajax({
       url: `/forum_posts/${this.postId}/votes.json`,
       type: "POST",
@@ -86,29 +91,22 @@ export default class ForumPostVote {
       data: { "forum_post_vote[score]": score },
     }).done((data: VoteResponse) => {
       this.addVoteToDOM(data);
-      this.state = "ready";
     }).fail((xhr) => {
       const message: string = xhr?.responseJSON?.reason ?? "Failed to vote on forum post.";
       Flash.error(message);
-      this.state = "ready";
     });
   }
 
   private deleteVote (): JQuery.jqXHR {
-    if (this.state !== "ready") return;
-    this.state = "loading";
-
     return $.ajax({
       url: `/forum_posts/${this.postId}/votes.json`,
       type: "DELETE",
       dataType: "json",
     }).done(() => {
       this.removeVoteFromDOM();
-      this.state = "ready";
     }).fail((xhr) => {
       const message: string = xhr?.responseJSON?.reason ?? "Failed to remove vote.";
       Flash.error(message);
-      this.state = "ready";
     });
   }
 
