@@ -109,13 +109,17 @@
   }
 
   a.dtext-external-link::after {
-    // https://fontawesome.com/icons/external-link-alt?style=solid
-    @include font-awesome-icon();
-    content: unicode("f35d");
-
-    font-size: 0.6em;
-    padding: 0 0.2em 0 0.3em;
-    vertical-align: 1px;
+    $mask-url: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWV4dGVybmFsLWxpbmstaWNvbiBsdWNpZGUtZXh0ZXJuYWwtbGluayI+PHBhdGggZD0iTTE1IDNoNnY2Ii8+PHBhdGggZD0iTTEwIDE0IDIxIDMiLz48cGF0aCBkPSJNMTggMTN2NmEyIDIgMCAwIDEtMiAySDVhMiAyIDAgMCAxLTItMlY4YTIgMiAwIDAgMSAyLTJoNiIvPjwvc3ZnPg==");
+    content: "";
+    display: inline-block;
+    width: 0.8em;
+    height: 0.8em;
+    margin: 0 0.2em;
+    background-color: themed("color-text-muted");
+    mask-image: $mask-url;
+    -webkit-mask-image: $mask-url;
+    mask-size: contain;
+    mask-repeat: no-repeat;
   }
 
   details, pre, blockquote {
