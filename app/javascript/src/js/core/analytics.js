@@ -1,6 +1,6 @@
 import { OpenPanel } from "@openpanel/web";
-import Page from "@/utility/page";
-import Settings from "@/utility/settings";
+import Page from "@/utility/Page";
+import Settings from "@/utility/Settings";
 
 export default class Analytics {
 

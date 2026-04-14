@@ -3,7 +3,7 @@
 // Tasks are executed sequentially, and each task must return a promise that resolves when the task is complete.
 export default class TaskQueue {
 
-  static _queue = [];
+  static _queue: TaskItem[] = [];
   static _running = false;
 
   /**
@@ -17,7 +17,7 @@ export default class TaskQueue {
    * @returns {Promise} Promise that resolves when the task is completed or rejects if the task fails.
    * @throws {Error} If the task is not a function or if the delay is not a non-negative number.
    */
-  static add (task, options = {}) {
+  static add (task: () => Promise<any>, options: TaskQueueOptions = {}): Promise<any> {
     if (typeof task !== "function") throw new Error("Task must be a function");
 
     let { delay = 1000, priority = false, name = null, unique = false } = options;
@@ -28,7 +28,7 @@ export default class TaskQueue {
     if (unique && name !== null) this.cancel(name, "Replaced by a new unique task");
 
     const result = new Promise((resolve, reject) => {
-      const taskItem = { task, resolve, reject, delay, name };
+      const taskItem: TaskItem = { task, resolve, reject, delay, name };
       if (priority) this._queue.unshift(taskItem);
       else this._queue.push(taskItem);
     });
@@ -41,7 +41,7 @@ export default class TaskQueue {
    * Should not be called directly; use `add` to enqueue tasks.
    * @returns {Promise<void>}
    */
-  static async _run () {
+  static async _run (): Promise<void> {
     if (this._running || this._queue.length === 0) return;
     this._running = true;
 
@@ -50,7 +50,7 @@ export default class TaskQueue {
         // Abort if the task was cancelled or the queue was cleared
         if (!this._running || this._queue.length === 0) break;
 
-        const { task, resolve, reject, delay, name } = this._queue.shift();
+        const { task, resolve, reject, delay, name } = this._queue.shift() as TaskItem;
 
         try {
           if (typeof task !== "function")
@@ -74,7 +74,7 @@ export default class TaskQueue {
    * @param {number} ms Delay in milliseconds.
    * @returns {Promise<void>}
    */
-  static sleep (ms = 1000) {
+  static sleep (ms: number = 1000): Promise<void> {
     if (typeof ms !== "number" || ms < 0)
       throw new Error("Sleep duration must be a non-negative number");
     if (ms === 0) return Promise.resolve();
@@ -85,7 +85,7 @@ export default class TaskQueue {
    * Clears the queue and rejects pending tasks with a cancellation.
    * @param {string} reason Optional reason for clearing the queue.
    */
-  static clear (reason = "Queue cleared") {
+  static clear (reason: string = "Queue cleared"): void {
     this._running = false;
     this._queue.forEach(({ reject }) => {
       reject(new TaskCancelled(reason));
@@ -99,7 +99,7 @@ export default class TaskQueue {
    * @param {string} reason Optional reason for cancelling the tasks.
    * @returns {number} The number of tasks that were cancelled.
    */
-  static cancel (taskName, reason = "Task cancelled") {
+  static cancel (taskName: string, reason: string = "Task cancelled"): number {
     if (taskName === null || taskName === undefined) return 0;
 
     let count = 0;
@@ -114,22 +114,22 @@ export default class TaskQueue {
     return count;
   }
 
-  /** @returns {number} The length of the task queue. */
-  static get length () {
+  /** @returns {number} The size of the task queue. */
+  static get size (): number {
     return this._queue.length;
   }
 
   /** @returns {boolean} True if the queue is running, false otherwise. */
-  static get isRunning () {
+  static get isRunning (): boolean {
     return this._running;
   }
 
   /**
    * Returns an array of pending tasks.
    * Each task is represented by an object containing its index, name, and delay.
-   * @returns {Array} Array of pending tasks.
+   * @returns {TaskItemShort[]} Array of pending tasks.
    */
-  static get pending () {
+  static get pending (): TaskItemShort[] {
     return this._queue.map(({ delay, name }, index) => ({
       index,
       name,
@@ -140,8 +140,32 @@ export default class TaskQueue {
 
 // Sentinel value to indicate a task was cancelled (not an error)
 export class TaskCancelled {
+  public reason: string;
+  public cancelled: boolean;
+
   constructor (reason = "Task cancelled") {
     this.reason = reason;
     this.cancelled = true;
   }
+}
+
+interface TaskQueueOptions {
+  delay?: number;
+  priority?: boolean;
+  name?: string | null;
+  unique?: boolean;
+}
+
+interface TaskItem {
+  task: () => Promise<any>;
+  resolve: (value: any) => void;
+  reject: (reason?: any) => void;
+  delay: number;
+  name: string | null;
+}
+
+interface TaskItemShort {
+  delay: number,
+  name: string | null,
+  index: number,
 }

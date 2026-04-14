@@ -3,8 +3,8 @@ import Favorite from "@/models/Favorite";
 import PostVote from "@/models/PostVote";
 import NoteManager from "@/pages/posts/show/notes";
 import Post from "@/pages/posts/posts";
-import Offclick from "@/utility/offclick";
-import Page from "@/utility/page";
+import Offclick from "@/utility/Offclick";
+import Page from "@/utility/Page";
 
 export default class PostsShowToolbar {
 

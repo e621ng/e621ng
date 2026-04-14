@@ -1,6 +1,6 @@
 import Hotkeys from "@/core/hotkeys";
 import User from "@/models/User";
-import Page from "@/utility/page";
+import Page from "@/utility/Page";
 
 export default class StaticShortcuts {
 
