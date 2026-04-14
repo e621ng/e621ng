@@ -12,9 +12,11 @@
   &.hidden { display: none; }
 
   button.close-button {
+    position: absolute;
+    top: -3rem;
+    right: 0;
+
     width: 2rem;
-    margin-left: auto;
-    margin-bottom: 1rem;
     font-size: 1.5rem;
     padding: 0.25rem;
     box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
@@ -25,7 +27,7 @@
   display: grid;
   grid-template-columns: minmax(0, 350px);
   width: max-content;
-
+  position: relative;
   margin: 0;
 
   form.simple_form {
@@ -49,7 +51,10 @@
     box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
     @include st-radius;
 
-    h1 { margin-bottom: 1rem; }
+    h1 {
+      margin: 1rem 0 0.25rem;
+      text-align: center;
+    }
 
     .auth-input {
       display: flex;
@@ -133,4 +138,13 @@
     border: none !important;
     width: 100% !important;
   }
+}
+
+
+// Fallback login page styles
+#c-sessions #a-new {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10rem;
 }
