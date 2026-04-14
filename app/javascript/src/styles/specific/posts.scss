@@ -80,6 +80,10 @@ div#c-posts {
           }
         }
       }
+
+      @include window-smaller-than(30rem) {
+        .desktop-only { display: none; }
+      }
     }
 
     // Selected tab
@@ -112,6 +116,8 @@ div#c-posts {
 
       @include window-smaller-than(30rem) {
         --thumb-image-size: calc((100vw - 2.55rem) / 3);
+        height: unset;
+        min-height: calc(2* (var(--thumb-image-size) + 1.25rem));
         justify-content: center;
       }
     }

@@ -371,11 +371,13 @@ Recommended.render = function (data) {
     .addClass("thm-desc-a")
     .appendTo(footer);
 
+  const scoreIcon = data.post.score > 0 ? "arrow_up_dash" : (data.post.score < 0 ? "arrow_down_dash" : "score");
+
   $("<span>")
     .addClass("thm-desc-m thm-score")
     .addClass(data.post.score > 0 ? "thm-score-positive" : data.post.score < 0 ? "thm-score-negative" : "thm-score-neutral")
-    .append(SVGIcon.render("score"))
-    .append(data.post.score)
+    .append(SVGIcon.render(scoreIcon))
+    .append(Math.abs(data.post.score))
     .appendTo(descA);
 
   $("<span>")
