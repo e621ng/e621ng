@@ -22,6 +22,7 @@ export default class ForumPostVote {
 
   private $voteList: JQuery<HTMLElement>;
   private postId: number;
+  private _currentVote: string;
 
   constructor (element: HTMLElement) {
     this.$voteList = $(element);
@@ -51,8 +52,6 @@ export default class ForumPostVote {
   // ============================== //
   // ======== Getter Magic ======== //
   // ============================== //
-
-  _currentVote: string = undefined;
 
   get currentVote (): string {
     return this._currentVote;
