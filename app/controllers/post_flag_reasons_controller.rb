@@ -2,7 +2,7 @@
 
 class PostFlagReasonsController < ApplicationController
   respond_to :html
-  before_action :janitor_only
+  before_action :admin_only
 
   def index
     @reasons = PostFlagReason.structured.ordered

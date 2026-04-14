@@ -199,7 +199,7 @@ class PostFlag < ApplicationRecord
       Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
       self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
     else
-      self.reason = PostFlagReason.map_for_lookup[reason_name]
+      self.reason = PostFlagReason.reason(reason_name)
     end
   end
 
