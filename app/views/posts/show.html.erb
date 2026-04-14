@@ -112,7 +112,7 @@
           <button class="st-button" data-action="artist">From the Artist</button>
           <% if Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
             <button class="st-button" data-action="tags">Similar</button>
-            <button class="st-button" data-action="favorites">Others Also Liked</button>
+            <button class="st-button" data-action="favorites"><span class="desktop-only">Others Also</span>Liked</button>
           <% end %>
           <button class="st-button" data-action="closed" title="Close Recommendations"><%= svg_icon(:eye_off) %></button>
         </div>
