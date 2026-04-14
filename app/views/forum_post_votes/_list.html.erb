@@ -11,7 +11,7 @@
   data-forum-id="<%= forum_post.id %>"
   data-vote-count="<%= votes.size %>"
 >
-  <% categorized_votes.each do |score, votes| %>
+  <% categorized_votes.each do |score, cat_votes| %>
     <% score_str = ForumPostVote.score_to_str(score) %>
     <li
       class="forum-post-vote-category"
@@ -33,10 +33,10 @@
       <% end %>
       <ul
         class="forum-post-votes"
-        data-vote-count="<%= votes.size %>"
+        data-vote-count="<%= cat_votes.size %>"
         data-vote="<%= score_str %>"
       >
-        <%= render partial: "forum_post_votes/vote", collection: votes, locals: { forum_post: forum_post, votable: votable } %>
+        <%= render partial: "forum_post_votes/vote", collection: cat_votes, locals: { forum_post: forum_post, votable: votable } %>
       </ul>
     </li>
   <% end %>

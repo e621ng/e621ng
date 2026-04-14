@@ -77,7 +77,7 @@ export default class ForumPostVote {
     }).done((data: VoteResponse) => {
       this.addVoteToDOM(data);
     }).fail((xhr) => {
-      const message: string = xhr?.responseJSON?.message ?? "Failed to vote on forum post.";
+      const message: string = xhr?.responseJSON?.reason ?? "Failed to vote on forum post.";
       Flash.error(message);
     });
   }
@@ -90,7 +90,7 @@ export default class ForumPostVote {
     }).done(() => {
       this.removeVoteFromDOM();
     }).fail((xhr) => {
-      const message: string = xhr?.responseJSON?.message ?? "Failed to remove vote.";
+      const message: string = xhr?.responseJSON?.reason ?? "Failed to remove vote.";
       Flash.error(message);
     });
   }
