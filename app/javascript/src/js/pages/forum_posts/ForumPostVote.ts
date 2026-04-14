@@ -126,9 +126,9 @@ export default class ForumPostVote {
 
   private recalculateCounts (): void {
     let totalVotes = 0;
-    for (const category of this.$voteList.find(".forum-post-vote-category")) {
+    for (const category of this.$voteList.find(".forum-post-votes")) {
       const $category = $(category);
-      const count = $category.find(".forum-post-votes").children("li").length;
+      const count = $category.children("li").length;
       $category.attr("data-vote-count", count);
       totalVotes += count;
     }
