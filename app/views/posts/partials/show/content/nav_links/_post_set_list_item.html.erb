@@ -1,12 +1,12 @@
 <%= tag.li(id: "nav-link-for-set-#{post_set.id}", class: "set-selected-#{selected}") do -%>
   <% if !post_set.first_post?(post.id) && post_set.post_ids.first -%>
     <%= link_to post_path(post_set.post_ids.first, post_set_id: post_set.id), class: "nav-link first", title: "to first" do %>
-      <%= tag.i(class: "fas fa-angle-double-left") %>
+      <%= svg_icon(:chevron_double_left, width: 16, height: 16) %>
       <span>First</span>
     <% end %>
   <% else -%>
     <span class="nav-link first">
-      <%= tag.i(class: "fas fa-angle-double-left") %>
+      <%= svg_icon(:chevron_double_left, width: 16, height: 16) %>
       <span>First</span>
     </span>
   <% end -%>
@@ -14,12 +14,12 @@
   <% post_set.previous_post_id(post.id).tap do |previous_post_id| -%>
     <% if previous_post_id %>
       <%= link_to post_path(previous_post_id, post_set_id: post_set.id), rel: selected ? "prev" : nil, class: "nav-link prev", title: "to page #{post_set.page_number(previous_post_id)}" do %>
-        <%= tag.i(class: "fas fa-angle-left") %>
+        <%= svg_icon(:chevron_left, width: 16, height: 16) %>
         <span>Prev</span>
       <% end %>
     <% else -%>
       <span class="nav-link prev">
-        <%= tag.i(class: "fas fa-angle-left") %>
+        <%= svg_icon(:chevron_left, width: 16, height: 16) %>
         <span>Prev</span>
       </span>
     <% end %>
@@ -34,12 +34,12 @@
     <% if next_post_id %>
       <%= link_to post_path(next_post_id, post_set_id: post_set.id), rel: selected ? "next" : nil, class: "nav-link next", title: "to page #{post_set.page_number(next_post_id)}" do %>
         <span>Next</span>
-        <%= tag.i(class: "fas fa-angle-right") %>
+        <%= svg_icon(:chevron_right, width: 16, height: 16) %>
       <% end %>
     <% else -%>
       <span class="nav-link next">
         <span>Next</span>
-        <%= tag.i(class: "fas fa-angle-right") %>
+        <%= svg_icon(:chevron_right, width: 16, height: 16) %>
       </span>
     <% end -%>
   <% end -%>
@@ -47,12 +47,12 @@
   <% if !post_set.last_post?(post.id) && post_set.post_ids.last -%>
     <%= link_to post_path(post_set.post_ids.last, post_set_id: post_set.id), class: "nav-link last", title: "to page #{post_set.post_count}" do %>
       <span>Last</span>
-      <%= tag.i(class: "fas fa-angle-double-right") %>
+      <%= svg_icon(:chevron_double_right, width: 16, height: 16) %>
     <% end %>
   <% else -%>
     <span class="nav-link last">
       <span>Last</span>
-      <%= tag.i(class: "fas fa-angle-double-right") %>
+      <%= svg_icon(:chevron_double_right, width: 16, height: 16) %>
     </span>
   <% end -%>
 <% end -%>
