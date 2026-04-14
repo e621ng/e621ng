@@ -1,27 +1,21 @@
-#c-posts #a-report {
+// Top
+.flag-dialog-preview {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
 
-  form.simple_form {
-    margin: unset;
-    background: unset;
-    border-radius: unset;
-    padding: unset;
+  @include window-larger-than(50rem) {
+    flex-flow: row;
   }
 
-  // Post thumbnail + blurb
-  .post-report-preview {
-    display: flex;
-    flex-flow: column;
-    gap: 0.5rem;
+  blockquote { border: 0; }
+}
 
-    @include window-larger-than(50rem) {
-      flex-flow: row;
-    }
+// Middle
+.flag-dialog-body {
+  #new_post_flag { background-color: unset; }
 
-    blockquote { border: 0; }
-  }
-
-  // Post report reason
-  .report-reason {
+  .flag-reason {
     display: flex;
     flex-flow: column;
     gap: 0.125rem;
@@ -34,7 +28,7 @@
       }
     }
 
-    label.report-reason-label {
+    label.flag-reason-label {
       font-weight: unset;
       white-space: unset;
       display: flex;
@@ -111,14 +105,13 @@
     }
   }
 
-  .posts_report_note label {
+  .post_flag_note label {
     .required-indicator { display: none; }
     &.required .required-indicator { display: inline; }
   }
 
-  .report-note-hint {
+  .flag-note-hint {
     color: palette("text-red");
     font-weight: bold;
   }
-
 }
