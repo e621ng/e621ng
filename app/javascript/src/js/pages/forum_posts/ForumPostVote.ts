@@ -1,3 +1,4 @@
+import User from "@/models/User";
 import Flash from "@/utility/Flash";
 
 interface VoteResponse {
@@ -25,34 +26,24 @@ export default class ForumPostVote {
   constructor (element: HTMLElement) {
     this.$voteList = $(element);
     this.postId = parseInt(this.$voteList.data("forum-id"), 10);
-    this.voteCount = parseInt(this.$voteList.data("vote-count"), 10) || 0;
+    this._currentVote = this.$voteList.attr("data-user-vote") || "none";
 
     const buttons = this.$voteList.find(".forum-vote");
     if (!buttons.length) return;
     buttons.on("click", (event) => {
       event.preventDefault();
-      const $category = $(event.currentTarget).closest(".forum-post-vote-category");
-      const clickedScore = parseInt($category.data("score"), 10);
-      const clickedVoteStr = $category.data("vote") as string;
-      const currentVote = this.$voteList.attr("data-user-vote") as string;
+      const action = parseInt($(event.currentTarget).data("action"), 10);
 
-      if (currentVote === clickedVoteStr) {
-        this.deleteVote().then(() => {
-          this.voteCount--;
-          this.recalculateCounts();
-        });
-      } else if (currentVote === "none") {
-        this.createVote(clickedScore).then(() => {
-          this.voteCount++;
-          this.recalculateCounts();
-        });
-      } else {
+      if (this.currentVote === scoreToStr(action))
         this.deleteVote()
-          .then(() => this.createVote(clickedScore))
-          .then(() => {
-            this.recalculateCounts();
-          });
-      }
+          .then(() => this.recalculateCounts());
+      else if (this.currentVote === "none")
+        this.createVote(action)
+          .then(() => this.recalculateCounts());
+      else
+        this.deleteVote()
+          .then(() => this.createVote(action))
+          .then(() => this.recalculateCounts());
     });
   }
 
@@ -61,20 +52,15 @@ export default class ForumPostVote {
   // ======== Getter Magic ======== //
   // ============================== //
 
-  get userVote (): string {
-    return this.$voteList.attr("data-user-vote") as string;
+  _currentVote: string = undefined;
+
+  get currentVote (): string {
+    return this._currentVote;
   }
 
-  set userVote (vote: string) {
+  set currentVote (vote: string) {
+    this._currentVote = vote;
     this.$voteList.attr("data-user-vote", vote);
-  }
-
-  get voteCount (): number {
-    return parseInt(this.$voteList.attr("data-vote-count") as string, 10) || 0;
-  }
-
-  set voteCount (count: number) {
-    this.$voteList.attr("data-vote-count", count.toString());
   }
 
 
@@ -118,26 +104,35 @@ export default class ForumPostVote {
     const voteStr = scoreToStr(vote.score);
     const $votesList = this.$voteList.find(`.forum-post-votes[data-vote="${voteStr}"]`);
 
-    const $link = $("<a>").attr("href", `/users/${vote.creator_id}`).attr("rel", "nofollow").text(vote.creator_name);
+    const $link = $("<a>")
+      .attr({
+        "href": `/users/${vote.creator_id}`,
+        "rel": "nofollow",
+      })
+      .addClass("with-style user-" + User.levelString.toLowerCase())
+      .text(vote.creator_name.replace(/_+/g, " "));
     const $li = $("<li>").addClass("forum-post-vote own-forum-vote").append($link);
-    $votesList.prepend($li);
+    $votesList.append($li);
 
-    this.userVote = voteStr;
+    this.currentVote = voteStr;
   }
 
   private removeVoteFromDOM (): void {
     const $ownVote = this.$voteList.find(".own-forum-vote");
     $ownVote.remove();
 
-    this.userVote = "none";
+    this.currentVote = "none";
   }
 
   private recalculateCounts (): void {
+    let totalVotes = 0;
     for (const category of this.$voteList.find(".forum-post-vote-category")) {
       const $category = $(category);
       const count = $category.find(".forum-post-votes").children("li").length;
-      $category.attr("data-count", count.toString());
+      $category.attr("data-vote-count", count);
+      totalVotes += count;
     }
+    this.$voteList.attr("data-vote-count", totalVotes);
   }
 }
 
