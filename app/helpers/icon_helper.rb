@@ -68,6 +68,8 @@ module IconHelper
     chevron_down: %(<path d="m6 9 6 6 6-6"/>),
     ellipsis: %(<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>),
     ellipsis_v: %(<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>),
+    chevron_double_left: %(<path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/>),
+    chevron_double_right: %(<path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/>),
 
     # Thumbnails
     arrow_up_dash: %(<path d="M9 13a1 1 0 0 0-1-1H5.061a1 1 0 0 1-.75-1.811l6.836-6.835a1.207 1.207 0 0 1 1.707 0l6.835 6.835a1 1 0 0 1-.75 1.811H16a1 1 0 0 0-1 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/><path d="M9 20h6"/>),
