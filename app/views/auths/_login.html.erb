@@ -6,14 +6,14 @@
     <div class="auth-input">
       <%= form.label :name, class: "st-immersive-input" do %>
         <span class="label-text">Username</span>
-        <%= form.input_field :name %>
+        <%= form.input_field :name, required: true, autocomplete: "username" %>
       <% end %>
     </div>
 
     <div class="auth-input">
       <%= form.label :password, class: "st-immersive-input" do %>
         <span class="label-text">Password</span>
-        <%= form.password_field :password %>
+        <%= form.password_field :password, required: true, autocomplete: "current-password" %>
       <% end %>
     </div>
 

@@ -76,6 +76,12 @@ export default class AuthOverlay {
   private set isOverlayHidden (value: boolean) {
     this._overlayHidden = value;
     this.$overlay.toggleClass("hidden", value);
+    $(document).off("keydown.auth-overlay");
+
+    if (!value) $(document).on("keydown.auth-overlay", (event) => {
+      if (event.key !== "Escape") return;
+      this.isOverlayHidden = true;
+    });
   }
 
 
@@ -83,7 +89,7 @@ export default class AuthOverlay {
   // ======== Form Loading ======== //
   // ============================== //
 
-  private async renderLoginForm (): Promise<JQuery<HTMLElement>> {
+  private renderLoginForm (): Promise<JQuery<HTMLElement>> {
     return new Promise((resolve, reject) => {
       $.ajax({
         url: "/auth/login",
@@ -99,7 +105,7 @@ export default class AuthOverlay {
         },
       });
     });
-  };
+  }
 
   private renderCloseButton () {
     return $("<button type='button' class='st-button close-button'>&times;</button>")
@@ -128,9 +134,23 @@ export default class AuthOverlay {
   private bootstrapFormSubmission () {
     this.$overlay.find("form").on("submit", (event) => {
       event.preventDefault();
-      this.$overlay.find("#auth-error").text("");
-
       const $form = $(event.currentTarget);
+      const submitButton = $form.find("[type=submit]").prop("disabled", true);
+
+      // If there is an existing message, leave an empty line to prevent layout shifts
+      const errorMessage = this.$overlay.find("#auth-error");
+      if (errorMessage.text().length > 0) errorMessage.html("&nbsp;");
+
+      // Check for empty fields before submitting
+      const emptyFields = $form.find("input[required]").filter((_, input) => !$(input).val());
+      if (emptyFields.length > 0) {
+        this.showError("Please fill in all required fields.");
+        submitButton.prop("disabled", false);
+        emptyFields.first().trigger("focus");
+        return false;
+      }
+
+      // Submit form via AJAX
       $.ajax({
         url: $form.attr("action")!,
         method: $form.attr("method")!,
@@ -141,11 +161,13 @@ export default class AuthOverlay {
           window.location.href = response.url;
         },
         error: (xhr) => {
-          $form.find("[type=submit]").prop("disabled", false);
+          submitButton.prop("disabled", false);
           const message = xhr.responseJSON?.error ?? "Login failed. Please try again.";
           this.showError(message);
         },
       });
+
+      return false;
     });
   }
 
@@ -154,7 +176,7 @@ export default class AuthOverlay {
   // ======== Miscellaneous ======= //
   // ============================== //
 
-  getPathWithParams () {
+  private getPathWithParams () {
     return window.location.pathname + window.location.search;
   }
 }
