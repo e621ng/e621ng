@@ -21,10 +21,6 @@ ForumPost.initialize_all = function () {
     $(".forum-post-reply-link").on("click", ForumPost.quote);
     $(".forum-post-hide-link").on("click", ForumPost.hide);
     $(".forum-post-unhide-link").on("click", ForumPost.unhide);
-    $(".forum-vote-up").on("click", evt => ForumPost.vote(evt, 1));
-    $(".forum-vote-meh").on("click", evt => ForumPost.vote(evt, 0));
-    $(".forum-vote-down").on("click", evt => ForumPost.vote(evt, -1));
-    $(document).on("click", ".forum-vote-remove", ForumPost.vote_remove);
   }
 };
 
@@ -35,62 +31,8 @@ ForumPost.reinitialize_all = function () {
     $(".forum-post-reply-link").off("click");
     $(".forum-post-hide-link").off("click");
     $(".forum-post-unhide-link").off("click");
-    $(".forum-vote-up").off("click");
-    $(".forum-vote-meh").off("click");
-    $(".forum-vote-down").off("click");
-    $(document).off("click", ".forum-vote-remove");
     this.initialize_all();
   }
-};
-
-ForumPost.vote = function (evt, score) {
-  evt.preventDefault();
-  const create_post = function (new_vote) {
-    const score_map = {
-      "1": { fa_class:  "fa-thumbs-up", e6_class: "up" },
-      "0": { fa_class:  "fa-face-meh", e6_class: "meh" },
-      "-1": { fa_class:  "fa-thumbs-down", e6_class: "down" },
-    };
-    const icon = $("<a>").attr("href", "#").attr("data-forum-id", new_vote.forum_post_id).addClass("forum-vote-remove").append($("<i>").addClass("fa-regular").addClass(score_map[new_vote.score.toString()].fa_class));
-    const username = $("<a>").attr("href", `/users/${new_vote.creator_id}`).text(new_vote.creator_name);
-    const container = $("<li>").addClass(`vote-score-${score_map[new_vote.score].e6_class}`).addClass("own-forum-vote");
-    container.append(icon).append(" ").append(username);
-    $(`#forum-post-votes-for-${new_vote.forum_post_id}`).prepend(container);
-  };
-  const id = $(evt.currentTarget).data("forum-id");
-  $.ajax({
-    url: `/forum_posts/${id}/votes.json`,
-    type: "POST",
-    dataType: "json",
-    accept: "text/javascript",
-    data: { "forum_post_vote[score]": score },
-  }).done(function (data) {
-    create_post(data);
-    $(`#forum-post-votes-for-${id} .forum-post-vote-block`).hide();
-  }).fail(function (data) {
-    if (data?.responseJSON?.reason) {
-      E621.Flash.error(data.responseJSON.reason);
-    } else {
-      E621.Flash.error("Failed to vote on forum post.");
-    }
-  });
-};
-
-ForumPost.vote_remove = function (evt) {
-  evt.preventDefault();
-  const id = $(evt.currentTarget).data("forum-id");
-  $.ajax({
-    url: `/forum_posts/${id}/votes.json`,
-    type: "DELETE",
-    dataType: "json",
-    accept: "text/javascript",
-  }).done(function () {
-    $(evt.target).parents(".own-forum-vote").remove();
-    $(`#forum-post-votes-for-${id} .forum-post-vote-block`).show();
-    E621.Flash.notice("Vote removed.");
-  }).fail(function () {
-    E621.Flash.error("Failed to unvote on forum post.");
-  });
 };
 
 ForumPost.quote = function (e) {

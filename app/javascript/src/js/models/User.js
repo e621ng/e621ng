@@ -106,7 +106,7 @@ export default class User {
   /** @returns {number} User level ID */
   static get level () { return this._get().level; }
 
-  /** @returns {number} User level */
+  /** @returns {string} User level */
   static get levelString () { return this._get().levelString; }
 
   /** @returns {number} Maximum comment score before it is filtered out */
