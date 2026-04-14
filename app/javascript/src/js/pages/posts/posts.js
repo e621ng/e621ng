@@ -976,7 +976,6 @@ Post.update_tag_count = function () {
     klass = "meh";
   }
 
-  console.log(SVGIcon.ICONS["face_" + klass]);
   $("#tags-container .options #face")
     .html(SVGIcon.ICONS["face_" + klass])
     .removeClass("face-smile face-frown face-meh")
