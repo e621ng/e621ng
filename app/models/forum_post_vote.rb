@@ -66,7 +66,7 @@ class ForumPostVote < ApplicationRecord
     when 0
       "meh"
     else
-      raise
+      "unknown"
     end
   end
 end
