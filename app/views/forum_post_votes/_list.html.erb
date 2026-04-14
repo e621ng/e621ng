@@ -10,6 +10,7 @@
   data-user-vote="<%= own_vote&.vote_type || "none" %>"
   data-forum-id="<%= forum_post.id %>"
   data-vote-count="<%= votes.size %>"
+  data-state="ready"
 >
   <% categorized_votes.each do |score, cat_votes| %>
     <% score_str = ForumPostVote.score_to_str(score) %>

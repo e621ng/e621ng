@@ -62,12 +62,23 @@ export default class ForumPostVote {
     this.$voteList.attr("data-user-vote", vote);
   }
 
+  get state (): string {
+    return this.$voteList.attr("data-state") || "ready";
+  }
+
+  set state (newState: string) {
+    this.$voteList.attr("data-state", newState);
+  }
+
 
   // ============================== //
   // ======== Vote Requests ======= //
   // ============================== //
 
   private createVote (score: number): JQuery.jqXHR {
+    if (this.state !== "ready") return;
+    this.state = "loading";
+
     return $.ajax({
       url: `/forum_posts/${this.postId}/votes.json`,
       type: "POST",
@@ -75,22 +86,29 @@ export default class ForumPostVote {
       data: { "forum_post_vote[score]": score },
     }).done((data: VoteResponse) => {
       this.addVoteToDOM(data);
+      this.state = "ready";
     }).fail((xhr) => {
       const message: string = xhr?.responseJSON?.reason ?? "Failed to vote on forum post.";
       Flash.error(message);
+      this.state = "ready";
     });
   }
 
   private deleteVote (): JQuery.jqXHR {
+    if (this.state !== "ready") return;
+    this.state = "loading";
+
     return $.ajax({
       url: `/forum_posts/${this.postId}/votes.json`,
       type: "DELETE",
       dataType: "json",
     }).done(() => {
       this.removeVoteFromDOM();
+      this.state = "ready";
     }).fail((xhr) => {
       const message: string = xhr?.responseJSON?.reason ?? "Failed to remove vote.";
       Flash.error(message);
+      this.state = "ready";
     });
   }
 

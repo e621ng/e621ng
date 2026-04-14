@@ -40,6 +40,11 @@ ul.forum-post-vote-list {
 
     .forum-post-votes { display: none; }
   }
+
+  &[data-state="loading"] {
+    cursor: progress;
+    .forum-vote { pointer-events: none; }
+  }
 }
 
 // Vote button styles
