@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./app/javascript/src/js', import.meta.url)),
+      'rrweb': fileURLToPath(new URL('./app/javascript/src/js/stubs/rrweb.js', import.meta.url)),
     },
   },
   plugins: [
