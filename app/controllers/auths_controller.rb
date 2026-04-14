@@ -8,7 +8,4 @@ class AuthsController < ApplicationController
       format.html { render partial: "auths/login" }
     end
   end
-
-  def signup
-  end
 end

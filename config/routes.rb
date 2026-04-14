@@ -425,10 +425,9 @@ Rails.application.routes.draw do
     end
   end
 
-  resource :auth do
+  resource :auth, only: [] do
     collection do
       get :login
-      get :signup
     end
   end
 
