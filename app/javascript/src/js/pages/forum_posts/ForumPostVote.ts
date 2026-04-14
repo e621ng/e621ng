@@ -8,10 +8,10 @@ interface VoteResponse {
   score: number;
 }
 
-function scoreToStr(score: number): string {
+function scoreToStr (score: number): string {
   switch (score) {
-    case 1:  return "up";
-    case 0:  return "meh";
+    case 1: return "up";
+    case 0: return "meh";
     case -1: return "down";
     default: throw new Error(`Unknown score: ${score}`);
   }
@@ -22,7 +22,7 @@ export default class ForumPostVote {
   private $voteList: JQuery<HTMLElement>;
   private postId: number;
 
-  constructor(element: HTMLElement) {
+  constructor (element: HTMLElement) {
     this.$voteList = $(element);
     this.postId = parseInt(this.$voteList.data("forum-id"), 10);
     this.voteCount = parseInt(this.$voteList.data("vote-count"), 10) || 0;
@@ -61,19 +61,19 @@ export default class ForumPostVote {
   // ======== Getter Magic ======== //
   // ============================== //
 
-  get userVote(): string {
+  get userVote (): string {
     return this.$voteList.attr("data-user-vote") as string;
   }
 
-  set userVote(vote: string) {
+  set userVote (vote: string) {
     this.$voteList.attr("data-user-vote", vote);
   }
 
-  get voteCount(): number {
+  get voteCount (): number {
     return parseInt(this.$voteList.attr("data-vote-count") as string, 10) || 0;
   }
 
-  set voteCount(count: number) {
+  set voteCount (count: number) {
     this.$voteList.attr("data-vote-count", count.toString());
   }
 
@@ -82,7 +82,7 @@ export default class ForumPostVote {
   // ======== Vote Requests ======= //
   // ============================== //
 
-  private createVote(score: number): JQuery.jqXHR {
+  private createVote (score: number): JQuery.jqXHR {
     return $.ajax({
       url: `/forum_posts/${this.postId}/votes.json`,
       type: "POST",
@@ -96,7 +96,7 @@ export default class ForumPostVote {
     });
   }
 
-  private deleteVote(): JQuery.jqXHR {
+  private deleteVote (): JQuery.jqXHR {
     return $.ajax({
       url: `/forum_posts/${this.postId}/votes.json`,
       type: "DELETE",
@@ -114,7 +114,7 @@ export default class ForumPostVote {
   // ====== DOM Manipulation ====== //
   // ============================== //
 
-  private addVoteToDOM(vote: VoteResponse): void {
+  private addVoteToDOM (vote: VoteResponse): void {
     const voteStr = scoreToStr(vote.score);
     const $votesList = this.$voteList.find(`.forum-post-votes[data-vote="${voteStr}"]`);
 
@@ -125,14 +125,14 @@ export default class ForumPostVote {
     this.userVote = voteStr;
   }
 
-  private removeVoteFromDOM(): void {
+  private removeVoteFromDOM (): void {
     const $ownVote = this.$voteList.find(".own-forum-vote");
     $ownVote.remove();
 
     this.userVote = "none";
   }
 
-  private recalculateCounts(): void {
+  private recalculateCounts (): void {
     for (const category of this.$voteList.find(".forum-post-vote-category")) {
       const $category = $(category);
       const count = $category.find(".forum-post-votes").children("li").length;
