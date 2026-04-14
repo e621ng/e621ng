@@ -1,6 +1,8 @@
 <% if news_update.present? %>
   <div class="ui-state-highlight site-notice" style="display: none;" id="news" data-id="<%= news_update.id %>">
-    <a href="" role="button" id="news-dismiss" title="Dismiss"><i class="fas fa-times"></i></a>
+    <button type="button" class="st-button" id="news-dismiss" title="Dismiss" aria-label="Dismiss">
+      <%= svg_icon(:times) %>
+    </button>
     <h6 id="news-header">News: <%= news_update.created_at.strftime("%b %d, %Y") %>
       <a href="" role="button" id="news-show">Show</a>
     </h6>
