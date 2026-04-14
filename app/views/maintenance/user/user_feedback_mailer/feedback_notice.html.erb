@@ -6,7 +6,7 @@
         A new <a href="<%= user_feedbacks_url(search: { user_id: @user.id }) %>"><%= @is_ban ? "ban" : "#{@feedback.category} record" %></a> was added to your account on <%= Danbooru.config.app_name %>.
       </p>
       <blockquote class="quote">
-        <%= format_text(@feedback.body) %>
+        <%= format_text(@feedback.body, base_url: root_url, max_thumbs: 0) %>
       </blockquote>
     </mj-text>
     
