@@ -14,6 +14,6 @@ import "@/pages/posts/show/recommended";
 import "@/pages/posts/show/related_tag";
 import "@/pages/posts/show/SwipeGestureHandler";
 
-import "@/pages/post_flags/post_reports"; // We only need expandable notes from here
+import "@/pages/post_flags/post_flags"; // We only need expandable notes from here
 
 E621.Registry.register("v_posts_show", { Note });

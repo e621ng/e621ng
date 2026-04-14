@@ -1,9 +1,9 @@
 <div class="flag-dialog-preview">
 
   <div class="flag_post">
-    <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+    <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
   </div>
-  
+
   <div class="dtext-container">
     <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page)&.body) %>
   </div>
@@ -24,11 +24,11 @@
         <% end %>
 
         <label class="flag-reason-label">
-          <%= radio_button_tag "post_flag[reason_name]", flag_reason.name, false, data: { require_explanation: flag_reason.require_explanation? } %>
+          <%= radio_button_tag "post_flag[reason_name]", flag_reason.name, false, data: { needs_explanation: flag_reason.needs_explanation? } %>
           <span class="flag-reason-description">
             <b>
               <%= format_text(flag_reason.reason, inline: true) %>
-              <% if flag_reason.require_explanation? %>
+              <% if flag_reason.needs_explanation? %>
                 <span class="flag-reason-explanation">Additional Details Required</span>
               <% end %>
             </b>
@@ -38,7 +38,7 @@
           </span>
         </label>
 
-        <% if flag_reason.parent? %>
+        <% if flag_reason.needs_parent_id? %>
           <span class="flag-reason-parent">
             <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
           </span>
@@ -50,7 +50,7 @@
     <div class="flag-notes">
       <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size, input_html: { id: "flag_note_field" } %>
     </div>
-    
+
     <div>
       <span class="flag-note-hint" style="display: none;">Error: Additional note is required for this flag type.</span>
       <%= f.submit "Submit", class: "st-button submit", data: { disable_with: false } %>

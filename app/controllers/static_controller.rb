@@ -217,6 +217,7 @@ class StaticController < ApplicationController
       add_link[:admin, "IP Addresses", moderator_ip_addrs_path]
       add_link[:admin, "IP Bans", ip_bans_path]
       add_link[:admin, "Post Report Reasons", post_report_reasons_path]
+      add_link[:admin, "Post Flag Reasons", post_flag_reasons_path]
       add_link[:admin, "Email Blacklist", email_blacklists_path]
       add_link[:admin, "Destroyed Posts", admin_destroyed_posts_path]
       add_link[:admin, "Exceptions", admin_exceptions_path]

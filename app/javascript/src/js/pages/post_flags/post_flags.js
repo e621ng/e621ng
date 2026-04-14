@@ -1,9 +1,9 @@
 import Page from "@/utility/Page";
 
-const PostReports = {};
+const PostFlags = {};
 
 // Note sections are transformed into expandable containers if they exceed a certain height
-PostReports.initExpandableNotes = function () {
+PostFlags.initExpandableNotes = function () {
   for (const container of $(".post-flag-note")) {
     if (container.clientHeight > 72) $(container).addClass("expandable");
   }
@@ -14,7 +14,7 @@ PostReports.initExpandableNotes = function () {
 };
 
 
-PostReports.initFlagForm = function () {
+PostFlags.initFlagForm = function () {
   // Form should always be present
   const form = $("#new_post_flag");
   if (form.length === 0) return;
@@ -99,4 +99,4 @@ $(() => {
     PostFlags.initFlagForm();
 });
 
-export default PostReports;
+export default PostFlags;

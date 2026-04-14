@@ -46,6 +46,12 @@ class PostFlagReason < ApplicationRecord
     !!explanation_map[reason_name.to_s]
   end
 
+  # Cached check for whether a reason requires an explanation
+  def self.reason(reason_name)
+    reason_map = Rails.cache.fetch("post_flag_reasons:for_reason") { ordered.pluck(:name, :reason).to_h }
+    reason_map[reason_name.to_s]
+  end
+
   # Check if this reason has any children
   # Ideally, should not be called without preloding children
   def has_children?
