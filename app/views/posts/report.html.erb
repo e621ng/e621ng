@@ -3,14 +3,14 @@
 <% end %>
 
 <div id="c-posts"><div id="a-report">
-  
+
   <%# Post thumbnail + text blurb %>
   <div class="post-report-preview">
 
     <div class="flag_post">
-      <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+      <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
     </div>
-    
+
     <div class="dtext-container">
       <%= format_text(WikiPage.titled("help:flag_notice1")&.body) %>
     </div>
@@ -34,7 +34,7 @@
       <div class="report-notes">
         <%= form.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size, input_html: { id: "report_note_field" } %>
       </div>
-      
+
       <div>
         <span class="report-note-hint" style="display: none;">Error: Additional note is required for this flag type.</span>
         <%= form.submit "Submit", class: "st-button submit", data: { disable_with: false } %>
