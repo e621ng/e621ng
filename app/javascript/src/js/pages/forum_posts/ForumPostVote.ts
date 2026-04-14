@@ -37,6 +37,7 @@ export default class ForumPostVote {
         Flash.error("Please wait for the current vote to finish processing.");
         return;
       }
+      this.state = "loading";
 
       const action = parseInt($(event.currentTarget).data("action"), 10);
 
