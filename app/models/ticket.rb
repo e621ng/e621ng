@@ -453,7 +453,7 @@ class Ticket < ApplicationRecord
     end
 
     def push_pubsub_update_notification
-      push_pubsub("update")
+      push_pubsub("update") if saved_change_to_status? || saved_change_to_response?
     end
   end
 
