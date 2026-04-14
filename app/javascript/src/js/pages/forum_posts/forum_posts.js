@@ -22,10 +22,10 @@ ForumPost.initialize_all = function () {
     $(".forum-post-reply-link").on("click", ForumPost.quote);
     $(".forum-post-hide-link").on("click", ForumPost.hide);
     $(".forum-post-unhide-link").on("click", ForumPost.unhide);
-    $(".forum-vote-up").on("click", evt => ForumPost.vote(evt, 1));
-    $(".forum-vote-meh").on("click", evt => ForumPost.vote(evt, 0));
-    $(".forum-vote-down").on("click", evt => ForumPost.vote(evt, -1));
-    $(document).on("click", ".forum-vote-remove", ForumPost.vote_remove);
+    // $(".forum-vote-up").on("click", evt => ForumPost.vote(evt, 1));
+    // $(".forum-vote-meh").on("click", evt => ForumPost.vote(evt, 0));
+    // $(".forum-vote-down").on("click", evt => ForumPost.vote(evt, -1));
+    // $(document).on("click", ".forum-vote-remove", ForumPost.vote_remove);
   }
 };
 
@@ -36,14 +36,15 @@ ForumPost.reinitialize_all = function () {
     $(".forum-post-reply-link").off("click");
     $(".forum-post-hide-link").off("click");
     $(".forum-post-unhide-link").off("click");
-    $(".forum-vote-up").off("click");
-    $(".forum-vote-meh").off("click");
-    $(".forum-vote-down").off("click");
-    $(document).off("click", ".forum-vote-remove");
+    // $(".forum-vote-up").off("click");
+    // $(".forum-vote-meh").off("click");
+    // $(".forum-vote-down").off("click");
+    // $(document).off("click", ".forum-vote-remove");
     this.initialize_all();
   }
 };
 
+/*
 ForumPost.vote = function (evt, score) {
   evt.preventDefault();
   const create_post = function (new_vote) {
@@ -93,6 +94,7 @@ ForumPost.vote_remove = function (evt) {
     E621.Flash.error("Failed to unvote on forum post.");
   });
 };
+*/
 
 ForumPost.quote = function (e) {
   e.preventDefault();

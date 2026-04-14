@@ -1,0 +1,48 @@
+ul.forum-post-vote-list {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+
+  li.forum-post-vote-category {
+    display: flex;
+    gap: 0.25rem;
+
+    svg {
+      height: 1rem;
+      width: 1rem;
+      margin: 0;
+    }
+    span.forum-vote-dummy {
+      background: themed("color-section-darken-5");
+    }
+  }
+
+  ul.forum-post-votes {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    background: themed("color-section-darken-5");
+    padding: 0.5rem;
+    width: 100%;
+    border-radius: 0.25rem;
+
+    max-width: 30rem;
+  }
+}
+
+// Vote button styles
+ul.forum-post-vote-list {
+  &[data-user-vote="up"] li.forum-post-vote-category[data-vote="up"] button.forum-vote {
+    background: palette("background-green");
+    &:hover { background: palette("background-green-d5"); }
+  }
+  &[data-user-vote="meh"] li.forum-post-vote-category[data-vote="meh"] button.forum-vote {
+    background: palette("background-yellow");
+    &:hover { background: palette("background-yellow-d5"); }
+  }
+  &[data-user-vote="down"] li.forum-post-vote-category[data-vote="down"] button.forum-vote {
+    background: palette("background-red");
+    &:hover { background: palette("background-red-d5"); }
+  }
+}
