@@ -20,7 +20,7 @@ PostDeletion.init = function () {
   let updateDMailReason = null;
   // Absent if no DMail template is configured
   if (dMailCheckBox && dMailTemplate && dMailMessage && dMailTitleInput && dMailTextArea) {
-    function updateDMailActivation () {
+    const updateDMailActivation = function () {
       if (dMailCheckBox.checked) {
         dMailMessage.style.display = dMailTitleInput[0].style.display = dMailTemplate.parentElement.style.display = "";
         dMailTitleInput.removeAttr("disabled");
@@ -30,7 +30,7 @@ PostDeletion.init = function () {
         dMailTitleInput.attr("disabled", "disabled");
         dMailTextArea.attr("disabled", "disabled");
       }
-    }
+    };
     updateDMailReason = function () {
       const newReason = input.val()?.toString();
       let newTitle = dMailTemplate.selectedOptions[0].getAttribute("data-dmail-title");
