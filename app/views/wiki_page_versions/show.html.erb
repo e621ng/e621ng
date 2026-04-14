@@ -6,7 +6,7 @@
       <h1 id="wiki-page-title"><%= @wiki_page_version.pretty_title %> <span class="version">(<%= time_ago_in_words_tagged(@wiki_page_version.updated_at) %>)</span></h1>
 
       <% if @wiki_page_version.parent.present? %>
-        <div class="wiki-page-redirect"><i class="fa-solid fa-turn-up fa-rotate-90"></i> Redirects to <%= link_to @wiki_page_version.parent, show_or_new_wiki_pages_path(title: @wiki_page_version.parent) %></div>
+        <div class="wiki-page-redirect"><%= svg_icon(:arrow_corner_down_right, width: 12, height: 12) %> Redirects to <%= link_to @wiki_page_version.parent, show_or_new_wiki_pages_path(title: @wiki_page_version.parent) %></div>
       <% end %>
 
       <div id="wiki-page-body" class="dtext dtext-container">
