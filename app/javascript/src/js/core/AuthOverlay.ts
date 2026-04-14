@@ -58,7 +58,7 @@ export default class AuthOverlay {
       (error) => {
         console.error("Auth overlay: failed to load content", error);
         return false;
-      }
+      },
     );
   }
 
