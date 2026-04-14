@@ -5,6 +5,7 @@ import LStorage from "@/utility/storage";
 import TaskQueue from "@/utility/task_queue";
 import PostVote from "@/models/PostVote";
 import Page from "@/utility/page";
+import SVGIcon from "@/utility/svg_icon";
 
 let Post = {};
 
@@ -967,13 +968,18 @@ Post.update_tag_count = function () {
     }
   }
   $("#tags-container .count").html(string);
+
   let klass = "smile";
   if (count < 15) {
     klass = "frown";
   } else if (count < 25) {
     klass = "meh";
   }
-  $("#tags-container .options #face").removeClass().addClass(`fa-regular fa-face-${klass}`);
+
+  $("#tags-container .options #face")
+    .html(SVGIcon.ICONS["face_" + klass])
+    .removeClass("face-smile face-frown face-meh")
+    .addClass("face-" + klass);
 };
 
 Post.vote = function (id, score, prevent_unvote) {
