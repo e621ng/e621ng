@@ -5,7 +5,7 @@ import NoteManager from "@/pages/posts/show/notes";
 import Post from "@/pages/posts/posts";
 import Offclick from "@/utility/offclick";
 import Page from "@/utility/page";
-import GenInfo from "@/gen_info";
+import GenInfo from "@/pages/posts/show/gen_info";
 
 export default class PostsShowToolbar {
 
