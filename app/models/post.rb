@@ -1610,6 +1610,17 @@ class Post < ApplicationRecord
     def pending_flag
       flags.unresolved.order(id: :desc).first
     end
+
+    def substitute_deletion_dmail_template(text, reason = nil)
+      return nil if text.blank?
+      if reason
+        text = text.gsub("%REASON%", reason)
+      end
+      text.gsub("%POST_ID%", id.to_s)
+          .gsub("%STAFF_NAME%", CurrentUser.name)
+          .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+          .gsub("%UPLOADER_ID%", uploader_id.to_s)
+    end
   end
 
   module VersionMethods
@@ -1730,6 +1741,7 @@ class Post < ApplicationRecord
         score: score,
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
+        comment_count: comment_count,
 
         pools: pool_ids.join(" "),
       }
@@ -2088,7 +2100,7 @@ class Post < ApplicationRecord
   end
 
   def flaggable_for_guidelines?
-    !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
+    !has_tag?("grandfathered_content") && created_at.after?(Danbooru.config.grandfathered_post_cutoff)
   end
 
   def visible_comment_count(user)

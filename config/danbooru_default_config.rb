@@ -126,7 +126,7 @@ module Danbooru
     end
 
     def webp_previews_enabled?
-      false
+      true
     end
 
     # Large resize image width. Set to nil to disable.
@@ -560,6 +560,10 @@ module Danbooru
       ]
     end
 
+    def grandfathered_post_cutoff
+      Time.zone.local(2015, 1, 1)
+    end
+
     def auto_flag_ai_posts?
       false
     end
@@ -687,6 +691,12 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     # The number of records displayed per page. Posts use `user.per_page` which is configurable by the user
     def records_per_page
       75
+    end
+
+    # The hard upper bound for the `limit` parameter and the user's `per_page` setting.
+    # Also caps list-style search params like `id:1,2,3` or `?search[id]=1,2,3`.
+    def max_per_page
+      320
     end
 
     def is_post_restricted?(_post)

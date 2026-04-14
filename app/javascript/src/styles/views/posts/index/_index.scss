@@ -128,6 +128,11 @@ body.c-favorites.a-index {
     padding: 0.5rem 0.25rem;
     box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
 
+    #mode-box label {
+      font-size: 1.16667em;
+      line-height: 1.5rem;
+    }
+
     // Mode selection
     #mode-box-mode, #mode-box #set-id {
       width: 100%;

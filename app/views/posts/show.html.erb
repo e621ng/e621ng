@@ -118,7 +118,7 @@
             <button class="st-button" data-action="tags">Similar</button>
             <button class="st-button" data-action="favorites">Others Also Liked</button>
           <% end %>
-          <button class="st-button" data-action="closed"><%= svg_icon(:eye_off) %></button>
+          <button class="st-button" data-action="closed" title="Close Recommendations"><%= svg_icon(:eye_off) %></button>
         </div>
         <div id="post-recommendations-list">
           <% 6.times do %>
@@ -182,6 +182,7 @@
 
       <% if CurrentUser.can_approve_posts? %>
         <%= render "post_disapprovals/detailed_rejection_dialog" %>
+        <%= render "moderator/post/posts/delete_with_reason_dialog" %>
       <% end %>
     </div>
 

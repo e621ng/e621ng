@@ -294,7 +294,12 @@ div#c-posts {
 
         .nav-link {
           flex-shrink: 2;
-          padding: 0.5em
+          padding: 0.5em;
+
+          svg {
+            vertical-align: bottom;
+            stroke-width: 3;
+          }
         }
         a.nav-link:hover {
           background: themed("color-section-lighten-5");
@@ -308,6 +313,11 @@ div#c-posts {
           white-space: nowrap;
           text-overflow: ellipsis;
           width: 0;
+
+          svg {
+            stroke-width: 3;
+            vertical-align: bottom;
+          }
         }
       }
     }

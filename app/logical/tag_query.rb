@@ -1370,7 +1370,7 @@ class TagQuery
           favuser.id
         end
 
-      when "md5" then q[:md5] = g2.downcase.split(",")[0..99]
+      when "md5" then q[:md5] = g2.downcase.split(",").first(Danbooru.config.max_per_page)
 
       when "rating", "-rating", "~rating" then add_to_query(type, :rating, g2) if %w[s q e].include?(g2 = g2[0]&.downcase)
 

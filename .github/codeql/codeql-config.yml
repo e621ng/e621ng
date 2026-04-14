@@ -2,9 +2,6 @@ name: "CodeQL Configuration"
 
 # Exclude files that use bundler-specific syntax that CodeQL cannot parse
 paths-ignore:
-  # Vite entrypoints use import.meta.glob() syntax which CodeQL doesn't understand
-  - "app/javascript/entrypoints/**"
-  
   # Exclude other generated or build files if needed
   - "public/packs/**"
   - "public/vite/**"

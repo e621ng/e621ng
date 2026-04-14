@@ -66,15 +66,11 @@ module Moderator
           end
 
           if params[:dmail].present?
+            reason = params[:reason].to_s
             Dmail.create_automated({
               to_id: @post.uploader_id,
-              title: "Post ##{params[:id]} has been deleted",
-              body: params[:dmail]
-                .gsub("%POST_ID%", params[:id].to_s)
-                .gsub("%STAFF_NAME%", CurrentUser.name)
-                .gsub("%STAFF_ID%", CurrentUser.id.to_s)
-                .gsub("%UPLOADER_ID%", @post.uploader_id.to_s)
-                .gsub("%REASON%", params[:reason].to_s),
+              title: @post.substitute_deletion_dmail_template(params[:dmail_title], reason) || "Post ##{params[:id]} has been deleted",
+              body: @post.substitute_deletion_dmail_template(params[:dmail], reason),
             })
           end
         end

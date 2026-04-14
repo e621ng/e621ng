@@ -40,6 +40,7 @@ Rails.application.routes.draw do
         put :uploads_min_level
         put :uploads_hide_pending
         put :maintenance
+        put :analytics
       end
     end
   end
@@ -269,6 +270,7 @@ Rails.application.routes.draw do
       resource :similar, only: [], controller: "post_recommendations" do
         get :artist
         get :remote
+        get :lookup
         get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
       end
     end
@@ -399,6 +401,12 @@ Rails.application.routes.draw do
       post :accept
       post :clear_cache
       post :bump_version
+    end
+  end
+
+  resource :auth, only: [] do
+    collection do
+      get :login
     end
   end
 
