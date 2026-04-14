@@ -178,6 +178,7 @@
 
       <% if CurrentUser.can_approve_posts? %>
         <%= render "post_disapprovals/detailed_rejection_dialog" %>
+        <%= render "moderator/post/posts/delete_with_reason_dialog" %>
       <% end %>
     </div>
 

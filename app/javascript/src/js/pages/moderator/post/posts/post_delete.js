@@ -8,34 +8,45 @@ PostDeletion.init = function () {
 
   // #region DMail Notification
   /** @type {HTMLInputElement} */
-  const cBox = document.querySelector("input#send-dmail"),
+  const dMailCheckBox = document.querySelector("input#send-dmail"),
     /** @type {HTMLSelectElement} */
     dMailTemplate = document.querySelector("select#del-dmail-template"),
     /** @type {HTMLElement} */
-    message = document.querySelector("label[for=send-dmail] ~ .dtext-formatter"),
+    dMailMessage = document.querySelector("label[for=send-dmail] ~ .dtext-formatter"),
+    /** @type {JQuery<HTMLInputElement>} */
+    dMailTitleInput = $(document.querySelector("#dmail-title")),
     /** @type {JQuery<HTMLTextAreaElement>} */
-    dMailTextArea = $(message).children("textarea.dtext-formatter-input");
-  function updateDMailActivation () {
-    if (cBox.checked) {
-      message.style.display = dMailTemplate.parentElement.style.display = "";
-      dMailTextArea.removeAttr("disabled");
-    } else {
-      message.style.display = dMailTemplate.parentElement.style.display = "none";
-      dMailTextArea.attr("disabled", "disabled");
-    }
+    dMailTextArea = $(document.querySelector("#dmail-message"));
+  let updateDMailReason = null;
+  // Absent if no DMail template is configured
+  if (dMailCheckBox && dMailTemplate && dMailMessage && dMailTitleInput && dMailTextArea) {
+    const updateDMailActivation = function () {
+      if (dMailCheckBox.checked) {
+        dMailMessage.style.display = dMailTitleInput[0].style.display = dMailTemplate.parentElement.style.display = "";
+        dMailTitleInput.removeAttr("disabled");
+        dMailTextArea.removeAttr("disabled");
+      } else {
+        dMailMessage.style.display = dMailTitleInput[0].style.display = dMailTemplate.parentElement.style.display = "none";
+        dMailTitleInput.attr("disabled", "disabled");
+        dMailTextArea.attr("disabled", "disabled");
+      }
+    };
+    updateDMailReason = function () {
+      const newReason = input.val()?.toString();
+      let newTitle = dMailTemplate.selectedOptions[0].getAttribute("data-dmail-title");
+      let newMessage = dMailTemplate.value;
+      if (!Utility.blank(newReason)) {
+        newTitle = newTitle.replaceAll("%REASON%", newReason);
+        newMessage = newMessage.replaceAll("%REASON%", newReason);
+      }
+      dMailTitleInput.val(newTitle);
+      dMailTextArea.val(newMessage);
+    };
+    dMailCheckBox.addEventListener("click", () => updateDMailActivation());
+    dMailTemplate.addEventListener("change", () => updateDMailReason());
+    updateDMailActivation();
+    updateDMailReason();
   }
-  function updateReason () {
-    let newVal = input.val()?.toString();
-    dMailTextArea.val(
-      Utility.blank(newVal)
-        ? dMailTemplate.value
-        : dMailTemplate.value.replaceAll("%REASON%", newVal),
-    );
-  }
-  cBox.addEventListener("click", () => updateDMailActivation());
-  dMailTemplate.addEventListener("change", () => updateReason());
-  updateDMailActivation();
-  updateReason();
   // #endregion DMail Notification
 
   // #region Delete Reason
@@ -79,7 +90,7 @@ PostDeletion.init = function () {
   input.on("input", () => {
     inputVal = input.val() + "";
     buttons.trigger("e621:refresh");
-    updateReason();
+    updateDMailReason?.();
   });
 
   $("#delreason-clear").on("click", () => {
