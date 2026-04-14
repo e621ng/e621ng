@@ -22,7 +22,7 @@
       </span>
     </a>
     <% if CurrentUser.is_anonymous? %>
-      <a href="<%= new_session_path %>" class="simple-login nav-controls-profile collapse-2">
+      <a href="<%= new_session_path(url: request.fullpath) %>" class="simple-login nav-controls-profile collapse-2 auth-login-link">
         <span class="login-name">
           Sign In
         </span>

@@ -425,6 +425,12 @@ Rails.application.routes.draw do
     end
   end
 
+  resource :auth, only: [] do
+    collection do
+      get :login
+    end
+  end
+
   options "*all", to: "application#enable_cors"
 
   # aliases
