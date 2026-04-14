@@ -313,6 +313,11 @@ div#c-posts {
           white-space: nowrap;
           text-overflow: ellipsis;
           width: 0;
+
+          svg {
+            stroke-width: 3;
+            vertical-align: bottom;
+          }
         }
       }
     }
