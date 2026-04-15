@@ -1,5 +1,5 @@
 <div id="c-posts"><div id="a-show">
-  <div class="post-index">
+  <div class="post-index" tab-state="comments">
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>
@@ -123,32 +123,6 @@
         </div>
       </div>
 
-      <ul class="menu mobile-only">
-        <li><a href="#image-and-nav">Image</a></li>
-        <li><a href="#tag-list">Tags/Info</a></li>
-      </ul>
-
-      <menu id="post-sections">
-        <% unless CurrentUser.hide_comments? %>
-          <li class="active"><a href="#comments">Comments</a></li>
-        <% end %>
-      </menu>
-
-      <% unless CurrentUser.hide_comments? %>
-        <section id="comments">
-          <%= render "comments/partials/index/list", :comments => @comments, :post => @post, :show_header => false %>
-        </section>
-      <% end %>
-
-      <ul class="menu mobile-only">
-        <li><a href="#image-and-nav">Image</a></li>
-        <% unless CurrentUser.hide_comments? %>
-          <li><a href="#comments">Comments</a></li>
-        <% end %>
-      </ul>
-
-      <%= render "ads/leaderboard", area: :bottom, tag_string: @post.ad_tag_string %>
-
       <section id="note-staging" style="display: none;">
         <% if @post.can_have_notes? && @post.has_notes?  %>
           <% cache("p/#{@post.id}/n/#{@post.last_noted_at.to_i}") do %>
@@ -162,6 +136,21 @@
           <%= render "posts/partials/show/content/edit", :post => @post %>
         </section>
       <% end %>
+    </div>
+
+    <div class="tabs">
+      <button class="post-mobile-tab" data-action="comments">Comments</button>
+      <button class="post-mobile-tab" data-action="tags">Tags</button>
+    </div>
+
+    <div class="comments">
+      <% unless CurrentUser.hide_comments? %>
+        <section id="comments">
+          <%= render "comments/partials/index/list", :comments => @comments, :post => @post, :show_header => false %>
+        </section>
+      <% end %>
+
+      <%= render "ads/leaderboard", area: :bottom, tag_string: @post.ad_tag_string %>
     </div>
   </div>
 
