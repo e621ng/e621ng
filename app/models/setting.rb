@@ -40,9 +40,4 @@ class Setting < RailsSettings::Base
     field :trends_tag_limit, type: :integer, default: 100, validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
     field :trends_tag_window, type: :integer, default: 600, validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
   end
-
-  scope :analytics do
-    field :collect_recommendation_events, type: :boolean, default: false
-    field :collect_search_trend_events, type: :boolean, default: false
-  end
 end
