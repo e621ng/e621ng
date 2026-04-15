@@ -17,8 +17,8 @@ module SiteSettingsHelper
         client_id: analytics_enabled ? Danbooru.config.analytics_client_id : nil,
 
         events: {
-          recommendation: Setting.collect_recommendation_events? || false,
-          search_trend: Setting.collect_search_trend_events? || false,
+          recommendation: Danbooru.config.visitor_metrics_events[:recommendation] || false,
+          search_trend: Danbooru.config.visitor_metrics_events[:search_trend] || false,
         },
       },
     }

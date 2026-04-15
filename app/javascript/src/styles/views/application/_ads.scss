@@ -34,15 +34,15 @@
       max-height: 600px;
       max-width: 160px;
       width: 100%;
-      aspect-ratio: 150 / 600; // Prevent layout shift when the ad loads
+      aspect-ratio: 160 / 600; // Prevent layout shift when the ad loads
 
       // Extra margin to move it away from the UI
       margin-top: 3rem;
 
       @include window-larger-than(800px, true) {
         max-height: 600px;
-        max-width: 150px;
-        aspect-ratio: 150 / 600;
+        max-width: 160px;
+        aspect-ratio: 160 / 600;
       }
     }
   }
