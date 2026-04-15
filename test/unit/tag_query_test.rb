@@ -194,6 +194,12 @@ class TagQueryTest < ActiveSupport::TestCase
         # Ensure tag hoisting works on negated order tags
         assert_equal("random", TagQuery.new("( -order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
         assert_equal(123, TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:random_seed])
+        # randseed without order should default to order:random
+        assert_equal("random", TagQuery.new("randseed:123")[:order])
+        # randseed with a non-random order should leave order unchanged
+        assert_equal("score", TagQuery.new("randseed:123 order:score")[:order])
+        # randseed with order:random already set should remain random
+        assert_equal("random", TagQuery.new("randseed:123 order:random")[:order])
       end
     end
 
@@ -846,6 +852,7 @@ class TagQueryTest < ActiveSupport::TestCase
       should "parse boolean metatags correctly" do
         TagQuery::BOOLEAN_METATAGS.each do |e|
           label = "Failed on #{e}".freeze
+          canonical = TagQuery::BOOLEAN_METATAG_ALIASES.fetch(e, e).downcase.to_sym
           # Doesn't accept prefixes
           bad_parse = TagQuery.new("-#{e}:true".freeze)
           assert_nil(bad_parse[e.downcase.to_sym], label)
@@ -857,12 +864,12 @@ class TagQueryTest < ActiveSupport::TestCase
           assert_equal("#{e}:false", bad_parse[:tags][:should][0], label)
 
           # true & false give true & false
-          assert_equal(true, TagQuery.new("#{e}:true")[e.downcase.to_sym], label)
-          assert_equal(false, TagQuery.new("#{e}:false")[e.downcase.to_sym], label)
+          assert_equal(true, TagQuery.new("#{e}:true")[canonical], label)
+          assert_equal(false, TagQuery.new("#{e}:false")[canonical], label)
 
           # Doesn't behave like `Danbooru::Extensions::String#truthy?`
-          assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[e.downcase.to_sym], label)
-          assert_equal(false, TagQuery.new("#{e}:t")[e.downcase.to_sym], label)
+          assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[canonical], label)
+          assert_equal(false, TagQuery.new("#{e}:t")[canonical], label)
         end
 
         # ratinglocked, statuslocked, & notelocked
@@ -888,11 +895,11 @@ class TagQueryTest < ActiveSupport::TestCase
         end
       end
 
-      # * Limited to 100 comma-separated entries
+      # * Limited to `Danbooru.config.max_per_page` comma-separated entries
       should "parse md5 tags correctly" do
         assert_equal(["abc"], TagQuery.new("md5:abc")[:md5])
         arr = [*"aa".."zz"].freeze
-        assert_equal(arr[0..99], TagQuery.new("md5:#{arr.join(',')}")[:md5])
+        assert_equal(arr.first(Danbooru.config.max_per_page), TagQuery.new("md5:#{arr.join(',')}")[:md5])
       end
 
       # * Should be first character downcased if it's `s`, `q`, or `e`, otherwise unset
@@ -1243,9 +1250,10 @@ class TagQueryTest < ActiveSupport::TestCase
       context "using range" do
         should "parse exact integer ranges correctly" do
           prefixes = [["", ""], ["-", "_must_not"], ["~", "_should"]].freeze
-          in_r = [*1..100].freeze
+          limit = Danbooru.config.max_per_page
+          in_r = [*1..limit].freeze
           in_i = in_r.join(",").freeze
-          in_f = "#{in_i},101".freeze
+          in_f = "#{in_i},#{limit + 1}".freeze
           in_r = [[:in, in_r].freeze].freeze
           %w[id width height score favcount change tagcount].concat(TagQuery::CATEGORY_METATAG_MAP.keys).freeze.each do |e|
             s_root = MAPPING[e.to_sym]
@@ -1261,9 +1269,9 @@ class TagQueryTest < ActiveSupport::TestCase
               assert_equal([[:lt, 3]], TagQuery.new("#{p}#{e}:<3")[s], label)
               assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:<=3")[s], label)
               assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:..3")[s], label)
-              # Accept up to 100 options
+              # Accept up to `Danbooru.config.max_per_page` options
               assert_equal(in_r, TagQuery.new("#{p}#{e}:#{in_i}")[s], label)
-              # Truncate past 100 options
+              # Truncate past `Danbooru.config.max_per_page` options
               assert_equal(in_r, TagQuery.new("#{p}#{e}:#{in_f}")[s], label)
             end
           end

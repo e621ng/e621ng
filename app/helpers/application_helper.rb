@@ -70,24 +70,6 @@ module ApplicationHelper
     tag.li(link_to(text, url, id: "#{id}-link", **options), id: id, class: klass)
   end
 
-  def dtext_ragel(text, **)
-    parsed = DText.parse(text, **)
-    return raw "" if parsed.nil?
-    deferred_post_ids.merge(parsed[1]) if parsed[1].present?
-    raw parsed[0]
-  rescue DText::Error => e
-    raw ""
-  end
-
-  def format_text(text, **options)
-    # preserve the currrent inline behaviour
-    if options[:inline]
-      dtext_ragel(text, **options)
-    else
-      raw %(<div class="styled-dtext">#{dtext_ragel(text, **options)}</div>)
-    end
-  end
-
   def custom_form_for(object, *args, &)
     options = args.extract_options!
     simple_form_for(object, *(args << options.merge(builder: CustomFormBuilder)), &)
@@ -264,6 +246,22 @@ module ApplicationHelper
     else
       /^#{site_map_path}/
     end
+  end
+
+  VITE_ENTRYPOINTS = Rails.root.glob("app/javascript/entrypoints/v_*.ts")
+                          .to_set { |f| File.basename(f, ".ts") }
+                          .freeze
+
+  def vite_script_for_controller
+    name = "v_#{params[:controller].parameterize.dasherize}"
+    return unless VITE_ENTRYPOINTS.include?(name)
+    vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
+  end
+
+  def vite_script_for_controller_and_action
+    name = "v_#{params[:controller].parameterize.dasherize}_#{params[:action].parameterize.dasherize}"
+    return unless VITE_ENTRYPOINTS.include?(name)
+    vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
   end
 
   private

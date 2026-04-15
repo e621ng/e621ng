@@ -240,20 +240,20 @@ class ModActionDecorator < ApplicationDecorator
 
     when "blip_update"
       "Edited blip ##{vals['blip_id']} by #{user}"
+    when "blip_destroy"
+      if vals["username"]
+        "Destroyed blip ##{vals['blip_id']} by #{user}"
+      else
+        "Destroyed blip ##{vals['blip_id']}"
+      end
     when "blip_delete"
-      if vals['username']
+      if vals["username"]
         "Deleted blip ##{vals['blip_id']} by #{user}"
       else
         "Deleted blip ##{vals['blip_id']}"
       end
-    when "blip_hide"
-      if vals['username']
-        "Hid blip ##{vals['blip_id']} by #{user}"
-      else
-        "Hid blip ##{vals['blip_id']}"
-      end
-    when "blip_unhide"
-      "Unhid blip ##{vals['blip_id']} by #{user}"
+    when "blip_undelete"
+      "Undeleted blip ##{vals['blip_id']} by #{user}"
 
       ### Tag ###
 

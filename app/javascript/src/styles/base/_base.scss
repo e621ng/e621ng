@@ -4,6 +4,9 @@ body {
   background-color: $hexagon-color-background;
   background-color: themed("color-background");
   background-image: themed("image-background");
+  background-position: themed("image-background-position");
+  background-repeat: themed("image-background-repeat");
+  background-size: themed("image-background-size");
   font-family: $base_font_family;
   font-size: $font-size;
   line-height: 1.25em;

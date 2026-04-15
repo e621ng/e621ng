@@ -18,10 +18,22 @@ class PostsController < ApplicationController
         end
       end
     else
-      @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
+      @tag_query = tag_query
+      unless @tag_query.is_a?(String)
+        @tag_query = ""
+        render_expected_error(400, "Invalid tags parameter")
+        return
+      end
+
+      @post_set = PostSets::Post.new(@tag_query, params[:page], limit: params[:limit], random: params[:random])
       @posts = @post_set.posts
 
-      @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
+      # Record trending tags for page 1 queries to avoid double-counting pagination
+      if @tag_query.present? && (params[:page].blank? || params[:page].to_i <= 1)
+        SearchTrendHourly.record_query!(@tag_query, ip: request.remote_ip)
+      end
+
+      @query = @tag_query.blank? ? [] : @tag_query.strip.split(/ /, 2).compact_blank
       if @query.length == 1
         @wiki_page = WikiPage.titled(@query[0])
 
@@ -164,7 +176,9 @@ class PostsController < ApplicationController
   private
 
   def tag_query
-    params[:tags] || (params[:post] && params[:post][:tags])
+    return params[:tags] if params[:tags].present?
+    return "" unless params[:post].is_a?(ActionController::Parameters)
+    params[:post][:tags].presence || ""
   end
 
   def respond_with_post_after_update(post)
@@ -232,7 +246,7 @@ class PostsController < ApplicationController
     permitted_params += %i[is_rating_locked] if CurrentUser.is_privileged?
     permitted_params += %i[is_note_locked bg_color] if CurrentUser.is_janitor?
     permitted_params += %i[is_comment_locked] if CurrentUser.is_moderator?
-    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
+    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines hide_favorites_list] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)
   end

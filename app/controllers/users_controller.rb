@@ -24,8 +24,12 @@ class UsersController < ApplicationController
   end
 
   def show
-    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
-    @presenter = UserPresenter.new(@user)
+    if request.format.json?
+      @user = User.includes(:user_status).find(User.name_or_id_to_id_forced(params[:id]))
+    else
+      @user = User.includes(:user_status, artists: [:tag]).find(User.name_or_id_to_id_forced(params[:id]))
+      @presenter = UserPresenter.new(@user)
+    end
     respond_with(@user, methods: @user.full_attributes)
   end
 
@@ -38,6 +42,8 @@ class UsersController < ApplicationController
 
   def edit
     @user = User.find(CurrentUser.id)
+    # Ensure that the DmailFilter actually loads
+    @user.dmail_filter || @user.build_dmail_filter
     check_privilege(@user)
     respond_with(@user)
   end

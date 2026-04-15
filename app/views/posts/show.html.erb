@@ -101,6 +101,28 @@
         </div>
       <% end %>
 
+      <div
+        id="post-recommendations"
+        data-selected="tags"
+        data-status="waiting"
+        data-post-id="<%= @post.id %>"
+        data-remote="<%= Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>"
+      >
+        <div id="post-recommendations-tabs">
+          <button class="st-button" data-action="artist">From the Artist</button>
+          <% if Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
+            <button class="st-button" data-action="tags">Similar</button>
+            <button class="st-button" data-action="favorites"><span class="desktop-only">Others Also</span>Liked</button>
+          <% end %>
+          <button class="st-button" data-action="closed" title="Close Recommendations"><%= svg_icon(:eye_off) %></button>
+        </div>
+        <div id="post-recommendations-list">
+          <% 6.times do %>
+            <article class="thumbnail placeholder"></article>
+          <% end %>
+        </div>
+      </div>
+
       <ul class="menu mobile-only">
         <li><a href="#image-and-nav">Image</a></li>
         <li><a href="#tag-list">Tags/Info</a></li>
@@ -156,6 +178,7 @@
 
       <% if CurrentUser.can_approve_posts? %>
         <%= render "post_disapprovals/detailed_rejection_dialog" %>
+        <%= render "moderator/post/posts/delete_with_reason_dialog" %>
       <% end %>
     </div>
 

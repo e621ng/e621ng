@@ -1,0 +1,40 @@
+<div id="c-search-trend-blacklists">
+  <div id="a-index">
+    <%= render "search" %>
+    <h1>Search Trend Blacklist</h1>
+
+    <table class="striped">
+      <thead>
+        <tr>
+          <th>Tag Pattern</th>
+          <th>Reason</th>
+          <th>Added By</th>
+          <th>Created</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @blacklists.each do |blacklist| %>
+          <tr>
+            <td><%= blacklist.tag %></td>
+            <td><%= blacklist.reason %></td>
+            <td><%= link_to_user(blacklist.creator) %></td>
+            <td><%= compact_time blacklist.created_at %></td>
+            <td>
+              <%= link_to "Edit", edit_search_trend_blacklist_path(blacklist) %>
+              <%= link_to "Delete", search_trend_blacklist_path(blacklist), method: :delete, data: { confirm: "Delete blacklist entry for \"#{blacklist.tag}\"?" } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render PaginatorComponent.new(records: @blacklists) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Search Trend Blacklist
+<% end %>

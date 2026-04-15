@@ -32,7 +32,7 @@
     &-vertical {
       // Mobile ads are fixed in size
       max-height: 600px;
-      max-width: 150px;
+      max-width: 160px;
       width: 100%;
       aspect-ratio: 150 / 600; // Prevent layout shift when the ad loads
 
