@@ -655,11 +655,15 @@ Post.initialize_change_resize_mode_link = function () {
 };
 
 Post.initialize_post_sections = function () {
-  $("#post-sections li a,#side-edit-link").on("click.danbooru", function (e) {
-    if (e.target.hash === "#comments") {
+  $("#post-sections li a,#side-edit-link,#post-edit-link,#menu-post-edit-link").on("click.danbooru", function (e) {
+    const target = $(e.target).closest("a")[0];
+
+    if (!target) return;
+
+    if (target.hash === "#comments") {
       $("#comments").show();
       $("#edit").hide();
-    } else if (e.target.hash === "#edit") {
+    } else if (target.hash === "#edit") {
       $("#edit").show();
       $("#comments").hide();
       $(document).trigger("danbooru:open-post-edit-tab");
@@ -669,12 +673,12 @@ Post.initialize_post_sections = function () {
       $("#comments").hide();
     }
 
-    if (e.target.hash !== "#edit") {
+    if (target.hash !== "#edit") {
       $(document).trigger("danbooru:close-post-edit-tab");
     }
 
     $("#post-sections li").removeClass("active");
-    $(e.target).parent("li").addClass("active");
+    $(target).parent("li").addClass("active");
     e.preventDefault();
   });
 };

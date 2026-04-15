@@ -40,16 +40,6 @@
       <%= svg_icon(:star) %>
     </button>
   </div>
-  <div class="ptbr-edit">
-    <a
-      href="#edit"
-      id="post-edit-link"
-      data-hotkey="edit"
-      class="st-button kinetic ptbr-edit-button"
-    >
-      Edit
-    </a>
-  </div>
 <% else %>
   <div
     class="ptbr-vote"
@@ -106,13 +96,26 @@
       View
     </a>
   </div>
-
+<% end %>
+<% if CurrentUser.is_member? %>
+  <div class="ptbr-edit">
+    <a
+      href="#edit"
+      id="post-edit-link"
+      data-hotkey="edit"
+      class="st-button kinetic ptbr-edit-button"
+    >
+      Edit
+    </a>
+  </div>
+<% end %>
+<% if @post.visible? %>
   <div class="ptbr-etc">
     <button class="st-button kinetic ptbr-etc-toggle" title="More Options">
       <%= svg_icon(:ellipsis_v) %>
     </button>
     <div class="ptbr-etc-menu hidden">
-      <a href="#edit" id="post-edit-link" class="st-button ptbr-etc-edit">Edit</a>
+      <a href="#edit" id="menu-post-edit-link" class="st-button ptbr-etc-edit">Edit</a>
       <a href="<%= @post.file_url %>" class="st-button ptbr-etc-fullscreen">Fullscreen</a>
       <a
         href="<%= @post.file_url %>"
