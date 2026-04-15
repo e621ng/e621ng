@@ -25,7 +25,7 @@ import Flash from "@/utility/Flash";
 import Logger from "@/utility/Logger";
 import ModuleRegistry from "@/utility/ModuleRegistry";
 import PerformanceTracker from "@/utility/PerformanceTracker";
-import Settings from "@/utility/settings";
+import Settings from "@/utility/Settings";
 import LStorage from "@/utility/storage";
 
 Logger.log("Loading");

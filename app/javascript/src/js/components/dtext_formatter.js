@@ -1,5 +1,5 @@
-import SVGIcon from "@/utility/svg_icon";
-import TaskQueue from "@/utility/task_queue";
+import SVGIcon from "@/utility/SVGIcon";
+import TaskQueue from "@/utility/TaskQueue";
 
 export default class DTextFormatter {
 

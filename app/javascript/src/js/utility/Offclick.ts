@@ -8,7 +8,7 @@
  */
 export default class Offclick {
 
-  registry = [];
+  registry: OffclickEntry[] = [];
   globalDisabled = true;
 
   constructor () {
@@ -38,9 +38,9 @@ export default class Offclick {
   }
 
   // Singleton pattern
-  static _instance = null;
-  static get instance () {
-    if (this._instance === null)
+  static _instance: Offclick;
+  static get instance (): Offclick {
+    if (typeof this._instance === "undefined")
       this._instance = new Offclick();
     return this._instance;
   }
@@ -52,8 +52,8 @@ export default class Offclick {
    * @param {Function} callback The callback to invoke when clicking outside the menu.
    * @returns {Object} An object with a `disabled` property that can be toggled to enable/disable the offclick handler.
    */
-  static register (buttonSelector, menuSelector, callback) {
-    const entry = {
+  static register (buttonSelector: string, menuSelector: string, callback: () => void): OffclickEntry {
+    const entry: OffclickEntry = {
       buttonSelector: buttonSelector,
       menuSelector: menuSelector,
       callback: callback,
@@ -72,4 +72,12 @@ export default class Offclick {
     this.instance.registry.push(entry);
     return entry;
   }
+}
+
+interface OffclickEntry {
+  buttonSelector: string;
+  menuSelector: string;
+  callback: () => void;
+  disabled: boolean;
+  _disabled: boolean;
 }

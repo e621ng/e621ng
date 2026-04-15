@@ -2,10 +2,10 @@ import Utility from "@/utility/utility";
 import ZingTouch from "zingtouch";
 import Hotkeys from "@/core/hotkeys";
 import LStorage from "@/utility/storage";
-import TaskQueue from "@/utility/task_queue";
+import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
-import Page from "@/utility/page";
-import SVGIcon from "@/utility/svg_icon";
+import Page from "@/utility/Page";
+import SVGIcon from "@/utility/SVGIcon";
 
 let Post = {};
 

@@ -1,4 +1,4 @@
-import TaskQueue, { TaskCancelled } from "@/utility/task_queue";
+import TaskQueue, { TaskCancelled } from "@/utility/TaskQueue";
 import User from "@/models/User";
 import Post from "@/pages/posts/posts";
 

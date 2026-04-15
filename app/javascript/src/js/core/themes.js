@@ -1,4 +1,4 @@
-import Page from "@/utility/page";
+import Page from "@/utility/Page";
 import LStorage from "@/utility/storage";
 
 const Theme = {};
