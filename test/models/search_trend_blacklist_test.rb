@@ -150,7 +150,7 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
         { tag: "fox", hour: 1.hour.ago.utc },
         { tag: "canine_species", hour: 1.hour.ago.utc },
       ])
-      tags = SearchTrendHourly.for_day(Time.now.utc.to_date).pluck(:tag)
+      tags = SearchTrendHourly.for_day(1.hour.ago.utc.to_date).pluck(:tag)
       assert_includes tags, "fox"
       assert_not_includes tags, "wolf"
       assert_not_includes tags, "canine_species"

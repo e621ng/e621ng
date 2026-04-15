@@ -40,6 +40,7 @@ Rails.application.routes.draw do
         put :uploads_min_level
         put :uploads_hide_pending
         put :maintenance
+        put :analytics
       end
     end
   end
@@ -281,9 +282,13 @@ Rails.application.routes.draw do
       get :show_seq
       put :mark_as_translated
       get :comments, to: "comments#for_post"
-      get :recommended
+      resource :similar, only: [], controller: "post_recommendations" do
+        get :artist
+        get :remote
+        get :lookup
+        get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
+      end
     end
-    get :similar, to: "iqdb_queries#index"
   end
   resources :post_votes, only: %i[index], as: :index_post_votes do
     collection do
@@ -418,6 +423,12 @@ Rails.application.routes.draw do
       post :accept
       post :clear_cache
       post :bump_version
+    end
+  end
+
+  resource :auth, only: [] do
+    collection do
+      get :login
     end
   end
 

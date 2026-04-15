@@ -49,6 +49,8 @@ div#c-posts {
   }
 
   div#post-recommendations {
+    max-width: (8rem * 6) + (0.5rem * 5) + (0.5rem * 2);
+    box-sizing: border-box;
 
     // Tabs
     &-tabs {
@@ -60,7 +62,27 @@ div#c-posts {
         background: unset;
         color: themed("color-text");
         @include st-radius-top;
-        &[data-action="closed"] { margin-left: auto; }
+        user-select: none;
+
+        &:hover, &:focus {
+          background: themed("color-section-lighten-5");
+        }
+
+        &[data-action="closed"] {
+          margin-left: auto;
+          background: transparent !important;
+          color: themed("color-text-muted");
+          &:hover { color: themed("color-link-active"); }
+
+          svg {
+            width: 1rem;
+            height: 1rem;
+          }
+        }
+      }
+
+      @include window-smaller-than(30rem) {
+        .desktop-only { display: none; }
       }
     }
 
@@ -69,6 +91,7 @@ div#c-posts {
     &[data-action="favorites"] button[data-action="favorites"],
     &[data-action="tags"] button[data-action="tags"] {
       background-color: themed("color-section");
+      pointer-events: none;
     }
 
 
@@ -76,6 +99,7 @@ div#c-posts {
     &-list {
       display: flex;
       overflow: scroll hidden;
+      flex-wrap: wrap; // Second row gets hidden
       gap: 0.5rem;
 
       background: themed("color-section");
@@ -83,12 +107,19 @@ div#c-posts {
       margin-bottom: 0.25rem;
       @include st-radius;
 
-      --thumb-image-size: 128px; // Passed on to thumbnails
+      --thumb-image-size: 8rem; // Passed on to thumbnails
       height: calc(var(--thumb-image-size) + 1.25rem);
 
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
       &::-webkit-scrollbar { display: none; }
+
+      @include window-smaller-than(30rem) {
+        --thumb-image-size: calc((100vw - 2.55rem) / 3);
+        height: unset;
+        min-height: calc(2* (var(--thumb-image-size) + 1.25rem));
+        justify-content: center;
+      }
     }
 
     &[data-status="error"] #post-recommendations-list {
@@ -269,7 +300,12 @@ div#c-posts {
 
         .nav-link {
           flex-shrink: 2;
-          padding: 0.5em
+          padding: 0.5em;
+
+          svg {
+            vertical-align: bottom;
+            stroke-width: 3;
+          }
         }
         a.nav-link:hover {
           background: themed("color-section-lighten-5");
@@ -283,6 +319,11 @@ div#c-posts {
           white-space: nowrap;
           text-overflow: ellipsis;
           width: 0;
+
+          svg {
+            stroke-width: 3;
+            vertical-align: bottom;
+          }
         }
       }
     }

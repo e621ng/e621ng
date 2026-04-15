@@ -11,7 +11,7 @@
       <!-- Primary Searchbar -->
       <div class="home-search">
         <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { hotkey: "search", autocomplete: "tag-query" }) %>
-        <%= tag.button(svg_icon(:search), type: "submit") %>
+        <%= tag.button(svg_icon(:search), type: "submit", aria: { label: "Search" }) %>
       </div>
 
       <!-- Secondary search buttons -->
@@ -65,9 +65,7 @@
   </section>
   <section class="home-footer-bottom">
     <div class="home-footer-counter">
-      <% Post.fast_count.to_s.each_char do |x| %>
-        <%= image_tag("counter/#{x}.png") %>
-      <% end %>
+      <% Post.fast_count.to_s.each_char do |x| -%><%= image_tag("counter/#{x}.png", alt: x) %><% end -%>
     </div>
     <div class="home-footer-links">
       <%= link_to "Takedowns", takedown_static_path %>

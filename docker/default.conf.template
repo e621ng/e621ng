@@ -42,8 +42,9 @@ server {
     proxy_redirect off;
   }
 
-  location /posts/recommended.json {
-    proxy_pass http://host.docker.internal:8000/similar;
+  location ~ ^/posts/(\d+)/similar/remote\.json$ {
+    rewrite ^/posts/(\d+)/similar/remote\.json$ /similar?post_id=$1&$args break;
+    proxy_pass ${RECOMMENDER_URL};
     proxy_redirect off;
   }
 

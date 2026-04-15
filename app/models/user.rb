@@ -94,7 +94,7 @@ class User < ApplicationRecord
   validates :name, presence: true # NOTE: validation order is important here. See UserNameValidator for details.
   validates :name, user_name: true, on: :create
   validates :default_image_size, inclusion: { in: %w[large fit fitv original] }
-  validates :per_page, inclusion: { in: 1..320 }
+  validates :per_page, inclusion: { in: 1..Danbooru.config.max_per_page }
   validates :comment_threshold, presence: true
   validates :comment_threshold, numericality: { only_integer: true, less_than: 50_000, greater_than: -50_000 }
   validates :password, length: { minimum: 8, if: ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? } }
@@ -140,7 +140,7 @@ class User < ApplicationRecord
   has_many :artists, foreign_key: "linked_user_id"
 
   belongs_to :avatar, class_name: "Post", optional: true
-  accepts_nested_attributes_for :dmail_filter
+  accepts_nested_attributes_for :dmail_filter, update_only: true
 
   module BanMethods
     def validate_ip_addr_is_not_banned

@@ -1,12 +1,12 @@
 <%= tag.li(id: "nav-link-for-pool-#{pool.id}", class: "pool-category-#{pool.category} pool-selected-#{selected}") do -%>
   <% if !pool.first_post?(post.id) && pool.post_ids.first -%>
     <%= link_to post_path(pool.post_ids.first, pool_id: pool.id), class: "nav-link first", title: "to page 1" do %>
-      <%= tag.i(class: "fas fa-angle-double-left") %>
+      <%= svg_icon(:chevron_double_left, width: 16, height: 16) %>
       <span>First</span>
     <% end %>
   <% else -%>
     <span class="nav-link first">
-      <%= tag.i(class: "fas fa-angle-double-left") %>
+      <%= svg_icon(:chevron_double_left, width: 16, height: 16) %>
       <span>First</span>
     </span>
   <% end -%>
@@ -14,12 +14,12 @@
   <% pool.previous_post_id(post.id).tap do |previous_post_id| -%>
     <% if previous_post_id %>
       <%= link_to post_path(previous_post_id, pool_id: pool.id), rel: selected ? "prev" : nil, class: "nav-link prev", title: "to page #{pool.page_number(previous_post_id)}" do %>
-        <%= tag.i(class: "fas fa-angle-left") %>
+        <%= svg_icon(:chevron_left, width: 16, height: 16) %>
         <span>Prev</span>
       <% end %>
     <% else -%>
       <span class="nav-link prev">
-        <%= tag.i(class: "fas fa-angle-left") %>
+        <%= svg_icon(:chevron_left, width: 16, height: 16) %>
         <span>Prev</span>
       </span>
     <% end %>
@@ -33,12 +33,12 @@
     <% if next_post_id %>
       <%= link_to post_path(next_post_id, pool_id: pool.id), rel: selected ? "next" : nil, class: "nav-link next", title: "to page #{pool.page_number(next_post_id)}" do %>
         <span>Next</span>
-        <%= tag.i(class: "fas fa-angle-right") %>
+        <%= svg_icon(:chevron_right, width: 16, height: 16) %>
       <% end %>
     <% else -%>
       <span class="nav-link next">
         <span>Next</span>
-        <%= tag.i(class: "fas fa-angle-right") %>
+        <%= svg_icon(:chevron_right, width: 16, height: 16) %>
       </span>
     <% end -%>
   <% end -%>
@@ -46,12 +46,12 @@
   <% if !pool.last_post?(post.id) && pool.post_ids.last -%>
     <%= link_to post_path(pool.post_ids.last, pool_id: pool.id), class: "nav-link last", title: "to page #{pool.post_count}" do %>
       <span>Last</span>
-      <%= tag.i(class: "fas fa-angle-double-right") %>
+      <%= svg_icon(:chevron_double_right, width: 16, height: 16) %>
     <% end %>
   <% else -%>
     <span class="nav-link last">
       <span>Last</span>
-      <%= tag.i(class: "fas fa-angle-double-right") %>
+      <%= svg_icon(:chevron_double_right, width: 16, height: 16) %>
     </span>
   <% end -%>
 <% end -%>
