@@ -20,7 +20,8 @@ export default class TaskQueue {
   static add (task: () => Promise<any>, options: TaskQueueOptions = {}): Promise<any> {
     if (typeof task !== "function") throw new Error("Task must be a function");
 
-    let { delay = 1000, priority = false, name = null, unique = false } = options;
+    let { delay = 1000 } = options;
+    const { priority = false, name = null, unique = false } = options;
 
     if (typeof delay !== "number" || delay < 0) throw new Error("Delay must be a non-negative number");
     if (delay < 500) delay = 500; // Minimum delay to prevent throttling server-side

@@ -18,7 +18,8 @@
   // Eslint shenanigans
   "eslint.useFlatConfig": true,
   "eslint.validate": [
-    "javascript"
+    "javascript",
+    "typescript"
   ],
   "eslint.format.enable": true,
   "[javascript]": {
