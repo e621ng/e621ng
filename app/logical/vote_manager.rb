@@ -170,18 +170,6 @@ class VoteManager
     comment_unvote!(comment: vote.comment, user: vote.user, force: true) if vote
   end
 
-  private
-
-  def self.subtract_vote(post, vote)
-    vote_cols = "score = score - #{vote.score}"
-    if vote.score > 0
-      vote_cols += ", up_score = up_score - #{vote.score}"
-    else
-      vote_cols += ", down_score = down_score - #{vote.score}"
-    end
-    Post.where(id: post.id).update_all(vote_cols)
-  end
-
   module VoteAbuseMethods
     RatingTrendTag = Struct.new(:name, :post_count, keyword_init: true)
 
