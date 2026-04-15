@@ -1,5 +1,5 @@
-import Page from "@/utility/page";
-import SVGIcon from "@/utility/svg_icon";
+import Page from "@/utility/Page";
+import SVGIcon from "@/utility/SVGIcon";
 import LStorage from "@/utility/storage";
 import Blacklist from "@/core/blacklists";
 import Analytics from "@/core/analytics";

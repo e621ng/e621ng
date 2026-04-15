@@ -1,7 +1,7 @@
 import User from "@/models/User.js";
 import Dialog from "@/utility/dialog.js";
 import LStorage from "@/utility/storage.js";
-import TaskQueue from "@/utility/task_queue.js";
+import TaskQueue from "@/utility/TaskQueue.js";
 
 export default class NoteManager {
 

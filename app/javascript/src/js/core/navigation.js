@@ -1,4 +1,4 @@
-import Offclick from "@/utility/offclick";
+import Offclick from "@/utility/Offclick";
 import LStorage from "@/utility/storage";
 
 const Navigation = {};
