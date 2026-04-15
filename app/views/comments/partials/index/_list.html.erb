@@ -24,7 +24,7 @@
         <%= link_to "Show all comments", comments_path(:post_id => post.id), 'data-pid': post.id, class: 'show-all-comments-for-post-link' %>
       </span>
       <% end %>
-      <span class="blacklist-comments-notice" id="blacklist-comments-notice-for-<%= post.id %> ">
+      <span class="blacklist-comments-notice" id="blacklist-comments-notice-for-<%= post.id %>">
         <%= render "posts/partials/common/inline_blacklist" %>
       </span>
     </div>
