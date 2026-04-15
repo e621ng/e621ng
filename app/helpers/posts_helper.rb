@@ -2,7 +2,7 @@
 
 module PostsHelper
   def discover_mode?
-    params[:tags] =~ /order:hot/
+    params[:tags].to_s =~ /order:hot/
   end
 
   def next_page_url
@@ -151,5 +151,10 @@ module PostsHelper
       ["Questionable", "q"],
       ["Explicit", "e"]
     ]
+  end
+
+  def post_short_url(post)
+    short_id = post.id.to_s(32)
+    url_for(controller: "posts_short", action: "show", id: short_id, only_path: false)
   end
 end

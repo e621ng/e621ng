@@ -15,7 +15,7 @@
         <% end %>
       <% end %>
     </section>
-    <%= numbered_paginator(@pools) %>
+    <%= render PaginatorComponent.new(records: @pools) %>
   </div>
 </div>
 

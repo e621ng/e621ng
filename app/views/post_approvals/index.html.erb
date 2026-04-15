@@ -32,7 +32,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@post_approvals) %>
+    <%= render PaginatorComponent.new(records: @post_approvals) %>
   </div>
 </div>
 

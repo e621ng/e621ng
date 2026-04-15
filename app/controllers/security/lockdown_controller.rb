@@ -20,6 +20,8 @@ module Security
       Security::Lockdown.favorites_disabled = "1"
       Security::Lockdown.votes_disabled     = "1"
 
+      Security::Lockdown.takedowns_disabled = "1"
+
       StaffAuditLog.log(:lockdown_panic, CurrentUser.user)
       redirect_to security_root_path
     end
@@ -38,6 +40,8 @@ module Security
       Security::Lockdown.aiburs_disabled = params[:aiburs] if params[:aiburs].present?
       Security::Lockdown.favorites_disabled = params[:favorites] if params[:favorites].present?
       Security::Lockdown.votes_disabled = params[:votes] if params[:votes].present?
+
+      Security::Lockdown.takedowns_disabled = params[:takedowns] if params[:takedowns].present?
 
       StaffAuditLog.log(:lockdown_uploads, CurrentUser.user, { params: params })
       redirect_to security_root_path
@@ -72,14 +76,33 @@ module Security
       redirect_to security_root_path
     end
 
+    def analytics
+      settings = analytics_params
+
+      if settings[:collect_recommendation_events].present?
+        Setting.collect_recommendation_events = settings[:collect_recommendation_events] == "1"
+      end
+
+      if settings[:collect_search_trend_events].present?
+        Setting.collect_search_trend_events = settings[:collect_search_trend_events] == "1"
+      end
+
+      redirect_to security_root_path
+    end
+
     def lockdown_params
-      permitted_params = %i[uploads pools post_sets comments forums blips aiburs favorites votes]
+      permitted_params = %i[uploads pools post_sets comments forums blips aiburs favorites votes takedowns]
       params.fetch(:lockdown, {}).permit(permitted_params)
     end
 
     def maintenance_params
       permitted_params = %i[disable_exception_prune]
       params.fetch(:maintenance, {}).permit(permitted_params)
+    end
+
+    def analytics_params
+      permitted_params = %i[collect_recommendation_events collect_search_trend_events]
+      params.fetch(:analytics, {}).permit(permitted_params)
     end
   end
 end

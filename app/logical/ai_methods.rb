@@ -7,7 +7,7 @@ module AiMethods
     "comfyui", "invokeai", "midjourney", "dall·e", "dall-e", "openai",
     "bing image creator", "firefly", "adobe generative fill", "adobe firefly",
     "leonardo", "playground",
-  ].to_set.freeze
+  ].freeze
 
   # Parameter/telltale tokens commonly embedded in PNG/JPEG comments or EXIF
   SD_TOKENS = [
@@ -15,12 +15,27 @@ module AiMethods
     "hires fix", "denoising strength", "clip skip", "refiner:",
     '"sampler":', '"seed":', '"model":', '"workflow":', "sd-metadata",
     "comfy", "parameters:", "seed:", "sampler:", "cfg:", "hires:",
-  ].to_set.freeze
+  ].freeze
 
   # C2PA / Content Credentials indicators (usually in XMP/JUMBF)
-  C2PA_TOKENS = ["c2pa.org", "jumbf", "manifeststore", "c2pa"].to_set.freeze
+  C2PA_TOKENS = ["c2pa.org", "jumbf", "manifeststore", "c2pa"].freeze
 
   CAMERA_TOKENS = %w[Make Model DateTimeOriginal ExposureTime FNumber ISO].freeze
+
+  def self.build_token_regex(tokens)
+    patterns = tokens.map do |token|
+      if token.include?(" ") || token.match?(/[^a-z0-9]/)
+        Regexp.escape(token)
+      else
+        "\\b#{Regexp.escape(token)}\\b" # Prevent substring matches
+      end
+    end
+    Regexp.new(patterns.join("|"), Regexp::IGNORECASE)
+  end
+
+  AI_GENERATORS_REGEX = build_token_regex(AI_GENERATORS)
+  SD_TOKENS_REGEX = build_token_regex(SD_TOKENS)
+  C2PA_TOKENS_REGEX = build_token_regex(C2PA_TOKENS)
 
   # Checks if the file at the specified path is AI-generated.
   # Uses metadata analysis to determine likelihood of AI generation.
@@ -68,21 +83,19 @@ module AiMethods
     reasons = []
 
     # C2PA
-    if C2PA_TOKENS.any? { |t| xmp_data.include?(t) }
+    if xmp_data.match?(C2PA_TOKENS_REGEX)
       score += 80
       reasons << "c2pa manifest present"
     end
 
     # Known generators
-    matched_generators = AI_GENERATORS.select { |m| combined_text.include?(m) }
-    unless matched_generators.empty?
+    if (match = combined_text.match(AI_GENERATORS_REGEX))
       score += 70
-      reasons << "ai generator: #{matched_generators.first}"
+      reasons << "ai generator: #{match[0]}"
     end
 
     # SD pipeline tokens
-    sd_tokens_found = SD_TOKENS.any? { |t| combined_text.include?(t) }
-    if sd_tokens_found
+    if combined_text.match?(SD_TOKENS_REGEX)
       score += 60
       reasons << "ai parameter tokens found"
     end
@@ -96,8 +109,8 @@ module AiMethods
 
     # Heuristic: camera EXIF present and no AI markers -> reduce score
     if is_jpeg &&
-       matched_generators.empty? &&
-       !sd_tokens_found &&
+       !combined_text.match?(AI_GENERATORS_REGEX) &&
+       !combined_text.match?(SD_TOKENS_REGEX) &&
        CAMERA_TOKENS.any? { |t| exif_data.include?(t) }
       score -= 30
       reasons << "camera exif present"

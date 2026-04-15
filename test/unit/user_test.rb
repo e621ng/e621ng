@@ -36,8 +36,8 @@ class UserTest < ActiveSupport::TestCase
     should "not validate if the originating ip address is banned" do
       assert_raises ActiveRecord::RecordInvalid do
         as(User.anonymous, "1.2.3.4") do
-          create(:ip_ban, ip_addr: '1.2.3.4')
-          create(:user, last_ip_addr: '1.2.3.4')
+          create(:ip_ban, ip_addr: "1.2.3.4")
+          create(:user, last_ip_addr: "1.2.3.4")
         end
       end
     end
@@ -110,8 +110,8 @@ class UserTest < ActiveSupport::TestCase
       assert(@user.is_verified?)
       @user = create(:user)
       @user.mark_unverified!
-      assert(!@user.is_verified?)
-      assert_nothing_raised {@user.mark_verified!}
+      assert_not(@user.is_verified?)
+      assert_nothing_raised { @user.mark_verified! }
       assert(@user.is_verified?)
     end
 
@@ -120,28 +120,72 @@ class UserTest < ActiveSupport::TestCase
       assert_not(User.authenticate(@user.name, "password2"), "Authentication should not have succeeded")
     end
 
+    context "API key authentication" do
+      setup do
+        @api_key = ApiKey.generate!(@user, name: "test")
+      end
+
+      should "authenticate with valid credentials" do
+        user, key = User.authenticate_api_key(@user.name, @api_key.key)
+        assert_equal(@user, user)
+        assert_equal(@api_key, key)
+      end
+
+      should "reject invalid UTF-8 in username" do
+        invalid_name = String.new("user\xee\xce\x0d", encoding: "ASCII-8BIT")
+        result = User.authenticate_api_key(invalid_name, @api_key.key)
+        assert_nil(result)
+      end
+
+      should "reject invalid UTF-8 in api_key" do
+        invalid_key = String.new("key\xee\xce\x0d", encoding: "ASCII-8BIT")
+        result = User.authenticate_api_key(@user.name, invalid_key)
+        assert_nil(result)
+      end
+
+      should "reject blank username" do
+        result = User.authenticate_api_key("", @api_key.key)
+        assert_nil(result)
+      end
+
+      should "reject blank api_key" do
+        result = User.authenticate_api_key(@user.name, "")
+        assert_nil(result)
+      end
+    end
+
     should "normalize its level" do
       user = create(:user, level: User::Levels::ADMIN)
       assert(user.is_moderator?)
       assert(user.is_privileged?)
 
       user = create(:user, level: User::Levels::MODERATOR)
-      assert(!user.is_admin?)
+      assert_not(user.is_admin?)
       assert(user.is_moderator?)
       assert(user.is_privileged?)
 
       user = create(:user, level: User::Levels::PRIVILEGED)
-      assert(!user.is_admin?)
-      assert(!user.is_moderator?)
+      assert_not(user.is_admin?)
+      assert_not(user.is_moderator?)
       assert(user.is_privileged?)
 
       user = create(:user)
-      assert(!user.is_admin?)
-      assert(!user.is_moderator?)
-      assert(!user.is_privileged?)
+      assert_not(user.is_admin?)
+      assert_not(user.is_moderator?)
+      assert_not(user.is_privileged?)
     end
 
     context "name" do
+      should "be present on create and update" do
+        user = build(:user, name: nil)
+        assert_not(user.valid?)
+        assert_includes(user.errors[:name], "can't be blank")
+
+        user = create(:user)
+        assert_not(user.update(name: nil))
+        assert_includes(user.errors[:name], "can't be blank")
+      end
+
       should "be #{Danbooru.config.default_guest_name} given an invalid user id" do
         assert_equal(Danbooru.config.default_guest_name, User.id_to_name(-1))
       end
@@ -150,13 +194,13 @@ class UserTest < ActiveSupport::TestCase
         # U+2007: https://en.wikipedia.org/wiki/Figure_space
         user = build(:user, name: "foo\u2007bar")
         user.save
-        assert_equal(["Name must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"], user.errors.full_messages)
+        assert_equal(["Name must contain only alphanumeric characters, hyphens, apostrophes, tildes and underscores"], user.errors.full_messages)
       end
 
       should "not contain a colon" do
         user = build(:user, name: "a:b")
         user.save
-        assert_equal(["Name must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"], user.errors.full_messages)
+        assert_equal(["Name must contain only alphanumeric characters, hyphens, apostrophes, tildes and underscores"], user.errors.full_messages)
       end
 
       should "not begin with an underscore" do
@@ -303,14 +347,107 @@ class UserTest < ActiveSupport::TestCase
         user3 = create(:user, name: "bar123baz")
 
         assert_equal([user2.id, user1.id], User.search(name_matches: "foo*").map(&:id))
-        assert_equal([user2.id], User.search(name_matches: "foo\*bar").map(&:id))
-        assert_equal([user3.id], User.search(name_matches: "bar\*baz").map(&:id))
+        assert_equal([user2.id], User.search(name_matches: "foo*bar").map(&:id))
+        assert_equal([user3.id], User.search(name_matches: "bar*baz").map(&:id))
       end
     end
 
     context "when fixing counts" do
       should "not raise" do
         assert_nothing_raised { @user.refresh_counts! }
+      end
+    end
+
+    context "with email validation" do
+      setup do
+        @user.stubs(:enable_email_verification?).returns(true)
+        @user.validate_email_format = true
+      end
+
+      should "reject emails with consecutive dots in local part" do
+        @user.email = "john..doe@example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "cannot have consecutive dots in the local part")
+      end
+
+      should "reject emails with leading dots in local part" do
+        @user.email = ".john@example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "cannot have dots at the beginning or end of the local part")
+      end
+
+      should "reject emails with trailing dots in local part" do
+        @user.email = "john.@example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "cannot have dots at the beginning or end of the local part")
+      end
+
+      should "reject emails with unquoted spaces" do
+        @user.email = "john doe@example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "reject emails with domain labels starting with hyphens" do
+        @user.email = "john@-example.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "has a domain label that starts or ends with a hyphen")
+      end
+
+      should "reject emails with domain labels ending with hyphens" do
+        @user.email = "john@example-.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "has a domain label that starts or ends with a hyphen")
+      end
+
+      should "reject emails with underscores in domain" do
+        @user.email = "john@exam_ple.com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "has invalid characters in the domain")
+      end
+
+      should "reject emails with consecutive dots in domain" do
+        @user.email = "john@example..com"
+        @user.valid?
+        assert_includes(@user.errors[:email], "has an invalid domain structure")
+      end
+
+      should "reject emails with display names" do
+        @user.email = "Foo Bar <foo.bar@example.com>"
+        @user.valid?
+        assert_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "accept valid simple emails" do
+        @user.email = "user@example.com"
+        @user.valid?
+        assert_not_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "accept emails with dots in local part and hyphens in domain" do
+        @user.email = "user.name@example-domain.com"
+        @user.valid?
+        assert_not_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "accept emails with plus addressing" do
+        @user.email = "user+tag@example.co.uk"
+        @user.valid?
+        assert_not_includes(@user.errors[:email], "is invalid")
+      end
+
+      should "normalize email by lowercasing domain" do
+        @user.email = "User@EXAMPLE.COM"
+        @user.valid?
+        assert_equal("User@example.com", @user.email)
+      end
+
+      should "strip display names during normalization when validation is disabled" do
+        # Test that normalization works when validation is bypassed
+        @user.stubs(:enable_email_verification?).returns(false)
+        @user.email = "John Doe <john@example.com>"
+        @user.valid?
+        assert_equal("john@example.com", @user.email)
       end
     end
   end

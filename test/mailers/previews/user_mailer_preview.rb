@@ -2,15 +2,13 @@
 
 class UserMailerPreview < ActionMailer::Preview
   def dmail_notice
-    dmail = User.admins.first.dmails.first
-    UserMailer.dmail_notice(dmail)
+    UserMailer.dmail_notice(Dmail.first)
   end
 
   def forum_notice
-    topic = ForumTopic.first
-    posts = topic.posts
-    user = topic.creator
-
-    UserMailer.forum_notice(user, topic, posts)
+    user = User.first
+    forum_topic = ForumTopic.first
+    forum_posts = forum_topic&.posts&.limit(5) || []
+    UserMailer.forum_notice(user, forum_topic, forum_posts)
   end
 end

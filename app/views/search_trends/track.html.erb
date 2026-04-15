@@ -1,0 +1,35 @@
+<div id="c-search-trends">
+  <div id="a-show">
+    <h1>
+      Search Trends for <%= @tags.length > 3 ? "#{@tags.length} tags" : @tags.join(", ") %>
+    </h1>
+
+    <canvas id="search-trend-chart" data-tags="<%= @tags.join(",") %>"></canvas>
+
+    <% unless @hourlies.blank? %>
+      <table class="striped">
+        <thead>
+          <tr>
+            <th>Hour</th>
+            <th>Searches</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @hourlies.each do |row| %>
+            <tr>
+              <td><%= row.hour.strftime("%Y-%m-%d %H:00") %></td>
+              <td><%= row.count %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Trending Tags - <%= @tags.join(", ") %>
+<% end %>
+

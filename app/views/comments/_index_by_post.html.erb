@@ -26,4 +26,4 @@
   <% end %>
 </div>
 
-<%= numbered_paginator(@posts) %>
+<%= render PaginatorComponent.new(records: @posts) %>

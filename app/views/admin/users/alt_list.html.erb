@@ -31,7 +31,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@alts) %>
+    <%= render PaginatorComponent.new(records: @alts) %>
   </div>
 </div>
 

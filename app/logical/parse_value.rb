@@ -94,7 +94,7 @@ module ParseValue
       [:between, cast(left, type), cast(right, type)]
 
     elsif range.include?(",")
-      [:in, range.split(",")[0..99].map { |x| cast(x, type) }]
+      [:in, range.split(",").first(Danbooru.config.max_per_page).map { |x| cast(x, type) }]
 
     else
       [:eq, cast(range, type)]
@@ -115,6 +115,12 @@ module ParseValue
     # 10..20 <=> 20..10
     range[1], range[2] = range[2], range[1] if range[0] == :between
     range
+  end
+
+  # Ensures that the value is a safe integer ID (0 to MAX_INT)
+  def safe_id(value)
+    int_val = value.to_i
+    int_val >= 0 && int_val <= MAX_INT ? int_val : -1
   end
 
   private
@@ -144,7 +150,11 @@ module ParseValue
       return ago if ago.present?
 
       begin
-        Time.zone.parse(object)
+        parsed_date = Time.zone.parse(object)
+
+        # OpenSearch's strict_date_optional_time format only supports years 0-9999
+        return nil if parsed_date && (parsed_date.year < 0 || parsed_date.year > 9999)
+        parsed_date
       rescue ArgumentError
         nil
       end
@@ -175,7 +185,7 @@ module ParseValue
         size.to_f.megabytes
       else
         size.to_f
-      end.to_i
+      end.to_i.clamp(0, MAX_INT)
     end
   end
 

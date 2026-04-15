@@ -1,0 +1,5 @@
+<%= form_search(path: search_trend_blacklists_path) do |f| %>
+  <%= f.input :tag, label: "Tag Pattern", hint: "Use * for wildcard" %>
+  <%= f.input :reason, label: "Reason" %>
+  <%= f.input :order, collection: [["Recently Created", "id"], ["Last Updated", "updated_at"], ["Tag", "tag"], ["Reason", "reason"]] %>
+<% end %>

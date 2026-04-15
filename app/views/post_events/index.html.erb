@@ -43,7 +43,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@events) %>
+    <%= render PaginatorComponent.new(records: @events) %>
   </div>
 </div>
 

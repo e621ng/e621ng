@@ -14,8 +14,9 @@
       class="st-button kinetic ptbr-vote-button"
       data-action="1"
       processing="false"
+      title="Vote Up"
     ><%= svg_icon(:chevron_up) %></button>
-    <button class="st-button kinetic ptbr-score">
+    <button class="st-button kinetic ptbr-score" title="Post Score">
       <%= @post.score %>
     </button>
     <span class="ptbr-breakdown hidden">
@@ -25,6 +26,7 @@
       class="st-button kinetic ptbr-vote-button"
       data-action="-1"
       processing="false"
+      title="Vote Down"
     ><%= svg_icon(:chevron_down) %></button>
   </div>
 
@@ -33,6 +35,7 @@
       class="st-button kinetic ptbr-favorite-button anim"
       favorited="<%= @post.is_favorited? %>"
       processing="false"
+      title="Favorite"
     >
       <%= svg_icon(:star) %>
     </button>
@@ -45,7 +48,7 @@
     data-down="<%= @post.down_score %>"
     data-state="<%= post_score_state(@post) %>"
   >
-    <button class="st-button kinetic ptbr-score anonymous">
+    <button class="st-button kinetic ptbr-score anonymous" title="Score">
       <%= @post.score %>
     </button>
     <span class="ptbr-breakdown hidden">
@@ -60,13 +63,14 @@
       class="st-button kinetic ptbr-notes-button"
       enabled="true"
       data-hotkey="note-toggle"
+      title="Toggle Notes"
     ></button>
   </div>
 <% end %>
 
 <% if !@post.force_original_size? %>
   <div class="ptbr-resize">
-    <select id="image-resize-selector" class="st-button">
+    <select id="image-resize-selector" class="st-button" aria-label="Select image size">
       <option value="original">Original</option>
       <option value="fit">Fit (Horizontal)</option>
       <option value="fitv">Fit (Vertical)</option>
@@ -86,29 +90,51 @@
     <a
       href="<%= @post.file_url %>"
       class="st-button kinetic ptbr-fullscreen-button"
+      data-hotkey="fullscreen"
+      title="View Full Size"
     >
       View
     </a>
   </div>
 
   <div class="ptbr-etc">
-    <button class="st-button kinetic ptbr-etc-toggle">
+    <button class="st-button kinetic ptbr-etc-toggle" title="More Options">
       <%= svg_icon(:ellipsis_v) %>
     </button>
     <div class="ptbr-etc-menu hidden">
       <a href="<%= @post.file_url %>" class="st-button ptbr-etc-fullscreen">Fullscreen</a>
-      <a href="<%= @post.file_url %>" class="st-button ptbr-etc-download" download="<%= @post.md5 %>.<%= @post.file_ext %>" pending="false">
+      <a
+        href="<%= @post.file_url %>"
+        class="st-button ptbr-etc-download"
+        download="<%= @post.md5 %>.<%= @post.file_ext %>"
+        pending="false"
+        data-hotkey="download"
+      >
         <%= svg_icon(:hexagon) %>
         <span>Download</span>
       </a>
+      <button class="st-button ptbr-share-button" data-hotkey="share">Share</button>
       <button class="st-button ptbr-notes-button <%= @post.has_notes? ? "" : "hidden"%>" enabled="true"></button>
-      <button class="st-button ptbr-etc-pool add-to-pool">Add to Pool</button>
-      <button class="st-button ptbr-etc-set add-to-set">Add to Set</button>
+      <button class="st-button ptbr-etc-pool add-to-pool" data-hotkey="add-to-pool">Add to Pool</button>
+      <button class="st-button ptbr-etc-set add-to-set" data-hotkey="add-to-set">Add to Set</button>
     </div>
   </div>
 <% end %>
 
 </section>
+
+
+<% if @post.visible? %>
+<section id="ptbr-share-menu" class="hidden">
+
+  <h4>Share Post</h4>
+
+  <div class="ptbr-share-input">
+    <input type="text" class="ptbr-share-link" readonly value="<%= post_short_url(@post) %>" />
+    <button class="st-button ptbr-share-copy" data-value="<%= post_short_url(@post) %>">Copy</button>
+  </div>
+</section>
+<% end %>
 
 
 <%# SVG Filters %>

@@ -41,5 +41,62 @@ class SessionLoaderTest < ActiveSupport::TestCase
         assert_equal(true, CurrentUser.safe_mode?)
       end
     end
+
+    context "with a malformed request body" do
+      setup do
+        @parse_error = ActionDispatch::Http::Parameters::ParseError.new(StandardError.new("invalid JSON"))
+      end
+
+      should "not raise and fall back to empty params" do
+        @request.stubs(:parameters).raises(@parse_error)
+        loader = SessionLoader.new(@request)
+        assert_equal({}, loader.params)
+      end
+
+      should "treat has_api_authentication? as false" do
+        @request.stubs(:parameters).raises(@parse_error)
+        loader = SessionLoader.new(@request)
+        assert_equal(false, loader.has_api_authentication?)
+      end
+    end
+
+    context "authentication with invalid UTF-8" do
+      should "reject Basic Auth with invalid UTF-8 bytes" do
+        # Create invalid UTF-8 sequence and encode it
+        invalid_utf8 = String.new("\xee\xce\x0d", encoding: "ASCII-8BIT")
+        auth_header = "Basic #{::Base64.strict_encode64(invalid_utf8)}"
+        @request.stubs(:authorization).returns(auth_header)
+
+        assert_raises(SessionLoader::AuthenticationFailure) do
+          SessionLoader.new(@request).load
+        end
+      end
+
+      should "reject login parameter with invalid UTF-8" do
+        invalid_login = String.new("user\xee\xce\x0d", encoding: "ASCII-8BIT")
+        @request.stubs(:parameters).returns({ login: invalid_login, api_key: "test_key" })
+
+        assert_raises(SessionLoader::AuthenticationFailure) do
+          SessionLoader.new(@request).load
+        end
+      end
+
+      should "reject api_key parameter with invalid UTF-8" do
+        invalid_key = String.new("key\xee\xce\x0d", encoding: "ASCII-8BIT")
+        @request.stubs(:parameters).returns({ login: "testuser", api_key: invalid_key })
+
+        assert_raises(SessionLoader::AuthenticationFailure) do
+          SessionLoader.new(@request).load
+        end
+      end
+
+      should "reject malformed Base64 in Basic Auth" do
+        @request.stubs(:authorization).returns("Basic not-valid-base64!@#$%")
+
+        assert_raises(SessionLoader::AuthenticationFailure) do
+          SessionLoader.new(@request).load
+        end
+      end
+    end
   end
 end

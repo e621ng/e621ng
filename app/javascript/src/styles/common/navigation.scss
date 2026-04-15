@@ -237,12 +237,15 @@ body[data-th-stickyheader="true"] nav.navigation {
   @include window-larger-than(50rem) {
     background-color: themed("color-background");
     background-image: themed("image-background");
+    background-position: themed("image-background-position");
+    background-repeat: themed("image-background-repeat");
+    background-size: themed("image-background-size");
   }
 }
 
 
 // Forum notification
-nav.navigation .nav-primary li.notification {
+li.notification {
   position: relative;
 
   &::after {
@@ -516,6 +519,7 @@ body.c-static.a-home {
       position: static;
       height: unset;
       padding: 0;
+      .avatar-name { background-color: unset; }
       .avatar-image, .login-image, .avatar-more { display: none; }
       .simple-avatar-menu { top: 2rem; }
     }
