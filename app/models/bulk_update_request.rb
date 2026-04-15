@@ -206,6 +206,8 @@ class BulkUpdateRequest < ApplicationRecord
     @skip_forum = v.to_s.truthy?
   end
 
+  alias_attribute :creator_id, :user_id
+
   def is_pending?
     status == "pending"
   end
