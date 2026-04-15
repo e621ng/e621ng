@@ -861,6 +861,13 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       false
     end
 
+    def visitor_metrics_events
+      {
+        recommendation: false,
+        search_trend: false,
+      }
+    end
+
     def analytics_client_id
       nil
     end
