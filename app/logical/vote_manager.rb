@@ -183,6 +183,8 @@ class VoteManager
   end
 
   module VoteAbuseMethods
+    RatingTrendTag = Struct.new(:name, :post_count, keyword_init: true)
+
     def self.vote_abuse_patterns(user:, limit: 10, threshold: 0.0001, duration: nil, vote_normality: true)
       # Create a KV pair of tags and their weighted vote counts
       tag_votes = Hash.new(0)
@@ -200,20 +202,31 @@ class VoteManager
         post = vote.post
         next unless post
 
+        weight = calculate_vote_weight(vote, post, vote_normality: vote_normality)
+
         post.tags.each do |tag|
-          weight = calculate_vote_weight(vote, post, vote_normality: vote_normality)
-          tag_votes[tag] += weight
+          tag_votes[tag.name] += weight
+        end
+
+        if post.rating.present?
+          tag_votes["rating:#{post.rating}"] += weight
         end
       end
       # weight tags by their total usage over the whole site
+      tag_records = Tag.where(name: tag_votes.keys).index_by(&:name)
+      rating_counts = rating_tag_names(tag_votes.keys).index_with do |tag_name|
+        Post.tag_match(tag_name, always_show_deleted: true).count_only
+      end
+
       tag_votes.each_key do |tag|
-        tag_votes[tag] /= tag.post_count.to_f # if tag.post_count && tag.post_count != 0
+        tag_votes[tag] /= tag_count_for(tag, tag_records, rating_counts).to_f # if tag.post_count && tag.post_count != 0
       end
       # Sort the tags by their absolute vote counts and return the top N
       result = tag_votes.select { |_, count| count.abs > threshold } # rubocop:disable Style/RedundantAssignment
                         .sort_by { |_, count| -count.abs }
                         .to_h
                         .sort_by { |_, count| count }
+                        .map { |tag_name, count| [trend_tag_for(tag_name, tag_records, rating_counts), count] }
       result
     end
 
@@ -231,6 +244,20 @@ class VoteManager
       end
       # Calculate the weight based on the user's vote and the post's score ratio
       vote.score * (score_ratio / tag_count.to_f)
+    end
+
+    def self.trend_tag_for(tag_name, tag_records, rating_counts)
+      return tag_records[tag_name] if tag_records.key?(tag_name)
+
+      RatingTrendTag.new(name: tag_name, post_count: rating_counts[tag_name])
+    end
+
+    def self.tag_count_for(tag_name, tag_records, rating_counts)
+      tag_records[tag_name]&.post_count || rating_counts[tag_name]
+    end
+
+    def self.rating_tag_names(tag_names)
+      tag_names.grep(/^rating:[sqe]$/)
     end
   end
   include VoteAbuseMethods

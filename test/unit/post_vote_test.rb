@@ -279,4 +279,23 @@ class PostVoteTest < ActiveSupport::TestCase
       assert_equal(-2, @post.down_score)
     end
   end
+
+  context "Vote abuse patterns" do
+    should "include post ratings as metatags" do
+      posts = %w[s q e].map do |rating|
+        create(:post, tag_string: "common", tag_count: 1, tag_count_general: 1, rating: rating)
+      end
+
+      posts.each do |post|
+        VoteManager.vote!(user: @user, post: post, score: 1)
+      end
+
+      trend_tags = VoteManager::VoteAbuseMethods.vote_abuse_patterns(user: @user, limit: 3, threshold: 0.0)
+      trend_tag_names = trend_tags.map { |trend_tag, _| trend_tag.name }
+
+      assert_includes(trend_tag_names, "rating:s")
+      assert_includes(trend_tag_names, "rating:q")
+      assert_includes(trend_tag_names, "rating:e")
+    end
+  end
 end
