@@ -21,7 +21,6 @@ module Admin
         return
       end
 
-      Rails.logger.info("Vote trends: #{vote_abuse_args.inspect}")
       @vote_trends = VoteManager::VoteAbuseMethods.vote_abuse_patterns(**vote_abuse_args)
       respond_with(@vote_trends)
     end

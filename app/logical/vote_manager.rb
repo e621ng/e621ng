@@ -176,7 +176,7 @@ class VoteManager
     def self.vote_abuse_patterns(user:, limit: 10, threshold: 0.0001, duration: nil, vote_normality: true)
       # Create a KV pair of tags and their weighted vote counts
       tag_votes = Hash.new(0)
-      scope = user.post_votes.order(updated_at: :desc)
+      scope = user.post_votes.includes(:post).order(updated_at: :desc)
       if duration
         time_ago =
           if duration.is_a?(String)
@@ -186,13 +186,20 @@ class VoteManager
           end
         scope = scope.where("updated_at >= ?", time_ago)
       end
-      scope.limit(limit).each do |vote|
+      votes = scope.limit(limit).to_a
+      posts = votes.filter_map(&:post)
+      tags_by_name = Tag.where(name: posts.flat_map(&:tag_array).uniq).index_by(&:name)
+
+      votes.each do |vote|
         post = vote.post
         next unless post
 
         weight = calculate_vote_weight(vote, post, vote_normality: vote_normality)
 
-        post.tags.each do |tag|
+        post.tag_array.each do |tag_name|
+          tag = tags_by_name[tag_name]
+          next unless tag
+
           tag_votes[tag.name] += weight
         end
 
@@ -207,7 +214,7 @@ class VoteManager
       end
 
       tag_votes.each_key do |tag|
-        tag_votes[tag] /= tag_count_for(tag, tag_records, rating_counts).to_f # if tag.post_count && tag.post_count != 0
+        tag_votes[tag] /= tag_count_for(tag, tag_records, rating_counts).to_f
       end
       # Sort the tags by their absolute vote counts and return the top N
       result = tag_votes.select { |_, count| count.abs > threshold } # rubocop:disable Style/RedundantAssignment
@@ -219,14 +226,16 @@ class VoteManager
     end
 
     def self.calculate_vote_weight(vote, post, vote_normality: true)
-      tag_count = post.tag_count_general + post.tag_count_artist + post.tag_count_contributor + post.tag_count_copyright + post.tag_count_character + post.tag_count_species + post.tag_count_meta + post.tag_count_lore + post.tag_count_invalid
+      tag_count = post.tag_count
       return 0 unless tag_count && tag_count > 0
       # Calculate the score ratio of the posts
       up_score = post.up_score.to_f
       down_score = post.down_score.to_f || 0.0
-      total_score = up_score + down_score
+      total_votes = up_score + down_score.abs # number of votes
+
       if vote_normality
-        score_ratio = total_score == 0 ? 1.0 : (up_score - down_score) / total_score
+        # ensure we don't divide by zero. Add up and down score in case of post.score cache
+        score_ratio = total_votes == 0 ? 1.0 : (up_score + down_score).to_f / total_votes
       else
         score_ratio = 1.0
       end
@@ -248,5 +257,4 @@ class VoteManager
       tag_names.grep(/^rating:[sqe]$/)
     end
   end
-  include VoteAbuseMethods
 end
