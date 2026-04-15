@@ -13,10 +13,11 @@
   </thead>
   <tbody>
     <% tag_relations.each do |tag_relation| %>
+      <% forum_post = tag_relation.forum_post %>
       <tr id="<%= tag_relation.model_name.singular_route_key.dasherize %>-<%= tag_relation.id %>">
         <td>
-          <% if tag_relation.forum_post_id %>
-            <%= render "forum_post_votes/overview", votes: tag_relation.forum_post.votes, forum_post: tag_relation.forum_post %>
+          <% if forum_post.present? %>
+            <%= render "forum_post_votes/overview", votes: forum_post.votes, forum_post: forum_post %>
           <% end %>
         </td>
         <td class="category-<%= tag_relation.antecedent_tag.try(:category) %>">
