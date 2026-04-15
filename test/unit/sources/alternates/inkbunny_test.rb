@@ -35,5 +35,37 @@ module Sources
         "https://inkbunny.net/s/237847384-p3",
       )
     end
+
+    context "A submissionview.php URL" do
+      alternate_should_work(
+        "https://inkbunny.net/submissionview.php?id=1382779",
+        Sources::Alternates::Inkbunny,
+        "https://inkbunny.net/s/1382779",
+      )
+    end
+
+    context "A submissionview.php URL with page number" do
+      alternate_should_work(
+        "https://inkbunny.net/submissionview.php?id=3123467&page=8",
+        Sources::Alternates::Inkbunny,
+        "https://inkbunny.net/s/3123467-p8",
+      )
+    end
+
+    context "A submissionview.php URL with page number 1" do
+      alternate_should_work(
+        "https://inkbunny.net/submissionview.php?id=3123467&page=1",
+        Sources::Alternates::Inkbunny,
+        "https://inkbunny.net/s/3123467",
+      )
+    end
+
+    context "A submissionview.php URL with an extra query part" do
+      alternate_should_work(
+        "https://inkbunny.net/submissionview.php?id=903232&latest",
+        Sources::Alternates::Inkbunny,
+        "https://inkbunny.net/s/903232",
+      )
+    end
   end
 end

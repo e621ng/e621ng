@@ -2,10 +2,11 @@
 
 class UploadService
   module Utils
-    extend self
+    module_function
+
     class CorruptFileError < RuntimeError; end
 
-    IMAGE_TYPES = %i[original large preview crop]
+    IMAGE_TYPES = %i[original large preview crop].freeze
 
     def delete_file(md5, file_ext, upload_id = nil)
       if Post.where(md5: md5).exists?
@@ -43,7 +44,13 @@ class UploadService
       upload.image_height = height
 
       upload.validate!(:file)
-      upload.tag_string = "#{upload.tag_string} #{Utils.automatic_tags(upload, file)}"
+
+      # Combine existing tags with automatic tags and deduplicate
+      # Mostly needed for promoted replacements, which copy tags from the original post
+      existing_tags = upload.tag_string.split
+      automatic_tags = Utils.automatic_tags(upload, file).split
+      combined_tags = (existing_tags + automatic_tags).uniq
+      upload.tag_string = combined_tags.join(" ")
 
       Utils.distribute_files(file, upload, :original, original_post_id: original_post_id)
 
@@ -58,8 +65,9 @@ class UploadService
       tags = []
       tags += %w[animated_gif animated] if upload.is_animated_gif?(file.path)
       tags += %w[animated_png animated] if upload.is_animated_png?(file.path)
+      tags += %w[animated_webp animated] if upload.is_animated_webp?(file.path)
       tags += ["animated"] if upload.is_webm? || upload.is_mp4?
-      tags += ["ai_generated"] if upload.is_ai_generated?(file.path)
+      # tags += ["ai_generated"] if upload.is_ai_generated?(file.path)[:score] >= 50
       tags.join(" ")
     end
 

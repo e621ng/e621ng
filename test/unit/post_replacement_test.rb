@@ -55,7 +55,7 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal @replacement.errors.size, 0
       assert_equal %w[original pending].sort, @post.replacements.map(&:status).sort
       assert @replacement.storage_id
-      assert_equal Digest::MD5.file(file_fixture("test.png")).hexdigest, Digest::MD5.file(@replacement.replacement_file_path).hexdigest
+      assert_equal Digest::MD5.file(file_fixture("bread-static.alt.png")).hexdigest, Digest::MD5.file(@replacement.replacement_file_path).hexdigest
     end
 
     should "not allow duplicate replacement submission" do
@@ -246,10 +246,10 @@ class PostReplacementTest < ActiveSupport::TestCase
     should "correctly resize the posts notes" do
       @replacement.approve! penalize_current_uploader: true
       @note.reload
-      assert_equal 153, @note.x
-      assert_equal 611, @note.y
-      assert_equal 153, @note.width
-      assert_equal 152, @note.height
+      assert_equal 102, @note.x
+      assert_equal 305, @note.y
+      assert_equal 102, @note.width
+      assert_equal 76, @note.height
     end
 
     should "only work on unpromoted and non-current replacements" do
@@ -365,6 +365,28 @@ class PostReplacementTest < ActiveSupport::TestCase
     should "record the approver" do
       @replacement.promote!
       assert_equal(CurrentUser.user.id, @replacement.approver_id)
+    end
+  end
+
+  context "Uploader linked artists:" do
+    should "return only artist tags linked to the replacement creator" do
+      create(:artist, name: "test_match_(artist)", linked_user: @user)
+      create(:artist, name: "test_other_(artist)", linked_user: create(:user))
+      create(:artist, name: "test_unlinked_(artist)")
+
+      post = create(:post, tag_string: "test_match_(artist) test_other_(artist) test_unlinked_(artist)", uploader: @mod_user)
+      replacement = build(:post_replacement, post: post, creator: @user)
+
+      assert_equal(["test_match_(artist)"], replacement.uploader_linked_artists)
+    end
+
+    should "ignore artist tags without an artist entry" do
+      create(:artist_tag, name: "missing_(artist)")
+
+      post = create(:post, tag_string: "missing_(artist)", uploader: @mod_user)
+      replacement = build(:post_replacement, post: post, creator: @user)
+
+      assert_equal([], replacement.uploader_linked_artists)
     end
   end
 end

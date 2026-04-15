@@ -54,6 +54,19 @@ class PoolTest < ActiveSupport::TestCase
       @posts.each(&:reload)
       assert_equal(["pool:#{@pool.id}"] * @posts.size, @posts.map(&:pool_string))
     end
+
+    should "error when post ids are invalid" do
+      assert_raises(ActiveRecord::RecordInvalid) do
+        create(:pool, post_ids: @posts.map { |p| p.id << 3 })
+      end
+    end
+
+    should "error when post ids are out of range" do
+      invalid_id = ParseValue::MAX_INT + 1
+      assert_raises(ActiveRecord::RecordInvalid) do
+        create(:pool, post_ids: [invalid_id])
+      end
+    end
   end
 
   context "Reverting a pool" do

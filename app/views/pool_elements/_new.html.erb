@@ -1,4 +1,4 @@
-<%= form_tag(pool_element_path, :class => "simple_form", :remote => true, :format => :js, id: "add-to-pool-dialog", data: { title: "Add to Pool", width: "250" }) do %>
+<%= form_tag(pool_element_path, :class => "simple_form", id: "add-to-pool-dialog", data: { title: "Add to Pool", width: "250" }) do %>
   <%= hidden_field_tag "post_id", @post.id %>
 
   <div class="input add-to-pool-inputs">
@@ -7,18 +7,12 @@
     <span id="pool-name-hint" class="hint">Search for a pool containing (<%= link_to "see full list", gallery_pools_path %>)</span>
   </div>
 
+  <div class="add-to-pool-recent" style="display: none;">
+    <b>Recent Pools</b>
+    <ul id="recent-pools"></ul>
+  </div>
+
   <div class="input add-to-pool-submit">
     <%= submit_tag "Submit", class: "st-button" %>
-  </div>
-<% end %>
-
-<% if recent_updated_pools.any? %>
-  <div>
-    <h3>Recent Pools</h3>
-    <ul id="recent-pools">
-      <% recent_updated_pools.each do |pool| %>
-        <%= tag.li(pool.pretty_name, data: { value: pool.name }) %>
-      <% end %>
-    </ul>
   </div>
 <% end %>

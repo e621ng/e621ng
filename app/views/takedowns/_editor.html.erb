@@ -1,6 +1,6 @@
 <%= form_tag(takedown_path(@takedown), method: :PUT) do %>
   <h2>Post list</h2>
-  <div id="takedown-posts" class="box-section">
+  <div id="takedown-posts" class="box-section" data-takedown-id="<%= @takedown.id %>">
     <%= check_box_tag "process_takedown", true, true %>
     <label for="process_takedown">Process takedown and delete posts</label>
     <br><br>
@@ -84,73 +84,4 @@
 
 
 
-<%= javascript_tag nonce: true do -%>
-  $(function () {
-    $("body").on("change", "[id^='takedown_posts_']", function () {
-      // Update labels when checkboxes are changed
-      var label = $("label[for=" + $(this).attr("id") + "]");
-      if ($(this).prop("checked"))
-        label.removeClass("takedown-post-keep").addClass("takedown-post-delete").find("> span").html("Delete");
-      else
-        label.removeClass("takedown-post-delete").addClass("takedown-post-keep").find("> span").html("Keep");
 
-      // Update text next to status dropdown based on kept/deleted post count
-      var kept_count = $("label.takedown-post-keep").length;
-      var deleted_count = $("label.takedown-post-delete").length;
-
-      if (kept_count == 0) { // None are kept, so takedown status will be 'approved'
-        $("#post-status-select").html("Status will be set to Approved");
-      } else if (deleted_count == 0) { // None are deleted, so takedown status will be 'denied'
-        $("#post-status-select").html("Status will be set to Denied");
-      } else { // Some kept, some deleted, so takedown status will be 'partial'
-        $("#post-status-select").html("Status will be set to Partially Approved");
-      }
-    });
-
-    // Delete all
-    $("#takedown-deleteall").click(function () {
-      $("[id^='takedown_posts_']").each(function () {
-        $(this).prop("checked", true).trigger("change");
-      });
-    });
-
-    // Keep all
-    $("#takedown-keepall").click(function () {
-      $("[id^='takedown_posts_']").each(function () {
-        $(this).prop("checked", false).trigger("change");
-      });
-    });
-
-    // Remove post
-    $("body").on("click", ".takedown-post-remove", function () {
-      Danbooru.Takedown.remove_post(<%= @takedown.id %>, $(this).parent().data("post-id"));
-    });
-
-    // Enable/disable add-post input submit buttons if input is filled/blank
-    $("#takedown-add-posts-tags").keyup(function (e) {
-      $("#takedown-add-posts-tags-preview").prop("disabled", $(this).val().length == 0)
-    });
-    $("#takedown-add-posts-ids").keyup(function (e) {
-      $("#takedown-add-posts-ids-submit").prop("disabled", $(this).val().length == 0)
-    });
-
-    // Handle enter keys in add-post inputs
-    $("#takedown-add-posts-tags").keydown(function (e) {
-      if (e.keyCode == 13) {
-        $("#takedown-add-posts-tags-preview:enabled").click();
-        e.preventDefault();
-        return false;
-      }
-    });
-    $("#takedown-add-posts-ids").keydown(function (e) {
-      if (e.keyCode == 13) {
-        $("#takedown-add-posts-ids-submit:enabled").click();
-        e.preventDefault();
-        return false;
-      }
-    });
-
-    // Trigger change event for elements to run their update handlers
-    $("[id^='takedown_posts_']").trigger("change");
-  });
-<% end -%>

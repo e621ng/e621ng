@@ -126,12 +126,34 @@
   .blacklist-footer {
     display: flex;
 
-    a.blacklist-toggle-all {
+    button.blacklist-toggle-all {
       cursor: pointer;
+      appearance: none;
+      background: none;
+      border: none;
+      margin: 0;
+      font-family: inherit;
+      text-decoration: none;
+
+      // Better touch target
+      display: block;
+      font-size: 0.85rem;
+      line-height: 1rem;
+      padding: 0.25rem 0;
+
+      color: themed("color-link");
+      &:hover, &:focus {
+        color: themed("color-link-hover");
+      }
     }
 
     .blacklist-help {
       margin-left: auto;
+
+      display: block;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      padding: 0.25rem 0;
     }
   }
 }
@@ -142,6 +164,8 @@
   flex-flow: row;
   flex-wrap: wrap;
   padding: 1em 0;
+  align-items: center;
+  line-height: 1rem;
 
   .blacklist-header {
     margin-left: 0;
@@ -154,7 +178,7 @@
 
   .blacklist-filters {
     flex-flow: row;
-    gap: 0.75rem;
+    gap: 0.125rem 0.5rem;
     margin: 0 0.75rem;
     flex-wrap: wrap;
     font-size: 1em;
@@ -162,6 +186,10 @@
     li {
       &::before {
         display: none; 
+      }
+      a {
+        line-height: 1rem;
+        padding: 0.25rem;
       }
     }
   }
@@ -175,6 +203,10 @@
   }
   
   .blacklist-footer {
+    button.blacklist-toggle-all {
+      font-size: 0.75rem;
+    }
+
     .blacklist-help {
       display: none;
     }
@@ -207,7 +239,7 @@
     height: 0px !important;
     width: 0px !important;
     padding: 150px 150px 0px 0px !important;
-    background-image: url("blacklisted-preview.png") !important;
+    background-image: url("~/images/blacklisted-preview.png") !important;
     background-color: #0003;
     background-size: contain;
     background-color: unset !important; // Prevent custom color from showing through
@@ -225,16 +257,4 @@
   #note-container {
     display: none;
   }
-}
-
-article.thumbnail.blacklisted {
-  & > a {
-    width: var(--thumb-image-size, 150px);
-    height: var(--thumb-image-size, 150px);
-    background-image: url("blacklisted-preview.png");
-    background-size: cover;
-    background-position: center;
-    background-color: unset !important; // Prevent custom color from showing through
-  }
-  img { visibility: hidden; }
 }

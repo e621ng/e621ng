@@ -20,7 +20,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "list all users (with search)" do
-        get users_path, params: {:search => {:name_matches => @user.name}}
+        get users_path, params: { search: { name_matches: @user.name } }
         assert_response :success
       end
 
@@ -44,21 +44,34 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "show hidden attributes to the owner" do
-        get_auth user_path(@user), @user, params: {format: :json}
+        get_auth user_path(@user), @user, params: { format: :json }
         json = JSON.parse(response.body)
 
         assert_response :success
         assert_not_nil(json["last_logged_in_at"])
+        assert_not_nil(json["email"])
       end
 
       should "not show hidden attributes to others" do
         @another = create(:user)
 
-        get_auth user_path(@another), @user, params: {format: :json}
+        get_auth user_path(@user), @another, params: { format: :json }
         json = JSON.parse(response.body)
 
         assert_response :success
         assert_nil(json["last_logged_in_at"])
+        assert_nil(json["email"])
+      end
+
+      should "show only the `last_logged_in_at` hidden attribute to admins" do
+        admin = create(:admin_user)
+
+        get_auth user_path(@user), admin, params: { format: :json }
+        json = JSON.parse(response.body)
+
+        assert_response :success
+        assert_not_nil(json["last_logged_in_at"])
+        assert_nil(json["email"])
       end
     end
 
@@ -70,6 +83,14 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       should "render" do
         get new_user_path
         assert_response :success
+      end
+
+      should "render as json without error" do
+        get new_user_path, params: { format: :json }
+        assert_response :success
+        json = JSON.parse(response.body)
+        assert_equal(0, json["post_upload_count"])
+        assert_equal(0, json["post_update_count"])
       end
     end
 
@@ -92,7 +113,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
         should "not allow registering multiple accounts with the same IP" do
           assert_difference("User.count", 0) do
-            post users_path, params: {:user => {:name => "dupe", :password => "xxxxx1", :password_confirmation => "xxxxx1"}}
+            post users_path, params: { user: { name: "dupe", password: "xxxxx1", password_confirmation: "xxxxx1" } }
           end
         end
       end
@@ -152,7 +173,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "update a user" do
-        put_auth user_path(@user), @user, params: {:user => {:favorite_tags => "xyz"}}
+        put_auth user_path(@user), @user, params: { user: { favorite_tags: "xyz" } }
         @user.reload
         assert_equal("xyz", @user.favorite_tags)
       end
@@ -163,7 +184,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "not work" do
-          put_auth user_path(@user), @cuser, params: {:user => {:level => 40}}
+          put_auth user_path(@user), @cuser, params: { user: { level: 40 } }
           @user.reload
           assert_equal(20, @user.level)
         end
@@ -188,6 +209,30 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         get_auth custom_style_users_path(format: :css), @user
         assert_response :success
         assert_equal("body { display:none !important; }", @response.body.strip)
+      end
+    end
+
+    context("me action") do
+      should("redirect for authenticated html") do
+        get_auth(me_users_path, @user)
+        assert_redirected_to(user_path(@user))
+      end
+
+      should("404 for unauthenticated html") do
+        get(me_users_path)
+        assert_response(:not_found)
+      end
+
+      should("return the correct id for authenticated json") do
+        get_auth(me_users_path(format: :json), @user)
+        assert_response(:success)
+        assert_equal(@user.id, @response.parsed_body["id"])
+      end
+
+      should("return nil id for unauthenticated json") do
+        get(me_users_path(format: :json))
+        assert_response(:success)
+        assert_nil(@response.parsed_body["id"])
       end
     end
   end

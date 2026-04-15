@@ -25,17 +25,19 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
 
       should "not render the vote links for the requesting user" do
         get_auth forum_topic_path(@forum_topic), @user
-        assert_select "a[title='Vote up']", false
+        assert_select "li.forum-post-vote-category[data-vote='up'] button.forum-vote-up", false
+        assert_select "li.forum-post-vote-category[data-vote='up'] span.forum-vote-up"
       end
 
       should "render the vote links" do
         get_auth forum_topic_path(@forum_topic), @mod
-        assert_select "a[title='Vote up']"
+        assert_select "li.forum-post-vote-category[data-vote='up'] button.forum-vote-up"
+        assert_select "li.forum-post-vote-category[data-vote='up'] span.forum-vote-up", false
       end
 
       should "render existing votes" do
         get_auth forum_topic_path(@forum_topic), @mod
-        assert_select "li.vote-score-up"
+        assert_select "ul.forum-post-votes[data-vote='up'] li"
       end
 
       context "after the alias is rejected" do
@@ -47,11 +49,12 @@ class ForumPostsControllerTest < ActionDispatch::IntegrationTest
         end
 
         should "hide the vote links" do
-          assert_select "a[title='Vote up']", false
+          assert_select "li.forum-post-vote-category[data-vote='up'] button.forum-vote-up", false
+          assert_select "li.forum-post-vote-category[data-vote='up'] span.forum-vote-up"
         end
 
         should "still render existing votes" do
-          assert_select "li.vote-score-up"
+          assert_select "ul.forum-post-votes[data-vote='up'] li"
         end
       end
     end

@@ -1,0 +1,31 @@
+#c-help aside#sidebar {
+
+  h1 {
+    margin-bottom: 0.25rem;
+  }
+
+  ul.link-page {
+    display: flex;
+    flex-flow: column;
+
+    li {
+      a, span {
+        width: 100%;
+        display: flex;
+        padding: 0.125rem 0;
+        font-size: 0.85rem;
+        line-height: 1rem;
+
+        &:before {
+          content: "\00BB";
+          width: 0.75rem;
+          margin-right: 0.25rem;
+          text-align: center;
+          color: themed("color-text");
+        }
+      }
+
+      &.active { font-weight: bold; }
+    }
+  }
+}

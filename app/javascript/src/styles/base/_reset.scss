@@ -128,8 +128,8 @@ button,
 input {
   line-height: normal;
   // FF3/4 have !important on line-height in UA stylesheet
-  *overflow: visible;
-  // Inner spacing ie IE6/7
+  overflow: visible;
+  // Fix button content clipping in legacy browsers
 }
 
 button::-moz-focus-inner,

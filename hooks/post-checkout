@@ -1,0 +1,47 @@
+#!/bin/bash
+# Post-checkout hook to restore execute permissions for all files that should have them
+# This runs after every checkout, merge, or branch switch
+# 
+# This is necessary on WSL where core.fileMode=false, which causes Git to ignore
+# file permission changes during normal operations, but files lose their execute
+# permissions when checked out.
+
+# Only run this hook if we're in an environment that needs it
+should_run_hook() {
+  # WSL should always run this, as it always has permission issues
+  if grep -qEi "(microsoft|wsl)" /proc/version 2>/dev/null; then
+    return 0
+  fi
+    
+  # If core.fileMode is disabled, permission issues are likely
+  if [ "$(git config core.fileMode)" = "false" ]; then
+    return 0
+  fi
+    
+  # Default: don't run
+  return 1
+}
+
+if ! should_run_hook; then
+  exit 0
+fi
+
+echo "Restoring execute permissions for files"
+
+# Get all files that should have execute permissions from Git's object database
+# and collect them into an array for batch processing
+executable_files=()
+while read -r mode type hash path; do
+  if [ -f "$path" ]; then
+    executable_files+=("$path")
+  fi
+done < <(git ls-tree -r HEAD | grep "^100755")
+
+# Apply execute permissions to all files at once if any were found
+if [ ${#executable_files[@]} -gt 0 ]; then
+  chmod +x "${executable_files[@]}" 2>/dev/null || true
+  printf "  ✓ %s\n" "${executable_files[@]}"
+  echo "Execute permissions restored for ${#executable_files[@]} files."
+else
+  echo "No executable files found to restore."
+fi

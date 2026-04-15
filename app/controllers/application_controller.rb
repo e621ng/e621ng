@@ -6,7 +6,9 @@ class ApplicationController < ActionController::Base
 
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
   before_action :reset_current_user
+  before_action :sanitize_params
   before_action :set_current_user
+  around_action :set_time_zone
   before_action :normalize_search
   before_action :api_check
   before_action :enable_cors
@@ -19,9 +21,9 @@ class ApplicationController < ActionController::Base
   include RenderPartialSafely
   helper_method :deferred_post_ids, :deferred_posts
 
-  rescue_from Exception, :with => :rescue_exception
-  rescue_from User::PrivilegeError, :with => :access_denied
-  rescue_from ActionController::UnpermittedParameters, :with => :access_denied
+  rescue_from Exception, with: :rescue_exception
+  rescue_from User::PrivilegeError, with: :access_denied
+  rescue_from ActionController::UnpermittedParameters, with: :access_denied
 
   # This is raised on requests to `/blah.js`. Rails has already rendered StaticController#not_found
   # here, so calling `rescue_exception` would cause a double render error.
@@ -43,15 +45,32 @@ class ApplicationController < ActionController::Base
 
   protected
 
+  def sanitize_params
+    sanitize_hash = ->(hash) do
+      hash.each do |key, value|
+        hash[key] = case value
+                    when String
+                      # Remove invalid UTF-8 sequences and null bytes
+                      value.scrub("").delete("\u0000")
+                    when Hash, ActionController::Parameters
+                      sanitize_hash.call(value)
+                    when Array
+                      value.map { |v| v.is_a?(String) ? v.scrub("").delete("\u0000") : v }
+                    else
+                      value
+                    end
+      end
+    end
+
+    sanitize_hash.call(params)
+  end
+
   def api_check
     if !CurrentUser.is_anonymous? && !request.get? && !request.head?
       throttled = CurrentUser.user.token_bucket.throttled?
       headers["X-Api-Limit"] = CurrentUser.user.token_bucket.cached_count.to_s
 
-      if throttled
-        raise APIThrottled.new
-        return false
-      end
+      raise APIThrottled if throttled
     end
 
     true
@@ -70,7 +89,7 @@ class ApplicationController < ActionController::Base
       render_expected_error(429, "Throttled: Too many requests")
     when ActiveRecord::QueryCanceled
       render_error_page(500, exception, message: "The database timed out running your query.")
-    when ActionController::BadRequest, PostVersion::UndoError
+    when ActionDispatch::Http::Parameters::ParseError, ActionController::BadRequest, PostVersion::UndoError
       render_error_page(400, exception)
     when SessionLoader::AuthenticationFailure
       session.delete(:user_id)
@@ -101,10 +120,10 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def render_404
+  def render_404 # rubocop:disable Naming/VariableNumber
     respond_to do |fmt|
       fmt.html do
-        render "static/404", formats: [:html, :atom], status: 404
+        render "static/404", formats: %i[html atom], status: 404
       end
       fmt.json do
         render json: { success: false, reason: "not found" }, status: 404
@@ -128,7 +147,7 @@ class ApplicationController < ActionController::Base
   def render_error_page(status, exception, message: exception.message, format: request.format.symbol)
     @exception = exception
     @expected = status < 500
-    @message = message.encode("utf-8", invalid: :replace, undef: :replace )
+    @message = message.encode("utf-8", invalid: :replace, undef: :replace)
     @backtrace = Rails.backtrace_cleaner.clean(@exception.backtrace)
     format = :html unless format.in?(%i[html json atom])
 
@@ -137,7 +156,7 @@ class ApplicationController < ActionController::Base
     end
 
     DanbooruLogger.log(@exception, expected: @expected)
-    log = ExceptionLog.add(exception, CurrentUser.id, request) if !@expected
+    log = ExceptionLog.add(exception, CurrentUser.id, request) unless @expected
     @log_code = log&.code
     render "static/error", status: status, formats: format
   end
@@ -151,16 +170,16 @@ class ApplicationController < ActionController::Base
       fmt.html do
         if CurrentUser.is_anonymous?
           if request.get?
-            redirect_to new_session_path(:url => previous_url), notice: @message
+            redirect_to new_session_path(url: previous_url), notice: @message
           else
             redirect_to new_session_path, notice: @message
           end
         else
-          render :template => "static/access_denied", :status => 403
+          render template: "static/access_denied", status: 403
         end
       end
       fmt.json do
-        render :json => {:success => false, reason: @message}.to_json, :status => 403
+        render json: { success: false, reason: @message }.to_json, status: 403
       end
     end
   end
@@ -168,6 +187,12 @@ class ApplicationController < ActionController::Base
   def set_current_user
     SessionLoader.new(request).load
     session.send(:load!) unless session.send(:loaded?)
+  end
+
+  def set_time_zone(&)
+    time_zone = ActiveSupport::TimeZone[params[:time_zone].presence.to_s] ||
+                ActiveSupport::TimeZone[CurrentUser.user.time_zone]
+    Time.use_zone(time_zone || "UTC", &)
   end
 
   def reset_current_user
@@ -196,7 +221,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  %i[is_bd_staff can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries].each do |role|
+  %i[is_bd_staff is_bd_auditor can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries].each do |role|
     define_method("#{role}_only") do
       user_access_check("#{role}?")
     end
@@ -208,16 +233,26 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def reject_api_key_auth
+    if CurrentUser.api_key.present?
+      render_expected_error(:forbidden, "This action requires browser authentication")
+    end
+  end
+
   # Remove blank `search` params from the url.
   #
   # /tags?search[name]=touhou&search[category]=&search[order]=
   # => /tags?search[name]=touhou
   def normalize_search
     return unless request.get? || request.head?
+
+    # Sanitize q parameter - must be a String or nil, not a nested hash
+    params[:q] = nil if params[:q].present? && !params[:q].is_a?(String)
+
     params[:search] ||= ActionController::Parameters.new
 
     deep_reject_blank = ->(hash) do
-      hash.reject { |k, v| v.blank? || (v.is_a?(Hash) && deep_reject_blank.call(v).blank?) }
+      hash.reject { |_k, v| v.blank? || (v.is_a?(Hash) && deep_reject_blank.call(v).blank?) }
     end
     if params[:search].is_a?(ActionController::Parameters)
       nonblank_search_params = deep_reject_blank.call(params[:search])
@@ -236,6 +271,6 @@ class ApplicationController < ActionController::Base
   end
 
   def permit_search_params(permitted_params)
-    params.fetch(:search, {}).permit([:id, :created_at, :updated_at] + permitted_params)
+    params.fetch(:search, {}).permit(%i[id created_at updated_at] + permitted_params)
   end
 end

@@ -1,21 +1,7 @@
-<div class="dtext-formatter" data-editing="true" data-initialized="false" data-allow-color="<%= allow_color %>">
-  <div class="dtext-formatter-tabs">
-    <a data-action="edit" role="tab">Write</a>
-    <a data-action="show" role="tab">Preview</a>
-  </div>
-  <div class="dtext-formatter-buttons" role="toolbar">
-    <%= tag.a(tag.i(class: "fa-solid fa-bold"), title: "Bold", data: { content: "[b]%selection%[/b]" }) %>
-    <%= tag.a(tag.i(class: "fa-solid fa-italic"), title: "Italics", data: { content: "[i]%selection%[/i]" }) %>
-    <%= tag.a(tag.i(class: "fa-solid fa-strikethrough"), title: "Strikethrough", data: { content: "[s]%selection%[/s]" }) %>
-    <%= tag.a(tag.i(class: "fa-solid fa-underline"), title: "Underline", data: { content: "[u]%selection%[/u]" }) %>
-    <span class="spacer"></span>
-    <%= tag.a(tag.i(class: "fa-solid fa-heading"), title: "Header", data: { content: "h2.%selection%" }) %>
-    <%= tag.a(tag.i(class: "fa-solid fa-eye-slash"), title: "Spoiler", data: { content: "[spoiler]%selection%[/spoiler]" }) %>
-    <%= tag.a(tag.i(class: "fa-solid fa-code"), title: "Code", data: { content: "[code]%selection%[/code]" }) %>
-    <%= tag.a(tag.i(class: "fa-solid fa-quote-right"), title: "Quote", data: { content: "[quote]%selection%[/quote]" }) %>
-  </div>
+<div
+  class="dtext-formatter pending"
+  data-color="<%= allow_color %>"
+  data-limit="<%= limit %>"
+>
   <%= textarea %>
-  <div class="dtext-formatter-preview dtext-container"></div>
-  <%= tag.div(class: "dtext-formatter-charcount", data: { limit: limit || 0, count: 0 }) %>
 </div>
-<span class="hint">All text is formatted using <a href="/help/dtext" target="_blank" rel="noopener" tabindex="-1">DText</a></span>

@@ -18,6 +18,17 @@
   // Eslint shenanigans
   "eslint.useFlatConfig": true,
   "eslint.validate": [
-    "javascript"
+    "javascript",
+    "typescript"
   ],
+  "eslint.format.enable": true,
+  "[javascript]": {
+  	"editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescript]": {
+  	"editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always"
+    }
+  },
 }

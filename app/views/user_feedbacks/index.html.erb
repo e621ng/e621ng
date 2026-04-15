@@ -57,7 +57,7 @@
       <% end %>
     <% end %>
 
-    <%= numbered_paginator(@user_feedbacks) %>
+    <%= render PaginatorComponent.new(records: @user_feedbacks) %>
   </div>
 </div>
 

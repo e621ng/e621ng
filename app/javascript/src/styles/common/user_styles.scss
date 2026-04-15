@@ -29,3 +29,9 @@ svg.chexagon {
   color: themed("color-tag-artist");
   .check { color: themed("color-text"); }
 }
+
+svg.text-inline {
+  height: 1em;
+  width: 1em;
+  vertical-align: baseline;
+}

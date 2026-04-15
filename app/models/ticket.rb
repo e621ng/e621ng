@@ -16,6 +16,8 @@ class Ticket < ApplicationRecord
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   validates :response, length: { minimum: 2 }, on: :update
   enum :status, %i[pending partial approved].index_with(&:to_s)
+  after_create :push_pubsub_create
+  after_update :push_pubsub_update_notification
   after_update :log_update
   after_update :create_dmail
   validate :validate_content_exists, on: :create
@@ -39,6 +41,7 @@ class Ticket < ApplicationRecord
   # |    User    |         Any         | Moderator+ / Creator |
   # |  Wiki Page |         Any         |  Janitor+ / Creator  |
   # |    Other   |         None        | Moderator+ / Creator |
+  # |Replacement |         Any         |  Janitor+ / Creator  |
 
   module TicketTypes
     module Blip
@@ -53,11 +56,11 @@ class Ticket < ApplicationRecord
 
     module Comment
       def can_create_for?(user)
-        content&.visible_to?(user)
+        content&.is_accessible?(user, bypass_user_settings: true)
       end
 
       def can_view?(user)
-        (user.is_staff? && content&.visible_to?(user)) || user.is_admin? || (user.id == creator_id)
+        (user.is_staff? && content&.is_accessible?(user, bypass_user_settings: true)) || user.is_admin? || (user.id == creator_id)
       end
     end
 
@@ -173,11 +176,35 @@ class Ticket < ApplicationRecord
         user.is_staff? || user.is_admin? || (user.id == creator_id)
       end
     end
+
+    module Replacement
+      def model
+        ::PostReplacement
+      end
+
+      def can_view?(user)
+        user.is_janitor? || (user.id == creator_id)
+      end
+
+      def can_create_for?(user)
+        content&.visible_to?(user)
+      end
+
+      def subject
+        reason.split("\n")[0] || "Unknown Report Type"
+      end
+    end
   end
 
   module APIMethods
     def hidden_attributes
       hidden = []
+
+      unless can_view?(CurrentUser.user)
+        hidden += %i[creator_id accused_id reason response report_reason]
+        return super + hidden
+      end
+
       hidden += %i[claimant_id] unless CurrentUser.is_moderator?
       hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
       super + hidden
@@ -192,11 +219,28 @@ class Ticket < ApplicationRecord
 
     def validate_creator_is_not_limited
       return if creator == User.system
-      allowed = creator.can_ticket_with_reason
-      if allowed != true
-        errors.add(:creator, User.throttle_reason(allowed))
+
+      # Hourly limit
+      hourly_allowed = creator.can_ticket_hourly_with_reason
+      if hourly_allowed != true
+        errors.add(:creator, User.throttle_reason(hourly_allowed, "hourly"))
         return false
       end
+
+      # Daily limit
+      daily_allowed = creator.can_ticket_daily_with_reason
+      if daily_allowed != true
+        errors.add(:creator, User.throttle_reason(daily_allowed, "daily"))
+        return false
+      end
+
+      # Active limit
+      active_allowed = creator.can_ticket_active_with_reason
+      if active_allowed != true
+        errors.add(:creator, User.throttle_reason(active_allowed, "active"))
+        return false
+      end
+
       true
     end
 
@@ -246,6 +290,8 @@ class Ticket < ApplicationRecord
       q = q.where_user(:creator_id, :creator, params)
       q = q.where_user(:claimant_id, :claimant, params)
       q = q.where_user(:accused_id, :accused, params)
+
+      q = q.attribute_matches(:disp_id, params[:disp_id])
 
       if params[:qtype].present?
         q = q.where("qtype = ?", params[:qtype])
@@ -400,6 +446,14 @@ class Ticket < ApplicationRecord
 
     def push_pubsub(action)
       Cache.redis.publish("ticket_updates", pubsub_hash(action).to_json)
+    end
+
+    def push_pubsub_create
+      push_pubsub("create")
+    end
+
+    def push_pubsub_update_notification
+      push_pubsub("update") if saved_change_to_status? || saved_change_to_response?
     end
   end
 

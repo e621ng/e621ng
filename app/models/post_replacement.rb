@@ -87,6 +87,13 @@ class PostReplacement < ApplicationRecord
     replacements.empty?
   end
 
+  ## DB!
+  # Fetches the data for the artist tags to find any that have the linked artists matching the creator.
+  # Sends a db request to look up the artist data.
+  def uploader_linked_artists
+    @uploader_linked_artists ||= post.artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == creator.id }.map(&:name)
+  end
+
   def sequence_number
     return 0 if status == "original"
     siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids
@@ -335,7 +342,7 @@ class PostReplacement < ApplicationRecord
         q = q.where_user(:uploader_id_on_approve, %i[uploader_name_on_approve uploader_id_on_approve], params)
 
         if params[:post_id].present?
-          q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
+          q = q.where("post_id in (?)", params[:post_id].split(",").first(Danbooru.config.max_per_page).map(&:to_i))
         end
 
         if params[:reason].present?
@@ -450,13 +457,44 @@ class PostReplacement < ApplicationRecord
     status == "approved" && !is_current?
   end
 
+  def visible_to?(user)
+    return true unless is_rejected?
+    return false unless user.is_staff? # Only staff can see rejected replacements
+    true
+  end
+
   def promoted_id
     return nil unless is_promoted?
-    if post.has_children?
-      id = post.children.where(md5: md5)&.first&.id
+
+    @promoted_id ||= begin
+      id = nil
+      if post.has_children?
+        id = post.children.where(md5: md5)&.first&.id
+      end
+
+      # Fallback 1: md5 lookup
+      if id.nil?
+        found_post = Post.find_by(md5: md5)
+        id = found_post&.id
+      end
+
+      # Fallback 2: Backup lookup
+      if id.nil?
+        backup = PostReplacement.where(status: "original", md5: md5).first
+        id = backup&.post_id
+      end
+
+      # Fallback 3: PostEvent lookup
+      if id.nil?
+        event = PostEvent.where(action: :replacement_promoted)
+                         .where("extra_data->>'source_post_id' = ?", post_id.to_s)
+                         .order(created_at: :desc)
+                         .first
+        id = event&.post_id
+      end
+
+      id
     end
-    return id unless id.nil?
-    Post.find_by(md5: md5)&.id
   end
 
   include ApiMethods

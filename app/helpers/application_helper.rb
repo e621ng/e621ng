@@ -43,7 +43,7 @@ module ApplicationHelper
 
     tag.li(id: id, class: klass) do
       link_to(url, id: "#{id}-link", **options) do
-        concat image_pack_tag(image)
+        concat vite_image_tag(image)
         concat " "
         concat tag.span(text)
       end
@@ -68,24 +68,6 @@ module ApplicationHelper
     klass = options.delete(:class)
     id = id_prefix + text.downcase.gsub(/[^a-z ]/, "").parameterize
     tag.li(link_to(text, url, id: "#{id}-link", **options), id: id, class: klass)
-  end
-
-  def dtext_ragel(text, **)
-    parsed = DText.parse(text, **)
-    return raw "" if parsed.nil?
-    deferred_post_ids.merge(parsed[1]) if parsed[1].present?
-    raw parsed[0]
-  rescue DText::Error => e
-    raw ""
-  end
-
-  def format_text(text, **options)
-    # preserve the currrent inline behaviour
-    if options[:inline]
-      dtext_ragel(text, **options)
-    else
-      raw %(<div class="styled-dtext">#{dtext_ragel(text, **options)}</div>)
-    end
   end
 
   def custom_form_for(object, *args, &)
@@ -206,7 +188,8 @@ module ApplicationHelper
     Cache.fetch("tos_content", expires_in: 1.day) do
       wiki = WikiPage.titled("e621:terms_of_service")
       return "Terms of use not found." if wiki.nil?
-      format_text(wiki.body, allow_color: true)
+      processed_body = replace_cross_domain_links(wiki.body)
+      format_text(processed_body, allow_color: true)
     end
   end
 
@@ -263,5 +246,28 @@ module ApplicationHelper
     else
       /^#{site_map_path}/
     end
+  end
+
+  VITE_ENTRYPOINTS = Rails.root.glob("app/javascript/entrypoints/v_*.ts")
+                          .to_set { |f| File.basename(f, ".ts") }
+                          .freeze
+
+  def vite_script_for_controller
+    name = "v_#{params[:controller].parameterize.dasherize}"
+    return unless VITE_ENTRYPOINTS.include?(name)
+    vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
+  end
+
+  def vite_script_for_controller_and_action
+    name = "v_#{params[:controller].parameterize.dasherize}_#{params[:action].parameterize.dasherize}"
+    return unless VITE_ENTRYPOINTS.include?(name)
+    vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
+  end
+
+  private
+
+  def replace_cross_domain_links(text)
+    current_domain = Danbooru.config.domain
+    text.gsub(%r{https://(?:e621\.net|e926\.net)(/static/)}, "https://#{current_domain}\\1")
   end
 end

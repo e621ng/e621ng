@@ -1,0 +1,102 @@
+<h1>API Keys</h1>
+
+<%= render "secondary_links" %>
+
+<div class="instructions">
+  <p>An API key is used to give programs access to your <%= Danbooru.config.app_name %> account.</p>
+
+  <p>If you're a developer, you can use an API key to access the
+    <%= link_to("#{Danbooru.config.app_name} API", help_page_path(id: "api")) %>. If you're not a
+    developer, and you're not using any third-party apps, then you probably don't need an API key.</p>
+
+  <p><strong>Your API key is like your password</strong>. Anyone who has it has full access to
+    your account. Don't give your API key to apps or people you don't trust, and don't post your
+    API key in public locations.</p>
+
+  <p>Example usage:
+    <code>
+      <% if @api_keys.present? %>
+        <%= posts_path(format: "json", login: CurrentUser.user.name, api_key: @api_keys.first.key) %>
+      <% else %>
+        <%= posts_path(format: "json", login: CurrentUser.user.name, api_key: "your_api_key_goes_here") %>
+      <% end %>
+    </code>
+  </p>
+</div>
+
+<% if @api_keys.size < CurrentUser.user.api_key_limit %>
+  <%= link_to("Create API key", new_api_key_path, class: "button create-api-key") %>
+<% else %>
+  <p>You have reached the maximum number of API keys.</p>
+<% end %>
+
+<% if @api_keys.any? %>
+  <div class="api-keys-container">
+    <div class="api-keys-list">
+      <div class="header">Name</div>
+      <div class="header">Key</div>
+      <div class="header">Last Used</div>
+      <div class="header">Expires</div>
+      <div class="header">Created</div>
+      <div class="header">Actions</div>
+
+      <% @api_keys.each do |api_key| %>
+      <div class="row" id="api-key-<%= api_key.id %>">
+        <div class="cell" data-label="Name"><%= api_key.name %></div>
+        
+        <div class="cell" data-label="Key"><code><%= api_key.key %></code></div>
+        
+        <div class="cell" data-label="Last Used">
+          <div>
+            <% if api_key.last_used_at %>
+              <%= time_ago_in_words_tagged(api_key.last_used_at) %>
+              <% if api_key.last_ip_address %>
+                <br>from <%= api_key.last_ip_address %>
+              <% end %>
+              <% if api_key.last_user_agent.present? %>
+                <br><small title="<%= h(api_key.last_user_agent) %>"><%= truncate(api_key.last_user_agent, length: 50) %></small>
+              <% end %>
+            <% else %>
+              Never
+            <% end %>
+          </div>
+        </div>
+        
+        <div class="cell" data-label="Expires">
+          <div>
+            <% if api_key.expires_at %>
+              <%= time_ago_in_words_tagged(api_key.expires_at) %>
+              <% if api_key.expired? %>
+                <span class="api-key-expired"> (Expired)</span>
+              <% end %>
+            <% else %>
+              Never
+            <% end %>
+          </div>
+        </div>
+        
+        <div class="cell" data-label="Created"><%= time_ago_in_words_tagged(api_key.created_at) %></div>
+        
+        <div class="cell" data-label="Actions">
+          <div>
+            <% if api_key.expired? %>
+              <%= link_to("Regenerate", regenerate_api_key_path(api_key), 
+                  data: { method: :post, 
+                  confirm: "Are you sure you want to regenerate this API key?" }) %>
+              |
+            <% end %>
+            <%= link_to("Delete", api_key, data: { method: :delete, 
+                confirm: "Are you sure you want to delete this API key?" }) %>
+          </div>
+        </div>
+      </div>
+      <% end %>
+    </div>
+  </div>
+<% else %>
+  <p>You don't have any API keys yet.</p>
+<% end %>
+
+<% content_for(:page_title) do %>
+  API Keys
+<% end %>
