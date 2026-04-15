@@ -255,13 +255,13 @@ module ApplicationHelper
   def vite_script_for_controller
     name = "v_#{params[:controller].parameterize.dasherize}"
     return unless VITE_ENTRYPOINTS.include?(name)
-    vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
+    vite_javascript_tag("#{name}.ts", nonce: content_security_policy_nonce, defer: false)
   end
 
   def vite_script_for_controller_and_action
     name = "v_#{params[:controller].parameterize.dasherize}_#{params[:action].parameterize.dasherize}"
     return unless VITE_ENTRYPOINTS.include?(name)
-    vite_javascript_tag("#{name}.ts", nonce: true, defer: false)
+    vite_javascript_tag("#{name}.ts", nonce: content_security_policy_nonce, defer: false)
   end
 
   private
