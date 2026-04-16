@@ -197,7 +197,7 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "coerce a hash injection in a search param to nil and redirect" do
-        get posts_path, params: { search: { status: { "$eq" => "active" } } }, as: :html
+        get posts_path, params: { search: { status: { "$eq" => "active" } } }
         assert_redirected_to posts_path
       end
 
