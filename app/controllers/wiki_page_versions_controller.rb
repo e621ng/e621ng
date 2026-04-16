@@ -14,16 +14,13 @@ class WikiPageVersionsController < ApplicationController
   end
 
   def diff
-    thispage = params[:thispage].is_a?(Array) ? params[:thispage].first : params[:thispage]
-    otherpage = params[:otherpage].is_a?(Array) ? params[:otherpage].first : params[:otherpage]
-
-    if thispage.blank? || otherpage.blank?
+    if params[:thispage].blank? || params[:otherpage].blank?
       redirect_back fallback_location: wiki_pages_path, notice: "You must select two versions to diff"
       return
     end
 
-    @thispage = WikiPageVersion.find(thispage)
-    @otherpage = WikiPageVersion.find(otherpage)
+    @thispage = WikiPageVersion.find(ParseValue.safe_id(params[:thispage].to_s))
+    @otherpage = WikiPageVersion.find(ParseValue.safe_id(params[:otherpage].to_s))
   end
 
   private

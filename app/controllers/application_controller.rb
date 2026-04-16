@@ -263,7 +263,7 @@ class ApplicationController < ActionController::Base
     if params[:search].is_a?(ActionController::Parameters)
       nonblank_search_params = deep_reject_blank.call(params[:search])
       # Reject non-scalar values (e.g. {"$eq": "x"} hashes injected by probing tools).
-      nonblank_search_params = nonblank_search_params.select { |_, v| v.is_a?(String) || v.is_a?(Numeric) }
+      nonblank_search_params = nonblank_search_params.select { |_, v| v.is_a?(String) || v.is_a?(Numeric) || v.is_a?(TrueClass) || v.is_a?(FalseClass) }
     else
       nonblank_search_params = ActionController::Parameters.new
     end
@@ -280,6 +280,6 @@ class ApplicationController < ActionController::Base
 
   def permit_search_params(permitted_params)
     params.fetch(:search, {}).permit(%i[id created_at updated_at] + permitted_params)
-          .select { |_, v| v.is_a?(String) || v.is_a?(Numeric) }
+          .select { |_, v| v.is_a?(String) || v.is_a?(Numeric) || v.is_a?(TrueClass) || v.is_a?(FalseClass) }
   end
 end
