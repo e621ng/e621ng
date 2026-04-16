@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
-  class APIThrottled < Exception; end
+  class APIThrottled < StandardError; end
   class FeatureUnavailable < StandardError; end
 
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
@@ -250,8 +250,8 @@ class ApplicationController < ActionController::Base
     %i[q page limit id].each do |key|
       next unless params.key?(key)
       params[key] = case params[key]
-                    when String then params[key]
-                    when Array  then params[key].first.is_a?(String) ? params[key].first : nil
+                    when String, Numeric then params[key]
+                    when Array           then params[key].first.is_a?(String) ? params[key].first : nil
                     end
     end
 
