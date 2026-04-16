@@ -246,8 +246,14 @@ class ApplicationController < ActionController::Base
   def normalize_search
     return unless request.get? || request.head?
 
-    # Sanitize q parameter - must be a String or nil, not a nested hash
-    params[:q] = nil if params[:q].present? && !params[:q].is_a?(String)
+    # Coerce top-level params that must be scalars — reject hashes, unwrap single-element arrays.
+    %i[q page limit id].each do |key|
+      next unless params.key?(key)
+      params[key] = case params[key]
+                    when String then params[key]
+                    when Array  then params[key].first.is_a?(String) ? params[key].first : nil
+                    end
+    end
 
     params[:search] ||= ActionController::Parameters.new
 
@@ -256,6 +262,8 @@ class ApplicationController < ActionController::Base
     end
     if params[:search].is_a?(ActionController::Parameters)
       nonblank_search_params = deep_reject_blank.call(params[:search])
+      # Reject non-scalar values (e.g. {"$eq": "x"} hashes injected by probing tools).
+      nonblank_search_params = nonblank_search_params.select { |_, v| v.is_a?(String) || v.is_a?(Numeric) }
     else
       nonblank_search_params = ActionController::Parameters.new
     end
@@ -272,5 +280,6 @@ class ApplicationController < ActionController::Base
 
   def permit_search_params(permitted_params)
     params.fetch(:search, {}).permit(%i[id created_at updated_at] + permitted_params)
+          .select { |_, v| v.is_a?(String) || v.is_a?(Numeric) }
   end
 end
