@@ -654,32 +654,20 @@ Post.initialize_change_resize_mode_link = function () {
   Hotkeys.register("resize", Post.resize_cycle_mode);
 };
 
+Post._isEditing = false;
 Post.initialize_post_sections = function () {
-  $("#post-sections li a,#side-edit-link,#post-edit-link,#menu-post-edit-link").on("click.danbooru", function (e) {
-    const target = $(e.target).closest("a")[0];
+  $("#side-edit-link, #post-edit-link, #menu-post-edit-link, #post-edit-close").on("click.danbooru", (event) => {
+    event.preventDefault(); // Only one of these is a link
+    Post._isEditing = !Post._isEditing;
 
-    if (!target) return;
-
-    if (target.hash === "#comments") {
-      $("#comments").show();
-      $("#edit").hide();
-    } else if (target.hash === "#edit") {
-      $("#edit").show();
-      $("#comments").hide();
+    if (Post._isEditing) {
       $(document).trigger("danbooru:open-post-edit-tab");
       Post.update_tag_count();
+      $("#edit").show();
     } else {
-      $("#edit").hide();
-      $("#comments").hide();
-    }
-
-    if (target.hash !== "#edit") {
       $(document).trigger("danbooru:close-post-edit-tab");
+      $("#edit").hide();
     }
-
-    $("#post-sections li").removeClass("active");
-    $(target).parent("li").addClass("active");
-    e.preventDefault();
   });
 };
 

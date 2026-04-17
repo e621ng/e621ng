@@ -29,7 +29,8 @@ body.c-favorites.a-index {
     "content "
     "tabs    "
     "comments"
-    "sidebar ";
+    "sidebar "
+    "adscape ";
   grid-template-columns: 1fr;
   grid-template-rows: min-content 1fr min-content;
 
@@ -178,17 +179,22 @@ body.c-favorites.a-index {
       font-size: 1.05em;
     }
   }
+
+  & > .adscape {
+    grid-area: adscape;
+    .adzone { background: red; }
+  }
 }
 
 // Mobile tab UI
-.post-index[tab-state="comments"] {
+.post-index[data-tab-state="comments"] {
   & > .tabs button[data-action="comments"] {
     background: themed("color-section");
     pointer-events: none;
   }
   & > .sidebar { display: none; }
 }
-.post-index[tab-state="tags"] {
+.post-index[data-tab-state="tags"] {
   & > .tabs button[data-action="tags"] {
     background: themed("color-section");
     pointer-events: none;
