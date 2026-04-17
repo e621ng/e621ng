@@ -194,7 +194,7 @@ class ModAction < ApplicationRecord
   end
 
   def values
-    original_values = self[:values]
+    original_values = self[:values] || {}
 
     if CurrentUser.is_admin?
       original_values
