@@ -28,7 +28,7 @@ class TagAliasesController < ApplicationController
   end
 
   def index
-    @tag_aliases = TagAlias.includes(:antecedent_tag, :consequent_tag, :approver).search(search_params).paginate(params[:page], :limit => params[:limit])
+    @tag_aliases = TagAlias.includes(:antecedent_tag, :consequent_tag, :creator, :approver, forum_post: :votes).search(search_params).paginate(params[:page], :limit => params[:limit])
     respond_with(@tag_aliases)
   end
 
