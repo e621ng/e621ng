@@ -72,10 +72,15 @@ class TagImplication < TagRelationship
       update_attribute(:descendant_names, descendant_names)
     end
 
-    def update_descendant_names_for_parents
+    def update_descendant_names_for_parents(visited = Set.new)
+      visited.add(id)
       parents.each do |parent|
+        if visited.include?(parent.id)
+          parent.update_columns(status: "error: circular implication detected")
+          next
+        end
         parent.update_descendant_names!
-        parent.update_descendant_names_for_parents
+        parent.update_descendant_names_for_parents(visited)
       end
     end
   end
