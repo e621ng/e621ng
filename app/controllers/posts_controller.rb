@@ -9,6 +9,7 @@ class PostsController < ApplicationController
   respond_to :html, :json
 
   def index
+    params[:md5] = nil unless params[:md5].is_a?(String)
     if params[:md5].present?
       @post = Post.find_by!(md5: params[:md5])
       respond_with(@post) do |format|

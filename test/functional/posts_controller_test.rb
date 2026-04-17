@@ -34,6 +34,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
           get posts_path(md5: "foo")
           assert_response 404
         end
+
+        should "not crash when md5 param is a hash" do
+          get posts_path, params: { md5: { "$eq" => "" } }
+          assert_response :success
+        end
       end
 
       context "with a random search" do
