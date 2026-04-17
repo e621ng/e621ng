@@ -129,6 +129,7 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_creator_is_not_limited
+    return if post.nil?
     return if is_deletion
 
     if creator.no_flagging?
@@ -150,6 +151,7 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_post
+    return errors.add(:post, "must exist") if post.nil?
     errors.add(:post, "is locked and cannot be flagged") if post.is_status_locked? && !(creator.is_admin? || force_flag)
     errors.add(:post, "is deleted") if post.is_deleted?
   end
