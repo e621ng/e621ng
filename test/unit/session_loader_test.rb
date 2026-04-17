@@ -60,6 +60,24 @@ class SessionLoaderTest < ActiveSupport::TestCase
       end
     end
 
+    context "authentication with non-scalar login or api_key" do
+      should "reject login submitted as a hash" do
+        @request.stubs(:parameters).returns({ login: { "$eq" => "username" }, api_key: "test_key" })
+
+        assert_raises(SessionLoader::AuthenticationFailure) do
+          SessionLoader.new(@request).load
+        end
+      end
+
+      should "reject api_key submitted as a hash" do
+        @request.stubs(:parameters).returns({ login: "testuser", api_key: { "$eq" => "key" } })
+
+        assert_raises(SessionLoader::AuthenticationFailure) do
+          SessionLoader.new(@request).load
+        end
+      end
+    end
+
     context "authentication with invalid UTF-8" do
       should "reject Basic Auth with invalid UTF-8 bytes" do
         # Create invalid UTF-8 sequence and encode it
