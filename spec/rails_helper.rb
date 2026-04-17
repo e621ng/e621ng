@@ -66,6 +66,8 @@ RSpec.configure do |config|
     ActiveJob::Base.queue_adapter = :test
   end
 
+  config.include ActiveSupport::Testing::TimeHelpers
+
   config.before(:suite) do
     # Sometimes, a schema rebuild may run on test databases, which can clear seeded data.
     # Here, we make sure that the very basic records are present - without these, tests will fail.

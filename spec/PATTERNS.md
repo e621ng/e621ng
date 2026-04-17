@@ -37,6 +37,7 @@ spec/
 ## rails_helper.rb Highlights
 
 - `config.include FactoryBot::Syntax::Methods` — use `create`, `build`, `build_stubbed` without prefix
+- `config.include ActiveSupport::Testing::TimeHelpers` — use [`freeze_time`](https://api.rubyonrails.org/v5.2.4/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-freeze_time), [`travel`](https://api.rubyonrails.org/v5.2.4/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel), [`travel_to`](https://api.rubyonrails.org/v5.2.4/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) without prefix
 - `config.use_transactional_fixtures = true` — every test rolls back automatically
 - `before(:suite)` seeds: `admin` user, system user (`Danbooru.config.system_user`), `ForumCategory` "Tag Alias and Implication Suggestions"
 - All files in `spec/support/**/*.rb` are auto-required
