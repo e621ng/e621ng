@@ -82,10 +82,6 @@ class ApplicationController < ActionController::Base
     # If InvalidAuthenticityToken was raised, CurrentUser isn't set so we have to do it here manually.
     CurrentUser.user ||= User.anonymous
 
-    # ActionView wraps errors raised in templates with ActionView::Template::Error.
-    # Unwrap it so the case statement below can dispatch on the underlying cause.
-    exception = exception.cause if exception.is_a?(ActionView::Template::Error) && exception.cause
-
     case exception
     when ProcessingError
       render_expected_error(400, exception)
