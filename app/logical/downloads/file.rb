@@ -38,6 +38,8 @@ module Downloads
 
       file.rewind
       file
+    rescue Faraday::FollowRedirects::RedirectLimitReached
+      raise Error, "Could not download file: too many redirects"
     end
 
     def validate_url
@@ -74,6 +76,8 @@ module Downloads
     def is_cloudflare?(url)
       ip_addr = IPAddr.new(Resolv.getaddress(url.hostname))
       CloudflareService.ips.any? { |subnet| subnet.include?(ip_addr) }
+    rescue Resolv::ResolvError
+      false
     end
 
     def validate_uri_allowed!(uri)
