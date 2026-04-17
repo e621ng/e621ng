@@ -226,7 +226,7 @@ class ForumPost < ApplicationRecord
   end
 
   def readd_tag_change_request_label
-    return unless tag_change_request.present?
+    return if tag_change_request.blank?
     return if body.include?(tag_change_request.dtext_label)
 
     self.body = "#{tag_change_request.dtext_label}\n\n#{body}"
