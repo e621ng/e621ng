@@ -45,7 +45,7 @@ module Downloads
           error = assert_raises(Downloads::File::Error) do
             Downloads::File.new("http://evil.com").download!
           end
-          assert_match("from 127.0.0.1 are not", error.message)
+          assert_match("from this address are not", error.message)
         end
 
         should "not follow redirects to banned IPs" do
@@ -55,7 +55,7 @@ module Downloads
           error = assert_raises(Downloads::File::Error) do
             Downloads::File.new(url).download!
           end
-          assert_match("from 127.0.0.1 are not", error.message)
+          assert_match("from this address are not", error.message)
         end
 
         should "not follow redirects that resolve to a banned IP" do
@@ -65,7 +65,7 @@ module Downloads
           error = assert_raises(Downloads::File::Error) do
             Downloads::File.new(url).download!
           end
-          assert_match("from 127.0.0.1 are not", error.message)
+          assert_match("from this address are not", error.message)
         end
       end
 
