@@ -25,6 +25,7 @@ class ForumPost < ApplicationRecord
   validate :category_allows_replies, on: :create
   validate :validate_creator_is_not_limited, on: :create
   before_destroy :validate_topic_is_unlocked
+  before_save :readd_tag_change_request_label
   after_save :delete_topic_if_original_post
   after_update(:if => ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
     ModAction.log(:forum_post_update, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
@@ -156,6 +157,7 @@ class ForumPost < ApplicationRecord
   def can_hide?(user)
     return true if user.is_moderator?
     return false if was_warned?
+    return false if tag_change_request.present?
     user.id == creator_id
   end
 
@@ -221,6 +223,13 @@ class ForumPost < ApplicationRecord
     end
 
     true
+  end
+
+  def readd_tag_change_request_label
+    return unless tag_change_request.present?
+    return if body.include?(tag_change_request.dtext_label)
+
+    self.body = "#{tag_change_request.dtext_label}\n\n#{body}"
   end
 
   def method_attributes
