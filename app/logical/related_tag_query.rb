@@ -5,6 +5,9 @@ class RelatedTagQuery
 
   def initialize(query: nil, category_id: nil)
     tags = TagQuery.normalize(query).split
+    counted_tags = tags.reject { |tag| Danbooru.config.is_unlimited_tag?(tag) }
+    raise TagQuery::CountExceededError if counted_tags.length > Danbooru.config.tag_query_limit
+
     @query = tags.join(" ")
     @category_id = category_id
   end
