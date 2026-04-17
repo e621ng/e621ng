@@ -76,6 +76,16 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         get post_path(@post), params: {:id => @post.id}
         assert_response :success
       end
+
+      should "not crash when pool_id is an array" do
+        get post_path(@post), params: { pool_id: ["49413"] }
+        assert_response :success
+      end
+
+      should "not crash when post_set_id is an array" do
+        get post_path(@post), params: { post_set_id: ["12345"] }
+        assert_response :success
+      end
     end
 
     context "update action" do

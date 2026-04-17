@@ -71,18 +71,18 @@ module PostsHelper
     html.html_safe
   end
 
-  def is_pool_selected?(pool)
-    return false if params.has_key?(:q)
-    return false if params.has_key?(:post_set_id)
-    return false unless params.has_key?(:pool_id)
-    return params[:pool_id].to_i == pool.id
+  def is_pool_selected?(pool, selected: nil)
+    return false if selected.blank?
+    return false if params.key?(:q)
+    return false if params.key?(:post_set_id)
+    selected == pool.id
   end
 
-  def is_post_set_selected?(post_set)
-    return false if params.has_key?(:q)
-    return false if params.has_key?(:pool_id)
-    return false unless params.has_key?(:post_set_id)
-    return params[:post_set_id].to_i == post_set.id
+  def is_post_set_selected?(post_set, selected: nil)
+    return false if selected.blank?
+    return false if params.key?(:q)
+    return false if params.key?(:pool_id)
+    selected == post_set.id
   end
 
   def post_stats_section(post)
