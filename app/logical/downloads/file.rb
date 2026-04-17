@@ -39,6 +39,7 @@ module Downloads
       file.rewind
       file
     rescue Faraday::FollowRedirects::RedirectLimitReached
+      file&.close!
       raise Error, "Could not download file: too many redirects"
     end
 
@@ -85,7 +86,7 @@ module Downloads
 
       ip_addr = IPAddr.new(Resolv.getaddress(uri.hostname))
       if ip_addr.private? || ip_addr.loopback? || ip_addr.link_local?
-        raise Downloads::File::Error, "Downloads from #{ip_addr} are not allowed"
+        raise Downloads::File::Error, "Downloads from this address are not allowed"
       end
 
       valid, _reason = UploadWhitelist.is_whitelisted?(uri)
