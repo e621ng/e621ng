@@ -99,6 +99,7 @@ class WikiPagesController < ApplicationController
   end
 
   def show_or_new
+    params[:title] = params[:title].to_s
     @wiki_page = WikiPage.titled(params[:title])
     if @wiki_page
       redirect_to wiki_page_path(@wiki_page)
