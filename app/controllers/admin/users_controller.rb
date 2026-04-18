@@ -3,7 +3,8 @@
 module Admin
   class UsersController < ApplicationController
     before_action :admin_only
-    before_action :is_bd_staff_only, only: %i[request_password_reset password_reset]
+    before_action :is_bd_staff_only, only: %i[request_password_reset password_reset anonymize anonymize_confirm]
+    before_action :requires_reauthentication, only: %i[anonymize_confirm]
     respond_to :html, :json
 
     def alt_list
@@ -49,14 +50,13 @@ module Admin
       old_username = @user.name
       desired_username = params[:user][:name]
       if old_username != desired_username && desired_username.present?
-        change_request = UserNameChangeRequest.create!(
+        UserNameChangeRequest.create!(
           original_name: @user.name,
           user_id: @user.id,
           desired_name: desired_username,
           change_reason: "Administrative change",
           skip_limited_validation: true,
         )
-        change_request.approve!
         ModAction.log(:user_name_change, { user_id: @user.id })
       end
       redirect_to user_path(@user), notice: "User updated"
@@ -87,6 +87,40 @@ module Admin
       @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params[:admin][:invalidate_old_password]&.truthy?
 
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
+    end
+
+    def anonymize
+      @user = User.find(params[:id])
+
+      # Additional safety checks
+      if @user.is_staff?
+        return redirect_to user_path(@user), alert: "Staff accounts cannot be deleted"
+      end
+
+      if @user.name.match?(/\Auser_#{@user.id}~*\z/)
+        redirect_to user_path(@user), alert: "User account has already been deleted"
+      end
+    end
+
+    def anonymize_confirm
+      @user = User.find(params[:id])
+      user_name = @user.name
+
+      # Additional safety checks
+      if @user.is_staff?
+        return redirect_to user_path(@user), alert: "Staff accounts cannot be deleted"
+      end
+
+      if @user.name.match?(/\Auser_#{@user.id}~*\z/)
+        return redirect_to user_path(@user), alert: "User account has already been deleted"
+      end
+
+      deletion = UserDeletion.new(@user, params[:password], admin_deletion: true)
+      deletion.delete!
+
+      redirect_to user_path(@user), notice: "User account '#{user_name}' deleted successfully"
+    rescue UserDeletion::ValidationError => e
+      redirect_to user_path(@user), alert: e.message
     end
 
     private

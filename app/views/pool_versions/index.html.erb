@@ -8,7 +8,7 @@
       <%= render "standard_listing" %>
     <% end %>
 
-    <%= numbered_paginator(@pool_versions) %>
+    <%= render PaginatorComponent.new(records: @pool_versions) %>
   </div>
 </div>
 

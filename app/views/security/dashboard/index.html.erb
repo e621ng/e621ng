@@ -22,6 +22,8 @@
         <%= f.input :favorites, as: :boolean, label: "Favorites", input_html: { checked: Security::Lockdown.favorites_disabled? ? "checked" : "" } %>
         <%= f.input :votes, as: :boolean, label: "Votes", input_html: { checked: Security::Lockdown.votes_disabled? ? "checked" : "" } %>
         <br />
+        <%= f.input :takedowns, as: :boolean, label: "Takedowns", input_html: { checked: Security::Lockdown.takedowns_disabled? ? "checked" : "" } %>
+        <br />
         <%= f.button :submit, value: "Submit" %>
       <% end %>
     </section>
@@ -42,6 +44,24 @@
       <% end %>
       <%= custom_form_for(:uploads_hide_pending, url: uploads_hide_pending_security_lockdown_index_path, method: :put) do |f| %>
         <%= f.input :duration, as: :float, hint: "in hours", input_html: { value: Security::Lockdown.hide_pending_posts_for } %>
+        <%= f.button :submit, value: "Submit" %>
+      <% end %>
+    </section>
+
+    <section class="settings-section">
+      <h2>Analytics</h2>
+      <%= custom_form_for(:analytics, url: analytics_security_lockdown_index_path, method: :put) do |f| %>
+        <%= f.input :collect_recommendation_events, as: :boolean, label: "Recommendation events", input_html: { checked: Setting.collect_recommendation_events? } %>
+        <%= f.input :collect_search_trend_events, as: :boolean, label: "Search Trend events", input_html: { checked: Setting.collect_search_trend_events? } %>
+        <%= f.button :submit, value: "Submit" %>
+      <% end %>
+    </section>
+
+    <section class="settings-section">
+      <h2>Exception Log Pruning</h2>
+      Exception logs older than <b>1 year</b> are pruned during daily maintenance.
+      <%= custom_form_for(:maintenance, url: maintenance_security_lockdown_index_path, method: :put) do |f| %>
+        <%= f.input :disable_exception_prune, as: :boolean, label: "Disable automatic exception log pruning", input_html: { checked: Setting.disable_exception_prune? ? "checked" : "" } %>
         <%= f.button :submit, value: "Submit" %>
       <% end %>
     </section>

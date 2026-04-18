@@ -1,0 +1,6 @@
+<%= form_search(path: admin_user_dmails_path(@user)) do |f| %>
+  <%= f.input :title_matches, label: "Title", hint: "Use * for wildcard" %>
+  <%= f.input :message_matches, label: "Message", hint: "Use * for wildcard" %>
+  <%= f.user :to %>
+  <%= f.user :from %>
+<% end %>

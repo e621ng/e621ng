@@ -3,17 +3,11 @@
 class TakedownsController < ApplicationController
   respond_to :html, :json
   before_action :can_handle_takedowns_only, only: %i[update edit destroy add_by_ids add_by_tags count_matching_posts remove_by_ids]
+  before_action :ensure_takedowns_enabled, only: %i[new create]
 
   def index
     @takedowns = Takedown.search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@takedowns)
-  end
-
-  def destroy
-    @takedown = Takedown.find(params[:id])
-    @takedown.destroy
-    ModAction.log(:takedown_delete, { takedown_id: @takedown.id })
-    respond_with(@takedown)
   end
 
   def show
@@ -23,6 +17,9 @@ class TakedownsController < ApplicationController
   end
 
   def new
+    @wiki = WikiPage.titled("e621:takedown_new")
+    @wiki = WikiPage.new(body: "Wiki page \"e621:takedown_new\" not found.") if @wiki.blank?
+
     @takedown = Takedown.new
     respond_with(@takedown)
   end
@@ -35,6 +32,8 @@ class TakedownsController < ApplicationController
     @takedown = Takedown.create(takedown_params)
     flash[:notice] = @takedown.errors.count > 0 ? @takedown.errors.full_messages.join(". ") : "Takedown created"
     if @takedown.errors.count > 0
+      @wiki = WikiPage.titled("e621:takedown_new")
+      @wiki = WikiPage.new(body: "Wiki page \"e621:takedown_new\" not found.") if @wiki.blank?
       respond_with(@takedown)
     else
       redirect_to(takedown_path(id: @takedown.id, code: @takedown.vericode))
@@ -49,11 +48,18 @@ class TakedownsController < ApplicationController
     @takedown.apply_posts(params[:takedown_posts])
     @takedown.save
     if @takedown.valid?
-      flash[:notice] = 'Takedown request updated'
+      flash[:notice] = "Takedown request updated"
       if params[:process_takedown].to_s.truthy?
         @takedown.process!(CurrentUser.user, params[:delete_reason])
       end
     end
+    respond_with(@takedown)
+  end
+
+  def destroy
+    @takedown = Takedown.find(params[:id])
+    @takedown.destroy
+    ModAction.log(:takedown_delete, { takedown_id: @takedown.id })
     respond_with(@takedown)
   end
 
@@ -62,7 +68,7 @@ class TakedownsController < ApplicationController
     added = @takedown.add_posts_by_ids!(params[:post_ids])
     respond_with(@takedown) do |fmt|
       fmt.json do
-        render json: {added_count: added.size, added_post_ids: added}
+        render json: { added_count: added.size, added_post_ids: added }
       end
     end
   end
@@ -72,14 +78,14 @@ class TakedownsController < ApplicationController
     added = @takedown.add_posts_by_tags!(params[:post_tags])
     respond_with(@takedown) do |fmt|
       fmt.json do
-        render json: {added_count: added.size, added_post_ids: added}
+        render json: { added_count: added.size, added_post_ids: added }
       end
     end
   end
 
   def count_matching_posts
     post_count = Post.tag_match_system(params[:post_tags]).count_only
-    render json: {matched_post_count: post_count}
+    render json: { matched_post_count: post_count }
   end
 
   def remove_by_ids
@@ -102,5 +108,9 @@ class TakedownsController < ApplicationController
       permitted_params << %i[notes del_post_ids status]
     end
     params.require(:takedown).permit(*permitted_params, post_ids: [])
+  end
+
+  def ensure_takedowns_enabled
+    access_denied if Security::Lockdown.takedowns_disabled?
   end
 end

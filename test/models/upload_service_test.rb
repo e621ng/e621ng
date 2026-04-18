@@ -87,6 +87,18 @@ class UploadServiceTest < ActiveSupport::TestCase
         upload = service.start!
         assert_no_match(/animated_gif/, upload.tag_string)
       end
+
+      should "tag animated webp files" do
+        service = @build_service.call(file: fixture_file_upload("bread-animated.webp"))
+        upload = service.start!
+        assert_match(/animated_webp/, upload.tag_string)
+      end
+
+      should "not tag static webp files" do
+        service = @build_service.call(file: fixture_file_upload("bread-static.webp"))
+        upload = service.start!
+        assert_no_match(/animated_webp/, upload.tag_string)
+      end
     end
 
     context "that is too large" do

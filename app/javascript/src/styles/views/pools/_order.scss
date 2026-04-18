@@ -1,0 +1,17 @@
+#ordering-form {
+  padding: 0.5rem 1rem;
+  margin: 0.5rem auto;
+
+  width: min-content;
+  background-color: themed("color-section-lighten-5");
+  box-shadow: 0 0 0.25rem themed("color-foreground");
+  @include st-radius;
+
+  &.changed {
+    position: sticky;
+    bottom: 0.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; // Above thumbnail labels
+  }
+}

@@ -15,6 +15,7 @@
 </fieldset>
 
   <div class="input">
-    <%= submit_tag "Mark as translated" %>
+    <%= submit_tag "Mark as translated", class: "st-button submit" %>
+    <%= button_tag "Close Editor", type: "button", class: "st-button", id: "translation-cancel" %>
   </div>
 <% end %>

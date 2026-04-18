@@ -5,6 +5,7 @@ class TagAlias < TagRelationship
 
   after_save :create_mod_action
   validates :antecedent_name, uniqueness: { conditions: -> { duplicate_relevant } }, unless: :is_deleted?
+  validates :antecedent_name, tag_name: { disable_secondary_validations: true, disable_ascii_check: true }, if: :antecedent_name_changed?
   validate :absence_of_transitive_relation, unless: :is_deleted?
 
   module ApprovalMethods

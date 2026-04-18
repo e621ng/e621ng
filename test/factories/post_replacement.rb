@@ -24,7 +24,7 @@ FactoryBot.define do
     end
 
     factory(:gif_replacement) do
-      replacement_file { fixture_file_upload("test.gif") }
+      replacement_file { fixture_file_upload("bread-animated.gif") }
     end
 
     factory(:empty_replacement) do
@@ -32,11 +32,15 @@ FactoryBot.define do
     end
 
     factory(:png_replacement) do
-      replacement_file { fixture_file_upload("test.png") }
+      replacement_file { fixture_file_upload("bread-static.alt.png") }
     end
 
     factory(:apng_replacement) do
       replacement_file { fixture_file_upload("apng/normal_apng.png") }
+    end
+
+    factory(:webp_replacement) do
+      replacement_file { fixture_file_upload("test.webp") }
     end
   end
 end

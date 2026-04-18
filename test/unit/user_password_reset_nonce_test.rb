@@ -19,6 +19,7 @@ class UserPasswordResetNonceTest < ActiveSupport::TestCase
 
     should "reset the password when reset" do
       @nonce.reset_user! "test", "test"
+      assert User.authenticate(@user.name, "test")
     end
   end
 end

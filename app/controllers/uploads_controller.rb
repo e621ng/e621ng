@@ -72,7 +72,7 @@ class UploadsController < ApplicationController
 
   def upload_params
     permitted_params = %i[
-      file direct_url source tag_string rating parent_id description description as_pending
+      file direct_url source tag_string rating parent_id description as_pending
     ]
 
     permitted_params << :locked_tags if CurrentUser.is_admin?

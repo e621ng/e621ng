@@ -3,8 +3,10 @@
 <%= custom_form_for(comment, :html => {:style => ("display: none;" if local_assigns[:hidden]), :class => "edit_comment"}) do |f| %>
   <% if comment.new_record? %>
     <%= f.hidden_field :post_id %>
+    <%= f.input :body, as: :dtext, label: false, limit: Danbooru.config.comment_max_size %>
+  <% else %>
+    <%= f.input :body, as: :text, label: false, data: { limit: Danbooru.config.comment_max_size } %>
   <% end %>
-  <%= f.input :body, as: :dtext, label: false, limit: Danbooru.config.comment_max_size %>
   <%= f.button :submit, "Submit", data: { disable_with: "Submitting..." } %>
   <% if comment.new_record? %>
     <%= f.input :do_not_bump_post, :label => "No bump" %>

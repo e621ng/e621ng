@@ -16,7 +16,7 @@ div#notice {
   top: 1rem;
   left: 25%;
   width: 50%;
-  z-index: 500;
+  z-index: 1001; // Above the TOS modal (z-index: 1000)
 
   color: themed("color-text");
   background-color: themed("color-success");

@@ -46,7 +46,21 @@
       display: flex;
       flex-flow: column;
 
-      b { font-size: 1rem; }
+      b, b a {
+        font-size: 1rem;
+        line-height: 1rem;
+      }
+    }
+
+    &-explanation {
+      display: inline-flex;
+      font-size: 0.75rem;
+      line-height: 0.75rem;
+      padding: 0.125rem 0.25rem;
+      margin-left: 0.25rem;
+
+      background: palette("background-red");
+      @include st-radius;
     }
 
     // Option explanation
@@ -82,5 +96,15 @@
         }
       }
     }
+  }
+
+  .post_flag_note label {
+    .required-indicator { display: none; }
+    &.required .required-indicator { display: inline; }
+  }
+
+  .flag-note-hint {
+    color: palette("text-red");
+    font-weight: bold;
   }
 }

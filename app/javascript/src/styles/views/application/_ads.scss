@@ -1,0 +1,63 @@
+.adzone-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem; // Account for the post counter height
+
+  &[data-has-mobile="false"] {
+    @include window-smaller-than(800px, true) { display: none; }
+  }
+  &[data-has-desktop="false"] {
+    @include window-larger-than(800px, false) { display: none; }
+  }
+
+  .adzone {
+    // Center adblock if the image is not the same dimensions as the container
+    display: flex;
+    justify-content: center;
+
+    &-horizontal {
+      // Mobile ads are fixed in size
+      max-height: 50px;
+      max-width: 320px;
+      width: 100%;
+      aspect-ratio: 320 / 50; // Prevent layout shift when the ad loads
+
+      @include window-larger-than(800px, true) {
+        max-height: 90px;
+        max-width: 728px;
+        aspect-ratio: 728 / 90;
+      }
+    }
+
+    &-vertical {
+      // Mobile ads are fixed in size
+      max-height: 600px;
+      max-width: 160px;
+      width: 100%;
+      aspect-ratio: 160 / 600; // Prevent layout shift when the ad loads
+
+      // Extra margin to move it away from the UI
+      margin-top: 3rem;
+
+      @include window-larger-than(800px, true) {
+        max-height: 600px;
+        max-width: 160px;
+        aspect-ratio: 160 / 600;
+      }
+    }
+  }
+
+  img {
+    // Fit the image inside the ad container
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+    @include st-radius;
+  }
+
+}
+
+// Work around the post count margin
+@include window-larger-than(1300px) {
+  #c-posts #a-index .adzone-wrapper { margin-bottom: unset; }
+}

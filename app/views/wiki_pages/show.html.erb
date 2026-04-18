@@ -17,7 +17,7 @@
         <% end %>
       </h1>
       <% if @wiki_redirect.present? %>
-      <div class="wiki-page-redirect"><i class="fa-solid fa-turn-up fa-rotate-90"></i> <%= @wiki_page.title %></div>
+        <div class="wiki-page-redirect"><%= svg_icon(:corner_down_right, width: 12, height: 12) %> <%= @wiki_page.title %></div>
       <% end %>
 
       <div id="wiki-page-body" class="dtext-container">
@@ -28,18 +28,18 @@
         <% end %>
 
         <% if wiki_content.artist %>
-          <p><%= link_to "View artist", wiki_content.artist %></p>
+          <p><%= link_to "View artist", show_or_new_artists_path(name: wiki_content.artist.name) %></p>
         <% end %>
 
         <%= wiki_page_alias_and_implication_list(wiki_content) %>
       </div>
 
-        <%= wiki_page_post_previews(wiki_content) %>
+      <%= render "recent_posts" %>
     </section>
   </div>
 </div>
 
-<% render(partial: "static/embed", locals: { record: wiki_content, name: wiki_content.pretty_title, description: wiki_content.body, post: nil }) %>
+<% render(partial: "static/embed", locals: { record: wiki_content, name: wiki_content.pretty_title, description: wiki_content.body.present? ? format_plaintext(wiki_content.body) : "" }) %>
 
 <% content_for(:page_title) do %>
   Wiki - <%= wiki_content.pretty_title %>

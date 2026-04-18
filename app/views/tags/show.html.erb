@@ -14,3 +14,6 @@
 <% content_for(:page_title) do %>
   Tag - <%= @tag.name %>
 <% end %>
+
+<% description = @tag.wiki_page&.body.present? ? format_plaintext(@tag.wiki_page.body) : "#{@tag.category_name.capitalize} tag with #{@tag.post_count} #{'post'.pluralize(@tag.post_count)}" %>
+<% render(partial: "static/embed", locals: { record: @tag, name: @tag.name, description: description }) %>

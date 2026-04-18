@@ -1,12 +1,13 @@
-<div class="simple_form">
-  <div class="input">
+<div class="simple_form" id="add-to-set-dialog" data-title="Add to Set" data-width="250">
+  <div class="input add-to-pool-inputs">
     <label>Set Name</label>
     <select id="add-to-set-id">
       <option>Loading...</option>
     </select>
+    <span id="post-set-hint" class="hint">Create a new set <%= link_to "here", new_post_set_path %>.</span>
   </div>
 
-  <div class="input">
-    <button id="add-to-set-submit">Add</button>
+  <div class="input add-to-pool-submit">
+    <button id="add-to-set-submit" class="st-button">Submit</button>
   </div>
 </div>

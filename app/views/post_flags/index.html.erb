@@ -24,7 +24,9 @@
             data-post-flag-id="<%= post_flag.id %>"
             data-post-id="<%= post_flag.post_id %>"
           >
-            <td><%= PostPresenter.preview(post_flag.post, show_deleted: true) %></td>
+            <td>
+              <%= render(PostThumbnailComponent.new(post: post_flag.post, stats: true, show_deleted: true)) %>
+            </td>
             <td>
               <div class="dtext-container">
                 <%= format_text post_flag.reason %>
@@ -33,6 +35,9 @@
                 <div class="post-flag-note">
                   <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
                   <div class="dtext-container post-flag-note-body">
+                    <% if CurrentUser.is_staff? %>
+                      <%= link_to svg_icon(:trash), clear_note_post_flag_path(post_flag), method: :post, data: { confirm: "Are you sure you want to clear this note?" }, class: "post-flag-clear-note-link" %>
+                    <% end %>
                     <%= format_text post_flag.note %>
                   </div>
                 </div>
@@ -58,6 +63,9 @@
               <%= compact_time post_flag.created_at %>
               <% if CurrentUser.can_view_flagger_on_post?(post_flag) %>
                 <br> by <%= link_to_user post_flag.creator %>
+                <% if post_flag.creator_id == post_flag.post.uploader_id && !post_flag.is_deletion %>
+                  <%= svg_icon(:octagon_alert, class: "text-inline", title: "Flag created by the current uploader") %>
+                <% end %>
                 <%= link_to "»", post_flags_path(search: @search_params.merge(creator_name: post_flag.creator.name)) %>
               <% end %>
             </td>
@@ -75,7 +83,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@post_flags) %>
+    <%= render PaginatorComponent.new(records: @post_flags) %>
   </div>
 </div>
 

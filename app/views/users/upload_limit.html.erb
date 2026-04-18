@@ -31,23 +31,31 @@
       <span class="upload-limit-formula">
         <span class="upl-element"><abbr class="upl-base" title="Base Upload Limit"><%= @user.base_upload_limit %></abbr></span>
 
-        <span class="upl-math"><%= svg_icon(:plus) %></span>
-        <span class="upl-element"><abbr class="upl-approved" title="Approved Posts"><%= pieces[:approved] %></abbr> / 10</span>
-
-        <span class="upl-math"><%= svg_icon(:minus) %></span>
-        <span class="upl-element">
-          <abbr class="upl-deleted" title="Deleted or Replaced Posts, Rejected Replacements&#013;<%= pieces[:deleted_ignore] %> of your Replaced Posts do not affect your upload limit">
-            <%= pieces[:deleted] %></abbr> / 4
+        <span class="upl-group">
+          <span class="upl-math"><%= svg_icon(:plus) %></span>
+          <span class="upl-element"><abbr class="upl-approved" title="Approved Posts"><%= pieces[:approved] %></abbr> / 10</span>
         </span>
 
-        <span class="upl-math"><%= svg_icon(:minus) %></span>
-        <span class="upl-element">
-          <abbr class="upl-pending" title="Pending or Flagged Posts, Pending Replacements"><%= pieces[:pending] %></abbr>
+        <span class="upl-group">
+          <span class="upl-math"><%= svg_icon(:minus) %></span>
+          <span class="upl-element">
+            <abbr class="upl-deleted" title="Deleted or Replaced Posts, Rejected Replacements&#013;<%= pieces[:deleted_ignore] %> of your Replaced Posts do not affect your upload limit">
+              <%= pieces[:deleted] %></abbr> / 4
+          </span>
         </span>
 
-        <span class="upl-math"><%= svg_icon(:equals) %></span>
-        <span class="upl-element">
-          <abbr class="upl-total" title="Remaining Upload Limit"><%= @user.upload_limit %></abbr>
+        <span class="upl-group">
+          <span class="upl-math"><%= svg_icon(:minus) %></span>
+          <span class="upl-element">
+            <abbr class="upl-pending" title="Pending or Flagged Posts, Pending Replacements"><%= pieces[:pending] %></abbr>
+          </span>
+        </span>
+
+        <span class="upl-group">
+          <span class="upl-math"><%= svg_icon(:equals) %></span>
+          <span class="upl-element">
+            <abbr class="upl-total" title="Remaining Upload Limit"><%= @user.upload_limit %></abbr>
+          </span>
         </span>
       </span>
 

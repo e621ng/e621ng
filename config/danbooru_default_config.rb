@@ -31,7 +31,7 @@ module Danbooru
 
     # The canonical hostname of the site.
     def hostname
-      Socket.gethostname
+      "localhost:3000"
     end
 
     # Contact email address of the admin.
@@ -63,6 +63,11 @@ module Danbooru
     # The default name to use for anyone who isn't logged in.
     def default_guest_name
       "Anonymous"
+    end
+
+    # The path of the daily DB exports. Hidden from the site map if `nil`.
+    def db_export_path
+      "/db_export/"
     end
 
     def levels
@@ -121,7 +126,7 @@ module Danbooru
     end
 
     def webp_previews_enabled?
-      false
+      true
     end
 
     # Large resize image width. Set to nil to disable.
@@ -265,12 +270,35 @@ module Danbooru
       20
     end
 
+    # Pending posts older than this period are deleted automatically.
+    def unapproved_post_deletion_window
+      30.days
+    end
+
+    # Uploads older than this window are pruned during maintenance.
+    def upload_deletion_window
+      1.week
+    end
+
+    # SearchTrend records older than the current day with fewer than this many hits will be pruned during maintenance.
+    def search_trend_minimum_count
+      100
+    end
+
     # Flat limit that applies to all users, regardless of level
     def hourly_upload_limit
       30
     end
 
-    def ticket_limit
+    def ticket_hourly_limit
+      5
+    end
+
+    def ticket_daily_limit
+      15
+    end
+
+    def ticket_active_limit
       30
     end
 
@@ -358,7 +386,7 @@ module Danbooru
       1_000
     end
 
-    def set_post_limit(_user) # rubocop:disable Naming/AccessorMethodName
+    def post_set_post_limit
       10_000
     end
 
@@ -381,6 +409,7 @@ module Danbooru
         "gif" => 20.megabytes,
         "webm" => 100.megabytes,
         "mp4" => 100.megabytes,
+        "webp" => 100.megabytes,
       }
     end
 
@@ -464,12 +493,25 @@ module Danbooru
       true
     end
 
+    # # Who can see the provided flag reason, in addition to the flagger/creator (who can always see
+    # their own flag note) and staff.
+    # ### Returns
+    # One of the values from `PostFlag::FLAG_REASON_VISIBILITY_LEVELS`:
+    # * `:staff`: No additional viewers beyond staff and the flagger/creator (default)
+    # * `:uploader`: Also visible to the post's uploader
+    # * `:users`: Also visible to all logged-in users
+    # * `:all`: Also visible to everyone (including anonymous users)
+    def flag_reason_visibility
+      :staff
+    end
+
     def flag_reasons
       [
         {
           name: "uploading_guidelines",
           reason: "Does not meet the [[uploading_guidelines|uploading guidelines]]",
           text: "This post fails to meet the site's standards, be it for artistic worth, image quality, relevancy, or something else.\nKeep in mind that your personal preferences have no bearing on this. If you find the content of a post objectionable, simply [[e621:blacklist|blacklist]] it.",
+          require_explanation: true,
         },
         {
           name: "young_human",
@@ -490,6 +532,7 @@ module Danbooru
           name: "trace",
           reason: "Trace of another artist's work",
           text: "Images traced from other artists' artwork are not accepted on this site. Referencing from something is fine, but outright copying someone else's work is not.\nPlease, leave more information in the comments, or simply add the original artwork as the posts's parent if it's hosted on this site.",
+          require_explanation: true,
         },
         {
           name: "previously_deleted",
@@ -505,6 +548,7 @@ module Danbooru
           name: "corrupt",
           reason: "File is either corrupted, broken, or otherwise does not work",
           text: "Something about this post does not work quite right. This may be a broken video, or a corrupted image.\nEither way, in order to avoid confusion, please explain the situation in the comments.",
+          require_explanation: true,
         },
         {
           name: "inferior",
@@ -513,6 +557,14 @@ module Danbooru
           parent: true,
         },
       ]
+    end
+
+    def grandfathered_post_cutoff
+      Time.zone.local(2015, 1, 1)
+    end
+
+    def auto_flag_ai_posts?
+      true
     end
 
     def deletion_reasons
@@ -529,11 +581,12 @@ module Danbooru
         "Does not meet minimum quality standards (Compression)",
         "Does not meet minimum quality standards (Trivial or low quality edit)",
         "Does not meet minimum quality standards (Bad digitization of traditional media)",
-        "Does not meet minimum quality standards (Photo)",
         "Does not meet minimum quality standards (%OTHER_ID%)",
         "Broken/corrupted file",
         "JPG resaved as PNG",
         "",
+        "Irrelevant to site",
+        "Irrelevant to site (Photo)",
         "Irrelevant to site (Human only)",
         "Irrelevant to site (Screencap)",
         "Irrelevant to site (Zero pictured)",
@@ -566,9 +619,76 @@ module Danbooru
       "help:replacement_notice"
     end
 
+    # The template for the auto-dispatched notification DMail to uploaders of post auto-deletion.
+    # Replaces the following strings with their values:
+    # * `%POST_ID%`: The id of the deleted post
+    # * `%UPLOADER_ID%`: The id of the uploader
+    #
+    # ## Example Value
+    # ```ruby
+    # {
+    #     title: "Post #%POST_ID% has been deleted",
+    #     body: "Post #%POST_ID% has been automatically deleted, as it has not been approved within #{unapproved_post_deletion_window.inspect}.\n\nThis is a courtesy notification; you don't need to take further action if you don't want to. If you would like to request this post to be reviewed, you can ask one of \"our janitors\":[/users?commit=Search&search%5Blevel%5D=#{Danbooru.config.levels['Janitor']}].\n\nYou can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
+    #   }
+    # ```
+    def post_pruned_dmail_template
+    end
+
+    # Strings used as templates for the optional notification DMail to uploaders on post deletion.
+    # Replaces the following strings with their values:
+    # * `%POST_ID%`: The id of the deleted post
+    # * `%STAFF_NAME%`: The name of the deleting staff member
+    # * `%STAFF_ID%`: The id of the deleting staff member
+    # * `%UPLOADER_ID%`: The id of the uploader
+    # * `%REASON%`: The deletion reason
+    def post_deletion_dmail_templates
+      {
+        default: {
+          title: "Post #%POST_ID% has been deleted",
+          body: "Post #%POST_ID% was deleted by \"%STAFF_NAME%\":[/users/%STAFF_ID%] for the following reason(s):
+[quote]
+%REASON%
+[/quote]
+
+This is a courtesy notification; you don't need to take further action if you don't want to.
+
+If you would like to contest the deletion, you can follow the procedure outlined \"here\":[/help/faq#deleted]
+
+You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
+        },
+        DNP: {
+          title: "Post #%POST_ID% has been deleted",
+          body: "Post #%POST_ID% was deleted by \"%STAFF_NAME%\":[/users/%STAFF_ID%] for the following reason(s):
+[quote]
+%REASON%
+[/quote]
+
+DNP content like this is not allowed on this site without receiving preemptive and direct permission from the artist. If you have such permission (or are the artist), you may \"DMail %STAFF_NAME%\":[/dmails/new?dmail%5Bto_id%5D=%STAFF_ID%&dmail%5Btitle%5D=Appeal%3A+Permission+to+post+%23%POST_ID%] to discuss restoring the post.
+
+Please note that repeatedly uploading DNP material without permission can & will result in any or all of the following:
+* Receiving records
+* Losing uploading privileges (temporarily or permanently)
+* Site bans (temporary & permanent)
+
+You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
+        },
+      }
+    end
+
+    # If true, the post deletion DMail will be enabled by default.
+    def enable_post_deletion_dmail
+      false
+    end
+
     # The number of records displayed per page. Posts use `user.per_page` which is configurable by the user
     def records_per_page
       75
+    end
+
+    # The hard upper bound for the `limit` parameter and the user's `per_page` setting.
+    # Also caps list-style search params like `id:1,2,3` or `?search[id]=1,2,3`.
+    def max_per_page
+      320
     end
 
     def is_post_restricted?(_post)
@@ -630,7 +750,7 @@ module Danbooru
     end
 
     def mail_from_addr
-      "noreply@localhost"
+      "E621.net <noreply@e621.net>"
     end
 
     # disable this for tests
@@ -676,16 +796,32 @@ module Danbooru
       []
     end
 
-    def ads_zone_desktop
-      { zone: nil, revive_id: nil, checksum: nil }
-    end
-
-    def ads_zone_mobile
-      { zone: nil, revive_id: nil, checksum: nil }
+    def ads_config
+      {
+        revive: {
+          domain: "rv.e621.net",
+          id: nil,
+        },
+        areas: {
+          top: {
+            desktop: { zone: nil },
+            mobile: { zone: nil },
+          },
+          bottom: {
+            desktop: { zone: nil },
+            mobile: { zone: nil },
+          },
+          side: {
+            orientation: :vertical,
+            desktop: { zone: nil },
+            mobile: { zone: nil },
+          },
+        },
+      }
     end
 
     def subscribestar_url
-      "https://subscribestar.adult/e621dotnet"
+      nil
     end
 
     # Additional video samples will be generated in these dimensions if it makes sense to do so
@@ -725,6 +861,17 @@ module Danbooru
       false
     end
 
+    def visitor_metrics_events
+      {
+        recommendation: false,
+        search_trend: false,
+      }
+    end
+
+    def analytics_client_id
+      nil
+    end
+
     def fsc_modal_enabled?
       false
     end
@@ -740,11 +887,19 @@ module Danbooru
     def aibur_stats_discord_webhook_url
       nil
     end
+
+    def recommender_enabled?
+      false
+    end
   end
 
   class EnvironmentConfiguration
     def custom_configuration
       @custom_configuration ||= CustomConfiguration.new
+    end
+
+    if Rails.env.test?
+      attr_writer :custom_configuration
     end
 
     def env_to_boolean(method, var)
@@ -770,4 +925,10 @@ module Danbooru
   end
 
   module_function :config
+
+  if Rails.env.test?
+    attr_writer :config
+
+    module_function :config=
+  end
 end

@@ -35,6 +35,34 @@ module Moderator
             post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", format: "js", commit: "Delete" }
             assert(@post.reload.is_deleted?)
           end
+
+          should "redirect with a notice if the post is already deleted" do
+            as(@user) do
+              @post.delete!("first delete")
+            end
+
+            assert_no_difference(-> { PostEvent.count }) do
+              post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", commit: "Delete" }
+            end
+
+            assert_redirected_to(post_path(@post))
+            assert_equal("Post ##{@post.id} is already deleted", flash[:notice])
+            assert(@post.reload.is_deleted?)
+          end
+
+          should "return a 409 with a reason if the post is already deleted and the request is JSON" do
+            as(@user) do
+              @post.delete!("first delete")
+            end
+
+            assert_no_difference(-> { PostEvent.count }) do
+              post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", commit: "Delete", format: :json }
+            end
+
+            assert_response :conflict
+            assert_equal("Post ##{@post.id} is already deleted", response.parsed_body["reason"])
+            assert(@post.reload.is_deleted?)
+          end
         end
 
         context "undelete action" do
@@ -54,26 +82,30 @@ module Moderator
         context "move_favorites action" do
           setup do
             @admin = create(:admin_user)
-          end
 
-          should "render" do
             as(@user) do
               @parent = create(:post)
               @child = create(:post, parent: @parent)
             end
-            users = create_list(:user, 2)
-            users.each do |u|
+
+            @test_users = create_list(:user, 2)
+            @test_users.each do |u|
               FavoriteManager.add!(user: u, post: @child)
               @child.reload
             end
+          end
 
+          should "render" do
             post_auth move_favorites_moderator_post_post_path(@child.id), @admin, params: { commit: "Submit" }
             assert_redirected_to(@child)
-            perform_enqueued_jobs(only: TransferFavoritesJob)
             @parent.reload
             @child.reload
+          end
+
+          should_eventually "transfer favorites" do
+            perform_enqueued_jobs(only: TransferFavoritesJob)
             as(@admin) do
-              assert_equal(users.map(&:id).sort, @parent.favorited_users.map(&:id).sort)
+              assert_equal(@test_users.map(&:id).sort, @parent.favorited_users.map(&:id).sort)
               assert_equal([], @child.favorited_users.map(&:id))
             end
           end

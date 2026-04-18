@@ -1,9 +1,17 @@
-<div id="detailed-rejection-dialog" title="Detailed Rejection" style="display: none;">
+<div id="detailed-rejection-dialog" data-title="Detailed Rejection" data-width="700" data-height="228">
   <p>You can supply a short message to the uploader explaining why you rejected this upload.</p>
 
   <%= custom_form_for(PostDisapproval.new, url: moderator_post_disapprovals_path, id: "detailed-rejection-form") do |f| %>
     <%= f.hidden_field :post_id, value: "x" %>
+
+    <div class="rejection-inputs">
     <%= f.input :reason, collection: [["Borderline Relevancy", "borderline_relevancy"], ["Borderline Quality", "borderline_quality"], ["Other", "other"]] %>
     <%= f.input :message, as: :string %>
+    </div>
+
+    <div class="rejection-actions">
+      <%= button_tag "Submit", type: "submit", class: "st-button" %>
+      <%= button_tag "Cancel", type: "button", class: "st-button", id: "detailed-rejection-cancel" %>
+    </div>
   <% end %>
 </div>

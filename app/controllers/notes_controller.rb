@@ -2,13 +2,13 @@
 
 class NotesController < ApplicationController
   respond_to :html, :json, :js
-  before_action :member_only, :except => [:index, :show, :search]
+  before_action :member_only, except: %i[index show search]
 
   def search
   end
 
   def index
-    @notes = Note.search(search_params).paginate(params[:page], :limit => params[:limit], :search_count => params[:search])
+    @notes = Note.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
     respond_with(@notes) do |format|
       format.html { @notes = @notes.includes(:creator) }
     end
@@ -26,9 +26,9 @@ class NotesController < ApplicationController
     respond_with(@note) do |fmt|
       fmt.json do
         if @note.errors.any?
-          render :json => {:success => false, :reasons => @note.errors.full_messages}.to_json, :status => 422
+          render json: { success: false, reasons: @note.errors.full_messages }.to_json, status: 422
         else
-          render :json => @note.to_json(:methods => [:html_id])
+          render json: { note: @note.to_json, dtext: helpers.format_text(@note.body) }.to_json
         end
       end
     end
@@ -40,9 +40,9 @@ class NotesController < ApplicationController
     respond_with(@note) do |format|
       format.json do
         if @note.errors.any?
-          render :json => {:success => false, :reasons => @note.errors.full_messages}.to_json, :status => 422
+          render json: { success: false, reasons: @note.errors.full_messages }.to_json, status: 422
         else
-          render :json => @note.to_json
+          render json: { note: @note.to_json, dtext: helpers.format_text(@note.body), posts: deferred_posts }.to_json
         end
       end
     end
@@ -50,7 +50,7 @@ class NotesController < ApplicationController
 
   def destroy
     @note = Note.find(params[:id])
-    @note.update(:is_active => false)
+    @note.update(is_active: false)
     respond_with(@note)
   end
 

@@ -29,6 +29,18 @@ div#c-post-flags {
     padding: 0.5rem;
   }
 
+  .post-flag-clear-note-link {
+    float: right;
+    display: flex;
+    align-items: center;
+    height: 1.25rem;
+
+    svg {
+      height: 1.25rem;
+      margin: -0.125rem 0;
+    }
+  }
+
   &.expandable {
     .post-flag-note-header { display: flex; }
     .post-flag-note-body {

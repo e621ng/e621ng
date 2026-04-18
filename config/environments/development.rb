@@ -2,7 +2,7 @@
 
 require "active_support/core_ext/integer/time"
 
-Rails.application.configure do
+Rails.application.configure do # rubocop:disable Metrics/BlockLength
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded any time
@@ -27,14 +27,24 @@ Rails.application.configure do
     config.action_controller.enable_fragment_cache_logging = true
 
     config.public_file_server.headers = {
-      "Cache-Control" => "public, max-age=#{2.days.to_i}"
+      "Cache-Control" => "public, max-age=#{2.days.to_i}",
     }
   else
     config.action_controller.perform_caching = false
   end
 
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  if Danbooru.config.mailgun_api_key.present? && Danbooru.config.mailgun_domain.present?
+    config.action_mailer.raise_delivery_errors = true
+    config.action_mailer.delivery_method = :mailgun
+    config.action_mailer.mailgun_settings = {
+      api_key: Danbooru.config.mailgun_api_key,
+      domain: Danbooru.config.mailgun_domain,
+    }
+    config.action_mailer.default_url_options = { host: Danbooru.config.hostname, protocol: "https" }
+    config.action_mailer.asset_host = "https://#{Danbooru.config.hostname}"
+  else
+    config.action_mailer.raise_delivery_errors = false
+  end
 
   config.action_mailer.perform_caching = false
 
@@ -56,7 +66,6 @@ Rails.application.configure do
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
 
-
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 
@@ -66,5 +75,18 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
 
-  config.hosts << 'e621ng.local'
+  # Disable request forgery protection to simplify local development.
+  config.action_controller.allow_forgery_protection = ENV.fetch("DISABLE_CSRF_PROTECTION", "true") == "true"
+
+  config.hosts << "e621ng.local"
+
+  # Allow access from GitHub Codespaces, if applicable
+  if ENV["CODESPACES"].present? && ENV.fetch("CODESPACES", "false") == "true"
+    codespace_name = ENV.key?("CODESPACE_NAME") ? Regexp.escape(ENV["CODESPACE_NAME"]) : ".*"
+    exposed_port = ENV.fetch("EXPOSED_SERVER_PORT", "3000")
+    forwarding_domain = Regexp.escape(ENV.fetch("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN", "app.github.dev"))
+    codespace_host_pattern = "#{codespace_name}-#{exposed_port}.#{forwarding_domain}"
+    codespace_host = Regexp.new(codespace_host_pattern)
+    config.hosts << codespace_host # for some reason, rails doesn't like the full domain
+  end
 end

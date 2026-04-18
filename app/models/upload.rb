@@ -144,6 +144,7 @@ class Upload < ApplicationRecord
   end
 
   include FileMethods
+  include AiMethods
   include StatusMethods
   include UploaderMethods
   extend SearchMethods

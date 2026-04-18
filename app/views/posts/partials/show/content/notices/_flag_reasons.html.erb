@@ -1,12 +1,15 @@
 <%# locals: (post:) -%>
 <ul>
   <% post.flags.includes(:creator).order(id: :desc).each do |flag| %>
-    <li>
+    <li data-post-flag-id="<%= flag.id %>">
       <%= flag.is_deletion ? "[DELETION]" : "[FLAG]" %>
       <%= format_text(flag.reason, inline: true) unless flag.reason.empty? %>
 
       <% if CurrentUser.can_view_flagger_on_post?(flag) %>
         - <%= link_to_user(flag.creator) %>
+        <% if flag.creator_id == post.uploader_id && !flag.is_deletion %>
+          <%= svg_icon(:octagon_alert, class: "text-inline", title: "Flag created by the current uploader") %>
+        <% end %>
         <% if CurrentUser.is_admin? %>
           (<%= link_to_ip(flag.creator_ip_addr) %>)
         <% end %>
@@ -22,6 +25,9 @@
         <div class="post-flag-note">
           <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
           <div class="dtext-container post-flag-note-body">
+            <% if CurrentUser.is_staff? %>
+              <%= link_to svg_icon(:trash), clear_note_post_flag_path(flag), method: :post, data: { confirm: "Are you sure you want to clear this note?" }, class: "post-flag-clear-note-link" %>
+            <% end %>
             <%= format_text flag.note %>
           </div>
         </div>

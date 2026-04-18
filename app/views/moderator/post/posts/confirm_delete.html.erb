@@ -1,8 +1,8 @@
 <div id="c-confirm-delete">
   <h1>Delete Post</h1>
 
-  <div>
-    <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
+  <div class="post_delete_preview">
+    <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
   </div>
 
   <%= form_tag(delete_moderator_post_post_path, :style => "clear: both;", :class => "simple_form") do %>
@@ -14,21 +14,48 @@
 
     <% if @post.parent_id %>
       <div class="post_delete_options">
-        <%= PostPresenter.preview(@post.parent, show_deleted: true, no_blacklist: true) %>
+        <%= render(PostThumbnailComponent.new(post: @post.parent, stats: true, show_deleted: true, no_blacklist: true)) %>
         <div class="input">
           <label for="move_favorites">
-            <%= check_box_tag "move_favorites", true, @reason.starts_with?("Inferior") %>
+            <%= check_box_tag "move_favorites", "1", @reason.starts_with?("Inferior") %>
             Move favorites to parent?
           </label>
           <label for="copy_tags">
-            <%= check_box_tag "copy_tags", false, false %>
+            <%= check_box_tag "copy_tags", "1", false %>
             Merge tags into parent?
           </label>
           <label for="copy_sources">
-            <%= check_box_tag "copy_sources", false, false %>
+            <%= check_box_tag "copy_sources", "1", false %>
             Merge sources into parent?
           </label>
         </div>
+      </div>
+    <% end %>
+
+    <% unless Danbooru.config.post_deletion_dmail_templates.blank? %>
+      <label for="send-dmail"  class="delete-send-dmail">
+        Send DMail? <input type="checkbox" form="unused" name="send-dmail" id="send-dmail"<%= " checked" if Danbooru.config.enable_post_deletion_dmail %> />
+      </label>
+
+      <label for="del-dmail-template">
+        DMail Template
+        <select id="del-dmail-template">
+          <% Danbooru.config.post_deletion_dmail_templates.each_pair do |key, message| %>
+            <% if message.is_a?(Hash) && message[:body].present? %>
+              <option class="button del-dmail-button"
+                value="<%= @post.substitute_deletion_dmail_template(message[:body]) %>"
+                data-dmail-title="<%= @post.substitute_deletion_dmail_template(message[:title]) %>">
+                <%= key.to_s.titleize %>
+              </option>
+            <% end %>
+          <% end %>
+        </select>
+      </label>
+
+      <input type="text" size="50" name="dmail_title" id="dmail-title">
+      <%# TODO: Figure out using <%= f.input :dmail, as: :dtext, limit: Danbooru.config.dmail_max_size %>
+      <div class="dtext-formatter pending" data-color="true" data-limit="<%= Danbooru.config.dmail_max_size %>">
+        <textarea class="dtext dtext-formatter-input dtext dtext-formatter-input" cols="80" rows="10" id="dmail-message" name="dmail"></textarea>
       </div>
     <% end %>
 
@@ -57,7 +84,7 @@
       <% else %>
         <a class="button delreason-button" data-text="<%= deletion_reason.gsub(/%(PARENT|OTHER)_ID%/, "%ID%") %>">
           <%= deletion_reason
-                .gsub("%PARENT_ID%", "<input type=\"text\" value=\"" + (@post.parent_id || "").to_s + "\" />")
+                .gsub("%PARENT_ID%", "<input type=\"text\" value=\"" + html_escape((@post.parent_id || "").to_s) + "\" />")
                 .gsub("%OTHER_ID%", "<input type=\"text\" />")
                 .html_safe
           %>

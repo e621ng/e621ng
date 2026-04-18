@@ -54,7 +54,7 @@ class ApplicationRecord < ActiveRecord::Base
         elsif value.to_s.falsy?
           value = false
         else
-          raise ArgumentError, "value must be truthy or falsy"
+          return none
         end
 
         where(attribute => value)
@@ -70,7 +70,7 @@ class ApplicationRecord < ActiveRecord::Base
       end
 
       def add_range_relation(arr, field)
-        return all if arr.nil?
+        return all if arr.nil? || arr[1].nil?
 
         case arr[0]
         when :eq
@@ -112,11 +112,13 @@ class ApplicationRecord < ActiveRecord::Base
         user_name_key = query_field.is_a?(Symbol) ? "#{query_field}_name" : query_field[0]
         user_id_key = query_field.is_a?(Symbol) ? "#{query_field}_id" : query_field[1]
 
+        params = params.with_indifferent_access unless params.is_a?(ActionController::Parameters)
+
         if params[user_name_key].present?
           user_ids = [User.name_to_id(params[user_name_key]) || 0]
         end
         if params[user_id_key].present?
-          user_ids = params[user_id_key].split(",").first(100).map(&:to_i)
+          user_ids = params[user_id_key].to_s.split(",").first(Danbooru.config.max_per_page).map(&:to_i)
         end
 
         yield(user_ids) if user_ids
@@ -179,7 +181,7 @@ class ApplicationRecord < ActiveRecord::Base
     extend ActiveSupport::Concern
 
     def as_json(options = {})
-      options ||= {}
+      options = options.dup
       options[:except] ||= []
       options[:except] += hidden_attributes
 
@@ -197,7 +199,7 @@ class ApplicationRecord < ActiveRecord::Base
     protected
 
     def hidden_attributes
-      [:uploader_ip_addr, :updater_ip_addr, :creator_ip_addr, :user_ip_addr, :ip_addr]
+      %i[uploader_ip_addr updater_ip_addr creator_ip_addr user_ip_addr ip_addr]
     end
 
     def method_attributes

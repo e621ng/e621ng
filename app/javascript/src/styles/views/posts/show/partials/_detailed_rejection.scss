@@ -1,0 +1,28 @@
+#detailed-rejection-dialog {
+  padding: 0.5rem;
+
+  form.simple_form {
+    padding: 0;
+
+    input[type="text"] {
+      width: 100%;
+      max-width: unset;
+      box-sizing: border-box;
+    }
+  }
+
+  .rejection-inputs {
+    background: themed("color-section-lighten-5");
+    padding: 0.5rem;
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
+  }
+
+  .rejection-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+}

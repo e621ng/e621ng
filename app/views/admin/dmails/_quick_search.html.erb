@@ -1,0 +1,3 @@
+<%= form_tag(admin_user_dmails_path(@user), method: :get) do %>
+  <%= text_field "search", "message_matches", id: "quick_search_message_matches", placeholder: "Search messages" %>
+<% end %>

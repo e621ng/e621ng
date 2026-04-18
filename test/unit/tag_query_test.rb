@@ -194,6 +194,12 @@ class TagQueryTest < ActiveSupport::TestCase
         # Ensure tag hoisting works on negated order tags
         assert_equal("random", TagQuery.new("( -order:random aaa limit:50 ) -( bbb randseed:123 )")[:order])
         assert_equal(123, TagQuery.new("( order:random aaa limit:50 ) -( bbb randseed:123 )")[:random_seed])
+        # randseed without order should default to order:random
+        assert_equal("random", TagQuery.new("randseed:123")[:order])
+        # randseed with a non-random order should leave order unchanged
+        assert_equal("score", TagQuery.new("randseed:123 order:score")[:order])
+        # randseed with order:random already set should remain random
+        assert_equal("random", TagQuery.new("randseed:123 order:random")[:order])
       end
     end
 
@@ -246,12 +252,14 @@ class TagQueryTest < ActiveSupport::TestCase
     end
 
     should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      # top level
-      TagQuery.fetch_tags([(0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( #{accumulator} )" }], "aaa", error_on_depth_exceeded: true)
-      # non-top level
-      TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( a #{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
-      # mixed level query
-      TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, v| "#{v.even? ? '( a ' : '( '}#{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
+      assert_nothing_raised do
+        # top level
+        TagQuery.fetch_tags([(0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( #{accumulator} )" }], "aaa", error_on_depth_exceeded: true)
+        # non-top level
+        TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, _| "( a #{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
+        # mixed level query
+        TagQuery.fetch_tags(["a", (0...(TagQuery::DEPTH_LIMIT - 1)).inject("aaa") { |accumulator, v| "#{v.even? ? '( a ' : '( '}#{accumulator} )" }], "aaa", recurse: true, error_on_depth_exceeded: true)
+      end
     end
 
     should "fetch when shallowly nested" do
@@ -734,6 +742,23 @@ class TagQueryTest < ActiveSupport::TestCase
       end
     end
 
+    should "handle null bytes and invalid UTF-8" do
+      query_with_both = "\xee\xce\u0000 fluffy -bad".dup.force_encoding("UTF-8")
+      expected_result = {
+        tags: {
+          must: ["fluffy"],
+          must_not: ["bad"],
+          should: [],
+        },
+        show_deleted: false,
+      }
+
+      assert_nothing_raised do
+        result = TagQuery.new(query_with_both)
+        assert_equal(expected_result, result.q)
+      end
+    end
+
     should "not accept invalid standard tags" do # rubocop:disable Style/MultilineIfModifier
       expected_result = {
         tags: {
@@ -814,17 +839,20 @@ class TagQueryTest < ActiveSupport::TestCase
         end
 
         should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-          TagQuery.new("aaa #{(0...(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |prior, _| "( #{prior} )" }}", error_on_depth_exceeded: true)
+          assert_nothing_raised do
+            TagQuery.new("aaa #{(0...(TagQuery::DEPTH_LIMIT - 1)).inject('limit:10') { |prior, _| "( #{prior} )" }}", error_on_depth_exceeded: true)
+          end
         end
       end
 
       should "match w/ case insensitivity" do
-        %w[id:2 Id:2 ID:2 iD:2].map { |e| TagQuery.new(e)[:post_id] }.all?(2)
+        %w[id:2 Id:2 ID:2 iD:2].each { |e| assert_equal([[:eq, 2]], TagQuery.new(e)[:post_id]) }
       end
 
       should "parse boolean metatags correctly" do
         TagQuery::BOOLEAN_METATAGS.each do |e|
           label = "Failed on #{e}".freeze
+          canonical = TagQuery::BOOLEAN_METATAG_ALIASES.fetch(e, e).downcase.to_sym
           # Doesn't accept prefixes
           bad_parse = TagQuery.new("-#{e}:true".freeze)
           assert_nil(bad_parse[e.downcase.to_sym], label)
@@ -836,12 +864,12 @@ class TagQueryTest < ActiveSupport::TestCase
           assert_equal("#{e}:false", bad_parse[:tags][:should][0], label)
 
           # true & false give true & false
-          assert_equal(true, TagQuery.new("#{e}:true")[e.downcase.to_sym], label)
-          assert_equal(false, TagQuery.new("#{e}:false")[e.downcase.to_sym], label)
+          assert_equal(true, TagQuery.new("#{e}:true")[canonical], label)
+          assert_equal(false, TagQuery.new("#{e}:false")[canonical], label)
 
           # Doesn't behave like `Danbooru::Extensions::String#truthy?`
-          assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[e.downcase.to_sym], label)
-          assert_equal(false, TagQuery.new("#{e}:t")[e.downcase.to_sym], label)
+          assert_equal(false, TagQuery.new("#{e}:literally_anything_else")[canonical], label)
+          assert_equal(false, TagQuery.new("#{e}:t")[canonical], label)
         end
 
         # ratinglocked, statuslocked, & notelocked
@@ -867,11 +895,11 @@ class TagQueryTest < ActiveSupport::TestCase
         end
       end
 
-      # * Limited to 100 comma-separated entries
+      # * Limited to `Danbooru.config.max_per_page` comma-separated entries
       should "parse md5 tags correctly" do
         assert_equal(["abc"], TagQuery.new("md5:abc")[:md5])
         arr = [*"aa".."zz"].freeze
-        assert_equal(arr[0..99], TagQuery.new("md5:#{arr.join(',')}")[:md5])
+        assert_equal(arr.first(Danbooru.config.max_per_page), TagQuery.new("md5:#{arr.join(',')}")[:md5])
       end
 
       # * Should be first character downcased if it's `s`, `q`, or `e`, otherwise unset
@@ -1222,9 +1250,10 @@ class TagQueryTest < ActiveSupport::TestCase
       context "using range" do
         should "parse exact integer ranges correctly" do
           prefixes = [["", ""], ["-", "_must_not"], ["~", "_should"]].freeze
-          in_r = [*1..100].freeze
+          limit = Danbooru.config.max_per_page
+          in_r = [*1..limit].freeze
           in_i = in_r.join(",").freeze
-          in_f = "#{in_i},101".freeze
+          in_f = "#{in_i},#{limit + 1}".freeze
           in_r = [[:in, in_r].freeze].freeze
           %w[id width height score favcount change tagcount].concat(TagQuery::CATEGORY_METATAG_MAP.keys).freeze.each do |e|
             s_root = MAPPING[e.to_sym]
@@ -1240,9 +1269,9 @@ class TagQueryTest < ActiveSupport::TestCase
               assert_equal([[:lt, 3]], TagQuery.new("#{p}#{e}:<3")[s], label)
               assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:<=3")[s], label)
               assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:..3")[s], label)
-              # Accept up to 100 options
+              # Accept up to `Danbooru.config.max_per_page` options
               assert_equal(in_r, TagQuery.new("#{p}#{e}:#{in_i}")[s], label)
-              # Truncate past 100 options
+              # Truncate past `Danbooru.config.max_per_page` options
               assert_equal(in_r, TagQuery.new("#{p}#{e}:#{in_f}")[s], label)
             end
           end
@@ -1313,9 +1342,9 @@ class TagQueryTest < ActiveSupport::TestCase
       context "Order:" do
         context "Inversion & Normalization" do
           should "remain the same for Non-aliased and non-invertible values" do
-            assert_equal("rank",             TagQuery.new("order:rank")[:order])
+            assert_equal("hot",              TagQuery.new("order:hot")[:order])
             assert_equal("random",           TagQuery.new("order:random")[:order])
-            assert_equal("rank",             TagQuery.new("-order:rank")[:order])
+            assert_equal("hot",              TagQuery.new("-order:hot")[:order])
             assert_equal("random",           TagQuery.new("-order:random")[:order])
           end
 
@@ -1352,14 +1381,18 @@ class TagQueryTest < ActiveSupport::TestCase
             # Don't resolve
             assert_equal("aspect_ratio",     TagQuery.new("order:aspect_ratio")[:order])
             assert_equal("aspect_ratio_asc", TagQuery.new("order:aspect_ratio_asc")[:order])
+            assert_equal("hot",              TagQuery.new("order:hot")[:order])
 
             # Non-suffixed aliases should be correctly resolved
             assert_equal("aspect_ratio_asc", TagQuery.new("order:portrait")[:order])
             assert_equal("aspect_ratio",     TagQuery.new("order:landscape")[:order])
+            assert_equal("hot",              TagQuery.new("order:rank")[:order])
 
             # Correctly resolved & inverted
             assert_equal("aspect_ratio_asc", TagQuery.new("-order:landscape")[:order])
             assert_equal("aspect_ratio",     TagQuery.new("-order:portrait")[:order])
+            # Correctly resolved & not inverted
+            assert_equal("hot",              TagQuery.new("-order:rank")[:order])
           end
 
           should "correctly handle the id special case" do
@@ -1389,7 +1422,9 @@ class TagQueryTest < ActiveSupport::TestCase
       end
 
       should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-        TagQuery.new((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        assert_nothing_raised do
+          TagQuery.new((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        end
       end
     end
   end
@@ -1422,12 +1457,14 @@ class TagQueryTest < ActiveSupport::TestCase
     end
 
     should "not fail for less than or equal to #{TagQuery::DEPTH_LIMIT} levels of group nesting" do
-      # top level
-      TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
-      # non-top level
-      TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
-      # mixed level query
-      TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
+      assert_nothing_raised do
+        # top level
+        TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "( #{accumulator} )" }, error_on_depth_exceeded: true)
+        # non-top level
+        TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, _| "a ( #{accumulator} )" }, error_on_depth_exceeded: true)
+        # mixed level query
+        TagQuery.scan_recursive((0...(TagQuery::DEPTH_LIMIT - 1)).inject("rating:s") { |accumulator, v| "#{v.even? ? 'a ' : ''}( #{accumulator} )" }, error_on_depth_exceeded: true)
+      end
     end
   end
 

@@ -12,7 +12,7 @@
   $button-stealth-color: themed("color-link");
   $button-stealth-color-hover: themed("color-link-hover");
 
-  display: flex;
+  display: inline-flex;
   gap: math.div(st-value(100), 4);
   border-radius: radius(025);
 
@@ -25,6 +25,7 @@
   height: st-value(100) * 2;
   box-sizing: border-box;
   justify-content: center;
+  align-items: center;
 
   // TODO What if button is on a light background
   background: $button-background;
@@ -82,10 +83,28 @@
 
   // Elements that look like physical buttons and animate on click.
   &.kinetic {
-    box-shadow: 0 0.25rem themed("color-section");
+    $kinetic-shadow: 0.25rem;
+    $kinetic-active: calc($kinetic-shadow / 2);
+
+    box-shadow: 0 $kinetic-shadow themed("color-section");
+    position: relative;
     &:active, &[processing="true"].anim {
-      translate: 0 0.125rem;
-      box-shadow: 0 0.125rem themed("color-section");
+      translate: 0 $kinetic-active;
+      box-shadow: 0 $kinetic-active themed("color-section");
+
+      // Cursed solution for a cursed problem.
+      // Moving the button down when active caused the javascript event to not trigger if the
+      // top 0.125rem of the button was clicked. The solution is to add an invisible element
+      // that covers that gap.
+      &::before {
+        content: "";
+        position: absolute;
+        background: transparent;
+        height: $kinetic-shadow;
+        top: -$kinetic-active;
+        left: 0;
+        right: 0;
+      }
     }
   }
 }
@@ -103,6 +122,12 @@
   color: palette("plain-black");
   &:hover, &:active {
     background: themed("color-tag-artist-alt");
+  }
+
+  &[disabled] {
+    background: palette("background-grey");
+    color: palette("text-lighten-20");
+    cursor: not-allowed;
   }
 }
 

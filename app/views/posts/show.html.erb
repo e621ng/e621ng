@@ -18,10 +18,12 @@
         <%= render "posts/partials/show/sidebar/information", :post => @post %>
       </section>
 
-      <section id="post-options">
-        <h3>Options</h3>
-        <%= render "posts/partials/show/sidebar/options", :post => @post %>
-      </section>
+      <% if CurrentUser.is_member? %>
+        <section id="post-options">
+          <h3>Options</h3>
+          <%= render "posts/partials/show/sidebar/options", :post => @post %>
+        </section>
+      <% end %>
 
       <% if CurrentUser.is_member? %>
         <section id="post-history">
@@ -37,6 +39,8 @@
     </div>
 
     <div class="content">
+      <%= render "ads/leaderboard", area: :top, tag_string: @post.ad_tag_string %>
+
       <div id="image-and-nav">
         <% if @post.presenter.has_nav_links?(self) %>
           <%= render "posts/partials/show/content/nav_links/nav_links", :post => @post %>
@@ -54,8 +58,6 @@
             <%= render "posts/partials/show/content/notices/notices", post: @post %>
           <% end %>
         </div>
-
-        <%= render "ads/leaderboard", tag_string: @post.ad_tag_string %>
 
         <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
           <div id="note-container" enabled="false"></div>
@@ -99,6 +101,28 @@
         </div>
       <% end %>
 
+      <div
+        id="post-recommendations"
+        data-selected="tags"
+        data-status="waiting"
+        data-post-id="<%= @post.id %>"
+        data-remote="<%= Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>"
+      >
+        <div id="post-recommendations-tabs">
+          <button class="st-button" data-action="artist">From the Artist</button>
+          <% if Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
+            <button class="st-button" data-action="tags">Similar</button>
+            <button class="st-button" data-action="favorites"><span class="desktop-only">Others Also</span>Liked</button>
+          <% end %>
+          <button class="st-button" data-action="closed" title="Close Recommendations"><%= svg_icon(:eye_off) %></button>
+        </div>
+        <div id="post-recommendations-list">
+          <% 6.times do %>
+            <article class="thumbnail placeholder"></article>
+          <% end %>
+        </div>
+      </div>
+
       <ul class="menu mobile-only">
         <li><a href="#image-and-nav">Image</a></li>
         <li><a href="#tag-list">Tags/Info</a></li>
@@ -128,8 +152,10 @@
         <% end %>
       </ul>
 
-      <section id="notes" style="display: none;">
-        <% if @post.has_notes? %>
+      <%= render "ads/leaderboard", area: :bottom, tag_string: @post.ad_tag_string %>
+
+      <section id="note-staging" style="display: none;">
+        <% if @post.can_have_notes? && @post.has_notes?  %>
           <% cache("p/#{@post.id}/n/#{@post.last_noted_at.to_i}") do %>
             <%= render :partial => "notes/note", :collection => @post.notes.active %>
           <% end %>
@@ -145,12 +171,17 @@
   </div>
 
   <% if CurrentUser.is_member? %>
-    <div id="add-to-pool-dialog" title="Add to pool" style="display: none;">
+    <div class="dialog-staging" style="display: none;">
       <%= render "pool_elements/new" %>
-    </div>
-    <div id="add-to-set-dialog" title="Add to set" style="display: none;">
       <%= render "post_sets/add_dialog" %>
+      <%= render "/notes/dialog" %>
+
+      <% if CurrentUser.can_approve_posts? %>
+        <%= render "post_disapprovals/detailed_rejection_dialog" %>
+        <%= render "moderator/post/posts/delete_with_reason_dialog" %>
+      <% end %>
     </div>
+
     <%= javascript_tag nonce: true do -%>
       var uploaderSettings = {
         postTags: <%= (@post.presenter.categorized_tag_list_text + " ").to_json.html_safe %>,
