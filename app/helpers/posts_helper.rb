@@ -101,17 +101,6 @@ module PostsHelper
     tag.div score + favs + comments + rating, class: "desc"
   end
 
-  def user_record_meta(user)
-    feedback = user.feedback_pieces
-    return "" if feedback[:active] == 0
-
-    link_to(user_feedbacks_path(search: { user_id: user.id }), class: "user-feedback-list") do
-      concat tag.span(feedback[:positive], class: "user-feedback-positive") if feedback[:positive] > 0
-      concat tag.span(feedback[:neutral], class: "user-feedback-neutral") if feedback[:neutral] > 0
-      concat tag.span(feedback[:negative], class: "user-feedback-negative") if feedback[:negative] > 0
-    end
-  end
-
   private
 
   def nav_params_for(page)
