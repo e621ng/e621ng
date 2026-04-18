@@ -5,7 +5,7 @@ class PostFlagReasonsController < ApplicationController
   before_action :admin_only
 
   def index
-    @reasons = PostFlagReason.structured.ordered
+    @reasons = PostFlagReason.ordered
     respond_with(@reasons)
   end
 
@@ -52,6 +52,6 @@ class PostFlagReasonsController < ApplicationController
   private
 
   def reason_params
-    params.require(:post_flag_reason).permit(%i[name reason text needs_explanation needs_parent_id index category parent_id])
+    params.require(:post_flag_reason).permit(%i[name reason text needs_explanation needs_parent_id target_date target_date_kind target_tag index])
   end
 end

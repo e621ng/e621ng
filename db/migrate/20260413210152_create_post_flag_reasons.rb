@@ -10,16 +10,16 @@ class CreatePostFlagReasons < ActiveRecord::Migration[6.1]
       t.boolean :needs_explanation, null: false, default: false
       t.boolean :needs_parent_id, null: false, default: false
 
-      t.string :category, null: false, default: "flag"
       t.integer :index, null: false, default: 0
 
-      t.references :parent, foreign_key: { to_table: :post_flag_reasons }, null: true
+      t.date :target_date, null: true
+      t.string :target_date_kind, null: true
+      t.string :target_tag, null: true
 
       t.timestamps
     end
 
     add_index :post_flag_reasons, :name, unique: true
     add_index :post_flag_reasons, :index
-    add_index :post_flag_reasons, :category
   end
 end
