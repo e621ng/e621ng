@@ -2,10 +2,11 @@
   <%= f.input :name, as: :string, hint: "Internal key (e.g. inferior)" %>
   <%= f.input :reason, as: :string, hint: "Short label shown in UI" %>
   <%= f.input :text, as: :dtext, label: "Description", hint: "Detailed guidance; DText supported" %>
-  <%= f.input :needs_explanation, as: :boolean, label: "Additional Details Required" %>
+  <%= f.input :needs_explanation, as: :boolean, label: "Additional details required" %>
   <%= f.input :needs_parent_id, as: :boolean, label: "Requires parent post id" %>
+  <%= f.input :target_date, as: :date, include_blank: true, label: "Date activation", hint: "Enable or disable this flag according to the post date. Leave blank to disable" %>
+  <%= f.input :target_date_kind, as: :select, include_blank: true, collection: [["Before", "before"], ["After", "after"]], label: "Date activation kind", hint: "Enable the flag before or after the date?" %>
+  <%= f.input :target_tag, as: :string, label: "Tag activation", hint: "Enable or disable this flag according to a post tag. Prefix with \"-\" to negate. Leave blank to disable" %>
   <%= f.input :index, as: :integer, label: "Order index", input_html: { min: 0 } %>
-  <%= f.input :category, as: :select, collection: [["Flag", "flag"], ["Report", "report"], ["None (Header)", "none"]], include_blank: false, label: "Creates" %>
-  <%= f.input :parent_id, as: :select, collection: hierarchical_flag_reasons_for_select(@reason), include_blank: true, label: "Parent reason", hint: "Optional parent reason for hierarchical reasons" %>
   <%= f.button :submit, "Submit" %>
 <% end %>

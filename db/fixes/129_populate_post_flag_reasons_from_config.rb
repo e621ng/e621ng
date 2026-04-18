@@ -26,6 +26,15 @@ CurrentUser.as_system do # rubocop:disable Metrics/BlockLength
     # Find existing or create new PostFlagReason
     post_flag_reason = PostFlagReason.find_by(name: name)
 
+    grandfathering = {}
+    if name == "uploading_guidelines"
+      if Danbooru.config.grandfathered_post_cutoff.present?
+        grandfathering[:target_date] = Danbooru.config.grandfathered_post_cutoff
+        grandfathering[:target_date_kind] = "after"
+      end
+      grandfathering[:target_tag] = "-grandfathered_content"
+    end
+
     if post_flag_reason.present?
       # Update existing record
       post_flag_reason.update!(
@@ -33,8 +42,8 @@ CurrentUser.as_system do # rubocop:disable Metrics/BlockLength
         text: text,
         needs_explanation: needs_explanation,
         needs_parent_id: needs_parent_id,
-        category: "flag",
-        index: index,
+        index: index * 10,
+        **grandfathering,
       )
       updated_count += 1
       puts "Updated PostFlagReason: #{name}"
@@ -46,8 +55,8 @@ CurrentUser.as_system do # rubocop:disable Metrics/BlockLength
         text: text,
         needs_explanation: needs_explanation,
         needs_parent_id: needs_parent_id,
-        category: "flag",
-        index: index,
+        index: index * 10,
+        **grandfathering,
       )
       created_count += 1
       puts "Created PostFlagReason: #{name}"

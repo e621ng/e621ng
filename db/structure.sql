@@ -1465,9 +1465,10 @@ CREATE TABLE public.post_flag_reasons (
     text text DEFAULT ''::text NOT NULL,
     needs_explanation boolean DEFAULT false NOT NULL,
     needs_parent_id boolean DEFAULT false NOT NULL,
-    category character varying DEFAULT 'flag'::character varying NOT NULL,
     index integer DEFAULT 0 NOT NULL,
-    parent_id bigint,
+    target_date date,
+    target_date_kind character varying,
+    target_tag character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -4556,13 +4557,6 @@ CREATE INDEX index_post_events_on_post_id ON public.post_events USING btree (pos
 
 
 --
--- Name: index_post_flag_reasons_on_category; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_flag_reasons_on_category ON public.post_flag_reasons USING btree (category);
-
-
---
 -- Name: index_post_flag_reasons_on_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4574,13 +4568,6 @@ CREATE INDEX index_post_flag_reasons_on_index ON public.post_flag_reasons USING 
 --
 
 CREATE UNIQUE INDEX index_post_flag_reasons_on_name ON public.post_flag_reasons USING btree (name);
-
-
---
--- Name: index_post_flag_reasons_on_parent_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_flag_reasons_on_parent_id ON public.post_flag_reasons USING btree (parent_id);
 
 
 --
@@ -5266,14 +5253,6 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
--- Name: post_flag_reasons fk_rails_0b10fb512f; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.post_flag_reasons
-    ADD CONSTRAINT fk_rails_0b10fb512f FOREIGN KEY (parent_id) REFERENCES public.post_flag_reasons(id);
-
-
---
 -- Name: avoid_posting_versions fk_rails_1d1f54e17a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5709,3 +5688,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20100205162521'),
 ('20100204214746'),
 ('20100204211522');
+
