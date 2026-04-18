@@ -156,11 +156,13 @@ class PostTest < ActiveSupport::TestCase
       @post.copy_tags_to_parent
       @post.parent.save
       assert_equal(@parent.reload.tag_string, "a b c d e f")
+      assert_equal(@parent.versions.last.reason, "Merged from post ##{@post.id}")
     end
     should "Copy sources to parent" do
       @post.copy_sources_to_parent
       @post.parent.save
       assert_equal(@parent.reload.source, "a\nb\nc\nd")
+      assert_equal(@parent.versions.last.reason, "Merged from post ##{@post.id}")
     end
   end
 

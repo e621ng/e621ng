@@ -52,6 +52,11 @@ class ParseValueTest < ActiveSupport::TestCase
     assert_equal(1.5 * 1024 * 1024, eq_value("1.5mb", :filesize))
   end
 
+  should "clamp filesizes" do
+    assert_equal(0, eq_value("-5mb", :filesize))
+    assert_equal(ParseValue::MAX_INT, eq_value("999999mb", :filesize))
+  end
+
   should "invert ranges" do
     assert_equal([:eq, 10], subject.invert_range(subject.range("10")))
     assert_equal([:gt, 10], subject.invert_range(subject.range("<10")))

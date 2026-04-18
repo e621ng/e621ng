@@ -3,7 +3,7 @@
 module Downloads
   class File
     include ActiveModel::Validations
-    class Error < Exception ; end
+    class Error < StandardError; end
 
     attr_reader :url
 
@@ -11,9 +11,8 @@ module Downloads
 
     def initialize(url)
       begin
-        unencoded = Addressable::URI.unencode(url)
-        escaped = Addressable::URI.escape(unencoded)
-        @url = Addressable::URI.parse(escaped)
+        uri = url.is_a?(Addressable::URI) ? url.dup : Addressable::URI.parse(url.to_s)
+        @url = uri.normalize
       rescue Addressable::URI::InvalidURIError
         @url = nil
       end

@@ -13,16 +13,17 @@ class SearchTrendsControllerTest < ActionDispatch::IntegrationTest
     end
 
     should "index renders html" do
-      SearchTrendHourly.bulk_increment!([{ tag: "wolf", hour: 1.hour.ago }])
+      SearchTrendHourly.bulk_increment!([{ tag: "wolf", hour: 1.hour.ago.utc }])
       get "/search_trends"
       assert_response :success
       assert_match(/Trending Tags/, response.body)
     end
 
     should "index returns json" do
-      SearchTrendHourly.bulk_increment!([{ tag: "fox", hour: 2.hours.ago }])
+      hour = 2.hours.ago.utc
+      SearchTrendHourly.bulk_increment!([{ tag: "fox", hour: hour }])
       SearchTrendAggregateJob.perform_now
-      get "/search_trends.json"
+      get "/search_trends.json", params: { day: hour.to_date.to_s }
       assert_response :success
       json = response.parsed_body
       assert(json.is_a?(Array))

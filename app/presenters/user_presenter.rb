@@ -118,6 +118,10 @@ class UserPresenter
     template.link_to(user.comment_count, template.comments_path(search: { creator_id: user.id }, group_by: "comment"))
   end
 
+  def blip_count(template)
+    template.link_to(user.blip_count, template.blips_path(search: { creator_id: user.id }))
+  end
+
   def commented_posts_count(template)
     count = Post.fast_count("commenter:#{user.name}", enable_safe_mode: false)
     template.link_to(count, template.posts_path(tags: "commenter:#{user.name} order:comment_bumped"))

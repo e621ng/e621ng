@@ -8,6 +8,7 @@ class Post < ApplicationRecord
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
+  NON_KNOWN_ARTIST_TAGS = %w[unknown_artist anonymous_artist third-party_edit].freeze
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
@@ -541,6 +542,7 @@ class Post < ApplicationRecord
     def copy_sources_to_parent
       return unless parent_id.present?
       parent.source += "\n#{self.source}"
+      set_merge_edit_reason
     end
   end
 
@@ -1082,6 +1084,7 @@ class Post < ApplicationRecord
     def copy_tags_to_parent
       return unless parent_id.present?
       parent.tag_string += " #{tag_string}"
+      set_merge_edit_reason
     end
 
     ## DB!
@@ -1110,12 +1113,28 @@ class Post < ApplicationRecord
       categorized_tags[category] || []
     end
 
-    ##
+    ## DB!
     # List of artist tags for the post
     # Excludes non-artist tags like avoid_posting or sound_warning
     def artist_tags
-      @artist_tags ||= tags_for_category(Tag.categories.artist).filter do |tag|
-        NON_ARTIST_TAGS.exclude?(tag.name)
+      @artist_tags ||= begin
+        if @categorized_tags.nil?
+          Tag.where(name: tag_array, category: Tag.categories.artist).select(:name, :post_count, :category).filter do |tag|
+            NON_ARTIST_TAGS.exclude?(tag.name)
+          end
+        else
+          tags_for_category(Tag.categories.artist).filter do |tag|
+            NON_ARTIST_TAGS.exclude?(tag.name)
+          end
+        end
+      end
+    end
+
+    ## DB!
+    # Like `artist_tags`, but also excludes artist tags that aren't known to be actual artists
+    def known_artist_tags
+      @known_artist_tags ||= artist_tags.filter do |tag|
+        NON_KNOWN_ARTIST_TAGS.exclude?(tag.name)
       end
     end
 
@@ -1452,6 +1471,11 @@ class Post < ApplicationRecord
         @children_ids ||= children.map {|p| p.id}.join(' ')
       end
     end
+
+    def set_merge_edit_reason
+      return unless parent_id.present?
+      parent.edit_reason = "Merged from post ##{self.id}"
+    end
   end
 
   module DeletionMethods
@@ -1597,6 +1621,17 @@ class Post < ApplicationRecord
     def pending_flag
       flags.unresolved.order(id: :desc).first
     end
+
+    def substitute_deletion_dmail_template(text, reason = nil)
+      return nil if text.blank?
+      if reason
+        text = text.gsub("%REASON%", reason)
+      end
+      text.gsub("%POST_ID%", id.to_s)
+          .gsub("%STAFF_NAME%", CurrentUser.name)
+          .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+          .gsub("%UPLOADER_ID%", uploader_id.to_s)
+    end
   end
 
   module VersionMethods
@@ -1717,6 +1752,7 @@ class Post < ApplicationRecord
         score: score,
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
+        comment_count: comment_count,
 
         pools: pool_ids.join(" "),
       }
@@ -2082,7 +2118,7 @@ class Post < ApplicationRecord
   end
 
   def flaggable_for_guidelines?
-    !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
+    !has_tag?("grandfathered_content") && created_at.after?(Danbooru.config.grandfathered_post_cutoff)
   end
 
   def visible_comment_count(user)

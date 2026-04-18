@@ -1,18 +1,44 @@
 <%# locals: (votes:, forum_post:, votable: true) -%>
 
 <% own_vote = votes.find { |vote| vote.creator == CurrentUser.user } %>
-<% other_votes = votes.reject { |vote| vote.creator == CurrentUser.user } %>
+<% is_votable = forum_post.tag_change_request&.is_pending? && votable && forum_post.tag_change_request&.creator_id != CurrentUser.user.id %>
+<% categorized_votes = { 1 => [], 0 => [], -1 => [] }.merge(votes.group_by(&:score)) %>
 
-<ul class="forum-post-votes-list" id="forum-post-votes-for-<%= forum_post.id %>">
-  <% if own_vote %>
-    <%= render "forum_post_votes/vote", vote: own_vote, forum_post: forum_post, votable: votable %>
-  <% end %>
-
-  <% if forum_post.tag_change_request&.is_pending? && !own_vote && votable %>
-    <%= render "forum_post_votes/add_vote", forum_post: forum_post %>
-  <% end %>
-
-  <% other_votes.each do |vote| %>
-    <%= render "forum_post_votes/vote", vote: vote, forum_post: forum_post, votable: false %>
+<ul
+  class="forum-post-vote-list"
+  id="forum-post-votes-for-<%= forum_post.id %>"
+  data-user-vote="<%= own_vote&.vote_type || "none" %>"
+  data-forum-id="<%= forum_post.id %>"
+  data-vote-count="<%= votes.size %>"
+  data-state="ready"
+>
+  <% categorized_votes.each do |score, cat_votes| %>
+    <% score_str = ForumPostVote.score_to_str(score) %>
+    <li
+      class="forum-post-vote-category"
+      data-score="<%= score %>"
+      data-vote="<%= score_str %>"
+    >
+      <% if is_votable %>
+        <button
+          title="Vote <%= score_str.capitalize %>"
+          class="st-button forum-vote forum-vote-<%= score_str %>"
+          data-action="<%= score %>"
+        >
+          <%= svg_icon(ForumPostVote.score_to_icon(score), width: 16, height: 16) %>
+        </button>
+      <% else %>
+        <span class="st-button forum-vote-dummy forum-vote-<%= score_str %>">
+          <%= svg_icon(ForumPostVote.score_to_icon(score), width: 16, height: 16) %>
+        </span>
+      <% end %>
+      <ul
+        class="forum-post-votes"
+        data-vote-count="<%= cat_votes.size %>"
+        data-vote="<%= score_str %>"
+      >
+        <%= render partial: "forum_post_votes/vote", collection: cat_votes, locals: { forum_post: forum_post, votable: votable } %>
+      </ul>
+    </li>
   <% end %>
 </ul>
