@@ -493,6 +493,18 @@ module Danbooru
       true
     end
 
+    # # Who can see the provided flag reason, in addition to the flagger/creator (who can always see
+    # their own flag note) and staff.
+    # ### Returns
+    # One of the values from `PostFlag::FLAG_REASON_VISIBILITY_LEVELS`:
+    # * `:staff`: No additional viewers beyond staff and the flagger/creator (default)
+    # * `:uploader`: Also visible to the post's uploader
+    # * `:users`: Also visible to all logged-in users
+    # * `:all`: Also visible to everyone (including anonymous users)
+    def flag_reason_visibility
+      :staff
+    end
+
     def flag_reasons
       [
         {

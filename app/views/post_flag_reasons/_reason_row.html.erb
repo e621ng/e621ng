@@ -6,14 +6,9 @@
   <td><%= flag_reason.reason %></td>
   <td><%= flag_reason.needs_explanation? ? "Yes" : "" %></td>
   <td><%= flag_reason.needs_parent_id? ? "Yes" : "" %></td>
+  <td><%= (flag_reason.target_date_kind&.capitalize&.+(" ") || "") %>
+    <%= (flag_reason.target_date ? compact_date(flag_reason.target_date) : "") %></td>
+  <td><%= flag_reason.target_tag || "" %></td>
   <td><%= compact_time flag_reason.updated_at %></td>
-  <td>
-    <% unless flag_reason.has_children? %>
-      <%= link_to "Delete", post_flag_reason_path(flag_reason), method: :delete, data: { confirm: "Delete this reason?" } %>
-    <% end %>
-  </td>
+  <td><%= link_to "Delete", post_flag_reason_path(flag_reason), method: :delete, data: { confirm: "Delete this reason?" } %></td>
 </tr>
-
-<% if flag_reason.has_children? %>
-  <%= render partial: "reason_row", collection: flag_reason.children, as: :flag_reason, locals: { depth: depth + 1 } %>
-<% end %>
