@@ -140,6 +140,7 @@ const Autocomplete = {
       case "fav":
       case "favoritedby":
       case "flagger":
+      case "flaggedby":
       case "upvote":
       case "downvote":
         return this.searchItems(term, this.getUsers.bind(this)).then(results => results.map(user => ({
