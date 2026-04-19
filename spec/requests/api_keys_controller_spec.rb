@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "rails_helper"
-require "json"
 
 #             Prefix Verb   URI Pattern                        Controller#Action
 # regenerate_api_key POST   /api_keys/:id/regenerate(.:format) api_keys#regenerate
@@ -67,6 +66,7 @@ RSpec.describe ApiKeysController do
 
   # api_keys | GET | /api_keys(.:format) | api_keys#index
   describe "GET /api_keys" do
+    include_context "validating JSON"
     let(:json_format) do
       {
         id: Numeric,
@@ -104,21 +104,7 @@ RSpec.describe ApiKeysController do
       create(:api_key, user: user)
       get api_keys_path(format: :json)
       expect(response).to have_http_status(:success)
-      puts response.body
-      response.parsed_body.each do |e|
-        expect(e.keys).to match_array(json_format.keys.map(&:to_s))
-        e.each_pair do |k, val|
-          key_sym = k.to_sym
-          if json_format[key_sym] == Date
-            expect { val.is_a?(String) ? val.to_date : val }.not_to raise_error
-            expect(val.is_a?(String) ? val.to_date : val).to be_a(Date) | (be_a(NilClass) & satisfy { |_v| expect(nullable_keys).to include(key_sym) })
-          elsif nullable_keys.include?(key_sym)
-            expect(val).to be_a(json_format[key_sym]) | be_a(NilClass)
-          else
-            expect(val).to be_a(json_format[key_sym])
-          end
-        end
-      end
+      expect(response.parsed_body).to match_json_format
     end
   end
 

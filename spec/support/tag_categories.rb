@@ -6,7 +6,7 @@
 RSpec.shared_context "with tag categories" do
   let(:general_tag_category) { 0 }
   let(:artist_tag_category) { 1 }
-  # contributor category is unavailable on e6ai, and thus is not used in tests
+  # NOTE: contributor category is unavailable on e6ai, and thus is not used in tests
   let(:copyright_tag_category) { 3 }
   let(:character_tag_category) { 4 }
   let(:species_tag_category) { 5 }
