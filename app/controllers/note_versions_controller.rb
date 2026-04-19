@@ -4,7 +4,12 @@ class NoteVersionsController < ApplicationController
   respond_to :html, :json
 
   def index
-    @note_versions = NoteVersion.search(search_params).paginate(params[:page], limit: params[:limit])
+    @revertable = params.dig(:search, :post_id).present? || params.dig(:search, :note_id).present?
+    @note_versions = NoteVersion
+                     .search(search_params)
+                     .paginate(params[:page], limit: params[:limit])
+    @note_versions = @note_versions.includes(:post) if @revertable
+
     respond_with(@note_versions) do |format|
       format.html { @note_versions = @note_versions.includes(:updater) }
     end

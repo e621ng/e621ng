@@ -1,9 +1,9 @@
 <div id="p-index-by-comment" class="comments-for-post">
     <% @comments.each do |comment| %>
-      <% if comment.post.present? && comment.should_see?(CurrentUser.user) %>
+      <% if comment.post.present? %>
       <div class="comment-post">
         <div class="post-container">
-          <%= PostPresenter.preview(comment.post, inline: true, show_deleted: true) %>
+          <%= render(PostThumbnailComponent.new(post: comment.post, show_deleted: true)) %>
         </div>
         <div class="comments list-of-comments">
           <%= render "comments/partials/show/comment", comment: comment, post: nil %>
@@ -13,4 +13,4 @@
     <% end %>
 </div>
 
-<%= numbered_paginator(@comments) %>
+<%= render PaginatorComponent.new(records: @comments) %>

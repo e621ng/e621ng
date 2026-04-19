@@ -42,7 +42,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@bans) %>
+    <%= render PaginatorComponent.new(records: @bans) %>
   </div>
 </div>
 

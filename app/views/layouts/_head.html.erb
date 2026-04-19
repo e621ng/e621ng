@@ -33,10 +33,13 @@
 <% if flash[:notice] =~ /error/i %>
   <meta name="errors" content="true">
 <% end %>
-<%= auto_discovery_link_tag :atom, posts_path(:format => "atom", :tags => params[:tags]) %>
+<%= auto_discovery_link_tag :atom, posts_path(format: "atom", tags: params[:tags].is_a?(String) ? params[:tags] : nil) %>
 
-<%= stylesheet_pack_tag "application", nonce: true %>
-<%= javascript_pack_tag "application", nonce: true, defer: false %>
+<%= vite_stylesheet_tag "styles" %>
+<%= vite_javascript_tag "application.ts", nonce: content_security_policy_nonce, defer: false %>
+<%= vite_script_for_controller %>
+<%= vite_script_for_controller_and_action %>
+<%= vite_javascript_tag "finalize.ts", nonce: content_security_policy_nonce, defer: true %>
 
 <script type="application/ld+json">
 {
@@ -59,6 +62,9 @@
   "url" : "<%= root_url %>"
 }
 </script>
+
+<%# Site configuration for JavaScript %>
+<script type="text/plain" id="site-settings" data-encoding="base64"><%= site_settings_base64 %></script>
 
 <style id="blacklisted-hider">
   .thumbnail, #image-container, #c-comments .post, .post-thumbnail {

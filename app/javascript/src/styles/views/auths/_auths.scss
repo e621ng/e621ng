@@ -1,0 +1,150 @@
+#auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 201;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--fg-color, rgba(15, 15, 15, .5019607843));
+  backdrop-filter: blur(8px);
+
+  &.hidden { display: none; }
+
+  button.close-button {
+    position: absolute;
+    top: -3rem;
+    right: 0;
+
+    width: 2rem;
+    font-size: 1.5rem;
+    padding: 0.25rem;
+    box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+  }
+}
+
+.auth-flow-wrapper {
+  display: grid;
+  grid-template-columns: minmax(0, 350px);
+  width: max-content;
+  position: relative;
+  margin: 0;
+
+  form.simple_form {
+    // Revert changes from .simple_form
+    background: unset;
+    margin: 0;
+    padding: 1rem;
+    border-radius: unset;
+
+    // Layout
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
+
+    // Theme
+    background-color: themed("color-section");
+    background-image: themed("image-foreground");
+    background-position: themed("image-foreground-position");
+    background-repeat: themed("image-foreground-repeat");
+    background-size: themed("image-foreground-size");
+    box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+    @include st-radius;
+
+    h1 {
+      margin: 1rem 0 0.25rem;
+      text-align: center;
+    }
+
+    .auth-input {
+      display: flex;
+      flex-flow: column;
+
+      label.st-immersive-input { width: 100%; }
+      a.hint { margin-left: auto; }
+
+      &.toggle-wrapper {
+        display: flex;
+        flex-flow: row;
+        align-items: center;
+        label.st-toggle { margin-left: auto; }
+      }
+    }
+
+    .auth-spacer {
+      margin-top: auto;
+    }
+
+    // Override for default styles
+    div.input {
+      margin-bottom: unset;
+      &.hidden { display: none; }
+    }
+
+    hr {
+      width: 100%;
+      border-color: themed("color-section-lighten-10");
+      border-style: solid;
+    }
+
+    .auth-reminder {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #auth-error {
+      text-align: center;
+      font-weight: bold;
+      color: palette("text-red");
+    }
+  }
+}
+
+.st-immersive-input {
+  display: flex;
+  flex-flow: column;
+  background: white;
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+
+  span.label-text {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 0.85rem;
+    color: black;
+    font-weight: normal;
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+
+    transition: all 0.15s ease-out;
+  }
+  &.focused {
+    box-shadow: 0 0 0.25rem themed("color-link-active") inset;
+  }
+  &.focused, &.contentful {
+    span.label-text {
+      margin: -0.25rem 0 0.25rem;
+      font-size: 0.65rem;
+    }
+  }
+
+  input {
+    // NOTE: a lot of these properties are reverting changes from the responsive styles
+    border-radius: unset;
+    padding: 0;
+    line-height: 1rem;
+    font-size: 1rem !important;
+    height: 1rem;
+    background: transparent !important;
+    border: none !important;
+    width: 100% !important;
+  }
+}
+
+
+// Fallback login page styles
+#c-sessions #a-new {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10rem;
+}

@@ -11,7 +11,7 @@
       <!-- Primary Searchbar -->
       <div class="home-search">
         <%= text_field_tag("tags", "", autofocus: "autofocus", placeholder: "Search posts by tag", data: { hotkey: "search", autocomplete: "tag-query" }) %>
-        <%= tag.button(svg_icon(:search), type: "submit") %>
+        <%= tag.button(svg_icon(:search), type: "submit", aria: { label: "Search" }) %>
       </div>
 
       <!-- Secondary search buttons -->
@@ -28,9 +28,22 @@
     <% end %>
   </section>
 
+  <% if Setting.trends_displayed? %>
+  <section class="home-section search-rising-list hidden" id="home-trends">
+    <h3 aria-controls="home-trends" aria-expanded="false">
+      <%= svg_icon(:trending_up) %>
+      Trending
+      <button id="hide-trends" class="st-button" aria-label="Hide trending">
+        <%= svg_icon(:chevron_down) %>
+      </button>
+    </h3>
+    <%= rising_tags %>
+  </section>
+  <% end %>
+
   <% if news_update = NewsUpdate.recent %>
     <section class="home-section">
-      <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
+      <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, allow_color: true) %></div>
       <div class="previous-news-link"><%= link_to "Click here for previous news", news_updates_path %></div>
     </section>
   <% end %>
@@ -52,9 +65,7 @@
   </section>
   <section class="home-footer-bottom">
     <div class="home-footer-counter">
-      <% Post.fast_count.to_s.each_char do |x| %>
-        <%= image_tag("counter/#{x}.png") %>
-      <% end %>
+      <% Post.fast_count.to_s.each_char do |x| -%><%= image_tag("counter/#{x}.png", alt: x) %><% end -%>
     </div>
     <div class="home-footer-links">
       <%= link_to "Takedowns", takedown_static_path %>
@@ -75,9 +86,9 @@
   <%= tag.meta(name: "description", content: Danbooru.config.description) %>
   <%= tag.meta(property: "og:site", content: Danbooru.config.app_name) %>
   <%= tag.meta(property: "og:title", content: Danbooru.config.app_name) %>
-  <%= tag.meta(property: "og:description", content: Danbooru.config.description) %>
+    <%= tag.meta(property: "og:description", content: Danbooru.config.description) %>
   <%= tag.meta(property: "og:url", content: root_url(host: Danbooru.config.hostname, protocol: "https")) %>
-  <%= tag.meta(property: "og:image", content: asset_url("images/logo/default.svg", host: Danbooru.config.hostname, protocol: "https")) %>
+  <%= tag.meta(property: "og:image", content: vite_asset_url("images/logo/default.svg")) %>
   <%= tag.meta(name: "canonical", content: root_url(host: Danbooru.config.hostname, protocol: "https")) %>
 
   <meta property="og:type" content="website">
@@ -86,5 +97,5 @@
   <meta name="twitter:card" content="summary">
   <%= tag.meta(name: "twitter:title", content: Danbooru.config.app_name) %>
   <%= tag.meta(name: "twitter:description", content: Danbooru.config.description) %>
-  <%= tag.meta(name: "twitter:image", content: asset_url("images/logo/default.svg", host: Danbooru.config.hostname, protocol: "https")) %>
+  <%= tag.meta(name: "twitter:image", content: vite_asset_url("images/logo/default.svg")) %>
 <%- end %>

@@ -18,12 +18,12 @@
 </tab-entry>
 
 <tab-entry tab="<%= tab_name %>" group="account" class="with-button" search="update change user profile account api key access">
-  <tab-head>API Key</tab-head>
+  <tab-head>API Keys</tab-head>
   <tab-body>
-    <%= link_to (CurrentUser.api_key ? "View" : "Generate"), user_api_key_path(CurrentUser.user), class: "st-button" %>
+    <%= link_to "Manage API Keys", api_keys_path, class: "st-button" %>
   </tab-body>
   <tab-hint>
-    Do not give your API key to third-party apps you do not trust.
+    Do not give your API keys to third-party apps you do not trust.
   </tab-hint>
 </tab-entry>
 
@@ -152,13 +152,13 @@
 </tab-entry>
 
 <tab-entry tab="<%= tab_name %>" group="posts" class="inline" search="posts comments show hide display own hidden">
-  <tab-head><%= form.label :show_hidden_comments, "Show own hidden comments" %></tab-head>
+  <tab-head><%= form.label :show_hidden_comments, "Show #{CurrentUser.user.is_staff? ? 'all' : 'your'} hidden comments" %></tab-head>
   <tab-body>
     <%= form.input_field :show_hidden_comments, as: :boolean, class: "st-toggle" %>
     <%= form.label :show_hidden_comments, "!", class: "st-toggle", role: "switch" %>
   </tab-body>
   <tab-hint>
-    Show your hidden comments on comment pages.
+    Show <%= CurrentUser.user.is_staff? ? "all" : "your" %> hidden comments on comment pages.
   </tab-hint>
 </tab-entry>
 

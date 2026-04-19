@@ -38,6 +38,7 @@
           ["JPG posts", "jpg_posts", "existing_posts"],
           ["PNG posts", "png_posts", "existing_posts"],
           ["GIF posts", "gif_posts", "existing_posts"],
+          ["WEBP posts", "webp_posts", "existing_posts"],
           ["Flash posts", "swf_posts", "existing_posts"],
           ["WebM posts", "webm_posts", "existing_posts"],
           ["MP4 posts", "mp4_posts", "existing_posts"],
@@ -48,6 +49,7 @@
 
       <%= render "percentage_table", header_title: "Users", data: [
           ["User count", "total_users"],
+          ["Active users (3 months)", "active_users", "total_users"],
           ["Unactivated users", "unactivated_users", "total_users"],
           ["Banned users", "blocked_users", "total_users"],
           ["Members", "member_users", "total_users"],
@@ -79,8 +81,8 @@
       <%= render "percentage_table", header_title: "Blips", data: [
           ["Blip count", "total_blips"],
           ["Active blips", "active_blips", "total_blips"],
-          ["Hidden blips", "hidden_blips", "total_blips"],
           ["Deleted blips", "deleted_blips", "total_blips"],
+          ["Destroyed blips", "destroyed_blips", "total_blips"],
         ]
       %>
 

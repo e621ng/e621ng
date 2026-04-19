@@ -6,7 +6,8 @@ class PostPrunerTest < ActiveSupport::TestCase
   setup do
     @user = create(:admin_user)
     CurrentUser.user = @user
-    @old_post = create(:post, created_at: 31.days.ago, is_pending: true)
+    window = Danbooru.config.unapproved_post_deletion_window
+    @old_post = create(:post, created_at: (window + 1.day).ago, is_pending: true)
 
     PostPruner.new.prune!
   end

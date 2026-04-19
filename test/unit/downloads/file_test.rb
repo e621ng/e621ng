@@ -129,6 +129,24 @@ module Downloads
         assert_equal("Actual content", file.read)
       end
 
+      context "url validation" do
+        should "handle URLs without scheme gracefully" do
+          # URLs without schemes should trigger validation errors but not crash with DNS resolution errors
+          error = assert_raises(ActiveModel::ValidationError) do
+            Downloads::File.new("d.furaffinity.net/art/test.png")
+          end
+          assert_includes(error.message, "not a valid url")
+          assert_includes(error.message, "Did you mean 'http://")
+        end
+
+        should "handle blank URLs" do
+          error = assert_raises(ActiveModel::ValidationError) do
+            Downloads::File.new("")
+          end
+          assert_includes(error.message, "URL must not be blank")
+        end
+      end
+
       context "url normalization" do
         should "correctly escapes cyrilic characters" do
           input = "https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_заливать-гитару.jpg"
@@ -145,6 +163,12 @@ module Downloads
         should "correctly escapes ＠" do
           input = "https://d.furaffinity.net/art/fr95/1635001690/1635001679.fr95_co＠f-r9512.png"
           output = "https://d.furaffinity.net/art/fr95/1635001690/1635001679.fr95_co%EF%BC%A0f-r9512.png"
+          assert_correct_escaping(input, output)
+        end
+
+        should "work with Addressable::URI" do
+          input = Addressable::URI.parse("https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_заливать-гитару.jpg")
+          output = "https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_%D0%B7%D0%B0%D0%BB%D0%B8%D0%B2%D0%B0%D1%82%D1%8C-%D0%B3%D0%B8%D1%82%D0%B0%D1%80%D1%83.jpg"
           assert_correct_escaping(input, output)
         end
       end

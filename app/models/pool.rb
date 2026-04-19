@@ -13,6 +13,7 @@ class Pool < ApplicationRecord
   validates :description, length: { maximum: Danbooru.config.pool_descr_max_size }
   validate :user_not_create_limited, on: :create
   validate :user_not_limited, on: :update, if: :limited_attribute_changed?
+  validate :validate_post_ids, if: :post_ids_changed?
   validate :user_not_posts_limited, on: :update, if: :post_ids_changed?
   validate :validate_name, if: :name_changed?
   validates :category, inclusion: { in: %w[series collection] }
@@ -107,7 +108,7 @@ class Pool < ApplicationRecord
       raise RevertError, "You cannot revert to a previous version of another pool." if id != version.pool_id
 
       self.post_ids = version.post_ids
-      self.name = version.name
+      self.name = version.name if version.name.present?
       self.description = version.description
       self.is_active = version.is_active
       self.category = version.category
@@ -146,10 +147,10 @@ class Pool < ApplicationRecord
   end
 
   def self.name_to_id(name)
-    if name =~ /\A\d+\z/
-      name.to_i
+    if name.to_s =~ /\A\d+\z/
+      ParseValue.safe_id(name)
     else
-      Pool.where("lower(name) = ?", name.downcase.tr(" ", "_")).pick(:id).to_i
+      Pool.where("lower(name) = ?", normalize_name(name).downcase).pick(:id).to_i
     end
   end
 
@@ -158,12 +159,10 @@ class Pool < ApplicationRecord
   end
 
   def self.find_by_name(name)
-    if name =~ /\A\d+\z/
-      where("pools.id = ?", name.to_i).first
-    elsif name
+    if name.to_s =~ /\A\d+\z/
+      where("pools.id = ?", ParseValue.safe_id(name)).first
+    elsif name.present?
       where("lower(pools.name) = ?", normalize_name(name).downcase).first
-    else
-      nil
     end
   end
 
@@ -214,6 +213,36 @@ class Pool < ApplicationRecord
     else
       true
     end
+  end
+
+  def validate_post_ids
+    post_ids_before = post_ids_before_last_save || post_ids_was
+    added = post_ids - post_ids_before
+
+    return if added.empty?
+
+    invalid_ids = []
+    sanitized_ids = []
+
+    added.each do |id|
+      safe_id = ParseValue.safe_id(id)
+      if safe_id <= 0
+        invalid_ids.push(id)
+      else
+        sanitized_ids.push(safe_id)
+      end
+    end
+
+    if sanitized_ids.any?
+      existing_ids = Post.where(id: sanitized_ids).pluck(:id)
+      missing_ids = sanitized_ids - existing_ids
+      invalid_ids.concat(missing_ids)
+    end
+
+    return if invalid_ids.empty?
+
+    errors.add(:base, "Cannot add posts to pool. Invalid IDs: #{invalid_ids.join(', ')}")
+    false
   end
 
   def add!(post)

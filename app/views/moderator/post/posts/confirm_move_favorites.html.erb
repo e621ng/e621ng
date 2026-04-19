@@ -1,7 +1,7 @@
 <h1>Move Favorites to Parent</h1>
 
 <div>
-  <%= PostPresenter.preview(@post, show_deleted: true) %>
+  <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
 </div>
 
 <p style="clear: both;">This will move all the post's favorites to its parent post. Are you sure?</p>

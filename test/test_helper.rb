@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ENV["RAILS_ENV"] ||= "test"
+ENV["RAILS_ENV"] = "test"
 ENV["MT_NO_EXPECTATIONS"] = "true"
 require_relative "../config/environment"
 require "rails/test_help"
@@ -10,6 +10,22 @@ require "mocha/minitest"
 require "shoulda-context"
 require "shoulda-matchers"
 require "webmock/minitest"
+
+# shoulda-context 2.0.0 patches format_rerun_snippet using bare `executable`,
+# which no longer exists as an instance method in Rails 8.1 (it became a class
+# accessor). Re-patch it here with the correct reference.
+Rails::TestUnitReporter.class_eval do
+  def format_rerun_snippet(result)
+    location, line =
+      if result.respond_to?(:source_location)
+        result.source_location
+      else
+        result.method(result.name).source_location
+      end
+
+    "#{self.class.executable} #{relative_path_for(location)}:#{line}"
+  end
+end
 
 require_relative "test_helpers/source_test_helper"
 
@@ -71,6 +87,7 @@ class ActiveSupport::TestCase
     FileUtils.rm_rf("#{Rails.root}/tmp/test-storage2")
     Cache.clear
     RequestStore.clear!
+    assert_equal Rails.application.config.time_zone, Time.zone.name, "Time.zone was not restored to the default time zone after this test — check for Time.zone= calls without Time.use_zone"
   end
 
   def as(user, ip_addr = "127.0.0.1", &)
@@ -113,21 +130,16 @@ class ActionDispatch::IntegrationTest
     method_authenticated(:post, url, user, options)
   end
 
+  def patch_auth(url, user, options = {})
+    method_authenticated(:patch, url, user, options)
+  end
+
   def put_auth(url, user, options = {})
     method_authenticated(:put, url, user, options)
   end
 
   def delete_auth(url, user, options = {})
     method_authenticated(:delete, url, user, options)
-  end
-end
-
-module ActionView
-  class TestCase
-    # Stub webpacker method so these tests don't compile assets
-    def asset_pack_path(name, **_options)
-      name
-    end
   end
 end
 

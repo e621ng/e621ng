@@ -1,0 +1,15 @@
+<%# locals: (label: "x", post:, replacement:) %>
+
+<%= tag.img id: "post-diff-#{label}", src: replacement&.replacement_file_url || post.file_url, alt: "Post #{post.id}" %>
+
+<div id="post-diff-label-<%= label %>" class="post-diff-label">
+  <% if replacement.present? %>
+    <%= link_to "Replacement ##{replacement.id}", post_replacements_path(search: { post_id: post.id }) %>
+    <div class="post-diff-file-info"><%= replacement.file_ext.upcase %>, <%= number_to_human_size(replacement.file_size) %></div>
+    <div class="post-diff-file-info"><%= replacement.image_width %>x<%= replacement.image_height %></div>
+  <% else %>
+    <%= link_to "Post ##{post.id}", post_path(post) %>
+    <div class="post-diff-file-info"><%= post.file_ext.upcase %>, <%= number_to_human_size(post.file_size) %></div>
+    <div class="post-diff-file-info"><%= post.image_width %>x<%= post.image_height %></div>
+  <% end %>
+</div>
