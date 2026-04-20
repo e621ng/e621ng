@@ -7,7 +7,7 @@ class AutomodCheckJob < ApplicationJob
     comment = Comment.find(comment_id)
     return if Ticket.active.where(qtype: "comment", disp_id: comment.id).exists?
 
-    rule = AutomodRule.enabled.find { |r| r.match?(comment.body) }
+    rule = AutomodRule.for_comments.find { |r| r.match?(comment.body) }
     return unless rule
 
     CurrentUser.as_system do

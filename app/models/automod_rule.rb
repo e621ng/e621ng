@@ -1,13 +1,21 @@
 # frozen_string_literal: true
 
 class AutomodRule < ApplicationRecord
+  include Danbooru::HasBitFlags
+
+  APPLY_TO_ATTRIBUTES = %w[comments usernames profile_text].freeze
+  has_bit_flags APPLY_TO_ATTRIBUTES, field: "apply_to"
+
   belongs_to_creator
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
   validates :regex, presence: true
   validate :validate_regex
 
-  scope :enabled, -> { where(enabled: true) }
+  scope :enabled,       -> { where(enabled: true) }
+  scope :for_comments,      -> { enabled.where("(apply_to & 1) > 0") }
+  scope :for_usernames,     -> { enabled.where("(apply_to & 2) > 0") }
+  scope :for_profile_text,  -> { enabled.where("(apply_to & 4) > 0") }
 
   def match?(text)
     Regexp.new(regex, Regexp::IGNORECASE, timeout: 1.0).match?(text)

@@ -7,9 +7,17 @@
     <%= select_tag("automod_rule[enabled]", options_for_select([["Yes", true], ["No", false]], @automod_rule.enabled?)) %>
   </div>
 
+  <div class="input">
+    <label class="block">Applies To</label>
+    <%= f.input :comments,     as: :boolean, label: "Comments" %>
+    <%= f.input :usernames,    as: :boolean, label: "Usernames" %>
+    <%= f.input :profile_text, as: :boolean, label: "Profile text (About Me / Artist Info)" %>
+  </div>
+
   <div style="margin: 1rem;">
-    Automod rules are checked against new and edited comments in the order they are listed.<br />
-    If a comment matches a rule, a ticket will be automatically created for a moderator to review.
+    Automod rules are checked against new and edited comments, usernames, and profile text fields
+    according to the selections above. When a match is found, a ticket will be automatically created
+    for a moderator to review.
   </div>
 
   <%= f.submit class: "st-button submit" %>
