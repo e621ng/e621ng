@@ -7,17 +7,31 @@
     <%= select_tag("automod_rule[enabled]", options_for_select([["Yes", true], ["No", false]], @automod_rule.enabled?)) %>
   </div>
 
-  <div class="input">
-    <label class="block">Applies To</label>
-    <%= f.input :comments,     as: :boolean, label: "Comments" %>
-    <%= f.input :usernames,    as: :boolean, label: "Usernames" %>
-    <%= f.input :profile_text, as: :boolean, label: "Profile text (About Me / Artist Info)" %>
+  <div class="automod-applies">
+    <h5>Applies To</h5>
+
+    <div class="automod-applies-toggle">
+      <%= f.label :comments %>
+      <%= f.input_field :comments, as: :boolean, class: "st-toggle" %>
+      <%= f.label :comments, "!", class: "st-toggle", role: "switch" %>
+    </div>
+
+    <div class="automod-applies-toggle">
+      <%= f.label :usernames %>
+      <%= f.input_field :usernames, as: :boolean, class: "st-toggle" %>
+      <%= f.label :usernames, "!", class: "st-toggle", role: "switch" %>
+    </div>
+  
+    <div class="automod-applies-toggle">
+      <%= f.label :profile_text %>
+      <%= f.input_field :profile_text, as: :boolean, class: "st-toggle" %>
+      <%= f.label :profile_text, "!", class: "st-toggle", role: "switch" %>
+    </div>
   </div>
 
-  <div style="margin: 1rem;">
-    Automod rules are checked against new and edited comments, usernames, and profile text fields
-    according to the selections above. When a match is found, a ticket will be automatically created
-    for a moderator to review.
+  <div class="automod-applies-hint">
+    Automod rules are checked against new and edited records according to the selections above.<br />
+    When a match is found, a ticket will be automatically created for a moderator to review.
   </div>
 
   <%= f.submit class: "st-button submit" %>
