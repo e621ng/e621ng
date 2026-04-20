@@ -1,0 +1,179 @@
+<% tab_name = "themes" %>
+
+<!-- Appearance -->
+<setting-group name="appearance">Appearance</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="appearance" search="theme appearance layout design color">
+  <setting-title><label for="Theme_Main">Theme</label></setting-title>
+  <setting-body>
+    <select id="Theme_Main" data-type="theme" data-a="Theme" data-b="Main">
+      <option value="hexagon">Hexagon</option>
+      <option value="bloodlust">Bloodlust</option>
+      <option value="pony">Pony</option>
+      <option value="serpent">Serpent</option>
+      <option value="hotdog">Hotdog</option>
+    </select>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="appearance" search="theme appearance layout design color extra embellishment">
+  <setting-title><label for="Theme_Extra">Embellishments</label></setting-title>
+  <setting-body>
+    <select id="Theme_Extra" data-type="theme" data-a="Theme" data-b="Extra">
+      <option value="none">(None)</option>
+      <option value="aurora">Aurora</option>
+      <option value="autumn">Autumn</option>
+      <option value="hexagon">Hexagon</option>
+      <option value="space">Space</option>
+      <option value="spring">Spring</option>
+      <option value="stars">Stars</option>
+      <option value="winter">Eternal Winter</option>
+      <option value="scales">Scales</option>
+    </select>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="appearance" search="theme appearance layout design color logo header">
+  <setting-title><label for="Theme_Logo">Logo</label></setting-title>
+  <setting-body>
+    <select id="Theme_Logo" data-type="theme" data-a="Theme" data-b="Logo">
+      <option value="default">Default</option>
+      <option value="default_blue">Default (Unthemed)</option>
+      <optgroup label="Pride">
+        <option value="pride">Pride</option>
+        <option value="pride_progressive">Pride (Progressive)</option>
+        <option value="pride_philadelphia">Pride (Philadelphia)</option>
+      </optgroup>
+      <optgroup label="Identities">
+        <option value="aegosexual">Aegosexual</option>
+        <option value="agender">Agender</option>
+        <option value="ace">Asexual</option>
+        <option value="androgyne">Androgyne</option>
+        <option value="aro">Aromantic</option>
+        <option value="bear">Bear</option>
+        <option value="bigender">Bigender</option>
+        <option value="bi">Bisexual</option>
+        <option value="demibisexual">Demibisexual</option>
+        <option value="demiboy">Demiboy</option>
+        <option value="demigirl">Demigirl</option>
+        <option value="demiromantic">Demiromantic</option>
+        <option value="demisexual">Demisexual</option>
+        <option value="gay">Gay</option>
+        <option value="genderfluid">Genderfluid</option>
+        <option value="genderqueer">Genderqueer</option>
+        <option value="intersex">Intersex</option>
+        <option value="lesbian">Lesbian</option>
+        <option value="nonbinary">Nonbinary</option>
+        <option value="omni">Omnisexual</option>
+        <option value="pan">Pansexual</option>
+        <option value="polyamory">Polyamory</option>
+        <option value="queer">Queer</option>
+        <option value="trans">Transgender</option>
+      </optgroup>
+      <optgroup label="???">
+        <option value="french">French</option>
+        <option value="renamon">Pikachu?</option>
+      </optgroup>
+    </select>
+  </setting-body>
+</setting-entry>
+
+
+<!-- Accessibility -->
+<setting-group name="accessibility">Accessibility</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="accessibility" search="theme accessibility color palette colorblind">
+  <setting-title><label for="Theme_Palette">Palette</label></setting-title>
+  <setting-body>
+    <select id="Theme_Palette" data-type="theme" data-a="Theme" data-b="Palette">
+      <option value="default">Default</option>
+      <option value="deut">Protanopia & Deuteranopia</option>
+      <option value="trit">Tritanopia</option>
+    </select>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="accessibility" search="theme accessibility font typography">
+  <setting-title><label for="Theme_Font">Font</label></setting-title>
+  <setting-body>
+    <select id="Theme_Font" data-type="theme" data-a="Theme" data-b="Font">
+      <option value="Verdana">Verdana</option>
+      <option value="Lato">Lato</option>
+      <option value="Lexend">Lexend</option>
+      <option value="Monospace">Monospace</option>
+      <option value="OpenDyslexic">Open Dyslexic</option>
+      <option value="OpenSans">Open Sans</option>
+      <option value="ComicSans">Comic Sans</option>
+    </select>
+  </setting-body>
+</setting-entry>
+
+
+<!-- Features -->
+<setting-group name="features">Features</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="features" search="theme features wiki excerpt post info">
+  <setting-title><label for="Posts_WikiExcerpt">Wiki Excerpt</label></setting-title>
+  <setting-body>
+    <select id="Posts_WikiExcerpt" data-type="theme" data-a="Posts" data-b="WikiExcerpt">
+      <option value="0">Collapsed</option>
+      <option value="1">Expanded</option>
+      <option value="2">Disabled</option>
+    </select>
+  </setting-body>
+</setting-entry>
+
+
+<!-- Navigation -->
+<setting-group name="navigation">Navigation</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="navigation" class="inline" search="theme navigation sticky header layout design">
+  <setting-title><label for="Theme_StickyHeader">Sticky Header</label></setting-title>
+  <setting-body>
+    <input class="boolean optional st-toggle" type="checkbox" id="Theme_StickyHeader" data-type="theme" data-a="Theme" data-b="StickyHeader">
+    <label class="st-toggle" for="Theme_StickyHeader">!</label>
+  </setting-body>
+</setting-entry>
+
+
+<setting-entry tab="<%= tab_name %>" group="navigation" class="inline" search="theme navigation sticky searchbar layout design">
+  <setting-title><label for="Posts_StickySearch">Sticky Searchbar</label></setting-title>
+  <setting-body>
+    <input class="boolean optional st-toggle" type="checkbox" id="Posts_StickySearch" data-type="theme" data-a="Posts" data-b="StickySearch">
+    <label class="st-toggle" for="Posts_StickySearch">!</label>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="navigation" search="theme navigation navbar location layout design color scheme">
+  <setting-title><label for="Theme_Navbar">Navbar location</label></setting-title>
+  <setting-body>
+    <select id="Theme_Navbar" data-type="theme" data-a="Theme" data-b="Navbar">
+      <option value="top">Top (default)</option>
+      <option value="bottom">Bottom</option>
+      <option value="both">Both</option>
+      <option value="none">Off (not recommended)</option>
+    </select>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="navigation" class="inline" search="theme navigation mobile gestures">
+  <setting-title><label for="Theme_Gestures">Mobile Gestures</label></setting-title>
+  <setting-body>
+    <input class="boolean optional st-toggle" type="checkbox" id="Theme_Gestures" data-type="theme" data-a="Theme" data-b="Gestures">
+    <label class="st-toggle" for="Theme_Gestures">!</label>
+  </setting-body>
+  <setting-hint class="hint">Swipe left for next page/image.<br />Swipe right for previous page/image.</setting-hint>
+</setting-entry>
+
+
+<!-- Other -->
+<setting-group name="other">Other</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="other" class="inline" search="theme other site events april fools">
+  <setting-title><label for="Site_Events">Events</label></setting-title>
+  <setting-body>
+    <input class="boolean optional st-toggle" type="checkbox" id="Site_Events" data-type="theme" data-a="Site" data-b="Events">
+    <label class="st-toggle" for="Site_Events">!</label>
+  </setting-body>
+  <setting-hint class="hint">Site events, like April Fool's Day.</setting-hint>
+</setting-entry>

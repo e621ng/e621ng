@@ -1,0 +1,46 @@
+<div id="c-users"><div id="a-settings">
+  <h1>Settings</h1>
+
+  <setting-menu id="settings-tabs">
+    <% unless CurrentUser.user.is_anonymous? %>
+      <button role="tab" name="basic">Basic</button>
+      <button role="tab" name="advanced">Advanced</button>
+      <button role="tab" name="blacklist">Blacklist</button>
+    <% end %>
+    <button role="tab" name="themes">Themes</button>
+    <span class="spacer"></span>
+    <input type="text" name="search" placeholder="Search Settings" />
+  </setting-menu>
+
+  <%= simple_form_for(:user, id: "settings-form", url: (CurrentUser.user.is_anonymous? ? settings_users_path : user_path(CurrentUser.user))) do |form| %>
+  <setting-content for="settings-tabs">
+    <% unless CurrentUser.user.is_anonymous? %>
+      <input type="hidden" name="_method" value="patch">
+      <%= render "users/partials/settings/basic", form: form %>
+      <%= render "users/partials/settings/advanced", form: form %>
+      <%= render "users/partials/settings/blacklist", form: form %>
+    <% end %>
+    <%= render "users/partials/settings/themes" %>
+
+    <% unless CurrentUser.user.is_anonymous? %>
+      <setting-submit>
+        <%= form.button :submit, "Save Settings" %>
+      </setting-submit>
+    <% end %>
+  </setting-content>
+  <% end %>
+</div></div>
+
+<noscript>
+  <style>
+    setting-menu { display: none !important; }
+    setting-group { display: flex !important; }
+    setting-content tab-entry { display: grid !important; }
+  </style>
+</noscript>
+
+<% content_for(:page_title) do %>
+  Settings
+<% end %>
+
+<%= render "secondary_links" %>

@@ -1,0 +1,155 @@
+<% tab_name = "advanced" %>
+
+<!-- Accessibility -->
+<setting-group name="accessibility">Accessibility</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="accessibility" class="inline" search="keyboard hotkeys shortcut navigation enable disable">
+  <setting-title>Enable Keyboard Shortcuts</setting-title>
+  <setting-body>
+    <%= form.input_field :enable_keyboard_navigation, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_keyboard_navigation, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    The full list of shortcuts is available <%= link_to "here", keyboard_shortcuts_path %>.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="accessibility" class="inline" search="auto complete autocomplete suggestions enable disable">
+  <setting-title>Enable Auto Complete</setting-title>
+  <setting-body>
+    <%= form.input_field :enable_auto_complete, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_auto_complete, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Tag and user name suggestions.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="accessibility" class="inline" search="users colored usernames level rank">
+  <setting-title>Colored Usernames</setting-title>
+  <setting-body>
+    <%= form.input_field :style_usernames, as: :boolean, class: "st-toggle" %>
+    <%= form.label :style_usernames, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Color names depending on the user's level.
+  </setting-hint>
+</setting-entry>
+
+
+<!-- Privacy & Messaging -->
+<setting-group name="privacy">Privacy & Messaging</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="privacy" class="inline" search="posts favorites hide disable private privacy">
+  <setting-title>Hide Favorites</setting-title>
+  <setting-body>
+    <%= form.input_field :enable_privacy_mode, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_privacy_mode, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Prevent your favorites from being publicly visible.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="privacy" class="inline" search="dmails filter banned block enable disable toggle">
+  <setting-title>Disable DMails</setting-title>
+  <setting-body>
+    <%= form.input_field :disable_user_dmails, as: :boolean, class: "st-toggle", disabled: CurrentUser.is_staff? %>
+    <%= form.label :disable_user_dmails, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Prevent other users from sending you DMails.
+    <% if CurrentUser.is_staff? %>
+      <br />Staff members are not allowed to disable DMails.
+    <% end %>
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="privacy" search="dmails filter banned block">
+  <setting-title>DMail Filters</setting-title>
+  <setting-body>
+    <%= hidden_field_tag "user[dmail_filter_attributes][id]", @user.dmail_filter.try(:id) %>
+    <%= text_field_tag "user[dmail_filter_attributes][words]", @user.dmail_filter.try(:words), id: "user_dmail_filter_attributes_words", class: "text optional", size: 40 %>
+  </setting-body>
+  <setting-hint>
+    A list of banned words (space delimited). Any dmail you receive with a banned word will automatically be deleted.
+  </setting-hint>
+</setting-entry>
+
+
+<!-- Posts -->
+<setting-group name="tags">Posts & Tags</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="tags" class="inline" search="show hide posts thumbnails statistics stats search">
+  <setting-title>Show Statistics</setting-title>
+  <setting-body>
+    <%= form.input_field :show_post_statistics, as: :boolean, class: "st-toggle" %>
+    <%= form.label :show_post_statistics, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Show post stats below posts on search pages.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="tags" class="inline" search="show hide collapse expand posts descriptions">
+  <setting-title>Collapse Descriptions</setting-title>
+  <setting-body>
+    <%= form.input_field :description_collapsed_initially, as: :boolean, class: "st-toggle" %>
+    <%= form.label :description_collapsed_initially, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Do not expand post descriptions on page load.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="tags" class="bigtext" search="posts tags frequent favorite related">
+  <setting-title>Frequent Tags</setting-title>
+  <setting-body>
+    <%= form.textarea :favorite_tags, label: false, autocomplete: "tag-query", rows: 5 %>
+  </setting-body>
+  <setting-hint>
+    A list of tags that you use often.<br />They will appear when using the list of Related Tags.
+  </setting-hint>
+</setting-entry>
+
+<% if @user.post_upload_count >= 10 %>
+<setting-entry tab="<%= tab_name %>" group="tags" class="inline" search="show hide compact uploader posts">
+  <setting-title>Compact Uploader</setting-title>
+  <setting-body>
+    <%= form.input_field :enable_compact_uploader, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_compact_uploader, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    A more compact and less guided post uploader.
+  </setting-hint>
+</setting-entry>
+<% end %>
+
+
+<!-- Mobile -->
+<setting-group name="mobile">Mobile / Tablet</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="mobile" class="inline" search="enable disable responsive mode mobile tablet">
+  <setting-title>Disable Responsive Mode</setting-title>
+  <setting-body>
+    <%= form.input_field :disable_responsive_mode, as: :boolean, class: "st-toggle" %>
+    <%= form.label :disable_responsive_mode, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Disable alternative layout for mobile and tablet.
+  </setting-hint>
+</setting-entry>
+
+
+<!-- Customization -->
+<setting-group name="customization">Customization</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="customization" class="bigtext" search="customize css styles">
+  <setting-title>Custom CSS</setting-title>
+  <setting-body>
+    <%= form.textarea :custom_style, label: false, rows: 8 %>
+  </setting-body>
+  <setting-hint>
+    Apply <a href="https://en.wikipedia.org/wiki/CSS">CSS Styles</a> to the whole website.
+  </setting-hint>
+</setting-entry>

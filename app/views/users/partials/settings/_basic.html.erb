@@ -1,0 +1,176 @@
+<% tab_name = "basic" %>
+
+<!-- Account -->
+<setting-group name="account">Account</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="account" class="with-buttons" search="update change user profile account name username">
+  <setting-title>Username</setting-title>
+  <setting-body>
+    <input type="text" value="<%= CurrentUser.user.pretty_name %>" disabled><%= link_to "Edit", new_user_name_change_request_path, class: "st-button" %>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="account" class="with-buttons" search="update change user profile account email e-mail address">
+  <setting-title>Email</setting-title>
+  <setting-body>
+    <input type="text" value="<%= CurrentUser.user.email.presence || "blank" %>" disabled><%= link_to "Edit", new_maintenance_user_email_change_path, class: "st-button" %>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="account" class="with-button" search="update change user profile account api key access">
+  <setting-title>API Keys</setting-title>
+  <setting-body>
+    <%= link_to "Manage API Keys", api_keys_path, class: "st-button" %>
+  </setting-body>
+  <setting-hint>
+    Do not give your API keys to third-party apps you do not trust.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="account" class="" id="settings-account-buttons" search="update change user profile account delete password">
+  <setting-title></setting-title>
+  <setting-body>
+    <%= link_to "Change password", edit_user_password_path(user_id: @user.id), class: "st-button" %>
+    <%= link_to "Delete account", maintenance_user_deletion_path, class: "st-button danger" %>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="account" search="user account timezone">
+  <setting-title>Time Zone</setting-title>
+  <setting-body>
+    <%= form.input_field :time_zone,
+      label: false,
+      include_blank: false
+    %>
+  </setting-body>
+</setting-entry>
+
+
+<!-- Notifications -->
+<setting-group name="notifications">Notifications</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="notifications" class="inline" search="user account email notify notifications">
+  <setting-title><%= form.label :receive_email_notifications, label: "Email Notifications" %></setting-title>
+  <setting-body type="remote">
+    <%= form.input_field :receive_email_notifications, as: :boolean, class: "st-toggle" %>
+    <%= form.label :receive_email_notifications, "!", class: "st-toggle" %>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="notifications" class="inline" search="user account forum activity dot bubble toggle notify notification">
+  <setting-title><%= form.label :forum_notification_dot, label: "Forum Activity Dot" %></setting-title>
+  <setting-body type="remote">
+    <%= form.input_field :forum_notification_dot, as: :boolean, class: "st-toggle" %>
+    <%= form.label :forum_notification_dot, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+</setting-entry>
+
+
+<!-- Profile -->
+<% if CurrentUser.user.is_member? %>
+  <setting-group name="profile">Profile</setting-group>
+
+  <setting-entry tab="<%= tab_name %>" group="profile" search="update change user avatar profile image pfp">
+    <setting-title><%= form.label :avatar_id, "Avatar Post ID" %></setting-title>
+    <setting-body type="remote">
+      <%= form.input_field :avatar_id, as: :string, label: false %>
+    </setting-body>
+    <setting-hint>
+      The image with this ID will be set as your avatar.
+    </setting-hint>
+  </setting-entry>
+
+  <setting-entry tab="<%= tab_name %>" group="profile" class="bigtext" search="user profile about me">
+    <setting-title><%= form.label :profile_about, "About Me" %></setting-title>
+    <setting-body type="remote">
+      <%= form.textarea :profile_about,
+        as: :dtext,
+        label: false,
+        rows: 8,
+        limit: Danbooru.config.user_about_max_size,
+        allow_color: true
+      %>
+    </setting-body>
+  </setting-entry>
+
+  <setting-entry tab="<%= tab_name %>" group="profile" class="bigtext" search="user profile commission info">
+    <setting-title><%= form.label :profile_artinfo, "Commission Info" %></setting-title>
+    <setting-body type="remote">
+      <%= form.textarea :profile_artinfo,
+        as: :dtext,
+        label: false,
+        rows: 8,
+        limit: Danbooru.config.user_about_max_size,
+        allow_color: true
+      %>
+    </setting-body>
+  </setting-entry>
+<% end %>
+
+
+<!-- Posts -->
+<setting-group name="posts">Posts</setting-group>
+
+<setting-entry tab="<%= tab_name %>" group="posts" search="default images width fit horizontal vertical sample large original display show scale posts">
+  <setting-title><%= form.label :default_image_size, "Default image width" %></setting-title>
+  <setting-body type="remote">
+    <%= form.input_field :default_image_size,
+      label: false,
+      collection: [["Original", "original"], ["Fit (Horizontal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{Danbooru.config.large_image_width}px)", "large"]],
+      include_blank: false
+    %>
+  </setting-body>
+  <setting-hint>
+    Show original image size, scaled to fit, scaled to fit vertically, or show resized 850 pixel sample version.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="posts" search="posts number page display show">
+  <setting-title><%= form.label :per_page, "Posts per page" %></setting-title>
+  <setting-body type="remote">
+    <%= form.input_field :per_page, label: false, as: :select, collection: (25..250).step(25), include_blank: false %>
+  </setting-body>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="posts" search="comments score rating upvotes downvotes display show hide">
+  <setting-title><%= form.label :comment_threshold %></setting-title>
+  <setting-body type="remote">
+    <%= form.input_field :comment_threshold, label: false %>
+  </setting-body>
+  <setting-hint>
+    Comments below this score will be hidden by default.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="posts" class="inline" search="posts comments show hide display hidden">
+  <setting-title><%= form.label :hide_comments %></setting-title>
+  <setting-body type="remote">
+    <%= form.input_field :hide_comments, as: :boolean, class: "st-toggle" %>
+    <%= form.label :hide_comments, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Do not show the comments section on post pages.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="posts" class="inline" search="posts comments show hide display own hidden">
+  <setting-title><%= form.label :show_hidden_comments, "Show #{CurrentUser.user.is_staff? ? 'all' : 'your'} hidden comments" %></setting-title>
+  <setting-body type="remote">
+    <%= form.input_field :show_hidden_comments, as: :boolean, class: "st-toggle" %>
+    <%= form.label :show_hidden_comments, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Show <%= CurrentUser.user.is_staff? ? "all" : "your" %> hidden comments on comment pages.
+  </setting-hint>
+</setting-entry>
+
+<setting-entry tab="<%= tab_name %>" group="posts" class="inline" search="posts display show hide mode explicit questionable safe rated rating">
+  <setting-title><%= form.label :enable_safe_mode, "Safe mode" %></setting-title>
+  <setting-body type="remote">
+    <%= form.input_field :enable_safe_mode, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_safe_mode, "!", class: "st-toggle", role: "switch" %>
+  </setting-body>
+  <setting-hint>
+    Only show images rated safe.
+  </setting-hint>
+</setting-entry>

@@ -64,9 +64,6 @@ class UsersController < ApplicationController
 
   def settings
     @user = CurrentUser.user
-    check_privilege(@user)
-
-    render :edit
   end
 
   def search
@@ -175,7 +172,7 @@ class UsersController < ApplicationController
   def update
     @user = User.find(CurrentUser.id)
     @user.validate_email_format = true
-    check_privilege(@user)
+    # check_privilege(@user)
     @user.update(user_params(:update))
     if @user.errors.any?
       flash[:notice] = @user.errors.full_messages.join("; ")

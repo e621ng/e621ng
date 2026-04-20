@@ -21,6 +21,7 @@ import Thumbnails from "@/core/thumbnails";
 import "@/core/tos_warning";
 import "@/core/user_warning"; // Realistically, should only be on specific pages
 import E621Type from "@/interfaces/E621";
+import Appearance from "@/utility/Appearance";
 import Flash from "@/utility/Flash";
 import Logger from "@/utility/Logger";
 import ModuleRegistry from "@/utility/ModuleRegistry";
@@ -41,7 +42,7 @@ window["E621"] = {
   Hotkeys,
   Logger,
   Flash,
-
+  Appearance,
   // compatibility aliases
   error: Flash.error,
   notice: Flash.notice,
