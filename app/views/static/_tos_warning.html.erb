@@ -9,7 +9,8 @@
     aria: {
       modal: "true",
       labelledby: "tos-modal-header",
-      describedby: "tos-modal-text"
+      describedby: "tos-modal-text",
+      label: "Terms of Use Warning",
     }
   ) do %>
 
@@ -30,7 +31,7 @@
 
     <%# Footer %>
     <div class="tos-modal-footer">
-      <button type="submit" name="state" value="declined" id="tos-warning-decline" class="st-button">Decline</button>
+      <button type="button" name="state" value="declined" id="tos-warning-decline" class="st-button">Decline</button>
       <button type="submit" name="state" value="accepted" id="tos-warning-accept" class="st-button submit disabled">Accept</button>
     </div>
 
