@@ -15,7 +15,7 @@
     </a>
   <% end %>
 
-  <% if CurrentUser.is_moderator? && CurrentUser.user != user && active == 0 %>
+  <% if CurrentUser.user.is_moderator? && CurrentUser.user != user && active == 0 %>
     <a
       href="<%= new_user_feedback_path(user_feedback: { user_id: user.id, category: "neutral" }) %>"
       class="user-records-list"

@@ -5,10 +5,14 @@ class UserFeedbackComponent < ViewComponent::Base
 
   STYLES = %i[badge inline].freeze
 
-  def initialize(user:, style: :badge)
+  def initialize(user:, style: :inline)
     super()
     @user = user
-    @style = style.to_sym
+    if style.nil? || STYLES.exclude?(style.to_sym)
+      @style = :inline
+    else
+      @style = style.to_sym
+    end
   end
 
   def render?
