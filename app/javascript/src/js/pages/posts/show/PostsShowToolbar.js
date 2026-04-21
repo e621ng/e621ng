@@ -210,11 +210,8 @@ export default class PostsShowToolbar {
         })
         .then(blob => {
           const blobUrl = window.URL.createObjectURL(blob);
-          button.attr({
-            href: blobUrl,
-            pending: "false",
-          }).off("click.e6.prepare");
-          button[0].click();
+          PostsShowToolbar.generateDownloadLink(blobUrl, button.attr("download"));
+          button.attr("pending", "false");
           setTimeout(() => window.URL.revokeObjectURL(blobUrl), 0);
         })
         .catch(e => {
@@ -231,6 +228,16 @@ export default class PostsShowToolbar {
       offclickHandler.disabled = true;
       menu.addClass("hidden");
     });
+  }
+
+  static generateDownloadLink (blobUrl, fileName) {
+    // I will take a download link... and CLICK IT!!!
+    const downloadLink = document.createElement("a");
+    downloadLink.href = blobUrl;
+    downloadLink.setAttribute("download", fileName);
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
   }
 }
 
