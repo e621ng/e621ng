@@ -193,26 +193,29 @@ export default class PostsShowToolbar {
       menu.toggleClass("hidden", offclickHandler.disabled);
     });
 
-    const button = $(".ptbr-etc-download").on("click.e6.prepare", async (event) => {
+    const button = $(".ptbr-etc-download").on("click.e6.prepare", (event) => {
       event.preventDefault();
 
       if (button.attr("pending") == "true") return;
       button.attr("pending", "true");
 
       const url = PostsShowToolbar.currentPost.file.url;
-      console.log("downloading", url);
 
       fetch(url, {
         mode: "cors",
       })
-        .then(response => response.blob())
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.blob();
+        })
         .then(blob => {
-          let blobUrl = window.URL.createObjectURL(blob);
+          const blobUrl = window.URL.createObjectURL(blob);
           button.attr({
             href: blobUrl,
             pending: "false",
           }).off("click.e6.prepare");
           button[0].click();
+          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 0);
         })
         .catch(e => {
           E621.Flash.error("Failed to download post file.", e);
