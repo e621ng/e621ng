@@ -281,6 +281,7 @@ div#c-posts {
       }
       textarea {
         width: 100%;
+        max-width: unset;
       }
 
       #post_rating_e:checked + label {
