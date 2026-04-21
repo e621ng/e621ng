@@ -290,4 +290,8 @@ class TagImplication < TagRelationship
     @dedescendants = nil
     @parents = nil
   end
+
+  def dtext_label
+    "[ti:#{id}]"
+  end
 end
