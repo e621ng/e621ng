@@ -172,7 +172,6 @@ class TagQuery
     CATEGORY_METATAG_MAP.keys.map { |e| "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags" }.map { |e| -"#{e}_desc" }, # Remove superfluous `_desc` suffix
     ORDER_NON_SUFFIXED_ALIASES.keys - %w[portrait landscape], # Remove all non-suffixed aliases except `portrait` & `landscape`
     %w[aspect_ratio aspect_ratio_asc], # Remove the forms `portrait` & `landscape` resolve to
-    %w[deleted deleted_asc flagged flagged_asc], # Remove deleted/flagged order values from autocomplete
     CATEGORY_METATAG_MAP.keys.flat_map { |e| [e, -"#{e}_asc"] }, # Remove the resolved forms of the full tag category forms
   )).freeze
 
@@ -425,8 +424,8 @@ class TagQuery
     if query.is_a?(TagQuery)
       query[:order].in?(OVERRIDE_DELETED_FILTER_ORDERS)
     else
-      order_values = TagQuery.fetch_metatags(query, "order", prepend_prefix: false, at_any_level: at_any_level)["order"]
-      order_values.present? && order_values.last.in?(OVERRIDE_DELETED_FILTER_ORDERS)
+      order_value = TagQuery.fetch_metatag(query, "order", "-order", prepend_prefix: false, at_any_level: at_any_level)
+      order_value.present? && order_value.in?(OVERRIDE_DELETED_FILTER_ORDERS)
     end
   end
 
