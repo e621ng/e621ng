@@ -103,11 +103,18 @@
 
       <div
         id="post-recommendations"
+        data-collapsed="false"
         data-selected="tags"
         data-status="waiting"
         data-post-id="<%= @post.id %>"
         data-remote="<%= Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>"
       >
+        <div id="post-recommendations-reveal">
+          <button class="st-button" data-action="reveal">
+            <span>Show Recommendations</span>
+            <%= svg_icon(:eye_off) %>
+          </button>
+        </div>
         <div id="post-recommendations-tabs">
           <button class="st-button" data-action="artist">From the Artist</button>
           <% if Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>

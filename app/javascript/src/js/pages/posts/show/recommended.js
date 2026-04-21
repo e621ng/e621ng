@@ -20,8 +20,7 @@ Recommended.remote_actions = ["favorites", "tags"];
 Recommended.init = function () {
   if (Recommended.$container.length === 0) return;
   if (Recommended.action === "closed") {
-    Recommended.$wrapper.remove();
-    return;
+    Recommended.collapsed = true;
   }
 
   // Bootstrap analytics
@@ -64,13 +63,18 @@ Recommended.init = function () {
     Recommended.action = action;
     if (action == "closed") {
       Recommended.requestID++; // Invalidate any in-flight requests
-      Recommended.$wrapper.remove();
-      E621.Flash.notice("You can re-enable recommendations in the <a href=\"/static/theme\">Themes menu</a>.", true);
+      Recommended.collapsed = true;
       return;
     }
 
     Recommended.$wrapper.attr("data-action", action);
     Recommended.loadState(action);
+  });
+
+  // Rig the reveal button
+  $("#post-recommendations-reveal").on("click", "button", () => {
+    Recommended.action = "artist";
+    Recommended.collapsed = false;
   });
 };
 
@@ -124,6 +128,15 @@ Object.defineProperty(Recommended, "status", {
   },
   set: function (value) {
     this.$wrapper.attr("data-status", value);
+  },
+});
+
+Object.defineProperty(Recommended, "collapsed", {
+  get: function () {
+    return this.$wrapper.attr("data-collapsed") === "true";
+  },
+  set: function (value) {
+    this.$wrapper.attr("data-collapsed", value ? "true" : "false");
   },
 });
 
@@ -301,7 +314,7 @@ Recommended.waitUntilReady = function () {
           resolve();
         }
       });
-    }, { threshold: 0.1 });
+    }, { threshold: 0 });
 
     observer.observe(Recommended.$container[0]);
   });
