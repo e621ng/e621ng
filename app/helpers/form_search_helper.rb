@@ -34,7 +34,7 @@ module FormSearchHelper
   def filled_form_fields(search_params, exclude_default_fields: %i[], &)
     form_field_collector = FormFieldCollector.new
     capture { yield(form_field_collector) }
-    available_fields = DEFAULT_SEARCH_FIELDS - Array(exclude_default_fields).map(&:to_sym) + form_field_collector.fields
+    available_fields = DEFAULT_SEARCH_FIELDS - exclude_default_fields + form_field_collector.fields
     available_fields & search_params.keys.map(&:to_sym)
   end
 end
