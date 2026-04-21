@@ -135,7 +135,7 @@ class ModActionDecorator < ApplicationDecorator
         "Changed #{user} level to #{vals['level']}"
       end
     when "user_flags_change"
-      "Changed #{user} flags. Added: [#{vals['added'].join(', ')}] Removed: [#{vals['removed'].join(', ')}]"
+      "Changed #{user} flags. Added: [#{vals['added']&.join(', ')}] Removed: [#{vals['removed']&.join(', ')}]"
     when "edited_user"
       "Edited #{user}"
     when "user_blacklist_changed"
@@ -154,7 +154,7 @@ class ModActionDecorator < ApplicationDecorator
       ### User Record ###
 
     when "user_feedback_create"
-      "Created #{vals['type'].capitalize} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+      "Created #{vals['type']&.capitalize} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
     when "user_feedback_update"
       if vals["reason_was"].present? || vals["type_was"].present?
         text = "Edited record ##{vals['record_id']} for #{user}"
