@@ -11,6 +11,7 @@ import "@/pages/posts/show/post_sets";
 import "@/pages/posts/show/PostsShowToolbar";
 import "@/pages/posts/show/recommended";
 import "@/pages/posts/show/related_tag";
+import "@/pages/posts/show/SwipeGestureHandler";
 
 import "@/pages/post_flags/post_flags"; // We only need expandable notes from here
 
