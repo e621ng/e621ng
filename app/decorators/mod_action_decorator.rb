@@ -11,24 +11,28 @@ class ModActionDecorator < ApplicationDecorator
     vals = object.values
     return "" if vals.nil?
 
-    if vals['user_id']
+    if vals["user_id"]
       user = "\"#{User.id_to_name(vals['user_id'])}\":/users/#{vals['user_id']}"
-    elsif vals['username']
+    elsif vals["username"]
       user = "\"#{vals['username']}\":/users/?name=#{vals['username']}"
     end
 
     case object.action
-      ### Pools ###
+
+      ### Pool ###
+
     when "pool_delete"
       "Deleted pool ##{vals['pool_id']} (named #{vals['pool_name']}) by #{user}"
 
-      ### Takedowns ###
+      ### Takedown ###
+
     when "takedown_process"
       "Completed takedown ##{vals['takedown_id']}"
     when "takedown_delete"
       "Deleted takedown ##{vals['takedown_id']}"
 
       ### IP Ban ###
+
     when "ip_ban_create"
       msg = "Created ip ban"
       if CurrentUser.is_admin?
@@ -44,6 +48,7 @@ class ModActionDecorator < ApplicationDecorator
       msg
 
       ### Ticket ###
+
     when "ticket_update"
       text = "Modified ticket ##{vals['ticket_id']}"
 
@@ -66,6 +71,7 @@ class ModActionDecorator < ApplicationDecorator
       "Unclaimed ticket ##{vals['ticket_id']}"
 
       ### Artist ###
+
     when "artist_delete"
       "Deleted artist ##{vals['artist_id']} (#{vals['artist_name']})"
     when "artist_page_rename"
@@ -80,6 +86,7 @@ class ModActionDecorator < ApplicationDecorator
       "Unlinked #{user} from artist ##{vals['artist_page']}"
 
       ### Avoid Posting ###
+
     when "avoid_posting_create"
       "Created \"avoid posting ##{vals['id']}\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
     when "avoid_posting_update"
@@ -92,6 +99,7 @@ class ModActionDecorator < ApplicationDecorator
       "Undeleted \"avoid posting ##{vals['id']}\":/avoid_postings/#{vals['id']} for [[#{vals['artist_name']}]]"
 
       ### Staff Note ###
+
     when "staff_note_create"
       "Created \"staff note ##{vals['id']}\":/staff_notes/#{vals['id']} for #{user}\n#{vals['body']}"
     when "staff_note_update"
@@ -174,7 +182,9 @@ class ModActionDecorator < ApplicationDecorator
       "Undeleted #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
     when "user_feedback_destroy"
       "Destroyed #{vals['type']} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+
       ### Legacy User Record ###
+
     when "created_positive_record"
       "Created positive record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
     when "created_neutral_record"
@@ -295,7 +305,7 @@ class ModActionDecorator < ApplicationDecorator
       if vals[:tag1]
         "Approved tag implication ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       end
-    when "tag_implicaton_delete"
+    when "tag_implication_delete"
       if vals[:tag1]
         "Deleted tag implication ({{#{vals[:tag1]}}} → {{#{vals[:tag2]}}})"
       end
@@ -306,7 +316,7 @@ class ModActionDecorator < ApplicationDecorator
         "Updated tag implication #{vals['implication_desc']}\n#{vals['change_desc']}"
       end
 
-      ### BURs ###
+      ### BUR ###
 
     when "mass_update"
       "Mass updated [[#{vals['antecedent']}]] → [[#{vals['consequent']}]]"
@@ -322,7 +332,7 @@ class ModActionDecorator < ApplicationDecorator
     when "deleted_flag_reason"
       "Deleted flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
 
-      ### Post Report Reasons ###
+      ### Post Report Reason ###
 
     when "report_reason_create"
       "Created post report reason #{vals['reason']}"
@@ -338,7 +348,7 @@ class ModActionDecorator < ApplicationDecorator
     when "report_reason_delete"
       "Deleted post report reason #{vals['reason']} by #{user}"
 
-      ### Whitelist ###
+      ### Upload Whitelist ###
 
     when "upload_whitelist_create"
       if CurrentUser.is_admin?
@@ -388,7 +398,8 @@ class ModActionDecorator < ApplicationDecorator
     when "help_delete"
       "Deleted help entry \"#{vals['name']}\":/help/#{vals['name']} ([[#{vals['wiki_page']}]])"
 
-      ### Wiki ###
+      ### Wiki Page ###
+
     when "wiki_page_delete"
       "Deleted wiki page [[#{vals['wiki_page']}]]"
     when "wiki_page_lock"
@@ -398,7 +409,8 @@ class ModActionDecorator < ApplicationDecorator
     when "wiki_page_rename"
       "Renamed wiki page ([[#{vals['old_title']}]] → [[#{vals['new_title']}]])"
 
-      ### Mascots ###
+      ### Mascot ###
+
     when "mascot_create"
       "Created mascot ##{vals['id']}"
     when "mascot_update"
@@ -409,13 +421,26 @@ class ModActionDecorator < ApplicationDecorator
     when "bulk_revert"
       "Processed bulk revert for #{vals['constraints']} by #{user}"
 
-      ### Post Versions
+      ### Search Trend Blacklist ###
+
+    when "search_trend_blacklist_create"
+      "Created search trend blacklist entry for tag pattern \"#{vals['tag']}\" with reason: #{vals['reason']}"
+    when "search_trend_blacklist_update"
+      "Updated search trend blacklist entry for tag pattern \"#{vals['tag']}\" with reason: #{vals['reason']}"
+    when "search_trend_blacklist_delete"
+      "Deleted search trend blacklist entry for tag pattern \"#{vals['tag']}\" with reason: #{vals['reason']}"
+    when "search_trend_blacklist_purge"
+      "Purged #{vals['deleted_count']} search trends matching tag pattern \"#{vals['tag']}\" with reason: #{vals['reason']}"
+
+      ### Post Versions ###
+
     when "post_version_hide"
       "Hidden post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
     when "post_version_unhide"
       "Restored post version \"#{vals['version']}\":/post_versions?search[post_id]=#{vals['post_id']} on post ##{vals['post_id']}"
 
       ### Legacy Post Events ###
+
     when "post_move_favorites"
       "Moves favorites from post ##{vals['post_id']} to post ##{vals['parent_id']}"
     when "post_delete"
@@ -435,6 +460,13 @@ class ModActionDecorator < ApplicationDecorator
       "Post replacement for post ##{vals['post_id']} was rejected"
     when "post_replacement_delete"
       "Post replacement for post ##{vals['post_id']} was deleted"
+
+      ### Other Legacy Events ###
+
+    when "invited_user" # Existed briefly in 2011
+      "Invited user ##{vals['username']}"
+    when "post_owner_reassign" # Actual data is lost forever
+      "Reassigned post owner (no data available)"
 
     else
       CurrentUser.is_admin? ? "Unknown action #{object.action}: #{object.values.inspect}" : "Unknown action #{object.action}"
