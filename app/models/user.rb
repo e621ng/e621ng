@@ -119,7 +119,7 @@ class User < ApplicationRecord
 
   after_create_commit :enqueue_automod_user_check
   after_update_commit :enqueue_automod_user_update_check,
-    if: -> { saved_change_to_name? || saved_change_to_profile_about? || saved_change_to_profile_artinfo? }
+                      if: -> { saved_change_to_name? || saved_change_to_profile_about? || saved_change_to_profile_artinfo? }
 
   has_many :api_keys, dependent: :destroy
   has_one :dmail_filter

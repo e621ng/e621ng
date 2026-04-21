@@ -12,7 +12,7 @@ class AutomodRule < ApplicationRecord
   validates :regex, presence: true
   validate :validate_regex
 
-  scope :enabled,       -> { where(enabled: true) }
+  scope :enabled,           -> { where(enabled: true) }
   scope :for_comments,      -> { enabled.where("(apply_to & 1) > 0") }
   scope :for_usernames,     -> { enabled.where("(apply_to & 2) > 0") }
   scope :for_profile_text,  -> { enabled.where("(apply_to & 4) > 0") }
