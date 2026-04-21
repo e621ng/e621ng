@@ -7,7 +7,7 @@ const EDGE_ZONE = 20; // px — ignore swipes starting this close to screen edge
 const MIN_DISTANCE = 150; // px — minimum total path length
 const MIN_VELOCITY = 0.2; // px/ms — minimum average velocity
 const MAX_REST_MS = 300; // ms — max time since last move point before gesture is discarded
-const DIRECTION_RATIO = 1.5; // horizontal displacement must exceed vertical by this factor
+const DIRECTION_RATIO = 1.6; // horizontal displacement must exceed vertical by this factor
 
 interface TouchPoint {
   x: number;
@@ -39,6 +39,7 @@ class SwipeGestureHandler {
   };
 
   private onMove = (e: TouchEvent): void => {
+    if (this.canceled) return;
     if (e.touches.length > 1) {
       this.canceled = true;
       return;
