@@ -195,6 +195,7 @@ class ModAction < ApplicationRecord
 
   def values
     original_values = self[:values] || {}
+    return {} unless original_values.is_a?(Hash)
 
     if CurrentUser.is_admin?
       original_values
