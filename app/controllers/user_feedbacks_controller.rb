@@ -6,7 +6,7 @@ class UserFeedbacksController < ApplicationController
 
   def index
     index_params = search_params
-    @user_feedbacks = UserFeedback.visible(CurrentUser.user).search(index_params).paginate(index_params[:page], limit: index_params[:limit])
+    @user_feedbacks = UserFeedback.visible(CurrentUser.user).search(index_params).paginate(params[:page], limit: params[:limit])
     @target_user_id = index_params[:user_id].present? ? ParseValue.safe_id(index_params[:user_id]) : 0
     respond_with(@user_feedbacks)
   end
