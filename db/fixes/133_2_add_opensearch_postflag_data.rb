@@ -31,7 +31,7 @@ Post.find_in_batches(batch_size: 10_000) do |posts| # rubocop:disable Metrics/Bl
   deletions = conn.execute(deletion_sql).values
   flags = conn.execute(flag_sql).values
 
-  deleted_at_by_post = deletions.transform_keys(&:to_i) # rubocop complient
+  deleted_at_by_post = deletions.to_h { |post_id, created_at| [post_id.to_i, created_at] } # rubocop:disable Style/HashTransformKeys
   flag_data_by_post = flags.to_h do |post_id, creator_id, reason, note, created_at|
     [post_id.to_i, { flagger: creator_id, flag_reason: reason, flag_note: note, flagged_at: created_at }]
   end
