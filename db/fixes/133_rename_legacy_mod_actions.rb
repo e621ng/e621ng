@@ -19,10 +19,13 @@ renames = {
   "edited_forum_post" => "forum_post_update",
   "hid_forum_post" => "forum_post_hide",
   "unhid_forum_post" => "forum_post_unhide",
-  "locked_forum_post" => "forum_topic_lock",
-  "unlocked_forum_post" => "forum_topic_unlock",
-  "stickied_forum_post" => "forum_topic_stick",
-  "unstickied_forum_post" => "forum_topic_unstick",
+
+  # Forum actions, unprocessable
+  # These store forum post IDs, but the new format expects topic IDs
+  # "locked_forum_post" => "forum_topic_lock",
+  # "unlocked_forum_post" => "forum_topic_unlock",
+  # "stickied_forum_post" => "forum_topic_stick",
+  # "unstickied_forum_post" => "forum_topic_unstick",
 
   # Tag alias actions
   "created_alias" => "tag_alias_create",
@@ -45,9 +48,10 @@ renames = {
   # Set actions
   "made_set_private" => "set_change_visibility",
 
-  # Report reason actions
-  "created_report_reason" => "report_reason_create",
-  "edited_report_reason" => "report_reason_update",
+  # Report reason actions, unprocessable
+  # These store report reason IDs, but the new format expects reason text
+  # "created_report_reason" => "report_reason_create",
+  # "edited_report_reason" => "report_reason_update",
 
   # Typo fixes
   "post_desroy" => "post_destroy",

@@ -22,7 +22,11 @@ class ModActionDecorator < ApplicationDecorator
       ### Pool ###
 
     when "pool_delete"
-      "Deleted pool ##{vals['pool_id']} (named #{vals['pool_name']}) by #{user}"
+      if vals["pool_name"]
+        "Deleted pool ##{vals['pool_id']} (named #{vals['pool_name']}) by #{user}"
+      else
+        "Deleted pool ##{vals['pool_id']}" # Legacy format, missing pool_name and user_id
+      end
 
       ### Takedown ###
 
@@ -217,11 +221,23 @@ class ModActionDecorator < ApplicationDecorator
     when "forum_post_delete"
       "Deleted forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
     when "forum_post_update"
-      "Edited forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+      if vals["forum_topic_id"]
+        "Edited forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+      else
+        "Edited forum ##{vals['forum_post_id']} by #{user}" # Legacy format, missing forum_topic_id
+      end
     when "forum_post_hide"
-      "Hid forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+      if vals["forum_topic_id"]
+        "Hid forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+      else
+        "Hid forum ##{vals['forum_post_id']} by #{user}" # Legacy format, missing forum_topic_id
+      end
     when "forum_post_unhide"
-      "Unhid forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+      if vals["forum_topic_id"]
+        "Unhid forum ##{vals['forum_post_id']} in topic ##{vals['forum_topic_id']} by #{user}"
+      else
+        "Unhid forum ##{vals['forum_post_id']} by #{user}" # Legacy format, missing forum_topic_id
+      end
     when "forum_topic_hide"
       "Hid topic ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
     when "forum_topic_unhide"
