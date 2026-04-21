@@ -248,6 +248,13 @@ module PostIndex
   end
 
   def as_indexed_json(options = {})
+    flag = unless options.key?(:flagger) && options.key?(:flag_reason) && options.key?(:flag_note) && options.key?(:flagged_at)
+             ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).first
+           end
+    deletion = unless options.key?(:deleter) && options.key?(:del_reason) && options.key?(:deleted_at)
+                 ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first
+               end
+
     {
       created_at:               created_at,
       updated_at:               updated_at,
@@ -286,11 +293,11 @@ module PostIndex
       notes:                    options[:notes]      || ::Note.active.where(post_id: id).pluck(:body),
       uploader:                 uploader_id,
       approver:                 approver_id,
-      deleter:                  options[:deleter]       || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.creator_id,
-      del_reason:               options[:del_reason]    || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.reason&.downcase,
-      flagger:                  options[:flagger]       || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).first&.creator_id,
-      flag_reason:              options[:flag_reason]   || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).first&.reason&.downcase,
-      flag_note:                options[:flag_note]     || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).first&.note&.downcase,
+      deleter:                  options[:deleter]       || deletion&.creator_id,
+      del_reason:               options[:del_reason]    || deletion&.reason&.downcase,
+      flagger:                  options[:flagger]       || flag&.creator_id,
+      flag_reason:              options[:flag_reason]   || flag&.reason&.downcase,
+      flag_note:                options[:flag_note]     || flag&.note&.downcase,
       width:                    image_width,
       height:                   image_height,
       mpixels:                  image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
@@ -314,8 +321,8 @@ module PostIndex
       has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
       artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
 
-      flagged_at:               options.key?(:flagged_at) ? options[:flagged_at] : ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).limit(1).pick(:created_at),
-      deleted_at:               options.key?(:deleted_at) ? options[:deleted_at] : ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).limit(1).pick(:created_at),
+      flagged_at:               options.key?(:flagged_at) ? options[:flagged_at] : flag&.created_at,
+      deleted_at:               options.key?(:deleted_at) ? options[:deleted_at] : deletion&.created_at,
     }
   end
 end
