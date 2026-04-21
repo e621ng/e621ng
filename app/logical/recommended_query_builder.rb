@@ -18,6 +18,9 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
     artist_names = @post.known_artist_tags.sort_by(&:name).first(10).map(&:name)
     should.concat(artist_names.map { |t| { term: { tags: t } } })
 
+    pool_ids = @post.pool_ids
+    must_not.push({ terms: { pools: pool_ids } }) if pool_ids.any?
+
     # Build weighted function_score: base randomness + boosts for shared character/copyright tags
     character_tags = @post.tags_for_category("character").min_by(10, &:post_count).map(&:name)
     copyright_tags = @post.tags_for_category("copyright").min_by(10, &:post_count).map(&:name)
