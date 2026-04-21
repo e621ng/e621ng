@@ -1,4 +1,4 @@
-import DTextFormatter from "@/components/dtext_formatter";
+import DTextFormatter from "@/components/DTextFormatter";
 import TextUtils from "@/utility/text_util";
 
 let Comment = {};
