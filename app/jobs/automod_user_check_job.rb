@@ -9,8 +9,8 @@ class AutomodUserCheckJob < ApplicationJob
 
     # Build mask for relevant contexts and load matching rules in one DB round-trip
     needed_mask = 0
-    needed_mask |= 2 if check_username
-    needed_mask |= 4 if check_profile
+    needed_mask |= AutomodRule.flag_value_for("usernames") if check_username
+    needed_mask |= AutomodRule.flag_value_for("profile_text") if check_profile
     return if needed_mask == 0
 
     rules = AutomodRule.enabled.where("(apply_to & ?) > 0", needed_mask).to_a

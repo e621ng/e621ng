@@ -13,9 +13,9 @@ class AutomodRule < ApplicationRecord
   validate :validate_regex
 
   scope :enabled,           -> { where(enabled: true) }
-  scope :for_comments,      -> { enabled.where("(apply_to & 1) > 0") }
-  scope :for_usernames,     -> { enabled.where("(apply_to & 2) > 0") }
-  scope :for_profile_text,  -> { enabled.where("(apply_to & 4) > 0") }
+  scope :for_comments,      -> { enabled.where("(apply_to & ?) > 0", flag_value_for("comments")) }
+  scope :for_usernames,     -> { enabled.where("(apply_to & ?) > 0", flag_value_for("usernames")) }
+  scope :for_profile_text,  -> { enabled.where("(apply_to & ?) > 0", flag_value_for("profile_text")) }
 
   def match?(text)
     Regexp.new(regex, Regexp::IGNORECASE, timeout: 1.0).match?(text)
