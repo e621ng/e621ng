@@ -232,6 +232,13 @@ class TagQuery
     status -status
     delreason -delreason ~delreason
     deletedby -deletedby ~deletedby
+    flaggedby -flaggedby ~flaggedby
+    flagnote -flagnote ~flagnote
+    flagreason -flagreason ~flagreason
+  ].freeze
+
+  OVERRIDE_DELETED_FILTER_ORDERS = %w[
+    deleted deleted_desc deleted_asc
   ].freeze
 
   STATUS_VALUES = %w[all any pending modqueue deleted flagged active].freeze
@@ -367,7 +374,7 @@ class TagQuery
   # * `RuntimeError`: when `q[:children_show_deleted]` is `nil` & any element in `q[:groups]` is a
   # `TagQuery`, as `q[:children_show_deleted]` shouldn't be `nil` if subsearches were processed.
   def hide_deleted_posts?(always_show_deleted: false, at_any_level: false)
-    if always_show_deleted || q[:show_deleted]
+    if always_show_deleted || q[:show_deleted] || q[:order].in?(OVERRIDE_DELETED_FILTER_ORDERS)
       false
     elsif at_any_level
       if q[:children_show_deleted].nil? &&
@@ -395,10 +402,12 @@ class TagQuery
   #
   # ### Returns
   # `false` if `always_show_deleted` or `query` contains either a `delreason`/`deletedby`
-  # metatags or a `status` metatag w/ a value in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES` at
-  # the specified depth; `true` otherwise.
+  # metatags or a `status` metatag w/ a value in `TagQuery::OVERRIDE_DELETED_FILTER_STATUS_VALUES`
+  # or a deleted order value in `TagQuery::OVERRIDE_DELETED_FILTER_ORDERS` at the specified depth;
+  # `true` otherwise.
   def self.should_hide_deleted_posts?(query, always_show_deleted: false, at_any_level: true)
     return false if always_show_deleted
+    return false if TagQuery.deleted_filter_order_override?(query, at_any_level: at_any_level)
     return query.hide_deleted_posts?(at_any_level: at_any_level) if query.is_a?(TagQuery)
     TagQuery.fetch_metatags(query, *OVERRIDE_DELETED_FILTER_METATAGS, prepend_prefix: false, at_any_level: at_any_level) do |tag, val|
       return false unless tag.delete_prefix("-") == "status" && !val.in?(OVERRIDE_DELETED_FILTER_STATUS_VALUES)
@@ -408,7 +417,17 @@ class TagQuery
 
   # Can a ` -status:deleted` be safely appended to the search without changing it's contents?
   def self.can_append_deleted_filter?(query, at_any_level: true)
-    !TagQuery.has_metatags?(query, *OVERRIDE_DELETED_FILTER_METATAGS, prepend_prefix: false, at_any_level: at_any_level, has_all: false)
+    !TagQuery.deleted_filter_order_override?(query, at_any_level: at_any_level) &&
+      !TagQuery.has_metatags?(query, *OVERRIDE_DELETED_FILTER_METATAGS, prepend_prefix: false, at_any_level: at_any_level, has_all: false)
+  end
+
+  def self.deleted_filter_order_override?(query, at_any_level: true)
+    if query.is_a?(TagQuery)
+      query[:order].in?(OVERRIDE_DELETED_FILTER_ORDERS)
+    else
+      order_values = TagQuery.fetch_metatags(query, "order", prepend_prefix: false, at_any_level: at_any_level)["order"]
+      order_values.present? && order_values.last.in?(OVERRIDE_DELETED_FILTER_ORDERS)
+    end
   end
 
   # Convert an order metatag into it's simplest consistent representation.
@@ -1453,14 +1472,15 @@ class TagQuery
         q[:show_deleted] ||= true
         add_to_query(type, :delreason, g2.downcase, wildcard: true)
 
-      when "deletedby", "-deletedby", "~deletedby"
+      when "deletedby", "-deletedby", "~deletedby", "deleter", "-deleter", "~deleter"
         q[:status] ||= "any" unless q[:status_must_not]
         q[:show_deleted] ||= true
         add_to_query(type, :deleter, user_id_or_invalid(g2))
 
-      # For flag metatags, intentionally allow deleted posts to be included.
-      when "flaggedby", "-flaggedby", "~flaggedby"
+      when "flaggedby", "-flaggedby", "~flaggedby", "flagger", "-flagger", "~flagger"
         next unless CurrentUser.is_staff?
+        q[:status] ||= "any" unless q[:status_must_not]
+        q[:show_deleted] ||= true
         add_to_query(type, :flagger, user_id_or_invalid(g2))
 
       when "flagreason", "-flagreason", "~flagreason"
