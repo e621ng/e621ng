@@ -22,7 +22,8 @@ class PostRecommendationsController < ApplicationController
       params[:limit] = 6
     end
 
-    post_data = Cache.fetch("post_recs:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}", expires_in: 15.minutes) do
+    tag_hash = Digest::SHA1.hexdigest("#{@original_post.tag_string}:#{@original_post.pool_ids.sort.join(",")}")[0, 8]
+    post_data = Cache.fetch("post_recs:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}:#{tag_hash}", expires_in: 15.minutes) do
       post_ids = PostSets::Recommended.new(@original_post, limit: params[:limit]).post_ids
 
       # Matches the format of the recommendation engine
