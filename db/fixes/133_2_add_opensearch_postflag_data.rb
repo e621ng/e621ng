@@ -10,7 +10,7 @@ Post.find_in_batches(batch_size: 10_000) do |posts| # rubocop:disable Metrics/Bl
   post_ids = posts.map(&:id)
   post_ids_sql = post_ids.join(",")
 
-  deletion_sql = <<-SQL
+  deletion_sql = <<-SQL # rubocop:disable Rails/SquishedSQLHeredocs
     SELECT pf.post_id, pf.created_at FROM
       (SELECT MAX(id) AS mid, post_id
        FROM post_flags
@@ -19,7 +19,7 @@ Post.find_in_batches(batch_size: 10_000) do |posts| # rubocop:disable Metrics/Bl
     INNER JOIN post_flags pf ON pf.id = pfi.mid;
   SQL
 
-  flag_sql = <<-SQL
+  flag_sql = <<-SQL # rubocop:disable Rails/SquishedSQLHeredocs
     SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) AS reason, LOWER(pf.note) AS note, pf.created_at FROM
       (SELECT MAX(id) AS mid, post_id
        FROM post_flags
