@@ -172,6 +172,7 @@ class TagQuery
     CATEGORY_METATAG_MAP.keys.map { |e| "#{TagCategory::SHORT_NAME_MAPPING[e.delete_suffix('tags')]}_tags" }.map { |e| -"#{e}_desc" }, # Remove superfluous `_desc` suffix
     ORDER_NON_SUFFIXED_ALIASES.keys - %w[portrait landscape], # Remove all non-suffixed aliases except `portrait` & `landscape`
     %w[aspect_ratio aspect_ratio_asc], # Remove the forms `portrait` & `landscape` resolve to
+    %w[deleted deleted_asc flagged flagged_asc], # Remove deleted/flagged order values from autocomplete
     CATEGORY_METATAG_MAP.keys.flat_map { |e| [e, -"#{e}_asc"] }, # Remove the resolved forms of the full tag category forms
   )).freeze
 
