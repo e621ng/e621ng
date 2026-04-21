@@ -7,30 +7,30 @@ class ForumPost < ApplicationRecord
   belongs_to_creator
   belongs_to_updater
   user_status_counter :forum_post_count
-  belongs_to :topic, :class_name => "ForumTopic"
+  belongs_to :topic, class_name: "ForumTopic"
   belongs_to :warning_user, class_name: "User", optional: true
   has_many :votes, class_name: "ForumPostVote"
   has_one :tag_alias
   has_one :tag_implication
   has_one :bulk_update_request
-  before_validation :initialize_is_hidden, :on => :create
+  before_validation :initialize_is_hidden, on: :create
+  before_save :readd_tag_change_request_label, if: :will_save_change_to_body?
   after_create :update_topic_updated_at_on_create
+  before_destroy :validate_topic_is_unlocked
   after_destroy :update_topic_updated_at_on_destroy
   normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
   validates :body, :creator_id, presence: true
   validates :body, length: { minimum: 1, maximum: Danbooru.config.forum_post_max_size }
   validate :validate_topic_is_unlocked
   validate :topic_id_not_invalid
-  validate :topic_is_not_restricted, :on => :create
+  validate :topic_is_not_restricted, on: :create
   validate :category_allows_replies, on: :create
   validate :validate_creator_is_not_limited, on: :create
-  before_destroy :validate_topic_is_unlocked
-  before_save :readd_tag_change_request_label
   after_save :delete_topic_if_original_post
-  after_update(:if => ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
+  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
     ModAction.log(:forum_post_update, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
-  after_update(:if => ->(rec) { rec.saved_change_to_is_hidden? }) do |rec|
+  after_update(if: ->(rec) { rec.saved_change_to_is_hidden? }) do |rec|
     ModAction.log(rec.is_hidden ? :forum_post_hide : :forum_post_unhide, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
   after_destroy do |rec|
@@ -97,6 +97,12 @@ class ForumPost < ApplicationRecord
   # forum post is displayed. Otherwise, this results
   # in N+3 database queries for every forum post.
   def votable?
+    # Check if the association is already loaded.
+    return true if association(:tag_alias).loaded? && tag_alias.present?
+    return true if association(:tag_implication).loaded? && tag_implication.present?
+    return true if association(:bulk_update_request).loaded? && bulk_update_request.present?
+
+    # If it is not, look up tag change requests for this post.
     TagAlias.where(forum_post_id: id).exists? ||
       TagImplication.where(forum_post_id: id).exists? ||
       BulkUpdateRequest.where(forum_post_id: id).exists?
@@ -157,7 +163,7 @@ class ForumPost < ApplicationRecord
   def can_hide?(user)
     return true if user.is_moderator?
     return false if was_warned?
-    return false if tag_change_request.present?
+    return false if votable?
     user.id == creator_id
   end
 
@@ -227,9 +233,12 @@ class ForumPost < ApplicationRecord
 
   def readd_tag_change_request_label
     return if tag_change_request.blank?
-    return if body.include?(tag_change_request.dtext_label)
 
-    self.body = "#{tag_change_request.dtext_label}\n\n#{body}"
+    label = tag_change_request.dtext_label
+    current_body = body.to_s
+    return if current_body.lstrip.start_with?(label)
+    normalized_body = current_body.sub(Regexp.new(Regexp.escape(label)), "").lstrip
+    self.body = normalized_body.present? ? "#{label}\n\n#{normalized_body}" : label
   end
 
   def method_attributes
