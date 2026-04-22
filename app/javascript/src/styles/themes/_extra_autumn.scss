@@ -4,8 +4,8 @@ body[data-th-extra="autumn"] {
   --image-foreground-repeat: repeat-x;
 
   --image-foreground-top: none;
-  --image-foreground-top-position: none;
-  --image-foreground-top-repeat: none;
+  --image-foreground-top-position: unset;
+  --image-foreground-top-repeat: unset;
 
   --image-foreground-bottom: url("~/images/themes/extras/leaves_bottom.png");
   --image-foreground-bottom-position: left bottom;

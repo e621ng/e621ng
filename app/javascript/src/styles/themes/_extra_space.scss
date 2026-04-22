@@ -8,6 +8,6 @@ body[data-th-extra="space"] {
   --image-foreground-top-repeat: repeat-x;
 
   --image-foreground-bottom: none;
-  --image-foreground-bottom-position: none;
-  --image-foreground-bottom-repeat: none;
+  --image-foreground-bottom-position: unset;
+  --image-foreground-bottom-repeat: unset;
 }

@@ -69,7 +69,7 @@ body.c-posts.a-show-seq {
     .search-controls {
       display: flex;
       flex-flow: row;
-      justify-content: right;
+      justify-content: flex-end;
       z-index: 1;
 
       position: absolute;
