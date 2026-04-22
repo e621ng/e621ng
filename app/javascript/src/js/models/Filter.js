@@ -1,7 +1,7 @@
 import Blacklist from "@/core/blacklists";
 import FilterUtils from "@/utility/filter_util";
 import LStorage from "@/utility/storage";
-import PostCache from "@/models/PostCache";
+import PostCache, { CachedPost } from "@/models/PostCache";
 
 /**
  * Represents an individual line in the blacklist.
@@ -71,21 +71,52 @@ export default class Filter {
    * Checks if the provided post matches the filter
    * @param {JQuery<HTMLElement>} $post Post to check
    * @returns True if the post matches the filter, false otherwise
+   * @deprecated Use `updateWithElements` or `updateWithPosts` instead.
    */
   update ($post) {
-    if ($post.length == 0) return false;
-    else if (Array.isArray($post)) { // Deferred posts return an array
-      for (const $one of $post)
-        this.update($one);
-      return;
-    } else if ($post.length > 1) { // More than one matched
-      for (const $one of $post.get())
-        this.update($($one));
+    this.updateWithElements($post);
+  }
+
+  /**
+   * Updates the filter with the provided post elements, adding or removing them from the matched IDs as necessary.
+   * @param {JQuery<HTMLElement>} $posts Thumbnail elements to update the filter with
+   * @returns {boolean} True if any posts were updated, false otherwise
+   */
+  updateWithElements ($posts) {
+    // This is a mess.
+    // TODO: Figure out how non-JQ elements are getting passed onto this method.
+    if ($posts.length == 0) return false;
+    else if (Array.isArray($posts)) {
+      for (const post of $posts) this.updateWithElements($(post));
+      return true;
+    } else if ($posts.length > 1) {
+      for (const el of $posts.get()) {
+        const post = PostCache.fromThumbnail($(el));
+        this.updateWithPosts(post);
+      }
+      return true;
+    }
+
+    const post = PostCache.fromThumbnail($posts);
+    if (!post) return false;
+    return this.updateWithPosts(post);
+  }
+
+  /**
+   * Updates the filter with the provided post(s), adding or removing them from the matched IDs as necessary.
+   * @param {CachedPost | CachedPost[]} posts Post(s) to update the filter with
+   * @returns {boolean} True if any posts were updated, false otherwise
+   */
+  updateWithPosts (posts) {
+    if (posts.length == 0) return false;
+    else if (Array.isArray(posts)) { // Deferred posts return an array
+      for (const post of posts) this.updateWithPosts(post);
       return;
     }
 
-    const post = PostCache.fromThumbnail($post);
-    if (this.matchIDs.has(post.id)) return;
+    // Check if a post has already been matched
+    if (this.matchIDs.has(posts.id)) return true;
+    const post = posts;
 
     // Check if the post matches the filter
     let tokensMatch = true;
@@ -110,6 +141,8 @@ export default class Filter {
 
     if (tokensMatch === true) this.matchIDs.add(post.id);
     else if (tokensMatch === false) this.matchIDs.delete(post.id);
+
+    return tokensMatch === true;
   }
 }
 

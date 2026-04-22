@@ -164,7 +164,12 @@ Blacklist.add_posts = function ($posts) {
   PostCache.register($posts);
 
   for (const filter of Object.values(Blacklist.filters))
-    filter.update($posts);
+    filter.updateWithElements($posts);
+};
+
+Blacklist.load_deferred_posts = function (posts) {
+  for (const filter of Object.values(Blacklist.filters))
+    filter.updateWithPosts(posts);
 };
 
 /**

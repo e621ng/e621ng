@@ -68,6 +68,32 @@ article.thumbnail {
   }
 
   &.no-stats a.thm-link { @include st-radius; }
+  &.inline { display: inline-flex; }
+
+  // Renders thumbnails in something resembling their native aspect ratio.
+  // Only really useful for DText thumbnails.
+  &.native {
+    a.thm-link {
+      width: unset;
+      height: unset;
+      aspect-ratio: unset;
+
+      img {
+        width: auto;
+        height: unset;
+        object-fit: cover;
+        max-width: var(--thumb-image-size, 150px);
+        max-height: var(--thumb-image-size, 150px);
+        min-width: 100px;
+        min-height: 100px;
+      }
+    }
+    &.blacklisted a.thm-link::before {
+      font-size: calc(var(--thumb-image-size, 150px) / 10)
+    }
+
+    div.thm-desc { display: none; }
+  }
 }
 
 // Post information bar
@@ -183,6 +209,8 @@ article.thumbnail[data-tags~=animated] {
   }
   &[data-file-ext=webm] > a.thm-link:after { content: "WEBM"; }
   &[data-file-ext=mp4] > a.thm-link:after { content: "MP4"; }
+
+  &.no-type-badges > a.thm-link:after { display: none; }
 }
 
 // Extra info (IQDB, pools)
