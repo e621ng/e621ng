@@ -104,7 +104,7 @@ module Maintenance
               @nonce = create(:user_password_reset_nonce, user: @user)
               ActionMailer::Base.deliveries.clear
               @old_password = @user.bcrypt_password_hash
-              put maintenance_user_password_reset_path, params: { uid: @user.id.to_s, key: @nonce.key, password: "test", password_confirm: "test" }
+              put maintenance_user_password_reset_path, params: { uid: @user.id.to_s, key: @nonce.key, password: "testpassword", password_confirm: "testpassword" }
             end
 
             should "succeed" do
@@ -142,6 +142,78 @@ module Maintenance
 
             should "delete the nonce" do
               assert_equal(0, UserPasswordResetNonce.count)
+            end
+          end
+
+          context "with missing password params" do
+            setup do
+              @user = create(:user)
+              @nonce = create(:user_password_reset_nonce, user: @user)
+              @old_password = @user.bcrypt_password_hash
+              put maintenance_user_password_reset_path, params: { uid: @user.id.to_s, key: @nonce.key }
+            end
+
+            should "redirect without raising" do
+              assert_redirected_to new_maintenance_user_password_reset_path
+            end
+
+            should "not change the password" do
+              @user.reload
+              assert_equal(@old_password, @user.bcrypt_password_hash)
+            end
+          end
+
+          context "with empty password params" do
+            setup do
+              @user = create(:user)
+              @nonce = create(:user_password_reset_nonce, user: @user)
+              @old_password = @user.bcrypt_password_hash
+              put maintenance_user_password_reset_path, params: { uid: @user.id.to_s, key: @nonce.key, password: "", password_confirm: "" }
+            end
+
+            should "redirect without raising" do
+              assert_redirected_to new_maintenance_user_password_reset_path
+            end
+
+            should "not change the password" do
+              @user.reload
+              assert_equal(@old_password, @user.bcrypt_password_hash)
+            end
+          end
+
+          context "with mismatched passwords" do
+            setup do
+              @user = create(:user)
+              @nonce = create(:user_password_reset_nonce, user: @user)
+              @old_password = @user.bcrypt_password_hash
+              put maintenance_user_password_reset_path, params: { uid: @user.id.to_s, key: @nonce.key, password: "newpass123", password_confirm: "wrongpass123" }
+            end
+
+            should "redirect with mismatch notice" do
+              assert_redirected_to new_maintenance_user_password_reset_path
+            end
+
+            should "not change the password" do
+              @user.reload
+              assert_equal(@old_password, @user.bcrypt_password_hash)
+            end
+          end
+
+          context "with a too-short password" do
+            setup do
+              @user = create(:user)
+              @nonce = create(:user_password_reset_nonce, user: @user)
+              @old_password = @user.bcrypt_password_hash
+              put maintenance_user_password_reset_path, params: { uid: @user.id.to_s, key: @nonce.key, password: "short", password_confirm: "short" }
+            end
+
+            should "redirect without raising" do
+              assert_redirected_to new_maintenance_user_password_reset_path
+            end
+
+            should "not change the password" do
+              @user.reload
+              assert_equal(@old_password, @user.bcrypt_password_hash)
             end
           end
         end

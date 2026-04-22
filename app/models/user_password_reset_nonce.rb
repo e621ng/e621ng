@@ -16,6 +16,8 @@ class UserPasswordResetNonce < ApplicationRecord
   end
 
   def reset_user!(pass, confirm)
+    return false if pass.blank? || confirm.blank?
+    return false if pass.length < 8
     return false unless ActiveSupport::SecurityUtils.secure_compare(pass, confirm)
     user.upgrade_password(pass)
     true
