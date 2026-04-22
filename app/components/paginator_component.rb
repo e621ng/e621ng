@@ -58,7 +58,7 @@ class PaginatorComponent < ViewComponent::Base
 
   def next_path
     return nav_params_for(current_page + 1) if @mode == :numbered
-    nav_params_for("b#{records.last&.id}")
+    nav_params_for("b#{records.last&.id || 0}")
   end
 
   ##############################
