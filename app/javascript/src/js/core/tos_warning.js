@@ -24,6 +24,10 @@ class TOSWarning {
       event.preventDefault();
       return false;
     });
+
+    // Auto-focus the first checkbox
+    this.ageCheckbox.trigger("focus");
+    this.ageCheckbox.one("change", () => this.termsCheckbox.trigger("focus"));
   }
 
   // Checkbox states

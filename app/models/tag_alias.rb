@@ -361,4 +361,8 @@ class TagAlias < TagRelationship
       ModAction.log(:tag_alias_update, {alias_id: id, alias_desc: alias_desc, change_desc: change_desc})
     end
   end
+
+  def dtext_label
+    "[ta:#{id}]"
+  end
 end

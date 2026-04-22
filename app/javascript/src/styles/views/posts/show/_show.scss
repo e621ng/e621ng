@@ -21,6 +21,7 @@ body.c-posts.a-show-seq {
   @import "partials/delete_with_reason";
   @import "partials/add_to_pool";
   @import "partials/notes";
+  @import "partials/edit_form";
 }
 
 // Due to the show-seq page having a different action,
@@ -31,3 +32,4 @@ body.c-posts.a-show-seq {
 }
 
 @import "partials/post_toolbar";
+@import "partials/recommended";

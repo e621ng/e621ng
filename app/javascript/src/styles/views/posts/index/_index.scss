@@ -25,9 +25,12 @@ body.c-favorites.a-index {
   display: grid;
 
   grid-template-areas:
-    "search " 
-    "content" 
-    "sidebar";
+    "search  "
+    "content "
+    "tabs    "
+    "comments"
+    "sidebar "
+    "adscape ";
   grid-template-columns: 1fr;
   grid-template-rows: min-content 1fr min-content;
 
@@ -117,7 +120,40 @@ body.c-favorites.a-index {
     }
   }
 
-  // 3. Sidebar
+  // 3. Tab UI
+  & > .tabs {
+    grid-area: tabs;
+
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 0.25rem;
+    margin: 1rem 0.25rem 0;
+    border-bottom: 1px solid themed("color-section");
+
+    button {
+      background: unset;
+      color: themed("color-link");
+      font-size: 1rem;
+      line-height: 1rem;
+      padding: 0.5rem 1rem;
+      @include st-radius-top;
+    }
+  }
+
+  // 4. Comments
+  & > .comments {
+    grid-area: comments;
+
+    display: flex;
+    flex-flow: column;
+
+    padding: 0.5rem 0.75rem themed("content-padding-bottom");
+    box-shadow: inset 0 .25rem .25rem -.25rem themed("color-background");
+
+    .row.notices { margin: unset !important; }
+  }
+
+  // 5. Sidebar
   & > .sidebar {
     grid-area: sidebar;
 
@@ -125,7 +161,7 @@ body.c-favorites.a-index {
     flex-flow: column;
     gap: 1em;
 
-    padding: 0.5rem 0.25rem;
+    padding: 0.5rem .75rem var(--content-padding-bottom);
     box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
 
     #mode-box label {
@@ -143,4 +179,25 @@ body.c-favorites.a-index {
       font-size: 1.05em;
     }
   }
+
+  & > .adscape {
+    grid-area: adscape;
+    .adzone { background: red; }
+  }
+}
+
+// Mobile tab UI
+.post-index[data-tab-state="comments"] {
+  & > .tabs button[data-action="comments"] {
+    background: themed("color-section");
+    pointer-events: none;
+  }
+  & > .sidebar { display: none; }
+}
+.post-index[data-tab-state="tags"] {
+  & > .tabs button[data-action="tags"] {
+    background: themed("color-section");
+    pointer-events: none;
+  }
+  & > .comments { display: none; }
 }

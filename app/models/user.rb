@@ -117,6 +117,10 @@ class User < ApplicationRecord
   before_update :encrypt_password_on_update
   after_save :update_cache
 
+  after_create_commit :enqueue_automod_user_check
+  after_update_commit :enqueue_automod_user_update_check,
+                      if: -> { saved_change_to_name? || saved_change_to_profile_about? || saved_change_to_profile_artinfo? }
+
   has_many :api_keys, dependent: :destroy
   has_one :dmail_filter
   has_one :user_status
@@ -1086,5 +1090,19 @@ class User < ApplicationRecord
     @feedback_pieces = nil
     @is_artist = nil
     self
+  end
+
+  private
+
+  def enqueue_automod_user_check
+    AutomodUserCheckJob.perform_later(id, check_username: true, check_profile: false)
+  end
+
+  def enqueue_automod_user_update_check
+    AutomodUserCheckJob.perform_later(
+      id,
+      check_username: saved_change_to_name?,
+      check_profile:  saved_change_to_profile_about? || saved_change_to_profile_artinfo?,
+    )
   end
 end

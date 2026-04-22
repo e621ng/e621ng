@@ -1,5 +1,4 @@
 import Utility from "@/utility/utility";
-import ZingTouch from "zingtouch";
 import Hotkeys from "@/core/hotkeys";
 import LStorage from "@/utility/storage";
 import TaskQueue from "@/utility/TaskQueue";
@@ -21,16 +20,11 @@ Post.initialize_all = function () {
     this.initialize_shortcuts();
   }
 
-  if ($("#c-posts").length && $("#a-index").length) {
-    this.initialize_gestures();
-  }
-
   if ($("#c-posts").length && $("#a-show").length) {
     this.initialize_links();
     this.initialize_post_relationship_previews();
     this.initialize_post_sections();
     this.initialize_resize();
-    this.initialize_gestures();
     this.initialize_moderation();
   }
 
@@ -85,124 +79,6 @@ Post.has_next_target = function () {
 
 Post.has_prev_target = function () {
   return $(".paginator a[rel~=prev]").length || $(".search-seq-nav a[rel~=prev]").length || $(".pool-nav li.pool-selected-true a[rel~=prev], .set-nav a.active[rel~=prev]").length;
-};
-
-/**
- * Swipe gesture recognizer that works by averaging the angle/distance/velocity of a gesture path and returning the result.
- * This improves accuracy over the default Swipe gesture, which only uses the last two points to calculate angle/velocity,
- * leading to false detections when a gesture path bends at the end.
- */
-class E6Swipe extends ZingTouch.Swipe {
-  constructor (options) {
-    super(options);
-    this.type = "e6swipe";
-    this.minDistance = 150;
-  }
-
-  end (inputs) {
-    function getAngle (a, b) {
-      return Math.atan2(b[1] - a[1], b[0] - a[0]);
-    }
-    function getVelocity (a, b) {
-      const dist = distanceBetweenTwoPoints([a[0], a[1]], [b[0], b[1]]);
-      return dist / (b[2] - a[2]);
-    }
-    function distanceBetweenTwoPoints (a, b) {
-      return Math.hypot(b[0] - a[0], b[1] - a[1]);
-    }
-
-    // Swipe gestures are always exactly one point in size.
-    if (this.numInputs !== inputs.length) {
-      return null;
-    }
-
-    // Prevent gestures from triggering while inputs are active.
-    const activeElement = document.activeElement;
-    if (activeElement && ["INPUT", "TEXTAREA", "SELECT"].indexOf(activeElement.tagName) !== -1)
-      return null;
-
-    let output = {
-      data: [],
-    };
-
-    const input = inputs[0];
-    if (input.current.type !== "end")
-      return null;
-    const progress = input.getGestureProgress(this.getId());
-    // Ensure sufficient move data to compute inputs.
-    if (!progress.moves || progress.moves.length <= 2)
-      return null;
-    const currentMove = progress.moves[progress.moves.length - 1];
-    // Has move lingered too long.
-    if (new Date().getTime() - currentMove.time > this.maxRestTime)
-      return null;
-    const totals = progress.moves.reduce(function (acc, move, index) {
-      // Skip first element as we can't use it anyways.
-      if (index === 0)
-        return {vel: 0, angle: [0, 0], dist: 0, last: move};
-      const vel = getVelocity([acc.last.x, acc.last.y, acc.last.time], [move.x, move.y, move.time]);
-      const angle = getAngle([acc.last.x, acc.last.y], [move.x, move.y]);
-      const dist = distanceBetweenTwoPoints([acc.last.x, acc.last.y], [move.x, move.y]);
-      return {vel: acc.vel + vel, angle: [acc.angle[0] + Math.cos(angle), acc.angle[1] + Math.sin(angle)], dist: acc.dist + dist, last: move};
-    }, {vel: 0, angle: 0, dist: 0, last: null});
-    // const initial = input.initial;
-    // Add total gesture motion as a bias.
-    // totals.vel += getVelocity([initial.x, initial.y, initial.time], [input.current.x, input.current.y, input.current.time]);
-    // totals.angle += getAngle([initial.x, initial.y], [input.current.x, input.current.y]) + Math.PI;
-    // totals.dist += distanceBetweenTwoPoints([initial.x, initial.y], [input.current.x, input.current.y]);
-    const avgMoves = progress.moves.length - 2;
-    const averages = {vel: totals.vel / avgMoves, angle: Math.atan2(totals.angle[0], totals.angle[1])};
-    output.data[0] = {
-      velocity: averages.vel,
-      distance: totals.dist,
-      duration: 1,
-      currentDirection: averages.angle,
-    };
-
-    // Minimum velocity requirement.
-    if (output.data[0].velocity < this.escapeVelocity)
-      return null;
-    // Minimum distance requirement. Helps to prevent phantom strokes on bad digitizers.
-    if (output.data[0].distance < this.minDistance)
-      return null;
-
-    if (output.data.length > 0)
-      return output;
-
-    return null;
-  }
-}
-
-Post.initialize_gestures = function () {
-  if (!LStorage.Theme.Gestures) return;
-  if (!(("ontouchstart" in window) || (navigator.maxTouchPoints > 0)))
-    return;
-  // Need activeElement to make sure that this doesn't go off during input.
-  if (!("activeElement" in document))
-    return;
-
-  const $body = $("body");
-  if ($body.data("zing"))
-    return;
-
-  const zing = new ZingTouch.Region(document.body, false, false);
-  zing.bind(document.body, new E6Swipe(), function (e) {
-    const angle = e.detail.data[0].currentDirection * 180 / Math.PI;
-    console.log(angle, e.detail.data[0]);
-    const hasPrev = Post.has_prev_target();
-    const hasNext = Post.has_next_target();
-    if (hasPrev && (angle > 90 - 25 && angle < 90 + 25)) { // right swipe
-      $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(150%)"});
-      Utility.delay(200).then(() => Post.nav_prev(e));
-    }
-    if (hasNext && (angle > -90 - 25 && angle < -90 + 25)) { // Left swipe
-      $("body").css({"transition-timing-function": "ease", "transition-duration": "0.2s", "opacity": "0", "transform": "translateX(-150%)"});
-      Utility.delay(200).then(() => Post.nav_next(e));
-    }
-  });
-
-  $body.data("zing", zing);
-  $("#image-container").css({overflow: "visible"});
 };
 
 Post.nav_prev = function () {
@@ -654,28 +530,20 @@ Post.initialize_change_resize_mode_link = function () {
   Hotkeys.register("resize", Post.resize_cycle_mode);
 };
 
+Post._isEditing = false;
 Post.initialize_post_sections = function () {
-  $("#post-sections li a,#side-edit-link").on("click.danbooru", function (e) {
-    if (e.target.hash === "#comments") {
-      $("#comments").show();
-      $("#edit").hide();
-    } else if (e.target.hash === "#edit") {
-      $("#edit").show();
-      $("#comments").hide();
+  $("#side-edit-link, #post-edit-link, #menu-post-edit-link, #post-edit-close").on("click.danbooru", (event) => {
+    event.preventDefault(); // Only one of these is a link
+    Post._isEditing = !Post._isEditing;
+
+    if (Post._isEditing) {
       $(document).trigger("danbooru:open-post-edit-tab");
       Post.update_tag_count();
+      $("#edit").show();
     } else {
-      $("#edit").hide();
-      $("#comments").hide();
-    }
-
-    if (e.target.hash !== "#edit") {
       $(document).trigger("danbooru:close-post-edit-tab");
+      $("#edit").hide();
     }
-
-    $("#post-sections li").removeClass("active");
-    $(e.target).parent("li").addClass("active");
-    e.preventDefault();
   });
 };
 

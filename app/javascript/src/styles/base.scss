@@ -41,10 +41,12 @@
 
 @import "components/paginator_component.scss";
 @import "components/post_thumbnail_component.scss";
+@import "components/user_feedback_component.scss";
 
 @import "views/application/application";
 @import "views/artists/artists";
 @import "views/auths/auths";
+@import "views/automod_rules/automod_rules";
 @import "views/forum_posts/forum_posts";
 @import "views/help/help";
 @import "views/maintenance/maintenance";

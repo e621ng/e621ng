@@ -238,7 +238,8 @@ CREATE TABLE public.automod_rules (
     enabled boolean DEFAULT true NOT NULL,
     creator_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    apply_to integer DEFAULT 0 NOT NULL
 );
 
 
@@ -5317,6 +5318,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260420170420'),
 ('20260406172356'),
 ('20260329181337'),
 ('20260325154501'),

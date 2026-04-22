@@ -79,7 +79,7 @@
   </li>
   <% if CurrentUser.is_member? || post.uploader_linked_artists.any? %>
     <li>
-      Uploader: <%= link_to_user(post.uploader) %> <%= user_record_meta(post.uploader) if CurrentUser.is_janitor? %>
+      Uploader: <%= link_to_user(post.uploader) %> <%= render(UserFeedbackComponent.new(user: post.uploader, style: :inline)) if CurrentUser.is_janitor? %>
       <% if post.uploader_linked_artists.any? %>
         <%= svg_icon(:chexagon, class: "chexagon", title: "The uploader is linked to one of the artist tags") %>
       <% end %>

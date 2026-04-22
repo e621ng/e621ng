@@ -48,86 +48,6 @@ div#c-posts {
     }
   }
 
-  div#post-recommendations {
-    max-width: (8rem * 6) + (0.5rem * 5) + (0.5rem * 2);
-    box-sizing: border-box;
-
-    // Tabs
-    &-tabs {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0 0.5rem;
-
-      button {
-        background: unset;
-        color: themed("color-text");
-        @include st-radius-top;
-        user-select: none;
-
-        &:hover, &:focus {
-          background: themed("color-section-lighten-5");
-        }
-
-        &[data-action="closed"] {
-          margin-left: auto;
-          background: transparent !important;
-          color: themed("color-text-muted");
-          &:hover { color: themed("color-link-active"); }
-
-          svg {
-            width: 1rem;
-            height: 1rem;
-          }
-        }
-      }
-
-      @include window-smaller-than(30rem) {
-        .desktop-only { display: none; }
-      }
-    }
-
-    // Selected tab
-    &[data-action="artist"] button[data-action="artist"],
-    &[data-action="favorites"] button[data-action="favorites"],
-    &[data-action="tags"] button[data-action="tags"] {
-      background-color: themed("color-section");
-      pointer-events: none;
-    }
-
-
-    // Recommendations list
-    &-list {
-      display: flex;
-      overflow: scroll hidden;
-      flex-wrap: wrap; // Second row gets hidden
-      gap: 0.5rem;
-
-      background: themed("color-section");
-      padding: 0.5rem;
-      margin-bottom: 0.25rem;
-      @include st-radius;
-
-      --thumb-image-size: 8rem; // Passed on to thumbnails
-      height: calc(var(--thumb-image-size) + 1.25rem);
-
-      -ms-overflow-style: none; /* IE and Edge */
-      scrollbar-width: none; /* Firefox */
-      &::-webkit-scrollbar { display: none; }
-
-      @include window-smaller-than(30rem) {
-        --thumb-image-size: calc((100vw - 2.55rem) / 3);
-        height: unset;
-        min-height: calc(2* (var(--thumb-image-size) + 1.25rem));
-        justify-content: center;
-      }
-    }
-
-    &[data-status="error"] #post-recommendations-list {
-      justify-content: center;
-      align-items: center;
-    }
-  }
-
   div.notice {
     border-radius: $border-radius-half;
     padding: 0.5em;
@@ -229,7 +149,14 @@ div#c-posts {
     }
 
     div.notices {
+      display: flex;
+      align-items: flex-start;
       margin: 1em 0;
+      gap: 5em;
+
+      .threshold-comments-notice {
+        padding-top: 1em;
+      }
     }
 
     #pending-approval-notice {
@@ -274,6 +201,7 @@ div#c-posts {
       }
       textarea {
         width: 100%;
+        max-width: unset;
       }
 
       #post_rating_e:checked + label {

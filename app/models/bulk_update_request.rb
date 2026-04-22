@@ -223,4 +223,8 @@ class BulkUpdateRequest < ApplicationRecord
   def estimate_update_count
     BulkUpdateRequestImporter.new(script, nil).estimate_update_count
   end
+
+  def dtext_label
+    "[bur:#{id}]"
+  end
 end

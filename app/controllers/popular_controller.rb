@@ -6,7 +6,7 @@ class PopularController < ApplicationController
   respond_to :html, :json
 
   def index
-    @post_set = PostSets::Popular.new(params[:date], params[:scale])
+    @post_set = PostSets::Popular.new(params[:date].to_s.presence, params[:scale].to_s.presence)
     @posts = @post_set.posts
     respond_with(@posts) do |format|
       format.json do
