@@ -35,7 +35,10 @@ Recommended.init = function () {
   // Set recommender UI state
   if (!Recommended.visible) {
     Recommended.$wrapper.attr("data-visible", "false");
-    Recommended.$toggle.attr("aria-expanded", "false");
+    Recommended.$toggle.attr({
+      "aria-expanded": "false",
+      "aria-label": "Show Recommendations",
+    });
   }
 
   Recommended.$wrapper.attr("data-action", initialAction);
@@ -153,7 +156,10 @@ Object.defineProperty(Recommended, "visible", {
   set: function (value) {
     LStorage.Posts.RecommenderShown = value;
     this.$wrapper.attr("data-visible", value ? "true" : "false");
-    this.$toggle.attr("aria-expanded", value ? "true" : "false");
+    this.$toggle.attr({
+      "aria-expanded": value ? "true" : "false",
+      "aria-label": value ? "Hide Recommendations" : "Show Recommendations",
+    });
   },
 });
 
