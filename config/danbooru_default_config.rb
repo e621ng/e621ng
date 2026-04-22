@@ -559,6 +559,11 @@ module Danbooru
       ]
     end
 
+    # What reason for the automatically created AI check flag
+    def check_for_ai_content_flag_reason
+      "uploading_guidelines"
+    end
+
     def grandfathered_post_cutoff
       Time.zone.local(2015, 1, 1)
     end

@@ -22,6 +22,7 @@ CurrentUser.as_system do # rubocop:disable Metrics/BlockLength
     text = flag_reason_config[:text] || ""
     needs_explanation = flag_reason_config[:require_explanation] || false
     needs_parent_id = flag_reason_config[:parent] || false
+    needs_staff_reason = flag_reason_config[:reason].match?(/uploading_guidelines/)
 
     # Find existing or create new PostFlagReason
     post_flag_reason = PostFlagReason.find_by(name: name)
@@ -42,6 +43,7 @@ CurrentUser.as_system do # rubocop:disable Metrics/BlockLength
         text: text,
         needs_explanation: needs_explanation,
         needs_parent_id: needs_parent_id,
+        needs_staff_reason: needs_staff_reason,
         index: index * 10,
         **grandfathering,
       )
@@ -55,6 +57,7 @@ CurrentUser.as_system do # rubocop:disable Metrics/BlockLength
         text: text,
         needs_explanation: needs_explanation,
         needs_parent_id: needs_parent_id,
+        needs_staff_reason: needs_staff_reason,
         index: index * 10,
         **grandfathering,
       )

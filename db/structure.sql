@@ -1465,6 +1465,7 @@ CREATE TABLE public.post_flag_reasons (
     text text DEFAULT ''::text NOT NULL,
     needs_explanation boolean DEFAULT false NOT NULL,
     needs_parent_id boolean DEFAULT false NOT NULL,
+    needs_staff_reason boolean DEFAULT false NOT NULL,
     index integer DEFAULT 0 NOT NULL,
     target_date date,
     target_date_kind character varying,
@@ -1507,7 +1508,10 @@ CREATE TABLE public.post_flags (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
     is_deletion boolean DEFAULT false NOT NULL,
-    note character varying
+    note character varying,
+    reason_name character varying,
+    needs_parent_id boolean DEFAULT false NOT NULL,
+    needs_staff_reason boolean DEFAULT false NOT NULL
 );
 
 

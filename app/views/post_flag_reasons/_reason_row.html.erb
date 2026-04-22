@@ -6,6 +6,7 @@
   <td><%= flag_reason.reason %></td>
   <td><%= flag_reason.needs_explanation? ? "Yes" : "" %></td>
   <td><%= flag_reason.needs_parent_id? ? "Yes" : "" %></td>
+  <td><%= flag_reason.needs_staff_reason? ? "Yes" : "" %></td>
   <td><%= (flag_reason.target_date_kind&.capitalize&.+(" ") || "") %>
     <%= (flag_reason.target_date ? compact_date(flag_reason.target_date) : "") %></td>
   <td><%= flag_reason.target_tag || "" %></td>
