@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class PostFlagReason < ApplicationRecord
-  validates :name, presence: true, uniqueness: { case_sensitive: false }
+  validates :name, presence: true, uniqueness: { case_sensitive: false }, exclusion: { in: %w[deletion] }
   validates :reason, presence: true
   validates :index, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :target_date_kind, inclusion: { in: %w[before after], allow_blank: true }
@@ -12,23 +12,34 @@ class PostFlagReason < ApplicationRecord
 
   scope :ordered, -> { order(index: :asc, id: :asc) }
 
+  def applies_to_post?(post)
+    grandfathered_tag = target_tag&.strip
+    if grandfathered_tag.present?
+      if grandfathered_tag[0] == "-"
+        if post.has_tag?(grandfathered_tag[1..].lstrip)
+          return false
+        end
+      elsif !post.has_tag?(grandfathered_tag.lstrip)
+        return false
+      end
+    end
+    if target_date.present? && ((target_date_kind == "before" && post.created_at.after?(target_date)) ||
+         (target_date_kind == "after" && !post.created_at.after?(target_date)))
+      return false
+    end
+    true
+  end
+
   # Cached list of reasons for use in radio buttons
-  # Structured to include sub-reasons as children
   def self.for_radio
     Rails.cache.fetch("post_flag_reasons:for_radio") do
       ordered.to_a
     end
   end
 
-  # Cached check for whether a reason name is valid, optionally within a specific category
-  def self.is_valid_reason?(reason_name, category = :any)
-    return false if reason_name.blank?
-
-    lookup_map = Rails.cache.fetch("post_flag_reasons:for_name_validation") { pluck(:name, :category).to_h }
-    reason_category = lookup_map[reason_name.to_s]
-    return false if reason_category.nil?
-
-    category == :any || reason_category == category.to_s
+  def self.by_name(reason_name)
+    name_lookup = Rails.cache.fetch("post_flag_reasons:for_map") { ordered.index_by(&:name) }
+    name_lookup[reason_name.to_s]
   end
 
   # Cached check for whether a reason requires an explanation
@@ -37,15 +48,30 @@ class PostFlagReason < ApplicationRecord
     !!explanation_map[reason_name.to_s]
   end
 
-  # Cached check for whether a reason requires an explanation
+  # Cached check for whether a reason requires a parent id
+  def self.needs_parent_id?(reason_name)
+    needs_parent_id_map = Rails.cache.fetch("post_flag_reasons:for_needs_parent_id") { ordered.pluck(:name, :needs_parent_id).to_h }
+    !!needs_parent_id_map[reason_name.to_s]
+  end
+
+  # Cached reason text for reason name
   def self.reason(reason_name)
     reason_map = Rails.cache.fetch("post_flag_reasons:for_reason") { ordered.pluck(:name, :reason).to_h }
     reason_map[reason_name.to_s]
   end
 
+  # Cached check for whether a reason name is valid
+  def self.is_valid_reason?(reason_name)
+    valid_names = Rails.cache.fetch("post_flag_reasons:for_is_valid_reason") { ordered.pluck(:name).to_set }
+    valid_names.include?(reason_name.to_s)
+  end
+
   def self.invalidate_cache
     Rails.cache.delete("post_flag_reasons:for_radio")
-    Rails.cache.delete("post_flag_reasons:for_name_validation")
+    Rails.cache.delete("post_flag_reasons:for_map")
     Rails.cache.delete("post_flag_reasons:for_needs_explanation")
+    Rails.cache.delete("post_flag_reasons:for_needs_parent_id")
+    Rails.cache.delete("post_flag_reasons:for_reason")
+    Rails.cache.delete("post_flag_reasons:for_is_valid_reason")
   end
 end

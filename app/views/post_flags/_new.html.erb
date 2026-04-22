@@ -18,9 +18,13 @@
     <%= f.hidden_field :post_id %>
 
     <div class="flag-reason">
+      <% any_flag_needs_parent_id = false %>
       <% PostFlagReason.for_radio.each do |flag_reason| %>
-        <% if flag_reason.name == "uploading_guidelines" && !@post.flaggable_for_guidelines? %>
+        <% if !flag_reason.applies_to_post?(@post) %>
           <% next %>
+        <% end %>
+        <% if flag_reason.needs_parent_id? %>
+          <% any_flag_needs_parent_id = true %>
         <% end %>
 
         <label class="flag-reason-label">
@@ -29,7 +33,10 @@
             <b>
               <%= format_text(flag_reason.reason, inline: true) %>
               <% if flag_reason.needs_explanation? %>
-                <span class="flag-reason-explanation">Additional Details Required</span>
+                <span class="flag-reason-additional-field-required">Additional Details Required</span>
+              <% end %>
+              <% if flag_reason.needs_parent_id? %>
+                <span class="flag-reason-additional-field-required">Parent post required</span>
               <% end %>
             </b>
             <span class="dtext-container">
@@ -38,14 +45,14 @@
           </span>
         </label>
 
-        <% if flag_reason.needs_parent_id? %>
-          <span class="flag-reason-parent">
-            <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
-          </span>
-        <% end %>
-
       <% end %>
     </div>
+
+    <% if any_flag_needs_parent_id %>
+      <span class="flag-reason-parent">
+        <%= f.input :parent_id, as: :string, label: "Parent Post #", input_html: { value: @post.parent_id || "" } %>
+      </span>
+    <% end %>
 
     <div class="flag-notes">
       <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size, input_html: { id: "flag_note_field" } %>
