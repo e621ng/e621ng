@@ -1,5 +1,5 @@
 function bootstrapTabs () {
-  const container = $(".post-index");
+  const container = $(".post-display");
   const validActions = ["comments", "tags"];
   container.find(".post-mobile-tab").on("click", (event) => {
     const action = $(event.currentTarget).data("action");

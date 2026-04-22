@@ -3,7 +3,18 @@ body[data-th-extra="fennec"] {
                       url("~/images/themes/extras/spring_bottom_fennec.png"),
                       url("~/images/themes/extras/spring_top.png"),
                       url("~/images/themes/extras/spring_top_sky.png");
-  --image-foreground-position: left bottom, right bottom ,right top ,left top;
+  --image-foreground-position: left bottom, right bottom, right top, left top;
   --image-foreground-repeat: repeat-x, no-repeat, no-repeat, repeat-x;
+
+  --image-foreground-top: url("~/images/themes/extras/spring_top.png"),
+                          url("~/images/themes/extras/spring_top_sky.png");
+  --image-foreground-top-position: right top, left top;
+  --image-foreground-top-repeat: no-repeat, repeat-x;
+
+  --image-foreground-bottom: url("~/images/themes/extras/spring_bottom.png"),
+                             url("~/images/themes/extras/spring_bottom_fennec.png");
+  --image-foreground-bottom-position: left bottom, right bottom;
+  --image-foreground-bottom-repeat: repeat-x, no-repeat;
+
   --content-padding-bottom: 3rem;
 }

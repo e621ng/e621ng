@@ -1,5 +1,5 @@
 <div id="c-posts"><div id="a-show">
-  <div class="post-index" data-tab-state="<%= CurrentUser.hide_comments? ? "tags" : "comments" %>">
+  <div class="post-display" data-tab-state="<%= CurrentUser.hide_comments? ? "tags" : "comments" %>">
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>

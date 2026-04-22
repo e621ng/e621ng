@@ -2,5 +2,14 @@ body {
   --image-foreground: url("~/images/themes/extras/hex.png");
   --image-foreground-position: left top;
   --image-foreground-repeat: repeat-x;
+
+  --image-foreground-top: url("~/images/themes/extras/hex.png");
+  --image-foreground-top-position: left top;
+  --image-foreground-top-repeat: repeat-x;
+
+  --image-foreground-bottom: none;
+  --image-foreground-bottom-position: none;
+  --image-foreground-bottom-repeat: none;
+
   --content-padding-bottom: 0.5rem;
 }
