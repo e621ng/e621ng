@@ -24,18 +24,6 @@ div#post-recommendations {
       &:hover, &:focus {
         background: themed("color-section-lighten-5");
       }
-
-      &[data-action="closed"] {
-        margin-left: auto;
-        background: transparent !important;
-        color: themed("color-text-muted");
-        &:hover { color: themed("color-link-active"); }
-
-        svg {
-          width: 1rem;
-          height: 1rem;
-        }
-      }
     }
 
     @include window-smaller-than(30rem) {
