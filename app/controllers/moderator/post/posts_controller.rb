@@ -13,7 +13,7 @@ module Moderator
       def confirm_delete
         @post = ::Post.find(params[:id])
         @reason = @post.pending_flag&.reason || ""
-        @reason = "" if @reason =~ /uploading_guidelines/
+        @reason = "" if @post.pending_flag.needs_staff_reason?
 
         @dnp = @post.avoid_posting_artists
       end
@@ -32,8 +32,8 @@ module Moderator
             if @post.pending_flag.nil? || params[:from_flag].blank?
               flash[:notice] = "You must provide a reason for the deletion"
               return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
-            elsif @post.pending_flag.reason =~ /uploading_guidelines/
-              flash[:notice] = "You must directly provide a reason for deletions due to an uploading guidelines flag."
+            elsif @post.pending_flag.needs_staff_reason?
+              flash[:notice] = "You must explicitly provide a deletion reason for this flag"
               return redirect_to(confirm_delete_moderator_post_post_path(@post, q: params[:q].presence))
             end
             # Pre-replace the reason so it's not found later

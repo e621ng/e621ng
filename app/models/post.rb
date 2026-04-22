@@ -360,7 +360,7 @@ class Post < ApplicationRecord
       if ai_score[:score] >= 50
         PostFlag.create(
           post: self,
-          reason_name: "uploading_guidelines",
+          reason_name: Danbooru.config.check_for_ai_content_flag_reason,
           note: "AI score: #{ai_score[:score]}\n#{ai_score[:reason]}",
           creator_id: User.system.id,
           creator_ip_addr: "192.168.0.1",
@@ -1576,8 +1576,8 @@ class Post < ApplicationRecord
           errors.add(:base, "Cannot delete with given reason when no active flag exists.")
           return
         end
-        if pending_flag.reason =~ /uploading_guidelines/
-          errors.add(:base, "Cannot delete with given reason when the flag is for uploading guidelines.")
+        if pending_flag.needs_staff_reason?
+          errors.add(:base, "Cannot \"delete with given reason\" for this flag reason.")
           return
         end
         reason = pending_flag.reason
@@ -2147,10 +2147,6 @@ class Post < ApplicationRecord
     end
 
     save
-  end
-
-  def flaggable_for_guidelines?
-    !has_tag?("grandfathered_content") && created_at.after?(Danbooru.config.grandfathered_post_cutoff)
   end
 
   def visible_comment_count(user)

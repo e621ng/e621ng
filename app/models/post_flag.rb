@@ -38,7 +38,7 @@ class PostFlag < ApplicationRecord
   scope :by_system, -> { where(creator: User.system) }
   scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }
 
-  attr_accessor :parent_id, :reason_name, :force_flag
+  attr_accessor :parent_id, :force_flag
 
   module SearchMethods
     def post_tags_match(query)
@@ -156,20 +156,25 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_reason
-    case reason_name
-    when "deletion"
+    if reason_name == "deletion"
       # You're probably looking at this line as you get this validation failure
       errors.add(:reason, "is not one of the available choices") unless is_deletion
-    when "inferior"
+      return
+    end
+    flag_reason = PostFlagReason.by_name(reason_name)
+    unless flag_reason
+      errors.add(:reason, "is not one of the available choices")
+      return
+    end
+    if flag_reason.needs_parent_id?
       if parent_post.blank?
         errors.add(:parent_id, "must exist")
-        return false
+      elsif parent_post.id == post.id
+        errors.add(:parent_id, "cannot be set to the post being flagged")
       end
-      errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
-    when "uploading_guidelines"
-      errors.add(:reason, "cannot be used. The post is grandfathered") unless post.flaggable_for_guidelines?
-    else
-      errors.add(:reason, "is not one of the available choices") unless PostFlagReason.is_valid_reason?(reason_name, :flag)
+    end
+    unless flag_reason.applies_to_post?(post)
+      errors.add(:reason, "cannot be used on this post, probably because the post is grandfathered")
     end
   end
 
@@ -181,26 +186,31 @@ class PostFlag < ApplicationRecord
   end
 
   def update_reason
-    case reason_name
-    when "deletion"
-      # NOP
-    when "inferior"
-      return unless parent_post
-      old_parent_id = post.parent_id
-      post.update_column(:parent_id, parent_post.id)
-      # Fix handling when parent/child is currently inverted. See #258
-      if parent_post.parent_id == post.id
-        parent_post.update_column(:parent_id, nil)
-        post.update_has_children_flag
-      end
-      # Update parent flags on parent post
-      parent_post.update_has_children_flag
-      # Update parent flags on old parent post, if it exists
-      Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
-      self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
-    else
-      self.reason = PostFlagReason.reason(reason_name)
+    return if reason_name == "deletion"
+
+    flag_reason = PostFlagReason.by_name(reason_name)
+    return unless flag_reason # no longer exists?
+
+    self.reason_name = flag_reason.name
+    self.reason = flag_reason.reason
+    self.needs_staff_reason = flag_reason.needs_staff_reason?
+
+    return unless flag_reason.needs_parent_id? && parent_post
+
+    old_parent_id = post.parent_id
+    post.update_column(:parent_id, parent_post.id)
+    # Fix handling when parent/child is currently inverted. See #258
+    if parent_post.parent_id == post.id
+      parent_post.update_column(:parent_id, nil)
+      post.update_has_children_flag
     end
+    # Update parent flags on parent post
+    parent_post.update_has_children_flag
+    # Update parent flags on old parent post, if it exists
+    Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
+    # This is a bit jank, but we'd need another text field for the final flag message,
+    # and that sounds excessive.
+    self.reason = "#{flag_reason.reason}: ##{parent_post.id}"
   end
 
   def resolve!
