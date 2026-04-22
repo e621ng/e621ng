@@ -8,7 +8,7 @@
   // Trick ruby-lsp into not doing any updates
   "rubyLsp.bundleGemfile": "Gemfile",
 
-  "npm.packageManager": "yarn",
+  "npm.packageManager": "npm",
   "editor.detectIndentation": false,
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
