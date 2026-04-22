@@ -56,7 +56,7 @@ Recommended.init = function () {
       if (!data.target) return;
       Analytics.track(Analytics.Event.Recommendation, {
         target: "/posts/" + data.target,
-        action: initialAction,
+        action: Recommended.action,
       });
     });
 
