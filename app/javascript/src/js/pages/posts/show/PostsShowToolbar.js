@@ -29,10 +29,16 @@ export default class PostsShowToolbar {
 
     // Initialize notes toggle
     const noteToggleButtons = $(".ptbr-notes-button")
-      .attr("enabled", NoteManager.enabled + "")
+      .attr({
+        "enabled": NoteManager.enabled + "",
+        "aria-pressed": NoteManager.enabled + "",
+      })
       .on("click", () => { NoteManager.enabled = !NoteManager.enabled; });
     $("#note-container").on("note:visible:true note:visible:false", () => {
-      noteToggleButtons.attr("enabled", NoteManager.enabled + "");
+      noteToggleButtons.attr({
+        "enabled": NoteManager.enabled + "",
+        "aria-pressed": NoteManager.enabled + "",
+      });
     });
 
     // Initialize fullscreen menu toggle
@@ -190,15 +196,17 @@ export default class PostsShowToolbar {
   initOverflowMenu () {
     const menu = $(".ptbr-etc-menu");
     let offclickHandler = null;
-    $(".ptbr-etc-toggle").on("click", () => {
+    const toggle = $(".ptbr-etc-toggle").on("click", () => {
       // Register offclick handler on the first use
       if (offclickHandler === null)
         offclickHandler = Offclick.register(".ptbr-etc-toggle", ".ptbr-etc-menu", () => {
           menu.addClass("hidden");
+          toggle.attr("aria-expanded", false);
         });
 
       offclickHandler.disabled = !offclickHandler.disabled;
       menu.toggleClass("hidden", offclickHandler.disabled);
+      toggle.attr("aria-expanded", !offclickHandler.disabled);
     });
 
     const button = $(".ptbr-etc-download").on("click.e6.prepare", (event) => {
@@ -232,7 +240,7 @@ export default class PostsShowToolbar {
         });
     });
 
-    $(".ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button, .ptbr-etc-edit").on("click", () => {
+    $(".ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
       offclickHandler.disabled = true;
       menu.addClass("hidden");
     });

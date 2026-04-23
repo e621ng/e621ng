@@ -116,6 +116,8 @@
       enabled="true"
       data-hotkey="note-toggle"
       title="Toggle Notes"
+      aria-label="Toggle Notes"
+      aria-pressed="false"
     ></button>
   </div>
 <% end %>
@@ -124,10 +126,16 @@
 <% if @post.visible? %>
   <%# ===== OVERFLOW ===== #%>
   <div class="ptbr-etc">
-    <button class="st-button kinetic ptbr-etc-toggle" title="More Options">
+    <button
+      class="st-button kinetic ptbr-etc-toggle"
+      title="More Options"
+      aria-label="More Options"
+      aria-expanded="false"
+      aria-controls="ptbr-etc-menu"
+    >
       <%= svg_icon(:ellipsis_v) %>
     </button>
-    <div class="ptbr-etc-menu hidden">
+    <div class="ptbr-etc-menu hidden" id="ptbr-etc-menu" role="menu">
       <a
         href="<%= @post.file_url %>"
         class="st-button ptbr-etc-download"
