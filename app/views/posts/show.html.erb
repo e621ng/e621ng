@@ -1,5 +1,5 @@
 <div id="c-posts"><div id="a-show">
-  <div class="post-index" data-tab-state="<%= CurrentUser.hide_comments? ? "tags" : "comments" %>">
+  <div class="post-display" data-tab-state="<%= CurrentUser.hide_comments? ? "tags" : "comments" %>">
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>
@@ -36,6 +36,8 @@
         <h3>Related</h3>
         <%= render "posts/partials/show/sidebar/related", :post => @post %>
       </section>
+      
+      <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top" aria-label="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
     </div>
 
     <div class="content">
@@ -174,7 +176,7 @@
       <% end %>
     </div>
 
-    <div class="tabs">
+    <div class="tabs" id="mobile-tabs">
       <% unless CurrentUser.hide_comments? %>
         <button type="button" class="post-mobile-tab" data-action="comments">Comments</button>
       <% end %>
@@ -186,6 +188,8 @@
         <section id="comments">
           <%= render "comments/partials/index/list", :comments => @comments, :post => @post, :show_header => false %>
         </section>
+
+        <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top" aria-label="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
       <% end %>
     </div>
 
