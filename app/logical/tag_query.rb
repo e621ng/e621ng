@@ -373,7 +373,7 @@ class TagQuery
   # * `RuntimeError`: when `q[:children_show_deleted]` is `nil` & any element in `q[:groups]` is a
   # `TagQuery`, as `q[:children_show_deleted]` shouldn't be `nil` if subsearches were processed.
   def hide_deleted_posts?(always_show_deleted: false, at_any_level: false)
-    if always_show_deleted || q[:show_deleted] || q[:order].in?(OVERRIDE_DELETED_FILTER_ORDERS)
+    if always_show_deleted || q[:show_deleted]
       false
     elsif at_any_level
       if q[:children_show_deleted].nil? &&
@@ -1446,7 +1446,7 @@ class TagQuery
 
       when "randseed" then q[:random_seed] = ParseValue.safe_id(g2)
 
-      when "order", "-order" then q[:order] = TagQuery.normalize_order_value(g2.downcase, invert: type == :must_not)
+        q[:show_deleted] ||= q[:order].in?(OVERRIDE_DELETED_FILTER_ORDERS)
 
       when "limit"
         # Do nothing. The controller takes care of it.
