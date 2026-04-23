@@ -1482,8 +1482,6 @@ class TagQuery
 
       when "flaggedby", "-flaggedby", "~flaggedby", "flagger", "-flagger", "~flagger"
         next unless CurrentUser.is_staff?
-        q[:status] ||= "any" unless q[:status_must_not]
-        q[:show_deleted] ||= true
         add_to_query(type, :flagger, user_id_or_invalid(g2))
 
       when "flagreason", "-flagreason", "~flagreason"
