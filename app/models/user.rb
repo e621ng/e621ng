@@ -236,6 +236,8 @@ class User < ApplicationRecord
 
     def bcrypt_password
       BCrypt::Password.new(bcrypt_password_hash)
+    rescue BCrypt::Errors::InvalidHash
+      nil
     end
 
     def encrypt_password_on_create
