@@ -2,6 +2,7 @@
 <section id="ptbr-wrapper">
 
 <% if CurrentUser.is_member? %>
+  <%# ===== VOTE ===== #%>
   <div
     class="ptbr-vote"
     data-score="<%= @post.score %>"
@@ -30,6 +31,7 @@
     ><%= svg_icon(:chevron_down) %></button>
   </div>
 
+  <%# ===== FAVORITE ===== #%>
   <div class="ptbr-favorite">
     <button
       class="st-button kinetic ptbr-favorite-button anim"
@@ -58,6 +60,7 @@
 <% end %>
 
 <% if @post.visible? %>
+  <%# ===== NOTES ===== #%>
   <div class="<%= @post.has_notes? ? "ptbr-notes" : "ptbr-notes hidden" %>">
     <button
       class="st-button kinetic ptbr-notes-button"
@@ -69,6 +72,7 @@
 <% end %>
 
 <% if !@post.force_original_size? %>
+  <%# ===== RESIZE ===== #%>
   <div class="ptbr-resize">
     <select id="image-resize-selector" class="st-button" aria-label="Select image size">
       <option value="original">Original</option>
@@ -86,6 +90,7 @@
 <% end %>
 
 <% if @post.visible? %>
+  <%# ===== FULLSCREEN ===== #%>
   <div class="ptbr-fullscreen">
     <a
       href="<%= @post.file_url %>"
@@ -98,6 +103,7 @@
   </div>
 <% end %>
 <% if CurrentUser.is_member? %>
+  <%# ===== EDIT ===== #%>
   <div class="ptbr-edit">
     <button
       type="button"
@@ -110,12 +116,15 @@
   </div>
 <% end %>
 <% if @post.visible? %>
+  <%# ===== OVERFLOW ===== #%>
   <div class="ptbr-etc">
     <button class="st-button kinetic ptbr-etc-toggle" title="More Options">
       <%= svg_icon(:ellipsis_v) %>
     </button>
     <div class="ptbr-etc-menu hidden">
-      <button type="button" id="menu-post-edit-link" class="st-button ptbr-etc-edit">Edit</button>
+      <% if CurrentUser.is_member? %>
+        <button type="button" id="menu-post-edit-link" class="st-button ptbr-etc-edit">Edit</button>
+      <% end %>
       <a href="<%= @post.file_url %>" class="st-button ptbr-etc-fullscreen">Fullscreen</a>
       <a
         href="<%= @post.file_url %>"
@@ -129,8 +138,10 @@
       </a>
       <button class="st-button ptbr-share-button" data-hotkey="share">Share</button>
       <button class="st-button ptbr-notes-button <%= @post.has_notes? ? "" : "hidden"%>" enabled="true"></button>
-      <button class="st-button ptbr-etc-pool add-to-pool" data-hotkey="add-to-pool">Add to Pool</button>
-      <button class="st-button ptbr-etc-set add-to-set" data-hotkey="add-to-set">Add to Set</button>
+      <% if CurrentUser.is_member? %>
+        <button class="st-button ptbr-etc-pool add-to-pool" data-hotkey="add-to-pool">Add to Pool</button>
+        <button class="st-button ptbr-etc-set add-to-set" data-hotkey="add-to-set">Add to Set</button>
+      <% end %>
     </div>
   </div>
 <% end %>
