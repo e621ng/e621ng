@@ -5,24 +5,47 @@ import Blacklist from "@/core/blacklists";
 import Analytics from "@/core/analytics";
 import Logger from "@/utility/Logger";
 import PerformanceTracker from "@/utility/PerformanceTracker";
+import Settings from "@/utility/Settings";
 
 const Recommended = {};
 
 Recommended.RESULT_COUNT = 6;
 Recommended.SHOW_ENGINE_RESULTS = false;
 Recommended.Logger = new Logger("Recommended");
-Recommended.allStates = ["artist", "favorites", "tags", "closed"];
-Recommended.validStates = ["artist", "closed"];
+Recommended.allStates = ["artist", "favorites", "tags"];
+Recommended.validStates = ["artist"];
 Recommended.requestID = 0;
 
 Recommended.remote_actions = ["favorites", "tags"];
 
 Recommended.init = function () {
   if (Recommended.$container.length === 0) return;
-  if (Recommended.action === "closed") {
-    Recommended.$wrapper.remove();
-    return;
+
+  Recommended.SHOW_ENGINE_RESULTS = Settings.Recommender.remote;
+  if (Recommended.SHOW_ENGINE_RESULTS)
+    Recommended.validStates.push("favorites", "tags");
+  const initialAction = Recommended.action;
+  Recommended.Logger.log("Loaded", {
+    action: initialAction,
+    showEngineResults: Recommended.SHOW_ENGINE_RESULTS,
+    validStates: Recommended.validStates,
+  });
+
+
+  // Set recommender UI state
+  if (!Recommended.visible) {
+    Recommended.$wrapper.attr("data-visible", "false");
+    Recommended.$toggle.attr({
+      "aria-expanded": "false",
+      "aria-label": "Show Recommendations",
+    });
   }
+
+  Recommended.$wrapper.attr("data-action", initialAction);
+  Recommended.$wrapper.find("#post-recommendations-tabs button").attr("aria-selected", function () {
+    return $(this).data("action") === initialAction ? "true" : "false";
+  });
+  Recommended.$container.attr("aria-labelledby", `post-recommendations-tab-${initialAction}`);
 
   // Bootstrap analytics
   if (Analytics.enabled)
@@ -37,16 +60,6 @@ Recommended.init = function () {
       });
     });
 
-  Recommended.SHOW_ENGINE_RESULTS = Recommended.$wrapper.attr("data-remote") === "true";
-  if (Recommended.SHOW_ENGINE_RESULTS)
-    Recommended.validStates.push("favorites", "tags");
-  Recommended.Logger.log("Loaded", {
-    action: Recommended.action,
-    showEngineResults: Recommended.SHOW_ENGINE_RESULTS,
-    validStates: Recommended.validStates,
-  });
-
-  Recommended.$wrapper.attr("data-action", Recommended.action);
 
   // Detect when the recommendations section is in view.
   let isInitialized = false;
@@ -61,16 +74,13 @@ Recommended.init = function () {
     if (!isInitialized) return;
 
     const action = $(event.currentTarget).data("action");
-    Recommended.action = action;
-    if (action == "closed") {
-      Recommended.requestID++; // Invalidate any in-flight requests
-      Recommended.$wrapper.remove();
-      E621.Flash.notice("You can re-enable recommendations in the <a href=\"/static/theme\">Themes menu</a>.", true);
-      return;
-    }
+    Recommended.action = action; // validated in the setter
+    Recommended.loadState(Recommended.action);
+  });
 
-    Recommended.$wrapper.attr("data-action", action);
-    Recommended.loadState(action);
+  // Rig the toggle button
+  this.$toggle.on("click", () => {
+    Recommended.visible = !Recommended.visible;
   });
 };
 
@@ -102,6 +112,14 @@ Object.defineProperty(Recommended, "$wrapper", {
   },
 });
 
+Recommended._toggle = null;
+Object.defineProperty(Recommended, "$toggle", {
+  get: function () {
+    if (!Recommended._toggle) Recommended._toggle = $("#post-recommendations-toggle button");
+    return Recommended._toggle;
+  },
+});
+
 Object.defineProperty(Recommended, "action", {
   get: function () {
     let action = LStorage.Posts.Recommendations;
@@ -115,6 +133,10 @@ Object.defineProperty(Recommended, "action", {
 
     LStorage.Posts.Recommendations = value;
     this.$wrapper.attr("data-action", value);
+    this.$wrapper.find("#post-recommendations-tabs button").attr("aria-selected", function () {
+      return $(this).data("action") === value ? "true" : "false";
+    });
+    this.$container.attr("aria-labelledby", `post-recommendations-tab-${value}`);
   },
 });
 
@@ -124,6 +146,20 @@ Object.defineProperty(Recommended, "status", {
   },
   set: function (value) {
     this.$wrapper.attr("data-status", value);
+  },
+});
+
+Object.defineProperty(Recommended, "visible", {
+  get: function () {
+    return LStorage.Posts.RecommenderShown;
+  },
+  set: function (value) {
+    LStorage.Posts.RecommenderShown = value;
+    this.$wrapper.attr("data-visible", value ? "true" : "false");
+    this.$toggle.attr({
+      "aria-expanded": value ? "true" : "false",
+      "aria-label": value ? "Hide Recommendations" : "Show Recommendations",
+    });
   },
 });
 
@@ -301,7 +337,7 @@ Recommended.waitUntilReady = function () {
           resolve();
         }
       });
-    }, { threshold: 0.1 });
+    }, { threshold: 0 });
 
     observer.observe(Recommended.$container[0]);
   });

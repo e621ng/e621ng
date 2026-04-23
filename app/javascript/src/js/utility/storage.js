@@ -151,8 +151,11 @@ LStorage.Posts = {
   /** @returns {boolean} True if tag preview in tag editor is enabled */
   TagPreview: ["e6.posts.tagpreview", true],
 
-  /** @returns {("artist" | "favorites" | "tags" | "closed")} Default recommendation type */
-  Recommendations: ["e6.posts.recommendations", "artist"],
+  /** @returns {("artist" | "favorites" | "tags")} Default recommendation type */
+  Recommendations: ["e6.posts.recommended.type", "artist"],
+
+  /** @returns {boolean} True if the post recommendations are shown, false if they are hidden */
+  RecommenderShown: ["e6.posts.recommended.vis", true],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 
