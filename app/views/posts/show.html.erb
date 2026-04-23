@@ -37,7 +37,7 @@
         <%= render "posts/partials/show/sidebar/related", :post => @post %>
       </section>
       
-      <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
+      <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top" aria-label="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
     </div>
 
     <div class="content">
@@ -189,7 +189,7 @@
           <%= render "comments/partials/index/list", :comments => @comments, :post => @post, :show_header => false %>
         </section>
 
-        <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
+        <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top" aria-label="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
       <% end %>
     </div>
 
