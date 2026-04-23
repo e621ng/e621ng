@@ -23,6 +23,43 @@ module RequestHelpers
     end
     allow(loader).to receive(:has_api_authentication?).and_return(false)
   end
+
+  def make_session(user = nil, password = "hexerade", remember: true)
+    user = create(:user, password: password) if user.blank?
+    unless user.is_a?(String)
+      ret = user
+      password = user.password.presence || password
+      user = user.name
+    end
+    post session_path(session: { name: user, password: password, remember: remember })
+    expect(response).to have_http_status(:found)
+    ret || user
+  end
+
+  def method_authenticated(method_name, url, user, options)
+    post session_path, params: { session: { name: user.name, password: user.password } }
+    self.send(method_name, url, **options)
+  end
+
+  def get_auth(url, user, options = {})
+    method_authenticated(:get, url, user, options)
+  end
+
+  def post_auth(url, user, options = {})
+    method_authenticated(:post, url, user, options)
+  end
+
+  def patch_auth(url, user, options = {})
+    method_authenticated(:patch, url, user, options)
+  end
+
+  def put_auth(url, user, options = {})
+    method_authenticated(:put, url, user, options)
+  end
+
+  def delete_auth(url, user, options = {})
+    method_authenticated(:delete, url, user, options)
+  end
 end
 
 RSpec.configure do |config|

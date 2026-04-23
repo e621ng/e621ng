@@ -55,6 +55,19 @@ RSpec.describe TagQuery, type: :model do
       expect(tq[key].first).to eq([:lte, 100])
     end
 
+    it "parses a comma-separated list of integers as [:in, [*list]]" do
+      tq = TagQuery.new("#{metatag}:1,23,456")
+      expect(tq[key].first).to eq([:in, [1, 23, 456]])
+    end
+
+    it "truncates a comma-separated list of integers at #{Danbooru.config.max_per_page}" do
+      limit = Danbooru.config.max_per_page
+      tq = TagQuery.new("#{metatag}:#{[*(1..limit)].join(',')}")
+      expect(tq[key].first).to eq([:in, [*(1..limit)]])
+      tq = TagQuery.new("#{metatag}:#{[*(1..(limit + 10))].join(',')}")
+      expect(tq[key].first).to eq([:in, [*(1..limit)]])
+    end
+
     it "stores a negated range in #{key}_must_not" do
       tq = TagQuery.new("-#{metatag}:50")
       expect(tq[:"#{key}_must_not"].first).to eq([:eq, 50])

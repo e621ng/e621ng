@@ -10,17 +10,17 @@ require "rails_helper"
 #            api_key GET    /api_keys/:id(.:format)            api_keys#show
 #                    DELETE /api_keys/:id(.:format)            api_keys#destroy
 RSpec.describe ApiKeysController do
-  def make_session(user = nil, password = "hexerade", remember: true)
-    user = create(:user, password: password) if user.blank?
-    unless user.is_a?(String)
-      ret = user
-      password = user.password.presence || password
-      user = user.name
-    end
-    post session_path(session: { name: user, password: password, remember: remember })
-    expect(response).to have_http_status(:found)
-    ret || user
-  end
+  # def make_session(user = nil, password = "hexerade", remember: true)
+  #   user = create(:user, password: password) if user.blank?
+  #   unless user.is_a?(String)
+  #     ret = user
+  #     password = user.password.presence || password
+  #     user = user.name
+  #   end
+  #   post session_path(session: { name: user, password: password, remember: remember })
+  #   expect(response).to have_http_status(:found)
+  #   ret || user
+  # end
 
   describe "Every route" do
     it "denies access to non-members" do

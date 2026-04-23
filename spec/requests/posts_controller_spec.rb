@@ -54,6 +54,11 @@ RSpec.describe PostsController do
         get posts_path(md5: "00000000000000000000000000000000")
         expect(response).to have_http_status(:not_found)
       end
+
+      it "doesn't crash when md5 param is a hash" do
+        get posts_path, params: { md5: { "$eq" => "" } }
+        expect(response).to have_http_status(:ok)
+      end
     end
   end
 
@@ -93,6 +98,16 @@ RSpec.describe PostsController do
         get post_path(post)
         expect(response).to have_http_status(:forbidden)
       end
+    end
+
+    it "doesn't crash when pool_id is an array" do
+      get post_path(post), params: { pool_id: ["49413"] }
+      assert_response :success
+    end
+
+    it "doesn't crash when post_set_id is an array" do
+      get post_path(post), params: { post_set_id: ["12345"] }
+      assert_response :success
     end
   end
 

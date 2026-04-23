@@ -48,6 +48,33 @@ FactoryBot.define do
       level { User::Levels::ADMIN }
     end
 
+    # Legacy option
+    factory(:bd_staff_user) do
+      is_bd_staff { true }
+      level { User::Levels::ADMIN }
+      can_approve_posts { true }
+    end
+
+    factory(:bd_member_user) do
+      is_bd_staff { true }
+      level { User::Levels::MEMBER }
+    end
+
+    factory(:bd_janitor_user) do
+      is_bd_staff { true }
+      level { User::Levels::JANITOR }
+    end
+
+    factory(:bd_moderator_user) do
+      is_bd_staff { true }
+      level { User::Levels::MODERATOR }
+    end
+
+    factory(:bd_admin_user) do
+      is_bd_staff { true }
+      level { User::Levels::ADMIN }
+    end
+
     #########################
     ### Permission Flags ####
     #########################

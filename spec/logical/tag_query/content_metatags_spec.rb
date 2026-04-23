@@ -107,10 +107,10 @@ RSpec.describe TagQuery, type: :model do
       expect(tq[:md5]).to eq(%w[aaa bbb ccc])
     end
 
-    it "caps the list at 100 entries" do
-      hashes = (1..110).map { |n| n.to_s.rjust(32, "0") }.join(",")
+    it "caps the list at #{Danbooru.config.max_per_page} entries" do
+      hashes = (1..(Danbooru.config.max_per_page + 10)).map { |n| n.to_s.rjust(32, "0") }.join(",")
       tq = TagQuery.new("md5:#{hashes}")
-      expect(tq[:md5].length).to eq(100)
+      expect(tq[:md5].length).to eq(Danbooru.config.max_per_page)
     end
   end
 
