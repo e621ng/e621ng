@@ -26,7 +26,7 @@ class PaginatorTest < ActiveSupport::TestCase
       context "sequential pagination (before)" do
         should "return the correct set of records" do
           @records = create_list(model.name.underscore, 4)
-          assert_paginated(expected_records: [], is_first_page: false, is_last_page: true) { model.paginate("b#{@records[0].id}", limit: 2) }
+          assert_paginated(expected_records: [], is_first_page: true, is_last_page: true) { model.paginate("b#{@records[0].id}", limit: 2) }
           assert_paginated(expected_records: [@records[0]], is_first_page: false, is_last_page: true) { model.paginate("b#{@records[1].id}", limit: 2) }
           assert_paginated(expected_records: [@records[1], @records[0]], is_first_page: false, is_last_page: true) { model.paginate("b#{@records[2].id}", limit: 2) }
           assert_paginated(expected_records: [@records[2], @records[1]], is_first_page: false, is_last_page: false) { model.paginate("b#{@records[3].id}", limit: 2) }
@@ -41,7 +41,7 @@ class PaginatorTest < ActiveSupport::TestCase
           assert_paginated(expected_records: [@records[2], @records[1]], is_first_page: false, is_last_page: false) { model.paginate("a#{@records[0].id}", limit: 2) }
           assert_paginated(expected_records: [@records[3], @records[2]], is_first_page: true, is_last_page: false) { model.paginate("a#{@records[1].id}", limit: 2) }
           assert_paginated(expected_records: [@records[3]], is_first_page: true, is_last_page: false) { model.paginate("a#{@records[2].id}", limit: 2) }
-          assert_paginated(expected_records: [], is_first_page: true, is_last_page: false) { model.paginate("a#{@records[3].id}", limit: 2) }
+          assert_paginated(expected_records: [], is_first_page: true, is_last_page: true) { model.paginate("a#{@records[3].id}", limit: 2) }
         end
       end
 
