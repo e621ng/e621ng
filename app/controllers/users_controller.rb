@@ -34,7 +34,10 @@ class UsersController < ApplicationController
   end
 
   def new
-    raise User::PrivilegeError, "Already signed in" unless CurrentUser.is_anonymous?
+    unless CurrentUser.is_anonymous?
+      redirect_back_or_to(posts_path, notice: "You are already signed in")
+      return
+    end
     return access_denied("Signups are disabled") unless Danbooru.config.enable_signups?
     @user = User.new
     respond_with(@user)
