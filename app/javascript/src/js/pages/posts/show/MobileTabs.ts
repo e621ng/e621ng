@@ -4,7 +4,9 @@ function bootstrapTabs () {
   const container = $(".post-display");
   const validActions = ["comments", "tags"];
 
-  container.attr("data-tab-state", LStorage.Posts.MobileTab as any);
+  const savedState = (LStorage.Posts.MobileTab as any) + "";
+  if (savedState === "tags") container.attr("data-tab-state", "tags");
+
   container.find(".post-mobile-tab").on("click", (event) => {
     const action = $(event.currentTarget).data("action");
     if (!validActions.includes(action)) return;
