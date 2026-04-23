@@ -33,7 +33,7 @@ module Danbooru
         when :numbered
           current_page == 1
         when :sequential_before
-          self.empty?
+          empty?
         when :sequential_after
           orig_size <= records_per_page
         end
@@ -46,7 +46,7 @@ module Danbooru
         when :sequential_before
           orig_size <= records_per_page
         when :sequential_after
-          self.empty? || self.last.id <= 1
+          empty? || last.id <= 1
         end
       end
 
