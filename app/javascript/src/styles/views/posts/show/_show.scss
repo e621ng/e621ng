@@ -48,7 +48,7 @@ body.c-posts.a-show-seq {
     "sidebar "
     "adscape ";
   grid-template-columns: 1fr;
-  grid-template-rows: min-content 1fr min-content;
+  grid-template-rows: min-content 1fr min-content auto auto auto;
 
   flex: 1; // See Exhibit A
 
@@ -195,7 +195,7 @@ body.c-posts.a-show-seq {
   // Go-Up button
   .go-up {
     position: sticky;
-    bottom: 0;
+    bottom: 0.5rem;
     right: 0;
     display: flex;
     justify-content: flex-end;
