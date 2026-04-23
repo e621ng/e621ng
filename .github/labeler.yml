@@ -8,7 +8,6 @@
     - any-glob-to-any-file:
       - '**/*.js'
       - '**/*.ts'
-      - '!**/*.vue'
 
 'Lang: Vue':
   - changed-files:
