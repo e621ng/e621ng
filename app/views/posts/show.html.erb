@@ -97,16 +97,16 @@
         <%= render "posts/partials/show/content/translated", post: @post %>
       </section>
 
-      <% if @post.description.present? %>
-        <div id="post-description-container" class="styled-dtext">
-        <%= render "posts/partials/show/content/description", post: @post %>
-        </div>
-      <% end %>
-
       <% if CurrentUser.is_member? %>
         <section id="edit" style="display: none;">
           <%= render "posts/partials/show/content/edit", :post => @post %>
         </section>
+      <% end %>
+
+      <% if @post.description.present? %>
+        <div id="post-description-container" class="styled-dtext">
+          <%= render "posts/partials/show/content/description", post: @post %>
+        </div>
       <% end %>
 
       <div

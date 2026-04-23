@@ -62,7 +62,15 @@ export default class PostsShowToolbar {
   // Initialize voting buttons
   initVotingButtons () {
     const scoreBreakdown = $(".ptbr-breakdown").first();
+    let scoreOffclick = null;
     $(".ptbr-score").first().on("click", () => {
+      // Register offclick handler on the first use
+      if (scoreOffclick === null)
+        scoreOffclick = Offclick.register(".ptbr-score", ".ptbr-breakdown", () => {
+          scoreBreakdown.addClass("hidden");
+        });
+
+      scoreOffclick.disabled = !scoreOffclick.disabled;
       scoreBreakdown.toggleClass("hidden");
     });
 

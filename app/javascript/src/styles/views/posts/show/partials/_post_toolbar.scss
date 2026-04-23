@@ -5,11 +5,21 @@
   justify-content: center;
 
   margin: 0.5rem 0;
-  gap: 0.5rem;
+  gap: 0.75rem 0.5rem;
 
   @include window-larger-than(50rem) {
     justify-content: flex-start;
   }
+}
+
+#ptbr-wrapper .ptbr-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#ptbr-wrapper .st-button {
+  user-select: none;
 }
 
 
@@ -144,8 +154,7 @@
 
 // Edit button
 #ptbr-wrapper .ptbr-edit {
-  display: none;
-  @include window-larger-than(40rem) { display: flex; }
+  display: flex;
 }
 #ptbr-wrapper .ptbr-edit-button {
   font-family: "Roboto", Verdana, Geneva, sans-serif;
@@ -153,8 +162,7 @@
 
 // Fullscreen button
 #ptbr-wrapper .ptbr-fullscreen {
-  display: none;
-  @include window-larger-than(40rem) { display: flex; }
+  display: flex;
 }
 #ptbr-wrapper .ptbr-fullscreen-button {
   font-family: "Roboto", Verdana, Geneva, sans-serif;
@@ -221,8 +229,7 @@
 
 // Notes toggle
 #ptbr-wrapper .ptbr-notes {
-  display: none;  // In the hamburger menu on mobile
-  @include window-larger-than(40rem) { display: flex; }
+  display: flex;
   &.hidden { display: none; }
 }
 
@@ -235,11 +242,43 @@
 }
 
 
+// Download button
+#ptbr-wrapper .ptbr-etc-download {
+  min-width: 6rem;
+  align-items: center;
+
+  svg {
+    display: none;
+    height: 1rem;
+    width: 1rem;
+    animation: spin-animation ease-in-out 1s infinite;
+  }
+
+  span {
+    text-align: center;
+  }
+
+  &[pending="true"] {
+    svg { display: inline; }
+    span { display: none; }
+  }
+  
+  @keyframes spin-animation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+}
+
+
 // Overflow menu
 #ptbr-wrapper .ptbr-etc {
   display: flex;
   position: relative;
   gap: 0.5rem;
+
+  .ptbr-etc-toggle svg {
+    margin: -0.5rem -0.25rem; // Make it square-ish
+  }
 }
 
 #ptbr-wrapper .ptbr-etc-menu {
@@ -256,49 +295,14 @@
 
   background: themed("color-section");
   @include st-radius;
+  box-shadow: 0 0 0.5rem -0.25rem themed("color-background");
 
   &.hidden { display: none; }
 
-  // Mobile-only buttons
-  @include window-larger-than(40rem) {
-    .ptbr-etc-fullscreen { display: none; }
-    .ptbr-etc-edit { display: none; }
-    .ptbr-notes-button { display: none; }
-  }
-
   .st-button {
     font-family: "Roboto", Verdana, Geneva, sans-serif;
+    min-width: 8rem;
   }
-
-  // Download button
-  .ptbr-etc-download {
-    min-width: 6rem;
-    align-items: center;
-
-    svg {
-      display: none;
-      height: 1rem;
-      width: 1rem;
-
-      animation: spin-animation ease-in-out 1s infinite;
-    }
-    span {
-      text-align: center;
-    }
-
-    &[pending="true"] {
-      svg { display: inline; }
-      span { display: none; }
-    }
-
-    @keyframes spin-animation {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  }
-
-  .ptbr-notes-button.hidden { display: none; }
-  .ptbr-etc-pool, .ptbr-etc-set { min-width: 6.5rem; }
 }
 
 
