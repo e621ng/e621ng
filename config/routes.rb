@@ -343,7 +343,7 @@ Rails.application.routes.draw do
       post :disable_uploads
       post :flush_favorites
       get :fix_counts
-      get "/api_key", to: "api_keys#index"
+      get "/api_key", to: redirect("/api_keys")
     end
 
     collection do
