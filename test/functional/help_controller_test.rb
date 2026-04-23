@@ -10,11 +10,12 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "index renders" do
+  # TODO: More thorough test
+  test "index redirects for non-admins" do
     @help = HelpPage.create!(wiki_page: @wiki.title, name: "very_important")
 
     get help_pages_path
-    assert_response :success
+    assert_response :see_other
   end
 
   test "index renders for admins" do
