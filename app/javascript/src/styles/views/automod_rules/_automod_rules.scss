@@ -1,0 +1,28 @@
+.c-admin-automod-rules {
+
+  .automod-applies {
+    grid-template-columns: repeat(auto-fill, minmax(0, 15rem));
+    display: grid;
+    max-width: 46rem;
+    gap: 0.25rem;
+
+    & > h5 { grid-column: 1 / -1; }
+
+    &-toggle {
+      display: flex;
+      background: themed("color-section-lighten-5");
+      padding: 0.25rem 0.75rem;
+      gap: 0.5rem;
+      align-items: center;
+      @include st-radius;
+
+      label.st-toggle {
+        margin-left: auto;
+      }
+    }
+
+    &-hint {
+      margin: 1rem 0;
+    }
+  }
+}

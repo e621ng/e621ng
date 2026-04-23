@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SearchTrendHourly < ApplicationRecord
-  WINDOW_HOURS = 12.hours
+  WINDOW_HOURS = 24.hours
 
   TrendingTag = Struct.new(:tag, :search_count, :delta)
 
