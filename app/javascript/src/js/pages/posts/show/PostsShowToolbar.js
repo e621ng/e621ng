@@ -224,7 +224,7 @@ export default class PostsShowToolbar {
         });
     });
 
-    $(".ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
+    $(".ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button, .ptbr-etc-edit").on("click", () => {
       offclickHandler.disabled = true;
       menu.addClass("hidden");
     });

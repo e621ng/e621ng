@@ -2,10 +2,11 @@ import LStorage from "@/utility/storage";
 
 function bootstrapTabs () {
   const container = $(".post-display");
+  if (!container.length || !container.data("comments-enabled")) return;
   const validActions = ["comments", "tags"];
 
   const savedState = (LStorage.Posts.MobileTab as any) + "";
-  if (savedState === "tags") container.attr("data-tab-state", "tags");
+  if (savedState === "comments") container.attr("data-tab-state", "comments");
 
   container.find(".post-mobile-tab").on("click", (event) => {
     const action = $(event.currentTarget).data("action");
@@ -14,7 +15,9 @@ function bootstrapTabs () {
 
     container.attr("data-tab-state", action);
   });
+}
 
+function bootstrapGoUpButton () {
   $(".go-up button").on("click", () => {
     const tabs = $("#mobile-tabs");
     if (tabs.length) {
@@ -28,4 +31,5 @@ function bootstrapTabs () {
 
 $(() => {
   bootstrapTabs();
+  bootstrapGoUpButton();
 });
