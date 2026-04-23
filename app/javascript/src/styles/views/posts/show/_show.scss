@@ -112,13 +112,13 @@ body.c-posts.a-show-seq {
     grid-area: content;
 
     // Imported from #page
-    padding: 0.5rem 0.25rem themed("content-padding-bottom");
+    padding: 0.5rem 0.25rem 0.25rem;
     background-color: #152f56;
     background-color: themed("color-foreground");
-    background-image: themed("image-foreground-top");
-    background-position: themed("image-foreground-top-position");
-    background-repeat: themed("image-foreground-top-repeat");
-    background-size: themed("image-foreground-size");
+    background-image: themed("image-foreground-top", "none");
+    background-position: themed("image-foreground-top-position", "unset");
+    background-repeat: themed("image-foreground-top-repeat", "unset");
+    background-size: themed("image-foreground-size", "unset");
   }
 
   // 3. Tab UI
@@ -148,7 +148,7 @@ body.c-posts.a-show-seq {
     display: flex;
     flex-flow: column;
 
-    padding: 0.5rem 0.75rem themed("content-padding-bottom");
+    padding: 0.5rem 0.75rem themed("content-padding-bottom", "0");
     box-shadow: inset 0 .25rem .25rem -.25rem themed("color-background");
 
     .row.notices { margin: unset !important; }
@@ -162,7 +162,7 @@ body.c-posts.a-show-seq {
     flex-flow: column;
     gap: 1em;
 
-    padding: 0.5rem .75rem var(--content-padding-bottom);
+    padding: 0.5rem .75rem themed("content-padding-bottom", "0");
     box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
 
     #mode-box label {
@@ -184,10 +184,26 @@ body.c-posts.a-show-seq {
   & > .adscape {
     grid-area: adscape;
 
-    background-image: themed("image-foreground-bottom");
-    background-position: themed("image-foreground-bottom-position");
-    background-repeat: themed("image-foreground-bottom-repeat");
-    background-size: themed("image-foreground-size");
+    background-image: themed("image-foreground-bottom", "none");
+    background-position: themed("image-foreground-bottom-position", "unset");
+    background-repeat: themed("image-foreground-bottom-repeat", "unset");
+    background-size: themed("image-foreground-size", "unset");
+
+    padding-bottom: themed("content-padding-bottom", "0");
+  }
+
+  // Go-Up button
+  .go-up {
+    position: sticky;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    justify-content: flex-end;
+
+    svg {
+      height: 1rem;
+      width: 1rem;
+    }
   }
 }
 

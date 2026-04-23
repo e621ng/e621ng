@@ -34,7 +34,7 @@
 
   & > .content {
     border-radius: 0 0.25rem 0.25rem 0;
-    padding: 0.5rem 0.75rem themed("content-padding-bottom");
+    padding: 0.5rem 0.75rem 0.25rem;
     max-width: 100%;
   }
 
@@ -43,6 +43,8 @@
   & > .comments {
     box-shadow: unset;
   }
+
+  .go-up { display: none; }
 }
 
 // Override tab-state styles
