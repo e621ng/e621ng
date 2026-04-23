@@ -119,6 +119,11 @@ body.c-posts.a-show-seq {
     background-position: themed("image-foreground-top-position", "unset");
     background-repeat: themed("image-foreground-top-repeat", "unset");
     background-size: themed("image-foreground-size", "unset");
+
+    #description {
+      background: themed("color-section");
+      border-left-color: themed("color-section-lighten-5");
+    }
   }
 
   // 3. Tab UI
