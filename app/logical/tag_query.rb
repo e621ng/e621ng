@@ -424,9 +424,10 @@ class TagQuery
     if query.is_a?(TagQuery)
       query[:order].in?(OVERRIDE_DELETED_FILTER_ORDERS)
     else
-      all_orders = TagQuery.fetch_metatags(query, "order", "-order", prepend_prefix: false, at_any_level: at_any_level)
-      order_value = (all_orders["order"] || all_orders["-order"] || []).last
-      order_value.present? && order_value.in?(OVERRIDE_DELETED_FILTER_ORDERS)
+      TagQuery.fetch_metatags(query, "order", "-order", prepend_prefix: false, at_any_level: at_any_level) do |_tag, value|
+        return true if value.in?(OVERRIDE_DELETED_FILTER_ORDERS)
+      end
+      false
     end
   end
 
@@ -1446,6 +1447,8 @@ class TagQuery
 
       when "randseed" then q[:random_seed] = ParseValue.safe_id(g2)
 
+      when "order", "-order"
+        q[:order] = TagQuery.normalize_order_value(g2.downcase, invert: type == :must_not)
         q[:show_deleted] ||= q[:order].in?(OVERRIDE_DELETED_FILTER_ORDERS)
 
       when "limit"

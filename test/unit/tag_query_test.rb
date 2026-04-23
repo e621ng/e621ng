@@ -1560,9 +1560,10 @@ class TagQueryTest < ActiveSupport::TestCase
         assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted_desc"))
         assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb -order:deleted"))
         assert(TagQuery.should_hide_deleted_posts?("aaa bbb order:random"))
-        # last order used should 'win'
+        # Any deleted-implying order should disable deleted filtering, regardless of later order tags.
+        assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted order:random"))
         assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb order:random order:deleted"))
-        assert(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted order:random"))
+        assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb order:random -order:deleted"))
         # In prior versions, deleted filtering was based of the final value of `status`/`status_must_not`, so the metatag ordering changed the results. This ensures this legacy behavior stays gone.
         assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb delreason:something status:pending"))
         assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb -status:active"))
@@ -1610,8 +1611,11 @@ class TagQueryTest < ActiveSupport::TestCase
       assert_not(tq.hide_deleted_posts?(at_any_level: false))
       assert_not(tq.hide_deleted_posts?(at_any_level: true))
       tq = TagQuery.new("aaa bbb order:deleted order:random")
-      assert(tq.hide_deleted_posts?(at_any_level: false))
-      assert(tq.hide_deleted_posts?(at_any_level: true))
+      assert_not(tq.hide_deleted_posts?(at_any_level: false))
+      assert_not(tq.hide_deleted_posts?(at_any_level: true))
+      tq = TagQuery.new("aaa bbb order:random -order:deleted")
+      assert_not(tq.hide_deleted_posts?(at_any_level: false))
+      assert_not(tq.hide_deleted_posts?(at_any_level: true))
       # In prior versions, deleted filtering was based of the final value of `status`/`status_must_not`, so the metatag ordering changed the results. This ensures this legacy behavior stays gone.
       tq = TagQuery.new("aaa bbb delreason:something status:pending")
       assert_not(tq.hide_deleted_posts?(at_any_level: false))
