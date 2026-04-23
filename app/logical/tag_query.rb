@@ -424,7 +424,8 @@ class TagQuery
     if query.is_a?(TagQuery)
       query[:order].in?(OVERRIDE_DELETED_FILTER_ORDERS)
     else
-      order_value = TagQuery.fetch_metatag(query, "order", "-order", prepend_prefix: false, at_any_level: at_any_level)
+      all_orders = TagQuery.fetch_metatags(query, "order", "-order", prepend_prefix: false, at_any_level: at_any_level)
+      order_value = (all_orders["order"] || all_orders["-order"] || []).last
       order_value.present? && order_value.in?(OVERRIDE_DELETED_FILTER_ORDERS)
     end
   end

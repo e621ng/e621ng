@@ -1560,8 +1560,9 @@ class TagQueryTest < ActiveSupport::TestCase
         assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted_desc"))
         assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb -order:deleted"))
         assert(TagQuery.should_hide_deleted_posts?("aaa bbb order:random"))
-        assert(TagQuery.should_hide_deleted_posts?("aaa bbb order:random order:deleted"))
-        assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted order:random"))
+        # last order used should 'win'
+        assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb order:random order:deleted"))
+        assert(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted order:random"))
         # In prior versions, deleted filtering was based of the final value of `status`/`status_must_not`, so the metatag ordering changed the results. This ensures this legacy behavior stays gone.
         assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb delreason:something status:pending"))
         assert_not(TagQuery.should_hide_deleted_posts?("aaa bbb -status:active"))
