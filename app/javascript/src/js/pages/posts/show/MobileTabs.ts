@@ -2,7 +2,7 @@ import CStorage from "@/utility/StorageC";
 
 function bootstrapTabs () {
   const container = $(".post-display");
-  if (!container.length || !container.data("comments-enabled")) return;
+  if (!container.length) return;
   const validActions = ["comments", "tags"];
 
   container.find(".post-mobile-tab").on("click", (event) => {
@@ -10,7 +10,12 @@ function bootstrapTabs () {
     if (!validActions.includes(action)) return;
     CStorage.postMobileTabState = action;
 
-    container.attr("data-tab-state", action);
+    container
+      .attr("data-tab-state", action)
+      .find(".post-mobile-tab").each((_, el) => {
+        const $el = $(el);
+        $el.attr("aria-selected", String($el.data("action") === action));
+      });
   });
 }
 
