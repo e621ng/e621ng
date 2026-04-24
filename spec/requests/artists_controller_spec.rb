@@ -139,19 +139,16 @@ RSpec.describe ArtistsController do
         assert_redirected_to(artist_path(artist.id))
       end
 
-      # TODO: Finish
-      it "properly updates the changed time", skip: "Can't get the time freezing right" do
+      it "sets the wiki page timestamp to the time of the update" do
         old_timestamp = wiki_page.updated_at
-        freeze_time(1.minute.since(old_timestamp), with_usec: true) do
-          puts "#{Time.now.inspect} #{1.minute.since(old_timestamp).inspect} #{old_timestamp.inspect}"
+        frozen_at = 1.minute.since(old_timestamp)
+        travel_to(frozen_at) do
           put_auth(artist_path(artist.id), user, params: { artist: { notes: "rex", url_string: "http://example.com\nhttp://monet.com" } })
         end
         artist.reload
         wiki_page = artist.wiki_page
         expect(artist.notes).to eq("rex")
-        expect(wiki_page.updated_at).not_to eq(old_timestamp)
-        expect(1.minute.since(old_timestamp)).to eq(wiki_page.updated_at)
-        assert_redirected_to(artist_path(artist.id))
+        expect(wiki_page.updated_at).to be_within(1.second).of(frozen_at)
         expect(response).to redirect_to(artist_path(artist.id))
       end
 
