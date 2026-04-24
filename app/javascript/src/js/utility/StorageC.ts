@@ -10,6 +10,17 @@
  */
 export default class CStorage {
 
+  /** @returns true if the DMail notice is hidden, otherwise false */
+  static get hideDMailNotice (): boolean {
+    return this._getBoolCookie("hide_dmail_notice");
+  }
+
+  /** @param value true to hide the DMail notice, otherwise false */
+  static set hideDMailNotice (value: boolean) {
+    if (value) this._setBoolCookie("hide_dmail_notice", true);
+    else this._deleteBoolCookie("hide_dmail_notice");
+  }
+
   /** @returns "comments" if the post tab is set to comments, otherwise "tags" */
   static get postMobileTabState (): "comments" | "tags" {
     return this._getBoolCookie("post_tab") ? "comments" : "tags";
