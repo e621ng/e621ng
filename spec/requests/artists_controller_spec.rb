@@ -113,7 +113,7 @@ RSpec.describe ArtistsController do
   end
 
   describe "update action" do
-    it "works" do
+    it "updates the artist's url_string" do
       expect(artist.url_string).to eq("")
       put_auth(artist_path(artist), user, params: { artist: { url_string: "http://example.com" }, format: :json })
       expect(response).to have_http_status(:success)
@@ -127,7 +127,7 @@ RSpec.describe ArtistsController do
       # Ensure proper order of operations
       before { wiki_page }
 
-      it "works" do
+      it "updates notes and urls and touches the wiki page timestamp" do
         old_timestamp = wiki_page.updated_at
         travel_to(1.minute.from_now) do
           put_auth(artist_path(artist.id), user, params: { artist: { notes: "rex", url_string: "http://example.com\nhttp://monet.com" } })
@@ -184,7 +184,7 @@ RSpec.describe ArtistsController do
   end
 
   describe "destroy action" do
-    it "works" do
+    it "deletes the artist and logs a ModAction" do
       # assert_difference({ "Artist.count" => -1, "ModAction.count" => 1 }) do
       #   delete_auth(artist_path(artist), admin)
       # end
@@ -197,7 +197,7 @@ RSpec.describe ArtistsController do
   end
 
   describe "revert action" do
-    it "works" do
+    it "reverts the artist to the specified version" do
       CurrentUser.scoped(user) do
         artist.update(name: "xyz")
         artist.update(name: "abc")

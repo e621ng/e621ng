@@ -217,7 +217,7 @@ RSpec.describe ForumPostsController do
       post_auth unhide_forum_post_path(forum_post), mod
       assert_redirected_to(forum_post_path(forum_post))
       forum_post.reload
-      expect(forum_post.is_hidden?).to eq(false)
+      expect(forum_post.is_hidden?).to be(false)
     end
   end
 end

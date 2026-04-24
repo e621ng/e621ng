@@ -241,23 +241,23 @@ RSpec.describe Pool do
   describe "user_not_posts_limited" do
     include_context "as admin"
 
-    let(:post1) { create(:post) }
-    let(:post2) { create(:post) }
+    let(:existing_post) { create(:post) }
+    let(:added_post)    { create(:post) }
 
     it "rejects a post_ids change by a member who signed up less than 7 days ago" do
-      pool = create(:pool, post_ids: [post1.id])
+      pool = create(:pool, post_ids: [existing_post.id])
 
       new_member = create(:user, created_at: 1.day.ago)
       CurrentUser.user = new_member
       CurrentUser.ip_addr = "127.0.0.1"
 
-      pool.post_ids = [post1.id, post2.id]
+      pool.post_ids = [existing_post.id, added_post.id]
       expect(pool).not_to be_valid
       expect(pool.errors[:updater]).to be_present
     end
 
     it "rejects a post_ids change when the pool post edit limit is exceeded" do
-      pool = create(:pool, post_ids: [post1.id])
+      pool = create(:pool, post_ids: [existing_post.id])
 
       old_member = create(:user, created_at: 30.days.ago)
       CurrentUser.user = old_member
@@ -265,7 +265,7 @@ RSpec.describe Pool do
 
       allow(old_member).to receive(:pool_post_edit_limit).and_return(0)
 
-      pool.post_ids = [post1.id, post2.id]
+      pool.post_ids = [existing_post.id, added_post.id]
       expect(pool).not_to be_valid
       expect(pool.errors[:updater]).to be_present
     end

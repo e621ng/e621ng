@@ -12,13 +12,8 @@ require "rails_helper"
 #                 search_trends GET    /search_trends(.:format)                 search_trends#index
 RSpec.describe SearchTrendsController do
   describe "with trends enabled" do
-    before(:context) do
-      Setting.trends_enabled = true
-    end
-
-    after(:context) do
-      Setting.trends_enabled = false
-    end
+    before { Setting.trends_enabled = true }
+    after  { Setting.trends_enabled = false }
 
     # search_trends | GET | /search_trends(.:format) | search_trends#index
     describe "GET /search_trends (index)" do

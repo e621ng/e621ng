@@ -38,7 +38,7 @@ module RequestHelpers
 
   def method_authenticated(method_name, url, user, options)
     post session_path, params: { session: { name: user.name, password: user.password } }
-    self.send(method_name, url, **options)
+    send(method_name, url, **options)
   end
 
   def get_auth(url, user, options = {})

@@ -63,9 +63,9 @@ RSpec.describe DestroyedPost do
         expect(Ticket.last.reason).to include("replacement for post #42")
       end
 
-      it "calls push_pubsub with 'create' on the new ticket" do
-        expect_any_instance_of(Ticket).to receive(:push_pubsub).with("create")
+      it "publishes a ticket_updates event with action 'create'" do
         dp.notify_reupload(uploader)
+        expect(Cache.redis).to have_received(:publish).with("ticket_updates", include('"action":"create"'))
       end
     end
   end
