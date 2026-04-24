@@ -113,7 +113,7 @@
 
       <div
         id="post-recommendations"
-        data-visible="<%= cookies[:post_recs] == "1" %>"
+        data-visible="<%= cookies[:post_recs] != "1" %>"
         data-action="artist"
         data-status="waiting"
         data-post-id="<%= @post.id %>"
