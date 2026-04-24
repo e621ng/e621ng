@@ -10,10 +10,14 @@ module Danbooru
       def has_bit_flags(attributes, options = {})
         field = options[:field] || :bit_flags
 
-        define_singleton_method("flag_value_for") do |key|
-          index = attributes.index(key)
-          raise IndexError if index.nil?
-          1 << index
+        define_singleton_method("flag_value_for") do |*keys|
+          r = 0
+          keys.each do |key|
+            index = attributes.index(key)
+            raise IndexError if index.nil?
+            r |= 1 << index
+          end
+          r
         end
 
         attributes.each.with_index do |attribute, i|
