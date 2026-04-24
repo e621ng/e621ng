@@ -43,7 +43,7 @@ module Danbooru
           @records.size <= records_per_page
         when :sequential_after
           load
-          @records.empty? || @records.last.id <= 1
+          @records.empty? || @records.first.id <= 1
         end
       end
 
