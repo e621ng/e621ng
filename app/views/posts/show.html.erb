@@ -1,5 +1,6 @@
 <div id="c-posts"><div id="a-show">
-  <div class="post-display" data-tab-state="tags" data-comments-enabled="<%= !CurrentUser.hide_comments? %>">
+  <%# Cookie value set in MobileTabs.ts %>
+  <div class="post-display" data-tab-state="<%= cookies[:post_tab] == "1" ? "comments" : "tags" %>" data-comments-enabled="<%= !CurrentUser.hide_comments? %>">
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>
@@ -111,7 +112,7 @@
 
       <div
         id="post-recommendations"
-        data-visible="true"
+        data-visible="<%= cookies[:post_recs] === "1" ? false : true %>"
         data-action="artist"
         data-status="waiting"
         data-post-id="<%= @post.id %>"
@@ -153,8 +154,8 @@
             class="st-button"
             data-action="reveal"
             aria-controls="post-recommendations"
-            aria-expanded="true"
-            aria-label="Hide Recommendations"
+            aria-expanded="<%= cookies[:post_recs] === "1" ? false : true %>"
+            aria-label="<%= cookies[:post_recs] === "1" ? "Show" : "Hide" %> Recommendations"
           >
             <span>Show Recommendations</span>
             <%= svg_icon(:eye_off) %>
