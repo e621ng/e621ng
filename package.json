@@ -1,6 +1,11 @@
 {
   "name": "e621ng",
   "private": true,
+  "packageManager": "npm@10.8.2",
+  "engines": {
+    "node": ">=20.19.2",
+    "npm": ">=10.8.2"
+  },
   "dependencies": {
     "@openpanel/web": "^1.3.0",
     "@rails/ujs": "^7.1.600",
