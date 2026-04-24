@@ -20,6 +20,7 @@ RSpec.describe SearchTrendHourly do
 
     before do
       allow(SearchTrendHourly).to receive(:bulk_increment!)
+      allow(Setting).to receive(:trends_enabled).and_return(true)
     end
 
     it "does not call bulk_increment! when the query is nil" do
@@ -220,14 +221,14 @@ RSpec.describe SearchTrendHourly do
   # 12-hour window and returns tags that have grown above the given thresholds.
   #
   # Fixed reference point so window boundaries never cross a test run:
-  #   at            = 2026-01-01 12:00:00 UTC
-  #   current window  = 2026-01-01 00:00:00 UTC .. 2026-01-01 12:00:00 UTC
-  #   previous window = 2025-12-31 12:00:00 UTC ..< 2026-01-01 00:00:00 UTC
+  #   at              = 2026-01-01 12:00:00 UTC
+  #   current window  = 2025-12-31 12:00:00 UTC .. 2026-01-01 12:00:00 UTC  (24 h)
+  #   previous window = 2025-12-30 12:00:00 UTC ..< 2025-12-31 12:00:00 UTC (24 h)
   # =========================================================================
   describe ".rising" do
     let(:at)          { Time.utc(2026, 1, 1, 12, 0, 0) }
     let(:current_hr)  { Time.utc(2026, 1, 1, 6, 0, 0) }    # inside current window
-    let(:previous_hr) { Time.utc(2025, 12, 31, 18, 0, 0) } # inside previous window
+    let(:previous_hr) { Time.utc(2025, 12, 31, 6, 0, 0) }  # inside previous window
 
     # Call rising with the fixed reference time and sensible defaults.
     def call_rising(**overrides)
