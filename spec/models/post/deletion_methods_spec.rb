@@ -175,5 +175,70 @@ RSpec.describe Post do
         expect(create(:post).protect_file?).to be false
       end
     end
+
+    describe "#delete! with blank reason" do
+      it "adds an error when there is no active flag and the reason is blank" do
+        post = create(:post)
+        post.delete!("")
+        expect(post.errors[:base]).to be_present
+        expect(post.errors[:base].join).to match(/no active flag/)
+      end
+
+      it "adds an error when the pending flag has an uploading_guidelines reason" do
+        post = create(:post)
+        PostFlag.create!(
+          post: post,
+          creator: create(:user),
+          reason_name: "uploading_guidelines",
+          note: "Does not meet uploading guidelines.",
+          creator_ip_addr: "127.0.0.1",
+        )
+        post.delete!("")
+        expect(post.errors[:base].join).to match(/uploading guidelines/)
+      end
+
+      it "uses the pending flag's reason when the reason is blank and a valid flag exists" do
+        post = create(:post)
+        PostFlag.create!(
+          post: post,
+          creator: create(:user),
+          reason_name: "previously_deleted",
+          creator_ip_addr: "127.0.0.1",
+        )
+        expect { post.delete!("") }.to change { post.reload.is_deleted }.to(true)
+      end
+    end
+
+    describe "#substitute_deletion_dmail_template" do
+      it "returns nil when the text is blank" do
+        post = create(:post)
+        expect(post.substitute_deletion_dmail_template("")).to be_nil
+        expect(post.substitute_deletion_dmail_template(nil)).to be_nil
+      end
+
+      it "substitutes %POST_ID% with the post id" do
+        post = create(:post)
+        result = post.substitute_deletion_dmail_template("Post #%POST_ID%")
+        expect(result).to include(post.id.to_s)
+      end
+
+      it "substitutes %REASON% when a reason is provided" do
+        post = create(:post)
+        result = post.substitute_deletion_dmail_template("Reason: %REASON%", "test reason")
+        expect(result).to include("test reason")
+      end
+
+      it "leaves %REASON% unchanged when no reason is given" do
+        post = create(:post)
+        result = post.substitute_deletion_dmail_template("Reason: %REASON%")
+        expect(result).to include("%REASON%")
+      end
+
+      it "substitutes %STAFF_NAME% with the current user name" do
+        post = create(:post)
+        result = post.substitute_deletion_dmail_template("Staff: %STAFF_NAME%")
+        expect(result).to include(CurrentUser.name)
+      end
+    end
   end
 end

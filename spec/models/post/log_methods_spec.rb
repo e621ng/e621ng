@@ -71,6 +71,21 @@ RSpec.describe Post do
         post.update_columns(score: 99)
         expect(PostEvent.where(post_id: post.id).count).to eq(initial_count)
       end
+
+      describe "comment disabled" do
+        it "creates a comment_disabled PostEvent when is_comment_disabled is set to true" do
+          post = create(:post, is_comment_disabled: false)
+          post.update!(is_comment_disabled: true)
+          expect(PostEvent.where(post_id: post.id, action: PostEvent.actions[:comment_disabled])).to exist
+        end
+
+        it "creates a comment_enabled PostEvent when is_comment_disabled is cleared" do
+          post = create(:post)
+          post.update_columns(is_comment_disabled: true)
+          post.reload.update!(is_comment_disabled: false)
+          expect(PostEvent.where(post_id: post.id, action: PostEvent.actions[:comment_enabled])).to exist
+        end
+      end
     end
   end
 end

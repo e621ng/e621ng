@@ -133,5 +133,45 @@ RSpec.describe Post do
         expect(post.is_video?).to be false
       end
     end
+
+    describe "#preview_dimensions — no dimensions" do
+      it "returns [max_px, max_px] when the post has no dimensions" do
+        max_px = Danbooru.config.small_image_width
+        post = build(:post, image_width: nil, image_height: nil)
+        expect(post.preview_dimensions).to eq([max_px, max_px])
+      end
+    end
+
+    describe "#has_sample (boolean alias)" do
+      it "returns true (exactly) when the post has a sample" do
+        large_width = Danbooru.config.large_image_width + 1
+        post = build(:post, file_ext: "jpg", image_width: large_width, image_height: large_width)
+        expect(post.has_sample).to be true
+      end
+
+      it "returns false (exactly) when the post has no sample" do
+        small_width = Danbooru.config.large_image_width - 1
+        post = build(:post, file_ext: "jpg", image_width: small_width, image_height: small_width)
+        expect(post.has_sample).to be false
+      end
+    end
+
+    describe "#sample_dimensions — when post has a sample" do
+      it "returns scaled dimensions less than the originals" do
+        large_width = Danbooru.config.large_image_width * 2
+        post = build(:post, file_ext: "jpg", image_width: large_width, image_height: large_width)
+        width, height = post.sample_dimensions
+        expect(width).to be < large_width
+        expect(height).to be < large_width
+      end
+    end
+
+    describe "#sample_height — when post has a sample" do
+      it "returns the scaled height (less than image_height)" do
+        large_width = Danbooru.config.large_image_width * 2
+        post = build(:post, file_ext: "jpg", image_width: large_width, image_height: large_width)
+        expect(post.sample_height).to be < large_width
+      end
+    end
   end
 end

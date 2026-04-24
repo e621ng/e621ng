@@ -77,5 +77,27 @@ RSpec.describe Post do
         expect(post.source).not_to include("\r")
       end
     end
+
+    describe "#copy_sources_to_parent" do
+      it "appends the child's source to the parent's source" do
+        parent = create(:post, source: "https://parent.example.com")
+        child  = create(:post, source: "https://child.example.com", parent: parent)
+        child.copy_sources_to_parent
+        expect(parent.source).to include("https://child.example.com")
+        expect(parent.source).to include("https://parent.example.com")
+      end
+
+      it "sets the parent's edit_reason to indicate the merge" do
+        parent = create(:post)
+        child  = create(:post, parent: parent)
+        child.copy_sources_to_parent
+        expect(parent.edit_reason).to eq("Merged from post ##{child.id}")
+      end
+
+      it "does nothing when the post has no parent" do
+        child = create(:post, parent_id: nil)
+        expect { child.copy_sources_to_parent }.not_to raise_error
+      end
+    end
   end
 end

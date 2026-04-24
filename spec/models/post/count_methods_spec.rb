@@ -34,6 +34,11 @@ RSpec.describe Post do
         count = Post.fast_count(tag, enable_safe_mode: true)
         expect(count).to be_a(Integer)
       end
+
+      it "returns 0 when the tag query raises TagQuery::CountExceededError" do
+        allow(Post).to receive(:tag_match).and_raise(TagQuery::CountExceededError)
+        expect(Post.fast_count("some_tag")).to eq(0)
+      end
     end
   end
 end

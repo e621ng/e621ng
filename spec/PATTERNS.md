@@ -392,6 +392,60 @@ describe "#fix_post_count" do
 end
 ```
 
+### Doubles and message expectations (RuboCop rules)
+
+Two cops fire constantly if ignored — always follow these patterns.
+
+**RSpec/VerifiedDoubles** — use `instance_spy` / `instance_double` instead of `double`:
+
+```ruby
+# BAD — unverified double, RuboCop flags this
+storage = double("storage_manager")
+
+# GOOD — verified against StorageManager's actual interface
+storage = instance_spy(StorageManager)   # spy: all methods stubbed, none raise
+storage = instance_double(StorageManager) # double: only explicitly stubbed methods work
+```
+
+Prefer `instance_spy` when you only care about a subset of calls; use `instance_double` when you want unknown calls to raise.
+
+**RSpec/MessageSpies** — use `allow` + `have_received` instead of `expect(...).to receive`:
+
+```ruby
+# BAD — expectation set before the call
+expect(storage).to receive(:delete_video_samples).with(post.md5)
+subject.delete_video_samples!
+
+# GOOD — allow first, assert after
+allow(storage).to receive(:delete_video_samples)  # or handled by instance_spy automatically
+subject.delete_video_samples!
+expect(storage).to have_received(:delete_video_samples).with(post.md5)
+```
+
+For negative assertions:
+
+```ruby
+# BAD
+expect(storage).not_to receive(:delete_video_samples)
+subject.delete_video_samples!
+
+# GOOD
+subject.delete_video_samples!
+expect(storage).not_to have_received(:delete_video_samples)
+```
+
+Full pattern for delegating-method tests:
+
+```ruby
+it "delegates to storage_manager.post_file_path with :large type" do
+  post = create(:post)
+  storage = instance_spy(StorageManager)
+  allow(post).to receive(:storage_manager).and_return(storage)
+  post.large_file_path
+  expect(storage).to have_received(:post_file_path).with(post, :large)
+end
+```
+
 ### Permissions / authorization
 
 ```ruby

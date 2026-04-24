@@ -80,5 +80,20 @@ RSpec.describe Post do
         expect(post.pool_ids).to eq([])
       end
     end
+
+    describe "#remove_from_all_pools" do
+      it "removes the post from each pool it belongs to" do
+        pool1 = create(:pool)
+        pool2 = create(:pool)
+        post  = create(:post)
+        pool1.add!(post)
+        pool2.add!(post)
+
+        post.remove_from_all_pools
+
+        expect(pool1.reload.post_ids).not_to include(post.id)
+        expect(pool2.reload.post_ids).not_to include(post.id)
+      end
+    end
   end
 end

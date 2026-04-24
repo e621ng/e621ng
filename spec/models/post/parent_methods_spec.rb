@@ -124,5 +124,55 @@ RSpec.describe Post do
         expect { child.give_favorites_to_parent }.to have_enqueued_job(TransferFavoritesJob)
       end
     end
+
+    describe "Post.cleanup_stuck_favorite_transfer_flags!" do
+      it "returns 0 when no posts have the stuck flag" do
+        expect(Post.cleanup_stuck_favorite_transfer_flags!).to eq(0)
+      end
+
+      it "clears the favorites_transfer_in_progress flag and returns the count of affected posts" do
+        post = create(:post)
+        flag_value = Post.flag_value_for("favorites_transfer_in_progress")
+        post.update_columns(bit_flags: flag_value)
+
+        result = Post.cleanup_stuck_favorite_transfer_flags!
+        expect(result).to eq(1)
+        expect(post.reload.bit_flags & flag_value).to eq(0)
+      end
+    end
+
+    describe "#has_visible_children (alias)" do
+      it "returns the same value as has_visible_children?" do
+        parent = create(:post)
+        create(:post, parent: parent)
+        parent.reload
+        expect(parent.has_visible_children).to eq(parent.has_visible_children?)
+      end
+    end
+
+    describe "#inject_children" do
+      it "stores the provided ids so that #children_ids returns them as a space-separated string" do
+        parent = create(:post)
+        child1 = create(:post, parent: parent)
+        child2 = create(:post, parent: parent)
+        parent.reload
+        parent.inject_children([child1, child2])
+        expect(parent.children_ids).to eq("#{child1.id} #{child2.id}")
+      end
+    end
+
+    describe "#set_merge_edit_reason" do
+      it "sets parent.edit_reason when the post has a parent" do
+        parent = create(:post)
+        child  = create(:post, parent: parent)
+        child.set_merge_edit_reason
+        expect(parent.edit_reason).to eq("Merged from post ##{child.id}")
+      end
+
+      it "does nothing when the post has no parent" do
+        post = create(:post, parent_id: nil)
+        expect { post.set_merge_edit_reason }.not_to raise_error
+      end
+    end
   end
 end
