@@ -576,3 +576,4 @@ expect(record.field).to be_nil
 | Two records get the same sequence value | Don't hardcode names in factories — let sequences generate them |
 | Sock puppet validation fires in factory | Already disabled globally in the `:user` factory's `after(:build)` hook |
 | Order-dependent test failures | Each run uses `--order random`; avoid relying on insertion order without explicit `order` calls |
+| `allow(Danbooru.config).to receive(:x)` raises "does not implement" | `Danbooru.config` delegates via `method_missing` — stub on `Danbooru.config.custom_configuration` instead: `allow(Danbooru.config.custom_configuration).to receive(:pool_post_limit).and_return(3)` |

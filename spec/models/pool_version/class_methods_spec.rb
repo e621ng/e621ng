@@ -31,7 +31,8 @@ RSpec.describe PoolVersion do
   # -------------------------------------------------------------------------
   describe ".queue" do
     it "creates a PoolVersion record" do
-      pool = create(:pool, post_ids: [10, 20], description: "queue desc", name: "queue_test_pool_#{SecureRandom.hex(4)}")
+      posts = create_list(:post, 2)
+      pool = create(:pool, post_ids: posts.map(&:id), description: "queue desc", name: "queue_test_pool_#{SecureRandom.hex(4)}")
       # First version was already created on pool creation; force another via queue directly
       updater = CurrentUser.user
       expect do
@@ -40,12 +41,13 @@ RSpec.describe PoolVersion do
     end
 
     it "snapshots pool_id, post_ids, description, name, is_active, and category" do
-      pool = create(:pool, post_ids: [1, 2], description: "snap desc",
+      posts = create_list(:post, 2)
+      pool = create(:pool, post_ids: posts.map(&:id), description: "snap desc",
                            name: "snapshot_pool_#{SecureRandom.hex(4)}", is_active: true, category: "series")
       updater = CurrentUser.user
       PoolVersion.queue(pool, updater, "10.0.0.1")
       pv = PoolVersion.where(pool_id: pool.id).order(:version).last
-      expect(pv.post_ids).to eq([1, 2])
+      expect(pv.post_ids).to eq(posts.map(&:id))
       expect(pv.description).to eq("snap desc")
       expect(pv.name).to eq(pool.name)
       expect(pv.is_active).to be true

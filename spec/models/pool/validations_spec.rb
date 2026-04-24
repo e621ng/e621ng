@@ -241,20 +241,23 @@ RSpec.describe Pool do
   describe "user_not_posts_limited" do
     include_context "as admin"
 
+    let(:post1) { create(:post) }
+    let(:post2) { create(:post) }
+
     it "rejects a post_ids change by a member who signed up less than 7 days ago" do
-      pool = create(:pool, post_ids: [1])
+      pool = create(:pool, post_ids: [post1.id])
 
       new_member = create(:user, created_at: 1.day.ago)
       CurrentUser.user = new_member
       CurrentUser.ip_addr = "127.0.0.1"
 
-      pool.post_ids = [1, 2]
+      pool.post_ids = [post1.id, post2.id]
       expect(pool).not_to be_valid
       expect(pool.errors[:updater]).to be_present
     end
 
     it "rejects a post_ids change when the pool post edit limit is exceeded" do
-      pool = create(:pool, post_ids: [1])
+      pool = create(:pool, post_ids: [post1.id])
 
       old_member = create(:user, created_at: 30.days.ago)
       CurrentUser.user = old_member
@@ -262,7 +265,7 @@ RSpec.describe Pool do
 
       allow(old_member).to receive(:pool_post_edit_limit).and_return(0)
 
-      pool.post_ids = [1, 2]
+      pool.post_ids = [post1.id, post2.id]
       expect(pool).not_to be_valid
       expect(pool.errors[:updater]).to be_present
     end
@@ -272,11 +275,13 @@ RSpec.describe Pool do
   # updater_can_change_category (on: :update)
   # -------------------------------------------------------------------------
   describe "updater_can_change_category" do
+    before { allow(Danbooru.config.custom_configuration).to receive(:pool_category_change_limit).and_return(2) }
+
     it "blocks a member from changing category when post_count exceeds the limit" do
-      limit = Danbooru.config.pool_category_change_limit
       admin = create(:admin_user)
+      posts = CurrentUser.scoped(admin, "127.0.0.1") { create_list(:post, 3) }
       pool = CurrentUser.scoped(admin, "127.0.0.1") do
-        create(:pool, post_ids: (1..(limit + 1)).to_a, skip_sync: true)
+        create(:pool, post_ids: posts.map(&:id), skip_sync: true)
       end
 
       member = create(:user)
@@ -292,10 +297,10 @@ RSpec.describe Pool do
     end
 
     it "allows a janitor to change category regardless of post count" do
-      limit = Danbooru.config.pool_category_change_limit
       admin = create(:admin_user)
+      posts = CurrentUser.scoped(admin, "127.0.0.1") { create_list(:post, 3) }
       pool = CurrentUser.scoped(admin, "127.0.0.1") do
-        create(:pool, post_ids: (1..(limit + 1)).to_a, skip_sync: true)
+        create(:pool, post_ids: posts.map(&:id), skip_sync: true)
       end
 
       janitor = create(:janitor_user)
@@ -311,7 +316,8 @@ RSpec.describe Pool do
 
     it "allows a member to change category when post_count is within the limit" do
       member = create(:user)
-      pool = CurrentUser.scoped(member, "127.0.0.1") { create(:pool, post_ids: [1]) }
+      post = CurrentUser.scoped(member, "127.0.0.1") { create(:post) }
+      pool = CurrentUser.scoped(member, "127.0.0.1") { create(:pool, post_ids: [post.id]) }
 
       CurrentUser.user = member
       CurrentUser.ip_addr = "127.0.0.1"
@@ -330,15 +336,16 @@ RSpec.describe Pool do
   describe "updater_can_remove_posts" do
     it "blocks a new member (< 7 days old) from removing posts" do
       admin = create(:admin_user)
+      posts = CurrentUser.scoped(admin, "127.0.0.1") { create_list(:post, 3) }
       pool = CurrentUser.scoped(admin, "127.0.0.1") do
-        create(:pool, post_ids: [1, 2, 3], skip_sync: true)
+        create(:pool, post_ids: posts.map(&:id), skip_sync: true)
       end
 
       new_member = create(:user, created_at: 1.day.ago)
       CurrentUser.user = new_member
       CurrentUser.ip_addr = "127.0.0.1"
 
-      pool.post_ids = [1]
+      pool.post_ids = [posts[0].id]
       expect(pool).not_to be_valid
       expect(pool.errors[:base].join).to include("cannot removes posts from pools")
 
@@ -348,14 +355,15 @@ RSpec.describe Pool do
 
     it "allows an established member (>= 7 days old) to remove posts" do
       old_member = create(:user, created_at: 8.days.ago)
+      posts = CurrentUser.scoped(old_member, "127.0.0.1") { create_list(:post, 3) }
       pool = CurrentUser.scoped(old_member, "127.0.0.1") do
-        create(:pool, post_ids: [1, 2, 3], skip_sync: true)
+        create(:pool, post_ids: posts.map(&:id), skip_sync: true)
       end
 
       CurrentUser.user = old_member
       CurrentUser.ip_addr = "127.0.0.1"
 
-      pool.post_ids = [1]
+      pool.post_ids = [posts[0].id]
       expect(pool).to be_valid, pool.errors.full_messages.join(", ")
 
       CurrentUser.user = nil
@@ -368,24 +376,26 @@ RSpec.describe Pool do
   # -------------------------------------------------------------------------
   describe "validate_number_of_posts" do
     include_context "as admin"
+    before { allow(Danbooru.config.custom_configuration).to receive(:pool_post_limit).and_return(3) }
 
     it "is invalid when adding posts would exceed the pool post limit" do
       max = Danbooru.config.pool_post_limit(CurrentUser.user)
-      existing_ids = (1..(max - 1)).to_a
-      pool = create(:pool, post_ids: existing_ids, skip_sync: true)
+      existing_posts = create_list(:post, max - 1)
+      extra_posts    = create_list(:post, 2)
+      pool = create(:pool, post_ids: existing_posts.map(&:id), skip_sync: true)
 
-      # Adding 2 more pushes over the limit
-      pool.post_ids = existing_ids + [max, max + 1]
+      pool.post_ids = existing_posts.map(&:id) + extra_posts.map(&:id)
       expect(pool).not_to be_valid
       expect(pool.errors[:base].join).to include("Pools can only have up to")
     end
 
     it "is valid when the total stays at or below the limit" do
       max = Danbooru.config.pool_post_limit(CurrentUser.user)
-      existing_ids = (1..(max - 1)).to_a
-      pool = create(:pool, post_ids: existing_ids, skip_sync: true)
+      existing_posts = create_list(:post, max - 1)
+      one_more       = create(:post)
+      pool = create(:pool, post_ids: existing_posts.map(&:id), skip_sync: true)
 
-      pool.post_ids = existing_ids + [max]
+      pool.post_ids = existing_posts.map(&:id) + [one_more.id]
       expect(pool).to be_valid, pool.errors.full_messages.join(", ")
     end
   end

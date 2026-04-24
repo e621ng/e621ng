@@ -138,8 +138,9 @@ RSpec.describe Pool do
     end
 
     it "orders by post_count descending when order is 'post_count'" do
-      pool_small = make_pool(name: "order_small_pool", post_ids: [1])
-      pool_large = make_pool(name: "order_large_pool", post_ids: [2, 3, 4])
+      posts = create_list(:post, 4)
+      pool_small = make_pool(name: "order_small_pool", post_ids: [posts[0].id])
+      pool_large = make_pool(name: "order_large_pool", post_ids: posts[1..3].map(&:id))
 
       result = Pool.search(order: "post_count").to_a
       large_index = result.index(pool_large)

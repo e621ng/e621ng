@@ -33,13 +33,15 @@ RSpec.describe PoolVersion do
   describe "fill_changes" do
     describe "first version (no previous)" do
       it "sets added_post_ids to all post_ids" do
-        pool = create(:pool, post_ids: [1, 2, 3])
+        posts = create_list(:post, 3)
+        pool = create(:pool, post_ids: posts.map(&:id))
         version = pool.versions.first
-        expect(version.added_post_ids).to eq([1, 2, 3])
+        expect(version.added_post_ids).to eq(posts.map(&:id))
       end
 
       it "sets removed_post_ids to an empty array" do
-        pool = create(:pool, post_ids: [1, 2])
+        posts = create_list(:post, 2)
+        pool = create(:pool, post_ids: posts.map(&:id))
         version = pool.versions.first
         expect(version.removed_post_ids).to eq([])
       end
@@ -59,17 +61,19 @@ RSpec.describe PoolVersion do
 
     describe "subsequent version (has previous)" do
       it "records newly added post_ids" do
-        pool = create(:pool, post_ids: [1, 2])
-        pool.update!(post_ids: [1, 2, 3])
+        posts = create_list(:post, 3)
+        pool = create(:pool, post_ids: posts[0..1].map(&:id))
+        pool.update!(post_ids: posts.map(&:id))
         version = pool.versions.last
-        expect(version.added_post_ids).to eq([3])
+        expect(version.added_post_ids).to eq([posts[2].id])
       end
 
       it "records removed post_ids" do
-        pool = create(:pool, post_ids: [1, 2, 3])
-        pool.update!(post_ids: [1, 3])
+        posts = create_list(:post, 3)
+        pool = create(:pool, post_ids: posts.map(&:id))
+        pool.update!(post_ids: [posts[0].id, posts[2].id])
         version = pool.versions.last
-        expect(version.removed_post_ids).to eq([2])
+        expect(version.removed_post_ids).to eq([posts[1].id])
       end
 
       it "sets name_changed to true when name differs from previous" do

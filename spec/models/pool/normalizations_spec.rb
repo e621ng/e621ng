@@ -49,13 +49,15 @@ RSpec.describe Pool do
   # -------------------------------------------------------------------------
   describe "normalize_post_ids" do
     it "deduplicates post_ids, keeping only unique values" do
-      pool = create(:pool, post_ids: [1, 2, 2, 3, 1], skip_sync: true)
-      expect(pool.post_ids).to eq([1, 2, 3])
+      p1, p2, p3 = create_list(:post, 3).map(&:id)
+      pool = create(:pool, post_ids: [p1, p2, p2, p3, p1], skip_sync: true)
+      expect(pool.post_ids).to eq([p1, p2, p3])
     end
 
     it "preserves a list that is already unique" do
-      pool = create(:pool, post_ids: [10, 20, 30], skip_sync: true)
-      expect(pool.post_ids).to eq([10, 20, 30])
+      ids = create_list(:post, 3).map(&:id)
+      pool = create(:pool, post_ids: ids, skip_sync: true)
+      expect(pool.post_ids).to eq(ids)
     end
   end
 
