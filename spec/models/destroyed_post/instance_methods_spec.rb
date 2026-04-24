@@ -64,11 +64,8 @@ RSpec.describe DestroyedPost do
       end
 
       it "calls push_pubsub with 'create' on the new ticket" do
-        ticket = instance_double(Ticket, push_pubsub: nil)
-        allow(Ticket).to receive(:create!).and_return(ticket)
-        allow(ticket).to receive(:push_pubsub)
+        expect_any_instance_of(Ticket).to receive(:push_pubsub).with("create")
         dp.notify_reupload(uploader)
-        expect(ticket).to have_received(:push_pubsub).with("create")
       end
     end
   end
