@@ -1,5 +1,5 @@
 <div id="c-posts"><div id="a-show">
-  <div class="post-index" data-tab-state="<%= CurrentUser.hide_comments? ? "tags" : "comments" %>">
+  <div class="post-display" data-tab-state="tags" data-comments-enabled="<%= !CurrentUser.hide_comments? %>">
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>
@@ -36,6 +36,8 @@
         <h3>Related</h3>
         <%= render "posts/partials/show/sidebar/related", :post => @post %>
       </section>
+      
+      <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top" aria-label="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
     </div>
 
     <div class="content">
@@ -99,9 +101,15 @@
         <%= render "posts/partials/show/content/translated", post: @post %>
       </section>
 
+      <% if CurrentUser.is_member? %>
+        <section id="edit" style="display: none;">
+          <%= render "posts/partials/show/content/edit", :post => @post %>
+        </section>
+      <% end %>
+
       <% if @post.description.present? %>
         <div id="post-description-container" class="styled-dtext">
-        <%= render "posts/partials/show/content/description", post: @post %>
+          <%= render "posts/partials/show/content/description", post: @post %>
         </div>
       <% end %>
 
@@ -170,19 +178,13 @@
           <% end %>
         <% end %>
       </section>
-
-      <% if CurrentUser.is_member? %>
-        <section id="edit" style="display: none;">
-          <%= render "posts/partials/show/content/edit", :post => @post %>
-        </section>
-      <% end %>
     </div>
 
-    <div class="tabs">
+    <div class="tabs" id="mobile-tabs">
+      <button type="button" class="post-mobile-tab" data-action="tags">Tags</button>
       <% unless CurrentUser.hide_comments? %>
         <button type="button" class="post-mobile-tab" data-action="comments">Comments</button>
       <% end %>
-      <button type="button" class="post-mobile-tab" data-action="tags">Tags</button>
     </div>
 
     <div class="comments">
@@ -190,6 +192,10 @@
         <section id="comments">
           <%= render "comments/partials/index/list", :comments => @comments, :post => @post, :show_header => false %>
         </section>
+
+        <% if @comments.any? %>
+          <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top" aria-label="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
+        <% end %>
       <% end %>
     </div>
 

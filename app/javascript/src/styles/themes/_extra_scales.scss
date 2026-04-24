@@ -3,5 +3,14 @@ body[data-th-extra="scales"] {
   --image-foreground-position: left top;
   --image-foreground-repeat: repeat;
   --image-foreground-size: 0.75rem;
+
+  --image-foreground-top: url("~/images/themes/extras/roundedScale.svg");
+  --image-foreground-top-position: left top;
+  --image-foreground-top-repeat: repeat;
+
+  --image-foreground-bottom: url("~/images/themes/extras/roundedScale.svg");
+  --image-foreground-bottom-position: left top;
+  --image-foreground-bottom-repeat: repeat;
+
   --content-padding-bottom: 0.5rem;
 }

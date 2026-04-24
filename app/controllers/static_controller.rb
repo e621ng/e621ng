@@ -41,7 +41,7 @@ class StaticController < ApplicationController
   end
 
   def home
-    render layout: "blank"
+    render layout: "blank", formats: [:html]
   end
 
   def theme

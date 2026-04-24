@@ -56,7 +56,6 @@ export default {
       const el = this.$refs.otherTags;
       el.style.height = el.scrollHeight + "px";
       el.focus();
-      el.scrollIntoView();
     }, 20);
     if (Utility.meta("enable-auto-complete") !== "true")
       return;
