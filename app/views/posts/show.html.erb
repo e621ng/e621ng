@@ -112,7 +112,7 @@
 
       <div
         id="post-recommendations"
-        data-visible="<%= cookies[:post_recs] === "1" ? false : true %>"
+        data-visible="<%= cookies[:post_recs] == "1" %>"
         data-action="artist"
         data-status="waiting"
         data-post-id="<%= @post.id %>"
@@ -154,8 +154,8 @@
             class="st-button"
             data-action="reveal"
             aria-controls="post-recommendations"
-            aria-expanded="<%= cookies[:post_recs] === "1" ? false : true %>"
-            aria-label="<%= cookies[:post_recs] === "1" ? "Show" : "Hide" %> Recommendations"
+            aria-expanded="<%= cookies[:post_recs] == "1" %>"
+            aria-label="<%= cookies[:post_recs] == "1" ? "Show" : "Hide" %> Recommendations"
           >
             <span>Show Recommendations</span>
             <%= svg_icon(:eye_off) %>
