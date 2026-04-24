@@ -1,6 +1,6 @@
 <div id="c-posts"><div id="a-show">
   <%# Cookie value set in MobileTabs.ts %>
-  <% selected_tab = (!CurrentUser.hide_comments? && cookies[:post_tab] == "1") ? "comments" : "tags" %>
+  <% selected_tab = !CurrentUser.hide_comments? && cookies[:post_tab] == "1" ? "comments" : "tags" %>
   <div class="post-display" id="post-show-display" data-tab-state="<%= selected_tab %>">
 
     <div class="search">
