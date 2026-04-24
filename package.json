@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "e621ng",
   "private": true,
   "dependencies": {
     "@openpanel/web": "^1.3.0",
