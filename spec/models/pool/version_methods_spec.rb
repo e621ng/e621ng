@@ -44,7 +44,8 @@ RSpec.describe Pool do
       CurrentUser.user = member
       CurrentUser.ip_addr = "127.0.0.1"
 
-      pool = create(:pool, post_ids: [1], category: "series")
+      post = create(:post)
+      pool = create(:pool, post_ids: [post.id], category: "series")
       expect do
         pool.update!(category: "collection")
       end.to change(PoolVersion, :count).by(1)
@@ -96,8 +97,10 @@ RSpec.describe Pool do
   # -------------------------------------------------------------------------
   describe "#revert_to!" do
     it "restores name, description, post_ids, is_active, and category from a version" do
+      post1 = create(:post)
+      post2 = create(:post)
       pool = create(:pool, name: "original_name", description: "original desc",
-                           post_ids: [1, 2], is_active: true, category: "series")
+                           post_ids: [post1.id, post2.id], is_active: true, category: "series")
       version = pool.versions.last
 
       # Mutate the pool
@@ -109,7 +112,7 @@ RSpec.describe Pool do
 
       expect(pool.name).to eq("original_name")
       expect(pool.description).to eq("original desc")
-      expect(pool.post_ids).to eq([1, 2])
+      expect(pool.post_ids).to eq([post1.id, post2.id])
       expect(pool.is_active).to be true
       expect(pool.category).to eq("series")
     end
