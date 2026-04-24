@@ -61,19 +61,25 @@ RSpec.describe ForumPostVote do
   end
 
   # -------------------------------------------------------------------------
-  # #fa_class
+  # #icon
   # -------------------------------------------------------------------------
-  describe "#fa_class" do
-    it "returns fa-thumbs-up for score 1" do
-      expect(build(:forum_post_vote, score: 1).fa_class).to eq("fa-thumbs-up")
+  describe "#icon" do
+    it "returns :thumbs_up for score 1" do
+      expect(build(:forum_post_vote, score: 1).icon).to eq(:thumbs_up)
     end
 
-    it "returns fa-thumbs-down for score -1" do
-      expect(build(:forum_post_vote, score: -1).fa_class).to eq("fa-thumbs-down")
+    it "returns :thumbs_down for score -1" do
+      expect(build(:forum_post_vote, score: -1).icon).to eq(:thumbs_down)
     end
 
-    it "returns fa-face-meh for score 0" do
-      expect(build(:forum_post_vote, score: 0).fa_class).to eq("fa-face-meh")
+    it "returns :face_meh for score 0" do
+      expect(build(:forum_post_vote, score: 0).icon).to eq(:face_meh)
+    end
+
+    it "returns fallback for an unexpected score value" do
+      vote = build(:forum_post_vote)
+      vote.score = 99
+      expect(vote.icon).to eq(:flame)
     end
   end
 
@@ -93,10 +99,10 @@ RSpec.describe ForumPostVote do
       expect(build(:forum_post_vote, score: 0).vote_type).to eq("meh")
     end
 
-    it "raises for an unexpected score value" do
+    it "returns 'unknown' for an unexpected score value" do
       vote = build(:forum_post_vote)
       vote.score = 99
-      expect { vote.vote_type }.to raise_error(RuntimeError)
+      expect(vote.vote_type).to eq("unknown")
     end
   end
 

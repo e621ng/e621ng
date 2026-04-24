@@ -240,6 +240,7 @@ RSpec.describe ForumPost do
       post = make_post
       ta = create(:tag_alias)
       ta.update_columns(forum_post_id: post.id)
+      post.reload
       expect(post.tag_change_request).to eq(ta)
     end
   end
