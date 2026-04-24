@@ -188,7 +188,7 @@ Opt back in with `create(:user, disable_sock_puppet_validation: false)`.
 ### Top-level structure
 
 ```ruby
-RSpec.describe ModelName, type: :model do
+RSpec.describe ModelName do
   include_context "as admin"          # sets CurrentUser
   include_context "with tag categories" # if needed
 
@@ -203,6 +203,8 @@ RSpec.describe ModelName, type: :model do
   end
 end
 ```
+
+> **Do not pass `type: :model` (or any explicit `type:`)** — RuboCop (`RSpecRails/InferredSpecType`) flags it as redundant because RSpec-Rails infers the spec type from the file path. Omit it unless you need to override the inferred type.
 
 ### `let` vs `let!`
 
@@ -631,3 +633,4 @@ expect(record.field).to be_nil
 | Sock puppet validation fires in factory | Already disabled globally in the `:user` factory's `after(:build)` hook |
 | Order-dependent test failures | Each run uses `--order random`; avoid relying on insertion order without explicit `order` calls |
 | `allow(Danbooru.config).to receive(:x)` raises "does not implement" | `Danbooru.config` delegates via `method_missing` — stub on `Danbooru.config.custom_configuration` instead: `allow(Danbooru.config.custom_configuration).to receive(:pool_post_limit).and_return(3)` |
+| `save!(validate: false)` raises `NotNullViolation` on `creator_id` / `creator_ip_addr` | `belongs_to_creator` sets both fields in a `before_validation on: :create` callback, which is skipped. Set them explicitly before saving: `t.creator_id = CurrentUser.id; t.creator_ip_addr = CurrentUser.ip_addr` |

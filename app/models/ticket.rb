@@ -245,6 +245,7 @@ class Ticket < ApplicationRecord
     end
 
     def validate_content_exists
+      return if qtype.blank?
       errors.add model.name.underscore.to_sym, "does not exist" if content.nil?
     end
 
@@ -278,7 +279,7 @@ class Ticket < ApplicationRecord
       if user.is_moderator?
         all
       elsif user.is_janitor?
-        for_creator(user.id).or(where.not(qtype: %w[Dmail User]))
+        for_creator(user.id).or(where.not(qtype: %w[dmail user]))
       else
         for_creator(user.id)
       end
@@ -328,7 +329,7 @@ class Ticket < ApplicationRecord
 
   def content=(new_content)
     @content = new_content
-    self.disp_id = content&.id
+    self.disp_id = new_content&.id
   end
 
   def content
