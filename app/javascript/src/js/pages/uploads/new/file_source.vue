@@ -3,6 +3,7 @@
         <input
           type="text"
           size="50"
+          placeholder="Ex: https://site.com/artistname/post/12345"
           ref="inputEl"
           v-model="realValue"
           @keyup.enter="fadd"
