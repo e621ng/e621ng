@@ -194,7 +194,7 @@ RSpec.describe BlipsController do
       it "returns 422 for a non-admin user via JSON" do
         sign_in_as creator
         get edit_blip_path(old_blip, format: :json)
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it "returns 200 for an admin regardless of blip age" do
@@ -265,7 +265,7 @@ RSpec.describe BlipsController do
       it "returns 422 for the creator via JSON" do
         sign_in_as creator
         patch blip_path(old_blip, format: :json), params: update_params
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it "allows an admin to update regardless of blip age" do

@@ -174,7 +174,7 @@ RSpec.describe PostReplacementsController do
       it "returns 422 for an approver" do
         sign_in_as approver
         put approve_post_replacement_path(replacement)
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
 
