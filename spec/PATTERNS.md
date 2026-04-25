@@ -411,6 +411,17 @@ storage = instance_double(StorageManager) # double: only explicitly stubbed meth
 
 Prefer `instance_spy` when you only care about a subset of calls; use `instance_double` when you want unknown calls to raise.
 
+**RSpec/ReceiveMessages** — collapse multiple stubs on the same object into one `receive_messages` call:
+
+```ruby
+# BAD — RuboCop flags the second stub as a duplicate allow
+allow(user).to receive(:favorite_limit).and_return(0)
+allow(user).to receive(:favorite_count).and_return(0)
+
+# GOOD
+allow(user).to receive_messages(favorite_limit: 0, favorite_count: 0)
+```
+
 **RSpec/MessageSpies** — use `allow` + `have_received` instead of `expect(...).to receive`:
 
 ```ruby
