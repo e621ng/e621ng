@@ -13,7 +13,7 @@ module Moderator
       def confirm_delete
         @post = ::Post.find(params[:id])
         @reason = @post.pending_flag&.reason || ""
-        @reason = "" if @post.pending_flag.needs_staff_reason?
+        @reason = "" if @post.pending_flag&.needs_staff_reason?
 
         @dnp = @post.avoid_posting_artists
       end
