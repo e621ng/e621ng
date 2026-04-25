@@ -72,7 +72,7 @@
     &-parent {
       display: flex;
       background: themed("color-section");
-      margin-left: 3rem;
+      margin-bottom: 1rem;
       padding: 0.5rem 1rem;
       @include st-radius-bottom;
       max-width: 20rem;
