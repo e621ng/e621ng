@@ -315,12 +315,23 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Flag Reason ###
 
-    when "created_flag_reason"
-      "Created flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
-    when "edited_flag_reason"
-      "Edited flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
-    when "deleted_flag_reason"
-      "Deleted flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
+    when "flag_reason_create"
+      text = "Created flag reason #{vals['reason']}"
+      if vals["text"].present?
+        text += "\n\"#{vals['text']}\""
+      end
+      text
+    when "flag_reason_update"
+      text = "Edited flag reason #{vals['reason']}"
+      if vals["reason"] != vals["reason_was"]
+        text += "\nChanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
+      end
+      if vals["text"] != vals["text_was"]
+        text += "\nChanged text from \"#{vals['text_was']}\" to \"#{vals['text']}\""
+      end
+      text
+    when "flag_reason_delete"
+      "Deleted flag reason #{vals['reason']}"
 
       ### Post Report Reasons ###
 

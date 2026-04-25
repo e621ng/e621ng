@@ -21,6 +21,7 @@ class PostFlagReasonsController < ApplicationController
   def create
     PostFlagReason.transaction do
       @reason = PostFlagReason.create(reason_params)
+      ModAction.log(:flag_reason_create, { reason: @reason.reason, text: @reason.text })
     end
     flash[:notice] = @reason.valid? ? "Post flag reason created" : @reason.errors.full_messages.join("; ")
     redirect_to post_flag_reasons_path
@@ -30,6 +31,7 @@ class PostFlagReasonsController < ApplicationController
     @reason = PostFlagReason.find(params[:id])
     PostFlagReason.transaction do
       @reason.update(reason_params)
+      ModAction.log(:flag_reason_update, { reason: @reason.reason, reason_was: @reason.reason_before_last_save, text: @reason.text, text_was: @reason.text_before_last_save }) if @reason.valid?
     end
     flash[:notice] = @reason.valid? ? "Post flag reason updated" : @reason.errors.full_messages.join("; ")
     redirect_to post_flag_reasons_path
@@ -39,6 +41,7 @@ class PostFlagReasonsController < ApplicationController
     @reason = PostFlagReason.find(params[:id])
     PostFlagReason.transaction do
       @reason.destroy
+      ModAction.log(:flag_reason_delete, { reason: @reason.reason })
     end
     respond_with(@reason)
   end
