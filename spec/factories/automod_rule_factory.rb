@@ -6,6 +6,18 @@ FactoryBot.define do
     regex           { "spam" }
     enabled         { true }
 
+    trait :for_comments do
+      apply_to { AutomodRule.flag_value_for("comments") }
+    end
+
+    trait :for_usernames do
+      apply_to { AutomodRule.flag_value_for("usernames") }
+    end
+
+    trait :for_profile_text do
+      apply_to { AutomodRule.flag_value_for("profile_text") }
+    end
+
     factory :disabled_automod_rule do
       enabled { false }
     end
