@@ -8,7 +8,6 @@ class PostFlagReason < ApplicationRecord
 
   after_destroy -> { self.class.invalidate_cache }
   after_save -> { self.class.invalidate_cache }
-  # TODO: Log ModAction for changes to flag reasons, similar to report reasons
 
   scope :ordered, -> { order(index: :asc, id: :asc) }
 
