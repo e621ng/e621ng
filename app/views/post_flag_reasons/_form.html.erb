@@ -5,8 +5,8 @@
   <%= f.input :needs_explanation, as: :boolean, label: "Additional details required" %>
   <%= f.input :needs_parent_id, as: :boolean, label: "Requires parent post id" %>
   <%= f.input :needs_staff_reason, as: :boolean, label: "Requires a staff provided reason", hint: "Disables \"Delete with given reason\"" %>
-  <%= f.input :target_date, as: :date, start_year: 2007, end_year: Date.today.year + 3, include_blank: true, label: "Date activation", hint: "Enable or disable this flag according to the post date. Leave blank to disable." %>
-  <%= f.input :target_date_kind, as: :select, include_blank: true, collection: [["Before", "before"], ["After", "after"]], label: "Date activation kind", hint: "Enable the flag before or after the date?" %>
+  <%= f.input :target_date, as: :date, start_year: 2007, end_year: Time.zone.today.year + 3, include_blank: true, label: "Date activation", hint: "Enable or disable this flag according to the post date. Leave blank to disable." %>
+  <%= f.input :target_date_kind, as: :select, include_blank: true, collection: [%w[Before before], %w[After after]], label: "Date activation kind", hint: "Enable the flag before or after the date?" %>
   <%= f.input :target_tag, as: :string, label: "Tag activation", hint: "Enable or disable this flag according to a post tag. Prefix with \"-\" to negate. Leave blank to disable." %>
   <%= f.input :index, as: :integer, label: "Order index", input_html: { min: 0 } %>
   <%= f.button :submit, "Submit" %>

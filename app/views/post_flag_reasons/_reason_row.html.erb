@@ -7,8 +7,8 @@
   <td><%= flag_reason.needs_explanation? ? "Yes" : "" %></td>
   <td><%= flag_reason.needs_parent_id? ? "Yes" : "" %></td>
   <td><%= flag_reason.needs_staff_reason? ? "Yes" : "" %></td>
-  <td><%= (flag_reason.target_date_kind&.capitalize&.+(" ") || "") %>
-    <%= (flag_reason.target_date ? compact_date(flag_reason.target_date) : "") %></td>
+  <td><%= flag_reason.target_date_kind&.capitalize&.+(" ") || "" %>
+    <%= flag_reason.target_date ? compact_date(flag_reason.target_date) : "" %></td>
   <td><%= flag_reason.target_tag || "" %></td>
   <td><%= compact_time flag_reason.updated_at %></td>
   <td><%= link_to "Delete", post_flag_reason_path(flag_reason), method: :delete, data: { confirm: "Delete this reason?" } %></td>
