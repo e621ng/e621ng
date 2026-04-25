@@ -210,7 +210,7 @@ class PostFlag < ApplicationRecord
     Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
     # This is a bit jank, but we'd need another text field for the final flag message,
     # and that sounds excessive.
-    self.reason = "#{flag_reason.reason}\n##{parent_post.id}"
+    self.reason = "#{flag_reason.reason} (##{parent_post.id})"
   end
 
   def resolve!
