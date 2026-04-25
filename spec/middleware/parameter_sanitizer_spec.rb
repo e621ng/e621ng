@@ -211,6 +211,20 @@ RSpec.describe Middleware::ParameterSanitizer do
   end
 
   # ---------------------------------------------------------------------------
+  # URI::InvalidURIError rescue path
+  # ---------------------------------------------------------------------------
+  describe "URI::InvalidURIError handling" do
+    it "returns 400 plain text when the downstream app raises URI::InvalidURIError" do
+      inner_app = ->(_e) { raise URI::InvalidURIError, "bad URI" }
+      mw = described_class.new(inner_app)
+      status, headers, body = mw.call(base_env)
+      expect(status).to eq(400)
+      expect(headers["Content-Type"]).to eq("text/plain")
+      expect(body).to eq(["Bad Request"])
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # sanitize_string rescue path
   # ---------------------------------------------------------------------------
   describe "sanitize_string error handling" do
