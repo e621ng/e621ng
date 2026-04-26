@@ -22,8 +22,8 @@ class PostFlagReason < ApplicationRecord
         return false
       end
     end
-    if target_date.present? && ((target_date_kind == "before" && post.created_at.after?(target_date)) ||
-         (target_date_kind == "after" && !post.created_at.after?(target_date)))
+    if target_date.present? && ((target_date_kind == "before" && post.created_at.to_date.after?(target_date)) ||
+         (target_date_kind == "after" && !post.created_at.to_date.after?(target_date)))
       return false
     end
     true
