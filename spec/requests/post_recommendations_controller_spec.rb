@@ -166,8 +166,17 @@ RSpec.describe PostRecommendationsController do
     end
 
     it "limits results to 20 when more than 20 IDs are provided" do
-      posts = create_list(:post, 22)
-      ids   = posts.map(&:id).join(",")
+      uploader = create(:user)
+      now = Time.current
+      Post.insert_all(
+        21.times.map do |i|
+          { md5: Digest::MD5.hexdigest("limit_test_#{i}"), uploader_id: uploader.id,
+            uploader_ip_addr: "127.0.0.1", source: "", rating: "s", file_ext: "jpg",
+            file_size: 1000, image_width: 100, image_height: 100,
+            created_at: now, updated_at: now, }
+        end,
+      )
+      ids = Post.where(md5: 21.times.map { |i| Digest::MD5.hexdigest("limit_test_#{i}") }).pluck(:id).join(",")
       get lookup_similar_path(post, format: :json), params: { post_ids: ids }
       expect(response.parsed_body.length).to eq(20)
     end
