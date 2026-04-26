@@ -193,6 +193,7 @@ class PostFlag < ApplicationRecord
 
     self.reason_name = flag_reason.name
     self.reason = flag_reason.reason
+    self.needs_parent_id = flag_reason.needs_parent_id?
     self.needs_staff_reason = flag_reason.needs_staff_reason?
 
     return unless flag_reason.needs_parent_id? && parent_post

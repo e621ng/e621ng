@@ -25,11 +25,11 @@ class CreatePostFlagReasons < ActiveRecord::Migration[6.1]
 
     PostFlag.without_timeout do
       # It's impossible to recover the reason names for sure, but "inferior" is the only one
-      # that's really needed, and the harcoded logic already used this regex match to identify it.
+      # that's really needed, and the hard coded logic already used this regex match to identify it.
       add_column :post_flags, :reason_name, :string, null: true
       add_column :post_flags, :needs_parent_id, :boolean, null: false, default: false
       PostFlag.where("reason ~* ?", "Inferior").update_all(reason_name: "inferior", needs_parent_id: true)
-      # Similar thing here, there was hardcoded logic around regex matching uploading_guidelines
+      # Similar thing here, there was hard coded logic around regex matching uploading_guidelines
       # and requiring staff to give their own deletion reason.
       add_column :post_flags, :needs_staff_reason, :boolean, null: false, default: false
       PostFlag.where("reason ~ ?", "uploading_guidelines").update_all(reason_name: "uploading_guidelines", needs_staff_reason: true)
