@@ -6,6 +6,7 @@ class AutomodRule < ApplicationRecord
   APPLY_TO_ATTRIBUTES = %w[comments usernames profile_text].freeze
   has_bit_flags APPLY_TO_ATTRIBUTES, field: "apply_to"
 
+  # IDEA: `validate on: :create do errors.add(:creator, :invalid, "must be an admin") unless creator.is_admin?`
   belongs_to_creator
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }

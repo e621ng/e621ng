@@ -5,6 +5,7 @@ FactoryBot.define do
     sequence(:name) { |n| "automod_rule_#{n}" }
     regex           { "spam" }
     enabled         { true }
+    association :creator, factory: :user
 
     trait :for_comments do
       apply_to { AutomodRule.flag_value_for("comments") }
