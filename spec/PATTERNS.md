@@ -1,6 +1,18 @@
 # e621ng RSpec Patterns & Conventions
 
-This document is a reference for writing new tests. Read this **instead of** re-exploring existing specs.
+This document covers only codebase-specific conventions. Standard RSpec/FactoryBot knowledge is assumed.
+
+---
+
+## Running Tests and Linting
+
+```bash
+# Run a spec file or directory
+docker compose run --rm tests spec/requests/blips_controller_spec.rb
+
+# Run RuboCop on a spec file or directory
+docker compose run --rm rubocop spec/requests/blips_controller_spec.rb
+```
 
 ---
 
@@ -8,37 +20,30 @@ This document is a reference for writing new tests. Read this **instead of** re-
 
 ```
 spec/
-├── factories/                    # FactoryBot definitions, one file per model
-├── models/                       # Model specs, one subdirectory per model
-│   └── {model}/
-│       ├── factory_spec.rb       # Factory sanity checks
-│       ├── validations_spec.rb
-│       ├── normalizations_spec.rb
-│       ├── instance_methods_spec.rb
-│       ├── permissions_spec.rb   # Authorization / visibility
-│       ├── scopes_spec.rb        # Scopes and class methods
-│       ├── search_spec.rb        # .search / query methods
-│       ├── log_methods_spec.rb   # ModAction audit logging
-│       └── {domain}_methods_spec.rb  # e.g. count_methods, name_methods
+├── factories/
+├── models/{model}/
+│   ├── factory_spec.rb
+│   ├── validations_spec.rb
+│   ├── normalizations_spec.rb
+│   ├── instance_methods_spec.rb
+│   ├── permissions_spec.rb
+│   ├── scopes_spec.rb
+│   ├── search_spec.rb
+│   ├── log_methods_spec.rb
+│   └── {domain}_methods_spec.rb
 ├── middleware/
 ├── logical/
 ├── support/
 │   ├── shared_examples/
-│   │   └── tag_relationship_examples.rb
-│   ├── current_user_contexts.rb  # "as admin", "as member", etc.
-│   └── tag_categories.rb         # let(:general_tag_category) etc.
-├── fixtures/
-├── rails_helper.rb
-└── spec_helper.rb
+│   ├── current_user_contexts.rb
+│   └── tag_categories.rb
+└── fixtures/
 ```
 
 ---
 
 ## rails_helper.rb Highlights
 
-- `config.include FactoryBot::Syntax::Methods` — use `create`, `build`, `build_stubbed` without prefix
-- `config.include ActiveSupport::Testing::TimeHelpers` — use [`freeze_time`](https://api.rubyonrails.org/v5.2.4/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-freeze_time), [`travel`](https://api.rubyonrails.org/v5.2.4/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel), [`travel_to`](https://api.rubyonrails.org/v5.2.4/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) without prefix
-- `config.use_transactional_fixtures = true` — every test rolls back automatically
 - `before(:suite)` seeds: `admin` user, system user (`Danbooru.config.system_user`), `ForumCategory` "Tag Alias and Implication Suggestions"
 - All files in `spec/support/**/*.rb` are auto-required
 
@@ -66,54 +71,21 @@ Factory mapping: `admin` → `:admin_user`, `moderator` → `:moderator_user`, `
 include_context "with tag categories"
 ```
 
-Provides lazy `let` helpers:
-
-```ruby
-let(:general_tag_category)   { 0 }
-let(:artist_tag_category)    { 1 }
-let(:copyright_tag_category) { 3 }
-let(:character_tag_category) { 4 }
-let(:species_tag_category)   { 5 }
-let(:invalid_tag_category)   { 6 }
-let(:meta_tag_category)      { 7 }
-let(:lore_tag_category)      { 8 }
-```
+Provides lazy `let` helpers: `general_tag_category` (0), `artist_tag_category` (1), `copyright_tag_category` (3), `character_tag_category` (4), `species_tag_category` (5), `invalid_tag_category` (6), `meta_tag_category` (7), `lore_tag_category` (8).
 
 ---
 
 ## Factory Patterns
 
-### Basic factory
-
-```ruby
-FactoryBot.define do
-  factory :blip do
-    body { "A short blip body." }
-  end
-end
-```
-
 ### Sequences
 
 ```ruby
-# Global (top-level)
+# Global
 sequence(:tag_name) { |n| "tag_#{n}" }
-factory :tag do
-  name { generate(:tag_name) }
-end
 
 # Inline (scoped to factory)
 factory :tag_alias do
   sequence(:antecedent_name) { |n| "antecedent_tag_#{n}" }
-  sequence(:consequent_name) { |n| "consequent_tag_#{n}" }
-end
-```
-
-### Aliases
-
-```ruby
-factory :user, aliases: [:member_user] do
-  # create(:user) and create(:member_user) are equivalent
 end
 ```
 
@@ -139,35 +111,15 @@ end
 ### Associations
 
 ```ruby
-# Standard (build or create depending on context)
 association :creator, factory: :user
 
-# Shorthand when factory name matches attribute name
-association :user
-
-# Force persistence (e.g. when level predicates must return true)
-banner { create(:moderator_user) }
+# Force persistence (required when level predicates must return true — they query the DB)
 creator { create(:moderator_user) }
 ```
 
-### Transient attributes + after hooks
+### Sock puppet validation
 
-The `:user` factory disables sock-puppet validation by default via a transient:
-
-```ruby
-transient do
-  disable_sock_puppet_validation { true }
-end
-
-after(:build) do |_user, evaluator|
-  instance = RSpec.current_example.example_group_instance
-  instance.allow(Danbooru.config.custom_configuration)
-          .to instance.receive(:enable_sock_puppet_validation?)
-          .and_return(!evaluator.disable_sock_puppet_validation)
-end
-```
-
-Opt back in with `create(:user, disable_sock_puppet_validation: false)`.
+The `:user` factory disables sock-puppet validation by default via a transient + `after(:build)` hook. Opt back in with `create(:user, disable_sock_puppet_validation: false)`.
 
 ### Available factories (summary)
 
@@ -189,56 +141,12 @@ Opt back in with `create(:user, disable_sock_puppet_validation: false)`.
 
 ```ruby
 RSpec.describe ModelName do
-  include_context "as admin"          # sets CurrentUser
-  include_context "with tag categories" # if needed
-
-  # Local helper to reduce noise in examples
-  def make_thing(overrides = {})
-    create(:model_name, **overrides)
-  end
-
-  describe "feature" do
-    it "does something" do
-    end
-  end
+  include_context "as admin"
+  # ...
 end
 ```
 
-> **Do not pass `type: :model` (or any explicit `type:`)** — RuboCop (`RSpecRails/InferredSpecType`) flags it as redundant because RSpec-Rails infers the spec type from the file path. Omit it unless you need to override the inferred type.
-
-### `let` vs `let!`
-
-- `let` — lazy, created on first reference. Use for actors/roles that may not be needed in every example.
-- `let!` — eager, created before each example. Use when the record must exist in the DB before the test body runs (e.g. scope exclusion tests).
-
-```ruby
-let(:admin)  { create(:admin_user) }   # only created when referenced
-let!(:older) { create(:tag) }          # always created — needed for ordering/exclusion assertions
-```
-
-### `before` / `after` for `CurrentUser`
-
-When `include_context "as <role>"` is not enough (e.g. you need multiple users):
-
-```ruby
-let(:creator)   { create(:user) }
-let(:moderator) { create(:moderator_user) }
-
-before(:each) do
-  CurrentUser.user    = creator
-  CurrentUser.ip_addr = "127.0.0.1"
-end
-
-after(:each) do
-  CurrentUser.user    = nil
-  CurrentUser.ip_addr = nil
-end
-```
-
-### `build` vs `create`
-
-- `build` — does not persist. Use for **validation tests** (faster, no DB write).
-- `create` — persists. Use whenever the test needs the record in the DB (callbacks, scopes, associations, audit logs).
+**Do not pass `type: :model`** — RuboCop (`RSpecRails/InferredSpecType`) flags it as redundant; the type is inferred from the file path.
 
 ---
 
@@ -246,175 +154,67 @@ end
 
 ### Validations
 
-```ruby
-describe "validations" do
-  describe "name length" do
-    it "is invalid with an empty name" do
-      record = build(:tag, name: "")
-      expect(record).not_to be_valid
-      expect(record.errors[:name]).to be_present
-    end
+Use `build` (not `create`) so no DB write occurs. Assert `not_to be_valid` and that `errors[:field]` is present.
 
-    it "is invalid when name exceeds 100 characters" do
-      record = build(:tag, name: "a" * 101)
-      expect(record).not_to be_valid
-      expect(record.errors[:name]).to be_present
-    end
-
-    it "is valid at exactly 100 characters" do
-      expect(build(:tag, name: "a" * 100)).to be_valid
-    end
-  end
-
-  describe "name uniqueness" do
-    it "is invalid when a tag with the same name already exists" do
-      create(:tag, name: "duplicate")
-      expect(build(:tag, name: "duplicate")).not_to be_valid
-    end
-  end
-
-  describe "antecedent_and_consequent_are_different" do
-    it "is invalid when antecedent equals consequent" do
-      record = build(:tag_alias, antecedent_name: "same", consequent_name: "same")
-      expect(record).not_to be_valid
-      expect(record.errors[:base]).to include("Cannot alias or implicate a tag to itself")
-    end
-  end
-
-  describe "referential integrity" do
-    it "is invalid when creator_id references a non-existent user" do
-      record = create(:tag_alias)
-      record.creator_id = -1
-      expect(record).not_to be_valid
-      expect(record.errors[:creator]).to include("must exist")
-    end
-  end
-end
-```
+Trigger `before_validation` without persisting by calling `record.valid?` directly.
 
 ### Normalizations
 
-Test that callbacks or `before_validation` hooks transform attribute values:
-
-```ruby
-describe "body normalization" do
-  it "converts \\r\\n line endings to \\n" do
-    blip = create(:blip, body: "line one\r\nline two")
-    expect(blip.body).to eq("line one\nline two")
-  end
-
-  it "applies normalization on update as well" do
-    blip = create(:blip, body: "initial")
-    blip.update!(body: "updated\r\nbody")
-    expect(blip.body).to eq("updated\nbody")
-  end
-end
-```
-
-Call `record.valid?` to trigger `before_validation` without persisting:
-
-```ruby
-it "downcases antecedent_name" do
-  record = build(:tag_alias, antecedent_name: "UPPER")
-  record.valid?
-  expect(record.antecedent_name).to eq("upper")
-end
-```
+Use `create` and assert the stored value. For `before_validation` transforms, call `record.valid?` and assert the in-memory attribute without saving.
 
 ### Scopes
 
-```ruby
-describe "scopes" do
-  describe ".active" do
-    it "returns non-deleted records" do
-      active  = create(:user_feedback, is_deleted: false)
-      deleted = create(:user_feedback, is_deleted: true)
-      expect(UserFeedback.active).to include(active)
-      expect(UserFeedback.active).not_to include(deleted)
-    end
-  end
-
-  describe ".visible" do
-    let!(:active_record)  { create(:user_feedback, is_deleted: false) }
-    let!(:deleted_record) { create(:user_feedback, is_deleted: true) }
-
-    it "returns all records for staff" do
-      expect(UserFeedback.visible(create(:janitor_user))).to include(active_record, deleted_record)
-    end
-
-    it "returns only active records for a regular member" do
-      member = create(:user)
-      expect(UserFeedback.visible(member)).to include(active_record)
-      expect(UserFeedback.visible(member)).not_to include(deleted_record)
-    end
-  end
-
-  describe ".default_order" do
-    it "returns records newest-first" do
-      older = create(:tag)
-      newer = create(:tag)
-      older.update_columns(created_at: 1.hour.ago)
-
-      ids = Tag.default_order.ids
-      expect(ids.index(newer.id)).to be < ids.index(older.id)
-    end
-  end
-end
-```
+Use `let!` for records that must exist before the example runs (exclusion tests, ordering tests). Assert inclusion and exclusion explicitly.
 
 ### Instance methods
 
+Use `update_columns` to set state that should bypass callbacks. Use `record.reload` after mutations to assert the persisted value.
+
+### Permissions
+
+Test the exact boundary conditions (role, ownership, time window). Use `be true` / `be false` rather than `be_truthy` / `be_falsy`.
+
+### Search
+
+Test each param in isolation. Use wildcard and case variants where the implementation supports them.
+
+### Audit logging (ModAction)
+
+Use `log[:values]` (raw jsonb) instead of `log.values` — `log.values` filters fields based on `CurrentUser` level.
+
 ```ruby
-describe "#response?" do
-  it "returns false when the blip has no parent" do
-    expect(create(:blip).response?).to be false
-  end
-
-  it "returns true when the blip is a reply" do
-    parent = create(:blip)
-    expect(create(:blip, response_to: parent.id).response?).to be true
-  end
-end
-
-describe "#delete!" do
-  it "sets is_deleted to true" do
-    blip = create(:blip)
-    expect { blip.delete! }.to change { blip.reload.is_deleted }.from(false).to(true)
-  end
-end
-
-# Stubbing a method on the instance
-describe "#fix_post_count" do
-  it "updates post_count to the value returned by real_post_count" do
-    tag = create(:tag, post_count: 99)
-    allow(tag).to receive(:real_post_count).and_return(42)
-    tag.fix_post_count
-    expect(tag.reload.post_count).to eq(42)
-  end
+it "logs a create action" do
+  feedback = create(:user_feedback)
+  expect(ModAction.last.action).to eq("user_feedback_create")
+  expect(ModAction.last[:values]).to include("record_id" => feedback.id)
 end
 ```
 
-### Doubles and message expectations (RuboCop rules)
+Capture `record.id` before `destroy!` — it is unavailable after.
 
-Two cops fire constantly if ignored — always follow these patterns.
+### Shared examples
 
-**RSpec/VerifiedDoubles** — use `instance_spy` / `instance_double` instead of `double`:
+Place in `spec/support/shared_examples/`. Helper methods inside shared examples are plain `def` (scoped to the example group).
+
+---
+
+## RuboCop Rules (non-obvious)
+
+### RSpec/VerifiedDoubles — use `instance_spy` / `instance_double`
 
 ```ruby
-# BAD — unverified double, RuboCop flags this
+# BAD
 storage = double("storage_manager")
 
-# GOOD — verified against StorageManager's actual interface
-storage = instance_spy(StorageManager)   # spy: all methods stubbed, none raise
-storage = instance_double(StorageManager) # double: only explicitly stubbed methods work
+# GOOD
+storage = instance_spy(StorageManager)   # all methods stubbed, unknown calls don't raise
+storage = instance_double(StorageManager) # unknown calls raise
 ```
 
-Prefer `instance_spy` when you only care about a subset of calls; use `instance_double` when you want unknown calls to raise.
-
-**RSpec/ReceiveMessages** — collapse multiple stubs on the same object into one `receive_messages` call:
+### RSpec/ReceiveMessages — collapse stubs on the same object
 
 ```ruby
-# BAD — RuboCop flags the second stub as a duplicate allow
+# BAD
 allow(user).to receive(:favorite_limit).and_return(0)
 allow(user).to receive(:favorite_count).and_return(0)
 
@@ -422,212 +222,28 @@ allow(user).to receive(:favorite_count).and_return(0)
 allow(user).to receive_messages(favorite_limit: 0, favorite_count: 0)
 ```
 
-**RSpec/MessageSpies** — use `allow` + `have_received` instead of `expect(...).to receive`:
-
-```ruby
-# BAD — expectation set before the call
-expect(storage).to receive(:delete_video_samples).with(post.md5)
-subject.delete_video_samples!
-
-# GOOD — allow first, assert after
-allow(storage).to receive(:delete_video_samples)  # or handled by instance_spy automatically
-subject.delete_video_samples!
-expect(storage).to have_received(:delete_video_samples).with(post.md5)
-```
-
-For negative assertions:
+### RSpec/MessageSpies — allow first, assert after
 
 ```ruby
 # BAD
-expect(storage).not_to receive(:delete_video_samples)
+expect(storage).to receive(:delete_video_samples).with(post.md5)
 subject.delete_video_samples!
 
 # GOOD
 subject.delete_video_samples!
-expect(storage).not_to have_received(:delete_video_samples)
+expect(storage).to have_received(:delete_video_samples).with(post.md5)
 ```
 
-Full pattern for delegating-method tests:
+Full pattern for delegation tests:
 
 ```ruby
-it "delegates to storage_manager.post_file_path with :large type" do
-  post = create(:post)
+it "delegates to storage_manager" do
+  post    = create(:post)
   storage = instance_spy(StorageManager)
   allow(post).to receive(:storage_manager).and_return(storage)
   post.large_file_path
   expect(storage).to have_received(:post_file_path).with(post, :large)
 end
-```
-
-### Permissions / authorization
-
-```ruby
-describe "#can_edit?" do
-  it "allows an admin to edit any blip" do
-    expect(blip.can_edit?(admin)).to be true
-  end
-
-  it "denies a non-creator non-admin" do
-    expect(blip.can_edit?(other)).to be false
-  end
-
-  it "denies the creator more than 5 minutes after creation" do
-    blip = create(:blip, created_at: 10.minutes.ago)
-    expect(blip.can_edit?(creator)).to be false
-  end
-end
-
-describe "#visible_to?" do
-  it "is visible to anyone when not deleted" do
-    expect(blip.visible_to?(other)).to be true
-  end
-
-  it "is not visible to an unrelated user when deleted" do
-    blip.delete!
-    expect(blip.visible_to?(other)).to be false
-  end
-end
-```
-
-### Search
-
-```ruby
-describe ".search" do
-  describe "name_matches param" do
-    it "filters by exact name" do
-      expect(Tag.search(name_matches: "my_tag")).to include(my_tag)
-    end
-
-    it "supports trailing wildcard" do
-      expect(Tag.search(name_matches: "prefix_*")).to include(tag_a, tag_b)
-    end
-
-    it "is case-insensitive" do
-      expect(Tag.search(name_matches: "MY_TAG")).to include(my_tag)
-    end
-  end
-
-  describe "category param" do
-    it "accepts multiple comma-separated category IDs" do
-      result = Tag.search(category: "0,1", hide_empty: false)
-      expect(result).to include(general_tag, artist_tag)
-      expect(result).not_to include(meta_tag)
-    end
-  end
-
-  describe "order param" do
-    it "orders by created_at descending" do
-      ids = Tag.search(order: "created_at").ids
-      expect(ids.index(newer.id)).to be < ids.index(older.id)
-    end
-  end
-end
-```
-
-### Audit logging (ModAction)
-
-```ruby
-describe "#log_create" do
-  it "logs a create action when a record is created" do
-    feedback = create(:user_feedback)
-    log = ModAction.last
-    expect(log.action).to eq("user_feedback_create")
-    # Use log[:values] (raw jsonb) to bypass CurrentUser-based field filtering
-    expect(log[:values]).to include("user_id" => user.id, "record_id" => feedback.id)
-  end
-end
-
-describe "#log_update" do
-  it "logs only user_feedback_delete when soft-deleting" do
-    feedback = create(:user_feedback)
-    expect { feedback.update!(is_deleted: true) }.to change(ModAction, :count).by(1)
-    expect(ModAction.last.action).to eq("user_feedback_delete")
-  end
-
-  it "logs user_feedback_delete then user_feedback_update when deleting with body change" do
-    feedback = create(:user_feedback)
-    expect { feedback.update!(is_deleted: true, body: "updated") }.to change(ModAction, :count).by(2)
-    expect(ModAction.last(2).map(&:action)).to eq(%w[user_feedback_delete user_feedback_update])
-  end
-end
-
-describe "#log_destroy" do
-  it "logs a destroy action on hard-delete" do
-    feedback = create(:user_feedback)
-    feedback_id = feedback.id        # capture before freeze
-    feedback.destroy!
-    expect(ModAction.last.action).to eq("user_feedback_destroy")
-    expect(ModAction.last[:values]).to include("record_id" => feedback_id)
-  end
-end
-```
-
-### Shared examples
-
-When two models share a large surface area (e.g. `TagAlias` / `TagImplication`), extract them into `spec/support/shared_examples/`:
-
-```ruby
-# In spec/support/shared_examples/my_examples.rb
-RSpec.shared_examples "my group" do |factory_name, model_class|
-  let(:record) { create(factory_name) }
-
-  describe "#something" do
-    it "does X" do
-      expect(record.something).to eq("X")
-    end
-  end
-end
-
-# In the model spec
-RSpec.describe TagAlias, type: :model do
-  it_behaves_like "my group", :tag_alias, TagAlias
-end
-```
-
-Helper methods inside shared examples are defined as plain `def` (available within the example group):
-
-```ruby
-def make_with_status(factory_name, status)
-  create(factory_name).tap { |r| r.update_columns(status: status) }
-end
-```
-
----
-
-## Matcher Cheat-Sheet
-
-```ruby
-# Validity
-expect(record).to be_valid
-expect(record).not_to be_valid
-
-# Errors
-expect(record.errors[:field]).to be_present
-expect(record.errors[:base]).to include("exact error string")
-
-# Collections
-expect(result).to include(a, b)
-expect(result).not_to include(c)
-
-# Equality
-expect(record.field).to eq("value")
-
-# Truthiness
-expect(predicate).to be true     # exactly true
-expect(predicate).to be false    # exactly false
-expect(predicate).to be_truthy   # any truthy value
-expect(predicate).to be_falsy    # nil or false
-
-# Change
-expect { action }.to change { record.reload.field }.from(old).to(new)
-expect { action }.to change(ModelClass, :count).by(1)
-expect { action }.not_to raise_error
-
-# Ordering
-expect(ids.index(newer.id)).to be < ids.index(older.id)
-
-# Nil
-expect(record.field).to be_nil
 ```
 
 ---
@@ -636,12 +252,9 @@ expect(record.field).to be_nil
 
 | Problem | Solution |
 |---------|----------|
-| Level-predicate methods return wrong value | Use `create(...)` not `build(...)` — `is_admin?` etc. query the DB |
-| `CurrentUser` not set | Use `include_context "as <role>"` or set it manually in `before`/`after` |
-| Validation runs unexpectedly on update | Use `update_columns(...)` to bypass callbacks and validations |
+| Level predicates return wrong value | Use `create(...)` not `build(...)` — `is_admin?` etc. query the DB |
+| `CurrentUser` not set | Use `include_context "as <role>"` or set manually in `before`/`after` |
 | ModAction values filtered by level | Read `log[:values]` (raw jsonb) instead of `log.values` |
-| Two records get the same sequence value | Don't hardcode names in factories — let sequences generate them |
-| Sock puppet validation fires in factory | Already disabled globally in the `:user` factory's `after(:build)` hook |
-| Order-dependent test failures | Each run uses `--order random`; avoid relying on insertion order without explicit `order` calls |
-| `allow(Danbooru.config).to receive(:x)` raises "does not implement" | `Danbooru.config` delegates via `method_missing` — stub on `Danbooru.config.custom_configuration` instead: `allow(Danbooru.config.custom_configuration).to receive(:pool_post_limit).and_return(3)` |
-| `save!(validate: false)` raises `NotNullViolation` on `creator_id` / `creator_ip_addr` | `belongs_to_creator` sets both fields in a `before_validation on: :create` callback, which is skipped. Set them explicitly before saving: `t.creator_id = CurrentUser.id; t.creator_ip_addr = CurrentUser.ip_addr` |
+| `allow(Danbooru.config).to receive(:x)` raises "does not implement" | `Danbooru.config` delegates via `method_missing` — stub on the inner object: `allow(Danbooru.config.custom_configuration).to receive(:pool_post_limit).and_return(3)` |
+| `save!(validate: false)` raises `NotNullViolation` on `creator_id` / `creator_ip_addr` | `belongs_to_creator` sets these in a `before_validation on: :create` callback, which is skipped. Set them explicitly: `t.creator_id = CurrentUser.id; t.creator_ip_addr = CurrentUser.ip_addr` |
+| Order-dependent failures | Tests run with `--order random`; never rely on insertion order without an explicit `order` call |
