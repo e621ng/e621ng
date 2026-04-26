@@ -7,6 +7,11 @@
     <p>You can request a new tag implication be created. This will create a corresponding forum topic for community
       review.</p>
 
+    <%= format_text("
+    An implication adds both the input tag and the output tag on post change. For instance, `striped_tail` will also add `tail`.
+    If you are looking to change the input tag to a different tag, create a \"Tag Alias Request\":/tag_alias_request/new instead.
+    ") %>
+
     <%= custom_form_for(:tag_implication_request, url: tag_implication_request_path) do |f| %>
       <%= f.input :antecedent_name, label: "From", autocomplete: "tag" %>
       <%= f.input :consequent_name, label: "To", autocomplete: "tag" %>
