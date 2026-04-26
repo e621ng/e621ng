@@ -128,7 +128,7 @@ class PostReplacement < ApplicationRecord
 
   module StorageMethods
     def remove_files
-      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id})
+      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id })
       Danbooru.config.storage_manager.delete_replacement(self)
     end
 
@@ -275,6 +275,45 @@ class PostReplacement < ApplicationRecord
       update_attribute(:approver_id, CurrentUser.user.id)
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index
+    end
+
+    def transfer(new_post)
+      unless is_pending? || is_rejected?
+        errors.add(:status, "must be pending or rejected to transfer")
+        return
+      end
+      if new_post.nil? || new_post.id == post.id
+        errors.add(:post, "must be a different post")
+        return
+      end
+      if new_post.is_deleted?
+        errors.add(:post, "is deleted")
+        return
+      end
+
+      if new_post.replacements.where(md5: md5).exists?
+        errors.add(:md5, "duplicate of existing replacement on post ##{new_post.id}")
+        return
+      end
+
+      Post.transaction do # wrap in transaction to ensure atomicity of the transfer
+        prev = post
+        update(post: new_post, uploader_id_on_approve: nil)
+        set_previous_uploader
+        update_column(:uploader_id_on_approve, uploader_on_approve&.id)
+
+        begin
+          create_original_backup
+        rescue ProcessingError => e
+          errors.add(:base, "Failed to create backup on new post: #{e.message}")
+        end
+
+        PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
+        PostEvent.add(prev.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
+
+        post.update_index
+        prev.update_index
+      end
     end
 
     def create_original_backup
