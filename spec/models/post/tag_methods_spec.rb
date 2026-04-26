@@ -195,9 +195,8 @@ RSpec.describe Post do
 
     describe "tag_count_not_insane validation" do
       it "is invalid when tag count exceeds the maximum" do
-        max = Danbooru.config.max_tags_per_post
-        huge_tag_string = (1..(max + 1)).map { |n| "tag_insane_#{n}" }.join(" ")
-        post = build(:post, tag_string: huge_tag_string)
+        allow(Danbooru.config.custom_configuration).to receive(:max_tags_per_post).and_return(5)
+        post = build(:post, tag_string: "a b c d e f")
         expect(post).not_to be_valid
         expect(post.errors[:tag_string]).to be_present
       end
