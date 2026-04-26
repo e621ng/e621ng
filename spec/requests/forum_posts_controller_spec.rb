@@ -24,9 +24,6 @@ require "rails_helper"
 #                    PATCH  /fposts/:id(.:format)              forum_posts#update
 #                    PUT    /fposts/:id(.:format)              forum_posts#update
 #                    DELETE /fposts/:id(.:format)              forum_posts#destroy
-# TODO: Test permissions
-# TODO: Test `warning` action
-# TODO: Test `update` action
 RSpec.describe ForumPostsController do
   # Enables useage in the `around` hook
   let(:user) { RSpec::Mocks.with_temporary_scope { create(:user) } }
@@ -80,6 +77,26 @@ RSpec.describe ForumPostsController do
       it "still render existing votes" do
         assert_select "ul.forum-post-votes[data-vote='up'] li"
       end
+    end
+  end
+
+  # forum_post GET    /forum_posts/:id(.:format)         forum_posts#show
+  #      fpost GET    /fposts/:id(.:format)              forum_posts#show
+  describe "show action" do
+    it "redirects to the forum topic when the post is the original post (HTML)" do
+      get_auth forum_post_path(forum_post), user
+      expect(response).to redirect_to(forum_topic_path(forum_topic))
+    end
+
+    it "renders the post directly for a reply post (HTML)" do
+      reply = CurrentUser.scoped(user) { create(:forum_post, topic_id: forum_topic.id) }
+      get_auth forum_post_path(reply), user
+      expect(response).to have_http_status(:success)
+    end
+
+    it "renders JSON without redirecting" do
+      get_auth forum_post_path(forum_post, format: :json), user
+      expect(response).to have_http_status(:success)
     end
   end
 
@@ -192,6 +209,33 @@ RSpec.describe ForumPostsController do
 
       expect { post_auth forum_posts_path, user, params: { forum_post: { body: "xaxaxa", topic_id: forum_topic.id } } }.to change(ForumPost, :count).from(1).to(2)
     end
+
+    it "returns an error response for invalid params (empty body)" do
+      forum_topic
+      post_auth forum_posts_path(format: :json), user, params: { forum_post: { body: "", topic_id: forum_topic.id } }
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+  end
+
+  # forum_posts PATCH  /forum_posts/:id(.:format)         forum_posts#update
+  #      fposts PATCH  /fposts/:id(.:format)              forum_posts#update
+  describe "update action" do
+    it "updates the post body when editor is the creator" do
+      put_auth forum_post_path(forum_post), user, params: { forum_post: { body: "updated body" } }
+      expect(response).to redirect_to(forum_topic_path(forum_topic, page: forum_post.forum_topic_page, anchor: "forum_post_#{forum_post.id}"))
+      expect(forum_post.reload.body).to eq("updated body")
+    end
+
+    it "updates the post when editor is an admin" do
+      put_auth forum_post_path(forum_post), create(:admin_user), params: { forum_post: { body: "admin edit" } }
+      expect(response).to redirect_to(forum_topic_path(forum_topic, page: forum_post.forum_topic_page, anchor: "forum_post_#{forum_post.id}"))
+      expect(forum_post.reload.body).to eq("admin edit")
+    end
+
+    it "returns forbidden when editor is a different member" do
+      put_auth forum_post_path(forum_post), create(:user), params: { forum_post: { body: "nope" } }
+      expect(response).to have_http_status(:forbidden)
+    end
   end
 
   # forum_posts DELETE /forum_posts/:id(.:format)         forum_posts#destroy
@@ -202,6 +246,25 @@ RSpec.describe ForumPostsController do
       delete_auth forum_post_path(forum_post), admin
       get_auth forum_post_path(forum_post), admin
       expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  #    hide_forum_post POST   /forum_posts/:id/hide(.:format)    forum_posts#hide
+  describe "hide action" do
+    it "allows the creator to hide their own post" do
+      post_auth hide_forum_post_path(forum_post), user
+      expect(response).to redirect_to(forum_post_path(forum_post))
+      expect(forum_post.reload.is_hidden?).to be(true)
+    end
+
+    it "allows a moderator to hide any post" do
+      post_auth hide_forum_post_path(forum_post), mod
+      expect(forum_post.reload.is_hidden?).to be(true)
+    end
+
+    it "returns forbidden for an unrelated member" do
+      post_auth hide_forum_post_path(forum_post), create(:user)
+      expect(response).to have_http_status(:forbidden)
     end
   end
 
@@ -218,6 +281,27 @@ RSpec.describe ForumPostsController do
       assert_redirected_to(forum_post_path(forum_post))
       forum_post.reload
       expect(forum_post.is_hidden?).to be(false)
+    end
+  end
+
+  # warning_forum_post POST   /forum_posts/:id/warning(.:format) forum_posts#warning
+  describe "warning action" do
+    it "applies a warning and returns JSON with html and posts keys" do
+      post_auth warning_forum_post_path(forum_post), mod, params: { record_type: "warning" }
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body).to include("html", "posts")
+      expect(forum_post.reload.warning_type).to eq("warning")
+    end
+
+    it "removes a warning when record_type is 'unmark'" do
+      CurrentUser.scoped(mod) { forum_post.user_warned!("warning", mod) }
+      post_auth warning_forum_post_path(forum_post), mod, params: { record_type: "unmark" }
+      expect(forum_post.reload.warning_type).to be_nil
+    end
+
+    it "returns forbidden for a regular member" do
+      post_auth warning_forum_post_path(forum_post), user, params: { record_type: "warning" }
+      expect(response).to have_http_status(:forbidden)
     end
   end
 end
