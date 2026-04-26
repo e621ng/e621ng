@@ -52,11 +52,15 @@ RSpec.describe PostSetMaintainer do
   # -------------------------------------------------------------------------
   describe "ensure_maintainer_count" do
     it "is invalid when the set already has 75 maintainers" do
-      users = create_list(:user, 75)
+      now = Time.current
+      User.insert_all(
+        75.times.map { |i| { name: "maintainer_#{i}_#{now.to_i}", password_hash: "x", created_at: now, updated_at: now } },
+      )
+      user_ids = User.where("name LIKE ?", "maintainer_%_#{now.to_i}").pluck(:id)
       PostSetMaintainer.insert_all(
-        users.map do |u|
-          { post_set_id: set.id, user_id: u.id, status: "approved",
-            created_at: Time.current, updated_at: Time.current, }
+        user_ids.map do |uid|
+          { post_set_id: set.id, user_id: uid, status: "approved",
+            created_at: now, updated_at: now, }
         end,
       )
       record = build(:post_set_maintainer, post_set: set, user: invitee)
