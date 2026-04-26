@@ -13,5 +13,8 @@ FactoryBot.define do
     factory :deleted_tag_alias do
       status { "deleted" }
     end
+
+    # Just for consistency
+    factory :pending_tag_alias
   end
 end
