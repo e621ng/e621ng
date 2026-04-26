@@ -173,8 +173,76 @@ RSpec.describe ApiKeysController do
         expect(relation.first.expires_at).to match(Time.now.advance(days: 1))
       end
     end
+
+    it "fails with duplicate name for same user" do
+      post api_keys_path(api_key: { name: "test_key" })
+      do_with_failure({ name: "test_key" })
+      expect(response.body).to match(/Name has already been taken/)
+    end
+
+    it "fails with empty name" do
+      do_with_failure({ name: "" })
+      expect(response.body).to match(/Name can&#39;t be blank/)
+    end
+
+    it "fails when API key limit is reached" do
+      # Create keys up to the limit
+      limit = user.api_key_limit
+      limit.times { |i| create(:api_key, user: user, name: "key_#{i}") }
+
+      expect(user.api_keys.count).to eq(limit)
+
+      # Try to create one more - should fail
+      do_with_failure({ name: "over_limit_key" })
+      expect(response.body).to match(/API key limit reached/)
+    end
   end
 
-  # TODO: regenerate_api_key | POST | /api_keys/:id/regenerate(.:format) | api_keys#regenerate
-  # TODO: api_key | DELETE | /api_keys/:id(.:format) | api_keys#destroy
+  # regenerate_api_key | POST | /api_keys/:id/regenerate(.:format) | api_keys#regenerate
+  describe "POST /api_keys/:id/regenerate" do
+    let(:user) { make_session }
+
+    it "regenerates an expired API key" do
+      expired_api_key = create(:api_key, user: user, name: "expired_key")
+      expired_api_key.update_columns(created_at: 2.days.ago, expires_at: 1.day.ago) # skip validation
+      old_key = expired_api_key.key
+      post regenerate_api_key_path(expired_api_key)
+
+      expired_api_key.reload
+      expect(expired_api_key.key).not_to eq(old_key)
+      expect(expired_api_key.expires_at).to be > Time.current
+      expect(response).to redirect_to(api_keys_path)
+      expect(flash[:notice]).to eq("API key regenerated")
+    end
+
+    it "doesn't allow regenerating an active API key" do
+      active_api_key = create(:api_key, user: user, name: "active_key", expires_at: 1.day.from_now)
+      old_key = active_api_key.key
+      post regenerate_api_key_path(active_api_key)
+
+      active_api_key.reload
+      expect(active_api_key.key).to eq(old_key)
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  # api_key | DELETE | /api_keys/:id(.:format) | api_keys#destroy
+  describe "DELETE /api_keys/:id" do
+    let(:user) { create(:user) }
+    let!(:api_key) { create(:api_key, user: user, name: "test_key") }
+
+    it "deletes the user's API key" do
+      expect { delete_auth(api_key_path(api_key), user) }.to change(ApiKey, :count).by(-1)
+
+      expect(response).to redirect_to(api_keys_path)
+      expect { api_key.reload }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it "doesn't allow deleting another user's API key" do
+      expect { delete_auth(api_key_path(api_key), create(:user)) }.not_to change(ApiKey, :count)
+
+      expect(response).to have_http_status(:not_found)
+      expect(api_key.reload).not_to be_nil
+    end
+  end
 end
