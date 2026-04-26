@@ -73,7 +73,5 @@ puts "Updated: #{updated_count} records"
 puts "Total processed: #{created_count + updated_count} records"
 
 # Clear caches to ensure new data is picked up
-Rails.cache.delete("post_flag_reasons:for_radio")
-Rails.cache.delete("post_flag_reasons:for_name_validation")
-Rails.cache.delete("post_flag_reasons:for_needs_explanation")
+PostFlagReason.invalidate_cache
 puts "Cleared PostFlagReason caches."
