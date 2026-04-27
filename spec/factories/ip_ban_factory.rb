@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  sequence(:ip_ban_addr) { |n| "#{(n % 254) + 1}.2.3.4" }
+  sequence(:ip_ban_addr) { |n| "1.2.3.#{(n % 254) + 1}" }
 
   factory :ip_ban do
     # belongs_to_creator reads from CurrentUser if creator_id is nil;
