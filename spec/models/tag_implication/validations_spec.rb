@@ -64,20 +64,20 @@ RSpec.describe TagImplication do
   # ---------------------------------------------------------------------------
   describe "#absence_of_circular_relation" do
     it "is invalid when the implication would create a direct cycle (a→b already implies b→a)" do
-      create(:active_tag_implication, antecedent_name: "tag_b", consequent_name: "tag_a")
-      record = build(:tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b")
+      create(:active_tag_implication, antecedent_name: "circ_tag_b", consequent_name: "circ_tag_a")
+      record = build(:tag_implication, antecedent_name: "circ_tag_a", consequent_name: "circ_tag_b")
       expect(record).not_to be_valid
       expect(record.errors[:base]).to include("Tag implication can not create a circular relation with another tag implication")
     end
 
     it "is valid when there is no circular dependency" do
-      record = build(:tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b")
+      record = build(:tag_implication, antecedent_name: "circ_tag_a", consequent_name: "circ_tag_b")
       expect(record).to be_valid
     end
 
     it "skips the circular check when the record itself is deleted" do
-      create(:active_tag_implication, antecedent_name: "tag_b", consequent_name: "tag_a")
-      record = build(:tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b", status: "deleted")
+      create(:active_tag_implication, antecedent_name: "circ_tag_b", consequent_name: "circ_tag_a")
+      record = build(:tag_implication, antecedent_name: "circ_tag_a", consequent_name: "circ_tag_b", status: "deleted")
       expect(record).to be_valid
     end
   end
@@ -90,26 +90,26 @@ RSpec.describe TagImplication do
   describe "#absence_of_transitive_relation" do
     it "is invalid when the consequent is already implied transitively by the antecedent" do
       # a→b→c: trying to add a→c should fail
-      create(:active_tag_implication, antecedent_name: "tag_b", consequent_name: "tag_c")
-      create(:active_tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b")
-      # At this point a_to_b.descendant_names should include tag_c via b_to_c
-      record = build(:tag_implication, antecedent_name: "tag_a", consequent_name: "tag_c")
+      create(:active_tag_implication, antecedent_name: "trans_tag_b", consequent_name: "trans_tag_c")
+      create(:active_tag_implication, antecedent_name: "trans_tag_a", consequent_name: "trans_tag_b")
+      # At this point a_to_b.descendant_names should include trans_tag_c via b_to_c
+      record = build(:tag_implication, antecedent_name: "trans_tag_a", consequent_name: "trans_tag_c")
       expect(record).not_to be_valid
-      expect(record.errors[:base]).to include("tag_a already implies tag_c through another implication")
+      expect(record.errors[:base]).to include("trans_tag_a already implies trans_tag_c through another implication")
     end
 
     it "is valid when the transitive chain only involves deleted implications" do
-      b_to_c = create(:tag_implication, antecedent_name: "tag_b", consequent_name: "tag_c")
+      b_to_c = create(:tag_implication, antecedent_name: "trans_tag_b", consequent_name: "trans_tag_c")
       b_to_c.update_columns(status: "deleted")
-      create(:active_tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b")
-      record = build(:tag_implication, antecedent_name: "tag_a", consequent_name: "tag_c")
+      create(:active_tag_implication, antecedent_name: "trans_tag_a", consequent_name: "trans_tag_b")
+      record = build(:tag_implication, antecedent_name: "trans_tag_a", consequent_name: "trans_tag_c")
       expect(record).to be_valid
     end
 
     it "skips the transitive check when the record itself is deleted" do
-      create(:active_tag_implication, antecedent_name: "tag_b", consequent_name: "tag_c")
-      create(:active_tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b")
-      record = build(:tag_implication, antecedent_name: "tag_a", consequent_name: "tag_c", status: "deleted")
+      create(:active_tag_implication, antecedent_name: "trans_tag_b", consequent_name: "trans_tag_c")
+      create(:active_tag_implication, antecedent_name: "trans_tag_a", consequent_name: "trans_tag_b")
+      record = build(:tag_implication, antecedent_name: "trans_tag_a", consequent_name: "trans_tag_c", status: "deleted")
       expect(record).to be_valid
     end
   end

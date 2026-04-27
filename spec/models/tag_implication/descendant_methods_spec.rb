@@ -123,4 +123,59 @@ RSpec.describe TagImplication do
       expect(ti.reload.descendant_names).to include("tag_b", "tag_c")
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # #invalidate_cached_descendants
+  # ---------------------------------------------------------------------------
+  describe "#invalidate_cached_descendants" do
+    it "deletes the cache entry for each descendant name" do
+      ti = create(:active_tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b")
+      allow(Cache).to receive(:delete)
+
+      ti.invalidate_cached_descendants
+
+      expect(Cache).to have_received(:delete).with("descendants-tag_b")
+    end
+
+    it "does nothing when descendant_names is empty" do
+      ti = create(:active_tag_implication)
+      ti.update_columns(descendant_names: [])
+      allow(Cache).to receive(:delete)
+
+      ti.invalidate_cached_descendants
+
+      expect(Cache).not_to have_received(:delete)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # ::cached_descendants (class method)
+  # ---------------------------------------------------------------------------
+  describe "::cached_descendants" do
+    it "returns antecedent names whose descendant_names include the given tag" do
+      create(:active_tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b")
+      expect(TagImplication.cached_descendants("tag_b")).to include("tag_a")
+    end
+
+    it "returns an empty array when no active implications have the tag as a descendant" do
+      expect(TagImplication.cached_descendants("unknown_tag")).to be_empty
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Circular detection in #update_descendant_names_for_parents
+  # ---------------------------------------------------------------------------
+  describe "#update_descendant_names_for_parents circular detection" do
+    it "marks a parent as errored when its id is already in the visited set" do
+      parent = create(:active_tag_implication, antecedent_name: "tag_x", consequent_name: "tag_a")
+      child  = create(:active_tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b")
+      # parent.consequent_name == child.antecedent_name, so parent is in child's parents chain.
+      # Passing parent.id in the visited set simulates a previously-traversed ancestor,
+      # directly exercising the circular-detection error branch without needing a real
+      # circular implication in the DB (which would cause an infinite loop in #descendants).
+      child.update_descendant_names_for_parents(Set.new([parent.id]))
+
+      expect(parent.reload.status).to eq("error: circular implication detected")
+    end
+  end
 end
