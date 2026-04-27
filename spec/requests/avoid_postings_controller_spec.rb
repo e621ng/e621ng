@@ -119,11 +119,17 @@ RSpec.describe AvoidPostingsController do
     end
 
     # FIXME: avoid_postings_controller.rb:21 calls `respond_with(@artist)` instead of
-    # `respond_with(@avoid_posting)`. Since @artist is nil, the HTML response
-    # redirects rather than rendering the new form.
-    # it "returns 200 for bd_staff" do
+    # `respond_with(@avoid_posting)`. `@artist` is never assigned so it is nil.
+    # HTML requests redirect; JSON requests produce an unpredictable response.
+    # Lines 19-21 remain uncovered until the bug is fixed.
+    # it "returns 200 for bd_staff (HTML)" do
     #   sign_in_as bd_staff
     #   get new_avoid_posting_path
+    #   expect(response).to have_http_status(:ok)
+    # end
+    # it "returns 200 for bd_staff (JSON)" do
+    #   sign_in_as bd_staff
+    #   get new_avoid_posting_path(format: :json)
     #   expect(response).to have_http_status(:ok)
     # end
   end
@@ -194,6 +200,88 @@ RSpec.describe AvoidPostingsController do
         expect(response).to have_http_status(:created)
         expect(response.parsed_body).to be_a(Hash)
         expect(response.parsed_body["id"]).to eq(AvoidPosting.last.id)
+      end
+
+      context "when the existing artist already has other_names" do
+        let(:existing_artist) { create(:artist, name: "merge_artist", other_names: ["alias1"]) }
+
+        it "merges provided other_names_string into the existing names and sets a flash" do
+          params = {
+            avoid_posting: {
+              details: "Test.",
+              artist_attributes: { name: existing_artist.name, other_names_string: "alias2 alias3" },
+            },
+          }
+          post avoid_postings_path, params: params
+          expect(existing_artist.reload.other_names).to include("alias1", "alias2", "alias3")
+          expect(flash[:notice]).to include("merged")
+        end
+
+        it "does not merge when provided other_names_string is blank" do
+          params = {
+            avoid_posting: {
+              details: "Test.",
+              artist_attributes: { name: existing_artist.name, other_names_string: "" },
+            },
+          }
+          post avoid_postings_path, params: params
+          expect(existing_artist.reload.other_names).to eq(["alias1"])
+        end
+      end
+
+      context "when the existing artist already has a group_name" do
+        let(:existing_artist) { create(:artist, name: "group_artist", group_name: "original_group") }
+
+        it "does not overwrite group_name when provided group_name is blank" do
+          params = {
+            avoid_posting: {
+              details: "Test.",
+              artist_attributes: { name: existing_artist.name, group_name: "" },
+            },
+          }
+          post avoid_postings_path, params: params
+          expect(existing_artist.reload.group_name).to eq("original_group")
+        end
+
+        it "replaces group_name and sets a flash notice when a non-blank group_name is provided" do
+          params = {
+            avoid_posting: {
+              details: "Test.",
+              artist_attributes: { name: existing_artist.name, group_name: "new_group" },
+            },
+          }
+          post avoid_postings_path, params: params
+          expect(existing_artist.reload.group_name).to eq("new_group")
+          expect(flash[:notice]).to include("group name was replaced")
+        end
+      end
+
+      context "when the existing artist already has a linked_user_id" do
+        let(:linked_user) { create(:user) }
+        let(:existing_artist) { create(:artist, name: "linked_artist", linked_user: linked_user) }
+
+        it "sets a flash notice when a present linked_user_id is supplied and leaves it unchanged" do
+          params = {
+            avoid_posting: {
+              details: "Test.",
+              artist_attributes: { name: existing_artist.name, linked_user_id: linked_user.id },
+            },
+          }
+          post avoid_postings_path, params: params
+          expect(flash[:notice]).to include("already linked")
+          expect(existing_artist.reload.linked_user_id).to eq(linked_user.id)
+        end
+
+        it "strips a blank linked_user_id and leaves the artist's link unchanged" do
+          params = {
+            avoid_posting: {
+              details: "Test.",
+              artist_attributes: { name: existing_artist.name, linked_user_id: "" },
+            },
+          }
+          post avoid_postings_path, params: params
+          expect(existing_artist.reload.linked_user_id).to eq(linked_user.id)
+        end
       end
     end
   end
