@@ -86,6 +86,10 @@ FactoryBot.define do
     factory :approver_user do
       can_approve_posts { true }
     end
+
+    factory :bd_auditor_user do
+      is_bd_auditor { true }
+    end
   end
 end
 
