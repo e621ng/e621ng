@@ -103,6 +103,12 @@ RSpec.describe TagAlias do
       result = TagAlias.to_aliased_query("old_tag unrelated_tag")
       expect(result).to eq("new_tag unrelated_tag")
     end
+
+    it "handles blank lines in multi-line queries" do
+      result = TagAlias.to_aliased_query("old_tag\n\nunrelated_tag")
+      expect(result).to include("new_tag")
+      expect(result).to include("unrelated_tag")
+    end
   end
 
   # ---------------------------------------------------------------------------
