@@ -213,7 +213,7 @@ RSpec.describe ForumPostsController do
     it "returns an error response for invalid params (empty body)" do
       forum_topic
       post_auth forum_posts_path(format: :json), user, params: { forum_post: { body: "", topic_id: forum_topic.id } }
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

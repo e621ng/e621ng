@@ -146,7 +146,7 @@ RSpec.describe ForumTopicsController do
     it "returns 422 for invalid params (empty title) via JSON" do
       post_auth forum_topics_path(format: :json), user,
                 params: { forum_topic: { title: "", category_id: category.id, original_post_attributes: { body: "body" } } }
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "redirects anonymous users to login" do

@@ -147,6 +147,10 @@ RSpec.describe Security::LockdownController do
       end
 
       it "does not change pools lockdown when pools param is absent" do
+        # Seed a known state: writing any setting invalidates the full rails-settings-cached
+        # cache, so without this the before/after snapshots may read from different sources
+        # (cache vs DB) and produce a spurious change.
+        Security::Lockdown.pools_disabled = "0"
         expect do
           put enact_security_lockdown_index_path, params: { lockdown: { uploads: "1" } }
         end.not_to change(Security::Lockdown, :pools_disabled?)
