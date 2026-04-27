@@ -203,18 +203,13 @@ RSpec.describe UploadService::Utils do
       end
     end
 
-    # FIXME: Requires pre-computing the fixture file's md5 and creating a Post
-    # with that md5 before calling process_file. validate!(:file) then adds a
-    # duplicate md5 error and should raise ActiveRecord::RecordInvalid.
-    # Skipped until a reliable helper for this setup is available.
     it "raises ActiveRecord::RecordInvalid when the file md5 is a duplicate" do
       file = Tempfile.new(["sample", ".jpg"]).tap do |f|
         f.binmode
         f.write(File.binread(file_fixture("sample.jpg").to_s))
         f.rewind
       end
-      skip "FIXME: needs a helper to pre-create a Post matching the fixture's md5"
-      md5 = Digest::MD5.file(file.path).hexdigest
+      md5 = "a004e4122d722460b333d086f432f2eb"
       create(:post, md5: md5)
       upload = build(:upload, uploader: uploader, uploader_ip_addr: "127.0.0.1", rating: "s")
       expect { described_class.process_file(upload, file) }.to raise_error(ActiveRecord::RecordInvalid)
