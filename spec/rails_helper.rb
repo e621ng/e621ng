@@ -5,6 +5,8 @@ require "simplecov_json_formatter"
 SimpleCov.start "rails" do
   project_name "e621ng"
 
+  # Note that this is only applicable to tests running locally.
+  # If any changes are made, synchronize with the SimpleCov configuration in `.github/workflows/run-checks.yml`.
   enable_coverage :branch
   formatter SimpleCov::Formatter::MultiFormatter.new([
     SimpleCov::Formatter::HTMLFormatter,
