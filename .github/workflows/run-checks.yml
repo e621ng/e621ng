@@ -99,6 +99,7 @@ jobs:
           name: coverage-${{ matrix.index }}
           path: coverage/.resultset.json
           include-hidden-files: true
+          retention-days: 1
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
@@ -139,11 +140,28 @@ jobs:
 
       - name: Merge coverage
         run: |
-          echo "Coverage shard files found:"
-          find coverage-shards -name ".resultset.json"
+          find coverage-shards -name ".resultset.json" \
+            -exec sed -i "s|\"/app/|\"${GITHUB_WORKSPACE}/|g" {} \;
           bundle exec ruby -e "
             require 'simplecov'
+            require 'simplecov_json_formatter'
             files = Dir['coverage-shards/**/.resultset.json']
             abort 'No resultset files found' if files.empty?
-            SimpleCov.collate(files)
+            SimpleCov.collate(files, 'rails') do
+              formatter SimpleCov::Formatter::MultiFormatter.new([
+                SimpleCov::Formatter::HTMLFormatter,
+                SimpleCov::Formatter::JSONFormatter,
+              ])
+              add_group 'Components', ['app/blueprints', 'app/components']
+              add_group 'Decorators', ['app/decorators', 'app/presenters', 'app/inputs']
+              add_group 'Logical', ['app/concerns', 'app/indexes', 'app/logical']
+              groups.delete('Channels')
+            end
           "
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/.resultset.json
+          include-hidden-files: true
