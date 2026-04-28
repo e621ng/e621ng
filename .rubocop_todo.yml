@@ -399,7 +399,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'test/functional/post_flags_controller_test.rb'
     - 'test/functional/posts_controller_test.rb'
     - 'test/functional/wiki_page_versions_controller_test.rb'
-    - 'test/functional/wiki_pages_controller_test.rb'
     - 'test/unit/pool_test.rb'
     - 'test/unit/related_tag_calculator_test.rb'
 
