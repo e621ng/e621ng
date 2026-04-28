@@ -139,7 +139,11 @@ jobs:
 
       - name: Merge coverage
         run: |
+          echo "Coverage shard files found:"
+          find coverage-shards -name ".resultset.json"
           bundle exec ruby -e "
             require 'simplecov'
-            SimpleCov.collate(Dir['coverage-shards/*/coverage/.resultset.json'])
+            files = Dir['coverage-shards/**/.resultset.json']
+            abort 'No resultset files found' if files.empty?
+            SimpleCov.collate(files)
           "
