@@ -71,6 +71,28 @@ RSpec.describe ElasticPostQueryBuilder do
     end
   end
 
+  describe "deleted/flagged order" do
+    it "sets order from ORDER_TABLE for order:deleted" do
+      builder = build_query("order:deleted")
+      expect(builder.order).to eq([{ deleted_at: { order: :desc, missing: :_last } }, { id: :desc }])
+    end
+
+    it "sets order from ORDER_TABLE for order:deleted_asc" do
+      builder = build_query("order:deleted_asc")
+      expect(builder.order).to eq([{ deleted_at: { order: :asc, missing: :_last } }, { id: :asc }])
+    end
+
+    it "sets order from ORDER_TABLE for order:flagged" do
+      builder = build_query("order:flagged")
+      expect(builder.order).to eq([{ flagged_at: { order: :desc, missing: :_last } }, { id: :desc }])
+    end
+
+    it "sets order from ORDER_TABLE for order:flagged_asc" do
+      builder = build_query("order:flagged_asc")
+      expect(builder.order).to eq([{ flagged_at: { order: :asc, missing: :_last } }, { id: :asc }])
+    end
+  end
+
   describe "COUNT_METATAG order pattern" do
     it "orders by comment_count desc for order:comment_count" do
       builder = build_query("order:comment_count")

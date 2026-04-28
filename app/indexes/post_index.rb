@@ -18,6 +18,8 @@ module PostIndex
           commented_at: { type: "date" },
           comment_bumped_at: { type: "date" },
           noted_at: { type: "date" },
+          flagged_at: { type: "date" },
+          deleted_at: { type: "date" },
           id: { type: "integer" },
           up_score: { type: "integer" },
           down_score: { type: "integer" },
@@ -50,6 +52,7 @@ module PostIndex
           uploader: { type: "integer" },
           approver: { type: "integer" },
           deleter: { type: "integer" },
+          flagger: { type: "integer" },
           width: { type: "integer" },
           height: { type: "integer" },
           mpixels: { type: "float" },
@@ -64,6 +67,8 @@ module PostIndex
           description: { type: "text" },
           notes: { type: "text" },
           del_reason: { type: "keyword" },
+          flag_reason: { type: "keyword" },
+          flag_note: { type: "keyword" },
 
           rating_locked: { type: "boolean" },
           note_locked: { type: "boolean" },
@@ -143,10 +148,18 @@ module PostIndex
           WHERE post_id IN (#{post_ids}) AND is_active = true
         SQL
         deletion_sql = <<-SQL
-          SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) as reason FROM
+          SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) as reason, pf.created_at FROM
             (SELECT MAX(id) as mid, post_id
              FROM post_flags
              WHERE post_id IN (#{post_ids}) AND is_resolved = false AND is_deletion = true
+             GROUP BY post_id) pfi
+          INNER JOIN post_flags pf ON pf.id = pfi.mid;
+        SQL
+        flag_sql = <<-SQL
+          SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) as reason, LOWER(pf.note) as note, pf.created_at FROM
+            (SELECT MAX(id) as mid, post_id
+             FROM post_flags
+             WHERE post_id IN (#{post_ids}) AND is_resolved = false AND is_deletion = false
              GROUP BY post_id) pfi
           INNER JOIN post_flags pf ON pf.id = pfi.mid;
         SQL
@@ -162,8 +175,16 @@ module PostIndex
         # Run queries
         conn = ApplicationRecord.connection
         deletions        = conn.execute(deletion_sql)
-        deleter_ids      = deletions.values.map { |p, did, dr| [p, did] }.to_h
-        del_reasons      = deletions.values.map { |p, did, dr| [p, dr] }.to_h
+        # For deletions, we map `post_id`, `creator_id`, `reason`, `created_at`
+        deleter_ids      = deletions.values.map { |p, did, dr, dca| [p, did] }.to_h
+        del_reasons      = deletions.values.map { |p, did, dr, dca| [p, dr] }.to_h
+        del_dates        = deletions.values.map { |p, did, dr, dca| [p, dca] }.to_h
+        flags            = conn.execute(flag_sql)
+        # For flags, we map `post_id`, `creator_id`, `reason`, `note`, `created_at`
+        flagger_ids      = flags.values.map { |p, fid, fr, fn, fca| [p, fid] }.to_h
+        flag_reasons     = flags.values.map { |p, fid, fr, fn, fca| [p, fr] }.to_h
+        flag_notes       = flags.values.map { |p, fid, fr, fn, fca| [p, fn] }.to_h
+        flag_dates       = flags.values.map { |p, fid, fr, fn, fca| [p, fca] }.to_h
         comment_counts   = conn.execute(comments_sql).values.to_h
         pool_ids         = conn.execute(pools_sql).values.map(&array_parse).to_h
         set_ids          = conn.execute(sets_sql).values.map(&array_parse).to_h
@@ -201,6 +222,11 @@ module PostIndex
             notes:                    notes[p.id]          || empty,
             deleter:                  deleter_ids[p.id]    || empty,
             del_reason:               del_reasons[p.id]    || empty,
+            deleted_at:               del_dates[p.id],
+            flagger:                  flagger_ids[p.id]    || empty,
+            flag_reason:              flag_reasons[p.id]   || empty,
+            flag_note:                flag_notes[p.id]     || empty,
+            flagged_at:               flag_dates[p.id],
             has_pending_replacements: pending_replacements[p.id],
             artverified:              p.tag_array.any? { |tag| verified_artists.key?(tag) && verified_artists[tag] == p.uploader_id },
           }
@@ -222,6 +248,13 @@ module PostIndex
   end
 
   def as_indexed_json(options = {})
+    flag = unless options.key?(:flagger) && options.key?(:flag_reason) && options.key?(:flag_note) && options.key?(:flagged_at)
+             ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).first
+           end
+    deletion = unless options.key?(:deleter) && options.key?(:del_reason) && options.key?(:deleted_at)
+                 ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first
+               end
+
     {
       created_at:               created_at,
       updated_at:               updated_at,
@@ -260,8 +293,11 @@ module PostIndex
       notes:                    options[:notes]      || ::Note.active.where(post_id: id).pluck(:body),
       uploader:                 uploader_id,
       approver:                 approver_id,
-      deleter:                  options[:deleter]    || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.creator_id,
-      del_reason:               options[:del_reason] || ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first&.reason&.downcase,
+      deleter:                  options[:deleter]       || deletion&.creator_id,
+      del_reason:               options[:del_reason]    || deletion&.reason&.downcase,
+      flagger:                  options[:flagger]       || flag&.creator_id,
+      flag_reason:              options[:flag_reason]   || flag&.reason&.downcase,
+      flag_note:                options[:flag_note]     || flag&.note&.downcase,
       width:                    image_width,
       height:                   image_height,
       mpixels:                  image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
@@ -284,6 +320,9 @@ module PostIndex
       has_children:             has_children,
       has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
       artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
+
+      flagged_at:               options.key?(:flagged_at) ? options[:flagged_at] : flag&.created_at,
+      deleted_at:               options.key?(:deleted_at) ? options[:deleted_at] : deletion&.created_at,
     }
   end
 end

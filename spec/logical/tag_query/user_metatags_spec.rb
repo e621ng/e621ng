@@ -8,7 +8,7 @@ require "rails_helper"
 # Most metatags resolve a username/ID into a numeric user ID stored in an array.
 # Privileged metatags (upvote:/downvote:/voted:) require moderator access.
 
-RSpec.describe TagQuery, type: :model do
+RSpec.describe TagQuery do
   include_context "as member"
 
   let!(:target_user) { create(:user) }
@@ -174,6 +174,64 @@ RSpec.describe TagQuery, type: :model do
         tq = TagQuery.new("downvote:#{target_user.name}")
         expect(tq[:downvote]).to include(CurrentUser.id)
       end
+    end
+  end
+
+  describe "flaggedby: metatag" do
+    let!(:flagged_user) { create(:user) }
+
+    it "is ignored for non-staff users" do
+      tq = TagQuery.new("flaggedby:#{flagged_user.name}")
+      expect(tq[:flagger]).to be_nil
+      expect(tq[:flagger_must_not]).to be_nil
+      expect(tq[:flagger_should]).to be_nil
+    end
+
+    it "parses username and id forms for staff users" do
+      staff = create(:admin_user)
+
+      CurrentUser.scoped(staff) do
+        expect(TagQuery.new("flaggedby:#{flagged_user.name}")[:flagger]).to include(flagged_user.id)
+        expect(TagQuery.new("flaggedby:!#{flagged_user.id}")[:flagger]).to include(flagged_user.id)
+        expect(TagQuery.new("-flaggedby:#{flagged_user.name}")[:flagger_must_not]).to include(flagged_user.id)
+        expect(TagQuery.new("~flaggedby:#{flagged_user.name}")[:flagger_should]).to include(flagged_user.id)
+      end
+    end
+
+    it "stores -1 for unknown users when staff" do
+      staff = create(:admin_user)
+
+      CurrentUser.scoped(staff) do
+        expect(TagQuery.new("flaggedby:missing_user")[:flagger]).to include(-1)
+      end
+    end
+  end
+
+  describe "deleted filter helpers with order metatags" do
+    it "does not hide deleted posts when order:deleted is present" do
+      expect(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted")).to be(false)
+      expect(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted_desc")).to be(false)
+      expect(TagQuery.should_hide_deleted_posts?("aaa bbb -order:deleted")).to be(false)
+    end
+
+    it "still hides deleted posts for non-deleted ordering" do
+      expect(TagQuery.should_hide_deleted_posts?("aaa bbb order:random")).to be(true)
+    end
+
+    it "keeps deleted posts visible if any deleted-implying order appears" do
+      expect(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted order:random")).to be(false)
+      expect(TagQuery.should_hide_deleted_posts?("aaa bbb order:random order:deleted")).to be(false)
+      expect(TagQuery.should_hide_deleted_posts?("aaa bbb order:random -order:deleted")).to be(false)
+    end
+
+    it "disables append_deleted_filter when deleted ordering is present" do
+      expect(TagQuery.can_append_deleted_filter?("aaa bbb order:deleted", at_any_level: true)).to be(false)
+      expect(TagQuery.can_append_deleted_filter?("aaa bbb order:deleted_asc", at_any_level: true)).to be(false)
+    end
+
+    it "supports array inputs for deleted-order checks" do
+      expect(TagQuery.should_hide_deleted_posts?(%w[aaa bbb order:deleted])).to be(false)
+      expect(TagQuery.can_append_deleted_filter?(%w[aaa bbb order:deleted], at_any_level: true)).to be(false)
     end
   end
 end

@@ -10,7 +10,7 @@ require "rails_helper"
 #   TagQuery::ORDER_NON_SUFFIXED_ALIASES — aliases that resolve to a specific non-root form
 #   TagQuery::ORDER_VALUE_INVERSIONS     — maps a value to its inverted counterpart
 
-RSpec.describe TagQuery, type: :model do
+RSpec.describe TagQuery do
   include_context "as member"
 
   describe "order: metatag" do
@@ -97,6 +97,14 @@ RSpec.describe TagQuery, type: :model do
     it "-order:landscape inverts to portrait's resolved form" do
       # landscape → aspect_ratio; inversion is aspect_ratio_asc
       expect(TagQuery.new("-order:landscape")[:order]).to eq("aspect_ratio_asc")
+    end
+
+    it "-order:deleted inverts to deleted_asc" do
+      expect(TagQuery.new("-order:deleted")[:order]).to eq("deleted_asc")
+    end
+
+    it "-order:flagged inverts to flagged_asc" do
+      expect(TagQuery.new("-order:flagged")[:order]).to eq("flagged_asc")
     end
   end
 
