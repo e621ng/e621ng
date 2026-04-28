@@ -1,5 +1,7 @@
 <div id="c-posts"><div id="a-show">
-  <div class="post-display" data-tab-state="tags" data-comments-enabled="<%= !CurrentUser.hide_comments? %>">
+  <%# Cookie value set in MobileTabs.ts %>
+  <% selected_tab = !CurrentUser.hide_comments? && cookies[:post_tab] == "1" ? "comments" : "tags" %>
+  <div class="post-display" id="post-show-display" data-tab-state="<%= selected_tab %>">
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>
@@ -115,7 +117,7 @@
 
       <div
         id="post-recommendations"
-        data-visible="true"
+        data-visible="<%= cookies[:post_recs] != "1" %>"
         data-action="artist"
         data-status="waiting"
         data-post-id="<%= @post.id %>"
@@ -157,8 +159,8 @@
             class="st-button"
             data-action="reveal"
             aria-controls="post-recommendations"
-            aria-expanded="true"
-            aria-label="Hide Recommendations"
+            aria-expanded="<%= cookies[:post_recs] != "1" %>"
+            aria-label="<%= cookies[:post_recs] == "1" ? "Show" : "Hide" %> Recommendations"
           >
             <span>Show Recommendations</span>
             <%= svg_icon(:eye_off) %>
@@ -180,10 +182,24 @@
       </section>
     </div>
 
-    <div class="tabs" id="mobile-tabs">
-      <button type="button" class="post-mobile-tab" data-action="tags">Tags</button>
+    <div class="tabs" id="mobile-tabs" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="post-mobile-tab"
+        data-action="tags"
+        aria-controls="post-show-display"
+        aria-selected="<%= selected_tab == "tags" %>"
+      >Tags</button>
       <% unless CurrentUser.hide_comments? %>
-        <button type="button" class="post-mobile-tab" data-action="comments">Comments</button>
+        <button
+          type="button"
+          role="tab"
+          class="post-mobile-tab"
+          data-action="comments"
+          aria-controls="post-show-display"
+          aria-selected="<%= selected_tab == "comments" %>"
+        >Comments</button>
       <% end %>
     </div>
 

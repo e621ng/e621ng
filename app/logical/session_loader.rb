@@ -180,6 +180,8 @@ class SessionLoader
     return if CurrentUser.is_anonymous?
     return if cookies[:hide_dmail_notice].blank?
 
-    cookies.delete(:hide_dmail_notice) if cookies[:hide_dmail_notice] != CurrentUser.user.has_mail?.to_s
+    if !CurrentUser.user.has_mail? && cookies[:hide_dmail_notice] == "1"
+      cookies.delete(:hide_dmail_notice)
+    end
   end
 end

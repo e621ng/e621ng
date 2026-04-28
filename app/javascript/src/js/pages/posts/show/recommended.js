@@ -6,6 +6,7 @@ import Analytics from "@/core/analytics";
 import Logger from "@/utility/Logger";
 import PerformanceTracker from "@/utility/PerformanceTracker";
 import Settings from "@/utility/Settings";
+import CStorage from "@/utility/StorageC";
 
 const Recommended = {};
 
@@ -31,15 +32,6 @@ Recommended.init = function () {
     validStates: Recommended.validStates,
   });
 
-
-  // Set recommender UI state
-  if (!Recommended.visible) {
-    Recommended.$wrapper.attr("data-visible", "false");
-    Recommended.$toggle.attr({
-      "aria-expanded": "false",
-      "aria-label": "Show Recommendations",
-    });
-  }
 
   Recommended.$wrapper.attr("data-action", initialAction);
   Recommended.$wrapper.find("#post-recommendations-tabs button").attr("aria-selected", function () {
@@ -151,10 +143,10 @@ Object.defineProperty(Recommended, "status", {
 
 Object.defineProperty(Recommended, "visible", {
   get: function () {
-    return LStorage.Posts.RecommenderShown;
+    return !CStorage.postRecommenderHidden;
   },
   set: function (value) {
-    LStorage.Posts.RecommenderShown = value;
+    CStorage.postRecommenderHidden = !value;
     this.$wrapper.attr("data-visible", value ? "true" : "false");
     this.$toggle.attr({
       "aria-expanded": value ? "true" : "false",

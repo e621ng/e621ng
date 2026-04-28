@@ -28,6 +28,7 @@ Rails.application.routes.draw do
     resource :reowner, controller: "reowner", only: %i[new create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
+    resources :automod_dmails, only: %i[index show]
   end
 
   namespace :security do
@@ -98,7 +99,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :api_keys, except: %i[edit update] do
+  resources :api_keys, except: %i[edit update show] do
     member do
       post :regenerate
     end
@@ -322,7 +323,6 @@ Rails.application.routes.draw do
   resources :uploads
   resources :users do
     resource :password, only: %i[edit], controller: "maintenance/user/passwords"
-    resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
 
     member do
       get :upload_limit
@@ -330,6 +330,7 @@ Rails.application.routes.draw do
       post :disable_uploads
       post :flush_favorites
       get :fix_counts
+      get "/api_key", to: redirect("/api_keys")
     end
 
     collection do

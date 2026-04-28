@@ -17,6 +17,7 @@ class ApiKeysController < ApplicationController
     respond_with(@api_key)
   end
 
+  # IDEA: Should this return an error status code?
   def create
     params = api_key_params.merge(user: CurrentUser.user)
 

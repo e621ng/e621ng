@@ -666,12 +666,13 @@ class Post < ApplicationRecord
         set_tag_string(((current_tags + new_tags) - old_tags + (current_tags & new_tags)).uniq.sort.join(" "))
       end
 
-      if old_parent_id == ""
-        old_parent_id = nil
-      else
-        old_parent_id = old_parent_id.to_i
-      end
-      if old_parent_id == parent_id
+      normalized_old_parent_id = if old_parent_id == ""
+                                   nil
+                                 else
+                                   old_parent_id.to_i
+                                 end
+
+      if normalized_old_parent_id == parent_id
         self.parent_id = parent_id_before_last_save || parent_id_was
       end
 
@@ -979,16 +980,19 @@ class Post < ApplicationRecord
 
         when /^child:none$/i
           children.each do |post|
+            remove_child_edit_reason(post)
             post.update!(parent_id: nil)
           end
 
         when /^-child:(.+)$/i
           children.numeric_attribute_matches(:id, $1).each do |post|
+            remove_child_edit_reason(post)
             post.update!(parent_id: nil)
           end
 
         when /^child:(.+)$/i
           Post.numeric_attribute_matches(:id, $1).where.not(id: id).limit(10).each do |post|
+            add_child_edit_reason(post)
             post.update!(parent_id: id)
           end
         end
@@ -1464,6 +1468,14 @@ class Post < ApplicationRecord
     def set_merge_edit_reason
       return unless parent_id.present?
       parent.edit_reason = "Merged from post ##{self.id}"
+    end
+
+    def remove_child_edit_reason(post)
+      post.edit_reason = "Removed as child of post ##{id}"
+    end
+
+    def add_child_edit_reason(post)
+      post.edit_reason = "Added as child of post ##{id}"
     end
   end
 
