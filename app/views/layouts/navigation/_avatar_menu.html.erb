@@ -10,7 +10,7 @@
   data-has-mail="<%= has_mail %>"
 >
   <span class="avatar-name"><%= user.pretty_name %></span>
-  <span class="avatar-image" data-name="<%= user.name[0].capitalize %>"></span>
+  <span class="avatar-image" data-name="<%= user.name&.to_s&.first&.capitalize || "" %>"></span>
   <span class="avatar-more"><%= svg_icon(:chevron_down) %></span>
 </a>
 

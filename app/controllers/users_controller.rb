@@ -42,6 +42,8 @@ class UsersController < ApplicationController
 
   def edit
     @user = User.find(CurrentUser.id)
+    # Ensure that the DmailFilter actually loads
+    @user.dmail_filter || @user.build_dmail_filter
     check_privilege(@user)
     respond_with(@user)
   end

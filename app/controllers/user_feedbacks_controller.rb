@@ -4,6 +4,19 @@ class UserFeedbacksController < ApplicationController
   before_action :moderator_only, except: %i[index show]
   respond_to :html, :json
 
+  def index
+    index_params = search_params
+    @user_feedbacks = UserFeedback.visible(CurrentUser.user).search(index_params).paginate(params[:page], limit: params[:limit])
+    @target_user_id = index_params[:user_id].present? ? ParseValue.safe_id(index_params[:user_id]) : 0
+    respond_with(@user_feedbacks)
+  end
+
+  def show
+    @user_feedback = UserFeedback.find(params[:id])
+    raise(User::PrivilegeError) if !CurrentUser.user.is_staff? && @user_feedback.is_deleted?
+    respond_with(@user_feedback)
+  end
+
   def new
     @user_feedback = UserFeedback.new(user_feedback_params(:create))
     respond_with(@user_feedback)
@@ -13,17 +26,6 @@ class UserFeedbacksController < ApplicationController
     @user_feedback = UserFeedback.find(params[:id])
     check_edit_privilege(@user_feedback)
     respond_with(@user_feedback)
-  end
-
-  def show
-    @user_feedback = UserFeedback.find(params[:id])
-    raise(User::PrivilegeError) if !CurrentUser.user.is_staff? && @user_feedback.is_deleted?
-    respond_with(@user_feedback)
-  end
-
-  def index
-    @user_feedbacks = UserFeedback.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
-    respond_with(@user_feedbacks)
   end
 
   def create

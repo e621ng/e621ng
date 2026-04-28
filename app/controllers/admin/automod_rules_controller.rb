@@ -47,7 +47,7 @@ module Admin
     end
 
     def automod_rule_params
-      params.require(:automod_rule).permit(:name, :description, :regex, :enabled)
+      params.require(:automod_rule).permit(:name, :description, :regex, :enabled, :comments, :usernames, :profile_text)
     end
   end
 end

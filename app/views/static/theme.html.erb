@@ -23,7 +23,6 @@
       <option value="pony">Pony</option>
       <option value="serpent">Serpent</option>
       <option value="hotdog">Hotdog</option>
-      <option value="snake">Snake</option>
     </select>
 
     <label for="Theme_Extra">Embellishments</label>
@@ -151,12 +150,23 @@
 <div class="simple_form theme-variable-form">
   <h3>Variables</h3>
 
-  <label for="mascot-reset">Mascot</label>
-  <span id="mascot-value"></span>
-  <button class="st-button" id="mascot-reset">
-    <%= svg_icon(:reset) %>
-    Reset 
-  </button>
+  <div class="theme-variable-container" id="mascot-state" style="display: none;">
+    <label for="mascot-reset">Mascot</label>
+    <span id="mascot-value"></span>
+    <button class="st-button" id="mascot-reset">
+      <%= svg_icon(:reset) %>
+      Randomize 
+    </button>
+  </div>
+
+  <div class="theme-variable-container" id="recommended-state" style="display: none;">
+    <label for="recommended-reset">Recommendations</label>
+    <span id="recommended-value"></span>
+    <button class="st-button" id="recommended-reset">
+      <%= svg_icon(:reset) %>
+      Enable
+    </button>
+  </div>
 </div>
 
 <% content_for(:page_title) do %>

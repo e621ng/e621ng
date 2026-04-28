@@ -10,23 +10,28 @@ class FavoritesController < ApplicationController
   skip_before_action :api_check
 
   def index
-    if params[:tags]
-      redirect_to(posts_path(tags: params[:tags]))
-    else
-      user_id = params[:user_id] || CurrentUser.user.id
-      @user = User.find(user_id)
-
-      if @user.hide_favorites?
-        @post_set = PostSets::Post.new("limit:0")
+    if params[:tags].present?
+      if params[:tags].is_a?(String)
+        redirect_to(posts_path(tags: params[:tags]))
       else
-        @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
+        render_expected_error(400, "Invalid tags parameter")
       end
+      return
+    end
 
-      @posts = @post_set.posts
-      respond_with(@posts) do |fmt|
-        fmt.json do
-          render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
-        end
+    user_id = params[:user_id] || CurrentUser.user.id
+    @user = User.find(user_id)
+
+    if @user.hide_favorites?
+      @post_set = PostSets::Post.new("limit:0")
+    else
+      @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
+    end
+
+    @posts = @post_set.posts
+    respond_with(@posts) do |fmt|
+      fmt.json do
+        render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
       end
     end
   end

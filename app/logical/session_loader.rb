@@ -106,11 +106,14 @@ class SessionLoader
   end
 
   def authenticate_api_key(name, api_key)
-    if name && !name.dup.force_encoding("UTF-8").valid_encoding?
+    unless name.is_a?(String) && api_key.is_a?(String)
+      raise AuthenticationFailure
+    end
+    unless name.dup.force_encoding("UTF-8").valid_encoding?
       Rails.logger.warn("Invalid UTF-8 in login parameter from #{request.remote_ip}")
       raise AuthenticationFailure
     end
-    if api_key && !api_key.dup.force_encoding("UTF-8").valid_encoding?
+    unless api_key.dup.force_encoding("UTF-8").valid_encoding?
       Rails.logger.warn("Invalid UTF-8 in api_key parameter from #{request.remote_ip}")
       raise AuthenticationFailure
     end

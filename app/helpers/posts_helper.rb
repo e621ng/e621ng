@@ -2,7 +2,7 @@
 
 module PostsHelper
   def discover_mode?
-    params[:tags] =~ /order:hot/
+    params[:tags].to_s =~ /order:hot/
   end
 
   def next_page_url
@@ -71,18 +71,18 @@ module PostsHelper
     html.html_safe
   end
 
-  def is_pool_selected?(pool)
-    return false if params.has_key?(:q)
-    return false if params.has_key?(:post_set_id)
-    return false unless params.has_key?(:pool_id)
-    return params[:pool_id].to_i == pool.id
+  def is_pool_selected?(pool, selected: nil)
+    return false if selected.blank?
+    return false if params.key?(:q)
+    return false if params.key?(:post_set_id)
+    selected == pool.id
   end
 
-  def is_post_set_selected?(post_set)
-    return false if params.has_key?(:q)
-    return false if params.has_key?(:pool_id)
-    return false unless params.has_key?(:post_set_id)
-    return params[:post_set_id].to_i == post_set.id
+  def is_post_set_selected?(post_set, selected: nil)
+    return false if selected.blank?
+    return false if params.key?(:q)
+    return false if params.key?(:pool_id)
+    selected == post_set.id
   end
 
   def post_stats_section(post)
@@ -99,17 +99,6 @@ module PostsHelper
     rating = tag.span(post.rating.upcase, class: "rating")
     # status = tag.span(status_flags.join, class: "extras")
     tag.div score + favs + comments + rating, class: "desc"
-  end
-
-  def user_record_meta(user)
-    feedback = user.feedback_pieces
-    return "" if feedback[:active] == 0
-
-    link_to(user_feedbacks_path(search: { user_id: user.id }), class: "user-feedback-list") do
-      concat tag.span(feedback[:positive], class: "user-feedback-positive") if feedback[:positive] > 0
-      concat tag.span(feedback[:neutral], class: "user-feedback-neutral") if feedback[:neutral] > 0
-      concat tag.span(feedback[:negative], class: "user-feedback-negative") if feedback[:negative] > 0
-    end
   end
 
   private

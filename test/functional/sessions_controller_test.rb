@@ -37,7 +37,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
         post session_path, params: { session: { name: user.name, password: "yyy" } }
 
         assert_nil(session[:user_id])
-        assert_equal("Username/Password was incorrect", flash[:notice])
+        assert_equal("Username / Password was incorrect.", flash[:notice])
       end
     end
 

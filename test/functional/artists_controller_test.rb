@@ -53,6 +53,11 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         get_auth(show_or_new_artists_path(name: @masao.name), @user)
         assert_redirected_to(@masao)
       end
+
+      should("not crash when name is a hash") do
+        get_auth(show_or_new_artists_path, @user, params: { name: { "$eq" => "lillymoo" } })
+        assert_response(:success)
+      end
     end
 
     context("edit action") do

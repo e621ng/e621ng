@@ -40,6 +40,16 @@ module Moderator
             params[:dmail] = params[:dmail].presence&.gsub("%REASON%", @post.pending_flag.reason)
           end
 
+          if @post.is_deleted?
+            respond_to do |format|
+              format.html do
+                flash[:notice] = "Post ##{@post.id} is already deleted"
+                redirect_to(post_path(@post, q: params[:q].presence))
+              end
+              format.json { render json: { reason: "Post ##{@post.id} is already deleted" }, status: 409 }
+            end
+            return
+          end
           @post.delete!(params[:reason])
 
           # Transfer data to parent
@@ -56,15 +66,11 @@ module Moderator
           end
 
           if params[:dmail].present?
+            reason = params[:reason].to_s
             Dmail.create_automated({
               to_id: @post.uploader_id,
-              title: "Post ##{params[:id]} has been deleted",
-              body: params[:dmail]
-                .gsub("%POST_ID%", params[:id].to_s)
-                .gsub("%STAFF_NAME%", CurrentUser.name)
-                .gsub("%STAFF_ID%", CurrentUser.id.to_s)
-                .gsub("%UPLOADER_ID%", @post.uploader_id.to_s)
-                .gsub("%REASON%", params[:reason].to_s),
+              title: @post.substitute_deletion_dmail_template(params[:dmail_title], reason) || "Post ##{params[:id]} has been deleted",
+              body: @post.substitute_deletion_dmail_template(params[:dmail], reason),
             })
           end
         end

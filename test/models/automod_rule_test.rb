@@ -76,5 +76,58 @@ class AutomodRuleTest < ActiveSupport::TestCase
         assert_not_includes(enabled_ids, disabled_rule.id)
       end
     end
+
+    context "apply_to bit flags" do
+      should "expose comments?, usernames?, and profile_text? readers" do
+        rule = build(:automod_rule, :for_all)
+        assert(rule.comments?)
+        assert(rule.usernames?)
+        assert(rule.profile_text?)
+      end
+
+      should "return false for unset bits" do
+        rule = build(:automod_rule, apply_to: 0)
+        assert_not(rule.comments?)
+        assert_not(rule.usernames?)
+        assert_not(rule.profile_text?)
+      end
+    end
+
+    context "context scopes" do
+      setup do
+        @comments_rule     = create(:automod_rule, :for_comments)
+        @usernames_rule    = create(:automod_rule, :for_usernames)
+        @profile_text_rule = create(:automod_rule, :for_profile_text)
+        @all_rule          = create(:automod_rule, :for_all)
+        @no_context_rule   = create(:automod_rule, apply_to: 0)
+        @disabled_rule     = create(:automod_rule, :for_all, enabled: false)
+      end
+
+      should "for_comments returns only enabled rules with the comments bit set" do
+        ids = AutomodRule.for_comments.pluck(:id)
+        assert_includes(ids, @comments_rule.id)
+        assert_includes(ids, @all_rule.id)
+        assert_not_includes(ids, @usernames_rule.id)
+        assert_not_includes(ids, @profile_text_rule.id)
+        assert_not_includes(ids, @no_context_rule.id)
+        assert_not_includes(ids, @disabled_rule.id)
+      end
+
+      should "for_usernames returns only enabled rules with the usernames bit set" do
+        ids = AutomodRule.for_usernames.pluck(:id)
+        assert_includes(ids, @usernames_rule.id)
+        assert_includes(ids, @all_rule.id)
+        assert_not_includes(ids, @comments_rule.id)
+        assert_not_includes(ids, @disabled_rule.id)
+      end
+
+      should "for_profile_text returns only enabled rules with the profile_text bit set" do
+        ids = AutomodRule.for_profile_text.pluck(:id)
+        assert_includes(ids, @profile_text_rule.id)
+        assert_includes(ids, @all_rule.id)
+        assert_not_includes(ids, @comments_rule.id)
+        assert_not_includes(ids, @disabled_rule.id)
+      end
+    end
   end
 end

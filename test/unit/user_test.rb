@@ -176,6 +176,16 @@ class UserTest < ActiveSupport::TestCase
     end
 
     context "name" do
+      should "be present on create and update" do
+        user = build(:user, name: nil)
+        assert_not(user.valid?)
+        assert_includes(user.errors[:name], "can't be blank")
+
+        user = create(:user)
+        assert_not(user.update(name: nil))
+        assert_includes(user.errors[:name], "can't be blank")
+      end
+
       should "be #{Danbooru.config.default_guest_name} given an invalid user id" do
         assert_equal(Danbooru.config.default_guest_name, User.id_to_name(-1))
       end

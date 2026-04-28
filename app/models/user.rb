@@ -91,9 +91,10 @@ class User < ApplicationRecord
   validate :validate_email_address_allowed, on: %i[create update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   normalizes :profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") }
+  validates :name, presence: true # NOTE: validation order is important here. See UserNameValidator for details.
   validates :name, user_name: true, on: :create
   validates :default_image_size, inclusion: { in: %w[large fit fitv original] }
-  validates :per_page, inclusion: { in: 1..320 }
+  validates :per_page, inclusion: { in: 1..Danbooru.config.max_per_page }
   validates :comment_threshold, presence: true
   validates :comment_threshold, numericality: { only_integer: true, less_than: 50_000, greater_than: -50_000 }
   validates :password, length: { minimum: 8, if: ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? } }
@@ -116,6 +117,10 @@ class User < ApplicationRecord
   before_update :encrypt_password_on_update
   after_save :update_cache
   validates :flair_color_hex, format: { with: /\A#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\z/ }, allow_blank: true
+
+  after_create_commit :enqueue_automod_user_check
+  after_update_commit :enqueue_automod_user_update_check,
+                      if: -> { saved_change_to_name? || saved_change_to_profile_about? || saved_change_to_profile_artinfo? }
 
   has_many :api_keys, dependent: :destroy
   has_one :dmail_filter
@@ -140,7 +145,7 @@ class User < ApplicationRecord
   has_many :artists, foreign_key: "linked_user_id"
 
   belongs_to :avatar, class_name: "Post", optional: true
-  accepts_nested_attributes_for :dmail_filter
+  accepts_nested_attributes_for :dmail_filter, update_only: true
 
   module BanMethods
     def validate_ip_addr_is_not_banned
@@ -1069,10 +1074,10 @@ class User < ApplicationRecord
   # Copied from UserNameValidator. Check back later how effective this was.
   # Users with invalid names may be automatically renamed in the future.
   def name_error
-    if name.length > 20
+    if name.length > 20 || name.length < 2
       "must be 2 to 20 characters long"
     elsif name !~ /\A[a-zA-Z0-9\-_~']+\z/
-      "must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"
+      "must contain only alphanumeric characters, hyphens, apostrophes, tildes and underscores"
     elsif name =~ /\A[_\-~']/
       "must not begin with a special character"
     elsif name =~ /_{2}|-{2}|~{2}|'{2}/
@@ -1162,5 +1167,18 @@ class User < ApplicationRecord
     g = (flair_color >> 8) & 0xFF
     b = flair_color & 0xFF
     [r, g, b]
+
+  private
+
+  def enqueue_automod_user_check
+    AutomodUserCheckJob.perform_later(id, check_username: true, check_profile: false)
+  end
+
+  def enqueue_automod_user_update_check
+    AutomodUserCheckJob.perform_later(
+      id,
+      check_username: saved_change_to_name?,
+      check_profile:  saved_change_to_profile_about? || saved_change_to_profile_artinfo?,
+    )
   end
 end

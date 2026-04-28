@@ -69,13 +69,18 @@ class TagImplication < TagRelationship
     def update_descendant_names!
       flush_cache
       update_descendant_names
-      update_attribute(:descendant_names, descendant_names)
+      update_columns(descendant_names: descendant_names)
     end
 
-    def update_descendant_names_for_parents
+    def update_descendant_names_for_parents(visited = Set.new)
+      visited.add(id)
       parents.each do |parent|
+        if visited.include?(parent.id)
+          parent.update_columns(status: "error: circular implication detected")
+          next
+        end
         parent.update_descendant_names!
-        parent.update_descendant_names_for_parents
+        parent.update_descendant_names_for_parents(visited)
       end
     end
   end
@@ -289,5 +294,9 @@ class TagImplication < TagRelationship
   def flush_cache
     @dedescendants = nil
     @parents = nil
+  end
+
+  def dtext_label
+    "[ti:#{id}]"
   end
 end
