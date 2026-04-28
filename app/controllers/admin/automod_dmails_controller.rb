@@ -7,7 +7,7 @@ module Admin
 
     def index
       @user = User.system
-      @query = Dmail.where("owner_id = ?", @user.id).search(search_params).includes(:to, :from)
+      @query = Dmail.where("owner_id = ?", @user.id).includes(:to, :from).search(search_params)
       @dmails = @query.paginate(params[:page], limit: params[:limit])
 
       respond_with @dmails.to_json
@@ -15,7 +15,7 @@ module Admin
 
     def show
       @user = User.system
-      @dmail = Dmail.find(params[:id])
+      @dmail = Dmail.where("owner_id = ?", @user.id).includes(:to, :from).find(params[:id])
       respond_with(@dmail)
     end
   end
