@@ -25,9 +25,9 @@ body.c-favorites.a-index {
   display: grid;
 
   grid-template-areas:
-    "search " 
-    "content" 
-    "sidebar";
+    "search  "
+    "content "
+    "sidebar ";
   grid-template-columns: 1fr;
   grid-template-rows: min-content 1fr min-content;
 
@@ -117,7 +117,7 @@ body.c-favorites.a-index {
     }
   }
 
-  // 3. Sidebar
+  // 5. Sidebar
   & > .sidebar {
     grid-area: sidebar;
 
@@ -125,7 +125,7 @@ body.c-favorites.a-index {
     flex-flow: column;
     gap: 1em;
 
-    padding: 0.5rem 0.25rem;
+    padding: 0.5rem .75rem var(--content-padding-bottom);
     box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
 
     #mode-box label {

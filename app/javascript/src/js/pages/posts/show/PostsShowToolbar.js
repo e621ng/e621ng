@@ -29,10 +29,16 @@ export default class PostsShowToolbar {
 
     // Initialize notes toggle
     const noteToggleButtons = $(".ptbr-notes-button")
-      .attr("enabled", NoteManager.enabled + "")
+      .attr({
+        "enabled": NoteManager.enabled + "",
+        "aria-pressed": NoteManager.enabled + "",
+      })
       .on("click", () => { NoteManager.enabled = !NoteManager.enabled; });
     $("#note-container").on("note:visible:true note:visible:false", () => {
-      noteToggleButtons.attr("enabled", NoteManager.enabled + "");
+      noteToggleButtons.attr({
+        "enabled": NoteManager.enabled + "",
+        "aria-pressed": NoteManager.enabled + "",
+      });
     });
 
     // Initialize fullscreen menu toggle
@@ -62,7 +68,15 @@ export default class PostsShowToolbar {
   // Initialize voting buttons
   initVotingButtons () {
     const scoreBreakdown = $(".ptbr-breakdown").first();
+    let scoreOffclick = null;
     $(".ptbr-score").first().on("click", () => {
+      // Register offclick handler on the first use
+      if (scoreOffclick === null)
+        scoreOffclick = Offclick.register(".ptbr-score", ".ptbr-breakdown", () => {
+          scoreBreakdown.addClass("hidden");
+        });
+
+      scoreOffclick.disabled = !scoreOffclick.disabled;
       scoreBreakdown.toggleClass("hidden");
     });
 
@@ -182,37 +196,39 @@ export default class PostsShowToolbar {
   initOverflowMenu () {
     const menu = $(".ptbr-etc-menu");
     let offclickHandler = null;
-    $(".ptbr-etc-toggle").on("click", () => {
+    const toggle = $(".ptbr-etc-toggle").on("click", () => {
       // Register offclick handler on the first use
       if (offclickHandler === null)
         offclickHandler = Offclick.register(".ptbr-etc-toggle", ".ptbr-etc-menu", () => {
           menu.addClass("hidden");
+          toggle.attr("aria-expanded", false);
         });
 
       offclickHandler.disabled = !offclickHandler.disabled;
       menu.toggleClass("hidden", offclickHandler.disabled);
+      toggle.attr("aria-expanded", !offclickHandler.disabled);
     });
 
-    const button = $(".ptbr-etc-download").on("click.e6.prepare", async (event) => {
+    const button = $(".ptbr-etc-download").on("click.e6.prepare", (event) => {
       event.preventDefault();
 
       if (button.attr("pending") == "true") return;
       button.attr("pending", "true");
 
       const url = PostsShowToolbar.currentPost.file.url;
-      console.log("downloading", url);
 
       fetch(url, {
         mode: "cors",
       })
-        .then(response => response.blob())
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.blob();
+        })
         .then(blob => {
-          let blobUrl = window.URL.createObjectURL(blob);
-          button.attr({
-            href: blobUrl,
-            pending: "false",
-          }).off("click.e6.prepare");
-          button[0].click();
+          const blobUrl = window.URL.createObjectURL(blob);
+          PostsShowToolbar.generateDownloadLink(blobUrl, button.attr("download"));
+          button.attr("pending", "false");
+          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 0);
         })
         .catch(e => {
           E621.Flash.error("Failed to download post file.", e);
@@ -228,6 +244,16 @@ export default class PostsShowToolbar {
       offclickHandler.disabled = true;
       menu.addClass("hidden");
     });
+  }
+
+  static generateDownloadLink (blobUrl, fileName) {
+    // I will take a download link... and CLICK IT!!!
+    const downloadLink = document.createElement("a");
+    downloadLink.href = blobUrl;
+    downloadLink.setAttribute("download", fileName);
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
   }
 }
 

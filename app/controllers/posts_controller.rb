@@ -9,6 +9,7 @@ class PostsController < ApplicationController
   respond_to :html, :json
 
   def index
+    params[:md5] = nil unless params[:md5].is_a?(String)
     if params[:md5].present?
       @post = Post.find_by!(md5: params[:md5])
       respond_with(@post) do |format|
@@ -65,6 +66,10 @@ class PostsController < ApplicationController
 
     raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
 
+    # Parse params
+    @current_set_id = params[:post_set_id].to_i if params[:post_set_id].is_a?(String)
+    @current_pool_id = params[:pool_id].to_i if params[:pool_id].is_a?(String)
+
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
@@ -90,6 +95,10 @@ class PostsController < ApplicationController
     @post = PostSearchContext.new(params).post
 
     raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
+
+    # Parse params
+    params[:post_set_id] = params[:post_set_id].is_a?(String) ? params[:post_set_id].to_i : nil
+    params[:pool_id] = params[:pool_id].is_a?(String) ? params[:pool_id].to_i : nil
 
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)

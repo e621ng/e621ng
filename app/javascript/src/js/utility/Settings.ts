@@ -30,13 +30,16 @@ const Settings = {} as {
       recommendation: boolean,
       search_trend: boolean,
     }
-  }
+  },
+  Recommender: {
+    remote: boolean,
+  },
 };
 
 Object.defineProperty(Settings, "Analytics", {
   configurable: true,
   get () {
-    const obj = _get()["analytics"] || {};
+    const obj = _get()["Analytics"] || {};
     const value = {
       enabled: obj.enabled || false,
       client_id: obj.client_id || null,
@@ -46,6 +49,18 @@ Object.defineProperty(Settings, "Analytics", {
       },
     };
     Object.defineProperty(Settings, "Analytics", { value, writable: false });
+    return value;
+  },
+});
+
+Object.defineProperty(Settings, "Recommender", {
+  configurable: true,
+  get () {
+    const obj = _get()["Recommender"] || {};
+    const value = {
+      remote: obj.remote || false,
+    };
+    Object.defineProperty(Settings, "Recommender", { value, writable: false });
     return value;
   },
 });

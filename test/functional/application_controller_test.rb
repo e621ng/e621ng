@@ -184,5 +184,27 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
     end
+
+    context "scalar param coercion" do
+      should "coerce a hash injection in the page param to nil" do
+        get posts_path, params: { page: { "$eq" => "1" } }, as: :json
+        assert_response :success
+      end
+
+      should "coerce an array in the page param to its first element" do
+        get posts_path, params: { page: ["1"] }, as: :json
+        assert_response :success
+      end
+
+      should "coerce a hash injection in a search param to nil and redirect" do
+        get posts_path, params: { search: { status: { "$eq" => "active" } } }
+        assert_redirected_to posts_path
+      end
+
+      should "pass boolean search params through unchanged" do
+        get posts_path, params: { search: { is_deleted: true } }, as: :json
+        assert_response :success
+      end
+    end
   end
 end

@@ -17,7 +17,10 @@ module PostSets
     end
 
     def posts
-      @posts ||= ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day).order("score desc").paginate_posts(1)
+      @posts ||= ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day)
+                       .includes(:uploader)
+                       .order("score desc")
+                       .paginate_posts(1)
     end
 
     def api_posts

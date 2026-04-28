@@ -1,4 +1,5 @@
-.post-index .search {
+.post-index .search,
+.post-display .search {
   position: sticky;
   top: 0;
 
@@ -15,5 +16,6 @@
 }
 
 &[data-th-stickyheader="true"] {
-  .post-index .search { top: 3.75rem; }
+  .post-index .search,
+  .post-display .search { top: 3.75rem; }
 }

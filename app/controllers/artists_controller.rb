@@ -90,6 +90,7 @@ class ArtistsController < ApplicationController
   end
 
   def show_or_new
+    params[:name] = params[:name].to_s
     @artist = Artist.named(params[:name])
     if @artist
       redirect_to artist_path(@artist)
