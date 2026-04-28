@@ -3,20 +3,7 @@
 require "rails_helper"
 
 RSpec.describe PostsController do
-  # Set a current user before each example so that Post factory callbacks that
-  # require a current user (e.g. tag normalization, PostVersion creation) do not
-  # raise NoMethodError when evaluated inside `let` blocks. Requests override
-  # this via SessionLoader#load — either through the `sign_in_as` stub or the
-  # real loader (which always starts with `CurrentUser.user = User.anonymous`).
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   # ---------------------------------------------------------------------------
   # GET /posts — index

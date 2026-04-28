@@ -8,15 +8,7 @@ require "rails_helper"
 #                   PUT    /forum_categories/:id(.:format)      forum_categories#update
 #                   DELETE /forum_categories/:id(.:format)      forum_categories#destroy
 RSpec.describe ForumCategoriesController do
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   let(:member)   { create(:user) }
   let(:admin)    { create(:admin_user) }

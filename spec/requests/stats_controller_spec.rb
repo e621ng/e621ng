@@ -23,16 +23,11 @@ RSpec.describe StatsController do
     }
   end
 
+  include_context "as admin"
+
   before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
     allow(Cache).to receive(:redis).and_return(redis_double)
     allow(redis_double).to receive(:get).with("e6stats").and_return(minimal_stats.to_json)
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
   end
 
   describe "GET /stats" do

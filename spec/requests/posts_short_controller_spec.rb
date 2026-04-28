@@ -3,15 +3,7 @@
 require "rails_helper"
 
 RSpec.describe PostsShortController do
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   describe "GET /p/:id" do
     context "with a valid base-32 ID for an existing post" do

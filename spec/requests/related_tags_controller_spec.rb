@@ -3,17 +3,7 @@
 require "rails_helper"
 
 RSpec.describe RelatedTagsController do
-  # Set a current user so factory callbacks that require CurrentUser do not
-  # raise inside `let` blocks. Requests override this via sign_in_as.
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   let(:user) { create(:user) }
 

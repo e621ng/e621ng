@@ -3,18 +3,7 @@
 require "rails_helper"
 
 RSpec.describe PoolElementsController do
-  # Seed CurrentUser so factory callbacks (pool versioning, belongs_to_creator)
-  # do not raise NoMethodError inside let blocks. Individual tests override via
-  # sign_in_as.
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   # :user factory sets created_at 2 weeks ago, so can_remove_from_pools? = true.
   let(:member)      { create(:user) }

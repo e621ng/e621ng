@@ -3,18 +3,7 @@
 require "rails_helper"
 
 RSpec.describe PostFlagsController do
-  # Set a current user before each example so that factory callbacks that
-  # require a current user do not raise NoMethodError inside `let` blocks.
-  # Requests override this via the `sign_in_as` stub.
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   # Members older than 3 days bypass the :REJ_NEWBIE throttle gate on post_flag creation.
   let(:member)      { create(:user, created_at: 4.days.ago) }

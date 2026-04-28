@@ -3,18 +3,7 @@
 require "rails_helper"
 
 RSpec.describe AvoidPostingsController do
-  # Set a current user before each example so that factory callbacks that
-  # require a current user do not raise NoMethodError inside `let` blocks.
-  # Requests override this via the `sign_in_as` stub.
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   let(:bd_staff)  { create(:bd_staff_user) }
   let(:user)      { create(:user) }

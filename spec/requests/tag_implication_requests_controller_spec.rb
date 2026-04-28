@@ -3,15 +3,7 @@
 require "rails_helper"
 
 RSpec.describe TagImplicationRequestsController do
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   let(:member)    { create(:user) }
   let(:moderator) { create(:moderator_user) }

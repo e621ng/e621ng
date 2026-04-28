@@ -15,18 +15,7 @@ require "rails_helper"
 #           search_wiki_pages GET    /wiki_pages/search(.:format)                  wiki_pages#search
 #        show_or_new_wiki_pages GET    /wiki_pages/show_or_new(.:format)             wiki_pages#show_or_new
 RSpec.describe WikiPagesController do
-  # Set a current user before each example so that factory callbacks that
-  # require a current user do not raise inside `let` blocks.
-  # HTTP requests override this via the `sign_in_as` stub.
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   let(:user)       { create(:user,            created_at: 2.weeks.ago) }
   let(:privileged) { create(:privileged_user, created_at: 2.weeks.ago) }

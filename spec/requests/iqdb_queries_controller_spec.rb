@@ -3,17 +3,12 @@
 require "rails_helper"
 
 RSpec.describe IqdbQueriesController do
+  include_context "as admin"
+
   before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
     allow(IqdbProxy).to receive(:enabled?).and_return(true)
     allow(RateLimiter).to receive(:check_limit).and_return(false)
     allow(RateLimiter).to receive(:hit)
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
   end
 
   # ---------------------------------------------------------------------------

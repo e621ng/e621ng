@@ -4,15 +4,7 @@ require "rails_helper"
 
 #  avoid_posting_versions GET /avoid_posting_versions(.:format) avoid_posting_versions#index
 RSpec.describe AvoidPostingVersionsController do
-  before do
-    CurrentUser.user    = User.find_by!(name: "admin")
-    CurrentUser.ip_addr = "127.0.0.1"
-  end
-
-  after do
-    CurrentUser.user    = nil
-    CurrentUser.ip_addr = nil
-  end
+  include_context "as admin"
 
   let(:user)       { create(:user) }
   let(:admin_user) { create(:admin_user) }
