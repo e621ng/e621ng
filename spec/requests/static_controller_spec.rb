@@ -259,9 +259,10 @@ RSpec.describe StaticController do
 
   describe "GET /static/discord" do
     context "as an anonymous user" do
-      it "redirects to the login page" do
+      it "renders the page with an inline error message" do
         get discord_get_path
-        expect(response).to redirect_to(new_session_path(url: discord_get_path))
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("You must have an account for at least one week in order to join the Discord server.")
       end
     end
 
@@ -272,9 +273,10 @@ RSpec.describe StaticController do
         sign_in_as(user)
       end
 
-      it "returns access denied (403)" do
+      it "renders the page with an inline error message" do
         get discord_get_path
-        expect(response).to have_http_status(:forbidden)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("You must have an account for at least one week in order to join the Discord server.")
       end
     end
 
