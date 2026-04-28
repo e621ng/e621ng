@@ -409,6 +409,12 @@ RSpec.describe SessionLoader do
           "QUERY_STRING" => Rack::Utils.build_query(login: user.name, api_key: api_key.key), }
       end
 
+      # Clear the Redis login-tracking key before and after: if DB IDs reset between
+      # test files (truncation-based cleanup), a stale key from a prior run can match
+      # this api_key's ID and cause update_user_login_tracking to skip update_usage!.
+      before { Cache.redis.del("user_login_tracking:api_key:#{api_key.id}") }
+      after  { Cache.redis.del("user_login_tracking:api_key:#{api_key.id}") }
+
       it "updates api_key.last_used_at" do
         loader.load
         expect(api_key.reload.last_used_at).to be_present
