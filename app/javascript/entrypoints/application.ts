@@ -28,6 +28,7 @@ import ModuleRegistry from "@/utility/ModuleRegistry";
 import PerformanceTracker from "@/utility/PerformanceTracker";
 import Settings from "@/utility/Settings";
 import LStorage from "@/utility/storage";
+import CStorage from "@/utility/StorageC";
 
 Logger.log("Loading");
 
@@ -35,6 +36,7 @@ window["E621"] = {
   Registry: new ModuleRegistry(),
   Performance: new PerformanceTracker("app"),
   LStorage,
+  CStorage,
   Settings,
   Blacklist,
   Thumbnails,
