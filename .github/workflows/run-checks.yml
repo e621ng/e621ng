@@ -77,6 +77,10 @@ jobs:
       - name: Seed parallel DBs
         run: $DOCKER_RUN --entrypoint bin/rake tests parallel:seed
 
+      - name: Create OpenSearch indexes
+        run: $DOCKER_RUN --entrypoint bin/rails tests runner \
+          "[Post, PostVersion].each { |m| m.document_store.create_index! }"
+
       - name: Compute test groups
         run: |
           PROCS=2
