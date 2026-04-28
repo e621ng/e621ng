@@ -41,7 +41,6 @@ Rails.application.routes.draw do
         put :uploads_min_level
         put :uploads_hide_pending
         put :maintenance
-        put :analytics
       end
     end
   end
@@ -338,7 +337,6 @@ Rails.application.routes.draw do
   resources :uploads
   resources :users do
     resource :password, only: %i[edit], controller: "maintenance/user/passwords"
-    resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
 
     member do
       get :upload_limit
@@ -346,6 +344,7 @@ Rails.application.routes.draw do
       post :disable_uploads
       post :flush_favorites
       get :fix_counts
+      get "/api_key", to: redirect("/api_keys")
     end
 
     collection do

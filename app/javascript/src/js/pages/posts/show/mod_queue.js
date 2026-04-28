@@ -53,9 +53,13 @@ ModQueue.delete_with_reason_dialog = function (event) {
   const hasReason = data.fromFlag !== "true";
   const reason = data.reason;
 
+  const reasonInputAndLabel = $("#delete-with-reason-dialog-labeled-input");
+  reasonInputAndLabel[0].style.display = hasReason ? "" : "none";
+
   const reasonInput = $("#delete-with-reason-dialog-input");
-  reasonInput.val(reason);
-  reasonInput[0].style.display = hasReason ? "" : "none";
+  if (hasReason) {
+    reasonInput.val(reason);
+  }
 
   form.off("submit").on("submit", (event) => {
     event.preventDefault();

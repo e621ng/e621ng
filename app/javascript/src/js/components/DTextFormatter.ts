@@ -27,7 +27,13 @@ export default class DTextFormatter {
     "quote",
   ];
 
-  isVueComponent = false;
+  public isVueComponent = false;
+
+  private $wrapper: JQuery<HTMLElement>;
+  private $textarea: JQuery<HTMLTextAreaElement>;
+  private $preview: JQuery<HTMLElement>;
+  private allowColor: boolean;
+  private characterLimit: number | null;
 
   constructor ($element) {
     this.$wrapper = $element;
@@ -264,9 +270,8 @@ export default class DTextFormatter {
 
     // Load preview content
     TaskQueue.add(() => {
-      $.ajax({
+      $.ajax("/dtext_preview.json", {
         type: "post",
-        url: "/dtext_preview.json",
         dataType: "json",
         data: { body: currentText, allow_color: this.allowColor },
         success: (response) => {
@@ -281,15 +286,15 @@ export default class DTextFormatter {
             .html(response.html);
           $(window).trigger("e621:add_deferred_posts", response.posts);
         },
-        error: (xhr, status, error) => {
+        error: (_xhr, _status, error) => {
           console.warn("DText preview error:", error);
           this.$preview
             .attr("loading", "false")
             .text("Unable to fetch DText preview.");
           this._parsedInputCache = null;
         },
-      }, { name: "DText.update_preview" });
-    });
+      });
+    }, { name: "DText.update_preview" });
   }
 
   // ============================ //

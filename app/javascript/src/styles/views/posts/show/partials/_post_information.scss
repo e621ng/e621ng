@@ -1,14 +1,3 @@
-#post-information {
-
-  .user-feedback-list {
-    word-break: break-all;
-    span { margin: 0.125rem; }
-  
-    &::before { content: "("; }
-    &::after { content: ")"; }
-  }
-}
-
 .post-sidebar-info {
   margin-bottom: 1em;
   &:last-child { margin-bottom: 0; }

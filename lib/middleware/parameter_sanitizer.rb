@@ -43,6 +43,8 @@ module Middleware
       end
 
       @app.call(env)
+    rescue URI::InvalidURIError
+      [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
     end
 
     private
