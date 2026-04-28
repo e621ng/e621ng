@@ -7,7 +7,7 @@ RSpec.describe SearchTrendAggregateJob do
     described_class.perform_now
   end
 
-  let(:past_hour)    { 2.hours.ago.utc.beginning_of_hour }
+  let(:past_hour)    { 1.day.ago.utc.beginning_of_day + 12.hours }
   let(:current_hour) { Time.current.utc.beginning_of_hour }
 
   describe "#perform" do
