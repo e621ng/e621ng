@@ -1,6 +1,9 @@
 <template>
-  <div class="box-section background-red source_warning" v-show="showErrors && sourceWarning">
+  <div class="box-section background-red source_warning" v-show="showErrors && missingSourceWarning">
     A source must be provided or you must select that there is no available source.
+  </div>
+  <div class="box-section background-red source_warning" v-show="showErrors && nonUrlSourceWarning">
+    The source must be a URL.
   </div>
   <div class="upload-source-more">
     <label class="section-label upload-source-none">
@@ -39,7 +42,7 @@
         noSource: false,
       };
     },
-    emits: ["sourceWarning"],
+    emits: ["missingSourceWarning", "nonUrlSourceWarning"],
     methods: {
       removeSource(i) {
         this.sources.splice(i, 1);
@@ -93,18 +96,30 @@
       },
     },
     computed: {
-      sourceWarning: function() {
+      missingSourceWarning: function() {
         const validSourceCount = this.sources.filter(function (source) {
           return source.length > 0;
         }).length;
         return !this.noSource && (validSourceCount === 0);
       },
+      nonUrlSourceWarning: function() {
+        const nonUrlSourceCount = this.sources.filter(function (source) {
+          return source.length > 0 && !URL.canParse(source)
+        }).length;
+        return nonUrlSourceCount > 0;
+      },
     },
     watch: {
-      sourceWarning: {
+      missingSourceWarning: {
         immediate: true,
         handler() {
-          this.$emit("sourceWarning", this.sourceWarning);
+          this.$emit("missingSourceWarning", this.missingSourceWarning);
+        }  
+      },
+      nonUrlSourceWarning: {
+        immediate: true,
+        handler() {
+          this.$emit("nonUrlSourceWarning", this.nonUrlSourceWarning);
         }  
       },
     },
