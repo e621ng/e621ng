@@ -3,7 +3,7 @@
     A source must be provided or you must select that there is no available source.
   </div>
   <div class="box-section background-red source_warning" v-show="showErrors && nonUrlSourceWarning">
-    The source must be a URL.
+    The source must be a URL, starting with "http" or "https".
   </div>
   <div class="upload-source-more">
     <label class="section-label upload-source-none">
