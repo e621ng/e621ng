@@ -53,10 +53,20 @@ jobs:
       - rubocop
       - eslint
     if: inputs.run_tests
+    strategy:
+      fail-fast: false
+      matrix:
+        index: [1, 2, 3, 4]
 
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/prepare-docker-image
+
+      - name: Restore test runtime log
+        uses: actions/cache/restore@v4
+        with:
+          path: tmp/spec_runtime.log
+          key: spec-runtime-log
 
       - name: Create parallel DBs
         run: $DOCKER_RUN --entrypoint bin/rake tests parallel:create
@@ -68,11 +78,18 @@ jobs:
         run: $DOCKER_RUN --entrypoint bin/rake tests parallel:seed
 
       - name: Run Tests
-        run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n 2
+        run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n 2 --group-count ${{ strategy.job-total }} --only-group ${{ matrix.index }}
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results
+          name: test-results-${{ matrix.index }}
           path: log/test.log
+
+      - name: Save test runtime log
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: tmp/spec_runtime.log
+          key: spec-runtime-log-${{ matrix.index }}-${{ github.run_id }}
