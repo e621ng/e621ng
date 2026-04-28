@@ -16,22 +16,6 @@ class CurrentUser
     end
   end
 
-  if Rails.env.test?
-    def self.scope(user, ip_addr = "127.0.0.1", &)
-      return scoped(user, ip_addr, &) if block_given?
-
-      (@prior_users ||= []).push(self.user)
-      (@prior_ip_addrs ||= []).push(self.ip_addr)
-      self.user = user
-      self.ip_addr = ip_addr
-    end
-
-    def self.unscope
-      self.user = @prior_users.pop
-      self.ip_addr = @prior_ip_addrs.pop
-    end
-  end
-
   def self.as_system(&)
     scoped(::User.system, &)
   end
