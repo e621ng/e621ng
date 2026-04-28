@@ -91,7 +91,7 @@ jobs:
           echo "TEST_GROUP_TOTAL=${TOTAL}" >> "$GITHUB_ENV"
 
       - name: Run Tests
-        run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n ${{ env.TEST_GROUP_TOTAL }} --only-group ${{ env.TEST_GROUPS }}
+        run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n $TEST_GROUP_TOTAL --only-group $TEST_GROUPS
 
       - name: Upload coverage
         uses: actions/upload-artifact@v7
