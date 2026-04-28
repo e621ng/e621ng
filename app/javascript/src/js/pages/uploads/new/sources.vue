@@ -106,7 +106,7 @@
         const nonUrlSourceCount = this.sources.filter(function (source) {
           return source.length > 0 && !URL.canParse(source)
         }).length;
-        return nonUrlSourceCount > 0;
+        return !this.noSource && nonUrlSourceCount > 0;
       },
     },
     watch: {
