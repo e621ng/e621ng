@@ -19,18 +19,37 @@ module PostsHelper
     end
   end
 
-  def post_source_tag(source)
+  def try_parse_http_url(source)
+    # This will do a better job at handling technically invalid URLs like
+    # http:example.com, http:/example.com or just example.com
+    url = Addressable::URI.heuristic_parse(source)
     # Only allow http:// and https:// links. Disallow javascript: links.
-    if source =~ %r{\Ahttps?://}i
-      source_link = decorated_link_to(source.sub(%r{\Ahttps?://(?:www\.)?}i, ""), source, target: "_blank", rel: "nofollow noreferrer noopener")
+    if %w[http https].include?(url.scheme)
+      url
+    end
+  rescue Addressable::URI::InvalidURIError
+    nil
+  end
+
+  def post_source_tag(source)
+    if source.start_with?("-")
+      tag.s(source[1..])
+    elsif (url = try_parse_http_url(source)).present?
+      # remove http(s): and any leading and trailing slashes
+      short_url = url.omit(:scheme).to_s.sub(%r{^/+}, "").sub(%r{/+$}, "")
+      source_link = decorated_link_to(short_url, url.to_s, target: "_blank", rel: "nofollow noreferrer noopener")
 
       if CurrentUser.is_janitor?
-        source_link += " ".html_safe + link_to("»", posts_path(tags: "source:#{source.sub(%r{[^/]*$}, '')}"), rel: "nofollow")
+        # remove ?query=test#example
+        url_no_final_path = url.omit(:query, :fragment)
+        # remove last /part
+        url_no_final_path.path = url_no_final_path.path.sub(%r{[^/]*$}, "")
+        # remove any remaining trailing slashes
+        url_no_final_path = url_no_final_path.to_s.sub(%r{/+$}, "")
+        source_link += " ".html_safe + link_to("»", posts_path(tags: "source:#{url_no_final_path}"), rel: "nofollow")
       end
 
       source_link
-    elsif source.start_with?("-")
-      tag.s(source[1..])
     else
       tag.span(source, class: "source-invalid")
     end

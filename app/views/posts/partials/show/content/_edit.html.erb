@@ -43,9 +43,12 @@
     <%= f.input :rating, as: :button_select, collection: rating_collection.reverse %>
   <% end %>
 
-
   <%= f.input :parent_id, as: :string, label: "Parent", input_html: { size: 10 } %>
-  <%= f.input :source, as: :text, label: "Sources", input_html: { size: "60x5", spellcheck: false } %>
+
+  <div>
+    <%= f.input :source, as: :text, label: "Sources", input_html: { size: "60x5", spellcheck: false } %>
+    <div id="post-edit-invalid-url">All sources must be a URLs, starting with "http" or "https".</div>
+  </div>
 
   <div class="input">
     <%= f.input :description, as: :dtext, limit: Danbooru.config.post_descr_max_size, allow_color: true %>

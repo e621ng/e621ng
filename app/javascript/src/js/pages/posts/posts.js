@@ -551,6 +551,33 @@ Post.initialize_post_sections = function () {
       $("#edit").hide();
     }
   });
+
+  const allUrlsValid = (urls) => {
+    if (!urls) {
+      urls = $("#post_source").val();
+    }
+    const lines = urls.split(/\r?\n/);
+    return lines.every(line => {
+      // Allow dead source links prefixed with `-`
+      if (line[0] === "-") line = line.substring(1);
+      try {
+        const url = new URL(line);
+        return url.protocol === "http:" || url.protocol === "https:";
+      } catch {
+        // Exception occurs if the URL constructor fails to parse the string, which means it's not a valid URL
+        return false;
+      }
+    });
+  };
+
+  const updateForUrlChange = (event) => {
+    const validUrls = allUrlsValid(event.target.value);
+    $("#post-edit-invalid-url")[0].style.display = validUrls ? "none" : "";
+    $("#edit #form input[type=\"submit\"]")[0].disabled = !validUrls;
+  };
+
+  $(document).on("danbooru:open-post-edit-tab", updateForUrlChange);
+  $("#post_source").on("change.danbooru", updateForUrlChange);
 };
 
 Post.notice_update = function (x) {
