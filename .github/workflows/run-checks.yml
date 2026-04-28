@@ -89,6 +89,12 @@ jobs:
       - name: Run Tests
         run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n ${{ env.TEST_GROUP_TOTAL }} --only-group ${{ env.TEST_GROUPS }}
 
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.index }}
+          path: coverage/.resultset.json
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
@@ -113,3 +119,22 @@ jobs:
           if [[ "${{ needs.test-runner.result }}" != "success" ]]; then
             exit 1
           fi
+
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.1"
+          bundler-cache: true
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: coverage-shards
+
+      - name: Merge coverage
+        run: |
+          bundle exec ruby -e "
+            require 'simplecov'
+            SimpleCov.collate(Dir['coverage-shards/*/.resultset.json'])
+          "
