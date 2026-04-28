@@ -23,13 +23,13 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
     context "on a PaginationError" do
       should "return 410 Gone even with a bad file extension" do
-        get posts_path, params: { page: 999999999 }, as: :json
+        get posts_path, params: { page: 999_999_999 }, as: :json
         assert_response 410
 
-        get posts_path, params: { page: 999999999 }, as: :jpg
+        get posts_path, params: { page: 999_999_999 }, as: :jpg
         assert_response 410
 
-        get posts_path, params: { page: 999999999 }, as: :blah
+        get posts_path, params: { page: 999_999_999 }, as: :blah
         assert_response 410
       end
     end
@@ -161,6 +161,18 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    context "with a malformed JSON body" do
+      should "return 400 Bad Request" do
+        post posts_path, headers: { "Content-Type" => "application/json" }, params: "{ invalid json :"
+        assert_response 400
+      end
+
+      should "accept a valid JSON body" do
+        post posts_path, headers: { "Content-Type" => "application/json" }, params: { tags: "fluffy" }.to_json
+        assert_response :not_found
+      end
+    end
+
     context "parameter sanitization" do
       should "remove null bytes from string parameters" do
         get posts_path, params: { tags: "test\u0000malicious" }
@@ -169,6 +181,28 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
 
       should "remove null bytes from nested parameters" do
         get comments_path, params: { search: { body_matches: "test\u0000null" } }
+        assert_response :success
+      end
+    end
+
+    context "scalar param coercion" do
+      should "coerce a hash injection in the page param to nil" do
+        get posts_path, params: { page: { "$eq" => "1" } }, as: :json
+        assert_response :success
+      end
+
+      should "coerce an array in the page param to its first element" do
+        get posts_path, params: { page: ["1"] }, as: :json
+        assert_response :success
+      end
+
+      should "coerce a hash injection in a search param to nil and redirect" do
+        get posts_path, params: { search: { status: { "$eq" => "active" } } }
+        assert_redirected_to posts_path
+      end
+
+      should "pass boolean search params through unchanged" do
+        get posts_path, params: { search: { is_deleted: true } }, as: :json
         assert_response :success
       end
     end

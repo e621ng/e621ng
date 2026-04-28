@@ -20,6 +20,16 @@
     </span>
   </div>
 
+  <div class="profile-line">
+    <h4><%= svg_icon(:megaphone) %> Blips</h4>
+    <span class="profile-line-number">
+      <%= presenter.blip_count(self) %>
+    </span>
+    <span class="profile-line-extra">
+      <%= link_to "[mentions]", blips_path(search: { body_matches: user.name }) %>
+    </span>
+  </div>
+
   <% if user.can_approve_posts? || Post.where(approver: user).exists? %>
     <div class="profile-line">
       <h4><%= svg_icon(:stamp) %> Approvals</h4>

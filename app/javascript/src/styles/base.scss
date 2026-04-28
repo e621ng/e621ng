@@ -7,7 +7,6 @@
 @import "base/reset";
 @import "base/base";
 @import "base/links";
-@import "base/fontawesome";
 @import "base/fonts";
 @import "base/logos";
 
@@ -42,9 +41,13 @@
 
 @import "components/paginator_component.scss";
 @import "components/post_thumbnail_component.scss";
+@import "components/user_feedback_component.scss";
 
 @import "views/application/application";
 @import "views/artists/artists";
+@import "views/auths/auths";
+@import "views/automod_rules/automod_rules";
+@import "views/forum_posts/forum_posts";
 @import "views/help/help";
 @import "views/maintenance/maintenance";
 @import "views/mascots/mascots";
@@ -85,7 +88,6 @@
 @import "specific/post_replacements.scss";
 @import "specific/post_versions.scss";
 @import "specific/related_tags.scss";
-@import "specific/sessions.scss";
 @import "specific/site_map.scss";
 @import "specific/staff_notes.scss";
 @import "specific/stats.scss";

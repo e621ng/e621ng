@@ -895,11 +895,11 @@ class TagQueryTest < ActiveSupport::TestCase
         end
       end
 
-      # * Limited to 100 comma-separated entries
+      # * Limited to `Danbooru.config.max_per_page` comma-separated entries
       should "parse md5 tags correctly" do
         assert_equal(["abc"], TagQuery.new("md5:abc")[:md5])
         arr = [*"aa".."zz"].freeze
-        assert_equal(arr[0..99], TagQuery.new("md5:#{arr.join(',')}")[:md5])
+        assert_equal(arr.first(Danbooru.config.max_per_page), TagQuery.new("md5:#{arr.join(',')}")[:md5])
       end
 
       # * Should be first character downcased if it's `s`, `q`, or `e`, otherwise unset
@@ -1250,9 +1250,10 @@ class TagQueryTest < ActiveSupport::TestCase
       context "using range" do
         should "parse exact integer ranges correctly" do
           prefixes = [["", ""], ["-", "_must_not"], ["~", "_should"]].freeze
-          in_r = [*1..100].freeze
+          limit = Danbooru.config.max_per_page
+          in_r = [*1..limit].freeze
           in_i = in_r.join(",").freeze
-          in_f = "#{in_i},101".freeze
+          in_f = "#{in_i},#{limit + 1}".freeze
           in_r = [[:in, in_r].freeze].freeze
           %w[id width height score favcount change tagcount].concat(TagQuery::CATEGORY_METATAG_MAP.keys).freeze.each do |e|
             s_root = MAPPING[e.to_sym]
@@ -1268,9 +1269,9 @@ class TagQueryTest < ActiveSupport::TestCase
               assert_equal([[:lt, 3]], TagQuery.new("#{p}#{e}:<3")[s], label)
               assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:<=3")[s], label)
               assert_equal([[:lte, 3]], TagQuery.new("#{p}#{e}:..3")[s], label)
-              # Accept up to 100 options
+              # Accept up to `Danbooru.config.max_per_page` options
               assert_equal(in_r, TagQuery.new("#{p}#{e}:#{in_i}")[s], label)
-              # Truncate past 100 options
+              # Truncate past `Danbooru.config.max_per_page` options
               assert_equal(in_r, TagQuery.new("#{p}#{e}:#{in_f}")[s], label)
             end
           end

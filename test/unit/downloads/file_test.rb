@@ -45,7 +45,7 @@ module Downloads
           error = assert_raises(Downloads::File::Error) do
             Downloads::File.new("http://evil.com").download!
           end
-          assert_match("from 127.0.0.1 are not", error.message)
+          assert_match("from this address are not", error.message)
         end
 
         should "not follow redirects to banned IPs" do
@@ -55,7 +55,7 @@ module Downloads
           error = assert_raises(Downloads::File::Error) do
             Downloads::File.new(url).download!
           end
-          assert_match("from 127.0.0.1 are not", error.message)
+          assert_match("from this address are not", error.message)
         end
 
         should "not follow redirects that resolve to a banned IP" do
@@ -65,7 +65,7 @@ module Downloads
           error = assert_raises(Downloads::File::Error) do
             Downloads::File.new(url).download!
           end
-          assert_match("from 127.0.0.1 are not", error.message)
+          assert_match("from this address are not", error.message)
         end
       end
 
@@ -163,6 +163,12 @@ module Downloads
         should "correctly escapes ＠" do
           input = "https://d.furaffinity.net/art/fr95/1635001690/1635001679.fr95_co＠f-r9512.png"
           output = "https://d.furaffinity.net/art/fr95/1635001690/1635001679.fr95_co%EF%BC%A0f-r9512.png"
+          assert_correct_escaping(input, output)
+        end
+
+        should "work with Addressable::URI" do
+          input = Addressable::URI.parse("https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_заливать-гитару.jpg")
+          output = "https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_%D0%B7%D0%B0%D0%BB%D0%B8%D0%B2%D0%B0%D1%82%D1%8C-%D0%B3%D0%B8%D1%82%D0%B0%D1%80%D1%83.jpg"
           assert_correct_escaping(input, output)
         end
       end

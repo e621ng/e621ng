@@ -6,7 +6,7 @@ class SearchTrendHourlyTest < ActiveSupport::TestCase
   context "search trend hourly" do
     setup do
       Setting.trends_enabled = true
-      @trend = SearchTrendHourly.create!(tag: "test", hour: 1.hour.ago.beginning_of_hour, count: 5)
+      @trend = SearchTrendHourly.create!(tag: "test", hour: 1.hour.ago.utc.beginning_of_hour, count: 5)
     end
 
     teardown do
@@ -27,13 +27,13 @@ class SearchTrendHourlyTest < ActiveSupport::TestCase
     end
 
     should "default processed to false" do
-      new_trend = SearchTrendHourly.create!(tag: "new", hour: 2.hours.ago.beginning_of_hour, count: 3)
+      new_trend = SearchTrendHourly.create!(tag: "new", hour: 2.hours.ago.utc.beginning_of_hour, count: 3)
       assert_equal false, new_trend.processed
     end
 
     context "#bulk_increment!" do
       should "create new record if it doesn't exist" do
-        hour = 3.hours.ago.beginning_of_hour
+        hour = 3.hours.ago.utc.beginning_of_hour
 
         assert_difference("SearchTrendHourly.count", 1) do
           SearchTrendHourly.bulk_increment!([{ tag: "newtag", hour: hour }])
@@ -45,7 +45,7 @@ class SearchTrendHourlyTest < ActiveSupport::TestCase
       end
 
       should "increment existing record" do
-        hour = 4.hours.ago.beginning_of_hour # Ensure we use beginning of hour
+        hour = 4.hours.ago.utc.beginning_of_hour # Ensure we use beginning of hour
         existing = SearchTrendHourly.create!(tag: "existing", hour: hour, count: 5)
 
         assert_no_difference("SearchTrendHourly.count") do
@@ -57,8 +57,8 @@ class SearchTrendHourlyTest < ActiveSupport::TestCase
       end
 
       should "handle multiple tag-hour pairs efficiently" do
-        hour1 = 1.hour.ago.beginning_of_hour
-        hour2 = 2.hours.ago.beginning_of_hour
+        hour1 = 1.hour.ago.utc.beginning_of_hour
+        hour2 = 2.hours.ago.utc.beginning_of_hour
 
         data = [
           { tag: "bulk1", hour: hour1 },
@@ -78,8 +78,8 @@ class SearchTrendHourlyTest < ActiveSupport::TestCase
 
     context "scopes" do
       setup do
-        @processed = SearchTrendHourly.create!(tag: "processed", hour: 5.hours.ago.beginning_of_hour, count: 3, processed: true)
-        @unprocessed = SearchTrendHourly.create!(tag: "unprocessed", hour: 6.hours.ago.beginning_of_hour, count: 2, processed: false)
+        @processed = SearchTrendHourly.create!(tag: "processed", hour: 5.hours.ago.utc.beginning_of_hour, count: 3, processed: true)
+        @unprocessed = SearchTrendHourly.create!(tag: "unprocessed", hour: 6.hours.ago.utc.beginning_of_hour, count: 2, processed: false)
       end
 
       context ".unprocessed" do
@@ -101,8 +101,8 @@ class SearchTrendHourlyTest < ActiveSupport::TestCase
 
     context "#prune!" do
       should "remove old processed records but keep recent and unprocessed ones" do
-        old_hour = 3.days.ago      # More than 48 hours ago
-        recent_hour = 1.hour.ago   # Less than 48 hours ago
+        old_hour = 3.days.ago.utc      # More than 48 hours ago
+        recent_hour = 1.hour.ago.utc   # Less than 48 hours ago
 
         # Old processed records (should be deleted)
         old_processed1 = SearchTrendHourly.create!(tag: "owl", hour: old_hour, count: 10, processed: true)
@@ -126,8 +126,8 @@ class SearchTrendHourlyTest < ActiveSupport::TestCase
       end
 
       should "only remove old processed hourly records" do
-        old_hour = 3.days.ago
-        recent_hour = 1.hour.ago
+        old_hour = 3.days.ago.utc
+        recent_hour = 1.hour.ago.utc
 
         # Create some processed and unprocessed hourly records
         old_processed = SearchTrendHourly.create!(tag: "old", hour: old_hour, count: 10, processed: true)

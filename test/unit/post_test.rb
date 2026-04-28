@@ -156,11 +156,13 @@ class PostTest < ActiveSupport::TestCase
       @post.copy_tags_to_parent
       @post.parent.save
       assert_equal(@parent.reload.tag_string, "a b c d e f")
+      assert_equal(@parent.versions.last.reason, "Merged from post ##{@post.id}")
     end
     should "Copy sources to parent" do
       @post.copy_sources_to_parent
       @post.parent.save
       assert_equal(@parent.reload.source, "a\nb\nc\nd")
+      assert_equal(@parent.versions.last.reason, "Merged from post ##{@post.id}")
     end
   end
 
@@ -1544,16 +1546,16 @@ class PostTest < ActiveSupport::TestCase
 
     should "return posts for the age:<1minute tag when the user is in Pacific time zone" do
       post = create(:post)
-      Time.zone = "Pacific Time (US & Canada)"
-      assert_tag_match([post], "age:<1minute")
-      Time.zone = "Eastern Time (US & Canada)"
+      Time.use_zone("Pacific Time (US & Canada)") do
+        assert_tag_match([post], "age:<1minute")
+      end
     end
 
     should "return posts for the age:<1minute tag when the user is in Tokyo time zone" do
       post = create(:post)
-      Time.zone = "Asia/Tokyo"
-      assert_tag_match([post], "age:<1minute")
-      Time.zone = "Eastern Time (US & Canada)"
+      Time.use_zone("Asia/Tokyo") do
+        assert_tag_match([post], "age:<1minute")
+      end
     end
 
     should "return posts for the ' tag" do

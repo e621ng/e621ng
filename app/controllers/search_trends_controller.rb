@@ -35,15 +35,16 @@ class SearchTrendsController < ApplicationController
   end
 
   def track
-    @tag = params[:tag].to_s.downcase.strip
-
-    @trends = SearchTrend.for_tag(@tag).limit(30).order(day: :desc)
+    @tags = params[:tag].to_s.downcase.strip.split(",").uniq.first(10)
 
     respond_to do |format|
       format.html do
-        @hourlies = SearchTrendHourly.where(tag: @tag).order(hour: :desc).limit(50)
+        @hourlies = SearchTrendHourly.where(tag: @tags).order(hour: :desc).limit(50)
       end
-      format.json { render json: @trends.as_json(only: %i[tag count day]) }
+      format.json do
+        @trends = SearchTrend.for_graph(@tags)
+        render json: @trends.transform_values { |rows| rows.as_json(only: %i[count day]) }
+      end
     end
   end
 
@@ -60,7 +61,7 @@ class SearchTrendsController < ApplicationController
   def rising
     respond_to do |format|
       format.html
-      format.json { render json: SearchTrendHourly.rising_tags_list.as_json(only: %i[tag]) }
+      format.json { render json: SearchTrendHourly.rising_tags_list.as_json }
     end
   end
 

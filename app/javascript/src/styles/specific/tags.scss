@@ -37,21 +37,14 @@ div#c-tags {
         padding-bottom: 0.2em;
       }
 
-      i {
-        margin-left: 0.25em;
-        font-size: 11pt;
-      }
+      #face {
+        height: 1em;
+        width: 1em;
+        margin: -0.125em;
 
-      .fa-face-frown {
-        color: $tags-vote-down-color;
-      }
-
-      .fa-face-meh {
-        color: $tags-vote-meh-color;
-      }
-
-      .fa-face-smile {
-        color: $tags-vote-up-color;
+        &.face-frown { color: palette("text-red"); }
+        &.face-meh { color: palette("text-yellow"); }
+        &.face-smile { color: palette("text-green"); }
       }
     }
   }

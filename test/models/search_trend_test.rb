@@ -12,7 +12,7 @@ class SearchTrendTest < ActiveSupport::TestCase
   end
 
   test "bulk_increment! creates an hourly record and increments it" do
-    hour = 1.hour.ago.beginning_of_hour
+    hour = 1.hour.ago.utc.beginning_of_hour
     assert_difference -> { SearchTrendHourly.count }, +1 do
       SearchTrendHourly.bulk_increment!([{ tag: "Test_Tag", hour: hour }])
     end
@@ -28,9 +28,9 @@ class SearchTrendTest < ActiveSupport::TestCase
   end
 
   test "bulk_increment! handles multiple tags and de-dupes" do
-    hour = 1.hour.ago.beginning_of_hour
+    hour = 1.hour.ago.utc.beginning_of_hour
     SearchTrendHourly.bulk_increment!([{ tag: "alpha", hour: hour }, { tag: "beta", hour: hour }, { tag: "alpha", hour: hour }]) # alpha counted twice
-    rows = SearchTrendHourly.for_day(Date.current).pluck(:tag, :count).to_h
+    rows = SearchTrendHourly.for_day(hour.to_date).pluck(:tag, :count).to_h
     assert_equal({ "alpha" => 2, "beta" => 1 }, rows)
   end
 
@@ -41,26 +41,25 @@ class SearchTrendTest < ActiveSupport::TestCase
     today   = at.to_date
     yesterday = today - 1
 
-    # Current window: 3 AM today → 3 PM today (12 hours)
-    # Previous window: 3 PM yesterday → 3 AM today (12 hours)
-    # Create records at times that fall within both windows
+    # Current window: 3 PM yesterday → 3 PM today (24 hours)
+    # Previous window: 3 PM day-before-yesterday → 3 PM yesterday (24 hours)
+    # "Previous" records are placed at 5 AM yesterday (before current window start of 3 PM yesterday).
 
-    # Records at hour 10 today (current window) and hour 22 yesterday (previous window)
     SearchTrendHourly.create!(tag: "low", hour: today.beginning_of_day + 10.hours, count: 5) # below min_today
 
     # Delta-based inclusion (30 - 10 = 20 >= min_delta 10)
-    SearchTrendHourly.create!(tag: "foo", hour: yesterday.beginning_of_day + 22.hours, count: 10)
+    SearchTrendHourly.create!(tag: "foo", hour: yesterday.beginning_of_day + 5.hours, count: 10)
     SearchTrendHourly.create!(tag: "foo", hour: today.beginning_of_day + 10.hours, count: 30)
 
     # Ratio-based inclusion (15/2 = 7.5 >= min_ratio 2.0, delta 13 >= 10)
-    SearchTrendHourly.create!(tag: "ratio", hour: yesterday.beginning_of_day + 22.hours, count: 2)
+    SearchTrendHourly.create!(tag: "ratio", hour: yesterday.beginning_of_day + 5.hours, count: 2)
     SearchTrendHourly.create!(tag: "ratio", hour: today.beginning_of_day + 10.hours, count: 15)
 
-    # Delta-based inclusion (no yesterday record, 15 >= 10)
+    # Delta-based inclusion (no previous record, 15 >= 10)
     SearchTrendHourly.create!(tag: "baz", hour: today.beginning_of_day + 10.hours, count: 15)
 
     # Not included (delta 5 < 10, ratio 1.25 < 2.0)
-    SearchTrendHourly.create!(tag: "bar", hour: yesterday.beginning_of_day + 22.hours, count: 20)
+    SearchTrendHourly.create!(tag: "bar", hour: yesterday.beginning_of_day + 5.hours, count: 20)
     SearchTrendHourly.create!(tag: "bar", hour: today.beginning_of_day + 10.hours, count: 25)
 
     rising = SearchTrendHourly.rising(at: at, limit: 10)
@@ -68,7 +67,7 @@ class SearchTrendTest < ActiveSupport::TestCase
   end
 
   test "rising spans midnight correctly when window crosses into the previous day" do
-    # at = 3 AM today; window_hours=12 covers today(0..3) + yesterday(16..23)
+    # at = 3 AM today; window_hours=24 covers today(0..3) + yesterday(3..23)
     at        = Time.current.change(hour: 3)
     today     = at.to_date
     yesterday = today - 1
@@ -88,7 +87,7 @@ class SearchTrendTest < ActiveSupport::TestCase
   end
 
   test "prune! only removes old low-count daily records" do
-    old_day = Date.current - 3
+    old_day = Time.now.utc.to_date - 3
 
     low_daily  = SearchTrend.create!(tag: "prune_me", day: old_day, count: 1)
     keep_daily = SearchTrend.create!(tag: "keep_me",  day: old_day, count: 999)
@@ -100,7 +99,7 @@ class SearchTrendTest < ActiveSupport::TestCase
   end
 
   test "for_day_ranked includes daily_rank column ordered by count DESC, tag ASC" do
-    day = Date.current
+    day = Time.now.utc.to_date
 
     # Create trends with different counts to test ranking
     SearchTrend.create!(tag: "zebra", day: day, count: 100)
@@ -159,29 +158,29 @@ class SearchTrendTest < ActiveSupport::TestCase
 
   test "record_query! records plain tags" do
     SearchTrendHourly.record_query!("cat dog")
-    tags = SearchTrendHourly.for_day(Date.current).pluck(:tag)
+    tags = SearchTrendHourly.for_day(Time.now.utc.to_date).pluck(:tag)
     assert_includes tags, "cat"
     assert_includes tags, "dog"
   end
 
   test "record_query! strips the ~ prefix and records the tag" do
     SearchTrendHourly.record_query!("~wolf")
-    assert SearchTrendHourly.for_day(Date.current).where(tag: "wolf").exists?
+    assert SearchTrendHourly.for_day(Time.now.utc.to_date).where(tag: "wolf").exists?
   end
 
   test "record_query! excludes tags with the - prefix" do
     SearchTrendHourly.record_query!("-fox")
-    assert_not SearchTrendHourly.for_day(Date.current).where(tag: "fox").exists?
+    assert_not SearchTrendHourly.for_day(Time.now.utc.to_date).where(tag: "fox").exists?
   end
 
   test "record_query! excludes tags with a ~- compound prefix" do
     SearchTrendHourly.record_query!("~-cat")
-    assert_not SearchTrendHourly.for_day(Date.current).where(tag: "cat").exists?
+    assert_not SearchTrendHourly.for_day(Time.now.utc.to_date).where(tag: "cat").exists?
   end
 
   test "record_query! handles a mixed query correctly" do
     SearchTrendHourly.record_query!("cat ~dog -fox ~-bird")
-    tags = SearchTrendHourly.for_day(Date.current).pluck(:tag)
+    tags = SearchTrendHourly.for_day(Time.now.utc.to_date).pluck(:tag)
     assert_includes     tags, "cat"
     assert_includes     tags, "dog"   # ~ stripped
     assert_not_includes tags, "fox"   # - excluded
@@ -190,26 +189,26 @@ class SearchTrendTest < ActiveSupport::TestCase
 
   test "record_query! excludes all tags inside a negated group" do
     SearchTrendHourly.record_query!("-( cat dog )")
-    tags = SearchTrendHourly.for_day(Date.current).pluck(:tag)
+    tags = SearchTrendHourly.for_day(Time.now.utc.to_date).pluck(:tag)
     assert_not_includes tags, "cat"
     assert_not_includes tags, "dog"
   end
 
   test "record_query! records tags from a ~ group without prefix" do
     SearchTrendHourly.record_query!("~( cat dog )")
-    tags = SearchTrendHourly.for_day(Date.current).pluck(:tag)
+    tags = SearchTrendHourly.for_day(Time.now.utc.to_date).pluck(:tag)
     assert_includes tags, "cat"
     assert_includes tags, "dog"
   end
 
   test "record_query! excludes tags inside a doubly-negated group" do
     SearchTrendHourly.record_query!("-( ~( cat ) )")
-    assert_not SearchTrendHourly.for_day(Date.current).where(tag: "cat").exists?
+    assert_not SearchTrendHourly.for_day(Time.now.utc.to_date).where(tag: "cat").exists?
   end
 
   test "record_query! skips metatags" do
     SearchTrendHourly.record_query!("cat rating:s score:>10")
-    tags = SearchTrendHourly.for_day(Date.current).pluck(:tag)
+    tags = SearchTrendHourly.for_day(Time.now.utc.to_date).pluck(:tag)
     assert_includes     tags, "cat"
     assert_not_includes tags, "rating:s"
     assert_not_includes tags, "score:>10"

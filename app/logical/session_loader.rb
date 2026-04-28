@@ -9,7 +9,11 @@ class SessionLoader
     @request = request
     @session = request.session
     @cookies = request.cookie_jar
-    @params = request.parameters
+    @params = begin
+      request.parameters
+    rescue ActionDispatch::Http::Parameters::ParseError
+      {}
+    end
     @remember_validator = ActiveSupport::MessageVerifier.new(Danbooru.config.remember_key, serializer: JSON, digest: "SHA256")
   end
 
@@ -35,7 +39,6 @@ class SessionLoader
       raise AuthenticationFailure.new(ban_message)
     end
     update_user_login_tracking
-    set_time_zone
     set_safe_mode
     refresh_old_remember_token
     refresh_unread_dmails
@@ -103,11 +106,14 @@ class SessionLoader
   end
 
   def authenticate_api_key(name, api_key)
-    if name && !name.dup.force_encoding("UTF-8").valid_encoding?
+    unless name.is_a?(String) && api_key.is_a?(String)
+      raise AuthenticationFailure
+    end
+    unless name.dup.force_encoding("UTF-8").valid_encoding?
       Rails.logger.warn("Invalid UTF-8 in login parameter from #{request.remote_ip}")
       raise AuthenticationFailure
     end
-    if api_key && !api_key.dup.force_encoding("UTF-8").valid_encoding?
+    unless api_key.dup.force_encoding("UTF-8").valid_encoding?
       Rails.logger.warn("Invalid UTF-8 in api_key parameter from #{request.remote_ip}")
       raise AuthenticationFailure
     end
@@ -155,11 +161,6 @@ class SessionLoader
     end
 
     CurrentUser.api_key&.update_usage!(@request.remote_ip, @request.user_agent)
-  end
-
-  def set_time_zone
-    time_zone = ActiveSupport::TimeZone[params[:time_zone].presence.to_s] || CurrentUser.user.time_zone
-    Time.zone = time_zone
   end
 
   def set_safe_mode

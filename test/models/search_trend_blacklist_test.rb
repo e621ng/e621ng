@@ -136,7 +136,7 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
         SearchTrendBlacklist.create!(tag: "wolf", reason: "")
       end
       assert_difference -> { SearchTrendHourly.count }, +1 do
-        SearchTrendHourly.bulk_increment!([{ tag: "fox", hour: 1.hour.ago }])
+        SearchTrendHourly.bulk_increment!([{ tag: "fox", hour: 1.hour.ago.utc }])
       end
     end
 
@@ -146,11 +146,11 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
         SearchTrendBlacklist.create!(tag: "*_species", reason: "")
       end
       SearchTrendHourly.bulk_increment!([
-        { tag: "wolf", hour: 1.hour.ago },
-        { tag: "fox", hour: 1.hour.ago },
-        { tag: "canine_species", hour: 1.hour.ago },
+        { tag: "wolf", hour: 1.hour.ago.utc },
+        { tag: "fox", hour: 1.hour.ago.utc },
+        { tag: "canine_species", hour: 1.hour.ago.utc },
       ])
-      tags = SearchTrendHourly.for_day(Date.current).pluck(:tag)
+      tags = SearchTrendHourly.for_day(1.hour.ago.utc.to_date).pluck(:tag)
       assert_includes tags, "fox"
       assert_not_includes tags, "wolf"
       assert_not_includes tags, "canine_species"
@@ -161,7 +161,7 @@ class SearchTrendBlacklistTest < ActiveSupport::TestCase
         SearchTrendBlacklist.create!(tag: "wolf", reason: "")
       end
       assert_no_difference -> { SearchTrendHourly.count } do
-        SearchTrendHourly.bulk_increment!([{ tag: "wolf", hour: 1.hour.ago }])
+        SearchTrendHourly.bulk_increment!([{ tag: "wolf", hour: 1.hour.ago.utc }])
       end
     end
   end

@@ -20,6 +20,27 @@ class SearchTrend < ApplicationRecord
   }
   scope :for_tag, ->(tag) { where(tag: tag.to_s.downcase.strip) }
 
+  # Returns daily counts per tag for the specified tags over the last 30 days.
+  scope :for_tags, ->(tags) {
+    where(tag: tags.map { |t| t.to_s.downcase.strip })
+      .where("day >= ?", 30.days.ago.to_date)
+      .group(:tag, :day)
+      .select("tag, day, SUM(count) AS count")
+      .order(:tag, day: :asc)
+  }
+
+  # Like for_graph, but fills in zero-count rows for days with no data so every
+  # tag has a complete 30-day series. Returns a hash keyed by tag name.
+  def self.for_graph(tags)
+    window = (30.days.ago.to_date..Time.now.utc.to_date).to_a
+    rows_by_tag = for_tags(tags).group_by(&:tag)
+
+    tags.map { |t| t.to_s.downcase.strip }.index_with do |tag|
+      existing = (rows_by_tag[tag] || []).index_by(&:day)
+      window.map { |day| existing[day] || new(tag: tag, day: day, count: 0) }
+    end
+  end
+
   # Delete historic data that is below the minimum threshold.
   # Runs daily through SearchTrendPruneJob.
   def self.prune!(min_count: Danbooru.config.search_trend_minimum_count)

@@ -75,6 +75,11 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         get(show_or_new_wiki_pages_path, params: { title: "what" })
         assert_response :success
       end
+
+      should "not crash when title is a hash" do
+        get show_or_new_wiki_pages_path, params: { title: { "$testing" => "1" } }
+        assert_response :success
+      end
     end
 
     context("new action") do

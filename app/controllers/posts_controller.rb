@@ -9,6 +9,7 @@ class PostsController < ApplicationController
   respond_to :html, :json
 
   def index
+    params[:md5] = nil unless params[:md5].is_a?(String)
     if params[:md5].present?
       @post = Post.find_by!(md5: params[:md5])
       respond_with(@post) do |format|
@@ -18,15 +19,22 @@ class PostsController < ApplicationController
         end
       end
     else
-      @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
+      @tag_query = tag_query
+      unless @tag_query.is_a?(String)
+        @tag_query = ""
+        render_expected_error(400, "Invalid tags parameter")
+        return
+      end
+
+      @post_set = PostSets::Post.new(@tag_query, params[:page], limit: params[:limit], random: params[:random])
       @posts = @post_set.posts
 
       # Record trending tags for page 1 queries to avoid double-counting pagination
-      if tag_query.present? && (params[:page].blank? || params[:page].to_i <= 1)
-        SearchTrendHourly.record_query!(tag_query, ip: request.remote_ip)
+      if @tag_query.present? && (params[:page].blank? || params[:page].to_i <= 1)
+        SearchTrendHourly.record_query!(@tag_query, ip: request.remote_ip)
       end
 
-      @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
+      @query = @tag_query.blank? ? [] : @tag_query.strip.split(/ /, 2).compact_blank
       if @query.length == 1
         @wiki_page = WikiPage.titled(@query[0])
 
@@ -58,6 +66,10 @@ class PostsController < ApplicationController
 
     raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
 
+    # Parse params
+    @current_set_id = params[:post_set_id].to_i if params[:post_set_id].is_a?(String)
+    @current_pool_id = params[:pool_id].to_i if params[:pool_id].is_a?(String)
+
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
@@ -83,6 +95,10 @@ class PostsController < ApplicationController
     @post = PostSearchContext.new(params).post
 
     raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
+
+    # Parse params
+    params[:post_set_id] = params[:post_set_id].is_a?(String) ? params[:post_set_id].to_i : nil
+    params[:pool_id] = params[:pool_id].is_a?(String) ? params[:pool_id].to_i : nil
 
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)
@@ -169,7 +185,9 @@ class PostsController < ApplicationController
   private
 
   def tag_query
-    params[:tags] || (params[:post] && params[:post][:tags])
+    return params[:tags] if params[:tags].present?
+    return "" unless params[:post].is_a?(ActionController::Parameters)
+    params[:post][:tags].presence || ""
   end
 
   def respond_with_post_after_update(post)

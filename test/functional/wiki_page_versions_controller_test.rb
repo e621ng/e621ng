@@ -37,6 +37,21 @@ class WikiPageVersionsControllerTest < ActionDispatch::IntegrationTest
         get diff_wiki_page_versions_path, params: { thispage: @wiki_page.versions.first.id, otherpage: @wiki_page.versions.last.id }
         assert_response :success
       end
+
+      should "return 404 when thispage is an array" do
+        get diff_wiki_page_versions_path, params: { thispage: [@wiki_page.versions.first.id.to_s], otherpage: @wiki_page.versions.last.id }
+        assert_response :not_found
+      end
+
+      should "return 404 when thispage is a hash injection" do
+        get diff_wiki_page_versions_path, params: { thispage: { "$eq" => @wiki_page.versions.first.id.to_s }, otherpage: @wiki_page.versions.last.id }
+        assert_response :not_found
+      end
+
+      should "return 404 when otherpage is a hash injection" do
+        get diff_wiki_page_versions_path, params: { thispage: @wiki_page.versions.first.id, otherpage: { "$eq" => @wiki_page.versions.last.id.to_s } }
+        assert_response :not_found
+      end
     end
   end
 end
