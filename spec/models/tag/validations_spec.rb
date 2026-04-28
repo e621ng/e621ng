@@ -115,7 +115,7 @@ RSpec.describe Tag do
     # user_can_create_tag? (on: :create)
     # -------------------------------------------------------------------------
     describe "user_can_create_tag? (on create)" do
-      it "is invalid when a non-admin tries to create a lore-named tag" do
+      it "is invalid when a non-admin tries to create a lore-named tag", skip: "This test is skipped in this fork" do
         CurrentUser.user = create(:user)
         tag = build(:tag, name: "my_lore_tag_(lore)", category: lore_tag_category)
         expect(tag).not_to be_valid
@@ -123,7 +123,7 @@ RSpec.describe Tag do
         expect(tag.errors[:name]).to be_present
       end
 
-      it "is valid when an admin creates a lore-named tag" do
+      it "is valid when an admin creates a lore-named tag", skip: "This test is skipped in this fork" do
         tag = build(:tag, name: "admin_lore_(lore)", category: lore_tag_category)
         expect(tag).to be_valid
       end

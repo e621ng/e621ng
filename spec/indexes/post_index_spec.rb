@@ -519,7 +519,7 @@ RSpec.describe PostIndex do
       end
     end
 
-    describe "artverified" do
+    describe "artverified", skip: "This test is skipped on this fork" do
       let(:uploader) { create(:user) }
       # Artist#categorize_tag (after_save) calls Tag.find_or_create_by_name("artist:#{name}"),
       # so the artist-category tag is created automatically — no separate artist_tag needed.

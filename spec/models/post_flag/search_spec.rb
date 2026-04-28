@@ -143,7 +143,7 @@ RSpec.describe PostFlag do
     # post_tags_match
     # -----------------------------------------------------------------------
     describe "post_tags_match param" do
-      let(:tagged_post) { create(:post, tag_string: "artist:test_tag_search_artist special_tag_for_flag_search") }
+      let(:tagged_post) { create(:post, tag_string: "director:test_tag_search_artist special_tag_for_flag_search") }
       let(:other_post)  { create(:post) }
       let!(:flag_tagged) { create(:post_flag, post: tagged_post) }
       let!(:flag_other)  { create(:post_flag, post: other_post) }

@@ -97,7 +97,7 @@ RSpec.describe Tag do
     end
 
     it "applies a category prefix when creating a new tag" do
-      tag = Tag.find_or_create_by_name("artist:new_artist_tag")
+      tag = Tag.find_or_create_by_name("director:new_artist_tag")
       expect(tag.name).to eq("new_artist_tag")
       expect(tag.category).to eq(artist_tag_category)
     end
@@ -106,14 +106,14 @@ RSpec.describe Tag do
       it "updates the category when the creator can edit it implicitly" do
         janitor = create(:janitor_user)
         tag = create(:tag, name: "implicit_change_tag", category: general_tag_category)
-        Tag.find_or_create_by_name("artist:implicit_change_tag", creator: janitor)
+        Tag.find_or_create_by_name("director:implicit_change_tag", creator: janitor)
         expect(tag.reload.category).to eq(artist_tag_category)
       end
 
       it "does not change the category when the creator cannot edit it implicitly" do
         member = create(:user)
         tag = create(:tag, name: "no_implicit_change", category: general_tag_category)
-        Tag.find_or_create_by_name("artist:no_implicit_change", creator: member)
+        Tag.find_or_create_by_name("director:no_implicit_change", creator: member)
         expect(tag.reload.category).to eq(general_tag_category)
       end
     end
@@ -135,7 +135,7 @@ RSpec.describe Tag do
     end
 
     it "applies category prefixes to new tags" do
-      Tag.find_or_create_by_name_list(["artist:new_list_artist"])
+      Tag.find_or_create_by_name_list(["director:new_list_artist"])
       # NOTE: Tag.find_by_name is a custom method, not a dynamic finder
       tag = Tag.find_by_name("new_list_artist") # rubocop:disable Rails/DynamicFindBy
       expect(tag).to be_present

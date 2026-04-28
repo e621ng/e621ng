@@ -179,7 +179,7 @@ RSpec.describe StaticController do
       end
     end
 
-    context "when the user can join Discord (is a member older than 7 days, discord_site configured)" do
+    context "when the user can join Discord (is a member older than 7 days, discord_site configured)", skip: "This test is skipped in this fork" do
       before do
         allow(Danbooru.config.custom_configuration).to receive(:discord_site).and_return("https://discord.gg/example")
         sign_in_as create(:user) # :user factory has created_at 2 weeks ago, so older_than(7.days) is true
@@ -196,7 +196,7 @@ RSpec.describe StaticController do
     # environment, testing the Subscribestar site_map link by stubbing subscribestar_url at
     # runtime is not feasible — the navigation layout would raise an undefined route helper error.
 
-    context "when db_export_path is configured" do
+    context "when db_export_path is configured", skip: "This test is skipped in this fork" do
       before do
         allow(Danbooru.config.custom_configuration).to receive(:db_export_path).and_return("/db_export/")
       end

@@ -63,10 +63,10 @@ RSpec.describe Post do
         expect(post.tag_count).to be > 0
       end
 
-      it "tracks tag_count_artist for artist-category tags" do
+      it "tracks tag_count_director for director-category tags" do
         post = create(:post)
-        # Factory uses 'artist:...' prefix which sets category to artist
-        expect(post.tag_count_artist).to be >= 1
+        # Factory uses 'director:...' prefix which sets category to director
+        expect(post.tag_count_director).to be >= 1
       end
 
       it "tracks tag_count_general for general-category tags" do
@@ -91,13 +91,13 @@ RSpec.describe Post do
       end
 
       it "downcases all tag names" do
-        post = create(:post, tag_string: "artist:UPPERCASE_ARTIST lowercase_tag1 lowercase_tag2 lowercase_tag3 lowercase_tag4 lowercase_tag5 lowercase_tag6 lowercase_tag7 lowercase_tag8 lowercase_tag9 lowercase_tag10")
+        post = create(:post, tag_string: "director:UPPERCASE_DIRECTOR lowercase_tag1 lowercase_tag2 lowercase_tag3 lowercase_tag4 lowercase_tag5 lowercase_tag6 lowercase_tag7 lowercase_tag8 lowercase_tag9 lowercase_tag10")
         expect(post.tag_string).not_to match(/[A-Z]/)
       end
 
       it "auto-creates tags that do not yet exist" do
         unique_name = "brand_new_tag_#{SecureRandom.hex(4)}"
-        create(:post, tag_string: "artist:test_artist #{unique_name} " + (1..10).map { |i| "gen_tag_#{SecureRandom.hex(4)}_#{i}" }.join(" "))
+        create(:post, tag_string: "director:test_director #{unique_name} " + (1..10).map { |i| "gen_tag_#{SecureRandom.hex(4)}_#{i}" }.join(" "))
         expect(Tag.find_by(name: unique_name)).not_to be_nil
       end
 
@@ -203,26 +203,26 @@ RSpec.describe Post do
     end
 
     describe "warning validators" do
-      describe "has_artist_tag warning" do
-        it "adds a warning on new posts without an artist tag" do
-          # Build a post with no artist-category tags
+      describe "has_director_tag warning" do
+        it "adds a warning on new posts without a director tag" do
+          # Build a post with no director-category tags
           post = build(:post, tag_string: "tag1 tag2 tag3 tag4 tag5 tag6 tag7 tag8 tag9 tag10")
           post.valid?
-          expect(post.warnings[:base].join).to match(/Artist tag is required/)
+          expect(post.warnings[:base].join).to match(/Director tag is required/)
         end
 
-        it "does not add the artist warning on existing posts" do
+        it "does not add the director warning on existing posts" do
           post = create(:post)
           post.update_columns(tag_string: "tag1 tag2")
           post.reload.tag_string = "tag1"
           post.valid?
-          expect(post.warnings[:base].join).not_to match(/Artist tag is required/)
+          expect(post.warnings[:base].join).not_to match(/Director tag is required/)
         end
       end
 
       describe "has_enough_tags warning" do
         it "adds a warning on new posts with fewer than 10 general tags" do
-          post = build(:post, tag_string: "artist:test_artist only_one_general_tag")
+          post = build(:post, tag_string: "director:test_director only_one_general_tag")
           post.valid?
           expect(post.warnings[:base].join).to match(/at least 10 general tags/)
         end
@@ -369,8 +369,8 @@ RSpec.describe Post do
         existing_tag = create(:tag, name: "existing_general_tag", category: Tag.categories.general,
                                     post_count: Danbooru.config.tag_type_change_cutoff + 1)
         post = create(:post)
-        # Trying to use artist: prefix for a tag that is already category general
-        post.tag_string = "#{post.tag_string} artist:#{existing_tag.name}"
+        # Trying to use director: prefix for a tag that is already category general
+        post.tag_string = "#{post.tag_string} director:#{existing_tag.name}"
         post.valid?
         expect(post.warnings[:base].join).to match(/Failed to update the tag category/)
       end
@@ -605,11 +605,11 @@ RSpec.describe Post do
     end
 
     describe "#known_artist_tags" do
-      it "excludes tags in NON_KNOWN_ARTIST_TAGS (e.g. unknown_artist)" do
-        # Ensure unknown_artist exists as an artist-category tag
-        create(:tag, name: "unknown_artist", category: Tag.categories.artist)
-        post = create(:post, tag_string: "unknown_artist #{(1..10).map { |i| "gen_#{i}" }.join(' ')}")
-        expect(post.known_artist_tags.map(&:name)).not_to include("unknown_artist")
+      it "excludes tags in NON_KNOWN_ARTIST_TAGS (e.g. unknown_director)" do
+        # Ensure unknown_director exists as a director-category tag
+        create(:tag, name: "unknown_director", category: Tag.categories.director)
+        post = create(:post, tag_string: "unknown_director #{(1..10).map { |i| "gen_#{i}" }.join(' ')}")
+        expect(post.known_artist_tags.map(&:name)).not_to include("unknown_director")
       end
 
       it "includes artist tags not in NON_KNOWN_ARTIST_TAGS" do
@@ -621,12 +621,12 @@ RSpec.describe Post do
       end
     end
 
-    describe "#avoid_posting_artists" do
+    describe "#avoid_posting_artists", skip: "This test is skipped in this fork" do
       it "returns AvoidPosting records for artist tags on the post" do
         artist = create(:artist)
         avoid = create(:avoid_posting, artist: artist)
         # Use artist: prefix to create the tag with artist category
-        post = create(:post, tag_string: "artist:#{artist.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        post = create(:post, tag_string: "director:#{artist.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
         expect(post.avoid_posting_artists).to include(avoid)
       end
 

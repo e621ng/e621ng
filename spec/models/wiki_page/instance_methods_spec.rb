@@ -43,7 +43,7 @@ RSpec.describe WikiPage do
     it "prepends the capitalized category name when category_id is artist" do
       page = build(:wiki_page, title: "my_artist")
       page.category_id = 1 # artist
-      expect(page.pretty_title_with_category).to eq("Artist: my artist")
+      expect(page.pretty_title_with_category).to eq("Director: my artist")
     end
 
     it "prepends the correct category name for species" do

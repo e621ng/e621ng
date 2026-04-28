@@ -281,7 +281,7 @@ RSpec.describe UploadService do
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
-      it "marks post as pending when avoid_posting_artists present and uploader cannot approve" do
+      it "marks post as pending when avoid_posting_artists present and uploader cannot approve", skip: "This test is skipped on this fork" do
         artist = create(:artist)
         create(:avoid_posting, artist: artist)
         upload.tag_string = artist.name

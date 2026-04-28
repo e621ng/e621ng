@@ -81,7 +81,7 @@ RSpec.describe TagAlias do
     end
 
     it "strips tag-type prefixes before alias lookup" do
-      expect(TagAlias.to_aliased_query("artist:old_tag")).to eq("new_tag")
+      expect(TagAlias.to_aliased_query("director:old_tag")).to eq("new_tag")
     end
 
     it "applies overrides on top of stored aliases" do

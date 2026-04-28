@@ -96,7 +96,7 @@ RSpec.describe Upload do
     # tag_string (LIKE match)
     # -------------------------------------------------------------------------
     describe "tag_string parameter" do
-      let!(:tagged)   { make_upload(tag_string: "artist:someone fluffy_tail") }
+      let!(:tagged)   { make_upload(tag_string: "director:someone fluffy_tail") }
       let!(:untagged) { make_upload(tag_string: "") }
 
       it "returns uploads whose tag_string matches the pattern" do

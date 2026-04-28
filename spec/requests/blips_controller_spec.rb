@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# This controller does not exist in this fork.
+return if true # rubocop:disable Lint/LiteralAsCondition
+
 require "rails_helper"
 
 RSpec.describe BlipsController do

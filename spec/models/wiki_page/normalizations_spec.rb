@@ -23,8 +23,8 @@ RSpec.describe WikiPage do
       expect(page.title).to eq("a_page_title")
     end
 
-    it "strips the artist: prefix and sets category_id to artist" do
-      page = build(:wiki_page, title: "artist:some_artist")
+    it "strips the director: prefix and sets category_id to artist" do
+      page = build(:wiki_page, title: "director:some_artist")
       page.valid?
       expect(page.title).to eq("some_artist")
       expect(page.category_id).to eq(1) # artist
@@ -49,8 +49,8 @@ RSpec.describe WikiPage do
       expect(page.title).to eq("plain_title")
     end
 
-    it "handles an uppercased category prefix (e.g. 'Artist:foo')" do
-      page = build(:wiki_page, title: "Artist:foo_artist")
+    it "handles an uppercased category prefix (e.g. 'Director:foo')" do
+      page = build(:wiki_page, title: "Director:foo_artist")
       page.valid?
       expect(page.title).to eq("foo_artist")
       expect(page.category_id).to eq(1) # artist

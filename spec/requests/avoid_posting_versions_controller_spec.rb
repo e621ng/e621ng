@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# This controller does not exist in this fork.
+return if true # rubocop:disable Lint/LiteralAsCondition
+
 require "rails_helper"
 
 #  avoid_posting_versions GET /avoid_posting_versions(.:format) avoid_posting_versions#index
