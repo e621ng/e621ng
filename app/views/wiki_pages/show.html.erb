@@ -17,7 +17,7 @@
         <% end %>
       </h1>
       <% if @wiki_redirect.present? %>
-      <div class="wiki-page-redirect"><i class="fa-solid fa-turn-up fa-rotate-90"></i> <%= @wiki_page.title %></div>
+        <div class="wiki-page-redirect"><%= svg_icon(:corner_down_right, width: 12, height: 12) %> <%= @wiki_page.title %></div>
       <% end %>
 
       <div id="wiki-page-body" class="dtext-container">
@@ -39,7 +39,7 @@
   </div>
 </div>
 
-<% render(partial: "static/embed", locals: { record: wiki_content, name: wiki_content.pretty_title, description: wiki_content.body.present? ? strip_tags(format_text(wiki_content.body)).truncate(200) : "" }) %>
+<% render(partial: "static/embed", locals: { record: wiki_content, name: wiki_content.pretty_title, description: wiki_content.body.present? ? format_plaintext(wiki_content.body) : "" }) %>
 
 <% content_for(:page_title) do %>
   Wiki - <%= wiki_content.pretty_title %>

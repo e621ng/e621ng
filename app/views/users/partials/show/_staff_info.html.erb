@@ -16,8 +16,9 @@
         <%= email_domain_search(user.email) %>
       </span>
 
-      <h4>Last IP</h4>
-      <span><%= link_to_ip(user.last_ip_addr) %></span>
+      <h4>Last IP & Login Time</h4>
+
+      <span><%= link_to_ip(user.last_ip_addr) %> | <%= user.last_logged_in_at ? compact_date(user.last_logged_in_at) : "(none)" %></span>
     <% end %>
 
     <% if CurrentUser.is_moderator? %>
@@ -67,6 +68,13 @@
       <h4>DMails</h4>
       <span>
         <%= link_to "Audit", admin_user_dmails_path(user) %>
+      </span>
+    <% end %>
+
+    <% if CurrentUser.is_bd_staff? && !user.is_staff? && !user.name.match?(/\Auser_#{user.id}~*\z/) %>
+      <h4>Delete User</h4>
+      <span>
+        <%= link_to "Delete", anonymize_admin_user_path(user) %>
       </span>
     <% end %>
   </div>

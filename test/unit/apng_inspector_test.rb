@@ -16,10 +16,10 @@ class DTextTest < ActiveSupport::TestCase
       assert_equal(false, apng.corrupted?)
     end
 
-    should "recognize 1-frame APNG as animated" do
+    should "recognize 1-frame APNG as static" do
       apng = inspect('single_frame.png')
       assert_equal(1, apng.frames)
-      assert_equal(true, apng.animated?)
+      assert_equal(false, apng.animated?)
       assert_equal(false, apng.corrupted?)
     end
 

@@ -3,13 +3,13 @@
 class ForumPostVote < ApplicationRecord
   belongs_to_creator
   belongs_to :forum_post
-  validates :creator_id, uniqueness: {scope: :forum_post_id}
-  validates :score, inclusion: {in: [-1, 0, 1]}
+  validates :creator_id, uniqueness: { scope: :forum_post_id }
+  validates :score, inclusion: { in: [-1, 0, 1] }
   validate :validate_creator_is_not_limited, on: :create
-  scope :up, -> {where(score: 1)}
-  scope :down, -> {where(score: -1)}
-  scope :by, ->(user_id) {where(creator_id: user_id)}
-  scope :excluding_user, ->(user_id) {where("creator_id <> ?", user_id)}
+  scope :up, -> { where(score: 1) }
+  scope :down, -> { where(score: -1) }
+  scope :by, ->(user_id) { where(creator_id: user_id) }
+  scope :excluding_user, ->(user_id) { where.not(creator_id: user_id) }
 
   def method_attributes
     super + [:creator_name]
@@ -36,25 +36,37 @@ class ForumPostVote < ApplicationRecord
     score == 0
   end
 
-  def fa_class
-    if score == 1
-      "fa-thumbs-up"
-    elsif score == -1
-      "fa-thumbs-down"
-    else
-      "fa-face-meh"
-    end
+  def icon
+    ForumPostVote.score_to_icon(score)
   end
 
   def vote_type
-    if score == 1
-      return "up"
-    elsif score == -1
-      return "down"
-    elsif score == 0
-      return "meh"
+    ForumPostVote.score_to_str(score)
+  end
+
+  def self.score_to_icon(score)
+    case score
+    when 1
+      :thumbs_up
+    when -1
+      :thumbs_down
+    when 0
+      :face_meh
     else
-      raise
+      :flame
+    end
+  end
+
+  def self.score_to_str(score)
+    case score
+    when 1
+      "up"
+    when -1
+      "down"
+    when 0
+      "meh"
+    else
+      "unknown"
     end
   end
 end

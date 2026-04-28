@@ -1,0 +1,174 @@
+// Simple promise-based task queue.
+// It allows us to schedule tasks in a way that prevents them from hitting the API rate limit.
+// Tasks are executed sequentially, and each task must return a promise that resolves when the task is complete.
+export default class TaskQueue {
+
+  static _queue: TaskItem[] = [];
+  static _running = false;
+
+  /**
+   * Adds a task to the queue.
+   * @param {Function} task Task function to be executed. It may or may not be asynchronous.
+   * @param {Object} options Configuration options for the task.
+   * @param {number} options.delay Delay in milliseconds before the task is executed. Defaults to 1000, minimum 500.
+   * @param {boolean} options.priority When true, adds the task to the front of the queue.
+   * @param {string} options.name Optional name for the task. Does not need to be unique.
+   * @param {boolean} options.unique When true, removes any existing tasks with the same name before adding the new task.
+   * @returns {Promise} Promise that resolves when the task is completed or rejects if the task fails.
+   * @throws {Error} If the task is not a function or if the delay is not a non-negative number.
+   */
+  static add (task: TaskFn, options: TaskQueueOptions = {}): Promise<any> {
+    if (typeof task !== "function") throw new Error("Task must be a function");
+
+    let { delay = 1000 } = options;
+    const { priority = false, name = null, unique = false } = options;
+
+    if (typeof delay !== "number" || delay < 0) throw new Error("Delay must be a non-negative number");
+    if (delay < 500) delay = 500; // Minimum delay to prevent throttling server-side
+
+    if (unique && name !== null) this.cancel(name, "Replaced by a new unique task");
+
+    const result = new Promise((resolve, reject) => {
+      const taskItem: TaskItem = { task, resolve, reject, delay, name };
+      if (priority) this._queue.unshift(taskItem);
+      else this._queue.push(taskItem);
+    });
+    this._run();
+    return result;
+  }
+
+  /**
+   * Runs the tasks in the queue.
+   * Should not be called directly; use `add` to enqueue tasks.
+   * @returns {Promise<void>}
+   */
+  static async _run (): Promise<void> {
+    if (this._running || this._queue.length === 0) return;
+    this._running = true;
+
+    try {
+      while (this._queue.length > 0 && this._running) {
+        // Abort if the task was cancelled or the queue was cleared
+        if (!this._running || this._queue.length === 0) break;
+
+        const { task, resolve, reject, delay, name } = this._queue.shift() as TaskItem;
+
+        try {
+          if (typeof task !== "function")
+            throw new Error(`Task "${name}" invalid: not a function`);
+
+          const result = await task();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+
+        await this.sleep(delay);
+      }
+    } finally {
+      this._running = false;
+    }
+  }
+
+  /**
+   * Returns a promise that resolves after a specified delay.
+   * @param {number} ms Delay in milliseconds.
+   * @returns {Promise<void>}
+   */
+  static sleep (ms: number = 1000): Promise<void> {
+    if (typeof ms !== "number" || ms < 0)
+      throw new Error("Sleep duration must be a non-negative number");
+    if (ms === 0) return Promise.resolve();
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Clears the queue and rejects pending tasks with a cancellation.
+   * @param {string} reason Optional reason for clearing the queue.
+   */
+  static clear (reason: string = "Queue cleared"): void {
+    this._running = false;
+    this._queue.forEach(({ reject }) => {
+      reject(new TaskCancelled(reason));
+    });
+    this._queue = [];
+  }
+
+  /**
+   * Cancels all tasks with the specified name.
+   * @param {string} taskName The name of the tasks to cancel.
+   * @param {string} reason Optional reason for cancelling the tasks.
+   * @returns {number} The number of tasks that were cancelled.
+   */
+  static cancel (taskName: string, reason: string = "Task cancelled"): number {
+    if (taskName === null || taskName === undefined) return 0;
+
+    let count = 0;
+    this._queue = this._queue.filter(({ name, reject }) => {
+      if (name !== taskName) return true; // Keep in queue
+
+      reject(new TaskCancelled(reason));
+      count++;
+      return false;
+    });
+
+    return count;
+  }
+
+  /** @returns {number} The size of the task queue. */
+  static get size (): number {
+    return this._queue.length;
+  }
+
+  /** @returns {boolean} True if the queue is running, false otherwise. */
+  static get isRunning (): boolean {
+    return this._running;
+  }
+
+  /**
+   * Returns an array of pending tasks.
+   * Each task is represented by an object containing its index, name, and delay.
+   * @returns {TaskItemShort[]} Array of pending tasks.
+   */
+  static get pending (): TaskItemShort[] {
+    return this._queue.map(({ delay, name }, index) => ({
+      index,
+      name,
+      delay,
+    }));
+  }
+}
+
+// Sentinel value to indicate a task was cancelled (not an error)
+export class TaskCancelled {
+  public reason: string;
+  public cancelled: boolean;
+
+  constructor (reason = "Task cancelled") {
+    this.reason = reason;
+    this.cancelled = true;
+  }
+}
+
+type TaskFn = () => void | Promise<any>;
+
+interface TaskQueueOptions {
+  delay?: number;
+  priority?: boolean;
+  name?: string | null;
+  unique?: boolean;
+}
+
+interface TaskItem {
+  task: TaskFn;
+  resolve: (value: any) => void;
+  reject: (reason?: any) => void;
+  delay: number;
+  name: string | null;
+}
+
+interface TaskItemShort {
+  delay: number,
+  name: string | null,
+  index: number,
+}

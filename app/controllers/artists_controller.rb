@@ -33,7 +33,7 @@ class ArtistsController < ApplicationController
     if params[:id] =~ /\A\d+\z/
       @artist = Artist.find(params[:id])
     else
-      @artist = Artist.named(name: params[:id])
+      @artist = Artist.named(params[:id])
       unless @artist
         respond_to do |format|
           format.html do
@@ -90,6 +90,7 @@ class ArtistsController < ApplicationController
   end
 
   def show_or_new
+    params[:name] = params[:name].to_s
     @artist = Artist.named(params[:name])
     if @artist
       redirect_to artist_path(@artist)
@@ -106,7 +107,7 @@ class ArtistsController < ApplicationController
     if params[:id] =~ /\A\d+\z/
       @artist = Artist.find(params[:id])
     else
-      @artist = Artist.named(name: params[:id])
+      @artist = Artist.named(params[:id])
       raise ActiveRecord::RecordNotFound if @artist.blank?
     end
   end

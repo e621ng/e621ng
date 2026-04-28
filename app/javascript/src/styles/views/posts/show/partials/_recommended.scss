@@ -1,0 +1,104 @@
+div#post-recommendations {
+  display: grid;
+  grid-template-columns: auto min-content;
+
+  $thumb-size: 7.75rem;
+  $padding-size: 0.5rem;
+  $thumb-gap: 0.5rem;
+
+  max-width: ($thumb-size * 6) + ($thumb-gap * 5) + ($padding-size * 2); // 50 rem
+  box-sizing: border-box;
+
+  // Tabs
+  &-tabs {
+    display: flex;
+    gap: $thumb-gap;
+    padding: 0 $padding-size;
+
+    button {
+      background: unset;
+      color: themed("color-text");
+      @include st-radius-top;
+      user-select: none;
+
+      &:hover, &:focus {
+        background: themed("color-section-lighten-5");
+      }
+    }
+
+    @include window-smaller-than(30rem) {
+      .desktop-only { display: none; }
+    }
+  }
+
+  // Selected tab
+  &[data-action="artist"] button[data-action="artist"],
+  &[data-action="favorites"] button[data-action="favorites"],
+  &[data-action="tags"] button[data-action="tags"] {
+    background-color: themed("color-section");
+    pointer-events: none;
+  }
+
+
+  // Recommendations list
+  &-list {
+    grid-column: 1 / -1;
+
+    display: flex;
+    overflow: scroll hidden;
+    flex-wrap: wrap; // Second row gets hidden
+    gap: $thumb-gap;
+
+    background: themed("color-section");
+    padding: $padding-size;
+    margin-bottom: 0.25rem;
+    @include st-radius;
+
+    --thumb-image-size: #{$thumb-size}; // Passed on to thumbnails
+    height: calc(var(--thumb-image-size) + 1.25rem);
+
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    &::-webkit-scrollbar { display: none; }
+
+    @include window-smaller-than(30rem) {
+      --thumb-image-size: calc((100vw - 2.55rem) / 3);
+      height: unset;
+      min-height: calc(2* (var(--thumb-image-size) + 1.25rem));
+      justify-content: center;
+    }
+  }
+
+  // Toggle button
+  &-toggle {
+    display: flex;
+
+    button.st-button {
+      font-size: 0.85rem;
+      background: unset;
+      color: themed("color-text-muted");
+      svg {
+        width: 1rem;
+        height: 1rem;
+      }
+      span { display: none; }
+
+      &:hover {
+        color: themed("color-link-active");
+      }
+    }
+  }
+
+  &[data-status="error"] #post-recommendations-list {
+    justify-content: center;
+    align-items: center;
+  }
+
+  &[data-visible="false"] {
+    #post-recommendations-tabs, #post-recommendations-list { display: none; }
+    #post-recommendations-toggle {
+      grid-column: 1 / -1;
+      button.st-button span { display: inline; }
+    }
+  }
+}

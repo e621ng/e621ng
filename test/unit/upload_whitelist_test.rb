@@ -31,6 +31,10 @@ class UploadWhitelistTest < ActiveSupport::TestCase
       assert_equal([false, "static1.e621.net is in whitelist, but path /other/123.png is not allowed."], UploadWhitelist.is_whitelisted?("https://static1.e621.net/other/123.png"))
     end
 
+    should "fail for malformed URLs" do
+      assert_equal([false, "URLs with embedded credentials are not allowed"], UploadWhitelist.is_whitelisted?("https://user:pass@static1.e621.net/data/123.png"))
+    end
+
     should "bypass for admins" do
       CurrentUser.user.level = 50
       Danbooru.config.stubs(:bypass_upload_whitelist?).returns(true)

@@ -50,6 +50,6 @@ class DestroyedPost < ApplicationRecord
       status: "pending",
       qtype: "user",
       reason: reason,
-    ).push_pubsub("create")
+    )
   end
 end

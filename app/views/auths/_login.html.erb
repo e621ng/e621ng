@@ -1,0 +1,40 @@
+<div class="auth-flow-wrapper">
+  <%= simple_form_for(:session, url: session_path, html: { id: "auth-login-form", class: "auth-form auth-login" }) do |form| %>
+    <h1>Welcome</h1>
+    <%= form.input(:url, as: :hidden, input_html: { value: params[:url] }) %>
+
+    <div class="auth-input">
+      <%= form.label :name, class: "st-immersive-input" do %>
+        <span class="label-text">Username</span>
+        <%= form.input_field :name, required: true, autocomplete: "username" %>
+      <% end %>
+    </div>
+
+    <div class="auth-input">
+      <%= form.label :password, class: "st-immersive-input" do %>
+        <span class="label-text">Password</span>
+        <%= form.password_field :password, required: true, autocomplete: "current-password" %>
+      <% end %>
+    </div>
+
+    <div class="auth-spacer"></div>
+
+    <div class="auth-input toggle-wrapper">
+      <%= form.label :remember, "Remember me" %>
+      <%= form.input_field :remember, as: :boolean, class: "st-toggle", checked: "checked" %>
+      <%= form.label :remember, "!", class: "st-toggle", role: "switch" %>
+    </div>
+
+    <%= form.submit("Sign in", class: "st-button submit") %>
+
+    <div class="auth-spacer" id="auth-error"></div>
+    <div class="auth-reminder">
+      <%= link_to("Forgot username?", new_maintenance_user_login_reminder_path, class: "hint-link") %>
+      <%= link_to("Reset Password", new_maintenance_user_password_reset_path, class: "hint-link") %>
+    </div>
+
+    <hr />
+
+    <%= link_to("Create an account", new_user_path, class: "st-button") %>
+  <% end %>
+</div>

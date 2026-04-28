@@ -46,6 +46,22 @@
           <%= f.input :reason, as: :dtext, limit: Danbooru.config.ticket_max_size %>
 
         </div>
+
+        <% if @existing_similar.present? %>
+          <div class="section ticket-warning">
+            <h4>Attention:</h4>
+            <p>You have multiple similar tickets pending.</p>
+            <ul>
+              <% @existing_similar.each do |ticket| %>
+                <li><%= link_to truncate(strip_tags(format_text(ticket.reason)), length: 100), ticket_path(ticket) %></li>
+              <% end %>
+            </ul>
+            <p>
+              If you intend to report the same issue across multiple items, please simply report one item and include the others in the reason.
+            </p>
+          </div>
+        <% end %>
+
         <%= submit_tag "Submit Ticket", class: "st-button submit", id: "ticket_submit" %>
       <% end %>
     <% end %>

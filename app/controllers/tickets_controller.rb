@@ -12,6 +12,17 @@ class TicketsController < ApplicationController
 
   def new
     @ticket = Ticket.new(qtype: params[:qtype], disp_id: params[:disp_id])
+    @existing_similar = Ticket
+                        .visible(CurrentUser.user)
+                        .where({
+                          creator_id: CurrentUser.id,
+                          qtype: @ticket.qtype,
+                          status: "pending",
+                          created_at: 1.week.ago..,
+                        })
+                        .order(created_at: :desc)
+                        .limit(5)
+
     check_new_permission(@ticket)
   end
 
@@ -20,7 +31,6 @@ class TicketsController < ApplicationController
     check_new_permission(@ticket)
     if @ticket.valid?
       @ticket.save
-      @ticket.push_pubsub("create")
       redirect_to(ticket_path(@ticket))
     else
       render action: "new"
@@ -55,7 +65,6 @@ class TicketsController < ApplicationController
     if @ticket.valid?
       not_changed = ticket_params[:send_update_dmail].to_s.truthy? && (!@ticket.saved_change_to_response? && !@ticket.saved_change_to_status?)
       flash[:notice] = "Not sending update, no changes" if not_changed
-      @ticket.push_pubsub("update")
     end
 
     respond_with(@ticket)

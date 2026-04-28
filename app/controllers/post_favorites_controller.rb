@@ -6,6 +6,10 @@ class PostFavoritesController < ApplicationController
   def index
     @post = Post.find(params[:post_id])
 
+    if @post.hide_favorites_list? && !CurrentUser.is_staff?
+      raise User::PrivilegeError, "Favorites list is hidden for this post"
+    end
+
     # Base query: users who favorited this post
     query = User.includes(:user_status)
                 .joins(favorites: {}).where(favorites: { post_id: @post.id })

@@ -6,6 +6,7 @@ class PoolVersionsControllerTest < ActionDispatch::IntegrationTest
   context "The pool versions controller" do
     setup do
       @user = create(:user)
+      @posts = create_list(:post, 4)
     end
 
     context "index action" do
@@ -17,11 +18,11 @@ class PoolVersionsControllerTest < ActionDispatch::IntegrationTest
         @user_3 = create(:user)
 
         as(@user_2, "1.2.3.4") do
-          @pool.update(:post_ids => "1 2")
+          @pool.update(:post_ids => [@posts[0].id, @posts[1].id])
         end
 
         as(@user_3, "5.6.7.8") do
-          @pool.update(:post_ids => "1 2 3 4")
+          @pool.update(:post_ids => [@posts[0].id, @posts[1].id, @posts[2].id, @posts[3].id])
         end
 
         @versions = @pool.versions

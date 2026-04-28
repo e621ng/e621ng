@@ -3,6 +3,7 @@
 class TagAliasJob < ApplicationJob
   queue_as :tags
   sidekiq_options lock: :until_executed, lock_args_method: :lock_args
+  self.enqueue_after_transaction_commit = true
 
   def self.lock_args(args)
     [args[0]]

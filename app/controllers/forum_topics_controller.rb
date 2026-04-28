@@ -5,14 +5,14 @@ class ForumTopicsController < ApplicationController
   before_action :member_only, except: %i[index show]
   before_action :moderator_only, only: [:unhide]
   before_action :admin_only, only: [:destroy]
-  before_action :normalize_search, only: :index
+  before_action :normalize_search_params, only: [:index]
   before_action :load_topic, only: %i[edit show update destroy hide unhide subscribe unsubscribe]
   before_action :check_min_level, only: %i[show edit update destroy hide unhide subscribe unsubscribe]
   before_action :ensure_lockdown_disabled, except: %i[index show]
   skip_before_action :api_check
 
   def index
-    params[:search] ||= {}
+    params[:search] = {} unless params[:search].is_a?(ActionController::Parameters)
     params[:search][:order] ||= "sticky" if request.format == Mime::Type.lookup("text/html")
 
     @query = ForumTopic.visible(CurrentUser.user).search(search_params)
@@ -128,14 +128,14 @@ class ForumTopicsController < ApplicationController
     params[:limit] || 40
   end
 
-  def normalize_search
-    if params[:title_matches]
-      params[:search] ||= {}
+  def normalize_search_params
+    if params[:title_matches].is_a?(String)
+      params[:search] = ActionController::Parameters.new unless params[:search].is_a?(ActionController::Parameters)
       params[:search][:title_matches] = params.delete(:title_matches)
     end
 
-    if params[:title]
-      params[:search] ||= {}
+    if params[:title].is_a?(String)
+      params[:search] = ActionController::Parameters.new unless params[:search].is_a?(ActionController::Parameters)
       params[:search][:title] = params.delete(:title)
     end
   end

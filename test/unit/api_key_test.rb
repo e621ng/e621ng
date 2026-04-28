@@ -6,7 +6,7 @@ class ApiKeyTest < ActiveSupport::TestCase
   context "in all cases a user" do
     setup do
       @user = create(:privileged_user, name: "abcdef")
-      @api_key = ApiKey.generate!(@user)
+      @api_key = ApiKey.generate!(@user, name: "test")
     end
 
     should "regenerate the key" do
@@ -20,7 +20,9 @@ class ApiKeyTest < ActiveSupport::TestCase
     end
 
     should "authenticate via api key" do
-      assert_not_nil(User.authenticate_api_key(@user.name, @api_key.key))
+      user, key = User.authenticate_api_key(@user.name, @api_key.key)
+      assert_not_nil(user)
+      assert_not_nil(key)
     end
 
     should "not authenticate with the wrong api key" do
@@ -33,7 +35,7 @@ class ApiKeyTest < ActiveSupport::TestCase
 
     should "have the same limits whether or not they have an api key" do
       assert_no_difference(["@user.reload.api_regen_multiplier", "@user.reload.api_burst_limit"]) do
-        @user.api_key.destroy
+        @api_key.destroy
       end
     end
   end

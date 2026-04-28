@@ -68,7 +68,7 @@ class BlipTest < ActiveSupport::TestCase
         end
       end
 
-      context "that is hidden by a moderator" do
+      context "that is deleted by a moderator" do
         setup do
           @blip = create(:blip)
           @mod = create(:moderator_user)
@@ -77,17 +77,17 @@ class BlipTest < ActiveSupport::TestCase
 
         should "create a mod action" do
           assert_difference(-> { ModAction.count }, 1) do
-            @blip.update(is_hidden: true)
+            @blip.update(is_deleted: true)
           end
         end
 
         should "credit the moderator as the updater" do
-          @blip.update(is_hidden: true)
+          @blip.update(is_deleted: true)
           assert_equal(@mod.id, @blip.updater_id)
         end
       end
 
-      context "that is deleted" do
+      context "that is destroyed" do
         setup do
           @blip = create(:blip)
         end

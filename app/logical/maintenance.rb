@@ -17,6 +17,9 @@ module Maintenance
     ignoring_exceptions { DiscordReport::JanitorStats.new.run! }
     ignoring_exceptions { DiscordReport::ModeratorStats.new.run! }
     ignoring_exceptions { DiscordReport::AiburStats.new.run! }
+    ignoring_exceptions { ApiKeyExpirationWarningJob.perform_later }
+    ignoring_exceptions { SearchTrendPruneJob.perform_later }
+    ignoring_exceptions { FavoriteEventPartitionJob.perform_later }
   end
 
   def ignoring_exceptions(&)

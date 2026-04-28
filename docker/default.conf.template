@@ -1,3 +1,5 @@
+limit_req_zone $binary_remote_addr zone=openpanel:10m rate=10r/s;
+
 server {
   listen ${NGINX_PORT};
   server_name localhost;
@@ -37,6 +39,12 @@ server {
 
   location /tags/autocomplete.json {
     proxy_pass http://autocompleted:8118/;
+    proxy_redirect off;
+  }
+
+  location ~ ^/posts/(\d+)/similar/remote\.json$ {
+    rewrite ^/posts/(\d+)/similar/remote\.json$ /similar?post_id=$1&$args break;
+    proxy_pass ${RECOMMENDER_URL};
     proxy_redirect off;
   }
 

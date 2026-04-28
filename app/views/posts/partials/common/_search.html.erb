@@ -1,7 +1,7 @@
 <%# locals: (title: "Search", tags: "") %>
 
 <section class="post-search">
-  <h3 class="post-search-title"><%= title %></h3>
+  <label for="tags" class="post-search-title"><%= title %></label>
   <span class="post-search-help"><%= link_to "[search help]", help_page_path(id: "cheatsheet") %></span>
 
   <%= form_tag(posts_path, method: "get", rel: "search", class: "post-search-form") do %>

@@ -34,6 +34,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
           get posts_path(md5: "foo")
           assert_response 404
         end
+
+        should "not crash when md5 param is a hash" do
+          get posts_path, params: { md5: { "$eq" => "" } }
+          assert_response :success
+        end
       end
 
       context "with a random search" do
@@ -69,6 +74,16 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
     context "show action" do
       should "render" do
         get post_path(@post), params: {:id => @post.id}
+        assert_response :success
+      end
+
+      should "not crash when pool_id is an array" do
+        get post_path(@post), params: { pool_id: ["49413"] }
+        assert_response :success
+      end
+
+      should "not crash when post_set_id is an array" do
+        get post_path(@post), params: { post_set_id: ["12345"] }
         assert_response :success
       end
     end

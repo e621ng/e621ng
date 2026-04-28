@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <%= render "layouts/head" %>
 </head>
@@ -7,7 +7,7 @@
   <%= render "layouts/theme_include" %>
   <%= render "layouts/navigation/navigation" %>
 
-  <div id="page">
+  <div id="page" role="main">
     <%# Notification Toasts %>
     <div class="ui-corner-all ui-state-highlight" id="notice" style="<%= "display: none;" unless flash[:notice] %>">
       <span><%= format_text(flash[:notice], inline: true) %>.</span>

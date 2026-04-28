@@ -94,7 +94,7 @@ module ParseValue
       [:between, cast(left, type), cast(right, type)]
 
     elsif range.include?(",")
-      [:in, range.split(",")[0..99].map { |x| cast(x, type) }]
+      [:in, range.split(",").first(Danbooru.config.max_per_page).map { |x| cast(x, type) }]
 
     else
       [:eq, cast(range, type)]
@@ -185,7 +185,7 @@ module ParseValue
         size.to_f.megabytes
       else
         size.to_f
-      end.to_i
+      end.to_i.clamp(0, MAX_INT)
     end
   end
 

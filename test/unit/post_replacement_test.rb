@@ -367,4 +367,26 @@ class PostReplacementTest < ActiveSupport::TestCase
       assert_equal(CurrentUser.user.id, @replacement.approver_id)
     end
   end
+
+  context "Uploader linked artists:" do
+    should "return only artist tags linked to the replacement creator" do
+      create(:artist, name: "test_match_(artist)", linked_user: @user)
+      create(:artist, name: "test_other_(artist)", linked_user: create(:user))
+      create(:artist, name: "test_unlinked_(artist)")
+
+      post = create(:post, tag_string: "test_match_(artist) test_other_(artist) test_unlinked_(artist)", uploader: @mod_user)
+      replacement = build(:post_replacement, post: post, creator: @user)
+
+      assert_equal(["test_match_(artist)"], replacement.uploader_linked_artists)
+    end
+
+    should "ignore artist tags without an artist entry" do
+      create(:artist_tag, name: "missing_(artist)")
+
+      post = create(:post, tag_string: "missing_(artist)", uploader: @mod_user)
+      replacement = build(:post_replacement, post: post, creator: @user)
+
+      assert_equal([], replacement.uploader_linked_artists)
+    end
+  end
 end

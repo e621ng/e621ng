@@ -2,7 +2,7 @@
   <ul>
     <li class="active">
       <%= link_to show_seq_post_path(post, q: params[:q], seq: "prev"), rel: "prev nofollow", class: "nav-link prev" do %>
-        <%= tag.i(class: "fas fa-angle-left") %>
+        <%= svg_icon(:chevron_left, width: 16, height: 16) %>
         <span>Prev</span>
       <% end %>
       <span class="nav-name"> 
@@ -14,7 +14,7 @@
       </span>
       <%= link_to show_seq_post_path(post, q: params[:q], seq: "next"), rel: "next nofollow", class: "nav-link next" do %>
         <span>Next</span>
-        <%= tag.i(class: "fas fa-angle-right") %>
+        <%= svg_icon(:chevron_right, width: 16, height: 16) %>
       <% end %>
     </li>
   </ul>

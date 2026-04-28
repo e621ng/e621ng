@@ -1,0 +1,43 @@
+<div id="c-moderator-post-diffs">
+  <div id="a-show">
+    <h1>Post Diff</h1>
+
+    <a id="post-diff-form-toggle" href="#">Show search options</a>
+    <%= form_tag(moderator_post_diff_path, method: :get, class: "simple_form hidden", id: "post-diff-form") do %>
+      <div class="input">
+        <%= label_tag :post_a, "Post A" %>
+        <%= text_field_tag :post_a, params[:post_a], placeholder: "Post ID or MD5" %>
+      </div>
+      <div class="input">
+        <%= label_tag :post_b, "Post B" %>
+        <%= text_field_tag :post_b, params[:post_b], placeholder: "Post ID or MD5" %>
+      </div>
+      <%= submit_tag "Compare" %>
+    <% end %>
+
+    <% if !@post_a %>
+      <p class="notice">Post A is unavailable.</p>
+    <% elsif !@post_b %>
+      <p class="notice">Post B is unavailable.</p>
+    <% else %>
+      <% if @post_a.is_image? && @post_b.is_image? %>
+        <div id="post-diff-container">
+          <%= render partial: "diff_image", locals: { label: "a", post: @post_a, replacement: @replacement_a } %>
+          <%= render partial: "diff_image", locals: { label: "b", post: @post_b, replacement: @replacement_b } %>
+          <div id="post-diff-slider"><div id="post-diff-slider-handle">&#8596;</div></div>
+        </div>
+      <% else %>
+        <% unless @post_a.is_image? %>
+          <p class="notice">Post A (#<%= @post_a.id %>) is not an image (<%= @post_a.file_ext %>)</p>
+        <% end %>
+        <% unless @post_b.is_image? %>
+          <p class="notice">Post B (#<%= @post_b.id %>) is not an image (<%= @post_b.file_ext %>)</p>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Post Diff
+<% end %>

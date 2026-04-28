@@ -1,0 +1,6 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "Trends", search_trends_path %>
+  <li class="divider"></li>
+  <%= subnav_link_to "Listing", search_trend_blacklists_path %>
+  <%= subnav_link_to "New", new_search_trend_blacklist_path %>
+<% end %>

@@ -109,13 +109,23 @@
   }
 
   a.dtext-external-link::after {
-    // https://fontawesome.com/icons/external-link-alt?style=solid
-    @include font-awesome-icon();
-    content: unicode("f35d");
+    $mask-url: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTUgM2g2djZNMTAgMTQgMjEgM00xOCAxM3Y2YTIgMiAwIDAgMS0yIDJINWEyIDIgMCAwIDEtMi0yVjhhMiAyIDAgMCAxIDItMmg2Ii8+PC9zdmc+");
+    content: "";
+    display: inline-block;
 
-    font-size: 0.6em;
-    padding: 0 0.2em 0 0.3em;
-    vertical-align: 1px;
+    width: 0.8em;
+    height: 0.8em;
+    margin: 0 0.2em;
+
+    background-color: themed("color-text-muted");
+    mask-image: $mask-url;
+    -webkit-mask-image: $mask-url;
+    mask-size: contain;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
   }
 
   details, pre, blockquote {

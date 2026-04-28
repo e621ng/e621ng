@@ -2,7 +2,8 @@
 
 class IqdbQueriesController < ApplicationController
   respond_to :html, :json
-  # Show uses POST because it needs a file parameter. This would be GET otherwise.
+  # CSRF is skipped only for read-only image similarity queries that don't modify data.
+  # This enables API access for external tools while the queries themselves are harmless.
   skip_forgery_protection only: :show
   before_action :validate_enabled
 
@@ -39,8 +40,8 @@ class IqdbQueriesController < ApplicationController
         render json: @matches, root: "posts"
       end
     end
-  rescue Downloads::File::Error
-    render_expected_error(404, "File not found or too large")
+  rescue Downloads::File::Error => e
+    render_expected_error(404, e.message)
   rescue IqdbProxy::Error => e
     render_expected_error(500, e.message)
   end

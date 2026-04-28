@@ -63,6 +63,9 @@
               <%= compact_time post_flag.created_at %>
               <% if CurrentUser.can_view_flagger_on_post?(post_flag) %>
                 <br> by <%= link_to_user post_flag.creator %>
+                <% if post_flag.creator_id == post_flag.post.uploader_id && !post_flag.is_deletion %>
+                  <%= svg_icon(:octagon_alert, class: "text-inline", title: "Flag created by the current uploader") %>
+                <% end %>
                 <%= link_to "»", post_flags_path(search: @search_params.merge(creator_name: post_flag.creator.name)) %>
               <% end %>
             </td>

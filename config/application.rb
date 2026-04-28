@@ -27,7 +27,7 @@ require_relative "../lib/middleware/parameter_sanitizer"
 module Danbooru
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 8.0
+    config.load_defaults 8.1
 
     # https://github.com/rails/rails/issues/50897
     config.active_record.raise_on_assign_to_attr_readonly = false
@@ -59,6 +59,17 @@ module Danbooru
       Rails.application.routes.default_url_options = {
         host: Danbooru.config.hostname,
       }
+    end
+
+    config.after_initialize do
+      next unless ActiveRecord::Base.connection.table_exists?(:favorite_events)
+      if Rails.env.test?
+        FavoriteEvent.ensure_upcoming_partitions!
+      else
+        FavoriteEventPartitionJob.perform_later
+      end
+    rescue ActiveRecord::NoDatabaseError, PG::ConnectionBad
+      nil
     end
 
     config.i18n.enforce_available_locales = false

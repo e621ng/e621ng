@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title><%= Danbooru.config.app_name %><% if !params[:tags].blank? %>: <%= params[:tags] %><% end %></title>
-  <link href="<%= posts_url(tags: params[:tags], format: :atom) %>" rel="self"/>
-  <link href="<%= posts_url(tags: params[:tags]) %>" rel="alternate"/>
-  <id><%= posts_url(tags: params[:tags], format: :atom) %></id>
+  <% tags = @tag_query.presence %>
+  <title><%= Danbooru.config.app_name %><% if tags.present? %>: <%= tags %><% end %></title>
+  <link href="<%= posts_url(tags: tags, format: :atom) %>" rel="self"/>
+  <link href="<%= posts_url(tags: tags) %>" rel="alternate"/>
+  <id><%= posts_url(tags: tags, format: :atom) %></id>
   <% if @posts.any? %>
     <updated><%= @posts[0].created_at.gmtime.xmlschema %></updated>
   <% end %>

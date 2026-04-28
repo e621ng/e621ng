@@ -1,5 +1,28 @@
 <div class="posts-section">
 
+<% if user.is_artist? %>
+  <% has_more_than_one_tag = user.artists.size > 1 %>
+  <% user.artists.each do |artist| %>
+    <div class="profile-sample profile-uploads">
+
+      <div class="profile-sample-header">
+        <%= link_to has_more_than_one_tag ? artist.name : "Artwork", posts_path(tags: artist.name), class: "title" %>
+      </div>
+
+      <div class="profile-sample-links">
+        <%= link_to(sanitize("<b>#{artist.tag&.post_count || 0}</b> total"), posts_path(tags: artist.name)) %>
+        <span class="spacer"></span>
+        <%= link_to("Comments", comments_path(group_by: "comment", search: { post_tags_match: artist.name }), class: "profile-comments-link") %>
+      </div>
+
+      <div class="profile-sample-posts">
+        <%= render(PostThumbnailComponent.with_collection(presenter.artist_posts(artist), tags: artist.name)) %>
+      </div>
+
+    </div>
+  <% end %>
+<% end %>
+
 <% if presenter.has_uploads? %>
   <div class="profile-sample profile-uploads">
 

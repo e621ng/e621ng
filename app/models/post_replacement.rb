@@ -87,6 +87,13 @@ class PostReplacement < ApplicationRecord
     replacements.empty?
   end
 
+  ## DB!
+  # Fetches the data for the artist tags to find any that have the linked artists matching the creator.
+  # Sends a db request to look up the artist data.
+  def uploader_linked_artists
+    @uploader_linked_artists ||= post.artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == creator.id }.map(&:name)
+  end
+
   def sequence_number
     return 0 if status == "original"
     siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids
@@ -335,7 +342,7 @@ class PostReplacement < ApplicationRecord
         q = q.where_user(:uploader_id_on_approve, %i[uploader_name_on_approve uploader_id_on_approve], params)
 
         if params[:post_id].present?
-          q = q.where("post_id in (?)", params[:post_id].split(",").first(100).map(&:to_i))
+          q = q.where("post_id in (?)", params[:post_id].split(",").first(Danbooru.config.max_per_page).map(&:to_i))
         end
 
         if params[:reason].present?

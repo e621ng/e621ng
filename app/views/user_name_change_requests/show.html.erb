@@ -2,7 +2,7 @@
   <div id="a-show">
     <h1>Name Change Request</h1>
 
-    <table class="aligned-vertical">
+    <table style="border-spacing: 0.5rem 0.25rem; border-collapse: unset;">
       <tbody>
         <tr>
           <th>Date</th>
@@ -16,26 +16,12 @@
           <td><%= link_to_user @change_request.user %></td>
         </tr>
         <tr>
-          <th>Request</th>
-          <td>
-            <strong><%= @change_request.original_name %></strong> ->
-            <strong><%= @change_request.desired_name %></strong>
-          </td>
+          <th>Old</th>
+          <td><%= @change_request.original_name %></td>
         </tr>
         <tr>
-          <th>Reason</th>
-          <td><%= @change_request.change_reason %></td>
-        </tr>
-        <tr>
-          <th>Status</th>
-          <td>
-            <%= @change_request.status %>
-            <% if @change_request.approved? %>
-              by <%= link_to_user @change_request.approver %>
-            <% elsif @change_request.rejected? %>
-              for reason: <%= link_to @change_request.rejection_reason %>
-            <% end %>
-          </td>
+          <th>New</th>
+          <td><%= @change_request.desired_name %></td>
         </tr>
       </tbody>
     </table>

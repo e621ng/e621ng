@@ -4,6 +4,7 @@ require "test_helper"
 
 class LinkHelperTest < ActionView::TestCase
   include ViteRails::TagHelpers
+  include IconHelper
 
   test "for a non-handled url" do
     assert_nil(hostname_for_link("https://example.com"))
@@ -43,8 +44,9 @@ class LinkHelperTest < ActionView::TestCase
     assert_match(/furaffinity.*\.png/, result)
   end
 
-  test "it returns a fontawesome icon if no hostname is found" do
-    assert_match("globe", favicon_for_link("https://example.com"))
+  test "it returns an svg icon if no hostname is found" do
+    assert_match(/<svg/, favicon_for_link("https://example.com"))
+    assert_match(/globe/, favicon_for_link("https://example.com"))
   end
 
   test "all listed images exist" do

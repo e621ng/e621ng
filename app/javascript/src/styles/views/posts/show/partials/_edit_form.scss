@@ -1,0 +1,11 @@
+.post-edit-title {
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+
+  button.st-button {
+    margin-left: auto;
+    span { font-size: 1.25rem; }
+  }
+}

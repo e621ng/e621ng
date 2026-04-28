@@ -6,7 +6,7 @@
       <%= tag.picture do %>
         <%= tag.source type: "image/webp", srcset: preview_urls[0] if webp_enabled? %>
         <%= tag.source type: "image/jpeg", srcset: preview_urls[1] %>
-        <%= tag.img src: preview_urls[1], alt: alt_text %>
+        <%= tag.img src: preview_urls[1], alt: alt_text, **image_attributes %>
       <% end %>
     <% end %>
   <% end %>

@@ -4,11 +4,12 @@ class PostThumbnailComponent < ViewComponent::Base
   include IconHelper
   with_collection_parameter :post
 
-  def initialize(post:, **options)
+  def initialize(post:, post_counter: -1, **options)
     super()
 
     # Post may be wrapped in a Draper decorator, get the underlying object
     @post = post.respond_to?(:object) ? post.object : post
+    @post_counter = post_counter
     @options = options
     @user = defined?(CurrentUser) ? CurrentUser.user : nil
 
@@ -118,6 +119,15 @@ class PostThumbnailComponent < ViewComponent::Base
 
   def webp_enabled?
     Danbooru.config.webp_previews_enabled?
+  end
+
+  def image_attributes
+    attributes = {}
+    if @post_counter >= 0
+      attributes[:fetchpriority] = "high" if @post_counter < 5
+      attributes[:loading] = "lazy" if @post_counter >= 5
+    end
+    attributes
   end
 
   ##############################

@@ -224,28 +224,29 @@ nav.navigation .simple-avatar-menu {
   }
 }
 
-// Avatar menu states
+// Avatar menu conditional visibility
 nav.navigation .simple-avatar-menu {
+  --display-uploads: none;
+  --display-favorites: none;
+  --display-sets: none;
+  --display-comments: none;
+  --display-forums: none;
+  --display-content-divider: none;
+  --display-mentions-divider: none;
 
-  &[data-state="idle"], 
-  &[data-state="loading"] {
-    a, hr, h4 {
-      display: none;
-    }
-  }
+  &.has-uploads { --display-uploads: unset; --display-content-divider: unset; }
+  &.has-favorites { --display-favorites: unset; --display-content-divider: unset; }
+  &.has-sets { --display-sets: unset; --display-content-divider: unset; }
+  &.has-comments { --display-comments: unset; --display-mentions-divider: unset; }
+  &.has-forums { --display-forums: unset; --display-mentions-divider: unset; }
 
-  &[data-state="loading"] {
-
-    height: 2rem;
-    width: 2rem;
-    justify-content: center;
-    align-items: center;
-
-    &::after {
-      content: "Loading . . .";
-      color: themed("color-text-muted");
-    }
-  }
+  .must-uploads { display: var(--display-uploads); }
+  .must-favorites { display: var(--display-favorites); }
+  .must-sets { display: var(--display-sets); }
+  .must-comments { display: var(--display-comments); }
+  .must-forums { display: var(--display-forums); }
+  .must-uploads-favorites-sets { display: var(--display-content-divider); }
+  .must-comments-forums { display: var(--display-mentions-divider); }
 }
 
 

@@ -18,8 +18,10 @@ body.c-posts.a-show-seq {
   }
 
   @import "partials/detailed_rejection";
+  @import "partials/delete_with_reason";
   @import "partials/add_to_pool";
   @import "partials/notes";
+  @import "partials/edit_form";
 }
 
 // Due to the show-seq page having a different action,
@@ -30,3 +32,198 @@ body.c-posts.a-show-seq {
 }
 
 @import "partials/post_toolbar";
+@import "partials/recommended";
+
+
+// Individual post UI
+// Needs to be coordinated with the index page, since they should have similar sidebar UI.
+.post-display {
+  display: grid;
+
+  grid-template-areas:
+    "search  "
+    "content "
+    "tabs    "
+    "comments"
+    "sidebar "
+    "adscape ";
+  grid-template-columns: 1fr;
+  grid-template-rows: min-content 1fr min-content auto auto auto;
+
+  flex: 1; // See Exhibit A
+
+  // 1. Searchbox
+  & > .search {
+    grid-area: search;
+
+    padding: 0.5rem 0.25rem;
+    box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
+
+    h1 {
+      font-size: $h3-size;
+    }
+
+    // Align the controls properly
+    position: relative;
+
+    .search-controls {
+      display: flex;
+      flex-flow: row;
+      justify-content: flex-end;
+      z-index: 1;
+
+      position: absolute;
+      top: 0;
+      right: 0;
+
+      padding: 0.25rem;
+      gap: 0.5rem;
+
+      background: themed("color-foreground");
+      border-radius: 0 0 0.25rem 0.25rem;
+
+      #search-fullscreen { display: none; }
+      #search-settings {
+        height: 1.25rem;
+        width: 2rem;
+        justify-content: center;
+        svg { height: 1rem; }
+      }
+
+      button {
+        height: 1.5rem;
+        padding: 0;
+
+        svg {
+          height: 1.25rem;
+          width: 1.25rem;
+          padding: 0.25rem;
+          margin: -0.125rem 0;
+        }
+      }
+    }
+  }
+
+  // 2. Content
+  & > .content {
+    display: flex; // See Exhibit A
+    flex-flow: column;
+
+    grid-area: content;
+
+    // Imported from #page
+    padding: 0.5rem 0.25rem 0.25rem;
+    background-color: #152f56;
+    background-color: themed("color-foreground");
+    background-image: themed("image-foreground-top", "none");
+    background-position: themed("image-foreground-top-position", "unset");
+    background-repeat: themed("image-foreground-top-repeat", "unset");
+    background-size: themed("image-foreground-size", "unset");
+
+    #description {
+      background: themed("color-section");
+      border-left-color: themed("color-section-lighten-5");
+    }
+  }
+
+  // 3. Tab UI
+  & > .tabs {
+    grid-area: tabs;
+
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 0.25rem;
+    margin: 1rem 0.25rem 0;
+    border-bottom: 1px solid themed("color-section");
+
+    button {
+      background: unset;
+      color: themed("color-link");
+      font-size: 1rem;
+      line-height: 1rem;
+      padding: 0.5rem 1rem;
+      @include st-radius-top;
+    }
+  }
+
+  // 4. Comments
+  & > .comments {
+    grid-area: comments;
+
+    display: flex;
+    flex-flow: column;
+
+    padding: 0.5rem 0.75rem themed("content-padding-bottom", "0");
+    box-shadow: inset 0 .25rem .25rem -.25rem themed("color-background");
+
+    .row.notices { margin: unset !important; }
+  }
+
+  // 5. Sidebar
+  & > .sidebar {
+    grid-area: sidebar;
+
+    display: flex;
+    flex-flow: column;
+    gap: 1em;
+
+    padding: 0.5rem .75rem themed("content-padding-bottom", "0");
+    box-shadow: inset 0px 0.25rem 0.25rem -0.25rem themed("color-background");
+
+    #mode-box label {
+      font-size: 1.16667em;
+      line-height: 1.5rem;
+    }
+
+    // Mode selection
+    #mode-box-mode, #mode-box #set-id {
+      width: 100%;
+
+      // Match the searchbox
+      padding: 0.5em;
+      font-family: $base_font_family;
+      font-size: 1.05em;
+    }
+  }
+
+  & > .adscape {
+    grid-area: adscape;
+
+    background-image: themed("image-foreground-bottom", "none");
+    background-position: themed("image-foreground-bottom-position", "unset");
+    background-repeat: themed("image-foreground-bottom-repeat", "unset");
+    background-size: themed("image-foreground-size", "unset");
+
+    padding-bottom: themed("content-padding-bottom", "0");
+  }
+
+  // Go-Up button
+  .go-up {
+    position: sticky;
+    bottom: 0.5rem;
+    right: 0;
+    display: flex;
+    justify-content: flex-end;
+
+    svg {
+      height: 1rem;
+      width: 1rem;
+    }
+  }
+}
+
+// Mobile tab UI
+.post-display[data-tab-state="comments"] {
+  & > .tabs button[data-action="comments"] {
+    background: themed("color-section");
+    pointer-events: none;
+  }
+  & > .sidebar { display: none; }
+}
+.post-display[data-tab-state="tags"] {
+  & > .tabs button[data-action="tags"] {
+    background: themed("color-section");
+    pointer-events: none;
+  }
+  & > .comments { display: none; }
+}

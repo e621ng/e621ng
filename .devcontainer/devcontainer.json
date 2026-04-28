@@ -46,5 +46,11 @@
         "dev.containers.openTerminal": "on"
       }
     }
+  },
+
+  "portsAttributes": {
+    "8000": {
+      "onAutoForward": "ignore"
+    }
   }
 }

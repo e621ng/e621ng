@@ -1,6 +1,8 @@
 <div id="c-edit-history">
   <div id="a-index">
-    <h1>Recent Edits</h1>
+    <h1>Edit Histories</h1>
+
+    <%= render "search" %>
 
     <table class="striped">
       <thead>
@@ -22,13 +24,13 @@
         <tr id="edit-<%= edit.id %>">
           <td><%= link_to "Show", action: "show", id: edit.versionable_id, type: edit.versionable_type %></td>
           <td><%= edit.versionable_type %></td>
-          <td><%= compact_time edit.updated_at %></td>
+          <td><%= compact_time edit.created_at %></td>
           <% if CurrentUser.is_admin? %>
             <td><%= link_to_ip edit.ip_addr %></td>
           <% end %>
           <td><%= link_to_user edit.user %></td>
           <td><%= edit.body[0..30] %></td>
-          <td><%= edit.subject&[0..30] %></td>
+          <td><%= edit.subject&.[](0..30) %></td>
         </tr>
       <% end %>
       </tbody>

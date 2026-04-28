@@ -1,0 +1,492 @@
+# Language labels
+'Lang: Ruby':
+  - changed-files:
+    - any-glob-to-any-file: '**/*.rb'
+
+'Lang: JS':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.js'
+      - '**/*.ts'
+
+'Lang: Vue':
+  - changed-files:
+    - any-glob-to-any-file: '**/*.vue'
+
+'Lang: CSS':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.css'
+      - '**/*.scss'
+      - '**/*.sass'
+
+'Lang: HTML':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.html'
+      - '**/*.html.erb'
+
+'Lang: SQL':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.sql'
+      - 'db/migrate/**'
+      - 'db/schema.rb'
+
+# CI/CD & tooling
+CI/CD:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/**'
+      - '.github/actions/**'
+      - 'Dockerfile*'
+      - 'docker-compose*.yml'
+      - 'Procfile*'
+      - '.env.sample'
+
+Rubocop:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.rubocop*.yml'
+
+'Type: Dependencies':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'package-lock.json'
+
+# Feature / entity labels
+AIBUR:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/bulk_update_request.rb'
+      - 'app/controllers/bulk_update_requests_controller.rb'
+      - 'app/views/bulk_update_requests/**'
+      - 'app/logical/bulk_update_request_importer.rb'
+      - 'app/jobs/tag_alias_job.rb'
+      - 'app/jobs/tag_batch_job.rb'
+      - 'app/jobs/tag_implication_job.rb'
+
+API:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/blueprints/**'
+      - 'app/controllers/api_keys_controller.rb'
+      - 'app/models/api_key.rb'
+      - 'app/views/api_keys/**'
+
+Artists:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/artist*.rb'
+      - 'app/controllers/artist*_controller.rb'
+      - 'app/views/artists/**'
+      - 'app/views/artist_urls/**'
+      - 'app/views/artist_versions/**'
+      - 'app/javascript/src/**/*artist*'
+
+AutomodRules:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/automod_rule.rb'
+      - 'app/controllers/automod_rules_controller.rb'
+      - 'app/views/automod_rules/**'
+      - 'app/jobs/automod_*.rb'
+
+AvoidPostings:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/avoid_posting*.rb'
+      - 'app/controllers/avoid_posting*_controller.rb'
+      - 'app/views/avoid_postings/**'
+      - 'app/views/avoid_posting_versions/**'
+
+Autocomplete:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/javascript/src/**/*autocomplete*'
+      - 'app/javascript/src/**/autocomplete*'
+
+Bans:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/ban.rb'
+      - 'app/models/ip_ban.rb'
+      - 'app/controllers/bans_controller.rb'
+      - 'app/controllers/ip_bans_controller.rb'
+      - 'app/views/bans/**'
+      - 'app/views/ip_bans/**'
+
+Blacklist:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/email_blacklist.rb'
+      - 'app/controllers/email_blacklists_controller.rb'
+      - 'app/views/email_blacklists/**'
+      - 'app/javascript/src/**/blacklist*'
+      - 'app/javascript/src/**/*blacklist*'
+
+Blips:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/blip.rb'
+      - 'app/controllers/blips_controller.rb'
+      - 'app/views/blips/**'
+      - 'app/javascript/src/**/*blip*'
+
+CommentVotes:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/comment_vote.rb'
+      - 'app/controllers/comment_votes_controller.rb'
+      - 'app/views/comment_votes/**'
+
+Comments:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/comment.rb'
+      - 'app/controllers/comments_controller.rb'
+      - 'app/views/comments/**'
+      - 'app/javascript/src/**/*comment*'
+
+DMails:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/dmail*.rb'
+      - 'app/controllers/dmails_controller.rb'
+      - 'app/views/dmails/**'
+      - 'app/javascript/src/**/*dmail*'
+
+DText:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'vendor/dtext/**'
+      - 'app/javascript/src/**/*dtext*'
+      - 'app/controllers/dtext_previews_controller.rb'
+
+ExceptionLog:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/exception_log.rb'
+      - 'app/controllers/exception_logs_controller.rb'
+      - 'app/views/exception_logs/**'
+
+Favorites:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/favorite*.rb'
+      - 'app/controllers/favorites_controller.rb'
+      - 'app/controllers/post_favorites_controller.rb'
+      - 'app/views/favorites/**'
+      - 'app/logical/favorite_manager.rb'
+      - 'app/jobs/flush_favorites_job.rb'
+      - 'app/jobs/favorite_event_partition_job.rb'
+
+ForumPosts:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/forum_*.rb'
+      - 'app/controllers/forum_*_controller.rb'
+      - 'app/views/forum_posts/**'
+      - 'app/views/forum_topics/**'
+      - 'app/views/forum_categories/**'
+      - 'app/views/forum_post_votes/**'
+      - 'app/javascript/src/**/*forum*'
+
+HelpPages:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/help_page.rb'
+      - 'app/controllers/help_controller.rb'
+      - 'app/views/help/**'
+
+Hotkeys:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/javascript/src/**/hotkey*'
+      - 'app/javascript/src/**/*hotkey*'
+
+IQDBQueries:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/controllers/iqdb_queries_controller.rb'
+      - 'app/views/iqdb_queries/**'
+      - 'app/logical/iqdb_proxy.rb'
+      - 'app/jobs/iqdb_*.rb'
+
+Mailers:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/mailers/**'
+      - 'app/views/user_mailer/**'
+
+Mascots:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/mascot.rb'
+      - 'app/controllers/mascots_controller.rb'
+      - 'app/views/mascots/**'
+
+ModActions:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/mod_action.rb'
+      - 'app/models/staff_audit_log.rb'
+      - 'app/controllers/mod_actions_controller.rb'
+      - 'app/views/mod_actions/**'
+
+NewsUpdates:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/news_update.rb'
+      - 'app/controllers/news_updates_controller.rb'
+      - 'app/views/news_updates/**'
+
+Notes:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/note*.rb'
+      - 'app/controllers/notes_controller.rb'
+      - 'app/controllers/note_versions_controller.rb'
+      - 'app/views/notes/**'
+      - 'app/views/note_versions/**'
+      - 'app/javascript/src/**/*note*'
+
+OpenSearch:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/logical/elastic_*.rb'
+      - 'app/logical/document_store/**'
+      - 'app/jobs/index_update_job.rb'
+      - 'config/opensearch/**'
+
+Pagination:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/logical/danbooru/paginator/**'
+
+PoolVersions:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/pool_version.rb'
+      - 'app/controllers/pool_versions_controller.rb'
+      - 'app/views/pool_versions/**'
+
+Pools:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/pool*.rb'
+      - 'app/controllers/pool*_controller.rb'
+      - 'app/views/pools/**'
+      - 'app/views/pool_elements/**'
+      - 'app/views/pool_orders/**'
+      - 'app/views/pool_versions/**'
+      - 'app/javascript/src/**/*pool*'
+      - 'app/javascript/entrypoints/v_pool*.ts'
+
+Popular:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/controllers/popular_controller.rb'
+      - 'app/views/popular/**'
+      - 'app/javascript/src/**/*popular*'
+
+PostEvents:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/post_event.rb'
+      - 'app/controllers/post_events_controller.rb'
+      - 'app/views/post_events/**'
+      - 'app/blueprints/post_event_blueprint.rb'
+
+PostFlags:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/post_flag.rb'
+      - 'app/controllers/post_flags_controller.rb'
+      - 'app/views/post_flags/**'
+      - 'app/javascript/src/**/*post_flag*'
+      - 'app/javascript/src/**/*flag*'
+
+PostReplacements:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/post_replacement.rb'
+      - 'app/controllers/post_replacements_controller.rb'
+      - 'app/views/post_replacements/**'
+      - 'app/logical/upload_service/**'
+      - 'app/javascript/src/**/*replacement*'
+
+PostSets:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/post_set*.rb'
+      - 'app/controllers/post_set*_controller.rb'
+      - 'app/views/post_sets/**'
+      - 'app/views/post_set_maintainers/**'
+      - 'app/jobs/post_set_*.rb'
+
+PostVersions:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/post_version.rb'
+      - 'app/controllers/post_versions_controller.rb'
+      - 'app/views/post_versions/**'
+      - 'app/logical/elastic_post_version_query_builder.rb'
+
+PostVotes:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/post_vote.rb'
+      - 'app/controllers/post_votes_controller.rb'
+      - 'app/views/post_votes/**'
+      - 'app/logical/vote_manager.rb'
+
+Posts:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/post.rb'
+      - 'app/models/post_approval.rb'
+      - 'app/models/post_disapproval.rb'
+      - 'app/models/destroyed_post.rb'
+      - 'app/controllers/posts_controller.rb'
+      - 'app/controllers/posts_short_controller.rb'
+      - 'app/controllers/deleted_posts_controller.rb'
+      - 'app/controllers/post_approvals_controller.rb'
+      - 'app/controllers/post_report_reasons_controller.rb'
+      - 'app/views/posts/**'
+      - 'app/views/deleted_posts/**'
+      - 'app/views/post_approvals/**'
+      - 'app/blueprints/post_blueprint.rb'
+      - 'app/logical/elastic_post_query_builder.rb'
+      - 'app/logical/image_sampler.rb'
+      - 'app/jobs/post_*.rb'
+      - 'app/javascript/src/**/*post*'
+      - 'app/javascript/entrypoints/v_posts*.ts'
+
+Recommender:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/controllers/post_recommendations_controller.rb'
+      - 'app/views/post_recommendations/**'
+      - 'app/logical/ai_methods.rb'
+
+SearchTrends:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/search_trend*.rb'
+      - 'app/controllers/search_trend*_controller.rb'
+      - 'app/views/search_trends/**'
+      - 'app/jobs/search_trend_*.rb'
+
+Security:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/logical/security/**'
+      - 'app/controllers/security/**'
+      - 'app/views/security/**'
+
+Sidekiq:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/jobs/**'
+      - 'config/sidekiq*.yml'
+      - 'config/schedule.yml'
+
+StaffNotes:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/staff_note.rb'
+      - 'app/controllers/staff_notes_controller.rb'
+      - 'app/views/staff_notes/**'
+
+Tags:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/tag*.rb'
+      - 'app/controllers/tags_controller.rb'
+      - 'app/controllers/tag_aliases_controller.rb'
+      - 'app/controllers/related_tags_controller.rb'
+      - 'app/views/tags/**'
+      - 'app/views/tag_aliases/**'
+      - 'app/logical/tag_query.rb'
+      - 'app/logical/post_query_builder.rb'
+      - 'app/logical/bulk_related_tag_query.rb'
+      - 'app/jobs/tag_*.rb'
+      - 'app/javascript/src/**/*tag*'
+
+Takedowns:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/takedown.rb'
+      - 'app/controllers/takedowns_controller.rb'
+      - 'app/views/takedowns/**'
+
+Themes:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/javascript/src/styles/themes/**'
+      - 'app/javascript/src/**/theme*'
+      - 'app/javascript/src/**/*theme*'
+      - 'app/views/static/theme.html.erb'
+      - 'app/views/layouts/_theme_include.html.erb'
+
+Tickets:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/ticket.rb'
+      - 'app/controllers/tickets_controller.rb'
+      - 'app/views/tickets/**'
+      - 'app/javascript/src/**/*ticket*'
+      - 'app/javascript/entrypoints/v_tickets.ts'
+
+UploadWhitelists:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/upload_whitelist.rb'
+      - 'app/controllers/upload_whitelists_controller.rb'
+      - 'app/views/upload_whitelists/**'
+
+Uploads:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/upload.rb'
+      - 'app/controllers/uploads_controller.rb'
+      - 'app/views/uploads/**'
+      - 'app/logical/upload_service.rb'
+      - 'app/logical/upload_service/**'
+      - 'app/jobs/upload_*.rb'
+      - 'app/javascript/src/**/*upload*'
+      - 'app/javascript/entrypoints/v_uploads*.ts'
+
+UserFeedbacks:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/user_feedback.rb'
+      - 'app/controllers/user_feedbacks_controller.rb'
+      - 'app/views/user_feedbacks/**'
+
+Users:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/user*.rb'
+      - 'app/controllers/users_controller.rb'
+      - 'app/controllers/sessions_controller.rb'
+      - 'app/controllers/auths_controller.rb'
+      - 'app/controllers/emails_controller.rb'
+      - 'app/views/users/**'
+      - 'app/views/sessions/**'
+      - 'app/views/auths/**'
+      - 'app/logical/current_user.rb'
+      - 'app/javascript/src/**/*user*'
+
+WikiPages:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/models/wiki_page*.rb'
+      - 'app/controllers/wiki_pages_controller.rb'
+      - 'app/views/wiki_pages/**'
+      - 'app/javascript/src/**/*wiki*'

@@ -6,4 +6,8 @@
   <% if CurrentUser.is_moderator? %>
   <%= subnav_link_to "Claimed", tickets_path(search: { claimant_id: CurrentUser.id }) %>
   <% end %>
+  <% if CurrentUser.is_admin? %>
+    <li class="divider"></li>
+    <%= subnav_link_to "AutoMod Rules", admin_automod_rules_path %>
+  <% end %>
 <% end %>

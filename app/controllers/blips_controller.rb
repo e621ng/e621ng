@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class BlipsController < ApplicationController
-  class BlipTooOld < Exception ; end
+  class BlipTooOld < StandardError; end
   respond_to :html, :json
-  before_action :member_only, only: %i[create new update edit hide]
-  before_action :moderator_only, only: %i[unhide warning]
+  before_action :member_only, only: %i[create new update edit delete]
+  before_action :moderator_only, only: %i[undelete warning]
   before_action :admin_only, only: [:destroy]
   before_action :ensure_lockdown_disabled, except: %i[index show]
 
@@ -19,7 +19,7 @@ class BlipsController < ApplicationController
     @blip = Blip.find(params[:id])
     check_visible(@blip)
     @parent = @blip.response_to
-    @children = Blip.visible.where('response_to = ?', @blip.id).paginate(params[:page])
+    @children = Blip.visible.where("response_to = ?", @blip.id).paginate(params[:page])
     respond_with(@blip)
   end
 
@@ -33,27 +33,27 @@ class BlipsController < ApplicationController
     @blip = Blip.find(params[:id])
     check_edit_privilege(@blip)
     @blip.update(blip_params(:update))
-    flash[:notice] = 'Blip updated'
+    flash[:notice] = "Blip updated"
     respond_with(@blip)
   end
 
-  def hide
+  def delete
     @blip = Blip.find(params[:id])
-    check_hide_privilege(@blip)
-    @blip.hide!
+    check_delete_privilege(@blip)
+    @blip.delete!
     respond_with(@blip)
   end
 
-  def unhide
+  def undelete
     @blip = Blip.find(params[:id])
-    @blip.unhide!
+    @blip.undelete!
     respond_with(@blip)
   end
 
   def destroy
     @blip = Blip.find(params[:id])
     @blip.destroy
-    flash[:notice] = "Blip deleted"
+    flash[:notice] = "Blip destroyed"
     respond_with(@blip) do |format|
       format.html do
         respond_with(@blip)
@@ -78,7 +78,7 @@ class BlipsController < ApplicationController
 
   def warning
     @blip = Blip.find(params[:id])
-    if params[:record_type] == 'unmark'
+    if params[:record_type] == "unmark"
       @blip.remove_user_warning!
     else
       @blip.user_warned!(params[:record_type], CurrentUser.user)
@@ -116,8 +116,8 @@ class BlipsController < ApplicationController
     raise User::PrivilegeError unless blip.visible_to?(CurrentUser.user)
   end
 
-  def check_hide_privilege(blip)
-    raise User::PrivilegeError unless blip.can_hide?(CurrentUser.user)
+  def check_delete_privilege(blip)
+    raise User::PrivilegeError unless blip.can_delete?(CurrentUser.user)
   end
 
   def check_edit_privilege(blip)

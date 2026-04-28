@@ -46,7 +46,7 @@ class StaticController < ApplicationController
   end
 
   def home
-    render layout: "blank"
+    render layout: "blank", formats: [:html]
   end
 
   def theme
@@ -66,9 +66,9 @@ class StaticController < ApplicationController
   end
 
   def discord
-    raise User::PrivilegeError, "You must have an account for at least one week in order to join the Discord server." unless CurrentUser.can_discord?
-
     if request.post?
+      raise User::PrivilegeError, "You must have an account for at least one week in order to join the Discord server." unless CurrentUser.can_discord?
+
       time = (Time.now + 5.minutes).to_i
       secret = Danbooru.config.discord_secret
       # TODO: Proper HMAC
@@ -211,6 +211,7 @@ class StaticController < ApplicationController
 
     if CurrentUser.is_admin?
       add_link[:admin, "Admin Dashboard", admin_dashboard_path]
+      add_link[:admin, "AutoMod Rules", admin_automod_rules_path]
       add_link[:admin, "Forum Categories", forum_categories_path]
       add_link[:admin, "IP Addresses", moderator_ip_addrs_path]
       add_link[:admin, "IP Bans", ip_bans_path]
@@ -218,6 +219,7 @@ class StaticController < ApplicationController
       add_link[:admin, "Email Blacklist", email_blacklists_path]
       add_link[:admin, "Destroyed Posts", admin_destroyed_posts_path]
       add_link[:admin, "Exceptions", admin_exceptions_path]
+      add_link[:admin, "Search Trends", search_trends_path]
       add_link[:admin, "Stuck DNP tags", new_admin_stuck_dnp_path]
       add_link[:admin, "Security", security_root_path]
       add_link[:admin, "Alt list", alt_list_admin_users_path]

@@ -133,8 +133,12 @@ class ArtistUrl < ApplicationRecord
   def priority
     prio = 0
     prio -= 1000 unless is_active
-    host = Addressable::URI.parse(url).domain
-    prio += SITES_PRIORITY_ORDER.index(host).to_i
+    begin
+      host = Addressable::URI.parse(url).domain
+      prio += SITES_PRIORITY_ORDER.index(host).to_i
+    rescue Addressable::URI::InvalidURIError, NoMethodError
+      prio += 10_000 # assign lowest priority to invalid URLs
+    end
     prio
   end
 

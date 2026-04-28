@@ -73,6 +73,9 @@ services:
     environment:
       <<: *common-env
       NGINX_PORT: ${EXPOSED_SERVER_PORT:-3000}
+      RECOMMENDER_URL: http://host.docker.internal:8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - autocompleted
       - e621
