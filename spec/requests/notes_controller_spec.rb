@@ -11,11 +11,7 @@ RSpec.describe NotesController do
 
   # Swap CurrentUser so belongs_to_creator records the right creator_id.
   let(:note) do
-    orig = CurrentUser.user
-    CurrentUser.user = creator
-    create(:note)
-  ensure
-    CurrentUser.user = orig
+    CurrentUser.scoped(creator) { create(:note) }
   end
 
   let(:post_for_note)        { create(:post) }

@@ -13,11 +13,7 @@ RSpec.describe BulkUpdateRequestsController do
   # Build the BUR as `member` so belongs_to_creator sets creator_id and
   # creator_ip_addr correctly, then restore the previous CurrentUser.
   let(:bur) do
-    orig = CurrentUser.user
-    CurrentUser.user = member
-    create(:bulk_update_request, user: member)
-  ensure
-    CurrentUser.user = orig
+    CurrentUser.scoped(member) { create(:bulk_update_request, user: member) }
   end
 
   # ---------------------------------------------------------------------------
@@ -191,11 +187,7 @@ RSpec.describe BulkUpdateRequestsController do
 
     context "with a non-pending BUR" do
       let(:approved_bur) do
-        orig = CurrentUser.user
-        CurrentUser.user = member
-        create(:approved_bulk_update_request, user: member)
-      ensure
-        CurrentUser.user = orig
+        CurrentUser.scoped(member) { create(:approved_bulk_update_request, user: member) }
       end
 
       it "returns 403 for the creator" do
@@ -278,11 +270,7 @@ RSpec.describe BulkUpdateRequestsController do
 
     context "with an already-rejected BUR" do
       let(:rejected_bur) do
-        orig = CurrentUser.user
-        CurrentUser.user = member
-        create(:rejected_bulk_update_request, user: member)
-      ensure
-        CurrentUser.user = orig
+        CurrentUser.scoped(member) { create(:rejected_bulk_update_request, user: member) }
       end
 
       it "returns 403 for the creator" do

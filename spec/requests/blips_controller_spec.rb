@@ -13,11 +13,7 @@ RSpec.describe BlipsController do
   # passing creator: directly would leave creator_ip_addr null. Set CurrentUser
   # to the desired creator when building the record instead.
   let(:blip) do
-    orig = CurrentUser.user
-    CurrentUser.user = creator
-    create(:blip)
-  ensure
-    CurrentUser.user = orig
+    CurrentUser.scoped(creator) { create(:blip) }
   end
 
   # ---------------------------------------------------------------------------
@@ -167,11 +163,7 @@ RSpec.describe BlipsController do
 
     context "with a blip older than 5 minutes" do
       let(:old_blip) do
-        orig = CurrentUser.user
-        CurrentUser.user = creator
-        create(:blip).tap { |b| b.update_columns(created_at: 6.minutes.ago) }
-      ensure
-        CurrentUser.user = orig
+        CurrentUser.scoped(creator) { create(:blip).tap { |b| b.update_columns(created_at: 6.minutes.ago) } }
       end
 
       it "redirects back (BlipTooOld) for a non-admin user via HTML" do
@@ -238,11 +230,7 @@ RSpec.describe BlipsController do
 
     context "with a blip older than 5 minutes" do
       let(:old_blip) do
-        orig = CurrentUser.user
-        CurrentUser.user = creator
-        create(:blip).tap { |b| b.update_columns(created_at: 6.minutes.ago) }
-      ensure
-        CurrentUser.user = orig
+        CurrentUser.scoped(creator) { create(:blip).tap { |b| b.update_columns(created_at: 6.minutes.ago) } }
       end
 
       it "redirects back (BlipTooOld) for the creator via HTML" do

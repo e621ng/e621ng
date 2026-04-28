@@ -13,11 +13,7 @@ RSpec.describe StaffNotesController do
 
   # Staff note created with `janitor` as creator, same pattern as blips_controller_spec.
   let(:staff_note) do
-    orig = CurrentUser.user
-    CurrentUser.user = janitor
-    create(:staff_note, user: target_user)
-  ensure
-    CurrentUser.user = orig
+    CurrentUser.scoped(janitor) { create(:staff_note, user: target_user) }
   end
 
   # ---------------------------------------------------------------------------

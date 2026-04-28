@@ -13,11 +13,7 @@ RSpec.describe PostFlagsController do
 
   # belongs_to_creator reads CurrentUser; swap to member so the flag's creator is correct.
   let(:post_flag) do
-    orig = CurrentUser.user
-    CurrentUser.user = member
-    create(:post_flag, post: post_record)
-  ensure
-    CurrentUser.user = orig
+    CurrentUser.scoped(member) { create(:post_flag, post: post_record) }
   end
 
   # ---------------------------------------------------------------------------

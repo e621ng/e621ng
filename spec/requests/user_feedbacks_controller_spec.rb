@@ -13,11 +13,7 @@ RSpec.describe UserFeedbacksController do
 
   # feedback created by `moderator`, about `subject_user`
   let(:feedback) do
-    orig = CurrentUser.user
-    CurrentUser.user = moderator
-    create(:user_feedback, user: subject_user, creator: moderator)
-  ensure
-    CurrentUser.user = orig
+    CurrentUser.scoped(moderator) { create(:user_feedback, user: subject_user, creator: moderator) }
   end
 
   # ---------------------------------------------------------------------------

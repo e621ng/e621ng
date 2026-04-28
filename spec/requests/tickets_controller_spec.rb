@@ -14,20 +14,12 @@ RSpec.describe TicketsController do
 
   # User-type ticket created as `member`. User-type visibility: moderator+ or creator only.
   let(:ticket) do
-    orig = CurrentUser.user
-    CurrentUser.user = member
-    create(:ticket, accused_user: accused_user)
-  ensure
-    CurrentUser.user = orig
+    CurrentUser.scoped(member) { create(:ticket, accused_user: accused_user) }
   end
 
   # Pool-type ticket created as `member`. Pool-type visibility: staff (janitor+) or creator.
   let(:pool_ticket) do
-    orig = CurrentUser.user
-    CurrentUser.user = member
-    create(:ticket, :pool_type)
-  ensure
-    CurrentUser.user = orig
+    CurrentUser.scoped(member) { create(:ticket, :pool_type) }
   end
 
   # ---------------------------------------------------------------------------
