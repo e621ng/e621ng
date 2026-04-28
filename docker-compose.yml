@@ -232,7 +232,7 @@ services:
     volumes:
       - .:/app
       - node_modules:/app/node_modules
-    entrypoint: yarn run lint
+    entrypoint: npm run lint
     profiles: 
       - linter
 
