@@ -1,0 +1,47 @@
+.artist-display-sources {
+  display: flex;
+  gap: 1rem;
+
+  background-color: themed("color-section");
+  @include st-radius;
+  padding: 0.5rem;
+}
+
+.artist-display-urls {
+  display: flex;
+  flex-flow: column;
+  white-space: nowrap;
+  overflow: hidden; // Long links
+}
+
+.artist-display-domains {
+  display: none;
+  flex-flow: column;
+  gap: 0.25rem;
+  margin-left: auto;
+
+  @include window-larger-than(50rem) {
+    display: flex;
+  }
+
+  a {
+    display: grid;
+    grid-template-areas: "favicon url count" "progress progress progress";
+    grid-template-columns: auto 1fr auto;
+    gap: 0.25rem;
+    align-items: center;
+
+    & > img, & > svg {
+      grid-area: favicon;
+    }
+
+    .artist-display-domains-url { grid-area: url; }
+    .artist-display-domains-count { grid-area: count; }
+    .artist-display-domains-progress {
+      grid-area: progress;
+      height: 0.125rem;
+      background-color: themed("color-tag-artist");
+      border-radius: 0.125rem;
+    }
+  }
+}

@@ -1,3 +1,16 @@
+body.c-artists.a-show {
+  #hero {
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
+  }
+
+  @import "partials/hero_banner";
+  @import "partials/url_display";
+}
+
+
 #c-artists #a-show {
   @import "partials/avoid_posting_label";
+  @import "partials/artist_notes";
 }

@@ -12,6 +12,8 @@
     <%= render "users/dmail_notice" %>
   <% end %>
 
+  <%= yield :hero %>
+
   <div id="page" role="main">
     <%= render "news_updates/notice", news_update: NewsUpdate.recent %>
 

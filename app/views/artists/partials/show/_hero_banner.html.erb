@@ -1,0 +1,25 @@
+<%# locals: artist, featured_post %>
+
+<div class="artist-display-hero" style="<%= featured_post ? "background-image: url('#{featured_post.file_url}');" : "" %>">
+  <h1>
+    <%= link_to artist.pretty_name, posts_path(:tags => artist.name), :class => "tag-type-#{artist.category_id}" %>
+  </h1>
+
+  <div class="artist-display-hero-stats">
+    <span>
+      Since <%= artist.created_at.to_date.to_s %>
+    </span>
+    <a href="<%= posts_path(:tags => artist.name) %>">
+      <span class="stats-number"><%= artist.tag.post_count %></span> posts
+    </a>
+  </div>
+
+  <% if featured_post %>
+    <span class="artist-display-hero-label">
+      FEATURED · 
+      <a href="<%= post_path(featured_post) %>" class="artist-display-hero-link">
+        POST #<%= featured_post.id %>
+      </a>
+    </span>
+  <% end %>
+</div>

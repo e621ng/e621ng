@@ -1,0 +1,50 @@
+.artist-display-hero {
+  background-color: themed("color-foreground");
+  background-size: 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  position: relative;
+
+  @include st-radius;
+  padding: 2rem 0 1rem;
+
+  h1 {
+    display: flex;
+
+    width: max-content;
+    background: #00000080;
+    text-shadow: 0 0 0.5rem #00000080;
+    box-shadow: 0.25rem 0 0.5rem -0.25rem #00000080;
+    @include st-radius-right;
+
+    a  {
+      font-size: 2.5rem;
+      line-height: 2.5rem;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+
+  &-stats {
+    display: flex;
+    padding: 0 0.25rem;
+    gap: 1rem;
+
+    & > a, & > span {
+      font-size: 0.75rem;
+      line-height: 0.75rem;
+      text-shadow: 0 0 0.25rem #00000080;
+      padding: 0.625rem 0.125rem;
+    }
+  }
+
+  &-label {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.25rem;
+
+    color: themed("color-text");
+    font-family: monospace;
+    font-size: 0.75rem;
+    text-shadow: 0 0 0.25rem #00000080;
+  }
+}

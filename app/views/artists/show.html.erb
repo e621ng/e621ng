@@ -1,11 +1,32 @@
-<%= render layout: "show" do %>
-  <% if @artist.visible? %>
-    <div>
-      <%= render "summary", artist: @artist %>
-    </div>
-  <% else %>
-    <p>The artist requested removal of this page.</p>
-  <% end %>
+<% content_for :hero do %>
+  <div id="hero">
+    <%= render partial: "artists/partials/show/hero_banner", locals: { artist: @artist, featured_post: @featured_post } %>
+    <%= render partial: "artists/partials/show/sources", locals: { artist: @artist } %>
+  </div>
+<% end %>
+
+<div id="c-artists"><div id="a-show">
+  <div class="artist-notes styled-dtext">
+    <% if @artist.notes.present? %>
+      <details id="description" open>
+        <summary>Artist Wiki</summary>
+        <div>
+          <%= format_text(@artist.notes, allow_color: true) %>
+          <p><%= link_to "View wiki page", @artist.wiki_page %></p>
+        </div>
+      </details>
+    <% else %>
+      <p><%= link_to_wiki_or_new "View wiki page", @artist.name %></p>
+    <% end %>
+  </div>
+
+  <%= render "posts/partials/index/posts", :post_set => @post_set %>
+</div></div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  <%= @artist.name %>
 <% end %>
 
 <% render(partial: "static/embed", locals: { record: @artist, name: @artist.pretty_name, description: @artist.notes.present? ? format_plaintext(@artist.notes) : "" }) %>

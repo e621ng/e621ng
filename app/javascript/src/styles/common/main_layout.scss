@@ -107,6 +107,14 @@ div#page {
   }
 }
 
+div#hero {
+  margin: 0.5rem 0;
+
+  @include window-larger-than(800px) {
+    margin: 0 1rem;
+  }
+}
+
 .mobile-search {
   display: none;
 }

@@ -46,8 +46,16 @@ class ArtistsController < ApplicationController
         return
       end
     end
-    @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
-    respond_with(@artist, methods: [:domains], include: [:urls])
+
+    @featured_post = Post.find(13_830) # temporary featured post until we have a better system for this
+
+    respond_with(@artist, methods: [:domains], include: [:urls]) do |format|
+      format.json
+      format.html do
+        @post_set = PostSets::Post.new(@artist.name, params[:page], limit: params[:limit])
+        @posts = @post_set.posts
+      end
+    end
   end
 
   def new

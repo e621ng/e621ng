@@ -1,0 +1,36 @@
+<%# locals: artist %>
+
+<% has_urls = artist.sorted_urls.any? %>
+<% has_domains = artist.domains.any? %>
+
+<% if has_urls || has_domains %>
+<div class="artist-display-sources">
+
+  <% if has_urls %>
+    <div class="artist-display-urls">
+      <% artist.sorted_urls.each do |url| %>
+        <% if url.is_active? %>
+          <%= decorated_link_to(h(url.to_s), h(url)) %>
+        <% else %>
+          <del><%= favicon_for_link(url.url) %> <%= h(url.url) %></del>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if has_domains %>
+    <% domain_max = artist.domains[0][1] %>
+    <div class="artist-display-domains">
+      <% artist.domains.each do |url, count| %>
+        <a href="<%= posts_path(:tags => "#{artist.name} source:*#{url}*") %>">
+          <%= favicon_for_link("https://#{url}") %>
+          <span class="artist-display-domains-url"><%= url %></span>
+          <span class="artist-display-domains-count"><%= count %></span>
+          <div class="artist-display-domains-progress" style="width: <%= (count.to_f / domain_max) * 100 %>%;"></div>
+        </a>
+      <% end %>
+    </div>
+  <% end %>
+
+</div>
+<% end %>
