@@ -192,14 +192,14 @@ class ForumPost < ApplicationRecord
   def update_topic_updated_at_on_hide
     max = ForumPost.where(:topic_id => topic.id, :is_hidden => false).order("updated_at desc").first
     if max
-      ForumTopic.where(:id => topic.id).update_all(["updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
+      ForumTopic.where(:id => topic.id).update_all(["updated_at = ?, updater_id = ?", max.updated_at, max.updater_id || CurrentUser.id])
     end
   end
 
   def update_topic_updated_at_on_destroy
     max = ForumPost.where(:topic_id => topic.id, :is_hidden => false).order("updated_at desc").first
     if max
-      ForumTopic.where(:id => topic.id).update_all(["response_count = response_count - 1, updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
+      ForumTopic.where(:id => topic.id).update_all(["response_count = response_count - 1, updated_at = ?, updater_id = ?", max.updated_at, max.updater_id || CurrentUser.id])
       topic.response_count -= 1
     else
       ForumTopic.where(:id => topic.id).update_all("response_count = response_count - 1")

@@ -1,7 +1,9 @@
 
 <section id="ptbr-wrapper">
+<div class="ptbr-row">
 
 <% if CurrentUser.is_member? %>
+  <%# ===== VOTE ===== #%>
   <div
     class="ptbr-vote"
     data-score="<%= @post.score %>"
@@ -30,6 +32,7 @@
     ><%= svg_icon(:chevron_down) %></button>
   </div>
 
+  <%# ===== FAVORITE ===== #%>
   <div class="ptbr-favorite">
     <button
       class="st-button kinetic ptbr-favorite-button anim"
@@ -57,18 +60,8 @@
   </div>
 <% end %>
 
-<% if @post.visible? %>
-  <div class="<%= @post.has_notes? ? "ptbr-notes" : "ptbr-notes hidden" %>">
-    <button
-      class="st-button kinetic ptbr-notes-button"
-      enabled="true"
-      data-hotkey="note-toggle"
-      title="Toggle Notes"
-    ></button>
-  </div>
-<% end %>
-
 <% if !@post.force_original_size? %>
+  <%# ===== RESIZE ===== #%>
   <div class="ptbr-resize">
     <select id="image-resize-selector" class="st-button" aria-label="Select image size">
       <option value="original">Original</option>
@@ -84,20 +77,11 @@
   </select>
   </div>
 <% end %>
+</div>
 
-<% if @post.visible? %>
-  <div class="ptbr-fullscreen">
-    <a
-      href="<%= @post.file_url %>"
-      class="st-button kinetic ptbr-fullscreen-button"
-      data-hotkey="fullscreen"
-      title="View Full Size"
-    >
-      View
-    </a>
-  </div>
-<% end %>
+<div class="ptbr-row">
 <% if CurrentUser.is_member? %>
+  <%# ===== EDIT ===== #%>
   <div class="ptbr-edit">
     <button
       type="button"
@@ -109,14 +93,49 @@
     </button>
   </div>
 <% end %>
+
 <% if @post.visible? %>
+  <%# ===== FULLSCREEN ===== #%>
+  <div class="ptbr-fullscreen">
+    <a
+      href="<%= @post.file_url %>"
+      class="st-button kinetic ptbr-fullscreen-button"
+      data-hotkey="fullscreen"
+      title="View Full Size"
+    >
+      Fullscreen
+    </a>
+  </div>
+<% end %>
+
+<% if @post.visible? %>
+  <%# ===== NOTES ===== #%>
+  <div class="<%= @post.has_notes? ? "ptbr-notes" : "ptbr-notes hidden" %>">
+    <button
+      class="st-button kinetic ptbr-notes-button"
+      enabled="true"
+      data-hotkey="note-toggle"
+      title="Toggle Notes"
+      aria-label="Toggle Notes"
+      aria-pressed="false"
+    ></button>
+  </div>
+<% end %>
+
+
+<% if @post.visible? %>
+  <%# ===== OVERFLOW ===== #%>
   <div class="ptbr-etc">
-    <button class="st-button kinetic ptbr-etc-toggle" title="More Options">
+    <button
+      class="st-button kinetic ptbr-etc-toggle"
+      title="More Options"
+      aria-label="More Options"
+      aria-expanded="false"
+      aria-controls="ptbr-etc-menu"
+    >
       <%= svg_icon(:ellipsis_v) %>
     </button>
-    <div class="ptbr-etc-menu hidden">
-      <button type="button" id="menu-post-edit-link" class="st-button ptbr-etc-edit">Edit</button>
-      <a href="<%= @post.file_url %>" class="st-button ptbr-etc-fullscreen">Fullscreen</a>
+    <div class="ptbr-etc-menu hidden" id="ptbr-etc-menu" role="menu">
       <a
         href="<%= @post.file_url %>"
         class="st-button ptbr-etc-download"
@@ -128,13 +147,15 @@
         <span>Download</span>
       </a>
       <button class="st-button ptbr-share-button" data-hotkey="share">Share</button>
-      <button class="st-button ptbr-notes-button <%= @post.has_notes? ? "" : "hidden"%>" enabled="true"></button>
-      <button class="st-button ptbr-etc-pool add-to-pool" data-hotkey="add-to-pool">Add to Pool</button>
-      <button class="st-button ptbr-etc-set add-to-set" data-hotkey="add-to-set">Add to Set</button>
+      <% if CurrentUser.is_member? %>
+        <button class="st-button ptbr-etc-pool add-to-pool" data-hotkey="add-to-pool">Add to Pool</button>
+        <button class="st-button ptbr-etc-set add-to-set" data-hotkey="add-to-set">Add to Set</button>
+      <% end %>
     </div>
   </div>
 <% end %>
 
+</div>
 </section>
 
 

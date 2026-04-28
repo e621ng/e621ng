@@ -30,12 +30,16 @@ Post.initialize_all = function () {
 
   this.initialize_collapse();
 
-  $(document).on("danbooru:open-post-edit-tab", () => Hotkeys.enabled = false);
-  $(document).on("danbooru:open-post-edit-tab", () => $("#post_tag_string").trigger("focus"));
+  $(document).on("danbooru:open-post-edit-tab", () => {
+    Hotkeys.enabled = false;
+    // Not going to happen until the Vue app is mounted.
+    // See tag_editor.vue for the workaround.
+    $("#post_tag_string").trigger("focus");
+    window.scrollTo({ top: $("#edit").offset().top - 80, behavior: "smooth" });
+  });
   $(document).on("danbooru:close-post-edit-tab", () => Hotkeys.enabled = true);
   $("#tag-string-editor").on("e6ng:vue-mounted", () => {
     Post.update_tag_count();
-    $("#post_tag_string").trigger("focus");
   });
 
   var $fields_multiple = $("[data-autocomplete=\"tag-edit\"]");
@@ -537,9 +541,9 @@ Post.initialize_post_sections = function () {
     Post._isEditing = !Post._isEditing;
 
     if (Post._isEditing) {
-      $(document).trigger("danbooru:open-post-edit-tab");
       Post.update_tag_count();
       $("#edit").show();
+      $(document).trigger("danbooru:open-post-edit-tab");
     } else {
       $(document).trigger("danbooru:close-post-edit-tab");
       $("#edit").hide();
@@ -829,7 +833,6 @@ Post.update_tag_count = function () {
   // let count2 = 1;
 
   const input = $("#post_tag_string");
-  console.log("Updating tag count for:", input);
   if (input.length) {
     let tags = [...new Set(input.val().match(/\S+/g))];
     if (tags) {
