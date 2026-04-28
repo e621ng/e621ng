@@ -103,10 +103,18 @@
         return !this.noSource && (validSourceCount === 0);
       },
       nonUrlSourceWarning: function() {
+        if (this.noSource) return false;
+
         const nonUrlSourceCount = this.sources.filter(function (source) {
-          return source.length > 0 && !URL.canParse(source)
+          let validProtocol = false;
+          try{
+            let url = new URL(source);
+            validProtocol = url.protocol === "http:" || url.protocol === "https:";
+          } catch {}  // Ignoring exceptions since this will return false anyway for invalid URLs
+
+          return source.length > 0 && (!URL.canParse(source) || !validProtocol);
         }).length;
-        return !this.noSource && nonUrlSourceCount > 0;
+        return nonUrlSourceCount > 0;
       },
     },
     watch: {
