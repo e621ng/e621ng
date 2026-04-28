@@ -47,29 +47,140 @@ jobs:
       - name: Run ESLint
         run: $DOCKER_RUN linter
 
-  tests:
+  test-runner:
     runs-on: ubuntu-22.04
     needs:
       - rubocop
       - eslint
     if: inputs.run_tests
+    strategy:
+      fail-fast: false
+      matrix:
+        index: [1, 2, 3, 4, 5, 6, 7, 8]
 
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/prepare-docker-image
 
-      - name: Create DB
-        run: $DOCKER_RUN --entrypoint bin/rails tests db:create
+      - name: Restore test runtime log
+        uses: actions/cache/restore@v5
+        with:
+          path: tmp/spec_runtime.log
+          key: spec-runtime-log
 
-      - name: Load DB Schema
-        run: $DOCKER_RUN --entrypoint bin/rails tests db:schema:load
+      - name: Create parallel DBs
+        run: $DOCKER_RUN --entrypoint bin/rake tests parallel:create
+
+      - name: Load DB Schema into parallel DBs
+        run: $DOCKER_RUN --entrypoint bin/rake tests parallel:load_schema
+
+      - name: Seed parallel DBs
+        run: $DOCKER_RUN --entrypoint bin/rake tests parallel:seed
+
+      - name: Create OpenSearch indexes
+        run: $DOCKER_RUN --entrypoint bin/rails tests runner \
+          "[Post, PostVersion].each { |m| m.document_store.create_index! }"
+
+      - name: Compute test groups
+        run: |
+          PROCS=2
+          TOTAL=$(( ${{ strategy.job-total }} * PROCS ))
+          START=$(( (${{ matrix.index }} - 1) * PROCS + 1 ))
+          END=$(( ${{ matrix.index }} * PROCS ))
+          echo "TEST_GROUPS=${START},${END}" >> "$GITHUB_ENV"
+          echo "TEST_GROUP_TOTAL=${TOTAL}" >> "$GITHUB_ENV"
 
       - name: Run Tests
-        run: $DOCKER_RUN tests --fail-fast
+        run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n $TEST_GROUP_TOTAL --only-group $TEST_GROUPS
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-${{ matrix.index }}
+          path: coverage/.resultset.json
+          include-hidden-files: true
+          retention-days: 1
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: test-results
+          name: test-results-${{ matrix.index }}
           path: log/test.log
+
+      - name: Save test runtime log
+        uses: actions/cache/save@v5
+        if: always()
+        with:
+          path: tmp/spec_runtime.log
+          key: spec-runtime-log-${{ matrix.index }}-${{ github.run_id }}
+
+  tests:
+    runs-on: ubuntu-22.04
+    needs: test-runner
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          if [[ "${{ needs.test-runner.result }}" != "success" ]]; then
+            exit 1
+          fi
+
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.1"
+          bundler-cache: true
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: coverage-*
+          path: coverage-shards
+
+      - name: Merge coverage
+        run: |
+          find coverage-shards -name ".resultset.json" \
+            -exec sed -i "s|\"/app/|\"${GITHUB_WORKSPACE}/|g" {} \;
+          bundle exec ruby -e "
+            require 'simplecov'
+            require 'simplecov_json_formatter'
+            files = Dir['coverage-shards/**/.resultset.json']
+            abort 'No resultset files found' if files.empty?
+            SimpleCov.collate(files, 'rails') do
+              formatter SimpleCov::Formatter::MultiFormatter.new([
+                SimpleCov::Formatter::HTMLFormatter,
+                SimpleCov::Formatter::JSONFormatter,
+              ])
+              add_group 'Components', ['app/blueprints', 'app/components']
+              add_group 'Decorators', ['app/decorators', 'app/presenters', 'app/inputs']
+              add_group 'Logical', ['app/concerns', 'app/indexes', 'app/logical']
+              groups.delete('Channels')
+            end
+          "
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage/.resultset.json
+          include-hidden-files: true
+
+  coverage-report:
+    runs-on: ubuntu-22.04
+    needs: tests
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage-report
+          path: coverage
+
+      - name: Post coverage comment
+        uses: k1LoW/octocov-action@v1

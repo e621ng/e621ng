@@ -3,6 +3,8 @@
 require "sidekiq-unique-jobs"
 require "sidekiq-cron"
 
+Sidekiq.logger.level = Logger::WARN if Rails.env.test?
+
 Sidekiq.configure_server do |config|
   config.redis = { url: Danbooru.config.redis_url }
 
