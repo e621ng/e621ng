@@ -165,3 +165,20 @@ jobs:
           name: coverage-report
           path: coverage/.resultset.json
           include-hidden-files: true
+
+  coverage-report:
+    runs-on: ubuntu-22.04
+    needs: tests
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage-report
+          path: coverage
+
+      - name: Post coverage comment
+        uses: k1LoW/octocov-action@v1
