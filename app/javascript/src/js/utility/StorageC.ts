@@ -50,7 +50,7 @@ export default class CStorage {
    * @param name The name of the cookie to retrieve.
    * @returns True if the cookie value is "1", otherwise false.
    */
-  static _getBoolCookie (name: string): boolean {
+  private static _getBoolCookie (name: string): boolean {
     const cookies = document.cookie.split(";");
     for (const cookie of cookies) {
       const [key, value] = cookie.trim().split("=");
@@ -67,7 +67,7 @@ export default class CStorage {
    * @param value The boolean value to store in the cookie.
    * @param days The number of days until the cookie expires (default is 365).
    */
-  static _setBoolCookie (name: string, value: boolean, days: number = 365): void {
+  private static _setBoolCookie (name: string, value: boolean, days: number = 365): void {
     const cookieValue = value ? "1" : "0";
     const expires = new Date(Date.now() + (days * 24 * 60 * 60 * 1000)).toUTCString();
     document.cookie = `${name}=${cookieValue}; expires=${expires}; path=/; SameSite=Lax;`;
@@ -77,7 +77,7 @@ export default class CStorage {
    * Deletes a boolean value from a cookie by setting its expiration date to a past date.
    * @param name The name of the cookie to delete.
    */
-  static _deleteBoolCookie (name: string): void {
+  private static _deleteBoolCookie (name: string): void {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;`;
   }
 }

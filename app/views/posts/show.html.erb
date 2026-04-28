@@ -155,7 +155,7 @@
             class="st-button"
             data-action="reveal"
             aria-controls="post-recommendations"
-            aria-expanded="<%= cookies[:post_recs] == "1" %>"
+            aria-expanded="<%= cookies[:post_recs] != "1" %>"
             aria-label="<%= cookies[:post_recs] == "1" ? "Show" : "Hide" %> Recommendations"
           >
             <span>Show Recommendations</span>
