@@ -98,6 +98,14 @@ RSpec.describe TagQuery, type: :model do
       # landscape → aspect_ratio; inversion is aspect_ratio_asc
       expect(TagQuery.new("-order:landscape")[:order]).to eq("aspect_ratio_asc")
     end
+
+    it "-order:deleted inverts to deleted_asc" do
+      expect(TagQuery.new("-order:deleted")[:order]).to eq("deleted_asc")
+    end
+
+    it "-order:flagged inverts to flagged_asc" do
+      expect(TagQuery.new("-order:flagged")[:order]).to eq("flagged_asc")
+    end
   end
 
   describe "randseed: metatag" do

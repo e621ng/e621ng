@@ -3,7 +3,7 @@
 require "rails_helper"
 
 # Tests content-filtering metatags: rating:, filetype: (type: alias), source:,
-# md5:, description:, note:, delreason:, and deletedby:.
+# md5:, description:, note:, delreason:, deletedby:, flagreason:, and flagnote:.
 
 RSpec.describe TagQuery, type: :model do
   include_context "as member"
@@ -181,6 +181,42 @@ RSpec.describe TagQuery, type: :model do
     it "sets q[:status] to 'any' when status is not already set" do
       tq = TagQuery.new("deletedby:#{moderator.name}")
       expect(tq[:status]).to eq("any")
+    end
+  end
+
+  describe "flagreason: metatag" do
+    it "is available to non-staff users and normalizes wildcard runs" do
+      tq = TagQuery.new("flagreason:Inferior**Quality")
+      expect(tq[:flagreason]).to include("inferior*quality")
+    end
+
+    it "stores negated values in flagreason_must_not" do
+      tq = TagQuery.new("-flagreason:UPLOADING***GUIDELINES")
+      expect(tq[:flagreason_must_not]).to include("uploading*guidelines")
+    end
+
+    it "stores should values in flagreason_should" do
+      tq = TagQuery.new("~flagreason:Breaks****ToS")
+      expect(tq[:flagreason_should]).to include("breaks*tos")
+    end
+  end
+
+  describe "flagnote: metatag" do
+    it "is ignored for non-staff users" do
+      tq = TagQuery.new("flagnote:details")
+      expect(tq[:flagnote]).to be_nil
+      expect(tq[:flagnote_must_not]).to be_nil
+      expect(tq[:flagnote_should]).to be_nil
+    end
+
+    it "is parsed for staff users and normalizes wildcard runs" do
+      staff = create(:admin_user)
+
+      CurrentUser.scoped(staff) do
+        expect(TagQuery.new("flagnote:Needs*More***Details")[:flagnote]).to include("needs*more*details")
+        expect(TagQuery.new("-flagnote:Needs*More***Details")[:flagnote_must_not]).to include("needs*more*details")
+        expect(TagQuery.new("~flagnote:Needs*More***Details")[:flagnote_should]).to include("needs*more*details")
+      end
     end
   end
 end

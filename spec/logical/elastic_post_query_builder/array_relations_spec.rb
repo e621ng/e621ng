@@ -72,6 +72,34 @@ RSpec.describe ElasticPostQueryBuilder do
       end
     end
 
+    describe "flag metatags" do
+      it "flagreason is available to all users and lowercased" do
+        expect(build_query("flagreason:SpAm").must).to include({ wildcard: { flag_reason: "spam" } })
+        expect(build_query("-flagreason:SpAm").must_not).to include({ wildcard: { flag_reason: "spam" } })
+        expect(build_query("~flagreason:SpAm").should).to include({ wildcard: { flag_reason: "spam" } })
+      end
+
+      it "does not apply flagnote for non-staff users" do
+        expect(build_query("flagnote:test").must).not_to include({ wildcard: { flag_note: "test" } })
+      end
+
+      it "does not apply flaggedby for non-staff users" do
+        flagged_user = create(:user)
+        expect(build_query("flaggedby:#{flagged_user.name}").must).not_to include({ term: { flagger: flagged_user.id } })
+      end
+
+      it "applies flagnote and flaggedby for staff users" do
+        staff = create(:admin_user)
+        flagged_user = create(:user)
+
+        CurrentUser.scoped(staff) do
+          expect(build_query('flagnote:"Test Note"').must).to include({ wildcard: { flag_note: "test note" } })
+          expect(build_query("flaggedby:#{flagged_user.name}").must).to include({ term: { flagger: flagged_user.id } })
+          expect(build_query("flaggedby:!#{flagged_user.id}").must).to include({ term: { flagger: flagged_user.id } })
+        end
+      end
+    end
+
     describe "pool any/none" do
       it "adds an exists clause to must for pool:any" do
         expect(build_query("pool:any").must).to include({ exists: { field: :pools } })
