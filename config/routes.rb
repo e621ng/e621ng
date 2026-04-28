@@ -281,8 +281,13 @@ Rails.application.routes.draw do
       get :show_seq
       put :mark_as_translated
       get :comments, to: "comments#for_post"
+      resource :similar, only: [], controller: "post_recommendations" do
+        get :artist
+        get :remote
+        get :lookup
+        get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
+      end
     end
-    get :similar, to: "iqdb_queries#index"
   end
   resources :post_votes, only: %i[index], as: :index_post_votes do
     collection do
@@ -332,7 +337,6 @@ Rails.application.routes.draw do
   resources :uploads
   resources :users do
     resource :password, only: %i[edit], controller: "maintenance/user/passwords"
-    resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
 
     member do
       get :upload_limit
@@ -340,6 +344,7 @@ Rails.application.routes.draw do
       post :disable_uploads
       post :flush_favorites
       get :fix_counts
+      get "/api_key", to: redirect("/api_keys")
     end
 
     collection do
@@ -417,6 +422,12 @@ Rails.application.routes.draw do
       post :accept
       post :clear_cache
       post :bump_version
+    end
+  end
+
+  resource :auth, only: [] do
+    collection do
+      get :login
     end
   end
 

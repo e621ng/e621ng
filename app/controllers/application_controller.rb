@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
-  class APIThrottled < Exception; end
+  class APIThrottled < StandardError; end
   class FeatureUnavailable < StandardError; end
 
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
@@ -246,8 +246,14 @@ class ApplicationController < ActionController::Base
   def normalize_search
     return unless request.get? || request.head?
 
-    # Sanitize q parameter - must be a String or nil, not a nested hash
-    params[:q] = nil if params[:q].present? && !params[:q].is_a?(String)
+    # Coerce top-level params that must be scalars — reject hashes, unwrap single-element arrays.
+    %i[q page limit id user_id expiry].each do |key|
+      next unless params.key?(key)
+      params[key] = case params[key]
+                    when String, Numeric then params[key]
+                    when Array           then params[key].first.is_a?(String) ? params[key].first : nil
+                    end
+    end
 
     params[:search] ||= ActionController::Parameters.new
 
@@ -256,6 +262,8 @@ class ApplicationController < ActionController::Base
     end
     if params[:search].is_a?(ActionController::Parameters)
       nonblank_search_params = deep_reject_blank.call(params[:search])
+      # Reject non-scalar values (e.g. {"$eq": "x"} hashes injected by probing tools).
+      nonblank_search_params = nonblank_search_params.select { |_, v| v.is_a?(String) || v.is_a?(Numeric) || v.is_a?(TrueClass) || v.is_a?(FalseClass) }
     else
       nonblank_search_params = ActionController::Parameters.new
     end
@@ -272,5 +280,6 @@ class ApplicationController < ActionController::Base
 
   def permit_search_params(permitted_params)
     params.fetch(:search, {}).permit(%i[id created_at updated_at] + permitted_params)
+          .select { |_, v| v.is_a?(String) || v.is_a?(Numeric) || v.is_a?(TrueClass) || v.is_a?(FalseClass) }
   end
 end

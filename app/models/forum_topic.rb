@@ -153,7 +153,9 @@ class ForumTopic < ApplicationRecord
   end
 
   def can_hide?(user)
-    user.is_moderator? || user.id == creator_id
+    return true if user.is_moderator?
+    return false unless original_post&.can_hide?(user)
+    user.id == creator_id
   end
 
   def can_delete?(user)

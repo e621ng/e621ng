@@ -610,18 +610,18 @@ def populate_search_trend_hourlies(hours: 48, tags_count: 50)
   tags ||= []
   return if tags.empty?
 
-  now = Time.current
+  now = Time.current.utc
   start_hour = now.beginning_of_hour - (hours - 1).hours
 
   tags.each do |tag|
-    base_per_hour = rand(1..10)
+    base_per_hour = rand(1..100)
 
     (0...hours).each do |i|
       hour_time = start_hour + i.hours
       next if hour_time > now # Don't create future records
 
       # Add some variance to the hourly count
-      count = [base_per_hour + rand(-2..3), 1].max
+      count = [base_per_hour + rand(-10..10), 1].max
 
       st = SearchTrendHourly.find_or_initialize_by(tag: tag, hour: hour_time)
       st.count = count

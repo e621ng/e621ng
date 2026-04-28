@@ -46,7 +46,7 @@ class StaticController < ApplicationController
   end
 
   def home
-    render layout: "blank"
+    render layout: "blank", formats: [:html]
   end
 
   def theme
@@ -66,9 +66,9 @@ class StaticController < ApplicationController
   end
 
   def discord
-    raise User::PrivilegeError, "You must have an account for at least one week in order to join the Discord server." unless CurrentUser.can_discord?
-
     if request.post?
+      raise User::PrivilegeError, "You must have an account for at least one week in order to join the Discord server." unless CurrentUser.can_discord?
+
       time = (Time.now + 5.minutes).to_i
       secret = Danbooru.config.discord_secret
       # TODO: Proper HMAC
