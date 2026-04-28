@@ -288,12 +288,7 @@ RSpec.describe TagAlias do
       expect(other.reload.consequent_name).to eq(ta.consequent_name)
     end
 
-    # FIXME: move_aliases_and_implications checks `=~ /Cannot alias a tag to itself/` but the
-    # actual error from TagRelationship#antecedent_and_consequent_are_different is
-    # "Cannot alias or implicate a tag to itself". The regex never matches so self-referential
-    # aliases are never destroyed. Fix the regex in app/models/tag_alias.rb first.
     it "destroys an alias when moving it would make it self-referential" do
-      skip "FIXME: move_aliases_and_implications regex /Cannot alias a tag to itself/ does not match actual error message"
       ta = create(:tag_alias,
                   antecedent_name: "sr_ant_#{SecureRandom.hex(4)}",
                   consequent_name: "sr_con_#{SecureRandom.hex(4)}")

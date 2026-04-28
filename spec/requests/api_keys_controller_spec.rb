@@ -103,27 +103,6 @@ RSpec.describe ApiKeysController do
     end
   end
 
-  # api_key | GET | /api_keys/:id(.:format) | api_keys#show
-  # TODO: This actually doesn't have an action in the controller, but is assigned a route in `../../config/routes.rb`; errors out with 404 currently.
-  describe "GET /api_keys/:id", skip: "has no action" do
-    def do_it(**path_params)
-      user = make_session(user)
-      api_key = create(:api_key, user: user, name: "A horse with no name")
-      get api_key_path(api_key.id, **path_params)
-      expect(response).to have_http_status(:success)
-    end
-
-    it "loads correctly with HTML" do
-      do_it
-      expect(response.body).to include("A horse with no name")
-    end
-
-    it "loads correctly with JSON" do
-      do_it(format: :json)
-      expect(response.parsed_body).to include(:user_id, :key, :expires_at)
-    end
-  end
-
   # api_keys | POST | /api_keys(.:format) | api_keys#create
   describe "POST /api_keys" do
     let!(:user) { make_session }

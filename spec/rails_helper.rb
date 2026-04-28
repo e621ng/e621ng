@@ -68,6 +68,13 @@ RSpec.configure do |config|
     ActiveJob::Base.queue_adapter = :test
   end
 
+  # rails-settings-cached caches all settings in Rails.cache. With transactional fixtures,
+  # after_commit never fires, so the cache is never cleared after a test that writes a setting.
+  # Stale cached values (e.g. takedowns_disabled=true) would then bleed into later tests.
+  config.after do
+    Setting.clear_cache
+  end
+
   config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:suite) do

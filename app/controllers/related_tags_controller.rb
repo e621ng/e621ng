@@ -8,7 +8,11 @@ class RelatedTagsController < ApplicationController
   def show
     @related_tags = RelatedTagQuery.new(query: params[:search][:query], category_id: params[:search][:category_id])
     expires_in 30.seconds
-    respond_with(@related_tags)
+    respond_with(@related_tags) do |format|
+      format.json do
+        render json: @related_tags.to_json
+      end
+    end
   end
 
   def bulk

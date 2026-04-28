@@ -49,23 +49,14 @@ RSpec.describe RelatedTagsController do
         expect(response).to have_http_status(:ok)
       end
 
-      # FIXME: respond_with(@related_tags) in RelatedTagsController#show returns
-      # 406 (Not Acceptable) for JSON format instead of rendering JSON. The
-      # Responders gem cannot determine how to serialize the RelatedTagQuery
-      # object without an explicit fmt.json block (unlike the bulk action which
-      # uses `respond_with { |fmt| fmt.json { render json: ... } }`). This is
-      # an application code issue — tests are skipped until it is resolved.
       it "returns an empty array for JSON when no matching tags exist" do
-        skip "FIXME: respond_with(@related_tags) returns 406 for JSON — see comment above"
         tag = create(:tag, name: "no_related_tags")
         get related_tag_path(format: :json), params: { search: { query: tag.name } }
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body).to eq([])
       end
 
-      # FIXME: See above — respond_with(@related_tags) returns 406 for JSON.
       it "returns related tags for a tag with cached related_tags data" do
-        skip "FIXME: respond_with(@related_tags) returns 406 for JSON — see comment above"
         tag = create(:tag, name: "foo_source")
         bar = create(:tag, name: "bar_related")
         tag.update_columns(related_tags: "#{bar.name} 5")
@@ -78,12 +69,10 @@ RSpec.describe RelatedTagsController do
         expect(body).to include(include("name" => bar.name, "category_id" => bar.category))
       end
 
-      # FIXME: See above — respond_with(@related_tags) returns 406 for JSON.
       it "returns matching tags for a wildcard query" do
-        skip "FIXME: respond_with(@related_tags) returns 406 for JSON — see comment above"
-        create(:tag, name: "wildcard_alpha")
-        create(:tag, name: "wildcard_beta")
-        create(:tag, name: "other_tag")
+        create(:tag, name: "wildcard_alpha", post_count: 1)
+        create(:tag, name: "wildcard_beta", post_count: 1)
+        create(:tag, name: "other_tag", post_count: 1)
 
         get related_tag_path(format: :json), params: { search: { query: "wildcard*" } }
 
@@ -93,9 +82,7 @@ RSpec.describe RelatedTagsController do
         expect(names).not_to include("other_tag")
       end
 
-      # FIXME: See above — respond_with(@related_tags) returns 406 for JSON.
       it "returns category-filtered related tags when category_id is given" do
-        skip "FIXME: respond_with(@related_tags) returns 406 for JSON — see comment above"
         tag = create(:tag, name: "source_tag")
         allow(RelatedTagCalculator).to receive(:calculate_from_sample_to_array).and_return([["related_tag", 3]])
         create(:tag, name: "related_tag", category: 0)
