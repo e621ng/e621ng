@@ -459,8 +459,13 @@ RSpec.describe Post do
           child1 = create(:post, parent: parent)
           child2 = create(:post, parent: parent)
           parent.update!(tag_string: "#{parent.tag_string} child:none")
-          expect(child1.reload.parent_id).to be_nil
-          expect(child2.reload.parent_id).to be_nil
+
+          child1.reload
+          child2.reload
+          expect(child1.parent_id).to be_nil
+          expect(child1.versions.last.reason).to eq("Removed as child of post ##{parent.id}")
+          expect(child2.parent_id).to be_nil
+          expect(child2.versions.last.reason).to eq("Removed as child of post ##{parent.id}")
         end
       end
 
@@ -469,7 +474,10 @@ RSpec.describe Post do
           parent = create(:post)
           child = create(:post, parent: parent)
           parent.update!(tag_string: "#{parent.tag_string} -child:#{child.id}")
-          expect(child.reload.parent_id).to be_nil
+
+          child.reload
+          expect(child.parent_id).to be_nil
+          expect(child.versions.last.reason).to eq("Removed as child of post ##{parent.id}")
         end
       end
 
@@ -478,7 +486,10 @@ RSpec.describe Post do
           parent = create(:post)
           other = create(:post)
           parent.update!(tag_string: "#{parent.tag_string} child:#{other.id}")
-          expect(other.reload.parent_id).to eq(parent.id)
+
+          other.reload
+          expect(other.parent_id).to eq(parent.id)
+          expect(other.versions.last.reason).to eq("Added as child of post ##{parent.id}")
         end
       end
     end
