@@ -63,7 +63,7 @@ jobs:
       - uses: ./.github/prepare-docker-image
 
       - name: Restore test runtime log
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: tmp/spec_runtime.log
           key: spec-runtime-log
@@ -94,7 +94,7 @@ jobs:
         run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n ${{ env.TEST_GROUP_TOTAL }} --only-group ${{ env.TEST_GROUPS }}
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.index }}
           path: coverage/.resultset.json
@@ -102,14 +102,14 @@ jobs:
           retention-days: 1
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results-${{ matrix.index }}
           path: log/test.log
 
       - name: Save test runtime log
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         if: always()
         with:
           path: tmp/spec_runtime.log
@@ -133,7 +133,7 @@ jobs:
           bundler-cache: true
 
       - name: Download coverage artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: coverage-*
           path: coverage-shards
@@ -160,7 +160,7 @@ jobs:
           "
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/.resultset.json
