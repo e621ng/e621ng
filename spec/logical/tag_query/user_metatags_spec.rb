@@ -8,7 +8,7 @@ require "rails_helper"
 # Most metatags resolve a username/ID into a numeric user ID stored in an array.
 # Privileged metatags (upvote:/downvote:/voted:) require moderator access.
 
-RSpec.describe TagQuery, type: :model do
+RSpec.describe TagQuery do
   include_context "as member"
 
   let!(:target_user) { create(:user) }

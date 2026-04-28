@@ -10,7 +10,7 @@ require "rails_helper"
 #   TagQuery::ORDER_NON_SUFFIXED_ALIASES — aliases that resolve to a specific non-root form
 #   TagQuery::ORDER_VALUE_INVERSIONS     — maps a value to its inverted counterpart
 
-RSpec.describe TagQuery, type: :model do
+RSpec.describe TagQuery do
   include_context "as member"
 
   describe "order: metatag" do

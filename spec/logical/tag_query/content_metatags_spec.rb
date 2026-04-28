@@ -5,7 +5,7 @@ require "rails_helper"
 # Tests content-filtering metatags: rating:, filetype: (type: alias), source:,
 # md5:, description:, note:, delreason:, deletedby:, flagreason:, and flagnote:.
 
-RSpec.describe TagQuery, type: :model do
+RSpec.describe TagQuery do
   include_context "as member"
 
   describe "rating: metatag" do
