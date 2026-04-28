@@ -197,9 +197,12 @@ RSpec.describe ForumPost do
 
     it "returns 2 for a post that falls on the second page" do
       per_page = Danbooru.config.records_per_page
-      # Create enough posts to fill the first page, then one more
+      # Create enough posts to fill the first page, then one more.
+      # travel_to guarantees last_post has a strictly later created_at so the
+      # created_at <= ? count in forum_topic_page is deterministic even if earlier
+      # posts share identical microsecond timestamps (common on fast machines / WSL2).
       per_page.times { make_post }
-      last_post = make_post
+      last_post = travel_to(1.minute.from_now) { make_post }
       expect(last_post.forum_topic_page).to eq(2)
     end
   end

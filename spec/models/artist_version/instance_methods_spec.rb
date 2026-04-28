@@ -22,6 +22,7 @@ RSpec.describe ArtistVersion do
     it "returns the immediately preceding version of the same artist" do
       artist = create(:artist, name: "ver_artist_one")
       first_version = artist.versions.first
+      first_version.update_columns(created_at: 1.hour.ago)
 
       artist.update!(name: "ver_artist_two")
       second_version = artist.versions.order(:created_at).last
