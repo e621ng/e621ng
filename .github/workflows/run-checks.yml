@@ -77,8 +77,17 @@ jobs:
       - name: Seed parallel DBs
         run: $DOCKER_RUN --entrypoint bin/rake tests parallel:seed
 
+      - name: Compute test groups
+        run: |
+          PROCS=2
+          TOTAL=$(( ${{ strategy.job-total }} * PROCS ))
+          START=$(( (${{ matrix.index }} - 1) * PROCS + 1 ))
+          END=$(( ${{ matrix.index }} * PROCS ))
+          echo "TEST_GROUPS=${START},${END}" >> "$GITHUB_ENV"
+          echo "TEST_GROUP_TOTAL=${TOTAL}" >> "$GITHUB_ENV"
+
       - name: Run Tests
-        run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n 2 --group-count ${{ strategy.job-total }} --only-group ${{ matrix.index }}
+        run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n ${{ env.TEST_GROUP_TOTAL }} --only-group ${{ env.TEST_GROUPS }}
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
