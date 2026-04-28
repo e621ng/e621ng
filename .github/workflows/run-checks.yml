@@ -94,6 +94,7 @@ jobs:
         with:
           name: coverage-${{ matrix.index }}
           path: coverage/.resultset.json
+          include-hidden-files: true
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
@@ -136,5 +137,5 @@ jobs:
         run: |
           bundle exec ruby -e "
             require 'simplecov'
-            SimpleCov.collate(Dir['coverage-shards/*/.resultset.json'])
+            SimpleCov.collate(Dir['coverage-shards/*/coverage/.resultset.json'])
           "
