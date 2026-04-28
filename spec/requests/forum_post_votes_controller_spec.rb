@@ -18,7 +18,8 @@ RSpec.describe ForumPostVotesController do
 
   context "without a tag change request" do
     it "prevents voting" do
-      post_auth forum_post_votes_path(forum_post_id: forum_post.id, format: :json), posting_user, params: { forum_post_vote: { score: 1 } }
+      sign_in_as posting_user
+      post forum_post_votes_path(forum_post_id: forum_post.id, format: :json), params: { forum_post_vote: { score: 1 } }
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -26,7 +27,8 @@ RSpec.describe ForumPostVotesController do
   context "with an already accepted tag change request" do
     it "prevents voting" do
       @alias = create(:active_tag_alias, forum_post: forum_post)
-      post_auth forum_post_votes_path(forum_post_id: forum_post.id, format: :json), posting_user, params: { forum_post_vote: { score: 1 } }
+      sign_in_as posting_user
+      post forum_post_votes_path(forum_post_id: forum_post.id, format: :json), params: { forum_post_vote: { score: 1 } }
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -40,14 +42,16 @@ RSpec.describe ForumPostVotesController do
 
     it "allows voting" do
       expect do
-        post_auth forum_post_votes_path(forum_post_id: forum_post.id, format: :json), user2, params: { forum_post_vote: { score: 1 } }
+        sign_in_as user2
+        post forum_post_votes_path(forum_post_id: forum_post.id, format: :json), params: { forum_post_vote: { score: 1 } }
       end.to change(ForumPostVote, :count).by(1)
       expect(response).to have_http_status(:success)
     end
 
     it "doesn't allow voting for the user who created the request" do
       expect do
-        post_auth forum_post_votes_path(forum_post_id: forum_post.id, format: :json), posting_user, params: { forum_post_vote: { score: 1 } }
+        sign_in_as posting_user
+        post forum_post_votes_path(forum_post_id: forum_post.id, format: :json), params: { forum_post_vote: { score: 1 } }
       end.not_to change(ForumPostVote, :count)
       expect(response).to have_http_status(:forbidden)
     end
@@ -61,7 +65,8 @@ RSpec.describe ForumPostVotesController do
 
       it "allows removal" do
         expect do
-          delete_auth forum_post_votes_path(forum_post_id: forum_post.id, format: :json), user2
+          sign_in_as user2
+          delete forum_post_votes_path(forum_post_id: forum_post.id, format: :json)
           expect(response).to have_http_status(:success)
         end.to change(ForumPostVote, :count).by(-1)
         expect(ForumPostVote.count).to be(0)

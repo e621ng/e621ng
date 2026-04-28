@@ -95,7 +95,8 @@ RSpec.describe SearchTrendsController do
     after { Setting.trends_enabled = false }
 
     it "renders for admins" do
-      get_auth settings_search_trends_path, admin
+      sign_in_as admin
+      get settings_search_trends_path
       expect(response).to have_http_status(:success)
       # TODO: Move these to a view spec (https://rspec.info/features/8-0/rspec-rails/view-specs/view-spec/)
       expect(response.body).to match(/Search trend settings/)
@@ -103,12 +104,14 @@ RSpec.describe SearchTrendsController do
     end
 
     it "is forbidden for non-admins" do
-      get_auth settings_search_trends_path, user
+      sign_in_as user
+      get settings_search_trends_path
       expect(response).to have_http_status(:forbidden)
     end
 
     it "form submission updates settings" do
-      post_auth update_settings_search_trends_path, admin, params: {
+      sign_in_as admin
+      post update_settings_search_trends_path, params: {
         search_trend_settings: {
           trends_enabled: false,
           trends_min_today: 11,

@@ -44,32 +44,37 @@ RSpec.describe ArtistsController do
 
   describe "new action" do
     it "render" do
-      get_auth(new_artist_path, user)
+      sign_in_as user
+      get new_artist_path
       expect(response).to have_http_status(:success)
     end
   end
 
   describe "show_or_new action" do
     it "render for a nonexistent artist" do
-      get_auth(show_or_new_artists_path(name: "nobody"), user)
+      sign_in_as user
+      get show_or_new_artists_path(name: "nobody")
       expect(response).to have_http_status(:success)
     end
 
     it "redirect for an existing artist" do
-      get_auth(show_or_new_artists_path(name: masao.name), user)
+      sign_in_as user
+      get show_or_new_artists_path(name: masao.name)
       expect(response).to have_http_status(:redirect)
       expect(response).to redirect_to(artist_path(masao))
     end
 
     it "not crash when name is a hash" do
-      get_auth(show_or_new_artists_path, user, params: { name: { "$eq" => "lillymoo" } })
+      sign_in_as user
+      get show_or_new_artists_path, params: { name: { "$eq" => "lillymoo" } }
       expect(response).to have_http_status(:success)
     end
   end
 
   describe "edit action" do
     it "render" do
-      get_auth(edit_artist_path(artist), user)
+      sign_in_as user
+      get edit_artist_path(artist)
       expect(response).to have_http_status(:success)
     end
   end
@@ -88,7 +93,8 @@ RSpec.describe ArtistsController do
       attributes.delete(:is_locked)
       attributes[:other_names] = attributes[:other_names].join(",")
       expect do
-        post_auth(artists_path(format: :json), user, params: { artist: attributes })
+        sign_in_as user
+        post artists_path(format: :json), params: { artist: attributes }
         expect(response).to have_http_status(:created)
       end.to change(Artist, :count).from(0).to(1)
 
@@ -102,7 +108,8 @@ RSpec.describe ArtistsController do
       attributes.delete(:is_locked)
       attributes[:other_names] = attributes[:other_names].join(",")
       expect do
-        post_auth(artists_path, user, params: { artist: attributes })
+        sign_in_as user
+        post artists_path, params: { artist: attributes }
         expect(response).to have_http_status(:redirect)
       end.to change(Artist, :count).from(0).to(1)
 
@@ -115,7 +122,8 @@ RSpec.describe ArtistsController do
   describe "update action" do
     it "updates the artist's url_string" do
       expect(artist.url_string).to eq("")
-      put_auth(artist_path(artist), user, params: { artist: { url_string: "http://example.com" }, format: :json })
+      sign_in_as user
+      put artist_path(artist), params: { artist: { url_string: "http://example.com" }, format: :json }
       expect(response).to have_http_status(:success)
       expect(artist.reload.url_string).to eq("http://example.com")
     end
@@ -130,7 +138,8 @@ RSpec.describe ArtistsController do
       it "updates notes and urls and touches the wiki page timestamp" do
         old_timestamp = wiki_page.updated_at
         travel_to(1.minute.from_now) do
-          put_auth(artist_path(artist.id), user, params: { artist: { notes: "rex", url_string: "http://example.com\nhttp://monet.com" } })
+          sign_in_as user
+          put artist_path(artist.id), params: { artist: { notes: "rex", url_string: "http://example.com\nhttp://monet.com" } }
         end
         artist.reload
         wiki_page = artist.wiki_page
@@ -143,7 +152,8 @@ RSpec.describe ArtistsController do
         old_timestamp = wiki_page.updated_at
         frozen_at = 1.minute.since(old_timestamp)
         travel_to(frozen_at) do
-          put_auth(artist_path(artist.id), user, params: { artist: { notes: "rex", url_string: "http://example.com\nhttp://monet.com" } })
+          sign_in_as user
+          put artist_path(artist.id), params: { artist: { notes: "rex", url_string: "http://example.com\nhttp://monet.com" } }
         end
         artist.reload
         wiki_page = artist.wiki_page
@@ -171,7 +181,8 @@ RSpec.describe ArtistsController do
           # Instatiate it first to ensure wiki page is properly created.
           artist
           expect(WikiPage.count).to be(1)
-          expect { put_auth(artist_path(artist.id), user, params: { artist: { name: "bbb", notes: "more testing" } }) }.not_to change(WikiPage, :count)
+          sign_in_as user
+          expect { put artist_path(artist.id), params: { artist: { name: "bbb", notes: "more testing" } } }.not_to change(WikiPage, :count)
           wiki_page.reload
           expect(wiki_page.title).to eq("bbb")
           expect(wiki_page.body).to eq("more testing")
@@ -182,12 +193,9 @@ RSpec.describe ArtistsController do
 
   describe "destroy action" do
     it "deletes the artist and logs a ModAction" do
-      # assert_difference({ "Artist.count" => -1, "ModAction.count" => 1 }) do
-      #   delete_auth(artist_path(artist), admin)
-      # end
-      # Instatiate it first.
       artist
-      expect { delete_auth(artist_path(artist), admin) }.to change(Artist, :count).by(-1) & change(ModAction, :count).by(1)
+      sign_in_as admin
+      expect { delete artist_path(artist) }.to change(Artist, :count).by(-1) & change(ModAction, :count).by(1)
       assert_redirected_to(artists_path)
       assert_raises(ActiveRecord::RecordNotFound) { artist.reload }
     end
@@ -200,14 +208,16 @@ RSpec.describe ArtistsController do
         artist.update(name: "abc")
       end
       version = artist.versions.first
-      put_auth(revert_artist_path(artist.id), user, params: { version_id: version.id })
+      sign_in_as user
+      put revert_artist_path(artist.id), params: { version_id: version.id }
       expect(artist.reload.name).to eq("artist1")
       assert_redirected_to(artist_path(artist.id))
     end
 
     it "not allow reverting to a previous version of another artist" do
       artist2 = CurrentUser.scoped(user) { create(:artist, creator: user) }
-      put_auth(artist_path(artist.id), user, params: { version_id: artist2.versions.first.id })
+      sign_in_as user
+      put artist_path(artist.id), params: { version_id: artist2.versions.first.id }
       artist.reload
       expect(artist2.name).not_to eq(artist.name)
       assert_redirected_to(artist_path(artist.id))
@@ -224,7 +234,8 @@ RSpec.describe ArtistsController do
 
     it "not allow destroying" do
       assert_no_difference("Artist.count") do
-        delete_auth(artist_path(artist), bd_user)
+        sign_in_as bd_user
+        delete artist_path(artist)
       end
     end
 
@@ -233,7 +244,8 @@ RSpec.describe ArtistsController do
       CurrentUser.scoped(bd_user) do
         avoid_posting.update(is_active: false)
         assert_no_difference("Artist.count") do
-          delete_auth(artist_path(artist), bd_user)
+          sign_in_as bd_user
+          delete artist_path(artist)
         end
       end
     end
@@ -243,12 +255,10 @@ RSpec.describe ArtistsController do
       name = artist.name
       group_name = artist.group_name
       other_names = artist.other_names
-      # assert_no_difference("ModAction.count") do
-      #   put_auth(artist_path(artist), janitor, params: { artist: { name: "another_name", group_name: "some_group", other_names: "some other names" } })
-      # end
       expect do
         CurrentUser.scoped(janitor) do
-          put_auth(artist_path(artist), janitor, params: { artist: { name: "another_name", group_name: "some_group", other_names: "some other names" } })
+          sign_in_as janitor
+          put artist_path(artist), params: { artist: { name: "another_name", group_name: "some_group", other_names: "some other names" } }
         end
         # TODO: Return an appropriate response code here
         expect(response).to have_http_status(:success)

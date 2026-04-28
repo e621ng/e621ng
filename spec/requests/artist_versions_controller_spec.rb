@@ -22,7 +22,8 @@ RSpec.describe ArtistVersionsController do
     end
 
     it "renders successfully as HTML" do
-      get_auth artist_versions_path, user
+      sign_in_as user
+      get artist_versions_path
       expect(response).to have_http_status(:success)
     end
 

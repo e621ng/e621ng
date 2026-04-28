@@ -10,29 +10,34 @@ RSpec.describe Admin::AutomodRulesController do
 
   describe "#index" do
     it "render for an admin" do
-      get_auth(admin_automod_rules_path, admin)
+      sign_in_as admin
+      get admin_automod_rules_path
       expect(response).to have_http_status(:success)
     end
 
     it "be forbidden for a moderator" do
-      get_auth(admin_automod_rules_path, moderator)
+      sign_in_as moderator
+      get admin_automod_rules_path
       expect(response).to have_http_status(:forbidden)
     end
 
     it "be forbidden for a member" do
-      get_auth(admin_automod_rules_path, member)
+      sign_in_as member
+      get admin_automod_rules_path
       expect(response).to have_http_status(:forbidden)
     end
   end
 
   describe "#new" do
     it "render for an admin" do
-      get_auth(new_admin_automod_rule_path, admin)
+      sign_in_as admin
+      get new_admin_automod_rule_path
       expect(response).to have_http_status(:success)
     end
 
     it "be forbidden for a moderator" do
-      get_auth(new_admin_automod_rule_path, moderator)
+      sign_in_as moderator
+      get new_admin_automod_rule_path
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -40,7 +45,8 @@ RSpec.describe Admin::AutomodRulesController do
   describe "#create" do
     it "create a rule for an admin" do
       expect do
-        post_auth(admin_automod_rules_path, admin, params: { automod_rule: { name: "new_rule", regex: "badword", enabled: true } })
+        sign_in_as admin
+        post admin_automod_rules_path, params: { automod_rule: { name: "new_rule", regex: "badword", enabled: true } }
       end.to change(AutomodRule, :count).by(1)
       expect(response).to redirect_to(admin_automod_rules_path)
       expect(AutomodRule.last.creator).to eq(admin)
@@ -48,14 +54,16 @@ RSpec.describe Admin::AutomodRulesController do
 
     it "be forbidden for a moderator" do
       expect do
-        post_auth(admin_automod_rules_path, moderator, params: { automod_rule: { name: "new_rule", regex: "badword", enabled: true } })
+        sign_in_as moderator
+        post admin_automod_rules_path, params: { automod_rule: { name: "new_rule", regex: "badword", enabled: true } }
       end.not_to change(AutomodRule, :count)
       expect(response).to have_http_status(:forbidden)
     end
 
     it "re-render new with validation errors" do
       expect do
-        post_auth(admin_automod_rules_path, admin, params: { automod_rule: { name: "", regex: "badword", enabled: true } })
+        sign_in_as admin
+        post admin_automod_rules_path, params: { automod_rule: { name: "", regex: "badword", enabled: true } }
       end.not_to change(AutomodRule, :count)
       expect(response).to have_http_status(:success)
     end
@@ -63,19 +71,22 @@ RSpec.describe Admin::AutomodRulesController do
 
   describe "#edit" do
     it "render for an admin" do
-      get_auth(edit_admin_automod_rule_path(rule), admin)
+      sign_in_as admin
+      get edit_admin_automod_rule_path(rule)
       expect(response).to have_http_status(:success)
     end
 
     it "be forbidden for a moderator" do
-      get_auth(edit_admin_automod_rule_path(rule), moderator)
+      sign_in_as moderator
+      get edit_admin_automod_rule_path(rule)
       expect(response).to have_http_status(:forbidden)
     end
   end
 
   describe "#update" do
     it "update a rule for an admin" do
-      patch_auth(admin_automod_rule_path(rule), admin, params: { automod_rule: { name: "updated_rule", regex: "newpattern", enabled: false } })
+      sign_in_as admin
+      patch admin_automod_rule_path(rule), params: { automod_rule: { name: "updated_rule", regex: "newpattern", enabled: false } }
       expect(response).to redirect_to(admin_automod_rules_path)
       rule.reload
       expect(rule.name).to eq("updated_rule")
@@ -84,7 +95,8 @@ RSpec.describe Admin::AutomodRulesController do
     end
 
     it "be forbidden for a moderator" do
-      patch_auth(admin_automod_rule_path(rule), moderator, params: { automod_rule: { name: "updated_rule" } })
+      sign_in_as moderator
+      patch admin_automod_rule_path(rule), params: { automod_rule: { name: "updated_rule" } }
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -92,14 +104,16 @@ RSpec.describe Admin::AutomodRulesController do
   describe "#destroy" do
     it "delete a rule for an admin" do
       expect do
-        delete_auth(admin_automod_rule_path(rule), admin)
+        sign_in_as admin
+        delete admin_automod_rule_path(rule)
       end.to change(AutomodRule, :count).by(-1)
       expect(response).to redirect_to(admin_automod_rules_path)
     end
 
     it "be forbidden for a moderator" do
       expect do
-        delete_auth(admin_automod_rule_path(rule), moderator)
+        sign_in_as moderator
+        delete admin_automod_rule_path(rule)
       end.not_to change(AutomodRule, :count)
       expect(response).to have_http_status(:forbidden)
     end

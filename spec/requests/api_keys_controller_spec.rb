@@ -90,12 +90,14 @@ RSpec.describe ApiKeysController do
   # new_api_key | GET | /api_keys/new(.:format) | api_keys#new
   describe "GET /api_keys/new" do
     it "loads correctly" do
-      get_auth(new_api_key_path, create(:user))
+      sign_in_as(create(:user), reauthenticated: true)
+      get new_api_key_path
       expect(response).to have_http_status(:success)
     end
 
     it "has inputs for all the required parameters" do
-      get_auth(new_api_key_path, create(:user))
+      sign_in_as(create(:user), reauthenticated: true)
+      get new_api_key_path
       # TODO: Move this to a view spec (https://rspec.info/features/8-0/rspec-rails/view-specs/view-spec/)
       expect(response.body).to include("name=\"api_key[name]\"")
       expect(response.body).to include("name=\"api_key[duration]\"")
@@ -211,14 +213,16 @@ RSpec.describe ApiKeysController do
     let!(:api_key) { create(:api_key, user: user, name: "test_key") }
 
     it "deletes the user's API key" do
-      expect { delete_auth(api_key_path(api_key), user) }.to change(ApiKey, :count).by(-1)
+      sign_in_as(user, reauthenticated: true)
+      expect { delete api_key_path(api_key) }.to change(ApiKey, :count).by(-1)
 
       expect(response).to redirect_to(api_keys_path)
       expect { api_key.reload }.to raise_error(ActiveRecord::RecordNotFound)
     end
 
     it "doesn't allow deleting another user's API key" do
-      expect { delete_auth(api_key_path(api_key), create(:user)) }.not_to change(ApiKey, :count)
+      sign_in_as(create(:user), reauthenticated: true)
+      expect { delete api_key_path(api_key) }.not_to change(ApiKey, :count)
 
       expect(response).to have_http_status(:not_found)
       expect(api_key.reload).not_to be_nil

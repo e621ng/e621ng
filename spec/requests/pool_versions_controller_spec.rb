@@ -38,7 +38,8 @@ RSpec.describe PoolVersionsController do
           expect(response.parsed_body.pluck("id")).not_to include(*excluded_versions.pluck(:id))
         end
 
-        get_auth pool_versions_path, user, params: params
+        sign_in_as user
+        get pool_versions_path, params: params
         expect(response).to have_http_status(:success)
         versions.each { |p| assert_select "#pool-version-#{p.id}", true }
         if excluded_versions.present?

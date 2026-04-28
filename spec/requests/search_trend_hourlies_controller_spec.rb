@@ -17,27 +17,31 @@ RSpec.describe SearchTrendHourliesController do
 
     context "as a member" do
       it "is forbidden" do
-        get_auth search_trend_hourlies_path, user
+        sign_in_as user
+        get search_trend_hourlies_path
         expect(response).to have_http_status(:forbidden)
       end
     end
 
     context "as an admin" do
       it "renders successfully" do
-        get_auth search_trend_hourlies_path, admin
+        sign_in_as admin
+        get search_trend_hourlies_path
         expect(response).to have_http_status(:ok)
       end
 
       it "returns a JSON array" do
         create(:search_trend_hourly)
-        get_auth search_trend_hourlies_path(format: :json), admin
+        sign_in_as admin
+        get search_trend_hourlies_path(format: :json)
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body).to be_an(Array)
       end
 
       it "returns only the expected JSON fields" do
         create(:search_trend_hourly)
-        get_auth search_trend_hourlies_path(format: :json), admin
+        sign_in_as admin
+        get search_trend_hourlies_path(format: :json)
         expect(response.parsed_body.first.keys).to contain_exactly("tag", "count", "hour", "processed")
       end
 
@@ -48,7 +52,8 @@ RSpec.describe SearchTrendHourliesController do
           target = create(:search_trend_hourly, hour: past_hour)
           other  = create(:search_trend_hourly, hour: earlier_hour)
 
-          get_auth search_trend_hourlies_path(format: :json, hour: past_hour.iso8601), admin
+          sign_in_as admin
+          get search_trend_hourlies_path(format: :json, hour: past_hour.iso8601)
 
           tags = response.parsed_body.pluck("tag")
           expect(tags).to include(target.tag)
@@ -61,7 +66,8 @@ RSpec.describe SearchTrendHourliesController do
           current = create(:search_trend_hourly)
           past    = create(:search_trend_hourly, hour: 2.hours.ago.utc.beginning_of_hour)
 
-          get_auth search_trend_hourlies_path(format: :json, hour: "not-a-time"), admin
+          sign_in_as admin
+          get search_trend_hourlies_path(format: :json, hour: "not-a-time")
 
           tags = response.parsed_body.pluck("tag")
           expect(tags).to include(current.tag)
@@ -74,7 +80,8 @@ RSpec.describe SearchTrendHourliesController do
           wolf = create(:search_trend_hourly, tag: "wolf")
           fox  = create(:search_trend_hourly, tag: "fox")
 
-          get_auth search_trend_hourlies_path(format: :json, search: { name_matches: "wolf" }), admin
+          sign_in_as admin
+          get search_trend_hourlies_path(format: :json, search: { name_matches: "wolf" })
 
           tags = response.parsed_body.pluck("tag")
           expect(tags).to include(wolf.tag)
@@ -85,7 +92,8 @@ RSpec.describe SearchTrendHourliesController do
           create(:search_trend_hourly, tag: "blue_wolf")
           create(:search_trend_hourly, tag: "red_fox")
 
-          get_auth search_trend_hourlies_path(format: :json, search: { name_matches: "*wolf*" }), admin
+          sign_in_as admin
+          get search_trend_hourlies_path(format: :json, search: { name_matches: "*wolf*" })
 
           tags = response.parsed_body.pluck("tag")
           expect(tags).to include("blue_wolf")

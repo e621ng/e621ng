@@ -8,12 +8,14 @@ RSpec.describe SearchTrendBlacklistsController do
 
   describe "#index" do
     it "renders for admins" do
-      get_auth search_trend_blacklists_path, admin
+      sign_in_as admin
+      get search_trend_blacklists_path
       expect(response).to have_http_status(:success)
     end
 
     it "forbids non-admins" do
-      get_auth search_trend_blacklists_path, standard_user
+      sign_in_as standard_user
+      get search_trend_blacklists_path
       expect(response).to have_http_status(:forbidden)
     end
 
@@ -27,12 +29,14 @@ RSpec.describe SearchTrendBlacklistsController do
 
   describe "#new" do
     it "renders for admins" do
-      get_auth new_search_trend_blacklist_path, admin
+      sign_in_as admin
+      get new_search_trend_blacklist_path
       expect(response).to have_http_status(:success)
     end
 
     it "forbids non-admins" do
-      get_auth new_search_trend_blacklist_path, standard_user
+      sign_in_as standard_user
+      get new_search_trend_blacklist_path
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -40,7 +44,8 @@ RSpec.describe SearchTrendBlacklistsController do
   describe "#create" do
     it "successfully creates a blacklist entry for admins" do
       expect do
-        post_auth search_trend_blacklists_path, admin, params: {
+        sign_in_as admin
+        post search_trend_blacklists_path, params: {
           search_trend_blacklist: { tag: "wolf", reason: "testing" },
         }
       end.to change(SearchTrendBlacklist, :count).by(1)
@@ -51,7 +56,8 @@ RSpec.describe SearchTrendBlacklistsController do
 
     it "forbids non-admins" do
       expect do
-        post_auth search_trend_blacklists_path, standard_user, params: {
+        sign_in_as standard_user
+        post search_trend_blacklists_path, params: {
           search_trend_blacklist: { tag: "wolf", reason: "" },
         }
       end.not_to change(SearchTrendBlacklist, :count)
@@ -60,7 +66,8 @@ RSpec.describe SearchTrendBlacklistsController do
 
     it "shows errors for invalid input" do
       expect do
-        post_auth search_trend_blacklists_path, admin, params: {
+        sign_in_as admin
+        post search_trend_blacklists_path, params: {
           search_trend_blacklist: { tag: "", reason: "" },
         }
       end.not_to change(SearchTrendBlacklist, :count)
@@ -76,12 +83,14 @@ RSpec.describe SearchTrendBlacklistsController do
     end
 
     it "render for admin" do
-      get_auth edit_search_trend_blacklist_path(entry), admin
+      sign_in_as admin
+      get edit_search_trend_blacklist_path(entry)
       expect(response).to have_http_status(:success)
     end
 
     it "forbids non-admins" do
-      get_auth edit_search_trend_blacklist_path(entry), standard_user
+      sign_in_as standard_user
+      get edit_search_trend_blacklist_path(entry)
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -94,7 +103,8 @@ RSpec.describe SearchTrendBlacklistsController do
     end
 
     it "update a blacklist entry as admin" do
-      put_auth search_trend_blacklist_path(entry), admin, params: {
+      sign_in_as admin
+      put search_trend_blacklist_path(entry), params: {
         search_trend_blacklist: { tag: "wolf", reason: "new reason" },
       }
       expect(response).to have_http_status(:redirect)
@@ -103,7 +113,8 @@ RSpec.describe SearchTrendBlacklistsController do
     end
 
     it "forbids non-admins" do
-      put_auth search_trend_blacklist_path(entry), standard_user, params: {
+      sign_in_as standard_user
+      put search_trend_blacklist_path(entry), params: {
         search_trend_blacklist: { tag: "wolf", reason: "new reason" },
       }
       expect(response).to have_http_status(:forbidden)
@@ -114,7 +125,8 @@ RSpec.describe SearchTrendBlacklistsController do
       bl = CurrentUser.scoped(admin) do
         SearchTrendBlacklist.create!(tag: "wolf", reason: "")
       end
-      put_auth search_trend_blacklist_path(bl), admin, params: {
+      sign_in_as admin
+      put search_trend_blacklist_path(bl), params: {
         search_trend_blacklist: { tag: "" },
       }
       expect(response).to have_http_status(:success)
@@ -131,7 +143,8 @@ RSpec.describe SearchTrendBlacklistsController do
 
     it "delete a blacklist entry as admin" do
       expect do
-        delete_auth search_trend_blacklist_path(entry), admin
+        sign_in_as admin
+        delete search_trend_blacklist_path(entry)
       end.to change(SearchTrendBlacklist, :count).by(-1)
       expect(response).to have_http_status(:redirect)
       expect(response).to redirect_to(search_trend_blacklists_path)
@@ -139,7 +152,8 @@ RSpec.describe SearchTrendBlacklistsController do
 
     it "forbids non-admins" do
       expect do
-        delete_auth search_trend_blacklist_path(entry), standard_user
+        sign_in_as standard_user
+        delete search_trend_blacklist_path(entry)
       end.not_to change(SearchTrendBlacklist, :count)
       expect(response).to have_http_status(:forbidden)
     end

@@ -77,14 +77,16 @@ RSpec.describe PoolsController do
     end
 
     it "renders HTML for a member" do
-      get_auth gallery_pools_path, user
+      sign_in_as user
+      get gallery_pools_path
       expect(response).to have_http_status(:ok)
     end
   end
 
   describe "#new" do
     it "renders for a member" do
-      get_auth new_pool_path, user
+      sign_in_as user
+      get new_pool_path
       expect(response).to have_http_status(:ok)
     end
 
@@ -98,24 +100,28 @@ RSpec.describe PoolsController do
     context "as admin" do
       it "creates a pool" do
         expect do
-          post_auth pools_path, admin, params: { pool: { name: "brand_new_pool", description: "A test pool", category: "series" } }
+          sign_in_as admin
+          post pools_path, params: { pool: { name: "brand_new_pool", description: "A test pool", category: "series" } }
         end.to change(Pool, :count).by(1)
       end
 
       it "sets a flash notice on success" do
-        post_auth pools_path, admin, params: { pool: { name: "flash_notice_pool", category: "series" } }
+        sign_in_as admin
+        post pools_path, params: { pool: { name: "flash_notice_pool", category: "series" } }
         expect(flash[:notice]).to eq("Pool created")
       end
 
       it "redirects to the new pool on success" do
-        post_auth pools_path, admin, params: { pool: { name: "redirect_pool", category: "series" } }
+        sign_in_as admin
+        post pools_path, params: { pool: { name: "redirect_pool", category: "series" } }
         expect(response).to redirect_to(pool_path(Pool.last))
       end
 
       it "does not create a pool with a duplicate name and sets an error flash" do
         existing = pool
         expect do
-          post_auth pools_path, admin, params: { pool: { name: existing.name, category: "series" } }
+          sign_in_as admin
+          post pools_path, params: { pool: { name: existing.name, category: "series" } }
         end.not_to change(Pool, :count)
         expect(flash[:notice]).to include("Name")
       end
@@ -131,7 +137,8 @@ RSpec.describe PoolsController do
 
   describe "#edit" do
     it "renders for a member" do
-      get_auth edit_pool_path(pool), user
+      sign_in_as user
+      get edit_pool_path(pool)
       expect(response).to have_http_status(:ok)
     end
 
@@ -144,18 +151,21 @@ RSpec.describe PoolsController do
   describe "#update" do
     context "as admin" do
       it "updates description and sets flash notice" do
-        put_auth pool_path(pool), admin, params: { pool: { description: "updated description" } }
+        sign_in_as admin
+        put pool_path(pool), params: { pool: { description: "updated description" } }
         expect(pool.reload.description).to eq("updated description")
         expect(flash[:notice]).to eq("Pool updated")
       end
 
       it "updates the pool name" do
-        put_auth pool_path(pool), admin, params: { pool: { name: "renamed_pool" } }
+        sign_in_as admin
+        put pool_path(pool), params: { pool: { name: "renamed_pool" } }
         expect(pool.reload.name).to eq("renamed_pool")
       end
 
       it "redirects to the pool on success" do
-        put_auth pool_path(pool), admin, params: { pool: { description: "desc" } }
+        sign_in_as admin
+        put pool_path(pool), params: { pool: { description: "desc" } }
         expect(response).to redirect_to(pool_path(pool))
       end
     end
@@ -172,20 +182,23 @@ RSpec.describe PoolsController do
     it "destroys the pool as janitor and redirects to the index" do
       pool
       expect do
-        delete_auth pool_path(pool), janitor
+        sign_in_as janitor
+        delete pool_path(pool)
       end.to change(Pool, :count).by(-1)
       expect(response).to redirect_to(pools_path)
     end
 
     it "sets a flash notice on successful destruction" do
-      delete_auth pool_path(pool), janitor
+      sign_in_as janitor
+      delete pool_path(pool)
       expect(flash[:notice]).to eq("Pool deleted")
     end
 
     it "returns 403 for a member" do
       pool
       expect do
-        delete_auth pool_path(pool), user
+        sign_in_as user
+        delete pool_path(pool)
       end.not_to change(Pool, :count)
       expect(response).to have_http_status(:forbidden)
     end
@@ -208,7 +221,8 @@ RSpec.describe PoolsController do
     end
 
     it "reverts the pool to a previous version as admin" do
-      put_auth revert_pool_path(pool), admin, params: { version_id: initial_version.id }
+      sign_in_as admin
+      put revert_pool_path(pool), params: { version_id: initial_version.id }
       expect(pool.reload.description).to eq("original")
       expect(response).to redirect_to(pool_path(pool))
     end
@@ -224,14 +238,16 @@ RSpec.describe PoolsController do
 
     it "blocks create for a non-staff member" do
       expect do
-        post_auth pools_path, user, params: { pool: { name: "lockdown_pool", category: "series" } }
+        sign_in_as user
+        post pools_path, params: { pool: { name: "lockdown_pool", category: "series" } }
       end.not_to change(Pool, :count)
       expect(response).to have_http_status(:forbidden)
     end
 
     it "allows create for a staff member (janitor)" do
       expect do
-        post_auth pools_path, janitor, params: { pool: { name: "staff_pool", category: "series" } }
+        sign_in_as janitor
+        post pools_path, params: { pool: { name: "staff_pool", category: "series" } }
       end.to change(Pool, :count).by(1)
     end
   end

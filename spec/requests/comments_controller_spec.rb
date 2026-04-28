@@ -61,7 +61,8 @@ RSpec.describe CommentsController do
       end
 
       it "is accepted for moderators without raising an error" do
-        get_auth comments_path(format: :json, search: { is_hidden: "true" }), moderator
+        sign_in_as moderator
+        get comments_path(format: :json, search: { is_hidden: "true" })
         expect(response).to have_http_status(:ok)
       end
     end
@@ -106,12 +107,14 @@ RSpec.describe CommentsController do
     end
 
     it "returns 403 for a hidden comment when viewed by another member" do
-      get_auth comment_path(hidden_comment), other_member
+      sign_in_as other_member
+      get comment_path(hidden_comment)
       expect(response).to have_http_status(:forbidden)
     end
 
     it "returns 200 for a hidden comment when the viewer is a moderator" do
-      get_auth comment_path(hidden_comment), moderator
+      sign_in_as moderator
+      get comment_path(hidden_comment)
       expect(response).to have_http_status(:ok)
     end
 
@@ -144,7 +147,8 @@ RSpec.describe CommentsController do
     end
 
     it "returns 200 for a member" do
-      get_auth new_comment_path, member
+      sign_in_as member
+      get new_comment_path
       expect(response).to have_http_status(:ok)
     end
   end
@@ -155,17 +159,20 @@ RSpec.describe CommentsController do
 
   describe "GET /comments/:id/edit" do
     it "returns 200 for the creator" do
-      get_auth edit_comment_path(comment), member
+      sign_in_as member
+      get edit_comment_path(comment)
       expect(response).to have_http_status(:ok)
     end
 
     it "returns 200 for an admin" do
-      get_auth edit_comment_path(comment), admin
+      sign_in_as admin
+      get edit_comment_path(comment)
       expect(response).to have_http_status(:ok)
     end
 
     it "returns 403 for a non-creator member" do
-      get_auth edit_comment_path(comment), other_member
+      sign_in_as other_member
+      get edit_comment_path(comment)
       expect(response).to have_http_status(:forbidden)
     end
 
@@ -189,14 +196,16 @@ RSpec.describe CommentsController do
 
     it "creates a comment and sets flash notice for valid params" do
       expect do
-        post_auth comments_path, member, params: { comment: { body: "new comment", post_id: post_record.id } }
+        sign_in_as member
+        post comments_path, params: { comment: { body: "new comment", post_id: post_record.id } }
       end.to change(Comment, :count).by(1)
       expect(flash[:notice]).to eq("Comment posted")
     end
 
     it "does not create a comment and sets flash with error for empty body" do
       expect do
-        post_auth comments_path, member, params: { comment: { body: "", post_id: post_record.id } }
+        sign_in_as member
+        post comments_path, params: { comment: { body: "", post_id: post_record.id } }
       end.not_to change(Comment, :count)
       expect(flash[:notice]).to be_present
     end
@@ -213,13 +222,15 @@ RSpec.describe CommentsController do
     end
 
     it "updates the body for the creator and redirects to the post" do
-      patch_auth comment_path(comment), member, params: { comment: { body: "updated body" } }
+      sign_in_as member
+      patch comment_path(comment), params: { comment: { body: "updated body" } }
       expect(comment.reload.body).to eq("updated body")
       expect(response).to redirect_to(post_path(comment.post_id))
     end
 
     it "returns 403 for a non-creator member" do
-      patch_auth comment_path(comment), other_member, params: { comment: { body: "hacked" } }
+      sign_in_as other_member
+      patch comment_path(comment), params: { comment: { body: "hacked" } }
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -231,16 +242,19 @@ RSpec.describe CommentsController do
   describe "DELETE /comments/:id" do
     it "destroys the comment for an admin" do
       comment
-      expect { delete_auth comment_path(comment), admin }.to change(Comment, :count).by(-1)
+      sign_in_as admin
+      expect { delete comment_path(comment) }.to change(Comment, :count).by(-1)
     end
 
     it "returns 403 for a moderator (admin_only)" do
-      delete_auth comment_path(comment), moderator
+      sign_in_as moderator
+      delete comment_path(comment)
       expect(response).to have_http_status(:forbidden)
     end
 
     it "returns 403 for a member (admin_only)" do
-      delete_auth comment_path(comment), member
+      sign_in_as member
+      delete comment_path(comment)
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -251,17 +265,20 @@ RSpec.describe CommentsController do
 
   describe "POST /comments/:id/hide" do
     it "hides the comment for a moderator" do
-      post_auth hide_comment_path(comment), moderator
+      sign_in_as moderator
+      post hide_comment_path(comment)
       expect(comment.reload.is_hidden).to be(true)
     end
 
     it "hides the comment for the creator" do
-      post_auth hide_comment_path(comment), member
+      sign_in_as member
+      post hide_comment_path(comment)
       expect(comment.reload.is_hidden).to be(true)
     end
 
     it "returns 403 for an unrelated member" do
-      post_auth hide_comment_path(comment), other_member
+      sign_in_as other_member
+      post hide_comment_path(comment)
       expect(response).to have_http_status(:forbidden)
     end
 
@@ -277,12 +294,14 @@ RSpec.describe CommentsController do
 
   describe "POST /comments/:id/unhide" do
     it "unhides the comment for a moderator" do
-      post_auth unhide_comment_path(hidden_comment), moderator
+      sign_in_as moderator
+      post unhide_comment_path(hidden_comment)
       expect(hidden_comment.reload.is_hidden).to be(false)
     end
 
     it "returns 403 for a member (moderator_only)" do
-      post_auth unhide_comment_path(hidden_comment), member
+      sign_in_as member
+      post unhide_comment_path(hidden_comment)
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -293,7 +312,8 @@ RSpec.describe CommentsController do
 
   describe "POST /comments/:id/warning" do
     it "applies a warning and returns JSON with an html key" do
-      post_auth warning_comment_path(comment), moderator, params: { record_type: "warning" }
+      sign_in_as moderator
+      post warning_comment_path(comment), params: { record_type: "warning" }
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to include("html")
       expect(comment.reload.warning_type).to eq("warning")
@@ -301,12 +321,14 @@ RSpec.describe CommentsController do
 
     it "removes a warning when record_type is unmark" do
       CurrentUser.scoped(moderator) { comment.user_warned!("warning", moderator) }
-      post_auth warning_comment_path(comment), moderator, params: { record_type: "unmark" }
+      sign_in_as moderator
+      post warning_comment_path(comment), params: { record_type: "unmark" }
       expect(comment.reload.warning_type).to be_nil
     end
 
     it "returns 403 for a member (moderator_only)" do
-      post_auth warning_comment_path(comment), member, params: { record_type: "warning" }
+      sign_in_as member
+      post warning_comment_path(comment), params: { record_type: "warning" }
       expect(response).to have_http_status(:forbidden)
     end
   end
@@ -321,13 +343,15 @@ RSpec.describe CommentsController do
     end
 
     it "denies a non-staff member when comments are locked down" do
-      post_auth comments_path, member, params: { comment: { body: "test", post_id: create(:post).id } }
+      sign_in_as member
+      post comments_path, params: { comment: { body: "test", post_id: create(:post).id } }
       expect(response).to have_http_status(:forbidden)
     end
 
     it "allows staff (moderator) through when comments are locked down" do
       post_record = create(:post)
-      post_auth comments_path, moderator, params: { comment: { body: "test", post_id: post_record.id } }
+      sign_in_as moderator
+      post comments_path, params: { comment: { body: "test", post_id: post_record.id } }
       expect(response).not_to have_http_status(:forbidden)
     end
   end
@@ -341,24 +365,28 @@ RSpec.describe CommentsController do
 
     describe "is_sticky" do
       it "raises 403 for a regular member (unpermitted parameter)" do
-        post_auth comments_path, member, params: { comment: { body: "test", post_id: post_record.id, is_sticky: true } }
+        sign_in_as member
+        post comments_path, params: { comment: { body: "test", post_id: post_record.id, is_sticky: true } }
         expect(response).to have_http_status(:forbidden)
       end
 
       it "is accepted for a janitor" do
-        post_auth comments_path, janitor, params: { comment: { body: "test", post_id: post_record.id, is_sticky: true } }
+        sign_in_as janitor
+        post comments_path, params: { comment: { body: "test", post_id: post_record.id, is_sticky: true } }
         expect(Comment.last.is_sticky).to be(true)
       end
     end
 
     describe "is_hidden" do
       it "raises 403 for a regular member (unpermitted parameter)" do
-        post_auth comments_path, member, params: { comment: { body: "test", post_id: post_record.id, is_hidden: true } }
+        sign_in_as member
+        post comments_path, params: { comment: { body: "test", post_id: post_record.id, is_hidden: true } }
         expect(response).to have_http_status(:forbidden)
       end
 
       it "is accepted for a moderator" do
-        post_auth comments_path, moderator, params: { comment: { body: "test", post_id: post_record.id, is_hidden: true } }
+        sign_in_as moderator
+        post comments_path, params: { comment: { body: "test", post_id: post_record.id, is_hidden: true } }
         expect(Comment.last.is_hidden).to be(true)
       end
     end
