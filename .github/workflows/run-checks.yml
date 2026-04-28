@@ -47,7 +47,7 @@ jobs:
       - name: Run ESLint
         run: $DOCKER_RUN linter
 
-  tests:
+  test-runner:
     runs-on: ubuntu-22.04
     needs:
       - rubocop
@@ -56,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        index: [1, 2, 3, 4]
+        index: [1, 2, 3, 4, 5, 6, 7, 8]
 
     steps:
       - uses: actions/checkout@v6
@@ -102,3 +102,14 @@ jobs:
         with:
           path: tmp/spec_runtime.log
           key: spec-runtime-log-${{ matrix.index }}-${{ github.run_id }}
+
+  tests:
+    runs-on: ubuntu-22.04
+    needs: test-runner
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          if [[ "${{ needs.test-runner.result }}" != "success" ]]; then
+            exit 1
+          fi
