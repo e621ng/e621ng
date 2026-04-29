@@ -239,9 +239,69 @@ class Dmail < ApplicationRecord
     to.update_columns(unread_dmail_count: to.unread_dmail_count + 1)
   end
 
-  def visible_to?(user)
-    return true if user.is_moderator? && (from_id == User.system.id || Ticket.where(qtype: "dmail", disp_id: id).exists?)
-    return true if user.is_admin? && (to.is_admin? || from.is_admin?)
-    owner_id == user.id
+  def visible_to?(user, key = nil)
+    owner_id == user.id ||
+      (user.is_staff? && (
+          is_accessible_by_key?(key) ||
+          (user.is_moderator? && is_accessible_to_moderators?) ||
+          (user.is_admin? && is_accessible_to_admins?)
+        ))
+  end
+
+  USE_VERSIONING = false
+  CURRENT_VERSION = 1
+  VERSION_REGEX = /^v([0-9]+)::([\S]+)$/
+
+  if USE_VERSIONING
+    def generate_key(version = CURRENT_VERSION, key: nil)
+      if key && (m = Dmail::VERSION_REGEX.match(key))
+        version = m.match(1)
+      end
+      send(:"generate_key_v#{version}")
+    rescue StandardError; "INVALID_VERSION"
+    end
+
+    def generate_keys
+      [generate_key_v1, generate_key_v2]
+    end
+  else
+    def generate_key(...)
+      send(:"generate_key_v#{CURRENT_VERSION}")
+    end
+  end
+
+  private
+
+  # Includes the id of the DMail, so only works on that copy; if deleted, can't be used on the other party's copy. As there's no way to get their copy's id, currently doesn't matter.
+  def generate_key_v1
+    "v1::#{Digest::SHA256.hexdigest("#{id}::#{from.id}::#{to.id}::#{body}")}"
+  end
+
+  # Removes the id of the DMail, so if deleted, can still be used on the other party's copy. As there's no way to get their copy's id, currently doesn't matter. This isn't unique, so `created_at` is added.
+  # IDEA: use utc?
+  def generate_key_v2
+    "v2::#{Digest::SHA256.hexdigest("#{created_at.to_i}::#{from.id}::#{to.id}::#{body}")}"
+  end
+
+  def is_accessible_by_key?(key)
+    key.present? && (to.is_staff? || from.is_staff?) && key_matches?(key)
+  end
+
+  if USE_VERSIONING
+    def key_matches?(key)
+      (v = VERSION_REGEX.match(key)&.match(1)) && (key == generate_key(v))
+    end
+  else
+    def key_matches?(key)
+      key == generate_key
+    end
+  end
+
+  def is_accessible_to_moderators?
+    from_id == User.system.id || Ticket.where(qtype: "dmail", disp_id: id).exists?
+  end
+
+  def is_accessible_to_admins?
+    to.is_admin? || from.is_admin?
   end
 end
