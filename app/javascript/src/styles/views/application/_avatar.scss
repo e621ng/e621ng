@@ -1,4 +1,6 @@
 .profile-avatar {
+  --thumb-image-size: 5rem;
+
   .avatar-image {
     display: flex;
     width: 5rem;
@@ -8,40 +10,38 @@
 
     background: themed("color-section");
     @include st-radius;
+  }
 
-    // Letter if no avatar image
-    &::after {
-      content: attr(data-initial);
+  article.thumbnail.blacklisted a.thm-link {
+    background: themed("color-section");
+  }
 
-      display: flex;
-      justify-content: center;
-      align-items: center;
+  // Letter if no avatar image
+  .avatar-image::after,
+  article.thumbnail.blacklisted a.thm-link:before {
+    content: attr(data-initial);
 
-      font-size: 5rem;
-      font-weight: bold;
-      color: themed("color-foreground");
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-    }
+    font-size: 5rem;
+    font-weight: bold;
+    color: themed("color-foreground");
 
-    // On top of the letter
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: 1;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 
-      @include st-radius;
-    }
+    // Reset default blacklist colors
+    background: unset;
+    line-height: unset;
+    transform: unset;
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
   }
 }
-// When blacklisted, just show the letter preview & not the blacklisted preview
-// IDEA: I had trouble getting the blacklisted preview image to be properly sized; you could fix this & hide the span::after instead.
-.profile-avatar.blacklisted img { display: none; }
 
 
 nav.navigation .simple-avatar {
@@ -70,8 +70,11 @@ nav.navigation .simple-avatar {
       color: themed("color-background");
       font-weight: bold;
       font-size: 2.25rem;
+      font-family: "Roboto", Verdana, Geneva, sans-serif;
     }
   }
+
+  &.blacklisted .avatar-image img { display: none; }
 
   .avatar-more {
     @include st-radius-right;
