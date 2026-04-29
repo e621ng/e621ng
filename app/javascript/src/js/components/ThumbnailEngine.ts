@@ -11,7 +11,9 @@ export default class ThumbnailEngine {
   public static get renderedCount () { return this._counter; }
 
   /**
-   * Renders a thumbnail element for a given post. If the post is null or missing a preview URL, returns null.
+   * Renders a thumbnail element for a given post.
+   * If the post is null, returns null.
+   * If a post is missing preview data, it will render a placeholder thumbnail with a "deleted" image.
    * @param {CachedPost} post Post data to render
    * @returns {JQuery<HTMLElement> | null} Rendered thumbnail element or null if the post cannot be rendered
    */

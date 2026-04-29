@@ -4,7 +4,7 @@
  * Fetches data from the data-attributes of a thumbnail.
  */
 export default class PostCache {
-  static _cache: { [key: number]: RawPostData } = {};
+  static _cache: { [key: number]: CachedPostData } = {};
   static _index = new Set<number>();
 
   static _elements: { [key: number]: JQuery<HTMLElement>[] } = {};
@@ -36,14 +36,17 @@ export default class PostCache {
       if (parsedOne) pools.push(parsedOne);
     }
 
-    const value: RawPostData = {
+    const rating = data.rating || "";
+    if (rating !== "s" && rating !== "q" && rating !== "e") return null;
+
+    const value: CachedPostData = {
       tag_string: tag_string,
       tags: tags,
       tagcount: tags.length,
 
       id: id,
       flags: (data.flags || "").split(" "),
-      rating: data.rating || "",
+      rating: rating,
       file_ext: data.fileExt || "",
 
       width: parseInt(data.width) || -1,
@@ -79,14 +82,14 @@ export default class PostCache {
    * @param {boolean} update Whether to update the cache if the post ID is already present.
    * @returns Processed data
    */
-  static fromDeferredPosts (id: number, data: any, update = false): CachedPost | null {
+  static fromDeferredPosts (id: number, data: DeferredPostData, update: boolean = false): CachedPost | null {
     if (!id) return null;
     if (!update && this._index.has(id)) return new CachedPost(this._cache[id]);
 
     // For some reason, this takes 10x as long on the first post.
     // But it's still only ~1ms (rather than 0.1ms), so it's fine
     const tag_string = data.tags || "",
-      tags = tag_string.split(" ");
+      tag_array = tag_string.split(" ");
 
     const pools = [];
     for (const one of (data.pools + "").split(" ")) {
@@ -95,27 +98,30 @@ export default class PostCache {
       if (Number.isFinite(parsedOne)) pools.push(parsedOne);
     }
 
-    const value: RawPostData = {
+    const rating = data.rating || "";
+    if (rating !== "s" && rating !== "q" && rating !== "e") return null;
+
+    const value: CachedPostData = {
       tag_string: tag_string,
-      tags: tags,
-      tagcount: tags.length,
+      tags: tag_array,
+      tagcount: tag_array.length,
 
       id: id,
       flags: (data.flags || "").split(" "),
-      rating: data.rating || "",
+      rating: rating,
       file_ext: data.file_ext || "",
 
-      width: parseInt(data.width) || -1,
-      height: parseInt(data.height) || -1,
-      size: parseInt(data.size) || -1,
+      width: data.width || -1,
+      height: data.height || -1,
+      size: data.size || -1,
 
-      score: parseInt(data.score) || 0,
-      fav_count: parseInt(data.fav_count) || 0,
+      score: data.score || 0,
+      fav_count: data.fav_count || 0,
       is_favorited: !!data.is_favorited,
-      comment_count: parseInt(data.comment_count) || 0,
+      comment_count: data.comment_count || 0,
 
       uploader: (data.uploader || "").toLowerCase(),
-      uploader_id: parseInt(data.uploader_id) || -1,
+      uploader_id: data.uploader_id || -1,
 
       pools: pools,
 
@@ -245,7 +251,7 @@ export default class PostCache {
   }
 }
 
-export class CachedPost implements RawPostData {
+export class CachedPost implements CachedPostData {
 
   public tag_string: string;
   public tags: string[];
@@ -253,7 +259,7 @@ export class CachedPost implements RawPostData {
 
   public id: number;
   public flags: string[];
-  public rating: string;
+  public rating: "s" | "q" | "e";
   public file_ext: string;
 
   public width: number;
@@ -276,7 +282,7 @@ export class CachedPost implements RawPostData {
   public sample_url?: string;
   public file_url?: string;
 
-  constructor (data: RawPostData) {
+  constructor (data: CachedPostData) {
     for (const [key, value] of Object.entries(data))
       this[key] = value;
   }
@@ -322,29 +328,23 @@ export class CachedPost implements RawPostData {
   }
 }
 
-export type RawPostData = {
-  tag_string: string,
-  tags: string[],
-  tagcount: number,
-
+interface BasicPostData {
   id: number,
-  flags: string[],
-  rating: string,
-  file_ext: string,
+
+  rating: "s" | "q" | "e",
 
   width: number,
   height: number,
   size: number,
+  file_ext: string,
+
+  uploader: string,
+  uploader_id: number,
 
   score: number,
   fav_count: number,
   is_favorited: boolean,
   comment_count: number,
-
-  uploader: string,
-  uploader_id: number,
-
-  pools: number[],
 
   // Absent from deleted posts
   md5?: string,
@@ -352,4 +352,21 @@ export type RawPostData = {
   preview_webp?: string,
   sample_url?: string,
   file_url?: string,
+}
+
+/** Data produced by the server for deferred posts */
+export interface DeferredPostData extends BasicPostData {
+  tags: string,
+  flags: string,
+  pools: string,
+};
+
+/** Data stored in the cache for a post */
+export interface CachedPostData extends BasicPostData {
+  tags: string[],
+  tag_string: string,
+  tagcount: number,
+
+  flags: string[],
+  pools: number[],
 };

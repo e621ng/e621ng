@@ -1,4 +1,4 @@
-import { RawPostData } from "@/models/PostCache";
+import { DeferredPostData } from "@/models/PostCache";
 
 // Cursed way to pass post data from Rails to the frontend.
 
@@ -17,7 +17,8 @@ declare global {
 
 export default class DeferredPostLoader {
 
-  public static loadPostData (postsData: DeferredPostsData = window.___deferred_posts || {}) {
+  public static loadPostData (postsData: Record<number, DeferredPostData> = window.___deferred_posts || {}) {
+    console.log("Loading deferred posts data", postsData);
     if (typeof postsData !== "object") return;
     if (Object.keys(postsData).length === 0) return;
 
@@ -104,5 +105,3 @@ $(() => {
     DeferredPostLoader.renderUserAvatars();
   });
 });
-
-type DeferredPostsData = { [id: number]: RawPostData };

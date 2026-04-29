@@ -1,8 +1,5 @@
 import ThumbnailEngine from "@/components/ThumbnailEngine";
-import E621Type from "@/interfaces/E621";
 import PostCache from "@/models/PostCache";
-
-declare const E621: E621Type;
 
 $(() => {
   const avatar = $(".profile-avatar.placeholder").first();
