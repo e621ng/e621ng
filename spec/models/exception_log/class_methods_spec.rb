@@ -59,6 +59,13 @@ RSpec.describe ExceptionLog do
       expect(log.ip_addr.to_s).to eq("10.0.0.1")
     end
 
+    it "handles ActionDispatch::RemoteIp::IpSpoofAttackError being raised" do
+      request = make_request
+      allow(request).to receive(:remote_ip).and_raise(ActionDispatch::RemoteIp::IpSpoofAttackError)
+      log = ExceptionLog.add(make_exception, CurrentUser.id, request)
+      expect(log.ip_addr.to_s).to eq("0.0.0.0")
+    end
+
     it "stores the user_id" do
       user = create(:user)
       log  = ExceptionLog.add(make_exception, user.id, make_request)
