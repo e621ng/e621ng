@@ -1167,6 +1167,7 @@ class User < ApplicationRecord
     g = (flair_color >> 8) & 0xFF
     b = flair_color & 0xFF
     [r, g, b]
+  end
 
   private
 
