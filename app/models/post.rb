@@ -667,12 +667,13 @@ class Post < ApplicationRecord
         set_tag_string(((current_tags + new_tags) - old_tags + (current_tags & new_tags)).uniq.sort.join(" "))
       end
 
-      if old_parent_id == ""
-        old_parent_id = nil
-      else
-        old_parent_id = old_parent_id.to_i
-      end
-      if old_parent_id == parent_id
+      normalized_old_parent_id = if old_parent_id == ""
+                                   nil
+                                 else
+                                   old_parent_id.to_i
+                                 end
+
+      if normalized_old_parent_id == parent_id
         self.parent_id = parent_id_before_last_save || parent_id_was
       end
 

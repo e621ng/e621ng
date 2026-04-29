@@ -6,6 +6,7 @@ class AutomodRule < ApplicationRecord
   APPLY_TO_ATTRIBUTES = %w[comments usernames profile_text].freeze
   has_bit_flags APPLY_TO_ATTRIBUTES, field: "apply_to"
 
+  # IDEA: `validate on: :create do errors.add(:creator, :invalid, "must be an admin") unless creator.is_admin?`
   belongs_to_creator
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
@@ -30,9 +31,9 @@ class AutomodRule < ApplicationRecord
 
     compiled = Regexp.new(regex, Regexp::IGNORECASE, timeout: 0.5)
     compiled.match?("#{'a' * 100}\u0000")
-  rescue RegexpError => e # rubocop:disable Lint/ShadowedException
-    errors.add(:regex, "is invalid: #{e.message}")
   rescue Regexp::TimeoutError
     errors.add(:regex, "causes catastrophic backtracking and cannot be used")
+  rescue RegexpError => e
+    errors.add(:regex, "is invalid: #{e.message}")
   end
 end
