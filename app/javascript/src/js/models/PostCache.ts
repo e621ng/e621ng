@@ -171,8 +171,6 @@ export default class PostCache {
     const id = $element.data("id");
     if (!id) return 0;
     if (!this._elements[id] || this._elements[id].length === 0) return 0;
-    console.log("Pruning post ID " + id);
-    console.log($element);
 
     const initialLength = this._elements[id].length;
     this._elements[id] = this._elements[id].filter((one: JQuery<HTMLElement>) => !one.is($element));

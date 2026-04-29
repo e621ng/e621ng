@@ -21,8 +21,6 @@ export default class DeferredPostLoader {
     if (typeof postsData !== "object") return;
     if (Object.keys(postsData).length === 0) return;
 
-    console.log("Loading deferred posts:", postsData);
-
     const processed = [];
     for (const [id, data] of Object.entries(postsData)) {
       const postID = parseInt(id, 10);
