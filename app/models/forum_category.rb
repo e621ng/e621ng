@@ -7,7 +7,9 @@ class ForumCategory < ApplicationRecord
   after_destroy :reassign_topics
 
   def reassign_topics
-    ForumTopic.where(category: id).update_all(category_id: 0)
+    # TODO: This is not ideal, but ensures that topics are not left without a category.
+    # It would be better to be able to specify a new category instead.
+    ForumTopic.where(category: id).update_all(category_id: ForumCategory.order(:id).first.id)
   end
 
   def can_create_within?(user = CurrentUser.user)
