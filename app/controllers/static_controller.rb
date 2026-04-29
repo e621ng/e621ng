@@ -197,6 +197,7 @@ class StaticController < ApplicationController
     end
 
     if CurrentUser.is_staff?
+      add_link[:admin, "AutoMod DMails", admin_automod_dmails_path]
       add_link[:staff, "Mod Dashboard", moderator_dashboard_path]
       add_link[:posts, "Upload Listing", uploads_path]
     end

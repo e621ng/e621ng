@@ -61,6 +61,17 @@ end
 group :development, :test do
   gem "listen"
   gem "puma"
+
+  # Testing suite
+  gem "rspec-rails", "~> 8.0.0", require: false
+  gem "parallel_tests", ">= 4.0"
+  gem "factory_bot_rails", require: false
+  gem "simplecov", require: false
+  gem "simplecov_json_formatter", require: false
+  gem "webmock", require: false
+
+  # Both tests and populate.rb
+  gem "faker", require: false
 end
 
 group :development do
@@ -68,16 +79,10 @@ group :development do
   gem "rubocop", require: false
   gem "rubocop-erb", require: false
   gem "rubocop-rails", require: false
+  gem "rubocop-rspec", require: false
+  gem "rubocop-rspec_rails", require: false
   gem "rexml", ">= 3.4.2"
   gem "ruby-lsp"
   gem "ruby-lsp-rails", "~> 0.4.8"
-  gem "faker", require: false
-end
-
-group :test do
-  gem "shoulda-context", require: false
-  gem "shoulda-matchers", require: false
-  gem "factory_bot_rails", require: false
-  gem "mocha", require: false
-  gem "webmock", require: false
+  gem "ruby-lsp-rspec", require: false
 end
