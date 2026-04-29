@@ -51,9 +51,13 @@ export default class DeferredPostLoader {
     const post = PostCache.get(postID);
     if (!post || !post.preview_url) return;
 
+    if (E621.Blacklist.hiddenPosts.has(postID))
+      avatar.addClass("blacklisted");
     $("<img>")
       .attr("src", post.preview_url)
       .appendTo(avatar.find("span.avatar-image"));
+
+    PostCache.registerAvatar(avatar, postID);
   }
 
   public static renderDTextThumbnails () {

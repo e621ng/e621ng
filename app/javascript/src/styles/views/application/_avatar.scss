@@ -74,6 +74,8 @@ nav.navigation .simple-avatar {
     }
   }
 
+  &.blacklisted .avatar-image img { display: none; }
+
   .avatar-more {
     @include st-radius-right;
     padding: 0;
