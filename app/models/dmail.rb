@@ -105,6 +105,7 @@ class Dmail < ApplicationRecord
       where("is_read = false AND is_deleted = false")
     end
 
+    # TODO: Rename to `owned` to avoid dissonance with `visible_to?`
     def visible
       where("owner_id = ?", CurrentUser.id)
     end

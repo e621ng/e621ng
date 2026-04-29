@@ -1,8 +1,8 @@
 import Flash from "@/utility/Flash";
 
 class DMails {
-  static url?: string;
-  static catchCopyLinkToClipboardError (error: any, url = this.url) {
+  private static url?: string;
+  private static catchCopyLinkToClipboardError (error: any, url = this.url) {
     console.warn("Failed! %o", error);
     alert(`Failed to automatically copy sharable link.\n\nLink: ${url}`);
   }
