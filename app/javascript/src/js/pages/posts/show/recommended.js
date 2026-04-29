@@ -310,7 +310,6 @@ Recommended.loadState = async function (action = Recommended.action) {
     }
     Recommended.status = "error";
     $container.html("<p class='info'>Nobody here but us chickens!</p>");
-    document.getElementById("post-recommendations")?.remove();
   }
 
   measurePerformance();

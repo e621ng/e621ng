@@ -111,63 +111,65 @@
         </div>
       <% end %>
 
-      <div
-        id="post-recommendations"
-        data-visible="<%= cookies[:post_recs] != "1" %>"
-        data-action="artist"
-        data-status="waiting"
-        data-post-id="<%= @post.id %>"
-      >
-        <div id="post-recommendations-tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            class="st-button"
-            id="post-recommendations-tab-artist"
-            data-action="artist"
-            aria-controls="post-recommendations-list"
-            aria-selected="true"
-          >From the Artist</button>
-          <% if Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
+      <% if @post.known_artist_tags.any? %>
+        <div
+          id="post-recommendations"
+          data-visible="<%= cookies[:post_recs] != "1" %>"
+          data-action="artist"
+          data-status="waiting"
+          data-post-id="<%= @post.id %>"
+        >
+          <div id="post-recommendations-tabs" role="tablist">
             <button
               type="button"
               role="tab"
               class="st-button"
-              id="post-recommendations-tab-tags"
-              data-action="tags"
+              id="post-recommendations-tab-artist"
+              data-action="artist"
               aria-controls="post-recommendations-list"
-              aria-selected="false"
-            >Similar</button>
+              aria-selected="true"
+            >From the Artist</button>
+            <% if Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
+              <button
+                type="button"
+                role="tab"
+                class="st-button"
+                id="post-recommendations-tab-tags"
+                data-action="tags"
+                aria-controls="post-recommendations-list"
+                aria-selected="false"
+              >Similar</button>
+              <button
+                type="button"
+                role="tab"
+                class="st-button"
+                id="post-recommendations-tab-favorites"
+                data-action="favorites"
+                aria-controls="post-recommendations-list"
+                aria-selected="false"
+              ><span class="desktop-only">Others Also</span>Liked</button>
+            <% end %>
+          </div>
+          <div id="post-recommendations-toggle">
             <button
               type="button"
-              role="tab"
               class="st-button"
-              id="post-recommendations-tab-favorites"
-              data-action="favorites"
-              aria-controls="post-recommendations-list"
-              aria-selected="false"
-            ><span class="desktop-only">Others Also</span>Liked</button>
-          <% end %>
+              data-action="reveal"
+              aria-controls="post-recommendations"
+              aria-expanded="<%= cookies[:post_recs] != "1" %>"
+              aria-label="<%= cookies[:post_recs] == "1" ? "Show" : "Hide" %> Recommendations"
+            >
+              <span>Show Recommendations</span>
+              <%= svg_icon(:eye_off) %>
+            </button>
+          </div>
+          <div id="post-recommendations-list" role="tabpanel" aria-labelledby="post-recommendations-tab-artist" tabindex="0">
+            <% 6.times do %>
+              <article class="thumbnail placeholder"></article>
+            <% end %>
+          </div>
         </div>
-        <div id="post-recommendations-toggle">
-          <button
-            type="button"
-            class="st-button"
-            data-action="reveal"
-            aria-controls="post-recommendations"
-            aria-expanded="<%= cookies[:post_recs] != "1" %>"
-            aria-label="<%= cookies[:post_recs] == "1" ? "Show" : "Hide" %> Recommendations"
-          >
-            <span>Show Recommendations</span>
-            <%= svg_icon(:eye_off) %>
-          </button>
-        </div>
-        <div id="post-recommendations-list" role="tabpanel" aria-labelledby="post-recommendations-tab-artist" tabindex="0">
-          <% 6.times do %>
-            <article class="thumbnail placeholder"></article>
-          <% end %>
-        </div>
-      </div>
+      <% end %>
 
       <section id="note-staging" style="display: none;">
         <% if @post.can_have_notes? && @post.has_notes?  %>
