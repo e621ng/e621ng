@@ -1,5 +1,8 @@
 import ThumbnailEngine from "@/components/ThumbnailEngine";
+import E621Type from "@/interfaces/E621";
 import PostCache from "@/models/PostCache";
+
+declare const E621: E621Type;
 
 $(() => {
   const avatar = $(".profile-avatar.placeholder").first();
@@ -11,10 +14,11 @@ $(() => {
   const post = PostCache.get(postID);
   if (!post || !post.preview_url) return;
 
-  const placeholder = avatar.find(".avatar-image");
   const thumbnail = ThumbnailEngine.render(post, { showStatistics: false });
   if (!thumbnail) return; // .render returns null if the post data is invalid
+  thumbnail.find("a.thm-link").attr("data-initial", avatar.data("initial") || "?");
 
-  thumbnail.find("a.thm-link").attr("data-initial", placeholder.data("initial") || "?");
-  placeholder.replaceWith(thumbnail);
+  const attachment = avatar.find(".avatar-image");
+  if (attachment.length) attachment.replaceWith(thumbnail);
+  else avatar.html("").append(thumbnail);
 });
