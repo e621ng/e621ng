@@ -111,7 +111,7 @@
         </div>
       <% end %>
 
-      <% if @post.known_artist_tags.any? %>
+      <% if @post.known_artist_tags.any? || (Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff?) %>
         <div
           id="post-recommendations"
           data-visible="<%= cookies[:post_recs] != "1" %>"
