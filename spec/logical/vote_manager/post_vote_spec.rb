@@ -251,7 +251,6 @@ RSpec.describe VoteManager do
       expect { described_class.admin_unvote!(-1) }.not_to raise_error
     end
   end
-<<<<<<< HEAD
 
   describe ".vote_abuse_patterns" do
     it "includes post ratings as metatags" do
@@ -269,6 +268,4 @@ RSpec.describe VoteManager do
       expect(trend_tag_names).to include("rating:s", "rating:q", "rating:e")
     end
   end
-=======
->>>>>>> master
 end
