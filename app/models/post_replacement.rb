@@ -25,6 +25,7 @@ class PostReplacement < ApplicationRecord
     end
   end
   validate on: :create do |replacement|
+    next if replacement_file.nil?
     FileValidator.new(replacement, replacement_file.path, test_resolution: !is_backup).validate
     throw :abort if errors.any?
   end
