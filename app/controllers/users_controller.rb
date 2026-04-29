@@ -35,11 +35,8 @@ class UsersController < ApplicationController
 
   def new
     unless CurrentUser.is_anonymous?
-      if request.format.html?
-        redirect_back_or_to(posts_path, notice: "You are already signed in")
-      else
-        access_denied("Already signed in")
-      end
+      return access_denied("You are already signed in") unless request.format.html?
+      redirect_back_or_to(posts_path, notice: "You are already signed in")
       return
     end
     return access_denied("Signups are disabled") unless Danbooru.config.enable_signups?
