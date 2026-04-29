@@ -2,4 +2,12 @@ body[data-th-extra="none"] {
   --image-foreground: none;
   --image-foreground-position: unset;
   --image-foreground-repeat: unset;
+
+  --image-foreground-top: none;
+  --image-foreground-top-position: unset;
+  --image-foreground-top-repeat: unset;
+
+  --image-foreground-bottom: none;
+  --image-foreground-bottom-position: unset;
+  --image-foreground-bottom-repeat: unset;
 }

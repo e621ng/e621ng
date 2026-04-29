@@ -17,7 +17,7 @@
         <% end %>
       </h1>
       <% if @wiki_redirect.present? %>
-      <div class="wiki-page-redirect"><i class="fa-solid fa-turn-up fa-rotate-90"></i> <%= @wiki_page.title %></div>
+        <div class="wiki-page-redirect"><%= svg_icon(:corner_down_right, width: 12, height: 12) %> <%= @wiki_page.title %></div>
       <% end %>
 
       <div id="wiki-page-body" class="dtext-container">

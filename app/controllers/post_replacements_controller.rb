@@ -61,9 +61,26 @@ class PostReplacementsController < ApplicationController
 
   def approve
     @post_replacement = PostReplacement.find(params[:id])
+    # Determine whether this request is a "reset to" (explicitly passing penalize_current_uploader=false)
+    is_reset_to = params.key?(:penalize_current_uploader) && !ActiveModel::Type::Boolean.new.cast(params[:penalize_current_uploader])
+
+    if @post_replacement.post.is_deleted?
+      # Both Approve and Reset To submit to this endpoint; reset-to passes penalize_current_uploader=false.
+      action_name = is_reset_to ? "reset to" : "approve"
+      message = "Error: Cannot #{action_name} replacement for deleted target post"
+      respond_to do |format|
+        format.json { render json: { success: false, message: message }, status: :unprocessable_entity }
+        format.html { render plain: message, status: :unprocessable_entity }
+      end
+      return
+    end
+
     approve_options = {}
-    approve_options[:penalize_current_uploader] = params[:penalize_current_uploader] # must be present
-    approve_options[:credit_replacer] = params[:credit_replacer] if params.key?(:credit_replacer)
+    if params.key?(:penalize_current_uploader)
+      approve_options[:penalize_current_uploader] = ActiveModel::Type::Boolean.new.cast(params[:penalize_current_uploader])
+    end
+    approve_options[:credit_replacer] = ActiveModel::Type::Boolean.new.cast(params[:credit_replacer]) if params.key?(:credit_replacer)
+
     begin
       @post_replacement.approve!(**approve_options)
     rescue ProcessingError => e
@@ -72,9 +89,8 @@ class PostReplacementsController < ApplicationController
 
     if @post_replacement.errors.any?
       respond_to do |format|
-        format.json do
-          return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412
-        end
+        format.json { return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412 }
+        format.html { return render plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: 400 }
       end
     end
 

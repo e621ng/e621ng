@@ -35,6 +35,34 @@ module Moderator
             post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", format: "js", commit: "Delete" }
             assert(@post.reload.is_deleted?)
           end
+
+          should "redirect with a notice if the post is already deleted" do
+            as(@user) do
+              @post.delete!("first delete")
+            end
+
+            assert_no_difference(-> { PostEvent.count }) do
+              post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", commit: "Delete" }
+            end
+
+            assert_redirected_to(post_path(@post))
+            assert_equal("Post ##{@post.id} is already deleted", flash[:notice])
+            assert(@post.reload.is_deleted?)
+          end
+
+          should "return a 409 with a reason if the post is already deleted and the request is JSON" do
+            as(@user) do
+              @post.delete!("first delete")
+            end
+
+            assert_no_difference(-> { PostEvent.count }) do
+              post_auth delete_moderator_post_post_path(@post), @admin, params: { reason: "xxx", commit: "Delete", format: :json }
+            end
+
+            assert_response :conflict
+            assert_equal("Post ##{@post.id} is already deleted", response.parsed_body["reason"])
+            assert(@post.reload.is_deleted?)
+          end
         end
 
         context "undelete action" do

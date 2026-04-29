@@ -248,6 +248,22 @@ module ApplicationHelper
     end
   end
 
+  VITE_ENTRYPOINTS = Rails.root.glob("app/javascript/entrypoints/v_*.ts")
+                          .to_set { |f| File.basename(f, ".ts") }
+                          .freeze
+
+  def vite_script_for_controller
+    name = "v_#{params[:controller].parameterize.dasherize}"
+    return unless VITE_ENTRYPOINTS.include?(name)
+    vite_javascript_tag("#{name}.ts", nonce: content_security_policy_nonce, defer: false, skip_preload_tags: true)
+  end
+
+  def vite_script_for_controller_and_action
+    name = "v_#{params[:controller].parameterize.dasherize}_#{params[:action].parameterize.dasherize}"
+    return unless VITE_ENTRYPOINTS.include?(name)
+    vite_javascript_tag("#{name}.ts", nonce: content_security_policy_nonce, defer: false, skip_preload_tags: true)
+  end
+
   private
 
   def replace_cross_domain_links(text)

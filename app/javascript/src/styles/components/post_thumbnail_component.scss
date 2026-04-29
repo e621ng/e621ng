@@ -210,6 +210,20 @@ article.thumbnail .thm-extra {
 
 
 // ============================== //
+// ==== Loading / Placeholder === //
+// ============================== //
+
+
+article.thumbnail.placeholder {
+  min-width: var(--thumb-image-size, 150px);
+  height: var(--thumb-image-size, 150px);
+  background: #dddddd10;
+  border-bottom: 1.25rem solid #00000040;
+  @include st-radius;
+}
+
+
+// ============================== //
 // ==== Deleted / Blacklisted === //
 // ============================== //
 

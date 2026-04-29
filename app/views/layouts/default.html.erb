@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <%= render "layouts/head" %>
 </head>
@@ -12,7 +12,7 @@
     <%= render "users/dmail_notice" %>
   <% end %>
 
-  <div id="page">
+  <div id="page" role="main">
     <%= render "news_updates/notice", news_update: NewsUpdate.recent %>
 
     <% if CurrentUser.user.is_banned? %>
@@ -37,12 +37,6 @@
   <% end %>
 
   <%= render "static/footer" %>
-  <% if Danbooru.config.enable_visitor_metrics? && Danbooru.config.analytics_client_id.present? %>
-    <script nonce="<%= content_security_policy_nonce %>">
-      window.op_client_id = "<%= Danbooru.config.analytics_client_id %>";
-    </script>
-  <% end %>
-
   <%= render "ads/revive" %>
   <% if Danbooru.config.fsc_modal_enabled? %>
     <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js"></script>

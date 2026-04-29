@@ -30,7 +30,7 @@ class SearchTrendTest < ActiveSupport::TestCase
   test "bulk_increment! handles multiple tags and de-dupes" do
     hour = 1.hour.ago.utc.beginning_of_hour
     SearchTrendHourly.bulk_increment!([{ tag: "alpha", hour: hour }, { tag: "beta", hour: hour }, { tag: "alpha", hour: hour }]) # alpha counted twice
-    rows = SearchTrendHourly.for_day(Time.now.utc.to_date).pluck(:tag, :count).to_h
+    rows = SearchTrendHourly.for_day(hour.to_date).pluck(:tag, :count).to_h
     assert_equal({ "alpha" => 2, "beta" => 1 }, rows)
   end
 
@@ -41,26 +41,25 @@ class SearchTrendTest < ActiveSupport::TestCase
     today   = at.to_date
     yesterday = today - 1
 
-    # Current window: 3 AM today → 3 PM today (12 hours)
-    # Previous window: 3 PM yesterday → 3 AM today (12 hours)
-    # Create records at times that fall within both windows
+    # Current window: 3 PM yesterday → 3 PM today (24 hours)
+    # Previous window: 3 PM day-before-yesterday → 3 PM yesterday (24 hours)
+    # "Previous" records are placed at 5 AM yesterday (before current window start of 3 PM yesterday).
 
-    # Records at hour 10 today (current window) and hour 22 yesterday (previous window)
     SearchTrendHourly.create!(tag: "low", hour: today.beginning_of_day + 10.hours, count: 5) # below min_today
 
     # Delta-based inclusion (30 - 10 = 20 >= min_delta 10)
-    SearchTrendHourly.create!(tag: "foo", hour: yesterday.beginning_of_day + 22.hours, count: 10)
+    SearchTrendHourly.create!(tag: "foo", hour: yesterday.beginning_of_day + 5.hours, count: 10)
     SearchTrendHourly.create!(tag: "foo", hour: today.beginning_of_day + 10.hours, count: 30)
 
     # Ratio-based inclusion (15/2 = 7.5 >= min_ratio 2.0, delta 13 >= 10)
-    SearchTrendHourly.create!(tag: "ratio", hour: yesterday.beginning_of_day + 22.hours, count: 2)
+    SearchTrendHourly.create!(tag: "ratio", hour: yesterday.beginning_of_day + 5.hours, count: 2)
     SearchTrendHourly.create!(tag: "ratio", hour: today.beginning_of_day + 10.hours, count: 15)
 
-    # Delta-based inclusion (no yesterday record, 15 >= 10)
+    # Delta-based inclusion (no previous record, 15 >= 10)
     SearchTrendHourly.create!(tag: "baz", hour: today.beginning_of_day + 10.hours, count: 15)
 
     # Not included (delta 5 < 10, ratio 1.25 < 2.0)
-    SearchTrendHourly.create!(tag: "bar", hour: yesterday.beginning_of_day + 22.hours, count: 20)
+    SearchTrendHourly.create!(tag: "bar", hour: yesterday.beginning_of_day + 5.hours, count: 20)
     SearchTrendHourly.create!(tag: "bar", hour: today.beginning_of_day + 10.hours, count: 25)
 
     rising = SearchTrendHourly.rising(at: at, limit: 10)
@@ -68,7 +67,7 @@ class SearchTrendTest < ActiveSupport::TestCase
   end
 
   test "rising spans midnight correctly when window crosses into the previous day" do
-    # at = 3 AM today; window_hours=12 covers today(0..3) + yesterday(16..23)
+    # at = 3 AM today; window_hours=24 covers today(0..3) + yesterday(3..23)
     at        = Time.current.change(hour: 3)
     today     = at.to_date
     yesterday = today - 1

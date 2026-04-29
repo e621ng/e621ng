@@ -19,11 +19,23 @@
 }
 
 .theme-variable-form {
-  display: grid;
-  grid-template-columns: auto min-content min-content;
-  gap: 0.5rem 1rem;
-  max-width: 30rem;
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
 
-  h3 { grid-column: 1 / -1;}
-  label, span { align-content: center}
+  max-width: 30rem;
+  // h3 { grid-column: 1 / -1;}
+
+  & > div {
+    display: grid;
+    grid-template-columns: auto min-content min-content;
+    gap: 0.5rem 1rem;
+    label, span { align-content: center}
+  }
+
+  .st-button svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: -0.0625rem;
+  }
 }

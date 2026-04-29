@@ -4,8 +4,17 @@ class UserNameValidator < ActiveModel::EachValidator
   def validate_each(rec, attr, value)
     name = value
 
-    # Should be handled by presence validator instead
-    return if name.blank?
+    # Blank names should never be saved. This check ensures that on user creation and name change requests,
+    # an error is shown immediately instead of only requiring a name change on the next screen.
+    # Check if the presence validator already added an error for blank name to avoid duplicate error messages.
+    #
+    # Note that this only works if the presence validator is defined before this custom validator.
+    # If the order ever changes, this will break.
+    return if rec.errors.added?(attr, :blank)
+    if name.blank? # If the presence validator is not used, we still want to add an error for blank name.
+      rec.errors.add(attr, "can't be blank")
+      return
+    end
 
     # For User model, check against rec.id
     # For other models (like UserNameChangeRequest), check against the user_id option

@@ -1,11 +1,8 @@
 // Fullscreen mode
 // Only relevant on desktop
-.post-index {
-  grid-template-areas:
-    "search " 
-    "content";
-  grid-template-columns: 1fr;
 
+// Common
+.post-index, .post-display {
   .search {
     display: flex;
     border-radius: 0.25rem 0.25rem 0 0;
@@ -27,15 +24,39 @@
 
     .search-controls { right: 0.25rem; }
   }
-  .sidebar { display: none; }
   .content {
     border-radius: 0 0 0.25rem 0.25rem;
     .posts-index-stats { margin-right: 5rem; }
   }
 }
 
-#c-posts #a-show .post-index {
+// Posts Index Page
+.post-index {
+  grid-template-areas:
+    "search " 
+    "content"
+    "sidebar";
+  grid-template-columns: 1fr;
+}
+
+
+// Posts Show Page
+.post-display {
+  grid-template-columns: 1fr;
+  grid-template-rows: unset;
+  grid-template-areas:
+    "search"
+    "content"
+    "comments"
+    "sidebar "
+    "adscape";
+
   .search { padding-bottom: 1.25rem; }
   .search-controls { bottom: -0.883rem; }
-  .content { padding-top: 1rem; }
+  .content {
+    padding-top: 1rem; // to give space for buttons
+  }
+  .comments {
+    padding-bottom: 0.25rem;
+  }
 }
