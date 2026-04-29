@@ -300,7 +300,7 @@ export default class DTextFormatter {
           DeferredPostLoader.renderDTextThumbnails();
         },
         error: (_xhr, _status, error) => {
-          this.Logger.error("DText preview error:", error);
+          console.error("DText preview error:", error);
           this.$preview
             .attr("loading", "false")
             .text("Unable to fetch DText preview.");

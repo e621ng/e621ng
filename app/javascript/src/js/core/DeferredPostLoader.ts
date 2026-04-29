@@ -18,7 +18,6 @@ declare global {
 export default class DeferredPostLoader {
 
   public static loadPostData (postsData: Record<number, DeferredPostData> = window.___deferred_posts || {}) {
-    console.log("Loading deferred posts data", postsData);
     if (typeof postsData !== "object") return;
     if (Object.keys(postsData).length === 0) return;
 

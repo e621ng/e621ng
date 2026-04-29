@@ -94,8 +94,7 @@ export default class PostCache {
     const pools = [];
     for (const one of (data.pools + "").split(" ")) {
       const parsedOne = parseInt(one);
-      // NOTE: Will now work for a pool with ID 0
-      if (Number.isFinite(parsedOne)) pools.push(parsedOne);
+      if (parsedOne) pools.push(parsedOne);
     }
 
     const rating = data.rating || "";
