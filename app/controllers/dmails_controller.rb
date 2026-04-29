@@ -17,7 +17,7 @@ class DmailsController < ApplicationController
 
   def show
     @dmail = Dmail.find(params[:id])
-    check_privilege(@dmail)
+    check_privilege(@dmail, params[:key])
     respond_with(@dmail) do |format|
       format.html do
         @dmail.mark_as_read! unless @dmail.is_read
@@ -83,8 +83,8 @@ class DmailsController < ApplicationController
 
   private
 
-  def check_privilege(dmail)
-    raise User::PrivilegeError unless dmail.visible_to?(CurrentUser.user)
+  def check_privilege(dmail, key = nil)
+    raise User::PrivilegeError unless dmail.visible_to?(CurrentUser.user, key)
   end
 
   def create_params
