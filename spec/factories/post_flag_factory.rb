@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :post_flag do
-    post        { create(:post) }
+    post { create(:post) }
     # creator and creator_ip_addr are set automatically from CurrentUser by the
     # belongs_to_creator before_validation hook. All specs must set CurrentUser
     # (e.g. via include_context "as admin") before using this factory.
