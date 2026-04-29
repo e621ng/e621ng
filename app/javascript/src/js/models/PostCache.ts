@@ -76,11 +76,12 @@ export default class PostCache {
    * Add to the cache based on the deferred post data
    * @param {number} id Post ID
    * @param {any} data Deferred post data
+   * @param {boolean} update Whether to update the cache if the post ID is already present.
    * @returns Processed data
    */
-  static fromDeferredPosts (id: number, data: any): CachedPost | null {
+  static fromDeferredPosts (id: number, data: any, update = false): CachedPost | null {
     if (!id) return null;
-    if (this._index.has(id)) return new CachedPost(this._cache[id]);
+    if (!update && this._index.has(id)) return new CachedPost(this._cache[id]);
 
     // For some reason, this takes 10x as long on the first post.
     // But it's still only ~1ms (rather than 0.1ms), so it's fine
@@ -158,21 +159,34 @@ export default class PostCache {
    * Remove a thumbnail from the cache. Should be called when a thumbnail is removed from the DOM to prevent memory leaks.
    * @param {JQuery<HTMLElement>} $element Thumbnail element to remove
    */
-  static prune ($element: JQuery<HTMLElement>) {
+  static prune ($element: JQuery<HTMLElement> | JQuery<HTMLElement>[]): number {
+    if (Array.isArray($element)) {
+      let totalRemoved = 0;
+      for (const el of $element) totalRemoved += this.prune(el);
+      return totalRemoved;
+    } else if ($element.length > 1) {
+      return this.prune($element.get().map(el => $(el)));
+    }
+
     const id = $element.data("id");
-    if (!id) return;
-    if (!this._elements[id] || this._elements[id].length === 0) return;
+    if (!id) return 0;
+    if (!this._elements[id] || this._elements[id].length === 0) return 0;
+    console.log("Pruning post ID " + id);
+    console.log($element);
 
     const initialLength = this._elements[id].length;
     this._elements[id] = this._elements[id].filter((one: JQuery<HTMLElement>) => !one.is($element));
-    this._elementCount -= initialLength - this._elements[id].length;
+    const removedCount = initialLength - this._elements[id].length;
+    this._elementCount -= removedCount;
 
     // Cleanup to prevent .sample() from returning undefined values
-    if (this._elements[id].length === 0) {
-      delete this._elements[id];
-      delete this._cache[id];
-      this._index.delete(id);
-    }
+    if (this._elements[id].length === 0) this._pruneElement(id);
+    return removedCount;
+  }
+
+  /** Should only be called internally to remove all references to a post */
+  private static _pruneElement (id: number) {
+    delete this._elements[id];
   }
 
 
@@ -310,7 +324,7 @@ export class CachedPost implements RawPostData {
   }
 }
 
-type RawPostData = {
+export type RawPostData = {
   tag_string: string,
   tags: string[],
   tagcount: number,
