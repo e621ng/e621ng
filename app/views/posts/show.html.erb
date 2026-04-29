@@ -189,13 +189,14 @@
       >Tags</button>
       <% unless CurrentUser.hide_comments? %>
         <button
-          type="button"
+          type="button" 
           role="tab"
           class="post-mobile-tab"
           data-action="comments"
           aria-controls="post-show-display"
           aria-selected="<%= selected_tab == "comments" %>"
-        >Comments</button>
+          aria-label="<%= "Comments (#{(@comments&.size || 0)})" %>"
+        ><%= "Comments (#{(@comments&.size || 0)})" %></button>
       <% end %>
     </div>
 
