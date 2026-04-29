@@ -106,9 +106,11 @@
         if (this.noSource) return false;
 
         const nonUrlSourceCount = this.sources.filter(function (source) {
-          // Basic regex to check if the source starts with http or https and is followed by a valid domain structure
-          const httpUrlRegex = /^(https?:\/\/)([a-z0-9-]+\.)+[a-z]{2,}(:\d+)?(\/[^\s]*)?$/i;
-          const isValidUrl = httpUrlRegex.test(source);
+          let isValidUrl = false;
+          try {
+            const url = new URL(source);
+            isValidUrl = url.protocol === "http:" || url.protocol === "https:";
+          } catch {}  // Exception occurs if the URL constructor fails to parse the string, which means it's not a valid URL
           return source.length > 0 && !isValidUrl;
         }).length;
         return nonUrlSourceCount > 0;
