@@ -177,9 +177,7 @@ class UsersController < ApplicationController
     @user.errors.add(:email, "There was a problem with your email that prevented sign up")
     @user.id = nil
     flash[:notice] = "There was a problem with your email that prevented sign up"
-    respond_with(@user) do |format|
-      format.html { render :new }
-    end
+    respond_with(@user)
   end
 
   def update
