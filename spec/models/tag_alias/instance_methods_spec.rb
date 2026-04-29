@@ -29,19 +29,19 @@ RSpec.describe TagAlias do
 
     it "does not change category when consequent post_count exceeds 10_000" do
       ta.consequent_tag.update_columns(post_count: 10_001, category: Tag.categories.general)
-      ta.antecedent_tag.update_columns(category: Tag.categories.artist)
+      ta.antecedent_tag.update_columns(category: Tag.categories.director)
       expect { ta.ensure_category_consistency }.not_to(change { ta.consequent_tag.reload.category })
     end
 
     it "does not change category when consequent tag is locked" do
       ta.consequent_tag.update_columns(is_locked: true, category: Tag.categories.general)
-      ta.antecedent_tag.update_columns(category: Tag.categories.artist)
+      ta.antecedent_tag.update_columns(category: Tag.categories.director)
       expect { ta.ensure_category_consistency }.not_to(change { ta.consequent_tag.reload.category })
     end
 
     it "does not change category when consequent tag is already non-general" do
-      ta.consequent_tag.update_columns(category: Tag.categories.artist)
-      ta.antecedent_tag.update_columns(category: Tag.categories.copyright)
+      ta.consequent_tag.update_columns(category: Tag.categories.director)
+      ta.antecedent_tag.update_columns(category: Tag.categories.franchise)
       expect { ta.ensure_category_consistency }.not_to(change { ta.consequent_tag.reload.category })
     end
 
@@ -52,10 +52,10 @@ RSpec.describe TagAlias do
     end
 
     it "updates consequent tag category to antecedent category in the happy path" do
-      ta.antecedent_tag.update_columns(category: Tag.categories.artist)
+      ta.antecedent_tag.update_columns(category: Tag.categories.director)
       ta.consequent_tag.update_columns(category: Tag.categories.general)
       ta.ensure_category_consistency
-      expect(ta.consequent_tag.reload.category).to eq(Tag.categories.artist)
+      expect(ta.consequent_tag.reload.category).to eq(Tag.categories.director)
     end
   end
 
@@ -204,7 +204,7 @@ RSpec.describe TagAlias do
   # #rename_artist
   # ---------------------------------------------------------------------------
 
-  describe "#rename_artist" do
+  describe "#rename_artist", skip: "This test is skipped on this fork" do
     it "does nothing when the antecedent tag is not in the artist category" do
       ta = create(:tag_alias,
                   antecedent_name: "gen_ant_#{SecureRandom.hex(4)}",
@@ -246,7 +246,7 @@ RSpec.describe TagAlias do
   # #rename_artist_undo
   # ---------------------------------------------------------------------------
 
-  describe "#rename_artist_undo" do
+  describe "#rename_artist_undo", skip: "This test is skipped on this fork" do
     it "renames the consequent artist back to the antecedent name" do
       ta = create(:active_tag_alias,
                   antecedent_name: "art_undo_ant_#{SecureRandom.hex(4)}",

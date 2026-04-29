@@ -117,8 +117,8 @@ RSpec.describe ElasticPostQueryBuilder do
         expect(build_query("gentags:>2").must).to include({ range: { "tag_count_general" => { gt: 2 } } })
       end
 
-      it "adds a range clause for arttags:>1 (maps to tag_count_artist)" do
-        expect(build_query("arttags:>1").must).to include({ range: { "tag_count_artist" => { gt: 1 } } })
+      it "adds a range clause for dirtags:>1 (maps to tag_count_director)" do
+        expect(build_query("dirtags:>1").must).to include({ range: { "tag_count_director" => { gt: 1 } } })
       end
 
       it "adds a range clause for chartags:>0 (maps to tag_count_character)" do

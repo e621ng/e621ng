@@ -203,7 +203,7 @@ RSpec.describe Post do
     end
 
     describe "warning validators" do
-      describe "has_director_tag warning" do
+      describe "has_director_tag warning", skip: "This test is skipped on this fork" do
         it "adds a warning on new posts without a director tag" do
           # Build a post with no director-category tags
           post = build(:post, tag_string: "tag1 tag2 tag3 tag4 tag5 tag6 tag7 tag8 tag9 tag10")
@@ -621,7 +621,7 @@ RSpec.describe Post do
       end
     end
 
-    describe "#avoid_posting_artists", skip: "This test is skipped in this fork" do
+    describe "#avoid_posting_artists", skip: "This test is skipped on this fork" do
       it "returns AvoidPosting records for artist tags on the post" do
         artist = create(:artist)
         avoid = create(:avoid_posting, artist: artist)

@@ -31,7 +31,7 @@ RSpec.describe PostFlag do
     end
 
     it "records the flag reason in the PostEvent extra_data" do
-      flag = create(:post_flag, reason_name: "young_human")
+      flag = create(:post_flag, reason_name: "advertisement")
       event = PostEvent.where(post_id: flag.post_id).last
       expect(event.extra_data["reason"]).to be_present
     end

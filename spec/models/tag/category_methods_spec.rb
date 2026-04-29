@@ -25,7 +25,7 @@ RSpec.describe Tag do
 
     describe "#value_for" do
       it "returns the category ID for a known category string" do
-        expect(mapping.value_for("artist")).to eq(artist_tag_category)
+        expect(mapping.value_for("director")).to eq(artist_tag_category)
       end
 
       it "returns 0 (general) for an unknown string" do
@@ -33,7 +33,7 @@ RSpec.describe Tag do
       end
 
       it "is case-insensitive" do
-        expect(mapping.value_for("ARTIST")).to eq(artist_tag_category)
+        expect(mapping.value_for("DIRECTOR")).to eq(artist_tag_category)
       end
     end
 

@@ -187,14 +187,14 @@ RSpec.describe TagQuery, type: :model do
   # ---------------------------------------------------------------------------
 
   describe "category count metatags" do
-    it "arttags: stores a range under :artist_tag_count" do
-      tq = TagQuery.new("arttags:1..5")
-      expect(tq[:artist_tag_count].first).to eq([:between, 1, 5])
+    it "dirtags: stores a range under :director_tag_count" do
+      tq = TagQuery.new("dirtags:1..5")
+      expect(tq[:director_tag_count].first).to eq([:between, 1, 5])
     end
 
-    it "copytags: stores a range under :copyright_tag_count" do
-      tq = TagQuery.new("copytags:3")
-      expect(tq[:copyright_tag_count].first).to eq([:eq, 3])
+    it "franctags: stores a range under :franchise_tag_count" do
+      tq = TagQuery.new("franctags:3")
+      expect(tq[:franchise_tag_count].first).to eq([:eq, 3])
     end
 
     it "chartags: stores a range under :character_tag_count" do

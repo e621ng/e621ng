@@ -139,7 +139,7 @@ RSpec.describe Post do
 
       it "resolves all open flags on the post" do
         post = create(:flagged_post)
-        flag = PostFlag.create!(post: post, creator: create(:user), reason_name: "previously_deleted", creator_ip_addr: "127.0.0.1")
+        flag = PostFlag.create!(post: post, creator: create(:user), reason_name: "advertisement", creator_ip_addr: "127.0.0.1")
         post.unflag!
         expect(flag.reload.is_resolved).to be true
       end

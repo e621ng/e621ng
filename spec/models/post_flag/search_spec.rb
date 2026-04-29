@@ -10,15 +10,15 @@ RSpec.describe PostFlag do
     # reason_matches
     # -----------------------------------------------------------------------
     describe "reason_matches param" do
-      let!(:flag_a) { create(:post_flag, reason_name: "young_human") }
-      let!(:flag_b) { create(:post_flag, reason_name: "real_porn") }
+      let!(:flag_a) { create(:post_flag, reason_name: "uploading_guidelines") }
+      let!(:flag_b) { create(:post_flag, reason_name: "advertisement") }
 
       it "returns flags whose reason contains the search string" do
-        expect(PostFlag.search(reason_matches: "human")).to include(flag_a)
+        expect(PostFlag.search(reason_matches: "guidelines")).to include(flag_a)
       end
 
       it "excludes flags whose reason does not match" do
-        expect(PostFlag.search(reason_matches: "human")).not_to include(flag_b)
+        expect(PostFlag.search(reason_matches: "guidelines")).not_to include(flag_b)
       end
     end
 
@@ -91,7 +91,7 @@ RSpec.describe PostFlag do
     # -----------------------------------------------------------------------
     describe "note param" do
       let!(:flag_with_note)    { create(:post_flag, note: "unique_note_content_xyz") }
-      let!(:flag_without_note) { create(:post_flag, reason_name: "young_human", note: nil) }
+      let!(:flag_without_note) { create(:post_flag, reason_name: "advertisement", note: nil) }
 
       it "returns flags whose note contains the search string" do
         expect(PostFlag.search(note: "unique_note_content_xyz")).to include(flag_with_note)

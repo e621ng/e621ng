@@ -17,8 +17,8 @@ RSpec.describe PostIndex do
         expected_keys = %i[
           created_at updated_at commented_at comment_bumped_at noted_at
           id up_score down_score score fav_count tag_count change_seq
-          tag_count_general tag_count_artist tag_count_contributor
-          tag_count_character tag_count_copyright tag_count_meta
+          tag_count_general tag_count_director
+          tag_count_character tag_count_franchise tag_count_meta
           tag_count_species tag_count_invalid tag_count_lore
           comment_count file_size parent pools sets commenters noters
           faves upvotes downvotes children uploader approver deleter
@@ -46,14 +46,13 @@ RSpec.describe PostIndex do
         expect(indexed[:change_seq]).to eq(post.change_seq)
         expect(indexed[:tag_count]).to eq(post.tag_count)
         expect(indexed[:tag_count_general]).to eq(post.tag_count_general)
-        expect(indexed[:tag_count_artist]).to eq(post.tag_count_artist)
-        expect(indexed[:tag_count_copyright]).to eq(post.tag_count_copyright)
+        expect(indexed[:tag_count_director]).to eq(post.tag_count_director)
+        expect(indexed[:tag_count_franchise]).to eq(post.tag_count_franchise)
         expect(indexed[:tag_count_character]).to eq(post.tag_count_character)
         expect(indexed[:tag_count_species]).to eq(post.tag_count_species)
         expect(indexed[:tag_count_meta]).to eq(post.tag_count_meta)
         expect(indexed[:tag_count_lore]).to eq(post.tag_count_lore)
         expect(indexed[:tag_count_invalid]).to eq(post.tag_count_invalid)
-        expect(indexed[:tag_count_contributor]).to eq(post.tag_count_contributor)
         expect(indexed[:duration]).to eq(post.duration)
         expect(indexed[:md5]).to eq(post.md5)
         expect(indexed[:rating]).to eq(post.rating)

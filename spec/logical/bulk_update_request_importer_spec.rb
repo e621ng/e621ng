@@ -651,8 +651,8 @@ RSpec.describe BulkUpdateRequestImporter do
         let!(:tag) { create(:tag, name: "proc_cc_tag", category: 0) }
 
         it "updates the tag's category to the specified value" do
-          importer("category proc_cc_tag -> artist").process!(approver)
-          expect(tag.reload.category).to eq(Tag.categories.artist)
+          importer("category proc_cc_tag -> director").process!(approver)
+          expect(tag.reload.category).to eq(Tag.categories.director)
         end
       end
 

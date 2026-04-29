@@ -147,7 +147,7 @@ RSpec.describe Post do
         flag = PostFlag.create!(
           post: post,
           creator: create(:user),
-          reason_name: "previously_deleted",
+          reason_name: "advertisement",
           creator_ip_addr: "127.0.0.1",
         )
         expect(post.pending_flag).to eq(flag)
@@ -158,7 +158,7 @@ RSpec.describe Post do
         flag = PostFlag.create!(
           post: post,
           creator: create(:user),
-          reason_name: "previously_deleted",
+          reason_name: "advertisement",
           creator_ip_addr: "127.0.0.1",
         )
         flag.resolve!
@@ -202,7 +202,7 @@ RSpec.describe Post do
         PostFlag.create!(
           post: post,
           creator: create(:user),
-          reason_name: "previously_deleted",
+          reason_name: "advertisement",
           creator_ip_addr: "127.0.0.1",
         )
         expect { post.delete!("") }.to change { post.reload.is_deleted }.to(true)

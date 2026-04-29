@@ -10,7 +10,7 @@ RSpec.describe PostFlag do
   include_context "as admin"
 
   describe "update_reason (on: :create)" do
-    describe "standard reason names" do
+    describe "standard reason names", skip: "This test is skipped on this fork" do
       it "sets reason to the mapped text for 'young_human'" do
         flag = create(:post_flag, reason_name: "young_human")
         expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["young_human"])

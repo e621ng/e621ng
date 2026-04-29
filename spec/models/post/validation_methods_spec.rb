@@ -27,8 +27,8 @@ RSpec.describe Post do
 
       describe "repopulated tag warning" do
         it "warns when a zero-post non-general/non-meta tag older than 10 seconds is added" do
-          # A copyright tag with no posts, created in the past
-          old_tag = create(:tag, category: Tag.categories.copyright, post_count: 0)
+          # A franchise tag with no posts, created in the past
+          old_tag = create(:tag, category: Tag.categories.franchise, post_count: 0)
           old_tag.update_columns(created_at: 1.minute.ago)
 
           post = create(:post)
@@ -38,7 +38,7 @@ RSpec.describe Post do
         end
 
         it "does not warn for a freshly created tag" do
-          fresh_tag = create(:tag, category: Tag.categories.copyright, post_count: 0)
+          fresh_tag = create(:tag, category: Tag.categories.franchise, post_count: 0)
           # created_at is just now, within the 10-second window
 
           post = create(:post)

@@ -86,12 +86,12 @@ RSpec.describe ElasticPostQueryBuilder do
   end
 
   describe "category tag count order pattern" do
-    it "orders by tag_count_artist desc for order:arttags" do
-      expect(build_query("order:arttags").order).to include({ "tag_count_artist" => :desc })
+    it "orders by tag_count_director desc for order:dirtags" do
+      expect(build_query("order:dirtags").order).to include({ "tag_count_director" => :desc })
     end
 
-    it "orders by tag_count_artist asc for order:arttags_asc" do
-      expect(build_query("order:arttags_asc").order).to include({ "tag_count_artist" => :asc })
+    it "orders by tag_count_director asc for order:dirtags_asc" do
+      expect(build_query("order:dirtags_asc").order).to include({ "tag_count_director" => :asc })
     end
 
     it "orders by tag_count_general desc for order:gentags" do

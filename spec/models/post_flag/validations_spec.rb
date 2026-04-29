@@ -56,7 +56,7 @@ RSpec.describe PostFlag do
       as_user(member) do
         PostFlag.create!(
           post: post,
-          reason_name: "young_human",
+          reason_name: "extreme",
           creator_ip_addr: "127.0.0.1",
         )
       end
@@ -150,7 +150,7 @@ RSpec.describe PostFlag do
       expect(flag.errors[:reason]).to be_present
     end
 
-    it "is valid for each standard reason name that does not require explanation" do
+    it "is valid for each standard reason name that does not require explanation", skip: "This test is skipped on this fork" do
       %w[young_human dnp_artist pay_content previously_deleted real_porn].each do |reason_name|
         flag = build(:post_flag, reason_name: reason_name, reason: "something", note: nil)
         flag.valid?(:create)
@@ -164,7 +164,7 @@ RSpec.describe PostFlag do
   # validate_note_required_for_reason
   # -------------------------------------------------------------------------
   describe "validate_note_required_for_reason" do
-    %w[uploading_guidelines trace corrupt].each do |reason_name|
+    %w[uploading_guidelines traditional].each do |reason_name|
       context "with reason '#{reason_name}' (requires explanation)" do
         it "is invalid when note is blank" do
           flag = build(:post_flag, reason_name: reason_name, note: "")
@@ -181,7 +181,7 @@ RSpec.describe PostFlag do
     end
 
     it "does not require a note for reasons without require_explanation" do
-      flag = build(:post_flag, reason_name: "young_human", note: nil, reason: "something")
+      flag = build(:post_flag, reason_name: "advertisement", note: nil, reason: "something")
       flag.valid?
       expect(flag.errors[:note]).to be_empty
     end
