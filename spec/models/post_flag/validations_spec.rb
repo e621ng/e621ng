@@ -54,11 +54,7 @@ RSpec.describe PostFlag do
       member = create(:user)
       # Create the first flag as the member
       as_user(member) do
-        PostFlag.create!(
-          post: post,
-          reason_name: "young_human",
-          creator_ip_addr: "127.0.0.1",
-        )
+        create(:post_flag, post: post)
       end
       # Second flag by the same member on the same post within cooldown
       second = build(:post_flag, post: post, creator: member)
@@ -144,6 +140,7 @@ RSpec.describe PostFlag do
     end
 
     it "is invalid for 'uploading_guidelines' when the post has the grandfathered_content tag" do
+      skip "uploading_guidelines reason not configured" unless Danbooru.config.flag_reasons.any? { |r| r[:name].to_s == "uploading_guidelines" }
       post = create(:post, tag_string: "grandfathered_content")
       flag = build(:post_flag, post: post, reason_name: "uploading_guidelines", note: "reason")
       expect(flag).not_to be_valid(:create)
@@ -151,7 +148,8 @@ RSpec.describe PostFlag do
     end
 
     it "is valid for each standard reason name that does not require explanation" do
-      %w[young_human dnp_artist pay_content previously_deleted real_porn].each do |reason_name|
+      Danbooru.config.flag_reasons.reject { |r| r[:name].to_s == "inferior" || r[:require_explanation] }.each do |reason_def|
+        reason_name = reason_def[:name].to_s
         flag = build(:post_flag, reason_name: reason_name, reason: "something", note: nil)
         flag.valid?(:create)
         expect(flag.errors[:reason]).to be_empty,
@@ -164,7 +162,8 @@ RSpec.describe PostFlag do
   # validate_note_required_for_reason
   # -------------------------------------------------------------------------
   describe "validate_note_required_for_reason" do
-    %w[uploading_guidelines trace corrupt].each do |reason_name|
+    Danbooru.config.flag_reasons.select { |r| r[:require_explanation] }.each do |reason_def|
+      reason_name = reason_def[:name].to_s
       context "with reason '#{reason_name}' (requires explanation)" do
         it "is invalid when note is blank" do
           flag = build(:post_flag, reason_name: reason_name, note: "")
@@ -181,7 +180,8 @@ RSpec.describe PostFlag do
     end
 
     it "does not require a note for reasons without require_explanation" do
-      flag = build(:post_flag, reason_name: "young_human", note: nil, reason: "something")
+      reason_name = Danbooru.config.flag_reasons.find { |r| !r[:require_explanation] && r[:name].to_s != "inferior" }[:name].to_s
+      flag = build(:post_flag, reason_name: reason_name, note: nil, reason: "something")
       flag.valid?
       expect(flag.errors[:note]).to be_empty
     end

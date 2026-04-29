@@ -113,16 +113,10 @@ RSpec.describe ElasticPostQueryBuilder do
     end
 
     describe "category tag count metatags" do
-      it "adds a range clause for gentags:>2 (maps to tag_count_general)" do
-        expect(build_query("gentags:>2").must).to include({ range: { "tag_count_general" => { gt: 2 } } })
-      end
-
-      it "adds a range clause for arttags:>1 (maps to tag_count_artist)" do
-        expect(build_query("arttags:>1").must).to include({ range: { "tag_count_artist" => { gt: 1 } } })
-      end
-
-      it "adds a range clause for chartags:>0 (maps to tag_count_character)" do
-        expect(build_query("chartags:>0").must).to include({ range: { "tag_count_character" => { gt: 0 } } })
+      TagCategory::SHORT_NAME_MAPPING.each do |short_name, full_name|
+        it "adds a range clause for #{short_name}tags (maps to tag_count_#{full_name})" do
+          expect(build_query("#{short_name}tags:>1").must).to include({ range: { "tag_count_#{full_name}" => { gt: 1 } } })
+        end
       end
     end
 

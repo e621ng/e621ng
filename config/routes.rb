@@ -29,6 +29,7 @@ Rails.application.routes.draw do
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
     resources :vote_trends, controller: "vote_trends", only: [:index]
+    resources :automod_dmails, only: %i[index show]
   end
 
   namespace :security do

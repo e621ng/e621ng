@@ -187,24 +187,23 @@ RSpec.describe TagQuery, type: :model do
   # ---------------------------------------------------------------------------
 
   describe "category count metatags" do
-    it "arttags: stores a range under :artist_tag_count" do
-      tq = TagQuery.new("arttags:1..5")
-      expect(tq[:artist_tag_count].first).to eq([:between, 1, 5])
+    TagCategory::SHORT_NAME_MAPPING.each do |short_name, full_name|
+      it "#{short_name}tags maps to :#{full_name}_tag_count" do
+        tq = TagQuery.new("#{short_name}tags:1..5")
+        expect(tq[:"#{full_name}_tag_count"].first).to eq([:between, 1, 5])
+      end
     end
 
-    it "copytags: stores a range under :copyright_tag_count" do
-      tq = TagQuery.new("copytags:3")
-      expect(tq[:copyright_tag_count].first).to eq([:eq, 3])
+    it "parses an exact value (:eq)" do
+      short_name, full_name = TagCategory::SHORT_NAME_MAPPING.first
+      tq = TagQuery.new("#{short_name}tags:3")
+      expect(tq[:"#{full_name}_tag_count"].first).to eq([:eq, 3])
     end
 
-    it "chartags: stores a range under :character_tag_count" do
-      tq = TagQuery.new("chartags:>0")
-      expect(tq[:character_tag_count].first).to eq([:gt, 0])
-    end
-
-    it "gentags: stores a range under :general_tag_count" do
-      tq = TagQuery.new("gentags:10..50")
-      expect(tq[:general_tag_count].first).to eq([:between, 10, 50])
+    it "parses a gt comparison (:gt)" do
+      short_name, full_name = TagCategory::SHORT_NAME_MAPPING.first
+      tq = TagQuery.new("#{short_name}tags:>0")
+      expect(tq[:"#{full_name}_tag_count"].first).to eq([:gt, 0])
     end
   end
 
