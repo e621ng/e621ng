@@ -89,7 +89,7 @@ article.thumbnail {
       }
     }
     &.blacklisted a.thm-link::before {
-      font-size: calc(var(--thumb-image-size, 150px) / 10)
+      font-size: calc(var(--thumb-image-size, 150px) / 10);
     }
 
     div.thm-desc { display: none; }

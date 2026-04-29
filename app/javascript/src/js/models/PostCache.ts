@@ -110,7 +110,7 @@ export default class PostCache {
 
       score: parseInt(data.score) || 0,
       fav_count: parseInt(data.fav_count) || 0,
-      is_favorited: data.is_favorited === "true",
+      is_favorited: !!data.is_favorited,
       comment_count: parseInt(data.comment_count) || 0,
 
       uploader: (data.uploader || "").toLowerCase(),
@@ -161,10 +161,18 @@ export default class PostCache {
   static prune ($element: JQuery<HTMLElement>) {
     const id = $element.data("id");
     if (!id) return;
-    if (!this._elements[id]) return;
+    if (!this._elements[id] || this._elements[id].length === 0) return;
 
+    const initialLength = this._elements[id].length;
     this._elements[id] = this._elements[id].filter((one: JQuery<HTMLElement>) => !one.is($element));
-    this._elementCount--;
+    this._elementCount -= initialLength - this._elements[id].length;
+
+    // Cleanup to prevent .sample() from returning undefined values
+    if (this._elements[id].length === 0) {
+      delete this._elements[id];
+      delete this._cache[id];
+      this._index.delete(id);
+    }
   }
 
 
@@ -175,7 +183,7 @@ export default class PostCache {
    * @param {($el: JQuery<HTMLElement>) => void} fn Function to apply to the posts
    */
   static apply (postID: number, fn: ($el: JQuery<HTMLElement>) => void) {
-    if (!this._elements[postID]) return;
+    if (!this._elements[postID] || this._elements[postID].length === 0) return;
     for (const one of this._elements[postID])
       fn(one);
   }
@@ -186,8 +194,10 @@ export default class PostCache {
    */
   static sample (): JQuery<HTMLElement>[] {
     const output = [];
-    for (const elements of Object.values(this._elements))
+    for (const elements of Object.values(this._elements)) {
+      if (elements.length == 0) continue;
       output.push(elements[0]);
+    }
     return output;
   }
 

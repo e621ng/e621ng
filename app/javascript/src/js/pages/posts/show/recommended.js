@@ -260,8 +260,8 @@ Recommended.loadState = async function (action = Recommended.action) {
   if (missingPostIds.length > 0) {
     const postLookup = await Recommended.getPosts(missingPostIds);
     if (postLookup) {
-      for (const post of postLookup) posts[post.id] = post;
       Recommended.setCachedPosts(postLookup);
+      posts = Recommended.getCachedPosts(data.order); // Get the updated cache state
       Recommended.Logger.log("Cache state:", PostCache.stats());
     } else {
       measurePerformance();
