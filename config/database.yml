@@ -13,7 +13,7 @@ development:
 
 test:
   <<: *default
-  database: e621_test
+  database: e621_test<%= ENV["TEST_ENV_NUMBER"] %>
   host: postgres
   pool: 5
 

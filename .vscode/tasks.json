@@ -18,21 +18,21 @@
     {
       "label": "e621: run_tests_all",
       "type": "shell",
-      "command": ".vscode/run-in-container.sh tests bundle exec rails test",
+      "command": ".vscode/run-in-container.sh tests bundle exec rspec",
       "group": "test",
       "detail": "Run all tests"
     },
     {
       "label": "e621: run_tests_file",
       "type": "shell",
-      "command": ".vscode/run-in-container.sh tests bundle exec rails test ${input:test_file}",
+      "command": ".vscode/run-in-container.sh tests bundle exec rspec ${input:test_file}",
       "group": "test",
       "detail": "Run tests on a specific file"
     },
     {
       "label": "e621: run_tests_current_file",
       "type": "shell",
-      "command": ".vscode/run-in-container.sh tests bundle exec rails test ${relativeFile}",
+      "command": ".vscode/run-in-container.sh tests bundle exec rspec ${relativeFile}",
       "group": "test",
       "detail": "Run tests on the current file"
     },

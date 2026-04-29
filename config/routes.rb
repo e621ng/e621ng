@@ -99,7 +99,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :api_keys, except: %i[edit update] do
+  resources :api_keys, except: %i[edit update show] do
     member do
       post :regenerate
     end
