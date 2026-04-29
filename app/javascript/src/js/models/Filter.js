@@ -1,7 +1,7 @@
 import Blacklist from "@/core/blacklists";
 import FilterUtils from "@/utility/filter_util";
 import LStorage from "@/utility/storage";
-import PostCache, { CachedPost } from "@/models/PostCache";
+import PostCache from "@/models/PostCache";
 
 /**
  * Represents an individual line in the blacklist.
