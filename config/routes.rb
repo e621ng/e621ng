@@ -357,6 +357,12 @@ Rails.application.routes.draw do
       get :avatar_menu
     end
   end
+  resource :onboarding, only: [:show] do
+    collection do
+      post :complete
+      post :restart
+    end
+  end
   resources :user_feedbacks do
     collection do
       get :search
