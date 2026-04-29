@@ -29,19 +29,19 @@ RSpec.describe TagAlias do
 
     it "does not change category when consequent post_count exceeds 10_000" do
       ta.consequent_tag.update_columns(post_count: 10_001, category: Tag.categories.general)
-      ta.antecedent_tag.update_columns(category: Tag.categories.artist)
+      ta.antecedent_tag.update_columns(category: 1)
       expect { ta.ensure_category_consistency }.not_to(change { ta.consequent_tag.reload.category })
     end
 
     it "does not change category when consequent tag is locked" do
       ta.consequent_tag.update_columns(is_locked: true, category: Tag.categories.general)
-      ta.antecedent_tag.update_columns(category: Tag.categories.artist)
+      ta.antecedent_tag.update_columns(category: 1)
       expect { ta.ensure_category_consistency }.not_to(change { ta.consequent_tag.reload.category })
     end
 
     it "does not change category when consequent tag is already non-general" do
-      ta.consequent_tag.update_columns(category: Tag.categories.artist)
-      ta.antecedent_tag.update_columns(category: Tag.categories.copyright)
+      ta.consequent_tag.update_columns(category: 1)
+      ta.antecedent_tag.update_columns(category: 3)
       expect { ta.ensure_category_consistency }.not_to(change { ta.consequent_tag.reload.category })
     end
 
@@ -52,10 +52,10 @@ RSpec.describe TagAlias do
     end
 
     it "updates consequent tag category to antecedent category in the happy path" do
-      ta.antecedent_tag.update_columns(category: Tag.categories.artist)
+      ta.antecedent_tag.update_columns(category: 1)
       ta.consequent_tag.update_columns(category: Tag.categories.general)
       ta.ensure_category_consistency
-      expect(ta.consequent_tag.reload.category).to eq(Tag.categories.artist)
+      expect(ta.consequent_tag.reload.category).to eq(1)
     end
   end
 
@@ -218,7 +218,7 @@ RSpec.describe TagAlias do
       ta = create(:tag_alias,
                   antecedent_name: "art_ant_#{SecureRandom.hex(4)}",
                   consequent_name: "art_con_#{SecureRandom.hex(4)}")
-      ta.antecedent_tag.update_columns(category: Tag.categories.artist)
+      ta.antecedent_tag.update_columns(category: 1)
       create(:artist, name: ta.antecedent_name)
 
       ta.rename_artist
@@ -230,7 +230,7 @@ RSpec.describe TagAlias do
       ta = create(:tag_alias,
                   antecedent_name: "art_ant2_#{SecureRandom.hex(4)}",
                   consequent_name: "art_con2_#{SecureRandom.hex(4)}")
-      ta.antecedent_tag.update_columns(category: Tag.categories.artist)
+      ta.antecedent_tag.update_columns(category: 1)
       linked_user = create(:user)
       create(:artist, name: ta.antecedent_name, linked_user_id: linked_user.id)
       con_artist = create(:artist, name: ta.consequent_name)
@@ -251,7 +251,7 @@ RSpec.describe TagAlias do
       ta = create(:active_tag_alias,
                   antecedent_name: "art_undo_ant_#{SecureRandom.hex(4)}",
                   consequent_name: "art_undo_con_#{SecureRandom.hex(4)}")
-      ta.consequent_tag.update_columns(category: Tag.categories.artist)
+      ta.consequent_tag.update_columns(category: 1)
       create(:artist, name: ta.consequent_name)
 
       ta.rename_artist_undo

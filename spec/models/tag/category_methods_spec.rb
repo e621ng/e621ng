@@ -24,8 +24,11 @@ RSpec.describe Tag do
     end
 
     describe "#value_for" do
+      let(:sample_id)   { TagCategory::REVERSE_MAPPING.keys.first }
+      let(:sample_name) { TagCategory::REVERSE_MAPPING.values.first }
+
       it "returns the category ID for a known category string" do
-        expect(mapping.value_for("artist")).to eq(artist_tag_category)
+        expect(mapping.value_for(sample_name)).to eq(sample_id)
       end
 
       it "returns 0 (general) for an unknown string" do
@@ -33,7 +36,7 @@ RSpec.describe Tag do
       end
 
       it "is case-insensitive" do
-        expect(mapping.value_for("ARTIST")).to eq(artist_tag_category)
+        expect(mapping.value_for(sample_name.upcase)).to eq(sample_id)
       end
     end
 

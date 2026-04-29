@@ -79,6 +79,8 @@ RSpec.describe Tag do
   end
 
   describe ".find_or_create_by_name" do
+    let(:cat1) { TagCategory::REVERSE_MAPPING[1] }
+
     it "returns an existing tag without creating a duplicate" do
       tag = create(:tag, name: "already_exists")
       expect { Tag.find_or_create_by_name("already_exists") }.not_to change(Tag, :count)
@@ -97,23 +99,23 @@ RSpec.describe Tag do
     end
 
     it "applies a category prefix when creating a new tag" do
-      tag = Tag.find_or_create_by_name("artist:new_artist_tag")
-      expect(tag.name).to eq("new_artist_tag")
-      expect(tag.category).to eq(artist_tag_category)
+      tag = Tag.find_or_create_by_name("#{cat1}:new_cat1_tag")
+      expect(tag.name).to eq("new_cat1_tag")
+      expect(tag.category).to eq(1)
     end
 
     context "when the tag exists and a category prefix is given" do
       it "updates the category when the creator can edit it implicitly" do
         janitor = create(:janitor_user)
         tag = create(:tag, name: "implicit_change_tag", category: general_tag_category)
-        Tag.find_or_create_by_name("artist:implicit_change_tag", creator: janitor)
-        expect(tag.reload.category).to eq(artist_tag_category)
+        Tag.find_or_create_by_name("#{cat1}:implicit_change_tag", creator: janitor)
+        expect(tag.reload.category).to eq(1)
       end
 
       it "does not change the category when the creator cannot edit it implicitly" do
         member = create(:user)
         tag = create(:tag, name: "no_implicit_change", category: general_tag_category)
-        Tag.find_or_create_by_name("artist:no_implicit_change", creator: member)
+        Tag.find_or_create_by_name("#{cat1}:no_implicit_change", creator: member)
         expect(tag.reload.category).to eq(general_tag_category)
       end
     end
@@ -135,11 +137,12 @@ RSpec.describe Tag do
     end
 
     it "applies category prefixes to new tags" do
-      Tag.find_or_create_by_name_list(["artist:new_list_artist"])
+      cat1 = TagCategory::REVERSE_MAPPING[1]
+      Tag.find_or_create_by_name_list(["#{cat1}:new_list_tag"])
       # NOTE: Tag.find_by_name is a custom method, not a dynamic finder
-      tag = Tag.find_by_name("new_list_artist") # rubocop:disable Rails/DynamicFindBy
+      tag = Tag.find_by_name("new_list_tag") # rubocop:disable Rails/DynamicFindBy
       expect(tag).to be_present
-      expect(tag.category).to eq(artist_tag_category)
+      expect(tag.category).to eq(1)
     end
   end
 end

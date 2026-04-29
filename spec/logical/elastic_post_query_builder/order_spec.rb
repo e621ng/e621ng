@@ -86,16 +86,14 @@ RSpec.describe ElasticPostQueryBuilder do
   end
 
   describe "category tag count order pattern" do
-    it "orders by tag_count_artist desc for order:arttags" do
-      expect(build_query("order:arttags").order).to include({ "tag_count_artist" => :desc })
-    end
+    TagCategory::SHORT_NAME_MAPPING.each do |short_name, full_name|
+      it "orders by tag_count_#{full_name} desc for order:#{short_name}tags" do
+        expect(build_query("order:#{short_name}tags").order).to include({ "tag_count_#{full_name}" => :desc })
+      end
 
-    it "orders by tag_count_artist asc for order:arttags_asc" do
-      expect(build_query("order:arttags_asc").order).to include({ "tag_count_artist" => :asc })
-    end
-
-    it "orders by tag_count_general desc for order:gentags" do
-      expect(build_query("order:gentags").order).to include({ "tag_count_general" => :desc })
+      it "orders by tag_count_#{full_name} asc for order:#{short_name}tags_asc" do
+        expect(build_query("order:#{short_name}tags_asc").order).to include({ "tag_count_#{full_name}" => :asc })
+      end
     end
   end
 
