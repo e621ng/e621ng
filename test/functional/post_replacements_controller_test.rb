@@ -175,7 +175,6 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         assert_equal @replacement.status, "approved"
       end
 
-<<<<<<< HEAD
       should "credit the creator when credit_replacer is not specified" do # failure -- user isn't credited
         put_auth approve_post_replacement_path(@replacement), @user
         assert_response :success
@@ -204,7 +203,8 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
         assert_equal @replacement.md5, @post.md5
         assert_equal @replacement.status, "approved"
         assert_equal @post.uploader, @user
-=======
+      end
+
       should "return flash error for approve when target post is deleted" do
         @post.update_column(:is_deleted, true)
 
@@ -221,7 +221,6 @@ class PostReplacementsControllerTest < ActionDispatch::IntegrationTest
 
         assert_response 422
         assert_equal "Error: Cannot reset to replacement for deleted target post", flash[:notice]
->>>>>>> main
       end
     end
 
