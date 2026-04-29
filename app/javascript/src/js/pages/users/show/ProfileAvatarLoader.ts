@@ -13,6 +13,8 @@ $(() => {
 
   const placeholder = avatar.find(".avatar-image");
   const thumbnail = ThumbnailEngine.render(post, { showStatistics: false });
+  if (!thumbnail) return; // .render returns null if the post data is invalid
+
   thumbnail.find("a.thm-link").attr("data-initial", placeholder.data("initial") || "?");
   placeholder.replaceWith(thumbnail);
 });

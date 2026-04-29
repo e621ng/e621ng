@@ -5,7 +5,7 @@
  */
 export default class PostCache {
   static _cache: { [key: number]: RawPostData } = {};
-  static _index = new Set();
+  static _index = new Set<number>();
 
   static _elements: { [key: number]: JQuery<HTMLElement>[] } = {};
   static _elementCount = 0;
@@ -140,6 +140,7 @@ export default class PostCache {
       $post = $($post);
       $post.removeClass("blacklistable");
       const postData = PostCache.fromThumbnail($post);
+      if (!postData) continue; // .fromThumbnail returns null if it cannot parse the thumbnail data
 
       if (!this._elements[postData.id]) this._elements[postData.id] = [];
       this._elements[postData.id].push($post);
