@@ -52,7 +52,7 @@ RSpec.describe TagTypeVersion do
       end
 
       CurrentUser.scoped(user2) do
-        tag.category = 2
+        tag.category = 3
         tag.save!
       end
 

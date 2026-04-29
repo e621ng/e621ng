@@ -12,9 +12,9 @@ FactoryBot.define do
     file_size        { 10_000 }
     uploader_ip_addr { "127.0.0.1" }
 
-    # Unique artist + 10 general tags per factory call.
+    # Unique category-1 tag (artist/director depending on fork) + 10 general tags per factory call.
     # normalize_tags (before_validation) auto-creates them via Tag.find_or_create_by_name_list.
-    sequence(:tag_string) { |n| "artist:factory_artist_#{n} " + (1..10).map { |i| "factory_tag_#{n}_#{i}" }.join(" ") }
+    sequence(:tag_string) { |n| "#{TagCategory::REVERSE_MAPPING[1]}:factory_#{TagCategory::REVERSE_MAPPING[1]}_#{n} " + (1..10).map { |i| "factory_tag_#{n}_#{i}" }.join(" ") }
 
     factory :pending_post do
       is_pending { true }

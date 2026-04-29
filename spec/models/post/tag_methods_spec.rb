@@ -63,10 +63,10 @@ RSpec.describe Post do
         expect(post.tag_count).to be > 0
       end
 
-      it "tracks tag_count_artist for artist-category tags" do
+      it "tracks tag_count for category-1 tags" do
         post = create(:post)
-        # Factory uses 'artist:...' prefix which sets category to artist
-        expect(post.tag_count_artist).to be >= 1
+        # Factory adds one category-1 tag (artist/director depending on fork)
+        expect(post.public_send(:"tag_count_#{TagCategory::REVERSE_MAPPING[1]}")).to be >= 1
       end
 
       it "tracks tag_count_general for general-category tags" do
@@ -91,13 +91,15 @@ RSpec.describe Post do
       end
 
       it "downcases all tag names" do
-        post = create(:post, tag_string: "artist:UPPERCASE_ARTIST lowercase_tag1 lowercase_tag2 lowercase_tag3 lowercase_tag4 lowercase_tag5 lowercase_tag6 lowercase_tag7 lowercase_tag8 lowercase_tag9 lowercase_tag10")
+        cat = TagCategory::REVERSE_MAPPING[1]
+        post = create(:post, tag_string: "#{cat}:UPPERCASE_TAG lowercase_tag1 lowercase_tag2 lowercase_tag3 lowercase_tag4 lowercase_tag5 lowercase_tag6 lowercase_tag7 lowercase_tag8 lowercase_tag9 lowercase_tag10")
         expect(post.tag_string).not_to match(/[A-Z]/)
       end
 
       it "auto-creates tags that do not yet exist" do
+        cat = TagCategory::REVERSE_MAPPING[1]
         unique_name = "brand_new_tag_#{SecureRandom.hex(4)}"
-        create(:post, tag_string: "artist:test_artist #{unique_name} " + (1..10).map { |i| "gen_tag_#{SecureRandom.hex(4)}_#{i}" }.join(" "))
+        create(:post, tag_string: "#{cat}:test_tag #{unique_name} " + (1..10).map { |i| "gen_tag_#{SecureRandom.hex(4)}_#{i}" }.join(" "))
         expect(Tag.find_by(name: unique_name)).not_to be_nil
       end
 
@@ -222,7 +224,7 @@ RSpec.describe Post do
 
       describe "has_enough_tags warning" do
         it "adds a warning on new posts with fewer than 10 general tags" do
-          post = build(:post, tag_string: "artist:test_artist only_one_general_tag")
+          post = build(:post, tag_string: "#{TagCategory::REVERSE_MAPPING[1]}:test_tag only_one_general_tag")
           post.valid?
           expect(post.warnings[:base].join).to match(/at least 10 general tags/)
         end
@@ -369,8 +371,8 @@ RSpec.describe Post do
         existing_tag = create(:tag, name: "existing_general_tag", category: Tag.categories.general,
                                     post_count: Danbooru.config.tag_type_change_cutoff + 1)
         post = create(:post)
-        # Trying to use artist: prefix for a tag that is already category general
-        post.tag_string = "#{post.tag_string} artist:#{existing_tag.name}"
+        # Trying to use a category prefix for a tag that is already category general
+        post.tag_string = "#{post.tag_string} #{TagCategory::REVERSE_MAPPING[1]}:#{existing_tag.name}"
         post.valid?
         expect(post.warnings[:base].join).to match(/Failed to update the tag category/)
       end
@@ -605,23 +607,27 @@ RSpec.describe Post do
     end
 
     describe "#known_artist_tags" do
-      it "excludes tags in NON_KNOWN_ARTIST_TAGS (e.g. unknown_artist)" do
-        # Ensure unknown_artist exists as an artist-category tag
-        create(:tag, name: "unknown_artist", category: Tag.categories.artist)
-        post = create(:post, tag_string: "unknown_artist #{(1..10).map { |i| "gen_#{i}" }.join(' ')}")
-        expect(post.known_artist_tags.map(&:name)).not_to include("unknown_artist")
+      it "excludes tags in NON_KNOWN_ARTIST_TAGS" do
+        unknown_tag_name = Post::NON_KNOWN_ARTIST_TAGS.first
+        create(:tag, name: unknown_tag_name, category: 1)
+        post = create(:post, tag_string: "#{unknown_tag_name} #{(1..10).map { |i| "gen_#{i}" }.join(' ')}")
+        expect(post.known_artist_tags.map(&:name)).not_to include(unknown_tag_name)
       end
 
-      it "includes artist tags not in NON_KNOWN_ARTIST_TAGS" do
+      it "includes category-1 tags not in NON_KNOWN_ARTIST_TAGS" do
         post = create(:post)
-        artist_names = post.artist_tags.map(&:name)
+        # NOTE: the e6ai fork does not have artist tags, but the method
+        # is still named artist_tags for the sake of compatibility.
+        cat1_tag_names = post.artist_tags.map(&:name)
         expect(post.known_artist_tags.map(&:name)).to match_array(
-          artist_names.reject { |n| Post::NON_KNOWN_ARTIST_TAGS.include?(n) },
+          cat1_tag_names.reject { |n| Post::NON_KNOWN_ARTIST_TAGS.include?(n) },
         )
       end
     end
 
     describe "#avoid_posting_artists" do
+      before { skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.method_defined?(:avoid_postings_path) }
+
       it "returns AvoidPosting records for artist tags on the post" do
         artist = create(:artist)
         avoid = create(:avoid_posting, artist: artist)
