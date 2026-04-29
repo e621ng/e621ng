@@ -51,7 +51,8 @@ RSpec.describe WikiPage do
     end
 
     it "handles an uppercased category prefix (e.g. 'Artist:foo')" do
-      page = build(:wiki_page, title: "Artist:foo_artist")
+      cat1 = TagCategory::REVERSE_MAPPING[1]
+      page = build(:wiki_page, title: "#{cat1.upcase}:foo_artist")
       page.valid?
       expect(page.title).to eq("foo_artist")
       expect(page.category_id).to eq(1) # artist

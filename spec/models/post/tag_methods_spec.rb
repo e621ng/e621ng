@@ -616,7 +616,9 @@ RSpec.describe Post do
 
       it "includes category-1 tags not in NON_KNOWN_ARTIST_TAGS" do
         post = create(:post)
-        cat1_tag_names = post.public_send(:"#{TagCategory::REVERSE_MAPPING[1]}_tags").map(&:name)
+        # NOTE: the e6ai fork does not have artist tags, but the method
+        # is still named artist_tags for the sake of compatibility.
+        cat1_tag_names = post.artist_tags.map(&:name)
         expect(post.known_artist_tags.map(&:name)).to match_array(
           cat1_tag_names.reject { |n| Post::NON_KNOWN_ARTIST_TAGS.include?(n) },
         )
@@ -624,6 +626,8 @@ RSpec.describe Post do
     end
 
     describe "#avoid_posting_artists" do
+      skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.method_defined?(:avoid_postings_path)
+
       it "returns AvoidPosting records for artist tags on the post" do
         artist = create(:artist)
         avoid = create(:avoid_posting, artist: artist)
