@@ -248,6 +248,30 @@ article.thumbnail.placeholder {
   background: #dddddd10;
   border-bottom: 1.25rem solid #00000040;
   @include st-radius;
+  position: relative;
+
+  &.no-stats {
+    border-bottom: none;
+  }
+
+  &[data-initial]:before {
+    content: attr(data-initial);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 5rem;
+    font-weight: bold;
+    color: themed("color-foreground");
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 }
 
 

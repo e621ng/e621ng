@@ -76,20 +76,17 @@ export default class DeferredPostLoader {
   }
 
   public static renderUserAvatars () {
-    for (const placeholder of $(".post-thumb.placeholder")) {
+    for (const placeholder of $(".avatar article.thumbnail.placeholder")) {
       const $placeholder = $(placeholder);
       const postID = $placeholder.data("id");
       if (!postID) continue;
       const post = PostCache.get(postID);
       if (!post) continue;
 
-      const thumbnail = ThumbnailEngine.render(post, { showStatistics: false, showTypeBadges: false, inline: true, native: true });
+      const thumbnail = ThumbnailEngine.render(post, { showStatistics: false, showTypeBadges: false, inline: true });
       if (!thumbnail) continue;
       $placeholder.replaceWith(thumbnail);
     }
-
-    // Any placeholders left cannot be rendered
-    $(".post-thumb.placeholder").removeClass("placeholder");
   }
 }
 
