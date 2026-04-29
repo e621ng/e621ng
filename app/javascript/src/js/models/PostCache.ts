@@ -142,7 +142,13 @@ export default class PostCache {
       const postData = PostCache.fromThumbnail($post);
       if (!postData) continue; // .fromThumbnail returns null if it cannot parse the thumbnail data
 
-      if (!this._elements[postData.id]) this._elements[postData.id] = [];
+      if (!this._elements[postData.id])
+        this._elements[postData.id] = [];
+
+      // Check if this thumbnail element is already registered.
+      if (this._elements[postData.id].some((one: JQuery<HTMLElement>) => one.is($post)))
+        continue;
+
       this._elements[postData.id].push($post);
       this._elementCount++;
     }
