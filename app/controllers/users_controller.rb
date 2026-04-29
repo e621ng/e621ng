@@ -166,14 +166,24 @@ class UsersController < ApplicationController
       else
         flash[:notice] = "Sign up failed"
       end
-      respond_with(@user)
+      respond_with(@user) do |format|
+        format.html do
+          if @user.errors.empty?
+            redirect_to onboarding_path
+          else
+            render :new
+          end
+        end
+      end
     end
   rescue ::Mailgun::CommunicationError
     session[:user_id] = nil
     @user.errors.add(:email, "There was a problem with your email that prevented sign up")
     @user.id = nil
     flash[:notice] = "There was a problem with your email that prevented sign up"
-    respond_with(@user)
+    respond_with(@user) do |format|
+      format.html { render :new }
+    end
   end
 
   def update
@@ -207,6 +217,12 @@ class UsersController < ApplicationController
         }
       end
     end
+  end
+
+  def restart_onboarding
+    @user = CurrentUser.user
+    @user.update(onboarding_completed: false)
+    redirect_to onboarding_path, notice: "You have restarted the onboarding process"
   end
 
   private
