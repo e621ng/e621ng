@@ -1,11 +1,8 @@
 import DeferredPostLoader from "@/core/DeferredPostLoader";
-import E621Type from "@/interfaces/E621";
 import PostCache from "@/models/PostCache";
 import Logger from "@/utility/Logger";
 import SVGIcon from "@/utility/SVGIcon";
 import TaskQueue from "@/utility/TaskQueue";
-
-declare const E621: E621Type;
 
 export default class DTextFormatter {
 
