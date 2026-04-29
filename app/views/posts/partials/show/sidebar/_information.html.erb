@@ -65,7 +65,9 @@
   <div class="post-sidebar-label">Faves</div>
   <div class="post-sidebar-value">
     <span class="selectable" id="sidebar-favcount"><%= post.fav_count %></span>
-    <%= link_to "Show", post_favorites_path(post.id), style: ("display: none;" if post.fav_count == 0) %>
+    <% unless post.hide_favorites_list? && !CurrentUser.is_staff? %>
+      <%= link_to "Show", post_favorites_path(post.id), style: ("display: none;" if post.fav_count == 0) %>
+    <% end %>
   </div>
 </div>
 
@@ -77,7 +79,7 @@
   </li>
   <% if CurrentUser.is_janitor? || post.uploader_linked_artists.any? %>
     <li>
-      Uploader: <%= link_to_user(post.uploader) %> <%= user_record_meta(post.uploader) if CurrentUser.is_janitor? %>
+      Uploader: <%= link_to_user(post.uploader) %> <%= render(UserFeedbackComponent.new(user: post.uploader, style: :inline)) if CurrentUser.is_janitor? %>
       <% if post.uploader_linked_artists.any? %>
         <%= svg_icon(:chexagon, class: "chexagon", title: "The uploader is linked to one of the artist tags") %>
       <% end %>

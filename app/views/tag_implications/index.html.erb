@@ -6,7 +6,7 @@
       <%= render "tag_relationships/add_form", type: :tag_implication_request, path: tag_implication_request_path %>
     <% end %>
 
-    <%= numbered_paginator(@tag_implications) %>
+    <%= render PaginatorComponent.new(records: @tag_implications) %>
   </div>
 </div>
 

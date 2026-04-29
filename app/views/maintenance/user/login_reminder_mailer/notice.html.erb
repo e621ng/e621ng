@@ -1,1 +1,11 @@
-<p>Your username is <%= @user.name %>.</p>
+<mj-section mj-class="container hex-bg">
+  <mj-column>
+    <mj-text mj-class="text">
+      <p>
+        This is a courtesy email to remind you of your account's name on <%= Danbooru.config.app_name %>.<br />
+        If you did not request this email, please ignore it.
+      </p>
+      <p>Your username is <b><%= @user.name %></b>.</p>
+    </mj-text>
+  </mj-column>
+</mj-section>

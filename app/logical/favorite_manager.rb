@@ -13,10 +13,11 @@ class FavoriteManager
         raise Favorite::Error, "You can only keep up to #{user.favorite_limit} favorites."
       end
 
-      Favorite.create(user_id: user.id, post_id: post.id)
-
       post.lock!
       post.reload
+
+      Favorite.create(user_id: user.id, post_id: post.id) # Done after acquiring the lock to prevent deadlocks
+
       post.append_user_to_fav_string(user.id)
       post.do_not_version_changes = true
 
@@ -44,10 +45,11 @@ class FavoriteManager
   # @raises [ActiveRecord::SerializationFailure] When transaction conflicts cannot be resolved
   def self.remove!(user:, post:)
     Favorite.transaction do
-      Favorite.for_user(user.id).where(post_id: post.id).destroy_all
-
       post.lock!
       post.reload
+
+      Favorite.for_user(user.id).where(post_id: post.id).destroy_all # Done after acquiring the lock to prevent deadlocks
+
       post.delete_user_from_fav_string(user.id)
       post.do_not_version_changes = true
 

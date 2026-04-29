@@ -22,6 +22,8 @@
         <%= f.input :favorites, as: :boolean, label: "Favorites", input_html: { checked: Security::Lockdown.favorites_disabled? ? "checked" : "" } %>
         <%= f.input :votes, as: :boolean, label: "Votes", input_html: { checked: Security::Lockdown.votes_disabled? ? "checked" : "" } %>
         <br />
+        <%= f.input :takedowns, as: :boolean, label: "Takedowns", input_html: { checked: Security::Lockdown.takedowns_disabled? ? "checked" : "" } %>
+        <br />
         <%= f.button :submit, value: "Submit" %>
       <% end %>
     </section>

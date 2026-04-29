@@ -44,12 +44,24 @@ module Danbooru
           end
           [[page.to_i, 1].max, :numbered]
         elsif page =~ /b(\d+)/
-          [$1.to_i, :sequential_before]
+          id = validate_bigint($1)
+          [id, :sequential_before]
         elsif page =~ /a(\d+)/
-          [$1.to_i, :sequential_after]
+          id = validate_bigint($1)
+          [id, :sequential_after]
         else
           raise Danbooru::Paginator::PaginationError, "Invalid page number."
         end
+      end
+
+      def validate_bigint(value)
+        int_value = value.to_i
+        # NOTE: Despite the method name, many tables still use integer for IDs.
+        # Integer max is 2_147_483_647, while bigint max is 9_223_372_036_854_775_807.
+        if int_value > 2_147_483_647 || int_value < 0
+          raise Danbooru::Paginator::PaginationError, "Page parameter is out of valid range."
+        end
+        int_value
       end
 
       def max_numbered_pages
@@ -62,7 +74,7 @@ module Danbooru
 
       def records_per_page
         limit = @paginator_options.try(:[], :limit) || Danbooru.config.records_per_page
-        limit.to_i.clamp(0, 320)
+        limit.to_i.clamp(0, Danbooru.config.max_per_page)
       end
 
       # When paginating large tables, we want to avoid doing an expensive count query

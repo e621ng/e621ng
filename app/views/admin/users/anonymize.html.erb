@@ -1,0 +1,27 @@
+<% content_for(:page_title) do %>
+  Delete User - <%= @user.name %>
+<% end %>
+
+<div id="c-admin-users" class="box-section">
+  <h1>Delete User Account</h1>
+  
+  <div class="notice">
+    <p><strong>Warning:</strong> This action will permanently delete the user account for <strong><%= @user.name %></strong>.</p>
+    <p>This action:</p>
+    <ul>
+      <li>Renames the user to "user_<%= @user.id %>"</li>
+      <li>Clears all personal information and settings</li>
+      <li>Resets the password</li>
+      <li>Removes favorites (queued for background processing)</li>
+      <li>Cannot be undone</li>
+    </ul>
+  </div>
+  <br />
+
+  <%= form_with url: anonymize_admin_user_path(@user), method: :post, local: true do |f| %>
+    <div class="input">
+      <%= f.submit "Confirm Deletion", class: "btn btn-danger" %>
+      <%= link_to "Cancel", user_path(@user), class: "btn" %>
+    </div>
+  <% end %>
+</div>

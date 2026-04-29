@@ -156,11 +156,13 @@ class PostTest < ActiveSupport::TestCase
       @post.copy_tags_to_parent
       @post.parent.save
       assert_equal(@parent.reload.tag_string, "a b c d e f")
+      assert_equal(@parent.versions.last.reason, "Merged from post ##{@post.id}")
     end
     should "Copy sources to parent" do
       @post.copy_sources_to_parent
       @post.parent.save
       assert_equal(@parent.reload.source, "a\nb\nc\nd")
+      assert_equal(@parent.versions.last.reason, "Merged from post ##{@post.id}")
     end
   end
 
@@ -931,6 +933,7 @@ class PostTest < ActiveSupport::TestCase
         context "of" do
           setup do
             @janitor = create(:janitor_user)
+            @privileged = create(:privileged_user)
           end
 
           context "locked:notes" do
@@ -957,18 +960,18 @@ class PostTest < ActiveSupport::TestCase
           context "locked:rating" do
             context "by a member" do
               should "not lock the rating" do
-                @post.update(:tag_string => "locked:rating")
+                @post.update(tag_string: "locked:rating")
                 assert_equal(false, @post.is_rating_locked)
               end
             end
 
-            context "by a janitor" do
+            context "by a privileged user" do
               should "lock/unlock the rating" do
-                as(@janitor) do
-                  @post.update(:tag_string => "locked:rating")
+                as(@privileged) do
+                  @post.update(tag_string: "locked:rating")
                   assert_equal(true, @post.is_rating_locked)
 
-                  @post.update(:tag_string => "-locked:rating")
+                  @post.update(tag_string: "-locked:rating")
                   assert_equal(false, @post.is_rating_locked)
                 end
               end
@@ -1033,6 +1036,30 @@ class PostTest < ActiveSupport::TestCase
         post.set_tag_string("aaa bbb")
         assert_equal(%w(aaa bbb), post.tag_array)
         assert_equal(%w(tag1 tag2), post.tag_array_was)
+      end
+
+      context "with corrupt 1x1 dimensions" do
+        setup do
+          @post.image_width = 1
+          @post.image_height = 1
+          @post.file_ext = "jpg"
+        end
+
+        should "not have a preview" do
+          assert_equal(false, @post.has_preview?, "Post with 1x1 dimensions should not have preview")
+        end
+      end
+
+      context "with valid dimensions" do
+        setup do
+          @post.image_width = 100
+          @post.image_height = 100
+          @post.file_ext = "jpg"
+        end
+
+        should "have a preview" do
+          assert_equal(true, @post.has_preview?, "Post with valid dimensions should have preview")
+        end
       end
 
       context "with large dimensions" do
@@ -1534,16 +1561,16 @@ class PostTest < ActiveSupport::TestCase
 
     should "return posts for the age:<1minute tag when the user is in Pacific time zone" do
       post = create(:post)
-      Time.zone = "Pacific Time (US & Canada)"
-      assert_tag_match([post], "age:<1minute")
-      Time.zone = "Eastern Time (US & Canada)"
+      Time.use_zone("Pacific Time (US & Canada)") do
+        assert_tag_match([post], "age:<1minute")
+      end
     end
 
     should "return posts for the age:<1minute tag when the user is in Tokyo time zone" do
       post = create(:post)
-      Time.zone = "Asia/Tokyo"
-      assert_tag_match([post], "age:<1minute")
-      Time.zone = "Eastern Time (US & Canada)"
+      Time.use_zone("Asia/Tokyo") do
+        assert_tag_match([post], "age:<1minute")
+      end
     end
 
     should "return posts for the ' tag" do

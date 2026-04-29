@@ -32,6 +32,6 @@
   <% end %>
 
   <% unless post_set.is_random? %>
-    <%= numbered_paginator(post_set.posts) %>
+    <%= render PaginatorComponent.new(records: post_set.posts) %>
   <% end %>
 </div>

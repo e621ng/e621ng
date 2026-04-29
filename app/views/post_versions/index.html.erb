@@ -23,7 +23,7 @@
         <p><%= link_to "Revert this user's changes", new_user_revert_path(:user_id => params[:lr]) %></p>
       <% end %>
 
-      <%= numbered_paginator(@post_versions) %>
+      <%= render PaginatorComponent.new(records: @post_versions) %>
     <% end %>
   </div>
 </div>
@@ -43,7 +43,7 @@
       button.addEventListener('click', function(e) {
         const next = e.target.nextElementSibling;
         if (next) {
-          next.style.display = next.style.display === 'none' ? 'block' : 'none';
+          next.style.display = next.style.display === 'none' ? '' : 'none';
         }
       });
     });

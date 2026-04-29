@@ -1,22 +1,40 @@
 # frozen_string_literal: true
 
 class PostsController < ApplicationController
+  include JsonResponseHelper
+
   before_action :member_only, except: %i[show show_seq index random]
   before_action :admin_only, only: [:update_iqdb]
   before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
   respond_to :html, :json
 
   def index
+    params[:md5] = nil unless params[:md5].is_a?(String)
     if params[:md5].present?
       @post = Post.find_by!(md5: params[:md5])
       respond_with(@post) do |format|
         format.html { redirect_to post_path(@post) }
+        format.json do
+          render_posts_json(PostBlueprint.render_as_hash(@post))
+        end
       end
     else
-      @post_set = PostSets::Post.new(tag_query, params[:page], limit: params[:limit], random: params[:random])
+      @tag_query = tag_query
+      unless @tag_query.is_a?(String)
+        @tag_query = ""
+        render_expected_error(400, "Invalid tags parameter")
+        return
+      end
+
+      @post_set = PostSets::Post.new(@tag_query, params[:page], limit: params[:limit], random: params[:random])
       @posts = @post_set.posts
 
-      @query = tag_query.nil? ? [] : tag_query.strip.split(/ /, 2).compact_blank
+      # Record trending tags for page 1 queries to avoid double-counting pagination
+      if @tag_query.present? && (params[:page].blank? || params[:page].to_i <= 1)
+        SearchTrendHourly.record_query!(@tag_query, ip: request.remote_ip)
+      end
+
+      @query = @tag_query.blank? ? [] : @tag_query.strip.split(/ /, 2).compact_blank
       if @query.length == 1
         @wiki_page = WikiPage.titled(@query[0])
 
@@ -36,7 +54,7 @@ class PostsController < ApplicationController
 
       respond_with(@posts) do |format|
         format.json do
-          render json: @post_set.api_posts, root: "posts"
+          render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
         end
         format.atom
       end
@@ -48,6 +66,10 @@ class PostsController < ApplicationController
 
     raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
 
+    # Parse params
+    @current_set_id = params[:post_set_id].to_i if params[:post_set_id].is_a?(String)
+    @current_pool_id = params[:pool_id].to_i if params[:pool_id].is_a?(String)
+
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
@@ -55,14 +77,18 @@ class PostsController < ApplicationController
     @has_samples = @post.is_image? || @post.video_sample_list[:has]
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
       @comments = Comment.none
       @comment_votes = CommentVote.none
     end
 
-    respond_with(@post)
+    respond_with(@post) do |format|
+      format.json do
+        render_posts_json(PostBlueprint.render_as_hash(@post))
+      end
+    end
   end
 
   def show_seq
@@ -70,12 +96,16 @@ class PostsController < ApplicationController
 
     raise User::PrivilegeError, "Post unavailable" unless Security::Lockdown.post_visible?(@post, CurrentUser.user)
 
+    # Parse params
+    params[:post_set_id] = params[:post_set_id].is_a?(String) ? params[:post_set_id].to_i : nil
+    params[:pool_id] = params[:pool_id].is_a?(String) ? params[:pool_id].to_i : nil
+
     include_deleted = @post.is_deleted? || (@post.parent_id.present? && @post.parent.is_deleted?) || CurrentUser.is_approver?
     @parent_post_set = PostSets::PostRelationship.new(@post.parent_id, include_deleted: include_deleted, want_parent: true)
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.includes(:creator, :updater).visible(CurrentUser.user)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater)
       @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
     else
       @comments = Comment.none
@@ -86,6 +116,9 @@ class PostsController < ApplicationController
 
     respond_with(@post) do |format|
       format.html { render "posts/show" }
+      format.json do
+        render_posts_json(PostBlueprint.render_as_hash(@post))
+      end
     end
   end
 
@@ -130,6 +163,9 @@ class PostsController < ApplicationController
     raise ActiveRecord::RecordNotFound if @post.nil?
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, q: params[:tags]) }
+      format.json do
+        render_posts_json(PostBlueprint.render_as_hash(@post))
+      end
     end
   end
 
@@ -149,12 +185,14 @@ class PostsController < ApplicationController
   private
 
   def tag_query
-    params[:tags] || (params[:post] && params[:post][:tags])
+    return params[:tags] if params[:tags].present?
+    return "" unless params[:post].is_a?(ActionController::Parameters)
+    params[:post][:tags].presence || ""
   end
 
   def respond_with_post_after_update(post)
-    respond_with(post) do |format|
-      format.html do
+    respond_with(post) do |format| # rubocop:disable Metrics/BlockLength
+      format.html do # rubocop:disable Metrics/BlockLength
         if post.warnings.any?
           warnings = post.warnings.full_messages.join(".\n \n")
           if warnings.length > 45_000
@@ -190,7 +228,7 @@ class PostsController < ApplicationController
       end
 
       format.json do
-        render json: post
+        render_posts_json(PostBlueprint.render_as_hash(post))
       end
     end
   end
@@ -217,7 +255,7 @@ class PostsController < ApplicationController
     permitted_params += %i[is_rating_locked] if CurrentUser.is_privileged?
     permitted_params += %i[is_note_locked bg_color] if CurrentUser.is_janitor?
     permitted_params += %i[is_comment_locked] if CurrentUser.is_moderator?
-    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines] if CurrentUser.is_admin?
+    permitted_params += %i[is_status_locked is_comment_disabled locked_tags hide_from_anonymous hide_from_search_engines hide_favorites_list] if CurrentUser.is_admin?
 
     params.require(:post).permit(permitted_params)
   end

@@ -1,0 +1,19 @@
+name: 1. Check
+
+on:
+  push:
+    branches:
+      - build-*
+  pull_request:
+    branches:
+      - master
+      - build-*
+
+permissions:
+  contents: read
+
+jobs:
+  run-checks:
+    uses: ./.github/workflows/run-checks.yml
+    with:
+      run_tests: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
