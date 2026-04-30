@@ -7,10 +7,7 @@ require "rails_helper"
 # --------------------------------------------------------------------------- #
 
 RSpec.describe IpBan do
-  let(:moderator) { create(:moderator_user) }
-
-  before { CurrentUser.user = moderator }
-  after  { CurrentUser.user = nil }
+  include_context "as moderator"
 
   # ---------------------------------------------------------------------------
   # .is_banned?

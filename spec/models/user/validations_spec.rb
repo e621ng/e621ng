@@ -194,6 +194,8 @@ RSpec.describe User do
     end
 
     describe "IP ban check (on create)" do
+      after { CurrentUser.ip_addr = nil }
+
       it "is invalid when the current IP address is banned" do
         banned_ip = "1.2.3.4"
         admin = create(:admin_user)
@@ -213,6 +215,8 @@ RSpec.describe User do
     end
 
     describe "sock puppet check (on create)" do
+      after { CurrentUser.ip_addr = nil }
+
       it "is invalid when the same IP was used to create an account recently" do
         shared_ip = "10.0.0.1"
         # created_at must be within the last day for the sock puppet check to trigger
