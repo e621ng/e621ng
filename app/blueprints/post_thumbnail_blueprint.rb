@@ -5,6 +5,8 @@
 class PostThumbnailBlueprint < Blueprinter::Base
   identifier :id
 
+  field :created_at
+
   ### File Information ###
   field :md5
   field :file_ext
@@ -15,17 +17,22 @@ class PostThumbnailBlueprint < Blueprinter::Base
   field :preview_url do |post|
     post.visible? ? post.preview_file_url : nil
   end
+  field :preview_webp do |post|
+    post.visible? ? post.preview_file_url(:preview_webp) : nil
+  end
   field :sample_url do |post|
     post.visible? ? post.sample_url : nil
   end
   field :file_url do |post|
     post.visible? ? post.file_url : nil
   end
+  field :preview_width
+  field :preview_height
 
   ### Post Metadata ###
 
   field :uploader_id
-  field :uploader_name
+  field :uploader_name, name: :uploader
 
   field :score
   field :fav_count

@@ -49,12 +49,12 @@ class PostBlueprint < Blueprinter::Base
       output[:original][:url] = post.file_url
 
       preview = post.preview_file_url_pair
-      output[:preview][:jpg] = preview[0]
-      output[:preview][:webp] = preview[1]
+      output[:preview][:webp] = preview[0]
+      output[:preview][:jpg] = preview[1]
 
       sample = post.sample_url_pair # falls back to original file if no sample is available
-      output[:sample][:jpg] = sample[0]
-      output[:sample][:webp] = sample[1]
+      output[:sample][:webp] = sample[0]
+      output[:sample][:jpg] = sample[1]
     end
 
     if post.is_video?

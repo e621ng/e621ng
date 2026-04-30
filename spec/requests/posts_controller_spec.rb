@@ -27,7 +27,7 @@ RSpec.describe PostsController do
 
       body = response.parsed_body
       expect(body.keys).to include("posts")
-      expect(body[:posts].first).to include("id", "file", "score", "tags")
+      expect(body["posts"].first).to include("id", "file", "score", "tags")
     end
 
     it "returns a post collection in the default v2 format" do
@@ -39,7 +39,7 @@ RSpec.describe PostsController do
       body = response.parsed_body
       expect(body).to be_an(Array)
       expect(body.first).to include("id", "files", "stats", "tags")
-      expect(body.first[:tags]).to be_an(Array)
+      expect(body.first["tags"]).to be_an(Array)
     end
 
     it "returns a post collection in the extended v2 format when requested" do
@@ -51,9 +51,9 @@ RSpec.describe PostsController do
       body = response.parsed_body
       expect(body).to be_an(Array)
       expect(body.first).to include("id", "files", "stats", "tags")
-      expect(body.first[:tags]).to be_an(Object)
-      expect(body.first[:tags]).to include("general")
-      expect(body.first[:tags][:general]).to be_an(Array)
+      expect(body.first["tags"]).to be_an(Hash)
+      expect(body.first["tags"]).to include("general")
+      expect(body.first["tags"]["general"]).to be_an(Array)
     end
 
     it "returns a post collection in the thumbnail v2 format when requested" do
