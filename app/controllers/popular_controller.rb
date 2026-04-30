@@ -10,7 +10,7 @@ class PopularController < ApplicationController
     @posts = @post_set.posts
     respond_with(@posts) do |format|
       format.json do
-        PostsController.pick_json_format(@post_set.api_posts, legacy: params[:v2] != "true", mode: params[:mode], collection: true)
+        pick_json_format(@post_set.api_posts, legacy: params[:v2] != "true", mode: params[:mode], collection: true)
       end
     end
   rescue ArgumentError => e

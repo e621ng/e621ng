@@ -31,7 +31,7 @@ class FavoritesController < ApplicationController
     @posts = @post_set.posts
     respond_with(@posts) do |fmt|
       fmt.json do
-        PostsController.pick_json_format(@posts, legacy: params[:v2] != "true", mode: params[:mode], collection: true)
+        pick_json_format(@posts, legacy: params[:v2] != "true", mode: params[:mode], collection: true)
       end
     end
   end

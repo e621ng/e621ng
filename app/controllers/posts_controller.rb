@@ -182,24 +182,6 @@ class PostsController < ApplicationController
     respond_with_post_after_update(@post)
   end
 
-  def pick_json_format(posts, collection: true, legacy: true, mode: "basic")
-    # Legacy format
-    if legacy
-      render_posts_json(PostLegacyBlueprint.render_as_hash(posts, collection: collection))
-      return
-    end
-
-    # New API format
-    case mode
-    when "thumbnail"
-      render json: PostThumbnailBlueprint.render(posts, collection: collection)
-    when "extended"
-      render json: PostBlueprint.render(posts, collection: collection, view: :extended)
-    else
-      render json: PostBlueprint.render(posts, collection: collection, view: :basic)
-    end
-  end
-
   private
 
   def tag_query
