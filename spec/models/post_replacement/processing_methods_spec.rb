@@ -48,6 +48,29 @@ RSpec.describe PostReplacement do
         hash_including(replacement_id: replacement.id),
       )
     end
+
+    # Missing:
+    ## should "allow duplicate replacement after rejection" do
+    ## should "give user back their upload slot" do
+    ## should "increment the users rejected replacements count" do
+    ## should "work only once for pending replacements" do
+
+    # ## reject... context "without credit change" do
+    # ### should "update post without changing uploader" do
+    # context "without credit change" do
+    #   should "update post without changing uploader" do
+    #     old_md5 = @post.md5
+    #     @replacement.approve! penalize_current_uploader: true, credit_replacer: false
+    #     @post.reload
+    #     assert_not_equal @post.md5, old_md5
+    #     assert_equal @replacement.image_width, @post.image_width
+    #     assert_equal @replacement.image_height, @post.image_height
+    #     assert_equal @replacement.md5, @post.md5
+    #     assert_not_equal @replacement.creator_id, @post.uploader_id
+    #     assert_equal @replacement.file_ext, @post.file_ext
+    #     assert_equal @replacement.file_size, @post.file_size
+    #   end
+    # end
   end
 
   # --------------------------------------------------------------------------

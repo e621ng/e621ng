@@ -124,6 +124,64 @@ RSpec.describe PostReplacementsController do
     # UploadService::Replacer (called inside PostReplacement#approve!).
     # Add once those classes have test seams or the controller is updated
     # to accept pre-built replacement objects.
+
+    # Missing:
+    ## context "with as_pending false" do
+    ### should "always upload as pending if user can't approve posts" do
+    ### should "immediately approve a replacement" do
+    # ### should "credit the replacer by default" do
+    # should "credit the replacer by default" do
+    #   @post.update_column(:uploader_id, @regular_user.id)
+    #
+    #   file = fixture_file_upload("bread-static.png")
+    #   params = {
+    #     format: :json,
+    #     post_id: @post.id,
+    #     post_replacement: {
+    #       replacement_file: file,
+    #       reason: "test replacement",
+    #       as_pending: false,
+    #     },
+    #   }
+    #
+    #   post_auth post_replacements_path, @user, params: params
+    #   @post.reload
+    #
+    #   replacement = PostReplacement.where(post: @post).order(:id).last
+    #   assert_not_nil replacement
+    #   assert_equal "approved", replacement.status
+    #   assert_equal @user, @post.uploader
+    # end
+    #
+    # ### should "not credit the replacer when uploaded as silent" do
+    #         should "not credit the replacer when uploaded as silent" do
+    #   @post.update_column(:uploader_id, @regular_user.id)
+    #
+    #   file = fixture_file_upload("bread-static.png")
+    #   params = {
+    #     format: :json,
+    #     post_id: @post.id,
+    #     post_replacement: {
+    #       replacement_file: file,
+    #       reason: "test replacement",
+    #       as_pending: false,
+    #       as_silent: true,
+    #     },
+    #   }
+    #
+    #   post_auth post_replacements_path, @user, params: params
+    #   @post.reload
+    #
+    #   replacement = PostReplacement.where(post: @post).order(:id).last
+    #   assert_not_nil replacement
+    #   assert_predicate replacement, :is_approved?
+    #
+    #   assert_equal @regular_user, @post.uploader
+    # end
+    #
+    ## context "with a previously destroyed post" do
+    ### should "fail and create ticket" do
+    ### should "fail and not create ticket if notify=false" do
   end
 
   # ---------------------------------------------------------------------------
