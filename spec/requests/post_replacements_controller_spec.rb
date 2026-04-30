@@ -173,7 +173,7 @@ RSpec.describe PostReplacementsController do
     # The responders gem returns 204 No Content for PUT+JSON with no explicit render.
     it "returns 204 for an approver" do
       sign_in_as approver
-      put approve_post_replacement_path(replacement, format: :json)
+      put approve_post_replacement_path(replacement, penalize_current_uploader: true, format: :json)
       expect(response).to have_http_status(:no_content)
     end
 
@@ -183,6 +183,37 @@ RSpec.describe PostReplacementsController do
       sign_in_as moderator
       put approve_post_replacement_path(replacement, format: :json)
       expect(response).to have_http_status(:forbidden)
+    end
+
+    it "credits the creator when credit_replacer is not specified" do
+      sign_in_as approver
+      put approve_post_replacement_path(replacement, penalize_current_uploader: true, format: :json)
+      expect(replacement).to have_received(:approve!) do |**kwargs|
+        expect(kwargs[:penalize_current_uploader]).to eq(true)
+        expect(kwargs).not_to have_key(:credit_replacer)
+      end
+    end
+
+    it "credits the creator when credit_replacer is true" do
+      sign_in_as approver
+      put approve_post_replacement_path(replacement, penalize_current_uploader: true, credit_replacer: true, format: :json)
+      expect(replacement).to have_received(:approve!).with(
+        hash_including(
+          penalize_current_uploader: true,
+          credit_replacer: true,
+        ),
+      )
+    end
+
+    it "does not credit the creator when credit_replacer is false" do
+      sign_in_as approver
+      put approve_post_replacement_path(replacement, penalize_current_uploader: true, credit_replacer: false, format: :json)
+      expect(replacement).to have_received(:approve!).with(
+        hash_including(
+          penalize_current_uploader: true,
+          credit_replacer: false,
+        ),
+      )
     end
   end
 

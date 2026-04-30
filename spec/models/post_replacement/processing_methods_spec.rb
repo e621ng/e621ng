@@ -87,7 +87,10 @@ RSpec.describe PostReplacement do
 
       expect(UploadService::Replacer).to have_received(:new)
         .with(post: replacement.post, replacement: replacement)
-      expect(processor).to have_received(:process!).with(penalize_current_uploader: true)
+      expect(processor).to have_received(:process!).with(
+        penalize_current_uploader: true,
+        credit_replacer: true,
+      )
     end
 
     it "returns early without delegating when FileValidator finds errors" do
@@ -101,6 +104,26 @@ RSpec.describe PostReplacement do
       replacement.approve!(penalize_current_uploader: false)
 
       expect(UploadService::Replacer).not_to have_received(:new)
+    end
+
+    context "when credit_replacer is false" do
+      it "delegates with credit_replacer disabled and penalty forced off" do
+        post = create(:post)
+        replacement = create(:post_replacement, post: post)
+        stub_approve_deps(replacement)
+
+        processor = instance_double(UploadService::Replacer, process!: nil)
+        allow(UploadService::Replacer).to receive(:new)
+          .with(post: replacement.post, replacement: replacement)
+          .and_return(processor)
+
+        replacement.approve!(penalize_current_uploader: true, credit_replacer: false)
+
+        expect(processor).to have_received(:process!).with(
+          penalize_current_uploader: false,
+          credit_replacer: false,
+        )
+      end
     end
   end
 
