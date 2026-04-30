@@ -1,0 +1,8 @@
+coverage:
+  paths:
+    - coverage/.resultset.json
+
+comment:
+  if: is_pull_request
+  updatePrevious: true
+  hideFooterLink: true

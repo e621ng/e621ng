@@ -169,6 +169,11 @@ class User < ApplicationRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
+      # TODO: find_by_name overrides the Rails dynamic finder of the same name (User has a name column).
+      # find_by_name_or_id mimics the Rails dynamic finder naming convention but is purely custom.
+      # name_to_id, name_or_id_to_id, name_or_id_to_id_forced, and id_to_name are also custom with
+      # no Rails equivalent. All predate modern Rails conventions and add caching and custom ID syntax
+      # (e.g. !<id>). Do not rename or remove without understanding the callers first.
       def name_to_id(name)
         normalized_name = normalize_name(name)
         Cache.fetch("uni:#{normalized_name}", expires_in: 4.hours) do
