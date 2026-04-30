@@ -197,7 +197,7 @@
           data-action="comments"
           aria-controls="post-show-display"
           aria-selected="<%= selected_tab == "comments" %>"
-        >Comments</button>
+        ><%= "Comments (#{@post.comment_count})" %></button>
       <% end %>
     </div>
 
