@@ -128,6 +128,11 @@ class Post < ApplicationRecord
       storage_manager.post_file_url(self, type)
     end
 
+    def sample_url_pair
+      return [file_url, file_url] unless has_sample?
+      [sample_url(:sample_webp), sample_url(:sample_jpg)]
+    end
+
     def preview_file_url(type = :preview_jpg)
       storage_manager.post_file_url(self, type)
     end

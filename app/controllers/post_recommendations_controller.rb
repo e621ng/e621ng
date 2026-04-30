@@ -36,7 +36,7 @@ class PostRecommendationsController < ApplicationController
     end
 
     posts = Post.where(id: post_data[:order])
-    post_data[:post_data] = PostBlueprint.render_as_hash(posts, view: :thumbnail)
+    post_data[:post_data] = PostThumbnailBlueprint.render(posts, collection: true)
     post_data.delete(:order) # Don't pollute the response with redundant data
 
     render json: post_data

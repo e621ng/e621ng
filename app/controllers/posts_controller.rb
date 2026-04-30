@@ -15,11 +15,7 @@ class PostsController < ApplicationController
       respond_with(@post) do |format|
         format.html { redirect_to post_path(@post) }
         format.json do
-          if params[:v2] == "true"
-            render json: PostBlueprint.render(@post, view: params[:extended] == "true" ? :api_extended : :api)
-          else
-            render_posts_json(LegacyPostBlueprint.render_as_hash(@post))
-          end
+          pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
         end
       end
     else
@@ -58,12 +54,7 @@ class PostsController < ApplicationController
 
       respond_with(@posts) do |format|
         format.json do
-          if params[:v2] == "true"
-            mode = %w[thumbnail api extended].include?(params[:mode]) ? params[:mode] : "api"
-            render json: PostBlueprint.render(@post_set.api_posts, view: mode.to_sym, collection: true)
-          else
-            render_posts_json(LegacyPostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
-          end
+          pick_json_format(@post_set.api_posts, legacy: params[:v2] != "true", mode: params[:mode])
         end
         format.atom
       end
@@ -95,7 +86,7 @@ class PostsController < ApplicationController
 
     respond_with(@post) do |format|
       format.json do
-        render_posts_json(LegacyPostBlueprint.render_as_hash(@post))
+        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end
@@ -126,7 +117,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { render "posts/show" }
       format.json do
-        render_posts_json(LegacyPostBlueprint.render_as_hash(@post))
+        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end
@@ -173,7 +164,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, q: params[:tags]) }
       format.json do
-        render_posts_json(LegacyPostBlueprint.render_as_hash(@post))
+        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end
@@ -189,6 +180,24 @@ class PostsController < ApplicationController
     @post = Post.find(params[:id])
     @post.update_iqdb_async
     respond_with_post_after_update(@post)
+  end
+
+  def pick_json_format(posts, collection: true, legacy: true, mode: "basic")
+    # Legacy format
+    if legacy
+      render_posts_json(PostLegacyBlueprint.render_as_hash(posts, collection: collection))
+      return
+    end
+
+    # New API format
+    case mode
+    when "thumbnail"
+      render json: PostThumbnailBlueprint.render(posts, collection: collection)
+    when "extended"
+      render json: PostBlueprint.render(posts, collection: collection, view: :extended)
+    else
+      render json: PostBlueprint.render(posts, collection: collection, view: :basic)
+    end
   end
 
   private
@@ -237,7 +246,7 @@ class PostsController < ApplicationController
       end
 
       format.json do
-        render_posts_json(LegacyPostBlueprint.render_as_hash(post))
+        pick_json_format(post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end

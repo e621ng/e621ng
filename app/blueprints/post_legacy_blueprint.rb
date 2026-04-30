@@ -3,7 +3,7 @@
 # Rubocop does not understand the Blueprinter block syntax
 # rubocop:disable Style/SymbolProc
 
-class LegacyPostBlueprint < Blueprinter::Base
+class PostLegacyBlueprint < Blueprinter::Base
   identifier :id
 
   # TODO: For compatibility reasons, the following fields are in the same order as in the old API.
