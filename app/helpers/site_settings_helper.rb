@@ -21,6 +21,9 @@ module SiteSettingsHelper
           search_trend: Danbooru.config.visitor_metrics_events[:search_trend] || false,
         },
       },
+      Posts: {
+        webp_enabled: Danbooru.config.webp_previews_enabled?,
+      },
       Recommender: {
         remote: Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff?, # Gradual rollout
       },

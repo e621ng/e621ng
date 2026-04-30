@@ -12,17 +12,6 @@
     word-wrap: anywhere;
     overflow-wrap: anywhere;
 
-    .avatar {
-      .post-thumbnail {
-        img {
-          height: auto;
-          width: auto;
-          max-height: 150px;
-          max-width: 150px;
-        }
-      }
-    }
-
     .post-time {
       font-style: italic;
     }
@@ -60,14 +49,6 @@
           grid-column: 1;
           grid-row-start: 1;
           grid-row-end: 4;
-          .post-thumbnail, .post-thumb.placeholder {
-            img {
-              height: auto;
-              width: auto;
-              max-height: 100px;
-              max-width: 100px;
-            }
-          }
         }
         .post-time {
           grid-column: 2;

@@ -54,6 +54,11 @@ RSpec.describe WikiPageVersion do
         result = WikiPageVersion.search({})
         expect(result).to include(version_alpha, version_beta)
       end
+
+      it "returns no results when wiki_page_id is too large" do
+        result = WikiPageVersion.search(wiki_page_id: "995859912741")
+        expect(result).to be_empty
+      end
     end
 
     # -------------------------------------------------------------------------

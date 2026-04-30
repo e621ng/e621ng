@@ -76,6 +76,12 @@ RSpec.describe WikiPageVersionsController do
         expect(ids).to include(v.id)
         expect(ids).not_to include(other_v.id)
       end
+
+      it "returns no results for an out-of-range wiki_page_id" do
+        get wiki_page_versions_path(format: :json, search: { wiki_page_id: "995859912741" })
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to eq([])
+      end
     end
 
     describe "search by title" do
