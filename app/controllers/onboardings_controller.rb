@@ -12,6 +12,9 @@ class OnboardingsController < ApplicationController
         render json: {
           user_id: @user.id,
           steps: steps_with_user_values(@user)
+          enable_privacy_mode: @user.enable_privacy_mode?,
+          disable_user_dmails: @user.disable_user_dmails?,
+          receive_email_notifications: @user.receive_email_notifications?
         }
       end
     end
