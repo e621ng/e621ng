@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module FormSearchHelper
-  DEFAULT_SEARCH_FIELDS = %i[id created_at updated_at].freeze # needed for filled_form_fields to know which fields to look for in the params
+  # needed for filled_form_fields to know which fields to look for in the params
+  DEFAULT_SEARCH_FIELDS = %i[id created_at updated_at].freeze
 
   def form_search(path:, always_display: false, hideable: request.path.split("/")[2] != "search", method: :get, exclude_default_fields: %i[], &)
     # NOTE: dedicated search routes like /comments/search should always show
@@ -31,7 +32,7 @@ module FormSearchHelper
   # When the simple_form has f.input :name and search[name]=test [:name] will be returned
   # Some search params aren't exposed in the ui, but have links. In that case it
   # isn't expected to have the form be open, since no values are set.
-  def filled_form_fields(search_params, exclude_default_fields: %i[], &)
+  def filled_form_fields(search_params, exclude_default_fields: [], &)
     form_field_collector = FormFieldCollector.new
     capture { yield(form_field_collector) }
     available_fields = DEFAULT_SEARCH_FIELDS - exclude_default_fields + form_field_collector.fields
