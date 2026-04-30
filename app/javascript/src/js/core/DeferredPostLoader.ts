@@ -51,10 +51,16 @@ export default class DeferredPostLoader {
     const post = PostCache.get(postID);
     if (!post || !post.preview_url) return;
 
+    let path = post.preview_url;
+    if (avatar.data("has-cropped-avatar")) {
+      const userID = avatar.data("user-id") || "0";
+      if (userID) path = post.preview_url.replace(/\/data\/.*$/, `/data/avatars/${userID}.jpg`);
+    }
+
     if (E621.Blacklist.hiddenPosts.has(postID))
       avatar.addClass("blacklisted");
     $("<img>")
-      .attr("src", post.preview_url)
+      .attr("src", path)
       .appendTo(avatar.find("span.avatar-image"));
 
     PostCache.registerAvatar(avatar, postID);
@@ -85,7 +91,14 @@ export default class DeferredPostLoader {
       const post = PostCache.get(postID);
       if (!post) continue;
 
-      const thumbnail = ThumbnailEngine.render(post, { showStatistics: false, showTypeBadges: false, inline: true });
+      let jpgUrl: string, webpUrl: string;
+      if ($placeholder.data("has-cropped-avatar")) {
+        const userID = $placeholder.data("user-id") || "0";
+        jpgUrl = `/data/avatars/${userID}.jpg`;
+        webpUrl = `/data/avatars/${userID}.webp`;
+      }
+
+      const thumbnail = ThumbnailEngine.render(post, { showStatistics: false, showTypeBadges: false, inline: true, jpegUrl: jpgUrl, webpUrl: webpUrl });
       if (!thumbnail) continue;
       $placeholder.replaceWith(thumbnail);
     }

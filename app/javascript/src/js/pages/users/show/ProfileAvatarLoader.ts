@@ -11,7 +11,14 @@ $(() => {
   const post = PostCache.get(postID);
   if (!post || !post.preview_url) return;
 
-  const thumbnail = ThumbnailEngine.render(post, { showStatistics: false });
+  let jpgUrl: string, webpUrl: string;
+  if (avatar.data("has-cropped-avatar")) {
+    const userID = avatar.data("user-id") || "0";
+    jpgUrl = `/data/avatars/${userID}.jpg`;
+    webpUrl = `/data/avatars/${userID}.webp`;
+  }
+
+  const thumbnail = ThumbnailEngine.render(post, { showStatistics: false, jpegUrl: jpgUrl, webpUrl: webpUrl });
   if (!thumbnail) return; // .render returns null if the post data is invalid
   thumbnail.find("a.thm-link").attr("data-initial", avatar.data("initial") || "?");
 

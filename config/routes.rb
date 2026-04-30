@@ -96,6 +96,7 @@ Rails.application.routes.draw do
       resource :deletion, only: %i[show destroy]
       resource :email_change, only: %i[new create]
       resource :dmail_filter, only: %i[edit update]
+      resource :avatar, only: %i[edit update]
     end
   end
 

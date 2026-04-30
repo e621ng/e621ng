@@ -20,12 +20,13 @@ export default class ThumbnailEngine {
   public static render (post: CachedPost, options: ThumbnailOptions = {}): JQuery<HTMLElement> | null {
     if (!post) return null;
 
-    const { showStatistics = true, showTypeBadges = true, inline = false, native = false } = options;
+    const { showStatistics = true, showTypeBadges = true, inline = false, native = false, jpegUrl, webpUrl } = options;
 
     const article = $("<article>")
       .addClass("thumbnail rating-" + (post.ratingLong))
       .attr(post.toAttributes());
 
+    // Apply customization and blacklist classes
     if (E621.Blacklist.hiddenPosts.has(post.id)) article.addClass("blacklisted");
     if (E621.Blacklist.matchedPosts.has(post.id)) article.addClass("filter-matches");
 
@@ -33,6 +34,16 @@ export default class ThumbnailEngine {
     if (!showTypeBadges) article.addClass("no-type-badges");
     if (inline) article.addClass("inline");
     if (native) article.addClass("native");
+
+    // Substitute URLs if necessary
+    if (jpegUrl) {
+      if (post.preview_url) post.preview_url = post.preview_url.replace(/\/data\/.*$/, jpegUrl);
+      else post.preview_url = jpegUrl;
+    }
+    if (webpUrl) {
+      if (post.preview_webp) post.preview_webp = post.preview_webp.replace(/\/data\/.*$/, webpUrl);
+      else post.preview_webp = webpUrl;
+    }
 
     // Core
     $("<a>")
@@ -133,5 +144,8 @@ type ThumbnailOptions = {
   showTypeBadges?: boolean;
   inline?: boolean;
   native?: boolean;
+
+  jpegUrl?: string;
+  webpUrl?: string;
 };
 

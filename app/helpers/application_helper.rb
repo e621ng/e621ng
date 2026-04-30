@@ -171,7 +171,12 @@ module ApplicationHelper
     post_id = user.avatar_id
     return "" unless post_id
     deferred_post_ids.add(post_id)
-    tag.article class: "thumbnail no-stats placeholder", id: "tp-#{post_id}", data: { id: post_id, initial: user.name[0].upcase }
+    tag.article class: "thumbnail no-stats placeholder", id: "tp-#{post_id}", data: {
+      id: post_id,
+      initial: user.name[0].upcase,
+      "user-id": user.id,
+      "has-cropped-avatar": user.has_cropped_avatar? ? "1" : "",
+    }
   end
 
   def unread_dmails(user)

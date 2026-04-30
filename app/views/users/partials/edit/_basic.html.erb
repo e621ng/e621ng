@@ -73,6 +73,7 @@
   <tab-head><%= form.label :avatar_id, "Avatar Post ID" %></tab-head>
   <tab-body>
     <%= form.input_field :avatar_id, as: :string, label: false %>
+    <%= link_to "Crop avatar", edit_maintenance_user_avatar_path, class: "st-button" %>
   </tab-body>
   <tab-hint>
     The image with this ID will be set as your avatar.

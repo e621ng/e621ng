@@ -5,6 +5,8 @@
   data-id="<%= post_id %>"
   data-name="<%= user.name.presence || "<blank>" %>"
   data-initial="<%= (user.name.presence || "?")[0].capitalize %>"
+  data-user-id="<%= user.id %>"
+  data-has-cropped-avatar="<%= user.has_cropped_avatar? ? "1" : "" %>"
 >
   <span
     class="avatar-image"

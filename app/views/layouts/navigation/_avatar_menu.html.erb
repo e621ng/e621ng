@@ -5,6 +5,7 @@
   href="<%= user_path(user) %>"
   class="simple-avatar placeholder nav-controls-profile collapse-2"
   data-user-id="<%= user.id %>"
+  data-has-cropped-avatar="<%= user.has_cropped_avatar? ? "1" : "" %>"
   data-id="<%= avatar_id %>"
   data-name="<%= user.name.presence || "<blank>" %>"
   data-has-mail="<%= has_mail %>"
