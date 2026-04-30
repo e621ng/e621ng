@@ -106,9 +106,9 @@
           <% if !post_replacement.post.is_deleted? %>
             <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %><br>
             <%= link_to "Silently", "#silent-approve", class: "replacement-silent-approve-action replacement-action-button", data: { replacement_id: post_replacement.id } %><br><br>
-          <% end %><br />
-          <%= link_to "Compare", moderator_post_diff_path(post_a: post_replacement.post_id, post_b: post_replacement.md5) %><br /><br />
-          <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %><br />
+          <% end %><br>
+          <%= link_to "Compare", moderator_post_diff_path(post_a: post_replacement.post_id, post_b: post_replacement.md5) %><br><br>
+          <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %><br>
         <% end %>
       </div>
       <% if !post_replacement.is_current? && !post_replacement.is_promoted? %>
