@@ -90,7 +90,7 @@ class PostReplacementsController < ApplicationController
     if @post_replacement.errors.any?
       respond_to do |format|
         format.json { return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412 }
-        format.html { return render plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: 400 }
+        format.html { return render plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: 412 }
       end
     end
 
