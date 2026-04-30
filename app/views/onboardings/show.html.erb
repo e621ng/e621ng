@@ -6,88 +6,16 @@
   <div class="onboarding-container">
     <section class="section" id="onboarding-root" data-user-id="<%= @user.id %>">
       <div class="section-header">
-        <h1>Welcome to e621, <%= CurrentUser.name %>!</h1>
-        <span class="step-counter" id="step-counter">Step 1 of 5</span>
+        <h1>Welcome to <%= Danbooru.config.app_name %>, <%= CurrentUser.name %>!</h1>
+        <span class="step-counter" id="step-counter">Step 1 of ?</span>
       </div>
 
       <div class="onboarding-content styled-dtext" style="padding: 20px;">
-        
-        <%# Step 0: Blacklist %>
-        <div class="onboarding-step" id="step-0">
-          <h2>Initial Blacklist</h2>
-          <p>e621 contains a wide variety of content. Select any tags you'd like to hide immediately.</p>
-          
-          <div class="common-blacklist-tags">
-            <% current_blacklist = @user.blacklisted_tags.to_s.split(/\s+/) %>
-            
-            <% %w[gore scat vore inflation hypnosis watersports transformation].each do |tag| %>
-              <div class="tag-option">
-                <input type="checkbox" 
-                      id="tag-<%= tag %>" 
-                      class="blacklist-checkbox" 
-                      value="<%= tag %>"
-                      <%= 'checked' if current_blacklist.include?(tag) %>>
-                <label for="tag-<%= tag %>"><%= tag %></label>
-              </div>
-            <% end %>
-          </div>
-        </div>
-
-        <%# Step 1: Privacy %>
-        <div class="onboarding-step" id="step-1" style="display:none">
-          <h2>Privacy & Safety</h2>
-          <p>Control how you appear to others on the site.</p>
-          <div class="settings-option">
-            <label>
-              <input type="checkbox" id="enable_privacy_mode" <%= 'checked' if @user.enable_privacy_mode? %>>
-              <strong>Enable Privacy Mode</strong>
-            </label>
-            <p class="help-text">Prevents your profile and favorites from being publicly searchable.</p>
-          </div>
-          <div class="settings-option">
-            <label>
-              <input type="checkbox" id="disable_user_dmails" <%= 'checked' if @user.disable_user_dmails? %>>
-              <strong>Restrict DMs</strong>
-            </label>
-            <p class="help-text">Only allow staff members to send you direct messages.</p>
-          </div>
-        </div>
-
-        <%# Step 2: Notifications %>
-        <div class="onboarding-step" id="step-2" style="display:none">
-          <h2>Notifications</h2>
-          <div class="settings-option">
-            <label>
-              <input type="checkbox" id="receive_email_notifications" <%= 'checked' if @user.receive_email_notifications? %>>
-              <strong>Email Notifications</strong>
-            </label>
-            <p class="help-text">Receive emails when you get a DM or someone replies to your forum posts.</p>
-          </div>
-        </div>
-
-        <%# Step 3: Theme %>
-        <div class="onboarding-step" id="step-3" style="display:none">
-          <h2>Site Personalization</h2>
-          <div class="notice notice-info">
-            <p>Looking for a different look? e621 supports multiple themes and custom CSS.</p>
-            <a href="/users/settings" class="btn btn-secondary" target="_blank">Open Settings in New Tab</a>
-          </div>
-        </div>
-
-        <%# Step 4: Finalize %>
-        <div class="onboarding-step" id="step-4" style="display:none">
-          <h2>Ready to go?</h2>
-          <p>If you're new here, we highly recommend checking out our Wiki to learn about tagging and site rules.</p>
-          <div style="display: flex; gap: 10px;">
-            <a href="/help/wiki_pages" class="btn btn-secondary" target="_blank">Wiki</a>
-            <a href="/help/guidelines" class="btn btn-secondary" target="_blank">Guidelines</a>
-          </div>
-        </div>
+        <!-- Steps will be rendered here via show.js -->
       </div>
 
       <div class="onboarding-actions">
         <button id="btn-prev" class="btn btn-neutral" style="display:none">← Previous</button>
-        <button id="btn-skip" class="btn btn-neutral">Skip this Step</button>
         <div class="spacer"></div>
         <button id="btn-skip-all" class="btn btn-neutral">Finish Later</button>
         <button id="btn-next" class="btn btn-primary">Next →</button>
