@@ -189,7 +189,7 @@ RSpec.describe PostReplacementsController do
       sign_in_as approver
       put approve_post_replacement_path(replacement, penalize_current_uploader: true, format: :json)
       expect(replacement).to have_received(:approve!) do |**kwargs|
-        expect(kwargs[:penalize_current_uploader]).to eq(true)
+        expect(kwargs[:penalize_current_uploader]).to be(true)
         expect(kwargs).not_to have_key(:credit_replacer)
       end
     end
