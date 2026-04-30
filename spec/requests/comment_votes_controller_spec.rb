@@ -163,38 +163,33 @@ RSpec.describe CommentVotesController do
         expect(response).to have_http_status(:ok)
       end
 
-      # FIXME: CommentVotesController#index is missing `respond_with(@comment_votes)` (unlike
-      # PostVotesController which has it). Without it, Rails cannot find a JSON template and
-      # returns 406 Not Acceptable for all JSON requests to this action. The three tests below
-      # are commented out until the controller is fixed.
+      it "returns a JSON array" do
+        get "/comment_votes.json"
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to be_an(Array)
+      end
 
-      # it "returns a JSON array" do
-      #   get "/comment_votes.json"
-      #   expect(response).to have_http_status(:ok)
-      #   expect(response.parsed_body).to be_an(Array)
-      # end
+      it "filters results by comment_id" do
+        other_comment = create(:comment).tap { |c| c.update_columns(creator_id: create(:user).id) }
+        matching      = create(:comment_vote, comment: comment_rec)
+        other_vote    = create(:comment_vote, comment: other_comment)
 
-      # it "filters results by comment_id" do
-      #   other_comment = create(:comment).tap { |c| c.update_columns(creator_id: create(:user).id) }
-      #   matching      = create(:comment_vote, comment: comment_rec)
-      #   other_vote    = create(:comment_vote, comment: other_comment)
-      #
-      #   get "/comment_votes.json", params: { search: { comment_id: comment_rec.id } }
-      #   ids = response.parsed_body.pluck("id")
-      #   expect(ids).to include(matching.id)
-      #   expect(ids).not_to include(other_vote.id)
-      # end
+        get "/comment_votes.json", params: { search: { comment_id: comment_rec.id } }
+        ids = response.parsed_body.pluck("id")
+        expect(ids).to include(matching.id)
+        expect(ids).not_to include(other_vote.id)
+      end
 
-      # it "filters results by score" do
-      #   aged_voter = create(:user, created_at: 4.days.ago)
-      #   upvote     = create(:comment_vote, comment: comment_rec, user: aged_voter, score: 1)
-      #   downvote   = create(:down_comment_vote, comment: create(:comment).tap { |c| c.update_columns(creator_id: create(:user).id) }, user: aged_voter)
-      #
-      #   get "/comment_votes.json", params: { search: { user_id: aged_voter.id, score: "1" } }
-      #   ids = response.parsed_body.pluck("id")
-      #   expect(ids).to include(upvote.id)
-      #   expect(ids).not_to include(downvote.id)
-      # end
+      it "filters results by score" do
+        aged_voter = create(:user, created_at: 4.days.ago)
+        upvote     = create(:comment_vote, comment: comment_rec, user: aged_voter, score: 1)
+        downvote   = create(:down_comment_vote, comment: create(:comment).tap { |c| c.update_columns(creator_id: create(:user).id) }, user: aged_voter)
+
+        get "/comment_votes.json", params: { search: { user_id: aged_voter.id, score: "1" } }
+        ids = response.parsed_body.pluck("id")
+        expect(ids).to include(upvote.id)
+        expect(ids).not_to include(downvote.id)
+      end
     end
   end
 
