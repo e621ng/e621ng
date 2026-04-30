@@ -91,6 +91,8 @@ class ApplicationController < ActionController::Base
       render_error_page(500, exception, message: "The database timed out running your query.")
     when ActionDispatch::Http::Parameters::ParseError, ActionController::BadRequest, PostVersion::UndoError
       render_error_page(400, exception)
+    when ActiveRecord::RangeError
+      render_expected_error(400, "Invalid request parameters")
     when SessionLoader::AuthenticationFailure
       session.delete(:user_id)
       cookies.delete :remember
