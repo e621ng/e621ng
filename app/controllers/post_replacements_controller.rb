@@ -94,11 +94,6 @@ class PostReplacementsController < ApplicationController
       end
     end
 
-    if @post_replacement.errors.any?
-      render plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: 400
-      return
-    end
-
     respond_with(@post_replacement) do |format|
       format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
       format.json
