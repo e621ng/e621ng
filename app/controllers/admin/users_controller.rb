@@ -34,9 +34,6 @@ module Admin
       @user.validate_email_format = true
       @user.is_admin_edit = true
       @user.update!(user_params(CurrentUser.user))
-      if @user.saved_change_to_name
-        ModAction.log(:user_name_change, { user_id: @user.id, old_name: @user.name_before_last_save, new_name: @user.name })
-      end
       if @user.saved_change_to_profile_about || @user.saved_change_to_profile_artinfo
         ModAction.log(:user_text_change, { user_id: @user.id })
       end
@@ -129,7 +126,7 @@ module Admin
     private
 
     def user_params(user)
-      permitted_params = %i[name profile_about profile_artinfo base_upload_limit enable_privacy_mode]
+      permitted_params = %i[profile_about profile_artinfo base_upload_limit enable_privacy_mode]
       permitted_params << :email if user.is_bd_staff?
       params.require(:user).slice(*permitted_params).permit(permitted_params)
     end
