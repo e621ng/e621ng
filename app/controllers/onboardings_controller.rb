@@ -11,9 +11,7 @@ class OnboardingsController < ApplicationController
       format.json do
         render json: {
           user_id: @user.id,
-          enable_privacy_mode: @user.enable_privacy_mode?,
-          disable_user_dmails: @user.disable_user_dmails?,
-          receive_email_notifications: @user.receive_email_notifications?
+          steps: steps_with_user_values(@user)
         }
       end
     end
@@ -35,5 +33,31 @@ class OnboardingsController < ApplicationController
     @user = CurrentUser.user
     @user.update!(onboarding_completed: false)
     redirect_to(onboarding_path, notice: "You have restarted the onboarding process")
+  end
+
+  private
+
+  def onboarding_steps
+    Danbooru.config.onboarding_steps
+  end
+
+  def steps_with_user_values(user)
+    onboarding_steps.map do |step|
+      step_with_values = step.dup
+
+      case step[:type]
+      when "blacklist"
+        current_blacklist = user.blacklisted_tags.to_s.split(/\s+/)
+        step_with_values[:current_value] = current_blacklist
+      when "settings"
+        step_with_values[:fields] = step[:fields].map do |field|
+          field_dup = field.dup
+          field_dup[:current_value] = user.send(field[:id])
+          field_dup
+        end
+      end
+
+      step_with_values
+    end
   end
 end
