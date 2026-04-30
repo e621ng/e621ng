@@ -1,19 +1,21 @@
-import LStorage from "@/utility/storage";
+import CStorage from "@/utility/StorageC";
 
 function bootstrapTabs () {
   const container = $(".post-display");
-  if (!container.length || !container.data("comments-enabled")) return;
+  if (!container.length) return;
   const validActions = ["comments", "tags"];
-
-  const savedState = (LStorage.Posts.MobileTab as any) + "";
-  if (savedState === "comments") container.attr("data-tab-state", "comments");
 
   container.find(".post-mobile-tab").on("click", (event) => {
     const action = $(event.currentTarget).data("action");
     if (!validActions.includes(action)) return;
-    LStorage.Posts.MobileTab = action;
+    CStorage.postMobileTabState = action;
 
-    container.attr("data-tab-state", action);
+    container
+      .attr("data-tab-state", action)
+      .find(".post-mobile-tab").each((_, el) => {
+        const $el = $(el);
+        $el.attr("aria-selected", String($el.data("action") === action));
+      });
   });
 }
 

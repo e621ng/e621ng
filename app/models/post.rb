@@ -981,16 +981,19 @@ class Post < ApplicationRecord
 
         when /^child:none$/i
           children.each do |post|
+            remove_child_edit_reason(post)
             post.update!(parent_id: nil)
           end
 
         when /^-child:(.+)$/i
           children.numeric_attribute_matches(:id, $1).each do |post|
+            remove_child_edit_reason(post)
             post.update!(parent_id: nil)
           end
 
         when /^child:(.+)$/i
           Post.numeric_attribute_matches(:id, $1).where.not(id: id).limit(10).each do |post|
+            add_child_edit_reason(post)
             post.update!(parent_id: id)
           end
         end
@@ -1477,6 +1480,14 @@ class Post < ApplicationRecord
       return unless parent_id.present?
       parent.edit_reason = "Merged from post ##{self.id}"
     end
+
+    def remove_child_edit_reason(post)
+      post.edit_reason = "Removed as child of post ##{id}"
+    end
+
+    def add_child_edit_reason(post)
+      post.edit_reason = "Added as child of post ##{id}"
+    end
   end
 
   module DeletionMethods
@@ -1761,6 +1772,7 @@ class Post < ApplicationRecord
       if visible?
         attributes[:md5] = md5
         attributes[:preview_url] = preview_file_url
+        attributes[:preview_webp] = preview_file_url(:preview_webp)
         attributes[:sample_url] = sample_url
         attributes[:file_url] = file_url
         attributes[:preview_width] = preview_dimensions[0]

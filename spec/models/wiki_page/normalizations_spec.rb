@@ -23,11 +23,12 @@ RSpec.describe WikiPage do
       expect(page.title).to eq("a_page_title")
     end
 
-    it "strips the artist: prefix and sets category_id to artist" do
-      page = build(:wiki_page, title: "artist:some_artist")
+    it "strips the category-1 prefix and sets category_id to 1" do
+      cat1 = TagCategory::REVERSE_MAPPING[1]
+      page = build(:wiki_page, title: "#{cat1}:some_tag")
       page.valid?
-      expect(page.title).to eq("some_artist")
-      expect(page.category_id).to eq(1) # artist
+      expect(page.title).to eq("some_tag")
+      expect(page.category_id).to eq(1)
     end
 
     it "strips the species: prefix and sets category_id to species" do
@@ -50,7 +51,8 @@ RSpec.describe WikiPage do
     end
 
     it "handles an uppercased category prefix (e.g. 'Artist:foo')" do
-      page = build(:wiki_page, title: "Artist:foo_artist")
+      cat1 = TagCategory::REVERSE_MAPPING[1]
+      page = build(:wiki_page, title: "#{cat1.upcase}:foo_artist")
       page.valid?
       expect(page.title).to eq("foo_artist")
       expect(page.category_id).to eq(1) # artist

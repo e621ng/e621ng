@@ -68,24 +68,45 @@ export default class Filter {
   }
 
   /**
-   * Checks if the provided post matches the filter
-   * @param {JQuery<HTMLElement>} $post Post to check
-   * @returns True if the post matches the filter, false otherwise
+   * Updates the filter with the provided post elements, adding or removing them from the matched IDs as necessary.
+   * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Thumbnail elements to update the filter with
+   * @returns {boolean} True if any posts were updated, false otherwise
    */
-  update ($post) {
-    if ($post.length == 0) return false;
-    else if (Array.isArray($post)) { // Deferred posts return an array
-      for (const $one of $post)
-        this.update($one);
-      return;
-    } else if ($post.length > 1) { // More than one matched
-      for (const $one of $post.get())
-        this.update($($one));
-      return;
+  updateWithElements ($posts) {
+    if (Array.isArray($posts)) {
+      // Normal array – either produced by the branch below, or by PostCache.sample()
+      if ($posts.length == 0) return false;
+      let matchesAny = false;
+      for (const post of $posts)
+        if (this.updateWithElements($(post))) matchesAny = true;
+      return matchesAny;
+    } else if ($posts.length > 1) {
+      // JQuery collection with multiple elements – produced by a normal jQuery selector
+      return this.updateWithElements($posts.get().map(el => $(el)));
     }
 
-    const post = PostCache.fromThumbnail($post);
-    if (this.matchIDs.has(post.id)) return;
+    const post = PostCache.fromThumbnail($posts);
+    if (!post) return false;
+    return this.updateWithPosts(post);
+  }
+
+  /**
+   * Updates the filter with the provided post(s), adding or removing them from the matched IDs as necessary.
+   * @param {CachedPost | CachedPost[]} posts Post(s) to update the filter with
+   * @returns {boolean} True if any posts were updated, false otherwise
+   */
+  updateWithPosts (posts) {
+    if (Array.isArray(posts)) {
+      if (posts.length == 0) return false;
+      let matchesAny = false;
+      for (const post of posts)
+        if (this.updateWithPosts(post)) matchesAny = true;
+      return matchesAny;
+    }
+
+    // Check if a post has already been matched
+    if (this.matchIDs.has(posts.id)) return true;
+    const post = posts;
 
     // Check if the post matches the filter
     let tokensMatch = true;
@@ -110,6 +131,8 @@ export default class Filter {
 
     if (tokensMatch === true) this.matchIDs.add(post.id);
     else if (tokensMatch === false) this.matchIDs.delete(post.id);
+
+    return tokensMatch === true;
   }
 }
 

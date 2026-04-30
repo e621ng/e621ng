@@ -33,8 +33,10 @@
       <%= link_to("Reset Password", new_maintenance_user_password_reset_path, class: "hint-link") %>
     </div>
 
-    <hr />
+    <% if Danbooru.config.enable_signups? %>
+      <hr />
 
-    <%= link_to("Create an account", new_user_path, class: "st-button") %>
+      <%= link_to("Create an account", new_user_path, class: "st-button") %>
+    <% end %>
   <% end %>
 </div>

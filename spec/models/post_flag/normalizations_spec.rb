@@ -11,44 +11,19 @@ RSpec.describe PostFlag do
 
   describe "update_reason (on: :create)" do
     describe "standard reason names" do
-      it "sets reason to the mapped text for 'young_human'" do
-        flag = create(:post_flag, reason_name: "young_human")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["young_human"])
+      it "has at least one configured flag reason" do
+        expect(Danbooru.config.flag_reasons).not_to be_empty
       end
 
-      it "sets reason to the mapped text for 'dnp_artist'" do
-        flag = create(:post_flag, reason_name: "dnp_artist")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["dnp_artist"])
-      end
+      Danbooru.config.flag_reasons.reject { |r| r[:name].to_s == "inferior" }.each do |reason_def|
+        name = reason_def[:name].to_s
 
-      it "sets reason to the mapped text for 'pay_content'" do
-        flag = create(:post_flag, reason_name: "pay_content")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["pay_content"])
-      end
-
-      it "sets reason to the mapped text for 'previously_deleted'" do
-        flag = create(:post_flag, reason_name: "previously_deleted")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["previously_deleted"])
-      end
-
-      it "sets reason to the mapped text for 'real_porn'" do
-        flag = create(:post_flag, reason_name: "real_porn")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["real_porn"])
-      end
-
-      it "sets reason to the mapped text for 'uploading_guidelines'" do
-        flag = create(:post_flag, reason_name: "uploading_guidelines", note: "Explanation.")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["uploading_guidelines"])
-      end
-
-      it "sets reason to the mapped text for 'trace'" do
-        flag = create(:post_flag, reason_name: "trace", note: "Explanation.")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["trace"])
-      end
-
-      it "sets reason to the mapped text for 'corrupt'" do
-        flag = create(:post_flag, reason_name: "corrupt", note: "Explanation.")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["corrupt"])
+        it "sets reason to the mapped text for '#{name}'" do
+          attrs = { reason_name: name }
+          attrs[:note] = "Explanation." if reason_def[:require_explanation]
+          flag = create(:post_flag, **attrs)
+          expect(flag.reason).to eq(PostFlag::MAPPED_REASONS[name])
+        end
       end
     end
 
