@@ -50,7 +50,7 @@ PostReplacement.note = function (id, current_note) {
   }
   const note_text = prompt(prompt_message, default_value);
   if (note_text === null) {
-    Utility.notice("Note cancelled.");
+    E621.Flash.notice("Note cancelled.");
     return;
   }
   make_processing($row);
@@ -69,11 +69,11 @@ PostReplacement.note = function (id, current_note) {
           return $el;
         })(),
       );
-      Utility.notice("Note added.");
+      E621.Flash.notice("Note added.");
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to add note to the replacement.";
-      Utility.error(msg);
+      E621.Flash.error(msg);
       revert_processing($row);
     });
 };

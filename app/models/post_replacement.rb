@@ -132,7 +132,7 @@ class PostReplacement < ApplicationRecord
 
   module StorageMethods
     def remove_files
-      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id})
+      PostEvent.add(post_id, CurrentUser.user, :replacement_deleted, { replacement_id: id, md5: md5, storage_id: storage_id })
       Danbooru.config.storage_manager.delete_replacement(self)
     end
 
