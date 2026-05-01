@@ -79,14 +79,14 @@ Blacklist.preload_filters = function () {
   // Use the anonymous blacklist if the user isn't logged in
   const userEl = document.querySelector("meta[name='current-user-id']");
   if (!userEl || userEl.content === "") {
-    blacklistRaw = localStorage.getItem("anonymous-blacklist") || "[]";
+    blacklistRaw = LStorage.Blacklist.AnonymousBlacklist;
   } else {
     const el = document.querySelector("meta[name='blacklisted-tags']");
     if (!el) return;
     blacklistRaw = el.content;
   }
 
-  // Logged in blacklist
+  // Parse blacklist contents and create filters.
   try {
     const tags = JSON.parse(blacklistRaw);
     for (let entry of tags) {
