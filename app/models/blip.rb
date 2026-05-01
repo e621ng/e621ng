@@ -72,12 +72,12 @@ class Blip < ApplicationRecord
   end
 
   module SearchMethods
-    # NOTE: Ensure that logic here matches that in AccessMethods
-
     # ============================== #
     # ===== Visibility Methods ===== #
     # ============================== #
 
+    # NOTE: This scope does not currently match the logic in #is_accessible? because
+    # there is currently no toggle for showing creators their own deleted blips.
     def accessible(user = CurrentUser)
       if user.is_staff?
         all
