@@ -232,8 +232,7 @@
   }
 }
 
-#image-container.blacklisted,
-.post-thumbnail.blacklisted {
+#image-container.blacklisted {
   img,
   video {
     height: 0px !important;

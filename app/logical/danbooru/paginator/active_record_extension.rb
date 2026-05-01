@@ -26,7 +26,8 @@ module Danbooru
         when :numbered
           current_page == 1
         when :sequential_before
-          false
+          load
+          @records.empty?
         when :sequential_after
           load
           @records.size <= records_per_page
@@ -41,7 +42,8 @@ module Danbooru
           load
           @records.size <= records_per_page
         when :sequential_after
-          false
+          load
+          @records.empty? || @records.first.id <= 1
         end
       end
 
