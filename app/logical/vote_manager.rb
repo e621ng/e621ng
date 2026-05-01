@@ -208,7 +208,7 @@ class VoteManager
       # weight tags by their total usage over the whole site
       tag_records = Tag.where(name: tag_votes.keys).index_by(&:name)
       tag_post_counts = tag_votes.keys.index_with do |tag_name|
-        tag_records[tag_name]&.post_count || 
+        tag_records[tag_name]&.post_count ||
           (tag_name.match?(/^rating:[sqe]$/) ? Post.tag_match(tag_name, always_show_deleted: true).count_only : 0)
       end
 
