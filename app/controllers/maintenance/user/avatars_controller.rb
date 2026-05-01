@@ -13,14 +13,13 @@ module Maintenance
         x = params[:avatar_crop_x].presence
         y = params[:avatar_crop_y].presence
         w = params[:avatar_crop_w].presence
-        h = params[:avatar_crop_h].presence
 
-        unless x && y && w && h
+        unless x && y && w
           flash[:notice] = "Please draw a crop selection."
           redirect_to edit_maintenance_user_avatar_path and return
         end
 
-        x, y, w, h = [x, y, w, h].map(&:to_i)
+        x, y, w = [x, y, w].map(&:to_i)
         post_id = CurrentUser.user.avatar_id
 
         unless post_id
@@ -38,14 +37,14 @@ module Maintenance
         source_w = post.sample_width
         source_h = post.sample_height
 
-        unless w == h && w >= min && x >= 0 && y >= 0 && x + w <= source_w && y + h <= source_h
-          flash[:notice] = "Invalid crop coordinates."
+        unless w >= min && x >= 0 && y >= 0 && x + w <= source_w && y + w <= source_h
+          flash[:notice] = "Invalid crop coordinates"
           redirect_to edit_maintenance_user_avatar_path and return
         end
 
-        AvatarCropJob.perform_later(CurrentUser.id, post_id, x, y, w, h)
-        flash[:notice] = "Avatar crop is being processed."
-        redirect_to edit_maintenance_user_avatar_path
+        AvatarCropJob.perform_later(CurrentUser.id, post_id, x, y, w)
+        flash[:notice] = "Avatar crop is being processed. It may take a few minutes to complete"
+        redirect_to user_path(CurrentUser.user)
       end
     end
   end

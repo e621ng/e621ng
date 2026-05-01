@@ -11,6 +11,7 @@
       <div
         v-if="selection"
         class="image-crop-widget-selection"
+        v-bind:class="(sizeWarning ? 'size-warning' : '')"
         :style="selectionStyle"
         @mousedown.stop="onSelectionMouseDown"
       >
@@ -199,40 +200,3 @@ export default {
 };
 </script>
 
-<style>
-.image-crop-widget {
-  display: inline-block;
-  user-select: none;
-}
-
-.image-crop-widget-image-wrap {
-  position: relative;
-  cursor: crosshair;
-}
-
-.image-crop-widget-selection {
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(0, 0, 0, 0.6);
-  box-sizing: border-box;
-  cursor: move;
-}
-
-.image-crop-handle {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  box-sizing: border-box;
-}
-
-.image-crop-handle[data-handle="nw"] { top: -5px;    left: -5px;  cursor: nw-resize; }
-.image-crop-handle[data-handle="ne"] { top: -5px;    right: -5px; cursor: ne-resize; }
-.image-crop-handle[data-handle="sw"] { bottom: -5px; left: -5px;  cursor: sw-resize; }
-.image-crop-handle[data-handle="se"] { bottom: -5px; right: -5px; cursor: se-resize; }
-
-.image-crop-widget-warning {
-  color: #f80;
-  margin-top: 0.5em;
-}
-</style>

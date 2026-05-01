@@ -5,7 +5,10 @@ class AvatarCleanupJob < ApplicationJob
 
   def perform(user_id)
     user = User.find(user_id)
-    return unless user.has_cropped_avatar?
+
+    # Don't perform cleanup if the user has a cropped avatar set.
+    # Otherwise, we risk deleting the newly changed avatar if this job runs late.
+    return if user.avatar_id.present? && user.has_cropped_avatar?
 
     sm = Danbooru.config.storage_manager
     sm.delete_avatar(user_id, "jpg")

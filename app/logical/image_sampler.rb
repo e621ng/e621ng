@@ -32,14 +32,14 @@ module ImageSampler
     end
   end
 
-  def generate_avatar_crop(post, user_id, x:, y:, w:, h:)
+  def generate_avatar_crop(post, user_id, pos_x:, pos_y:, width:)
     sm = Danbooru.config.storage_manager
     source_path = post.has_sample? ? sm.post_file_path(post, :sample_jpg) : post.file_path
     image = Vips::Image.new_from_file(source_path)
 
-    cropped = image.crop(x, y, w, h)
+    cropped = image.crop(pos_x, pos_y, width, width)
     target = Danbooru.config.small_image_width
-    resized = cropped.resize(target.to_f / w)
+    resized = cropped.resize(target.to_f / width)
 
     jpg = Tempfile.new(["avatar", ".jpg"], binmode: true)
     webp = Tempfile.new(["avatar", ".webp"], binmode: true)
