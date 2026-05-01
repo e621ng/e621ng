@@ -609,7 +609,7 @@ RSpec.describe ModActionDecorator do
       end
 
       it "flag_reason_update includes reason and text" do
-        desc = decorate("flag_reason_update", { "reason" => "Traced", "text" => "Traced artwork", "reason_was" => "This is a trace"}).format_description
+        desc = decorate("flag_reason_update", { "reason" => "Traced", "text" => "Traced artwork", "reason_was" => "This is a trace" }).format_description
         expect(desc).to include("Edited flag reason \"Traced\"", "This is a trace", "Traced artwork")
       end
 
