@@ -1,5 +1,5 @@
-import { App, createApp } from "vue";
 import ImageCropWidget from "@/components/image_crop_widget.vue";
+import { App, createApp } from "vue";
 
 $(() => {
   const widgetEl = document.getElementById("avatar-crop-widget");
@@ -20,7 +20,6 @@ $(() => {
       (document.getElementById("avatar_crop_x") as HTMLInputElement).value = String(coords.x);
       (document.getElementById("avatar_crop_y") as HTMLInputElement).value = String(coords.y);
       (document.getElementById("avatar_crop_w") as HTMLInputElement).value = String(coords.w);
-      (document.getElementById("avatar_crop_h") as HTMLInputElement).value = String(coords.h);
     },
   });
   app.mount(widgetEl);
