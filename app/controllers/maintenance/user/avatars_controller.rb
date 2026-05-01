@@ -6,8 +6,11 @@ module Maintenance
       before_action :member_only
 
       def edit
+        raise ActiveRecord::RecordNotFound, "You do not have an avatar set." unless CurrentUser.user.avatar_id
+
         @post = Post.find_by(id: CurrentUser.user.avatar_id)
 
+        raise ActiveRecord::RecordNotFound, "Avatar post not found." unless @post
         raise ::User::PrivilegeError, "You do not have permission to edit this avatar." if @post.deleteblocked? || @post.safeblocked?
       end
 
