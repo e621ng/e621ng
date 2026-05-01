@@ -14,8 +14,6 @@ module Admin
       vote_abuse_args[:duration] = permitted_params[:duration] if permitted_params[:duration].present?
 
       if vote_abuse_args[:user].nil?
-        Rails.logger.warn("Vote trends: No user found for '#{permitted_params[:user]}'")
-        flash[:notice] = "No user found for '#{permitted_params[:user]}'"
         @vote_trends = []
         respond_with(@vote_trends) # show the page without any data
         return

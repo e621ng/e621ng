@@ -217,12 +217,11 @@ class VoteManager
         tag_votes[tag] /= tag_count_for(tag, tag_records, rating_counts).to_f
       end
       # Sort the tags by their absolute vote counts and return the top N
-      result = tag_votes.select { |_, count| count.abs > threshold } # rubocop:disable Style/RedundantAssignment
-                        .sort_by { |_, count| -count.abs }
-                        .to_h
-                        .sort_by { |_, count| count }
-                        .map { |tag_name, count| [trend_tag_for(tag_name, tag_records, rating_counts), count] }
-      result
+      tag_votes.select { |_, count| count.abs > threshold }
+               .sort_by { |_, count| -count.abs }
+               .to_h
+               .sort_by { |_, count| count }
+               .map { |tag_name, count| [trend_tag_for(tag_name, tag_records, rating_counts), count] }
     end
 
     def self.calculate_vote_weight(vote, post, vote_normality: true)
@@ -230,7 +229,7 @@ class VoteManager
       return 0 unless tag_count && tag_count > 0
       # Calculate the score ratio of the posts
       up_score = post.up_score.to_f
-      down_score = post.down_score.to_f || 0.0
+      down_score = post.down_score.to_f
       total_votes = up_score + down_score.abs # number of votes
 
       if vote_normality

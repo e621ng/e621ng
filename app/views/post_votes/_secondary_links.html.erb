@@ -3,6 +3,6 @@
     <%= subnav_link_to "Latest", @latest %>
   <% end %>
   <% if CurrentUser.is_admin? %>
-    <%= subnav_link_to "User Vote Trends", admin_vote_trends_path %>
+    <%= subnav_link_to "User Vote Trends", admin_vote_trends_path(user: params.dig(:search, :user_name) || params.dig(:search, :user_id)) %>
   <% end %>
 <% end %>
