@@ -68,7 +68,10 @@ article.thumbnail {
   }
 
   &.no-stats a.thm-link { @include st-radius; }
-  &.inline { display: inline-flex; }
+  &.inline {
+    display: inline-flex;
+    vertical-align: middle;
+  }
 
   // Renders thumbnails in something resembling their native aspect ratio.
   // Only really useful for DText thumbnails.
@@ -88,11 +91,19 @@ article.thumbnail {
         min-height: 100px;
       }
     }
-    &.blacklisted a.thm-link::before {
+    &.blacklisted a.thm-link::before,
+    &.deleted a.thm-link::before {
       font-size: calc(var(--thumb-image-size, 150px) / 10);
     }
 
     div.thm-desc { display: none; }
+
+    &.deleted {
+      a.thm-link {
+        width: var(--thumb-image-size, 150px);
+        aspect-ratio: 1;
+      }
+    }
   }
 }
 
