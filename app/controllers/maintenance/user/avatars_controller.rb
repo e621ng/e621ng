@@ -6,7 +6,10 @@ module Maintenance
       before_action :member_only
 
       def edit
-        raise ActiveRecord::RecordNotFound, "You do not have an avatar set." unless CurrentUser.user.avatar_id
+        unless CurrentUser.user.avatar_id
+          flash[:notice] = "Set an avatar post ID in your settings first"
+          redirect_to settings_users_path and return
+        end
 
         @post = Post.find_by(id: CurrentUser.user.avatar_id)
 

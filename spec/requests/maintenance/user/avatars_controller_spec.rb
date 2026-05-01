@@ -21,9 +21,10 @@ RSpec.describe Maintenance::User::AvatarsController do
 
       before { sign_in_as(user) }
 
-      it "returns 200" do
+      it "redirects back with a notice" do
         get edit_maintenance_user_avatar_path
-        expect(response).to have_http_status(:ok)
+        expect(response).to redirect_to(settings_users_path)
+        expect(flash[:notice]).to eq("Set an avatar post ID in your settings first")
       end
     end
 
