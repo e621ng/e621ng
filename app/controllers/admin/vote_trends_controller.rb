@@ -5,10 +5,10 @@ module Admin
     before_action :admin_only
     respond_to :html, :json
     def index
-      permitted_params = params.permit(:user, :limit, :threshold, :duration, :vote_normality, :id, :page, :commit, search: {})
+      permitted_params = params.permit(:user, :limit, :threshold, :duration, :disable_vote_normality, :id, :page, :commit, search: {})
       vote_abuse_args = {}
       vote_abuse_args[:user] = User.find_by_name_or_id(permitted_params[:user]) if permitted_params[:user].present? # rubocop:disable Rails/DynamicFindBy
-      vote_abuse_args[:vote_normality] = permitted_params[:vote_normality].to_i != 1
+      vote_abuse_args[:vote_normality] = permitted_params[:disable_vote_normality].to_i == 0
       vote_abuse_args[:limit] = permitted_params[:limit].to_i if permitted_params[:limit].present?
       vote_abuse_args[:threshold] = permitted_params[:threshold].to_f if permitted_params[:threshold].present?
       vote_abuse_args[:duration] = permitted_params[:duration] if permitted_params[:duration].present?
