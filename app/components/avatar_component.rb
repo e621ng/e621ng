@@ -30,6 +30,7 @@ class AvatarComponent < ViewComponent::Base
         "id": post_id,
         "initial": (user.name.presence || "?")[0].upcase,
         "user-id": user.id,
+        "user-hash": user.updated_at.to_i,
         "has-cropped-avatar": user.has_cropped_avatar?,
       },
     }

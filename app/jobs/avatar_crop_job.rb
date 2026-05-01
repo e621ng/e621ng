@@ -12,6 +12,7 @@ class AvatarCropJob < ApplicationJob
 
     flag = User.flag_value_for("has_cropped_avatar")
     user.update_columns(bit_prefs: user.bit_prefs | flag)
+    user.touch # otherwise, the old avatar may still be cached for a while
   rescue ActiveRecord::RecordNotFound
     nil
   end

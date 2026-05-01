@@ -54,8 +54,9 @@ export default class DeferredPostLoader {
 
     let path = post.preview_url;
     if (avatar.data("has-cropped-avatar")) {
-      const userID = avatar.data("user-id") || "0";
-      if (userID) path = post.preview_url.replace(/\/data\/.*$/, `/data/avatars/${userID}.jpg`);
+      const userID = avatar.data("user-id") || "0",
+        userHash = avatar.data("user-hash") || "0";
+      if (userID) path = post.preview_url.replace(/\/data\/.*$/, `/data/avatars/${userID}.jpg?t=${userHash}`);
     }
 
     if (E621.Blacklist.hiddenPosts.has(postID))
@@ -102,9 +103,10 @@ export default class DeferredPostLoader {
 
       let jpgUrl: string, webpUrl: string;
       if ($placeholder.data("has-cropped-avatar")) {
-        const userID = $placeholder.data("user-id") || "0";
-        jpgUrl = `/data/avatars/${userID}.jpg`;
-        webpUrl = `/data/avatars/${userID}.webp`;
+        const userID = $placeholder.data("user-id") || "0",
+          userHash = $placeholder.data("user-hash") || "0";
+        jpgUrl = `/data/avatars/${userID}.jpg?t=${userHash}`;
+        webpUrl = `/data/avatars/${userID}.webp?t=${userHash}`;
       }
 
       const thumbnail = ThumbnailEngine.render(post, {

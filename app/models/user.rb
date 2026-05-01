@@ -396,6 +396,10 @@ class User < ApplicationRecord
     def clear_cropped_avatar_on_avatar_change
       return unless saved_change_to_avatar_id?
       return unless has_cropped_avatar?
+
+      flag = User.flag_value_for("has_cropped_avatar")
+      update_columns(bit_prefs: bit_prefs & ~flag)
+
       AvatarCleanupJob.perform_later(id)
     end
 
