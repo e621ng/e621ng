@@ -56,6 +56,10 @@ RSpec.describe UserDeletion do
       it "enqueues FlushFavoritesJob with the user's id" do
         expect { deletion.delete! }.to have_enqueued_job(FlushFavoritesJob).with(user.id)
       end
+
+      it "enqueues AvatarCleanupJob with force: true" do
+        expect { deletion.delete! }.to have_enqueued_job(AvatarCleanupJob).with(user.id, force: true)
+      end
     end
 
     context "when the user is already named user_{id}" do
