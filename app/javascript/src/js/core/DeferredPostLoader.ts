@@ -102,7 +102,7 @@ export default class DeferredPostLoader {
       if (!post) continue;
 
       let jpgUrl: string, webpUrl: string;
-      if ($placeholder.data("has-cropped-avatar")) {
+      if (!post.isDeleted && $placeholder.data("has-cropped-avatar")) {
         const userID = $placeholder.data("user-id") || "0",
           userHash = $placeholder.data("user-hash") || "0";
         jpgUrl = `/data/avatars/${userID}.jpg?t=${userHash}`;

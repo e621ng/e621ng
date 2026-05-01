@@ -1,5 +1,6 @@
 import E621Type from "@/interfaces/E621";
 import PostCache, { CachedPost } from "@/models/PostCache";
+import User from "@/models/User";
 import Settings from "@/utility/Settings";
 import SVGIcon from "@/utility/SVGIcon";
 
@@ -26,6 +27,8 @@ export default class ThumbnailEngine {
       .addClass("thumbnail rating-" + (post.ratingLong))
       .attr(post.toAttributes());
 
+    if (post.isDeleted) article.addClass("deleted");
+
     // Apply customization and blacklist classes
     if (E621.Blacklist.hiddenPosts.has(post.id)) article.addClass("blacklisted");
     if (E621.Blacklist.matchedPosts.has(post.id)) article.addClass("filter-matches");
@@ -47,14 +50,15 @@ export default class ThumbnailEngine {
     }
 
     // Core
-    $("<a>")
+    const link = $("<a>")
       .addClass("thm-link")
       .attr({
         "href": `/posts/${post.id}`,
         "data-target": post.id, // Used by Analytics
       })
-      .appendTo(article)
-      .append(this.renderPicture(post));
+      .appendTo(article);
+    if (!post.isDeleted || User.is.janitor)
+      link.append(this.renderPicture(post));
 
     // Footer
     if (showStatistics) {

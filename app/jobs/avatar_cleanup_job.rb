@@ -13,6 +13,11 @@ class AvatarCleanupJob < ApplicationJob
     sm = Danbooru.config.storage_manager
     sm.delete_avatar(user_id, "jpg")
     sm.delete_avatar(user_id, "webp")
+
+    if force
+      flag = User.flag_value_for("has_cropped_avatar")
+      update_columns(bit_prefs: bit_prefs & ~flag)
+    end
   rescue ActiveRecord::RecordNotFound
     nil
   end
