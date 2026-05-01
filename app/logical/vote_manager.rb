@@ -169,4 +169,82 @@ class VoteManager
     vote = CommentVote.find_by(id: id)
     comment_unvote!(comment: vote.comment, user: vote.user, force: true) if vote
   end
+
+  module VoteAbuseMethods
+    RatingTrendTag = Struct.new(:name, :post_count, keyword_init: true)
+
+    def self.vote_abuse_patterns(user:, limit: 10, threshold: 0.0001, duration: nil, vote_normality: true)
+      # Create a KV pair of tags and their weighted vote counts
+      tag_votes = Hash.new(0)
+      scope = user.post_votes.includes(:post).order(updated_at: :desc)
+      if duration
+        days = duration.is_a?(String) ? duration.to_f : duration
+        if days > 0
+          time_ago = days.days.ago
+          scope = scope.where("updated_at >= ?", time_ago)
+        end
+      end
+      votes = scope.limit(limit).to_a
+      posts = votes.filter_map(&:post)
+      tags_by_name = Tag.where(name: posts.flat_map(&:tag_array).uniq).index_by(&:name)
+
+      votes.each do |vote|
+        post = vote.post
+        next unless post
+
+        weight = calculate_vote_weight(vote, post, vote_normality: vote_normality)
+
+        post.tag_array.each do |tag_name|
+          tag = tags_by_name[tag_name]
+          next unless tag
+
+          tag_votes[tag.name] += weight
+        end
+
+        if post.rating.present?
+          tag_votes["rating:#{post.rating}"] += weight
+        end
+      end
+      # weight tags by their total usage over the whole site
+      tag_records = Tag.where(name: tag_votes.keys).index_by(&:name)
+      tag_post_counts = tag_votes.keys.index_with do |tag_name|
+        tag_records[tag_name]&.post_count ||
+          (tag_name.match?(/^rating:[sqe]$/) ? Post.tag_match(tag_name, always_show_deleted: true).count_only : 0)
+      end
+
+      tag_votes.each_key do |tag|
+        tag_votes[tag] /= tag_post_counts[tag].to_f
+      end
+      # Sort the tags by their absolute vote counts and return the top N
+      tag_votes.select { |_, count| count.abs > threshold }
+               .sort_by { |_, count| -count.abs }
+               .to_h
+               .sort_by { |_, count| count }
+               .map { |tag_name, count| [trend_tag_for(tag_name, tag_records), count] }
+    end
+
+    def self.calculate_vote_weight(vote, post, vote_normality: true)
+      tag_count = post.tag_count
+      return 0 unless tag_count && tag_count > 0
+      # Calculate the score ratio of the posts
+      up_score = post.up_score.to_f
+      down_score = post.down_score.to_f
+      total_votes = up_score + down_score.abs # number of votes
+
+      if vote_normality
+        # ensure we don't divide by zero. Add up and down score in case of post.score cache
+        score_ratio = total_votes == 0 ? 1.0 : (up_score + down_score).to_f / total_votes
+      else
+        score_ratio = 1.0
+      end
+      # Calculate the weight based on the user's vote and the post's score ratio
+      vote.score * (score_ratio / tag_count.to_f)
+    end
+
+    def self.trend_tag_for(tag_name, tag_records)
+      return tag_records[tag_name] if tag_records.key?(tag_name)
+
+      RatingTrendTag.new(name: tag_name, post_count: 0)
+    end
+  end
 end

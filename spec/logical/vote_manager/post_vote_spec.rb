@@ -251,4 +251,21 @@ RSpec.describe VoteManager do
       expect { described_class.admin_unvote!(-1) }.not_to raise_error
     end
   end
+
+  describe ".vote_abuse_patterns" do
+    it "includes post ratings as metatags" do
+      posts = %w[s q e].map do |rating|
+        create(:post, tag_string: "common", tag_count: 1, tag_count_general: 1, rating: rating)
+      end
+
+      posts.each do |post|
+        described_class.vote!(user: voter, post: post, score: 1)
+      end
+
+      trend_tags = described_class::VoteAbuseMethods.vote_abuse_patterns(user: voter, limit: 3, threshold: 0.0)
+      trend_tag_names = trend_tags.map { |trend_tag, _| trend_tag.name }
+
+      expect(trend_tag_names).to include("rating:s", "rating:q", "rating:e")
+    end
+  end
 end

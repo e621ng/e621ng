@@ -1,0 +1,4 @@
+<tr>
+  <td><%= number_with_precision(trend_tag[1], precision: 3) %></td>
+  <td><%= TagSetPresenter.new([trend_tag[0].name]).inline_tag_list_html(:wiki_page) %></td>
+</tr>

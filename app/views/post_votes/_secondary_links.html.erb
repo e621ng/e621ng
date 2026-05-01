@@ -2,4 +2,9 @@
   <% if @latest.present? %>
     <%= subnav_link_to "Latest", @latest %>
   <% end %>
+  <% if CurrentUser.is_admin? %>
+    <% user_filter = params.dig(:search, :user_name) %>
+    <% user_filter ||= "!#{params.dig(:search, :user_id)}" if params.dig(:search, :user_id).present? %>
+    <%= subnav_link_to "User Vote Trends", admin_vote_trends_path(user: user_filter) %>
+  <% end %>
 <% end %>
