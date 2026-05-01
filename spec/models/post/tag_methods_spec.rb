@@ -192,6 +192,26 @@ RSpec.describe Post do
           post.update!(tag_string: "#{post.tag_string} source:https://example.com")
           expect(post.reload.source).to include("example.com")
         end
+
+        it "clears the source when 'source:none' is in the tag_string" do
+          post = create(:post, source: "https://example.com")
+          post.update!(tag_string: "#{post.tag_string} source:none") # equiv to :tag_string => "source:none"
+          expect(post.reload.source).to be_empty
+        end
+
+        it "add a source when '+source:url' is in the tag_string" do
+          post = create(:post, source: "foobar")
+          post.update!(tag_string: "#{post.tag_string} +source:baz_quux")
+          expect(post.reload.source).to eq("foobar\nbaz_quux")
+        end
+
+        it "set source when '+source:url' is in the tag_string" do
+          # shouldn't treat the empty source as an existing one, which would result in a newline before
+          post = create(:post, source: "")
+          post.update!(tag_string: "#{post.tag_string} +source:https://example.com")
+          expect(post.reload.source).to include("example.com")
+          expect(post.reload.source).not_to include("\n")
+        end
       end
     end
 
