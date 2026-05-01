@@ -14,18 +14,18 @@ RSpec.describe Blip do
   end
 
   # -------------------------------------------------------------------------
-  # #response?
+  # #is_response?
   # -------------------------------------------------------------------------
-  describe "#response?" do
+  describe "#is_response?" do
     it "returns false when the blip has no parent" do
       blip = make_blip
-      expect(blip.response?).to be false
+      expect(blip.is_response?).to be false
     end
 
     it "returns true when the blip is a reply to another blip" do
       parent = make_blip
       reply  = make_blip(response_to: parent.id)
-      expect(reply.response?).to be true
+      expect(reply.is_response?).to be true
     end
   end
 
