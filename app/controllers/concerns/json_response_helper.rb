@@ -38,7 +38,7 @@ module JsonResponseHelper
 
     # New API format
     case mode
-    when "thumbnail"
+    when "thumbnail", "thumbnails"
       render json: PostThumbnailBlueprint.render_as_hash(posts, collection: collection)
     when "extended"
       render json: PostBlueprint.render_as_hash(posts, collection: collection, view: :extended)

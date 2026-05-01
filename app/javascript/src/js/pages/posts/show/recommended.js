@@ -392,7 +392,7 @@ Recommended.getData = async function (postId, action = "favorites") {
 // Fetches post data for the given post IDs
 Recommended.getPosts = async function (postIds) {
   Recommended.Logger.log("Fetching posts:", postIds);
-  return fetch(`/posts/${Recommended.postId}/similar/lookup.json?post_ids=${postIds.join(",")}`)
+  return fetch(`/posts.json?v2=true&mode=thumbnail&tags=id:${postIds.join(",")}`)
     .then(
       (response) => {
         if (!response.ok) {
