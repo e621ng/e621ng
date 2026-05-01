@@ -16,7 +16,7 @@ class AvatarCleanupJob < ApplicationJob
 
     if force
       flag = User.flag_value_for("has_cropped_avatar")
-      update_columns(bit_prefs: bit_prefs & ~flag)
+      user.update_columns(bit_prefs: user.bit_prefs & ~flag)
     end
   rescue ActiveRecord::RecordNotFound
     nil

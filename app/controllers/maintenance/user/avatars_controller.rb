@@ -7,6 +7,8 @@ module Maintenance
 
       def edit
         @post = Post.find_by(id: CurrentUser.user.avatar_id)
+
+        raise ::User::PrivilegeError, "You do not have permission to edit this avatar." if @post.deleteblocked? || @post.safeblocked?
       end
 
       def update

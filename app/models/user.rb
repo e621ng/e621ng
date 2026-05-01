@@ -389,7 +389,6 @@ class User < ApplicationRecord
     def blank_out_nonexistent_avatars
       if avatar_id.present? && avatar.nil?
         self.avatar_id = nil
-        AvatarCleanupJob.perform_later(id) if has_cropped_avatar?
       end
     end
 

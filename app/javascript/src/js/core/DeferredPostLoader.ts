@@ -53,7 +53,7 @@ export default class DeferredPostLoader {
     if (!post || !post.preview_url) return;
 
     let path = post.preview_url;
-    if (avatar.data("has-cropped-avatar")) {
+    if (!post.isDeleted && avatar.data("has-cropped-avatar")) {
       const userID = avatar.data("user-id") || "0",
         userHash = avatar.data("user-hash") || "0";
       if (userID) path = post.preview_url.replace(/\/data\/.*$/, `/data/avatars/${userID}.jpg?t=${userHash}`);
