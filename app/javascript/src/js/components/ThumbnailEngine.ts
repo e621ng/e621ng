@@ -20,7 +20,7 @@ export default class ThumbnailEngine {
   public static render (post: CachedPost, options: ThumbnailOptions = {}): JQuery<HTMLElement> | null {
     if (!post) return null;
 
-    const { showStatistics = true, showTypeBadges = true, inline = false, native = false, jpegUrl, webpUrl } = options;
+    const { showStatistics = true, showTypeBadges = true, inline = false, native = false, classes, jpegUrl, webpUrl } = options;
 
     const article = $("<article>")
       .addClass("thumbnail rating-" + (post.ratingLong))
@@ -34,6 +34,7 @@ export default class ThumbnailEngine {
     if (!showTypeBadges) article.addClass("no-type-badges");
     if (inline) article.addClass("inline");
     if (native) article.addClass("native");
+    if (classes) article.addClass(classes);
 
     // Substitute URLs if necessary
     if (jpegUrl) {
@@ -144,6 +145,7 @@ type ThumbnailOptions = {
   showTypeBadges?: boolean;
   inline?: boolean;
   native?: boolean;
+  classes?: string;
 
   jpegUrl?: string;
   webpUrl?: string;

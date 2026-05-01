@@ -3,6 +3,10 @@
   grid-template-columns: min-content auto;
   gap: 1rem;
 
+  .profile-avatar {
+    --thumb-image-size: 5rem;
+  }
+
   // Info block
   .profile-info {
     display: flex;

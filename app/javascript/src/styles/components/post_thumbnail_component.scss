@@ -324,6 +324,47 @@ article.thumbnail.filter-matches .thm-desc-a {
 
 
 // ============================== //
+// ======== Avatar State ======== //
+// ============================== //
+
+article.thumbnail.avatar {
+  &.blacklisted {
+    a.thm-link[data-initial]{
+      background: themed("color-section");
+
+      &:before {
+        content: attr(data-initial);
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        font-size: 5rem;
+        font-weight: bold;
+        color: themed("color-foreground");
+
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        // Reset default blacklist colors
+        background: unset;
+        line-height: unset;
+        transform: unset;
+        font-family: "Roboto", Verdana, Geneva, sans-serif;
+      }
+    }
+  }
+
+  &.no-render[data-initial] {
+    background: themed("color-section");
+  }
+}
+
+
+// ============================== //
 // == UI Customization Options == //
 // ============================== //
 
