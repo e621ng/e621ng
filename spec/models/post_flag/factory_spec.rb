@@ -7,25 +7,30 @@ RSpec.describe PostFlag do
 
   describe "factory" do
     it "produces a valid flag with build" do
+      create(:post_flag_reason)
       flag = build(:post_flag)
       expect(flag).to be_valid, flag.errors.full_messages.join(", ")
     end
 
     it "produces a persisted flag with create" do
+      create(:post_flag_reason)
       expect(create(:post_flag)).to be_persisted
     end
 
     it "sets the creator from CurrentUser" do
+      create(:post_flag_reason)
       flag = create(:post_flag)
       expect(flag.creator).to be_a(User)
     end
 
     it "links the flag to a post" do
+      create(:post_flag_reason)
       flag = create(:post_flag)
       expect(flag.post).to be_a(Post)
     end
 
     it "sets a unique flag per factory call" do
+      create(:post_flag_reason)
       a = create(:post_flag)
       b = create(:post_flag)
       expect(a.id).not_to eq(b.id)

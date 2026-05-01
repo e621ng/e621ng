@@ -11,7 +11,8 @@ RSpec.describe PostFlag do
   # hidden_attributes
   # -------------------------------------------------------------------------
   describe "#hidden_attributes" do
-    let(:flag) { create(:post_flag) }
+    let(:flag_reason) { create(:post_flag_reason) }
+    let(:flag)        { create(:post_flag, reason_name: flag_reason.name) }
 
     context "when CurrentUser cannot view the flagger (regular member, not the creator)" do
       let(:member) { create(:user) }
@@ -98,6 +99,7 @@ RSpec.describe PostFlag do
   # -------------------------------------------------------------------------
   describe "#method_attributes" do
     it "includes :type in the method attributes list" do
+      create(:post_flag_reason)
       flag = create(:post_flag)
       expect(flag.method_attributes).to include(:type)
     end

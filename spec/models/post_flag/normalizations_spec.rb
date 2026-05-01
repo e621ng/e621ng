@@ -10,40 +10,32 @@ RSpec.describe PostFlag do
   include_context "as admin"
 
   describe "update_reason (on: :create)" do
-    describe "standard reason names" do
-      it "has at least one configured flag reason" do
-        expect(Danbooru.config.flag_reasons).not_to be_empty
-      end
-
-      Danbooru.config.flag_reasons.reject { |r| r[:name].to_s == "inferior" }.each do |reason_def|
-        name = reason_def[:name].to_s
-
-        it "sets reason to the mapped text for '#{name}'" do
-          attrs = { reason_name: name }
-          attrs[:note] = "Explanation." if reason_def[:require_explanation]
-          flag = create(:post_flag, **attrs)
-          expect(flag.reason).to eq(PostFlag::MAPPED_REASONS[name])
-        end
-      end
+    it "sets flag's reason to the flag reason text" do
+      flag_reason = create(:post_flag_reason)
+      attrs = { reason_name: flag_reason.name }
+      attrs[:note] = "Explanation." if flag_reason.needs_explanation?
+      flag = create(:post_flag, **attrs)
+      expect(flag.reason).to eq(flag_reason.reason)
     end
 
-    describe "'inferior' reason" do
+    describe "'needs_parent_id' is set" do
       # parent_id is an attr_accessor consumed by validate_reason / update_reason
       # (both on: :create). It must be set on the instance *before* save so the
       # validation/callback hooks can read it.
       let(:parent_post) { create(:post) }
 
       def make_inferior_flag(child_post:, parent_id:)
-        flag = build(:post_flag, post: child_post, reason_name: "inferior")
+        create(:needs_parent_id_post_flag_reason)
+        flag = build(:needs_parent_id_post_flag, post: child_post)
         flag.parent_id = parent_id
         flag.save!
         flag
       end
 
-      it "sets reason to the inferior duplicate message" do
+      it "adds the post id to the reason message" do
         child_post = create(:post)
         flag = make_inferior_flag(child_post: child_post, parent_id: parent_post.id)
-        expect(flag.reason).to eq("Inferior version/duplicate of post ##{parent_post.id}")
+        expect(flag.reason).to eq("Duplicate or inferior version of another post (##{parent_post.id})")
       end
 
       it "updates post.parent_id to the given parent_id" do
