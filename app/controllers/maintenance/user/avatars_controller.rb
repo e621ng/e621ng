@@ -43,7 +43,7 @@ module Maintenance
         end
 
         AvatarCropJob.perform_later(CurrentUser.id, post_id, x, y, w)
-        flash[:notice] = "Avatar crop is being processed. It may take a few minutes to complete"
+        flash[:notice] = "Crop is being processed. It may take a few minutes to complete"
         redirect_to user_path(CurrentUser.user)
       end
     end
