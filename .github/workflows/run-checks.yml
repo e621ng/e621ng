@@ -81,6 +81,9 @@ jobs:
         run: $DOCKER_RUN --entrypoint bin/rails tests runner \
           "[Post, PostVersion].each { |m| m.document_store.create_index! }"
 
+      - name: Build Vite assets
+        run: $DOCKER_RUN --entrypoint bin/vite tests build
+
       - name: Compute test groups
         run: |
           PROCS=2

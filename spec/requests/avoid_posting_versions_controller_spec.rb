@@ -4,7 +4,7 @@ require "rails_helper"
 
 #  avoid_posting_versions GET /avoid_posting_versions(.:format) avoid_posting_versions#index
 RSpec.describe AvoidPostingVersionsController do
-  before { skip "Avoid posting versions routes not available in this fork" unless Rails.application.routes.url_helpers.method_defined?(:avoid_posting_versions_path) }
+  before { skip "Avoid posting versions routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:avoid_posting_versions_path) }
 
   include_context "as admin"
 

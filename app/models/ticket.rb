@@ -115,7 +115,7 @@ class Ticket < ApplicationRecord
       end
 
       def subject
-        reason.split("\n")[0] || "Unknown Report Type"
+        reason.strip.split("\n").filter(&:present?)[0] || "Unknown Report Type"
       end
 
       def can_create_for?(_user)
@@ -191,7 +191,7 @@ class Ticket < ApplicationRecord
       end
 
       def subject
-        reason.split("\n")[0] || "Unknown Report Type"
+        reason.strip.split("\n").filter(&:present?)[0] || "Unknown Report Type"
       end
     end
   end
@@ -361,10 +361,11 @@ class Ticket < ApplicationRecord
   end
 
   def subject
-    if reason.length > 40
-      "#{reason[0, 38]}..."
+    trimmed = reason.strip
+    if trimmed.length > 40
+      "#{trimmed[0, 38]}..."
     else
-      reason
+      trimmed
     end
   end
 

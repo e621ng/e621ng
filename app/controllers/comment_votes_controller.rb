@@ -10,12 +10,17 @@ class CommentVotesController < ApplicationController
   skip_before_action :api_check
 
   def index
-    @comment_votes = CommentVote.includes(:user, comment: [:creator]).search(search_params).paginate(params[:page], limit: 100)
+    @comment_votes = CommentVote
+                     .includes(:user, comment: [:creator])
+                     .search(search_params)
+                     .paginate(params[:page], limit: 100)
 
-    if CurrentUser.is_staff?
+    if CurrentUser.is_staff? && request.format.html?
       ids = @comment_votes&.map(&:id)
       @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
     end
+
+    respond_with(@comment_votes)
   end
 
   def create
