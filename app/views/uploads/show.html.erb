@@ -20,13 +20,21 @@
     </ul>
 
     <% if @upload.is_completed? %>
-      <p>This upload has finished processing. <%= link_to "View the post", post_path(@upload.post_id) %>.</p>
+      <% if @upload.post_id %>
+        <p>This upload has finished processing. <%= link_to "View the post", post_path(@upload.post_id) %>.</p>
+      <% else %>
+        <p>This upload has finished processing, but the post associated with it no longer exists.</p>
+      <% end %>
     <% elsif @upload.is_pending? %>
       <p>This upload is waiting to be processed. Please wait a few seconds.</p>
     <% elsif @upload.is_processing? %>
       <p>This upload is being processed. Please wait a few seconds.</p>
     <% elsif @upload.is_duplicate? %>
-      <p>This upload is a duplicate: <%= link_to "post ##{@upload.duplicate_post_id}", post_path(@upload.duplicate_post_id) %></p>
+      <% if @upload.duplicate_post_id %>
+        <p>This upload is a duplicate: <%= link_to "post ##{@upload.duplicate_post_id}", post_path(@upload.duplicate_post_id) %></p>
+      <% else %>
+        <p>This upload is a duplicate, but the original post no longer exists.</p>
+      <% end %>
     <% else %>
       <p>An error occurred: <%= render_status(@upload) %></p>
       <% if CurrentUser.user.is_janitor? %>
