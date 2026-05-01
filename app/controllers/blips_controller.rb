@@ -19,7 +19,7 @@ class BlipsController < ApplicationController
     @blip = Blip.find(params[:id])
     check_accessible(@blip)
     @parent = @blip.response_to
-    @children = Blip.where("response_to = ?", @blip.id).paginate(params[:page])
+    @children = Blip.accessible.where("response_to = ?", @blip.id).paginate(params[:page])
     respond_with(@blip)
   end
 
