@@ -16,6 +16,8 @@ class CommentsController < ApplicationController
     else
       index_by_comment
     end
+  rescue ArgumentError => e
+    render_expected_error(422, e)
   end
 
   def show

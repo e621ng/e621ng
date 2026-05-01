@@ -147,7 +147,10 @@ module ParseValue
       end
 
       ago = time_string(object)
-      return ago if ago.present?
+      if ago.present?
+        return ago if ago.year.between?(1, 9999)
+        raise ArgumentError, "Invalid date: #{object}"
+      end
 
       begin
         parsed_date = Time.zone.parse(object)
