@@ -603,19 +603,19 @@ RSpec.describe ModActionDecorator do
     end
 
     context "with flag_reason actions" do
-      it "created_flag_reason includes id and reason" do
-        desc = decorate("created_flag_reason", { "flag_reason_id" => 1, "flag_reason" => "Traced" }).format_description
-        expect(desc).to include("flag reason #1", "Traced")
+      it "flag_reason_create includes reason and text" do
+        desc = decorate("flag_reason_create", { "reason" => "Traced", "text" => "This is a trace" }).format_description
+        expect(desc).to include("Created flag reason \"Traced\"", "This is a trace")
       end
 
-      it "edited_flag_reason includes id and reason" do
-        desc = decorate("edited_flag_reason", { "flag_reason_id" => 1, "flag_reason" => "Traced" }).format_description
-        expect(desc).to include("flag reason #1", "Traced")
+      it "flag_reason_update includes reason and text" do
+        desc = decorate("flag_reason_update", { "reason" => "Traced", "text" => "Traced artwork", "reason_was" => "This is a trace"}).format_description
+        expect(desc).to include("Edited flag reason \"Traced\"", "This is a trace", "Traced artwork")
       end
 
-      it "deleted_flag_reason includes id and reason" do
-        desc = decorate("deleted_flag_reason", { "flag_reason_id" => 1, "flag_reason" => "Traced" }).format_description
-        expect(desc).to include("flag reason #1", "Traced")
+      it "flag_reason_delete includes reason and text" do
+        desc = decorate("flag_reason_delete", { "reason" => "Traced", "text" => "This is a trace" }).format_description
+        expect(desc).to include("Deleted flag reason \"Traced\"")
       end
     end
 
