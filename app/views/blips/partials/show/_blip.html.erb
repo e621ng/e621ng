@@ -8,7 +8,7 @@
     <div class="author-info">
       <div class="name-rank">
         <h4 class="author-name"><%= link_to_user blip.creator %></h4>
-        <%= blip.creator.level_string %>
+        <%= user_level_plain(blip.creator) %>
         <% if blip.is_deleted? %>
           (deleted)
         <% end %>
