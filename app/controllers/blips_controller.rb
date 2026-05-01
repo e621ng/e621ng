@@ -117,12 +117,12 @@ class BlipsController < ApplicationController
   end
 
   def check_can_delete(blip)
-    raise User::PrivilegeError unless blip.can_delete?(CurrentUser.user)
+    raise User::PrivilegeError unless blip.can_delete?
   end
 
   def check_can_edit(blip)
     raise BlipTooOld if blip.created_at < 5.minutes.ago && !CurrentUser.is_admin?
-    raise User::PrivilegeError unless blip.can_edit?(CurrentUser.user)
+    raise User::PrivilegeError unless blip.can_edit?
   end
 
   def ensure_lockdown_disabled

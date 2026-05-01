@@ -52,13 +52,13 @@ class Blip < ApplicationRecord
       true
     end
 
-    def can_edit?(user)
+    def can_edit?(user = CurrentUser.user)
       return true if user.is_admin?
       return false if was_warned?
       creator_id == user.id && created_at > 5.minutes.ago
     end
 
-    def can_delete?(user)
+    def can_delete?(user = CurrentUser.user)
       return true if user.is_moderator?
       return false if was_warned?
       user.id == creator_id
