@@ -15,6 +15,7 @@ RSpec.describe PostFlag do
     end
 
     it "returns :flag when is_deletion is false" do
+      create(:post_flag_reason)
       flag = create(:post_flag)
       expect(flag.type).to eq(:flag)
     end
@@ -25,12 +26,14 @@ RSpec.describe PostFlag do
   # -------------------------------------------------------------------------
   describe "#resolve!" do
     it "sets is_resolved to true" do
+      create(:post_flag_reason)
       flag = create(:post_flag)
       flag.resolve!
       expect(flag.reload.is_resolved).to be true
     end
 
     it "uses update_column so is_resolved is persisted without triggering callbacks" do
+      create(:post_flag_reason)
       flag = create(:post_flag)
       expect { flag.resolve! }.not_to raise_error
       expect(flag.reload.is_resolved).to be true
@@ -42,11 +45,13 @@ RSpec.describe PostFlag do
   # -------------------------------------------------------------------------
   describe "#parent_post" do
     it "returns nil when parent_id is not set" do
+      create(:post_flag_reason)
       flag = build(:post_flag)
       expect(flag.parent_post).to be_nil
     end
 
     it "returns the Post matching parent_id when it exists" do
+      create(:post_flag_reason)
       parent = create(:post)
       flag = build(:post_flag)
       flag.parent_id = parent.id
@@ -54,12 +59,14 @@ RSpec.describe PostFlag do
     end
 
     it "returns nil when parent_id references a non-existent post" do
+      create(:post_flag_reason)
       flag = build(:post_flag)
       flag.parent_id = 99_999_999
       expect(flag.parent_post).to be_nil
     end
 
     it "caches the result (returns the same object on repeated calls)" do
+      create(:post_flag_reason)
       parent = create(:post)
       flag = build(:post_flag)
       flag.parent_id = parent.id
@@ -73,10 +80,11 @@ RSpec.describe PostFlag do
   # #can_see_note?
   # -------------------------------------------------------------------------
   describe "#can_see_note?" do
-    let(:flag)     { create(:post_flag) }
-    let(:uploader) { flag.post.uploader }
-    let(:member)   { create(:user) }
-    let(:janitor)  { create(:janitor_user) }
+    let(:flag_reason) { create(:post_flag_reason) }
+    let(:flag)        { create(:post_flag, reason_name: flag_reason.name) }
+    let(:uploader)    { flag.post.uploader }
+    let(:member)      { create(:user) }
+    let(:janitor)     { create(:janitor_user) }
 
     context "with default config (:staff)" do
       it "returns true for staff (janitor)" do
