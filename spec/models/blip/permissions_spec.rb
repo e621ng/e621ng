@@ -90,7 +90,7 @@ RSpec.describe Blip do
   describe "#is_accessible?" do
     it "is accessible to anyone when not deleted" do
       blip = make_blip
-      expect(blip.is_accessible?).to be true
+      expect(blip.is_accessible?(other)).to be true
     end
 
     it "is accessible to a staff member when deleted" do
