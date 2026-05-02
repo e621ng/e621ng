@@ -35,7 +35,8 @@ class PostRecommendationsController < ApplicationController
       }
     end
 
-    post_data[:post_data] = Post.where(id: post_data[:order]).map(&:thumbnail_attributes)
+    posts = Post.where(id: post_data[:order])
+    post_data[:post_data] = PostThumbnailBlueprint.render_as_hash(posts, collection: true)
     post_data.delete(:order) # Don't pollute the response with redundant data
 
     render json: post_data
@@ -57,17 +58,5 @@ class PostRecommendationsController < ApplicationController
       model_version: "not_implemented",
       results: [],
     }
-  end
-
-  def lookup
-    @post_ids = params[:post_ids]
-                .to_s
-                .split(",", 21)
-                .filter_map { |post_id| post_id.match?(/\A[1-9]\d*\z/) ? post_id.to_i : nil }
-                .uniq
-                .first(20)
-    @posts = Post.where(id: @post_ids).includes(:uploader)
-
-    render json: @posts.map(&:thumbnail_attributes)
   end
 end

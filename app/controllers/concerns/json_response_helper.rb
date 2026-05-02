@@ -28,4 +28,22 @@ module JsonResponseHelper
   def render_events_json(events_data)
     render_json_with_wrapper(events_data, wrapper_key: :post_events)
   end
+
+  def pick_json_format(posts, collection: true, legacy: true, mode: "basic")
+    # Legacy format
+    if legacy
+      render_posts_json(PostLegacyBlueprint.render_as_hash(posts), collection: collection)
+      return
+    end
+
+    # New API format
+    case mode
+    when "thumbnail", "thumbnails"
+      render json: PostThumbnailBlueprint.render_as_hash(posts, collection: collection)
+    when "extended"
+      render json: PostBlueprint.render_as_hash(posts, collection: collection, view: :extended)
+    else
+      render json: PostBlueprint.render_as_hash(posts, collection: collection, view: :basic)
+    end
+  end
 end
