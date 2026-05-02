@@ -11,58 +11,26 @@ class BlipsController < ApplicationController
   rescue_from BlipTooOld, with: :blip_too_old
 
   def index
-    @blips = Blip.visible.search(search_params).paginate(params[:page], limit: params[:limit])
+    @blips = Blip.search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@blips)
   end
 
   def show
     @blip = Blip.find(params[:id])
-    check_visible(@blip)
+    check_accessible(@blip)
     @parent = @blip.response_to
-    @children = Blip.visible.where("response_to = ?", @blip.id).paginate(params[:page])
+    @children = Blip.accessible.where("response_to = ?", @blip.id).paginate(params[:page])
     respond_with(@blip)
-  end
-
-  def edit
-    @blip = Blip.find(params[:id])
-    check_edit_privilege(@blip)
-    respond_with(@blip)
-  end
-
-  def update
-    @blip = Blip.find(params[:id])
-    check_edit_privilege(@blip)
-    @blip.update(blip_params(:update))
-    flash[:notice] = "Blip updated"
-    respond_with(@blip)
-  end
-
-  def delete
-    @blip = Blip.find(params[:id])
-    check_delete_privilege(@blip)
-    @blip.delete!
-    respond_with(@blip)
-  end
-
-  def undelete
-    @blip = Blip.find(params[:id])
-    @blip.undelete!
-    respond_with(@blip)
-  end
-
-  def destroy
-    @blip = Blip.find(params[:id])
-    @blip.destroy
-    flash[:notice] = "Blip destroyed"
-    respond_with(@blip) do |format|
-      format.html do
-        respond_with(@blip)
-      end
-    end
   end
 
   def new
     @blip = Blip.new
+  end
+
+  def edit
+    @blip = Blip.find(params[:id])
+    check_can_edit(@blip)
+    respond_with(@blip)
   end
 
   def create
@@ -72,6 +40,38 @@ class BlipsController < ApplicationController
     respond_with(@blip) do |format|
       format.html do
         redirect_back(fallback_location: blips_path)
+      end
+    end
+  end
+
+  def update
+    @blip = Blip.find(params[:id])
+    check_can_edit(@blip)
+    @blip.update(blip_params(:update))
+    flash[:notice] = "Blip updated"
+    respond_with(@blip)
+  end
+
+  def delete
+    @blip = Blip.find(params[:id])
+    check_can_delete(@blip)
+    @blip.delete!
+    redirect_back(fallback_location: blips_path, flash: { notice: "Blip deleted" })
+  end
+
+  def undelete
+    @blip = Blip.find(params[:id])
+    @blip.undelete!
+    redirect_back(fallback_location: blips_path, flash: { notice: "Blip undeleted" })
+  end
+
+  def destroy
+    @blip = Blip.find(params[:id])
+    @blip.destroy
+    flash[:notice] = "Blip destroyed"
+    respond_with(@blip) do |format|
+      format.html do
+        respond_with(@blip)
       end
     end
   end
@@ -112,17 +112,17 @@ class BlipsController < ApplicationController
     end
   end
 
-  def check_visible(blip)
-    raise User::PrivilegeError unless blip.visible_to?(CurrentUser.user)
+  def check_accessible(blip)
+    raise User::PrivilegeError unless blip.is_accessible?
   end
 
-  def check_delete_privilege(blip)
-    raise User::PrivilegeError unless blip.can_delete?(CurrentUser.user)
+  def check_can_delete(blip)
+    raise User::PrivilegeError unless blip.can_delete?
   end
 
-  def check_edit_privilege(blip)
+  def check_can_edit(blip)
     raise BlipTooOld if blip.created_at < 5.minutes.ago && !CurrentUser.is_admin?
-    raise User::PrivilegeError unless blip.can_edit?(CurrentUser.user)
+    raise User::PrivilegeError unless blip.can_edit?
   end
 
   def ensure_lockdown_disabled

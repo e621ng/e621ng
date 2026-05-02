@@ -1,4 +1,4 @@
-<% if blip.visible_to?(CurrentUser.user) %>
+<% if blip.is_accessible? %>
   <article class="blip comment-post-grid"
     data-blip-id="<%= blip.id %>"
     data-is-deleted="<%= blip.is_deleted? %>"
@@ -21,7 +21,7 @@
       </div>
     </div>
     <div class="content">
-      <% if blip.response? %>
+      <% if blip.is_response? %>
         <h6><%= link_to "In response to blip ##{blip.response_to}", blip_path(id: blip.response_to) %> </h6>
       <% end %>
       <div class="body dtext-container">
