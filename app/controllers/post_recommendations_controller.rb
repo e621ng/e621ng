@@ -23,7 +23,7 @@ class PostRecommendationsController < ApplicationController
     end
 
     tag_hash = Digest::SHA1.hexdigest("#{@original_post.tag_string}:#{@original_post.pool_ids.sort.join(',')}")[0, 8]
-    post_data = Cache.fetch("post_recs:a:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}:#{tag_hash}", expires_in: 15.seconds) do
+    post_data = Cache.fetch("post_recs:a:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}:#{tag_hash}", expires_in: 15.minutes) do
       post_ids = PostSets::Recommended.new(@original_post, limit: params[:limit]).post_ids
 
       # Matches the format of the recommendation engine
@@ -62,7 +62,7 @@ class PostRecommendationsController < ApplicationController
     end
 
     tag_hash = Digest::SHA1.hexdigest("#{@original_post.tag_string}:#{@original_post.pool_ids.sort.join(',')}")[0, 8]
-    post_data = Cache.fetch("post_recs:t:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}:#{tag_hash}", expires_in: 15.seconds) do
+    post_data = Cache.fetch("post_recs:t:#{@original_post.id}:#{params[:limit]}:#{CurrentUser.safe_mode? ? 's' : 'e'}:#{tag_hash}", expires_in: 15.minutes) do
       post_ids = PostSets::Recommended.new(@original_post, limit: params[:limit], mode: :tags).post_ids
 
       # Matches the format of the recommendation engine
