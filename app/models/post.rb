@@ -853,7 +853,7 @@ class Post < ApplicationRecord
       tags << "huge_filesize" if file_size >= 30.megabytes
 
       tags << "flash" if is_flash?
-      tags << "webm" if is_webm?
+      tags << "video" if is_video?
 
       # TODO: Automatically add animated_* tags without re-testing them on every edit
       tags -= ["animated_gif"] unless is_gif?
