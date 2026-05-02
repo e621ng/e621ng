@@ -2584,7 +2584,7 @@ furry -rating:s'::text,
     profile_about text DEFAULT ''::text NOT NULL,
     profile_artinfo text DEFAULT ''::text NOT NULL,
     avatar_id integer,
-    custom_title character varying
+    custom_title character varying DEFAULT ''::character varying NOT NULL
 );
 
 
