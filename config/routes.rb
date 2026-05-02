@@ -284,8 +284,8 @@ Rails.application.routes.draw do
       get :comments, to: "comments#for_post"
       resource :similar, only: [], controller: "post_recommendations" do
         get :artist
+        get :tags
         get :remote
-        get :lookup
         get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
       end
     end

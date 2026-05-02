@@ -14,19 +14,33 @@ const Recommended = {};
 Recommended.RESULT_COUNT = 6;
 Recommended.SHOW_ENGINE_RESULTS = false;
 Recommended.Logger = new Logger("Recommended");
-Recommended.allStates = ["artist", "favorites", "tags"];
-Recommended.validStates = ["artist"];
+Recommended.allStates = ["artist", "tags", "favorites"];
+Recommended.validStates = ["artist", "tags"];
 Recommended.requestID = 0;
 
-Recommended.remote_actions = ["favorites", "tags"];
+Recommended.remote_actions = ["favorites"];
 
 Recommended.init = function () {
   if (Recommended.$container.length === 0) return;
 
   Recommended.SHOW_ENGINE_RESULTS = Settings.Recommender.remote;
   if (Recommended.SHOW_ENGINE_RESULTS)
-    Recommended.validStates.push("favorites", "tags");
+    Recommended.validStates = [...Recommended.validStates, ...Recommended.remote_actions];
+
   const initialAction = Recommended.action;
+  // Determine which states are actually available based on the presence of tabs in the DOM.
+  Recommended.validStates = Recommended.validStates.filter((state) => {
+    return $(`#post-recommendations-tab-${state}`).length > 0;
+  });
+  if (Recommended.validStates.length === 0) {
+    Recommended.Logger.log("No valid recommendation states available.");
+    Recommended.$wrapper.hide();
+    return;
+  }
+
+  if (!Recommended.validStates.includes(initialAction))
+    Recommended.action = Recommended.validStates[0];
+
   Recommended.Logger.log("Loaded", {
     action: initialAction,
     showEngineResults: Recommended.SHOW_ENGINE_RESULTS,
@@ -192,8 +206,14 @@ Recommended.loadState = async function (action = Recommended.action) {
   const $container = Recommended.$container;
 
   if (!Recommended.validStates.includes(action)) {
-    Recommended.action = "artist";
-    action = "artist";
+    if (Recommended.validStates.length === 0) {
+      Recommended.Logger.log("No valid recommendation states available.");
+      Recommended.status = "error";
+      $container.html("<p class='error'>No recommendations available.</p>");
+      return;
+    }
+    action = Recommended.validStates[0];
+    Recommended.action = action;
   }
 
 
@@ -358,7 +378,10 @@ Recommended.waitUntilReady = function () {
 
 // Fetches recommendation data from the server
 Recommended.getData = async function (postId, action = "favorites") {
-  const target = Recommended.remote_actions.includes(action) ? "remote" : "artist";
+  let target;
+  if (Recommended.remote_actions.includes(action)) target = "remote";
+  else if (Recommended.validStates.includes(action)) target = action;
+  else throw new Error(`Invalid recommendation action: ${action}`);
   Recommended.Logger.log(`Fetching data: "${postId}/${action}"`);
 
   return fetch(`/posts/${postId}/similar/${target}.json?mode=${action}&limit=${Recommended.RESULT_COUNT}`)

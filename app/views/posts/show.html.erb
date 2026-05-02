@@ -111,7 +111,12 @@
         </div>
       <% end %>
 
-      <% if @post.known_artist_tags.any? || (Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff?) %>
+      <%# Determine which recommender tabs to show %>
+      <% artist_tab_available = @post.known_artist_tags.any? %>
+      <% tags_tab_available = @post.tags.size > 0 && CurrentUser.user.is_staff? %>
+      <% favorites_tab_available = Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
+
+      <% if artist_tab_available || tags_tab_available || favorites_tab_available %>
         <div
           id="post-recommendations"
           data-visible="<%= cookies[:post_recs] != "1" %>"
@@ -120,6 +125,7 @@
           data-post-id="<%= @post.id %>"
         >
           <div id="post-recommendations-tabs" role="tablist">
+            <% if artist_tab_available %>
             <button
               type="button"
               role="tab"
@@ -129,16 +135,19 @@
               aria-controls="post-recommendations-list"
               aria-selected="true"
             >From the Artist</button>
-            <% if Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
-              <button
-                type="button"
-                role="tab"
-                class="st-button"
-                id="post-recommendations-tab-tags"
-                data-action="tags"
-                aria-controls="post-recommendations-list"
-                aria-selected="false"
-              >Similar</button>
+            <% end %>
+            <% if tags_tab_available %>
+            <button
+              type="button"
+              role="tab"
+              class="st-button"
+              id="post-recommendations-tab-tags"
+              data-action="tags"
+              aria-controls="post-recommendations-list"
+              aria-selected="false"
+            >Similar</button>
+            <% end %>
+            <% if favorites_tab_available %>
               <button
                 type="button"
                 role="tab"
