@@ -144,12 +144,14 @@ RSpec.describe Post do
 
       it "returns an unresolved PostFlag" do
         post = create(:post)
+        create(:post_flag_reason)
         flag = create(:post_flag, post: post)
         expect(post.pending_flag).to eq(flag)
       end
 
       it "returns nil after flags are resolved" do
         post = create(:post)
+        create(:post_flag_reason)
         flag = create(:post_flag, post: post)
         flag.resolve!
         expect(post.reload.pending_flag).to be_nil
@@ -175,15 +177,16 @@ RSpec.describe Post do
       end
 
       it "adds an error when the pending flag has an uploading_guidelines reason" do
-        skip "uploading_guidelines reason not present in config" unless Danbooru.config.flag_reasons.any? { |r| r[:name].to_s == "uploading_guidelines" }
         post = create(:post)
-        create(:post_flag, post: post, reason_name: "uploading_guidelines", note: "Does not meet uploading guidelines.")
+        create(:needs_staff_reason_post_flag_reason)
+        create(:needs_staff_reason_post_flag, post: post)
         post.delete!("")
-        expect(post.errors[:base].join).to match(/uploading guidelines/)
+        expect(post.errors[:base].join).to match(/Cannot "delete with given reason"/)
       end
 
       it "uses the pending flag's reason when the reason is blank and a valid flag exists" do
         post = create(:post)
+        create(:post_flag_reason)
         create(:post_flag, post: post)
         expect { post.delete!("") }.to change { post.reload.is_deleted }.to(true)
       end

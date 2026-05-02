@@ -3,7 +3,7 @@
   <div class="flag_post">
     <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
   </div>
-  
+
   <div class="dtext-container">
     <%= format_text(WikiPage.titled(Danbooru.config.flag_notice_wiki_page)&.body) %>
   </div>
@@ -18,39 +18,46 @@
     <%= f.hidden_field :post_id %>
 
     <div class="flag-reason">
-      <% Danbooru.config.flag_reasons.each do |flag_reason| %>
-        <% if flag_reason[:name] == "uploading_guidelines" && !@post.flaggable_for_guidelines? %>
+      <% any_flag_needs_parent_id = false %>
+      <% PostFlagReason.for_radio.each do |flag_reason| %>
+        <% if !flag_reason.applies_to_post?(@post) %>
           <% next %>
+        <% end %>
+        <% if flag_reason.needs_parent_id? %>
+          <% any_flag_needs_parent_id = true %>
         <% end %>
 
         <label class="flag-reason-label">
-          <%= radio_button_tag "post_flag[reason_name]", flag_reason[:name], false, data: { require_explanation: flag_reason[:require_explanation] } %>
+          <%= radio_button_tag "post_flag[reason_name]", flag_reason.name, false, data: { needs_explanation: flag_reason.needs_explanation? } %>
           <span class="flag-reason-description">
             <b>
-              <%= format_text(flag_reason[:reason], inline: true) %>
-              <% if flag_reason[:require_explanation] %>
-                <span class="flag-reason-explanation">Additional Details Required</span>
+              <%= format_text(flag_reason.reason, inline: true) %>
+              <% if flag_reason.needs_explanation? %>
+                <span class="flag-reason-additional-field-required">Additional Details Required</span>
+              <% end %>
+              <% if flag_reason.needs_parent_id? %>
+                <span class="flag-reason-additional-field-required">Parent post required</span>
               <% end %>
             </b>
             <span class="dtext-container">
-              <%= format_text(flag_reason[:text]) %>
+              <%= format_text(flag_reason.text) %>
             </span>
           </span>
         </label>
 
-        <% if flag_reason[:parent] %>
-          <span class="flag-reason-parent">
-            <%= f.input :parent_id, as: :string, label: "Inferior of Post #", input_html: { value: @post.parent_id || "" } %>
-          </span>
-        <% end %>
-
       <% end %>
     </div>
+
+    <% if any_flag_needs_parent_id %>
+      <span class="flag-reason-parent">
+        <%= f.input :parent_id, as: :string, label: "Parent Post #", input_html: { value: @post.parent_id || "" } %>
+      </span>
+    <% end %>
 
     <div class="flag-notes">
       <%= f.input :note, as: :dtext, label: "Additional Details", limit: Danbooru.config.comment_max_size, input_html: { id: "flag_note_field" } %>
     </div>
-    
+
     <div>
       <span class="flag-note-hint" style="display: none;">Error: Additional note is required for this flag type.</span>
       <%= f.submit "Submit", class: "st-button submit", data: { disable_with: false } %>

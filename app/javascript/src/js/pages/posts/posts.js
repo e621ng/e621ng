@@ -62,9 +62,11 @@ Post.initialize_moderation = function () {
     const $e = $(e.target);
     const post_id = $e.data("pid");
     const parent_id = $e.data("parent-id");
+    const reason_name = $e.data("reason-name");
+    const note = $e.data("note");
 
     if (confirm("Move flag to parent?"))
-      Post.move_flag_to_parent(post_id, parent_id);
+      Post.move_flag_to_parent(post_id, parent_id, reason_name, note);
   });
 };
 
@@ -696,7 +698,7 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
   }, { name: "Post.unflag" });
 };
 
-Post.flag = function (post_id, reason_name, parent_id = null, reload = true, callback = null) {
+Post.flag = function (post_id, reason_name, parent_id = null, note = null, reload = true, callback = null) {
   Post.notice_update("inc");
   TaskQueue.add(() => {
     $.ajax({
@@ -707,6 +709,7 @@ Post.flag = function (post_id, reason_name, parent_id = null, reload = true, cal
           post_id: parseInt(post_id),
           reason_name,
           parent_id,
+          note,
         },
       },
     }).fail(function (data) {
@@ -722,9 +725,9 @@ Post.flag = function (post_id, reason_name, parent_id = null, reload = true, cal
   }, { name: "Post.flag" });
 };
 
-Post.move_flag_to_parent = function (post_id, parent_id) {
+Post.move_flag_to_parent = function (post_id, parent_id, reason_name, note) {
   Post.unflag(post_id, false, false, function () {
-    Post.flag(parent_id, "inferior", post_id, false, function () {
+    Post.flag(parent_id, reason_name, post_id, note, false, function () {
       location.href = `/moderator/post/posts/${parent_id}/confirm_delete`;
     });
   });

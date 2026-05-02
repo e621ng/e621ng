@@ -25,8 +25,14 @@ PostFlags.initFlagForm = function () {
     .addClass("required-indicator")
     .text(" (required)")
     .appendTo(noteLabel);
-  form.on("change", "input[type='radio']", updateNoteRequired);
+  form.on("change", "input[type='radio']", onReasonRadioChange);
 
+  function onReasonRadioChange (event) {
+    console.log("target", event.target);
+    updateNoteRequired();
+  }
+
+  //   Set whether the note field is required
   let isNoteRequired = false;
   function updateNoteRequired () {
     const selected = form.find("input[name='post_flag[reason_name]']:checked");

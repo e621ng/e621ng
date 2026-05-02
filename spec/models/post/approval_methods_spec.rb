@@ -139,6 +139,7 @@ RSpec.describe Post do
 
       it "resolves all open flags on the post" do
         post = create(:flagged_post)
+        create(:post_flag_reason)
         flag = create(:post_flag, post: post)
         post.unflag!
         expect(flag.reload.is_resolved).to be true
