@@ -2,7 +2,7 @@
 
 module UsersHelper
   def email_sig(user, purpose, expires = nil)
-    EmailLinkValidator.generate("#{user.id}", purpose, expires)
+    EmailLinkValidator.generate(user.id.to_s, purpose, expires)
   end
 
   def email_domain_search(email)
@@ -10,14 +10,6 @@ module UsersHelper
 
     domain = email.split("@").last
     link_to "»", users_path(search: { email_matches: "*@#{domain}" })
-  end
-
-  def profile_avatar(user)
-    return if user.nil?
-    post_id = user.avatar_id
-    deferred_post_ids.add(post_id) if post_id
-
-    render "/application/profile_avatar", user: user, post_id: post_id
   end
 
   def user_level_badge(user)

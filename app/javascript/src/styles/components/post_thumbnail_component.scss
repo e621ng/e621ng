@@ -68,7 +68,10 @@ article.thumbnail {
   }
 
   &.no-stats a.thm-link { @include st-radius; }
-  &.inline { display: inline-flex; }
+  &.inline {
+    display: inline-flex;
+    vertical-align: middle;
+  }
 
   // Renders thumbnails in something resembling their native aspect ratio.
   // Only really useful for DText thumbnails.
@@ -88,11 +91,19 @@ article.thumbnail {
         min-height: 100px;
       }
     }
-    &.blacklisted a.thm-link::before {
+    &.blacklisted a.thm-link::before,
+    &.deleted a.thm-link::before {
       font-size: calc(var(--thumb-image-size, 150px) / 10);
     }
 
     div.thm-desc { display: none; }
+
+    &.deleted {
+      a.thm-link {
+        width: var(--thumb-image-size, 150px);
+        aspect-ratio: 1;
+      }
+    }
   }
 }
 
@@ -320,6 +331,47 @@ article.thumbnail.blacklisted {
 // Post matches blacklist
 article.thumbnail.filter-matches .thm-desc-a {
   background-color: palette("background-red");
+}
+
+
+// ============================== //
+// ======== Avatar State ======== //
+// ============================== //
+
+article.thumbnail.avatar {
+  &.blacklisted {
+    a.thm-link[data-initial]{
+      background: themed("color-section");
+
+      &:before {
+        content: attr(data-initial);
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        font-size: 5rem;
+        font-weight: bold;
+        color: themed("color-foreground");
+
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        // Reset default blacklist colors
+        background: unset;
+        line-height: unset;
+        transform: unset;
+        font-family: "Roboto", Verdana, Geneva, sans-serif;
+      }
+    }
+  }
+
+  &.no-render[data-initial] {
+    background: themed("color-section");
+  }
 }
 
 

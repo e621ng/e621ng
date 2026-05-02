@@ -74,6 +74,7 @@ class User < ApplicationRecord
     replacements_beta
     is_bd_staff
     is_bd_auditor
+    has_cropped_avatar
   ].freeze
 
   include Danbooru::HasBitFlags
@@ -116,6 +117,7 @@ class User < ApplicationRecord
   after_create :create_user_status
   before_update :encrypt_password_on_update
   after_save :update_cache
+  after_save :clear_cropped_avatar_on_avatar_change
 
   after_create_commit :enqueue_automod_user_check
   after_update_commit :enqueue_automod_user_update_check,
@@ -388,6 +390,16 @@ class User < ApplicationRecord
       if avatar_id.present? && avatar.nil?
         self.avatar_id = nil
       end
+    end
+
+    def clear_cropped_avatar_on_avatar_change
+      return unless saved_change_to_avatar_id?
+      return unless has_cropped_avatar?
+
+      flag = User.flag_value_for("has_cropped_avatar")
+      update_columns(bit_prefs: bit_prefs & ~flag)
+
+      AvatarCleanupJob.perform_later(id)
     end
 
     def staff_cant_disable_dmail

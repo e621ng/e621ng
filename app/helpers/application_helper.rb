@@ -166,14 +166,6 @@ module ApplicationHelper
     end.to_h
   end
 
-  def user_avatar(user)
-    return "" if user.nil?
-    post_id = user.avatar_id
-    return "" unless post_id
-    deferred_post_ids.add(post_id)
-    tag.article class: "thumbnail no-stats placeholder", id: "tp-#{post_id}", data: { id: post_id, initial: user.name[0].upcase }
-  end
-
   def unread_dmails(user)
     if user.has_mail?
       "(#{user.unread_dmail_count})"

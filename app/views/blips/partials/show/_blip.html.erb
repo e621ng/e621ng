@@ -14,7 +14,7 @@
         <% end %>
       </div>
       <div class="avatar">
-        <%= user_avatar(blip.creator) %>
+        <%= render AvatarComponent.new(user: blip.creator) %>
       </div>
       <div class="post-time">
         <%= link_to time_ago_in_words_tagged(blip.created_at), blip_path(blip) %>

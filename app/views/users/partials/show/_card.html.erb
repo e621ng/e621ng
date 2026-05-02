@@ -1,5 +1,7 @@
 <div class="profile-card">
-  <%= profile_avatar(@user) %>
+  <div class="profile-avatar">
+    <%= render AvatarComponent.new(user: @user) %>
+  </div>
   <div class="profile-info">
     <span class="profile-name">
       <%= link_to_user(@user) %>

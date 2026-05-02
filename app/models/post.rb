@@ -39,6 +39,7 @@ class Post < ApplicationRecord
   after_save :update_parent_on_save
   after_save :apply_post_metatags
   after_commit :delete_files, on: :destroy
+  after_commit :delete_avatar_crops, on: :destroy
   after_commit :remove_iqdb_async, on: :destroy
   # after_commit :update_iqdb_async, :on => :create
   after_commit :handle_thumbnails_on_create, on: :create
@@ -83,6 +84,12 @@ class Post < ApplicationRecord
 
     def delete_files
       Post.delete_files(id, md5, file_ext, force: true)
+    end
+
+    def delete_avatar_crops
+      User.where(avatar_id: id).pluck(:id).each do |user_id|
+        AvatarCleanupJob.perform_later(user_id, force: true)
+      end
     end
 
     def move_files_on_delete
@@ -1581,6 +1588,7 @@ class Post < ApplicationRecord
           )
           decrement_tag_post_counts
           move_files_on_delete
+          delete_avatar_crops
           PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
         end
       end
