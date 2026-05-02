@@ -24,7 +24,16 @@ module UsersHelper
     return if user.nil?
 
     tag.span(class: "level-badge level-#{user.level_string.downcase}") do
-      (user.custom_title.presence || user.level_string).upcase
+      user.level_string.upcase
+    end
+  end
+
+  def user_custom_title_badge(user)
+    return if user.nil?
+    return if user.custom_title.blank?
+
+    tag.span(class: "level-badge level-#{user.level_string.downcase}") do
+      user.custom_title.upcase
     end
   end
 
