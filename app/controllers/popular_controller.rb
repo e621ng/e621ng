@@ -13,7 +13,5 @@ class PopularController < ApplicationController
         pick_json_format(@post_set.api_posts, legacy: params[:v2] != "true", mode: params[:mode], collection: true)
       end
     end
-  rescue ArgumentError => e
-    render_expected_error(422, e)
   end
 end

@@ -5,6 +5,8 @@ module ParseValue
   MIN_INT = -2_147_483_648
   extend self
 
+  class InvalidDateError < ArgumentError; end
+
   # Parses the specified time
   def date_from(target)
     case target
@@ -149,7 +151,7 @@ module ParseValue
       ago = time_string(object)
       if ago.present?
         return ago if ago.year.between?(1, 9999)
-        raise ArgumentError, "Invalid date: #{object}"
+        raise InvalidDateError, "Invalid date: #{object}"
       end
 
       begin
