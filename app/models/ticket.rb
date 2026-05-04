@@ -391,7 +391,7 @@ class Ticket < ApplicationRecord
   end
 
   def type_title
-    model.name.titlecase.to_s
+    model.name.titlecase
   end
 
   def subject

@@ -158,7 +158,7 @@ class PostSet < ApplicationRecord
   module AccessMethods
     def can_view?(user)
       return true if is_public
-      return true if is_moderator?
+      return true if user.is_moderator?
       return true if is_owner?(user)
       false
     end
