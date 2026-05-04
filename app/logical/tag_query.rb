@@ -1190,6 +1190,7 @@ class TagQuery
     "~" => :should,
   }).freeze
 
+  # Returns a [tag_name, tag_type] pair such that the tag_name prefix is properly removed if present.
   def get_tag_name_with_search_type(tag)
     type = TagQuery::TAG_SEARCH_TYPE[tag[0]]
     [(type == :must ? tag : tag[1..]).downcase, type]
@@ -1502,6 +1503,7 @@ class TagQuery
   # Same as `TagQuery::REGEX_VALID_TAG_CHECK`, but disallows `*`
   REGEX_VALID_TAG_CHECK_2 = /[\*\,\#\$\%\\]/
 
+  # Checks if a certain tag should be transformed into a metatag, and adds it accordingly if so.
   def intercept_metatag_alias(tag, type)
     if FileMethods::FILE_TYPE.value?(tag)
       add_to_query(type, :filetype, tag)
