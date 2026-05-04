@@ -21,9 +21,10 @@
 
       <tbody>
         <% @tickets.each do |ticket| %>
-          <tr data-link="<%= ticket_path(ticket) %>">
+          <% can_view = ticket.can_view?(CurrentUser.user) %>
+          <tr data-link="<%= can_view ? ticket_path(ticket) : '' %>">
             <% if CurrentUser.is_staff? %>
-              <% if ticket.can_view?(CurrentUser.user) %>
+              <% if can_view %>
                 <%# Reporter %>
                 <td><%= link_to_user ticket.creator %></td>
 
@@ -48,7 +49,7 @@
               </td>
             <% end %>
 
-            <% if ticket.can_view?(CurrentUser.user) %>
+            <% if can_view %>
               <%# Type %>
               <td class="ticket-subject full-width-link">
                 <%= link_to ticket.type_title, ticket_path(ticket) %>

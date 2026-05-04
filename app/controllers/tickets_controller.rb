@@ -46,7 +46,7 @@ class TicketsController < ApplicationController
   def update
     @ticket = Ticket.find(params[:id])
 
-    raise User::PrivilegeError unless @ticket.can_handle?
+    raise User::PrivilegeError unless @ticket.can_view?(CurrentUser.user) && @ticket.can_handle?(CurrentUser.user)
 
     if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
       flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
@@ -76,7 +76,7 @@ class TicketsController < ApplicationController
   def claim
     @ticket = Ticket.find(params[:id])
 
-    raise User::PrivilegeError unless @ticket.can_claim?
+    raise User::PrivilegeError unless @ticket.can_view?(CurrentUser.user) && @ticket.can_claim?(CurrentUser.user)
 
     if @ticket.claimant.nil?
       @ticket.claim!
@@ -88,6 +88,8 @@ class TicketsController < ApplicationController
 
   def unclaim
     @ticket = Ticket.find(params[:id])
+
+    raise User::PrivilegeError unless @ticket.can_view?(CurrentUser.user) && @ticket.can_claim?(CurrentUser.user)
 
     if @ticket.claimant.nil?
       flash[:notice] = "Ticket not claimed"

@@ -57,16 +57,16 @@
         <% elsif CurrentUser.is_staff? %>
           <tr>
             <td><span class="title">Claimed by</span></td>
-            <% if @ticket.claimant.nil? && @ticket.can_claim? %>
-              <td id="claimed_by"><%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %></td>
-            <% else %>
-              <td id="claimed_by">
-                <%= link_to_user @ticket.claimant %>
-                <% if @ticket.claimant.id == CurrentUser.id %>
-                  <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post %>
+            <td id="claimed_by">
+              <%= link_to_user @ticket.claimant if @ticket.claimant.present? %>
+              <% if @ticket.can_claim?(CurrentUser.user) %>
+                <% if @ticket.claimant.nil? %>
+                  <%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %>
+                <% elsif @ticket.claimant.id == CurrentUser.id %>
+                  | <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post %>
                 <% end %>
-              </td>
-            <% end %>
+              <% end %>
+            </td>
           </tr>
         <% end %>
 
@@ -110,7 +110,7 @@
             <td><span class='title'>Response</span></td>
             <td>
               <div class="dtext-container ticket-block unmargined">
-                <%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %>
+                <%= format_text(@ticket.response) %>
               </div>
             </td>
           </tr>
