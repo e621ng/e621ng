@@ -116,6 +116,7 @@ class TicketsController < ApplicationController
   def preload_ticket_contents(tickets)
     tickets.group_by(&:qtype).each_value do |group|
       model = group.first.model
+      next if model.nil?
       ids = group.map(&:disp_id).compact
       content_map = model.where(id: ids).index_by(&:id)
       group.each { |t| t.instance_variable_set(:@content, content_map[t.disp_id]) }

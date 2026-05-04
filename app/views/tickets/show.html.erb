@@ -123,7 +123,7 @@
         <%= custom_form_for(@ticket) do |f| %>
           <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @ticket.status || "approved" %>
           <% if @ticket.warnable? %>
-            <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having recieved", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
+            <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having received", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
           <% end %>
           <% unless @ticket.pending? %>
             <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
