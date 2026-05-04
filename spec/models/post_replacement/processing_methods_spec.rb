@@ -51,6 +51,40 @@ RSpec.describe PostReplacement do
   end
 
   # --------------------------------------------------------------------------
+  # #note_add
+  # --------------------------------------------------------------------------
+  describe "#note_add" do
+    it "adds a note for a staff user" do
+      replacement = create(:post_replacement)
+      CurrentUser.user = create(:moderator_user)
+
+      replacement.note_add("test")
+
+      expect(replacement.reload.note&.note).to eq("test")
+    end
+
+    it "adds an error for a non-staff user" do
+      replacement = create(:post_replacement)
+      CurrentUser.user = create(:user)
+
+      replacement.note_add("i shouldn't be here")
+
+      expect(replacement.errors.full_messages).to eq(["You do not have permission to add a note."])
+    end
+
+    it "overwrites an existing note" do
+      replacement = create(:post_replacement)
+      CurrentUser.user = create(:moderator_user)
+
+      replacement.note_add("test")
+      replacement.reload
+      replacement.note_add("new test")
+
+      expect(replacement.reload.note&.note).to eq("new test")
+    end
+  end
+
+  # --------------------------------------------------------------------------
   # #approve!
   # --------------------------------------------------------------------------
   describe "#approve!" do

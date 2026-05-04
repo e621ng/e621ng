@@ -263,6 +263,7 @@ Rails.application.routes.draw do
       put :reject
       post :promote
       put :toggle_penalize
+      put :note
     end
   end
   resources :deleted_posts, only: %i[index]
