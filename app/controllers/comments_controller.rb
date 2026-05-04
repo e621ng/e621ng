@@ -17,6 +17,7 @@ class CommentsController < ApplicationController
       index_by_comment
     end
   rescue ArgumentError => e
+    raise unless e.message.start_with?("Invalid date")
     render_expected_error(422, e)
   end
 
