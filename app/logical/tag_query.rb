@@ -1509,6 +1509,7 @@ class TagQuery
       add_to_query(type, :filetype, tag)
       true
     end
+    nil
   end
 
   # Adds the tag to the query object based on its prefix and if it contains a wildcard.
