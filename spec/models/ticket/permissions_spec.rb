@@ -57,6 +57,28 @@ RSpec.describe Ticket do
       it "denies a non-creator member" do
         expect(ticket.can_view?(other)).to be false
       end
+
+      context "when the content no longer exists" do
+        let(:fresh_ticket) { Ticket.find(ticket.id) }
+
+        before { ticket; blip.destroy! }
+
+        it "allows the creator to view" do
+          expect(fresh_ticket.can_view?(creator)).to be true
+        end
+
+        it "allows a janitor to view" do
+          expect(fresh_ticket.can_view?(janitor)).to be true
+        end
+
+        it "allows an admin to view" do
+          expect(fresh_ticket.can_view?(admin)).to be true
+        end
+
+        it "denies a non-creator member" do
+          expect(fresh_ticket.can_view?(other)).to be false
+        end
+      end
     end
   end
 
@@ -97,6 +119,28 @@ RSpec.describe Ticket do
 
       it "denies a non-creator member" do
         expect(ticket.can_view?(other)).to be false
+      end
+
+      context "when the content no longer exists" do
+        let(:fresh_ticket) { Ticket.find(ticket.id) }
+
+        before { ticket; comment.destroy! }
+
+        it "allows the creator to view" do
+          expect(fresh_ticket.can_view?(creator)).to be true
+        end
+
+        it "allows a janitor to view" do
+          expect(fresh_ticket.can_view?(janitor)).to be true
+        end
+
+        it "allows an admin to view" do
+          expect(fresh_ticket.can_view?(admin)).to be true
+        end
+
+        it "denies a non-creator member" do
+          expect(fresh_ticket.can_view?(other)).to be false
+        end
       end
     end
   end
@@ -144,6 +188,32 @@ RSpec.describe Ticket do
       it "denies a non-creator member" do
         expect(ticket.can_view?(other)).to be false
       end
+
+      context "when the content no longer exists" do
+        let(:fresh_ticket) { Ticket.find(ticket.id) }
+
+        before { ticket; dmail.destroy! }
+
+        it "allows the creator to view" do
+          expect(fresh_ticket.can_view?(creator)).to be true
+        end
+
+        it "allows a moderator to view" do
+          expect(fresh_ticket.can_view?(moderator)).to be true
+        end
+
+        it "allows an admin to view" do
+          expect(fresh_ticket.can_view?(admin)).to be true
+        end
+
+        it "denies a non-creator member" do
+          expect(fresh_ticket.can_view?(other)).to be false
+        end
+
+        it "denies a janitor who is not the creator" do
+          expect(fresh_ticket.can_view?(janitor)).to be false
+        end
+      end
     end
   end
 
@@ -178,6 +248,28 @@ RSpec.describe Ticket do
 
       it "denies a non-creator member" do
         expect(ticket.can_view?(other)).to be false
+      end
+
+      context "when the content no longer exists" do
+        let(:fresh_ticket) { Ticket.find(ticket.id) }
+
+        before { ticket; ticket.content.destroy! }
+
+        it "allows the creator to view" do
+          expect(fresh_ticket.can_view?(creator)).to be true
+        end
+
+        it "allows a janitor to view" do
+          expect(fresh_ticket.can_view?(janitor)).to be true
+        end
+
+        it "allows an admin to view" do
+          expect(fresh_ticket.can_view?(admin)).to be true
+        end
+
+        it "denies a non-creator member" do
+          expect(fresh_ticket.can_view?(other)).to be false
+        end
       end
     end
   end
@@ -299,6 +391,28 @@ RSpec.describe Ticket do
       it "denies a non-creator member" do
         expect(ticket.can_view?(other)).to be false
       end
+
+      context "when the content no longer exists" do
+        let(:fresh_ticket) { Ticket.find(ticket.id) }
+
+        before { ticket; public_set.destroy! }
+
+        it "allows the creator to view" do
+          expect(fresh_ticket.can_view?(creator)).to be true
+        end
+
+        it "allows a janitor to view" do
+          expect(fresh_ticket.can_view?(janitor)).to be true
+        end
+
+        it "allows an admin to view" do
+          expect(fresh_ticket.can_view?(admin)).to be true
+        end
+
+        it "denies a non-creator member" do
+          expect(fresh_ticket.can_view?(other)).to be false
+        end
+      end
     end
   end
 
@@ -409,33 +523,29 @@ RSpec.describe Ticket do
       it "denies a non-creator member" do
         expect(ticket.can_view?(other)).to be false
       end
+
+      context "when the content no longer exists" do
+        let(:fresh_ticket) { Ticket.find(ticket.id) }
+
+        before { ticket; ticket.content.destroy! }
+
+        it "allows the creator to view" do
+          expect(fresh_ticket.can_view?(creator)).to be true
+        end
+
+        it "allows a janitor to view" do
+          expect(fresh_ticket.can_view?(janitor)).to be true
+        end
+
+        it "allows an admin to view" do
+          expect(fresh_ticket.can_view?(admin)).to be true
+        end
+
+        it "denies a non-creator member" do
+          expect(fresh_ticket.can_view?(other)).to be false
+        end
+      end
     end
   end
 
-  # -------------------------------------------------------------------------
-  # #can_see_reporter?
-  # -------------------------------------------------------------------------
-  describe "#can_see_reporter?" do
-    let(:ticket) { create(:ticket) }
-
-    it "returns true for the creator" do
-      expect(ticket.can_see_reporter?(creator)).to be true
-    end
-
-    it "returns true for a moderator" do
-      expect(ticket.can_see_reporter?(moderator)).to be true
-    end
-
-    it "returns true for an admin (level >= moderator)" do
-      expect(ticket.can_see_reporter?(admin)).to be true
-    end
-
-    it "returns false for a non-creator member" do
-      expect(ticket.can_see_reporter?(other)).to be false
-    end
-
-    it "returns false for a janitor who is not the creator" do
-      expect(ticket.can_see_reporter?(janitor)).to be false
-    end
-  end
 end

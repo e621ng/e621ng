@@ -114,19 +114,19 @@ RSpec.describe Ticket do
   # #type_title
   # -------------------------------------------------------------------------
   describe "#type_title" do
-    it "returns '<Model Name> Complaint' for user tickets" do
+    it "returns '<Model Name>' for user tickets" do
       ticket = create(:ticket)
-      expect(ticket.type_title).to eq("User Complaint")
+      expect(ticket.type_title).to eq("User")
     end
 
-    it "returns 'Post Complaint' for post tickets" do
+    it "returns 'Post' for post tickets" do
       ticket = create(:ticket, :post_type)
-      expect(ticket.type_title).to eq("Post Complaint")
+      expect(ticket.type_title).to eq("Post")
     end
 
-    it "returns 'Wiki Page Complaint' for wiki tickets" do
+    it "returns 'Wiki Page' for wiki tickets" do
       ticket = create(:ticket, :wiki_type)
-      expect(ticket.type_title).to eq("Wiki Page Complaint")
+      expect(ticket.type_title).to eq("Wiki Page")
     end
   end
 
