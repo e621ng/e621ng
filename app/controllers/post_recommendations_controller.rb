@@ -13,6 +13,7 @@ class PostRecommendationsController < ApplicationController
         post_id: @original_post.id,
         model_version: "not_implemented",
         results: [],
+        post_data: [],
       }
       return
     end
@@ -21,6 +22,7 @@ class PostRecommendationsController < ApplicationController
       post_id: @original_post.id,
       model_version: "not_implemented",
       results: [],
+      post_data: [],
     }
   end
 

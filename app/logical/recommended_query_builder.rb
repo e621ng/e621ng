@@ -74,7 +74,7 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
     end
 
     @function_score = {
-      functions:  functions,
+      functions: functions,
       score_mode: :sum,
       boost_mode: :replace,
     }

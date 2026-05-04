@@ -385,7 +385,7 @@ Recommended.getData = async function (postId, action = "favorites") {
   else throw new Error(`Invalid recommendation action: ${action}`);
   Recommended.Logger.log(`Fetching data: "${postId}/${action}"`);
 
-  return fetch(`/posts/${postId}/similar/${target}.json?mode=${action}&limit=${Recommended.RESULT_COUNT}`)
+  return fetch(`/posts/${postId}/similar/${target}.json?limit=${Recommended.RESULT_COUNT}`)
     .then(
       (response) => {
         if (!response.ok) {
