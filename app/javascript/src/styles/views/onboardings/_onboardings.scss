@@ -1,0 +1,80 @@
+.onboarding-container {
+  max-width: 50rem;
+  margin: 2rem auto;
+
+  .common-blacklist-tags {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--page-bg);
+    border-radius: 4px;
+
+    .tag-option label {
+      cursor: pointer;
+    }
+  }
+
+  .settings-option {
+    margin-bottom: 1.5rem;
+    padding-left: 10px;
+    border-left: 3px solid var(--button-bg);
+
+    .help-text {
+      font-size: 0.85em;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+  }
+
+  .onboarding-actions {
+    display: flex;
+    gap: 0.5rem;
+
+    .spacer {
+      flex: 1;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 0.25rem;
+      padding: 0.25rem 1rem;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s;
+
+      &.btn-neutral, &.btn-secondary {
+        background: themed("color-section-lighten-10");
+        color: themed("color-link");
+
+        &:hover {
+          background: themed("color-section-lighten-20");
+        }
+      }
+
+      &.btn-primary {
+        background: themed("color-tag-artist");
+        color: #fff;
+
+        &:hover {
+          background: themed("color-tag-artist-alt");
+        }
+      }
+
+      &.btn-success {
+        background: #28a745;
+        color: #fff;
+
+        &:hover {
+          filter: brightness(1.1);
+        }
+      }
+    }
+  }
+}

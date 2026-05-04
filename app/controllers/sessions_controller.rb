@@ -18,10 +18,15 @@ class SessionsController < ApplicationController
     session_creator = SessionCreator.new(request, session, cookies, sparams[:name], sparams[:password], sparams[:remember].to_s.truthy?)
 
     if session_creator.authenticate
+      @user = session.user
       url = sparams[:url] if sparams[:url]&.start_with?("/") && !sparams[:url].start_with?("//")
       DanbooruLogger.add_attributes("user.login" => "success")
       respond_to do |fmt|
-        fmt.html { redirect_to(url || posts_path) }
+        if @user.onboarding_completed?
+          fmt.html { redirect_to(url || posts_path) }
+        else
+          fmt.html { redirect_to(onboarding_path) }
+        end
         fmt.json { render(json: { url: url || posts_path }) }
       end
     else

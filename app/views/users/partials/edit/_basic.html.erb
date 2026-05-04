@@ -27,6 +27,16 @@
   </tab-hint>
 </tab-entry>
 
+<tab-entry tab="<%= tab_name %>" group="account" class="with-button" search="onboarding restart welcome tutorial help">
+  <tab-head>Onboarding</tab-head>
+  <tab-body>
+    <%= link_to "Restart Onboarding Process", restart_onboarding_path, method: :post, class: "st-button" %>
+  </tab-body>
+  <tab-hint>
+    If you're feeling lost, you can restart the initial setup guide at any time.
+  </tab-hint>
+</tab-entry>
+
 <tab-entry tab="<%= tab_name %>" group="account" class="" id="settings-account-buttons" search="update change user profile account delete password">
   <tab-head></tab-head>
   <tab-body>

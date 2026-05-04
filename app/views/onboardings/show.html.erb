@@ -1,0 +1,30 @@
+<% content_for(:html_header) do %>
+  <%= vite_typescript_tag "v_onboarding" %>
+<% end %>
+
+<div id="c-onboardings"><div id="a-show">
+  <div class="onboarding-container">
+    <section class="section" id="onboarding-root" data-user-id="<%= @user.id %>">
+      <div class="section-header">
+        <h1>Welcome to <%= Danbooru.config.app_name %>, <%= CurrentUser.name %>!</h1>
+        <span class="step-counter" id="step-counter">Step 1 of ?</span>
+      </div>
+
+      <div class="onboarding-content styled-dtext" style="padding: 20px;">
+        <!-- Steps will be rendered here via show.js -->
+      </div>
+
+      <div class="onboarding-actions">
+        <button id="btn-prev" class="btn btn-neutral" style="display:none">← Previous</button>
+        <div class="spacer"></div>
+        <button id="btn-skip-all" class="btn btn-neutral">Finish Later</button>
+        <button id="btn-next" class="btn btn-primary">Next →</button>
+        <button id="btn-complete" class="btn btn-success" style="display:none">Start Browsing!</button>
+      </div>
+    </section>
+  </div>
+</div></div>
+
+<% content_for(:page_title) do %>
+  Welcome!
+<% end %>
