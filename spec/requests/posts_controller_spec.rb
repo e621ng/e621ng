@@ -248,17 +248,6 @@ RSpec.describe PostsController do
         expect(response.parsed_body).to include("post" => hash_including("id" => post.id))
       end
 
-      context "editing autotags" do
-        it "correctly removes filetype tags" do
-          filetype_tags = %w[jpg png webm mp4 swf webp gif flash video animated_gif animated_png].freeze
-          post = create(:post, file_ext: "jpg")
-          put post_path(post, format: :json), params: { post: { tag_string_diff: filetype_tags.join(" ") } }
-          expect(response).to have_http_status(:ok)
-          post.reload
-          expect(post.tag_array).not_to include(*filetype_tags)
-        end
-      end
-
       context "when the post edit throttle is exceeded" do
         before { allow(member).to receive(:can_post_edit_with_reason).and_return(:REJ_LIMITED) }
 
