@@ -6,7 +6,12 @@ class TicketsController < ApplicationController
   before_action :janitor_only, only: %i[update claim unclaim]
 
   def index
-    @tickets = Ticket.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
+    @tickets = Ticket
+               .includes(:creator, :accused, :claimant)
+               .visible(CurrentUser.user)
+               .search(search_params)
+               .paginate(params[:page], limit: params[:limit])
+    preload_ticket_contents(@tickets)
     respond_with(@tickets)
   end
 
@@ -107,6 +112,15 @@ class TicketsController < ApplicationController
   end
 
   private
+
+  def preload_ticket_contents(tickets)
+    tickets.group_by(&:qtype).each_value do |group|
+      model = group.first.model
+      ids = group.map(&:disp_id).compact
+      content_map = model.where(id: ids).index_by(&:id)
+      group.each { |t| t.instance_variable_set(:@content, content_map[t.disp_id]) }
+    end
+  end
 
   def ticket_params
     params.require(:ticket).permit(%i[qtype disp_id reason report_reason])
