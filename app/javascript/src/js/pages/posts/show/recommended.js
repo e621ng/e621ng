@@ -27,7 +27,7 @@ Recommended.init = function () {
   if (Recommended.SHOW_ENGINE_RESULTS)
     Recommended.validStates = [...Recommended.validStates, ...Recommended.remote_actions];
 
-  const initialAction = Recommended.action;
+  let initialAction = Recommended.action;
   // Determine which states are actually available based on the presence of tabs in the DOM.
   Recommended.validStates = Recommended.validStates.filter((state) => {
     return $(`#post-recommendations-tab-${state}`).length > 0;
@@ -39,13 +39,14 @@ Recommended.init = function () {
   }
 
   if (!Recommended.validStates.includes(initialAction))
-    Recommended.action = Recommended.validStates[0];
+    initialAction = Recommended.validStates[0];
 
-  Recommended.Logger.log("Loaded", {
-    action: initialAction,
-    showEngineResults: Recommended.SHOW_ENGINE_RESULTS,
-    validStates: Recommended.validStates,
-  });
+  Recommended.Logger.log(
+    "Loaded",
+    `\n ⤷ Initial Action: ${initialAction}`,
+    `\n ⤷ Valid Actions: ${Recommended.validStates.join(", ")}`,
+    `\n ⤷ Remote Engine Enabled: ${Recommended.SHOW_ENGINE_RESULTS}`,
+  );
 
 
   Recommended.$wrapper.attr("data-action", initialAction);
