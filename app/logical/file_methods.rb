@@ -5,7 +5,7 @@ module FileMethods
     png: "png",
     jpg: "jpg",
     gif: "gif",
-    sfw: "sfw",
+    swf: "swf",
     webm: "webm",
     mp4: "mp4",
     webp: "webp",
