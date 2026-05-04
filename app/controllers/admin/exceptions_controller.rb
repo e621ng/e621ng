@@ -3,7 +3,7 @@
 module Admin
   class ExceptionsController < ApplicationController
     respond_to :json, :html
-    before_action :admin_only
+    before_action :janitor_only
 
     def index
       @exception_logs = ExceptionLog.search(search_params).includes(:user).paginate(params[:page], limit: 100)
