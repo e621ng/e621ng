@@ -1507,7 +1507,7 @@ class TagQuery
   def intercept_metatag_alias(tag, type)
     if FileMethods::FILE_TYPE.value?(tag)
       add_to_query(type, :filetype, tag)
-      true
+      return true
     end
     nil
   end

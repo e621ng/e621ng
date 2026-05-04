@@ -339,7 +339,7 @@ RSpec.describe Post do
       end
 
       it "removes file type tags" do
-        filetype_tags = %w[video animated_gif animated_png].push(*FileMethods::FILE_TYPE.values)
+        filetype_tags = %w[video animated_gif animated_png] + FileMethods::FILE_TYPE.values
         post = create(:post, tag_string: filetype_tags.join(" "))
         expect(post.tag_array).to be_empty
       end
