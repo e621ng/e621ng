@@ -233,8 +233,7 @@ class Ticket < ApplicationRecord
         return super + hidden
       end
 
-      hidden += %i[claimant_id] unless CurrentUser.is_moderator?
-      hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
+      hidden += %i[claimant_id] unless CurrentUser.is_staff?
       super + hidden
     end
   end
@@ -368,14 +367,19 @@ class Ticket < ApplicationRecord
     content&.creator&.name
   end
 
-  def can_view?(user)
+  def can_view?(user = CurrentUser.user)
+    # Should not happen - individual ticket types override this method.
     return true if user.is_moderator?
     return true if user.id == creator_id
     false
   end
 
-  def can_see_reporter?(user)
-    user.is_moderator? || (user.id == creator_id)
+  def can_handle?(user = CurrentUser.user)
+    user.is_moderator?
+  end
+
+  def can_claim?(user = CurrentUser.user)
+    user.is_moderator?
   end
 
   def can_create_for?(_user)
@@ -387,7 +391,7 @@ class Ticket < ApplicationRecord
   end
 
   def type_title
-    "#{model.name.titlecase} Complaint"
+    model.name.titlecase.to_s
   end
 
   def subject

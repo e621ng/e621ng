@@ -3,11 +3,17 @@
 class TicketsController < ApplicationController
   respond_to :html, :json, except: %i[create new]
   before_action :member_only, except: %i[index]
-  before_action :moderator_only, only: %i[update edit claim unclaim]
+  before_action :janitor_only, only: %i[update claim unclaim]
 
   def index
     @tickets = Ticket.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
     respond_with(@tickets)
+  end
+
+  def show
+    @ticket = Ticket.find(params[:id])
+    check_permission(@ticket)
+    respond_with(@ticket)
   end
 
   def new
@@ -37,14 +43,11 @@ class TicketsController < ApplicationController
     end
   end
 
-  def show
-    @ticket = Ticket.find(params[:id])
-    check_permission(@ticket)
-    respond_with(@ticket)
-  end
-
   def update
     @ticket = Ticket.find(params[:id])
+
+    raise User::PrivilegeError unless @ticket.can_handle?
+
     if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
       flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
       redirect_to ticket_path(@ticket, force_claim: "true")
@@ -72,6 +75,8 @@ class TicketsController < ApplicationController
 
   def claim
     @ticket = Ticket.find(params[:id])
+
+    raise User::PrivilegeError unless @ticket.can_claim?
 
     if @ticket.claimant.nil?
       @ticket.claim!
