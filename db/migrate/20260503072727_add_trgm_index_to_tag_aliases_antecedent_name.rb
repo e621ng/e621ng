@@ -3,20 +3,17 @@
 class AddTrgmIndexToTagAliasesAntecedentName < ActiveRecord::Migration[8.1]
   def up
     TagAlias.without_timeout do
-      execute <<~SQL.squish
-        CREATE INDEX index_tag_aliases_on_antecedent_name_trgm
-            ON tag_aliases
-            USING gin (antecedent_name gin_trgm_ops)
-            WHERE status IN ('active', 'processing', 'queued')
-      SQL
+      add_index :tag_aliases, :antecedent_name,
+                name: :index_tag_aliases_on_antecedent_name_trgm,
+                using: :gin,
+                opclass: :gin_trgm_ops,
+                where: "status IN ('active', 'processing', 'queued')"
     end
   end
 
   def down
     TagAlias.without_timeout do
-      execute <<~SQL.squish
-        DROP INDEX index_tag_aliases_on_antecedent_name_trgm
-      SQL
+      remove_index :tag_aliases, name: :index_tag_aliases_on_antecedent_name_trgm, if_exists: true
     end
   end
 end
