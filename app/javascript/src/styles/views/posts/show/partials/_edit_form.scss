@@ -9,3 +9,12 @@
     span { font-size: 1.25rem; }
   }
 }
+
+#post-edit-invalid-url {
+  background-color: themed("color-danger-darken-10");
+  border: 1px solid themed("color-foreground");
+  width: fit-content;
+  margin-bottom: 1em;
+  padding: 0.5em;
+  font-weight: bold;
+}
