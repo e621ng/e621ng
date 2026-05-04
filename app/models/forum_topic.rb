@@ -144,7 +144,7 @@ class ForumTopic < ApplicationRecord
   end
 
   def visible?(user)
-    return false if is_hidden && !can_hide?(user)
+    return false if is_hidden && !can_hide?(user) && !user.is_staff?
     user.level >= category.can_view
   end
 
