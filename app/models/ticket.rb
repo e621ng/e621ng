@@ -28,20 +28,22 @@ class Ticket < ApplicationRecord
   attr_accessor :record_type, :send_update_dmail
 
   # Permissions Table
+  # Creator can always view their own ticket. Admin always has unconditional view access.
+  # For content-gated types, staff can view even if the content no longer exists.
   #
-  # |    Type    |      Can Create     |        Visible       |
-  # |:----------:|:-------------------:|:--------------------:|
-  # |    Blip    |      Accessible     |  Janitor+ / Creator  |
-  # |   Comment  |       Visible       |  Janitor+ / Creator  |
-  # |    Dmail   | Visible & Recipient | Moderator+ / Creator |
-  # | Forum Post |       Visible       |  Janitor+ / Creator  |
-  # |    Pool    |         Any         |  Janitor+ / Creator  |
-  # |    Post    |         Any         |  Janitor+ / Creator  |
-  # |  Post Set  |       Visible       |  Janitor+ / Creator  |
-  # |    User    |         Any         | Moderator+ / Creator |
-  # |  Wiki Page |         Any         |  Janitor+ / Creator  |
-  # |    Other   |         None        | Moderator+ / Creator |
-  # |Replacement |         Any         |  Janitor+ / Creator  |
+  # |    Type    |      Can Create     |  Min. View Level  | View Content Check |
+  # |:----------:|:-------------------:|:-----------------:|:------------------:|
+  # |    Blip    |      Accessible     |     Janitor+      |     Accessible     |
+  # |   Comment  |      Accessible     |     Janitor+      |     Accessible     |
+  # |    Dmail   | Visible & Recipient |    Moderator+     |      Visible       |
+  # | Forum Post |       Visible       |     Janitor+      |      Visible       |
+  # |    Pool    |         Any         |     Janitor+      |        -           |
+  # |    Post    |         Any         |     Janitor+      |        -           |
+  # |  Post Set  |       Visible       |     Janitor+      |      Visible       |
+  # |    User    |         Any         |    Moderator+     |        -           |
+  # |  Wiki Page |         Any         |     Janitor+      |        -           |
+  # |    Other   |         None        |    Moderator+     |        -           |
+  # |Replacement |       Visible       |     Janitor+      |      Visible       |
 
   module TicketTypes
     module Blip
@@ -50,7 +52,8 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        return true if user.is_staff?
+        return true if user.is_staff? && (content.blank? || content&.is_accessible?(user))
+        return true if user.is_admin?
         return true if user.id == creator_id
         false
       end
@@ -62,7 +65,10 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        (user.is_staff? && content&.is_accessible?(user, bypass_user_settings: true)) || user.is_admin? || (user.id == creator_id)
+        return true if user.is_staff? && (content.blank? || content&.is_accessible?(user, bypass_user_settings: true))
+        return true if user.is_admin?
+        return true if user.id == creator_id
+        false
       end
     end
 
@@ -72,7 +78,10 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_moderator? || (user.id == creator_id)
+        return true if user.is_moderator? && (content.blank? || content&.visible_to?(user))
+        return true if user.is_admin?
+        return true if user.id == creator_id
+        false
       end
 
       def bot_target_name
@@ -87,11 +96,14 @@ class Ticket < ApplicationRecord
       end
 
       def can_create_for?(user)
-        content.visible?(user)
+        content&.visible?(user)
       end
 
       def can_view?(user)
-        ((content.nil? || content&.visible?(user)) && user.is_staff?) || user.is_admin? || (user.id == creator_id)
+        return true if user.is_staff? && (content.blank? || content&.visible?(user))
+        return true if user.is_admin?
+        return true if user.id == creator_id
+        false
       end
     end
 
@@ -100,12 +112,14 @@ class Ticket < ApplicationRecord
         true
       end
 
-      def bot_target_name
-        content&.name
+      def can_view?(user)
+        return true if user.is_staff?
+        return true if user.id == creator_id
+        false
       end
 
-      def can_view?(user)
-        user.is_staff? || (user.id == creator_id)
+      def bot_target_name
+        content&.name
       end
     end
 
@@ -124,12 +138,14 @@ class Ticket < ApplicationRecord
         true
       end
 
-      def bot_target_name
-        content&.uploader&.name
+      def can_view?(user)
+        return true if user.is_staff?
+        return true if user.id == creator_id
+        false
       end
 
-      def can_view?(user)
-        user.is_staff? || (user.id == creator_id)
+      def bot_target_name
+        content&.uploader&.name
       end
     end
 
@@ -143,7 +159,10 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        ((content.nil? || content&.can_view?(user)) && user.is_staff?) || user.is_admin? || (user.id == creator_id)
+        return true if user.is_staff? && (content.blank? || content&.can_view?(user))
+        return true if user.is_admin?
+        return true if user.id == creator_id
+        false
       end
     end
 
@@ -153,7 +172,9 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_moderator? || user.id == creator_id
+        return true if user.is_moderator?
+        return true if user.id == creator_id
+        false
       end
 
       def bot_target_name
@@ -175,7 +196,9 @@ class Ticket < ApplicationRecord
       end
 
       def can_view?(user)
-        user.is_staff? || user.is_admin? || (user.id == creator_id)
+        return true if user.is_staff?
+        return true if user.id == creator_id
+        false
       end
     end
 
@@ -184,12 +207,15 @@ class Ticket < ApplicationRecord
         ::PostReplacement
       end
 
-      def can_view?(user)
-        user.is_janitor? || (user.id == creator_id)
-      end
-
       def can_create_for?(user)
         content&.visible_to?(user)
+      end
+
+      def can_view?(user)
+        return true if user.is_staff? && (content.blank? || content&.visible_to?(user))
+        return true if user.is_admin?
+        return true if user.id == creator_id
+        false
       end
 
       def subject
@@ -207,8 +233,7 @@ class Ticket < ApplicationRecord
         return super + hidden
       end
 
-      hidden += %i[claimant_id] unless CurrentUser.is_moderator?
-      hidden += %i[creator_id] unless can_see_reporter?(CurrentUser)
+      hidden += %i[claimant_id] unless CurrentUser.is_staff?
       super + hidden
     end
   end
@@ -342,12 +367,19 @@ class Ticket < ApplicationRecord
     content&.creator&.name
   end
 
-  def can_view?(user)
-    user.is_janitor?
+  def can_view?(user = CurrentUser.user)
+    # Should not happen - individual ticket types override this method.
+    return true if user.is_moderator?
+    return true if user.id == creator_id
+    false
   end
 
-  def can_see_reporter?(user)
-    user.is_moderator? || (user.id == creator_id)
+  def can_handle?(user = CurrentUser.user)
+    user.is_moderator?
+  end
+
+  def can_claim?(user = CurrentUser.user)
+    user.is_moderator?
   end
 
   def can_create_for?(_user)
@@ -359,7 +391,7 @@ class Ticket < ApplicationRecord
   end
 
   def type_title
-    "#{model.name.titlecase} Complaint"
+    model.name.titlecase
   end
 
   def subject

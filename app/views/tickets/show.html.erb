@@ -4,16 +4,16 @@
       <h3><%= @ticket.type_title %> Ticket</h3>
 
       <table>
-        <% if @ticket.can_see_reporter?(CurrentUser) %>
-          <tr>
-            <td><span class='title'>Requested by</span></td>
-            <td>
-              <%= link_to_user @ticket.creator %>
-              (<%= link_to "Pending Tickets", tickets_path(search: { creator_id: @ticket.creator.id, status: "pending" }) %>)
-            </td>
-          </tr>
-        <% end %>
+        <%# Reporter %>
+        <tr>
+          <td><span class='title'>Requested by</span></td>
+          <td>
+            <%= link_to_user @ticket.creator %>
+            (<%= link_to "Pending Tickets", tickets_path(search: { creator_id: @ticket.creator.id, status: "pending" }) %>)
+          </td>
+        </tr>
 
+        <%# IP Address %>
         <% if CurrentUser.is_admin? %>
           <tr>
             <td><span class='title'>IP</span></td>
@@ -21,7 +21,8 @@
           </tr>
         <% end %>
 
-        <% if @ticket.accused.present? && CurrentUser.is_moderator? %>
+        <%# Accused %>
+        <% if @ticket.accused.present? %>
           <tr>
             <td><span class="title">Accused</span></td>
             <td>
@@ -33,6 +34,7 @@
           </tr>
         <% end %>
 
+        <%# Timestamps %>
         <tr>
           <td><span class="title">Created</span></td>
           <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.created_at) %></td>
@@ -42,6 +44,7 @@
           <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.updated_at) %></td>
         </tr>
 
+        <%# Claimed / Handled %>
         <% if @ticket.response.present? %>
           <tr>
             <td><span class='title'>Handled by</span></td>
@@ -51,22 +54,20 @@
               <td>Unknown</td>
             <% end %>
           </tr>
-          <% else %>
-            <% if CurrentUser.is_moderator? %>
-              <tr>
-                <td><span class="title">Claimed by</span></td>
+        <% elsif CurrentUser.is_staff? %>
+          <tr>
+            <td><span class="title">Claimed by</span></td>
+            <td id="claimed_by">
+              <%= link_to_user @ticket.claimant if @ticket.claimant.present? %>
+              <% if @ticket.can_claim?(CurrentUser.user) %>
                 <% if @ticket.claimant.nil? %>
-                  <td id="claimed_by"><%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %></td>
-                <% else %>
-                  <td id="claimed_by">
-                    <%= link_to_user @ticket.claimant %>
-                    <% if @ticket.claimant.id == CurrentUser.id %>
-                      | <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post %>
-                    <% end %>
-                  </td>
+                  <%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %>
+                <% elsif @ticket.claimant.id == CurrentUser.id %>
+                  | <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post %>
                 <% end %>
-              </tr>
-            <% end %>
+              <% end %>
+            </td>
+          </tr>
         <% end %>
 
         <tr>
@@ -74,7 +75,7 @@
           <td class="<%= @ticket.status %>-ticket"><%= pretty_ticket_status(@ticket) %></td>
         </tr>
 
-        <% if CurrentUser.is_moderator? %>
+        <% if CurrentUser.is_staff? %>
           <% open_duplicates = @ticket.open_duplicates.to_a %>
           <% if open_duplicates.any? %>
             <tr>
@@ -109,7 +110,7 @@
             <td><span class='title'>Response</span></td>
             <td>
               <div class="dtext-container ticket-block unmargined">
-                <%= format_text(!@ticket.response.blank? ? @ticket.response : "No response.") %>
+                <%= format_text(@ticket.response) %>
               </div>
             </td>
           </tr>
@@ -117,12 +118,12 @@
       </table>
     </div>
 
-    <% if CurrentUser.is_moderator? %>
+    <% if CurrentUser.is_staff? && @ticket.can_handle? %>
       <div class="section">
         <%= custom_form_for(@ticket) do |f| %>
           <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @ticket.status || "approved" %>
           <% if @ticket.warnable? %>
-            <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having recieved", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
+            <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having received", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
           <% end %>
           <% unless @ticket.pending? %>
             <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
