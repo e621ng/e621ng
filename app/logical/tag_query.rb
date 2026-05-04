@@ -1639,6 +1639,4 @@ class TagQuery
       CurrentUser.id.presence
     end || -1
   end
-
-  include FileMethods
 end
