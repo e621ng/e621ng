@@ -46,7 +46,7 @@ class PostRecommendationsController < ApplicationController
       Digest::SHA1.hexdigest("#{@original_post.tag_string}:#{@original_post.pool_ids.sort.join(',')}")[0, 8],
     ]
 
-    post_data = Cache.fetch(rec_cache_key.join(":"), expires_in: 15.seconds) do
+    post_data = Cache.fetch(rec_cache_key.join(":"), expires_in: 15.minutes) do
       post_ids = PostSets::Recommended.new(@original_post, limit: params[:limit], mode: mode).post_ids
 
       # Matches the format of the recommendation engine
