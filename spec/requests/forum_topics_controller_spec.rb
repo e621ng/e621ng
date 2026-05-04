@@ -112,7 +112,7 @@ RSpec.describe ForumTopicsController do
       expect(response).to have_http_status(:success)
     end
 
-    it "returns 403 for a hidden topic when the user is not a moderator or creator" do
+    it "returns 403 for a hidden topic when the user is not staff or creator" do
       forum_topic.update_columns(is_hidden: true)
       other_user = create(:user)
       sign_in_as other_user
@@ -120,7 +120,7 @@ RSpec.describe ForumTopicsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "allows a moderator to view a hidden topic" do
+    it "allows staff to view a hidden topic" do
       forum_topic.update_columns(is_hidden: true)
       sign_in_as mod
       get forum_topic_path(forum_topic)

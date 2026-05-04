@@ -95,8 +95,8 @@ class ForumPostsController < ApplicationController
 
   def check_min_level
     raise User::PrivilegeError unless @forum_topic.visible?(CurrentUser.user)
-    raise User::PrivilegeError if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
-    raise User::PrivilegeError if @forum_post.is_hidden? && !@forum_post.can_hide?(CurrentUser.user)
+    raise User::PrivilegeError if @forum_topic.is_hidden? && !@forum_topic.visible?(CurrentUser.user)
+    raise User::PrivilegeError if @forum_post.is_hidden? && !@forum_post.visible?(CurrentUser.user)
   end
 
   def check_editable(forum_post)

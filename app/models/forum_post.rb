@@ -54,12 +54,12 @@ class ForumPost < ApplicationRecord
 
     def permitted(user)
       q = joins(topic: :category).where("forum_categories.can_view <= ?", user.level)
-      q = q.joins(:topic).where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
+      q = q.joins(:topic).where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_staff?
       q
     end
 
     def active(user)
-      return all if user.is_moderator?
+      return all if user.is_staff?
       where("forum_posts.is_hidden = FALSE OR forum_posts.creator_id = ?", user.id)
     end
 
@@ -157,7 +157,7 @@ class ForumPost < ApplicationRecord
   end
 
   def visible?(user)
-    return true if user.is_moderator?
+    return true if user.is_staff?
     return false unless topic&.visible?(user)
     return true if user.id == creator_id
     return false if is_hidden?
