@@ -16,6 +16,11 @@ RSpec.describe UsersHelper do
         badge_html = helper.user_custom_title_badge(user)
         expect(badge_html).to be_nil
       end
+
+      it "does not display the level string if the user is nil" do
+        badge_html = helper.user_level_badge(nil)
+        expect(badge_html).to be_nil
+      end
     end
 
     context "when user has a custom title" do
@@ -24,6 +29,11 @@ RSpec.describe UsersHelper do
 
         badge_html = helper.user_custom_title_badge(user)
         expect(badge_html).to include("CUSTOM TITLE")
+      end
+
+      it "does not display the custom title badge if the user is nil" do
+        badge_html = helper.user_custom_title_badge(nil)
+        expect(badge_html).to be_nil
       end
     end
   end
@@ -34,6 +44,10 @@ RSpec.describe UsersHelper do
         user.custom_title = "Custom Title"
 
         expect(helper.user_level_plain(user)).to eq("Custom Title")
+      end
+
+      it "returns nil if the user is nil" do
+        expect(helper.user_level_plain(nil)).to be_nil
       end
     end
 
@@ -61,6 +75,11 @@ RSpec.describe UsersHelper do
         user.is_bd_staff = false
 
         badge_html = helper.user_bd_staff_badge(user)
+        expect(badge_html).to be_nil
+      end
+
+      it "does not display the BD STAFF badge if the user is nil" do
+        badge_html = helper.user_bd_staff_badge(nil)
         expect(badge_html).to be_nil
       end
     end
