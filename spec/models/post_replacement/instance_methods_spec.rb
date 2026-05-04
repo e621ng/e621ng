@@ -76,6 +76,44 @@ RSpec.describe PostReplacement do
       replacement.as_pending = "0"
       expect(replacement.upload_as_pending?).to be false
     end
+
+    it "defaults as_silent to false when as_pending is true" do
+      replacement = build(:post_replacement)
+      replacement.as_pending = "1"
+      expect(replacement.upload_as_silent?).to be false
+    end
+  end
+
+  describe "#upload_as_silent?" do
+    it "returns true when 'as_silent' is '1'" do
+      replacement = build(:post_replacement)
+      replacement.as_silent = "1"
+      expect(replacement.upload_as_silent?).to be true
+    end
+
+    it "returns true when 'as_silent' is 'true'" do
+      replacement = build(:post_replacement)
+      replacement.as_silent = "true"
+      expect(replacement.upload_as_silent?).to be true
+    end
+
+    it "returns false when 'as_silent' is '0'" do
+      replacement = build(:post_replacement)
+      replacement.as_silent = "0"
+      expect(replacement.upload_as_silent?).to be false
+    end
+
+    it "returns false when 'as_silent' is 'false'" do
+      replacement = build(:post_replacement)
+      replacement.as_silent = "false"
+      expect(replacement.upload_as_silent?).to be false
+    end
+
+    it "returns false when 'as_silent' is nil" do
+      replacement = build(:post_replacement)
+      replacement.as_silent = nil
+      expect(replacement.upload_as_silent?).to be false
+    end
   end
 
   # --------------------------------------------------------------------------

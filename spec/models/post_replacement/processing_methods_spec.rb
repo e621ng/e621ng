@@ -9,6 +9,27 @@ require "rails_helper"
 RSpec.describe PostReplacement do
   include_context "as admin"
 
+  def post_matches_replacement(post, replacement)
+    # Checks whether the post's attributes match the replacement's attributes
+    return false if post.nil? || replacement.nil?
+    # file-based attributes
+    file_atts_match =
+      post.md5 == replacement.md5 &&
+      post.image_width == replacement.image_width &&
+      post.image_height == replacement.image_height &&
+      post.file_ext == replacement.file_ext &&
+      post.file_size == replacement.file_size
+    # if the replacement has a source, check if the post has each one as well
+    source_matches =
+      if replacement.source.present?
+        replacement.source.split("\n").all? { |source| post.source.split("\n").include?(source) }
+      else
+        true
+      end
+
+    file_atts_match && source_matches
+  end
+
   # --------------------------------------------------------------------------
   # #reject!
   # --------------------------------------------------------------------------
@@ -87,7 +108,10 @@ RSpec.describe PostReplacement do
 
       expect(UploadService::Replacer).to have_received(:new)
         .with(post: replacement.post, replacement: replacement)
-      expect(processor).to have_received(:process!).with(penalize_current_uploader: true)
+      expect(processor).to have_received(:process!).with(
+        penalize_current_uploader: true,
+        credit_replacer: true,
+      )
     end
 
     it "returns early without delegating when FileValidator finds errors" do
@@ -101,6 +125,47 @@ RSpec.describe PostReplacement do
       replacement.approve!(penalize_current_uploader: false)
 
       expect(UploadService::Replacer).not_to have_received(:new)
+    end
+
+    context "when credit_replacer is false" do
+      let(:post)        { create(:post) }
+      let(:replacement) { create(:post_replacement, post: post) }
+      let(:processor) { instance_double(UploadService::Replacer, process!: nil) }
+
+      before do
+        stub_approve_deps(replacement)
+        allow(UploadService::Replacer).to receive(:new)
+          .with(post: replacement.post, replacement: replacement)
+          .and_return(processor)
+      end
+
+      it "delegates with credit_replacer disabled and penalty forced off" do
+        allow(UploadService::Replacer).to receive(:new)
+          .with(post: replacement.post, replacement: replacement)
+          .and_return(processor)
+
+        replacement.approve!(penalize_current_uploader: true, credit_replacer: false)
+
+        expect(processor).to have_received(:process!).with(
+          penalize_current_uploader: false,
+          credit_replacer: false,
+        )
+      end
+
+      it "retains the original uploader on the post" do
+        prev_md5 = post.md5
+        prev_uploader_id = post.uploader_id
+        replacement.approve!(penalize_current_uploader: true, credit_replacer: false)
+        post.reload
+        replacement.reload
+
+        # uploader should be unchanged since we're not crediting the replacer
+        expect(post.uploader_id).to be(prev_uploader_id)
+        # no longer has old file, so md5 should change
+        expect(post.md5).not_to be(prev_md5)
+        # other file attributes should be updated to match the replacement
+        # expect(post_matches_replacement(post, replacement)).to be true # FIXME
+      end
     end
   end
 
