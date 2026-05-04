@@ -17,7 +17,7 @@
         </tr>
         <tr>
           <th>Old</th>
-          <td><%= @change_request.original_name %></td>
+          <td><%= @change_request.original_name.presence || "<blank>" %></td>
         </tr>
         <tr>
           <th>New</th>

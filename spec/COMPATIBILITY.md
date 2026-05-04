@@ -98,7 +98,7 @@ Add a `before` guard at the top of the `RSpec.describe` block that checks whethe
 
 ```ruby
 RSpec.describe ArtistsController do
-  before { skip "Artists routes not available in this fork" unless Rails.application.routes.url_helpers.method_defined?(:artists_path) }
+  before { skip "Artists routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:artists_path) }
   # …
 end
 ```

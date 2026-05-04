@@ -133,7 +133,7 @@ module ApplicationHelper
     user_class += " user-post-uploader" if user.can_upload_free?
     user_class += " user-banned" if user.is_banned?
     user_class += " with-style" if CurrentUser.user.style_usernames?
-    html = link_to(user.pretty_name, user_path(user), class: user_class, rel: "nofollow")
+    html = link_to(user.pretty_name.presence || "<blank>", user_path(user), class: user_class, rel: "nofollow")
     html << " (Unactivated)" if include_activation && !user.is_verified?
     html
   end
@@ -164,14 +164,6 @@ module ApplicationHelper
 
       [:"#{prefix}-#{name}", value]
     end.to_h
-  end
-
-  def user_avatar(user)
-    return "" if user.nil?
-    post_id = user.avatar_id
-    return "" unless post_id
-    deferred_post_ids.add(post_id)
-    tag.article class: "thumbnail no-stats placeholder", id: "tp-#{post_id}", data: { id: post_id, initial: user.name[0].upcase }
   end
 
   def unread_dmails(user)

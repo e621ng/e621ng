@@ -220,6 +220,22 @@ RSpec.describe ForumTopicsController do
       put forum_topic_path(forum_topic), params: { forum_topic: { title: "same", is_sticky: true } }
       expect(forum_topic.reload.is_sticky).to be(false)
     end
+
+    it "updates updated_at when the creator edits the topic" do
+      forum_topic.update_columns(updated_at: 1.hour.ago)
+      old_updated_at = forum_topic.updated_at
+      sign_in_as user
+      put forum_topic_path(forum_topic), params: { forum_topic: { title: "new title" } }
+      expect(forum_topic.reload.updated_at).to be > old_updated_at
+    end
+
+    it "updates updated_at when a moderator edits the topic" do
+      forum_topic.update_columns(updated_at: 1.hour.ago)
+      old_updated_at = forum_topic.updated_at
+      sign_in_as mod
+      put forum_topic_path(forum_topic), params: { forum_topic: { title: "mod title" } }
+      expect(forum_topic.reload.updated_at).to be > old_updated_at
+    end
   end
 
   # forum_topic DELETE /forum_topics/:id(.:format) forum_topics#destroy

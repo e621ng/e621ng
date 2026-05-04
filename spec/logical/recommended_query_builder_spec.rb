@@ -12,6 +12,7 @@ RSpec.describe RecommendedQueryBuilder do
     character_tags = opts.fetch(:character_tags, [])
     copyright_tags = opts.fetch(:copyright_tags, [])
     species_tags   = opts.fetch(:species_tags, [])
+    all_tags       = opts.fetch(:all_tags, {})
 
     post = instance_double(Post, id: id)
     allow(post).to receive_messages(
@@ -22,25 +23,16 @@ RSpec.describe RecommendedQueryBuilder do
       pairs = { "character" => character_tags, "copyright" => copyright_tags, "species" => species_tags }
       (pairs[category] || []).map { |name, count| instance_double(Tag, name: name, post_count: count) }
     end
+    allow(post).to receive(:categorized_tags) do
+      all_tags.each_with_object({}) do |(cat_name, tags_list), h|
+        h[cat_name] = tags_list.map { |name, count| instance_double(Tag, name: name, post_count: count, category_name: cat_name) }
+      end
+    end
     post
   end
 
-  def build_for(post)
-    RecommendedQueryBuilder.new(post)
-  end
-
-  describe "constants" do
-    it "CHARACTER_WEIGHT is 2.0" do
-      expect(described_class::CHARACTER_WEIGHT).to eq(2.0)
-    end
-
-    it "COPYRIGHT_WEIGHT is 1.5" do
-      expect(described_class::COPYRIGHT_WEIGHT).to eq(1.5)
-    end
-
-    it "SPECIES_WEIGHT is 1.25" do
-      expect(described_class::SPECIES_WEIGHT).to eq(1.25)
-    end
+  def build_for(post, mode: :artist)
+    RecommendedQueryBuilder.new(post, mode: mode)
   end
 
   describe "exclusion query" do
@@ -128,7 +120,7 @@ RSpec.describe RecommendedQueryBuilder do
       let(:post) { make_post(character_tags: [["char_a", 1], ["char_b", 2]]) }
 
       it "includes a character weight function covering those tags" do
-        char_fn = function_score[:functions].find { |f| f[:weight] == described_class::CHARACTER_WEIGHT }
+        char_fn = function_score[:functions].find { |f| f[:weight] == described_class::WEIGHTS_FOR_ARTIST[:character] }
         expect(char_fn).to be_present
         expect(char_fn[:filter][:terms][:tags]).to include("char_a", "char_b")
       end
@@ -136,7 +128,7 @@ RSpec.describe RecommendedQueryBuilder do
 
     context "when the post has no character tags" do
       it "does not include a character weight function" do
-        char_fn = function_score[:functions].find { |f| f[:weight] == described_class::CHARACTER_WEIGHT }
+        char_fn = function_score[:functions].find { |f| f[:weight] == described_class::WEIGHTS_FOR_ARTIST[:character] }
         expect(char_fn).to be_nil
       end
     end
@@ -145,7 +137,7 @@ RSpec.describe RecommendedQueryBuilder do
       let(:post) { make_post(copyright_tags: [["copy_a", 1]]) }
 
       it "includes a copyright weight function covering those tags" do
-        copy_fn = function_score[:functions].find { |f| f[:weight] == described_class::COPYRIGHT_WEIGHT }
+        copy_fn = function_score[:functions].find { |f| f[:weight] == described_class::WEIGHTS_FOR_ARTIST[:copyright] }
         expect(copy_fn).to be_present
         expect(copy_fn[:filter][:terms][:tags]).to include("copy_a")
       end
@@ -153,7 +145,7 @@ RSpec.describe RecommendedQueryBuilder do
 
     context "when the post has no copyright tags" do
       it "does not include a copyright weight function" do
-        copy_fn = function_score[:functions].find { |f| f[:weight] == described_class::COPYRIGHT_WEIGHT }
+        copy_fn = function_score[:functions].find { |f| f[:weight] == described_class::WEIGHTS_FOR_ARTIST[:copyright] }
         expect(copy_fn).to be_nil
       end
     end
@@ -162,7 +154,7 @@ RSpec.describe RecommendedQueryBuilder do
       let(:post) { make_post(species_tags: [["spec_a", 1]]) }
 
       it "includes a species weight function covering those tags" do
-        spec_fn = function_score[:functions].find { |f| f[:weight] == described_class::SPECIES_WEIGHT }
+        spec_fn = function_score[:functions].find { |f| f[:weight] == described_class::WEIGHTS_FOR_ARTIST[:species] }
         expect(spec_fn).to be_present
         expect(spec_fn[:filter][:terms][:tags]).to include("spec_a")
       end
@@ -170,7 +162,7 @@ RSpec.describe RecommendedQueryBuilder do
 
     context "when the post has no species tags" do
       it "does not include a species weight function" do
-        spec_fn = function_score[:functions].find { |f| f[:weight] == described_class::SPECIES_WEIGHT }
+        spec_fn = function_score[:functions].find { |f| f[:weight] == described_class::WEIGHTS_FOR_ARTIST[:species] }
         expect(spec_fn).to be_nil
       end
     end
@@ -194,7 +186,7 @@ RSpec.describe RecommendedQueryBuilder do
     it "selects the 10 character tags with the lowest post_count when more than 10 are present" do
       tags = (1..12).map { |n| ["char_#{n}", n * 10] } # post_counts 10, 20, ..., 120
       function_score = build_for(make_post(character_tags: tags)).instance_variable_get(:@function_score)
-      selected = function_score[:functions].find { |f| f[:weight] == described_class::CHARACTER_WEIGHT }[:filter][:terms][:tags]
+      selected = function_score[:functions].find { |f| f[:weight] == described_class::WEIGHTS_FOR_ARTIST[:character] }[:filter][:terms][:tags]
       expect(selected.size).to eq(10)
       expect(selected).not_to include("char_11", "char_12") # highest post_counts excluded
     end
@@ -202,7 +194,7 @@ RSpec.describe RecommendedQueryBuilder do
     it "selects the 10 copyright tags with the lowest post_count when more than 10 are present" do
       tags = (1..12).map { |n| ["copy_#{n}", n * 10] }
       function_score = build_for(make_post(copyright_tags: tags)).instance_variable_get(:@function_score)
-      selected = function_score[:functions].find { |f| f[:weight] == described_class::COPYRIGHT_WEIGHT }[:filter][:terms][:tags]
+      selected = function_score[:functions].find { |f| f[:weight] == described_class::WEIGHTS_FOR_ARTIST[:copyright] }[:filter][:terms][:tags]
       expect(selected.size).to eq(10)
       expect(selected).not_to include("copy_11", "copy_12")
     end
@@ -210,9 +202,123 @@ RSpec.describe RecommendedQueryBuilder do
     it "selects the 10 species tags with the lowest post_count when more than 10 are present" do
       tags = (1..12).map { |n| ["spec_#{n}", n * 10] }
       function_score = build_for(make_post(species_tags: tags)).instance_variable_get(:@function_score)
-      selected = function_score[:functions].find { |f| f[:weight] == described_class::SPECIES_WEIGHT }[:filter][:terms][:tags]
+      selected = function_score[:functions].find { |f| f[:weight] == described_class::WEIGHTS_FOR_ARTIST[:species] }[:filter][:terms][:tags]
       expect(selected.size).to eq(10)
       expect(selected).not_to include("spec_11", "spec_12")
+    end
+  end
+
+  describe "tags mode" do
+    def tags_function_score(post)
+      build_for(post, mode: :tags).instance_variable_get(:@function_score)
+    end
+
+    describe "pool exclusion" do
+      it "adds a must_not terms clause for the post's pool ids" do
+        builder = build_for(make_post(pool_ids: [10, 20]), mode: :tags)
+        expect(builder.must_not).to include({ terms: { pools: [10, 20] } })
+      end
+
+      it "does not add a pool must_not clause when the post has no pools" do
+        builder = build_for(make_post(pool_ids: []), mode: :tags)
+        pool_clauses = builder.must_not.select { |clause| clause[:terms]&.key?(:pools) }
+        expect(pool_clauses).to be_empty
+      end
+    end
+
+    describe "function_score structure" do
+      let(:post) { make_post(id: 7) }
+      let(:function_score) { tags_function_score(post) }
+
+      it "uses sum score mode" do
+        expect(function_score[:score_mode]).to eq(:sum)
+      end
+
+      it "uses replace boost mode" do
+        expect(function_score[:boost_mode]).to eq(:replace)
+      end
+
+      it "always includes a random_score function seeded with the post id" do
+        expect(function_score[:functions]).to include({ random_score: { seed: 7, field: "id" } })
+      end
+    end
+
+    describe "per-category tag weights" do
+      it "assigns the artist weight to artist tags" do
+        post = make_post(all_tags: { "artist" => [["artist_a", 50]] })
+        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "artist_a" }
+        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:artist])
+      end
+
+      it "assigns the character weight to character tags" do
+        post = make_post(all_tags: { "character" => [["char_a", 10]] })
+        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "char_a" }
+        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:character])
+      end
+
+      it "assigns the copyright weight to copyright tags" do
+        post = make_post(all_tags: { "copyright" => [["copy_a", 10]] })
+        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "copy_a" }
+        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:copyright])
+      end
+
+      it "assigns the species weight to species tags" do
+        post = make_post(all_tags: { "species" => [["spec_a", 10]] })
+        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "spec_a" }
+        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:species])
+      end
+
+      it "assigns the general weight to general tags" do
+        post = make_post(all_tags: { "general" => [["tag_a", 100]] })
+        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "tag_a" }
+        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:general])
+      end
+    end
+
+    describe "MAX_TAGS cap" do
+      it "includes all tags when the total equals MAX_TAGS" do
+        tags = (1..described_class::MAX_TAGS).map { |n| ["tag_#{n}", n] }
+        post = make_post(all_tags: { "general" => tags })
+        functions = tags_function_score(post)[:functions]
+        expect(functions.size).to eq(described_class::MAX_TAGS + 1) # tags + random_score
+      end
+
+      it "caps at MAX_TAGS tags and excludes the highest post_count tags when over the limit" do
+        tags = (1..described_class::MAX_TAGS + 5).map { |n| ["tag_#{n}", n] }
+        post = make_post(all_tags: { "general" => tags })
+        functions = tags_function_score(post)[:functions]
+        expect(functions.size).to eq(described_class::MAX_TAGS + 1)
+        tag_names_in_functions = functions.filter_map { |f| f.dig(:filter, :term, :tags) }
+        (described_class::MAX_TAGS + 1..described_class::MAX_TAGS + 5).each do |n|
+          expect(tag_names_in_functions).not_to include("tag_#{n}")
+        end
+      end
+    end
+
+    describe "rarest-first selection" do
+      it "excludes the tag with the highest post_count when trimming to MAX_TAGS" do
+        tags = (1..described_class::MAX_TAGS + 1).map { |n| ["tag_#{n}", n] }
+        post = make_post(all_tags: { "general" => tags })
+        tag_names = tags_function_score(post)[:functions].filter_map { |f| f.dig(:filter, :term, :tags) }
+        expect(tag_names).not_to include("tag_#{described_class::MAX_TAGS + 1}")
+      end
+    end
+
+    describe "empty tag set" do
+      it "produces only the random_score function when the post has no tags" do
+        post = make_post(all_tags: {})
+        functions = tags_function_score(post)[:functions]
+        expect(functions.size).to eq(1)
+        expect(functions.first).to have_key(:random_score)
+      end
+    end
+
+    describe "no artist should terms" do
+      it "does not add artist tags to the should clause" do
+        post = make_post(known_artists: %w[some_artist], all_tags: { "artist" => [["some_artist", 50]] })
+        builder = build_for(post, mode: :tags)
+        expect(builder.should).to be_empty
+      end
     end
   end
 end

@@ -626,7 +626,7 @@ RSpec.describe Post do
     end
 
     describe "#avoid_posting_artists" do
-      before { skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.method_defined?(:avoid_postings_path) }
+      before { skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:avoid_postings_path) }
 
       it "returns AvoidPosting records for artist tags on the post" do
         artist = create(:artist)

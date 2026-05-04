@@ -10,13 +10,13 @@
           <%= svg_icon(:chexagon, class: "chexagon", title: "Comment by an artist on this post") if post.linked_users.include?(comment.creator_id) %>
         <% end %>
       </h4>
-      <%= comment.creator.level_string %>
+      <%= user_level_plain(comment.creator) %>
       <% if comment.is_hidden? %>
         (hidden)
       <% end %>
     </div>
     <div class="avatar">
-      <%= user_avatar(comment.creator) %>
+      <%= render AvatarComponent.new(user: comment.creator) %>
     </div>
     <div class="post-time">
       <%= link_to time_ago_in_words_tagged(comment.created_at), post_path(id: comment.post_id, anchor: "comment-#{comment.id}") %>

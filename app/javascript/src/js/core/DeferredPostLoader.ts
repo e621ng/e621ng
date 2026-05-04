@@ -1,10 +1,9 @@
-import { DeferredPostData } from "@/models/PostCache";
-
-// Cursed way to pass post data from Rails to the frontend.
-
 import ThumbnailEngine from "@/components/ThumbnailEngine";
 import E621Type from "@/interfaces/E621";
-import PostCache from "@/models/PostCache";
+import PostCache, { DeferredPostData } from "@/models/PostCache";
+import Logger from "@/utility/Logger";
+
+// Cursed way to pass post data from Rails to the frontend.
 
 declare const E621: E621Type;
 
@@ -16,6 +15,8 @@ declare global {
 }
 
 export default class DeferredPostLoader {
+
+  private static Logger = new Logger("Deferred");
 
   public static loadPostData (postsData: Record<number, DeferredPostData> = window.___deferred_posts || {}) {
     if (typeof postsData !== "object") return;
@@ -36,7 +37,7 @@ export default class DeferredPostLoader {
     E621.Blacklist.update_visibility();
     E621.Blacklist.update_styles();
 
-    E621.Logger.log("Deferred posts", "\n ⤷ Loaded: " + processed.length, "\n ⤷ In cache: " + PostCache.stats().cachedPosts);
+    this.Logger.log("Loaded post data", "\n ⤷ Processed: " + processed.length + " / " + Object.keys(postsData).length, "\n ⤷ In cache: " + PostCache.stats().cachedPosts);
 
     window.___deferred_posts = {};
   }
@@ -51,16 +52,24 @@ export default class DeferredPostLoader {
     const post = PostCache.get(postID);
     if (!post || !post.preview_url) return;
 
+    let path = post.preview_url;
+    if (!post.isDeleted && avatar.data("has-cropped-avatar")) {
+      const userID = avatar.data("user-id") || "0",
+        userHash = avatar.data("user-hash") || "0";
+      if (userID) path = post.preview_url.replace(/\/data\/.*$/, `/data/avatars/${userID}.jpg?t=${userHash}`);
+    }
+
     if (E621.Blacklist.hiddenPosts.has(postID))
       avatar.addClass("blacklisted");
     $("<img>")
-      .attr("src", post.preview_url)
+      .attr("src", path)
       .appendTo(avatar.find("span.avatar-image"));
 
     PostCache.registerAvatar(avatar, postID);
   }
 
   public static renderDTextThumbnails () {
+    let counter = 0;
     for (const placeholder of $(".thumb-placeholder-link")) {
       const $placeholder = $(placeholder);
       const postID = $placeholder.data("id");
@@ -71,24 +80,53 @@ export default class DeferredPostLoader {
       const thumbnail = ThumbnailEngine.render(post, { showStatistics: false, inline: true, native: true });
       if (!thumbnail) continue;
       $placeholder.replaceWith(thumbnail);
+      counter++;
     }
 
     // Any placeholders left cannot be rendered
-    $(".thumb-placeholder-link").removeClass("thumb-placeholder-link");
+    const unrendered = $(".thumb-placeholder-link")
+      .removeClass("thumb-placeholder-link");
+
+    this.Logger.log("Rendered DText thumbnails", "\n ⤷ Count: " + counter, "\n ⤷ Unrendered: " + unrendered.length);
   }
 
   public static renderUserAvatars () {
-    for (const placeholder of $(".avatar article.thumbnail.placeholder")) {
+    let counter = 0;
+    for (const placeholder of $("article.thumbnail.avatar.placeholder")) {
       const $placeholder = $(placeholder);
+      if ($placeholder.hasClass("no-render")) continue;
+
       const postID = $placeholder.data("id");
       if (!postID) continue;
       const post = PostCache.get(postID);
       if (!post) continue;
 
-      const thumbnail = ThumbnailEngine.render(post, { showStatistics: false, showTypeBadges: false, inline: true });
+      let jpgUrl: string, webpUrl: string;
+      if (!post.isDeleted && $placeholder.data("has-cropped-avatar")) {
+        const userID = $placeholder.data("user-id") || "0",
+          userHash = $placeholder.data("user-hash") || "0";
+        jpgUrl = `/data/avatars/${userID}.jpg?t=${userHash}`;
+        webpUrl = `/data/avatars/${userID}.webp?t=${userHash}`;
+      }
+
+      const thumbnail = ThumbnailEngine.render(post, {
+        showStatistics: false,
+        showTypeBadges: false,
+        inline: true,
+        jpegUrl: jpgUrl,
+        webpUrl: webpUrl,
+        classes: "avatar",
+      });
       if (!thumbnail) continue;
+
+      if ($placeholder.data("initial"))
+        thumbnail.find("a.thm-link").attr("data-initial", $placeholder.data("initial"));
+
       $placeholder.replaceWith(thumbnail);
+      counter++;
     }
+
+    this.Logger.log("Rendered avatars", "\n ⤷ Count: " + counter);
   }
 }
 

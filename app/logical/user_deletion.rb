@@ -60,6 +60,7 @@ class UserDeletion
       custom_style: "",
       level: User::Levels::MEMBER,
     )
+    AvatarCleanupJob.perform_later(user.id, force: true)
   end
 
   def reset_password

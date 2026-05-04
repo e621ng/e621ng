@@ -1,82 +1,87 @@
 # frozen_string_literal: true
 
 # Rubocop does not understand the Blueprinter block syntax
-# rubocop:disable Style/SymbolProc
+# rubocop:disable Lint/RedundantCopDisableDirective, Style/SymbolProc, Metrics/BlockLength
 
 class PostBlueprint < Blueprinter::Base
   identifier :id
+  # Fields are displayed in the same order that they are defined
 
-  # TODO: For compatibility reasons, the following fields are in the same order as in the old API.
-  # When we update the API to not include the object wrapper, we can reorder these fields more logically.
+  field :created_at
+  field :updated_at
+  field :change_seq
 
-  fields :created_at, :updated_at
+  ### File Information ###
 
-  field :file do |post|
-    file_attributes = {
-      width: post.image_width,
-      height: post.image_height,
+  field :files do |post|
+    output = {}
+
+    output[:meta] = {
+      md5: post.md5,
       ext: post.file_ext,
       size: post.file_size,
-      md5: post.md5,
+      duration: post.duration&.to_f,
+
+      has_sample: post.has_sample?,
+    }
+
+    output[:original] = {
+      width: post.image_width,
+      height: post.image_height,
       url: nil,
     }
-    if post.visible?
-      file_attributes[:url] = post.file_url
-    end
-    file_attributes
-  end
 
-  field :preview do |post|
-    preview_attributes = {
+    output[:preview] = {
       width: post.preview_width,
       height: post.preview_height,
-      url: nil,
-      alt: nil,
+      jpg: nil,
+      webp: nil,
     }
-    if post.visible?
-      preview_attributes[:url] = post.preview_file_url
-      preview_attributes[:alt] = post.preview_file_url(:preview_webp)
-    end
-    preview_attributes
-  end
 
-  field :sample do |post|
-    sample_attributes = {
-      has: post.has_sample?,
+    output[:sample] = {
       width: post.sample_width,
       height: post.sample_height,
-      url: nil,
-      alt: nil,
-      alternates: post.video_sample_list,
+      jpg: nil,
+      webp: nil,
     }
-    if post.visible? && post.has_sample?
-      sample_attributes[:url] = post.sample_url
-      sample_attributes[:alt] = post.sample_url(:sample_webp)
+
+    if post.visible?
+      output[:original][:url] = post.file_url
+
+      preview = post.preview_file_url_pair
+      output[:preview][:webp] = preview[0]
+      output[:preview][:jpg] = preview[1]
+
+      sample = post.sample_url_pair # falls back to original file if no sample is available
+      output[:sample][:webp] = sample[0]
+      output[:sample][:jpg] = sample[1]
     end
-    sample_attributes
+
+    if post.is_video?
+      output[:video] = post.video_sample_list
+    end
+
+    output
   end
 
-  field :score do |post|
+  ### Post Metadata ###
+
+  field :uploader_id
+  field :uploader_name
+  field :approver_id
+
+  field :stats do |post|
     {
-      up: post.up_score,
-      down: post.down_score,
-      total: post.score,
+      score: {
+        up: post.up_score,
+        down: post.down_score,
+        total: post.score,
+      },
+      fav_count: post.fav_count,
+      is_favorited: post.is_favorited?,
+      comment_count: post.visible_comment_count(CurrentUser.user),
     }
   end
-
-  field :tags do |post|
-    tags = {}
-    TagCategory::REVERSE_MAPPING.each do |category_id, category_name|
-      tags[category_name] = post.typed_tags(category_id)
-    end
-    tags
-  end
-
-  field :locked_tags do |post|
-    post.locked_tags&.split || []
-  end
-
-  fields :change_seq
 
   field :flags do |post|
     {
@@ -89,42 +94,59 @@ class PostBlueprint < Blueprinter::Base
     }
   end
 
-  fields :rating, :fav_count
+  field :has do |post|
+    {
+      parent: post.parent_id.present?,
+      children: post.has_children,
+      active_children: post.has_active_children,
+      notes: post.has_notes?,
+      sample: post.has_sample?,
+    }
+  end
 
-  field :sources do |post|
-    post.source.split("\n")
+  field :relationships do |post|
+    {
+      parent_id: post.parent_id,
+      children: post.children_ids&.split&.map(&:to_i) || [],
+    }
   end
 
   field :pools do |post|
     post.pool_ids
   end
 
-  field :relationships do |post|
-    {
-      parent_id: post.parent_id,
-      has_children: post.has_children,
-      has_active_children: post.has_active_children,
-      children: post.children_ids&.split&.map(&:to_i) || [],
-    }
+  ### Tags, Rating, Sources, and Description ###
+
+  field :rating
+  field :locked_tags do |post|
+    post.locked_tags&.split || []
   end
 
-  fields :approver_id, :uploader_id, :uploader_name, :description
-
-  field :comment_count do |post|
-    post.visible_comment_count(CurrentUser.user)
+  field :sources do |post|
+    post.source.split("\n")
   end
 
-  field :is_favorited do |post|
-    post.is_favorited?
+  field :description
+
+  ### Views ###
+
+  # Basic API Output: no categories, better performance
+  view :basic do
+    field :tags do |post|
+      post.tag_string.split
+    end
   end
 
-  field :has_notes do |post|
-    post.has_notes?
-  end
-
-  field :duration do |post|
-    post.duration&.to_f
+  # Extended API Output: includes tag categories
+  view :extended do
+    field :tags do |post|
+      tags = {}
+      TagCategory::REVERSE_MAPPING.each do |category_id, category_name|
+        tags[category_name] = post.typed_tags(category_id)
+      end
+      tags
+    end
   end
 end
 
-# rubocop:enable Style/SymbolProc
+# rubocop:enable Lint/RedundantCopDisableDirective, Style/SymbolProc, Metrics/BlockLength

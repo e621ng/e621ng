@@ -39,6 +39,7 @@ class Post < ApplicationRecord
   after_save :update_parent_on_save
   after_save :apply_post_metatags
   after_commit :delete_files, on: :destroy
+  after_commit :delete_avatar_crops, on: :destroy
   after_commit :remove_iqdb_async, on: :destroy
   # after_commit :update_iqdb_async, :on => :create
   after_commit :handle_thumbnails_on_create, on: :create
@@ -85,6 +86,12 @@ class Post < ApplicationRecord
       Post.delete_files(id, md5, file_ext, force: true)
     end
 
+    def delete_avatar_crops
+      User.where(avatar_id: id).pluck(:id).each do |user_id|
+        AvatarCleanupJob.perform_later(user_id, force: true)
+      end
+    end
+
     def move_files_on_delete
       Danbooru.config.storage_manager.move_file_delete(self)
     end
@@ -126,6 +133,11 @@ class Post < ApplicationRecord
     def sample_url(type = :sample_jpg)
       return file_url unless has_sample?
       storage_manager.post_file_url(self, type)
+    end
+
+    def sample_url_pair
+      return [file_url, file_url] unless has_sample?
+      [sample_url(:sample_webp), sample_url(:sample_jpg)]
     end
 
     def preview_file_url(type = :preview_jpg)
@@ -1581,6 +1593,7 @@ class Post < ApplicationRecord
           )
           decrement_tag_post_counts
           move_files_on_delete
+          delete_avatar_crops
           PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
         end
       end

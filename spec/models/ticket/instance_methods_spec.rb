@@ -80,14 +80,31 @@ RSpec.describe Ticket do
       expect(ticket.subject).to eq("#{'a' * 38}...")
     end
 
+    it "trims leading newlines from the reason" do
+      ticket = create(:ticket, reason: "\n\nReason with leading newlines.")
+      expect(ticket.subject).to eq("Reason with leading newlines.")
+    end
+
     it "returns the first line of the reason for post-type tickets" do
       reason = "First line\nSecond line"
       ticket = create(:ticket, :post_type, reason: reason)
       expect(ticket.subject).to eq("First line")
     end
 
+    it "trims leading newlines for post-type tickets" do
+      reason = "\n\nFirst line\nSecond line"
+      ticket = create(:ticket, :post_type, reason: reason)
+      expect(ticket.subject).to eq("First line")
+    end
+
     it "returns the first line of the reason for replacement-type tickets" do
       reason = "First line\nSecond line"
+      ticket = create(:ticket, :replacement_type, reason: reason)
+      expect(ticket.subject).to eq("First line")
+    end
+
+    it "trims leading newlines for replacement-type tickets" do
+      reason = "\n\nFirst line\nSecond line"
       ticket = create(:ticket, :replacement_type, reason: reason)
       expect(ticket.subject).to eq("First line")
     end

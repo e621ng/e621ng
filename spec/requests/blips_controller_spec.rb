@@ -3,12 +3,13 @@
 require "rails_helper"
 
 RSpec.describe BlipsController do
-  before { skip "Blips routes not available in this fork" unless Rails.application.routes.url_helpers.method_defined?(:blips_path) }
+  before { skip "Blips routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:blips_path) }
 
   include_context "as admin"
 
   let(:creator)      { create(:user) }
   let(:other_member) { create(:user) }
+  let(:janitor)      { create(:janitor_user) }
   let(:moderator)    { create(:moderator_user) }
   let(:admin)        { create(:admin_user) }
   # belongs_to_creator only sets creator_ip_addr when creator_id is nil, so
@@ -60,8 +61,8 @@ RSpec.describe BlipsController do
         expect(response).to have_http_status(:ok)
       end
 
-      it "returns 200 for a moderator" do
-        sign_in_as moderator
+      it "returns 200 for a janitor" do
+        sign_in_as janitor
         get blip_path(blip)
         expect(response).to have_http_status(:ok)
       end
@@ -275,6 +276,12 @@ RSpec.describe BlipsController do
       expect { post delete_blip_path(blip) }.to change { blip.reload.is_deleted }.from(false).to(true)
     end
 
+    it "returns 403 for a janitor" do
+      sign_in_as janitor
+      post delete_blip_path(blip)
+      expect(response).to have_http_status(:forbidden)
+    end
+
     it "returns 403 for a non-creator non-moderator member" do
       sign_in_as other_member
       post delete_blip_path(blip)
@@ -303,6 +310,12 @@ RSpec.describe BlipsController do
 
     it "returns 403 for a regular member" do
       sign_in_as creator
+      post undelete_blip_path(blip)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a janitor" do
+      sign_in_as janitor
       post undelete_blip_path(blip)
       expect(response).to have_http_status(:forbidden)
     end
@@ -360,6 +373,12 @@ RSpec.describe BlipsController do
       expect(response).to have_http_status(:forbidden)
     end
 
+    it "returns 403 for a janitor" do
+      sign_in_as janitor
+      post warning_blip_path(blip), params: { record_type: "warning" }
+      expect(response).to have_http_status(:forbidden)
+    end
+
     context "as a moderator" do
       before { sign_in_as moderator }
 
@@ -401,8 +420,8 @@ RSpec.describe BlipsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "allows staff (moderator) through when locked down" do
-      sign_in_as moderator
+    it "allows staff (janitor) through when locked down" do
+      sign_in_as janitor
       get new_blip_path
       expect(response).to have_http_status(:ok)
     end

@@ -2,7 +2,7 @@
   <div class="author-info">
     <div class="name-rank">
       <h4 class="author-name"><%= link_to_user staff_note.creator %></h4>
-      <%= staff_note.creator.level_string %>
+      <%= user_level_plain(staff_note.creator) %>
     </div>
     <div class="post-time">
       <%= link_to time_ago_in_words_tagged(staff_note.created_at), staff_notes_path(search: { user_id: staff_note.user_id }, anchor: "staff-note-#{staff_note.id}") %>

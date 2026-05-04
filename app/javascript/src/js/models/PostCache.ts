@@ -333,6 +333,10 @@ export class CachedPost implements CachedPostData {
       default: return "unknown";
     }
   }
+
+  public get isPending () { return this.flags.includes("pending"); }
+  public get isFlagged () { return this.flags.includes("flagged"); }
+  public get isDeleted () { return this.flags.includes("deleted"); }
 }
 
 interface BasicPostData {

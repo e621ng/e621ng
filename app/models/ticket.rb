@@ -31,7 +31,7 @@ class Ticket < ApplicationRecord
   #
   # |    Type    |      Can Create     |        Visible       |
   # |:----------:|:-------------------:|:--------------------:|
-  # |    Blip    |       Visible       |  Janitor+ / Creator  |
+  # |    Blip    |      Accessible     |  Janitor+ / Creator  |
   # |   Comment  |       Visible       |  Janitor+ / Creator  |
   # |    Dmail   | Visible & Recipient | Moderator+ / Creator |
   # | Forum Post |       Visible       |  Janitor+ / Creator  |
@@ -46,11 +46,13 @@ class Ticket < ApplicationRecord
   module TicketTypes
     module Blip
       def can_create_for?(user)
-        content&.visible_to?(user)
+        content&.is_accessible?(user)
       end
 
       def can_view?(user)
-        (user.is_staff? && content&.visible_to?(user)) || user.is_admin? || (user.id == creator_id)
+        return true if user.is_staff?
+        return true if user.id == creator_id
+        false
       end
     end
 
@@ -115,7 +117,7 @@ class Ticket < ApplicationRecord
       end
 
       def subject
-        reason.split("\n")[0] || "Unknown Report Type"
+        reason.strip.split("\n").filter(&:present?)[0] || "Unknown Report Type"
       end
 
       def can_create_for?(_user)
@@ -191,7 +193,7 @@ class Ticket < ApplicationRecord
       end
 
       def subject
-        reason.split("\n")[0] || "Unknown Report Type"
+        reason.strip.split("\n").filter(&:present?)[0] || "Unknown Report Type"
       end
     end
   end
@@ -361,10 +363,11 @@ class Ticket < ApplicationRecord
   end
 
   def subject
-    if reason.length > 40
-      "#{reason[0, 38]}..."
+    trimmed = reason.strip
+    if trimmed.length > 40
+      "#{trimmed[0, 38]}..."
     else
-      reason
+      trimmed
     end
   end
 

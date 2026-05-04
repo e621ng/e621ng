@@ -5,12 +5,14 @@
   href="<%= user_path(user) %>"
   class="simple-avatar placeholder nav-controls-profile collapse-2"
   data-user-id="<%= user.id %>"
+  data-user-hash="<%= user.updated_at.to_i %>"
+  data-has-cropped-avatar="<%= user.has_cropped_avatar? %>"
   data-id="<%= avatar_id %>"
-  data-name="<%= user.name %>"
+  data-name="<%= user.name.presence || "<blank>" %>"
   data-has-mail="<%= has_mail %>"
 >
-  <span class="avatar-name"><%= user.pretty_name %></span>
-  <span class="avatar-image" data-name="<%= user.name&.to_s&.first&.capitalize || "" %>"></span>
+  <span class="avatar-name"><%= user.pretty_name.presence || "<blank>" %></span>
+  <span class="avatar-image" data-name="<%= (user.name.presence || "?")[0].capitalize %>"></span>
   <span class="avatar-more"><%= svg_icon(:chevron_down) %></span>
 </a>
 

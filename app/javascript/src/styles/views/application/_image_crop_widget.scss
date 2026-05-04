@@ -1,0 +1,51 @@
+.image-crop-widget {
+  display: inline-block;
+  user-select: none;
+
+  &-image-wrap {
+    position: relative;
+    cursor: crosshair;
+  }
+
+  &-selection {
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(0, 0, 0, 0.6);
+    box-sizing: border-box;
+    cursor: move;
+
+    &.size-warning {
+      border-color: palette("background-orange");
+
+      &:after {
+        content: "Crop area is too small";
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        line-height: 1rem;
+        font-size: 0.85rem;
+        padding: 0.125rem 0.25rem;
+
+        background-color: palette("background-orange");
+        @include st-radius;
+      }
+    }
+
+    .image-crop-handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.5);
+      box-sizing: border-box;
+
+      &[data-handle="nw"] { top: -5px;    left: -5px;  cursor: nw-resize; }
+      &[data-handle="ne"] { top: -5px;    right: -5px; cursor: ne-resize; }
+      &[data-handle="sw"] { bottom: -5px; left: -5px;  cursor: sw-resize; }
+      &[data-handle="se"] { bottom: -5px; right: -5px; cursor: se-resize; }
+    }
+  }
+
+  &-warning {
+    color: #f80;
+    margin-top: 0.5em;
+  }
+}

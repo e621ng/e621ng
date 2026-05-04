@@ -23,6 +23,11 @@
 
     .content-menu { margin-top: 1rem; }
   }
+
+  .avatar {
+    // Temporary, until the new comment UI is implemented.
+    article.thumbnail.no-render { display: none; }
+  }
 }
 
 @media screen and (max-width: 800px) {
