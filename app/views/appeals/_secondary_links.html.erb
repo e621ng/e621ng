@@ -1,0 +1,9 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "List", appeals_path %>
+  <% unless CurrentUser.is_anonymous? %>
+    <%= subnav_link_to "Mine", appeals_path(search: { creator_id: CurrentUser.id }) %>
+  <% end %>
+  <% if CurrentUser.is_janitor? %>
+  <%= subnav_link_to "Claimed", appeals_path(search: { claimant_id: CurrentUser.id }) %>
+  <% end %>
+<% end %>

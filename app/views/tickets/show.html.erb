@@ -118,7 +118,7 @@
       </table>
     </div>
 
-    <% if CurrentUser.is_staff? && @ticket.can_handle? %>
+    <% if CurrentUser.is_staff? && @ticket.can_handle?(CurrentUser.user) %>
       <div class="section">
         <%= custom_form_for(@ticket) do |f| %>
           <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @ticket.status || "approved" %>

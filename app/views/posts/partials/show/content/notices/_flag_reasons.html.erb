@@ -32,6 +32,12 @@
           </div>
         </div>
       <% end %>
+
+      <% if flag.is_deletion? && post.uploader_id == CurrentUser.user.id %>
+        <div class="post-flag-appeal" style="margin-top: 0.5rem;">
+          <%= link_to "Appeal Deletion", new_ticket_path(qtype: "flag", disp_id: flag.id), class: "st-button" %>
+        </div>
+      <% end %>
     </li>
     <% if post.is_deleted? && flag.is_deletion && !CurrentUser.is_janitor? %>
       <% break %>

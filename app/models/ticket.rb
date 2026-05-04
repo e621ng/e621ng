@@ -222,6 +222,32 @@ class Ticket < ApplicationRecord
         reason.strip.split("\n").filter(&:present?)[0] || "Unknown Report Type"
       end
     end
+
+    module Flag
+      def model
+        ::PostFlag
+      end
+
+      def can_create_for?(user)
+        return false if content.blank?
+        return false unless content.post.uploader_id == user.id
+        true
+      end
+
+      def can_view?(user)
+        return true if user.is_staff?
+        return true if user.id == creator_id
+        false
+      end
+
+      def can_claim?(user)
+        user.is_janitor?
+      end
+
+      def can_handle?(user)
+        user.is_janitor?
+      end
+    end
   end
 
   module APIMethods
@@ -289,6 +315,8 @@ class Ticket < ApplicationRecord
         self.accused_id = Dmail.find(disp_id).from_id
       when "user"
         self.accused_id = disp_id
+      when "flag"
+        self.accused_id = PostFlag.find(disp_id).creator_id
       end
     end
   end

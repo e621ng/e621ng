@@ -132,6 +132,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :appeals, only: %i[index show]
+
   resources :takedowns do
     collection do
       post :count_matching_posts

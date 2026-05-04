@@ -1,0 +1,15 @@
+<tr>
+  <td><span class='title'>Deletion Appeal</span></td>
+  <td>
+    <% if @ticket.content && @ticket.content.post %>
+      <% component = PostThumbnailComponent.new(post: @ticket.content.post, stats: true, show_deleted: true, no_blacklist: true) %>
+      <% if component.render? %>
+        <%= render(component) %>
+      <% else %>
+        <%= link_to("Post ##{@ticket.disp_id}", post_path(id: @ticket.disp_id)) %>
+      <% end %>
+    <% else %>
+      <em><%= link_to("Post Flag ##{@ticket.disp_id}", post_flag_path(id: @ticket.disp_id)) %> not found</em>
+    <% end %>
+  </td>
+</tr>
