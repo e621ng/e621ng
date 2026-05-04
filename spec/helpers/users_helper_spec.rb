@@ -6,21 +6,24 @@ RSpec.describe UsersHelper do
   let(:user) { build(:user) }
 
   describe "#user_level_badge" do
+    context "when user does not have a custom title" do
+      it "displays the level string in uppercase" do
+        badge_html = helper.user_level_badge(user)
+        expect(badge_html).to include("MEMBER")
+      end
+
+      it "does not display the custom title badge" do
+        badge_html = helper.user_custom_title_badge(user)
+        expect(badge_html).to be_nil
+      end
+    end
+
     context "when user has a custom title" do
       it "displays the custom title in uppercase" do
         user.custom_title = "Custom Title"
 
-        badge_html = helper.user_level_badge(user)
+        badge_html = helper.user_custom_title_badge(user)
         expect(badge_html).to include("CUSTOM TITLE")
-      end
-    end
-
-    context "when user does not have a custom title" do
-      it "displays the level string in uppercase" do
-        user.custom_title = nil
-
-        badge_html = helper.user_level_badge(user)
-        expect(badge_html).to include("MEMBER")
       end
     end
   end
