@@ -61,7 +61,10 @@ RSpec.describe Ticket do
       context "when the content no longer exists" do
         let(:fresh_ticket) { Ticket.find(ticket.id) }
 
-        before { ticket; blip.destroy! }
+        before do
+          ticket
+          blip.destroy!
+        end
 
         it "allows the creator to view" do
           expect(fresh_ticket.can_view?(creator)).to be true
@@ -124,7 +127,10 @@ RSpec.describe Ticket do
       context "when the content no longer exists" do
         let(:fresh_ticket) { Ticket.find(ticket.id) }
 
-        before { ticket; comment.destroy! }
+        before do
+          ticket
+          comment.destroy!
+        end
 
         it "allows the creator to view" do
           expect(fresh_ticket.can_view?(creator)).to be true
@@ -192,7 +198,10 @@ RSpec.describe Ticket do
       context "when the content no longer exists" do
         let(:fresh_ticket) { Ticket.find(ticket.id) }
 
-        before { ticket; dmail.destroy! }
+        before do
+          ticket
+          dmail.destroy!
+        end
 
         it "allows the creator to view" do
           expect(fresh_ticket.can_view?(creator)).to be true
@@ -253,7 +262,10 @@ RSpec.describe Ticket do
       context "when the content no longer exists" do
         let(:fresh_ticket) { Ticket.find(ticket.id) }
 
-        before { ticket; ticket.content.destroy! }
+        before do
+          ticket
+          ticket.content.destroy!
+        end
 
         it "allows the creator to view" do
           expect(fresh_ticket.can_view?(creator)).to be true
@@ -395,7 +407,10 @@ RSpec.describe Ticket do
       context "when the content no longer exists" do
         let(:fresh_ticket) { Ticket.find(ticket.id) }
 
-        before { ticket; public_set.destroy! }
+        before do
+          ticket
+          public_set.destroy!
+        end
 
         it "allows the creator to view" do
           expect(fresh_ticket.can_view?(creator)).to be true
@@ -527,7 +542,10 @@ RSpec.describe Ticket do
       context "when the content no longer exists" do
         let(:fresh_ticket) { Ticket.find(ticket.id) }
 
-        before { ticket; ticket.content.destroy! }
+        before do
+          ticket
+          ticket.content.destroy!
+        end
 
         it "allows the creator to view" do
           expect(fresh_ticket.can_view?(creator)).to be true
@@ -547,5 +565,4 @@ RSpec.describe Ticket do
       end
     end
   end
-
 end
