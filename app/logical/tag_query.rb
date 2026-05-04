@@ -1521,32 +1521,32 @@ class TagQuery
 
     case tag_type
     when :must_not
-      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag)
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag_name)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError.new(tag: tag, prefix: "-", query_obj: self)
+        raise InvalidTagError.new(tag: tag_name, prefix: "-", query_obj: self)
       end
-      if tag.include?("*")
-        q[:tags][:must_not] += pull_wildcard_tags(tag.downcase)
+      if tag_name.include?("*")
+        q[:tags][:must_not] += pull_wildcard_tags(tag_name)
         check_opensearch_clause_count
       else
-        q[:tags][:must_not] << tag.downcase
+        q[:tags][:must_not] << tag_name
       end
     when :should
-      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK_2.match?(tag)
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK_2.match?(tag_name)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError.new(tag: tag, prefix: "~", has_wildcard: tag.include?("*"), query_obj: self)
+        raise InvalidTagError.new(tag: tag_name, prefix: "~", has_wildcard: tag_name.include?("*"), query_obj: self)
       end
-      q[:tags][:should] << tag.downcase
+      q[:tags][:should] << tag_name
     when :must
-      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag)
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag_name)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError.new(tag: tag, query_obj: self)
+        raise InvalidTagError.new(tag: tag_name, query_obj: self)
       end
-      if tag.include?("*")
-        q[:tags][:should] += pull_wildcard_tags(tag)
+      if tag_name.include?("*")
+        q[:tags][:should] += pull_wildcard_tags(tag_name)
         check_opensearch_clause_count
       else
-        q[:tags][:must] << tag.downcase
+        q[:tags][:must] << tag_name
       end
     end
   end
