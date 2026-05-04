@@ -1,36 +1,50 @@
 # frozen_string_literal: true
 
 module FileMethods
+  FILE_TYPE = {
+    png: "png",
+    jpg: "jpg",
+    gif: "gif",
+    swf: "swf",
+    webm: "webm",
+    mp4: "mp4",
+    webp: "webp",
+  }.freeze
+
+  def is_of_type?(type)
+    file_ext == FileMethods::FILE_TYPE[type]
+  end
+
   def is_image?
     is_png? || is_jpg? || is_gif? || is_webp?
   end
 
   def is_png?
-    file_ext == "png"
+    is_of_type?(:png)
   end
 
   def is_jpg?
-    file_ext == "jpg"
+    is_of_type?(:jpg)
   end
 
   def is_gif?
-    file_ext == "gif"
+    is_of_type?(:gif)
   end
 
   def is_flash?
-    file_ext == "swf"
+    is_of_type?(:swf)
   end
 
   def is_webm?
-    file_ext == "webm"
+    is_of_type?(:webm)
   end
 
   def is_mp4?
-    file_ext == "mp4"
+    is_of_type?(:mp4)
   end
 
   def is_webp?
-    file_ext == "webp"
+    is_of_type?(:webp)
   end
 
   def is_video?

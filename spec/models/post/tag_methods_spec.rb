@@ -330,6 +330,19 @@ RSpec.describe Post do
         post = create(:post, image_width: 512, image_height: 4096)
         expect(post.tag_array).to include("tall_image", "long_image")
       end
+
+      it "adds the video tag for the appropiate video type posts" do
+        %w[webm mp4].each do |ext|
+          post = create(:post, file_ext: ext)
+          expect(post.tag_array).to include("video")
+        end
+      end
+
+      it "removes file type tags" do
+        filetype_tags = %w[video animated_gif animated_png] + FileMethods::FILE_TYPE.values
+        post = create(:post, tag_string: filetype_tags.join(" "))
+        expect(post.tag_array).to be_empty
+      end
     end
 
     describe "apply_casesensitive_metatags" do

@@ -1185,10 +1185,16 @@ class TagQuery
 
   private
 
-  METATAG_SEARCH_TYPE = Hash.new(:must).merge({
+  TAG_SEARCH_TYPE = Hash.new(:must).merge({
     "-" => :must_not,
     "~" => :should,
   }).freeze
+
+  # Returns a [tag_name, tag_type] pair such that the tag_name prefix is properly removed if present.
+  def get_tag_name_with_search_type(tag)
+    type = TagQuery::TAG_SEARCH_TYPE[tag[0]]
+    [(type == :must ? tag : tag[1..]).downcase, type]
+  end
 
   # The maximum number of nested groups allowed before either cutting off processing or triggering a
   # `TagQuery::DepthExceededError`.
@@ -1286,7 +1292,7 @@ class TagQuery
           next if group.blank?
           q[:children_show_deleted] ||= !group.hide_deleted_posts?(at_any_level: true) if kwargs[:process_groups]
           q[:groups] ||= {}
-          search_type = METATAG_SEARCH_TYPE[match[1]]
+          search_type = TAG_SEARCH_TYPE[match[1]]
           q[:groups][search_type] ||= []
           q[:groups][search_type] << group
         else
@@ -1309,7 +1315,7 @@ class TagQuery
       # Remove quotes from description:"abc def"
       g2 = g2.delete_prefix('"').delete_suffix('"')
 
-      type = METATAG_SEARCH_TYPE[metatag_name[0]]
+      type = TAG_SEARCH_TYPE[metatag_name[0]]
       # IDEA: Use jump table(s) instead
       # * Can use different table depending on value of `type` to reduce comparisons
       # * A hash has faster lookup than sequentially checking cases, and this already maps to a jump table pretty well.
@@ -1497,41 +1503,53 @@ class TagQuery
   # Same as `TagQuery::REGEX_VALID_TAG_CHECK`, but disallows `*`
   REGEX_VALID_TAG_CHECK_2 = /[\*\,\#\$\%\\]/
 
+  # Checks if a certain tag should be transformed into a metatag, and adds it accordingly if so.
+  def intercept_metatag_alias(tag, type)
+    if FileMethods::FILE_TYPE.value?(tag)
+      add_to_query(type, :filetype, tag)
+      return true
+    end
+    nil
+  end
+
   # Adds the tag to the query object based on its prefix and if it contains a wildcard.
   # ### Notes:
   # * Exits if it's not a facially valid tag. Stops prior behavior of searching for tags comprised
   # entirely of invalid characters (which would always be false but, if preceded by `~` or `-`,
   # wouldn't end the search).
   def add_tag(tag)
-    if tag.start_with?("-")
-      tag = tag[1..]
-      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag)
+    tag_name, tag_type = get_tag_name_with_search_type(tag)
+
+    return if intercept_metatag_alias(tag_name, tag_type)
+
+    case tag_type
+    when :must_not
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag_name)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError.new(tag: tag, prefix: "-", query_obj: self)
+        raise InvalidTagError.new(tag: tag_name, prefix: "-", query_obj: self)
       end
-      if tag.include?("*")
-        q[:tags][:must_not] += pull_wildcard_tags(tag.downcase)
+      if tag_name.include?("*")
+        q[:tags][:must_not] += pull_wildcard_tags(tag_name)
         check_opensearch_clause_count
       else
-        q[:tags][:must_not] << tag.downcase
+        q[:tags][:must_not] << tag_name
       end
-    elsif tag.start_with?("~")
-      tag = tag[1..]
-      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK_2.match?(tag)
+    when :should
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK_2.match?(tag_name)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError.new(tag: tag, prefix: "~", has_wildcard: tag.include?("*"), query_obj: self)
+        raise InvalidTagError.new(tag: tag_name, prefix: "~", has_wildcard: tag_name.include?("*"), query_obj: self)
       end
-      q[:tags][:should] << tag.downcase
-    else
-      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag)
+      q[:tags][:should] << tag_name
+    when :must
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag_name)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError.new(tag: tag, query_obj: self)
+        raise InvalidTagError.new(tag: tag_name, query_obj: self)
       end
-      if tag.include?("*")
-        q[:tags][:should] += pull_wildcard_tags(tag)
+      if tag_name.include?("*")
+        q[:tags][:should] += pull_wildcard_tags(tag_name)
         check_opensearch_clause_count
       else
-        q[:tags][:must] << tag.downcase
+        q[:tags][:must] << tag_name
       end
     end
   end
