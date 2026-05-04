@@ -12,7 +12,7 @@ module PostSets
 
       @mode = mode
       if mode == :tags
-        @no_results = post.tags.size <= 1 # only has tagme
+        @no_results = post.tag_count <= 1 # only has tagme
       else
         @mode = :artist
         @no_results = post.known_artist_tags.empty?

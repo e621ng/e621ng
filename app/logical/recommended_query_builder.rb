@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
 class RecommendedQueryBuilder < ElasticPostQueryBuilder
-  CHARACTER_WEIGHT = 2.0
-  COPYRIGHT_WEIGHT = 1.5
-  SPECIES_WEIGHT = 1.25
-
   def initialize(post, mode: :artist, **kwargs)
     @post = post
     @mode = mode
@@ -25,9 +21,9 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
   private
 
   WEIGHTS_FOR_ARTIST = {
-    character: 1.25,
-    copyright: 1.1,
-    species: 1.1,
+    character: 2.0,
+    copyright: 1.5,
+    species: 1.25,
   }.freeze
 
   def build_for_artist
@@ -68,7 +64,7 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
     pool_ids = @post.pool_ids
     must_not.push({ terms: { pools: pool_ids } }) if pool_ids.any?
 
-    # Pick the rarest tags first — common tags (solo, rating:s) are poor discriminators
+    # Pick the rarest tags first — common tags (solo, mammal) are poor discriminators
     selected_tags = @post.categorized_tags.values.flatten.min_by(MAX_TAGS, &:post_count)
 
     functions = [{ random_score: { seed: @post.id, field: "id" } }]
