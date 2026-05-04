@@ -4820,6 +4820,13 @@ CREATE INDEX index_tag_aliases_on_antecedent_name_pattern ON public.tag_aliases 
 
 
 --
+-- Name: index_tag_aliases_on_antecedent_name_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tag_aliases_on_antecedent_name_trgm ON public.tag_aliases USING gin (antecedent_name public.gin_trgm_ops) WHERE (status = ANY (ARRAY['active'::text, 'processing'::text, 'queued'::text]));
+
+
+--
 -- Name: index_tag_aliases_on_consequent_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5320,6 +5327,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503072727'),
 ('20260501134813'),
 ('20260420170420'),
 ('20260406172356'),
