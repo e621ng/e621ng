@@ -109,6 +109,7 @@ class User < ApplicationRecord
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
   validates :custom_style, length: { maximum: 500_000 }
+  validates :custom_title, length: { maximum: 100 }, allow_blank: true
   validates :profile_about, length: { maximum: Danbooru.config.user_about_max_size }
   validates :profile_artinfo, length: { maximum: Danbooru.config.user_about_max_size }
   validates :time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }

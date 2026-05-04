@@ -20,7 +20,23 @@ module UsersHelper
     end
   end
 
+  def user_custom_title_badge(user)
+    return if user.nil?
+    return if user.custom_title.blank?
+
+    tag.span(class: "level-badge level-#{user.level_string.downcase}") do
+      user.custom_title.upcase
+    end
+  end
+
+  def user_level_plain(user)
+    return if user.nil?
+
+    user.custom_title.presence || user.level_string
+  end
+
   def user_bd_staff_badge(user)
+    return if user.nil?
     return unless user.is_bd_staff?
 
     tag.span(class: "level-badge") do

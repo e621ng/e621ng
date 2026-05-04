@@ -10,7 +10,7 @@
           <%= svg_icon(:chexagon, class: "chexagon", title: "Comment by an artist on this post") if post.linked_users.include?(comment.creator_id) %>
         <% end %>
       </h4>
-      <%= comment.creator.level_string %>
+      <%= user_level_plain(comment.creator) %>
       <% if comment.is_hidden? %>
         (hidden)
       <% end %>

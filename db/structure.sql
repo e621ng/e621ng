@@ -2583,7 +2583,8 @@ furry -rating:s'::text,
     unread_dmail_count integer DEFAULT 0 NOT NULL,
     profile_about text DEFAULT ''::text NOT NULL,
     profile_artinfo text DEFAULT ''::text NOT NULL,
-    avatar_id integer
+    avatar_id integer,
+    custom_title character varying DEFAULT ''::character varying NOT NULL
 );
 
 
@@ -5319,6 +5320,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260501134813'),
 ('20260420170420'),
 ('20260406172356'),
 ('20260329181337'),
