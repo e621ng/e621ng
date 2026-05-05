@@ -101,6 +101,11 @@ module PostsHelper
     tag.div score + favs + comments + rating, class: "desc"
   end
 
+  def post_resize_data(post)
+    return {} if post.blank?
+    Base64.strict_encode64(PostResizeBlueprint.render_as_hash(post).to_json)
+  end
+
   private
 
   def nav_params_for(page)

@@ -67,6 +67,7 @@
           <div id="note-container" enabled="false"></div>
           <div id="note-preview"></div>
           <%= render "posts/partials/show/content/embedded/embedded", post: @post %>
+          <script type="text/plain" id="post-resize-data" data-encoding="base64"><%= post_resize_data(@post) %></script>
         <% end -%>
 
         <% if @post.visible? && @post.has_sample? %>
