@@ -54,6 +54,10 @@
           grid-column: 1;
           grid-row-start: 1;
           grid-row-end: 4;
+
+          article.thumbnail.inline {
+            --thumb-image-size: 50px;
+          }
         }
         .post-time {
           grid-column: 2;
