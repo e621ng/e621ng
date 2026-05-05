@@ -2,6 +2,8 @@
 
 module Moderator
   class IpAddrSearch
+    class InvalidIpAddr < StandardError; end
+
     attr_reader :params
 
     def initialize(params)
@@ -17,9 +19,14 @@ module Moderator
       elsif params[:ip_addr].present?
         ip_addrs = params[:ip_addr].split(",").map(&:strip)
         if params[:add_ip_mask].to_s.truthy? && ip_addrs.count == 1 && ip_addrs[0].exclude?("/")
-          mask = IPAddr.new(ip_addrs[0]).ipv4? ? 24 : 64
-          ip_addrs[0] = "#{ip_addrs[0]}/#{mask}"
+          begin
+            mask = IPAddr.new(ip_addrs[0]).ipv4? ? 24 : 64
+            ip_addrs[0] = "#{ip_addrs[0]}/#{mask}"
+          rescue IPAddr::InvalidAddressError
+            raise InvalidIpAddr, "Invalid IP address format: #{ip_addrs[0]}"
+          end
         end
+        validate_ip_addrs(ip_addrs)
         search_by_ip_addr(ip_addrs, with_history)
       else
         []
@@ -85,6 +92,14 @@ module Moderator
         target.merge!({ name => klass.where("#{ip_field} <<= ?", ips[0]).group(id_field).count })
       else
         target.merge!({ name => klass.where(ip_field => ips).group(id_field).count })
+      end
+    end
+
+    def validate_ip_addrs(ip_addrs)
+      ip_addrs.each do |ip|
+        IPAddr.new(ip)
+      rescue IPAddr::InvalidAddressError
+        raise InvalidIpAddr, "Invalid IP address format: #{ip}"
       end
     end
   end

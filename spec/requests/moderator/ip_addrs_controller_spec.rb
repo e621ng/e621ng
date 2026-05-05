@@ -73,6 +73,16 @@ RSpec.describe Moderator::IpAddrsController do
           get moderator_ip_addrs_path, params: { search: { ip_addr: "127.0.0.1" } }
           expect(response).to have_http_status(:ok)
         end
+
+        it "returns 422 for invalid IP address" do
+          get moderator_ip_addrs_path, params: { search: { ip_addr: "*dylan*dolly*" } }
+          expect(response).to have_http_status(:unprocessable_entity)
+        end
+
+        it "returns 422 for invalid CIDR prefix" do
+          get moderator_ip_addrs_path, params: { search: { ip_addr: "127.0.0.1/999" } }
+          expect(response).to have_http_status(:unprocessable_entity)
+        end
       end
     end
   end
@@ -140,12 +150,17 @@ RSpec.describe Moderator::IpAddrsController do
       # which has no :ip_addrs key. The export action then calls
       # @results[:ip_addrs].uniq on nil, raising NoMethodError. This test is
       # commented out until the controller handles the ip_addr search path.
-      # context "when searching by ip_addr" do
-      #   it "returns 200 JSON" do
-      #     get export_moderator_ip_addrs_path(format: :json), params: { search: { ip_addr: "127.0.0.1" } }
-      #     expect(response).to have_http_status(:ok)
-      #   end
-      # end
+      context "when searching by ip_addr" do
+        it "returns 422 for invalid IP address" do
+          get export_moderator_ip_addrs_path(format: :json), params: { search: { ip_addr: "*dylan*dolly*" } }
+          expect(response).to have_http_status(:unprocessable_entity)
+        end
+
+        it "returns 422 for invalid CIDR prefix" do
+          get export_moderator_ip_addrs_path(format: :json), params: { search: { ip_addr: "127.0.0.1/999" } }
+          expect(response).to have_http_status(:unprocessable_entity)
+        end
+      end
     end
   end
 end

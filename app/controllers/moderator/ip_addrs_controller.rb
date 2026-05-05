@@ -5,6 +5,8 @@ module Moderator
     before_action :admin_only
     respond_to :html, :json
 
+    rescue_from IpAddrSearch::InvalidIpAddr, with: :render_invalid_ip_addr
+
     def index
       search = IpAddrSearch.new(params[:search])
       @results = search.execute
@@ -19,6 +21,12 @@ module Moderator
           render json: @results[:ip_addrs].uniq
         end
       end
+    end
+
+    private
+
+    def render_invalid_ip_addr(exception)
+      render_expected_error(422, exception.message)
     end
   end
 end
