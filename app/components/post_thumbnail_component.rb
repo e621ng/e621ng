@@ -4,10 +4,10 @@ class PostThumbnailComponent < ViewComponent::Base
   include IconHelper
   with_collection_parameter :post
 
-  module RibbonSide
-    LEFT = 0
-    RIGHT = 1
-  end
+  RIBBON_SIDE = {
+    left: "left",
+    right: "right",
+  }.freeze
 
   def initialize(post:, post_counter: -1, **options)
     super()
@@ -68,7 +68,7 @@ class PostThumbnailComponent < ViewComponent::Base
     klass << "rating-explicit" if post.rating == "e"
     klass << "blacklistable" unless options[:no_blacklist]
     klass << "no-stats" unless should_show_stats?
-    klass << "shift-badge" if should_show_ribbon?(RibbonSide::LEFT)
+    klass << "shift-badge" if should_show_ribbon?(:left)
     klass
   end
 
@@ -84,9 +84,9 @@ class PostThumbnailComponent < ViewComponent::Base
 
   def get_ribbon_background_position(side)
     case side
-    when RibbonSide::LEFT
+    when :left
       get_ribbon_background_position_for_conditions(post.has_visible_children?, post.parent_exists?)
-    when RibbonSide::RIGHT
+    when :right
       get_ribbon_background_position_for_conditions(post.is_flagged?, post.is_pending?)
     end
   end
@@ -95,10 +95,10 @@ class PostThumbnailComponent < ViewComponent::Base
     content = []
 
     case side
-    when RibbonSide::LEFT
+    when :left
       content << "Has children post/s." if post.has_visible_children?
       content << "Has parent post." if post.parent_exists?
-    when RibbonSide::RIGHT
+    when :right
       content << "Flagged for deletion." if post.is_flagged?
       content << "Pending for approval." if post.is_pending?
     end
