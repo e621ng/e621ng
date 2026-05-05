@@ -95,7 +95,6 @@ class ForumPostsController < ApplicationController
 
   def check_min_level
     raise User::PrivilegeError unless @forum_topic.visible?(CurrentUser.user)
-    raise User::PrivilegeError if @forum_topic.is_hidden? && !@forum_topic.visible?(CurrentUser.user)
     raise User::PrivilegeError if @forum_post.is_hidden? && !@forum_post.visible?(CurrentUser.user)
   end
 
