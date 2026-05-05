@@ -96,11 +96,11 @@ class PostThumbnailComponent < ViewComponent::Base
 
     case side
     when RibbonSide::LEFT
-      content << "Has children post/s" if post.has_visible_children?
-      content << "Has parent post" if post.parent_exists?
+      content << "Has children post/s." if post.has_visible_children?
+      content << "Has parent post." if post.parent_exists?
     when RibbonSide::RIGHT
-      content << "Flagged for deletion" if post.is_flagged?
-      content << "Pending for approval" if post.is_pending?
+      content << "Flagged for deletion." if post.is_flagged?
+      content << "Pending for approval." if post.is_pending?
     end
 
     content.join("\n")
