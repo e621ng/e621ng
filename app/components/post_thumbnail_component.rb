@@ -68,6 +68,7 @@ class PostThumbnailComponent < ViewComponent::Base
     klass << "rating-explicit" if post.rating == "e"
     klass << "blacklistable" unless options[:no_blacklist]
     klass << "no-stats" unless should_show_stats?
+    klass << "shift-badge" if should_show_ribbon?(RibbonSide::LEFT)
     klass
   end
 
@@ -90,7 +91,7 @@ class PostThumbnailComponent < ViewComponent::Base
     end
   end
 
-  def show_ribbon?(side)
+  def should_show_ribbon?(side)
     get_ribbon_background_position(side) != false
   end
 

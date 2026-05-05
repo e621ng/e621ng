@@ -8,6 +8,14 @@
         <%= tag.img src: preview_urls[1], alt: alt_text, **image_attributes %>
       <% end %>
     <% end %>
+
+    <% if should_show_ribbon? RibbonSide::LEFT %>
+      <div class="ribbon left" style="--bg-pos: <%= get_ribbon_background_position RibbonSide::LEFT %>"></div>
+    <% end %>
+
+    <% if should_show_ribbon? RibbonSide::RIGHT %>
+      <div class="ribbon right" style="--bg-pos: <%= get_ribbon_background_position RibbonSide::RIGHT %>"></div>
+    <% end %>
   <% end %>
 
   <%# Stats Section %>
@@ -46,13 +54,5 @@
     <div class="thm-extra">
       <%= link_to pool_name, pool_path(pool), class: "pool-link" %>
     </div>
-  <% end %>
-
-  <% if show_ribbon? RibbonSide::LEFT %>
-    <div class="ribbon left" style="--bg-pos: <%= get_ribbon_background_position RibbonSide::LEFT %>"></div>
-  <% end %>
-
-  <% if show_ribbon? RibbonSide::RIGHT %>
-    <div class="ribbon right" style="--bg-pos: <%= get_ribbon_background_position RibbonSide::RIGHT %>"></div>
   <% end %>
 <% end %>
