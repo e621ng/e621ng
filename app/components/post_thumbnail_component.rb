@@ -82,7 +82,7 @@ class PostThumbnailComponent < ViewComponent::Base
   def ribbon_background_position(side)
     case side
     when :left
-      ribbon_background_position_for_conditions(post.has_visible_children?, post.parent_exists?)
+      ribbon_background_position_for_conditions(post.has_visible_children?, post.parent_id.present?)
     when :right
       ribbon_background_position_for_conditions(post.is_flagged?, post.is_pending?)
     end
@@ -94,7 +94,7 @@ class PostThumbnailComponent < ViewComponent::Base
     case side
     when :left
       content << "Has children post/s." if post.has_visible_children?
-      content << "Has parent post." if post.parent_exists?
+      content << "Has parent post." if post.parent_id.present?
     when :right
       content << "Flagged for deletion." if post.is_flagged?
       content << "Pending for approval." if post.is_pending?
