@@ -6,13 +6,13 @@
     <div class="author-info">
       <div class="name-rank">
         <h4 class="author-name"><%= link_to_user forum_post.creator %></h4>
-        <%= forum_post.creator.level_string %>
+        <%= user_level_plain(forum_post.creator) %>
         <% if forum_post.is_hidden? %>
           (hidden)
         <% end %>
       </div>
       <div class="avatar">
-        <%= user_avatar(forum_post.creator) %>
+        <%= render AvatarComponent.new(user: forum_post.creator) %>
       </div>
       <div class="post-time">
         <%= link_to time_ago_in_words_tagged(forum_post.created_at), forum_topic_path(forum_post.topic, :page => forum_post.forum_topic_page, :anchor => "forum_post_#{forum_post.id}") %>

@@ -165,19 +165,13 @@ class SearchTrendHourly < ApplicationRecord
   end
 
   def self.rising_tags_list
-    Cache.fetch("rising_tags", expires_in: 15.minutes) do
-      tags = SearchTrendHourly.rising(min_today: Setting.trends_min_today, min_delta: Setting.trends_min_delta, min_ratio: Setting.trends_min_ratio).map(&:tag)
-      aliased_tags = TagAlias.to_aliased(tags)
-      tag_data = Tag.where(name: aliased_tags).index_by(&:name)
-      aliased_tags.map do |tag|
-        {
-          name: tag,
-          pretty_name: tag.gsub(/_+/, " "),
-          post_count: tag_data[tag]&.post_count || 0,
-          category: tag_data[tag]&.category || 0,
-        }
-      end
-    end
+    Cache.fetch("rising_tags", expires_in: 15.minutes) { compute_rising_tags_list }
+  end
+
+  def self.warm_rising_tags_cache!
+    result = compute_rising_tags_list
+    Cache.write("rising_tags", result, expires_in: 20.minutes)
+    result
   end
 
   # Delete old processed hourly records to prevent the table from growing unbounded.
@@ -207,5 +201,19 @@ class SearchTrendHourly < ApplicationRecord
     record = new(tag: tag, hour: Time.now.utc)
     TagNameValidator.new(attributes: [:tag]).validate_each(record, :tag, tag)
     record.errors[:tag].empty?
+  end
+
+  private_class_method def self.compute_rising_tags_list
+    tags = rising(min_today: Setting.trends_min_today, min_delta: Setting.trends_min_delta, min_ratio: Setting.trends_min_ratio).map(&:tag)
+    aliased_tags = TagAlias.to_aliased(tags)
+    tag_data = Tag.where(name: aliased_tags).index_by(&:name)
+    aliased_tags.map do |tag|
+      {
+        name: tag,
+        pretty_name: tag.gsub(/_+/, " "),
+        post_count: tag_data[tag]&.post_count || 0,
+        category: tag_data[tag]&.category || 0,
+      }
+    end
   end
 end

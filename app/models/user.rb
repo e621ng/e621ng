@@ -74,6 +74,7 @@ class User < ApplicationRecord
     replacements_beta
     is_bd_staff
     is_bd_auditor
+    has_cropped_avatar
   ].freeze
 
   include Danbooru::HasBitFlags
@@ -91,7 +92,7 @@ class User < ApplicationRecord
   validate :validate_email_address_allowed, on: %i[create update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   normalizes :profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") }
-  validates :name, presence: true # NOTE: validation order is important here. See UserNameValidator for details.
+  validates :name, presence: true, if: -> { new_record? || name_changed? } # NOTE: validation order is important here. See UserNameValidator for details.
   validates :name, user_name: true, on: :create
   validates :default_image_size, inclusion: { in: %w[large fit fitv original] }
   validates :per_page, inclusion: { in: 1..Danbooru.config.max_per_page }
@@ -108,6 +109,7 @@ class User < ApplicationRecord
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
   validates :custom_style, length: { maximum: 500_000 }
+  validates :custom_title, length: { maximum: 100 }, allow_blank: true
   validates :profile_about, length: { maximum: Danbooru.config.user_about_max_size }
   validates :profile_artinfo, length: { maximum: Danbooru.config.user_about_max_size }
   validates :time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
@@ -116,6 +118,7 @@ class User < ApplicationRecord
   after_create :create_user_status
   before_update :encrypt_password_on_update
   after_save :update_cache
+  after_save :clear_cropped_avatar_on_avatar_change
 
   after_create_commit :enqueue_automod_user_check
   after_update_commit :enqueue_automod_user_update_check,
@@ -388,6 +391,16 @@ class User < ApplicationRecord
       if avatar_id.present? && avatar.nil?
         self.avatar_id = nil
       end
+    end
+
+    def clear_cropped_avatar_on_avatar_change
+      return unless saved_change_to_avatar_id?
+      return unless has_cropped_avatar?
+
+      flag = User.flag_value_for("has_cropped_avatar")
+      update_columns(bit_prefs: bit_prefs & ~flag)
+
+      AvatarCleanupJob.perform_later(id)
     end
 
     def staff_cant_disable_dmail

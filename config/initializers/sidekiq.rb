@@ -25,6 +25,11 @@ Sidekiq.configure_server do |config|
       "class" => "SearchTrendAggregateJob",
       "description" => "Aggregate unprocessed hourly search trends into daily totals",
     },
+    "SearchTrendCacheWarmJob" => {
+      "cron" => "*/15 * * * *",
+      "class" => "SearchTrendCacheWarmJob",
+      "description" => "Pre-warm the rising tags cache every 15 minutes to avoid on-request timeouts",
+    },
   }
 
   Sidekiq::Cron::Job.load_from_hash schedule

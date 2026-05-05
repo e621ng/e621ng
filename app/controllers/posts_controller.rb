@@ -15,7 +15,7 @@ class PostsController < ApplicationController
       respond_with(@post) do |format|
         format.html { redirect_to post_path(@post) }
         format.json do
-          render_posts_json(PostBlueprint.render_as_hash(@post))
+          pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
         end
       end
     else
@@ -54,7 +54,7 @@ class PostsController < ApplicationController
 
       respond_with(@posts) do |format|
         format.json do
-          render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
+          pick_json_format(@post_set.api_posts, legacy: params[:v2] != "true", mode: params[:mode])
         end
         format.atom
       end
@@ -86,7 +86,7 @@ class PostsController < ApplicationController
 
     respond_with(@post) do |format|
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post))
+        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end
@@ -117,7 +117,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { render "posts/show" }
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post))
+        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end
@@ -164,7 +164,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, q: params[:tags]) }
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post))
+        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end
@@ -228,7 +228,7 @@ class PostsController < ApplicationController
       end
 
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(post))
+        pick_json_format(post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end

@@ -19,6 +19,7 @@ table.striped {
             width: 100%;
             display: inline-block;
             padding: $padding-050 $padding-025;
+            box-sizing: border-box;
           }
         }
       }

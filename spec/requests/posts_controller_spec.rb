@@ -10,15 +10,61 @@ RSpec.describe PostsController do
   # ---------------------------------------------------------------------------
 
   describe "GET /posts" do
+    # Stub tag_match to avoid stale ES index documents from rolled-back
+    # transactions returning IDs that no longer exist in the DB.
+    before { allow(Post).to receive(:tag_match).and_return(Post.all) }
+
     it "returns 200 for anonymous" do
       get posts_path
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns a posts collection wrapped in JSON" do
+    it "returns a posts collection in the legacy format" do
+      create(:post)
+
       get posts_path(format: :json)
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body.keys).to include("posts")
+
+      body = response.parsed_body
+      expect(body.keys).to include("posts")
+      expect(body["posts"].first).to include("id", "file", "score", "tags")
+    end
+
+    it "returns a post collection in the default v2 format" do
+      create(:post)
+
+      get posts_path(format: :json), params: { v2: "true" }
+      expect(response).to have_http_status(:ok)
+
+      body = response.parsed_body
+      expect(body).to be_an(Array)
+      expect(body.first).to include("id", "files", "stats", "tags")
+      expect(body.first["tags"]).to be_an(Array)
+    end
+
+    it "returns a post collection in the extended v2 format when requested" do
+      create(:post)
+
+      get posts_path(format: :json), params: { v2: "true", mode: "extended" }
+      expect(response).to have_http_status(:ok)
+
+      body = response.parsed_body
+      expect(body).to be_an(Array)
+      expect(body.first).to include("id", "files", "stats", "tags")
+      expect(body.first["tags"]).to be_an(Hash)
+      expect(body.first["tags"]).to include("general")
+      expect(body.first["tags"]["general"]).to be_an(Array)
+    end
+
+    it "returns a post collection in the thumbnail v2 format when requested" do
+      create(:post)
+
+      get posts_path(format: :json), params: { v2: "true", mode: "thumbnail" }
+      expect(response).to have_http_status(:ok)
+
+      body = response.parsed_body
+      expect(body).to be_an(Array)
+      expect(body.first).to include("id", "tags", "rating", "file_ext", "uploader_id")
     end
 
     context "with a md5 param matching a post" do

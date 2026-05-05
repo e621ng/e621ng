@@ -40,10 +40,10 @@ RSpec.describe WikiPage do
       expect(page.pretty_title_with_category).to eq("some page")
     end
 
-    it "prepends the capitalized category name when category_id is artist" do
-      page = build(:wiki_page, title: "my_artist")
-      page.category_id = 1 # artist
-      expect(page.pretty_title_with_category).to eq("Artist: my artist")
+    it "prepends the capitalized category name for category 1" do
+      page = build(:wiki_page, title: "my_tag")
+      page.category_id = 1
+      expect(page.pretty_title_with_category).to eq("#{TagCategory::REVERSE_MAPPING[1].capitalize}: my tag")
     end
 
     it "prepends the correct category name for species" do

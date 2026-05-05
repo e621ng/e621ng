@@ -150,7 +150,7 @@ RSpec.describe TicketsController do
   end
 
   # ---------------------------------------------------------------------------
-  # PATCH /tickets/:id — update (moderator_only)
+  # PATCH /tickets/:id — update (janitor_only gate; moderator effective)
   # ---------------------------------------------------------------------------
 
   describe "PATCH /tickets/:id" do
@@ -163,6 +163,12 @@ RSpec.describe TicketsController do
 
     it "returns 403 for a member" do
       sign_in_as member
+      patch ticket_path(ticket), params: update_params
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a janitor" do
+      sign_in_as janitor
       patch ticket_path(ticket), params: update_params
       expect(response).to have_http_status(:forbidden)
     end
@@ -208,7 +214,7 @@ RSpec.describe TicketsController do
   end
 
   # ---------------------------------------------------------------------------
-  # POST /tickets/:id/claim — claim (moderator_only)
+  # POST /tickets/:id/claim — claim (janitor_only gate; moderator effective)
   # ---------------------------------------------------------------------------
 
   describe "POST /tickets/:id/claim" do
@@ -219,6 +225,12 @@ RSpec.describe TicketsController do
 
     it "returns 403 for a member" do
       sign_in_as member
+      post claim_ticket_path(ticket)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a janitor" do
+      sign_in_as janitor
       post claim_ticket_path(ticket)
       expect(response).to have_http_status(:forbidden)
     end
@@ -244,7 +256,7 @@ RSpec.describe TicketsController do
   end
 
   # ---------------------------------------------------------------------------
-  # POST /tickets/:id/unclaim — unclaim (moderator_only)
+  # POST /tickets/:id/unclaim — unclaim (janitor_only gate; moderator effective)
   # ---------------------------------------------------------------------------
 
   describe "POST /tickets/:id/unclaim" do
@@ -255,6 +267,12 @@ RSpec.describe TicketsController do
 
     it "returns 403 for a member" do
       sign_in_as member
+      post unclaim_ticket_path(ticket)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a janitor" do
+      sign_in_as janitor
       post unclaim_ticket_path(ticket)
       expect(response).to have_http_status(:forbidden)
     end

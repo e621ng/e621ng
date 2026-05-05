@@ -12,17 +12,6 @@
     word-wrap: anywhere;
     overflow-wrap: anywhere;
 
-    .avatar {
-      .post-thumbnail {
-        img {
-          height: auto;
-          width: auto;
-          max-height: 150px;
-          max-width: 150px;
-        }
-      }
-    }
-
     .post-time {
       font-style: italic;
     }
@@ -33,6 +22,11 @@
     padding: $padding-025 $padding-050;
 
     .content-menu { margin-top: 1rem; }
+  }
+
+  .avatar {
+    // Temporary, until the new comment UI is implemented.
+    article.thumbnail.no-render { display: none; }
   }
 }
 
@@ -60,14 +54,6 @@
           grid-column: 1;
           grid-row-start: 1;
           grid-row-end: 4;
-          .post-thumbnail, .post-thumb.placeholder {
-            img {
-              height: auto;
-              width: auto;
-              max-height: 100px;
-              max-width: 100px;
-            }
-          }
         }
         .post-time {
           grid-column: 2;

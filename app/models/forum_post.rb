@@ -157,7 +157,11 @@ class ForumPost < ApplicationRecord
   end
 
   def visible?(user)
-    user.is_moderator? || (topic.visible?(user) && (!is_hidden? || user.id == creator_id))
+    return true if user.is_moderator?
+    return false unless topic&.visible?(user)
+    return true if user.id == creator_id
+    return false if is_hidden?
+    true
   end
 
   def can_hide?(user)

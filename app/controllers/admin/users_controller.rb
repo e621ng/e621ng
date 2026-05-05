@@ -126,7 +126,7 @@ module Admin
     private
 
     def user_params(user)
-      permitted_params = %i[profile_about profile_artinfo base_upload_limit enable_privacy_mode]
+      permitted_params = %i[profile_about profile_artinfo base_upload_limit enable_privacy_mode custom_title]
       permitted_params << :email if user.is_bd_staff?
       params.require(:user).slice(*permitted_params).permit(permitted_params)
     end

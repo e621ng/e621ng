@@ -67,9 +67,11 @@ RSpec.describe Takedown do
   # -------------------------------------------------------------------------
   describe "#add_posts_by_tags!" do
     it "adds posts that match the given tag query" do
-      # Create a post then look up one of its actual tags
       post = create(:post)
       tag_name = post.tag_array.first
+      # Stub to avoid transactional-fixtures / OpenSearch staleness: rolled-back
+      # documents persist in the index, so a real search returns stale IDs.
+      allow(Post).to receive(:tag_match_system).and_return(Post.where(id: post.id))
       takedown.add_posts_by_tags!(tag_name)
       expect(takedown.reload.post_array).to include(post.id)
     end
@@ -77,6 +79,7 @@ RSpec.describe Takedown do
     it "does not add deleted posts (system search excludes status:deleted)" do
       post = create(:deleted_post)
       tag_name = post.tag_array.first
+      allow(Post).to receive(:tag_match_system).and_return(Post.none)
       takedown.add_posts_by_tags!(tag_name)
       expect(takedown.reload.post_array).not_to include(post.id)
     end

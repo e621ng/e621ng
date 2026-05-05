@@ -39,6 +39,7 @@ class Post < ApplicationRecord
   after_save :update_parent_on_save
   after_save :apply_post_metatags
   after_commit :delete_files, on: :destroy
+  after_commit :delete_avatar_crops, on: :destroy
   after_commit :remove_iqdb_async, on: :destroy
   # after_commit :update_iqdb_async, :on => :create
   after_commit :handle_thumbnails_on_create, on: :create
@@ -85,6 +86,12 @@ class Post < ApplicationRecord
       Post.delete_files(id, md5, file_ext, force: true)
     end
 
+    def delete_avatar_crops
+      User.where(avatar_id: id).pluck(:id).each do |user_id|
+        AvatarCleanupJob.perform_later(user_id, force: true)
+      end
+    end
+
     def move_files_on_delete
       Danbooru.config.storage_manager.move_file_delete(self)
     end
@@ -126,6 +133,11 @@ class Post < ApplicationRecord
     def sample_url(type = :sample_jpg)
       return file_url unless has_sample?
       storage_manager.post_file_url(self, type)
+    end
+
+    def sample_url_pair
+      return [file_url, file_url] unless has_sample?
+      [sample_url(:sample_webp), sample_url(:sample_jpg)]
     end
 
     def preview_file_url(type = :preview_jpg)
@@ -820,7 +832,13 @@ class Post < ApplicationRecord
     def add_automatic_tags(tags)
       return tags unless Danbooru.config.enable_dimension_autotagging?
 
-      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize wide_image tall_image long_image flash webm mp4 long_playtime short_playtime]
+      tags -= %w[
+        thumbnail low_res hi_res absurd_res superabsurd_res
+        huge_filesize
+        wide_image tall_image long_image
+        flash video
+        long_playtime short_playtime
+      ] + FileMethods::FILE_TYPE.values
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
@@ -841,7 +859,7 @@ class Post < ApplicationRecord
       tags << "huge_filesize" if file_size >= 30.megabytes
 
       tags << "flash" if is_flash?
-      tags << "webm" if is_webm?
+      tags << "video" if is_video?
 
       # TODO: Automatically add animated_* tags without re-testing them on every edit
       tags -= ["animated_gif"] unless is_gif?
@@ -1581,6 +1599,7 @@ class Post < ApplicationRecord
           )
           decrement_tag_post_counts
           move_files_on_delete
+          delete_avatar_crops
           PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
         end
       end
@@ -1772,6 +1791,7 @@ class Post < ApplicationRecord
       if visible?
         attributes[:md5] = md5
         attributes[:preview_url] = preview_file_url
+        attributes[:preview_webp] = preview_file_url(:preview_webp)
         attributes[:sample_url] = sample_url
         attributes[:file_url] = file_url
         attributes[:preview_width] = preview_dimensions[0]

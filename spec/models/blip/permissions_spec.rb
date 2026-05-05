@@ -10,6 +10,7 @@ RSpec.describe Blip do
   let(:creator)   { create(:user) }
   let(:other)     { create(:user) }
   let(:admin)     { create(:admin_user) }
+  let(:janitor)   { create(:janitor_user) }
   let(:moderator) { create(:moderator_user) }
 
   before do
@@ -84,30 +85,30 @@ RSpec.describe Blip do
   end
 
   # -------------------------------------------------------------------------
-  # #visible_to?
+  # #is_accessible?
   # -------------------------------------------------------------------------
-  describe "#visible_to?" do
-    it "is visible to anyone when not deleted" do
+  describe "#is_accessible?" do
+    it "is accessible to anyone when not deleted" do
       blip = make_blip
-      expect(blip.visible_to?(other)).to be true
+      expect(blip.is_accessible?(other)).to be true
     end
 
-    it "is visible to a moderator when deleted" do
+    it "is accessible to a staff member when deleted" do
       blip = make_blip
       blip.delete!
-      expect(blip.visible_to?(moderator)).to be true
+      expect(blip.is_accessible?(janitor)).to be true
     end
 
-    it "is visible to the creator when deleted" do
+    it "is accessible to the creator when deleted" do
       blip = make_blip
       blip.delete!
-      expect(blip.visible_to?(creator)).to be true
+      expect(blip.is_accessible?(creator)).to be true
     end
 
-    it "is not visible to an unrelated user when deleted" do
+    it "is not accessible to an unrelated user when deleted" do
       blip = make_blip
       blip.delete!
-      expect(blip.visible_to?(other)).to be false
+      expect(blip.is_accessible?(other)).to be false
     end
   end
 end

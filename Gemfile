@@ -68,6 +68,7 @@ group :development, :test do
   gem "factory_bot_rails", require: false
   gem "simplecov", require: false
   gem "simplecov_json_formatter", require: false
+  gem "webmock", require: false
 
   # Both tests and populate.rb
   gem "faker", require: false

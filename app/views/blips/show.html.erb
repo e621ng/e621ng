@@ -7,7 +7,7 @@
       <h4>Responses</h4>
       <% unless @children.nil? %>
         <% @children.each do |c| %>
-          <% next unless c.visible_to?(CurrentUser.user) %>
+          <% next unless c.is_accessible? %>
           <%= render partial: "blips/partials/show/blip", locals: {blip: c} %>
         <% end %>
       <% end %>
