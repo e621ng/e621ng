@@ -15,6 +15,7 @@ module Maintenance
 
         raise ActiveRecord::RecordNotFound, "Avatar post not found." unless @post
         raise ::User::PrivilegeError, "You do not have permission to edit this avatar." if @post.deleteblocked? || @post.safeblocked?
+        raise ::User::PrivilegeError, "Flash is not supported as an avatar." if @post.is_flash?
       end
 
       def update
@@ -38,6 +39,16 @@ module Maintenance
         post = Post.find_by(id: post_id)
         unless post
           flash[:notice] = "Avatar post not found."
+          redirect_to edit_maintenance_user_avatar_path and return
+        end
+
+        if post.deleteblocked? || post.safeblocked?
+          flash[:notice] = "You do not have permission to edit this avatar."
+          redirect_to edit_maintenance_user_avatar_path and return
+        end
+
+        if post.is_flash?
+          flash[:notice] = "Flash is not supported as an avatar."
           redirect_to edit_maintenance_user_avatar_path and return
         end
 
