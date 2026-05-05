@@ -4,6 +4,11 @@ class PostThumbnailComponent < ViewComponent::Base
   include IconHelper
   with_collection_parameter :post
 
+  module RibbonSide
+    LEFT = 0
+    RIGHT = 1
+  end
+
   def initialize(post:, post_counter: -1, **options)
     super()
 
@@ -47,7 +52,7 @@ class PostThumbnailComponent < ViewComponent::Base
   def article_attributes
     {
       class: preview_classes.join(" "),
-      data: post.thumbnail_attributes.merge(border_states: border_state_count),
+      data: post.thumbnail_attributes,
     }
   end
 
@@ -66,13 +71,27 @@ class PostThumbnailComponent < ViewComponent::Base
     klass
   end
 
-  def border_state_count
-    count = 0
-    count += 1 if post.has_visible_children?
-    count += 1 if post.parent_id.present?
-    count += 1 if post.is_pending?
-    count += 1 if post.is_flagged?
-    count
+  RIBBON_BACKGROUND_POSITION_MAPPING = {
+    [true, false] => "0%",
+    [false, true] => "100%",
+    [true, true] => "50%",
+  }.freeze
+
+  def get_ribbon_background_position_for_conditions(condition_a, condition_b)
+    RIBBON_BACKGROUND_POSITION_MAPPING[[condition_a, condition_b]] || false
+  end
+
+  def get_ribbon_background_position(side)
+    case side
+    when RibbonSide::LEFT
+      get_ribbon_background_position_for_conditions(post.has_visible_children, post.parent_exists?)
+    when RibbonSide::RIGHT
+      get_ribbon_background_position_for_conditions(post.is_flagged?, post.is_pending?)
+    end
+  end
+
+  def show_ribbon?(side)
+    get_ribbon_background_position(side) != false
   end
 
   ##############################

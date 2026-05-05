@@ -45,7 +45,10 @@ article.thumbnail {
   display: flex;
   flex-flow: column;
   align-items: center;
+  position: relative;
+  overflow: hidden;
   width: min-content; // Avoid stretching when outside the posts-container
+  border-radius: .25rem;
 
   a.thm-link {
     display: block;
@@ -83,7 +86,6 @@ article.thumbnail .thm-desc {
   font-family: $font-stack;
 
   background-color: orange;
-  border-radius: 0 0 0.25rem 0.25rem;
   overflow: hidden; // Hide the box-shadow on .desc-a
 
   // Rating-dependent colors
@@ -305,67 +307,32 @@ body[data-st-contain="true"] article.thumbnail img {
 
 
 // ============================== //
-// ===== Thumbnail Borders ====== //
+// ===== Thumbnail Ribbons ====== //
 // ============================== //
 
-// Standardized border position system:
-// - top: has_children (green)
-// - right: has_parent (yellow)
-// - bottom: is_flagged (red)
-// - left: is_pending (blue)
 
-$border-has-children: var(--palette-plain-green);
-$border-has-parent: var(--palette-plain-yellow);
-$border-is-pending: var(--palette-plain-blue);
-$border-is-flagged: var(--palette-plain-red);
+article div.ribbon {
+   --transform-scalar: 1;
+   position: absolute;
+   top: 0;
+   height: 15%;
+   aspect-ratio: 1;
+   background: linear-gradient(to bottom, var(--color-1) 50%, var(--color-2) 50% 100%);
+   background-size: 100% 200%;
+   background-position-y: var(--bg-pos);
+   rotate: calc(45deg * var(--transform-scalar));
+   translate: calc(-50% * var(--transform-scalar)) -50%;
 
-// Single state: full border
-article.thumbnail[data-border-states="1"] {
-  &.has-children > a.thm-link { border: 2px solid $border-has-children; }
-  &.has-parent > a.thm-link { border: 2px solid $border-has-parent; }
-  &.pending > a.thm-link { border: 2px solid $border-is-pending; }
-  &.flagged > a.thm-link { border: 2px solid $border-is-flagged; }
-}
+   &.left {
+      left: 0;
+      --color-1: var(--palette-plain-green);
+      --color-2: var(--palette-plain-yellow);
+   }
 
-// Two states: diagonal splits
-article.thumbnail[data-border-states="2"] {
-  > a.thm-link { border: 2px solid transparent; }
-  
-  // has_children: top-left corner
-  &.has-children.has-parent > a.thm-link { border-color: $border-has-children $border-has-parent $border-has-parent $border-has-children; }
-  &.has-children.pending > a.thm-link { border-color: $border-has-children $border-is-pending $border-is-pending $border-has-children; }
-  &.has-children.flagged > a.thm-link { border-color: $border-has-children $border-is-flagged $border-is-flagged $border-has-children; }
-  
-  // has_parent: bottom-right corner
-  &.has-parent.pending > a.thm-link { border-color: $border-is-pending $border-has-parent $border-has-parent $border-is-pending; }
-  &.has-parent.flagged > a.thm-link { border-color: $border-is-flagged $border-has-parent $border-has-parent $border-is-flagged; }
-  
-  // pending + flagged: pending bottom-left, flagged top-right
-  &.pending.flagged > a.thm-link { border-color: $border-is-flagged $border-is-flagged $border-is-pending $border-is-pending; }
-}
-
-// Three states: wild mess
-article.thumbnail[data-border-states="3"] {
-  > a.thm-link { border: 2px solid transparent; }
-  
-  &.has-children.has-parent.pending > a.thm-link {
-    border-color: $border-has-children $border-has-parent $border-is-pending $border-is-pending;
-  }
-  &.has-children.has-parent.flagged > a.thm-link {
-    border-color: $border-has-children $border-has-parent $border-is-flagged $border-is-flagged;
-  }
-  &.has-children.pending.flagged > a.thm-link {
-    border-color: $border-has-children $border-is-pending $border-is-flagged $border-has-children;
-  }
-  &.has-parent.pending.flagged > a.thm-link {
-    border-color: $border-is-flagged $border-has-parent $border-has-parent $border-is-pending;
-  }
-}
-
-// Four states: all edges different
-article.thumbnail[data-border-states="4"] {
-  > a.thm-link {
-    border: 2px solid transparent;
-    border-color: $border-has-children $border-has-parent $border-is-flagged $border-is-pending;
-  }
+   &.right {
+      right: 0;
+      --transform-scalar: -1;
+      --color-1: var(--palette-plain-red);
+      --color-2: var(--palette-plain-blue);
+   }
 }
