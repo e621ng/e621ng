@@ -10,11 +10,19 @@
     <% end %>
 
     <% if should_show_ribbon? RibbonSide::LEFT %>
-      <div class="ribbon left" style="--bg-pos: <%= get_ribbon_background_position RibbonSide::LEFT %>"></div>
+      <div
+        class="ribbon left"
+        style="--bg-pos: <%= get_ribbon_background_position RibbonSide::LEFT %>"
+        title="<%= get_ribbon_tooltip RibbonSide::LEFT %>">
+      </div>
     <% end %>
 
     <% if should_show_ribbon? RibbonSide::RIGHT %>
-      <div class="ribbon right" style="--bg-pos: <%= get_ribbon_background_position RibbonSide::RIGHT %>"></div>
+      <div
+        class="ribbon right"
+        style="--bg-pos: <%= get_ribbon_background_position RibbonSide::RIGHT %>"
+        title="<%= get_ribbon_tooltip RibbonSide::RIGHT %>">
+      </div>
     <% end %>
   <% end %>
 

@@ -85,10 +85,25 @@ class PostThumbnailComponent < ViewComponent::Base
   def get_ribbon_background_position(side)
     case side
     when RibbonSide::LEFT
-      get_ribbon_background_position_for_conditions(post.has_visible_children, post.parent_exists?)
+      get_ribbon_background_position_for_conditions(post.has_visible_children?, post.parent_exists?)
     when RibbonSide::RIGHT
       get_ribbon_background_position_for_conditions(post.is_flagged?, post.is_pending?)
     end
+  end
+
+  def get_ribbon_tooltip(side)
+    content = []
+
+    case side
+    when RibbonSide::LEFT
+      content << "Has children post/s" if post.has_visible_children?
+      content << "Has parent post" if post.parent_exists?
+    when RibbonSide::RIGHT
+      content << "Flagged for deletion" if post.is_flagged?
+      content << "Pending for approval" if post.is_pending?
+    end
+
+    content.join("\n")
   end
 
   def should_show_ribbon?(side)
