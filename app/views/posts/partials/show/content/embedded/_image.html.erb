@@ -1,3 +1,18 @@
 <% if post.visible? %>
-  <%= image_tag(post.file_url_for(CurrentUser.user), post.presenter.image_attributes) %>
+  <% current_resize = post.current_resize_for(CurrentUser.user) %>
+  <picture
+    id="posts-show-image"
+    data-size="<%= CurrentUser.user.default_image_size %>"
+  >
+    <% if current_resize[:urls][0] %>
+      <source srcset="<%= current_resize[:urls][0] %>" type="image/webp">
+    <% end %>
+    <img
+      src="<%= current_resize[:urls][1] %>"
+      alt="<%= post.presenter.humanized_essential_tag_string %>"
+      width="<%= current_resize[:width] %>"
+      height="<%= current_resize[:height] %>"
+      itemprop="contentUrl"
+    >
+  </picture>
 <% end %>

@@ -22,7 +22,8 @@ class PostResizeBlueprint < Blueprinter::Base
     {
       width: post.image_width,
       height: post.image_height,
-      url: post.visible? ? post.file_url : nil,
+      jpg: post.visible? ? post.file_url : nil,
+      webp: nil,
     }
   end
 

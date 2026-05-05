@@ -29,6 +29,7 @@ body.c-posts.a-show-seq {
 #c-posts #a-show {
   @import "partials/post_information";
   @import "partials/post_related_images";
+  @import "partials/embedded";
 }
 
 @import "partials/post_toolbar";

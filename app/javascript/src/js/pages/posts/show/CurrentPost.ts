@@ -18,9 +18,9 @@ export default class CurrentPost extends CachedPost {
   }
 
   public resizeData: {
-    original: OriginalFileData;
-    preview: PreviewFileData;
-    sample: PreviewFileData;
+    original: FileData;
+    preview: FileData;
+    sample: FileData;
   };
 
   private constructor () {
@@ -30,7 +30,7 @@ export default class CurrentPost extends CachedPost {
 
     const resizeData = CurrentPost.loadResizeData();
     this.resizeData = {
-      original: resizeData.original || { width: this.width, height: this.height, url: null },
+      original: resizeData.original || { width: this.width, height: this.height, jpg: null, webp: null },
       preview: resizeData.preview || { width: 150, height: 150, jpg: null, webp: null },
       sample: resizeData.sample || { width: this.width, height: this.height, jpg: null, webp: null },
     };
@@ -48,16 +48,9 @@ export default class CurrentPost extends CachedPost {
   }
 }
 
-interface ImageFileData {
+export interface FileData {
   width: number;
   height: number;
-}
-
-interface OriginalFileData extends ImageFileData {
-  url: string;
-}
-
-interface PreviewFileData extends ImageFileData {
   jpg: string;
   webp: string;
 }

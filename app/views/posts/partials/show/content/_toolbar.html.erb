@@ -60,7 +60,7 @@
   </div>
 <% end %>
 
-<% if !@post.force_original_size? %>
+<% if @post.visible? && !@post.force_original_size? %>
   <%# ===== RESIZE ===== #%>
   <div class="ptbr-resize">
     <select id="image-resize-selector" class="st-button" aria-label="Select image size">
