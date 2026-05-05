@@ -64,15 +64,18 @@
   <%# ===== RESIZE ===== #%>
   <div class="ptbr-resize">
     <select id="image-resize-selector" class="st-button" aria-label="Select image size">
-      <option value="original">Original</option>
-      <option value="fit">Fit (Horizontal)</option>
-      <option value="fitv">Fit (Vertical)</option>
+      <% default_size = @post.presenter.default_image_size(CurrentUser.user) %>
+      <option value="original" <%= "selected" if default_size == "original" %>>Original</option>
+      <option value="fit" <%= "selected" if default_size == "fit" %>>Fit (Horizontal)</option>
+      <option value="fitv" <%= "selected" if default_size == "fitv" %>>Fit (Vertical)</option>
       <% if !@post.is_video? %>
-        <option value="large">Sample (<%= Danbooru.config.large_image_width %>px)</option>
+        <option value="large" <%= "selected" if default_size == "large" %>>Sample (<%= Danbooru.config.large_image_width %>px)</option>
       <% end %>
       <% Danbooru.config.video_samples.keys.each do |size| %>
+        <% is_already_selected = false %>
         <% next unless @post.has_sample_size?(size.to_s) %>
-        <option value="<%= size %>">Sample (<%= size %>)</option>
+        <option value="<%= size %>" <%= "selected" if default_size == "large" && !is_already_selected %>>Sample (<%= size %>)</option>
+        <% is_already_selected = true %>
       <% end %>
   </select>
   </div>

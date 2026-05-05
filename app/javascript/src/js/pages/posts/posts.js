@@ -24,7 +24,7 @@ Post.initialize_all = function () {
     this.initialize_links();
     this.initialize_post_relationship_previews();
     this.initialize_post_sections();
-    this.initialize_resize();
+    // this.initialize_resize();
     this.initialize_moderation();
   }
 
