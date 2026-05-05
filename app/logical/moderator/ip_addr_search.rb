@@ -23,7 +23,7 @@ module Moderator
             mask = IPAddr.new(ip_addrs[0]).ipv4? ? 24 : 64
             ip_addrs[0] = "#{ip_addrs[0]}/#{mask}"
           rescue IPAddr::InvalidAddressError
-            render_expected_error(422, "Invalid IP address format: #{ip_addrs[0]}")
+            raise InvalidIpAddr, "Invalid IP address format: #{ip_addrs[0]}"
           end
         end
         validate_ip_addrs(ip_addrs)
