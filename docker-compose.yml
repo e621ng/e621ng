@@ -54,7 +54,7 @@ services:
         condition: service_started
 
   autocompleted:
-    image: ghcr.io/e621ng/autocompleted:8807bc8658f594cd0de04de1c272c3a2f917fc48
+    image: ghcr.io/e621ng/autocompleted:0.1.4
     command: /app/autocompleted
     environment:
       SERVER_ADDR: autocompleted:8118
