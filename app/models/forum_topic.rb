@@ -55,7 +55,7 @@ class ForumTopic < ApplicationRecord
   module SearchMethods
     def visible(user)
       q = joins(:category).where("forum_categories.can_view <= ?", user.level)
-      q = q.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
+      q = q.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_staff?
       q
     end
 
