@@ -1,0 +1,13 @@
+<% if @appeal.content.present? && @appeal.content.post.present? %>
+    <tr>
+      <td><span class="title">Post Flag Appeal</span></td>
+      <td>
+        <%= render(PostThumbnailComponent.new(post: @appeal.content.post, stats: true, show_deleted: true, no_blacklist: true)) %>
+      </td>
+    </tr>
+<% else %>
+    <tr>
+      <td><span class="title">Post Flag Appeal</span></td>
+      <td><span class="text-error">Flag #<%= @appeal.content.id %> has been deleted</span></td>
+    </tr>
+<% end %>
