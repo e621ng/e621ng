@@ -4,10 +4,7 @@ class PostThumbnailComponent < ViewComponent::Base
   include IconHelper
   with_collection_parameter :post
 
-  RIBBON_SIDE = {
-    left: "left",
-    right: "right",
-  }.freeze
+  RIBBON_SIDE = %i[left right].freeze
 
   def initialize(post:, post_counter: -1, **options)
     super()
@@ -78,20 +75,20 @@ class PostThumbnailComponent < ViewComponent::Base
     [true, true] => "50%",
   }.freeze
 
-  def get_ribbon_background_position_for_conditions(condition_a, condition_b)
+  def ribbon_background_position_for_conditions(condition_a, condition_b)
     RIBBON_BACKGROUND_POSITION_MAPPING[[condition_a, condition_b]] || false
   end
 
-  def get_ribbon_background_position(side)
+  def ribbon_background_position(side)
     case side
     when :left
-      get_ribbon_background_position_for_conditions(post.has_visible_children?, post.parent_exists?)
+      ribbon_background_position_for_conditions(post.has_visible_children?, post.parent_exists?)
     when :right
-      get_ribbon_background_position_for_conditions(post.is_flagged?, post.is_pending?)
+      ribbon_background_position_for_conditions(post.is_flagged?, post.is_pending?)
     end
   end
 
-  def get_ribbon_tooltip(side)
+  def ribbon_tooltip(side)
     content = []
 
     case side
@@ -107,7 +104,7 @@ class PostThumbnailComponent < ViewComponent::Base
   end
 
   def should_show_ribbon?(side)
-    get_ribbon_background_position(side) != false
+    ribbon_background_position(side) != false
   end
 
   ##############################

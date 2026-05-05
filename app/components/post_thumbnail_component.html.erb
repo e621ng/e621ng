@@ -13,8 +13,8 @@
       <% if should_show_ribbon? side %>
         <div
           class="ribbon <%= classname %>"
-          style="--bg-pos: <%= get_ribbon_background_position side %>"
-          title="<%= get_ribbon_tooltip side %>">
+          style="--bg-pos: <%= ribbon_background_position side %>"
+          title="<%= ribbon_tooltip side %>">
         </div>
       <% end %>
     <% end %>
