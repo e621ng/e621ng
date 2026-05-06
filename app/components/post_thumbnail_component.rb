@@ -93,7 +93,7 @@ class PostThumbnailComponent < ViewComponent::Base
 
     case side
     when :left
-      content << "Has children post/s." if post.has_visible_children?
+      content << "Has child posts." if post.has_visible_children?
       content << "Has parent post." if post.parent_id.present?
     when :right
       content << "Flagged for deletion." if post.is_flagged?

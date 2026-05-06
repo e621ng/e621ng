@@ -415,7 +415,7 @@ body[data-st-contain="true"] article.thumbnail img {
 // ============================== //
 
 
-article div.ribbon {
+article.thumbnail div.ribbon {
   --transform-scalar: 1; // changed to -1 for the transforms below
   position: absolute;
   top: 0;
