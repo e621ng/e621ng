@@ -11,8 +11,9 @@ RSpec.describe BulkIndexUpdateJob do
     it "re-indexes the specified records via import" do
       posts = create_list(:post, 3)
       ids   = posts.map(&:id)
-      expect(Post.document_store).to receive(:import).with(query: { id: ids })
+      allow(Post.document_store).to receive(:import)
       job.perform_now("Post", ids)
+      expect(Post.document_store).to have_received(:import).with(query: { id: ids })
     end
 
     it "does not raise when the id list is empty" do
