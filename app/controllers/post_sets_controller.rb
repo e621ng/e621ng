@@ -4,6 +4,7 @@ class PostSetsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show]
   before_action :ensure_lockdown_disabled, except: %i[index show]
+  before_action :check_set_modify_rate_limit, only: %i[add_posts remove_posts update_posts]
 
   def index
     if params[:post_id].present?
@@ -205,5 +206,17 @@ class PostSetsController < ApplicationController
 
   def ensure_lockdown_disabled
     access_denied if Security::Lockdown.post_sets_disabled? && !CurrentUser.is_staff?
+  end
+
+  def check_set_modify_rate_limit
+    key = "post_set.modify.#{CurrentUser.id}"
+    if RateLimiter.check_limit(key, 30, 1.minute)
+      respond_to do |format|
+        format.json { render json: { message: "You are modifying sets too quickly. Try again in a minute." }, status: 429 }
+        format.html { redirect_back fallback_location: post_sets_path, notice: "You are modifying sets too quickly. Try again in a minute." }
+      end
+    else
+      RateLimiter.hit(key, 1.minute)
+    end
   end
 end
