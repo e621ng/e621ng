@@ -1,3 +1,6 @@
+import DeferredPostLoader from "@/core/DeferredPostLoader";
+import PostCache from "@/models/PostCache";
+import Logger from "@/utility/Logger";
 import SVGIcon from "@/utility/SVGIcon";
 import TaskQueue from "@/utility/TaskQueue";
 
@@ -35,7 +38,11 @@ export default class DTextFormatter {
   private allowColor: boolean;
   private characterLimit: number | null;
 
-  constructor ($element) {
+  private Logger: Logger;
+
+  constructor ($element: JQuery<HTMLElement>) {
+    this.Logger = new Logger("DText");
+
     this.$wrapper = $element;
     this.$textarea = $element.find("textarea.dtext-formatter-input");
     this.allowColor = $element.data("color") || false;
@@ -264,6 +271,10 @@ export default class DTextFormatter {
     if (this._parsedInputCache === currentText) return;
     this._parsedInputCache = currentText;
 
+    // Clean up any previous thumbnails
+    const pruned = PostCache.prune(this.$preview.find("article.thumbnail"));
+    this.Logger.log(`Pruned ${pruned} thumbnails from preview.`);
+
     this.$preview
       .html("")
       .attr("loading", "true");
@@ -275,6 +286,7 @@ export default class DTextFormatter {
         dataType: "json",
         data: { body: currentText, allow_color: this.allowColor },
         success: (response) => {
+          this.Logger.log("Preview response received", response);
 
           // The loading was cancelled, since the user toggled back
           // to the editing tab and potentially changed the input
@@ -284,10 +296,11 @@ export default class DTextFormatter {
           this.$preview
             .attr("loading", "false")
             .html(response.html);
-          $(window).trigger("e621:add_deferred_posts", response.posts);
+          DeferredPostLoader.loadPostData(response.posts);
+          DeferredPostLoader.renderDTextThumbnails();
         },
         error: (_xhr, _status, error) => {
-          console.warn("DText preview error:", error);
+          console.error("DText preview error:", error);
           this.$preview
             .attr("loading", "false")
             .text("Unable to fetch DText preview.");

@@ -3,6 +3,8 @@
 require "sidekiq-unique-jobs"
 require "sidekiq-cron"
 
+Sidekiq.logger.level = Logger::WARN if Rails.env.test?
+
 Sidekiq.configure_server do |config|
   config.redis = { url: Danbooru.config.redis_url }
 
@@ -22,6 +24,11 @@ Sidekiq.configure_server do |config|
       "cron" => "30 * * * *", # Every hour at minute 30
       "class" => "SearchTrendAggregateJob",
       "description" => "Aggregate unprocessed hourly search trends into daily totals",
+    },
+    "SearchTrendCacheWarmJob" => {
+      "cron" => "*/15 * * * *",
+      "class" => "SearchTrendCacheWarmJob",
+      "description" => "Pre-warm the rising tags cache every 15 minutes to avoid on-request timeouts",
     },
   }
 

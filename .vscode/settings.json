@@ -7,6 +7,11 @@
   },
   // Trick ruby-lsp into not doing any updates
   "rubyLsp.bundleGemfile": "Gemfile",
+  "rubyLsp.addonSettings": {
+    "Ruby LSP RSpec": {
+      "rspecCommand": ".vscode/run-in-container.sh tests bundle exec rspec"
+    }
+  },
 
   "npm.packageManager": "yarn",
   "editor.detectIndentation": false,

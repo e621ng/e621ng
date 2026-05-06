@@ -3,7 +3,7 @@
   "packageManager": "yarn@1.22.19",
   "private": true,
   "dependencies": {
-    "@openpanel/web": "^1.2.0",
+    "@openpanel/web": "^1.4.0",
     "@rails/ujs": "^7.0.4",
     "chart.js": "^4.5.1",
     "jquery": "^3.6.3",

@@ -1,0 +1,4 @@
+--require spec_helper
+--format progress
+--format ParallelTests::RSpec::RuntimeLogger --out tmp/spec_runtime.log
+--format ParallelTests::RSpec::FailuresLogger --out tmp/spec_failing.log

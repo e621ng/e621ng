@@ -1,4 +1,4 @@
-import Cookie from "@/utility/cookie";
+import CStorage from "@/utility/StorageC";
 
 function initSearch () {
   const $searchForm = $("#searchform");
@@ -25,7 +25,7 @@ $(function () {
   $(".dmail-notice-hide").on("click.danbooru", function (event) {
     event.preventDefault();
     $(".dmail-notice").hide();
-    Cookie.put("hide_dmail_notice", "true");
+    CStorage.hideDMailNotice = true;
   });
 
   $("#close-notice-link").on("click.danbooru", function (e) {

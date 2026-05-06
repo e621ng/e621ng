@@ -69,10 +69,13 @@
 <!-- Profile -->
 <tab-group name="profile">Profile</tab-group>
 
-<tab-entry tab="<%= tab_name %>" group="profile" search="update change user avatar profile image pfp">
+<tab-entry tab="<%= tab_name %>" group="profile" class="<%= @user.avatar_id.present? ? "with-buttons" : "" %>" search="update change user avatar profile image pfp crop">
   <tab-head><%= form.label :avatar_id, "Avatar Post ID" %></tab-head>
   <tab-body>
     <%= form.input_field :avatar_id, as: :string, label: false %>
+    <% if @user.avatar_id.present? %>
+      <%= link_to "Crop", edit_maintenance_user_avatar_path, class: "st-button" %>
+    <% end %>
   </tab-body>
   <tab-hint>
     The image with this ID will be set as your avatar.
