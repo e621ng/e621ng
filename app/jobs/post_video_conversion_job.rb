@@ -52,11 +52,13 @@ class PostVideoConversionJob < ApplicationJob
       samples: {},
     }
 
+    fix_colorspace = invalid_colorspace?(original)
+
     # Variants should be generated only if the original is not h264.
     # Videos should always been downscaled, not upscaled.
     smaller_dim = [post.image_width, post.image_height].min
     if original.video_codec != "h264"
-      outputs[:variants][:mp4] = generate_mp4_video(post, clamp: [round_two_two(smaller_dim), Danbooru.config.video_variant].min)
+      outputs[:variants][:mp4] = generate_mp4_video(post, fix_colorspace: fix_colorspace, clamp: [round_two_two(smaller_dim), Danbooru.config.video_variant].min)
     end
 
     frame_rate = (original.frame_rate || 0).round(2).to_f
@@ -70,6 +72,7 @@ class PostVideoConversionJob < ApplicationJob
       next if smaller_dim <= (params[:clamp] + 50) && frame_rate <= 30 && frame_rate != 0
       outputs[:samples][size.to_sym] = generate_mp4_video(
         post,
+        fix_colorspace: fix_colorspace,
         fps_limited: true,
         clamp: params[:clamp],
         maxrate: params[:maxrate],
@@ -78,6 +81,17 @@ class PostVideoConversionJob < ApplicationJob
     end
 
     outputs
+  end
+
+  VALID_COLOR_SPACES = %w[
+    bt709 smpte170m bt470bg smpte240m bt2020nc bt2020c smpte2085
+    chroma-derived-nc chroma-derived-c ictcp
+  ].freeze
+
+  def invalid_colorspace?(movie)
+    video_stream = movie.metadata[:streams]&.find { |s| s[:codec_type] == "video" }
+    color_space = video_stream&.fetch(:color_space, nil).to_s
+    color_space.empty? || VALID_COLOR_SPACES.exclude?(color_space)
   end
 
   def calculate_scale(post, clamp)
@@ -100,8 +114,8 @@ class PostVideoConversionJob < ApplicationJob
     (number / 2).round * 2
   end
 
-  def generate_webm_video(post, fps_limited: false, clamp: 1080)
-    generate_video(post, fps_limited: fps_limited, clamp: clamp, format_args: [
+  def generate_webm_video(post, fps_limited: false, clamp: 1080, fix_colorspace: false)
+    generate_video(post, fps_limited: fps_limited, clamp: clamp, fix_colorspace: fix_colorspace, format_args: [
       "-c:v", "libvpx-vp9",
       "-pix_fmt", "yuv420p",
       "-deadline", "good",
@@ -117,8 +131,8 @@ class PostVideoConversionJob < ApplicationJob
     ])
   end
 
-  def generate_mp4_video(post, fps_limited: false, clamp: 1080, maxrate: 3, bufsize: 6)
-    generate_video(post, fps_limited: fps_limited, clamp: clamp, format_args: [
+  def generate_mp4_video(post, fps_limited: false, clamp: 1080, maxrate: 3, bufsize: 6, fix_colorspace: false) # rubocop:disable Metrics/ParameterLists
+    generate_video(post, fps_limited: fps_limited, clamp: clamp, fix_colorspace: fix_colorspace, format_args: [
       "-c:v", "libx264",
       "-pix_fmt", "yuv420p",
       "-profile:v", "main",
@@ -133,11 +147,11 @@ class PostVideoConversionJob < ApplicationJob
     ])
   end
 
-  def generate_video(post, format_args: [], fps_limited: false, clamp: 1080)
+  def generate_video(post, format_args: [], fps_limited: false, clamp: 1080, fix_colorspace: false)
     vf_params = []
-    # Some encoders (e.g. TikTok/CapCut) write "reserved" as the color space value,
-    # which FFmpeg's filter graph rejects. Normalize to BT.709 before any other filter runs.
-    vf_params << "setparams=colorspace=bt709:color_primaries=bt709:color_trc=bt709"
+    # Some encoders (e.g. TikTok/CapCut) write "reserved" as the color space signaling value,
+    # which FFmpeg's filter graph rejects. Only override when the source value is missing or invalid.
+    vf_params << "setparams=colorspace=bt709:color_primaries=bt709:color_trc=bt709" if fix_colorspace
     vf_params << (fps_limited ? "fps='if(gt(source_fps,30),source_fps/2,source_fps)'" : "fps=source_fps")
     vf_params << "scale=#{calculate_scale(post, clamp)}"
 
