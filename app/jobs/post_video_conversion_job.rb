@@ -135,6 +135,9 @@ class PostVideoConversionJob < ApplicationJob
 
   def generate_video(post, format_args: [], fps_limited: false, clamp: 1080)
     vf_params = []
+    # Some encoders (e.g. TikTok/CapCut) write "reserved" as the color space value,
+    # which FFmpeg's filter graph rejects. Normalize to BT.709 before any other filter runs.
+    vf_params << "setparams=colorspace=bt709:color_primaries=bt709:color_trc=bt709"
     vf_params << (fps_limited ? "fps='if(gt(source_fps,30),source_fps/2,source_fps)'" : "fps=source_fps")
     vf_params << "scale=#{calculate_scale(post, clamp)}"
 
