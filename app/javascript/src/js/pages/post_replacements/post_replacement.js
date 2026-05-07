@@ -43,7 +43,7 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
     dataType: "html",
   })
     .done((html) => {
-      E621.Flash.notice("Replacement approved.");
+      E621.Flash.success("Replacement approved.");
       $row.replaceWith(html);
     })
     .fail((data) => {
@@ -63,7 +63,7 @@ PostReplacement.reject = function (id) {
     dataType: "html",
   })
     .done((html) => {
-      E621.Flash.notice("Replacement rejected.");
+      E621.Flash.success("Replacement rejected.");
       $row.replaceWith(html);
     })
     .fail((data) => {
@@ -83,7 +83,7 @@ PostReplacement.promote = function (id) {
     dataType: "html",
   })
     .done((html) => {
-      E621.Flash.notice("Replacement promoted to a new post.");
+      E621.Flash.success("Replacement promoted to a new post.");
       $row.replaceWith(html);
     })
     .fail((data) => {
@@ -102,7 +102,7 @@ PostReplacement.toggle_penalize = function ($target) {
     dataType: "html",
   })
     .done((html) => {
-      E621.Flash.notice("Penalization toggled.");
+      E621.Flash.success("Penalization toggled.");
       $(`#replacement-${id}`).replaceWith(html);
     })
     .fail((data) => {
@@ -122,7 +122,7 @@ PostReplacement.destroy = function (id) {
     dataType: "html",
   })
     .done(() => {
-      E621.Flash.notice("Replacement destroyed.");
+      E621.Flash.success("Replacement destroyed.");
       $row.remove();
     })
     .fail((data) => {

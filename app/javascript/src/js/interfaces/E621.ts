@@ -5,6 +5,7 @@ import ModuleRegistry from "@/utility/ModuleRegistry";
 import PerformanceTracker from "@/utility/PerformanceTracker";
 import Settings from "@/utility/Settings";
 import LStorage from "@/utility/storage";
+import { ToastInitializer } from "@/utility/Toast";
 
 export default interface E621Type {
   Registry: ModuleRegistry;
@@ -14,4 +15,5 @@ export default interface E621Type {
   Blacklist: typeof Blacklist;
   Logger: typeof Logger;
   Flash: typeof Flash;
+  Toast: ToastInitializer;
 }

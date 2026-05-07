@@ -1,37 +1,28 @@
-import $ from "jquery";
+import ToastManager from "./Toast";
 
 export default class Flash {
+  /* ==== Legacy API ==== */
 
-  private static timeout_id: number = undefined;
-
-  public static notice (message: string, permanent: boolean = false) {
-    $("#notice")
-      .addClass("ui-state-highlight")
-      .removeClass("ui-state-error")
-      .fadeIn("fast")
-      .children("span")
-      .html(message);
-
-    if (this.timeout_id !== undefined)
-      clearTimeout(this.timeout_id);
-
-    if (!permanent)
-      this.timeout_id = setTimeout(() => {
-        $("#close-notice-link").click();
-        this.timeout_id = undefined;
-      }, 3000);
+  public static notice (message: string, permanent: boolean = false): void {
+    ToastManager.create(message, { type: "notice", timeout: permanent ? 0 : undefined });
   }
 
-  public static error (message: string) {
-    $("#notice")
-      .removeClass("ui-state-highlight")
-      .addClass("ui-state-error")
-      .fadeIn("fast")
-      .children("span")
-      .html(message);
-
-    if (this.timeout_id !== undefined)
-      clearTimeout(this.timeout_id);
+  public static success (message: string, permanent: boolean = false): void {
+    ToastManager.create(message, { type: "success", timeout: permanent ? 0 : undefined });
   }
 
+  public static error (message: string): void {
+    ToastManager.create(message, { type: "alert", timeout: 0 });
+  }
+
+  public static initialize () {
+    $(window).on("danbooru:notice", (_event, message) => {
+      Flash.notice(message);
+    });
+    $(window).on("danbooru:error", (_event, message) => {
+      ToastManager.get("Updating post...")?.dismiss(true);
+      ToastManager.get("Updating posts...")?.dismiss(true);
+      Flash.error(message);
+    });
+  }
 }

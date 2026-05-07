@@ -31,6 +31,7 @@ import PerformanceTracker from "@/utility/PerformanceTracker";
 import Settings from "@/utility/Settings";
 import LStorage from "@/utility/storage";
 import CStorage from "@/utility/StorageC";
+import ToastManager from "@/utility/Toast";
 
 Logger.log("Loading");
 
@@ -49,10 +50,14 @@ window["E621"] = {
   Hotkeys,
   Logger,
   Flash,
+  Toast: ToastManager.create,
 
   // compatibility aliases
   error: Flash.error,
   notice: Flash.notice,
 } as E621Type;
 window["Danbooru"] = window["E621"];
+
+Flash.initialize();
+ToastManager.bootstrap();
 

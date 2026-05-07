@@ -38,15 +38,26 @@ PostVersion.undo_selected = function (event) {
   PostVersion.updated = 0;
   let selected_rows = $(".post-version-select:checked").parents(".post-version");
 
+  const toast = E621.Toast("Undoing changes...", { timeout: 0 });
+  const promises = [];
   for (let row of selected_rows) {
     let id = $(row).data("post-version-id");
 
-    TaskQueue.add(() => {
+    promises.push(TaskQueue.add(() => {
       $.ajax(`/post_versions/${id}/undo.json`, {method: "PUT"});
 
-      E621.Flash.notice(`${++PostVersion.updated}/${selected_rows.length} changes undone.`);
-    }, { name: "PostVersion.undo_selected" });
+      toast.message = `${++PostVersion.updated} / ${selected_rows.length} changes undone.`;
+    }, { name: "PostVersion.undo_selected" }));
   }
+
+  Promise.all(promises).then(() => {
+    toast.type = "success";
+    toast.message = `Successfully undone ${PostVersion.updated} change${PostVersion.updated !== 1 ? "s" : ""}.`;
+    toast.timeout = 3;
+  }).catch(e => {
+    E621.Flash.error("Failed to undo selected changes: " + e.message, e);
+    toast.dismiss();
+  });
 };
 
 PostVersion.tag_script_selected = function (event) {
@@ -58,15 +69,25 @@ PostVersion.tag_script_selected = function (event) {
   if (!script)
     return;
 
+  const toast = E621.Toast("Applying tag script...", { timeout: 0 });
+  const promises = [];
   for (let row of selected_rows) {
     let id = $(row).data("post-id");
 
-    TaskQueue.add(() => {
+    promises.push(TaskQueue.add(() => {
       Post.tagScript(id, script);
 
-      E621.Flash.notice(`${++PostVersion.updated}/${selected_rows.length} changes applied.`);
-    }, { name: "PostVersion.tag_script_selected" });
+      toast.message = `${++PostVersion.updated} / ${selected_rows.length} changes applied.`;
+    }, { name: "PostVersion.tag_script_selected" }));
   }
+  Promise.all(promises).then(() => {
+    toast.type = "success";
+    toast.message = `Successfully applied ${PostVersion.updated} change${PostVersion.updated !== 1 ? "s" : ""}.`;
+    toast.timeout = 3;
+  }).catch(e => {
+    E621.Flash.error("Failed to apply tag script to selected changes: " + e.message, e);
+    toast.dismiss();
+  });
 };
 
 $(() => PostVersion.initialize_all());

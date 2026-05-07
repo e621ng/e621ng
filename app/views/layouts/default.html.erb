@@ -23,13 +23,25 @@
       <%= render "users/validation_notice" %>
     <% end %>
 
-    <%# Notification Toasts %>
-    <div class="ui-corner-all ui-state-highlight" id="notice" style="<%= "display: none;" unless flash[:notice] %>">
-      <span><%= format_text(flash[:notice], inline: true) %>.</span>
-      <a href="#" id="close-notice-link">close</a>
-    </div>
-
     <%= yield :layout %>
+  </div>
+
+  <%# Notification Toasts %>
+  <div id="toast-container" aria-live="polite" aria-atomic="false">
+    <% flash.each do |type, message| %>
+      <% if message.present? %>
+        <div class="toast toast-<%= type %>" role="alert" data-counter="1">
+          <span class="toast-message"><%= format_text(message, inline: true) %></span>
+          <span class="toast-counter">1</span>
+          <button
+            type="button"
+            class="toast-close"
+            aria-label="Close notice"
+            style="display: none;"
+          ><%= svg_icon(:times, width: 16, height: 16) %></button>
+        </div>
+      <% end %>
+    <% end %>
   </div>
 
   <% unless content_for?(:skip_tos_warning) %>

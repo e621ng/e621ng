@@ -16,7 +16,7 @@ class TagRelationships {
       type: "POST",
       dataType: "json",
     }).done(function () {
-      E621.Flash.notice(`Accepted ${human}.`);
+      E621.Flash.success(`Accepted ${human}.`);
       parent.slideUp("fast");
     }).fail(function () {
       E621.Flash.error(`Failed to accept ${human}.`);
@@ -40,7 +40,7 @@ class TagRelationships {
       type: "DELETE",
       dataType: "json",
     }).done(function () {
-      E621.Flash.notice(`Rejected ${human}.`);
+      E621.Flash.success(`Rejected ${human}.`);
       parent.slideUp("fast");
     }).fail(function () {
       E621.Flash.error(`Failed to reject ${human}.`);
