@@ -55,7 +55,7 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
   WEIGHTS_FOR_TAGS = {
     artist: 0.0,
     character: 1.25,
-    copyright: 0.0, # pokemon tags make results unusable
+    copyright: 0.0, # shared publisher tags are basically meaningless
     species: 1.25,
     general: 1.0,
   }.freeze
