@@ -5,6 +5,7 @@
   &-image-wrap {
     position: relative;
     cursor: crosshair;
+    touch-action: none;
   }
 
   &-selection {
