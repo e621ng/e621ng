@@ -65,7 +65,7 @@
             <% end %>
 
             <%# Status, Timestamps %>
-            <td class="<%= appeal.status %>-appeal"><%= pretty_appeal_status(appeal) %></td>
+            <td class="<%= appeal.status %>-appeal"><%= pretty_ticket_status(appeal) %></td>
             <td style="cursor:help;"><%= time_ago_in_words_tagged(appeal.updated_at) %></td>
             <td style="cursor:help;"><%= time_ago_in_words_tagged(appeal.created_at) %></td>
           </tr>
