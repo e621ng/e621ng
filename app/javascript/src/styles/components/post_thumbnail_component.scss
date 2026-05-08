@@ -429,8 +429,9 @@ article.thumbnail div.ribbon {
   background-position-y: var(--bg-pos);
 
   // we need to rotate it in the opposite direction if we are on the right side, otherwise the gradient won't be visible
-  rotate: calc(45deg * var(--transform-scalar));
-  translate: calc(-50% * var(--transform-scalar)) -50%;
+  transform:
+   translate(calc(-50% * var(--transform-scalar)), -50%)
+   rotate(calc(45deg * var(--transform-scalar)));
   box-shadow: 0 0 11px 4px rgba(0 0 0 / .1);
 
   &.left {
