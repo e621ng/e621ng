@@ -107,7 +107,7 @@
 
         return this.sources.some(function (source) {
           if (source.length <= 0) return false;
-          
+
           // Allow dead source links prefixed with `-`
           if (source[0] === "-") source = source.substring(1);
           try {
