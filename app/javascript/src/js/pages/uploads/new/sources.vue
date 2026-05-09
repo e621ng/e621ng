@@ -106,14 +106,15 @@
         if (this.noSource) return false;
 
         return this.sources.some(function (source) {
-          let isValidUrl = false;
+          if (source.length <= 0) return false;
+          
+          // Allow dead source links prefixed with `-`
+          if (source[0] === "-") source = source.substring(1);
           try {
-            // Allow dead source links prefixed with `-`
-            if (source[0] === "-") source = source.substring(1);
             const url = new URL(source);
-            isValidUrl = url.protocol === "http:" || url.protocol === "https:";
-          } catch {}  // Exception occurs if the URL constructor fails to parse the string, which means it's not a valid URL
-          return source.length > 0 && !isValidUrl;
+            return url.protocol !== "http:" && url.protocol !== "https:";
+          } catch { }  // Exception occurs if the URL constructor fails to parse the string, which means it's not a valid URL
+          return true;
         });
       },
     },
