@@ -5,6 +5,7 @@
   &-image-wrap {
     position: relative;
     cursor: crosshair;
+    touch-action: none;
   }
 
   &-selection {
@@ -29,6 +30,15 @@
       }
     }
 
+    &.size-warning.nice-warning {
+      border-color: palette("background-gold");
+      &:after {
+        content: "Crop area is very nice";
+        background-color: palette("background-gold");
+        color: palette("plain-black");
+      }
+    }
+
     .image-crop-handle {
       position: absolute;
       width: 10px;
@@ -46,6 +56,11 @@
 
   &-warning {
     color: #f80;
+    margin-top: 0.5em;
+  }
+
+  &-nice {
+    color: palette("background-gold");
     margin-top: 0.5em;
   }
 }

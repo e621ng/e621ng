@@ -872,7 +872,7 @@ Post.set_as_avatar = function (id) {
         accept: "*/*;q=0.5,text/javascript",
       },
     }).done(function () {
-      E621.Flash.notice("Post set as avatar");
+      E621.Flash.notice("Post set as avatar. You can crop it further <a href='/maintenance/user/avatar/edit'>here</a>.");
     });
   }, { name: "Post.set_as_avatar" });
 };

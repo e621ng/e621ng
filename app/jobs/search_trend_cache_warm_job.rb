@@ -5,6 +5,8 @@ class SearchTrendCacheWarmJob < ApplicationJob
   sidekiq_options lock: :until_executing
 
   def perform
-    SearchTrendHourly.warm_rising_tags_cache!
+    SearchTrendHourly.without_timeout do
+      SearchTrendHourly.warm_rising_tags_cache!
+    end
   end
 end
