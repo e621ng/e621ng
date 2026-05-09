@@ -15,15 +15,15 @@
       <div
         v-if="selection"
         class="image-crop-widget-selection"
-        v-bind:class="(sizeWarning ? 'size-warning' : '')"
+        v-bind:class="[(sizeWarning ? 'size-warning' : ''), (niceWarning ? 'nice-warning' : '')]"
         :style="selectionStyle"
         @pointerdown.stop="onSelectionPointerDown"
       >
         <div v-for="h in handles" :key="h" class="image-crop-handle" :data-handle="h" @pointerdown.stop="onHandlePointerDown($event, h)" />
       </div>
     </div>
-    <p v-if="sizeWarning" class="image-crop-widget-warning">Selection is too small (minimum {{ minSize }}×{{ minSize }} px in source image).</p>
-    <p v-if="niceWarning" class="image-crop-widget-warning">Selection is very nice (69x69 px in source image).</p>
+    <p v-if="niceWarning" class="image-crop-widget-nice">Selection is very nice (69x69 px in source image).</p>
+    <p v-else-if="sizeWarning" class="image-crop-widget-warning">Selection is too small (minimum {{ minSize }}×{{ minSize }} px in source image).</p>
   </div>
 </template>
 
@@ -152,7 +152,6 @@ export default {
 
     onPointerUp(e) {
       if (!this.drag || e.pointerId !== this.drag.pointerId) return;
-      this.$refs.wrap.releasePointerCapture(e.pointerId);
       this.drag = null;
       if (this.sourceSel) this.$emit("cropChange", this.sourceSel);
     },
