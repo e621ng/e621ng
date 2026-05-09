@@ -12,6 +12,10 @@ RSpec.describe PostSetsController do
   let(:private_set)  { create(:post_set, creator: owner) }
   let(:public_set)   { create(:public_post_set, creator: owner) }
 
+  before do
+    allow(RateLimiter).to receive(:check_limit).and_return(false)
+  end
+
   # ---------------------------------------------------------------------------
   # GET /post_sets — index
   # ---------------------------------------------------------------------------
@@ -446,6 +450,19 @@ RSpec.describe PostSetsController do
         expect(public_set.reload.post_ids).to include(new_post.id)
       end
     end
+
+    context "when adding more than the maximum allowed posts at once" do
+      before { sign_in_as owner }
+
+      it "returns a 400 error" do
+        allow(Danbooru.config.custom_configuration).to receive(:max_per_page).and_return(3)
+
+        post_ids = create_list(:post, 4).map(&:id)
+        post add_posts_post_set_path(public_set, format: :json), params: { post_ids: post_ids }
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["message"]).to match(/only add up to/)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -486,6 +503,19 @@ RSpec.describe PostSetsController do
         post remove_posts_post_set_path(public_set, format: :json), params: { post_ids: [existing_post.id] }
         expect(response).to have_http_status(:success)
         expect(public_set.reload.post_ids).not_to include(existing_post.id)
+      end
+    end
+
+    context "when removing more than the maximum allowed posts at once" do
+      before { sign_in_as owner }
+
+      it "returns a 400 error" do
+        allow(Danbooru.config.custom_configuration).to receive(:max_per_page).and_return(3)
+
+        post_ids = create_list(:post, 4).map(&:id)
+        post remove_posts_post_set_path(public_set, format: :json), params: { post_ids: post_ids }
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["message"]).to match(/only remove up to/)
       end
     end
   end
@@ -543,6 +573,34 @@ RSpec.describe PostSetsController do
       sign_in_as create(:janitor_user)
       get new_post_set_path
       expect(response).to have_http_status(:ok)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Throttling
+  # ---------------------------------------------------------------------------
+
+  describe "throttling" do
+    let(:new_post) { create(:post) }
+
+    before do
+      sign_in_as owner
+      allow(RateLimiter).to receive(:check_limit).and_return(true)
+    end
+
+    it "returns 429 when the rate limit is exceeded while adding posts" do
+      post add_posts_post_set_path(public_set), params: { post_ids: [new_post.id] }
+      expect(response).to have_http_status(:too_many_requests)
+    end
+
+    it "returns 429 when the rate limit is exceeded while removing posts" do
+      post remove_posts_post_set_path(public_set), params: { post_ids: [new_post.id] }
+      expect(response).to have_http_status(:too_many_requests)
+    end
+
+    it "returns 429 when the rate limit is exceeded while updating posts" do
+      post update_posts_post_set_path(public_set), params: { post_set: { post_ids_string: new_post.id.to_s } }
+      expect(response).to have_http_status(:too_many_requests)
     end
   end
 end

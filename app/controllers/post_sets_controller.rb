@@ -142,6 +142,11 @@ class PostSetsController < ApplicationController
     check_set_post_limit(@post_set)
 
     ids = add_remove_posts_params.map(&:to_i)
+    if ids.size > Danbooru.config.max_per_page
+      render_expected_error(400, "You can only add up to #{Danbooru.config.max_per_page} posts at a time.")
+      return
+    end
+
     @post_set.add(ids)
     @post_set.reload
 
@@ -154,6 +159,11 @@ class PostSetsController < ApplicationController
     check_set_post_limit(@post_set)
 
     ids = add_remove_posts_params.map(&:to_i)
+    if ids.size > Danbooru.config.max_per_page
+      render_expected_error(400, "You can only remove up to #{Danbooru.config.max_per_page} posts at a time.")
+      return
+    end
+
     @post_set.remove(ids)
     @post_set.reload
 
@@ -211,10 +221,7 @@ class PostSetsController < ApplicationController
   def check_set_modify_rate_limit
     key = "post_set.modify.#{CurrentUser.id}"
     if RateLimiter.check_limit(key, 30, 1.minute)
-      respond_to do |format|
-        format.json { render json: { message: "You are modifying sets too quickly. Try again in a minute." }, status: 429 }
-        format.html { redirect_back fallback_location: post_sets_path, notice: "You are modifying sets too quickly. Try again in a minute." }
-      end
+      render_expected_error(429, "You are modifying sets too quickly. Wait a bit and try again.")
     else
       RateLimiter.hit(key, 1.minute)
     end
