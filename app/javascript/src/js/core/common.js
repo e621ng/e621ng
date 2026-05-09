@@ -33,6 +33,20 @@ $(function () {
     e.preventDefault();
   });
 
+  // Prevent link navigation on first tap of a spoiler tag on touch devices.
+  $(document).on("touchend.danbooru", ".spoiler", function (e) {
+    if ($(e.target).closest("a", this).length && !$(this).hasClass("spoiler-revealed")) {
+      e.preventDefault();
+    }
+    $(this).addClass("spoiler-revealed");
+  });
+
+  $(document).on("touchstart.danbooru", function (e) {
+    if (!$(e.target).closest(".spoiler").length) {
+      $(".spoiler.spoiler-revealed").removeClass("spoiler-revealed");
+    }
+  });
+
   $(".revert-item-link").on("click", e => {
     e.preventDefault();
     const target = $(e.target);
