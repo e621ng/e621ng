@@ -70,6 +70,7 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
     functions = [{ random_score: { seed: @post.id, field: "id" } }]
     selected_tags.each do |tag|
       weight = WEIGHTS_FOR_TAGS.fetch(tag.category_name.to_sym, WEIGHTS_FOR_TAGS[:general])
+      next if weight <= 0
       functions << { filter: { term: { tags: tag.name } }, weight: weight }
     end
 
