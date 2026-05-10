@@ -19,7 +19,7 @@
     <%= render "forum_posts/listing", :forum_posts => @forum_posts, :original_forum_post_id => @forum_topic.original_post.id %>
 
     <% if CurrentUser.is_member? %>
-      <% if CurrentUser.is_moderator? || !@forum_topic.is_locked? %>
+      <% if @forum_topic.can_reply? %>
         <p><%= link_to "Reply »", new_forum_post_path(forum_post: { topic_id: @forum_topic.id }), id: "new-response-link" %></p>
 
         <div style="display: none;" id="topic-response">

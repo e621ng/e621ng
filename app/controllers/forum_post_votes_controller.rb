@@ -36,7 +36,7 @@ class ForumPostVotesController < ApplicationController
   end
 
   def validate_forum_post
-    raise User::PrivilegeError unless @forum_post.visible?(CurrentUser.user)
+    raise User::PrivilegeError unless @forum_post.can_access?
     raise User::PrivilegeError unless @forum_post.votable?
   end
 

@@ -96,11 +96,11 @@ class Ticket < ApplicationRecord
       end
 
       def can_create_for?(user)
-        content&.visible?(user)
+        content&.can_access?(user)
       end
 
       def can_view?(user)
-        return true if user.is_staff? && (content.blank? || content&.visible?(user))
+        return true if user.is_staff? && (content.blank? || content&.can_access?(user))
         return true if user.is_admin?
         return true if user.id == creator_id
         false

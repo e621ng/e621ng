@@ -50,7 +50,7 @@ RSpec.describe ForumPost do
   end
 
   # -------------------------------------------------------------------------
-  # topic existence
+  # topic is valid
   # -------------------------------------------------------------------------
   describe "topic" do
     it "is invalid when topic_id references a non-existent record" do
@@ -77,14 +77,14 @@ RSpec.describe ForumPost do
   end
 
   # -------------------------------------------------------------------------
-  # topic lock
+  # topic accepts replies
   # -------------------------------------------------------------------------
-  describe "validate_topic_is_unlocked" do
+  describe "validate_topic_can_reply" do
     it "is invalid when the topic is locked and the current user is not a moderator" do
       topic.update_columns(is_locked: true)
       record = build(:forum_post, topic_id: topic.id)
       expect(record).not_to be_valid
-      expect(record.errors[:topic]).to include("is locked")
+      expect(record.errors[:topic]).to include("does not allow replies")
     end
 
     it "is valid when the topic is locked but the current user is a moderator" do

@@ -7,11 +7,12 @@ require "rails_helper"
 # --------------------------------------------------------------------------- #
 
 RSpec.describe ForumTopic do
-  let(:member)    { create(:user) }
-  let(:moderator) { create(:moderator_user) }
-  let(:admin)     { create(:admin_user) }
-  let(:other)     { create(:user) }
-  let(:category)  { create(:forum_category) }
+  let(:member)          { create(:user) }
+  let(:moderator)       { create(:moderator_user) }
+  let(:admin)           { create(:admin_user) }
+  let(:other)           { create(:user) }
+  let(:category)        { create(:forum_category) }
+  let(:admin_category)  { create(:forum_category, can_view: User::Levels::ADMIN) }
 
   before do
     CurrentUser.user = member
@@ -44,65 +45,77 @@ RSpec.describe ForumTopic do
   end
 
   # -------------------------------------------------------------------------
-  # #visible?
+  # #can_access?
   # -------------------------------------------------------------------------
-  describe "#visible?" do
+  describe "#can_access?" do
+    it "returns false for blank users" do
+      topic = make_topic
+      expect(topic.can_access?(nil)).to be false
+    end
+
     it "is visible to a member when not hidden and category level allows it" do
       topic = make_topic
-      expect(topic.visible?(member)).to be true
+      expect(topic.can_access?(member)).to be true
     end
 
     it "is not visible to an unrelated member when hidden" do
       topic = make_topic
       topic.update_columns(is_hidden: true)
-      expect(topic.visible?(other)).to be false
+      expect(topic.can_access?(other)).to be false
     end
 
     it "is visible to the creator even when hidden" do
       topic = make_topic
       topic.update_columns(is_hidden: true, creator_id: member.id)
-      expect(topic.visible?(member)).to be true
+      expect(topic.can_access?(member)).to be true
     end
 
     it "is visible to a moderator even when hidden" do
       topic = make_topic
       topic.update_columns(is_hidden: true)
-      expect(topic.visible?(moderator)).to be true
+      expect(topic.can_access?(moderator)).to be true
     end
 
     it "is not visible to a member when category requires a higher level" do
       restricted = create(:forum_category, can_view: User::Levels::MODERATOR)
-      topic = CurrentUser.scoped(moderator) { create(:forum_topic, category_id: restricted.id) }
-      expect(topic.visible?(member)).to be false
+      topic = create(:forum_topic)
+      topic.update_columns(category_id: restricted.id)
+      expect(topic.can_access?(member)).to be false
+    end
+
+    it "is not visible when the category is invalid" do
+      topic = make_topic
+      topic.update_columns(category_id: 9999)
+      expect(topic.can_access?(member)).to be false
     end
   end
 
   # -------------------------------------------------------------------------
-  # #editable_by?
+  # #can_edit?
   # -------------------------------------------------------------------------
-  describe "#editable_by?" do
+  describe "#can_edit?" do
     it "allows the creator to edit their own visible topic" do
       topic = make_topic
       topic.update_columns(creator_id: member.id)
-      expect(topic.editable_by?(member)).to be true
+      expect(topic.can_edit?(member)).to be true
     end
 
     it "allows a moderator to edit any visible topic" do
       topic = make_topic
-      expect(topic.editable_by?(moderator)).to be true
+      expect(topic.can_edit?(moderator)).to be true
     end
 
     it "denies a non-creator non-moderator" do
       topic = make_topic
-      expect(topic.editable_by?(other)).to be false
+      expect(topic.can_edit?(other)).to be false
     end
 
     it "denies the creator when the topic is hidden (not visible to them)" do
       # A topic hidden by someone else — the creator is a different user
       topic = make_topic
       topic.update_columns(is_hidden: true, creator_id: other.id)
-      # `member` is not creator and not moderator, so visible? is false → editable_by? false
-      expect(topic.editable_by?(member)).to be false
+      # `member` is not creator and not moderator, so can_access? is false → can_edit? false
+      expect(topic.can_edit?(member)).to be false
     end
   end
 
@@ -117,8 +130,27 @@ RSpec.describe ForumTopic do
 
     it "returns false when user level is below the category requirement" do
       restricted = create(:forum_category, can_reply: User::Levels::MODERATOR)
-      topic = CurrentUser.scoped(moderator) { create(:forum_topic, category_id: restricted.id) }
+      topic = create(:forum_topic)
+      topic.update_columns(category_id: restricted.id)
       expect(topic.can_reply?(member)).to be false
+    end
+
+    it "returns false when the category is invalid" do
+      topic = make_topic
+      topic.update_columns(category_id: 9999)
+      expect(topic.can_reply?(member)).to be false
+    end
+
+    it "returns false when the topic is locked and the user cannot lock" do
+      topic = make_topic
+      topic.update_columns(is_locked: true)
+      expect(topic.can_reply?(member)).to be false
+    end
+
+    it "returns true when the topic is locked but the user can lock" do
+      topic = make_topic
+      topic.update_columns(is_locked: true)
+      expect(topic.can_reply?(moderator)).to be true
     end
   end
 
@@ -141,25 +173,119 @@ RSpec.describe ForumTopic do
       topic = make_topic
       expect(topic.can_hide?(other)).to be false
     end
+
+    it "denies the creator when the original post cannot be hidden" do
+      topic = make_topic
+      topic.update_columns(creator_id: member.id)
+      topic.original_post.update_columns(warning_type: 1)
+      expect(topic.can_hide?(member)).to be false
+    end
+
+    it "denies the creator if the topic category changed to a restricted one" do
+      restricted = create(:forum_category, can_view: User::Levels::MODERATOR)
+      topic = make_topic
+      topic.update_columns(creator_id: member.id, category_id: restricted.id)
+      expect(topic.can_hide?(member)).to be false
+    end
+
+    it "returns false when the original post is missing" do
+      topic = make_topic
+      topic.original_post.destroy
+      topic.reload
+      expect(topic.can_hide?(member)).to be false
+    end
+
+    it "returns false if the topic's creator is different to the original post's creator" do
+      # This is virtually impossible in production, but we should handle it gracefully just in case.
+      topic = make_topic
+      topic.update_columns(creator_id: other.id)
+      topic.original_post.update_columns(creator_id: member.id)
+      expect(topic.can_hide?(member)).to be false
+    end
   end
 
   # -------------------------------------------------------------------------
-  # #can_delete?
+  # #can_unhide?
   # -------------------------------------------------------------------------
-  describe "#can_delete?" do
-    it "allows an admin to delete a topic" do
+  describe "#can_unhide?" do
+    it "allows a moderator to unhide any topic" do
       topic = make_topic
-      expect(topic.can_delete?(admin)).to be true
-    end
-
-    it "denies a moderator" do
-      topic = make_topic
-      expect(topic.can_delete?(moderator)).to be false
+      topic.update_columns(is_hidden: true)
+      expect(topic.can_unhide?(moderator)).to be true
     end
 
     it "denies a regular member" do
       topic = make_topic
-      expect(topic.can_delete?(member)).to be false
+      topic.update_columns(is_hidden: true)
+      expect(topic.can_unhide?(member)).to be false
+    end
+
+    it "denies if the topic is hidden from the user" do
+      topic = make_topic
+      topic.update_columns(is_hidden: true, creator_id: other.id, category_id: admin_category.id)
+      expect(topic.can_unhide?(moderator)).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_sticky?
+  # -------------------------------------------------------------------------
+  describe "#can_sticky?" do
+    it "allows a moderator to sticky any topic" do
+      topic = make_topic
+      expect(topic.can_sticky?(moderator)).to be true
+    end
+
+    it "denies a regular member" do
+      topic = make_topic
+      expect(topic.can_sticky?(member)).to be false
+    end
+
+    it "denies when the topic is hidden from the user" do
+      topic = make_topic
+      topic.update_columns(is_hidden: true, creator_id: other.id, category_id: admin_category.id)
+      expect(topic.can_sticky?(moderator)).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_lock?
+  # -------------------------------------------------------------------------
+  describe "#can_lock?" do
+    it "allows a moderator to lock any topic" do
+      topic = make_topic
+      expect(topic.can_lock?(moderator)).to be true
+    end
+
+    it "denies a regular member" do
+      topic = make_topic
+      expect(topic.can_lock?(member)).to be false
+    end
+
+    it "denies when the topic is hidden from the user" do
+      topic = make_topic
+      topic.update_columns(is_hidden: true, creator_id: other.id, category_id: admin_category.id)
+      expect(topic.can_lock?(moderator)).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_destroy?
+  # -------------------------------------------------------------------------
+  describe "#can_destroy?" do
+    it "allows an admin to destroy a topic" do
+      topic = make_topic
+      expect(topic.can_destroy?(admin)).to be true
+    end
+
+    it "denies a moderator" do
+      topic = make_topic
+      expect(topic.can_destroy?(moderator)).to be false
+    end
+
+    it "denies a regular member" do
+      topic = make_topic
+      expect(topic.can_destroy?(member)).to be false
     end
   end
 
