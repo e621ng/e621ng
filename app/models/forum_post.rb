@@ -158,7 +158,7 @@ class ForumPost < ApplicationRecord
     end
 
     def validate_topic_can_reply
-      return true if topic&.can_reply?(creator)
+      return true if topic&.can_reply?(new_record? ? creator : (updater || creator))
 
       errors.add(:topic, "does not allow replies")
       false
