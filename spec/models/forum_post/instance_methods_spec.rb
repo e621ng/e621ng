@@ -213,6 +213,10 @@ RSpec.describe ForumPost do
       topic.update_columns(is_hidden: true, creator_id: other.id)
       expect(post.reload.can_vote?(member)).to be false
     end
+
+    it "denies anonymous users" do
+      expect(make_post.can_vote?(nil)).to be false
+    end
   end
 
   # -------------------------------------------------------------------------

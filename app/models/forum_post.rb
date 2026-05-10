@@ -81,7 +81,10 @@ class ForumPost < ApplicationRecord
     end
 
     def can_vote?(user = CurrentUser.user)
+      # Note that this does not check whether there is a valid votable request here.
+      # Due to the explosive nature of queries involved, that check is done separately.
       return false unless can_access?(user)
+      return false unless user.is_member?
       true
     end
 
