@@ -1058,6 +1058,19 @@ ALTER SEQUENCE public.help_pages_id_seq OWNED BY public.help_pages.id;
 
 
 --
+-- Name: ip_addr_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ip_addr_stats (
+    ip_addr inet NOT NULL,
+    distinct_user_count integer NOT NULL,
+    last_seen_at timestamp(6) without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: ip_bans; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2432,6 +2445,55 @@ ALTER SEQUENCE public.user_feedback_id_seq OWNED BY public.user_feedback.id;
 
 
 --
+-- Name: user_ip_touch_cursors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_ip_touch_cursors (
+    source character varying NOT NULL,
+    last_processed_id bigint,
+    last_processed_at timestamp(6) without time zone,
+    cutoff_at timestamp(6) without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: user_ip_touches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_ip_touches (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    ip_addr inet NOT NULL,
+    source character varying NOT NULL,
+    last_seen_at timestamp(6) without time zone NOT NULL,
+    hit_count integer DEFAULT 1 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: user_ip_touches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_ip_touches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_ip_touches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_ip_touches_id_seq OWNED BY public.user_ip_touches.id;
+
+
+--
 -- Name: user_name_change_requests; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3123,6 +3185,13 @@ ALTER TABLE ONLY public.user_feedback ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: user_ip_touches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_touches ALTER COLUMN id SET DEFAULT nextval('public.user_ip_touches_id_seq'::regclass);
+
+
+--
 -- Name: user_name_change_requests id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3386,6 +3455,14 @@ ALTER TABLE ONLY public.forum_topics
 
 ALTER TABLE ONLY public.help_pages
     ADD CONSTRAINT help_pages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ip_addr_stats ip_addr_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ip_addr_stats
+    ADD CONSTRAINT ip_addr_stats_pkey PRIMARY KEY (ip_addr);
 
 
 --
@@ -3676,6 +3753,22 @@ ALTER TABLE ONLY public.uploads
 
 ALTER TABLE ONLY public.user_feedback
     ADD CONSTRAINT user_feedback_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_ip_touch_cursors user_ip_touch_cursors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_touch_cursors
+    ADD CONSTRAINT user_ip_touch_cursors_pkey PRIMARY KEY (source);
+
+
+--
+-- Name: user_ip_touches user_ip_touches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_touches
+    ADD CONSTRAINT user_ip_touches_pkey PRIMARY KEY (id);
 
 
 --
@@ -4298,6 +4391,13 @@ CREATE INDEX index_forum_topics_on_to_tsvector_english_title ON public.forum_top
 --
 
 CREATE INDEX index_forum_topics_on_updated_at ON public.forum_topics USING btree (updated_at);
+
+
+--
+-- Name: index_ip_addr_stats_on_distinct_user_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ip_addr_stats_on_distinct_user_count ON public.ip_addr_stats USING btree (distinct_user_count);
 
 
 --
@@ -4981,6 +5081,20 @@ CREATE INDEX index_user_feedback_on_user_id ON public.user_feedback USING btree 
 
 
 --
+-- Name: index_user_ip_touches_on_ip_addr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_ip_touches_on_ip_addr ON public.user_ip_touches USING btree (ip_addr);
+
+
+--
+-- Name: index_user_ip_touches_on_user_and_ip_and_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_ip_touches_on_user_and_ip_and_source ON public.user_ip_touches USING btree (user_id, ip_addr, source);
+
+
+--
 -- Name: index_user_lower_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5233,6 +5347,14 @@ ALTER TABLE ONLY public.user_feedback
 
 
 --
+-- Name: user_ip_touches fk_rails_939896d370; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_touches
+    ADD CONSTRAINT fk_rails_939896d370 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: mascots fk_rails_9901e810fa; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5327,6 +5449,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260509120000'),
 ('20260503072727'),
 ('20260501134813'),
 ('20260420170420'),
