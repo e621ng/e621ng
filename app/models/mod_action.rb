@@ -136,7 +136,13 @@ class ModAction < ApplicationRecord
     end
 
     def jsonb_numeric_attribute_matches(attribute, range)
-      qualified_column = Arel.sql("(values ->> '#{attribute}')::INTEGER")
+      # Historical rows can hold non-integer strings (e.g. "permanent") under
+      # integer-typed JSONB keys; the CASE guard skips the cast for those rows
+      # instead of failing the whole query with PG::InvalidTextRepresentation.
+      qualified_column = Arel.sql(
+        "CASE WHEN (values ->> '#{attribute}') ~ '^-?[0-9]+$' " \
+        "THEN (values ->> '#{attribute}')::INTEGER END",
+      )
       parsed_range = ParseValue.range(range, :integer)
 
       add_range_relation(parsed_range, qualified_column)
