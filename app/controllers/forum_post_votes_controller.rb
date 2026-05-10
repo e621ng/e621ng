@@ -4,9 +4,10 @@ class ForumPostVotesController < ApplicationController
   respond_to :json
   before_action :member_only
   before_action :load_forum_post
-  before_action :validate_forum_post
-  before_action :validate_no_vote_on_own_post, only: [:create]
   before_action :load_vote, only: [:destroy]
+
+  before_action :ensure_can_vote
+  before_action :ensure_no_vote_on_own_post, only: [:create]
   before_action :ensure_lockdown_disabled
 
   def create
@@ -35,17 +36,21 @@ class ForumPostVotesController < ApplicationController
     @forum_post = ForumPost.find(params[:forum_post_id])
   end
 
-  def validate_forum_post
-    raise User::PrivilegeError unless @forum_post.can_access?
+  def forum_post_vote_params
+    params.fetch(:forum_post_vote, {}).permit(:score)
+  end
+
+  #############################
+  ###     Access checks     ###
+  #############################
+
+  def ensure_can_vote
+    raise User::PrivilegeError unless @forum_post.can_vote?
     raise User::PrivilegeError unless @forum_post.votable?
   end
 
-  def validate_no_vote_on_own_post
+  def ensure_no_vote_on_own_post
     raise User::PrivilegeError, "You cannot vote on your own requests" if @forum_post.creator == CurrentUser.user
-  end
-
-  def forum_post_vote_params
-    params.fetch(:forum_post_vote, {}).permit(:score)
   end
 
   def ensure_lockdown_disabled

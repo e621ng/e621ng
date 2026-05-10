@@ -3,8 +3,6 @@
 class ForumPostsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show search]
-  before_action :moderator_only, only: %i[unhide warning]
-  before_action :admin_only, only: [:destroy]
   before_action :load_post, only: %i[edit show update destroy hide unhide warning]
 
   before_action :ensure_can_access, only: %i[edit show update destroy hide unhide]
@@ -48,7 +46,6 @@ class ForumPostsController < ApplicationController
   def create
     @forum_post = ForumPost.new(forum_post_params(:create))
     if @forum_post.valid?
-      ensure_can_access
       @forum_post.save
       respond_with(@forum_post, location: forum_topic_path(@forum_post.topic, page: @forum_post.forum_topic_page, anchor: "forum_post_#{@forum_post.id}"))
     else

@@ -35,7 +35,7 @@ class ForumTopic < ApplicationRecord
       return false unless category&.can_access?(user)
       return true if user.is_staff?
       return true if user.id == creator_id
-      return false if is_hidden
+      return false if is_hidden?
       true
     end
 
@@ -61,6 +61,7 @@ class ForumTopic < ApplicationRecord
     end
 
     def can_destroy?(user = CurrentUser.user)
+      return false unless can_access?(user)
       return true if user.is_admin?
       false
     end
@@ -152,13 +153,13 @@ class ForumTopic < ApplicationRecord
     end
   end
 
-  def validate_category
-    return true if category.present?
-    errors.add(:category, "is invalid")
-    throw :abort
-  end
-
   module ValidationMethods
+    def validate_category
+      return true if category.present?
+      errors.add(:category, "is invalid")
+      throw :abort
+    end
+
     def validate_category_allows_creation
       return true if category.blank?
       return true if category.can_create?(creator)
