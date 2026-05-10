@@ -1,0 +1,38 @@
+<div id="c-moderator-alt-lookups">
+  <div id="a-index">
+    <h1>Alt Lookup: <%= link_to @target.pretty_name, user_path(@target) %></h1>
+
+    <p>
+      <%= link_to "New lookup", new_moderator_alt_lookup_path %>
+    </p>
+
+    <% if @results.empty? %>
+      <p>No likely alts found.</p>
+    <% else %>
+      <table class="striped">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Confidence</th>
+            <th>Last overlap</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @results.each do |row| %>
+            <% user = @users[row[:user_id]] %>
+            <% next unless user %>
+            <tr>
+              <td><%= link_to user.pretty_name, user_path(user) %></td>
+              <td><span class="alt-badge alt-badge-<%= row[:badge] %>"><%= row[:badge].to_s.capitalize %></span></td>
+              <td><%= row[:last_overlap_on].iso8601 %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Alt Lookup: <%= @target.pretty_name %>
+<% end %>

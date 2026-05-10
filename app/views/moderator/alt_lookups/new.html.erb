@@ -1,0 +1,23 @@
+<div id="c-moderator-alt-lookups">
+  <div id="a-new">
+    <h1>Alt Lookup</h1>
+
+    <p>
+      Enter a user's name (or <code>!id</code>) to find accounts that share IP
+      addresses with them. Results are scored and bucketed; raw IP data is
+      never displayed.
+    </p>
+
+    <%= form_with url: moderator_alt_lookups_path, method: :get, local: true do |f| %>
+      <div class="input">
+        <%= f.label :user_name, "User name or !id" %>
+        <%= f.text_field :user_name, autofocus: true, autocomplete: "off" %>
+      </div>
+      <%= f.submit "Find alts" %>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Alt Lookup
+<% end %>

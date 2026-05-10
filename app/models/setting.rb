@@ -40,4 +40,13 @@ class Setting < RailsSettings::Base
     field :trends_tag_limit, type: :integer, default: 100, validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
     field :trends_tag_window, type: :integer, default: 600, validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
   end
+
+  scope :alts do
+    field :alt_detection_enabled,   type: :boolean, default: false
+    field :alt_cgnat_threshold,     type: :integer, default: 50,  validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
+    field :alt_strong_threshold,    type: :float,   default: 2.0, validates: { presence: true, numericality: { greater_than: 0 } }
+    field :alt_possible_threshold,  type: :float,   default: 0.7, validates: { presence: true, numericality: { greater_than: 0 } }
+    field :alt_weak_floor,          type: :float,   default: 0.2, validates: { presence: true, numericality: { greater_than_or_equal_to: 0 } }
+    field :alt_lookups_per_minute,  type: :integer, default: 30,  validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
+  end
 end

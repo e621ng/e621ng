@@ -206,6 +206,7 @@ class StaticController < ApplicationController
     add_link[:post_events, "Disapprovals", moderator_post_disapprovals_path] if CurrentUser.can_approve_posts?
 
     if CurrentUser.is_moderator?
+      add_link[:staff, "Alt Lookup", new_moderator_alt_lookup_path]
       add_link[:staff, "Edit Histories", edit_histories_path]
       add_link[:staff, "Post Votes", index_post_votes_path]
       add_link[:users, "User Name Changes", user_name_change_requests_path]

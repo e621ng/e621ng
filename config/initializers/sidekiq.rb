@@ -30,6 +30,11 @@ Sidekiq.configure_server do |config|
       "class" => "SearchTrendCacheWarmJob",
       "description" => "Pre-warm the rising tags cache every 15 minutes to avoid on-request timeouts",
     },
+    "UserIpTouchAggregateJob" => {
+      "cron" => "*/15 * * * *",
+      "class" => "UserIpTouchAggregateJob",
+      "description" => "Aggregate user IP touches and per-IP distinct-user stats for alt detection",
+    },
   }
 
   Sidekiq::Cron::Job.load_from_hash schedule

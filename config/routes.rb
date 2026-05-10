@@ -54,6 +54,7 @@ Rails.application.routes.draw do
         get :export
       end
     end
+    resources :alt_lookups, only: %i[new index]
     namespace :post do
       resource :approval, only: %i[create destroy]
       resources :disapprovals, only: %i[create index]
