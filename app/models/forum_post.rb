@@ -42,6 +42,8 @@ class ForumPost < ApplicationRecord
   attr_accessor :bypass_limits
 
   module AccessMethods
+    ### Standard Permissions ###
+
     def can_access?(user = CurrentUser.user)
       return false if user.blank?
       return false unless topic&.can_access?(user)
@@ -74,23 +76,28 @@ class ForumPost < ApplicationRecord
       false
     end
 
+    def can_destroy?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_admin?
+      false
+    end
+
+    ### Warnable ###
+
     def can_warn?(user = CurrentUser.user)
       return false unless can_access?(user)
       return true if user.is_moderator?
       false
     end
 
+    ### Model Specific ###
+
     def can_vote?(user = CurrentUser.user)
-      # Note that this does not check whether there is a valid votable request here.
-      # Due to the explosive nature of queries involved, that check is done separately.
       return false unless can_access?(user)
       return false unless user.is_member?
+      # Note that this does not check whether there is a valid votable request here.
+      # Due to the explosive nature of queries involved, that check is done separately.
       true
-    end
-
-    def can_destroy?(user = CurrentUser.user)
-      return true if user.is_admin?
-      false
     end
   end
 

@@ -28,6 +28,8 @@ class ForumTopic < ApplicationRecord
   end
 
   module AccessMethods
+    ### Standard Permissions ###
+
     def can_access?(user = CurrentUser.user)
       return false if user.blank?
       return false unless category&.can_access?(user)
@@ -41,13 +43,6 @@ class ForumTopic < ApplicationRecord
       return false unless can_access?(user)
       return true if user.is_moderator?
       return true if creator_id == user.id
-      false
-    end
-
-    def can_reply?(user = CurrentUser.user)
-      return false unless can_access?(user)
-      return false if is_locked && !can_lock?(user)
-      return true if category.can_reply?(user)
       false
     end
 
@@ -65,6 +60,20 @@ class ForumTopic < ApplicationRecord
       false
     end
 
+    def can_destroy?(user = CurrentUser.user)
+      return true if user.is_admin?
+      false
+    end
+
+    ### Model Specific ###
+
+    def can_reply?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false if is_locked && !can_lock?(user)
+      return true if category.can_reply?(user)
+      false
+    end
+
     def can_sticky?(user = CurrentUser.user)
       return false unless can_access?(user)
       return true if user.is_moderator?
@@ -74,11 +83,6 @@ class ForumTopic < ApplicationRecord
     def can_lock?(user = CurrentUser.user)
       return false unless can_access?(user)
       return true if user.is_moderator?
-      false
-    end
-
-    def can_destroy?(user = CurrentUser.user)
-      return true if user.is_admin?
       false
     end
   end

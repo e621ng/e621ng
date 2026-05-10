@@ -25,10 +25,14 @@ class ForumCategory < ApplicationRecord
   end
 
   module AccessMethods
+    ### Standard Permissions ###
+
     def can_access?(user = CurrentUser.user)
       return false if user.blank?
       user.level >= can_view
     end
+
+    ### Model Specific ###
 
     def can_create?(user = CurrentUser.user)
       return false unless can_access?(user)
