@@ -19,13 +19,13 @@ class ForumPost < ApplicationRecord
   after_destroy :update_topic_updated_at_on_destroy
   normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
 
-  validates :body, :creator_id, presence: true
+  validates :body, presence: true
   validates :body, length: { minimum: 1, maximum: Danbooru.config.forum_post_max_size }
   validates :creator_id, presence: true
 
   validate :validate_topic_is_valid
   validate :validate_topic_can_access, on: :create
-  validate :validate_topic_can_reply
+  validate :validate_topic_can_reply, if: -> { will_save_change_to_body? }
   validate :validate_creator_is_not_limited, on: :create
 
   after_save :delete_topic_if_original_post
@@ -106,7 +106,7 @@ class ForumPost < ApplicationRecord
 
     def permitted(user)
       q = joins(topic: :category).where("forum_categories.can_view <= ?", user.level)
-      q = q.joins(:topic).where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_staff?
+      q = q.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_staff?
       q
     end
 
