@@ -106,6 +106,37 @@ RSpec.describe Admin::UsersController do
         expect(ModAction.last[:values]).to include("user_id" => user.id)
       end
 
+      it "logs a user_custom_title_change ModAction with a new value" do
+        user.update_columns(custom_title: "")
+        patch admin_user_path(user), params: { user: { custom_title: "Title" } }
+        mod = ModAction.last
+        expect(mod.action).to eq("user_custom_title_change")
+        expect(mod[:values]).to include("user_id" => user.id, "old_custom_title" => "", "new_custom_title" => "Title")
+      end
+
+      it "logs a user_custom_title_change ModAction with a different value" do
+        user.update_columns(custom_title: "Previous")
+        patch admin_user_path(user), params: { user: { custom_title: "Changed" } }
+        mod = ModAction.last
+        expect(mod.action).to eq("user_custom_title_change")
+        expect(mod[:values]).to include("user_id" => user.id, "old_custom_title" => "Previous", "new_custom_title" => "Changed")
+      end
+
+      it "logs a user_custom_title_change ModAction with no value" do
+        user.update_columns(custom_title: "Previous")
+        patch admin_user_path(user), params: { user: { custom_title: "" } }
+        mod = ModAction.last
+        expect(mod.action).to eq("user_custom_title_change")
+        expect(mod[:values]).to include("user_id" => user.id, "old_custom_title" => "Previous", "new_custom_title" => "")
+      end
+
+      it "does not log user_custom_title_change when unchanged" do
+        user.update_columns(custom_title: "Existing")
+        expect do
+          patch admin_user_path(user), params: { user: { custom_title: "Existing" } }
+        end.not_to(change { ModAction.where(action: "user_custom_title_change").count })
+      end
+
       it "logs a user_upload_limit_change ModAction with old and new values" do
         user.update_columns(base_upload_limit: 10)
         patch admin_user_path(user), params: { user: { base_upload_limit: 20 } }

@@ -290,6 +290,23 @@ RSpec.describe ModActionDecorator do
         expect(desc).to include("10", "20")
       end
 
+      it "user_custom_title_change includes old and new title" do
+        desc = decorate(:user_custom_title_change, { "user_id" => target_user.id, "old_custom_title" => "Old", "new_custom_title" => "New" }).format_description
+        expect(desc).to include(" from \"Old\"", " to \"New\"")
+      end
+
+      it "user_custom_title_change without old_custom_title includes new title only" do
+        desc = decorate(:user_custom_title_change, { "user_id" => target_user.id, "new_custom_title" => "New" }).format_description
+        expect(desc).to include("\"New\"")
+        expect(desc).not_to include(" from ")
+      end
+
+      it "user_custom_title_change without new_custom_title includes old title only" do
+        desc = decorate(:user_custom_title_change, { "user_id" => target_user.id, "old_custom_title" => "Old" }).format_description
+        expect(desc).to include("\"Old\"")
+        expect(desc).not_to include(" to ")
+      end
+
       it "user_uploads_toggle disabled: true says Disabled" do
         desc = decorate(:user_uploads_toggle, { "user_id" => target_user.id, "disabled" => true }).format_description
         expect(desc).to start_with("Disabled")
