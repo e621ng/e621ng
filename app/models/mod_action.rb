@@ -139,8 +139,11 @@ class ModAction < ApplicationRecord
       # Historical rows can hold non-integer strings (e.g. "permanent") under
       # integer-typed JSONB keys; the CASE guard skips the cast for those rows
       # instead of failing the whole query with PG::InvalidTextRepresentation.
+      # `-{0,1}` rather than `-?` so the regex contains no literal `?`,
+      # which ActiveRecord's positional bind logic in `add_range_relation`
+      # would otherwise scan as an extra placeholder.
       qualified_column = Arel.sql(
-        "CASE WHEN (values ->> '#{attribute}') ~ '^-?[0-9]+$' " \
+        "CASE WHEN (values ->> '#{attribute}') ~ '^-{0,1}[0-9]+$' " \
         "THEN (values ->> '#{attribute}')::INTEGER END",
       )
       parsed_range = ParseValue.range(range, :integer)
