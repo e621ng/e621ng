@@ -55,7 +55,7 @@ PostVersion.undo_selected = function (event) {
     toast.timeout = 3;
   }).catch(e => {
     toast.dismiss(true);
-    E621.Toast.alert("Failed to undo selected changes: " + e.message, e);
+    E621.Toast.alert("Failed to undo selected changes: " + (e.message || e.statusText || "unknown error"));
   });
 };
 
@@ -84,7 +84,7 @@ PostVersion.tag_script_selected = function (event) {
     toast.timeout = 3;
   }).catch(e => {
     toast.dismiss(true);
-    E621.Toast.alert("Failed to apply tag script to selected changes: " + e.message, e);
+    E621.Toast.alert("Failed to apply tag script to selected changes: " + (e.message || e.statusText || "unknown error"));
   });
 };
 
