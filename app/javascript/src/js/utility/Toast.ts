@@ -330,7 +330,8 @@ export class Toast {
       await TaskQueue.sleep(200);
     }
 
-    this.$element.remove();
+    if (this.$element) // May not exist if dismissed again before animation completes
+      this.$element.remove();
     this.$element = null;
     this.$content = null;
     this.$counter = null;
