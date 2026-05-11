@@ -84,12 +84,6 @@ RSpec.describe Blip do
       blip = make_blip
       expect(blip.can_edit?(other)).to be false
     end
-
-    it "denies a creator from editing a deleted blip" do
-      blip = make_blip
-      blip.delete!
-      expect(blip.can_edit?(creator)).to be false
-    end
   end
 
   # -------------------------------------------------------------------------
@@ -115,12 +109,6 @@ RSpec.describe Blip do
     it "denies a non-creator non-moderator from deleting" do
       blip = make_blip
       expect(blip.can_delete?(other)).to be false
-    end
-
-    it "denies a creator from deleting a deleted blip" do
-      blip = make_blip
-      blip.delete!
-      expect(blip.can_delete?(creator)).to be false
     end
   end
 

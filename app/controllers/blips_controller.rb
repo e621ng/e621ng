@@ -53,11 +53,21 @@ class BlipsController < ApplicationController
   end
 
   def delete
+    if @blip.is_deleted?
+      redirect_back(fallback_location: blips_path, flash: { alert: "Blip is already deleted" })
+      return
+    end
+
     @blip.delete!
     redirect_back(fallback_location: blips_path, flash: { notice: "Blip deleted" })
   end
 
   def undelete
+    unless @blip.is_deleted?
+      redirect_back(fallback_location: blips_path, flash: { alert: "Blip is not deleted" })
+      return
+    end
+
     @blip.undelete!
     redirect_back(fallback_location: blips_path, flash: { notice: "Blip undeleted" })
   end

@@ -294,6 +294,14 @@ RSpec.describe BlipsController do
       post delete_blip_path(blip)
       expect(response).to have_http_status(:forbidden)
     end
+
+    it "redirects back with a notice if the blip is already deleted" do
+      blip.delete!
+      sign_in_as creator
+      post delete_blip_path(blip)
+      expect(response).to redirect_to(blips_path)
+      expect(flash[:alert]).to eq("Blip is already deleted")
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -323,6 +331,14 @@ RSpec.describe BlipsController do
     it "undeletes the blip for a moderator" do
       sign_in_as moderator
       expect { post undelete_blip_path(blip) }.to change { blip.reload.is_deleted }.from(true).to(false)
+    end
+
+    it "redirects back with a notice if the blip is not deleted" do
+      blip.undelete!
+      sign_in_as moderator
+      post undelete_blip_path(blip)
+      expect(response).to redirect_to(blips_path)
+      expect(flash[:alert]).to eq("Blip is not deleted")
     end
   end
 
