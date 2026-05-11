@@ -66,6 +66,7 @@ PostSet.add_many_posts = function (set_id, posts = []) {
         message = data.message;
       E621.Toast.alert("Error: " + (message || errors));
       postUpdateToast?.dismiss(true);
+      postUpdateToast = null;
     }).done(() => {
       if (!postUpdateToast) postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
       postUpdateToast.message = `Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`;
@@ -136,6 +137,7 @@ PostSet.remove_many_posts = function (set_id, posts = []) {
         message = data.message;
       E621.Toast.alert("Error: " + (message || errors));
       postUpdateToast?.dismiss(true);
+      postUpdateToast = null;
     }).done(() => {
       if (!postUpdateToast) postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
       postUpdateToast.message = `Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`;
