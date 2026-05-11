@@ -4,8 +4,7 @@ class PostSetPostsSyncJob < ApplicationJob
   queue_as :default
   sidekiq_options lock: :until_executing, lock_args_method: :lock_args
 
-  def self.lock_args(args, _legacy_args = nil, **_kwargs)
-    # Includes legacy args to make sure older versions of this job do not fail.
+  def self.lock_args(args)
     [args.first]
   end
 
@@ -14,7 +13,7 @@ class PostSetPostsSyncJob < ApplicationJob
     token = "set:#{set_id}"
 
     current_ids = set.post_ids.to_set
-    token_ids   = Post.where("? = ANY(string_to_array(pool_string, ' '))", token)
+    token_ids   = Post.where("string_to_array(pool_string, ' ') @> ARRAY[?]::text[]", token)
                       .pluck(:id).to_set
 
     to_add    = (current_ids - token_ids).to_a
