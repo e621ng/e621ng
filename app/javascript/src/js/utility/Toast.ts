@@ -200,8 +200,10 @@ export class Toast {
   public get type (): FlashType { return this._type; }
   public set type (value: FlashType) {
     if (this.isVisible) {
-      this.$element.removeClass(`toast-${this._type}`);
-      this.$element.addClass(`toast-${value}`);
+      this.$element
+        .removeClass(`toast-${this._type}`)
+        .addClass(`toast-${value}`)
+        .attr("role", value === "alert" ? "alert" : "status");
     }
     this._type = value;
   }
@@ -273,7 +275,7 @@ export class Toast {
     this.$element = $("<div>")
       .addClass(`toast toast-${this.type}`)
       .attr({
-        "role": "alert",
+        "role": this.type === "alert" ? "alert" : "status",
         "data-counter": this.counter.toString(),
       });
 
