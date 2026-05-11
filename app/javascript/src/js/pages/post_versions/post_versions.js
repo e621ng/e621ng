@@ -54,8 +54,8 @@ PostVersion.undo_selected = function (event) {
     toast.message = `Successfully undone ${PostVersion.updated} change${PostVersion.updated !== 1 ? "s" : ""}.`;
     toast.timeout = 3;
   }).catch(e => {
+    toast.dismiss(true);
     E621.Toast.alert("Failed to undo selected changes: " + e.message, e);
-    toast.dismiss();
   });
 };
 
@@ -83,8 +83,8 @@ PostVersion.tag_script_selected = function (event) {
     toast.message = `Successfully applied ${PostVersion.updated} change${PostVersion.updated !== 1 ? "s" : ""}.`;
     toast.timeout = 3;
   }).catch(e => {
+    toast.dismiss(true);
     E621.Toast.alert("Failed to apply tag script to selected changes: " + e.message, e);
-    toast.dismiss();
   });
 };
 

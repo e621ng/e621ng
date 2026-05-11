@@ -315,6 +315,9 @@ export class Toast {
     if (this.isDismissing) return;
     this.isDismissing = true;
 
+    // Unregister immediately to avoid swallowing new toasts with the same message while this one is fading out.
+    ToastManager.unregister(this);
+
     if (this.timeoutId !== null) {
       window.clearTimeout(this.timeoutId);
       this.timeoutId = null;
@@ -331,7 +334,6 @@ export class Toast {
     this.$counter = null;
     this._isVisible = false;
 
-    ToastManager.unregister(this);
     this.isDismissing = false;
   }
 }
