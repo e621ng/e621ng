@@ -69,7 +69,6 @@ PostSet.add_many_posts = function (set_id, posts = []) {
     }).done(() => {
       if (!postUpdateToast) postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
       postUpdateToast.message = `Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`;
-      postUpdateToast.type = "success";
       postUpdateToast.timeout = 3;
       postUpdateToast = null;
     });
@@ -140,7 +139,6 @@ PostSet.remove_many_posts = function (set_id, posts = []) {
     }).done(() => {
       if (!postUpdateToast) postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
       postUpdateToast.message = `Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`;
-      postUpdateToast.type = "success";
       postUpdateToast.timeout = 3;
       postUpdateToast = null;
     });

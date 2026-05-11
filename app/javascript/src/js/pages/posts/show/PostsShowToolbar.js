@@ -101,18 +101,18 @@ export default class PostsShowToolbar {
   initVotingHotkeys () {
     Hotkeys.register("upvote", () => {
       ToastManager.dismiss("Post upvoted.", "Post downvoted.");
-      const toast = E621.Toast.create("Updating post...", { timeout: 10 });
+      const toast = E621.Toast.create("Post processing...", { type: "info", timeout: 10 });
       PostsShowToolbar.vote(1).then(() => {
-        toast.type = "success";
+        toast.type = "notice";
         toast.message = "Post upvoted.";
         toast.timeout = 1;
       });
     });
     Hotkeys.register("downvote", () => {
       ToastManager.dismiss("Post upvoted.", "Post downvoted.");
-      const toast = E621.Toast.create("Updating post...", { timeout: 10 });
+      const toast = E621.Toast.create("Post processing...", { type: "info", timeout: 10 });
       PostsShowToolbar.vote(-1).then(() => {
-        toast.type = "success";
+        toast.type = "notice";
         toast.message = "Post downvoted.";
         toast.timeout = 1;
       });
@@ -165,15 +165,15 @@ export default class PostsShowToolbar {
 
     Hotkeys.register("favorite", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
-      const toast = E621.Toast.create("Updating post...", { timeout: 10 });
+      const toast = E621.Toast.create("Favorite processing...", { type: "info", timeout: 10 });
       if (imageEl.attr("data-is-favorited") == "true")
         PostsShowToolbar.deleteFavorite().then(() => {
-          toast.type = "success";
+          toast.type = "notice";
           toast.message = "Favorite removed.";
           toast.timeout = 1;
         });
       else PostsShowToolbar.addFavorite().then(() => {
-        toast.type = "success";
+        toast.type = "notice";
         toast.message = "Favorite added.";
         toast.timeout = 1;
       });
@@ -182,9 +182,9 @@ export default class PostsShowToolbar {
     Hotkeys.register("favorite-add", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "true") return;
-      const toast = E621.Toast.create("Updating post...", { timeout: 10 });
+      const toast = E621.Toast.create("Favorite processing...", { type: "info", timeout: 10 });
       PostsShowToolbar.addFavorite().then(() => {
-        toast.type = "success";
+        toast.type = "notice";
         toast.message = "Favorite added.";
         toast.timeout = 1;
       });
@@ -193,9 +193,9 @@ export default class PostsShowToolbar {
     Hotkeys.register("favorite-del", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "false") return;
-      const toast = E621.Toast.create("Updating post...", { timeout: 10 });
+      const toast = E621.Toast.create("Favorite processing...", { type: "info", timeout: 10 });
       PostsShowToolbar.deleteFavorite().then(() => {
-        toast.type = "success";
+        toast.type = "notice";
         toast.message = "Favorite removed.";
         toast.timeout = 1;
       });

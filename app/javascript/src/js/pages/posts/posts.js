@@ -566,7 +566,6 @@ Post.notice_update = function (x) {
     Post.pending_update_count -= 1;
 
     if (Post.pending_update_count < 1) {
-      Post.pending_update_toast.type = "success";
       Post.pending_update_toast.message = "Posts updated";
       Post.pending_update_toast.timeout = 3;
       Post.pending_update_toast = null;

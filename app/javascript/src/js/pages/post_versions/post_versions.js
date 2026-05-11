@@ -51,7 +51,6 @@ PostVersion.undo_selected = function (event) {
   }
 
   Promise.all(promises).then(() => {
-    toast.type = "success";
     toast.message = `Successfully undone ${PostVersion.updated} change${PostVersion.updated !== 1 ? "s" : ""}.`;
     toast.timeout = 3;
   }).catch(e => {
@@ -81,7 +80,6 @@ PostVersion.tag_script_selected = function (event) {
     }, { name: "PostVersion.tag_script_selected" }));
   }
   Promise.all(promises).then(() => {
-    toast.type = "success";
     toast.message = `Successfully applied ${PostVersion.updated} change${PostVersion.updated !== 1 ? "s" : ""}.`;
     toast.timeout = 3;
   }).catch(e => {
