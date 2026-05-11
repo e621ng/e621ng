@@ -67,12 +67,20 @@
     background-color: palette("background-red-d5");
     border-color: palette("background-red-d10");
     border-left-color: palette("background-red");
+
+    .toast-close:hover svg {
+      background-color: palette("background-red-d10");
+    }
   }
 
   &.toast-info {
     background-color: palette("background-blue");
     border-color: palette("background-blue-d10");
     border-left-color: palette("background-blue-l10");
+
+    .toast-close:hover svg {
+      background-color: palette("background-blue-d10");
+    }
   }
 
 
@@ -117,7 +125,7 @@
     &:hover {
       color: themed("color-link-hover");
       svg {
-        background-color: themed("color-section-lighten-5");
+        background-color: palette("background-green-d10");
       }
     }
   }
