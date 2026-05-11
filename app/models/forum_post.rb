@@ -57,6 +57,7 @@ class ForumPost < ApplicationRecord
       return false unless can_access?(user)
       return true if user.is_admin?
       return false if was_warned?
+      return false if topic.is_locked? && !topic.can_lock?(user)
       return true if creator_id == user.id
       false
     end

@@ -112,6 +112,19 @@ RSpec.describe ForumPost do
       topic.update_columns(is_hidden: true, creator_id: other.id)
       expect(post.reload.can_edit?(member)).to be false
     end
+
+    it "denies when the topic is locked" do
+      post = make_post
+      post.update_columns(creator_id: member.id)
+      topic.update_columns(is_locked: true)
+      expect(post.reload.can_edit?(member)).to be false
+    end
+
+    it "allows when the topic is locked but the user can lock" do
+      post = make_post
+      topic.update_columns(is_locked: true)
+      expect(post.reload.can_edit?(admin)).to be true
+    end
   end
 
   # -------------------------------------------------------------------------
