@@ -48,11 +48,11 @@ class Ticket < ApplicationRecord
   module TicketTypes
     module Blip
       def can_create_for?(user)
-        content&.is_accessible?(user)
+        content&.can_access?(user)
       end
 
       def can_view?(user)
-        return true if user.is_staff? && (content.blank? || content&.is_accessible?(user))
+        return true if user.is_staff? && (content.blank? || content&.can_access?(user))
         return true if user.is_admin?
         return true if user.id == creator_id
         false

@@ -45,7 +45,10 @@ class Blip < ApplicationRecord
   end
 
   module AccessMethods
-    def is_accessible?(user = CurrentUser.user)
+    ### Standard Permissions ###
+
+    def can_access?(user = CurrentUser.user)
+      return false if user.blank?
       return true if user.is_staff?
       return true if user.id == creator_id
       return false if is_deleted
@@ -53,15 +56,49 @@ class Blip < ApplicationRecord
     end
 
     def can_edit?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false unless user.is_member?
       return true if user.is_admin?
       return false if was_warned?
-      creator_id == user.id && created_at > 5.minutes.ago
+      return false if created_at < 5.minutes.ago
+      creator_id == user.id
     end
 
     def can_delete?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false unless user.is_member?
       return true if user.is_moderator?
       return false if was_warned?
       user.id == creator_id
+    end
+
+    def can_undelete?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_moderator?
+      false
+    end
+
+    def can_destroy?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_admin?
+      false
+    end
+
+    ### Warnable ###
+
+    def can_warn?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_moderator?
+      false
+    end
+
+    ### Model Specific ###
+
+    def can_reply?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false unless user.is_member?
+      return false if is_deleted
+      true
     end
   end
 
@@ -76,7 +113,7 @@ class Blip < ApplicationRecord
     # ===== Visibility Methods ===== #
     # ============================== #
 
-    # NOTE: This scope does not currently match the logic in #is_accessible? because
+    # NOTE: This scope does not currently match the logic in #can_access? because
     # there is currently no toggle for showing creators their own deleted blips.
     def accessible(user = CurrentUser)
       if user.is_staff?
