@@ -46,6 +46,7 @@ Navigation.init = function () {
     Navigation.build_avatar_menu();
     Navigation.sync_user_data();
   });
+  avatarMenu[0].click(); // TODO: DEBUG
 };
 
 Navigation.sync_user_data = async function () {
