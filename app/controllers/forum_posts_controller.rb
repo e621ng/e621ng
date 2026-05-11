@@ -5,7 +5,7 @@ class ForumPostsController < ApplicationController
   before_action :member_only, except: %i[index show search]
   before_action :load_post, only: %i[edit show update destroy hide unhide warning]
 
-  before_action :ensure_can_access, only: %i[edit show update destroy hide unhide]
+  before_action :ensure_can_access, only: %i[edit show update destroy hide unhide warning]
   before_action :ensure_can_edit, only: %i[edit update]
   before_action :ensure_can_hide, only: %i[hide]
   before_action :ensure_can_unhide, only: %i[unhide]
