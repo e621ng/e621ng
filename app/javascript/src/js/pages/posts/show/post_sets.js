@@ -64,7 +64,7 @@ PostSet.add_many_posts = function (set_id, posts = []) {
       const data = response.responseJSON;
       const errors = $.map(data.errors, (msg) => msg).join("; "),
         message = data.message;
-      E621.Flash.error("Error: " + (message || errors));
+      E621.Toast.alert("Error: " + (message || errors));
       postUpdateToast?.dismiss(true);
     }).done(() => {
       if (!postUpdateToast) postUpdateToast = E621.Toast("Updating posts...", { timeout: 0 });
@@ -135,7 +135,7 @@ PostSet.remove_many_posts = function (set_id, posts = []) {
       const data = response.responseJSON;
       const errors = $.map(data.errors, (msg) => msg).join("; "),
         message = data.message;
-      E621.Flash.error("Error: " + (message || errors));
+      E621.Toast.alert("Error: " + (message || errors));
       postUpdateToast?.dismiss(true);
     }).done(() => {
       if (!postUpdateToast) postUpdateToast = E621.Toast("Updating posts...", { timeout: 0 });

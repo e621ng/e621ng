@@ -84,7 +84,7 @@ PostModeMenu.initialize_edit_form = function () {
       },
       success: function (data) {
         Post.update_data(data);
-        E621.Flash.success("Post #" + data.post.id + " updated");
+        E621.Toast.notice("Post #" + data.post.id + " updated");
         PostModeMenu.close_edit_form();
       },
     });
@@ -127,7 +127,7 @@ PostModeMenu.update_sets_menu = function () {
       type: "GET",
       url: "/post_sets/for_select.json",
     }).fail(function (data) {
-      E621.Flash.error("Error getting sets list: " + data.message);
+      E621.Toast.alert("Error getting sets list: " + data.message);
     }).done(function (data) {
       target.on("change", function (e) {
         LStorage.Posts.Set = e.target.value;

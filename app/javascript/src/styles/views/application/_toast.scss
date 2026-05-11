@@ -29,9 +29,9 @@
   line-height: 1.25rem;
   font-size: 0.85rem;
 
-  background-color: palette("background-blue");
-  border: 1px solid palette("background-blue-d10");
-  border-left: 0.25rem solid palette("background-blue-l10");
+  background-color: palette("background-green-d5");
+  border: 1px solid palette("background-green-d10");
+  border-left: 0.25rem solid palette("background-green");
 
   box-shadow: 0.125rem 0 0.5rem -0.25rem themed("color-background"),
               -0.125rem 0 0.5rem -0.25rem themed("color-background");
@@ -63,16 +63,16 @@
 
 
   /** ===== Variants ===== */
-  &.toast-success {
-    background-color: palette("background-green-d5");
-    border-color: palette("background-green-d10");
-    border-left-color: palette("background-green");
-  }
-
   &.toast-alert {
     background-color: palette("background-red-d5");
     border-color: palette("background-red-d10");
     border-left-color: palette("background-red");
+  }
+
+  &.toast-info {
+    background-color: palette("background-blue");
+    border-color: palette("background-blue-d10");
+    border-left-color: palette("background-blue-l10");
   }
 
 

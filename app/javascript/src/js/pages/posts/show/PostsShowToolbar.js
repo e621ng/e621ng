@@ -58,9 +58,9 @@ export default class PostsShowToolbar {
       const button = $(event.currentTarget);
       const value = button.data("value");
       navigator.clipboard.writeText(value).then(() => {
-        E621.Flash.success("Link copied to clipboard.");
+        E621.Toast.notice("Link copied to clipboard.");
       }).catch((e) => {
-        E621.Flash.error("Failed to copy link to clipboard.", e);
+        E621.Toast.alert("Failed to copy link to clipboard.", e);
       });
     });
   }
@@ -257,7 +257,7 @@ export default class PostsShowToolbar {
           setTimeout(() => window.URL.revokeObjectURL(blobUrl), 0);
         })
         .catch(e => {
-          E621.Flash.error("Failed to download post file: " + e.message, e);
+          E621.Toast.alert("Failed to download post file: " + e.message, e);
           button.attr("pending", "false");
         })
         .finally(() => {

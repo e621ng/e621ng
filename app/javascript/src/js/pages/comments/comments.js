@@ -50,7 +50,7 @@ Comment.show_all = function (e) {
     Comment.reinitialize_all();
     $(window).trigger("e621:add_deferred_posts", data.posts);
   }).fail(function () {
-    E621.Flash.error("Failed to fetch all comments for this post.");
+    E621.Toast.alert("Failed to fetch all comments for this post.");
   });
 };
 
@@ -68,7 +68,7 @@ Comment.hide = function (e) {
     $(`.comment[data-comment-id="${cid}"] div.author h1`).append(" (hidden)");
     $(`.comment[data-comment-id="${cid}"]`).attr("data-is-deleted", "true");
   }).fail(function () {
-    E621.Flash.error("Failed to hide comment.");
+    E621.Toast.alert("Failed to hide comment.");
   });
 };
 
@@ -87,7 +87,7 @@ Comment.unhide = function (e) {
     $author.text($author.text().replace(" (hidden)", ""));
     $(`.comment[data-comment-id="${cid}"]`).attr("data-is-deleted", "false");
   }).fail(function () {
-    E621.Flash.error("Failed to unhide comment.");
+    E621.Toast.alert("Failed to unhide comment.");
   });
 };
 
@@ -104,7 +104,7 @@ Comment.delete = function (e) {
   }).done(function () {
     parent.remove();
   }).fail(function () {
-    E621.Flash.error("Failed to delete comment.");
+    E621.Toast.alert("Failed to delete comment.");
   });
 };
 
@@ -126,7 +126,7 @@ Comment.quote = function (e) {
     TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
     $textarea.selectEnd();
   }).fail(function (data) {
-    E621.Flash.error(data.responseText);
+    E621.Toast.alert(data.responseText);
   });
 };
 
@@ -196,9 +196,9 @@ Comment.vote = function (id, score) {
     $("#comment-score-" + commentID).addClass(scoreToClass(commentScore));
     $("#comment-vote-up-" + commentID).addClass(ourScore > 0 ? "score-positive" : "score-neutral");
     $("#comment-vote-down-" + commentID).addClass(ourScore < 0 ? "score-negative" : "score-neutral");
-    E621.Flash.notice("Vote saved");
+    E621.Toast.notice("Vote saved");
   }).fail(function (data) {
-    E621.Flash.error(data.responseJSON.message);
+    E621.Toast.alert(data.responseJSON.message);
   });
 };
 

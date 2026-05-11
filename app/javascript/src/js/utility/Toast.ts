@@ -8,36 +8,18 @@ export default class ToastManager {
   private static Logger = new Logger("ToastManager");
 
   private static _registry: Record<number, Toast> = {};
-
   public static register (toast: Toast) { ToastManager._registry[toast.hash] = toast; }
   public static unregister (toast: Toast) { delete ToastManager._registry[toast.hash]; }
 
   public static get (message: string): Toast | null {
-    const id = ToastManager.getStringHash(message);
+    const id = ToastUtilities.getStringHash(message);
     return ToastManager._registry[id] || null;
   }
 
-  /**
-   * Generates a hash code for a given string.
-   * This is used to identify toasts with the same message for deduplication purposes.
-   * @param str The string to hash.
-   * @param seed An optional seed value for the hash function.
-   * @returns A numeric hash code for the given string.
-   */
-  public static getStringHash (str: string, seed = 0): number {
-    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-    for (let i = 0, ch: number; i < str.length; i++) {
-      ch = str.charCodeAt(i);
-      h1 = Math.imul(h1 ^ ch, 2654435761);
-      h2 = Math.imul(h2 ^ ch, 1597334677);
-    }
-    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
 
-    return (4294967296 * (2097151 & h2)) + (h1 >>> 0);
-  }
+  /* ==================== */
+  /* ==== Public API ==== */
+  /* ==================== */
 
   /**
    * Creates a new toast message.
@@ -48,7 +30,7 @@ export default class ToastManager {
    */
   public static create (message: string, options: ToastOptions = {}): Toast {
     // Try to find an existing toast with the same message.
-    const id = ToastManager.getStringHash(message);
+    const id = ToastUtilities.getStringHash(message);
     ToastManager.Logger.log(`Creating toast with id ${id}`);
 
     const existingToast = ToastManager._registry[id];
@@ -87,12 +69,31 @@ export default class ToastManager {
     }
   }
 
+
+  /* ==================== */
+  /* == Short-Form API == */
+  /* ==================== */
+
+  public static notice (message: string, permanent: boolean = false): void {
+    ToastManager.create(message, { type: "notice", timeout: permanent ? 0 : undefined });
+  }
+
+  public static alert (message: string): void {
+    ToastManager.create(message, { type: "alert", timeout: 0 });
+  }
+
+
+  /* ==================== */
+  /* == Initialization == */
+  /* ==================== */
+
   public static bootstrap () {
     this.bootstrapRailsMessages();
     this.bootstrapHotkeys();
+    this.bootstrapEventListeners();
   }
 
-  public static bootstrapRailsMessages () {
+  private static bootstrapRailsMessages () {
     $("#toast-container .toast").each((_index, element) => {
       const $element = $(element);
 
@@ -107,10 +108,21 @@ export default class ToastManager {
     });
   }
 
-  public static bootstrapHotkeys () {
+  private static bootstrapHotkeys () {
     $(window).on("keydown", (event) => {
       if (event.key !== "Escape") return;
       $("#toast-container .toast:not(.toast-fadeout) .toast-close").first().trigger("click");
+    });
+  }
+
+  private static bootstrapEventListeners () {
+    $(window).on("danbooru:notice", (_event, message) => {
+      ToastManager.create(message);
+    });
+    $(window).on("danbooru:error", (_event, message) => {
+      ToastManager.get("Updating post...")?.dismiss(true);
+      ToastManager.get("Updating posts...")?.dismiss(true);
+      ToastManager.create(message, { type: "alert" });
     });
   }
 }
@@ -141,7 +153,7 @@ export class Toast {
 
   constructor (message: string, options: ToastOptions = {}) {
     this._message = message;
-    this._messageHash = ToastManager.getStringHash(message);
+    this._messageHash = ToastUtilities.getStringHash(message);
 
     const { type = "notice", timeout = 3 } = options;
     this._type = type;
@@ -165,7 +177,7 @@ export class Toast {
   public set message (value: string) {
     ToastManager.unregister(this);
     this._message = value;
-    this._messageHash = ToastManager.getStringHash(value);
+    this._messageHash = ToastUtilities.getStringHash(value);
     ToastManager.register(this);
     if (!this.isVisible) return;
     this.$content.html(value);
@@ -322,6 +334,30 @@ export class Toast {
   }
 }
 
+export class ToastUtilities {
+  /**
+   * Generates a hash code for a given string.
+   * This is used to identify toasts with the same message for deduplication purposes.
+   * @param str The string to hash.
+   * @param seed An optional seed value for the hash function.
+   * @returns A numeric hash code for the given string.
+   */
+  public static getStringHash (str: string, seed = 0): number {
+    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0, ch: number; i < str.length; i++) {
+      ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+
+    return (4294967296 * (2097151 & h2)) + (h1 >>> 0);
+  }
+}
+
 interface ToastOptions {
   /** The type of flash message. */
   type?: FlashType;
@@ -330,6 +366,6 @@ interface ToastOptions {
   timeout?: number;
 }
 
-type FlashType = "notice" | "success" | "alert";
+type FlashType = "notice" | "alert" | "info";
 
 export type ToastInitializer = (message: string, options?: ToastOptions) => void;

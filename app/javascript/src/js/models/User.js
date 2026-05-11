@@ -177,7 +177,7 @@ export default class User {
         return Promise.resolve();
       },
       (error) => {
-        E621.Flash.error(error);
+        E621.Toast.alert(error);
         return Promise.reject();
       },
     );

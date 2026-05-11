@@ -56,7 +56,7 @@ $(function () {
     }).done(() => {
       location.reload();
     }).fail(() => {
-      E621.Flash.error("Failed to revert to specified version.");
+      E621.Toast.alert("Failed to revert to specified version.");
     });
   });
 
