@@ -14,7 +14,7 @@ module Danbooru
           r = 0
           keys.each do |key|
             index = attributes.index(key)
-            raise IndexError if index.nil?
+            raise IndexError, "Unknown flag key: #{key.inspect}" if index.nil?
             r |= 1 << index
           end
           r
