@@ -72,7 +72,7 @@ RSpec.describe PostSetPostsSyncJob do
       it "does not enqueue an IndexUpdateJob" do
         post_set.update_column(:post_ids, [post.id])
         expect { job.perform_now(post_set.id) }
-          .not_to have_enqueued_job(IndexUpdateJob)
+          .not_to have_enqueued_job(BulkIndexUpdateJob)
       end
     end
 
@@ -90,7 +90,7 @@ RSpec.describe PostSetPostsSyncJob do
       it "does not enqueue an IndexUpdateJob" do
         post_set.update_column(:post_ids, [])
         expect { job.perform_now(post_set.id) }
-          .not_to have_enqueued_job(IndexUpdateJob)
+          .not_to have_enqueued_job(BulkIndexUpdateJob)
       end
     end
   end
