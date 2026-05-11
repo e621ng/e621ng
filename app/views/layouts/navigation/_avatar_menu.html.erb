@@ -59,7 +59,7 @@
   <a href="<%= comments_path(group_by: "comment", search: { poster_id: user.id }) %>" class="must-uploads secondary">
     <%= svg_icon(:corner_down_right) %> Responses
   </a>
-  <a href="<%= posts_path(tags: "user:#{user.name} status:pending") %>" class="must-uploads secondary">
+  <a href="<%= posts_path(tags: "user:#{user.name} status:modqueue") %>" class="must-uploads secondary">
     <%= svg_icon(:clock_fading) %> Pending
   </a>
 
