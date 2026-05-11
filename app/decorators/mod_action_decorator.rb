@@ -138,6 +138,8 @@ class ModActionDecorator < ApplicationDecorator
       "Changed #{user} flags. Added: [#{vals['added']&.join(', ')}] Removed: [#{vals['removed']&.join(', ')}]"
     when "edited_user"
       "Edited #{user}"
+    when "user_avatar_clear"
+      "Cleared avatar of #{user}"
     when "user_blacklist_changed"
       "Edited blacklist of #{user}"
     when "user_text_change"

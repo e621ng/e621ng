@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     resources :automod_rules, only: %i[index new create edit update destroy]
     resources :users, only: %i[edit update] do
       member do
+        post :clear_avatar
         get :edit_blacklist
         post :update_blacklist
         get :request_password_reset

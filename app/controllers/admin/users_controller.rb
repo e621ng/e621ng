@@ -126,6 +126,13 @@ module Admin
       redirect_to user_path(@user), alert: e.message
     end
 
+    def clear_avatar
+      @user = User.find(params[:id])
+      @user.update!(avatar_id: nil)
+      ModAction.log(:user_avatar_clear, { user_id: @user.id })
+      redirect_to user_path(@user), notice: "User avatar cleared"
+    end
+
     private
 
     def user_params(user)
