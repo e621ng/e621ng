@@ -35,7 +35,7 @@ RSpec.describe ElasticPostQueryBuilder do
     it "does not error when depth doesn't exceed DEPTH_LIMIT" do
       expect do
         build_query("cute", depth: TagQuery::DEPTH_LIMIT - 2)
-      end.not_to raise_error(TagQuery::DepthExceededError)
+      end.not_to raise_error
     end
 
     describe "with groups" do
