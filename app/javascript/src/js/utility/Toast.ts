@@ -94,6 +94,8 @@ export default class ToastManager {
   }
 
   private static bootstrapRailsMessages () {
+    // Note that these messages are not registered, and thus will not be deduplicated.
+    // They also can't be updated the same way as regular toasts.
     $("#toast-container .toast").each((_index, element) => {
       const $element = $(element);
 
@@ -269,7 +271,7 @@ export class Toast {
     if (this.$element) return this.$element;
 
     this.$element = $("<div>")
-      .addClass(`toast toast-notice toast-${this.type}`)
+      .addClass(`toast toast-${this.type}`)
       .attr({
         "role": "alert",
         "data-counter": this.counter.toString(),

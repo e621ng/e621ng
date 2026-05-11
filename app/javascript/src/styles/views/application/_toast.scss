@@ -73,6 +73,8 @@
     }
   }
 
+  &.toast-error { @extend .toast-alert; }
+
   &.toast-info {
     background-color: palette("background-blue");
     border-color: palette("background-blue-d10");
