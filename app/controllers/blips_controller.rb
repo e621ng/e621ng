@@ -130,6 +130,9 @@ class BlipsController < ApplicationController
   end
 
   def ensure_can_edit
+    # This is technically checked twice: once here to raise BlipTooOld, and once in Blip#can_edit? to
+    # raise User::PrivilegeError. This is because BlipTooOld is used to trigger a specific error message
+    # in the controller, while User::PrivilegeError is also used to determine which UI buttons to show.
     raise BlipTooOld if @blip.created_at < 5.minutes.ago && !CurrentUser.is_admin?
     raise User::PrivilegeError unless @blip.can_edit?
   end

@@ -28,6 +28,11 @@ FactoryBot.define do
     ###### User Levels ######
     #########################
 
+    factory :anonymous_user do
+      name { "Anonymous" }
+      level { User::Levels::ANONYMOUS }
+    end
+
     factory :banned_user do
       is_banned { true }
     end

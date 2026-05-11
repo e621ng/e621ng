@@ -176,7 +176,8 @@ RSpec.describe Blip do
 
     it "denies a non-member from replying" do
       blip = make_blip
-      expect(blip.can_reply?(nil)).to be false
+      anon = create(:anonymous_user)
+      expect(blip.can_reply?(anon)).to be false
     end
   end
 end
