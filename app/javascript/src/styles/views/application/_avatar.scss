@@ -113,16 +113,6 @@ nav.navigation .simple-avatar-menu {
 
   &.hidden { display: none; }
 
-  h4 {
-    margin: 0.25rem 2.5rem;
-    color: themed("color-text-muted");
-    cursor: default;
-
-    font-size: 0.9rem;
-    line-height: 1rem;
-    font-weight: normal;
-  }
-
   & > a {
     display: flex;
     gap: 0.5rem;
@@ -152,11 +142,6 @@ nav.navigation .simple-avatar-menu {
         color: themed("color-text-muted");
       }
     }
-  }
-
-  hr {
-    width: 90%;
-    color: themed("color-section-lighten-10");
   }
 
   // DMail notification
@@ -352,7 +337,7 @@ span.savm-divider {
   font-size: 0.5rem;
   line-height: 1rem;
   font-family: "Roboto", Verdana, Geneva, sans-serif;
-  text-wrap-mode: nowrap;
+  white-space: nowrap;
   color: themed("color-text-muted");
   letter-spacing: 0.125rem;
   user-select: none;

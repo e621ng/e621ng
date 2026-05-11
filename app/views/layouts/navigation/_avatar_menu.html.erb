@@ -40,12 +40,17 @@
       <span class="savm-profile-name"><%= user.pretty_name.presence || "<blank>" %></span>
       <span class="savm-profile-title"><%= user_level_plain(user) %></span>
     </a>
-    <a href="<%= has_mail ? dmails_path(search: { to_id: user.id }, folder: "received") : dmails_path %>" class="savm-profile-mail">
+    <a
+      href="<%= has_mail ? dmails_path(search: { to_id: user.id }, folder: "received") : dmails_path %>"
+      class="savm-profile-mail"
+      aria-label="Messages"
+      title="Messages"
+    >
       <%= svg_icon(:mail) %>
     </a>
   </div>
 
-  <span class="savm-divider must-uploads"></span>
+  <span class="savm-divider must-uploads-favorites-sets"></span>
 
   <%# has_uploads %>
   <a href="<%= posts_path(tags: "user:#{user.name}") %>" class="must-uploads">

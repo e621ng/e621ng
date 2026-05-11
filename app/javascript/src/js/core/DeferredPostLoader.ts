@@ -67,7 +67,10 @@ export default class DeferredPostLoader {
     for (const placeholder of avatars) {
       const $placeholder = $(placeholder);
       $("<img>")
-        .attr("src", path)
+        .attr({
+          "src": path,
+          "alt": "User avatar",
+        })
         .appendTo($placeholder);
     }
   }
