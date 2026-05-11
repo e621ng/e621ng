@@ -69,7 +69,7 @@ RSpec.describe PostSetPostsSyncJob do
           .not_to(change { post.reload.pool_string })
       end
 
-      it "does not enqueue an IndexUpdateJob" do
+      it "does not enqueue a BulkIndexUpdateJob" do
         post_set.update_column(:post_ids, [post.id])
         expect { job.perform_now(post_set.id) }
           .not_to have_enqueued_job(BulkIndexUpdateJob)
@@ -87,7 +87,7 @@ RSpec.describe PostSetPostsSyncJob do
           .not_to(change { post.reload.pool_string })
       end
 
-      it "does not enqueue an IndexUpdateJob" do
+      it "does not enqueue a BulkIndexUpdateJob" do
         post_set.update_column(:post_ids, [])
         expect { job.perform_now(post_set.id) }
           .not_to have_enqueued_job(BulkIndexUpdateJob)
