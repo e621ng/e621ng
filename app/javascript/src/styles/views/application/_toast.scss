@@ -46,7 +46,7 @@
     animation: toast-fadeout 250ms forwards;
     overflow: hidden;
 
-    .toast-close { display: none; }
+    .toast-close { visibility: hidden; }
 
     @keyframes toast-fadeout {
       from {

@@ -101,7 +101,7 @@ export default class ToastManager {
 
       async function dismiss () {
         $element.addClass("toast-fadeout");
-        await TaskQueue.sleep(200);
+        await TaskQueue.sleep(250);
         $element.remove();
       }
 
@@ -327,7 +327,7 @@ export class Toast {
 
     if (!immediate && this.$element) {
       this.$element.addClass("toast-fadeout");
-      await TaskQueue.sleep(200);
+      await TaskQueue.sleep(250);
     }
 
     if (this.$element) // May not exist if dismissed again before animation completes
