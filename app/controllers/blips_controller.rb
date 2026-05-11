@@ -147,7 +147,7 @@ class BlipsController < ApplicationController
   end
 
   def ensure_can_destroy
-    raise User::PrivilegeError unless CurrentUser.is_admin?
+    raise User::PrivilegeError unless @blip.can_destroy?
   end
 
   def ensure_lockdown_disabled
