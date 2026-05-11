@@ -193,7 +193,7 @@ export class Toast {
 
   /**
    * Gets or sets the type of the toast, which determines its styling.
-   * Valid types are "notice", "success", and "alert".
+   * Valid types are the supported `FlashType` variants, such as "notice" and "alert".
    * Updating the type will also update the styling of the toast if it is already rendered.
    * @returns The current type of the toast.
    */
@@ -293,7 +293,7 @@ export class Toast {
       .addClass("toast-close")
       .attr({
         "type": "button",
-        "aria-label": "Close notice",
+        "aria-label": "Close notification",
       })
       .html(SVGIcon.render("times")?.outerHTML || "x")
       .appendTo(this.$element)
