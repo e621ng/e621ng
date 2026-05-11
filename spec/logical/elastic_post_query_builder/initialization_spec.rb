@@ -53,7 +53,7 @@ RSpec.describe ElasticPostQueryBuilder do
         allow(Danbooru.config.custom_configuration).to receive(:tag_query_limit).and_return(40)
         expect do
           build_query(search)
-        end.not_to raise_error(TagQuery::CountExceededError)
+        end.not_to raise_error
       end
     end
 
