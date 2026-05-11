@@ -4,7 +4,8 @@ class PostSetPostsSyncJob < ApplicationJob
   queue_as :default
   sidekiq_options lock: :until_executing, lock_args_method: :lock_args
 
-  def self.lock_args(args)
+  def self.lock_args(args, _legacy_args = nil, **_kwargs)
+    # Includes legacy args to make sure older versions of this job do not fail.
     [args.first]
   end
 
