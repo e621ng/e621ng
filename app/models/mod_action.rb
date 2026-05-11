@@ -76,6 +76,7 @@ class ModAction < ApplicationRecord
     upload_whitelist_delete: { domain: :string, path: :string, note: :string, hidden: :boolean },
     user_blacklist_changed: { user_id: :integer },
     user_text_change: { user_id: :integer },
+    user_custom_title_change: { user_id: :integer, old_custom_title: :string, new_custom_title: :string },
     user_upload_limit_change: { user_id: :integer, old_upload_limit: :integer, new_upload_limit: :integer },
     user_uploads_toggle: { user_id: :integer, disabled: :boolean },
     user_flags_change: { user_id: :integer, added: :string, removed: :string },
@@ -136,7 +137,16 @@ class ModAction < ApplicationRecord
     end
 
     def jsonb_numeric_attribute_matches(attribute, range)
-      qualified_column = Arel.sql("(values ->> '#{attribute}')::INTEGER")
+      # Historical rows can hold non-integer strings (e.g. "permanent") under
+      # integer-typed JSONB keys; the CASE guard skips the cast for those rows
+      # instead of failing the whole query with PG::InvalidTextRepresentation.
+      # `-{0,1}` rather than `-?` so the regex contains no literal `?`,
+      # which ActiveRecord's positional bind logic in `add_range_relation`
+      # would otherwise scan as an extra placeholder.
+      qualified_column = Arel.sql(
+        "CASE WHEN (values ->> '#{attribute}') ~ '^-{0,1}[0-9]+$' " \
+        "THEN (values ->> '#{attribute}')::INTEGER END",
+      )
       parsed_range = ParseValue.range(range, :integer)
 
       add_range_relation(parsed_range, qualified_column)

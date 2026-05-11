@@ -9,7 +9,7 @@
         <h4>No blips</h4>
       <% else %>
         <% @blips.each do |blip| %>
-          <% if blip.visible_to?(CurrentUser.user) %>
+          <% if blip.is_accessible? %>
             <div class="response-list">
               <%= render partial: "blips/partials/show/blip", locals: {blip: blip} %>
             </div>

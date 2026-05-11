@@ -1,4 +1,4 @@
-<% if blip.visible_to?(CurrentUser.user) %>
+<% if blip.is_accessible? %>
   <article class="blip comment-post-grid"
     data-blip-id="<%= blip.id %>"
     data-is-deleted="<%= blip.is_deleted? %>"
@@ -8,20 +8,20 @@
     <div class="author-info">
       <div class="name-rank">
         <h4 class="author-name"><%= link_to_user blip.creator %></h4>
-        <%= blip.creator.level_string %>
+        <%= user_level_plain(blip.creator) %>
         <% if blip.is_deleted? %>
           (deleted)
         <% end %>
       </div>
       <div class="avatar">
-        <%= user_avatar(blip.creator) %>
+        <%= render AvatarComponent.new(user: blip.creator) %>
       </div>
       <div class="post-time">
         <%= link_to time_ago_in_words_tagged(blip.created_at), blip_path(blip) %>
       </div>
     </div>
     <div class="content">
-      <% if blip.response? %>
+      <% if blip.is_response? %>
         <h6><%= link_to "In response to blip ##{blip.response_to}", blip_path(id: blip.response_to) %> </h6>
       <% end %>
       <div class="body dtext-container">

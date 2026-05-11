@@ -226,6 +226,7 @@ class WikiPage < ApplicationRecord
       remove_instance_variable(:@category_id) if defined?(@category_id)
       remove_instance_variable(:@category_is_locked) if defined?(@category_is_locked)
       remove_instance_variable(:@tag) if defined?(@tag)
+      association(:tag).reset
     end
   end
 
@@ -293,6 +294,8 @@ class WikiPage < ApplicationRecord
   end
 
   def normalize_title
+    return if title.nil?
+
     title = self.title.downcase.tr(" ", "_")
     if title =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
       self.category_id = Tag.categories.value_for($1)

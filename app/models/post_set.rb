@@ -157,7 +157,10 @@ class PostSet < ApplicationRecord
 
   module AccessMethods
     def can_view?(user)
-      is_public || is_owner?(user) || user.is_moderator?
+      return true if is_public
+      return true if user.is_moderator?
+      return true if is_owner?(user)
+      false
     end
 
     def can_edit_settings?(user)
@@ -209,7 +212,7 @@ class PostSet < ApplicationRecord
       if added.size <= 1
         sync_posts_for_delta(added_ids: added) if added.any?
       else
-        PostSetPostsSyncJob.perform_later(id, added_ids: added)
+        PostSetPostsSyncJob.perform_later(id)
       end
       added
     end
@@ -332,7 +335,7 @@ class PostSet < ApplicationRecord
       if removed.size <= 1
         sync_posts_for_delta(removed_ids: removed) if removed.any?
       else
-        PostSetPostsSyncJob.perform_later(id, removed_ids: removed)
+        PostSetPostsSyncJob.perform_later(id)
       end
       removed
     end

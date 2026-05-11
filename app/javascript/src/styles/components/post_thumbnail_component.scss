@@ -68,6 +68,43 @@ article.thumbnail {
   }
 
   &.no-stats a.thm-link { @include st-radius; }
+  &.inline {
+    display: inline-flex;
+    vertical-align: middle;
+  }
+
+  // Renders thumbnails in something resembling their native aspect ratio.
+  // Only really useful for DText thumbnails.
+  &.native {
+    a.thm-link {
+      width: unset;
+      height: unset;
+      aspect-ratio: unset;
+
+      img {
+        width: auto;
+        height: unset;
+        object-fit: cover;
+        max-width: var(--thumb-image-size, 150px);
+        max-height: var(--thumb-image-size, 150px);
+        min-width: 100px;
+        min-height: 100px;
+      }
+    }
+    &.blacklisted a.thm-link::before,
+    &.deleted a.thm-link::before {
+      font-size: calc(var(--thumb-image-size, 150px) / 10);
+    }
+
+    div.thm-desc { display: none; }
+
+    &.deleted {
+      a.thm-link {
+        width: var(--thumb-image-size, 150px);
+        aspect-ratio: 1;
+      }
+    }
+  }
 }
 
 // Post information bar
@@ -183,6 +220,8 @@ article.thumbnail[data-tags~=animated] {
   }
   &[data-file-ext=webm] > a.thm-link:after { content: "WEBM"; }
   &[data-file-ext=mp4] > a.thm-link:after { content: "MP4"; }
+
+  &.no-type-badges > a.thm-link:after { display: none; }
 }
 
 // Extra info (IQDB, pools)
@@ -220,6 +259,30 @@ article.thumbnail.placeholder {
   background: #dddddd10;
   border-bottom: 1.25rem solid #00000040;
   @include st-radius;
+  position: relative;
+
+  &.no-stats {
+    border-bottom: none;
+  }
+
+  &[data-initial]:before {
+    content: attr(data-initial);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 5rem;
+    font-weight: bold;
+    color: themed("color-foreground");
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 }
 
 
@@ -268,6 +331,47 @@ article.thumbnail.blacklisted {
 // Post matches blacklist
 article.thumbnail.filter-matches .thm-desc-a {
   background-color: palette("background-red");
+}
+
+
+// ============================== //
+// ======== Avatar State ======== //
+// ============================== //
+
+article.thumbnail.avatar {
+  &.blacklisted {
+    a.thm-link[data-initial]{
+      background: themed("color-section");
+
+      &:before {
+        content: attr(data-initial);
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        font-size: 5rem;
+        font-weight: bold;
+        color: themed("color-foreground");
+
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        // Reset default blacklist colors
+        background: unset;
+        line-height: unset;
+        transform: unset;
+        font-family: "Roboto", Verdana, Geneva, sans-serif;
+      }
+    }
+  }
+
+  &.no-render[data-initial] {
+    background: themed("color-section");
+  }
 }
 
 

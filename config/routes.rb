@@ -28,6 +28,7 @@ Rails.application.routes.draw do
     resource :reowner, controller: "reowner", only: %i[new create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
+    resources :automod_dmails, only: %i[index show]
   end
 
   namespace :security do
@@ -95,10 +96,11 @@ Rails.application.routes.draw do
       resource :deletion, only: %i[show destroy]
       resource :email_change, only: %i[new create]
       resource :dmail_filter, only: %i[edit update]
+      resource :avatar, only: %i[edit update]
     end
   end
 
-  resources :api_keys, except: %i[edit update] do
+  resources :api_keys, except: %i[edit update show] do
     member do
       post :regenerate
     end
@@ -282,8 +284,8 @@ Rails.application.routes.draw do
       get :comments, to: "comments#for_post"
       resource :similar, only: [], controller: "post_recommendations" do
         get :artist
+        get :tags
         get :remote
-        get :lookup
         get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
       end
     end
@@ -336,7 +338,6 @@ Rails.application.routes.draw do
   resources :uploads
   resources :users do
     resource :password, only: %i[edit], controller: "maintenance/user/passwords"
-    resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
 
     member do
       get :upload_limit
@@ -344,6 +345,7 @@ Rails.application.routes.draw do
       post :disable_uploads
       post :flush_favorites
       get :fix_counts
+      get "/api_key", to: redirect("/api_keys")
     end
 
     collection do

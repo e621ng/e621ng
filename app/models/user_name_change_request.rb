@@ -4,7 +4,7 @@ class UserNameChangeRequest < ApplicationRecord
   after_initialize :initialize_attributes, if: :new_record?
   after_create :apply!
 
-  validates :original_name, :desired_name, presence: true
+  validates :desired_name, presence: true
   validates :desired_name, user_name: { user_id: ->(rec) { rec.user_id } }, unless: :skip_user_name_validation
   validate :not_limited, on: :create
 

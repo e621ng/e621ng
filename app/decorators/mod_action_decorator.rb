@@ -142,6 +142,16 @@ class ModActionDecorator < ApplicationDecorator
       "Edited blacklist of #{user}"
     when "user_text_change"
       "Changed profile text of #{user}"
+    when "user_custom_title_change"
+      if vals["old_custom_title"].present?
+        if vals["new_custom_title"].present?
+          "Changed custom title of #{user} from \"#{vals['old_custom_title']}\" to \"#{vals['new_custom_title']}\""
+        else
+          "Removed custom title from #{user}: \"#{vals['old_custom_title']}\""
+        end
+      else
+        "Added custom title to #{user}: \"#{vals['new_custom_title']}\""
+      end
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
     when "user_uploads_toggle"

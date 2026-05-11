@@ -68,6 +68,44 @@ Blacklist.init_reveal_on_click = function () {
     });
 };
 
+/**
+ * Import the blacklist from the meta tag.
+ * Unlike .regenerate_filters(), does not need to wait for the User object to be loaded.
+ */
+Blacklist.preload_filters = function () {
+  Blacklist.filters = {};
+  let blacklistRaw = null;
+
+  // Use the anonymous blacklist if the user isn't logged in
+  const userEl = document.querySelector("meta[name='current-user-id']");
+  if (!userEl || userEl.content === "") {
+    blacklistRaw = LStorage.Blacklist.AnonymousBlacklist;
+  } else {
+    const el = document.querySelector("meta[name='blacklisted-tags']");
+    if (!el) return;
+    blacklistRaw = el.content;
+  }
+
+  // Parse blacklist contents and create filters.
+  try {
+    const tags = JSON.parse(blacklistRaw);
+    for (let entry of tags) {
+      const line = Filter.create(entry);
+      if (line) Blacklist.filters[line.text] = line;
+    }
+  } catch (error) {
+    console.error("Failed to parse blacklist from meta tag:", error);
+    return;
+  }
+
+  // Clear any FilterState entries that don't have a matching filter
+  const keys = Object.keys(Blacklist.filters);
+  for (const filterState of LStorage.Blacklist.FilterState) {
+    if (keys.includes(filterState)) continue;
+    LStorage.Blacklist.FilterState.delete(filterState);
+  }
+};
+
 /** Import the blacklist from the meta tag */
 Blacklist.regenerate_filters = function () {
   Blacklist.filters = {};
@@ -164,7 +202,12 @@ Blacklist.add_posts = function ($posts) {
   PostCache.register($posts);
 
   for (const filter of Object.values(Blacklist.filters))
-    filter.update($posts);
+    filter.updateWithElements($posts);
+};
+
+Blacklist.load_deferred_posts = function (posts) {
+  for (const filter of Object.values(Blacklist.filters))
+    filter.updateWithPosts(posts);
 };
 
 /**
@@ -229,13 +272,15 @@ Blacklist.update_styles = function () {
     });
 };
 
+// Load filters ASAP - without this, DeferredPosts might load before the filters do.
+Blacklist.preload_filters();
+
 $(() => {
   Blacklist.isPostsShow = $("#image-container").length > 0;
 
   Blacklist.init_blacklist_editor();
   Blacklist.init_reveal_on_click();
 
-  Blacklist.regenerate_filters();
   Blacklist.add_posts($(".blacklistable"));
   Blacklist.update_styles();
   Blacklist.update_visibility();

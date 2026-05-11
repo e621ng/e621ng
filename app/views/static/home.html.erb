@@ -65,7 +65,7 @@
   </section>
   <section class="home-footer-bottom">
     <div class="home-footer-counter">
-      <% Post.fast_count.to_s.each_char do |x| -%><%= image_tag("counter/#{x}.png", alt: x) %><% end -%>
+      <% Post.fast_count.to_s.each_char do |x| -%><%= image_tag("counter/#{x}.svg", alt: x) %><% end -%>
     </div>
     <div class="home-footer-links">
       <%= link_to "Takedowns", takedown_static_path %>

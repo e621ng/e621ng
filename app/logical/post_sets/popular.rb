@@ -10,7 +10,7 @@ module PostSets
                 Time.zone.now
               else
                 parsed = Time.zone.parse(date)
-                raise ArgumentError, "Invalid date: #{date}" if parsed.nil? || parsed.year > 9999 || parsed.year < 1
+                raise ParseValue::InvalidDateError, "Invalid date: #{date}" if parsed.nil? || parsed.year > 9999 || parsed.year < 1
                 parsed
               end
       @scale = scale

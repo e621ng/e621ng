@@ -20,6 +20,7 @@
 
       <%= f.input :profile_about, as: :dtext, label: "About", limit: Danbooru.config.user_about_max_size, allow_color: true %>
       <%= f.input :profile_artinfo, as: :dtext, label: "Commission Info", limit: Danbooru.config.user_about_max_size, allow_color: true %>
+      <%= f.input :custom_title, input_html: { size: 50 }, hint: "Replaces the level badge text. Leave blank to show level." %>
       <%= f.input :base_upload_limit %>
 
       <% if CurrentUser.is_bd_staff? || !@user.is_bd_staff? %>

@@ -3,9 +3,17 @@
   <div class="dtext-container">
     <%= format_text(@page.body, allow_color: true) %>
   </div>
-  <%= form_tag(discord_post_path) do %>
-    <%= submit_tag "Join the Server", class: "st-button submit" %>
+
+  <% if CurrentUser.can_discord? %>
+    <%= form_tag(discord_post_path) do %>
+      <%= submit_tag "Join the Server", class: "st-button submit" %>
+    <% end %>
+  <% else %>
+    <p class="background-red box-section">
+      You must have an account for at least one week in order to join the Discord server.
+    </p>
   <% end %>
+
 </div></div>
 
 <% content_for(:secondary_links) do %>

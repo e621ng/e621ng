@@ -292,7 +292,7 @@ class TagImplication < TagRelationship
   end
 
   def flush_cache
-    @dedescendants = nil
+    @descendants = nil
     @parents = nil
   end
 
