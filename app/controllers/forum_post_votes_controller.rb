@@ -54,6 +54,6 @@ class ForumPostVotesController < ApplicationController
   end
 
   def ensure_lockdown_disabled
-    render_expected_error(403, "Votes are disabled") if Security::Lockdown.votes_disabled? && !CurrentUser.is_staff?
+    render_expected_error(403, "Votes are disabled") if Security::Lockdown.votes_disabled? && !CurrentUser.user.is_staff?
   end
 end
