@@ -555,7 +555,7 @@ Post.initialize_post_sections = function () {
 
 Post.notice_update = function (x) {
   if (!Post.pending_update_toast) {
-    Post.pending_update_toast = E621.Toast("Updating posts...", { timeout: 0 });
+    Post.pending_update_toast = E621.Toast.create("Updating posts...", { timeout: 0 });
   }
   ToastManager.dismiss("Posts updated");
 

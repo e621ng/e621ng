@@ -32,7 +32,7 @@ PostModeMenu.initialize_shortcuts = function () {
 PostModeMenu.show_notice_toast = null;
 PostModeMenu.show_notice = function (i) {
   if (PostModeMenu.show_notice_toast) PostModeMenu.show_notice_toast.dismiss(true);
-  PostModeMenu.show_notice_toast = E621.Toast(`Switched to tag script #${i}. To switch tag scripts, use the number keys.`);
+  PostModeMenu.show_notice_toast = E621.Toast.create(`Switched to tag script #${i}. To switch tag scripts, use the number keys.`);
 };
 
 PostModeMenu.change_tag_script = function (key) {

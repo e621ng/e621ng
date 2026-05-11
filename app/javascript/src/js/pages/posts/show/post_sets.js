@@ -23,7 +23,7 @@ PostSet.add_post = function (set_id, post_id) {
   }
 
   if (!postUpdateToast)
-    postUpdateToast = E621.Toast("Updating posts...", { timeout: 0 });
+    postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
 
   let cache = addPostCache[set_id];
   if (!cache) {
@@ -67,7 +67,7 @@ PostSet.add_many_posts = function (set_id, posts = []) {
       E621.Toast.alert("Error: " + (message || errors));
       postUpdateToast?.dismiss(true);
     }).done(() => {
-      if (!postUpdateToast) postUpdateToast = E621.Toast("Updating posts...", { timeout: 0 });
+      if (!postUpdateToast) postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
       postUpdateToast.message = `Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`;
       postUpdateToast.type = "success";
       postUpdateToast.timeout = 3;
@@ -94,7 +94,7 @@ PostSet.remove_post = function (set_id, post_id) {
   }
 
   if (!postUpdateToast)
-    postUpdateToast = E621.Toast("Updating posts...", { timeout: 0 });
+    postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
 
   let cache = removePostCache[set_id];
   if (!cache) {
@@ -138,7 +138,7 @@ PostSet.remove_many_posts = function (set_id, posts = []) {
       E621.Toast.alert("Error: " + (message || errors));
       postUpdateToast?.dismiss(true);
     }).done(() => {
-      if (!postUpdateToast) postUpdateToast = E621.Toast("Updating posts...", { timeout: 0 });
+      if (!postUpdateToast) postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
       postUpdateToast.message = `Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`;
       postUpdateToast.type = "success";
       postUpdateToast.timeout = 3;

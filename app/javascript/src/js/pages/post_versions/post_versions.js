@@ -38,7 +38,7 @@ PostVersion.undo_selected = function (event) {
   PostVersion.updated = 0;
   let selected_rows = $(".post-version-select:checked").parents(".post-version");
 
-  const toast = E621.Toast("Undoing changes...", { timeout: 0 });
+  const toast = E621.Toast.create("Undoing changes...", { timeout: 0 });
   const promises = [];
   for (let row of selected_rows) {
     let id = $(row).data("post-version-id");
@@ -69,7 +69,7 @@ PostVersion.tag_script_selected = function (event) {
   if (!script)
     return;
 
-  const toast = E621.Toast("Applying tag script...", { timeout: 0 });
+  const toast = E621.Toast.create("Applying tag script...", { timeout: 0 });
   const promises = [];
   for (let row of selected_rows) {
     let id = $(row).data("post-id");
