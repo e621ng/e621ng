@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe UsersHelper do
   let(:user) { build(:user) }
-  let(:former_staff_user) { build(:former_staff_user) }
+  let(:former_staff) { build(:former_staff_user) }
   let(:moderator) { build(:moderator_user) }
   let(:admin) { build(:admin_user) }
 
@@ -20,7 +20,7 @@ RSpec.describe UsersHelper do
 
     it "includes the correct CSS class for the user's level" do
       expect(helper.user_level_badge(user)).to include("user-member")
-      expect(helper.user_level_badge(former_staff_user)).to include("user-former-staff")
+      expect(helper.user_level_badge(former_staff)).to include("user-former-staff")
       expect(helper.user_level_badge(moderator)).to include("user-moderator")
       expect(helper.user_level_badge(admin)).to include("user-admin")
     end

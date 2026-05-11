@@ -24,7 +24,7 @@ $user-level-text: (
 
   @each $level in $user-levels {
     &.user-#{$level} {
-      background-color: themed("color-user-#{$level}");
+      background-color: themed("color-user-#{$level}", themed("color-user-member"));
     }
   }
   @each $level, $color in $user-level-text {
