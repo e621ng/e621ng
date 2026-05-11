@@ -451,4 +451,35 @@ RSpec.describe Admin::UsersController do
       end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # POST /admin/users/:id/clear_avatar
+  # ---------------------------------------------------------------------------
+
+  describe "POST /admin/users/:id/clear_avatar" do
+    it "redirects anonymous to the login page" do
+      post clear_avatar_admin_user_path(user)
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for a non-admin" do
+      sign_in_as user
+      post clear_avatar_admin_user_path(user)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    context "as an admin" do
+      it "clears the user's avatar and redirects with a notice" do
+        sign_in_as admin
+
+        avatar = create(:post)
+        user.update!(avatar_id: avatar.id)
+
+        post clear_avatar_admin_user_path(user)
+        expect(response).to redirect_to(user_path(user))
+        expect(flash[:notice]).to eq("User avatar cleared")
+        expect(user.reload.avatar_id).to be_nil
+      end
+    end
+  end
 end
