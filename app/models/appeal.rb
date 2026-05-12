@@ -80,21 +80,21 @@ class Appeal < ApplicationRecord
       return if creator == User.system
 
       # Hourly limit
-      hourly_allowed = creator.can_ticket_hourly_with_reason
+      hourly_allowed = creator.can_appeal_hourly_with_reason
       if hourly_allowed != true
         errors.add(:creator, User.throttle_reason(hourly_allowed, "hourly"))
         return false
       end
 
       # Daily limit
-      daily_allowed = creator.can_ticket_daily_with_reason
+      daily_allowed = creator.can_appeal_daily_with_reason
       if daily_allowed != true
         errors.add(:creator, User.throttle_reason(daily_allowed, "daily"))
         return false
       end
 
       # Active limit
-      active_allowed = creator.can_ticket_active_with_reason
+      active_allowed = creator.can_appeal_active_with_reason
       if active_allowed != true
         errors.add(:creator, User.throttle_reason(active_allowed, "active"))
         return false
