@@ -19,11 +19,12 @@ class TOSWarning {
     this.ageCheckbox.on("change", () => this.updateAcceptButton());
     this.termsCheckbox.on("change", () => this.updateAcceptButton());
 
-    this.acceptButton.on("click", (event) => {
+    this.form.on("submit", (event) => {
       event.preventDefault();
       if (!this.isAgeChecked || !this.isTermsChecked) return false;
       this.toast?.dismiss(true);
       this.acceptClientSide();
+      return false;
     });
 
     $("#tos-warning-decline").on("click", (event) => {
