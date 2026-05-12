@@ -44,8 +44,12 @@ class TOSWarning {
   get isTermsChecked () { return this.termsCheckbox.is(":checked"); }
 
   acceptClientSide () {
-    const maxAge = 365 * 24 * 60 * 60;
-    document.cookie = `tos_accepted=${this.tosVersion}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    const maxAge = 20 * 365 * 24 * 60 * 60;
+    let cookieString = `tos_accepted=${this.tosVersion}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    if (location.protocol === "https:")
+      cookieString += "; Secure";
+    document.cookie = cookieString;
+
     this.form.closest(".tos-modal-container").remove();
     $("body").removeClass("scroll-lock");
   }
