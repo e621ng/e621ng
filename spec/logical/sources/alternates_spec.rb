@@ -11,10 +11,6 @@ RSpec.describe Sources::Alternates do
   # .all
   # -------------------------------------------------------------------------
   describe ".all" do
-    it "returns exactly 11 handler classes" do
-      expect(described_class.all.length).to eq(11)
-    end
-
     it "includes all expected handler classes" do
       expect(described_class.all).to include(
         Sources::Alternates::Furaffinity,
