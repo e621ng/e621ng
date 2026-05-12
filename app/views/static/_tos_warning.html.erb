@@ -1,5 +1,5 @@
 <% if cookies.signed[:tos_accepted].blank? || cookies.signed[:tos_accepted].to_i != Setting.tos_version %>
-<div class="tos-modal-container">
+<div class="tos-modal-container" data-nosnippet>
   <%= form_tag(
     accept_terms_of_use_path,
     method: :post,
