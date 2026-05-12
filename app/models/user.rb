@@ -601,6 +601,26 @@ class User < ApplicationRecord
       3.days,
     )
 
+    # Appeal Throttles
+    create_user_throttle(
+      :ticket_hourly,
+      -> { (Danbooru.config.ticket_hourly_limit || Float::INFINITY) - Appeal.for_creator(id).where("created_at > ?", 1.hour.ago).count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+    create_user_throttle(
+      :ticket_daily,
+      -> { (Danbooru.config.ticket_daily_limit || Float::INFINITY) - Appeal.for_creator(id).where("created_at > ?", 1.day.ago).count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+    create_user_throttle(
+      :ticket_active,
+      -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Appeal.for_creator(id).active.count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+
     create_user_throttle(:suggest_tag, -> { Danbooru.config.tag_suggestion_limit - (TagAlias.for_creator(id).where("created_at > ?", 1.hour.ago).count + TagImplication.for_creator(id).where("created_at > ?", 1.hour.ago).count + BulkUpdateRequest.for_creator(id).where("created_at > ?", 1.hour.ago).count) },
                          :is_janitor?, 7.days)
     create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },
