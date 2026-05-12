@@ -53,14 +53,16 @@ class StaticController < ApplicationController
   end
 
   def disable_mobile_mode
-    if CurrentUser.is_member?
+    if CurrentUser.is_anonymous?
+      if cookies[:nmm]
+        cookies.delete(:nmm)
+      else
+        cookies.permanent[:nmm] = "1"
+      end
+    else
       user = CurrentUser.user
       user.disable_responsive_mode = !user.disable_responsive_mode
       user.save
-    elsif cookies[:nmm]
-      cookies.delete(:nmm)
-    else
-      cookies.permanent[:nmm] = "1"
     end
     redirect_back fallback_location: posts_path
   end
@@ -124,7 +126,7 @@ class StaticController < ApplicationController
     add_link = ->(section, label, path) { lookup[section][:links] << { label: label, path: path } }
 
     add_link[:posts, "Listing", posts_path]
-    add_link[:posts, "Upload", new_upload_path]
+    add_link[:posts, "Upload", new_upload_path] if CurrentUser.user.is_member?
     add_link[:posts, "Popular", popular_index_path]
     add_link[:posts, "Changes", post_versions_path]
     add_link[:posts, "Similar Images Search", iqdb_queries_path]
@@ -165,7 +167,7 @@ class StaticController < ApplicationController
     add_link[:notes, "Changes", note_versions_path]
 
     add_link[:pools, "Listing", gallery_pools_path]
-    add_link[:pools, "Changes", pool_versions_path]
+    add_link[:pools, "Changes", pool_versions_path] if CurrentUser.user.is_member?
 
     add_link[:wiki, "Listing", wiki_pages_path]
     add_link[:wiki, "Changes", wiki_page_versions_path]
@@ -193,7 +195,7 @@ class StaticController < ApplicationController
       add_link[:users, "User Home", home_users_path]
       add_link[:users, "Profile", user_path(CurrentUser.user)]
       add_link[:users, "Settings", settings_users_path]
-      add_link[:users, "Refresh counts", new_maintenance_user_count_fixes_path]
+      add_link[:users, "Refresh counts", new_maintenance_user_count_fixes_path] if CurrentUser.user.is_member?
     end
 
     if CurrentUser.is_staff?

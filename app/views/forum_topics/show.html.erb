@@ -18,7 +18,7 @@
 
     <%= render "forum_posts/listing", :forum_posts => @forum_posts, :original_forum_post_id => @forum_topic.original_post.id %>
 
-    <% if CurrentUser.is_member? %>
+    <% if CurrentUser.user.is_member? %>
       <% if @forum_topic.can_reply? %>
         <p><%= link_to "Reply »", new_forum_post_path(forum_post: { topic_id: @forum_topic.id }), id: "new-response-link" %></p>
 
@@ -26,7 +26,7 @@
           <%= render "forum_posts/partials/new/form", :forum_post => ForumPost.new(:topic_id => @forum_topic.id) %>
         </div>
       <% end %>
-    <% elsif !@forum_topic.is_locked? %>
+    <% elsif CurrentUser.user.is_anonymous? && !@forum_topic.is_locked? %>
       <h5 id="respond-link"><%= link_to "Login to respond »", new_session_path %></h5>
     <% end %>
 

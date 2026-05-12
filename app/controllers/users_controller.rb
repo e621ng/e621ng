@@ -211,6 +211,9 @@ class UsersController < ApplicationController
 
   private
 
+  def load_user
+  end
+
   # Checks if the user's uploads are already disabled & if the reason is left blank.
   #
   # IDEA: Get errors showing up correctly (the green banner & empty error message box)
@@ -241,7 +244,6 @@ class UsersController < ApplicationController
 
   def check_privilege(user)
     raise User::PrivilegeError unless user.id == CurrentUser.id || CurrentUser.is_admin?
-    raise User::PrivilegeError, "Must verify account email" unless CurrentUser.is_verified?
   end
 
   def user_params(context)

@@ -67,6 +67,7 @@
 
 
 <!-- Profile -->
+<% if CurrentUser.user.is_member? %>
 <tab-group name="profile">Profile</tab-group>
 
 <tab-entry tab="<%= tab_name %>" group="profile" class="<%= @user.avatar_id.present? ? "with-buttons" : "" %>" search="update change user avatar profile image pfp crop">
@@ -107,6 +108,7 @@
     %>
   </tab-body>
 </tab-entry>
+<% end %>
 
 
 <!-- Posts -->

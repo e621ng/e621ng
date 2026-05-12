@@ -55,6 +55,7 @@ class ForumPost < ApplicationRecord
 
     def can_edit?(user = CurrentUser.user)
       return false unless can_access?(user)
+      return false unless user.is_member?
       return true if user.is_admin?
       return false if was_warned?
       return false if topic.is_locked? && !topic.can_lock?(user)
@@ -64,6 +65,7 @@ class ForumPost < ApplicationRecord
 
     def can_hide?(user = CurrentUser.user)
       return false unless can_access?(user)
+      return false unless user.is_member?
       return true if user.is_moderator?
       return false if was_warned?
       return false if votable?

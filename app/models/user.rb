@@ -371,6 +371,10 @@ class User < ApplicationRecord
       end
     end
 
+    def is_authenticated?
+      level > Levels::ANONYMOUS
+    end
+
     def is_bd_staff?
       is_bd_staff
     end
@@ -475,7 +479,7 @@ class User < ApplicationRecord
 
   module ForumMethods
     def has_forum_been_updated?
-      return false unless is_member? && forum_notification_dot
+      return false unless is_authenticated? && forum_notification_dot
       max_updated_at = ForumTopic.visible(self).order(updated_at: :desc).first&.updated_at
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
@@ -1067,8 +1071,9 @@ class User < ApplicationRecord
 
   def hide_favorites?
     return false if CurrentUser.is_moderator?
+    return false if CurrentUser.user.id == id
     return true if is_blocked?
-    enable_privacy_mode? && CurrentUser.user.id != id
+    enable_privacy_mode?
   end
 
   def compact_uploader?

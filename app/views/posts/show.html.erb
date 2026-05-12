@@ -27,7 +27,7 @@
         </section>
       <% end %>
 
-      <% if CurrentUser.is_member? %>
+      <% if CurrentUser.is_authenticated? %>
         <section id="post-history">
           <h3>History</h3>
           <%= render "posts/partials/show/sidebar/history", :post => @post %>
