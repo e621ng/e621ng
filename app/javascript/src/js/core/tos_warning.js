@@ -10,6 +10,7 @@ class TOSWarning {
 
   constructor (form) {
     this.form = form;
+    this.tosVersion = form.data("tos-version");
     this.acceptButton = $("#tos-warning-accept");
     this.ageCheckbox = $("#tos-age-checkbox").prop("checked", false);
     this.termsCheckbox = $("#tos-terms-checkbox").prop("checked", false);
@@ -18,11 +19,10 @@ class TOSWarning {
     this.ageCheckbox.on("change", () => this.updateAcceptButton());
     this.termsCheckbox.on("change", () => this.updateAcceptButton());
 
-    // Disable the accept button if the checkboxes are not checked
     this.acceptButton.on("click", (event) => {
-      if (this.isAgeChecked && this.isTermsChecked) return;
       event.preventDefault();
-      return false;
+      if (!this.isAgeChecked || !this.isTermsChecked) return false;
+      this.acceptClientSide();
     });
 
     // Auto-focus the first checkbox
@@ -33,6 +33,13 @@ class TOSWarning {
   // Checkbox states
   get isAgeChecked () { return this.ageCheckbox.is(":checked"); }
   get isTermsChecked () { return this.termsCheckbox.is(":checked"); }
+
+  acceptClientSide () {
+    const maxAge = 365 * 24 * 60 * 60;
+    document.cookie = `tos_accepted=${this.tosVersion}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    this.form.closest(".tos-modal-container").remove();
+    $("body").removeClass("scroll-lock");
+  }
 
   // Accept button state
   updateAcceptButton () {

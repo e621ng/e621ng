@@ -12,7 +12,7 @@ class TermsOfUsesController < ApplicationController
 
   def accept
     if params[:state] == "accepted" && params[:age] == "on" && params[:terms] == "on"
-      cookies.permanent.signed[:tos_accepted] = Setting.tos_version
+      cookies.permanent[:tos_accepted] = Setting.tos_version
     else
       notice = "You must accept the TOU and confirm that you are at least 18 years old to use this site"
     end
