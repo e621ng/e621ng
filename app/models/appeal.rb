@@ -61,7 +61,7 @@ class Appeal < ApplicationRecord
       hidden = []
 
       unless can_view?(CurrentUser.user)
-        hidden += %i[creator_id accused_id reason response report_reason]
+        hidden += %i[creator_id accused_id reason response]
         return super + hidden
       end
 
@@ -112,7 +112,12 @@ class Appeal < ApplicationRecord
       self.status = "pending"
       case qtype
       when "flag"
-        self.accused_id = PostFlag.find(disp_id).creator_id
+        flag = content
+        if flag.present?
+          self.accused_id = flag.creator_id
+        else
+          errors.add model.name.underscore.to_sym, "does not exist"
+        end
       end
     end
   end

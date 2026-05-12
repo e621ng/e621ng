@@ -6,14 +6,7 @@
       <% if @appeal.qtype.nil? %>
         <% @found_item = false %>
         <div class="section">
-          To submit a ticket about a problematic comment, click "Report" on the comment itself.<br/>
-          To submit a ticket about a problematic forum post, click "Report" on the post itself.<br/>
-          To submit a ticket about a problematic pool, click "Report" on the pool page itself.<br/>
-          To submit a ticket about a problematic set, click "Report" on the set page itself.<br/>
-          To submit a ticket about a problematic user, click "Report" on the user's profile page.<br/>
-          To submit a ticket about a problematic private message, click "Report PM" above the PM itself.<br/>
-          To submit a ticket about a problematic replacement, click "Report" on the replacement itself.<br/>
-          To submit a username request, click "Request Username Change" on <a href='/user/home'>the user home page</a>.<br/>
+          To appeal a post deletion, click "Appeal" on the post itself.<br/>
         </div>
       <% else %>
         <% if @appeal.content %>

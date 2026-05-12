@@ -603,19 +603,19 @@ class User < ApplicationRecord
 
     # Appeal Throttles
     create_user_throttle(
-      :ticket_hourly,
+      :appeal_hourly,
       -> { (Danbooru.config.ticket_hourly_limit || Float::INFINITY) - Appeal.for_creator(id).where("created_at > ?", 1.hour.ago).count },
       :general_bypass_throttle?,
       3.days,
     )
     create_user_throttle(
-      :ticket_daily,
+      :appeal_daily,
       -> { (Danbooru.config.ticket_daily_limit || Float::INFINITY) - Appeal.for_creator(id).where("created_at > ?", 1.day.ago).count },
       :general_bypass_throttle?,
       3.days,
     )
     create_user_throttle(
-      :ticket_active,
+      :appeal_active,
       -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Appeal.for_creator(id).active.count },
       :general_bypass_throttle?,
       3.days,

@@ -120,7 +120,7 @@ class AppealsController < ApplicationController
   end
 
   def appeal_params
-    params.require(:appeal).permit(%i[qtype disp_id reason report_reason])
+    params.require(:appeal).permit(%i[qtype disp_id reason])
   end
 
   def update_appeal_params
