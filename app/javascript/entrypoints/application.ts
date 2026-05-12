@@ -31,6 +31,7 @@ import Settings from "@/utility/Settings";
 import LStorage from "@/utility/storage";
 import CStorage from "@/utility/StorageC";
 import ToastManager from "@/utility/Toast";
+import UniversalTooltip from "@/utility/UniversalTooltip";
 
 Logger.log("Loading");
 
@@ -50,6 +51,7 @@ window["E621"] = {
   Toast: ToastManager,
 
   Autocomplete,
+  UniversalTooltip,
   Blacklist,
   DeferredPostLoader,
   DTextFormatter,

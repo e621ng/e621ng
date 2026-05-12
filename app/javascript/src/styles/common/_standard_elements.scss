@@ -285,3 +285,124 @@ input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
     @include st-radius;
   }
 }
+
+// #region Universal tooltip
+.st-universal-tooltip {
+  opacity: 0; /* Hidden by default */
+  position: absolute;
+}
+// Unneeded when title will be exposed by hover
+/* @media (hover: hover) {
+  .st-universal-tooltip {
+    display: none;
+  }
+}
+@media (hover: none) { */
+  body {
+    --universal-tooltip-padding: .25rem;
+    --universal-tooltip-arrow-size: 5px;
+    --universal-tooltip-border-radius: 6px;
+  }
+  .st-universal-tooltip-parent {
+    position: relative;
+
+    &[placement=right], &[placement=left] {
+      --universal-tooltip-width: 15rem;
+      --universal-tooltip-height: 3.5rem;
+    }
+    &[placement=top], &[placement=up], &[placement=above],
+    &[placement=bottom], &[placement=down], &[placement=below], &[placement=under] {
+      --universal-tooltip-width: 15rem;
+      --universal-tooltip-height: 3.5rem;
+    }
+  }
+  .st-universal-tooltip {
+    transition: opacity 1s;
+    background-color: themed("color-section-lighten-5");
+    color: themed("color-text");
+    border-radius: var(--universal-tooltip-border-radius);
+    z-index: 1013; /* Ensure tooltip is displayed above content */
+    text-align: center;
+    width: fit-content;
+    height: fit-content;
+    padding: var(--universal-tooltip-padding) 0;
+
+    /* The little arrow */
+    &::after {
+      content: "";
+      position: absolute;
+      border-width: var(--universal-tooltip-arrow-size);
+      border-style: solid;
+      border-color: transparent;
+    }
+  }
+  .st-universal-tooltip-parent[activated] > .st-universal-tooltip,
+  .st-universal-tooltip[activated] {
+    opacity: 1;
+  }
+  // #region Placement
+  .st-universal-tooltip-parent[placement=right] > .st-universal-tooltip {
+    left: calc(100% + var(--universal-tooltip-padding));
+
+    &::after {
+      right: 100%;
+      border-right-color: themed("color-section-lighten-5");
+    }
+  }
+  .st-universal-tooltip-parent[placement=left] > .st-universal-tooltip {
+    right: calc(100% + var(--universal-tooltip-padding));
+
+    &::after {
+      left: 100%;
+      border-left-color: themed("color-section-lighten-5");
+    }
+  }
+  .st-universal-tooltip-parent[placement=top] > .st-universal-tooltip, .st-universal-tooltip-parent[placement=up] > .st-universal-tooltip, .st-universal-tooltip-parent[placement=above] > .st-universal-tooltip {
+    bottom: calc(100% + var(--universal-tooltip-padding));
+
+    &::after {
+      top: 100%;
+      border-top-color: themed("color-section-lighten-5");
+    }
+  }
+  .st-universal-tooltip-parent[placement=bottom] > .st-universal-tooltip, .st-universal-tooltip-parent[placement=down] > .st-universal-tooltip, .st-universal-tooltip-parent[placement=below] > .st-universal-tooltip, .st-universal-tooltip-parent[placement=under] > .st-universal-tooltip {
+    top: calc(100% + var(--universal-tooltip-padding));
+
+    &::after {
+      bottom: 100%;
+      border-bottom-color: themed("color-section-lighten-5");
+    }
+  }
+  // #endregion Placement
+  // #region Horizontal Alignment
+  .st-universal-tooltip-parent[placement=top] .st-universal-tooltip, .st-universal-tooltip-parent[placement=up] .st-universal-tooltip, .st-universal-tooltip-parent[placement=above] .st-universal-tooltip,
+  .st-universal-tooltip-parent[placement=bottom] .st-universal-tooltip, .st-universal-tooltip-parent[placement=down] .st-universal-tooltip, .st-universal-tooltip-parent[placement=below] .st-universal-tooltip, .st-universal-tooltip-parent[placement=under] .st-universal-tooltip {
+    left: 50%;
+
+    /* Replace these 2 with an explicit value & half that value respectively to center horizontally. */
+    width: var(--universal-tooltip-width)/* 100% */;
+    margin-left: calc(-.5 * var(--universal-tooltip-width))/* -50% */;
+
+    &::after {
+      left: 50%;
+      margin-left: calc(-1 * var(--universal-tooltip-arrow-size));
+    }
+  }
+  // #endregion Horizontal Alignment
+  // #region Vertical Alignment
+  .st-universal-tooltip-parent[placement=right] .st-universal-tooltip,
+  .st-universal-tooltip-parent[placement=left] .st-universal-tooltip {
+    top: 50%;
+
+    /* Replace these 2 with an explicit value & half that value respectively to center vertically. */
+    height: var(--universal-tooltip-height)/* 100% */;
+    margin-top: calc(-.5 * var(--universal-tooltip-height))/* -50% */;
+
+    &::after {
+      top: 50%;
+      margin-top: calc(-1 * var(--universal-tooltip-arrow-size));
+    }
+  }
+  // #endregion Vertical Alignment
+// }
+// #endregion Universal tooltip
