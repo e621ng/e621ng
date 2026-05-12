@@ -38,6 +38,26 @@ RSpec.describe TagAlias do
 
       expect(ta.reload.post_count).to eq(7)
     end
+
+    it "enqueues TagAliasFinalizeJob with consequent_name on success" do
+      ta = create(:tag_alias)
+      ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
+
+      expect { ta.process!(update_topic: false) }
+        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id, ta.consequent_name)
+    end
+
+    it "does not call fix_post_count directly" do
+      ta = create(:tag_alias)
+      ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
+      allow(ta.antecedent_tag).to receive(:fix_post_count)
+      allow(ta.consequent_tag).to receive(:fix_post_count)
+
+      ta.process!(update_topic: false)
+
+      expect(ta.antecedent_tag).not_to have_received(:fix_post_count)
+      expect(ta.consequent_tag).not_to have_received(:fix_post_count)
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -73,6 +93,26 @@ RSpec.describe TagAlias do
       )
 
       expect { ta.process_undo!(update_topic: false) }.to raise_error(RuntimeError, /something is wrong/)
+    end
+
+    it "enqueues TagAliasFinalizeJob with antecedent_name" do
+      ta = create(:active_tag_alias)
+      ta.update_columns(approver_id: create(:admin_user).id)
+
+      expect { ta.process_undo!(update_topic: false) }
+        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id, ta.antecedent_name)
+    end
+
+    it "does not call fix_post_count directly" do
+      ta = create(:active_tag_alias)
+      ta.update_columns(approver_id: create(:admin_user).id)
+      allow(ta.antecedent_tag).to receive(:fix_post_count)
+      allow(ta.consequent_tag).to receive(:fix_post_count)
+
+      ta.process_undo!(update_topic: false)
+
+      expect(ta.antecedent_tag).not_to have_received(:fix_post_count)
+      expect(ta.consequent_tag).not_to have_received(:fix_post_count)
     end
   end
 end

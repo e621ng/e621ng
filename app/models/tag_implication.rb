@@ -133,6 +133,7 @@ class TagImplication < TagRelationship
           update!(status: "processing")
           create_undo_information
           update_posts
+          TagImplicationFinalizeJob.perform_later(id, consequent_name)
           update(status: "active")
           update_descendant_names_for_parents
           forum_updater.update(approval_message(approver), "APPROVED") if update_topic
@@ -150,6 +151,7 @@ class TagImplication < TagRelationship
     end
 
     def update_posts
+      Thread.current[:skip_post_index_update] = true
       Post.without_timeout do
         Post.sql_raw_tag_match(antecedent_name).find_each do |post|
           next if post.tag_array.include?(consequent_name)
@@ -162,6 +164,8 @@ class TagImplication < TagRelationship
           end
         end
       end
+    ensure
+      Thread.current[:skip_post_index_update] = false
     end
 
     def create_undo_information
@@ -243,6 +247,7 @@ class TagImplication < TagRelationship
     end
 
     def update_posts_undo
+      Thread.current[:skip_post_index_update] = true
       Post.without_timeout do
         tag_rel_undos.where(applied: false).each do |tu|
           Post.where(id: tu.undo_data.keys).find_each do |post|
@@ -255,11 +260,10 @@ class TagImplication < TagRelationship
             post.save
           end
         end
-
-        # TODO: Race condition with indexing jobs here.
-        antecedent_tag.fix_post_count if antecedent_tag
-        consequent_tag.fix_post_count if consequent_tag
       end
+      TagImplicationFinalizeJob.perform_later(id, antecedent_name)
+    ensure
+      Thread.current[:skip_post_index_update] = false
     end
   end
 
