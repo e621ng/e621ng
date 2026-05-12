@@ -160,14 +160,6 @@ export default class PostCache {
     }
   }
 
-  static registerAvatar ($element: JQuery<HTMLElement>, postID: number) {
-    if (!postID) return;
-    if (!this._elements[postID]) this._elements[postID] = [];
-    if (this._elements[postID].some((one: JQuery<HTMLElement>) => one.is($element))) return;
-    this._elements[postID].push($element);
-    this._elementCount++;
-  }
-
   /**
    * Remove a thumbnail from the cache. Should be called when a thumbnail is removed from the DOM to prevent memory leaks.
    * @param {JQuery<HTMLElement>} $element Thumbnail element to remove
