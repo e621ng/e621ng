@@ -183,6 +183,7 @@ class StaticController < ApplicationController
     add_link[:staff, "Mod Actions", mod_actions_path]
     add_link[:staff, "Takedowns", takedowns_path]
     add_link[:staff, "Tickets", tickets_path]
+    add_link[:staff, "Appeals", appeals_path]
 
     add_link[:tools, "Subscribestar", Danbooru.config.subscribestar_url] if Danbooru.config.subscribestar_url.present?
     add_link[:tools, "DB Export", Danbooru.config.db_export_path] if Danbooru.config.db_export_path.present?
