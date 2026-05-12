@@ -3,6 +3,10 @@
 module Sources
   module Alternates
     class Imgur < Base
+      def force_https?
+        true
+      end
+
       def domains
         ["imgur.com"]
       end
