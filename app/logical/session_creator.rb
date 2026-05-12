@@ -14,7 +14,7 @@ class SessionCreator
 
   def authenticate
     if User.authenticate(name, password)
-      user = User.find_by_name(name)
+      @user = User.find_by_name(name)
 
       session[:user_id] = user.id
       session[:last_authenticated_at] = Time.now.utc.to_s

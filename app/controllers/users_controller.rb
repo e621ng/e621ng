@@ -3,7 +3,7 @@
 class UsersController < ApplicationController
   respond_to :html, :json
   skip_before_action :api_check
-  before_action :logged_in_only, only: %i[edit upload_limit update]
+  before_action :logged_in_only, only: %i[edit upload_limit update restart_onboarding]
   before_action :member_only, only: %i[custom_style avatar_menu]
   before_action :janitor_only, only: %i[toggle_uploads fix_counts]
   before_action :admin_only, only: %i[flush_favorites]
@@ -166,14 +166,24 @@ class UsersController < ApplicationController
       else
         flash[:notice] = "Sign up failed"
       end
-      respond_with(@user)
+      respond_with(@user) do |format|
+        format.html do
+          if @user.errors.empty?
+            redirect_to onboarding_path
+          else
+            render :new
+          end
+        end
+      end
     end
   rescue ::Mailgun::CommunicationError
     session[:user_id] = nil
     @user.errors.add(:email, "There was a problem with your email that prevented sign up")
     @user.id = nil
     flash[:notice] = "There was a problem with your email that prevented sign up"
-    respond_with(@user)
+    respond_with(@user) do |format|
+      format.html { render :new }
+    end
   end
 
   def update
@@ -207,6 +217,12 @@ class UsersController < ApplicationController
         }
       end
     end
+  end
+
+  def restart_onboarding
+    @user = CurrentUser.user
+    @user.update(onboarding_completed: false)
+    redirect_to onboarding_path, notice: "You have restarted the onboarding process"
   end
 
   private
