@@ -41,6 +41,7 @@ class ForumTopic < ApplicationRecord
 
     def can_edit?(user = CurrentUser.user)
       return false unless can_access?(user)
+      return false unless user.is_member?
       return true if user.is_moderator?
       return true if creator_id == user.id
       false
@@ -48,6 +49,7 @@ class ForumTopic < ApplicationRecord
 
     def can_hide?(user = CurrentUser.user)
       return false unless can_access?(user)
+      return false unless user.is_member?
       return true if user.is_moderator?
       return false unless original_post&.can_hide?(user)
       return true if user.id == creator_id
@@ -70,6 +72,7 @@ class ForumTopic < ApplicationRecord
 
     def can_reply?(user = CurrentUser.user)
       return false unless can_access?(user)
+      return false unless user.is_member?
       return false if is_locked && !can_lock?(user)
       return true if category.can_reply?(user)
       false
