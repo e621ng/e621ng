@@ -1,7 +1,7 @@
 <div id="c-appeals">
   <div id="a-new">
 
-    <%= custom_form_for(@appeal) do |f| %>
+    <%= custom_form_for(@appeal, html: { class: "appeal-new-form" }) do |f| %>
       <% @found_item = true %>
       <% if @appeal.qtype.nil? %>
         <% @found_item = false %>
@@ -17,7 +17,7 @@
         </div>
       <% else %>
         <% if @appeal.content %>
-          <div class="section">
+          <div class="section appeal-content appeal-<%= @appeal.qtype %>">
             <%= render partial: "appeals/new_types/#{@appeal.qtype}" %>
           </div>
         <% else %>
@@ -38,7 +38,7 @@
           </div>
         <% end %>
 
-        <div class="section" id="report-reason-input">
+        <div class="section appeal-reason" id="report-reason-input">
           <span class="ticket-warning">
             <strong>Note:</strong> Abuse of this system will lead to disciplinary action
           </span>
@@ -48,9 +48,10 @@
         </div>
 
         <% if @existing_similar.present? %>
-          <div class="section ticket-warning">
-            <h4>Attention:</h4>
-            <p>You have multiple similar appeals pending.</p>
+          <div class="section appeal-duplicate">
+            <div class="appeal-duplicate-title">
+              <b>Attention</b> You have multiple similar appeals pending.
+            </div>
             <ul>
               <% @existing_similar.each do |appeal| %>
                 <li><%= link_to truncate(strip_tags(format_text(appeal.reason)), length: 100), appeal_path(appeal) %></li>

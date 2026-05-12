@@ -1,0 +1,64 @@
+.appeal-new-form {
+  background: none;
+
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+
+  #appeal_submit {
+    width: min-content;
+  }
+}
+
+.appeal-content {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  @include st-max-width;
+}
+
+.appeal-reason {
+  background: var(--color-section);
+  padding: 0.5rem;
+  @include st-radius;
+  @include st-max-width;
+
+  div.input { margin-bottom: 0; }
+}
+
+.appeal-duplicate {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  background: var(--color-section);
+  padding: 0.5rem;
+  @include st-radius;
+  @include st-max-width;
+
+  &-title {
+    line-height: 1.25rem;
+    b {
+      background: palette("background-red");
+      @include st-radius;
+      padding: 0.125rem 0.25rem;
+    }
+  }
+}
+
+// Flag Appeals
+.appeal-flag {
+  &-info {
+    background: palette("background-red");
+    padding: 0.5rem;
+    @include st-radius;
+  }
+
+  &-post {
+    width: max-content;
+    background: themed("color-section");
+    padding: 0.5rem;
+    @include st-radius;
+
+    --thumb-image-size: 256px;
+  }
+}

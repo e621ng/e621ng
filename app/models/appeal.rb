@@ -233,6 +233,13 @@ class Appeal < ApplicationRecord
     ).where.not(id: id)
   end
 
+  def open_from_same_user
+    @open_from_same_user ||= Appeal.where(
+      creator_id: creator_id,
+      status: %w[pending partial],
+    ).where.not(id: id)
+  end
+
   def warnable?
     content.respond_to?(:user_warned!) && !content.was_warned? && pending?
   end
