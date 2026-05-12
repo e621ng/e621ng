@@ -240,10 +240,6 @@ class Appeal < ApplicationRecord
     ).where.not(id: id)
   end
 
-  def warnable?
-    content.respond_to?(:user_warned!) && !content.was_warned? && pending?
-  end
-
   module ClaimMethods
     def claim!(user = CurrentUser)
       transaction do

@@ -61,10 +61,6 @@ class AppealsController < ApplicationController
 
     appeal_params = update_appeal_params
     @appeal.transaction do
-      if @appeal.warnable? && appeal_params[:record_type].present?
-        @appeal.content.user_warned!(appeal_params[:record_type].to_i, CurrentUser.user)
-      end
-
       @appeal.handler_id = CurrentUser.id
       @appeal.claimant_id = CurrentUser.id
       @appeal.update(appeal_params)

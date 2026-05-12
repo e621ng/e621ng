@@ -68,7 +68,7 @@
     <% if @appeal.can_claim?(CurrentUser.user) && @appeal.status != "approved" %>
       <div class="appeal-display-claim">
         <% if @appeal.claimant.nil? %>
-          <%= link_to 'Claim', claim_appeal_path(@appeal), method: :post, class: "st-button kinetic" %>
+          <%= link_to "Claim", claim_appeal_path(@appeal), method: :post, class: "st-button kinetic" %>
         <% elsif @appeal.claimant.id == CurrentUser.id %>
           <%= link_to "Unclaim", unclaim_appeal_path(@appeal), method: :post, class: "st-button kinetic" %>
         <% end %>
@@ -101,9 +101,6 @@
   <% if CurrentUser.is_staff? && @appeal.can_handle? %>
     <%= custom_form_for(@appeal, html: { class: "appeal-display-response" }) do |f| %>
       <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @appeal.status || "approved" %>
-      <% if @appeal.warnable? %>
-        <%= f.input :record_type, label: "Mark the #{@appeal.content.model_name.singular.humanize(capitalize: false)} as having received", collection: @appeal.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
-      <% end %>
       <% unless @appeal.pending? %>
         <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
       <% end %>
@@ -114,47 +111,13 @@
       <%= f.button :submit, "Submit" %>
     <% end %>
   <% end %>
-
-
-    <!--
-    <div class="section">
-
-      <table>
-
-
-        <%# Timestamps %>
-        <tr>
-          <td><span class="title">Updated</span></td>
-          <td style="cursor:help;"><%= time_ago_in_words_tagged(@appeal.updated_at) %></td>
-        </tr>
-
-        <tr>
-          <td><span class='title'>Status</span></td>
-          <td class="<%= @appeal.status %>-appeal"><%= pretty_ticket_status(@appeal) %></td>
-        </tr>
-
-
-        <% if @appeal.response.present? %>
-          <tr>
-            <td><span class='title'>Response</span></td>
-            <td>
-              <div class="dtext-container appeal-block unmargined">
-                <%= format_text(@appeal.response) %>
-              </div>
-            </td>
-          </tr>
-        <% end %>
-      </table>
-    </div>
-    -->
-
 </div></div>
 
 <% content_for(:title) do %>
   <%= @appeal.type_title %>
 <% end %>
 
-<% render partial: 'secondary_links' %>
+<% render partial: "secondary_links" %>
 
 <% content_for(:page_title) do %>
   <%= @appeal.type_title %> Appeal

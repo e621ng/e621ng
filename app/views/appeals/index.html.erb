@@ -1,6 +1,6 @@
 <div id="c-appeals">
   <div id="a-index">
-    <%= render partial: 'search' %>
+    <%= render partial: "search" %>
 
     <h2>Appeal Center</h2>
     <table class="striped">
@@ -22,7 +22,7 @@
       <tbody>
         <% @appeals.each do |appeal| %>
           <% can_view = appeal.can_view?(CurrentUser.user) %>
-          <tr data-link="<%= can_view ? appeal_path(appeal) : '' %>">
+          <tr data-link="<%= can_view ? appeal_path(appeal) : "" %>">
             <% if CurrentUser.is_staff? %>
               <% if can_view %>
                 <%# Reporter %>
@@ -77,7 +77,7 @@
   </div>
 </div>
 
-<% render partial: 'secondary_links' %>
+<% render partial: "secondary_links" %>
 
 <% content_for(:page_title) do %>
   Appeals
