@@ -4,11 +4,11 @@
   <% short_description = description.to_s.truncate(200) %>
   <%= tag.meta(name: "description", content: short_description) %>
   <meta name="<%= record.model_name.singular.tr("_", "-") %>-id" content="<%= record.id %>">
-  <%= tag.meta(property: "og:site", content: Danbooru.config.app_name) %>
+  <%= tag.meta(property: "og:site_name", content: Danbooru.config.app_name) %>
   <%= tag.meta(property: "og:title", content: "#{name} - #{Danbooru.config.app_name}") %>
   <%= tag.meta(property: "og:description", content: short_description) %>
   <%= tag.meta(property: "og:url", content: polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https")) %>
-  <%= tag.meta(name: "canonical", content: polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https")) %>
+  <%= tag.link(rel: "canonical", href: polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https")) %>
 
   <% if post.present? %>
     <% if post.visible? %>

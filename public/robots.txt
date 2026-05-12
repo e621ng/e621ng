@@ -1,92 +1,26 @@
-User-agent: *
-Crawl-delay: 1
-Disallow: /admin
-Disallow: /advertisements
-Disallow: /artists
-Disallow: /artist_commentaries
-Disallow: /artist_commentary_versions
-Disallow: /artist_versions
-Disallow: /avoid_postings
-Disallow: /avoid_posting_versions
-Disallow: /bans
-Disallow: /comment_votes
-Disallow: /comment/
-Disallow: /comments
-Disallow: /comments.atom
-Disallow: /comments/*.atom
-Disallow: /counts
-Disallow: /data/
-Disallow: /delayed_jobs
-Disallow: /deleted_posts
-Disallow: /dmails
-Disallow: /explore
-Disallow: /favorite
-Disallow: /forum_topics.atom
-Disallow: /forum_posts
-Disallow: /forum_posts.atom
-Disallow: /forum_topics/*.atom
-Disallow: /forum_posts/*.atom
-Disallow: /iqdb_queries
-Disallow: /ip_bans
-Disallow: /janitor_trials
-Disallow: /maintenance
-Disallow: /m/
-Disallow: /mod_actions
-Disallow: /moderator
-Disallow: /news_updates
-Disallow: /note_versions
-Disallow: /notes
-Disallow: /pool_elements
-Disallow: /pool_orders
-Disallow: /pool_versions
-Disallow: /popular
-Disallow: /post_appeals
-Disallow: /post_flags
-Disallow: /post_sets
-Disallow: /post_versions
-Disallow: /post_votes
-Disallow: /post_events
-Disallow: /post_replacements
-Disallow: /post/
-Disallow: /posts.atom
-Disallow: /posts/random
-Disallow: /posts/copy_notes
-Disallow: /posts/revert
-Disallow: /posts/show_seq
-Disallow: /posts*?*tags=*
-Disallow: /posts*?*q=*
-Disallow: /posts*?*md5*
-Disallow: /posts*?*limit*
-Disallow: /posts*?*random*
-Disallow: /posts*?*pool_id*
-Disallow: /posts*?*post_set_id*
-Disallow: /posts.json
-Disallow: /posts.xml
-Disallow: /posts/*/favorites
-Disallow: /reports
-Disallow: /session
-Disallow: /sources
-Disallow: /static
-Disallow: /tag_alias_corrections
-Disallow: /tag_alias_requests
-Disallow: /tag_aliases
-Disallow: /tag_corrections
-Disallow: /tag_implication_requests
-Disallow: /tag_implications
-Disallow: /tags
-Disallow: /tickets
-Disallow: /takedowns
-Disallow: /uploads
-Disallow: /user_feedback
-Disallow: /user/
-Disallow: /users
-Disallow: /wiki/
-Disallow: /wiki_page_versions
-Disallow: /wiki_pages*?*title=*
-Disallow: /wiki_pages/new
-Disallow: /wiki_pages/revert
-Disallow: /wiki_pages/show_or_new
+# robots.txt — https://www.robotstxt.org/robotstxt.html
 
+# -----------------------------------------------
+# AI training crawlers — disallow all
+# -----------------------------------------------
+User-agent: GPTBot
+User-agent: CCBot
+User-agent: anthropic-ai
+User-agent: Claude-Web
+User-agent: Google-Extended
+User-agent: PerplexityBot
+User-agent: Bytespider
+User-agent: Amazonbot
+User-agent: Omgilibot
+User-agent: Meta-ExternalAgent
+User-agent: Diffbot
+User-agent: ImagesiftBot
+User-agent: cohere-ai
+Disallow: /
+
+# -----------------------------------------------
+# Spam / scraper bots — disallow all
+# -----------------------------------------------
 User-agent: MJ12bot
 User-agent: dotbot
 User-agent: coccocbot-web
@@ -100,3 +34,123 @@ User-agent: SemrushBot
 User-agent: SemrushBot-SA
 User-agent: AhrefsBot
 Disallow: /
+
+# -----------------------------------------------
+# All other crawlers
+# -----------------------------------------------
+User-agent: *
+Crawl-delay: 1
+
+# Admin / security / mod namespaces
+Disallow: /admin
+Disallow: /security
+Disallow: /moderator
+Disallow: /sidekiq
+Disallow: /maintenance
+
+# Mod and admin tools
+Disallow: /bans
+Disallow: /bulk_update_requests
+Disallow: /edit_histories
+Disallow: /ip_bans
+Disallow: /mascots
+Disallow: /mod_actions
+Disallow: /post_approvals
+Disallow: /post_flags
+Disallow: /post_report_reasons
+Disallow: /post_replacements
+Disallow: /search_trend_blacklists
+Disallow: /search_trend_hourlies
+Disallow: /search_trends
+Disallow: /staff_notes
+Disallow: /takedowns
+Disallow: /tickets
+Disallow: /upload_whitelists
+Disallow: /email_blacklists
+Disallow: /user_feedbacks
+
+# Private / session routes
+Disallow: /api_keys
+Disallow: /dmails
+Disallow: /email
+Disallow: /session
+Disallow: /uploads
+
+# Interaction endpoints
+Disallow: /comment_votes
+Disallow: /favorites
+Disallow: /pool_element
+Disallow: /post_events
+Disallow: /post_sets
+Disallow: /post_set_maintainers
+Disallow: /post_votes
+
+# Version history
+Disallow: /artist_versions
+Disallow: /note_versions
+Disallow: /pool_versions
+Disallow: /post_versions
+Disallow: /tag_type_versions
+Disallow: /wiki_page_versions
+
+# Internal / API-only endpoints
+Disallow: /artist_urls
+Disallow: /avoid_postings
+Disallow: /avoid_posting_versions
+Disallow: /data/
+Disallow: /deleted_posts
+Disallow: /dtext_preview
+Disallow: /iqdb_queries
+Disallow: /related_tag
+Disallow: /user_name_change_requests
+Disallow: /user_revert
+
+# Feeds and machine-readable formats
+Disallow: /comments.atom
+Disallow: /comments/*.atom
+Disallow: /forum_topics.atom
+Disallow: /forum_posts.atom
+Disallow: /forum_topics/*.atom
+Disallow: /forum_posts/*.atom
+Disallow: /posts.atom
+Disallow: /posts.json
+Disallow: /posts.xml
+Disallow: /posts/*/favorites
+
+# Post action URLs
+Disallow: /posts/copy_notes
+Disallow: /posts/random
+Disallow: /posts/revert
+Disallow: /posts/show_seq
+
+# Collection action pages
+Disallow: /artists/show_or_new
+Disallow: /wiki_pages/search
+Disallow: /wiki_pages/show_or_new
+
+# Tag management tools
+Disallow: /tag_alias_request
+Disallow: /tag_aliases
+Disallow: /tag_implication_request
+Disallow: /tag_implications
+
+# User data (individual profiles at /users/:id are also covered)
+Disallow: /users
+
+# Parameterized searches — unbounded URL space
+Disallow: /artists?
+Disallow: /pools?
+Disallow: /posts?
+Disallow: /tags?
+Disallow: /wiki_pages?
+
+# Short-URL and route aliases — would duplicate canonical URLs
+Disallow: /p/
+Disallow: /wpages
+Disallow: /ftopics
+Disallow: /fposts
+
+# Static action / non-content pages
+Disallow: /static/keyboard_shortcuts
+Disallow: /static/theme
+Disallow: /static/toggle_mobile_mode
