@@ -234,7 +234,7 @@ class ModAction < ApplicationRecord
       end
 
       if !CurrentUser.is_janitor? && %i[appeal_update].include?(action.to_sym)
-        sanitized_values = sanitized_values.slice("ticket_id")
+        sanitized_values = sanitized_values.slice("appeal_id")
       end
 
       sanitized_values
