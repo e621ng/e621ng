@@ -97,12 +97,12 @@ RSpec.describe Sources::Alternates::Facebook do
   describe "#original_url — story.php query strip" do
     it "strips tracking params from pfbid story.php URLs, keeping story_fbid and id" do
       expect(transform("https://m.facebook.com/story.php?story_fbid=pfbid021Xh5bfEy1wjHgqKCcNpyn5f6pfFyp3wNW6ziaPUrP999cLUanJgnf95XfuwLCAGAl&id=100070332554180&mibextid=NOb6eG&_rdr")).to \
-        eq("https://www.facebook.com/story.php?story_fbid=pfbid021Xh5bfEy1wjHgqKCcNpyn5f6pfFyp3wNW6ziaPUrP999cLUanJgnf95XfuwLCAGAl&id=100070332554180")
+        eq("https://www.facebook.com/story.php?id=100070332554180&story_fbid=pfbid021Xh5bfEy1wjHgqKCcNpyn5f6pfFyp3wNW6ziaPUrP999cLUanJgnf95XfuwLCAGAl")
     end
 
-    it "passes through already-clean fbid story.php URLs unchanged" do
-      url = "https://www.facebook.com/story.php?story_fbid=3192370837660222&id=1515778811986108"
-      expect(transform(url)).to eq(url)
+    it "canonicalizes fbid story.php URLs to sorted param order" do
+      expect(transform("https://www.facebook.com/story.php?story_fbid=3192370837660222&id=1515778811986108")).to \
+        eq("https://www.facebook.com/story.php?id=1515778811986108&story_fbid=3192370837660222")
     end
 
     it "does not alter story.php URLs without a story_fbid param" do
