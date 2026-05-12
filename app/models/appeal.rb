@@ -2,7 +2,7 @@
 
 class Appeal < ApplicationRecord
   belongs_to_creator
-  # user_status_counter :appeal_count # TODO: Implement this counter in UserStatus and uncomment this line
+  user_status_counter :appeal_count
   belongs_to :claimant, class_name: "User", optional: true
   belongs_to :handler, class_name: "User", optional: true
   belongs_to :accused, class_name: "User", optional: true

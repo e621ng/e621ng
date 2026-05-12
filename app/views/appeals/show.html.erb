@@ -76,17 +76,18 @@
     <% end %>
 
     <% if @appeal.response.present? %>
+      <% @handler = @appeal.handler || @appeal.claimant %>
       <div class="appeal-display-report">
         <div class="appeal-display-report-avatar">
-          <% if @appeal.claimant.present? %>
-            <%= render AvatarComponent.new(user: @appeal.claimant) %>
+          <% if @handler.present? %>
+            <%= render AvatarComponent.new(user: @handler) %>
           <% else %>
             <div class="appeal-display-avatar-placeholder"></div>
           <% end %>
         </div>
 
         <div class="appeal-display-report-creator">
-          <%= @appeal.claimant.present? ? link_to_user(@appeal.claimant) : "a staff member" %>
+          <%= @handler.present? ? link_to_user(@handler) : "a staff member" %>
           responded
           <%= time_ago_in_words_tagged(@appeal.updated_at) %>
         </div>

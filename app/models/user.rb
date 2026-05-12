@@ -880,6 +880,10 @@ class User < ApplicationRecord
       user_status&.ticket_count || 0
     end
 
+    def appeal_count
+      user_status&.appeal_count || 0
+    end
+
     def set_count
       user_status&.set_count || 0
     end

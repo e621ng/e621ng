@@ -164,6 +164,10 @@ class UserPresenter
     template.link_to(user.ticket_count, template.tickets_path(search: { creator_id: user.id }))
   end
 
+  def appeal_count(template)
+    template.link_to(user.appeal_count, template.appeals_path(search: { creator_id: user.id }))
+  end
+
   def approval_count(template)
     template.link_to(Post.where("approver_id = ?", user.id).count, template.posts_path(tags: "approver:#{user.name}"))
   end

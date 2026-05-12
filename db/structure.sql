@@ -2567,7 +2567,8 @@ CREATE TABLE public.user_statuses (
     own_post_replaced_count integer DEFAULT 0,
     own_post_replaced_penalize_count integer DEFAULT 0,
     post_replacement_rejected_count integer DEFAULT 0,
-    ticket_count integer DEFAULT 0 NOT NULL
+    ticket_count integer DEFAULT 0 NOT NULL,
+    appeal_count integer DEFAULT 0 NOT NULL
 );
 
 
@@ -3821,6 +3822,27 @@ CREATE UNIQUE INDEX index_api_keys_on_key ON public.api_keys USING btree (key);
 --
 
 CREATE UNIQUE INDEX index_api_keys_on_name_and_user_id ON public.api_keys USING btree (name, user_id);
+
+
+--
+-- Name: index_appeals_on_claimant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appeals_on_claimant_id ON public.appeals USING btree (claimant_id);
+
+
+--
+-- Name: index_appeals_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appeals_on_creator_id ON public.appeals USING btree (creator_id);
+
+
+--
+-- Name: index_appeals_on_qtype_and_disp_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appeals_on_qtype_and_disp_id_and_status ON public.appeals USING btree (qtype, disp_id, status);
 
 
 --

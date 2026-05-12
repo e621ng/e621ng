@@ -20,5 +20,11 @@ class AddAppealsModel < ActiveRecord::Migration[8.1]
     add_foreign_key :appeals, :users, column: :claimant_id
     add_foreign_key :appeals, :users, column: :handler_id
     add_foreign_key :appeals, :users, column: :accused_id
+
+    add_index :appeals, %i[qtype disp_id status]
+    add_index :appeals, :creator_id
+    add_index :appeals, :claimant_id
+
+    add_column :user_statuses, :appeal_count, :integer, null: false, default: 0
   end
 end
