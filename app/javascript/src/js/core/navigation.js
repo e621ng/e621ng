@@ -90,7 +90,7 @@ Navigation.build_avatar_menu = function () {
     .toggleClass("has-favorites", userStats.has_favorites)
     .toggleClass("has-sets", userStats.has_sets)
     .toggleClass("has-comments", userStats.has_comments)
-    .toggleClass("has-forums", userStats.has_forum_posts);
+    .toggleClass("has-forums", userStats.has_forums);
 };
 
 $(() => {
