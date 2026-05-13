@@ -38,8 +38,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @always_show_deleted = always_show_deleted
     @always_show_deleted ||= !query.hide_deleted_posts?(at_any_level: true) if GLOBAL_DELETED_FILTER && @depth <= 0
     @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ERROR_ON_DEPTH_EXCEEDED)
+    @downstream_free_tags_count = @free_tags_count + (kwargs[:process_groups] || TagQuery.will_count_group_tags? ? 0 : query.tag_count)
     super(query)
-    @downstream_free_tags_count = @free_tags_count + (kwargs[:process_groups] || TagQuery.will_count_group_tags? ? 0 : @q.tag_count)
   end
 
   def model_class
