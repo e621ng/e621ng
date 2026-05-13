@@ -126,14 +126,14 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :tickets, except: %i[destroy] do
+  resources :tickets, except: %i[edit destroy] do
     member do
       post :claim
       post :unclaim
     end
   end
 
-  resources :appeals, except: %i[destroy] do
+  resources :appeals, except: %i[edit destroy] do
     member do
       post :claim
       post :unclaim

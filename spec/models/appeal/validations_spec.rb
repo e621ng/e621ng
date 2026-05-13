@@ -95,12 +95,11 @@ RSpec.describe Appeal do
       expect(build_appeal).to be_valid
     end
 
-    # FIXME: (Bug): initialize_fields (before_validation on: :create) calls
-    # PostFlag.find(disp_id), which raises ActiveRecord::RecordNotFound for an
-    # invalid disp_id before validate_content_exists (which uses nil-safe find_by)
-    # ever runs. Setting disp_id to a non-existent id therefore raises instead of
-    # adding a validation error.
-    # it "is invalid when disp_id does not point to an existing PostFlag" do ...
+    it "is invalid when the referenced PostFlag does not exist" do
+      record = build(:appeal, post_flag: build(:post_flag))
+      expect(record).not_to be_valid
+      expect(record.errors[:post_flag]).to be_present
+    end
   end
 
   # -------------------------------------------------------------------------
