@@ -99,6 +99,10 @@ FactoryBot.define do
     factory :bd_auditor_user do
       is_bd_auditor { true }
     end
+
+    factory :unverified_user do
+      email_verification_key { "1" }
+    end
   end
 end
 

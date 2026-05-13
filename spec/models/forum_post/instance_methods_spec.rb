@@ -12,6 +12,7 @@ RSpec.describe ForumPost do
   let(:moderator)       { create(:moderator_user) }
   let(:admin)           { create(:admin_user) }
   let(:other)           { create(:user) }
+  let(:unverified)      { create(:unverified_user) }
   let(:category)        { create(:forum_category) }
   let(:admin_category)  { create(:forum_category, can_view: User::Levels::ADMIN) }
   let(:topic)           { CurrentUser.scoped(member) { create(:forum_topic, category_id: category.id) } }
@@ -124,6 +125,11 @@ RSpec.describe ForumPost do
       post = make_post
       topic.update_columns(is_locked: true)
       expect(post.reload.can_edit?(admin)).to be true
+    end
+
+    it "denies an unverified user from editing" do
+      post = make_post
+      expect(post.can_edit?(unverified)).to be false
     end
   end
 

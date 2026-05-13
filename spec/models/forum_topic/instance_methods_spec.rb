@@ -11,6 +11,7 @@ RSpec.describe ForumTopic do
   let(:moderator)       { create(:moderator_user) }
   let(:admin)           { create(:admin_user) }
   let(:other)           { create(:user) }
+  let(:unverified)      { create(:unverified_user) }
   let(:category)        { create(:forum_category) }
   let(:admin_category)  { create(:forum_category, can_view: User::Levels::ADMIN) }
 
@@ -116,6 +117,11 @@ RSpec.describe ForumTopic do
       topic.update_columns(is_hidden: true, creator_id: other.id)
       # `member` is not creator and not moderator, so can_access? is false → can_edit? false
       expect(topic.can_edit?(member)).to be false
+    end
+
+    it "denies an unverified user from editing" do
+      topic = make_topic
+      expect(topic.can_edit?(unverified)).to be false
     end
   end
 
