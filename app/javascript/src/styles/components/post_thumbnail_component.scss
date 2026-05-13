@@ -434,7 +434,7 @@ article.thumbnail {
     transform:
       translate(calc(-50% * var(--transform-scalar)), -50%)
       rotate(calc(45deg * var(--transform-scalar)));
-    box-shadow: calc(var(--transform-scalar) * -5px) calc(var(--transform-scalar) * -5px) 10px 5px rgba(0 0 0 / .5);
+    box-shadow: calc(var(--transform-scalar) * -5px) calc(var(--transform-scalar) * 5px) 10px 5px rgba(0 0 0 / .5);
 
 
     &.left {
