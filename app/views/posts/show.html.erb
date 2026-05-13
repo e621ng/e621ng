@@ -113,7 +113,7 @@
 
       <%# Determine which recommender tabs to show %>
       <% artist_tab_available = @post.known_artist_tags.any? %>
-      <% tags_tab_available = @post.tags_for_category("general").size > 1 %>
+      <% tags_tab_available = @post.tags_for_category("general").size > 1 && CurrentUser.user.is_staff? %>
       <% favorites_tab_available = Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
 
       <% if artist_tab_available || tags_tab_available || favorites_tab_available %>
