@@ -93,14 +93,14 @@ class PostThumbnailComponent < ViewComponent::Base
 
     case side
     when :left
-      content << "Has child posts." if post.has_visible_children?
-      content << "Has parent post." if post.parent_id.present?
+      content << "has child posts" if post.has_visible_children?
+      content << "has a parent post" if post.parent_id.present?
     when :right
-      content << "Flagged for deletion." if post.is_flagged?
-      content << "Pending for approval." if post.is_pending?
+      content << "flagged for deletion" if post.is_flagged?
+      content << "pending for approval" if post.is_pending?
     end
 
-    content.join("\n")
+    content.join(" and ").capitalize << "."
   end
 
   def should_show_ribbon?(side)
