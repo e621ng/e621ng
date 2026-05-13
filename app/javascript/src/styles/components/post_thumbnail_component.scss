@@ -420,7 +420,7 @@ article.thumbnail {
     --transform-scalar: 1; // changed to -1 for the transforms below
     position: absolute;
     top: 0;
-    height: 15%;
+    height: 17%;
     aspect-ratio: 1;
     visibility: hidden;
 
@@ -434,7 +434,8 @@ article.thumbnail {
     transform:
       translate(calc(-50% * var(--transform-scalar)), -50%)
       rotate(calc(45deg * var(--transform-scalar)));
-    box-shadow: 0 0 11px 4px rgba(0 0 0 / .1);
+    box-shadow: calc(var(--transform-scalar) * -5px) calc(var(--transform-scalar) * -5px) 10px 5px rgba(0 0 0 / .5);
+
 
     &.left {
       left: 0;
