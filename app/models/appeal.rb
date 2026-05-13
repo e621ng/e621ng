@@ -6,11 +6,11 @@ class Appeal < ApplicationRecord
   belongs_to :claimant, class_name: "User", optional: true
   belongs_to :handler, class_name: "User", optional: true
   belongs_to :accused, class_name: "User", optional: true
-  after_initialize :validate_type
   after_initialize :classify
   before_validation :initialize_fields, on: :create
   normalizes :reason, with: ->(reason) { reason.gsub("\r\n", "\n") }
   validates :qtype, presence: true
+  validate :validate_type
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   validates :response, length: { minimum: 2 }, on: :update
@@ -56,6 +56,8 @@ class Appeal < ApplicationRecord
     end
   end
 
+  VALID_QTYPES = AppealTypes.constants.map { |c| c.to_s.downcase }.freeze
+
   module APIMethods
     def hidden_attributes
       hidden = []
@@ -72,8 +74,7 @@ class Appeal < ApplicationRecord
 
   module ValidationMethods
     def validate_type
-      valid_types = AppealTypes.constants.map { |v| v.to_s.downcase }
-      errors.add(:qtype, "is not valid") if valid_types.exclude?(qtype)
+      errors.add(:qtype, "is not valid") if VALID_QTYPES.exclude?(qtype)
     end
 
     def validate_creator_is_not_limited
@@ -105,6 +106,7 @@ class Appeal < ApplicationRecord
 
     def validate_content_exists
       return if qtype.blank?
+      return if errors[:qtype].any? # qtype inivalid, cannot validate content
       errors.add model.name.underscore.to_sym, "does not exist" if content.nil?
     end
 
@@ -221,6 +223,17 @@ class Appeal < ApplicationRecord
     model.name.titlecase
   end
 
+  def pretty_status
+    case status
+    when "partial"
+      "Under Investigation"
+    when "approved"
+      "Investigated"
+    else
+      status.titleize
+    end
+  end
+
   def subject
     trimmed = reason.strip
     if trimmed.length > 40
@@ -271,14 +284,14 @@ class Appeal < ApplicationRecord
 
       msg = <<~MSG.chomp
         "Your appeal":#{Rails.application.routes.url_helpers.appeal_path(self)} has been updated by #{handler.pretty_name}.
-        Appeal Status: #{status}
+        Appeal Status: #{pretty_status}
 
         Response: #{response}
       MSG
       Dmail.create_split(
         from_id: CurrentUser.id,
         to_id: creator.id,
-        title: "Your appeal has been updated#{" to #{status}" if saved_change_to_status?}",
+        title: "Your appeal has been updated#{" to #{pretty_status}" if saved_change_to_status?}",
         body: msg,
         bypass_limits: true,
       )

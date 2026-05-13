@@ -7,7 +7,6 @@ class Ticket < ApplicationRecord
   belongs_to :handler, class_name: "User", optional: true
   belongs_to :accused, class_name: "User", optional: true
   belongs_to :post_report_reason, foreign_key: "report_reason", optional: true
-  after_initialize :validate_type
   after_initialize :classify
   before_validation :initialize_fields, on: :create
   normalizes :reason, with: ->(reason) { reason.gsub("\r\n", "\n") }
@@ -15,6 +14,7 @@ class Ticket < ApplicationRecord
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   validates :response, length: { minimum: 2 }, on: :update
+  validate :validate_type
   enum :status, %i[pending partial approved].index_with(&:to_s)
   after_create :push_pubsub_create
   after_update :push_pubsub_update_notification
@@ -224,6 +224,8 @@ class Ticket < ApplicationRecord
     end
   end
 
+  VALID_QTYPES = TicketTypes.constants.map { |c| c.to_s.downcase }.freeze
+
   module APIMethods
     def hidden_attributes
       hidden = []
@@ -240,8 +242,7 @@ class Ticket < ApplicationRecord
 
   module ValidationMethods
     def validate_type
-      valid_types = TicketTypes.constants.map { |v| v.to_s.downcase }
-      errors.add(:qtype, "is not valid") if valid_types.exclude?(qtype)
+      errors.add(:qtype, "is not valid") if VALID_QTYPES.exclude?(qtype)
     end
 
     def validate_creator_is_not_limited
@@ -273,6 +274,7 @@ class Ticket < ApplicationRecord
 
     def validate_content_exists
       return if qtype.blank?
+      return if errors[:qtype].any? # qtype inivalid, cannot validate content
       errors.add model.name.underscore.to_sym, "does not exist" if content.nil?
     end
 
