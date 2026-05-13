@@ -453,7 +453,6 @@ article.thumbnail {
   &.has-children .ribbon.left, &.flagged .ribbon.right {
     --ribbon-bg-pos: 0%;
     visibility: visible;
-
   }
 
   &.has-parent .ribbon.left, &.pending .ribbon.right {
@@ -463,6 +462,5 @@ article.thumbnail {
 
   &.has-parent.has-children .ribbon.left, &.pending.flagged .ribbon.right {
     --ribbon-bg-pos: 50%;
-    visibility: visible;
   }
 }
