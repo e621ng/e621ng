@@ -2,7 +2,7 @@
 
 module ApplicationHelper
   def disable_mobile_mode?
-    if CurrentUser.blank? || CurrentUser.is_anonymous?
+    if CurrentUser.user.blank? || CurrentUser.is_anonymous?
       return cookies[:nmm].present?
     end
 
