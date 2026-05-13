@@ -124,7 +124,7 @@ class AppealsController < ApplicationController
   end
 
   def update_appeal_params
-    params.require(:appeal).permit(%i[response status record_type send_update_dmail])
+    params.require(:appeal).permit(%i[response status send_update_dmail])
   end
 
   def search_params

@@ -24,7 +24,7 @@ class Appeal < ApplicationRecord
 
   scope :for_creator, ->(uid) { where("creator_id = ?", uid) }
 
-  attr_accessor :record_type, :send_update_dmail
+  attr_accessor :send_update_dmail
 
   # Permissions Table
   # Creator can always view their own appeals. Admin always has unconditional view access.

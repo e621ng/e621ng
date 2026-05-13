@@ -111,6 +111,18 @@
     </div>
   <% end %>
 
+  <% if CurrentUser.user.id == user.id || CurrentUser.is_janitor? %>
+    <div class="profile-line">
+      <h4><%= svg_icon(:gavel) %> Appeals</h4>
+      <span class="profile-line-number"><%= presenter.appeal_count(self) %></span>
+      <% if CurrentUser.is_janitor? %>
+        <span class="profile-line-extra">
+          [<%= link_to "pending", appeals_path(search: { creator_id: user.id, status: "pending" }) %>]
+        </span>
+      <% end %>
+    </div>
+  <% end %>
+
   <% permissions = presenter.permissions %>
   <% unless permissions.empty? %>
     <div class="profile-line">
