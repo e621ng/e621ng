@@ -50,7 +50,7 @@
     <div class="appeal-display-section appeal-display-info">
       <div class="appeal-display-info-entry">
         <b>Status:</b>
-        <span class="<%= @appeal.status %>-appeal"><%= pretty_ticket_status(@appeal) %></span>
+        <span class="<%= @appeal.status %>-appeal"><%= @appeal.pretty_status %></span>
       </div>
 
       <div class="appeal-display-info-entry">
