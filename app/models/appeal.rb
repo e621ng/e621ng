@@ -106,7 +106,7 @@ class Appeal < ApplicationRecord
 
     def validate_content_exists
       return if qtype.blank?
-      return if errors[:qtype].any? # qtype inivalid, cannot validate content
+      return if errors[:qtype].any? # qtype invalid, cannot validate content
       errors.add model.name.underscore.to_sym, "does not exist" if content.nil?
     end
 
