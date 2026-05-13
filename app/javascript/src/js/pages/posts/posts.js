@@ -567,13 +567,14 @@ Post.notice_update = function (x) {
 };
 
 Post.update_data = function (data) {
-  var $post = $(`article.thumbnail[data-id="${data.id}"]`).first();
+  var $post = Post.getThumbnail(data.id);
   $post.attr("data-tags", data.tag_string);
   $post.data("rating", data.rating);
 
-  $post.removeClass("has-parent has-children");
-  if (data.parent_id) $post.addClass("has-parent");
-  if (data.has_visible_children) $post.addClass("has-children");
+  $post.toggleClass("has-parent", data.parent_id);
+  $post.toggleClass("has-children", data.has_visible_children);
+  $post.toggleClass("flagged", data.is_flagged);
+  $post.toggleClass("pending", data.is_pending);
 };
 
 Post.tag = function (post_id, tags) {
@@ -584,6 +585,10 @@ Post.tag = function (post_id, tags) {
 Post.tagScript = function (post_id, tags) {
   const tag_string = (Array.isArray(tags) ? tags.join(" ") : String(tags));
   Post.update(post_id, { "post[tag_string_diff]": tag_string });
+};
+
+Post.getThumbnail = function (post_id) {
+  return $(`article.thumbnail[data-id="${post_id}"]`).first();
 };
 
 Post.update = function (post_id, params) {
@@ -642,7 +647,7 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
       if (reload_after_delete) {
         location.reload();
       } else {
-        $(`article.thumbnail[data-id="${post_id}"]`).attr("data-flags", "deleted");
+        Post.getThumbnail(post_id).attr("data-flags", "deleted");
       }
     }).always(function () {
       if (!error)
@@ -663,7 +668,7 @@ Post.undelete = function (post_id, callback) {
       E621.Flash.error("Error: " + message);
     }).done(function () {
       E621.Flash.notice("Undeleted post.");
-      $(`article.thumbnail[data-id="${post_id}"]`).attr("data-flags", "active");
+      Post.getThumbnail(post_id).attr("data-flags", "active");
       if (callback) callback();
     }).always(function () {
       Post.notice_update("dec");
@@ -684,6 +689,7 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
       E621.Flash.error("Error: " + message);
     }).done(function () {
       E621.Flash.notice("Unflagged post");
+      Post.getThumbnail(post_id).removeClass("flagged");
       if (callback) callback();
       if (reload) location.reload();
     }).always(function () {
@@ -788,7 +794,7 @@ Post.approve = function (post_id, callback) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
       E621.Flash.error("Error: " + message);
     }).done(function () {
-      var $post = $(`article.thumbnail[data-id="${post_id}"]`).first();
+      const $post = Post.getThumbnail(post_id).first();
       if ($post.length) {
         $post.data("flags", $post.data("flags").replace(/pending/, ""));
         $post.removeClass("pending");
