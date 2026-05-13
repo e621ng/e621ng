@@ -1,5 +1,5 @@
 <div id="posts" class="post-index-gallery">
-  <% if @wiki_text.present? %>
+  <% if @wiki_text.present? && !fetch_bit_cookie(BitwiseCookieHelper::INDEX[:hide_wiki_excerpt]) %>
     <section class="wiki-excerpt loading hidden">
       <h3 role="button" class="wiki-excerpt-toggle">
         <%= svg_icon(:chevron_right) %>

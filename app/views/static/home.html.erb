@@ -27,11 +27,12 @@
   </section>
 
   <% if Setting.trends_displayed? %>
-  <section class="home-section search-rising-list hidden" id="home-trends">
-    <h3 aria-controls="home-trends" aria-expanded="false">
+  <% trends_cookie = fetch_bit_cookie(BitwiseCookieHelper::INDEX[:hide_search_trends]) %>
+  <section class="home-section search-rising-list <%= "hidden" if trends_cookie %>" id="home-trends">
+    <h3 aria-controls="home-trends" aria-expanded="<%= !trends_cookie %>">
       <%= svg_icon(:trending_up) %>
       Trending
-      <button id="hide-trends" class="st-button" aria-label="Hide trending">
+      <button id="hide-trends" class="st-button" aria-label="<%= trends_cookie ? "Show" : "Hide" %> trending">
         <%= svg_icon(:chevron_down) %>
       </button>
     </h3>

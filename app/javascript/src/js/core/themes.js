@@ -1,11 +1,12 @@
 import Page from "@/utility/Page";
 import LStorage from "@/utility/storage";
+import CStorage from "@/utility/StorageC";
 
 const Theme = {};
 
 Theme.Values = {
   "Theme": ["Main", "Extra", "Palette", "Font", "StickyHeader", "Navbar", "Gestures", "Logo"],
-  "Posts": ["WikiExcerpt", "StickySearch"],
+  "Posts": ["StickySearch"],
   "Site": ["Events"],
 };
 
@@ -60,10 +61,18 @@ Theme.initialize_buttons = function () {
     });
   }
 
-  if (LStorage.Posts.Recommendations === "closed") {
+  if (CStorage.hideWikiExcerpt) {
+    $("#wiki-excerpt-state").show();
+    $("#wiki-excerpt-reset").on("click", () => {
+      CStorage.hideWikiExcerpt = false;
+      $("#wiki-excerpt-state").hide();
+    });
+  }
+
+  if (CStorage.hidePostRecommendations) {
     $("#recommended-state").show();
     $("#recommended-reset").on("click", () => {
-      LStorage.Posts.Recommendations = "artist";
+      CStorage.hidePostRecommendations = false;
       $("#recommended-state").hide();
     });
   }

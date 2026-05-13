@@ -1,6 +1,6 @@
 <div id="c-posts"><div id="a-show">
   <%# Cookie value set in MobileTabs.ts %>
-  <% selected_tab = !CurrentUser.hide_comments? && cookies[:post_tab] == "1" ? "comments" : "tags" %>
+  <% selected_tab = !CurrentUser.hide_comments? && fetch_bit_cookie(BitwiseCookieHelper::INDEX[:post_mobile_tab_state]) ? "comments" : "tags" %>
   <div class="post-display" id="post-show-display" data-tab-state="<%= selected_tab %>">
 
     <div class="search">
@@ -115,11 +115,12 @@
       <% artist_tab_available = @post.known_artist_tags.any? %>
       <% tags_tab_available = @post.tags_for_category("general").size > 1 && CurrentUser.user.is_staff? %>
       <% favorites_tab_available = Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
+      <% post_recs_cookie = fetch_bit_cookie(BitwiseCookieHelper::INDEX[:hide_post_recommendations]) %>
 
       <% if artist_tab_available || tags_tab_available || favorites_tab_available %>
         <div
           id="post-recommendations"
-          data-visible="<%= cookies[:post_recs] != "1" %>"
+          data-visible="<%= !post_recs_cookie %>"
           data-action="artist"
           data-status="waiting"
           data-post-id="<%= @post.id %>"
@@ -165,8 +166,8 @@
               class="st-button"
               data-action="reveal"
               aria-controls="post-recommendations"
-              aria-expanded="<%= cookies[:post_recs] != "1" %>"
-              aria-label="<%= cookies[:post_recs] == "1" ? "Show" : "Hide" %> Recommendations"
+              aria-expanded="<%= !post_recs_cookie %>"
+              aria-label="<%= post_recs_cookie ? "Show" : "Hide" %> Recommendations"
             >
               <span>Show Recommendations</span>
               <%= svg_icon(:eye_off) %>

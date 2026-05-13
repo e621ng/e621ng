@@ -4,6 +4,10 @@ body.c-static.a-home .home-section.search-rising-list {
 }
 
 .search-rising-list {
+  transition: padding-bottom 0.5s ease-in-out;
+  h3 button svg { transition: transform 0.5s ease-in-out; }
+  div.rising-wrapper { transition: grid-template-rows 0.5s ease-in-out; }
+
   h3 {
     display: flex;
     position: relative;
@@ -35,12 +39,6 @@ body.c-static.a-home .home-section.search-rising-list {
         background: unset;
       }
     }
-  }
-
-  &.animated {
-    transition: padding-bottom 0.5s ease-in-out;
-    h3 button svg { transition: transform 0.5s ease-in-out; }
-    div.rising-wrapper { transition: grid-template-rows 0.5s ease-in-out; }
   }
 
   &.hidden div.rising-wrapper {

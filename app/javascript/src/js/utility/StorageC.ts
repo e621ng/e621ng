@@ -21,26 +21,42 @@ export default class CStorage {
     else this._deleteBoolCookie("hide_dmail_notice");
   }
 
+  /** @param value true to hide the search trends, otherwise false */
+  static get hideSearchTrends (): boolean {
+    return this._getBitValue(BitCookieIndex.HideSearchTrends);
+  }
+
+  static set hideSearchTrends (value: boolean) {
+    this._setBitValue(BitCookieIndex.HideSearchTrends, value === true);
+  }
+
   /** @returns "comments" if the post tab is set to comments, otherwise "tags" */
   static get postMobileTabState (): "comments" | "tags" {
-    return this._getBoolCookie("post_tab") ? "comments" : "tags";
+    return this._getBitValue(BitCookieIndex.PostMobileTabState) ? "comments" : "tags";
   }
 
   /** @param value "comments" to set the post tab to comments, otherwise "tags" */
   static set postMobileTabState (value: "comments" | "tags") {
-    if (value === "comments") this._setBoolCookie("post_tab", true);
-    else this._deleteBoolCookie("post_tab");
+    this._setBitValue(BitCookieIndex.PostMobileTabState, value === "comments");
   }
 
   /** @returns true if the post recommender is hidden, otherwise false */
-  static get postRecommenderHidden (): boolean {
-    return this._getBoolCookie("post_recs");
+  static get hidePostRecommendations (): boolean {
+    return this._getBitValue(BitCookieIndex.HidePostRecommendations);
   }
 
   /** @param value true to hide the post recommender, otherwise false */
-  static set postRecommenderHidden (value: boolean) {
-    if (value) this._setBoolCookie("post_recs", true);
-    else this._deleteBoolCookie("post_recs");
+  static set hidePostRecommendations (value: boolean) {
+    this._setBitValue(BitCookieIndex.HidePostRecommendations, value === true);
+  }
+
+  /** @param value true to hide the wiki excerpt, otherwise false */
+  static get hideWikiExcerpt (): boolean {
+    return this._getBitValue(BitCookieIndex.HideWikiExcerpt);
+  }
+
+  static set hideWikiExcerpt (value: boolean) {
+    this._setBitValue(BitCookieIndex.HideWikiExcerpt, value === true);
   }
 
   /* ===== Utility Methods ===== */
@@ -80,4 +96,44 @@ export default class CStorage {
   private static _deleteBoolCookie (name: string): void {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;`;
   }
+
+  /* ===== Bitflag Cookie Methods ===== */
+
+  // e6_prefs is a base2 cookie where each bit represents a different boolean preference.
+  // Up to 31 preferences can be stored in a single cookie - excluding the sign bit.
+  private static _bitCookieName = "e6_prefs";
+
+  private static _getRawBitCookie (): number {
+    const cookies = document.cookie.split(";");
+    for (const cookie of cookies) {
+      const [key, value] = cookie.trim().split("=");
+      if (key === this._bitCookieName)
+        return parseInt(value, 2) || 0;
+    }
+    return 0;
+  }
+
+  private static _getBitValue (index: BitCookieIndex): boolean {
+    const rawValue = this._getRawBitCookie();
+    return (rawValue & (1 << index)) !== 0;
+  }
+
+  private static _setBitValue (index: BitCookieIndex, value: boolean): void {
+    let rawValue = this._getRawBitCookie();
+    if (value) {
+      rawValue |= (1 << index); // Set the bit at the specified index
+    } else {
+      rawValue &= ~(1 << index); // Clear the bit at the specified index
+    }
+    const expires = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString();
+    document.cookie = `${this._bitCookieName}=${rawValue.toString(2)}; expires=${expires}; path=/; SameSite=Lax;`;
+  }
+
+}
+
+enum BitCookieIndex {
+  HideSearchTrends = 1,
+  PostMobileTabState = 2,
+  HidePostRecommendations = 3,
+  HideWikiExcerpt = 4,
 }

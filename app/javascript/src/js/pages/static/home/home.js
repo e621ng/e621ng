@@ -1,5 +1,6 @@
 import LStorage from "@/utility/storage";
 import Page from "@/utility/Page";
+import CStorage from "@/utility/StorageC";
 
 const Home = {};
 
@@ -36,20 +37,15 @@ Home.init = function () {
   });
 
   /* Trends toggle */
-  let trendsShown = LStorage.Site.RisingShown;
+  let hideTrends = CStorage.hideSearchTrends;
   const trends = $("#home-trends"),
     trendsToggle = $("#home-trends h3");
-  if (trendsShown) {
-    trends.removeClass("hidden");
-    trendsToggle.attr("aria-expanded", "true");
-  }
-  window.setTimeout(() => trends.addClass("animated"), 500); // Don't animate on page load
 
   trendsToggle.on("click", () => {
-    trendsShown = !trendsShown;
-    LStorage.Site.RisingShown = trendsShown;
-    trends.toggleClass("hidden", !trendsShown);
-    trendsToggle.attr("aria-expanded", trendsShown);
+    hideTrends = !hideTrends;
+    CStorage.hideSearchTrends = hideTrends;
+    trends.toggleClass("hidden", hideTrends);
+    trendsToggle.attr("aria-expanded", !hideTrends);
   });
 };
 

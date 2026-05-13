@@ -72,9 +72,6 @@ LStorage.Site = {
       has_forums: false,
     },
   ],
-
-  /** @returns {boolean} True if the rising tags section on the homepage is shown */
-  RisingShown: ["e6.rising.shown", true],
 };
 StorageUtils.bootstrapMany(LStorage.Site);
 
@@ -153,12 +150,6 @@ LStorage.Posts = {
 
   /** @returns {("artist" | "favorites" | "tags")} Default recommendation type */
   Recommendations: ["e6.posts.recommended.type", "artist"],
-
-  /** @returns {boolean} True if the post recommendations are shown, false if they are hidden */
-  RecommenderShown: ["e6.posts.recommended.vis", true],
-
-  /** @returns {("comments" | "tags")} Currently selected mobile tab */
-  MobileTab: ["e6.posts.mobiletab", "comments"],
 };
 StorageUtils.bootstrapMany(LStorage.Posts);
 

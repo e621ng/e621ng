@@ -99,15 +99,6 @@
     </select>
 
 
-  <h3>Features</h3>
-    <label for="Posts_WikiExcerpt">Wiki Excerpt</label>
-    <select id="Posts_WikiExcerpt">
-      <option value="0">Collapsed</option>
-      <option value="1">Expanded</option>
-      <option value="2">Disabled</option>
-    </select>
-
-
   <h3>Navigation</h3>
     <label for="Theme_StickyHeader">Sticky Header</label>
     <select id="Theme_StickyHeader">
@@ -156,6 +147,15 @@
     <button class="st-button" id="mascot-reset">
       <%= svg_icon(:reset) %>
       Randomize 
+    </button>
+  </div>
+
+  <div class="theme-variable-container" id="wiki-excerpt-state" style="display: none;">
+    <label for="wiki-excerpt-reset">Wiki Excerpt</label>
+    <span id="wiki-excerpt-value"></span>
+    <button class="st-button" id="wiki-excerpt-reset">
+      <%= svg_icon(:reset) %>
+      Enable
     </button>
   </div>
 

@@ -1,6 +1,7 @@
 import LStorage from "@/utility/storage";
 import Page from "@/utility/Page";
 import Offclick from "@/utility/Offclick";
+import CStorage from "@/utility/StorageC";
 
 const PostSearch = {};
 
@@ -55,7 +56,7 @@ PostSearch.initialize_wiki_preview = function ($preview) {
     event.preventDefault();
 
     $preview.addClass("hidden");
-    LStorage.Posts.WikiExcerpt = 2;
+    CStorage.hideWikiExcerpt = true;
 
     return false;
   });

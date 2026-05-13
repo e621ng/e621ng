@@ -159,10 +159,10 @@ Object.defineProperty(Recommended, "status", {
 
 Object.defineProperty(Recommended, "visible", {
   get: function () {
-    return !CStorage.postRecommenderHidden;
+    return !CStorage.hidePostRecommendations;
   },
   set: function (value) {
-    CStorage.postRecommenderHidden = !value;
+    CStorage.hidePostRecommendations = !value;
     this.$wrapper.attr("data-visible", value ? "true" : "false");
     this.$toggle.attr({
       "aria-expanded": value ? "true" : "false",
