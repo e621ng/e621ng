@@ -163,6 +163,11 @@ RSpec.describe ForumPost do
       topic.update_columns(is_hidden: true, creator_id: other.id)
       expect(post.reload.can_hide?(member)).to be false
     end
+
+    it "denies an unverified user from hiding" do
+      post = make_post
+      expect(post.can_hide?(unverified)).to be false
+    end
   end
 
   # -------------------------------------------------------------------------
@@ -235,6 +240,10 @@ RSpec.describe ForumPost do
 
     it "denies anonymous users" do
       expect(make_post.can_vote?(nil)).to be false
+    end
+
+    it "denies an unverified user from voting" do
+      expect(make_post.can_vote?(unverified)).to be false
     end
   end
 

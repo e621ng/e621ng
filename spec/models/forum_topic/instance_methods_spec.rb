@@ -158,6 +158,11 @@ RSpec.describe ForumTopic do
       topic.update_columns(is_locked: true)
       expect(topic.can_reply?(moderator)).to be true
     end
+
+    it "denies an unverified user from replying" do
+      topic = make_topic
+      expect(topic.can_reply?(unverified)).to be false
+    end
   end
 
   # -------------------------------------------------------------------------
@@ -207,6 +212,11 @@ RSpec.describe ForumTopic do
       topic.update_columns(creator_id: other.id)
       topic.original_post.update_columns(creator_id: member.id)
       expect(topic.can_hide?(member)).to be false
+    end
+
+    it "denies an unverified user from hiding" do
+      topic = make_topic
+      expect(topic.can_hide?(unverified)).to be false
     end
   end
 
