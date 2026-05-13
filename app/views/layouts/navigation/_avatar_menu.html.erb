@@ -3,7 +3,7 @@
 <% deferred_post_ids.add(avatar_id) if avatar_id %>
 <a
   href="<%= user_path(user) %>"
-  class="simple-avatar placeholder nav-controls-profile collapse-2"
+  class="simple-avatar nav-controls-profile collapse-2"
   data-user-id="<%= user.id %>"
   data-user-hash="<%= user.updated_at.to_i %>"
   data-has-cropped-avatar="<%= user.has_cropped_avatar? %>"
@@ -12,7 +12,14 @@
   data-has-mail="<%= has_mail %>"
 >
   <span class="avatar-name"><%= user.pretty_name.presence || "<blank>" %></span>
-  <span class="avatar-image" data-name="<%= (user.name.presence || "?")[0].capitalize %>"></span>
+  <span
+    class="avatar-image savm-profile-icon placeholder"
+    data-id="<%= avatar_id %>"
+    data-user-id="<%= user.id %>"
+    data-has-cropped-avatar="<%= user.has_cropped_avatar? %>"
+    data-user-hash="<%= user.updated_at.to_i %>"
+    data-name="<%= (user.name.presence || "?")[0].capitalize %>"
+  ></span>
   <span class="avatar-more"><%= svg_icon(:chevron_down) %></span>
 </a>
 
@@ -20,14 +27,28 @@
   class="simple-avatar-menu hidden"
   data-has-mail="<%= has_mail %>"
 >
-  <a href="<%= user_path(user) %>">
-    <%= svg_icon(:user_square) %> Profile
-  </a>
-  <a href="<%= has_mail ? dmails_path(search: { to_id: user.id }, folder: "received") : dmails_path %>" class="simple-avatar-dmails">
-    <%= svg_icon(:mail) %> Messages
-  </a>
-  <hr />
-
+  <%# Profile Strip %>
+  <div class="savm-profile">
+    <a href="<%= user_path(user) %>" class="savm-profile-link">
+      <span class="savm-profile-icon placeholder"
+        data-id="<%= avatar_id %>"
+        data-user-id="<%= user.id %>"
+        data-has-cropped-avatar="<%= user.has_cropped_avatar? %>"
+        data-user-hash="<%= user.updated_at.to_i %>"
+        data-name="<%= (user.name.presence || "?")[0].capitalize %>"
+      ></span>
+      <span class="savm-profile-name"><%= user.pretty_name.presence || "<blank>" %></span>
+      <span class="savm-profile-title"><%= user_level_plain(user) %></span>
+    </a>
+    <a
+      href="<%= has_mail ? dmails_path(search: { to_id: user.id }, folder: "received") : dmails_path %>"
+      class="savm-profile-mail"
+      aria-label="Messages"
+      title="Messages"
+    >
+      <%= svg_icon(:mail) %>
+    </a>
+  </div>
 
   <%# has_uploads %>
   <a href="<%= posts_path(tags: "user:#{user.name}") %>" class="must-uploads">
@@ -36,7 +57,7 @@
   <a href="<%= comments_path(group_by: "comment", search: { poster_id: user.id }) %>" class="must-uploads secondary">
     <%= svg_icon(:corner_down_right) %> Responses
   </a>
-  <a href="<%= posts_path(tags: "user:#{user.name} status:pending") %>" class="must-uploads secondary">
+  <a href="<%= posts_path(tags: "user:#{user.name} status:modqueue") %>" class="must-uploads secondary">
     <%= svg_icon(:clock_fading) %> Pending
   </a>
 
@@ -50,10 +71,8 @@
     <%= svg_icon(:group) %> Sets
   </a>
 
-  <hr class="must-uploads-favorites-sets" />
 
-
-  <h4 class="must-comments-forums">Mentions</h4>
+  <span class="savm-divider with-text must-comments-forums">Mentioned You</span>
 
   <%# has_comments %>
   <a href="<%= comments_path(group_by: :comment, search: { body_matches: user.name }) %>" class="must-comments">
@@ -65,7 +84,7 @@
     <%= svg_icon(:lectern) %> Forums
   </a>
 
-  <hr class="must-comments-forums" />
+  <span class="savm-divider must-comments-forums"></span>
 
 
   <a href="<%= session_path %>" data-method="delete">

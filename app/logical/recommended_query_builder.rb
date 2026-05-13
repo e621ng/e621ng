@@ -53,9 +53,9 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
 
   MAX_TAGS = 50
   WEIGHTS_FOR_TAGS = {
-    artist: 0.1,
-    character: 2.0,
-    copyright: 1.5,
+    artist: 0.0,
+    character: 1.25,
+    copyright: 0.0, # shared publisher tags are basically meaningless
     species: 1.25,
     general: 1.0,
   }.freeze

@@ -24,35 +24,47 @@ import "@/core/tos_warning";
 import "@/core/user_warning"; // Realistically, should only be on specific pages
 import E621Type from "@/interfaces/E621";
 import PostCache from "@/models/PostCache";
-import Flash from "@/utility/Flash";
 import Logger from "@/utility/Logger";
 import ModuleRegistry from "@/utility/ModuleRegistry";
 import PerformanceTracker from "@/utility/PerformanceTracker";
 import Settings from "@/utility/Settings";
 import LStorage from "@/utility/storage";
 import CStorage from "@/utility/StorageC";
+import ToastManager from "@/utility/Toast";
 
 Logger.log("Loading");
+
+// NOTE: When making changes to this object, ensure that the interface
+// in app/javascript/src/js/interfaces/E621.ts is updated accordingly.
 
 window["E621"] = {
   Registry: new ModuleRegistry(),
   Performance: new PerformanceTracker("app"),
-  LStorage,
+  Logger,
+
   CStorage,
+  LStorage,
   Settings,
+
+  Hotkeys,
+  Toast: ToastManager,
+
+  Autocomplete,
   Blacklist,
   DeferredPostLoader,
-  Autocomplete,
-  ThumbnailEngine,
   DTextFormatter,
   PostCache,
-  Hotkeys,
-  Logger,
-  Flash,
+  ThumbnailEngine,
 
   // compatibility aliases
-  error: Flash.error,
-  notice: Flash.notice,
+  error: ToastManager.alert,
+  notice: ToastManager.notice,
+  Flash: {
+    notice: ToastManager.notice,
+    error: ToastManager.alert,
+  },
 } as E621Type;
 window["Danbooru"] = window["E621"];
+
+ToastManager.bootstrap();
 

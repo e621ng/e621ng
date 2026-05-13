@@ -4,6 +4,7 @@ class PostSetsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show]
   before_action :ensure_lockdown_disabled, except: %i[index show]
+  before_action :check_set_modify_rate_limit, only: %i[add_posts remove_posts update_posts]
 
   def index
     if params[:post_id].present?
@@ -102,7 +103,7 @@ class PostSetsController < ApplicationController
         if total_changes <= 1
           @post_set.sync_posts_for_delta(added_ids: actually_added, removed_ids: actually_removed)
         else
-          PostSetPostsSyncJob.perform_later(@post_set.id, added_ids: actually_added, removed_ids: actually_removed)
+          PostSetPostsSyncJob.perform_later(@post_set.id)
         end
       end
 
@@ -141,6 +142,11 @@ class PostSetsController < ApplicationController
     check_set_post_limit(@post_set)
 
     ids = add_remove_posts_params.map(&:to_i)
+    if ids.size > Danbooru.config.max_per_page
+      render_expected_error(400, "You can only add up to #{Danbooru.config.max_per_page} posts at a time.")
+      return
+    end
+
     @post_set.add(ids)
     @post_set.reload
 
@@ -153,6 +159,11 @@ class PostSetsController < ApplicationController
     check_set_post_limit(@post_set)
 
     ids = add_remove_posts_params.map(&:to_i)
+    if ids.size > Danbooru.config.max_per_page
+      render_expected_error(400, "You can only remove up to #{Danbooru.config.max_per_page} posts at a time.")
+      return
+    end
+
     @post_set.remove(ids)
     @post_set.reload
 
@@ -205,5 +216,14 @@ class PostSetsController < ApplicationController
 
   def ensure_lockdown_disabled
     access_denied if Security::Lockdown.post_sets_disabled? && !CurrentUser.is_staff?
+  end
+
+  def check_set_modify_rate_limit
+    key = "post_set.modify.#{CurrentUser.id}"
+    if RateLimiter.check_limit(key, 30, 1.minute)
+      render_expected_error(429, "You are modifying sets too quickly. Wait a bit and try again.")
+    else
+      RateLimiter.hit(key, 1.minute)
+    end
   end
 end

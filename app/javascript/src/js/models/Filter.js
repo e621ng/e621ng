@@ -2,6 +2,7 @@ import Blacklist from "@/core/blacklists";
 import FilterUtils from "@/utility/filter_util";
 import LStorage from "@/utility/storage";
 import PostCache from "@/models/PostCache";
+import Utility from "@/utility/utility";
 
 /**
  * Represents an individual line in the blacklist.
@@ -163,7 +164,7 @@ class FilterToken {
     this.type = FilterUtils.getFilterType(raw);
     if (this.type !== "tag") raw = raw.slice(this.type.length + 1);
     else if (raw.includes("*")) {
-      this.value = new RegExp(raw.replace(/\*/g, ".*"));
+      this.value = new RegExp(`^${Utility.regexp_escape(raw).replace(/\\\*/g, ".*")}$`);
       this.type = "wildcard";
       return;
     }

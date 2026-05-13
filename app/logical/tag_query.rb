@@ -1365,7 +1365,7 @@ class TagQuery
       when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
         add_to_query(type, :fav_ids) do
           if g2.downcase == "me"
-            favuser = CurrentUser.is_member? ? CurrentUser.user : nil
+            favuser = CurrentUser.is_authenticated? ? CurrentUser.user : nil
           else
             favuser = User.find_by_name_or_id(g2) # rubocop:disable Rails/DynamicFindBy
           end
@@ -1634,9 +1634,9 @@ class TagQuery
   end
 
   def privileged_user_id_or_invalid(val)
-    if CurrentUser.is_moderator?
+    if CurrentUser.user.is_moderator?
       User.name_or_id_to_id(val).presence
-    elsif CurrentUser.is_member?
+    elsif CurrentUser.user.is_authenticated?
       CurrentUser.id.presence
     end || -1
   end

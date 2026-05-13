@@ -1,0 +1,84 @@
+<div id="c-appeals">
+  <div id="a-index">
+    <%= render partial: "search" %>
+
+    <h2>Appeal Center</h2>
+    <table class="striped">
+      <thead>
+        <tr>
+          <% if CurrentUser.is_staff? %>
+            <th style="width:10%">Reporter</th>
+            <th style="width:10%">Accused</th>
+            <th style="width:10%">Claimed By</th>
+          <% end %>
+          <th style="width:5%">Type</th>
+          <th style="width:auto">Subject</th>
+          <th style="width:10%">Status</th>
+          <th style="width:10%">Updated</th>
+          <th style="width:10%">Created</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @appeals.each do |appeal| %>
+          <% can_view = appeal.can_view?(CurrentUser.user) %>
+          <tr data-link="<%= can_view ? appeal_path(appeal) : "" %>">
+            <% if CurrentUser.is_staff? %>
+              <% if can_view %>
+                <%# Reporter %>
+                <td><%= link_to_user appeal.creator %></td>
+
+                <%# Accused %>
+                <td>
+                  <% if appeal.accused %>
+                    <%= link_to_user appeal.accused %>
+                  <% end %>
+                </td>
+              <% else %>
+                <td><span class="text-muted">Hidden</span></td>
+                <td></td>
+              <% end %>
+
+              <%# Claimed By %>
+              <td>
+                <% if appeal.claimant.nil? %>
+                  <span class="text-error">Unclaimed</span>
+                <% else %>
+                  <%= link_to_user appeal.claimant %>
+                <% end %>
+              </td>
+            <% end %>
+
+            <% if can_view %>
+              <%# Type %>
+              <td class="appeal-subject full-width-link">
+                <%= link_to appeal.type_title, appeal_path(appeal) %>
+              </td>
+
+              <%# Subject %>
+              <td class="appeal-subject full-width-link" title="<%= truncate(strip_tags(format_text(appeal.reason)), length: 200) %>">
+                <%= link_to truncate(strip_tags(format_text(appeal.subject)), length: 200), appeal_path(appeal.id) %>
+              </td>
+            <% else %>
+              <td><%= appeal.type_title %></td>
+              <td><span class="text-muted">Hidden</span></td>
+            <% end %>
+
+            <%# Status, Timestamps %>
+            <td class="<%= appeal.status %>-appeal"><%= pretty_ticket_status(appeal) %></td>
+            <td style="cursor:help;"><%= time_ago_in_words_tagged(appeal.updated_at) %></td>
+            <td style="cursor:help;"><%= time_ago_in_words_tagged(appeal.created_at) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render PaginatorComponent.new(records: @appeals) %>
+  </div>
+</div>
+
+<%= render partial: "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Appeals
+<% end %>

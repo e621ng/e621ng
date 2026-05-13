@@ -53,6 +53,16 @@ RSpec.describe Sources::Alternates::Furaffinity do
   end
 
   # -------------------------------------------------------------------------
+  # #original_url — SFW subdomain normalization
+  # -------------------------------------------------------------------------
+  describe "#original_url — SFW subdomain normalization" do
+    it "converts sfw.furaffinity.net to furaffinity.net" do
+      expect(transform("https://sfw.furaffinity.net/view/61758609")).to \
+        eq("https://www.furaffinity.net/view/61758609")
+    end
+  end
+
+  # -------------------------------------------------------------------------
   # #original_url — /full/ → /view/ path conversion
   # -------------------------------------------------------------------------
   describe "#original_url — /full/ to /view/ path conversion" do

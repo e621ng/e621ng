@@ -247,8 +247,23 @@ RSpec.describe ForumPostsController do
       expect(forum_post.reload.body).to eq("admin edit")
     end
 
+    it "updates the post when editor is admin and the topic is locked" do
+      forum_topic.update(is_locked: true)
+      sign_in_as create(:admin_user)
+      put forum_post_path(forum_post), params: { forum_post: { body: "admin edit" } }
+      expect(response).to redirect_to(forum_topic_path(forum_topic, page: forum_post.forum_topic_page, anchor: "forum_post_#{forum_post.id}"))
+      expect(forum_post.reload.body).to eq("admin edit")
+    end
+
     it "returns forbidden when editor is a different member" do
       sign_in_as create(:user)
+      put forum_post_path(forum_post), params: { forum_post: { body: "nope" } }
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns forbidden when editor is the creator but the topic is locked" do
+      forum_topic.update(is_locked: true)
+      sign_in_as user
       put forum_post_path(forum_post), params: { forum_post: { body: "nope" } }
       expect(response).to have_http_status(:forbidden)
     end

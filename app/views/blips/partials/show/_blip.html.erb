@@ -1,4 +1,4 @@
-<% if blip.is_accessible? %>
+<% if blip.can_access? %>
   <article class="blip comment-post-grid"
     data-blip-id="<%= blip.id %>"
     data-is-deleted="<%= blip.is_deleted? %>"
@@ -31,21 +31,28 @@
       <%= render "application/warned_notice", record: blip if blip.was_warned?%>
       <div class="content-menu">
         <menu>
-          <% if CurrentUser.is_member? %>
+          <%# Reply %>
+          <% if blip.can_reply?(CurrentUser.user) %>
             <li><%= tag.a "Reply", href: '#', class: 'blip-reply-link', 'data-bid': blip.id %></li>
-            <% if blip.can_edit?(CurrentUser.user) %>
-              <li><%= link_to "Edit", edit_blip_path(blip) %></li>
+            <% if blip.creator_id != CurrentUser.user.id %>
+              <li><%= tag.a "@", href: '#', class: 'blip-atme-link', 'data-bid': blip.id %></li>
             <% end %>
-            <li><%= tag.a "@", href: '#', class: 'blip-atme-link', 'data-bid': blip.id %></li>
           <% end %>
 
+          <%# Edit %>
+          <% if blip.can_edit?(CurrentUser.user) %>
+            <li><%= link_to "Edit", edit_blip_path(blip) %></li>
+          <% end %>
+
+          <%# Delete / Undelete %>
           <% if !blip.is_deleted && blip.can_delete?(CurrentUser.user) %>
             <li><%= link_to "Delete", delete_blip_path(blip), data: {confirm: "Are you sure you want to delete this blip?"}, method: :post %></li>
-          <% elsif CurrentUser.is_moderator? %>
+          <% elsif blip.can_undelete?(CurrentUser.user) %>
             <li><%= link_to "Undelete", undelete_blip_path(blip), data: {confirm: "Are you sure you want to undelete this blip?"}, method: :post %></li>
           <% end %>
 
-          <% if CurrentUser.is_admin? %>
+          <%# Destroy %>
+          <% if blip.can_destroy?(CurrentUser.user) %>
             <li><%= link_to "Destroy", blip_path(blip), data: {confirm: "Are you sure you want to destroy this blip?"}, method: :delete %></li>
           <% end %>
 
@@ -60,8 +67,12 @@
           <% if CurrentUser.is_moderator? %>
             <li>|</li>
             <li><%= link_to "Show Edits", edit_history_path(id: blip.id, type: 'Blip') %></li>
+          <% end %>
+
+          <% if blip.can_warn?(CurrentUser.user) %>
             <%= render "user_warnable/buttons", model: blip %>
           <% end %>
+
           <% if CurrentUser.is_admin? %>
             <li>|</li>
             <li>

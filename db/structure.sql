@@ -102,6 +102,46 @@ ALTER SEQUENCE public.api_keys_id_seq OWNED BY public.api_keys.id;
 
 
 --
+-- Name: appeals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.appeals (
+    id bigint NOT NULL,
+    creator_id integer NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    disp_id integer NOT NULL,
+    qtype character varying NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    reason text NOT NULL,
+    response text DEFAULT ''::text NOT NULL,
+    claimant_id integer,
+    handler_id integer,
+    accused_id integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: appeals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.appeals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: appeals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.appeals_id_seq OWNED BY public.appeals.id;
+
+
+--
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2527,7 +2567,8 @@ CREATE TABLE public.user_statuses (
     own_post_replaced_count integer DEFAULT 0,
     own_post_replaced_penalize_count integer DEFAULT 0,
     post_replacement_rejected_count integer DEFAULT 0,
-    ticket_count integer DEFAULT 0 NOT NULL
+    ticket_count integer DEFAULT 0 NOT NULL,
+    appeal_count integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2693,6 +2734,13 @@ ALTER SEQUENCE public.wiki_pages_id_seq OWNED BY public.wiki_pages.id;
 --
 
 ALTER TABLE ONLY public.api_keys ALTER COLUMN id SET DEFAULT nextval('public.api_keys_id_seq'::regclass);
+
+
+--
+-- Name: appeals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals ALTER COLUMN id SET DEFAULT nextval('public.appeals_id_seq'::regclass);
 
 
 --
@@ -3170,6 +3218,14 @@ ALTER TABLE ONLY public.wiki_pages ALTER COLUMN id SET DEFAULT nextval('public.w
 
 ALTER TABLE ONLY public.api_keys
     ADD CONSTRAINT api_keys_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: appeals appeals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT appeals_pkey PRIMARY KEY (id);
 
 
 --
@@ -3766,6 +3822,27 @@ CREATE UNIQUE INDEX index_api_keys_on_key ON public.api_keys USING btree (key);
 --
 
 CREATE UNIQUE INDEX index_api_keys_on_name_and_user_id ON public.api_keys USING btree (name, user_id);
+
+
+--
+-- Name: index_appeals_on_claimant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appeals_on_claimant_id ON public.appeals USING btree (claimant_id);
+
+
+--
+-- Name: index_appeals_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appeals_on_creator_id ON public.appeals USING btree (creator_id);
+
+
+--
+-- Name: index_appeals_on_qtype_and_disp_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appeals_on_qtype_and_disp_id_and_status ON public.appeals USING btree (qtype, disp_id, status);
 
 
 --
@@ -5193,6 +5270,14 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
+-- Name: appeals fk_rails_080878e178; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT fk_rails_080878e178 FOREIGN KEY (accused_id) REFERENCES public.users(id);
+
+
+--
 -- Name: avoid_posting_versions fk_rails_1d1f54e17a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5209,6 +5294,14 @@ ALTER TABLE ONLY public.blips
 
 
 --
+-- Name: appeals fk_rails_3f7cd477a6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT fk_rails_3f7cd477a6 FOREIGN KEY (claimant_id) REFERENCES public.users(id);
+
+
+--
 -- Name: tickets fk_rails_45cd696dba; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5222,6 +5315,22 @@ ALTER TABLE ONLY public.tickets
 
 ALTER TABLE ONLY public.avoid_posting_versions
     ADD CONSTRAINT fk_rails_4c48affea5 FOREIGN KEY (avoid_posting_id) REFERENCES public.avoid_postings(id);
+
+
+--
+-- Name: appeals fk_rails_4ed6a7befb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT fk_rails_4ed6a7befb FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
+-- Name: appeals fk_rails_570415b15f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT fk_rails_570415b15f FOREIGN KEY (handler_id) REFERENCES public.users(id);
 
 
 --
@@ -5327,6 +5436,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505163626'),
 ('20260503072727'),
 ('20260501134813'),
 ('20260420170420'),

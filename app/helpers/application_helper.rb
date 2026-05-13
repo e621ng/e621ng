@@ -2,10 +2,11 @@
 
 module ApplicationHelper
   def disable_mobile_mode?
-    if CurrentUser.user.present? && CurrentUser.is_member?
-      return CurrentUser.disable_responsive_mode?
+    if CurrentUser.user.blank? || CurrentUser.is_anonymous?
+      return cookies[:nmm].present?
     end
-    cookies[:nmm].present?
+
+    CurrentUser.disable_responsive_mode?
   end
 
   def diff_list_html(new, old, latest)

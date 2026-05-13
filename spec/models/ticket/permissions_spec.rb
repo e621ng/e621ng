@@ -163,6 +163,14 @@ RSpec.describe Ticket do
       t.save!(validate: false)
       t
     end
+    let(:dmail_to_system) { create(:dmail, to: User.system) }
+    let(:ticket_system) do
+      t = build(:ticket, :dmail_type, dmail: dmail_to_system)
+      t.creator_id      = CurrentUser.id
+      t.creator_ip_addr = CurrentUser.ip_addr
+      t.save!(validate: false)
+      t
+    end
 
     describe "#can_create_for?" do
       it "returns true when the user is the dmail recipient" do
@@ -171,6 +179,14 @@ RSpec.describe Ticket do
 
       it "returns false when the user is not the dmail recipient" do
         expect(ticket.can_create_for?(other)).to be false
+      end
+
+      it "returns true when the user is a janitor and the dmail recipient is the system user" do
+        expect(ticket_system.can_create_for?(janitor)).to be true
+      end
+
+      it "returns false when the user is a not janitor and the dmail recipient is the system user" do
+        expect(ticket_system.can_create_for?(other)).to be false
       end
     end
 

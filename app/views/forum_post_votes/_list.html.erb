@@ -1,7 +1,7 @@
 <%# locals: (votes:, forum_post:, votable: true) -%>
 
 <% own_vote = votes.find { |vote| vote.creator == CurrentUser.user } %>
-<% is_votable = CurrentUser.user.is_member? && forum_post.tag_change_request&.is_pending? && votable && forum_post.tag_change_request&.creator_id != CurrentUser.user.id %>
+<% is_votable = forum_post.can_vote? && forum_post.tag_change_request&.is_pending? && votable && forum_post.tag_change_request&.creator_id != CurrentUser.user.id %>
 <% categorized_votes = { 1 => [], 0 => [], -1 => [] }.merge(votes.group_by(&:score)) %>
 
 <ul

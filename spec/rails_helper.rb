@@ -82,6 +82,11 @@ RSpec.configure do |config|
   config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:suite) do
+    # This is also invoked during `after_initialize` in test, but `maintain_test_schema!`
+    # or other schema rebuilds may recreate the test database afterward and remove partitions.
+    # Run it again here so the required partitions exist before the suite starts.
+    FavoriteEvent.ensure_upcoming_partitions!
+
     # Sometimes, a schema rebuild may run on test databases, which can clear seeded data.
     # Here, we make sure that the very basic records are present - without these, tests will fail.
     # See `/db/seeds.rb` for the full list of seeded data.

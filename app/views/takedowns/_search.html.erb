@@ -4,7 +4,7 @@
                                                       ["Denied", "denied"],
                                                       ["Partially Approved", "partial"],
                                                       ["Approved", "approved"]], include_blank: true %>
-  <% if CurrentUser.is_moderator? %>
+  <% if CurrentUser.is_moderator? || CurrentUser.is_approver? %>
     <br />
     <%= f.input :source, label: 'Source' %>
     <%= f.input :reason, label: 'Reason' %>

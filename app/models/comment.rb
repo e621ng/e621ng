@@ -227,12 +227,14 @@ class Comment < ApplicationRecord
     end
 
     def can_reply?(user = CurrentUser.user)
+      return false unless user.is_member?
       return false if is_sticky?
       return false if (post&.is_comment_locked? || post&.is_comment_disabled?) && !user.is_moderator?
       true
     end
 
     def can_edit?(user = CurrentUser.user)
+      return false unless user.is_member?
       return true if user.is_admin?
       return false if (post&.is_comment_locked? || post&.is_comment_disabled?) && !user.is_moderator?
       return false if was_warned?
@@ -240,6 +242,7 @@ class Comment < ApplicationRecord
     end
 
     def can_hide?(user = CurrentUser.user)
+      return false unless user.is_member?
       return true if user.is_moderator?
       return false if was_warned? || post&.is_comment_disabled?
       user.id == creator_id

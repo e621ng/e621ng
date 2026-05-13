@@ -23,7 +23,7 @@
         <%= tag.tr(id: "takedown-#{takedown.id}") do %>
           <td><%= link_to takedown.id, takedown_path(takedown) %></td>
           <td>
-            <% if !takedown.reason_hidden || CurrentUser.is_moderator? %>
+            <% if !takedown.reason_hidden || CurrentUser.is_moderator? || CurrentUser.is_approver? %>
               <% if takedown.source.match(/\Ahttps?:\/\//i) %>
                 <%= link_to takedown.source, takedown.source, rel: "noopener noreferrer nofollow" %>
               <% else %>

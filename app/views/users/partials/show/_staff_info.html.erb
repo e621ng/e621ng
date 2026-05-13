@@ -77,5 +77,12 @@
         <%= link_to "Delete", anonymize_admin_user_path(user) %>
       </span>
     <% end %>
+
+    <% if CurrentUser.is_admin? %>
+      <h4>Clear Avatar</h4>
+      <span>
+        <%= link_to "Clear", clear_avatar_admin_user_path(user), method: :post, data: { confirm: "Are you certain that you want to clear this user's avatar?\nTHIS IS IRREVERSIBLE." } %>
+      </span>
+    <% end %>
   </div>
 </div>

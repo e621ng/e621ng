@@ -7,14 +7,14 @@ class Ticket < ApplicationRecord
   belongs_to :handler, class_name: "User", optional: true
   belongs_to :accused, class_name: "User", optional: true
   belongs_to :post_report_reason, foreign_key: "report_reason", optional: true
-  after_initialize :validate_type
   after_initialize :classify
   before_validation :initialize_fields, on: :create
   normalizes :reason, with: ->(reason) { reason.gsub("\r\n", "\n") }
   validates :qtype, presence: true
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
-  validates :response, length: { minimum: 2 }, on: :update
+  validates :response, length: { minimum: 2, maximum: Danbooru.config.dmail_max_size }, on: :update
+  validate :validate_type
   enum :status, %i[pending partial approved].index_with(&:to_s)
   after_create :push_pubsub_create
   after_update :push_pubsub_update_notification
@@ -48,11 +48,11 @@ class Ticket < ApplicationRecord
   module TicketTypes
     module Blip
       def can_create_for?(user)
-        content&.is_accessible?(user)
+        content&.can_access?(user)
       end
 
       def can_view?(user)
-        return true if user.is_staff? && (content.blank? || content&.is_accessible?(user))
+        return true if user.is_staff? && (content.blank? || content&.can_access?(user))
         return true if user.is_admin?
         return true if user.id == creator_id
         false
@@ -74,7 +74,7 @@ class Ticket < ApplicationRecord
 
     module Dmail
       def can_create_for?(user)
-        content&.visible_to?(user) && content.to_id == user.id
+        content&.visible_to?(user) && (content.to_id == user.id || content.to_id == ::User.system.id)
       end
 
       def can_view?(user)
@@ -96,11 +96,11 @@ class Ticket < ApplicationRecord
       end
 
       def can_create_for?(user)
-        content&.visible?(user)
+        content&.can_access?(user)
       end
 
       def can_view?(user)
-        return true if user.is_staff? && (content.blank? || content&.visible?(user))
+        return true if user.is_staff? && (content.blank? || content&.can_access?(user))
         return true if user.is_admin?
         return true if user.id == creator_id
         false
@@ -224,6 +224,8 @@ class Ticket < ApplicationRecord
     end
   end
 
+  VALID_QTYPES = TicketTypes.constants.map { |c| c.to_s.downcase }.freeze
+
   module APIMethods
     def hidden_attributes
       hidden = []
@@ -240,8 +242,7 @@ class Ticket < ApplicationRecord
 
   module ValidationMethods
     def validate_type
-      valid_types = TicketTypes.constants.map { |v| v.to_s.downcase }
-      errors.add(:qtype, "is not valid") if valid_types.exclude?(qtype)
+      errors.add(:qtype, "is not valid") if VALID_QTYPES.exclude?(qtype)
     end
 
     def validate_creator_is_not_limited
@@ -273,6 +274,7 @@ class Ticket < ApplicationRecord
 
     def validate_content_exists
       return if qtype.blank?
+      return if errors[:qtype].any? # qtype invalid, cannot validate content
       errors.add model.name.underscore.to_sym, "does not exist" if content.nil?
     end
 

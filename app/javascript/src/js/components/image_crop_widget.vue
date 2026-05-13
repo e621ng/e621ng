@@ -1,6 +1,10 @@
 <template>
   <div class="image-crop-widget" ref="container">
-    <div class="image-crop-widget-image-wrap" ref="wrap" @mousedown="onWrapMouseDown">
+    <div class="image-crop-widget-image-wrap" ref="wrap"
+         @pointerdown="onWrapPointerDown"
+         @pointermove="onPointerMove"
+         @pointerup="onPointerUp"
+         @pointercancel="onPointerUp">
       <img
         ref="img"
         :src="imageUrl"
@@ -11,14 +15,15 @@
       <div
         v-if="selection"
         class="image-crop-widget-selection"
-        v-bind:class="(sizeWarning ? 'size-warning' : '')"
+        v-bind:class="[(sizeWarning ? 'size-warning' : ''), (niceWarning ? 'nice-warning' : '')]"
         :style="selectionStyle"
-        @mousedown.stop="onSelectionMouseDown"
+        @pointerdown.stop="onSelectionPointerDown"
       >
-        <div v-for="h in handles" :key="h" class="image-crop-handle" :data-handle="h" @mousedown.stop="onHandleMouseDown($event, h)" />
+        <div v-for="h in handles" :key="h" class="image-crop-handle" :data-handle="h" @pointerdown.stop="onHandlePointerDown($event, h)" />
       </div>
     </div>
-    <p v-if="sizeWarning" class="image-crop-widget-warning">Selection is too small (minimum {{ minSize }}×{{ minSize }} px in source image).</p>
+    <p v-if="niceWarning" class="image-crop-widget-nice">Selection is very nice (69x69 px in source image).</p>
+    <p v-else-if="sizeWarning" class="image-crop-widget-warning">Selection is too small (minimum {{ minSize }}×{{ minSize }} px in source image).</p>
   </div>
 </template>
 
@@ -44,7 +49,7 @@ export default {
       // Selection in display pixels: { x, y, w, h }
       selection: null,
       // Drag state
-      drag: null,  // { type: "create"|"move"|"resize", startX, startY, startSel, handle }
+      drag: null,  // { type: "create"|"move"|"resize", pointerId, startX, startY, startSel, handle }
       handles: ["nw", "ne", "sw", "se"],
     };
   },
@@ -81,6 +86,12 @@ export default {
       if (!this.sourceSel || this.minSize <= 0) return false;
       return this.sourceSel.w < this.minSize || this.sourceSel.h < this.minSize;
     },
+
+    // Easter egg: pretty difficult to get accidentally
+    niceWarning() {
+      if (!this.sourceSel) return false;
+      return this.sourceSel.w === 69 && this.sourceSel.h === 69;
+    },
   },
 
   methods: {
@@ -90,54 +101,39 @@ export default {
       this.displayH = img.clientHeight;
     },
 
-    // Start creating a new selection by dragging on the background
-    onWrapMouseDown(e) {
-      if (e.button !== 0) return;
+    startDrag(e, dragState) {
+      if (!e.isPrimary) return false;
+      if (e.button !== 0) return false;
       e.preventDefault();
+      this.drag = { ...dragState, pointerId: e.pointerId };
+      this.$refs.wrap.setPointerCapture(e.pointerId);
+      return true;
+    },
+
+    onWrapPointerDown(e) {
       const rect = this.$refs.wrap.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      this.drag = { type: "create", startX: x, startY: y, startSel: null, handle: null };
+      if (!this.startDrag(e, { type: "create", startX: x, startY: y, startSel: null, handle: null })) return;
       this.selection = { x, y, w: 0, h: 0 };
-      this.bindDragEvents();
     },
 
-    // Move the existing selection
-    onSelectionMouseDown(e) {
-      if (e.button !== 0) return;
-      e.preventDefault();
+    onSelectionPointerDown(e) {
       const rect = this.$refs.wrap.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      this.drag = { type: "move", startX: x, startY: y, startSel: { ...this.selection }, handle: null };
-      this.bindDragEvents();
+      this.startDrag(e, { type: "move", startX: x, startY: y, startSel: { ...this.selection }, handle: null });
     },
 
-    // Resize via a corner handle
-    onHandleMouseDown(e, handle) {
-      if (e.button !== 0) return;
-      e.preventDefault();
+    onHandlePointerDown(e, handle) {
       const rect = this.$refs.wrap.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      this.drag = { type: "resize", startX: x, startY: y, startSel: { ...this.selection }, handle };
-      this.bindDragEvents();
+      this.startDrag(e, { type: "resize", startX: x, startY: y, startSel: { ...this.selection }, handle });
     },
 
-    bindDragEvents() {
-      const onMove = this.onMouseMove.bind(this);
-      const onUp = () => {
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
-        this.drag = null;
-        if (this.sourceSel) this.$emit("cropChange", this.sourceSel);
-      };
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
-    },
-
-    onMouseMove(e) {
-      if (!this.drag) return;
+    onPointerMove(e) {
+      if (!this.drag || e.pointerId !== this.drag.pointerId) return;
       const rect = this.$refs.wrap.getBoundingClientRect();
       const mx = Math.max(0, Math.min(e.clientX - rect.left, this.displayW));
       const my = Math.max(0, Math.min(e.clientY - rect.top, this.displayH));
@@ -152,6 +148,12 @@ export default {
       } else if (this.drag.type === "resize") {
         this.selection = this.resizeSel(mx, my);
       }
+    },
+
+    onPointerUp(e) {
+      if (!this.drag || e.pointerId !== this.drag.pointerId) return;
+      this.drag = null;
+      if (this.sourceSel) this.$emit("cropChange", this.sourceSel);
     },
 
     // Build a selection from an origin + delta, applying aspect ratio
@@ -199,4 +201,3 @@ export default {
   },
 };
 </script>
-

@@ -7,10 +7,11 @@ require "rails_helper"
 # --------------------------------------------------------------------------- #
 
 RSpec.describe Comment do
-  let(:creator)   { create(:user, show_hidden_comments: true) }
-  let(:moderator) { create(:moderator_user, show_hidden_comments: true) }
-  let(:admin)     { create(:admin_user) }
-  let(:other)     { create(:user) }
+  let(:creator)     { create(:user, show_hidden_comments: true) }
+  let(:moderator)   { create(:moderator_user, show_hidden_comments: true) }
+  let(:admin)       { create(:admin_user) }
+  let(:other)       { create(:user) }
+  let(:unverified)  { create(:unverified_user) }
 
   before do
     CurrentUser.user    = creator
@@ -74,6 +75,11 @@ RSpec.describe Comment do
       comment = make_comment
       expect(comment.can_edit?(other)).to be false
     end
+
+    it "denies an unverified user from editing" do
+      comment = make_comment
+      expect(comment.can_edit?(unverified)).to be false
+    end
   end
 
   # -------------------------------------------------------------------------
@@ -106,6 +112,11 @@ RSpec.describe Comment do
     it "denies a non-creator non-moderator from hiding" do
       comment = make_comment
       expect(comment.can_hide?(other)).to be false
+    end
+
+    it "denies an unverified user from hiding" do
+      comment = make_comment
+      expect(comment.can_hide?(unverified)).to be false
     end
   end
 
@@ -149,6 +160,11 @@ RSpec.describe Comment do
     it "returns true for a normal comment" do
       comment = make_comment
       expect(comment.can_reply?(creator)).to be true
+    end
+
+    it "returns false for an unverified user" do
+      comment = make_comment
+      expect(comment.can_reply?(unverified)).to be false
     end
   end
 

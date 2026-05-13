@@ -7,12 +7,15 @@ require "rails_helper"
 # --------------------------------------------------------------------------- #
 
 RSpec.describe ForumPost do
-  let(:member)    { create(:user) }
-  let(:moderator) { create(:moderator_user) }
-  let(:admin)     { create(:admin_user) }
-  let(:other)     { create(:user) }
-  let(:category)  { create(:forum_category) }
-  let(:topic)     { CurrentUser.scoped(member) { create(:forum_topic, category_id: category.id) } }
+  let(:member)          { create(:user) }
+  let(:janitor)         { create(:janitor_user) }
+  let(:moderator)       { create(:moderator_user) }
+  let(:admin)           { create(:admin_user) }
+  let(:other)           { create(:user) }
+  let(:unverified)      { create(:unverified_user) }
+  let(:category)        { create(:forum_category) }
+  let(:admin_category)  { create(:forum_category, can_view: User::Levels::ADMIN) }
+  let(:topic)           { CurrentUser.scoped(member) { create(:forum_topic, category_id: category.id) } }
 
   before do
     CurrentUser.user = member
@@ -29,61 +32,104 @@ RSpec.describe ForumPost do
   end
 
   # -------------------------------------------------------------------------
-  # #visible?
+  # #can_access?
   # -------------------------------------------------------------------------
-  describe "#visible?" do
-    it "is visible to a moderator even when hidden" do
+  describe "#can_access?" do
+    it "returns false for blank users" do
+      post = make_post
+      expect(post.can_access?(nil)).to be false
+    end
+
+    it "is visible to a staff member even when hidden" do
       post = make_post
       post.update_columns(is_hidden: true)
-      expect(post.visible?(moderator)).to be true
+      expect(post.can_access?(janitor)).to be true
     end
 
     it "is visible to a member when not hidden and in an accessible topic" do
-      expect(make_post.visible?(member)).to be true
+      expect(make_post.can_access?(member)).to be true
     end
 
     it "is not visible to an unrelated member when hidden" do
       post = make_post
       post.update_columns(is_hidden: true)
-      expect(post.visible?(other)).to be false
+      expect(post.can_access?(other)).to be false
     end
 
     it "is visible to the creator even when hidden" do
       post = make_post
       post.update_columns(is_hidden: true, creator_id: member.id)
-      expect(post.visible?(member)).to be true
+      expect(post.can_access?(member)).to be true
     end
 
     it "is not visible to a member when the topic is hidden from them" do
       post = make_post
       topic.update_columns(is_hidden: true, creator_id: other.id)
-      expect(post.reload.visible?(member)).to be false
+      expect(post.reload.can_access?(member)).to be false
+    end
+
+    it "is not visible to a janitor when the topic is hidden from them" do
+      post = make_post
+      topic.update_columns(category_id: admin_category.id)
+      expect(post.reload.can_access?(janitor)).to be false
+    end
+
+    it "is not visible if the topic is missing" do
+      post = make_post
+      # topic_id is readonly, so we have to stub it instead
+      allow(post).to receive(:topic).and_return(nil)
+      expect(post.can_access?(member)).to be false
     end
   end
 
   # -------------------------------------------------------------------------
-  # #editable_by?
+  # #can_edit?
   # -------------------------------------------------------------------------
-  describe "#editable_by?" do
+  describe "#can_edit?" do
     it "allows an admin to edit any post" do
-      expect(make_post.editable_by?(admin)).to be true
+      expect(make_post.can_edit?(admin)).to be true
     end
 
     it "allows the creator to edit their own visible, non-warned post" do
       post = make_post
       post.update_columns(creator_id: member.id)
-      expect(post.editable_by?(member)).to be true
+      expect(post.can_edit?(member)).to be true
     end
 
     it "denies the creator when the post has a warning" do
       post = make_post
       post.update_columns(creator_id: member.id, warning_type: 1, warning_user_id: moderator.id)
-      expect(post.editable_by?(member)).to be false
+      expect(post.can_edit?(member)).to be false
     end
 
     it "denies a non-creator non-admin" do
       post = make_post
-      expect(post.editable_by?(other)).to be false
+      expect(post.can_edit?(other)).to be false
+    end
+
+    it "denies when the topic is hidden from the user" do
+      post = make_post
+      post.update_columns(creator_id: member.id)
+      topic.update_columns(is_hidden: true, creator_id: other.id)
+      expect(post.reload.can_edit?(member)).to be false
+    end
+
+    it "denies when the topic is locked" do
+      post = make_post
+      post.update_columns(creator_id: member.id)
+      topic.update_columns(is_locked: true)
+      expect(post.reload.can_edit?(member)).to be false
+    end
+
+    it "allows when the topic is locked but the user can lock" do
+      post = make_post
+      topic.update_columns(is_locked: true)
+      expect(post.reload.can_edit?(admin)).to be true
+    end
+
+    it "denies an unverified user from editing" do
+      post = make_post
+      expect(post.can_edit?(unverified)).to be false
     end
   end
 
@@ -110,22 +156,111 @@ RSpec.describe ForumPost do
     it "denies an unrelated user" do
       expect(make_post.can_hide?(other)).to be false
     end
+
+    it "denies when the topic is hidden from the user" do
+      post = make_post
+      post.update_columns(creator_id: member.id)
+      topic.update_columns(is_hidden: true, creator_id: other.id)
+      expect(post.reload.can_hide?(member)).to be false
+    end
+
+    it "denies an unverified user from hiding" do
+      post = make_post
+      expect(post.can_hide?(unverified)).to be false
+    end
   end
 
   # -------------------------------------------------------------------------
-  # #can_delete?
+  # #can_unhide?
   # -------------------------------------------------------------------------
-  describe "#can_delete?" do
-    it "allows an admin to delete a post" do
-      expect(make_post.can_delete?(admin)).to be true
+  describe "#can_unhide?" do
+    it "allows a moderator to unhide any post" do
+      expect(make_post.can_unhide?(moderator)).to be true
     end
 
-    it "denies a moderator" do
-      expect(make_post.can_delete?(moderator)).to be false
+    it "does not allow regular members to unhide posts" do
+      post = make_post
+      post.update_columns(creator_id: member.id)
+      expect(post.can_unhide?(member)).to be false
+    end
+
+    it "denies an unrelated user" do
+      expect(make_post.can_unhide?(other)).to be false
+    end
+
+    it "denies when the topic is hidden from the user" do
+      post = make_post
+      post.update_columns(creator_id: member.id)
+      topic.update_columns(creator_id: other.id, category_id: admin_category.id)
+      expect(post.reload.can_unhide?(member)).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_warn?
+  # -------------------------------------------------------------------------
+  describe "#can_warn?" do
+    it "allows a moderator to warn a post" do
+      expect(make_post.can_warn?(moderator)).to be true
+    end
+
+    it "denies a janitor" do
+      expect(make_post.can_warn?(janitor)).to be false
     end
 
     it "denies a regular member" do
-      expect(make_post.can_delete?(member)).to be false
+      expect(make_post.can_warn?(member)).to be false
+    end
+
+    it "denies when the topic is hidden from the user" do
+      post = make_post
+      post.update_columns(creator_id: member.id)
+      topic.update_columns(creator_id: member.id, category_id: admin_category.id)
+      expect(post.reload.can_warn?(moderator)).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_vote?
+  # -------------------------------------------------------------------------
+  describe "#can_vote?" do
+    it "allows a member to vote on a post" do
+      expect(make_post.can_vote?(member)).to be true
+    end
+
+    it "allows a moderator to vote on a post" do
+      expect(make_post.can_vote?(moderator)).to be true
+    end
+
+    it "denies when the topic is hidden from the user" do
+      post = make_post
+      topic.update_columns(is_hidden: true, creator_id: other.id)
+      expect(post.reload.can_vote?(member)).to be false
+    end
+
+    it "denies anonymous users" do
+      expect(make_post.can_vote?(nil)).to be false
+    end
+
+    it "denies an unverified user from voting" do
+      expect(make_post.can_vote?(unverified)).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_destroy?
+  # -------------------------------------------------------------------------
+  describe "#can_destroy?" do
+    it "allows an admin to destroy a post" do
+      expect(make_post.can_destroy?(admin)).to be true
+    end
+
+    it "denies a moderator" do
+      expect(make_post.can_destroy?(moderator)).to be false
+    end
+
+    it "denies a regular member" do
+      expect(make_post.can_destroy?(member)).to be false
     end
   end
 

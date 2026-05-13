@@ -8,14 +8,11 @@
   <%= render "layouts/navigation/navigation" %>
 
   <div id="page" role="main">
-    <%# Notification Toasts %>
-    <div class="ui-corner-all ui-state-highlight" id="notice" style="<%= "display: none;" unless flash[:notice] %>">
-      <span><%= format_text(flash[:notice], inline: true) %>.</span>
-      <a href="#" id="close-notice-link">close</a>
-    </div>
 
     <%= yield :layout %>
   </div>
+
+  <%= render partial: "layouts/partials/toasts" %>
 
   <%= render "static/tos_warning" %>
 

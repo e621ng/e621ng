@@ -3,12 +3,14 @@
 <!-- Account -->
 <tab-group name="account">Account</tab-group>
 
+<% if CurrentUser.user.is_member? %>
 <tab-entry tab="<%= tab_name %>" group="account" class="with-buttons" search="update change user profile account name username">
   <tab-head>Username</tab-head>
   <tab-body>
     <input type="text" value="<%= CurrentUser.user.pretty_name %>" disabled><%= link_to "Edit", new_user_name_change_request_path, class: "st-button" %>
   </tab-body>
 </tab-entry>
+<% end %>
 
 <tab-entry tab="<%= tab_name %>" group="account" class="with-buttons" search="update change user profile account email e-mail address">
   <tab-head>Email</tab-head>
@@ -17,6 +19,7 @@
   </tab-body>
 </tab-entry>
 
+<% if CurrentUser.user.is_member? %>
 <tab-entry tab="<%= tab_name %>" group="account" class="with-button" search="update change user profile account api key access">
   <tab-head>API Keys</tab-head>
   <tab-body>
@@ -26,6 +29,7 @@
     Do not give your API keys to third-party apps you do not trust.
   </tab-hint>
 </tab-entry>
+<% end %>
 
 <tab-entry tab="<%= tab_name %>" group="account" class="" id="settings-account-buttons" search="update change user profile account delete password">
   <tab-head></tab-head>
@@ -67,6 +71,7 @@
 
 
 <!-- Profile -->
+<% if CurrentUser.user.is_member? %>
 <tab-group name="profile">Profile</tab-group>
 
 <tab-entry tab="<%= tab_name %>" group="profile" class="<%= @user.avatar_id.present? ? "with-buttons" : "" %>" search="update change user avatar profile image pfp crop">
@@ -107,6 +112,7 @@
     %>
   </tab-body>
 </tab-entry>
+<% end %>
 
 
 <!-- Posts -->

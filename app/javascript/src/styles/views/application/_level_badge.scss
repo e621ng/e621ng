@@ -23,12 +23,12 @@ $user-level-text: (
   @include st-radius;
 
   @each $level in $user-levels {
-    &.level-#{$level} {
-      background: themed("color-user-" + $level);
+    &.user-#{$level} {
+      background-color: themed("color-user-#{$level}", themed("color-user-member"));
     }
   }
   @each $level, $color in $user-level-text {
-    &.level-#{$level} {
+    &.user-#{$level} {
       color: $color;
     }
   }

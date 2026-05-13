@@ -1,0 +1,4 @@
+body.c-appeals {
+  &.a-new { @import "new/new"; }
+  &.a-show { @import "show/show"; }
+}

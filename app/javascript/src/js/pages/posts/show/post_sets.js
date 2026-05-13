@@ -6,6 +6,7 @@ import Dialog from "@/utility/dialog";
 let PostSet = {};
 
 let addPostTimeout = null;
+let postUpdateToast = null;
 const addPostCache = {};
 
 /**
@@ -21,13 +22,16 @@ PostSet.add_post = function (set_id, post_id) {
     return;
   }
 
+  if (!postUpdateToast)
+    postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
+
   let cache = addPostCache[set_id];
   if (!cache) {
     cache = new Set();
     addPostCache[set_id] = cache;
   }
   cache.add(post_id);
-  E621.Flash.notice(`Updating posts (${cache.size} pending)`);
+  postUpdateToast.message = `Updating posts (${cache.size} pending)`;
 
   // Queue up the request
   if (addPostTimeout) window.clearTimeout(addPostTimeout);
@@ -56,13 +60,18 @@ PostSet.add_many_posts = function (set_id, posts = []) {
       type: "POST",
       url: "/post_sets/" + set_id + "/add_posts.json",
       data: {post_ids: posts},
-    }).fail(function (response) {
+    }).fail((response) => {
       const data = response.responseJSON;
       const errors = $.map(data.errors, (msg) => msg).join("; "),
         message = data.message;
-      E621.Flash.error("Error: " + (message || errors));
-    }).done(function () {
-      E621.Flash.notice(`Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`);
+      E621.Toast.alert("Error: " + (message || errors));
+      postUpdateToast?.dismiss(true);
+      postUpdateToast = null;
+    }).done(() => {
+      if (!postUpdateToast) postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
+      postUpdateToast.message = `Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`;
+      postUpdateToast.timeout = 3;
+      postUpdateToast = null;
     });
   }, { name: "PostSet.add_many_posts" });
 };
@@ -84,13 +93,16 @@ PostSet.remove_post = function (set_id, post_id) {
     return;
   }
 
+  if (!postUpdateToast)
+    postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
+
   let cache = removePostCache[set_id];
   if (!cache) {
     cache = new Set();
     removePostCache[set_id] = cache;
   }
   cache.add(post_id);
-  E621.Flash.notice(`Updating posts (${cache.size} pending)`);
+  postUpdateToast.message = `Updating posts (${cache.size} pending)`;
 
   // Queue up the request
   if (removePostTimeout) window.clearTimeout(removePostTimeout);
@@ -119,13 +131,18 @@ PostSet.remove_many_posts = function (set_id, posts = []) {
       type: "POST",
       url: "/post_sets/" + set_id + "/remove_posts.json",
       data: { post_ids: posts },
-    }).fail(function (response) {
+    }).fail((response) => {
       const data = response.responseJSON;
       const errors = $.map(data.errors, (msg) => msg).join("; "),
         message = data.message;
-      E621.Flash.error("Error: " + (message || errors));
-    }).done(function () {
-      E621.Flash.notice(`Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`);
+      E621.Toast.alert("Error: " + (message || errors));
+      postUpdateToast?.dismiss(true);
+      postUpdateToast = null;
+    }).done(() => {
+      if (!postUpdateToast) postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
+      postUpdateToast.message = `Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`;
+      postUpdateToast.timeout = 3;
+      postUpdateToast = null;
     });
   }, { name: "PostSet.remove_many_posts" });
 };
