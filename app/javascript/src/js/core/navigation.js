@@ -45,6 +45,7 @@ Navigation.init = function () {
 
     Navigation.build_avatar_menu();
     Navigation.sync_user_data();
+    Navigation.adjust_avatar_name_size();
   });
 };
 
@@ -91,6 +92,14 @@ Navigation.build_avatar_menu = function () {
     .toggleClass("has-sets", userStats.has_sets)
     .toggleClass("has-comments", userStats.has_comments)
     .toggleClass("has-forums", userStats.has_forums);
+};
+
+Navigation.adjust_avatar_name_size = function () {
+  const element = document.querySelector(".simple-avatar-menu .savm-profile-name");
+  if (!element || element.scrollWidth <= element.clientWidth) return;
+
+  const fontSize = Math.max(0.5, element.clientWidth / element.scrollWidth);
+  element.style.fontSize = `${fontSize}rem`;
 };
 
 $(() => {
