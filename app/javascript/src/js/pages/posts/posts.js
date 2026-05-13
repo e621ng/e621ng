@@ -1,10 +1,10 @@
-import Utility from "@/utility/utility";
 import Hotkeys from "@/core/hotkeys";
-import LStorage from "@/utility/storage";
-import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
 import Page from "@/utility/Page";
+import LStorage from "@/utility/storage";
 import SVGIcon from "@/utility/SVGIcon";
+import TaskQueue from "@/utility/TaskQueue";
+import Utility from "@/utility/utility";
 
 let Post = {};
 
@@ -574,10 +574,6 @@ Post.update_data = function (data) {
   $post.removeClass("has-parent has-children");
   if (data.parent_id) $post.addClass("has-parent");
   if (data.has_visible_children) $post.addClass("has-children");
-  $post.attr(
-    "data-border-states",
-    (data.is_pending ? 1 : 0) + (data.is_flagged ? 1 : 0) + (data.parent_id ? 1 : 0) + (data.has_visible_children ? 1 : 0),
-  );
 };
 
 Post.tag = function (post_id, tags) {
@@ -796,7 +792,6 @@ Post.approve = function (post_id, callback) {
       if ($post.length) {
         $post.data("flags", $post.data("flags").replace(/pending/, ""));
         $post.removeClass("pending");
-        $post.attr("data-border-states", (parseInt($post.attr("data-border-states")) || 1) - 1);
         E621.Flash.notice("Approved post #" + post_id);
       }
       if (callback) {

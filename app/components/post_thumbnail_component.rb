@@ -69,25 +69,6 @@ class PostThumbnailComponent < ViewComponent::Base
     klass
   end
 
-  RIBBON_BACKGROUND_POSITION_MAPPING = {
-    [true, false] => "0%",
-    [false, true] => "100%",
-    [true, true] => "50%",
-  }.freeze
-
-  def ribbon_background_position_for_conditions(condition_a, condition_b)
-    RIBBON_BACKGROUND_POSITION_MAPPING[[condition_a, condition_b]] || false
-  end
-
-  def ribbon_background_position(side)
-    case side
-    when :left
-      ribbon_background_position_for_conditions(post.has_visible_children?, post.parent_id.present?)
-    when :right
-      ribbon_background_position_for_conditions(post.is_flagged?, post.is_pending?)
-    end
-  end
-
   def ribbon_tooltip(side)
     content = []
 
@@ -104,7 +85,12 @@ class PostThumbnailComponent < ViewComponent::Base
   end
 
   def should_show_ribbon?(side)
-    ribbon_background_position(side) != false
+    case side
+    when :left
+      post.has_visible_children? || post.parent_id.present?
+    when :right
+      post.is_flagged? || post.is_pending?
+    end
   end
 
   ##############################

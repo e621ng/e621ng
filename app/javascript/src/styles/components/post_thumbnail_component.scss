@@ -415,35 +415,54 @@ body[data-st-contain="true"] article.thumbnail img {
 // ============================== //
 
 
-article.thumbnail div.ribbon {
-  --transform-scalar: 1; // changed to -1 for the transforms below
-  position: absolute;
-  top: 0;
-  height: 15%;
-  aspect-ratio: 1;
+article.thumbnail {
+  .ribbon {
+    --transform-scalar: 1; // changed to -1 for the transforms below
+    position: absolute;
+    top: 0;
+    height: 15%;
+    aspect-ratio: 1;
+    visibility: hidden;
 
-  // a gradient with two colors. the idea is that, depending on the states to show by the ribbon,
-  // only the left, right or both sides of this gradient will be shown
-  background: linear-gradient(to bottom, var(--color-1) 50%, var(--color-2) 50% 100%);
-  background-size: 100% 200%; // needed to be able to slide along the gradient with background-position
-  background-position-y: var(--bg-pos);
+    // a gradient with two colors. the idea is that, depending on the states to show by the ribbon,
+    // only the left, right or both sides of this gradient will be shown
+    background: linear-gradient(to bottom, var(--color-1) 50%, var(--color-2) 50% 100%);
+    background-size: 100% 200%; // needed to be able to slide along the gradient with background-position
+    background-position-y: var(--ribbon-bg-pos);
 
-  // we need to rotate it in the opposite direction if we are on the right side, otherwise the gradient won't be visible
-  transform:
-    translate(calc(-50% * var(--transform-scalar)), -50%)
-    rotate(calc(45deg * var(--transform-scalar)));
-  box-shadow: 0 0 11px 4px rgba(0 0 0 / .1);
+    // we need to rotate it in the opposite direction if we are on the right side, otherwise the gradient won't be visible
+    transform:
+      translate(calc(-50% * var(--transform-scalar)), -50%)
+      rotate(calc(45deg * var(--transform-scalar)));
+    box-shadow: 0 0 11px 4px rgba(0 0 0 / .1);
 
-  &.left {
-    left: 0;
-    --color-1: var(--palette-plain-green);
-    --color-2: var(--palette-plain-yellow);
+    &.left {
+      left: 0;
+      --color-1: var(--palette-plain-green);
+      --color-2: var(--palette-plain-yellow);
+    }
+
+    &.right {
+      right: 0;
+      --transform-scalar: -1;
+      --color-1: var(--palette-plain-red);
+      --color-2: var(--palette-plain-blue);
+    }
   }
 
-  &.right {
-    right: 0;
-    --transform-scalar: -1;
-    --color-1: var(--palette-plain-red);
-    --color-2: var(--palette-plain-blue);
+  &.has-children .ribbon.left, &.flagged .ribbon.right {
+    --ribbon-bg-pos: 0%;
+    visibility: visible;
+
+  }
+
+  &.has-parent .ribbon.left, &.pending .ribbon.right {
+    --ribbon-bg-pos: 100%;
+    visibility: visible;
+  }
+
+  &.has-parent.has-children .ribbon.left, &.pending.flagged .ribbon.right {
+    --ribbon-bg-pos: 50%;
+    visibility: visible;
   }
 }
