@@ -212,7 +212,7 @@ class PostSet < ApplicationRecord
       if added.size <= 1
         sync_posts_for_delta(added_ids: added) if added.any?
       else
-        PostSetPostsSyncJob.perform_later(id)
+        PostSetPostsSyncJob.perform_later(id, added_ids: added)
       end
       added
     end
@@ -335,7 +335,7 @@ class PostSet < ApplicationRecord
       if removed.size <= 1
         sync_posts_for_delta(removed_ids: removed) if removed.any?
       else
-        PostSetPostsSyncJob.perform_later(id)
+        PostSetPostsSyncJob.perform_later(id, removed_ids: removed)
       end
       removed
     end

@@ -103,7 +103,7 @@ class PostSetsController < ApplicationController
         if total_changes <= 1
           @post_set.sync_posts_for_delta(added_ids: actually_added, removed_ids: actually_removed)
         else
-          PostSetPostsSyncJob.perform_later(@post_set.id)
+          PostSetPostsSyncJob.perform_later(@post_set.id, added_ids: actually_added, removed_ids: actually_removed)
         end
       end
 
