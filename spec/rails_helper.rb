@@ -82,6 +82,9 @@ RSpec.configure do |config|
   config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:suite) do
+    # Automatic partition management does not happen in test environments.
+    FavoriteEvent.ensure_upcoming_partitions!
+
     # Sometimes, a schema rebuild may run on test databases, which can clear seeded data.
     # Here, we make sure that the very basic records are present - without these, tests will fail.
     # See `/db/seeds.rb` for the full list of seeded data.
