@@ -1181,13 +1181,28 @@ class Post < ApplicationRecord
     end
 
     ## DB!
-    # Fetches the avoid posting data for the post's artist tags.
+    # Fetches the avoid posting data for all artist, copyright, and character tags on the post.
     # Sends a db request to lookup avoid posting data.
-    def avoid_posting_artists
-      @avoid_posting_artists ||= begin
-        artist_names = artist_tags.map(&:name)
-        return [] if artist_names.empty?
-        AvoidPosting.active.joins(:artist).where(artists: { name: artist_names }).includes(:artist).to_a
+    def avoid_posting_tags
+      Cache.fetch("post:#{id}:avoid_posting_tags", expires_in: 15.minutes) do
+        @avoid_posting_tags ||= begin
+          # We only care about artist, copyright, and character tags.
+          if @categorized_tags.nil?
+            tags = Tag
+                   .where(name: tag_array, category: [Tag.categories.artist, Tag.categories.copyright, Tag.categories.character])
+                   .pluck(:name)
+                   .filter { |tag| NON_ARTIST_TAGS.exclude?(tag) }
+          else
+            tags = tags_for_category(Tag.categories.artist) + tags_for_category(Tag.categories.copyright) + tags_for_category(Tag.categories.character)
+          end
+
+          if tags.empty?
+            []
+          else
+            # Despite the name, copyright and character tags can also have Artist and AvoidPosting entries
+            AvoidPosting.active.joins(:artist).where(artists: { name: tags }).includes(:tag).to_a
+          end
+        end
       end
     end
   end
@@ -2121,6 +2136,7 @@ class Post < ApplicationRecord
     @categorized_tags = nil
     @artist_tags = nil
     @uploader_linked_artists = nil
+    @avoit_posting_tags = nil
 
     @has_dimensions = nil
     @preview_dimensions = nil
