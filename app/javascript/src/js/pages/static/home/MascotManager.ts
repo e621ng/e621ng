@@ -1,6 +1,6 @@
 class MascotManager {
 
-  private mascots: MascotDataMap;
+  private mascots: Record<string, MascotData> = {};
   private availableIDs: number[];
 
   private constructor () {
@@ -13,11 +13,8 @@ class MascotManager {
       .map(id => parseInt(id))
       .filter(id => !isNaN(id));
 
-    if (!this.mascots[this.current]) {
-      const availableMascotIds = Object.keys(this.mascots);
-      const mascotIndex = Math.floor(Math.random() * availableMascotIds.length);
-      this.current = availableMascotIds[mascotIndex];
-    }
+    if (!this.mascots[this.current + ""])
+      this.current = this.availableIDs[Math.floor(Math.random() * this.availableIDs.length)];
     this.showMascot();
 
     $("#mascot-swap").on("click", this.handleChangeMascot.bind(this));
@@ -34,18 +31,12 @@ class MascotManager {
       return false;
     }
 
-    const encodedData = mascotsElement.getAttribute("data-encoding");
-    if (!encodedData) {
+    if (mascotsElement.getAttribute("data-encoding") !== "base64") {
       console.error("Mascot data encoding not found");
       return false;
     }
 
-    const decodedData = atob(mascotsElement.textContent || "");
-    if (!decodedData) {
-      console.error("Mascot data could not be decoded");
-      return false;
-    }
-
+    const decodedData = atob((mascotsElement.textContent || "").trim());
     try {
       this.mascots = JSON.parse(decodedData);
     } catch (error) {
@@ -55,6 +46,7 @@ class MascotManager {
 
     return true;
   }
+
 
   /* ============================== */
   /* ======== Getter Magic ======== */
@@ -83,7 +75,7 @@ class MascotManager {
    * @param mascotID The ID of the mascot to display. Defaults to the current mascot if not provided.
    */
   private showMascot (mascotID: number = this.current): void {
-    const mascot = this.mascots[mascotID];
+    const mascot = this.mascots[mascotID + ""];
     if (!mascot) return;
 
     const $body = $("body").css({
@@ -131,10 +123,6 @@ interface MascotData {
   artist_name: string;
   artist_url: string;
 }
-
-type MascotDataMap = {
-  [id: number]: MascotData;
-};
 
 $(function () {
   void MascotManager.instance;
