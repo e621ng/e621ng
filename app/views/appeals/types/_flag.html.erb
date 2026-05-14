@@ -1,0 +1,19 @@
+<% if @appeal.content.present? && @appeal.content.post.present? %>
+  <% @flag = @appeal.content %>
+  <div class="appeal-display-flag">
+    <div class="appeal-display-section appeal-display-flag-info">
+      <%= @flag.is_deletion ? "[DELETION]" : "[FLAG]" %>
+      <%= format_text(@flag.reason || "Unknown reason", inline: true) %>
+      - <%= link_to_user(@flag.creator) %>
+      - <%= time_ago_in_words_tagged(@flag.created_at) %>
+    </div>
+  </div>
+
+  <div class="appeal-display-section appeal-display-flag-post">
+    <%= render(PostThumbnailComponent.new(post: @flag.post, stats: true, show_deleted: true, no_blacklist: true)) %>
+  </div>
+<% else %>
+  <div class="appeal-display-flag">
+    Flag #<%= @appeal.disp_id %> has been destroyed.
+  </div>
+<% end %>

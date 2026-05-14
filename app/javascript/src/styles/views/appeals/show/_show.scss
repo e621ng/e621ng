@@ -1,0 +1,98 @@
+#a-show {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+}
+
+$avatar_size: 3rem;
+$info_border: 0.25rem;
+
+.appeal-display {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  @include st-max-width;
+
+  &-section {
+    background: themed("color-section");
+    padding: 0.5rem;
+    @include st-radius;
+  }
+}
+
+.appeal-display-report {
+  display: grid;
+  grid-template-columns: min-content auto;
+  grid-template-areas: "adr-avatar adr-creator"
+                       "adr-avatar adr-reason";
+  gap: 0.125rem 0.25rem;
+  @include st-max-width;
+
+  &-avatar {
+    grid-area: adr-avatar;
+    --thumb-image-size: #{$avatar_size};
+  }
+
+  &-creator {
+    grid-area: adr-creator;
+    .appeal-display-report-ip { float: right; }
+  }
+
+  &-reason {
+    grid-area: adr-reason;
+    position: relative;
+    box-sizing: border-box;
+    overflow: visible;
+  }
+}
+
+.appeal-display-others {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  border-left: $info_border solid themed("color-dtext-code");
+  margin-left: $avatar_size + $info_border;
+}
+
+.appeal-display-info {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  margin-left: $avatar_size + $info_border;
+
+  border-left: $info_border solid themed("color-dtext-quote");
+
+  .approved-appeal {
+    color: palette("text-green");
+    font-weight: bold;
+  }
+  .partial-appeal { 
+    color: palette("text-yellow");
+    font-weight: bold;
+  }
+}
+
+.appeal-display-claim {
+  padding-bottom: 0.25rem; // Account for kinetic button
+  margin-left: $avatar_size + $info_border;
+}
+
+.appeal-display-avatar-placeholder {
+  width: $avatar_size;
+  height: $avatar_size;
+  background: themed("color-section");
+  @include st-radius;
+}
+
+
+// Flag Appeals
+.appeal-display-flag {
+  &-info {
+    background: palette("background-red");
+  }
+
+  &-post {
+    width: max-content;
+    --thumb-image-size: 256px;
+  }
+}

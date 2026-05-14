@@ -1,0 +1,125 @@
+<div id="c-appeals"><div id="a-show">
+
+  <div class="appeal-display">
+    <div class="section appeal-display-header">
+      <h3><%= @appeal.type_title %> Appeal</h3>
+    </div>
+    
+    <%= render partial: "appeals/types/#{@appeal.qtype}" %>
+
+    <div class="appeal-display-report">
+      <div class="appeal-display-report-avatar">
+        <% if @appeal.creator.present? %>
+          <%= render AvatarComponent.new(user: @appeal.creator) %>
+        <% else %>
+          <div class="appeal-display-avatar-placeholder"></div>
+        <% end %>
+      </div>
+
+      <div class="appeal-display-report-creator">
+        <%= @appeal.creator.present? ? link_to_user(@appeal.creator) : "a user" %>
+        appealed
+        <%= time_ago_in_words_tagged(@appeal.created_at) %>
+
+        <% if CurrentUser.is_admin? %>
+        <div class="appeal-display-report-ip">
+          <%= link_to_ip(@appeal.creator_ip_addr) %>
+        </div>
+        <% end %>
+      </div>
+
+      <div class="appeal-display-section appeal-display-report-reason dtext-container">
+        <%= format_text(@appeal.reason) %>
+      </div>
+    </div>
+
+    <% if CurrentUser.user.is_staff? && @appeal.open_from_same_user.any? %>
+      <div class="appeal-display-section appeal-display-others">
+        <b>Other pending appeals from this user:</b>
+        <ul>
+          <% @appeal.open_from_same_user.each do |appeal| %>
+            <li>
+              <%= link_to "#{appeal.id}: #{appeal.subject}", appeal_path(appeal.id) %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    
+    <div class="appeal-display-section appeal-display-info">
+      <div class="appeal-display-info-entry">
+        <b>Status:</b>
+        <span class="<%= @appeal.status %>-appeal"><%= @appeal.pretty_status %></span>
+      </div>
+
+      <div class="appeal-display-info-entry">
+        <b>Claimed By:</b>
+        <span>
+          <% if @appeal.claimant.present? %>
+            <%= link_to_user @appeal.claimant %>
+          <% else %>
+            none
+          <% end %>
+        </span>
+      </div>
+    </div>
+
+    <% if @appeal.can_claim?(CurrentUser.user) && @appeal.status != "approved" %>
+      <div class="appeal-display-claim">
+        <% if @appeal.claimant.nil? %>
+          <%= link_to "Claim", claim_appeal_path(@appeal), method: :post, class: "st-button kinetic" %>
+        <% elsif @appeal.claimant.id == CurrentUser.id %>
+          <%= link_to "Unclaim", unclaim_appeal_path(@appeal), method: :post, class: "st-button kinetic" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if @appeal.response.present? %>
+      <% @handler = @appeal.handler || @appeal.claimant %>
+      <div class="appeal-display-report">
+        <div class="appeal-display-report-avatar">
+          <% if @handler.present? %>
+            <%= render AvatarComponent.new(user: @handler) %>
+          <% else %>
+            <div class="appeal-display-avatar-placeholder"></div>
+          <% end %>
+        </div>
+
+        <div class="appeal-display-report-creator">
+          <%= @handler.present? ? link_to_user(@handler) : "a staff member" %>
+          responded
+          <%= time_ago_in_words_tagged(@appeal.updated_at) %>
+        </div>
+
+        <div class="appeal-display-section appeal-display-report-reason dtext-container">
+          <%= format_text(@appeal.response) %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if CurrentUser.is_staff? && @appeal.can_handle? %>
+    <%= custom_form_for(@appeal, html: { class: "appeal-display-response" }) do |f| %>
+      <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @appeal.status || "approved" %>
+      <% unless @appeal.pending? %>
+        <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
+      <% end %>
+      
+      <%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size, allow_color: false %>
+
+      <%= tag.input name: "force_claim", type: "hidden", value: params[:force_claim] %>
+      <%= f.button :submit, "Submit" %>
+    <% end %>
+  <% end %>
+</div></div>
+
+<% content_for(:title) do %>
+  <%= @appeal.type_title %>
+<% end %>
+
+<%= render partial: "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  <%= @appeal.type_title %> Appeal
+<% end %>

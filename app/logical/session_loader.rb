@@ -36,7 +36,7 @@ class SessionLoader
       if recent_ban && recent_ban.expires_at.present?
         ban_message = "Account is suspended for another #{recent_ban.expire_days}"
       end
-      raise AuthenticationFailure.new(ban_message)
+      raise AuthenticationFailure, ban_message
     end
     update_user_login_tracking
     set_safe_mode

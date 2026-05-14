@@ -1,13 +1,18 @@
 $palette: (
   "background-red": #bc4c00,
-  "background-yellow": #4b8099,
-  "background-green": #794eb1,
-  "background-grey": #666664,
-
   "background-red-d5": #{darken(#bc4c00, 5%)},
+  "background-red-d10": #{darken(#bc4c00, 10%)},
+
+  "background-yellow": #4b8099,
   "background-yellow-d5": #{darken(#4b8099, 5%)},
+
+  "background-green": #794eb1,
   "background-green-d5": #{darken(#794eb1, 5%)},
+  "background-green-d10": #{darken(#794eb1, 10%)},
+
+  "background-grey": #666664,
   "background-grey-d5": #{darken(#666664, 5%)},
+
 
   "text-white": #ffffff,
   "text-red": #ff6f1b,

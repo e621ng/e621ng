@@ -2,10 +2,11 @@
 
 module ApplicationHelper
   def disable_mobile_mode?
-    if CurrentUser.user.present? && CurrentUser.is_member?
-      return CurrentUser.disable_responsive_mode?
+    if CurrentUser.user.blank? || CurrentUser.is_anonymous?
+      return cookies[:nmm].present?
     end
-    cookies[:nmm].present?
+
+    CurrentUser.disable_responsive_mode?
   end
 
   def diff_list_html(new, old, latest)
@@ -164,14 +165,6 @@ module ApplicationHelper
 
       [:"#{prefix}-#{name}", value]
     end.to_h
-  end
-
-  def user_avatar(user)
-    return "" if user.nil?
-    post_id = user.avatar_id
-    return "" unless post_id
-    deferred_post_ids.add(post_id)
-    tag.article class: "thumbnail no-stats placeholder", id: "tp-#{post_id}", data: { id: post_id, initial: user.name[0].upcase }
   end
 
   def unread_dmails(user)

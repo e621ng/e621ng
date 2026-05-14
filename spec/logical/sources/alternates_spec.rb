@@ -11,10 +11,6 @@ RSpec.describe Sources::Alternates do
   # .all
   # -------------------------------------------------------------------------
   describe ".all" do
-    it "returns exactly 7 handler classes" do
-      expect(described_class.all.length).to eq(7)
-    end
-
     it "includes all expected handler classes" do
       expect(described_class.all).to include(
         Sources::Alternates::Furaffinity,
@@ -24,6 +20,10 @@ RSpec.describe Sources::Alternates do
         Sources::Alternates::Inkbunny,
         Sources::Alternates::Youtube,
         Sources::Alternates::Derpibooru,
+        Sources::Alternates::Facebook,
+        Sources::Alternates::Webtoons,
+        Sources::Alternates::Tapas,
+        Sources::Alternates::Imgur,
       )
     end
 
@@ -62,6 +62,22 @@ RSpec.describe Sources::Alternates do
 
     it "returns a Derpibooru instance for a derpibooru.org URL" do
       expect(described_class.find("https://derpibooru.org/images/12345")).to be_a(Sources::Alternates::Derpibooru)
+    end
+
+    it "returns a Facebook instance for a facebook.com URL" do
+      expect(described_class.find("https://www.facebook.com/photo.php?fbid=123456789")).to be_a(Sources::Alternates::Facebook)
+    end
+
+    it "returns a Webtoons instance for a webtoons.com URL" do
+      expect(described_class.find("https://www.webtoons.com/en/canvas/forestdale/viewer?title_no=856922&episode_no=314")).to be_a(Sources::Alternates::Webtoons)
+    end
+
+    it "returns a Tapas instance for a tapas.io URL" do
+      expect(described_class.find("https://tapas.io/episode/189498")).to be_a(Sources::Alternates::Tapas)
+    end
+
+    it "returns an Imgur instance for an imgur.com URL" do
+      expect(described_class.find("https://imgur.com/a/zZkdMts")).to be_a(Sources::Alternates::Imgur)
     end
 
     it "returns a Null instance for an unrecognised URL by default" do

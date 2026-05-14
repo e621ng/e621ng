@@ -5,6 +5,7 @@ import NoteManager from "@/pages/posts/show/notes";
 import Post from "@/pages/posts/posts";
 import Offclick from "@/utility/Offclick";
 import Page from "@/utility/Page";
+import ToastManager from "@/utility/Toast";
 
 export default class PostsShowToolbar {
 
@@ -57,9 +58,9 @@ export default class PostsShowToolbar {
       const button = $(event.currentTarget);
       const value = button.data("value");
       navigator.clipboard.writeText(value).then(() => {
-        E621.Flash.notice("Link copied to clipboard.");
+        E621.Toast.notice("Link copied to clipboard.");
       }).catch((e) => {
-        E621.Flash.error("Failed to copy link to clipboard.", e);
+        E621.Toast.alert("Failed to copy link to clipboard.", e);
       });
     });
   }
@@ -99,15 +100,21 @@ export default class PostsShowToolbar {
 
   initVotingHotkeys () {
     Hotkeys.register("upvote", () => {
-      E621.Flash.notice("Updating post...");
+      ToastManager.dismiss("Post upvoted.", "Post downvoted.");
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.vote(1).then(() => {
-        E621.Flash.notice("Post upvoted.");
+        toast.type = "notice";
+        toast.message = "Post upvoted.";
+        toast.timeout = 1;
       });
     });
     Hotkeys.register("downvote", () => {
-      E621.Flash.notice("Updating post...");
+      ToastManager.dismiss("Post upvoted.", "Post downvoted.");
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.vote(-1).then(() => {
-        E621.Flash.notice("Post downvoted.");
+        toast.type = "notice";
+        toast.message = "Post downvoted.";
+        toast.timeout = 1;
       });
     });
   }
@@ -157,22 +164,41 @@ export default class PostsShowToolbar {
     const imageEl = $("#image-container");
 
     Hotkeys.register("favorite", () => {
-      E621.Flash.notice("Updating post...");
+      ToastManager.dismiss("Favorite added.", "Favorite removed.");
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
       if (imageEl.attr("data-is-favorited") == "true")
-        PostsShowToolbar.deleteFavorite().then(() => E621.Flash.notice("Favorite removed."));
-      else PostsShowToolbar.addFavorite().then(() => E621.Flash.notice("Favorite added."));
+        PostsShowToolbar.deleteFavorite().then(() => {
+          toast.type = "notice";
+          toast.message = "Favorite removed.";
+          toast.timeout = 1;
+        });
+      else PostsShowToolbar.addFavorite().then(() => {
+        toast.type = "notice";
+        toast.message = "Favorite added.";
+        toast.timeout = 1;
+      });
     });
 
     Hotkeys.register("favorite-add", () => {
+      ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "true") return;
-      E621.Flash.notice("Updating post...");
-      PostsShowToolbar.addFavorite().then(() => E621.Flash.notice("Favorite added."));
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      PostsShowToolbar.addFavorite().then(() => {
+        toast.type = "notice";
+        toast.message = "Favorite added.";
+        toast.timeout = 1;
+      });
     });
 
     Hotkeys.register("favorite-del", () => {
+      ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "false") return;
-      E621.Flash.notice("Updating post...");
-      PostsShowToolbar.deleteFavorite().then(() => E621.Flash.notice("Favorite removed."));
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      PostsShowToolbar.deleteFavorite().then(() => {
+        toast.type = "notice";
+        toast.message = "Favorite removed.";
+        toast.timeout = 1;
+      });
     });
   }
 
@@ -231,7 +257,7 @@ export default class PostsShowToolbar {
           setTimeout(() => window.URL.revokeObjectURL(blobUrl), 0);
         })
         .catch(e => {
-          E621.Flash.error("Failed to download post file.", e);
+          E621.Toast.alert("Failed to download post file: " + e.message, e);
           button.attr("pending", "false");
         })
         .finally(() => {

@@ -10,10 +10,8 @@ class PopularController < ApplicationController
     @posts = @post_set.posts
     respond_with(@posts) do |format|
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
+        pick_json_format(@post_set.api_posts, legacy: params[:v2] != "true", mode: params[:mode], collection: true)
       end
     end
-  rescue ArgumentError => e
-    render_expected_error(422, e)
   end
 end

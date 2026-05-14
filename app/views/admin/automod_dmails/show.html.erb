@@ -16,13 +16,17 @@
       <h3>Body</h3>
       <div class="dtext-container">
         <%= format_text(@dmail.body) %>
-
-        <% if @dmail.is_automated? %>
-          <p class="info">
-            This is an automated message. Responses will not be seen. If you have any questions either message a moderator or ask in the forum.
-          </p>
-        <% end %>
       </div>
+      <p>
+        <%= link_to "Respond", new_dmail_path(respond_to_id: @dmail) %>
+        | <%= link_to "Forward", new_dmail_path(respond_to_id: @dmail, forward: true) %>
+        <% if @dmail.is_read? %>
+          | <%= link_to "Mark as unread", mark_as_unread_admin_automod_dmail_path(@dmail), method: :put, data: { confirm: "Are you sure you want to mark this DMail as unread?" } %>
+        <% else %>
+          | <%= link_to "Mark as read", mark_as_read_admin_automod_dmail_path(@dmail), method: :put, data: { confirm: "Are you sure you want to mark this DMail as read?" } %>
+        <% end %>
+        | <%= link_to "Report", new_ticket_path(disp_id: @dmail.id, qtype: "dmail") %>
+      </p>
     </div>
   </div>
 </div>

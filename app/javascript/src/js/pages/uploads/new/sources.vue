@@ -105,15 +105,17 @@
       nonUrlSourceWarning: function() {
         if (this.noSource) return false;
 
-        const nonUrlSourceCount = this.sources.filter(function (source) {
-          let isValidUrl = false;
+        return this.sources.some(function (source) {
+          if (source.length <= 0) return false;
+
+          // Allow dead source links prefixed with `-`
+          if (source[0] === "-") source = source.substring(1);
           try {
             const url = new URL(source);
-            isValidUrl = url.protocol === "http:" || url.protocol === "https:";
-          } catch {}  // Exception occurs if the URL constructor fails to parse the string, which means it's not a valid URL
-          return source.length > 0 && !isValidUrl;
-        }).length;
-        return nonUrlSourceCount > 0;
+            return url.protocol !== "http:" && url.protocol !== "https:";
+          } catch { }  // Exception occurs if the URL constructor fails to parse the string, which means it's not a valid URL
+          return true;
+        });
       },
     },
     watch: {

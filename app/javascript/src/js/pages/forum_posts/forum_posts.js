@@ -54,7 +54,7 @@ ForumPost.quote = function (e) {
       $("#topic-response")[0].scrollIntoView();
     }, 15);
   }).fail(function (data) {
-    E621.Flash.error(data.responseText);
+    E621.Toast.alert(data.responseText);
   });
 };
 
@@ -72,7 +72,7 @@ ForumPost.hide = function (e) {
     $(`.forum-post[data-forum-post-id="${fpid}"] div.author h4`).append(" (hidden)");
     $(`.forum-post[data-forum-post-id="${fpid}"]`).attr("data-is-hidden", "true");
   }).fail(function () {
-    E621.Flash.error("Failed to hide post.");
+    E621.Toast.alert("Failed to hide post.");
   });
 };
 
@@ -91,7 +91,7 @@ ForumPost.unhide = function (e) {
     $author.text($author.text().replace(" (hidden)", ""));
     $(`.forum-post[data-forum-post-id="${fpid}"]`).attr("data-is-hidden", "false");
   }).fail(function () {
-    E621.Flash.error("Failed to unhide post.");
+    E621.Toast.alert("Failed to unhide post.");
   });
 };
 

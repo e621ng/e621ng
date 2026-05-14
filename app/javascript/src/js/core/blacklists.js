@@ -74,11 +74,21 @@ Blacklist.init_reveal_on_click = function () {
  */
 Blacklist.preload_filters = function () {
   Blacklist.filters = {};
+  let blacklistRaw = null;
 
-  const el = document.querySelector("meta[name='blacklisted-tags']");
-  if (!el) return;
+  // Use the anonymous blacklist if the user isn't logged in
+  const userEl = document.querySelector("meta[name='current-user-id']");
+  if (!userEl || userEl.content === "") {
+    blacklistRaw = LStorage.Blacklist.AnonymousBlacklist;
+  } else {
+    const el = document.querySelector("meta[name='blacklisted-tags']");
+    if (!el) return;
+    blacklistRaw = el.content;
+  }
+
+  // Parse blacklist contents and create filters.
   try {
-    const tags = JSON.parse(el.content);
+    const tags = JSON.parse(blacklistRaw);
     for (let entry of tags) {
       const line = Filter.create(entry);
       if (line) Blacklist.filters[line.text] = line;

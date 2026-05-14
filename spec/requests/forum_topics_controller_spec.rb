@@ -17,6 +17,7 @@ require "rails_helper"
 RSpec.describe ForumTopicsController do
   let(:user) { RSpec::Mocks.with_temporary_scope { create(:user) } }
   let(:mod) { create(:moderator_user) }
+  let(:janitor) { create(:janitor_user) }
   let(:admin) { create(:admin_user) }
   let(:forum_topic) do
     CurrentUser.scoped(user) { create(:forum_topic, title: "my forum topic") }
@@ -112,7 +113,7 @@ RSpec.describe ForumTopicsController do
       expect(response).to have_http_status(:success)
     end
 
-    it "returns 403 for a hidden topic when the user is not a moderator or creator" do
+    it "returns 403 for a hidden topic when the user is not staff or creator" do
       forum_topic.update_columns(is_hidden: true)
       other_user = create(:user)
       sign_in_as other_user
@@ -120,9 +121,9 @@ RSpec.describe ForumTopicsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "allows a moderator to view a hidden topic" do
+    it "allows staff to view a hidden topic" do
       forum_topic.update_columns(is_hidden: true)
-      sign_in_as mod
+      sign_in_as janitor
       get forum_topic_path(forum_topic)
       expect(response).to have_http_status(:success)
     end

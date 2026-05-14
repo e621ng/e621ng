@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     resources :automod_rules, only: %i[index new create edit update destroy]
     resources :users, only: %i[edit update] do
       member do
+        post :clear_avatar
         get :edit_blacklist
         post :update_blacklist
         get :request_password_reset
@@ -28,8 +29,12 @@ Rails.application.routes.draw do
     resource :reowner, controller: "reowner", only: %i[new create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
-    resources :vote_trends, only: [:index]
-    resources :automod_dmails, only: %i[index show]
+    resources :automod_dmails, only: %i[index show] do
+      member do
+        put :mark_as_read
+        put :mark_as_unread
+      end
+    end
   end
 
   namespace :security do
@@ -97,6 +102,7 @@ Rails.application.routes.draw do
       resource :deletion, only: %i[show destroy]
       resource :email_change, only: %i[new create]
       resource :dmail_filter, only: %i[edit update]
+      resource :avatar, only: %i[edit update]
     end
   end
 
@@ -125,7 +131,14 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :tickets, except: %i[destroy] do
+  resources :tickets, except: %i[edit destroy] do
+    member do
+      post :claim
+      post :unclaim
+    end
+  end
+
+  resources :appeals, except: %i[edit destroy] do
     member do
       post :claim
       post :unclaim
@@ -284,8 +297,8 @@ Rails.application.routes.draw do
       get :comments, to: "comments#for_post"
       resource :similar, only: [], controller: "post_recommendations" do
         get :artist
+        get :tags
         get :remote
-        get :lookup
         get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
       end
     end

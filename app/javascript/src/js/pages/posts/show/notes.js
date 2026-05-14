@@ -859,12 +859,12 @@ class NoteEditor {
       event.preventDefault();
 
       if (!this.id) {
-        E621.Flash.error("Error: No note is currently being edited.");
+        E621.Toast.alert("Error: No note is currently being edited.");
         return false;
       }
 
       if (this.getInputText().length == 0) {
-        E621.Flash.error("Error: Note content cannot be empty.");
+        E621.Toast.alert("Error: Note content cannot be empty.");
         return false;
       }
 
@@ -883,7 +883,7 @@ class NoteEditor {
     // Delete note
     this.form.find("button[name='note-delete']").on("click.e6.note", () => {
       if (!this.id) {
-        E621.Flash.error("Error: No note is currently being edited.");
+        E621.Toast.alert("Error: No note is currently being edited.");
         return false;
       }
 
@@ -898,7 +898,7 @@ class NoteEditor {
     // Note history
     this.form.find("button[name='note-history']").on("click.e6.note", () => {
       if (!this.id) {
-        E621.Flash.error("Error: No note is currently being edited.");
+        E621.Toast.alert("Error: No note is currently being edited.");
         return false;
       }
 
@@ -993,7 +993,7 @@ class NoteEditor {
     if (note.isTemporary) {
       const postId = $("#image-container").data("id");
       if (!postId) {
-        E621.Flash.error("Error: Could not determine post ID.");
+        E621.Toast.alert("Error: Could not determine post ID.");
         this.saving = false;
         return;
       }
@@ -1006,11 +1006,11 @@ class NoteEditor {
       error: (xhr) => {
         this.saving = false;
         const errorMessage = xhr.responseJSON?.reasons?.join("; ") || xhr.responseJSON?.reason || "Unknown error";
-        E621.Flash.error("Error saving note: " + errorMessage);
+        E621.Toast.alert("Error saving note: " + errorMessage);
       },
       success: (data) => {
         if (!data || !data.note || !data.dtext) {
-          E621.Flash.error("Error: Invalid response from server.");
+          E621.Toast.alert("Error: Invalid response from server.");
           this.saving = false;
           return;
         }
@@ -1070,7 +1070,7 @@ class NoteEditor {
       error: (xhr) => {
         this.saving = false;
         const errorMessage = xhr.responseJSON?.reasons?.join("; ") || xhr.responseJSON?.reason || "Unknown error";
-        E621.Flash.error("Error deleting note: " + errorMessage);
+        E621.Toast.alert("Error deleting note: " + errorMessage);
       },
     });
   }

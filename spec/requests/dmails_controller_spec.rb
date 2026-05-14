@@ -8,6 +8,7 @@ RSpec.describe DmailsController do
   let(:sender)    { create(:user) }
   let(:recipient) { create(:user) }
   let(:other)     { create(:user) }
+  let(:janitor) { create(:janitor_user) }
   let(:moderator) { create(:moderator_user) }
   let(:admin)     { create(:admin_user) }
 
@@ -91,6 +92,34 @@ RSpec.describe DmailsController do
         sign_in_as recipient
         get new_dmail_path, params: { respond_to_id: dmail.id, forward: true }
         expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 200 for a janitor when the recipient is the system user" do
+        dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
+        sign_in_as janitor
+        get new_dmail_path, params: { respond_to_id: dmail_to_system.id }
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 403 for a different user when the recipient is the system user" do
+        dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
+        sign_in_as other
+        get new_dmail_path, params: { respond_to_id: dmail_to_system.id }
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "returns 200 for a forward for a janitor when the recipient is the system user" do
+        dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
+        sign_in_as janitor
+        get new_dmail_path, params: { respond_to_id: dmail_to_system.id, forward: true }
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 403 for a forward for a different user when the recipient is the system user" do
+        dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
+        sign_in_as other
+        get new_dmail_path, params: { respond_to_id: dmail_to_system.id, forward: true }
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
@@ -179,6 +208,13 @@ RSpec.describe DmailsController do
       dmail.update_columns(is_read: true)
       sign_in_as recipient
       expect { get dmail_path(dmail) }.not_to(change { dmail.reload.is_read })
+    end
+
+    it "returns 200 for a janitor viewing a system-received dmail" do
+      dmail_to_system = create(:dmail, from: recipient, to: User.system)
+      sign_in_as janitor
+      get dmail_path(dmail_to_system)
+      expect(response).to have_http_status(:ok)
     end
 
     it "returns 200 for a moderator viewing a system-sent dmail" do

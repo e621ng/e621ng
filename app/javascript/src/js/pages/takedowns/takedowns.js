@@ -1,7 +1,7 @@
 let Takedown = {};
 
 Takedown.destroy = function (id) {
-  E621.Flash.notice("Deleting takedown #" + id + "...");
+  const toast = E621.Toast.create(`Deleting takedown #${id}...`, { timeout: 10 });
 
   $.ajax({
     url: "/takedown/destroy.json",
@@ -12,10 +12,10 @@ Takedown.destroy = function (id) {
       "id": id,
     },
   }).done(function () {
-    E621.Flash.notice("Takedown deleted");
+    toast.rewrite("Takedown deleted", { type: "success", timeout: 1 });
     $("#takedown-" + id).fadeOut("fast");
   }).fail(function (data) {
-    E621.Flash.error(data.responseText);
+    toast.rewrite("Failed to delete takedown: " + data.responseText, { type: "error", timeout: 0 });
   });
 };
 
@@ -40,7 +40,7 @@ Takedown.add_posts_by_tags_preview = function (id) {
     $("#takedown-add-posts-tags-confirm").css("display", "inline-block");
     $("#takedown-add-posts-tags-cancel").css("display", "inline-block");
   }).fail(function (data) {
-    E621.Flash.error(data.responseText);
+    E621.Toast.create("Failed to add posts with tags '" + tags + "' to takedown: " + data.responseText, { type: "error", timeout: 0 });
   });
 };
 
@@ -55,7 +55,7 @@ Takedown.add_posts_by_tags_cancel = function () {
 Takedown.add_posts_by_tags = function (id) {
   event.preventDefault();
   const tags = $("#takedown-add-posts-tags").val();
-  E621.Flash.notice("Adding posts with tags '" + tags + "' to takedown...");
+  const toast = E621.Toast.create(`Adding posts with tags '${tags}' to takedown...`, { timeout: 10 });
 
   $.ajax({
     url: `/takedowns/${id}/add_by_tags.json`,
@@ -70,7 +70,7 @@ Takedown.add_posts_by_tags = function (id) {
     const added_post_ids = data.added_post_ids;
     const count = added_post_ids.length;
 
-    E621.Flash.notice(count + " post" + (count == 1 ? "" : "s") + " with tags '" + tags + "' added to takedown");
+    toast.rewrite(count + " post" + (count == 1 ? "" : "s") + " with tags '" + tags + "' added to takedown", { type: "success", timeout: 5 });
 
     for (var i = 0; i < count; i++) {
       var html = Takedown.post_button_html(added_post_ids[i]);
@@ -80,14 +80,14 @@ Takedown.add_posts_by_tags = function (id) {
     $("#takedown-add-posts-tags-submit").prop("disabled", true);
     Takedown.add_posts_by_tags_cancel();
   }).fail(function (data) {
-    E621.Flash.error(data.responseText);
+    toast.rewrite("Failed to add posts with tags '" + tags + "' to takedown: " + data.responseText, { type: "error", timeout: 0 });
   });
 };
 
 Takedown.add_posts_by_ids = function (id) {
   event.preventDefault();
   const post_ids = $("#takedown-add-posts-ids").val();
-  E621.Flash.notice("Adding posts to takedown...");
+  const toast = E621.Toast.create("Adding posts to takedown...", { timeout: 10 });
 
   $.ajax({
     url: `/takedowns/${id}/add_by_ids.json`,
@@ -99,7 +99,7 @@ Takedown.add_posts_by_ids = function (id) {
       post_ids: post_ids,
     },
   }).done(function (data) {
-    E621.Flash.notice(data.added_count + " post" + (data.added_count == 1 ? "" : "s") + " added to takedown");
+    toast.rewrite(data.added_count + " post" + (data.added_count == 1 ? "" : "s") + " added to takedown", { type: "success", timeout: 5 });
 
     var added_post_ids = data.added_post_ids;
     for (var i = 0; i < added_post_ids.length; i++) {
@@ -110,12 +110,12 @@ Takedown.add_posts_by_ids = function (id) {
     $("#takedown-add-posts-ids").val("");
     $("#takedown-add-posts-ids-submit").prop("disabled", true);
   }).fail(function (data) {
-    E621.Flash.error(data.responseText);
+    toast.rewrite("Failed to add posts to takedown: " + data.responseText, { type: "error", timeout: 0 });
   });
 };
 
 Takedown.remove_post = function (id, post_id) {
-  E621.Flash.notice("Removing post #" + post_id + " from takedown...");
+  const toast = E621.Toast.create("Removing post #" + post_id + " from takedown...", { timeout: 10 });
 
   $.ajax({
     url: `/takedowns/${id}/remove_by_ids.json`,
@@ -127,10 +127,10 @@ Takedown.remove_post = function (id, post_id) {
       post_ids: post_id,
     },
   }).done(function () {
-    E621.Flash.notice("Post #" + post_id + " removed from takedown");
+    toast.rewrite("Post #" + post_id + " removed from takedown", { type: "success", timeout: 5 });
     $("#takedown-post-" + post_id).remove();
   }).fail(function (data) {
-    E621.Flash.error(data.responseText);
+    toast.rewrite("Failed to remove post #" + post_id + " from takedown: " + data.responseText, { type: "error", timeout: 0 });
   });
 };
 

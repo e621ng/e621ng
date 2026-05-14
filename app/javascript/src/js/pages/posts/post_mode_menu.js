@@ -29,8 +29,10 @@ PostModeMenu.initialize_shortcuts = function () {
     Hotkeys.register(`tag-script-${i}`, () => PostModeMenu.change_tag_script(i));
 };
 
+PostModeMenu.show_notice_toast = null;
 PostModeMenu.show_notice = function (i) {
-  E621.Flash.notice("Switched to tag script #" + i + ". To switch tag scripts, use the number keys.");
+  if (PostModeMenu.show_notice_toast) PostModeMenu.show_notice_toast.dismiss(true);
+  PostModeMenu.show_notice_toast = E621.Toast.create(`Switched to tag script #${i}. To switch tag scripts, use the number keys.`);
 };
 
 PostModeMenu.change_tag_script = function (key) {
@@ -82,7 +84,7 @@ PostModeMenu.initialize_edit_form = function () {
       },
       success: function (data) {
         Post.update_data(data);
-        E621.Flash.notice("Post #" + data.post.id + " updated");
+        E621.Toast.notice("Post #" + data.post.id + " updated");
         PostModeMenu.close_edit_form();
       },
     });
@@ -125,7 +127,7 @@ PostModeMenu.update_sets_menu = function () {
       type: "GET",
       url: "/post_sets/for_select.json",
     }).fail(function (data) {
-      $(window).trigger("danbooru:error", "Error getting sets list: " + data.message);
+      E621.Toast.alert("Error getting sets list: " + data.message);
     }).done(function (data) {
       target.on("change", function (e) {
         LStorage.Posts.Set = e.target.value;
@@ -188,24 +190,20 @@ PostModeMenu.click = function (e) {
   if (s === "add-fav") {
     Post.notice_update("inc");
     Favorite.create(post_id)
-      .then(() => { E621.Flash.notice("Favorite added"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "remove-fav") {
     Post.notice_update("inc");
     Favorite.destroy(post_id)
-      .then(() => { E621.Flash.notice("Favorite removed"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "edit") {
     PostModeMenu.open_edit(post_id);
   } else if (s === "vote-down") {
     Post.notice_update("inc");
     PostVote.vote(post_id, -1, true)
-      .then(() => { E621.Flash.notice("Vote saved"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "vote-up") {
     Post.notice_update("inc");
     PostVote.vote(post_id, 1, true)
-      .then(() => { E621.Flash.notice("Vote saved"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "add-to-set") {
     PostSet.add_post($("#set-id").val(), post_id);
