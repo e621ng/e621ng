@@ -283,7 +283,7 @@ html.nav-toggled {
     // Allow scrolling when the menu is too long
     overflow-y: scroll;
 
-    .nav-primary, .nav-secondary, .nav-offset-left, .nav-offset-bott {
+    .nav-primary, .nav-secondary {
       display: flex;
     }
     .nav-tools, .nav-help {
@@ -522,11 +522,11 @@ body.c-static.a-home {
     // since the secondary is empty anyways
     nav.navigation {
       grid-template-areas:
-        "logo    logo    controls" 
-        "offleft primary primary " 
-        "offleft tools   tools   " 
-        "offleft help    help    " 
-        "offleft offbott offbott ";
+        "logo logo    controls" 
+        ".    primary primary " 
+        ".    tools   tools   " 
+        ".    help    help    " 
+        ".    .       . ";
 
       .nav-secondary { display: none; }
     }

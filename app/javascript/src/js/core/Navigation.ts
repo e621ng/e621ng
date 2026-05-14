@@ -71,6 +71,9 @@ class Navigation {
       const userID = $avatarButton.data("user-id");
       if (!userID) return;
 
+      // This could cause the menu to be slightly out of sync with the data from the back-end.
+      // However, it is an acceptable trade-off to prevent the UI from reflowing right as the
+      // user is about to interact with the menu. Plus, this situation is quite rare.
       this.buildAvatarMenu();
       AvatarMenuLoader.syncUserData();
       this.adjustAvatarNameSize();
@@ -91,7 +94,7 @@ class Navigation {
       .toggleClass("has-sets", userStats.has_sets)
       .toggleClass("has-comments", userStats.has_comments)
       .toggleClass("has-forums", userStats.has_forums);
-  };
+  }
 
   /**
    * Adjusts the font size of the avatar menu name to fit within its container.
@@ -103,7 +106,7 @@ class Navigation {
 
     const fontSize = Math.max(0.5, element.clientWidth / element.scrollWidth);
     element.style.fontSize = `${fontSize}rem`;
-  };
+  }
 
 
   /* ============================== */
@@ -186,13 +189,8 @@ class AvatarMenuLoader {
     });
 
     return this.syncInProgress;
-  };
+  }
 }
-
-$(() => {
-  if (!$("nav.navigation").length) return;
-  Navigation.instance; // eslint-disable-line @typescript-eslint/no-unused-expressions
-});
 
 type AvatarMenuData = {
   has_uploads: boolean;
@@ -201,3 +199,8 @@ type AvatarMenuData = {
   has_comments: boolean;
   has_forums: boolean;
 };
+
+$(() => {
+  if (!$("nav.navigation").length) return;
+  void Navigation.instance;
+});
