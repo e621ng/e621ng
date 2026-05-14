@@ -74,7 +74,7 @@ export default class Offclick {
   }
 }
 
-interface OffclickEntry {
+export interface OffclickEntry {
   buttonSelector: string;
   menuSelector: string;
   callback: () => void;

@@ -1,12 +1,12 @@
-import Offclick from "@/utility/Offclick";
+import Offclick, { OffclickEntry } from "@/utility/Offclick";
 
 class Navigation {
 
   private $wrapper: JQuery<HTMLElement>;
   private $avatarMenu: JQuery<HTMLElement>;
 
-  private mainMenuOffclick = null;
-  private avatarMenuOffclick = null;
+  private mainMenuOffclick: OffclickEntry | null = null;
+  private avatarMenuOffclick: OffclickEntry | null = null;
 
   private constructor () {
     this.$wrapper = $("html");
