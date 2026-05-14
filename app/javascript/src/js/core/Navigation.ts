@@ -5,6 +5,9 @@ class Navigation {
   private $wrapper: JQuery<HTMLElement>;
   private $avatarMenu: JQuery<HTMLElement>;
 
+  private mainMenuOffclick = null;
+  private avatarMenuOffclick = null;
+
   private constructor () {
     this.$wrapper = $("html");
     this.$avatarMenu = $(".simple-avatar-menu");
@@ -22,19 +25,23 @@ class Navigation {
    * The offclick handler is registered on the first toggle to avoid unnecessary overhead on pages where it's not needed.
    */
   private bootstrapMainMenu () {
-    let offclickHandler = null;
-
     $("#nav-toggle").on("click", (event) => {
       event.preventDefault();
 
-      if (offclickHandler === null)
-        offclickHandler = Offclick.register("#nav-toggle", ".nav-primary, .nav-secondary, .nav-tools, .nav-help", () => {
+      if (this.mainMenuOffclick === null)
+        this.mainMenuOffclick = Offclick.register("#nav-toggle", ".nav-primary, .nav-secondary, .nav-tools, .nav-help", () => {
           this.$wrapper.removeClass("nav-toggled");
+          if (this.avatarMenuOffclick)
+            this.avatarMenuOffclick.disabled = true;
         });
 
-      offclickHandler.disabled = !offclickHandler.disabled;
-      this.$wrapper.toggleClass("nav-toggled", !offclickHandler.disabled);
-      this.$avatarMenu.addClass("hidden");
+      // Toggle the main menu
+      this.mainMenuOffclick.disabled = !this.mainMenuOffclick.disabled;
+      this.$wrapper.toggleClass("nav-toggled", !this.mainMenuOffclick.disabled);
+
+      // Clean up the avatar menu
+      if (this.avatarMenuOffclick)
+        this.avatarMenuOffclick.disabled = true;
     });
   }
 
@@ -51,19 +58,24 @@ class Navigation {
       AvatarMenuLoader.syncUserData();
 
     // Toggle menu on click
-    let offclickHandler = null;
     $avatarButton.on("click", (event) => {
       event.preventDefault();
 
       // Register offclick handler on the first use
-      if (offclickHandler === null)
-        offclickHandler = Offclick.register(".simple-avatar", ".simple-avatar-menu", () => {
+      if (this.avatarMenuOffclick === null)
+        this.avatarMenuOffclick = Offclick.register(".simple-avatar", ".simple-avatar-menu", () => {
           this.$avatarMenu.addClass("hidden");
+          if (this.mainMenuOffclick)
+            this.mainMenuOffclick.disabled = true;
         });
 
-      offclickHandler.disabled = !offclickHandler.disabled;
-      this.$avatarMenu.toggleClass("hidden", offclickHandler.disabled);
-      this.$wrapper.removeClass("nav-toggled");
+      // Toggle the avatar menu
+      this.avatarMenuOffclick.disabled = !this.avatarMenuOffclick.disabled;
+      this.$avatarMenu.toggleClass("hidden", this.avatarMenuOffclick.disabled);
+
+      // Clean up the main menu
+      if (this.mainMenuOffclick)
+        this.mainMenuOffclick.disabled = true;
     });
 
     // Load menu data on first click
