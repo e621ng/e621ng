@@ -36,11 +36,11 @@ class MascotManager {
       return false;
     }
 
-    const decodedData = atob((mascotsElement.textContent || "").trim());
     try {
+      const decodedData = atob((mascotsElement.textContent || "").trim());
       this.mascots = JSON.parse(decodedData);
     } catch (error) {
-      console.error("Mascot data could not be parsed", error);
+      console.error("Mascot data could not be decoded or parsed", error);
       return false;
     }
 
