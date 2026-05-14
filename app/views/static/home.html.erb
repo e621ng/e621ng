@@ -1,7 +1,5 @@
 <div id="c-static"><div id="a-home">
-  <%= javascript_tag nonce: true do -%>
-    var mascots = <%= Mascot.active_for_browser.to_json.html_safe %>;
-  <% end -%>
+  <script type="text/plain" id="home-mascots" data-encoding="base64"><%= Mascot.active_for_browser_base64 %></script>
 
   <section class="mascot-section"></section>
 
