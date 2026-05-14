@@ -16,7 +16,7 @@ import "@/core/common";
 import DeferredPostLoader from "@/core/DeferredPostLoader";
 import "@/core/dtext_formatter_loader";
 import Hotkeys from "@/core/hotkeys";
-import "@/core/navigation";
+import "@/core/Navigation";
 import "@/core/news_updates";
 import "@/core/paginator";
 import "@/core/themes";
