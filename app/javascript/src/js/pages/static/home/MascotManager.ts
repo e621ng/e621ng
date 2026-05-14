@@ -88,9 +88,12 @@ class MascotManager {
       $body.attr("layered", "true");
     else $body.removeAttr("layered");
 
-    $("#mascot-artist")
-      .text("Mascot by ")
-      .append($("<a>").text(mascot.artist_name).attr("href", mascot.artist_url));
+    if (mascot.artist_name && mascot.artist_url) {
+      const safeUrl = /^https?:\/\//i.test(mascot.artist_url) ? mascot.artist_url : "#";
+      $("#mascot-artist")
+        .text("Mascot by ")
+        .append($("<a>").text(mascot.artist_name).attr("href", safeUrl));
+    } else $("#mascot-artist").text("");
   }
 
   private handleChangeMascot (event: JQuery.ClickEvent) {
