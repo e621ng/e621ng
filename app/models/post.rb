@@ -45,6 +45,7 @@ class Post < ApplicationRecord
   after_commit :handle_thumbnails_on_create, on: :create
   after_commit :generate_image_samples, on: :create
   after_commit :generate_video_samples, on: :create, if: :is_video?
+  after_commit :clear_avoid_posting_cache, if: :should_process_tags?
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
   belongs_to :approver, class_name: "User", optional: true
@@ -1204,6 +1205,10 @@ class Post < ApplicationRecord
           end
         end
       end
+    end
+
+    def clear_avoid_posting_cache
+      Cache.delete("post:#{id}:avoid_posting_tags")
     end
   end
 
