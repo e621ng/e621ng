@@ -58,6 +58,7 @@ class StaticController < ApplicationController
           "--bg-color: #{selected_mascot['background_color']}",
           "--fg-color: #{selected_mascot['foreground_color']}",
         ].join(";"),
+        layered: ("true" if selected_mascot["is_layered"]),
       }
     end
 

@@ -80,6 +80,7 @@ class CookieJar {
    * The cookie is set with the path "/" and SameSite=Lax for security.
    * @param name The name of the cookie to set.
    * @param value The value to store in the cookie.
+   * @param path The path for which the cookie is valid (default is "/").
    * @param days The number of days until the cookie expires (default is 365).
    */
   public static set (name: string, value: string, path: string = "/", days: number = 365): void {
@@ -111,6 +112,7 @@ class CookieJar {
    * The cookie will expire after the specified number of days.
    * @param name The name of the cookie to set.
    * @param value The boolean value to store in the cookie.
+   * @param path The path for which the cookie is valid (default is "/").
    * @param days The number of days until the cookie expires (default is 365).
    */
   public static setBool (name: string, value: boolean, path: string = "/", days: number = 365): void {

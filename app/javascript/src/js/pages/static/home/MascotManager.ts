@@ -3,12 +3,14 @@ import StorageC from "@/utility/StorageC";
 
 export default class MascotManager {
 
+  public isAvailable = false;
   private mascots: Record<string, MascotData> = {};
   private availableIDs: number[];
 
   public constructor () {
     if (!this.loadMascotData())
       return;
+    this.isAvailable = true;
     // Backwards compatibility
     window["mascots"] = this.mascots;
 
@@ -116,6 +118,8 @@ export default class MascotManager {
       const artistLink = document.createElement("a");
       artistLink.textContent = mascot.artist_name;
       artistLink.href = safeUrl;
+      artistLink.target = "_blank";
+      artistLink.rel = "noopener noreferrer";
       mascotArtist.append(artistLink);
     } else mascotArtist.textContent = "";
   }
@@ -144,6 +148,7 @@ State.onReady(() => {
   let instance: MascotManager = null;
   document.getElementById("mascot-swap")?.addEventListener("click", function (event) {
     if (!instance) instance = new MascotManager();
+    if (!instance.isAvailable) return;
     instance.handleChangeMascot(event);
   });
 });
