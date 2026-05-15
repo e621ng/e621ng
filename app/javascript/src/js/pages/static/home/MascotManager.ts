@@ -1,3 +1,5 @@
+import State from "@/utility/StateUtils";
+
 export default class MascotManager {
 
   private mascots: Record<string, MascotData> = {};
@@ -148,10 +150,6 @@ interface MascotData {
   artist_url: string;
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    void MascotManager.instance;
-  });
-} else {
+State.onReady(() => {
   void MascotManager.instance;
-}
+});

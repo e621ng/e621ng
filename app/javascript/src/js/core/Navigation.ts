@@ -1,4 +1,5 @@
 import Offclick, { OffclickEntry } from "@/utility/Offclick";
+import State from "@/utility/StateUtils";
 
 class Navigation {
 
@@ -212,7 +213,7 @@ type AvatarMenuData = {
   has_forums: boolean;
 };
 
-$(() => {
+State.onReady(() => {
   if (!$("nav.navigation").length) return;
   void Navigation.instance;
 });

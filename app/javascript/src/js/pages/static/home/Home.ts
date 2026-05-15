@@ -1,3 +1,5 @@
+import State from "@/utility/StateUtils";
+
 class Home {
   // Search buttons
   static bootstrapSearch (): void {
@@ -65,13 +67,7 @@ class Home {
 
 }
 
-function onReady (callback: () => void): void {
-  if (document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", callback, { once: true });
-  else callback();
-}
-
-onReady(() => {
+State.onReady(() => {
   Home.bootstrapSearch();
   Home.bootstrapTrends();
 });
