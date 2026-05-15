@@ -1,6 +1,6 @@
 <div id="c-posts"><div id="a-show">
   <%# Cookie value set in MobileTabs.ts %>
-  <% selected_tab = !CurrentUser.hide_comments? && fetch_bit_cookie(BitwiseCookieHelper::INDEX[:post_mobile_tab_state]) ? "comments" : "tags" %>
+  <% selected_tab = !CurrentUser.hide_comments? && read_bitflag_cookie(:post_mobile_tab_state) ? "comments" : "tags" %>
   <div class="post-display" id="post-show-display" data-tab-state="<%= selected_tab %>">
 
     <div class="search">
@@ -115,7 +115,7 @@
       <% artist_tab_available = @post.known_artist_tags.any? %>
       <% tags_tab_available = @post.tags_for_category("general").size > 1 && CurrentUser.user.is_staff? %>
       <% favorites_tab_available = Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
-      <% post_recs_cookie = fetch_bit_cookie(BitwiseCookieHelper::INDEX[:hide_post_recommendations]) %>
+      <% post_recs_cookie = read_bitflag_cookie(:hide_post_recommendations) %>
 
       <% if artist_tab_available || tags_tab_available || favorites_tab_available %>
         <div

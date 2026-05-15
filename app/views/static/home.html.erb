@@ -27,7 +27,7 @@
   </section>
 
   <% if Setting.trends_displayed? %>
-  <% trends_cookie = fetch_bit_cookie(BitwiseCookieHelper::INDEX[:hide_search_trends]) %>
+  <% trends_cookie = read_bitflag_cookie(:hide_search_trends) %>
   <section class="home-section search-rising-list <%= "hidden" if trends_cookie %>" id="home-trends">
     <h3 aria-controls="home-trends" aria-expanded="<%= !trends_cookie %>">
       <%= svg_icon(:trending_up) %>

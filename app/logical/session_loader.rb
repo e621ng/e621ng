@@ -42,6 +42,7 @@ class SessionLoader
     set_safe_mode
     refresh_old_remember_token
     refresh_unread_dmails
+    populate_bitflag_cookie
     DanbooruLogger.initialize(CurrentUser.user)
   end
 
@@ -182,6 +183,21 @@ class SessionLoader
 
     if !CurrentUser.user.has_mail? && cookies[:hide_dmail_notice] == "1"
       cookies.delete(:hide_dmail_notice)
+    end
+  end
+
+  # TODO: Temporary migration method. Remove in June 2026.
+  def populate_bitflag_cookie
+    return if skip_cookies?
+
+    if cookies[:post_recs] == "1"
+      BitflagCookieHelper.write_raw_bitflag_cookie(:hide_post_recommendations, true)
+      cookies.delete(:post_recs)
+    end
+
+    if cookies[:post_tabs] == "1"
+      BitflagCookieHelper.write_raw_bitflag_cookie(:post_mobile_tab_state, true)
+      cookies.delete(:post_tabs)
     end
   end
 end
