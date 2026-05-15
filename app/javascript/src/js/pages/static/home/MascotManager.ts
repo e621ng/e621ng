@@ -1,4 +1,4 @@
-class MascotManager {
+export default class MascotManager {
 
   private mascots: Record<string, MascotData> = {};
   private availableIDs: number[];
@@ -13,8 +13,8 @@ class MascotManager {
       .map(id => parseInt(id))
       .filter(id => !isNaN(id));
 
-    if (!this.mascots[this.current + ""])
-      this.current = this.availableIDs[Math.floor(Math.random() * this.availableIDs.length)];
+    if (this.current == 0 || !this.mascots[this.current + ""])
+      this._current = this.availableIDs[Math.floor(Math.random() * this.availableIDs.length)];
     this.showMascot();
 
     document.getElementById("mascot-swap")?.addEventListener("click", this.handleChangeMascot.bind(this));
@@ -69,7 +69,15 @@ class MascotManager {
 
   private set current (value: string | number) {
     this._current = typeof value === "string" ? parseInt(value) : value;
-    localStorage.setItem("mascot", this._current.toString());
+    if (isNaN(this._current) || (this._current != 0 && !this.mascots[this._current + ""])) {
+      console.warn(`Invalid mascot ID: ${value}`);
+      this._current = 0;
+    }
+
+    if (!this._current)
+      localStorage.removeItem("mascot");
+    else
+      localStorage.setItem("mascot", this._current.toString());
   }
 
 
