@@ -50,7 +50,7 @@ export default class CStorage {
   }
 
   static set mascotID (value: number) {
-    if (value > 0) CookieJar.set("mascot", value.toString());
+    if (value > 0) CookieJar.set("mascot", value.toString(), "/");
     else CookieJar.delete("mascot");
   }
 }

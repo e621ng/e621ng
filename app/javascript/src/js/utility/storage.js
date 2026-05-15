@@ -53,9 +53,6 @@ Object.defineProperty(LStorage, "Debug", {
 
 // Content that does not belong anywhere else
 LStorage.Site = {
-  /** @returns {number} Currently displayed Mascot ID, or 0 if none is selected */
-  Mascot: ["mascot", 0],
-
   /** @returns {number} Last news update ID, or 0 if none is selected */
   NewsID: ["hide_news_notice", 0],
 
