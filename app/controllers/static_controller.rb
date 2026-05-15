@@ -157,6 +157,7 @@ class StaticController < ApplicationController
 
     add_link[:tags, "Listing", tags_path]
     add_link[:tags, "Type Changes", tag_type_versions_path]
+    add_link[:tags, "Search Trends", search_trends_path]
     add_link[:tags, "MetaSearch", meta_searches_tags_path]
     add_link[:tags, "Aliases", tag_aliases_path]
     add_link[:tags, "Implications", tag_implications_path]
