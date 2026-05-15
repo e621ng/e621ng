@@ -190,13 +190,15 @@ class SessionLoader
   def populate_bitflag_cookie
     return if skip_cookies?
 
+    bitflag = BitflagCookie.new(cookies)
+
     if cookies[:post_recs] == "1"
-      BitflagCookieHelper.write_raw_bitflag_cookie(:hide_post_recommendations, true)
+      bitflag.write(:hide_post_recommendations, true)
       cookies.delete(:post_recs)
     end
 
     if cookies[:post_tabs] == "1"
-      BitflagCookieHelper.write_raw_bitflag_cookie(:post_mobile_tab_state, true)
+      bitflag.write(:post_mobile_tab_state, true)
       cookies.delete(:post_tabs)
     end
   end
