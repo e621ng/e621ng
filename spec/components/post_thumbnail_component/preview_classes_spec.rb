@@ -118,7 +118,7 @@ RSpec.describe PostThumbnailComponent, type: :component do
       expect(component(post).send(:preview_classes)).to include("shift-badge")
     end
 
-    it "does not shift down the badge if the left ribbon is present" do
+    it "does not shift down the badge if the left ribbon is not present" do
       expect(component(post).send(:preview_classes)).not_to include("shift-badge")
     end
   end
