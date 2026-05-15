@@ -52,7 +52,7 @@ export default class MascotManager {
     }
 
     let current = parseInt(mascotsElement.getAttribute("data-current") || "0");
-    if (isNaN(current) || !this.mascots[current + ""]) {
+    if (current !== 0 && (isNaN(current) || !this.mascots[current + ""])) {
       console.warn("Invalid current mascot ID, defaulting to 0");
       current = 0;
     }

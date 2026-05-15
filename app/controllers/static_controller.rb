@@ -47,7 +47,8 @@ class StaticController < ApplicationController
     selected_mascot ||= mascot_list[mascot_list.keys.sample]
 
     if selected_mascot.present?
-      @mascot_background_url = CGI.escape_html(selected_mascot["background_url"])
+      @mascot_id = selected_mascot["id"]
+      @mascot_background_url = selected_mascot["background_url"]
       @mascot_artist_name = selected_mascot["artist_name"]
       @mascot_artist_url = selected_mascot["artist_url"]
 
