@@ -1,0 +1,76 @@
+class Home {
+  // Search buttons
+  static bootstrapSearch (): void {
+    const form = document.getElementById("home-search-form") as HTMLFormElement;
+    const tags = document.getElementById("tags") as HTMLInputElement;
+    if (!form || !tags) return;
+
+    let isEmpty = !tags.value;
+    let wasEmpty = isEmpty;
+    if (isEmpty) form.classList.add("empty");
+
+    tags.addEventListener("input", () => {
+      wasEmpty = isEmpty;
+      isEmpty = !tags.value;
+
+      if (isEmpty && !wasEmpty) form.classList.add("empty");
+      else if (!isEmpty && wasEmpty) form.classList.remove("empty");
+    });
+
+    for (const link of document.querySelectorAll<HTMLAnchorElement>(".home-buttons a")) {
+      link.addEventListener("click", (event) => {
+        if (isEmpty) return; // Act like regular links
+
+        event.preventDefault();
+        const extraTags = link.getAttribute("tags");
+        if (extraTags) tags.value = tags.value + " " + extraTags;
+
+        form.requestSubmit();
+      });
+    }
+  }
+
+  // Trends toggle
+  static bootstrapTrends (): void {
+    const trends = document.getElementById("home-trends");
+    if (!trends) return;
+    const trendsToggle = trends.querySelector("h3");
+    if (!trendsToggle) return;
+
+    if (this.trends) {
+      trends.classList.remove("hidden");
+      trendsToggle.setAttribute("aria-expanded", "true");
+    }
+    window.setTimeout(() => trends.classList.add("animated"), 500); // Don't animate on page load
+
+    trendsToggle.addEventListener("click", () => {
+      this.trends = !this.trends;
+      trends.classList.toggle("hidden", !this.trends);
+      trendsToggle.setAttribute("aria-expanded", this.trends + "");
+    });
+  }
+
+  static _trends: boolean;
+  static get trends (): boolean {
+    if (typeof this._trends !== "boolean")
+      this._trends = localStorage.getItem("home_trends_shown") === "true";
+    return this._trends;
+  }
+
+  static set trends (value: boolean) {
+    this._trends = value;
+    localStorage.setItem("home_trends_shown", value.toString());
+  }
+
+}
+
+function onReady (callback: () => void): void {
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", callback, { once: true });
+  else callback();
+}
+
+onReady(() => {
+  Home.bootstrapSearch();
+  Home.bootstrapTrends();
+});
