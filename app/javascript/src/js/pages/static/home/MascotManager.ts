@@ -17,7 +17,7 @@ class MascotManager {
       this.current = this.availableIDs[Math.floor(Math.random() * this.availableIDs.length)];
     this.showMascot();
 
-    $("#mascot-swap").on("click", this.handleChangeMascot.bind(this));
+    document.getElementById("mascot-swap")?.addEventListener("click", this.handleChangeMascot.bind(this));
   }
 
   /**
@@ -78,25 +78,30 @@ class MascotManager {
     const mascot = this.mascots[mascotID + ""];
     if (!mascot) return;
 
-    const $body = $("body").css({
-      "--bg-image": `url("${mascot.background_url}")`,
-      "--bg-color": mascot.background_color,
-      "--fg-color": mascot.foreground_color,
-    });
+    const body = document.body;
+    body.style.setProperty("--bg-image", `url("${mascot.background_url}")`);
+    body.style.setProperty("--bg-color", mascot.background_color);
+    body.style.setProperty("--fg-color", mascot.foreground_color);
 
     if (mascot.is_layered)
-      $body.attr("layered", "true");
-    else $body.removeAttr("layered");
+      body.setAttribute("layered", "true");
+    else body.removeAttribute("layered");
+
+    const mascotArtist = document.getElementById("mascot-artist");
+    if (!mascotArtist) return;
 
     if (mascot.artist_name && mascot.artist_url) {
       const safeUrl = /^https?:\/\//i.test(mascot.artist_url) ? mascot.artist_url : "#";
-      $("#mascot-artist")
-        .text("Mascot by ")
-        .append($("<a>").text(mascot.artist_name).attr("href", safeUrl));
-    } else $("#mascot-artist").text("");
+      mascotArtist.textContent = "Mascot by ";
+
+      const artistLink = document.createElement("a");
+      artistLink.textContent = mascot.artist_name;
+      artistLink.href = safeUrl;
+      mascotArtist.append(artistLink);
+    } else mascotArtist.textContent = "";
   }
 
-  private handleChangeMascot (event: JQuery.ClickEvent) {
+  private handleChangeMascot (event: MouseEvent) {
     event.preventDefault();
 
     const currentMascotIndex = this.availableIDs.indexOf(this.current);
@@ -127,6 +132,10 @@ interface MascotData {
   artist_url: string;
 }
 
-$(function () {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    void MascotManager.instance;
+  });
+} else {
   void MascotManager.instance;
-});
+}
