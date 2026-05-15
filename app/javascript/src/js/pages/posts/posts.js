@@ -4,8 +4,8 @@ import Page from "@/utility/Page";
 import LStorage from "@/utility/storage";
 import SVGIcon from "@/utility/SVGIcon";
 import TaskQueue from "@/utility/TaskQueue";
-import Utility from "@/utility/utility";
 import ToastManager from "@/utility/Toast";
+import Utility from "@/utility/utility";
 
 let Post = {};
 
@@ -576,7 +576,7 @@ Post.notice_update = function (x) {
 };
 
 Post.update_data = function (data) {
-  var $post = Post.getThumbnail(data.id);
+  var $post = Post.getMatchingThumbnails(data.id);
   $post.attr("data-tags", data.tag_string);
   $post.data("rating", data.rating);
 
@@ -596,8 +596,8 @@ Post.tagScript = function (post_id, tags) {
   Post.update(post_id, { "post[tag_string_diff]": tag_string });
 };
 
-Post.getThumbnail = function (post_id) {
-  return $(`article.thumbnail[data-id="${post_id}"]`).first();
+Post.getMatchingThumbnails = function (post_id) {
+  return $(`article.thumbnail[data-id="${post_id}"]`);
 };
 
 Post.update = function (post_id, params) {
@@ -656,7 +656,7 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
       if (reload_after_delete) {
         location.reload();
       } else {
-        Post.getThumbnail(post_id).attr("data-flags", "deleted");
+        Post.getMatchingThumbnails(post_id).attr("data-flags", "deleted");
       }
     }).always(function () {
       if (!error)
@@ -676,7 +676,7 @@ Post.undelete = function (post_id, callback) {
       const message = data.responseJSON.message;
       E621.Toast.alert("Error: " + message);
     }).done(function () {
-      Post.getThumbnail(post_id).attr("data-flags", "active");
+      Post.getMatchingThumbnails(post_id).attr("data-flags", "active");
       E621.Toast.notice("Undeleted post.");
       if (callback) callback();
     }).always(function () {
@@ -697,7 +697,7 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
       const message = data.responseJSON.message;
       E621.Toast.alert("Error: " + message);
     }).done(function () {
-      Post.getThumbnail(post_id).removeClass("flagged");
+      Post.getMatchingThumbnails(post_id).removeClass("flagged");
       E621.Toast.notice("Unflagged post");
       if (callback) callback();
       if (reload) location.reload();
@@ -803,10 +803,10 @@ Post.approve = function (post_id, callback) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
       E621.Toast.alert("Error: " + message);
     }).done(function () {
-      const $post = Post.getThumbnail(post_id).first();
-      if ($post.length) {
-        $post.data("flags", $post.data("flags").replace(/pending/, ""));
-        $post.removeClass("pending");
+      const $thumbnails = Post.getMatchingThumbnails(post_id);
+      if ($thumbnails.length) {
+        $thumbnails.data("flags", $thumbnails.data("flags").replace(/pending/, ""));
+        $thumbnails.removeClass("pending");
         E621.Toast.notice("Approved post #" + post_id);
       }
       if (callback) {

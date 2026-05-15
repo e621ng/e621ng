@@ -45,7 +45,6 @@ article.thumbnail {
   display: flex;
   flex-flow: column;
   align-items: center;
-  position: relative;
   width: min-content; // Avoid stretching when outside the posts-container
 
   a.thm-link {
