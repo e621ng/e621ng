@@ -44,6 +44,11 @@ class MascotManager {
       return false;
     }
 
+    if (Object.keys(this.mascots).length === 0) {
+      console.warn("No mascot data found");
+      return false;
+    }
+
     return true;
   }
 
