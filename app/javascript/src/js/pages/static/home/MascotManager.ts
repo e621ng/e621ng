@@ -13,7 +13,7 @@ export default class MascotManager {
       .map(id => parseInt(id))
       .filter(id => !isNaN(id));
 
-    if (this.current == 0 || !this.mascots[this.current + ""])
+    if (!this.mascots[this.current + ""])
       this._current = this.availableIDs[Math.floor(Math.random() * this.availableIDs.length)];
     this.showMascot();
 
@@ -38,7 +38,7 @@ export default class MascotManager {
 
     try {
       const binString = atob((mascotsElement.textContent || "").trim());
-      const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0));
+      const bytes = Uint8Array.from(binString, (m) => m.charCodeAt(0));
       const decodedData = new TextDecoder().decode(bytes);
       this.mascots = JSON.parse(decodedData);
     } catch (error) {
@@ -139,6 +139,7 @@ export default class MascotManager {
 }
 
 interface MascotData {
+  id: number,
   background_url: string;
   background_color: string;
   foreground_color: string;

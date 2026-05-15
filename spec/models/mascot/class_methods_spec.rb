@@ -38,6 +38,19 @@ RSpec.describe Mascot do
     end
   end
 
+  describe ".active_for_browser_base64" do
+    before { Cache.delete("active_mascots") }
+
+    let!(:app_mascot) { create(:app_mascot) }
+
+    it "returns a base64-encoded JSON string" do
+      result = Mascot.active_for_browser_base64
+      decoded = Base64.strict_decode64(result)
+      parsed = JSON.parse(decoded)
+      expect(parsed.keys).to include(app_mascot.id.to_s)
+    end
+  end
+
   describe ".search" do
     it "returns results ordered by id ascending" do
       first  = create(:mascot)
