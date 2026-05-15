@@ -37,7 +37,9 @@ class MascotManager {
     }
 
     try {
-      const decodedData = atob((mascotsElement.textContent || "").trim());
+      const binString = atob((mascotsElement.textContent || "").trim());
+      const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0));
+      const decodedData = new TextDecoder().decode(bytes);
       this.mascots = JSON.parse(decodedData);
     } catch (error) {
       console.error("Mascot data could not be decoded or parsed", error);
