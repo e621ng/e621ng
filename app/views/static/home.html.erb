@@ -1,10 +1,9 @@
 <div id="c-static"><div id="a-home">
-  <script type="text/plain" id="home-mascots" data-encoding="base64"><%= Mascot.active_for_browser_base64 %></script>
-
+  <script type="text/plain" id="home-mascots" data-encoding="base64" data-current="<%= @mascot_id %>"><%= Mascot.active_for_browser_base64 %></script>
   <section class="mascot-section"></section>
 
   <section class="home-section home-search-section">
-    <%= form_tag(posts_path, method: "get", id: "home-search-form") do %>
+    <%= form_tag(posts_path, method: "get", id: "home-search-form", class: "empty") do %>
 
       <!-- Primary Searchbar -->
       <div class="home-search">
@@ -14,11 +13,11 @@
 
       <!-- Secondary search buttons -->
       <div class="home-buttons">
-        <a href="<%= posts_path %>" data-tags="">
+        <a href="<%= posts_path %>" class="st-button" data-tags="">
           <%= svg_icon(:sparkles) %>
           <span>Latest</span>
         </a>
-        <a href="<%= posts_path(tags: "order:hot") %>" data-tags="order:hot">
+        <a href="<%= posts_path(tags: "order:hot") %>" class="st-button" data-tags="order:hot">
           <%= svg_icon(:flame) %>
           <span>Popular</span>
         </a>
@@ -47,10 +46,19 @@
   <% end %>
 
   <section class="home-footer-top">
-    <div id="mascot-artist"></div>
-    <a href="#" id="mascot-swap">
-      <span>Swap Mascot</span>
-    </a>
+    <div id="mascot-artist">
+      <% if @mascot_artist_name.present? && @mascot_artist_url.present? %>
+        Mascot by <a href="<%= @mascot_artist_url %>" target="_blank" rel="noopener noreferrer"><%= @mascot_artist_name %></a>
+      <% end %>
+    </div>
+    <button type="button" id="mascot-swap" class="st-button">
+      Swap Mascot
+    </button>
+    <noscript>
+      <style type="text/css">
+        #mascot-swap { display: none; }
+      </style>
+    </noscript>
   </section>
   <section class="home-footer-bottom">
     <div class="home-footer-counter">
@@ -71,6 +79,9 @@
 </div></div>
 
 <% content_for(:html_header) do -%>
+  <% if @mascot_background_url.present? %>
+    <%= tag.link(rel: "preload", as: "image", href: @mascot_background_url, fetchpriority: "high") %>
+  <% end %>
   <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
   <%= tag.meta(name: "description", content: Danbooru.config.description) %>
   <%= tag.meta(property: "og:site_name", content: Danbooru.config.app_name) %>

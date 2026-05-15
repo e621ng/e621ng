@@ -9,7 +9,7 @@ class Home {
 
     let isEmpty = !tags.value;
     let wasEmpty = isEmpty;
-    if (isEmpty) form.classList.add("empty");
+    if (!isEmpty) form.classList.remove("empty");
 
     tags.addEventListener("input", () => {
       wasEmpty = isEmpty;

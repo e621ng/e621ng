@@ -1,11 +1,12 @@
 import State from "@/utility/StateUtils";
+import StorageC from "@/utility/StorageC";
 
 export default class MascotManager {
 
   private mascots: Record<string, MascotData> = {};
   private availableIDs: number[];
 
-  private constructor () {
+  public constructor () {
     if (!this.loadMascotData())
       return;
     // Backwards compatibility
@@ -17,7 +18,6 @@ export default class MascotManager {
 
     if (!this.mascots[this.current + ""])
       this._current = this.availableIDs[Math.floor(Math.random() * this.availableIDs.length)];
-    this.showMascot();
 
     document.getElementById("mascot-swap")?.addEventListener("click", this.handleChangeMascot.bind(this));
   }
@@ -53,6 +53,13 @@ export default class MascotManager {
       return false;
     }
 
+    let current = parseInt(mascotsElement.getAttribute("data-current") || "0");
+    if (isNaN(current) || !this.mascots[current + ""]) {
+      console.warn("Invalid current mascot ID, defaulting to 0");
+      current = 0;
+    }
+    this._current = current;
+
     return true;
   }
 
@@ -63,9 +70,8 @@ export default class MascotManager {
 
   private _current: number;
   private get current (): number {
-    if (typeof this._current !== "number") {
-      this._current = parseInt(localStorage.getItem("mascot") || "0") || 0;
-    }
+    if (typeof this._current !== "number")
+      this._current = StorageC.mascotID;
     return this._current;
   }
 
@@ -76,10 +82,8 @@ export default class MascotManager {
       this._current = 0;
     }
 
-    if (!this._current)
-      localStorage.removeItem("mascot");
-    else
-      localStorage.setItem("mascot", this._current.toString());
+    if (!this._current) StorageC.mascotID = 0;
+    else StorageC.mascotID = this._current;
   }
 
 
@@ -118,25 +122,13 @@ export default class MascotManager {
     } else mascotArtist.textContent = "";
   }
 
-  private handleChangeMascot (event: MouseEvent) {
+  public handleChangeMascot (event: MouseEvent) {
     event.preventDefault();
 
     const currentMascotIndex = this.availableIDs.indexOf(this.current);
     this.current = this.availableIDs[(currentMascotIndex + 1) % this.availableIDs.length];
 
     this.showMascot();
-  }
-
-
-  /* ============================== */
-  /* ====== Singleton Pattern ===== */
-  /* ============================== */
-
-  private static _instance: MascotManager;
-  static get instance () {
-    if (!MascotManager._instance)
-      MascotManager._instance = new MascotManager();
-    return MascotManager._instance;
   }
 }
 
@@ -151,5 +143,9 @@ interface MascotData {
 }
 
 State.onReady(() => {
-  void MascotManager.instance;
+  let instance: MascotManager = null;
+  document.getElementById("mascot-swap")?.addEventListener("click", function (event) {
+    if (!instance) instance = new MascotManager();
+    instance.handleChangeMascot(event);
+  });
 });

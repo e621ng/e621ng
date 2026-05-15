@@ -112,28 +112,15 @@ body.c-static.a-home {
 
     a {
       flex: 1;
-
-      display: flex;
-      justify-content: center;
-      gap: 0.25rem;
-
-      background: #25477b;
-      font-size: 0.9rem;
-      line-height: 1rem;
-      font-family: "Roboto", Verdana, Geneva, sans-serif;
-      font-weight: bold;
-      color: white;
-
-      padding: 0.5rem;
-      @include st-radius;
-      
-      &:hover { background: #2b538e; }
+      font-size: 0.85rem;
 
       svg {
         height: 1.25rem;
-        margin: -0.125rem 0;
+        width: 1.25rem;
+        padding: 0.375rem;
         color: #e8c446;
       }
+      span { flex: unset; }
     }
   }
 
@@ -159,22 +146,8 @@ body.c-static.a-home {
 
     @include st-radius-top;
 
-    a#mascot-swap {
-
-      display: flex;
-      justify-content: center;
-      gap: 0.25rem;
-
-      background: #25477b;
-      font-size: 0.85rem;
-      line-height: 1rem;
-      font-family: "Roboto", Verdana, Geneva, sans-serif;
-      color: white;
-
-      padding: 0.25rem 0.5rem;
-      @include st-radius;
-      
-      &:hover { background: #2b538e; }
+    button#mascot-swap {
+      margin: -0.5rem;
     }
   }
 
