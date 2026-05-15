@@ -18,8 +18,6 @@ export default class MascotManager {
 
     if (!this.mascots[this.current + ""])
       this._current = this.availableIDs[Math.floor(Math.random() * this.availableIDs.length)];
-
-    document.getElementById("mascot-swap")?.addEventListener("click", this.handleChangeMascot.bind(this));
   }
 
   /**

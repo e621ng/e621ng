@@ -9,6 +9,7 @@ class Home {
 
     let isEmpty = !tags.value;
     let wasEmpty = isEmpty;
+    // Start in default state, switch to non-empty if tags are pre-filled (ex. from navigating back to the page)
     if (!isEmpty) form.classList.remove("empty");
 
     tags.addEventListener("input", () => {

@@ -42,25 +42,22 @@ class StaticController < ApplicationController
 
   def home
     @mascot_id = cookies[:mascot].to_i
-    if @mascot_id > 0 && Mascot.active_for_browser[@mascot_id].present?
-      selected_mascot = Mascot.active_for_browser[@mascot_id]
-    else
-      # Grab random mascot if user does not have one selected, or if the selected mascot is invalid
-      selected_mascot_id = Mascot.active_for_browser.keys.sample
-      selected_mascot = Mascot.active_for_browser[selected_mascot_id]
-    end
+    mascot_list = Mascot.active_for_browser
+    selected_mascot = @mascot_id > 0 ? mascot_list[@mascot_id] : nil
+    selected_mascot ||= mascot_list[mascot_list.keys.sample]
 
     if selected_mascot.present?
-      @mascot_background_url = selected_mascot[:background_url]
+      @mascot_background_url = CGI.escape_html(selected_mascot["background_url"])
+      @mascot_artist_name = selected_mascot["artist_name"]
+      @mascot_artist_url = selected_mascot["artist_url"]
+
       @extra_body_args = {
         style: [
-          "--bg-image: url(#{@mascot_background_url})",
-          "--bg-color: #{selected_mascot[:background_color]}",
-          "--fg-color: #{selected_mascot[:foreground_color]}",
+          "--bg-image: url('#{@mascot_background_url}')",
+          "--bg-color: #{selected_mascot['background_color']}",
+          "--fg-color: #{selected_mascot['foreground_color']}",
         ].join(";"),
       }
-      @mascot_artist_name = selected_mascot[:artist_name]
-      @mascot_artist_url = selected_mascot[:artist_url]
     end
 
     render layout: "blank", formats: [:html]

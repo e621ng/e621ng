@@ -17,7 +17,7 @@ export default class CStorage {
 
   static set hideDMailNotice (value: boolean) {
     if (value) CookieJar.setBool("hide_dmail_notice", true);
-    else CookieJar.deleteBool("hide_dmail_notice");
+    else CookieJar.delete("hide_dmail_notice");
   }
 
 
@@ -28,7 +28,7 @@ export default class CStorage {
 
   static set postMobileTabState (value: "comments" | "tags") {
     if (value === "comments") CookieJar.setBool("post_tab", true);
-    else CookieJar.deleteBool("post_tab");
+    else CookieJar.delete("post_tab");
   }
 
 
@@ -39,7 +39,7 @@ export default class CStorage {
 
   static set postRecommenderHidden (value: boolean) {
     if (value) CookieJar.setBool("post_recs", true);
-    else CookieJar.deleteBool("post_recs");
+    else CookieJar.delete("post_recs");
   }
 
 
@@ -55,35 +55,11 @@ export default class CStorage {
   }
 }
 
+/**
+ * Helper class for managing cookies.
+ * Should not be used directly - add helper methods to CStorage instead.
+ */
 class CookieJar {
-  /**
-   * Retrieves a boolean value from a cookie. The cookie is expected to be "1" for true and "0" for false.
-   * @param name The name of the cookie to retrieve.
-   * @returns True if the cookie value is "1", otherwise false.
-   */
-  public static getBool (name: string): boolean {
-    return this.get(name) === "1";
-  }
-
-  /**
-   * Sets a boolean value in a cookie. The value is stored as "1" for true and "0" for false.  
-   * The cookie will expire after the specified number of days.
-   * @param name The name of the cookie to set.
-   * @param value The boolean value to store in the cookie.
-   * @param days The number of days until the cookie expires (default is 365).
-   */
-  public static setBool (name: string, value: boolean, path: string = "/", days: number = 365): void {
-    this.set(name, value ? "1" : "0", path, days);
-  }
-
-  /**
-   * Deletes a boolean value from a cookie by setting its expiration date to a past date.
-   * @param name The name of the cookie to delete.
-   */
-  public static deleteBool (name: string): void {
-    this.delete(name);
-  }
-
   /**
    * Retrieves the value of a cookie by its name. If the cookie does not exist, it returns null.
    * @param name The name of the cookie to retrieve.
@@ -114,8 +90,30 @@ class CookieJar {
   /**
    * Deletes a cookie by setting its expiration date to a past date, effectively removing it from the browser.
    * @param name The name of the cookie to delete.
+   * @param path The path of the cookie to delete (default is "/").
    */
-  public static delete (name: string): void {
-    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;`;
+  public static delete (name: string, path: string = "/"): void {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; SameSite=Lax;`;
+  }
+
+
+  /**
+   * Retrieves a boolean value from a cookie. The cookie is expected to be "1" for true and "0" for false.
+   * @param name The name of the cookie to retrieve.
+   * @returns True if the cookie value is "1", otherwise false.
+   */
+  public static getBool (name: string): boolean {
+    return this.get(name) === "1";
+  }
+
+  /**
+   * Sets a boolean value in a cookie. The value is stored as "1" for true and "0" for false.  
+   * The cookie will expire after the specified number of days.
+   * @param name The name of the cookie to set.
+   * @param value The boolean value to store in the cookie.
+   * @param days The number of days until the cookie expires (default is 365).
+   */
+  public static setBool (name: string, value: boolean, path: string = "/", days: number = 365): void {
+    this.set(name, value ? "1" : "0", path, days);
   }
 }
