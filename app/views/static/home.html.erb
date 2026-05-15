@@ -46,15 +46,6 @@
     </section>
   <% end %>
 
-  <% if Danbooru.config.subscribestar_url.present? %>
-    <section class="home-section home-subscribestar">
-      <a href="<%= subscribestar_path %>">
-        <div>Enjoying e621? Consider <span class="fake-link">supporting us</span>.</div>
-        <%= image_tag("ss_logotype.png", width: 256) %>
-      </a>
-    </section>
-  <% end %>
-
   <section class="home-footer-top">
     <div id="mascot-artist"></div>
     <a href="#" id="mascot-swap">

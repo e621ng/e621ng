@@ -820,10 +820,6 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       }
     end
 
-    def subscribestar_url
-      nil
-    end
-
     # Additional video samples will be generated in these dimensions if it makes sense to do so
     # They will be available as additional scale options on applicable posts in the order they appear here
     def video_rescales

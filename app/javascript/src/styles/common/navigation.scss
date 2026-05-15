@@ -198,8 +198,7 @@ nav.navigation {
 
     li {
       a { background: themed("color-section-darken-5"); }
-      &.nav-help-discord,
-      &.nav-help-subscribestar {
+      &.nav-help-discord {
         grid-column: 1 / -1;
       }
 
@@ -457,7 +456,7 @@ nav.navigation, html.nav-toggled nav.navigation {
     }
 
     // Icon collapse
-    // Stage 1: discord and subscribestar buttons
+    // Stage 1: discord button
     .collapse-1 { display: none; }
     @include window-larger-than(77rem) {
       .collapse-1 { display: flex; }
@@ -497,7 +496,7 @@ body.c-static.a-home {
       // at low desktop resolutions
       padding: 0 0 0.5rem;
 
-      #nav-subscribestar, #nav-discord, .nav-secondary, .nav-tools { display: none; }
+      #nav-discord, .nav-secondary, .nav-tools { display: none; }
     }
 
     // Match the background colors
