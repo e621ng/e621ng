@@ -22,8 +22,9 @@ class Home {
         if (isEmpty) return; // Act like regular links
 
         event.preventDefault();
-        const extraTags = link.getAttribute("tags");
-        if (extraTags) tags.value = tags.value + " " + extraTags;
+        const extraTags = link.getAttribute("data-tags");
+        if (extraTags && !tags.value.includes(extraTags))
+          tags.value = tags.value + (tags.value.endsWith(" ") ? "" : " ") + extraTags;
 
         form.requestSubmit();
       });
@@ -46,20 +47,20 @@ class Home {
     trendsToggle.addEventListener("click", () => {
       this.trends = !this.trends;
       trends.classList.toggle("hidden", !this.trends);
-      trendsToggle.setAttribute("aria-expanded", this.trends + "");
+      trendsToggle.setAttribute("aria-expanded", this.trends ? "true" : "false");
     });
   }
 
   static _trends: boolean;
   static get trends (): boolean {
     if (typeof this._trends !== "boolean")
-      this._trends = localStorage.getItem("home_trends_shown") === "true";
+      this._trends = localStorage.getItem("e6.rising.shown") !== "false";
     return this._trends;
   }
 
   static set trends (value: boolean) {
     this._trends = value;
-    localStorage.setItem("home_trends_shown", value.toString());
+    localStorage.setItem("e6.rising.shown", value.toString());
   }
 
 }

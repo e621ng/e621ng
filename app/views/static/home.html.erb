@@ -14,11 +14,11 @@
 
       <!-- Secondary search buttons -->
       <div class="home-buttons">
-        <a href="<%= posts_path %>" tags="">
+        <a href="<%= posts_path %>" data-tags="">
           <%= svg_icon(:sparkles) %>
           <span>Latest</span>
         </a>
-        <a href="<%= posts_path(tags: "order:hot") %>" tags="order:hot">
+        <a href="<%= posts_path(tags: "order:hot") %>" data-tags="order:hot">
           <%= svg_icon(:flame) %>
           <span>Popular</span>
         </a>
