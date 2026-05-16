@@ -80,7 +80,7 @@ module IqdbProxy
     json.map do |x|
       post = posts[x["post_id"]]
       next if post.blank? # Skip deleted or missing posts
-      x["post"] = v2_format ? PostBlueprint.render_as_hash(posts[x["post_id"]], view: :basic) : posts[x["post_id"]]
+      x["post"] = v2_format ? PostBlueprint.render_as_hash(post, view: :basic) : post
       x
     end.compact
   end
