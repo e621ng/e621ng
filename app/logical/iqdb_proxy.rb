@@ -78,12 +78,10 @@ module IqdbProxy
     posts = Post.where(id: post_ids).includes(:uploader).index_by(&:id)
 
     json.map do |x|
-      if x["post_id"].present?
-        x["post"] = v2_format ? PostBlueprint.render_as_hash(posts[x["post_id"]], view: :basic) : posts[x["post_id"]]
-      end
+      post = posts[x["post_id"]]
+      next if post.blank? # Skip deleted or missing posts
+      x["post"] = v2_format ? PostBlueprint.render_as_hash(posts[x["post_id"]], view: :basic) : posts[x["post_id"]]
       x
-    rescue ActiveRecord::RecordNotFound
-      nil
     end.compact
   end
 
