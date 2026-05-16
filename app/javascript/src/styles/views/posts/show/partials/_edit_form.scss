@@ -10,11 +10,20 @@
   }
 }
 
-#post-edit-invalid-url {
-  background-color: themed("color-danger-darken-10");
+@mixin post-edit-invalid-url {
   border: 1px solid themed("color-foreground");
   width: fit-content;
   margin-bottom: 1em;
   padding: 0.5em;
   font-weight: bold;
+}
+
+#post-edit-invalid-url-error {
+  background-color: themed("color-danger-darken-10");
+  @include post-edit-invalid-url
+}
+
+#post-edit-invalid-url-warning {
+  background-color: themed("color-warning-darken-5");
+  @include post-edit-invalid-url
 }
