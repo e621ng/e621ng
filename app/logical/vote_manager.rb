@@ -247,8 +247,6 @@ class VoteManager
       users_by_id = User.where(id: uploader_ids.to_a).index_by(&:id)
 
       tag_votes.select { |_, count| count.abs > threshold }
-               .sort_by { |_, count| -count.abs }
-               .to_h
                .sort_by { |_, count| count }
                .map { |tag_name, count| [trend_tag_for(tag_name, tag_records, users_by_id, uploader_post_counts), count] }
     end
