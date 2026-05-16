@@ -12,7 +12,7 @@ class IqdbQueriesController < ApplicationController
     search_params = params[:search].presence || params
     throttle(search_params)
 
-    v2_format = params[:v2] == "true"
+    v2_format = params[:v2] == "true" && request.format.json?
 
     @matches = []
     if search_params[:file].present?
