@@ -23,32 +23,27 @@ RSpec.describe "Admin::VoteTrendsController" do
       it "returns an empty result when user is missing" do
         sign_in_as admin_user
 
-        expect(VoteManager::VoteAbuseMethods).not_to receive(:vote_abuse_patterns)
+        allow(VoteManager::VoteAbuseMethods).to receive(:vote_abuse_patterns)
 
         get admin_vote_trends_path
 
         expect(response).to have_http_status(:ok)
+        expect(VoteManager::VoteAbuseMethods).not_to have_received(:vote_abuse_patterns)
       end
 
       it "returns an empty result when user param is blank" do
         sign_in_as admin_user
 
-        expect(VoteManager::VoteAbuseMethods).not_to receive(:vote_abuse_patterns)
+        allow(VoteManager::VoteAbuseMethods).to receive(:vote_abuse_patterns)
 
         get admin_vote_trends_path, params: { user: "" }
 
         expect(response).to have_http_status(:ok)
+        expect(VoteManager::VoteAbuseMethods).not_to have_received(:vote_abuse_patterns)
       end
 
       it "calls VoteManager::VoteAbuseMethods with normalized params" do
-        expect(VoteManager::VoteAbuseMethods).to receive(:vote_abuse_patterns)
-          .with(hash_including(
-                  user: an_instance_of(User),
-                  limit: 5,
-                  threshold: 0.2,
-                  duration: "7",
-                  vote_normality: true,
-                )).and_return([])
+        allow(VoteManager::VoteAbuseMethods).to receive(:vote_abuse_patterns).and_return([])
 
         sign_in_as admin_user
 
@@ -61,9 +56,15 @@ RSpec.describe "Admin::VoteTrendsController" do
         }
 
         expect(response).to have_http_status(:ok)
+        expect(VoteManager::VoteAbuseMethods).to have_received(:vote_abuse_patterns)
+          .with(hash_including(
+                  user: an_instance_of(User),
+                  limit: 5,
+                  threshold: 0.2,
+                  duration: "7",
+                  vote_normality: true,
+                ))
       end
-
-      # JSON behavior is covered elsewhere; ensure HTML response and call behavior above.
     end
   end
 end

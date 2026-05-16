@@ -8,12 +8,12 @@ RSpec.describe VoteManager::VoteAbuseMethods do
     let(:user) { create(:user) }
     let(:uploader) { create(:user) }
 
-    let!(:post1) { create(:post, tag_string: "tag_one shared", uploader: uploader, score: 10) }
-    let!(:post2) { create(:post, tag_string: "tag_one other", uploader: uploader, score: 2) }
+    let!(:shared_post) { create(:post, tag_string: "tag_one shared", uploader: uploader, score: 10) }
+    let!(:other_post) { create(:post, tag_string: "tag_one other", uploader: uploader, score: 2) }
 
     before do
-      create(:post_vote, post: post1, user: user, score: 1)
-      create(:post_vote, post: post2, user: user, score: 1)
+      create(:post_vote, post: shared_post, user: user, score: 1)
+      create(:post_vote, post: other_post, user: user, score: 1)
     end
 
     it "returns an array of tag-weight pairs" do
@@ -52,7 +52,9 @@ RSpec.describe VoteManager::VoteAbuseMethods do
     it "skips votes without posts" do
       vote = instance_double(PostVote, post: nil, score: 1, updated_at: Time.current)
 
-      allow(user).to receive_message_chain(:post_votes, :includes, :order, :limit, :to_a).and_return([vote])
+      post_votes_relation = instance_double(ActiveRecord::Relation)
+      allow(user).to receive(:post_votes).and_return(post_votes_relation)
+      allow(post_votes_relation).to receive_messages(includes: post_votes_relation, order: post_votes_relation, limit: post_votes_relation, to_a: [vote])
 
       expect(described_class.vote_abuse_patterns(user: user)).to eq([])
     end
@@ -62,7 +64,9 @@ RSpec.describe VoteManager::VoteAbuseMethods do
       post = instance_double(Post, tag_array: %w[missing_tag known_tag], uploader_id: 12_345, rating: nil, score: 1, up_score: 1, down_score: 0, tag_count: 1)
       vote = instance_double(PostVote, post: post, score: 1, updated_at: Time.current)
 
-      allow(user).to receive_message_chain(:post_votes, :includes, :order, :limit, :to_a).and_return([vote])
+      post_votes_relation = instance_double(ActiveRecord::Relation)
+      allow(user).to receive(:post_votes).and_return(post_votes_relation)
+      allow(post_votes_relation).to receive_messages(includes: post_votes_relation, order: post_votes_relation, limit: post_votes_relation, to_a: [vote])
 
       result = described_class.vote_abuse_patterns(user: user)
 
@@ -77,7 +81,9 @@ RSpec.describe VoteManager::VoteAbuseMethods do
       post = instance_double(Post, tag_array: ["known_tag"], uploader_id: uploader_user.id, rating: "s", score: 1, up_score: 1, down_score: 0, tag_count: 1)
       vote = instance_double(PostVote, post: post, score: 1, updated_at: Time.current)
 
-      allow(user).to receive_message_chain(:post_votes, :includes, :order, :limit, :to_a).and_return([vote])
+      post_votes_relation = instance_double(ActiveRecord::Relation)
+      allow(user).to receive(:post_votes).and_return(post_votes_relation)
+      allow(post_votes_relation).to receive_messages(includes: post_votes_relation, order: post_votes_relation, limit: post_votes_relation, to_a: [vote])
 
       result = described_class.vote_abuse_patterns(user: user)
 
@@ -90,7 +96,9 @@ RSpec.describe VoteManager::VoteAbuseMethods do
       post = instance_double(Post, tag_array: ["orphan_tag"], uploader_id: nil, rating: nil, score: 1, up_score: 1, down_score: 0, tag_count: 1)
       vote = instance_double(PostVote, post: post, score: 1, updated_at: Time.current)
 
-      allow(user).to receive_message_chain(:post_votes, :includes, :order, :limit, :to_a).and_return([vote])
+      post_votes_relation = instance_double(ActiveRecord::Relation)
+      allow(user).to receive(:post_votes).and_return(post_votes_relation)
+      allow(post_votes_relation).to receive_messages(includes: post_votes_relation, order: post_votes_relation, limit: post_votes_relation, to_a: [vote])
 
       result = described_class.vote_abuse_patterns(user: user)
 
