@@ -41,5 +41,86 @@ RSpec.describe VoteManager::VoteAbuseMethods do
       high = described_class.vote_abuse_patterns(user: user, threshold: 1000.0)
       expect(high).to be_empty
     end
+
+    it "skips votes without posts" do
+      vote = instance_double(PostVote, post: nil, score: 1, updated_at: Time.current)
+
+      allow(user).to receive_message_chain(:post_votes, :includes, :order, :limit, :to_a).and_return([vote])
+
+      expect(described_class.vote_abuse_patterns(user: user)).to eq([])
+    end
+
+    it "handles missing tag records and zero tag post counts" do
+      create(:tag, name: "known_tag")
+      post = instance_double(Post, tag_array: ["missing_tag", "known_tag"], uploader_id: 12345, rating: nil, score: 1, up_score: 1, down_score: 0, tag_count: 1)
+      vote = instance_double(PostVote, post: post, score: 1, updated_at: Time.current)
+
+      allow(user).to receive_message_chain(:post_votes, :includes, :order, :limit, :to_a).and_return([vote])
+
+      result = described_class.vote_abuse_patterns(user: user)
+
+      expect(result.map { |trend_tag, _| trend_tag.name }).to include("known_tag", "uploader:!12345")
+      expect(result.map { |trend_tag, _| trend_tag.name }).not_to include("missing_tag")
+      expect(result.find { |trend_tag, _| trend_tag.name == "uploader:!12345" }.first.post_count).to eq(0)
+    end
+
+    it "includes uploader and rating keys when present" do
+      uploader_user = create(:user)
+      tag = create(:tag, name: "known_tag")
+      post = instance_double(Post, tag_array: ["known_tag"], uploader_id: uploader_user.id, rating: "s", score: 1, up_score: 1, down_score: 0, tag_count: 1)
+      vote = instance_double(PostVote, post: post, score: 1, updated_at: Time.current)
+
+      allow(user).to receive_message_chain(:post_votes, :includes, :order, :limit, :to_a).and_return([vote])
+
+      result = described_class.vote_abuse_patterns(user: user)
+
+      expect(result.map { |trend_tag, _| trend_tag.name }).to include("known_tag", "uploader:#{uploader_user.name}", "rating:s")
+      expect(result.map { |trend_tag, _| trend_tag.post_count }).to include(tag.post_count)
+    end
+
+    it "does not add uploader counts when uploader_id is absent" do
+      create(:tag, name: "orphan_tag")
+      post = instance_double(Post, tag_array: ["orphan_tag"], uploader_id: nil, rating: nil, score: 1, up_score: 1, down_score: 0, tag_count: 1)
+      vote = instance_double(PostVote, post: post, score: 1, updated_at: Time.current)
+
+      allow(user).to receive_message_chain(:post_votes, :includes, :order, :limit, :to_a).and_return([vote])
+
+      result = described_class.vote_abuse_patterns(user: user)
+
+      expect(result.map { |trend_tag, _| trend_tag.name }).to eq(["orphan_tag"])
+    end
+  end
+
+  describe ".calculate_vote_weight" do
+    let(:vote) { instance_double(PostVote, score: 1) }
+
+    it "returns 0 when the post has no tag count" do
+      post = instance_double(Post, tag_count: 0, up_score: 1, down_score: 0)
+
+      expect(described_class.calculate_vote_weight(vote, post)).to eq(0)
+    end
+
+    it "uses vote normality when enabled" do
+      post = instance_double(Post, tag_count: 2, up_score: 3, down_score: -1)
+
+      expect(described_class.calculate_vote_weight(vote, post, vote_normality: true)).to eq(0.25)
+    end
+
+    it "ignores vote normality when disabled" do
+      post = instance_double(Post, tag_count: 2, up_score: 3, down_score: -1)
+
+      expect(described_class.calculate_vote_weight(vote, post, vote_normality: false)).to eq(0.5)
+    end
+  end
+
+  describe ".trend_tag_for" do
+    it "falls back to the uploader id when the user is missing" do
+      trend_tag = described_class.trend_tag_for("uploader:!123", {}, {}, {})
+
+      expect(trend_tag.name).to eq("uploader:!123")
+      expect(trend_tag.uploader_id).to eq(123)
+      expect(trend_tag.post_count).to eq(0)
+      expect(trend_tag.uploader).to be_nil
+    end
   end
 end
