@@ -87,7 +87,7 @@ module Danbooru
 
         case page.to_s
         when /\A\d+\z/
-          [validate_numbered_page!(Regexp.last_match(0).to_i), :numbered]
+          [validate_numbered_page!(page.to_s.to_i), :numbered]
         when /\Ab(\d+)\z/
           [validate_sequential_page!(Regexp.last_match(1)), :sequential_before]
         when /\Aa(\d+)\z/
