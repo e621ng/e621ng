@@ -4,7 +4,11 @@ class ApplicationController < ActionController::Base
   class APIThrottled < StandardError; end
   class FeatureUnavailable < StandardError; end
 
+  # NOTE: this gets flagged by CodeQL as a CSRF vulnerability, but it's a false positive.
+  # This check is only skipped for requests with API authentication, which are made by clients
+  # that don't support CSRF tokens. All browser-based actions still require CSRF protection.
   skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? }
+
   before_action :reset_current_user
   before_action :sanitize_params
   before_action :set_current_user
