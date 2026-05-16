@@ -179,15 +179,16 @@ class VoteManager
       uploader_ids = Set.new
       scope = user.post_votes.includes(:post).order(updated_at: :desc)
 
+      votes = scope.limit(limit).to_a
+
       if duration
         days = duration.is_a?(String) ? duration.to_f : duration
         if days > 0
           time_ago = days.days.ago
-          scope = scope.where("updated_at >= ?", time_ago)
+          votes = votes.select { |v| v.updated_at >= time_ago }
         end
       end
 
-      votes = scope.limit(limit).to_a
       posts = votes.filter_map(&:post)
       tags_by_name = Tag.where(name: posts.flat_map(&:tag_array).uniq).index_by(&:name)
 
