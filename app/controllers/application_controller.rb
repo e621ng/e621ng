@@ -12,7 +12,6 @@ class ApplicationController < ActionController::Base
   before_action :validate_pagination_param_types
   before_action :normalize_search
   before_action :api_check
-  before_action :enable_cors
   before_action :check_valid_username
   after_action :reset_current_user
   layout "default"
@@ -29,12 +28,6 @@ class ApplicationController < ActionController::Base
   # This is raised on requests to `/blah.js`. Rails has already rendered StaticController#not_found
   # here, so calling `rescue_exception` would cause a double render error.
   rescue_from ActionController::InvalidCrossOriginRequest, with: -> {}
-
-  def enable_cors
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Authorization, User-Agent"
-    response.headers["Access-Control-Allow-Methods"] = "POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS"
-  end
 
   def check_valid_username
     return if params[:controller] == "user_name_change_requests"

@@ -52,6 +52,8 @@ gem "faraday"
 gem "faraday-follow_redirects"
 gem "faraday-retry"
 
+gem "rack-cors"
+
 gem "rails-settings-cached", "~> 2.9"
 
 group :production do
