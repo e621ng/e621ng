@@ -41,8 +41,9 @@ module Danbooru
       def max_numbered_pages
         return 1 if records_per_page == 0
         if @paginator_options[:max_count]
-          page_count = (@paginator_options[:max_count].to_f / records_per_page).ceil
-          page_count.clamp(1, Danbooru.config.max_numbered_pages)
+          # max_count caps the OpenSearch result window (from + size).
+          # We have to round down here to avoid "Result window is too large" on the last page.
+          [Danbooru.config.max_numbered_pages, @paginator_options[:max_count] / records_per_page].min
         else
           Danbooru.config.max_numbered_pages
         end

@@ -113,25 +113,23 @@ RSpec.describe Danbooru::Paginator::BaseExtension do
     end
 
     context "with max_count specified" do
-      it "respects a tighter cap" do
-        relation.paginate("1", limit: 10, max_count: 45)
-        expect { relation.paginate("5", limit: 10, max_count: 45) }.not_to raise_error
-        expect { relation.paginate("6", limit: 10, max_count: 45) }
-          .to raise_error(Danbooru::Paginator::PaginationError, /cannot go beyond page 5/)
+      it "caps at floor(max_count / limit) when not a multiple" do
+        relation.paginate("4", limit: 10, max_count: 45)
+        expect { relation.paginate("5", limit: 10, max_count: 45) }
+          .to raise_error(Danbooru::Paginator::PaginationError, /cannot go beyond page 4/)
       end
 
-      it "respects a cap when max_count is a multiple of the limit" do
-        relation.paginate("1", limit: 10, max_count: 50)
-        expect { relation.paginate("5", limit: 10, max_count: 50) }.not_to raise_error
+      it "caps at max_count / limit when max_count is a multiple of the limit" do
+        relation.paginate("5", limit: 10, max_count: 50)
         expect { relation.paginate("6", limit: 10, max_count: 50) }
           .to raise_error(Danbooru::Paginator::PaginationError, /cannot go beyond page 5/)
       end
 
-      it "respects a cap when max_count is lower than max_numbered_pages" do
-        relation.paginate("1", limit: 10, max_count: 5)
-        expect { relation.paginate("1", limit: 10, max_count: 5) }.not_to raise_error
-        expect { relation.paginate("2", limit: 10, max_count: 5) }
-          .to raise_error(Danbooru::Paginator::PaginationError, /cannot go beyond page 1/)
+      it "rejects all pages when max_count is smaller than the limit" do
+        # max_count represents the underlying search window (from + size).
+        # A single page of `limit` documents will exceed this window, so no pages should be valid.
+        expect { relation.paginate("1", limit: 10, max_count: 5) }
+          .to raise_error(Danbooru::Paginator::PaginationError, /cannot go beyond page 0/)
       end
 
       it "does not exceed Danbooru.config.max_numbered_pages" do
