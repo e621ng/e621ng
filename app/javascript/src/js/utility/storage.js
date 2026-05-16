@@ -53,28 +53,11 @@ Object.defineProperty(LStorage, "Debug", {
 
 // Content that does not belong anywhere else
 LStorage.Site = {
-  /** @returns {number} Currently displayed Mascot ID, or 0 if none is selected */
-  Mascot: ["mascot", 0],
-
   /** @returns {number} Last news update ID, or 0 if none is selected */
   NewsID: ["hide_news_notice", 0],
 
   /** @returns {boolean} True to enable events, false to opt out */
   Events: ["e6.events", true],
-
-  /** @returns {object} User avatar menu statistics */
-  AvatarMenu: [
-    "e6.avatar.menu", {
-      has_uploads: false,
-      has_favorites: false,
-      has_sets: false,
-      has_comments: false,
-      has_forums: false,
-    },
-  ],
-
-  /** @returns {boolean} True if the rising tags section on the homepage is shown */
-  RisingShown: ["e6.rising.shown", true],
 };
 StorageUtils.bootstrapMany(LStorage.Site);
 

@@ -191,11 +191,6 @@ RSpec.describe StaticController do
       end
     end
 
-    # NOTE: The /static/subscribestar route is only registered when Danbooru.config.subscribestar_url
-    # is present at boot time. Because the route (and its helper) don't exist in the test
-    # environment, testing the Subscribestar site_map link by stubbing subscribestar_url at
-    # runtime is not feasible — the navigation layout would raise an undefined route helper error.
-
     context "when db_export_path is configured" do
       before do
         allow(Danbooru.config.custom_configuration).to receive(:db_export_path).and_return("/db_export/")

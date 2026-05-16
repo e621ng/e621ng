@@ -1,5 +1,6 @@
 import Page from "@/utility/Page";
 import LStorage from "@/utility/storage";
+import CStorage from "@/utility/StorageC";
 
 const Theme = {};
 
@@ -51,11 +52,11 @@ Theme.initialize_selector = function () {
 Theme.initialize_buttons = function () {
   if (!LStorage.isAvailable()) return;
 
-  if (LStorage.Site.Mascot !== 0) {
+  if (CStorage.mascotID !== 0) {
     $("#mascot-state").show();
-    $("#mascot-value").text(LStorage.Site.Mascot);
+    $("#mascot-value").text(CStorage.mascotID);
     $("#mascot-reset").on("click", () => {
-      LStorage.Site.Mascot = 0;
+      CStorage.mascotID = 0;
       $("#mascot-state").hide();
     });
   }
