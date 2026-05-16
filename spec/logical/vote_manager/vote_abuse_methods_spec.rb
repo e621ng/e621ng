@@ -30,6 +30,13 @@ RSpec.describe VoteManager::VoteAbuseMethods do
       expect(recent).to be_empty
     end
 
+    it "honors the duration filter when duration is a string" do
+      # move existing votes outside the duration window and expect no recent results
+      PostVote.where(user_id: user.id).update_all(created_at: 10.days.ago, updated_at: 10.days.ago)
+      recent = described_class.vote_abuse_patterns(user: user, duration: "1")
+      expect(recent).to be_empty
+    end
+
     it "returns arrays for both vote_normality settings" do
       with_norm = described_class.vote_abuse_patterns(user: user, vote_normality: true)
       without_norm = described_class.vote_abuse_patterns(user: user, vote_normality: false)
