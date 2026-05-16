@@ -9,7 +9,7 @@ Rails.application.config.middleware.insert_before Middleware::ParameterSanitizer
     origins "*"
 
     resource "*",
-             headers: %w[Authorization User-Agent],
+             headers: :any,
              methods: %i[get post put patch delete options head]
   end
 end

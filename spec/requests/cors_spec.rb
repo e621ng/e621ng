@@ -25,13 +25,17 @@ RSpec.describe "CORS handling" do
     it "responds 200 with the preflight headers" do
       process :options, "/posts.json", headers: {
         "HTTP_ORIGIN" => "https://example.com",
-        "HTTP_ACCESS_CONTROL_REQUEST_METHOD" => "GET",
-        "HTTP_ACCESS_CONTROL_REQUEST_HEADERS" => "Authorization",
+        "HTTP_ACCESS_CONTROL_REQUEST_METHOD" => "POST",
+        "HTTP_ACCESS_CONTROL_REQUEST_HEADERS" => "Authorization, Content-Type",
       }
       expect(response).to have_http_status(:ok)
       expect(response.headers["Access-Control-Allow-Origin"]).to eq("*")
-      expect(response.headers["Access-Control-Allow-Methods"]).to include("GET")
-      expect(response.headers["Access-Control-Allow-Headers"]).to include("Authorization")
+      expect(response.headers["Access-Control-Allow-Methods"]).to include("POST")
+      # `headers: :any` makes rack-cors reflect every requested header back, so
+      # browser JSON POSTs (which trigger preflight for Content-Type) succeed.
+      allowed = response.headers["Access-Control-Allow-Headers"]
+      expect(allowed).to include("Authorization")
+      expect(allowed).to include("Content-Type")
     end
   end
 end
