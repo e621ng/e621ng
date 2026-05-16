@@ -178,6 +178,7 @@ class VoteManager
       tag_votes = Hash.new(0)
       uploader_ids = Set.new
       scope = user.post_votes.includes(:post).order(updated_at: :desc)
+
       if duration
         days = duration.is_a?(String) ? duration.to_f : duration
         if days > 0
@@ -185,6 +186,7 @@ class VoteManager
           scope = scope.where("updated_at >= ?", time_ago)
         end
       end
+
       votes = scope.limit(limit).to_a
       posts = votes.filter_map(&:post)
       tags_by_name = Tag.where(name: posts.flat_map(&:tag_array).uniq).index_by(&:name)
@@ -212,6 +214,7 @@ class VoteManager
           tag_votes["rating:#{post.rating}"] += weight
         end
       end
+
       # weight tags by their total usage over the whole site
       tag_records = Tag.where(name: tag_votes.keys).index_by(&:name)
 
@@ -236,8 +239,9 @@ class VoteManager
       end
 
       tag_votes.each_key do |tag|
-        tag_votes[tag] /= tag_post_counts[tag].to_f
+        tag_votes[tag] /= tag_post_counts[tag].to_f unless tag_post_counts[tag].to_i == 0
       end
+
       # Sort the tags by their absolute vote counts and return the top N
       users_by_id = User.where(id: uploader_ids.to_a).index_by(&:id)
 
