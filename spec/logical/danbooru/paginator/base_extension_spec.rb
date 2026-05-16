@@ -110,11 +110,35 @@ RSpec.describe Danbooru::Paginator::BaseExtension do
       it "raises on non-numeric strings" do
         expect { relation.paginate("abc") }.to raise_error(Danbooru::Paginator::PaginationError, /Invalid page number/)
       end
+    end
 
-      it "respects a tighter cap derived from max_count" do
+    context "with max_count specified" do
+      it "respects a tighter cap" do
+        relation.paginate("1", limit: 10, max_count: 45)
+        expect { relation.paginate("5", limit: 10, max_count: 45) }.not_to raise_error
+        expect { relation.paginate("6", limit: 10, max_count: 45) }
+          .to raise_error(Danbooru::Paginator::PaginationError, /cannot go beyond page 5/)
+      end
+
+      it "respects a cap when max_count is a multiple of the limit" do
         relation.paginate("1", limit: 10, max_count: 50)
+        expect { relation.paginate("5", limit: 10, max_count: 50) }.not_to raise_error
         expect { relation.paginate("6", limit: 10, max_count: 50) }
           .to raise_error(Danbooru::Paginator::PaginationError, /cannot go beyond page 5/)
+      end
+
+      it "respects a cap when max_count is lower than max_numbered_pages" do
+        relation.paginate("1", limit: 10, max_count: 5)
+        expect { relation.paginate("1", limit: 10, max_count: 5) }.not_to raise_error
+        expect { relation.paginate("2", limit: 10, max_count: 5) }
+          .to raise_error(Danbooru::Paginator::PaginationError, /cannot go beyond page 1/)
+      end
+
+      it "does not exceed Danbooru.config.max_numbered_pages" do
+        relation.paginate("1", limit: 10, max_count: 1_000_000)
+        expect { relation.paginate(Danbooru.config.max_numbered_pages.to_s, limit: 10, max_count: 1_000_000) }.not_to raise_error
+        expect { relation.paginate((Danbooru.config.max_numbered_pages + 1).to_s, limit: 10, max_count: 1_000_000) }
+          .to raise_error(Danbooru::Paginator::PaginationError, /cannot go beyond page #{Danbooru.config.max_numbered_pages}/)
       end
     end
 

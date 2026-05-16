@@ -41,7 +41,8 @@ module Danbooru
       def max_numbered_pages
         return 1 if records_per_page == 0
         if @paginator_options[:max_count]
-          [Danbooru.config.max_numbered_pages, @paginator_options[:max_count] / records_per_page].min
+          page_count = (@paginator_options[:max_count].to_f / records_per_page).ceil
+          page_count.clamp(1, Danbooru.config.max_numbered_pages)
         else
           Danbooru.config.max_numbered_pages
         end
