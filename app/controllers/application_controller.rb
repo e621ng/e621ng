@@ -247,7 +247,9 @@ class ApplicationController < ActionController::Base
     return unless request.get? || request.head?
 
     # Coerce top-level params that must be scalars — reject hashes, unwrap single-element arrays.
-    %i[q page limit id user_id expiry].each do |key|
+    # NOTE: :page and :limit are deliberately not included here. The paginator validates them
+    # and raises Danbooru::Paginator::PaginationError on malformed input.
+    %i[q id user_id expiry].each do |key|
       next unless params.key?(key)
       params[key] = case params[key]
                     when String, Numeric then params[key]
