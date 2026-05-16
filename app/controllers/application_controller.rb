@@ -4,7 +4,11 @@ class ApplicationController < ActionController::Base
   class APIThrottled < StandardError; end
   class FeatureUnavailable < StandardError; end
 
-  skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
+  # NOTE: this gets flagged by CodeQL as a CSRF vulnerability, but it's a false positive.
+  # This check is only skipped for requests with API authentication, which are made by clients
+  # that don't support CSRF tokens. All browser-based actions still require CSRF protection.
+  skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? }
+
   before_action :reset_current_user
   before_action :sanitize_params
   before_action :set_current_user
@@ -12,7 +16,6 @@ class ApplicationController < ActionController::Base
   before_action :validate_pagination_param_types
   before_action :normalize_search
   before_action :api_check
-  before_action :enable_cors
   before_action :check_valid_username
   after_action :reset_current_user
   layout "default"
@@ -29,12 +32,6 @@ class ApplicationController < ActionController::Base
   # This is raised on requests to `/blah.js`. Rails has already rendered StaticController#not_found
   # here, so calling `rescue_exception` would cause a double render error.
   rescue_from ActionController::InvalidCrossOriginRequest, with: -> {}
-
-  def enable_cors
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Authorization, User-Agent"
-    response.headers["Access-Control-Allow-Methods"] = "POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS"
-  end
 
   def check_valid_username
     return if params[:controller] == "user_name_change_requests"

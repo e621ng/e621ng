@@ -157,14 +157,6 @@ RSpec.describe Middleware::ParameterSanitizer do
         expect(parsed).to eq("success" => false, "message" => "Invalid JSON body", "code" => nil)
       end
 
-      it "includes CORS headers" do
-        env = json_env("bad json")
-        _status, headers, _body, _env = call(env)
-        expect(headers["Access-Control-Allow-Origin"]).to eq("*")
-        expect(headers["Access-Control-Allow-Headers"]).to eq("Authorization, User-Agent")
-        expect(headers["Access-Control-Allow-Methods"]).to eq("POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS")
-      end
-
       it "does not call the downstream app" do
         inner_app = instance_spy(Proc)
         mw = described_class.new(inner_app)
