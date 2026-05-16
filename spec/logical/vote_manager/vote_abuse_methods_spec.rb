@@ -59,7 +59,7 @@ RSpec.describe VoteManager::VoteAbuseMethods do
 
     it "handles missing tag records and zero tag post counts" do
       create(:tag, name: "known_tag")
-      post = instance_double(Post, tag_array: ["missing_tag", "known_tag"], uploader_id: 12345, rating: nil, score: 1, up_score: 1, down_score: 0, tag_count: 1)
+      post = instance_double(Post, tag_array: %w[missing_tag known_tag], uploader_id: 12_345, rating: nil, score: 1, up_score: 1, down_score: 0, tag_count: 1)
       vote = instance_double(PostVote, post: post, score: 1, updated_at: Time.current)
 
       allow(user).to receive_message_chain(:post_votes, :includes, :order, :limit, :to_a).and_return([vote])

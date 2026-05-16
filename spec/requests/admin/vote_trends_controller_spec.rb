@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Admin::VoteTrendsController", type: :request do
+RSpec.describe "Admin::VoteTrendsController" do
   describe "GET /admin/vote_trends" do
     let(:target_user) { create(:user) }
     let(:member_user) { create(:user) }
@@ -41,13 +41,14 @@ RSpec.describe "Admin::VoteTrendsController", type: :request do
       end
 
       it "calls VoteManager::VoteAbuseMethods with normalized params" do
-        expect(VoteManager::VoteAbuseMethods).to receive(:vote_abuse_patterns).with(hash_including(
-          user: an_instance_of(User),
-          limit: 5,
-          threshold: 0.2,
-          duration: "7",
-          vote_normality: true
-        )).and_return([])
+        expect(VoteManager::VoteAbuseMethods).to receive(:vote_abuse_patterns)
+          .with(hash_including(
+                  user: an_instance_of(User),
+                  limit: 5,
+                  threshold: 0.2,
+                  duration: "7",
+                  vote_normality: true,
+                )).and_return([])
 
         sign_in_as admin_user
 
@@ -56,7 +57,7 @@ RSpec.describe "Admin::VoteTrendsController", type: :request do
           limit: "5",
           threshold: "0.2",
           duration: "7",
-          disable_vote_normality: "0"
+          disable_vote_normality: "0",
         }
 
         expect(response).to have_http_status(:ok)
