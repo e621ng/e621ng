@@ -5,7 +5,7 @@
       uploader:<%= link_to_user(User.find(trend_tag[0].uploader_id)) %>
     <% elsif trend_tag[0].name.starts_with?("rating:") %>
       <% rating = trend_tag[0].name.sub(/^rating:/, "") %>
-      rating:<b style=<%= "color:grey" %>><%= rating %></b>
+      rating:<b style="<%= "color:grey" %>"><%= rating %></b>
       <!--post-mode-rating-#{rating}-->
     <% else %>
       <%= TagSetPresenter.new([trend_tag[0].name]).inline_tag_list_html(:wiki_page) %>
