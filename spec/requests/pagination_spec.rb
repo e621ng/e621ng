@@ -44,6 +44,12 @@ RSpec.describe "Pagination parameter validation" do
       expect(response).to have_http_status(:gone)
       expect(response.body).to include("Invalid limit")
     end
+
+    it "rejects array-valued limit" do
+      get notes_path, params: { limit: ["10"] }
+      expect(response).to have_http_status(:gone)
+      expect(response.body).to include("Invalid limit")
+    end
   end
 
   describe "page" do
@@ -110,6 +116,12 @@ RSpec.describe "Pagination parameter validation" do
 
     it "rejects hash-valued page" do
       get notes_path, params: { page: { test: "10" } }
+      expect(response).to have_http_status(:gone)
+      expect(response.body).to include("Invalid page number")
+    end
+
+    it "rejects array-valued page" do
+      get notes_path, params: { page: ["10"] }
       expect(response).to have_http_status(:gone)
       expect(response.body).to include("Invalid page number")
     end
