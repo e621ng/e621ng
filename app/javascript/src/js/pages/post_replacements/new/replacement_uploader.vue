@@ -29,8 +29,14 @@
   </div>
 
   <div class="input" v-if="canApprove">
-    <label class="section-label"><input type="checkbox" id="as_pending" v-model="uploadAsPending"/>
+    <label class="section-label" for="as_pending"><input type="checkbox" id="as_pending" v-model="uploadAsPending"/>
       Upload as pending
+    </label>
+  </div>
+
+  <div class="input" v-if="canApprove && !uploadAsPending">
+    <label class="section-label" for="as_silent"><input type="checkbox" id="as_silent" v-model="uploadAsSilent"/>
+      Approve silently
     </label>
   </div>
 
@@ -76,6 +82,7 @@ export default {
       submittedReason: undefined,
       canApprove: Utility.meta("current-user-can-approve-posts") === "true",
       uploadAsPending: false,
+      uploadAsSilent: false,
     };
   },
   mounted() {
@@ -107,6 +114,7 @@ export default {
       formData.append("post_replacement[source]", this.sources[0]);
       formData.append("post_replacement[reason]", this.reason);
       formData.append("post_replacement[as_pending]", this.uploadAsPending);
+      formData.append("post_replacement[as_silent]", this.uploadAsSilent);
 
       this.submittedReason = this.reason;
 
