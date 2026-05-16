@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   before_action :sanitize_params
   before_action :set_current_user
   around_action :set_time_zone
+  before_action :validate_pagination_param_types
   before_action :normalize_search
   before_action :api_check
   before_action :enable_cors
@@ -239,6 +240,23 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # Reject pagination params that aren't scalars. Several call sites read
+  # params[:page] / params[:limit] directly (e.g. `.to_i`, conditionals, redirect
+  # helpers) before pagination runs, so a hash or array here would either crash
+  # or get silently mishandled. The paginator does its own value validation —
+  # this guard only enforces the type contract.
+  def validate_pagination_param_types
+    page = params[:page]
+    unless page.nil? || page.is_a?(String) || page.is_a?(Numeric)
+      raise Danbooru::Paginator::PaginationError, "Invalid page number."
+    end
+
+    limit = params[:limit]
+    unless limit.nil? || limit.is_a?(String) || limit.is_a?(Numeric)
+      raise Danbooru::Paginator::PaginationError, "Invalid limit."
+    end
+  end
+
   # Remove blank `search` params from the url.
   #
   # /tags?search[name]=touhou&search[category]=&search[order]=
@@ -247,7 +265,9 @@ class ApplicationController < ActionController::Base
     return unless request.get? || request.head?
 
     # Coerce top-level params that must be scalars — reject hashes, unwrap single-element arrays.
-    %i[q page limit id user_id expiry].each do |key|
+    # NOTE: :page and :limit are intentionally excluded here. Their type is enforced by
+    # validate_pagination_param_types, and the paginator validates the values themselves.
+    %i[q id user_id expiry].each do |key|
       next unless params.key?(key)
       params[key] = case params[key]
                     when String, Numeric then params[key]
