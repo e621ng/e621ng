@@ -3,7 +3,7 @@
   <td>
     <% if trend_tag[0].name.start_with?("uploader:") && trend_tag[0].uploader.present? %>
       uploader:<%= link_to_user(trend_tag[0].uploader) %>
-    <% elsif trend_tag[0].name.starts_with?("rating:") %>
+    <% elsif trend_tag[0].name.start_with?("rating:") %>
       <% rating = trend_tag[0].name.sub(/^rating:/, "") %>
       rating:<b style="<%= "color:grey" %>"><%= rating %></b>
       <!--post-mode-rating-#{rating}-->
