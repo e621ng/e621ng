@@ -171,7 +171,7 @@ class VoteManager
   end
 
   module VoteAbuseMethods
-    RatingTrendTag = Struct.new(:name, :post_count, :uploader_id, keyword_init: true)
+    RatingTrendTag = Struct.new(:name, :post_count, :uploader_id, :uploader, keyword_init: true)
 
     def self.vote_abuse_patterns(user:, limit: 10, threshold: 0.0001, duration: nil, vote_normality: true)
       # Create a KV pair of tags/uploader keys and their weighted vote counts
@@ -273,7 +273,7 @@ class VoteManager
         uid = $1.to_i
         user = users_by_id[uid]
         display_name = user ? "uploader:#{user.name}" : "uploader:!#{uid}"
-        return RatingTrendTag.new(name: display_name, post_count: uploader_post_counts[uid] || 0, uploader_id: uid)
+        return RatingTrendTag.new(name: display_name, post_count: uploader_post_counts[uid] || 0, uploader_id: uid, uploader: user)
       end
 
       RatingTrendTag.new(name: tag_name, post_count: 0)

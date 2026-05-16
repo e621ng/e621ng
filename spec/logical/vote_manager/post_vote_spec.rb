@@ -267,5 +267,17 @@ RSpec.describe VoteManager do
 
       expect(trend_tag_names).to include("rating:s", "rating:q", "rating:e")
     end
+
+    it "preloads uploader users for uploader trend tags" do
+      uploader = create(:user)
+      post = create(:post, uploader: uploader, tag_string: "common", tag_count: 1, tag_count_general: 1)
+
+      described_class.vote!(user: voter, post: post, score: 1)
+
+      trend_tags = described_class::VoteAbuseMethods.vote_abuse_patterns(user: voter, limit: 1, threshold: 0.0)
+      uploader_trend_tag = trend_tags.find { |trend_tag, _| trend_tag.respond_to?(:uploader_id) && trend_tag.uploader_id == uploader.id }
+
+      expect(uploader_trend_tag[0].uploader).to eq(uploader)
+    end
   end
 end
