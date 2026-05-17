@@ -53,8 +53,8 @@ gem "faraday-follow_redirects"
 gem "faraday-retry"
 
 gem "rack-cors"
-
 gem "rails-settings-cached", "~> 2.9"
+gem "sitemap_generator"
 
 group :production do
   gem "pitchfork"

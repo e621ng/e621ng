@@ -411,6 +411,8 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
+    sitemap_generator (7.0.1)
+      builder (~> 3.0)
     smart_properties (1.17.0)
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
@@ -503,6 +505,7 @@ DEPENDENCIES
   simple_form
   simplecov
   simplecov_json_formatter
+  sitemap_generator
   streamio-ffmpeg
   view_component
   vite_rails

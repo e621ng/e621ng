@@ -31,6 +31,7 @@ tmp/*
 tmp/*.jpg
 tmp/*.png
 public/data
+public/sitemap.*
 .overmind.sock
 
 # Test output
