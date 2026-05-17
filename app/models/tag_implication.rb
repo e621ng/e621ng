@@ -169,7 +169,7 @@ class TagImplication < TagRelationship
         post_info = {}
         Post.sql_raw_tag_match(antecedent_name).find_each do |post|
           next if post.tag_array.include?(consequent_name)
-          post_info[post.id] = post.tag_string
+          post_info[post.id.to_s] = post.tag_string
 
           if post_info.size >= POST_LIMIT
             tag_rel_undos.create!(undo_data: post_info)
@@ -247,7 +247,7 @@ class TagImplication < TagRelationship
         tag_rel_undos.where(applied: false).each do |tu|
           Post.where(id: tu.undo_data.keys).find_each do |post|
             post.do_not_version_changes = true
-            if TagQuery.scan(tu.undo_data[post.id]).include?(consequent_name)
+            if TagQuery.scan(tu.undo_data[post.id.to_s]).include?(consequent_name)
               Rails.logger.info("[TIU] Skipping post that already contains target tag.")
               next
             end
