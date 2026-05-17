@@ -2,6 +2,10 @@
 
 class Ban < ApplicationRecord
   attr_accessor :is_permaban
+
+  before_validation :initialize_banner_id, on: :create
+  before_validation :initialize_permaban, on: %i[update create]
+
   after_create :create_feedback
   after_create :update_user_on_create
   after_create :create_ban_mod_action
@@ -12,17 +16,15 @@ class Ban < ApplicationRecord
   after_destroy :create_unban_mod_action
   after_destroy :push_pubsub_unban
   belongs_to :user
-  belongs_to :banner, :class_name => "User"
+  belongs_to :banner, class_name: "User"
   validate :user_is_inferior
-  validates :user_id, :reason, :duration, presence: true
-  before_validation :initialize_banner_id, :on => :create
-  before_validation :initialize_permaban, on: [:update, :create]
+  validates :reason, :duration, presence: true
 
   scope :unexpired, -> { where("bans.expires_at > ? OR bans.expires_at IS NULL", Time.now) }
-  scope :expired, -> { where("bans.expires_at IS NOT NULL").where("bans.expires_at <= ?", Time.now) }
+  scope :expired, -> { where.not(bans: { expires_at: nil }).where("bans.expires_at <= ?", Time.now) }
 
   def self.is_banned?(user)
-    exists?(["user_id = ? AND (expires_at > ? OR expires_at IS NULL)", user.id, Time.now])
+    where(["user_id = ? AND (expires_at > ? OR expires_at IS NULL)", user.id, Time.now]).exists?
   end
 
   def self.search(params)
@@ -82,14 +84,12 @@ class Ban < ApplicationRecord
   end
 
   def update_user_on_create
-    user.is_banned = true
     user.level = User::Levels::BLOCKED
     # Don't validate in order for deleted users to be bannable
     user.save(validate: false)
   end
 
   def update_user_on_destroy
-    user.is_banned = false
     user.level = User::Levels::MEMBER
     user.save(validate: false)
   end
@@ -133,6 +133,11 @@ class Ban < ApplicationRecord
 
   def expired?
     expires_at != nil && expires_at < Time.now
+  end
+
+  def expire!
+    self.expires_at = Time.now
+    save
   end
 
   def create_feedback

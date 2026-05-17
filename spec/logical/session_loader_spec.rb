@@ -330,7 +330,7 @@ RSpec.describe SessionLoader do
 
       it "unbans the user and does not raise" do
         expect { loader.load }.not_to raise_error
-        expect(user.reload.is_banned?).to be false
+        expect(user.reload.is_blocked?).to be false
       end
     end
   end

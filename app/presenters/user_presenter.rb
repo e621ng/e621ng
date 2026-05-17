@@ -16,7 +16,11 @@ class UserPresenter
   end
 
   def ban_reason
-    if user.is_banned?
+    if user.is_blocked?
+      if user.recent_ban.blank?
+        return "No reason given\n\nExpires never (#{user.bans.count} bans total)"
+      end
+
       text = "#{user.recent_ban.reason}\n\n"
       if user.recent_ban.expires_at.nil?
         text << "Expires never (#{user.bans.count} bans total)"

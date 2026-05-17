@@ -52,7 +52,7 @@ class User < ApplicationRecord
     hide_comments
     show_hidden_comments
     show_post_statistics
-    is_banned
+    _is_banned
     forum_notification_dot
     receive_email_notifications
     enable_keyboard_navigation
@@ -158,13 +158,13 @@ class User < ApplicationRecord
     end
 
     def unban!
-      self.is_banned = false
       self.level = 20
+      user.recent_ban&.expire!
       save
     end
 
     def ban_expired?
-      is_banned? && recent_ban.try(:expired?)
+      recent_ban.try(:expired?)
     end
   end
 
@@ -356,7 +356,7 @@ class User < ApplicationRecord
     end
 
     def is_blocked?
-      is_banned? || level == Levels::BLOCKED
+      level == Levels::BLOCKED
     end
 
     # Defines various convenience methods for finding out the user's level
@@ -783,7 +783,7 @@ class User < ApplicationRecord
       list = super + %i[
         id created_at name level base_upload_limit
         post_upload_count post_update_count note_update_count
-        is_banned can_approve_posts can_upload_free
+        can_approve_posts can_upload_free
         level_string avatar_id is_verified?
       ]
 
@@ -791,7 +791,7 @@ class User < ApplicationRecord
         boolean_attributes = %i[
           blacklist_users description_collapsed_initially
           hide_comments show_hidden_comments show_post_statistics
-          is_banned receive_email_notifications
+          receive_email_notifications
           enable_keyboard_navigation enable_privacy_mode
           style_usernames enable_auto_complete
           can_approve_posts can_upload_free

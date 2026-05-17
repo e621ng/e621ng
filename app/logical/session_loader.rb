@@ -30,6 +30,7 @@ class SessionLoader
     end
 
     CurrentUser.user.unban! if CurrentUser.user.ban_expired?
+
     if CurrentUser.user.is_blocked?
       recent_ban = CurrentUser.user.recent_ban
       ban_message = "Account is banned: forever"
@@ -38,6 +39,7 @@ class SessionLoader
       end
       raise AuthenticationFailure, ban_message
     end
+
     update_user_login_tracking
     set_safe_mode
     refresh_old_remember_token
