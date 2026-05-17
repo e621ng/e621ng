@@ -27,41 +27,23 @@ module DiscordReport
       diff_flags = current_stats[:pending][:flags] - previous_pending_flags.to_i
       diff_appeals = current_stats[:pending][:appeals] - previous_pending_appeals.to_i
 
-      ## Old Approach
-      # <<~REPORT.chomp
-      #   Janitor report for <t:#{Time.now.to_i}:D>
-      #   Currently, there are:
-      #   #{formatted_number(current_stats[:pending][:posts])} pending posts. That is #{more_fewer(diff_posts)} than the day before. The oldest pending post was created #{formatted_number(current_stats[:oldest][:posts])} days ago.
-      #   #{formatted_number(current_stats[:pending][:flags])} pending flags. That is #{more_fewer(diff_flags)} than the day before. The oldest pending flag was created #{formatted_number(current_stats[:oldest][:flags])} days ago.
-      #   #{formatted_number(current_stats[:pending][:replacements])} pending replacements. That is #{more_fewer(diff_replacements)} than the day before. The oldest pending replacement was created #{formatted_number(current_stats[:oldest][:replacements])} days ago.
-      #
-      #   #{formatted_number(current_stats[:posts])} posts were uploaded yesterday.
-      #
-      #   #{formatted_number(current_stats[:approvals] + current_stats[:deletions][:total])} posts were processed.
-      #   Approvals: #{formatted_number(current_stats[:approvals])}
-      #   Deletions: #{formatted_number(current_stats[:deletions][:total])} (#{formatted_number(current_stats[:deletions][:automod] - current_stats[:deletions][:takedowns])} automated, #{formatted_number(current_stats[:deletions][:takedowns])} takedown, #{formatted_number(current_stats[:deletions][:total] - current_stats[:deletions][:automod])} manual)
-      # REPORT
-
-      # Build the report array
       report = []
-
       report << "```ansi"
 
-      report << "#{color_bold('JANITOR REPORT')} — #{Time.now.strftime('%B %d, %Y')}"
-      report << ""
-      report << "#{color_blue('PENDING QUEUE')}     Count      Δ Day    Oldest"
-      report << "  Posts         #{format_count(current_stats[:pending][:posts])}  #{format_delta(diff_posts)}  #{format_count(current_stats[:oldest][:posts])}d"
-      report << "  Flags         #{format_count(current_stats[:pending][:flags])}  #{format_delta(diff_flags)}  #{format_count(current_stats[:oldest][:flags])}d"
-      report << "  Replacements  #{format_count(current_stats[:pending][:replacements])}  #{format_delta(diff_replacements)}  #{format_count(current_stats[:oldest][:replacements])}d"
-      report << "  Appeals       #{format_count(current_stats[:pending][:appeals])}  #{format_delta(diff_appeals)}  #{format_count(current_stats[:oldest][:appeals])}d"
-      report << ""
-      report << "#{color_blue('DAILY TOTALS')}               #{color_blue('DELETIONS')} #{format_count(current_stats[:deletions][:total])}"
-      report << "  Uploaded      #{format_count(current_stats[:posts])}    automatic #{format_count(current_stats[:deletions][:automod] - current_stats[:deletions][:takedowns])}"
-      report << "  Processed     #{format_count(current_stats[:approvals] + current_stats[:deletions][:total])}    takedown  #{format_count(current_stats[:deletions][:takedowns])}"
-      report << "  Approvals     #{format_count(current_stats[:approvals])}    manual    #{format_count(current_stats[:deletions][:total] - current_stats[:deletions][:automod])}"
+      report << "┌─ #{color_bold('JANITOR REPORT')} ────── #{Time.now.strftime('%Y-%m-%d')} ─┐"
+      report << "│ #{color_blue('PENDING QUEUE')}       Change     Rot │"
+      report << "│ Posts    #{format_count(current_stats[:pending][:posts])}   #{format_delta(diff_posts)}   #{format_count(current_stats[:oldest][:posts], length: 4)}d │"
+      report << "│ Flags    #{format_count(current_stats[:pending][:flags])}   #{format_delta(diff_flags)}   #{format_count(current_stats[:oldest][:flags], length: 4)}d │"
+      report << "│ Replac.  #{format_count(current_stats[:pending][:replacements])}   #{format_delta(diff_replacements)}   #{format_count(current_stats[:oldest][:replacements], length: 4)}d │"
+      report << "│ Appeals  #{format_count(current_stats[:pending][:appeals])}   #{format_delta(diff_appeals)}   #{format_count(current_stats[:oldest][:appeals], length: 4)}d │"
+      report << "├─────────────────┬──────────────────┤"
+      report << "│ #{color_blue('DAILY TOTALS')}    │ #{color_blue('DELETIONS')} #{format_count(current_stats[:deletions][:total])} │"
+      report << "│ Added    #{format_count(current_stats[:posts])} │ automatic #{format_count(current_stats[:deletions][:automod] - current_stats[:deletions][:takedowns])} │"
+      report << "│ Handled  #{format_count(current_stats[:approvals] + current_stats[:deletions][:total])} │ takedown  #{format_count(current_stats[:deletions][:takedowns])} │"
+      report << "│ Approved #{format_count(current_stats[:approvals])} │ manual    #{format_count(current_stats[:deletions][:total] - current_stats[:deletions][:automod])} │"
+      report << "└─────────────────┴──────────────────┘"
 
       report << "```"
-
       report.join("\n")
     end
 

@@ -25,8 +25,9 @@ module DiscordReport
       "**#{ActiveSupport::NumberHelper.number_to_delimited(input)}**"
     end
 
-    def format_count(input)
-      (ActiveSupport::NumberHelper.number_to_delimited(input) || "").rjust(7, " ")
+    def format_count(input, length: 6)
+      input = input.to_i.clamp(0, 99_999)
+      (ActiveSupport::NumberHelper.number_to_delimited(input) || "").rjust(length, " ")
     end
 
     def more_fewer(diff)
@@ -45,7 +46,7 @@ module DiscordReport
         color = :white
       end
 
-      send("color_#{color}", "#{operator} #{format_count(diff.abs)}".ljust(7, " "))
+      send("color_#{color}", "#{operator} #{format_count(diff.abs, length: 0)}".ljust(8, " "))
     end
 
     def color_bold(text)
