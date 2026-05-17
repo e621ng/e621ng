@@ -35,8 +35,10 @@ export default class Timestamp {
     document.querySelectorAll("time").forEach((e) => new Timestamp(e));
   }
 
+  /** Don't try updating if the interval is more than a day. */
   public static readonly MAX_UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;
-  public static readonly MIN_UPDATE_INTERVAL_MS = 1 * 1000;
+  /** Don't schedule an update until the interval is more than 30 seconds. */
+  public static readonly MIN_UPDATE_INTERVAL_MS = 30 * 1000;
   private formatSpec: FormatSpecification;
   private readonly tense: "future" | "past" | "present";
   private count: number;
