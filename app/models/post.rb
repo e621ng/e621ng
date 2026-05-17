@@ -1194,7 +1194,11 @@ class Post < ApplicationRecord
                    .pluck(:name)
                    .filter { |tag| NON_ARTIST_TAGS.exclude?(tag) }
           else
-            tags = tags_for_category(Tag.categories.artist) + tags_for_category(Tag.categories.copyright) + tags_for_category(Tag.categories.character)
+            tags = (
+              tags_for_category(Tag.categories.artist) +
+              tags_for_category(Tag.categories.copyright) +
+              tags_for_category(Tag.categories.character)
+            ).map(&:name)
           end
 
           if tags.empty?
@@ -2141,7 +2145,7 @@ class Post < ApplicationRecord
     @categorized_tags = nil
     @artist_tags = nil
     @uploader_linked_artists = nil
-    @avoit_posting_tags = nil
+    @avoid_posting_tags = nil
 
     @has_dimensions = nil
     @preview_dimensions = nil

@@ -649,6 +649,14 @@ RSpec.describe Post do
         expect(post.avoid_posting_tags).to include(avoid)
       end
 
+      it "returns AvoidPosting records with categorized_tags preloaded" do
+        artist = create(:artist)
+        avoid = create(:avoid_posting, artist: artist)
+        post = create(:post, tag_string: "artist:#{artist.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        post.categorized_tags # Force preload categorized_tags
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
       it "returns AvoidPosting records for copyright tags on the post" do
         copyright = create(:artist)
         copyright.tag.update(category: Tag.categories.copyright)
