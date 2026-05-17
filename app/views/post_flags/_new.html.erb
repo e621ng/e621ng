@@ -28,7 +28,7 @@
         <% end %>
 
         <label class="flag-reason-label">
-          <%= radio_button_tag "post_flag[reason_name]", flag_reason.name, false, data: { needs_explanation: flag_reason.needs_explanation? } %>
+          <%= radio_button_tag "post_flag[reason_name]", flag_reason.name, false, data: { needs_explanation: flag_reason.needs_explanation?, needs_parent_id: flag_reason.needs_parent_id? } %>
           <span class="flag-reason-description">
             <b>
               <%= format_text(flag_reason.reason, inline: true) %>
