@@ -1,0 +1,24 @@
+body.c-admin-vote-trends {
+  th, td {
+    padding-right: 0.5rem;
+    padding-bottom: 0.10rem;
+  }
+
+  .vt-score {
+    text-align: right;
+  }
+
+  .vt-tag {
+    text-align: left;
+
+    .rating-metatag-s {
+      color: var(--color-rating-safe);
+    }
+    .rating-metatag-q {
+      color: var(--color-rating-questionable);
+    }
+    .rating-metatag-e {
+      color: var(--color-rating-explicit);
+    }
+  }
+}
