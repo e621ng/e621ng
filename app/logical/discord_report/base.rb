@@ -25,8 +25,47 @@ module DiscordReport
       "**#{ActiveSupport::NumberHelper.number_to_delimited(input)}**"
     end
 
+    def format_count(input)
+      (ActiveSupport::NumberHelper.number_to_delimited(input) || "").rjust(7, " ")
+    end
+
     def more_fewer(diff)
       "#{formatted_number(diff.abs)} #{diff >= 0 ? 'more' : 'fewer'}"
+    end
+
+    def format_delta(diff, positive_good: false)
+      if diff > 0
+        operator = "▲"
+        color = positive_good ? :green : :red
+      elsif diff < 0
+        operator = "▼"
+        color = positive_good ? :red : :green
+      else
+        operator = " "
+        color = :white
+      end
+
+      send("color_#{color}", "#{operator} #{format_count(diff.abs)}".ljust(7, " "))
+    end
+
+    def color_bold(text)
+      "\u001b[1m#{text}\u001b[0m"
+    end
+
+    def color_blue(text)
+      "\u001b[1;36m#{text}\u001b[0m"
+    end
+
+    def color_green(text)
+      "\u001b[0;32m#{text}\u001b[0m"
+    end
+
+    def color_red(text)
+      "\u001b[0;31m#{text}\u001b[0m"
+    end
+
+    def color_white(text)
+      "\u001b[1;37m#{text}\u001b[0m"
     end
   end
 end

@@ -1,0 +1,24 @@
+<div id="c-admin-discord-reports">
+  <div id="a-index">
+    <h1>Discord Reports</h1>
+
+    <div class="section">
+      <h2>Janitor Stats</h2>
+      <pre><%= @janitor_report %></pre>
+    </div>
+
+    <div class="section">
+      <h2>Moderator Stats</h2>
+      <pre><%= @moderator_report %></pre>
+    </div>
+
+    <div class="section">
+      <h2>AIBUR Stats</h2>
+      <pre><%= @aibur_report %></pre>
+    </div>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Discord Reports
+<% end %>

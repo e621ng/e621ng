@@ -25,6 +25,7 @@ Rails.application.routes.draw do
       resources :dmails, only: %i[index show]
     end
     resource :dashboard, only: %i[show]
+    resources :discord_reports, only: %i[index]
     resources :exceptions, only: %i[index show]
     resource :reowner, controller: "reowner", only: %i[new create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]

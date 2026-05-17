@@ -6,10 +6,10 @@ module DiscordReport
       Danbooru.config.moderator_stats_discord_webhook_url
     end
 
-    def report
+    def report(update_cache: true)
       current_stats = stats
       previous_pending_tickets = Cache.redis.get("ticket_stats:previous_pending_tickets") || current_stats[:pending]
-      Cache.redis.set("ticket_stats:previous_pending_tickets", current_stats[:pending])
+      Cache.redis.set("ticket_stats:previous_pending_tickets", current_stats[:pending]) if update_cache
 
       diff = current_stats[:pending] - previous_pending_tickets.to_i
       <<~REPORT.chomp
