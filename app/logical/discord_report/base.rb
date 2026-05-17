@@ -25,13 +25,15 @@ module DiscordReport
       "**#{ActiveSupport::NumberHelper.number_to_delimited(input)}**"
     end
 
-    def format_count(input, length: 6)
-      input = input.to_i.clamp(0, 99_999)
-      (ActiveSupport::NumberHelper.number_to_delimited(input) || "").rjust(length, " ")
-    end
-
     def more_fewer(diff)
       "#{formatted_number(diff.abs)} #{diff >= 0 ? 'more' : 'fewer'}"
+    end
+
+    private
+
+    def format_count(input, length: 6)
+      input = input.to_i.clamp(0, (10**length) - 1) unless length == 0
+      (ActiveSupport::NumberHelper.number_to_delimited(input) || "").rjust(length, " ")
     end
 
     def format_delta(diff, positive_good: false)
