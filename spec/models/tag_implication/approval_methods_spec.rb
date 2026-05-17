@@ -76,26 +76,33 @@ RSpec.describe TagImplication do
   # #create_undo_information
   # ---------------------------------------------------------------------------
   describe "#create_undo_information" do
-    it "creates a tag_rel_undo record even when no posts match" do
-      ti = create(:active_tag_implication)
-      empty_set = instance_double(PostSets::Post, posts: [])
-      allow(PostSets::Post).to receive(:new).and_return(empty_set)
+    it "captures matching post tag strings in the undo record" do
+      ti = create(:tag_implication, antecedent_name: "char_a", consequent_name: "species_b")
+      post = create(:post, tag_string: "char_a")
+      ti.update_columns(status: "active")
 
       ti.create_undo_information
 
-      expect(ti.tag_rel_undos.count).to eq(1)
+      expect(ti.tag_rel_undos.last.undo_data).to include(post.id.to_s => "char_a")
     end
 
-    it "stores post ids as keys in the undo record" do
+    it "skips posts that already contain the consequent" do
       ti = create(:active_tag_implication, antecedent_name: "char_a", consequent_name: "species_b")
-      post = create(:post, tag_string: "char_a")
-      first_set  = instance_double(PostSets::Post, posts: [post])
-      second_set = instance_double(PostSets::Post, posts: [])
-      allow(PostSets::Post).to receive(:new).and_return(first_set, second_set)
+      # Deactivate while creating the post so the implication doesn't auto-apply.
+      ti.update_columns(status: "pending")
+      post = create(:post, tag_string: "char_a species_b")
+      ti.update_columns(status: "active")
 
       ti.create_undo_information
 
-      expect(ti.tag_rel_undos.last.undo_data.keys).to include(post.id.to_s)
+      recorded_ids = ti.tag_rel_undos.flat_map { |u| u.undo_data.keys.map(&:to_i) }
+      expect(recorded_ids).not_to include(post.id)
+    end
+
+    it "does not create an undo record when no posts match" do
+      ti = create(:active_tag_implication)
+
+      expect { ti.create_undo_information }.not_to change(ti.tag_rel_undos, :count)
     end
   end
 
@@ -103,17 +110,23 @@ RSpec.describe TagImplication do
   # #update_posts
   # ---------------------------------------------------------------------------
   describe "#update_posts" do
-    it "calls save! on posts returned by the search query" do
-      ti = create(:active_tag_implication)
-      post = create(:post)
-      allow(post).to receive(:save!).and_return(true)
-      first_set  = instance_double(PostSets::Post, posts: [post])
-      second_set = instance_double(PostSets::Post, posts: [])
-      allow(PostSets::Post).to receive(:new).and_return(first_set, second_set)
+    it "applies the implication to matching posts" do
+      ti = create(:tag_implication, antecedent_name: "char_a", consequent_name: "species_b")
+      post = create(:post, tag_string: "char_a")
+      ti.update_columns(status: "active")
 
       ti.update_posts
 
-      expect(post).to have_received(:save!)
+      expect(post.reload.tag_array).to include("species_b")
+    end
+
+    it "skips posts that already contain the consequent" do
+      ti = create(:active_tag_implication, antecedent_name: "char_a", consequent_name: "species_b")
+      ti.update_columns(status: "pending")
+      post = create(:post, tag_string: "char_a species_b")
+      ti.update_columns(status: "active")
+
+      expect { ti.update_posts }.not_to(change { post.reload.updated_at })
     end
   end
 
@@ -170,23 +183,18 @@ RSpec.describe TagImplication do
       expect(post.reload.tag_string.split).not_to include("species_b")
     end
 
-    # FIXME: TagImplication#update_posts_undo accesses tu.undo_data[post.id] (integer key),
-    # but jsonb deserialization produces string keys. So tu.undo_data[post.id] is always nil,
-    # TagQuery.scan(nil) never includes the consequent, and the skip branch (line 261) is
-    # unreachable. Uncomment when the integer/string key mismatch is resolved.
-    #
-    # it "skips posts where the consequent was already in the original tag string" do
-    #   ti = create(:active_tag_implication, antecedent_name: "char_a", consequent_name: "species_b")
-    #   post = create(:post, tag_string: "char_a species_b")
-    #   ti.update_columns(status: "pending")
-    #   # undo_data includes species_b in original tag string — post should not be modified
-    #   ti.tag_rel_undos.create!(undo_data: { post.id.to_s => "char_a species_b" }, applied: false)
-    #
-    #   original_tag_string = post.reload.tag_string
-    #   ti.update_posts_undo
-    #
-    #   expect(post.reload.tag_string).to eq(original_tag_string)
-    # end
+    it "skips posts where the consequent was already in the original tag string" do
+      ti = create(:active_tag_implication, antecedent_name: "char_a", consequent_name: "species_b")
+      post = create(:post, tag_string: "char_a species_b")
+      ti.update_columns(status: "pending")
+      # undo_data includes species_b in original tag string — post should not be modified
+      ti.tag_rel_undos.create!(undo_data: { post.id.to_s => "char_a species_b" }, applied: false)
+
+      original_tag_string = post.reload.tag_string
+      ti.update_posts_undo
+
+      expect(post.reload.tag_string).to eq(original_tag_string)
+    end
   end
 
   # ---------------------------------------------------------------------------
