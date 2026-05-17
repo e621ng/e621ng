@@ -873,7 +873,7 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     end
 
     def janitor_reports_discord_webhook_url
-      "https://discord.com/api/webhooks/1505398803992412290/xChjJgVbMjXJb_PWaiRS_380IB7nELSZr8LikyTxITD58ies7CaGAgJ_81e7fX8iyI85"
+      nil
     end
 
     def moderator_stats_discord_webhook_url
