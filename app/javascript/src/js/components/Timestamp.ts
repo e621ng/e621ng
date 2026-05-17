@@ -44,10 +44,27 @@ export default class Timestamp {
   private timerID?: number;
   private readonly options: object = {};
   private pastUpdateInterval = false;
+
+  // #region For title attr. toggling
+  private currentText: string;
+  private readonly titleBackup: string;
+  private readonly isInteractable: boolean;
+  // #endregion For title attr. toggling
   constructor (
     public readonly element: HTMLTimeElement,
   ) {
-    const currentText = element.innerText;
+    this.titleBackup = element.title;
+    this.isInteractable = element.parentElement.tagName !== "A";
+    if (this.isInteractable) {
+      this.element.addEventListener("click", this.toggleDisplayedStyle);
+    } else {
+      const icon = document.createElement("span");
+      icon.innerText = "ⓘ";
+      icon.style.cursor = "help";
+      icon.addEventListener("click", this.toggleDisplayedStyle);
+      element.parentElement.parentElement.appendChild(icon);
+    }
+    const currentText = this.currentText = element.innerText;
     for (const range of Timestamp.ranges) {
       const m = range.matcher.exec(currentText);
       if (!m || !m[0]) continue;
@@ -61,6 +78,16 @@ export default class Timestamp {
     }
     console.warn("Should have matched a pattern (text: %s, element: %o)", currentText, element);
   }
+
+  private toggleDisplayedStyle = () => {
+    if (this.currentText === this.element.innerText) {
+      this.element.innerText = this.titleBackup;
+      this.element.title = this.currentText;
+    } else {
+      this.element.innerText = this.currentText;
+      this.element.title = this.titleBackup;
+    }
+  };
 
   private scheduleNextUpdate (doUpdateIfDue = true) {
     if (this.pastUpdateInterval) return false;
@@ -110,7 +137,9 @@ export default class Timestamp {
         break;
     }
 
-    this.element.innerText = str;
+    if (this.currentText === this.element.innerText) this.element.innerText = str;
+    else this.element.title = str;
+    this.currentText = str;
     this.scheduleNextUpdate(false);
   }
 
