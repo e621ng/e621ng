@@ -1201,7 +1201,7 @@ class Post < ApplicationRecord
             []
           else
             # Despite the name, copyright and character tags can also have Artist and AvoidPosting entries
-            AvoidPosting.active.joins(:artist).where(artists: { name: tags }).includes(:tag).to_a
+            AvoidPosting.active.joins(:artist).where(artists: { name: tags }).includes(:artist).to_a
           end
         end
       end
