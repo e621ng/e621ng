@@ -5,6 +5,9 @@ class PostFlagReason < ApplicationRecord
   validates :reason, presence: true
   validates :index, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :target_date_kind, inclusion: { in: %w[before after], allow_blank: true }
+  validates :target_date_kind, presence: true, if: -> { target_date.present? }
+  validates :target_date, presence: true, if: -> { target_date_kind.present? }
+  validates :target_tag, exclusion: { in: %w[-] }
 
   after_destroy -> { self.class.invalidate_cache }
   after_save -> { self.class.invalidate_cache }
@@ -44,20 +47,16 @@ class PostFlagReason < ApplicationRecord
 
   # Cached check for whether a reason requires an explanation
   def self.needs_explanation?(reason_name)
-    explanation_map = Rails.cache.fetch("post_flag_reasons:for_needs_explanation") { ordered.pluck(:name, :needs_explanation).to_h }
-    !!explanation_map[reason_name.to_s]
+    by_name(reason_name)&.needs_explanation? || false
   end
 
   # Cached check for whether a reason requires a parent id
   def self.needs_parent_id?(reason_name)
-    needs_parent_id_map = Rails.cache.fetch("post_flag_reasons:for_needs_parent_id") { ordered.pluck(:name, :needs_parent_id).to_h }
-    !!needs_parent_id_map[reason_name.to_s]
+    by_name(reason_name)&.needs_parent_id? || false
   end
 
   def self.invalidate_cache
     Rails.cache.delete("post_flag_reasons:for_radio")
     Rails.cache.delete("post_flag_reasons:for_by_name")
-    Rails.cache.delete("post_flag_reasons:for_needs_explanation")
-    Rails.cache.delete("post_flag_reasons:for_needs_parent_id")
   end
 end

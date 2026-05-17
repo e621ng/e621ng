@@ -27,7 +27,7 @@ class PostFlag < ApplicationRecord
   validate :validate_post
   validate :validate_reason, on: :create
   validate :update_reason, on: :create
-  validates :reason, presence: true
+  validates :reason, presence: true, if: -> { reason_name == "deletion" }
   validates :note, length: { maximum: Danbooru.config.comment_max_size }
   validate :validate_note_required_for_reason
   before_save :update_post
@@ -189,7 +189,12 @@ class PostFlag < ApplicationRecord
     return if reason_name == "deletion"
 
     flag_reason = PostFlagReason.by_name(reason_name)
-    return unless flag_reason # no longer exists?
+    unless flag_reason
+      # no longer exists?
+      self.reason_name = "unknown"
+      self.reason = "Unknown."
+      return
+    end
 
     self.reason_name = flag_reason.name
     self.reason = flag_reason.reason
@@ -211,7 +216,7 @@ class PostFlag < ApplicationRecord
     Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
     # This is a bit jank, but we'd need another text field for the final flag message,
     # and that sounds excessive.
-    self.reason = "#{flag_reason.reason} (##{parent_post.id})"
+    self.reason = "#{flag_reason.reason} (post ##{parent_post.id})"
   end
 
   def resolve!

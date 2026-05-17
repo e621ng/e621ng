@@ -1,7 +1,4 @@
-<% depth ||= 0 %>
-<% css_class = depth > 0 ? "child-reason depth-#{depth}" : "" %>
-
-<tr id="post-flag-reason-<%= flag_reason.id %>" class="<%= css_class %>">
+<tr id="post-flag-reason-<%= flag_reason.id %>">
   <td><%= link_to flag_reason.name, edit_post_flag_reason_path(flag_reason) %></td>
   <td><%= flag_reason.reason %></td>
   <td><%= flag_reason.needs_explanation? ? "Yes" : "" %></td>
