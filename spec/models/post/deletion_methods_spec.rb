@@ -144,14 +144,12 @@ RSpec.describe Post do
 
       it "returns an unresolved PostFlag" do
         post = create(:post)
-        create(:post_flag_reason)
         flag = create(:post_flag, post: post)
         expect(post.pending_flag).to eq(flag)
       end
 
       it "returns nil after flags are resolved" do
         post = create(:post)
-        create(:post_flag_reason)
         flag = create(:post_flag, post: post)
         flag.resolve!
         expect(post.reload.pending_flag).to be_nil
@@ -178,7 +176,6 @@ RSpec.describe Post do
 
       it "adds an error when the pending flag has an uploading_guidelines reason" do
         post = create(:post)
-        create(:needs_staff_reason_post_flag_reason)
         create(:needs_staff_reason_post_flag, post: post)
         post.delete!("")
         expect(post.errors[:base].join).to match(/Cannot "delete with given reason"/)
@@ -186,7 +183,6 @@ RSpec.describe Post do
 
       it "uses the pending flag's reason when the reason is blank and a valid flag exists" do
         post = create(:post)
-        create(:post_flag_reason)
         create(:post_flag, post: post)
         expect { post.delete!("") }.to change { post.reload.is_deleted }.to(true)
       end

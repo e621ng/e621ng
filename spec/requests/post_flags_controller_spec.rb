@@ -10,11 +10,10 @@ RSpec.describe PostFlagsController do
   let(:janitor)     { create(:janitor_user) }
   let(:admin)       { create(:admin_user) }
   let(:post_record) { create(:post) }
-  let(:flag_reason) { create(:post_flag_reason) }
 
   # belongs_to_creator reads CurrentUser; swap to member so the flag's creator is correct.
   let(:post_flag) do
-    CurrentUser.scoped(member) { create(:post_flag, reason_name: flag_reason.name, post: post_record) }
+    CurrentUser.scoped(member) { create(:post_flag, post: post_record) }
   end
 
   # ---------------------------------------------------------------------------

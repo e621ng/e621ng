@@ -19,9 +19,8 @@ RSpec.describe PostFlag do
     # .by_users
     # -----------------------------------------------------------------------
     describe ".by_users" do
-      let(:flag_reason)  { create(:post_flag_reason) }
-      let!(:user_flag)   { create(:post_flag, reason_name: flag_reason.name) }
-      let!(:system_flag) { as_user(User.system) { create(:post_flag, reason_name: flag_reason.name) } }
+      let!(:user_flag)   { create(:post_flag) }
+      let!(:system_flag) { as_user(User.system) { create(:post_flag) } }
 
       it "includes flags created by regular users" do
         expect(PostFlag.by_users).to include(user_flag)
@@ -36,9 +35,8 @@ RSpec.describe PostFlag do
     # .by_system
     # -----------------------------------------------------------------------
     describe ".by_system" do
-      let(:flag_reason)  { create(:post_flag_reason) }
-      let!(:user_flag)   { create(:post_flag, reason_name: flag_reason.name) }
-      let!(:system_flag) { as_user(User.system) { create(:post_flag, reason_name: flag_reason.name) } }
+      let!(:user_flag)   { create(:post_flag) }
+      let!(:system_flag) { as_user(User.system) { create(:post_flag) } }
 
       it "includes flags created by the system user" do
         expect(PostFlag.by_system).to include(system_flag)
@@ -53,10 +51,9 @@ RSpec.describe PostFlag do
     # .in_cooldown
     # -----------------------------------------------------------------------
     describe ".in_cooldown" do
-      let(:flag_reason)  { create(:post_flag_reason) }
-      let!(:recent_flag) { create(:post_flag, reason_name: flag_reason.name) }
+      let!(:recent_flag) { create(:post_flag) }
       let!(:old_flag) do
-        create(:post_flag, reason_name: flag_reason.name).tap do |f|
+        create(:post_flag).tap do |f|
           f.update_columns(created_at: (PostFlag::COOLDOWN_PERIOD + 1.hour).ago)
         end
       end
@@ -70,7 +67,7 @@ RSpec.describe PostFlag do
       end
 
       it "excludes system user flags" do
-        system_flag = as_user(User.system) { create(:post_flag, reason_name: flag_reason.name) }
+        system_flag = as_user(User.system) { create(:post_flag) }
         expect(PostFlag.in_cooldown).not_to include(system_flag)
       end
     end
@@ -79,9 +76,8 @@ RSpec.describe PostFlag do
     # .resolved / .unresolved
     # -----------------------------------------------------------------------
     describe ".resolved" do
-      let(:flag_reason)      { create(:post_flag_reason) }
-      let!(:resolved_flag)   { create(:resolved_post_flag, reason_name: flag_reason.name) }
-      let!(:unresolved_flag) { create(:post_flag, reason_name: flag_reason.name) }
+      let!(:resolved_flag)   { create(:resolved_post_flag) }
+      let!(:unresolved_flag) { create(:post_flag) }
 
       it "returns resolved flags" do
         expect(PostFlag.resolved).to include(resolved_flag)
@@ -93,9 +89,8 @@ RSpec.describe PostFlag do
     end
 
     describe ".unresolved" do
-      let(:flag_reason)      { create(:post_flag_reason) }
-      let!(:resolved_flag)   { create(:resolved_post_flag, reason_name: flag_reason.name) }
-      let!(:unresolved_flag) { create(:post_flag, reason_name: flag_reason.name) }
+      let!(:resolved_flag)   { create(:resolved_post_flag) }
+      let!(:unresolved_flag) { create(:post_flag) }
 
       it "returns unresolved flags" do
         expect(PostFlag.unresolved).to include(unresolved_flag)
@@ -110,11 +105,10 @@ RSpec.describe PostFlag do
     # .for_creator
     # -----------------------------------------------------------------------
     describe ".for_creator" do
-      let(:flag_reason) { create(:post_flag_reason) }
       let(:alice) { create(:user) }
       let(:bob)   { create(:user) }
-      let!(:alice_flag) { as_user(alice) { create(:post_flag, reason_name: flag_reason.name) } }
-      let!(:bob_flag)   { as_user(bob)   { create(:post_flag, reason_name: flag_reason.name) } }
+      let!(:alice_flag) { as_user(alice) { create(:post_flag) } }
+      let!(:bob_flag)   { as_user(bob)   { create(:post_flag) } }
 
       it "returns flags for the specified creator" do
         expect(PostFlag.for_creator(alice.id)).to include(alice_flag)
