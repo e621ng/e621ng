@@ -650,16 +650,18 @@ RSpec.describe Post do
       end
 
       it "returns AvoidPosting records for copyright tags on the post" do
-        copyright = create(:copyright)
-        avoid = create(:avoid_posting, copyright: copyright)
+        copyright = create(:artist)
+        copyright.tag.update(category: Tag.categories.copyright)
+        avoid = create(:avoid_posting, artist: copyright)
         # Use copyright: prefix to create the tag with copyright category
         post = create(:post, tag_string: "copyright:#{copyright.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
         expect(post.avoid_posting_tags).to include(avoid)
       end
 
       it "returns AvoidPosting records for character tags on the post" do
-        character = create(:character)
-        avoid = create(:avoid_posting, character: character)
+        character = create(:artist)
+        character.tag.update(category: Tag.categories.character)
+        avoid = create(:avoid_posting, artist: character)
         # Use character: prefix to create the tag with character category
         post = create(:post, tag_string: "character:#{character.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
         expect(post.avoid_posting_tags).to include(avoid)
