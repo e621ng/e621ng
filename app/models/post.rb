@@ -45,7 +45,6 @@ class Post < ApplicationRecord
   after_commit :handle_thumbnails_on_create, on: :create
   after_commit :generate_image_samples, on: :create
   after_commit :generate_video_samples, on: :create, if: :is_video?
-  after_commit :clear_avoid_posting_cache, if: :should_process_tags?
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
   belongs_to :approver, class_name: "User", optional: true
@@ -1185,34 +1184,28 @@ class Post < ApplicationRecord
     # Fetches the avoid posting data for all artist, copyright, and character tags on the post.
     # Sends a db request to lookup avoid posting data.
     def avoid_posting_tags
-      Cache.fetch("post:#{id}:avoid_posting_tags", expires_in: 15.minutes) do
-        @avoid_posting_tags ||= begin
-          # We only care about artist, copyright, and character tags.
-          if @categorized_tags.nil?
-            tags = Tag
-                   .where(name: tag_array, category: [Tag.categories.artist, Tag.categories.copyright, Tag.categories.character])
-                   .pluck(:name)
-                   .filter { |tag| NON_ARTIST_TAGS.exclude?(tag) }
-          else
-            tags = (
-              tags_for_category(Tag.categories.artist) +
-              tags_for_category(Tag.categories.copyright) +
-              tags_for_category(Tag.categories.character)
-            ).map(&:name)
-          end
+      @avoid_posting_tags ||= begin
+        # We only care about artist, copyright, and character tags.
+        if @categorized_tags.nil?
+          tags = Tag
+                 .where(name: tag_array, category: [Tag.categories.artist, Tag.categories.copyright, Tag.categories.character])
+                 .pluck(:name)
+                 .filter { |tag| NON_ARTIST_TAGS.exclude?(tag) }
+        else
+          tags = (
+            tags_for_category(Tag.categories.artist) +
+            tags_for_category(Tag.categories.copyright) +
+            tags_for_category(Tag.categories.character)
+          ).map(&:name).filter { |tag| NON_ARTIST_TAGS.exclude?(tag) }
+        end
 
-          if tags.empty?
-            []
-          else
-            # Despite the name, copyright and character tags can also have Artist and AvoidPosting entries
-            AvoidPosting.active.joins(:artist).where(artists: { name: tags }).includes(:artist).to_a
-          end
+        if tags.empty?
+          []
+        else
+          # Despite the name, copyright and character tags can also have Artist and AvoidPosting entries
+          AvoidPosting.active.joins(:artist).where(artists: { name: tags }).includes(:artist).to_a
         end
       end
-    end
-
-    def clear_avoid_posting_cache
-      Cache.delete("post:#{id}:avoid_posting_tags")
     end
   end
 
