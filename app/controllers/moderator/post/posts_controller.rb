@@ -15,7 +15,7 @@ module Moderator
         @reason = @post.pending_flag&.reason || ""
         @reason = "" if @reason =~ /uploading_guidelines/
 
-        @dnp = @post.avoid_posting_artists
+        @dnp = @post.avoid_posting_tags
       end
 
       # Deletes the given post

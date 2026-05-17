@@ -638,7 +638,7 @@ RSpec.describe Post do
       end
     end
 
-    describe "#avoid_posting_artists" do
+    describe "#avoid_posting_tags" do
       before { skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:avoid_postings_path) }
 
       it "returns AvoidPosting records for artist tags on the post" do
@@ -646,12 +646,38 @@ RSpec.describe Post do
         avoid = create(:avoid_posting, artist: artist)
         # Use artist: prefix to create the tag with artist category
         post = create(:post, tag_string: "artist:#{artist.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
-        expect(post.avoid_posting_artists).to include(avoid)
+        expect(post.avoid_posting_tags).to include(avoid)
       end
 
-      it "returns an empty array when the post has no artist tags" do
+      it "returns AvoidPosting records with categorized_tags preloaded" do
+        artist = create(:artist)
+        avoid = create(:avoid_posting, artist: artist)
+        post = create(:post, tag_string: "artist:#{artist.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        post.categorized_tags # Force preload categorized_tags
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
+      it "returns AvoidPosting records for copyright tags on the post" do
+        copyright = create(:artist)
+        copyright.tag.update(category: Tag.categories.copyright)
+        avoid = create(:avoid_posting, artist: copyright)
+        # Use copyright: prefix to create the tag with copyright category
+        post = create(:post, tag_string: "copyright:#{copyright.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
+      it "returns AvoidPosting records for character tags on the post" do
+        character = create(:artist)
+        character.tag.update(category: Tag.categories.character)
+        avoid = create(:avoid_posting, artist: character)
+        # Use character: prefix to create the tag with character category
+        post = create(:post, tag_string: "character:#{character.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
+      it "returns an empty array when the post has no artist, copyright, or character tags" do
         post = create(:post, tag_string: (1..10).map { |i| "gen_only_#{i}" }.join(" "))
-        expect(post.avoid_posting_artists).to eq([])
+        expect(post.avoid_posting_tags).to eq([])
       end
     end
   end
