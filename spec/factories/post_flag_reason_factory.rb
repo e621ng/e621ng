@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:post_flag_reason) do
-    name { "guidelines" }
+    name { "basic" }
     reason { "Use this if you don't like the post" }
     text { "We'll delete it." }
     index { 0 }

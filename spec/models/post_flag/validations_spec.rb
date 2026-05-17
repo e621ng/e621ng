@@ -23,7 +23,6 @@ RSpec.describe PostFlag do
     it "is invalid when creator has no_flagging set" do
       member = create(:user)
       member.no_flagging = true
-      create(:post_flag_reason)
       flag = build(:post_flag, post: post, creator: member)
       expect(flag).not_to be_valid(:create)
       expect(flag.errors[:creator]).to be_present
@@ -31,7 +30,6 @@ RSpec.describe PostFlag do
 
     it "is invalid when creator has exceeded the hourly flag limit" do
       member = create(:user)
-      create(:post_flag_reason)
       flag = build(:post_flag, post: post, creator: member)
       allow(member).to receive(:can_post_flag_with_reason).and_return(:REJ_LIMITED)
       expect(flag).not_to be_valid(:create)
@@ -40,7 +38,6 @@ RSpec.describe PostFlag do
 
     it "is invalid when creator is too new (REJ_NEWBIE)" do
       member = create(:user)
-      create(:post_flag_reason)
       flag = build(:post_flag, post: post, creator: member)
       allow(member).to receive(:can_post_flag_with_reason).and_return(:REJ_NEWBIE)
       expect(flag).not_to be_valid(:create)
@@ -49,7 +46,6 @@ RSpec.describe PostFlag do
 
     it "is valid when creator is a janitor regardless of throttle status" do
       janitor = create(:janitor_user)
-      create(:post_flag_reason)
       flag = build(:post_flag, post: post, creator: janitor)
       expect(flag).to be_valid(:create), flag.errors.full_messages.join(", ")
     end
@@ -61,7 +57,6 @@ RSpec.describe PostFlag do
         create(:post_flag, post: post)
       end
       # Second flag by the same member on the same post within cooldown
-      create(:post_flag_reason)
       second = build(:post_flag, post: post, creator: member)
       allow(member).to receive(:can_post_flag_with_reason).and_return(true)
       expect(second).not_to be_valid(:create)
@@ -83,7 +78,6 @@ RSpec.describe PostFlag do
   describe "validate_post" do
     it "is invalid when the post is deleted" do
       post = create(:deleted_post)
-      create(:post_flag_reason)
       flag = build(:post_flag, post: post)
       expect(flag).not_to be_valid
       expect(flag.errors[:post]).to include("is deleted")
@@ -92,7 +86,6 @@ RSpec.describe PostFlag do
     it "is invalid when the post is status-locked and creator is a regular member" do
       member = create(:user)
       post = create(:status_locked_post)
-      create(:post_flag_reason)
       flag = build(:post_flag, post: post, creator: member)
       expect(flag).not_to be_valid
       expect(flag.errors[:post]).to include("is locked and cannot be flagged")
@@ -101,7 +94,6 @@ RSpec.describe PostFlag do
     it "is valid when the post is status-locked and creator is an admin" do
       post = create(:status_locked_post)
       # CurrentUser is admin via include_context; belongs_to_creator will set creator to admin
-      create(:post_flag_reason)
       flag = build(:post_flag, post: post)
       flag.valid?
       expect(flag.errors[:post]).not_to include("is locked and cannot be flagged")
@@ -110,7 +102,6 @@ RSpec.describe PostFlag do
     it "is valid when the post is status-locked but force_flag is true" do
       member = create(:user)
       post = create(:status_locked_post)
-      create(:post_flag_reason)
       flag = build(:post_flag, post: post, creator: member, force_flag: true)
       flag.valid?
       expect(flag.errors[:post]).not_to include("is locked and cannot be flagged")
@@ -122,14 +113,12 @@ RSpec.describe PostFlag do
   # -------------------------------------------------------------------------
   describe "validate_reason" do
     it "is invalid when reason_name is not a known reason" do
-      create(:post_flag_reason)
       flag = build(:post_flag, reason_name: "not_a_real_reason", reason: "something")
       expect(flag).not_to be_valid(:create)
       expect(flag.errors[:reason]).to be_present
     end
 
     it "is invalid for 'need_parent_id' when no parent_id is given" do
-      create(:needs_parent_id_post_flag_reason)
       flag = build(:needs_parent_id_post_flag, reason: "something")
       expect(flag).not_to be_valid(:create)
       expect(flag.errors[:parent_id]).to include("must exist")
@@ -137,7 +126,6 @@ RSpec.describe PostFlag do
 
     it "is invalid for 'needs_parent_id' when parent_id equals the post's own id" do
       post = create(:post)
-      create(:needs_parent_id_post_flag_reason)
       flag = build(:needs_parent_id_post_flag, reason: "something", post: post)
       flag.parent_id = post.id
       expect(flag).not_to be_valid(:create)
@@ -145,7 +133,6 @@ RSpec.describe PostFlag do
     end
 
     it "is invalid for 'needs_parent_id' when the parent post does not exist" do
-      create(:needs_parent_id_post_flag_reason)
       flag = build(:needs_parent_id_post_flag, reason: "something")
       flag.parent_id = 99_999_999
       expect(flag).not_to be_valid(:create)
@@ -154,7 +141,6 @@ RSpec.describe PostFlag do
 
     it "is invalid for targe tag '-grandfathered_content' when the post has the grandfathered_content tag" do
       post = create(:post, tag_string: "grandfathered_content")
-      create(:grandfathering_post_flag_reason)
       flag = build(:grandfathering_post_flag, post: post, note: "reason")
       expect(flag).not_to be_valid(:create)
       expect(flag.errors[:reason]).to be_present
@@ -217,14 +203,12 @@ RSpec.describe PostFlag do
   # -------------------------------------------------------------------------
   describe "note length" do
     it "is invalid when note exceeds the maximum length" do
-      create(:post_flag_reason)
       flag = build(:post_flag, note: "a" * (Danbooru.config.comment_max_size + 1))
       expect(flag).not_to be_valid
       expect(flag.errors[:note]).to be_present
     end
 
     it "is valid at exactly the maximum length" do
-      create(:post_flag_reason)
       flag = build(:post_flag, note: "a" * Danbooru.config.comment_max_size)
       flag.valid?
       expect(flag.errors[:note]).to be_empty

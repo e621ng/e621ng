@@ -25,7 +25,6 @@ RSpec.describe PostFlag do
       let(:parent_post) { create(:post) }
 
       def make_inferior_flag(child_post:, parent_id:)
-        create(:needs_parent_id_post_flag_reason)
         flag = build(:needs_parent_id_post_flag, post: child_post)
         flag.parent_id = parent_id
         flag.save!
@@ -35,7 +34,7 @@ RSpec.describe PostFlag do
       it "adds the post id to the reason message" do
         child_post = create(:post)
         flag = make_inferior_flag(child_post: child_post, parent_id: parent_post.id)
-        expect(flag.reason).to eq("Duplicate or inferior version of another post (##{parent_post.id})")
+        expect(flag.reason).to eq("Duplicate or inferior version of another post (post ##{parent_post.id})")
       end
 
       it "updates post.parent_id to the given parent_id" do

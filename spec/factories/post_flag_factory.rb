@@ -7,25 +7,26 @@ FactoryBot.define do
     # belongs_to_creator before_validation hook. All specs must set CurrentUser
     # (e.g. via include_context "as admin") before using this factory.
 
-    reason_name { "guidelines" }
+    reason_name { PostFlagReason.by_name("basic")&.name || create(:post_flag_reason).name }
+
     is_resolved { false }
     is_deletion { false }
     note        { nil }
 
     factory :needs_staff_reason_post_flag do
-      reason_name { "needs_staff_reason" }
+      reason_name { PostFlagReason.by_name("needs_staff_reason")&.name || create(:needs_staff_reason_post_flag_reason).name }
     end
 
     factory :needs_parent_id_post_flag do
-      reason_name { "needs_parent_id" }
+      reason_name { PostFlagReason.by_name("needs_parent_id")&.name || create(:needs_parent_id_post_flag_reason).name }
     end
 
     factory :needs_explanation_post_flag do
-      reason_name { "needs_explanation" }
+      reason_name { PostFlagReason.by_name("needs_explanation")&.name || create(:needs_explanation_post_flag_reason).name }
     end
 
     factory :grandfathering_post_flag do
-      reason_name { "grandfathering" }
+      reason_name { PostFlagReason.by_name("grandfathering")&.name || create(:grandfathering_post_flag_reason).name }
     end
 
     factory :resolved_post_flag do
