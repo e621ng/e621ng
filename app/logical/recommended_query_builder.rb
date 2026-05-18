@@ -64,8 +64,10 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
     pool_ids = @post.pool_ids
     must_not.push({ terms: { pools: pool_ids } }) if pool_ids.any?
 
-    # Pick the rarest tags first — common tags (solo, mammal) are poor discriminators
     selected_tags = @post.categorized_tags.values.flatten.min_by(MAX_TAGS, &:post_count)
+
+    should.concat(selected_tags.map { |tag| { term: { tags: tag.name } } })
+    @minimum_should_match = (selected_tags.size * 0.3).floor >= 1 ? "30%" : 1
 
     functions = [{ random_score: { seed: @post.id, field: "id" } }]
     selected_tags.each do |tag|
