@@ -38,6 +38,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @always_show_deleted = always_show_deleted
     @always_show_deleted ||= !query.hide_deleted_posts?(at_any_level: true) if GLOBAL_DELETED_FILTER && @depth <= 0
     @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ERROR_ON_DEPTH_EXCEEDED)
+    @downstream_free_tags_count = @free_tags_count + (kwargs[:process_groups] || TagQuery.will_count_group_tags? ? 0 : query.tag_count)
     super(query)
   end
 
@@ -67,7 +68,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         x = TagQuery.new(
           x,
           resolve_aliases: @resolve_aliases,
-          free_tags_count: @free_tags_count + @q.tag_count,
+          free_tags_count: @downstream_free_tags_count,
           error_on_depth_exceeded: @error_on_depth_exceeded,
           depth: @depth + 1,
           hoisted_metatags: nil,
@@ -77,7 +78,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       temp = ElasticPostQueryBuilder.new(
         x,
         resolve_aliases: @resolve_aliases,
-        free_tags_count: @free_tags_count + @q.tag_count,
+        free_tags_count: @downstream_free_tags_count,
         enable_safe_mode: @enable_safe_mode,
         always_show_deleted: GLOBAL_DELETED_FILTER ? true : asd_cache,
         error_on_depth_exceeded: @error_on_depth_exceeded,

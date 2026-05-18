@@ -32,10 +32,29 @@ RSpec.describe ElasticPostQueryBuilder do
       end.to raise_error(TagQuery::DepthExceededError)
     end
 
-    it "raises DepthExceededError when depth exceeds DEPTH_LIMIT" do
+    it "does not error when depth doesn't exceed DEPTH_LIMIT" do
       expect do
-        build_query("cute", depth: TagQuery::DEPTH_LIMIT + 1)
-      end.to raise_error(TagQuery::DepthExceededError)
+        build_query("cute", depth: TagQuery::DEPTH_LIMIT - 2)
+      end.not_to raise_error
+    end
+
+    describe "with groups" do
+      let(:search) { "sqoon ( ~caprine ~faun ~wooloo ~dubwool ~skiddo ~gogoat ~mareep ~flaaffy ~caprity ~deer ~faun_(spyro) ~antelope ~pronghorn ~camelid ~giraffid ~pinniped ~dewgong ~scolipede ~mega_scolipede ) ( ~female ~gynomorph ~herm )" }
+
+      # Guards against double-count bug
+      it "raises CountExceededError when count exceeds limit" do
+        allow(Danbooru.config.custom_configuration).to receive(:tag_query_limit).and_return(40)
+        expect do
+          build_query("#{search} -( caprine faun wooloo dubwool skiddo gogoat mareep flaaffy caprity deer faun_(spyro) antelope pronghorn camelid giraffid pinniped dewgong scolipede mega_scolipede )")
+        end.to raise_error(TagQuery::CountExceededError)
+      end
+
+      it "does not error when count doesn't exceed limit" do
+        allow(Danbooru.config.custom_configuration).to receive(:tag_query_limit).and_return(40)
+        expect do
+          build_query(search)
+        end.not_to raise_error
+      end
     end
 
     # FIXME: add_group_search_relation raises DepthExceededError unconditionally when
