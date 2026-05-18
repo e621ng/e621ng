@@ -187,6 +187,7 @@ class TagAlias < TagRelationship
   end
 
   def update_posts_undo
+    Thread.current[:skip_post_index_update] = true
     Post.without_timeout do
       tag_rel_undos.where(applied: false).each do |tu|
         Post.where(id: tu.undo_data).find_each do |post|
@@ -195,11 +196,10 @@ class TagAlias < TagRelationship
           post.save
         end
       end
-
-      # TODO: Race condition with indexing jobs here.
-      antecedent_tag.fix_post_count if antecedent_tag
-      consequent_tag.fix_post_count if consequent_tag
     end
+    TagAliasFinalizeJob.perform_later(id, antecedent_name)
+  ensure
+    Thread.current[:skip_post_index_update] = false
   end
 
   def rename_artist_undo
@@ -225,9 +225,7 @@ class TagAlias < TagRelationship
         rename_artist
         forum_updater.update(approval_message(approver), "APPROVED") if update_topic
         update(status: 'active', post_count: consequent_tag.post_count)
-        # TODO: Race condition with indexing jobs here.
-        antecedent_tag.fix_post_count if antecedent_tag
-        consequent_tag.fix_post_count if consequent_tag
+        TagAliasFinalizeJob.perform_later(id, consequent_name)
       end
     rescue Exception => e
       Rails.logger.error("[TA] #{e.message}\n#{e.backtrace}")

@@ -219,6 +219,7 @@ class TagRelationship < ApplicationRecord
   end
 
   def update_posts
+    Thread.current[:skip_post_index_update] = true
     Post.without_timeout do
       Post.sql_raw_tag_match(antecedent_name).find_each do |post|
         post.with_lock do
@@ -230,6 +231,8 @@ class TagRelationship < ApplicationRecord
         end
       end
     end
+  ensure
+    Thread.current[:skip_post_index_update] = false
   end
 
   extend SearchMethods
