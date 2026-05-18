@@ -6,6 +6,7 @@
     <table class="striped">
       <thead>
         <tr>
+          <th style="width: 0;"></th>
           <% if CurrentUser.is_staff? %>
             <th style="width:10%">Reporter</th>
             <th style="width:10%">Accused</th>
@@ -23,6 +24,7 @@
         <% @appeals.each do |appeal| %>
           <% can_view = appeal.can_view?(CurrentUser.user) %>
           <tr data-link="<%= can_view ? appeal_path(appeal) : "" %>">
+            <td><%= link_to(appeal.id, appeal_path(appeal)) %></td>
             <% if CurrentUser.is_staff? %>
               <% if can_view %>
                 <%# Reporter %>
