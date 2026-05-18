@@ -5,6 +5,18 @@ class Post < ApplicationRecord
   class DeletionError < Exception ; end
   class TimeoutError < Exception ; end
 
+  # Exclude fav_string from default SELECTs to avoid loading the (potentially huge)
+  # blob on every post fetch. Write paths transparently fall through to Post#fav_string,
+  # which lazy-loads the column from the DB on demand. See FavoriteMethods.
+  module DropSelectForAggregates
+    # Rails turns a multi-column explicit select into COUNT(col1, col2, ...) which
+    # PG rejects. Drop the select for aggregations; we never count fav_string anyway.
+    def calculate(*args)
+      select_values.any? ? unscope(:select).calculate(*args) : super
+    end
+  end
+  default_scope -> { extending(DropSelectForAggregates).select(column_names - %w[fav_string]) }
+
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
@@ -1210,17 +1222,51 @@ class Post < ApplicationRecord
   end
 
   module FavoriteMethods
+    extend ActiveSupport::Concern
+
+    module ClassMethods
+      # Bulk-populate the favorited-by status for a collection of posts so that
+      # subsequent `favorited_by?(user_id)` calls return without hitting the DB.
+      def preload_favorited_status!(posts, user_id)
+        posts = Array.wrap(posts).compact
+        return if posts.empty? || user_id.blank?
+
+        favorited_ids = Favorite.where(user_id: user_id, post_id: posts.map(&:id)).pluck(:post_id).to_set
+        posts.each { |post| post.preset_favorited_status(user_id, favorited_ids.include?(post.id)) }
+      end
+    end
+
+    def preset_favorited_status(user_id, value)
+      @favorited_status_cache ||= {}
+      @favorited_status_cache[user_id] = value
+    end
+
+    def favorited_by?(user_id = CurrentUser.id)
+      return false if user_id.blank?
+      cached = @favorited_status_cache&.[](user_id)
+      return cached unless cached.nil?
+      Favorite.exists?(user_id: user_id, post_id: id)
+    end
+
+    alias_method :is_favorited?, :favorited_by?
+
+    # Lazy reader: the column is excluded from the default SELECT, so on first
+    # access we issue a focused 1-column query and cache the result on the instance.
+    def fav_string
+      return self[:fav_string] if has_attribute?(:fav_string)
+      return "" if new_record?
+      loaded = self.class.unscoped.where(id: id).pick(:fav_string) || ""
+      @attributes.write_from_database("fav_string", loaded)
+      loaded
+    end
+
+    # fav_string is kept in sync as a rollback safety net; the app no longer
+    # reads from it on the hot path. See FavoriteManager and TransferFavoritesJob for writers.
     def clean_fav_string!
       array = fav_string.split.uniq
       self.fav_string = array.join(" ")
       self.fav_count = array.size
     end
-
-    def favorited_by?(user_id = CurrentUser.id)
-      !!(fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/)
-    end
-
-    alias_method :is_favorited?, :favorited_by?
 
     def append_user_to_fav_string(user_id)
       # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
@@ -1250,18 +1296,17 @@ class Post < ApplicationRecord
       end
     end
 
-    # users who favorited this post, ordered by users who favorited it first
+    # users who favorited this post, ordered by when they favorited it
     def favorited_users
-      favorited_user_ids = fav_string.scan(/\d+/).map(&:to_i)
+      favorited_user_ids = Favorite.where(post_id: id).order(:id).pluck(:user_id)
       visible_users = User.find(favorited_user_ids).reject(&:hide_favorites?)
-      ordered_users = visible_users.index_by(&:id).slice(*favorited_user_ids).values
-      ordered_users
+      visible_users.index_by(&:id).slice(*favorited_user_ids).values
     end
 
     def remove_from_favorites
+      user_ids = Favorite.where(post_id: id).pluck(:user_id)
       Favorite.where(post_id: id).delete_all
-      user_ids = fav_string.scan(/\d+/)
-      UserStatus.where(:user_id => user_ids).update_all("favorite_count = favorite_count - 1")
+      UserStatus.where(user_id: user_ids).update_all("favorite_count = favorite_count - 1") if user_ids.any?
     end
   end
 
