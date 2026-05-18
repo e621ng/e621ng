@@ -4,6 +4,8 @@ class PostThumbnailComponent < ViewComponent::Base
   include IconHelper
   with_collection_parameter :post
 
+  RIBBON_SIDE = %i[left right].freeze
+
   def initialize(post:, post_counter: -1, **options)
     super()
 
@@ -47,7 +49,7 @@ class PostThumbnailComponent < ViewComponent::Base
   def article_attributes
     {
       class: preview_classes.join(" "),
-      data: post.thumbnail_attributes.merge(border_states: border_state_count),
+      data: post.thumbnail_attributes,
     }
   end
 
@@ -63,16 +65,32 @@ class PostThumbnailComponent < ViewComponent::Base
     klass << "rating-explicit" if post.rating == "e"
     klass << "blacklistable" unless options[:no_blacklist]
     klass << "no-stats" unless should_show_stats?
+    klass << "shift-badge" if should_show_ribbon?(:left)
     klass
   end
 
-  def border_state_count
-    count = 0
-    count += 1 if post.has_visible_children?
-    count += 1 if post.parent_id.present?
-    count += 1 if post.is_pending?
-    count += 1 if post.is_flagged?
-    count
+  def ribbon_tooltip(side)
+    content = []
+
+    case side
+    when :left
+      content << "has child posts" if post.has_visible_children?
+      content << "has a parent post" if post.parent_id.present?
+    when :right
+      content << "flagged for deletion" if post.is_flagged?
+      content << "pending for approval" if post.is_pending?
+    end
+
+    content.join(" and ").capitalize << "."
+  end
+
+  def should_show_ribbon?(side)
+    case side
+    when :left
+      post.has_visible_children? || post.parent_id.present?
+    when :right
+      post.is_flagged? || post.is_pending?
+    end
   end
 
   ##############################
