@@ -14,7 +14,7 @@ class Appeal < ApplicationRecord
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   validates :response, length: { minimum: 2, maximum: Danbooru.config.dmail_max_size }, on: :update
-  enum :status, %i[pending partial approved].index_with(&:to_s)
+  enum :status, %i[pending partial approved rejected].index_with(&:to_s)
   after_create :push_pubsub_create
   after_update :push_pubsub_update_notification
   after_update :log_update
@@ -164,6 +164,8 @@ class Appeal < ApplicationRecord
           q = q.where("status = ? and claimant_id is not null", "pending")
         when "pending_unclaimed"
           q = q.where("status = ? and claimant_id is null", "pending")
+        when "handled"
+          q = q.where("status IN (?) and claimant_id is not null", %w[approved rejected])
         else
           q = q.where("status = ?", params[:status])
         end
@@ -226,9 +228,11 @@ class Appeal < ApplicationRecord
   def pretty_status
     case status
     when "partial"
-      "Under Investigation"
+      "Investigating"
     when "approved"
-      "Investigated"
+      "Approved"
+    when "rejected"
+      "Rejected"
     else
       status.titleize
     end

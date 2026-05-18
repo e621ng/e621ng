@@ -123,6 +123,12 @@ RSpec.describe Appeal do
       expect(result).to include(approved_appeal)
       expect(result).not_to include(pending_appeal, partial_appeal)
     end
+
+    it "filters rejected appeals" do
+      result = Appeal.search(status: "rejected")
+      expect(result).to include(rejected_appeal)
+      expect(result).not_to include(pending_appeal, partial_appeal, approved_appeal)
+    end
   end
 
   # -------------------------------------------------------------------------
