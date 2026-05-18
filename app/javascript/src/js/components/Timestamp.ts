@@ -48,25 +48,23 @@ export default class Timestamp {
   private pastUpdateInterval = false;
 
   // #region For title attr. toggling
-  private currentText: string;
   private readonly titleBackup: string;
-  private readonly isInteractable: boolean;
   // #endregion For title attr. toggling
   constructor (
     public readonly element: HTMLTimeElement,
   ) {
     this.titleBackup = element.title;
-    this.isInteractable = element.parentElement.tagName !== "A";
-    if (this.isInteractable) {
+    if (element.parentElement.tagName !== "A") {
       this.element.addEventListener("click", this.toggleDisplayedStyle);
     } else {
       const icon = document.createElement("span");
       icon.innerText = "ⓘ";
       icon.style.cursor = "help";
+      icon.title = "Toggles the time display.";
       icon.addEventListener("click", this.toggleDisplayedStyle);
       element.parentElement.parentElement.appendChild(icon);
     }
-    const currentText = this.currentText = element.innerText;
+    const currentText = element.innerText;
     for (const range of Timestamp.ranges) {
       const m = range.matcher.exec(currentText);
       if (!m || !m[0]) continue;
@@ -82,11 +80,11 @@ export default class Timestamp {
   }
 
   private readonly toggleDisplayedStyle = () => {
-    if (this.currentText === this.element.innerText) {
+    if (!this.isToggleActive) {
+      this.element.title = this.element.innerText;
       this.element.innerText = this.titleBackup;
-      this.element.title = this.currentText;
     } else {
-      this.element.innerText = this.currentText;
+      this.element.innerText = this.element.title;
       this.element.title = this.titleBackup;
     }
   };
@@ -117,6 +115,13 @@ export default class Timestamp {
     return intervalMs - ((Timestamp.findDeltas(from, to).deltaMs - (isFinite(range.lowerBoundMs) ? range.lowerBoundMs : 0)) % intervalMs);
   }
 
+  /** Has the humanized text been swapped with the title, or not? */
+  private get isToggleActive () { return this.element.title !== this.titleBackup; }
+  private updateHumanizedTime (str: string) {
+    if (!this.isToggleActive) this.element.innerText = str;
+    else this.element.title = str;
+  }
+
   private update () {
     const newValue = Timestamp.findDeltaFormat(this.targetTime, new Date(), this.options);
     if (newValue.format === this.formatSpec.format && (newValue.count ?? 0) === this.count) {
@@ -139,9 +144,7 @@ export default class Timestamp {
         break;
     }
 
-    if (this.currentText === this.element.innerText) this.element.innerText = str;
-    else this.element.title = str;
-    this.currentText = str;
+    this.updateHumanizedTime(str);
     this.scheduleNextUpdate(false);
   }
 
