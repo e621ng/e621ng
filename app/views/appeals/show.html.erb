@@ -38,9 +38,9 @@
         <div class="appeal-display-section appeal-display-others">
           <b>Other pending appeals from this user:</b>
           <ul>
-            <% @appeal.open_from_same_user.each do |appeal| %>
+            <% @appeal.open_from_same_user.each do |dup| %>
               <li>
-                <%= link_to "#{appeal.id}: #{appeal.subject}", appeal_path(appeal.id) %>
+                <%= link_to "#{dup.id}: #{dup.subject}", appeal_path(dup.id) %>
               </li>
             <% end %>
           </ul>
@@ -51,9 +51,12 @@
         <div class="appeal-display-section appeal-display-others">
           <b>Other appeals for this <%= @appeal.type_title.downcase %>:</b>
           <ul>
-            <% @appeal.all_for_same_content.each do |appeal| %>
+            <% @appeal.all_for_same_content.each do |dup| %>
               <li>
-                <%= link_to "#{appeal.id}: #{appeal.subject}", appeal_path(appeal.id) %>
+                <%= link_to "#{dup.id}: #{dup.subject}", appeal_path(dup.id) %>
+                <% if dup.creator_id != @appeal.creator_id %>
+                  by <%= link_to_user(dup.creator) %>
+                <% end %>
               </li>
             <% end %>
           </ul>
