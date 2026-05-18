@@ -66,7 +66,6 @@ RSpec.describe FavoriteManager do
           .to raise_error(Favorite::Error, /Failed to update post/)
       end
     end
-
   end
 
   describe ".remove!" do

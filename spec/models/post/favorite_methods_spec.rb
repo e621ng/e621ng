@@ -28,20 +28,22 @@ RSpec.describe Post do
       it "uses the preloaded cache instead of hitting the database" do
         post = create(:post)
         post.preset_favorited_status(42, true)
-        expect(Favorite).not_to receive(:exists?)
+        allow(Favorite).to receive(:exists?)
         expect(post.favorited_by?(42)).to be true
+        expect(Favorite).not_to have_received(:exists?)
       end
 
       it "uses the preloaded false value instead of hitting the database" do
         post = create(:post)
         post.preset_favorited_status(42, false)
-        expect(Favorite).not_to receive(:exists?)
+        allow(Favorite).to receive(:exists?)
         expect(post.favorited_by?(42)).to be false
+        expect(Favorite).not_to have_received(:exists?)
       end
     end
 
     describe "#fav_string (lazy load)" do
-      it "is excluded from the default SELECT on Post.find" do
+      it "is excluded from the model's attribute set" do
         post = create(:post)
         fresh = Post.find(post.id)
         expect(fresh.has_attribute?(:fav_string)).to be false
@@ -49,10 +51,9 @@ RSpec.describe Post do
 
       it "lazy-loads the column on first read" do
         post = create(:post)
-        post.update_columns(fav_string: "fav:42")
+        post.write_fav_string!("fav:42", 1)
         fresh = Post.find(post.id)
         expect(fresh.fav_string).to eq("fav:42")
-        expect(fresh.has_attribute?(:fav_string)).to be true
       end
 
       it "returns empty string for a brand-new record" do
@@ -74,7 +75,7 @@ RSpec.describe Post do
 
       it "is a no-op for a blank user id" do
         post = create(:post)
-        expect { Post.preload_favorited_status!([post], nil) }.not_to change { post.instance_variable_get(:@favorited_status_cache) }
+        expect { Post.preload_favorited_status!([post], nil) }.not_to(change { post.instance_variable_get(:@favorited_status_cache) })
       end
 
       it "is a no-op for an empty post list" do
@@ -93,21 +94,22 @@ RSpec.describe Post do
     describe "#append_user_to_fav_string" do
       it "adds a fav: entry for the user" do
         user = create(:user)
-        post = build(:post, fav_string: "")
+        post = create(:post)
         post.append_user_to_fav_string(user.id)
         expect(post.fav_string).to include("fav:#{user.id}")
       end
 
       it "increments fav_count" do
         user = create(:user)
-        post = build(:post, fav_string: "", fav_count: 0)
+        post = create(:post)
         post.append_user_to_fav_string(user.id)
         expect(post.fav_count).to eq(1)
       end
 
       it "does not add the same user twice" do
         user = create(:user)
-        post = build(:post, fav_string: "fav:#{user.id}", fav_count: 1)
+        post = create(:post)
+        post.write_fav_string!("fav:#{user.id}", 1)
         post.append_user_to_fav_string(user.id)
         expect(post.fav_string.scan("fav:#{user.id}").size).to eq(1)
         expect(post.fav_count).to eq(1)
@@ -117,14 +119,16 @@ RSpec.describe Post do
     describe "#delete_user_from_fav_string" do
       it "removes the fav: entry for the user" do
         user = create(:user)
-        post = build(:post, fav_string: "fav:#{user.id}", fav_count: 1)
+        post = create(:post)
+        post.write_fav_string!("fav:#{user.id}", 1)
         post.delete_user_from_fav_string(user.id)
         expect(post.fav_string).not_to include("fav:#{user.id}")
       end
 
       it "decrements fav_count" do
         user = create(:user)
-        post = build(:post, fav_string: "fav:#{user.id}", fav_count: 1)
+        post = create(:post)
+        post.write_fav_string!("fav:#{user.id}", 1)
         post.delete_user_from_fav_string(user.id)
         expect(post.fav_count).to eq(0)
       end
@@ -132,7 +136,8 @@ RSpec.describe Post do
       it "does nothing when the user is not in fav_string" do
         user = create(:user)
         other = create(:user)
-        post = build(:post, fav_string: "fav:#{other.id}", fav_count: 1)
+        post = create(:post)
+        post.write_fav_string!("fav:#{other.id}", 1)
         post.delete_user_from_fav_string(user.id)
         expect(post.fav_string).to include("fav:#{other.id}")
         expect(post.fav_count).to eq(1)
@@ -142,7 +147,8 @@ RSpec.describe Post do
     describe "#clean_fav_string!" do
       it "removes duplicate fav entries and recalculates fav_count" do
         user = create(:user)
-        post = build(:post, fav_string: "fav:#{user.id} fav:#{user.id}", fav_count: 2)
+        post = create(:post)
+        post.write_fav_string!("fav:#{user.id} fav:#{user.id}", 2)
         post.clean_fav_string!
         expect(post.fav_string.scan("fav:#{user.id}").size).to eq(1)
         expect(post.fav_count).to eq(1)
@@ -151,11 +157,9 @@ RSpec.describe Post do
 
     describe "#append_user_to_fav_string, large fav_string path (fav_count > 1000)" do
       it "adds the user via regex branch and increments fav_count" do
-        create(:user)
-        # Build a fav_string with 1001 fake entries
         large_fav_string = (1..1001).map { |i| "fav:#{i}" }.join(" ")
-        post = build(:post, fav_string: large_fav_string, fav_count: 1001)
-        # Append a new user that is definitely not in the string
+        post = create(:post)
+        post.write_fav_string!(large_fav_string, 1001)
         new_id = 999_999
         post.append_user_to_fav_string(new_id)
         expect(post.fav_string).to include("fav:#{new_id}")
@@ -166,9 +170,9 @@ RSpec.describe Post do
         existing_id = 999_999
         other_ids = (1..1000).map { |i| i }
         large_fav_string = ([existing_id] + other_ids).map { |i| "fav:#{i}" }.join(" ")
-        post = build(:post, fav_string: large_fav_string, fav_count: 1001)
+        post = create(:post)
+        post.write_fav_string!(large_fav_string, 1001)
         post.append_user_to_fav_string(existing_id)
-        # Count exact occurrences using word-boundary regex (same as the model uses)
         matches = post.fav_string.scan(/(?:\A| )fav:#{existing_id}(?:\Z| )/)
         expect(matches.size).to eq(1)
         expect(post.fav_count).to eq(1001)

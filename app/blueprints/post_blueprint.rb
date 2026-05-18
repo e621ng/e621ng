@@ -79,6 +79,7 @@ class PostBlueprint < Blueprinter::Base
       },
       fav_count: post.fav_count,
       is_favorited: post.is_favorited?,
+      vote: post.vote_by,
       comment_count: post.visible_comment_count(CurrentUser.user),
     }
   end

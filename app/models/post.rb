@@ -5,17 +5,11 @@ class Post < ApplicationRecord
   class DeletionError < Exception ; end
   class TimeoutError < Exception ; end
 
-  # Exclude fav_string from default SELECTs to avoid loading the (potentially huge)
-  # blob on every post fetch. Write paths transparently fall through to Post#fav_string,
-  # which lazy-loads the column from the DB on demand. See FavoriteMethods.
-  module DropSelectForAggregates
-    # Rails turns a multi-column explicit select into COUNT(col1, col2, ...) which
-    # PG rejects. Drop the select for aggregations; we never count fav_string anyway.
-    def calculate(*args)
-      select_values.any? ? unscope(:select).calculate(*args) : super
-    end
-  end
-  default_scope -> { extending(DropSelectForAggregates).select(column_names - %w[fav_string]) }
+  # fav_string is a denormalized blob that can grow unbounded with fav_count.
+  # Excluding it from the default attribute set keeps it out of every Post fetch.
+  # Reads go through Post#fav_string (lazy load); writes go through the
+  # write_fav_string! helper in FavoriteMethods.
+  self.ignored_columns += %w[fav_string]
 
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
@@ -1250,50 +1244,56 @@ class Post < ApplicationRecord
 
     alias_method :is_favorited?, :favorited_by?
 
-    # Lazy reader: the column is excluded from the default SELECT, so on first
-    # access we issue a focused 1-column query and cache the result on the instance.
+    # Lazy reader: the column is ignored by AR (see ignored_columns at the top of
+    # this class), so on first access we issue a focused 1-column query and cache
+    # the result on the instance.
     def fav_string
-      return self[:fav_string] if has_attribute?(:fav_string)
-      return "" if new_record?
-      loaded = self.class.unscoped.where(id: id).pick(:fav_string) || ""
-      @attributes.write_from_database("fav_string", loaded)
-      loaded
+      return @fav_string unless @fav_string.nil?
+      @fav_string = new_record? ? "" : (self.class.unscoped.where(id: id).pick(:fav_string) || "")
+    end
+
+    def reload(*)
+      @fav_string = nil
+      super
     end
 
     # fav_string is kept in sync as a rollback safety net; the app no longer
     # reads from it on the hot path. See FavoriteManager and TransferFavoritesJob for writers.
     def clean_fav_string!
       array = fav_string.split.uniq
-      self.fav_string = array.join(" ")
-      self.fav_count = array.size
+      write_fav_string!(array.join(" "), array.size)
     end
 
     def append_user_to_fav_string(user_id)
       # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
       # Checking for presence is faster than explicit deduplication for both approaches.
       if fav_count > 1000
-        unless fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
-          self.fav_string = (fav_string + " fav:#{user_id}").strip
-          self.fav_count = fav_string.split.size
-        end
+        return if fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
+        new_string = (fav_string + " fav:#{user_id}").strip
       else
         fav_array = fav_string.split
         fav_tag = "fav:#{user_id}"
-
-        unless fav_array.include?(fav_tag)
-          fav_array << fav_tag
-          self.fav_string = fav_array.join(" ")
-          self.fav_count = fav_array.size
-        end
+        return if fav_array.include?(fav_tag)
+        fav_array << fav_tag
+        new_string = fav_array.join(" ")
       end
+      write_fav_string!(new_string, new_string.split.size)
     end
 
     def delete_user_from_fav_string(user_id)
       new_fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
-      if new_fav_string != fav_string
-        self.fav_string = new_fav_string
-        self.fav_count = new_fav_string.split.size
-      end
+      return if new_fav_string == fav_string
+      write_fav_string!(new_fav_string, new_fav_string.split.size)
+    end
+
+    # Persist fav_string (an ignored column) and fav_count in a single SQL UPDATE.
+    # AR's attribute system doesn't know about fav_string, so we route the write
+    # through update_all. fav_count stays dirty afterwards so a follow-up
+    # post.save still triggers after_save callbacks (e.g. reindexing).
+    def write_fav_string!(new_string, new_count)
+      Post.unscoped.where(id: id).update_all(fav_string: new_string, fav_count: new_count) unless new_record?
+      @fav_string = new_string
+      self.fav_count = new_count
     end
 
     # users who favorited this post, ordered by when they favorited it
@@ -1421,9 +1421,36 @@ class Post < ApplicationRecord
   end
 
   module VoteMethods
+    extend ActiveSupport::Concern
+
+    module ClassMethods
+      # Bulk-populate the user's vote score for a collection of posts so that
+      # subsequent `vote_by(user_id)` calls return without hitting the DB.
+      def preload_vote_by!(posts, user_id)
+        posts = Array.wrap(posts).compact
+        return if posts.empty? || user_id.blank?
+
+        scores = PostVote.where(user_id: user_id, post_id: posts.map(&:id)).pluck(:post_id, :score).to_h
+        posts.each { |post| post.preset_vote_by(user_id, scores.fetch(post.id, 0)) }
+      end
+    end
+
+    def preset_vote_by(user_id, score)
+      @vote_by_cache ||= {}
+      @vote_by_cache[user_id] = score
+    end
+
     def own_vote(user = CurrentUser.user)
       return nil unless user
       votes.where("user_id = ?", user.id).first
+    end
+
+    # Returns -1, 0, or 1. A missing or locked PostVote both yield 0.
+    def vote_by(user_id = CurrentUser.id)
+      return 0 if user_id.blank?
+      cached = @vote_by_cache&.[](user_id)
+      return cached unless cached.nil?
+      PostVote.where(user_id: user_id, post_id: id).pick(:score) || 0
     end
   end
 
@@ -1822,7 +1849,7 @@ class Post < ApplicationRecord
     end
 
     def method_attributes
-      list = super + %i[has_sample has_visible_children children_ids pool_ids is_favorited?]
+      list = super + %i[has_sample has_visible_children children_ids pool_ids is_favorited? vote_by]
       if visible?
         list += %i[file_url sample_url preview_file_url]
       end
@@ -1848,6 +1875,7 @@ class Post < ApplicationRecord
         score: score,
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
+        vote: vote_by(CurrentUser.user.id),
         comment_count: comment_count,
 
         pools: pool_ids.join(" "),

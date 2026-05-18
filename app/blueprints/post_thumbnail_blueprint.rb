@@ -37,6 +37,7 @@ class PostThumbnailBlueprint < Blueprinter::Base
   field :score
   field :fav_count
   field :is_favorited?, name: :is_favorited
+  field :vote_by, name: :vote
   field :comment_count do |post|
     post.visible_comment_count(CurrentUser.user)
   end

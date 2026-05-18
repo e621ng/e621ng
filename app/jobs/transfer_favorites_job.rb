@@ -98,23 +98,16 @@ class TransferFavoritesJob < ApplicationJob
 
   # Update fav_string (rollback safety net) and fav_count for both child and parent posts.
   def update_post_favorites_data(child_post, parent_post, _removed_user_ids, added_user_ids)
-    child_post.update_columns(
-      fav_string: "",
-      fav_count: 0,
-      updated_at: Time.current,
-    )
+    child_post.write_fav_string!("", 0)
+    child_post.update_columns(updated_at: Time.current)
 
     if added_user_ids.any?
-      current_fav_string = parent_post.fav_string || ""
-      current_fav_parts = current_fav_string.split
+      current_fav_parts = parent_post.fav_string.split
       new_fav_parts = added_user_ids.map { |user_id| "fav:#{user_id}" }
       all_fav_parts = (current_fav_parts + new_fav_parts).uniq
 
-      parent_post.update_columns(
-        fav_string: all_fav_parts.join(" "),
-        fav_count: all_fav_parts.length,
-        updated_at: Time.current,
-      )
+      parent_post.write_fav_string!(all_fav_parts.join(" "), all_fav_parts.length)
+      parent_post.update_columns(updated_at: Time.current)
     end
   end
 

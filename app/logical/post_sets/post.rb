@@ -66,7 +66,10 @@ module PostSets
         temp = ::Post.tag_match(tag_string).paginate_posts(page, limit: limit, includes: [:uploader])
 
         @post_count = temp.total_count
-        ::Post.preload_favorited_status!(temp.records, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+        unless CurrentUser.user&.is_anonymous?
+          ::Post.preload_favorited_status!(temp, CurrentUser.id)
+          ::Post.preload_vote_by!(temp, CurrentUser.id)
+        end
         temp
       end
     end
