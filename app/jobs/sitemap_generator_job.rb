@@ -51,12 +51,12 @@ class SitemapGeneratorJob < ApplicationJob
 
       # Forum Topics
       # Include all sticky topics, since they are likely to be important and very limited in number.
-      ForumTopic.where(is_sticky: true).visible(User.anonymous).limit(10).find_each do |forum_topic|
+      ForumTopic.where(is_sticky: true).visible(User.anonymous).limit(10).each do |forum_topic|
         add "/forum_topics/#{forum_topic.id}", lastmod: forum_topic.updated_at
       end
 
       # Topics with a lot of responses that were bumped recently.
-      ForumTopic.where("response_count > 100").visible(User.anonymous).limit(100).order(updated_at: :desc).find_each do |forum_topic|
+      ForumTopic.where("response_count > 100").visible(User.anonymous).limit(100).order(updated_at: :desc).each do |forum_topic|
         add "/forum_topics/#{forum_topic.id}", lastmod: forum_topic.updated_at
       end
 
