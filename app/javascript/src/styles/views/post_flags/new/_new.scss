@@ -52,7 +52,7 @@
       }
     }
 
-    &-explanation {
+    &-additional-field-required {
       display: inline-flex;
       font-size: 0.75rem;
       line-height: 0.75rem;
@@ -72,7 +72,7 @@
     &-parent {
       display: flex;
       background: themed("color-section");
-      margin-left: 3rem;
+      margin-bottom: 1rem;
       padding: 0.5rem 1rem;
       @include st-radius-bottom;
       max-width: 20rem;
