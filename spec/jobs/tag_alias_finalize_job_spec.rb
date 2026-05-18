@@ -19,7 +19,7 @@ RSpec.describe TagAliasFinalizeJob do
     it "bulk-reindexes posts matching the given tag name" do
       described_class.perform_now(ta.id, ta.consequent_name)
       expect(Post.document_store).to have_received(:import).with(
-        query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::varchar[]", ta.consequent_name],
+        query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", ta.consequent_name],
       )
     end
 
@@ -32,7 +32,7 @@ RSpec.describe TagAliasFinalizeJob do
     it "uses antecedent_name as the reindex target when called for an undo" do
       described_class.perform_now(ta.id, ta.antecedent_name)
       expect(Post.document_store).to have_received(:import).with(
-        query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::varchar[]", ta.antecedent_name],
+        query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", ta.antecedent_name],
       )
     end
   end
