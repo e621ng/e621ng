@@ -22,7 +22,7 @@ module Danbooru
 
       # Only paginating posts should respect the per_page user setting
       def paginate_posts(page, options = {})
-        options[:limit] ||= CurrentUser.user.per_page
+        options[:limit] ||= CurrentUser.user&.per_page || Danbooru.config.records_per_page
         paginate(page, options)
       end
 
