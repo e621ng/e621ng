@@ -255,7 +255,14 @@ class Appeal < ApplicationRecord
     @open_from_same_user ||= Appeal.where(
       creator_id: creator_id,
       status: %w[pending partial],
-    ).where.not(id: id)
+    ).where.not(id: id).to_a
+  end
+
+  def all_for_same_content
+    @all_for_same_content ||= Appeal.includes(:creator).where(
+      qtype: qtype,
+      disp_id: disp_id,
+    ).where.not(id: id).to_a
   end
 
   module ClaimMethods
