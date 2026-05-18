@@ -285,8 +285,8 @@ export default class Timestamp {
     return { deltaMs, deltaMinutes, deltaSeconds };
   }
 
-  private static readonly MINUTES_IN_DAY = 1440;
-  private static readonly MINUTES_IN_YEAR = 525600;
+  private static readonly MINUTES_IN_DAY = 24 * 60;
+  private static readonly MINUTES_IN_YEAR = this.MINUTES_IN_DAY * 365;
   private static readonly MINUTES_IN_QUARTER_YEAR = this.MINUTES_IN_YEAR / 4;
   private static readonly MINUTES_IN_THREE_QUARTERS_YEAR = this.MINUTES_IN_QUARTER_YEAR * 3;
 
@@ -339,7 +339,7 @@ export default class Timestamp {
       case deltaMinutes >= 43200 && deltaMinutes < 86400:
         return { format: "about_x_months", count: Math.round(deltaMinutes / 43200.0) };
         // 60 days up to 365 days
-      case deltaMinutes >= 86400 && deltaMinutes < 525600:
+      case deltaMinutes >= 86400 && deltaMinutes < this.MINUTES_IN_YEAR:
         return { format: "x_months", count: Math.round(deltaMinutes / 43200.0) };
       default:
         return null;
