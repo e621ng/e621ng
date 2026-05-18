@@ -13,7 +13,7 @@ RSpec.describe TagAliasFinalizeJob do
       allow(Post.document_store).to receive(:import)
       allow(ta.antecedent_tag).to receive(:fix_post_count)
       allow(ta.consequent_tag).to receive(:fix_post_count)
-      allow(TagAlias).to receive(:find).with(ta.id).and_return(ta)
+      allow(TagAlias).to receive(:find_by).with(id: ta.id).and_return(ta)
     end
 
     it "bulk-reindexes posts matching the given tag name" do

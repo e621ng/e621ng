@@ -71,7 +71,7 @@ RSpec.describe TagImplication do
       expect(ti.reload.status).to start_with("error:")
     end
 
-    it "enqueues TagImplicationFinalizeJob with consequent_name on success" do
+    it "enqueues TagImplicationFinalizeJob with antecedent_name on success" do
       ti = create(:tag_implication)
       ti.update_columns(status: "queued", approver_id: create(:admin_user).id)
       allow(ti).to receive_messages(
@@ -81,7 +81,7 @@ RSpec.describe TagImplication do
       )
 
       expect { ti.process!(update_topic: false) }
-        .to have_enqueued_job(TagImplicationFinalizeJob).with(ti.id, ti.consequent_name)
+        .to have_enqueued_job(TagImplicationFinalizeJob).with(ti.id, ti.antecedent_name)
     end
   end
 
