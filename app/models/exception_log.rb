@@ -114,8 +114,8 @@ class ExceptionLog < ApplicationRecord
     else
       extra_params.deep_transform_values do |value|
         next value unless value.is_a?(String)
-        next value if value == extra_params["user_agent"]
-        scrub_emails(scrub_ips(value))
+        next scrub_emails(value) if value == extra_params["user_agent"]
+        scrub_ips(scrub_emails(value))
       end
     end
   end
@@ -123,8 +123,40 @@ class ExceptionLog < ApplicationRecord
   private
 
   def scrub_ips(text)
-    text.gsub(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, "[IP PROTECTED]") # IPv4
-        .gsub(/\b(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}\b/i, "[IP PROTECTED]") # IPv6
+    return text unless text.is_a?(String)
+
+    # First, explicitly replace dotted IPv4 addresses (with optional port/brackets/CIDR)
+    ipv4_regex = %r{/(?:\b|\[)((?:\d{1,3}\.){3}\d{1,3})(?:\]|\b)(?::\d{1,5})?/}
+
+    text = text.gsub(ipv4_regex) do |match|
+      ip = Regexp.last_match(1)
+      begin
+        IPAddr.new(ip)
+        "[IP PROTECTED]"
+      rescue StandardError
+        match
+      end
+    end
+
+    # Then handle IPv6 and other candidate tokens (bracketed or bare), stripping CIDR/zone ids
+    candidate_regex = %r{(?:\b|\[)([0-9A-Fa-f:.%/]+)(?:\]|\b)(?::\d{1,5})?}
+
+    text.gsub(candidate_regex) do |match|
+      token = Regexp.last_match(1)
+      candidate = token.sub(%r{/\d+\z}, "").sub(%r{/%.+\z/}, "")
+
+      # Skip the literal "::" separator to avoid false positives in log messages
+      if candidate == "::"
+        match
+      else
+        begin
+          IPAddr.new(candidate)
+          "[IP PROTECTED]"
+        rescue StandardError
+          match
+        end
+      end
+    end
   end
 
   def scrub_emails(text)
