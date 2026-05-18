@@ -133,7 +133,7 @@ class TagImplication < TagRelationship
           update!(status: "processing")
           create_undo_information
           update_posts
-          TagImplicationFinalizeJob.perform_later(id, consequent_name)
+          TagImplicationFinalizeJob.perform_later(id, antecedent_name)
           update(status: "active")
           update_descendant_names_for_parents
           forum_updater.update(approval_message(approver), "APPROVED") if update_topic
