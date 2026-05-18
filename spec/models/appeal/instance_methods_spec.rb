@@ -137,7 +137,7 @@ RSpec.describe Appeal do
 
   # -------------------------------------------------------------------------
   # #all_for_same_content
-  # ------------------------------------------------------------------------
+  # -------------------------------------------------------------------------
   describe "#all_for_same_content" do
     let(:flag)    { create(:post_flag) }
     let!(:appeal) { create(:appeal, post_flag: flag) }
