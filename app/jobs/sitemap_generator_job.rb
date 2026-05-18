@@ -20,7 +20,7 @@ class SitemapGeneratorJob < ApplicationJob
   def perform
     SitemapGenerator::Interpreter.include SitemapMethods unless SitemapGenerator::Interpreter.include?(SitemapMethods)
 
-    SitemapGenerator::Sitemap.default_host = "https://#{Danbooru.config.hostname}"
+    SitemapGenerator::Sitemap.default_host = Danbooru.config.hostname
 
     SitemapGenerator::Sitemap.create do # rubocop:disable Metrics/BlockLength
       # Static Pages
