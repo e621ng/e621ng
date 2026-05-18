@@ -187,6 +187,7 @@ RSpec.describe Appeal do
   # -------------------------------------------------------------------------
   describe ".search default order" do
     let!(:approved) { create(:appeal).tap { |a| a.update_columns(status: "approved") } }
+    let!(:rejected) { create(:appeal).tap { |a| a.update_columns(status: "rejected") } }
     let!(:partial)  { create(:appeal).tap { |a| a.update_columns(status: "partial") } }
     let!(:pending)  { create(:appeal) }
 
@@ -194,6 +195,7 @@ RSpec.describe Appeal do
       ids = Appeal.search({}).ids
       expect(ids.index(pending.id)).to be < ids.index(partial.id)
       expect(ids.index(partial.id)).to be < ids.index(approved.id)
+      expect(ids.index(partial.id)).to be < ids.index(rejected.id)
     end
 
     it "orders newer pending appeals before older pending appeals" do
