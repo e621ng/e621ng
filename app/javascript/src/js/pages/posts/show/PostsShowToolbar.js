@@ -204,10 +204,17 @@ export default class PostsShowToolbar {
 
   static async addFavorite () {
     return Favorite.create(PostsShowToolbar.currentPost.id, 500)
-      .then(() => {
-        $(".ptbr-favorite-button").attr("favorited", "true");
-        $("#image-container").attr("data-is-favorited", "true");
-      });
+      .then(
+        () => {
+          $(".ptbr-favorite-button").attr("favorited", "true");
+          $("#image-container").attr("data-is-favorited", "true");
+        },
+        (error) => {
+          if (error.cause !== "You have already favorited this post") throw error;
+          $(".ptbr-favorite-button").attr("favorited", "true");
+          $("#image-container").attr("data-is-favorited", "true");
+        },
+      );
   }
 
   static async deleteFavorite () {
