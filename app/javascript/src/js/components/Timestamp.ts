@@ -356,7 +356,7 @@ export default class Timestamp {
       leap_years = 0;
     else {
       const fyear = from_year - 1;
-      leap_years = ((to_year / 4) - (to_year / 100) + (to_year / 400)) - ((fyear / 4) - (fyear / 100) + (fyear / 400));
+      leap_years = Math.round(((to_year / 4) - (to_year / 100) + (to_year / 400)) - ((fyear / 4) - (fyear / 100) + (fyear / 400)));
     }
     const minute_offset_for_leap_year = leap_years * this.MINUTES_IN_DAY;
 
