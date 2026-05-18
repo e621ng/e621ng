@@ -6,6 +6,7 @@
     <table class="striped">
       <thead>
         <tr>
+          <th style="width: 0;"></th>
           <% if CurrentUser.is_staff? %>
             <th style="width:10%">Reporter</th>
             <th style="width:10%">Accused</th>
@@ -23,6 +24,7 @@
         <% @tickets.each do |ticket| %>
           <% can_view = ticket.can_view?(CurrentUser.user) %>
           <tr data-link="<%= can_view ? ticket_path(ticket) : '' %>">
+            <td><%= link_to(ticket.id, ticket_path(ticket)) %></td>
             <% if CurrentUser.is_staff? %>
               <% if can_view %>
                 <%# Reporter %>
