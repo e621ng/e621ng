@@ -1793,7 +1793,6 @@ CREATE TABLE public.posts (
     uploader_ip_addr inet NOT NULL,
     approver_id integer,
     fav_string text DEFAULT ''::text NOT NULL,
-    pool_string text DEFAULT ''::text NOT NULL,
     last_noted_at timestamp without time zone,
     last_comment_bumped_at timestamp without time zone,
     fav_count integer DEFAULT 0 NOT NULL,
@@ -1825,7 +1824,9 @@ CREATE TABLE public.posts (
     is_comment_disabled boolean DEFAULT false NOT NULL,
     is_comment_locked boolean DEFAULT false NOT NULL,
     tag_count_contributor integer DEFAULT 0 NOT NULL,
-    video_samples jsonb DEFAULT '{}'::jsonb NOT NULL
+    video_samples jsonb DEFAULT '{}'::jsonb NOT NULL,
+    pool_ids integer[] DEFAULT '{}'::integer[] NOT NULL,
+    set_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL
 );
 
 
@@ -4749,10 +4750,17 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 
 
 --
--- Name: index_posts_on_pool_string_tokens; Type: INDEX; Schema: public; Owner: -
+-- Name: index_posts_on_pool_ids; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_posts_on_pool_string_tokens ON public.posts USING gin (string_to_array(pool_string, ' '::text));
+CREATE INDEX index_posts_on_pool_ids ON public.posts USING gin (pool_ids);
+
+
+--
+-- Name: index_posts_on_set_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_set_ids ON public.posts USING gin (set_ids);
 
 
 --
@@ -5436,6 +5444,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260518193044'),
 ('20260505163626'),
 ('20260503072727'),
 ('20260501134813'),

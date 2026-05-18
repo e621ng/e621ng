@@ -11,15 +11,15 @@ RSpec.describe PostQueryBuilder do
 
   describe "pool: metatag" do
     describe "pool:none" do
-      it "includes posts with an empty pool_string" do
+      it "includes posts with an empty pool_ids array" do
         post = create(:post)
-        post.update_columns(pool_string: "")
+        post.update_columns(pool_ids: [])
         expect(run("pool:none")).to include(post)
       end
 
       it "excludes posts that belong to a pool" do
         post = create(:post)
-        post.update_columns(pool_string: "pool:1")
+        post.update_columns(pool_ids: [1])
         expect(run("pool:none")).not_to include(post)
       end
     end
@@ -27,13 +27,13 @@ RSpec.describe PostQueryBuilder do
     describe "pool:any" do
       it "includes posts that belong to at least one pool" do
         post = create(:post)
-        post.update_columns(pool_string: "pool:1")
+        post.update_columns(pool_ids: [1])
         expect(run("pool:any")).to include(post)
       end
 
-      it "excludes posts with an empty pool_string" do
+      it "excludes posts with an empty pool_ids array" do
         post = create(:post)
-        post.update_columns(pool_string: "")
+        post.update_columns(pool_ids: [])
         expect(run("pool:any")).not_to include(post)
       end
     end
@@ -41,27 +41,27 @@ RSpec.describe PostQueryBuilder do
     describe "inpool:true" do
       it "includes posts that belong to at least one pool" do
         post = create(:post)
-        post.update_columns(pool_string: "pool:1")
+        post.update_columns(pool_ids: [1])
         expect(run("inpool:true")).to include(post)
       end
 
-      it "excludes posts with an empty pool_string" do
+      it "excludes posts with an empty pool_ids array" do
         post = create(:post)
-        post.update_columns(pool_string: "")
+        post.update_columns(pool_ids: [])
         expect(run("inpool:true")).not_to include(post)
       end
     end
 
     describe "inpool:false" do
-      it "includes posts with an empty pool_string" do
+      it "includes posts with an empty pool_ids array" do
         post = create(:post)
-        post.update_columns(pool_string: "")
+        post.update_columns(pool_ids: [])
         expect(run("inpool:false")).to include(post)
       end
 
       it "excludes posts that belong to a pool" do
         post = create(:post)
-        post.update_columns(pool_string: "pool:1")
+        post.update_columns(pool_ids: [1])
         expect(run("inpool:false")).not_to include(post)
       end
     end
