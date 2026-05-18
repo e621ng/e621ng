@@ -1,6 +1,7 @@
 import Autocomplete from "@/components/autocomplete";
 import DTextFormatter from "@/components/DTextFormatter";
 import ThumbnailEngine from "@/components/ThumbnailEngine";
+import Timestamp from "@/components/Timestamp";
 import Blacklist from "@/core/blacklists";
 import DeferredPostLoader from "@/core/DeferredPostLoader";
 import Hotkeys from "@/core/hotkeys";
@@ -31,4 +32,44 @@ export default interface E621Type {
   DTextFormatter: typeof DTextFormatter;
   PostCache: typeof PostCache;
   ThumbnailEngine: typeof ThumbnailEngine;
+  Timestamp: typeof Timestamp,
+
+  // compatibility aliases
+  error: (message: string) => void,
+  notice: (message: string, permanent?: boolean) => void,
+  Flash: {
+    error: (message: string) => void,
+    notice: (message: string, permanent?: boolean) => void,
+  },
+}
+
+export function makeE621Instance (): E621Type {
+  return {
+    Registry: new ModuleRegistry(),
+    Performance: new PerformanceTracker("app"),
+    Logger,
+
+    CStorage,
+    LStorage,
+    Settings,
+
+    Hotkeys,
+    Toast: ToastManager,
+
+    Autocomplete,
+    Blacklist,
+    DeferredPostLoader,
+    DTextFormatter,
+    PostCache,
+    ThumbnailEngine,
+    Timestamp,
+
+    // compatibility aliases
+    error: ToastManager.alert,
+    notice: ToastManager.notice,
+    Flash: {
+      notice: ToastManager.notice,
+      error: ToastManager.alert,
+    },
+  };
 }
