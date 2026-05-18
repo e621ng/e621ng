@@ -202,6 +202,13 @@ RSpec.describe Post do
         expect(result).to include(post.id.to_s)
       end
 
+      it "substitutes %FLAG_ID% with the deletion flag id" do
+        post = create(:post)
+        post.delete!("bogus")
+        result = post.substitute_deletion_dmail_template("Post #%FLAG_ID%")
+        expect(result).to include(post.deletion_flag.id.to_s)
+      end
+
       it "substitutes %REASON% when a reason is provided" do
         post = create(:post)
         result = post.substitute_deletion_dmail_template("Reason: %REASON%", "test reason")

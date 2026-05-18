@@ -1675,6 +1675,9 @@ class Post < ApplicationRecord
       if reason
         text = text.gsub("%REASON%", reason)
       end
+      if (flag_id = deletion_flag&.id)
+        text = text.gsub("%FLAG_ID%", flag_id.to_s)
+      end
       text.gsub("%POST_ID%", id.to_s)
           .gsub("%STAFF_NAME%", CurrentUser.name)
           .gsub("%STAFF_ID%", CurrentUser.id.to_s)
