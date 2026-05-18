@@ -120,12 +120,15 @@ RSpec.describe PostFlag do
     context "when the flag is a deletion flag" do
       it "returns true for linked users" do
         user = create(:user)
-        post.linked_users << user
+        artist = create(:artist, name: "linked_artist", linked_user_id: user.id)
+        post.tag_string += " #{artist.name}"
+        post.save!
+        post.reload
         expect(deletion.can_appeal?(user)).to be(true)
       end
 
-      it "returns false for non-linked users if reason contains 'takedown'" do
-        deletion.update(reason: "Takedown request")
+      it "returns false for non-linked users if reason contains 'takedown #'" do
+        deletion.update(reason: "takedown #123")
         expect(deletion.can_appeal?(create(:user))).to be(false)
       end
 
@@ -134,8 +137,8 @@ RSpec.describe PostFlag do
         expect(deletion.can_appeal?(user)).to be(true)
       end
 
-      it "returns false for the uploader if reason contains 'takedown'" do
-        deletion.update(reason: "Takedown request")
+      it "returns false for the uploader if reason contains 'takedown #'" do
+        deletion.update(reason: "takedown #123")
         user = User.find(post.uploader_id)
         expect(deletion.can_appeal?(user)).to be(false)
       end
