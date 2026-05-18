@@ -4,23 +4,23 @@ class PostSetCleanupJob < ApplicationJob
   queue_as :default
   sidekiq_options lock: :until_executing
 
-  # General cleanup for post membership tokens in pool_string.
+  # General cleanup for post membership arrays.
   def perform(type, obj_id)
     type = type.to_sym
 
     case type
     when :set
-      token_prefix = "set:"
+      column = :set_ids
       removal_method = :remove_set!
     when :pool
-      token_prefix = "pool:"
+      column = :pool_ids
       removal_method = :remove_pool!
     else
       raise ArgumentError, "Invalid type: #{type.inspect}"
     end
 
-    tag = "#{token_prefix}#{obj_id}"
-    scope = Post.where("string_to_array(pool_string, ' ') @> ARRAY[?]::text[]", tag)
+    array_type = type == :set ? "bigint" : "integer"
+    scope = Post.where("#{column} @> ARRAY[?]::#{array_type}[]", obj_id)
 
     # Pools check for whether the user account is older than 7 days.
     CurrentUser.as_system do

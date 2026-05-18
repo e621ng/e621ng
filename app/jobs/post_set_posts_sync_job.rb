@@ -9,15 +9,13 @@ class PostSetPostsSyncJob < ApplicationJob
   end
 
   def perform(set_id)
-    set   = PostSet.find(set_id)
-    token = "set:#{set_id}"
+    set = PostSet.find(set_id)
 
     current_ids = set.post_ids.to_set
-    token_ids   = Post.where("string_to_array(pool_string, ' ') @> ARRAY[?]::text[]", token)
-                      .pluck(:id).to_set
+    synced_ids  = Post.where("set_ids @> ARRAY[?]::bigint[]", set_id).pluck(:id).to_set
 
-    to_add    = (current_ids - token_ids).to_a
-    to_remove = (token_ids - current_ids).to_a
+    to_add    = (current_ids - synced_ids).to_a
+    to_remove = (synced_ids - current_ids).to_a
     return if to_add.empty? && to_remove.empty?
 
     pg = Post.connection.raw_connection
@@ -25,21 +23,20 @@ class PostSetPostsSyncJob < ApplicationJob
     if to_add.any?
       pg.exec_params(
         "UPDATE posts
-         SET pool_string = trim(pool_string || $1)
+         SET set_ids = array_append(set_ids, $1::bigint)
          WHERE id = ANY($2::int[])
-           AND NOT ($3 = ANY(string_to_array(pool_string, ' ')))",
-        [" #{token}", "{#{to_add.join(',')}}", token],
+           AND NOT ($1::bigint = ANY(set_ids))",
+        [set_id, "{#{to_add.join(',')}}"],
       )
     end
 
     if to_remove.any?
       pg.exec_params(
         "UPDATE posts
-         SET pool_string = array_to_string(
-               array_remove(string_to_array(pool_string, ' '), $1), ' ')
+         SET set_ids = array_remove(set_ids, $1::bigint)
          WHERE id = ANY($2::int[])
-           AND $1 = ANY(string_to_array(pool_string, ' '))",
-        [token, "{#{to_remove.join(',')}}"],
+           AND $1::bigint = ANY(set_ids)",
+        [set_id, "{#{to_remove.join(',')}}"],
       )
     end
 

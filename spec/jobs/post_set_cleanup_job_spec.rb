@@ -12,34 +12,35 @@ RSpec.describe PostSetCleanupJob do
   describe "#perform" do
     context "with type :set" do
       let(:set_id) { 42 }
-      let!(:post_in_set) { create(:post).tap { |p| p.update_columns(pool_string: "set:#{set_id}") } }
+      let!(:post_in_set) { create(:post).tap { |p| p.update_columns(set_ids: [set_id]) } }
       let!(:post_not_in_set) { create(:post) }
 
-      it "removes the set token from posts belonging to the set" do
+      it "removes the set id from posts belonging to the set" do
         perform(:set, set_id)
-        expect(post_in_set.reload.pool_string).not_to include("set:#{set_id}")
+        expect(post_in_set.reload.set_ids).not_to include(set_id)
       end
 
       it "does not modify posts that do not belong to the set" do
-        original = post_not_in_set.pool_string.dup
+        original = post_not_in_set.set_ids.dup
         perform(:set, set_id)
-        expect(post_not_in_set.reload.pool_string).to eq(original)
+        expect(post_not_in_set.reload.set_ids).to eq(original)
       end
 
       context "when the post also belongs to other sets" do
         let(:other_set_id) { 99 }
-        let!(:post_in_both) { create(:post).tap { |p| p.update_columns(pool_string: "set:#{set_id} set:#{other_set_id}") } }
+        let!(:post_in_both) { create(:post).tap { |p| p.update_columns(set_ids: [set_id, other_set_id]) } }
 
-        it "preserves other set tokens" do
+        it "preserves other set ids" do
           perform(:set, set_id)
-          expect(post_in_both.reload.pool_string).to include("set:#{other_set_id}")
+          expect(post_in_both.reload.set_ids).not_to include(set_id)
+          expect(post_in_both.reload.set_ids).to include(other_set_id)
         end
       end
     end
 
     context "with type :pool" do
       let(:pool_id) { 42 }
-      let!(:post_in_pool) { create(:post).tap { |p| p.update_columns(pool_string: "pool:#{pool_id}") } }
+      let!(:post_in_pool) { create(:post).tap { |p| p.update_columns(pool_ids: [pool_id]) } }
       let!(:post_not_in_pool) { create(:post) }
 
       before do
@@ -49,25 +50,25 @@ RSpec.describe PostSetCleanupJob do
         User.system.update_columns(created_at: 8.days.ago)
       end
 
-      it "removes the pool token from posts belonging to the pool" do
+      it "removes the pool id from posts belonging to the pool" do
         perform(:pool, pool_id)
-        expect(post_in_pool.reload.pool_string).not_to include("pool:#{pool_id}")
+        expect(post_in_pool.reload.pool_ids).not_to include(pool_id)
       end
 
       it "does not modify posts that do not belong to the pool" do
-        original = post_not_in_pool.pool_string.dup
+        original = post_not_in_pool.pool_ids.dup
         perform(:pool, pool_id)
-        expect(post_not_in_pool.reload.pool_string).to eq(original)
+        expect(post_not_in_pool.reload.pool_ids).to eq(original)
       end
     end
 
     context "when type is passed as a string" do
       let(:set_id) { 42 }
-      let!(:post_in_set) { create(:post).tap { |p| p.update_columns(pool_string: "set:#{set_id}") } }
+      let!(:post_in_set) { create(:post).tap { |p| p.update_columns(set_ids: [set_id]) } }
 
       it "converts the string to a symbol and processes correctly" do
         perform("set", set_id)
-        expect(post_in_set.reload.pool_string).not_to include("set:#{set_id}")
+        expect(post_in_set.reload.set_ids).not_to include(set_id)
       end
     end
 
@@ -77,7 +78,7 @@ RSpec.describe PostSetCleanupJob do
       end
     end
 
-    context "when no posts contain the token" do
+    context "when no posts contain the id" do
       it "does not raise an error" do
         expect { perform(:set, 999_999) }.not_to raise_error
       end

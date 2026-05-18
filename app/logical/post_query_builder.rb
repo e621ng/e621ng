@@ -128,9 +128,9 @@ class PostQueryBuilder
     end
 
     if q[:pool] == "none" || q[:inpool_must_not] || (q[:inpool] == false)
-      relation = relation.where("posts.pool_string = ''")
+      relation = relation.where("cardinality(posts.pool_ids) = 0")
     elsif q[:pool] == "any" || q[:inpool] || (q[:inpool_must_not] == false)
-      relation = relation.where("posts.pool_string != ''")
+      relation = relation.where("cardinality(posts.pool_ids) > 0")
     end
 
     q[:uploader_ids]&.each do |uploader_id|

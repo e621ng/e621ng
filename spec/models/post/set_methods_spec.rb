@@ -7,25 +7,25 @@ RSpec.describe Post do
 
   describe "SetMethods" do
     describe "#belongs_to_post_set" do
-      it "returns truthy when the set id is present in pool_string" do
+      it "returns truthy when the set id is present in set_ids" do
         set  = create(:post_set)
-        post = build(:post, pool_string: "set:#{set.id}")
+        post = build(:post, set_ids: [set.id])
         expect(post.belongs_to_post_set(set)).to be_truthy
       end
 
       it "returns falsy when the set id is absent" do
         set  = create(:post_set)
-        post = build(:post, pool_string: "")
+        post = build(:post, set_ids: [])
         expect(post.belongs_to_post_set(set)).to be_falsy
       end
     end
 
     describe "#add_set!" do
-      it "adds set:<id> to pool_string" do
+      it "adds set id to set_ids" do
         set  = create(:post_set)
         post = create(:post)
         post.add_set!(set)
-        expect(post.pool_string).to include("set:#{set.id}")
+        expect(post.set_ids).to include(set.id)
       end
 
       it "does not add the same set twice" do
@@ -33,29 +33,29 @@ RSpec.describe Post do
         post = create(:post)
         post.add_set!(set)
         post.add_set!(set)
-        expect(post.pool_string.scan("set:#{set.id}").size).to eq(1)
+        expect(post.set_ids.count(set.id)).to eq(1)
       end
     end
 
     describe "#remove_set!" do
-      it "removes set:<id> from pool_string" do
+      it "removes set id from set_ids" do
         set  = create(:post_set)
-        post = create(:post, pool_string: "set:#{set.id}")
+        post = create(:post, set_ids: [set.id])
         post.remove_set!(set)
-        expect(post.pool_string).not_to include("set:#{set.id}")
+        expect(post.set_ids).not_to include(set.id)
       end
     end
 
     describe "#set_ids" do
-      it "returns an array of set ids from pool_string" do
+      it "returns an array of set ids" do
         set1 = create(:post_set)
         set2 = create(:post_set)
-        post = build(:post, pool_string: "set:#{set1.id} set:#{set2.id}")
+        post = build(:post, set_ids: [set1.id, set2.id])
         expect(post.set_ids).to include(set1.id, set2.id)
       end
 
-      it "returns an empty array when no sets are in pool_string" do
-        post = build(:post, pool_string: "")
+      it "returns an empty array when no sets are in set_ids" do
+        post = build(:post, set_ids: [])
         expect(post.set_ids).to eq([])
       end
     end
@@ -63,7 +63,7 @@ RSpec.describe Post do
     describe "#give_post_sets_to_parent" do
       it "removes the post from its sets when expunged without a parent" do
         set  = create(:post_set)
-        post = create(:post, pool_string: "set:#{set.id}")
+        post = create(:post, set_ids: [set.id])
         post.expunge!
         expect(set.reload.post_ids).not_to include(post.id)
       end

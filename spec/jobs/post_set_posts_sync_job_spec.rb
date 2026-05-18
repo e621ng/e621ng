@@ -22,15 +22,15 @@ RSpec.describe PostSetPostsSyncJob do
       end
     end
 
-    context "when a post is in post_ids but missing the token" do
+    context "when a post is in post_ids but missing the set id" do
       let(:post) { create(:post) }
 
-      before { Post.where(id: post.id).update_all(pool_string: "") }
+      before { Post.where(id: post.id).update_all(set_ids: []) }
 
-      it "adds the token to pool_string" do
+      it "adds the set id to set_ids" do
         post_set.update_column(:post_ids, [post.id])
         job.perform_now(post_set.id)
-        expect(post.reload.pool_string).to include("set:#{post_set.id}")
+        expect(post.reload.set_ids).to include(post_set.id)
       end
 
       it "enqueues a BulkIndexUpdateJob for the post" do
@@ -40,15 +40,15 @@ RSpec.describe PostSetPostsSyncJob do
       end
     end
 
-    context "when a post has the token but is not in post_ids" do
+    context "when a post has the set id but is not in post_ids" do
       let(:post) { create(:post) }
 
-      before { Post.where(id: post.id).update_all(pool_string: "set:#{post_set.id}") }
+      before { Post.where(id: post.id).update_all(set_ids: [post_set.id]) }
 
-      it "removes the token from pool_string" do
+      it "removes the set id from set_ids" do
         post_set.update_column(:post_ids, [])
         job.perform_now(post_set.id)
-        expect(post.reload.pool_string).not_to include("set:#{post_set.id}")
+        expect(post.reload.set_ids).not_to include(post_set.id)
       end
 
       it "enqueues a BulkIndexUpdateJob for the post" do
@@ -58,15 +58,15 @@ RSpec.describe PostSetPostsSyncJob do
       end
     end
 
-    context "when a post is correctly in both post_ids and pool_string" do
+    context "when a post is correctly in both post_ids and set_ids" do
       let(:post) { create(:post) }
 
-      before { Post.where(id: post.id).update_all(pool_string: "set:#{post_set.id}") }
+      before { Post.where(id: post.id).update_all(set_ids: [post_set.id]) }
 
-      it "does not change pool_string" do
+      it "does not change set_ids" do
         post_set.update_column(:post_ids, [post.id])
         expect { job.perform_now(post_set.id) }
-          .not_to(change { post.reload.pool_string })
+          .not_to(change { post.reload.set_ids })
       end
 
       it "does not enqueue a BulkIndexUpdateJob" do
@@ -76,15 +76,15 @@ RSpec.describe PostSetPostsSyncJob do
       end
     end
 
-    context "when a post is correctly absent from both post_ids and pool_string" do
+    context "when a post is correctly absent from both post_ids and set_ids" do
       let(:post) { create(:post) }
 
-      before { Post.where(id: post.id).update_all(pool_string: "") }
+      before { Post.where(id: post.id).update_all(set_ids: []) }
 
-      it "does not change pool_string" do
+      it "does not change set_ids" do
         post_set.update_column(:post_ids, [])
         expect { job.perform_now(post_set.id) }
-          .not_to(change { post.reload.pool_string })
+          .not_to(change { post.reload.set_ids })
       end
 
       it "does not enqueue a BulkIndexUpdateJob" do

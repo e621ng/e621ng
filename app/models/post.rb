@@ -1283,30 +1283,30 @@ class Post < ApplicationRecord
 
   module SetMethods
     def set_ids
-      pool_string.scan(/set:(\d+)/).map { |set| ParseValue.safe_id(set[0]) }
+      self[:set_ids] || []
     end
 
     def post_sets
       @post_sets ||= begin
-        return PostSet.none if pool_string.blank?
+        return PostSet.none if set_ids.blank?
         PostSet.where(id: set_ids)
       end
     end
 
     def belongs_to_post_set(set)
-      pool_string =~ /(?:\A| )set:#{set.id}(?:\z| )/
+      set_ids.include?(set.id)
     end
 
     def add_set!(set, force = false)
       return if belongs_to_post_set(set) && !force
       with_lock do
-        self.pool_string = "#{pool_string} set:#{set.id}".strip
+        self.set_ids = (set_ids + [set.id]).uniq
       end
     end
 
     def remove_set!(set)
       with_lock do
-        self.pool_string = (pool_string.split(' ') - ["set:#{set.id}"]).join(' ').strip
+        self.set_ids = set_ids - [set.id]
       end
     end
 
@@ -1333,12 +1333,12 @@ class Post < ApplicationRecord
 
   module PoolMethods
     def pool_ids
-      pool_string.scan(/pool:(\d+)/).map { |pool| ParseValue.safe_id(pool[0]) }
+      self[:pool_ids] || []
     end
 
     def pools
       @pools ||= begin
-        return Pool.none if pool_string.blank?
+        return Pool.none if pool_ids.blank?
         Pool.where(id: pool_ids).series_first
       end
     end
@@ -1348,14 +1348,14 @@ class Post < ApplicationRecord
     end
 
     def belongs_to_pool?(pool)
-      pool_string =~ /(?:\A| )pool:#{pool.id}(?:\Z| )/
+      pool_ids.include?(pool.id)
     end
 
     def add_pool!(pool)
       return if belongs_to_pool?(pool)
 
       with_lock do
-        self.pool_string = "#{pool_string} pool:#{pool.id}".strip
+        self.pool_ids = (pool_ids + [pool.id]).uniq
       end
     end
 
@@ -1364,7 +1364,7 @@ class Post < ApplicationRecord
       return unless CurrentUser.user.can_remove_from_pools?
 
       with_lock do
-        self.pool_string = pool_string.gsub(/(?:\A| )pool:#{pool.id}(?:\Z| )/, " ").strip
+        self.pool_ids = pool_ids - [pool.id]
       end
     end
 
@@ -1769,7 +1769,7 @@ class Post < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      list = super + [:pool_string, :fav_string]
+      list = super + [:set_ids, :fav_string]
       if !visible?
         list += [:md5, :file_ext]
       end
