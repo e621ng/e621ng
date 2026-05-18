@@ -122,7 +122,7 @@
 
   <% if CurrentUser.is_staff? && @appeal.can_handle? %>
     <%= custom_form_for(@appeal, html: { class: "appeal-display-response" }) do |f| %>
-      <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @appeal.status || "approved" %>
+      <%= f.input :status, collection: [%w[Approved approved], %w[Investigating partial], %w[Rejected rejected]], selected: @appeal.status || "approved" %>
       <% unless @appeal.pending? %>
         <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
       <% end %>
