@@ -29,15 +29,20 @@ class SessionLoader
       load_remember_token
     end
 
-    CurrentUser.user.unban! if CurrentUser.user.ban_expired?
-
     if CurrentUser.user.is_blocked?
       recent_ban = CurrentUser.user.recent_ban
-      ban_message = "Account is banned: forever"
-      if recent_ban && recent_ban.expires_at.present?
-        ban_message = "Account is suspended for another #{recent_ban.expire_days}"
+
+      recent_ban.expire! if recent_ban&.expired?
+
+      CurrentUser.user.unban! if CurrentUser.user.ban_expired?
+
+      if recent_ban&.force_logout?
+        ban_message = "Account is banned: forever"
+        if recent_ban && recent_ban.expires_at.present?
+          ban_message = "Account is suspended for another #{recent_ban.expire_days}"
+        end
+        raise AuthenticationFailure, ban_message
       end
-      raise AuthenticationFailure, ban_message
     end
 
     update_user_login_tracking

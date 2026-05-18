@@ -6,5 +6,6 @@
   <%= f.input :duration, :hint => "in days" %>
   <%= f.input :is_permaban, as: :boolean, hint: 'ignores days' %>
   <%= f.input :reason, as: :dtext, allow_color: false %>
+  <%= f.input :force_logout, as: :boolean, hint: "The user will not be able to log in until the ban is lifted" %>
   <%= f.button :submit, :value => "Ban" %>
 <% end %>

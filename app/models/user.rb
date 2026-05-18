@@ -158,7 +158,7 @@ class User < ApplicationRecord
     end
 
     def unban!
-      self.level = 20
+      self.level = 20 if is_blocked?
       user.recent_ban&.expire!
       save
     end
