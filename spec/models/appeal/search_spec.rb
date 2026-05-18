@@ -105,23 +105,24 @@ RSpec.describe Appeal do
     let!(:pending_appeal)  { create(:appeal) }
     let!(:partial_appeal)  { create(:appeal).tap { |a| a.update_columns(status: "partial") } }
     let!(:approved_appeal) { create(:appeal).tap { |a| a.update_columns(status: "approved") } }
+    let!(:rejected_appeal) { create(:appeal).tap { |a| a.update_columns(status: "rejected") } }
 
     it "filters pending appeals" do
       result = Appeal.search(status: "pending")
       expect(result).to include(pending_appeal)
-      expect(result).not_to include(partial_appeal, approved_appeal)
+      expect(result).not_to include(partial_appeal, approved_appeal, rejected_appeal)
     end
 
     it "filters partial appeals" do
       result = Appeal.search(status: "partial")
       expect(result).to include(partial_appeal)
-      expect(result).not_to include(pending_appeal, approved_appeal)
+      expect(result).not_to include(pending_appeal, approved_appeal, rejected_appeal)
     end
 
     it "filters approved appeals" do
       result = Appeal.search(status: "approved")
       expect(result).to include(approved_appeal)
-      expect(result).not_to include(pending_appeal, partial_appeal)
+      expect(result).not_to include(pending_appeal, partial_appeal, rejected_appeal)
     end
 
     it "filters rejected appeals" do
@@ -151,6 +152,33 @@ RSpec.describe Appeal do
       result = Appeal.search(status: "pending_unclaimed")
       expect(result).to include(unclaimed)
       expect(result).not_to include(claimed)
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # status: handled
+  # -------------------------------------------------------------------------
+  describe ".search status handled" do
+    let(:claimant)    { create(:janitor_user) }
+    let!(:approved)   { create(:appeal).tap { |a| a.update_columns(status: "approved", claimant_id: claimant.id) } }
+    let!(:rejected)   { create(:appeal).tap { |a| a.update_columns(status: "rejected", claimant_id: claimant.id) } }
+    let!(:pending)    { create(:appeal).tap { |a| a.update_columns(status: "pending", claimant_id: claimant.id) } }
+    let!(:unclaimed)  { create(:appeal).tap { |a| a.update_columns(status: "approved", claimant_id: nil) } }
+
+    it "returns approved and rejected appeals with a claimant" do
+      result = Appeal.search(status: "handled")
+      expect(result).to include(approved, rejected)
+      expect(result).not_to include(pending, unclaimed)
+    end
+
+    it "excludes pending appeals even if they have a claimant" do
+      result = Appeal.search(status: "handled")
+      expect(result).not_to include(pending)
+    end
+
+    it "excludes appeals without a claimant even if they are approved" do
+      result = Appeal.search(status: "handled")
+      expect(result).not_to include(unclaimed)
     end
   end
 
