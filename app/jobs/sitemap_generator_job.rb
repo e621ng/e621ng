@@ -18,7 +18,7 @@ class SitemapGeneratorJob < ApplicationJob
   private_constant :SitemapMethods
 
   def perform
-    SitemapGenerator::Interpreter.include SitemapMethods
+    SitemapGenerator::Interpreter.include SitemapMethods unless SitemapGenerator::Interpreter.include?(SitemapMethods)
 
     SitemapGenerator::Sitemap.default_host = "https://#{Danbooru.config.hostname}"
 
@@ -41,8 +41,9 @@ class SitemapGeneratorJob < ApplicationJob
       end
 
       # Staff-made Wiki Pages
-      WikiPage.active.search(title: "help:home").find_each do |wiki_page|
-        add "/wiki_pages/#{wiki_page.id}", lastmod: wiki_page.updated_at
+      wiki_home = WikiPage.active.titled("help:home")
+      if wiki_home.present?
+        add "/wiki_pages/#{wiki_home.id}", lastmod: wiki_home.updated_at
       end
       WikiPage.active.search(title: "#{Danbooru.config.app_name}:*").find_each do |wiki_page|
         add "/wiki_pages/#{wiki_page.id}", lastmod: wiki_page.updated_at
@@ -55,7 +56,7 @@ class SitemapGeneratorJob < ApplicationJob
       end
 
       # Topics with a lot of responses that were bumped recently.
-      ForumTopic.where("response_count > 100").visible(User.anonymous).limit(100).find_each do |forum_topic|
+      ForumTopic.where("response_count > 100").visible(User.anonymous).limit(100).order(updated_at: :desc).find_each do |forum_topic|
         add "/forum_topics/#{forum_topic.id}", lastmod: forum_topic.updated_at
       end
 
@@ -70,16 +71,13 @@ class SitemapGeneratorJob < ApplicationJob
       PostSets::Popular.new(nil, "month").posts.find_each { |post| included_posts << post }
       included_posts = included_posts.uniq(&:id).first(100)
 
-      tag_array = [] # Bulk load tag categories, since we need artist tags
-      included_posts.each do |post|
-        tag_array = (post.tag_array + tag_array).uniq
-      end
+      tag_array = included_posts.flat_map(&:tag_array).uniq
       types = Tag.categories_for(tag_array)
 
       # Generate media sitemaps for the included posts.
       included_posts.each do |post|
         post.inject_tag_categories(types)
-        artist_names = post.artist_tags.map(&:name).join(", ") || "unknown artist"
+        artist_names = post.artist_tags.map(&:name).join(", ").presence || "unknown artist"
 
         if post.is_video?
           add "/posts/#{post.id}", lastmod: post.updated_at, videos: [{
@@ -89,7 +87,7 @@ class SitemapGeneratorJob < ApplicationJob
             duration: post.duration,
             tags: post.tag_array,
             publication_date: post.created_at,
-            family_friendly: false,
+            family_friendly: post.rating == "s",
           }]
         else
           add "/posts/#{post.id}", lastmod: post.updated_at, images: [{
@@ -102,8 +100,8 @@ class SitemapGeneratorJob < ApplicationJob
       ### Pools
       # Slightly unhinged: we search for 50 posts with `inpool:true order:hot`, and include any pools that those posts are in.
       pools_included = []
-      Post.tag_match("inpool:true order:hot").limit(50).find_each do |post|
-        post.pools.each { |pool| pools_included << [pool, post.updated_at] }
+      Post.tag_match("inpool:true order:hot").limit(50).each do |post|
+        post.pool_ids.each { |pool_id| pools_included << [pool_id, post.updated_at] }
       end
 
       pools_included.uniq { |pool_id, _| pool_id }.each do |pool_id, updated_at|
