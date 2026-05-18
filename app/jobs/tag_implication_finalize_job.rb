@@ -9,7 +9,8 @@ class TagImplicationFinalizeJob < ApplicationJob
   end
 
   def perform(implication_id, reindex_tag_name)
-    ti = TagImplication.find(implication_id)
+    ti = TagImplication.find_by(id: implication_id)
+    return unless ti
     Post.document_store.import(
       query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", reindex_tag_name],
     )

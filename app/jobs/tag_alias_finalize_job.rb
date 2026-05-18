@@ -9,7 +9,8 @@ class TagAliasFinalizeJob < ApplicationJob
   end
 
   def perform(alias_id, reindex_tag_name)
-    ta = TagAlias.find(alias_id)
+    ta = TagAlias.find_by(id: alias_id)
+    return unless ta
     Post.document_store.import(
       query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", reindex_tag_name],
     )
