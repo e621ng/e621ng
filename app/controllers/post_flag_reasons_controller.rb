@@ -21,7 +21,7 @@ class PostFlagReasonsController < ApplicationController
   def create
     PostFlagReason.transaction do
       @reason = PostFlagReason.create(reason_params)
-      ModAction.log(:flag_reason_create, { reason: @reason.reason, text: @reason.text })
+      ModAction.log(:flag_reason_create, { reason: @reason.reason, text: @reason.text }) if @reason.valid?
     end
     flash[:notice] = @reason.valid? ? "Post flag reason created" : @reason.errors.full_messages.join("; ")
     redirect_to post_flag_reasons_path

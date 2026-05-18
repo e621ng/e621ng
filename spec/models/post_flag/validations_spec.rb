@@ -139,7 +139,7 @@ RSpec.describe PostFlag do
       expect(flag.errors[:parent_id]).to include("must exist")
     end
 
-    it "is invalid for targe tag '-grandfathered_content' when the post has the grandfathered_content tag" do
+    it "is invalid for target tag '-grandfathered_content' when the post has the grandfathered_content tag" do
       post = create(:post, tag_string: "grandfathered_content")
       flag = build(:grandfathering_post_flag, post: post, note: "reason")
       expect(flag).not_to be_valid(:create)
