@@ -81,7 +81,7 @@ export default class Timestamp {
     console.warn("Should have matched a pattern (text: %s, element: %o)", currentText, element);
   }
 
-  private toggleDisplayedStyle = () => {
+  private readonly toggleDisplayedStyle = () => {
     if (this.currentText === this.element.innerText) {
       this.element.innerText = this.titleBackup;
       this.element.title = this.currentText;
@@ -264,7 +264,7 @@ export default class Timestamp {
   public static formatToString (format: FormatInstanceData) {
     const temp = format.format
       .replace(/_/g, " ")
-      .replace(/(?<=^| )x(?!= )/, format.count.toString());
+      .replace(/(?<=^| )x(?!= )/, format.count?.toString() ?? "");
     if ((format.count ?? 1) > 1) return temp;
     return temp.substring(0, temp.length - 1);
   }
@@ -292,7 +292,7 @@ export default class Timestamp {
     return this.findSubYearDeltaFormat(deltaMinutes, deltaSeconds, options) ?? this.findYearDeltaFormat(fromTime, toTime, deltaMinutes);
   }
 
-  private static findSecondsDeltaFormat (deltaSeconds: number) {
+  private static findSecondsDeltaFormat (deltaSeconds: number): FormatInstanceData | undefined | null {
     switch (/* deltaSeconds */true) {
       case deltaSeconds >= 0 && deltaSeconds <= 4:
         return { format: "less_than_x_seconds", count: 5 };
@@ -309,7 +309,7 @@ export default class Timestamp {
     }
   }
 
-  private static findSubYearDeltaFormat (deltaMinutes: number, deltaSeconds: number, options: object) {
+  private static findSubYearDeltaFormat (deltaMinutes: number, deltaSeconds: number, options: object): FormatInstanceData | undefined | null {
     switch (/* deltaMinutes */true) {
       case deltaMinutes >= 0 && deltaMinutes <= 1:
         if (!options["include_seconds"])
