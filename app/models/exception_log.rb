@@ -99,4 +99,40 @@ class ExceptionLog < ApplicationRecord
 
     total
   end
+
+  def viewable_message
+    if CurrentUser.is_admin?
+      message
+    else
+      scrub_emails(scrub_ips(message))
+    end
+  end
+
+  def viewable_extra_params
+    if CurrentUser.is_admin?
+      extra_params
+    else
+      extra_params.deep_transform_values do |value|
+        # exclude user agent from scrub since it will likely contain version numbers:
+        if value == extra_params[:user_agent]
+          value
+        elsif value.is_a?(String)
+          scrub_emails(scrub_ips(value))
+        else # rubocop:disable Lint/DuplicateBranch
+          value
+        end
+      end
+    end
+  end
+
+  private
+
+  def scrub_ips(text)
+    text.gsub(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, "[IP PROTECTED]") # IPv4
+        .gsub(/\b(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}\b/i, "[IP PROTECTED]") # IPv6
+  end
+
+  def scrub_emails(text)
+    text.gsub(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, "[EMAIL PROTECTED]")
+  end
 end

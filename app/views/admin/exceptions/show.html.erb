@@ -1,7 +1,7 @@
 <div>
   <div class="box-section">
     <h3><%= @exception_log.class_name %></h3>
-    <pre><code><%= @exception_log.message %></code></pre>
+    <pre><code><%= @exception_log.viewable_message %></code></pre>
     <br>
     <div>
       Error Code: <%= @exception_log.code %><br/>
@@ -14,7 +14,7 @@
     </div>
   </div>
   <strong>Extra Params:</strong>
-  <pre class="box-section"><%= JSON.pretty_generate(@exception_log.extra_params) %></pre>
+  <pre class="box-section"><%= JSON.pretty_generate(@exception_log.viewable_extra_params) %></pre>
   <strong>Stacktrace:</strong>
   <pre class="box-section"><%= Rails.backtrace_cleaner.clean(@exception_log.trace.split("\n")).join("\n") %></pre>
   <strong>Raw Stacktrace:</strong>
