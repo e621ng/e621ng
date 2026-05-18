@@ -35,6 +35,20 @@ RSpec.describe StaticController do
     end
   end
 
+  describe "GET /robots.txt" do
+    it "returns 200" do
+      get "/robots.txt"
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "contains the correct content" do
+      get "/robots.txt"
+      expect(response.body).to include("User-agent: *")
+      expect(response.body).to include("Disallow: /posts.xml")
+      expect(response.body).to include("Disallow: /posts.json")
+    end
+  end
+
   # ---------------------------------------------------------------------------
   # not_found — the catch-all route renders static/404 with status 404
   # ---------------------------------------------------------------------------

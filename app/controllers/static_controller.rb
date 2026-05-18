@@ -40,6 +40,10 @@ class StaticController < ApplicationController
     @sections = build_site_map_sections
   end
 
+  def robots
+    render "static/robots", formats: [:text], layout: false
+  end
+
   def home
     @mascot_id = cookies[:mascot].to_i
     mascot_list = Mascot.active_for_browser
