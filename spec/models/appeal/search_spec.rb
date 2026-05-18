@@ -171,14 +171,10 @@ RSpec.describe Appeal do
       expect(result).not_to include(pending, unclaimed)
     end
 
-    it "excludes pending appeals even if they have a claimant" do
+    it "excludes partial appeals with a claimant" do
+      partial = create(:appeal).tap { |a| a.update_columns(status: "partial", claimant_id: claimant.id) }
       result = Appeal.search(status: "handled")
-      expect(result).not_to include(pending)
-    end
-
-    it "excludes appeals without a claimant even if they are approved" do
-      result = Appeal.search(status: "handled")
-      expect(result).not_to include(unclaimed)
+      expect(result).not_to include(partial)
     end
   end
 
