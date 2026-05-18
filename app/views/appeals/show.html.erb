@@ -36,7 +36,7 @@
     <% if CurrentUser.user.is_staff? %>
       <% if @appeal.open_from_same_user.any? %>
         <div class="appeal-display-section appeal-display-others">
-          <b>Other pending appeals from this user:</b>
+          <b><%= link_to_user(@appeal.creator) %>'s other pending appeals:</b>
           <ul>
             <% @appeal.open_from_same_user.each do |dup| %>
               <li>
@@ -56,6 +56,9 @@
                 <%= link_to "#{dup.id}: #{dup.subject}", appeal_path(dup.id) %>
                 <% if dup.creator_id != @appeal.creator_id %>
                   by <%= link_to_user(dup.creator) %>
+                <% end %>
+                <% if dup.status != "pending" %>
+                  (<%= dup.pretty_status %>)
                 <% end %>
               </li>
             <% end %>
