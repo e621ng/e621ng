@@ -44,7 +44,7 @@ class Appeal < ApplicationRecord
       def can_create_for?(user)
         return false if content.blank?
         return false if content.post.blank?
-        return false unless content.post.uploader_id == user.id
+        return false unless content.can_appeal?(user)
         true
       end
 

@@ -102,4 +102,47 @@ RSpec.describe PostFlag do
       expect(flag.method_attributes).to include(:type)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # #can_appeal?
+  # -------------------------------------------------------------------------
+  describe "#can_appeal?" do
+    let(:post) { create(:post) }
+    let(:flag) { create(:post_flag, post: post) }
+    let(:deletion) { create(:deletion_post_flag, post: post) }
+
+    context "when the flag is not a deletion flag" do
+      it "returns false" do
+        expect(flag.can_appeal?(create(:user))).to be(false)
+      end
+    end
+
+    context "when the flag is a deletion flag" do
+      it "returns true for linked users" do
+        user = create(:user)
+        post.linked_users << user
+        expect(deletion.can_appeal?(user)).to be(true)
+      end
+
+      it "returns false for non-linked users if reason contains 'takedown'" do
+        deletion.update(reason: "Takedown request")
+        expect(deletion.can_appeal?(create(:user))).to be(false)
+      end
+
+      it "returns true for the uploader" do
+        user = User.find(post.uploader_id)
+        expect(deletion.can_appeal?(user)).to be(true)
+      end
+
+      it "returns false for the uploader if reason contains 'takedown'" do
+        deletion.update(reason: "Takedown request")
+        user = User.find(post.uploader_id)
+        expect(deletion.can_appeal?(user)).to be(false)
+      end
+
+      it "returns false for other users" do
+        expect(deletion.can_appeal?(create(:user))).to be(false)
+      end
+    end
+  end
 end
