@@ -4,6 +4,12 @@ class ElasticQueryBuilder
   attr_accessor :q, :must, :must_not, :should, :order
   attr_reader :has_invalid_input
 
+  protected
+
+  attr_writer :minimum_should_match
+
+  public
+
   def initialize(query)
     @q = query
     # These terms are ANDed together
@@ -41,7 +47,11 @@ class ElasticQueryBuilder
       },
     }
 
-    query[:bool][:minimum_should_match] = 1 if should.any?
+    if @minimum_should_match.present?
+      query[:bool][:minimum_should_match] = @minimum_should_match
+    elsif should.any?
+      query[:bool][:minimum_should_match] = 1
+    end
 
     if @function_score.present?
       @function_score[:query] = query
