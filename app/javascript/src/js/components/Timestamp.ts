@@ -111,10 +111,10 @@ export default class Timestamp {
   }
 
   private static findUpdateInterval (range: FormatSpecification, from: Date, to = new Date()) {
-    let interval = range.updateIntervalMs;
-    if (interval > this.MAX_UPDATE_INTERVAL_MS) return undefined;
-    interval = Math.max(this.MIN_UPDATE_INTERVAL_MS, interval);
-    return interval - Math.round(Timestamp.findDeltas(from, to).deltaMs);
+    let intervalMs = range.updateIntervalMs;
+    if (intervalMs > this.MAX_UPDATE_INTERVAL_MS) return undefined;
+    intervalMs = Math.max(this.MIN_UPDATE_INTERVAL_MS, intervalMs);
+    return intervalMs - ((Timestamp.findDeltas(from, to).deltaMs - (isFinite(range.lowerBoundMs) ? range.lowerBoundMs : 0)) % intervalMs);
   }
 
   private update () {
@@ -275,9 +275,10 @@ export default class Timestamp {
 
   private static findDeltas (fromTime: Date, toTime: Date) {
     if (fromTime.valueOf() > toTime.valueOf()) [fromTime, toTime] = [toTime, fromTime];
-    const deltaMs = (toTime.valueOf() - fromTime.valueOf()) / 1000,
-      deltaMinutes = Math.round(deltaMs / 60),
-      deltaSeconds = Math.round(deltaMs);
+    const deltaMs = toTime.valueOf() - fromTime.valueOf(),
+      deltaSecondsRaw = deltaMs / 1000,
+      deltaMinutes = Math.round(deltaSecondsRaw / 60),
+      deltaSeconds = Math.round(deltaSecondsRaw);
     return { deltaMs, deltaMinutes, deltaSeconds };
   }
 
@@ -287,10 +288,7 @@ export default class Timestamp {
   private static readonly MINUTES_IN_THREE_QUARTERS_YEAR = this.MINUTES_IN_QUARTER_YEAR * 3;
 
   public static findDeltaFormat (fromTime: Date, toTime: Date, options: object): FormatInstanceData {
-    if (fromTime.valueOf() > toTime.valueOf()) [fromTime, toTime] = [toTime, fromTime];
-    const deltaMs = (toTime.valueOf() - fromTime.valueOf()) / 1000,
-      deltaMinutes = Math.round(deltaMs / 60),
-      deltaSeconds = Math.round(deltaMs);
+    const { deltaMinutes, deltaSeconds } = this.findDeltas(fromTime, toTime);
     return this.findSubYearDeltaFormat(deltaMinutes, deltaSeconds, options) ?? this.findYearDeltaFormat(fromTime, toTime, deltaMinutes);
   }
 
