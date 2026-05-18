@@ -258,6 +258,13 @@ class Appeal < ApplicationRecord
     ).where.not(id: id)
   end
 
+  def all_for_same_content
+    @all_for_same_content ||= Appeal.where(
+      qtype: qtype,
+      disp_id: disp_id,
+    ).where.not(id: id)
+  end
+
   module ClaimMethods
     def claim!(user = CurrentUser)
       transaction do
