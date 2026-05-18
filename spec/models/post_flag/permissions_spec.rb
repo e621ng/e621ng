@@ -127,7 +127,7 @@ RSpec.describe PostFlag do
         expect(deletion.can_appeal?(user)).to be(true)
       end
 
-      it "returns false for non-linked users if reason contains 'takedown #'" do
+      it "returns false for non-linked users if reason matches 'takedown #<id>'" do
         deletion.update(reason: "takedown #123")
         expect(deletion.can_appeal?(create(:user))).to be(false)
       end
@@ -137,7 +137,7 @@ RSpec.describe PostFlag do
         expect(deletion.can_appeal?(user)).to be(true)
       end
 
-      it "returns false for the uploader if reason contains 'takedown #'" do
+      it "returns false for the uploader if reason matches 'takedown #<id>'" do
         deletion.update(reason: "takedown #123")
         user = User.find(post.uploader_id)
         expect(deletion.can_appeal?(user)).to be(false)
