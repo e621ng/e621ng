@@ -23,7 +23,7 @@
         <td><%= link_to_user(exception_log.user) %></td>
         <td><%= exception_log.code %></td>
         <td>
-          <%= exception_log.viewable_extra_params.dig("params", "controller") %>/<%= exception_log.viewable_extra_params.dig("params", "action") %>
+          <%= exception_log.extra_params.dig("params", "controller") %>/<%= exception_log.extra_params.dig("params", "action") %>
         </td>
         <td>
           <b><%= exception_log.class_name %></b><br />

@@ -68,7 +68,7 @@ RSpec.describe ExceptionLog do
   describe "#viewable_extra_params" do
     let(:raw_extra) do
       {
-        "user_agent" => "Mozilla/5.0",
+        "user_agent" => "MyAwesomeBot/1.2.3.4 (by User1234)",
         "note" => "Contact user@example.com 1.2.3.4",
         "nested" => { "inner" => "admin@example.com 4.3.2.1" },
       }
@@ -86,7 +86,7 @@ RSpec.describe ExceptionLog do
         log = make_log(extra_params: raw_extra)
         ve = log.viewable_extra_params
 
-        expect(ve["user_agent"]).to eq("Mozilla/5.0")
+        expect(ve["user_agent"]).to eq("MyAwesomeBot/1.2.3.4 (by User1234)")
         expect(ve["note"]).to eq("Contact [EMAIL PROTECTED] [IP PROTECTED]")
         expect(ve["nested"]["inner"]).to eq("[EMAIL PROTECTED] [IP PROTECTED]")
       end

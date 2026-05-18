@@ -113,14 +113,9 @@ class ExceptionLog < ApplicationRecord
       extra_params
     else
       extra_params.deep_transform_values do |value|
-        # exclude user agent from scrub since it will likely contain version numbers:
-        if value == extra_params[:user_agent]
-          value
-        elsif value.is_a?(String)
-          scrub_emails(scrub_ips(value))
-        else # rubocop:disable Lint/DuplicateBranch
-          value
-        end
+        next value unless value.is_a?(String)
+        next value if value == extra_params["user_agent"]
+        scrub_emails(scrub_ips(value))
       end
     end
   end
