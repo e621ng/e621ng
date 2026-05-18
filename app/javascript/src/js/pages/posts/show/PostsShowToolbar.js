@@ -210,10 +210,9 @@ export default class PostsShowToolbar {
           $("#image-container").attr("data-is-favorited", "true");
         },
         (error) => {
-          if (error.cause !== "You have already favorited this post") return;
+          if (error.cause !== "You have already favorited this post") throw error;
           $(".ptbr-favorite-button").attr("favorited", "true");
           $("#image-container").attr("data-is-favorited", "true");
-          return;
         },
       );
   }

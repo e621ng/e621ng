@@ -32,7 +32,10 @@ export default class Favorite {
         try {
           const errorData = await response.json();
           backendErrorMessage = errorData.message || "Unknown error";
-          $(window).trigger("danbooru:error", "Error: " + backendErrorMessage);
+
+          // NOTE: the PostShowToolbar relies on this error message to reset the page's favorite state.
+          if (backendErrorMessage !== "You have already favorited this post")
+            $(window).trigger("danbooru:error", "Error: " + backendErrorMessage);
         } catch (_error) {
           $(window).trigger("danbooru:error", "Error: " + (response.status + " " + response.statusText));
         }

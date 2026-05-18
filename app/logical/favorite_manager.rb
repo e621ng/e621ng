@@ -25,6 +25,8 @@ class FavoriteManager
     end
   rescue ActiveRecord::RecordNotUnique
     return if force
+
+    # NOTE: Front-end relies on this exact error message to reset the page's favorite state.
     raise Favorite::Error, "You have already favorited this post" if post.favorited_by?(user.id)
 
     # Handle orphaned favorite record
