@@ -8,6 +8,7 @@ class Post < ApplicationRecord
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
+  NON_KNOWN_ARTIST_TAGS = %w[unknown_artist anonymous_artist third-party_edit].freeze
 
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
@@ -32,11 +33,13 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
+  after_create :check_for_ai_content, if: -> { Danbooru.config.auto_flag_ai_posts? }
   after_save :create_post_events
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
   after_commit :delete_files, on: :destroy
+  after_commit :delete_avatar_crops, on: :destroy
   after_commit :remove_iqdb_async, on: :destroy
   # after_commit :update_iqdb_async, :on => :create
   after_commit :handle_thumbnails_on_create, on: :create
@@ -52,7 +55,7 @@ class Post < ApplicationRecord
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
-  has_many :comments, -> { order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
+  has_many :comments, -> { accessible.order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
   has_many :children, -> {order("posts.id")}, :class_name => "Post", :foreign_key => "parent_id"
   has_many :approvals, :class_name => "PostApproval", :dependent => :destroy
   has_many :disapprovals, :class_name => "PostDisapproval", :dependent => :destroy
@@ -81,6 +84,12 @@ class Post < ApplicationRecord
 
     def delete_files
       Post.delete_files(id, md5, file_ext, force: true)
+    end
+
+    def delete_avatar_crops
+      User.where(avatar_id: id).pluck(:id).each do |user_id|
+        AvatarCleanupJob.perform_later(user_id, force: true)
+      end
     end
 
     def move_files_on_delete
@@ -124,6 +133,11 @@ class Post < ApplicationRecord
     def sample_url(type = :sample_jpg)
       return file_url unless has_sample?
       storage_manager.post_file_url(self, type)
+    end
+
+    def sample_url_pair
+      return [file_url, file_url] unless has_sample?
+      [sample_url(:sample_webp), sample_url(:sample_jpg)]
     end
 
     def preview_file_url(type = :preview_jpg)
@@ -340,6 +354,20 @@ class Post < ApplicationRecord
       ImageSampler.generate_post_images(self)
       update_iqdb_async if has_preview?
     end
+
+    def check_for_ai_content
+      ai_score = is_ai_generated?(file_path)
+      if ai_score[:score] >= 50
+        PostFlag.create(
+          post: self,
+          reason_name: "uploading_guidelines",
+          note: "AI score: #{ai_score[:score]}\n#{ai_score[:reason]}",
+          creator_id: User.system.id,
+          creator_ip_addr: "192.168.0.1",
+        )
+      end
+      ai_score
+    end
   end
 
   module ImageMethods
@@ -357,7 +385,11 @@ class Post < ApplicationRecord
 
     ### Preview ###
     def has_preview?
-      is_image? || is_video?
+      return false unless is_image? || is_video?
+
+      # Some legacy files are corrupt and cannot be processed.
+      # They report dimensions of 1x1, although the actual dimensions are larger.
+      image_width.to_i > 1 && image_height.to_i > 1
     end
 
     def preview_dimensions(max_px = Danbooru.config.small_image_width)
@@ -384,7 +416,7 @@ class Post < ApplicationRecord
       @has_sample ||= begin
         if is_video?
           true
-        elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png")
+        elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png", "animated_webp")
           false
         elsif is_image? && image_width.present?
           dims = [image_width, image_height].compact
@@ -448,7 +480,7 @@ class Post < ApplicationRecord
       # Prevent unapproving self approvals by someone else
       return false if approver.nil? && uploader != user
       # Allow unapproval when the post is not pending anymore and is not at risk of auto deletion
-      !is_pending? && !is_deleted? && created_at.after?(PostPruner::DELETION_WINDOW.days.ago)
+      !is_pending? && !is_deleted? && created_at.after?(Danbooru.config.unapproved_post_deletion_window.ago)
     end
 
     def approve!(approver = CurrentUser.user)
@@ -522,6 +554,7 @@ class Post < ApplicationRecord
     def copy_sources_to_parent
       return unless parent_id.present?
       parent.source += "\n#{self.source}"
+      set_merge_edit_reason
     end
   end
 
@@ -554,11 +587,26 @@ class Post < ApplicationRecord
 
   module TagMethods
     def should_process_tags?
+      # Memoize based on current dirty state to handle multiple save cycles
+      current_state = [
+        tag_string_changed?,
+        locked_tags_changed?,
+        tag_string_diff.present?,
+        tag_string,
+        tag_string_in_database.presence || tag_string_before_last_save || "",
+      ]
+
+      if @should_process_tags_state == current_state
+        return @should_process_tags
+      end
+
+      @should_process_tags_state = current_state
+
       if @removed_tags.nil?
         @removed_tags = []
       end
 
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || @removed_tags.length > 0 || added_tags.length > 0
+      @should_process_tags = tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || !@removed_tags.empty? || (tag_array - tag_array_was).any?
     end
 
     def tag_array
@@ -578,7 +626,8 @@ class Post < ApplicationRecord
     end
 
     def added_tags
-      tags - tags_was
+      added_tag_names = tag_array - tag_array_was
+      Tag.where(name: added_tag_names)
     end
 
     def decrement_tag_post_counts
@@ -630,12 +679,13 @@ class Post < ApplicationRecord
         set_tag_string(((current_tags + new_tags) - old_tags + (current_tags & new_tags)).uniq.sort.join(" "))
       end
 
-      if old_parent_id == ""
-        old_parent_id = nil
-      else
-        old_parent_id = old_parent_id.to_i
-      end
-      if old_parent_id == parent_id
+      normalized_old_parent_id = if old_parent_id == ""
+                                   nil
+                                 else
+                                   old_parent_id.to_i
+                                 end
+
+      if normalized_old_parent_id == parent_id
         self.parent_id = parent_id_before_last_save || parent_id_was
       end
 
@@ -666,6 +716,8 @@ class Post < ApplicationRecord
     def reset_tag_array_cache
       @tag_array = nil
       @tag_array_was = nil
+      @should_process_tags = nil
+      @should_process_tags_state = nil
     end
 
     def set_tag_string(string)
@@ -780,7 +832,13 @@ class Post < ApplicationRecord
     def add_automatic_tags(tags)
       return tags unless Danbooru.config.enable_dimension_autotagging?
 
-      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize wide_image tall_image long_image flash webm mp4 long_playtime short_playtime]
+      tags -= %w[
+        thumbnail low_res hi_res absurd_res superabsurd_res
+        huge_filesize
+        wide_image tall_image long_image
+        flash video
+        long_playtime short_playtime
+      ] + FileMethods::FILE_TYPE.values
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
@@ -801,14 +859,15 @@ class Post < ApplicationRecord
       tags << "huge_filesize" if file_size >= 30.megabytes
 
       tags << "flash" if is_flash?
-      tags << "webm" if is_webm?
-
-      tags << "long_playtime" if is_video? && duration >= 30
-      tags << "short_playtime" if is_video? && duration < 30
+      tags << "video" if is_video?
 
       # TODO: Automatically add animated_* tags without re-testing them on every edit
       tags -= ["animated_gif"] unless is_gif?
       tags -= ["animated_png"] unless is_png?
+      tags -= ["animated_webp"] unless is_webp?
+
+      tags << "long_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration >= 30
+      tags << "short_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration < 30
 
       tags
     end
@@ -903,7 +962,7 @@ class Post < ApplicationRecord
           end
 
         when /^set:(\d+)$/i
-          set = PostSet.find_by(id: $1.to_i)
+          set = PostSet.find_by(id: ParseValue.safe_id($1))
           if set&.can_edit_posts?(CurrentUser.user)
             set.add!(self)
             if set.errors.any?
@@ -912,7 +971,7 @@ class Post < ApplicationRecord
           end
 
         when /^-set:(\d+)$/i
-          set = PostSet.find_by(id: $1.to_i)
+          set = PostSet.find_by(id: ParseValue.safe_id($1))
           if set&.can_edit_posts?(CurrentUser.user)
             set.remove!(self)
             if set.errors.any?
@@ -940,16 +999,19 @@ class Post < ApplicationRecord
 
         when /^child:none$/i
           children.each do |post|
+            remove_child_edit_reason(post)
             post.update!(parent_id: nil)
           end
 
         when /^-child:(.+)$/i
           children.numeric_attribute_matches(:id, $1).each do |post|
+            remove_child_edit_reason(post)
             post.update!(parent_id: nil)
           end
 
         when /^child:(.+)$/i
           Post.numeric_attribute_matches(:id, $1).where.not(id: id).limit(10).each do |post|
+            add_child_edit_reason(post)
             post.update!(parent_id: id)
           end
         end
@@ -983,7 +1045,7 @@ class Post < ApplicationRecord
           self.is_note_locked = ($1 != "-") if CurrentUser.is_janitor?
 
         when /^(-?)locked:rating$/i
-          self.is_rating_locked = ($1 != "-") if CurrentUser.is_janitor?
+          self.is_rating_locked = ($1 != "-") if CurrentUser.is_privileged?
 
         when /^(-?)locked:status$/i
           self.is_status_locked = ($1 != "-") if CurrentUser.is_admin?
@@ -1044,6 +1106,7 @@ class Post < ApplicationRecord
     def copy_tags_to_parent
       return unless parent_id.present?
       parent.tag_string += " #{tag_string}"
+      set_merge_edit_reason
     end
 
     ## DB!
@@ -1072,12 +1135,28 @@ class Post < ApplicationRecord
       categorized_tags[category] || []
     end
 
-    ##
+    ## DB!
     # List of artist tags for the post
     # Excludes non-artist tags like avoid_posting or sound_warning
     def artist_tags
-      @artist_tags ||= tags_for_category(Tag.categories.artist).filter do |tag|
-        NON_ARTIST_TAGS.exclude?(tag.name)
+      @artist_tags ||= begin
+        if @categorized_tags.nil?
+          Tag.where(name: tag_array, category: Tag.categories.artist).select(:name, :post_count, :category).filter do |tag|
+            NON_ARTIST_TAGS.exclude?(tag.name)
+          end
+        else
+          tags_for_category(Tag.categories.artist).filter do |tag|
+            NON_ARTIST_TAGS.exclude?(tag.name)
+          end
+        end
+      end
+    end
+
+    ## DB!
+    # Like `artist_tags`, but also excludes artist tags that aren't known to be actual artists
+    def known_artist_tags
+      @known_artist_tags ||= artist_tags.filter do |tag|
+        NON_KNOWN_ARTIST_TAGS.exclude?(tag.name)
       end
     end
 
@@ -1085,15 +1164,48 @@ class Post < ApplicationRecord
     # Fetches the data for the artist tags to find any that have the linked artists matching the uploader
     # Sends a db request to look up the artist data.
     def uploader_linked_artists
-      tags = artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
-      @uploader_linked_artists ||= tags.map(&:name)
+      @uploader_linked_artists ||= begin
+        tags = artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
+        tags.map(&:name)
+      end
     end
 
     ## DB!
-    # Fetches the avoid posting data for the post's artist tags.
+    # Fetches ALL linked users for the post's artist tags and returns the user IDs.
+    # Sends a db request to look up the artist data.
+    def linked_users
+      @linked_users ||= begin
+        tags = artist_tags.filter_map(&:artist).select(&:linked_user_id?)
+        tags.map(&:linked_user_id)
+      end
+    end
+
+    ## DB!
+    # Fetches the avoid posting data for all artist, copyright, and character tags on the post.
     # Sends a db request to lookup avoid posting data.
-    def avoid_posting_artists
-      AvoidPosting.active.joins(:artist).where("artists.name": artist_tags.map(&:name))
+    def avoid_posting_tags
+      @avoid_posting_tags ||= begin
+        # We only care about artist, copyright, and character tags.
+        if @categorized_tags.nil?
+          tags = Tag
+                 .where(name: tag_array, category: [Tag.categories.artist, Tag.categories.copyright, Tag.categories.character])
+                 .pluck(:name)
+                 .filter { |tag| NON_ARTIST_TAGS.exclude?(tag) }
+        else
+          tags = (
+            tags_for_category(Tag.categories.artist) +
+            tags_for_category(Tag.categories.copyright) +
+            tags_for_category(Tag.categories.character)
+          ).map(&:name).filter { |tag| NON_ARTIST_TAGS.exclude?(tag) }
+        end
+
+        if tags.empty?
+          []
+        else
+          # Despite the name, copyright and character tags can also have Artist and AvoidPosting entries
+          AvoidPosting.active.joins(:artist).where(artists: { name: tags }).includes(:artist).to_a
+        end
+      end
     end
   end
 
@@ -1111,13 +1223,31 @@ class Post < ApplicationRecord
     alias_method :is_favorited?, :favorited_by?
 
     def append_user_to_fav_string(user_id)
-      self.fav_string = (fav_string + " fav:#{user_id}").strip
-      clean_fav_string!
+      # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
+      # Checking for presence is faster than explicit deduplication for both approaches.
+      if fav_count > 1000
+        unless fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
+          self.fav_string = (fav_string + " fav:#{user_id}").strip
+          self.fav_count = fav_string.split.size
+        end
+      else
+        fav_array = fav_string.split
+        fav_tag = "fav:#{user_id}"
+
+        unless fav_array.include?(fav_tag)
+          fav_array << fav_tag
+          self.fav_string = fav_array.join(" ")
+          self.fav_count = fav_array.size
+        end
+      end
     end
 
     def delete_user_from_fav_string(user_id)
-      self.fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
-      clean_fav_string!
+      new_fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
+      if new_fav_string != fav_string
+        self.fav_string = new_fav_string
+        self.fav_count = new_fav_string.split.size
+      end
     end
 
     # users who favorited this post, ordered by users who favorited it first
@@ -1153,7 +1283,7 @@ class Post < ApplicationRecord
 
   module SetMethods
     def set_ids
-      pool_string.scan(/set\:(\d+)/).map {|set| set[0].to_i}
+      pool_string.scan(/set:(\d+)/).map { |set| ParseValue.safe_id(set[0]) }
     end
 
     def post_sets
@@ -1203,7 +1333,7 @@ class Post < ApplicationRecord
 
   module PoolMethods
     def pool_ids
-      pool_string.scan(/pool:(\d+)/).map { |pool| pool[0].to_i }
+      pool_string.scan(/pool:(\d+)/).map { |pool| ParseValue.safe_id(pool[0]) }
     end
 
     def pools
@@ -1283,6 +1413,8 @@ class Post < ApplicationRecord
   end
 
   module ParentMethods
+    extend ActiveSupport::Concern
+
     # A parent has many children. A child belongs to a parent.
     # A parent cannot have a parent.
     #
@@ -1295,6 +1427,21 @@ class Post < ApplicationRecord
     # After expunging a parent:
     # - Move favorites to the first child.
     # - Reparent all children to the first child.
+
+    class_methods do
+      def cleanup_stuck_favorite_transfer_flags!
+        transfer_flag = flag_value_for("favorites_transfer_in_progress")
+
+        stuck_posts = where("bit_flags & ? != 0", transfer_flag)
+        count = stuck_posts.count
+        return 0 if count == 0
+
+        Rails.logger.warn("Post.cleanup_stuck_favorite_transfer_flags: Found #{count} posts with stuck flags")
+        stuck_posts.update_all("bit_flags = bit_flags & ~#{transfer_flag}")
+
+        count
+      end
+    end
 
     def update_has_children_flag
       update(has_children: children.exists?, has_active_children: children.undeleted.exists?)
@@ -1339,14 +1486,6 @@ class Post < ApplicationRecord
       TransferFavoritesJob.perform_later(id, CurrentUser.id)
     end
 
-    def give_favorites_to_parent!
-      return if parent.nil?
-
-      FavoriteManager.give_to_parent!(self)
-      PostEvent.add(id, CurrentUser.user, :favorites_moved, { parent_id: parent_id })
-      PostEvent.add(parent_id, CurrentUser.user, :favorites_received, { child_id: id })
-    end
-
     def parent_exists?
       Post.exists?(parent_id)
     end
@@ -1370,6 +1509,19 @@ class Post < ApplicationRecord
       if has_children?
         @children_ids ||= children.map {|p| p.id}.join(' ')
       end
+    end
+
+    def set_merge_edit_reason
+      return unless parent_id.present?
+      parent.edit_reason = "Merged from post ##{self.id}"
+    end
+
+    def remove_child_edit_reason(post)
+      post.edit_reason = "Removed as child of post ##{id}"
+    end
+
+    def add_child_edit_reason(post)
+      post.edit_reason = "Added as child of post ##{id}"
     end
   end
 
@@ -1464,6 +1616,7 @@ class Post < ApplicationRecord
           )
           decrement_tag_post_counts
           move_files_on_delete
+          delete_avatar_crops
           PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
         end
       end
@@ -1516,6 +1669,20 @@ class Post < ApplicationRecord
     def pending_flag
       flags.unresolved.order(id: :desc).first
     end
+
+    def substitute_deletion_dmail_template(text, reason = nil)
+      return nil if text.blank?
+      if reason
+        text = text.gsub("%REASON%", reason)
+      end
+      if (flag_id = deletion_flag&.id)
+        text = text.gsub("%FLAG_ID%", flag_id.to_s)
+      end
+      text.gsub("%POST_ID%", id.to_s)
+          .gsub("%STAFF_NAME%", CurrentUser.name)
+          .gsub("%STAFF_ID%", CurrentUser.id.to_s)
+          .gsub("%UPLOADER_ID%", uploader_id.to_s)
+    end
   end
 
   module VersionMethods
@@ -1557,7 +1724,7 @@ class Post < ApplicationRecord
 
   module NoteMethods
     def can_have_notes?
-      is_png? || is_jpg? || is_gif?
+      is_png? || is_jpg? || is_gif? || is_webp?
     end
 
     def has_notes?
@@ -1636,6 +1803,7 @@ class Post < ApplicationRecord
         score: score,
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
+        comment_count: comment_count,
 
         pools: pool_ids.join(" "),
       }
@@ -1643,6 +1811,7 @@ class Post < ApplicationRecord
       if visible?
         attributes[:md5] = md5
         attributes[:preview_url] = preview_file_url
+        attributes[:preview_webp] = preview_file_url(:preview_webp)
         attributes[:sample_url] = sample_url
         attributes[:file_url] = file_url
         attributes[:preview_width] = preview_dimensions[0]
@@ -1800,6 +1969,7 @@ class Post < ApplicationRecord
       if saved_change_to_is_comment_disabled?
         action = is_comment_disabled? ? :comment_disabled : :comment_enabled
         PostEvent.add(id, CurrentUser.user, action)
+        Comment::SearchMethods.clear_comment_disabled_cache
       end
       if saved_change_to_bg_color?
         PostEvent.add(id, CurrentUser.user, :changed_bg_color, { bg_color: bg_color })
@@ -1896,6 +2066,7 @@ class Post < ApplicationRecord
 
   include PostFileMethods
   include FileMethods
+  include AiMethods
   include ImageMethods
   include ApprovalMethods
   include SourceMethods
@@ -1925,6 +2096,8 @@ class Post < ApplicationRecord
     _has_cropped
     hide_from_anonymous
     hide_from_search_engines
+    favorites_transfer_in_progress
+    hide_favorites_list
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
@@ -1968,6 +2141,7 @@ class Post < ApplicationRecord
     @categorized_tags = nil
     @artist_tags = nil
     @uploader_linked_artists = nil
+    @avoid_posting_tags = nil
 
     @has_dimensions = nil
     @preview_dimensions = nil
@@ -1997,14 +2171,14 @@ class Post < ApplicationRecord
   end
 
   def flaggable_for_guidelines?
-    !has_tag?("grandfathered_content") && created_at.after?("2015-01-01")
+    !has_tag?("grandfathered_content") && created_at.after?(Danbooru.config.grandfathered_post_cutoff)
   end
 
   def visible_comment_count(user)
-    if user.is_moderator? || !is_comment_disabled?
-      comment_count
+    if is_comment_disabled? && !user.is_staff?
+      0
     else
-      comments.visible(user).count
+      comment_count
     end
   end
 end

@@ -6,16 +6,31 @@ module PostSets
 
     def initialize(date, scale)
       super()
-      @date = date.blank? ? Time.zone.now : Time.zone.parse(date)
+      @date = if date.blank?
+                Time.zone.now
+              else
+                parsed = Time.zone.parse(date)
+                raise ParseValue::InvalidDateError, "Invalid date: #{date}" if parsed.nil? || parsed.year > 9999 || parsed.year < 1
+                parsed
+              end
       @scale = scale
     end
 
     def posts
       @posts ||= begin
-        query = ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day).order("score desc").paginate_posts(1)
-        query.each # hack to force rails to eager load
-        query
+        q = ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day)
+                  .includes(:uploader)
+                  .order("score desc")
+        q = q.where(rating: "s") if CurrentUser.safe_mode?
+        q.paginate_posts(1)
       end
+    end
+
+    def api_posts
+      result = posts
+      fill_children(result)
+      fill_tag_types(result)
+      result
     end
 
     def min_date

@@ -1,5 +1,5 @@
 <% "#{@post_set.humanized_tag_string} - #{Danbooru.config.app_name}".tap do |title| %>
-  <%= tag.meta name: "og:title", content: title %>
+  <%= tag.meta property: "og:title", content: title %>
   <%= tag.meta name: "twitter:title", content: title %>
 <% end %>
 
@@ -9,13 +9,13 @@
   <meta name="rating" content="adult">
 <% end %>
 
-<%= tag.meta name: "canonical", content: posts_url(tags: params[:tags], host: Danbooru.config.hostname, protocol: "https") %>
+<%= tag.link rel: "canonical", href: posts_url(tags: params[:tags], host: Danbooru.config.hostname, protocol: "https") %>
 
 <% Danbooru.config.description.tap do |desc| %>
   <%= tag.meta name: "description", content: desc %>
-  <%= tag.meta name: "og:description", content: desc %>
+  <%= tag.meta property: "og:description", content: desc %>
   <%= tag.meta name: "twitter:description", content: desc %>
 <% end %>
 
-<%= tag.meta name: "og:type", content: "website" %>
-<%= tag.meta name: "og:site", content: Danbooru.config.app_name %>
+<%= tag.meta property: "og:type", content: "website" %>
+<%= tag.meta property: "og:site_name", content: Danbooru.config.app_name %>

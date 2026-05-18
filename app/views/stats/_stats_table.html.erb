@@ -6,9 +6,15 @@
     </tr>
   </thead>
   <tbody>
-    <% data.each do |(data_title, data_or_stats_key)| %>
-      <tr>
-        <td><%= data_title %></td>
+    <% data.each do |data_title, data_or_stats_key, data_title_attrib| %>
+      <tr
+        <% if data_title_attrib.present? %>
+          title="<%= data_title_attrib %>"
+          style="cursor: help;"
+        <% end %>
+      >
+        <td
+          ><%= data_title %></td>
         <td><%= del(@stats[data_or_stats_key]) || data_or_stats_key %></td>
       </tr>
     <% end %>

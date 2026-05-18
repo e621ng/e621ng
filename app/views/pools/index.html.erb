@@ -31,7 +31,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@pools) %>
+    <%= render PaginatorComponent.new(records: @pools) %>
   </div>
 </div>
 

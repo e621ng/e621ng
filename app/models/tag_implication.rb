@@ -69,13 +69,18 @@ class TagImplication < TagRelationship
     def update_descendant_names!
       flush_cache
       update_descendant_names
-      update_attribute(:descendant_names, descendant_names)
+      update_columns(descendant_names: descendant_names)
     end
 
-    def update_descendant_names_for_parents
+    def update_descendant_names_for_parents(visited = Set.new)
+      visited.add(id)
       parents.each do |parent|
+        if visited.include?(parent.id)
+          parent.update_columns(status: "error: circular implication detected")
+          next
+        end
         parent.update_descendant_names!
-        parent.update_descendant_names_for_parents
+        parent.update_descendant_names_for_parents(visited)
       end
     end
   end
@@ -146,44 +151,34 @@ class TagImplication < TagRelationship
 
     def update_posts
       Post.without_timeout do
-        page = 1
-        loop do
-          posts = PostSets::Post.new("#{antecedent_name} -#{consequent_name} status:any", page, limit: POST_LIMIT).posts
-          posts.each do |post|
-            post.with_lock do
-              CurrentUser.scoped(creator, creator_ip_addr) do
-                post.do_not_version_changes = true
-                post.tag_string += " "
-                post.save!
-              end
+        Post.sql_raw_tag_match(antecedent_name).find_each do |post|
+          next if post.tag_array.include?(consequent_name)
+          post.with_lock do
+            CurrentUser.scoped(creator, creator_ip_addr) do
+              post.do_not_version_changes = true
+              post.tag_string += " "
+              post.save!
             end
           end
-
-          if posts.length < POST_LIMIT
-            return
-          end
-
-          page += 1
         end
       end
     end
 
     def create_undo_information
       Post.without_timeout do
-        page = 1
-        loop do
-          posts = PostSets::Post.new("#{antecedent_name} -#{consequent_name} status:any", page, limit: POST_LIMIT).posts
-          post_info = Hash.new
-          posts.each do |post|
-            post_info[post.id] = post.tag_string
+        post_info = {}
+        Post.sql_raw_tag_match(antecedent_name).find_each do |post|
+          next if post.tag_array.include?(consequent_name)
+          post_info[post.id.to_s] = post.tag_string
+
+          if post_info.size >= POST_LIMIT
+            tag_rel_undos.create!(undo_data: post_info)
+            post_info = {}
           end
+        end
+
+        if post_info.any?
           tag_rel_undos.create!(undo_data: post_info)
-
-          if posts.length < POST_LIMIT
-            return
-          end
-
-          page += 1
         end
       end
     end
@@ -252,7 +247,7 @@ class TagImplication < TagRelationship
         tag_rel_undos.where(applied: false).each do |tu|
           Post.where(id: tu.undo_data.keys).find_each do |post|
             post.do_not_version_changes = true
-            if TagQuery.scan(tu.undo_data[post.id]).include?(consequent_name)
+            if TagQuery.scan(tu.undo_data[post.id.to_s]).include?(consequent_name)
               Rails.logger.info("[TIU] Skipping post that already contains target tag.")
               next
             end
@@ -287,7 +282,11 @@ class TagImplication < TagRelationship
   end
 
   def flush_cache
-    @dedescendants = nil
+    @descendants = nil
     @parents = nil
+  end
+
+  def dtext_label
+    "[ti:#{id}]"
   end
 end

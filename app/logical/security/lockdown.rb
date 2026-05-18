@@ -75,6 +75,14 @@ module Security
       Setting.votes_disabled = state == "1"
     end
 
+    def self.takedowns_disabled?
+      Setting.takedowns_disabled?
+    end
+
+    def self.takedowns_disabled=(state)
+      Setting.takedowns_disabled = state == "1"
+    end
+
     # Uploader level override
     def self.uploads_min_level
       Setting.uploads_min_level
@@ -84,7 +92,7 @@ module Security
       Setting.uploads_min_level = min_upload_level
     end
 
-    # Hiding pending posts
+    # `Integer`:&nbsp; The number of hours pending posts should be hidden for.
     def self.hide_pending_posts_for
       Setting.hide_pending_posts_for
     end

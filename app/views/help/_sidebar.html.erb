@@ -1,16 +1,14 @@
-<%# locals: (help_pages:) -%>
+<%# locals: (help_pages:, help: nil, params: {}) -%>
 
 <aside id="sidebar">
-  <h1>Help Index</h1>
-  <div style="width:240px">
-    <ul class="link-page">
-      <% help_pages.each do |page| %>
-        <% if params[:name] == page.name %>
-          <li id="active">» <%= page.pretty_title %></li>
-        <% else %>
-          <li><%= link_to "» #{page.pretty_title}", help_page_path(id: page.name) %></li>
-        <% end %>
+  <h1>Help Pages</h1>
+  <ul class="link-page">
+    <% help_pages.each do |page| %>
+      <% if [params[:name], help&.name].include?(page.name) %>
+        <li class="active"><span><%= page.pretty_title %></span></li>
+      <% else %>
+        <li><%= link_to page.pretty_title, help_page_path(id: page.name) %></li>
       <% end %>
-    </ul>
-  </div>
+    <% end %>
+  </ul>
 </aside>

@@ -2,42 +2,59 @@
 // These colors should not normally change between
 // themes, but could still be overriden if need be.
 
+@use "sass:color";
+
 // Palette definitions
 $palette: (
+  // Red
   "background-red": #76312e,
+  "background-red-d5": #{color.adjust(#76312e, $lightness: -5%)},
+  "background-red-d10": #{color.adjust(#76312e, $lightness: -10%)},
+
+  // Yellow
   "background-yellow": #827428,
+  "background-yellow-d5": #{color.adjust(#827428, $lightness: -5%)},
+  "background-yellow-d10": #{color.adjust(#827428, $lightness: -10%)},
+
+  // Green
   "background-green": #227d2a,
+  "background-green-d5": #{color.adjust(#227d2a, $lightness: -5%)},
+  "background-green-d10": #{color.adjust(#227d2a, $lightness: -10%)},
+
+  // Grey
   "background-grey": #60686f,
+  "background-grey-d5": #{color.adjust(#60686f, $lightness: -5%)},
 
+  // Gold
   "background-gold": #ddc676,
+  "background-gold-l10": #{color.adjust(#ddc676, $lightness: 10%)},
+  "background-gold-d10": #{color.adjust(#ddc676, $lightness: -10%)},
+  "background-gold-d20": #{color.adjust(#ddc676, $lightness: -20%)},
+
+  // Orange
   "background-orange": #ec8e49,
+  "background-orange-d5": #{color.adjust(#ec8e49, $lightness: -5%)},
+  "background-orange-d10": #{color.adjust(#ec8e49, $lightness: -20%)},
 
-  "background-red-d5": #{darken(#76312e, 5%)},
-  "background-red-d10": #{darken(#76312e, 10%)},
-  "background-yellow-d5": #{darken(#827428, 5%)},
-  "background-green-d5": #{darken(#227d2a, 5%)},
-  "background-green-d10": #{darken(#227d2a, 10%)},
-  "background-grey-d5": #{darken(#60686f, 5%)},
+  // Blue
+  "background-blue": #1f3c67,
+  "background-blue-l10": #{color.adjust(#1f3c67, $lightness: 10%)},
+  "background-blue-d5": #{color.adjust(#1f3c67, $lightness: -5%)},
+  "background-blue-d10": #{color.adjust(#1f3c67, $lightness: -10%)},
 
-  "background-gold-l10": #{lighten(#ddc676, 10%)},
-  "background-gold-d10": #{darken(#ddc676, 10%)},
-  "background-gold-d20": #{darken(#ddc676, 20%)},
-  "background-orange-d5": #{darken(#ec8e49, 5%)},
-  "background-orange-d10": #{darken(#ec8e49, 20%)},
-
+  // Text Colors
   "text-white": #ffffff,
   "text-red": #fe6a64,
   "text-yellow": #ffd666,
   "text-green": #4caf50,
   "text-grey": #aaaaaa,
 
-  // Just here for the post borders, nothing else
   "plain-white": #fff,
   "plain-black": #000,
-  "plain-green": #0F0,
-  "plain-yellow": #CC0,
-  "plain-blue": #00F,
-  "plain-red": #F00,
+  "plain-green": #2ec035,
+  "plain-yellow": #ecec26,
+  "plain-blue": #2a75ff,
+  "plain-red": #ff5050,
 );
 
 :root {

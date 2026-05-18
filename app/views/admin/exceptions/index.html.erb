@@ -41,4 +41,4 @@
   Exceptions
 <% end %>
 
-<%= numbered_paginator(@exception_logs) %>
+<%= render PaginatorComponent.new(records: @exception_logs) %>

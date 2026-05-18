@@ -3,28 +3,16 @@
 class TicketsController < ApplicationController
   respond_to :html, :json, except: %i[create new]
   before_action :member_only, except: %i[index]
-  before_action :moderator_only, only: %i[update edit claim unclaim]
+  before_action :janitor_only, only: %i[update claim unclaim]
 
   def index
-    @tickets = Ticket.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
+    @tickets = Ticket
+               .includes(:creator, :accused, :claimant)
+               .visible(CurrentUser.user)
+               .search(search_params)
+               .paginate(params[:page], limit: params[:limit])
+    preload_ticket_contents(@tickets)
     respond_with(@tickets)
-  end
-
-  def new
-    @ticket = Ticket.new(qtype: params[:qtype], disp_id: params[:disp_id])
-    check_new_permission(@ticket)
-  end
-
-  def create
-    @ticket = Ticket.new(ticket_params)
-    check_new_permission(@ticket)
-    if @ticket.valid?
-      @ticket.save
-      @ticket.push_pubsub("create")
-      redirect_to(ticket_path(@ticket))
-    else
-      render action: "new"
-    end
   end
 
   def show
@@ -33,8 +21,38 @@ class TicketsController < ApplicationController
     respond_with(@ticket)
   end
 
+  def new
+    @ticket = Ticket.new(qtype: params[:qtype], disp_id: params[:disp_id])
+    @existing_similar = Ticket
+                        .visible(CurrentUser.user)
+                        .where({
+                          creator_id: CurrentUser.id,
+                          qtype: @ticket.qtype,
+                          status: "pending",
+                          created_at: 1.week.ago..,
+                        })
+                        .order(created_at: :desc)
+                        .limit(5)
+
+    check_new_permission(@ticket)
+  end
+
+  def create
+    @ticket = Ticket.new(ticket_params)
+    check_new_permission(@ticket)
+    if @ticket.valid?
+      @ticket.save
+      redirect_to(ticket_path(@ticket))
+    else
+      render action: "new"
+    end
+  end
+
   def update
     @ticket = Ticket.find(params[:id])
+
+    raise User::PrivilegeError unless @ticket.can_view?(CurrentUser.user) && @ticket.can_handle?(CurrentUser.user)
+
     if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.id && !params[:force_claim].to_s.truthy?
       flash[:notice] = "Ticket has already been claimed by somebody else, submit again to force"
       redirect_to ticket_path(@ticket, force_claim: "true")
@@ -55,7 +73,6 @@ class TicketsController < ApplicationController
     if @ticket.valid?
       not_changed = ticket_params[:send_update_dmail].to_s.truthy? && (!@ticket.saved_change_to_response? && !@ticket.saved_change_to_status?)
       flash[:notice] = "Not sending update, no changes" if not_changed
-      @ticket.push_pubsub("update")
     end
 
     respond_with(@ticket)
@@ -63,6 +80,8 @@ class TicketsController < ApplicationController
 
   def claim
     @ticket = Ticket.find(params[:id])
+
+    raise User::PrivilegeError unless @ticket.can_view?(CurrentUser.user) && @ticket.can_claim?(CurrentUser.user)
 
     if @ticket.claimant.nil?
       @ticket.claim!
@@ -74,6 +93,8 @@ class TicketsController < ApplicationController
 
   def unclaim
     @ticket = Ticket.find(params[:id])
+
+    raise User::PrivilegeError unless @ticket.can_view?(CurrentUser.user) && @ticket.can_claim?(CurrentUser.user)
 
     if @ticket.claimant.nil?
       flash[:notice] = "Ticket not claimed"
@@ -92,6 +113,16 @@ class TicketsController < ApplicationController
 
   private
 
+  def preload_ticket_contents(tickets)
+    tickets.group_by(&:qtype).each_value do |group|
+      model = group.first.model
+      next if model.nil?
+      ids = group.map(&:disp_id).compact
+      content_map = model.where(id: ids).index_by(&:id)
+      group.each { |t| t.instance_variable_set(:@content, content_map[t.disp_id]) }
+    end
+  end
+
   def ticket_params
     params.require(:ticket).permit(%i[qtype disp_id reason report_reason])
   end
@@ -104,7 +135,7 @@ class TicketsController < ApplicationController
     current_search_params = params.fetch(:search, {})
     permitted_params = %i[qtype status order]
     permitted_params += %i[creator_id] if CurrentUser.is_staff? || (current_search_params[:creator_id].present? && current_search_params[:creator_id].to_i == CurrentUser.id)
-    permitted_params += %i[creator_name accused_name accused_id claimant_id claimant_name reason] if CurrentUser.is_staff?
+    permitted_params += %i[disp_id creator_name accused_name accused_id claimant_id claimant_name reason] if CurrentUser.is_staff?
     permit_search_params permitted_params
   end
 

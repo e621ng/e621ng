@@ -10,6 +10,7 @@ class Tag < ApplicationRecord
 
   validates :name, uniqueness: true, tag_name: true, on: :create
   validates :name, length: { in: 1..100 }
+  validates :category, numericality: { only_integer: true }
   validates :category, inclusion: { in: TagCategory::CATEGORY_IDS }
   validate :user_can_create_tag?, on: :create
   validate :user_can_change_category?, if: :category_changed?
@@ -348,11 +349,11 @@ class Tag < ApplicationRecord
       end
 
       if params[:category].present?
-        category_ids = params[:category].split(",").first(100).grep(/^\d+$/)
+        category_ids = params[:category].split(",").first(Danbooru.config.max_per_page).grep(/^\d+$/)
         q = q.where(category: category_ids)
       end
 
-      if params[:hide_empty].blank? || params[:hide_empty].to_s.truthy?
+      if params[:hide_empty].nil? || params[:hide_empty].to_s.truthy?
         q = q.where("post_count > 0")
       end
 

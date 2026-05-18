@@ -8,9 +8,9 @@
   <% end %>
 >
   <div class="blacklist-header">Blacklisted <span class="blacklisted-count"></span></div>
-  <div class="blacklist-filters"></div>
+  <ul class="blacklist-filters"></ul>
   <span class="blacklist-footer">
-    <a class="blacklist-toggle-all"></a>
+    <button type="button" class="blacklist-toggle-all" aria-label="Disable All Filters">Disable All Filters</button>
     <div class="blacklist-help"><%= link_to "(help)", help_page_path(id: "blacklist") %></div>
   </span>
 </section>

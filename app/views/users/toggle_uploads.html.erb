@@ -1,0 +1,13 @@
+<div id="c-users"><div id="a-toggle-uploads">
+  <h1>Disable <%= @presenter.name %>'s Uploads</h1>
+  <p>To disable this user's uploads, you must provide a reason to be added to a staff note.</p>
+  <div class="new-staff-note">
+    <%= render "staff_notes/partials/new", user: @user, staff_note: (@staff_note ||= StaffNote.new(user_id: @user.id)), hidden: false, url: disable_uploads_user_path(@user), required: true %>
+  </div>
+</div></div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Disable <%= @presenter.name %>'s Uploads
+<% end %>

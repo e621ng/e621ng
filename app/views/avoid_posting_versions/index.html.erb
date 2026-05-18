@@ -74,7 +74,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@avoid_posting_versions) %>
+    <%= render PaginatorComponent.new(records: @avoid_posting_versions) %>
   </div>
 </div>
 

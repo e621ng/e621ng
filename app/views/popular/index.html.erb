@@ -8,7 +8,11 @@
 
     <div id="posts">
       <section class="posts-container">
-        <%= @post_set.presenter.post_previews_html(self, show_cropped: true) %>
+        <% if @post_set.posts.any? %>
+          <%= render(PostThumbnailComponent.with_collection(@post_set.posts)) %>
+        <% else %>
+          <p class="no-results">Nobody here but us chickens!</p>
+        <% end %>
       </section>
     </div>
   </div>

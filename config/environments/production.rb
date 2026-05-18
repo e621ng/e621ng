@@ -63,6 +63,8 @@ Rails.application.configure do
     api_key: Danbooru.config.mailgun_api_key,
     domain: Danbooru.config.mailgun_domain,
   }
+  config.action_mailer.default_url_options = { host: Danbooru.config.hostname, protocol: "https" }
+  config.action_mailer.asset_host = "https://#{Danbooru.config.hostname}"
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.

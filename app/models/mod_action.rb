@@ -6,6 +6,7 @@ class ModAction < ApplicationRecord
   validates :creator_id, presence: true
 
   KnownActions = {
+    admin_user_delete: { user_id: :integer },
     artist_page_rename: { old_name: :string, new_name: :string },
     artist_page_lock: { artist_page: :string },
     artist_page_unlock: { artist_page: :string },
@@ -48,6 +49,10 @@ class ModAction < ApplicationRecord
     help_update: { name: :string, wiki_page: :string },
     ip_ban_create: { ip_addr: :string, reason: :string },
     ip_ban_delete: { ip_addr: :string, reason: :string },
+    search_trend_blacklist_create: { tag: :string, reason: :string },
+    search_trend_blacklist_update: { tag: :string, reason: :string },
+    search_trend_blacklist_delete: { tag: :string, reason: :string },
+    search_trend_blacklist_purge: { tag: :string, reason: :string, deleted_count: :integer },
     mascot_create: { id: :integer },
     mascot_update: { id: :integer },
     mascot_delete: { id: :integer },
@@ -66,11 +71,16 @@ class ModAction < ApplicationRecord
     ticket_claim: { ticket_id: :integer },
     ticket_unclaim: { ticket_id: :integer },
     ticket_update: { ticket_id: :integer, status: :string, response: :string, status_was: :string, response_was: :string },
+    appeal_claim: { appeal_id: :integer },
+    appeal_unclaim: { appeal_id: :integer },
+    appeal_update: { appeal_id: :integer, status: :string, response: :string, status_was: :string, response_was: :string },
     upload_whitelist_create: { domain: :string, path: :string, note: :string, hidden: :boolean },
     upload_whitelist_update: { domain: :string, path: :string, note: :string, old_domain: :string, old_path: :string, hidden: :boolean },
     upload_whitelist_delete: { domain: :string, path: :string, note: :string, hidden: :boolean },
+    user_avatar_clear: { user_id: :integer },
     user_blacklist_changed: { user_id: :integer },
     user_text_change: { user_id: :integer },
+    user_custom_title_change: { user_id: :integer, old_custom_title: :string, new_custom_title: :string },
     user_upload_limit_change: { user_id: :integer, old_upload_limit: :integer, new_upload_limit: :integer },
     user_uploads_toggle: { user_id: :integer, disabled: :boolean },
     user_flags_change: { user_id: :integer, added: :string, removed: :string },
@@ -131,7 +141,16 @@ class ModAction < ApplicationRecord
     end
 
     def jsonb_numeric_attribute_matches(attribute, range)
-      qualified_column = Arel.sql("(values ->> '#{attribute}')::INTEGER")
+      # Historical rows can hold non-integer strings (e.g. "permanent") under
+      # integer-typed JSONB keys; the CASE guard skips the cast for those rows
+      # instead of failing the whole query with PG::InvalidTextRepresentation.
+      # `-{0,1}` rather than `-?` so the regex contains no literal `?`,
+      # which ActiveRecord's positional bind logic in `add_range_relation`
+      # would otherwise scan as an extra placeholder.
+      qualified_column = Arel.sql(
+        "CASE WHEN (values ->> '#{attribute}') ~ '^-{0,1}[0-9]+$' " \
+        "THEN (values ->> '#{attribute}')::INTEGER END",
+      )
       parsed_range = ParseValue.range(range, :integer)
 
       add_range_relation(parsed_range, qualified_column)
@@ -189,7 +208,8 @@ class ModAction < ApplicationRecord
   end
 
   def values
-    original_values = self[:values]
+    original_values = self[:values] || {}
+    return {} unless original_values.is_a?(Hash)
 
     if CurrentUser.is_admin?
       original_values
@@ -211,6 +231,10 @@ class ModAction < ApplicationRecord
 
       if !CurrentUser.is_moderator? && %i[ticket_update].include?(action.to_sym)
         sanitized_values = sanitized_values.slice("ticket_id")
+      end
+
+      if !CurrentUser.is_janitor? && %i[appeal_update].include?(action.to_sym)
+        sanitized_values = sanitized_values.slice("appeal_id")
       end
 
       sanitized_values

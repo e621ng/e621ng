@@ -35,7 +35,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@tags) %>
+    <%= render PaginatorComponent.new(records: @tags) %>
   </div>
 </div>
 

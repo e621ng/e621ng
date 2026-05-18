@@ -3,7 +3,7 @@ default: &default
   timeout: 5000
   username: e621
   variables:
-    statement_timeout: 3000
+    statement_timeout: 10000
 
 development:
   <<: *default
@@ -13,7 +13,7 @@ development:
 
 test:
   <<: *default
-  database: e621_test
+  database: e621_test<%= ENV["TEST_ENV_NUMBER"] %>
   host: postgres
   pool: 5
 

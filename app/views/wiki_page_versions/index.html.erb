@@ -11,7 +11,7 @@
         <%= render "global_listing" %>
       <% end %>
 
-      <%= numbered_paginator(@wiki_page_versions) %>
+      <%= render PaginatorComponent.new(records: @wiki_page_versions) %>
     </section>
   </div>
 </div>

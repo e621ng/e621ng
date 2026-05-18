@@ -65,6 +65,28 @@ class ModActionDecorator < ApplicationDecorator
     when "ticket_unclaim"
       "Unclaimed ticket ##{vals['ticket_id']}"
 
+      ### Appeal ###
+    when "appeal_update"
+      text = "Modified appeal ##{vals['appeal_id']}"
+
+      if vals["status"].present? && vals["status"] != vals["status_was"]
+        text += "\nChanged status from #{vals['status_was']} to #{vals['status']}"
+      end
+
+      if vals["response"].present? && vals["response"] != vals["response_was"]
+        if vals["response_was"].present?
+          text += "\nChanged response: [section=Old]#{vals['response_was']}[/section] [section=New]#{vals['response']}[/section]"
+        else
+          text += "\nWith response: #{vals['response']}"
+        end
+      end
+
+      text
+    when "appeal_claim"
+      "Claimed appeal ##{vals['appeal_id']}"
+    when "appeal_unclaim"
+      "Unclaimed appeal ##{vals['appeal_id']}"
+
       ### Artist ###
     when "artist_delete"
       "Deleted artist ##{vals['artist_id']} (#{vals['artist_name']})"
@@ -103,7 +125,7 @@ class ModActionDecorator < ApplicationDecorator
 
       ### User ###
 
-    when "user_delete"
+    when "user_delete", "admin_user_delete"
       "Deleted user #{user}"
     when "user_ban"
       if (vals["duration"].is_a?(Numeric) && vals["duration"] < 0) || vals["duration"] == "permanent"
@@ -135,13 +157,25 @@ class ModActionDecorator < ApplicationDecorator
         "Changed #{user} level to #{vals['level']}"
       end
     when "user_flags_change"
-      "Changed #{user} flags. Added: [#{vals['added'].join(', ')}] Removed: [#{vals['removed'].join(', ')}]"
+      "Changed #{user} flags. Added: [#{vals['added']&.join(', ')}] Removed: [#{vals['removed']&.join(', ')}]"
     when "edited_user"
       "Edited #{user}"
+    when "user_avatar_clear"
+      "Cleared avatar of #{user}"
     when "user_blacklist_changed"
       "Edited blacklist of #{user}"
     when "user_text_change"
       "Changed profile text of #{user}"
+    when "user_custom_title_change"
+      if vals["old_custom_title"].present?
+        if vals["new_custom_title"].present?
+          "Changed custom title of #{user} from \"#{vals['old_custom_title']}\" to \"#{vals['new_custom_title']}\""
+        else
+          "Removed custom title from #{user}: \"#{vals['old_custom_title']}\""
+        end
+      else
+        "Added custom title to #{user}: \"#{vals['new_custom_title']}\""
+      end
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
     when "user_uploads_toggle"
@@ -154,7 +188,7 @@ class ModActionDecorator < ApplicationDecorator
       ### User Record ###
 
     when "user_feedback_create"
-      "Created #{vals['type'].capitalize} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
+      "Created #{vals['type']&.capitalize} record ##{vals['record_id']} for #{user} with reason: #{vals['reason']}"
     when "user_feedback_update"
       if vals["reason_was"].present? || vals["type_was"].present?
         text = "Edited record ##{vals['record_id']} for #{user}"
@@ -240,20 +274,20 @@ class ModActionDecorator < ApplicationDecorator
 
     when "blip_update"
       "Edited blip ##{vals['blip_id']} by #{user}"
+    when "blip_destroy"
+      if vals["username"]
+        "Destroyed blip ##{vals['blip_id']} by #{user}"
+      else
+        "Destroyed blip ##{vals['blip_id']}"
+      end
     when "blip_delete"
-      if vals['username']
+      if vals["username"]
         "Deleted blip ##{vals['blip_id']} by #{user}"
       else
         "Deleted blip ##{vals['blip_id']}"
       end
-    when "blip_hide"
-      if vals['username']
-        "Hid blip ##{vals['blip_id']} by #{user}"
-      else
-        "Hid blip ##{vals['blip_id']}"
-      end
-    when "blip_unhide"
-      "Unhid blip ##{vals['blip_id']} by #{user}"
+    when "blip_undelete"
+      "Undeleted blip ##{vals['blip_id']} by #{user}"
 
       ### Tag ###
 

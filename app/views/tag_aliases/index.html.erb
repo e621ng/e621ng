@@ -6,7 +6,7 @@
       <%= render "tag_relationships/add_form", type: :tag_alias_request, path: tag_alias_request_path %>
     <% end %>
 
-    <%= numbered_paginator(@tag_aliases) if @tag_aliases.respond_to?(:current_page) %>
+    <%= render PaginatorComponent.new(records: @tag_aliases) if @tag_aliases.respond_to?(:current_page) %>
   </div>
 </div>
 

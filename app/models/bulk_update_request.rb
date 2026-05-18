@@ -206,6 +206,8 @@ class BulkUpdateRequest < ApplicationRecord
     @skip_forum = v.to_s.truthy?
   end
 
+  alias_attribute :creator_id, :user_id
+
   def is_pending?
     status == "pending"
   end
@@ -220,5 +222,9 @@ class BulkUpdateRequest < ApplicationRecord
 
   def estimate_update_count
     BulkUpdateRequestImporter.new(script, nil).estimate_update_count
+  end
+
+  def dtext_label
+    "[bur:#{id}]"
   end
 end

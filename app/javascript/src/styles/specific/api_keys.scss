@@ -1,5 +1,205 @@
-#c-maintenance-user-api-keys {
-  .button_to {
-    display: inline-block;
+body.c-api-keys.a-index {
+  .instructions {
+    margin-bottom: 1em;
+    max-width: 50rem;
+
+    p {
+      margin-bottom: 0.75em;
+    }
+
+    code {
+      background-color: $dtext-code-background;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.125rem;
+      font-family: monospace;
+      font-size: 1em;
+    }
+  }
+
+  .button.create-api-key {
+    margin-bottom: 1rem;
+  }
+
+  .api-keys-list {
+    display: grid;
+    grid-template-columns: 1.5fr 2fr 1.5fr 1fr 1fr 1fr;
+
+    .header {
+      font-weight: bold;
+      padding: $padding-050 $padding-025;
+      background-color: var(--color-section-darken-5);
+      border-bottom: 1px solid var(--color-foreground);
+      color: var(--color-text-table-header);
+    }
+
+    .cell {
+      padding: $padding-050 $padding-025;
+      background-color: var(--color-section);
+      border-bottom: 1px solid var(--color-table-border);
+      word-break: break-word;
+      display: flex;
+      align-items: center;
+
+      code {
+        font-weight: bold;
+        background-color: $dtext-code-background;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        word-break: break-all;
+      }
+    }
+
+    .row {
+      display: contents;
+
+      &:last-child .cell {
+        border-bottom: none;
+      }
+
+      @media (min-width: 801px) {
+        &:hover .cell {
+          background-color: var(--color-section-lighten-10);
+        }
+      }
+    }
+
+    .api-key-expired {
+      color: $state-error-color;
+      font-weight: bold;
+    }
+
+    @media (max-width: 800px) {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+
+      .header {
+        display: none;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr;
+        background: var(--color-section);
+        border-radius: 4px;
+        overflow: hidden;
+
+        .cell {
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid var(--color-table-border);
+          display: flex;
+          justify-content: space-between;
+          align-items: start;
+          gap: 1rem;
+
+          &:first-child {
+            background-color: var(--color-section-darken-5);
+            font-weight: bold;
+            font-size: 1.1rem;
+            justify-content: flex-start;
+
+            &::before {
+              display: none;
+            }
+          }
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          &::before {
+            content: attr(data-label);
+            font-weight: bold;
+            flex-shrink: 0;
+          }
+
+          > div {
+            text-align: right;
+            flex: 1;
+          }
+        }
+      }
+    }
+  }
+}
+
+body.c-api-keys.a-new,
+body.c-api-keys.a-create {
+  form {
+    max-width: 50rem;
+    background: themed("color-section");
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+
+    .field {
+      margin-bottom: 1.5em;
+
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 0.5em;
+        font-size: 0.9rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        max-width: 24rem;
+        box-sizing: border-box;
+        padding: 0.25rem;
+        font-size: 1rem;
+        border-radius: 0.25rem;
+        border: 1px solid #ccc;
+
+        &:focus {
+          background: $form-focus-background;
+          color: $form-focus-color;
+          outline: none;
+        }
+      }
+
+      .hint {
+        font-size: 90%;
+        color: themed("color-text-muted");
+        margin-top: 0.25rem;
+      }
+
+      .warning {
+        font-size: 90%;
+        color: $state-error-color;
+        margin-top: 0.25rem;
+      }
+    }
+
+    .actions {
+      margin-top: 2em;
+
+      input[type="submit"] {
+        background: themed("color-tag-artist");
+        font-size: 1.25rem;
+        padding: 0.25rem 1rem;
+        border-radius: 0.25rem;
+
+        &:hover,
+        &:active {
+          background: themed("color-tag-artist-alt");
+        }
+      }
+    }
+  }
+
+  .report-errors {
+    display: flex;
+    flex-flow: column;
+    gap: 0.125rem;
+    margin-bottom: 1rem;
+
+    span {
+      background-color: palette("background-red");
+      color: palette("text-white");
+      padding: 0.25rem;
+
+      border-radius: 0.25rem;
+    }
   }
 }

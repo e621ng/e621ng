@@ -58,6 +58,16 @@ class PostReplacementsController < ApplicationController
 
   def approve
     @post_replacement = PostReplacement.find(params[:id])
+    is_reset_to = params.key?(:penalize_current_uploader) && !ActiveModel::Type::Boolean.new.cast(params[:penalize_current_uploader])
+
+    if @post_replacement.post.is_deleted?
+      # Both Approve and Reset To submit to this endpoint; reset-to passes penalize_current_uploader=false.
+      action_name = is_reset_to ? "reset to" : "approve"
+      flash.now[:notice] = "Error: Cannot #{action_name} replacement for deleted target post"
+      render plain: flash[:notice], status: :unprocessable_entity
+      return
+    end
+
     @post_replacement.approve!(penalize_current_uploader: params[:penalize_current_uploader])
 
     if @post_replacement.errors.any?

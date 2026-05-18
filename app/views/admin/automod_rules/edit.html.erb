@@ -1,0 +1,11 @@
+<% content_for(:page_title) { "Edit Automod Rule: #{@automod_rule.name}" } %>
+
+<div id="c-admin-automod-rules">
+  <div id="a-edit">
+    <h1>Edit Automod Rule: <%= @automod_rule.name %></h1>
+
+    <%= render "form" %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>

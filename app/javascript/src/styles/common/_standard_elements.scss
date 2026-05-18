@@ -25,6 +25,7 @@
   height: st-value(100) * 2;
   box-sizing: border-box;
   justify-content: center;
+  align-items: center;
 
   // TODO What if button is on a light background
   background: $button-background;
@@ -83,7 +84,7 @@
   // Elements that look like physical buttons and animate on click.
   &.kinetic {
     $kinetic-shadow: 0.25rem;
-    $kinetic-active: $kinetic-shadow / 2;
+    $kinetic-active: calc($kinetic-shadow / 2);
 
     box-shadow: 0 $kinetic-shadow themed("color-section");
     position: relative;

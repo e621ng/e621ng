@@ -1,0 +1,81 @@
+ul.sortable {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--thumb-image-size, 150px));
+  gap: 0.5rem;
+
+  li.sortable-thumbnail {
+    position: relative;
+    width: var(--thumb-image-size, 150px);
+    height: calc(var(--thumb-image-size, 150px) + 1.5rem);
+    overflow: hidden;
+
+    &.dragging {
+      display: none;
+      pointer-events: none;
+    }
+
+    article.thumbnail {
+      a.thm-link { border-radius: 0 0 0.25rem 0.25rem; }
+      img {
+        width: var(--thumb-image-size, 150px);
+        height: var(--thumb-image-size, 150px);
+        object-fit: cover;
+      }
+      .desc { display: none; }
+    }
+  }
+
+  .sortable-placeholder {
+    width: var(--thumb-image-size, 150px);
+    height: calc(var(--thumb-image-size, 150px) + 1.5rem);
+    box-sizing: border-box;
+
+    background: rgba(0, 124, 186, 0.1);
+    border: 2px dashed #007cba;
+    @include st-radius;
+    pointer-events: auto;
+  }
+}
+
+// Ghost clone appended to <body> while dragging — sized via inline styles by JS
+.sortable-ghost {
+  list-style: none;
+  overflow: hidden;
+  opacity: 0.85;
+  cursor: grabbing;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+
+  article.thumbnail {
+    a { cursor: grabbing; }
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .desc { display: none; }
+  }
+}
+
+.sortable-ghost, .sortable-thumbnail {
+  .sortable-handle {
+    display: flex;
+    justify-content: center;
+    height: 1.5rem;
+    line-height: 1.5rem;
+    font-size: 1rem;
+    border-radius: 0 0 0.25rem 0.25rem;
+
+    background: themed("color-section-lighten-5");
+    cursor: grab;
+    touch-action: none; // required for pointermove to fire on touch instead of scrolling
+
+    // Six-dot grip icon
+    &::before {
+      content: ":::";
+      display: block;
+      color: themed("color-text-muted");
+    }
+
+    &:active { cursor: grabbing; }
+  }
+}

@@ -166,7 +166,6 @@ class Dmail < ApplicationRecord
     day_allowed = CurrentUser.can_dmail_day_with_reason
     if day_allowed != true
       errors.add(:base, "Sender #{User.throttle_reason(day_allowed, 'daily')}")
-      return
     end
   end
 
@@ -187,12 +186,12 @@ class Dmail < ApplicationRecord
     end
     if to.is_blacklisting_user?(from)
       errors.add(:to_name, "does not wish to receive DMails from you")
-      return false
+      false
     end
   end
 
   def quoted_body
-    "[quote]\n#{from.pretty_name} said:\n\n#{body}\n[/quote]\n\n"
+    "[section=#{from.pretty_name} said:]\n#{body}\n[/section]\n\n"
   end
 
   def send_email
@@ -241,6 +240,7 @@ class Dmail < ApplicationRecord
   end
 
   def visible_to?(user)
+    return true if user.is_janitor? && to_id == User.system.id
     return true if user.is_moderator? && (from_id == User.system.id || Ticket.where(qtype: "dmail", disp_id: id).exists?)
     return true if user.is_admin? && (to.is_admin? || from.is_admin?)
     owner_id == user.id

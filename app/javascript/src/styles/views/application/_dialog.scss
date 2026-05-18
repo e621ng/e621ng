@@ -34,6 +34,7 @@
       display: flex;
       @include st-radius-top;
       cursor: grab;
+      height: 2rem; // Hardcoded height for drag calculations
 
       background-color: themed("color-section-darken-5");
 

@@ -150,6 +150,8 @@ module LinkHelper
 
     # image servers
     "4cdn.org" => "4chan.org",
+    "bsky.network" => "bsky.app",
+    "bsky.social" => "bsky.app",
     "cdn.donmai.us" => "danbooru.donmai.us",
     "cohostcdn.org" => "cohost.org",
     "discordapp.com" => "discord.com",
@@ -193,16 +195,16 @@ module LinkHelper
     if hostname
       tag.img(
         class: "link-decoration",
-        src: asset_pack_path("static/#{hostname}.png"),
+        src: vite_asset_path("images/favicons/#{hostname}.png"),
+        alt: hostname,
+        width: 16,
+        height: 16,
         data: {
           hostname: hostname,
         },
       )
     else
-      tag.i(
-        class: "fa-solid fa-globe link-decoration",
-        data: { hostname: "none" },
-      )
+      svg_icon(:globe, class: "link-decoration", width: 16, height: 16)
     end
   end
 
@@ -214,7 +216,7 @@ module LinkHelper
     end
     return nil unless uri.host
 
-    hostname = uri.host.delete_prefix("www.")
+    hostname = uri.host.delete_prefix("www.").downcase
 
     # 1: direct match
     return hostname if DECORATABLE_DOMAINS.include?(hostname)

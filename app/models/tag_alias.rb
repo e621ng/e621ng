@@ -91,6 +91,7 @@ class TagAlias < TagRelationship
   end
 
   def self.to_aliased_query(query, overrides: nil, comments: false)
+    query = query.dup
     # Remove tag types (newline syntax)
     query.gsub!(/(^| )(-)?(#{TagCategory::MAPPING.keys.sort_by { |x| -x.size }.join('|')}):([\S])/i, '\1\2\4')
     # Remove tag types (comma syntax)
@@ -256,27 +257,27 @@ class TagAlias < TagRelationship
   def move_aliases_and_implications
     aliases = TagAlias.where(["consequent_name = ?", antecedent_name])
     aliases.each do |ta|
-      ta.consequent_name = self.consequent_name
+      ta.consequent_name = consequent_name
       success = ta.save
-      if !success && ta.errors.full_messages.join("; ") =~ /Cannot alias a tag to itself/
+      if !success && ta.errors.full_messages.join("; ") =~ /Cannot alias or implicate a tag to itself/
         ta.destroy
       end
     end
 
     implications = TagImplication.where(["antecedent_name = ?", antecedent_name])
     implications.each do |ti|
-      ti.antecedent_name = self.consequent_name
+      ti.antecedent_name = consequent_name
       success = ti.save
-      if !success && ti.errors.full_messages.join("; ") =~ /Cannot implicate a tag to itself/
+      if !success && ti.errors.full_messages.join("; ") =~ /Cannot alias or implicate a tag to itself/
         ti.destroy
       end
     end
 
     implications = TagImplication.where(["consequent_name = ?", antecedent_name])
     implications.each do |ti|
-      ti.consequent_name = self.consequent_name
+      ti.consequent_name = consequent_name
       success = ti.save
-      if !success && ti.errors.full_messages.join("; ") =~ /Cannot implicate a tag to itself/
+      if !success && ti.errors.full_messages.join("; ") =~ /Cannot alias or implicate a tag to itself/
         ti.destroy
       end
     end
@@ -362,5 +363,9 @@ class TagAlias < TagRelationship
 
       ModAction.log(:tag_alias_update, {alias_id: id, alias_desc: alias_desc, change_desc: change_desc})
     end
+  end
+
+  def dtext_label
+    "[ta:#{id}]"
   end
 end

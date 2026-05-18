@@ -17,7 +17,13 @@
         <tbody>
         <% @tag_versions.each do |change| %>
           <tr id="r<%= change.id %>">
-            <td><%= link_to change.tag.name, edit_tag_path(change.tag) %></td>
+            <td>
+              <% if change.tag.present? %>
+                <%= link_to change.tag.name, edit_tag_path(change.tag) %>
+              <% else %>
+                <span class="inactive">[deleted tag #<%= change.tag_id %>]</span>
+              <% end %>
+            </td>
             <td><%= compact_time change.created_at %></td>
             <td><%= link_to_user change.creator %></td>
 
@@ -30,7 +36,7 @@
       </table>
     </div>
 
-    <%= numbered_paginator(@tag_versions) %>
+    <%= render PaginatorComponent.new(records: @tag_versions) %>
   </div>
 </div>
 

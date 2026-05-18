@@ -26,6 +26,8 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors.add(attribute, "'#{value}' cannot end with an underscore ('_')")
     when /[_\-~]{2}/
       record.errors.add(attribute, "'#{value}' cannot contain consecutive underscores, hyphens or tildes")
+    when /\p{Zs}|\p{Cf}/
+      record.errors.add(attribute, "'#{value}' cannot contain invisible characters")
     when /[^[:graph:]]/
       record.errors.add(attribute, "'#{value}' cannot contain non-printable characters")
     when /\A[+_`(){}\[\]\/]/
@@ -34,8 +36,6 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors.add(attribute, "'#{value}' cannot begin with '#{$1}:'")
     when /\A(#{Tag.categories.regexp}):(.+)\z/i
       record.errors.add(attribute, "'#{value}' cannot begin with '#{$1}:'")
-    when /\p{Zs}|\p{Cf}/
-      record.errors.add(attribute, "'#{value}' cannot contain invisible characters")
     end
 
     unless options[:disable_secondary_validations]

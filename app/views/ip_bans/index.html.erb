@@ -31,7 +31,7 @@
       </tbody>
     </table>
 
-    <%= numbered_paginator(@ip_bans) %>
+    <%= render PaginatorComponent.new(records: @ip_bans) %>
   </div>
 </div>
 

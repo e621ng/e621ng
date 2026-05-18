@@ -27,7 +27,7 @@
     <% end %>
 
     <% if @wiki_page.persisted? %>
-      <%= subnav_link_to "History", wiki_page_versions_path(search: { wiki_page_id: @wiki_page.id }) %>
+      <%= subnav_link_to "History", wiki_page_versions_path(search: { wiki_page_id: @wiki_page.id }), data: { hotkey: "history" } %>
 
       <% if CurrentUser.is_member? && params[:action] != "edit" %>
         <%= subnav_link_to "Edit", edit_wiki_page_path(@wiki_page), data: { hotkey: "edit" } %>

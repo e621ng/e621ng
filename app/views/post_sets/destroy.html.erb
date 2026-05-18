@@ -8,8 +8,13 @@
 </div>
 
 <%= javascript_tag nonce: true do -%>
-  $(function() {
-    $("cancel-button").on('click', history.back);
+  document.addEventListener('DOMContentLoaded', function() {
+    const cancelButton = document.querySelector('#cancel-button');
+    if (cancelButton) {
+      cancelButton.addEventListener('click', function() {
+        history.back();
+      });
+    }
   });
 <% end -%>
 

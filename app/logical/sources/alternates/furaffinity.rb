@@ -15,6 +15,9 @@ module Sources
         # Handle old CDN or old broken CDN
         if ["d.facdn.net", "d2.facdn.net"].include?(@parsed_url.host)
           @parsed_url.host = "d.furaffinity.net"
+        # Handle SFW subdomain
+        elsif @parsed_url.host == "sfw.furaffinity.net"
+          @parsed_url.host = "www.furaffinity.net"
         end
         # Convert /full/ submission links to /view/ links
         if @parsed_url.path.start_with?("/full/")

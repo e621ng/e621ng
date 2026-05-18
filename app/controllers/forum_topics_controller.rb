@@ -3,16 +3,20 @@
 class ForumTopicsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show]
-  before_action :moderator_only, only: [:unhide]
-  before_action :admin_only, only: [:destroy]
-  before_action :normalize_search, only: :index
+  before_action :normalize_search_params, only: [:index]
   before_action :load_topic, only: %i[edit show update destroy hide unhide subscribe unsubscribe]
-  before_action :check_min_level, only: %i[show edit update destroy hide unhide subscribe unsubscribe]
+
+  before_action :ensure_can_access, only: %i[show edit update destroy hide unhide subscribe unsubscribe]
+  before_action :ensure_can_edit, only: %i[edit update]
+  before_action :ensure_can_hide, only: %i[hide]
+  before_action :ensure_can_unhide, only: %i[unhide]
+  before_action :ensure_can_destroy, only: %i[destroy]
   before_action :ensure_lockdown_disabled, except: %i[index show]
+
   skip_before_action :api_check
 
   def index
-    params[:search] ||= {}
+    params[:search] = {} unless params[:search].is_a?(ActionController::Parameters)
     params[:search][:order] ||= "sticky" if request.format == Mime::Type.lookup("text/html")
 
     @query = ForumTopic.visible(CurrentUser.user).search(search_params)
@@ -56,7 +60,6 @@ class ForumTopicsController < ApplicationController
   end
 
   def edit
-    check_privilege(@forum_topic)
     respond_with(@forum_topic)
   end
 
@@ -66,14 +69,12 @@ class ForumTopicsController < ApplicationController
   end
 
   def update
-    check_privilege(@forum_topic)
     @forum_topic.assign_attributes(forum_topic_params)
-    @forum_topic.save touch: false
+    @forum_topic.save
     respond_with(@forum_topic)
   end
 
   def destroy
-    check_privilege(@forum_topic)
     @forum_topic.destroy
     if @forum_topic.errors.none?
       flash[:notice] = "Topic destroyed"
@@ -84,7 +85,6 @@ class ForumTopicsController < ApplicationController
   end
 
   def hide
-    check_privilege(@forum_topic)
     @forum_topic.hide!
     @forum_topic.create_mod_action_for_hide
     flash[:notice] = "Topic hidden"
@@ -92,7 +92,6 @@ class ForumTopicsController < ApplicationController
   end
 
   def unhide
-    check_privilege(@forum_topic)
     @forum_topic.unhide!
     @forum_topic.create_mod_action_for_unhide
     flash[:notice] = "Topic unhidden"
@@ -128,30 +127,16 @@ class ForumTopicsController < ApplicationController
     params[:limit] || 40
   end
 
-  def normalize_search
-    if params[:title_matches]
-      params[:search] ||= {}
+  def normalize_search_params
+    if params[:title_matches].is_a?(String)
+      params[:search] = ActionController::Parameters.new unless params[:search].is_a?(ActionController::Parameters)
       params[:search][:title_matches] = params.delete(:title_matches)
     end
 
-    if params[:title]
-      params[:search] ||= {}
+    if params[:title].is_a?(String)
+      params[:search] = ActionController::Parameters.new unless params[:search].is_a?(ActionController::Parameters)
       params[:search][:title] = params.delete(:title)
     end
-  end
-
-  def check_privilege(forum_topic)
-    unless forum_topic.editable_by?(CurrentUser.user)
-      raise User::PrivilegeError
-    end
-  end
-
-  def load_topic
-    @forum_topic = ForumTopic.includes(:category).find(params[:id])
-  end
-
-  def check_min_level
-    raise User::PrivilegeError unless @forum_topic.visible?(CurrentUser.user)
   end
 
   def forum_topic_params
@@ -161,7 +146,35 @@ class ForumTopicsController < ApplicationController
     params.fetch(:forum_topic, {}).permit(permitted_params)
   end
 
+  def load_topic
+    @forum_topic = ForumTopic.includes(:category).find(params[:id])
+  end
+
+  #############################
+  ###     Access checks     ###
+  #############################
+
+  def ensure_can_access
+    raise User::PrivilegeError unless @forum_topic.can_access?
+  end
+
+  def ensure_can_edit
+    raise User::PrivilegeError unless @forum_topic.can_edit?
+  end
+
+  def ensure_can_hide
+    raise User::PrivilegeError unless @forum_topic.can_hide?
+  end
+
+  def ensure_can_unhide
+    raise User::PrivilegeError unless @forum_topic.can_unhide?
+  end
+
+  def ensure_can_destroy
+    raise User::PrivilegeError unless @forum_topic.can_destroy?
+  end
+
   def ensure_lockdown_disabled
-    access_denied if Security::Lockdown.forums_disabled? && !CurrentUser.is_staff?
+    access_denied if Security::Lockdown.forums_disabled? && !CurrentUser.user.is_staff?
   end
 end

@@ -38,6 +38,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @always_show_deleted = always_show_deleted
     @always_show_deleted ||= !query.hide_deleted_posts?(at_any_level: true) if GLOBAL_DELETED_FILTER && @depth <= 0
     @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ERROR_ON_DEPTH_EXCEEDED)
+    @downstream_free_tags_count = @free_tags_count + (kwargs[:process_groups] || TagQuery.will_count_group_tags? ? 0 : query.tag_count)
     super(query)
   end
 
@@ -67,7 +68,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         x = TagQuery.new(
           x,
           resolve_aliases: @resolve_aliases,
-          free_tags_count: @free_tags_count + @q.tag_count,
+          free_tags_count: @downstream_free_tags_count,
           error_on_depth_exceeded: @error_on_depth_exceeded,
           depth: @depth + 1,
           hoisted_metatags: nil,
@@ -77,7 +78,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       temp = ElasticPostQueryBuilder.new(
         x,
         resolve_aliases: @resolve_aliases,
-        free_tags_count: @free_tags_count + @q.tag_count,
+        free_tags_count: @downstream_free_tags_count,
         enable_safe_mode: @enable_safe_mode,
         always_show_deleted: GLOBAL_DELETED_FILTER ? true : asd_cache,
         error_on_depth_exceeded: @error_on_depth_exceeded,
@@ -297,7 +298,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       order.push({ -"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => $2 ? :asc : :desc })
 
     when "hot"
-      two_days_ago = 2.days.ago(q[:hot_from] || Time.current)
+      hot_from_time = q[:hot_from].is_a?(Date) ? q[:hot_from].to_time : q[:hot_from]
+      two_days_ago = 2.days.ago(hot_from_time || Time.current)
       @function_score = {
         script_score: {
           script: {
@@ -315,8 +317,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         },
       }
       must.push({ range: { score: { gt: 0 } } })
-      must.push({ range: { created_at: if q[:hot_from]
-                                         { gte: two_days_ago, lte: q[:hot_from] }
+      must.push({ range: { created_at: if hot_from_time
+                                         { gte: two_days_ago, lte: hot_from_time }
                                        else
                                          { gte: two_days_ago }
                                        end } })

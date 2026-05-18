@@ -47,11 +47,14 @@
 
 <%= content_for(:html_header) do %>
   <%= javascript_tag nonce: true do -%>
-    $(function() {
-      const help = $("#script-help");
-      $("#script-help-link").on("click", (event) => {
+    document.addEventListener("DOMContentLoaded", function() {
+      const help = document.getElementById("script-help");
+      const helpLink = document.getElementById("script-help-link");
+      
+      if (!helpLink || !help) return;
+      helpLink.addEventListener("click", function(event) {
         event.preventDefault();
-        help.toggle();
+        help.style.display = help.style.display === "none" ? "block" : "none";
         return false;
       });
     });

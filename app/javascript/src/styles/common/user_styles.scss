@@ -29,3 +29,10 @@ svg.chexagon {
   color: themed("color-tag-artist");
   .check { color: themed("color-text"); }
 }
+
+/* Used for the icon indicating a flag was made by the uploader. */
+svg.text-inline {
+  height: 1em;
+  width: 1em;
+  vertical-align: middle;
+}

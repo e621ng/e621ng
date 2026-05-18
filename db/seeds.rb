@@ -16,6 +16,9 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.can_upload_free = true
   user.can_approve_posts = true
   user.level = User::Levels::ADMIN
+
+  user.is_bd_staff = true
+  user.is_bd_auditor = true
 end
 
 User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
@@ -64,13 +67,13 @@ def setup_report_reasons
 end
 
 unless Rails.env.test?
-  CurrentUser.user = admin
-  CurrentUser.ip_addr = "127.0.0.1"
   begin
+    CurrentUser.user = admin
+    CurrentUser.ip_addr = "127.0.0.1"
     import_mascots
     setup_upload_whitelist
     setup_report_reasons
-  rescue StandardError => e
+  rescue Exception => e # rubocop:disable Lint/RescueException
     puts "--------"
     puts "#{e.class}: #{e.message}"
     puts "Failure during seeding, continuing on..."

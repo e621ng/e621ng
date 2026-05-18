@@ -3,11 +3,12 @@
 
 // Main themes
 @import "index/index";
+@import "show/show";
+
 @include window-larger-than(50rem) {
   @import "index/index.desktop";
+  @import "show/show.desktop";
 }
-
-@import "show/show";
 
 // Features
 @import "index/partials/mode_menu";
