@@ -53,6 +53,7 @@ RSpec.describe Appeal do
     let!(:pending_appeal)  { create(:appeal) }
     let!(:partial_appeal)  { create(:appeal).tap { |a| a.update_columns(status: "partial") } }
     let!(:approved_appeal) { create(:appeal).tap { |a| a.update_columns(status: "approved") } }
+    let!(:rejected_appeal) { create(:appeal).tap { |a| a.update_columns(status: "rejected") } }
 
     it "includes pending appeals" do
       expect(Appeal.active).to include(pending_appeal)
@@ -64,6 +65,10 @@ RSpec.describe Appeal do
 
     it "excludes approved appeals" do
       expect(Appeal.active).not_to include(approved_appeal)
+    end
+
+    it "excludes rejected appeals" do
+      expect(Appeal.active).not_to include(rejected_appeal)
     end
   end
 

@@ -11,7 +11,7 @@ RSpec.describe AppealsController do
   let(:admin)        { create(:admin_user) }
   # uploader must be passed explicitly — the :post factory always creates its own uploader user.
   let(:flagged_post) { create(:post, uploader: uploader) }
-  let(:post_flag)    { CurrentUser.scoped(other_member) { create(:post_flag, post: flagged_post) } }
+  let(:post_flag)    { CurrentUser.scoped(other_member) { create(:deletion_post_flag, post: flagged_post) } }
   let(:appeal)       { CurrentUser.scoped(uploader) { create(:appeal, post_flag: post_flag) } }
 
   # ---------------------------------------------------------------------------

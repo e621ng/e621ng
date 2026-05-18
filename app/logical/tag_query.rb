@@ -278,6 +278,10 @@ class TagQuery
     NO_NON_METATAG_UNLIMITED_TAGS: true,
   }.freeze
 
+  def self.will_count_group_tags?
+    SETTINGS[:CHECK_GROUP_TAGS_AND_DEPTH] != false
+  end
+
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases, :tag_count
 

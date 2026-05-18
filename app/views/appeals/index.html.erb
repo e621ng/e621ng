@@ -6,6 +6,7 @@
     <table class="striped">
       <thead>
         <tr>
+          <th style="width: 0;"></th>
           <% if CurrentUser.is_staff? %>
             <th style="width:10%">Reporter</th>
             <th style="width:10%">Accused</th>
@@ -23,6 +24,7 @@
         <% @appeals.each do |appeal| %>
           <% can_view = appeal.can_view?(CurrentUser.user) %>
           <tr data-link="<%= can_view ? appeal_path(appeal) : "" %>">
+            <td><%= link_to(appeal.id, appeal_path(appeal)) %></td>
             <% if CurrentUser.is_staff? %>
               <% if can_view %>
                 <%# Reporter %>
@@ -65,7 +67,7 @@
             <% end %>
 
             <%# Status, Timestamps %>
-            <td class="<%= appeal.status %>-appeal"><%= pretty_ticket_status(appeal) %></td>
+            <td class="<%= appeal.status %>-appeal"><%= appeal.pretty_status %></td>
             <td style="cursor:help;"><%= time_ago_in_words_tagged(appeal.updated_at) %></td>
             <td style="cursor:help;"><%= time_ago_in_words_tagged(appeal.created_at) %></td>
           </tr>

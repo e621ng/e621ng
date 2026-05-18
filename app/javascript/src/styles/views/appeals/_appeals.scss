@@ -2,3 +2,16 @@ body.c-appeals {
   &.a-new { @import "new/new"; }
   &.a-show { @import "show/show"; }
 }
+
+.approved-appeal {
+  color: palette("text-green");
+  font-weight: bold;
+}
+.partial-appeal {
+  color: palette("text-yellow");
+  font-weight: bold;
+}
+.rejected-appeal {
+  color: palette("text-red");
+  font-weight: bold;
+}

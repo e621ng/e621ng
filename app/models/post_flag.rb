@@ -41,6 +41,16 @@ class PostFlag < ApplicationRecord
 
   attr_accessor :parent_id, :reason_name, :force_flag
 
+  module AccessMethods
+    def can_appeal?(user = CurrentUser.user)
+      return false unless is_deletion?
+      return true if post.linked_users.include?(user.id) # Verified artists can appeal deletions of their own posts
+      return false if reason =~ /takedown #\d+/i
+      return true if post.uploader_id == user.id # Uploaders can appeal anything except for takedowns
+      false
+    end
+  end
+
   module SearchMethods
     def post_tags_match(query)
       where(post_id: Post.tag_match_sql(query))
@@ -112,8 +122,9 @@ class PostFlag < ApplicationRecord
     end
   end
 
-  extend SearchMethods
+  include AccessMethods
   include ApiMethods
+  extend SearchMethods
 
   def type
     return :deletion if is_deletion

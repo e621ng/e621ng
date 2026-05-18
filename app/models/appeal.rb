@@ -14,7 +14,7 @@ class Appeal < ApplicationRecord
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   validates :response, length: { minimum: 2, maximum: Danbooru.config.dmail_max_size }, on: :update
-  enum :status, %i[pending partial approved].index_with(&:to_s)
+  enum :status, %i[pending partial approved rejected].index_with(&:to_s)
   after_create :push_pubsub_create
   after_update :push_pubsub_update_notification
   after_update :log_update
@@ -44,7 +44,7 @@ class Appeal < ApplicationRecord
       def can_create_for?(user)
         return false if content.blank?
         return false if content.post.blank?
-        return false unless content.post.uploader_id == user.id
+        return false unless content.can_appeal?(user)
         true
       end
 
@@ -164,6 +164,8 @@ class Appeal < ApplicationRecord
           q = q.where("status = ? and claimant_id is not null", "pending")
         when "pending_unclaimed"
           q = q.where("status = ? and claimant_id is null", "pending")
+        when "handled"
+          q = q.where("status IN (?) and claimant_id is not null", %w[approved rejected])
         else
           q = q.where("status = ?", params[:status])
         end
@@ -226,9 +228,11 @@ class Appeal < ApplicationRecord
   def pretty_status
     case status
     when "partial"
-      "Under Investigation"
+      "Investigating"
     when "approved"
-      "Investigated"
+      "Approved"
+    when "rejected"
+      "Rejected"
     else
       status.titleize
     end
@@ -255,7 +259,14 @@ class Appeal < ApplicationRecord
     @open_from_same_user ||= Appeal.where(
       creator_id: creator_id,
       status: %w[pending partial],
-    ).where.not(id: id)
+    ).where.not(id: id).to_a
+  end
+
+  def all_for_same_content
+    @all_for_same_content ||= Appeal.includes(:creator).where(
+      qtype: qtype,
+      disp_id: disp_id,
+    ).where.not(id: id).to_a
   end
 
   module ClaimMethods
