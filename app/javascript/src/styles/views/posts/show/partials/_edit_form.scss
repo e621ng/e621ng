@@ -20,10 +20,10 @@
 
 #post-edit-invalid-url-error {
   background-color: themed("color-danger-darken-10");
-  @include post-edit-invalid-url
+  @include post-edit-invalid-url;
 }
 
 #post-edit-invalid-url-warning {
   background-color: themed("color-warning-darken-5");
-  @include post-edit-invalid-url
+  @include post-edit-invalid-url;
 }

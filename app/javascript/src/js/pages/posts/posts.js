@@ -557,13 +557,13 @@ Post.initialize_post_sections = function () {
     if (url.length <= 0) {
       return true;
     }
-    // Allow dead source links prefixed with `-`
-    if (url[0] === "-") {
-      url = url.substring(1);
-    }
     // So existing invalid source links are skipped
     if (ignoreUrls.includes(url)) {
       return true;
+    }
+    // Allow dead source links prefixed with `-`
+    if (url[0] === "-") {
+      url = url.substring(1);
     }
     try {
       const parsed = new URL(url);
