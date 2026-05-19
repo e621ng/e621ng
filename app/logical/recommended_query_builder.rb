@@ -53,19 +53,27 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
 
   MAX_TAGS = 50
   WEIGHTS_FOR_TAGS = {
-    artist: 0.0,
     character: 1.25,
-    copyright: 0.0, # shared publisher tags are basically meaningless
     species: 1.25,
     general: 1.0,
   }.freeze
+  IGNORED_CATEGORIES = %w[artist copyright].freeze
 
   def build_for_tags
     pool_ids = @post.pool_ids
     must_not.push({ terms: { pools: pool_ids } }) if pool_ids.any?
 
-    # Pick the rarest tags first — common tags (solo, mammal) are poor discriminators
-    selected_tags = @post.categorized_tags.values.flatten.min_by(MAX_TAGS, &:post_count)
+    # Pick the least common tags to use as constraints.
+    # - artist tags are ignored because those are served better by the :artist mode
+    # - copyright tags are ignored because they are often too broad to be useful
+    selected_tags = @post.categorized_tags
+                         .except(*IGNORED_CATEGORIES)
+                         .values
+                         .flatten
+                         .min_by(MAX_TAGS, &:post_count)
+
+    should.concat(selected_tags.map { |tag| { term: { tags: tag.name } } })
+    @minimum_should_match = selected_tags.size >= 7 ? "30%" : 1
 
     functions = [{ random_score: { seed: @post.id, field: "id" } }]
     selected_tags.each do |tag|

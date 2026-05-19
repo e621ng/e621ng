@@ -244,22 +244,10 @@ RSpec.describe RecommendedQueryBuilder do
     end
 
     describe "per-category tag weights" do
-      it "assigns the artist weight to artist tags" do
-        post = make_post(all_tags: { "artist" => [["artist_a", 50]] })
-        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "artist_a" }
-        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:artist])
-      end
-
       it "assigns the character weight to character tags" do
         post = make_post(all_tags: { "character" => [["char_a", 10]] })
         fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "char_a" }
         expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:character])
-      end
-
-      it "assigns the copyright weight to copyright tags" do
-        post = make_post(all_tags: { "copyright" => [["copy_a", 10]] })
-        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "copy_a" }
-        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:copyright])
       end
 
       it "assigns the species weight to species tags" do
@@ -272,6 +260,14 @@ RSpec.describe RecommendedQueryBuilder do
         post = make_post(all_tags: { "general" => [["tag_a", 100]] })
         fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "tag_a" }
         expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:general])
+      end
+
+      it "does not assign weights to artist or copyright tags" do
+        post = make_post(all_tags: { "artist" => [["artist_a", 10]], "copyright" => [["copy_a", 10]] })
+        artist_fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "artist_a" }
+        copy_fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "copy_a" }
+        expect(artist_fn).to be_nil
+        expect(copy_fn).to be_nil
       end
     end
 
@@ -318,6 +314,20 @@ RSpec.describe RecommendedQueryBuilder do
         post = make_post(known_artists: %w[some_artist], all_tags: { "artist" => [["some_artist", 50]] })
         builder = build_for(post, mode: :tags)
         expect(builder.should).to be_empty
+      end
+    end
+
+    describe "no minimum_should_match" do
+      it "sets minimum_should_match to 1 when there are should clauses but no explicit minimum" do
+        post = make_post(all_tags: { "general" => [["tag_a", 10]] })
+        builder = build_for(post, mode: :tags)
+        expect(builder.instance_variable_get(:@minimum_should_match)).to eq(1)
+      end
+
+      it "sets minimum_should_match to 30% when there are 7+ should clauses" do
+        post = make_post(all_tags: { "general" => [["tag_a", 10], ["tag_b", 20], ["tag_c", 30], ["tag_d", 30], ["tag_e", 30], ["tag_f", 30], ["tag_g", 30]] })
+        builder = build_for(post, mode: :tags)
+        expect(builder.instance_variable_get(:@minimum_should_match)).to eq("30%")
       end
     end
   end
