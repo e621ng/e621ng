@@ -885,6 +885,13 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     def aibur_stats_discord_webhook_url
       nil
     end
+
+    def post_recommendations_enabled?
+      {
+        artist: true,
+        tags: true,
+      }
+    end
   end
 
   class EnvironmentConfiguration

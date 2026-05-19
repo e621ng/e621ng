@@ -112,8 +112,8 @@
       <% end %>
 
       <%# Determine which recommender tabs to show %>
-      <% artist_tab_available = @post.known_artist_tags.any? %>
-      <% tags_tab_available = @post.tags_for_category("general").size > 1 && CurrentUser.user.is_staff? %>
+      <% artist_tab_available = @post.known_artist_tags.any? && Danbooru.config.post_recommendations_enabled?[:artist] %>
+      <% tags_tab_available = @post.tags_for_category("general").size > 1 && Danbooru.config.post_recommendations_enabled?[:tags] %>
 
       <% if artist_tab_available || tags_tab_available %>
         <div
