@@ -77,11 +77,10 @@ class PostsController < ApplicationController
     @has_samples = @post.is_image? || @post.video_sample_list[:has]
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.above_threshold.includes(:creator, :updater)
-      @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater).to_a
+      Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     else
       @comments = Comment.none
-      @comment_votes = CommentVote.none
     end
 
     respond_with(@post) do |format|
@@ -105,11 +104,10 @@ class PostsController < ApplicationController
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.above_threshold.includes(:creator, :updater)
-      @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater).to_a
+      Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     else
       @comments = Comment.none
-      @comment_votes = CommentVote.none
     end
 
     @fixup_post_url = true

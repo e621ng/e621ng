@@ -134,6 +134,21 @@ RSpec.describe CommentsController do
       get comment_path(-1)
       expect(response).to have_http_status(:not_found)
     end
+
+    it "includes the current user's vote in the JSON payload" do
+      voter = create(:user)
+      CurrentUser.scoped(voter) { create(:comment_vote, comment: comment, user: voter, score: 1) }
+      sign_in_as voter
+      get comment_path(comment, format: :json)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["vote"]).to eq(1)
+    end
+
+    it "returns 0 for the vote field when the current user has not voted" do
+      sign_in_as other_member
+      get comment_path(comment, format: :json)
+      expect(response.parsed_body["vote"]).to eq(0)
+    end
   end
 
   # ---------------------------------------------------------------------------

@@ -45,7 +45,7 @@
             <li><%= tag.a "Delete", href: '#', class: 'comment-delete-link' %></li>
           <% end %>
           <li>|</li>
-          <%= comment_vote_block(comment, @comment_votes[comment.id]) %>
+          <%= comment_vote_block(comment) %>
           <% if CurrentUser.is_moderator? %>
             <li><%= link_to "(List)", controller: 'comment_votes', search: { comment_id: comment.id } %></li>
           <% end %>

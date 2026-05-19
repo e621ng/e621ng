@@ -4,11 +4,6 @@ class CommentVote < UserVote
   validate :validate_user_can_vote
   validate :validate_comment_can_be_voted
 
-  def self.for_comments_and_user(comment_ids, user_id)
-    return {} unless user_id
-    CommentVote.where(comment_id: comment_ids, user_id: user_id).index_by(&:comment_id)
-  end
-
   def self.model_creator_column
     :creator
   end
