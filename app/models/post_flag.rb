@@ -44,6 +44,7 @@ class PostFlag < ApplicationRecord
   module AccessMethods
     def can_appeal?(user = CurrentUser.user)
       return false unless is_deletion?
+      return false if is_resolved?
       return true if post.linked_users.include?(user.id) # Verified artists can appeal deletions of their own posts
       return false if reason =~ /takedown #\d+/i
       return true if post.uploader_id == user.id # Uploaders can appeal anything except for takedowns

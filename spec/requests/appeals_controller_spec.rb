@@ -10,9 +10,10 @@ RSpec.describe AppealsController do
   let(:janitor)      { create(:janitor_user) }
   let(:admin)        { create(:admin_user) }
   # uploader must be passed explicitly — the :post factory always creates its own uploader user.
-  let(:flagged_post) { create(:post, uploader: uploader) }
-  let(:post_flag)    { CurrentUser.scoped(other_member) { create(:deletion_post_flag, post: flagged_post) } }
-  let(:appeal)       { CurrentUser.scoped(uploader) { create(:appeal, post_flag: post_flag) } }
+  let(:flagged_post)       { create(:post, uploader: uploader) }
+  let(:post_flag)          { CurrentUser.scoped(other_member) { create(:deletion_post_flag, post: flagged_post) } }
+  let(:post_flag_resolved) { CurrentUser.scoped(other_member) { create(:deletion_post_flag, post: flagged_post, is_resolved: true) } }
+  let(:appeal)             { CurrentUser.scoped(uploader) { create(:appeal, post_flag: post_flag) } }
 
   # ---------------------------------------------------------------------------
   # GET /appeals — index
@@ -112,6 +113,7 @@ RSpec.describe AppealsController do
 
   describe "POST /appeals" do
     let(:valid_params) { { appeal: { qtype: "flag", disp_id: post_flag.id, reason: "The flag is wrong." } } }
+    let(:valid_params_resolved) { { appeal: { qtype: "flag", disp_id: post_flag_resolved.id, reason: "The flag is wrong." } } }
 
     context "as anonymous" do
       it "redirects HTML to the login page" do
@@ -133,6 +135,11 @@ RSpec.describe AppealsController do
 
     context "as the post uploader" do
       before { sign_in_as uploader }
+
+      it "returns 403 for a resolved flag" do
+        post appeals_path, params: valid_params_resolved
+        expect(response).to have_http_status(:forbidden)
+      end
 
       it "creates an appeal and redirects to the appeal page" do
         expect { post appeals_path, params: valid_params }.to change(Appeal, :count).by(1)
