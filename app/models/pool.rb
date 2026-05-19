@@ -392,10 +392,12 @@ class Pool < ApplicationRecord
     end
   end
 
-  def reload
+  def reload(options = nil)
     super
 
     @cover_post = nil
     @cover_post_id = nil
+
+    self
   end
 end
