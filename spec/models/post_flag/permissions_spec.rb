@@ -109,6 +109,7 @@ RSpec.describe PostFlag do
   describe "#can_appeal?" do
     let(:post) { create(:post) }
     let(:flag) { create(:post_flag, post: post) }
+    let(:resolved_flag) { create(:deletion_post_flag, post: post, is_resolved: true) }
     let(:deletion) { create(:deletion_post_flag, post: post) }
 
     context "when the flag is not a deletion flag" do
@@ -118,6 +119,10 @@ RSpec.describe PostFlag do
     end
 
     context "when the flag is a deletion flag" do
+      it "returns false if the flag is resolved" do
+        expect(resolved_flag.can_appeal?(create(:user))).to be(false)
+      end
+
       it "returns true for linked users" do
         user = create(:user)
         artist = create(:artist, name: "linked_artist", linked_user_id: user.id)
