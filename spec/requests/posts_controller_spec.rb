@@ -93,6 +93,20 @@ RSpec.describe PostsController do
         expect(response).to have_http_status(:ok)
       end
     end
+
+    context "when the search is too complex" do
+      before { allow(Post).to receive(:tag_match).and_raise(OpenSearch::Transport::Transport::Errors::InternalServerError.new("time_exceeded_exception")) }
+
+      it "returns 422 for HTML" do
+        get posts_path
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it "returns 422 for JSON" do
+        get posts_path(format: :json)
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
