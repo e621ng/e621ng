@@ -12,7 +12,6 @@ const Recommended = {};
 
 Recommended.RESULT_COUNT = 6;
 Recommended.Logger = new Logger("Recommended");
-Recommended.allStates = ["artist", "tags"];
 Recommended.validStates = ["artist", "tags"];
 Recommended.requestID = 0;
 
