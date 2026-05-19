@@ -11,27 +11,19 @@ class OnboardingsController < ApplicationController
       format.json do
         render json: {
           user_id: @user.id,
-          steps: steps_with_user_values(@user)
+          steps: steps_with_user_values(@user),
         }
       end
     end
   end
 
   def complete
-    @user = CurrentUser.user
-    @user.update!(onboarding_completed: true)
-    
-    flash[:notice] = "You have completed your onboarding! Enjoy your stay on e621"
-
     respond_to do |format|
-      format.html { redirect_to posts_path }
       format.json { render json: { success: true, redirect_url: posts_path } }
     end
   end
 
   def restart
-    @user = CurrentUser.user
-    @user.update!(onboarding_completed: false)
     redirect_to(onboarding_path, notice: "You have restarted the onboarding process")
   end
 
@@ -52,7 +44,14 @@ class OnboardingsController < ApplicationController
       when "settings"
         step_with_values[:fields] = step[:fields].map do |field|
           field_dup = field.dup
-          field_dup[:current_value] = user.send(field[:id])
+
+          if Danbooru.config.allowed_onboarding_fields.include?(field[:id].to_s)
+            field_dup[:current_value] = user.public_send(field[:id])
+          else
+            Rails.logger.error("Field #{field[:id]} is not allowed in onboarding steps. Please add it to Danbooru.config.allowed_onboarding_fields if you want to use it.")
+            field_dup[:current_value] = nil
+          end
+
           field_dup
         end
       end
