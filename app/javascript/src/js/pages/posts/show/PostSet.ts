@@ -42,7 +42,7 @@ export default class PostSet {
       }
       this.addPostTimeout = null;
     }, 1000);
-  };
+  }
 
   /**
    * Adds the specified posts to the set
@@ -72,7 +72,7 @@ export default class PostSet {
         this.postUpdateToast = null;
       });
     }, { name: "PostSet.add_many_posts" });
-  };
+  }
 
 
   private static removePostTimeout: number | null = null;
@@ -107,7 +107,7 @@ export default class PostSet {
       }
       this.removePostTimeout = null;
     }, 1000);
-  };
+  }
 
   /**
    * Remove the specified posts from the set
@@ -137,11 +137,11 @@ export default class PostSet {
         this.postUpdateToast = null;
       });
     }, { name: "PostSet.remove_many_posts" });
-  };
+  }
 
   static initialize_add_to_set_link () {
 
-    let postSetDialog = null;
+    let postSetDialog: Dialog | null = null;
     $(".add-to-set").on("click.danbooru", function (e) {
       e.preventDefault();
 
@@ -173,7 +173,7 @@ export default class PostSet {
         E621.Toast.alert("Error getting sets list: " + data["message"]);
       }).done(function (data) {
         target.on("change", function (e) {
-          LStorage.Posts.Set = e.target.value as any;
+          LStorage.Posts.Set = e.target.value as any; // TODO: Fix this after migrating LStorage to TS
         });
         const target_set = LStorage.Posts.Set;
         target.empty();
@@ -186,7 +186,7 @@ export default class PostSet {
         });
       });
     }, { name: "PostSet.update_sets_menu" });
-  };
+  }
 
   static initialize_remove_from_set_links () {
     $("a.set-nav-remove-link").on("click", (event) => {
@@ -198,5 +198,5 @@ export default class PostSet {
 
       PostSet.remove_post(setID, postID);
     });
-  };
+  }
 }
