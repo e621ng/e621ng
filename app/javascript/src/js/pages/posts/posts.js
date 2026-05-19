@@ -551,6 +551,49 @@ Post.initialize_post_sections = function () {
       $("#edit").hide();
     }
   });
+
+  const isUrlValid = (url, ignoreUrls = []) => {
+    url = url.trim();
+    if (url.length <= 0) {
+      return true;
+    }
+    // So existing invalid source links are skipped
+    if (ignoreUrls.includes(url)) {
+      return true;
+    }
+    // Allow dead source links prefixed with `-`
+    if (url[0] === "-") {
+      url = url.substring(1);
+    }
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      // Exception occurs if the URL constructor fails to parse the string, which means it's not a valid URL
+      return false;
+    }
+  };
+
+  const allUrlsValid = (urls, ignoreUrls = []) => {
+    return urls.every(url => isUrlValid(url, ignoreUrls));
+  };
+
+  const splitUrls = urls => urls.split(/\r?\n/);
+
+  const oldSources = splitUrls($("input[name='post[old_source]']").val());
+  const invalidOldSources = oldSources.filter(url => !isUrlValid(url));
+
+  const updateForUrlChange = () => {
+    const newSources = splitUrls($("#post_source").val());
+    const newSourcesValid = allUrlsValid(newSources, oldSources);
+    $("#post-edit-invalid-url-error")[0].style.display = newSourcesValid ? "none" : "";
+    $("#edit #form input[type=\"submit\"]")[0].disabled = !newSourcesValid;
+    const hasOldInvalidSource = newSources.some(url => invalidOldSources.includes(url));
+    $("#post-edit-invalid-url-warning")[0].style.display = !hasOldInvalidSource ? "none" : "";
+  };
+
+  $(document).on("danbooru:open-post-edit-tab", updateForUrlChange);
+  $("#post_source").on("change.danbooru", updateForUrlChange);
 };
 
 Post.notice_update = function (x) {
