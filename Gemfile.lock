@@ -254,6 +254,8 @@ GEM
     rack-cors (3.0.0)
       logger
       rack (>= 3.0.14)
+    rack-mini-profiler (4.0.1)
+      rack (>= 1.2.0)
     rack-proxy (0.7.7)
       rack
     rack-session (2.1.2)
@@ -481,6 +483,7 @@ DEPENDENCIES
   pitchfork
   puma
   rack-cors
+  rack-mini-profiler
   rails (~> 8.1.0)
   rails-settings-cached (~> 2.9)
   recaptcha

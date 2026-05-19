@@ -87,4 +87,5 @@ group :development do
   gem "ruby-lsp"
   gem "ruby-lsp-rails", "~> 0.4.8"
   gem "ruby-lsp-rspec", require: false
+  gem "rack-mini-profiler"
 end
