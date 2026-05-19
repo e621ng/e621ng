@@ -4,11 +4,12 @@ module PostSets
   class Favorites < PostSets::Base
     attr_reader :page, :limit
 
-    def initialize(user, page, limit:)
+    def initialize(user, page, limit:, post_count: nil)
       super()
       @user = user
       @page = page
       @limit = limit
+      @post_count = post_count
     end
 
     def tag_string

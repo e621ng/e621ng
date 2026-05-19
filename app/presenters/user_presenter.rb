@@ -75,7 +75,7 @@ class UserPresenter
   end
 
   def favorites
-    PostSets::Favorites.new(@user, 1, limit: 8).posts
+    PostSets::Favorites.new(user, 1, limit: 8, post_count: user.favorite_count).posts
   end
 
   def has_favorites?
