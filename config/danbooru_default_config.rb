@@ -825,6 +825,14 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     end
 
     # Onboarding flow configuration.
+    def allowed_onboarding_fields
+      %w[
+        enable_privacy_mode
+        disable_user_dmails
+        receive_email_notifications
+      ].freeze
+    end
+
     def onboarding_steps
       [
         {
