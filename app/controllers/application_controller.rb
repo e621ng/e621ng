@@ -115,7 +115,7 @@ class ApplicationController < ActionController::Base
       render_expected_error(400, "You must reset your password.")
     when OpenSearch::Transport::Transport::Errors::InternalServerError
       if exception.message.include?("time_exceeded_exception")
-        render_expected_error(503, "The search timed out. Try using fewer or simpler tags.")
+        render_expected_error(422, "The search timed out. Try using fewer or simpler tags.")
       else
         render_error_page(500, exception)
       end
