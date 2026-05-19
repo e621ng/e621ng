@@ -200,9 +200,3 @@ export default class PostSet {
     });
   };
 }
-
-$(function () {
-  PostSet.initialize_add_to_set_link();
-  PostSet.initialize_remove_from_set_links();
-});
-
