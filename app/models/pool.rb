@@ -341,6 +341,7 @@ class Pool < ApplicationRecord
   end
 
   def cover_post_id
+    return @cover_post_id if instance_variable_defined?(:@cover_post_id)
     @cover_post_id ||= post_ids.first
   end
 
