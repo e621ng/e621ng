@@ -1,6 +1,15 @@
 .onboarding-container {
   max-width: 50rem;
   margin: 2rem auto;
+  padding: 1rem;
+
+  background-color: themed("color-section");
+  background-image: themed("image-foreground");
+  background-position: themed("image-foreground-position");
+  background-repeat: themed("image-foreground-repeat");
+  background-size: themed("image-foreground-size");
+  box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+  @include st-radius;
 
   .common-blacklist-tags {
     display: grid;
@@ -49,7 +58,8 @@
       justify-content: center;
       transition: background 0.1s;
 
-      &.btn-neutral, &.btn-secondary {
+      &.btn-neutral,
+      &.btn-secondary {
         background: themed("color-section-lighten-10");
         color: themed("color-link");
 
