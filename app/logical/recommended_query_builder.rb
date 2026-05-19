@@ -73,7 +73,7 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
                          .min_by(MAX_TAGS, &:post_count)
 
     should.concat(selected_tags.map { |tag| { term: { tags: tag.name } } })
-    @minimum_should_match = selected_tags.size >= 4 ? "30%" : 1
+    @minimum_should_match = selected_tags.size >= 7 ? "30%" : 1
 
     functions = [{ random_score: { seed: @post.id, field: "id" } }]
     selected_tags.each do |tag|

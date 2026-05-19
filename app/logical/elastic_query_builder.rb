@@ -4,12 +4,6 @@ class ElasticQueryBuilder
   attr_accessor :q, :must, :must_not, :should, :order
   attr_reader :has_invalid_input
 
-  protected
-
-  attr_writer :minimum_should_match
-
-  public
-
   def initialize(query)
     @q = query
     # These terms are ANDed together

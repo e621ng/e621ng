@@ -325,10 +325,9 @@ RSpec.describe RecommendedQueryBuilder do
       end
 
       it "respects an explicitly set minimum_should_match value" do
-        post = make_post(all_tags: { "general" => [["tag_a", 10], ["tag_b", 20], ["tag_c", 30]] })
+        post = make_post(all_tags: { "general" => [["tag_a", 10], ["tag_b", 20], ["tag_c", 30], ["tag_d", 30], ["tag_e", 30], ["tag_f", 30], ["tag_g", 30]] })
         builder = build_for(post, mode: :tags)
-        builder.instance_variable_set(:@minimum_should_match, "50%")
-        expect(builder.instance_variable_get(:@minimum_should_match)).to eq("50%")
+        expect(builder.instance_variable_get(:@minimum_should_match)).to eq("30%")
       end
     end
   end
