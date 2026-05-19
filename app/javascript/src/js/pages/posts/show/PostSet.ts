@@ -158,7 +158,7 @@ export default class PostSet {
       PostSet.add_many_posts(Number($("#add-to-set-id").val()), [post_id]);
       postSetDialog.close();
     });
-  };
+  }
 
   static update_sets_menu () {
     const target = $("#add-to-set-id") as JQuery<HTMLSelectElement>;
