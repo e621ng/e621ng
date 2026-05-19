@@ -219,7 +219,6 @@ class UsersController < ApplicationController
 
   def restart_onboarding
     @user = CurrentUser.user
-    @user.update(onboarding_completed: false)
     redirect_to onboarding_path, notice: "You have restarted the onboarding process"
   end
 
