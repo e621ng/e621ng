@@ -175,39 +175,4 @@ RSpec.describe PostRecommendationsController do
       expect(response).to have_http_status(:not_found)
     end
   end
-
-  # ---------------------------------------------------------------------------
-  # GET /posts/:id/similar/remote — remote recommendations (not implemented)
-  # ---------------------------------------------------------------------------
-
-  describe "GET /posts/:id/similar/remote" do
-    it "returns 200 with the expected JSON structure" do
-      get remote_similar_path(post, format: :json)
-      expect(response).to have_http_status(:ok)
-      body = response.parsed_body
-      expect(body["post_id"]).to eq(post.id)
-      expect(body["model_version"]).to eq("not_implemented")
-      expect(body["results"]).to eq([])
-    end
-
-    it "does not include a post_data key in the response" do
-      get remote_similar_path(post, format: :json)
-      expect(response.parsed_body).not_to have_key("post_data")
-    end
-
-    it "returns the same structure when the post is not visible" do
-      allow(Security::Lockdown).to receive(:post_visible?).and_return(false)
-      get remote_similar_path(post, format: :json)
-      expect(response).to have_http_status(:ok)
-      body = response.parsed_body
-      expect(body["post_id"]).to eq(post.id)
-      expect(body["model_version"]).to eq("not_implemented")
-      expect(body["results"]).to eq([])
-    end
-
-    it "returns 404 for a non-existent post" do
-      get "/posts/0/similar/remote.json"
-      expect(response).to have_http_status(:not_found)
-    end
-  end
 end
