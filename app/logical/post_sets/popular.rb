@@ -9,7 +9,11 @@ module PostSets
       @date = if date.blank?
                 Time.zone.now
               else
-                parsed = Time.zone.parse(date)
+                begin
+                  parsed = Time.zone.parse(date)
+                rescue TypeError, ArgumentError
+                  raise ParseValue::InvalidDateError, "Invalid date: #{date}"
+                end
                 raise ParseValue::InvalidDateError, "Invalid date: #{date}" if parsed.nil? || parsed.year > 9999 || parsed.year < 1
                 parsed
               end
