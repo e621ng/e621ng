@@ -186,17 +186,12 @@ RSpec.describe TagAlias do
       expect(post.reload.tag_string).to include(ta.antecedent_name)
     end
 
-    it "calls fix_post_count for antecedent and consequent tags" do
+    it "enqueues TagAliasFinalizeJob with antecedent_name" do
       ta = create(:active_tag_alias)
       ta.tag_rel_undos.create!(undo_data: [])
 
-      allow(ta.antecedent_tag).to receive(:fix_post_count)
-      allow(ta.consequent_tag).to receive(:fix_post_count)
-
-      ta.update_posts_undo
-
-      expect(ta.antecedent_tag).to have_received(:fix_post_count)
-      expect(ta.consequent_tag).to have_received(:fix_post_count)
+      expect { ta.update_posts_undo }
+        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id, ta.antecedent_name)
     end
   end
 
