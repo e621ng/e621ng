@@ -49,12 +49,8 @@ class ForumTopicsController < ApplicationController
       ].flatten
 
       @original_forum_post_id = @forum_topic.original_post.id
+      @current_page = @forum_posts.current_page if @forum_posts.pagination_mode == :numbered
 
-      if params[:page].blank?
-        @current_page = 1
-      elsif params[:page].match?(/\A\d+\z/)
-        @current_page = params[:page].to_i
-      end
     end
 
     respond_with(@forum_topic)
