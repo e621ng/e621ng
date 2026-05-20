@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CreatePostFlagReasons < ActiveRecord::Migration[6.1]
+class CreatePostFlagReasons < ActiveRecord::Migration[8.1]
   def change
     create_table :post_flag_reasons do |t|
       t.string :name, null: false
