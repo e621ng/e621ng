@@ -31,6 +31,7 @@ class ForumTopicsController < ApplicationController
     if request.format == Mime::Type.lookup("text/html")
       @forum_topic.mark_as_read!(CurrentUser.user)
     end
+
     @forum_posts = ForumPost.permitted(CurrentUser.user)
                             .includes(topic: [:category])
                             .includes(:creator, :updater)
@@ -48,6 +49,12 @@ class ForumTopicsController < ApplicationController
       ].flatten
 
       @original_forum_post_id = @forum_topic.original_post.id
+
+      if params[:page].blank?
+        @current_page = 1
+      elsif params[:page].match?(/\A\d+\z/)
+        @current_page = params[:page].to_i
+      end
     end
 
     respond_with(@forum_topic)
