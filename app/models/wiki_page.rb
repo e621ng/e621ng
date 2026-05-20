@@ -14,7 +14,7 @@ class WikiPage < ApplicationRecord
   after_destroy :clear_recent_changes_cache
   after_save :create_version
   after_save :update_help_page, if: :saved_change_to_title?
-  after_save :clear_recent_changes_cache, if: :wiki_page_changed?
+  after_save :clear_recent_changes_cache
 
   normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
 
