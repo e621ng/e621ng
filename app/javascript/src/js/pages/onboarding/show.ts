@@ -64,6 +64,7 @@ export default class Onboarding {
     });
 
     $("#btn-skip-all").on("click", () => this.completeOnboarding());
+    $("#btn-complete").on("click", () => this.completeOnboarding());
 
     this.loadSteps();
   }
