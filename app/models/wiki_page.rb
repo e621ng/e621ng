@@ -58,8 +58,10 @@ class WikiPage < ApplicationRecord
       where("is_deleted = false")
     end
 
-    def recent
-      order("updated_at DESC").limit(25)
+    def recent_changes
+      Cache.fetch("wiki_page:recent_changes", expires_in: 1.hour) do
+        order(updated_at: :desc).includes(:tag).limit(25).to_a
+      end
     end
 
     def other_names_include(name)
