@@ -82,7 +82,7 @@ RSpec.describe PostsHelper do
       it { is_expected.to be_nil }
     end
 
-    context "when it contains malformed a protocol" do
+    context "when it contains a malformed protocol" do
       let(:path) { "https:://example.com/" }
 
       it { is_expected.to be_nil }
