@@ -22,7 +22,7 @@ class SitemapGeneratorJob < ApplicationJob
 
     SitemapGenerator::Sitemap.default_host = Danbooru.config.hostname
 
-    Post.without_timeout do
+    Post.without_timeout do # rubocop:disable Metrics/BlockLength
       SitemapGenerator::Sitemap.create do # rubocop:disable Metrics/BlockLength
         # Static Pages
         add "/static/site_map"
