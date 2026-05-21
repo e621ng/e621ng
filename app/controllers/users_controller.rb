@@ -147,32 +147,36 @@ class UsersController < ApplicationController
   def create
     raise User::PrivilegeError, "Already signed in" unless CurrentUser.user.is_logged_out?
     raise User::PrivilegeError, "Signups are disabled" unless Danbooru.config.enable_signups?
-    User.transaction do
-      @user = User.new(user_params(:create).merge({ last_ip_addr: request.remote_ip }))
-      @user.validate_email_format = true
-      @user.email_verification_key = "1" if Danbooru.config.enable_email_verification?
-      if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
+
+    @user = User.new(user_params(:create).merge({ last_ip_addr: request.remote_ip }))
+    @user.validate_email_format = true
+    @user.email_verification_key = "1" if Danbooru.config.enable_email_verification?
+
+    if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
+      User.transaction do
         @user.save
-        if @user.errors.empty?
-          session[:user_id] = @user.id
-          session[:ph] = @user.password_token
-          if Danbooru.config.enable_email_verification?
-            Maintenance::User::EmailConfirmationMailer.confirmation(@user).deliver_now
-          end
-        else
-          flash[:notice] = "Sign up failed: #{@user.errors.full_messages.join('; ')}"
-        end
-        set_current_user
-      else
-        flash[:notice] = "Sign up failed"
       end
-      respond_with(@user) do |format|
-        format.html do
-          if @user.errors.empty?
-            redirect_to onboarding_path
-          else
-            render :new
-          end
+
+      if @user.errors.empty?
+        session[:user_id] = @user.id
+        session[:ph] = @user.password_token
+        if Danbooru.config.enable_email_verification?
+          Maintenance::User::EmailConfirmationMailer.confirmation(@user).deliver_now
+        end
+      else
+        flash.now[:notice] = "Sign up failed: #{@user.errors.full_messages.join('; ')}"
+      end
+      set_current_user
+    else
+      flash.now[:notice] = "Sign up failed"
+    end
+
+    respond_with(@user) do |format|
+      format.html do
+        if @user.errors.empty? && @user.id.present?
+          redirect_to onboarding_path
+        else
+          render :new
         end
       end
     end
