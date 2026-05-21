@@ -2033,7 +2033,9 @@ CREATE TABLE public.posts (
     is_comment_locked boolean DEFAULT false NOT NULL,
     tag_count_contributor integer DEFAULT 0 NOT NULL,
     video_samples jsonb DEFAULT '{}'::jsonb NOT NULL,
-    hotness double precision DEFAULT 0.0 NOT NULL
+    hotness double precision DEFAULT 0.0 NOT NULL,
+    pool_ids integer[],
+    set_ids bigint[]
 );
 
 
@@ -5438,10 +5440,24 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 
 
 --
+-- Name: index_posts_on_pool_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_pool_ids ON public.posts USING gin (pool_ids);
+
+
+--
 -- Name: index_posts_on_pool_string_tokens; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_posts_on_pool_string_tokens ON public.posts USING gin (string_to_array(pool_string, ' '::text));
+
+
+--
+-- Name: index_posts_on_set_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_set_ids ON public.posts USING gin (set_ids);
 
 
 --
@@ -6350,6 +6366,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20260530162738'),
 ('20260526234030'),
 ('20260520175932'),
+('20260521200100'),
 ('20260519151649'),
 ('20260505163626'),
 ('20260503072727'),

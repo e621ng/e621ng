@@ -33,6 +33,12 @@ RSpec.describe PostSetPostsSyncJob do
         expect(post.reload.pool_string).to include("set:#{post_set.id}")
       end
 
+      it "adds the set id to the raw set_ids column" do
+        post_set.update_column(:post_ids, [post.id])
+        job.perform_now(post_set.id)
+        expect(post.reload[:set_ids]).to include(post_set.id)
+      end
+
       it "enqueues a BulkIndexUpdateJob for the post" do
         post_set.update_column(:post_ids, [post.id])
         expect { job.perform_now(post_set.id) }
@@ -43,12 +49,18 @@ RSpec.describe PostSetPostsSyncJob do
     context "when a post has the token but is not in post_ids" do
       let(:post) { create(:post) }
 
-      before { Post.where(id: post.id).update_all(pool_string: "set:#{post_set.id}") }
+      before { Post.where(id: post.id).update_all(pool_string: "set:#{post_set.id}", set_ids: [post_set.id]) }
 
       it "removes the token from pool_string" do
         post_set.update_column(:post_ids, [])
         job.perform_now(post_set.id)
         expect(post.reload.pool_string).not_to include("set:#{post_set.id}")
+      end
+
+      it "removes the set id from the raw set_ids column" do
+        post_set.update_column(:post_ids, [])
+        job.perform_now(post_set.id)
+        expect(post.reload[:set_ids]).not_to include(post_set.id)
       end
 
       it "enqueues a BulkIndexUpdateJob for the post" do

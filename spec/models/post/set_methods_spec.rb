@@ -28,6 +28,23 @@ RSpec.describe Post do
         expect(post.pool_string).to include("set:#{set.id}")
       end
 
+      it "adds the set id to the raw set_ids column" do
+        set  = create(:post_set)
+        post = create(:post)
+        post.add_set!(set)
+        expect(post[:set_ids]).to include(set.id)
+      end
+
+      it "rebuilds the raw set_ids column from pool_string" do
+        existing_set = create(:post_set)
+        added_set = create(:post_set)
+        post = create(:post, pool_string: "set:#{existing_set.id}", set_ids: nil)
+
+        post.add_set!(added_set)
+
+        expect(post[:set_ids]).to contain_exactly(existing_set.id, added_set.id)
+      end
+
       it "does not add the same set twice" do
         set  = create(:post_set)
         post = create(:post)
@@ -40,9 +57,16 @@ RSpec.describe Post do
     describe "#remove_set!" do
       it "removes set:<id> from pool_string" do
         set  = create(:post_set)
-        post = create(:post, pool_string: "set:#{set.id}")
+        post = create(:post, pool_string: "set:#{set.id}", set_ids: [set.id])
         post.remove_set!(set)
         expect(post.pool_string).not_to include("set:#{set.id}")
+      end
+
+      it "removes the set id from the raw set_ids column" do
+        set  = create(:post_set)
+        post = create(:post, pool_string: "set:#{set.id}", set_ids: [set.id])
+        post.remove_set!(set)
+        expect(post[:set_ids]).not_to include(set.id)
       end
     end
 
