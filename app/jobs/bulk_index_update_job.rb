@@ -5,6 +5,8 @@ class BulkIndexUpdateJob < ApplicationJob
 
   def perform(klass_name, ids)
     klass = klass_name.constantize
-    klass.document_store.import(query: { id: ids })
+    klass.without_timeout do
+      klass.document_store.import(query: { id: ids })
+    end
   end
 end
