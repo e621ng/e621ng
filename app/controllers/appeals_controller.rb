@@ -23,6 +23,11 @@ class AppealsController < ApplicationController
 
   def new
     @appeal = Appeal.new(qtype: params[:qtype], disp_id: params[:disp_id])
+    unless @appeal.can_create_for?(CurrentUser.user)
+      redirect_to appeals_path, alert: "This deletion can't be appealed or has already been resolved."
+      return
+    end
+
     @existing_similar = Appeal
                         .visible(CurrentUser.user)
                         .where({
@@ -33,8 +38,6 @@ class AppealsController < ApplicationController
                         })
                         .order(created_at: :desc)
                         .limit(5)
-
-    check_new_permission(@appeal)
   end
 
   def create
