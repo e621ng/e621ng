@@ -1301,12 +1301,14 @@ class Post < ApplicationRecord
       return if belongs_to_post_set(set) && !force
       with_lock do
         self.pool_string = "#{pool_string} set:#{set.id}".strip
+        self[:set_ids] = set_ids
       end
     end
 
     def remove_set!(set)
       with_lock do
         self.pool_string = (pool_string.split(' ') - ["set:#{set.id}"]).join(' ').strip
+        self[:set_ids] = set_ids
       end
     end
 
@@ -1356,6 +1358,7 @@ class Post < ApplicationRecord
 
       with_lock do
         self.pool_string = "#{pool_string} pool:#{pool.id}".strip
+        self[:pool_ids] = pool_ids
       end
     end
 
@@ -1365,6 +1368,7 @@ class Post < ApplicationRecord
 
       with_lock do
         self.pool_string = pool_string.gsub(/(?:\A| )pool:#{pool.id}(?:\Z| )/, " ").strip
+        self[:pool_ids] = pool_ids
       end
     end
 
@@ -1769,7 +1773,7 @@ class Post < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      list = super + [:pool_string, :fav_string]
+      list = super + [:pool_string, :pool_ids, :set_ids, :fav_string]
       if !visible?
         list += [:md5, :file_ext]
       end

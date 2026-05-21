@@ -25,10 +25,11 @@ class PostSetPostsSyncJob < ApplicationJob
     if to_add.any?
       pg.exec_params(
         "UPDATE posts
-         SET pool_string = trim(pool_string || $1)
+         SET pool_string = trim(pool_string || $1),
+             set_ids = array_append(array_remove(COALESCE(set_ids, '{}'::bigint[]), $4::bigint), $4::bigint)
          WHERE id = ANY($2::int[])
            AND NOT ($3 = ANY(string_to_array(pool_string, ' ')))",
-        [" #{token}", "{#{to_add.join(',')}}", token],
+        [" #{token}", "{#{to_add.join(',')}}", token, set_id],
       )
     end
 
@@ -36,10 +37,11 @@ class PostSetPostsSyncJob < ApplicationJob
       pg.exec_params(
         "UPDATE posts
          SET pool_string = array_to_string(
-               array_remove(string_to_array(pool_string, ' '), $1), ' ')
+               array_remove(string_to_array(pool_string, ' '), $1), ' '),
+             set_ids = array_remove(COALESCE(set_ids, '{}'::bigint[]), $3::bigint)
          WHERE id = ANY($2::int[])
            AND $1 = ANY(string_to_array(pool_string, ' '))",
-        [token, "{#{to_remove.join(',')}}"],
+        [token, "{#{to_remove.join(',')}}", set_id],
       )
     end
 
