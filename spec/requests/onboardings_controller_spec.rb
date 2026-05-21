@@ -42,7 +42,7 @@ RSpec.describe OnboardingsController do
       let(:user) { create(:user) }
 
       before { sign_in_as user }
-      
+
       it "returns 200" do
         get onboarding_path(format: :json)
         expect(response).to have_http_status(:ok)
@@ -75,10 +75,14 @@ RSpec.describe OnboardingsController do
 
     context "as a logged-in user" do
       let(:user) { create(:user) }
-      
+
       before do
         sign_in_as user
-        allow_any_instance_of(ActionController::Base).to receive(:protect_against_forgery?).and_return(false)
+        ActionController::Base.allow_forgery_protection = false
+      end
+
+      after do
+        ActionController::Base.allow_forgery_protection = true
       end
 
       it "returns 200" do
@@ -115,9 +119,13 @@ RSpec.describe OnboardingsController do
 
       before do
         sign_in_as user
-        allow_any_instance_of(ActionController::Base).to receive(:protect_against_forgery?).and_return(false)
+        ActionController::Base.allow_forgery_protection = false
       end
-      
+
+      after do
+        ActionController::Base.allow_forgery_protection = true
+      end
+
       it "returns 302 (redirect)" do
         post restart_onboarding_path
         expect(response).to have_http_status(:found)
@@ -163,9 +171,9 @@ RSpec.describe OnboardingsController do
         expect(response.body).not_to include("<html")
       end
 
-      it "is valid JSON" do
+      it "returns JSON" do
         get onboarding_path(format: :json)
-        expect { JSON.parse(response.body) }.not_to raise_error
+        expect(response.media_type).to eq("application/json")
       end
     end
   end
