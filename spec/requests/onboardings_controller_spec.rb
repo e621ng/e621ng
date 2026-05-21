@@ -62,7 +62,7 @@ RSpec.describe OnboardingsController do
   end
 
   # ---------------------------------------------------------------------------
-  # POST /onboarding/complete.json — complete with JSON format
+  # POST /onboarding/complete.json
   # ---------------------------------------------------------------------------
 
   describe "POST /onboarding/complete.json" do
@@ -75,8 +75,11 @@ RSpec.describe OnboardingsController do
 
     context "as a logged-in user" do
       let(:user) { create(:user) }
-
-      before { sign_in_as user }
+      
+      before do
+        sign_in_as user
+        allow_any_instance_of(ActionController::Base).to receive(:protect_against_forgery?).and_return(false)
+      end
 
       it "returns 200" do
         post complete_onboarding_path(format: :json), params: {}
@@ -110,7 +113,10 @@ RSpec.describe OnboardingsController do
     context "as a logged-in user" do
       let(:user) { create(:user) }
 
-      before { sign_in_as user }
+      before do
+        sign_in_as user
+        allow_any_instance_of(ActionController::Base).to receive(:protect_against_forgery?).and_return(false)
+      end
       
       it "returns 302 (redirect)" do
         post restart_onboarding_path
