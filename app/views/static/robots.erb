@@ -1,9 +1,9 @@
-# robots.txt — https://www.robotstxt.org/robotstxt.html
+# robots.txt - https://www.robotstxt.org/robotstxt.html
 
 Sitemap: https://<%= Danbooru.config.hostname %>/sitemap.xml.gz
 
 # -----------------------------------------------
-# AI training crawlers — disallow all
+# AI training crawlers - disallow all
 # -----------------------------------------------
 User-agent: GPTBot
 User-agent: CCBot
@@ -21,7 +21,7 @@ User-agent: cohere-ai
 Disallow: /
 
 # -----------------------------------------------
-# Spam / scraper bots — disallow all
+# Spam / scraper bots - disallow all
 # -----------------------------------------------
 User-agent: MJ12bot
 User-agent: dotbot
@@ -139,14 +139,14 @@ Disallow: /tag_implications
 # User data (individual profiles at /users/:id are also covered)
 Disallow: /users
 
-# Parameterized searches — unbounded URL space
+# Parameterized searches - unbounded URL space
 Disallow: /artists?
 Disallow: /pools?
 Disallow: /posts?
 Disallow: /tags?
 Disallow: /wiki_pages?
 
-# Short-URL and route aliases — would duplicate canonical URLs
+# Short-URL and route aliases - would duplicate canonical URLs
 Disallow: /p/
 Disallow: /wpages
 Disallow: /ftopics
