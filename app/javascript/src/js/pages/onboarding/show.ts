@@ -38,11 +38,11 @@ interface OnboardingCompleteResponse {
 
 export default class Onboarding {
   private $root: JQuery<HTMLElement>;
-  private userId: number
+  private userId: number;
   private steps: OnboardingStep[];
   private currentStep: number;
 
-  constructor(root: HTMLElement) {
+  constructor (root: HTMLElement) {
     this.$root = $(root);
     this.userId = parseInt(this.$root.data("user-id") || "0");
     this.steps = [];
@@ -69,10 +69,10 @@ export default class Onboarding {
     this.loadSteps();
   }
 
-  private loadSteps(): JQuery.jqXHR {
+  private loadSteps (): JQuery.jqXHR {
     return $.ajax({
       type: "GET",
-      url: `/onboarding.json`,
+      url: "/onboarding.json",
       dataType: "json",
     })
       .done((data: OnboardingResponse) => {
@@ -80,24 +80,24 @@ export default class Onboarding {
         this.renderSteps();
         this.showStep(0);
       })
-      .fail(err => {
+      .fail(() => {
         E621.Toast.error("Failed to load onboarding steps. Please try again later.");
       });
   }
 
-  private saveCurrentStep() {
+  private saveCurrentStep () {
     const current = this.steps[this.currentStep];
     if (current && (current.type === "blacklist" || current.type === "settings")) {
       this.updateSettings();
     }
   }
 
-  private updateSettings(): JQuery.jqXHR {
+  private updateSettings (): JQuery.jqXHR {
     const selectedTags = $(".blacklist-checkbox:checked")
       .map((i, el) => $(el).val())
       .get()
       .join("\n");
-    
+
     const userData: Record<string, string | boolean> = {
       blacklisted_tags: selectedTags,
     };
@@ -115,12 +115,12 @@ export default class Onboarding {
       url: `/users/${this.userId}.json`,
       contentType: "application/json",
       data: JSON.stringify({ user: userData }),
-    }).fail(err => {
+    }).fail(() => {
       E621.Toast.error("Failed to update settings. Please try again later.");
     });
   }
 
-  private completeOnboarding() {
+  private completeOnboarding () {
     this.updateSettings().then(() => {
       $.ajax({
         type: "POST",
@@ -132,14 +132,14 @@ export default class Onboarding {
         .done((data: OnboardingCompleteResponse) => {
           window.location.href = data.redirect_url || "/posts";
         })
-        .fail((xhr, status, error) => {
+        .fail(() => {
           E621.Toast.error("Failed to complete onboarding. Please try again later.");
           window.location.href = "/posts";
         });
     });
   }
 
-  private renderSteps() {
+  private renderSteps () {
     const content = $(".onboarding-content");
     content.empty();
 
@@ -149,7 +149,7 @@ export default class Onboarding {
     });
   }
 
-  private renderStep(step: OnboardingStep, index: number): JQuery<HTMLElement> {
+  private renderStep (step: OnboardingStep, index: number): JQuery<HTMLElement> {
     const stepEl = $(`<div class="onboarding-step" id="step-${index}"></div>`);
     const title = $(`<h2>${step.title}</h2>`);
     stepEl.append(title);
@@ -174,8 +174,8 @@ export default class Onboarding {
     return stepEl;
   }
 
-  private renderBlacklistStep(stepEl: JQuery<HTMLElement>, step: OnboardingStep): void {
-    const container = $(`<div class="common-blacklist-tags"></div>`);
+  private renderBlacklistStep (stepEl: JQuery<HTMLElement>, step: OnboardingStep): void {
+    const container = $("<div class=\"common-blacklist-tags\"></div>");
 
     step.options?.forEach(tag => {
       const isChecked = step.current_value && step.current_value.includes(tag);
@@ -196,7 +196,7 @@ export default class Onboarding {
     stepEl.append(container);
   }
 
-  private renderSettingsStep(stepEl: JQuery<HTMLElement>, step: OnboardingStep): void {
+  private renderSettingsStep (stepEl: JQuery<HTMLElement>, step: OnboardingStep): void {
     step.fields?.forEach(field => {
       const isChecked = field.current_value ? "checked" : "";
       const fieldEl = $(`
@@ -212,10 +212,10 @@ export default class Onboarding {
     });
   }
 
-  private renderInfoStep(stepEl: JQuery<HTMLElement>, step: OnboardingStep): void {
+  private renderInfoStep (stepEl: JQuery<HTMLElement>, step: OnboardingStep): void {
     if (step.links && step.links.length > 0) {
-      const notice = $(`<div class="notice notice-info"></div>`);
-      const linksContainer = $(`<div style="display: flex; gap: 10px;"></div>`);
+      const notice = $("<div class=\"notice notice-info\"></div>");
+      const linksContainer = $("<div style=\"display: flex; gap: 10px;\"></div>");
       step.links.forEach(link => {
         const linkEl = $("<a class='st-button'>")
           .attr("href", link.href)
@@ -227,7 +227,7 @@ export default class Onboarding {
     }
   }
 
-  private showStep(step: number):void {
+  private showStep (step: number):void {
     $(".onboarding-step").each((i, el) => {
       $(el).toggle(i === step);
     });
@@ -241,7 +241,7 @@ export default class Onboarding {
 }
 
 $(() => {
-  if(!Page.matches("onboardings", "show")) return;
+  if (!Page.matches("onboardings", "show")) return;
 
   const element = document.getElementById("onboarding-root");
   if (element) {
