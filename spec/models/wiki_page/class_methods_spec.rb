@@ -111,7 +111,18 @@ RSpec.describe WikiPage do
       tag = create(:high_post_count_tag)
       page = create(:wiki_page, title: tag.name)
       expect(WikiPage.recent_changes).to include(page)
-      expect(page.association(:tag)).to be_loaded
+
+      result = WikiPage.recent_changes.find { |p| p == page }
+      expect(result.association(:tag)).to be_loaded
+    end
+
+    it "ensures that cache is properly invalidated when a wiki page is updated" do
+      page = create(:wiki_page)
+      expect(WikiPage.recent_changes).to include(page)
+
+      other = create(:wiki_page)
+      expect(WikiPage.recent_changes).to include(other)
+      expect(WikiPage.recent_changes).to include(page)
     end
   end
 
