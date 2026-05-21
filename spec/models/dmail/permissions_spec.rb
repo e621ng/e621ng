@@ -10,6 +10,7 @@ RSpec.describe Dmail do
   let(:sender)    { create(:user) }
   let(:recipient) { create(:user) }
   let(:other)     { create(:user) }
+  let(:janitor) { create(:janitor_user) }
   let(:moderator) { create(:moderator_user) }
   let(:admin)     { create(:admin_user) }
 
@@ -48,15 +49,31 @@ RSpec.describe Dmail do
     end
 
     # -------------------------------------------------------------------------
+    # Janitor special access
+    # -------------------------------------------------------------------------
+    describe "janitor access" do
+      it "is visible to a janitor when the dmail is from the system user" do
+        dmail = create(:dmail, from: User.system, to: recipient, owner: recipient,
+                               bypass_limits: true, no_email_notification: true)
+        expect(dmail.visible_to?(janitor)).to be true
+      end
+
+      it "is visible to a janitor when the dmail is to the system user" do
+        dmail = create(:dmail, from: sender, to: User.system, owner: User.system,
+                               bypass_limits: true, no_email_notification: true)
+        expect(dmail.visible_to?(janitor)).to be true
+      end
+
+      it "is not visible to a janitor for a regular user-to-user dmail they do not own" do
+        dmail = make_dmail
+        expect(dmail.visible_to?(janitor)).to be false
+      end
+    end
+
+    # -------------------------------------------------------------------------
     # Moderator special access
     # -------------------------------------------------------------------------
     describe "moderator access" do
-      it "is visible to a moderator when the dmail is from the system user" do
-        dmail = create(:dmail, from: User.system, to: recipient, owner: recipient,
-                               bypass_limits: true, no_email_notification: true)
-        expect(dmail.visible_to?(moderator)).to be true
-      end
-
       it "is not visible to a moderator for a regular user-to-user dmail they do not own" do
         dmail = make_dmail
         expect(dmail.visible_to?(moderator)).to be false
