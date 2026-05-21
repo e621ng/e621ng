@@ -3,8 +3,6 @@
 require "rails_helper"
 
 RSpec.describe OnboardingsController do
-  before { host! "localhost:3000" }
-
   # ---------------------------------------------------------------------------
   # GET /onboarding — show
   # ---------------------------------------------------------------------------
