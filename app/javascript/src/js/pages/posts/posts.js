@@ -578,7 +578,7 @@ Post.initialize_post_sections = function () {
     return urls.every(url => isUrlValid(url, ignoreUrls));
   };
 
-  const splitUrls = urls => urls.split(/\r?\n/);
+  const splitUrls = urls => urls?.split(/\r?\n/) || [];
 
   const oldSources = splitUrls($("input[name='post[old_source]']").val());
   const invalidOldSources = oldSources.filter(url => !isUrlValid(url));
