@@ -69,6 +69,24 @@ RSpec.describe PostsHelper do
 
       it { is_expected.to be_nil }
     end
+
+    context "when the url only contains a protocol" do
+      let(:path) { "http:" }
+
+      it { is_expected.to be_nil }
+    end
+
+    context "when the url contains multiple protocols" do
+      let(:path) { "http:http://example.com" }
+
+      it { is_expected.to be_nil }
+    end
+
+    context "when it contains a malformed protocol" do
+      let(:path) { "https:://example.com/" }
+
+      it { is_expected.to be_nil }
+    end
   end
 
   describe "#post_source_tag" do

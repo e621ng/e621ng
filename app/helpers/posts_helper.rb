@@ -23,6 +23,10 @@ module PostsHelper
     # This will do a better job at handling technically invalid URLs like
     # http:example.com, http:/example.com or just example.com
     url = Addressable::URI.heuristic_parse(source)
+
+    # Ensure the URL can be re-assembled and is valid
+    return nil if url.omit(:scheme).to_s.empty?
+
     # Only allow http:// and https:// links. Disallow javascript: links.
     if %w[http https].include?(url.scheme)
       url
