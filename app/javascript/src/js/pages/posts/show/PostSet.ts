@@ -173,7 +173,12 @@ export default class PostSet {
         E621.Toast.alert("Error getting sets list: " + data["message"]);
       }).done(function (data) {
         target.on("change", function (e) {
-          LStorage.Posts.Set = e.target.value as any; // TODO: Fix this after migrating LStorage to TS
+          const value = Number(e.target.value);
+          if (isNaN(value)) {
+            E621.Toast.alert("Error: Invalid set specified");
+            return;
+          }
+          LStorage.Posts.Set = value;
         });
         const target_set = LStorage.Posts.Set;
         target.empty();
