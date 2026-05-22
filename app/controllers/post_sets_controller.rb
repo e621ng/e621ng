@@ -9,18 +9,18 @@ class PostSetsController < ApplicationController
   def index
     if params[:post_id].present?
       if CurrentUser.is_moderator?
-        @post_sets = PostSet.where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
+        @post_sets = PostSet.includes(:creator).where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       else
-        @post_sets = PostSet.visible(CurrentUser.user).where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
+        @post_sets = PostSet.visible(CurrentUser.user).includes(:creator).where_has_post(params[:post_id].to_i).paginate(params[:page], limit: 50)
       end
     elsif params[:maintainer_id].present?
       if CurrentUser.is_moderator?
-        @post_sets = PostSet.where_has_maintainer(params[:maintainer_id].to_i).paginate(params[:page], limit: 50)
+        @post_sets = PostSet.includes(:creator).where_has_maintainer(params[:maintainer_id].to_i).paginate(params[:page], limit: 50)
       else
-        @post_sets = PostSet.visible(CurrentUser.user).where_has_maintainer(CurrentUser.id).paginate(params[:page], limit: 50)
+        @post_sets = PostSet.visible(CurrentUser.user).includes(:creator).where_has_maintainer(CurrentUser.id).paginate(params[:page], limit: 50)
       end
     else
-      @post_sets = PostSet.visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
+      @post_sets = PostSet.visible(CurrentUser.user).includes(:creator).search(search_params).paginate(params[:page], limit: params[:limit])
     end
 
     respond_with(@post_sets)
