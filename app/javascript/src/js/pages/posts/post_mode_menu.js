@@ -5,7 +5,7 @@ import PostSet from "@/pages/posts/show/PostSet";
 import TagScript from "@/models/tag_script";
 import Rails from "@rails/ujs";
 import Hotkeys from "@/core/hotkeys";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
 import User from "@/models/User";

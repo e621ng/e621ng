@@ -9,7 +9,7 @@ import Logger from "@/utility/Logger";
 import ModuleRegistry from "@/utility/ModuleRegistry";
 import PerformanceTracker from "@/utility/PerformanceTracker";
 import Settings from "@/utility/Settings";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import CStorage from "@/utility/StorageC";
 import ToastManager from "@/utility/Toast";
 

@@ -1,5 +1,5 @@
 import Page from "@/utility/Page";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import Blacklist from "@/core/blacklists";
 import Analytics from "@/core/analytics";
 import Logger from "@/utility/Logger";

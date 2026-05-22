@@ -1,5 +1,5 @@
 import Post from "@/pages/posts/posts";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import Dialog from "@/utility/dialog";
 
 let ModQueue = {};

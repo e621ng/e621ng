@@ -1,5 +1,5 @@
 import Page from "@/utility/Page";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import CStorage from "@/utility/StorageC";
 
 const Theme = {};
@@ -31,7 +31,7 @@ for (const [label, settings] of Object.entries(Theme.Values)) {
 }
 
 Theme.initialize_selector = function () {
-  if (!LStorage.isAvailable()) {
+  if (!LStorage.isAvailable) {
     // This is here purely because it was in the old code.
     // All browsers made after 2008 should support this.
     $("#no_save_warning").show();
@@ -50,7 +50,7 @@ Theme.initialize_selector = function () {
 };
 
 Theme.initialize_buttons = function () {
-  if (!LStorage.isAvailable()) return;
+  if (!LStorage.isAvailable) return;
 
   if (CStorage.mascotID !== 0) {
     $("#mascot-state").show();

@@ -1,6 +1,6 @@
 import E621Type from "@/interfaces/E621";
 import Dialog from "@/utility/dialog";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import TaskQueue from "@/utility/TaskQueue";
 import { Toast } from "@/utility/Toast";
 
