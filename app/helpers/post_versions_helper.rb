@@ -3,16 +3,19 @@
 module PostVersionsHelper
   def post_source_diff(post_version)
     diff = post_version.diff_sources(post_version.previous)
-    changes = []
+    new_sources = post_version.source.to_s.split("\n")
+    added = diff[:added_sources].to_set
 
-    diff[:added_sources].each do |source|
-      changes << tag.div(tag.ins(diff_source_link("+", source)))
+    changes = new_sources.map do |source|
+      if added.include?(source)
+        tag.div(tag.ins(diff_source_link("+", source)))
+      else
+        tag.div(post_source_tag(source))
+      end
     end
+
     diff[:removed_sources].each do |source|
       changes << tag.div(tag.del(diff_source_link("-", source)))
-    end
-    diff[:unchanged_sources].each do |source|
-      changes << tag.div(post_source_tag(source))
     end
 
     tag.span(safe_join(changes, " "), class: "diff-list")
