@@ -12,27 +12,14 @@ module PostVersionsHelper
       changes << tag.div(tag.del(diff_source_link("-", source)))
     end
     diff[:unchanged_sources].each do |source|
-      changes << tag.div(source_link(source))
+      changes << tag.div(post_source_tag(source))
     end
 
     tag.span(safe_join(changes, " "), class: "diff-list")
   end
 
-  def wordbreak_source(string)
-    lines = string.scan(/.{1,10}/)
-    safe_join(lines, tag.wbr)
-  end
-
-  def source_link(source)
-    if source =~ %r!\Ahttps?://!i
-      link_to(wordbreak_source(source), source, rel: "nofollow")
-    else
-      wordbreak_source(source)
-    end
-  end
-
   def diff_source_link(sign, source)
-    safe_join([tag.span(sign, class: "diff-sign"), source_link(source)])
+    safe_join([tag.span(sign, class: "diff-sign"), post_source_tag(source)])
   end
 
   def post_version_diff(post_version)
