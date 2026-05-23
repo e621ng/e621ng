@@ -6,13 +6,13 @@ module PostVersionsHelper
     changes = []
 
     diff[:added_sources].each do |source|
-      changes << tag.div(tag.ins(wordbreak_source("+#{source}")))
+      changes << tag.div(tag.ins(diff_source_link("+", source)))
     end
     diff[:removed_sources].each do |source|
-      changes << tag.div(tag.del(wordbreak_source("-#{source}")))
+      changes << tag.div(tag.del(diff_source_link("-", source)))
     end
     diff[:unchanged_sources].each do |source|
-      changes << tag.div(wordbreak_source(source))
+      changes << tag.div(source_link(source))
     end
 
     tag.span(safe_join(changes, " "), class: "diff-list")
@@ -23,20 +23,37 @@ module PostVersionsHelper
     safe_join(lines, tag.wbr)
   end
 
+  def source_link(source)
+    if source =~ %r!\Ahttps?://!i
+      link_to(wordbreak_source(source), source, rel: "nofollow")
+    else
+      wordbreak_source(source)
+    end
+  end
+
+  def diff_source_link(sign, source)
+    safe_join([tag.span(sign, class: "diff-sign"), source_link(source)])
+  end
+
   def post_version_diff(post_version)
     diff = post_version.diff(post_version.previous)
-    changes = []
+    all_names = (diff[:added_tags] + diff[:removed_tags] + diff[:unchanged_tags]).sort
+    categories = Tag.categories_for(all_names)
+    added = diff[:added_tags].to_set
+    removed = diff[:removed_tags].to_set
+    obsolete_added = diff[:obsolete_added_tags].to_set
+    obsolete_removed = diff[:obsolete_removed_tags].to_set
 
-    diff[:added_tags].each do |tag_name|
-      classes = diff[:obsolete_added_tags].include?(tag_name) ? "obsolete" : ""
-      changes << tag.ins(link_to_wiki_or_new("+#{tag_name}", tag_name), class: classes)
-    end
-    diff[:removed_tags].each do |tag_name|
-      classes = diff[:obsolete_removed_tags].include?(tag_name) ? "obsolete" : ""
-      changes << tag.del(link_to_wiki_or_new("-#{tag_name}", tag_name), class: classes)
-    end
-    diff[:unchanged_tags].each do |tag_name|
-      changes << tag.span(link_to_wiki_or_new(tag_name))
+    changes = all_names.map do |tag_name|
+      if added.include?(tag_name)
+        classes = obsolete_added.include?(tag_name) ? "obsolete" : nil
+        tag.ins(diff_tag_link("+", tag_name, tag_name, categories), class: classes)
+      elsif removed.include?(tag_name)
+        classes = obsolete_removed.include?(tag_name) ? "obsolete" : nil
+        tag.del(diff_tag_link("-", tag_name, tag_name, categories), class: classes)
+      else
+        tag.span(category_tag_link(tag_name, tag_name, categories))
+      end
     end
 
     tag.span(safe_join(changes, " "), class: "diff-list")
@@ -44,22 +61,36 @@ module PostVersionsHelper
 
   def post_version_locked_diff(post_version)
     diff = post_version.diff(post_version.previous)
-    changes = []
+    all_names = (diff[:added_locked_tags] + diff[:removed_locked_tags] + diff[:unchanged_locked_tags]).sort
+    lookup_names = all_names.map { |t| trim_leading_minus(t) }
+    categories = Tag.categories_for(lookup_names)
+    added = diff[:added_locked_tags].to_set
+    removed = diff[:removed_locked_tags].to_set
 
-    diff[:added_locked_tags].each do |tag_name|
-      changes << tag.ins(link_to_wiki_or_new("+#{tag_name}", trim_leading_minus(tag_name)))
-    end
-    diff[:removed_locked_tags].each do |tag_name|
-      changes << tag.del(link_to_wiki_or_new("-#{tag_name}", trim_leading_minus(tag_name)))
-    end
-    diff[:unchanged_locked_tags].each do |tag_name|
-      changes << tag.span(link_to_wiki_or_new(tag_name, trim_leading_minus(tag_name)))
+    changes = all_names.map do |tag_name|
+      lookup = trim_leading_minus(tag_name)
+      if added.include?(tag_name)
+        tag.ins(diff_tag_link("+", tag_name, lookup, categories))
+      elsif removed.include?(tag_name)
+        tag.del(diff_tag_link("-", tag_name, lookup, categories))
+      else
+        tag.span(category_tag_link(tag_name, lookup, categories))
+      end
     end
 
     tag.span(safe_join(changes, " "), class: "diff-list")
   end
 
   private
+
+  def diff_tag_link(sign, display_name, lookup_name, categories)
+    safe_join([tag.span(sign, class: "diff-sign"), category_tag_link(display_name, lookup_name, categories)])
+  end
+
+  def category_tag_link(text, tag_name, categories)
+    category = categories[tag_name] || 0
+    link_to(text, show_or_new_wiki_pages_path(title: tag_name), class: "tag-type-#{category}")
+  end
 
   def trim_leading_minus(str)
     str.start_with?("-") ? str[1..] : str
