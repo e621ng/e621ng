@@ -45,6 +45,7 @@ class PostFlag < ApplicationRecord
     def can_appeal?(user = CurrentUser.user)
       return false unless is_deletion?
       return false if is_resolved?
+      return false if has_user_appealed?(user) # A user can only appeal a flag once
       return true if post.linked_users.include?(user.id) # Verified artists can appeal deletions of their own posts
       return false if reason =~ /takedown #\d+/i
       return true if post.uploader_id == user.id # Uploaders can appeal anything except for takedowns
@@ -227,6 +228,15 @@ class PostFlag < ApplicationRecord
     rescue
       nil
     end
+  end
+
+  def has_user_appealed?(user)
+    @has_user_appealed ||= {}
+    @has_user_appealed[user.id] ||= Appeal.where(
+      creator_id: user.id,
+      qtype: "flag",
+      disp_id: id,
+    ).exists?
   end
 
   # Creates an appropriate `PostEvent` unless this is a deletion.

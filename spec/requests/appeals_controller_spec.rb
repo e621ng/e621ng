@@ -147,6 +147,13 @@ RSpec.describe AppealsController do
         expect(response).to redirect_to(appeal_path(Appeal.last))
       end
 
+      it "returns 403 for an already appealed flag" do
+        expect { post appeals_path, params: valid_params }.to change(Appeal, :count).by(1)
+        expect(response).to redirect_to(appeal_path(Appeal.last))
+        post appeals_path, params: valid_params
+        expect(response).to have_http_status(:forbidden)
+      end
+
       it "re-renders new when the reason is blank" do
         expect do
           post appeals_path, params: { appeal: { qtype: "flag", disp_id: post_flag.id, reason: "" } }
