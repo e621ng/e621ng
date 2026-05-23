@@ -28,7 +28,7 @@ module PostVersionsHelper
   def post_version_diff(post_version)
     diff = post_version.diff(post_version.previous)
     all_names = (diff[:added_tags] + diff[:removed_tags] + diff[:unchanged_tags]).sort
-    categories = Tag.categories_for(all_names)
+    categories = post_version.tag_categories
     added = diff[:added_tags].to_set
     removed = diff[:removed_tags].to_set
     obsolete_added = diff[:obsolete_added_tags].to_set
@@ -52,8 +52,7 @@ module PostVersionsHelper
   def post_version_locked_diff(post_version)
     diff = post_version.diff(post_version.previous)
     all_names = (diff[:added_locked_tags] + diff[:removed_locked_tags] + diff[:unchanged_locked_tags]).sort
-    lookup_names = all_names.map { |t| trim_leading_minus(t) }
-    categories = Tag.categories_for(lookup_names)
+    categories = post_version.tag_categories
     added = diff[:added_locked_tags].to_set
     removed = diff[:removed_locked_tags].to_set
 
