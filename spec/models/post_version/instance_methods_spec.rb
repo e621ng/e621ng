@@ -173,8 +173,9 @@ RSpec.describe PostVersion do
     it "returns the preset hash without hitting Tag.categories_for" do
       pv = build(:post_version)
       pv.preset_tag_categories({ "alpha" => 1 })
-      expect(Tag).not_to receive(:categories_for)
+      allow(Tag).to receive(:categories_for)
       expect(pv.tag_categories).to eq({ "alpha" => 1 })
+      expect(Tag).not_to have_received(:categories_for)
     end
 
     it "falls back to Tag.categories_for(diff_tag_names) when not preset" do

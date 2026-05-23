@@ -97,13 +97,15 @@ RSpec.describe PostVersion do
 
   describe ".preload_tag_categories!" do
     it "does nothing when given an empty collection" do
-      expect(Tag).not_to receive(:categories_for)
+      allow(Tag).to receive(:categories_for)
       PostVersion.preload_tag_categories!([])
+      expect(Tag).not_to have_received(:categories_for)
     end
 
     it "compacts nils from the given collection" do
-      expect(Tag).not_to receive(:categories_for)
+      allow(Tag).to receive(:categories_for)
       PostVersion.preload_tag_categories!([nil, nil])
+      expect(Tag).not_to have_received(:categories_for)
     end
 
     it "makes a single Tag.categories_for call covering tag names from all versions" do
@@ -113,8 +115,9 @@ RSpec.describe PostVersion do
       v2 = create(:post_version, post: post, tags: "alpha beta")
       v3 = create(:post_version, post: post, tags: "beta gamma")
 
-      expect(Tag).to receive(:categories_for).once.and_call_original
+      allow(Tag).to receive(:categories_for).and_call_original
       PostVersion.preload_tag_categories!([v2, v3])
+      expect(Tag).to have_received(:categories_for).once
     end
 
     it "presets the resolved categories on each version" do
