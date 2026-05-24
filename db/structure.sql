@@ -1295,6 +1295,155 @@ ALTER SEQUENCE public.notes_id_seq OWNED BY public.notes.id;
 
 
 --
+-- Name: oauth_access_grants; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_access_grants (
+    id bigint NOT NULL,
+    resource_owner_id bigint NOT NULL,
+    application_id bigint NOT NULL,
+    token character varying NOT NULL,
+    expires_in integer NOT NULL,
+    redirect_uri text NOT NULL,
+    scopes character varying DEFAULT ''::character varying NOT NULL,
+    revoked_at timestamp(6) without time zone,
+    code_challenge character varying,
+    code_challenge_method character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: oauth_access_grants_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_access_grants_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_access_grants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_access_grants_id_seq OWNED BY public.oauth_access_grants.id;
+
+
+--
+-- Name: oauth_access_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_access_tokens (
+    id bigint NOT NULL,
+    resource_owner_id bigint,
+    application_id bigint NOT NULL,
+    token character varying NOT NULL,
+    refresh_token character varying,
+    expires_in integer,
+    scopes character varying,
+    revoked_at timestamp(6) without time zone,
+    previous_refresh_token character varying DEFAULT ''::character varying NOT NULL,
+    last_used_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: oauth_access_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_access_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_access_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_access_tokens_id_seq OWNED BY public.oauth_access_tokens.id;
+
+
+--
+-- Name: oauth_applications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_applications (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    uid character varying NOT NULL,
+    secret character varying NOT NULL,
+    redirect_uri text NOT NULL,
+    scopes character varying DEFAULT ''::character varying NOT NULL,
+    confidential boolean DEFAULT true NOT NULL,
+    owner_type character varying,
+    owner_id bigint,
+    description text,
+    homepage_url character varying,
+    minimum_user_level integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: oauth_applications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_applications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_applications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_applications_id_seq OWNED BY public.oauth_applications.id;
+
+
+--
+-- Name: oauth_openid_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_openid_requests (
+    id bigint NOT NULL,
+    access_grant_id bigint NOT NULL,
+    nonce character varying NOT NULL
+);
+
+
+--
+-- Name: oauth_openid_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_openid_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_openid_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_openid_requests_id_seq OWNED BY public.oauth_openid_requests.id;
+
+
+--
 -- Name: pool_versions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1405,6 +1554,43 @@ CREATE SEQUENCE public.post_approvals_id_seq
 --
 
 ALTER SEQUENCE public.post_approvals_id_seq OWNED BY public.post_approvals.id;
+
+
+--
+-- Name: post_deletions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_deletions (
+    id bigint NOT NULL,
+    post_id integer NOT NULL,
+    deleter_id integer NOT NULL,
+    updater_id integer,
+    creator_ip_addr inet NOT NULL,
+    reason text NOT NULL,
+    is_undeleted boolean DEFAULT false NOT NULL,
+    source_post_flag_id integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: post_deletions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_deletions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_deletions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_deletions_id_seq OWNED BY public.post_deletions.id;
 
 
 --
@@ -2982,6 +3168,34 @@ ALTER TABLE ONLY public.notes ALTER COLUMN id SET DEFAULT nextval('public.notes_
 
 
 --
+-- Name: oauth_access_grants id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants ALTER COLUMN id SET DEFAULT nextval('public.oauth_access_grants_id_seq'::regclass);
+
+
+--
+-- Name: oauth_access_tokens id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens ALTER COLUMN id SET DEFAULT nextval('public.oauth_access_tokens_id_seq'::regclass);
+
+
+--
+-- Name: oauth_applications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_applications ALTER COLUMN id SET DEFAULT nextval('public.oauth_applications_id_seq'::regclass);
+
+
+--
+-- Name: oauth_openid_requests id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_openid_requests ALTER COLUMN id SET DEFAULT nextval('public.oauth_openid_requests_id_seq'::regclass);
+
+
+--
 -- Name: pool_versions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3000,6 +3214,13 @@ ALTER TABLE ONLY public.pools ALTER COLUMN id SET DEFAULT nextval('public.pools_
 --
 
 ALTER TABLE ONLY public.post_approvals ALTER COLUMN id SET DEFAULT nextval('public.post_approvals_id_seq'::regclass);
+
+
+--
+-- Name: post_deletions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions ALTER COLUMN id SET DEFAULT nextval('public.post_deletions_id_seq'::regclass);
 
 
 --
@@ -3521,6 +3742,38 @@ ALTER TABLE ONLY public.notes
 
 
 --
+-- Name: oauth_access_grants oauth_access_grants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants
+    ADD CONSTRAINT oauth_access_grants_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_access_tokens oauth_access_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens
+    ADD CONSTRAINT oauth_access_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_applications oauth_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_applications
+    ADD CONSTRAINT oauth_applications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_openid_requests oauth_openid_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_openid_requests
+    ADD CONSTRAINT oauth_openid_requests_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: pool_versions pool_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3542,6 +3795,14 @@ ALTER TABLE ONLY public.pools
 
 ALTER TABLE ONLY public.post_approvals
     ADD CONSTRAINT post_approvals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_deletions post_deletions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions
+    ADD CONSTRAINT post_deletions_pkey PRIMARY KEY (id);
 
 
 --
@@ -4274,10 +4535,10 @@ CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id
 
 
 --
--- Name: index_favorites_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+-- Name: index_favorites_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_favorites_on_user_id_and_created_at ON public.favorites USING btree (user_id, created_at);
+CREATE INDEX index_favorites_on_user_id_and_id ON public.favorites USING btree (user_id, id);
 
 
 --
@@ -4498,6 +4759,76 @@ CREATE INDEX index_notes_on_to_tsvector_english_body ON public.notes USING gin (
 
 
 --
+-- Name: index_oauth_access_grants_on_application_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_grants_on_application_id ON public.oauth_access_grants USING btree (application_id);
+
+
+--
+-- Name: index_oauth_access_grants_on_resource_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_grants_on_resource_owner_id ON public.oauth_access_grants USING btree (resource_owner_id);
+
+
+--
+-- Name: index_oauth_access_grants_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_access_grants_on_token ON public.oauth_access_grants USING btree (token);
+
+
+--
+-- Name: index_oauth_access_tokens_on_application_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_tokens_on_application_id ON public.oauth_access_tokens USING btree (application_id);
+
+
+--
+-- Name: index_oauth_access_tokens_on_refresh_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_access_tokens_on_refresh_token ON public.oauth_access_tokens USING btree (refresh_token);
+
+
+--
+-- Name: index_oauth_access_tokens_on_resource_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_tokens_on_resource_owner_id ON public.oauth_access_tokens USING btree (resource_owner_id);
+
+
+--
+-- Name: index_oauth_access_tokens_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_access_tokens_on_token ON public.oauth_access_tokens USING btree (token);
+
+
+--
+-- Name: index_oauth_applications_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_applications_on_owner ON public.oauth_applications USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_oauth_applications_on_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_applications_on_uid ON public.oauth_applications USING btree (uid);
+
+
+--
+-- Name: index_oauth_openid_requests_on_access_grant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_openid_requests_on_access_grant_id ON public.oauth_openid_requests USING btree (access_grant_id);
+
+
+--
 -- Name: index_pool_versions_on_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4572,6 +4903,34 @@ CREATE INDEX index_post_approvals_on_post_id ON public.post_approvals USING btre
 --
 
 CREATE INDEX index_post_approvals_on_user_id ON public.post_approvals USING btree (user_id);
+
+
+--
+-- Name: index_post_deletions_active_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_deletions_active_unique ON public.post_deletions USING btree (post_id) WHERE (is_undeleted = false);
+
+
+--
+-- Name: index_post_deletions_on_deleter_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_deletions_on_deleter_id ON public.post_deletions USING btree (deleter_id);
+
+
+--
+-- Name: index_post_deletions_on_post_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_deletions_on_post_id_and_id ON public.post_deletions USING btree (post_id, id);
+
+
+--
+-- Name: index_post_deletions_on_source_post_flag_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_deletions_on_source_post_flag_id ON public.post_deletions USING btree (source_post_flag_id);
 
 
 --
@@ -4726,91 +5085,6 @@ CREATE INDEX index_post_votes_on_user_id_and_id ON public.post_votes USING btree
 --
 
 CREATE UNIQUE INDEX index_post_votes_on_user_id_and_post_id ON public.post_votes USING btree (user_id, post_id);
-
-
---
--- Name: index_posts_on_approver_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_approver_id ON public.posts USING btree (approver_id);
-
-
---
--- Name: index_posts_on_change_seq; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_posts_on_change_seq ON public.posts USING btree (change_seq);
-
-
---
--- Name: index_posts_on_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_created_at ON public.posts USING btree (created_at);
-
-
---
--- Name: index_posts_on_is_comment_disabled; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_is_comment_disabled ON public.posts USING btree (id) WHERE (is_comment_disabled = true);
-
-
---
--- Name: index_posts_on_is_flagged; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_is_flagged ON public.posts USING btree (is_flagged) WHERE (is_flagged = true);
-
-
---
--- Name: index_posts_on_is_pending; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_is_pending ON public.posts USING btree (is_pending) WHERE (is_pending = true);
-
-
---
--- Name: index_posts_on_md5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_posts_on_md5 ON public.posts USING btree (md5);
-
-
---
--- Name: index_posts_on_parent_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
-
-
---
--- Name: index_posts_on_pool_string_tokens; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_pool_string_tokens ON public.posts USING gin (string_to_array(pool_string, ' '::text));
-
-
---
--- Name: index_posts_on_string_to_array_tag_string; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_string_to_array_tag_string ON public.posts USING gin (string_to_array(tag_string, ' '::text));
-ALTER INDEX public.index_posts_on_string_to_array_tag_string ALTER COLUMN 1 SET STATISTICS 3000;
-
-
---
--- Name: index_posts_on_uploader_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_uploader_id ON public.posts USING btree (uploader_id);
-
-
---
--- Name: index_posts_on_uploader_ip_addr; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_uploader_ip_addr ON public.posts USING btree (uploader_ip_addr);
 
 
 --
@@ -5300,6 +5574,14 @@ ALTER TABLE ONLY public.appeals
 
 
 --
+-- Name: post_deletions fk_rails_1adec60699; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions
+    ADD CONSTRAINT fk_rails_1adec60699 FOREIGN KEY (deleter_id) REFERENCES public.users(id);
+
+
+--
 -- Name: avoid_posting_versions fk_rails_1d1f54e17a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5308,11 +5590,27 @@ ALTER TABLE ONLY public.avoid_posting_versions
 
 
 --
+-- Name: post_deletions fk_rails_223f15f198; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions
+    ADD CONSTRAINT fk_rails_223f15f198 FOREIGN KEY (post_id) REFERENCES public.posts(id) ON DELETE CASCADE;
+
+
+--
 -- Name: blips fk_rails_23e7479aac; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.blips
     ADD CONSTRAINT fk_rails_23e7479aac FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
+-- Name: oauth_access_grants fk_rails_330c32d8d9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants
+    ADD CONSTRAINT fk_rails_330c32d8d9 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
 
 
 --
@@ -5356,6 +5654,30 @@ ALTER TABLE ONLY public.appeals
 
 
 --
+-- Name: post_deletions fk_rails_64646f095d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions
+    ADD CONSTRAINT fk_rails_64646f095d FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
+-- Name: oauth_access_tokens fk_rails_732cb83ab7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens
+    ADD CONSTRAINT fk_rails_732cb83ab7 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
+
+
+--
+-- Name: oauth_openid_requests fk_rails_77114b3b09; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_openid_requests
+    ADD CONSTRAINT fk_rails_77114b3b09 FOREIGN KEY (access_grant_id) REFERENCES public.oauth_access_grants(id) ON DELETE CASCADE;
+
+
+--
 -- Name: user_feedback fk_rails_9329a36823; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5372,14 +5694,6 @@ ALTER TABLE ONLY public.mascots
 
 
 --
--- Name: favorites fk_rails_a7668ef613; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.favorites
-    ADD CONSTRAINT fk_rails_a7668ef613 FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
 -- Name: automod_rules fk_rails_af3a8c8cd0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5393,6 +5707,14 @@ ALTER TABLE ONLY public.automod_rules
 
 ALTER TABLE ONLY public.avoid_postings
     ADD CONSTRAINT fk_rails_b2ebf2bc30 FOREIGN KEY (artist_id) REFERENCES public.artists(id);
+
+
+--
+-- Name: oauth_access_grants fk_rails_b4b53e07b8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants
+    ADD CONSTRAINT fk_rails_b4b53e07b8 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
 
 
 --
@@ -5428,14 +5750,6 @@ ALTER TABLE ONLY public.avoid_postings
 
 
 --
--- Name: favorites fk_rails_d20e53bb68; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.favorites
-    ADD CONSTRAINT fk_rails_d20e53bb68 FOREIGN KEY (post_id) REFERENCES public.posts(id);
-
-
---
 -- Name: avoid_postings fk_rails_d45cc0f1a1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5452,6 +5766,14 @@ ALTER TABLE ONLY public.staff_notes
 
 
 --
+-- Name: oauth_access_tokens fk_rails_ee63f25419; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens
+    ADD CONSTRAINT fk_rails_ee63f25419 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
@@ -5459,9 +5781,11 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260608170029'),
+('20260604182500'),
 ('20260530165214'),
 ('20260530162738'),
 ('20260526234030'),
+('20260524093755'),
 ('20260520175932'),
 ('20260519151649'),
 ('20260505163626'),

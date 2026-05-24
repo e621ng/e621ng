@@ -1,4 +1,14 @@
 GIT
+  remote: https://github.com/doorkeeper-gem/doorkeeper-openid_connect.git
+  revision: d60ec68e51fffa7d7272356c4d35c39114c598e9
+  ref: d60ec68e51fffa7d7272356c4d35c39114c598e9
+  specs:
+    doorkeeper-openid_connect (1.9.0)
+      doorkeeper (>= 5.5, < 6.0)
+      jwt (>= 2.5)
+      ostruct (>= 0.5)
+
+GIT
   remote: https://github.com/e621ng/dtext.git
   revision: 193e57b8f2b8a2d1023c57826474eafbfb047b8b
   tag: 2.0.4
@@ -128,6 +138,8 @@ GEM
     diffy (3.4.2)
     docile (1.4.1)
     domain_name (0.6.20240107)
+    doorkeeper (5.9.1)
+      railties (>= 5)
     dotenv (3.1.0)
     draper (4.0.2)
       actionpack (>= 5.0)
@@ -177,6 +189,8 @@ GEM
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     json (2.19.3)
+    jwt (3.2.0)
+      base64
     language_server-protocol (3.17.0.3)
     libdatadog (16.0.1.1.0)
     libddwaf (1.18.0.0.1)
@@ -228,6 +242,7 @@ GEM
     opensearch-ruby (3.2.0)
       faraday (>= 1.0, < 3)
       multi_json (>= 1.0)
+    ostruct (0.6.3)
     parallel (1.24.0)
     parallel_tests (5.6.0)
       parallel
@@ -464,6 +479,8 @@ DEPENDENCIES
   datadog
   debug
   diffy
+  doorkeeper (~> 5.8)
+  doorkeeper-openid_connect!
   dotenv
   draper
   dtext!

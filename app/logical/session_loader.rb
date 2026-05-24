@@ -2,6 +2,8 @@
 
 class SessionLoader
   class AuthenticationFailure < StandardError; end
+  class InsufficientScope < AuthenticationFailure; end
+  class LevelBelowMinimum < AuthenticationFailure; end
 
   attr_reader :session, :cookies, :request, :params
 
@@ -21,7 +23,9 @@ class SessionLoader
     CurrentUser.user = User.anonymous
     CurrentUser.ip_addr = request.remote_ip
 
-    if has_api_authentication?
+    if has_bearer_token?
+      load_session_for_bearer
+    elsif has_api_authentication?
       load_session_for_api
     elsif session[:user_id]
       load_session_user
@@ -48,7 +52,18 @@ class SessionLoader
   end
 
   def has_api_authentication?
-    request.authorization.present? || (params[:login].present? && params[:api_key].present?)
+    has_bearer_token? || basic_auth_or_login_params?
+  end
+
+  def has_bearer_token?
+    bearer_token.present?
+  end
+
+  def bearer_token
+    return @bearer_token if defined?(@bearer_token)
+
+    auth = request.authorization.to_s
+    @bearer_token = auth.start_with?("Bearer ") ? auth.split(" ", 2).last : nil
   end
 
   def has_remember_token?
@@ -56,6 +71,38 @@ class SessionLoader
   end
 
   private
+
+  def basic_auth_or_login_params?
+    has_basic_authorization? || (params[:login].present? && params[:api_key].present?)
+  end
+
+  def has_basic_authorization?
+    request.authorization.to_s.start_with?("Basic ")
+  end
+
+  def load_session_for_bearer
+    token = Doorkeeper::AccessToken.by_token(bearer_token)
+    raise AuthenticationFailure unless token&.accessible?
+
+    unless token.scopes.exists?("full")
+      raise InsufficientScope
+    end
+
+    user = User.find_by(id: token.resource_owner_id)
+    raise AuthenticationFailure if user.nil?
+
+    min_level = token.application&.minimum_user_level.to_i
+    if min_level > 0 && user.level < min_level
+      raise LevelBelowMinimum
+    end
+
+    # Doorkeeper::OAuth::Token.authenticate normally triggers this; bearer path bypasses it.
+    token.revoke_previous_refresh_token! if Doorkeeper.config.refresh_token_enabled?
+
+    CurrentUser.user = user
+    CurrentUser.api_key = nil
+    CurrentUser.oauth_token = token
+  end
 
   def load_remember_token
     begin
@@ -69,6 +116,8 @@ class SessionLoader
       CurrentUser.user = user
       session[:user_id] = user.id
       session[:ph] = user.password_token # This has been validated by the remember token
+      # Mirrors SessionCreator so OIDC auth_time reflects this restore.
+      user.update_columns(last_logged_in_at: Time.now) unless user.is_blocked?
     rescue
       return
     end
@@ -154,7 +203,9 @@ class SessionLoader
 
     Cache.redis.setex(cache_key, 60, "1")
 
-    if CurrentUser.last_logged_in_at.nil? || CurrentUser.last_logged_in_at <= 1.day.ago
+    # last_logged_in_at feeds the OIDC auth_time claim; bearer use must not bump it.
+    if CurrentUser.oauth_token.nil? &&
+       (CurrentUser.last_logged_in_at.nil? || CurrentUser.last_logged_in_at <= 1.day.ago)
       CurrentUser.user.update_attribute(:last_logged_in_at, Time.now)
     end
 

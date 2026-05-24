@@ -96,6 +96,12 @@ class ApplicationController < ActionController::Base
       render_error_page(500, exception, message: "The database timed out running your query.")
     when ActionDispatch::Http::Parameters::ParseError, ActionController::BadRequest, PostVersion::UndoError
       render_error_page(400, exception)
+    when SessionLoader::InsufficientScope
+      response.set_header("WWW-Authenticate", %(Bearer error="insufficient_scope", scope="full"))
+      render_expected_error(401, "Insufficient scope")
+    when SessionLoader::LevelBelowMinimum
+      response.set_header("WWW-Authenticate", %(Bearer error="invalid_token", error_description="user level below application minimum"))
+      render_expected_error(401, "Account level below application minimum")
     when SessionLoader::AuthenticationFailure
       session.delete(:user_id)
       cookies.delete :remember
@@ -210,6 +216,7 @@ class ApplicationController < ActionController::Base
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
     CurrentUser.safe_mode = Danbooru.config.safe_mode?
+    CurrentUser.oauth_token = nil
   end
 
   def requires_reauthentication
@@ -255,6 +262,12 @@ class ApplicationController < ActionController::Base
 
   def reject_api_key_auth
     if CurrentUser.api_key.present?
+      render_expected_error(:forbidden, "This action requires browser authentication")
+    end
+  end
+
+  def reject_bearer_auth
+    if CurrentUser.oauth_token.present?
       render_expected_error(:forbidden, "This action requires browser authentication")
     end
   end

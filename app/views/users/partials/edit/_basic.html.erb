@@ -19,17 +19,6 @@
   </tab-body>
 </tab-entry>
 
-<% if CurrentUser.user.is_member? %>
-<tab-entry tab="<%= tab_name %>" group="account" class="with-button" search="update change user profile account api key access">
-  <tab-head>API Keys</tab-head>
-  <tab-body>
-    <%= link_to "Manage API Keys", api_keys_path, class: "st-button" %>
-  </tab-body>
-  <tab-hint>
-    Do not give your API keys to third-party apps you do not trust.
-  </tab-hint>
-</tab-entry>
-<% end %>
 
 <tab-entry tab="<%= tab_name %>" group="account" class="" id="settings-account-buttons" search="update change user profile account delete password">
   <tab-head></tab-head>
