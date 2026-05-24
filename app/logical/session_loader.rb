@@ -196,6 +196,8 @@ class SessionLoader
 
     cache_key = if CurrentUser.api_key
                   "user_login_tracking:api_key:#{CurrentUser.api_key.id}"
+                elsif CurrentUser.oauth_token
+                  "user_login_tracking:oauth_token:#{CurrentUser.oauth_token.id}"
                 else
                   "user_login_tracking:user:#{CurrentUser.id}"
                 end
@@ -214,6 +216,7 @@ class SessionLoader
     end
 
     CurrentUser.api_key&.update_usage!(@request.remote_ip, @request.user_agent)
+    CurrentUser.oauth_token&.update!(last_used_at: Time.current)
   end
 
   def set_safe_mode
