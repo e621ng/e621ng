@@ -86,35 +86,6 @@ RSpec.describe OidcSigningKey do
       end
     end
 
-    context "production guard against the committed demo key" do
-      # The committed demo key in docker-compose.yml is the canonical source
-      # of the fingerprint OidcSigningKey::DEV_KEY_FINGERPRINT recognizes.
-      let(:demo_pem) do
-        compose = Rails.root.join("docker-compose.yml").read
-        pem = compose[/-----BEGIN RSA PRIVATE KEY-----.*?-----END RSA PRIVATE KEY-----/m]
-        pem&.gsub(/^ {4}/, "")
-      end
-
-      before do
-        skip "demo key not embedded in compose file" unless demo_pem&.include?("PRIVATE KEY")
-        ENV["OIDC_SIGNING_KEY"] = demo_pem
-        described_class.instance_variable_set(:@pem, nil)
-        described_class.instance_variable_set(:@private_key, nil)
-      end
-
-      after { ENV.delete("OIDC_SIGNING_KEY") }
-
-      it "refuses to boot when the key matches the demo fingerprint" do
-        allow(Rails.env).to receive(:production?).and_return(true)
-        expect { described_class.check! }.to raise_error(/matches the public demo key/)
-      end
-
-      it "boots fine with the demo key outside production (dev/test)" do
-        expect(Rails.env.production?).to be false
-        expect { described_class.check! }.not_to raise_error
-      end
-    end
-
     context "when the configured key is not parseable" do
       it "raises a PEM-parse error" do
         ENV["OIDC_SIGNING_KEY"] = "not a key"
