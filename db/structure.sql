@@ -1295,6 +1295,155 @@ ALTER SEQUENCE public.notes_id_seq OWNED BY public.notes.id;
 
 
 --
+-- Name: oauth_access_grants; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_access_grants (
+    id bigint NOT NULL,
+    resource_owner_id bigint NOT NULL,
+    application_id bigint NOT NULL,
+    token character varying NOT NULL,
+    expires_in integer NOT NULL,
+    redirect_uri text NOT NULL,
+    scopes character varying DEFAULT ''::character varying NOT NULL,
+    revoked_at timestamp(6) without time zone,
+    code_challenge character varying,
+    code_challenge_method character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: oauth_access_grants_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_access_grants_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_access_grants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_access_grants_id_seq OWNED BY public.oauth_access_grants.id;
+
+
+--
+-- Name: oauth_access_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_access_tokens (
+    id bigint NOT NULL,
+    resource_owner_id bigint,
+    application_id bigint NOT NULL,
+    token character varying NOT NULL,
+    refresh_token character varying,
+    expires_in integer,
+    scopes character varying,
+    revoked_at timestamp(6) without time zone,
+    previous_refresh_token character varying DEFAULT ''::character varying NOT NULL,
+    last_used_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: oauth_access_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_access_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_access_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_access_tokens_id_seq OWNED BY public.oauth_access_tokens.id;
+
+
+--
+-- Name: oauth_applications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_applications (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    uid character varying NOT NULL,
+    secret character varying NOT NULL,
+    redirect_uri text NOT NULL,
+    scopes character varying DEFAULT ''::character varying NOT NULL,
+    confidential boolean DEFAULT true NOT NULL,
+    owner_type character varying,
+    owner_id bigint,
+    description text,
+    homepage_url character varying,
+    minimum_user_level integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: oauth_applications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_applications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_applications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_applications_id_seq OWNED BY public.oauth_applications.id;
+
+
+--
+-- Name: oauth_openid_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_openid_requests (
+    id bigint NOT NULL,
+    access_grant_id bigint NOT NULL,
+    nonce character varying NOT NULL
+);
+
+
+--
+-- Name: oauth_openid_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_openid_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_openid_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_openid_requests_id_seq OWNED BY public.oauth_openid_requests.id;
+
+
+--
 -- Name: pool_versions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3124,6 +3273,34 @@ ALTER TABLE ONLY public.notes ALTER COLUMN id SET DEFAULT nextval('public.notes_
 
 
 --
+-- Name: oauth_access_grants id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants ALTER COLUMN id SET DEFAULT nextval('public.oauth_access_grants_id_seq'::regclass);
+
+
+--
+-- Name: oauth_access_tokens id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens ALTER COLUMN id SET DEFAULT nextval('public.oauth_access_tokens_id_seq'::regclass);
+
+
+--
+-- Name: oauth_applications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_applications ALTER COLUMN id SET DEFAULT nextval('public.oauth_applications_id_seq'::regclass);
+
+
+--
+-- Name: oauth_openid_requests id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_openid_requests ALTER COLUMN id SET DEFAULT nextval('public.oauth_openid_requests_id_seq'::regclass);
+
+
+--
 -- Name: pool_versions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3688,6 +3865,38 @@ ALTER TABLE ONLY public.note_versions
 
 ALTER TABLE ONLY public.notes
     ADD CONSTRAINT notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_access_grants oauth_access_grants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants
+    ADD CONSTRAINT oauth_access_grants_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_access_tokens oauth_access_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens
+    ADD CONSTRAINT oauth_access_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_applications oauth_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_applications
+    ADD CONSTRAINT oauth_applications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_openid_requests oauth_openid_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_openid_requests
+    ADD CONSTRAINT oauth_openid_requests_pkey PRIMARY KEY (id);
 
 
 --
@@ -4700,6 +4909,76 @@ CREATE INDEX index_notes_on_to_tsvector_english_body ON public.notes USING gin (
 
 
 --
+-- Name: index_oauth_access_grants_on_application_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_grants_on_application_id ON public.oauth_access_grants USING btree (application_id);
+
+
+--
+-- Name: index_oauth_access_grants_on_resource_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_grants_on_resource_owner_id ON public.oauth_access_grants USING btree (resource_owner_id);
+
+
+--
+-- Name: index_oauth_access_grants_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_access_grants_on_token ON public.oauth_access_grants USING btree (token);
+
+
+--
+-- Name: index_oauth_access_tokens_on_application_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_tokens_on_application_id ON public.oauth_access_tokens USING btree (application_id);
+
+
+--
+-- Name: index_oauth_access_tokens_on_refresh_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_access_tokens_on_refresh_token ON public.oauth_access_tokens USING btree (refresh_token);
+
+
+--
+-- Name: index_oauth_access_tokens_on_resource_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_tokens_on_resource_owner_id ON public.oauth_access_tokens USING btree (resource_owner_id);
+
+
+--
+-- Name: index_oauth_access_tokens_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_access_tokens_on_token ON public.oauth_access_tokens USING btree (token);
+
+
+--
+-- Name: index_oauth_applications_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_applications_on_owner ON public.oauth_applications USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_oauth_applications_on_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_applications_on_uid ON public.oauth_applications USING btree (uid);
+
+
+--
+-- Name: index_oauth_openid_requests_on_access_grant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_openid_requests_on_access_grant_id ON public.oauth_openid_requests USING btree (access_grant_id);
+
+
+--
 -- Name: index_pool_versions_on_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5590,6 +5869,14 @@ ALTER TABLE ONLY public.staff_wiki_versions
 
 
 --
+-- Name: oauth_access_grants fk_rails_330c32d8d9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants
+    ADD CONSTRAINT fk_rails_330c32d8d9 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
+
+
+--
 -- Name: appeals fk_rails_3f7cd477a6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5635,6 +5922,22 @@ ALTER TABLE ONLY public.appeals
 
 ALTER TABLE ONLY public.appeals
     ADD CONSTRAINT fk_rails_570415b15f FOREIGN KEY (handler_id) REFERENCES public.users(id);
+
+
+--
+-- Name: oauth_access_tokens fk_rails_732cb83ab7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens
+    ADD CONSTRAINT fk_rails_732cb83ab7 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
+
+
+--
+-- Name: oauth_openid_requests fk_rails_77114b3b09; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_openid_requests
+    ADD CONSTRAINT fk_rails_77114b3b09 FOREIGN KEY (access_grant_id) REFERENCES public.oauth_access_grants(id) ON DELETE CASCADE;
 
 
 --
@@ -5699,6 +6002,14 @@ ALTER TABLE ONLY public.automod_rules
 
 ALTER TABLE ONLY public.avoid_postings
     ADD CONSTRAINT fk_rails_b2ebf2bc30 FOREIGN KEY (artist_id) REFERENCES public.artists(id);
+
+
+--
+-- Name: oauth_access_grants fk_rails_b4b53e07b8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants
+    ADD CONSTRAINT fk_rails_b4b53e07b8 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
 
 
 --
@@ -5774,6 +6085,14 @@ ALTER TABLE ONLY public.staff_notes
 
 
 --
+-- Name: oauth_access_tokens fk_rails_ee63f25419; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens
+    ADD CONSTRAINT fk_rails_ee63f25419 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
@@ -5787,6 +6106,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20260530165214'),
 ('20260530162738'),
 ('20260526234030'),
+('20260524093755'),
 ('20260520175932'),
 ('20260519151649'),
 ('20260505163626'),

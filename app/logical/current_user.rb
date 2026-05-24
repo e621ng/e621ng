@@ -28,6 +28,10 @@ class CurrentUser
     RequestStore[:current_api_key] = api_key
   end
 
+  def self.oauth_token=(token)
+    RequestStore[:current_oauth_token] = token
+  end
+
   def self.ip_addr=(ip_addr)
     RequestStore[:current_ip_addr] = ip_addr
   end
@@ -38,6 +42,10 @@ class CurrentUser
 
   def self.api_key
     RequestStore[:current_api_key]
+  end
+
+  def self.oauth_token
+    RequestStore[:current_oauth_token]
   end
 
   def self.ip_addr

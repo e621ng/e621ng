@@ -2,6 +2,15 @@
 
 id_name_constraint = { id: %r{[^/]+?}, format: /json|html/ }.freeze
 Rails.application.routes.draw do
+  use_doorkeeper_openid_connect
+  use_doorkeeper do
+    controllers applications: "oauth_applications",
+                authorized_applications: "oauth_authorized_applications",
+                authorizations: "oauth_authorizations"
+  end
+  resources :oauth_applications, only: [], path: "oauth/applications" do
+    member { post :regenerate_secret }
+  end
   require "sidekiq/web"
   require "sidekiq_unique_jobs/web"
 
