@@ -49,7 +49,7 @@ class CreateDoorkeeperTables < ActiveRecord::Migration[8.1]
     add_index :oauth_access_tokens, :token, unique: true
     add_index :oauth_access_tokens, :refresh_token, unique: true
 
-    create_table :oauth_openid_requests do |t|
+    create_table :oauth_openid_requests do |t| # rubocop:disable Rails/CreateTableWithTimestamps
       t.references :access_grant, null: false, foreign_key: { to_table: :oauth_access_grants, on_delete: :cascade }
       t.string :nonce, null: false
     end
