@@ -1,5 +1,4 @@
-<%
-  available_scopes = %w[openid profile email full]
+<%available_scopes = %w[openid profile email full]
   selected_scopes = application.scopes.to_a.presence || %w[openid profile]
   scope_descriptions = {
     "openid" => "Sign the user in (required for OIDC).",
