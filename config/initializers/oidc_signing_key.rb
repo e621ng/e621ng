@@ -2,4 +2,4 @@
 
 require Rails.root.join("app/logical/oidc_signing_key")
 
-OidcSigningKey.check!
+OidcSigningKey.check! unless Rails.env.test?

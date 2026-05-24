@@ -5,6 +5,9 @@ module OidcSigningKey
 
   def pem
     @pem ||= ENV["OIDC_SIGNING_KEY"].presence || File.read(path)
+  rescue Errno::ENOENT
+    raise unless defined?(Rails) && Rails.env.test?
+    @pem = OpenSSL::PKey::RSA.new(2048).to_pem
   end
 
   def private_key
