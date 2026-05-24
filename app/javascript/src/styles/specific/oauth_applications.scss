@@ -433,6 +433,26 @@ body.c-oauth-authorizations.a-new {
         border-top: 0.3rem solid transparent;
         border-bottom: 0.3rem solid transparent;
       }
+
+      &-denied {
+        background-color: palette("text-red");
+
+        &::after {
+          border-left-color: palette("text-red");
+        }
+
+        &::before {
+          content: "\00d7";
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-55%, -55%);
+          font-size: 1.25rem;
+          font-weight: bold;
+          line-height: 1;
+          color: palette("text-red");
+        }
+      }
     }
 
     h1 {

@@ -16,6 +16,8 @@
       <div class="oauth-consent-logo oauth-consent-logo-user">
         <% if CurrentUser.user.has_cropped_avatar? %>
           <img src="<%= Danbooru.config.storage_manager.avatar_url(CurrentUser.id, "jpg") %>?t=<%= CurrentUser.user.updated_at.to_i %>" alt="" />
+        <% elsif CurrentUser.user.avatar_id.present? %>
+          <img src="<%= CurrentUser.user.avatar.preview_file_url %>" alt="" />
         <% else %>
           <span class="oauth-consent-logo-initial"><%= CurrentUser.user.name.first.upcase %></span>
         <% end %>

@@ -3,6 +3,8 @@
 # to_prepare runs after Doorkeeper has loaded its model in both dev and prod.
 Rails.application.config.to_prepare do
   Doorkeeper::Application.class_eval do
+    attr_accessor :authorization_denial_reason
+
     validates :description, length: { maximum: 500 }, allow_blank: true
     validates :homepage_url, length: { maximum: 2048 }, allow_blank: true
     validates :homepage_url,

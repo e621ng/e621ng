@@ -27,6 +27,16 @@ Doorkeeper.configure do
 
   enable_application_owner confirmation: true
 
+  authorize_resource_owner_for_client do |app, resource_owner|
+    reason = if app.owner.is_a?(User) && app.owner.is_blocked?
+               "This application's owner is no longer in good standing."
+             elsif app.minimum_user_level.to_i > 0 && resource_owner&.level.to_i < app.minimum_user_level.to_i
+               "You do not have access to this application."
+             end
+    app.authorization_denial_reason = reason if reason
+    reason.nil?
+  end
+
   force_ssl_in_redirect_uri Rails.env.production?
 
   skip_authorization do |resource_owner, client|
