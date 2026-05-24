@@ -16,7 +16,8 @@ class OauthAuthorizationsController < Doorkeeper::AuthorizationsController
   def render_error
     reason = pre_auth.client&.application&.authorization_denial_reason
     if reason
-      render(:error, locals: { error_response: OpenStruct.new(body: { error_description: reason }) }, status: :forbidden)
+      error = Struct.new(:body).new({ error_description: reason })
+      render(:error, locals: { error_response: error }, status: 403)
     else
       super
     end
