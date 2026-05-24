@@ -44,7 +44,10 @@ class PostReplacementsController < ApplicationController
         end
       end
 
-      @post_replacement.approve!(penalize_current_uploader: CurrentUser.id != @post.uploader_id)
+      @post_replacement.approve!(
+        penalize_current_uploader: CurrentUser.id != @post.uploader_id,
+        credit_replacer: !@post_replacement.upload_as_silent?,
+      )
     end
 
     respond_to do |format|
@@ -58,21 +61,37 @@ class PostReplacementsController < ApplicationController
 
   def approve
     @post_replacement = PostReplacement.find(params[:id])
+    # Determine whether this request is a "reset to" (explicitly passing penalize_current_uploader=false)
     is_reset_to = params.key?(:penalize_current_uploader) && !ActiveModel::Type::Boolean.new.cast(params[:penalize_current_uploader])
 
     if @post_replacement.post.is_deleted?
       # Both Approve and Reset To submit to this endpoint; reset-to passes penalize_current_uploader=false.
       action_name = is_reset_to ? "reset to" : "approve"
-      flash.now[:notice] = "Error: Cannot #{action_name} replacement for deleted target post"
-      render plain: flash[:notice], status: :unprocessable_entity
+      message = "Error: Cannot #{action_name} replacement for deleted target post"
+      respond_to do |format|
+        format.json { render json: { success: false, message: message }, status: :unprocessable_entity }
+        format.html { render plain: message, status: :unprocessable_entity }
+      end
       return
     end
 
-    @post_replacement.approve!(penalize_current_uploader: params[:penalize_current_uploader])
+    approve_options = {}
+    if params.key?(:penalize_current_uploader)
+      approve_options[:penalize_current_uploader] = ActiveModel::Type::Boolean.new.cast(params[:penalize_current_uploader])
+    end
+    approve_options[:credit_replacer] = ActiveModel::Type::Boolean.new.cast(params[:credit_replacer]) if params.key?(:credit_replacer)
+
+    begin
+      @post_replacement.approve!(**approve_options)
+    rescue ProcessingError => e
+      @post_replacement.errors.add(:base, e.message)
+    end
 
     if @post_replacement.errors.any?
-      render plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: 400
-      return
+      respond_to do |format|
+        format.json { return render json: { success: false, message: @post_replacement.errors.full_messages.join("; ") }, status: 412 }
+        format.html { return render plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: 412 }
+      end
     end
 
     respond_with(@post_replacement) do |format|
@@ -143,7 +162,7 @@ class PostReplacementsController < ApplicationController
   end
 
   def create_params
-    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source, :as_pending)
+    params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source, :as_pending, :as_silent)
   end
 
   def ensure_uploads_enabled
