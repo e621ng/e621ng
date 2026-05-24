@@ -231,12 +231,10 @@ RSpec.describe "OIDC endpoints" do
       make_session(user, password)
     end
 
-    it "redirects with error=access_denied citing the owner" do
+    it "renders an error page citing the owner" do
       get authorize_url
-      expect(response).to have_http_status(:found)
-      expect(response.location).to start_with("http://localhost/cb?")
-      expect(response.location).to include("error=access_denied")
-      expect(response.location).to include("state=ban")
+      expect(response).to have_http_status(:forbidden)
+      expect(response.body).to include("no longer in good standing")
     end
 
     it "leaves the application row in place so unban can recover it" do
@@ -279,13 +277,10 @@ RSpec.describe "OIDC endpoints" do
 
       before { make_session(user, password) }
 
-      it "redirects with error=access_denied per RFC 6749 §4.1.2.1" do
+      it "renders an error page citing the level requirement" do
         get authorize_url
-        expect(response).to have_http_status(:found)
-        expect(response.location).to match(%r{\Ahttp://localhost/cb\?})
-        expect(response.location).to include("error=access_denied")
-        expect(response.location).to include("error_description=")
-        expect(response.location).to include("state=level-state")
+        expect(response).to have_http_status(:forbidden)
+        expect(response.body).to include("do not have access")
       end
     end
 
