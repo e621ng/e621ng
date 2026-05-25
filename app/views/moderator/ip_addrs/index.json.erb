@@ -1,5 +1,5 @@
 <% if params[:search][:user_id].present? || params[:search][:user_name].present? %>
-  <%= render "ip_listing.json" %>
+  <%= render "ip_listing" %>
 <% else %>
-  <%= render "user_listing.json" %>
+  <%= render "user_listing" %>
 <% end %>
