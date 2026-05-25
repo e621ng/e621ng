@@ -426,6 +426,49 @@ RSpec.describe "OIDC endpoints" do
     end
   end
 
+  describe "picture claim in safe mode" do
+    let(:owner) { create(:user) }
+    let(:oauth_app) do
+      Doorkeeper::Application.create!(
+        name: "pic-claim", redirect_uri: "http://localhost/cb",
+        scopes: "openid profile", confidential: true, owner: owner
+      )
+    end
+
+    def picture_for(user)
+      token = Doorkeeper::AccessToken.create!(
+        application: oauth_app, resource_owner_id: user.id, scopes: "openid profile",
+      )
+      get "/oauth/userinfo", headers: { "Authorization" => "Bearer #{token.token}" }
+      response.parsed_body["picture"]
+    end
+
+    it "returns the picture when the avatar post is safe-rated" do
+      avatar_post = CurrentUser.scoped(create(:user)) { create(:post, rating: "s") }
+      user = create(:user, avatar_id: avatar_post.id, enable_safe_mode: true)
+      expect(picture_for(user)).to be_present
+    end
+
+    it "suppresses the picture when the avatar post is explicit-rated and user has safe mode on" do
+      avatar_post = CurrentUser.scoped(create(:user)) { create(:post, rating: "e") }
+      user = create(:user, avatar_id: avatar_post.id, enable_safe_mode: true)
+      expect(picture_for(user)).to be_nil
+    end
+
+    it "suppresses the picture when the avatar post is questionable-rated and site safe mode is on" do
+      avatar_post = CurrentUser.scoped(create(:user)) { create(:post, rating: "q") }
+      user = create(:user, avatar_id: avatar_post.id)
+      allow(Danbooru.config.custom_configuration).to receive(:safe_mode?).and_return(true)
+      expect(picture_for(user)).to be_nil
+    end
+
+    it "returns the picture when safe mode is off regardless of rating" do
+      avatar_post = CurrentUser.scoped(create(:user)) { create(:post, rating: "e") }
+      user = create(:user, avatar_id: avatar_post.id)
+      expect(picture_for(user)).to be_present
+    end
+  end
+
   describe "email_verified claim" do
     let(:owner) { create(:user) }
     let(:oauth_app) do

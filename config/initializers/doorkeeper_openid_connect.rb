@@ -45,11 +45,15 @@ Doorkeeper::OpenidConnect.configure do
     normal_claim :picture do |resource_owner|
       next nil unless resource_owner.avatar_id
 
+      safe_mode = Danbooru.config.safe_mode? || resource_owner.enable_safe_mode?
+      avatar_post = Post.find_by(id: resource_owner.avatar_id) if safe_mode || !resource_owner.has_cropped_avatar?
+      next nil if safe_mode && avatar_post&.rating != "s"
+
       if resource_owner.has_cropped_avatar?
         url = Danbooru.config.storage_manager.avatar_url(resource_owner.id, "jpg")
         "#{url}?t=#{resource_owner.updated_at.to_i}"
       else
-        Post.find_by(id: resource_owner.avatar_id)&.preview_file_url
+        avatar_post&.preview_file_url
       end
     end
 
