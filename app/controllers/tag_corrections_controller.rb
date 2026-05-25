@@ -11,7 +11,12 @@ class TagCorrectionsController < ApplicationController
 
   def new
     @from_wiki = request.referer.try(:include?, "wiki_pages") || false
-    @correction = TagCorrection.new(params[:tag_id])
+
+    # Without this, calling `post_count_from_db` has a 100% chance of timing out on large tags.
+    # Since the corrections page is staff-only, we care about correctness more than performance.
+    Tag.without_timeout do
+      @correction = TagCorrection.new(params[:tag_id])
+    end
 
     if CurrentUser.is_bd_staff?
       @tag = Tag.find(params[:tag_id])

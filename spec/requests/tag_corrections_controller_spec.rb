@@ -21,7 +21,7 @@ RSpec.describe TagCorrectionsController do
       it "returns JSON with correction attributes" do
         get tag_correction_path(tag_id: tag.id, format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to include("post_count", "real_post_count", "category")
+        expect(response.parsed_body).to include("post_count", "post_count_from_opensearch", "post_count_from_db", "category")
       end
     end
 

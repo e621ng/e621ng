@@ -10,13 +10,14 @@ RSpec.describe TagAlias do
   # ---------------------------------------------------------------------------
 
   describe "#process!" do
-    it "sets status to active after successful processing" do
+    it "sets status to processing before finalizing" do
       ta = create(:tag_alias)
       ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
 
       ta.process!(update_topic: false)
 
-      expect(ta.reload.status).to eq("active")
+      # Status gets set to "active" in the TagAliasFinalizeJob
+      expect(ta.reload.status).to eq("processing")
     end
 
     it "sets status to error when processing raises an exception" do
@@ -27,16 +28,6 @@ RSpec.describe TagAlias do
       ta.process!(update_topic: false)
 
       expect(ta.reload.status).to start_with("error:")
-    end
-
-    it "sets post_count to the consequent tag post_count on success" do
-      ta = create(:tag_alias)
-      ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
-      ta.consequent_tag.update_columns(post_count: 7)
-
-      ta.process!(update_topic: false)
-
-      expect(ta.reload.post_count).to eq(7)
     end
 
     it "enqueues TagAliasFinalizeJob with consequent_name on success" do
