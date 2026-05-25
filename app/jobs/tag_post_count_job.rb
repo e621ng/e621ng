@@ -11,6 +11,6 @@ class TagPostCountJob < ApplicationJob
   def perform(*args)
     tag = Tag.find(args[0])
 
-    tag.fix_post_count
+    tag.fix_post_count(from_db: true)
   end
 end

@@ -15,8 +15,8 @@ class TagAliasFinalizeJob < ApplicationJob
       Post.document_store.import(
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", reindex_tag_name],
       )
-      ta.antecedent_tag&.fix_post_count
-      ta.consequent_tag&.fix_post_count
+      ta.antecedent_tag&.fix_post_count(from_db: true)
+      ta.consequent_tag&.fix_post_count(from_db: true)
     end
   end
 end

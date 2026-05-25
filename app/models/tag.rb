@@ -63,9 +63,9 @@ class Tag < ApplicationRecord
       def clean_up_negative_post_counts!
         Tag.where("post_count < 0").find_each do |tag|
           tag_alias = TagAlias.where("status in ('active', 'processing') and antecedent_name = ?", tag.name).first
-          tag.fix_post_count
+          tag.fix_post_count(from_db: true)
           if tag_alias
-            tag_alias.consequent_tag.fix_post_count
+            tag_alias.consequent_tag.fix_post_count(from_db: true)
           end
         end
       end
@@ -75,8 +75,17 @@ class Tag < ApplicationRecord
       @real_post_count ||= Post.tag_match(name, resolve_aliases: false).count_only
     end
 
-    def fix_post_count
-      update_column(:post_count, real_post_count)
+    # Returns an authoritative post count from the database.
+    # NOTE: this query is extraordinarily expensive. It cannot be used in anything directly
+    # user-facing. The only reasonable use case is a background job that is fixing post counts
+    # for tags that have drifted out of sync.
+    def post_count_from_db
+      Post.undeleted.sql_raw_tag_match(name).count
+    end
+
+    def fix_post_count(from_db: false)
+      actual_count = from_db ? post_count_from_db : real_post_count
+      update_column(:post_count, actual_count)
     end
   end
 
