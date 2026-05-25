@@ -35,5 +35,13 @@ RSpec.describe TagAliasFinalizeJob do
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", ta.antecedent_name],
       )
     end
+
+    it "updates the tag alias's status to active and recalculates its post count" do
+      ta.update_column(:status, "processing")
+      allow(ta).to receive(:update).and_call_original
+
+      described_class.perform_now(ta.id, ta.consequent_name)
+      expect(ta).to have_received(:update).with(status: "active", post_count: ta.consequent_tag.post_count)
+    end
   end
 end
