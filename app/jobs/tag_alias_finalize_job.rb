@@ -15,8 +15,14 @@ class TagAliasFinalizeJob < ApplicationJob
       Post.document_store.import(
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", reindex_tag_name],
       )
+
+      # Post counts may have drifted out of sync, or may have been inaccurate
+      # due to legacy data. Recalculate them to ensure they are correct.
       ta.antecedent_tag&.fix_post_count(from_db: true)
       ta.consequent_tag&.fix_post_count(from_db: true)
+
+      # Update the tag alias's post count with the recalculated value.
+      ta.update(status: "active", post_count: ta.consequent_tag&.post_count || 0)
     end
   end
 end

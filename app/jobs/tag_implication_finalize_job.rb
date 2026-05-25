@@ -15,8 +15,14 @@ class TagImplicationFinalizeJob < ApplicationJob
       Post.document_store.import(
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", reindex_tag_name],
       )
+
+      # Post counts may have drifted out of sync, or may have been inaccurate
+      # due to legacy data. Recalculate them to ensure they are correct.
       ti.antecedent_tag&.fix_post_count(from_db: true)
       ti.consequent_tag&.fix_post_count(from_db: true)
+
+      # Update implication status
+      ti.update(status: "active")
     end
   end
 end
