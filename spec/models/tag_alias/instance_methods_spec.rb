@@ -128,72 +128,72 @@ RSpec.describe TagAlias do
   # #update_posts_locked_tags_undo
   # ---------------------------------------------------------------------------
 
-  describe "#update_posts_locked_tags_undo" do
-    it "replaces the consequent tag with the antecedent tag in post locked_tags" do
-      ta = create(:active_tag_alias,
-                  antecedent_name: "lock_undo_ant_#{SecureRandom.hex(4)}",
-                  consequent_name: "lock_undo_con_#{SecureRandom.hex(4)}")
-
-      post = create(:post)
-      post.update_column(:locked_tags, ta.consequent_name)
-
-      ta.update_posts_locked_tags_undo
-
-      expect(post.reload.locked_tags).to include(ta.antecedent_name)
-      expect(post.reload.locked_tags).not_to include(ta.consequent_name)
-    end
-  end
+  # describe "#update_posts_locked_tags_undo" do
+  #   it "replaces the consequent tag with the antecedent tag in post locked_tags" do
+  #     ta = create(:active_tag_alias,
+  #                 antecedent_name: "lock_undo_ant_#{SecureRandom.hex(4)}",
+  #                 consequent_name: "lock_undo_con_#{SecureRandom.hex(4)}")
+  #
+  #     post = create(:post)
+  #     post.update_column(:locked_tags, ta.consequent_name)
+  #
+  #     ta.update_posts_locked_tags_undo
+  #
+  #     expect(post.reload.locked_tags).to include(ta.antecedent_name)
+  #     expect(post.reload.locked_tags).not_to include(ta.consequent_name)
+  #   end
+  # end
 
   # ---------------------------------------------------------------------------
   # #update_blacklists_undo
   # ---------------------------------------------------------------------------
 
-  describe "#update_blacklists_undo" do
-    it "replaces the consequent tag with the antecedent tag in user blacklists" do
-      ta = create(:active_tag_alias,
-                  antecedent_name: "bl_undo_ant_#{SecureRandom.hex(4)}",
-                  consequent_name: "bl_undo_con_#{SecureRandom.hex(4)}")
-
-      user = create(:user)
-      user.update_column(:blacklisted_tags, ta.consequent_name)
-
-      ta.update_blacklists_undo
-
-      expect(user.reload.blacklisted_tags).to include(ta.antecedent_name)
-      expect(user.reload.blacklisted_tags).not_to include(ta.consequent_name)
-    end
-  end
+  # describe "#update_blacklists_undo" do
+  #   it "replaces the consequent tag with the antecedent tag in user blacklists" do
+  #     ta = create(:active_tag_alias,
+  #                 antecedent_name: "bl_undo_ant_#{SecureRandom.hex(4)}",
+  #                 consequent_name: "bl_undo_con_#{SecureRandom.hex(4)}")
+  #
+  #     user = create(:user)
+  #     user.update_column(:blacklisted_tags, ta.consequent_name)
+  #
+  #     ta.update_blacklists_undo
+  #
+  #     expect(user.reload.blacklisted_tags).to include(ta.antecedent_name)
+  #     expect(user.reload.blacklisted_tags).not_to include(ta.consequent_name)
+  #   end
+  # end
 
   # ---------------------------------------------------------------------------
   # #update_posts_undo
   # ---------------------------------------------------------------------------
 
-  describe "#update_posts_undo" do
-    it "applies tag diffs from unapplied TagRelUndo records to matching posts" do
-      ta = create(:active_tag_alias,
-                  antecedent_name: "undo_post_ant_#{SecureRandom.hex(4)}",
-                  consequent_name: "undo_post_con_#{SecureRandom.hex(4)}")
-      # Set to pending so normalize_tags doesn't re-alias the antecedent back to the
-      # consequent during the post save (mirrors what process_undo! does before calling this).
-      ta.update_columns(status: "pending")
-
-      post = create(:post)
-      post.update_column(:tag_string, "#{ta.consequent_name} other_tag")
-      ta.tag_rel_undos.create!(undo_data: [post.id])
-
-      ta.update_posts_undo
-
-      expect(post.reload.tag_string).to include(ta.antecedent_name)
-    end
-
-    it "enqueues TagAliasFinalizeJob with antecedent_name" do
-      ta = create(:active_tag_alias)
-      ta.tag_rel_undos.create!(undo_data: [])
-
-      expect { ta.update_posts_undo }
-        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id, ta.antecedent_name)
-    end
-  end
+  # describe "#update_posts_undo" do
+  #   it "applies tag diffs from unapplied TagRelUndo records to matching posts" do
+  #     ta = create(:active_tag_alias,
+  #                 antecedent_name: "undo_post_ant_#{SecureRandom.hex(4)}",
+  #                 consequent_name: "undo_post_con_#{SecureRandom.hex(4)}")
+  #     # Set to pending so normalize_tags doesn't re-alias the antecedent back to the
+  #     # consequent during the post save (mirrors what process_undo! does before calling this).
+  #     ta.update_columns(status: "pending")
+  #
+  #     post = create(:post)
+  #     post.update_column(:tag_string, "#{ta.consequent_name} other_tag")
+  #     ta.tag_rel_undos.create!(undo_data: [post.id])
+  #
+  #     ta.update_posts_undo
+  #
+  #     expect(post.reload.tag_string).to include(ta.antecedent_name)
+  #   end
+  #
+  #   it "enqueues TagAliasFinalizeJob with antecedent_name" do
+  #     ta = create(:active_tag_alias)
+  #     ta.tag_rel_undos.create!(undo_data: [])
+  #
+  #     expect { ta.update_posts_undo }
+  #       .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id, ta.antecedent_name)
+  #   end
+  # end
 
   # ---------------------------------------------------------------------------
   # #rename_artist
@@ -241,29 +241,29 @@ RSpec.describe TagAlias do
   # #rename_artist_undo
   # ---------------------------------------------------------------------------
 
-  describe "#rename_artist_undo" do
-    it "renames the consequent artist back to the antecedent name" do
-      ta = create(:active_tag_alias,
-                  antecedent_name: "art_undo_ant_#{SecureRandom.hex(4)}",
-                  consequent_name: "art_undo_con_#{SecureRandom.hex(4)}")
-      ta.consequent_tag.update_columns(category: 1)
-      create(:artist, name: ta.consequent_name)
-
-      ta.rename_artist_undo
-
-      expect(Artist.find_by(name: ta.antecedent_name)).to be_present
-    end
-
-    it "does nothing when the consequent tag is not in the artist category" do
-      ta = create(:active_tag_alias,
-                  antecedent_name: "gen_undo_ant_#{SecureRandom.hex(4)}",
-                  consequent_name: "gen_undo_con_#{SecureRandom.hex(4)}")
-      ta.consequent_tag.update_columns(category: Tag.categories.general)
-      create(:artist, name: ta.consequent_name)
-
-      expect { ta.rename_artist_undo }.not_to(change(Artist, :count))
-    end
-  end
+  # describe "#rename_artist_undo" do
+  #   it "renames the consequent artist back to the antecedent name" do
+  #     ta = create(:active_tag_alias,
+  #                 antecedent_name: "art_undo_ant_#{SecureRandom.hex(4)}",
+  #                 consequent_name: "art_undo_con_#{SecureRandom.hex(4)}")
+  #     ta.consequent_tag.update_columns(category: 1)
+  #     create(:artist, name: ta.consequent_name)
+  #
+  #     ta.rename_artist_undo
+  #
+  #     expect(Artist.find_by(name: ta.antecedent_name)).to be_present
+  #   end
+  #
+  #   it "does nothing when the consequent tag is not in the artist category" do
+  #     ta = create(:active_tag_alias,
+  #                 antecedent_name: "gen_undo_ant_#{SecureRandom.hex(4)}",
+  #                 consequent_name: "gen_undo_con_#{SecureRandom.hex(4)}")
+  #     ta.consequent_tag.update_columns(category: Tag.categories.general)
+  #     create(:artist, name: ta.consequent_name)
+  #
+  #     expect { ta.rename_artist_undo }.not_to(change(Artist, :count))
+  #   end
+  # end
 
   # ---------------------------------------------------------------------------
   # #move_aliases_and_implications

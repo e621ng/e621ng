@@ -8,13 +8,14 @@ class TagAliasFinalizeJob < ApplicationJob
     [args[0]]
   end
 
-  def perform(alias_id, reindex_tag_name)
+  def perform(alias_id)
     ta = TagAlias.find_by(id: alias_id)
     return unless ta
+
+    post_ids = ta.tag_rel_undos.flat_map(&:undo_data).uniq
+
     Post.without_timeout do
-      Post.document_store.import(
-        query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", reindex_tag_name],
-      )
+      Post.document_store.import(query: { id: post_ids }) if post_ids.any?
 
       # Post counts may have drifted out of sync, or may have been inaccurate
       # due to legacy data. Recalculate them to ensure they are correct.
