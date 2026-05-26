@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+APP_PATH = File.expand_path("..", __dir__)
+
+# The `tmp/out_of_rotation` file is used to instruct the load balancer to stop sending traffic to this instance.
+# This is used during deployments to ensure that the instance is not receiving traffic while it is being updated.
+
+arg = ARGV[0]
+unless ["true", "false"].include?(arg)
+  puts "Usage: #{File.basename(__FILE__)} [true|false]"
+  exit 1
+end
+
+if arg == "true"
+  FileUtils.touch("#{APP_PATH}/tmp/out_of_rotation")
+  puts "drain:true"
+elsif arg == "false"
+  File.delete("#{APP_PATH}/tmp/out_of_rotation") if File.exist?("#{APP_PATH}/tmp/out_of_rotation")
+  puts "drain:false"
+end
