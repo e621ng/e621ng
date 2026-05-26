@@ -249,8 +249,38 @@ class Comment < ApplicationRecord
     end
   end
 
+  module VoteMethods
+    extend ActiveSupport::Concern
+
+    module ClassMethods
+      # Bulk-populate the user's vote score for a collection of comments so that
+      # subsequent `vote_by(user_id)` calls return without hitting the DB.
+      def preload_vote_by!(comments, user_id)
+        comments = Array.wrap(comments).compact
+        return if comments.empty? || user_id.blank?
+
+        scores = CommentVote.where(user_id: user_id, comment_id: comments.map(&:id)).pluck(:comment_id, :score).to_h
+        comments.each { |comment| comment.preset_vote_by(user_id, scores.fetch(comment.id, 0)) }
+      end
+    end
+
+    def preset_vote_by(user_id, score)
+      @vote_by_cache ||= {}
+      @vote_by_cache[user_id] = score
+    end
+
+    # Returns -1, 0, or 1. A missing or locked CommentVote both yield 0.
+    def vote_by(user_id = CurrentUser.id)
+      return 0 if user_id.blank?
+      cached = @vote_by_cache&.[](user_id)
+      return cached unless cached.nil?
+      CommentVote.where(user_id: user_id, comment_id: id).pick(:score) || 0
+    end
+  end
+
   extend SearchMethods
   include AccessMethods
+  include VoteMethods
 
   def validate_post_exists
     errors.add(:post, "must exist") unless Post.exists?(post_id)
