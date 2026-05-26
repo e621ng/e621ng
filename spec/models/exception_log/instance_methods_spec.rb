@@ -44,4 +44,52 @@ RSpec.describe ExceptionLog do
       end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # #viewable_message and #viewable_extra_params
+  # ---------------------------------------------------------------------------
+
+  describe "#viewable_message" do
+    it "returns the full message for admins" do
+      log = make_log(message: "Error from 1.2.3.4 and admin@example.com")
+      expect(log.viewable_message).to eq("Error from 1.2.3.4 and admin@example.com")
+    end
+
+    context "when not admin" do
+      include_context "as member"
+
+      it "scrubs IPs and emails from the message" do
+        log = make_log(message: "Error from 1.2.3.4 and admin@example.com")
+        expect(log.viewable_message).to eq("Error from [IP PROTECTED] and [EMAIL PROTECTED]")
+      end
+    end
+  end
+
+  describe "#viewable_extra_params" do
+    let(:raw_extra) do
+      {
+        "user_agent" => "MyAwesomeBot/1.2.3.4 (by User1234)",
+        "note" => "Contact user@example.com 1.2.3.4",
+        "nested" => { "inner" => "admin@example.com 4.3.2.1" },
+      }
+    end
+
+    it "returns raw extra params for admins" do
+      log = make_log(extra_params: raw_extra)
+      expect(log.viewable_extra_params).to eq(raw_extra)
+    end
+
+    context "when not admin" do
+      include_context "as member"
+
+      it "preserves the user agent but scrubs emails and IPs in other fields" do
+        log = make_log(extra_params: raw_extra)
+        ve = log.viewable_extra_params
+
+        expect(ve["user_agent"]).to eq("MyAwesomeBot/1.2.3.4 (by User1234)")
+        expect(ve["note"]).to eq("Contact [EMAIL PROTECTED] [IP PROTECTED]")
+        expect(ve["nested"]["inner"]).to eq("[EMAIL PROTECTED] [IP PROTECTED]")
+      end
+    end
+  end
 end
