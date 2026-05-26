@@ -24,10 +24,17 @@ RSpec.describe Ban do
         end.to change { subject_user.reload.is_banned }.from(false).to(true)
       end
 
-      it "sets the user level to BLOCKED" do
+      it "sets the user level to BLOCKED for a hard ban (prevent_login: '1')" do
+        expect do
+          create(:ban, user: subject_user, banner: moderator, prevent_login: "1")
+        end.to change { subject_user.reload.level }.to(User::Levels::BLOCKED)
+      end
+
+      it "keeps the user level at MEMBER for a soft ban (no prevent_login)" do
         expect do
           create(:ban, user: subject_user, banner: moderator)
-        end.to change { subject_user.reload.level }.to(User::Levels::BLOCKED)
+        end.not_to change { subject_user.reload.level }
+        expect(subject_user.reload.level).to eq(User::Levels::MEMBER)
       end
     end
 
@@ -61,6 +68,25 @@ RSpec.describe Ban do
     end
 
     # -------------------------------------------------------------------------
+    # after_update: update_user_on_update
+    # -------------------------------------------------------------------------
+    describe "after_update: update_user_on_update" do
+      it "sets the user level to BLOCKED when prevent_login is added to a soft ban" do
+        ban = create(:ban, user: subject_user, banner: moderator)
+        expect do
+          ban.update!(prevent_login: "1")
+        end.to change { subject_user.reload.level }.to(User::Levels::BLOCKED)
+      end
+
+      it "restores the user level to MEMBER when prevent_login is removed from a hard ban" do
+        ban = create(:ban, user: subject_user, banner: moderator, prevent_login: "1")
+        expect do
+          ban.update!(prevent_login: "0")
+        end.to change { subject_user.reload.level }.to(User::Levels::MEMBER)
+      end
+    end
+
+    # -------------------------------------------------------------------------
     # after_destroy: update_user_on_destroy
     # -------------------------------------------------------------------------
     describe "after_destroy: update_user_on_destroy" do
@@ -71,8 +97,8 @@ RSpec.describe Ban do
         end.to change { subject_user.reload.is_banned }.from(true).to(false)
       end
 
-      it "restores the user level to MEMBER" do
-        ban = create(:ban, user: subject_user, banner: moderator)
+      it "restores the user level to MEMBER (for a hard ban that demoted the user)" do
+        ban = create(:ban, user: subject_user, banner: moderator, prevent_login: "1")
         expect do
           ban.destroy!
         end.to change { subject_user.reload.level }.to(User::Levels::MEMBER)

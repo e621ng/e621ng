@@ -214,9 +214,14 @@ class ApplicationController < ActionController::Base
   end
 
   def user_access_check(method)
-    if !CurrentUser.user.send(method) || CurrentUser.user.is_banned? || IpBan.is_banned?(CurrentUser.ip_addr)
+    if !CurrentUser.user.send(method) || IpBan.is_banned?(CurrentUser.ip_addr)
       access_denied
     end
+  end
+
+  def member_only_interactive
+    user_access_check("is_member?")
+    access_denied("Your account is currently banned.") if CurrentUser.user.is_banned?
   end
 
   User::Roles.each do |role|

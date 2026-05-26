@@ -2,7 +2,7 @@
 
 class AppealsController < ApplicationController
   respond_to :html, :json, except: %i[create new]
-  before_action :member_only, except: %i[index]
+  before_action :member_only_interactive, except: %i[index]
   before_action :janitor_only, only: %i[update claim unclaim]
 
   def index

@@ -3,7 +3,7 @@
 class FavoritesController < ApplicationController
   include JsonResponseHelper
 
-  before_action :member_only, except: [:index]
+  before_action :member_only_interactive, except: [:index]
   before_action :ensure_lockdown_disabled, except: %i[index]
   respond_to :json
   respond_to :html, only: [:index]

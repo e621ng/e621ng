@@ -356,7 +356,7 @@ class User < ApplicationRecord
     end
 
     def is_blocked?
-      is_banned? || level == Levels::BLOCKED
+      level == Levels::BLOCKED
     end
 
     # Defines various convenience methods for finding out the user's level
