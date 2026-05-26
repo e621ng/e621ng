@@ -159,7 +159,19 @@ div#c-post-versions {
       overflow-wrap: anywhere;
 
       .diff-list {
-        display: block;
+        display: flex;
+        flex-flow: column;
+
+        ins, del {
+          white-space: nowrap;
+        }
+
+        a.decorated {
+          white-space: nowrap;
+          span { white-space: normal; }
+          .link-decoration { margin: -0.2em 4px -0.2em 0; }
+        }
+        s { white-space: normal }
       }
     }
 
