@@ -47,7 +47,7 @@ RSpec.describe TagImplication do
   # #process!
   # ---------------------------------------------------------------------------
   describe "#process!" do
-    it "sets status to active after successful processing" do
+    it "sets status to active after processing" do
       ti = create(:tag_implication)
       ti.update_columns(status: "queued", approver_id: create(:admin_user).id)
       allow(ti).to receive_messages(

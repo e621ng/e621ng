@@ -15,6 +15,9 @@ class TagImplicationFinalizeJob < ApplicationJob
       Post.document_store.import(
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", reindex_tag_name],
       )
+
+      # Post counts may have drifted out of sync, or may have been inaccurate
+      # due to legacy data. Recalculate them to ensure they are correct.
       ti.antecedent_tag&.fix_post_count
       ti.consequent_tag&.fix_post_count
     end
