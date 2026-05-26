@@ -258,7 +258,7 @@ class UsersController < ApplicationController
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
-    permitted_params += %i[profile_about profile_artinfo avatar_id] if CurrentUser.is_member? && !CurrentUser.user.is_banned? # Prevent editing when blocked or soft-banned
+    permitted_params += %i[profile_about profile_artinfo avatar_id] if CurrentUser.is_member?
     permitted_params += %i[enable_compact_uploader] if context != :create && CurrentUser.post_upload_count >= 10
     permitted_params += %i[name email] if context == :create
 

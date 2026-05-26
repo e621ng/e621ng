@@ -4,7 +4,7 @@ class CommentsController < ApplicationController
   include ConditionalSearchCount
 
   respond_to :html, :json
-  before_action :member_only_interactive, except: %i[index search show for_post]
+  before_action :member_only, except: %i[index search show for_post]
   before_action :moderator_only, only: %i[unhide warning]
   before_action :admin_only, only: %i[destroy]
   before_action :ensure_lockdown_disabled, except: %i[index search show for_post]

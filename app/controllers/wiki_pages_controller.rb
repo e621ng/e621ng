@@ -2,7 +2,7 @@
 
 class WikiPagesController < ApplicationController
   respond_to :html, :json, :js
-  before_action :member_only_interactive, except: %i[index search show show_or_new]
+  before_action :member_only, except: %i[index search show show_or_new]
   before_action :admin_only, only: [:destroy]
   before_action :normalize_search_params, only: [:index]
 

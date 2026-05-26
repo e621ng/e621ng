@@ -5,7 +5,7 @@ class PostVotesController < ApplicationController
 
   respond_to :json
   respond_to :html, only: [:index]
-  before_action :member_only_interactive, only: %i[create destroy]
+  before_action :member_only
   before_action :moderator_only, only: %i[index lock]
   before_action :admin_only, only: [:delete]
   before_action :ensure_lockdown_disabled

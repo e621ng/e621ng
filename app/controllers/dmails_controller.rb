@@ -4,6 +4,7 @@ class DmailsController < ApplicationController
   respond_to :html
   respond_to :json, except: %i[new create]
   before_action :member_only
+  before_action :member_only_interactive, except: %i[index show destroy mark_as_read mark_as_unread mark_all_as_read]
 
   def index
     if params[:folder] && params[:set_default_folder]

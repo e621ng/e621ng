@@ -88,13 +88,13 @@ class Ban < ApplicationRecord
 
   def update_user_on_create
     user.is_banned = true
-    user.level = prevent_login? ? User::Levels::BLOCKED : User::Levels::MEMBER
+    user.level = User::Levels::BLOCKED
     # Don't validate in order for deleted users to be bannable
     user.save(validate: false)
   end
 
   def update_user_on_update
-    user.level = prevent_login? ? User::Levels::BLOCKED : User::Levels::MEMBER
+    user.level = User::Levels::BLOCKED
     user.save(validate: false)
   end
 

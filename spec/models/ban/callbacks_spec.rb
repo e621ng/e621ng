@@ -30,11 +30,10 @@ RSpec.describe Ban do
         end.to change { subject_user.reload.level }.to(User::Levels::BLOCKED)
       end
 
-      it "keeps the user level at MEMBER for a soft ban (no prevent_login)" do
+      it "sets the user level to BLOCKED for a soft ban (no prevent_login)" do
         expect do
           create(:ban, user: subject_user, banner: moderator)
-        end.not_to change { subject_user.reload.level }
-        expect(subject_user.reload.level).to eq(User::Levels::MEMBER)
+        end.to change { subject_user.reload.level }.to(User::Levels::BLOCKED)
       end
     end
 
@@ -71,18 +70,20 @@ RSpec.describe Ban do
     # after_update: update_user_on_update
     # -------------------------------------------------------------------------
     describe "after_update: update_user_on_update" do
-      it "sets the user level to BLOCKED when prevent_login is added to a soft ban" do
+      it "keeps the user level at BLOCKED when switching from soft to hard ban" do
         ban = create(:ban, user: subject_user, banner: moderator)
         expect do
           ban.update!(prevent_login: "1")
-        end.to change { subject_user.reload.level }.to(User::Levels::BLOCKED)
+        end.not_to change { subject_user.reload.level }
+        expect(subject_user.reload.level).to eq(User::Levels::BLOCKED)
       end
 
-      it "restores the user level to MEMBER when prevent_login is removed from a hard ban" do
+      it "keeps the user level at BLOCKED when switching from hard to soft ban" do
         ban = create(:ban, user: subject_user, banner: moderator, prevent_login: "1")
         expect do
           ban.update!(prevent_login: "0")
-        end.to change { subject_user.reload.level }.to(User::Levels::MEMBER)
+        end.not_to change { subject_user.reload.level }
+        expect(subject_user.reload.level).to eq(User::Levels::BLOCKED)
       end
     end
 

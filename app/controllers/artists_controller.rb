@@ -5,6 +5,7 @@ class ArtistsController < ApplicationController
 
   respond_to :html, :json
   before_action :member_only, except: %i[index show show_or_new]
+  before_action :member_only_interactive, except: %i[index show show_or_new]
   before_action :admin_only, only: %i[destroy]
   before_action :load_artist, only: %i[edit update destroy revert]
 

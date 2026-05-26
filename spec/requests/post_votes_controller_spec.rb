@@ -21,7 +21,8 @@ RSpec.describe PostVotesController do
     end
 
     it "returns 403 for a soft-banned member" do
-      soft_banned = create(:user, is_banned: true, level: User::Levels::MEMBER)
+      soft_banned = create(:user)
+      create(:ban, user: soft_banned, banner: admin)
       sign_in_as soft_banned
       post post_votes_path(post_id: post_rec.id, format: :json), params: { score: 1 }
       expect(response).to have_http_status(:forbidden)

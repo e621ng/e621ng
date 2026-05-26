@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class PostFlagsController < ApplicationController
-  before_action :member_only_interactive, except: %i[index show]
+  before_action :member_only, except: %i[index show]
   before_action :janitor_only, only: %i[destroy clear_note]
   respond_to :html, :json
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class UploadsController < ApplicationController
-  before_action :member_only_interactive
+  before_action :member_only
   before_action :janitor_only, only: [:index, :show]
   before_action :ensure_uploads_enabled, only: %i[new create]
   respond_to :html, :json

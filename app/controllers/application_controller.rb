@@ -219,11 +219,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def member_only_interactive
-    user_access_check("is_member?")
-    access_denied("Your account is currently banned.") if CurrentUser.user.is_banned?
-  end
-
   User::Roles.each do |role|
     define_method("#{role}_only") do
       user_access_check("is_#{role}?")
