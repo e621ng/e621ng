@@ -5,7 +5,7 @@ class TagCorrection
 
   attr_reader :tag
 
-  delegate :category, :post_count, :post_count_from_opensearch, :post_count_from_db, to: :tag
+  delegate :category, :post_count, :post_count_from_opensearch, to: :tag
 
   def initialize(tag_id)
     @tag = Tag.find(tag_id)
@@ -18,12 +18,15 @@ class TagCorrection
   def attributes
     {
       post_count: post_count,
-      post_count_from_opensearch: post_count_from_opensearch,
-      post_count_from_db: post_count_from_db,
+      real_post_count: post_count_from_opensearch,
       category: category,
       category_cache: category_cache,
       tag: tag,
     }
+  end
+
+  def post_count_from_db
+    @post_count_from_db ||= Tag.without_timeout { tag.post_count_from_db }
   end
 
   def category_cache

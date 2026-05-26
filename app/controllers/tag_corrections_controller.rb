@@ -21,7 +21,7 @@ class TagCorrectionsController < ApplicationController
     if CurrentUser.is_bd_staff?
       @tag = Tag.find(params[:tag_id])
 
-      @true_count = Post.tag_match("#{@tag.name} status:any", resolve_aliases: false).count_only
+      @true_count = @correction.post_count_from_db
       @aliases = TagAlias.where("(antecedent_name = ? OR consequent_name = ?) AND NOT status = ?", @tag.name, @tag.name, "deleted").count
       @implications = TagImplication.where("(antecedent_name = ? OR consequent_name = ?) AND NOT status = ?", @tag.name, @tag.name, "deleted").count
 
@@ -30,7 +30,7 @@ class TagCorrectionsController < ApplicationController
       # 2. Alias is stuck, tag counts will never be updated
       @is_aliased_away = TagAlias.where(antecedent_name: @correction.tag.name, status: %w[active processing queued]).exists?
       if @is_aliased_away && @true_count != 0
-        @true_post_ids = @true_count > 20 ? "> 20" : Post.tag_match("#{@tag.name} status:any", resolve_aliases: false).pluck(:id).join(", ")
+        @true_post_ids = @true_count > 20 ? "> 20" : Post.sql_raw_tag_match(@correction.tag.name).pluck(:id).join(", ")
       end
 
       @destroyable = @true_count == 0 && @aliases == 0 && @implications == 0

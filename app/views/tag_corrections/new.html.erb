@@ -8,7 +8,6 @@
         <li><strong>Category memcache</strong>: <%= TagCategory::REVERSE_MAPPING[@correction.category_cache] || "none" %></li>
         <li><strong>Post count db cache</strong>: <%= @correction.post_count %></li>
         <li><strong>OpenSearch post count</strong>: <%= @correction.post_count_from_opensearch %></li>
-        <li><strong>Database post count</strong>: <%= @correction.post_count_from_db %></li>
       </ul>
     </div>
 
