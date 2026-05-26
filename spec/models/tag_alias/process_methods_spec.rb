@@ -10,14 +10,13 @@ RSpec.describe TagAlias do
   # ---------------------------------------------------------------------------
 
   describe "#process!" do
-    it "sets status to processing before finalizing" do
+    it "sets status to active after processing" do
       ta = create(:tag_alias)
       ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
 
       ta.process!(update_topic: false)
 
-      # Status gets set to "active" in the TagAliasFinalizeJob
-      expect(ta.reload.status).to eq("processing")
+      expect(ta.reload.status).to eq("active")
     end
 
     it "sets status to error when processing raises an exception" do

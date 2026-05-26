@@ -47,7 +47,7 @@ RSpec.describe TagImplication do
   # #process!
   # ---------------------------------------------------------------------------
   describe "#process!" do
-    it "sets status to processing before finalizing" do
+    it "sets status to active after processing" do
       ti = create(:tag_implication)
       ti.update_columns(status: "queued", approver_id: create(:admin_user).id)
       allow(ti).to receive_messages(
@@ -58,8 +58,7 @@ RSpec.describe TagImplication do
 
       ti.process!(update_topic: false)
 
-      # Status gets set to "active" in the TagImplicationFinalizeJob
-      expect(ti.reload.status).to eq("processing")
+      expect(ti.reload.status).to eq("active")
     end
 
     it "sets status to error when processing raises an exception" do

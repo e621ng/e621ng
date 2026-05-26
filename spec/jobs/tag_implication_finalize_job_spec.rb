@@ -35,13 +35,5 @@ RSpec.describe TagImplicationFinalizeJob do
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", ti.antecedent_name],
       )
     end
-
-    it "updates the tag implication's status to active" do
-      ti.update_column(:status, "processing")
-      allow(ti).to receive(:update).and_call_original
-
-      described_class.perform_now(ti.id, ti.consequent_name)
-      expect(ti).to have_received(:update).with(status: "active")
-    end
   end
 end

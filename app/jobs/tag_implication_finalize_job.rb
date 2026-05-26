@@ -20,9 +20,6 @@ class TagImplicationFinalizeJob < ApplicationJob
       # due to legacy data. Recalculate them to ensure they are correct.
       ti.antecedent_tag&.fix_post_count
       ti.consequent_tag&.fix_post_count
-
-      # Update implication status
-      ti.update(status: "active")
     end
   end
 end

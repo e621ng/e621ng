@@ -135,6 +135,7 @@ class TagImplication < TagRelationship
           update_posts
           update_descendant_names_for_parents
           forum_updater.update(approval_message(approver), "APPROVED") if update_topic
+          update(status: "active")
           TagImplicationFinalizeJob.perform_later(id, antecedent_name)
         end
       rescue Exception => e

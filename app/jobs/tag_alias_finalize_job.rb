@@ -22,7 +22,7 @@ class TagAliasFinalizeJob < ApplicationJob
       ta.consequent_tag&.fix_post_count
 
       # Update the tag alias's post count with the recalculated value.
-      ta.update(status: "active", post_count: ta.consequent_tag&.post_count || 0)
+      ta.update(post_count: ta.consequent_tag&.post_count || 0)
     end
   end
 end
