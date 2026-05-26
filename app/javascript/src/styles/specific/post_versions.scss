@@ -157,6 +157,10 @@ div#c-post-versions {
       grid-row: 4;
       @include grid-col(10, 14);
       overflow-wrap: anywhere;
+
+      .diff-list {
+        display: block;
+      }
     }
 
     .pv-actions {
