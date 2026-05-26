@@ -173,15 +173,27 @@ class PostSet < ApplicationRecord
 
     def is_maintainer?(user)
       return false if user.is_blocked?
-      post_set_maintainers.where(user_id: user.id, status: "approved").count > 0
+      if association(:post_set_maintainers).loaded?
+        post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "approved" }
+      else
+        post_set_maintainers.where(user_id: user.id, status: "approved").exists?
+      end
     end
 
     def is_invited?(user)
-      post_set_maintainers.where(user_id: user.id, status: "pending").count > 0
+      if association(:post_set_maintainers).loaded?
+        post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "pending" }
+      else
+        post_set_maintainers.where(user_id: user.id, status: "pending").exists?
+      end
     end
 
     def is_blocked?(user)
-      post_set_maintainers.where(user_id: user.id, status: "blocked").count > 0
+      if association(:post_set_maintainers).loaded?
+        post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "blocked" }
+      else
+        post_set_maintainers.where(user_id: user.id, status: "blocked").exists?
+      end
     end
 
     def is_owner?(user)
