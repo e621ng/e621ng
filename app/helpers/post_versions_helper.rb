@@ -18,7 +18,7 @@ module PostVersionsHelper
       changes << tag.div(tag.del(diff_source_link("-", source)))
     end
 
-    tag.span(safe_join(changes, " "), class: "diff-list")
+    tag.div(safe_join(changes, " "), class: "diff-list")
   end
 
   def diff_source_link(sign, source)
