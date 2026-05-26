@@ -25,27 +25,52 @@
 }
 
 .diff-list {
-  ins, ins a {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem 0.5rem;
+
+  ins, del {
+    text-decoration: none;
+    padding: 0 0.2em;
+    border-radius: 0.15em;
+  }
+
+  ins {
+    background-color: rgba(46, 160, 67, 0.32);
+  }
+
+  del {
+    background-color: rgba(248, 81, 73, 0.32);
+  }
+
+  .diff-sign {
+    margin-right: 0.15em;
+    font-weight: bold;
+  }
+
+  ins .diff-sign {
     color: $diff-tag-added-color;
-    text-decoration: none;
-    margin-right: 0.5em;
   }
 
-  del, del a {
+  del .diff-sign {
     color: $diff-tag-removed-color;
-    text-decoration: none;
-    margin-right: 0.5em;
   }
 
-  ins.obsolete, ins.obsolete a {
-    text-decoration: line-through;
-    color: $diff-tag-added-obsolete-color;
+  ins.obsolete {
+    background-color: rgba(110, 130, 70, 0.4);
   }
 
-  del.obsolete, del.obsolete a {
+  del.obsolete {
+    background-color: rgba(150, 80, 80, 0.4);
+  }
+
+  ins.obsolete, del.obsolete {
+    opacity: 0.75;
+  }
+
+  ins.obsolete a, del.obsolete a {
     text-decoration: line-through;
-    color: $diff-tag-removed-obsolete-color;
-  }  
+  }
 }
 
 // diffy
