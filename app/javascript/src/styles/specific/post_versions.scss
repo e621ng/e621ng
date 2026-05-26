@@ -156,6 +156,7 @@ div#c-post-versions {
     .pv-sources {
       grid-row: 4;
       @include grid-col(10, 14);
+      overflow-wrap: anywhere;
     }
 
     .pv-actions {
