@@ -37,6 +37,16 @@ RSpec.describe TagAlias do
         .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id)
     end
 
+    it "enqueues TagAliasFinalizeJob even when processing fails so partially-modified posts get reindexed" do
+      ta = create(:tag_alias)
+      ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
+      allow(ta).to receive(:update_posts).and_raise(RuntimeError, "simulated failure")
+
+      expect { ta.process!(update_topic: false) }
+        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id)
+      expect(ta.reload.status).to start_with("error:")
+    end
+
     it "does not call fix_post_count directly" do
       ta = create(:tag_alias)
       ta.update_columns(status: "queued", approver_id: create(:admin_user).id)

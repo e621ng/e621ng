@@ -249,6 +249,7 @@ class TagAlias < TagRelationship
         forum_updater.update(failure_message(e), "FAILED") if update_topic
         update_columns(status: "error: #{e}")
       end
+      TagAliasFinalizeJob.perform_later(id)
     end
   end
 
