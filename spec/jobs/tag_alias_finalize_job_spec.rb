@@ -42,10 +42,10 @@ RSpec.describe TagAliasFinalizeJob do
     end
 
     it "updates the post count of the tag alias after reindexing" do
-      allow(ta).to receive(:update).and_call_original
+      allow(ta).to receive(:update_columns).and_call_original
 
       described_class.perform_now(ta.id)
-      expect(ta).to have_received(:update).with(post_count: 42)
+      expect(ta).to have_received(:update_columns).with(post_count: 42)
     end
   end
 end
