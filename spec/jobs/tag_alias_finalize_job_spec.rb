@@ -12,7 +12,7 @@ RSpec.describe TagAliasFinalizeJob do
       ta.update_columns(status: "active", approver_id: create(:admin_user).id)
       allow(Post.document_store).to receive(:import)
       allow(ta.antecedent_tag).to receive(:fix_post_count)
-      allow(ta.consequent_tag).to receive(:fix_post_count)
+      allow(ta.consequent_tag).to receive(:fix_post_count) { ta.consequent_tag.post_count = 42 }
       allow(TagAlias).to receive(:find_by).with(id: ta.id).and_return(ta)
     end
 
@@ -37,11 +37,10 @@ RSpec.describe TagAliasFinalizeJob do
     end
 
     it "updates the post count of the tag alias after reindexing" do
-      ta.update_column(:status, "processing")
       allow(ta).to receive(:update).and_call_original
 
       described_class.perform_now(ta.id, ta.consequent_name)
-      expect(ta).to have_received(:update).with(post_count: ta.consequent_tag.post_count)
+      expect(ta).to have_received(:update).with(post_count: 42)
     end
   end
 end
