@@ -1,4 +1,4 @@
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import Blacklist from "@/core/blacklists";
 import PostCache from "@/models/PostCache";
 

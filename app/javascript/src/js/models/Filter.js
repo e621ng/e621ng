@@ -1,6 +1,6 @@
 import Blacklist from "@/core/blacklists";
 import FilterUtils from "@/utility/filter_util";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import PostCache from "@/models/PostCache";
 import Utility from "@/utility/utility";
 

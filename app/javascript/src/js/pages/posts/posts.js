@@ -2,7 +2,7 @@ import Hotkeys from "@/core/hotkeys";
 import PostVote from "@/models/PostVote";
 import User from "@/models/User";
 import Page from "@/utility/Page";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import SVGIcon from "@/utility/SVGIcon";
 import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
