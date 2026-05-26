@@ -62,7 +62,7 @@ class WikiPage < ApplicationRecord
 
     def recent_changes
       Cache.fetch("wiki_page:recent_changes", expires_in: 15.minutes) do
-        order(updated_at: :desc).includes(:tag).limit(25).to_a
+        select(:id, :title, :updated_at).order(updated_at: :desc).includes(:tag).limit(25).to_a
       end
     end
 
