@@ -143,7 +143,7 @@ class ExceptionLog < ApplicationRecord
 
     text.gsub(candidate_regex) do |match|
       token = Regexp.last_match(1)
-      candidate = token.sub(/\d+\z/, "").sub(/%.+\z/, "")
+      candidate = token.sub(%r{/\d+\z}, "").sub(/%.+\z/, "")
 
       # Skip the literal "::" separator to avoid false positives in log messages
       if candidate == "::"
