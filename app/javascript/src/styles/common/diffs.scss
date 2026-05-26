@@ -25,9 +25,12 @@
 }
 
 .diff-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem 0.5rem;
+
   ins, del {
     text-decoration: none;
-    margin-right: 0.25em;
     padding: 0 0.2em;
     border-radius: 0.15em;
   }
