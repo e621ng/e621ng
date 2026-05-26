@@ -335,7 +335,7 @@ class Comment < ApplicationRecord
   end
 
   def method_attributes
-    super + %i[creator_name updater_name vote_by]
+    super + %i[creator_name updater_name]
   end
 
   def hide!
