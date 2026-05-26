@@ -2,8 +2,7 @@
 
 class AddBanFlagsToBans < ActiveRecord::Migration[8.1]
   def change
-    add_column :bans, :ban_flags, :integer, null: false, default: 0
-    # Migrate all existing bans to hard bans (PREVENT_LOGIN = 1) to preserve current behavior.
-    Ban.update_all(ban_flags: 1)
+    add_column :bans, :ban_flags, :integer, null: false, default: 1
+    change_column_default :bans, :ban_flags, from: 1, to: 0
   end
 end
