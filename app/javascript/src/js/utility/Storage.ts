@@ -2,6 +2,7 @@ import Logger from "./Logger";
 
 // Default values for localStorage-backed properties.
 export default class LStorage {
+  static get isAvailable (): boolean { return L2Utils.isAvailable; }
   static Debug = false;
 
   // Configuration values that do not belong anywhere else
@@ -62,6 +63,7 @@ export default class LStorage {
 const StorageKeys: StorageConfig = {
   "prototype": null, // Without this, TS complains that property "prototype" is missing
 
+  "isAvailable": null, // Custom getter that deferrs to L2Utils
   "Debug": null, // Uses a custom getter/setter below to tie into the Logger utility
 
   "Site": {
@@ -176,15 +178,23 @@ class L2Utils {
         return Number(val);
       case "boolean":
         return val === "true";
-      case "object":
-        return JSON.parse(val);
+      case "object": {
+        try {
+          return JSON.parse(val);
+        } catch (error) {
+          console.error(`Failed to parse localStorage key "${definition.key}" with value "${val}" as JSON.`, error);
+          return definition.val;
+        }
+      }
     }
     return val;
   }
 
   public static setProxy (definition: StorageDefinition, value: StoredValue) {
     if (definition.type == "boolean" && typeof value != "boolean") value = value === "true";
-    if (value == definition.val) {
+    if (definition.type == "number" && typeof value != "number") value = Number(value);
+
+    if (value === definition.val) {
       localStorage.removeItem(definition.key);
       return;
     }
@@ -204,7 +214,7 @@ interface StorageDefinition {
 }
 
 type StorageConfig<T = typeof LStorage> = {
-  [key in keyof T]: string | StorageConfig<T[key]>;
+  [key in keyof T]: string | StorageConfig<T[key]> | null;
 };
 
 
@@ -214,10 +224,6 @@ type StorageConfig<T = typeof LStorage> = {
 
 if (L2Utils.isAvailable)
   L2Utils.initializeStorage(StorageKeys);
-
-Object.defineProperty(LStorage, "isAvailable", {
-  get: function () { return L2Utils.isAvailable; },
-});
 
 
 /* ============================== */
