@@ -104,7 +104,7 @@ class ExceptionLog < ApplicationRecord
     if CurrentUser.is_admin?
       message
     else
-      scrub_emails(scrub_ips(message))
+      scrub_ips(scrub_emails(message))
     end
   end
 
@@ -126,7 +126,7 @@ class ExceptionLog < ApplicationRecord
     return text unless text.is_a?(String)
 
     # First, explicitly replace dotted IPv4 addresses (with optional port/brackets/CIDR)
-    ipv4_regex = %r{/(?:\b|\[)((?:\d{1,3}\.){3}\d{1,3})(?:\]|\b)(?::\d{1,5})?/}
+    ipv4_regex = /(?:\b|\[)((?:\d{1,3}\.){3}\d{1,3})(?:\]|\b)(?::\d{1,5})?/
 
     text = text.gsub(ipv4_regex) do |match|
       ip = Regexp.last_match(1)
@@ -143,7 +143,7 @@ class ExceptionLog < ApplicationRecord
 
     text.gsub(candidate_regex) do |match|
       token = Regexp.last_match(1)
-      candidate = token.sub(%r{/\d+\z}, "").sub(%r{/%.+\z/}, "")
+      candidate = token.sub(/\d+\z/, "").sub(/%.+\z/, "")
 
       # Skip the literal "::" separator to avoid false positives in log messages
       if candidate == "::"
