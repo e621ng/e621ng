@@ -94,10 +94,11 @@ RSpec.describe AppealsController do
       expect(response).to redirect_to(new_session_path(url: new_appeal_path))
     end
 
-    it "returns 403 for a member who is not the post uploader" do
+    it "redirects to the appeals index for a member who is not the post uploader" do
       sign_in_as other_member
       get new_appeal_path(qtype: "flag", disp_id: post_flag.id)
-      expect(response).to have_http_status(:forbidden)
+      expect(response).to redirect_to(appeals_path)
+      expect(flash[:alert]).to eq("This deletion can't be appealed or has already been resolved.")
     end
 
     it "returns 200 for the post uploader" do
