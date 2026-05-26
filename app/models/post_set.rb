@@ -176,7 +176,7 @@ class PostSet < ApplicationRecord
       if association(:post_set_maintainers).loaded?
         post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "approved" }
       else
-        post_set_maintainers.where(user_id: user.id, status: "approved").count > 0
+        post_set_maintainers.where(user_id: user.id, status: "approved").exists?
       end
     end
 
@@ -184,7 +184,7 @@ class PostSet < ApplicationRecord
       if association(:post_set_maintainers).loaded?
         post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "pending" }
       else
-        post_set_maintainers.where(user_id: user.id, status: "pending").count > 0
+        post_set_maintainers.where(user_id: user.id, status: "pending").exists?
       end
     end
 
@@ -192,7 +192,7 @@ class PostSet < ApplicationRecord
       if association(:post_set_maintainers).loaded?
         post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "blocked" }
       else
-        post_set_maintainers.where(user_id: user.id, status: "blocked").count > 0
+        post_set_maintainers.where(user_id: user.id, status: "blocked").exists?
       end
     end
 

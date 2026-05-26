@@ -14,11 +14,11 @@ class PostSetsController < ApplicationController
                    .where_has_post(params[:post_id].to_i)
                    .paginate(params[:page], limit: 50)
     elsif params[:maintainer_id].present?
-      target_user = CurrentUser.user.is_moderator? ? params[:maintainer_id].to_i : CurrentUser.user.id
+      target_user_id = CurrentUser.user.is_moderator? ? params[:maintainer_id].to_i : CurrentUser.user.id
       @post_sets = PostSet
                    .visible(CurrentUser.user)
                    .includes(:creator, :post_set_maintainers)
-                   .where_has_maintainer(target_user)
+                   .where_has_maintainer(target_user_id)
                    .paginate(params[:page], limit: 50)
     else
       @post_sets = PostSet
