@@ -1254,6 +1254,8 @@ class Post < ApplicationRecord
 
     def reload(*)
       @fav_string = nil
+      @favorited_status_cache = nil
+      @vote_by_cache = nil
       super
     end
 
