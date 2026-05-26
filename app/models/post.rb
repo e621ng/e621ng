@@ -1663,11 +1663,11 @@ class Post < ApplicationRecord
     end
 
     def deletion_flag
-      flags.order(id: :desc).first
+      flags.unresolved.where(is_deletion: true).order(id: :desc).first
     end
 
     def pending_flag
-      flags.unresolved.order(id: :desc).first
+      flags.unresolved.where(is_deletion: false).order(id: :desc).first
     end
 
     def substitute_deletion_dmail_template(text, reason = nil)

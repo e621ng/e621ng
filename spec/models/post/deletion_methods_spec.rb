@@ -124,21 +124,53 @@ RSpec.describe Post do
     end
 
     describe "#deletion_flag" do
-      it "returns nil when no flags exist" do
+      it "returns nil when no deletion flags exist" do
         post = create(:post)
         expect(post.deletion_flag).to be_nil
       end
 
-      it "returns the most recent PostFlag" do
+      it "returns nil when only non-deletion flags exist" do
+        post = create(:post)
+        create(:post_flag, post: post)
+        expect(post.deletion_flag).to be_nil
+      end
+
+      it "returns nil when only resolved deletion flags exist" do
         post = create(:post)
         post.delete!("First reason")
-        expect(post.deletion_flag).to be_a(PostFlag)
+        post.undelete!
+        create(:post_flag, post: post)
+        expect(post.deletion_flag).to be_nil
+      end
+
+      it "returns the deletion PostFlag" do
+        post = create(:post)
+        post.delete!("First reason")
+        deletion = post.deletion_flag
+        expect(deletion).to be_a(PostFlag)
+        expect(deletion&.reason).to eq("First reason")
+      end
+
+      it "returns the most recent deletion PostFlag" do
+        post = create(:post)
+        post.delete!("First reason")
+        post.undelete!
+        post.delete!("Second reason")
+        deletion = post.deletion_flag
+        expect(deletion).to be_a(PostFlag)
+        expect(deletion&.reason).to eq("Second reason")
       end
     end
 
     describe "#pending_flag" do
       it "returns nil when no unresolved flags exist" do
         post = create(:post)
+        expect(post.pending_flag).to be_nil
+      end
+
+      it "returns nil for a deletion flag" do
+        post = create(:post)
+        post.delete!("Reason")
         expect(post.pending_flag).to be_nil
       end
 
@@ -207,6 +239,18 @@ RSpec.describe Post do
         post.delete!("bogus")
         result = post.substitute_deletion_dmail_template("Post #%FLAG_ID%")
         expect(result).to include(post.deletion_flag.id.to_s)
+      end
+
+      it "substitutes %FLAG_ID% with the latest deletion flag id" do
+        post = create(:post)
+        post.delete!("bogus")
+        first_id = post.deletion_flag.id.to_s
+        post.undelete!
+        post.delete!("bogus2")
+        second_id = post.deletion_flag.id.to_s
+        result = post.substitute_deletion_dmail_template("Post #%FLAG_ID%")
+        expect(result).not_to include(first_id)
+        expect(result).to include(second_id)
       end
 
       it "substitutes %REASON% when a reason is provided" do
