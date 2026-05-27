@@ -74,7 +74,7 @@ RSpec.describe Ban do
         ban = create(:ban, user: subject_user, banner: moderator)
         expect do
           ban.update!(prevent_login: "1")
-        end.not_to change { subject_user.reload.level }
+        end.not_to(change { subject_user.reload.level })
         expect(subject_user.reload.level).to eq(User::Levels::BLOCKED)
       end
 
@@ -82,7 +82,7 @@ RSpec.describe Ban do
         ban = create(:ban, user: subject_user, banner: moderator, prevent_login: "1")
         expect do
           ban.update!(prevent_login: "0")
-        end.not_to change { subject_user.reload.level }
+        end.not_to(change { subject_user.reload.level })
         expect(subject_user.reload.level).to eq(User::Levels::BLOCKED)
       end
     end
