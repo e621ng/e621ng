@@ -157,6 +157,7 @@ div#c-post-versions {
       grid-row: 4;
       @include grid-col(10, 14);
       overflow-wrap: anywhere;
+      overflow-y: scroll;
 
       .diff-list {
         display: flex;
