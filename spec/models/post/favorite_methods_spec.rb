@@ -25,6 +25,15 @@ RSpec.describe Post do
         expect(post.favorited_by?(nil)).to be false
       end
 
+      it "caches the DB result so a second call does not hit the database" do
+        user = create(:user)
+        post = create(:post)
+        post.favorited_by?(user.id) # primes cache
+        allow(Favorite).to receive(:exists?)
+        post.favorited_by?(user.id)
+        expect(Favorite).not_to have_received(:exists?)
+      end
+
       it "uses the preloaded cache instead of hitting the database" do
         post = create(:post)
         post.preset_favorited_status(42, true)
