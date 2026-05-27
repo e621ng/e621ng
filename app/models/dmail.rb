@@ -241,12 +241,12 @@ class Dmail < ApplicationRecord
   end
 
   def visible_to?(user, key = nil)
-    owner_id == user.id ||
-      (user.is_staff? && (
-          is_accessible_by_key?(key) ||
-          (user.is_moderator? && is_accessible_to_moderators?) ||
-          (user.is_admin? && is_accessible_to_admins?)
-        ))
+    return true if owner_id == user.id
+    return false unless user.is_staff?
+    return true if from_id == User.system.id || to_id == User.system.id
+    return true if user.is_moderator? && Ticket.where(qtype: "dmail", disp_id: id).exists?
+    return true if user.is_admin? && (to.is_admin? || from.is_admin?)
+    is_accessible_by_key?(key)
   end
 
   USE_VERSIONING = false
@@ -296,13 +296,5 @@ class Dmail < ApplicationRecord
     def key_matches?(key)
       key == generate_key
     end
-  end
-
-  def is_accessible_to_moderators?
-    from_id == User.system.id || Ticket.where(qtype: "dmail", disp_id: id).exists?
-  end
-
-  def is_accessible_to_admins?
-    to.is_admin? || from.is_admin?
   end
 end

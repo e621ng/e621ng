@@ -74,6 +74,33 @@ RSpec.describe Dmail do
     end
 
     # -------------------------------------------------------------------------
+    # Staff general access
+    # -------------------------------------------------------------------------
+    describe "staff access" do
+      it "is not visible to staff members for a regular user-to-user dmail they do not own" do
+        expect(dmail.visible_to?(janitor)).to be false
+        expect(dmail.visible_to?(moderator)).to be false
+        expect(dmail.visible_to?(admin)).to be false
+      end
+
+      it "is visible to staff members when the sender is a system account" do
+        system_dmail_from = create(:dmail, from: User.system, to: recipient, owner: recipient)
+
+        expect(system_dmail_from.visible_to?(janitor)).to be true
+        expect(system_dmail_from.visible_to?(moderator)).to be true
+        expect(system_dmail_from.visible_to?(admin)).to be true
+      end
+
+      it "is visible to staff members when the recipient is a system account" do
+        system_dmail_to = create(:dmail, from: sender, to: User.system, owner: sender)
+
+        expect(system_dmail_to.visible_to?(janitor)).to be true
+        expect(system_dmail_to.visible_to?(moderator)).to be true
+        expect(system_dmail_to.visible_to?(admin)).to be true
+      end
+    end
+
+    # -------------------------------------------------------------------------
     # Moderator special access
     # -------------------------------------------------------------------------
     describe "moderator access" do
@@ -100,6 +127,10 @@ RSpec.describe Dmail do
     # Admin special access
     # -------------------------------------------------------------------------
     describe "admin access" do
+      it "is not visible to any admin for a regular user-to-user dmail they do not own" do
+        expect(dmail.visible_to?(admin)).to be false
+      end
+
       it "is visible to any admin when the recipient is an admin" do
         admin_recipient = create(:admin_user)
         dmail = create(:dmail, from: sender, to: admin_recipient, owner: admin_recipient,
@@ -113,10 +144,6 @@ RSpec.describe Dmail do
         dmail = create(:dmail, from: admin_sender, to: recipient, owner: recipient,
                                no_email_notification: true)
         expect(dmail.visible_to?(admin)).to be true
-      end
-
-      it "is not visible to any admin for a regular user-to-user dmail they do not own" do
-        expect(dmail.visible_to?(admin)).to be false
       end
     end
   end
