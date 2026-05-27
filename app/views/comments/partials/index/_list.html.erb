@@ -11,7 +11,6 @@
         <%= render "posts/partials/common/inline_blacklist" %>
       </span>
     </div>
-    <% comments = comments.stickied %>
     <div class="list-of-comments">
       <% if comments.any? %>
         <%= render partial: "comments/partials/show/comment", collection: comments, locals: { post: post } %>

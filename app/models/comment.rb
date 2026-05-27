@@ -66,7 +66,7 @@ class Comment < ApplicationRecord
       unless user.is_staff?
         disabled_post_ids = SearchMethods.comment_disabled_post_ids
         unless disabled_post_ids.empty?
-          conditions << "comments.post_id NOT IN (?)"
+          conditions << "(comments.post_id NOT IN (?) OR comments.is_sticky = true)"
           arguments << disabled_post_ids
         end
       end
