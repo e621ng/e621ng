@@ -77,12 +77,7 @@ class PostsController < ApplicationController
     @has_samples = @post.is_image? || @post.video_sample_list[:has]
 
     if request.format.html? && @post.comment_count > 0
-      if !CurrentUser.user.is_staff? && @post.is_comment_disabled?
-        @comments = @post.comments.stickied
-      else
-        @comments = @post.comments.above_threshold
-      end
-      @comments = @comments.includes(:creator, :updater).to_a
+      @comments = @post.comments.above_threshold.includes(:creator, :updater).to_a
       Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     else
       @comments = Comment.none
@@ -109,12 +104,7 @@ class PostsController < ApplicationController
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
 
     if request.format.html? && @post.comment_count > 0
-      if !CurrentUser.user.is_staff? && @post.is_comment_disabled?
-        @comments = @post.comments.stickied
-      else
-        @comments = @post.comments.above_threshold
-      end
-      @comments = @comments.includes(:creator, :updater).to_a
+      @comments = @post.comments.above_threshold.includes(:creator, :updater).to_a
       Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     else
       @comments = Comment.none
