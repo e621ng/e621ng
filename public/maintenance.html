@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>e621 - Maintenance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link
+      rel="icon"
+      type="image/png"
+      href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAKlBMVEUAAAAkbKv/9d//tiQ8fLT///+lwdlWjb1KhbkcZ6jP3el7pcoMXKIAVJ76NENVAAAAAXRSTlMAQObYZgAAAE1JREFUCNdjQAbMBugMUyhDUFAQTDMCGQLGBiDGFEHBYCBDcIbSQkFhkBKhEm1BAZCMkJIalFHbA2QApcSUFAUh2h0FBeHmgE0EMxAAAF5BCLYyud50AAAAAElFTkSuQmCC" sizes="16x16"
+    />
+
+    <style>
+      body {
+        background-color: #152f56;
+        margin: 0;
+        color: white;
+        font-family: verdana,sans-serif;
+      }
+
+      .mt-wrapper {
+        margin: 0 auto;
+        max-width: 30rem;
+      }
+
+      .mt-logo {
+        text-align: center;
+        img {
+          max-width: 12rem;
+          width: 30vw;
+          height: auto;
+        }
+      }
+
+      .mt-container {
+        margin: 1rem;
+        background-color: #1f3c67;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        box-sizing: border-box;
+
+        box-shadow: 0 0 0.25rem -0.125rem black;
+      }
+      .mt-container > * {
+        margin: 0 0 1rem;
+      }
+      .mt-container > *:last-child {
+        margin: 0;
+      }
+      
+      .mt-links {
+        margin: 0.25rem 1rem;
+        font-size: 75%;
+      }
+      .mt-links .f-right { float: right; }
+
+      a, a:link { color: #b4c7d9; }
+      a:hover, a:visited, a:active { color: #e9f2fa; }
+    </style>
+  </head>
+  <body>
+    <div class="mt-wrapper">
+      <div class="mt-logo">
+        <img
+          src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAMAAABlApw1AAABYlBMVEUAAAAAVJ4AVJ7///////////////8AVJ4AVJ4AVJ7/////2YoAVJ4AVJ4AVJ4AVJ4AVJ4AVJ7////9vi8AVJ7///8AVJ4AVJ4AVJ4AVJ7///////79/v4AVJ4AVJ7+vjH////9vi8AVJ7///7+1HX///////0AVJ4AVJ4AVJ7////9vi//////vi/////////////9vi///ff/vjD+3ZD+vi/9vi/////8vi79vi/////9vi7/////vy/9vi/////9vzL/9Nn///8AVJ79vi/3+vz/677H2uqau9llmMQAVJ739/f////9vi/h6vNwn8nR3+yyy+FAf7YgaarA1efb5e4JWqKIrtBVjb3v8vUrcK4EV6A2eLIQX6To7vNKhbn09fcZZafK2+mTtdN3o8lomMT5+/290ePH1+atx93+7MGlwtuivtl7pszD1OScu9f9wjn+5av/+/Ffk8H9zFz9x0lsc/MmAAAASnRSTlMAiDg/B+DCFvrgcAQgDAX069Ei5S4XxGRWRw38s6p9IPTauGv86MqflXFWzWA1Lpd7X0wV/ayWi0n118CdDvq6gv2ojHTn0o9qUUD+BmkAAAi0SURBVHja7NhJbsJAEAXQkhxY0DsQGxMJEMYLwMxgpkQhirKquggrsOD+kY3TheEC/lK/E/i7uwY1OY7jOI7jlNciMoTLzLoi29WCQLW7khl+EKSoIbk9IdpsxdoQntmnqCHBidLvBz6CRUMK1oTF7KWoQVjW8iwiJBt58UNA7gUAXAQrUYizbB7cRAS3iv0+c3IKzlKEsw/FnEkuN8w2NG5xLlnKgxmBqLI6XsX6IgwjLrjYUlgRBL/PRccbVh+N+VlyRdqotYJVK5BUlxBUWaklzCQb8IPK5MC501lkS+Vndqwmb1kgLWWA96ERqx6lQs51Ain/69Bbha345U79tqnsemxVDWXqrMZUcg8zrN+kO9MBCjDVzu/RvxAngK8/u0bWgS2Pyk2XiG9SNZgATXsAO5+UBxNgGr4f4t7Aq/vFXGzNCdJ4NAk7yAFSJksxIGzGJ+ePXTtrSiuG4gAeRQW9iooLIi5F6gY6oh1tbd1GO304AQo4bJddZMQFrZ1+/2nty+FeknAlYXjh98rLiTc55n8mfX19fW/c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"
+          alt="e621 Logo"
+          width="192"
+          height="192"
+        />
+      </div>
+      <div class="mt-container">
+        <h4>Down for Maintenance</h4>
+        <p>
+          We are currently performing scheduled maintenance.
+          The site will be back up and running as soon as possible.
+        </p>
+        <p>
+          Thanks for your patience!
+        </p>
+      </div>
+      <div class="mt-links">
+        <a href="https://twitter.com/e621dotnet">twitter</a>
+        <a href="mailto:management@e621.net" class="f-right">management@e621.net</a>
+      </div>
+    </div>
+  </body>
+</html>
