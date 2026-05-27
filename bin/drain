@@ -9,6 +9,7 @@ APP_PATH = File.expand_path("..", __dir__)
 arg = ARGV[0]
 unless ["true", "false"].include?(arg)
   puts "Usage: #{File.basename(__FILE__)} [true|false]"
+  puts "Draining: #{File.exist?("#{APP_PATH}/tmp/out_of_rotation") ? "true" : "false"}"
   exit 1
 end
 
