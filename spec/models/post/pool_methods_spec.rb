@@ -28,6 +28,23 @@ RSpec.describe Post do
         expect(post.pool_string).to include("pool:#{pool.id}")
       end
 
+      it "adds the pool id to the raw pool_ids column" do
+        pool = create(:pool)
+        post = create(:post)
+        post.add_pool!(pool)
+        expect(post[:pool_ids]).to include(pool.id)
+      end
+
+      it "rebuilds the raw pool_ids column from pool_string" do
+        existing_pool = create(:pool)
+        added_pool = create(:pool)
+        post = create(:post, pool_string: "pool:#{existing_pool.id}", pool_ids: nil)
+
+        post.add_pool!(added_pool)
+
+        expect(post[:pool_ids]).to contain_exactly(existing_pool.id, added_pool.id)
+      end
+
       it "does not add the pool a second time if already present" do
         pool = create(:pool)
         post = create(:post)
@@ -40,9 +57,16 @@ RSpec.describe Post do
     describe "#remove_pool!" do
       it "removes pool:<id> from pool_string" do
         pool = create(:pool)
-        post = create(:post, pool_string: "pool:#{pool.id}")
+        post = create(:post, pool_string: "pool:#{pool.id}", pool_ids: [pool.id])
         post.remove_pool!(pool)
         expect(post.pool_string).not_to include("pool:#{pool.id}")
+      end
+
+      it "removes the pool id from the raw pool_ids column" do
+        pool = create(:pool)
+        post = create(:post, pool_string: "pool:#{pool.id}", pool_ids: [pool.id])
+        post.remove_pool!(pool)
+        expect(post[:pool_ids]).not_to include(pool.id)
       end
 
       it "does nothing when the pool is not in pool_string" do

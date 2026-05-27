@@ -26,9 +26,9 @@ RSpec.describe Post do
     end
 
     describe "#hidden_attributes" do
-      it "always hides pool_string and fav_string" do
+      it "always hides raw membership strings and ids and fav_string" do
         post = create(:post)
-        expect(post.hidden_attributes).to include(:pool_string, :fav_string)
+        expect(post.hidden_attributes).to include(:pool_string, :pool_ids, :set_ids, :fav_string)
       end
 
       it "additionally hides md5 and file_ext when the post is not visible" do
