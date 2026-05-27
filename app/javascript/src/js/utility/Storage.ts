@@ -57,6 +57,26 @@ export default class LStorage {
     StaffStats: false,
     StaffNotes: false,
   };
+
+  /** Backwards compatibility layer for AutocompleteInput */
+  static Raw = {
+    getObject: function (name: string) {
+      if (!L2Utils.isAvailable) return null;
+      const value = localStorage[name];
+      if (!value) return null;
+
+      try {
+        return JSON.parse(value);
+      } catch (error) {
+        console.error(`Failed to parse localStorage key "${name}" with value "${value}" as JSON.`, error);
+        return null;
+      }
+    },
+    putObject: function (name: string, value: any) {
+      if (!L2Utils.isAvailable) return;
+      localStorage[name] = JSON.stringify(value);
+    },
+  };
 }
 
 // Corresponding storage keys and configuration for L2Storage.
@@ -114,6 +134,8 @@ const StorageKeys: StorageConfig = {
     StaffStats: "e6.users.staffstats",
     StaffNotes: "e6.users.staffnotes",
   },
+
+  "Raw": null, // Custom getObject and putObject functions that bypass the proxies
 };
 
 
