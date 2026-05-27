@@ -52,7 +52,7 @@ class User < ApplicationRecord
     hide_comments
     show_hidden_comments
     show_post_statistics
-    is_banned
+    _is_banned
     forum_notification_dot
     receive_email_notifications
     enable_keyboard_navigation
@@ -158,13 +158,12 @@ class User < ApplicationRecord
     end
 
     def unban!
-      self.is_banned = false
       self.level = 20
       save
     end
 
     def ban_expired?
-      is_banned? && recent_ban.try(:expired?)
+      is_blocked? && recent_ban&.expired?
     end
   end
 
@@ -357,6 +356,10 @@ class User < ApplicationRecord
 
     def is_blocked?
       level == Levels::BLOCKED
+    end
+
+    def is_banned?
+      is_blocked?
     end
 
     # Defines various convenience methods for finding out the user's level
