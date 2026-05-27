@@ -77,7 +77,12 @@ class PostsController < ApplicationController
     @has_samples = @post.is_image? || @post.video_sample_list[:has]
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.above_threshold.includes(:creator, :updater).to_a
+      if !CurrentUser.user.is_moderator? && @post.is_comment_disabled?
+        @comments = @post.comments.stickied
+      else
+        @comments = @post.comments.above_threshold
+      end
+      @comments = @comments.includes(:creator, :updater).to_a
       Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     else
       @comments = Comment.none
