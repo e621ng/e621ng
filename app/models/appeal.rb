@@ -41,6 +41,12 @@ class Appeal < ApplicationRecord
         ::PostFlag
       end
 
+      def find_duplicate_for(user)
+        return nil if content.blank?
+        return nil if content.post.blank?
+        content.user_appeal(user)
+      end
+
       def can_create_for?(user)
         return false if content.blank?
         return false if content.post.blank?
@@ -211,6 +217,10 @@ class Appeal < ApplicationRecord
 
   def can_claim?(user = CurrentUser.user)
     user.is_janitor?
+  end
+
+  def find_duplicate_for(_user)
+    nil
   end
 
   def can_create_for?(_user)
