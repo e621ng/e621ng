@@ -71,7 +71,11 @@ RSpec.describe FavoritesController do
     end
 
     context "when the target user is blocked" do
-      let(:blocked_user) { create(:banned_user) }
+      let(:blocked_user) do
+        user = create(:user)
+        create(:ban, user: user, prevent_login: false)
+        user
+      end
 
       it "returns 200 but an empty post list for an unrelated user" do
         FavoriteManager.add!(user: blocked_user, post: post_record)

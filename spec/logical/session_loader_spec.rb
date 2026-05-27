@@ -333,6 +333,14 @@ RSpec.describe SessionLoader do
         expect(user.reload.is_blocked?).to be false
       end
     end
+
+    context "with a soft ban (prevent_login: false)" do
+      before { create(:ban, user: user, duration: 7, prevent_login: false) }
+
+      it "does not raise AuthenticationFailure" do
+        expect { loader.load }.not_to raise_error
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
