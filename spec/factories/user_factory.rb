@@ -35,7 +35,6 @@ FactoryBot.define do
 
     factory :banned_user do
       level { User::Levels::BLOCKED }
-      is_banned { true }
     end
 
     factory :privileged_user do

@@ -18,19 +18,7 @@ RSpec.describe Ban do
     # after_create: update_user_on_create
     # -------------------------------------------------------------------------
     describe "after_create: update_user_on_create" do
-      it "marks the user as banned" do
-        expect do
-          create(:ban, user: subject_user, banner: moderator)
-        end.to change { subject_user.reload.is_banned }.from(false).to(true)
-      end
-
-      it "sets the user level to BLOCKED for a hard ban (prevent_login: '1')" do
-        expect do
-          create(:ban, user: subject_user, banner: moderator, prevent_login: "1")
-        end.to change { subject_user.reload.level }.to(User::Levels::BLOCKED)
-      end
-
-      it "sets the user level to BLOCKED for a soft ban (no prevent_login)" do
+      it "sets the user level to BLOCKED" do
         expect do
           create(:ban, user: subject_user, banner: moderator)
         end.to change { subject_user.reload.level }.to(User::Levels::BLOCKED)

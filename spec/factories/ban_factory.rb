@@ -14,5 +14,10 @@ FactoryBot.define do
       # duration= with a negative value sets expires_at to nil (permanent ban).
       duration { -1 }
     end
+
+    factory :hard_ban do
+      duration { -1 }
+      prevent_login { true }
+    end
   end
 end
