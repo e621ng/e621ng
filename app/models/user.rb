@@ -361,6 +361,7 @@ class User < ApplicationRecord
     def is_banned?
       is_blocked?
     end
+    alias is_banned is_banned?
 
     # Defines various convenience methods for finding out the user's level
     Danbooru.config.levels.each do |name, value|
