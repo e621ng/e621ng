@@ -15,7 +15,6 @@ class DmailsController < ApplicationController
     respond_with @dmails.to_json
   end
 
-  # TODO: Test endpoint with key
   def show
     @dmail = Dmail.find(params[:id])
     check_privilege(@dmail, params[:key])
