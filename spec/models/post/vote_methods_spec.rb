@@ -57,6 +57,16 @@ RSpec.describe Post do
         expect(post.vote_by(nil)).to eq(0)
       end
 
+      it "caches the DB result so a second call does not hit the database" do
+        user = create(:user)
+        post = create(:post)
+        PostVote.create!(post: post, user: user, score: 1)
+        post.vote_by(user.id) # primes cache
+        allow(PostVote).to receive(:where)
+        post.vote_by(user.id)
+        expect(PostVote).not_to have_received(:where)
+      end
+
       it "uses the preloaded cache instead of hitting the database" do
         post = create(:post)
         post.preset_vote_by(42, 1)
