@@ -48,7 +48,7 @@ class ApiKeysController < ApplicationController
 
   def regenerate
     unless @api_key.expired?
-      render_expected_error(:unprocessable_entity, "Only expired API keys can be regenerated")
+      render_expected_error(:unprocessable_content, "Only expired API keys can be regenerated")
       return
     end
 
