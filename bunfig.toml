@@ -1,0 +1,4 @@
+[install]
+frozenLockfile = true
+linker = "isolated"
+minimumReleaseAge = 259200 # seconds

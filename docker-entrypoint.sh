@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-yarn install --frozen-lockfile
+bun install --frozen-lockfile
 rm -f .overmind.sock
 
 if [ -d "vendor/dtext" ] && [ "$LOCAL_DTEXT" = "true" ]; then
