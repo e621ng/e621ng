@@ -73,6 +73,11 @@
   }
 }
 
+ul.diff-list {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
 // diffy
 .diff {
   ins, del {
