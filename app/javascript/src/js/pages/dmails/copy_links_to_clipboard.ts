@@ -1,4 +1,4 @@
-import Flash from "@/utility/Flash";
+import Toast from "@/utility/Toast";
 
 class DMails {
   private static url?: string;
@@ -15,7 +15,7 @@ class DMails {
       e.preventDefault();
       e.stopImmediatePropagation();
       try {
-        navigator.clipboard.writeText(this.url).then(() => Flash.notice("Copied to clipboard!")).catch(() => this.catchCopyLinkToClipboardError);
+        navigator.clipboard.writeText(this.url).then(() => Toast.notice("Copied to clipboard!")).catch(() => this.catchCopyLinkToClipboardError);
       } catch (error) {
         this.catchCopyLinkToClipboardError(error);
       }
