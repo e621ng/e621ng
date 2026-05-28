@@ -36,7 +36,7 @@
           | <%= link_to "Report", new_ticket_path(disp_id: @dmail.id, qtype: 'dmail') %>
         <% end %>
         <% if CurrentUser.is_staff? %>
-          | <%= link_to "Share", dmail_path(@dmail, **key_param) %>
+          | <%= link_to "Share", dmail_path(@dmail, **key_param), id: "share-link" %>
         <% end %>
       </p>
     </div>
