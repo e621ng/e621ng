@@ -27,7 +27,7 @@
             <td><span class="title">Accused</span></td>
             <td>
               <%= link_to_user @ticket.accused %>
-              <% if (pending_accused_count = Ticket.active.for_accused(@ticket.accused.id).count) >= 2 %>
+              <% if CurrentUser.user.is_staff? && (pending_accused_count = Ticket.active.for_accused(@ticket.accused.id).count) >= 2 %>
                 (<%= link_to "#{pending_accused_count} Pending", tickets_path(search: { accused_id: @ticket.accused.id, status: "pending" }) %>)
               <% end %>
             </td>
