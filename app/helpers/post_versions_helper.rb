@@ -27,23 +27,20 @@ module PostVersionsHelper
 
   def post_version_diff(post_version)
     diff = post_version.diff(post_version.previous)
-    all_names = (diff[:added_tags] + diff[:removed_tags] + diff[:unchanged_tags]).sort
     categories = post_version.tag_categories
-    added = diff[:added_tags].to_set
-    removed = diff[:removed_tags].to_set
     obsolete_added = diff[:obsolete_added_tags].to_set
     obsolete_removed = diff[:obsolete_removed_tags].to_set
 
-    changes = all_names.map do |tag_name|
-      if added.include?(tag_name)
-        classes = obsolete_added.include?(tag_name) ? "obsolete" : nil
-        tag.ins(diff_tag_link("+", tag_name, tag_name, categories), class: classes)
-      elsif removed.include?(tag_name)
-        classes = obsolete_removed.include?(tag_name) ? "obsolete" : nil
-        tag.del(diff_tag_link("-", tag_name, tag_name, categories), class: classes)
-      else
-        tag.span(category_tag_link(tag_name, tag_name, categories))
-      end
+    changes = diff[:added_tags].sort.map do |tag_name|
+      classes = obsolete_added.include?(tag_name) ? "obsolete" : nil
+      tag.ins(diff_tag_link("+", tag_name, tag_name, categories), class: classes)
+    end
+    changes += diff[:removed_tags].sort.map do |tag_name|
+      classes = obsolete_removed.include?(tag_name) ? "obsolete" : nil
+      tag.del(diff_tag_link("-", tag_name, tag_name, categories), class: classes)
+    end
+    changes += diff[:unchanged_tags].sort.map do |tag_name|
+      tag.span(category_tag_link(tag_name, tag_name, categories))
     end
 
     tag.span(safe_join(changes, " "), class: "diff-list")
@@ -51,20 +48,16 @@ module PostVersionsHelper
 
   def post_version_locked_diff(post_version)
     diff = post_version.diff(post_version.previous)
-    all_names = (diff[:added_locked_tags] + diff[:removed_locked_tags] + diff[:unchanged_locked_tags]).sort
     categories = post_version.tag_categories
-    added = diff[:added_locked_tags].to_set
-    removed = diff[:removed_locked_tags].to_set
 
-    changes = all_names.map do |tag_name|
-      lookup = trim_leading_minus(tag_name)
-      if added.include?(tag_name)
-        tag.ins(diff_tag_link("+", tag_name, lookup, categories))
-      elsif removed.include?(tag_name)
-        tag.del(diff_tag_link("-", tag_name, lookup, categories))
-      else
-        tag.span(category_tag_link(tag_name, lookup, categories))
-      end
+    changes = diff[:added_locked_tags].sort.map do |tag_name|
+      tag.ins(diff_tag_link("+", tag_name, trim_leading_minus(tag_name), categories))
+    end
+    changes += diff[:removed_locked_tags].sort.map do |tag_name|
+      tag.del(diff_tag_link("-", tag_name, trim_leading_minus(tag_name), categories))
+    end
+    changes += diff[:unchanged_locked_tags].sort.map do |tag_name|
+      tag.span(category_tag_link(tag_name, trim_leading_minus(tag_name), categories))
     end
 
     tag.span(safe_join(changes, " "), class: "diff-list")
