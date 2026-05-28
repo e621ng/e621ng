@@ -76,12 +76,12 @@ RSpec.describe Moderator::IpAddrsController do
 
         it "returns 422 for invalid IP address" do
           get moderator_ip_addrs_path, params: { search: { ip_addr: "*dylan*dolly*" } }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it "returns 422 for invalid CIDR prefix" do
           get moderator_ip_addrs_path, params: { search: { ip_addr: "127.0.0.1/999" } }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
     end
@@ -153,12 +153,12 @@ RSpec.describe Moderator::IpAddrsController do
       context "when searching by ip_addr" do
         it "returns 422 for invalid IP address" do
           get export_moderator_ip_addrs_path(format: :json), params: { search: { ip_addr: "*dylan*dolly*" } }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it "returns 422 for invalid CIDR prefix" do
           get export_moderator_ip_addrs_path(format: :json), params: { search: { ip_addr: "127.0.0.1/999" } }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
     end

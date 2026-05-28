@@ -64,7 +64,7 @@ class PostReplacementsController < ApplicationController
       # Both Approve and Reset To submit to this endpoint; reset-to passes penalize_current_uploader=false.
       action_name = is_reset_to ? "reset to" : "approve"
       flash.now[:notice] = "Error: Cannot #{action_name} replacement for deleted target post"
-      render plain: flash[:notice], status: :unprocessable_entity
+      render plain: flash[:notice], status: 422
       return
     end
 

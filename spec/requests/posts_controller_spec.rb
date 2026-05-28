@@ -99,12 +99,12 @@ RSpec.describe PostsController do
 
       it "returns 422 for HTML" do
         get posts_path
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it "returns 422 for JSON" do
         get posts_path(format: :json)
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end

@@ -70,12 +70,12 @@ RSpec.describe CommentsController do
     describe "created_at search param" do
       it "returns 422 for invalid created_at value in HTML format" do
         get comments_path(search: { created_at: "999999999999999999999" })
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it "returns 422 for invalid created_at value in JSON format" do
         get comments_path(format: :json, search: { created_at: "999999999999999999999" })
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end
