@@ -32,6 +32,8 @@
         | <%= link_to "Filter messages like these", edit_maintenance_user_dmail_filter_path(dmail_id: @dmail.id) %>
         <% if @dmail.owner_id == CurrentUser.id %>
           | <%= link_to "Delete", dmail_path(@dmail), method: :delete, data: { confirm: "Are you sure you want to delete this DMail?" } %>
+        <% end %>
+        <% if @dmail.to_id == CurrentUser.id %>
           | <%= link_to "Mark as unread", mark_as_unread_dmail_path(@dmail), method: :put, data: { confirm: "Are you sure you want to mark this DMail as unread?" } %>
           | <%= link_to "Report", new_ticket_path(disp_id: @dmail.id, qtype: 'dmail') %>
         <% end %>
