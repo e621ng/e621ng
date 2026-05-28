@@ -250,7 +250,7 @@ class Dmail < ApplicationRecord
   end
 
   def generate_key(...)
-    "v1::#{Digest::SHA256.hexdigest("#{id}::#{from.id}::#{to.id}::#{body}")}"
+    OpenSSL::HMAC.hexdigest("SHA256", Rails.application.secret_key_base, "#{id}::#{from.id}::#{to.id}::#{body}")
   end
 
   private
@@ -260,6 +260,6 @@ class Dmail < ApplicationRecord
   end
 
   def key_matches?(key)
-    key == generate_key
+    ActiveSupport::SecurityUtils.secure_compare(key, generate_key)
   end
 end
