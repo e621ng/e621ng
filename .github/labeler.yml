@@ -56,6 +56,7 @@ Rubocop:
       - 'Gemfile.lock'
       - 'package.json'
       - 'yarn.lock'
+      - 'bun.lock'
       - 'package-lock.json'
 
 # Feature / entity labels
