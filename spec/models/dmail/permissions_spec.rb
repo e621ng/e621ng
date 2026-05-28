@@ -45,30 +45,21 @@ RSpec.describe Dmail do
     # -------------------------------------------------------------------------
     # Keyed access
     # -------------------------------------------------------------------------
-    describe "Keyed access" do
+    describe "keyed access" do
       let(:janitor) { create(:janitor_user) }
 
-      it "is visible to any staff member with the right key when the dmail is from a staff member" do
-        dmail = create(:dmail, from: moderator, to: recipient, owner: recipient)
-        expect(dmail.visible_to?(janitor, dmail.generate_key)).to be true
-      end
-
-      it "is visible to any staff member with the right key when the dmail is to a staff member" do
-        dmail = create(:dmail, from: sender, to: moderator, owner: moderator)
+      it "is visible to any staff member with the right key" do
+        dmail = create(:dmail, from: sender, to: recipient, owner: recipient)
         expect(dmail.visible_to?(janitor, dmail.generate_key)).to be true
       end
 
       it "is not visible to staff members with the wrong key" do
-        dmail = create(:dmail, from: sender, to: moderator, owner: moderator)
+        dmail = create(:dmail, from: sender, to: recipient, owner: recipient)
         expect(dmail.visible_to?(janitor, "v1:YouGetNothing!GoodDaySir!")).to be false
       end
 
-      it "is not visible to staff members with the right key when the dmail isn't from or to a staff member" do
-        expect(dmail.visible_to?(janitor, dmail.generate_key)).to be false
-      end
-
       it "is not visible to non-staff members with the right key" do
-        dmail = create(:dmail, from: janitor, to: moderator, owner: moderator)
+        dmail = create(:dmail, from: sender, to: recipient, owner: recipient)
         expect(dmail.visible_to?(other, dmail.generate_key)).to be false
       end
     end

@@ -293,7 +293,7 @@ RSpec.describe DmailsController do
     end
 
     context "moderator ticket access" do
-      it "returns 200 for a moderatior viewing a dmail with an associated ticket" do
+      it "returns 200 for a moderator viewing a dmail with an associated ticket" do
         ticket = create(:ticket, :dmail_type)
         dmail = Dmail.find(ticket.disp_id)
 
@@ -302,7 +302,7 @@ RSpec.describe DmailsController do
         expect(response).to have_http_status(:ok)
       end
 
-      it "returns 403 for a moderatior viewing a dmail without an associated ticket" do
+      it "returns 403 for a moderator viewing a dmail without an associated ticket" do
         dmail_without_ticket = create(:dmail, from: sender, to: recipient)
         sign_in_as moderator
         get dmail_path(dmail_without_ticket)
