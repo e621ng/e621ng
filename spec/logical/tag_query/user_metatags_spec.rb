@@ -241,6 +241,15 @@ RSpec.describe TagQuery do
         expect(TagQuery.new("flaggedby:missing_user")[:flagger]).to include(-1)
       end
     end
+
+    it "stores the current user's ID for flaggedby:me when staff" do
+      staff = create(:admin_user)
+
+      CurrentUser.scoped(staff) do
+        tq = TagQuery.new("flaggedby:me")
+        expect(tq[:flagger]).to include(CurrentUser.id)
+      end
+    end
   end
 
   describe "deleted filter helpers with order metatags" do
