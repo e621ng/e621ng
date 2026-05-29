@@ -24,6 +24,7 @@ RSpec.describe PostIndex do
           tags md5 rating file_ext source description del_reason notes
           rating_locked note_locked status_locked flagged pending
           deleted has_children has_pending_replacements artverified
+          deleted_at flag_note flag_reason flagged_at flagger
         ] + category_count_keys
         expect(indexed.keys).to match_array(expected_keys)
       end
