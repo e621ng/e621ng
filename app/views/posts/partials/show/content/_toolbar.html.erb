@@ -136,16 +136,18 @@
       <%= svg_icon(:ellipsis_v) %>
     </button>
     <div class="ptbr-etc-menu hidden" id="ptbr-etc-menu" role="menu">
-      <a
-        href="<%= @post.file_url %>"
-        class="st-button ptbr-etc-download"
-        download="<%= @post.md5 %>.<%= @post.file_ext %>"
-        pending="false"
-        data-hotkey="download"
-      >
-        <%= svg_icon(:hexagon) %>
-        <span>Download</span>
-      </a>
+      <% unless @post.is_deleted? %>
+        <a
+          href="<%= @post.download_url %>"
+          class="st-button ptbr-etc-download"
+          download="<%= @post.md5 %>.<%= @post.file_ext %>"
+          pending="false"
+          data-hotkey="download"
+        >
+          <%= svg_icon(:hexagon) %>
+          <span>Download</span>
+        </a>
+      <% end %>
       <button class="st-button ptbr-share-button" data-hotkey="share">Share</button>
       <% if CurrentUser.is_member? %>
         <button class="st-button ptbr-etc-pool add-to-pool" data-hotkey="add-to-pool">Add to Pool</button>

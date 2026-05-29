@@ -209,12 +209,22 @@ class StorageManager
     end
   end
 
+  def download_url(md5, file_ext)
+    path = file_path_base(md5, file_ext, :original)
+    "#{base_url}#{base_path}/download#{path}"
+  end
+
   def post_file_url(post, type = :original, ext: nil, scale: nil)
     if %i[preview preview_jpg preview_webp].include?(type) && !post.has_preview?
       return "/images/download-preview.png"
     end
     ext ||= post.file_ext
     file_url(post.md5, ext, type, protect: post.protect_file?, scale: scale)
+  end
+
+  def post_download_url(post)
+    return nil if post.is_deleted?
+    download_url(post.md5, post.file_ext)
   end
 
   def file_path_base(md5, file_ext, type = :original, protect: false, scale: nil)

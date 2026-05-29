@@ -122,6 +122,10 @@ class Post < ApplicationRecord
       storage_manager.post_file_url(self)
     end
 
+    def download_url
+      storage_manager.post_download_url(self)
+    end
+
     # TODO: Deprecate this method
     def file_url_ext(ext)
       storage_manager.post_file_url(self, ext: ext)
