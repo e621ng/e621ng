@@ -34,6 +34,7 @@ RSpec.describe HelpController do
       get help_pages_path(format: :json)
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to be_a(Hash)
+      expect(response.parsed_body["name"]).to eq(Danbooru.config.help_landing_page)
     end
   end
 
