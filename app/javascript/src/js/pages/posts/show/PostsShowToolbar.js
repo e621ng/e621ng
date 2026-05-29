@@ -242,7 +242,7 @@ export default class PostsShowToolbar {
       toggle.attr("aria-expanded", !offclickHandler.disabled);
     });
 
-    $(".ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
+    $(".ptbr-etc-download, .ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
       offclickHandler.disabled = true;
       menu.addClass("hidden");
     });

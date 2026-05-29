@@ -23,7 +23,7 @@ server {
 
   location /data/download/ {
     alias /app/public/data/;
-    add_header Content-Disposition "attachment";
+    add_header Content-Disposition "attachment"; filename="$arg_filename"';
     expires max;
   }
 
