@@ -11,7 +11,7 @@
     {
       "label": "e621: run_eslint_all",
       "type": "shell",
-      "command": ".vscode/run-in-container.sh linter yarn run lint",
+      "command": ".vscode/run-in-container.sh linter npm run lint",
       "detail": "Run eslint on all files",
       "group": "test"
     },

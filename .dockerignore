@@ -3,7 +3,7 @@
 
 # Allow only the files that are actually needed
 !/package.json
-!/yarn.lock
+!/package-lock.json
 !/Gemfile
 !/Gemfile.lock
 !/vendor/
