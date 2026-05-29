@@ -43,6 +43,7 @@ class PostFlagReasonsController < ApplicationController
       @reason.destroy
       ModAction.log(:flag_reason_delete, { reason: @reason.reason })
     end
+    flash[:notice] = @reason.destroyed? ? "Post flag reason deleted" : @reason.errors.full_messages.join("; ")
     respond_with(@reason)
   end
 

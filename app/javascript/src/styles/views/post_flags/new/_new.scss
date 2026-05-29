@@ -74,7 +74,7 @@
       background: themed("color-section");
       margin-bottom: 1rem;
       padding: 0.5rem 1rem;
-      @include st-radius-bottom;
+      @include st-radius;
       max-width: 20rem;
 
       div.input {
