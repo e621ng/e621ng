@@ -247,16 +247,6 @@ export default class PostsShowToolbar {
       menu.addClass("hidden");
     });
   }
-
-  static generateDownloadLink (blobUrl, fileName) {
-    // I will take a download link... and CLICK IT!!!
-    const downloadLink = document.createElement("a");
-    downloadLink.href = blobUrl;
-    downloadLink.setAttribute("download", fileName);
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    downloadLink.remove();
-  }
 }
 
 $(() => {
