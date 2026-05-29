@@ -66,6 +66,7 @@ class PostPresenter < Presenter
       tags: post.tag_string.split,
       locked_tags: post.locked_tags&.split || [],
       is_favorited: post.is_favorited?,
+      vote: post.vote_by,
     }
   end
 

@@ -20,7 +20,7 @@ class TransferFavoritesJob < ApplicationJob
     parent = post.parent
     return false unless parent
 
-    user_ids = post.fav_string.scan(/fav:(\d+)/).flatten.map(&:to_i)
+    user_ids = Favorite.where(post_id: post.id).pluck(:user_id)
     return false if user_ids.empty?
 
     # Prevent concurrent favorite operations
@@ -29,7 +29,7 @@ class TransferFavoritesJob < ApplicationJob
     parent.update_columns(bit_flags: parent.bit_flags | transfer_flag)
 
     begin
-      existing_parent_user_ids = parent.fav_string.scan(/fav:(\d+)/).flatten.map(&:to_i)
+      existing_parent_user_ids = Favorite.where(post_id: parent.id).pluck(:user_id)
       new_user_ids = user_ids - existing_parent_user_ids
 
       # 1. Delete all child favorites
@@ -55,7 +55,7 @@ class TransferFavoritesJob < ApplicationJob
       update_post_favorites_data(post, parent, user_ids, new_user_ids)
       update_user_favorite_counts(user_ids, new_user_ids)
 
-      # 4. Safety check: Clean up any orphaned favorites that weren't caught by fav_string parsing
+      # 4. Safety check: clean up any favorites that landed on the child after the initial delete
       cleanup_orphaned_child_favorites(post)
 
       # 5. Create post events
@@ -96,27 +96,18 @@ class TransferFavoritesJob < ApplicationJob
     true
   end
 
-  # Update the fav_string and fav_count for both child and parent posts.
+  # Update fav_string (rollback safety net) and fav_count for both child and parent posts.
   def update_post_favorites_data(child_post, parent_post, _removed_user_ids, added_user_ids)
-    # Remove all favorites from child post
-    child_post.update_columns(
-      fav_string: "",
-      fav_count: 0,
-      updated_at: Time.current,
-    )
+    child_post.write_fav_string!("", 0)
+    child_post.update_columns(updated_at: Time.current)
 
-    # Add new favorites to parent post
     if added_user_ids.any?
-      current_fav_string = parent_post.fav_string || ""
-      current_fav_parts = current_fav_string.split
+      current_fav_parts = parent_post.fav_string.split
       new_fav_parts = added_user_ids.map { |user_id| "fav:#{user_id}" }
       all_fav_parts = (current_fav_parts + new_fav_parts).uniq
 
-      parent_post.update_columns(
-        fav_string: all_fav_parts.join(" "),
-        fav_count: all_fav_parts.length,
-        updated_at: Time.current,
-      )
+      parent_post.write_fav_string!(all_fav_parts.join(" "), all_fav_parts.length)
+      parent_post.update_columns(updated_at: Time.current)
     end
   end
 
@@ -143,14 +134,14 @@ class TransferFavoritesJob < ApplicationJob
     end
   end
 
-  # Clean up any orphaned favorite records not captured by fav_string parsing.
+  # Clean up any favorite records that raced in after the main delete_all.
   # Recalculates affected user favorite counts.
   def cleanup_orphaned_child_favorites(child_post)
     orphaned_favorites = Favorite.where(post_id: child_post.id)
     return unless orphaned_favorites.exists?
     orphaned_user_ids = orphaned_favorites.pluck(:user_id)
 
-    Rails.logger.warn("TransferFavoritesJob: Found #{orphaned_favorites.count} orphaned favorites for post #{child_post.id} not in fav_string. User IDs: #{orphaned_user_ids}")
+    Rails.logger.warn("TransferFavoritesJob: Found #{orphaned_favorites.count} orphaned favorites for post #{child_post.id} after transfer. User IDs: #{orphaned_user_ids}")
 
     Favorite.without_timeout do
       orphaned_favorites.delete_all

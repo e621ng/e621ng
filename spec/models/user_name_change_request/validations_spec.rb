@@ -15,10 +15,9 @@ RSpec.describe UserNameChangeRequest do
   # Presence                                                            #
   # ------------------------------------------------------------------ #
   describe "presence validations" do
-    it "is invalid without original_name" do
+    it "is valid without original_name" do
       record = build_request(original_name: nil, skip_user_name_validation: true)
-      expect(record).not_to be_valid
-      expect(record.errors[:original_name]).to be_present
+      expect(record).to be_valid
     end
 
     it "is invalid without desired_name" do

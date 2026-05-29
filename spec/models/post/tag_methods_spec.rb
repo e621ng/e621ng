@@ -63,10 +63,10 @@ RSpec.describe Post do
         expect(post.tag_count).to be > 0
       end
 
-      it "tracks tag_count_artist for artist-category tags" do
+      it "tracks tag_count for category-1 tags" do
         post = create(:post)
-        # Factory uses 'artist:...' prefix which sets category to artist
-        expect(post.tag_count_artist).to be >= 1
+        # Factory adds one category-1 tag (artist/director depending on fork)
+        expect(post.public_send(:"tag_count_#{TagCategory::REVERSE_MAPPING[1]}")).to be >= 1
       end
 
       it "tracks tag_count_general for general-category tags" do
@@ -91,13 +91,15 @@ RSpec.describe Post do
       end
 
       it "downcases all tag names" do
-        post = create(:post, tag_string: "artist:UPPERCASE_ARTIST lowercase_tag1 lowercase_tag2 lowercase_tag3 lowercase_tag4 lowercase_tag5 lowercase_tag6 lowercase_tag7 lowercase_tag8 lowercase_tag9 lowercase_tag10")
+        cat = TagCategory::REVERSE_MAPPING[1]
+        post = create(:post, tag_string: "#{cat}:UPPERCASE_TAG lowercase_tag1 lowercase_tag2 lowercase_tag3 lowercase_tag4 lowercase_tag5 lowercase_tag6 lowercase_tag7 lowercase_tag8 lowercase_tag9 lowercase_tag10")
         expect(post.tag_string).not_to match(/[A-Z]/)
       end
 
       it "auto-creates tags that do not yet exist" do
+        cat = TagCategory::REVERSE_MAPPING[1]
         unique_name = "brand_new_tag_#{SecureRandom.hex(4)}"
-        create(:post, tag_string: "artist:test_artist #{unique_name} " + (1..10).map { |i| "gen_tag_#{SecureRandom.hex(4)}_#{i}" }.join(" "))
+        create(:post, tag_string: "#{cat}:test_tag #{unique_name} " + (1..10).map { |i| "gen_tag_#{SecureRandom.hex(4)}_#{i}" }.join(" "))
         expect(Tag.find_by(name: unique_name)).not_to be_nil
       end
 
@@ -222,7 +224,7 @@ RSpec.describe Post do
 
       describe "has_enough_tags warning" do
         it "adds a warning on new posts with fewer than 10 general tags" do
-          post = build(:post, tag_string: "artist:test_artist only_one_general_tag")
+          post = build(:post, tag_string: "#{TagCategory::REVERSE_MAPPING[1]}:test_tag only_one_general_tag")
           post.valid?
           expect(post.warnings[:base].join).to match(/at least 10 general tags/)
         end
@@ -328,6 +330,19 @@ RSpec.describe Post do
         post = create(:post, image_width: 512, image_height: 4096)
         expect(post.tag_array).to include("tall_image", "long_image")
       end
+
+      it "adds the video tag for the appropiate video type posts" do
+        %w[webm mp4].each do |ext|
+          post = create(:post, file_ext: ext)
+          expect(post.tag_array).to include("video")
+        end
+      end
+
+      it "removes file type tags" do
+        filetype_tags = %w[video animated_gif animated_png] + FileMethods::FILE_TYPE.values
+        post = create(:post, tag_string: filetype_tags.join(" "))
+        expect(post.tag_array).to be_empty
+      end
     end
 
     describe "apply_casesensitive_metatags" do
@@ -369,8 +384,8 @@ RSpec.describe Post do
         existing_tag = create(:tag, name: "existing_general_tag", category: Tag.categories.general,
                                     post_count: Danbooru.config.tag_type_change_cutoff + 1)
         post = create(:post)
-        # Trying to use artist: prefix for a tag that is already category general
-        post.tag_string = "#{post.tag_string} artist:#{existing_tag.name}"
+        # Trying to use a category prefix for a tag that is already category general
+        post.tag_string = "#{post.tag_string} #{TagCategory::REVERSE_MAPPING[1]}:#{existing_tag.name}"
         post.valid?
         expect(post.warnings[:base].join).to match(/Failed to update the tag category/)
       end
@@ -459,8 +474,13 @@ RSpec.describe Post do
           child1 = create(:post, parent: parent)
           child2 = create(:post, parent: parent)
           parent.update!(tag_string: "#{parent.tag_string} child:none")
-          expect(child1.reload.parent_id).to be_nil
-          expect(child2.reload.parent_id).to be_nil
+
+          child1.reload
+          child2.reload
+          expect(child1.parent_id).to be_nil
+          expect(child1.versions.last.reason).to eq("Removed as child of post ##{parent.id}")
+          expect(child2.parent_id).to be_nil
+          expect(child2.versions.last.reason).to eq("Removed as child of post ##{parent.id}")
         end
       end
 
@@ -469,7 +489,10 @@ RSpec.describe Post do
           parent = create(:post)
           child = create(:post, parent: parent)
           parent.update!(tag_string: "#{parent.tag_string} -child:#{child.id}")
-          expect(child.reload.parent_id).to be_nil
+
+          child.reload
+          expect(child.parent_id).to be_nil
+          expect(child.versions.last.reason).to eq("Removed as child of post ##{parent.id}")
         end
       end
 
@@ -478,7 +501,10 @@ RSpec.describe Post do
           parent = create(:post)
           other = create(:post)
           parent.update!(tag_string: "#{parent.tag_string} child:#{other.id}")
-          expect(other.reload.parent_id).to eq(parent.id)
+
+          other.reload
+          expect(other.parent_id).to eq(parent.id)
+          expect(other.versions.last.reason).to eq("Added as child of post ##{parent.id}")
         end
       end
     end
@@ -594,34 +620,64 @@ RSpec.describe Post do
     end
 
     describe "#known_artist_tags" do
-      it "excludes tags in NON_KNOWN_ARTIST_TAGS (e.g. unknown_artist)" do
-        # Ensure unknown_artist exists as an artist-category tag
-        create(:tag, name: "unknown_artist", category: Tag.categories.artist)
-        post = create(:post, tag_string: "unknown_artist #{(1..10).map { |i| "gen_#{i}" }.join(' ')}")
-        expect(post.known_artist_tags.map(&:name)).not_to include("unknown_artist")
+      it "excludes tags in NON_KNOWN_ARTIST_TAGS" do
+        unknown_tag_name = Post::NON_KNOWN_ARTIST_TAGS.first
+        create(:tag, name: unknown_tag_name, category: 1)
+        post = create(:post, tag_string: "#{unknown_tag_name} #{(1..10).map { |i| "gen_#{i}" }.join(' ')}")
+        expect(post.known_artist_tags.map(&:name)).not_to include(unknown_tag_name)
       end
 
-      it "includes artist tags not in NON_KNOWN_ARTIST_TAGS" do
+      it "includes category-1 tags not in NON_KNOWN_ARTIST_TAGS" do
         post = create(:post)
-        artist_names = post.artist_tags.map(&:name)
+        # NOTE: the e6ai fork does not have artist tags, but the method
+        # is still named artist_tags for the sake of compatibility.
+        cat1_tag_names = post.artist_tags.map(&:name)
         expect(post.known_artist_tags.map(&:name)).to match_array(
-          artist_names.reject { |n| Post::NON_KNOWN_ARTIST_TAGS.include?(n) },
+          cat1_tag_names.reject { |n| Post::NON_KNOWN_ARTIST_TAGS.include?(n) },
         )
       end
     end
 
-    describe "#avoid_posting_artists" do
+    describe "#avoid_posting_tags" do
+      before { skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:avoid_postings_path) }
+
       it "returns AvoidPosting records for artist tags on the post" do
         artist = create(:artist)
         avoid = create(:avoid_posting, artist: artist)
         # Use artist: prefix to create the tag with artist category
         post = create(:post, tag_string: "artist:#{artist.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
-        expect(post.avoid_posting_artists).to include(avoid)
+        expect(post.avoid_posting_tags).to include(avoid)
       end
 
-      it "returns an empty array when the post has no artist tags" do
+      it "returns AvoidPosting records with categorized_tags preloaded" do
+        artist = create(:artist)
+        avoid = create(:avoid_posting, artist: artist)
+        post = create(:post, tag_string: "artist:#{artist.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        post.categorized_tags # Force preload categorized_tags
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
+      it "returns AvoidPosting records for copyright tags on the post" do
+        copyright = create(:artist)
+        copyright.tag.update(category: Tag.categories.copyright)
+        avoid = create(:avoid_posting, artist: copyright)
+        # Use copyright: prefix to create the tag with copyright category
+        post = create(:post, tag_string: "copyright:#{copyright.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
+      it "returns AvoidPosting records for character tags on the post" do
+        character = create(:artist)
+        character.tag.update(category: Tag.categories.character)
+        avoid = create(:avoid_posting, artist: character)
+        # Use character: prefix to create the tag with character category
+        post = create(:post, tag_string: "character:#{character.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
+      it "returns an empty array when the post has no artist, copyright, or character tags" do
         post = create(:post, tag_string: (1..10).map { |i| "gen_only_#{i}" }.join(" "))
-        expect(post.avoid_posting_artists).to eq([])
+        expect(post.avoid_posting_tags).to eq([])
       end
     end
   end

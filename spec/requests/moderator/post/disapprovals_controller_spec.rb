@@ -44,11 +44,11 @@ RSpec.describe Moderator::Post::DisapprovalsController do
       it "filters by post_id search param" do
         other_post = create(:post)
         target = create(:post_disapproval, user: approver, post: the_post)
-        create(:post_disapproval, post: other_post)
+        other_disapproval = create(:post_disapproval, post: other_post)
         get moderator_post_disapprovals_path(format: :json), params: { search: { post_id: the_post.id } }
         ids = response.parsed_body.pluck("id")
         expect(ids).to include(target.id)
-        expect(ids).not_to include(other_post.id)
+        expect(ids).not_to include(other_disapproval.id)
       end
     end
   end

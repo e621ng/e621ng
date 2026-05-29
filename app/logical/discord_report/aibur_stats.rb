@@ -6,11 +6,11 @@ module DiscordReport
       Danbooru.config.aibur_stats_discord_webhook_url
     end
 
-    def report
+    def report(update_cache: true)
       current_stats = stats
       previous_stats = Cache.redis.get("aibur_report:previous") || current_stats
       previous_stats = JSON.parse(previous_stats, symbolize_names: true) if previous_stats.is_a?(String)
-      Cache.redis.set("aibur_report:previous", current_stats.to_json)
+      Cache.redis.set("aibur_report:previous", current_stats.to_json) if update_cache
 
       alias_diff = current_stats[:aliases][:pending] - previous_stats[:aliases][:pending]
       implication_diff = current_stats[:implications][:pending] - previous_stats[:implications][:pending]

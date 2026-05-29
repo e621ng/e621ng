@@ -78,16 +78,6 @@ nav.navigation {
     #nav-toggle .on { display: none; }
   }
 
-  /* Offset elements on the left and bottom */
-  // Needed to track clicks outside the menu area
-  @each $name in ("left", "bott") {
-    .nav-offset-#{$name} {
-      grid-area: off#{$name};
-      display: none; // flex
-      background: #00000050;
-    }
-  }
-
   /* Toggled menus, hidden by default */
   // Naming areas
   @each $name in (primary, secondary, tools, help) {
@@ -208,8 +198,7 @@ nav.navigation {
 
     li {
       a { background: themed("color-section-darken-5"); }
-      &.nav-help-discord,
-      &.nav-help-subscribestar {
+      &.nav-help-discord {
         grid-column: 1 / -1;
       }
 
@@ -288,10 +277,12 @@ html.nav-toggled {
     height: 100vh;
     max-width: 100vw; // prevent bug when page overflows viewport
 
+    background-color: #00000030;
+
     // Allow scrolling when the menu is too long
     overflow-y: scroll;
 
-    .nav-primary, .nav-secondary, .nav-offset-left, .nav-offset-bott {
+    .nav-primary, .nav-secondary {
       display: flex;
     }
     .nav-tools, .nav-help {
@@ -465,7 +456,7 @@ nav.navigation, html.nav-toggled nav.navigation {
     }
 
     // Icon collapse
-    // Stage 1: discord and subscribestar buttons
+    // Stage 1: discord button
     .collapse-1 { display: none; }
     @include window-larger-than(77rem) {
       .collapse-1 { display: flex; }
@@ -505,7 +496,7 @@ body.c-static.a-home {
       // at low desktop resolutions
       padding: 0 0 0.5rem;
 
-      #nav-subscribestar, #nav-discord, .nav-secondary, .nav-tools { display: none; }
+      #nav-discord, .nav-secondary, .nav-tools { display: none; }
     }
 
     // Match the background colors
@@ -530,11 +521,11 @@ body.c-static.a-home {
     // since the secondary is empty anyways
     nav.navigation {
       grid-template-areas:
-        "logo    logo    controls" 
-        "offleft primary primary " 
-        "offleft tools   tools   " 
-        "offleft help    help    " 
-        "offleft offbott offbott ";
+        "logo logo    controls" 
+        ".    primary primary " 
+        ".    tools   tools   " 
+        ".    help    help    " 
+        ".    .       . ";
 
       .nav-secondary { display: none; }
     }

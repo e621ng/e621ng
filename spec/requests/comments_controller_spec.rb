@@ -66,6 +66,18 @@ RSpec.describe CommentsController do
         expect(response).to have_http_status(:ok)
       end
     end
+
+    describe "created_at search param" do
+      it "returns 422 for invalid created_at value in HTML format" do
+        get comments_path(search: { created_at: "999999999999999999999" })
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "returns 422 for invalid created_at value in JSON format" do
+        get comments_path(format: :json, search: { created_at: "999999999999999999999" })
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -121,6 +133,21 @@ RSpec.describe CommentsController do
     it "returns 404 for a non-existent comment" do
       get comment_path(-1)
       expect(response).to have_http_status(:not_found)
+    end
+
+    it "includes the current user's vote in the JSON payload" do
+      voter = create(:user)
+      CurrentUser.scoped(voter) { create(:comment_vote, comment: comment, user: voter, score: 1) }
+      sign_in_as voter
+      get comment_path(comment, format: :json)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["vote"]).to eq(1)
+    end
+
+    it "returns 0 for the vote field when the current user has not voted" do
+      sign_in_as other_member
+      get comment_path(comment, format: :json)
+      expect(response.parsed_body["vote"]).to eq(0)
     end
   end
 

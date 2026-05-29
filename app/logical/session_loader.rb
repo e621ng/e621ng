@@ -36,7 +36,7 @@ class SessionLoader
       if recent_ban && recent_ban.expires_at.present?
         ban_message = "Account is suspended for another #{recent_ban.expire_days}"
       end
-      raise AuthenticationFailure.new(ban_message)
+      raise AuthenticationFailure, ban_message
     end
     update_user_login_tracking
     set_safe_mode
@@ -180,6 +180,8 @@ class SessionLoader
     return if CurrentUser.is_anonymous?
     return if cookies[:hide_dmail_notice].blank?
 
-    cookies.delete(:hide_dmail_notice) if cookies[:hide_dmail_notice] != CurrentUser.user.has_mail?.to_s
+    if !CurrentUser.user.has_mail? && cookies[:hide_dmail_notice] == "1"
+      cookies.delete(:hide_dmail_notice)
+    end
   end
 end

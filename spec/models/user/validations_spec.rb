@@ -180,6 +180,29 @@ RSpec.describe User do
       end
     end
 
+    describe "custom title" do
+      it "is invalid when exceeding 100 characters" do
+        user = build(:user, custom_title: "a" * 101)
+        expect(user).not_to be_valid
+        expect(user.errors[:custom_title]).to be_present
+      end
+
+      it "is valid at exactly 100 characters" do
+        user = build(:user, custom_title: "a" * 100)
+        expect(user).to be_valid
+      end
+
+      it "is valid when blank" do
+        user = build(:user, custom_title: "")
+        expect(user).to be_valid
+      end
+
+      it "is valid when nil" do
+        user = build(:user, custom_title: nil)
+        expect(user).to be_valid
+      end
+    end
+
     describe "time_zone" do
       it "is invalid with an unrecognised time zone" do
         user = build(:user, time_zone: "Not/ATimezone")
@@ -194,6 +217,8 @@ RSpec.describe User do
     end
 
     describe "IP ban check (on create)" do
+      after { CurrentUser.ip_addr = nil }
+
       it "is invalid when the current IP address is banned" do
         banned_ip = "1.2.3.4"
         admin = create(:admin_user)
@@ -213,6 +238,8 @@ RSpec.describe User do
     end
 
     describe "sock puppet check (on create)" do
+      after { CurrentUser.ip_addr = nil }
+
       it "is invalid when the same IP was used to create an account recently" do
         shared_ip = "10.0.0.1"
         # created_at must be within the last day for the sock puppet check to trigger

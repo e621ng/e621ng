@@ -52,7 +52,7 @@ RSpec.describe TermsOfUsesController do
         post accept_terms_of_use_path, params: { age: "on", terms: "on" }
         expect(response).to be_redirect
         expect(cookies[:tos_accepted]).to be_nil
-        expect(flash[:notice]).to include("You must accept the TOU")
+        expect(flash[:alert]).to include("You must accept the TOU")
       end
     end
 
@@ -61,7 +61,7 @@ RSpec.describe TermsOfUsesController do
         post accept_terms_of_use_path, params: { state: "accepted", terms: "on" }
         expect(response).to be_redirect
         expect(cookies[:tos_accepted]).to be_nil
-        expect(flash[:notice]).to include("You must accept the TOU")
+        expect(flash[:alert]).to include("You must accept the TOU")
       end
     end
 
@@ -70,7 +70,7 @@ RSpec.describe TermsOfUsesController do
         post accept_terms_of_use_path, params: { state: "accepted", age: "on" }
         expect(response).to be_redirect
         expect(cookies[:tos_accepted]).to be_nil
-        expect(flash[:notice]).to include("You must accept the TOU")
+        expect(flash[:alert]).to include("You must accept the TOU")
       end
     end
 

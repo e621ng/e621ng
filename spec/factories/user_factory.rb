@@ -28,12 +28,21 @@ FactoryBot.define do
     ###### User Levels ######
     #########################
 
+    factory :anonymous_user do
+      name { "Anonymous" }
+      level { User::Levels::ANONYMOUS }
+    end
+
     factory :banned_user do
       is_banned { true }
     end
 
     factory :privileged_user do
       level { User::Levels::PRIVILEGED }
+    end
+
+    factory :former_staff_user do
+      level { User::Levels::FORMER_STAFF }
     end
 
     factory :janitor_user do
@@ -89,6 +98,10 @@ FactoryBot.define do
 
     factory :bd_auditor_user do
       is_bd_auditor { true }
+    end
+
+    factory :unverified_user do
+      email_verification_key { "1" }
     end
   end
 end

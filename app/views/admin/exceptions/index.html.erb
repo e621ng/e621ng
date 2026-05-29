@@ -27,7 +27,7 @@
         </td>
         <td>
           <b><%= exception_log.class_name %></b><br />
-          <%= truncate(exception_log.message, length: 500) %>
+          <%= truncate(exception_log.viewable_message, length: 500) %>
         </td>
         <td><%= link_to "View", admin_exception_path(exception_log) %></td>
       </tr>

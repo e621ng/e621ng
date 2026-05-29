@@ -37,47 +37,51 @@ module IqdbProxy
     raise Error, "iqdb request failed" if response.status != 200
   end
 
-  def query_url(image_url, score_cutoff)
+  def query_url(image_url, score_cutoff, v2_format: false)
     file, _strategy = Downloads::File.new(image_url).download!
-    query_file(file, score_cutoff)
+    query_file(file, score_cutoff, v2_format: v2_format)
   end
 
-  def query_post(post, score_cutoff)
+  def query_post(post, score_cutoff, v2_format: false)
     return [] unless post&.has_preview?
 
     File.open(post.preview_file_path) do |f|
-      query_file(f, score_cutoff)
+      query_file(f, score_cutoff, v2_format: v2_format)
     end
   rescue Errno::ENOENT # Preview file not found
     []
   end
 
-  def query_file(file, score_cutoff)
+  def query_file(file, score_cutoff, v2_format: false)
     thumb = generate_thumbnail(file.path)
     return [] unless thumb
 
     response = make_request("/query", :post, get_channels_data(thumb))
     return [] if response.status != 200
 
-    process_iqdb_result(JSON.parse(response.body), score_cutoff)
+    process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
   end
 
-  def query_hash(hash, score_cutoff)
+  def query_hash(hash, score_cutoff, v2_format: false)
     response = make_request "/query", :post, { hash: hash }
     return [] if response.status != 200
 
-    process_iqdb_result(JSON.parse(response.body), score_cutoff)
+    process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
   end
 
-  def process_iqdb_result(json, score_cutoff)
+  def process_iqdb_result(json, score_cutoff, v2_format: false)
     raise Error, "Server returned an error. Most likely the url is not found." unless json.is_a?(Array)
 
     json.filter! { |entry| (entry["score"] || 0) >= (score_cutoff.presence || 60).to_i }
+
+    post_ids = json.pluck("post_id").compact
+    posts = Post.where(id: post_ids).includes(:uploader).index_by(&:id)
+
     json.map do |x|
-      x["post"] = Post.find(x["post_id"])
+      post = posts[x["post_id"]]
+      next if post.blank? # Skip deleted or missing posts
+      x["post"] = v2_format ? PostBlueprint.render_as_hash(post, view: :basic) : post
       x
-    rescue ActiveRecord::RecordNotFound
-      nil
     end.compact
   end
 

@@ -15,7 +15,7 @@ class PostsController < ApplicationController
       respond_with(@post) do |format|
         format.html { redirect_to post_path(@post) }
         format.json do
-          render_posts_json(PostBlueprint.render_as_hash(@post))
+          pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
         end
       end
     else
@@ -54,7 +54,7 @@ class PostsController < ApplicationController
 
       respond_with(@posts) do |format|
         format.json do
-          render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
+          pick_json_format(@post_set.api_posts, legacy: params[:v2] != "true", mode: params[:mode])
         end
         format.atom
       end
@@ -77,16 +77,15 @@ class PostsController < ApplicationController
     @has_samples = @post.is_image? || @post.video_sample_list[:has]
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.above_threshold.includes(:creator, :updater)
-      @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater).to_a
+      Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     else
       @comments = Comment.none
-      @comment_votes = CommentVote.none
     end
 
     respond_with(@post) do |format|
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post))
+        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end
@@ -105,11 +104,10 @@ class PostsController < ApplicationController
     @children_post_set = PostSets::PostRelationship.new(@post.id, include_deleted: include_deleted, want_parent: false)
 
     if request.format.html? && @post.comment_count > 0
-      @comments = @post.comments.above_threshold.includes(:creator, :updater)
-      @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+      @comments = @post.comments.above_threshold.includes(:creator, :updater).to_a
+      Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     else
       @comments = Comment.none
-      @comment_votes = CommentVote.none
     end
 
     @fixup_post_url = true
@@ -117,7 +115,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { render "posts/show" }
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post))
+        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end
@@ -164,7 +162,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, q: params[:tags]) }
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post))
+        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end
@@ -228,7 +226,7 @@ class PostsController < ApplicationController
       end
 
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(post))
+        pick_json_format(post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
       end
     end
   end

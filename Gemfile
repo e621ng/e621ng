@@ -52,7 +52,9 @@ gem "faraday"
 gem "faraday-follow_redirects"
 gem "faraday-retry"
 
+gem "rack-cors"
 gem "rails-settings-cached", "~> 2.9"
+gem "sitemap_generator"
 
 group :production do
   gem "pitchfork"
@@ -68,6 +70,7 @@ group :development, :test do
   gem "factory_bot_rails", require: false
   gem "simplecov", require: false
   gem "simplecov_json_formatter", require: false
+  gem "webmock", require: false
 
   # Both tests and populate.rb
   gem "faker", require: false
@@ -84,4 +87,5 @@ group :development do
   gem "ruby-lsp"
   gem "ruby-lsp-rails", "~> 0.4.8"
   gem "ruby-lsp-rspec", require: false
+  gem "rack-mini-profiler"
 end

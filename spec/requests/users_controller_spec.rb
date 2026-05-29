@@ -95,8 +95,14 @@ RSpec.describe UsersController do
     context "when already logged in" do
       before { sign_in_as create(:user) }
 
-      it "returns 403" do
+      it "redirects back with a notice for HTML requests" do
         get new_user_path
+        expect(response).to redirect_to(posts_path)
+        expect(flash[:notice]).to include("already signed in")
+      end
+
+      it "returns 403 for JSON requests" do
+        get new_user_path(format: :json)
         expect(response).to have_http_status(:forbidden)
       end
     end

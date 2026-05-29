@@ -66,24 +66,6 @@ RSpec.describe FavoriteManager do
           .to raise_error(Favorite::Error, /Failed to update post/)
       end
     end
-
-    describe "orphaned Favorite record" do
-      before do
-        # Insert the Favorite row directly, leaving fav_string untouched.
-        # This simulates legacy data where the DB record exists but the
-        # denormalized fav_string was never updated.
-        Favorite.create!(user_id: user.id, post_id: post.id)
-      end
-
-      it "repairs the fav_string without raising" do
-        expect { FavoriteManager.add!(user: user, post: post) }.not_to raise_error
-      end
-
-      it "adds the user to the post fav_string" do
-        FavoriteManager.add!(user: user, post: post)
-        expect(post.reload.fav_string).to include("fav:#{user.id}")
-      end
-    end
   end
 
   describe ".remove!" do

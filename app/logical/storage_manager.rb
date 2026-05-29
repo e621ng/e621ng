@@ -6,6 +6,7 @@ class StorageManager
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
   IMAGE_TYPES = %i[preview_jpg preview_webp sample_jpg sample_webp original].freeze
   MASCOT_PREFIX = "mascots"
+  AVATAR_PREFIX = "avatars"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
@@ -160,6 +161,22 @@ class StorageManager
 
   def delete_mascot(md5, file_ext)
     delete(mascot_path(md5, file_ext))
+  end
+
+  def avatar_path(user_id, ext)
+    "#{base_dir}/#{AVATAR_PREFIX}/#{user_id}.#{ext}"
+  end
+
+  def avatar_url(user_id, ext)
+    "#{base_url}#{base_path}/#{AVATAR_PREFIX}/#{user_id}.#{ext}"
+  end
+
+  def store_avatar(io, user_id, ext)
+    store(io, avatar_path(user_id, ext))
+  end
+
+  def delete_avatar(user_id, ext)
+    delete(avatar_path(user_id, ext))
   end
 
   def furids_url

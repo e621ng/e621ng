@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @sourceWarning="sourceWarning = $event"></sources>
+                    <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event"></sources>
                 </div>
             </div>
             <template v-if="normalMode">
@@ -330,7 +330,8 @@
         uploadValue: '',
         invalidUploadValue: false,
 
-        sourceWarning: false,
+        missingSourceWarning: false,
+        nonUrlSourceWarning: false,
         sources: [''],
         normalMode: !window.uploaderSettings.compactMode,
 
@@ -474,7 +475,7 @@
           success(data) {
             self.submitting = false;
             self.allowNavigate = true;
-            E621.Flash.notice('Post uploaded successfully.');
+            E621.Toast.notice('Post uploaded successfully.');
             location.assign(data.location);
           },
           error(response, textStatus, errorThrown) {
@@ -664,7 +665,7 @@
         return !this.rating;
       },
       preventUpload: function () {
-        return this.sourceWarning || this.notEnoughTags
+        return this.missingSourceWarning || this.nonUrlSourceWarning || this.notEnoughTags
           || this.invalidRating || this.invalidUploadValue;
       },
       duplicatePath: function () {

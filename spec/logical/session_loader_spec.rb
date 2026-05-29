@@ -440,9 +440,9 @@ RSpec.describe SessionLoader do
       request.session[:ph] = user.password_token
     end
 
-    # user has no dmails, so has_mail? == false and has_mail?.to_s == "false"
-    context "when the cookie value does not match has_mail?.to_s" do
-      let(:dmail_cookie_value) { "true" }
+    # user has no dmails, so has_mail? == false and has_mail?.to_s == "1"
+    context "when the user has no mail, but cookie value is '1'" do
+      let(:dmail_cookie_value) { "1" }
 
       it "deletes the :hide_dmail_notice cookie" do
         loader.load
@@ -450,8 +450,8 @@ RSpec.describe SessionLoader do
       end
     end
 
-    context "when the cookie value matches has_mail?.to_s" do
-      let(:dmail_cookie_value) { "false" }
+    context "when the user has no mail, and cookie value is '0'" do
+      let(:dmail_cookie_value) { "0" }
 
       it "does not delete the :hide_dmail_notice cookie" do
         loader.load
@@ -459,8 +459,20 @@ RSpec.describe SessionLoader do
       end
     end
 
+    context "when the user has mail, and cookie value is '1'" do
+      let(:dmail_cookie_value) { "1" }
+
+      it "does not delete the :hide_dmail_notice cookie" do
+        CurrentUser.scoped(create(:user)) do
+          create(:dmail, to: user)
+        end
+        loader.load
+        expect(cookie_jar).not_to have_received(:delete).with(:hide_dmail_notice)
+      end
+    end
+
     context "for an anonymous user" do
-      let(:dmail_cookie_value) { "true" }
+      let(:dmail_cookie_value) { "1" }
 
       before do
         request.session.delete(:user_id)

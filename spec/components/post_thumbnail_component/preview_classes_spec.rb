@@ -79,34 +79,47 @@ RSpec.describe PostThumbnailComponent, type: :component do
     end
   end
 
-  describe "#border_state_count" do
-    it "returns 0 for a plain post" do
-      expect(component(post).send(:border_state_count)).to eq(0)
+  describe "ribbon" do
+    it "shows no ribbons for a plain post" do
+      c = component(post)
+      expect(c.send(:should_show_ribbon?, :left)).to be(false)
+      expect(c.send(:should_show_ribbon?, :right)).to be(false)
     end
 
-    it "counts has_visible_children? as 1" do
-      allow(post).to receive(:has_visible_children?).and_return(true)
-      expect(component(post).send(:border_state_count)).to eq(1)
-    end
-
-    it "counts parent_id as 1" do
+    it "shows left ribbon if parent_id" do
       allow(post).to receive(:parent_id).and_return(1)
-      expect(component(post).send(:border_state_count)).to eq(1)
+      expect(component(post).send(:should_show_ribbon?, :left)).to be(true)
     end
 
-    it "counts is_pending? as 1" do
+    it "shows left ribbon if has_visible_children?" do
+      allow(post).to receive(:has_visible_children?).and_return(true)
+      expect(component(post).send(:should_show_ribbon?, :left)).to be(true)
+    end
+
+    it "shows right ribbon if is_pending?" do
       allow(post).to receive(:is_pending?).and_return(true)
-      expect(component(post).send(:border_state_count)).to eq(1)
+      expect(component(post).send(:should_show_ribbon?, :right)).to be(true)
     end
 
-    it "counts is_flagged? as 1" do
+    it "shows right ribbon if is_flagged?" do
       allow(post).to receive(:is_flagged?).and_return(true)
-      expect(component(post).send(:border_state_count)).to eq(1)
+      expect(component(post).send(:should_show_ribbon?, :right)).to be(true)
     end
 
-    it "sums all four active state flags to 4" do
-      allow(post).to receive_messages(has_visible_children?: true, parent_id: 1, is_pending?: true, is_flagged?: true)
-      expect(component(post).send(:border_state_count)).to eq(4)
+    it "shows both ribbons" do
+      allow(post).to receive_messages({ has_visible_children?: true, is_flagged?: true })
+      c = component(post)
+      expect(c.send(:should_show_ribbon?, :right)).to be(true)
+      expect(c.send(:should_show_ribbon?, :left)).to be(true)
+    end
+
+    it "shifts down the badge if the left ribbon is present" do
+      allow(post).to receive(:has_visible_children?).and_return(true)
+      expect(component(post).send(:preview_classes)).to include("shift-badge")
+    end
+
+    it "does not shift down the badge if the left ribbon is not present" do
+      expect(component(post).send(:preview_classes)).not_to include("shift-badge")
     end
   end
 end

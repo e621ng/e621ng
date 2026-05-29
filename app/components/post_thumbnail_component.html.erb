@@ -1,5 +1,4 @@
 <%= tag.article(**article_attributes) do %>
-
   <%# Link & Image %>
   <%= link_to polymorphic_path(link_target, link_params), class: "thm-link", data: { hover_text: tooltip_text } do %>
     <% if should_render_image? %>
@@ -7,6 +6,17 @@
         <%= tag.source type: "image/webp", srcset: preview_urls[0] if webp_enabled? %>
         <%= tag.source type: "image/jpeg", srcset: preview_urls[1] %>
         <%= tag.img src: preview_urls[1], alt: alt_text, **image_attributes %>
+      <% end %>
+    <% end %>
+
+    <% RIBBON_SIDE.each do |side| %>
+      <% if should_show_ribbon? side %>
+        <div
+          class="ribbon <%= side.to_s %>"
+          title="<%= ribbon_tooltip side %>"
+          aria-hidden="true"
+        >
+        </div>
       <% end %>
     <% end %>
   <% end %>

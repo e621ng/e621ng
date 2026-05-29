@@ -28,13 +28,18 @@ export default class Favorite {
     }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
+        let backendErrorMessage = null;
         try {
           const errorData = await response.json();
-          $(window).trigger("danbooru:error", "Error: " + (errorData.message || "Unknown error"));
+          backendErrorMessage = errorData.message || "Unknown error";
+
+          // NOTE: the PostShowToolbar relies on this error message to reset the page's favorite state.
+          if (backendErrorMessage !== "You have already favorited this post")
+            $(window).trigger("danbooru:error", "Error: " + backendErrorMessage);
         } catch (_error) {
           $(window).trigger("danbooru:error", "Error: " + (response.status + " " + response.statusText));
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`, { cause: backendErrorMessage });
       }
 
       try {
@@ -78,13 +83,15 @@ export default class Favorite {
     }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
+        let backendErrorMessage = null;
         try {
           const errorData = await response.json();
-          $(window).trigger("danbooru:error", "Error: " + (errorData.message || "Unknown error"));
+          backendErrorMessage = errorData.message || "Unknown error";
+          $(window).trigger("danbooru:error", "Error: " + backendErrorMessage);
         } catch (_error) {
           $(window).trigger("danbooru:error", "Error: " + (response.status + " " + response.statusText));
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`, { cause: backendErrorMessage });
       }
 
       try {
@@ -103,5 +110,3 @@ export default class Favorite {
     });
   }
 }
-
-

@@ -4,14 +4,18 @@ class ApplicationController < ActionController::Base
   class APIThrottled < StandardError; end
   class FeatureUnavailable < StandardError; end
 
-  skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? || request.options? }
+  # NOTE: this gets flagged by CodeQL as a CSRF vulnerability, but it's a false positive.
+  # This check is only skipped for requests with API authentication, which are made by clients
+  # that don't support CSRF tokens. All browser-based actions still require CSRF protection.
+  skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? }
+
   before_action :reset_current_user
   before_action :sanitize_params
   before_action :set_current_user
   around_action :set_time_zone
+  before_action :validate_pagination_param_types
   before_action :normalize_search
   before_action :api_check
-  before_action :enable_cors
   before_action :check_valid_username
   after_action :reset_current_user
   layout "default"
@@ -28,12 +32,6 @@ class ApplicationController < ActionController::Base
   # This is raised on requests to `/blah.js`. Rails has already rendered StaticController#not_found
   # here, so calling `rescue_exception` would cause a double render error.
   rescue_from ActionController::InvalidCrossOriginRequest, with: -> {}
-
-  def enable_cors
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Authorization, User-Agent"
-    response.headers["Access-Control-Allow-Methods"] = "POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS"
-  end
 
   def check_valid_username
     return if params[:controller] == "user_name_change_requests"
@@ -105,7 +103,7 @@ class ApplicationController < ActionController::Base
       render_unsupported_format
     when Danbooru::Paginator::PaginationError
       render_expected_error(410, exception.message)
-    when TagQuery::CountExceededError, TagQuery::DepthExceededError, TagQuery::InvalidTagError
+    when TagQuery::CountExceededError, TagQuery::DepthExceededError, TagQuery::InvalidTagError, ParseValue::InvalidDateError
       render_expected_error(422, exception.message)
     when FeatureUnavailable
       render_expected_error(400, "This feature isn't available")
@@ -115,6 +113,12 @@ class ApplicationController < ActionController::Base
       render_expected_error(400, exception.message)
     when BCrypt::Errors::InvalidHash
       render_expected_error(400, "You must reset your password.")
+    when OpenSearch::Transport::Transport::Errors::InternalServerError
+      if exception.message.include?("time_exceeded_exception")
+        render_expected_error(422, "The search timed out. Try using fewer or simpler tags.")
+      else
+        render_error_page(500, exception)
+      end
     else
       render_error_page(500, exception)
     end
@@ -239,6 +243,23 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # Reject pagination params that aren't scalars. Several call sites read
+  # params[:page] / params[:limit] directly (e.g. `.to_i`, conditionals, redirect
+  # helpers) before pagination runs, so a hash or array here would either crash
+  # or get silently mishandled. The paginator does its own value validation —
+  # this guard only enforces the type contract.
+  def validate_pagination_param_types
+    page = params[:page]
+    unless page.nil? || page.is_a?(String) || page.is_a?(Numeric)
+      raise Danbooru::Paginator::PaginationError, "Invalid page number."
+    end
+
+    limit = params[:limit]
+    unless limit.nil? || limit.is_a?(String) || limit.is_a?(Numeric)
+      raise Danbooru::Paginator::PaginationError, "Invalid limit."
+    end
+  end
+
   # Remove blank `search` params from the url.
   #
   # /tags?search[name]=touhou&search[category]=&search[order]=
@@ -247,7 +268,9 @@ class ApplicationController < ActionController::Base
     return unless request.get? || request.head?
 
     # Coerce top-level params that must be scalars — reject hashes, unwrap single-element arrays.
-    %i[q page limit id user_id expiry].each do |key|
+    # NOTE: :page and :limit are intentionally excluded here. Their type is enforced by
+    # validate_pagination_param_types, and the paginator validates the values themselves.
+    %i[q id user_id expiry].each do |key|
       next unless params.key?(key)
       params[key] = case params[key]
                     when String, Numeric then params[key]

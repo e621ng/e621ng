@@ -21,8 +21,8 @@ class CommentsController < ApplicationController
   def show
     @comment = Comment.find(params[:id])
     check_accessible(@comment, bypass_user_settings: true)
-    @comment_votes = CommentVote.for_comments_and_user([@comment.id], CurrentUser.id)
-    respond_with(@comment)
+    Comment.preload_vote_by!(@comment, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+    respond_with_comment(@comment)
   end
 
   def search
@@ -30,8 +30,8 @@ class CommentsController < ApplicationController
 
   def for_post
     @post = Post.find(params[:id])
-    @comments = @post.comments.includes(:creator, :updater)
-    @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+    @comments = @post.comments.includes(:creator, :updater).to_a
+    Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     comment_html = render_to_string partial: "comments/partials/show/comment", collection: @comments, locals: { post: @post }, formats: [:html]
     respond_with do |format|
       format.json do
@@ -42,19 +42,19 @@ class CommentsController < ApplicationController
 
   def new
     @comment = Comment.new(comment_params(:create))
-    respond_with(@comment)
+    respond_with_comment(@comment)
   end
 
   def edit
     @comment = Comment.find(params[:id])
     check_editable(@comment)
-    respond_with(@comment)
+    respond_with_comment(@comment)
   end
 
   def create
     @comment = Comment.create(comment_params(:create))
     flash[:notice] = @comment.valid? ? "Comment posted" : @comment.errors.full_messages.join("; ")
-    respond_with(@comment) do |format|
+    respond_with_comment(@comment) do |format|
       format.html do
         redirect_back fallback_location: @comment.post || comments_path
       end
@@ -65,27 +65,27 @@ class CommentsController < ApplicationController
     @comment = Comment.find(params[:id])
     check_editable(@comment)
     @comment.update(comment_params(:update))
-    respond_with(@comment, location: post_path(@comment.post_id))
+    respond_with_comment(@comment, location: post_path(@comment.post_id))
   end
 
   def destroy
     @comment = Comment.find(params[:id])
     @comment.destroy
-    respond_with(@comment)
+    respond_with_comment(@comment)
   end
 
   def hide
     @comment = Comment.find(params[:id])
     check_hidable(@comment)
     @comment.hide!
-    respond_with(@comment)
+    respond_with_comment(@comment)
   end
 
   def unhide
     @comment = Comment.find(params[:id])
     check_hidable(@comment)
     @comment.unhide!
-    respond_with(@comment)
+    respond_with_comment(@comment)
   end
 
   def warning
@@ -95,7 +95,7 @@ class CommentsController < ApplicationController
     else
       @comment.user_warned!(params[:record_type], CurrentUser.user)
     end
-    @comment_votes = CommentVote.for_comments_and_user([@comment.id], CurrentUser.id)
+    Comment.preload_vote_by!(@comment, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     html = render_to_string partial: "comments/partials/show/comment", locals: { comment: @comment, post: nil }, formats: [:html]
     render json: { html: html, posts: deferred_posts }
   end
@@ -107,7 +107,7 @@ class CommentsController < ApplicationController
     @posts = Post.includes(:uploader).includes(comments: %i[creator updater]).tag_match("#{tags} order:comment_bumped").paginate(params[:page], limit: 5, search_count: params[:search])
 
     @comments = @posts.to_h { |post| [post.id, post.comments.above_threshold.includes(:creator, :updater).recent.reverse] }
-    @comment_votes = CommentVote.for_comments_and_user(CurrentUser.id ? @comments.values.flatten.map(&:id) : [], CurrentUser.id)
+    Comment.preload_vote_by!(@comments.values.flatten, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
     respond_with(@posts)
   end
 
@@ -126,14 +126,23 @@ class CommentsController < ApplicationController
     @comments = @comments.above_threshold unless search_params[:id]
     @comments = @comments.paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
 
-    @comment_votes = CommentVote.for_comments_and_user(@comments.map(&:id), CurrentUser.id)
+    Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
 
     if CurrentUser.is_staff?
       ids = @comments&.map(&:id)
       @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
     end
 
-    respond_with(@comments)
+    respond_with(@comments) do |format|
+      format.json { render json: CommentBlueprint.render_as_hash(@comments, collection: true) }
+    end
+  end
+
+  def respond_with_comment(record, **opts, &block)
+    respond_with(record, **opts) do |format|
+      format.json { render json: CommentBlueprint.render_as_hash(record) }
+      block&.call(format)
+    end
   end
 
   def check_accessible(comment, bypass_user_settings: false)

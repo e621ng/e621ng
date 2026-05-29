@@ -285,6 +285,10 @@ class TagQuery
     NO_NON_METATAG_UNLIMITED_TAGS: true,
   }.freeze
 
+  def self.will_count_group_tags?
+    SETTINGS[:CHECK_GROUP_TAGS_AND_DEPTH] != false
+  end
+
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases, :tag_count
 
@@ -1206,10 +1210,16 @@ class TagQuery
 
   private
 
-  METATAG_SEARCH_TYPE = Hash.new(:must).merge({
+  TAG_SEARCH_TYPE = Hash.new(:must).merge({
     "-" => :must_not,
     "~" => :should,
   }).freeze
+
+  # Returns a [tag_name, tag_type] pair such that the tag_name prefix is properly removed if present.
+  def get_tag_name_with_search_type(tag)
+    type = TagQuery::TAG_SEARCH_TYPE[tag[0]]
+    [(type == :must ? tag : tag[1..]).downcase, type]
+  end
 
   # The maximum number of nested groups allowed before either cutting off processing or triggering a
   # `TagQuery::DepthExceededError`.
@@ -1307,7 +1317,7 @@ class TagQuery
           next if group.blank?
           q[:children_show_deleted] ||= !group.hide_deleted_posts?(at_any_level: true) if kwargs[:process_groups]
           q[:groups] ||= {}
-          search_type = METATAG_SEARCH_TYPE[match[1]]
+          search_type = TAG_SEARCH_TYPE[match[1]]
           q[:groups][search_type] ||= []
           q[:groups][search_type] << group
         else
@@ -1330,7 +1340,7 @@ class TagQuery
       # Remove quotes from description:"abc def"
       g2 = g2.delete_prefix('"').delete_suffix('"')
 
-      type = METATAG_SEARCH_TYPE[metatag_name[0]]
+      type = TAG_SEARCH_TYPE[metatag_name[0]]
       # IDEA: Use jump table(s) instead
       # * Can use different table depending on value of `type` to reduce comparisons
       # * A hash has faster lookup than sequentially checking cases, and this already maps to a jump table pretty well.
@@ -1377,10 +1387,13 @@ class TagQuery
           post_set_id
         end
 
+      # NOTE: The favorite case is the only case where `user_id_or_invalid` isn't used, because it needs to check for the `hide_favorites` user setting.
+      # As a result, to avoid an extra lookup in the common case of a valid user, the logic is duplicated here instead of using `user_id_or_invalid` with an `invalid_user_id` of `-1` and then checking for that in the caller.
+      # In future permissions changes, the situation may change, either allowing for `user_id_or_invalid` to be used here or necessitating similar logic in other cases, so this should be kept in mind.
       when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
         add_to_query(type, :fav_ids) do
           if g2.downcase == "me"
-            favuser = CurrentUser.is_member? ? CurrentUser.user : nil
+            favuser = CurrentUser.is_authenticated? ? CurrentUser.user : nil
           else
             favuser = User.find_by_name_or_id(g2) # rubocop:disable Rails/DynamicFindBy
           end
@@ -1531,41 +1544,53 @@ class TagQuery
   # Same as `TagQuery::REGEX_VALID_TAG_CHECK`, but disallows `*`
   REGEX_VALID_TAG_CHECK_2 = /[\*\,\#\$\%\\]/
 
+  # Checks if a certain tag should be transformed into a metatag, and adds it accordingly if so.
+  def intercept_metatag_alias(tag, type)
+    if FileMethods::FILE_TYPE.value?(tag)
+      add_to_query(type, :filetype, tag)
+      return true
+    end
+    nil
+  end
+
   # Adds the tag to the query object based on its prefix and if it contains a wildcard.
   # ### Notes:
   # * Exits if it's not a facially valid tag. Stops prior behavior of searching for tags comprised
   # entirely of invalid characters (which would always be false but, if preceded by `~` or `-`,
   # wouldn't end the search).
   def add_tag(tag)
-    if tag.start_with?("-")
-      tag = tag[1..]
-      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag)
+    tag_name, tag_type = get_tag_name_with_search_type(tag)
+
+    return if intercept_metatag_alias(tag_name, tag_type)
+
+    case tag_type
+    when :must_not
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag_name)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError.new(tag: tag, prefix: "-", query_obj: self)
+        raise InvalidTagError.new(tag: tag_name, prefix: "-", query_obj: self)
       end
-      if tag.include?("*")
-        q[:tags][:must_not] += pull_wildcard_tags(tag.downcase)
+      if tag_name.include?("*")
+        q[:tags][:must_not] += pull_wildcard_tags(tag_name)
         check_opensearch_clause_count
       else
-        q[:tags][:must_not] << tag.downcase
+        q[:tags][:must_not] << tag_name
       end
-    elsif tag.start_with?("~")
-      tag = tag[1..]
-      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK_2.match?(tag)
+    when :should
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK_2.match?(tag_name)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError.new(tag: tag, prefix: "~", has_wildcard: tag.include?("*"), query_obj: self)
+        raise InvalidTagError.new(tag: tag_name, prefix: "~", has_wildcard: tag_name.include?("*"), query_obj: self)
       end
-      q[:tags][:should] << tag.downcase
-    else
-      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag)
+      q[:tags][:should] << tag_name
+    when :must
+      if SETTINGS[:CHECK_TAG_VALIDITY] && REGEX_VALID_TAG_CHECK.match?(tag_name)
         return if !SETTINGS[:ERROR_ON_INVALID_TAG] || SETTINGS[:CATCH_INVALID_TAG]
-        raise InvalidTagError.new(tag: tag, query_obj: self)
+        raise InvalidTagError.new(tag: tag_name, query_obj: self)
       end
-      if tag.include?("*")
-        q[:tags][:should] += pull_wildcard_tags(tag)
+      if tag_name.include?("*")
+        q[:tags][:should] += pull_wildcard_tags(tag_name)
         check_opensearch_clause_count
       else
-        q[:tags][:must] << tag.downcase
+        q[:tags][:must] << tag_name
       end
     end
   end
@@ -1646,13 +1671,17 @@ class TagQuery
   end
 
   def user_id_or_invalid(val)
+    if val.is_a?(String) && val.casecmp?("me")
+      return CurrentUser.is_authenticated? ? CurrentUser.id : -1
+    end
     User.name_or_id_to_id(val).presence || -1
   end
 
   def privileged_user_id_or_invalid(val)
-    if CurrentUser.is_moderator?
+    if CurrentUser.user.is_moderator?
+      return CurrentUser.id if val.is_a?(String) && val.casecmp?("me")
       User.name_or_id_to_id(val).presence
-    elsif CurrentUser.is_member?
+    elsif CurrentUser.user.is_authenticated?
       CurrentUser.id.presence
     end || -1
   end

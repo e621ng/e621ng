@@ -61,6 +61,14 @@ RSpec.describe TagQuery do
     it "~filetype: stores the value in filetype_should" do
       expect(TagQuery.new("~filetype:jpg")[:filetype_should]).to include("jpg")
     end
+
+    it "converts t tags to the respective type:t metatags" do
+      FileMethods::FILE_TYPE.each_value do |t|
+        expect(TagQuery.new(t)[:filetype]).to include(t)
+        expect(TagQuery.new("~#{t}")[:filetype_should]).to include(t)
+        expect(TagQuery.new("-#{t}")[:filetype_must_not]).to include(t)
+      end
+    end
   end
 
   describe "source: metatag" do
@@ -181,6 +189,11 @@ RSpec.describe TagQuery do
     it "sets q[:status] to 'any' when status is not already set" do
       tq = TagQuery.new("deletedby:#{moderator.name}")
       expect(tq[:status]).to eq("any")
+    end
+
+    it "stores the current user's ID for deletedby:me" do
+      tq = TagQuery.new("deletedby:me")
+      expect(tq[:deleter]).to include(CurrentUser.id)
     end
   end
 

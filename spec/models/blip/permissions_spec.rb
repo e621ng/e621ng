@@ -10,6 +10,7 @@ RSpec.describe Blip do
   let(:creator)   { create(:user) }
   let(:other)     { create(:user) }
   let(:admin)     { create(:admin_user) }
+  let(:janitor)   { create(:janitor_user) }
   let(:moderator) { create(:moderator_user) }
 
   before do
@@ -24,6 +25,34 @@ RSpec.describe Blip do
 
   def make_blip(overrides = {})
     create(:blip, **overrides)
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_access?
+  # -------------------------------------------------------------------------
+  describe "#can_access?" do
+    it "is accessible to anyone when not deleted" do
+      blip = make_blip
+      expect(blip.can_access?(other)).to be true
+    end
+
+    it "is accessible to a staff member when deleted" do
+      blip = make_blip
+      blip.delete!
+      expect(blip.can_access?(janitor)).to be true
+    end
+
+    it "is accessible to the creator when deleted" do
+      blip = make_blip
+      blip.delete!
+      expect(blip.can_access?(creator)).to be true
+    end
+
+    it "is not accessible to an unrelated user when deleted" do
+      blip = make_blip
+      blip.delete!
+      expect(blip.can_access?(other)).to be false
+    end
   end
 
   # -------------------------------------------------------------------------
@@ -84,30 +113,71 @@ RSpec.describe Blip do
   end
 
   # -------------------------------------------------------------------------
-  # #visible_to?
+  # #can_undelete?
   # -------------------------------------------------------------------------
-  describe "#visible_to?" do
-    it "is visible to anyone when not deleted" do
-      blip = make_blip
-      expect(blip.visible_to?(other)).to be true
-    end
-
-    it "is visible to a moderator when deleted" do
+  describe "#can_undelete?" do
+    it "allows a moderator to undelete any blip" do
       blip = make_blip
       blip.delete!
-      expect(blip.visible_to?(moderator)).to be true
+      expect(blip.can_undelete?(moderator)).to be true
     end
 
-    it "is visible to the creator when deleted" do
+    it "denies a non-moderator from undeleting" do
       blip = make_blip
       blip.delete!
-      expect(blip.visible_to?(creator)).to be true
+      expect(blip.can_undelete?(other)).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_destroy?
+  # -------------------------------------------------------------------------
+  describe "#can_destroy?" do
+    it "allows an admin to destroy any blip" do
+      blip = make_blip
+      expect(blip.can_destroy?(admin)).to be true
     end
 
-    it "is not visible to an unrelated user when deleted" do
+    it "denies a non-admin from destroying" do
+      blip = make_blip
+      expect(blip.can_destroy?(other)).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_warn?
+  # -------------------------------------------------------------------------
+  describe "#can_warn?" do
+    it "allows a moderator to warn any blip" do
+      blip = make_blip
+      expect(blip.can_warn?(moderator)).to be true
+    end
+
+    it "denies a non-moderator from warning" do
+      blip = make_blip
+      expect(blip.can_warn?(other)).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #can_reply?
+  # -------------------------------------------------------------------------
+  describe "#can_reply?" do
+    it "allows a member to reply to a non-deleted blip" do
+      blip = make_blip
+      expect(blip.can_reply?(other)).to be true
+    end
+
+    it "denies a member from replying to a deleted blip" do
       blip = make_blip
       blip.delete!
-      expect(blip.visible_to?(other)).to be false
+      expect(blip.can_reply?(other)).to be false
+    end
+
+    it "denies a non-member from replying" do
+      blip = make_blip
+      anon = create(:anonymous_user)
+      expect(blip.can_reply?(anon)).to be false
     end
   end
 end

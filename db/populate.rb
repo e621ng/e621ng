@@ -156,7 +156,7 @@ def generate_username_candidate
   ].concat.join("_")
 end
 
-def populate_posts(number, search: "order:random+score:>150+-grandfathered_content", users: [], batch_size: 320)
+def populate_posts(number, search: "order:random+score:>150+-grandfathered_content+-rating:e", users: [], batch_size: 320)
   return [] unless number > 0
   puts "* Creating #{number} posts"
 

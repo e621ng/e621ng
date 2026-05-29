@@ -12,9 +12,9 @@ export default class Offclick {
   globalDisabled = true;
 
   constructor () {
-    $(window).on("mouseup", (event) => {
+    $(window).on("pointerup", (event) => {
       if (this.globalDisabled) return;
-      if (event.button !== 0) return; // Only left click
+      if ((event.originalEvent as PointerEvent).button !== 0) return;
 
       const target = $(event.target);
 
@@ -74,7 +74,7 @@ export default class Offclick {
   }
 }
 
-interface OffclickEntry {
+export interface OffclickEntry {
   buttonSelector: string;
   menuSelector: string;
   callback: () => void;

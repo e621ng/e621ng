@@ -37,6 +37,9 @@ class PoolsController < ApplicationController
 
   def gallery
     @pools = Pool.search(search_params).paginate_posts(params[:page], limit: params[:limit], search_count: params[:search])
+    cover_ids = @pools.map(&:cover_post_id).compact
+    covers = Post.where(id: cover_ids).index_by(&:id)
+    @pools.each { |pool| pool.instance_variable_set(:@cover_post, covers[pool.cover_post_id]) }
   end
 
   def create

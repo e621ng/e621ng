@@ -67,7 +67,7 @@ class UserPresenter
   end
 
   def uploads
-    Post.tag_match("user:#{user.name}").limit(8)
+    PostSets::Post.new("user:#{user.name}", 1, limit: 8).posts
   end
 
   def has_uploads?
@@ -75,8 +75,7 @@ class UserPresenter
   end
 
   def favorites
-    ids = Favorite.where(user_id: user.id).order(created_at: :desc).limit(8).pluck(:post_id)
-    Post.where(id: ids).sort_by { |post| ids.index(post.id) }
+    PostSets::Favorites.new(user, 1, limit: 8, post_count: user.favorite_count).posts
   end
 
   def has_favorites?
@@ -87,7 +86,7 @@ class UserPresenter
     # Almost all verified artists only have one artist tag.
     # If this changes, we may need to come up with a way to bulk search for posts with any of the artist's tags.
     @artist_posts_cache ||= {}
-    @artist_posts_cache[artist.id] ||= Post.tag_match(artist.name).limit(8)
+    @artist_posts_cache[artist.id] ||= PostSets::Post.new(artist.name, 1, limit: 8).posts
   end
 
   def upload_count(template)
@@ -164,6 +163,10 @@ class UserPresenter
     template.link_to(user.ticket_count, template.tickets_path(search: { creator_id: user.id }))
   end
 
+  def appeal_count(template)
+    template.link_to(user.appeal_count, template.appeals_path(search: { creator_id: user.id }))
+  end
+
   def approval_count(template)
     template.link_to(Post.where("approver_id = ?", user.id).count, template.posts_path(tags: "approver:#{user.name}"))
   end
@@ -188,7 +191,7 @@ class UserPresenter
   end
 
   def previous_names(template)
-    user.user_name_change_requests.map { |req| template.link_to req.original_name, req }.join(" -> ").html_safe
+    user.user_name_change_requests.map { |req| template.link_to (req.original_name.presence || "<blank>"), req }.join(" -> ").html_safe
   end
 
   def favorite_tags_with_types

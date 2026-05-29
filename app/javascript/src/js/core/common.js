@@ -1,4 +1,4 @@
-import Cookie from "@/utility/cookie";
+import CStorage from "@/utility/StorageC";
 
 function initSearch () {
   const $searchForm = $("#searchform");
@@ -25,12 +25,21 @@ $(function () {
   $(".dmail-notice-hide").on("click.danbooru", function (event) {
     event.preventDefault();
     $(".dmail-notice").hide();
-    Cookie.put("hide_dmail_notice", "true");
+    CStorage.hideDMailNotice = true;
   });
 
-  $("#close-notice-link").on("click.danbooru", function (e) {
-    $("#notice").fadeOut("fast");
-    e.preventDefault();
+  // Prevent link navigation on first tap of a spoiler tag on touch devices.
+  $(document).on("touchend.danbooru", ".spoiler", function (e) {
+    if ($(e.target).closest("a", this).length && !$(this).hasClass("spoiler-revealed")) {
+      e.preventDefault();
+    }
+    $(this).addClass("spoiler-revealed");
+  });
+
+  $(document).on("touchstart.danbooru", function (e) {
+    if (!$(e.target).closest(".spoiler").length) {
+      $(".spoiler.spoiler-revealed").removeClass("spoiler-revealed");
+    }
   });
 
   $(".revert-item-link").on("click", e => {
@@ -47,7 +56,7 @@ $(function () {
     }).done(() => {
       location.reload();
     }).fail(() => {
-      E621.Flash.error("Failed to revert to specified version.");
+      E621.Toast.alert("Failed to revert to specified version.");
     });
   });
 

@@ -7,7 +7,6 @@
 <% unless disable_mobile_mode? %>
   <meta name="viewport" content="width=device-width,initial-scale=1">
 <% end %>
-
 <meta name="current-user-name" content="<%= CurrentUser.name %>">
 <meta name="current-user-id" content="<%= CurrentUser.id %>">
 <meta name="current-user-can-approve-posts" content="<%= CurrentUser.can_approve_posts? %>">
@@ -67,13 +66,13 @@
 <script type="text/plain" id="site-settings" data-encoding="base64"><%= site_settings_base64 %></script>
 
 <style id="blacklisted-hider">
-  .thumbnail, #image-container, #c-comments .post, .post-thumbnail {
+  .thumbnail, #image-container, #c-comments .post {
     visibility: hidden !important;
   }
 </style>
 <noscript>
   <style>
-    .thumbnail, #image-container, #c-comments .post, .post-thumbnail {
+    .thumbnail, #image-container, #c-comments .post {
       visibility: visible !important;
     }
   </style>
