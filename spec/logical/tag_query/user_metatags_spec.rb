@@ -45,7 +45,7 @@ RSpec.describe TagQuery, type: :model do
     end
 
     it "skips for user:me on an anonymous session" do
-      CurrentUser.user.level = User::Levels::ANONYMOUS
+      CurrentUser.user = User.anonymous
       tq = TagQuery.new("user:me")
       expect(tq[:uploader_ids]).to include(-1)
     end

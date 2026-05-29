@@ -1637,7 +1637,7 @@ class TagQuery
   end
 
   def user_id_or_invalid(val)
-    if val.respond_to?(:downcase) && val.downcase == "me"
+    if val.is_a?(String) && val.casecmp?("me")
       return CurrentUser.is_authenticated? ? CurrentUser.id : -1
     end
     User.name_or_id_to_id(val).presence || -1
