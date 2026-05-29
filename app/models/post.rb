@@ -887,20 +887,27 @@ class Post < ApplicationRecord
       #Reuse the following metatags after the post has been saved
       casesensitive_metatags += tags.select {|x| x =~ /\A(?:newpool):/i}
       if casesensitive_metatags.length > 0
-        case casesensitive_metatags[-1]
-        when /^source:none$/i
-          self.source = ""
+        casesensitive_metatags.each do |metatag|
+          case metatag
+          when /^source:none$/i
+            self.source = ""
 
-        when /^source:("?)(.*)\1$/i
-          self.source = $2
+          when /^\+source:none$/i
+            next
 
-        when /^\+source:("?)(.*)\1$/i
-          self.source = self.source.blank? ? $2 : "#{self.source}\n#{$2}"
+          when /^source:("?)(.*)\1$/i
+            self.source = $2
 
-        when /^newpool:(.+)$/i
-          pool = Pool.find_by_name($1)
+          when /^\+source:("?)(.*)\1$/i
+            self.source = self.source.blank? ? $2 : "#{self.source}\n#{$2}"
+          end
+        end
+
+        if (newpool = casesensitive_metatags.grep(/^newpool:(.+)$/i).last)
+          pool_name = newpool.match(/^newpool:(.+)$/i)[1]
+          pool = Pool.find_by_name(pool_name)
           if pool.nil?
-            pool = Pool.create(name: $1, description: "")
+            pool = Pool.create(name: pool_name, description: "")
           end
         end
       end

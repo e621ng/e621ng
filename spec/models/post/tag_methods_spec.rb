@@ -212,6 +212,24 @@ RSpec.describe Post do
           expect(post.reload.source).to include("example.com")
           expect(post.reload.source).not_to include("\n")
         end
+
+        it "accepts quoted +source values" do
+          post = create(:post, source: "")
+          post.update!(tag_string: "#{post.tag_string} +source:\"https://example.com\"")
+          expect(post.reload.source).to eq("https://example.com")
+        end
+
+        it "skips +source:none" do
+          post = create(:post, source: "foobar")
+          post.update!(tag_string: "#{post.tag_string} +source:none")
+          expect(post.reload.source).to eq("foobar")
+        end
+
+        it "applies multiple +source values in order" do
+          post = create(:post, source: "foobar")
+          post.update!(tag_string: "#{post.tag_string} +source:baz_quux +source:qux_corge")
+          expect(post.reload.source).to eq("foobar\nbaz_quux\nqux_corge")
+        end
       end
     end
 
