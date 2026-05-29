@@ -190,5 +190,10 @@ RSpec.describe TagQuery, type: :model do
       tq = TagQuery.new("deletedby:#{moderator.name}")
       expect(tq[:status]).to eq("any")
     end
+
+    it "stores the current user's ID for deletedby:me" do
+      tq = TagQuery.new("deletedby:me")
+      expect(tq[:deleter]).to include(CurrentUser.id)
+    end
   end
 end

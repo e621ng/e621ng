@@ -14,6 +14,7 @@ RSpec.describe AppealsController do
   let(:post_flag)          { CurrentUser.scoped(other_member) { create(:deletion_post_flag, post: flagged_post) } }
   let(:post_flag_resolved) { CurrentUser.scoped(other_member) { create(:deletion_post_flag, post: flagged_post, is_resolved: true) } }
   let(:appeal)             { CurrentUser.scoped(uploader) { create(:appeal, post_flag: post_flag) } }
+  let(:valid_params) { { appeal: { qtype: "flag", disp_id: post_flag.id, reason: "The flag is wrong." } } }
 
   # ---------------------------------------------------------------------------
   # GET /appeals — index
@@ -106,6 +107,16 @@ RSpec.describe AppealsController do
       get new_appeal_path(qtype: "flag", disp_id: post_flag.id)
       expect(response).to have_http_status(:ok)
     end
+
+    it "redirects to the existing appeal if one already exists for the post uploader" do
+      sign_in_as uploader
+      expect { post appeals_path, params: valid_params }.to change(Appeal, :count).by(1)
+      appeal = Appeal.last
+      expect(response).to redirect_to(appeal_path(appeal))
+      get new_appeal_path(qtype: "flag", disp_id: post_flag.id)
+      expect(response).to redirect_to(appeal_path(appeal))
+      expect(flash[:alert]).to eq("This deletion has already been appealed.")
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -113,7 +124,6 @@ RSpec.describe AppealsController do
   # ---------------------------------------------------------------------------
 
   describe "POST /appeals" do
-    let(:valid_params) { { appeal: { qtype: "flag", disp_id: post_flag.id, reason: "The flag is wrong." } } }
     let(:valid_params_resolved) { { appeal: { qtype: "flag", disp_id: post_flag_resolved.id, reason: "The flag is wrong." } } }
 
     context "as anonymous" do
@@ -145,6 +155,13 @@ RSpec.describe AppealsController do
       it "creates an appeal and redirects to the appeal page" do
         expect { post appeals_path, params: valid_params }.to change(Appeal, :count).by(1)
         expect(response).to redirect_to(appeal_path(Appeal.last))
+      end
+
+      it "returns 403 for an already appealed flag" do
+        expect { post appeals_path, params: valid_params }.to change(Appeal, :count).by(1)
+        expect(response).to redirect_to(appeal_path(Appeal.last))
+        post appeals_path, params: valid_params
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "re-renders new when the reason is blank" do

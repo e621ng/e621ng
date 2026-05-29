@@ -1443,6 +1443,46 @@ ALTER SEQUENCE public.post_events_id_seq OWNED BY public.post_events.id;
 
 
 --
+-- Name: post_flag_reasons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_flag_reasons (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    reason character varying NOT NULL,
+    text text DEFAULT ''::text NOT NULL,
+    needs_explanation boolean DEFAULT false NOT NULL,
+    needs_parent_id boolean DEFAULT false NOT NULL,
+    needs_staff_reason boolean DEFAULT false NOT NULL,
+    index integer DEFAULT 0 NOT NULL,
+    target_date date,
+    target_date_kind character varying,
+    target_tag character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: post_flag_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_flag_reasons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_flag_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_flag_reasons_id_seq OWNED BY public.post_flag_reasons.id;
+
+
+--
 -- Name: post_flags; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1456,7 +1496,10 @@ CREATE TABLE public.post_flags (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
     is_deletion boolean DEFAULT false NOT NULL,
-    note character varying
+    note character varying,
+    reason_name character varying,
+    needs_parent_id boolean DEFAULT false NOT NULL,
+    needs_staff_reason boolean DEFAULT false NOT NULL
 );
 
 
@@ -2937,6 +2980,13 @@ ALTER TABLE ONLY public.post_events ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: post_flag_reasons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_flag_reasons ALTER COLUMN id SET DEFAULT nextval('public.post_flag_reasons_id_seq'::regclass);
+
+
+--
 -- Name: post_flags id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3463,6 +3513,14 @@ ALTER TABLE ONLY public.post_disapprovals
 
 ALTER TABLE ONLY public.post_events
     ADD CONSTRAINT post_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_flag_reasons post_flag_reasons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_flag_reasons
+    ADD CONSTRAINT post_flag_reasons_pkey PRIMARY KEY (id);
 
 
 --
@@ -4493,6 +4551,20 @@ CREATE INDEX index_post_events_on_post_id ON public.post_events USING btree (pos
 
 
 --
+-- Name: index_post_flag_reasons_on_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_flag_reasons_on_index ON public.post_flag_reasons USING btree (index);
+
+
+--
+-- Name: index_post_flag_reasons_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_flag_reasons_on_name ON public.post_flag_reasons USING btree (name);
+
+
+--
 -- Name: index_post_flags_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5334,6 +5406,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260520175932'),
 ('20260519151649'),
 ('20260505163626'),
 ('20260503072727'),
@@ -5639,4 +5712,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20100205162521'),
 ('20100204214746'),
 ('20100204211522');
-

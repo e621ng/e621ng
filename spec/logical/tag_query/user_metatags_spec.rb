@@ -38,6 +38,17 @@ RSpec.describe TagQuery, type: :model do
       tq = TagQuery.new("~user:#{target_user.name}")
       expect(tq[:uploader_ids_should]).to include(target_user.id)
     end
+
+    it "stores the current user's ID for user:me" do
+      tq = TagQuery.new("user:me")
+      expect(tq[:uploader_ids]).to include(CurrentUser.id)
+    end
+
+    it "skips for user:me on an anonymous session" do
+      CurrentUser.user = User.anonymous
+      tq = TagQuery.new("user:me")
+      expect(tq[:uploader_ids]).to include(-1)
+    end
   end
 
   describe "approver: metatag" do
@@ -61,6 +72,11 @@ RSpec.describe TagQuery, type: :model do
       tq = TagQuery.new("-approver:any")
       expect(tq[:approver]).to eq("none")
     end
+
+    it "stores the current user's ID for approver:me" do
+      tq = TagQuery.new("approver:me")
+      expect(tq[:approver_ids]).to include(CurrentUser.id)
+    end
   end
 
   describe "commenter: metatag and comm: alias" do
@@ -79,6 +95,11 @@ RSpec.describe TagQuery, type: :model do
       tq = TagQuery.new("commenter:any")
       expect(tq[:commenter]).to eq("any")
     end
+
+    it "stores the current user's ID for commenter:me" do
+      tq = TagQuery.new("commenter:me")
+      expect(tq[:commenter_ids]).to include(CurrentUser.id)
+    end
   end
 
   describe "noter: metatag" do
@@ -91,6 +112,11 @@ RSpec.describe TagQuery, type: :model do
       tq = TagQuery.new("noter:any")
       expect(tq[:noter]).to eq("any")
     end
+
+    it "stores the current user's ID for noter:me" do
+      tq = TagQuery.new("noter:me")
+      expect(tq[:noter_ids]).to include(CurrentUser.id)
+    end
   end
 
   describe "noteupdater: metatag" do
@@ -102,6 +128,11 @@ RSpec.describe TagQuery, type: :model do
     it "stores -1 for an unknown noteupdater" do
       tq = TagQuery.new("noteupdater:nobody_here_zzz")
       expect(tq[:note_updater_ids]).to include(-1)
+    end
+
+    it "stores the current user's ID for noteupdater:me" do
+      tq = TagQuery.new("noteupdater:me")
+      expect(tq[:note_updater_ids]).to include(CurrentUser.id)
     end
   end
 
@@ -185,6 +216,11 @@ RSpec.describe TagQuery, type: :model do
       it "vote: is an alias for voted:" do
         tq = TagQuery.new("vote:#{target_user.name}")
         expect(tq[:voted]).to include(target_user.id)
+      end
+
+      it "upvote:me stores the moderator's own ID" do
+        tq = TagQuery.new("upvote:Me") # test case-insensitivity
+        expect(tq[:upvote]).to include(CurrentUser.id)
       end
     end
 

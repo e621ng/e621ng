@@ -117,9 +117,8 @@ RSpec.describe PostFlagsController do
 
   describe "POST /post_flags" do
     let(:flaggable_post) { create(:post) }
-    # Pick the first configured reason that needs no explanation, so no note param is required.
-    let(:simple_reason_name) { Danbooru.config.flag_reasons.find { |r| !r[:name].to_s.in?(%w[inferior deletion]) && !r[:require_explanation] }[:name].to_s }
-    let(:valid_params) { { post_flag: { post_id: flaggable_post.id, reason_name: simple_reason_name } } }
+    let(:flag_reason)    { create(:post_flag_reason) }
+    let(:valid_params)   { { post_flag: { post_id: flaggable_post.id, reason_name: flag_reason.name } } }
 
     context "as anonymous" do
       it "redirects HTML to the login page" do
