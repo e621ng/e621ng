@@ -135,7 +135,7 @@ RSpec.describe StorageManager do
 
     it "returns nil for a deleted post" do
       post = instance_double(Post, md5: md5, file_ext: "jpg", is_deleted?: true)
-      expect(manager.post_download_url(post)).to eq(nil)
+      expect(manager.post_download_url(post)).to be_nil
     end
   end
 end
