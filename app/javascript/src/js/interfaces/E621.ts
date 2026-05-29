@@ -72,7 +72,7 @@ export function getE621Instance (): E621Type {
     // compatibility aliases
     // TODO: Remove after November 2026
     notice: deprecated(ToastManager.notice, "E621.notice is deprecated. Please use E621.Toast.notice instead."),
-    error: deprecated(ToastManager.alert, "E621.alert is deprecated. Please use E621.Toast.alert instead."),
+    error: deprecated(ToastManager.alert, "E621.error is deprecated. Please use E621.Toast.alert instead."),
     Flash: {
       notice: deprecated(ToastManager.notice, "E621.Flash.notice is deprecated. Please use E621.Toast.notice instead."),
       error: deprecated(ToastManager.alert, "E621.Flash.error is deprecated. Please use E621.Toast.alert instead."),
@@ -81,7 +81,7 @@ export function getE621Instance (): E621Type {
 
   window["Danbooru"] = window["E621"] = instance;
   return instance;
-};
+}
 
 /**
  * Marks a method as deprecated, logging a warning message to the console when it is called.
@@ -92,6 +92,6 @@ export function getE621Instance (): E621Type {
 function deprecated<T extends (...args: any[]) => void>(method: T, warningMessage: string): T {
   return function (this: any, ...args: any[]) {
     console.warn(warningMessage);
-    return method.apply(this, args);
+    return method(...args);
   } as unknown as T;
 }
