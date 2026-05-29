@@ -1366,6 +1366,9 @@ class TagQuery
           post_set_id
         end
 
+      # NOTE: The favorite case is the only case where `user_id_or_invalid` isn't used, because it needs to check for the `hide_favorites` user setting.
+      # As a result, to avoid an extra lookup in the common case of a valid user, the logic is duplicated here instead of using `user_id_or_invalid` with an `invalid_user_id` of `-1` and then checking for that in the caller.
+      # In future permissions changes, the situation may change, either allowing for `user_id_or_invalid` to be used here or necessitating similar logic in other cases, so this should be kept in mind.
       when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
         add_to_query(type, :fav_ids) do
           if g2.downcase == "me"
@@ -1634,11 +1637,15 @@ class TagQuery
   end
 
   def user_id_or_invalid(val)
+    if val.is_a?(String) && val.casecmp?("me")
+      return CurrentUser.is_authenticated? ? CurrentUser.id : -1
+    end
     User.name_or_id_to_id(val).presence || -1
   end
 
   def privileged_user_id_or_invalid(val)
     if CurrentUser.user.is_moderator?
+      return CurrentUser.id if val.is_a?(String) && val.casecmp?("me")
       User.name_or_id_to_id(val).presence
     elsif CurrentUser.user.is_authenticated?
       CurrentUser.id.presence
