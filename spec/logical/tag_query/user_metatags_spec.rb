@@ -129,6 +129,11 @@ RSpec.describe TagQuery, type: :model do
       tq = TagQuery.new("noteupdater:nobody_here_zzz")
       expect(tq[:note_updater_ids]).to include(-1)
     end
+
+    it "stores the current user's ID for noteupdater:me" do
+      tq = TagQuery.new("noteupdater:me")
+      expect(tq[:note_updater_ids]).to include(CurrentUser.id)
+    end
   end
 
   describe "fav: metatag and favoritedby: alias" do
@@ -186,6 +191,11 @@ RSpec.describe TagQuery, type: :model do
       it "voted: resolves the user and stores ID in voted array" do
         tq = TagQuery.new("voted:#{target_user.name}")
         expect(tq[:voted]).to include(target_user.id)
+      end
+
+      it "upvote:me stores the moderator's own ID" do
+        tq = TagQuery.new("upvote:Me") # test case-insensitivity
+        expect(tq[:upvote]).to include(CurrentUser.id)
       end
     end
 

@@ -1645,6 +1645,7 @@ class TagQuery
 
   def privileged_user_id_or_invalid(val)
     if CurrentUser.user.is_moderator?
+      return CurrentUser.id if val.is_a?(String) && val.casecmp?("me")
       User.name_or_id_to_id(val).presence
     elsif CurrentUser.user.is_authenticated?
       CurrentUser.id.presence
