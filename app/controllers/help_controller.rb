@@ -6,10 +6,15 @@ class HelpController < ApplicationController
   before_action :admin_only, except: %i[index show]
 
   def index
-    return redirect_to help_page_path(id: Danbooru.config.help_landing_page), status: 303 unless CurrentUser.is_admin?
-    @help_pages = HelpPage.help_index
-    respond_with(@help_pages) do |format|
-      format.json { render json: @help_pages.to_json }
+    @help = HelpPage.find_by(name: Danbooru.config.help_landing_page)
+
+    if @help.nil?
+      render_expected_error(404, "Help page not found")
+      return
+    end
+
+    respond_with(@help) do |format|
+      format.html { render :show }
     end
   end
 
@@ -55,6 +60,13 @@ class HelpController < ApplicationController
     @help = HelpPage.find(params[:id])
     @help.destroy
     respond_with(@help)
+  end
+
+  def list
+    @help_pages = HelpPage.help_index
+    respond_with(@help_pages) do |format|
+      format.json { render json: @help_pages.to_json }
+    end
   end
 
   private
