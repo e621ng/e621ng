@@ -52,7 +52,7 @@ class User < ApplicationRecord
     hide_comments
     show_hidden_comments
     show_post_statistics
-    is_banned
+    _is_banned
     forum_notification_dot
     receive_email_notifications
     enable_keyboard_navigation
@@ -74,6 +74,7 @@ class User < ApplicationRecord
     replacements_beta
     is_bd_staff
     is_bd_auditor
+    has_cropped_avatar
   ].freeze
 
   include Danbooru::HasBitFlags
@@ -91,7 +92,7 @@ class User < ApplicationRecord
   validate :validate_email_address_allowed, on: %i[create update], if: ->(rec) { (rec.new_record? && rec.email.present?) || (rec.email.present? && rec.email_changed?) }
 
   normalizes :profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") }
-  validates :name, presence: true # NOTE: validation order is important here. See UserNameValidator for details.
+  validates :name, presence: true, if: -> { new_record? || name_changed? } # NOTE: validation order is important here. See UserNameValidator for details.
   validates :name, user_name: true, on: :create
   validates :default_image_size, inclusion: { in: %w[large fit fitv original] }
   validates :per_page, inclusion: { in: 1..Danbooru.config.max_per_page }
@@ -108,6 +109,7 @@ class User < ApplicationRecord
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
   validates :custom_style, length: { maximum: 500_000 }
+  validates :custom_title, length: { maximum: 100 }, allow_blank: true
   validates :profile_about, length: { maximum: Danbooru.config.user_about_max_size }
   validates :profile_artinfo, length: { maximum: Danbooru.config.user_about_max_size }
   validates :time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
@@ -116,6 +118,7 @@ class User < ApplicationRecord
   after_create :create_user_status
   before_update :encrypt_password_on_update
   after_save :update_cache
+  after_save :clear_cropped_avatar_on_avatar_change
 
   after_create_commit :enqueue_automod_user_check
   after_update_commit :enqueue_automod_user_update_check,
@@ -155,13 +158,12 @@ class User < ApplicationRecord
     end
 
     def unban!
-      self.is_banned = false
       self.level = 20
       save
     end
 
     def ban_expired?
-      is_banned? && recent_ban.try(:expired?)
+      is_blocked? && recent_ban&.expired?
     end
   end
 
@@ -353,8 +355,13 @@ class User < ApplicationRecord
     end
 
     def is_blocked?
-      is_banned? || level == Levels::BLOCKED
+      level == Levels::BLOCKED
     end
+
+    def is_banned?
+      is_blocked?
+    end
+    alias is_banned is_banned?
 
     # Defines various convenience methods for finding out the user's level
     Danbooru.config.levels.each do |name, value|
@@ -366,6 +373,10 @@ class User < ApplicationRecord
       define_method("is_#{normalized_name}?") do
         is_verified? && level >= value && id.present?
       end
+    end
+
+    def is_authenticated?
+      level > Levels::ANONYMOUS
     end
 
     def is_bd_staff?
@@ -388,6 +399,16 @@ class User < ApplicationRecord
       if avatar_id.present? && avatar.nil?
         self.avatar_id = nil
       end
+    end
+
+    def clear_cropped_avatar_on_avatar_change
+      return unless saved_change_to_avatar_id?
+      return unless has_cropped_avatar?
+
+      flag = User.flag_value_for("has_cropped_avatar")
+      update_columns(bit_prefs: bit_prefs & ~flag)
+
+      AvatarCleanupJob.perform_later(id)
     end
 
     def staff_cant_disable_dmail
@@ -462,7 +483,7 @@ class User < ApplicationRecord
 
   module ForumMethods
     def has_forum_been_updated?
-      return false unless is_member? && forum_notification_dot
+      return false unless is_authenticated? && forum_notification_dot
       max_updated_at = ForumTopic.visible(self).order(updated_at: :desc).first&.updated_at
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
@@ -584,6 +605,26 @@ class User < ApplicationRecord
     create_user_throttle(
       :ticket_active,
       -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Ticket.for_creator(id).active.count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+
+    # Appeal Throttles
+    create_user_throttle(
+      :appeal_hourly,
+      -> { (Danbooru.config.ticket_hourly_limit || Float::INFINITY) - Appeal.for_creator(id).where("created_at > ?", 1.hour.ago).count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+    create_user_throttle(
+      :appeal_daily,
+      -> { (Danbooru.config.ticket_daily_limit || Float::INFINITY) - Appeal.for_creator(id).where("created_at > ?", 1.day.ago).count },
+      :general_bypass_throttle?,
+      3.days,
+    )
+    create_user_throttle(
+      :appeal_active,
+      -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Appeal.for_creator(id).active.count },
       :general_bypass_throttle?,
       3.days,
     )
@@ -748,6 +789,7 @@ class User < ApplicationRecord
         post_upload_count post_update_count note_update_count
         is_banned can_approve_posts can_upload_free
         level_string avatar_id is_verified?
+        has_cropped_avatar?
       ]
 
       if id == CurrentUser.user.id
@@ -845,6 +887,10 @@ class User < ApplicationRecord
 
     def ticket_count
       user_status&.ticket_count || 0
+    end
+
+    def appeal_count
+      user_status&.appeal_count || 0
     end
 
     def set_count
@@ -1054,8 +1100,9 @@ class User < ApplicationRecord
 
   def hide_favorites?
     return false if CurrentUser.is_moderator?
+    return false if CurrentUser.user.id == id
     return true if is_blocked?
-    enable_privacy_mode? && CurrentUser.user.id != id
+    enable_privacy_mode?
   end
 
   def compact_uploader?

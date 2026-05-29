@@ -1,31 +1,35 @@
 {
-  "name": "app",
-  "packageManager": "yarn@1.22.19",
+  "name": "e621ng",
   "private": true,
-  "dependencies": {
-    "@openpanel/web": "^1.2.0",
-    "@rails/ujs": "^7.0.4",
-    "chart.js": "^4.5.1",
-    "jquery": "^3.6.3",
-    "sass": "^1.42.1",
-    "vue": "^3.5.0",
-    "zxcvbn": "^4.4.2"
+  "packageManager": "npm@10.8.2",
+  "engines": {
+    "node": ">=20.19.2",
+    "npm": ">=10.8.2"
   },
   "version": "0.1.0",
+  "dependencies": {
+    "@openpanel/web": "~1.4.1",
+    "@rails/ujs": "~7.1.600",
+    "chart.js": "~4.5.1",
+    "jquery": "~3.7.1",
+    "sass": "~1.100.0",
+    "vue": "~3.5.35",
+    "zxcvbn": "~4.4.2"
+  },
   "devDependencies": {
-    "@eslint/js": "^9.36.0",
-    "@rollup/plugin-inject": "^5.0.5",
-    "@stylistic/eslint-plugin": "^5.4.0",
-    "@types/jquery": "^4.0.0",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "eslint": "^9.36.0",
-    "globals": "^15.8.0",
-    "typescript": "^6.0.2",
-    "typescript-eslint": "^8.58.1",
-    "vite": "^7.3.0",
-    "vite-plugin-ruby": "^5.1.0"
+    "@eslint/js": "~9.39.4",
+    "@rollup/plugin-inject": "~5.0.5",
+    "@stylistic/eslint-plugin": "~5.10.0",
+    "@types/jquery": "~4.0.0",
+    "@vitejs/plugin-vue": "~6.0.7",
+    "eslint": "~9.39.4",
+    "globals": "~17.6.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "~8.60.0",
+    "vite": "~8.0.14",
+    "vite-plugin-ruby": "~5.2.2"
   },
   "scripts": {
-    "lint": "yarn run eslint './app/javascript/**/*.{js,ts}' --no-fix --max-warnings 0"
+    "lint": "eslint './app/javascript/**/*.{js,ts}' --no-fix --max-warnings 0"
   }
 }

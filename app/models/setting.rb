@@ -22,7 +22,7 @@ class Setting < RailsSettings::Base
   end
 
   scope :tos do
-    field :tos_version, type: :numeric, default: 1, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
+    field :tos_version, type: :numeric, default: 1, validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
   end
 
   scope :maintenance do

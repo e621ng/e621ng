@@ -12,10 +12,12 @@ class IqdbQueriesController < ApplicationController
     search_params = params[:search].presence || params
     throttle(search_params)
 
+    v2_format = params[:v2] == "true" && request.format.json?
+
     @matches = []
     if search_params[:file].present?
       raise ProcessingError, "Invalid file parameter" unless search_params[:file].respond_to?(:tempfile)
-      @matches = IqdbProxy.query_file(search_params[:file].tempfile, search_params[:score_cutoff])
+      @matches = IqdbProxy.query_file(search_params[:file].tempfile, search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:url].present?
       raise ProcessingError, "Invalid URL parameter" unless search_params[:url].is_a?(String)
       parsed_url = begin
@@ -26,13 +28,13 @@ class IqdbQueriesController < ApplicationController
       raise ProcessingError, "Invalid URL" unless parsed_url
       whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
       raise ProcessingError, "Not allowed to request content from this URL" unless whitelist_result[0]
-      @matches = IqdbProxy.query_url(parsed_url.to_s, search_params[:score_cutoff])
+      @matches = IqdbProxy.query_url(parsed_url.to_s, search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:post_id].present?
       raise ProcessingError, "Invalid post_id parameter" unless search_params[:post_id].to_s =~ /\A\d+\z/
-      @matches = IqdbProxy.query_post(Post.find_by(id: search_params[:post_id]), search_params[:score_cutoff])
+      @matches = IqdbProxy.query_post(Post.find_by(id: search_params[:post_id]), search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:hash].present?
       raise ProcessingError, "Invalid hash parameter" unless search_params[:hash].is_a?(String) && search_params[:hash] =~ /\A[0-9a-fA-F]+\z/
-      @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff])
+      @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff], v2_format: v2_format)
     end
 
     respond_with(@matches) do |fmt|

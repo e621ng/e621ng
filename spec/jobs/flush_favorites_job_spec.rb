@@ -13,10 +13,7 @@ RSpec.describe FlushFavoritesJob do
   # Favorite.create! fires user_status_counter → UserStatus.favorite_count++
   def add_favorite(post, user)
     Favorite.create!(post_id: post.id, user_id: user.id)
-    post.update_columns(
-      fav_string: "#{post.fav_string} fav:#{user.id}".strip,
-      fav_count:  post.fav_count + 1,
-    )
+    post.write_fav_string!("#{post.fav_string} fav:#{user.id}".strip, post.fav_count + 1)
   end
 
   describe "#perform" do

@@ -24,13 +24,11 @@ RSpec.describe Ticket do
       expect(record.errors[:qtype]).to be_present
     end
 
-    # FIXME: (Bug 2): validate_type runs in after_initialize, not as a validate callback.
-    # Rails clears errors at the start of valid?, so invalid qtypes are not rejected by validation.
-    # it "is invalid with an unknown qtype" do
-    #   record = build(:ticket, qtype: "invalid_type")
-    #   expect(record).not_to be_valid
-    #   expect(record.errors[:qtype]).to be_present
-    # end
+    it "is invalid with an unknown qtype" do
+      record = build(:ticket, qtype: "invalid_type")
+      expect(record).not_to be_valid
+      expect(record.errors[:qtype]).to be_present
+    end
   end
 
   # -------------------------------------------------------------------------

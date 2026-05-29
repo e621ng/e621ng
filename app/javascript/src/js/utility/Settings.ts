@@ -31,8 +31,8 @@ const Settings = {} as {
       search_trend: boolean,
     }
   },
-  Recommender: {
-    remote: boolean,
+  Posts: {
+    webp_enabled: boolean,
   },
 };
 
@@ -53,14 +53,14 @@ Object.defineProperty(Settings, "Analytics", {
   },
 });
 
-Object.defineProperty(Settings, "Recommender", {
+Object.defineProperty(Settings, "Posts", {
   configurable: true,
   get () {
-    const obj = _get()["Recommender"] || {};
+    const obj = _get()["Posts"] || {};
     const value = {
-      remote: obj.remote || false,
+      webp_enabled: obj.webp_enabled || false,
     };
-    Object.defineProperty(Settings, "Recommender", { value, writable: false });
+    Object.defineProperty(Settings, "Posts", { value, writable: false });
     return value;
   },
 });

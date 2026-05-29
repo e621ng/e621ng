@@ -31,7 +31,7 @@ Blip.quote = function (e) {
 
     $('#blip_response_to')[0].value = blipId;
   }).fail(function (data) {
-    E621.Flash.error(data.responseText);
+    E621.Toast.alert(data.responseText);
   });
 };
 

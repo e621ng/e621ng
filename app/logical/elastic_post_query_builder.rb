@@ -38,6 +38,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @always_show_deleted = always_show_deleted
     @always_show_deleted ||= !query.hide_deleted_posts?(at_any_level: true) if GLOBAL_DELETED_FILTER && @depth <= 0
     @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ERROR_ON_DEPTH_EXCEEDED)
+    @downstream_free_tags_count = @free_tags_count + (kwargs[:process_groups] || TagQuery.will_count_group_tags? ? 0 : query.tag_count)
     super(query)
   end
 
@@ -67,7 +68,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         x = TagQuery.new(
           x,
           resolve_aliases: @resolve_aliases,
-          free_tags_count: @free_tags_count + @q.tag_count,
+          free_tags_count: @downstream_free_tags_count,
           error_on_depth_exceeded: @error_on_depth_exceeded,
           depth: @depth + 1,
           hoisted_metatags: nil,
@@ -77,7 +78,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       temp = ElasticPostQueryBuilder.new(
         x,
         resolve_aliases: @resolve_aliases,
-        free_tags_count: @free_tags_count + @q.tag_count,
+        free_tags_count: @downstream_free_tags_count,
         enable_safe_mode: @enable_safe_mode,
         always_show_deleted: GLOBAL_DELETED_FILTER ? true : asd_cache,
         error_on_depth_exceeded: @error_on_depth_exceeded,
@@ -135,6 +136,10 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     "comment_bumped" => [{ comment_bumped_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "comment_bumped_asc" => [{ comment_bumped_at: { order: :asc, missing: :_last } }, { id: :desc }],
     # "random" => [{ _score: :desc }],
+    "flagged" => [{ flagged_at: { order: :desc, missing: :_last } }, { id: :desc }],
+    "flagged_asc" => [{ flagged_at: { order: :asc, missing: :_last } }, { id: :asc }],
+    "deleted" => [{ deleted_at: { order: :desc, missing: :_last } }, { id: :desc }],
+    "deleted_asc" => [{ deleted_at: { order: :asc, missing: :_last } }, { id: :asc }],
   }).freeze.each_value(&:freeze)
 
   def build
@@ -216,10 +221,13 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_array_relation(:rating, :rating)
     add_array_relation(:filetype, :file_ext)
     add_array_relation(:delreason, :del_reason, action: :wildcard)
+    add_array_relation(:flagreason, :flag_reason, action: :wildcard)
+    add_array_relation(:flagnote, :flag_note, action: :wildcard)
     add_array_relation(:description, :description, action: :match_phrase_prefix)
     add_array_relation(:note, :notes, action: :match_phrase_prefix)
     add_array_relation(:sources, :source, any_none_key: :source, action: :wildcard)
     add_array_relation(:deleter, :deleter)
+    add_array_relation(:flagger, :flagger)
     add_array_relation(:upvote, :upvotes)
     add_array_relation(:downvote, :downvotes)
 

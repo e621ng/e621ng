@@ -24,24 +24,6 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 
 --
--- Name: log_favorite_delete(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.log_favorite_delete() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$ BEGIN INSERT INTO public.favorite_events (favorite_id, user_id, post_id, action, created_at) VALUES (OLD.id, OLD.user_id, OLD.post_id, -1, now()); RETURN OLD; END; $$;
-
-
---
--- Name: log_favorite_insert(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.log_favorite_insert() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$ BEGIN INSERT INTO public.favorite_events (favorite_id, user_id, post_id, action, created_at) VALUES (NEW.id, NEW.user_id, NEW.post_id, 1, NEW.created_at); RETURN NEW; END; $$;
-
-
---
 -- Name: posts_trigger_change_seq(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -99,6 +81,46 @@ CREATE SEQUENCE public.api_keys_id_seq
 --
 
 ALTER SEQUENCE public.api_keys_id_seq OWNED BY public.api_keys.id;
+
+
+--
+-- Name: appeals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.appeals (
+    id bigint NOT NULL,
+    creator_id integer NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    disp_id integer NOT NULL,
+    qtype character varying NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    reason text NOT NULL,
+    response text DEFAULT ''::text NOT NULL,
+    claimant_id integer,
+    handler_id integer,
+    accused_id integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: appeals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.appeals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: appeals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.appeals_id_seq OWNED BY public.appeals.id;
 
 
 --
@@ -346,7 +368,8 @@ CREATE TABLE public.bans (
     banner_id integer NOT NULL,
     expires_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    ban_flags integer DEFAULT 0 NOT NULL
 );
 
 
@@ -743,40 +766,6 @@ CREATE SEQUENCE public.exception_logs_id_seq
 --
 
 ALTER SEQUENCE public.exception_logs_id_seq OWNED BY public.exception_logs.id;
-
-
---
--- Name: favorite_events; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.favorite_events (
-    event_id bigint NOT NULL,
-    favorite_id bigint NOT NULL,
-    user_id integer NOT NULL,
-    post_id integer NOT NULL,
-    action smallint NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
-)
-PARTITION BY RANGE (created_at);
-
-
---
--- Name: favorite_events_event_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.favorite_events_event_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: favorite_events_event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.favorite_events_event_id_seq OWNED BY public.favorite_events.event_id;
 
 
 --
@@ -1455,6 +1444,46 @@ ALTER SEQUENCE public.post_events_id_seq OWNED BY public.post_events.id;
 
 
 --
+-- Name: post_flag_reasons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_flag_reasons (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    reason character varying NOT NULL,
+    text text DEFAULT ''::text NOT NULL,
+    needs_explanation boolean DEFAULT false NOT NULL,
+    needs_parent_id boolean DEFAULT false NOT NULL,
+    needs_staff_reason boolean DEFAULT false NOT NULL,
+    index integer DEFAULT 0 NOT NULL,
+    target_date date,
+    target_date_kind character varying,
+    target_tag character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: post_flag_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_flag_reasons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_flag_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_flag_reasons_id_seq OWNED BY public.post_flag_reasons.id;
+
+
+--
 -- Name: post_flags; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1468,7 +1497,10 @@ CREATE TABLE public.post_flags (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
     is_deletion boolean DEFAULT false NOT NULL,
-    note character varying
+    note character varying,
+    reason_name character varying,
+    needs_parent_id boolean DEFAULT false NOT NULL,
+    needs_staff_reason boolean DEFAULT false NOT NULL
 );
 
 
@@ -2527,7 +2559,8 @@ CREATE TABLE public.user_statuses (
     own_post_replaced_count integer DEFAULT 0,
     own_post_replaced_penalize_count integer DEFAULT 0,
     post_replacement_rejected_count integer DEFAULT 0,
-    ticket_count integer DEFAULT 0 NOT NULL
+    ticket_count integer DEFAULT 0 NOT NULL,
+    appeal_count integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2583,7 +2616,8 @@ furry -rating:s'::text,
     unread_dmail_count integer DEFAULT 0 NOT NULL,
     profile_about text DEFAULT ''::text NOT NULL,
     profile_artinfo text DEFAULT ''::text NOT NULL,
-    avatar_id integer
+    avatar_id integer,
+    custom_title character varying DEFAULT ''::character varying NOT NULL
 );
 
 
@@ -2692,6 +2726,13 @@ ALTER SEQUENCE public.wiki_pages_id_seq OWNED BY public.wiki_pages.id;
 --
 
 ALTER TABLE ONLY public.api_keys ALTER COLUMN id SET DEFAULT nextval('public.api_keys_id_seq'::regclass);
+
+
+--
+-- Name: appeals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals ALTER COLUMN id SET DEFAULT nextval('public.appeals_id_seq'::regclass);
 
 
 --
@@ -2811,13 +2852,6 @@ ALTER TABLE ONLY public.email_blacklists ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.exception_logs ALTER COLUMN id SET DEFAULT nextval('public.exception_logs_id_seq'::regclass);
-
-
---
--- Name: favorite_events event_id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.favorite_events ALTER COLUMN event_id SET DEFAULT nextval('public.favorite_events_event_id_seq'::regclass);
 
 
 --
@@ -2944,6 +2978,13 @@ ALTER TABLE ONLY public.post_disapprovals ALTER COLUMN id SET DEFAULT nextval('p
 --
 
 ALTER TABLE ONLY public.post_events ALTER COLUMN id SET DEFAULT nextval('public.post_events_id_seq'::regclass);
+
+
+--
+-- Name: post_flag_reasons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_flag_reasons ALTER COLUMN id SET DEFAULT nextval('public.post_flag_reasons_id_seq'::regclass);
 
 
 --
@@ -3172,6 +3213,14 @@ ALTER TABLE ONLY public.api_keys
 
 
 --
+-- Name: appeals appeals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT appeals_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3313,14 +3362,6 @@ ALTER TABLE ONLY public.email_blacklists
 
 ALTER TABLE ONLY public.exception_logs
     ADD CONSTRAINT exception_logs_pkey PRIMARY KEY (id);
-
-
---
--- Name: favorite_events favorite_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.favorite_events
-    ADD CONSTRAINT favorite_events_pkey PRIMARY KEY (event_id, created_at);
 
 
 --
@@ -3473,6 +3514,14 @@ ALTER TABLE ONLY public.post_disapprovals
 
 ALTER TABLE ONLY public.post_events
     ADD CONSTRAINT post_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_flag_reasons post_flag_reasons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_flag_reasons
+    ADD CONSTRAINT post_flag_reasons_pkey PRIMARY KEY (id);
 
 
 --
@@ -3726,27 +3775,6 @@ ALTER TABLE ONLY public.wiki_pages
 
 
 --
--- Name: favorite_events_created_at_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX favorite_events_created_at_idx ON ONLY public.favorite_events USING btree (created_at);
-
-
---
--- Name: favorite_events_post_id_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX favorite_events_post_id_idx ON ONLY public.favorite_events USING btree (post_id);
-
-
---
--- Name: favorite_events_user_id_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX favorite_events_user_id_idx ON ONLY public.favorite_events USING btree (user_id);
-
-
---
 -- Name: index_api_keys_on_expires_at_and_notified_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3765,6 +3793,27 @@ CREATE UNIQUE INDEX index_api_keys_on_key ON public.api_keys USING btree (key);
 --
 
 CREATE UNIQUE INDEX index_api_keys_on_name_and_user_id ON public.api_keys USING btree (name, user_id);
+
+
+--
+-- Name: index_appeals_on_claimant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appeals_on_claimant_id ON public.appeals USING btree (claimant_id);
+
+
+--
+-- Name: index_appeals_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appeals_on_creator_id ON public.appeals USING btree (creator_id);
+
+
+--
+-- Name: index_appeals_on_qtype_and_disp_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appeals_on_qtype_and_disp_id_and_status ON public.appeals USING btree (qtype, disp_id, status);
 
 
 --
@@ -4503,6 +4552,20 @@ CREATE INDEX index_post_events_on_post_id ON public.post_events USING btree (pos
 
 
 --
+-- Name: index_post_flag_reasons_on_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_flag_reasons_on_index ON public.post_flag_reasons USING btree (index);
+
+
+--
+-- Name: index_post_flag_reasons_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_flag_reasons_on_name ON public.post_flag_reasons USING btree (name);
+
+
+--
 -- Name: index_post_flags_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4816,6 +4879,13 @@ CREATE INDEX index_tag_aliases_on_antecedent_name ON public.tag_aliases USING bt
 --
 
 CREATE INDEX index_tag_aliases_on_antecedent_name_pattern ON public.tag_aliases USING btree (antecedent_name text_pattern_ops);
+
+
+--
+-- Name: index_tag_aliases_on_antecedent_name_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tag_aliases_on_antecedent_name_trgm ON public.tag_aliases USING gin (antecedent_name public.gin_trgm_ops) WHERE (status = ANY (ARRAY['active'::text, 'processing'::text, 'queued'::text]));
 
 
 --
@@ -5148,20 +5218,6 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 
 
 --
--- Name: favorites favorites_delete_event; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER favorites_delete_event AFTER DELETE ON public.favorites FOR EACH ROW EXECUTE FUNCTION public.log_favorite_delete();
-
-
---
--- Name: favorites favorites_insert_event; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER favorites_insert_event AFTER INSERT ON public.favorites FOR EACH ROW EXECUTE FUNCTION public.log_favorite_insert();
-
-
---
 -- Name: posts posts_update_change_seq; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5185,6 +5241,14 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 
 --
+-- Name: appeals fk_rails_080878e178; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT fk_rails_080878e178 FOREIGN KEY (accused_id) REFERENCES public.users(id);
+
+
+--
 -- Name: avoid_posting_versions fk_rails_1d1f54e17a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5201,6 +5265,14 @@ ALTER TABLE ONLY public.blips
 
 
 --
+-- Name: appeals fk_rails_3f7cd477a6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT fk_rails_3f7cd477a6 FOREIGN KEY (claimant_id) REFERENCES public.users(id);
+
+
+--
 -- Name: tickets fk_rails_45cd696dba; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5214,6 +5286,22 @@ ALTER TABLE ONLY public.tickets
 
 ALTER TABLE ONLY public.avoid_posting_versions
     ADD CONSTRAINT fk_rails_4c48affea5 FOREIGN KEY (avoid_posting_id) REFERENCES public.avoid_postings(id);
+
+
+--
+-- Name: appeals fk_rails_4ed6a7befb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT fk_rails_4ed6a7befb FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
+-- Name: appeals fk_rails_570415b15f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appeals
+    ADD CONSTRAINT fk_rails_570415b15f FOREIGN KEY (handler_id) REFERENCES public.users(id);
 
 
 --
@@ -5319,6 +5407,12 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260526234030'),
+('20260520175932'),
+('20260519151649'),
+('20260505163626'),
+('20260503072727'),
+('20260501134813'),
 ('20260420170420'),
 ('20260406172356'),
 ('20260329181337'),

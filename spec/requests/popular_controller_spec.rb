@@ -100,6 +100,11 @@ RSpec.describe PopularController do
         get popular_index_path(format: :json, date: "not-a-date")
         expect(response).to have_http_status(:unprocessable_content)
       end
+
+      it "returns 422 when date is an invalid nested hash param" do
+        get popular_index_path(date: { foo: "bar" })
+        expect(response).to have_http_status(:unprocessable_content)
+      end
     end
   end
 end

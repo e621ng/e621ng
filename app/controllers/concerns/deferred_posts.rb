@@ -8,9 +8,11 @@ module DeferredPosts
   end
 
   def deferred_posts
-    Post.includes(:uploader).where(id: deferred_post_ids.to_a).find_each.reduce({}) do |post_hash, p|
-      post_hash[p.id] = p.thumbnail_attributes
-      post_hash
+    posts = Post.includes(:uploader).where(id: deferred_post_ids.to_a).to_a
+    unless CurrentUser.user&.is_anonymous?
+      Post.preload_favorited_status!(posts, CurrentUser.id)
+      Post.preload_vote_by!(posts, CurrentUser.id)
     end
+    posts.each_with_object({}) { |p, hash| hash[p.id] = p.thumbnail_attributes }
   end
 end

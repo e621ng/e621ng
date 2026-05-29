@@ -60,6 +60,7 @@ class UserDeletion
       custom_style: "",
       level: User::Levels::MEMBER,
     )
+    AvatarCleanupJob.perform_later(user.id, force: true)
   end
 
   def reset_password
@@ -88,7 +89,7 @@ class UserDeletion
   end
 
   def validate
-    if user.is_blocked? && !admin_deletion
+    if user.is_blocked? && user.recent_ban&.prevent_login? && !admin_deletion
       raise ValidationError, "Banned users cannot delete their own accounts (request deletion at #{Danbooru.config.contact_email})"
     end
 

@@ -281,7 +281,7 @@ RSpec.describe UploadService do
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
-      it "marks post as pending when avoid_posting_artists present and uploader cannot approve" do
+      it "marks post as pending when avoid_posting_tags present and uploader cannot approve" do
         artist = create(:artist)
         create(:avoid_posting, artist: artist)
         upload.tag_string = artist.name
@@ -298,7 +298,7 @@ RSpec.describe UploadService do
       it "does not mark post as pending when no pending conditions apply" do
         allow(upload.uploader).to receive_messages(can_upload_free?: true, can_approve_posts?: true)
         allow(upload).to receive(:upload_as_pending?).and_return(false)
-        # upload.tag_string is "tagme" which has no artist tags, so avoid_posting_artists is []
+        # upload.tag_string is "tagme" which has no artist tags, so avoid_posting_tags is []
         expect(service.convert_to_post(upload).is_pending).to be false
       end
     end

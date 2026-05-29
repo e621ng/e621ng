@@ -1,4 +1,4 @@
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import Blacklist from "@/core/blacklists";
 import PostCache from "@/models/PostCache";
 
@@ -177,7 +177,7 @@ export default class User {
         return Promise.resolve();
       },
       (error) => {
-        E621.Flash.error(error);
+        E621.Toast.alert(error);
         return Promise.reject();
       },
     );

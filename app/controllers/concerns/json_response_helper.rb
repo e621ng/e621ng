@@ -25,7 +25,34 @@ module JsonResponseHelper
     render_json_with_wrapper(posts_data, wrapper_key: wrapper_key)
   end
 
-  def render_events_json(events_data)
-    render_json_with_wrapper(events_data, wrapper_key: :post_events)
+  def render_events_json(events_data, legacy: true)
+    if legacy
+      render_json_with_wrapper(events_data, wrapper_key: :post_events)
+    else
+      render json: events_data
+    end
+  end
+
+  def pick_json_format(posts, collection: true, legacy: true, mode: "basic")
+    unless CurrentUser.user&.is_anonymous?
+      Post.preload_favorited_status!(posts, CurrentUser.id)
+      Post.preload_vote_by!(posts, CurrentUser.id)
+    end
+
+    # Legacy format
+    if legacy
+      render_posts_json(PostLegacyBlueprint.render_as_hash(posts), collection: collection)
+      return
+    end
+
+    # New API format
+    case mode
+    when "thumbnail", "thumbnails"
+      render json: PostThumbnailBlueprint.render_as_hash(posts, collection: collection)
+    when "extended"
+      render json: PostBlueprint.render_as_hash(posts, collection: collection, view: :extended)
+    else
+      render json: PostBlueprint.render_as_hash(posts, collection: collection, view: :basic)
+    end
   end
 end

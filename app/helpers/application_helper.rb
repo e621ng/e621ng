@@ -2,10 +2,11 @@
 
 module ApplicationHelper
   def disable_mobile_mode?
-    if CurrentUser.user.present? && CurrentUser.is_member?
-      return CurrentUser.disable_responsive_mode?
+    if CurrentUser.user.blank? || CurrentUser.is_anonymous?
+      return cookies[:nmm].present?
     end
-    cookies[:nmm].present?
+
+    CurrentUser.disable_responsive_mode?
   end
 
   def diff_list_html(new, old, latest)
@@ -131,9 +132,9 @@ module ApplicationHelper
     user_class = user.level_css_class
     user_class += " user-post-approver" if user.can_approve_posts?
     user_class += " user-post-uploader" if user.can_upload_free?
-    user_class += " user-banned" if user.is_banned?
+    user_class += " user-banned" if user.is_blocked?
     user_class += " with-style" if CurrentUser.user.style_usernames?
-    html = link_to(user.pretty_name, user_path(user), class: user_class, rel: "nofollow")
+    html = link_to(user.pretty_name.presence || "<blank>", user_path(user), class: user_class, rel: "nofollow")
     html << " (Unactivated)" if include_activation && !user.is_verified?
     html
   end
@@ -164,16 +165,6 @@ module ApplicationHelper
 
       [:"#{prefix}-#{name}", value]
     end.to_h
-  end
-
-  def user_avatar(user)
-    return "" if user.nil?
-    post_id = user.avatar_id
-    return "" unless post_id
-    deferred_post_ids.add(post_id)
-    tag.div class: "post-thumb placeholder", id: "tp-#{post_id}", data: { id: post_id } do
-      tag.img class: "thumb-img placeholder", src: "/images/thumb-preview.png", height: 150, width: 150
-    end
   end
 
   def unread_dmails(user)

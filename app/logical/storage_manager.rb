@@ -6,6 +6,7 @@ class StorageManager
   DEFAULT_BASE_DIR = "#{Rails.root}/public/data"
   IMAGE_TYPES = %i[preview_jpg preview_webp sample_jpg sample_webp original].freeze
   MASCOT_PREFIX = "mascots"
+  AVATAR_PREFIX = "avatars"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
@@ -162,6 +163,22 @@ class StorageManager
     delete(mascot_path(md5, file_ext))
   end
 
+  def avatar_path(user_id, ext)
+    "#{base_dir}/#{AVATAR_PREFIX}/#{user_id}.#{ext}"
+  end
+
+  def avatar_url(user_id, ext)
+    "#{base_url}#{base_path}/#{AVATAR_PREFIX}/#{user_id}.#{ext}"
+  end
+
+  def store_avatar(io, user_id, ext)
+    store(io, avatar_path(user_id, ext))
+  end
+
+  def delete_avatar(user_id, ext)
+    delete(avatar_path(user_id, ext))
+  end
+
   def furids_url
     "#{base_url}#{base_path}/furid/"
   end
@@ -198,6 +215,16 @@ class StorageManager
     end
     ext ||= post.file_ext
     file_url(post.md5, ext, type, protect: post.protect_file?, scale: scale)
+  end
+
+  def download_url(md5, file_ext)
+    path = file_path_base(md5, file_ext, :original)
+    "#{base_url}#{base_path}/download#{path}"
+  end
+
+  def post_download_url(post)
+    return nil if post.is_deleted?
+    download_url(post.md5, post.file_ext)
   end
 
   def file_path_base(md5, file_ext, type = :original, protect: false, scale: nil)

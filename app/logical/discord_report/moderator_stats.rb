@@ -6,20 +6,27 @@ module DiscordReport
       Danbooru.config.moderator_stats_discord_webhook_url
     end
 
-    def report
+    def report(update_cache: true)
       current_stats = stats
       previous_pending_tickets = Cache.redis.get("ticket_stats:previous_pending_tickets") || current_stats[:pending]
-      Cache.redis.set("ticket_stats:previous_pending_tickets", current_stats[:pending])
+      Cache.redis.set("ticket_stats:previous_pending_tickets", current_stats[:pending]) if update_cache
 
       diff = current_stats[:pending] - previous_pending_tickets.to_i
-      <<~REPORT.chomp
-        Moderator report for <t:#{Time.now.to_i}:D>
-        Currently, there are:
-        #{formatted_number(current_stats[:pending])} pending tickets. That is #{more_fewer(diff)} than the day before.
-        #{formatted_number(current_stats[:created])} tickets were created yesterday.
-        #{formatted_number(current_stats[:handled])} tickets were handled yesterday.
-        The oldest pending ticket was created #{formatted_number(current_stats[:oldest])} days ago.
-      REPORT
+
+      report = []
+      report << "```ansi"
+
+      report << "┌─ #{color_bold('MODERATOR REPORT')} ──── #{Time.now.strftime('%Y-%m-%d')} ─┐"
+      report << "│ #{color_blue('PENDING QUEUE')}       Change     Rot │"
+      report << "│ Tickets  #{format_count(current_stats[:pending])}   #{format_delta(diff)} #{format_count(current_stats[:oldest])}d │"
+      report << "├────────────────────────────────────┤"
+      report << "│ #{color_blue('DAILY TOTALS')}                       │"
+      report << "│ Created #{format_count(current_stats[:created])}                     │"
+      report << "│ Handled #{format_count(current_stats[:handled])}                     │"
+      report << "└────────────────────────────────────┘"
+
+      report << "```"
+      report.join("\n")
     end
 
     def stats

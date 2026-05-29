@@ -56,6 +56,10 @@ RSpec.describe UserDeletion do
       it "enqueues FlushFavoritesJob with the user's id" do
         expect { deletion.delete! }.to have_enqueued_job(FlushFavoritesJob).with(user.id)
       end
+
+      it "enqueues AvatarCleanupJob with force: true" do
+        expect { deletion.delete! }.to have_enqueued_job(AvatarCleanupJob).with(user.id, force: true)
+      end
     end
 
     context "when the user is already named user_{id}" do
@@ -97,10 +101,18 @@ RSpec.describe UserDeletion do
     end
 
     context "validation" do
-      it "raises ValidationError for a banned user doing self-deletion" do
-        user = create(:banned_user)
+      it "raises ValidationError for a forcibly logged out banned user doing self-deletion" do
+        user = create(:user)
+        create(:hard_ban, user: user)
         expect { described_class.new(user, password).delete! }
           .to raise_error(UserDeletion::ValidationError, /Banned users/)
+      end
+
+      it "does not raise a ValidationError for a soft-banned user doing self-deletion" do
+        user = create(:user)
+        create(:ban, user: user, prevent_login: false)
+        expect { described_class.new(user, password).delete! }
+          .not_to raise_error
       end
 
       it "raises ValidationError when the account is less than one week old" do

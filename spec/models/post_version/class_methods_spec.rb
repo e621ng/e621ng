@@ -90,4 +90,46 @@ RSpec.describe PostVersion do
       expect(pv.updater_ip_addr.to_s).to eq(CurrentUser.ip_addr)
     end
   end
+
+  # ------------------------------------------------------------------ #
+  # .preload_tag_categories!                                             #
+  # ------------------------------------------------------------------ #
+
+  describe ".preload_tag_categories!" do
+    it "does nothing when given an empty collection" do
+      allow(Tag).to receive(:categories_for)
+      PostVersion.preload_tag_categories!([])
+      expect(Tag).not_to have_received(:categories_for)
+    end
+
+    it "compacts nils from the given collection" do
+      allow(Tag).to receive(:categories_for)
+      PostVersion.preload_tag_categories!([nil, nil])
+      expect(Tag).not_to have_received(:categories_for)
+    end
+
+    it "makes a single Tag.categories_for call covering tag names from all versions" do
+      post = create(:post)
+      v1 = post.versions.first
+      v1.update_columns(tags: "alpha")
+      v2 = create(:post_version, post: post, tags: "alpha beta")
+      v3 = create(:post_version, post: post, tags: "beta gamma")
+
+      allow(Tag).to receive(:categories_for).and_call_original
+      PostVersion.preload_tag_categories!([v2, v3])
+      expect(Tag).to have_received(:categories_for).once
+    end
+
+    it "presets the resolved categories on each version" do
+      post = create(:post)
+      v1 = post.versions.first
+      v1.update_columns(tags: "alpha")
+      v2 = create(:post_version, post: post, tags: "alpha beta")
+
+      resolved = { "alpha" => 1, "beta" => 4 }
+      allow(Tag).to receive(:categories_for).and_return(resolved)
+      PostVersion.preload_tag_categories!([v2])
+      expect(v2.tag_categories).to eq(resolved)
+    end
+  end
 end

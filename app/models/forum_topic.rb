@@ -7,16 +7,19 @@ class ForumTopic < ApplicationRecord
   has_many :posts, -> {order("forum_posts.id asc")}, :class_name => "ForumPost", :foreign_key => "topic_id", :dependent => :destroy
   has_one :original_post, -> {order("forum_posts.id asc")}, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic
   has_many :subscriptions, :class_name => "ForumSubscription"
-  before_validation :initialize_is_hidden, :on => :create
-  validate :category_valid
-  validates :title, :creator_id, presence: true
+
+  before_validation :initialize_is_hidden, on: :create
+  validates :creator_id, presence: true
+  validate :validate_category
+  validate :validate_category_allows_creation, on: :create
+  validates :original_post, presence: true
   validates_associated :original_post
-  validates_presence_of :original_post
-  validates :title, :length => {:maximum => 250}
-  validate :category_allows_creation, on: :create
+  validates :title, presence: true
+  validates :title, length: { maximum: 250 }
+
   accepts_nested_attributes_for :original_post
-  before_destroy :create_mod_action_for_delete
   after_update :update_original_post
+  before_destroy :create_mod_action_for_delete
   after_save(:if => ->(rec) {rec.saved_change_to_is_locked?}) do |rec|
     ModAction.log(rec.is_locked ? :forum_topic_lock : :forum_topic_unlock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
   end
@@ -24,38 +27,89 @@ class ForumTopic < ApplicationRecord
     ModAction.log(rec.is_sticky ? :forum_topic_stick : :forum_topic_unstick, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
   end
 
+  module AccessMethods
+    ### Standard Permissions ###
+
+    def can_access?(user = CurrentUser.user)
+      return false if user.blank?
+      return false unless category&.can_access?(user)
+      return true if user.is_staff?
+      return true if user.id == creator_id
+      return false if is_hidden?
+      true
+    end
+
+    def can_edit?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false unless user.is_member?
+      return true if user.is_moderator?
+      return true if creator_id == user.id
+      false
+    end
+
+    def can_hide?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false unless user.is_member?
+      return true if user.is_moderator?
+      return false unless original_post&.can_hide?(user)
+      return true if user.id == creator_id
+      false
+    end
+
+    def can_unhide?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_moderator?
+      false
+    end
+
+    def can_destroy?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_admin?
+      false
+    end
+
+    ### Model Specific ###
+
+    def can_reply?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false unless user.is_member?
+      return false if is_locked && !can_lock?(user)
+      return true if category.can_reply?(user)
+      false
+    end
+
+    def can_sticky?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_moderator?
+      false
+    end
+
+    def can_lock?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_moderator?
+      false
+    end
+  end
+
   module CategoryMethods
     extend ActiveSupport::Concern
 
     module ClassMethods
       def for_category_id(cid)
-        where(:category_id => cid)
+        where(category_id: cid)
       end
     end
 
     def category_name
-      return '(Unknown)' unless category
+      return "(Unknown)" unless category
       category.name
-    end
-
-    def category_valid
-      return if category
-      errors.add(:category, "is invalid")
-      throw :abort
-    end
-
-    def category_allows_creation
-      if category && !category.can_create_within?(creator)
-        errors.add(:category, "does not allow new topics")
-        return false
-      end
     end
   end
 
   module SearchMethods
     def visible(user)
       q = joins(:category).where("forum_categories.can_view <= ?", user.level)
-      q = q.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
+      q = q.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_staff?
       q
     end
 
@@ -96,6 +150,28 @@ class ForumTopic < ApplicationRecord
     end
   end
 
+  module SubscriptionMethods
+    def user_subscription(user)
+      subscriptions.where(user_id: user.id).first
+    end
+  end
+
+  module ValidationMethods
+    def validate_category
+      return true if category.present?
+      errors.add(:category, "is invalid")
+      throw :abort
+    end
+
+    def validate_category_allows_creation
+      return true if category.blank?
+      return true if category.can_create?(creator)
+
+      errors.add(:category, "does not allow new topics")
+      false
+    end
+  end
+
   module VisitMethods
     def read_by?(user = nil)
       user ||= CurrentUser.user
@@ -128,39 +204,12 @@ class ForumTopic < ApplicationRecord
     end
   end
 
-  module SubscriptionMethods
-    def user_subscription(user)
-      subscriptions.where(:user_id => user.id).first
-    end
-  end
-
   extend SearchMethods
+  include AccessMethods
   include CategoryMethods
-  include VisitMethods
   include SubscriptionMethods
-
-  def editable_by?(user)
-    (creator_id == user.id || user.is_moderator?) && visible?(user)
-  end
-
-  def visible?(user)
-    return false if is_hidden && !can_hide?(user)
-    user.level >= category.can_view
-  end
-
-  def can_reply?(user = CurrentUser.user)
-    user.level >= category.can_reply
-  end
-
-  def can_hide?(user)
-    return true if user.is_moderator?
-    return false unless original_post&.can_hide?(user)
-    user.id == creator_id
-  end
-
-  def can_delete?(user)
-    user.is_admin?
-  end
+  include ValidationMethods
+  include VisitMethods
 
   def create_mod_action_for_delete
     ModAction.log(:forum_topic_delete, {forum_topic_id: id, forum_topic_title: title, user_id: creator_id})

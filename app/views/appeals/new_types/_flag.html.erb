@@ -1,0 +1,13 @@
+<% @flag = @appeal.content %>
+
+<h4 class="appeal-flag-title">You are appealing the following flag:</h4>
+<div class="appeal-flag-info">
+  <%= @flag.is_deletion ? "[DELETION]" : "[FLAG]" %>
+  <%= format_text(@flag.reason || "Unknown reason", inline: true) %>
+  - <%= link_to_user(@flag.creator) %>
+  - <%= time_ago_in_words_tagged(@flag.created_at) %>
+</div>
+
+<div class="appeal-flag-post">
+  <%= render(PostThumbnailComponent.new(post: @flag.post, stats: true, show_deleted: true, no_blacklist: true)) %>
+</div>

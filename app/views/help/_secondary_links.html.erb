@@ -1,8 +1,9 @@
 <% content_for(:secondary_links) do %>
-  <%= subnav_link_to "List", help_pages_path %>
-    <% if CurrentUser.is_admin? %>
-      <%= subnav_link_to "New", new_help_page_path %>
-    <% end %>
+  <%= subnav_link_to "Help Home", help_pages_path %>
+  <% if CurrentUser.is_admin? %>
+    <%= subnav_link_to "List", list_help_pages_path %>
+    <%= subnav_link_to "New", new_help_page_path %>
+  <% end %>
 
   <% if @help&.id %>
     <% if CurrentUser.is_admin? %>

@@ -290,6 +290,23 @@ RSpec.describe ModActionDecorator do
         expect(desc).to include("10", "20")
       end
 
+      it "user_custom_title_change includes old and new title" do
+        desc = decorate(:user_custom_title_change, { "user_id" => target_user.id, "old_custom_title" => "Old", "new_custom_title" => "New" }).format_description
+        expect(desc).to include(" from \"Old\"", " to \"New\"")
+      end
+
+      it "user_custom_title_change without old_custom_title includes new title only" do
+        desc = decorate(:user_custom_title_change, { "user_id" => target_user.id, "new_custom_title" => "New" }).format_description
+        expect(desc).to include("\"New\"")
+        expect(desc).not_to include(" from ")
+      end
+
+      it "user_custom_title_change without new_custom_title includes old title only" do
+        desc = decorate(:user_custom_title_change, { "user_id" => target_user.id, "old_custom_title" => "Old" }).format_description
+        expect(desc).to include("\"Old\"")
+        expect(desc).not_to include(" to ")
+      end
+
       it "user_uploads_toggle disabled: true says Disabled" do
         desc = decorate(:user_uploads_toggle, { "user_id" => target_user.id, "disabled" => true }).format_description
         expect(desc).to start_with("Disabled")
@@ -603,19 +620,19 @@ RSpec.describe ModActionDecorator do
     end
 
     context "with flag_reason actions" do
-      it "created_flag_reason includes id and reason" do
-        desc = decorate("created_flag_reason", { "flag_reason_id" => 1, "flag_reason" => "Traced" }).format_description
-        expect(desc).to include("flag reason #1", "Traced")
+      it "flag_reason_create includes reason and text" do
+        desc = decorate("flag_reason_create", { "reason" => "Traced", "text" => "This is a trace" }).format_description
+        expect(desc).to include("Created flag reason \"Traced\"", "This is a trace")
       end
 
-      it "edited_flag_reason includes id and reason" do
-        desc = decorate("edited_flag_reason", { "flag_reason_id" => 1, "flag_reason" => "Traced" }).format_description
-        expect(desc).to include("flag reason #1", "Traced")
+      it "flag_reason_update includes reason and text" do
+        desc = decorate("flag_reason_update", { "reason" => "Traced", "text" => "Traced artwork", "reason_was" => "This is a trace" }).format_description
+        expect(desc).to include("Edited flag reason \"Traced\"", "This is a trace", "Traced artwork")
       end
 
-      it "deleted_flag_reason includes id and reason" do
-        desc = decorate("deleted_flag_reason", { "flag_reason_id" => 1, "flag_reason" => "Traced" }).format_description
-        expect(desc).to include("flag reason #1", "Traced")
+      it "flag_reason_delete includes reason and text" do
+        desc = decorate("flag_reason_delete", { "reason" => "Traced", "text" => "This is a trace" }).format_description
+        expect(desc).to include("Deleted flag reason \"Traced\"")
       end
     end
 

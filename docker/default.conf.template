@@ -13,6 +13,20 @@ server {
     break;
   }
 
+  location /data/download/deleted/ {
+    return 403;
+  }
+
+  location /data/download/replacements/ {
+    return 403;
+  }
+
+  location /data/download/ {
+    alias /app/public/data/;
+    add_header Content-Disposition 'attachment; filename="$arg_filename"';
+    expires max;
+  }
+
   location /data/deleted/ {
     add_header Cache-Control "private";
     secure_link $arg_auth,$arg_expires;
@@ -39,12 +53,6 @@ server {
 
   location /tags/autocomplete.json {
     proxy_pass http://autocompleted:8118/;
-    proxy_redirect off;
-  }
-
-  location ~ ^/posts/(\d+)/similar/remote\.json$ {
-    rewrite ^/posts/(\d+)/similar/remote\.json$ /similar?post_id=$1&$args break;
-    proxy_pass ${RECOMMENDER_URL};
     proxy_redirect off;
   }
 

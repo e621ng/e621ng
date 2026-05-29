@@ -25,12 +25,15 @@ PostFlags.initFlagForm = function () {
     .addClass("required-indicator")
     .text(" (required)")
     .appendTo(noteLabel);
-  form.on("change", "input[type='radio']", updateNoteRequired);
+  form.on("change", "input[type='radio']", updateRequiredFields);
 
+  // Set whether the note and parent ID fields are required
   let isNoteRequired = false;
-  function updateNoteRequired () {
+  let isParentIdRequired = false;
+  function updateRequiredFields () {
     const selected = form.find("input[name='post_flag[reason_name]']:checked");
-    isNoteRequired = selected.data("requireExplanation") === true;
+    isNoteRequired = selected.data("needs-explanation") === true;
+    isParentIdRequired = selected.data("needs-parent-id") === true;
     noteLabel.toggleClass("required", isNoteRequired);
     toggleSubmitButton();
   }
@@ -38,16 +41,27 @@ PostFlags.initFlagForm = function () {
 
   // Determine if the note field is empty dynamically
   let isNoteEmpty = false;
-  const noteField = form.find("#flag_note_field").on("input", () => {
+  function updateIsNoteEmpty () {
     isNoteEmpty = (noteField.val() || "").trim() === "";
     toggleSubmitButton();
-  });
+  }
+  const noteField = form.find("#flag_note_field").on("input", updateIsNoteEmpty);
+
+
+  // Determine if the parent ID field is empty dynamically
+  let isParentIdEmpty = false;
+  function updateIsParentIdEmpty () {
+    isParentIdEmpty = (parentIdField.val() || "").trim() === "";
+    toggleSubmitButton();
+  }
+  const parentIdField = form.find("#post_flag_parent_id").on("input", updateIsParentIdEmpty);
 
 
   // Toggle the submit button based on whether the note is required and empty
   const submitButton = form.find("input[type='submit']");
   function toggleSubmitButton () {
-    submitButton.attr("disabled", isNoteRequired && isNoteEmpty ? "disabled" : null);
+    const missingField = (isNoteRequired && isNoteEmpty) || (isParentIdRequired && isParentIdEmpty);
+    submitButton.attr("disabled", missingField ? "disabled" : null);
   }
 
 
@@ -64,10 +78,9 @@ PostFlags.initFlagForm = function () {
 
 
   // Initial state
-  isNoteRequired = form.find("input[name='post_flag[reason_name]']:checked").data("requireExplanation") === true;
-  isNoteEmpty = (noteField.val() || "").trim() === "";
-  noteLabel.toggleClass("required", isNoteRequired);
-  toggleSubmitButton();
+  updateRequiredFields();
+  updateIsNoteEmpty();
+  updateIsParentIdEmpty();
 };
 
 $(() => {

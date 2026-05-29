@@ -71,12 +71,20 @@ class Tag < ApplicationRecord
       end
     end
 
-    def real_post_count
-      @real_post_count ||= Post.tag_match(name, resolve_aliases: false).count_only
+    def post_count_from_opensearch
+      Post.tag_match(name, resolve_aliases: false).count_only
+    end
+
+    # Returns an authoritative post count from the database.
+    # NOTE: this query is extraordinarily expensive. It cannot be used in anything directly
+    # user-facing. The only reasonable use case is a background job that is fixing post counts
+    # for tags that have drifted out of sync.
+    def post_count_from_db
+      Post.undeleted.sql_raw_tag_match(name).count
     end
 
     def fix_post_count
-      update_column(:post_count, real_post_count)
+      update_column(:post_count, post_count_from_db)
     end
   end
 
@@ -275,8 +283,9 @@ class Tag < ApplicationRecord
 
       self.related_tags = RelatedTagCalculator.calculate_from_sample_to_array(name).join(" ")
       self.related_tags_updated_at = Time.now
-      fix_post_count if post_count > 20 && rand(post_count) <= 1
       save
+
+      TagPostCountJob.perform_later(id) if post_count > 20 && rand(post_count) <= 1
     rescue ActiveRecord::StatementInvalid
     end
 

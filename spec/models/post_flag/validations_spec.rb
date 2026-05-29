@@ -54,11 +54,7 @@ RSpec.describe PostFlag do
       member = create(:user)
       # Create the first flag as the member
       as_user(member) do
-        PostFlag.create!(
-          post: post,
-          reason_name: "young_human",
-          creator_ip_addr: "127.0.0.1",
-        )
+        create(:post_flag, post: post)
       end
       # Second flag by the same member on the same post within cooldown
       second = build(:post_flag, post: post, creator: member)
@@ -122,41 +118,41 @@ RSpec.describe PostFlag do
       expect(flag.errors[:reason]).to be_present
     end
 
-    it "is invalid for 'inferior' when no parent_id is given" do
-      flag = build(:post_flag, reason_name: "inferior", reason: "something")
+    it "is invalid for 'need_parent_id' when no parent_id is given" do
+      flag = build(:needs_parent_id_post_flag, reason: "something")
       expect(flag).not_to be_valid(:create)
       expect(flag.errors[:parent_id]).to include("must exist")
     end
 
-    it "is invalid for 'inferior' when parent_id equals the post's own id" do
+    it "is invalid for 'needs_parent_id' when parent_id equals the post's own id" do
       post = create(:post)
-      flag = build(:post_flag, post: post, reason_name: "inferior", reason: "something")
+      flag = build(:needs_parent_id_post_flag, reason: "something", post: post)
       flag.parent_id = post.id
       expect(flag).not_to be_valid(:create)
       expect(flag.errors[:parent_id]).to include("cannot be set to the post being flagged")
     end
 
-    it "is invalid for 'inferior' when the parent post does not exist" do
-      flag = build(:post_flag, reason_name: "inferior", reason: "something")
+    it "is invalid for 'needs_parent_id' when the parent post does not exist" do
+      flag = build(:needs_parent_id_post_flag, reason: "something")
       flag.parent_id = 99_999_999
       expect(flag).not_to be_valid(:create)
       expect(flag.errors[:parent_id]).to include("must exist")
     end
 
-    it "is invalid for 'uploading_guidelines' when the post has the grandfathered_content tag" do
+    it "is invalid for target tag '-grandfathered_content' when the post has the grandfathered_content tag" do
       post = create(:post, tag_string: "grandfathered_content")
-      flag = build(:post_flag, post: post, reason_name: "uploading_guidelines", note: "reason")
+      flag = build(:grandfathering_post_flag, post: post, note: "reason")
       expect(flag).not_to be_valid(:create)
       expect(flag.errors[:reason]).to be_present
     end
 
     it "is valid for each standard reason name that does not require explanation" do
-      %w[young_human dnp_artist pay_content previously_deleted real_porn].each do |reason_name|
-        flag = build(:post_flag, reason_name: reason_name, reason: "something", note: nil)
-        flag.valid?(:create)
-        expect(flag.errors[:reason]).to be_empty,
-                                        "expected reason '#{reason_name}' to be valid, got: #{flag.errors[:reason]}"
-      end
+      flag_reason = create(:post_flag_reason)
+      reason_name = flag_reason.name
+      flag = build(:post_flag, reason_name: reason_name, reason: "something", note: nil)
+      flag.valid?(:create)
+      expect(flag.errors[:reason]).to be_empty,
+                                      "expected reason '#{reason_name}' to be valid, got: #{flag.errors[:reason]}"
     end
   end
 
@@ -164,24 +160,28 @@ RSpec.describe PostFlag do
   # validate_note_required_for_reason
   # -------------------------------------------------------------------------
   describe "validate_note_required_for_reason" do
-    %w[uploading_guidelines trace corrupt].each do |reason_name|
-      context "with reason '#{reason_name}' (requires explanation)" do
-        it "is invalid when note is blank" do
-          flag = build(:post_flag, reason_name: reason_name, note: "")
-          expect(flag).not_to be_valid
-          expect(flag.errors[:note]).to include("is required for the selected reason")
-        end
+    context "with reason requires explanation" do
+      it "is invalid when note is blank" do
+        flag_reason = create(:needs_explanation_post_flag_reason)
+        expect(flag_reason.needs_explanation?).to be true
+        flag = build(:post_flag, reason_name: flag_reason.name, note: "")
+        expect(flag).not_to be_valid
+        expect(flag.errors[:note]).to include("is required for the selected reason")
+      end
 
-        it "is valid when note is present" do
-          flag = build(:post_flag, reason_name: reason_name, note: "Here is an explanation.")
-          flag.valid?
-          expect(flag.errors[:note]).to be_empty
-        end
+      it "is valid when note is present" do
+        flag_reason = create(:needs_explanation_post_flag_reason)
+        expect(flag_reason.needs_explanation?).to be true
+        flag = build(:post_flag, reason_name: flag_reason.name, note: "Here is an explanation.")
+        flag.valid?
+        expect(flag.errors[:note]).to be_empty
       end
     end
 
     it "does not require a note for reasons without require_explanation" do
-      flag = build(:post_flag, reason_name: "young_human", note: nil, reason: "something")
+      flag_reason = create(:post_flag_reason)
+      expect(flag_reason.needs_explanation?).to be false
+      flag = build(:post_flag, reason_name: flag_reason.name, note: nil, reason: "something")
       flag.valid?
       expect(flag.errors[:note]).to be_empty
     end

@@ -32,11 +32,13 @@ class SessionLoader
     CurrentUser.user.unban! if CurrentUser.user.ban_expired?
     if CurrentUser.user.is_blocked?
       recent_ban = CurrentUser.user.recent_ban
-      ban_message = "Account is banned: forever"
-      if recent_ban && recent_ban.expires_at.present?
-        ban_message = "Account is suspended for another #{recent_ban.expire_days}"
+      if recent_ban.nil? || recent_ban.prevent_login?
+        ban_message = "Account is banned: forever"
+        if recent_ban&.expires_at.present?
+          ban_message = "Account is suspended for another #{recent_ban.expire_days}"
+        end
+        raise AuthenticationFailure, ban_message
       end
-      raise AuthenticationFailure.new(ban_message)
     end
     update_user_login_tracking
     set_safe_mode
@@ -180,6 +182,8 @@ class SessionLoader
     return if CurrentUser.is_anonymous?
     return if cookies[:hide_dmail_notice].blank?
 
-    cookies.delete(:hide_dmail_notice) if cookies[:hide_dmail_notice] != CurrentUser.user.has_mail?.to_s
+    if !CurrentUser.user.has_mail? && cookies[:hide_dmail_notice] == "1"
+      cookies.delete(:hide_dmail_notice)
+    end
   end
 end

@@ -60,7 +60,7 @@ class VoteManager {
         ids: votes.join(","),
       },
     }).done(() => {
-      E621.Flash.notice(`${this.displayType} votes locked.`);
+      E621.Toast.notice(`${this.displayType} votes locked.`);
     });
   }
 
@@ -76,7 +76,7 @@ class VoteManager {
         ids: votes.join(","),
       },
     }).done(() => {
-      E621.Flash.notice(`${this.displayType} votes deleted.`);
+      E621.Toast.notice(`${this.displayType} votes deleted.`);
     });
   }
 }

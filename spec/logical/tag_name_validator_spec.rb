@@ -141,7 +141,8 @@ RSpec.describe TagNameValidator, type: :model do
 
   describe "category prefix" do
     it "is invalid when the name starts with a category prefix" do
-      tag = build(:tag, name: "artist:some_artist")
+      prefix = TagCategory::MAPPING.keys.first
+      tag = build(:tag, name: "#{prefix}:some_tag")
       expect(tag).not_to be_valid
       expect(tag.errors[:name]).to include(include("cannot begin with"))
     end

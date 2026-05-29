@@ -9,8 +9,11 @@ class TagPostCountJob < ApplicationJob
   end
 
   def perform(*args)
-    tag = Tag.find(args[0])
+    tag = Tag.find_by(id: args[0])
+    return unless tag
 
-    tag.fix_post_count
+    Tag.without_timeout do
+      tag.fix_post_count
+    end
   end
 end

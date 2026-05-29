@@ -316,7 +316,7 @@ RSpec.describe SessionLoader do
     end
 
     context "with a time-limited ban" do
-      before { create(:ban, user: user, duration: 7) }
+      before { create(:ban, user: user, duration: 7, prevent_login: true) }
 
       it "raises AuthenticationFailure mentioning the suspension" do
         expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure, /suspended/)
@@ -324,13 +324,21 @@ RSpec.describe SessionLoader do
     end
 
     context "with an expired ban" do
-      let!(:ban) { create(:ban, user: user, duration: 7) }
+      let!(:ban) { create(:ban, user: user, duration: 7, prevent_login: true) }
 
       before { ban.update_columns(expires_at: 2.days.ago) }
 
       it "unbans the user and does not raise" do
         expect { loader.load }.not_to raise_error
-        expect(user.reload.is_banned?).to be false
+        expect(user.reload.is_blocked?).to be false
+      end
+    end
+
+    context "with a soft ban (prevent_login: false)" do
+      before { create(:ban, user: user, duration: 7, prevent_login: false) }
+
+      it "does not raise AuthenticationFailure" do
+        expect { loader.load }.not_to raise_error
       end
     end
   end
@@ -440,9 +448,9 @@ RSpec.describe SessionLoader do
       request.session[:ph] = user.password_token
     end
 
-    # user has no dmails, so has_mail? == false and has_mail?.to_s == "false"
-    context "when the cookie value does not match has_mail?.to_s" do
-      let(:dmail_cookie_value) { "true" }
+    # user has no dmails, so has_mail? == false and has_mail?.to_s == "1"
+    context "when the user has no mail, but cookie value is '1'" do
+      let(:dmail_cookie_value) { "1" }
 
       it "deletes the :hide_dmail_notice cookie" do
         loader.load
@@ -450,8 +458,8 @@ RSpec.describe SessionLoader do
       end
     end
 
-    context "when the cookie value matches has_mail?.to_s" do
-      let(:dmail_cookie_value) { "false" }
+    context "when the user has no mail, and cookie value is '0'" do
+      let(:dmail_cookie_value) { "0" }
 
       it "does not delete the :hide_dmail_notice cookie" do
         loader.load
@@ -459,8 +467,20 @@ RSpec.describe SessionLoader do
       end
     end
 
+    context "when the user has mail, and cookie value is '1'" do
+      let(:dmail_cookie_value) { "1" }
+
+      it "does not delete the :hide_dmail_notice cookie" do
+        CurrentUser.scoped(create(:user)) do
+          create(:dmail, to: user)
+        end
+        loader.load
+        expect(cookie_jar).not_to have_received(:delete).with(:hide_dmail_notice)
+      end
+    end
+
     context "for an anonymous user" do
-      let(:dmail_cookie_value) { "true" }
+      let(:dmail_cookie_value) { "1" }
 
       before do
         request.session.delete(:user_id)

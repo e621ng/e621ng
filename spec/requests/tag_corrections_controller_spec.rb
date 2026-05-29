@@ -82,14 +82,11 @@ RSpec.describe TagCorrectionsController do
       end
 
       context "when the tag is aliased away and has more than 20 posts" do
-        let(:high_count_query) { instance_double(DocumentStore::Response, count_only: 25) }
-
-        before do
-          CurrentUser.scoped(bd_janitor) { create(:active_tag_alias, antecedent_name: tag.name) }
-          allow(Post).to receive(:tag_match).and_return(high_count_query)
-        end
-
         it "returns 200 and sets @true_post_ids to \"> 20\"" do
+          CurrentUser.scoped(bd_janitor) { create(:active_tag_alias, antecedent_name: tag.name) }
+          allow(Tag).to receive(:find).with(tag.id.to_s).and_return(tag)
+          allow(tag).to receive(:post_count_from_db).and_return(25)
+
           get new_tag_correction_path(tag_id: tag.id)
           expect(response).to have_http_status(:ok)
           expect(controller.instance_variable_get(:@true_post_ids)).to eq("> 20")

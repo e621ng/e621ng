@@ -36,6 +36,7 @@ class SearchTrendsController < ApplicationController
 
   def track
     @tags = params[:tag].to_s.downcase.strip.split(",").uniq.first(10)
+    @tag = @tags.first if @tags.size == 1 # Enables the "purge" option in the secondary links
 
     respond_to do |format|
       format.html do

@@ -7,6 +7,7 @@ class PostVersionsController < ApplicationController
 
   def index
     @post_versions = PostVersion.search(search_params).paginate(params[:page], limit: params[:limit], max_count: 10_000, search_count: params[:search], includes: [:updater, { post: [:versions] }])
+    PostVersion.preload_tag_categories!(@post_versions)
     if CurrentUser.is_staff?
       ids = @post_versions&.map(&:id)
       @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?

@@ -117,8 +117,8 @@ RSpec.describe PostFlagsController do
 
   describe "POST /post_flags" do
     let(:flaggable_post) { create(:post) }
-    # "previously_deleted" has no require_explanation, so no note is needed.
-    let(:valid_params)   { { post_flag: { post_id: flaggable_post.id, reason_name: "previously_deleted" } } }
+    let(:flag_reason)    { create(:post_flag_reason) }
+    let(:valid_params)   { { post_flag: { post_id: flaggable_post.id, reason_name: flag_reason.name } } }
 
     context "as anonymous" do
       it "redirects HTML to the login page" do
