@@ -124,6 +124,27 @@ RSpec.describe Ban do
     end
 
     # -------------------------------------------------------------------------
+    # #prevent_login / #prevent_login= / #prevent_login? (via HasBitFlags)
+    # -------------------------------------------------------------------------
+    describe "#prevent_login (HasBitFlags)" do
+      it "returns false by default" do
+        expect(ban.prevent_login?).to be(false)
+        expect(ban.prevent_login).to be(false)
+      end
+
+      it "returns true after assigning '1'" do
+        ban.prevent_login = "1"
+        expect(ban.prevent_login?).to be(true)
+      end
+
+      it "clears the flag when assigned '0' after being set" do
+        ban.prevent_login = "1"
+        ban.prevent_login = "0"
+        expect(ban.prevent_login?).to be(false)
+      end
+    end
+
+    # -------------------------------------------------------------------------
     # #is_permaban= (initialize_permaban via before_validation)
     # -------------------------------------------------------------------------
     describe "#is_permaban / initialize_permaban" do

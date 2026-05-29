@@ -242,51 +242,10 @@ export default class PostsShowToolbar {
       toggle.attr("aria-expanded", !offclickHandler.disabled);
     });
 
-    const button = $(".ptbr-etc-download").on("click.e6.prepare", (event) => {
-      event.preventDefault();
-
-      if (button.attr("pending") == "true") return;
-      button.attr("pending", "true");
-
-      const url = PostsShowToolbar.currentPost.file.url;
-
-      fetch(url, {
-        mode: "cors",
-      })
-        .then(response => {
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          return response.blob();
-        })
-        .then(blob => {
-          const blobUrl = window.URL.createObjectURL(blob);
-          PostsShowToolbar.generateDownloadLink(blobUrl, button.attr("download"));
-          button.attr("pending", "false");
-          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 0);
-        })
-        .catch(e => {
-          E621.Toast.alert("Failed to download post file: " + e.message, e);
-          button.attr("pending", "false");
-        })
-        .finally(() => {
-          offclickHandler.disabled = true;
-          menu.addClass("hidden");
-        });
-    });
-
-    $(".ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
+    $(".ptbr-etc-download, .ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
       offclickHandler.disabled = true;
       menu.addClass("hidden");
     });
-  }
-
-  static generateDownloadLink (blobUrl, fileName) {
-    // I will take a download link... and CLICK IT!!!
-    const downloadLink = document.createElement("a");
-    downloadLink.href = blobUrl;
-    downloadLink.setAttribute("download", fileName);
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    downloadLink.remove();
   }
 }
 

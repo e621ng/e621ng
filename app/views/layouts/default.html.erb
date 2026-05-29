@@ -15,7 +15,7 @@
   <div id="page" role="main">
     <%= render "news_updates/notice", news_update: NewsUpdate.recent %>
 
-    <% if CurrentUser.user.is_banned? %>
+    <% if CurrentUser.user.is_blocked? && CurrentUser.user.recent_ban&.prevent_login? %>
       <%= render "users/ban_notice" %>
     <% end %>
 

@@ -20,7 +20,7 @@
       <% if flag.is_resolved? %>
         <span class="resolved">RESOLVED</span>
       <% end %>
-      
+
       <% if flag.note.present? && flag.can_see_note? %>
         <div class="post-flag-note">
           <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
@@ -36,6 +36,10 @@
       <% if flag.can_appeal?(CurrentUser.user) %>
         <div class="post-flag-appeal">
           <%= link_to "Appeal Deletion", new_appeal_path(qtype: "flag", disp_id: flag.id), class: "st-button" %>
+        </div>
+      <% elsif (existing_appeal = flag.user_appeal(CurrentUser.user)).present? %>
+        <div class="post-flag-appeal">
+          <%= link_to "View Appeal", appeal_path(existing_appeal), class: "st-button" %>
         </div>
       <% end %>
     </li>

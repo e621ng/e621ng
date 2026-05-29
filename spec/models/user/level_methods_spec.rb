@@ -108,13 +108,15 @@ RSpec.describe User do
     # #is_blocked?
     # -------------------------------------------------------------------------
     describe "#is_blocked?" do
-      it "returns true for a banned user" do
-        user = build(:banned_user)
+      it "returns true for a hard-banned user" do
+        user = build(:user, level: User::Levels::BLOCKED)
+        build(:ban, user: user, prevent_login: true)
         expect(user.is_blocked?).to be(true)
       end
 
-      it "returns true for a user at the blocked level" do
+      it "returns true for a soft-banned user" do
         user = build(:user, level: User::Levels::BLOCKED)
+        build(:ban, user: user, prevent_login: false)
         expect(user.is_blocked?).to be(true)
       end
 

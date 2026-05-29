@@ -217,6 +217,16 @@ class StorageManager
     file_url(post.md5, ext, type, protect: post.protect_file?, scale: scale)
   end
 
+  def download_url(md5, file_ext)
+    path = file_path_base(md5, file_ext, :original)
+    "#{base_url}#{base_path}/download#{path}"
+  end
+
+  def post_download_url(post)
+    return nil if post.is_deleted?
+    download_url(post.md5, post.file_ext)
+  end
+
   def file_path_base(md5, file_ext, type = :original, protect: false, scale: nil)
     subdir = subdir_for(md5)
     base = protect ? "/#{protected_prefix}" : ""

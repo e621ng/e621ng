@@ -76,7 +76,8 @@ class TagQuery
 
   NEGATABLE_METATAGS = %w[
     id filetype type rating description parent user user_id approver flagger deletedby delreason
-    source status pool set fav favoritedby note locked upvote votedup downvote voteddown voted
+    source status pool set fav favoritedby note locked
+    upvote votedup upvoted voteup downvote voteddown downvoted votedown voted vote
     width height mpixels ratio filesize duration score favcount date age change tagcount
     commenter comm noter noteupdater flagreason flagnote flaggedby
   ].concat(CATEGORY_METATAG_MAP.keys).freeze
@@ -1504,13 +1505,21 @@ class TagQuery
         next unless CurrentUser.is_staff?
         add_to_query(type, :flagnote, g2.downcase, wildcard: true)
 
-      when "upvote", "-upvote", "~upvote", "votedup", "-votedup", "~votedup"
+      when "upvote", "-upvote", "~upvote",
+           "votedup", "-votedup", "~votedup",
+           "upvoted", "-upvoted", "~upvoted",
+           "voteup", "-voteup", "~voteup"
         add_to_query(type, :upvote, privileged_user_id_or_invalid(g2))
 
-      when "downvote", "-downvote", "~downvote", "voteddown", "-voteddown", "~voteddown"
+      when "downvote", "-downvote", "~downvote",
+           "voteddown", "-voteddown", "~voteddown",
+           "downvoted", "-downvoted", "~downvoted",
+           "votedown", "-votedown", "~votedown"
         add_to_query(type, :downvote, privileged_user_id_or_invalid(g2))
 
-      when "voted", "-voted", "~voted" then add_to_query(type, :voted, privileged_user_id_or_invalid(g2))
+      when "voted", "-voted", "~voted",
+            "vote", "-vote", "~vote"
+        add_to_query(type, :voted, privileged_user_id_or_invalid(g2))
 
       when *COUNT_METATAGS then q[metatag_name.downcase.to_sym] = ParseValue.range(g2)
 
