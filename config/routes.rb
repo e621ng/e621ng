@@ -299,7 +299,6 @@ Rails.application.routes.draw do
       resource :similar, only: [], controller: "post_recommendations" do
         get :artist
         get :tags
-        get :remote
         get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
       end
     end
@@ -405,6 +404,11 @@ Rails.application.routes.draw do
     end
   end
   resources :post_report_reasons
+  resources :post_flag_reasons do
+    collection do
+      post :clear_cache
+    end
+  end
   resources :post_sets do
     collection do
       get :for_select
@@ -552,7 +556,10 @@ Rails.application.routes.draw do
   get "/static/avoid_posting" => "static#avoid_posting", as: "avoid_posting_static"
   get "/static/furid" => "static#furid", as: "furid"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
+  get "/robots.txt" => "static#robots", as: :robots
+
   get "status" => "rails/health#show", as: :rails_health_check
+  get "health" => "health#index", as: :health_check
 
   root to: "static#home"
 

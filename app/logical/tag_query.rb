@@ -76,7 +76,8 @@ class TagQuery
 
   NEGATABLE_METATAGS = %w[
     id filetype type rating description parent user user_id approver flagger deletedby delreason
-    source status pool set fav favoritedby note locked upvote votedup downvote voteddown voted
+    source status pool set fav favoritedby note locked
+    upvote votedup upvoted voteup downvote voteddown downvoted votedown voted vote
     width height mpixels ratio filesize duration score favcount date age change tagcount
     commenter comm noter noteupdater
   ].concat(CATEGORY_METATAG_MAP.keys).freeze
@@ -277,6 +278,10 @@ class TagQuery
     CATCH_INVALID_TAG: true,
     NO_NON_METATAG_UNLIMITED_TAGS: true,
   }.freeze
+
+  def self.will_count_group_tags?
+    SETTINGS[:CHECK_GROUP_TAGS_AND_DEPTH] != false
+  end
 
   delegate :[], :include?, to: :@q
   attr_reader :q, :resolve_aliases, :tag_count
@@ -1362,6 +1367,9 @@ class TagQuery
           post_set_id
         end
 
+      # NOTE: The favorite case is the only case where `user_id_or_invalid` isn't used, because it needs to check for the `hide_favorites` user setting.
+      # As a result, to avoid an extra lookup in the common case of a valid user, the logic is duplicated here instead of using `user_id_or_invalid` with an `invalid_user_id` of `-1` and then checking for that in the caller.
+      # In future permissions changes, the situation may change, either allowing for `user_id_or_invalid` to be used here or necessitating similar logic in other cases, so this should be kept in mind.
       when "fav", "-fav", "~fav", "favoritedby", "-favoritedby", "~favoritedby"
         add_to_query(type, :fav_ids) do
           if g2.downcase == "me"
@@ -1463,13 +1471,21 @@ class TagQuery
         q[:show_deleted] ||= true
         add_to_query(type, :deleter, user_id_or_invalid(g2))
 
-      when "upvote", "-upvote", "~upvote", "votedup", "-votedup", "~votedup"
+      when "upvote", "-upvote", "~upvote",
+           "votedup", "-votedup", "~votedup",
+           "upvoted", "-upvoted", "~upvoted",
+           "voteup", "-voteup", "~voteup"
         add_to_query(type, :upvote, privileged_user_id_or_invalid(g2))
 
-      when "downvote", "-downvote", "~downvote", "voteddown", "-voteddown", "~voteddown"
+      when "downvote", "-downvote", "~downvote",
+           "voteddown", "-voteddown", "~voteddown",
+           "downvoted", "-downvoted", "~downvoted",
+           "votedown", "-votedown", "~votedown"
         add_to_query(type, :downvote, privileged_user_id_or_invalid(g2))
 
-      when "voted", "-voted", "~voted" then add_to_query(type, :voted, privileged_user_id_or_invalid(g2))
+      when "voted", "-voted", "~voted",
+            "vote", "-vote", "~vote"
+        add_to_query(type, :voted, privileged_user_id_or_invalid(g2))
 
       when *COUNT_METATAGS then q[metatag_name.downcase.to_sym] = ParseValue.range(g2)
 
@@ -1630,11 +1646,15 @@ class TagQuery
   end
 
   def user_id_or_invalid(val)
+    if val.is_a?(String) && val.casecmp?("me")
+      return CurrentUser.is_authenticated? ? CurrentUser.id : -1
+    end
     User.name_or_id_to_id(val).presence || -1
   end
 
   def privileged_user_id_or_invalid(val)
     if CurrentUser.user.is_moderator?
+      return CurrentUser.id if val.is_a?(String) && val.casecmp?("me")
       User.name_or_id_to_id(val).presence
     elsif CurrentUser.user.is_authenticated?
       CurrentUser.id.presence

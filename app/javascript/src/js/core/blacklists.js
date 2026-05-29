@@ -4,7 +4,7 @@ import User from "@/models/User";
 import Utility from "@/utility/utility";
 import Dialog from "@/utility/dialog";
 import Page from "@/utility/Page";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 
 let Blacklist = {};
 

@@ -118,6 +118,10 @@ class PostLegacyBlueprint < Blueprinter::Base
     post.is_favorited?
   end
 
+  field :vote do |post|
+    post.vote_by
+  end
+
   field :has_notes do |post|
     post.has_notes?
   end

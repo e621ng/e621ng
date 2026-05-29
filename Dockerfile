@@ -12,8 +12,8 @@ RUN gem i overmind && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
 FROM node:20-alpine3.20 AS node-builder
 RUN apk --no-cache add git
 WORKDIR /app
-COPY package.json yarn.lock ./
-RUN corepack enable && corepack prepare --activate && yarn install
+COPY package.json package-lock.json ./
+RUN npm ci
 
 FROM ruby:3.3.1-alpine3.20
 
@@ -28,15 +28,12 @@ WORKDIR /app
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 ENV RUBY_YJIT_ENABLE=1
 
-# Setup node and yarn
+# Setup node
 COPY --from=node-builder /usr/lib /usr/lib
 COPY --from=node-builder /usr/local/share /usr/local/share
 COPY --from=node-builder /usr/local/lib /usr/local/lib
 COPY --from=node-builder /usr/local/include /usr/local/include
 COPY --from=node-builder /usr/local/bin /usr/local/bin
-# Copy yarn to both root and the user created below to support running as both
-COPY --from=node-builder /root/.cache/node /root/.cache/node
-COPY --from=node-builder /root/.cache/node /home/e621ng/.cache/node
 
 # Copy gems and js packages
 COPY --from=node-builder /app/node_modules node_modules

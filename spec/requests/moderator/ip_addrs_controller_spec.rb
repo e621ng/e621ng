@@ -32,15 +32,11 @@ RSpec.describe Moderator::IpAddrsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    # FIXME: The controller passes params[:search] directly to IpAddrSearch.new.
-    # When no search params are given, params[:search] is nil, causing
-    # nil[:user_id] to raise NoMethodError. This test is commented out until
-    # the controller guards against a nil search hash.
-    # it "returns 200 for an admin with no search params" do
-    #   sign_in_as admin
-    #   get moderator_ip_addrs_path
-    #   expect(response).to have_http_status(:ok)
-    # end
+    it "returns 200 for an admin with no search params" do
+      sign_in_as admin
+      get moderator_ip_addrs_path
+      expect(response).to have_http_status(:ok)
+    end
 
     context "as an admin" do
       before { sign_in_as admin }
@@ -51,20 +47,33 @@ RSpec.describe Moderator::IpAddrsController do
           expect(response).to have_http_status(:ok)
         end
 
-        # FIXME: The _ip_listing.json.erb partial iterates @results directly as
-        # [ip_addr, count] pairs, but search_by_user_id returns a hash
-        # {sums:, ip_addrs:}. The resulting map produces garbage and raises
-        # when rendered. Commented out until the view is corrected.
-        # it "returns 200 JSON" do
-        #   get moderator_ip_addrs_path(format: :json), params: { search: { user_name: target.name } }
-        #   expect(response).to have_http_status(:ok)
-        # end
+        it "returns 200 JSON in the correct format" do
+          create(:comment, creator: target, creator_ip_addr: "127.0.0.1")
+          get moderator_ip_addrs_path(format: :json), params: { search: { user_name: target.name } }
+          expect(response).to have_http_status(:ok)
+
+          expect(response.parsed_body).to include("sums", "ip_addrs")
+          expect(response.parsed_body["sums"]).to include("comment")
+          expect(response.parsed_body["sums"]["comment"]).to include("127.0.0.1" => 1)
+          expect(response.parsed_body["ip_addrs"]).to include("127.0.0.1")
+        end
       end
 
       context "when searching by user_id" do
         it "returns 200 HTML" do
           get moderator_ip_addrs_path, params: { search: { user_id: target.id } }
           expect(response).to have_http_status(:ok)
+        end
+
+        it "returns 200 JSON in the correct format" do
+          create(:comment, creator: target, creator_ip_addr: "127.0.0.1")
+          get moderator_ip_addrs_path(format: :json), params: { search: { user_id: target.id } }
+          expect(response).to have_http_status(:ok)
+
+          expect(response.parsed_body).to include("sums", "ip_addrs")
+          expect(response.parsed_body["sums"]).to include("comment")
+          expect(response.parsed_body["sums"]["comment"]).to include("127.0.0.1" => 1)
+          expect(response.parsed_body["ip_addrs"]).to include("127.0.0.1")
         end
       end
 
@@ -74,14 +83,24 @@ RSpec.describe Moderator::IpAddrsController do
           expect(response).to have_http_status(:ok)
         end
 
+        it "returns 200 JSON in the correct format" do
+          create(:comment, creator: target, creator_ip_addr: "127.0.0.1")
+          get moderator_ip_addrs_path(format: :json), params: { search: { ip_addr: "127.0.0.1" } }
+          expect(response).to have_http_status(:ok)
+
+          expect(response.parsed_body).to include("comment")
+          expect(response.parsed_body["comment"]).to include(target.id.to_s)
+          expect(response.parsed_body["comment"][target.id.to_s]).to be >= 1
+        end
+
         it "returns 422 for invalid IP address" do
           get moderator_ip_addrs_path, params: { search: { ip_addr: "*dylan*dolly*" } }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it "returns 422 for invalid CIDR prefix" do
           get moderator_ip_addrs_path, params: { search: { ip_addr: "127.0.0.1/999" } }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
     end
@@ -109,15 +128,11 @@ RSpec.describe Moderator::IpAddrsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    # FIXME: The controller calls params[:search].merge({with_history: true}).
-    # When no search params are given, params[:search] is nil, causing
-    # NoMethodError on nil.merge. This test is commented out until the
-    # controller guards against a nil search hash.
-    # it "returns 200 for an admin with no search params" do
-    #   sign_in_as admin
-    #   get export_moderator_ip_addrs_path(format: :json)
-    #   expect(response).to have_http_status(:ok)
-    # end
+    it "returns 200 for an admin with no search params" do
+      sign_in_as admin
+      get export_moderator_ip_addrs_path(format: :json)
+      expect(response).to have_http_status(:ok)
+    end
 
     context "as an admin" do
       before { sign_in_as admin }
@@ -146,19 +161,11 @@ RSpec.describe Moderator::IpAddrsController do
         end
       end
 
-      # FIXME: When searching by ip_addr the search returns {sums:, users:},
-      # which has no :ip_addrs key. The export action then calls
-      # @results[:ip_addrs].uniq on nil, raising NoMethodError. This test is
-      # commented out until the controller handles the ip_addr search path.
       context "when searching by ip_addr" do
-        it "returns 422 for invalid IP address" do
-          get export_moderator_ip_addrs_path(format: :json), params: { search: { ip_addr: "*dylan*dolly*" } }
-          expect(response).to have_http_status(:unprocessable_entity)
-        end
-
-        it "returns 422 for invalid CIDR prefix" do
-          get export_moderator_ip_addrs_path(format: :json), params: { search: { ip_addr: "127.0.0.1/999" } }
-          expect(response).to have_http_status(:unprocessable_entity)
+        it "returns 200 and an empty array" do
+          get export_moderator_ip_addrs_path(format: :json), params: { search: { ip_addr: "127.0.0.1" } }
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body).to eq([])
         end
       end
     end

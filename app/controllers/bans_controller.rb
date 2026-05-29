@@ -54,7 +54,7 @@ class BansController < ApplicationController
   private
 
   def ban_params(context)
-    permitted_params = %i[reason duration expires_at is_permaban]
+    permitted_params = %i[reason duration expires_at is_permaban prevent_login]
     permitted_params += %i[user_id user_name] if context == :create
 
     params.fetch(:ban, {}).permit(permitted_params)

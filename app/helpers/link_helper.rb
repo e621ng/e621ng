@@ -186,7 +186,7 @@ module LinkHelper
 
   def decorated_link_to(text, path, **)
     link_to(path, class: "decorated", **) do
-      favicon_for_link(path) + text
+      favicon_for_link(path) + tag.span(text)
     end
   end
 

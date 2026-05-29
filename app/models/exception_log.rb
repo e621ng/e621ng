@@ -99,4 +99,67 @@ class ExceptionLog < ApplicationRecord
 
     total
   end
+
+  def viewable_message
+    if CurrentUser.is_admin?
+      message
+    else
+      scrub_ips(scrub_emails(message))
+    end
+  end
+
+  def viewable_extra_params
+    if CurrentUser.is_admin?
+      extra_params
+    else
+      extra_params.deep_transform_values do |value|
+        next value unless value.is_a?(String)
+        next scrub_emails(value) if value == extra_params["user_agent"]
+        scrub_ips(scrub_emails(value))
+      end
+    end
+  end
+
+  private
+
+  def scrub_ips(text)
+    return text unless text.is_a?(String)
+
+    # First, explicitly replace dotted IPv4 addresses (with optional port/brackets/CIDR)
+    ipv4_regex = /(?:\b|\[)((?:\d{1,3}\.){3}\d{1,3})(?:\]|\b)(?::\d{1,5})?/
+
+    text = text.gsub(ipv4_regex) do |match|
+      ip = Regexp.last_match(1)
+      begin
+        IPAddr.new(ip)
+        "[IP PROTECTED]"
+      rescue StandardError
+        match
+      end
+    end
+
+    # Then handle IPv6 and other candidate tokens (bracketed or bare), stripping CIDR/zone ids
+    candidate_regex = %r{(?:\b|\[)([0-9A-Fa-f:.%/]+)(?:\]|\b)(?::\d{1,5})?}
+
+    text.gsub(candidate_regex) do |match|
+      token = Regexp.last_match(1)
+      candidate = token.sub(%r{/\d+\z}, "").sub(/%.+\z/, "")
+
+      # Skip the literal "::" separator to avoid false positives in log messages
+      if candidate == "::"
+        match
+      else
+        begin
+          IPAddr.new(candidate)
+          "[IP PROTECTED]"
+        rescue StandardError
+          match
+        end
+      end
+    end
+  end
+
+  def scrub_emails(text)
+    text.gsub(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, "[EMAIL PROTECTED]")
+  end
 end

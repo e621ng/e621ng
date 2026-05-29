@@ -203,7 +203,7 @@ article.thumbnail[data-tags~=animated] {
     position: absolute;
     z-index: 5;
     left: 0;
-    top: 0.5rem;
+    top: 5%;
     padding: 0.125rem 0.25rem;
 
     width: 2.125rem; // Inferred height: 1rem
@@ -221,6 +221,7 @@ article.thumbnail[data-tags~=animated] {
   &[data-file-ext=webm] > a.thm-link:after { content: "WEBM"; }
   &[data-file-ext=mp4] > a.thm-link:after { content: "MP4"; }
 
+  &.shift-badge > a.thm-link:after { top: 17%; }
   &.no-type-badges > a.thm-link:after { display: none; }
 }
 
@@ -409,67 +410,57 @@ body[data-st-contain="true"] article.thumbnail img {
 
 
 // ============================== //
-// ===== Thumbnail Borders ====== //
+// ===== Thumbnail Ribbons ====== //
 // ============================== //
 
-// Standardized border position system:
-// - top: has_children (green)
-// - right: has_parent (yellow)
-// - bottom: is_flagged (red)
-// - left: is_pending (blue)
 
-$border-has-children: var(--palette-plain-green);
-$border-has-parent: var(--palette-plain-yellow);
-$border-is-pending: var(--palette-plain-blue);
-$border-is-flagged: var(--palette-plain-red);
+article.thumbnail {
+  .ribbon {
+    --transform-scalar: 1; // changed to -1 for the transforms below
+    position: absolute;
+    top: 0;
+    height: 17%;
+    aspect-ratio: 1;
+    visibility: hidden;
 
-// Single state: full border
-article.thumbnail[data-border-states="1"] {
-  &.has-children > a.thm-link { border: 2px solid $border-has-children; }
-  &.has-parent > a.thm-link { border: 2px solid $border-has-parent; }
-  &.pending > a.thm-link { border: 2px solid $border-is-pending; }
-  &.flagged > a.thm-link { border: 2px solid $border-is-flagged; }
-}
+    // a gradient with two colors. the idea is that, depending on the states to show by the ribbon,
+    // only the left, right or both sides of this gradient will be shown
+    background: linear-gradient(to bottom, var(--color-1) 50%, var(--color-2) 50% 100%);
+    background-size: 100% 200%; // needed to be able to slide along the gradient with background-position
+    background-position-y: var(--ribbon-bg-pos);
 
-// Two states: diagonal splits
-article.thumbnail[data-border-states="2"] {
-  > a.thm-link { border: 2px solid transparent; }
-  
-  // has_children: top-left corner
-  &.has-children.has-parent > a.thm-link { border-color: $border-has-children $border-has-parent $border-has-parent $border-has-children; }
-  &.has-children.pending > a.thm-link { border-color: $border-has-children $border-is-pending $border-is-pending $border-has-children; }
-  &.has-children.flagged > a.thm-link { border-color: $border-has-children $border-is-flagged $border-is-flagged $border-has-children; }
-  
-  // has_parent: bottom-right corner
-  &.has-parent.pending > a.thm-link { border-color: $border-is-pending $border-has-parent $border-has-parent $border-is-pending; }
-  &.has-parent.flagged > a.thm-link { border-color: $border-is-flagged $border-has-parent $border-has-parent $border-is-flagged; }
-  
-  // pending + flagged: pending bottom-left, flagged top-right
-  &.pending.flagged > a.thm-link { border-color: $border-is-flagged $border-is-flagged $border-is-pending $border-is-pending; }
-}
+    // we need to rotate it in the opposite direction if we are on the right side, otherwise the gradient won't be visible
+    transform:
+      translate(calc(-50% * var(--transform-scalar)), -50%)
+      rotate(calc(45deg * var(--transform-scalar)));
+    box-shadow: calc(var(--transform-scalar) * -5px) calc(var(--transform-scalar) * 5px) 10px 5px rgba(0 0 0 / .5);
 
-// Three states: wild mess
-article.thumbnail[data-border-states="3"] {
-  > a.thm-link { border: 2px solid transparent; }
-  
-  &.has-children.has-parent.pending > a.thm-link {
-    border-color: $border-has-children $border-has-parent $border-is-pending $border-is-pending;
+
+    &.left {
+      left: 0;
+      --color-1: var(--palette-plain-green);
+      --color-2: var(--palette-plain-yellow);
+    }
+
+    &.right {
+      right: 0;
+      --transform-scalar: -1;
+      --color-1: var(--palette-plain-red);
+      --color-2: var(--palette-plain-blue);
+    }
   }
-  &.has-children.has-parent.flagged > a.thm-link {
-    border-color: $border-has-children $border-has-parent $border-is-flagged $border-is-flagged;
-  }
-  &.has-children.pending.flagged > a.thm-link {
-    border-color: $border-has-children $border-is-pending $border-is-flagged $border-has-children;
-  }
-  &.has-parent.pending.flagged > a.thm-link {
-    border-color: $border-is-flagged $border-has-parent $border-has-parent $border-is-pending;
-  }
-}
 
-// Four states: all edges different
-article.thumbnail[data-border-states="4"] {
-  > a.thm-link {
-    border: 2px solid transparent;
-    border-color: $border-has-children $border-has-parent $border-is-flagged $border-is-pending;
+  &.has-children .ribbon.left, &.flagged .ribbon.right {
+    --ribbon-bg-pos: 0%;
+    visibility: visible;
+  }
+
+  &.has-parent .ribbon.left, &.pending .ribbon.right {
+    --ribbon-bg-pos: 100%;
+    visibility: visible;
+  }
+
+  &.has-parent.has-children .ribbon.left, &.pending.flagged .ribbon.right {
+    --ribbon-bg-pos: 50%;
   }
 }

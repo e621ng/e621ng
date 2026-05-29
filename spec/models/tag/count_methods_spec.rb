@@ -59,9 +59,9 @@ RSpec.describe Tag do
   # #fix_post_count
   # -------------------------------------------------------------------------
   describe "#fix_post_count" do
-    it "updates post_count to the value returned by real_post_count" do
+    it "updates post_count to the value returned by post_count_from_db" do
       tag = create(:tag, name: "fix_count_tag", post_count: 99)
-      allow(tag).to receive(:real_post_count).and_return(42)
+      allow(tag).to receive(:post_count_from_db).and_return(42)
       tag.fix_post_count
       expect(tag.reload.post_count).to eq(42)
     end

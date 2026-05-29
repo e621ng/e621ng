@@ -113,6 +113,12 @@ class ApplicationController < ActionController::Base
       render_expected_error(400, exception.message)
     when BCrypt::Errors::InvalidHash
       render_expected_error(400, "You must reset your password.")
+    when OpenSearch::Transport::Transport::Errors::InternalServerError
+      if exception.message.include?("time_exceeded_exception")
+        render_expected_error(422, "The search timed out. Try using fewer or simpler tags.")
+      else
+        render_error_page(500, exception)
+      end
     else
       render_error_page(500, exception)
     end
@@ -208,7 +214,7 @@ class ApplicationController < ActionController::Base
   end
 
   def user_access_check(method)
-    if !CurrentUser.user.send(method) || CurrentUser.user.is_banned? || IpBan.is_banned?(CurrentUser.ip_addr)
+    if !CurrentUser.user.send(method) || IpBan.is_banned?(CurrentUser.ip_addr)
       access_denied
     end
   end

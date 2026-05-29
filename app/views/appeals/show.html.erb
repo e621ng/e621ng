@@ -33,17 +33,38 @@
       </div>
     </div>
 
-    <% if CurrentUser.user.is_staff? && @appeal.open_from_same_user.any? %>
-      <div class="appeal-display-section appeal-display-others">
-        <b>Other pending appeals from this user:</b>
-        <ul>
-          <% @appeal.open_from_same_user.each do |appeal| %>
-            <li>
-              <%= link_to "#{appeal.id}: #{appeal.subject}", appeal_path(appeal.id) %>
-            </li>
-          <% end %>
-        </ul>
-      </div>
+    <% if CurrentUser.user.is_staff? %>
+      <% if @appeal.open_from_same_user.any? %>
+        <div class="appeal-display-section appeal-display-others">
+          <b><%= link_to_user(@appeal.creator) %>'s other pending appeals:</b>
+          <ul>
+            <% @appeal.open_from_same_user.each do |dup| %>
+              <li>
+                <%= link_to "#{dup.id}: #{dup.subject}", appeal_path(dup.id) %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if @appeal.all_for_same_content.any? %>
+        <div class="appeal-display-section appeal-display-others">
+          <b>Other appeals for this <%= @appeal.type_title.downcase %>:</b>
+          <ul>
+            <% @appeal.all_for_same_content.each do |dup| %>
+              <li>
+                <%= link_to "#{dup.id}: #{dup.subject}", appeal_path(dup.id) %>
+                <% if dup.creator_id != @appeal.creator_id %>
+                  by <%= link_to_user(dup.creator) %>
+                <% end %>
+                <% if dup.status != "pending" %>
+                  (<%= dup.pretty_status %>)
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
     <% end %>
 
     
@@ -101,7 +122,7 @@
 
   <% if CurrentUser.is_staff? && @appeal.can_handle? %>
     <%= custom_form_for(@appeal, html: { class: "appeal-display-response" }) do |f| %>
-      <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @appeal.status || "approved" %>
+      <%= f.input :status, collection: [%w[Approved approved], %w[Investigating partial], %w[Rejected rejected]], selected: @appeal.status || "approved" %>
       <% unless @appeal.pending? %>
         <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
       <% end %>

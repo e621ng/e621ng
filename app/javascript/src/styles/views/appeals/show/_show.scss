@@ -61,15 +61,6 @@ $info_border: 0.25rem;
   margin-left: $avatar_size + $info_border;
 
   border-left: $info_border solid themed("color-dtext-quote");
-
-  .approved-appeal {
-    color: palette("text-green");
-    font-weight: bold;
-  }
-  .partial-appeal { 
-    color: palette("text-yellow");
-    font-weight: bold;
-  }
 }
 
 .appeal-display-claim {

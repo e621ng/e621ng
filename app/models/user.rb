@@ -52,7 +52,7 @@ class User < ApplicationRecord
     hide_comments
     show_hidden_comments
     show_post_statistics
-    is_banned
+    _is_banned
     forum_notification_dot
     receive_email_notifications
     enable_keyboard_navigation
@@ -158,13 +158,12 @@ class User < ApplicationRecord
     end
 
     def unban!
-      self.is_banned = false
       self.level = 20
       save
     end
 
     def ban_expired?
-      is_banned? && recent_ban.try(:expired?)
+      is_blocked? && recent_ban&.expired?
     end
   end
 
@@ -356,8 +355,13 @@ class User < ApplicationRecord
     end
 
     def is_blocked?
-      is_banned? || level == Levels::BLOCKED
+      level == Levels::BLOCKED
     end
+
+    def is_banned?
+      is_blocked?
+    end
+    alias is_banned is_banned?
 
     # Defines various convenience methods for finding out the user's level
     Danbooru.config.levels.each do |name, value|
@@ -785,6 +789,7 @@ class User < ApplicationRecord
         post_upload_count post_update_count note_update_count
         is_banned can_approve_posts can_upload_free
         level_string avatar_id is_verified?
+        has_cropped_avatar?
       ]
 
       if id == CurrentUser.user.id

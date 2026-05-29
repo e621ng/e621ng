@@ -1,11 +1,12 @@
-import Utility from "@/utility/utility";
 import Hotkeys from "@/core/hotkeys";
-import LStorage from "@/utility/storage";
-import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
+import User from "@/models/User";
 import Page from "@/utility/Page";
+import LStorage from "@/utility/Storage";
 import SVGIcon from "@/utility/SVGIcon";
+import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
+import Utility from "@/utility/utility";
 
 let Post = {};
 
@@ -64,9 +65,11 @@ Post.initialize_moderation = function () {
     const $e = $(e.target);
     const post_id = $e.data("pid");
     const parent_id = $e.data("parent-id");
+    const reason_name = $e.data("reason-name");
+    const note = $e.data("note");
 
     if (confirm("Move flag to parent?"))
-      Post.move_flag_to_parent(post_id, parent_id);
+      Post.move_flag_to_parent(post_id, parent_id, reason_name, note);
   });
 };
 
@@ -538,6 +541,8 @@ Post.initialize_change_resize_mode_link = function () {
 
 Post._isEditing = false;
 Post.initialize_post_sections = function () {
+  if (User.is.anonymous) return;
+
   $("#side-edit-link, #post-edit-link, #menu-post-edit-link, #post-edit-close").on("click.danbooru", (event) => {
     event.preventDefault(); // Only one of these is a link
     Post._isEditing = !Post._isEditing;
@@ -551,6 +556,49 @@ Post.initialize_post_sections = function () {
       $("#edit").hide();
     }
   });
+
+  const isUrlValid = (url, ignoreUrls = []) => {
+    url = url.trim();
+    if (url.length <= 0) {
+      return true;
+    }
+    // So existing invalid source links are skipped
+    if (ignoreUrls.includes(url)) {
+      return true;
+    }
+    // Allow dead source links prefixed with `-`
+    if (url[0] === "-") {
+      url = url.substring(1);
+    }
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      // Exception occurs if the URL constructor fails to parse the string, which means it's not a valid URL
+      return false;
+    }
+  };
+
+  const allUrlsValid = (urls, ignoreUrls = []) => {
+    return urls.every(url => isUrlValid(url, ignoreUrls));
+  };
+
+  const splitUrls = urls => urls?.split(/\r?\n/) || [];
+
+  const oldSources = splitUrls($("input[name='post[old_source]']").val());
+  const invalidOldSources = oldSources.filter(url => !isUrlValid(url));
+
+  const updateForUrlChange = () => {
+    const newSources = splitUrls($("#post_source").val());
+    const newSourcesValid = allUrlsValid(newSources, oldSources);
+    $("#post-edit-invalid-url-error")[0].style.display = newSourcesValid ? "none" : "";
+    $("#edit #form input[type=\"submit\"]")[0].disabled = !newSourcesValid;
+    const hasOldInvalidSource = newSources.some(url => invalidOldSources.includes(url));
+    $("#post-edit-invalid-url-warning")[0].style.display = !hasOldInvalidSource ? "none" : "";
+  };
+
+  $(document).on("danbooru:open-post-edit-tab", updateForUrlChange);
+  $("#post_source").on("change.danbooru", updateForUrlChange);
 };
 
 Post.notice_update = function (x) {
@@ -576,17 +624,14 @@ Post.notice_update = function (x) {
 };
 
 Post.update_data = function (data) {
-  var $post = $(`article.thumbnail[data-id="${data.id}"]`).first();
+  var $post = Post.getMatchingThumbnails(data.id);
   $post.attr("data-tags", data.tag_string);
   $post.data("rating", data.rating);
 
-  $post.removeClass("has-parent has-children");
-  if (data.parent_id) $post.addClass("has-parent");
-  if (data.has_visible_children) $post.addClass("has-children");
-  $post.attr(
-    "data-border-states",
-    (data.is_pending ? 1 : 0) + (data.is_flagged ? 1 : 0) + (data.parent_id ? 1 : 0) + (data.has_visible_children ? 1 : 0),
-  );
+  $post.toggleClass("has-parent", data.parent_id);
+  $post.toggleClass("has-children", data.has_visible_children);
+  $post.toggleClass("flagged", data.is_flagged);
+  $post.toggleClass("pending", data.is_pending);
 };
 
 Post.tag = function (post_id, tags) {
@@ -597,6 +642,10 @@ Post.tag = function (post_id, tags) {
 Post.tagScript = function (post_id, tags) {
   const tag_string = (Array.isArray(tags) ? tags.join(" ") : String(tags));
   Post.update(post_id, { "post[tag_string_diff]": tag_string });
+};
+
+Post.getMatchingThumbnails = function (post_id) {
+  return $(`article.thumbnail[data-id="${post_id}"]`);
 };
 
 Post.update = function (post_id, params) {
@@ -655,7 +704,7 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
       if (reload_after_delete) {
         location.reload();
       } else {
-        $(`article.thumbnail[data-id="${post_id}"]`).attr("data-flags", "deleted");
+        Post.getMatchingThumbnails(post_id).attr("data-flags", "deleted");
       }
     }).always(function () {
       if (!error)
@@ -675,8 +724,8 @@ Post.undelete = function (post_id, callback) {
       const message = data.responseJSON.message;
       E621.Toast.alert("Error: " + message);
     }).done(function () {
+      Post.getMatchingThumbnails(post_id).attr("data-flags", "active");
       E621.Toast.notice("Undeleted post.");
-      $(`article.thumbnail[data-id="${post_id}"]`).attr("data-flags", "active");
       if (callback) callback();
     }).always(function () {
       Post.notice_update("dec");
@@ -696,6 +745,7 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
       const message = data.responseJSON.message;
       E621.Toast.alert("Error: " + message);
     }).done(function () {
+      Post.getMatchingThumbnails(post_id).removeClass("flagged");
       E621.Toast.notice("Unflagged post");
       if (callback) callback();
       if (reload) location.reload();
@@ -705,7 +755,7 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
   }, { name: "Post.unflag" });
 };
 
-Post.flag = function (post_id, reason_name, parent_id = null, reload = true, callback = null) {
+Post.flag = function (post_id, reason_name, parent_id = null, note = null, reload = true, callback = null) {
   Post.notice_update("inc");
   TaskQueue.add(() => {
     $.ajax({
@@ -716,6 +766,7 @@ Post.flag = function (post_id, reason_name, parent_id = null, reload = true, cal
           post_id: parseInt(post_id),
           reason_name,
           parent_id,
+          note,
         },
       },
     }).fail(function (data) {
@@ -731,9 +782,9 @@ Post.flag = function (post_id, reason_name, parent_id = null, reload = true, cal
   }, { name: "Post.flag" });
 };
 
-Post.move_flag_to_parent = function (post_id, parent_id) {
+Post.move_flag_to_parent = function (post_id, parent_id, reason_name, note) {
   Post.unflag(post_id, false, false, function () {
-    Post.flag(parent_id, "inferior", post_id, false, function () {
+    Post.flag(parent_id, reason_name, post_id, note, false, function () {
       location.href = `/moderator/post/posts/${parent_id}/confirm_delete`;
     });
   });
@@ -801,11 +852,10 @@ Post.approve = function (post_id, callback) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
       E621.Toast.alert("Error: " + message);
     }).done(function () {
-      var $post = $(`article.thumbnail[data-id="${post_id}"]`).first();
-      if ($post.length) {
-        $post.data("flags", $post.data("flags").replace(/pending/, ""));
-        $post.removeClass("pending");
-        $post.attr("data-border-states", (parseInt($post.attr("data-border-states")) || 1) - 1);
+      const $thumbnails = Post.getMatchingThumbnails(post_id);
+      if ($thumbnails.length) {
+        $thumbnails.data("flags", $thumbnails.data("flags").replace(/pending/, ""));
+        $thumbnails.removeClass("pending");
         E621.Toast.notice("Approved post #" + post_id);
       }
       if (callback) {

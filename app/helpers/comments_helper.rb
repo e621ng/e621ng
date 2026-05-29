@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 module CommentsHelper
-  def comment_vote_block(comment, vote)
+  def comment_vote_block(comment)
     return if comment.is_sticky
 
-    voted = !vote.nil?
-    vote_score = voted ? vote.score : 0
+    vote_score = comment.vote_by
     score_tag = tag.li(comment.score, class: "comment-score #{score_class(comment.score)}", id: "comment-score-#{comment.id}")
 
     if CurrentUser.is_member?

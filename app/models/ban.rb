@@ -2,10 +2,15 @@
 
 class Ban < ApplicationRecord
   attr_accessor :is_permaban
+
+  include Danbooru::HasBitFlags
+  has_bit_flags %w[prevent_login], field: "ban_flags"
+
   after_create :create_feedback
   after_create :update_user_on_create
   after_create :create_ban_mod_action
   after_create :push_pubsub_ban
+  after_update :update_user_on_update
   after_update :create_ban_update_mod_action
   after_update :push_pubsub_update
   after_destroy :update_user_on_destroy
@@ -82,14 +87,17 @@ class Ban < ApplicationRecord
   end
 
   def update_user_on_create
-    user.is_banned = true
     user.level = User::Levels::BLOCKED
     # Don't validate in order for deleted users to be bannable
     user.save(validate: false)
   end
 
+  def update_user_on_update
+    user.level = User::Levels::BLOCKED
+    user.save(validate: false)
+  end
+
   def update_user_on_destroy
-    user.is_banned = false
     user.level = User::Levels::MEMBER
     user.save(validate: false)
   end
@@ -173,6 +181,7 @@ class Ban < ApplicationRecord
           banner_id: banner.id,
           expires_at: expires_at,
           reason: reason,
+          ban_flags: ban_flags,
         },
       }
     end

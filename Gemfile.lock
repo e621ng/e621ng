@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/e621ng/dtext.git
-  revision: 133a07b120778053164719d0c62dd293048b7140
-  tag: 2.0.3
+  revision: 193e57b8f2b8a2d1023c57826474eafbfb047b8b
+  tag: 2.0.4
   specs:
-    dtext (2.0.3)
+    dtext (2.0.4)
 
 GEM
   remote: https://rubygems.org/
@@ -149,7 +149,7 @@ GEM
       railties (>= 5.0.0)
     faker (3.4.2)
       i18n (>= 1.8.11, < 2)
-    faraday (2.14.1)
+    faraday (2.14.2)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
@@ -254,6 +254,8 @@ GEM
     rack-cors (3.0.0)
       logger
       rack (>= 3.0.14)
+    rack-mini-profiler (4.0.1)
+      rack (>= 1.2.0)
     rack-proxy (0.7.7)
       rack
     rack-session (2.1.2)
@@ -411,6 +413,8 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
+    sitemap_generator (7.0.1)
+      builder (~> 3.0)
     smart_properties (1.17.0)
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
@@ -428,10 +432,10 @@ GEM
       actionview (>= 7.1.0)
       activesupport (>= 7.1.0)
       concurrent-ruby (~> 1)
-    vite_rails (3.0.19)
+    vite_rails (3.10.0)
       railties (>= 5.1, < 9)
       vite_ruby (~> 3.0, >= 3.2.2)
-    vite_ruby (3.9.2)
+    vite_ruby (3.10.2)
       dry-cli (>= 0.7, < 2)
       logger (~> 1.6)
       mutex_m
@@ -479,6 +483,7 @@ DEPENDENCIES
   pitchfork
   puma
   rack-cors
+  rack-mini-profiler
   rails (~> 8.1.0)
   rails-settings-cached (~> 2.9)
   recaptcha
@@ -503,6 +508,7 @@ DEPENDENCIES
   simple_form
   simplecov
   simplecov_json_formatter
+  sitemap_generator
   streamio-ffmpeg
   view_component
   vite_rails

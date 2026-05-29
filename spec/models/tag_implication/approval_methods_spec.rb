@@ -47,7 +47,7 @@ RSpec.describe TagImplication do
   # #process!
   # ---------------------------------------------------------------------------
   describe "#process!" do
-    it "sets status to active after successful processing" do
+    it "sets status to active after processing" do
       ti = create(:tag_implication)
       ti.update_columns(status: "queued", approver_id: create(:admin_user).id)
       allow(ti).to receive_messages(
@@ -69,6 +69,19 @@ RSpec.describe TagImplication do
       ti.process!(update_topic: false)
 
       expect(ti.reload.status).to start_with("error:")
+    end
+
+    it "enqueues TagImplicationFinalizeJob with antecedent_name on success" do
+      ti = create(:tag_implication)
+      ti.update_columns(status: "queued", approver_id: create(:admin_user).id)
+      allow(ti).to receive_messages(
+        create_undo_information: nil,
+        update_posts: nil,
+        update_descendant_names_for_parents: nil,
+      )
+
+      expect { ti.process!(update_topic: false) }
+        .to have_enqueued_job(TagImplicationFinalizeJob).with(ti.id, ti.antecedent_name)
     end
   end
 
@@ -181,6 +194,15 @@ RSpec.describe TagImplication do
       ti.update_posts_undo
 
       expect(post.reload.tag_string.split).not_to include("species_b")
+    end
+
+    it "enqueues TagImplicationFinalizeJob with antecedent_name" do
+      ti = create(:active_tag_implication)
+      ti.update_columns(status: "pending")
+      ti.tag_rel_undos.create!(undo_data: {})
+
+      expect { ti.update_posts_undo }
+        .to have_enqueued_job(TagImplicationFinalizeJob).with(ti.id, ti.antecedent_name)
     end
 
     it "skips posts where the consequent was already in the original tag string" do

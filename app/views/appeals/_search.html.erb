@@ -8,11 +8,17 @@
   <%= f.input :qtype, label: "Type", collection: [
       ["Post Flag appeal", "flag"],
   ], include_blank: true %>
-  <%= f.input :status, collection: [
-      ["Pending + Unclaimed", "pending_unclaimed"],
-      ["Pending + Claimed", "pending_claimed"],
-      ["Approved/investigated", "approved"],
-      ["Under investigation", "partial"],
-      ["Pending", "pending"],
-  ], include_blank: true %>
+  <%= f.input :status, as: :grouped_select, collection: {
+    "Pending" => [
+      %w[Pending pending],
+      %w[Pending + Unclaimed pending_unclaimed],
+      %w[Pending + Claimed pending_claimed],
+      %w[Investigating partial],
+    ],
+    "Handled" => [
+      %w[Handled handled],
+      %w[Approved approved],
+      %w[Rejected rejected],
+    ],
+  }.to_a, group_label_method: :first, group_method: :last, include_blank: true %>
 <% end %>

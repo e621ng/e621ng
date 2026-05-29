@@ -5,6 +5,7 @@
   <% end %>
   <%= f.input :duration, :hint => "in days" %>
   <%= f.input :is_permaban, as: :boolean, hint: 'ignores days' %>
+  <%= f.input :prevent_login, as: :boolean, hint: 'Check this to lock the user out of the site entirely. Use for underage users or extreme cases.' %>
   <%= f.input :reason, as: :dtext, allow_color: false %>
   <%= f.button :submit, :value => "Ban" %>
 <% end %>

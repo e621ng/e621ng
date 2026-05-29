@@ -114,4 +114,28 @@ RSpec.describe StorageManager do
       end
     end
   end
+
+  # -------------------------------------------------------------------------
+  # #download_url
+  # -------------------------------------------------------------------------
+  describe "#download_url" do
+    it "returns the download URL for the given md5 and extension" do
+      expect(manager.download_url(md5, "jpg")).to eq("http://example.com/data/download/#{md5}.jpg")
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #post_download_url
+  # -------------------------------------------------------------------------
+  describe "#post_download_url" do
+    it "returns the download URL for a non-deleted post" do
+      post = instance_double(Post, md5: md5, file_ext: "jpg", is_deleted?: false)
+      expect(manager.post_download_url(post)).to eq("http://example.com/data/download/#{md5}.jpg")
+    end
+
+    it "returns nil for a deleted post" do
+      post = instance_double(Post, md5: md5, file_ext: "jpg", is_deleted?: true)
+      expect(manager.post_download_url(post)).to be_nil
+    end
+  end
 end

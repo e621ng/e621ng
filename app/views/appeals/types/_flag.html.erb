@@ -10,8 +10,9 @@
   </div>
 
   <div class="appeal-display-section appeal-display-flag-post">
-    <%= render(PostThumbnailComponent.new(post: @flag.post, stats: true, show_deleted: true, no_blacklist: true)) %>
+    <%= render(PostThumbnailComponent.new(post: @flag.post, stats: true, show_deleted: true)) %>
   </div>
+  <%= render "posts/partials/common/inline_blacklist" %>
 <% else %>
   <div class="appeal-display-flag">
     Flag #<%= @appeal.disp_id %> has been destroyed.

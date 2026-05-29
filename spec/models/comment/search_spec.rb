@@ -207,6 +207,16 @@ RSpec.describe Comment do
       expect(result).not_to include(on_disabled)
     end
 
+    it "includes stickied comments on disabled posts for non-staff" do
+      post        = create(:post)
+      on_disabled = CurrentUser.scoped(create(:user), "127.0.0.1") { make_comment(post: post, is_sticky: true) }
+      post.update_columns(is_comment_disabled: true)
+      Comment::SearchMethods.clear_comment_disabled_cache
+      member = create(:user)
+      result = Comment.accessible(member)
+      expect(result).to include(on_disabled)
+    end
+
     it "includes comments on disabled posts for staff" do
       post        = create(:post)
       on_disabled = CurrentUser.scoped(create(:user), "127.0.0.1") { make_comment(post: post) }

@@ -1,4 +1,4 @@
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/Storage";
 import Page from "@/utility/Page";
 import Offclick from "@/utility/Offclick";
 

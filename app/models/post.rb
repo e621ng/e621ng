@@ -5,6 +5,12 @@ class Post < ApplicationRecord
   class DeletionError < Exception ; end
   class TimeoutError < Exception ; end
 
+  # fav_string is a denormalized blob that can grow unbounded with fav_count.
+  # Excluding it from the default attribute set keeps it out of every Post fetch.
+  # Reads go through Post#fav_string (lazy load); writes go through the
+  # write_fav_string! helper in FavoriteMethods.
+  self.ignored_columns += %w[fav_string]
+
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
@@ -114,6 +120,10 @@ class Post < ApplicationRecord
 
     def file_url
       storage_manager.post_file_url(self)
+    end
+
+    def download_url
+      storage_manager.post_download_url(self)
     end
 
     # TODO: Deprecate this method
@@ -360,7 +370,7 @@ class Post < ApplicationRecord
       if ai_score[:score] >= 50
         PostFlag.create(
           post: self,
-          reason_name: "uploading_guidelines",
+          reason_name: Danbooru.config.check_for_ai_content_flag_reason,
           note: "AI score: #{ai_score[:score]}\n#{ai_score[:reason]}",
           creator_id: User.system.id,
           creator_ip_addr: "192.168.0.1",
@@ -1210,58 +1220,102 @@ class Post < ApplicationRecord
   end
 
   module FavoriteMethods
-    def clean_fav_string!
-      array = fav_string.split.uniq
-      self.fav_string = array.join(" ")
-      self.fav_count = array.size
+    extend ActiveSupport::Concern
+
+    module ClassMethods
+      # Bulk-populate the favorited-by status for a collection of posts so that
+      # subsequent `favorited_by?(user_id)` calls return without hitting the DB.
+      def preload_favorited_status!(posts, user_id)
+        posts = Array.wrap(posts).compact
+        return if posts.empty? || user_id.blank?
+
+        favorited_ids = Favorite.where(user_id: user_id, post_id: posts.map(&:id)).pluck(:post_id).to_set
+        posts.each { |post| post.preset_favorited_status(user_id, favorited_ids.include?(post.id)) }
+      end
+    end
+
+    def preset_favorited_status(user_id, value)
+      @favorited_status_cache ||= {}
+      @favorited_status_cache[user_id] = value
     end
 
     def favorited_by?(user_id = CurrentUser.id)
-      !!(fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/)
+      return false if user_id.blank?
+      cached = @favorited_status_cache&.[](user_id)
+      return cached unless cached.nil?
+
+      is_favorited = Favorite.exists?(user_id: user_id, post_id: id)
+      preset_favorited_status(user_id, is_favorited)
+      is_favorited
     end
 
     alias_method :is_favorited?, :favorited_by?
+
+    # Lazy reader: the column is ignored by AR (see ignored_columns at the top of
+    # this class), so on first access we issue a focused 1-column query and cache
+    # the result on the instance.
+    def fav_string
+      return @fav_string unless @fav_string.nil?
+      @fav_string = new_record? ? "" : (self.class.unscoped.where(id: id).pick(:fav_string) || "")
+    end
+
+    def reload(*)
+      @fav_string = nil
+      @favorited_status_cache = nil
+      @vote_by_cache = nil
+      super
+    end
+
+    # fav_string is kept in sync as a rollback safety net; the app no longer
+    # reads from it on the hot path. See FavoriteManager and TransferFavoritesJob for writers.
+    def clean_fav_string!
+      array = fav_string.split.uniq
+      write_fav_string!(array.join(" "), array.size)
+    end
 
     def append_user_to_fav_string(user_id)
       # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
       # Checking for presence is faster than explicit deduplication for both approaches.
       if fav_count > 1000
-        unless fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
-          self.fav_string = (fav_string + " fav:#{user_id}").strip
-          self.fav_count = fav_string.split.size
-        end
+        return if fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
+        new_string = (fav_string + " fav:#{user_id}").strip
       else
         fav_array = fav_string.split
         fav_tag = "fav:#{user_id}"
-
-        unless fav_array.include?(fav_tag)
-          fav_array << fav_tag
-          self.fav_string = fav_array.join(" ")
-          self.fav_count = fav_array.size
-        end
+        return if fav_array.include?(fav_tag)
+        fav_array << fav_tag
+        new_string = fav_array.join(" ")
       end
+      write_fav_string!(new_string, new_string.split.size)
     end
 
     def delete_user_from_fav_string(user_id)
       new_fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
-      if new_fav_string != fav_string
-        self.fav_string = new_fav_string
-        self.fav_count = new_fav_string.split.size
-      end
+      return if new_fav_string == fav_string
+      write_fav_string!(new_fav_string, new_fav_string.split.size)
     end
 
-    # users who favorited this post, ordered by users who favorited it first
+    # Persist fav_string (an ignored column) and fav_count in a single SQL UPDATE.
+    # AR's attribute system doesn't know about fav_string, so we route the write
+    # through update_all. fav_count stays dirty afterwards so a follow-up
+    # post.save still triggers after_save callbacks (e.g. reindexing).
+    def write_fav_string!(new_string, new_count)
+      Post.unscoped.where(id: id).update_all(fav_string: new_string, fav_count: new_count) unless new_record?
+      @fav_string = new_string
+      self.fav_count = new_count
+    end
+
+    # users who favorited this post, ordered by when they favorited it
     def favorited_users
-      favorited_user_ids = fav_string.scan(/\d+/).map(&:to_i)
+      favorited_user_ids = Favorite.where(post_id: id).order(:id).pluck(:user_id)
       visible_users = User.find(favorited_user_ids).reject(&:hide_favorites?)
-      ordered_users = visible_users.index_by(&:id).slice(*favorited_user_ids).values
-      ordered_users
+      visible_users.index_by(&:id).slice(*favorited_user_ids).values
     end
 
     def remove_from_favorites
+      user_ids = Favorite.where(post_id: id).pluck(:user_id)
       Favorite.where(post_id: id).delete_all
-      user_ids = fav_string.scan(/\d+/)
-      UserStatus.where(:user_id => user_ids).update_all("favorite_count = favorite_count - 1")
+      UserStatus.where(user_id: user_ids).update_all("favorite_count = favorite_count - 1") if user_ids.any?
     end
   end
 
@@ -1376,9 +1430,39 @@ class Post < ApplicationRecord
   end
 
   module VoteMethods
+    extend ActiveSupport::Concern
+
+    module ClassMethods
+      # Bulk-populate the user's vote score for a collection of posts so that
+      # subsequent `vote_by(user_id)` calls return without hitting the DB.
+      def preload_vote_by!(posts, user_id)
+        posts = Array.wrap(posts).compact
+        return if posts.empty? || user_id.blank?
+
+        scores = PostVote.where(user_id: user_id, post_id: posts.map(&:id)).pluck(:post_id, :score).to_h
+        posts.each { |post| post.preset_vote_by(user_id, scores.fetch(post.id, 0)) }
+      end
+    end
+
+    def preset_vote_by(user_id, score)
+      @vote_by_cache ||= {}
+      @vote_by_cache[user_id] = score
+    end
+
     def own_vote(user = CurrentUser.user)
       return nil unless user
       votes.where("user_id = ?", user.id).first
+    end
+
+    # Returns -1, 0, or 1. A missing or locked PostVote both yield 0.
+    def vote_by(user_id = CurrentUser.id)
+      return 0 if user_id.blank?
+      cached = @vote_by_cache&.[](user_id)
+      return cached unless cached.nil?
+
+      score = PostVote.where(user_id: user_id, post_id: id).pick(:score) || 0
+      preset_vote_by(user_id, score)
+      score
     end
   end
 
@@ -1593,8 +1677,8 @@ class Post < ApplicationRecord
           errors.add(:base, "Cannot delete with given reason when no active flag exists.")
           return
         end
-        if pending_flag.reason =~ /uploading_guidelines/
-          errors.add(:base, "Cannot delete with given reason when the flag is for uploading guidelines.")
+        if pending_flag.needs_staff_reason?
+          errors.add(:base, "Cannot \"delete with given reason\" for this flag reason.")
           return
         end
         reason = pending_flag.reason
@@ -1663,17 +1747,20 @@ class Post < ApplicationRecord
     end
 
     def deletion_flag
-      flags.order(id: :desc).first
+      flags.unresolved.where(is_deletion: true).order(id: :desc).first
     end
 
     def pending_flag
-      flags.unresolved.order(id: :desc).first
+      flags.unresolved.where(is_deletion: false).order(id: :desc).first
     end
 
     def substitute_deletion_dmail_template(text, reason = nil)
       return nil if text.blank?
       if reason
         text = text.gsub("%REASON%", reason)
+      end
+      if (flag_id = deletion_flag&.id)
+        text = text.gsub("%FLAG_ID%", flag_id.to_s)
       end
       text.gsub("%POST_ID%", id.to_s)
           .gsub("%STAFF_NAME%", CurrentUser.name)
@@ -1774,7 +1861,7 @@ class Post < ApplicationRecord
     end
 
     def method_attributes
-      list = super + %i[has_sample has_visible_children children_ids pool_ids is_favorited?]
+      list = super + %i[has_sample has_visible_children children_ids pool_ids is_favorited? vote_by]
       if visible?
         list += %i[file_url sample_url preview_file_url]
       end
@@ -1800,6 +1887,7 @@ class Post < ApplicationRecord
         score: score,
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
+        vote: vote_by(CurrentUser.user.id),
         comment_count: comment_count,
 
         pools: pool_ids.join(" "),
@@ -2165,10 +2253,6 @@ class Post < ApplicationRecord
     end
 
     save
-  end
-
-  def flaggable_for_guidelines?
-    !has_tag?("grandfathered_content") && created_at.after?(Danbooru.config.grandfathered_post_cutoff)
   end
 
   def visible_comment_count(user)
