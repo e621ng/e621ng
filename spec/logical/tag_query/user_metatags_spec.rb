@@ -147,6 +147,16 @@ RSpec.describe TagQuery, type: :model do
         expect(tq[:upvote]).to include(target_user.id)
       end
 
+      it "voteup: is an alias for upvote:" do
+        tq = TagQuery.new("voteup:#{target_user.name}")
+        expect(tq[:upvote]).to include(target_user.id)
+      end
+
+      it "upvoted: is an alias for upvote:" do
+        tq = TagQuery.new("upvoted:#{target_user.name}")
+        expect(tq[:upvote]).to include(target_user.id)
+      end
+
       it "downvote: resolves the user and stores ID in downvote array" do
         tq = TagQuery.new("downvote:#{target_user.name}")
         expect(tq[:downvote]).to include(target_user.id)
@@ -157,8 +167,23 @@ RSpec.describe TagQuery, type: :model do
         expect(tq[:downvote]).to include(target_user.id)
       end
 
+      it "votedown: is an alias for downvote:" do
+        tq = TagQuery.new("votedown:#{target_user.name}")
+        expect(tq[:downvote]).to include(target_user.id)
+      end
+
+      it "downvoted: is an alias for downvote:" do
+        tq = TagQuery.new("downvoted:#{target_user.name}")
+        expect(tq[:downvote]).to include(target_user.id)
+      end
+
       it "voted: resolves the user and stores ID in voted array" do
         tq = TagQuery.new("voted:#{target_user.name}")
+        expect(tq[:voted]).to include(target_user.id)
+      end
+
+      it "vote: is an alias for voted:" do
+        tq = TagQuery.new("vote:#{target_user.name}")
         expect(tq[:voted]).to include(target_user.id)
       end
     end
