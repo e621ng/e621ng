@@ -368,7 +368,8 @@ CREATE TABLE public.bans (
     banner_id integer NOT NULL,
     expires_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    ban_flags integer DEFAULT 0 NOT NULL
 );
 
 
@@ -5406,6 +5407,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260526234030'),
 ('20260520175932'),
 ('20260519151649'),
 ('20260505163626'),
@@ -5712,3 +5714,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20100205162521'),
 ('20100204214746'),
 ('20100204211522');
+

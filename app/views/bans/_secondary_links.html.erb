@@ -4,7 +4,7 @@
     <%= subnav_link_to "Ban", new_ban_path %>
   <% end %>
   <% if @ban&.id %>
-    |
+    <li class="divider"></li>
     <%= subnav_link_to "Edit", edit_ban_path(@ban) %>
   <% end %>
 <% end %>

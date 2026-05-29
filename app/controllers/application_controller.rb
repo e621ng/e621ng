@@ -214,7 +214,7 @@ class ApplicationController < ActionController::Base
   end
 
   def user_access_check(method)
-    if !CurrentUser.user.send(method) || CurrentUser.user.is_banned? || IpBan.is_banned?(CurrentUser.ip_addr)
+    if !CurrentUser.user.send(method) || IpBan.is_banned?(CurrentUser.ip_addr)
       access_denied
     end
   end

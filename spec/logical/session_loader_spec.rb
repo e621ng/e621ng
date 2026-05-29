@@ -316,7 +316,7 @@ RSpec.describe SessionLoader do
     end
 
     context "with a time-limited ban" do
-      before { create(:ban, user: user, duration: 7) }
+      before { create(:ban, user: user, duration: 7, prevent_login: true) }
 
       it "raises AuthenticationFailure mentioning the suspension" do
         expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure, /suspended/)
@@ -324,13 +324,21 @@ RSpec.describe SessionLoader do
     end
 
     context "with an expired ban" do
-      let!(:ban) { create(:ban, user: user, duration: 7) }
+      let!(:ban) { create(:ban, user: user, duration: 7, prevent_login: true) }
 
       before { ban.update_columns(expires_at: 2.days.ago) }
 
       it "unbans the user and does not raise" do
         expect { loader.load }.not_to raise_error
-        expect(user.reload.is_banned?).to be false
+        expect(user.reload.is_blocked?).to be false
+      end
+    end
+
+    context "with a soft ban (prevent_login: false)" do
+      before { create(:ban, user: user, duration: 7, prevent_login: false) }
+
+      it "does not raise AuthenticationFailure" do
+        expect { loader.load }.not_to raise_error
       end
     end
   end

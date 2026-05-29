@@ -71,13 +71,35 @@ RSpec.describe FavoritesController do
     end
 
     context "when the target user is blocked" do
-      let(:blocked_user) { create(:banned_user) }
+      let(:blocked_user) do
+        user = create(:user)
+        create(:ban, user: user, prevent_login: false)
+        user
+      end
 
-      it "returns 200 but an empty post list" do
+      it "returns 200 but an empty post list for an unrelated user" do
         FavoriteManager.add!(user: blocked_user, post: post_record)
+        sign_in_as member
+
         get favorites_path(user_id: blocked_user.id, format: :json)
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body["posts"]).to be_empty
+      end
+
+      it "returns 200 and the favorites list for the banned user themselves" do
+        FavoriteManager.add!(user: blocked_user, post: post_record)
+        sign_in_as blocked_user
+        get favorites_path(user_id: blocked_user.id, format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["posts"]).not_to be_empty
+      end
+
+      it "returns 200 and the favorites list for a staff member" do
+        FavoriteManager.add!(user: blocked_user, post: post_record)
+        sign_in_as moderator
+        get favorites_path(user_id: blocked_user.id, format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["posts"]).not_to be_empty
       end
     end
   end
