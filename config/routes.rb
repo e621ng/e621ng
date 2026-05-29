@@ -229,7 +229,11 @@ Rails.application.routes.draw do
     resource :visit, controller: "forum_topic_visits"
   end
   resources :forum_categories
-  resources :help_pages, controller: "help", path: "help"
+  resources :help_pages, controller: "help", path: "help" do
+    collection do
+      get :list
+    end
+  end
   resources :ip_bans
   resources :upload_whitelists, except: %i[show] do
     collection do

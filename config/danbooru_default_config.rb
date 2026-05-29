@@ -616,6 +616,12 @@ module Danbooru
       nil
     end
 
+    # Name of the default home page shown at /help.
+    # This should correspond to the `name` field of a HelpPage record.
+    def help_landing_page
+      "about"
+    end
+
     def flag_notice_wiki_page
       "help:flag_notice"
     end
