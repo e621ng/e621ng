@@ -73,10 +73,10 @@ RSpec.describe PostFlag do
   # #can_see_note?
   # -------------------------------------------------------------------------
   describe "#can_see_note?" do
-    let(:flag)     { create(:post_flag) }
-    let(:uploader) { flag.post.uploader }
-    let(:member)   { create(:user) }
-    let(:janitor)  { create(:janitor_user) }
+    let(:flag)        { create(:post_flag) }
+    let(:uploader)    { flag.post.uploader }
+    let(:member)      { create(:user) }
+    let(:janitor)     { create(:janitor_user) }
 
     context "with default config (:staff)" do
       it "returns true for staff (janitor)" do
