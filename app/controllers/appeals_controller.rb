@@ -23,6 +23,13 @@ class AppealsController < ApplicationController
 
   def new
     @appeal = Appeal.new(qtype: params[:qtype], disp_id: params[:disp_id])
+
+    # These messages will have to be moved to AppealTypes if anything else than deletion becomes appealable
+    if (existing_appeal = @appeal.find_duplicate_for(CurrentUser.user)).present?
+      redirect_to appeal_path(existing_appeal), alert: "This deletion has already been appealed."
+      return
+    end
+
     unless @appeal.can_create_for?(CurrentUser.user)
       redirect_to appeals_path, alert: "This deletion can't be appealed or has already been resolved."
       return

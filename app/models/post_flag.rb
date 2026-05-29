@@ -42,12 +42,10 @@ class PostFlag < ApplicationRecord
 
   module AccessMethods
     def can_appeal?(user = CurrentUser.user)
-      return false unless is_deletion?
       return false if is_resolved?
-      return true if post.linked_users.include?(user.id) # Verified artists can appeal deletions of their own posts
-      return false if reason =~ /takedown #\d+/i
-      return true if post.uploader_id == user.id # Uploaders can appeal anything except for takedowns
-      false
+      return false unless appealable_by?(user)
+      return false if has_user_appealed?(user)
+      true
     end
   end
 
@@ -239,6 +237,25 @@ class PostFlag < ApplicationRecord
     @parent_post ||= Post.find_by(id: parent_id)
   end
 
+  def user_appeal(user)
+    return nil unless appealable_by?(user)
+
+    @user_appeal ||= {}
+    unless @user_appeal.key?(user.id)
+      # Multiple appeals used to be possible, so return the latest
+      @user_appeal[user.id] = Appeal.where(
+        creator_id: user.id,
+        qtype: "flag",
+        disp_id: id,
+      ).order(id: :desc).limit(1).first
+    end
+    @user_appeal[user.id]
+  end
+
+  def has_user_appealed?(user)
+    user_appeal(user).present?
+  end
+
   # Creates an appropriate `PostEvent` unless this is a deletion.
   #
   # NOTE: Deletions also create flags, but they create a deletion event instead
@@ -257,5 +274,15 @@ class PostFlag < ApplicationRecord
     else
       false
     end || user.is_staff? || creator_id == user.id
+  end
+
+  private
+
+  # This is only a basic permission check, ignoring current flag or appeal status.
+  def appealable_by?(user)
+    return false unless is_deletion?
+    # Uploaders can appeal except for takedowns, verified artists can appeal deletions of their own posts
+    return false unless (post.uploader_id == user.id && reason !~ /takedown #\d+/i) || post.linked_users.include?(user.id)
+    true
   end
 end
