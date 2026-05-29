@@ -616,9 +616,8 @@ module Danbooru
       nil
     end
 
-    # The default page loaded for the help index endpoint when you are not an admin. Is interpreted as either:
-    # * The `id` of a `HelpPage` record.
-    # * The `name` of a `HelpPage` record.
+    # Name of the default home page shown at /help.
+    # This should correspond to the `name` field of a HelpPage record.
     def help_landing_page
       "about"
     end
