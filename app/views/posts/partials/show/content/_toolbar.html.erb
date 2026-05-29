@@ -141,11 +141,9 @@
           href="<%= @post.download_url %>"
           class="st-button ptbr-etc-download"
           download="<%= @post.md5 %>.<%= @post.file_ext %>"
-          pending="false"
           data-hotkey="download"
         >
-          <%= svg_icon(:hexagon) %>
-          <span>Download</span>
+          Download
         </a>
       <% end %>
       <button class="st-button ptbr-share-button" data-hotkey="share">Share</button>
