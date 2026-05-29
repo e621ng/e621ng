@@ -329,6 +329,9 @@ export class CachedPost implements CachedPostData {
   public get isPending () { return this.flags.includes("pending"); }
   public get isFlagged () { return this.flags.includes("flagged"); }
   public get isDeleted () { return this.flags.includes("deleted"); }
+
+  // Post is likely blocked by safe mode, and returned no URLs
+  public get isUnavailable () { return !this.preview_url; }
 }
 
 interface BasicPostData {
