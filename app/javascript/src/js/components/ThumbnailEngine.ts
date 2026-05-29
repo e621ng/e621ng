@@ -27,7 +27,7 @@ export default class ThumbnailEngine {
       .addClass("thumbnail rating-" + (post.ratingLong))
       .attr(post.toAttributes());
 
-    if (post.isDeleted) article.addClass("deleted");
+    if (post.isDeleted || post.isUnavailable) article.addClass("deleted");
 
     // Apply customization and blacklist classes
     if (E621.Blacklist.hiddenPosts.has(post.id)) article.addClass("blacklisted");
@@ -40,13 +40,15 @@ export default class ThumbnailEngine {
     if (classes) article.addClass(classes);
 
     // Substitute URLs if necessary
-    if (jpegUrl) {
-      if (post.preview_url) post.preview_url = post.preview_url.replace(/\/data\/.*$/, jpegUrl);
-      else post.preview_url = jpegUrl;
-    }
-    if (webpUrl) {
-      if (post.preview_webp) post.preview_webp = post.preview_webp.replace(/\/data\/.*$/, webpUrl);
-      else post.preview_webp = webpUrl;
+    if (!post.isUnavailable) {
+      if (jpegUrl) {
+        if (post.preview_url) post.preview_url = post.preview_url.replace(/\/data\/.*$/, jpegUrl);
+        else post.preview_url = jpegUrl;
+      }
+      if (webpUrl) {
+        if (post.preview_webp) post.preview_webp = post.preview_webp.replace(/\/data\/.*$/, webpUrl);
+        else post.preview_webp = webpUrl;
+      }
     }
 
     // Core
@@ -57,7 +59,8 @@ export default class ThumbnailEngine {
         "data-target": post.id, // Used by Analytics
       })
       .appendTo(article);
-    if (!post.isDeleted || User.is.janitor)
+
+    if (!post.isUnavailable && (!post.isDeleted || User.is.janitor))
       link.append(this.renderPicture(post));
 
     // Footer
