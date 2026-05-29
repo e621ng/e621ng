@@ -43,10 +43,8 @@ class PostFlag < ApplicationRecord
 
   module AccessMethods
     def can_appeal?(user = CurrentUser.user)
-      return false unless is_deletion?
-      return false if is_resolved?
-      # Uploaders can appeal except for takedowns, verified artists can appeal deletions of their own posts
-      return false unless (post.uploader_id == user.id && reason !~ /takedown #\d+/i) || post.linked_users.include?(user.id)
+      return false if is_resolved
+      return false unless appealable_by?(user)
       return false if has_user_appealed?(user)
       true
     end
@@ -230,6 +228,8 @@ class PostFlag < ApplicationRecord
   end
 
   def user_appeal(user)
+    return nil unless appealable_by?(user)
+
     @user_appeal ||= {}
     unless @user_appeal.key?(user.id)
       # Multiple appeals used to be possible, so return the latest
@@ -264,5 +264,15 @@ class PostFlag < ApplicationRecord
     else
       false
     end || user.is_staff? || creator_id == user.id
+  end
+
+  private
+
+  # This is only a basic permission check, ignoring current flag or appeal status.
+  def appealable_by?(user)
+    return false unless is_deletion?
+    # Uploaders can appeal except for takedowns, verified artists can appeal deletions of their own posts
+    return false unless (post.uploader_id == user.id && reason !~ /takedown #\d+/i) || post.linked_users.include?(user.id)
+    true
   end
 end
