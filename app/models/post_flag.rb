@@ -43,7 +43,7 @@ class PostFlag < ApplicationRecord
 
   module AccessMethods
     def can_appeal?(user = CurrentUser.user)
-      return false if is_resolved
+      return false if is_resolved?
       return false unless appealable_by?(user)
       return false if has_user_appealed?(user)
       true
