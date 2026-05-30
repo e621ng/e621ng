@@ -5,12 +5,6 @@ class Post < ApplicationRecord
   class DeletionError < Exception ; end
   class TimeoutError < Exception ; end
 
-  # fav_string is a denormalized blob that can grow unbounded with fav_count.
-  # Excluding it from the default attribute set keeps it out of every Post fetch.
-  # Reads go through Post#fav_string (lazy load); writes go through the
-  # write_fav_string! helper in FavoriteMethods.
-  self.ignored_columns += %w[fav_string]
-
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
@@ -1251,58 +1245,17 @@ class Post < ApplicationRecord
 
     alias_method :is_favorited?, :favorited_by?
 
-    # Lazy reader: the column is ignored by AR (see ignored_columns at the top of
-    # this class), so on first access we issue a focused 1-column query and cache
-    # the result on the instance.
-    def fav_string
-      return @fav_string unless @fav_string.nil?
-      @fav_string = new_record? ? "" : (self.class.unscoped.where(id: id).pick(:fav_string) || "")
-    end
-
     def reload(*)
-      @fav_string = nil
       @favorited_status_cache = nil
       @vote_by_cache = nil
       super
     end
 
-    # fav_string is kept in sync as a rollback safety net; the app no longer
-    # reads from it on the hot path. See FavoriteManager and TransferFavoritesJob for writers.
-    def clean_fav_string!
-      array = fav_string.split.uniq
-      write_fav_string!(array.join(" "), array.size)
-    end
-
-    def append_user_to_fav_string(user_id)
-      # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
-      # Checking for presence is faster than explicit deduplication for both approaches.
-      if fav_count > 1000
-        return if fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
-        new_string = (fav_string + " fav:#{user_id}").strip
-      else
-        fav_array = fav_string.split
-        fav_tag = "fav:#{user_id}"
-        return if fav_array.include?(fav_tag)
-        fav_array << fav_tag
-        new_string = fav_array.join(" ")
-      end
-      write_fav_string!(new_string, new_string.split.size)
-    end
-
-    def delete_user_from_fav_string(user_id)
-      new_fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
-      return if new_fav_string == fav_string
-      write_fav_string!(new_fav_string, new_fav_string.split.size)
-    end
-
-    # Persist fav_string (an ignored column) and fav_count in a single SQL UPDATE.
-    # AR's attribute system doesn't know about fav_string, so we route the write
-    # through update_all. fav_count stays dirty afterwards so a follow-up
-    # post.save still triggers after_save callbacks (e.g. reindexing).
-    def write_fav_string!(new_string, new_count)
-      Post.unscoped.where(id: id).update_all(fav_string: new_string, fav_count: new_count) unless new_record?
-      @fav_string = new_string
-      self.fav_count = new_count
+    # Recompute fav_count from the favorites table, the source of truth. Leaves
+    # fav_count dirty so a following post.save runs an UPDATE and triggers the
+    # after_save reindex.
+    def refresh_fav_count
+      self.fav_count = Favorite.where(post_id: id).count
     end
 
     # users who favorited this post, ordered by when they favorited it
@@ -1853,7 +1806,7 @@ class Post < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      list = super + [:pool_string, :fav_string]
+      list = super + [:pool_string]
       if !visible?
         list += [:md5, :file_ext]
       end

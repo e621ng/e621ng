@@ -1784,7 +1784,6 @@ CREATE TABLE public.posts (
     uploader_id integer NOT NULL,
     uploader_ip_addr inet NOT NULL,
     approver_id integer,
-    fav_string text DEFAULT ''::text NOT NULL,
     pool_string text DEFAULT ''::text NOT NULL,
     last_noted_at timestamp without time zone,
     last_comment_bumped_at timestamp without time zone,
@@ -5407,6 +5406,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260530162738'),
 ('20260526234030'),
 ('20260520175932'),
 ('20260519151649'),

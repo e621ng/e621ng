@@ -18,7 +18,7 @@ class FavoriteManager
 
       Favorite.create(user_id: user.id, post_id: post.id) # Done after acquiring the lock to prevent deadlocks
 
-      post.append_user_to_fav_string(user.id)
+      post.refresh_fav_count
       post.do_not_version_changes = true
 
       raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
@@ -41,7 +41,7 @@ class FavoriteManager
 
       Favorite.for_user(user.id).where(post_id: post.id).destroy_all # Done after acquiring the lock to prevent deadlocks
 
-      post.delete_user_from_fav_string(user.id)
+      post.refresh_fav_count
       post.do_not_version_changes = true
 
       raise Favorite::Error, "Failed to update post: #{post.errors.full_messages.join(', ')}" unless post.save
