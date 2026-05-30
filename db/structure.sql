@@ -549,6 +549,38 @@ ALTER SEQUENCE public.comments_id_seq OWNED BY public.comments.id;
 
 
 --
+-- Name: db_exports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.db_exports (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    file_size bigint DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: db_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.db_exports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: db_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.db_exports_id_seq OWNED BY public.db_exports.id;
+
+
+--
 -- Name: destroyed_posts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2812,6 +2844,13 @@ ALTER TABLE ONLY public.comments ALTER COLUMN id SET DEFAULT nextval('public.com
 
 
 --
+-- Name: db_exports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.db_exports ALTER COLUMN id SET DEFAULT nextval('public.db_exports_id_seq'::regclass);
+
+
+--
 -- Name: destroyed_posts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3313,6 +3352,14 @@ ALTER TABLE ONLY public.comment_votes
 
 ALTER TABLE ONLY public.comments
     ADD CONSTRAINT comments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: db_exports db_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.db_exports
+    ADD CONSTRAINT db_exports_pkey PRIMARY KEY (id);
 
 
 --
@@ -4114,6 +4161,13 @@ CREATE INDEX index_comments_on_post_id ON public.comments USING btree (post_id);
 --
 
 CREATE INDEX index_comments_on_to_tsvector_english_body ON public.comments USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
+-- Name: index_db_exports_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_db_exports_on_name ON public.db_exports USING btree (name);
 
 
 --
@@ -5406,6 +5460,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260530165214'),
 ('20260530162738'),
 ('20260526234030'),
 ('20260520175932'),

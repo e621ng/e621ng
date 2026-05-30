@@ -204,6 +204,12 @@ Rails.application.routes.draw do
     end
   end
   resource :dtext_preview, only: %i[create]
+  resources :db_exports, only: %i[index] do
+    collection do
+      get :favorites
+      get :votes
+    end
+  end
   resources :favorites, only: %i[index create destroy]
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes"

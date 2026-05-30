@@ -7,6 +7,7 @@ class StorageManager
   IMAGE_TYPES = %i[preview_jpg preview_webp sample_jpg sample_webp original].freeze
   MASCOT_PREFIX = "mascots"
   AVATAR_PREFIX = "avatars"
+  DB_EXPORT_PREFIX = "db_export"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
@@ -183,6 +184,22 @@ class StorageManager
 
   def furids_url
     "#{base_url}#{base_path}/furid/"
+  end
+
+  def db_export_path(file_name)
+    "#{base_dir}/#{DB_EXPORT_PREFIX}/#{file_name}"
+  end
+
+  def db_export_url(file_name)
+    "#{base_url}#{base_path}/#{DB_EXPORT_PREFIX}/#{file_name}"
+  end
+
+  def store_db_export(io, file_name)
+    store(io, db_export_path(file_name))
+  end
+
+  def delete_db_export(file_name)
+    delete(db_export_path(file_name))
   end
 
   #########################
