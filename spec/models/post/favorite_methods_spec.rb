@@ -188,6 +188,33 @@ RSpec.describe Post do
       end
     end
 
+    describe ".preload_stats!" do
+      it "preloads both favorited status and vote for the collection" do
+        user = create(:user)
+        post = create(:post)
+        Favorite.create!(user_id: user.id, post_id: post.id)
+        PostVote.create!(post: post, user: user, score: 1)
+
+        Post.preload_stats!([post], user)
+        allow(Favorite).to receive(:exists?)
+        allow(PostVote).to receive(:where)
+        expect(post.favorited_by?(user.id)).to be true
+        expect(post.vote_by(user.id)).to eq(1)
+        expect(Favorite).not_to have_received(:exists?)
+        expect(PostVote).not_to have_received(:where)
+      end
+
+      it "is a no-op for an anonymous user" do
+        post = create(:post)
+        expect { Post.preload_stats!([post], User.anonymous) }.not_to(change { post.instance_variable_get(:@favorited_status_cache) })
+      end
+
+      it "is a no-op for a nil user" do
+        post = create(:post)
+        expect { Post.preload_stats!([post], nil) }.not_to raise_error
+      end
+    end
+
     describe "#favorited_users" do
       it "returns User objects for users who favorited the post, ordered by when they favorited" do
         user1 = create(:user)

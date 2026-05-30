@@ -8,6 +8,7 @@ class PostFlagsController < ApplicationController
   def index
     @search_params = search_params
     @post_flags = PostFlag.includes(:creator, post: %i[flags uploader approver]).search(@search_params).paginate(params[:page], limit: params[:limit])
+    Post.preload_stats!(@post_flags.map(&:post))
     respond_with(@post_flags)
   end
 

@@ -6,7 +6,7 @@
     <%= render "posts/partials/common/inline_blacklist" %>
 
     <ul class="sortable">
-      <% @pool.posts.limit(Danbooru.config.pool_post_limit(nil)).each do |post| %>
+      <% @posts.each do |post| %>
         <li class="sortable-thumbnail" data-id="<%= post.id %>">
           <% component = PostThumbnailComponent.new(post: post, stats: false, show_deleted: true, no_blacklist: true) %>
           <% if component.render? %>

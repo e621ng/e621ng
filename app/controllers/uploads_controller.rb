@@ -20,6 +20,7 @@ class UploadsController < ApplicationController
 
   def index
     @uploads = Upload.search(search_params).includes(:post, :uploader).paginate(params[:page], :limit => params[:limit])
+    Post.preload_stats!(@uploads.map(&:post))
     respond_with(@uploads)
   end
 

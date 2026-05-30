@@ -41,10 +41,7 @@ class PostRecommendationsController < ApplicationController
     end
 
     posts = Post.where(id: post_data[:order]).includes(:uploader).to_a
-    unless CurrentUser.user&.is_anonymous?
-      Post.preload_favorited_status!(posts, CurrentUser.id)
-      Post.preload_vote_by!(posts, CurrentUser.id)
-    end
+    Post.preload_stats!(posts)
     post_data[:post_data] = PostThumbnailBlueprint.render_as_hash(posts, collection: true)
     post_data.delete(:order) # Don't pollute the response with redundant data
 
