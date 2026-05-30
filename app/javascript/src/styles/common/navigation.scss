@@ -482,18 +482,18 @@ body.c-static.a-home {
   @include window-larger-than(50rem) {
     nav.navigation {
       grid-template-areas:
-        "logo primary  primary  none   controls"
-        "logo primary  primary  tools  controls";
+        "logo primary  help      help  controls"
+        "logo primary  secondary tools controls";
 
-        &::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          bottom: -2rem;
-          background: linear-gradient(to bottom, themed("color-background"), transparent 5rem);
-          z-index: -1;
-          pointer-events: none;
-        }
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        bottom: -2rem;
+        background: linear-gradient(to bottom, themed("color-background"), transparent 5rem);
+        z-index: -1;
+        pointer-events: none;
+      }
     }
 
     menu.nav-secondary {

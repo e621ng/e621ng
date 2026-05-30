@@ -64,7 +64,7 @@ nav.navigation .simple-avatar {
   // Desktop
   @include window-larger-than(50rem) {
     .avatar-name {
-      background: none;
+      background: themed("color-background");
       color: inherit;
 
       height: 1.5rem;
@@ -85,7 +85,7 @@ nav.navigation .simple-avatar {
     }
 
     &:hover, &:active {
-      .avatar-name { background: none; }
+      .avatar-name { background: themed("color-background"); }
     }
 
     .avatar-more {
@@ -93,6 +93,11 @@ nav.navigation .simple-avatar {
       margin-top: 0.25rem;
     }
   }
+}
+
+// do not show avatar name if we're on the home page
+body.a-home nav.navigation .simple-avatar .avatar-name {
+  background: none;
 }
 
 nav.navigation .simple-avatar-menu {
