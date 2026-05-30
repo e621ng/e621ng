@@ -30,20 +30,6 @@
     <% else %>
       <p>No exports are currently available.</p>
     <% end %>
-
-    <% unless CurrentUser.is_anonymous? %>
-      <h2>Personal data</h2>
-
-      <div class="exports-personal-section">
-        <p>Export your own data as CSV files.</p>
-        <%= link_to favorites_db_exports_path, class: "export-download-link" do %>
-          <%= svg_icon(:download, width: 16, height: 16) %> Favorites
-        <% end %>
-        <%= link_to votes_db_exports_path, class: "export-download-link" do %>
-          <%= svg_icon(:download, width: 16, height: 16) %> Votes
-        <% end %>
-      </div>
-    <% end %>
   </div>
 </div>
 

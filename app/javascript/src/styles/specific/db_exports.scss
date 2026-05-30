@@ -101,19 +101,4 @@ body.c-db-exports.a-index {
     gap: 0.25rem;
     white-space: nowrap;
   }
-
-  .exports-personal-section {
-    background: var(--color-section);
-    padding: 1rem;
-    border-radius: 4px;
-    max-width: 30rem;
-
-    p {
-      margin-bottom: 0.75rem;
-    }
-
-    .export-download-link {
-      margin-right: 1rem;
-    }
-  }
 }
