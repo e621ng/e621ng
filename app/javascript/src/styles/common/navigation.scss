@@ -482,8 +482,8 @@ body.c-static.a-home {
   @include window-larger-than(50rem) {
     nav.navigation {
       grid-template-areas:
-        "logo primary  help      help  controls"
-        "logo primary  secondary tools controls";
+        "logo primary  help  none  controls"
+        "logo primary  help  tools controls";
 
       &::before {
         content: "";
@@ -497,15 +497,11 @@ body.c-static.a-home {
     }
 
     menu.nav-secondary {
-      background: none;
+      display: none;
     }
 
     menu.nav-tools {
       border-radius: .25rem;
-    }
-
-    menu.nav-help {
-      display: none;
     }
   }
 
