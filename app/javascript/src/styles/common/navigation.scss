@@ -454,19 +454,6 @@ nav.navigation, html.nav-toggled nav.navigation {
       #nav-toggle { display: none; }
       a { padding: 0; }
     }
-
-    // Icon collapse
-    // Stage 1: discord button
-    .collapse-1 { display: none; }
-    @include window-larger-than(77rem) {
-      .collapse-1 { display: flex; }
-    }
-
-    // Stage 2: account label
-    .collapse-2 .avatar-name { display: none; }
-    @include window-larger-than(65rem) {
-      .collapse-2 .avatar-name { display: unset; }
-    }
   }
 }
 
