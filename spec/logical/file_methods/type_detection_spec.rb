@@ -7,8 +7,8 @@ require "rails_helper"
 # --------------------------------------------------------------------------- #
 #
 # Covers:
-#   - is_png?, is_jpg?, is_gif?, is_flash?, is_webm?, is_mp4?, is_webp?
-#   - is_image?  (png | jpg | gif | webp)
+#   - is_png?, is_jpg?, is_gif?, is_flash?, is_webm?, is_mp4?, is_webp?, is_avif?
+#   - is_image?  (png | jpg | gif | webp | avif)
 #   - is_video?  (webm | mp4)
 #
 # These methods only inspect the `file_ext` attribute, so an anonymous class
@@ -117,8 +117,13 @@ RSpec.describe FileMethods do
   end
 
   # ----------------------------------------------------------------------- #
+  describe "#is_avif?" do
+    # TODO
+  end
+
+  # ----------------------------------------------------------------------- #
   describe "#is_image?" do
-    %w[png jpg gif webp].each do |ext|
+    %w[png jpg gif webp avif].each do |ext|
       it "returns true for '#{ext}'" do
         host.file_ext = ext
         expect(host.is_image?).to be true

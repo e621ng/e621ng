@@ -410,6 +410,7 @@ module Danbooru
         "webm" => 100.megabytes,
         "mp4" => 100.megabytes,
         "webp" => 100.megabytes,
+        "avif" => 100.megabytes,
       }
     end
 

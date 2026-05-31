@@ -10,6 +10,7 @@ require "rails_helper"
 #   - is_animated_png?(file_path)
 #   - is_animated_gif?(file_path)
 #   - is_animated_webp?(file_path)
+#   - is_animated_avif?(file_path)  # TODO
 #
 # Each method guards on `file_ext` before touching the file, so the falsy
 # "wrong extension" case needs no real file. Real fixture files are used for
@@ -105,5 +106,9 @@ RSpec.describe FileMethods, type: :model do
         expect(upload.is_animated_webp?("/nonexistent/path.webp")).to be false
       end
     end
+  end
+
+  describe "#is_animated_avif?" do
+    # TODO
   end
 end

@@ -68,6 +68,10 @@ RSpec.describe FileMethods, type: :model do
       end
     end
 
+    context "with a corrupt AVIF fixture" do
+      # TODO
+    end
+
     context "with a valid animated GIF" do
       it "returns false" do
         upload = build(:upload, file_ext: "gif")
