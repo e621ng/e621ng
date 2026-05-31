@@ -116,6 +116,11 @@ RSpec.describe Post do
         expect(build(:post, file_ext: "gif").is_gif?).to be true
       end
 
+      it "recognizes avif as an image" do
+        expect(build(:post, file_ext: "avif").is_image?).to be true
+        expect(build(:post, file_ext: "avif").is_avif?).to be true
+      end
+
       it "recognizes webm as a video" do
         expect(build(:post, file_ext: "webm").is_video?).to be true
         expect(build(:post, file_ext: "webm").is_webm?).to be true

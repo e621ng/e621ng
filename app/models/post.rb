@@ -426,7 +426,7 @@ class Post < ApplicationRecord
       @has_sample ||= begin
         if is_video?
           true
-        elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png", "animated_webp")
+        elsif is_gif? || is_flash? || has_tag?("animated_gif", "animated_png", "animated_webp", "animated_avif")
           false
         elsif is_image? && image_width.present?
           dims = [image_width, image_height].compact
@@ -875,6 +875,7 @@ class Post < ApplicationRecord
       tags -= ["animated_gif"] unless is_gif?
       tags -= ["animated_png"] unless is_png?
       tags -= ["animated_webp"] unless is_webp?
+      tags -= ["animated_avif"] unless is_avif?
 
       tags << "long_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration >= 30
       tags << "short_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration < 30

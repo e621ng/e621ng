@@ -29,6 +29,7 @@ RSpec.describe ImageSampler do
         is_gif?:           false,
         is_animated_png?:  false,
         is_animated_webp?: false,
+        is_animated_avif?: false,
         image_width:       256,
         image_height:      256,
         bg_color:          "000000",
@@ -104,6 +105,10 @@ RSpec.describe ImageSampler do
       end
     end
 
+    context "when post is an animated AVID" do
+      # TODO!AVIF
+    end
+
     context "when the image is too small for a sample (256x256, large_image_width=850)" do
       # dimensions.min=256 is not > 850, dimensions.max=256 is not > 1700
       it "stores exactly 2 thumbnail files and no sample files" do
@@ -127,6 +132,7 @@ RSpec.describe ImageSampler do
           is_gif?:           false,
           is_animated_png?:  false,
           is_animated_webp?: false,
+          is_animated_avif?: false,
           image_width:       1000,
           image_height:      1000,
           bg_color:          "000000",
@@ -154,6 +160,7 @@ RSpec.describe ImageSampler do
           is_gif?:           false,
           is_animated_png?:  false,
           is_animated_webp?: false,
+          is_animated_avif?: false,
           image_width:       256,
           image_height:      256,
           bg_color:          "000000",

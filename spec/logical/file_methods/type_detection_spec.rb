@@ -118,7 +118,15 @@ RSpec.describe FileMethods do
 
   # ----------------------------------------------------------------------- #
   describe "#is_avif?" do
-    # TODO
+    it "returns true when file_ext is 'avif'" do
+      host.file_ext = "avif"
+      expect(host.is_avif?).to be true
+    end
+
+    it "returns false for other extensions" do
+      host.file_ext = "webp"
+      expect(host.is_avif?).to be false
+    end
   end
 
   # ----------------------------------------------------------------------- #

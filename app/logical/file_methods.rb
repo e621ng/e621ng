@@ -105,7 +105,7 @@ module FileMethods
   end
 
   def is_animated_avif?(file_path)
-    # TODO
+    # TODO!AVIF
     # old way:
     # # Try to load the second frame/page. If it exists, it's animated.
     #     begin
@@ -172,6 +172,7 @@ module FileMethods
   # Verify whether the file at the provided path is corrupt.
   # * Regular images: attempt to load the image with libvips.
   # * GIFs: attempt to load each frame with libvips.
+  # * AVIF: # TODO!AVIF
   # * APNG: not implemented, could defer to ffmpeg if needed.
   # * Other file types: assumed to be non-corrupt.
   def is_corrupt?(file_path)
