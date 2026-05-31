@@ -105,7 +105,8 @@ module FileMethods
   end
 
   def is_animated_avif?(file_path)
-    # TODO!AVIF
+    false # Placeholder implementation; proper AVIF animation detection would require parsing the file structure for 'av01' tracks, which is non-trivial and not currently implemented.
+    # TODO!AVIF - check for `avis` (avif image sequence) box, mif1miaf?
     # old way:
     # # Try to load the second frame/page. If it exists, it's animated.
     #     begin

@@ -44,6 +44,8 @@ class UploadService
       upload.image_height = height
 
       upload.validate!(:file)
+      # TODO!AVIF - validate things animated avif is a `video/quicktime`
+      # BUG: rails/marcel#150
 
       # Combine existing tags with automatic tags and deduplicate
       # Mostly needed for promoted replacements, which copy tags from the original post
