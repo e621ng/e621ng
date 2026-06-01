@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe VoteManager::VoteAbuseMethods do
+RSpec.describe VoteTrends do
   include_context "as admin"
   describe ".vote_abuse_patterns" do
     let(:user) { create(:user) }
@@ -103,6 +103,12 @@ RSpec.describe VoteManager::VoteAbuseMethods do
       result = described_class.vote_abuse_patterns(user: user)
 
       expect(result.map { |trend_tag, _| trend_tag.name }).to eq(["orphan_tag"])
+    end
+
+    it "prevents excessive limits with empty return" do
+      expect do
+        described_class.vote_abuse_patterns(user: user, limit: Danbooru.config.post_vote_limit + 1)
+      end.not_to raise_error
     end
   end
 

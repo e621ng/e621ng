@@ -23,27 +23,27 @@ RSpec.describe "Admin::VoteTrendsController" do
       it "returns an empty result when user is missing" do
         sign_in_as admin_user
 
-        allow(VoteManager::VoteAbuseMethods).to receive(:vote_abuse_patterns)
+        allow(VoteTrends).to receive(:vote_abuse_patterns)
 
         get admin_vote_trends_path
 
         expect(response).to have_http_status(:ok)
-        expect(VoteManager::VoteAbuseMethods).not_to have_received(:vote_abuse_patterns)
+        expect(VoteTrends).not_to have_received(:vote_abuse_patterns)
       end
 
       it "returns an empty result when user param is blank" do
         sign_in_as admin_user
 
-        allow(VoteManager::VoteAbuseMethods).to receive(:vote_abuse_patterns)
+        allow(VoteTrends).to receive(:vote_abuse_patterns)
 
         get admin_vote_trends_path, params: { user: "" }
 
         expect(response).to have_http_status(:ok)
-        expect(VoteManager::VoteAbuseMethods).not_to have_received(:vote_abuse_patterns)
+        expect(VoteTrends).not_to have_received(:vote_abuse_patterns)
       end
 
-      it "calls VoteManager::VoteAbuseMethods with normalized params" do
-        allow(VoteManager::VoteAbuseMethods).to receive(:vote_abuse_patterns).and_return([])
+      it "calls VoteTrends with normalized params" do
+        allow(VoteTrends).to receive(:vote_abuse_patterns).and_return([])
 
         sign_in_as admin_user
 
@@ -56,7 +56,7 @@ RSpec.describe "Admin::VoteTrendsController" do
         }
 
         expect(response).to have_http_status(:ok)
-        expect(VoteManager::VoteAbuseMethods).to have_received(:vote_abuse_patterns)
+        expect(VoteTrends).to have_received(:vote_abuse_patterns)
           .with(hash_including(
                   user: an_instance_of(User),
                   limit: 5,

@@ -19,7 +19,7 @@ module Admin
         return
       end
 
-      @vote_trends = VoteManager::VoteAbuseMethods.vote_abuse_patterns(**vote_abuse_args)
+      @vote_trends = VoteTrends.vote_abuse_patterns(**vote_abuse_args)
       respond_with(@vote_trends)
     end
   end
