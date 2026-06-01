@@ -4,7 +4,7 @@ class EmailsController < ApplicationController
   respond_to :html
 
   def resend_confirmation
-    if IpBan.is_banned? CurrentUser.user.ip_addr
+    if IpBan.is_banned? CurrentUser.ip_addr
       redirect_to home_users_path, notice: "An error occurred trying to send an activation email"
       return
     end
@@ -23,7 +23,7 @@ class EmailsController < ApplicationController
   end
 
   def activate_user
-    if IpBan.is_banned? CurrentUser.user.ip_addr
+    if IpBan.is_banned? CurrentUser.ip_addr
       redirect_to home_users_path, notice: 'An error occurred trying to activate your account'
       return
     end
