@@ -234,14 +234,14 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  %i[logged_in logged_out restricted approver].each do |role|
+  %i[approver].each do |role|
     define_method("#{role}_only") do
       user_access_check("is_#{role}?")
     end
   end
 
   def logged_in_only
-    if CurrentUser.user.is_logged_out?
+    if CurrentUser.user.is_logged_out? || IpBan.is_banned?(CurrentUser.ip_addr)
       access_denied("Must be logged in")
     end
   end

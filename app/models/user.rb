@@ -328,7 +328,7 @@ class User < ApplicationRecord
     end
 
     # Convenience methods for checking user levels
-    # Note that these method names are misleading. "is_janitor?" meand "janitor and above can access this".
+    # Note that these method names are misleading. "is_janitor?" means "janitor and above can access this".
     # This is a naming convention that would require a large refactor to change, so we are stuck with it.
     UserLevel::MAPPING.each do |name, value|
       normalized_name = UserLevel.normalize(name)

@@ -82,7 +82,7 @@ RSpec.describe SessionLoader do
 
     it "sets CurrentUser.user to User.anonymous when no credentials are present" do
       loader.load
-      expect(CurrentUser.level).to be 0
+      expect(CurrentUser.user.is_logged_out?).to be true
     end
   end
 
@@ -117,7 +117,7 @@ RSpec.describe SessionLoader do
 
       it "leaves CurrentUser as anonymous" do
         loader.load
-        expect(CurrentUser.level).to be 0
+        expect(CurrentUser.user.is_logged_out?).to be true
       end
     end
 
@@ -282,7 +282,7 @@ RSpec.describe SessionLoader do
 
       it "leaves CurrentUser as anonymous without raising" do
         expect { loader.load }.not_to raise_error
-        expect(CurrentUser.level).to be 0
+        expect(CurrentUser.user.is_logged_out?).to be true
       end
     end
 
@@ -291,7 +291,7 @@ RSpec.describe SessionLoader do
 
       it "leaves CurrentUser as anonymous" do
         loader.load
-        expect(CurrentUser.level).to be 0
+        expect(CurrentUser.user.is_logged_out?).to be true
       end
     end
   end

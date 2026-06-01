@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class UserLevel
+module UserLevel
   MAPPING = {
     "Anonymous" => 0,
     "Blocked" => 10,

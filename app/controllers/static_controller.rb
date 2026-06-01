@@ -73,7 +73,7 @@ class StaticController < ApplicationController
   end
 
   def disable_mobile_mode
-    if CurrentUser.is_logged_out?
+    if CurrentUser.user.is_logged_out?
       if cookies[:nmm]
         cookies.delete(:nmm)
       else
