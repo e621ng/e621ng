@@ -219,6 +219,9 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # These method names are misleading.
+  # For example, `janitor_only` does not mean "only janitors can access this", it means "janitors and above can access this".
+  # This is a legacy naming convention that would require a large refactor to change, so we are stuck with it.
   UserLevel::ROLES.each do |role|
     define_method("#{role}_only") do
       user_access_check("is_#{role}?")
