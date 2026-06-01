@@ -44,8 +44,23 @@ module ImageSampler
     jpg = Tempfile.new(["avatar", ".jpg"], binmode: true)
     webp = Tempfile.new(["avatar", ".webp"], binmode: true)
 
-    resized.jpegsave(jpg.path, Q: 90, strip: true, interlace: true, optimize_coding: true)
-    resized.webpsave(webp.path, Q: 90, min_size: true)
+    resized.jpegsave(
+      jpg.path,
+      Q: 90,
+      strip: true,
+      interlace: true,
+      optimize_coding: true,
+      optimize_scans: true,
+      trellis_quant: true,
+      quant_table: 3,
+    )
+    resized.webpsave(
+      webp.path,
+      Q: 90,
+      effort: 6,
+      alpha_q: 90,
+      smart_subsample: true,
+    )
 
     sm.store_avatar(jpg, user_id, "jpg")
     sm.store_avatar(webp, user_id, "webp")
