@@ -6,6 +6,14 @@ class PostThumbnailComponent < ViewComponent::Base
 
   RIBBON_SIDE = %i[left right].freeze
 
+  # Preload favorite/vote status for the whole collection up front so rendering
+  # the thumbnails doesn't issue a query per post. Posts may be Draper-wrapped.
+  def self.with_collection(collection, **kwargs)
+    posts = Array.wrap(collection).map { |post| post.respond_to?(:object) ? post.object : post }
+    Post.preload_stats!(posts)
+    super
+  end
+
   def initialize(post:, post_counter: -1, **options)
     super()
 

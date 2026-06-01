@@ -1232,6 +1232,15 @@ class Post < ApplicationRecord
         favorited_ids = Favorite.where(user_id: user_id, post_id: posts.map(&:id)).pluck(:post_id).to_set
         posts.each { |post| post.preset_favorited_status(user_id, favorited_ids.include?(post.id)) }
       end
+
+      # Bulk-populate both favorited-by and vote status for a collection of posts so
+      # that rendering thumbnails doesn't issue a query per post. Skips anonymous
+      # users, who never have favorites or votes.
+      def preload_stats!(posts, user = CurrentUser.user)
+        return if user.nil? || user.is_anonymous?
+        preload_favorited_status!(posts, user.id)
+        preload_vote_by!(posts, user.id)
+      end
     end
 
     def preset_favorited_status(user_id, value)

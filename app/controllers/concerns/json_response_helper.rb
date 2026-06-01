@@ -34,10 +34,7 @@ module JsonResponseHelper
   end
 
   def pick_json_format(posts, collection: true, legacy: true, mode: "basic")
-    unless CurrentUser.user&.is_anonymous?
-      Post.preload_favorited_status!(posts, CurrentUser.id)
-      Post.preload_vote_by!(posts, CurrentUser.id)
-    end
+    Post.preload_stats!(posts)
 
     # Legacy format
     if legacy

@@ -108,6 +108,7 @@ class CommentsController < ApplicationController
 
     @comments = @posts.to_h { |post| [post.id, post.comments.above_threshold.includes(:creator, :updater).recent.reverse] }
     Comment.preload_vote_by!(@comments.values.flatten, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+    Post.preload_stats!(@posts)
     respond_with(@posts)
   end
 
@@ -127,6 +128,7 @@ class CommentsController < ApplicationController
     @comments = @comments.paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
 
     Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+    Post.preload_stats!(@comments.map(&:post))
 
     if CurrentUser.is_staff?
       ids = @comments&.map(&:id)
