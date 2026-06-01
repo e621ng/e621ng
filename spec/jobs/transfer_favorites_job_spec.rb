@@ -12,11 +12,11 @@ RSpec.describe TransferFavoritesJob do
     described_class.perform_now(post_id, user_id)
   end
 
-  # Creates a Favorite and keeps post.fav_string / fav_count consistent.
+  # Creates a Favorite and keeps post.fav_count consistent.
   # Favorite.create! fires user_status_counter → UserStatus.favorite_count++
   def add_favorite(post, user)
     Favorite.create!(post_id: post.id, user_id: user.id)
-    post.write_fav_string!("#{post.fav_string} fav:#{user.id}".strip, post.fav_count + 1)
+    post.update_columns(fav_count: Favorite.where(post_id: post.id).count)
   end
 
   describe "#perform" do
@@ -86,16 +86,8 @@ RSpec.describe TransferFavoritesJob do
       end
 
       describe "post data updates" do
-        it "clears fav_string on the child post" do
-          expect(child_post.reload.fav_string).to eq("")
-        end
-
         it "sets fav_count to 0 on the child post" do
           expect(child_post.reload.fav_count).to eq(0)
-        end
-
-        it "adds user_a to the parent post fav_string" do
-          expect(parent_post.reload.fav_string).to include("fav:#{user_a.id}")
         end
 
         it "increments parent fav_count by the number of newly added users" do
