@@ -3,7 +3,7 @@
 <% deferred_post_ids.add(avatar_id) if avatar_id %>
 <a
   href="<%= user_path(user) %>"
-  class="simple-avatar nav-controls-profile collapse-2"
+  class="simple-avatar nav-controls-profile"
   data-user-id="<%= user.id %>"
   data-user-hash="<%= user.updated_at.to_i %>"
   data-has-cropped-avatar="<%= user.has_cropped_avatar? %>"
