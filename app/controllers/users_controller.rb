@@ -34,7 +34,7 @@ class UsersController < ApplicationController
   end
 
   def new
-    unless CurrentUser.is_anonymous?
+    unless CurrentUser.user.is_logged_out?
       return access_denied("You are already signed in") unless request.format.html?
       redirect_back_or_to(posts_path, notice: "You are already signed in")
       return
@@ -56,7 +56,7 @@ class UsersController < ApplicationController
     user = CurrentUser.user
     respond_with(user, methods: user.full_attributes) do |format|
       format.html do
-        next render_404 if user.is_anonymous?
+        next render_404 if user.is_logged_out?
         redirect_to(user_path(user))
       end
     end
@@ -145,7 +145,7 @@ class UsersController < ApplicationController
   end
 
   def create
-    raise User::PrivilegeError, "Already signed in" unless CurrentUser.is_anonymous?
+    raise User::PrivilegeError, "Already signed in" unless CurrentUser.user.is_logged_out?
     raise User::PrivilegeError, "Signups are disabled" unless Danbooru.config.enable_signups?
     User.transaction do
       @user = User.new(user_params(:create).merge({ last_ip_addr: request.remote_ip }))

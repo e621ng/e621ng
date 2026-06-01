@@ -64,7 +64,7 @@ class ApplicationController < ActionController::Base
   end
 
   def api_check
-    if !CurrentUser.is_anonymous? && !request.get? && !request.head?
+    if CurrentUser.user.is_logged_in? && !request.get? && !request.head?
       throttled = CurrentUser.user.token_bucket.throttled?
       headers["X-Api-Limit"] = CurrentUser.user.token_bucket.cached_count.to_s
 
@@ -172,7 +172,7 @@ class ApplicationController < ActionController::Base
 
     respond_to do |fmt|
       fmt.html do
-        if CurrentUser.is_anonymous?
+        if CurrentUser.user.is_logged_out?
           if request.get?
             redirect_to new_session_path(url: previous_url), notice: @message
           else
@@ -206,7 +206,7 @@ class ApplicationController < ActionController::Base
   end
 
   def requires_reauthentication
-    return redirect_to(new_session_path(url: request.fullpath)) if CurrentUser.user.is_anonymous?
+    return redirect_to(new_session_path(url: request.fullpath)) if CurrentUser.user.is_logged_out?
     last_authenticated_at = session[:last_authenticated_at]
     if last_authenticated_at.blank? || Time.zone.parse(last_authenticated_at) < 1.hour.ago
       redirect_to(confirm_password_session_path(url: request.fullpath))
@@ -219,7 +219,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  User::Roles.each do |role|
+  UserLevel::ROLES.each do |role|
     define_method("#{role}_only") do
       user_access_check("is_#{role}?")
     end
@@ -231,8 +231,14 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  %i[logged_in logged_out restricted approver].each do |role|
+    define_method("#{role}_only") do
+      user_access_check("is_#{role}?")
+    end
+  end
+
   def logged_in_only
-    if CurrentUser.is_anonymous?
+    if CurrentUser.user.is_logged_out?
       access_denied("Must be logged in")
     end
   end

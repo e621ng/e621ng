@@ -32,7 +32,7 @@
       <h2>Uploads</h2>
       Uploads are currently permitted for <b><%= User.level_string(Security::Lockdown.uploads_min_level) %></b> and up.
       <%= custom_form_for(:uploads_min_level, url: uploads_min_level_security_lockdown_index_path, method: :put) do |f| %>
-        <%= f.input :min_level, collection: User.level_hash.select { |_k, v| v >= User::Levels::MEMBER }.to_a, selected: Security::Lockdown.uploads_min_level %>
+        <%= f.input :min_level, collection: User.level_hash.select { |_k, v| v >= UserLevel::MEMBER }.to_a, selected: Security::Lockdown.uploads_min_level %>
         <%= f.button :submit, value: "Submit" %>
       <% end %>
 

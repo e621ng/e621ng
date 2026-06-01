@@ -43,7 +43,7 @@ RSpec.describe UploadsController do
     end
 
     context "when the uploads min level is set above member" do
-      before { allow(Security::Lockdown).to receive(:uploads_min_level).and_return(User::Levels::JANITOR) }
+      before { allow(Security::Lockdown).to receive(:uploads_min_level).and_return(UserLevel::JANITOR) }
 
       it "returns 403 for a member" do
         sign_in_as member
@@ -209,7 +209,7 @@ RSpec.describe UploadsController do
     end
 
     context "when the uploads min level is set above member" do
-      before { allow(Security::Lockdown).to receive(:uploads_min_level).and_return(User::Levels::JANITOR) }
+      before { allow(Security::Lockdown).to receive(:uploads_min_level).and_return(UserLevel::JANITOR) }
 
       it "returns 403 for a member" do
         sign_in_as member

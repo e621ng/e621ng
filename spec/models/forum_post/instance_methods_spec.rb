@@ -14,7 +14,7 @@ RSpec.describe ForumPost do
   let(:other)           { create(:user) }
   let(:unverified)      { create(:unverified_user) }
   let(:category)        { create(:forum_category) }
-  let(:admin_category)  { create(:forum_category, can_view: User::Levels::ADMIN) }
+  let(:admin_category)  { create(:forum_category, can_view: UserLevel::ADMIN) }
   let(:topic)           { CurrentUser.scoped(member) { create(:forum_topic, category_id: category.id) } }
 
   before do

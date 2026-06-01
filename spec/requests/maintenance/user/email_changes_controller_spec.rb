@@ -92,7 +92,7 @@ RSpec.describe Maintenance::User::EmailChangesController do
       end
 
       context "when the user is banned" do
-        before { allow(user).to receive(:is_blocked?).and_return(true) }
+        before { allow(user).to receive(:is_restricted?).and_return(true) }
 
         it "returns 403" do
           post maintenance_user_email_change_path, params: { email_change: { email: "new@example.com", password: "hexerade" } }

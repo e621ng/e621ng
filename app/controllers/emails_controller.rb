@@ -9,7 +9,7 @@ class EmailsController < ApplicationController
       return
     end
 
-    raise User::PrivilegeError.new("Must be logged in to resend verification email.") if CurrentUser.is_anonymous?
+    raise User::PrivilegeError.new("Must be logged in to resend verification email.") if CurrentUser.is_logged_out?
     raise User::PrivilegeError.new("Account already active.") if CurrentUser.is_verified?
     raise User::PrivilegeError.new('Cannot send confirmation because the email is not allowed.') if EmailBlacklist.is_banned?(CurrentUser.user.email)
     if RateLimiter.check_limit("emailconfirm:#{CurrentUser.id}", 1, 12.hours)

@@ -44,7 +44,7 @@ RSpec.describe ForumTopicsController do
     end
 
     it "excludes topics in categories above the user's view level" do
-      hidden_category = create(:forum_category, can_view: User::Levels::MODERATOR)
+      hidden_category = create(:forum_category, can_view: UserLevel::MODERATOR)
       hidden_topic = CurrentUser.scoped(mod) { create(:forum_topic, category: hidden_category) }
 
       sign_in_as user

@@ -1,12 +1,12 @@
 <% content_for(:secondary_links) do %>
   <%= subnav_link_to "List", tickets_path %>
-  <% unless CurrentUser.is_anonymous? %>
-    <%= subnav_link_to "Mine", tickets_path(search: { creator_id: CurrentUser.id }) %>
+  <% if CurrentUser.user.is_logged_in? %>
+    <%= subnav_link_to "Mine", tickets_path(search: { creator_id: CurrentUser.user.id }) %>
   <% end %>
-  <% if CurrentUser.is_moderator? %>
-  <%= subnav_link_to "Claimed", tickets_path(search: { claimant_id: CurrentUser.id }) %>
+  <% if CurrentUser.user.is_moderator? %>
+  <%= subnav_link_to "Claimed", tickets_path(search: { claimant_id: CurrentUser.user.id }) %>
   <% end %>
-  <% if CurrentUser.is_admin? %>
+  <% if CurrentUser.user.is_admin? %>
     <li class="divider"></li>
     <%= subnav_link_to "AutoMod Rules", admin_automod_rules_path %>
   <% end %>

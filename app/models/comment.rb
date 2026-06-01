@@ -53,7 +53,7 @@ class Comment < ApplicationRecord
       arguments = []
 
       # 1. Visibility: not hidden or created by the user themselves
-      if user.is_anonymous? || !(user.show_hidden_comments? || bypass_user_settings)
+      if user.is_logged_out? || !(user.show_hidden_comments? || bypass_user_settings)
         conditions << "comments.is_hidden = false"
       elsif !user.is_staff?
         conditions << "(comments.is_hidden = false OR comments.creator_id = ?)"
@@ -204,7 +204,7 @@ class Comment < ApplicationRecord
     # Authorization check: user has permission to see this comment
     def is_accessible?(user = CurrentUser.user, bypass_user_settings: false)
       # 1. Visibility: not hidden or created by the user themselves
-      if user.is_anonymous? || !(user.show_hidden_comments? || bypass_user_settings)
+      if user.is_logged_out? || !(user.show_hidden_comments? || bypass_user_settings)
         return false if is_hidden?
       elsif !user.is_staff?
         return false if is_hidden? && creator_id != user.id

@@ -15,7 +15,7 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.email = "admin@e621.local"
   user.can_upload_free = true
   user.can_approve_posts = true
-  user.level = User::Levels::ADMIN
+  user.level = UserLevel::ADMIN
 
   user.is_bd_staff = true
   user.is_bd_auditor = true
@@ -28,7 +28,7 @@ User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.email = "system@e621.local"
   user.can_upload_free = true
   user.can_approve_posts = true
-  user.level = User::Levels::JANITOR
+  user.level = UserLevel::JANITOR
 end
 
 ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") do |category|

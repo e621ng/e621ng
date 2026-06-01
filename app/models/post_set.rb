@@ -172,7 +172,7 @@ class PostSet < ApplicationRecord
     end
 
     def is_maintainer?(user)
-      return false if user.is_blocked?
+      return false if user.is_restricted?
       if association(:post_set_maintainers).loaded?
         post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "approved" }
       else
@@ -197,7 +197,7 @@ class PostSet < ApplicationRecord
     end
 
     def is_owner?(user)
-      return false if user.is_blocked?
+      return false if user.is_restricted?
       creator_id == user.id
     end
 

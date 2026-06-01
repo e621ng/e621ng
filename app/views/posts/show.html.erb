@@ -20,14 +20,14 @@
         <%= render "posts/partials/show/sidebar/information", :post => @post %>
       </section>
 
-      <% if CurrentUser.is_member? %>
+      <% if CurrentUser.user.is_member? %>
         <section id="post-options">
           <h3>Options</h3>
           <%= render "posts/partials/show/sidebar/options", :post => @post %>
         </section>
       <% end %>
 
-      <% if CurrentUser.is_authenticated? %>
+      <% if CurrentUser.user.is_logged_in? %>
         <section id="post-history">
           <h3>History</h3>
           <%= render "posts/partials/show/sidebar/history", :post => @post %>

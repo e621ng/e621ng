@@ -216,8 +216,8 @@ RSpec.describe Admin::UsersController do
       end
 
       it "promotes a user to a new level" do
-        patch admin_user_path(user), params: { user: { profile_about: "x", level: User::Levels::PRIVILEGED } }
-        expect(user.reload.level).to eq(User::Levels::PRIVILEGED)
+        patch admin_user_path(user), params: { user: { profile_about: "x", level: UserLevel::PRIVILEGED } }
+        expect(user.reload.level).to eq(UserLevel::PRIVILEGED)
       end
     end
   end

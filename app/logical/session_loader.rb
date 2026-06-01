@@ -30,7 +30,7 @@ class SessionLoader
     end
 
     CurrentUser.user.unban! if CurrentUser.user.ban_expired?
-    if CurrentUser.user.is_blocked?
+    if CurrentUser.user.is_restricted?
       recent_ban = CurrentUser.user.recent_ban
       if recent_ban.nil? || recent_ban.prevent_login?
         ban_message = "Account is banned: forever"
@@ -75,7 +75,7 @@ class SessionLoader
   end
 
   def refresh_old_remember_token
-    if cookies.encrypted[:remember] && !CurrentUser.is_anonymous?
+    if cookies.encrypted[:remember] && !CurrentUser.user.is_logged_out?
       cookies.encrypted[:remember] = {value: @remember_validator.generate("#{CurrentUser.id}:#{CurrentUser.password_token}", purpose: "rbr", expires_in: 14.days), expires: Time.now + 14.days, httponly: true, same_site: :lax, secure: Rails.env.production?}
     end
   end
@@ -143,7 +143,7 @@ class SessionLoader
   end
 
   def update_user_login_tracking
-    return if CurrentUser.is_anonymous?
+    return if CurrentUser.user.is_logged_out?
 
     cache_key = if CurrentUser.api_key
                   "user_login_tracking:api_key:#{CurrentUser.api_key.id}"
@@ -179,7 +179,7 @@ class SessionLoader
   # This should normally happen when the user reads their last unread dmail.
   def refresh_unread_dmails
     return if skip_cookies?
-    return if CurrentUser.is_anonymous?
+    return if CurrentUser.user.is_logged_out?
     return if cookies[:hide_dmail_notice].blank?
 
     if !CurrentUser.user.has_mail? && cookies[:hide_dmail_notice] == "1"

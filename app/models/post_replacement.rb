@@ -414,7 +414,7 @@ class PostReplacement < ApplicationRecord
       end
 
       def visible(user)
-        return where.not(status: "rejected") if user.is_anonymous?
+        return where.not(status: "rejected") if user.is_logged_out?
         return all if user.is_janitor?
         where("creator_id = ? or status != ?", user.id, "rejected")
       end

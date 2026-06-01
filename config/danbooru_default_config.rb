@@ -70,19 +70,6 @@ module Danbooru
       "/db_export/"
     end
 
-    def levels
-      {
-        "Anonymous" => 0,
-        "Blocked" => 10,
-        "Member" => 20,
-        "Privileged" => 30,
-        "Former Staff" => 34,
-        "Janitor" => 35,
-        "Moderator" => 40,
-        "Admin" => 50,
-      }
-    end
-
     # Prevent new users from going above 80k while allowing those currently above
     # it to continue adding new favorites with the old limit.
     # { 123 => 200_000 }
@@ -640,7 +627,7 @@ module Danbooru
     # ```ruby
     # {
     #     title: "Post #%POST_ID% has been deleted",
-    #     body: "Post #%POST_ID% has been automatically deleted, as it has not been approved within #{unapproved_post_deletion_window.inspect}.\n\nThis is a courtesy notification; you don't need to take further action if you don't want to. If you would like to request this post to be reviewed, you can ask one of \"our janitors\":[/users?commit=Search&search%5Blevel%5D=#{Danbooru.config.levels['Janitor']}].\n\nYou can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
+    #     body: "Post #%POST_ID% has been automatically deleted, as it has not been approved within #{unapproved_post_deletion_window.inspect}.\n\nThis is a courtesy notification; you don't need to take further action if you don't want to. If you would like to request this post to be reviewed, you can ask one of \"our janitors\":[/users?commit=Search&search%5Blevel%5D=#{UserLevel::JANITOR}].\n\nYou can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
     #   }
     # ```
     def post_pruned_dmail_template
