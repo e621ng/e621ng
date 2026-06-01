@@ -95,9 +95,11 @@ nav.navigation .simple-avatar {
   }
 }
 
-// do not show avatar name if we're on the home page
-body.a-home nav.navigation .simple-avatar .avatar-name {
-  background: none;
+// do not show avatar name background if we're on the home page and on desktop layout
+@include window-larger-than(50rem) {
+   body.a-home nav.navigation .simple-avatar .avatar-name {
+      background: none;
+   }
 }
 
 nav.navigation .simple-avatar-menu {

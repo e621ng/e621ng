@@ -469,7 +469,7 @@ body.c-static.a-home {
   @include window-larger-than(50rem) {
     nav.navigation {
       grid-template-areas:
-        "logo primary  help  none  controls"
+        "logo primary  help  .     controls"
         "logo primary  help  tools controls";
 
       &::before {
