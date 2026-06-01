@@ -4,5 +4,5 @@
   <%= number_field_tag "threshold", params[:threshold], placeholder: "Threshold", class: "form-control", min: 0, step: "any", title: "Threshold for vote count" %>
   <%= number_field_tag "duration", params[:duration], placeholder: "Limit to last n days", class: "form-control", min: 0, step: "any", title: "Limit to last n days" %>
   <%= check_box_tag "disable_vote_normality", "1", params[:disable_vote_normality].to_s == "1", title: "Vote normality on/off" %>
-  <label for="disable_vote_normality" title="Account for post's score's">Disable Vote Abuse Mode</label>
+  <label for="disable_vote_normality" title="Account for post's score">Disable Vote Abuse Mode</label>
 <% end %>
