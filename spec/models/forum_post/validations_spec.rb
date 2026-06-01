@@ -60,7 +60,7 @@ RSpec.describe ForumPost do
     end
 
     it "is invalid on create when the topic's category requires a higher view level" do
-      restricted = create(:forum_category, can_view: User::Levels::MODERATOR)
+      restricted = create(:forum_category, can_view: UserLevel::MODERATOR)
       restricted_topic = CurrentUser.scoped(create(:moderator_user)) { create(:forum_topic, category_id: restricted.id) }
       record = build(:forum_post, topic_id: restricted_topic.id)
       expect(record).not_to be_valid
@@ -68,7 +68,7 @@ RSpec.describe ForumPost do
     end
 
     it "is invalid on create when the topic's category does not allow replies at the user's level" do
-      restricted = create(:forum_category, can_reply: User::Levels::MODERATOR)
+      restricted = create(:forum_category, can_reply: UserLevel::MODERATOR)
       restricted_topic = CurrentUser.scoped(create(:moderator_user)) { create(:forum_topic, category_id: restricted.id) }
       record = build(:forum_post, topic_id: restricted_topic.id)
       expect(record).not_to be_valid

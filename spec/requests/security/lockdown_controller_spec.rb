@@ -172,14 +172,14 @@ RSpec.describe Security::LockdownController do
   describe "PUT /security/lockdown/uploads_min_level" do
     it "redirects anonymous to the login page" do
       put uploads_min_level_security_lockdown_index_path,
-          params: { uploads_min_level: { min_level: User::Levels::MEMBER } }
+          params: { uploads_min_level: { min_level: UserLevel::MEMBER } }
       expect(response).to redirect_to(new_session_path)
     end
 
     it "returns 403 for a regular member" do
       sign_in_as user
       put uploads_min_level_security_lockdown_index_path,
-          params: { uploads_min_level: { min_level: User::Levels::MEMBER } }
+          params: { uploads_min_level: { min_level: UserLevel::MEMBER } }
       expect(response).to have_http_status(:forbidden)
     end
 
@@ -188,21 +188,21 @@ RSpec.describe Security::LockdownController do
 
       it "redirects to the security dashboard" do
         put uploads_min_level_security_lockdown_index_path,
-            params: { uploads_min_level: { min_level: User::Levels::MEMBER } }
+            params: { uploads_min_level: { min_level: UserLevel::MEMBER } }
         expect(response).to redirect_to(security_root_path)
       end
 
       it "updates the minimum upload level when a valid level is given" do
         put uploads_min_level_security_lockdown_index_path,
-            params: { uploads_min_level: { min_level: User::Levels::PRIVILEGED } }
-        expect(Security::Lockdown.uploads_min_level).to eq(User::Levels::PRIVILEGED)
+            params: { uploads_min_level: { min_level: UserLevel::PRIVILEGED } }
+        expect(Security::Lockdown.uploads_min_level).to eq(UserLevel::PRIVILEGED)
       end
 
       it "logs a min_upload_level StaffAuditLog entry when the level changes" do
         # Seed a known starting value; rails-settings-cached caches values in memory and
         # DB transaction rollback alone does not clear the cache between examples.
-        Security::Lockdown.uploads_min_level = User::Levels::MEMBER
-        new_level = User::Levels::PRIVILEGED
+        Security::Lockdown.uploads_min_level = UserLevel::MEMBER
+        new_level = UserLevel::PRIVILEGED
 
         expect do
           put uploads_min_level_security_lockdown_index_path,

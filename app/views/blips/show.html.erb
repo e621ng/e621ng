@@ -13,7 +13,7 @@
       <% end %>
     </div>
 
-    <% if CurrentUser.is_anonymous? %>
+    <% if CurrentUser.user.is_logged_out? %>
         <h5 id="respond-link"><%= link_to "Login to respond »", new_session_path %></h5>
     <% else %>
         <%= render "form", blip: @blip.responses.new %>

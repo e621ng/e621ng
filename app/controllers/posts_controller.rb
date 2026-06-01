@@ -78,7 +78,7 @@ class PostsController < ApplicationController
 
     if request.format.html? && @post.comment_count > 0
       @comments = @post.comments.above_threshold.includes(:creator, :updater).to_a
-      Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+      Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_logged_out?
     else
       @comments = Comment.none
     end
@@ -105,7 +105,7 @@ class PostsController < ApplicationController
 
     if request.format.html? && @post.comment_count > 0
       @comments = @post.comments.above_threshold.includes(:creator, :updater).to_a
-      Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+      Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_logged_out?
     else
       @comments = Comment.none
     end

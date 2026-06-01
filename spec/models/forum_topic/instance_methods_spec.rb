@@ -13,7 +13,7 @@ RSpec.describe ForumTopic do
   let(:other)           { create(:user) }
   let(:unverified)      { create(:unverified_user) }
   let(:category)        { create(:forum_category) }
-  let(:admin_category)  { create(:forum_category, can_view: User::Levels::ADMIN) }
+  let(:admin_category)  { create(:forum_category, can_view: UserLevel::ADMIN) }
 
   before do
     CurrentUser.user = member
@@ -78,7 +78,7 @@ RSpec.describe ForumTopic do
     end
 
     it "is not visible to a member when category requires a higher level" do
-      restricted = create(:forum_category, can_view: User::Levels::MODERATOR)
+      restricted = create(:forum_category, can_view: UserLevel::MODERATOR)
       topic = create(:forum_topic)
       topic.update_columns(category_id: restricted.id)
       expect(topic.can_access?(member)).to be false
@@ -135,7 +135,7 @@ RSpec.describe ForumTopic do
     end
 
     it "returns false when user level is below the category requirement" do
-      restricted = create(:forum_category, can_reply: User::Levels::MODERATOR)
+      restricted = create(:forum_category, can_reply: UserLevel::MODERATOR)
       topic = create(:forum_topic)
       topic.update_columns(category_id: restricted.id)
       expect(topic.can_reply?(member)).to be false
@@ -193,7 +193,7 @@ RSpec.describe ForumTopic do
     end
 
     it "denies the creator if the topic category changed to a restricted one" do
-      restricted = create(:forum_category, can_view: User::Levels::MODERATOR)
+      restricted = create(:forum_category, can_view: UserLevel::MODERATOR)
       topic = make_topic
       topic.update_columns(creator_id: member.id, category_id: restricted.id)
       expect(topic.can_hide?(member)).to be false

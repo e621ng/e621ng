@@ -1238,7 +1238,7 @@ class Post < ApplicationRecord
       # that rendering thumbnails doesn't issue a query per post. Skips anonymous
       # users, who never have favorites or votes.
       def preload_stats!(posts, user = CurrentUser.user)
-        return if user.nil? || user.is_anonymous?
+        return if user.nil? || user.is_logged_out?
         preload_favorited_status!(posts, user.id)
         preload_vote_by!(posts, user.id)
       end
@@ -2165,7 +2165,7 @@ class Post < ApplicationRecord
   end
 
   def loginblocked?
-    CurrentUser.is_anonymous? && (hide_from_anonymous? || Danbooru.config.user_needs_login_for_post?(self))
+    CurrentUser.user.is_logged_out? && (hide_from_anonymous? || Danbooru.config.user_needs_login_for_post?(self))
   end
 
   def visible?

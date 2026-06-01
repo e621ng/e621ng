@@ -54,7 +54,7 @@ RSpec.describe Ban do
         Ban.prune!
 
         expect(subject_user.reload.is_banned).to be(false)
-        expect(subject_user.reload.level).to eq(User::Levels::MEMBER)
+        expect(subject_user.reload.level).to eq(UserLevel::MEMBER)
       end
 
       it "does not unban a user whose ban is still active" do

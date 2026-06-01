@@ -1,4 +1,4 @@
-<% if CurrentUser.is_anonymous? %>
+<% if CurrentUser.user.is_logged_out? %>
   <%= decorated_nav_link_to("Log In", :log_in, new_session_path, class: "nav-hidden") %>
 <% else %>
   <%= decorated_nav_link_to("Profile", :user, user_path(CurrentUser.user), class: "nav-hidden") %>

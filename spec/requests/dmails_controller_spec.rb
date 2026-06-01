@@ -247,7 +247,7 @@ RSpec.describe DmailsController do
         former_moderator = create(:moderator_user)
         dmail_from_former_moderator = create(:dmail, from: former_moderator, to: recipient, owner_id: recipient.id)
         key = dmail_from_former_moderator.generate_key
-        former_moderator.update_columns(level: User::Levels::MEMBER)
+        former_moderator.update_columns(level: UserLevel::MEMBER)
 
         sign_in_as janitor
         get dmail_path(dmail_from_former_moderator), params: { key: key }

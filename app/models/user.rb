@@ -14,17 +14,6 @@ class User < ApplicationRecord
     end
   end
 
-  module Levels
-    Danbooru.config.levels.each do |name, level|
-      const_set(name.upcase.tr(" ", "_"), level)
-    end
-  end
-
-  # Used for `before_action :<role>_only`. Must have a corresponding `is_<role>?` method.
-  Roles = Levels.constants.map(&:downcase) + [
-    :approver,
-  ]
-
   # ================================================================================================#
   # UNDER NO CIRCUMSTANCES should new boolean attributes be added or removed from the middle of the #
   # list. Deprecated / unused bitflags should be prefixed with an underscore, and left in place.    #
@@ -163,7 +152,7 @@ class User < ApplicationRecord
     end
 
     def ban_expired?
-      is_blocked? && recent_ban&.expired?
+      is_restricted? && recent_ban&.expired?
     end
   end
 
@@ -324,19 +313,52 @@ class User < ApplicationRecord
 
       def anonymous
         user = User.new(name: "Anonymous", created_at: Time.now)
-        user.level = Levels::ANONYMOUS
+        user.level = UserLevel::ANONYMOUS
         user.freeze.readonly!
         user
       end
 
       def level_hash
-        Danbooru.config.levels
+        UserLevel::MAPPING
       end
 
       def level_string(value)
-        Danbooru.config.levels.invert[value] || ""
+        UserLevel::REVERSE_MAPPING[value] || ""
       end
     end
+
+    # Convenience methods for checking user levels
+    # Note that these method names are misleading. "is_janitor?" means "janitor and above can access this".
+    # This is a naming convention that would require a large refactor to change, so we are stuck with it.
+    UserLevel::MAPPING.each do |name, value|
+      normalized_name = UserLevel.normalize(name)
+
+      define_method("is_#{normalized_name}?") do
+        is_verified? && level >= value && id.present?
+      end
+    end
+
+    # Additional access check levels
+
+    def is_logged_in?
+      level > UserLevel::ANONYMOUS
+    end
+
+    def is_logged_out?
+      level == UserLevel::ANONYMOUS
+    end
+    alias is_anonymous? is_logged_out? # Otherwise it will return true for logged in users
+
+    def is_restricted?
+      level == UserLevel::BLOCKED
+    end
+    alias is_banned is_restricted? # Required for API backwards compatibility
+
+    def is_approver?
+      can_approve_posts?
+    end
+
+    ### Other ###
 
     def promote_to!(new_level, options = {})
       UserPromotion.new(self, CurrentUser.user, new_level, options).promote!
@@ -350,45 +372,12 @@ class User < ApplicationRecord
       User.level_string(value || level)
     end
 
-    def is_anonymous?
-      level == Levels::ANONYMOUS
-    end
-
-    def is_blocked?
-      level == Levels::BLOCKED
-    end
-
-    def is_banned?
-      is_blocked?
-    end
-    alias is_banned is_banned?
-
-    # Defines various convenience methods for finding out the user's level
-    Danbooru.config.levels.each do |name, value|
-      # TODO: HACK: Remove this and make the below logic better to work with the new setup.
-      next if [0, 10].include?(value)
-      normalized_name = name.downcase.tr(" ", "_")
-
-      # Changed from e6 to match new Danbooru semantics.
-      define_method("is_#{normalized_name}?") do
-        is_verified? && level >= value && id.present?
-      end
-    end
-
-    def is_authenticated?
-      level > Levels::ANONYMOUS
-    end
-
     def is_bd_staff?
       is_bd_staff
     end
 
     def is_staff?
       is_janitor?
-    end
-
-    def is_approver?
-      can_approve_posts?
     end
 
     def is_artist?
@@ -483,7 +472,7 @@ class User < ApplicationRecord
 
   module ForumMethods
     def has_forum_been_updated?
-      return false unless is_authenticated? && forum_notification_dot
+      return false unless is_logged_in? && forum_notification_dot
       max_updated_at = ForumTopic.visible(self).order(updated_at: :desc).first&.updated_at
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
@@ -972,7 +961,7 @@ class User < ApplicationRecord
 
   module SearchMethods
     def admins
-      where("level = ?", Levels::ADMIN)
+      where("level = ?", UserLevel::ADMIN)
     end
 
     def with_email(email)
@@ -1101,7 +1090,7 @@ class User < ApplicationRecord
   def hide_favorites?
     return false if CurrentUser.is_moderator?
     return false if CurrentUser.user.id == id
-    return true if is_blocked?
+    return true if is_restricted?
     enable_privacy_mode?
   end
 

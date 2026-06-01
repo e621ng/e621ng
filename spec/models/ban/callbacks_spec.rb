@@ -21,7 +21,7 @@ RSpec.describe Ban do
       it "sets the user level to BLOCKED" do
         expect do
           create(:ban, user: subject_user, banner: moderator)
-        end.to change { subject_user.reload.level }.to(User::Levels::BLOCKED)
+        end.to change { subject_user.reload.level }.to(UserLevel::BLOCKED)
       end
     end
 
@@ -63,7 +63,7 @@ RSpec.describe Ban do
         expect do
           ban.update!(prevent_login: "1")
         end.not_to(change { subject_user.reload.level })
-        expect(subject_user.reload.level).to eq(User::Levels::BLOCKED)
+        expect(subject_user.reload.level).to eq(UserLevel::BLOCKED)
       end
 
       it "keeps the user level at BLOCKED when switching from hard to soft ban" do
@@ -71,7 +71,7 @@ RSpec.describe Ban do
         expect do
           ban.update!(prevent_login: "0")
         end.not_to(change { subject_user.reload.level })
-        expect(subject_user.reload.level).to eq(User::Levels::BLOCKED)
+        expect(subject_user.reload.level).to eq(UserLevel::BLOCKED)
       end
     end
 
@@ -90,7 +90,7 @@ RSpec.describe Ban do
         ban = create(:ban, user: subject_user, banner: moderator, prevent_login: "1")
         expect do
           ban.destroy!
-        end.to change { subject_user.reload.level }.to(User::Levels::MEMBER)
+        end.to change { subject_user.reload.level }.to(UserLevel::MEMBER)
       end
     end
   end
