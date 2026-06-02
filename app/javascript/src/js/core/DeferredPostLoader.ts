@@ -42,39 +42,6 @@ export default class DeferredPostLoader {
     window.___deferred_posts = {};
   }
 
-  public static renderNavbarAvatar () {
-    const avatars = $(".savm-profile-icon.placeholder");
-    if (!avatars.length) return;
-    avatars.removeClass("placeholder");
-
-    // Determine avatar data from the first placeholder
-    const avatar = $(avatars[0]);
-    const postID = avatar.data("id");
-    if (!postID) return;
-    const post = PostCache.get(postID);
-    if (!post || !post.preview_url) return;
-
-    let path = post.preview_url;
-    if (!post.isDeleted && avatar.data("has-cropped-avatar")) {
-      const userID = avatar.data("user-id") || "0",
-        userHash = avatar.data("user-hash") || "0";
-      if (userID) path = post.preview_url.replace(/\/data\/.*$/, `/data/avatars/${userID}.jpg?t=${userHash}`);
-    }
-
-    // Avatars are rendered without accounting for blacklist.
-    // If someone blacklists their own avatar, it's their problem.
-
-    for (const placeholder of avatars) {
-      const $placeholder = $(placeholder);
-      $("<img>")
-        .attr({
-          "src": path,
-          "alt": "User avatar",
-        })
-        .appendTo($placeholder);
-    }
-  }
-
   public static renderDTextThumbnails () {
     let counter = 0;
     for (const placeholder of $(".thumb-placeholder-link")) {
@@ -139,7 +106,6 @@ export default class DeferredPostLoader {
 
 $(() => {
   DeferredPostLoader.loadPostData();
-  DeferredPostLoader.renderNavbarAvatar();
   DeferredPostLoader.renderDTextThumbnails();
   DeferredPostLoader.renderUserAvatars();
 
