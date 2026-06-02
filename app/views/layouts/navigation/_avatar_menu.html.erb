@@ -1,25 +1,25 @@
-<%# locals: (user: CurrentUser.user, avatar_id: CurrentUser.user&.avatar_id.presence, has_mail: CurrentUser.has_mail?) %>
+<%# locals: (user: CurrentUser.user, has_mail: CurrentUser.has_mail?) %>
 
-<% deferred_post_ids.add(avatar_id) if avatar_id %>
+<% avatar_url = UserAvatarUrlCache.get(user) %>
 <a
   href="<%= user_path(user) %>"
   class="simple-avatar nav-controls-profile collapse-2"
   data-user-id="<%= user.id %>"
-  data-user-hash="<%= user.updated_at.to_i %>"
-  data-has-cropped-avatar="<%= user.has_cropped_avatar? %>"
-  data-id="<%= avatar_id %>"
   data-name="<%= user.name.presence || "<blank>" %>"
   data-has-mail="<%= has_mail %>"
 >
   <span class="avatar-name"><%= user.pretty_name.presence || "<blank>" %></span>
   <span
-    class="avatar-image savm-profile-icon placeholder"
-    data-id="<%= avatar_id %>"
-    data-user-id="<%= user.id %>"
-    data-has-cropped-avatar="<%= user.has_cropped_avatar? %>"
-    data-user-hash="<%= user.updated_at.to_i %>"
+    class="avatar-image savm-profile-icon"
     data-name="<%= (user.name.presence || "?")[0].capitalize %>"
-  ></span>
+  >
+  <% if avatar_url %>
+    <picture>
+      <source srcset="<%= avatar_url[0] %>" type="image/webp">
+      <%= image_tag(avatar_url[1], alt: "User avatar") %>
+    </picture>
+  <% end %>
+  </span>
   <span class="avatar-more"><%= svg_icon(:chevron_down) %></span>
 </a>
 
@@ -30,13 +30,16 @@
   <%# Profile Strip %>
   <div class="savm-profile">
     <a href="<%= user_path(user) %>" class="savm-profile-link">
-      <span class="savm-profile-icon placeholder"
-        data-id="<%= avatar_id %>"
-        data-user-id="<%= user.id %>"
-        data-has-cropped-avatar="<%= user.has_cropped_avatar? %>"
-        data-user-hash="<%= user.updated_at.to_i %>"
+      <span class="savm-profile-icon"
         data-name="<%= (user.name.presence || "?")[0].capitalize %>"
-      ></span>
+      >
+      <% if avatar_url %>
+        <picture>
+          <source srcset="<%= avatar_url[0] %>" type="image/webp">
+          <%= image_tag(avatar_url[1], alt: "User avatar") %>
+        </picture>
+      <% end %>
+      </span>
       <span class="savm-profile-name"><%= user.pretty_name.presence || "<blank>" %></span>
       <span class="savm-profile-title"><%= user_level_plain(user) %></span>
     </a>

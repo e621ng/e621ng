@@ -89,6 +89,7 @@ class Post < ApplicationRecord
     def delete_avatar_crops
       User.where(avatar_id: id).pluck(:id).each do |user_id|
         AvatarCleanupJob.perform_later(user_id, force: true)
+        UserAvatarUrlCache.invalidate(user_id)
       end
     end
 
@@ -1712,6 +1713,7 @@ class Post < ApplicationRecord
         PostEvent.add(id, CurrentUser.user, :undeleted)
       end
       move_files_on_undelete
+      User.where(avatar_id: id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
     end
 
