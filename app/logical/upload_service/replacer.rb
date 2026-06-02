@@ -79,6 +79,9 @@ class UploadService
           UserStatus.for_user(previous_uploader).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
         end
 
+        # Invalidate avatar cache
+        User.where(avatar_id: post.id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
+
         # Everything went through correctly, the old files can now be removed
         if md5_changed
           Post.delete_files(post.id, previous_md5, previous_file_ext, force: true)
