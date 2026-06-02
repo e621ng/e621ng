@@ -61,7 +61,7 @@ class EmailBlacklist < ApplicationRecord
     Resolv::DNS.open do |dns|
       dns.getresources(
         domain,
-        Resolv::DNS::Resource::IN::MX
+        Resolv::DNS::Resource::IN::MX,
       ).map { |mx| mx.exchange.to_s.force_encoding("UTF-8") }.flatten
     end
   end
