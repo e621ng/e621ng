@@ -15,8 +15,8 @@
   >
   <% if avatar_url %>
     <picture>
-      <source srcset="<%= avatar_url[1] %>" type="image/webp">
-      <%= image_tag(avatar_url[0], alt: "User avatar") %>
+      <source srcset="<%= avatar_url[0] %>" type="image/webp">
+      <%= image_tag(avatar_url[1], alt: "User avatar") %>
     </picture>
   <% end %>
   </span>
@@ -35,8 +35,8 @@
       >
       <% if avatar_url %>
         <picture>
-          <source srcset="<%= avatar_url[1] %>" type="image/webp">
-          <%= image_tag(avatar_url[0], alt: "User avatar") %>
+          <source srcset="<%= avatar_url[0] %>" type="image/webp">
+          <%= image_tag(avatar_url[1], alt: "User avatar") %>
         </picture>
       <% end %>
       </span>
