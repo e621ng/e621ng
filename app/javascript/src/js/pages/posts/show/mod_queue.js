@@ -1,6 +1,6 @@
 import Post from "@/pages/posts/posts";
-import LStorage from "@/utility/Storage";
 import Dialog from "@/utility/dialog";
+import CStorage from "@/utility/StorageC";
 
 let ModQueue = {};
 
@@ -88,25 +88,23 @@ ModQueue.delete_with_reason_dialog = function (event) {
 };
 
 $(function () {
-  if (!$("body").data("user-is-approver")) return;
+  if (!$("body").data("user-can-approve-posts")) return;
 
   // Toolbar visibility
-  let toolbarVisible = LStorage.Posts.JanitorToolbar;
+  let toolbarVisible = CStorage.janitorToolbarVisible;
   const toolbar = $("#pending-approval-notice");
-  if (toolbarVisible) toolbar.addClass("enabled");
 
   const toolbarToggle = $("#janitor-toolbar-toggle")
     .on("click", (event) => {
       event.preventDefault();
       toolbarVisible = !toolbarVisible;
-      LStorage.Posts.JanitorToolbar = toolbarVisible;
+      CStorage.janitorToolbarVisible = toolbarVisible;
 
       toolbar.toggleClass("enabled");
       toolbarToggle.text(toolbarVisible ? "Approvals: On" : "Approvals: Off");
 
       return false;
-    })
-    .text(toolbarVisible ? "Approvals: On" : "Approvals: Off");
+    });
 
   // Toolbar buttons
   $(document).on("click.danbooru", ".quick-mod .detailed-rejection-link", ModQueue.detailed_rejection_dialog);
