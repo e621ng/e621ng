@@ -56,10 +56,11 @@ class TagAlias < TagRelationship
                                .where(consequent_name: antecedent_names)
                                .group_by(&:consequent_name)
 
-        raw_implications = TagImplication.duplicate_relevant
-                                         .where(antecedent_name: antecedent_names)
-                                         .or(TagImplication.duplicate_relevant.where(consequent_name: antecedent_names))
-                                         .to_a
+        impl_base = TagImplication.duplicate_relevant
+        raw_implications = impl_base
+                           .where(antecedent_name: antecedent_names)
+                           .or(impl_base.where(consequent_name: antecedent_names))
+                           .to_a
 
         implications_by_name = Hash.new { |h, k| h[k] = [] }
         raw_implications.each do |ti|
@@ -88,7 +89,7 @@ class TagAlias < TagRelationship
           end
 
           record.instance_variable_set(:@transitives, transitives)
-          record.instance_variable_set(:@has_transitives, transitives.size > 0)
+          record.instance_variable_set(:@has_transitives, transitives.any?)
         end
       end
     end
@@ -114,7 +115,8 @@ class TagAlias < TagRelationship
     end
 
     def has_transitives
-      @has_transitives ||= list_transitives.size > 0
+      return @has_transitives if instance_variable_defined?(:@has_transitives)
+      @has_transitives = list_transitives.any?
     end
   end
 
