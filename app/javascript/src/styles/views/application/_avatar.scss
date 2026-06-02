@@ -12,11 +12,15 @@ nav.navigation .simple-avatar {
     overflow: hidden;
     position: relative;
 
+    picture {
+      position: absolute;
+      inset: 0;
+    }
+
     img {
       width: 2.5rem;
       height: 2.5rem;
       object-fit: cover;
-      position: absolute;
     }
 
     &::before {
@@ -268,12 +272,15 @@ div.savm-profile {
       @include st-radius;
       background: themed("color-section-darken-5");
 
+      picture {
+        position: absolute;
+        inset: 0;
+      }
+
       img {
         width: 2rem;
         height: 2rem;
         object-fit: cover;
-        position: absolute;
-        inset: 0;
       }
 
       &::before {

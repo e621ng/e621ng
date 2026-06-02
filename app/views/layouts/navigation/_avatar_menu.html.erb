@@ -12,7 +12,14 @@
   <span
     class="avatar-image savm-profile-icon"
     data-name="<%= (user.name.presence || "?")[0].capitalize %>"
-  ><%= image_tag(avatar_url, alt: "User avatar") if avatar_url %></span>
+  >
+  <% if avatar_url %>
+    <picture>
+      <source srcset="<%= avatar_url[1] %>" type="image/webp">
+      <%= image_tag(avatar_url[0], alt: "User avatar") %>
+    </picture>
+  <% end %>
+  </span>
   <span class="avatar-more"><%= svg_icon(:chevron_down) %></span>
 </a>
 
@@ -25,7 +32,14 @@
     <a href="<%= user_path(user) %>" class="savm-profile-link">
       <span class="savm-profile-icon"
         data-name="<%= (user.name.presence || "?")[0].capitalize %>"
-      ><%= image_tag(avatar_url, alt: "User avatar") if avatar_url %></span>
+      >
+      <% if avatar_url %>
+        <picture>
+          <source srcset="<%= avatar_url[1] %>" type="image/webp">
+          <%= image_tag(avatar_url[0], alt: "User avatar") %>
+        </picture>
+      <% end %>
+      </span>
       <span class="savm-profile-name"><%= user.pretty_name.presence || "<blank>" %></span>
       <span class="savm-profile-title"><%= user_level_plain(user) %></span>
     </a>
