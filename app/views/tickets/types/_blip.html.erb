@@ -5,19 +5,10 @@
       <%= link_to "Blip by #{@ticket.content.creator_name}", blip_path(@ticket.content) %>
     </td>
   </tr>
-  <tr>
-    <% created_at = @ticket.content.created_at %>
-    <td>Blip Age</td>
-    <td class="<%= created_at > 6.months.ago ? "text-green" : "text-red" %>">
-      <time
-        datetime="<%= created_at.iso8601 %>"
-        title="<%= created_at.strftime("%B %d, %Y %H:%M:%S") %>"
-      ><%= time_ago_in_words(created_at) %> ago</time>
-    </td>
-  </tr>
+  <%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "Blip" } %>
 <% else %>
-    <tr>
-      <td><span class="title">Reported Blip</span></td>
-      <td><span class="text-error">Blip has been deleted</span></td>
-    </tr>
+  <tr>
+    <td><span class="title">Reported Blip</span></td>
+    <td><span class="text-error">Blip has been deleted</span></td>
+  </tr>
 <% end %>

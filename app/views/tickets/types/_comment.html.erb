@@ -6,16 +6,7 @@
       <%= link_to("post ##{@ticket.content.post_id}", post_path(@ticket.content.post_id)) %>
     </td>
   </tr>
-  <tr>
-    <% created_at = @ticket.content.created_at %>
-    <td>Comment Age</td>
-    <td class="<%= created_at > 6.months.ago ? "text-green" : "text-red" %>">
-      <time
-        datetime="<%= created_at.iso8601 %>"
-        title="<%= created_at.strftime("%B %d, %Y %H:%M:%S") %>"
-      ><%= time_ago_in_words(created_at) %> ago</time>
-    </td>
-  </tr>
+  <%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "Comment" } %>
 <% else %>
   <tr>
     <td><span class="title">Reported Comment</span></td>
