@@ -59,7 +59,10 @@ class EmailBlacklist < ApplicationRecord
   def self.get_mx_records(domain)
     return [] if Rails.env.test?
     Resolv::DNS.open do |dns|
-      dns.getresources(domain, Resolv::DNS::Resource::IN::MX).map { |mx| mx.exchange.to_s }.flatten
+      dns.getresources(
+        domain,
+        Resolv::DNS::Resource::IN::MX,
+      ).map { |mx| mx.exchange.to_s.force_encoding("UTF-8") }.flatten
     end
   end
 
