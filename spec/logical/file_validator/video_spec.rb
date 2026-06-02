@@ -50,6 +50,22 @@ RSpec.describe FileValidator, type: :model do
       end
     end
 
+    context "with an AV1 WebM" do
+      it "is valid" do
+        v, video = validator_for_fixture("file_validator/animated-av1.webm", file_ext: "webm")
+        v.validate_container_format(video)
+        expect(v.record.errors[:base]).to be_empty
+      end
+    end
+
+    context "with an H.264 mkv (invalid container for H.264)" do
+      it "adds an error" do
+        v, video = validator_for_fixture("file_validator/animated-h264.mkv", file_ext: "mkv")
+        v.validate_container_format(video)
+        expect(v.record.errors[:base]).to include(include("video must be WebM with VP8/VP9/AV1 or MP4 with AV1/H.264"))
+      end
+    end
+
     context "with an AV1 MP4" do
       it "is valid" do
         v, video = validator_for_fixture("file_validator/animated-av1-opus.mp4", file_ext: "mp4")
@@ -58,19 +74,19 @@ RSpec.describe FileValidator, type: :model do
       end
     end
 
-    context "with an H.264 MP4 (not yet allowed)" do
-      it "adds an error" do
+    context "with an H.264 MP4" do
+      it "is valid" do
         v, video = validator_for_fixture("file_validator/animated-h264.mp4", file_ext: "mp4")
         v.validate_container_format(video)
-        expect(v.record.errors[:base]).to include(include("video must be WebM with VP8/VP9 or MP4 with AV1"))
+        expect(v.record.errors[:base]).to be_empty
       end
     end
 
-    context "with an AV1 WebM (wrong container for AV1)" do
+    context "with a HEVC MP4" do
       it "adds an error" do
-        v, video = validator_for_fixture("file_validator/animated-av1.webm", file_ext: "webm")
+        v, video = validator_for_fixture("file_validator/animated-hevc.mp4", file_ext: "mp4")
         v.validate_container_format(video)
-        expect(v.record.errors[:base]).to include(include("video must be WebM with VP8/VP9 or MP4 with AV1"))
+        expect(v.record.errors[:base]).to include(include("video must be WebM with VP8/VP9/AV1 or MP4 with AV1/H.264, but found mov,mp4,m4a,3gp,3g2,mj2 with hevc"))
       end
     end
 
