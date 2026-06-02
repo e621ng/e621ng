@@ -1,0 +1,16 @@
+<div id="c-staff-wikis">
+  <div id="a-new">
+    <aside id="sidebar"></aside>
+
+    <section id="content">
+      <h1>New Staff Wiki Page</h1>
+      <%= render "form" %>
+    </section>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  New Staff Wiki Page
+<% end %>
+
+<%= render "secondary_links" %>

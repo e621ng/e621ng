@@ -1,0 +1,10 @@
+<div id="form-content">
+  <%= error_messages_for("staff_wiki") %>
+
+  <%= custom_form_for(@staff_wiki) do |f| %>
+    <%= f.input :title %>
+    <%= f.input :body, as: :dtext, limit: Danbooru.config.wiki_page_max_size, allow_color: true %>
+    <%= f.input :edit_reason, label: "Edit Reason" %>
+    <%= f.button :submit, "Submit" %>
+  <% end %>
+</div>

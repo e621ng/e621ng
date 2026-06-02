@@ -401,6 +401,20 @@ Rails.application.routes.draw do
       get :diff
     end
   end
+  resources :staff_wikis do
+    member do
+      put :revert
+    end
+    collection do
+      get :search
+      get :show_or_new
+    end
+  end
+  resources :staff_wiki_versions, only: %i[index show] do
+    collection do
+      get :diff
+    end
+  end
   resources :blips do
     member do
       post :delete
