@@ -92,9 +92,7 @@ class FileValidator
       if video.audio_codec.present? && allowed_audio_codecs.exclude?(video.audio_codec)
         record.errors.add(:base, "video uses AV1 and must use Opus, AAC, or MP3 audio codec, but found #{video.audio_codec}")
       end
-    end
-
-    if video.video_codec == "h264"
+    elsif video.video_codec == "h264"
       allowed_audio_codecs = %w[aac mp3]
       if video.audio_codec.present? && allowed_audio_codecs.exclude?(video.audio_codec)
         record.errors.add(:base, "video uses H.264 and must use AAC or MP3 audio codec, but found #{video.audio_codec}")

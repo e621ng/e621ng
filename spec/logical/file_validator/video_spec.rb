@@ -58,7 +58,7 @@ RSpec.describe FileValidator, type: :model do
       end
     end
 
-    context "with an H.264 mkv (invalid container for H.264)" do
+    context "with an H.264 WebM (invalid container for H.264)" do
       it "adds an error" do
         v, video = validator_for_fixture("file_validator/animated-h264.webm", file_ext: "webm")
         v.validate_container_format(video)
@@ -146,6 +146,14 @@ RSpec.describe FileValidator, type: :model do
         v, video = validator_for_fixture("file_validator/animated-h264-opus.mp4", file_ext: "mp4")
         v.validate_audio_codec(video)
         expect(v.record.errors[:base]).to include(include("video uses H.264 and must use AAC or MP3 audio codec"))
+      end
+    end
+
+    context "with MP4 + H.264 + no audio track" do
+      it "is valid" do
+        v, _upload, video = validator_with_video_double(file_ext: "mp4", video_codec: "h264", audio_codec: nil)
+        v.validate_audio_codec(video)
+        expect(v.record.errors[:base]).to be_empty
       end
     end
 
