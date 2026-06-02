@@ -17,8 +17,8 @@
         <% end %>
 
         <% if wiki_content.tag.present? %>
-          <button id="copy-tag" data-clipboard-text="<%= wiki_content.tag.name %>">
-            <%= svg_icon(:clipboard_copy, width: 12, height: 12) %>
+          <button id="copy-tag" data-clipboard-text="<%= wiki_content.tag.name %>" title="Copy tag to clipboard">
+            <%= svg_icon(:clipboard_copy, width: 16, height: 16) %>
           </button>
         <% end %>
       </h1>
