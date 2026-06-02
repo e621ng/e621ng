@@ -11,3 +11,6 @@
 <%= decorated_nav_link_to("Blips", :megaphone, blips_path) %>
 <%= decorated_nav_link_to("Comments", :message_square, comments_path) %>
 <%= decorated_nav_link_to("Forum", :lectern, forum_topics_path, class: (CurrentUser.has_forum_been_updated? ? "notification" : nil)) %>
+<% if CurrentUser.is_janitor? %>
+  <%= decorated_nav_link_to("Staff Wiki", :book, staff_wikis_path) %>
+<% end %>
