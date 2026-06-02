@@ -28,7 +28,6 @@ export default class LStorage {
   static Posts = {
     Mode: "view", // Too many to list
     ShowPostChildren: false,
-    JanitorToolbar: false,
     Set: 0,
     WikiExcerpt: 1 as 0 | 1 | 2,
     Fullscreen: false,
@@ -105,7 +104,6 @@ const StorageKeys: StorageConfig = {
   "Posts": {
     Mode: "mode", // legacy
     ShowPostChildren: "show-relationship-previews", // legacy
-    JanitorToolbar: "jtb", // legacy
     Set: "set", // legacy
     WikiExcerpt: "e6.posts.wiki",
     Fullscreen: "e6.posts.fusk",
