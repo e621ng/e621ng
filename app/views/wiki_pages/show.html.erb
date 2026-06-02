@@ -15,6 +15,12 @@
         <% if wiki_content.is_deleted? %>
           (deleted)
         <% end %>
+
+        <% if wiki_content.tag.present? %>
+          <button id="copy-tag" data-clipboard-text="<%= wiki_content.tag.name %>">
+            <%= svg_icon(:clipboard_copy, width: 12, height: 12) %>
+          </button>
+        <% end %>
       </h1>
       <% if @wiki_redirect.present? %>
         <div class="wiki-page-redirect"><%= svg_icon(:corner_down_right, width: 12, height: 12) %> <%= @wiki_page.title %></div>
