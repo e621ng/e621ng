@@ -3,7 +3,8 @@
 require "rails_helper"
 
 # Tests user-related metatags: user:, approver:, commenter: (comm: alias), noter:,
-# noteupdater:, fav: (favoritedby: alias), and privileged voting metatags.
+# noteupdater:, fav: (favoritedby: alias), flaggedby: (flagger: alias),
+# deletedby: (deleter: alias), and privileged voting metatags.
 #
 # Most metatags resolve a username/ID into a numeric user ID stored in an array.
 # Privileged metatags (upvote:/downvote:/voted:) require moderator access.
@@ -274,6 +275,16 @@ RSpec.describe TagQuery do
         tq = TagQuery.new("flaggedby:me")
         expect(tq[:flagger]).to include(CurrentUser.id)
       end
+    end
+  end
+
+  describe "deletedby: metatag" do
+    it "does not hide deleted posts when deletedby: is present" do
+      expect(TagQuery.should_hide_deleted_posts?("aaa bbb deletedby:someuser")).to be(false)
+    end
+
+    it "does not hide deleted posts when deleter: is present" do
+      expect(TagQuery.should_hide_deleted_posts?("aaa bbb deleter:someuser")).to be(false)
     end
   end
 
