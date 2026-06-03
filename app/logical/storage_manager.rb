@@ -163,12 +163,12 @@ class StorageManager
     delete(mascot_path(md5, file_ext))
   end
 
-  def avatar_path(user_id, ext)
-    "#{base_dir}/#{AVATAR_PREFIX}/#{user_id}.#{ext}"
+  def avatar_path(user_id, ext, timestamp: Time.now.to_i)
+    "#{base_dir}/#{AVATAR_PREFIX}/#{user_id}.#{ext}?t=#{timestamp}"
   end
 
-  def avatar_url(user_id, ext)
-    "#{base_url}#{base_path}/#{AVATAR_PREFIX}/#{user_id}.#{ext}"
+  def avatar_url(user_id, ext, timestamp: Time.now.to_i)
+    "#{base_url}#{base_path}/#{AVATAR_PREFIX}/#{user_id}.#{ext}?t=#{timestamp}"
   end
 
   def store_avatar(io, user_id, ext)

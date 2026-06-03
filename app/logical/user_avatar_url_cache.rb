@@ -14,9 +14,10 @@ module UserAvatarUrlCache
     return nil if user.blank? || user.avatar_id.blank?
 
     if user.has_cropped_avatar?
+      sm = Danbooru.config.storage_manager
       [
-        "/data/avatars/#{user.id}.webp?t=#{user.updated_at.to_i}",
-        "/data/avatars/#{user.id}.jpg?t=#{user.updated_at.to_i}",
+        sm.avatar_url(user.id, "webp", timestamp: user.updated_at.to_i),
+        sm.avatar_url(user.id, "jpg", timestamp: user.updated_at.to_i),
       ]
     else
       Cache.fetch(key(user.id), expires_in: CACHE_TTL) do
