@@ -138,4 +138,18 @@ RSpec.describe StorageManager do
       expect(manager.post_download_url(post)).to be_nil
     end
   end
+
+  # -------------------------------------------------------------------------
+  # #avatar_url
+  # -------------------------------------------------------------------------
+  describe "#avatar_url" do
+    it "returns the avatar URL for the given user ID and extension" do
+      expect(manager.avatar_url(123, "jpg")).to eq("http://example.com/data/avatars/123.jpg")
+    end
+
+    it "appends a timestamp query param if provided" do
+      url = manager.avatar_url(123, "jpg", timestamp: 1_000_000)
+      expect(url).to eq("http://example.com/data/avatars/123.jpg?t=1000000")
+    end
+  end
 end

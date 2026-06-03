@@ -274,7 +274,7 @@ class Post < ApplicationRecord
           sample_data[:original] = video_samples["original"]
 
           sample_data[:variants] = {}
-          sample_data[:has] = true if video_samples["variants"].present?
+          sample_data[:has] = true if video_samples["original"]["codec"].present?
           video_samples["variants"].each do |name, video|
             sample_data[:variants][name] = video
             sample_data[:variants][name][:codec] = name == "mp4" ? "avc1.4D401E" : "vp9"
