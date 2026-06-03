@@ -232,7 +232,9 @@ class TagQuery
     status -status
     delreason -delreason ~delreason
     deletedby -deletedby ~deletedby
+    deleter -deleter ~deleter
     flaggedby -flaggedby ~flaggedby
+    flagger -flagger ~flagger
     flagnote -flagnote ~flagnote
     flagreason -flagreason ~flagreason
   ].freeze
