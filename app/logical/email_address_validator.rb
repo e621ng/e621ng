@@ -11,7 +11,7 @@ class EmailAddressValidator < ActiveModel::EachValidator
     # @email_had_display_name when the raw input carried a display name.
     # Coerce to a boolean so a never-set ivar (nil) is treated as "no display
     # name", matching the original validate_each behavior.
-    had_display_name = !!rec.instance_variable_get(:@email_had_display_name)
+    had_display_name = rec.instance_variable_get(:@email_had_display_name) == true
     error = self.class.validation_error(email, had_display_name: had_display_name)
     rec.errors.add(attr, error) if error
   end
