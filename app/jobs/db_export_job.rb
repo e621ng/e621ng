@@ -68,9 +68,8 @@ class DbExportJob < ApplicationJob
     "pools" => {
       query: -> { "SELECT id, name, created_at, updated_at, creator_id, description, is_active, category, post_ids FROM pools ORDER BY id" },
     },
-    # Deleted pages are filtered out because they are not visible to regular users.
     "wiki_pages" => {
-      query: -> { "SELECT id, created_at, updated_at, title, body, creator_id, updater_id, is_locked FROM wiki_pages WHERE is_deleted = false ORDER BY id" },
+      query: -> { "SELECT id, created_at, updated_at, title, body, creator_id, updater_id, is_locked FROM wiki_pages ORDER BY id" },
     },
   }.freeze
 
