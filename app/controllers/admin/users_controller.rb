@@ -48,7 +48,7 @@ module Admin
         @user.mark_verified! if params[:user][:verified].to_s.truthy?
         @user.mark_unverified! if params[:user][:verified].to_s.falsy?
       end
-      unless @user.is_restricted? && params[:user][:level].present?
+      if !@user.is_restricted? && params[:user][:level].present?
         @user.promote_to!(params[:user][:level], params[:user])
       end
 
