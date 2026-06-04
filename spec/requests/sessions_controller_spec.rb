@@ -103,9 +103,12 @@ RSpec.describe SessionsController do
       make_session(member)
     end
 
-    it "redirects to posts_path" do
-      delete session_path
+    it "redirects to referer or root_path" do
+      delete session_path, headers: { "Referer" => posts_path }
       expect(response).to redirect_to(posts_path)
+
+      delete session_path
+      expect(response).to redirect_to(root_path)
     end
 
     it "clears session[:user_id]" do
