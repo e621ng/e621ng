@@ -32,11 +32,7 @@ class ExceptionLog < ApplicationRecord
     end
 
     create!(
-      ip_addr: begin
-        request.remote_ip
-      rescue ActionDispatch::RemoteIp::IpSpoofAttackError
-        "0.0.0.0"
-      end,
+      ip_addr: request.remote_ip,
       class_name: unwrapped_exception.class.name,
       message: unwrapped_exception.message,
       trace: unwrapped_exception.backtrace.join("\n"),
