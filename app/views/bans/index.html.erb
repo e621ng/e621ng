@@ -10,6 +10,9 @@
           <th>User</th>
           <th>Banner</th>
           <th>Banned</th>
+          <% if CurrentUser.user.is_moderator? %>
+            <th>Hard</th>
+          <% end %>
           <th>Duration</th>
           <th>Expiration</th>
           <th>Reason</th>
@@ -28,6 +31,9 @@
               <%= link_to "»", bans_path(search: search_params.merge(banner_name: ban.banner.name)) %>
             </td>
             <td><%= time_ago_in_words_tagged(ban.created_at) %></td>
+            <% if CurrentUser.user.is_moderator? %>
+              <td><%= ban.prevent_login? ? "Yes" : "No" %></td>
+            <% end %>
             <td><%= ban.humanized_duration %></td>
             <td><%= ban.humanized_expiration %></td>
             <td class="col-expand dtext-container"><%= format_text ban.reason %></td>
