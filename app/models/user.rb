@@ -695,7 +695,7 @@ class User < ApplicationRecord
     end
 
     def can_view_flagger_on_post?(flag)
-      is_staff? || flag.creator_id == id || flag.is_deletion
+      is_staff? || flag.creator_id == id
     end
 
     def can_replace?

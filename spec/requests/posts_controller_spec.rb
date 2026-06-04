@@ -168,6 +168,23 @@ RSpec.describe PostsController do
       expect(response).to have_http_status(:not_found)
     end
 
+    context "when the post was deleted without ever being flagged" do
+      let(:deleted) { create(:post).tap { |p| p.delete!("Inferior version of another post") } }
+
+      it "shows the deletion reason rather than a bare notice" do
+        get post_path(deleted)
+        expect(response.body).to include("Inferior version of another post")
+      end
+
+      it "offers the uploader a way to appeal" do
+        uploader = User.find(deleted.uploader_id)
+        sign_in_as uploader
+        get post_path(deleted)
+        expect(response.body).to include("Appeal Deletion")
+        expect(response.body).to include(CGI.escapeHTML(new_appeal_path(qtype: "post_deletion", disp_id: deleted.current_deletion.id)))
+      end
+    end
+
     context "when the post is not visible due to lockdown" do
       before { allow(Security::Lockdown).to receive(:post_visible?).and_return(false) }
 

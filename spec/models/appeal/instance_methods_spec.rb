@@ -34,24 +34,24 @@ RSpec.describe Appeal do
   # #content / #model / #type_title
   # -------------------------------------------------------------------------
   describe "#content" do
-    it "returns the associated PostFlag" do
+    it "returns the associated PostDeletion" do
       appeal = create(:appeal)
-      expect(appeal.content).to be_a(PostFlag)
+      expect(appeal.content).to be_a(PostDeletion)
       expect(appeal.content.id).to eq(appeal.disp_id)
     end
   end
 
   describe "#model" do
-    it "returns PostFlag for a flag-type appeal" do
+    it "returns PostDeletion for a post_deletion-type appeal" do
       appeal = build(:appeal)
-      expect(appeal.model).to eq(PostFlag)
+      expect(appeal.model).to eq(PostDeletion)
     end
   end
 
   describe "#type_title" do
     it "returns a titleized model name" do
       appeal = build(:appeal)
-      expect(appeal.type_title).to eq("Post Flag")
+      expect(appeal.type_title).to eq("Post Deletion")
     end
   end
 
@@ -59,9 +59,9 @@ RSpec.describe Appeal do
   # #bot_target_name
   # -------------------------------------------------------------------------
   describe "#bot_target_name" do
-    it "returns the name of the PostFlag creator" do
+    it "returns the name of the PostDeletion deleter" do
       appeal = create(:appeal)
-      expect(appeal.bot_target_name).to eq(appeal.content.creator.name)
+      expect(appeal.bot_target_name).to eq(appeal.content.deleter.name)
     end
   end
 
@@ -69,12 +69,12 @@ RSpec.describe Appeal do
   # #open_duplicates
   # -------------------------------------------------------------------------
   describe "#open_duplicates" do
-    let(:flag)    { create(:post_flag) }
-    let!(:appeal) { create(:appeal, post_flag: flag) }
+    let(:deletion) { create(:post_deletion) }
+    let!(:appeal) { create(:appeal, post_deletion: deletion) }
     let!(:duplicate) do
       old = CurrentUser.user
       CurrentUser.user = create(:user)
-      a = create(:appeal, post_flag: flag)
+      a = create(:appeal, post_deletion: deletion)
       CurrentUser.user = old
       a
     end
@@ -139,9 +139,9 @@ RSpec.describe Appeal do
   # #all_for_same_content
   # -------------------------------------------------------------------------
   describe "#all_for_same_content" do
-    let(:flag)    { create(:post_flag) }
-    let!(:appeal) { create(:appeal, post_flag: flag) }
-    let!(:sibling_appeal) { create(:appeal, post_flag: flag) }
+    let(:deletion) { create(:post_deletion) }
+    let!(:appeal) { create(:appeal, post_deletion: deletion) }
+    let!(:sibling_appeal) { create(:appeal, post_deletion: deletion) }
     let!(:other_flag_appeal) { create(:appeal) }
 
     it "finds all appeals for the same content" do
@@ -201,9 +201,9 @@ RSpec.describe Appeal do
   end
 
   # -------------------------------------------------------------------------
-  # AppealTypes::Flag#can_create_for?
+  # AppealTypes::PostDeletion#can_create_for?
   # -------------------------------------------------------------------------
-  describe "#can_create_for? (flag type)" do
+  describe "#can_create_for? (post_deletion type)" do
     let(:appeal) { create(:appeal) }
 
     it "returns true when the user is the post uploader" do

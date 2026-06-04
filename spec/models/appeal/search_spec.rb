@@ -78,7 +78,7 @@ RSpec.describe Appeal do
     let!(:flag_appeal) { create(:appeal) }
 
     it "filters by qtype" do
-      expect(Appeal.search(qtype: "flag")).to include(flag_appeal)
+      expect(Appeal.search(qtype: "post_deletion")).to include(flag_appeal)
     end
   end
 

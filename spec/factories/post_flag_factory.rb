@@ -10,7 +10,6 @@ FactoryBot.define do
     reason_name { PostFlagReason.by_name("basic")&.name || create(:post_flag_reason).name }
 
     is_resolved { false }
-    is_deletion { false }
     note        { nil }
 
     factory :needs_staff_reason_post_flag do
@@ -31,15 +30,6 @@ FactoryBot.define do
 
     factory :resolved_post_flag do
       is_resolved { true }
-    end
-
-    # Mirrors how Post#delete! creates deletion flags: reason_name "deletion" + is_deletion true.
-    # validate_creator_is_not_limited is skipped when is_deletion is true.
-    # update_reason is a NOP for "deletion", so reason must be set directly.
-    factory :deletion_post_flag do
-      reason_name { "deletion" }
-      is_deletion { true }
-      reason      { "Test deletion reason" }
     end
   end
 end

@@ -26,15 +26,14 @@ RSpec.describe DeletedPostsController do
         expect(response).to have_http_status(:ok)
       end
 
-      it "shows posts sourced from deletion flags" do
+      it "shows deleted posts" do
         post_record = create(:post)
-        create(:deletion_post_flag, post: post_record)
-        post_record.update_columns(is_deleted: true)
+        post_record.delete!("spam")
         get deleted_posts_path
         expect(response.body).to include("/posts/#{post_record.id}")
       end
 
-      it "excludes deleted posts that have no deletion flag" do
+      it "excludes deleted posts that have no post_deletion" do
         post_record = create(:deleted_post)
         get deleted_posts_path
         expect(response.body).not_to include("/posts/#{post_record.id}")
@@ -56,8 +55,7 @@ RSpec.describe DeletedPostsController do
       it "shows deleted posts belonging to the target user" do
         target_user = create(:user)
         post_record = create(:post, uploader: target_user)
-        create(:deletion_post_flag, post: post_record)
-        post_record.update_columns(is_deleted: true)
+        post_record.delete!("spam")
         get deleted_posts_path(user_id: target_user.id)
         expect(response.body).to include("/posts/#{post_record.id}")
       end
@@ -66,8 +64,7 @@ RSpec.describe DeletedPostsController do
         target_user = create(:user)
         other_user  = create(:user)
         other_post  = create(:post, uploader: other_user)
-        create(:deletion_post_flag, post: other_post)
-        other_post.update_columns(is_deleted: true)
+        other_post.delete!("spam")
         get deleted_posts_path(user_id: target_user.id)
         expect(response.body).not_to include("/posts/#{other_post.id}")
       end

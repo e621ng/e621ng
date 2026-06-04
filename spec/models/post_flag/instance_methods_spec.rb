@@ -6,21 +6,6 @@ RSpec.describe PostFlag do
   include_context "as admin"
 
   # -------------------------------------------------------------------------
-  # #type
-  # -------------------------------------------------------------------------
-  describe "#type" do
-    it "returns :deletion when is_deletion is true" do
-      flag = create(:deletion_post_flag)
-      expect(flag.type).to eq(:deletion)
-    end
-
-    it "returns :flag when is_deletion is false" do
-      flag = create(:post_flag)
-      expect(flag.type).to eq(:flag)
-    end
-  end
-
-  # -------------------------------------------------------------------------
   # #resolve!
   # -------------------------------------------------------------------------
   describe "#resolve!" do

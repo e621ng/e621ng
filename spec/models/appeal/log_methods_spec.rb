@@ -116,13 +116,13 @@ RSpec.describe Appeal do
     end
 
     it "does not send a dmail when the creator is the system user" do
-      post_flag = create(:post_flag)
+      post_deletion = create(:post_deletion)
       CurrentUser.user = User.system
-      appeal = build(:appeal, post_flag: post_flag)
+      appeal = build(:appeal, post_deletion: post_deletion)
       appeal.creator_id      = User.system.id
       appeal.creator_ip_addr = "127.0.0.1"
       appeal.status          = "pending"
-      appeal.accused_id      = post_flag.creator_id
+      appeal.accused_id      = post_deletion.deleter_id
       appeal.save!(validate: false)
       appeal.update_columns(handler_id: moderator.id, response: "initial response")
       CurrentUser.user = moderator

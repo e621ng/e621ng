@@ -23,7 +23,7 @@ class PostPruner
             body: post.substitute_deletion_dmail_template(dmail[:body]),
           })
         end
-      rescue PostFlag::Error
+      rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
         # swallow
       end
     end

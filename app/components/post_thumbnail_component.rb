@@ -123,10 +123,11 @@ class PostThumbnailComponent < ViewComponent::Base
 
       if @user.present? && @user.is_staff?
         tooltip += "\nUploader: #{@post.uploader_name}"
-        if @post.is_flagged? || @post.is_deleted?
-          flag = @post.flags.order(id: :desc).first
-          tooltip += "\nFlag Reason: #{flag&.reason}" if @post.is_flagged?
-          tooltip += "\nDel Reason: #{flag&.reason}" if @post.is_deleted?
+        if @post.is_flagged?
+          tooltip += "\nFlag Reason: #{@post.flags.order(id: :desc).first&.reason}"
+        end
+        if @post.is_deleted?
+          tooltip += "\nDel Reason: #{@post.current_deletion&.reason}"
         end
       end
 

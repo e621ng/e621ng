@@ -157,18 +157,15 @@ module PostIndex
           WHERE post_id IN (#{post_ids}) AND is_active = true
         SQL
         deletion_sql = <<-SQL
-          SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) as reason, pf.created_at FROM
-            (SELECT MAX(id) as mid, post_id
-             FROM post_flags
-             WHERE post_id IN (#{post_ids}) AND is_resolved = false AND is_deletion = true
-             GROUP BY post_id) pfi
-          INNER JOIN post_flags pf ON pf.id = pfi.mid;
+          SELECT post_id, deleter_id, LOWER(reason) as reason, created_at
+          FROM post_deletions
+          WHERE post_id IN (#{post_ids}) AND is_undeleted = false;
         SQL
         flag_sql = <<-SQL
           SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) as reason, LOWER(pf.note) as note, pf.created_at FROM
             (SELECT MAX(id) as mid, post_id
              FROM post_flags
-             WHERE post_id IN (#{post_ids}) AND is_resolved = false AND is_deletion = false
+             WHERE post_id IN (#{post_ids}) AND is_resolved = false
              GROUP BY post_id) pfi
           INNER JOIN post_flags pf ON pf.id = pfi.mid;
         SQL
@@ -189,7 +186,7 @@ module PostIndex
         # Run queries
         conn = ApplicationRecord.connection
         deletions        = conn.execute(deletion_sql)
-        # For deletions, we map `post_id`, `creator_id`, `reason`, `created_at`
+        # For deletions, we map `post_id`, `deleter_id`, `reason`, `created_at`
         deleter_ids      = deletions.values.map { |p, did, dr, dca| [p, did] }.to_h
         del_reasons      = deletions.values.map { |p, did, dr, dca| [p, dr] }.to_h
         del_dates        = deletions.values.map { |p, did, dr, dca| [p, dca] }.to_h
@@ -287,10 +284,10 @@ module PostIndex
 
   def as_indexed_json(options = {})
     flag = unless options.key?(:flagger) && options.key?(:flag_reason) && options.key?(:flag_note) && options.key?(:flagged_at)
-             ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: false).order(id: :desc).first
+             ::PostFlag.where(post_id: id, is_resolved: false).order(id: :desc).first
            end
     deletion = unless options.key?(:deleter) && options.key?(:del_reason) && options.key?(:deleted_at)
-                 ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first
+                 ::PostDeletion.current_for(self)
                end
 
     {
@@ -332,7 +329,7 @@ module PostIndex
       notes:                    options[:notes]      || ::Note.active.where(post_id: id).pluck(:body),
       uploader:                 uploader_id,
       approver:                 approver_id,
-      deleter:                  options[:deleter]       || deletion&.creator_id,
+      deleter:                  options[:deleter]       || deletion&.deleter_id,
       del_reason:               options[:del_reason]    || deletion&.reason&.downcase,
       flagger:                  options[:flagger]       || flag&.creator_id,
       flag_reason:              options[:flag_reason]   || flag&.reason&.downcase,

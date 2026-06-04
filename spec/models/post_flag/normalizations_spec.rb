@@ -54,12 +54,5 @@ RSpec.describe PostFlag do
         expect(parent_post.reload.parent_id).to be_nil
       end
     end
-
-    describe "'deletion' reason" do
-      it "leaves reason unchanged (NOP)" do
-        flag = create(:deletion_post_flag)
-        expect(flag.reason).to eq("Test deletion reason")
-      end
-    end
   end
 end

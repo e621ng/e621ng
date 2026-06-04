@@ -91,14 +91,14 @@ RSpec.describe Appeal do
   # validate_content_exists (on create)
   # -------------------------------------------------------------------------
   describe "content existence validation" do
-    it "is valid when the referenced PostFlag exists" do
+    it "is valid when the referenced PostDeletion exists" do
       expect(build_appeal).to be_valid
     end
 
-    it "is invalid when the referenced PostFlag does not exist" do
-      record = build(:appeal, post_flag: build(:post_flag))
+    it "is invalid when the referenced PostDeletion does not exist" do
+      record = build(:appeal, post_deletion: build(:post_deletion))
       expect(record).not_to be_valid
-      expect(record.errors[:post_flag]).to be_present
+      expect(record.errors[:post_deletion]).to be_present
     end
   end
 
@@ -109,7 +109,7 @@ RSpec.describe Appeal do
     it "is invalid when the hourly appeal limit is exceeded" do
       allow(Danbooru.config.custom_configuration).to receive(:ticket_hourly_limit).and_return(1)
       make_appeal
-      record = build(:appeal, post_flag: create(:post_flag))
+      record = build(:appeal, post_deletion: create(:post_deletion))
       expect(record).not_to be_valid
       expect(record.errors[:creator]).to be_present
     end
@@ -117,7 +117,7 @@ RSpec.describe Appeal do
     it "is invalid when the daily appeal limit is exceeded" do
       allow(Danbooru.config.custom_configuration).to receive(:ticket_daily_limit).and_return(1)
       make_appeal
-      record = build(:appeal, post_flag: create(:post_flag))
+      record = build(:appeal, post_deletion: create(:post_deletion))
       expect(record).not_to be_valid
       expect(record.errors[:creator]).to be_present
     end
@@ -125,7 +125,7 @@ RSpec.describe Appeal do
     it "is invalid when the active appeal limit is exceeded" do
       allow(Danbooru.config.custom_configuration).to receive(:ticket_active_limit).and_return(1)
       make_appeal
-      record = build(:appeal, post_flag: create(:post_flag))
+      record = build(:appeal, post_deletion: create(:post_deletion))
       expect(record).not_to be_valid
       expect(record.errors[:creator]).to be_present
     end
@@ -133,7 +133,7 @@ RSpec.describe Appeal do
     it "allows the system user to bypass throttle limits" do
       allow(Danbooru.config.custom_configuration).to receive(:ticket_hourly_limit).and_return(0)
       CurrentUser.user = User.system
-      record = build(:appeal, post_flag: create(:post_flag))
+      record = build(:appeal, post_deletion: create(:post_deletion))
       expect(record).to be_valid
     end
   end

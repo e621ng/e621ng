@@ -450,35 +450,36 @@ RSpec.describe PostIndex do
       end
 
       describe "deleter" do
-        it "returns the creator_id of the most recent unresolved deletion flag" do
-          create(:deletion_post_flag, post: post)
+        it "returns the deleter_id of the active deletion" do
+          post.delete!("Test deletion reason")
           expect(post.as_indexed_json[:deleter]).to eq(CurrentUser.id)
         end
 
-        it "returns nil when there are no deletion flags" do
+        it "returns nil when there is no deletion" do
           expect(post.as_indexed_json[:deleter]).to be_nil
         end
 
-        it "returns nil when the deletion flag is resolved" do
-          create(:deletion_post_flag, post: post, is_resolved: true)
-          expect(post.as_indexed_json[:deleter]).to be_nil
+        it "returns nil when the deletion has been undeleted" do
+          post.delete!("Test deletion reason")
+          post.current_deletion.update!(is_undeleted: true)
+          expect(post.reload.as_indexed_json[:deleter]).to be_nil
         end
       end
 
       describe "del_reason" do
-        it "returns the downcased reason of the most recent unresolved deletion flag" do
-          create(:deletion_post_flag, post: post)
-          # :deletion_post_flag reason is "Test deletion reason" — must be stored downcased
+        it "returns the downcased reason of the active deletion" do
+          post.delete!("Test deletion reason")
           expect(post.as_indexed_json[:del_reason]).to eq("test deletion reason")
         end
 
-        it "returns nil when there are no deletion flags" do
+        it "returns nil when there is no deletion" do
           expect(post.as_indexed_json[:del_reason]).to be_nil
         end
 
-        it "returns nil when the deletion flag is resolved" do
-          create(:deletion_post_flag, post: post, is_resolved: true)
-          expect(post.as_indexed_json[:del_reason]).to be_nil
+        it "returns nil when the deletion has been undeleted" do
+          post.delete!("Test deletion reason")
+          post.current_deletion.update!(is_undeleted: true)
+          expect(post.reload.as_indexed_json[:del_reason]).to be_nil
         end
       end
     end

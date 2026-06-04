@@ -634,7 +634,7 @@ module Danbooru
     # The template for the auto-dispatched notification DMail to uploaders of post auto-deletion.
     # Replaces the following strings with their values:
     # * `%POST_ID%`: The id of the deleted post
-    # * `%FLAG_ID%`: The id of the deletion flag
+    # * `%DELETION_ID%`: The id of the post deletion (used for the appeal link)
     # * `%UPLOADER_ID%`: The id of the uploader
     #
     # ## Example Value
@@ -650,7 +650,7 @@ module Danbooru
     # Strings used as templates for the optional notification DMail to uploaders on post deletion.
     # Replaces the following strings with their values:
     # * `%POST_ID%`: The id of the deleted post
-    # * `%FLAG_ID%`: The id of the deletion flag
+    # * `%DELETION_ID%`: The id of the post deletion (used for the appeal link)
     # * `%STAFF_NAME%`: The name of the deleting staff member
     # * `%STAFF_ID%`: The id of the deleting staff member
     # * `%UPLOADER_ID%`: The id of the uploader
@@ -666,7 +666,7 @@ module Danbooru
 
 This is a courtesy notification; you don't need to take further action if you don't want to.
 
-If you would like to contest the deletion, click \"this link\":[/appeals/new?disp_id=%FLAG_ID%&qtype=flag].
+If you would like to contest the deletion, click \"this link\":[/appeals/new?disp_id=%DELETION_ID%&qtype=post_deletion].
 
 You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
         },

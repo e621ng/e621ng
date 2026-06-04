@@ -1592,6 +1592,42 @@ ALTER SEQUENCE public.post_approvals_id_seq OWNED BY public.post_approvals.id;
 
 
 --
+-- Name: post_deletions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_deletions (
+    id bigint NOT NULL,
+    post_id integer NOT NULL,
+    deleter_id integer NOT NULL,
+    undeleter_id integer,
+    creator_ip_addr inet NOT NULL,
+    reason text NOT NULL,
+    is_undeleted boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    undeleted_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: post_deletions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.post_deletions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: post_deletions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.post_deletions_id_seq OWNED BY public.post_deletions.id;
+
+
+--
 -- Name: post_disapprovals; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1711,7 +1747,6 @@ CREATE TABLE public.post_flags (
     is_resolved boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
-    is_deletion boolean DEFAULT false NOT NULL,
     note character varying,
     reason_name character varying,
     needs_parent_id boolean DEFAULT false NOT NULL,
@@ -2055,6 +2090,17 @@ CREATE SEQUENCE public.posts_change_seq_seq
 --
 
 ALTER SEQUENCE public.posts_change_seq_seq OWNED BY public.posts.change_seq;
+
+
+--
+-- Name: posts_export; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.posts_export (
+    id integer NOT NULL,
+    is_deleted boolean NOT NULL,
+    updated_at timestamp without time zone
+);
 
 
 --
@@ -3479,6 +3525,13 @@ ALTER TABLE ONLY public.post_approvals ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: post_deletions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions ALTER COLUMN id SET DEFAULT nextval('public.post_deletions_id_seq'::regclass);
+
+
+--
 -- Name: post_disapprovals id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4110,6 +4163,14 @@ ALTER TABLE ONLY public.post_approvals
 
 
 --
+-- Name: post_deletions post_deletions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions
+    ADD CONSTRAINT post_deletions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: post_disapprovals post_disapprovals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4189,6 +4250,14 @@ ALTER TABLE public.post_versions CLUSTER ON post_versions_pkey;
 
 ALTER TABLE ONLY public.post_votes
     ADD CONSTRAINT post_votes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: posts_export posts_export_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.posts_export
+    ADD CONSTRAINT posts_export_pkey PRIMARY KEY (id);
 
 
 --
@@ -5280,6 +5349,48 @@ CREATE INDEX index_post_approvals_on_user_id ON public.post_approvals USING btre
 
 
 --
+-- Name: index_post_deletions_active_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_deletions_active_created_at ON public.post_deletions USING btree (created_at) WHERE (is_undeleted = false);
+
+
+--
+-- Name: index_post_deletions_active_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_deletions_active_unique ON public.post_deletions USING btree (post_id) WHERE (is_undeleted = false);
+
+
+--
+-- Name: index_post_deletions_on_creator_ip_addr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_deletions_on_creator_ip_addr ON public.post_deletions USING btree (creator_ip_addr);
+
+
+--
+-- Name: index_post_deletions_on_deleter_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_deletions_on_deleter_id ON public.post_deletions USING btree (deleter_id);
+
+
+--
+-- Name: index_post_deletions_on_post_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_deletions_on_post_id_and_id ON public.post_deletions USING btree (post_id, id);
+
+
+--
+-- Name: index_post_deletions_on_reason_tsvector; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_deletions_on_reason_tsvector ON public.post_deletions USING gin (to_tsvector('english'::regconfig, reason));
+
+
+--
 -- Name: index_post_disapprovals_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6138,11 +6249,27 @@ ALTER TABLE ONLY public.appeals
 
 
 --
+-- Name: post_deletions fk_rails_1adec60699; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions
+    ADD CONSTRAINT fk_rails_1adec60699 FOREIGN KEY (deleter_id) REFERENCES public.users(id);
+
+
+--
 -- Name: avoid_posting_versions fk_rails_1d1f54e17a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.avoid_posting_versions
     ADD CONSTRAINT fk_rails_1d1f54e17a FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
+-- Name: post_deletions fk_rails_223f15f198; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions
+    ADD CONSTRAINT fk_rails_223f15f198 FOREIGN KEY (post_id) REFERENCES public.posts(id) ON DELETE CASCADE;
 
 
 --
@@ -6410,12 +6537,21 @@ ALTER TABLE ONLY public.oauth_access_tokens
 
 
 --
+-- Name: post_deletions fk_rails_fb3db2222e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_deletions
+    ADD CONSTRAINT fk_rails_fb3db2222e FOREIGN KEY (undeleter_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260827120000'),
 ('20260824220908'),
 ('20260819154314'),
 ('20260818231537'),

@@ -10,8 +10,8 @@ RSpec.describe Appeal do
       expect(create(:appeal)).to be_persisted
     end
 
-    it "defaults qtype to flag" do
-      expect(create(:appeal).qtype).to eq("flag")
+    it "defaults qtype to post_deletion" do
+      expect(create(:appeal).qtype).to eq("post_deletion")
     end
 
     it "defaults status to pending" do
@@ -23,9 +23,9 @@ RSpec.describe Appeal do
       expect(appeal.creator_id).to eq(CurrentUser.id)
     end
 
-    it "sets accused_id to the PostFlag creator" do
+    it "sets accused_id to the PostDeletion deleter" do
       appeal = create(:appeal)
-      expect(appeal.accused_id).to eq(appeal.content.creator_id)
+      expect(appeal.accused_id).to eq(appeal.content.deleter_id)
     end
   end
 end
