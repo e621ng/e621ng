@@ -83,9 +83,13 @@ module Danbooru
       }
     end
 
-    # Prevent new users from going above 80k while allowing those currently above
-    # it to continue adding new favorites with the old limit.
-    # { 123 => 200_000 }
+    # The maximum number of favorites a user may keep.
+    def favorite_limit
+      200_000
+    end
+
+    # Per-user overrides for favorite_limit, e.g. to grandfather users already above the default.
+    # { 123 => 1_000_000 }
     def legacy_favorite_limit
       {}
     end
