@@ -26,7 +26,7 @@
       <% if CurrentUser.is_bd_staff? || !@user.is_bd_staff? %>
         <div class="input integer optional">
           <label for="user_level" class="optional">Level</label>
-          <% if @user.is_blocked? %>
+          <% if @user.is_restricted? %>
             <i>Blocked users cannot have their level changed.</i>
           <% else %>
             <%= user_level_select(:user, :level) %>

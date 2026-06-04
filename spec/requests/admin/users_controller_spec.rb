@@ -219,6 +219,12 @@ RSpec.describe Admin::UsersController do
         patch admin_user_path(user), params: { user: { profile_about: "x", level: UserLevel::PRIVILEGED } }
         expect(user.reload.level).to eq(UserLevel::PRIVILEGED)
       end
+
+      it "does not promote a restricted user" do
+        banned_user = create(:banned_user)
+        patch admin_user_path(banned_user), params: { user: { profile_about: "x", level: UserLevel::PRIVILEGED } }
+        expect(banned_user.reload.level).not_to eq(UserLevel::PRIVILEGED)
+      end
     end
   end
 
