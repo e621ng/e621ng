@@ -2,7 +2,7 @@
 
 module ApplicationHelper
   def disable_mobile_mode?
-    if CurrentUser.user.blank? || CurrentUser.is_anonymous?
+    if CurrentUser.user.blank? || CurrentUser.user.is_logged_out?
       return cookies[:nmm].present?
     end
 
@@ -132,7 +132,7 @@ module ApplicationHelper
     user_class = user.level_css_class
     user_class += " user-post-approver" if user.can_approve_posts?
     user_class += " user-post-uploader" if user.can_upload_free?
-    user_class += " user-banned" if user.is_blocked?
+    user_class += " user-banned" if user.is_restricted?
     user_class += " with-style" if CurrentUser.user.style_usernames?
     html = link_to(user.pretty_name.presence || "<blank>", user_path(user), class: user_class, rel: "nofollow")
     html << " (Unactivated)" if include_activation && !user.is_verified?
@@ -141,7 +141,8 @@ module ApplicationHelper
 
   def body_attributes(user = CurrentUser.user)
     attributes = %i[id name level level_string can_approve_posts? can_upload_free? per_page]
-    attributes += User::Roles.map { |role| :"is_#{role}?" }
+    attributes += UserLevel::BODY_ATTRIBUTE_ROLES.map { |role| :"is_#{role}?" }
+    attributes += %i[is_anonymous? is_restricted?]
 
     controller_param = params[:controller].parameterize.dasherize
     action_param = params[:action].parameterize.dasherize

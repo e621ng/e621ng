@@ -167,8 +167,10 @@ class StorageManager
     "#{base_dir}/#{AVATAR_PREFIX}/#{user_id}.#{ext}"
   end
 
-  def avatar_url(user_id, ext)
-    "#{base_url}#{base_path}/#{AVATAR_PREFIX}/#{user_id}.#{ext}"
+  def avatar_url(user_id, ext, timestamp: nil)
+    url = "#{base_url}#{base_path}/#{AVATAR_PREFIX}/#{user_id}.#{ext}"
+    url += "?t=#{timestamp}" if timestamp.present?
+    url
   end
 
   def store_avatar(io, user_id, ext)

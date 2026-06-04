@@ -337,25 +337,18 @@ def populate_favorites(number, users: [])
       next # Skip bulk post updates for this batch since we used FavoriteManager
     end
 
-    # Update post fav_strings and fav_counts for this batch
+    # Update post fav_counts for this batch
     batch_post_ids = batch_favorites.pluck(:post_id).uniq
     batch_post_ids.each do |post_id|
       user_ids = post_fav_updates[post_id]
       next if user_ids.empty?
 
-      post = Post.find(post_id)
-      current_fav_string = post.fav_string || ""
-      current_fav_parts = current_fav_string.split
-      new_fav_parts = user_ids.map { |user_id| "fav:#{user_id}" }
-      all_fav_parts = (current_fav_parts + new_fav_parts).uniq
-
-      post.update_columns(
-        fav_string: all_fav_parts.join(" "),
-        fav_count: all_fav_parts.size,
+      Post.where(id: post_id).update_all(
+        fav_count: Favorite.where(post_id: post_id).count,
         updated_at: Time.current,
       )
 
-      puts "    Updated post ##{post_id} fav_string (#{user_ids.size} new favs)"
+      puts "    Updated post ##{post_id} fav_count (#{user_ids.size} new favs)"
     end
 
     # Update user favorite counts

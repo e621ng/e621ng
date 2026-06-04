@@ -51,25 +51,6 @@ RSpec.describe Post do
       end
     end
 
-    describe "#fav_string (lazy load)" do
-      it "is excluded from the model's attribute set" do
-        post = create(:post)
-        fresh = Post.find(post.id)
-        expect(fresh.has_attribute?(:fav_string)).to be false
-      end
-
-      it "lazy-loads the column on first read" do
-        post = create(:post)
-        post.write_fav_string!("fav:42", 1)
-        fresh = Post.find(post.id)
-        expect(fresh.fav_string).to eq("fav:42")
-      end
-
-      it "returns empty string for a brand-new record" do
-        expect(Post.new.fav_string).to eq("")
-      end
-    end
-
     describe ".preload_favorited_status!" do
       it "marks favorited posts as favorited and others as not" do
         user = create(:user)
@@ -100,91 +81,50 @@ RSpec.describe Post do
       end
     end
 
-    describe "#append_user_to_fav_string" do
-      it "adds a fav: entry for the user" do
-        user = create(:user)
+    describe "#refresh_fav_count" do
+      it "sets fav_count to the number of favorites for the post" do
+        user_a = create(:user)
+        user_b = create(:user)
         post = create(:post)
-        post.append_user_to_fav_string(user.id)
-        expect(post.fav_string).to include("fav:#{user.id}")
+        Favorite.create!(user_id: user_a.id, post_id: post.id)
+        Favorite.create!(user_id: user_b.id, post_id: post.id)
+        post.refresh_fav_count
+        expect(post.fav_count).to eq(2)
       end
 
-      it "increments fav_count" do
+      it "marks fav_count as changed so a following save persists it" do
         user = create(:user)
         post = create(:post)
-        post.append_user_to_fav_string(user.id)
-        expect(post.fav_count).to eq(1)
-      end
-
-      it "does not add the same user twice" do
-        user = create(:user)
-        post = create(:post)
-        post.write_fav_string!("fav:#{user.id}", 1)
-        post.append_user_to_fav_string(user.id)
-        expect(post.fav_string.scan("fav:#{user.id}").size).to eq(1)
-        expect(post.fav_count).to eq(1)
+        Favorite.create!(user_id: user.id, post_id: post.id)
+        post.refresh_fav_count
+        expect(post.fav_count_changed?).to be true
       end
     end
 
-    describe "#delete_user_from_fav_string" do
-      it "removes the fav: entry for the user" do
+    describe ".preload_stats!" do
+      it "preloads both favorited status and vote for the collection" do
         user = create(:user)
         post = create(:post)
-        post.write_fav_string!("fav:#{user.id}", 1)
-        post.delete_user_from_fav_string(user.id)
-        expect(post.fav_string).not_to include("fav:#{user.id}")
+        Favorite.create!(user_id: user.id, post_id: post.id)
+        PostVote.create!(post: post, user: user, score: 1)
+
+        Post.preload_stats!([post], user)
+        allow(Favorite).to receive(:exists?)
+        allow(PostVote).to receive(:where)
+        expect(post.favorited_by?(user.id)).to be true
+        expect(post.vote_by(user.id)).to eq(1)
+        expect(Favorite).not_to have_received(:exists?)
+        expect(PostVote).not_to have_received(:where)
       end
 
-      it "decrements fav_count" do
-        user = create(:user)
+      it "is a no-op for an anonymous user" do
         post = create(:post)
-        post.write_fav_string!("fav:#{user.id}", 1)
-        post.delete_user_from_fav_string(user.id)
-        expect(post.fav_count).to eq(0)
+        expect { Post.preload_stats!([post], User.anonymous) }.not_to(change { post.instance_variable_get(:@favorited_status_cache) })
       end
 
-      it "does nothing when the user is not in fav_string" do
-        user = create(:user)
-        other = create(:user)
+      it "is a no-op for a nil user" do
         post = create(:post)
-        post.write_fav_string!("fav:#{other.id}", 1)
-        post.delete_user_from_fav_string(user.id)
-        expect(post.fav_string).to include("fav:#{other.id}")
-        expect(post.fav_count).to eq(1)
-      end
-    end
-
-    describe "#clean_fav_string!" do
-      it "removes duplicate fav entries and recalculates fav_count" do
-        user = create(:user)
-        post = create(:post)
-        post.write_fav_string!("fav:#{user.id} fav:#{user.id}", 2)
-        post.clean_fav_string!
-        expect(post.fav_string.scan("fav:#{user.id}").size).to eq(1)
-        expect(post.fav_count).to eq(1)
-      end
-    end
-
-    describe "#append_user_to_fav_string, large fav_string path (fav_count > 1000)" do
-      it "adds the user via regex branch and increments fav_count" do
-        large_fav_string = (1..1001).map { |i| "fav:#{i}" }.join(" ")
-        post = create(:post)
-        post.write_fav_string!(large_fav_string, 1001)
-        new_id = 999_999
-        post.append_user_to_fav_string(new_id)
-        expect(post.fav_string).to include("fav:#{new_id}")
-        expect(post.fav_count).to eq(1002)
-      end
-
-      it "does not add a duplicate in the large-fav_string path" do
-        existing_id = 999_999
-        other_ids = (1..1000).map { |i| i }
-        large_fav_string = ([existing_id] + other_ids).map { |i| "fav:#{i}" }.join(" ")
-        post = create(:post)
-        post.write_fav_string!(large_fav_string, 1001)
-        post.append_user_to_fav_string(existing_id)
-        matches = post.fav_string.scan(/(?:\A| )fav:#{existing_id}(?:\Z| )/)
-        expect(matches.size).to eq(1)
-        expect(post.fav_count).to eq(1001)
+        expect { Post.preload_stats!([post], nil) }.not_to raise_error
       end
     end
 

@@ -17,7 +17,7 @@ class Setting < RailsSettings::Base
   end
 
   scope :limits do
-    field :uploads_min_level,       type: :integer, default: User::Levels::MEMBER, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
+    field :uploads_min_level,       type: :integer, default: UserLevel::MEMBER, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
     field :hide_pending_posts_for,  type: :integer, default: 0, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
   end
 

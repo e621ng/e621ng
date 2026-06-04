@@ -5,12 +5,6 @@ class Post < ApplicationRecord
   class DeletionError < Exception ; end
   class TimeoutError < Exception ; end
 
-  # fav_string is a denormalized blob that can grow unbounded with fav_count.
-  # Excluding it from the default attribute set keeps it out of every Post fetch.
-  # Reads go through Post#fav_string (lazy load); writes go through the
-  # write_fav_string! helper in FavoriteMethods.
-  self.ignored_columns += %w[fav_string]
-
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
@@ -95,6 +89,7 @@ class Post < ApplicationRecord
     def delete_avatar_crops
       User.where(avatar_id: id).pluck(:id).each do |user_id|
         AvatarCleanupJob.perform_later(user_id, force: true)
+        UserAvatarUrlCache.invalidate(user_id)
       end
     end
 
@@ -279,7 +274,7 @@ class Post < ApplicationRecord
           sample_data[:original] = video_samples["original"]
 
           sample_data[:variants] = {}
-          sample_data[:has] = true if video_samples["variants"].present?
+          sample_data[:has] = true if video_samples["original"]["codec"].present?
           video_samples["variants"].each do |name, video|
             sample_data[:variants][name] = video
             sample_data[:variants][name][:codec] = name == "mp4" ? "avc1.4D401E" : "vp9"
@@ -883,24 +878,31 @@ class Post < ApplicationRecord
     end
 
     def apply_casesensitive_metatags(tags)
-      casesensitive_metatags, tags = tags.partition {|x| x =~ /\A(?:source):/i}
+      casesensitive_metatags, tags = tags.partition {|x| x =~ /\A(?:\+?source):/i}
       #Reuse the following metatags after the post has been saved
       casesensitive_metatags += tags.select {|x| x =~ /\A(?:newpool):/i}
       if casesensitive_metatags.length > 0
-        case casesensitive_metatags[-1]
-        when /^source:none$/i
-          self.source = ""
+        casesensitive_metatags.each do |metatag|
+          case metatag
+          when /^source:none$/i
+            self.source = ""
 
-        when /^source:"(.*)"$/i
-          self.source = $1
+          when /^\+source:none$/i
+            next
 
-        when /^source:(.*)$/i
-          self.source = $1
+          when /^source:("?)(.*)\1$/i
+            self.source = $2
 
-        when /^newpool:(.+)$/i
-          pool = Pool.find_by_name($1)
+          when /^\+source:("?)(.*)\1$/i
+            self.source = self.source.blank? ? $2 : "#{self.source}\n#{$2}"
+          end
+        end
+
+        if (newpool = casesensitive_metatags.grep(/^newpool:(.+)$/i).last)
+          pool_name = newpool.match(/^newpool:(.+)$/i)[1]
+          pool = Pool.find_by_name(pool_name)
           if pool.nil?
-            pool = Pool.create(name: $1, description: "")
+            pool = Pool.create(name: pool_name, description: "")
           end
         end
       end
@@ -1232,6 +1234,15 @@ class Post < ApplicationRecord
         favorited_ids = Favorite.where(user_id: user_id, post_id: posts.map(&:id)).pluck(:post_id).to_set
         posts.each { |post| post.preset_favorited_status(user_id, favorited_ids.include?(post.id)) }
       end
+
+      # Bulk-populate both favorited-by and vote status for a collection of posts so
+      # that rendering thumbnails doesn't issue a query per post. Skips anonymous
+      # users, who never have favorites or votes.
+      def preload_stats!(posts, user = CurrentUser.user)
+        return if user.nil? || user.is_logged_out?
+        preload_favorited_status!(posts, user.id)
+        preload_vote_by!(posts, user.id)
+      end
     end
 
     def preset_favorited_status(user_id, value)
@@ -1251,58 +1262,17 @@ class Post < ApplicationRecord
 
     alias_method :is_favorited?, :favorited_by?
 
-    # Lazy reader: the column is ignored by AR (see ignored_columns at the top of
-    # this class), so on first access we issue a focused 1-column query and cache
-    # the result on the instance.
-    def fav_string
-      return @fav_string unless @fav_string.nil?
-      @fav_string = new_record? ? "" : (self.class.unscoped.where(id: id).pick(:fav_string) || "")
-    end
-
     def reload(*)
-      @fav_string = nil
       @favorited_status_cache = nil
       @vote_by_cache = nil
       super
     end
 
-    # fav_string is kept in sync as a rollback safety net; the app no longer
-    # reads from it on the hot path. See FavoriteManager and TransferFavoritesJob for writers.
-    def clean_fav_string!
-      array = fav_string.split.uniq
-      write_fav_string!(array.join(" "), array.size)
-    end
-
-    def append_user_to_fav_string(user_id)
-      # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
-      # Checking for presence is faster than explicit deduplication for both approaches.
-      if fav_count > 1000
-        return if fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
-        new_string = (fav_string + " fav:#{user_id}").strip
-      else
-        fav_array = fav_string.split
-        fav_tag = "fav:#{user_id}"
-        return if fav_array.include?(fav_tag)
-        fav_array << fav_tag
-        new_string = fav_array.join(" ")
-      end
-      write_fav_string!(new_string, new_string.split.size)
-    end
-
-    def delete_user_from_fav_string(user_id)
-      new_fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
-      return if new_fav_string == fav_string
-      write_fav_string!(new_fav_string, new_fav_string.split.size)
-    end
-
-    # Persist fav_string (an ignored column) and fav_count in a single SQL UPDATE.
-    # AR's attribute system doesn't know about fav_string, so we route the write
-    # through update_all. fav_count stays dirty afterwards so a follow-up
-    # post.save still triggers after_save callbacks (e.g. reindexing).
-    def write_fav_string!(new_string, new_count)
-      Post.unscoped.where(id: id).update_all(fav_string: new_string, fav_count: new_count) unless new_record?
-      @fav_string = new_string
-      self.fav_count = new_count
+    # Recompute fav_count from the favorites table, the source of truth. Leaves
+    # fav_count dirty so a following post.save runs an UPDATE and triggers the
+    # after_save reindex.
+    def refresh_fav_count
+      self.fav_count = Favorite.where(post_id: id).count
     end
 
     # users who favorited this post, ordered by when they favorited it
@@ -1743,6 +1713,7 @@ class Post < ApplicationRecord
         PostEvent.add(id, CurrentUser.user, :undeleted)
       end
       move_files_on_undelete
+      User.where(avatar_id: id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
     end
 
@@ -1853,7 +1824,7 @@ class Post < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      list = super + [:pool_string, :fav_string]
+      list = super + [:pool_string]
       if !visible?
         list += [:md5, :file_ext]
       end
@@ -2196,7 +2167,7 @@ class Post < ApplicationRecord
   end
 
   def loginblocked?
-    CurrentUser.is_anonymous? && (hide_from_anonymous? || Danbooru.config.user_needs_login_for_post?(self))
+    CurrentUser.user.is_logged_out? && (hide_from_anonymous? || Danbooru.config.user_needs_login_for_post?(self))
   end
 
   def visible?

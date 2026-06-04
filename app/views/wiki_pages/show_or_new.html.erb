@@ -5,6 +5,12 @@
     <section id="content">
       <h1 id="wiki-page-title">
         <%= link_to @wiki_page.pretty_title_with_category, posts_path(:tags => @wiki_page.title), :class => "tag-type-#{@wiki_page.category_id}" %>
+
+        <% if @wiki_page.tag.present? %>
+          <button id="copy-tag" data-clipboard-text="<%= @wiki_page.tag.name %>" title="Copy tag to clipboard">
+            <%= svg_icon(:clipboard_copy, width: 16, height: 16) %>
+          </button>
+        <% end %>
       </h1>
       <div id="wiki-page-body" class="dtext-container">
         <p>This wiki page is empty. <%= link_to "Click here to add details", new_wiki_page_path(wiki_page: { title: params[:title] }) %>.</p>

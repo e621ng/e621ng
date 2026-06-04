@@ -268,7 +268,7 @@ class PostFlag < ApplicationRecord
     when :all, "all", FLAG_REASON_VISIBILITY_LEVEL_MAP[:all]
       true
     when :users, "users", FLAG_REASON_VISIBILITY_LEVEL_MAP[:users]
-      !user.is_anonymous?
+      !user.is_logged_out?
     when :uploader, "uploader", FLAG_REASON_VISIBILITY_LEVEL_MAP[:uploader]
       post.uploader_id == user.id
     else

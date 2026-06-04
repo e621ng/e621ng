@@ -9,11 +9,11 @@ RSpec.describe FlushFavoritesJob do
     described_class.perform_now(user_id)
   end
 
-  # Creates a Favorite and keeps post.fav_string / fav_count consistent.
+  # Creates a Favorite and keeps post.fav_count consistent.
   # Favorite.create! fires user_status_counter → UserStatus.favorite_count++
   def add_favorite(post, user)
     Favorite.create!(post_id: post.id, user_id: user.id)
-    post.write_fav_string!("#{post.fav_string} fav:#{user.id}".strip, post.fav_count + 1)
+    post.update_columns(fav_count: Favorite.where(post_id: post.id).count)
   end
 
   describe "#perform" do
@@ -40,11 +40,6 @@ RSpec.describe FlushFavoritesJob do
 
       it "deletes the Favorite record" do
         expect { perform }.to change(Favorite, :count).by(-1)
-      end
-
-      it "removes the user from the post fav_string" do
-        perform
-        expect(post.reload.fav_string).not_to include("fav:#{CurrentUser.id}")
       end
 
       it "decrements the post fav_count to 0" do
@@ -77,13 +72,6 @@ RSpec.describe FlushFavoritesJob do
       it "decrements the user favorite_count to 0" do
         perform
         expect(CurrentUser.user.user_status.reload.favorite_count).to eq(0)
-      end
-
-      it "clears fav_string on all favorited posts" do
-        perform
-        [post_a, post_b, post_c].each do |post|
-          expect(post.reload.fav_string).not_to include("fav:#{CurrentUser.id}")
-        end
       end
 
       it "sets fav_count to 0 on all favorited posts" do

@@ -3,13 +3,13 @@
   <%= subnav_link_to "Upload", new_upload_path if CurrentUser.user.is_member? %>
   <%= subnav_link_to "Hot", posts_path(tags: "order:hot", d: "1") %>
   <%= subnav_link_to("Popular", popular_index_path) %>
-  <%= subnav_link_to "Favorites", favorites_path if CurrentUser.user.is_authenticated? %>
+  <%= subnav_link_to "Favorites", favorites_path if CurrentUser.user.is_logged_in? %>
   <%= subnav_link_to "Changes", post_versions_path %>
   <li><a href="#" id="blacklist-edit-link">Blacklist</a></li>
   <%= subnav_link_to "Help", help_page_path(id: "posts") %>
-  <% if CurrentUser.can_approve_posts? %>
+  <% if CurrentUser.can_approve_posts? && @post.present? && @post.is_pending? %>
     <li class="divider"></li>
-    <li><a href="#" id="janitor-toolbar-toggle">Approvals: Off</a></li>
+    <li><a href="#" id="janitor-toolbar-toggle">Approvals: <%= cookies[:janitor_toolbar] == "1" ? "On" : "Off" %></a></li>
   <% end %>
 <% end %>
 

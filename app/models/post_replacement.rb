@@ -367,14 +367,22 @@ class PostReplacement < ApplicationRecord
           q = q.attribute_matches(:file_name, params[:file_name])
         end
 
-        direction = params[:order] == "id_asc" ? "ASC" : "DESC"
-
-        q.order(Arel.sql("
-          CASE status
-            WHEN 'original' THEN 0
-            ELSE #{table_name}.id
-          END #{direction}
-        "))
+        if params[:order].present?
+          q.apply_basic_order(params)
+        elsif params[:post_id].present?
+          # Backups are created before the first replacement, so id DESC already
+          # sorts them last. This pin only matters for legacy posts whose backup
+          # was created afterwards and thus has a higher id; it keeps the backup
+          # anchored below the replacements in that single-post view.
+          q.order(Arel.sql("
+            CASE status
+              WHEN 'original' THEN 0
+              ELSE #{table_name}.id
+            END DESC
+          "))
+        else
+          q.default_order
+        end
       end
 
       def pending
@@ -406,7 +414,7 @@ class PostReplacement < ApplicationRecord
       end
 
       def visible(user)
-        return where.not(status: "rejected") if user.is_anonymous?
+        return where.not(status: "rejected") if user.is_logged_out?
         return all if user.is_janitor?
         where("creator_id = ? or status != ?", user.id, "rejected")
       end

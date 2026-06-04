@@ -42,6 +42,58 @@ class TagAlias < TagRelationship
   end
 
   module TransitiveChecks
+    extend ActiveSupport::Concern
+
+    class_methods do
+      def preload_transitives(records)
+        records = records.to_a
+        return if records.empty?
+
+        antecedent_names = records.map(&:antecedent_name).uniq
+        antecedent_names_set = antecedent_names.to_set
+
+        bulk_aliases = TagAlias.duplicate_relevant
+                               .where(consequent_name: antecedent_names)
+                               .group_by(&:consequent_name)
+
+        impl_base = TagImplication.duplicate_relevant
+        raw_implications = impl_base
+                           .where(antecedent_name: antecedent_names)
+                           .or(impl_base.where(consequent_name: antecedent_names))
+                           .to_a
+
+        implications_by_name = Hash.new { |h, k| h[k] = [] }
+        raw_implications.each do |ti|
+          implications_by_name[ti.antecedent_name] << ti if antecedent_names_set.include?(ti.antecedent_name)
+          if ti.consequent_name != ti.antecedent_name && antecedent_names_set.include?(ti.consequent_name)
+            implications_by_name[ti.consequent_name] << ti
+          end
+        end
+
+        records.each do |record|
+          next if record.instance_variable_defined?(:@transitives)
+
+          name = record.antecedent_name
+          transitives = []
+
+          (bulk_aliases[name] || []).each do |ta|
+            transitives << [:alias, ta, ta.antecedent_name, ta.consequent_name, record.consequent_name]
+          end
+
+          (implications_by_name[name] || []).each do |ti|
+            if ti.antecedent_name == name
+              transitives << [:implication, ti, ti.antecedent_name, ti.consequent_name, record.consequent_name, ti.consequent_name]
+            else
+              transitives << [:implication, ti, ti.antecedent_name, ti.consequent_name, ti.antecedent_name, record.consequent_name]
+            end
+          end
+
+          record.instance_variable_set(:@transitives, transitives)
+          record.instance_variable_set(:@has_transitives, transitives.any?)
+        end
+      end
+    end
+
     def list_transitives
       return @transitives if @transitives
       @transitives = []
@@ -63,7 +115,8 @@ class TagAlias < TagRelationship
     end
 
     def has_transitives
-      @has_transitives ||= list_transitives.size > 0
+      return @has_transitives if instance_variable_defined?(:@has_transitives)
+      @has_transitives = list_transitives.any?
     end
   end
 

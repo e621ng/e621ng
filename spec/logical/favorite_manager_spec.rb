@@ -14,11 +14,6 @@ RSpec.describe FavoriteManager do
         .to change(Favorite, :count).by(1)
     end
 
-    it "adds the user to the post fav_string" do
-      FavoriteManager.add!(user: user, post: post)
-      expect(post.reload.fav_string).to include("fav:#{user.id}")
-    end
-
     it "increments post fav_count" do
       expect { FavoriteManager.add!(user: user, post: post) }
         .to change { post.reload.fav_count }.by(1)
@@ -74,11 +69,6 @@ RSpec.describe FavoriteManager do
     it "destroys the Favorite record" do
       expect { FavoriteManager.remove!(user: user, post: post) }
         .to change(Favorite, :count).by(-1)
-    end
-
-    it "removes the user from the post fav_string" do
-      FavoriteManager.remove!(user: user, post: post)
-      expect(post.reload.fav_string).not_to include("fav:#{user.id}")
     end
 
     it "decrements post fav_count" do

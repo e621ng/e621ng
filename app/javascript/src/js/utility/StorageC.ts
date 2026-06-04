@@ -53,6 +53,17 @@ export default class CStorage {
     if (value > 0) CookieJar.set("mascot", value.toString(), "/");
     else CookieJar.delete("mascot");
   }
+
+
+  /** @returns true if the janitor toolbar is visible, otherwise false */
+  static get janitorToolbarVisible (): boolean {
+    return CookieJar.getBool("janitor_toolbar");
+  }
+
+  static set janitorToolbarVisible (value: boolean) {
+    if (value) CookieJar.setBool("janitor_toolbar", true);
+    else CookieJar.delete("janitor_toolbar");
+  }
 }
 
 /**

@@ -184,7 +184,7 @@ class ForumTopic < ApplicationRecord
     end
 
     def mark_as_read!(user = CurrentUser.user)
-      return if user.is_anonymous?
+      return if user.is_logged_out?
 
       match = ForumTopicVisit.where(:user_id => user.id, :forum_topic_id => id).first
       if match

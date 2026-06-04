@@ -44,7 +44,7 @@ class StatsUpdater
     ### Users ###
 
     stats[:total_users] = User.count
-    Danbooru.config.levels.each do |name, level|
+    UserLevel::MAPPING.each do |name, level|
       stats[:"#{name.downcase}_users"] = User.where(level: level).count
     end
     stats[:unactivated_users] = User.where.not(email_verification_key: nil).count

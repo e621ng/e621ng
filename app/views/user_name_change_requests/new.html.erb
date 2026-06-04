@@ -1,6 +1,6 @@
 <div id="c-user-name-change-requests">
   <div id="a-new">
-    <% if CurrentUser.is_authenticated? && (name_error = CurrentUser.user.name_error) %>
+    <% if CurrentUser.user.is_logged_in? && (name_error = CurrentUser.user.name_error) %>
       <div class="ui-state-highlight site-notice">
         <p>Your current username '<%= CurrentUser.user.pretty_name %>' is invalid. You must change it to continue using the site.</p>
         Error: <%= name_error %>

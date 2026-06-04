@@ -37,7 +37,7 @@ RSpec.describe UserDeletion do
         expect(user.profile_about).to eq("")
         expect(user.profile_artinfo).to eq("")
         expect(user.custom_style).to eq("")
-        expect(user.level).to eq(User::Levels::MEMBER)
+        expect(user.level).to eq(UserLevel::MEMBER)
       end
 
       it "invalidates the password hash" do

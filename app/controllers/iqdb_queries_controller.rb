@@ -37,6 +37,8 @@ class IqdbQueriesController < ApplicationController
       @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff], v2_format: v2_format)
     end
 
+    Post.preload_stats!(@matches.filter_map { |m| m["post"] if m.is_a?(Hash) })
+
     respond_with(@matches) do |fmt|
       fmt.json do
         render json: @matches, root: "posts"

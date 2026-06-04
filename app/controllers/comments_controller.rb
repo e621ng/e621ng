@@ -21,7 +21,7 @@ class CommentsController < ApplicationController
   def show
     @comment = Comment.find(params[:id])
     check_accessible(@comment, bypass_user_settings: true)
-    Comment.preload_vote_by!(@comment, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+    Comment.preload_vote_by!(@comment, CurrentUser.id) unless CurrentUser.user&.is_logged_out?
     respond_with_comment(@comment)
   end
 
@@ -31,7 +31,7 @@ class CommentsController < ApplicationController
   def for_post
     @post = Post.find(params[:id])
     @comments = @post.comments.includes(:creator, :updater).to_a
-    Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+    Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_logged_out?
     comment_html = render_to_string partial: "comments/partials/show/comment", collection: @comments, locals: { post: @post }, formats: [:html]
     respond_with do |format|
       format.json do
@@ -95,7 +95,7 @@ class CommentsController < ApplicationController
     else
       @comment.user_warned!(params[:record_type], CurrentUser.user)
     end
-    Comment.preload_vote_by!(@comment, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+    Comment.preload_vote_by!(@comment, CurrentUser.id) unless CurrentUser.user&.is_logged_out?
     html = render_to_string partial: "comments/partials/show/comment", locals: { comment: @comment, post: nil }, formats: [:html]
     render json: { html: html, posts: deferred_posts }
   end
@@ -107,7 +107,8 @@ class CommentsController < ApplicationController
     @posts = Post.includes(:uploader).includes(comments: %i[creator updater]).tag_match("#{tags} order:comment_bumped").paginate(params[:page], limit: 5, search_count: params[:search])
 
     @comments = @posts.to_h { |post| [post.id, post.comments.above_threshold.includes(:creator, :updater).recent.reverse] }
-    Comment.preload_vote_by!(@comments.values.flatten, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+    Comment.preload_vote_by!(@comments.values.flatten, CurrentUser.id) unless CurrentUser.user&.is_logged_out?
+    Post.preload_stats!(@posts)
     respond_with(@posts)
   end
 
@@ -126,7 +127,8 @@ class CommentsController < ApplicationController
     @comments = @comments.above_threshold unless search_params[:id]
     @comments = @comments.paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
 
-    Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_anonymous?
+    Comment.preload_vote_by!(@comments, CurrentUser.id) unless CurrentUser.user&.is_logged_out?
+    Post.preload_stats!(@comments.map(&:post))
 
     if CurrentUser.is_staff?
       ids = @comments&.map(&:id)

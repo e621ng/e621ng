@@ -9,21 +9,12 @@ require "rails_helper"
 RSpec.describe User do
   describe "level methods" do
     # -------------------------------------------------------------------------
-    # .level_hash
-    # -------------------------------------------------------------------------
-    describe ".level_hash" do
-      it "returns the levels hash from config" do
-        expect(User.level_hash).to eq(Danbooru.config.levels)
-      end
-    end
-
-    # -------------------------------------------------------------------------
     # .level_string
     # -------------------------------------------------------------------------
     describe ".level_string" do
       it "returns the level name for a known value" do
-        expect(User.level_string(User::Levels::MEMBER)).to eq("Member")
-        expect(User.level_string(User::Levels::ADMIN)).to eq("Admin")
+        expect(User.level_string(UserLevel::MEMBER)).to eq("Member")
+        expect(User.level_string(UserLevel::ADMIN)).to eq("Admin")
       end
 
       it "returns an empty string for an unknown value" do
@@ -38,7 +29,7 @@ RSpec.describe User do
       subject(:anon) { User.anonymous }
 
       it "has the anonymous level" do
-        expect(anon.level).to eq(User::Levels::ANONYMOUS)
+        expect(anon.level).to eq(UserLevel::ANONYMOUS)
       end
 
       it "is named Anonymous" do
@@ -69,13 +60,13 @@ RSpec.describe User do
     # -------------------------------------------------------------------------
     describe "#level_string" do
       it "returns the level name for the user's current level" do
-        user = build(:user, level: User::Levels::MEMBER)
+        user = build(:user, level: UserLevel::MEMBER)
         expect(user.level_string).to eq("Member")
       end
 
       it "returns the level name for a given value, ignoring the user's level" do
-        user = build(:user, level: User::Levels::MEMBER)
-        expect(user.level_string(User::Levels::ADMIN)).to eq("Admin")
+        user = build(:user, level: UserLevel::MEMBER)
+        expect(user.level_string(UserLevel::ADMIN)).to eq("Admin")
       end
     end
 
@@ -84,45 +75,69 @@ RSpec.describe User do
     # -------------------------------------------------------------------------
     describe "#level_string_was" do
       it "returns the previous level name after a level change" do
-        user = create(:user, level: User::Levels::MEMBER)
-        user.level = User::Levels::JANITOR
+        user = create(:user, level: UserLevel::MEMBER)
+        user.level = UserLevel::JANITOR
         expect(user.level_string_was).to eq("Member")
       end
     end
 
     # -------------------------------------------------------------------------
-    # #is_anonymous?
+    # #is_logged_in?
     # -------------------------------------------------------------------------
-    describe "#is_anonymous?" do
-      it "returns true for an anonymous user" do
-        expect(User.anonymous.is_anonymous?).to be(true)
+    describe "#is_logged_in?" do
+      it "returns false for an anonymous user" do
+        expect(User.anonymous.is_logged_in?).to be(false)
       end
 
-      it "returns false for a regular member" do
+      it "returns true for a regular member" do
         user = build(:user)
-        expect(user.is_anonymous?).to be(false)
+        expect(user.is_logged_in?).to be(true)
+      end
+
+      it "returns true for a blocked user" do
+        user = build(:user, level: UserLevel::BLOCKED)
+        expect(user.is_logged_in?).to be(true)
+      end
+
+      it "returns true for a staff member" do
+        user = build(:admin_user)
+        expect(user.is_logged_in?).to be(true)
       end
     end
 
     # -------------------------------------------------------------------------
-    # #is_blocked?
+    # #is_logged_out?
     # -------------------------------------------------------------------------
-    describe "#is_blocked?" do
-      it "returns true for a hard-banned user" do
-        user = build(:user, level: User::Levels::BLOCKED)
-        build(:ban, user: user, prevent_login: true)
-        expect(user.is_blocked?).to be(true)
-      end
-
-      it "returns true for a soft-banned user" do
-        user = build(:user, level: User::Levels::BLOCKED)
-        build(:ban, user: user, prevent_login: false)
-        expect(user.is_blocked?).to be(true)
+    describe "#is_logged_out?" do
+      it "returns true for an anonymous user" do
+        expect(User.anonymous.is_logged_out?).to be(true)
       end
 
       it "returns false for a regular member" do
         user = build(:user)
-        expect(user.is_blocked?).to be(false)
+        expect(user.is_logged_out?).to be(false)
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #is_restricted?
+    # -------------------------------------------------------------------------
+    describe "#is_restricted?" do
+      it "returns true for a hard-banned user" do
+        user = build(:user, level: UserLevel::BLOCKED)
+        build(:ban, user: user, prevent_login: true)
+        expect(user.is_restricted?).to be(true)
+      end
+
+      it "returns true for a soft-banned user" do
+        user = build(:user, level: UserLevel::BLOCKED)
+        build(:ban, user: user, prevent_login: false)
+        expect(user.is_restricted?).to be(true)
+      end
+
+      it "returns false for a regular member" do
+        user = build(:user)
+        expect(user.is_restricted?).to be(false)
       end
     end
 
@@ -187,12 +202,12 @@ RSpec.describe User do
     # -------------------------------------------------------------------------
     describe "#level_css_class" do
       it "returns the parameterized level name prefixed with 'user-'" do
-        expect(build(:user, level: User::Levels::MEMBER).level_css_class).to eq("user-member")
-        expect(build(:user, level: User::Levels::ADMIN).level_css_class).to eq("user-admin")
+        expect(build(:user, level: UserLevel::MEMBER).level_css_class).to eq("user-member")
+        expect(build(:user, level: UserLevel::ADMIN).level_css_class).to eq("user-admin")
       end
 
       it "hyphenates multi-word level names" do
-        expect(build(:user, level: User::Levels::FORMER_STAFF).level_css_class).to eq("user-former-staff")
+        expect(build(:user, level: UserLevel::FORMER_STAFF).level_css_class).to eq("user-former-staff")
       end
     end
   end
