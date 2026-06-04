@@ -206,6 +206,10 @@ RSpec.describe StaticController do
     end
 
     context "when database exports are enabled" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive(:db_export_enabled?).and_return(true)
+      end
+
       it "shows the DB Export link" do
         get site_map_path
         expect(response.body).to include("DB Export")

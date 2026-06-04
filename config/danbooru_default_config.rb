@@ -67,7 +67,7 @@ module Danbooru
 
     # Whether the daily database exports are enabled. Hidden from the site map if false.
     def db_export_enabled?
-      true
+      false
     end
 
     # Prevent new users from going above 80k while allowing those currently above

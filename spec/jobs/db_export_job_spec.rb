@@ -15,7 +15,7 @@ RSpec.describe DbExportJob do
 
     # Pin a single real storage manager (config builds a new one per call) and
     # intercept only store_db_export, so post creation can still resolve file paths.
-    allow(Danbooru.config.custom_configuration).to receive(:storage_manager).and_return(storage)
+    allow(Danbooru.config.custom_configuration).to receive_messages(db_export_enabled?: true, storage_manager: storage)
     allow(storage).to receive(:store_db_export) do |io, file_name|
       io.rewind
       stored[file_name] = Zlib::GzipReader.new(io).read

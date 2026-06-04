@@ -4,6 +4,7 @@ require "rails_helper"
 
 RSpec.describe DbExportsController do
   before do
+    allow(Danbooru.config.custom_configuration).to receive(:db_export_enabled?).and_return(true)
     DbExport.create!(name: "posts", file_size: 2048)
     DbExport.create!(name: "tags", file_size: 512)
   end
