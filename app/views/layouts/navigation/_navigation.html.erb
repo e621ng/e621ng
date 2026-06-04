@@ -19,11 +19,11 @@
       </span>
     </a>
     <% if CurrentUser.is_anonymous? %>
-      <a href="<%= new_session_path(url: request.fullpath) %>" class="simple-login nav-controls-profile auth-login-link">
-        <span class="login-name">
+      <a href="<%= new_session_path(url: request.fullpath) %>" class="simple-avatar nav-controls-profile auth-login-link">
+        <span class="avatar-name">
           Sign In
         </span>
-        <span class="login-image">
+        <span class="avatar-image">
           <%= svg_icon(:log_in) %>
         </span>
       </a>

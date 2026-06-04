@@ -20,6 +20,7 @@ nav.navigation .simple-avatar {
     }
 
     &::before {
+      position: absolute;
       content: attr(data-name);
       color: themed("color-background");
       font-weight: bold;
@@ -201,49 +202,6 @@ nav.navigation .simple-avatar-menu {
   .must-forums { display: var(--display-forums); }
   .must-uploads-favorites-sets { display: var(--display-content-divider); }
   .must-comments-forums { display: var(--display-mentions-divider); }
-}
-
-
-nav.navigation .simple-login {
-
-  .login-name {
-    @include st-radius-left;
-  }
-
-  .login-image {
-    @include st-radius-right;
-    background: themed("color-section");
-  }
-
-  // Desktop
-  @include window-larger-than(50rem) {
-    .login-name {
-      background: none;
-      color: inherit;
-
-      height: 1.5rem;
-      line-height: 1.25rem;
-      font-size: 0.875rem;
-    }
-
-    &:hover, &:active {
-      .login-name { background: none; }
-    }
-
-    .login-image {
-      height: 3rem;
-      width: 3rem;
-      margin-top: 0.25rem;
-      color: inherit;
-      @include st-radius;
-
-      background: themed("color-foreground");
-    }
-
-    &:hover .login-image {
-      background: themed("color-section");
-    }
-  }
 }
 
 
