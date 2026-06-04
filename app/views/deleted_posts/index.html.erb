@@ -13,19 +13,19 @@
 
   <tbody>
   <% @posts.each do |post| %>
-    <% flag = post.deletion_flag %>
+    <% deletion = post.current_deletion %>
     <tr>
       <td><%= link_to post.id, post_path(post) %></td>
       <td><%= link_to_user post.uploader %></td>
       <td><%= post.tag_string %></td>
       <td>
-        <% if flag.present? %>
-          <%= compact_time flag.created_at %>
+        <% if deletion.present? %>
+          <%= compact_time deletion.created_at %>
         <% else %>
           <i>unknown</i>
         <% end %>
       </td>
-      <td class="dtext-container"><%= format_text(flag&.reason) %></td>
+      <td class="dtext-container"><%= format_text(deletion&.reason) %></td>
     </tr>
   <% end %>
   </tbody>

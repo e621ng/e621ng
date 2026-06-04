@@ -28,7 +28,6 @@ class PostFlag < ApplicationRecord
   validate :validate_post_is_not_flagged, on: :create
   validate :validate_reason, on: :create
   validate :update_reason, on: :create
-  validates :reason, presence: true, if: -> { reason_name == "deletion" }
   validates :note, length: { maximum: Danbooru.config.comment_max_size }
   validate :validate_note_required_for_reason
   before_save :update_post
@@ -40,15 +39,6 @@ class PostFlag < ApplicationRecord
   scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }
 
   attr_accessor :parent_id, :force_flag
-
-  module AccessMethods
-    def can_appeal?(user = CurrentUser.user)
-      return false if is_resolved?
-      return false unless appealable_by?(user)
-      return false if has_user_appealed?(user)
-      true
-    end
-  end
 
   module SearchMethods
     def post_tags_match(query)
@@ -93,13 +83,6 @@ class PostFlag < ApplicationRecord
         q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
       end
 
-      case params[:type]
-      when "flag"
-        q = q.where(is_deletion: false)
-      when "deletion"
-        q = q.where(is_deletion: true)
-      end
-
       q.apply_basic_order(params)
     end
   end
@@ -115,20 +98,10 @@ class PostFlag < ApplicationRecord
       end
       super + list
     end
-
-    def method_attributes
-      super + [:type]
-    end
   end
 
-  include AccessMethods
   include ApiMethods
   extend SearchMethods
-
-  def type
-    return :deletion if is_deletion
-    :flag
-  end
 
   def update_post
     post.update_column(:is_flagged, true) unless post.is_flagged?
@@ -140,7 +113,6 @@ class PostFlag < ApplicationRecord
 
   def validate_creator_is_not_limited
     return if post.nil?
-    return if is_deletion
 
     if creator.no_flagging?
       errors.add(:creator, "cannot flag posts")
@@ -166,19 +138,13 @@ class PostFlag < ApplicationRecord
     errors.add(:post, "is deleted") if post.is_deleted?
   end
 
-  # Deletions are exempt: deleting an already-flagged post creates a deletion flag.
   def validate_post_is_not_flagged
-    return if post.nil? || is_deletion
+    return if post.nil?
 
     errors.add(:post, "is already flagged") if post.is_flagged?
   end
 
   def validate_reason
-    if reason_name == "deletion"
-      # You're probably looking at this line as you get this validation failure
-      errors.add(:reason, "is not one of the available choices") unless is_deletion
-      return
-    end
     flag_reason = PostFlagReason.by_name(reason_name)
     unless flag_reason
       errors.add(:reason, "is not one of the available choices")
@@ -204,8 +170,6 @@ class PostFlag < ApplicationRecord
   end
 
   def update_reason
-    return if reason_name == "deletion"
-
     flag_reason = PostFlagReason.by_name(reason_name)
     unless flag_reason
       # no longer exists?
@@ -245,30 +209,8 @@ class PostFlag < ApplicationRecord
     @parent_post ||= Post.find_by(id: parent_id)
   end
 
-  def user_appeal(user)
-    return nil unless appealable_by?(user)
-
-    @user_appeal ||= {}
-    unless @user_appeal.key?(user.id)
-      # Multiple appeals used to be possible, so return the latest
-      @user_appeal[user.id] = Appeal.where(
-        creator_id: user.id,
-        qtype: "flag",
-        disp_id: id,
-      ).order(id: :desc).limit(1).first
-    end
-    @user_appeal[user.id]
-  end
-
-  def has_user_appealed?(user)
-    user_appeal(user).present?
-  end
-
-  # Creates an appropriate `PostEvent` unless this is a deletion.
-  #
-  # NOTE: Deletions also create flags, but they create a deletion event instead
   def create_post_event
-    PostEvent.add(post.id, CurrentUser.user, :flag_created, { reason: reason }) unless is_deletion
+    PostEvent.add(post.id, CurrentUser.user, :flag_created, { reason: reason })
   end
 
   def can_see_note?(user = CurrentUser.user)
@@ -282,15 +224,5 @@ class PostFlag < ApplicationRecord
     else
       false
     end || user.is_staff? || creator_id == user.id
-  end
-
-  private
-
-  # This is only a basic permission check, ignoring current flag or appeal status.
-  def appealable_by?(user)
-    return false unless is_deletion?
-    # Uploaders can appeal except for takedowns, verified artists can appeal deletions of their own posts
-    return false unless (post.uploader_id == user.id && reason !~ /takedown #\d+/i) || post.linked_users.include?(user.id)
-    true
   end
 end

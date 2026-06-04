@@ -48,12 +48,12 @@ module DiscordReport
     end
 
     def stats
-      deletions = PostFlag.where(is_deletion: true).where("created_at >= ?", 1.day.ago)
+      deletions = PostDeletion.where("created_at >= ?", 1.day.ago)
       oldest_pending_post = Post.pending.order(id: :asc).first&.created_at || Time.now
       # HACK: This method doesn't work because flags are not resolved when a post is deleted.
       # For now, we will get our valid flags based on post status instead - adding a post_id constraint. We have an index of `index_post_flags_on_post_id`, so this should be efficient.
       flagged_posts = Post.where(is_flagged: true) # relation of flagged posts
-      oldest_pending_flag = PostFlag.where(is_deletion: false, is_resolved: false, post_id: flagged_posts).order(id: :asc).first&.created_at || Time.now
+      oldest_pending_flag = PostFlag.where(is_resolved: false, post_id: flagged_posts).order(id: :asc).first&.created_at || Time.now
       oldest_pending_replacement = PostReplacement.pending.order(id: :asc).first&.created_at || Time.now
       oldest_appeal = Appeal.active.order(id: :asc).first&.created_at || Time.now
       {
@@ -65,7 +65,7 @@ module DiscordReport
         },
         deletions: {
           total: deletions.count,
-          automod: deletions.where(creator_id: User.system.id).count,
+          automod: deletions.where(deleter_id: User.system.id).count,
           takedowns: deletions.where("reason LIKE ?", "takedown #%").count,
         },
         oldest: {

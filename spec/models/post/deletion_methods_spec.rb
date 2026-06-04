@@ -25,16 +25,14 @@ RSpec.describe Post do
         expect(post.reload.is_flagged).to be false
       end
 
-      it "creates a deletion PostFlag record" do
+      it "creates a PostDeletion record" do
         post = create(:post)
-        expect { post.delete!("Test reason") }.to change(PostFlag, :count).by(1)
+        expect { post.delete!("Test reason") }.to change(PostDeletion, :count).by(1)
       end
 
-      it "marks the created flag as a deletion flag" do
+      it "does not create a PostFlag record" do
         post = create(:post)
-        post.delete!("Test reason")
-        flag = post.deletion_flag
-        expect(flag.is_deletion).to be true
+        expect { post.delete!("Test reason") }.not_to change(PostFlag, :count)
       end
 
       it "returns false and adds an error when the post is status-locked" do
@@ -220,41 +218,40 @@ RSpec.describe Post do
       end
     end
 
-    describe "#deletion_flag" do
-      it "returns nil when no deletion flags exist" do
+    describe "#current_deletion" do
+      it "returns nil when the post was never deleted" do
         post = create(:post)
-        expect(post.deletion_flag).to be_nil
+        expect(post.current_deletion).to be_nil
       end
 
-      it "returns nil when only non-deletion flags exist" do
+      it "returns nil when only flags exist" do
         post = create(:post)
         create(:post_flag, post: post)
-        expect(post.deletion_flag).to be_nil
+        expect(post.current_deletion).to be_nil
       end
 
-      it "returns nil when only resolved deletion flags exist" do
+      it "returns nil once the post has been undeleted" do
         post = create(:post)
         post.delete!("First reason")
         post.undelete!
-        create(:post_flag, post: post)
-        expect(post.deletion_flag).to be_nil
+        expect(post.reload.current_deletion).to be_nil
       end
 
-      it "returns the deletion PostFlag" do
+      it "returns the active PostDeletion" do
         post = create(:post)
         post.delete!("First reason")
-        deletion = post.deletion_flag
-        expect(deletion).to be_a(PostFlag)
+        deletion = post.current_deletion
+        expect(deletion).to be_a(PostDeletion)
         expect(deletion&.reason).to eq("First reason")
       end
 
-      it "returns the most recent deletion PostFlag" do
+      it "returns the most recent deletion after a re-delete" do
         post = create(:post)
         post.delete!("First reason")
         post.undelete!
         post.delete!("Second reason")
-        deletion = post.deletion_flag
-        expect(deletion).to be_a(PostFlag)
+        deletion = post.reload.current_deletion
+        expect(deletion).to be_a(PostDeletion)
         expect(deletion&.reason).to eq("Second reason")
       end
     end
@@ -330,21 +327,21 @@ RSpec.describe Post do
         expect(result).to include(post.id.to_s)
       end
 
-      it "substitutes %FLAG_ID% with the deletion flag id" do
+      it "substitutes %DELETION_ID% with the deletion id" do
         post = create(:post)
         post.delete!("bogus")
-        result = post.substitute_deletion_dmail_template("Post #%FLAG_ID%")
-        expect(result).to include(post.deletion_flag.id.to_s)
+        result = post.substitute_deletion_dmail_template("Post #%DELETION_ID%")
+        expect(result).to include(post.reload.current_deletion.id.to_s)
       end
 
-      it "substitutes %FLAG_ID% with the latest deletion flag id" do
+      it "substitutes %DELETION_ID% with the latest deletion id" do
         post = create(:post)
         post.delete!("bogus")
-        first_id = post.deletion_flag.id.to_s
+        first_id = post.reload.current_deletion.id.to_s
         post.undelete!
         post.delete!("bogus2")
-        second_id = post.deletion_flag.id.to_s
-        result = post.substitute_deletion_dmail_template("Post #%FLAG_ID%")
+        second_id = post.reload.current_deletion.id.to_s
+        result = post.substitute_deletion_dmail_template("Post #%DELETION_ID%")
         expect(result).not_to include(first_id)
         expect(result).to include(second_id)
       end

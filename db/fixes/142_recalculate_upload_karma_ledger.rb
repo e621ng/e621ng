@@ -67,12 +67,11 @@ module Fixes
           FROM post_events
           WHERE action = #{actions[:deleted]}
           ORDER BY post_id, id DESC
-        ), deletion_flag AS (
-          SELECT DISTINCT ON (post_id) post_id, creator_id, created_at,
+        ), deletion AS (
+          SELECT post_id, deleter_id AS creator_id, created_at,
                  (reason LIKE 'takedown #%') AS is_takedown
-          FROM post_flags
-          WHERE is_deletion AND NOT is_resolved
-          ORDER BY post_id, id DESC
+          FROM post_deletions
+          WHERE NOT is_undeleted
         ), events AS (
           SELECT p.uploader_id AS user_id,
                  COALESCE(p.approver_id, la.user_id, lae.creator_id, p.uploader_id) AS creator_id,
@@ -89,15 +88,15 @@ module Fixes
           UNION ALL
 
           SELECT p.uploader_id,
-                 COALESCE(lde.creator_id, df.creator_id, p.uploader_id),
+                 COALESCE(lde.creator_id, d.creator_id, p.uploader_id),
                  p.id,
                  #{reasons[:deleted]},
                  #{-UserStatus::KARMA_DELETION_PENALTY},
-                 COALESCE(lde.created_at, df.created_at, p.updated_at, p.created_at)
+                 COALESCE(lde.created_at, d.created_at, p.updated_at, p.created_at)
           FROM posts p
           LEFT JOIN latest_deletion_event lde ON lde.post_id = p.id
-          LEFT JOIN deletion_flag df ON df.post_id = p.id
-          WHERE p.is_deleted AND NOT COALESCE(df.is_takedown, FALSE)
+          LEFT JOIN deletion d ON d.post_id = p.id
+          WHERE p.is_deleted AND NOT COALESCE(d.is_takedown, FALSE)
 
           UNION ALL
 

@@ -32,13 +32,13 @@ class Appeal < ApplicationRecord
   #
   # |    Type    |      Can Create     |  Min. View Level  | View Content Check |
   # |:----------:|:-------------------:|:-----------------:|:------------------:|
-  # |  PostFlag  |      Accessible     |     Janitor+      |     Accessible     |
+  # |PostDeletion|      Accessible     |     Janitor+      |     Accessible     |
   # |    Other   |         None        |    Moderator+     |        -           |
 
   module AppealTypes
-    module Flag
-      def model
-        ::PostFlag
+    module PostDeletion
+      def bot_target_name
+        content&.deleter&.name
       end
 
       def find_duplicate_for(user)
@@ -61,8 +61,8 @@ class Appeal < ApplicationRecord
       end
 
       def content_path
-        # For a post flag, send the user back to the post: either it's undeleted, it's been re-deleted
-        # (so they need to use the new flag's appeal button), or it's something they just can't appeal.
+        # Send the user back to the post: either it's undeleted, it's been re-deleted (so they need
+        # to use the new deletion's appeal button), or it's something they just can't appeal.
         # Anyway it's more helpful for the user to see the current post status than the appeals index.
         if content.present? && (post = content.post.presence)
           return Rails.application.routes.url_helpers.post_path(post)
@@ -79,7 +79,7 @@ class Appeal < ApplicationRecord
     end
   end
 
-  VALID_QTYPES = AppealTypes.constants.map { |c| c.to_s.downcase }.freeze
+  VALID_QTYPES = AppealTypes.constants.map { |c| c.to_s.underscore }.freeze
 
   module APIMethods
     def hidden_attributes
@@ -136,10 +136,10 @@ class Appeal < ApplicationRecord
     def initialize_fields
       self.status = "pending"
       case qtype
-      when "flag"
-        flag = content
-        if flag.present?
-          self.accused_id = flag.creator_id
+      when "post_deletion"
+        deletion = content
+        if deletion.present?
+          self.accused_id = deletion.deleter_id
         else
           errors.add model.name.underscore.to_sym, "does not exist"
         end

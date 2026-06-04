@@ -10,8 +10,8 @@ RSpec.describe PostFlag do
     # reason_matches
     # -----------------------------------------------------------------------
     describe "reason_matches param" do
-      let!(:flag_a) { create(:deletion_post_flag, reason: "flag_search_test_alpha") }
-      let!(:flag_b) { create(:deletion_post_flag, reason: "flag_search_test_beta") }
+      let!(:flag_a) { create(:post_flag).tap { |f| f.update_column(:reason, "flag_search_test_alpha") } }
+      let!(:flag_b) { create(:post_flag).tap { |f| f.update_column(:reason, "flag_search_test_beta") } }
 
       it "returns flags whose reason contains the search string" do
         expect(PostFlag.search(reason_matches: "alpha")).to include(flag_a)
@@ -62,36 +62,11 @@ RSpec.describe PostFlag do
     end
 
     # -----------------------------------------------------------------------
-    # type
-    # -----------------------------------------------------------------------
-    describe "type param" do
-      let!(:regular_flag)  { create(:post_flag) }
-      let!(:deletion_flag) { create(:deletion_post_flag) }
-
-      it "returns only regular flags when type is 'flag'" do
-        result = PostFlag.search(type: "flag")
-        expect(result).to include(regular_flag)
-        expect(result).not_to include(deletion_flag)
-      end
-
-      it "returns only deletion flags when type is 'deletion'" do
-        result = PostFlag.search(type: "deletion")
-        expect(result).to include(deletion_flag)
-        expect(result).not_to include(regular_flag)
-      end
-
-      it "returns all flags when type is not specified" do
-        result = PostFlag.search({})
-        expect(result).to include(regular_flag, deletion_flag)
-      end
-    end
-
-    # -----------------------------------------------------------------------
     # note
     # -----------------------------------------------------------------------
     describe "note param" do
       let!(:flag_with_note)    { create(:post_flag, note: "unique_note_content_xyz") }
-      let!(:flag_without_note) { create(:deletion_post_flag) }
+      let!(:flag_without_note) { create(:post_flag, note: nil) }
 
       it "returns flags whose note contains the search string" do
         expect(PostFlag.search(note: "unique_note_content_xyz")).to include(flag_with_note)
