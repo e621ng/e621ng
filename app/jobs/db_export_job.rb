@@ -112,6 +112,7 @@ class DbExportJob < ApplicationJob
       end
     end
   ensure
+    conn&.exec("RESET statement_timeout")
     gz&.finish
   end
 
