@@ -16,19 +16,26 @@ module PostSets
       "fav:#{@user.name}"
     end
 
-    def current_page
-      [page.to_i, 1].max
-    end
-
     def posts
       @post_count ||= ::Post.tag_match("fav:#{@user.name} status:any").count_only
       @posts ||= begin
         favs = ::Favorite.for_user(@user.id)
                          .includes(post: :uploader)
-                         .order(created_at: :desc)
+                         .order(id: :desc)
                          .paginate_posts(page, total_count: @post_count, limit: @limit)
-        new_opts = { pagination_mode: :numbered, records_per_page: favs.records_per_page, total_count: @post_count, current_page: current_page }
-        ::Danbooru::Paginator::PaginatedArray.new(favs.map(&:post), new_opts)
+        favorites = favs.records
+        new_opts = {
+          pagination_mode: favs.pagination_mode,
+          records_per_page: favs.records_per_page,
+          total_count: @post_count,
+          current_page: favs.current_page,
+          sequential_first_id: favorites.first&.id,
+          sequential_last_id: favorites.last&.id,
+          is_first_page: favs.is_first_page?,
+          is_last_page: favs.is_last_page?,
+          finalized: true,
+        }
+        ::Danbooru::Paginator::PaginatedArray.new(favorites.map(&:post), new_opts)
       end
     end
 

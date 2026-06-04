@@ -4223,10 +4223,10 @@ CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id
 
 
 --
--- Name: index_favorites_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+-- Name: index_favorites_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_favorites_on_user_id_and_created_at ON public.favorites USING btree (user_id, created_at);
+CREATE INDEX index_favorites_on_user_id_and_id ON public.favorites USING btree (user_id, id);
 
 
 --
@@ -5407,6 +5407,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260604082526'),
 ('20260526234030'),
 ('20260520175932'),
 ('20260519151649'),

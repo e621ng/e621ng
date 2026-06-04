@@ -26,6 +26,19 @@ RSpec.describe FavoritesController do
       expect(response.parsed_body["posts"]).to be_an(Array)
     end
 
+    it "orders favorites by most recently added and seeks by favorite id" do
+      sign_in_as member
+      posts = create_list(:post, 3)
+      posts.each { |p| FavoriteManager.add!(user: member, post: p) }
+
+      get favorites_path(user_id: member.id, format: :json, limit: 1)
+      expect(response.parsed_body["posts"].pluck("id")).to eq([posts[2].id])
+
+      boundary = Favorite.for_user(member.id).order(id: :desc).first.id
+      get favorites_path(user_id: member.id, format: :json, limit: 1, page: "b#{boundary}")
+      expect(response.parsed_body["posts"].pluck("id")).to eq([posts[1].id])
+    end
+
     it "redirects to posts path when tags param is a string" do
       get favorites_path(tags: "cat dog")
       expect(response).to redirect_to(posts_path(tags: "cat dog"))

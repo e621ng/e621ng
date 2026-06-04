@@ -11,8 +11,17 @@ module Danbooru
         @total_count = options[:total_count]
         @max_numbered_pages = options[:max_numbered_pages] || Danbooru.config.max_numbered_pages
         @pagination_mode = options[:pagination_mode]
+        @sequential_first_id = options[:sequential_first_id]
+        @sequential_last_id = options[:sequential_last_id]
+        @is_first_page = options[:is_first_page]
+        @is_last_page = options[:is_last_page]
         real_array = orig_array || []
         @orig_size = real_array.size
+
+        if options[:finalized]
+          super(real_array)
+          return
+        end
 
         case @pagination_mode
         when :sequential_before, :sequential_after
@@ -28,7 +37,16 @@ module Danbooru
         end
       end
 
+      def sequential_first_id
+        @sequential_first_id || first&.id
+      end
+
+      def sequential_last_id
+        @sequential_last_id || last&.id
+      end
+
       def is_first_page?
+        return @is_first_page unless @is_first_page.nil?
         case @pagination_mode
         when :numbered
           current_page == 1
@@ -40,6 +58,7 @@ module Danbooru
       end
 
       def is_last_page?
+        return @is_last_page unless @is_last_page.nil?
         case @pagination_mode
         when :numbered
           current_page >= total_pages

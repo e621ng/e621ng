@@ -48,7 +48,7 @@ class PaginatorComponent < ViewComponent::Base
 
   def prev_path
     return nav_params_for(current_page - 1) if @mode == :numbered
-    nav_params_for("a#{records.first&.id || 0}")
+    nav_params_for("a#{sequential_first_id}")
   end
 
   def has_next?
@@ -58,7 +58,15 @@ class PaginatorComponent < ViewComponent::Base
 
   def next_path
     return nav_params_for(current_page + 1) if @mode == :numbered
-    nav_params_for("b#{records.last&.id || 0}")
+    nav_params_for("b#{sequential_last_id}")
+  end
+
+  def sequential_first_id
+    (records.respond_to?(:sequential_first_id) ? records.sequential_first_id : records.first&.id) || 0
+  end
+
+  def sequential_last_id
+    (records.respond_to?(:sequential_last_id) ? records.sequential_last_id : records.last&.id) || 0
   end
 
   ##############################
