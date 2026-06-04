@@ -3,7 +3,7 @@
 # Each export is public: the SELECT projection lists only publicly visible
 # columns, and hidden/deleted rows are filtered out.
 class DbExportJob < ApplicationJob
-  queue_as :default
+  queue_as :low_prio
 
   EXPORTS = {
     "posts" => {
