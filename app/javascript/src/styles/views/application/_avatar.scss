@@ -1,6 +1,7 @@
 nav.navigation .simple-avatar {
 
   .avatar-name {
+    color: inherit;
     display: none;
     @include st-radius-left;
   }
@@ -11,6 +12,8 @@ nav.navigation .simple-avatar {
     @include st-radius-left;
     overflow: hidden;
     position: relative;
+    background: themed("color-section");
+    color: inherit;
 
     img {
       width: 2.5rem;
@@ -55,6 +58,15 @@ nav.navigation .simple-avatar {
     border-radius: 50%;
   }
 
+  &.auth-login-link {
+    .avatar-name {
+      display: flex;
+    }
+
+    .avatar-image {
+      @include st-radius-right;
+    }
+  }
 
   // Tablet
   @include window-larger-than(34rem) {
@@ -78,6 +90,8 @@ nav.navigation .simple-avatar {
       width: 3rem;
       margin-top: 0.25rem;
       @include st-radius-left;
+      background: themed("color-foreground");
+
 
       img {
         height: 3rem;
@@ -92,6 +106,12 @@ nav.navigation .simple-avatar {
     .avatar-more {
       height: 3rem;
       margin-top: 0.25rem;
+    }
+
+    &.auth-login-link {
+      .avatar-image {
+        @include st-radius;
+      }
     }
   }
 }
