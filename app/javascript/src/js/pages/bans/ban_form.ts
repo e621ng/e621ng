@@ -7,6 +7,6 @@ $(function () {
 
     $customInput.toggleClass("hidden", value !== "custom");
     if (value == "custom") return;
-    $customInput.val(value);
+    $customInput.val(value as string);
   });
 });
