@@ -220,22 +220,44 @@ Post.initialize_links = function () {
     e.preventDefault();
   });
   let reownerDialog = null;
-  $("#reowner-post-link").on("click", e => {
+  $("#reowner-post-link").on("click", async e => {
     e.preventDefault();
+
+    const postId = $("meta[name=post-id]").attr("content");
+    const previousOwnersPromise = Post.previous_owners(postId);
+
     const form = $("#reowner-dialog");
+    const reownerStatus = $("#reowner-dialog-status");
     const reownerSelect = $("#reowner-dialog-select");
     const reownerInput = $("#reowner-dialog-input");
-    const postId = $("meta[name=post-id]").attr("content");
+    const reownerOkButton = $("#reowner-dialog-ok");
+
+    // Until the previous owner list is loaded
+    reownerStatus.text("Loading...");
+    reownerInput[0].style.display = "none";
+    reownerSelect[0].style.display = "none";
+    reownerOkButton[0].disabled = true;
+
+    const toggleOkButton = () => {
+      const hasNewOwner = (reownerInput.val()?.trim() || "").length > 0;
+      reownerOkButton[0].disabled = !hasNewOwner;
+    };
+    reownerInput.on("input", toggleOkButton);
 
     const updateReownerInput = selectValue => {
       if (selectValue === "0") {
         reownerInput[0].disabled = false;
+        reownerInput[0].style.display = "";
+        reownerInput.val("");
       } else {
         reownerInput[0].disabled = true;
-        reownerInput.val(`!${selectValue}`);
+        reownerInput[0].style.display = "none";
+        if (selectValue) {
+          reownerInput.val(`!${selectValue}`);
+        }
       }
+      toggleOkButton();
     };
-    updateReownerInput(reownerSelect.val());
 
     if (reownerDialog === null) {
       reownerDialog = new Dialog("#reowner-dialog", { width: 250 });
@@ -257,7 +279,22 @@ Post.initialize_links = function () {
     });
 
     reownerDialog.open();
-    console.log("show dialog");
+
+    const previousOwners = await previousOwnersPromise;
+
+    reownerSelect.empty();
+    previousOwners.forEach(owner => reownerSelect.append($("<option>").val(owner.id).text(`${owner.name} (${owner.id})`)));
+    if (reownerSelect.data("allow-other")) {
+      reownerSelect.append($("<option>").val(0).text("Other..."));
+    }
+
+    updateReownerInput(reownerSelect.val());
+    if (previousOwners.length > 0) {
+      reownerStatus.text("");
+      reownerSelect[0].style.display = "";
+    } else {
+      reownerStatus.text("No previous owners found.");
+    }
   });
 };
 
@@ -977,17 +1014,31 @@ Post.set_as_avatar = function (id) {
   }, { name: "Post.set_as_avatar" });
 };
 
+Post.previous_owners = async function (post_id) {
+  try {
+    return await $.ajax({
+      type: "GET",
+      url: `/moderator/post/posts/${post_id}/previous_owners.json`,
+    });
+  } catch (error) {
+    const errors = error?.responseJSON?.errors || [error?.responseJSON?.reason] || ["Unknown error"];
+    const message = $.map(errors, (msg) => msg).join("; ");
+    E621.Toast.alert("Error: " + message);
+    return [];
+  }
+};
+
 Post.reowner = function (post_id, new_owner) {
   Post.notice_update("inc");
   let error = false;
   TaskQueue.add(() => {
-    console.log(`Reownering post ${post_id} to: ${new_owner}`);
     $.ajax({
       type: "POST",
       url: `/moderator/post/posts/${post_id}/reowner.json`,
       data: {new_owner: new_owner},
     }).fail(function (data) {
-      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
+      const errors = data?.responseJSON?.errors || [data?.responseJSON?.reason] || ["Unknown error"];
+      var message = $.map(errors, (msg) => msg).join("; ");
       E621.Toast.alert("Error: " + message);
       error = true;
     }).done(function () {

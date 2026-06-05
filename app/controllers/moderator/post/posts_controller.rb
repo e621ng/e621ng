@@ -124,11 +124,19 @@ module Moderator
         redirect_back fallback_location: post_path(@post)
       end
 
+      def previous_owners
+        @post = ::Post.find(params[:id])
+        @previous_owners = @post.previous_version_uploaders
+        respond_with(@previous_owners) do |format|
+          format.json { render json: @previous_owners.to_json }
+        end
+      end
+
       def reowner
         @post = ::Post.find(params[:id])
         @new_owner = User.find_by_name_or_id(params[:new_owner]) # rubocop:disable Rails/DynamicFindBy
         if @new_owner.blank?
-          flash[:alert] = "New user could not be found by name: try using !<ID> instead."
+          flash[:alert] = "New owner could not be found. Try using !<userId> instead of a name."
           return
         end
         @post.reowner!(@new_owner)

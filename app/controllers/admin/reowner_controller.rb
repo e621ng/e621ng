@@ -12,6 +12,7 @@ module Admin
       @old_user = User.find_by_name_or_id(@reowner_params[:old_owner])
       @new_user = User.find_by_name_or_id(@reowner_params[:new_owner])
       query = @reowner_params[:search]
+      reowner_versions = @reowner_params[:reowner_versions]&.truthy?
       post_events = @reowner_params[:post_events]&.truthy?
 
       unless @old_user && @new_user
@@ -23,7 +24,7 @@ module Admin
       moved_post_ids = []
       Post.tag_match("user:!#{@old_user.id} #{query}").limit(300).each do |p|
         moved_post_ids << p.id
-        p.reowner!(@new_user, @old_user, reowner_versions: true, post_events: post_events)
+        p.reowner!(@new_user, @old_user, reowner_versions: reowner_versions, post_events: post_events)
       end
 
       StaffAuditLog.log(:post_owner_reassign, CurrentUser.user, { old_user_id: @old_user.id, new_user_id: @new_user.id, query: query, post_ids: moved_post_ids })
@@ -34,7 +35,9 @@ module Admin
     private
 
     def new_params
-      params.require(:reowner).permit(%i[old_owner search new_owner post_events])
+      params.require(:reowner)
+            .permit(%i[old_owner search new_owner reowner_versions post_events])
+            .with_defaults(reowner_versions: true)
     end
   end
 end

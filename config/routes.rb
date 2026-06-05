@@ -78,6 +78,7 @@ Rails.application.routes.draw do
           post :regenerate_thumbnails
           post :regenerate_videos
           get :ai_check
+          get :previous_owners
           post :reowner
         end
       end
