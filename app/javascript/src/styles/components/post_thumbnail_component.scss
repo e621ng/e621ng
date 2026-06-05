@@ -46,6 +46,7 @@ article.thumbnail {
   flex-flow: column;
   align-items: center;
   width: min-content; // Avoid stretching when outside the posts-container
+  --file-extension: attr(data-file-ext); // used for the badge
 
   a.thm-link {
     display: block;
@@ -198,18 +199,18 @@ article.thumbnail[data-is-favorited="true"] .thm-desc-m.thm-favorites svg {
 // Badges
 article.thumbnail[data-tags~=animated] {
   & > a.thm-link:after {
-    content: "ANIM";
+    content: var(--file-extension);
 
     position: absolute;
     z-index: 5;
     left: 0;
-    top: 5%;
+    bottom: 5%;
     padding: 0.125rem 0.25rem;
+    text-transform: uppercase;
 
-    width: 2.125rem; // Inferred height: 1rem
     font-size: 0.5rem;
     line-height: 0.5rem;
-    padding: 0.25rem 0; // Vertically centered
+    padding: 0.25rem;
 
     background-color: themed("color-section");
     color: themed("color-text");
@@ -218,10 +219,6 @@ article.thumbnail[data-tags~=animated] {
 
     @include st-radius-right;
   }
-  &[data-file-ext=webm] > a.thm-link:after { content: "WEBM"; }
-  &[data-file-ext=mp4] > a.thm-link:after { content: "MP4"; }
-
-  &.shift-badge > a.thm-link:after { top: 17%; }
   &.no-type-badges > a.thm-link:after { display: none; }
 }
 
