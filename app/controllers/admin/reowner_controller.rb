@@ -23,15 +23,7 @@ module Admin
       moved_post_ids = []
       Post.tag_match("user:!#{@old_user.id} #{query}").limit(300).each do |p|
         moved_post_ids << p.id
-        p.do_not_version_changes = true
-        p.update({ uploader_id: @new_user.id })
-        p.versions.where(updater_id: @old_user.id).find_each do |pv|
-          pv.update_column(:updater_id, @new_user.id)
-          pv.update_index
-        end
-        if post_events
-          PostEvent.add(p.id, CurrentUser.user, :owner_changed, { old_owner: @old_user.id, new_owner: @new_user.id })
-        end
+        p.reowner!(@new_user, @old_user, reowner_versions: true, post_events: post_events)
       end
 
       StaffAuditLog.log(:post_owner_reassign, CurrentUser.user, { old_user_id: @old_user.id, new_user_id: @new_user.id, query: query, post_ids: moved_post_ids })

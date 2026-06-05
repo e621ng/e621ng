@@ -7,6 +7,7 @@ import SVGIcon from "@/utility/SVGIcon";
 import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
 import Utility from "@/utility/utility";
+import Dialog from "@/utility/dialog";
 
 let Post = {};
 
@@ -217,6 +218,46 @@ Post.initialize_links = function () {
     }
 
     e.preventDefault();
+  });
+  let reownerDialog = null;
+  $("#reowner-post-link").on("click", e => {
+    e.preventDefault();
+    const form = $("#reowner-dialog");
+    const reownerSelect = $("#reowner-dialog-select");
+    const reownerInput = $("#reowner-dialog-input");
+    const postId = $("meta[name=post-id]").attr("content");
+
+    const updateReownerInput = selectValue => {
+      if (selectValue === "0") {
+        reownerInput[0].disabled = false;
+      } else {
+        reownerInput[0].disabled = true;
+        reownerInput.val(`!${selectValue}`);
+      }
+    };
+    updateReownerInput(reownerSelect.val());
+
+    if (reownerDialog === null) {
+      reownerDialog = new Dialog("#reowner-dialog", { width: 250 });
+      reownerSelect.on("change", event => updateReownerInput(event.target.value));
+      $("#reowner-dialog-cancel").on("click", () => reownerDialog.close());
+      $(document).on("keydown", (event) => {
+        // .isFocused would make more sense if it existed
+        if (event.key === "Enter" && reownerDialog.isOpen) {
+          event.preventDefault();
+          form.trigger("submit");
+        }
+      });
+    }
+
+    form.on("submit", event => {
+      event.preventDefault();
+      Post.reowner(postId, reownerInput.val());
+      return false;
+    });
+
+    reownerDialog.open();
+    console.log("show dialog");
   });
 };
 
@@ -934,6 +975,29 @@ Post.set_as_avatar = function (id) {
       E621.Toast.notice("Post set as avatar. You can crop it further <a href='/maintenance/user/avatar/edit'>here</a>.");
     });
   }, { name: "Post.set_as_avatar" });
+};
+
+Post.reowner = function (post_id, new_owner) {
+  Post.notice_update("inc");
+  let error = false;
+  TaskQueue.add(() => {
+    console.log(`Reownering post ${post_id} to: ${new_owner}`);
+    $.ajax({
+      type: "POST",
+      url: `/moderator/post/posts/${post_id}/reowner.json`,
+      data: {new_owner: new_owner},
+    }).fail(function (data) {
+      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
+      E621.Toast.alert("Error: " + message);
+      error = true;
+    }).done(function () {
+      E621.Toast.notice("Reownered post.");
+      location.reload();
+    }).always(function () {
+      if (!error)
+        Post.notice_update("dec");
+    });
+  }, { name: "Post.reowner" });
 };
 
 $(() => {

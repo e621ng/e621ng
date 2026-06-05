@@ -4,7 +4,7 @@ module Moderator
   module Post
     class PostsController < ApplicationController
       before_action :approver_only, except: %i[regenerate_thumbnails regenerate_videos]
-      before_action :janitor_only, only: %i[regenerate_thumbnails regenerate_videos ai_check]
+      before_action :janitor_only, only: %i[regenerate_thumbnails regenerate_videos ai_check reowner]
       before_action :admin_only, only: [:expunge]
       skip_before_action :api_check
 
@@ -122,6 +122,17 @@ module Moderator
         @post = ::Post.find(params[:id])
         @ai_result = @post.check_for_ai_content
         redirect_back fallback_location: post_path(@post)
+      end
+
+      def reowner
+        @post = ::Post.find(params[:id])
+        @new_owner = User.find_by_name_or_id(params[:new_owner]) # rubocop:disable Rails/DynamicFindBy
+        if @new_owner.blank?
+          flash[:alert] = "New user could not be found by name: try using !<ID> instead."
+          return
+        end
+        @post.reowner!(@new_owner)
+        respond_with(@post)
       end
     end
   end

@@ -1,0 +1,24 @@
+<form class="simple_form" id="reowner-dialog" data-title="Reowner Post" data-width="500" data-position="center">
+  <div class="input">
+    <div id="reowner-dialog-labeled-input">
+      <label for="reowner-dialog-select">Previous Owners</label>
+      <select id="reowner-dialog-select">
+        <% @post.previous_version_uploaders.each do |uploader| %>
+          <option value="<%= uploader.id %>"><%= "#{uploader.name} (#{uploader.id})" %></option>
+        <% end %>
+        <% if CurrentUser.is_admin? %>
+          <option value="0">Other...</option>
+        <% end %>
+      </select>
+    </div>
+    <div id="reowner-dialog-labeled-input">
+      <label for="reowner-dialog-input">New Owner</label>
+      <input type="text" id="reowner-dialog-input" placeholder="Name or ID prefixed with !">
+    </div>
+  </div>
+
+  <div class="input reowner-dialog-submit">
+    <button type="button" class="st-button" id="reowner-dialog-cancel">Cancel</button>
+    <button type="submit" class="st-button submit" id="reowner-dialog-ok">OK</button>
+  </div>
+</form>
