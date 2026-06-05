@@ -19,6 +19,17 @@
         </div>
       <% end %>
     <% end %>
+
+    <% if should_show_badge? %>
+      <div class="badge" aria-hidden="true">
+        <span class="badge-file-type"> <%= post.file_ext.upcase %> </span>
+        <% if sound_warning_level > 0 %>
+          <span class="badge-sound-warning" data-level="<%= sound_warning_level %>">
+            <%= svg_icon(:sound_warning, width: 12, height: 12) %>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
   <% end %>
 
   <%# Stats Section %>

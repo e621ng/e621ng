@@ -92,6 +92,17 @@ class PostThumbnailComponent < ViewComponent::Base
     end
   end
 
+  def should_show_badge?
+    post.tag_array.include?("animated")
+  end
+
+  def sound_warning_level
+    result = 0
+    result += 1 if post.tag_array.include?("sound")
+    result += 1 if post.tag_array.include?("sound_warning")
+    result
+  end
+
   ##############################
   #######  Link & Image  #######
   ##############################
