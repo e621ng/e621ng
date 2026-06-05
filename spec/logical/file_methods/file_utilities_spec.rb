@@ -24,6 +24,7 @@ RSpec.describe FileMethods, type: :model do
       "gif"  => "animated.gif",
       "webm" => "animated.webm",
       "mp4"  => "animated.mp4",
+      "avif" => "sample.avif", # TODO!AVIF
     }.each do |expected_ext, fixture_name|
       it "returns '#{expected_ext}' for a #{expected_ext.upcase} file" do
         upload = build(:upload)
@@ -55,6 +56,14 @@ RSpec.describe FileMethods, type: :model do
       it "returns the correct [width, height]" do
         upload = build(:upload, file_ext: "webp")
         path = file_fixture("sample.webp").to_s
+        expect(upload.calculate_dimensions(path)).to eq([256, 256])
+      end
+    end
+
+    context "with an AVIF image" do
+      it "returns the correct [width, height]" do
+        upload = build(:upload, file_ext: "avif")
+        path = file_fixture("sample.avif").to_s
         expect(upload.calculate_dimensions(path)).to eq([256, 256])
       end
     end

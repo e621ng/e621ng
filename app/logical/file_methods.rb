@@ -9,6 +9,7 @@ module FileMethods
     webm: "webm",
     mp4: "mp4",
     webp: "webp",
+    avif: "avif",
   }.freeze
 
   def is_of_type?(type)
@@ -16,7 +17,7 @@ module FileMethods
   end
 
   def is_image?
-    is_png? || is_jpg? || is_gif? || is_webp?
+    is_png? || is_jpg? || is_gif? || is_webp? || is_avif?
   end
 
   def is_png?
@@ -45,6 +46,10 @@ module FileMethods
 
   def is_webp?
     is_of_type?(:webp)
+  end
+
+  def is_avif?
+    is_of_type?(:avif)
   end
 
   def is_video?
@@ -99,6 +104,18 @@ module FileMethods
     false
   end
 
+  def is_animated_avif?(file_path)
+    false # Placeholder implementation; proper AVIF animation detection would require parsing the file structure for 'av01' tracks, which is non-trivial and not currently implemented.
+    # TODO!AVIF - check for `avis` (avif image sequence) box, mif1miaf?
+    # old way:
+    # # Try to load the second frame/page. If it exists, it's animated.
+    #     begin
+    #       result = Vips::Image.new_from_file(file_path, page: 1)
+    #     rescue Vips::Error => e
+    #       result = e
+    #     end
+  end
+
   def file_header_to_file_ext(file_path)
     File.open file_path do |bin|
       mime_type = Marcel::MimeType.for(bin)
@@ -115,6 +132,8 @@ module FileMethods
         "mp4"
       when "image/webp"
         "webp"
+      when "image/avif"
+        "avif"
       else
         mime_type
       end
@@ -154,6 +173,7 @@ module FileMethods
   # Verify whether the file at the provided path is corrupt.
   # * Regular images: attempt to load the image with libvips.
   # * GIFs: attempt to load each frame with libvips.
+  # * AVIF: # TODO!AVIF
   # * APNG: not implemented, could defer to ffmpeg if needed.
   # * Other file types: assumed to be non-corrupt.
   def is_corrupt?(file_path)

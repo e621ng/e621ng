@@ -17,7 +17,7 @@ RUN npm ci
 
 FROM ruby:3.3.1-alpine3.20
 
-RUN apk --no-cache add ffmpeg vips \
+RUN apk --no-cache add ffmpeg vips libheif \
   postgresql15-client \
   git jemalloc tzdata \
   sudo gcompat ragel build-base \
