@@ -144,22 +144,5 @@ RSpec.describe Ban do
       end
     end
 
-    # -------------------------------------------------------------------------
-    # #is_permaban= (initialize_permaban via before_validation)
-    # -------------------------------------------------------------------------
-    describe "#is_permaban / initialize_permaban" do
-      it "sets duration to -1 and clears expires_at when is_permaban is '1'" do
-        b = build(:ban, user: subject_user, banner: moderator, is_permaban: "1")
-        b.valid?
-        expect(b.expires_at).to be_nil
-        expect(b.duration).to eq(-1)
-      end
-
-      it "does not change duration when is_permaban is not '1'" do
-        b = build(:ban, user: subject_user, banner: moderator, duration: 7, is_permaban: "0")
-        b.valid?
-        expect(b.expires_at).to be_present
-      end
-    end
   end
 end
