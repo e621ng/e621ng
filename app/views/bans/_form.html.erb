@@ -3,9 +3,23 @@
   <% if ban.new_record? %>
     <%= f.input :user_name, :as => :string, autocomplete: "user" %>
   <% end %>
-  <%= f.input :duration, :hint => "in days" %>
-  <%= f.input :is_permaban, as: :boolean, hint: 'ignores days' %>
-  <%= f.input :prevent_login, as: :boolean, hint: 'Check this to lock the user out of the site entirely. Use for underage users or extreme cases.' %>
+  
+  <%= f.input :duration, hint: "in days", id: "duration_custom_input", class: "hidden" %>
+
+  <div class="ban-applies">
+    <label for="ban_is_permaban" class="ban-applies-toggle">
+      <span>Permanent Ban</span>
+      <%= f.input_field :is_permaban, as: :boolean, class: "st-toggle" %>
+      <%= f.label :is_permaban, "!", class: "st-toggle", role: "switch" %>
+    </label>
+
+    <label for="ban_prevent_login" class="ban-applies-toggle">
+      <span>Prevent Login</span>
+      <%= f.input_field :prevent_login, as: :boolean, class: "st-toggle" %>
+      <%= f.label :prevent_login, "!", class: "st-toggle", role: "switch" %>
+    </label>
+  </div>
+
   <%= f.input :reason, as: :dtext, allow_color: false %>
   <%= f.button :submit, :value => "Ban" %>
 <% end %>

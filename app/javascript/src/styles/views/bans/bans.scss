@@ -1,0 +1,25 @@
+#c-bans #a-new,
+#c-bans #a-edit {
+  .ban-applies {
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
+  }
+
+  label.ban-applies-toggle {
+    display: flex;
+    gap: 2rem;
+    width: max-content;
+    align-items: center;
+    padding: 0.5rem;
+    min-width: 15rem;
+
+    background: themed("color-section-lighten-5");
+    box-shadow: inset 0 0 0.5rem themed("color-section");
+    @include st-radius;
+    user-select: none;
+    cursor: pointer;
+
+    .st-toggle { margin-left: auto; }
+  }
+}
