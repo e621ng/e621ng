@@ -1,0 +1,22 @@
+@use "../utilities/standard_variables" as std;
+
+button, input, select, textarea {
+  font-size: 100%;
+  vertical-align: middle;
+  padding: 0.125rem;
+  margin: 0;
+
+  border: 0;
+  @include std.radius;
+}
+
+label {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+textarea {
+  display: block;
+  font-family: monospace;
+  font-size: 1.2em;
+}

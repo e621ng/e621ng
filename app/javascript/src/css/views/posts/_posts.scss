@@ -1,0 +1,7 @@
+
+// Main themes
+@import "show/show";
+
+@include window-larger-than(50rem) {
+  @import "show/show.desktop";
+}

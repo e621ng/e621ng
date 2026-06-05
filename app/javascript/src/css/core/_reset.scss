@@ -1,0 +1,80 @@
+// Reset.sass
+// Props to Eric Meyer (meyerweb.com) for his CSS reset file. We're using an
+// adapted version here	that cuts out some of the reset HTML elements we will
+// never need here (i.e., dfn, samp, etc).
+
+// ERIC MEYER RESET
+// ----------------
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, cite, code, del, dfn, em, img,
+q, s, samp, small, strike, strong, sub, sup, tt, var, dd, dl, dt, li, ol, ul, fieldset, form, label,
+legend, table, caption, tbody, tfoot, thead, tr, th, td {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  line-height: 1.25em;
+  font-family: inherit;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+// Forms
+// -------------------------
+// Source: http://github.com/necolas/normalize.css
+
+button,
+input {
+  line-height: normal; // FF3/4 have !important on line-height in UA stylesheet
+  overflow: visible; // Fix button content clipping in legacy browsers
+}
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  // Inner padding and border oddities in FF3/4
+  border: 0;
+  padding: 0;
+}
+
+// Remove Chrome 81+ forced outline.
+input:focus,
+textarea:focus,
+button:focus {
+  outline: none;
+}
+
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  cursor: pointer; // Cursors on all buttons applied consistently
+
+  // Style clickable inputs in iOS
+  appearance: button;
+  -webkit-appearance: button;
+}
+
+input[type="search"] {
+  // Appearance in Safari/Chrome
+  appearance: textfield;
+  -webkit-appearance: textfield;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}
+
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none; // Inner-padding issues in Chrome OSX, Safari 5
+}
+
+textarea {
+  overflow: auto; // Remove vertical scrollbar in IE6-9
+  vertical-align: top; // Readability and alignment cross-browser
+}

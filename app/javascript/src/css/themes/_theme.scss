@@ -1,0 +1,39 @@
+@use "../themes/theme_hexagon";
+@use "../themes/theme_pony";
+@use "../themes/theme_bloodlust";
+@use "../themes/theme_serpent";
+@use "../themes/theme_hotdog";
+
+@use "../themes/palette_deutranomaly";
+@use "../themes/palette_tritanomaly";
+
+@use "../themes/extra_none";
+@use "../themes/extra_autumn";
+@use "../themes/extra_winter";
+@use "../themes/extra_spring";
+@use "../themes/extra_fennec";
+@use "../themes/extra_aurora";
+@use "../themes/extra_hexagons";
+@use "../themes/extra_space";
+@use "../themes/extra_stars";
+@use "../themes/extra_scales";
+
+@function value($key, $default: "") {
+  @if $default != "" {
+    @return var(--#{$key}, $default);
+  } @else {
+    @return var(--#{$key});
+  }
+}
+
+@mixin with-theme($key, $value) {
+  body[data-th-#{$key}="#{$value}"] {
+    @content;
+  }
+}
+
+@mixin with-setting($key, $value) {
+  body[data-st-#{$key}="#{$value}"] {
+    @content;
+  }
+}

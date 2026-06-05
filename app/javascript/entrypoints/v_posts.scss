@@ -1,0 +1,12 @@
+@use "application";
+
+@use "../src/css/components/post_thumbnail_component.scss";
+
+@use "../src/css/views/posts/common/ads";
+@use "../src/css/views/posts/common/blacklist_dialog";
+@use "../src/css/views/posts/common/fullscreen";
+@use "../src/css/views/posts/common/post_search";
+@use "../src/css/views/posts/common/settings";
+@use "../src/css/views/posts/common/sticky";
+@use "../src/css/views/posts/common/tag_list" as tag-list;
+@use "../src/css/views/posts/common/tag_list.desktop" as tag-list-desktop;

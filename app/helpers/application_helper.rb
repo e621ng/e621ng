@@ -240,20 +240,37 @@ module ApplicationHelper
     end
   end
 
-  VITE_ENTRYPOINTS = Rails.root.glob("app/javascript/entrypoints/v_*.ts")
-                          .to_set { |f| File.basename(f, ".ts") }
+  VITE_SCRIPTS = Rails.root.glob("app/javascript/entrypoints/v_*.ts")
+                      .to_set { |f| File.basename(f, ".ts") }
+                      .freeze
+
+  VITE_STYLESHEETS = Rails.root.glob("app/javascript/entrypoints/v_*.scss")
+                          .to_set { |f| File.basename(f, ".scss") }
                           .freeze
 
   def vite_script_for_controller
     name = "v_#{params[:controller].parameterize.dasherize}"
-    return unless VITE_ENTRYPOINTS.include?(name)
+    return unless VITE_SCRIPTS.include?(name)
     vite_javascript_tag("#{name}.ts", nonce: content_security_policy_nonce, defer: false, skip_preload_tags: true)
   end
 
   def vite_script_for_controller_and_action
     name = "v_#{params[:controller].parameterize.dasherize}_#{params[:action].parameterize.dasherize}"
-    return unless VITE_ENTRYPOINTS.include?(name)
+    return unless VITE_SCRIPTS.include?(name)
     vite_javascript_tag("#{name}.ts", nonce: content_security_policy_nonce, defer: false, skip_preload_tags: true)
+  end
+
+  def vite_stylesheet_for_site
+    # 1. If there is a stylesheet specific to the controller and action, use it
+    ca_name = "v_#{params[:controller].parameterize.dasherize}_#{params[:action].parameterize.dasherize}"
+    return vite_stylesheet_tag("#{ca_name}.scss", nonce: content_security_policy_nonce) if VITE_STYLESHEETS.include?(ca_name)
+
+    # 2. If there is a stylesheet specific to the controller, use it
+    c_name = "v_#{params[:controller].parameterize.dasherize}"
+    return vite_stylesheet_tag("#{c_name}.scss", nonce: content_security_policy_nonce) if VITE_STYLESHEETS.include?(c_name)
+
+    # 3. Otherwise, use the default site stylesheet
+    vite_stylesheet_tag("application.scss", nonce: content_security_policy_nonce)
   end
 
   private

@@ -1,0 +1,13 @@
+@use "application";
+@use "v_posts";
+
+@use "../src/css/views/posts/show/posts_show" as posts_show;
+@use "../src/css/views/posts/show/posts_show.desktop" as posts_show_desktop;
+
+@use "../src/css/views/posts/show/partials/_add_to_pool.scss";
+@use "../src/css/views/posts/show/partials/_detailed_rejection.scss";
+@use "../src/css/views/posts/show/partials/_delete_with_reason.scss";
+@use "../src/css/views/posts/show/partials/_edit_form.scss";
+@use "../src/css/views/posts/show/partials/_notes.scss";
+@use "../src/css/views/posts/show/partials/_post_toolbar.scss";
+@use "../src/css/views/posts/show/partials/_recommended.scss";

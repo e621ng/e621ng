@@ -1,0 +1,80 @@
+@use "../../../utilities/standard_variables" as std;
+@use "../../../themes/theme";
+@use "../../../utilities/viewport";
+
+@include viewport.larger-than(50rem) {
+  h5.tag-list-header {
+    font-size: 0.85rem;
+  }
+
+  ul.tag-list {
+    gap: 0;
+    margin: 0 -0.5rem 0.25rem;
+
+    li {
+      border: 0;
+      border-radius: 0;
+      width: 100%;
+      background: none;
+
+      a {
+        font-size: 0.85rem;
+        line-height: 1rem;
+      }
+    }
+
+    // Section 1: Controls
+    .tag-list-wiki,
+    .tag-list-inc,
+    .tag-list-exl {
+      padding: 0 0.25rem;
+    }
+
+    // Section 2: Tag Data
+    .tag-list-search {
+      display: block;
+      padding: 0 0.25rem;
+
+      .tag-list-name {
+        border: 0;
+        padding: 0;
+      }
+
+      .tag-list-count {
+        display: inline-block;
+        padding: 0 0.25rem;
+      }
+    }
+
+    // Section 3: Actions
+    .tag-list-actions {
+      display: flex;
+
+      button {
+        padding: 0 0.075rem;
+        svg {
+          width: 0.85rem;
+          height: 0.85rem;
+        }
+      }
+    }
+
+    .tag-list-quick-blacklist { visibility: hidden; }
+
+    // Media query to prevent Webkit users on touch devices from
+    // having to double tap the tag to perform a navigation
+    @media (hover: hover) and (pointer: fine) {
+      li:hover, li.blacklisted {
+        .tag-list-quick-blacklist { visibility: visible; }
+      }
+    }
+
+    li.blacklisted {
+      .tag-list-quick-blacklist svg {
+        color: theme.value("color-text-muted");
+        &:hover { color: theme.value("color-link-hover"); }
+        .line { color: transparent; }
+      }
+    }
+  }
+}

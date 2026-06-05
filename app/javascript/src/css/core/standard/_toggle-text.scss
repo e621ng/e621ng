@@ -1,0 +1,57 @@
+@use "../../utilities/standard_variables" as std;
+@use "../../themes/theme";
+@use "../../themes/palette" as palette;
+@use "../fonts" as fonts;
+
+// Toggle with text
+label.sto-toggle {
+
+  display: flex;
+  width: 100%;
+  height: 1.5rem;
+  box-sizing: border-box;
+  position: relative;
+
+  cursor: pointer;
+  @include std.radius;
+  background-color: theme.value("color-section-darken-5");
+  font-size: 1rem;
+  line-height: 1rem;
+
+  align-items: center;
+  text-align: center;
+  font-weight: normal;
+  font-family: fonts.$roboto;
+
+  &::after {
+    content: "";
+    width: 50%;
+    height: 1.5rem;
+    position: absolute;
+    top: 0rem;
+    left: 0rem;
+
+    background: theme.value("color-link-active");
+    @include std.radius;
+    transition: left 100ms;
+  }
+
+  .sto-on, .sto-off {
+    width: 50%;
+    z-index: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .sto-off { color: palette.value("plain-black"); }
+  .sto-on { color: theme.value("color-text");}
+}
+input[type="checkbox"].sto-toggle { display: none; }
+input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
+  .sto-off { color: theme.value("color-text");}
+  .sto-on { color: palette.value("plain-black"); }
+  &::after {
+    content: "";
+    left: 50%;
+  }
+}

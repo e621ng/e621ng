@@ -1,0 +1,109 @@
+@use "../themes/theme";
+@use "./fonts" as fonts;
+
+body {
+  color: #ffffff; // Fallback for browsers that don't support CSS variables
+  color: theme.value("color-text");
+  background-color: #020f23; // Fallback for browsers that don't support CSS variables
+  background-color: theme.value("color-background");
+  background-image: theme.value("image-background");
+  background-position: theme.value("image-background-position");
+  background-repeat: theme.value("image-background-repeat");
+  background-size: theme.value("image-background-size");
+  font-family: fonts.$base;
+  font-size: 85%;
+  line-height: 1.25em;
+  margin: 0 auto;
+}
+
+abbr[title=required] {
+  display: none;
+}
+
+code {
+  font-family: monospace;
+  font-size: 1.2em;
+}
+
+dd {
+  margin-bottom: 1em;
+}
+
+dt {
+  font-weight: bold;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: fonts.$base;
+}
+
+h1 {
+  font-size: 2em;
+}
+
+h2 {
+  font-size: 1.5em;
+}
+
+h3 {
+  font-size: 1.17em;
+}
+
+h4, h5, h6 {
+  font-size: 1em;
+}
+
+fieldset {
+  margin-bottom: 1em;
+}
+
+header {
+  margin: 0 0 0.5rem 0;
+  padding: 0;
+}
+
+img {
+  border: none;
+  vertical-align: middle;
+}
+
+menu, .menu {
+  margin: 0;
+  padding: 0;
+
+  ul {
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    margin: 0;
+    padding: 0 0.2em;
+    list-style-type: none;
+    display: inline;
+  }
+}
+.menu {
+  font-size: 1.17em;
+}
+
+p {
+  margin-bottom: 1em;
+  &:last-child { margin-bottom: 0; }
+}
+
+table tfoot {
+  margin-top: 2em;
+}
+
+.hint {
+  color: theme.value("color-text-muted");
+  font-style: italic;
+  max-width: 70%;
+}
+
+.info {
+  color: theme.value("color-text-muted");
+  font-style: italic;
+  font-size: 80%;
+}

@@ -1,0 +1,142 @@
+@use "../../utilities/standard_variables" as std;
+@use "../../themes/theme";
+@use "../../themes/palette" as palette;
+@use "../fonts" as fonts;
+
+// Standard button
+// Could be applied to either a button or a link
+// Semi-expected to have an icon
+.st-button {
+  $button-font-size: st-value(100);
+  $button-background: theme.value("color-section-lighten-5");
+  $button-background-hover: theme.value("color-section-lighten-10");
+  $button-text-color: theme.value("color-text");
+
+  $button-stealth-color: theme.value("color-link");
+  $button-stealth-color-hover: theme.value("color-link-hover");
+
+  display: inline-flex;
+  gap: 0.25rem;
+  border-radius: 0.25rem;
+
+  // Button final size
+  // Font           1rem
+  // Padding  2 * 0.5rem
+  font-size: 1rem;
+  line-height: 1rem;
+  padding: 0.5rem;
+  height: 2rem;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
+
+  // TODO What if button is on a light background
+  background: $button-background;
+  color: $button-text-color;
+  &:hover, &:active { background: $button-background-hover; }
+
+  // Overriding the default outline
+  &:focus {
+    outline: none !important;
+    background-color: theme.value("color-section-lighten-10");
+  }
+
+  & > svg {
+    // Icon should be slightly larger than text,
+    // with padding to fill the entire button height
+    height: 1.5rem;      // 1.5rem
+    width: 1.5rem;       // 1.5rem
+    margin: -0.5rem 0;  // 0.5rem
+    padding: 0.25rem;       // 0.25rem
+
+    @include std.radius;
+    pointer-events: none; // Simplifies event targetting
+  }
+  & > span {
+    text-align: left;
+
+    // Do not overflow text
+    overflow: hidden;
+    flex: 1;
+  }
+
+  // Full width button
+  &.w100 { width: 100%; }
+
+  &.stealth {
+    background: none;
+    padding: 0.5rem 0;
+
+    svg { background: $button-background; }
+    span { color: $button-stealth-color; }
+    &:hover {
+      svg { background: $button-background-hover; }
+      span { color: $button-stealth-color-hover; }
+    }
+  }
+
+  &.icon {
+    padding: 0.5rem 0;
+  }
+
+  &.active {
+    background-color: theme.value("color-link-active");
+    color: palette.value("plain-black");
+  }
+
+  // Elements that look like physical buttons and animate on click.
+  &.kinetic {
+    $kinetic-shadow: 0.25rem;
+    $kinetic-active: 0.125rem;
+
+    box-shadow: 0 $kinetic-shadow theme.value("color-section");
+    position: relative;
+    &:active, &[processing="true"].anim {
+      translate: 0 $kinetic-active;
+      box-shadow: 0 $kinetic-active theme.value("color-section");
+
+      // Cursed solution for a cursed problem.
+      // Moving the button down when active caused the javascript event to not trigger if the
+      // top 0.125rem of the button was clicked. The solution is to add an invisible element
+      // that covers that gap.
+      &::before {
+        content: "";
+        position: absolute;
+        background: transparent;
+        height: $kinetic-shadow;
+        top: -$kinetic-active;
+        left: 0;
+        right: 0;
+      }
+    }
+  }
+}
+
+
+// Colored buttons
+.st-button.danger {
+  background: palette.value("background-red");
+  &:hover, &:active {
+    background: palette.value("background-red-d5")
+  }
+}
+.st-button.submit {
+  background: theme.value("color-tag-artist");
+  color: palette.value("plain-black");
+  &:hover, &:active {
+    background: theme.value("color-tag-artist-alt");
+  }
+
+  &[disabled] {
+    background: palette.value("background-grey");
+    color: palette.value("text-lighten-20");
+    cursor: not-allowed;
+  }
+}
+
+
+// Link fixes
+a.st-button {
+  color: inherit;     // Prevent links from using the wrong color
+  user-select: none;  // Avoid accidentally selecting the button text
+}

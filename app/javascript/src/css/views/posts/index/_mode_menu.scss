@@ -1,0 +1,38 @@
+@use "sass:color";
+@use "../../../themes/palette";
+
+$modes: (
+  "edit": palette.value("background-yellow"),
+  "add-fav": #104e17,
+  "remove-fav": #07240b,
+  "add-to-set": #A51,
+  "remove-from-set": #7c3e0c,
+  "vote-up": palette.value("background-green"),
+  "vote-down": palette.value("background-red"),
+  "rating-s": #1a421f,
+  "rating-q": #650,
+  "rating-e": #a71c1c,
+  "tag-script": #4f114f,
+  "remove-parent": #38F,
+  "lock-rating": #AA3,
+  "lock-note": #3AA,
+  "approve": #48C,
+  "delete": #4e1010,
+  "undelete": #818,
+  "unflag": #304,
+);
+
+@each $mode, $color in $modes {
+  #page[data-mode-menu="#{$mode}"] .content {
+    background-color: $color;
+  }
+}
+
+#tag-script-ui {
+  display: flex;
+  margin-top: 0.5em;
+  gap: 0.5em;
+
+  input { flex: 1; }
+  button { padding: 0 0.25em; }
+}

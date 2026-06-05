@@ -1,0 +1,31 @@
+@use "../../../utilities/viewport";
+@use "../../../themes/theme";
+
+
+@include viewport.desktop {
+  @include theme.with-setting("stickysearch", "true") {
+
+    .post-index .search,
+    .post-display .search {
+      position: sticky;
+      top: 0;
+
+      background: theme.value("color-foreground");
+      border-radius: 0.25rem;
+
+      // on top of thumbnail labels
+      z-index: 11;
+
+      #search-sticky {
+        background: theme.value("color-button-active");
+        color: black;
+      }
+    }
+
+    &[data-th-stickyheader="true"] {
+      .post-index .search,
+      .post-display .search { top: 3.75rem; }
+    }
+
+  }
+}

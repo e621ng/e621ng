@@ -1,0 +1,35 @@
+@use "../themes/theme";
+
+a,
+a:link,
+a:visited,
+.link {
+  color: theme.value("color-link");
+  text-decoration: none;
+}
+
+.link {
+  cursor: pointer;
+}
+
+a:hover, .link:hover {
+  color: theme.value("color-link-hover");
+  text-decoration: none;
+}
+
+a:active {
+  color: theme.value("color-link-active");
+  text-decoration: none;
+}
+
+a.last-page {
+  color: theme.value("color-link-last-page");
+}
+
+a.active {
+  font-weight: bold;
+}
+
+a.wiki-link {
+  margin-right: 0.3em;
+}

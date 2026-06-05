@@ -1,0 +1,28 @@
+/*** Quick Edit Form ***/
+#blacklist-edit-dialog {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: min-content 1fr min-content;
+  gap: 0.5rem;
+
+  height: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+
+  textarea {
+    grid-column: -1 / 1;
+  }
+  p {
+    margin-bottom: 0;
+    text-align: right;
+    text-wrap: nowrap;
+  }
+  #blacklist-save,
+  #blacklist-cancel {
+    width: min-content;
+    height: 2em;
+  }
+  #blacklist-cancel { justify-self: end; }
+
+  input[type="button"] { min-width: 5rem; }
+}

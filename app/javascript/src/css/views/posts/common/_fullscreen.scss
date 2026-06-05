@@ -1,0 +1,70 @@
+@use "../../../utilities/viewport";
+@use "../../../themes/theme";
+
+// Fullscreen mode
+// Only relevant on desktop
+
+@include viewport.desktop {
+  @include theme.with-setting("fullscreen", "true") {
+
+    // Common
+    .post-index, .post-display {
+      .search {
+        display: flex;
+        border-radius: 0.25rem 0.25rem 0 0;
+        box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
+
+        margin: 0.25rem 0 0;
+        padding: 0.5rem;
+
+        flex-wrap: wrap;
+        justify-content: right;
+        z-index: 11; // above posts and labels
+
+        .post-search { width: 100%; }
+
+        #search-fullscreen {
+          background: theme.value("color-button-active");
+          color: black;
+        }
+
+        .search-controls { right: 0.25rem; }
+      }
+      .content {
+        border-radius: 0 0 0.25rem 0.25rem;
+        .posts-index-stats { margin-right: 5rem; }
+      }
+    }
+
+    // Posts Index Page
+    .post-index {
+      grid-template-areas:
+        "search " 
+        "content"
+        "sidebar";
+      grid-template-columns: 1fr;
+    }
+
+
+    // Posts Show Page
+    .post-display {
+      grid-template-columns: 1fr;
+      grid-template-rows: unset;
+      grid-template-areas:
+        "search"
+        "content"
+        "comments"
+        "sidebar "
+        "adscape";
+
+      .search { padding-bottom: 1.25rem; }
+      .search-controls { bottom: -0.883rem; }
+      .content {
+        padding-top: 1rem; // to give space for buttons
+      }
+      .comments {
+        padding-bottom: 0.25rem;
+      }
+    }
+  }
+}

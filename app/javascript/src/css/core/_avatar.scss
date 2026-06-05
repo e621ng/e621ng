@@ -1,0 +1,350 @@
+@use "../themes/theme";
+@use "../utilities/standard_variables" as std;
+@use "../utilities/viewport";
+@use "fonts" as fonts;
+
+nav.navigation .simple-avatar {
+
+  .avatar-name {
+    color: inherit;
+    display: none;
+    @include std.radius-l;
+  }
+
+  .avatar-image {
+    padding: 0;
+    border-radius: 0;
+    @include std.radius-l;
+    overflow: hidden;
+    position: relative;
+    background: themed("color-section");
+    color: inherit;
+
+    picture {
+      position: absolute;
+      inset: 0;
+    }
+
+    img {
+      width: 2.5rem;
+      height: 2.5rem;
+      object-fit: cover;
+    }
+
+    &::before {
+      position: absolute;
+      content: attr(data-name);
+      color: theme.value("color-background");
+      font-weight: bold;
+      font-size: 2.25rem;
+      font-family: "Roboto", Verdana, Geneva, sans-serif;
+    }
+  }
+
+  .avatar-more {
+    @include std.radius-r;
+    padding: 0;
+    min-width: unset;
+    position: relative;
+
+    svg { width: 1rem; }
+  }
+
+
+  // DMail notification
+  &[data-has-mail="true"] .avatar-more::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+
+    width: 0.5rem;
+    height: 0.5rem;
+    margin: 0.125rem 0.25rem;
+
+    background: palette("text-red");
+    box-shadow: -1px -1px 3px theme.value("color-section");
+    border-radius: 50%;
+  }
+
+  &.auth-login-link {
+    .avatar-name {
+      display: flex;
+    }
+
+    .avatar-image {
+      @include st-radius-right;
+    }
+  }
+
+  // Tablet
+  @include viewport.larger-than(34rem) {
+    .avatar-name { display: flex; }
+    .avatar-image { border-radius: 0; }
+  }
+
+  // Desktop
+  @include viewport.larger-than(50rem) {
+    .avatar-name {
+      background: theme.value("color-background");
+      color: inherit;
+
+      height: 1.5rem;
+      line-height: 1.25rem;
+      font-size: 0.875rem;
+    }
+
+    .avatar-image {
+      height: 3rem;
+      width: 3rem;
+      margin-top: 0.25rem;
+      @include st-radius-left;
+      background: themed("color-foreground");
+
+      img {
+        height: 3rem;
+        width: 3rem;
+      }
+    }
+
+    &:hover, &:active {
+      .avatar-name { background: theme.value("color-background"); }
+    }
+
+    .avatar-more {
+      height: 3rem;
+      margin-top: 0.25rem;
+    }
+
+    &.auth-login-link {
+      .avatar-image {
+        @include st-radius;
+      }
+    }
+  }
+}
+
+// do not show avatar name background if we're on the home page and on desktop layout
+@include window-larger-than(50rem) {
+  body.a-home nav.navigation .simple-avatar .avatar-name {
+    background: none;
+  }
+}
+
+nav.navigation .simple-avatar-menu {
+  position: absolute;
+  top: 3.75rem;
+  right: 0.5rem;
+
+  display: flex;
+  flex-flow: column;
+
+  box-sizing: border-box;
+  width: 15rem;
+  padding-bottom: 0.25rem;
+
+  background: theme.value("color-section");
+  box-shadow: 0px 2px 4px -1px theme.value("color-background");
+  @include std.radius;
+
+  &.hidden { display: none; }
+
+  & > a {
+    display: flex;
+    gap: 0.5rem;
+
+    position: relative;
+    padding: 0.5rem 0.5rem;
+    box-sizing: border-box;
+    align-items: center;
+
+    font-size: 0.9rem;
+    line-height: 1rem;
+
+    &:hover { background: theme.value("color-section-darken-5"); }
+
+    svg {
+      height: 1rem;
+      width: 1rem;
+
+      margin: -0.25rem 0;
+      padding: 0.25rem;
+      @include std.radius;
+    }
+
+    &.secondary {
+      padding-left: 1rem;
+      svg {
+        color: theme.value("color-text-muted");
+      }
+    }
+  }
+
+  // DMail notification
+  &[data-has-mail="true"] .savm-profile-mail::before {
+    content: "";
+    position: absolute;
+    right: 0.25rem;
+    top: 0.5rem;
+
+    width: 0.5rem;
+    height: 0.5rem;
+    margin: 0.125rem 0.25rem;
+
+    background: palette("text-red");
+    box-shadow: -1px -1px 3px theme.value("color-section");
+    border-radius: 50%;
+  }
+
+  // Mobile, Reasonable
+  @include viewport.larger-than(21rem) {
+    right: 4.25rem;
+  }
+
+  // Desktop
+  @include viewport.larger-than(50rem) {
+    right: 0;
+  }
+}
+
+// Avatar menu conditional visibility
+nav.navigation .simple-avatar-menu {
+  --display-uploads: none;
+  --display-favorites: none;
+  --display-sets: none;
+  --display-comments: none;
+  --display-forums: none;
+  --display-content-divider: none;
+  --display-mentions-divider: none;
+
+  &.has-uploads { --display-uploads: flex; --display-content-divider: flex; }
+  &.has-favorites { --display-favorites: flex; --display-content-divider: flex; }
+  &.has-sets { --display-sets: flex; --display-content-divider: flex; }
+  &.has-comments { --display-comments: flex; --display-mentions-divider: flex; }
+  &.has-forums { --display-forums: flex; --display-mentions-divider: flex; }
+
+  .must-uploads { display: var(--display-uploads); }
+  .must-favorites { display: var(--display-favorites); }
+  .must-sets { display: var(--display-sets); }
+  .must-comments { display: var(--display-comments); }
+  .must-forums { display: var(--display-forums); }
+  .must-uploads-favorites-sets { display: var(--display-content-divider); }
+  .must-comments-forums { display: var(--display-mentions-divider); }
+}
+
+
+/** Layout Elements **/
+div.savm-profile {
+  display: flex;
+  box-shadow: inset 0 0 0.5rem theme.value("color-section-darken-5");
+
+  a.savm-profile-link {
+    display: grid;
+    grid-template-areas: "savm-picon savm-pname" "savm-picon savm-ptitle";
+    grid-template-columns: min-content auto;
+    grid-template-rows: 1rem 1rem;
+    align-items: center;
+
+    gap: 0 0.5rem;
+    padding: 0.5rem;
+    line-height: 1rem;
+    width: 100%;
+    border-top-left-radius: 0.25rem;
+
+    span.savm-profile-icon {
+      grid-area: savm-picon;
+      overflow: hidden;
+      position: relative;
+
+      width: 2rem;
+      height: 2rem;
+      @include std.radius;
+      background: theme.value("color-section-darken-5");
+
+      picture {
+        position: absolute;
+        inset: 0;
+      }
+
+      img {
+        width: 2rem;
+        height: 2rem;
+        object-fit: cover;
+      }
+
+      &::before {
+        content: attr(data-name);
+        position: absolute;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: theme.value("color-section-lighten-5");
+        font-weight: bold;
+        font-size: 2.25rem;
+        font-family: "Roboto", Verdana, Geneva, sans-serif;
+      }
+    }
+
+    span.savm-profile-name {
+      grid-area: savm-pname;
+      font-weight: bold;
+      font-size: 1rem;
+      max-width: 8.5rem;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    span.savm-profile-title {
+      grid-area: savm-ptitle;
+      text-transform: uppercase;
+      font-size: 0.65rem;
+      color: theme.value("color-text-muted");
+    }
+
+    &:hover {
+      background-color: theme.value("color-section-darken-5");
+    }
+  }
+  a.savm-profile-mail {
+    line-height: 0; // otherwise height gets messed up
+    position: relative; // mail notification
+
+    svg {
+      padding: 0.875rem;
+      height: 1.25rem;
+      width: 1.25rem;
+      @include std.radius-tr;
+    }
+    &:hover svg {
+      background: theme.value("color-section-darken-5");
+    }
+  }
+}
+
+span.savm-divider {
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  gap: 0.5rem;
+  height: 1rem;
+
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 0.5rem;
+  line-height: 1rem;
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+  white-space: nowrap;
+  color: theme.value("color-text-muted");
+  letter-spacing: 0.125rem;
+  user-select: none;
+
+  &:after, &.with-text:before {
+    content: "";
+    height: 1px;
+    max-width: 1rem;
+    width: 100%;
+    background: theme.value("color-section-lighten-5");
+  }
+  &:after { max-width: unset; }
+}

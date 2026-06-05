@@ -1,0 +1,26 @@
+@mixin larger-than($value, $or-equal: false) {
+  @if $or-equal { $value: $value - 0.1px; }
+  @media (min-width: $value) {
+    @content;
+  }
+}
+
+@mixin smaller-than($value, $or-equal: false) {
+  @if $or-equal { $value: $value + 0.1px; }
+  @media (max-width: $value) {
+    @content;
+  }
+}
+
+
+@mixin desktop {
+  @include larger-than(50rem) {
+    @content;
+  }
+}
+
+@mixin mobile {
+  @include smaller-than(50rem) {
+    @content;
+  }
+}

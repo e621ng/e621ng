@@ -1,0 +1,72 @@
+@use "sass:color";
+
+// Base color palette.
+// These colors should not normally change between
+// themes, but could still be overriden if need be.
+
+// Palette definitions
+$palette: (
+  // Red
+  "background-red": #76312e,
+  "background-red-d5": #{color.adjust(#76312e, $lightness: -5%, $space: hsl)},
+  "background-red-d10": #{color.adjust(#76312e, $lightness: -10%, $space: hsl)},
+
+  // Yellow
+  "background-yellow": #827428,
+  "background-yellow-d5": #{color.adjust(#827428, $lightness: -5%, $space: hsl)},
+  "background-yellow-d10": #{color.adjust(#827428, $lightness: -10%, $space: hsl)},
+
+  // Green
+  "background-green": #227d2a,
+  "background-green-d5": #{color.adjust(#227d2a, $lightness: -5%, $space: hsl)},
+  "background-green-d10": #{color.adjust(#227d2a, $lightness: -10%, $space: hsl)},
+
+  // Grey
+  "background-grey": #60686f,
+  "background-grey-d5": #{color.adjust(#60686f, $lightness: -5%, $space: hsl)},
+
+  // Gold
+  "background-gold": #ddc676,
+  "background-gold-l10": #{color.adjust(#ddc676, $lightness: 10%, $space: hsl)},
+  "background-gold-d10": #{color.adjust(#ddc676, $lightness: -10%, $space: hsl)},
+  "background-gold-d20": #{color.adjust(#ddc676, $lightness: -20%, $space: hsl)},
+
+  // Orange
+  "background-orange": #ec8e49,
+  "background-orange-d5": #{color.adjust(#ec8e49, $lightness: -5%, $space: hsl)},
+  "background-orange-d10": #{color.adjust(#ec8e49, $lightness: -20%, $space: hsl)},
+
+  // Blue
+  "background-blue": #1f3c67,
+  "background-blue-l10": #{color.adjust(#1f3c67, $lightness: 10%, $space: hsl)},
+  "background-blue-d5": #{color.adjust(#1f3c67, $lightness: -5%, $space: hsl)},
+  "background-blue-d10": #{color.adjust(#1f3c67, $lightness: -10%, $space: hsl)},
+
+  // Text Colors
+  "text-white": #ffffff,
+  "text-red": #fe6a64,
+  "text-yellow": #ffd666,
+  "text-green": #4caf50,
+  "text-grey": #aaaaaa,
+
+  "plain-white": #fff,
+  "plain-black": #000,
+  "plain-green": #2ec035,
+  "plain-yellow": #ecec26,
+  "plain-blue": #2a75ff,
+  "plain-red": #ff5050,
+);
+
+:root {
+  @each $name, $color in $palette {
+    --palette-#{$name}: #{$color};
+  }
+}
+
+// Helper function
+@function value($key) {
+  @return var(--palette-#{$key});
+}
+
+// Element-specific
+$background-article-hidden: value("background-red");

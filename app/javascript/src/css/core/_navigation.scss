@@ -1,0 +1,513 @@
+@use "../themes/theme";
+@use "../utilities/viewport";
+@use "../utilities/standard_variables" as std;
+
+nav.navigation {
+  display: grid;
+  grid-template-areas: "logo logo controls";
+  grid-template-columns: min-content auto;
+  grid-template-rows: min-content min-content min-content min-content auto;
+
+  width: 100%; // otherwise narrow when fixed
+  z-index: 200; // above post labels and notes
+  position: relative;
+
+
+  /* Top bar, always visible */
+  .nav-logo {
+    grid-area: logo;
+
+    background-color: theme.value("color-background");
+    height: 3.75rem;
+
+    a.nav-logo-link {
+      display: flex;
+      box-sizing: border-box;
+
+      // Height: 3.75rem
+      // - padding  0.125 * 2 = 0.25
+      // - image                3.5
+      height: 3.5rem;
+      width: 4rem;
+      margin: 0.125rem;
+
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position-y: center;
+    }
+  }
+
+  .nav-controls {
+    grid-area: controls;
+
+    display: flex;
+    flex-flow: row-reverse;
+    align-items: center;
+
+    font-size: 1.15rem;
+    background-color: theme.value("color-background");
+    padding-right: 0.25rem;
+    height: 3.75rem;
+
+    //   Height: 3.75rem
+    // - link padding     0.625  * 2 = 1.25
+    // - internal size                 2.5
+    & > a {
+      display: flex;
+      padding: 0.625rem 0.5rem;
+      cursor: pointer;
+
+      & > span {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        gap: 0.5rem;
+
+        height: 2.5rem;
+        min-width: 2.5rem;
+        line-height: 1.5rem;
+        @include std.padding-lr;
+
+        background: theme.value("color-foreground");
+        color: theme.value("color-link-active");
+        @include std.radius;
+        white-space: nowrap;
+      }
+
+      &:hover > span, &:active > span { background: theme.value("color-section"); }
+      &:focus { outline: none; }
+    }
+
+    #nav-toggle .on { display: none; }
+  }
+
+  /* Toggled menus, hidden by default */
+  // Naming areas
+  @each $name in (primary, secondary, tools, help) {
+    .nav-#{$name} {
+      grid-area: $name;
+      display: none;
+
+      li {
+        padding: 0;
+
+        & > a {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          white-space: nowrap;
+
+          svg {
+            margin: -0.25rem 0;
+            color: theme.value("color-link-active");
+          }
+        }
+      }
+    }
+  }
+
+  // Common top
+  .nav-primary, .nav-secondary {
+    flex-flow: column;
+
+    // Prevent the tools / help buttons from being pushed
+    // way too low on pages with a lot of secondary links
+    height: 422px;
+    overflow-y: scroll;
+
+    li a {
+      justify-content: start;
+    }
+  }
+
+  .nav-primary {
+    background-color: theme.value("color-section");
+    font-size: 1.25rem;
+
+    li > a {
+      border-bottom: 1px solid theme.value("color-foreground");
+      line-height: 1.25rem;
+      padding: 1rem 0.5rem;
+    }
+    li.current a { background-color: theme.value("color-foreground"); }
+
+    li.nav-hidden { display: none; }
+  }
+
+  .nav-secondary {
+    background-color: theme.value("color-foreground");
+    font-size: 1.2rem;
+
+    li {
+      & > a {
+        border-bottom: 1px solid theme.value("color-section");
+        line-height: 1.2rem;
+        padding: 0.7rem;
+
+        white-space: wrap; // forum menus are long
+      }
+
+      &.divider {
+        border-bottom: 1px solid theme.value("color-section");
+        height: 0.25rem;
+      }
+
+      form input[type="text"] {
+        width: 100%;
+        box-sizing: border-box;
+
+        font-size: 1.25rem;
+        padding: 0.5rem 0.5rem;
+      }
+    }
+  }
+
+  // Common bottom
+  .nav-tools, .nav-help {
+    grid-template-rows: min-content;
+    font-size: 1.1rem;
+    gap: 1rem;
+
+    background-color: theme.value("color-section");
+
+    li > a {
+      justify-content: center;
+      @include std.radius;
+
+      padding: 0.7rem 1rem;
+      line-height: 1.1rem;
+    }
+  }
+
+  .nav-tools {
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid theme.value("color-foreground");
+    padding: 1rem 1rem 0.5rem;
+
+    li {
+      a { background: theme.value("color-section-lighten-5"); }
+      &.nav-tools-login { grid-column: 1 / -1; }
+    }
+
+    &.anonymous li.nav-tools-themes {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .nav-help {
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 0.5rem 1rem 1rem;
+
+    li {
+      a { background: theme.value("color-section-darken-5"); }
+      &.nav-help-discord {
+        grid-column: 1 / -1;
+      }
+
+      & > a img {
+        height: 1.5rem;
+        margin: -0.2rem 0;
+      }
+
+      // Hack to put the wiki/help links before discord/sstar on mobile
+      // but still have "more" at the end on desktop
+      &#nav-more {
+        grid-row: 1;
+        grid-column: 3;
+      }
+    }
+  }
+}
+
+
+// Sticky header
+body[data-th-stickyheader="true"] nav.navigation {
+  position: sticky;
+  top: 0;
+
+  @include viewport.larger-than(50rem) {
+    background-color: theme.value("color-background");
+    background-image: theme.value("image-background");
+    background-position: theme.value("image-background-position");
+    background-repeat: theme.value("image-background-repeat");
+    background-size: theme.value("image-background-size");
+  }
+}
+
+
+// Forum notification
+li.notification {
+  position: relative;
+
+  &::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+
+    background: palette("text-red");
+
+    position: absolute;
+    right: 0.2rem;
+    top: 1.25rem;
+  
+    @include viewport.larger-than(50rem) {
+      top: 0.2rem;
+    }
+  }
+}
+
+
+// Mobile toggle
+html.nav-toggled {
+
+  height: 100%;
+  overflow: hidden;
+
+  body { padding-top: 3.75rem; }
+
+  nav.navigation {
+    grid-template-areas:
+      "logo    logo    controls"
+      "offleft primary secondary "
+      "offleft tools   tools     "
+      "offleft help    help      "
+      "offbott offbott offbott   ";
+    grid-template-columns: auto minmax(auto, 180px) minmax(auto, 180px);
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    max-width: 100vw; // prevent bug when page overflows viewport
+
+    background-color: #00000030;
+
+    // Allow scrolling when the menu is too long
+    overflow-y: scroll;
+
+    .nav-primary, .nav-secondary {
+      display: flex;
+    }
+    .nav-tools, .nav-help {
+      display: grid;
+    }
+    .nav-primary, .nav-tools, .nav-help {
+      box-shadow: -3px 3px 5px -1px theme.value("color-background");
+    }
+  }
+
+  .nav-controls #nav-toggle {
+    .on { display: block; }
+    .off { display: none; }
+  }
+}
+
+
+// Desktop
+nav.navigation, html.nav-toggled nav.navigation {
+  @include viewport.larger-than(50rem) {
+    grid-template-areas:
+      "logo primary   help      help  controls"
+      "logo secondary secondary tools controls";
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 4.25rem;
+    grid-template-rows: 1.5rem 1.75rem;
+
+    padding: 0 1rem 0.5rem;
+    box-sizing: border-box;
+    height: unset;
+
+    overflow-y: unset; // overrides mobile hack allowing the menu scrolling
+
+    .nav-logo a.nav-logo-link {
+      height: 3.25rem;
+      width: 3.25rem;
+      margin: 0.25rem 0.5rem 0 0;
+    }
+
+    .mobile { display: none; }
+
+    // All link ribbons
+    .desktop {
+      display: flex;
+      flex-flow: row;
+
+      font-size: 0.875rem;
+      box-shadow: unset;
+
+      li a {
+        display: flex;
+        align-items: center;
+        height: 100%;
+
+        padding: 0 0.625rem;
+        white-space: nowrap;
+      }
+    }
+
+    .nav-logo {
+      background: unset;
+    }
+
+    .nav-primary {
+      background: unset;
+      height: unset;
+      padding-left: 0.25rem;
+      overflow-y: unset;
+
+      li a {
+        border-bottom: 0;
+        svg { display: none; }
+      }
+    }
+
+    .nav-secondary {
+      height: unset;
+
+      padding: 0 0.25rem;
+      @include std.radius-l;
+      overflow-y: hidden;
+      overflow-x: scroll; // Silly fix for too many links
+      /* Hide scrollbar */
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+      &::-webkit-scrollbar { display: none; }
+      z-index: 1; // above the avatar
+
+      li {
+        a { border-bottom: 0; }
+
+        &.divider {
+          display: flex;
+          align-items: center;
+          height: 100%;
+
+          &::after { content: "|"; }
+        }
+
+        form input[type="text"] {
+          width: 12rem;
+          padding: 0.25rem 0.5rem;
+          font-size: 1rem;
+          @include std.radius;
+        }
+      }
+    }
+
+    .nav-tools, .nav-help {
+      padding: 0;
+      background: unset;
+      border: none;
+      gap: 0;
+
+      li a {
+        gap: 0.25rem;
+
+        background: unset;
+        text-align: unset;
+        border-radius: 0;
+      }
+    }
+
+    .nav-tools {
+      background: theme.value("color-foreground");
+      z-index: 1;
+      @include std.radius-r;
+      margin-right: 0.25rem;
+
+      li {
+        a {
+          padding: 0 0.5rem;
+
+          svg {
+            color: theme.value("color-link");
+            height: 1.25rem;
+            width: 1.25rem;
+          }
+          &:hover svg { color: theme.value("color-link-hover"); }
+        }
+
+        &.nav-tools-themes, &.nav-tools-settings {
+          a span { display: none; }
+        }
+      }
+    }
+
+    .nav-help {
+
+      // At small resolutions, overflow can
+      // cause scrollbars to appear
+      overflow: hidden;
+
+      li a img { display: none; }
+      li.current a {
+        background-color: theme.value("color-foreground");
+      }
+    }
+
+    .nav-controls {
+      position: absolute;
+      right: 0;
+      top: 0;
+
+      height: 3.25rem;
+      box-sizing: border-box;
+      padding: 0;
+      background: unset;
+
+      #nav-toggle { display: none; }
+      & > a { padding: 0; }
+    }
+  }
+}
+
+// Anonymous desktop tweak
+body[data-user-is-anonymous="true"] nav.navigation {
+  @include viewport.larger-than(50rem) {
+    grid-template-columns: min-content min-content minmax(0, 1fr) min-content 3.25rem;
+  }
+}
+
+// Tweak for the secondary menu on desktop
+body.c-static.a-home {
+  @include viewport.larger-than(50rem) {
+    nav.navigation {
+      grid-template-areas:
+        "logo primary  help  .     controls"
+        "logo primary  help  tools controls";
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        bottom: -2rem;
+        background: linear-gradient(to bottom, themed("color-background"), transparent 5rem);
+        z-index: -1;
+        pointer-events: none;
+      }
+    }
+
+    menu.nav-secondary {
+      display: none;
+    }
+
+    menu.nav-tools {
+      border-radius: .25rem;
+    }
+  }
+
+  @include viewport.smaller-than(50rem) {
+    // Only show the primary navbar on mobile
+    // since the secondary is empty anyways
+    nav.navigation {
+      grid-template-areas:
+        "logo logo    controls"
+        ".    primary primary "
+        ".    tools   tools   "
+        ".    help    help    "
+        ".    .       . ";
+
+      .nav-secondary { display: none; }
+    }
+  }
+}

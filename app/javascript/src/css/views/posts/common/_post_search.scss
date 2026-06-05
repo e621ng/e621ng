@@ -1,0 +1,92 @@
+@use "../../../utilities/viewport";
+@use "../../../core/fonts";
+
+// Searchbar
+.post-search {
+  display: flex;
+  flex-wrap: wrap;
+
+  .post-search-title {
+    flex: 1;
+    font-size: 1.16667em;
+    line-height: 1.5rem;
+  }
+  .post-search-help {
+    font-size: 90%;
+    line-height: 1rem;
+
+    // Make way for the settings button
+    margin-right: 2.5rem;
+    @include viewport.desktop {
+      margin-right: unset;
+    }
+
+    a {
+      line-height: 1rem;
+      display: block;
+      padding: 0.25rem 0;
+    }
+  }
+
+  form.post-search-form {
+    display: flex;
+    width: 100%;
+
+    textarea {
+
+      // Override default texarea styles
+      font-family: fonts.$base;
+      font-size: 1rem;
+      line-height: 1rem;
+      padding: 0.5rem 0 0.5rem 0.5rem;
+
+      // Remove old styles from z_responsive
+      vertical-align: unset;
+      border: unset;
+      width: unset;
+      max-width: unset;
+
+      // Override style from posts.scss
+      margin-bottom: 0 !important;
+
+      // Disable manual resizing
+      resize: none;
+
+      border-radius: 0.25rem 0 0 0.25rem;
+      box-sizing: border-box;
+      flex: 1;
+
+      &:focus, &:focus + button[type="submit"] { background: #FFC; }
+    }
+
+    button[type="submit"] {
+
+      // Remove old styles from z_responsive
+      font-size: unset;
+      max-width: unset;
+
+      display: flex;
+      align-items: center;
+      padding: 0.5rem;
+
+      border-radius: 0 0.25rem 0.25rem 0;
+      background: white;
+      color: black;
+
+      svg {
+        height: 1.5rem;
+        width: 1.5rem;
+        margin: -0.25rem 0 -0.25rem;
+      }
+    }
+
+    @include viewport.desktop {
+      textarea { font-size: 0.85rem; }
+      button[type="submit"] svg {
+        height: 1.25rem;
+        width: 1.25rem;
+        margin: -0.125rem 0 -0.125rem;
+      }
+    }
+  }
+}

@@ -1,0 +1,114 @@
+@use "../utilities/viewport";
+@use "../themes/theme";
+@use "../utilities/standard_variables" as std;
+
+div#search {
+  margin-bottom: 1em;
+}
+
+body {
+  display: flex;
+  flex-flow: column;
+  min-height: 100vh;
+}
+
+div#page {
+  flex: 1;
+  overflow: visible;
+  padding: 0.5rem 0.25rem theme.value("content-padding-bottom");
+
+  @include viewport.larger-than(800px) {
+    @include std.radius;
+    margin: 0.5rem 1rem 0;
+    @include std.padding-lr;
+  }
+
+  background-color: #152f56; // Fallback for browsers that don't support CSS variables
+  background-color: theme.value("color-foreground");
+  background-image: theme.value("image-foreground");
+  background-position: theme.value("image-foreground-position");
+  background-repeat: theme.value("image-foreground-repeat");
+  background-size: theme.value("image-foreground-size");
+
+  // Fix failure to contain contents in bounding box.
+  &:after {
+    display: block;
+    visibility: hidden;
+    content: '';
+    clear: both;
+  }
+
+  div.site-notice {
+    background-color: theme.value("color-section");
+    @include std.padding;
+    text-align: center;
+    position: relative;
+    border: 0;
+    margin-bottom: 0.5rem;
+
+    h1 { font-size: 1.5em; }
+    
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  div.ban-notice {
+    background-color: theme.value("color-section");
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+
+    .id {
+      color: #ffffff03;
+      font-family: monospace;
+      font-size: 1.5rem;
+      line-height: 0;
+      user-select: none;
+    }
+  }
+
+  aside#sidebar {
+    width: 15em;
+    float: left;
+
+    #search-box {
+      input[type=text] {
+        /* ensure expanded search box renders above post thumbnails. */
+        z-index: 1;
+        position: relative;
+        width: 13em;
+        padding: 0.125rem 0.125rem;
+        border-right: 0;
+        box-sizing: border-box;
+        @include std.radius-l;
+      }
+
+      button[type=submit] {
+        padding: 2px 6px;
+        background: #eee;
+        width: 2em;
+        border-left: 1px solid #ccc; // HACK: hardcoded color
+        @include std.radius-r;
+      }
+    }
+  }
+
+  aside#sidebar > section {
+    margin-bottom: 1em;
+  }
+
+  section#content {
+    overflow: visible;
+    margin-left: 15em;
+    padding-left: 1em;
+  }
+}
+
+div.clearfix {
+  clear: both;
+}
+
+.search-help {
+  float: right;
+  font-size: 70%;
+}

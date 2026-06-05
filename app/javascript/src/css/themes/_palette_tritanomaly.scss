@@ -1,0 +1,36 @@
+@use "sass:color";
+
+$palette: (
+  "background-red": #76312e,
+  "background-red-d5": #{color.adjust(#76312e, $lightness: -5%, $space: hsl)},
+  "background-red-d10": #{color.adjust(#76312e, $lightness: -10%, $space: hsl)},
+
+  "background-yellow": #827428,
+  "background-yellow-d5": #{color.adjust(#827428, $lightness: -5%, $space: hsl)},
+
+  "background-green": #8529c9,
+  "background-green-d5": #{color.adjust(#8529c9, $lightness: -5%, $space: hsl)},
+  "background-green-d10": #{color.adjust(#8529c9, $lightness: -10%, $space: hsl)},
+
+  "background-grey": #60686f,
+  "background-grey-d5": #{color.adjust(#60686f, $lightness: -5%, $space: hsl)},
+
+  "text-white": #ffffff,
+  "text-red": #FE6A64,
+  "text-yellow": #ffff00,
+  "text-green": #c16dff,
+  "text-grey": #aaaaaa,
+
+  "plain-green": #0F0,
+  "plain-yellow": #dabb4d,
+  "plain-blue": #00F,
+  "plain-red": #F00,
+);
+
+body[data-th-palette="trit"] {
+
+  @each $name, $color in $palette {
+    --palette-#{$name}: #{$color};
+  }
+
+}

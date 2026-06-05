@@ -1,0 +1,37 @@
+@use "sass:color";
+
+$palette: (
+  "background-red": #bc4c00,
+  "background-red-d5": #{color.adjust(#bc4c00, $lightness: -5%, $space: hsl)},
+  "background-red-d10": #{color.adjust(#bc4c00, $lightness: -10%, $space: hsl)},
+
+  "background-yellow": #4b8099,
+  "background-yellow-d5": #{color.adjust(#4b8099, $lightness: -5%, $space: hsl)},
+
+  "background-green": #794eb1,
+  "background-green-d5": #{color.adjust(#794eb1, $lightness: -5%, $space: hsl)},
+  "background-green-d10": #{color.adjust(#794eb1, $lightness: -10%, $space: hsl)},
+
+  "background-grey": #666664,
+  "background-grey-d5": #{color.adjust(#666664, $lightness: -5%, $space: hsl)},
+
+
+  "text-white": #ffffff,
+  "text-red": #ff6f1b,
+  "text-yellow": #fdff94,
+  "text-green": #9f98ff,
+  "text-grey": #aaaaaa,
+
+  "plain-green": #9e1fff,
+  "plain-yellow": #f2ff2e,
+  "plain-blue": #afb1ff,
+  "plain-red": #bc4c00,
+);
+
+body[data-th-palette="deut"] {
+
+  @each $name, $color in $palette {
+    --palette-#{$name}: #{$color};
+  }
+
+}

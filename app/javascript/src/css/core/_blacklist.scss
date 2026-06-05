@@ -1,0 +1,236 @@
+@use "../themes/theme";
+
+
+
+/*** Sidebar Blacklist ***/
+.blacklist-ui {
+  display: flex;
+  flex-flow: column;
+
+  &[filters="0"] {
+    display: none;
+  }
+
+  // Header
+  .blacklist-header {
+    display: flex;
+
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-left: 1.3em;
+    position: relative;
+    cursor: pointer;
+
+    .blacklisted-count {
+      margin-left: 0.25em;
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: -1.2em;
+      border: 0.3em solid transparent;
+      border-color: transparent var(--color-text) var(--color-text) transparent;
+      transform: rotate(45deg);
+      bottom: 0.25em;
+      transition: 0.1s ease-in-out;
+    }
+  }
+  &[collapsed="true"] {
+    .blacklist-header::before {
+      transform: rotate(-45deg);
+    }
+
+    .blacklist-filters {
+      max-height: 0;
+      overflow: hidden;
+    }
+  }
+  &[collapsed="false"] {
+    .blacklist-filters {
+      // Hide scrollbars when unrolling
+      @keyframes hide-scroll {
+        from, to { overflow: hidden; } 
+      }
+      animation: hide-scroll 0.1s backwards;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  }
+
+  // Filters
+  .blacklist-filters {
+    display: flex;
+    flex-flow: column;
+    gap: 0.1rem;
+    margin: 0.25em 0;
+
+    max-height: 50vh;
+    transition: max-height 0.1s ease-in-out;
+
+    li {
+      display: flex;
+      cursor: pointer;
+
+      span {
+        color: var(--color-text-muted);
+        margin-left: 0.5em;
+      }
+
+      &::before {
+        content: "\2610"; // ☐
+        display: block;
+        width: 1em;
+        margin-right: 0.5em;
+      }
+
+      &[enabled="true"] {
+        &::before {
+          content: "\2611"; // ☑
+        }
+      }
+
+      &[enabled="false"] {
+        color: var(--color-text-muted);
+        a {
+          color: var(--color-text-muted);
+        }
+      }
+    }
+  }
+
+  // Footer
+  .blacklist-footer {
+    display: flex;
+
+    button.blacklist-toggle-all {
+      cursor: pointer;
+      appearance: none;
+      background: none;
+      border: none;
+      margin: 0;
+      font-family: inherit;
+      text-decoration: none;
+
+      // Better touch target
+      display: block;
+      font-size: 0.85rem;
+      line-height: 1rem;
+      padding: 0.25rem 0;
+
+      color: theme.value("color-link");
+      &:hover, &:focus {
+        color: theme.value("color-link-hover");
+      }
+    }
+
+    .blacklist-help {
+      margin-left: auto;
+
+      display: block;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      padding: 0.25rem 0;
+    }
+  }
+}
+
+
+/*** Inline Blacklist ***/
+.blacklist-ui.blacklist-inline {
+  flex-flow: row;
+  flex-wrap: wrap;
+  padding: 1em 0;
+  align-items: center;
+  line-height: 1rem;
+
+  .blacklist-header {
+    margin-left: 0;
+    font-size: 1em;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  .blacklist-filters {
+    flex-flow: row;
+    gap: 0.125rem 0.5rem;
+    margin: 0 0.75rem;
+    flex-wrap: wrap;
+    font-size: 1em;
+
+    li {
+      &::before {
+        display: none; 
+      }
+      a {
+        line-height: 1rem;
+        padding: 0.25rem;
+      }
+    }
+  }
+  &[collapsed=true]{
+    .blacklist-filters {
+      display: none;
+    }
+    .blacklist-footer {
+      margin-left: 0.75rem;
+    }
+  }
+  
+  .blacklist-footer {
+    button.blacklist-toggle-all {
+      font-size: 0.75rem;
+    }
+
+    .blacklist-help {
+      display: none;
+    }
+  }
+}
+
+
+// Settings
+#c-users #a-edit {
+  #user_blacklisted_tags {
+    min-height: 20em;
+    width: 100%;
+  }
+}
+
+
+// Completely hide the blacklisted posts on these pages only
+#c-posts #a-index,
+#c-popular,
+#c-favorites {
+  .thumbnail.blacklisted {
+    display: none !important;
+  }
+}
+
+#image-container.blacklisted {
+  img,
+  video {
+    height: 0px !important;
+    width: 0px !important;
+    padding: 150px 150px 0px 0px !important;
+    background-image: url("~/images/blacklisted-preview.png") !important;
+    background-color: #0003;
+    background-size: contain;
+    background-color: unset !important; // Prevent custom color from showing through
+
+    @media screen and (max-width: 800px) {
+      background-size: 100px !important;
+      padding: 100px 100px 0px 0px !important;
+    }
+  }
+
+  // Without this, the video player intercepts clicks but
+  // does no tpass them on to the container element
+  video { pointer-events: none; }
+
+  #note-container {
+    display: none;
+  }
+}
