@@ -1314,6 +1314,7 @@ class Post < ApplicationRecord
     end
 
     def reowner!(new_owner, old_owner = nil, reowner_versions: false, post_events: true)
+      raise ::User::PrivilegeError unless CurrentUser.is_janitor?
       new_owner_id = new_owner&.id
       raise ::User::PrivilegeError, "Cannot assign a new owner that isn't a previous owner" unless
         CurrentUser.is_admin? || previous_version_uploaders.any? { |uploader| uploader.id == new_owner_id }
