@@ -24,7 +24,7 @@ module Admin
       moved_post_ids = []
       Post.tag_match("user:!#{@old_user.id} #{query}").limit(300).each do |p|
         moved_post_ids << p.id
-        p.reowner!(@new_user, @old_user, reowner_versions: reowner_versions, post_events: post_events)
+        p.reowner!(@new_user, reowner_versions: reowner_versions, post_events: post_events)
       end
 
       StaffAuditLog.log(:post_owner_reassign, CurrentUser.user, { old_user_id: @old_user.id, new_user_id: @new_user.id, query: query, post_ids: moved_post_ids })

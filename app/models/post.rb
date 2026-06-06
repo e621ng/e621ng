@@ -1313,12 +1313,16 @@ class Post < ApplicationRecord
       User.where(id: previous_uploader_ids)
     end
 
-    def reowner!(new_owner, old_owner = nil, reowner_versions: false, post_events: true)
+    def reowner!(new_owner, reowner_versions: false, post_events: true)
       raise ::User::PrivilegeError unless CurrentUser.is_janitor?
+
       new_owner_id = new_owner&.id
       raise ::User::PrivilegeError, "Cannot assign a new owner that isn't a previous owner" unless
         CurrentUser.is_admin? || previous_version_uploaders.any? { |uploader| uploader.id == new_owner_id }
-      old_owner_id = old_owner&.id || uploader_id
+
+      old_owner_id = uploader_id
+      return if new_owner_id == old_owner_id # nothing to do
+
       self.do_not_version_changes = true
       update({ uploader_id: new_owner_id })
       if reowner_versions
@@ -1327,6 +1331,7 @@ class Post < ApplicationRecord
           version.update_index
         end
       end
+
       if post_events
         PostEvent.add(id, CurrentUser.user, :owner_changed, { old_owner: old_owner_id, new_owner: new_owner_id })
       end

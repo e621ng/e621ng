@@ -131,6 +131,12 @@ RSpec.describe Post do
             post.reowner!(new_owner, post_events: false)
           end.not_to change(PostEvent, :count)
         end
+
+        it "does not create a post event when the old and new owners are the same" do
+          expect do
+            post.reowner!(old_owner, post_events: true)
+          end.not_to change(PostEvent, :count)
+        end
       end
 
       it "skips versioning the post update itself" do
