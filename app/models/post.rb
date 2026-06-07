@@ -33,7 +33,7 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  after_create :check_for_ai_content, if: -> { Danbooru.config.auto_flag_ai_posts? }
+  after_create :check_for_ai_content, if: -> { Setting.automatic_ai_check? }
   after_save :create_post_events
   after_save :create_version
   after_save :update_parent_on_save
@@ -365,7 +365,7 @@ class Post < ApplicationRecord
       if ai_score[:score] >= 50
         PostFlag.create(
           post: self,
-          reason_name: Danbooru.config.check_for_ai_content_flag_reason,
+          reason_name: Setting.ai_flag_reason,
           note: "AI score: #{ai_score[:score]}\n#{ai_score[:reason]}",
           creator_id: User.system.id,
           creator_ip_addr: "192.168.0.1",

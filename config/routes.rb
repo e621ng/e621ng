@@ -412,6 +412,7 @@ Rails.application.routes.draw do
   resources :post_flag_reasons do
     collection do
       post :clear_cache
+      post :set_ai_flag_reason
     end
   end
   resources :post_sets do
