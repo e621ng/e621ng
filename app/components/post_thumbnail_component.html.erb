@@ -25,7 +25,7 @@
         <span class="badge-file-type"> <%= post.file_ext.upcase %> </span>
         <% if sound_warning_level > 0 %>
           <span class="badge-sound-warning" data-level="<%= sound_warning_level %>">
-            <%= svg_icon(:speaker, width: 12, height: 12) %>
+            <%= svg_icon(:sound_warning, width: 12, height: 12) %>
           </span>
         <% end %>
       </div>
