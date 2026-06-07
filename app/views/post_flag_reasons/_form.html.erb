@@ -1,6 +1,6 @@
 <%= custom_form_for(@reason) do |f| %>
   <%= f.input :name, as: :string, hint: "Internal key (e.g. uploading_guidelines)" %>
-  <%= f.input :reason, as: :string, hint: "Short label shown in UI" %>
+  <%= f.input :reason, as: :string, hint: "Short label shown in UI", input_html: { size: 80 } %>
   <%= f.input :text, as: :dtext, label: "Description", hint: "Detailed guidance; DText supported" %>
   <%= f.input :needs_explanation, as: :boolean, label: "Additional details required" %>
   <%= f.input :needs_parent_id, as: :boolean, label: "Requires parent post id" %>
