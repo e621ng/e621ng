@@ -186,6 +186,11 @@ RSpec.describe TagQuery do
       expect(tq[:show_deleted]).to be(true)
     end
 
+    it "sets show_deleted when using the 'deleter' alias" do
+      tq = TagQuery.new("deleter:#{moderator.name}")
+      expect(tq[:show_deleted]).to be(true)
+    end
+
     it "sets q[:status] to 'any' when status is not already set" do
       tq = TagQuery.new("deletedby:#{moderator.name}")
       expect(tq[:status]).to eq("any")
