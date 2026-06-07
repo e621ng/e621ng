@@ -38,7 +38,7 @@ class SessionsController < ApplicationController
     session.delete(:user_id)
     cookies.delete(:remember)
     session.delete(:last_authenticated_at)
-    redirect_to(request.referer || root_path, notice: "You are now logged out")
+    redirect_back_or_to(root_path, notice: "You are now logged out")
   end
 
   def confirm_password
