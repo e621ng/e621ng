@@ -5,6 +5,7 @@ class PostThumbnailComponent < ViewComponent::Base
   with_collection_parameter :post
 
   RIBBON_SIDE = %i[left right].freeze
+  SOUND_WARNING_LEVEL_TAGS = %w[sound sound_warning].freeze
 
   def initialize(post:, post_counter: -1, **options)
     super()
@@ -97,10 +98,8 @@ class PostThumbnailComponent < ViewComponent::Base
   end
 
   def sound_warning_level
-    result = 0
-    result += 1 if post.tag_array.include?("sound")
-    result += 1 if post.tag_array.include?("sound_warning")
-    result
+    # counts each tag in tag_array that is present in SOUND_WARNING_LEVEL_TAGS
+    (SOUND_WARNING_LEVEL_TAGS & post.tag_array).size
   end
 
   ##############################
