@@ -3,8 +3,9 @@
 # rubocop:disable Rails/Output
 
 module FavStats
-  C = ApplicationRecord.connection
-  F = ->(n) { n.to_i.to_s.gsub(/\B(?=(\d{3})+(?!\d))/, ",") }
+  C   = ApplicationRecord.connection
+  CAP = 80_000 # default favorite_limit; only used to label the "near cap" line
+  F   = ->(n) { n.to_i.to_s.gsub(/\B(?=(\d{3})+(?!\d))/, ",") }
 
   def self.h(text) = puts("\n\e[1m== #{text} ==\e[0m")
 
@@ -14,6 +15,7 @@ module FavStats
     analyze_health
     plans
     seq_scans
+    seq_scan_culprits
     nil
   end
 
@@ -44,9 +46,10 @@ module FavStats
       ORDER BY favorite_count DESC LIMIT 20
     SQL
 
-    h "How many users are within 10% of the 80k cap"
-    n = C.select_value("SELECT count(*) FROM user_statuses WHERE favorite_count >= 72000")
-    puts "  users >= 72,000 favs : #{F[n]}   (these are who a 100k bump actually affects)"
+    near = (CAP * 0.9).to_i
+    h "How many users are within 10% of the #{F[CAP]} cap"
+    n = C.select_value("SELECT count(*) FROM user_statuses WHERE favorite_count >= #{near}")
+    puts "  users >= #{F[near]} favs : #{F[n]}   (the population a higher cap would release)"
   end
 
   # What the planner believes about the favorites columns.
@@ -62,15 +65,22 @@ module FavStats
       puts "  #{r['attname'].ljust(8)} n_distinct=#{r['n_distinct']}  correlation=#{r['correlation']}  " \
            "mcv_entries=#{r['mcv_entries'] || 0}  top_mcv_freq=#{r['top_mcv_freq']}"
     end
-    est = C.select_value("SELECT n_distinct FROM pg_stats WHERE tablename='favorites' AND attname='user_id'").to_f
-    actual = C.select_value("SELECT count(*) FROM user_statuses WHERE favorite_count > 0").to_i
+    est       = C.select_value("SELECT n_distinct FROM pg_stats WHERE tablename='favorites' AND attname='user_id'").to_f
+    actual    = C.select_value("SELECT count(*) FROM user_statuses WHERE favorite_count > 0").to_i
+    reltuples = C.select_value("SELECT reltuples::bigint FROM pg_class WHERE relname='favorites'").to_i
     shown = est < 0 ? "ratio #{est} (manual override)" : (F[est.to_i]).to_s
     puts "  → user_id n_distinct estimate: #{shown}"
     puts "  → actual distinct favoriting users (proxy): #{F[actual]}"
-    puts "  → if the estimate is far below actual, SET (n_distinct = -#{(actual / 1_300_000_000.0).round(4)}) on user_id" if est >= 0 && est < actual * 0.5
+    # The ratio MUST divide by THIS table's row count, not a constant — otherwise it
+    # rounds to a useless value on smaller instances (e6AI's 19M-row table gave -0.0).
+    if est >= 0 && reltuples > 0 && est < actual * 0.5
+      ratio = [(actual.to_f / reltuples).round(4), 0.0001].max
+      puts "  → estimate far below actual; consider: " \
+           "ALTER TABLE favorites ALTER COLUMN user_id SET (n_distinct = -#{ratio}); ANALYZE favorites;"
+    end
   end
 
-  # Is autoanalyze keeping up on a 1.3B-row table?
+  # Is autoanalyze keeping up?
   def self.analyze_health
     h "ANALYZE / autovacuum health for favorites"
     r = C.select_one(<<~SQL.squish)
@@ -79,16 +89,18 @@ module FavStats
       FROM pg_stat_user_tables WHERE relname='favorites'
     SQL
     live = r["n_live_tup"].to_i
-    threshold = 50 + (0.1 * live) # default analyze_threshold + scale_factor * live
+    mods = r["n_mod_since_analyze"].to_i
+    # Read the REAL scale factor from reloptions; fall back to the cluster default of 0.1.
+    scale = (r["reloptions"].to_s[/analyze_scale_factor=([0-9.]+)/, 1] || "0.1").to_f
+    threshold = (50 + (scale * live)).to_i
     puts "  n_live_tup           : #{F[live]}"
     puts "  n_dead_tup           : #{F[r['n_dead_tup']]}"
-    puts "  n_mod_since_analyze  : #{F[r['n_mod_since_analyze']]}"
+    puts "  n_mod_since_analyze  : #{F[mods]}"
     puts "  last_analyze         : #{r['last_analyze'] || '(never)'}"
     puts "  last_autoanalyze     : #{r['last_autoanalyze'] || '(never)'}"
-    puts "  default autoanalyze threshold (~10%): #{F[threshold.to_i]} modifications"
+    puts "  autoanalyze trigger (~#{(scale * 100).round(2)}%): #{F[threshold]} modifications"
     puts "  table reloptions     : #{r['reloptions'] || '(defaults)'}"
-    puts "  ⚠ stats may be stale: #{F[r['n_mod_since_analyze']]} mods vs trigger at ~#{F[threshold.to_i]}" \
-      if r["n_mod_since_analyze"].to_i > 0 && r["n_mod_since_analyze"].to_i < threshold * 0.5
+    puts "  ⚠ #{F[mods]} mods since last analyze, #{F[threshold - mods]} short of the next autoanalyze" if mods > 0 && mods < threshold
   end
 
   # Estimate-vs-actual on the queries the app actually runs, for a whale and a typical user.
@@ -110,11 +122,58 @@ module FavStats
   def self.seq_scans
     h "Scan counts on favorites (loud alarm if seq scans grow)"
     r = C.select_one(<<~SQL.squish)
-      SELECT seq_scan, idx_scan, seq_tup_read FROM pg_stat_user_tables WHERE relname='favorites'
+      SELECT seq_scan, idx_scan, seq_tup_read, n_live_tup FROM pg_stat_user_tables WHERE relname='favorites'
     SQL
     puts "  seq_scan=#{F[r['seq_scan']]}  idx_scan=#{F[r['idx_scan']]}  seq_tup_read=#{F[r['seq_tup_read']]}"
-    puts "  ⚠ non-trivial seq_scan on a 1.3B-row table is a red flag" if r["seq_scan"].to_i > 100
+    puts "  ⚠ #{F[r['seq_scan']]} seq scans on a #{F[r['n_live_tup']]}-row table — run seq_scan_culprits to find the source" if r["seq_scan"].to_i > 100
+  end
+
+  # Identify which statements are doing the sequential reads on favorites.
+  # Requires the pg_stat_statements extension (shared_preload_libraries + CREATE EXTENSION).
+  def self.seq_scan_culprits(limit: 20)
+    h "Statements touching 'favorites', ranked by disk reads (needs pg_stat_statements)"
+    unless C.select_value("SELECT to_regclass('pg_stat_statements') IS NOT NULL")
+      puts "  pg_stat_statements is not available."
+      puts "  Enable it (shared_preload_libraries=pg_stat_statements + restart), then: CREATE EXTENSION pg_stat_statements;"
+      return
+    end
+
+    # NOTE: no `--` comments inside this heredoc; .squish collapses newlines and would
+    # comment out the rest of the statement. The pg_st% filter drops catalog/introspection
+    # queries (including this utility's own).
+    rows = C.select_all(<<~SQL.squish)
+      SELECT calls,
+             round(total_exec_time)   AS total_ms,
+             round(mean_exec_time::numeric, 2) AS mean_ms,
+             shared_blks_read         AS blks_read,
+             shared_blks_hit          AS blks_hit,
+             rows,
+             regexp_replace(left(query, 160), '\\s+', ' ', 'g') AS query
+      FROM pg_stat_statements
+      WHERE query ILIKE '%favorites%' AND query NOT ILIKE '%pg_st%'
+      ORDER BY shared_blks_read DESC
+      LIMIT #{limit.to_i}
+    SQL
+
+    if rows.empty?
+      puts "  No statements mentioning 'favorites' found (stats may have been reset)."
+      return
+    end
+
+    rows.each do |row|
+      puts "  ─────"
+      puts "  calls=#{F[row['calls']]}  total=#{F[row['total_ms']]}ms  mean=#{row['mean_ms']}ms  " \
+           "blks_read=#{F[row['blks_read']]}  blks_hit=#{F[row['blks_hit']]}  rows=#{F[row['rows']]}"
+      puts "  #{row['query']}"
+    end
+    puts "\n  → high blks_read + low calls = a heavy scanner; that's your seq-scan source"
+    puts "  → high calls + low mean_ms   = healthy indexed traffic, ignore"
+    puts "  → for a fresh measurement window: SELECT pg_stat_statements_reset();"
+  rescue ActiveRecord::StatementInvalid => e
+    puts "  Could not query pg_stat_statements: #{e.message.lines.first&.strip}"
   end
 end
 
 # rubocop:enable Rails/Output
+
+FavStats.run
