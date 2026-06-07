@@ -46,6 +46,7 @@ article.thumbnail {
   flex-flow: column;
   align-items: center;
   width: min-content; // Avoid stretching when outside the posts-container
+  --file-extension: attr(data-file-ext); // used for the badge
 
   a.thm-link {
     display: block;
@@ -196,36 +197,29 @@ article.thumbnail[data-is-favorited="true"] .thm-desc-m.thm-favorites svg {
 }
 
 // Badges
-article.thumbnail .badge {
-  position: absolute;
-  z-index: 5;
-  left: 0;
-  bottom: 5%;
+article.thumbnail[data-tags~=animated] {
+  & > a.thm-link:after {
+    content: var(--file-extension);
 
-  font-size: 0.5rem;
-  line-height: 0.5rem;
-  padding-inline: .25rem;
-  height: 1rem;
-  display: flex;
-  align-items: center;
-  gap: .25rem;
+    position: absolute;
+    z-index: 5;
+    left: 0;
+    bottom: 5%;
+    padding: 0.125rem 0.25rem;
+    text-transform: uppercase;
 
-  background-color: themed("color-section");
-  color: themed("color-text");
-  font-weight: bold;
-  text-align: center;
+    font-size: 0.5rem;
+    line-height: 0.5rem;
+    padding: 0.25rem;
 
-  @include st-radius-right;
+    background-color: themed("color-section");
+    color: themed("color-text");
+    font-weight: bold;
+    text-align: center;
 
-  .badge-sound-warning {
-    line-height: 0;
-
-    &[data-level="2"] {
-      color: var(--palette-plain-yellow);
-    }
+    @include st-radius-right;
   }
-
-  &.no-type-badges { display: none; }
+  &.no-type-badges > a.thm-link:after { display: none; }
 }
 
 // Extra info (IQDB, pools)
