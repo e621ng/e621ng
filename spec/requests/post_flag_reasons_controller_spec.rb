@@ -163,4 +163,78 @@ RSpec.describe PostFlagReasonsController do
       expect(response).to have_http_status(:forbidden)
     end
   end
+
+  describe "#set_ai_flag_reason" do
+    let!(:valid_reason) { create(:post_flag_reason, name: "ai_generated", needs_parent_id: false) }
+
+    around do |example|
+      original_ai_flag_reason = Setting.ai_flag_reason
+      original_automatic_ai_check = Setting.automatic_ai_check
+      example.run
+    ensure
+      Setting.ai_flag_reason = original_ai_flag_reason
+      Setting.automatic_ai_check = original_automatic_ai_check
+    end
+
+    it "enables AI post flagging with a valid reason for an admin" do
+      Setting.automatic_ai_check = false
+      sign_in_as admin
+      post set_ai_flag_reason_post_flag_reasons_path, params: { ai_flag_reason: { reason: valid_reason.name, automatic_ai_check: "1" } }
+      expect(response).to redirect_to(post_flag_reasons_path)
+      expect(Setting.automatic_ai_check?).to be(true)
+      expect(Setting.ai_flag_reason).to eq(valid_reason.name)
+      expect(flash[:notice]).to eq("Automatic AI post flagging enabled")
+    end
+
+    it "disables AI post flagging for an admin" do
+      Setting.automatic_ai_check = true
+      Setting.ai_flag_reason = valid_reason.name
+      sign_in_as admin
+      post set_ai_flag_reason_post_flag_reasons_path, params: { ai_flag_reason: { reason: valid_reason.name, automatic_ai_check: "0" } }
+      expect(response).to redirect_to(post_flag_reasons_path)
+      expect(Setting.automatic_ai_check?).to be(false)
+      expect(Setting.ai_flag_reason).to eq(valid_reason.name)
+      expect(flash[:notice]).to eq("Automatic AI post flagging disabled")
+    end
+
+    it "redirects with an alert if the reason does not exist" do
+      sign_in_as admin
+      expect do
+        post set_ai_flag_reason_post_flag_reasons_path, params: { ai_flag_reason: { reason: "non_existent_reason", automatic_ai_check: "1" } }
+      end.not_to change(Setting, :automatic_ai_check)
+      expect(response).to redirect_to(post_flag_reasons_path)
+      expect(flash[:alert]).to eq("Flag reason doesn't exist or is not usable for AI flagging")
+    end
+
+    it "redirects with an alert if the reason needs a parent id" do
+      parent_reason = create(:post_flag_reason, name: "needs_parent", needs_parent_id: true)
+      sign_in_as admin
+      expect do
+        post set_ai_flag_reason_post_flag_reasons_path, params: { ai_flag_reason: { reason: parent_reason.name, automatic_ai_check: "1" } }
+      end.not_to change(Setting, :automatic_ai_check)
+      expect(response).to redirect_to(post_flag_reasons_path)
+      expect(flash[:alert]).to eq("Flag reason doesn't exist or is not usable for AI flagging")
+    end
+
+    it "changes the AI post flag reason without flashing a toggle message if already enabled" do
+      another_reason = create(:post_flag_reason, name: "other_ai_reason")
+      Setting.automatic_ai_check = true
+      Setting.ai_flag_reason = valid_reason.name
+      sign_in_as admin
+      post set_ai_flag_reason_post_flag_reasons_path, params: { ai_flag_reason: { reason: another_reason.name, automatic_ai_check: "1" } }
+      expect(response).to redirect_to(post_flag_reasons_path)
+      expect(Setting.ai_flag_reason).to eq(another_reason.name)
+      expect(Setting.automatic_ai_check?).to be(true)
+      expect(flash[:notice]).to be_nil
+    end
+
+    it "is forbidden for a moderator" do
+      Setting.automatic_ai_check = false
+      sign_in_as moderator
+      expect do
+        post set_ai_flag_reason_post_flag_reasons_path, params: { ai_flag_reason: { reason: valid_reason.name, automatic_ai_check: "1" } }
+      end.not_to change(Setting, :automatic_ai_check)
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
 end
