@@ -31,7 +31,15 @@ class AppealsController < ApplicationController
     end
 
     unless @appeal.can_create_for?(CurrentUser.user)
-      redirect_to appeals_path, alert: "This deletion can't be appealed or has already been resolved."
+      redirect_path = appeals_path
+      # For a post flag, send the user back to the post: either it's undeleted, it's been re-deleted
+      # (so they need to use the new flag's appeal button), or it's something they just can't appeal.
+      # Anyway it's more helpful for the user to see the current post status than the appeals index.
+      content = @appeal.content
+      if content.is_a?(::PostFlag) && (post = content.post.presence)
+        redirect_path = post_path(post)
+      end
+      redirect_to redirect_path, alert: "This deletion can't be appealed or has already been resolved."
       return
     end
 
