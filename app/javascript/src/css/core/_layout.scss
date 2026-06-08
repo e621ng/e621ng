@@ -20,7 +20,8 @@ div#page {
   @include viewport.larger-than(800px) {
     @include std.radius;
     margin: 0.5rem 1rem 0;
-    @include std.padding-lr;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 
   background-color: #152f56; // Fallback for browsers that don't support CSS variables
