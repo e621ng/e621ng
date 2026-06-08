@@ -8,6 +8,10 @@ class CreateStaffWikis < ActiveRecord::Migration[7.1]
       t.string :title, null: false
       t.text :body, null: false, default: ""
       t.timestamps
+
+      t.string :qtype, null: false, default: "general"
+      t.integer :related_id
+      t.integer :claimant_id
     end
 
     add_index :staff_wikis, "lower(title)", unique: true, name: "index_staff_wikis_on_lower_title"

@@ -2145,7 +2145,10 @@ CREATE TABLE public.staff_wikis (
     title character varying NOT NULL,
     body text DEFAULT ''::text NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    qtype character varying DEFAULT 'general'::character varying NOT NULL,
+    related_id integer,
+    claimant_id integer
 );
 
 

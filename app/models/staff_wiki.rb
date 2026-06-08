@@ -3,12 +3,17 @@
 class StaffWiki < ApplicationRecord
   class RevertError < StandardError; end
 
-  before_validation :normalize_title
   after_save :create_version
 
   normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
 
-  validates :title, presence: true, uniqueness: { case_sensitive: false }, length: { minimum: 1, maximum: 100 }
+  # TODO: validate qtype and related_id
+
+  validates :qtype, presence: true
+  validate :validate_qtype
+  validate :validate_related_id
+
+  validates :title, presence: true, length: { minimum: 1, maximum: 100 }
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
 
   attr_accessor :edit_reason
@@ -16,6 +21,39 @@ class StaffWiki < ApplicationRecord
   belongs_to_creator
   belongs_to_updater
   has_many :versions, -> { order("staff_wiki_versions.id ASC") }, class_name: "StaffWikiVersion", dependent: :destroy
+  has_one :claimant, class_name: "User", foreign_key: "id", primary_key: "claimant_id"
+
+  module ValidationMethods
+    def validate_qtype
+      return if qtype.in?(%w[general user])
+      errors.add(:qtype, "is not included in the list")
+    end
+
+    def validate_related_id
+      return if qtype.blank?
+
+      case qtype
+      when "user"
+        if related_id.blank?
+          errors.add(:related_id, "can't be blank")
+        elsif !User.exists?(related_id)
+          errors.add(:related_id, "must refer to an existing user")
+        end
+      when "general"
+        if related_id.present?
+          errors.add(:related_id, "must be blank for general pages")
+        end
+      end
+    end
+
+    def validate_claimant_id
+      return if claimant_id.blank?
+
+      unless User.exists?(claimant_id)
+        errors.add(:claimant_id, "must refer to an existing user")
+      end
+    end
+  end
 
   module SearchMethods
     def titled(title)
@@ -38,6 +76,7 @@ class StaffWiki < ApplicationRecord
     end
   end
 
+  include ValidationMethods
   extend SearchMethods
 
   def self.normalize_name(name)
@@ -49,7 +88,9 @@ class StaffWiki < ApplicationRecord
   end
 
   def pretty_title
-    title&.tr("_", " ") || ""
+    pretty_qtype = %w[general].include?(qtype) ? "" : "#{qtype.capitalize}: "
+
+    "#{pretty_qtype}#{title || ''}".strip
   end
 
   def revert_to(version)

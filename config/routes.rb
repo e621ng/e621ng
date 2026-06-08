@@ -404,6 +404,8 @@ Rails.application.routes.draw do
   resources :staff_wikis do
     member do
       put :revert
+      post :claim
+      post :unclaim
     end
     collection do
       get :search
