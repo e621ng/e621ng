@@ -1,6 +1,6 @@
-@use "utilities/viewport";
-@use "utilities/standard_variables" as std;
-@use "themes/theme";
+@use "utility/viewport";
+@use "utility/std";
+@use "utility/theme";
 
 body.c-static.a-home {
   background: #012e57; // I am certain this was needed for something

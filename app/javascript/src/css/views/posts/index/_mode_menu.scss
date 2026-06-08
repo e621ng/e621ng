@@ -1,14 +1,14 @@
 @use "sass:color";
-@use "themes/palette";
+@use "utility/palette";
 
 $modes: (
-  "edit": palette.value("background-yellow"),
+  "edit": palette.background("yellow"),
   "add-fav": #104e17,
   "remove-fav": #07240b,
   "add-to-set": #A51,
   "remove-from-set": #7c3e0c,
-  "vote-up": palette.value("background-green"),
-  "vote-down": palette.value("background-red"),
+  "vote-up": palette.background("green"),
+  "vote-down": palette.background("red"),
   "rating-s": #1a421f,
   "rating-q": #650,
   "rating-e": #a71c1c,

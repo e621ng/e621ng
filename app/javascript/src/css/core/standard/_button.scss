@@ -1,6 +1,6 @@
-@use "utilities/standard_variables" as std;
-@use "themes/theme";
-@use "themes/palette" as palette;
+@use "utility/std";
+@use "utility/theme";
+@use "utility/palette" as palette;
 @use "core/fonts" as fonts;
 
 // Standard button
@@ -8,12 +8,12 @@
 // Semi-expected to have an icon
 .st-button {
   $button-font-size: st-value(100);
-  $button-background: theme.value("color-section-lighten-5");
-  $button-background-hover: theme.value("color-section-lighten-10");
-  $button-text-color: theme.value("color-text");
+  $button-background: theme.color("section-lighten-5");
+  $button-background-hover: theme.color("section-lighten-10");
+  $button-text-color: theme.color("text");
 
-  $button-stealth-color: theme.value("color-link");
-  $button-stealth-color-hover: theme.value("color-link-hover");
+  $button-stealth-color: theme.color("link");
+  $button-stealth-color-hover: theme.color("link-hover");
 
   display: inline-flex;
   gap: 0.25rem;
@@ -38,7 +38,7 @@
   // Overriding the default outline
   &:focus {
     outline: none !important;
-    background-color: theme.value("color-section-lighten-10");
+    background-color: theme.color("section-lighten-10");
   }
 
   & > svg {
@@ -80,8 +80,8 @@
   }
 
   &.active {
-    background-color: theme.value("color-link-active");
-    color: palette.value("plain-black");
+    background-color: theme.color("link-active");
+    color: palette.plain("black");
   }
 
   // Elements that look like physical buttons and animate on click.
@@ -89,11 +89,11 @@
     $kinetic-shadow: 0.25rem;
     $kinetic-active: 0.125rem;
 
-    box-shadow: 0 $kinetic-shadow theme.value("color-section");
+    box-shadow: 0 $kinetic-shadow theme.color("section");
     position: relative;
     &:active, &[processing="true"].anim {
       translate: 0 $kinetic-active;
-      box-shadow: 0 $kinetic-active theme.value("color-section");
+      box-shadow: 0 $kinetic-active theme.color("section");
 
       // Cursed solution for a cursed problem.
       // Moving the button down when active caused the javascript event to not trigger if the
@@ -115,21 +115,21 @@
 
 // Colored buttons
 .st-button.danger {
-  background: palette.value("background-red");
+  background: palette.background("red");
   &:hover, &:active {
-    background: palette.value("background-red-d5")
+    background: palette.background("red-d5")
   }
 }
 .st-button.submit {
-  background: theme.value("color-tag-artist");
-  color: palette.value("plain-black");
+  background: theme.color("tag-artist");
+  color: palette.plain("black");
   &:hover, &:active {
-    background: theme.value("color-tag-artist-alt");
+    background: theme.color("tag-artist-alt");
   }
 
   &[disabled] {
-    background: palette.value("background-grey");
-    color: palette.value("text-lighten-20");
+    background: palette.background("grey");
+    color: palette.text("lighten-20");
     cursor: not-allowed;
   }
 }

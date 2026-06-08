@@ -1,8 +1,5 @@
 @use "sass:color";
 
-@use "palette_deutranomaly";
-@use "palette_tritanomaly";
-
 // Base color palette.
 // These colors should not normally change between
 // themes, but could still be overriden if need be.
@@ -65,11 +62,3 @@ $palette: (
     --palette-#{$name}: #{$color};
   }
 }
-
-// Helper function
-@function value($key) {
-  @return var(--palette-#{$key});
-}
-
-// Element-specific
-$background-article-hidden: value("background-red");

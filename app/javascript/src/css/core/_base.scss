@@ -1,16 +1,16 @@
-@use "themes/theme";
-@use "core/fonts" as fonts;
+@use "utility/theme";
+@use "utility/font";
 
 body {
   color: #ffffff; // Fallback for browsers that don't support CSS variables
-  color: theme.value("color-text");
+  color: theme.color("text");
   background-color: #020f23; // Fallback for browsers that don't support CSS variables
-  background-color: theme.value("color-background");
+  background-color: theme.color("background");
   background-image: theme.value("image-background");
   background-position: theme.value("image-background-position");
   background-repeat: theme.value("image-background-repeat");
   background-size: theme.value("image-background-size");
-  font-family: fonts.$base;
+  font-family: font.$base;
   font-size: 85%;
   line-height: 1.25em;
   margin: 0 auto;
@@ -34,7 +34,7 @@ dt {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: fonts.$base;
+  font-family: font.$base;
 }
 
 h1 {
@@ -97,13 +97,13 @@ table tfoot {
 }
 
 .hint {
-  color: theme.value("color-text-muted");
+  color: theme.color("text-muted");
   font-style: italic;
   max-width: 70%;
 }
 
 .info {
-  color: theme.value("color-text-muted");
+  color: theme.color("text-muted");
   font-style: italic;
   font-size: 80%;
 }

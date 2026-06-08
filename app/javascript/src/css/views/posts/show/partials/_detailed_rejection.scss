@@ -1,4 +1,4 @@
-@use "themes/theme";
+@use "utility/theme";
 
 #detailed-rejection-dialog {
   padding: 0.5rem;
@@ -14,7 +14,7 @@
   }
 
   .rejection-inputs {
-    background: theme.value("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     padding: 0.5rem;
     display: flex;
     flex-flow: column;

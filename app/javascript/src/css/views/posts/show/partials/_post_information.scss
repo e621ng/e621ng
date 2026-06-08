@@ -1,4 +1,4 @@
-@use "themes/palette";
+@use "utility/palette";
 
 .post-sidebar-info {
   margin-bottom: 1em;
@@ -12,7 +12,7 @@
 
   .post-sidebar-label {
     text-align: right;
-    color: palette.value("text-grey");
+    color: palette.text("grey");
     line-height: 1rem;
   }
 

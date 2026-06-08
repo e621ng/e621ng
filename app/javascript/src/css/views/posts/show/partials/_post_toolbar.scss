@@ -1,8 +1,8 @@
-@use "utilities/viewport";
-@use "themes/theme";
-@use "themes/palette";
-@use "utilities/standard_variables" as std;
-@use "core/fonts";
+@use "utility/viewport";
+@use "utility/theme";
+@use "utility/palette";
+@use "utility/std";
+@use "utility/font";
 
 // Post Toolbar
 #ptbr-wrapper {
@@ -48,18 +48,18 @@
   // data-vote on the wrapper indicates user's current vote on the post
   // data-action on the button indicates whether the button is for upvote or downvote
   &[data-vote="-1"] button[data-action="-1"] {
-    background-color: palette.value("background-red");
-    &:hover, &:focus { background-color: palette.value("background-red-d5"); }
+    background-color: palette.background("red");
+    &:hover, &:focus { background-color: palette.background("red-d5"); }
 
-    box-shadow: 0 0.25rem palette.value("background-red-d10");
-    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette.value("background-red-d10"); }
+    box-shadow: 0 0.25rem palette.background("red-d10");
+    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette.background("red-d10"); }
   }
   &[data-vote="1"] button[data-action="1"] {
-    background-color: palette.value("background-green");
-    &:hover, &:focus { background-color: palette.value("background-green-d5"); }
+    background-color: palette.background("green");
+    &:hover, &:focus { background-color: palette.background("green-d5"); }
 
-    box-shadow: 0 0.25rem palette.value("background-green-d10");
-    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette.value("background-green-d10"); }
+    box-shadow: 0 0.25rem palette.background("green-d10");
+    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette.background("green-d10"); }
   }
 
 
@@ -69,13 +69,13 @@
     min-width: 3rem; // Fits 3-digit scores
 
     cursor: help;
-    font-family: fonts.$roboto;
+    font-family: font.$roboto;
     font-weight: bold;
     align-items: center;
 
     // Separators between buttons and score
     border-width: 0 1px;
-    border-color: theme.value("color-foreground");
+    border-color: theme.color("foreground");
     border-style: solid;
     border-radius: 0;
 
@@ -86,8 +86,8 @@
   }
 
   // Score states
-  &[data-state="1"] .ptbr-score { color: palette.value("text-green"); }
-  &[data-state="-1"] .ptbr-score { color: palette.value("text-red"); }
+  &[data-state="1"] .ptbr-score { color: palette.text("green"); }
+  &[data-state="-1"] .ptbr-score { color: palette.text("red"); }
 
 
   // Score breakdown popup
@@ -99,8 +99,8 @@
     translate: -50% 0;
     text-wrap: nowrap;
 
-    background: theme.value("color-section-lighten-5");
-    font-family: fonts.$roboto;
+    background: theme.color("section-lighten-5");
+    font-family: font.$roboto;
     font-size: 1rem;
     line-height: 1rem;
     @include std.radius;
@@ -117,7 +117,7 @@
 
       border-width: 0.5rem;
       border-style: solid;
-      border-color: theme.value("color-section-lighten-5") transparent transparent transparent;
+      border-color: theme.color("section-lighten-5") transparent transparent transparent;
     }
 
     & > span {
@@ -128,14 +128,14 @@
           content: "▲";
           padding-right: 0.25rem;
         }
-        color: palette.value("text-green");
+        color: palette.text("green");
       }
       &:last-child {
         &:after {
           content: "▼";
           padding-left: 0.25rem;
         }
-        color: palette.value("text-red");
+        color: palette.text("red");
       }
     }
 
@@ -146,13 +146,13 @@
 
 // Favorite button
 #ptbr-wrapper .ptbr-favorite-button {
-  font-family: fonts.$roboto;
-  color: palette.value("background-gold-d10");
+  font-family: font.$roboto;
+  color: palette.background("gold-d10");
 
   &[favorited="true"] {
     svg {
       filter: url(#inset-shadow);
-      fill: palette.value("background-gold-d10");
+      fill: palette.background("gold-d10");
       stroke-width: 0;
     }
   }
@@ -163,7 +163,7 @@
   display: flex;
 }
 #ptbr-wrapper .ptbr-edit-button {
-  font-family: fonts.$roboto;
+  font-family: font.$roboto;
 }
 
 // Fullscreen button
@@ -171,13 +171,13 @@
   display: flex;
 }
 #ptbr-wrapper .ptbr-fullscreen-button {
-  font-family: fonts.$roboto;
+  font-family: font.$roboto;
 }
 
 
 // Share button
 #ptbr-share-menu {
-  background: theme.value("color-section-lighten-5");
+  background: theme.color("section-lighten-5");
   @include std.radius;
   padding: 0.75rem 0.5rem;
 
@@ -192,13 +192,13 @@
     gap: 0.5rem;
     max-width: 20rem;
 
-    background: theme.value("color-foreground");
+    background: theme.color("foreground");
     @include std.radius;
     @include std.padding;
 
     input {
       background: transparent;
-      color: theme.value("color-text");
+      color: theme.color("text");
       width: 100%;
       border: 1px solid transparent;
 
@@ -206,7 +206,7 @@
       font-size: 1rem;
 
       &:focus {
-        border-color: theme.value("color-section-lighten-5");
+        border-color: theme.color("section-lighten-5");
         outline: none;
       }
     }
@@ -220,16 +220,16 @@
   max-width: 25vw; // Prevent overflow on tiny screens
   padding: 0 0.5rem;
 
-  font-family: fonts.$roboto;
+  font-family: font.$roboto;
   color: theme.value("palette-text-white");
   font-size: 1rem;
   line-height: 1rem;
 
   cursor: pointer;
-  background: theme.value("color-section-lighten-5");
-  box-shadow: 0 0.25rem theme.value("color-section");
+  background: theme.color("section-lighten-5");
+  box-shadow: 0 0.25rem theme.color("section");
 
-  &:hover, &:focus { background: theme.value("color-section-lighten-10"); }
+  &:hover, &:focus { background: theme.color("section-lighten-10"); }
 }
 
 
@@ -241,7 +241,7 @@
 
 #ptbr-wrapper .ptbr-notes-button {
   width: 6rem;
-  font-family: fonts.$roboto;
+  font-family: font.$roboto;
   &:after { content: "Notes: On"; }
 
   &[enabled="false"] { &:after { content: "Notes: Off"; } }
@@ -278,14 +278,14 @@
   padding: 0.25rem 0.25rem;
   margin-top: 0.5rem;
 
-  background: theme.value("color-section");
+  background: theme.color("section");
   @include std.radius;
-  box-shadow: 0 0 0.5rem -0.25rem theme.value("color-background");
+  box-shadow: 0 0 0.5rem -0.25rem theme.color("background");
 
   &.hidden { display: none; }
 
   .st-button {
-    font-family: fonts.$roboto;
+    font-family: font.$roboto;
     min-width: 8rem;
   }
 }

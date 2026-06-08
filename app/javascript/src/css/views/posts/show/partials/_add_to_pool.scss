@@ -1,5 +1,5 @@
-@use "themes/theme";
-@use "utilities/standard_variables" as std;
+@use "utility/theme";
+@use "utility/std";
 
 #add-to-pool-dialog, #add-to-set-dialog {
   display: flex;
@@ -10,7 +10,7 @@
   div.input { margin: 0; }
   .add-to-pool-inputs, .add-to-pool-recent {
     padding: 0.5rem;
-    background: theme.value("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     @include std.radius;
   }
 }

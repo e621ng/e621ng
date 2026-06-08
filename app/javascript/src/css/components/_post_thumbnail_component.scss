@@ -1,7 +1,7 @@
-@use "utilities/viewport";
-@use "utilities/standard_variables" as std;
-@use "themes/theme";
-@use "themes/palette" as palette;
+@use "utility/viewport";
+@use "utility/std";
+@use "utility/theme";
+@use "utility/palette" as palette;
 
 $image-size: var(--thumb-image-size, 150px);
 $image-min: var(--thumb-image-min, 135px);
@@ -130,7 +130,7 @@ article.thumbnail .thm-desc {
 
   // Rating-dependent colors
   @each $name, $color in ("e": "red", "q": "yellow", "s": "green") {
-    &.thm-rating-#{$name} { background-color: palette.value("background-#{$color}"); }
+    &.thm-rating-#{$name} { background-color: palette.background("#{$color}"); }
   }
 
   // Column A: score, favorites, comments
@@ -141,7 +141,7 @@ article.thumbnail .thm-desc {
     padding: 0.25rem;
 
     @include std.radius-b;
-    background: theme.value("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     overflow: hidden;
     box-shadow: 0 0 0.25rem #0005;
   }
@@ -168,8 +168,8 @@ article.thumbnail .thm-desc-m {
 
   // Score
   &.thm-score {
-    &-positive { color: palette.value("text-green"); }
-    &-negative { color: palette.value("text-red"); }
+    &-positive { color: palette.text("green"); }
+    &-negative { color: palette.text("red"); }
     svg {
       height: 0.9rem;
       margin: -0.075rem 0;
@@ -178,7 +178,7 @@ article.thumbnail .thm-desc-m {
 
   // Fav
   &.thm-favorites {
-    color: palette.value("background-gold-d10");
+    color: palette.background("gold-d10");
     svg {
       height: 0.9rem;
       width: 0.95rem;
@@ -196,7 +196,7 @@ article.thumbnail .thm-desc-m {
 }
 article.thumbnail[data-is-favorited="true"] .thm-desc-m.thm-favorites svg {
   filter: url(#inset-shadow);
-  fill: palette.value("background-gold-d10");
+  fill: palette.background("gold-d10");
   stroke-width: 0;
 }
 
@@ -216,8 +216,8 @@ article.thumbnail[data-tags~=animated] {
     line-height: 0.5rem;
     padding: 0.25rem 0; // Vertically centered
 
-    background-color: theme.value("color-section");
-    color: theme.value("color-text");
+    background-color: theme.color("section");
+    color: theme.color("text");
     font-weight: bold;
     text-align: center;
 
@@ -237,7 +237,7 @@ article.thumbnail .thm-extra {
   font-family: $font-stack;
   overflow: hidden;
 
-  background: theme.value("color-section-lighten-5");
+  background: theme.color("section-lighten-5");
   @include std.radius;
   text-align: center;
 
@@ -280,7 +280,7 @@ article.thumbnail.placeholder {
 
     font-size: calc(0.75 * $image-size);
     font-weight: bold;
-    color: theme.value("color-foreground");
+    color: theme.color("foreground");
     font-family: "Roboto", Verdana, Geneva, sans-serif;
 
     position: absolute;
@@ -336,7 +336,7 @@ article.thumbnail.blacklisted {
 
 // Post matches blacklist
 article.thumbnail.filter-matches .thm-desc-a {
-  background-color: palette.value("background-red");
+  background-color: palette.background("red");
 }
 
 
@@ -347,7 +347,7 @@ article.thumbnail.filter-matches .thm-desc-a {
 article.thumbnail.avatar {
   &.blacklisted {
     a.thm-link[data-initial]{
-      background: theme.value("color-section");
+      background: theme.color("section");
 
       &:before {
         content: attr(data-initial);
@@ -358,7 +358,7 @@ article.thumbnail.avatar {
 
         font-size: calc(0.75 * $image-size);
         font-weight: bold;
-        color: theme.value("color-foreground");
+        color: theme.color("foreground");
 
         position: absolute;
         top: 0;
@@ -376,7 +376,7 @@ article.thumbnail.avatar {
   }
 
   &.no-render[data-initial] {
-    background: theme.value("color-section");
+    background: theme.color("section");
   }
 }
 

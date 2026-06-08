@@ -1,7 +1,7 @@
-@use "themes/theme";
-@use "utilities/viewport";
-@use "utilities/standard_variables" as std;
-@use "utilities/tag_categories";
+@use "utility/theme";
+@use "utility/viewport";
+@use "utility/std";
+@use "utility/tag_categories";
 
 .dtext-container {
   overflow: hidden;
@@ -96,7 +96,7 @@
     height: 0.8em;
     margin: 0 0.2em;
 
-    background-color: theme.value("color-text-muted");
+    background-color: theme.color("text-muted");
     mask-image: $mask-url;
     -webkit-mask-image: $mask-url;
     mask-size: contain;
@@ -109,30 +109,30 @@
 
   details, pre, blockquote {
     border-radius: 0.25rem;
-    border: 1px solid theme.value("color-section");
-    border-left: 0.25rem solid theme.value("color-danger");
-    background: theme.value("color-section-lighten-5");
+    border: 1px solid theme.color("section");
+    border-left: 0.25rem solid theme.color("danger");
+    background: theme.color("section-lighten-5");
   }
 
   pre {
-    border-left-color: theme.value("color-dtext-code");
+    border-left-color: theme.color("dtext-code");
   }
 
   blockquote {
-    border-left-color: theme.value("color-dtext-quote");
+    border-left-color: theme.color("dtext-quote");
   }
 
   details {
-    border-left-color: theme.value("color-dtext-section");
+    border-left-color: theme.color("dtext-section");
   }
 
   @each $tag-category, $tag-category-name in tag_categories.$short {
     .dtext-color-#{$tag-category} {
-      color: theme.value("color-tag-#{$tag-category-name}");
+      color: theme.color("tag-#{$tag-category-name}");
     }
 
     .dtext-color-#{$tag-category-name} {
-      color: theme.value("color-tag-#{$tag-category-name}");
+      color: theme.color("tag-#{$tag-category-name}");
     }
   }
 }

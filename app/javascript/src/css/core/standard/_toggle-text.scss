@@ -1,7 +1,7 @@
-@use "utilities/standard_variables" as std;
-@use "themes/theme";
-@use "themes/palette" as palette;
-@use "core/fonts" as fonts;
+@use "utility/std";
+@use "utility/theme";
+@use "utility/palette" as palette;
+@use "utility/font";
 
 // Toggle with text
 label.sto-toggle {
@@ -14,14 +14,14 @@ label.sto-toggle {
 
   cursor: pointer;
   @include std.radius;
-  background-color: theme.value("color-section-darken-5");
+  background-color: theme.color("section-darken-5");
   font-size: 1rem;
   line-height: 1rem;
 
   align-items: center;
   text-align: center;
   font-weight: normal;
-  font-family: fonts.$roboto;
+  font-family: font.$roboto;
 
   &::after {
     content: "";
@@ -31,7 +31,7 @@ label.sto-toggle {
     top: 0rem;
     left: 0rem;
 
-    background: theme.value("color-link-active");
+    background: theme.color("link-active");
     @include std.radius;
     transition: left 100ms;
   }
@@ -43,13 +43,13 @@ label.sto-toggle {
     user-select: none;
   }
 
-  .sto-off { color: palette.value("plain-black"); }
-  .sto-on { color: theme.value("color-text");}
+  .sto-off { color: palette.plain("black"); }
+  .sto-on { color: theme.color("text");}
 }
 input[type="checkbox"].sto-toggle { display: none; }
 input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
-  .sto-off { color: theme.value("color-text");}
-  .sto-on { color: palette.value("plain-black"); }
+  .sto-off { color: theme.color("text");}
+  .sto-on { color: palette.plain("black"); }
   &::after {
     content: "";
     left: 50%;

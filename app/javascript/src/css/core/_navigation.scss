@@ -1,6 +1,6 @@
-@use "themes/theme";
-@use "utilities/viewport";
-@use "utilities/standard_variables" as std;
+@use "utility/theme";
+@use "utility/viewport";
+@use "utility/std";
 
 nav.navigation {
   display: grid;
@@ -17,7 +17,7 @@ nav.navigation {
   .nav-logo {
     grid-area: logo;
 
-    background-color: theme.value("color-background");
+    background-color: theme.color("background");
     height: 3.75rem;
 
     a.nav-logo-link {
@@ -45,7 +45,7 @@ nav.navigation {
     align-items: center;
 
     font-size: 1.15rem;
-    background-color: theme.value("color-background");
+    background-color: theme.color("background");
     padding-right: 0.25rem;
     height: 3.75rem;
 
@@ -69,13 +69,13 @@ nav.navigation {
         line-height: 1.5rem;
         @include std.padding-lr;
 
-        background: theme.value("color-foreground");
-        color: theme.value("color-link-active");
+        background: theme.color("foreground");
+        color: theme.color("link-active");
         @include std.radius;
         white-space: nowrap;
       }
 
-      &:hover > span, &:active > span { background: theme.value("color-section"); }
+      &:hover > span, &:active > span { background: theme.color("section"); }
       &:focus { outline: none; }
     }
 
@@ -101,7 +101,7 @@ nav.navigation {
 
           svg {
             margin: -0.25rem 0;
-            color: theme.value("color-link-active");
+            color: theme.color("link-active");
           }
         }
       }
@@ -123,26 +123,26 @@ nav.navigation {
   }
 
   .nav-primary {
-    background-color: theme.value("color-section");
+    background-color: theme.color("section");
     font-size: 1.25rem;
 
     li > a {
-      border-bottom: 1px solid theme.value("color-foreground");
+      border-bottom: 1px solid theme.color("foreground");
       line-height: 1.25rem;
       padding: 1rem 0.5rem;
     }
-    li.current a { background-color: theme.value("color-foreground"); }
+    li.current a { background-color: theme.color("foreground"); }
 
     li.nav-hidden { display: none; }
   }
 
   .nav-secondary {
-    background-color: theme.value("color-foreground");
+    background-color: theme.color("foreground");
     font-size: 1.2rem;
 
     li {
       & > a {
-        border-bottom: 1px solid theme.value("color-section");
+        border-bottom: 1px solid theme.color("section");
         line-height: 1.2rem;
         padding: 0.7rem;
 
@@ -150,7 +150,7 @@ nav.navigation {
       }
 
       &.divider {
-        border-bottom: 1px solid theme.value("color-section");
+        border-bottom: 1px solid theme.color("section");
         height: 0.25rem;
       }
 
@@ -170,7 +170,7 @@ nav.navigation {
     font-size: 1.1rem;
     gap: 1rem;
 
-    background-color: theme.value("color-section");
+    background-color: theme.color("section");
 
     li > a {
       justify-content: center;
@@ -183,11 +183,11 @@ nav.navigation {
 
   .nav-tools {
     grid-template-columns: 1fr 1fr;
-    border-top: 1px solid theme.value("color-foreground");
+    border-top: 1px solid theme.color("foreground");
     padding: 1rem 1rem 0.5rem;
 
     li {
-      a { background: theme.value("color-section-lighten-5"); }
+      a { background: theme.color("section-lighten-5"); }
       &.nav-tools-login { grid-column: 1 / -1; }
     }
 
@@ -201,7 +201,7 @@ nav.navigation {
     padding: 0.5rem 1rem 1rem;
 
     li {
-      a { background: theme.value("color-section-darken-5"); }
+      a { background: theme.color("section-darken-5"); }
       &.nav-help-discord {
         grid-column: 1 / -1;
       }
@@ -228,7 +228,7 @@ body[data-th-stickyheader="true"] nav.navigation {
   top: 0;
 
   @include viewport.larger-than(50rem) {
-    background-color: theme.value("color-background");
+    background-color: theme.color("background");
     background-image: theme.value("image-background");
     background-position: theme.value("image-background-position");
     background-repeat: theme.value("image-background-repeat");
@@ -293,7 +293,7 @@ html.nav-toggled {
       display: grid;
     }
     .nav-primary, .nav-tools, .nav-help {
-      box-shadow: -3px 3px 5px -1px theme.value("color-background");
+      box-shadow: -3px 3px 5px -1px theme.color("background");
     }
   }
 
@@ -410,7 +410,7 @@ nav.navigation, html.nav-toggled nav.navigation {
     }
 
     .nav-tools {
-      background: theme.value("color-foreground");
+      background: theme.color("foreground");
       z-index: 1;
       @include std.radius-r;
       margin-right: 0.25rem;
@@ -420,11 +420,11 @@ nav.navigation, html.nav-toggled nav.navigation {
           padding: 0 0.5rem;
 
           svg {
-            color: theme.value("color-link");
+            color: theme.color("link");
             height: 1.25rem;
             width: 1.25rem;
           }
-          &:hover svg { color: theme.value("color-link-hover"); }
+          &:hover svg { color: theme.color("link-hover"); }
         }
 
         &.nav-tools-themes, &.nav-tools-settings {
@@ -441,7 +441,7 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       li a img { display: none; }
       li.current a {
-        background-color: theme.value("color-foreground");
+        background-color: theme.color("foreground");
       }
     }
 

@@ -1,6 +1,6 @@
-@use "utilities/viewport";
-@use "themes/theme";
-@use "utilities/standard_variables" as std;
+@use "utility/viewport";
+@use "utility/theme";
+@use "utility/std";
 
 div#post-recommendations {
   display: grid;
@@ -21,12 +21,12 @@ div#post-recommendations {
 
     button {
       background: unset;
-      color: theme.value("color-text");
+      color: theme.color("text");
       @include std.radius-t;
       user-select: none;
 
       &:hover, &:focus {
-        background: theme.value("color-section-lighten-5");
+        background: theme.color("section-lighten-5");
       }
     }
 
@@ -39,7 +39,7 @@ div#post-recommendations {
   &[data-action="artist"] button[data-action="artist"],
   &[data-action="tags"] button[data-action="tags"],
   &[data-action="favorites"] button[data-action="favorites"] {
-    background-color: theme.value("color-section");
+    background-color: theme.color("section");
     pointer-events: none;
   }
 
@@ -53,7 +53,7 @@ div#post-recommendations {
     flex-wrap: wrap; // Second row gets hidden
     gap: $thumb-gap;
 
-    background: theme.value("color-section");
+    background: theme.color("section");
     padding: $padding-size;
     margin-bottom: 0.25rem;
     @include std.radius;
@@ -80,7 +80,7 @@ div#post-recommendations {
     button.st-button {
       font-size: 0.85rem;
       background: unset;
-      color: theme.value("color-text-muted");
+      color: theme.color("text-muted");
       svg {
         width: 1rem;
         height: 1rem;
@@ -88,7 +88,7 @@ div#post-recommendations {
       span { display: none; }
 
       &:hover {
-        color: theme.value("color-link-active");
+        color: theme.color("link-active");
       }
     }
   }

@@ -1,6 +1,6 @@
-@use "utilities/viewport";
-@use "themes/theme";
-@use "utilities/standard_variables" as std;
+@use "utility/viewport";
+@use "utility/theme";
+@use "utility/std";
 
 div#search {
   margin-bottom: 1em;
@@ -25,7 +25,7 @@ div#page {
   }
 
   background-color: #152f56; // Fallback for browsers that don't support CSS variables
-  background-color: theme.value("color-foreground");
+  background-color: theme.color("foreground");
   background-image: theme.value("image-foreground");
   background-position: theme.value("image-foreground-position");
   background-repeat: theme.value("image-foreground-repeat");
@@ -40,7 +40,7 @@ div#page {
   }
 
   div.site-notice {
-    background-color: theme.value("color-section");
+    background-color: theme.color("section");
     @include std.padding;
     text-align: center;
     position: relative;
@@ -55,7 +55,7 @@ div#page {
   }
 
   div.ban-notice {
-    background-color: theme.value("color-section");
+    background-color: theme.color("section");
     margin-bottom: 0.5rem;
     padding: 1rem;
 

@@ -1,11 +1,11 @@
-@use "themes/theme";
+@use "utility/theme";
 
 .wiki-excerpt {
   display: flex;
   flex-flow: column;
   position: relative;
 
-  background: theme.value("color-section");
+  background: theme.color("section");
   border-radius: 0.25rem;
 
   &.hidden { display: none; }
@@ -103,7 +103,7 @@
 
     span {
       padding: 0.5rem 1rem;
-      background: theme.value("color-section");
+      background: theme.color("section");
       border-radius: 0.25rem;
     }
   }

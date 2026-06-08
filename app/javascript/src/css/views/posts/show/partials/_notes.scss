@@ -1,6 +1,6 @@
-@use "themes/theme";
-@use "themes/palette";
-@use "utilities/standard_variables" as std;
+@use "utility/theme";
+@use "utility/palette";
+@use "utility/std";
 
 #image-container {
   position: relative;
@@ -30,7 +30,7 @@
     border: 1px solid white;
     box-sizing: border-box;
     @include std.radius;
-    box-shadow: 0 0 0.25rem theme.value("color-background");
+    box-shadow: 0 0 0.25rem theme.color("background");
 
     // Note highlighted by URL anchor
     &.highlighted {
@@ -39,7 +39,7 @@
 
     // Note with pending unsaved changes
     &.pending{
-      border: 2px dotted palette.value("background-orange-d10");
+      border: 2px dotted palette.background("orange-d10");
 
       &:not(.tiny)::before {
         content: "Not Saved";
@@ -48,7 +48,7 @@
         left: 50%;
         transform: translateX(-50%);
 
-        background: palette.value("background-orange-d10");
+        background: palette.background("orange-d10");
         border-radius: 0.25rem;
         font-size: 0.75rem;
         padding: 0.125rem 0.25rem;
@@ -88,8 +88,8 @@
         margin: 0.25rem;
 
         background: white;
-        box-shadow: 0 0 0.125rem theme.value("color-background");
-        border: 1px solid theme.value("color-background");
+        box-shadow: 0 0 0.125rem theme.color("background");
+        border: 1px solid theme.color("background");
         border-radius: 2px;
       }
     }

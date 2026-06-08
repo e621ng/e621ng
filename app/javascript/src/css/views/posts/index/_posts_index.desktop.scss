@@ -1,5 +1,5 @@
-@use "utilities/viewport";
-@use "themes/theme";
+@use "utility/viewport";
+@use "utility/theme";
 
 // Desktop-only
 // Rollout at 50rem
@@ -13,7 +13,7 @@
     grid-template-rows: min-content 1fr;
 
     & > .search {
-      box-shadow: inset -0.25rem 0px 0.25rem -0.25rem #{theme.value("color-background")};
+      box-shadow: inset -0.25rem 0px 0.25rem -0.25rem #{theme.color("background")};
       padding: 0.25rem 0.75rem 0.5rem 0.5rem;
 
       .search-controls {
@@ -31,7 +31,7 @@
     }
 
     & > .sidebar {
-      box-shadow: inset -0.25rem 0px 0.25rem -0.25rem #{theme.value("color-background")};
+      box-shadow: inset -0.25rem 0px 0.25rem -0.25rem #{theme.color("background")};
       padding: 0.25rem 0.75rem 0.5rem 0.5rem;
     }
 

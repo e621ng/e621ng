@@ -1,7 +1,7 @@
-@use "utilities/standard_variables" as std;
-@use "themes/theme";
-@use "themes/palette";
-@use "utilities/tag_categories";
+@use "utility/std";
+@use "utility/theme";
+@use "utility/palette";
+@use "utility/tag_categories";
 
 h5.tag-list-header {
   font-size: 1.25rem;
@@ -22,18 +22,18 @@ ul.tag-list {
     display: flex;
     width: fit-content;
 
-    background: theme.value("color-section");
-    border: 0.125rem solid theme.value("color-section-lighten-5");
+    background: theme.color("section");
+    border: 0.125rem solid theme.color("section-lighten-5");
     border-left-width: 0.25rem;
     @include std.radius;
 
     @each $tag-category, $tag-category-name in tag_categories.$mapping {
       &.tag-#{$tag-category-name} {
-        border-left-color: theme.value("color-tag-#{$tag-category-name}");
-        &:hover { border-left-color: theme.value("color-tag-#{$tag-category-name}-alt"); }
+        border-left-color: theme.color("tag-#{$tag-category-name}");
+        &:hover { border-left-color: theme.color("tag-#{$tag-category-name}-alt"); }
 
-        a, a:link { color: theme.value("color-tag-#{$tag-category-name}"); }
-        a:hover, a:active { color: theme.value("color-tag-#{$tag-category-name}-alt"); }
+        a, a:link { color: theme.color("tag-#{$tag-category-name}"); }
+        a:hover, a:active { color: theme.color("tag-#{$tag-category-name}-alt"); }
       }
     }
 
@@ -57,7 +57,7 @@ ul.tag-list {
     display: flex;
 
     .tag-list-name {
-      border: 1px solid theme.value("color-section-lighten-5");
+      border: 1px solid theme.color("section-lighten-5");
       border-width: 0 1px 0 1px;
       padding: 0.25rem;
 
@@ -65,9 +65,9 @@ ul.tag-list {
     }
 
     .tag-list-count {
-      color: theme.value("color-text-muted");
+      color: theme.color("text-muted");
       font-size: 85%;
-      &.low-post-count { color: palette.value("text-red"); }
+      &.low-post-count { color: palette.text("red"); }
     }
   }
 
@@ -80,14 +80,14 @@ ul.tag-list {
     button {
       display: flex;
       align-items: center;
-      color: theme.value("color-link");
+      color: theme.color("link");
 
       // default button styles
       padding: 0;
       border-radius: 0;
       background: none;
 
-      &:hover { color: theme.value("color-link-hover"); }
+      &:hover { color: theme.color("link-hover"); }
       
       svg {
         width: 1rem;

@@ -1,5 +1,5 @@
-@use "utilities/viewport";
-@use "themes/theme";
+@use "utility/viewport";
+@use "utility/theme";
 
 .source-link {
   overflow: hidden;
@@ -9,7 +9,7 @@
 
   @include viewport.desktop {
     &:hover {
-      a, s { background: theme.value("color-background"); }
+      a, s { background: theme.color("background"); }
       z-index: 2;
       overflow: visible;
       position: relative;
@@ -17,5 +17,5 @@
     }
   }
 
-  .source-invalid { color: theme.value("color-text-red"); }
+  .source-invalid { color: theme.color("text-red"); }
 }

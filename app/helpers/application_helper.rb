@@ -260,6 +260,18 @@ module ApplicationHelper
     vite_javascript_tag("#{name}.ts", nonce: content_security_policy_nonce, defer: false, skip_preload_tags: true)
   end
 
+  def vite_stylesheet_for_controller
+    name = "v_#{params[:controller].parameterize.dasherize}"
+    return unless VITE_STYLESHEETS.include?(name)
+    vite_stylesheet_tag("#{name}.scss", nonce: content_security_policy_nonce)
+  end
+
+  def vite_stylesheet_for_controller_and_action
+    name = "v_#{params[:controller].parameterize.dasherize}_#{params[:action].parameterize.dasherize}"
+    return unless VITE_STYLESHEETS.include?(name)
+    vite_stylesheet_tag("#{name}.scss", nonce: content_security_policy_nonce)
+  end
+
   def vite_stylesheet_for_site
     # 1. If there is a stylesheet specific to the controller and action, use it
     ca_name = "v_#{params[:controller].parameterize.dasherize}_#{params[:action].parameterize.dasherize}"

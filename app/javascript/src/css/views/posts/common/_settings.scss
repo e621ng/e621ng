@@ -1,6 +1,6 @@
-@use "utilities/standard_variables" as std;
-@use "themes/theme";
-@use "utilities/viewport";
+@use "utility/std";
+@use "utility/theme";
+@use "utility/viewport";
 
 @use "core/standard/toggle";
 @use "core/standard/toggle-radio";
@@ -17,14 +17,14 @@
   right: 0.25rem;
   z-index: 11; // above posts and labels
 
-  background: theme.value("color-section");
+  background: theme.color("section");
   padding: 0.5rem;
   line-height: 1rem;
   @include std.radius;
 
   min-width: 16rem;
   box-shadow: 1px 1px 4px 0px #0006;
-  border: 1px solid theme.value("color-section-darken-5");
+  border: 1px solid theme.color("section-darken-5");
 
   h3 {
     margin-bottom: 0.25rem;

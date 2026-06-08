@@ -1,4 +1,4 @@
-@use "themes/theme";
+@use "utility/theme";
 
 
 
@@ -118,9 +118,9 @@
       line-height: 1rem;
       padding: 0.25rem 0;
 
-      color: theme.value("color-link");
+      color: theme.color("link");
       &:hover, &:focus {
-        color: theme.value("color-link-hover");
+        color: theme.color("link-hover");
       }
     }
 

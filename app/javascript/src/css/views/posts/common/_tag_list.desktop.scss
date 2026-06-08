@@ -1,6 +1,6 @@
-@use "utilities/standard_variables" as std;
-@use "themes/theme";
-@use "utilities/viewport";
+@use "utility/std";
+@use "utility/theme";
+@use "utility/viewport";
 
 @include viewport.larger-than(50rem) {
   h5.tag-list-header {
@@ -71,8 +71,8 @@
 
     li.blacklisted {
       .tag-list-quick-blacklist svg {
-        color: theme.value("color-text-muted");
-        &:hover { color: theme.value("color-link-hover"); }
+        color: theme.color("text-muted");
+        &:hover { color: theme.color("link-hover"); }
         .line { color: transparent; }
       }
     }

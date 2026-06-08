@@ -1,8 +1,8 @@
-@use "themes/theme";
-@use "utilities/viewport";
+@use "utility/theme";
+@use "utility/viewport";
 
 .comment-post-grid {
-  background: theme.value("color-section");
+  background: theme.color("section");
   display: grid;
   grid-template-rows: 1fr;
   grid-template-columns: 165px 1fr;
@@ -11,7 +11,7 @@
     padding: 0.25rem 0.5rem;
     grid-column: 1;
     grid-row: 1;
-    background: theme.value("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     word-wrap: anywhere;
     overflow-wrap: anywhere;
 

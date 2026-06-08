@@ -1,5 +1,5 @@
-@use "utilities/viewport";
-@use "themes/theme";
+@use "utility/viewport";
+@use "utility/theme";
 
 
 @include viewport.desktop {
@@ -10,14 +10,14 @@
       position: sticky;
       top: 0;
 
-      background: theme.value("color-foreground");
+      background: theme.color("foreground");
       border-radius: 0.25rem;
 
       // on top of thumbnail labels
       z-index: 11;
 
       #search-sticky {
-        background: theme.value("color-button-active");
+        background: theme.color("button-active");
         color: black;
       }
     }

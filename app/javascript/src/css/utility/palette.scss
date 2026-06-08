@@ -1,0 +1,19 @@
+// Helper function
+@function value($key) {
+  @return var(--palette-#{$key});
+}
+
+@function background($key) {
+  @return value("background-#{$key}");
+}
+
+@function text($key) {
+  @return value("text-#{$key}");
+}
+
+@function plain($key) {
+  @return value("plain-#{$key}");
+}
+
+// Element-specific
+$background-article-hidden: background("red");

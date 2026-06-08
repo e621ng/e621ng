@@ -1,7 +1,7 @@
-@use "utilities/standard_variables" as std;
-@use "themes/theme";
-@use "themes/palette" as palette;
-@use "core/fonts" as fonts;
+@use "utility/std";
+@use "utility/theme";
+@use "utility/palette" as palette;
+@use "utility/font";
 
 // Radio toggle
 .stm-toggle {
@@ -13,10 +13,10 @@
     display: flex;
     gap: 0.25rem;
 
-    background: theme.value("color-section-darken-5");
+    background: theme.color("section-darken-5");
     padding: 0.25rem 0.5rem;
 
-    font-family: fonts.$roboto;
+    font-family: font.$roboto;
     font-weight: normal;
     line-height: 1rem;
     font-size: 1rem;
@@ -33,8 +33,8 @@
     }
   }
   input[type="radio"]:checked + label {
-    background: theme.value("color-link-active");
-    color: palette.value("plain-black");
+    background: theme.color("link-active");
+    color: palette.plain("black");
     @include std.radius;
   }
 }

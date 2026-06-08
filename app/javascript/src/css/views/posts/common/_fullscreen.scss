@@ -1,5 +1,5 @@
-@use "utilities/viewport";
-@use "themes/theme";
+@use "utility/viewport";
+@use "utility/theme";
 
 // Fullscreen mode
 // Only relevant on desktop
@@ -24,7 +24,7 @@
         .post-search { width: 100%; }
 
         #search-fullscreen {
-          background: theme.value("color-button-active");
+          background: theme.color("button-active");
           color: black;
         }
 

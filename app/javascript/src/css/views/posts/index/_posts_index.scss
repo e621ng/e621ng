@@ -1,5 +1,5 @@
-@use "core/fonts";
-@use "themes/theme";
+@use "utility/font";
+@use "utility/theme";
 
 body.c-posts.a-index,
 body.c-posts.a-recommended,
@@ -7,7 +7,7 @@ body.c-favorites.a-index {
   #page {
     // Override the theme to instead
     // project it upon the content area
-    background: theme.value("color-foreground");
+    background: theme.color("foreground");
     padding: 0;
   }
 
@@ -41,7 +41,7 @@ body.c-favorites.a-index {
     grid-area: search;
 
     padding: 0.5rem 0.25rem;
-    box-shadow: inset 0px -0.25rem 0.25rem -0.25rem theme.value("color-background");
+    box-shadow: inset 0px -0.25rem 0.25rem -0.25rem theme.color("background");
 
     h1 {
       font-size: 1.7em;
@@ -63,7 +63,7 @@ body.c-favorites.a-index {
       padding: 0.25rem;
       gap: 0.5rem;
 
-      background: theme.value("color-foreground");
+      background: theme.color("foreground");
       border-radius: 0 0 0.25rem 0.25rem;
 
       #search-fullscreen { display: none; }
@@ -98,7 +98,7 @@ body.c-favorites.a-index {
     // Imported from #page
     padding: 0.5rem 0.25rem theme.value("content-padding-bottom");
     background-color: #152f56;
-    background-color: theme.value("color-foreground");
+    background-color: theme.color("foreground");
     background-image: theme.value("image-foreground");
     background-position: theme.value("image-foreground-position");
     background-repeat: theme.value("image-foreground-repeat");
@@ -129,7 +129,7 @@ body.c-favorites.a-index {
     gap: 1em;
 
     padding: 0.5rem .75rem theme.value("content-padding-bottom");
-    box-shadow: inset 0px 0.25rem 0.25rem -0.25rem theme.value("color-background");
+    box-shadow: inset 0px 0.25rem 0.25rem -0.25rem theme.color("background");
 
     #mode-box label {
       font-size: 1.16667em;
@@ -142,8 +142,7 @@ body.c-favorites.a-index {
 
       // Match the searchbox
       padding: 0.5em;
-      font-family: fonts.$base
-      ;
+      font-family: font.$base;
       font-size: 1.05em;
     }
   }

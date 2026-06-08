@@ -1,8 +1,8 @@
-@use "themes/theme";
-@use "utilities/viewport";
+@use "utility/theme";
+@use "utility/viewport";
 
 footer.footer-wrapper {
-  background: theme.value("color-foreground");
+  background: theme.color("foreground");
   margin-top: 1rem;
 
   .footer-grid {
@@ -31,7 +31,7 @@ footer.footer-wrapper {
       // Aligning the logo with the line below
       margin-right: -3.25rem;
 
-      background: theme.value("color-background") theme.value("image-background");
+      background: theme.color("background") theme.value("image-background");
       border-radius: 25%;
       padding: 0.5rem;
     }
@@ -55,7 +55,7 @@ footer.footer-wrapper {
     padding-right: 1rem;
 
     text-align: right;
-    border-right: 1px solid theme.value("color-section-lighten-5");
+    border-right: 1px solid theme.color("section-lighten-5");
   }
   .footer-right {
     grid-area: right;

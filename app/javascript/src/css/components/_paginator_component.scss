@@ -1,13 +1,13 @@
-@use "utilities/viewport";
-@use "utilities/standard_variables" as std;
-@use "themes/theme";
+@use "utility/viewport";
+@use "utility/std";
+@use "utility/theme";
 
 nav.pagination {
   display: flex;
   flex-wrap: wrap;
 
   justify-content: space-evenly;
-  background-color: theme.value("color-foreground");
+  background-color: theme.color("foreground");
   @include std.radius;
 
   width: max-content;
@@ -28,7 +28,7 @@ nav.pagination {
     @include std.radius;
 
     &:hover {
-      background: theme.value("color-section");
+      background: theme.color("section");
     }
   }
 

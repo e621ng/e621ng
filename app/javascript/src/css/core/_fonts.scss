@@ -1,21 +1,13 @@
-$base: Verdana, Geneva, sans-serif;
-
-$lato: "Lato", $base;
-$lexend: "Lexend", $base;
-$monospace: monospace, monospace;
-$openDyslexic: "OpenDyslexic", $base;
-$openSans: "OpenSans", $base;
-$comicSans: "Comic Sans MS", "Comic Sans", cursive;
-$roboto: "Roboto", $base;
+@use "utility/font";
 
 // Picker
 body {
-  &[data-th-font="Lato"] { font-family: $lato; }
-  &[data-th-font="Lexend"] { font-family: $lexend; }
-  &[data-th-font="Monospace"] { font-family: $monospace; }
-  &[data-th-font="OpenDyslexic"] { font-family: $openDyslexic; }
-  &[data-th-font="OpenSans"] { font-family: $openSans; }
-  &[data-th-font="ComicSans"] { font-family: $comicSans; }
+  &[data-th-font="Lato"] { font-family: font.$lato; }
+  &[data-th-font="Lexend"] { font-family: font.$lexend; }
+  &[data-th-font="Monospace"] { font-family: font.$monospace; }
+  &[data-th-font="OpenDyslexic"] { font-family: font.$openDyslexic; }
+  &[data-th-font="OpenSans"] { font-family: font.$openSans; }
+  &[data-th-font="ComicSans"] { font-family: font.$comicSans; }
 }
 
 /** Font Definitions **/

@@ -1,5 +1,5 @@
-@use "utilities/viewport";
-@use "core/fonts";
+@use "utility/viewport";
+@use "utility/font";
 
 // Searchbar
 .post-search {
@@ -35,7 +35,7 @@
     textarea {
 
       // Override default texarea styles
-      font-family: fonts.$base;
+      font-family: font.$base;
       font-size: 1rem;
       line-height: 1rem;
       padding: 0.5rem 0 0.5rem 0.5rem;

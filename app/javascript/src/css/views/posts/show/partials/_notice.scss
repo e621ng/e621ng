@@ -1,5 +1,5 @@
-@use "themes/theme";
-@use "utilities/standard_variables" as std;
+@use "utility/theme";
+@use "utility/std";
 
 // Notice me, senpai
 
@@ -22,15 +22,15 @@ div.notice {
   &.notice-child,
   &.notice-pending,
   &.notice-resized {
-    background-color: theme.value("color-section");
-    border: 1px solid theme.value("color-foreground");
+    background-color: theme.color("section");
+    border: 1px solid theme.color("foreground");
   }
 
   &.notice-no-shortcuts,
   &.notice-flagged,
   &.notice-deleted {
-    background-color: theme.value("color-danger-darken-10");
-    border: 1px solid theme.value("color-foreground");
+    background-color: theme.color("danger-darken-10");
+    border: 1px solid theme.color("foreground");
   }
 
   .delete-with-reason-link[data-move-favs="true"] {
@@ -44,7 +44,7 @@ div.notice {
       font-size: 0.75rem;
       bottom: -0.75rem;
       line-height: 0.75rem;
-      color: theme.value("color-text-muted");
+      color: theme.color("text-muted");
       right: 0;
       text-align: center;
       pointer-events: none;
@@ -66,7 +66,7 @@ div.nav-notice {
   gap: 0.125rem;
 
   margin-bottom: 0.5rem;
-  background-color: theme.value("color-section");
+  background-color: theme.color("section");
   position: relative;
 
   p {
@@ -76,7 +76,7 @@ div.nav-notice {
 }
 
 .nav-block {
-  background: theme.value("color-section");
+  background: theme.color("section");
 
   li {
     display: flex;
@@ -95,7 +95,7 @@ div.nav-notice {
     }
 
     a.nav-link:hover {
-      background: theme.value("color-section-lighten-5");
+      background: theme.color("section-lighten-5");
     }
 
     span.nav-name {
