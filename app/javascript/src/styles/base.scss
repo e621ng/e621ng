@@ -48,6 +48,7 @@
 @import "views/artists/artists";
 @import "views/auths/auths";
 @import "views/automod_rules/automod_rules";
+@import "views/bans/bans";
 @import "views/forum_posts/forum_posts";
 @import "views/help/help";
 @import "views/maintenance/maintenance";
@@ -67,7 +68,6 @@
 @import "specific/api_keys.scss";
 @import "specific/artists.scss";
 @import "specific/avoid_posting.scss";
-@import "specific/bans.scss";
 @import "specific/blips.scss";
 @import "specific/comments.scss";
 @import "specific/destroyed_posts.scss";

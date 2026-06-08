@@ -1,0 +1,83 @@
+#c-bans #a-new,
+#c-bans #a-edit {
+  #ban_user_name {
+    font-size: 1rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .ban-duration {
+    margin-bottom: 0;
+
+    &-preset-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.5rem;
+
+      input[type="radio"] { display: none; }
+      input[type="radio"]:checked + label.ban-duration-preset {
+        background: themed("color-link-active");
+        color: palette("plain-black");
+      }
+    }
+
+    &-preset {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.75rem;
+      background: themed("color-section-lighten-5");
+      box-shadow: 0 0 0.5rem -0.25rem themed("color-section-darken-5");
+      @include st-radius;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #ban_duration_custom_input {
+      width: 8rem;
+      &.hidden { display: none; }
+    }
+  }
+
+  .ban-applies {
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
+  }
+
+  label.ban-applies-toggle {
+    display: flex;
+    gap: 2rem;
+    width: max-content;
+    align-items: center;
+    padding: 0.5rem;
+    min-width: 15rem;
+
+    background: themed("color-section-lighten-5");
+    box-shadow: 0 0 0.5rem -0.25rem themed("color-section-darken-5");
+    @include st-radius;
+    user-select: none;
+    cursor: pointer;
+
+    .st-toggle { margin-left: auto; }
+  }
+}
+
+#c-bans #a-index {
+  tr[data-expired="true"] {
+    background-color: $positive-record-background;
+
+    &:hover {
+      background-color: darken($positive-record-background, 5%);
+    }
+  }
+
+  tr[data-expired="false"] {
+    background-color: $negative-record-background;
+
+    &:hover {
+      background-color: darken($negative-record-background, 5%);
+    }
+  }
+}

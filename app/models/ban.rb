@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class Ban < ApplicationRecord
-  attr_accessor :is_permaban
-
   include Danbooru::HasBitFlags
   has_bit_flags %w[prevent_login], field: "ban_flags"
 
@@ -21,7 +19,6 @@ class Ban < ApplicationRecord
   validate :user_is_inferior
   validates :user_id, :reason, :duration, presence: true
   before_validation :initialize_banner_id, :on => :create
-  before_validation :initialize_permaban, on: [:update, :create]
 
   scope :unexpired, -> { where("bans.expires_at > ? OR bans.expires_at IS NULL", Time.now) }
   scope :expired, -> { where("bans.expires_at IS NOT NULL").where("bans.expires_at <= ?", Time.now) }
@@ -59,12 +56,6 @@ class Ban < ApplicationRecord
 
   def initialize_banner_id
     self.banner_id = CurrentUser.id if self.banner_id.blank?
-  end
-
-  def initialize_permaban
-    if is_permaban == "1"
-      self.duration = -1
-    end
   end
 
   def user_is_inferior
@@ -121,7 +112,10 @@ class Ban < ApplicationRecord
   end
 
   def duration
-    @duration
+    return @duration if @duration
+    return -1 if persisted? && expires_at.nil?
+    return nil unless persisted?
+    ((expires_at - Time.now) / 1.day).ceil
   end
 
   def humanized_duration

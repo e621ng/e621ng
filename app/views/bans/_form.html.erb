@@ -3,9 +3,67 @@
   <% if ban.new_record? %>
     <%= f.input :user_name, :as => :string, autocomplete: "user" %>
   <% end %>
-  <%= f.input :duration, :hint => "in days" %>
-  <%= f.input :is_permaban, as: :boolean, hint: 'ignores days' %>
-  <%= f.input :prevent_login, as: :boolean, hint: 'Check this to lock the user out of the site entirely. Use for underage users or extreme cases.' %>
+
+  <% preset_durations = [[1, "1 Day"], [7, "7 Days"], [14, "14 Days"], [-1, "Permanent"]] %>
+  <% preset_values = preset_durations.map(&:first) %>
+  <% is_custom = ban.duration.present? && preset_values.exclude?(ban.duration) %>
+
+  <fieldset class="ban-duration">
+    <label for="ban_duration_custom_input">Duration</label>
+    <div class="ban-duration-preset-list">
+      <% preset_durations.each do |value, label| %>
+        <input
+          type="radio"
+          value="<%= value %>"
+          name="ban_preset"
+          id="ban_duration_<%= value %>"
+          <%= "checked" if ban.duration == value %>
+        />
+        <label
+          class="ban-duration-preset"
+          for="ban_duration_<%= value %>"
+        ><%= label %></label>
+      <% end %>
+      <input
+        type="radio"
+        value="custom"
+        name="ban_preset"
+        id="ban_duration_preset_custom"
+        <%= "checked" if is_custom %>
+      />
+      <label
+        class="ban-duration-preset"
+        for="ban_duration_preset_custom"
+      >Custom</label>
+    </div>
+
+    <div class="input">
+      <input
+        type="number"
+        name="ban[duration]"
+        id="ban_duration_custom_input"
+        placeholder="Days"
+        value="<%= ban.duration %>"
+        class="<%= "hidden" unless is_custom %>"
+      />
+    </div>
+  </fieldset>
+  <noscript>
+    <style type="text/css">
+      .ban-duration-preset-list { display: none !important; }
+      #ban_duration_custom_input { display: block !important; }
+    </style>
+  </noscript>
+
+  <div class="ban-applies">
+    <label for="ban_prevent_login" class="ban-applies-toggle">
+      <span>Prevent Login</span>
+      <%= f.input_field :prevent_login, as: :boolean, class: "st-toggle" %>
+      <%= f.label :prevent_login, "!", class: "st-toggle", role: "switch" %>
+    </label>
+  </div>
+  <br />
+
   <%= f.input :reason, as: :dtext, allow_color: false %>
   <%= f.button :submit, :value => "Ban" %>
 <% end %>
