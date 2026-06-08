@@ -1,7 +1,7 @@
-@use "../../../utilities/standard_variables" as std;
-@use "../../../themes/theme";
-@use "../../../themes/palette";
-@use "../../../utilities/tag_categories";
+@use "utilities/standard_variables" as std;
+@use "themes/theme";
+@use "themes/palette";
+@use "utilities/tag_categories";
 
 h5.tag-list-header {
   font-size: 1.25rem;

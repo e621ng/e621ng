@@ -1,5 +1,5 @@
 @use "sass:color";
-@use "../../../themes/palette";
+@use "themes/palette";
 
 $modes: (
   "edit": palette.value("background-yellow"),

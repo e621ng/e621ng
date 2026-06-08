@@ -1,17 +1,18 @@
-@use "../src/css/core/reset";
-@use "../src/css/core/base";
+@use "core/reset";
+@use "core/base";
 
-@use "../src/css/core/avatar";
-@use "../src/css/core/blacklist";
-@use "../src/css/core/dialog";
-@use "../src/css/core/fonts";
-@use "../src/css/core/footer";
-@use "../src/css/core/forms";
-@use "../src/css/core/layout";
-@use "../src/css/core/links";
-@use "../src/css/core/logos";
-@use "../src/css/core/navigation";
+@use "core/avatar";
+@use "core/blacklist";
+@use "core/dialog";
+@use "core/dtext";
+@use "core/fonts";
+@use "core/footer";
+@use "core/forms";
+@use "core/layout";
+@use "core/links";
+@use "core/logos";
+@use "core/navigation";
 
-@use "../src/css/core/standard/button";
+@use "core/standard/button";
 
-@use "../src/css/components/paginator_component.scss";
+@use "components/paginator_component";

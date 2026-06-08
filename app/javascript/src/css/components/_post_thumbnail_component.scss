@@ -1,7 +1,7 @@
-@use "../utilities/viewport";
-@use "../utilities/standard_variables" as std;
-@use "../themes/theme";
-@use "../themes/palette" as palette;
+@use "utilities/viewport";
+@use "utilities/standard_variables" as std;
+@use "themes/theme";
+@use "themes/palette" as palette;
 
 $image-size: var(--thumb-image-size, 150px);
 $image-min: var(--thumb-image-min, 135px);

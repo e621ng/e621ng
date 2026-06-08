@@ -1,0 +1,21 @@
+@use "utilities/viewport";
+@use "themes/theme";
+
+.source-link {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90vw;
+
+  @include viewport.desktop {
+    &:hover {
+      a, s { background: theme.value("color-background"); }
+      z-index: 2;
+      overflow: visible;
+      position: relative;
+      max-width: unset;
+    }
+  }
+
+  .source-invalid { color: theme.value("color-text-red"); }
+}

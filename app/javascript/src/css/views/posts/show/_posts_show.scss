@@ -1,6 +1,8 @@
-@use "../../../themes/theme";
-@use "../../../utilities/standard_variables" as std;
-@use "../../../core/fonts";
+@use "themes/theme";
+@use "utilities/standard_variables" as std;
+@use "core/fonts";
+
+@use "snippets/source_link";
 
 body.c-posts.a-show,
 body.c-posts.a-show-seq {

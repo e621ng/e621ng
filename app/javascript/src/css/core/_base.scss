@@ -1,5 +1,5 @@
-@use "../themes/theme";
-@use "./fonts" as fonts;
+@use "themes/theme";
+@use "core/fonts" as fonts;
 
 body {
   color: #ffffff; // Fallback for browsers that don't support CSS variables

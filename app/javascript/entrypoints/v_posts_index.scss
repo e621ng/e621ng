@@ -1,9 +1,9 @@
 @use "application";
 @use "v_posts";
 
-@use "../src/css/views/posts/index/posts_index" as posts_index;
-@use "../src/css/views/posts/index/posts_index.desktop" as posts_index_desktop;
+@use "views/posts/index/posts_index" as posts_index;
+@use "views/posts/index/posts_index.desktop" as posts_index_desktop;
 
-@use "../src/css/views/posts/index/mode_menu";
-@use "../src/css/views/posts/index/wiki_excerpt";
-@use "../src/css/views/posts/index/stats";
+@use "views/posts/index/mode_menu";
+@use "views/posts/index/wiki_excerpt";
+@use "views/posts/index/stats";

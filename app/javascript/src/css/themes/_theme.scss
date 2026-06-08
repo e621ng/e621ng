@@ -1,22 +1,19 @@
-@use "../themes/theme_hexagon";
-@use "../themes/theme_pony";
-@use "../themes/theme_bloodlust";
-@use "../themes/theme_serpent";
-@use "../themes/theme_hotdog";
+@use "theme_hexagon";
+@use "theme_pony";
+@use "theme_bloodlust";
+@use "theme_serpent";
+@use "theme_hotdog";
 
-@use "../themes/palette_deutranomaly";
-@use "../themes/palette_tritanomaly";
-
-@use "../themes/extra_none";
-@use "../themes/extra_autumn";
-@use "../themes/extra_winter";
-@use "../themes/extra_spring";
-@use "../themes/extra_fennec";
-@use "../themes/extra_aurora";
-@use "../themes/extra_hexagons";
-@use "../themes/extra_space";
-@use "../themes/extra_stars";
-@use "../themes/extra_scales";
+@use "extra_none";
+@use "extra_autumn";
+@use "extra_winter";
+@use "extra_spring";
+@use "extra_fennec";
+@use "extra_aurora";
+@use "extra_hexagons";
+@use "extra_space";
+@use "extra_stars";
+@use "extra_scales";
 
 @function value($key, $default: "") {
   @if $default != "" {

@@ -1,7 +1,7 @@
-@use "../../utilities/standard_variables" as std;
-@use "../../themes/theme";
-@use "../../themes/palette" as palette;
-@use "../fonts" as fonts;
+@use "utilities/standard_variables" as std;
+@use "themes/theme";
+@use "themes/palette" as palette;
+@use "core/fonts" as fonts;
 
 // Standard button
 // Could be applied to either a button or a link

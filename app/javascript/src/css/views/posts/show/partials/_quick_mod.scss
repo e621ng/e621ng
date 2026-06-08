@@ -1,0 +1,27 @@
+@use "themes/theme";
+
+#pending-approval-notice {
+  .notice-pending-toolbar { display: none; }
+
+  &.enabled {
+    .notice-pending-status { display: none; }
+    .notice-pending-toolbar { display: block; }
+  }
+}
+
+div.quick-mod {
+
+  .quick-mod-group {
+    display: flex;
+    color: theme.value("color-text-muted");
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0.25em 0;
+
+    a { text-wrap: nowrap; }
+  }
+
+  .btn-important {
+    font-weight: 700;
+  }
+}

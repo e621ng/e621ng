@@ -1,14 +1,17 @@
+@use "themes/theme";
+@use "utilities/viewport";
+
 .comment-post-grid {
-  background: themed("color-section");
+  background: theme.value("color-section");
   display: grid;
   grid-template-rows: 1fr;
   grid-template-columns: 165px 1fr;
 
   .author-info {
-    padding: $padding-025 $padding-050;
+    padding: 0.25rem 0.5rem;
     grid-column: 1;
     grid-row: 1;
-    background: $lighten-background-5;
+    background: theme.value("color-section-lighten-5");
     word-wrap: anywhere;
     overflow-wrap: anywhere;
 
@@ -19,7 +22,7 @@
   .content {
     grid-column: 2;
     grid-row: 1;
-    padding: $padding-025 $padding-050;
+    padding: 0.25rem 0.5rem;
 
     .content-menu { margin-top: 1rem; }
   }
@@ -44,7 +47,7 @@
         display: grid;
         grid-template-columns: auto 1fr;
         grid-template-rows: auto auto 1fr;
-        grid-column-gap: $padding-050;
+        grid-column-gap: 0.5rem;
 
         .name-rank {
           grid-column: 2;

@@ -1,6 +1,6 @@
-@use "../../../../utilities/viewport";
-@use "../../../../themes/theme";
-@use "../../../../utilities/standard_variables" as std;
+@use "utilities/viewport";
+@use "themes/theme";
+@use "utilities/standard_variables" as std;
 
 div#post-recommendations {
   display: grid;

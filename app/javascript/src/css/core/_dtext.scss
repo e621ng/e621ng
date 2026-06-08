@@ -1,3 +1,8 @@
+@use "themes/theme";
+@use "utilities/viewport";
+@use "utilities/standard_variables" as std;
+@use "utilities/tag_categories";
+
 .dtext-container {
   overflow: hidden;
   word-wrap: anywhere;
@@ -9,13 +14,11 @@
   line-height: 1.25rem;
   word-break: break-word;
 
-  @include window-larger-than(800px) {
+  @include viewport.desktop {
     font-size: 0.9rem;
   }
 
-  p {
-    line-height: inherit;
-  }
+  p { line-height: inherit; }
 
   .inline-code {
     font-family: monospace;
@@ -24,19 +27,15 @@
 
     padding: 0rem 0.25rem;
     border: 1px solid rgba(0, 0, 0, 0.2);
-    @include st-radius;
+    @include std.radius;
   }
 
   div.spoiler, details, pre, blockquote, ul {
-    margin-bottom: 0.75em;
+    margin-bottom: 0.75rem;
   }
 
-  pre, blockquote {
-    padding: $padding-025;
-  }
-
-  details {
-    padding: $padding-050;
+  pre, blockquote, details {
+    @include std.padding;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -48,36 +47,16 @@
     }
   }
 
-  h1 {
-    font-size: $dtext_h1_size;
-  }
-
-  h2 {
-    font-size: $dtext_h2_size;
-  }
-
-  h3 {
-    font-size: $dtext_h3_size;
-  }
-
-  h4 {
-    font-size: $dtext_h4_size;
-  }
-
-  h5 {
-    font-size: $dtext_h5_size;
-  }
-
-  h6 {
-    font-size: $dtext_h6_size;
-  }
+  h1 { font-size: 2em; }
+  h2 { font-size: 1.8em; }
+  h3 { font-size: 1.6em; }
+  h4 { font-size: 1.4em; }
+  h5 { font-size: 1.2em; }
+  h6 { font-size: 1em; }
 
   ul {
     margin-left: 1em;
-
-    ul {
-      margin-bottom: 0;
-    }
+    ul { margin-bottom: 0; }
   }
 
   li {
@@ -117,7 +96,7 @@
     height: 0.8em;
     margin: 0 0.2em;
 
-    background-color: themed("color-text-muted");
+    background-color: theme.value("color-text-muted");
     mask-image: $mask-url;
     -webkit-mask-image: $mask-url;
     mask-size: contain;
@@ -129,31 +108,31 @@
   }
 
   details, pre, blockquote {
-    border-radius: $border-radius-half;
-    border: 1px solid themed("color-section");
-    border-left: 0.25rem solid themed("color-danger");
-    background: themed("color-section-lighten-5");
+    border-radius: 0.25rem;
+    border: 1px solid theme.value("color-section");
+    border-left: 0.25rem solid theme.value("color-danger");
+    background: theme.value("color-section-lighten-5");
   }
 
   pre {
-    border-left-color: themed("color-dtext-code");
+    border-left-color: theme.value("color-dtext-code");
   }
 
   blockquote {
-    border-left-color: themed("color-dtext-quote");
+    border-left-color: theme.value("color-dtext-quote");
   }
 
   details {
-    border-left-color: themed("color-dtext-section");
+    border-left-color: theme.value("color-dtext-section");
   }
 
-  @each $tag-category, $tag-category-name in $tag-categories-short {
+  @each $tag-category, $tag-category-name in tag_categories.$short {
     .dtext-color-#{$tag-category} {
-      color: themed("color-tag-#{$tag-category-name}");
+      color: theme.value("color-tag-#{$tag-category-name}");
     }
 
     .dtext-color-#{$tag-category-name} {
-      color: themed("color-tag-#{$tag-category-name}");
+      color: theme.value("color-tag-#{$tag-category-name}");
     }
   }
 }

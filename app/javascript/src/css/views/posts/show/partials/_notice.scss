@@ -1,0 +1,117 @@
+@use "themes/theme";
+@use "utilities/standard_variables" as std;
+
+// Notice me, senpai
+
+div.notice {
+  @include std.radius;
+  @include std.padding;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+
+  ul { margin-left: 1rem; }
+
+  p { margin: 0; }
+
+  .resolved {
+    margin-left: 0.5rem;
+    font-weight: bold;
+  }
+
+  &.notice-parent,
+  &.notice-child,
+  &.notice-pending,
+  &.notice-resized {
+    background-color: theme.value("color-section");
+    border: 1px solid theme.value("color-foreground");
+  }
+
+  &.notice-no-shortcuts,
+  &.notice-flagged,
+  &.notice-deleted {
+    background-color: theme.value("color-danger-darken-10");
+    border: 1px solid theme.value("color-foreground");
+  }
+
+  .delete-with-reason-link[data-move-favs="true"] {
+    position: relative;
+    margin-bottom: 0.75rem;
+
+    &::after {
+      content: "+ transfer favorites to parent post";
+      position: absolute;
+      left: 0;
+      font-size: 0.75rem;
+      bottom: -0.75rem;
+      line-height: 0.75rem;
+      color: theme.value("color-text-muted");
+      right: 0;
+      text-align: center;
+      pointer-events: none;
+    }
+  }
+
+  &.notice-flagged, &.notice-deleted, &.notice-pending {
+    .button {
+      font-size: 1.25rem;
+      line-height: 1.5rem;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+}
+
+div.nav-notice {
+  display: flex;
+  flex-flow: column;
+  gap: 0.125rem;
+
+  margin-bottom: 0.5rem;
+  background-color: theme.value("color-section");
+  position: relative;
+
+  p {
+    margin: 0;
+    text-align: center;
+  }
+}
+
+.nav-block {
+  background: theme.value("color-section");
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5em;
+
+    .nav-link {
+      flex-shrink: 2;
+      padding: 0.5em;
+
+      svg {
+        vertical-align: bottom;
+        stroke-width: 3;
+      }
+    }
+
+    a.nav-link:hover {
+      background: theme.value("color-section-lighten-5");
+    }
+
+    span.nav-name {
+      flex-grow: 2;
+      text-align: center;
+
+      // Prevent the contents from overflowing
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      width: 0;
+
+      svg {
+        stroke-width: 3;
+        vertical-align: bottom;
+      }
+    }
+  }
+}

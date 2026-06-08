@@ -1,5 +1,5 @@
-@use "../themes/theme";
-@use "../utilities/viewport";
+@use "themes/theme";
+@use "utilities/viewport";
 
 footer.footer-wrapper {
   background: theme.value("color-foreground");

@@ -1,42 +1,4 @@
-div.comments-for-post {
-  div.notices {
-    margin: 1em 0;
-  }
 
-  div.list-of-comments {
-    article.comment {
-      border-radius: $border-radius-half;
-      margin-bottom: $padding-050;
-
-      &:target {
-        background-color: $comment-highlight-background;
-      }
-
-      &[data-is-sticky="true"] {
-        background: themed("color-section-lighten-10");
-      }
-
-      &[data-is-deleted="true"] {
-        background: $background-article-hidden;
-      }
-
-      div.content {
-        .comment-vote-up-link:hover, .comment-vote-down-link:hover {
-          background-color: $comment-vote-background;
-          border-radius: $border-radius-half;
-        }
-      }
-    }
-
-    article.comment.below-threshold:not([data-is-sticky="true"]) {
-      opacity: 0.3;
-    }
-
-    article.comment.below-threshold:hover {
-      opacity: 1.0;
-    }
-  }
-}
 
 
 div#c-comments {

@@ -1,6 +1,6 @@
-@use "../utilities/viewport";
-@use "../utilities/standard_variables" as std;
-@use "../themes/theme";
+@use "utilities/viewport";
+@use "utilities/standard_variables" as std;
+@use "themes/theme";
 
 nav.pagination {
   display: flex;

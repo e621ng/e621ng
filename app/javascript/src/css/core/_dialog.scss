@@ -1,7 +1,7 @@
-@use "../utilities/standard_variables" as std;
-@use "../themes/theme";
-@use "../themes/palette";
-@use "fonts";
+@use "utilities/standard_variables" as std;
+@use "themes/theme";
+@use "themes/palette";
+@use "core/fonts";
 
 #page { position: relative; }
 

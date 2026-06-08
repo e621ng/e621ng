@@ -1,5 +1,8 @@
 @use "sass:color";
 
+@use "palette_deutranomaly";
+@use "palette_tritanomaly";
+
 // Base color palette.
 // These colors should not normally change between
 // themes, but could still be overriden if need be.

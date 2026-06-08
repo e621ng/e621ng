@@ -1,13 +1,20 @@
 @use "application";
 @use "v_posts";
 
-@use "../src/css/views/posts/show/posts_show" as posts_show;
-@use "../src/css/views/posts/show/posts_show.desktop" as posts_show_desktop;
+@use "views/posts/show/posts_show" as posts_show;
+@use "views/posts/show/posts_show.desktop" as posts_show_desktop;
 
-@use "../src/css/views/posts/show/partials/_add_to_pool.scss";
-@use "../src/css/views/posts/show/partials/_detailed_rejection.scss";
-@use "../src/css/views/posts/show/partials/_delete_with_reason.scss";
-@use "../src/css/views/posts/show/partials/_edit_form.scss";
-@use "../src/css/views/posts/show/partials/_notes.scss";
-@use "../src/css/views/posts/show/partials/_post_toolbar.scss";
-@use "../src/css/views/posts/show/partials/_recommended.scss";
+@use "views/posts/show/partials/add_to_pool";
+@use "views/posts/show/partials/comments_for_post";
+@use "views/posts/show/partials/detailed_rejection";
+@use "views/posts/show/partials/delete_with_reason";
+@use "views/posts/show/partials/edit_form";
+@use "views/posts/show/partials/embedded";
+@use "views/posts/show/partials/notice";
+@use "views/posts/show/partials/notes";
+@use "views/posts/show/partials/post_information";
+@use "views/posts/show/partials/post_toolbar";
+@use "views/posts/show/partials/quick_mod";
+@use "views/posts/show/partials/recommended";
+
+@use "views/comments/common/comment";

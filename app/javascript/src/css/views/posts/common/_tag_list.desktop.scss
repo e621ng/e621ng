@@ -1,6 +1,6 @@
-@use "../../../utilities/standard_variables" as std;
-@use "../../../themes/theme";
-@use "../../../utilities/viewport";
+@use "utilities/standard_variables" as std;
+@use "themes/theme";
+@use "utilities/viewport";
 
 @include viewport.larger-than(50rem) {
   h5.tag-list-header {
