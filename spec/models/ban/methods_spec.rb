@@ -17,9 +17,9 @@ RSpec.describe Ban do
 
   describe "methods" do
     # -------------------------------------------------------------------------
-    # #duration= / #duration
+    # #duration=
     # -------------------------------------------------------------------------
-    describe "#duration= and #duration" do
+    describe "#duration=" do
       it "stores a positive duration and sets expires_at to that many days from now" do
         b = Ban.new
         b.duration = 14
@@ -38,6 +38,23 @@ RSpec.describe Ban do
         b = Ban.new
         b.duration = 0
         expect(b.duration).to be_nil
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #duration
+    # -------------------------------------------------------------------------
+    describe "#duration" do
+      it "returns -1 for a persisted permanent ban" do
+        ban = create(:ban, user: subject_user, banner: moderator, duration: -1)
+        ban.reload
+        expect(ban.duration).to eq(-1)
+      end
+
+      it "returns remaining days for a persisted timed ban" do
+        ban = create(:ban, user: subject_user, banner: moderator, duration: 7)
+        ban.reload
+        expect(ban.duration).to be_between(1, 7)
       end
     end
 
