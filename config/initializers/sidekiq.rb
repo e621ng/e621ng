@@ -35,6 +35,11 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
       "class" => "SitemapGeneratorJob",
       "description" => "Generate the sitemap.xml file for search engines",
     },
+    "DbExportJob" => {
+      "cron" => "0 4 * * *", # Every day at 4:00 AM
+      "class" => "DbExportJob",
+      "description" => "Generate the daily public database exports",
+    },
   }
 
   Sidekiq::Cron::Job.load_from_hash schedule

@@ -65,9 +65,9 @@ module Danbooru
       "Anonymous"
     end
 
-    # The path of the daily DB exports. Hidden from the site map if `nil`.
-    def db_export_path
-      "/db_export/"
+    # Whether the daily database exports are enabled. Hidden from the site map if false.
+    def db_export_enabled?
+      false
     end
 
     # Prevent new users from going above 80k while allowing those currently above
