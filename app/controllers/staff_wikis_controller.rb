@@ -13,25 +13,18 @@ class StaffWikisController < ApplicationController
   def show
     @staff_wiki = StaffWiki.find(params[:id])
     @involved_users = @staff_wiki.versions.map(&:updater).uniq
-    respond_with(@staff_wiki)
-  end
-
-  def show_or_new
-    @staff_wiki = StaffWiki.titled(params[:title].to_s)
-    if @staff_wiki.present?
-      @involved_users = @staff_wiki.versions.map(&:updater).uniq
-      redirect_to @staff_wiki
-    else
-      @staff_wiki = StaffWiki.new(title: StaffWiki.normalize_name(params[:title].to_s))
-      respond_with(@staff_wiki)
+    if @staff_wiki.qtype == "user"
+      @user = User.find_by(id: @staff_wiki.related_id)
     end
+
+    respond_with(@staff_wiki)
   end
 
   def search
   end
 
   def new
-    @staff_wiki = StaffWiki.new(staff_wiki_params)
+    @staff_wiki = StaffWiki.new(staff_wiki_params(:create))
     respond_with(@staff_wiki)
   end
 
@@ -41,13 +34,13 @@ class StaffWikisController < ApplicationController
   end
 
   def create
-    @staff_wiki = StaffWiki.create(staff_wiki_params)
+    @staff_wiki = StaffWiki.create(staff_wiki_params(:create))
     respond_with(@staff_wiki)
   end
 
   def update
     @staff_wiki = StaffWiki.find(params[:id])
-    @staff_wiki.update(staff_wiki_params)
+    @staff_wiki.update(staff_wiki_params(:update))
     respond_with(@staff_wiki)
   end
 
@@ -66,10 +59,36 @@ class StaffWikisController < ApplicationController
     respond_with(@staff_wiki)
   end
 
+  def claim
+    @staff_wiki = StaffWiki.find(params[:id])
+    @staff_wiki.update(claimant_id: CurrentUser.id)
+    if @staff_wiki.errors.none?
+      flash[:notice] = "Page was claimed"
+    else
+      flash[:alert] = @staff_wiki.errors.full_messages.join("; ")
+    end
+
+    respond_with(@staff_wiki)
+  end
+
+  def unclaim
+    @staff_wiki = StaffWiki.find(params[:id])
+    @staff_wiki.update(claimant_id: nil)
+    if @staff_wiki.errors.none?
+      flash[:notice] = "Page was unclaimed"
+    else
+      flash[:alert] = @staff_wiki.errors.full_messages.join("; ")
+    end
+
+    respond_with(@staff_wiki)
+  end
+
   private
 
-  def staff_wiki_params
-    params.fetch(:staff_wiki, {}).permit(:title, :body, :edit_reason)
+  def staff_wiki_params(context)
+    permitted_params = %i[title body edit_reason]
+    permitted_params += %i[qtype related_id] if context == :create
+    params.fetch(:staff_wiki, {}).permit(permitted_params)
   end
 
   def search_params

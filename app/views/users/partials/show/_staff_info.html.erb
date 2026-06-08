@@ -84,5 +84,17 @@
         <%= link_to "Clear", clear_avatar_admin_user_path(user), method: :post, data: { confirm: "Are you certain that you want to clear this user's avatar?\nTHIS IS IRREVERSIBLE." } %>
       </span>
     <% end %>
+
+    <div class="staff-wiki-pages" style="grid-column: 1 / -1;">
+      <% if @staff_wiki_pages.present? %>
+        <h4>Investigations</h4>
+        <ul>
+          <% @staff_wiki_pages.each do |page| %>
+            <li><%= link_to page.title, staff_wiki_path(page) %></li>
+          <% end %>
+        </ul>
+      <% end %>
+      <%= link_to "New Investigation", new_staff_wiki_path(staff_wiki: { qtype: "user", related_id: user.id, title: "#{user.name}" }) %>
+    </div>
   </div>
 </div>
