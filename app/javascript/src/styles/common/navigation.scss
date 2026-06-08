@@ -26,7 +26,7 @@ nav.navigation {
       height: 3.5rem;
       width: 4rem;
       margin: 0.125rem;
-  
+
       background-repeat: no-repeat;
       background-size: contain;
       background-position-y: center;
@@ -59,7 +59,7 @@ nav.navigation {
         align-items: center;
         box-sizing: border-box;
         gap: 0.5rem;
-        
+
         height: 2.5rem;
         min-width: 2.5rem;
         line-height: 1.5rem;
@@ -248,7 +248,7 @@ li.notification {
     position: absolute;
     right: 0.2rem;
     top: 1.25rem;
-  
+
     @include window-larger-than(50rem) {
       top: 0.2rem;
     }
@@ -266,7 +266,7 @@ html.nav-toggled {
 
   nav.navigation {
     grid-template-areas:
-      "logo    logo    controls" 
+      "logo    logo    controls"
       "offleft primary secondary "
       "offleft tools   tools     "
       "offleft help    help      "
@@ -304,7 +304,7 @@ html.nav-toggled {
 nav.navigation, html.nav-toggled nav.navigation {
   @include window-larger-than(50rem) {
     grid-template-areas:
-      "logo primary   help      help  controls" 
+      "logo primary   help      help  controls"
       "logo secondary secondary tools controls";
     grid-template-columns: min-content min-content minmax(0, 1fr) min-content 4.25rem;
     grid-template-rows: 1.5rem 1.75rem;
@@ -454,19 +454,6 @@ nav.navigation, html.nav-toggled nav.navigation {
       #nav-toggle { display: none; }
       a { padding: 0; }
     }
-
-    // Icon collapse
-    // Stage 1: discord button
-    .collapse-1 { display: none; }
-    @include window-larger-than(77rem) {
-      .collapse-1 { display: flex; }
-    }
-    
-    // Stage 2: account label
-    .collapse-2 .avatar-name { display: none; }
-    @include window-larger-than(65rem) {
-      .collapse-2 .avatar-name { display: unset; }
-    }
   }
 }
 
@@ -481,38 +468,27 @@ body[data-user-is-anonymous="true"] nav.navigation {
 body.c-static.a-home {
   @include window-larger-than(50rem) {
     nav.navigation {
+      grid-template-areas:
+        "logo primary  help  .     controls"
+        "logo primary  help  tools controls";
 
-      // Center and align the navbar
-      grid-template-areas: "logo primary help controls";
-      grid-template-columns: repeat(4, min-content);
-      justify-content: center;
-
-      // Center AGAIN to get the dropdown
-      // to be where it's supposed to be
-      width: min-content;
-      margin: 0 auto;
-
-      // Remove padding to prevent a scrollbar
-      // at low desktop resolutions
-      padding: 0 0 0.5rem;
-
-      #nav-discord, .nav-secondary, .nav-tools { display: none; }
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        bottom: -2rem;
+        background: linear-gradient(to bottom, themed("color-background"), transparent 5rem);
+        z-index: -1;
+        pointer-events: none;
+      }
     }
 
-    // Match the background colors
-    nav.navigation, menu.nav-logo, menu.nav-secondary, menu.nav-controls {
-      background: unset;
+    menu.nav-secondary {
+      display: none;
     }
+
     menu.nav-tools {
-      background: var(--bg-color);
-    }
-    menu.nav-controls {
-      position: static;
-      height: unset;
-      padding: 0;
-      .avatar-name { background-color: unset; }
-      .avatar-image, .login-image, .avatar-more { display: none; }
-      .simple-avatar-menu { top: 2rem; }
+      border-radius: .25rem;
     }
   }
 
@@ -521,10 +497,10 @@ body.c-static.a-home {
     // since the secondary is empty anyways
     nav.navigation {
       grid-template-areas:
-        "logo logo    controls" 
-        ".    primary primary " 
-        ".    tools   tools   " 
-        ".    help    help    " 
+        "logo logo    controls"
+        ".    primary primary "
+        ".    tools   tools   "
+        ".    help    help    "
         ".    .       . ";
 
       .nav-secondary { display: none; }

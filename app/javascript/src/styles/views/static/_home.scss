@@ -1,13 +1,15 @@
 body.c-static.a-home {
   background: #012e57; // I am certain this was needed for something
   background-color: themed("bg-color", #012e57);
+  position: relative;
 
   #page {
+    display: grid;
+    place-items: center;
     background: none;
     margin: 0 auto;
+    padding: 0;
     width: 100%;
-    max-width: 480px;
-    padding: 0 0.5rem 0.5rem;
     box-sizing: border-box;
   }
 
@@ -16,6 +18,7 @@ body.c-static.a-home {
     flex-flow: column;
     align-items: center;
     gap: 0.5rem;
+    max-width: 470px;
   }
 
 

@@ -3,7 +3,7 @@
 <% avatar_url = UserAvatarUrlCache.get(user) %>
 <a
   href="<%= user_path(user) %>"
-  class="simple-avatar nav-controls-profile collapse-2"
+  class="simple-avatar nav-controls-profile"
   data-user-id="<%= user.id %>"
   data-name="<%= user.name.presence || "<blank>" %>"
   data-has-mail="<%= has_mail %>"

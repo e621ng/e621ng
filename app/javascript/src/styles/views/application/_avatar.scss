@@ -1,6 +1,7 @@
 nav.navigation .simple-avatar {
 
   .avatar-name {
+    color: inherit;
     display: none;
     @include st-radius-left;
   }
@@ -11,6 +12,8 @@ nav.navigation .simple-avatar {
     @include st-radius-left;
     overflow: hidden;
     position: relative;
+    background: themed("color-section");
+    color: inherit;
 
     picture {
       position: absolute;
@@ -24,6 +27,7 @@ nav.navigation .simple-avatar {
     }
 
     &::before {
+      position: absolute;
       content: attr(data-name);
       color: themed("color-background");
       font-weight: bold;
@@ -58,6 +62,15 @@ nav.navigation .simple-avatar {
     border-radius: 50%;
   }
 
+  &.auth-login-link {
+    .avatar-name {
+      display: flex;
+    }
+
+    .avatar-image {
+      @include st-radius-right;
+    }
+  }
 
   // Tablet
   @include window-larger-than(34rem) {
@@ -81,6 +94,7 @@ nav.navigation .simple-avatar {
       width: 3rem;
       margin-top: 0.25rem;
       @include st-radius-left;
+      background: themed("color-foreground");
 
       img {
         height: 3rem;
@@ -96,6 +110,19 @@ nav.navigation .simple-avatar {
       height: 3rem;
       margin-top: 0.25rem;
     }
+
+    &.auth-login-link {
+      .avatar-image {
+        @include st-radius;
+      }
+    }
+  }
+}
+
+// do not show avatar name background if we're on the home page and on desktop layout
+@include window-larger-than(50rem) {
+  body.a-home nav.navigation .simple-avatar .avatar-name {
+    background: none;
   }
 }
 
@@ -168,7 +195,7 @@ nav.navigation .simple-avatar-menu {
   @include window-larger-than(21rem) {
     right: 4.25rem;
   }
-  
+
   // Desktop
   @include window-larger-than(50rem) {
     right: 0;
@@ -198,49 +225,6 @@ nav.navigation .simple-avatar-menu {
   .must-forums { display: var(--display-forums); }
   .must-uploads-favorites-sets { display: var(--display-content-divider); }
   .must-comments-forums { display: var(--display-mentions-divider); }
-}
-
-
-nav.navigation .simple-login {
-
-  .login-name {
-    @include st-radius-left;
-  }
-
-  .login-image {
-    @include st-radius-right;
-    background: themed("color-section");
-  }
-
-  // Desktop
-  @include window-larger-than(50rem) {
-    .login-name {
-      background: none;
-      color: inherit;
-
-      height: 1.5rem;
-      line-height: 1.25rem;
-      font-size: 0.875rem;
-    }
-
-    &:hover, &:active {
-      .login-name { background: none; }
-    }
-
-    .login-image {
-      height: 3rem;
-      width: 3rem;
-      margin-top: 0.25rem;
-      color: inherit;
-      @include st-radius;
-
-      background: themed("color-foreground");
-    }
-
-    &:hover .login-image {
-      background: themed("color-section");
-    }
-  }
 }
 
 
