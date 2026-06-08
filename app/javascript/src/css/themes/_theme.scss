@@ -23,6 +23,10 @@
   }
 }
 
+@function color($key, $default: "") {
+  @return value("color-#{$key}", $default);
+}
+
 @mixin with-theme($key, $value) {
   body[data-th-#{$key}="#{$value}"] {
     @content;

@@ -1,6 +1,10 @@
+@use "utilities/viewport";
+@use "utilities/standard_variables" as std;
+@use "themes/theme";
+
 body.c-static.a-home {
   background: #012e57; // I am certain this was needed for something
-  background-color: themed("bg-color", #012e57);
+  background-color: theme.value("bg-color", #012e57);
   position: relative;
 
   #page {
@@ -24,16 +28,17 @@ body.c-static.a-home {
 
   // Mascots
   .mascot-section {
-    background-image: themed("bg-image");
+    background-image: theme.value("bg-image");
 
     display: flex;
     $mascot-size: 750px;
+    $mascot-bottom-margin: -300px;
     width: min($mascot-size, 100vw);
     height: min($mascot-size, 100vw);
 
     // Position the search form 60% down the image.
     // Extra 0.5rem is needed to clear the flexbox gap.
-    margin-bottom: calc(max(0 - ($mascot-size * 0.4), -40vw) - 0.5rem);
+    margin-bottom: calc(max($mascot-bottom-margin, -40vw) - 0.5rem);
 
     background-size: contain; // Scale the image down with the container
     background-position: center center;
@@ -44,7 +49,7 @@ body.c-static.a-home {
     pointer-events: none;
 
     // Offset for the navbar
-    @include window-larger-than(50rem) { margin-top: -3.75rem; }
+    @include viewport.desktop { margin-top: -3.75rem; }
   }
 
 
@@ -55,7 +60,7 @@ body.c-static.a-home {
     backdrop-filter: blur(8px);
 
     padding: 1rem;
-    @include st-radius;
+    @include std.radius;
     text-align: center;
 
     box-sizing: border-box;
@@ -80,7 +85,7 @@ body.c-static.a-home {
       display: flex;
       padding: 0.5rem;
       border: 0;
-      @include st-radius-left;
+      @include std.radius-l;
 
       background: white;
       color: black;
@@ -98,7 +103,7 @@ body.c-static.a-home {
 
     button[type="submit"] {
       background: white;
-      @include st-radius-right;
+      @include std.radius-r;
       padding: 0 0.5rem;
 
       svg {
@@ -147,7 +152,7 @@ body.c-static.a-home {
     width: 100%;
     z-index: 1;
 
-    @include st-radius-top;
+    @include std.radius-t;
 
     button#mascot-swap {
       margin: -0.5rem;
@@ -164,7 +169,7 @@ body.c-static.a-home {
     width: 100%;
     z-index: 1;
 
-    @include st-radius-bottom;
+    @include std.radius-b;
 
     .home-footer-links {
       margin-top: 0.5rem;
@@ -182,7 +187,7 @@ body.c-static.a-home {
         content: "";
         width: 4px;
         height: 4px;
-        background: var(--color-text);
+        background: theme.color("text");
         border-radius: 2px;
         position: absolute;
         left: 0;
@@ -190,4 +195,53 @@ body.c-static.a-home {
       }
     }
   }
+}
+
+// Tweak for the secondary menu on desktop
+body.c-static.a-home {
+  @include viewport.desktop {
+    nav.navigation {
+      grid-template-areas:
+        "logo primary  help  .     controls"
+        "logo primary  help  tools controls";
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        bottom: -2rem;
+        background: linear-gradient(to bottom, theme.color("background"), transparent 5rem);
+        z-index: -1;
+        pointer-events: none;
+      }
+    }
+
+    menu.nav-secondary {
+      display: none;
+    }
+
+    menu.nav-tools {
+      border-radius: .25rem;
+    }
+  }
+
+  @include viewport.smaller-than(50rem) {
+    // Only show the primary navbar on mobile
+    // since the secondary is empty anyways
+    nav.navigation {
+      grid-template-areas:
+        "logo logo    controls"
+        ".    primary primary "
+        ".    tools   tools   "
+        ".    help    help    "
+        ".    .       . ";
+
+      .nav-secondary { display: none; }
+    }
+  }
+}
+
+body.c-static.a-home .home-section.search-rising-list {
+  padding: 0 0.5rem 0.5rem;
+  &.hidden { padding-bottom: 0; }
 }
