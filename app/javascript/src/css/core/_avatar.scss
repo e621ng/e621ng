@@ -74,7 +74,7 @@ nav.navigation .simple-avatar {
     }
 
     .avatar-image {
-      @include st-radius-right;
+      @include std.radius-r;
     }
   }
 
@@ -85,7 +85,7 @@ nav.navigation .simple-avatar {
   }
 
   // Desktop
-  @include viewport.larger-than(50rem) {
+  @include viewport.desktop {
     .avatar-name {
       background: theme.value("color-background");
       color: inherit;
@@ -99,7 +99,7 @@ nav.navigation .simple-avatar {
       height: 3rem;
       width: 3rem;
       margin-top: 0.25rem;
-      @include st-radius-left;
+      @include std.radius-l;
       background: themed("color-foreground");
 
       img {
@@ -119,14 +119,14 @@ nav.navigation .simple-avatar {
 
     &.auth-login-link {
       .avatar-image {
-        @include st-radius;
+        @include std.radius;
       }
     }
   }
 }
 
 // do not show avatar name background if we're on the home page and on desktop layout
-@include window-larger-than(50rem) {
+@include viewport.desktop {
   body.a-home nav.navigation .simple-avatar .avatar-name {
     background: none;
   }
