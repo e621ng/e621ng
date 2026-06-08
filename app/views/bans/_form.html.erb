@@ -6,7 +6,7 @@
 
   <% preset_durations = [[1, "1 Day"], [7, "7 Days"], [14, "14 Days"], [-1, "Permanent"]] %>
   <% preset_values = preset_durations.map(&:first) %>
-  <% is_custom = ban.duration.present? && !preset_values.include?(ban.duration) %>
+  <% is_custom = ban.duration.present? && preset_values.exclude?(ban.duration) %>
 
   <fieldset class="ban-duration">
     <label for="ban_duration_custom_input">Duration</label>

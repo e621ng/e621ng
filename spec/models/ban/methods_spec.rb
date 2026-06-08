@@ -143,6 +143,5 @@ RSpec.describe Ban do
         expect(ban.prevent_login?).to be(false)
       end
     end
-
   end
 end
