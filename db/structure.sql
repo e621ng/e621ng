@@ -490,7 +490,6 @@ CREATE TABLE public.comment_votes (
 --
 
 CREATE SEQUENCE public.comment_votes_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1778,7 +1777,6 @@ CREATE TABLE public.post_votes (
 --
 
 CREATE SEQUENCE public.post_votes_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
