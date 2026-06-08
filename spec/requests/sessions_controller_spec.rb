@@ -113,6 +113,11 @@ RSpec.describe SessionsController do
       expect(response).to redirect_to(root_path)
     end
 
+    it "does not redirect to an external referer" do
+      delete session_path, headers: { "Referer" => "https://evil.example.com" }
+      expect(response).to redirect_to(root_path)
+    end
+
     it "clears session[:user_id]" do
       delete session_path
       expect(session[:user_id]).to be_nil
