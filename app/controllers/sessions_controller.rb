@@ -28,7 +28,7 @@ class SessionsController < ApplicationController
       RateLimiter.hit("login:#{request.remote_ip}", 6.hours)
       DanbooruLogger.add_attributes("user.login" => "fail")
       respond_to do |fmt|
-        fmt.html { redirect_back(fallback_location: new_session_path, notice: "Username / Password was incorrect.") }
+        fmt.html { redirect_back(fallback_location: new_session_path, allow_other_host: false, notice: "Username / Password was incorrect.") }
         fmt.json { render(json: { error: "Username / Password was incorrect." }, status: 401) }
       end
     end
@@ -38,7 +38,7 @@ class SessionsController < ApplicationController
     session.delete(:user_id)
     cookies.delete(:remember)
     session.delete(:last_authenticated_at)
-    redirect_to(posts_path, notice: "You are now logged out")
+    redirect_back_or_to(root_path, allow_other_host: false, notice: "You are now logged out")
   end
 
   def confirm_password
