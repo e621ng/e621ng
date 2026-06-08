@@ -59,9 +59,9 @@ class PostFlagReasonsController < ApplicationController
   end
 
   def set_ai_flag_reason
-    params = ai_flag_reason_params
+    ai_params = ai_flag_reason_params
 
-    reason = PostFlagReason.by_name(params[:reason].to_s)
+    reason = PostFlagReason.by_name(ai_params[:reason].to_s)
     if reason.blank? || reason.needs_parent_id?
       flash[:alert] = "Flag reason doesn't exist or is not usable for AI flagging"
       redirect_to post_flag_reasons_path
@@ -69,7 +69,7 @@ class PostFlagReasonsController < ApplicationController
     end
 
     ai_flag_was_enabled = Setting.automatic_ai_check?
-    Setting.automatic_ai_check = ActiveModel::Type::Boolean.new.cast(params[:automatic_ai_check])
+    Setting.automatic_ai_check = ActiveModel::Type::Boolean.new.cast(ai_params[:automatic_ai_check])
     ai_flag_enabled = Setting.automatic_ai_check?
 
     Setting.ai_flag_reason = reason.name

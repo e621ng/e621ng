@@ -22,7 +22,7 @@
       </tbody>
     </table>
 
-    <%= custom_form_for(:ai_flag_reason, url: set_ai_flag_reason_post_flag_reasons_path, method: :post, local: true, class: "simple_form") do |f| %>
+    <%= custom_form_for(:ai_flag_reason, url: set_ai_flag_reason_post_flag_reasons_path, method: :post, local: true, id: "ai-flag-reason-form", class: "simple_form") do |f| %>
       <div class="input">
         <%= f.label :automatic_ai_check, "Enable Automatic AI Check" %>
         <%= f.check_box :automatic_ai_check, { checked: Setting.automatic_ai_check? }, "true", "false" %>
