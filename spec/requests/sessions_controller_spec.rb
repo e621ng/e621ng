@@ -103,10 +103,12 @@ RSpec.describe SessionsController do
       make_session(member)
     end
 
-    it "redirects to referer or root_path" do
+    it "redirects to referer when present" do
       delete session_path, headers: { "Referer" => posts_path }
       expect(response).to redirect_to(posts_path)
+    end
 
+    it "redirects to root_path when no referer" do
       delete session_path
       expect(response).to redirect_to(root_path)
     end
