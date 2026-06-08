@@ -492,15 +492,6 @@ module Danbooru
       :staff
     end
 
-    # What reason for the automatically created AI check flag
-    def check_for_ai_content_flag_reason
-      "uploading_guidelines"
-    end
-
-    def auto_flag_ai_posts?
-      true
-    end
-
     def deletion_reasons
       [
         "Inferior version/duplicate of post #%PARENT_ID%",

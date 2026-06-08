@@ -21,6 +21,26 @@
       <%= render partial: "reason_row", collection: @reasons, as: :flag_reason %>
       </tbody>
     </table>
+
+    <%= custom_form_for(:ai_flag_reason, url: set_ai_flag_reason_post_flag_reasons_path, method: :post, local: true, id: "ai-flag-reason-form", class: "simple_form") do |f| %>
+      <div class="input">
+        <%= f.label :automatic_ai_check, "Enable Automatic AI Check" %>
+        <%= f.check_box :automatic_ai_check, { checked: Setting.automatic_ai_check? }, "true", "false" %>
+      </div>
+      <div class="input">
+        <%= f.label :reason, "AI Flag Reason" %>
+        <% usable_flag_reasons = PostFlagReason.for_radio.reject(&:needs_parent_id?) %>
+        <%= f.select :reason,
+          options_for_select(
+            usable_flag_reasons.map { |reason| [reason.name, reason.name] },
+            selected: usable_flag_reasons.any? { |reason| reason.name == Setting.ai_flag_reason } ?
+              Setting.ai_flag_reason : nil),
+          {} %>
+      </div>
+      <div class="actions">
+        <%= f.submit "Save", class: "st-button submit" %>
+      </div>
+    <% end %>
   </div>
 </div>
 
