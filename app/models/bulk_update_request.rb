@@ -143,6 +143,8 @@ class BulkUpdateRequest < ApplicationRecord
     def forum_topic_id_not_invalid
       if forum_topic_id && !forum_topic
         errors.add(:base, "Forum topic ID is invalid")
+      elsif forum_topic && !forum_topic.can_reply?(CurrentUser.user)
+        errors.add(:base, "You cannot post to that forum topic")
       end
     end
 
