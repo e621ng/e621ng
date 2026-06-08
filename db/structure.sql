@@ -1763,7 +1763,7 @@ ALTER SEQUENCE public.post_versions_id_seq OWNED BY public.post_versions.id;
 --
 
 CREATE TABLE public.post_votes (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     post_id integer NOT NULL,
     user_id integer NOT NULL,
     score integer NOT NULL,
@@ -5460,7 +5460,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20260608164718'),
+('20260608170029'),
 ('20260530165214'),
 ('20260530162738'),
 ('20260526234030'),
