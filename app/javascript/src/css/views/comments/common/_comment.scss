@@ -5,27 +5,30 @@
 
 @use "warnable";
 
+article.comment {
+  @include std.radius;
+
+  &[data-is-sticky="true"] { background: theme.color("section-lighten-10"); }
+  &[data-is-deleted="true"] { background: palette.background("red"); }
+  &:target {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  form.edit_comment {
+    background-color: theme.color("section");
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+
+    input[type="submit"] { min-width: 5rem; }
+    div.input.boolean { display: inline-block; }
+  }
+}
+
 .comment-post-grid {
   background: theme.color("section");
   display: grid;
   grid-template-rows: 1fr;
   grid-template-columns: 165px 1fr;
-
-  article.comment {
-    @include std.radius;
-
-    &[data-is-sticky="true"] {
-      background: theme.color("section-lighten-10");
-    }
-
-    &[data-is-deleted="true"] {
-      background: palette.background("red");
-    }
-
-    &:target {
-      background-color: rgba(255,255,255,0.25);
-    }
-  }
 
   .author-info {
     padding: 0.25rem 0.5rem;
@@ -39,13 +42,15 @@
       font-style: italic;
     }
   }
+
   .content {
     grid-column: 2;
     grid-row: 1;
     padding: 0.25rem 0.5rem;
 
     .content-menu { margin-top: 1rem; }
-    .comment-vote-up-link:hover, .comment-vote-down-link:hover {
+    .comment-vote-up-link:hover,
+    .comment-vote-down-link:hover {
       background-color: rgba(255, 255, 255, 0.2);
       @include std.radius;
     }
@@ -81,6 +86,7 @@
           grid-column: 2;
           grid-row: 1;
         }
+
         .avatar {
           grid-column: 1;
           grid-row-start: 1;
@@ -90,11 +96,13 @@
             --thumb-image-size: 50px;
           }
         }
+
         .post-time {
           grid-column: 2;
           grid-row: 2;
         }
       }
+
       .content {
         grid-column: 1;
         grid-row: 2;

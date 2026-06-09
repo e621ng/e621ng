@@ -28,3 +28,7 @@ div.header {
     margin: 1em 0;
   }
 }
+
+div.list-of-comments {
+  article.comment { margin-bottom: 0.5rem; }
+}
