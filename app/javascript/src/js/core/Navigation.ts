@@ -67,6 +67,7 @@ class Navigation {
       // Handle double-click to navigate to the user's profile
       const now = Date.now();
       if (now - lastClick < 200) {
+        lastClick = 0; // prevent triple-click issues
         const userID = $avatarButton.data("user-id");
         if (userID) {
           this.avatarMenuOffclick.disabled = true;
