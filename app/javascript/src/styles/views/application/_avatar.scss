@@ -211,6 +211,7 @@ nav.navigation .simple-avatar-menu {
   --display-sets: none;
   --display-comments: none;
   --display-forums: none;
+  --display-blips: none;
   --display-content-divider: none;
   --display-mentions-divider: none;
 
@@ -219,12 +220,14 @@ nav.navigation .simple-avatar-menu {
   &.has-sets { --display-sets: flex; --display-content-divider: flex; }
   &.has-comments { --display-comments: flex; --display-mentions-divider: flex; }
   &.has-forums { --display-forums: flex; --display-mentions-divider: flex; }
+  &.has-blips { --display-blips: flex; --display-mentions-divider: flex; }
 
   .must-uploads { display: var(--display-uploads); }
   .must-favorites { display: var(--display-favorites); }
   .must-sets { display: var(--display-sets); }
   .must-comments { display: var(--display-comments); }
   .must-forums { display: var(--display-forums); }
+  .must-blips { display: var(--display-blips); }
   .must-uploads-favorites-sets { display: var(--display-content-divider); }
   .must-comments-forums { display: var(--display-mentions-divider); }
 }
