@@ -248,7 +248,7 @@ RSpec.describe UsersController do
         get avatar_menu_users_path(format: :json)
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body.keys).to contain_exactly(
-          "has_uploads", "has_favorites", "has_sets", "has_comments", "has_forums"
+          "has_uploads", "has_favorites", "has_sets", "has_comments", "has_forums", "has_blips"
         )
       end
     end
