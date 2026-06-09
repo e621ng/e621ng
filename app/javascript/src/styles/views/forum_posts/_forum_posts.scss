@@ -44,6 +44,9 @@ ul.forum-post-vote-list {
       justify-content: center;
       align-items: center;
 
+      font-size: 0.85rem;
+      overflow: hidden;
+
       background: themed("color-section-darken-5");
       @include st-radius;
     }
