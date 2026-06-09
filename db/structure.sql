@@ -475,7 +475,7 @@ ALTER SEQUENCE public.bulk_update_requests_id_seq OWNED BY public.bulk_update_re
 --
 
 CREATE TABLE public.comment_votes (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     comment_id integer NOT NULL,
     user_id integer NOT NULL,
     score integer NOT NULL,
@@ -490,7 +490,6 @@ CREATE TABLE public.comment_votes (
 --
 
 CREATE SEQUENCE public.comment_votes_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1763,7 +1762,7 @@ ALTER SEQUENCE public.post_versions_id_seq OWNED BY public.post_versions.id;
 --
 
 CREATE TABLE public.post_votes (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     post_id integer NOT NULL,
     user_id integer NOT NULL,
     score integer NOT NULL,
@@ -1778,7 +1777,6 @@ CREATE TABLE public.post_votes (
 --
 
 CREATE SEQUENCE public.post_votes_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5460,6 +5458,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260608170029'),
 ('20260530165214'),
 ('20260530162738'),
 ('20260526234030'),
