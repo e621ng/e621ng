@@ -21,13 +21,7 @@ function bootstrapTabs () {
 
 function bootstrapGoUpButton () {
   $(".go-up button").on("click", () => {
-    const tabs = $("#mobile-tabs");
-    if (tabs.length) {
-      let offset = tabs.offset()?.top ?? 0;
-      if (offset) offset -= window.innerHeight / 2;
-      window.scrollTo({ top: offset, behavior: "smooth" });
-    } else
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 }
 
