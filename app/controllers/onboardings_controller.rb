@@ -25,7 +25,7 @@ class OnboardingsController < ApplicationController
 
   def restart
     respond_to do |format|
-      format.html { redirect_to(onboarding_path, notice: "You have restarted the onboarding process") }
+      format.html { redirect_to(onboarding_path) }
     end
   end
 

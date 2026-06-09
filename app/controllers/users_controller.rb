@@ -221,11 +221,6 @@ class UsersController < ApplicationController
     end
   end
 
-  def restart_onboarding
-    @user = CurrentUser.user
-    redirect_to onboarding_path, notice: "You have restarted the onboarding process"
-  end
-
   private
 
   # Checks if the user's uploads are already disabled & if the reason is left blank.

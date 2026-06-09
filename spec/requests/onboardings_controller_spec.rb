@@ -74,14 +74,7 @@ RSpec.describe OnboardingsController do
     context "as a logged-in user" do
       let(:user) { create(:user) }
 
-      before do
-        sign_in_as user
-        ActionController::Base.allow_forgery_protection = false
-      end
-
-      after do
-        ActionController::Base.allow_forgery_protection = true
-      end
+      before { sign_in_as user }
 
       it "returns 200" do
         post complete_onboarding_path(format: :json), params: {}
@@ -106,23 +99,16 @@ RSpec.describe OnboardingsController do
 
   describe "POST /onboarding/restart" do
     context "as anonymous" do
-      it "returns 403 (forbidden)" do
+      it "redirects to login" do
         post restart_onboarding_path(format: :html)
-        expect(response).to have_http_status(:forbidden)
+        expect(response).to redirect_to(new_session_path(url: restart_onboarding_path))
       end
     end
 
     context "as a logged-in user" do
       let(:user) { create(:user) }
 
-      before do
-        sign_in_as user
-        ActionController::Base.allow_forgery_protection = false
-      end
-
-      after do
-        ActionController::Base.allow_forgery_protection = true
-      end
+      before { sign_in_as user }
 
       it "returns 302 (redirect)" do
         post restart_onboarding_path

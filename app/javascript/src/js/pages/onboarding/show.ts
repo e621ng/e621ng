@@ -19,6 +19,7 @@ interface OnboardingField {
 
 interface OnboardingStep {
   id: string;
+  type: "blacklist" | "settings" | "info";
   title: string;
   description?: string;
   field?: string;
@@ -81,7 +82,7 @@ export default class Onboarding {
         this.showStep(0);
       })
       .fail(() => {
-        E621.Toast.error("Failed to load onboarding steps. Please try again later.");
+        E621.Toast.alert("Failed to load onboarding steps. Please try again later.");
       });
   }
 
@@ -116,7 +117,7 @@ export default class Onboarding {
       contentType: "application/json",
       data: JSON.stringify({ user: userData }),
     }).fail(() => {
-      E621.Toast.error("Failed to update settings. Please try again later.");
+      E621.Toast.alert("Failed to update settings. Please try again later.");
     });
   }
 
@@ -133,7 +134,7 @@ export default class Onboarding {
           window.location.href = data.redirect_url || "/posts";
         })
         .fail(() => {
-          E621.Toast.error("Failed to complete onboarding. Please try again later.");
+          E621.Toast.alert("Failed to complete onboarding. Please try again later.");
           window.location.href = "/posts";
         });
     });

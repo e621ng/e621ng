@@ -377,7 +377,7 @@ Rails.application.routes.draw do
     end
   end
   resource :onboarding, only: [:show] do
-    collection do
+    member do
       post :complete
       post :restart
     end

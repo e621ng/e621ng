@@ -878,15 +878,6 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
           ],
         },
         {
-          id: "theme",
-          title: "Site Personalization",
-          description: "Looking for a different look? #{app_name} supports multiple themes and custom CSS.",
-          type: "info",
-          links: [
-            { label: "Open Settings", href: "/users/settings", target: "_blank" },
-          ],
-        },
-        {
           id: "finale",
           title: "Ready to go?",
           description: "If you're new here, we highly recommend checking out our Wiki to learn about tagging and site rules.",
