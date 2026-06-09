@@ -1,0 +1,60 @@
+@use "utility/theme";
+@use "utility/viewport";
+
+@use "snippets/inline_tag_list";
+
+div#c-comments {
+  div#a-index {
+    .comment-post {
+      border-left: 0.25rem solid theme.color("dtext-section");
+      background: theme.color("section-lighten-5");
+      box-sizing: border-box;
+      padding-left: 0.5rem;
+      padding-bottom: 0.25rem;
+      margin-bottom: 1rem;
+
+      .comments {
+        margin-left: 2rem;
+      }
+    }
+
+    .post-container {
+      display: flex;
+
+      .post {
+        width: 165px;
+      }
+    }
+
+    div.comments-for-post {
+      .comment-post {
+        display: flex;
+
+        .comments {
+          margin-left: 0;
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+@include viewport.mobile {
+  body.resp div#c-comments div#a-index {
+    .comment-post {
+      .comments { margin-left: 1rem; }
+    }
+
+    .post-container {
+      .post-information { margin-left: 0.5rem; }
+      .post { width: unset; }
+    }
+
+    div.comments-for-post {
+      .comment-post {
+        display: block;
+        .comments { width: unset; }
+      }
+    }
+  }
+}

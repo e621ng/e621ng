@@ -1,5 +1,6 @@
 @use "utility/theme";
 @use "utility/palette";
+@use "utility/tag_categories";
 
 // Legacy helpers to style UI elements using the current theme
 
@@ -35,5 +36,15 @@ $score-color: (
     font-weight: 700;
     color: palette.text($color);
     a { color: palette.text($color); }
+  }
+}
+
+@each $tag-category, $tag-category-name in tag_categories.$mapping {
+  .category-#{$tag-category} a,
+  a.tag-type-#{$tag-category} {
+
+    &, &:link, &:visited { color: theme.color("tag-#{$tag-category-name}"); }
+    &:hover { color: theme.color("tag-#{$tag-category-name}-alt"); }
+    &.selected { color: theme.color("text-white"); }
   }
 }

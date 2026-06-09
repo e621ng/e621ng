@@ -9,27 +9,7 @@ div.comments-for-post {
 
   div.list-of-comments {
     article.comment {
-      @include std.radius;
       margin-bottom: 0.5rem;
-
-      &:target {
-        background-color: rgba(255,255,255,0.25);
-      }
-
-      &[data-is-sticky="true"] {
-        background: theme.color("section-lighten-10");
-      }
-
-      &[data-is-deleted="true"] {
-        background: palette.background("red");
-      }
-
-      div.content {
-        .comment-vote-up-link:hover, .comment-vote-down-link:hover {
-          background-color: rgba(255, 255, 255, 0.2);
-          @include std.radius;
-        }
-      }
     }
 
     article.comment.below-threshold:not([data-is-sticky="true"]) {
