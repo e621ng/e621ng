@@ -112,14 +112,5 @@ RSpec.describe PostThumbnailComponent, type: :component do
       expect(c.send(:should_show_ribbon?, :right)).to be(true)
       expect(c.send(:should_show_ribbon?, :left)).to be(true)
     end
-
-    it "shifts down the badge if the left ribbon is present" do
-      allow(post).to receive(:has_visible_children?).and_return(true)
-      expect(component(post).send(:preview_classes)).to include("shift-badge")
-    end
-
-    it "does not shift down the badge if the left ribbon is not present" do
-      expect(component(post).send(:preview_classes)).not_to include("shift-badge")
-    end
   end
 end
