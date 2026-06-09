@@ -1,3 +1,5 @@
+@use "utility/theme";
+@use "utility/std";
 
 table.striped {
   width: 100%;
@@ -9,7 +11,7 @@ table.striped {
   tbody {
     tr {
       td {
-        padding: $padding-050 $padding-025;
+        @include std.padding-asy;
 
         &.full-width-link {
           padding: 0;
@@ -18,18 +20,18 @@ table.striped {
           > a {
             width: 100%;
             display: inline-block;
-            padding: $padding-050 $padding-025;
+            @include std.padding-asy;
             box-sizing: border-box;
           }
         }
       }
-      background-color: themed("color-section");
-      border-bottom: 1px solid themed("color-table-border");
+      background-color: theme.color("section");
+      border-bottom: 1px solid theme.color("table-border");
       &:hover {
-        background-color: themed("color-section-lighten-10");
+        background-color: theme.color("section-lighten-10");
       }
       &.selected {
-        background-color: themed("color-section-lighten-10");
+        background-color: theme.color("section-lighten-10");
       }
     }
   }
@@ -40,14 +42,14 @@ table.striped {
 
   thead {
     tr {
-      background-color: themed("color-section-darken-5");
-      border-bottom: 1px solid themed("color-foreground");
+      background-color: theme.color("section-darken-5");
+      border-bottom: 1px solid theme.color("foreground");
     }
 
     th {
       font-weight: bold;
       text-align: left;
-      color: themed("color-text-table-header");
+      color: theme.color("text-table-header");
     }
   }
 }
@@ -79,7 +81,7 @@ table.search {
 
   th {
     text-align: right;
-    padding-right: $base-padding;
+    padding-right: 1rem;
     vertical-align: top;
   }
 

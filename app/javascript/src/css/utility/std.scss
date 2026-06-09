@@ -7,6 +7,8 @@
 @mixin padding-tb { padding: 0.5rem 0; }
 @mixin padding-yx { padding: 0.5rem 0.5rem; }
 
+@mixin padding-asy { padding: 0.5rem 0.25rem; }
+
 
 @mixin radius { border-radius: 0.25rem; }
 @mixin radius-t { border-radius: 0.25rem 0.25rem 0 0; }
