@@ -87,6 +87,11 @@
     <%= svg_icon(:lectern) %> Forums
   </a>
 
+  <%# has_blips %>
+  <a href="<%= blips_path(search: { body_matches: user.name }) %>" class="must-blips">
+    <%= svg_icon(:megaphone) %> Blips
+  </a>
+
   <span class="savm-divider must-comments-forums"></span>
 
 

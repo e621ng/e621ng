@@ -204,6 +204,7 @@ class UsersController < ApplicationController
           has_sets: user.set_count > 0,
           has_comments: user.comment_count > 0,
           has_forums: user.forum_post_count > 0,
+          has_blips: user.blip_count > 0,
         }
       end
     end

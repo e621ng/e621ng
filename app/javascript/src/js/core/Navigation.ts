@@ -58,9 +58,24 @@ class Navigation {
     if (!AvatarMenuLoader.hasCachedData)
       AvatarMenuLoader.syncUserData();
 
+    let lastClick = 0;
+
     // Toggle menu on click
     $avatarButton.on("click", (event) => {
       event.preventDefault();
+
+      // Handle double-click to navigate to the user's profile
+      const now = Date.now();
+      if (now - lastClick < 200) {
+        const userID = $avatarButton.data("user-id");
+        if (userID) {
+          this.avatarMenuOffclick.disabled = true;
+          this.$avatarMenu.addClass("hidden");
+          window.location.href = `/users/${userID}`;
+          return;
+        }
+      }
+      lastClick = now;
 
       // Register offclick handler on the first use
       if (this.avatarMenuOffclick === null)
@@ -106,7 +121,8 @@ class Navigation {
       .toggleClass("has-favorites", userStats.has_favorites)
       .toggleClass("has-sets", userStats.has_sets)
       .toggleClass("has-comments", userStats.has_comments)
-      .toggleClass("has-forums", userStats.has_forums);
+      .toggleClass("has-forums", userStats.has_forums)
+      .toggleClass("has-blips", userStats.has_blips);
   }
 
   /**
@@ -191,6 +207,7 @@ class AvatarMenuLoader {
         has_sets: data.has_sets,
         has_comments: data.has_comments,
         has_forums: data.has_forums,
+        has_blips: data.has_blips,
       }));
 
       return data;
@@ -211,6 +228,7 @@ type AvatarMenuData = {
   has_sets: boolean;
   has_comments: boolean;
   has_forums: boolean;
+  has_blips: boolean;
 };
 
 State.onReady(() => {

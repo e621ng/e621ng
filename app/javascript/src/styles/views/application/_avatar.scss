@@ -4,6 +4,7 @@ nav.navigation .simple-avatar {
     color: inherit;
     display: none;
     @include st-radius-left;
+    touch-action: manipulation;
   }
 
   .avatar-image {
@@ -14,6 +15,7 @@ nav.navigation .simple-avatar {
     position: relative;
     background: themed("color-section");
     color: inherit;
+    touch-action: manipulation;
 
     picture {
       position: absolute;
