@@ -8,8 +8,9 @@
 @use "views/posts/show/partials/delete_with_reason";
 @use "views/posts/show/partials/edit_form";
 @use "views/posts/show/partials/embedded";
-@use "views/posts/show/partials/notice";
 @use "views/posts/show/partials/notes";
+@use "views/posts/show/partials/notice";
+@use "views/posts/show/partials/parents_children";
 @use "views/posts/show/partials/post_information";
 @use "views/posts/show/partials/post_toolbar";
 @use "views/posts/show/partials/quick_mod";
