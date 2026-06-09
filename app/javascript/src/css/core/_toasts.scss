@@ -21,7 +21,7 @@
   display: grid;
   grid-template-columns: 1fr min-content auto;
 
-  max-width: 50rem;
+  @include std.max-width;
   width: 100%;
 
   pointer-events: all; // Allow interaction with the toast itself

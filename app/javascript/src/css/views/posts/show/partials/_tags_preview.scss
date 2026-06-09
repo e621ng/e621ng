@@ -1,5 +1,6 @@
 @use "utility/theme";
 @use "utility/palette";
+@use "utility/std";
 
 div.tag-preview-area {
   margin-top: 0.5em;
@@ -15,6 +16,7 @@ div.tag-preview {
   align-content: start;
 
   width: 100%;
+  @include std.max-width;
   height: 400px;
   max-height: 50vh;
 

@@ -1,5 +1,6 @@
 @use "utility/palette";
 @use "utility/theme";
+@use "utility/std";
 
 #tags-container {
   max-width: 70em;
@@ -9,6 +10,7 @@
     display: grid;
     grid-template-columns: 50% 50%;
     width: 100%;
+    @include std.max-width;
 
     label {
       grid-column: 1;

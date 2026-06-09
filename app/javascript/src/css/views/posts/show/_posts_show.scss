@@ -113,6 +113,7 @@ body.c-posts.a-show-seq {
     #description {
       background: theme.color("section");
       border-left-color: theme.color("section-lighten-5");
+      @include std.max-width;
     }
   }
 

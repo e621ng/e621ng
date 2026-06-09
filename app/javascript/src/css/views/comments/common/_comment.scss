@@ -14,14 +14,7 @@ article.comment {
     background-color: rgba(255, 255, 255, 0.25);
   }
 
-  form.edit_comment {
-    background-color: theme.color("section");
-    border-radius: 0.25rem;
-    padding: 0.5rem;
-
-    input[type="submit"] { min-width: 5rem; }
-    div.input.boolean { display: inline-block; }
-  }
+  form.edit_comment div.input.boolean { display: inline-block; }
 }
 
 .comment-post-grid {

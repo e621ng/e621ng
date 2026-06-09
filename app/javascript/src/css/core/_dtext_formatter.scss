@@ -10,7 +10,7 @@
     "df-preview df-preview"
     "df-footer  df-footer ";
   
-  max-width: 50rem;
+  @include std.max-width;
   @include std.radius;
 
   &.pending {
@@ -100,7 +100,7 @@
   overflow-y: auto;
   resize: both;
   width: 100%  !important;
-  max-width: 50rem;
+  @include std.max-width;
 
   &[loading="true"]::before {
     content: "Loading . . .";

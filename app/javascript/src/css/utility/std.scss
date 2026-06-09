@@ -24,4 +24,7 @@
 @mixin radius-lb { border-radius: 0 0 0.25rem 0; }
 @mixin radius-rb { border-radius: 0 0 0 0.25rem; }
 
-@mixin max-width() { max-width: 50rem; }
+@mixin max-width() {
+  max-width: 50rem;
+  box-sizing: border-box;
+}

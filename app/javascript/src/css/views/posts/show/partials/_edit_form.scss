@@ -1,4 +1,5 @@
 @use "utility/theme";
+@use "utility/std";
 
 .post-edit-title {
   height: 2rem;
@@ -37,6 +38,7 @@
     border-radius: 0.25rem;
     padding: .5rem;
     margin: 0 0 1rem;
+    @include std.max-width;
   }
 
   .edit-submit {
@@ -50,8 +52,6 @@
   }
 
   textarea {
-    width: 100%;
-    max-width: unset;
     min-height: 5rem;
     box-sizing: border-box;
   }

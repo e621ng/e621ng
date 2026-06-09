@@ -1,0 +1,178 @@
+@use "utility/std";
+@use "utility/theme";
+@use "utility/palette";
+
+// simple_form overrides
+
+.simple_form {
+  &.with-background {
+    background-color: theme.color("section");
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+
+    @include std.max-width;
+  }
+
+  div.input.boolean label {
+    display: inline;
+    margin-right: 0.25em;
+  }
+
+  div.input {
+    margin-bottom: 1em;
+
+    input[type=text], input[type=file], input[type=password], input[type=email] {
+      @include std.max-width;
+    }
+
+    span.hint {
+      display: block;
+      font-size: 70%;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      line-height: 1.5em;
+    }
+
+    fieldset {
+      border: none;
+      display: inline;
+      margin: 0;
+      padding: 0;
+
+      label, .input {
+        font-weight: normal;
+        width: auto;
+        margin-right: 2em;
+        display: inline;
+      }
+    }
+
+    textarea {
+      width: 100%;
+      @include std.max-width;
+    }
+  }
+
+  div.collection-radio-buttons {
+    input { display: none; }
+
+    input + label {
+      display: inline-block;
+      box-sizing: border-box;
+      border-radius: 0.25rem;
+      font-size: 1rem;
+      line-height: 1.25rem;
+      padding: 0.25rem 0.5rem;
+      border: 0;
+
+      color: black;
+      background-color: white;
+      margin: 0 0.75rem 0.25rem 0;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    input:checked + label {
+      background-color: theme.color("button-active");
+    }
+  }
+
+  input[type=button], input[type=submit] {
+    min-width: 5rem;
+  }
+}
+
+.inline-form {
+  display: table;
+
+  > div.input {
+    display: table-row;
+    line-height: 2em;
+
+    label {
+      text-align: right;
+    }
+
+    // Reset style from simple_form boolean workaround
+    // The specificity is higher, so it wouldn't get set correctly
+    &.boolean label {
+      display: table-cell;
+    }
+
+    label, input {
+      display: table-cell;
+      padding-right: 1rem;
+      white-space: nowrap;
+    }
+  }
+}
+
+
+// Custom elements
+
+/*
+.button {
+  display: inline-block;
+  box-sizing: border-box;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  line-height: 1.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  color: theme.color("text-white");
+
+  &.btn-danger {
+    color: theme.color("text-white");
+    background: theme.color("danger");
+    &:hover {
+      background: theme.color("danger-darken-5");
+    }
+  }
+  &.btn-warn {
+    color: theme.color("text-white");
+    background: theme.color("warning");
+    &:hover {
+      background: theme.color("warning-darken-5");
+    }
+  }
+  &.btn-success {
+    color: theme.color("text-white");
+    background: theme.color("success");
+    &:hover {
+      background: theme.color("success-darken-5");
+    }
+  }
+  &.btn-neutral {
+    color: theme.color("text-white");
+    background: theme.color("section");
+    &:hover {
+      background: theme.color("section-lighten-5");
+    }
+  }
+  &.score-positive {
+    color: palette.text("white");
+    background: palette.background("green");
+    &:hover {
+      background: palette.background("green-d5");
+    }
+  }
+  &.score-negative {
+    color: palette.text("white");
+    background: palette.background("red");
+    &:hover {
+      background: palette.background("red-d5");
+    }
+  }
+  &.score-neutral {
+    color: palette.text("grey");
+    background: theme.color("section");
+    &:hover {
+      background: theme.color("section-darken-5");
+    }
+  }
+}
+*/
