@@ -1,9 +1,16 @@
+@use "utility/palette";
+
 .user-feedback-list {
   word-break: break-all;
   span { margin: 0.125rem; }
 
   &::before { content: "("; }
   &::after { content: ")"; }
+
+  .user-feedback-positive { color: palette.text("green"); }
+  .user-feedback-neutral { color: palette.text("grey"); }
+  .user-feedback-negative { color: palette.text("red"); }
+  .user-feedback-deleted { color: palette.text("yellow"); }
 }
 
 .user-record {
@@ -16,10 +23,10 @@
   filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.4));
 
   // Variations
-  &.deleted path { fill: palette("background-yellow"); }
-  &.negative path { fill: palette("background-red"); }
-  &.neutral path { fill: palette("background-grey"); }
-  &.positive path { fill: palette("background-green"); }
+  &.deleted path { fill: palette.background("yellow"); }
+  &.negative path { fill: palette.background("red"); }
+  &.neutral path { fill: palette.background("grey"); }
+  &.positive path { fill: palette.background("green"); }
 }
 
 .user-records-list {
@@ -28,9 +35,9 @@
   gap: 0.25rem;
 
   &:hover .user-record {
-    &.deleted path { fill: palette("background-yellow-d5"); }
-    &.negative path { fill: palette("background-red-d5"); }
-    &.neutral path { fill: palette("background-grey-d5"); }
-    &.positive path { fill: palette("background-green-d5"); }
+    &.deleted path { fill: palette.background("yellow-d5"); }
+    &.negative path { fill: palette.background("red-d5"); }
+    &.neutral path { fill: palette.background("grey-d5"); }
+    &.positive path { fill: palette.background("green-d5"); }
   }
 }

@@ -34,7 +34,8 @@
 <% end %>
 <%= auto_discovery_link_tag :atom, posts_path(format: "atom", tags: params[:tags].is_a?(String) ? params[:tags] : nil) %>
 
-<%= vite_stylesheet_tag("application.scss", nonce: content_security_policy_nonce) %>
+<%= vite_stylesheet_tag("core.scss", nonce: content_security_policy_nonce) %>
+<%= vite_stylesheet_tag("themes.scss", nonce: content_security_policy_nonce) %>
 <%= vite_stylesheet_for_controller %>
 <%= vite_stylesheet_for_controller_and_action %>
 

@@ -2,10 +2,6 @@
 @use "utility/theme";
 @use "utility/viewport";
 
-@use "core/standard/toggle";
-@use "core/standard/toggle-radio";
-@use "core/standard/toggle-text";
-
 .search-settings-container {
   display: none;
   &.active { display: flex; }

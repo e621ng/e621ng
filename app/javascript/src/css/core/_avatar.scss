@@ -2,7 +2,7 @@
 @use "utility/palette";
 @use "utility/std";
 @use "utility/viewport";
-@use "core/fonts" as fonts;
+@use "utility/font";
 
 nav.navigation .simple-avatar {
 
@@ -38,7 +38,7 @@ nav.navigation .simple-avatar {
       color: theme.color("background");
       font-weight: bold;
       font-size: 2.25rem;
-      font-family: "Roboto", Verdana, Geneva, sans-serif;
+      font-family: font.$roboto;
     }
   }
 
