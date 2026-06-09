@@ -1,41 +1,44 @@
 div#c-posts {
 
-  aside#sidebar #tag-list h2 {
-    font-size: $h4_size;
-  }
+  // NOT NEEDED
+  // aside#sidebar #tag-list h2 {
+  //   font-size: $h4_size;
+  // }
 
-  div#a-index {
-    menu#post-sections {
-      margin-bottom: 0.5em;
-      font-size: $h3-size;
-
-      li {
-        padding: 0 1em 0.5em 0;
-
-        &.active {
-          font-weight: bold;
-        }
-      }
-    }
-  }
+  // UNUSED ?
+  // div#a-index {
+  //   menu#post-sections {
+  //     margin-bottom: 0.5em;
+  //     font-size: $h3-size;
+  // 
+  //     li {
+  //       padding: 0 1em 0.5em 0;
+  // 
+  //       &.active {
+  //         font-weight: bold;
+  //       }
+  //     }
+  //   }
+  // }
 
   div#a-show {
     .active, .pool-selected-true {
       font-weight: bold;
     }
 
-    menu#post-sections {
-      margin: 0;
-      font-size: $h3-size;
-
-      li {
-        padding: 0 1em 0 0;
-      }
-
-      div.share a {
-        margin: 0;
-      }
-    }
+    // UNUSED ?
+    // menu#post-sections {
+    //   margin: 0;
+    //   font-size: $h3-size;
+    // 
+    //   li {
+    //     padding: 0 1em 0 0;
+    //   }
+    // 
+    //   div.share a {
+    //     margin: 0;
+    //   }
+    // }
 
     div.notices {
       display: flex;
@@ -48,19 +51,20 @@ div#c-posts {
       }
     }
 
-    textarea {
-      box-sizing: border-box;
-      margin-bottom: 0.25em;
-    }
+    // NOT NEEDED
+    // textarea {
+    //   box-sizing: border-box;
+    //   margin-bottom: 0.25em;
+    // }
 
 
-
-    span.close-button {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      cursor: pointer;
-    }
+    // UNUSED
+    // span.close-button {
+    //   position: absolute;
+    //   top: 5px;
+    //   right: 5px;
+    //   cursor: pointer;
+    // }
   }
 
   div#quick-edit-div {
@@ -81,22 +85,24 @@ div#c-post-versions, div#c-artist-versions {
   }
 }
 
-div#unapprove-dialog {
-  p {
-    margin-bottom: 1em;
-  }
-}
+// UNUSED
+// div#unapprove-dialog {
+//   p {
+//     margin-bottom: 1em;
+//   }
+// }
 
-textarea[data-autocomplete="tag-edit"] {
-  font-family: monospace;
-}
+// NOT NEEDED
+// textarea[data-autocomplete="tag-edit"] {
+//   font-family: monospace;
+// }
 
 
-
-.image-vote-buttons {
-  .post-score {
-    padding: 0 $padding-050;
-  }
-}
+// UNUSED
+// .image-vote-buttons {
+//   .post-score {
+//     padding: 0 $padding-050;
+//   }
+// }
 
 
