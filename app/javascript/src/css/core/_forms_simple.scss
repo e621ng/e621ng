@@ -5,14 +5,12 @@
 // simple_form overrides
 
 .simple_form {
-  &.with-background {
-    background-color: theme.color("section");
-    border-radius: 0.25rem;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
+  background-color: theme.color("section");
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
 
-    @include std.max-width;
-  }
+  @include std.max-width;
 
   div.input.boolean label {
     display: inline;

@@ -16,7 +16,7 @@ module FormSearchHelper
       builder: SearchFormBuilder,
       search_params: search_params,
       defaults: { required: false },
-      html: { class: "inline-form with-background" },
+      html: { class: "inline-form" },
     }) do |f|
       inputs = []
       inputs << f.input(:id, label: "ID", hide_unless_value: true) unless exclude_default_fields.include?(:id)
