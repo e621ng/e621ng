@@ -17,6 +17,20 @@ function bootstrapTabs () {
         $el.attr("aria-selected", String($el.data("action") === action));
       });
   });
+
+  // Comment anchor links will not work on mobile unless the user has the comments tab open.
+  if (window.innerWidth > 800 || CStorage.postMobileTabState === "comments") return;
+  const commentID = window.location.hash.match(/^#?comment-(\d+)/)?.[1];
+  if (!commentID) return;
+  const comment = $("article[data-comment-id='" + commentID + "']");
+  if (!comment.length) return;
+
+  container.attr("data-tab-state", "comments");
+  // If the tabs get switched early enough, the browser will scroll to the content on its own.
+  window.setTimeout(() => {
+    const offset = comment.offset()?.top ?? 0;
+    if (offset) window.scrollTo({ top: offset, behavior: "smooth" });
+  }, 100);
 }
 
 function bootstrapGoUpButton () {
