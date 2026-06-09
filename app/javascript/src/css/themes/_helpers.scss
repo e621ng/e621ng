@@ -1,0 +1,22 @@
+@use "utility/theme";
+@use "utility/palette";
+
+// Legacy helpers to style UI elements using the current theme
+
+.bg-background { background-color: theme.color("background"); }
+.bg-foreground { background-color: theme.color("foreground"); }
+.bg-section { background-color: theme.color("section"); }
+.bg-highlight { background-color: theme.color("section-lighten-10"); }
+
+.border-background { border: 1px solid theme.color("background"); }
+.border-foreground { border: 1px solid theme.color("foreground"); }
+.border-section { border: 1px solid theme.color("section"); }
+.border-highlight { border: 1px solid theme.color("section-lighten-10"); }
+
+.color-text { color: theme.color("text"); }
+.color-muted { color: theme.color("text-muted"); }
+.color-white { color: theme.color("text-white"); }
+
+.post-rating-safe { color: palette.text("green"); }
+.post-rating-questionable { color: palette.text("yellow"); }
+.post-rating-explicit { color: palette.text("red"); }

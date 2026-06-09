@@ -133,8 +133,8 @@ module PostsHelper
 
   def pretty_html_rating(post)
     rating_text = post.pretty_rating
-    rating_class = "post-rating-text-#{rating_text.downcase}"
-    tag.span(rating_text, id: "post-rating-text", class: rating_class)
+    rating_class = "post-rating-#{rating_text.downcase}"
+    tag.span(rating_text, class: rating_class)
   end
 
   def post_score_block(post)

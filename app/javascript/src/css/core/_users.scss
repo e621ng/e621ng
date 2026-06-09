@@ -1,19 +1,12 @@
-$levels: (
-  "blocked"
-  "member"
-  "privileged"
-  "former-staff"
-  "janitor"
-  "moderator"
-  "admin"
-);
+@use "utility/user_levels";
+@use "utility/theme";
 
-@each $level in $levels {
+@each $level in user_levels.$levels {
   a.user-#{$level}.with-style {
-    color: themed("color-user-#{$level}");
+    color: theme.color("user-#{$level}");
 
     &:hover {
-      color: themed("color-user-#{$level}-alt");
+      color: theme.color("user-#{$level}-alt");
     }
   }
 }
@@ -26,8 +19,8 @@ svg.chexagon {
   height: 1em;
   width: 1em;
   vertical-align: sub;
-  color: themed("color-tag-artist");
-  .check { color: themed("color-text"); }
+  color: theme.color("tag-artist");
+  .check { color: theme.color("text"); }
 }
 
 /* Used for the icon indicating a flag was made by the uploader. */
