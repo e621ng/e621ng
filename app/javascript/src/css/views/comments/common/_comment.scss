@@ -1,6 +1,8 @@
 @use "utility/theme";
 @use "utility/viewport";
 
+@use "warnable";
+
 .comment-post-grid {
   background: theme.color("section");
   display: grid;
@@ -30,6 +32,10 @@
   .avatar {
     // Temporary, until the new comment UI is implemented.
     article.thumbnail.no-render { display: none; }
+  }
+
+  .comment-vote-down-link, .comment-vote-up-link {
+    cursor: pointer;
   }
 }
 

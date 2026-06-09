@@ -1,0 +1,5 @@
+@use "utility/theme";
+
+.user-warning em {
+  color: theme.color("rating-explicit");
+}

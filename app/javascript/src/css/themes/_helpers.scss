@@ -17,6 +17,23 @@
 .color-muted { color: theme.color("text-muted"); }
 .color-white { color: theme.color("text-white"); }
 
+
+// Commonly used classes
+
 .post-rating-safe { color: palette.text("green"); }
 .post-rating-questionable { color: palette.text("yellow"); }
 .post-rating-explicit { color: palette.text("red"); }
+
+$score-color: (
+  positive: "green",
+  neutral: "grey",
+  negative: "red",
+);
+
+@each $score-type, $color in $score-color {
+  .score-#{$score-type} {
+    font-weight: 700;
+    color: palette.text($color);
+    a { color: palette.text($color); }
+  }
+}
