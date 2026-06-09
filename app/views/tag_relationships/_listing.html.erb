@@ -15,11 +15,11 @@
       <tr id="<%= tag_relation.model_name.singular_route_key.dasherize %>-<%= tag_relation.id %>">
         <td class="category-<%= tag_relation.antecedent_tag.try(:category) %>">
           <%= link_to_wiki_or_new tag_relation.antecedent_name %>
-          <span class="count"><%= tag_relation.antecedent_tag.post_count rescue 0 %></span>
+          <span class="color-muted"><%= tag_relation.antecedent_tag.post_count rescue 0 %></span>
         </td>
         <td class="category-<%= tag_relation.consequent_tag.try(:category) %>">
           <%= link_to_wiki_or_new tag_relation.consequent_name %>
-          <span class="count"><%= tag_relation.consequent_tag.post_count rescue 0 %></span>
+          <span class="color-muted"><%= tag_relation.consequent_tag.post_count rescue 0 %></span>
           <% if tag_relation.is_a?(TagAlias) %>
             <% if CurrentUser.is_member? && tag_relation.status == "pending" && tag_relation.has_transitives %>
               <span class="text-error"> HAS TRANSITIVES</span>
