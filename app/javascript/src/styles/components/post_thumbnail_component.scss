@@ -46,7 +46,6 @@ article.thumbnail {
   flex-flow: column;
   align-items: center;
   width: min-content; // Avoid stretching when outside the posts-container
-  --file-extension: attr(data-file-ext); // used for the badge
 
   a.thm-link {
     display: block;
@@ -213,7 +212,7 @@ article.thumbnail[data-tags~=animated] {
   $badge-padding: 0.25rem;
 
   & > a.thm-link:after {
-    content: var(--file-extension);
+    content: attr(data-file-ext);
 
     position: absolute;
     z-index: 5;
@@ -237,7 +236,7 @@ article.thumbnail[data-tags~=animated] {
     background-image: var(--badge-sound-warning-icon);
     background-size: .75rem;
     background-repeat: no-repeat;
-    background-position: calc(100% - $badge-padding);
+    background-position: center right $badge-padding;
     padding-right: var(--badge-sound-warning-padding, $badge-padding);
   }
   &.no-type-badges > a.thm-link:after { display: none; }

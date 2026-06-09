@@ -56,7 +56,8 @@ export default class ThumbnailEngine {
       .addClass("thm-link")
       .attr({
         "href": `/posts/${post.id}`,
-        "data-target": post.id, // Used by Analytics
+        "data-target": post.id, // Used by Analytics,
+        "data-file-ext": post.file_ext, // used by the badge pseudoelement
       })
       .appendTo(article);
 
