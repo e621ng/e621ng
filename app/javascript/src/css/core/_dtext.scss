@@ -35,7 +35,7 @@
   }
 
   pre, blockquote, details {
-    @include std.padding;
+    padding: 0.25rem;
   }
 
   h1, h2, h3, h4, h5, h6 {

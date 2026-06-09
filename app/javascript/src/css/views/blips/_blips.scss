@@ -1,0 +1,11 @@
+@use "utility/palette";
+
+div#c-blips {
+  article.blip {
+    margin-bottom: 1rem;
+
+    &[data-is-deleted="true"] {
+      background-color: palette.background("red");
+    }
+  }
+}
