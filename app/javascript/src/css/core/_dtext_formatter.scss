@@ -1,3 +1,6 @@
+@use "utility/theme";
+@use "utility/std";
+
 .dtext-formatter {
   display: grid;
   grid-template-columns: min-content 1fr min-content;
@@ -8,7 +11,7 @@
     "df-footer  df-footer ";
   
   max-width: 50rem;
-  @include st-radius;
+  @include std.radius;
 
   &.pending {
     border-top: 2.25rem solid rgba(0,0,0,.2);
@@ -30,7 +33,7 @@
 
   button {
     background: unset;
-    color: themed("color-text");
+    color: theme.color("text");
     outline: none !important;
 
     box-sizing: border-box;
@@ -40,14 +43,14 @@
     font-family: "Roboto", Verdana, Geneva, sans-serif;
     white-space: nowrap; // Fixes overflow on small screens
 
-    @include st-radius-top;
+    @include std.radius-t;
 
-    &:hover { background: themed("color-section-lighten-10") !important; }
+    &:hover { background: theme.color("section-lighten-10") !important; }
   }
 }
 .dtext-formatter {
   .dtext-formatter-tabs button[action="write"] {
-    background: themed("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     pointer-events: none;
   }
 
@@ -58,7 +61,7 @@
     }
 
     .dtext-formatter-tabs button[action="preview"] {
-      background: themed("color-section-lighten-5");
+      background: theme.color("section-lighten-5");
       pointer-events: none;
     }
   }
@@ -74,7 +77,7 @@
 
   border: 0;
   outline: 0 !important;
-  @include st-radius-bottom;
+  @include std.radius-b;
 }
 
 
@@ -104,7 +107,7 @@
     display: flex;
     margin: 1rem 1rem;
 
-    color: themed("color-text-muted");
+    color: theme.color("text-muted");
     font-size: 1rem;
     line-height: 1rem;
   }
@@ -135,9 +138,9 @@
     background: none;
     color: #ffffffbb;
     padding: 0.5rem;
-    @include st-radius;
+    @include std.radius;
 
-    &:hover { background: themed("color-section-lighten-10"); }
+    &:hover { background: theme.color("section-lighten-10"); }
     svg { margin: -0.25rem; }
   }
 
@@ -146,7 +149,7 @@
     display: flex;
     height: 0.75rem;
     margin: 0.25rem;
-    border-left: 1px solid var(--color-text-muted);
+    border-left: 1px solid theme.color("text-muted");
   }
 }
 
@@ -159,7 +162,7 @@
   font-size: 0.75rem;
   line-height: 1rem;
 
-  .dtext-formatter-hint { color: themed("color-text-muted"); }
+  .dtext-formatter-hint { color: theme.color("text-muted"); }
   .dtext-formatter-counter {
     margin-left: auto;
     font-family: monospace;

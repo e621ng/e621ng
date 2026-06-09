@@ -1,0 +1,60 @@
+@use "utility/theme";
+
+div.related-tags {
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+
+  width: 100%;
+  margin: 1em 0;
+
+  background: theme.color("section-lighten-5");
+  border-radius: 0.25rem;
+
+  .related-section {
+    display: flex;
+    flex-direction: row;
+    flex: 0 1 10%;
+
+    padding: 0.25rem 0.5rem;
+
+    .related-title {
+      padding: 0 0.25rem;
+      font-weight: bold;
+    }
+  }
+
+  .related-items {
+    display: flex;
+    flex-direction: column;
+
+    margin: 0 -0.25rem;
+    padding: 0 0.25rem;
+
+    .related-item {
+      overflow-wrap: break-word;
+
+      max-width: 15rem;
+      padding: 0 0.25rem;
+
+      background: rgba(1, 1, 1, 0.15);
+
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      border-radius: 0.125rem;
+
+      word-wrap: break-word;
+    }
+  }
+
+  .tag-active {
+    background: theme.color("active-tag");
+    color: white;
+  }
+}
+
+@media only screen and (orientation: portrait),
+(max-width: 1100px) {
+  .related-section {
+    flex: 0 1 50%;
+  }
+}

@@ -1,0 +1,25 @@
+@use "utility/theme";
+
+div#avoid-posting-notice {
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+  padding: 0.25rem 0.5rem;
+
+  background-color: theme.color("section");
+  border: 1px solid theme.color("foreground");
+
+  ul {
+    list-style: disc;
+  }
+
+  li {
+    .artist, .separator, .details {
+      display: table-cell;
+    }
+
+    .separator {
+      color: theme.color("text-muted");
+      padding: 0 0.3rem;
+    }
+  }
+}

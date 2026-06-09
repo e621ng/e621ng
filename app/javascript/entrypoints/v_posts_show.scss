@@ -2,6 +2,7 @@
 @use "views/posts/show/posts_show.desktop" as posts_show_desktop;
 
 @use "views/posts/show/partials/add_to_pool";
+@use "views/posts/show/partials/avoid_posting_notice";
 @use "views/posts/show/partials/comments_for_post";
 @use "views/posts/show/partials/detailed_rejection";
 @use "views/posts/show/partials/delete_with_reason";
@@ -13,5 +14,8 @@
 @use "views/posts/show/partials/post_toolbar";
 @use "views/posts/show/partials/quick_mod";
 @use "views/posts/show/partials/recommended";
+@use "views/posts/show/partials/related_tags";
+@use "views/posts/show/partials/tags_container";
+@use "views/posts/show/partials/tags_preview";
 
 @use "views/comments/common/comment";
