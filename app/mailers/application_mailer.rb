@@ -11,18 +11,10 @@ class ApplicationMailer < ActionMailer::Base
 
   protected
 
-  # True when +user+ has an address the mail gem can turn into a recipient.
-  #
-  # Concrete mailers call this in place of the former `user.email.blank?` guard
-  # so the action short-circuits for any undeliverable address, not just an
-  # empty one. Legacy accounts may hold a malformed value (e.g.
-  # "Email- Something-Weird-Comes@hotmail.com") that the mail gem cannot parse,
-  # raising Mail::Field::IncompleteParseError and 500-ing the mailer. Bailing at
-  # the action level (rather than only nil-ing the recipient) is required: a
-  # Mail::Message with no destination raises "SMTP To address may not be blank"
-  # at delivery time. EmailAddressValidator.valid? also returns false for a
-  # blank value, so this stays a strict superset of the old guard. See issue
-  # #1712.
+  # Guards against the mail gem raising on legacy malformed addresses:
+  # https://github.com/e621ng/e621ng/issues/1712
+  # EmailAddressValidator.valid? already returns false for blank, so this is a
+  # strict superset of the former `user.email.blank?` check.
   def deliverable_email?(user)
     EmailAddressValidator.valid?(user.email)
   end
