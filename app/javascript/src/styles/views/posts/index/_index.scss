@@ -63,20 +63,15 @@ body.c-favorites.a-index {
       background: themed("color-foreground");
       border-radius: 0 0 0.25rem 0.25rem;
 
-      #search-fullscreen { display: none; }
-      #search-settings {
+      #toggle-fullscreen { display: none; }
+
+      .sc-btn {
         height: 1.25rem;
         width: 2rem;
-        justify-content: center;
-        svg { height: 1rem; }
-      }
-
-      button {
-        height: 1.5rem;
         padding: 0;
 
         svg {
-          height: 1.25rem;
+          height: 1rem;
           width: 1.25rem;
           padding: 0.25rem;
           margin: -0.125rem 0;

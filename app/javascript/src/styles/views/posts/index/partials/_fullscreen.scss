@@ -17,7 +17,7 @@
 
     .post-search { width: 100%; }
 
-    #search-fullscreen {
+    #toggle-fullscreen {
       background: themed("color-button-active");
       color: black;
     }
@@ -33,7 +33,7 @@
 // Posts Index Page
 .post-index {
   grid-template-areas:
-    "search " 
+    "search "
     "content"
     "sidebar";
   grid-template-columns: 1fr;

@@ -18,8 +18,9 @@
       bottom: -1.633rem;
       right: 0.5rem;
 
-      #search-fullscreen { display: flex; }
-      #search-settings {
+      #toggle-fullscreen { display: flex; }
+
+      .sc-btn {
         height: inherit;
         width: inherit;
         svg { height: inherit;}
