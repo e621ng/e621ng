@@ -123,9 +123,12 @@ module FileMethods
 
   def calculate_dimensions(file_path)
     if is_video?
-      video = FFMPEG::Movie.new(file_path)
-      [video.width, video.height]
-
+      stdout, _stderr, status = Open3.capture3(Danbooru.config.ffprobe_path, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", file_path)
+      unless status == 0
+        Rails.logger.warn("[FFPROBE STDOUT] #{stdout.chomp!}")
+        raise "Could not retrieve video dimensions"
+      end
+      stdout.chomp!.split("x").map(&:to_i)
     elsif is_image?
       image = Vips::Image.new_from_file(file_path)
       [image.width, image.height]
