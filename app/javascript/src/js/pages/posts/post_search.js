@@ -80,16 +80,6 @@ PostSearch.initialize_input = function ($form) {
   }
 };
 
-PostSearch.initialize_advanced_search_details = function ($section) {
-  const $details = $section.find("details.post-advanced-search").first();
-  if (!$details.length) return;
-
-  $details.prop("open", LStorage.Posts.AdvancedSearchOpen);
-  $details.on("toggle", (event) => {
-    LStorage.Posts.AdvancedSearchOpen = event.currentTarget.open;
-  });
-};
-
 PostSearch.initialize_advanced_search = function ($section) {
   const $textarea = $section.find("textarea[name=tags]").first();
   const $controls = $("#advanced-search-container").length
@@ -108,7 +98,7 @@ PostSearch.initialize_advanced_search = function ($section) {
   };
 
   const addSortExtra = (label, iconName) => {
-    const svgEl = iconName ? SVGIcon.render(iconName, 1) : null;
+    const svgEl = iconName ? SVGIcon.render(iconName) : null;
     const icon = svgEl ? svgEl.outerHTML : "";
     $sortInputs.first().closest(".ssc-body").append(
       `<input type="radio" id="${sort_custom}" name="advanced-search-sort" value="${PostSearch.order_custom}">`
@@ -152,10 +142,9 @@ PostSearch.initialize_advanced_search = function ($section) {
   const inpool_states = ["unset", "yes", "no"];
   const inpool_values = { unset: "", yes: "true", no: "false" };
   const inpool_state_map = { "": "unset", "true": "yes", "false": "no" };
-  const getInpool = () => $("[data-advanced-search=inpool]").first();
   const setInpoolState = (value) => {
     const state = inpool_state_map[value] || "unset";
-    getInpool().attr("data-state", state).attr("aria-label", `In pool: ${state}`);
+    $inpool.attr("data-state", state).attr("aria-label", `In pool: ${state}`);
   };
 
   let ratingUpdateInProgress = false;
@@ -224,7 +213,7 @@ PostSearch.initialize_advanced_search = function ($section) {
     event.stopPropagation();
     toggleAsc();
   });
-  $(document).on("click", "[data-advanced-search=inpool]", updateInpool);
+  $controls.on("click", "[data-advanced-search=inpool]", updateInpool);
   $ratings.on("change", updateRatings);
 
   syncControls();
@@ -468,7 +457,6 @@ PostSearch.initialize_controls = function () {
   const advOffclickHandler = Offclick.register("#advanced-search-open", "#advanced-search-container, .search", () => {
     advSearch.removeClass("active");
     advSearchBtn.removeClass("active");
-    LStorage.Posts.AdvancedSearchOpen = false;
   });
 
   const advSearch = $("#advanced-search-container");
@@ -476,19 +464,13 @@ PostSearch.initialize_controls = function () {
     const state = advOffclickHandler.disabled;
     advSearch.toggleClass("active", state);
     advSearchBtn.toggleClass("active", state);
-    LStorage.Posts.AdvancedSearchOpen = state;
     advOffclickHandler.disabled = !state;
   });
-
-  advSearch.toggleClass("active", !!LStorage.Posts.AdvancedSearchOpen);
-  advSearchBtn.toggleClass("active", !!LStorage.Posts.AdvancedSearchOpen);
-  if (LStorage.Posts.AdvancedSearchOpen) advOffclickHandler.disabled = false;
 
   advSearch.find("#advanced-search-close").on("click", (event) => {
     event.preventDefault();
     advSearch.removeClass("active");
     advSearchBtn.removeClass("active");
-    LStorage.Posts.AdvancedSearchOpen = false;
     advOffclickHandler.disabled = true;
   });
 
