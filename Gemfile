@@ -57,9 +57,7 @@ gem "rails-settings-cached", "~> 2.9"
 gem "sitemap_generator"
 
 gem "doorkeeper", "~> 5.8"
-# Pinned to merge commit of PR #241 (fixes reentrant autoload of Doorkeeper::AccessGrant
-# during boot with doorkeeper >= 5.9). Drop the ref when a release > 1.9.0 ships.
-gem "doorkeeper-openid_connect", git: "https://github.com/doorkeeper-gem/doorkeeper-openid_connect.git", ref: "d60ec68e51fffa7d7272356c4d35c39114c598e9"
+gem "doorkeeper-openid_connect", "~> 1.10"
 
 group :production do
   gem "pitchfork"

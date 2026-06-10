@@ -1,14 +1,4 @@
 GIT
-  remote: https://github.com/doorkeeper-gem/doorkeeper-openid_connect.git
-  revision: d60ec68e51fffa7d7272356c4d35c39114c598e9
-  ref: d60ec68e51fffa7d7272356c4d35c39114c598e9
-  specs:
-    doorkeeper-openid_connect (1.9.0)
-      doorkeeper (>= 5.5, < 6.0)
-      jwt (>= 2.5)
-      ostruct (>= 0.5)
-
-GIT
   remote: https://github.com/e621ng/dtext.git
   revision: 193e57b8f2b8a2d1023c57826474eafbfb047b8b
   tag: 2.0.4
@@ -140,6 +130,10 @@ GEM
     domain_name (0.6.20240107)
     doorkeeper (5.9.1)
       railties (>= 5)
+    doorkeeper-openid_connect (1.10.1)
+      doorkeeper (>= 5.5, < 6.0)
+      jwt (>= 2.5)
+      ostruct (>= 0.5)
     dotenv (3.1.0)
     draper (4.0.2)
       actionpack (>= 5.0)
@@ -480,7 +474,7 @@ DEPENDENCIES
   debug
   diffy
   doorkeeper (~> 5.8)
-  doorkeeper-openid_connect!
+  doorkeeper-openid_connect (~> 1.10)
   dotenv
   draper
   dtext!
