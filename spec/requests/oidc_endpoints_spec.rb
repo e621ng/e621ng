@@ -253,7 +253,7 @@ RSpec.describe "OIDC endpoints" do
         scopes: "openid full",
         confidential: true,
         owner: owner,
-        minimum_user_level: User::Levels::PRIVILEGED,
+        minimum_user_level: UserLevel::PRIVILEGED,
       )
     end
     let(:verifier)  { SecureRandom.urlsafe_base64(64).delete("=")[0, 64] }

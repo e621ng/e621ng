@@ -117,7 +117,7 @@ class SessionLoader
       session[:user_id] = user.id
       session[:ph] = user.password_token # This has been validated by the remember token
       # Mirrors SessionCreator so OIDC auth_time reflects this restore.
-      user.update_columns(last_logged_in_at: Time.now) unless user.is_blocked?
+      user.update_columns(last_logged_in_at: Time.now) unless user.is_restricted?
     rescue
       return
     end
