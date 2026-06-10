@@ -78,7 +78,7 @@ Doorkeeper::OpenidConnect.configure do
         can_approve_posts can_upload_free
         is_bd_staff is_bd_auditor
         can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries
-      ] + User::Roles.map { |role| "is_#{role}" }
+      ] + UserLevel::ROLES.map { |role| "is_#{role}" }
       flags.select { |flag| resource_owner.send("#{flag}?") }
     end
 

@@ -344,7 +344,7 @@ RSpec.describe SessionLoader do
         Doorkeeper::Application.create!(
           name: "level-gated", redirect_uri: "http://localhost/cb",
           scopes: "openid full", confidential: true,
-          owner: user, minimum_user_level: User::Levels::PRIVILEGED
+          owner: user, minimum_user_level: UserLevel::PRIVILEGED
         )
       end
       let(:token) { Doorkeeper::AccessToken.create!(application: app, resource_owner_id: user.id, scopes: "openid full") }
