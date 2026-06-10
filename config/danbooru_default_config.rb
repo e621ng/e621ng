@@ -102,6 +102,10 @@ module Danbooru
       "/usr/bin/ffmpeg"
     end
 
+    def ffprobe_path
+      "/usr/bin/ffprobe"
+    end
+
     # Thumbnail size
     def small_image_width
       256
