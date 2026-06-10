@@ -465,12 +465,10 @@ PostSearch.initialize_wiki_preview = function ($preview) {
 
 PostSearch.initialize_controls = function () {
   // Advanced search panel
-  const advOffclickHandler = Offclick.register("#advanced-search-open", "#advanced-search-container", () => {
-    // CLOSE ADVANCED OPTIONS
-    // advSearch.removeClass("active");
-    // advSearchBtn.removeClass("active");
-    // LStorage.Posts.AdvancedSearchOpen = false;
-    // CLOSE ADVANCED OPTIONS
+  const advOffclickHandler = Offclick.register("#advanced-search-open", "#advanced-search-container, .search", () => {
+    advSearch.removeClass("active");
+    advSearchBtn.removeClass("active");
+    LStorage.Posts.AdvancedSearchOpen = false;
   });
 
   const advSearch = $("#advanced-search-container");
