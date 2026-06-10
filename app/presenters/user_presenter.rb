@@ -196,7 +196,6 @@ class UserPresenter
 
   def favorite_tags_with_types
     tag_names = user&.favorite_tags.to_s.split
-    tag_names = TagAlias.to_aliased(tag_names)
     indices = tag_names.each_with_index.map {|x, i| [x, i]}.to_h
     tags = Tag.where(name: tag_names).map do |tag|
       {
