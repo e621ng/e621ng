@@ -92,7 +92,7 @@ export default [
     rules: {
       // Disable base rules that have TS-aware equivalents
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { "caughtErrorsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-unused-vars": ["warn", { "caughtErrorsIgnorePattern": "^_", "argsIgnorePattern": "^_" }],
 
       // These are stupid and pointless
       "@typescript-eslint/no-explicit-any": "off",
