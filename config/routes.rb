@@ -456,12 +456,12 @@ Rails.application.routes.draw do
     end
   end
 
-  # aliases
+  # Resource Shorthand
   resources :wpages, controller: "wiki_pages"
   resources :ftopics, controller: "forum_topics"
   resources :fposts, controller: "forum_posts"
 
-  # legacy aliases
+  # Legacy aliases
   get "/artist" => redirect { |_params, req| "/artists?page=#{req.params[:page]}&search[name]=#{CGI.escape(req.params[:name].to_s)}" }
   get "/artist/index" => redirect { |_params, req| "/artists?page=#{req.params[:page]}" }
   get "/artist/show/:id" => redirect("/artists/%{id}")
@@ -548,6 +548,7 @@ Rails.application.routes.draw do
   get "/wiki/recent_changes" => redirect { |_params, req| "/wiki_page_versions?search[updater_id]=#{req.params[:user_id]}" }
   get "/wiki/history/:title" => redirect("/wiki_page_versions?title=%{title}")
 
+  # Static controller routes
   get "/static/keyboard_shortcuts" => "static#keyboard_shortcuts", :as => "keyboard_shortcuts"
   get "/static/site_map" => "static#site_map", :as => "site_map"
   get "/static/privacy" => "static#privacy", as: "privacy_policy"
@@ -564,8 +565,12 @@ Rails.application.routes.draw do
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
   get "/robots.txt" => "static#robots", as: :robots
 
+  # Load balancer health checks
   get "status" => "rails/health#show", as: :rails_health_check
   get "health" => "health#index", as: :health_check
+
+  # Path before [#2116](https://github.com/e621ng/e621ng/pull/2116)
+  get "/db_export", to: redirect("/db_exports")
 
   root to: "static#home"
 
