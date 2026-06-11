@@ -456,15 +456,12 @@ Rails.application.routes.draw do
     end
   end
 
-  # #region Aliases
-  # #region Resource Shorthand
+  # Resource Shorthand
   resources :wpages, controller: "wiki_pages"
   resources :ftopics, controller: "forum_topics"
   resources :fposts, controller: "forum_posts"
-  # #endregion Resource Shorthand
 
-  # #region Legacy aliases
-  # #region Pre-Danbooru Paths
+  # Legacy aliases
   get "/artist" => redirect { |_params, req| "/artists?page=#{req.params[:page]}&search[name]=#{CGI.escape(req.params[:name].to_s)}" }
   get "/artist/index" => redirect { |_params, req| "/artists?page=#{req.params[:page]}" }
   get "/artist/show/:id" => redirect("/artists/%{id}")
@@ -550,9 +547,8 @@ Rails.application.routes.draw do
   get "/wiki/show" => redirect { |_params, req| "/wiki_pages?title=#{CGI.escape(req.params[:title].to_s)}" }
   get "/wiki/recent_changes" => redirect { |_params, req| "/wiki_page_versions?search[updater_id]=#{req.params[:user_id]}" }
   get "/wiki/history/:title" => redirect("/wiki_page_versions?title=%{title}")
-  # #endregion Pre-Danbooru Paths
 
-  # #region Static controller revamp
+  # Static controller routes
   get "/static/keyboard_shortcuts" => "static#keyboard_shortcuts", :as => "keyboard_shortcuts"
   get "/static/site_map" => "static#site_map", :as => "site_map"
   get "/static/privacy" => "static#privacy", as: "privacy_policy"
@@ -568,16 +564,13 @@ Rails.application.routes.draw do
   get "/static/furid" => "static#furid", as: "furid"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
   get "/robots.txt" => "static#robots", as: :robots
-  # #endregion Static controller revamp
 
-  # #region Misc
+  # Load balancer health checks
   get "status" => "rails/health#show", as: :rails_health_check
   get "health" => "health#index", as: :health_check
+
   # Path before [#2116](https://github.com/e621ng/e621ng/pull/2116)
-  get "/db_export", to: redirect(path: "/db_exports")
-  # #endregion Misc
-  # #endregion Legacy aliases
-  # #endregion Aliases
+  get "/db_export", to: redirect("/db_exports")
 
   root to: "static#home"
 
