@@ -7,7 +7,6 @@ import SVGIcon from "@/utility/SVGIcon";
 import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
 import Utility from "@/utility/utility";
-import Dialog from "@/utility/dialog";
 
 let Post = {};
 
@@ -218,83 +217,6 @@ Post.initialize_links = function () {
     }
 
     e.preventDefault();
-  });
-  let reownerDialog = null;
-  $("#reowner-post-link").on("click", async e => {
-    e.preventDefault();
-
-    const postId = $("meta[name=post-id]").attr("content");
-    const previousOwnersPromise = Post.previous_owners(postId);
-
-    const form = $("#reowner-dialog");
-    const reownerStatus = $("#reowner-dialog-status");
-    const reownerSelect = $("#reowner-dialog-select");
-    const reownerInput = $("#reowner-dialog-input");
-    const reownerOkButton = $("#reowner-dialog-ok");
-
-    // Until the previous owner list is loaded
-    reownerStatus.text("Loading...");
-    reownerInput[0].style.display = "none";
-    reownerSelect[0].style.display = "none";
-    reownerOkButton[0].disabled = true;
-
-    const toggleOkButton = () => {
-      const hasNewOwner = (reownerInput.val()?.trim() || "").length > 0;
-      reownerOkButton[0].disabled = !hasNewOwner;
-    };
-    reownerInput.on("input", toggleOkButton);
-
-    const updateReownerInput = selectValue => {
-      if (selectValue === "0") {
-        reownerInput[0].disabled = false;
-        reownerInput[0].style.display = "";
-        reownerInput.val("");
-      } else {
-        reownerInput[0].disabled = true;
-        reownerInput[0].style.display = "none";
-        if (selectValue) {
-          reownerInput.val(`!${selectValue}`);
-        }
-      }
-      toggleOkButton();
-    };
-
-    if (reownerDialog === null) {
-      reownerDialog = new Dialog("#reowner-dialog");
-      reownerSelect.on("change", event => updateReownerInput(event.target.value));
-      $("#reowner-dialog-cancel").on("click", () => reownerDialog.close());
-      $(document).on("keydown", (event) => {
-        // .isFocused would make more sense if it existed
-        if (event.key === "Enter" && reownerDialog.isOpen) {
-          event.preventDefault();
-          form.trigger("submit");
-        }
-      });
-    }
-
-    form.off("submit").on("submit", event => {
-      event.preventDefault();
-      Post.reowner(postId, reownerInput.val());
-      return false;
-    });
-
-    reownerDialog.open();
-
-    const previousOwners = await previousOwnersPromise;
-
-    reownerSelect.empty();
-    previousOwners.forEach(owner => reownerSelect.append($("<option>").val(owner.id).text(`${owner.name} (${owner.id})`)));
-    if (reownerSelect.data("allow-other")) {
-      reownerSelect.append($("<option>").val(0).text("Other..."));
-    }
-
-    updateReownerInput(reownerSelect.val());
-    if (previousOwners.length > 0) {
-      reownerStatus.text("");
-      reownerSelect[0].style.display = "";
-    } else {
-      reownerStatus.text("No previous owners found.");
-    }
   });
 };
 
@@ -1012,43 +934,6 @@ Post.set_as_avatar = function (id) {
       E621.Toast.notice("Post set as avatar. You can crop it further <a href='/maintenance/user/avatar/edit'>here</a>.");
     });
   }, { name: "Post.set_as_avatar" });
-};
-
-Post.previous_owners = async function (post_id) {
-  try {
-    return await $.ajax({
-      type: "GET",
-      url: `/moderator/post/posts/${post_id}/previous_owners.json`,
-    });
-  } catch (error) {
-    const errors = error?.responseJSON?.errors || [error?.responseJSON?.reason] || ["Unknown error"];
-    const message = $.map(errors, (msg) => msg).join("; ");
-    E621.Toast.alert("Error: " + message);
-    return [];
-  }
-};
-
-Post.reowner = function (post_id, new_owner) {
-  Post.notice_update("inc");
-  let error = false;
-  TaskQueue.add(() => {
-    $.ajax({
-      type: "POST",
-      url: `/moderator/post/posts/${post_id}/reowner.json`,
-      data: {new_owner: new_owner},
-    }).fail(function (data) {
-      const errors = data?.responseJSON?.errors || [data?.responseJSON?.reason] || ["Unknown error"];
-      var message = $.map(errors, (msg) => msg).join("; ");
-      E621.Toast.alert("Error: " + message);
-      error = true;
-    }).done(function () {
-      E621.Toast.notice("Reownered post.");
-      location.reload();
-    }).always(function () {
-      if (!error)
-        Post.notice_update("dec");
-    });
-  }, { name: "Post.reowner" });
 };
 
 $(() => {
