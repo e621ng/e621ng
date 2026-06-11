@@ -19,6 +19,8 @@ export default class Constants {
   };
 
   static readonly TAG_PREFIXES_REGEX = new RegExp("^([" + Constants.TAG_PREFIXES.join("") + "]*)(.*)", "i");
-  static readonly CATEGORY_PREFIXES_REGEX = new RegExp("^(" + Constants.TAG_CATEGORIES.map(category => category + ":").join("|") + ")(.*)", "i");
+  static readonly CATEGORY_PREFIXES_REGEX = Constants.TAG_CATEGORIES.length > 0
+    ? new RegExp("^(" + Constants.TAG_CATEGORIES.map(category => category + ":").join("|") + ")(.*)", "i")
+    : null;
   static readonly METATAGS_REGEX = new RegExp("^(" + Constants.METATAGS.join("|") + "):(.*)", "i");
 }
