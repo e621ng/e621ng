@@ -17,8 +17,9 @@ const findPools: AutocompleteProvider<PoolItem> = async (term) => {
       label: pool.name.replace(/_/g, " "),
 
       id: pool.id,
-      category: pool.category,
       post_count: pool.post_count,
+
+      category: pool.category,
     }));
   } catch {
     console.error("Failed to fetch or parse autocomplete results");

@@ -13,10 +13,11 @@ function getStaticMetatags (metatag: string, term: string): Types.StaticMetatagI
   return (options as string[])
     .filter(option => !term || option.startsWith(term))
     .map(option => ({
+      type: "metatag" as const,
       name: `${metatag}:${option}`,
       label: `${metatag}:${option}`,
+
       category: "metatag" as const,
-      type: "metatag" as const,
     }))
     .sort((a, b) => a.name.localeCompare(b.name))
     .slice(0, 10);

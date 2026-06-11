@@ -17,6 +17,7 @@ const findUsers: AutocompleteProvider<UserItem> = async (term) => {
       label: user.name.replace(/_/g, " "),
 
       id: user.id,
+
       category: "user" as const,
       level: user.level_string,
     }));

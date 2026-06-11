@@ -21,6 +21,9 @@ export interface AutocompleteItem {
   type: string;
   name: string;
   label: string;
+
+  id?: number; // For users, pools, wikis
+  post_count?: number; // For tags, artists, pools
 }
 
 export interface TagItem extends AutocompleteItem {

@@ -10,8 +10,8 @@ export default class Renderers {
 
     link.appendChild(document.createTextNode(item.label || item.name));
 
-    if (item["post_count"] !== undefined)
-      link.appendChild(Renderers.createCountSpan(item["post_count"]));
+    if (item.post_count !== undefined)
+      link.appendChild(Renderers.createCountSpan(item.post_count));
 
     li.appendChild(link);
   };
@@ -94,13 +94,13 @@ export default class Renderers {
   private static getHref (item: Types.AutocompleteItem) {
     switch (item.type) {
       case "user":
-        return `/users/${(item as Types.UserItem).id}`;
+        return `/users/${item.id}`;
       case "pool":
-        return `/pools/${(item as Types.PoolItem).id}`;
+        return `/pools/${item.id}`;
       case "artist":
-        return `/artists/${(item as Types.ArtistItem).id}`;
+        return `/artists/${item.id}`;
       case "wiki_page":
-        return `/wiki_pages/${(item as Types.WikiItem).id}`;
+        return `/wiki_pages/${item.id}`;
       case "tag":
         return "/posts?tags=" + encodeURIComponent(item.name);
       default:

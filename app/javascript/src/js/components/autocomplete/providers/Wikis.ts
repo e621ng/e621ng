@@ -19,6 +19,7 @@ const findWiki: AutocompleteProvider<WikiItem> = async (term) => {
       label: wiki.title.replace(/_/g, " "),
 
       id: wiki.id,
+
       category: wiki.category_id,
     }));
   } catch {
@@ -33,5 +34,4 @@ interface WikiAPIResponse {
   id: number;
   title: string;
   category_id: number;
-  post_count: number;
 }

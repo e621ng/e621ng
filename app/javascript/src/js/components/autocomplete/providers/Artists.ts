@@ -19,8 +19,9 @@ const findArtists: AutocompleteProvider<ArtistItem> = async (term) => {
       label: artist.name.replace(/_/g, " "),
 
       id: artist.id,
-      category: "artist" as const,
       post_count: artist.post_count,
+
+      category: "artist" as const,
     }));
   } catch {
     console.error("Failed to fetch or parse autocomplete results");

@@ -15,8 +15,10 @@ const findTags: AutocompleteProvider<TagItem> = async (term) => {
       name: tag.name,
       label: tag.name.replace(/_/g, " "),
 
-      category: tag.category,
+      id: tag.id,
       post_count: tag.post_count,
+
+      category: tag.category,
       antecedent: tag.antecedent_name,
     }));
   } catch {
