@@ -199,8 +199,12 @@ article.thumbnail[data-is-favorited="true"] .thm-desc-m.thm-favorites svg {
 // used for the sound warning icon on the badge. we cannot use currentColor or variables here for the color, since this won't actually exist in the DOM
 // (will be used as a background-image)
 @function badge-speaker-icon($loud-icon) {
+  $extra-wave: "";
+
   // append extra wave if $loud-icon is true
-  $extra-wave: if($loud-icon, "%3Cpath d='M19.364 18.364a9 9 0 0 0 0-12.728'/%3E", "");
+  @if ($loud-icon) {
+    $extra-wave: "%3Cpath d='M19.364 18.364a9 9 0 0 0 0-12.728'/%3E";
+  }
 
   // return url with appended svg end tag
   @return url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z'/%3E%3Cpath d='M16 9a5 5 0 0 1 0 6'/%3E#{$extra-wave}%3C/svg%3E");
