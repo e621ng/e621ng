@@ -7,7 +7,7 @@ div#page div#news {
 
   padding: 0;
   @include window-larger-than(50rem) {
-    margin-top: -0.5em;
+    margin: -0.5rem -0.5rem 0.5rem;
   }
   border-radius: 0.25rem;
 
