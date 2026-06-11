@@ -11,9 +11,7 @@ export default abstract class Provider<T extends AutocompleteItem = Autocomplete
    * @param _input The HTML input element associated with the autocomplete, which may be used for context in the search
    * @returns A promise that resolves to an array of autocomplete items matching the search criteria
    */
-  public async search (_query: string, _input: HTMLInputElement): Promise<T[]> {
-    throw new Error("Search method not implemented for this provider");
-  }
+  public abstract search (_query: string, _input: HTMLInputElement): Promise<T[]>;
 
   /**
    * Renders an autocomplete item into an HTML list item element for display in the autocomplete dropdown.
@@ -84,19 +82,19 @@ class RenderUtilities {
       default:
         return "#";
     }
-  };
+  }
 
   public static createCountSpan (count: number) {
     const countSpan = document.createElement("span");
     countSpan.className = "ui-autocomplete-count";
     countSpan.textContent = RenderUtilities.formatCount(count);
     return countSpan;
-  };
+  }
 
   public static formatCount (count: number) {
     return new Intl.NumberFormat("en-US", {
       notation: "compact",
       compactDisplay: "short",
     }).format(count).toLowerCase();
-  };
+  }
 }

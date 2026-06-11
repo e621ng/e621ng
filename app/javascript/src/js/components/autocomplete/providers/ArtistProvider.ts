@@ -26,8 +26,6 @@ export default class ArtistProvider extends Provider<ArtistItem> {
 
         id: artist.id,
         post_count: artist.post_count,
-
-        category: "artist" as const,
       }));
     } catch {
       console.error("Failed to fetch or parse autocomplete results");

@@ -23,13 +23,11 @@ const PROVIDERS: Record<string, new () => Provider> = {
 export default class Autocomplete {
 
   private static instances = new Map<Element, AutocompleteWidget>();
-  private static Logger: Logger;
+  private static Logger = new Logger("Autocomplete");
 
   public static initialize_all () {
     if (Utility.meta("enable-auto-complete") !== "true")
       return;
-
-    Autocomplete.Logger = new Logger("Autocomplete");
 
     const match_counts: Record<string, number> = {};
     for (const type of Object.keys(PROVIDERS)) {

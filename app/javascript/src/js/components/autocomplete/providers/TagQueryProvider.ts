@@ -44,7 +44,6 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
 
     // Add user level information
     if ("level" in item && item.level) {
-      const link = li.querySelector("a");
       const levelClass = `user-${item.level.replace(/ /g, "-").toLowerCase()}`;
       link.classList.add(levelClass);
       if (Utility.meta("style-usernames") === "true")

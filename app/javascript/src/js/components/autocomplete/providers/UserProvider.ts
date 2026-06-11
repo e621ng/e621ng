@@ -50,7 +50,7 @@ export default class UserProvider extends Provider<UserItem> {
 }
 
 interface UserAPIResponse {
-    "id": number;
-    "name": string;
-    "level_string": string;
-};
+  id: number;
+  name: string;
+  level_string: string;
+}

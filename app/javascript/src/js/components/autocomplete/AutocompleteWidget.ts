@@ -117,19 +117,14 @@ export default class AutocompleteWidget {
     }
   }
 
-  /** Opens the autocomplete dropdown, making it visible and positioning it correctly. */
-  public open () { this.isOpen = true; }
-
-  /** Closes the autocomplete dropdown, hiding it from view and resetting selection state. */
-  public close () { this.isOpen = false; }
-
   /**
    * Destroys the autocomplete widget, removing event listeners, DOM elements, and restoring original input state.
    * After calling this method, the instance should not be used.
    */
   public destroy () {
-    this.close();
+    this.isOpen = false;
     clearTimeout(this.debounceTimer);
+    clearTimeout(this.blurTimer);
 
     // Unbind events
     this.input.removeEventListener("input", this.handleInput);
@@ -157,9 +152,6 @@ export default class AutocompleteWidget {
   // ====== Event Listeners ======= //
   // ============================== //
 
-  /**
-   * Handles input events with debouncing to limit search frequency.
-   */
   private handleInput () {
     if (this.justSelected) {
       this.justSelected = false;
@@ -172,10 +164,6 @@ export default class AutocompleteWidget {
     }, 225);
   }
 
-  /**
-   * Handles keydown events for navigation and selection within the dropdown.
-   * @param event The keyboard event triggered on keydown.
-   */
   private handleKeydown (event: KeyboardEvent) {
     if (!this.isOpen) return;
 
@@ -208,7 +196,7 @@ export default class AutocompleteWidget {
         break;
       case "Escape":
         event.preventDefault();
-        this.close();
+        this.isOpen = false;
         break;
       case "Tab":
         if (this.results.length > 0) {
@@ -222,35 +210,21 @@ export default class AutocompleteWidget {
     }
   }
 
-  /**
-   * Handles blur events to close the dropdown after a short delay, allowing click events to register.
-   */
   private handleBlur () {
     clearTimeout(this.blurTimer);
     this.blurTimer = setTimeout(() => {
-      this.close();
+      this.isOpen = false;
     }, 150);
   }
 
-  /**
-   * Handles focus events to clear any pending blur timers, keeping the dropdown open if the input regains focus.
-   */
   private handleFocus () {
     clearTimeout(this.blurTimer);
   }
 
-  /**
-   * Handles mousedown events on the dropdown to prevent it from losing focus when clicking inside, allowing item selection to work properly.
-   * @param event The mouse event triggered on mousedown.
-   */
   private handleDropdownMousedown (event: MouseEvent) {
     event.preventDefault();
   }
 
-  /**
-   * Handles click events on the dropdown to select an item.
-   * @param event The mouse event triggered on click.
-   */
   private handleDropdownClick (event: MouseEvent) {
     const item = (event.target as HTMLElement).closest("li");
     if (item) {
@@ -275,7 +249,7 @@ export default class AutocompleteWidget {
       this.selectedIndex = -1;
       this.query = "";
       this.render();
-      this.close();
+      this.isOpen = false;
       return;
     }
 
@@ -298,17 +272,13 @@ export default class AutocompleteWidget {
       this.selectedIndex = newSelectedIndex;
       this.render();
 
-      if (this.results.length > 0) {
-        this.open();
-      } else {
-        this.close();
-      }
+      this.isOpen = this.results.length > 0;
     } catch (error) {
       console.error("Autocomplete search error:", error);
       this.results = [];
       this.selectedIndex = -1;
       this.render();
-      this.close();
+      this.isOpen = false;
     }
   }
 
@@ -354,7 +324,7 @@ export default class AutocompleteWidget {
   private selectItem (item: AutocompleteItem) {
     this.justSelected = true;
     this.provider.insert(this.input, item.name);
-    this.close();
+    this.isOpen = false;
     this.input.focus();
   }
 }
