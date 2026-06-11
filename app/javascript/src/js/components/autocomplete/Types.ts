@@ -2,7 +2,7 @@
 
 export type AutocompleteProvider<T extends AutocompleteItem = AutocompleteItem> = (query: string) => Promise<T[]>;
 
-// ========= Functions ========== //
+// ===== Config & Functions ====== //
 
 export type AutocompleteConfig = {
   searchFn: SearchFunction;
