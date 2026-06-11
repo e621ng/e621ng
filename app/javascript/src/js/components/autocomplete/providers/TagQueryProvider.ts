@@ -1,8 +1,8 @@
 import Constants from "@/components/autocomplete/Constants";
 import Provider from "@/components/autocomplete/Provider";
 import * as Types from "@/components/autocomplete/Types";
-
 import Utility from "@/utility/utility";
+
 import PoolProvider from "./PoolProvider";
 import TagProvider from "./TagProvider";
 import UserProvider from "./UserProvider";
