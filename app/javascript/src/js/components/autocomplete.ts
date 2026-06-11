@@ -2,10 +2,15 @@ import AutocompleteWidget from "@/components/autocomplete/AutocompleteWidget";
 import Constants from "@/components/autocomplete/Constants";
 import Renderers from "@/components/autocomplete/Renderers";
 import * as Types from "@/components/autocomplete/Types";
+import Utils from "@/components/autocomplete/Utils";
 import Utility from "@/utility/utility";
 
-import * as Providers from "@/components/autocomplete/providers";
-const { findTags, findArtists, findPools, findUsers, findWikis, findMetatags } = Providers;
+import findArtists from "@/components/autocomplete/providers/Artists";
+import findMetatags from "@/components/autocomplete/providers/Metatags";
+import findPools from "@/components/autocomplete/providers/Pools";
+import findTags from "@/components/autocomplete/providers/Tags";
+import findUsers from "@/components/autocomplete/providers/Users";
+import findWikis from "@/components/autocomplete/providers/Wikis";
 
 
 export default class Autocomplete {
@@ -160,27 +165,27 @@ const AUTOCOMPLETE_CONFIGS: Record<string, Types.AutocompleteConfig> = {
     renderFn: Renderers.renderTagItem,
   },
   "tag": {
-    searchFn: (query) => Providers.Utils.searchItems(query, findTags),
+    searchFn: (query) => Utils.searchItems(query, findTags),
     insertFn: Autocomplete.insertSimpleCompletion,
     renderFn: Renderers.renderTagItem,
   },
   "artist": {
-    searchFn: (query) => Providers.Utils.searchItems(query, findArtists),
+    searchFn: (query) => Utils.searchItems(query, findArtists),
     insertFn: Autocomplete.insertSimpleCompletion,
     renderFn: Renderers.renderItem,
   },
   "pool": {
-    searchFn: (query) => Providers.Utils.searchItems(query, findPools),
+    searchFn: (query) => Utils.searchItems(query, findPools),
     insertFn: Autocomplete.insertSimpleCompletion,
     renderFn: Renderers.renderPoolItem,
   },
   "user": {
-    searchFn: (query) => Providers.Utils.searchItems(query, findUsers),
+    searchFn: (query) => Utils.searchItems(query, findUsers),
     insertFn: Autocomplete.insertSimpleCompletion,
     renderFn: Renderers.renderUserItem,
   },
   "wiki-page": {
-    searchFn: (query) => Providers.Utils.searchItems(query, findWikis),
+    searchFn: (query) => Utils.searchItems(query, findWikis),
     insertFn: Autocomplete.insertSimpleCompletion,
     renderFn: Renderers.renderWikiItem,
   },

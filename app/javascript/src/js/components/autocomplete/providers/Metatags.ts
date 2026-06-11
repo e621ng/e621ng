@@ -1,9 +1,9 @@
 import Constants from "@/components/autocomplete/Constants";
 import * as Types from "@/components/autocomplete/Types";
+import Utils from "@/components/autocomplete/Utils";
 import findPools from "./Pools";
 import findTags from "./Tags";
 import findUsers from "./Users";
-import { Utils } from "./index";
 
 function getStaticMetatags (metatag: string, term: string): Types.StaticMetatagItem[] {
   const options = Constants.STATIC_METATAGS[metatag];
