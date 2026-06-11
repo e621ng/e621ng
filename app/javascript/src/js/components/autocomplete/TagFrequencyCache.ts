@@ -1,68 +1,89 @@
-interface TagFrequencyEntry {
-  count: number;
-  lastUsed: number;
-}
-
-interface TagFrequencyStore {
-  entries: Record<string, TagFrequencyEntry>;
-}
-
 const STORAGE_KEY = "e6.autocomplete.tagfreq";
 const PRUNE_DAYS = 90;
 const MAX_ENTRIES = 500;
 
 export default class TagFrequencyCache {
-  private static _cache: TagFrequencyStore | null = null;
 
+  // ========= Public API ========= //
+
+  /**
+   * Records the usage of a tag, incrementing its count and updating its last used timestamp.
+   * @param tag The name of the tag to record usage for
+   */
   static record (tag: string): void {
-    const store = this.load();
-    const prev = store.entries[tag];
-    store.entries[tag] = {
+    const store = this.cache;
+    const prev = store[tag];
+    store[tag] = {
       count: prev ? prev.count + 1 : 1,
       lastUsed: Date.now(),
     };
-    this.prune(store);
-    this.save(store);
+    this.save();
   }
 
+  /**
+   * Computes a score for a tag based on its usage frequency and recency, used for sorting autocomplete results.
+   * @param tag The name of the tag to compute the score for
+   * @returns A numeric score representing the tag's relevance, where higher scores indicate more frequently and recently used tags
+   */
   static score (tag: string): number {
-    const store = this.load();
-    const entry = store.entries[tag];
+    const store = this.cache;
+    const entry = store[tag];
     if (!entry) return 0;
     const daysSince = (Date.now() - entry.lastUsed) / 86_400_000;
     return (Math.log10(entry.count) + 1) / (1 + (daysSince / 30));
   }
 
-  private static load (): TagFrequencyStore {
-    if (this._cache !== null) return this._cache;
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      this._cache = raw ? JSON.parse(raw) : { entries: {} };
-    } catch {
-      return { entries: {} };
+
+  // ====== Cache Management ====== //
+
+  private static _cache: TagFrequencyStore | null = null;
+
+  private static get cache (): TagFrequencyStore {
+    if (this._cache === null) {
+      try { // Load cache from localStorage
+        const raw = localStorage.getItem(STORAGE_KEY);
+        this._cache = raw ? JSON.parse(raw) : {};
+      } catch { this._cache = {}; }
+
+      this.prune(); // Prune old data on load
     }
     return this._cache;
   }
 
-  private static save (store: TagFrequencyStore): void {
-    this._cache = store;
+  private static save (): void {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.cache));
     } catch { /* quota exceeded or unavailable */ }
   }
 
-  private static prune (store: TagFrequencyStore): void {
+  private static prune (): void {
     const cutoff = Date.now() - (PRUNE_DAYS * 86_400_000);
-    for (const key of Object.keys(store.entries)) {
-      if (store.entries[key].lastUsed < cutoff)
-        delete store.entries[key];
+    const entryCount = Object.keys(this._cache).length;
+    if (entryCount === 0) return;
+
+    // Prune old entries
+    for (const [key, value] of Object.entries(this._cache)) {
+      if (value.lastUsed < cutoff) delete this._cache[key];
     }
 
-    const keys = Object.keys(store.entries);
+    // Prune least recently used if over max entries
+    const keys = Object.keys(this._cache);
     if (keys.length > MAX_ENTRIES) {
-      keys.sort((a, b) => store.entries[a].lastUsed - store.entries[b].lastUsed);
+      keys.sort((a, b) => this._cache[a].lastUsed - this._cache[b].lastUsed);
       for (const key of keys.slice(0, keys.length - MAX_ENTRIES))
-        delete store.entries[key];
+        delete this._cache[key];
     }
+
+    if (entryCount === Object.keys(this._cache).length)
+      return; // No change, skip save
+
+    this.save();
   }
+}
+
+type TagFrequencyStore = Record<string, TagFrequencyEntry>;
+
+interface TagFrequencyEntry {
+  count: number;
+  lastUsed: number;
 }
