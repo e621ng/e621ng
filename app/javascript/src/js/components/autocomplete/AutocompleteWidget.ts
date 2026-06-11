@@ -242,9 +242,9 @@ export default class AutocompleteWidget {
 
   /** Performs the search using the provided search function, updates results, and manages dropdown state accordingly. */
   private async search () {
-    const currentQuery = this.input.value;
+    const currentQuery = this.input.value?.trim() || "";
 
-    if (!currentQuery.trim()) {
+    if (!currentQuery) {
       this.results = [];
       this.selectedIndex = -1;
       this.query = "";
@@ -253,8 +253,7 @@ export default class AutocompleteWidget {
       return;
     }
 
-    if (currentQuery.trim() === this.query.trim()) return;
-
+    if (currentQuery === this.query) return;
     this.query = currentQuery;
 
     try {
