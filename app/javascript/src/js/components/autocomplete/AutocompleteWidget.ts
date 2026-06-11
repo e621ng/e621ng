@@ -87,14 +87,17 @@ export default class AutocompleteWidget {
 
   /** Positions the dropdown below the input field, adjusting for scroll and viewport. */
   public positionDropdown () {
-    const rect = this.input.getBoundingClientRect();
+    // Special case for tag input, which is combined with an adjacent submit button.
+    const rect = this.input.id === "tags"
+      ? this.input.parentElement.getBoundingClientRect()
+      : this.input.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
     this.dropdown.style.position = "absolute";
-    this.dropdown.style.left = (rect.left + scrollLeft) + "px";
+    this.dropdown.style.left = (rect.left + scrollLeft + 1) + "px";
     this.dropdown.style.top = (rect.bottom + scrollTop) + "px";
-    this.dropdown.style.minWidth = rect.width + "px";
+    this.dropdown.style.minWidth = (rect.width - 2) + "px";
   }
 
   private _isOpen = false;
