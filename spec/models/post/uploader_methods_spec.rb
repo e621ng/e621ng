@@ -55,6 +55,18 @@ RSpec.describe Post do
           post.reowner!(new_owner)
           expect(post.reload.uploader_id).to eq(new_owner.id)
         end
+
+        it "raises a PrivilegeError when reownering versions" do
+          expect do
+            post.reowner!(new_owner, reowner_versions: true)
+          end.to raise_error(User::PrivilegeError)
+        end
+
+        it "raises a PrivilegeError when disabling post events" do
+          expect do
+            post.reowner!(new_owner, post_events: false)
+          end.to raise_error(User::PrivilegeError)
+        end
       end
 
       context "when the user is not a janitor" do
@@ -90,59 +102,63 @@ RSpec.describe Post do
         end
       end
 
-      describe "reowner_versions parameter" do
-        let!(:version1) do # rubocop:disable RSpec/IndexedLet
-          create(:post_version, post: post).tap { |v| v.update_column(:updater_id, old_owner.id) }
-        end
-        let!(:version2) do # rubocop:disable RSpec/IndexedLet
-          create(:post_version, post: post).tap { |v| v.update_column(:updater_id, old_owner.id) }
-        end
-        let!(:version3) do # rubocop:disable RSpec/IndexedLet
-          create(:post_version, post: post).tap { |v| v.update_column(:updater_id, other_user.id) }
+      context "when the user is a BD admin" do
+        include_context "as bd admin"
+
+        describe "reowner_versions parameter" do
+          let!(:version1) do # rubocop:disable RSpec/IndexedLet
+            create(:post_version, post: post).tap { |v| v.update_column(:updater_id, old_owner.id) }
+          end
+          let!(:version2) do # rubocop:disable RSpec/IndexedLet
+            create(:post_version, post: post).tap { |v| v.update_column(:updater_id, old_owner.id) }
+          end
+          let!(:version3) do # rubocop:disable RSpec/IndexedLet
+            create(:post_version, post: post).tap { |v| v.update_column(:updater_id, other_user.id) }
+          end
+
+          it "updates the updater_id on previous versions when true" do
+            post.reowner!(new_owner, reowner_versions: true)
+            expect(version1.reload.updater_id).to eq(new_owner.id)
+            expect(version2.reload.updater_id).to eq(new_owner.id)
+            expect(version3.reload.updater_id).to eq(other_user.id)
+          end
+
+          it "does not update previous versions when false" do
+            post.reowner!(new_owner, reowner_versions: false)
+            expect(version1.reload.updater_id).to eq(old_owner.id)
+            expect(version2.reload.updater_id).to eq(old_owner.id)
+            expect(version3.reload.updater_id).to eq(other_user.id)
+          end
         end
 
-        it "updates the updater_id on previous versions when true" do
-          post.reowner!(new_owner, reowner_versions: true)
-          expect(version1.reload.updater_id).to eq(new_owner.id)
-          expect(version2.reload.updater_id).to eq(new_owner.id)
-          expect(version3.reload.updater_id).to eq(other_user.id)
+        describe "post_events parameter" do
+          it "creates an owner_changed post event by default (true)" do
+            expect do
+              post.reowner!(new_owner)
+            end.to change { PostEvent.where(action: "owner_changed", post_id: post.id).count }.by(1)
+
+            event = PostEvent.last
+            expect(event.extra_data).to include("old_owner" => old_owner.id, "new_owner" => new_owner.id)
+          end
+
+          it "does not create a post event when false" do
+            expect do
+              post.reowner!(new_owner, post_events: false)
+            end.not_to change(PostEvent, :count)
+          end
+
+          it "does not create a post event when the old and new owners are the same" do
+            expect do
+              post.reowner!(old_owner, post_events: true)
+            end.not_to change(PostEvent, :count)
+          end
         end
 
-        it "does not update previous versions when false" do
-          post.reowner!(new_owner, reowner_versions: false)
-          expect(version1.reload.updater_id).to eq(old_owner.id)
-          expect(version2.reload.updater_id).to eq(old_owner.id)
-          expect(version3.reload.updater_id).to eq(other_user.id)
-        end
-      end
-
-      describe "post_events parameter" do
-        it "creates an owner_changed post event by default (true)" do
-          expect do
-            post.reowner!(new_owner)
-          end.to change { PostEvent.where(action: "owner_changed", post_id: post.id).count }.by(1)
-
-          event = PostEvent.last
-          expect(event.extra_data).to include("old_owner" => old_owner.id, "new_owner" => new_owner.id)
-        end
-
-        it "does not create a post event when false" do
+        it "skips versioning the post update itself" do
           expect do
             post.reowner!(new_owner, post_events: false)
-          end.not_to change(PostEvent, :count)
+          end.not_to(change { post.versions.count })
         end
-
-        it "does not create a post event when the old and new owners are the same" do
-          expect do
-            post.reowner!(old_owner, post_events: true)
-          end.not_to change(PostEvent, :count)
-        end
-      end
-
-      it "skips versioning the post update itself" do
-        expect do
-          post.reowner!(new_owner, post_events: false)
-        end.not_to(change { post.versions.count })
       end
     end
   end

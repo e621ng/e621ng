@@ -32,6 +32,8 @@ export default class PostReowner {
       const reownerStatus = $("#reowner-dialog-status");
       const reownerSelect = $("#reowner-dialog-select");
       const reownerInput = $("#reowner-dialog-input");
+      const reownerReownerVersions = $("#reowner-dialog-reowner-versions");
+      const reownerPostEvents = $("#reowner-dialog-post-events");
       const reownerOkButton = $("#reowner-dialog-ok");
 
       const inputElement = reownerInput[0] as HTMLInputElement;
@@ -89,7 +91,9 @@ export default class PostReowner {
       form.off("submit").on("submit", (event: JQuery.SubmitEvent) => {
         event.preventDefault();
         const newOwner = reownerInput.val() as string;
-        PostReowner.reowner(postId, newOwner);
+        const reownerVersions = reownerReownerVersions?.prop("checked") as boolean | undefined;
+        const postEvents = reownerPostEvents?.prop("checked") as boolean | undefined;
+        PostReowner.reowner(postId, newOwner, reownerVersions, postEvents);
         return false;
       });
 
@@ -132,7 +136,7 @@ export default class PostReowner {
     }
   }
 
-  private static reowner (post_id: string, new_owner: string): void {
+  private static reowner (post_id: string, new_owner: string, reowner_versions: boolean = false, post_events: boolean = true): void {
     Post.notice_update("inc");
     let hasError = false;
     TaskQueue.add(async () => {
@@ -140,7 +144,13 @@ export default class PostReowner {
         await $.ajax({
           type: "POST",
           url: `/moderator/post/posts/${post_id}/reowner.json`,
-          data: { new_owner: new_owner },
+          data: {
+            reowner: {
+              new_owner: new_owner,
+              reowner_versions: reowner_versions,
+              post_events: post_events,
+            },
+          },
         });
         E621.Toast.notice("Reownered post.");
         location.reload();

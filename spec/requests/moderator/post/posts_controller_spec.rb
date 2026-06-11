@@ -365,13 +365,13 @@ RSpec.describe Moderator::Post::PostsController do
       before { sign_in_as janitor_approver }
 
       it "sets a flash alert if the new owner could not be found" do
-        post reowner_moderator_post_post_path(post_record), params: { new_owner: "I_AM_NOT_A_USER" }
+        post reowner_moderator_post_post_path(post_record), params: { reowner: { new_owner: "I_AM_NOT_A_USER" } }
         expect(flash[:alert]).to match(/New owner could not be found/)
       end
 
       it "calls reowner! and redirects if the user is found" do
-        allow_any_instance_of(Post).to receive(:reowner!).with(new_owner).and_return(true) # rubocop:disable RSpec/AnyInstance
-        post reowner_moderator_post_post_path(post_record), params: { new_owner: new_owner.name }
+        allow_any_instance_of(Post).to receive(:reowner!).with(new_owner, post_events: true, reowner_versions: false).and_return(true) # rubocop:disable RSpec/AnyInstance
+        post reowner_moderator_post_post_path(post_record), params: { reowner: { new_owner: new_owner.name } }
         expect(response).to redirect_to(post_path(post_record))
       end
     end

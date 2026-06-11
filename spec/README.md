@@ -80,6 +80,7 @@ spec/
 ### Current user
 
 ```ruby
+include_context "as bd admin"
 include_context "as admin"
 include_context "as moderator"
 include_context "as janitor"
@@ -89,7 +90,7 @@ include_context "as member"
 
 Each context creates a user of that level and sets `CurrentUser.user` / `CurrentUser.ip_addr = "127.0.0.1"` in `before(:each)`, and clears both in `after(:each)`.
 
-Factory mapping: `admin` → `:admin_user`, `moderator` → `:moderator_user`, `janitor` → `:janitor_user`, `privileged` → `:privileged_user`, `member` → `:user`.
+Factory mapping: `bd admin` → `:bd_admin_user`, `admin` → `:admin_user`, `moderator` → `:moderator_user`, `janitor` → `:janitor_user`, `privileged` → `:privileged_user`, `member` → `:user`.
 
 ### Tag categories
 

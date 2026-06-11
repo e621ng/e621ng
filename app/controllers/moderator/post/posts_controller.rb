@@ -134,13 +134,24 @@ module Moderator
 
       def reowner
         @post = ::Post.find(params[:id])
-        @new_owner = User.find_by_name_or_id(params[:new_owner]) # rubocop:disable Rails/DynamicFindBy
+        reowner_params = new_reowner_params
+        @new_owner = User.find_by_name_or_id(reowner_params[:new_owner]) # rubocop:disable Rails/DynamicFindBy
         if @new_owner.blank?
           flash[:alert] = "New owner could not be found. Try using !<userId> instead of a name."
           return
         end
-        @post.reowner!(@new_owner)
+        reowner_versions = ActiveModel::Type::Boolean.new.cast(reowner_params[:reowner_versions])
+        post_events = ActiveModel::Type::Boolean.new.cast(reowner_params[:post_events])
+        @post.reowner!(@new_owner, reowner_versions: reowner_versions, post_events: post_events)
         respond_with(@post)
+      end
+
+      private
+
+      def new_reowner_params
+        params.require(:reowner)
+              .permit(%i[new_owner reowner_versions post_events])
+              .with_defaults(reowner_versions: false, post_events: true)
       end
     end
   end
