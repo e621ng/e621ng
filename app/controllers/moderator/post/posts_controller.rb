@@ -128,7 +128,7 @@ module Moderator
         @post = ::Post.find(params[:id])
         @previous_owners = @post.previous_version_uploaders
         respond_with(@previous_owners) do |format|
-          format.json { render json: @previous_owners.to_json }
+          format.json { render json: @previous_owners.map { |owner| owner.slice(:id, :name) }.to_json }
         end
       end
 

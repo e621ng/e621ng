@@ -12,8 +12,8 @@ module Admin
       @old_user = User.find_by_name_or_id(@reowner_params[:old_owner])
       @new_user = User.find_by_name_or_id(@reowner_params[:new_owner])
       query = @reowner_params[:search]
-      reowner_versions = @reowner_params[:reowner_versions]&.truthy?
-      post_events = @reowner_params[:post_events]&.truthy?
+      reowner_versions = ActiveModel::Type::Boolean.new.cast(@reowner_params[:reowner_versions])
+      post_events = ActiveModel::Type::Boolean.new.cast(@reowner_params[:post_events])
 
       unless @old_user && @new_user
         flash[:notice] = "Old or new user failed to look up. Use !id for name to use an id"

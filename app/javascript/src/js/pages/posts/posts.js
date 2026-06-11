@@ -260,7 +260,7 @@ Post.initialize_links = function () {
     };
 
     if (reownerDialog === null) {
-      reownerDialog = new Dialog("#reowner-dialog", { width: 250 });
+      reownerDialog = new Dialog("#reowner-dialog");
       reownerSelect.on("change", event => updateReownerInput(event.target.value));
       $("#reowner-dialog-cancel").on("click", () => reownerDialog.close());
       $(document).on("keydown", (event) => {
@@ -272,7 +272,7 @@ Post.initialize_links = function () {
       });
     }
 
-    form.on("submit", event => {
+    form.off("submit").on("submit", event => {
       event.preventDefault();
       Post.reowner(postId, reownerInput.val());
       return false;

@@ -27,7 +27,7 @@ RSpec.describe Post do
         expect(post.previous_version_uploaders).to eq([])
       end
 
-      it "returns doesn't return pending or rejected replacement uploaders" do
+      it "doesn't return pending or rejected replacement uploaders" do
         post = create(:post)
         user1 = create(:user)
         user2 = create(:user)
