@@ -98,12 +98,12 @@ export default class Autocomplete {
       term = tagPrefixMatch[2];
     }
 
-    const categoryPrefixMatch = term.match(Constants.CATEGORY_PREFIXES_REGEX);
+    const categoryPrefixMatch = Constants.CATEGORY_PREFIXES_REGEX ? term.match(Constants.CATEGORY_PREFIXES_REGEX) : null;
     if (categoryPrefixMatch) {
       metatag = categoryPrefixMatch[1].slice(0, -1).toLowerCase();
       term = categoryPrefixMatch[2];
     } else {
-      const metagMatch = term.match(Constants.METATAGS_REGEX);
+      const metagMatch = Constants.METATAGS_REGEX ? term.match(Constants.METATAGS_REGEX) : null;
       if (metagMatch) {
         metatag = metagMatch[1].toLowerCase();
         term = metagMatch[2];
