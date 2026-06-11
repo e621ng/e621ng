@@ -9,10 +9,10 @@ const findPools: AutocompleteProvider<PoolItem> = async (term) => {
 
   try {
     const response = await fetch(`/pools.json?${params}`);
-    const data = await response.json();
+    const data: PoolAPIResponse[] = await response.json();
 
-    return data.map((pool: PoolAPIResponse) => ({
-      type: "pool",
+    return data.map((pool) => ({
+      type: "pool" as const,
       name: pool.name,
       label: pool.name.replace(/_/g, " "),
 

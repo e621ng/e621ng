@@ -11,14 +11,15 @@ const findArtists: AutocompleteProvider<ArtistItem> = async (term) => {
 
   try {
     const response = await fetch(`/artists.json?${params}`);
-    const data = await response.json();
-    return data.map((artist: ArtistAPIResponse) => ({
-      type: "artist",
+    const data: ArtistAPIResponse[] = await response.json();
+
+    return data.map((artist) => ({
+      type: "artist" as const,
       name: artist.name,
       label: artist.name.replace(/_/g, " "),
 
       id: artist.id,
-      category: "artist",
+      category: "artist" as const,
       post_count: artist.post_count,
     }));
   } catch {

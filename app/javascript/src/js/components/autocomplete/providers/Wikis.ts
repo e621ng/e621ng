@@ -11,14 +11,15 @@ const findWiki: AutocompleteProvider<WikiItem> = async (term) => {
 
   try {
     const response = await fetch(`/wiki_pages.json?${params}`);
-    const data = await response.json();
+    const data: WikiAPIResponse[] = await response.json();
 
-    return (data as WikiAPIResponse[]).map(wiki => ({
-      id: wiki.id,
+    return data.map(wiki => ({
+      type: "wiki_page" as const,
       name: wiki.title,
       label: wiki.title.replace(/_/g, " "),
+
+      id: wiki.id,
       category: wiki.category_id,
-      type: "wiki_page",
     }));
   } catch {
     console.error("Failed to fetch or parse autocomplete results");

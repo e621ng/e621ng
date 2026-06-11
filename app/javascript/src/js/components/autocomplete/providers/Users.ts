@@ -9,9 +9,9 @@ const findUsers: AutocompleteProvider<UserItem> = async (term) => {
 
   try {
     const response = await fetch(`/users.json?${params}`);
-    const data = await response.json();
+    const data: UserAPIResponse[] = await response.json();
 
-    return data.map((user: UserAPIResponse) => ({
+    return data.map((user) => ({
       type: "user" as const,
       name: user.name,
       label: user.name.replace(/_/g, " "),
