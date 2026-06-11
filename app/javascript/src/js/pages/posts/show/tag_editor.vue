@@ -26,7 +26,7 @@ import { nextTick } from 'vue';
 import relatedTags from "@/pages/uploads/new/related.vue";
 import tagPreview from "@/pages/uploads/new/tag_preview.vue";
 import Post from '../posts';
-import Autocomplete from "@/components/autocomplete.js";
+import Autocomplete from "@/components/autocomplete";
 import Utility from "@/utility/utility.js";
 
 function tagSorter(a, b) {

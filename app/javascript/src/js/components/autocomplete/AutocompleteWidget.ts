@@ -1,4 +1,5 @@
-import * as Types from "@/components/autocomplete/Types";
+import Provider from "@/components/autocomplete/Provider";
+import { AutocompleteItem } from "@/components/autocomplete/Types";
 
 export default class AutocompleteWidget {
 
@@ -26,11 +27,9 @@ export default class AutocompleteWidget {
   // ============================== //
 
   private input: HTMLInputElement;
-  private searchFn: Types.SearchFunction;
-  private insertFn: Types.InsertFunction;
-  private renderFn: Types.RenderFunction;
+  private provider: Provider;
   private selectedIndex = -1;
-  private results: Types.AutocompleteItem[] = [];
+  private results: AutocompleteItem[] = [];
   private justSelected = false;
   private query = "";
 
@@ -45,14 +44,12 @@ export default class AutocompleteWidget {
   // ======== Constructor ========= //
   // ============================== //
 
-  constructor (input: HTMLInputElement, { searchFn, insertFn, renderFn }: Types.AutocompleteConfig) {
+  constructor (input: HTMLInputElement, provider: Provider) {
     AutocompleteWidget.initializeGlobalHandlers();
     AutocompleteWidget.instances.add(this);
 
     this.input = input;
-    this.searchFn = searchFn;
-    this.insertFn = insertFn;
-    this.renderFn = renderFn;
+    this.provider = provider;
 
     // Attach input
     this.originalAutocomplete = this.input.getAttribute("autocomplete");
@@ -287,7 +284,7 @@ export default class AutocompleteWidget {
     this.query = currentQuery;
 
     try {
-      const results = await this.searchFn(this.query, this.input);
+      const results = await this.provider.search(this.query, this.input);
 
       if (this.query !== currentQuery) return;
 
@@ -320,14 +317,7 @@ export default class AutocompleteWidget {
     this.dropdown.innerHTML = "";
 
     this.results.forEach((item, index) => {
-      const li = document.createElement("li");
-      li.setAttribute("role", "option");
-      li.setAttribute("aria-selected", "false");
-      li.setAttribute("data-index", index + "");
-
-      this.renderFn(li, item);
-
-      this.dropdown.appendChild(li);
+      this.dropdown.appendChild(this.provider.render(item, index));
     });
 
     if (this.selectedIndex >= 0 && this.selectedIndex < this.results.length) {
@@ -361,9 +351,9 @@ export default class AutocompleteWidget {
    * Handles the selection of an autocomplete item, invoking the insert function and closing the dropdown.
    * @param item The autocomplete item that was selected.
    */
-  private selectItem (item: Types.AutocompleteItem) {
+  private selectItem (item: AutocompleteItem) {
     this.justSelected = true;
-    this.insertFn(this.input, item.name);
+    this.provider.insert(this.input, item.name);
     this.close();
     this.input.focus();
   }
