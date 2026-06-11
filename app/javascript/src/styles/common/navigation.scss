@@ -488,7 +488,7 @@ body.c-static.a-home {
 
     menu.nav-secondary { display: none; }
 
-    menu.nav-tools { border-radius: .25rem; }
+    menu.nav-tools { border-radius: 0.25rem; }
   }
 
   @include window-smaller-than(50rem) {
