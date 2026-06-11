@@ -1313,6 +1313,7 @@ class Post < ApplicationRecord
       User.where(id: previous_uploader_ids)
     end
 
+    # Reowner the post and return the old owner id, or nil if the new owner is the current owner.
     def reowner!(new_owner, reowner_versions: false, post_events: true)
       raise ::User::PrivilegeError unless CurrentUser.is_janitor?
       raise ::User::PrivilegeError if (reowner_versions || !post_events) && !CurrentUser.is_bd_staff?
@@ -1322,7 +1323,7 @@ class Post < ApplicationRecord
         CurrentUser.is_admin? || previous_version_uploaders.any? { |uploader| uploader.id == new_owner_id }
 
       old_owner_id = uploader_id
-      return if new_owner_id == old_owner_id # nothing to do
+      return nil if new_owner_id == old_owner_id # nothing to do
 
       self.do_not_version_changes = true
       update({ uploader_id: new_owner_id })
@@ -1336,6 +1337,8 @@ class Post < ApplicationRecord
       if post_events
         PostEvent.add(id, CurrentUser.user, :owner_changed, { old_owner: old_owner_id, new_owner: new_owner_id })
       end
+
+      old_owner_id
     end
   end
 

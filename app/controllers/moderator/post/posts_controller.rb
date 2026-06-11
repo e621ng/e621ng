@@ -134,6 +134,7 @@ module Moderator
 
       def reowner
         @post = ::Post.find(params[:id])
+
         reowner_params = new_reowner_params
         @new_owner = User.find_by_name_or_id(reowner_params[:new_owner]) # rubocop:disable Rails/DynamicFindBy
         if @new_owner.blank?
@@ -142,7 +143,14 @@ module Moderator
         end
         reowner_versions = ActiveModel::Type::Boolean.new.cast(reowner_params[:reowner_versions])
         post_events = ActiveModel::Type::Boolean.new.cast(reowner_params[:post_events])
-        @post.reowner!(@new_owner, reowner_versions: reowner_versions, post_events: post_events)
+
+        old_owner_id = @post.reowner!(@new_owner, reowner_versions: reowner_versions, post_events: post_events)
+
+        if old_owner_id.present? && !post_events
+          # Always log the change somewhere
+          StaffAuditLog.log(:post_owner_reassign, CurrentUser.user, { old_user_id: old_owner_id, new_user_id: @new_owner.id, query: "", post_ids: [@post.id] })
+        end
+
         respond_with(@post)
       end
 
