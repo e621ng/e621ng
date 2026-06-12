@@ -59,6 +59,7 @@
       <% end %>
     <% end %>
     <% if CurrentUser.is_janitor? %>
+      <li><%= tag.a "Reowner", href: "#", id: "reowner-post-link", data: { pid: post.id } %></li>
       <li><%= tag.a "Regenerate Thumbnails", href: "#", id: "regenerate-image-samples-link", data: { pid: post.id } %></li>
       <% if post.is_video? %>
         <li><%= tag.a "Regenerate Video Samples", href: "#", id: "regenerate-video-samples-link", data: { pid: post.id } %></li>
