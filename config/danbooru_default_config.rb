@@ -617,6 +617,10 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       false
     end
 
+    def penalize_replacement_previous_uploader_by_default
+      true
+    end
+
     # The number of records displayed per page. Posts use `user.per_page` which is configurable by the user
     def records_per_page
       75
