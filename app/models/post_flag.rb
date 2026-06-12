@@ -145,7 +145,7 @@ class PostFlag < ApplicationRecord
       errors.add(:creator, "cannot flag posts")
     end
 
-    return if creator.is_janitor?
+    return if creator.is_staff?
 
     allowed = creator.can_post_flag_with_reason
     if allowed != true

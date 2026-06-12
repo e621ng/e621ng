@@ -6,7 +6,7 @@
     <button type="button" class="st-button" id="post-edit-close"><%= svg_icon(:times) %><span>Cancel</span></button>
   </h3>
 
-  <% unless CurrentUser.user.is_janitor? %>
+  <% unless CurrentUser.user.is_staff? %>
     <div style="margin-bottom: 0.5rem;">
       <p>Before editing, read the <%= link_to "how to tag guide", wiki_page_path(id: "e621:tags") %>.</p>
     </div>
@@ -60,7 +60,7 @@
       <%= f.label :blank, "Lock" %>
 
       <fieldset class="locks">
-        <% if CurrentUser.is_janitor? %>
+        <% if CurrentUser.is_staff? %>
           <%= f.input :is_note_locked, label: "Notes" %>
         <% end %>
         <%= f.input :is_rating_locked, label: "Rating" %>
@@ -74,7 +74,7 @@
     </div>
   <% end %>
 
-  <% if CurrentUser.is_janitor? %>
+  <% if CurrentUser.is_staff? %>
     <%= f.input :bg_color, label: "Background Color", input_html: { size: 10 } %>
   <% end %>
 

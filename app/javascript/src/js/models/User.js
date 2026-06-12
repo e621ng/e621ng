@@ -71,6 +71,7 @@ export default class User {
         privileged: data.userIsPrivileged === "true",
         formerStaff: data.userIsFormerStaff === "true",
 
+        staff: data.userIsStaff === "true",
         janitor: data.userIsJanitor === "true",
         moderator: data.userIsModerator === "true",
         admin: data.userIsAdmin === "true",

@@ -7,6 +7,7 @@ RSpec.describe PostFlagsController do
 
   # Members older than 3 days bypass the :REJ_NEWBIE throttle gate on post_flag creation.
   let(:member)      { create(:user, created_at: 4.days.ago) }
+  let(:staff)       { create(:staff_user) }
   let(:janitor)     { create(:janitor_user) }
   let(:admin)       { create(:admin_user) }
   let(:post_record) { create(:post) }
@@ -175,6 +176,12 @@ RSpec.describe PostFlagsController do
       expect(response).to have_http_status(:forbidden)
     end
 
+    it "returns 403 for a staff member" do
+      sign_in_as staff
+      delete "/posts/#{post_record.id}/flag"
+      expect(response).to have_http_status(:forbidden)
+    end
+
     it "unflags the post for a janitor" do
       sign_in_as janitor
       expect { delete "/posts/#{post_record.id}/flag" }.to change { post_record.reload.is_flagged }.from(true).to(false)
@@ -203,6 +210,12 @@ RSpec.describe PostFlagsController do
 
     it "returns 403 for a regular member" do
       sign_in_as member
+      post clear_note_post_flag_path(post_flag)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a staff member" do
+      sign_in_as staff
       post clear_note_post_flag_path(post_flag)
       expect(response).to have_http_status(:forbidden)
     end

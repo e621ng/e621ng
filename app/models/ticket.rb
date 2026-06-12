@@ -307,7 +307,7 @@ class Ticket < ApplicationRecord
     def visible(user)
       if user.is_moderator?
         all
-      elsif user.is_janitor?
+      elsif user.is_staff?
         for_creator(user.id).or(where.not(qtype: %w[dmail user]))
       else
         for_creator(user.id)

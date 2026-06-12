@@ -21,7 +21,7 @@ class AvoidPostingVersion < ApplicationRecord
   module ApiMethods
     def hidden_attributes
       attr = super
-      attr += %i[staff_notes] unless CurrentUser.is_janitor?
+      attr += %i[staff_notes] unless CurrentUser.is_staff?
       attr
     end
   end

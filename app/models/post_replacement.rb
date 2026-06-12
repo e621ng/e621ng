@@ -109,8 +109,8 @@ class PostReplacement < ApplicationRecord
       throw :abort
     end
 
-    # Janitor bypass replacement limits
-    return true if creator.is_janitor?
+    # Staff bypass replacement limits
+    return true if creator.is_staff?
 
     if post.replacements.where(creator_id: creator.id).where("created_at > ?", 1.day.ago).count >= Danbooru.config.post_replacement_per_day_limit
       errors.add(:creator, "has already suggested too many replacements for this post today")
@@ -415,7 +415,7 @@ class PostReplacement < ApplicationRecord
 
       def visible(user)
         return where.not(status: "rejected") if user.is_logged_out?
-        return all if user.is_janitor?
+        return all if user.is_staff?
         where("creator_id = ? or status != ?", user.id, "rejected")
       end
     end
@@ -431,7 +431,7 @@ class PostReplacement < ApplicationRecord
   end
 
   def original_file_visible_to?(user)
-    user.is_janitor?
+    user.is_staff?
   end
 
   def upload_as_pending?

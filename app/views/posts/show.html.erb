@@ -58,7 +58,7 @@
             Adobe Flash has reached end of life, and no longer works in browsers. Please see <a href="/forum_topics/22535" rel="nofollow">this thread</a> on the forum for details on how you can continue to play this file.
             <br>Keyboard shortcuts are disabled on this page because it contains flash.
           </div>
-          <% if CurrentUser.is_janitor? %>
+          <% if CurrentUser.is_staff? %>
             <%= render "posts/partials/show/content/notices/notices", post: @post %>
           <% end %>
         </div>
@@ -90,7 +90,7 @@
           <%= render "posts/partials/show/content/children", post: @post %>
         </div>
 
-        <% if !CurrentUser.is_janitor? %>
+        <% if !CurrentUser.is_staff? %>
           <%= render "posts/partials/show/content/notices/notices", post: @post %>
         <% end %>
       </div>

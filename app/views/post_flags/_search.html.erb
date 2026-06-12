@@ -7,7 +7,7 @@
     ["Deletion", "deletion"],
   ], include_blank: true %>
   <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true %>
-  <% if CurrentUser.is_janitor? %>
+  <% if CurrentUser.is_staff? %>
     <%= f.input :note %>
     <%= f.user :creator %>
   <% end %>

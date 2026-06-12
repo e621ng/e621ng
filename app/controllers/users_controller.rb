@@ -5,7 +5,7 @@ class UsersController < ApplicationController
   skip_before_action :api_check
   before_action :logged_in_only, only: %i[edit settings upload_limit update]
   before_action :member_only, only: %i[custom_style avatar_menu]
-  before_action :janitor_only, only: %i[toggle_uploads fix_counts]
+  before_action :janitor_only, only: %i[toggle_uploads disable_uploads fix_counts]
   before_action :admin_only, only: %i[flush_favorites]
   before_action :check_upload_disable_reason, only: %i[disable_uploads]
 

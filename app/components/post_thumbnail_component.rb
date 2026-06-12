@@ -47,7 +47,7 @@ class PostThumbnailComponent < ViewComponent::Base
   end
 
   def should_render_image?
-    !@post.is_deleted? || @user&.is_janitor? || @user&.can_approve_posts?
+    !@post.is_deleted? || @user&.is_staff? || @user&.can_approve_posts?
   end
 
   ##############################
@@ -120,7 +120,7 @@ class PostThumbnailComponent < ViewComponent::Base
     @tooltip_text ||= begin
       tooltip = "Rating: #{@post.rating}\nID: #{@post.id}\nDate: #{@post.created_at}\nStatus: #{@post.status}\nScore: #{@post.score}"
 
-      if @user.present? && @user.is_janitor?
+      if @user.present? && @user.is_staff?
         tooltip += "\nUploader: #{@post.uploader_name}"
         if @post.is_flagged? || @post.is_deleted?
           flag = @post.flags.order(id: :desc).first

@@ -3,7 +3,7 @@
 module Admin
   class AutomodDmailsController < ApplicationController
     respond_to :html, :json
-    before_action :janitor_only
+    before_action :staff_only
 
     def index
       @user = User.system

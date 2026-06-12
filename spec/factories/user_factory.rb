@@ -45,6 +45,10 @@ FactoryBot.define do
       level { UserLevel::FORMER_STAFF }
     end
 
+    factory :staff_user do
+      level { UserLevel::STAFF }
+    end
+
     factory :janitor_user do
       level { UserLevel::JANITOR }
     end
