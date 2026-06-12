@@ -141,6 +141,27 @@ RSpec.describe User do
       end
     end
 
+    describe "favorite_tags" do
+      it "is invalid with more than 200 tags" do
+        tags = (1..201).map { |i| "tag#{i}" }.join(" ")
+        user = build(:user, favorite_tags: tags)
+        expect(user).not_to be_valid
+        expect(user.errors[:favorite_tags]).to be_present
+      end
+
+      it "flattens duplicate tags" do
+        user = build(:user, favorite_tags: "tag1 tag2 tag1 tag3")
+        expect(user).to be_valid
+        expect(user.favorite_tags).to eq("tag1 tag2 tag3")
+      end
+
+      it "strips loose parentheses" do
+        user = build(:user, favorite_tags: "tag1 ( tag2 ) ( ( tag3 ) )")
+        expect(user).to be_valid
+        expect(user.favorite_tags).to eq("tag1 tag2 tag3")
+      end
+    end
+
     describe "custom_style" do
       it "is invalid when exceeding 500,000 characters" do
         user = build(:user, custom_style: "a" * 500_001)

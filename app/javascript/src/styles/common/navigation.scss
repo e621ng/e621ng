@@ -483,13 +483,12 @@ body.c-static.a-home {
       }
     }
 
-    menu.nav-secondary {
-      display: none;
-    }
+    // Prevents forum notification dot from being disjoint.
+    menu.nav-primary { align-items: center; }
 
-    menu.nav-tools {
-      border-radius: .25rem;
-    }
+    menu.nav-secondary { display: none; }
+
+    menu.nav-tools { border-radius: 0.25rem; }
   }
 
   @include window-smaller-than(50rem) {

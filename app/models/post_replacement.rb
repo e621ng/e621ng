@@ -97,7 +97,7 @@ class PostReplacement < ApplicationRecord
 
   def sequence_number
     return 0 if status == "original"
-    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids
+    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").order(:id).ids
     1 + siblings.index(id)
   end
 

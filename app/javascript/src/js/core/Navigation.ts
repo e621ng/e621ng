@@ -60,6 +60,7 @@ class Navigation {
 
     let lastClick = 0;
 
+    $avatarButton.attr("title", "Double-click to go to your profile");
     // Toggle menu on click
     $avatarButton.on("click", (event) => {
       event.preventDefault();

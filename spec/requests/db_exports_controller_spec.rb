@@ -37,4 +37,11 @@ RSpec.describe DbExportsController do
       expect(entry["url"]).to be_present
     end
   end
+
+  describe "GET /db_export" do
+    it "redirects to /db_exports" do
+      get "/db_export"
+      expect(response).to redirect_to("/db_exports")
+    end
+  end
 end

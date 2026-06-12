@@ -94,9 +94,11 @@ class User < ApplicationRecord
   validate :validate_ip_addr_is_not_banned, on: :create
   validate :validate_sock_puppets, on: :create, if: -> { Danbooru.config.enable_sock_puppet_validation? }
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
+  before_validation :normalize_favorite_tags, if: ->(rec) { rec.favorite_tags_changed? }
   before_validation :staff_cant_disable_dmail
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
+  validate :validate_favorite_tags_count
   validates :custom_style, length: { maximum: 500_000 }
   validates :custom_title, length: { maximum: 100 }, allow_blank: true
   validates :profile_about, length: { maximum: Danbooru.config.user_about_max_size }
@@ -463,6 +465,18 @@ class User < ApplicationRecord
   module BlacklistMethods
     def normalize_blacklisted_tags
       self.blacklisted_tags = TagAlias.to_aliased_query(blacklisted_tags, comments: true) if blacklisted_tags.present?
+    end
+
+    def normalize_favorite_tags
+      tag_names = TagQuery.scan_recursive(favorite_tags.to_s, strip_prefixes: true)
+                          .grep_v(/\A[()]+\z/) # Strip parentheses. These have no meaning here.
+                          .uniq
+      self.favorite_tags = TagAlias.to_aliased(tag_names).join(" ")
+    end
+
+    def validate_favorite_tags_count
+      return if favorite_tags.blank?
+      errors.add(:favorite_tags, "has too many tags (maximum is 200)") if favorite_tags.split.size > 200
     end
 
     def is_blacklisting_user?(user)
