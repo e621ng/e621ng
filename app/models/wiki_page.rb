@@ -249,7 +249,7 @@ class WikiPage < ApplicationRecord
   end
 
   def validate_not_locked
-    if is_locked? && !CurrentUser.is_janitor?
+    if is_locked? && !CurrentUser.is_staff?
       errors.add(:is_locked, "and cannot be updated")
       false
     end

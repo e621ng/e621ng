@@ -7,7 +7,7 @@ require "rails_helper"
 # --------------------------------------------------------------------------- #
 
 RSpec.describe Dmail do
-  # Use admin as the sender so that `from.is_janitor?` returns true and the
+  # Use admin as the sender so that `from.is_staff?` returns true and the
   # recipient's copy skips rate-limit checks inside `user_not_limited`.
   include_context "as admin"
 

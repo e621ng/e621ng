@@ -378,10 +378,6 @@ class User < ApplicationRecord
       is_bd_staff
     end
 
-    def is_staff?
-      is_janitor?
-    end
-
     def is_artist?
       @is_artist ||= artists.any?
     end
@@ -406,7 +402,7 @@ class User < ApplicationRecord
     end
 
     def staff_cant_disable_dmail
-      self.disable_user_dmails = false if is_janitor?
+      self.disable_user_dmails = false if is_staff?
     end
 
     def level_css_class
@@ -561,9 +557,9 @@ class User < ApplicationRecord
     create_user_throttle(:wiki_edit, -> { Danbooru.config.wiki_edit_limit - WikiPageVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
                          :general_bypass_throttle?, 7.days)
     create_user_throttle(:pool, -> { Danbooru.config.pool_limit - Pool.for_user(id).where("created_at > ?", 1.hour.ago).count },
-                         :is_janitor?, 7.days)
+                         :is_staff?, 7.days)
     create_user_throttle(:pool_edit, -> { Danbooru.config.pool_edit_limit - PoolVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
-                         :is_janitor?, 3.days)
+                         :is_staff?, 3.days)
     create_user_throttle(:pool_post_edit, -> { Danbooru.config.pool_post_edit_limit - PoolVersion.for_user(id).where("updated_at > ?", 1.hour.ago).group(:pool_id).count(:pool_id).length },
                          :general_bypass_throttle?, 7.days)
     create_user_throttle(:note_edit, -> { Danbooru.config.note_edit_limit - NoteVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
@@ -636,9 +632,9 @@ class User < ApplicationRecord
     )
 
     create_user_throttle(:suggest_tag, -> { Danbooru.config.tag_suggestion_limit - (TagAlias.for_creator(id).where("created_at > ?", 1.hour.ago).count + TagImplication.for_creator(id).where("created_at > ?", 1.hour.ago).count + BulkUpdateRequest.for_creator(id).where("created_at > ?", 1.hour.ago).count) },
-                         :is_janitor?, 7.days)
+                         :is_staff?, 7.days)
     create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },
-                         :is_janitor?, 3.days)
+                         :is_staff?, 3.days)
 
     def can_remove_from_pools?
       is_member? && older_than(7.days)
@@ -649,15 +645,15 @@ class User < ApplicationRecord
     end
 
     def can_view_flagger?(flagger_id)
-      is_janitor? || flagger_id == id
+      is_staff? || flagger_id == id
     end
 
     def can_view_flagger_on_post?(flag)
-      is_janitor? || flag.creator_id == id || flag.is_deletion
+      is_staff? || flag.creator_id == id || flag.is_deletion
     end
 
     def can_replace?
-      is_janitor? || replacements_beta?
+      is_staff? || replacements_beta?
     end
 
     def can_view_staff_notes?

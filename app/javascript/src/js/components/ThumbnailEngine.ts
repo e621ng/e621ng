@@ -61,7 +61,7 @@ export default class ThumbnailEngine {
       })
       .appendTo(article);
 
-    if (!post.isUnavailable && (!post.isDeleted || User.is.janitor))
+    if (!post.isUnavailable && (!post.isDeleted || User.is.staff))
       link.append(this.renderPicture(post));
 
     // Footer

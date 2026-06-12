@@ -44,7 +44,7 @@
   <% if (post.is_comment_locked? || post.is_comment_disabled?) && !CurrentUser.user.is_moderator? %>
   <% elsif CurrentUser.user.is_member? %>
     <div class="new-comment">
-      <% if CurrentUser.user.is_logged_in? && !CurrentUser.user.is_janitor? %>
+      <% if CurrentUser.user.is_logged_in? && !CurrentUser.user.is_staff? %>
         <h2>Before commenting, read the <%= link_to "how to comment guide", wiki_pages_path(:search => {:title => "howto:comment"}) %>.</h2>
       <% end %>
       <p><%= link_to "Post comment", new_comment_path(comment: { post_id: post.id }), :class => "expand-comment-response" %></p>

@@ -150,6 +150,7 @@ RSpec.describe User do
         expect(user.is_admin?).to be(true)
         expect(user.is_moderator?).to be(true)
         expect(user.is_janitor?).to be(true)
+        expect(user.is_staff?).to be(true)
         expect(user.is_member?).to be(true)
       end
 
@@ -158,6 +159,7 @@ RSpec.describe User do
         expect(user.is_admin?).to be(false)
         expect(user.is_moderator?).to be(false)
         expect(user.is_janitor?).to be(false)
+        expect(user.is_staff?).to be(false)
       end
 
       it "returns false for an unpersisted user" do

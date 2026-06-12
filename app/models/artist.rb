@@ -398,7 +398,7 @@ class Artist < ApplicationRecord
     end
 
     def validate_user_can_edit
-      return if CurrentUser.is_janitor?
+      return if CurrentUser.is_staff?
 
       if is_locked?
         errors.add(:base, "Artist is locked")
@@ -407,7 +407,7 @@ class Artist < ApplicationRecord
     end
 
     def wiki_page_not_locked
-      return if CurrentUser.is_janitor?
+      return if CurrentUser.is_staff?
 
       if @notes.present? && is_note_locked? && wiki_page&.body != @notes
         errors.add(:base, "Wiki page is locked")
@@ -546,7 +546,7 @@ class Artist < ApplicationRecord
   end
 
   def editable_by?(user)
-    return true if user.is_janitor?
+    return true if user.is_staff?
     !is_locked?
   end
 
@@ -564,7 +564,7 @@ class Artist < ApplicationRecord
   end
 
   def is_note_locked?
-    return false if CurrentUser.is_janitor?
+    return false if CurrentUser.is_staff?
     wiki_page&.is_locked? || false
   end
 

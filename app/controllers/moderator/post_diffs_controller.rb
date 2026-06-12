@@ -2,7 +2,7 @@
 
 module Moderator
   class PostDiffsController < ApplicationController
-    before_action :janitor_only
+    before_action :staff_only
 
     def show
       return unless params[:post_a].present? && params[:post_b].present?

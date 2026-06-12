@@ -11,10 +11,6 @@ RSpec.describe AvoidPostingVersion do
 
   # -------------------------------------------------------------------------
   # #hidden_attributes — staff_notes visibility
-  #
-  # NOTE: This model gates staff_notes on is_janitor?, while AvoidPosting gates
-  # them on is_staff?. This means janitors can see staff_notes in version
-  # history but not on the main record — likely an unintentional inconsistency.
   # -------------------------------------------------------------------------
   describe "#hidden_attributes" do
     let(:version) { create(:avoid_posting_version, staff_notes: "secret note") }
@@ -22,6 +18,11 @@ RSpec.describe AvoidPostingVersion do
     it "includes :staff_notes for a regular member" do
       CurrentUser.user = create(:user)
       expect(version.hidden_attributes).to include(:staff_notes)
+    end
+
+    it "does not include :staff_notes for a staff member" do
+      CurrentUser.user = create(:staff_user)
+      expect(version.hidden_attributes).not_to include(:staff_notes)
     end
 
     it "does not include :staff_notes for a janitor" do

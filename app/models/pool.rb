@@ -195,7 +195,7 @@ class Pool < ApplicationRecord
   end
 
   def deletable_by?(user)
-    user.is_janitor?
+    user.is_staff?
   end
 
   def create_mod_action_for_delete
@@ -359,7 +359,7 @@ class Pool < ApplicationRecord
   end
 
   def category_changeable_by?(user)
-    user.is_janitor? || (user.is_member? && post_count <= Danbooru.config.pool_category_change_limit)
+    user.is_staff? || (user.is_member? && post_count <= Danbooru.config.pool_category_change_limit)
   end
 
   def updater_can_change_category

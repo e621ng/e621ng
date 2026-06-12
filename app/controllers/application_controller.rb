@@ -162,7 +162,7 @@ class ApplicationController < ActionController::Base
     @backtrace = Rails.backtrace_cleaner.clean(@exception.backtrace)
     format = :html unless format.in?(%i[html json atom])
 
-    if !CurrentUser.user.is_janitor? && message == exception.message
+    if !CurrentUser.user.is_staff? && message == exception.message
       @message = "An unexpected error occurred."
     end
 

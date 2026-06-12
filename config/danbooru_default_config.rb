@@ -638,7 +638,7 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     end
 
     def can_user_see_post?(user, post)
-      return false if post.is_deleted? && !user.is_janitor?
+      return false if post.is_deleted? && !user.is_staff?
       !(is_user_restricted?(user) && is_post_restricted?(post))
     end
 

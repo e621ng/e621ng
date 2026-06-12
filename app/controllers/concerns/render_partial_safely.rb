@@ -11,7 +11,7 @@ module RenderPartialSafely
     logger.error("Partial render failed: #{e.class} - #{e.message}")
     logger.error(e.backtrace.join("\n")) if Rails.env.development?
 
-    message = if request.local? || CurrentUser.user&.is_janitor?
+    message = if request.local? || CurrentUser.user&.is_staff?
                 "#{e.class}: #{e.message}"
               else
                 "An unexpected error occurred while updating the page."

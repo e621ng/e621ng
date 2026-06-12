@@ -1054,7 +1054,7 @@ class Post < ApplicationRecord
           self.rating = $1
 
         when /^(-?)locked:notes?$/i
-          self.is_note_locked = ($1 != "-") if CurrentUser.is_janitor?
+          self.is_note_locked = ($1 != "-") if CurrentUser.is_staff?
 
         when /^(-?)locked:rating$/i
           self.is_rating_locked = ($1 != "-") if CurrentUser.is_privileged?

@@ -16,7 +16,7 @@
         <option value="rating-e">Rate Explicit</option>
         <option value="tag-script">Tag script</option>
       <% end %>
-      <% if CurrentUser.is_janitor? %>
+      <% if CurrentUser.is_staff? %>
         <option value="remove-parent">Remove Parent</option>
         <option value="lock-rating">Lock rating</option>
         <option value="lock-note">Lock notes</option>
