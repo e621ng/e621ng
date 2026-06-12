@@ -76,6 +76,7 @@ module IqdbProxy
 
     post_ids = json.pluck("post_id").compact
     posts = Post.where(id: post_ids).includes(:uploader).index_by(&:id)
+    Post.preload_stats!(posts.values)
 
     json.map do |x|
       post = posts[x["post_id"]]
