@@ -39,6 +39,7 @@ export default class LStorage {
     HoverText: "long" as "short" | "long" | "none",
     TagPreview: true,
     Recommendations: "artist" as "artist" | "tags",
+    AutocompleteCache: true,
 
     TagScript: {
       ID: 1,
@@ -115,6 +116,7 @@ const StorageKeys: StorageConfig = {
     HoverText: "e6.posts.hovertext",
     TagPreview: "e6.posts.tagpreview",
     Recommendations: "e6.posts.recommended.type",
+    AutocompleteCache: "e6.posts.acache",
 
     TagScript: {
       ID: "current_tag_script_id",

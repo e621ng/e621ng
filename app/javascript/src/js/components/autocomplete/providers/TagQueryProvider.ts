@@ -1,6 +1,8 @@
 import Constants from "@/components/autocomplete/Constants";
 import Provider from "@/components/autocomplete/Provider";
+import TagFrequencyCache from "@/components/autocomplete/TagFrequencyCache";
 import * as Types from "@/components/autocomplete/Types";
+import LStorage from "@/utility/Storage";
 import Utility from "@/utility/utility";
 
 import PoolProvider from "./PoolProvider";
@@ -23,7 +25,16 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
     let results: Types.AutocompleteItem[] = [];
     if (parsed.metatag)
       results = await TagQueryProvider.findMetatags(parsed.metatag, parsed.term || "");
-    else results = await TagProvider.findTags(parsed.term);
+    else {
+      results = await TagProvider.findTags(parsed.term);
+      if (LStorage.Posts.AutocompleteCache) {
+        const scores = new Map(results.map((item, index) => [
+          item.name,
+          (results.length - index) + TagFrequencyCache.score(item.name),
+        ]));
+        results = results.sort((a, b) => (scores.get(b.name) ?? 0) - (scores.get(a.name) ?? 0));
+      }
+    }
 
     if (parsed.prefix)
       results = results.map(item => ({
@@ -67,6 +78,10 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
   }
 
   public insert (input: HTMLInputElement, completion: string) {
+    const bareName = completion.replace(Constants.TAG_PREFIXES_REGEX, "$2");
+    if (!bareName.includes(":") && LStorage.Posts.AutocompleteCache)
+      TagFrequencyCache.record(bareName);
+
     const beforeCaret = input.value.substring(0, input.selectionStart).trim();
     const afterCaret = input.value.substring(input.selectionStart).trim();
 
