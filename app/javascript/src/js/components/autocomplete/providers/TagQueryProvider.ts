@@ -32,7 +32,7 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
           item.name,
           (results.length - index) + TagFrequencyCache.score(item.name),
         ]));
-        results = results.slice().sort((a, b) => (scores.get(b.name) ?? 0) - (scores.get(a.name) ?? 0));
+        results = results.sort((a, b) => (scores.get(b.name) ?? 0) - (scores.get(a.name) ?? 0));
       }
     }
 

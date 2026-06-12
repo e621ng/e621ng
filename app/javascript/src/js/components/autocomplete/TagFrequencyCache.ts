@@ -1,4 +1,4 @@
-const STORAGE_KEY = "e6.autocomplete.tagfreq";
+const STORAGE_KEY = "e6.posts.acache.store";
 const PRUNE_DAYS = 90;
 const MAX_ENTRIES = 500;
 
@@ -57,24 +57,26 @@ export default class TagFrequencyCache {
   }
 
   private static prune (): void {
+    const cache = this.cache; // Ensure cache is loaded
+
     const cutoff = Date.now() - (PRUNE_DAYS * 86_400_000);
-    const entryCount = Object.keys(this._cache).length;
+    const entryCount = Object.keys(cache).length;
     if (entryCount === 0) return;
 
     // Prune old entries
-    for (const [key, value] of Object.entries(this._cache)) {
-      if (value.lastUsed < cutoff) delete this._cache[key];
+    for (const [key, value] of Object.entries(cache)) {
+      if (value.lastUsed < cutoff) delete cache[key];
     }
 
     // Prune least recently used if over max entries
-    const keys = Object.keys(this._cache);
+    const keys = Object.keys(cache);
     if (keys.length > MAX_ENTRIES) {
-      keys.sort((a, b) => this._cache[a].lastUsed - this._cache[b].lastUsed);
+      keys.sort((a, b) => cache[a].lastUsed - cache[b].lastUsed);
       for (const key of keys.slice(0, keys.length - MAX_ENTRIES))
-        delete this._cache[key];
+        delete cache[key];
     }
 
-    if (entryCount === Object.keys(this._cache).length)
+    if (entryCount === Object.keys(cache).length)
       return; // No change, skip save
 
     this.save();
