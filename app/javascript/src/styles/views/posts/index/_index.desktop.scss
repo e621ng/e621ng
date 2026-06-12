@@ -16,11 +16,11 @@
       bottom: -1.633rem;
       right: 0.5rem;
 
-      #search-fullscreen { display: flex; }
-      #search-settings {
-        height: inherit;
-        width: inherit;
-        svg { height: inherit;}
+      #toggle-fullscreen { display: flex; }
+
+      .sc-btn {
+        height: 1.5rem;
+        svg { height: 1.25rem; }
       }
     }
   }

@@ -1,16 +1,107 @@
 <div class="search-controls">
-  <button id="search-fullscreen" class="st-button" title="Fullscreen mode">
+  <button id="toggle-fullscreen" class="st-button sc-btn" title="Toggle fullscreen">
     <%= svg_icon(:fullscreen) %>
   </button>
-  <button id="search-settings" class="st-button" title="Search settings">
-    <%= svg_icon(:settings) %>
+  <button id="advanced-search-open" class="st-button sc-btn" title="Search options">
+    <%= svg_icon(:sliders) %>
+  </button>
+  <button id="layout-settings-open" class="st-button sc-btn" title="Layout settings">
+    <%= svg_icon(:layout) %>
   </button>
 </div>
 
-<div class="search-settings-container">
+<div id="advanced-search-container">
+  <h3>
+    Advanced Options
+    <button id="advanced-search-close" class="st-button" title="Close settings">
+      <%= svg_icon(:times) %>
+    </button>
+  </h3>
+
+  <div class="ssc-entry">
+
+    <div class="ssc-label">
+      <label for="ssc-rating">Rating</label>
+    </div>
+
+
+    <div class="ssc-body stm-toggle">
+      <input type="checkbox" id="ssc-rating-s" name="advanced-search-rating" value="s">
+      <label for="ssc-rating-s">
+        <%= svg_icon(:rating_s) %>
+        Safe
+      </label>
+
+      <input type="checkbox" id="ssc-rating-q" name="advanced-search-rating" value="q">
+      <label for="ssc-rating-q">
+        <%= svg_icon(:rating_q) %>
+        Questionable
+      </label>
+
+      <input type="checkbox" id="ssc-rating-e" name="advanced-search-rating" value="e">
+      <label for="ssc-rating-e">
+        <%= svg_icon(:rating_e) %>
+        Explicit
+      </label>
+    </div>
+
+  </div>
+
+  <div class="ssc-entry">
+
+    <div class="ssc-label">
+      <label for="ssc-order">Order</label>
+    </div>
+
+    <div class="ssc-body stm-toggle">
+      <input type="radio" id="advanced-search-sort-default" name="advanced-search-sort" value="">
+      <label for="advanced-search-sort-default">
+        <%= svg_icon(:sparkles) %>
+        Default
+      </label>
+
+      <input type="radio" id="advanced-search-sort-score" name="advanced-search-sort" value="score">
+      <label for="advanced-search-sort-score">
+        <%= svg_icon(:trending_up) %>
+        Score
+      </label>
+
+      <input type="radio" id="advanced-search-sort-hot" name="advanced-search-sort" value="hot">
+      <label for="advanced-search-sort-hot">
+        <%= svg_icon(:flame) %>
+        Hot
+      </label>
+
+      <input type="radio" id="advanced-search-sort-favcount" name="advanced-search-sort" value="favcount">
+      <label for="advanced-search-sort-favcount">
+        <%= svg_icon(:star) %>
+        Favorites
+      </label>
+
+    </div>
+  </div>
+
+  <div class="ssc-entry">
+
+    <div class="ssc-label">
+      <label for="ssc-in-pool">In pool</label>
+    </div>
+
+    <div class="ssc-body">
+      <%= tag.label(class: "sto-toggle sto-toggle--tri", id: "ssc-in-pool", data: { advanced_search: "inpool", state: "unset" }) do %>
+        <%= tag.span("Any", class: "sto-tri") %>
+        <%= tag.span("Yes", class: "sto-tri") %>
+        <%= tag.span("No", class: "sto-tri") %>
+      <% end %>
+    </div>
+  </div>
+
+</div>
+
+<div id="layout-settings-container">
   <h3>
     Layout Settings
-    <button id="search-settings-close" class="st-button" title="Close settings">
+    <button id="layout-settings-close" class="st-button" title="Close settings">
       <%= svg_icon(:times) %>
     </button>
   </h3>
@@ -32,7 +123,7 @@
     <div class="ssc-label">
       <label for="ssc-card-medium">Card Size</label>
     </div>
-    <div class="ssc-body-g stm-toggle">
+    <div class="ssc-body stm-toggle">
       <input type="radio" id="ssc-card-small" name="ssc-card-size" value="s">
       <label for="ssc-card-small">
         <%= svg_icon(:square_nine, stroke_width: 1) %>
@@ -57,7 +148,7 @@
     <div class="ssc-label">
       <label for="ssc-hover-text">Hover Text</label>
     </div>
-    <div class="ssc-body-g stm-toggle">
+    <div class="ssc-body stm-toggle">
       <input type="radio" id="ssc-hover-text-short" name="ssc-hover-text" value="short">
       <label for="ssc-hover-text-short">
         <%= svg_icon(:short_hover_text, stroke_width: 1) %>
