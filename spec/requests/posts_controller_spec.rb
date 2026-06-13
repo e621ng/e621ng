@@ -14,6 +14,18 @@ RSpec.describe PostsController do
     # transactions returning IDs that no longer exist in the DB.
     before { allow(Post).to receive(:tag_match).and_return(Post.all) }
 
+    let(:video_samples) do
+      {
+        "original" => { "codec" => "vp9", "fps" => 30 },
+        "variants" => {
+          "mp4" => { "width" => 1280, "height" => 720, "size" => 4_000_000 },
+        },
+        "samples" => {
+          "720p" => { "width" => 1280, "height" => 720, "size" => 2_000_000 },
+        },
+      }
+    end
+
     it "returns 200 for anonymous" do
       get posts_path
       expect(response).to have_http_status(:ok)
@@ -40,6 +52,52 @@ RSpec.describe PostsController do
       expect(body).to be_an(Array)
       expect(body.first).to include("id", "files", "stats", "tags")
       expect(body.first["tags"]).to be_an(Array)
+    end
+
+    it "includes reconstructing file metadata and video samples for visible v2 posts" do
+      post = create(
+        :post,
+        file_ext: "webm",
+        image_width: 1280,
+        image_height: 720,
+        file_size: 5_000_000,
+        video_samples: video_samples,
+      )
+
+      get posts_path(format: :json), params: { v2: "true" }
+      expect(response).to have_http_status(:ok)
+
+      files = response.parsed_body.first["files"]
+      expect(files["meta"]).to include("md5" => post.md5, "ext" => "webm")
+      expect(files["video"]["original"]["url"]).to be_present
+      expect(files["video"]["variants"]["mp4"]["url"]).to be_present
+      expect(files["video"]["samples"]["720p"]["url"]).to be_present
+    end
+
+    it "hides reconstructing file metadata and video samples for login-blocked v2 posts" do
+      post = create(
+        :post,
+        file_ext: "webm",
+        image_width: 1280,
+        image_height: 720,
+        file_size: 5_000_000,
+        hide_from_anonymous: true,
+        video_samples: video_samples,
+      )
+
+      get posts_path(format: :json), params: { v2: "true" }
+      expect(response).to have_http_status(:ok)
+
+      files = response.parsed_body.first["files"]
+      expect(files["meta"]).to include("md5" => nil, "ext" => nil, "size" => post.file_size)
+      expect(files["original"]).to include(
+        "width" => post.image_width,
+        "height" => post.image_height,
+        "url" => nil,
+      )
+      expect(files["preview"]).to include("jpg" => nil, "webp" => nil)
+      expect(files["sample"]).to include("jpg" => nil, "webp" => nil)
+      expect(files).not_to have_key("video")
     end
 
     it "returns a post collection in the extended v2 format when requested" do
