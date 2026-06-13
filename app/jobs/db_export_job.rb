@@ -6,70 +6,274 @@ class DbExportJob < ApplicationJob
   queue_as :low_prio
 
   EXPORTS = {
-    "posts" => {
-      query: -> {
+    "artists" => {
+      query: proc do
         <<~SQL.squish
-          SELECT id, uploader_id, created_at, md5, source, rating, image_width, image_height,
-                 tag_string, locked_tags, fav_count, file_ext, parent_id, change_seq, approver_id,
-                 file_size, comment_count, description, duration, updated_at, is_deleted, is_pending,
-                 is_flagged, score, up_score, down_score, is_rating_locked, is_status_locked, is_note_locked
-          FROM posts ORDER BY id
+          SELECT
+            artists.id,
+            artists.name,
+            artists.other_names,
+            artists.group_name,
+            artists.linked_user_id,
+            artists.is_active,
+            artists.is_locked,
+            artists.creator_id,
+            artists.created_at,
+            artists.updated_at,
+            COALESCE(array_to_string(array_agg(artist_urls.url ORDER BY artist_urls.id) FILTER (WHERE artist_urls.is_active = TRUE), ' '), '') AS active_urls,
+            COALESCE(array_to_string(array_agg(artist_urls.url ORDER BY artist_urls.id) FILTER (WHERE artist_urls.is_active = FALSE), ' '), '') AS inactive_urls
+          FROM artists
+          LEFT OUTER JOIN artist_urls ON artist_urls.artist_id = artists.id
+          GROUP BY artists.id
+          ORDER BY artists.id
         SQL
-      },
+      end,
+    },
+    "bulk_update_requests" => {
+      query: proc do
+        <<~SQL.squish
+          SELECT
+            bulk_update_requests.id,
+            bulk_update_requests.user_id,
+            bulk_update_requests.forum_topic_id,
+            bulk_update_requests.forum_post_id,
+            bulk_update_requests.script,
+            bulk_update_requests.status,
+            bulk_update_requests.approver_id,
+            bulk_update_requests.title,
+            bulk_update_requests.created_at,
+            bulk_update_requests.updated_at,
+            COALESCE(votes.down, 0) AS down_votes,
+            COALESCE(votes.meh, 0)  AS meh_votes,
+            COALESCE(votes.up, 0)   AS up_votes
+          FROM bulk_update_requests
+          LEFT JOIN forum_posts ON bulk_update_requests.forum_post_id = forum_posts.id
+          LEFT JOIN LATERAL (
+            SELECT
+              COUNT(*) FILTER (WHERE forum_post_votes.score = -1) AS down,
+              COUNT(*) FILTER (WHERE forum_post_votes.score = 0)  AS meh,
+              COUNT(*) FILTER (WHERE forum_post_votes.score = 1)  AS up
+            FROM forum_post_votes
+            WHERE forum_post_id = forum_posts.id
+          ) votes ON true
+          ORDER BY bulk_update_requests.id
+        SQL
+      end,
+    },
+    "pools" => {
+      query: proc do
+        <<~SQL.squish
+          SELECT
+            pools.id,
+            pools.name,
+            pools.created_at,
+            pools.updated_at,
+            pools.creator_id,
+            pools.description,
+            pools.is_active,
+            pools.category,
+            pools.post_ids
+          FROM pools
+          ORDER BY pools.id
+        SQL
+      end,
+    },
+    # Pending and rejected replacements are filtered out because they are not visible to regular users.
+    "post_replacements" => {
+      query: proc do
+        <<~SQL.squish
+          SELECT
+            post_replacements2.id,
+            post_replacements2.post_id,
+            post_replacements2.creator_id,
+            post_replacements2.approver_id,
+            post_replacements2.file_ext,
+            post_replacements2.file_size,
+            post_replacements2.image_height,
+            post_replacements2.image_width,
+            post_replacements2.md5,
+            post_replacements2.source,
+            post_replacements2.file_name,
+            post_replacements2.status,
+            post_replacements2.reason,
+            post_replacements2.created_at,
+            post_replacements2.updated_at
+          FROM post_replacements2
+          WHERE post_replacements2.status IN ('approved', 'original')
+          ORDER BY post_replacements2.id
+        SQL
+      end,
     },
     # Hidden versions are filtered out because they contain changes
     # that are not visible to regular users.
     "post_versions" => {
-      query: -> {
+      query: proc do
         <<~SQL.squish
-          SELECT id, post_id, version, tags, added_tags, removed_tags, locked_tags,
-                 added_locked_tags, removed_locked_tags, rating, rating_changed, parent_id,
-                 parent_changed, source, source_changed, description, description_changed,
-                 updater_id, updated_at, reason
-          FROM post_versions WHERE is_hidden = false ORDER BY id
+          SELECT
+            post_versions.id,
+            post_versions.post_id,
+            post_versions.version,
+            post_versions.tags,
+            post_versions.added_tags,
+            post_versions.removed_tags,
+            post_versions.locked_tags,
+            post_versions.added_locked_tags,
+            post_versions.removed_locked_tags,
+            post_versions.rating,
+            post_versions.rating_changed,
+            post_versions.parent_id,
+            post_versions.parent_changed,
+            post_versions.source,
+            post_versions.source_changed,
+            post_versions.description,
+            post_versions.description_changed,
+            post_versions.updater_id,
+            post_versions.updated_at,
+            post_versions.reason
+          FROM post_versions
+          WHERE post_versions.is_hidden = false
+          ORDER BY post_versions.id
         SQL
-      },
+      end,
     },
-    # Pending and rejected replacements are filtered out because they are not visible to regular users.
-    "post_replacements" => {
-      query: -> {
+    "posts" => {
+      query: proc do
         <<~SQL.squish
-          SELECT id, post_id, creator_id, approver_id, file_ext, file_size, image_height, image_width,
-                 md5, source, file_name, status, reason, created_at, updated_at
-          FROM post_replacements2
-          WHERE status IN ('approved', 'original') ORDER BY id
+          SELECT
+            posts.id,
+            posts.uploader_id,
+            posts.created_at,
+            posts.md5,
+            posts.source,
+            posts.rating,
+            posts.image_width,
+            posts.image_height,
+            posts.tag_string,
+            posts.locked_tags,
+            posts.fav_count,
+            posts.file_ext,
+            posts.parent_id,
+            posts.change_seq,
+            posts.approver_id,
+            posts.file_size,
+            posts.comment_count,
+            posts.description,
+            posts.duration,
+            posts.updated_at,
+            posts.is_deleted,
+            posts.is_pending,
+            posts.is_flagged,
+            posts.score,
+            posts.up_score,
+            posts.down_score,
+            posts.is_rating_locked,
+            posts.is_status_locked,
+            posts.is_note_locked,
+            posts.bg_color,
+            posts.last_noted_at,
+            posts.last_commented_at
+          FROM posts
+          ORDER BY posts.id
         SQL
-      },
-    },
-    "tags" => {
-      query: -> { "SELECT id, name, category, post_count FROM tags ORDER BY id" },
+      end,
     },
     "tag_aliases" => {
-      query: -> { "SELECT id, antecedent_name, consequent_name, created_at, status FROM tag_aliases ORDER BY id" },
+      query: proc do
+        <<~SQL.squish
+          SELECT
+            tag_aliases.id,
+            tag_aliases.antecedent_name,
+            tag_aliases.consequent_name,
+            tag_aliases.created_at,
+            tag_aliases.status,
+            tag_aliases.forum_post_id,
+            tag_aliases.forum_topic_id,
+            tag_aliases.reason,
+            tag_aliases.updated_at,
+            tag_aliases.approver_id,
+            tag_aliases.post_count,
+            COALESCE(votes.down, 0) AS down_votes,
+            COALESCE(votes.meh, 0)  AS meh_votes,
+            COALESCE(votes.up, 0)   AS up_votes
+          FROM tag_aliases
+          LEFT JOIN forum_posts ON tag_aliases.forum_post_id = forum_posts.id
+          LEFT JOIN LATERAL (
+            SELECT
+              COUNT(*) FILTER (WHERE forum_post_votes.score = -1) AS down,
+              COUNT(*) FILTER (WHERE forum_post_votes.score = 0)  AS meh,
+              COUNT(*) FILTER (WHERE forum_post_votes.score = 1)  AS up
+            FROM forum_post_votes
+            WHERE forum_post_id = forum_posts.id
+          ) votes ON true
+          ORDER BY tag_aliases.id
+        SQL
+      end,
     },
     "tag_implications" => {
-      query: -> { "SELECT id, antecedent_name, consequent_name, created_at, status FROM tag_implications ORDER BY id" },
-    },
-    "bulk_update_requests" => {
-      query: -> { "SELECT id, user_id, forum_topic_id, forum_post_id, script, status, approver_id, title, created_at, updated_at FROM bulk_update_requests ORDER BY id" },
-    },
-    "artists" => {
-      query: -> {
+      query: proc do
         <<~SQL.squish
-          SELECT a.id, a.name, a.other_names, a.group_name, a.linked_user_id,
-                 a.is_active, a.is_locked, a.creator_id, a.created_at, a.updated_at,
-                 array_to_string(array_agg(au.url ORDER BY au.id) FILTER (WHERE au.url IS NOT NULL), ' ') AS urls
-          FROM artists a
-          LEFT JOIN artist_urls au ON au.artist_id = a.id AND au.is_active = true
-          GROUP BY a.id ORDER BY a.id
+          SELECT
+            tag_implications.id,
+            tag_implications.antecedent_name,
+            tag_implications.consequent_name,
+            tag_implications.created_at,
+            tag_implications.status,
+            tag_implications.forum_post_id,
+            tag_implications.forum_topic_id,
+            tag_implications.reason,
+            tag_implications.updated_at,
+            tag_implications.approver_id,
+            tag_implications.descendant_names,
+            COALESCE(votes.down, 0) AS down_votes,
+            COALESCE(votes.meh, 0)  AS meh_votes,
+            COALESCE(votes.up, 0)   AS up_votes
+          FROM tag_implications
+          LEFT JOIN forum_posts ON tag_implications.forum_post_id = forum_posts.id
+          LEFT JOIN LATERAL (
+            SELECT
+              COUNT(*) FILTER (WHERE forum_post_votes.score = -1) AS down,
+              COUNT(*) FILTER (WHERE forum_post_votes.score = 0)  AS meh,
+              COUNT(*) FILTER (WHERE forum_post_votes.score = 1)  AS up
+            FROM forum_post_votes
+            WHERE forum_post_id = forum_posts.id
+          ) votes ON true
+          ORDER BY tag_implications.id
         SQL
-      },
+      end,
     },
-    "pools" => {
-      query: -> { "SELECT id, name, created_at, updated_at, creator_id, description, is_active, category, post_ids FROM pools ORDER BY id" },
+    "tags" => {
+      query: proc do
+        <<~SQL.squish
+          SELECT
+            tags.id,
+            tags.name,
+            tags.category,
+            tags.post_count,
+            tags.created_at,
+            tags.updated_at,
+            tags.is_locked
+          FROM tags
+          ORDER BY tags.id
+        SQL
+      end,
     },
     "wiki_pages" => {
-      query: -> { "SELECT id, created_at, updated_at, title, body, creator_id, updater_id, is_locked FROM wiki_pages ORDER BY id" },
+      query: proc do
+        <<~SQL.squish
+          SELECT
+            wiki_pages.id,
+            wiki_pages.created_at,
+            wiki_pages.updated_at,
+            wiki_pages.title,
+            wiki_pages.body,
+            wiki_pages.creator_id,
+            wiki_pages.updater_id,
+            wiki_pages.is_locked,
+            wiki_pages.parent
+          FROM wiki_pages
+          ORDER BY wiki_pages.id
+        SQL
+      end,
     },
   }.freeze
 

@@ -67,7 +67,6 @@ ALIASES      = presets[:aliases]
 IMPLICATIONS = presets[:implications]
 BURS         = presets[:burs]
 
-
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
 
@@ -442,7 +441,7 @@ def create_unique_tag(times = 1)
           UNION ALL SELECT 1 FROM tag_implications WHERE consequent_name = :value
       )
     ", { value: v },]))["exists"]
-  end.then do |v|
+  end.then do |v| # rubocop:disable Style/MultilineBlockChain
     next create_unique_tag(times + 1) if v.nil?
     v
   end
@@ -560,7 +559,8 @@ end
 def get_post_for_forum_vote(user)
   ForumPost.where.not("forum_posts.creator_id": user)
            .where.not(
-             ForumPostVote.where("forum_post_votes.forum_post_id = forum_posts.id").where("forum_post_votes.creator_id": user).arel.exists)
+             ForumPostVote.where("forum_post_votes.forum_post_id = forum_posts.id").where("forum_post_votes.creator_id": user).arel.exists,
+           )
            .where(
              TagAlias.where("tag_aliases.forum_post_id = forum_posts.id").where("tag_aliases.status": "pending").arel.exists
                .or(TagImplication.where("tag_implications.forum_post_id = forum_posts.id").where("tag_implications.status": "pending").arel.exists)
