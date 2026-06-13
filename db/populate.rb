@@ -12,7 +12,6 @@ presets = {
   comments: ENV.fetch("COMMENTS", 0).to_i,
   favorites: ENV.fetch("FAVORITES", 0).to_i,
   forums: ENV.fetch("FORUMS", 0).to_i,
-  topics: ENV.fetch("TOPICS", 0).to_i,
   postvotes: ENV.fetch("POSTVOTES", 0).to_i,
   commentvotes: ENV.fetch("COMVOTES", 0).to_i,
   forumvotes: ENV.fetch("FORUMVOTES", 0).to_i,
@@ -22,7 +21,7 @@ presets = {
   trends: ENV.fetch("TRENDS", 0).to_i,
   trends_hours: ENV.fetch("TRENDS_HOURS", 0).to_i,
   aliases: ENV.fetch("ALIASES", 0).to_i,
-  implications: ENV.fetch("ALIASES", 0).to_i,
+  implications: ENV.fetch("IMPLICATIONS", 0).to_i,
   burs: ENV.fetch("BURS", 0).to_i,
 }
 if presets.values.sum == 0
@@ -32,8 +31,7 @@ if presets.values.sum == 0
     posts: 100,
     comments: 100,
     favorites: 100,
-    forums: 10,
-    topics: 10,
+    forums: 100,
     postvotes: 100,
     commentvotes: 100,
     forumvotes: 0,
@@ -53,8 +51,6 @@ POSTS        = presets[:posts]
 COMMENTS     = presets[:comments]
 FAVORITES    = presets[:favorites]
 FORUMS       = presets[:forums]
-TOPICS       = presets[:topics]
-TOPICS       = 1 if TOPICS == 0 && FORUMS >= 1
 POSTVOTES    = presets[:postvotes]
 COMVOTES     = presets[:commentvotes]
 FORUMVOTES   = presets[:forumvotes]
@@ -361,7 +357,7 @@ def populate_favorites(number, users: [])
       Post.where(id: post_id).update_all(
         fav_count: Favorite.where(post_id: post_id).count,
         updated_at: Time.current,
-      )
+        )
 
       puts "    Updated post ##{post_id} fav_count (#{user_ids.size} new favs)"
     end
@@ -373,7 +369,7 @@ def populate_favorites(number, users: [])
     user_counts.each do |user_id, count|
       UserStatus.where(user_id: user_id).update_all(
         "favorite_count = favorite_count + #{count}",
-      )
+        )
     end
   end
 
@@ -511,7 +507,7 @@ def populate_post_votes(number, users: [], posts: [])
       user: CurrentUser.user,
       post: post,
       score: Faker::Boolean.boolean(true_ratio: 0.2) ? -1 : 1,
-    )
+      )
 
     if vote == :need_unvote
       puts "    error: #{vote}"
@@ -545,7 +541,7 @@ def populate_comment_votes(number, users: [], comments: [])
       user: CurrentUser.user,
       comment: comment,
       score: Faker::Boolean.boolean(true_ratio: 0.2) ? -1 : 1,
-    )
+      )
 
     if vote == :need_unvote
       puts "    error: #{vote}"
@@ -559,13 +555,13 @@ end
 def get_post_for_forum_vote(user)
   ForumPost.where.not("forum_posts.creator_id": user)
            .where.not(
-             ForumPostVote.where("forum_post_votes.forum_post_id = forum_posts.id").where("forum_post_votes.creator_id": user).arel.exists,
-           )
+    ForumPostVote.where("forum_post_votes.forum_post_id = forum_posts.id").where("forum_post_votes.creator_id": user).arel.exists,
+    )
            .where(
              TagAlias.where("tag_aliases.forum_post_id = forum_posts.id").where("tag_aliases.status": "pending").arel.exists
-               .or(TagImplication.where("tag_implications.forum_post_id = forum_posts.id").where("tag_implications.status": "pending").arel.exists)
-               .or(BulkUpdateRequest.where("bulk_update_requests.forum_post_id = forum_posts.id").where("bulk_update_requests.status": "pending").arel.exists),
-           ).order("random()").first
+                     .or(TagImplication.where("tag_implications.forum_post_id = forum_posts.id").where("tag_implications.status": "pending").arel.exists)
+                     .or(BulkUpdateRequest.where("bulk_update_requests.forum_post_id = forum_posts.id").where("bulk_update_requests.status": "pending").arel.exists),
+             ).order("random()").first
 end
 
 def populate_forum_votes(number, users: [])
@@ -626,7 +622,7 @@ def populate_dmails(number)
       title: Faker::Hipster.sentence(word_count: rand(3..10)),
       body: Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false),
       bypass_limits: true,
-    )
+      )
 
     puts "  - DM ##{dm_obj.id} from #{sender.name} to #{recipient.name}"
 
