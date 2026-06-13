@@ -12,13 +12,18 @@ presets = {
   comments: ENV.fetch("COMMENTS", 0).to_i,
   favorites: ENV.fetch("FAVORITES", 0).to_i,
   forums: ENV.fetch("FORUMS", 0).to_i,
+  topics: ENV.fetch("TOPICS", 0).to_i,
   postvotes: ENV.fetch("POSTVOTES", 0).to_i,
   commentvotes: ENV.fetch("COMVOTES", 0).to_i,
+  forumvotes: ENV.fetch("FORUMVOTES", 0).to_i,
   pools: ENV.fetch("POOLS", 0).to_i,
   furids: ENV.fetch("FURIDS", 0).to_i,
   dmails: ENV.fetch("DM", 0).to_i,
   trends: ENV.fetch("TRENDS", 0).to_i,
   trends_hours: ENV.fetch("TRENDS_HOURS", 0).to_i,
+  aliases: ENV.fetch("ALIASES", 0).to_i,
+  implications: ENV.fetch("ALIASES", 0).to_i,
+  burs: ENV.fetch("BURS", 0).to_i,
 }
 if presets.values.sum == 0
   puts "DEFAULTS"
@@ -27,29 +32,40 @@ if presets.values.sum == 0
     posts: 100,
     comments: 100,
     favorites: 100,
-    forums: 100,
+    forums: 10,
+    topics: 10,
     postvotes: 100,
     commentvotes: 100,
+    forumvotes: 0,
     pools: 100,
     furids: 0,
     dmails: 0,
     trends: 7,
     trends_hours: 48,
+    aliases: 5,
+    implications: 5,
+    burs: 5,
   }
 end
 
-USERS     = presets[:users]
-POSTS     = presets[:posts]
-COMMENTS  = presets[:comments]
-FAVORITES = presets[:favorites]
-FORUMS    = presets[:forums]
-POSTVOTES = presets[:postvotes]
-COMVOTES  = presets[:commentvotes]
-POOLS     = presets[:pools]
-FURIDS    = presets[:furids]
-DMAILS    = presets[:dmails]
-TRENDS    = presets[:trends]
+USERS        = presets[:users]
+POSTS        = presets[:posts]
+COMMENTS     = presets[:comments]
+FAVORITES    = presets[:favorites]
+FORUMS       = presets[:forums]
+TOPICS       = presets[:topics]
+TOPICS       = 1 if TOPICS == 0 && FORUMS >= 1
+POSTVOTES    = presets[:postvotes]
+COMVOTES     = presets[:commentvotes]
+FORUMVOTES   = presets[:forumvotes]
+POOLS        = presets[:pools]
+FURIDS       = presets[:furids]
+DMAILS       = presets[:dmails]
+TRENDS       = presets[:trends]
 TRENDS_HOURS = presets[:trends_hours]
+ALIASES      = presets[:aliases]
+IMPLICATIONS = presets[:implications]
+BURS         = presets[:burs]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
@@ -242,7 +258,6 @@ def fill_avatars(users = [], posts = [])
 
   users.each do |user|
     post = posts.sample
-    puts "post: #{post}"
     puts "  - #{user.name} : ##{post.id}"
     user.update({ avatar_id: post.id })
   end
@@ -412,6 +427,75 @@ def populate_forums(number, users: [])
   end
 end
 
+def create_unique_tag(times = 1)
+  if times > 50
+    raise("Failed to find unused name for tag after #{times} tries")
+  end
+  value = [Faker::Verb.base, Faker::Verb.ing_form, Faker::Verb.past, Faker::Verb.past_participle, Faker::Verb.simple_present, Faker::Adjective.negative, Faker::Adjective.positive]
+  value.find do |v|
+    !ApplicationRecord.connection.select_one(ApplicationRecord.sanitize_sql(["
+      SELECT EXISTS (
+        SELECT 1 FROM tag_aliases WHERE antecedent_name = :value
+          UNION ALL SELECT 1 FROM tag_aliases WHERE consequent_name = :value
+          UNION ALL SELECT 1 FROM tag_implications WHERE antecedent_name = :value
+          UNION ALL SELECT 1 FROM tag_implications WHERE consequent_name = :value
+      )
+    ", { value: v },]))["exists"]
+  end.then do |v| # rubocop:disable Style/MultilineBlockChain
+    next create_unique_tag(times + 1) if v.nil?
+    v
+  end
+end
+
+def populate_aliases(number, users: [])
+  return unless number > 0
+  puts "* Creating #{number} aliases"
+
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+
+  CurrentUser.ip_addr = "127.0.0.1"
+  number.times do
+    CurrentUser.user = users.sample
+    request = TagAliasRequest.new(antecedent_name: create_unique_tag, consequent_name: create_unique_tag, reason: Faker::Lorem.sentence)
+    request.create
+    tag_alias = request.tag_relationship
+
+    puts "  - #{CurrentUser.user.name} | tag alias ##{tag_alias.id}"
+  end
+end
+
+def populate_implications(number, users: [])
+  return unless number > 0
+  puts "* Creating #{number} implications"
+
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+
+  CurrentUser.ip_addr = "127.0.0.1"
+  number.times do
+    CurrentUser.user = users.sample
+    request = TagImplicationRequest.new(antecedent_name: create_unique_tag, consequent_name: create_unique_tag, reason: Faker::Lorem.sentence)
+    request.create
+    tag_implication = request.tag_relationship
+
+    puts "  - #{CurrentUser.user.name} | tag implication ##{tag_implication.id}"
+  end
+end
+
+def populate_bulk_update_requests(number, users: [])
+  return unless number > 0
+  puts "* Creating #{number} bulk update requests"
+
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+
+  CurrentUser.ip_addr = "127.0.0.1"
+  number.times do
+    CurrentUser.user = users.sample
+    bur = BulkUpdateRequest.create(title: Faker::Lorem.sentence, reason: Faker::Lorem.sentence, script: "alias #{SecureRandom.hex(12)} -> #{SecureRandom.hex(12)}")
+
+    puts "  - #{CurrentUser.user.name} | bulk update request ##{bur.id}"
+  end
+end
+
 def populate_post_votes(number, users: [], posts: [])
   return unless number > 0
   puts "* Generating post votes"
@@ -469,6 +553,37 @@ def populate_comment_votes(number, users: [], comments: [])
     else
       puts "    vote ##{vote.id} on comment ##{comment.id}"
     end
+  end
+end
+
+def get_post_for_forum_vote(user)
+  ForumPost.where.not("forum_posts.creator_id": user)
+           .where.not(
+             ForumPostVote.where("forum_post_votes.forum_post_id = forum_posts.id").where("forum_post_votes.creator_id": user).arel.exists,
+           )
+           .where(
+             TagAlias.where("tag_aliases.forum_post_id = forum_posts.id").where("tag_aliases.status": "pending").arel.exists
+               .or(TagImplication.where("tag_implications.forum_post_id = forum_posts.id").where("tag_implications.status": "pending").arel.exists)
+               .or(BulkUpdateRequest.where("bulk_update_requests.forum_post_id = forum_posts.id").where("bulk_update_requests.status": "pending").arel.exists),
+           ).order("random()").first
+end
+
+def populate_forum_votes(number, users: [])
+  return unless number > 0
+  puts "* Generating #{number} forum votes"
+
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+
+  CurrentUser.ip_addr = "127.0.0.1"
+  number.times do
+    CurrentUser.user = users.sample
+    forum_post = get_post_for_forum_vote(CurrentUser.user)
+    if forum_post.nil?
+      puts "  no forum post found"
+      next
+    end
+    vote = forum_post.votes.create(score: [-1, 0, 1].sample)
+    puts "  - #{CurrentUser.user.name} | forum ##{forum_post.id} | score: #{vote.score}"
   end
 end
 
@@ -649,6 +764,10 @@ populate_post_votes(POSTVOTES, users: users, posts: posts)
 populate_comment_votes(COMVOTES, users: users, comments: comments)
 populate_pools(POOLS, posts: posts)
 populate_dmails(DMAILS)
+populate_aliases(ALIASES, users: users)
+populate_implications(IMPLICATIONS, users: users)
+populate_bulk_update_requests(BURS, users: users)
+populate_forum_votes(FORUMVOTES, users: users)
 
 # Seed search trends last
 populate_search_trends(days: TRENDS, tags_count: 100)
