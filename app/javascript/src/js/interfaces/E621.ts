@@ -1,6 +1,7 @@
 import Autocomplete from "@/components/autocomplete";
 import DTextFormatter from "@/components/DTextFormatter";
 import ThumbnailEngine from "@/components/ThumbnailEngine";
+import Timestamp from "@/components/Timestamp";
 import Blacklist from "@/core/blacklists";
 import DeferredPostLoader from "@/core/DeferredPostLoader";
 import Hotkeys from "@/core/hotkeys";
@@ -31,6 +32,7 @@ export default interface E621Type {
   DTextFormatter: typeof DTextFormatter;
   PostCache: typeof PostCache;
   ThumbnailEngine: typeof ThumbnailEngine;
+  Timestamp: typeof Timestamp;
 
   // compatibility aliases
   notice: typeof ToastManager.notice;
@@ -68,6 +70,7 @@ export function getE621Instance (): E621Type {
     DTextFormatter,
     PostCache,
     ThumbnailEngine,
+    Timestamp,
 
     // compatibility aliases
     // TODO: Remove after November 2026
