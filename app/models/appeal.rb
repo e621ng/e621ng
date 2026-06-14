@@ -59,6 +59,23 @@ class Appeal < ApplicationRecord
         return true if user.id == creator_id
         false
       end
+
+      def content_path
+        # For a post flag, send the user back to the post: either it's undeleted, it's been re-deleted
+        # (so they need to use the new flag's appeal button), or it's something they just can't appeal.
+        # Anyway it's more helpful for the user to see the current post status than the appeals index.
+        if content.present? && (post = content.post.presence)
+          return Rails.application.routes.url_helpers.post_path(post)
+        end
+        nil
+      end
+
+      def messages
+        {
+          duplicate: "This deletion has already been appealed.",
+          cannot_create: "This deletion can't be appealed or has already been resolved.",
+        }
+      end
     end
   end
 
@@ -221,6 +238,18 @@ class Appeal < ApplicationRecord
 
   def find_duplicate_for(_user)
     nil
+  end
+
+  def content_path
+    nil
+  end
+
+  def messages
+    # Should not happen - individual ticket types override this method.
+    {
+      duplicate: "Already appealed",
+      cannot_create: "Cannot be appealed",
+    }
   end
 
   def can_create_for?(_user)
