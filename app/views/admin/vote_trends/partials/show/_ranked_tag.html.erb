@@ -1,0 +1,13 @@
+<tr>
+  <td class="vt-score"><%= number_with_precision(trend_tag[1], precision: 3) %></td>
+  <td class="vt-tag">
+    <% if trend_tag[0].name.start_with?("uploader:") && trend_tag[0].uploader.present? %>
+      uploader:<%= link_to_user(trend_tag[0].uploader) %>
+    <% elsif trend_tag[0].name.start_with?("rating:") %>
+      <% rating = trend_tag[0].name.to_s.sub(/^rating:/, "") %>
+      rating:<b class="rating-metatag-<%= rating %>"><%= rating %></b>
+    <% else %>
+      <%= TagSetPresenter.new([trend_tag[0].name]).inline_tag_list_html(:wiki_page) %>
+    <% end %>
+  </td>
+</tr>
