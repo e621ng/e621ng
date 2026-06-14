@@ -438,15 +438,15 @@ body.c-oauth-authorizations.a-new {
         background-color: palette("text-red");
 
         &::after {
-          border-left-color: palette("text-red");
+          content: none;
         }
 
         &::before {
           content: "\00d7";
           position: absolute;
           top: 50%;
-          left: 50%;
-          transform: translate(-55%, -55%);
+          right: 0;
+          transform: translate(50%, -50%);
           font-size: 1.25rem;
           font-weight: bold;
           line-height: 1;
