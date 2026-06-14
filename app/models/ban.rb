@@ -6,6 +6,7 @@ class Ban < ApplicationRecord
 
   after_create :create_feedback
   after_create :update_user_on_create
+  after_create :revoke_oauth_credentials
   after_create :create_ban_mod_action
   after_create :push_pubsub_ban
   after_update :update_user_on_update
@@ -91,6 +92,16 @@ class Ban < ApplicationRecord
   def update_user_on_destroy
     user.level = UserLevel::MEMBER
     user.save(validate: false)
+  end
+
+  def revoke_oauth_credentials
+    Doorkeeper::AccessToken.where(resource_owner_id: user_id, revoked_at: nil).find_each(&:revoke)
+    Doorkeeper::AccessGrant.where(resource_owner_id: user_id, revoked_at: nil).find_each(&:revoke)
+
+    owned_app_ids = Doorkeeper::Application.where(owner: user).pluck(:id)
+    return if owned_app_ids.empty?
+    Doorkeeper::AccessToken.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
+    Doorkeeper::AccessGrant.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
   end
 
   def user_name

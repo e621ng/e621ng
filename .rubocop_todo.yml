@@ -578,6 +578,8 @@ Metrics/BlockLength:
     - 'app/logical/upload_service/replacer.rb'
     - 'app/models/application_record.rb'
     - 'app/models/post.rb'
+    - 'config/initializers/doorkeeper.rb'
+    - 'config/initializers/doorkeeper_openid_connect.rb'
 
 # Offense count: 1
 # Configuration parameters: CountBlocks, Max.
@@ -702,11 +704,28 @@ Rails/CompactBlank:
     - 'app/logical/bulk_update_request_importer.rb'
 
 # Offense count: 1
+Rails/CreateTableWithTimestamps:
+  Exclude:
+    - 'db/migrate/20260524095511_create_doorkeeper_openid_connect_tables.rb'
+
+# Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforceForPrefixed.
 Rails/Delegate:
   Exclude:
     - 'app/logical/sources/strategies/base.rb'
+
+# Offense count: 3
+# False positive: action filters target actions inherited from doorkeeper's base controllers.
+Rails/LexicallyScopedActionFilter:
+  Exclude:
+    - 'app/controllers/oauth_applications_controller.rb'
+    - 'app/controllers/oauth_authorizations_controller.rb'
+
+# Offense count: 1
+RSpec/MessageSpies:
+  Exclude:
+    - 'spec/logical/oidc_signing_key_spec.rb'
 
 # Offense count: 18
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -1452,6 +1471,7 @@ Style/StringConcatenation:
     - 'app/views/moderator/post/posts/confirm_delete.html.erb'
     - 'app/views/posts/show.html.erb'
     - 'config/environment.rb'
+    - 'spec/requests/oidc_endpoints_spec.rb'
 
 # Offense count: 204
 # This cop supports safe autocorrection (--autocorrect).
@@ -1564,6 +1584,7 @@ Style/SymbolProc:
     - 'app/models/artist_url.rb'
     - 'app/models/post.rb'
     - 'app/views/comments/_index_by_post.html.erb'
+    - 'config/initializers/doorkeeper_openid_connect.rb'
     - 'db/fixes/100_new_iqdb_import.rb'
 
 # Offense count: 19

@@ -19,7 +19,9 @@ class SessionCreator
       session[:user_id] = user.id
       session[:last_authenticated_at] = Time.now.utc.to_s
       session[:ph] = user.password_token
-      user.update_column(:last_ip_addr, request.remote_ip) unless user.is_restricted?
+      unless user.is_restricted?
+        user.update_columns(last_ip_addr: request.remote_ip, last_logged_in_at: Time.now)
+      end
 
       if remember
         verifier = ActiveSupport::MessageVerifier.new(Danbooru.config.remember_key, serializer: JSON, digest: "SHA256")
