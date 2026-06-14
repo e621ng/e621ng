@@ -1,5 +1,6 @@
 <%= form_search(path: artists_path) do |f| %>
   <%= f.input :any_name_matches, label: "Name", hint: "Use * for wildcard", autocomplete: "artist" %>
+  <%= f.input :group_name, label: "Group", hint: "Use * for wildcard" %>
   <%= f.input :url_matches, label: "URL", as: :string %>
   <%= f.user :creator %>
   <%= f.user :linked_user, label: "Linked User" %>
