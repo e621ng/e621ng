@@ -570,4 +570,44 @@ RSpec.describe "OIDC endpoints" do
       expect(response).to have_http_status(:unauthorized)
     end
   end
+
+  describe "refresh token idle expiry" do
+    let(:user) { create(:user) }
+    let(:owner) { create(:user) }
+    let(:oauth_app) do
+      Doorkeeper::Application.create!(
+        name: "refresh-client", redirect_uri: "http://localhost/cb",
+        scopes: "openid full", confidential: true, owner: owner
+      )
+    end
+    let(:token) do
+      Doorkeeper::AccessToken.create!(
+        application: oauth_app, resource_owner_id: user.id,
+        scopes: "openid full", use_refresh_token: true
+      )
+    end
+
+    def refresh
+      post "/oauth/token", params: {
+        grant_type: "refresh_token",
+        refresh_token: token.refresh_token,
+        client_id: oauth_app.uid,
+        client_secret: oauth_app.plaintext_secret,
+      }
+    end
+
+    it "exchanges a refresh token last used within the idle window" do
+      token.update_column(:created_at, 29.days.ago)
+      refresh
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["refresh_token"]).to be_present
+    end
+
+    it "rejects a refresh token idle past the window" do
+      token.update_column(:created_at, 31.days.ago)
+      refresh
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["error"]).to eq("invalid_grant")
+    end
+  end
 end
