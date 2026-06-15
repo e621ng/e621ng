@@ -57,7 +57,7 @@ class EmailBlacklist < ApplicationRecord
   end
 
   def self.get_mx_records(domain)
-    return [] if Rails.env.test? || Rails.env.development?
+    return [] if Rails.env.local?
     Resolv::DNS.open do |dns|
       dns.getresources(
         domain,
