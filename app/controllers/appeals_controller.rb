@@ -24,22 +24,14 @@ class AppealsController < ApplicationController
   def new
     @appeal = Appeal.new(qtype: params[:qtype], disp_id: params[:disp_id])
 
-    # These messages will have to be moved to AppealTypes if anything else than deletion becomes appealable
     if (existing_appeal = @appeal.find_duplicate_for(CurrentUser.user)).present?
-      redirect_to appeal_path(existing_appeal), alert: "This deletion has already been appealed."
+      redirect_to appeal_path(existing_appeal), alert: @appeal.messages[:duplicate]
       return
     end
 
     unless @appeal.can_create_for?(CurrentUser.user)
-      redirect_path = appeals_path
-      # For a post flag, send the user back to the post: either it's undeleted, it's been re-deleted
-      # (so they need to use the new flag's appeal button), or it's something they just can't appeal.
-      # Anyway it's more helpful for the user to see the current post status than the appeals index.
-      content = @appeal.content
-      if content.is_a?(::PostFlag) && (post = content.post.presence)
-        redirect_path = post_path(post)
-      end
-      redirect_to redirect_path, alert: "This deletion can't be appealed or has already been resolved."
+      redirect_path = @appeal.content_path || appeals_path
+      redirect_to redirect_path, alert: @appeal.messages[:cannot_create]
       return
     end
 

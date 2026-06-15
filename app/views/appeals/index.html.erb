@@ -8,11 +8,11 @@
         <tr>
           <th style="width: 0;"></th>
           <% if CurrentUser.is_staff? %>
-            <th style="width:10%">Reporter</th>
+            <th style="width:10%">Appealer</th>
             <th style="width:10%">Accused</th>
             <th style="width:10%">Claimed By</th>
           <% end %>
-          <th style="width:5%">Type</th>
+          <%# <th style="width:5%">Type</th> %>
           <th style="width:auto">Subject</th>
           <th style="width:10%">Status</th>
           <th style="width:10%">Updated</th>
@@ -27,7 +27,7 @@
             <td><%= link_to(appeal.id, appeal_path(appeal)) %></td>
             <% if CurrentUser.is_staff? %>
               <% if can_view %>
-                <%# Reporter %>
+                <%# Appealer %>
                 <td><%= link_to_user appeal.creator %></td>
 
                 <%# Accused %>
@@ -53,9 +53,9 @@
 
             <% if can_view %>
               <%# Type %>
-              <td class="appeal-subject full-width-link">
-                <%= link_to appeal.type_title, appeal_path(appeal) %>
-              </td>
+              <%# <td class="appeal-subject full-width-link"> %>
+                <%# <%= link_to appeal.type_title, appeal_path(appeal) %>
+              <%# </td> %>
 
               <%# Subject %>
               <td class="appeal-subject full-width-link" title="<%= truncate(strip_tags(format_text(appeal.reason)), length: 200) %>">
