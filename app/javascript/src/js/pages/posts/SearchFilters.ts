@@ -158,7 +158,10 @@ export default class SearchFilters {
     if (!inputId) return;
     const $label = this.$controls.find(`label[for='${inputId}']`);
     $("<button>")
-      .attr("type", "button")
+      .attr({
+        "type": "button",
+        "aria-label": "Toggle ascending",
+      })
       .addClass("sort-asc-btn")
       .toggleClass("active", direction === ORDER_ASC)
       .text("-")

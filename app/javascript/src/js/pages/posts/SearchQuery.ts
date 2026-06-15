@@ -10,7 +10,9 @@ export const ORDER_CUSTOM = "__custom";
 export const ORDER_VALUES: Record<string, { label: string; icon: string; flat?: boolean }> = {
   id: { label: "ID", icon: "hash" },
   score: { label: "Score", icon: "trending_up" },
+  hot: { label: "Hot", icon: "flame", flat: true },
   favcount: { label: "Favorites", icon: "star" },
+
   created: { label: "Date", icon: "clock_fading" },
   updated: { label: "Updated", icon: "clock_fading" },
   change: { label: "Change", icon: "reset" },
@@ -33,7 +35,6 @@ export const ORDER_VALUES: Record<string, { label: string; icon: string; flat?: 
   md5: { label: "MD5", icon: "hash" },
   note: { label: "Notes", icon: "notepad" },
   random: { label: "Random", icon: "shuffle", flat: true },
-  hot: { label: "Hot", icon: "flame", flat: true },
   landscape: { label: "Landscape", icon: "images", flat: true },
   portrait: { label: "Portrait", icon: "images", flat: true },
 };

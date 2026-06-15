@@ -30,6 +30,9 @@ export default class SearchControls {
   }
 
   private initAdvancedSearch () {
+    const advSearch = $("#advanced-search-container"),
+      advSearchBtn = $("#advanced-search-open");
+
     this.advOffclickHandler = Offclick.register(
       "#advanced-search-open",
       "#advanced-search-container, .search",
@@ -39,8 +42,7 @@ export default class SearchControls {
       },
     );
 
-    const advSearch = $("#advanced-search-container");
-    const advSearchBtn = $("#advanced-search-open").on("click", () => {
+    advSearchBtn.on("click", () => {
       const state = this.advOffclickHandler.disabled;
       advSearch.toggleClass("active", state);
       advSearchBtn.toggleClass("active", state);
@@ -56,6 +58,9 @@ export default class SearchControls {
   }
 
   private initLayoutSettings () {
+    const menu = $("#layout-settings-container"),
+      menuButton = $("#layout-settings-open");
+
     this.layoutOffclickHandler = Offclick.register(
       "#layout-settings-open",
       "#layout-settings-container",
@@ -65,8 +70,7 @@ export default class SearchControls {
       },
     );
 
-    const menu = $("#layout-settings-container");
-    const menuButton = $("#layout-settings-open").on("click", () => {
+    menuButton.on("click", () => {
       const state = this.layoutOffclickHandler.disabled;
       menu.toggleClass("active", state);
       menuButton.toggleClass("active", state);
