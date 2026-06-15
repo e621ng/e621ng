@@ -30,10 +30,7 @@ class AppealsController < ApplicationController
     end
 
     unless @appeal.can_create_for?(CurrentUser.user)
-      redirect_path = @appeal.content_path
-      if redirect_path.blank?
-        redirect_path = appeals_path
-      end
+      redirect_path = @appeal.content_path || appeals_path
       redirect_to redirect_path, alert: @appeal.messages[:cannot_create]
       return
     end
