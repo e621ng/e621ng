@@ -90,7 +90,7 @@ module Admin
       @user = User.find(params[:id])
 
       if @user.is_staff? && !CurrentUser.user.is_bd_staff?
-        redirect_to user_path(@user), alert: "Only BD staff can request password resets for staff accounts"
+        return redirect_to user_path(@user), alert: "Only BD staff can request password resets for staff accounts"
       end
 
       unless User.authenticate(CurrentUser.name, params[:admin][:password])
