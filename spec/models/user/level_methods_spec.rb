@@ -150,6 +150,7 @@ RSpec.describe User do
         expect(user.is_admin?).to be(true)
         expect(user.is_moderator?).to be(true)
         expect(user.is_janitor?).to be(true)
+        expect(user.is_staff?).to be(true)
         expect(user.is_member?).to be(true)
       end
 
@@ -158,27 +159,13 @@ RSpec.describe User do
         expect(user.is_admin?).to be(false)
         expect(user.is_moderator?).to be(false)
         expect(user.is_janitor?).to be(false)
+        expect(user.is_staff?).to be(false)
       end
 
       it "returns false for an unpersisted user" do
         # is_<level>? requires id.present? — build does not persist, so id is nil
         user = build(:admin_user)
         expect(user.is_admin?).to be(false)
-      end
-    end
-
-    # -------------------------------------------------------------------------
-    # #is_staff?
-    # -------------------------------------------------------------------------
-    describe "#is_staff?" do
-      it "returns true for a janitor" do
-        user = create(:janitor_user)
-        expect(user.is_staff?).to be(true)
-      end
-
-      it "returns false for a regular member" do
-        user = create(:user)
-        expect(user.is_staff?).to be(false)
       end
     end
 

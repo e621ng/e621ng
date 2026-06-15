@@ -3,7 +3,7 @@
 class PoolsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show gallery]
-  before_action :janitor_only, only: %i[destroy]
+  before_action :staff_only, only: %i[destroy]
   before_action :ensure_lockdown_disabled, except: %i[index show gallery]
 
   def index

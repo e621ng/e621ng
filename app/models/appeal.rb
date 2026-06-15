@@ -140,7 +140,7 @@ class Appeal < ApplicationRecord
     end
 
     def visible(user)
-      if user.is_janitor?
+      if user.is_staff?
         all
       else
         for_creator(user.id)
@@ -206,7 +206,7 @@ class Appeal < ApplicationRecord
 
   def can_view?(user = CurrentUser.user)
     # Should not happen - individual ticket types override this method.
-    return true if user.is_janitor?
+    return true if user.is_staff?
     return true if user.id == creator_id
     false
   end

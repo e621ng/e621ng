@@ -6,10 +6,11 @@ module UserLevel
     "Blocked" => 10,
     "Member" => 20,
     "Privileged" => 30,
-    "Former Staff" => 34,
-    "Janitor" => 35,
-    "Moderator" => 40,
-    "Admin" => 50,
+    "Former Staff" => 40,
+    "Staff" => 50,
+    "Janitor" => 60,
+    "Moderator" => 70,
+    "Admin" => 80,
   }.freeze
   REVERSE_MAPPING = MAPPING.invert.freeze
 

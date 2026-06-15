@@ -2,7 +2,7 @@
 
 module Moderator
   class DashboardsController < ApplicationController
-    before_action :janitor_only
+    before_action :staff_only
 
     def show
       @dashboard = Moderator::Dashboard::Report.new(params[:min_date] || 2.days.ago.to_date, params[:max_level] || 20)

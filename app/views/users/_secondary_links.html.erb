@@ -19,7 +19,7 @@
     <% end %>
 
     <% if CurrentUser.user.is_admin? %>
-      <% if CurrentUser.user.is_bd_staff? %>
+      <% if !@user.is_staff? || CurrentUser.user.is_bd_staff? %>
         <%= subnav_link_to "Reset Password", request_password_reset_admin_user_path(@user) %>
       <% end %>
       <%= subnav_link_to "Edit Blacklist", edit_blacklist_admin_user_path(@user) %>

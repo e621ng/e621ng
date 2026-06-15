@@ -5,9 +5,10 @@ require "rails_helper"
 RSpec.describe Admin::UsersController do
   include_context "as admin"
 
-  let(:admin)    { create(:admin_user) }
-  let(:bd_staff) { create(:bd_staff_user) }
-  let(:user)     { create(:user) }
+  let(:moderator) { create(:moderator_user) }
+  let(:admin)     { create(:admin_user) }
+  let(:bd_staff)  { create(:bd_staff_user) }
+  let(:user)      { create(:user) }
 
   # ---------------------------------------------------------------------------
   # GET /admin/users/alt_list
@@ -293,15 +294,30 @@ RSpec.describe Admin::UsersController do
       expect(response).to redirect_to(new_session_path(url: request_password_reset_admin_user_path(user)))
     end
 
-    it "returns 403 for a non-BD-staff admin" do
-      sign_in_as admin
+    it "returns 403 for a moderator" do
+      sign_in_as moderator
       get request_password_reset_admin_user_path(user)
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for BD staff" do
-      sign_in_as bd_staff
+    it "returns 200 for an admin" do
+      sign_in_as admin
       get request_password_reset_admin_user_path(user)
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "returns 302 with an alert for a non-BD-staff admin when the target is staff" do
+      staff_user = create(:janitor_user)
+      sign_in_as admin
+      get request_password_reset_admin_user_path(staff_user)
+      expect(response).to redirect_to(user_path(staff_user))
+      expect(flash[:alert]).to eq("Only BD staff can request password resets for staff accounts")
+    end
+
+    it "returns 200 for a BD-staff admin when the target is staff" do
+      staff_user = create(:janitor_user)
+      sign_in_as bd_staff
+      get request_password_reset_admin_user_path(staff_user)
       expect(response).to have_http_status(:ok)
     end
   end
@@ -316,14 +332,35 @@ RSpec.describe Admin::UsersController do
       expect(response).to redirect_to(new_session_path)
     end
 
-    it "returns 403 for a non-BD-staff admin" do
-      sign_in_as admin
+    it "returns 403 for a moderator" do
+      sign_in_as moderator
       post password_reset_admin_user_path(user), params: { admin: { password: "hexerade" } }
       expect(response).to have_http_status(:forbidden)
     end
 
-    context "as bd_staff" do
-      before { sign_in_as bd_staff }
+    it "returns 200 for an admin" do
+      sign_in_as admin
+      post password_reset_admin_user_path(user), params: { admin: { password: "hexerade" } }
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "returns 302 with an alert for a non-BD-staff admin when the target is staff" do
+      staff_user = create(:janitor_user)
+      sign_in_as admin
+      post password_reset_admin_user_path(staff_user), params: { admin: { password: "hexerade" } }
+      expect(response).to redirect_to(user_path(staff_user))
+      expect(flash[:alert]).to eq("Only BD staff can request password resets for staff accounts")
+    end
+
+    it "returns 200 for a BD-staff admin when the target is staff" do
+      staff_user = create(:janitor_user)
+      sign_in_as bd_staff
+      post password_reset_admin_user_path(staff_user), params: { admin: { password: "hexerade" } }
+      expect(response).to have_http_status(:ok)
+    end
+
+    context "as an admin" do
+      before { sign_in_as admin }
 
       it "redirects back with a notice when the password is wrong" do
         post password_reset_admin_user_path(user), params: { admin: { password: "wrongpassword" } }

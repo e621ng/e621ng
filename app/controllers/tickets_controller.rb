@@ -3,7 +3,7 @@
 class TicketsController < ApplicationController
   respond_to :html, :json, except: %i[create new]
   before_action :member_only, except: %i[index]
-  before_action :janitor_only, only: %i[update claim unclaim]
+  before_action :staff_only, only: %i[update claim unclaim]
 
   def index
     @tickets = Ticket

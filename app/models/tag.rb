@@ -400,7 +400,7 @@ class Tag < ApplicationRecord
   end
 
   def category_editable_by_implicit?(user)
-    return false unless user.is_janitor?
+    return false unless user.is_staff?
     return false if is_locked?
     return false if post_count >= Danbooru.config.tag_type_change_cutoff
     true

@@ -120,7 +120,7 @@
     <% end %>
   </div>
 
-  <% if CurrentUser.is_staff? && @appeal.can_handle? %>
+  <% if @appeal.can_handle? %>
     <%= custom_form_for(@appeal, html: { class: "appeal-display-response" }) do |f| %>
       <%= f.input :status, collection: [%w[Approved approved], %w[Investigating partial], %w[Rejected rejected]], selected: @appeal.status || "approved" %>
       <% unless @appeal.pending? %>

@@ -152,7 +152,7 @@ class Dmail < ApplicationRecord
     # System user must be able to send dmails at a very high rate, do not rate limit the system user.
     return true if bypass_limits == true
     return true if from_id == User.system.id
-    return true if from.is_janitor?
+    return true if from.is_staff?
 
     allowed = CurrentUser.can_dmail_with_reason
     if allowed != true
@@ -176,12 +176,12 @@ class Dmail < ApplicationRecord
       return false
     end
     return true if from_id == User.system.id
-    return true if from.is_janitor?
+    return true if from.is_staff?
     if to.disable_user_dmails
       errors.add(:to_name, "has disabled DMails")
       return false
     end
-    if from.disable_user_dmails && !to.is_janitor?
+    if from.disable_user_dmails && !to.is_staff?
       errors.add(:to_name, "is not a valid recipient while blocking DMails from others. You may only message janitors and above")
       return false
     end
