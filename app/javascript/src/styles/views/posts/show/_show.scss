@@ -84,8 +84,7 @@ body.c-posts.a-show-seq {
 
       #toggle-fullscreen { display: none; }
 
-      #advanced-search-open,
-      #layout-settings-open {
+      button.st-button {
         height: 1.25rem;
         width: 2rem;
         justify-content: center;
