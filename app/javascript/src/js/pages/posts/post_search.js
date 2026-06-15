@@ -1,7 +1,5 @@
 import LStorage from "@/utility/Storage";
 import Page from "@/utility/Page";
-import Offclick from "@/utility/Offclick";
-import SVGIcon from "@/utility/SVGIcon";
 
 const PostSearch = {};
 
@@ -62,115 +60,6 @@ PostSearch.initialize_wiki_preview = function ($preview) {
   });
 };
 
-PostSearch.initialize_controls = function () {
-  // Advanced search panel
-  const advOffclickHandler = Offclick.register("#advanced-search-open", "#advanced-search-container, .search", () => {
-    advSearch.removeClass("active");
-    advSearchBtn.removeClass("active");
-  });
-
-  const advSearch = $("#advanced-search-container");
-  const advSearchBtn = $("#advanced-search-open").on("click", () => {
-    const state = advOffclickHandler.disabled;
-    advSearch.toggleClass("active", state);
-    advSearchBtn.toggleClass("active", state);
-    advOffclickHandler.disabled = !state;
-  });
-
-  advSearch.find("#advanced-search-close").on("click", (event) => {
-    event.preventDefault();
-    advSearch.removeClass("active");
-    advSearchBtn.removeClass("active");
-    advOffclickHandler.disabled = true;
-  });
-
-  // Regular buttons
-  let fullscreen = LStorage.Posts.Fullscreen;
-  const $toggleBtn = $("#toggle-fullscreen");
-  const iconHide = SVGIcon.render("sidebar_hide").outerHTML;
-  const iconShow = SVGIcon.render("sidebar_show").outerHTML;
-
-  function setFullscreenIcon () {
-    $toggleBtn.html(fullscreen ? iconShow : iconHide);
-    $("body").attr("data-st-fullscreen", fullscreen);
-  }
-
-  setFullscreenIcon();
-  $toggleBtn.on("click", () => {
-    fullscreen = !fullscreen;
-    LStorage.Posts.Fullscreen = fullscreen;
-    setFullscreenIcon();
-  });
-
-  // Menu open / close
-  const offclickHandler = Offclick.register("#layout-settings-open", "#layout-settings-container", () => {
-    menu.removeClass("active");
-    menuButton.removeClass("active");
-  });
-
-  const menu = $("#layout-settings-container");
-  const menuButton = $("#layout-settings-open").on("click", () => {
-    const state = offclickHandler.disabled;
-    menu.toggleClass("active", state);
-    menuButton.toggleClass("active", state);
-    offclickHandler.disabled = !state;
-  });
-
-  menu.find("#layout-settings-close").on("click", (event) => {
-    event.preventDefault();
-    menu.removeClass("active");
-    menuButton.removeClass("active");
-    offclickHandler.disabled = true;
-  });
-
-  // Menu toggles
-  $("#ssc-image-contain")
-    .prop("checked", LStorage.Posts.Contain)
-    .on("change", (event) => {
-      LStorage.Posts.Contain = event.target.checked;
-      $("body").attr("data-st-contain", event.target.checked);
-    });
-
-  $("input[type='radio'][name='ssc-card-size']")
-    .on("change", (event) => {
-      LStorage.Posts.Size = event.target.value;
-      $("body").attr("data-st-size", event.target.value);
-    });
-  $("input[type='radio'][name='ssc-card-size'][value='" + LStorage.Posts.Size + "']")
-    .prop("checked", true);
-
-  function updateHoverTextNodes () {
-    $("a[data-hover-text]").attr("title", function () {
-      const source = $(this).data("hover-text");
-      if (!source) return "";
-
-      switch (LStorage.Posts.HoverText) {
-        case "none":
-          return "";
-        case "short":
-          return source.split("\n\n")[0];
-        case "long":
-        default:
-          return source;
-      }
-    });
-  }
-  $("input[type='radio'][name='ssc-hover-text']")
-    .on("change", (event) => {
-      LStorage.Posts.HoverText = event.target.value;
-      updateHoverTextNodes();
-    });
-  $("input[type='radio'][name='ssc-hover-text'][value='" + LStorage.Posts.HoverText + "']")
-    .prop("checked", true);
-  updateHoverTextNodes();
-
-  $("#ssc-sticky-searchbar")
-    .prop("checked", LStorage.Posts.StickySearch)
-    .on("change", (event) => {
-      LStorage.Posts.StickySearch = event.target.checked;
-      $("body").attr("data-st-stickysearch", event.target.checked);
-    });
-};
 
 $(() => {
 
@@ -184,8 +73,6 @@ $(() => {
   $(".wiki-excerpt").each((index, element) => {
     PostSearch.initialize_wiki_preview($(element));
   });
-
-  PostSearch.initialize_controls();
 });
 
 export default PostSearch;

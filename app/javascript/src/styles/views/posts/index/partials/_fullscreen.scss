@@ -20,6 +20,10 @@
     #toggle-fullscreen {
       background: themed("color-button-active");
       color: black;
+
+      svg path.fullscreen-arrow {
+        d: path("m 5 9 l 3 3 l -3 3");
+      }
     }
 
     .search-controls { right: 0.25rem; }

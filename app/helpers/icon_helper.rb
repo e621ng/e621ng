@@ -88,7 +88,7 @@ module IconHelper
 
     # Posts
     search: %(<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>),
-    fullscreen: %(<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="10" height="8" x="7" y="8" rx="1"/>),
+    fullscreen: %(<rect x="2" y="3" width="20" height="18" rx="2"/><path d="M11 3v18"/><path class="fullscreen-arrow" d="m8 9-3 3 3 3"/>),
     anchor: %(<path d="M12 22V8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><circle cx="12" cy="5" r="3"/>),
     chexagon: %(<path d="M7.6 21.4h8.8a2.2 2.1 0 0 0 1.9-1l4.3-7.4a2.2 2.1 0 0 0 0-2l-4.3-7.4a2.2 2.1 0 0 0-2-1H7.7a2.2 2.1 0 0 0-1.9 1L1.4 11a2.2 2.1 0 0 0 0 2l4.3 7.4a2.2 2.1 0 0 0 2 1z"/><path d="m17.3 9.2-6.6 6.6-3-3.1" class="check"/>),
     eye_off: %(<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/><path d="m2 2 20 20" class="line"/>),
