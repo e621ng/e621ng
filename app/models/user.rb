@@ -259,7 +259,7 @@ class User < ApplicationRecord
     end
 
     def password_is_secure
-      analysis = Zxcvbn.test(password, [name, email])
+      analysis = ZXCVBN_TESTER.test(password, [name, email])
       return unless analysis.score < 2
       if analysis.feedback.warning
         errors.add(:password, "is insecure: #{analysis.feedback.warning}")
