@@ -2099,79 +2099,6 @@ ALTER SEQUENCE public.staff_notes_id_seq OWNED BY public.staff_notes.id;
 
 
 --
--- Name: staff_wiki_versions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.staff_wiki_versions (
-    id bigint NOT NULL,
-    staff_wiki_id integer NOT NULL,
-    updater_id integer NOT NULL,
-    updater_ip_addr inet NOT NULL,
-    title character varying NOT NULL,
-    body text DEFAULT ''::text NOT NULL,
-    reason character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: staff_wiki_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.staff_wiki_versions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: staff_wiki_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.staff_wiki_versions_id_seq OWNED BY public.staff_wiki_versions.id;
-
-
---
--- Name: staff_wikis; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.staff_wikis (
-    id bigint NOT NULL,
-    creator_id integer NOT NULL,
-    updater_id integer NOT NULL,
-    title character varying NOT NULL,
-    body text DEFAULT ''::text NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    qtype character varying DEFAULT 'general'::character varying NOT NULL,
-    related_id integer,
-    claimant_id integer
-);
-
-
---
--- Name: staff_wikis_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.staff_wikis_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: staff_wikis_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.staff_wikis_id_seq OWNED BY public.staff_wikis.id;
-
-
---
 -- Name: tag_aliases; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3202,20 +3129,6 @@ ALTER TABLE ONLY public.staff_notes ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- Name: staff_wiki_versions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.staff_wiki_versions ALTER COLUMN id SET DEFAULT nextval('public.staff_wiki_versions_id_seq'::regclass);
-
-
---
--- Name: staff_wikis id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.staff_wikis ALTER COLUMN id SET DEFAULT nextval('public.staff_wikis_id_seq'::regclass);
-
-
---
 -- Name: tag_aliases id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3775,22 +3688,6 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 ALTER TABLE ONLY public.staff_notes
     ADD CONSTRAINT staff_notes_pkey PRIMARY KEY (id);
-
-
---
--- Name: staff_wiki_versions staff_wiki_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.staff_wiki_versions
-    ADD CONSTRAINT staff_wiki_versions_pkey PRIMARY KEY (id);
-
-
---
--- Name: staff_wikis staff_wikis_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.staff_wikis
-    ADD CONSTRAINT staff_wikis_pkey PRIMARY KEY (id);
 
 
 --
@@ -5022,27 +4919,6 @@ CREATE INDEX index_staff_notes_on_user_id ON public.staff_notes USING btree (use
 
 
 --
--- Name: index_staff_wiki_versions_on_staff_wiki_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_staff_wiki_versions_on_staff_wiki_id ON public.staff_wiki_versions USING btree (staff_wiki_id);
-
-
---
--- Name: index_staff_wiki_versions_on_updater_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_staff_wiki_versions_on_updater_id ON public.staff_wiki_versions USING btree (updater_id);
-
-
---
--- Name: index_staff_wikis_on_lower_title; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_staff_wikis_on_lower_title ON public.staff_wikis USING btree (lower((title)::text));
-
-
---
 -- Name: index_tag_aliases_on_antecedent_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5584,8 +5460,6 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260612160840'),
 ('20260608170029'),
-('20260602151619'),
-('20260602151618'),
 ('20260530165214'),
 ('20260530162738'),
 ('20260526234030'),
