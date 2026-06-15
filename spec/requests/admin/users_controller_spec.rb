@@ -306,7 +306,7 @@ RSpec.describe Admin::UsersController do
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns 403 for a non-BD-staff admin when the target is staff" do
+    it "returns 302 with an alert for a non-BD-staff admin when the target is staff" do
       staff_user = create(:janitor_user)
       sign_in_as admin
       get request_password_reset_admin_user_path(staff_user)
@@ -344,7 +344,7 @@ RSpec.describe Admin::UsersController do
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns 403 for a non-BD-staff admin when the target is staff" do
+    it "returns 302 with an alert for a non-BD-staff admin when the target is staff" do
       staff_user = create(:janitor_user)
       sign_in_as admin
       post password_reset_admin_user_path(staff_user), params: { admin: { password: "hexerade" } }

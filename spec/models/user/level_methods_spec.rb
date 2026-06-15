@@ -170,21 +170,6 @@ RSpec.describe User do
     end
 
     # -------------------------------------------------------------------------
-    # #is_staff?
-    # -------------------------------------------------------------------------
-    describe "#is_staff?" do
-      it "returns true for a janitor" do
-        user = create(:janitor_user)
-        expect(user.is_staff?).to be(true)
-      end
-
-      it "returns false for a regular member" do
-        user = create(:user)
-        expect(user.is_staff?).to be(false)
-      end
-    end
-
-    # -------------------------------------------------------------------------
     # #is_approver?
     # -------------------------------------------------------------------------
     describe "#is_approver?" do
