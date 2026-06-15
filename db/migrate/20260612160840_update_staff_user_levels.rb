@@ -12,7 +12,7 @@ class UpdateStaffUserLevels < ActiveRecord::Migration[8.1]
 
   def down
     User.without_timeout do
-      User.where(level: 50).update_all(level: 20) # Staff
+      User.where(level: 50).update_all(level: 20) # Staff become Members, for safety
       User.where(level: 40).update_all(level: 34) # Former Staff
       User.where(level: 60).update_all(level: 35) # Janitor
       User.where(level: 70).update_all(level: 40) # Moderator
