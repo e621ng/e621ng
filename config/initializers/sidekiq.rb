@@ -28,16 +28,19 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
     "SearchTrendCacheWarmJob" => {
       "cron" => "*/15 * * * *",
       "class" => "SearchTrendCacheWarmJob",
+      "queue" => "low_prio",
       "description" => "Pre-warm the rising tags cache every 15 minutes to avoid on-request timeouts",
     },
     "SitemapGeneratorJob" => {
       "cron" => "30 0 * * *", # Every day at 30 minutes past midnight
       "class" => "SitemapGeneratorJob",
+      "queue" => "low_prio",
       "description" => "Generate the sitemap.xml file for search engines",
     },
     "DbExportJob" => {
       "cron" => "0 4 * * *", # Every day at 4:00 AM
       "class" => "DbExportJob",
+      "queue" => "low_prio",
       "description" => "Generate the daily public database exports",
     },
   }
