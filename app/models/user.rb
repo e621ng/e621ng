@@ -534,7 +534,7 @@ class User < ApplicationRecord
       created_at < duration.ago
     end
 
-    def self.create_user_throttle(name, limiter, checker, newbie_duration)
+    def self.create_user_throttle(name, limiter, checker: :general_bypass_throttle?, newbie_duration: 7.days)
       define_method(:"#{name}_limit", limiter)
 
       define_method(:"can_#{name}_with_reason") do
@@ -554,35 +554,38 @@ class User < ApplicationRecord
       is_privileged?
     end
 
-    create_user_throttle(:artist_edit, -> { Danbooru.config.artist_edit_limit - ArtistVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, 7.days)
-    create_user_throttle(:post_edit, -> { Danbooru.config.post_edit_limit - PostVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, 7.days)
-    create_user_throttle(:wiki_edit, -> { Danbooru.config.wiki_edit_limit - WikiPageVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, 7.days)
-    create_user_throttle(:pool, -> { Danbooru.config.pool_limit - Pool.for_user(id).where("created_at > ?", 1.hour.ago).count },
-                         :is_janitor?, 7.days)
-    create_user_throttle(:pool_edit, -> { Danbooru.config.pool_edit_limit - PoolVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
-                         :is_janitor?, 3.days)
-    create_user_throttle(:pool_post_edit, -> { Danbooru.config.pool_post_edit_limit - PoolVersion.for_user(id).where("updated_at > ?", 1.hour.ago).group(:pool_id).count(:pool_id).length },
-                         :general_bypass_throttle?, 7.days)
-    create_user_throttle(:note_edit, -> { Danbooru.config.note_edit_limit - NoteVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, 3.days)
-    create_user_throttle(:comment, -> { Danbooru.config.member_comment_limit - Comment.for_creator(id).where("created_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, 7.days)
-    create_user_throttle(:forum_post, -> { Danbooru.config.member_comment_limit - ForumPost.for_user(id).where("created_at > ?", 1.hour.ago).count },
-                         nil, 3.days)
-    create_user_throttle(:blip, -> { Danbooru.config.blip_limit - Blip.for_creator(id).where("created_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, 3.days)
-    create_user_throttle(:dmail_minute, -> { Danbooru.config.dmail_minute_limit - Dmail.sent_by_id(id).where("created_at > ?", 1.minute.ago).count },
-                         nil, 7.days)
-    create_user_throttle(:dmail, -> { Danbooru.config.dmail_limit - Dmail.sent_by_id(id).where("created_at > ?", 1.hour.ago).count },
-                         nil, 7.days)
-    create_user_throttle(:dmail_day, -> { Danbooru.config.dmail_day_limit - Dmail.sent_by_id(id).where("created_at > ?", 1.day.ago).count },
-                         nil, 7.days)
-    create_user_throttle(:comment_vote, -> { Danbooru.config.comment_vote_limit - CommentVote.for_user(id).where("created_at > ?", 1.hour.ago).count },
-                         :general_bypass_throttle?, 3.days)
-    create_user_throttle(:post_vote, -> {
+    def actions_sql(resource, scope = :for_user, column: "updated_at", time: 1.hour.ago)
+      resource.send(scope, id).where("#{column} > ?", time)
+    end
+
+    def simple_remaining_actions(symbol, resource, scope: :for_user, column: "updated_at", time: 1.hour.ago)
+      Danbooru.config.send("#{symbol}_limit") - actions_sql(resource, scope, column:, time:).count
+    end
+
+    def remaining_actions(symbol, resource, scope: :for_user, column: "updated_at", time: 1.hour.ago)
+      if !(t = Danbooru.config.send(symbol))
+        Float::INFINITY # Don't bother with the SQL query
+      else
+        t - actions_sql(resource, scope, column:, time:).count
+      end
+    end
+
+    create_user_throttle(:artist_edit,    -> { simple_remaining_actions(:artist_edit, ArtistVersion) })
+    create_user_throttle(:post_edit,      -> { simple_remaining_actions(:post_edit, PostVersion) })
+    create_user_throttle(:wiki_edit,      -> { simple_remaining_actions(:wiki_edit, WikiPageVersion) })
+    create_user_throttle(:pool,           -> { simple_remaining_actions(:pool, Pool, column: "created_at") },                                                  checker: :is_janitor?)
+    create_user_throttle(:pool_edit,      -> { simple_remaining_actions(:pool_edit, PoolVersion) },                                                            checker: :is_janitor?, newbie_duration: 3.days)
+    create_user_throttle(:pool_post_edit, -> { Danbooru.config.pool_post_edit_limit - actions_sql(PoolVersion).group(:pool_id).count(:pool_id).length })
+    create_user_throttle(:note_edit,      -> { simple_remaining_actions(:note_edit, NoteVersion) },                                                            newbie_duration: 3.days)
+    create_user_throttle(:comment,        -> { remaining_actions(:member_comment_limit, Comment, scope: :for_creator, column: "created_at") })
+    create_user_throttle(:forum_post,     -> { remaining_actions(:member_comment_limit, ForumPost, column: "created_at") },                                    checker: nil, newbie_duration: 3.days)
+    create_user_throttle(:blip,           -> { simple_remaining_actions(:blip, Blip, scope: :for_creator, column: "created_at") },                             newbie_duration: 3.days)
+    create_user_throttle(:dmail_minute,   -> { simple_remaining_actions(:dmail_minute, Dmail, scope: :sent_by_id, column: "created_at", time: 1.minute.ago) }, checker: nil) # NOTE: Functionally `checker: :is_janitor?`, but handled in model
+    create_user_throttle(:dmail,          -> { simple_remaining_actions(:dmail, Dmail, scope: :sent_by_id, column: "created_at") },                            checker: nil) # NOTE: Functionally `checker: :is_janitor?`, but handled in model
+    create_user_throttle(:dmail_day,      -> { simple_remaining_actions(:dmail_day, Dmail, scope: :sent_by_id, column: "created_at", time: 1.day.ago) },       checker: nil) # NOTE: Functionally `checker: :is_janitor?`, but handled in model
+    create_user_throttle(:comment_vote,   -> { simple_remaining_actions(:comment_vote, CommentVote, column: "created_at") },                                   newbie_duration: 3.days)
+    create_user_throttle(:post_flag,      -> { simple_remaining_actions(:post_flag_limit - PostFlag, scope: :for_creator, column: "created_at") },             checker: :can_approve_posts?, newbie_duration: 3.days)
+    create_user_throttle(:post_vote,      -> {
       # This looks horrid, but it does seem to be the fastest way to check if the user has hit the hourly post vote limit.
       # With a limited dataset, this query is about 3-4 times faster than a straightforward count.
       result = ApplicationRecord.connection.execute(ApplicationRecord.sanitize_sql([
@@ -591,54 +594,20 @@ class User < ApplicationRecord
       ]))
       return false if result.blank?
       Danbooru.config.post_vote_limit - result[0].count
-    }, :general_bypass_throttle?, nil)
-    create_user_throttle(:post_flag, -> { Danbooru.config.post_flag_limit - PostFlag.for_creator(id).where("created_at > ?", 1.hour.ago).count },
-                         :can_approve_posts?, 3.days)
+    }, newbie_duration: nil)
 
     # Ticket Throttles
-    create_user_throttle(
-      :ticket_hourly,
-      -> { (Danbooru.config.ticket_hourly_limit || Float::INFINITY) - Ticket.for_creator(id).where("created_at > ?", 1.hour.ago).count },
-      :general_bypass_throttle?,
-      3.days,
-    )
-    create_user_throttle(
-      :ticket_daily,
-      -> { (Danbooru.config.ticket_daily_limit || Float::INFINITY) - Ticket.for_creator(id).where("created_at > ?", 1.day.ago).count },
-      :general_bypass_throttle?,
-      3.days,
-    )
-    create_user_throttle(
-      :ticket_active,
-      -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Ticket.for_creator(id).active.count },
-      :general_bypass_throttle?,
-      3.days,
-    )
+    create_user_throttle(:ticket_hourly, -> { remaining_actions(:ticket_hourly_limit, Ticket, scope: :for_creator, column: "created_at") },                 newbie_duration: 3.days)
+    create_user_throttle(:ticket_daily,  -> { remaining_actions(:ticket_daily_limit, Ticket, scope: :for_creator, column: "created_at", time: 1.day.ago) }, newbie_duration: 3.days)
+    create_user_throttle(:ticket_active, -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Ticket.for_creator(id).active.count },             newbie_duration: 3.days)
 
     # Appeal Throttles
-    create_user_throttle(
-      :appeal_hourly,
-      -> { (Danbooru.config.ticket_hourly_limit || Float::INFINITY) - Appeal.for_creator(id).where("created_at > ?", 1.hour.ago).count },
-      :general_bypass_throttle?,
-      3.days,
-    )
-    create_user_throttle(
-      :appeal_daily,
-      -> { (Danbooru.config.ticket_daily_limit || Float::INFINITY) - Appeal.for_creator(id).where("created_at > ?", 1.day.ago).count },
-      :general_bypass_throttle?,
-      3.days,
-    )
-    create_user_throttle(
-      :appeal_active,
-      -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Appeal.for_creator(id).active.count },
-      :general_bypass_throttle?,
-      3.days,
-    )
+    create_user_throttle(:appeal_hourly, -> { remaining_actions(:ticket_hourly_limit, Appeal, scope: :for_creator, column: "created_at") },                 newbie_duration: 3.days)
+    create_user_throttle(:appeal_daily,  -> { remaining_actions(:ticket_daily_limit, Appeal, scope: :for_creator, column: "created_at", time: 1.day.ago) }, newbie_duration: 3.days)
+    create_user_throttle(:appeal_active, -> { (Danbooru.config.ticket_active_limit || Float::INFINITY) - Appeal.for_creator(id).active.count },             newbie_duration: 3.days)
 
-    create_user_throttle(:suggest_tag, -> { Danbooru.config.tag_suggestion_limit - (TagAlias.for_creator(id).where("created_at > ?", 1.hour.ago).count + TagImplication.for_creator(id).where("created_at > ?", 1.hour.ago).count + BulkUpdateRequest.for_creator(id).where("created_at > ?", 1.hour.ago).count) },
-                         :is_janitor?, 7.days)
-    create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },
-                         :is_janitor?, 3.days)
+    create_user_throttle(:suggest_tag,   -> { Danbooru.config.tag_suggestion_limit - (actions_sql(TagAlias, :for_creator, column: "created_at").count + actions_sql(TagImplication, :for_creator, column: "created_at").count + actions_sql(BulkUpdateRequest, :for_creator, column: "created_at").count) }, checker: :is_janitor?)
+    create_user_throttle(:forum_vote,    -> { simple_remaining_actions(:forum_vote, ForumPostVote, scope: :by, column: "created_at") }, checker: :is_janitor?, newbie_duration: 3.days)
 
     def can_remove_from_pools?
       is_member? && older_than(7.days)
