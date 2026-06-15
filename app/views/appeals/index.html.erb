@@ -9,7 +9,7 @@
           <th style="width: 0;"></th>
           <% if CurrentUser.is_staff? %>
             <th style="width:10%">Appealer</th>
-            <th style="width:10%">Deleter</th>
+            <th style="width:10%">Initiator</th>
             <th style="width:10%">Claimed By</th>
           <% end %>
           <th style="width:auto">Subject</th>
@@ -29,7 +29,7 @@
                 <%# Appealer %>
                 <td><%= link_to_user appeal.creator %></td>
 
-                <%# Deleter %>
+                <%# Initiator %>
                 <td>
                   <% if appeal.accused %>
                     <%= link_to_user appeal.accused %>

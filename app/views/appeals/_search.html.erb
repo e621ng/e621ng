@@ -1,7 +1,7 @@
 <%= form_search path: appeals_path do |f| %>
   <% if CurrentUser.is_staff? %>
     <%= f.user :creator, label: "Appealer" %>
-    <%= f.user :accused, label: "Deleter" %>
+    <%= f.user :accused, label: "Initiator" %>
     <%= f.user :claimant %>
     <%= f.input :reason %>
   <% end %>
