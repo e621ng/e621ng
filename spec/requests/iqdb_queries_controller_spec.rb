@@ -217,7 +217,10 @@ RSpec.describe IqdbQueriesController do
   # ---------------------------------------------------------------------------
 
   describe "throttling — disabled" do
-    before { allow(Danbooru.config.custom_configuration).to receive(:disable_throttles?).and_return(true) }
+    before do
+      allow(Danbooru.config.custom_configuration).to receive(:disable_throttles?).and_return(true)
+      allow(IqdbProxy).to receive(:query_hash).and_return([])
+    end
 
     it "allows requests without hitting the RateLimiter" do
       get iqdb_queries_path, params: { hash: "deadbeef" }
