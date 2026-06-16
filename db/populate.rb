@@ -423,31 +423,36 @@ def populate_forums(number, users: [])
   end
 end
 
+def used_tag_names
+  # Seed once from the DB, then keep every name we hand out in memory so later
+  # calls don't need a round trip just to check for collisions
+  @used_tag_names ||= ApplicationRecord.connection.select_values("
+    SELECT antecedent_name FROM tag_aliases
+      UNION SELECT consequent_name FROM tag_aliases
+      UNION SELECT antecedent_name FROM tag_implications
+      UNION SELECT consequent_name FROM tag_implications
+  ").to_set
+end
+
 def create_unique_tag(times = 1)
   if times > 50
     raise("Failed to find unused name for tag after #{times} tries")
   end
   value = [Faker::Verb.base, Faker::Verb.ing_form, Faker::Verb.past, Faker::Verb.past_participle, Faker::Verb.simple_present, Faker::Adjective.negative, Faker::Adjective.positive, SecureRandom.hex(16)]
-  value.find do |v|
-    !ApplicationRecord.connection.select_one(ApplicationRecord.sanitize_sql(["
-      SELECT EXISTS (
-        SELECT 1 FROM tag_aliases WHERE antecedent_name = :value
-          UNION ALL SELECT 1 FROM tag_aliases WHERE consequent_name = :value
-          UNION ALL SELECT 1 FROM tag_implications WHERE antecedent_name = :value
-          UNION ALL SELECT 1 FROM tag_implications WHERE consequent_name = :value
-      )
-    ", { value: v },]))["exists"]
-  end.then do |v| # rubocop:disable Style/MultilineBlockChain
-    next create_unique_tag(times + 1) if v.nil?
-    v
-  end
+  candidate = value.find { |v| used_tag_names.exclude?(v) }
+  return create_unique_tag(times + 1) if candidate.nil?
+
+  used_tag_names << candidate
+  candidate
 end
 
 def populate_aliases(number, users: [])
   return unless number > 0
   puts "* Creating #{number} aliases"
 
-  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+  # .to_a is required: without it, `users.sample` re-runs the underlying query on every call
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()").to_a if users.empty?
+  return if users.empty?
 
   CurrentUser.ip_addr = "127.0.0.1"
   number.times do
@@ -464,7 +469,8 @@ def populate_implications(number, users: [])
   return unless number > 0
   puts "* Creating #{number} implications"
 
-  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()").to_a if users.empty?
+  return if users.empty?
 
   CurrentUser.ip_addr = "127.0.0.1"
   number.times do
@@ -481,7 +487,8 @@ def populate_bulk_update_requests(number, users: [])
   return unless number > 0
   puts "* Creating #{number} bulk update requests"
 
-  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()").to_a if users.empty?
+  return if users.empty?
 
   CurrentUser.ip_addr = "127.0.0.1"
   number.times do
@@ -552,34 +559,78 @@ def populate_comment_votes(number, users: [], comments: [])
   end
 end
 
-def get_post_for_forum_vote(user)
-  ForumPost.where.not("forum_posts.creator_id": user)
-           .where.not(
-             ForumPostVote.where("forum_post_votes.forum_post_id = forum_posts.id").where("forum_post_votes.creator_id": user).arel.exists,
-           )
-           .where(
-             TagAlias.where("tag_aliases.forum_post_id = forum_posts.id").where("tag_aliases.status": "pending").arel.exists
-                     .or(TagImplication.where("tag_implications.forum_post_id = forum_posts.id").where("tag_implications.status": "pending").arel.exists)
-                     .or(BulkUpdateRequest.where("bulk_update_requests.forum_post_id = forum_posts.id").where("bulk_update_requests.status": "pending").arel.exists),
-           ).order("random()").first
-end
-
 def populate_forum_votes(number, users: [])
   return unless number > 0
   puts "* Generating #{number} forum votes"
 
-  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()") if users.empty?
+  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()").to_a if users.empty?
+  return if users.empty?
 
-  CurrentUser.ip_addr = "127.0.0.1"
-  number.times do
-    CurrentUser.user = users.sample
-    forum_post = get_post_for_forum_vote(CurrentUser.user)
-    if forum_post.nil?
-      puts "  no forum post found"
-      next
-    end
-    vote = forum_post.votes.create(score: [-1, 0, 1].sample)
-    puts "  - #{CurrentUser.user.name} | forum ##{forum_post.id} | score: #{vote.score}"
+  # Pull eligible forum posts once instead of re-running the exists/random() query for every vote
+  eligible_posts = ForumPost
+                   .where(
+                     TagAlias.where("tag_aliases.forum_post_id = forum_posts.id").where("tag_aliases.status": "pending").arel.exists
+                             .or(TagImplication.where("tag_implications.forum_post_id = forum_posts.id").where("tag_implications.status": "pending").arel.exists)
+                             .or(BulkUpdateRequest.where("bulk_update_requests.forum_post_id = forum_posts.id").where("bulk_update_requests.status": "pending").arel.exists),
+                   )
+                   .pluck(:id, :creator_id)
+
+  if eligible_posts.empty?
+    puts "  no forum post found"
+    return
+  end
+
+  # Track existing (forum_post_id, creator_id) pairs in memory so we can dedupe in O(1)
+  # instead of relying on the per-record uniqueness validation
+  seen = ForumPostVote.where(forum_post_id: eligible_posts.map(&:first), creator_id: users.map(&:id))
+                      .pluck(:forum_post_id, :creator_id).to_set
+
+  batch_size = 1000
+  votes_data = []
+  created = 0
+  now = Time.current
+
+  # Cap on unique (post, user) pairs that don't self-vote; can't create more votes than this
+  user_ids = users.to_set(&:id)
+  max_possible = eligible_posts.sum { |_, post_creator_id| user_ids.include?(post_creator_id) ? users.size - 1 : users.size }
+  target = [number, max_possible].min
+  attempts = 0
+  max_attempts = (target * 20) + 1000 # generous safety net against an infinite loop as collisions approach the cap
+
+  while created < target && attempts < max_attempts
+    attempts += 1
+
+    post_id, post_creator_id = eligible_posts.sample
+    user = users.sample
+    next if user.id == post_creator_id
+
+    key = [post_id, user.id]
+    next if seen.include?(key)
+
+    seen << key
+    votes_data << {
+      forum_post_id: post_id,
+      creator_id: user.id,
+      score: [-1, 0, 1].sample,
+      created_at: now,
+      updated_at: now,
+    }
+    created += 1
+
+    next unless votes_data.size >= batch_size
+
+    ForumPostVote.insert_all(votes_data)
+    puts "  inserted batch of #{votes_data.size} forum votes (#{created}/#{number})"
+    votes_data.clear
+  end
+
+  if votes_data.any?
+    ForumPostVote.insert_all(votes_data)
+    puts "  inserted final batch of #{votes_data.size} forum votes (#{created}/#{number})"
+  end
+
+  if created < number
+    puts "  only able to create #{created}/#{number} forum votes (#{max_possible} unique post/user pairs available)"
   end
 end
 
