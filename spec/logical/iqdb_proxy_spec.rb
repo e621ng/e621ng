@@ -38,20 +38,21 @@ RSpec.describe IqdbProxy do
         it "records a circuit failure" do
           expect { described_class.query_hash("deadbeef", 60) }.to raise_error(IqdbProxy::Error)
           expect(Cache.redis).to have_received(:eval).with(IqdbProxy::INCR_WITH_EXPIRY,
-            keys: [IqdbProxy::CIRCUIT_FAILURES_KEY],
-            argv: [Danbooru.config.iqdb_circuit_failure_window])
+                                                           keys: [IqdbProxy::CIRCUIT_FAILURES_KEY],
+                                                           argv: [Danbooru.config.iqdb_circuit_failure_window])
         end
       end
 
       context "when IQDB returns a non-200 response" do
         let(:failing_response) { instance_double(Faraday::Response, status: 503, body: "") }
+
         before { allow(described_class).to receive(:make_request).and_return(failing_response) }
 
         it "records a circuit failure" do
           described_class.query_hash("deadbeef", 60)
           expect(Cache.redis).to have_received(:eval).with(IqdbProxy::INCR_WITH_EXPIRY,
-            keys: [IqdbProxy::CIRCUIT_FAILURES_KEY],
-            argv: [Danbooru.config.iqdb_circuit_failure_window])
+                                                           keys: [IqdbProxy::CIRCUIT_FAILURES_KEY],
+                                                           argv: [Danbooru.config.iqdb_circuit_failure_window])
         end
       end
 
@@ -71,7 +72,7 @@ RSpec.describe IqdbProxy do
             IqdbProxy::CIRCUIT_OPEN_KEY,
             anything,
             ex: Danbooru.config.iqdb_circuit_cooldown,
-            nx: true
+            nx: true,
           )
         end
 

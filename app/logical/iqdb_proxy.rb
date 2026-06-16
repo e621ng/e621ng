@@ -132,6 +132,9 @@ module IqdbProxy
     raise CircuitOpenError, "IQDB is temporarily unavailable. Please try again later."
   end
 
+  # Error circuit breaker
+  # Prevents further requests to IQDB if it repeatedly returns errors.
+
   def record_circuit_outcome
     response = yield
     record_circuit_failure unless response.status == 200
@@ -157,6 +160,9 @@ module IqdbProxy
     Rails.logger.warn("IqdbProxy: circuit opened — IQDB is returning errors. Cooldown: #{cooldown}s")
   end
 
+  # Query semaphore
+  # Prevents too many concurrent queries to IQDB, which can cause it to become unresponsive.
+
   def redis_key
     ["iqdb:concurrent", Danbooru.config.server_name].compact.join(":")
   end
@@ -181,6 +187,7 @@ module IqdbProxy
       Cache.redis.eval(DECR_FLOOR_ZERO, keys: [redis_key])
     end
   end
+
   private_class_method :with_query_semaphore
   private_class_method :check_circuit!, :record_circuit_outcome, :record_circuit_failure, :open_circuit!
 end
