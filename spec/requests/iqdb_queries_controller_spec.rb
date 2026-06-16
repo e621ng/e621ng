@@ -243,6 +243,7 @@ RSpec.describe IqdbQueriesController do
     end
 
     it "is not blocked by the anonymous lockdown" do
+      allow(IqdbProxy).to receive(:anon_lockdown?).and_return(true)
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(response).to have_http_status(:ok)
     end
