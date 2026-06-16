@@ -64,8 +64,8 @@ class IqdbQueriesController < ApplicationController
         RateLimiter.hit("img:anon:#{CurrentUser.ip_addr}", 60.seconds)
       else
         raise APIThrottled if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds)
-        RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
         raise APIThrottled if RateLimiter.check_limit("img:user:#{CurrentUser.user.id}", 1, 2.seconds)
+        RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
         RateLimiter.hit("img:user:#{CurrentUser.user.id}", 2.seconds)
       end
     end
