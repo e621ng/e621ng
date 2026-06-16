@@ -427,7 +427,7 @@ def create_unique_tag(times = 1)
   if times > 50
     raise("Failed to find unused name for tag after #{times} tries")
   end
-  value = [Faker::Verb.base, Faker::Verb.ing_form, Faker::Verb.past, Faker::Verb.past_participle, Faker::Verb.simple_present, Faker::Adjective.negative, Faker::Adjective.positive]
+  value = [Faker::Verb.base, Faker::Verb.ing_form, Faker::Verb.past, Faker::Verb.past_participle, Faker::Verb.simple_present, Faker::Adjective.negative, Faker::Adjective.positive, SecureRandom.hex(16)]
   value.find do |v|
     !ApplicationRecord.connection.select_one(ApplicationRecord.sanitize_sql(["
       SELECT EXISTS (
