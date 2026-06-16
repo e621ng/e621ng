@@ -43,6 +43,12 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
       "queue" => "low_prio",
       "description" => "Generate the daily public database exports",
     },
+    "IqdbConcurrencyResetJob" => {
+      "cron" => "* * * * *",
+      "class" => "IqdbConcurrencyResetJob",
+      "queue" => "low_prio",
+      "description" => "Reset IQDB concurrent request counter to recover from worker crashes",
+    },
   }
 
   Sidekiq::Cron::Job.load_from_hash schedule

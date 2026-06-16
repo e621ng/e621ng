@@ -5,7 +5,6 @@ module IqdbProxy
   class BusyError < Error; end
 
   IQDB_NUM_PIXELS = 128
-  IQDB_SEMAPHORE = Concurrent::Semaphore.new(Danbooru.config.iqdb_max_concurrent_queries)
 
   module_function
 
@@ -115,14 +114,29 @@ module IqdbProxy
     { channels: { r: r, g: g, b: b } }
   end
 
+  def redis_key
+    ["iqdb:concurrent", Danbooru.config.server_name].compact.join(":")
+  end
+
+  # Atomically decrements the key but floors it at zero.
+  # Prevents the counter from going negative when a reset races with an in-flight request.
+  DECR_FLOOR_ZERO = <<~LUA
+    local v = redis.call('decr', KEYS[1])
+    if v < 0 then redis.call('set', KEYS[1], '0') end
+    return v
+  LUA
+
   def with_query_semaphore
-    raise BusyError, "IQDB is temporarily busy. Please try again later." unless IQDB_SEMAPHORE.try_acquire
+    count = Cache.redis.incr(redis_key)
+    if count > Danbooru.config.iqdb_max_concurrent_queries
+      Cache.redis.eval(DECR_FLOOR_ZERO, keys: [redis_key])
+      raise BusyError, "IQDB is temporarily busy. Please try again later."
+    end
     begin
       yield
     ensure
-      IQDB_SEMAPHORE.release
+      Cache.redis.eval(DECR_FLOOR_ZERO, keys: [redis_key])
     end
   end
-  module_function :with_query_semaphore
   private_class_method :with_query_semaphore
 end
