@@ -58,10 +58,15 @@ class IqdbQueriesController < ApplicationController
     return if Danbooru.config.disable_throttles?
 
     if %i[file url post_id hash].any? { |key| search_params[key].present? }
-      if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds)
-        raise APIThrottled
+      if CurrentUser.user.is_anonymous?
+        raise APIThrottled if IqdbProxy.anon_lockdown?
+        raise APIThrottled if RateLimiter.check_limit("img:anon:#{CurrentUser.ip_addr}", 1, 60.seconds)
+        RateLimiter.hit("img:anon:#{CurrentUser.ip_addr}", 60.seconds)
       else
+        raise APIThrottled if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds)
         RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
+        raise APIThrottled if RateLimiter.check_limit("img:user:#{CurrentUser.user.id}", 1, 2.seconds)
+        RateLimiter.hit("img:user:#{CurrentUser.user.id}", 2.seconds)
       end
     end
   end
