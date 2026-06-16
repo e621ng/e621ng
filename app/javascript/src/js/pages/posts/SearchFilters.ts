@@ -164,7 +164,7 @@ export default class SearchFilters {
       })
       .addClass("sort-asc-btn")
       .toggleClass("active", direction === ORDER_ASC)
-      .text("-")
+      .text(direction === ORDER_ASC ? "↑" : "↓")
       .appendTo($label);
   }
 

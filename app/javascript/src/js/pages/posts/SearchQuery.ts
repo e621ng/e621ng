@@ -167,7 +167,7 @@ export default class SearchQuery {
         startDepth = depth;
       }
 
-      if (whitespace && !quoted && start !== null) {
+      if (whitespace && start !== null && (atEnd || !quoted)) {
         const text = query.slice(start, i);
         if (startDepth === 0) tokens.push({ text, start, end: i });
         start = null;
