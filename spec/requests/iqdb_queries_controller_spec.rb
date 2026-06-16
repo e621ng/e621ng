@@ -198,6 +198,12 @@ RSpec.describe IqdbQueriesController do
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(response).to have_http_status(:internal_server_error)
     end
+
+    it "returns 429 when the IQDB semaphore is exhausted" do
+      allow(IqdbProxy).to receive(:query_hash).and_raise(IqdbProxy::BusyError, "IQDB is temporarily busy")
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:too_many_requests)
+    end
   end
 
   # ---------------------------------------------------------------------------

@@ -698,6 +698,14 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     def iqdb_server
     end
 
+    def iqdb_read_timeout
+      5
+    end
+
+    def iqdb_max_concurrent_queries
+      20
+    end
+
     def opensearch_host
     end
 

@@ -2,8 +2,10 @@
 
 module IqdbProxy
   class Error < StandardError; end
+  class BusyError < Error; end
 
   IQDB_NUM_PIXELS = 128
+  IQDB_SEMAPHORE = Concurrent::Semaphore.new(Danbooru.config.iqdb_max_concurrent_queries)
 
   module_function
 
@@ -16,7 +18,8 @@ module IqdbProxy
   end
 
   def make_request(path, request_type, body = nil)
-    conn = Faraday.new(Danbooru.config.faraday_options)
+    opts = Danbooru.config.faraday_options.deep_merge(request: { timeout: Danbooru.config.iqdb_read_timeout })
+    conn = Faraday.new(opts)
     conn.send(request_type, endpoint + path, body&.to_json, { content_type: "application/json" })
   rescue Faraday::Error
     raise Error, "This service is temporarily unavailable. Please try again later."
@@ -53,20 +56,24 @@ module IqdbProxy
   end
 
   def query_file(file, score_cutoff, v2_format: false)
-    thumb = generate_thumbnail(file.path)
-    return [] unless thumb
+    with_query_semaphore do
+      thumb = generate_thumbnail(file.path)
+      return [] unless thumb
 
-    response = make_request("/query", :post, get_channels_data(thumb))
-    return [] if response.status != 200
+      response = make_request("/query", :post, get_channels_data(thumb))
+      return [] if response.status != 200
 
-    process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
+      process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
+    end
   end
 
   def query_hash(hash, score_cutoff, v2_format: false)
-    response = make_request "/query", :post, { hash: hash }
-    return [] if response.status != 200
+    with_query_semaphore do
+      response = make_request "/query", :post, { hash: hash }
+      return [] if response.status != 200
 
-    process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
+      process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
+    end
   end
 
   def process_iqdb_result(json, score_cutoff, v2_format: false)
@@ -107,4 +114,15 @@ module IqdbProxy
     end
     { channels: { r: r, g: g, b: b } }
   end
+
+  def with_query_semaphore
+    raise BusyError, "IQDB is temporarily busy. Please try again later." unless IQDB_SEMAPHORE.try_acquire
+    begin
+      yield
+    ensure
+      IQDB_SEMAPHORE.release
+    end
+  end
+  module_function :with_query_semaphore
+  private_class_method :with_query_semaphore
 end

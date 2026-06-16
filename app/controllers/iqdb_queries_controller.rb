@@ -44,6 +44,8 @@ class IqdbQueriesController < ApplicationController
     end
   rescue Downloads::File::Error => e
     render_expected_error(404, e.message)
+  rescue IqdbProxy::BusyError => e
+    render_expected_error(429, e.message)
   rescue IqdbProxy::Error => e
     render_expected_error(500, e.message)
   end
