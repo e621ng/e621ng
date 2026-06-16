@@ -702,6 +702,7 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       5
     end
 
+    # This should be set to a value lower than half of the total number of pitchfork workers.
     def iqdb_max_concurrent_queries
       20
     end

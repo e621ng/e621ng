@@ -44,7 +44,7 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
       "description" => "Generate the daily public database exports",
     },
     "IqdbConcurrencyResetJob" => {
-      "cron" => "* * * * *",
+      "cron" => "0 * * * *",
       "class" => "IqdbConcurrencyResetJob",
       "queue" => "low_prio",
       "description" => "Reset IQDB concurrent request counter to recover from worker crashes",
