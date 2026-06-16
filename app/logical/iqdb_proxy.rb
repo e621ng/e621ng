@@ -3,8 +3,19 @@
 module IqdbProxy
   class Error < StandardError; end
   class BusyError < Error; end
+  class CircuitOpenError < Error; end
 
   IQDB_NUM_PIXELS = 128
+
+  CIRCUIT_FAILURES_KEY = "iqdb:circuit:failures"
+  CIRCUIT_OPEN_KEY     = "iqdb:circuit:open"
+
+  # Atomic INCR; sets expiry only on first write to implement a fixed-window counter.
+  INCR_WITH_EXPIRY = <<~LUA
+    local v = redis.call('incr', KEYS[1])
+    if v == 1 then redis.call('expire', KEYS[1], ARGV[1]) end
+    return v
+  LUA
 
   module_function
 
@@ -55,11 +66,12 @@ module IqdbProxy
   end
 
   def query_file(file, score_cutoff, v2_format: false)
+    check_circuit!
     with_query_semaphore do
       thumb = generate_thumbnail(file.path)
       return [] unless thumb
 
-      response = make_request("/query", :post, get_channels_data(thumb))
+      response = record_circuit_outcome { make_request("/query", :post, get_channels_data(thumb)) }
       return [] if response.status != 200
 
       process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
@@ -67,8 +79,9 @@ module IqdbProxy
   end
 
   def query_hash(hash, score_cutoff, v2_format: false)
+    check_circuit!
     with_query_semaphore do
-      response = make_request "/query", :post, { hash: hash }
+      response = record_circuit_outcome { make_request("/query", :post, { hash: hash }) }
       return [] if response.status != 200
 
       process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
@@ -114,6 +127,36 @@ module IqdbProxy
     { channels: { r: r, g: g, b: b } }
   end
 
+  def check_circuit!
+    return unless Cache.redis.exists?(CIRCUIT_OPEN_KEY)
+    raise CircuitOpenError, "IQDB is temporarily unavailable. Please try again later."
+  end
+
+  def record_circuit_outcome
+    response = yield
+    record_circuit_failure unless response.status == 200
+    response
+  rescue IqdbProxy::Error
+    record_circuit_failure
+    raise
+  end
+
+  def record_circuit_failure
+    count = Cache.redis.eval(INCR_WITH_EXPIRY,
+                             keys: [CIRCUIT_FAILURES_KEY],
+                             argv: [Danbooru.config.iqdb_circuit_failure_window])
+    open_circuit! if count >= Danbooru.config.iqdb_circuit_failure_threshold
+  end
+
+  def open_circuit!
+    cooldown = Danbooru.config.iqdb_circuit_cooldown
+    opened = Cache.redis.set(CIRCUIT_OPEN_KEY, Time.now.to_i, ex: cooldown, nx: true)
+    return unless opened
+
+    Cache.redis.del(CIRCUIT_FAILURES_KEY)
+    Rails.logger.warn("IqdbProxy: circuit opened — IQDB is returning errors. Cooldown: #{cooldown}s")
+  end
+
   def redis_key
     ["iqdb:concurrent", Danbooru.config.server_name].compact.join(":")
   end
@@ -139,4 +182,5 @@ module IqdbProxy
     end
   end
   private_class_method :with_query_semaphore
+  private_class_method :check_circuit!, :record_circuit_outcome, :record_circuit_failure, :open_circuit!
 end
