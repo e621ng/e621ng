@@ -9,6 +9,7 @@ module IqdbProxy
 
   CIRCUIT_FAILURES_KEY = "iqdb:circuit:failures"
   CIRCUIT_OPEN_KEY     = "iqdb:circuit:open"
+  ANON_LOCKDOWN_KEY    = "iqdb:anon:lockdown"
 
   # Atomic INCR; sets expiry only on first write to implement a fixed-window counter.
   INCR_WITH_EXPIRY = <<~LUA
@@ -127,6 +128,10 @@ module IqdbProxy
     { channels: { r: r, g: g, b: b } }
   end
 
+  def anon_lockdown?
+    Cache.redis.exists?(ANON_LOCKDOWN_KEY)
+  end
+
   def check_circuit!
     return unless Cache.redis.exists?(CIRCUIT_OPEN_KEY)
     raise CircuitOpenError, "IQDB is temporarily unavailable. Please try again later."
@@ -157,7 +162,8 @@ module IqdbProxy
     return unless opened
 
     Cache.redis.del(CIRCUIT_FAILURES_KEY)
-    Rails.logger.warn("IqdbProxy: circuit opened — IQDB is returning errors. Cooldown: #{cooldown}s")
+    Cache.redis.set(ANON_LOCKDOWN_KEY, Time.now.to_i, ex: Danbooru.config.iqdb_anon_lockdown_duration)
+    Rails.logger.warn("IqdbProxy: circuit opened — IQDB is returning errors. Cooldown: #{cooldown}s. Anonymous access locked out for #{Danbooru.config.iqdb_anon_lockdown_duration}s.")
   end
 
   # Query semaphore

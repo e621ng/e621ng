@@ -719,6 +719,10 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       30
     end
 
+    def iqdb_anon_lockdown_duration
+      3600
+    end
+
     def opensearch_host
     end
 
