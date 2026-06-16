@@ -1,6 +1,5 @@
 import LStorage from "@/utility/Storage";
 import Page from "@/utility/Page";
-import Offclick from "@/utility/Offclick";
 
 const PostSearch = {};
 
@@ -61,88 +60,10 @@ PostSearch.initialize_wiki_preview = function ($preview) {
   });
 };
 
-PostSearch.initialize_controls = function () {
-  // Regular buttons
-  let fullscreen = LStorage.Posts.Fullscreen;
-  $("#search-fullscreen").on("click", () => {
-    fullscreen = !fullscreen;
-    $("body").attr("data-st-fullscreen", fullscreen);
-    LStorage.Posts.Fullscreen = fullscreen;
-  });
-
-  // Menu open / close
-  const offclickHandler = Offclick.register("#search-settings", ".search-settings-container", () => {
-    menu.removeClass("active");
-    menuButton.removeClass("active");
-  });
-
-  const menu = $(".search-settings-container");
-  const menuButton = $("#search-settings").on("click", () => {
-    const state = offclickHandler.disabled;
-    menu.toggleClass("active", state);
-    menuButton.toggleClass("active", state);
-    offclickHandler.disabled = !state;
-  });
-
-  $("#search-settings-close").on("click", (event) => {
-    event.preventDefault();
-    menu.removeClass("active");
-    menuButton.removeClass("active");
-    offclickHandler.disabled = true;
-  });
-
-  // Menu toggles
-  $("#ssc-image-contain")
-    .prop("checked", LStorage.Posts.Contain)
-    .on("change", (event) => {
-      LStorage.Posts.Contain = event.target.checked;
-      $("body").attr("data-st-contain", event.target.checked);
-    });
-
-  $("input[type='radio'][name='ssc-card-size']")
-    .on("change", (event) => {
-      LStorage.Posts.Size = event.target.value;
-      $("body").attr("data-st-size", event.target.value);
-    });
-  $("input[type='radio'][name='ssc-card-size'][value='" + LStorage.Posts.Size + "']")
-    .prop("checked", true);
-
-  function updateHoverTextNodes () {
-    $("a[data-hover-text]").attr("title", function () {
-      const source = $(this).data("hover-text");
-      if (!source) return "";
-
-      switch (LStorage.Posts.HoverText) {
-        case "none":
-          return "";
-        case "short":
-          return source.split("\n\n")[0];
-        case "long":
-        default:
-          return source;
-      }
-    });
-  }
-  $("input[type='radio'][name='ssc-hover-text']")
-    .on("change", (event) => {
-      LStorage.Posts.HoverText = event.target.value;
-      updateHoverTextNodes();
-    });
-  $("input[type='radio'][name='ssc-hover-text'][value='" + LStorage.Posts.HoverText + "']")
-    .prop("checked", true);
-  updateHoverTextNodes();
-
-  $("#ssc-sticky-searchbar")
-    .prop("checked", LStorage.Posts.StickySearch)
-    .on("change", (event) => {
-      LStorage.Posts.StickySearch = event.target.checked;
-      $("body").attr("data-st-stickysearch", event.target.checked);
-    });
-};
 
 $(() => {
 
-  $(".post-search").each((index, element) => {
+  $(".post-search").each((_index, element) => {
     PostSearch.initialize_input($(element));
   });
 
@@ -152,8 +73,6 @@ $(() => {
   $(".wiki-excerpt").each((index, element) => {
     PostSearch.initialize_wiki_preview($(element));
   });
-
-  PostSearch.initialize_controls();
 });
 
 export default PostSearch;

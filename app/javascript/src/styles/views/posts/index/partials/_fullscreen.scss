@@ -17,23 +17,27 @@
 
     .post-search { width: 100%; }
 
-    #search-fullscreen {
+    #toggle-fullscreen {
       background: themed("color-button-active");
       color: black;
+
+      svg path.fullscreen-arrow {
+        d: path("m 5 9 l 3 3 l -3 3");
+      }
     }
 
     .search-controls { right: 0.25rem; }
   }
   .content {
     border-radius: 0 0 0.25rem 0.25rem;
-    .posts-index-stats { margin-right: 5rem; }
+    .posts-index-stats { margin-right: 7.5rem; }
   }
 }
 
 // Posts Index Page
 .post-index {
   grid-template-areas:
-    "search " 
+    "search "
     "content"
     "sidebar";
   grid-template-columns: 1fr;

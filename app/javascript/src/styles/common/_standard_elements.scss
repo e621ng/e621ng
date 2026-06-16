@@ -248,14 +248,33 @@ input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
   }
 }
 
+// Three-state toggle (Any / Yes / No)
+label.sto-toggle--tri {
+  cursor: pointer;
 
+  &::after { width: 33.333%; transition: left 150ms, background 150ms; }
+
+  .sto-tri {
+    width: 33.333%;
+    z-index: 1;
+    pointer-events: auto;
+    user-select: none;
+    color: var(--color-text);
+  }
+
+  &[data-state="unset"] { &::after { left: 0; background: #888; } }
+  &[data-state="yes"]   { &::after { left: 33.333%; background: palette("background-green"); } }
+  &[data-state="no"]    { &::after { left: 66.666%; background: palette("background-red"); } }
+}
 
 // Radio toggle
 .stm-toggle {
   display: grid;
   grid-template-columns: auto;
 
-  input[type="radio"] { display: none; }
+  input[type="radio"],
+  input[type="checkbox"] { display: none; }
+
   label {
     display: flex;
     gap: 0.25rem;
@@ -266,7 +285,7 @@ input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
     font-family: "Roboto", Verdana, Geneva, sans-serif;
     font-weight: normal;
     line-height: 1rem;
-    font-size: 1rem;
+    font-size: .9rem;
 
     user-select: none;
     cursor: pointer;
@@ -279,7 +298,8 @@ input[type="checkbox"].sto-toggle:checked + label.sto-toggle {
       height: 1rem;
     }
   }
-  input[type="radio"]:checked + label {
+  input[type="radio"]:checked + label,
+  input[type="checkbox"]:checked + label {
     background: themed("color-link-active");
     color: palette("plain-black");
     @include st-radius;

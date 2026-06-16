@@ -82,8 +82,9 @@ body.c-posts.a-show-seq {
       background: themed("color-foreground");
       border-radius: 0 0 0.25rem 0.25rem;
 
-      #search-fullscreen { display: none; }
-      #search-settings {
+      #toggle-fullscreen { display: none; }
+
+      button.st-button {
         height: 1.25rem;
         width: 2rem;
         justify-content: center;
