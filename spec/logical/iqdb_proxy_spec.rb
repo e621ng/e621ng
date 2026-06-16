@@ -76,6 +76,12 @@ RSpec.describe IqdbProxy do
           )
         end
 
+        it "does not open the circuit if it is already open" do
+          allow(Cache.redis).to receive(:exists?).with(IqdbProxy::CIRCUIT_OPEN_KEY).and_return(true)
+          expect { described_class.query_hash("deadbeef", 60) }.to raise_error(IqdbProxy::CircuitOpenError)
+          expect(Cache.redis).not_to have_received(:set).with(IqdbProxy::CIRCUIT_OPEN_KEY, anything, anything)
+        end
+
         it "clears the failure counter after opening" do
           expect { described_class.query_hash("deadbeef", 60) }.to raise_error(IqdbProxy::Error)
           expect(Cache.redis).to have_received(:del).with(IqdbProxy::CIRCUIT_FAILURES_KEY)

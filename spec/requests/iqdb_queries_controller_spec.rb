@@ -213,10 +213,25 @@ RSpec.describe IqdbQueriesController do
   end
 
   # ---------------------------------------------------------------------------
-  # Throttling — authenticated user (existing behaviour)
+  # Throttling — disabled
   # ---------------------------------------------------------------------------
 
-  describe "throttling" do
+  describe "throttling — disabled" do
+    before { allow(Danbooru.config.custom_configuration).to receive(:disable_throttles?).and_return(true) }
+
+    it "allows requests without hitting the RateLimiter" do
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:ok)
+      expect(RateLimiter).not_to have_received(:check_limit)
+      expect(RateLimiter).not_to have_received(:hit)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Throttling — authenticated user
+  # ---------------------------------------------------------------------------
+
+  describe "throttling - authenticated user" do
     let(:user) { create(:user) }
 
     before do
