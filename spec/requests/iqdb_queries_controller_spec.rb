@@ -193,6 +193,12 @@ RSpec.describe IqdbQueriesController do
       expect(response).to have_http_status(:not_found)
     end
 
+    it "returns 503 when the IQDB circuit is open" do
+      allow(IqdbProxy).to receive(:query_hash).and_raise(IqdbProxy::CircuitOpenError, "IQDB temporarily unavailable")
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:service_unavailable)
+    end
+
     it "returns 500 on IqdbProxy::Error" do
       allow(IqdbProxy).to receive(:query_hash).and_raise(IqdbProxy::Error, "service unavailable")
       get iqdb_queries_path, params: { hash: "deadbeef" }

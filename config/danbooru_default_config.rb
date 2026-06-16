@@ -707,6 +707,18 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       20
     end
 
+    def iqdb_circuit_failure_threshold
+      10
+    end
+
+    def iqdb_circuit_failure_window
+      60
+    end
+
+    def iqdb_circuit_cooldown
+      30
+    end
+
     def opensearch_host
     end
 
