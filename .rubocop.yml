@@ -98,6 +98,7 @@ Rails/Output:
   Exclude:
     - db/populate.rb
     - db/seeds.rb
+    - db/benchmark_export_queries.rb
     - db/fixes/*.rb
   Include:
     - test/**/*.rb

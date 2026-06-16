@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require "shellwords"
+
+system("RAILS_ENV=development bin/rails runner db/benchmark_export_queries.rb #{ARGV.shelljoin}", exception: true)
