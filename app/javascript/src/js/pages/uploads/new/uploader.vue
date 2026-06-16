@@ -653,7 +653,10 @@
         const selected = this.checkboxes.selected;
         return all_pairing_pairs
           .filter(p => selected[p.tagA] && selected[p.tagB])
-          .map(p => ({ name: `${sex_names[p.tagA]}/${sex_names[p.tagB]}`, tag: `${pairing_tag_name(p.tagA)}/${pairing_tag_name(p.tagB)}` }));
+          .map(p => ({
+            name: sex_names[p.tagA] + "/" + sex_names[p.tagB],
+            tag: pairing_tag_name(p.tagA) + "/" + pairing_tag_name(p.tagB),
+          }));
       },
       tags() {
         const self = this;
