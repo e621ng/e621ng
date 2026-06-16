@@ -2,6 +2,7 @@
 
 module IqdbProxy
   class Error < StandardError; end
+  class BusyError < Error; end
 
   IQDB_NUM_PIXELS = 128
 
@@ -16,7 +17,8 @@ module IqdbProxy
   end
 
   def make_request(path, request_type, body = nil)
-    conn = Faraday.new(Danbooru.config.faraday_options)
+    opts = Danbooru.config.faraday_options.deep_merge(request: { timeout: Danbooru.config.iqdb_read_timeout })
+    conn = Faraday.new(opts)
     conn.send(request_type, endpoint + path, body&.to_json, { content_type: "application/json" })
   rescue Faraday::Error
     raise Error, "This service is temporarily unavailable. Please try again later."
@@ -53,20 +55,24 @@ module IqdbProxy
   end
 
   def query_file(file, score_cutoff, v2_format: false)
-    thumb = generate_thumbnail(file.path)
-    return [] unless thumb
+    with_query_semaphore do
+      thumb = generate_thumbnail(file.path)
+      return [] unless thumb
 
-    response = make_request("/query", :post, get_channels_data(thumb))
-    return [] if response.status != 200
+      response = make_request("/query", :post, get_channels_data(thumb))
+      return [] if response.status != 200
 
-    process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
+      process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
+    end
   end
 
   def query_hash(hash, score_cutoff, v2_format: false)
-    response = make_request "/query", :post, { hash: hash }
-    return [] if response.status != 200
+    with_query_semaphore do
+      response = make_request "/query", :post, { hash: hash }
+      return [] if response.status != 200
 
-    process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
+      process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
+    end
   end
 
   def process_iqdb_result(json, score_cutoff, v2_format: false)
@@ -107,4 +113,30 @@ module IqdbProxy
     end
     { channels: { r: r, g: g, b: b } }
   end
+
+  def redis_key
+    ["iqdb:concurrent", Danbooru.config.server_name].compact.join(":")
+  end
+
+  # Atomically decrements the key but floors it at zero.
+  # Prevents the counter from going negative when a reset races with an in-flight request.
+  DECR_FLOOR_ZERO = <<~LUA
+    local v = redis.call('decr', KEYS[1])
+    if v < 0 then redis.call('set', KEYS[1], '0') end
+    return v
+  LUA
+
+  def with_query_semaphore
+    count = Cache.redis.incr(redis_key)
+    if count > Danbooru.config.iqdb_max_concurrent_queries
+      Cache.redis.eval(DECR_FLOOR_ZERO, keys: [redis_key])
+      raise BusyError, "IQDB is temporarily busy. Please try again later."
+    end
+    begin
+      yield
+    ensure
+      Cache.redis.eval(DECR_FLOOR_ZERO, keys: [redis_key])
+    end
+  end
+  private_class_method :with_query_semaphore
 end
