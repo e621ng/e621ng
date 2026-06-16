@@ -7,7 +7,7 @@ RSpec.describe IqdbConcurrencyResetJob do
     context "when IQDB counter keys exist" do
       before do
         allow(Cache.redis).to receive(:scan_each).with(match: "iqdb:concurrent*")
-          .and_return(["iqdb:concurrent:e621", "iqdb:concurrent:e926"])
+                                                 .and_return(["iqdb:concurrent:e621", "iqdb:concurrent:e926"])
         allow(Cache.redis).to receive(:del)
       end
 

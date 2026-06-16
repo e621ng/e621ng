@@ -3,12 +3,11 @@
 require "rails_helper"
 
 RSpec.describe IqdbProxy do
-  let(:mock_response) { double("FaradayResponse", status: 200, body: "[]") }
+  let(:mock_response) { instance_double(Faraday::Response, status: 200, body: "[]") }
 
   before do
     allow(described_class).to receive(:make_request).and_return(mock_response)
-    allow(Cache.redis).to receive(:incr).and_return(1)
-    allow(Cache.redis).to receive(:eval).and_return(0)
+    allow(Cache.redis).to receive_messages(incr: 1, eval: 0)
   end
 
   describe ".redis_key" do
