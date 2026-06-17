@@ -33,16 +33,11 @@ RSpec.describe StaffWikiRef do
     end
 
     it "is valid with each allowed type" do
-      artist    = create(:artist)
-      other_wiki = create(:staff_wiki)
-
-      [
+      expect([
         build(:staff_wiki_ref, related: create(:user)),
-        build(:staff_wiki_ref, related: artist),
-        build(:staff_wiki_ref, related: other_wiki),
-      ].each do |ref|
-        expect(ref).to be_valid, "#{ref.related_type} should be allowed: #{ref.errors.full_messages.join(', ')}"
-      end
+        build(:staff_wiki_ref, related: create(:artist)),
+        build(:staff_wiki_ref, related: create(:staff_wiki)),
+      ]).to all(be_valid)
     end
   end
 end
