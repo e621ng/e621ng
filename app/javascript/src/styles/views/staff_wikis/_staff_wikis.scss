@@ -98,6 +98,7 @@ body.c-staff-wikis.a-show #page {
 
       border-radius: 0.25rem;
       color: themed("color-text-muted");
+      cursor: help;
 
       &.reference-user { color: palette("text-red"); }
       &.reference-artist { color: palette("text-yellow"); }

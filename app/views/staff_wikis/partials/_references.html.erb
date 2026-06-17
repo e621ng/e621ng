@@ -4,7 +4,10 @@
   <h2>References</h2>
 
   <% references.each do |reference| %>
-    <div class="reference-item-label reference-<%= reference.related_type.downcase %>"><%= reference.related_type[0].upcase %></div>
+    <div
+      class="reference-item-label reference-<%= reference.related_type.downcase %>"
+      title="<%= reference.related_type %>"
+    ><%= reference.related_type[0].upcase %></div>
     <div class="reference-item-content reference-<%= reference.related_type.downcase %>">
       <% if reference.related_type == "User" %>
         <%= link_to_user reference.related %>
