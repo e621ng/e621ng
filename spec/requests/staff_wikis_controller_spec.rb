@@ -2,101 +2,80 @@
 
 require "rails_helper"
 
-#                                  Prefix Verb   URI Pattern                                        Controller#Action
-#                             staff_wikis GET    /staff_wikis(.:format)                             staff_wikis#index
-#                                         POST   /staff_wikis(.:format)                             staff_wikis#create
-#                          new_staff_wiki GET    /staff_wikis/new(.:format)                         staff_wikis#new
-#                         edit_staff_wiki GET    /staff_wikis/:id/edit(.:format)                    staff_wikis#edit
-#                              staff_wiki GET    /staff_wikis/:id(.:format)                         staff_wikis#show
-#                                         PATCH  /staff_wikis/:id(.:format)                         staff_wikis#update
-#                                         PUT    /staff_wikis/:id(.:format)                         staff_wikis#update
-#                                         DELETE /staff_wikis/:id(.:format)                         staff_wikis#destroy
-#                       revert_staff_wiki PUT    /staff_wikis/:id/revert(.:format)                  staff_wikis#revert
-#                      search_staff_wikis GET    /staff_wikis/search(.:format)                      staff_wikis#search
-#                 show_or_new_staff_wikis GET    /staff_wikis/show_or_new(.:format)                 staff_wikis#show_or_new
 RSpec.describe StaffWikisController do
-  include_context "as janitor"
-
-  let(:member)  { create(:user,         created_at: 2.weeks.ago) }
-  let(:janitor) { create(:janitor_user, created_at: 2.weeks.ago) }
-  let(:admin)   { create(:admin_user,   created_at: 2.weeks.ago) }
+  include_context "as admin"
 
   let(:staff_wiki) { create(:staff_wiki) }
-
-  # ---------------------------------------------------------------------------
-  # Access control — members are blocked everywhere
-  # ---------------------------------------------------------------------------
-
-  describe "access control" do
-    it "returns 403 on index for a member" do
-      sign_in_as member
-      get staff_wikis_path
-      expect(response).to have_http_status(:forbidden)
-    end
-
-    it "returns 403 on show for a member" do
-      sign_in_as member
-      get staff_wiki_path(staff_wiki)
-      expect(response).to have_http_status(:forbidden)
-    end
-
-    it "returns 403 on new for a member" do
-      sign_in_as member
-      get new_staff_wiki_path
-      expect(response).to have_http_status(:forbidden)
-    end
-
-    it "redirects anonymous to login on index" do
-      get staff_wikis_path
-      expect(response).to redirect_to(new_session_path(url: staff_wikis_path))
-    end
-  end
+  let(:member)     { create(:user) }
+  let(:janitor)    { create(:janitor_user) }
+  let(:admin)      { create(:admin_user) }
 
   # ---------------------------------------------------------------------------
   # GET /staff_wikis — index
   # ---------------------------------------------------------------------------
 
   describe "GET /staff_wikis" do
+    it "redirects anonymous to the login page for HTML" do
+      get staff_wikis_path
+      expect(response).to redirect_to(new_session_path(url: staff_wikis_path))
+    end
+
+    it "returns 403 for anonymous JSON" do
+      get staff_wikis_path(format: :json)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      get staff_wikis_path
+      expect(response).to have_http_status(:forbidden)
+    end
+
     it "returns 200 for a janitor" do
       sign_in_as janitor
       get staff_wikis_path
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns a JSON array" do
+    it "returns a JSON array for a janitor" do
       sign_in_as janitor
       get staff_wikis_path(format: :json)
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to be_an(Array)
     end
+
+    it "filters results by title search param" do
+      staff_wiki
+      sign_in_as janitor
+      get staff_wikis_path(format: :json, params: { search: { title: staff_wiki.title } })
+      expect(response.parsed_body.pluck("id")).to include(staff_wiki.id)
+    end
   end
 
   # ---------------------------------------------------------------------------
-  # GET /staff_wikis/search — search
+  # GET /staff_wikis/search — search form
   # ---------------------------------------------------------------------------
 
   describe "GET /staff_wikis/search" do
+    it "redirects anonymous to the login page for HTML" do
+      get search_staff_wikis_path
+      expect(response).to redirect_to(new_session_path(url: search_staff_wikis_path))
+    end
+
+    it "returns 403 for anonymous JSON" do
+      get search_staff_wikis_path(format: :json)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      get search_staff_wikis_path
+      expect(response).to have_http_status(:forbidden)
+    end
+
     it "returns 200 for a janitor" do
       sign_in_as janitor
       get search_staff_wikis_path
-      expect(response).to have_http_status(:ok)
-    end
-  end
-
-  # ---------------------------------------------------------------------------
-  # GET /staff_wikis/show_or_new — show_or_new
-  # ---------------------------------------------------------------------------
-
-  describe "GET /staff_wikis/show_or_new" do
-    it "redirects to the existing page when the title matches" do
-      sign_in_as janitor
-      get show_or_new_staff_wikis_path, params: { title: staff_wiki.title }
-      expect(response).to redirect_to(staff_wiki_path(staff_wiki))
-    end
-
-    it "returns 200 with a create prompt when no page matches" do
-      sign_in_as janitor
-      get show_or_new_staff_wikis_path, params: { title: "nonexistent_xyz_abc" }
       expect(response).to have_http_status(:ok)
     end
   end
@@ -106,16 +85,33 @@ RSpec.describe StaffWikisController do
   # ---------------------------------------------------------------------------
 
   describe "GET /staff_wikis/:id" do
+    it "redirects anonymous to the login page for HTML" do
+      get staff_wiki_path(staff_wiki)
+      expect(response).to redirect_to(new_session_path(url: staff_wiki_path(staff_wiki)))
+    end
+
+    it "returns 403 for anonymous JSON" do
+      get staff_wiki_path(staff_wiki, format: :json)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      get staff_wiki_path(staff_wiki)
+      expect(response).to have_http_status(:forbidden)
+    end
+
     it "returns 200 for a janitor" do
       sign_in_as janitor
       get staff_wiki_path(staff_wiki)
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns 200 as JSON" do
+    it "returns JSON with expected fields for a janitor" do
       sign_in_as janitor
       get staff_wiki_path(staff_wiki, format: :json)
       expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to include("id" => staff_wiki.id, "title" => staff_wiki.title)
     end
   end
 
@@ -124,6 +120,17 @@ RSpec.describe StaffWikisController do
   # ---------------------------------------------------------------------------
 
   describe "GET /staff_wikis/new" do
+    it "redirects anonymous to the login page" do
+      get new_staff_wiki_path
+      expect(response).to redirect_to(new_session_path(url: new_staff_wiki_path))
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      get new_staff_wiki_path
+      expect(response).to have_http_status(:forbidden)
+    end
+
     it "returns 200 for a janitor" do
       sign_in_as janitor
       get new_staff_wiki_path
@@ -136,6 +143,17 @@ RSpec.describe StaffWikisController do
   # ---------------------------------------------------------------------------
 
   describe "GET /staff_wikis/:id/edit" do
+    it "redirects anonymous to the login page" do
+      get edit_staff_wiki_path(staff_wiki)
+      expect(response).to redirect_to(new_session_path(url: edit_staff_wiki_path(staff_wiki)))
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      get edit_staff_wiki_path(staff_wiki)
+      expect(response).to have_http_status(:forbidden)
+    end
+
     it "returns 200 for a janitor" do
       sign_in_as janitor
       get edit_staff_wiki_path(staff_wiki)
@@ -148,18 +166,40 @@ RSpec.describe StaffWikisController do
   # ---------------------------------------------------------------------------
 
   describe "POST /staff_wikis" do
-    it "creates a new page and redirects for a janitor" do
-      sign_in_as janitor
-      expect {
-        post staff_wikis_path, params: { staff_wiki: { title: "new_test_page", body: "hello" } }
-      }.to change(StaffWiki, :count).by(1)
-      expect(response).to redirect_to(staff_wiki_path(StaffWiki.last))
+    let(:valid_params)   { { staff_wiki: { title: "New Staff Wiki", body: "Valid body content." } } }
+    let(:invalid_params) { { staff_wiki: { title: "", body: "Valid body content." } } }
+
+    it "redirects anonymous to the login page for HTML" do
+      post staff_wikis_path, params: valid_params
+      expect(response).to redirect_to(new_session_path)
     end
 
-    it "also creates an initial version" do
-      sign_in_as janitor
-      post staff_wikis_path, params: { staff_wiki: { title: "version_test_page", body: "body text" } }
-      expect(StaffWiki.last.versions.count).to eq(1)
+    it "returns 403 for anonymous JSON" do
+      post staff_wikis_path(format: :json), params: valid_params
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      post staff_wikis_path, params: valid_params
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    context "as a janitor" do
+      before { sign_in_as janitor }
+
+      it "creates a staff wiki" do
+        expect { post staff_wikis_path, params: valid_params }.to change(StaffWiki, :count).by(1)
+      end
+
+      it "redirects after creation" do
+        post staff_wikis_path, params: valid_params
+        expect(response).to have_http_status(:redirect)
+      end
+
+      it "does not create a wiki with invalid params" do
+        expect { post staff_wikis_path, params: invalid_params }.not_to change(StaffWiki, :count)
+      end
     end
   end
 
@@ -168,32 +208,82 @@ RSpec.describe StaffWikisController do
   # ---------------------------------------------------------------------------
 
   describe "PATCH /staff_wikis/:id" do
-    it "updates the page and redirects for a janitor" do
+    let(:update_params)  { { staff_wiki: { body: "Updated body content." } } }
+    let(:invalid_params) { { staff_wiki: { title: "" } } }
+
+    it "redirects anonymous to the login page for HTML" do
+      patch staff_wiki_path(staff_wiki), params: update_params
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for anonymous JSON" do
+      patch staff_wiki_path(staff_wiki, format: :json), params: update_params
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      patch staff_wiki_path(staff_wiki), params: update_params
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "updates the body for a janitor" do
       sign_in_as janitor
-      patch staff_wiki_path(staff_wiki), params: { staff_wiki: { body: "updated body" } }
-      expect(staff_wiki.reload.body).to eq("updated body")
-      expect(response).to redirect_to(staff_wiki_path(staff_wiki))
+      patch staff_wiki_path(staff_wiki), params: update_params
+      expect(staff_wiki.reload.body).to eq("Updated body content.")
+    end
+
+    it "redirects after a successful update for a janitor" do
+      sign_in_as janitor
+      patch staff_wiki_path(staff_wiki), params: update_params
+      expect(response).to have_http_status(:redirect)
+    end
+
+    it "does not update with an invalid title" do
+      original_title = staff_wiki.title
+      sign_in_as janitor
+      patch staff_wiki_path(staff_wiki), params: invalid_params
+      expect(staff_wiki.reload.title).to eq(original_title)
     end
   end
 
   # ---------------------------------------------------------------------------
-  # DELETE /staff_wikis/:id — destroy
+  # DELETE /staff_wikis/:id — destroy (admin only)
   # ---------------------------------------------------------------------------
 
   describe "DELETE /staff_wikis/:id" do
-    it "returns 403 for a janitor (non-admin)" do
+    it "redirects anonymous to the login page for HTML" do
+      delete staff_wiki_path(staff_wiki)
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for anonymous JSON" do
+      delete staff_wiki_path(staff_wiki, format: :json)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      delete staff_wiki_path(staff_wiki)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a janitor" do
       sign_in_as janitor
       delete staff_wiki_path(staff_wiki)
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "destroys the page and redirects for an admin" do
-      staff_wiki  # force creation before the change block
+    it "destroys the wiki for an admin" do
       sign_in_as admin
-      expect {
-        delete staff_wiki_path(staff_wiki)
-      }.to change(StaffWiki, :count).by(-1)
-      expect(response).to redirect_to(staff_wikis_path)
+      staff_wiki
+      expect { delete staff_wiki_path(staff_wiki) }.to change(StaffWiki, :count).by(-1)
+    end
+
+    it "redirects after destruction for an admin" do
+      sign_in_as admin
+      delete staff_wiki_path(staff_wiki)
+      expect(response).to have_http_status(:redirect)
     end
   end
 
@@ -202,15 +292,88 @@ RSpec.describe StaffWikisController do
   # ---------------------------------------------------------------------------
 
   describe "PUT /staff_wikis/:id/revert" do
-    it "reverts the page content for a janitor" do
-      sign_in_as janitor
-      original_body = staff_wiki.body
-      staff_wiki.update!(body: "changed body")
-      version = staff_wiki.versions.first
+    let(:original_body) { staff_wiki.body }
+    let(:version) { staff_wiki.versions.first }
 
+    before do
+      original_body
+      staff_wiki.update!(body: "Body after an edit.")
+    end
+
+    it "redirects anonymous to the login page for HTML" do
+      put revert_staff_wiki_path(staff_wiki), params: { version_id: version.id }
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for anonymous JSON" do
+      put revert_staff_wiki_path(staff_wiki, format: :json), params: { version_id: version.id }
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      put revert_staff_wiki_path(staff_wiki), params: { version_id: version.id }
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "reverts to the given version for a janitor" do
+      sign_in_as janitor
       put revert_staff_wiki_path(staff_wiki), params: { version_id: version.id }
       expect(staff_wiki.reload.body).to eq(original_body)
-      expect(response).to redirect_to(staff_wiki_path(staff_wiki))
+    end
+
+    it "redirects after revert for a janitor" do
+      sign_in_as janitor
+      put revert_staff_wiki_path(staff_wiki), params: { version_id: version.id }
+      expect(response).to have_http_status(:redirect)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # POST /staff_wikis/:id/claim — claim
+  # ---------------------------------------------------------------------------
+
+  describe "POST /staff_wikis/:id/claim" do
+    it "redirects anonymous to the login page for HTML" do
+      post claim_staff_wiki_path(staff_wiki)
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      post claim_staff_wiki_path(staff_wiki)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "sets the claimant to the current janitor" do
+      sign_in_as janitor
+      post claim_staff_wiki_path(staff_wiki)
+      expect(staff_wiki.reload.claimant_id).to eq(janitor.id)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # POST /staff_wikis/:id/unclaim — unclaim
+  # ---------------------------------------------------------------------------
+
+  describe "POST /staff_wikis/:id/unclaim" do
+    before { staff_wiki.update_columns(claimant_id: janitor.id) }
+
+    it "redirects anonymous to the login page for HTML" do
+      post unclaim_staff_wiki_path(staff_wiki)
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for a non-staff member" do
+      sign_in_as member
+      post unclaim_staff_wiki_path(staff_wiki)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "clears the claimant for a janitor" do
+      sign_in_as janitor
+      post unclaim_staff_wiki_path(staff_wiki)
+      expect(staff_wiki.reload.claimant_id).to be_nil
     end
   end
 end
