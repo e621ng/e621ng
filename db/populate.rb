@@ -346,7 +346,7 @@ def populate_favorites(number, users: [])
       Post.where(id: post_id).update_all(
         fav_count: Favorite.where(post_id: post_id).count,
         updated_at: Time.current,
-        )
+      )
 
       puts "    Updated post ##{post_id} fav_count (#{user_ids.size} new favs)"
     end
@@ -358,7 +358,7 @@ def populate_favorites(number, users: [])
     user_counts.each do |user_id, count|
       UserStatus.where(user_id: user_id).update_all(
         "favorite_count = favorite_count + #{count}",
-        )
+      )
     end
   end
 
@@ -427,7 +427,7 @@ def populate_post_votes(number, users: [], posts: [])
       user: CurrentUser.user,
       post: post,
       score: Faker::Boolean.boolean(true_ratio: 0.2) ? -1 : 1,
-      )
+    )
 
     if vote == :need_unvote
       puts "    error: #{vote}"
@@ -461,7 +461,7 @@ def populate_comment_votes(number, users: [], comments: [])
       user: CurrentUser.user,
       comment: comment,
       score: Faker::Boolean.boolean(true_ratio: 0.2) ? -1 : 1,
-      )
+    )
 
     if vote == :need_unvote
       puts "    error: #{vote}"
@@ -511,7 +511,7 @@ def populate_dmails(number)
       title: Faker::Hipster.sentence(word_count: rand(3..10)),
       body: Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false),
       bypass_limits: true,
-      )
+    )
 
     puts "  - DM ##{dm_obj.id} from #{sender.name} to #{recipient.name}"
 
