@@ -74,7 +74,7 @@ Blacklist.init_reveal_on_click = function () {
  */
 Blacklist.preload_filters = function () {
   Blacklist.filters = {};
-  let blacklistRaw = null;
+  let blacklistRaw;
 
   // Use the anonymous blacklist if the user isn't logged in
   const userEl = document.querySelector("meta[name='current-user-id']");

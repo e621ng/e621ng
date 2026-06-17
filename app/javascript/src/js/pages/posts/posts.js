@@ -91,7 +91,7 @@ Post.has_prev_target = function () {
 };
 
 Post.nav_prev = function () {
-  var href = "";
+  var href;
 
   if ($(".search-seq-nav").length) {
     href = $(".search-seq-nav a[rel~=prev]").attr("href");
@@ -109,7 +109,7 @@ Post.nav_prev = function () {
 };
 
 Post.nav_next = function () {
-  var href = "";
+  var href;
 
   if ($(".search-seq-nav").length) {
     href = $(".search-seq-nav a[rel~=next]").attr("href");
@@ -406,7 +406,7 @@ Post.resize_image = function (post, target_size) {
     $percentage.text(`${scaled_percentage}%`);
   };
   $notice.hide();
-  let desired_url = "";
+  let desired_url;
   let desired_classes = [];
   switch (target_size) {
     case "original":

@@ -89,7 +89,7 @@ export function getE621Instance (): E621Type {
  * @param warningMessage The warning message to log when the method is called.
  * @returns A new method that logs the warning message and then calls the original method.
  */
-function deprecated<T extends (...args: any[]) => void>(method: T, warningMessage: string): T {
+function deprecated<T extends (...args: any[]) => void> (method: T, warningMessage: string): T {
   return function (this: any, ...args: any[]) {
     console.warn(warningMessage);
     return method(...args);
