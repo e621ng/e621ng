@@ -5075,6 +5075,13 @@ CREATE INDEX index_staff_wiki_refs_on_related_id_and_related_type ON public.staf
 
 
 --
+-- Name: index_staff_wiki_refs_on_staff_wiki_and_related; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_staff_wiki_refs_on_staff_wiki_and_related ON public.staff_wiki_refs USING btree (staff_wiki_id, related_id, related_type);
+
+
+--
 -- Name: index_staff_wiki_versions_on_staff_wiki_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5505,7 +5512,7 @@ ALTER TABLE ONLY public.staff_wiki_refs
 --
 
 ALTER TABLE ONLY public.staff_wiki_versions
-    ADD CONSTRAINT fk_rails_317c9a4443 FOREIGN KEY (claimant_id) REFERENCES public.users(id) ON DELETE SET NULL;
+    ADD CONSTRAINT fk_rails_317c9a4443 FOREIGN KEY (claimant_id) REFERENCES public.users(id);
 
 
 --
@@ -5537,7 +5544,7 @@ ALTER TABLE ONLY public.avoid_posting_versions
 --
 
 ALTER TABLE ONLY public.staff_wiki_versions
-    ADD CONSTRAINT fk_rails_4dad911f81 FOREIGN KEY (updater_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_rails_4dad911f81 FOREIGN KEY (updater_id) REFERENCES public.users(id);
 
 
 --
@@ -5561,7 +5568,7 @@ ALTER TABLE ONLY public.appeals
 --
 
 ALTER TABLE ONLY public.staff_wikis
-    ADD CONSTRAINT fk_rails_7c286bc172 FOREIGN KEY (updater_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_rails_7c286bc172 FOREIGN KEY (updater_id) REFERENCES public.users(id);
 
 
 --
@@ -5577,7 +5584,7 @@ ALTER TABLE ONLY public.user_feedback
 --
 
 ALTER TABLE ONLY public.staff_wikis
-    ADD CONSTRAINT fk_rails_949cd2810d FOREIGN KEY (creator_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_rails_949cd2810d FOREIGN KEY (creator_id) REFERENCES public.users(id);
 
 
 --
@@ -5657,7 +5664,7 @@ ALTER TABLE ONLY public.staff_wiki_versions
 --
 
 ALTER TABLE ONLY public.staff_wikis
-    ADD CONSTRAINT fk_rails_d05de95362 FOREIGN KEY (claimant_id) REFERENCES public.users(id) ON DELETE SET NULL;
+    ADD CONSTRAINT fk_rails_d05de95362 FOREIGN KEY (claimant_id) REFERENCES public.users(id);
 
 
 --

@@ -12,9 +12,9 @@ class CreateStaffWikis < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
-    add_foreign_key :staff_wikis, :users, column: :creator_id, on_delete: :cascade
-    add_foreign_key :staff_wikis, :users, column: :updater_id, on_delete: :cascade
-    add_foreign_key :staff_wikis, :users, column: :claimant_id, on_delete: :nullify
+    add_foreign_key :staff_wikis, :users, column: :creator_id
+    add_foreign_key :staff_wikis, :users, column: :updater_id
+    add_foreign_key :staff_wikis, :users, column: :claimant_id
 
     add_index :staff_wikis, "lower(title)", unique: true, name: "index_staff_wikis_on_lower_title"
 
@@ -30,13 +30,13 @@ class CreateStaffWikis < ActiveRecord::Migration[7.1]
     end
 
     add_foreign_key :staff_wiki_versions, :staff_wikis, column: :staff_wiki_id, on_delete: :cascade
-    add_foreign_key :staff_wiki_versions, :users, column: :updater_id, on_delete: :cascade
-    add_foreign_key :staff_wiki_versions, :users, column: :claimant_id, on_delete: :nullify
+    add_foreign_key :staff_wiki_versions, :users, column: :updater_id
+    add_foreign_key :staff_wiki_versions, :users, column: :claimant_id
 
     add_index :staff_wiki_versions, :staff_wiki_id
     add_index :staff_wiki_versions, :updater_id
 
-    # Staff Wiki Refrences
+    # Staff Wiki References
     create_table :staff_wiki_refs do |t|
       t.integer :staff_wiki_id, null: false
       t.integer :related_id, null: false
@@ -47,5 +47,6 @@ class CreateStaffWikis < ActiveRecord::Migration[7.1]
     add_foreign_key :staff_wiki_refs, :staff_wikis, column: :staff_wiki_id, on_delete: :cascade
 
     add_index :staff_wiki_refs, %i[related_id related_type]
+    add_index :staff_wiki_refs, %i[staff_wiki_id related_id related_type], unique: true, name: "index_staff_wiki_refs_on_staff_wiki_and_related"
   end
 end
