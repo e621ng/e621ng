@@ -268,7 +268,7 @@
     }
   }
   const pairing_tag_name = tag => tag === 'ambiguous_gender' ? 'ambiguous' : tag;
-  const all_pairing_tag_set = new Set(all_pairing_pairs.map(p => `${pairing_tag_name(p.tagA)}/${pairing_tag_name(p.tagB)}`));
+  const all_pairing_tag_set = new Set(all_pairing_pairs.map(p => pairing_tag_name(p.tagA) + "/" + pairing_tag_name(p.tagB)));
 
   const char_count_checks = [
     {name: 'Solo'},
@@ -447,7 +447,7 @@
         if (!value) {
           for (const p of all_pairing_pairs) {
             if (p.tagA === tag || p.tagB === tag)
-              this.checkboxes.selected[`${pairing_tag_name(p.tagA)}/${pairing_tag_name(p.tagB)}`] = false;
+              this.checkboxes.selected[pairing_tag_name(p.tagA) + "/" + pairing_tag_name(p.tagB)] = false;
           }
         }
       },
