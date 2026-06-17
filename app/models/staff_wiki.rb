@@ -32,7 +32,7 @@ class StaffWiki < ApplicationRecord
 
   module SearchMethods
     def titled(title)
-      find_by(title: StaffWiki.normalize_name(title))
+      find_by(title: title)
     end
 
     def search(params)
