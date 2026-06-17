@@ -14,15 +14,11 @@ presets = {
   forums: ENV.fetch("FORUMS", 0).to_i,
   postvotes: ENV.fetch("POSTVOTES", 0).to_i,
   commentvotes: ENV.fetch("COMVOTES", 0).to_i,
-  forumvotes: ENV.fetch("FORUMVOTES", 0).to_i,
   pools: ENV.fetch("POOLS", 0).to_i,
   furids: ENV.fetch("FURIDS", 0).to_i,
   dmails: ENV.fetch("DM", 0).to_i,
   trends: ENV.fetch("TRENDS", 0).to_i,
   trends_hours: ENV.fetch("TRENDS_HOURS", 0).to_i,
-  aliases: ENV.fetch("ALIASES", 0).to_i,
-  implications: ENV.fetch("IMPLICATIONS", 0).to_i,
-  burs: ENV.fetch("BURS", 0).to_i,
 }
 if presets.values.sum == 0
   puts "DEFAULTS"
@@ -34,34 +30,26 @@ if presets.values.sum == 0
     forums: 100,
     postvotes: 100,
     commentvotes: 100,
-    forumvotes: 0,
     pools: 100,
     furids: 0,
     dmails: 0,
     trends: 7,
     trends_hours: 48,
-    aliases: 5,
-    implications: 5,
-    burs: 5,
   }
 end
 
-USERS        = presets[:users]
-POSTS        = presets[:posts]
-COMMENTS     = presets[:comments]
-FAVORITES    = presets[:favorites]
-FORUMS       = presets[:forums]
-POSTVOTES    = presets[:postvotes]
-COMVOTES     = presets[:commentvotes]
-FORUMVOTES   = presets[:forumvotes]
-POOLS        = presets[:pools]
-FURIDS       = presets[:furids]
-DMAILS       = presets[:dmails]
-TRENDS       = presets[:trends]
+USERS     = presets[:users]
+POSTS     = presets[:posts]
+COMMENTS  = presets[:comments]
+FAVORITES = presets[:favorites]
+FORUMS    = presets[:forums]
+POSTVOTES = presets[:postvotes]
+COMVOTES  = presets[:commentvotes]
+POOLS     = presets[:pools]
+FURIDS    = presets[:furids]
+DMAILS    = presets[:dmails]
+TRENDS    = presets[:trends]
 TRENDS_HOURS = presets[:trends_hours]
-ALIASES      = presets[:aliases]
-IMPLICATIONS = presets[:implications]
-BURS         = presets[:burs]
 
 DISTRIBUTION = ENV.fetch("DISTRIBUTION", 10).to_i
 DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
@@ -254,6 +242,7 @@ def fill_avatars(users = [], posts = [])
 
   users.each do |user|
     post = posts.sample
+    puts "post: #{post}"
     puts "  - #{user.name} : ##{post.id}"
     user.update({ avatar_id: post.id })
   end
@@ -357,7 +346,7 @@ def populate_favorites(number, users: [])
       Post.where(id: post_id).update_all(
         fav_count: Favorite.where(post_id: post_id).count,
         updated_at: Time.current,
-      )
+        )
 
       puts "    Updated post ##{post_id} fav_count (#{user_ids.size} new favs)"
     end
@@ -369,7 +358,7 @@ def populate_favorites(number, users: [])
     user_counts.each do |user_id, count|
       UserStatus.where(user_id: user_id).update_all(
         "favorite_count = favorite_count + #{count}",
-      )
+        )
     end
   end
 
@@ -423,82 +412,6 @@ def populate_forums(number, users: [])
   end
 end
 
-def used_tag_names
-  # Seed once from the DB, then keep every name we hand out in memory so later
-  # calls don't need a round trip just to check for collisions
-  @used_tag_names ||= ApplicationRecord.connection.select_values("
-    SELECT antecedent_name FROM tag_aliases
-      UNION SELECT consequent_name FROM tag_aliases
-      UNION SELECT antecedent_name FROM tag_implications
-      UNION SELECT consequent_name FROM tag_implications
-  ").to_set
-end
-
-def create_unique_tag(times = 1)
-  if times > 50
-    raise("Failed to find unused name for tag after #{times} tries")
-  end
-  value = [Faker::Verb.base, Faker::Verb.ing_form, Faker::Verb.past, Faker::Verb.past_participle, Faker::Verb.simple_present, Faker::Adjective.negative, Faker::Adjective.positive, SecureRandom.hex(16)]
-  candidate = value.find { |v| used_tag_names.exclude?(v) }
-  return create_unique_tag(times + 1) if candidate.nil?
-
-  used_tag_names << candidate
-  candidate
-end
-
-def populate_aliases(number, users: [])
-  return unless number > 0
-  puts "* Creating #{number} aliases"
-
-  # .to_a is required: without it, `users.sample` re-runs the underlying query on every call
-  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()").to_a if users.empty?
-  return if users.empty?
-
-  CurrentUser.ip_addr = "127.0.0.1"
-  number.times do
-    CurrentUser.user = users.sample
-    request = TagAliasRequest.new(antecedent_name: create_unique_tag, consequent_name: create_unique_tag, reason: Faker::Lorem.sentence)
-    request.create
-    tag_alias = request.tag_relationship
-
-    puts "  - #{CurrentUser.user.name} | tag alias ##{tag_alias.id}"
-  end
-end
-
-def populate_implications(number, users: [])
-  return unless number > 0
-  puts "* Creating #{number} implications"
-
-  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()").to_a if users.empty?
-  return if users.empty?
-
-  CurrentUser.ip_addr = "127.0.0.1"
-  number.times do
-    CurrentUser.user = users.sample
-    request = TagImplicationRequest.new(antecedent_name: create_unique_tag, consequent_name: create_unique_tag, reason: Faker::Lorem.sentence)
-    request.create
-    tag_implication = request.tag_relationship
-
-    puts "  - #{CurrentUser.user.name} | tag implication ##{tag_implication.id}"
-  end
-end
-
-def populate_bulk_update_requests(number, users: [])
-  return unless number > 0
-  puts "* Creating #{number} bulk update requests"
-
-  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()").to_a if users.empty?
-  return if users.empty?
-
-  CurrentUser.ip_addr = "127.0.0.1"
-  number.times do
-    CurrentUser.user = users.sample
-    bur = BulkUpdateRequest.create(title: Faker::Lorem.sentence, reason: Faker::Lorem.sentence, script: "alias #{SecureRandom.hex(12)} -> #{SecureRandom.hex(12)}")
-
-    puts "  - #{CurrentUser.user.name} | bulk update request ##{bur.id}"
-  end
-end
-
 def populate_post_votes(number, users: [], posts: [])
   return unless number > 0
   puts "* Generating post votes"
@@ -514,7 +427,7 @@ def populate_post_votes(number, users: [], posts: [])
       user: CurrentUser.user,
       post: post,
       score: Faker::Boolean.boolean(true_ratio: 0.2) ? -1 : 1,
-    )
+      )
 
     if vote == :need_unvote
       puts "    error: #{vote}"
@@ -548,7 +461,7 @@ def populate_comment_votes(number, users: [], comments: [])
       user: CurrentUser.user,
       comment: comment,
       score: Faker::Boolean.boolean(true_ratio: 0.2) ? -1 : 1,
-    )
+      )
 
     if vote == :need_unvote
       puts "    error: #{vote}"
@@ -556,81 +469,6 @@ def populate_comment_votes(number, users: [], comments: [])
     else
       puts "    vote ##{vote.id} on comment ##{comment.id}"
     end
-  end
-end
-
-def populate_forum_votes(number, users: [])
-  return unless number > 0
-  puts "* Generating #{number} forum votes"
-
-  users = User.where("users.created_at < ?", 14.days.ago).limit(DISTRIBUTION).order("random()").to_a if users.empty?
-  return if users.empty?
-
-  # Pull eligible forum posts once instead of re-running the exists/random() query for every vote
-  eligible_posts = ForumPost
-                   .where(
-                     TagAlias.where("tag_aliases.forum_post_id = forum_posts.id").where("tag_aliases.status": "pending").arel.exists
-                             .or(TagImplication.where("tag_implications.forum_post_id = forum_posts.id").where("tag_implications.status": "pending").arel.exists)
-                             .or(BulkUpdateRequest.where("bulk_update_requests.forum_post_id = forum_posts.id").where("bulk_update_requests.status": "pending").arel.exists),
-                   )
-                   .pluck(:id, :creator_id)
-
-  if eligible_posts.empty?
-    puts "  no forum post found"
-    return
-  end
-
-  # Track existing (forum_post_id, creator_id) pairs in memory so we can dedupe in O(1)
-  # instead of relying on the per-record uniqueness validation
-  seen = ForumPostVote.where(forum_post_id: eligible_posts.map(&:first), creator_id: users.map(&:id))
-                      .pluck(:forum_post_id, :creator_id).to_set
-
-  batch_size = 1000
-  votes_data = []
-  created = 0
-  now = Time.current
-
-  # Cap on unique (post, user) pairs that don't self-vote; can't create more votes than this
-  user_ids = users.to_set(&:id)
-  max_possible = eligible_posts.sum { |_, post_creator_id| user_ids.include?(post_creator_id) ? users.size - 1 : users.size }
-  target = [number, max_possible].min
-  attempts = 0
-  max_attempts = (target * 20) + 1000 # generous safety net against an infinite loop as collisions approach the cap
-
-  while created < target && attempts < max_attempts
-    attempts += 1
-
-    post_id, post_creator_id = eligible_posts.sample
-    user = users.sample
-    next if user.id == post_creator_id
-
-    key = [post_id, user.id]
-    next if seen.include?(key)
-
-    seen << key
-    votes_data << {
-      forum_post_id: post_id,
-      creator_id: user.id,
-      score: [-1, 0, 1].sample,
-      created_at: now,
-      updated_at: now,
-    }
-    created += 1
-
-    next unless votes_data.size >= batch_size
-
-    ForumPostVote.insert_all(votes_data)
-    puts "  inserted batch of #{votes_data.size} forum votes (#{created}/#{number})"
-    votes_data.clear
-  end
-
-  if votes_data.any?
-    ForumPostVote.insert_all(votes_data)
-    puts "  inserted final batch of #{votes_data.size} forum votes (#{created}/#{number})"
-  end
-
-  if created < number
-    puts "  only able to create #{created}/#{number} forum votes (#{max_possible} unique post/user pairs available)"
   end
 end
 
@@ -673,7 +511,7 @@ def populate_dmails(number)
       title: Faker::Hipster.sentence(word_count: rand(3..10)),
       body: Faker::Hipster.paragraph_by_chars(characters: rand(100..2_000), supplemental: false),
       bypass_limits: true,
-    )
+      )
 
     puts "  - DM ##{dm_obj.id} from #{sender.name} to #{recipient.name}"
 
@@ -811,10 +649,6 @@ populate_post_votes(POSTVOTES, users: users, posts: posts)
 populate_comment_votes(COMVOTES, users: users, comments: comments)
 populate_pools(POOLS, posts: posts)
 populate_dmails(DMAILS)
-populate_aliases(ALIASES, users: users)
-populate_implications(IMPLICATIONS, users: users)
-populate_bulk_update_requests(BURS, users: users)
-populate_forum_votes(FORUMVOTES, users: users)
 
 # Seed search trends last
 populate_search_trends(days: TRENDS, tags_count: 100)
