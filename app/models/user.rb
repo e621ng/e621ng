@@ -136,6 +136,7 @@ class User < ApplicationRecord
   has_many :staff_notes, -> { active.order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
   has_many :artists, foreign_key: "linked_user_id"
+  has_many :staff_wiki_refs, foreign_key: "related_id", dependent: :destroy, inverse_of: :related
 
   belongs_to :avatar, class_name: "Post", optional: true
   accepts_nested_attributes_for :dmail_filter, update_only: true

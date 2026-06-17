@@ -39,4 +39,13 @@
       <% end %>
     </ul>
   <% end %>
+  <% if CurrentUser.user.is_staff? %>
+    <li><strong>Investigations</strong></li>
+    <ul>
+      <% @staff_wikis.each do |page| %>
+        <li><%= link_to page.title, staff_wiki_path(page) %></li>
+      <% end %>
+      <li><%= link_to "New Investigation", new_staff_wiki_path(staff_wiki: { related_type: "artist", related_id: artist.id, title: "Artist: #{artist.name}" }) %></li>
+    </ul>
+  <% end %>
 </ul>

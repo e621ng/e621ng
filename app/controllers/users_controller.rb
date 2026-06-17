@@ -29,6 +29,10 @@ class UsersController < ApplicationController
     else
       @user = User.includes(:user_status, artists: [:tag]).find(User.name_or_id_to_id_forced(params[:id]))
       @presenter = UserPresenter.new(@user)
+
+      if CurrentUser.user.is_staff?
+        @staff_wikis = StaffWiki.joins(:references).where(references: { related_type: "User", related_id: @user.id }).distinct
+      end
     end
     respond_with(@user, methods: @user.full_attributes)
   end

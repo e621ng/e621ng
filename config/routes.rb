@@ -401,6 +401,22 @@ Rails.application.routes.draw do
       get :diff
     end
   end
+  resources :staff_wikis do
+    resources :references, only: %i[create destroy], controller: "staff_wiki_refs"
+    member do
+      put :revert
+      post :claim
+      post :unclaim
+    end
+    collection do
+      get :search
+    end
+  end
+  resources :staff_wiki_versions, only: %i[index show] do
+    collection do
+      get :diff
+    end
+  end
   resources :blips do
     member do
       post :delete
