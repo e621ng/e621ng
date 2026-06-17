@@ -48,7 +48,7 @@ export default class Favorite {
       } catch (error) {
         $(window).trigger("danbooru:error", "Error: " + error.message);
         console.error("Failed to parse response as JSON:", error);
-        throw new Error("Failed to parse response as JSON: " + error.message);
+        throw new Error("Failed to parse response as JSON: " + error.message, { cause: error });
       }
     }, (error) => {
       if (error instanceof TaskCancelled) return Promise.reject(error);
@@ -100,7 +100,7 @@ export default class Favorite {
       } catch (error) {
         $(window).trigger("danbooru:error", "Error: " + error.message);
         console.error("Failed to parse response as JSON:", error);
-        throw new Error("Failed to parse response as JSON: " + error.message);
+        throw new Error("Failed to parse response as JSON: " + error.message, { cause: error });
       }
     }, (error) => {
       if (error instanceof TaskCancelled) return Promise.reject(error);
