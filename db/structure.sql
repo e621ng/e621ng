@@ -2099,6 +2099,39 @@ ALTER SEQUENCE public.staff_notes_id_seq OWNED BY public.staff_notes.id;
 
 
 --
+-- Name: staff_wiki_refs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.staff_wiki_refs (
+    id bigint NOT NULL,
+    staff_wiki_id integer NOT NULL,
+    related_id integer NOT NULL,
+    related_type character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: staff_wiki_refs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.staff_wiki_refs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: staff_wiki_refs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.staff_wiki_refs_id_seq OWNED BY public.staff_wiki_refs.id;
+
+
+--
 -- Name: staff_wiki_versions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2106,10 +2139,10 @@ CREATE TABLE public.staff_wiki_versions (
     id bigint NOT NULL,
     staff_wiki_id integer NOT NULL,
     updater_id integer NOT NULL,
+    claimant_id integer,
     updater_ip_addr inet NOT NULL,
     title character varying NOT NULL,
     body text DEFAULT ''::text NOT NULL,
-    reason character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -2142,13 +2175,11 @@ CREATE TABLE public.staff_wikis (
     id bigint NOT NULL,
     creator_id integer NOT NULL,
     updater_id integer NOT NULL,
+    claimant_id integer,
     title character varying NOT NULL,
     body text DEFAULT ''::text NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    qtype character varying DEFAULT 'general'::character varying NOT NULL,
-    related_id integer,
-    claimant_id integer
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -3202,6 +3233,13 @@ ALTER TABLE ONLY public.staff_notes ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: staff_wiki_refs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_wiki_refs ALTER COLUMN id SET DEFAULT nextval('public.staff_wiki_refs_id_seq'::regclass);
+
+
+--
 -- Name: staff_wiki_versions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3775,6 +3813,14 @@ ALTER TABLE ONLY public.staff_audit_logs
 
 ALTER TABLE ONLY public.staff_notes
     ADD CONSTRAINT staff_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: staff_wiki_refs staff_wiki_refs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_wiki_refs
+    ADD CONSTRAINT staff_wiki_refs_pkey PRIMARY KEY (id);
 
 
 --
@@ -5019,6 +5065,13 @@ CREATE INDEX index_staff_notes_on_updater_id ON public.staff_notes USING btree (
 --
 
 CREATE INDEX index_staff_notes_on_user_id ON public.staff_notes USING btree (user_id);
+
+
+--
+-- Name: index_staff_wiki_refs_on_related_id_and_related_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_staff_wiki_refs_on_related_id_and_related_type ON public.staff_wiki_refs USING btree (related_id, related_type);
 
 
 --

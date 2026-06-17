@@ -1,22 +1,9 @@
 <div id="c-staff-wikis">
   <div id="a-show">
-    <section class="staff-wiki-content">
-      <h1 id="staff-wiki-title"><%= @staff_wiki.pretty_title %></h1>
-
-      <% if @staff_wiki.qtype == "user" %>
-        <%= render partial: "users/partials/show/card", locals: { user: @user } %>
-      <% end %>
-
-      <div id="staff-wiki-claim">
-        <% if @staff_wiki.claimant_id.present? %>
-          <p>Claimed by <%= link_to @staff_wiki.claimant.name, @staff_wiki.claimant %></p>
-        <% end %>
-        <% if @staff_wiki.claimant_id == CurrentUser.id %>
-          <%= button_to "Unclaim", unclaim_staff_wiki_path(@staff_wiki), method: :post %>
-        <% else %>
-          <%= button_to "Claim", claim_staff_wiki_path(@staff_wiki), method: :post %>
-        <% end %>
-      </div>
+    <div class="staff-wiki-content">
+      <h1 id="staff-wiki-title"><%= @staff_wiki.title %></h1>
+      <div id="staff-wiki-updated-at">Last updated at <%= compact_time(@staff_wiki.updated_at) %></div>
+      <br />
 
       <div id="staff-wiki-body" class="dtext-container">
         <% if @staff_wiki.body.present? %>
@@ -25,13 +12,20 @@
           <p>This page is empty. <%= link_to "Click here to add details", edit_staff_wiki_path(@staff_wiki) %>.</p>
         <% end %>
       </div>
-    </section>
-    <%= render partial: "staff_wikis/partials/involved", locals: { users: @involved_users } %>
+    </div>
+
+    <div class="staff-wiki-sidebar">
+      <%= render partial: "staff_wikis/partials/claimant", locals: { staff_wiki: @staff_wiki } %>
+      <%= render partial: "staff_wikis/partials/references", locals: { references: @staff_wiki.references, staff_wiki: @staff_wiki } %>
+      <%= render partial: "staff_wikis/partials/involved", locals: { users: @involved_users } %>
+      <%= render partial: "staff_wikis/partials/related", locals: { related_pages: @related_pages } %>
+    </div>
+
   </div>
 </div>
 
 <% content_for(:page_title) do %>
-  Staff Wiki - <%= @staff_wiki.pretty_title %>
+  Staff Wiki - <%= @staff_wiki.title %>
 <% end %>
 
 <%= render "secondary_links" %>

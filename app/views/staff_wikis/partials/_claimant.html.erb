@@ -1,0 +1,14 @@
+<section id="staff-wiki-claimant" data-is-claimed="<%= @staff_wiki.claimant_id.present? %>">
+  <div class="claim-status">
+    <% if @staff_wiki.claimant_id.present? %>
+      Claimed by <%= link_to_user @staff_wiki.claimant %>
+    <% else %>
+      Unclaimed
+    <% end %>
+  </div>
+  <% if @staff_wiki.claimant_id == CurrentUser.id %>
+    <%= button_to "Unclaim", unclaim_staff_wiki_path(@staff_wiki), class: "st-button claimant-action", method: :post %>
+  <% else %>
+    <%= button_to "Claim", claim_staff_wiki_path(@staff_wiki), class: "st-button claimant-action", method: :post %>
+  <% end %>
+</section>

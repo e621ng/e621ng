@@ -31,7 +31,7 @@ class UsersController < ApplicationController
       @presenter = UserPresenter.new(@user)
 
       if CurrentUser.user.is_staff?
-        @staff_wiki_pages = StaffWiki.where(qtype: "user", related_id: @user.id).to_a
+        @staff_wikis = StaffWiki.joins(:references).where(references: { related_type: "User", related_id: @user.id }).distinct
       end
     end
     respond_with(@user, methods: @user.full_attributes)

@@ -20,6 +20,7 @@ $palette: (
   "background-green": #227d2a,
   "background-green-d5": #{color.adjust(#227d2a, $lightness: -5%)},
   "background-green-d10": #{color.adjust(#227d2a, $lightness: -10%)},
+  "background-green-trans": #227d2a30,
 
   // Grey
   "background-grey": #60686f,

@@ -47,6 +47,11 @@ class ArtistsController < ApplicationController
       end
     end
     @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
+
+    if CurrentUser.user.is_staff?
+      @staff_wikis = StaffWiki.joins(:references).where(references: { related_type: "Artist", related_id: @artist.id }).distinct
+    end
+
     respond_with(@artist, methods: [:domains], include: [:urls])
   end
 

@@ -15,7 +15,7 @@
         <tbody>
           <% @staff_wikis.each do |staff_wiki| %>
             <tr>
-              <td><%= link_to staff_wiki.pretty_title, staff_wiki_path(staff_wiki) %></td>
+              <td><%= link_to staff_wiki.title, staff_wiki_path(staff_wiki) %></td>
               <td><%= compact_time staff_wiki.updated_at %> by <%= link_to_user staff_wiki.updater %></td>
               <td><%= link_to "History", staff_wiki_versions_path(search: { staff_wiki_id: staff_wiki.id }) %></td>
             </tr>

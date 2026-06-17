@@ -8,13 +8,12 @@
           <th>IP Address</th>
         <% end %>
         <th>Last edited</th>
-        <th>Reason</th>
       </tr>
     </thead>
     <tbody>
       <% @staff_wiki_versions.each do |version| %>
         <tr>
-          <td><%= link_to version.pretty_title, staff_wiki_version_path(version) %></td>
+          <td><%= link_to version.title, staff_wiki_version_path(version) %></td>
           <td><%= link_to "page", staff_wiki_path(version.staff_wiki_id) %></td>
           <% if CurrentUser.is_admin? %>
             <td><%= link_to_ip version.updater_ip_addr %></td>
@@ -26,7 +25,6 @@
               <%= link_to_user version.updater %>
             <% end %>
           </td>
-          <td><%= version.reason %></td>
         </tr>
       <% end %>
     </tbody>

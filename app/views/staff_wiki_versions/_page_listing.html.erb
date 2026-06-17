@@ -12,7 +12,6 @@
             <th>IP Address</th>
           <% end %>
           <th>Last edited</th>
-          <th>Reason</th>
         </tr>
       </thead>
       <tbody>
@@ -27,7 +26,7 @@
             </td>
             <td><%= radio_button_tag "thispage", version.id, (i == 1) %></td>
             <td><%= radio_button_tag "otherpage", version.id, (i == 0) %></td>
-            <td><%= link_to version.pretty_title, staff_wiki_version_path(version) %></td>
+            <td><%= link_to version.title, staff_wiki_version_path(version) %></td>
             <td><%= link_to "view version", staff_wiki_version_path(version) %></td>
             <% if CurrentUser.is_admin? %>
               <td><%= link_to_ip version.updater_ip_addr %></td>
@@ -39,7 +38,6 @@
                 <%= link_to_user version.updater %>
               <% end %>
             </td>
-            <td><%= version.reason %></td>
           </tr>
         <% end %>
       </tbody>

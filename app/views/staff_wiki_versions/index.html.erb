@@ -1,18 +1,14 @@
 <div id="c-staff-wiki-versions">
   <div id="a-index">
-    <aside id="sidebar"></aside>
+    <h1>Staff Wiki Versions</h1>
 
-    <section id="content">
-      <h1>Staff Wiki Versions</h1>
+    <% if params.dig(:search, :staff_wiki_id).present? %>
+      <%= render "page_listing" %>
+    <% else %>
+      <%= render "global_listing" %>
+    <% end %>
 
-      <% if params.dig(:search, :staff_wiki_id).present? %>
-        <%= render "page_listing" %>
-      <% else %>
-        <%= render "global_listing" %>
-      <% end %>
-
-      <%= render PaginatorComponent.new(records: @staff_wiki_versions) %>
-    </section>
+    <%= render PaginatorComponent.new(records: @staff_wiki_versions) %>
   </div>
 </div>
 

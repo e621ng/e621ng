@@ -1,16 +1,12 @@
 <div id="c-staff-wikis">
   <div id="a-edit">
-    <aside id="sidebar"></aside>
-
-    <section id="content">
-      <h1>Edit Staff Wiki Page</h1>
-      <%= render "form" %>
-    </section>
+    <h1>Edit Staff Wiki Page</h1>
+    <%= render "form" %>
   </div>
 </div>
 
 <% content_for(:page_title) do %>
-  Edit Staff Wiki Page - <%= @staff_wiki.pretty_title %>
+  Edit Staff Wiki Page - <%= @staff_wiki.title %>
 <% end %>
 
 <%= render "secondary_links" %>

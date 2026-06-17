@@ -402,6 +402,7 @@ Rails.application.routes.draw do
     end
   end
   resources :staff_wikis do
+    resources :references, only: %i[create destroy], controller: "staff_wiki_refs"
     member do
       put :revert
       post :claim
@@ -409,7 +410,6 @@ Rails.application.routes.draw do
     end
     collection do
       get :search
-      get :show_or_new
     end
   end
   resources :staff_wiki_versions, only: %i[index show] do

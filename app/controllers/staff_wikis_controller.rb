@@ -11,11 +11,20 @@ class StaffWikisController < ApplicationController
   end
 
   def show
-    @staff_wiki = StaffWiki.find(params[:id])
+    @staff_wiki = StaffWiki.includes(:references, :claimant, versions: [:updater]).find(params[:id])
     @involved_users = @staff_wiki.versions.map(&:updater).uniq
-    if @staff_wiki.qtype == "user"
-      @user = User.find_by(id: @staff_wiki.related_id)
-    end
+
+    user_ref_ids   = @staff_wiki.references.where(related_type: "User").select(:related_id)
+    artist_ref_ids = @staff_wiki.references.where(related_type: "Artist").select(:related_id)
+
+    @related_pages = StaffWiki
+                     .where.not(id: @staff_wiki.id)
+                     .where(
+                       id: StaffWikiRef
+                            .where(related_type: "User", related_id: user_ref_ids)
+                            .or(StaffWikiRef.where(related_type: "Artist", related_id: artist_ref_ids))
+                            .select(:staff_wiki_id),
+                     )
 
     respond_with(@staff_wiki)
   end
@@ -62,9 +71,7 @@ class StaffWikisController < ApplicationController
   def claim
     @staff_wiki = StaffWiki.find(params[:id])
     @staff_wiki.update(claimant_id: CurrentUser.id)
-    if @staff_wiki.errors.none?
-      flash[:notice] = "Page was claimed"
-    else
+    unless @staff_wiki.errors.none?
       flash[:alert] = @staff_wiki.errors.full_messages.join("; ")
     end
 
@@ -74,9 +81,7 @@ class StaffWikisController < ApplicationController
   def unclaim
     @staff_wiki = StaffWiki.find(params[:id])
     @staff_wiki.update(claimant_id: nil)
-    if @staff_wiki.errors.none?
-      flash[:notice] = "Page was unclaimed"
-    else
+    unless @staff_wiki.errors.none?
       flash[:alert] = @staff_wiki.errors.full_messages.join("; ")
     end
 
@@ -87,7 +92,7 @@ class StaffWikisController < ApplicationController
 
   def staff_wiki_params(context)
     permitted_params = %i[title body edit_reason]
-    permitted_params += %i[qtype related_id] if context == :create
+    permitted_params += %i[related_type related_id] if context == :create
     params.fetch(:staff_wiki, {}).permit(permitted_params)
   end
 
