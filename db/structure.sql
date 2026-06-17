@@ -5493,6 +5493,22 @@ ALTER TABLE ONLY public.blips
 
 
 --
+-- Name: staff_wiki_refs fk_rails_2cd6b3a2eb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_wiki_refs
+    ADD CONSTRAINT fk_rails_2cd6b3a2eb FOREIGN KEY (staff_wiki_id) REFERENCES public.staff_wikis(id) ON DELETE CASCADE;
+
+
+--
+-- Name: staff_wiki_versions fk_rails_317c9a4443; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_wiki_versions
+    ADD CONSTRAINT fk_rails_317c9a4443 FOREIGN KEY (claimant_id) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
 -- Name: appeals fk_rails_3f7cd477a6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5517,6 +5533,14 @@ ALTER TABLE ONLY public.avoid_posting_versions
 
 
 --
+-- Name: staff_wiki_versions fk_rails_4dad911f81; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_wiki_versions
+    ADD CONSTRAINT fk_rails_4dad911f81 FOREIGN KEY (updater_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: appeals fk_rails_4ed6a7befb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5533,11 +5557,27 @@ ALTER TABLE ONLY public.appeals
 
 
 --
+-- Name: staff_wikis fk_rails_7c286bc172; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_wikis
+    ADD CONSTRAINT fk_rails_7c286bc172 FOREIGN KEY (updater_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: user_feedback fk_rails_9329a36823; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_feedback
     ADD CONSTRAINT fk_rails_9329a36823 FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
+-- Name: staff_wikis fk_rails_949cd2810d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_wikis
+    ADD CONSTRAINT fk_rails_949cd2810d FOREIGN KEY (creator_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -5602,6 +5642,22 @@ ALTER TABLE ONLY public.exception_logs
 
 ALTER TABLE ONLY public.avoid_postings
     ADD CONSTRAINT fk_rails_cccc6419c8 FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
+-- Name: staff_wiki_versions fk_rails_ce7d15f8f4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_wiki_versions
+    ADD CONSTRAINT fk_rails_ce7d15f8f4 FOREIGN KEY (staff_wiki_id) REFERENCES public.staff_wikis(id) ON DELETE CASCADE;
+
+
+--
+-- Name: staff_wikis fk_rails_d05de95362; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_wikis
+    ADD CONSTRAINT fk_rails_d05de95362 FOREIGN KEY (claimant_id) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --

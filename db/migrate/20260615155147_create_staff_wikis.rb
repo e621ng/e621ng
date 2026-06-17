@@ -12,6 +12,10 @@ class CreateStaffWikis < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
+    add_foreign_key :staff_wikis, :users, column: :creator_id, on_delete: :cascade
+    add_foreign_key :staff_wikis, :users, column: :updater_id, on_delete: :cascade
+    add_foreign_key :staff_wikis, :users, column: :claimant_id, on_delete: :nullify
+
     add_index :staff_wikis, "lower(title)", unique: true, name: "index_staff_wikis_on_lower_title"
 
     # Staff Wiki Version
@@ -25,6 +29,10 @@ class CreateStaffWikis < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
+    add_foreign_key :staff_wiki_versions, :staff_wikis, column: :staff_wiki_id, on_delete: :cascade
+    add_foreign_key :staff_wiki_versions, :users, column: :updater_id, on_delete: :cascade
+    add_foreign_key :staff_wiki_versions, :users, column: :claimant_id, on_delete: :nullify
+
     add_index :staff_wiki_versions, :staff_wiki_id
     add_index :staff_wiki_versions, :updater_id
 
@@ -35,6 +43,8 @@ class CreateStaffWikis < ActiveRecord::Migration[7.1]
       t.string :related_type, null: false
       t.timestamps
     end
+
+    add_foreign_key :staff_wiki_refs, :staff_wikis, column: :staff_wiki_id, on_delete: :cascade
 
     add_index :staff_wiki_refs, %i[related_id related_type]
   end

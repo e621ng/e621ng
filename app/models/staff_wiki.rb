@@ -16,9 +16,9 @@ class StaffWiki < ApplicationRecord
 
   belongs_to_creator
   belongs_to_updater
+  belongs_to :claimant, class_name: "User", foreign_key: "claimant_id", optional: true
   has_many :versions, -> { order("staff_wiki_versions.id ASC") }, class_name: "StaffWikiVersion", dependent: :destroy
   has_many :references, class_name: "StaffWikiRef", dependent: :destroy
-  has_one :claimant, class_name: "User", foreign_key: "id", primary_key: "claimant_id"
 
   module ValidationMethods
     def validate_claimant_id

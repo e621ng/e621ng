@@ -47,7 +47,7 @@ RSpec.describe StaffWikisController do
     it "filters results by title search param" do
       staff_wiki
       sign_in_as janitor
-      get staff_wikis_path(format: :json, params: { search: { title: staff_wiki.title } })
+      get staff_wikis_path(format: :json, search: { title: staff_wiki.title })
       expect(response.parsed_body.pluck("id")).to include(staff_wiki.id)
     end
   end
