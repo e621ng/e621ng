@@ -52,6 +52,7 @@ export default class CurrentUser {
 
   // Lazy-loaded properties
   private _authToken?: string | null;
+  private _encodedAuthToken?: string | null;
 
   // Properties with getters/setters
   private rawBlacklist: string[];
@@ -92,6 +93,7 @@ export default class CurrentUser {
       perPage: settingsObj["per_page"] || 75,
       defaultImageSize: settingsObj["default_image_size"] || "large",
       commentThreshold: settingsObj["comment_threshold"] || -10,
+      blacklistUsers: !!settingsObj["blacklist_users"],
     };
 
     // Blacklist
@@ -113,13 +115,19 @@ export default class CurrentUser {
     CurrentUser.Logger.log(`Loaded: ${this.name} / ${this.id} / ${this.levelString}`);
   }
 
-  /** @returns {string | null} CSRF token, URL-encoded */
   public get authToken (): string | null {
     if (typeof this._authToken === "undefined") {
       const meta = document.querySelector('meta[name="csrf-token"]');
-      this._authToken = meta ? encodeURIComponent(meta.getAttribute("content")) : null;
+      this._authToken = meta ? meta.getAttribute("content") : null;
     }
     return this._authToken;
+  }
+
+  /** @returns {string | null} CSRF token, URL-encoded */
+  public get encodedAuthToken (): string | null {
+    if (typeof this._encodedAuthToken === "undefined")
+      this._encodedAuthToken = this.authToken ? encodeURIComponent(this.authToken) : null;
+    return this._encodedAuthToken;
   }
 
 
@@ -243,4 +251,5 @@ interface CurrentUserSettings {
   perPage: number,
   defaultImageSize: string,
   commentThreshold: number,
+  blacklistUsers: boolean,
 }
