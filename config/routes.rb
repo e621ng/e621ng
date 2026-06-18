@@ -417,6 +417,11 @@ Rails.application.routes.draw do
       get :diff
     end
   end
+  resources :staff_files, only: %i[index show new create destroy] do
+    collection do
+      get :search
+    end
+  end
   resources :blips do
     member do
       post :delete

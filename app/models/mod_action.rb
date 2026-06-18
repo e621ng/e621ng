@@ -56,6 +56,8 @@ class ModAction < ApplicationRecord
     mascot_create: { id: :integer },
     mascot_update: { id: :integer },
     mascot_delete: { id: :integer },
+    staff_file_create: { id: :integer, filename: :string, file_size: :integer, user_id: :integer },
+    staff_file_delete: { id: :integer, filename: :string, user_id: :integer },
     pool_delete: { pool_id: :integer, pool_name: :string, user_id: :integer },
     flag_reason_create: { reason: :string, text: :string },
     flag_reason_update: { reason: :string, reason_was: :string, text: :string, text_was: :string },

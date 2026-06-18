@@ -8,6 +8,7 @@ class StorageManager
   MASCOT_PREFIX = "mascots"
   AVATAR_PREFIX = "avatars"
   DB_EXPORT_PREFIX = "db_export"
+  STAFF_FILE_PREFIX = "staff_files"
 
   attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
 
@@ -144,6 +145,25 @@ class StorageManager
     subdir = subdir_for(storage_id)
     file = "#{storage_id}#{'_thumb' if image_size == :preview}.#{file_ext}"
     "#{base_dir}/#{replacement_prefix}/#{subdir}#{file}"
+  end
+
+  def staff_file_path(staff_file)
+    subdir = subdir_for(staff_file.storage_id)
+    "#{base_dir}/#{STAFF_FILE_PREFIX}/#{subdir}#{staff_file.storage_id}.#{staff_file.file_ext}"
+  end
+
+  def staff_file_url(staff_file)
+    subdir = subdir_for(staff_file.storage_id)
+    path = "#{base_path}/#{STAFF_FILE_PREFIX}/#{subdir}#{staff_file.storage_id}.#{staff_file.file_ext}"
+    "#{base_url}#{path}#{protected_params(path, secret: Danbooru.config.staff_file_secret)}"
+  end
+
+  def store_staff_file(io, staff_file)
+    store(io, staff_file_path(staff_file))
+  end
+
+  def delete_staff_file(staff_file)
+    delete(staff_file_path(staff_file))
   end
 
   def store_mascot(io, mascot)
