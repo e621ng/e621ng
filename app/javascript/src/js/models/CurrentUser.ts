@@ -1,3 +1,5 @@
+import Logger from "@/utility/Logger";
+
 let _data = {}, loaded = false;
 const _get = function () {
   if (loaded) return _data;
@@ -28,6 +30,8 @@ export default class CurrentUser {
     return CurrentUser._instance;
   }
 
+  private static Logger = new Logger("CurrentUser");
+
 
   /* ============================== */
   /* ===== Instance properties ==== */
@@ -54,7 +58,6 @@ export default class CurrentUser {
       throw new Error("CurrentUser is a singleton class. Use CurrentUser.user to access the instance.");
 
     const obj = _get() || {};
-    console.log("CurrentUser data:", obj);
 
     this.id = obj["id"] || 0;
     this.name = obj["name"] || "Anonymous";
@@ -107,6 +110,8 @@ export default class CurrentUser {
       meta.content = JSON.stringify(this.rawBlacklist);
       document.head.appendChild(meta);
     }
+
+    CurrentUser.Logger.log(`Loaded: ${this.name} / ${this.id} / ${this.levelString}`);
   }
 
   /** @returns {string | null} CSRF token, URL-encoded */
@@ -146,6 +151,8 @@ export default class CurrentUser {
    * @returns Promise that resolves when the save is complete
    */
   private static async saveBlacklist (blacklist: string[]) {
+    CurrentUser.Logger.log("Saving blacklist:", blacklist);
+
     // Update the meta tag for compatibility with existing code
     let meta = document.querySelector<HTMLMetaElement>('meta[name="blacklist"]');
     if (!meta) {
