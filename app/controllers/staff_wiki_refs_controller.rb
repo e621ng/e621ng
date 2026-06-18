@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class StaffWikiRefsController < ApplicationController
-  before_action :janitor_only
+  before_action :staff_only
 
   def create
     @staff_wiki = StaffWiki.find(params[:staff_wiki_id])

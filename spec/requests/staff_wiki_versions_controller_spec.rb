@@ -6,7 +6,7 @@ RSpec.describe StaffWikiVersionsController do
   include_context "as admin"
 
   let(:member)  { create(:user) }
-  let(:janitor) { create(:janitor_user) }
+  let(:staff)   { create(:staff_user) }
   let(:admin)   { create(:admin_user) }
   let!(:wiki)   { create(:staff_wiki) }
   let(:version) { wiki.versions.first }
@@ -32,14 +32,14 @@ RSpec.describe StaffWikiVersionsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for a janitor" do
-      sign_in_as janitor
+    it "returns 200 for a staff member" do
+      sign_in_as staff
       get staff_wiki_versions_path
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns a JSON array for a janitor" do
-      sign_in_as janitor
+    it "returns a JSON array for a staff member" do
+      sign_in_as staff
       get staff_wiki_versions_path(format: :json)
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to be_an(Array)
@@ -53,7 +53,7 @@ RSpec.describe StaffWikiVersionsController do
 
       it "returns only versions for the given updater_id" do
         v = version
-        sign_in_as janitor
+        sign_in_as staff
         get staff_wiki_versions_path(format: :json, search: { updater_id: other_user.id })
         ids = response.parsed_body.pluck("id")
         expect(ids).to include(other_version.id)
@@ -69,7 +69,7 @@ RSpec.describe StaffWikiVersionsController do
 
       it "returns only versions for the given updater_name" do
         v = version
-        sign_in_as janitor
+        sign_in_as staff
         get staff_wiki_versions_path(format: :json, search: { updater_name: other_user.name })
         ids = response.parsed_body.pluck("id")
         expect(ids).to include(other_version.id)
@@ -83,7 +83,7 @@ RSpec.describe StaffWikiVersionsController do
       it "filters by staff_wiki_id" do
         v       = version
         other_v = other_wiki.versions.first
-        sign_in_as janitor
+        sign_in_as staff
         get staff_wiki_versions_path(format: :json, search: { staff_wiki_id: wiki.id })
         ids = response.parsed_body.pluck("id")
         expect(ids).to include(v.id)
@@ -91,7 +91,7 @@ RSpec.describe StaffWikiVersionsController do
       end
 
       it "returns no results for an out-of-range staff_wiki_id" do
-        sign_in_as janitor
+        sign_in_as staff
         get staff_wiki_versions_path(format: :json, search: { staff_wiki_id: "995859912741" })
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body).to eq([])
@@ -104,7 +104,7 @@ RSpec.describe StaffWikiVersionsController do
       it "returns only versions matching the title" do
         v       = version
         other_v = other_wiki.versions.first
-        sign_in_as janitor
+        sign_in_as staff
         get staff_wiki_versions_path(format: :json, search: { title: wiki.title })
         ids = response.parsed_body.pluck("id")
         expect(ids).to include(v.id)
@@ -118,7 +118,7 @@ RSpec.describe StaffWikiVersionsController do
       it "returns only versions matching the body" do
         v       = version
         other_v = other_wiki.versions.first
-        sign_in_as janitor
+        sign_in_as staff
         get staff_wiki_versions_path(format: :json, search: { body: wiki.body })
         ids = response.parsed_body.pluck("id")
         expect(ids).to include(v.id)
@@ -142,7 +142,7 @@ RSpec.describe StaffWikiVersionsController do
       end
 
       it "returns 403 when a non-admin passes ip_addr" do
-        sign_in_as janitor
+        sign_in_as staff
         get staff_wiki_versions_path(format: :json, search: { ip_addr: "9.9.9.9" })
         expect(response).to have_http_status(:forbidden)
       end
@@ -165,14 +165,14 @@ RSpec.describe StaffWikiVersionsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for a janitor" do
-      sign_in_as janitor
+    it "returns 200 for a staff member" do
+      sign_in_as staff
       get staff_wiki_version_path(version)
       expect(response).to have_http_status(:ok)
     end
 
     it "returns 404 for a non-existent id" do
-      sign_in_as janitor
+      sign_in_as staff
       get staff_wiki_version_path(id: 0)
       expect(response).to have_http_status(:not_found)
     end
@@ -187,7 +187,7 @@ RSpec.describe StaffWikiVersionsController do
     let(:later_version)   { wiki.versions.last }
 
     before do
-      CurrentUser.scoped(janitor, "127.0.0.1") { wiki.update!(body: "updated body") }
+      CurrentUser.scoped(staff, "127.0.0.1") { wiki.update!(body: "updated body") }
     end
 
     it "redirects anonymous to the login page" do
@@ -202,20 +202,20 @@ RSpec.describe StaffWikiVersionsController do
     end
 
     it "returns 200 with valid thispage and otherpage params" do
-      sign_in_as janitor
+      sign_in_as staff
       get diff_staff_wiki_versions_path(thispage: earlier_version.id, otherpage: later_version.id)
       expect(response).to have_http_status(:ok)
     end
 
     it "redirects with a notice when thispage is blank" do
-      sign_in_as janitor
+      sign_in_as staff
       get diff_staff_wiki_versions_path(thispage: "", otherpage: later_version.id)
       expect(response).to redirect_to(staff_wikis_path)
       expect(flash[:notice]).to eq("You must select two versions to diff")
     end
 
     it "redirects with a notice when otherpage is blank" do
-      sign_in_as janitor
+      sign_in_as staff
       get diff_staff_wiki_versions_path(thispage: earlier_version.id, otherpage: "")
       expect(response).to redirect_to(staff_wikis_path)
       expect(flash[:notice]).to eq("You must select two versions to diff")

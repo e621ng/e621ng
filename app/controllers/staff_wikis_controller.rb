@@ -2,7 +2,7 @@
 
 class StaffWikisController < ApplicationController
   respond_to :html, :json
-  before_action :janitor_only
+  before_action :staff_only
   before_action :admin_only, only: [:destroy]
 
   def index
