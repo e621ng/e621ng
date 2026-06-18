@@ -1,5 +1,6 @@
 import Logger from "@/utility/Logger";
 import LStorage from "@/utility/Storage";
+import ToastManager from "@/utility/Toast";
 
 let _data = {}, loaded = false;
 const _get = function () {
@@ -49,7 +50,7 @@ export default class CurrentUser {
   public readonly settings: CurrentUserSettings;
 
   // Lazy-loaded properties
-  private _authToken: string | null = undefined;
+  private _authToken?: string | null;
 
   // Properties with getters/setters
   private rawBlacklist: string[];
@@ -71,7 +72,7 @@ export default class CurrentUser {
       blocked: !!isObj["blocked"],
       member: !!isObj["member"],
       privileged: !!isObj["privileged"],
-      former_staff: !!isObj["former_staff"],
+      formerStaff: !!isObj["former_staff"],
       staff: !!isObj["staff"],
       janitor: !!isObj["janitor"],
       moderator: !!isObj["moderator"],
@@ -80,16 +81,16 @@ export default class CurrentUser {
 
     const canObject = obj["can"] || {};
     this.can = {
-      upload_free: !!canObject["upload_free"],
-      approve_posts: !!canObject["approve_posts"],
+      uploadFree: !!canObject["upload_free"],
+      approvePosts: !!canObject["approve_posts"],
     };
 
     const settingsObj = obj["settings"] || {};
     this.settings = {
       hotkeys: !!settingsObj["hotkeys"],
-      per_page: settingsObj["per_page"] || 75,
-      default_image_size: settingsObj["default_image_size"] || "large",
-      comment_threshold: settingsObj["comment_threshold"] || -10,
+      perPage: settingsObj["per_page"] || 75,
+      defaultImageSize: settingsObj["default_image_size"] || "large",
+      commentThreshold: settingsObj["comment_threshold"] || -10,
     };
 
     // Blacklist
@@ -133,6 +134,7 @@ export default class CurrentUser {
     this.rawBlacklist = newBlacklist;
     CurrentUser.patchBlacklistMethods(this.rawBlacklist);
     CurrentUser.saveBlacklist(newBlacklist).catch((e) => {
+      ToastManager.alert("Failed to save blacklist after modification.");
       console.error("Failed to save blacklist:", e);
     });
   }
@@ -161,6 +163,7 @@ export default class CurrentUser {
       try {
         LStorage.Blacklist.AnonymousBlacklist = JSON.stringify(blacklist);
       } catch (e) {
+        ToastManager.alert("Failed to save blacklist.");
         console.error("Failed to save blacklist to localStorage:", e);
       }
       return Promise.resolve();
@@ -205,6 +208,7 @@ export default class CurrentUser {
         value: function (...args: any[]) {
           const result = original.apply(this, args);
           CurrentUser.saveBlacklist(this).catch((e) => {
+            ToastManager.alert("Failed to save blacklist after modification.");
             console.error("Failed to save blacklist after mutation:", e);
           });
           return result;
@@ -221,7 +225,7 @@ interface CurrentUserIs {
   blocked: boolean,
   member: boolean,
   privileged: boolean,
-  former_staff: boolean,
+  formerStaff: boolean,
   staff: boolean,
   janitor: boolean,
   moderator: boolean,
@@ -229,13 +233,13 @@ interface CurrentUserIs {
 }
 
 interface CurrentUserCan {
-  upload_free: boolean,
-  approve_posts: boolean,
+  uploadFree: boolean,
+  approvePosts: boolean,
 }
 
 interface CurrentUserSettings {
   hotkeys: boolean,
-  per_page: number,
-  default_image_size: string,
-  comment_threshold: number,
+  perPage: number,
+  defaultImageSize: string,
+  commentThreshold: number,
 }

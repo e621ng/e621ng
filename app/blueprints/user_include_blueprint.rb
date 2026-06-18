@@ -36,6 +36,6 @@ class UserIncludeBlueprint < Blueprinter::Base
   end
 
   field :blacklist do |user|
-    user.blacklisted_tags.split("\n")
+    user.blacklisted_tags.to_s.split("\n")
   end
 end

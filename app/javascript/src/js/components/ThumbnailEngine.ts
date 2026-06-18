@@ -60,7 +60,7 @@ export default class ThumbnailEngine {
       })
       .appendTo(article);
 
-    if (!post.isUnavailable && (!post.isDeleted || E621.CurrentUser.is.admin))
+    if (!post.isUnavailable && (!post.isDeleted || E621.CurrentUser.is.staff))
       link.append(this.renderPicture(post));
 
     // Footer
