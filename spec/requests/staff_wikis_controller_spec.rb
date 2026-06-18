@@ -7,7 +7,7 @@ RSpec.describe StaffWikisController do
 
   let(:staff_wiki) { create(:staff_wiki) }
   let(:member)     { create(:user) }
-  let(:janitor)    { create(:janitor_user) }
+  let(:staff)      { create(:staff_user) }
   let(:admin)      { create(:admin_user) }
 
   # ---------------------------------------------------------------------------
@@ -31,14 +31,14 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for a janitor" do
-      sign_in_as janitor
+    it "returns 200 for a staff member" do
+      sign_in_as staff
       get staff_wikis_path
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns a JSON array for a janitor" do
-      sign_in_as janitor
+    it "returns a JSON array for a staff member" do
+      sign_in_as staff
       get staff_wikis_path(format: :json)
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to be_an(Array)
@@ -46,7 +46,7 @@ RSpec.describe StaffWikisController do
 
     it "filters results by title search param" do
       staff_wiki
-      sign_in_as janitor
+      sign_in_as staff
       get staff_wikis_path(format: :json, search: { title: staff_wiki.title })
       expect(response.parsed_body.pluck("id")).to include(staff_wiki.id)
     end
@@ -73,8 +73,8 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for a janitor" do
-      sign_in_as janitor
+    it "returns 200 for a staff member" do
+      sign_in_as staff
       get search_staff_wikis_path
       expect(response).to have_http_status(:ok)
     end
@@ -101,14 +101,14 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for a janitor" do
-      sign_in_as janitor
+    it "returns 200 for a staff member" do
+      sign_in_as staff
       get staff_wiki_path(staff_wiki)
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns JSON with expected fields for a janitor" do
-      sign_in_as janitor
+    it "returns JSON with expected fields for a staff member" do
+      sign_in_as staff
       get staff_wiki_path(staff_wiki, format: :json)
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to include("id" => staff_wiki.id, "title" => staff_wiki.title)
@@ -131,8 +131,8 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for a janitor" do
-      sign_in_as janitor
+    it "returns 200 for a staff member" do
+      sign_in_as staff
       get new_staff_wiki_path
       expect(response).to have_http_status(:ok)
     end
@@ -154,8 +154,8 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for a janitor" do
-      sign_in_as janitor
+    it "returns 200 for a staff member" do
+      sign_in_as staff
       get edit_staff_wiki_path(staff_wiki)
       expect(response).to have_http_status(:ok)
     end
@@ -185,8 +185,8 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    context "as a janitor" do
-      before { sign_in_as janitor }
+    context "as a staff member" do
+      before { sign_in_as staff }
 
       it "creates a staff wiki" do
         expect { post staff_wikis_path, params: valid_params }.to change(StaffWiki, :count).by(1)
@@ -227,21 +227,21 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "updates the body for a janitor" do
-      sign_in_as janitor
+    it "updates the body for a staff member" do
+      sign_in_as staff
       patch staff_wiki_path(staff_wiki), params: update_params
       expect(staff_wiki.reload.body).to eq("Updated body content.")
     end
 
-    it "redirects after a successful update for a janitor" do
-      sign_in_as janitor
+    it "redirects after a successful update for a staff member" do
+      sign_in_as staff
       patch staff_wiki_path(staff_wiki), params: update_params
       expect(response).to have_http_status(:redirect)
     end
 
     it "does not update with an invalid title" do
       original_title = staff_wiki.title
-      sign_in_as janitor
+      sign_in_as staff
       patch staff_wiki_path(staff_wiki), params: invalid_params
       expect(staff_wiki.reload.title).to eq(original_title)
     end
@@ -268,8 +268,8 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 403 for a janitor" do
-      sign_in_as janitor
+    it "returns 403 for a staff member" do
+      sign_in_as staff
       delete staff_wiki_path(staff_wiki)
       expect(response).to have_http_status(:forbidden)
     end
@@ -316,14 +316,14 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "reverts to the given version for a janitor" do
-      sign_in_as janitor
+    it "reverts to the given version for a staff member" do
+      sign_in_as staff
       put revert_staff_wiki_path(staff_wiki), params: { version_id: version.id }
       expect(staff_wiki.reload.body).to eq(original_body)
     end
 
-    it "redirects after revert for a janitor" do
-      sign_in_as janitor
+    it "redirects after revert for a staff member" do
+      sign_in_as staff
       put revert_staff_wiki_path(staff_wiki), params: { version_id: version.id }
       expect(response).to have_http_status(:redirect)
     end
@@ -345,10 +345,10 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "sets the claimant to the current janitor" do
-      sign_in_as janitor
+    it "sets the claimant to the current staff member" do
+      sign_in_as staff
       post claim_staff_wiki_path(staff_wiki)
-      expect(staff_wiki.reload.claimant_id).to eq(janitor.id)
+      expect(staff_wiki.reload.claimant_id).to eq(staff.id)
     end
   end
 
@@ -357,7 +357,7 @@ RSpec.describe StaffWikisController do
   # ---------------------------------------------------------------------------
 
   describe "POST /staff_wikis/:id/unclaim" do
-    before { staff_wiki.update_columns(claimant_id: janitor.id) }
+    before { staff_wiki.update_columns(claimant_id: staff.id) }
 
     it "redirects anonymous to the login page for HTML" do
       post unclaim_staff_wiki_path(staff_wiki)
@@ -370,8 +370,8 @@ RSpec.describe StaffWikisController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "clears the claimant for a janitor" do
-      sign_in_as janitor
+    it "clears the claimant for a staff member" do
+      sign_in_as staff
       post unclaim_staff_wiki_path(staff_wiki)
       expect(staff_wiki.reload.claimant_id).to be_nil
     end

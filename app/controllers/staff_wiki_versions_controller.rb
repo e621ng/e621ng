@@ -2,7 +2,7 @@
 
 class StaffWikiVersionsController < ApplicationController
   respond_to :html, :json
-  before_action :janitor_only
+  before_action :staff_only
 
   def index
     @staff_wiki_versions = StaffWikiVersion.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
