@@ -96,6 +96,38 @@
     </div>
   </div>
 
+  <div class="ssc-header">Post relationships</div>
+
+  <div class="ssc-entry">
+
+    <div class="ssc-label">
+      <label for="ssc-has-parent">Has parent</label>
+    </div>
+
+    <div class="ssc-body">
+      <%= tag.label(class: "sto-toggle sto-toggle--tri", id: "ssc-has-parent", data: { advanced_search: "ischild", state: "unset" }) do %>
+        <%= tag.span("Any", class: "sto-tri") %>
+        <%= tag.span("Yes", class: "sto-tri") %>
+        <%= tag.span("No", class: "sto-tri") %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="ssc-entry">
+
+    <div class="ssc-label">
+      <label for="ssc-has-child">Has child</label>
+    </div>
+
+    <div class="ssc-body">
+      <%= tag.label(class: "sto-toggle sto-toggle--tri", id: "ssc-has-child", data: { advanced_search: "isparent", state: "unset" }) do %>
+        <%= tag.span("Any", class: "sto-tri") %>
+        <%= tag.span("Yes", class: "sto-tri") %>
+        <%= tag.span("No", class: "sto-tri") %>
+      <% end %>
+    </div>
+  </div>
+
 </div>
 
 <div id="layout-settings-container">
