@@ -10,6 +10,7 @@ class UserIncludeBlueprint < Blueprinter::Base
   field :is do |user|
     output = {}
 
+    # Convenience methods generated in the User model.
     UserLevel::MAPPING.each_key do |name|
       normalized_name = UserLevel.normalize(name)
       output[normalized_name] = user.try(:"is_#{normalized_name}?")

@@ -2,7 +2,8 @@ import Logger from "@/utility/Logger";
 import LStorage from "@/utility/Storage";
 import ToastManager from "@/utility/Toast";
 
-let _data = {}, loaded = false;
+let _data: Record<string, any> = {},
+  loaded = false;
 const _get = function () {
   if (loaded) return _data;
   try {
