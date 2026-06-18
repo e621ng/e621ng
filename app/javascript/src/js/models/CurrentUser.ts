@@ -1,4 +1,5 @@
 import Logger from "@/utility/Logger";
+import LStorage from "@/utility/Storage";
 
 let _data = {}, loaded = false;
 const _get = function () {
@@ -93,23 +94,19 @@ export default class CurrentUser {
 
     // Blacklist
     this.rawBlacklist = obj["blacklist"] || [];
-    CurrentUser.patchBlacklistMethods(this.rawBlacklist);
     if (this.is.anonymous) {
       // For anonymous users, we need to load the blacklist from localStorage
       try {
-        const storedBlacklist = localStorage.getItem("blacklist");
+        const storedBlacklist = LStorage.Blacklist.AnonymousBlacklist;
         this.rawBlacklist = storedBlacklist ? JSON.parse(storedBlacklist) : [];
       } catch (e) {
         console.error("Failed to parse stored blacklist:", e);
         this.rawBlacklist = [];
       }
 
-      // Build a meta tag, for compatibility purposes
-      const meta = document.createElement("meta");
-      meta.name = "blacklist";
-      meta.content = JSON.stringify(this.rawBlacklist);
-      document.head.appendChild(meta);
+      CurrentUser.updateBlacklistMetatag(this.rawBlacklist);
     }
+    CurrentUser.patchBlacklistMethods(this.rawBlacklist);
 
     CurrentUser.Logger.log(`Loaded: ${this.name} / ${this.id} / ${this.levelString}`);
   }
@@ -153,14 +150,7 @@ export default class CurrentUser {
   private static async saveBlacklist (blacklist: string[]) {
     CurrentUser.Logger.log("Saving blacklist:", blacklist);
 
-    // Update the meta tag for compatibility with existing code
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="blacklist"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "blacklist";
-      document.head.appendChild(meta);
-    }
-    meta.setAttribute("content", JSON.stringify(blacklist));
+    CurrentUser.updateBlacklistMetatag(blacklist);
 
     // Trigger a custom event to update the quick blacklist editor
     const event = new CustomEvent("e621:blacklistUpdated", { detail: { blacklist } });
@@ -169,7 +159,7 @@ export default class CurrentUser {
     // Save the anonymous blacklist
     if (CurrentUser.user.is.anonymous) {
       try {
-        localStorage.setItem("blacklist", JSON.stringify(blacklist));
+        LStorage.Blacklist.AnonymousBlacklist = JSON.stringify(blacklist);
       } catch (e) {
         console.error("Failed to save blacklist to localStorage:", e);
       }
@@ -189,6 +179,16 @@ export default class CurrentUser {
       credentials: "include",
       body: formData,
     });
+  }
+
+  private static updateBlacklistMetatag (blacklist: string[]) {
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="blacklisted-tags"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "blacklisted-tags";
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", JSON.stringify(blacklist));
   }
 
   /**
