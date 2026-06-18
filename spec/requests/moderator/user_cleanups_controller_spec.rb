@@ -88,9 +88,9 @@ RSpec.describe Moderator::UserCleanupsController do
     end
 
     it "creates a staff note with the archived content" do
-      expect {
+      expect do
         post clear_profile_moderator_user_cleanup_path(target)
-      }.to change(StaffNote, :count).by(1)
+      end.to change(StaffNote, :count).by(1)
 
       note = StaffNote.last
       expect(note.user_id).to eq(target.id)
@@ -99,9 +99,9 @@ RSpec.describe Moderator::UserCleanupsController do
     end
 
     it "logs a user_profile_clear ModAction" do
-      expect {
+      expect do
         post clear_profile_moderator_user_cleanup_path(target)
-      }.to change { ModAction.where(action: "user_profile_clear").count }.by(1)
+      end.to change { ModAction.where(action: "user_profile_clear").count }.by(1)
     end
 
     it "redirects back to the cleanup page" do
@@ -113,9 +113,9 @@ RSpec.describe Moderator::UserCleanupsController do
       let(:target) { create(:user, profile_about: "", profile_artinfo: "") }
 
       it "still creates a staff note" do
-        expect {
+        expect do
           post clear_profile_moderator_user_cleanup_path(target)
-        }.to change(StaffNote, :count).by(1)
+        end.to change(StaffNote, :count).by(1)
       end
 
       it "does not include archived content section in the note" do
@@ -139,23 +139,23 @@ RSpec.describe Moderator::UserCleanupsController do
     end
 
     it "enqueues HideUserCommentsJob" do
-      expect {
+      expect do
         post hide_comments_moderator_user_cleanup_path(target)
-      }.to have_enqueued_job(HideUserCommentsJob).with(target.id, moderator.id)
+      end.to have_enqueued_job(HideUserCommentsJob).with(target.id, moderator.id)
     end
 
     it "creates a staff note" do
-      expect {
+      expect do
         post hide_comments_moderator_user_cleanup_path(target)
-      }.to change(StaffNote, :count).by(1)
+      end.to change(StaffNote, :count).by(1)
 
       expect(StaffNote.last.user_id).to eq(target.id)
     end
 
     it "logs a user_comments_hide ModAction" do
-      expect {
+      expect do
         post hide_comments_moderator_user_cleanup_path(target)
-      }.to change { ModAction.where(action: "user_comments_hide").count }.by(1)
+      end.to change { ModAction.where(action: "user_comments_hide").count }.by(1)
     end
 
     it "redirects back to the cleanup page" do
@@ -178,23 +178,23 @@ RSpec.describe Moderator::UserCleanupsController do
     end
 
     it "enqueues HideUserForumPostsJob" do
-      expect {
+      expect do
         post hide_forum_posts_moderator_user_cleanup_path(target)
-      }.to have_enqueued_job(HideUserForumPostsJob).with(target.id, moderator.id)
+      end.to have_enqueued_job(HideUserForumPostsJob).with(target.id, moderator.id)
     end
 
     it "creates a staff note" do
-      expect {
+      expect do
         post hide_forum_posts_moderator_user_cleanup_path(target)
-      }.to change(StaffNote, :count).by(1)
+      end.to change(StaffNote, :count).by(1)
 
       expect(StaffNote.last.user_id).to eq(target.id)
     end
 
     it "logs a user_forum_posts_hide ModAction" do
-      expect {
+      expect do
         post hide_forum_posts_moderator_user_cleanup_path(target)
-      }.to change { ModAction.where(action: "user_forum_posts_hide").count }.by(1)
+      end.to change { ModAction.where(action: "user_forum_posts_hide").count }.by(1)
     end
 
     it "redirects back to the cleanup page" do
