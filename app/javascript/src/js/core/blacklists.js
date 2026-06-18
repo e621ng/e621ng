@@ -1,6 +1,5 @@
 import Filter from "@/models/Filter";
 import PostCache from "@/models/PostCache";
-import User from "@/models/User";
 import Utility from "@/utility/utility";
 import Dialog from "@/utility/dialog";
 import Page from "@/utility/Page";
@@ -37,21 +36,21 @@ Blacklist.init_blacklist_editor = function () {
   $("#blacklist-save").on("click", function () {
     const blacklist_content = $("#blacklist-edit").val();
     const blacklist_json = blacklist_content.split(/\n\r?/);
-    User.blacklist.tags = blacklist_json;
-    User.saveBlacklist();
-
-    // Regenerate sidebar toggles
-    $("li.tag-list-item.blacklisted").removeClass("blacklisted");
-    for (const one of User.blacklist.tags) {
-      if (one.includes(" ") || !Blacklist.tag_list_cache[one]) continue;
-      Blacklist.tag_list_cache[one].addClass("blacklisted");
-    }
+    E621.CurrentUser.blacklist = blacklist_json;
+    Blacklist.dialog.close();
   });
 
   $("#blacklist-edit-link").on("click", function (event) {
     event.preventDefault();
-    $("#blacklist-edit").val(User.blacklist.tags.join("\n"));
+    $("#blacklist-edit").val(E621.CurrentUser.blacklist.join("\n"));
     Blacklist.dialog.open();
+  });
+
+  // Update the textarea if the blacklist gets updated elsewhere
+  document.addEventListener("e621:blacklistUpdated", (event) => {
+    if (!Blacklist.dialog) return;
+    const blacklist = event.detail.blacklist;
+    $("#blacklist-edit").val(blacklist.join("\n"));
   });
 };
 
@@ -111,7 +110,7 @@ Blacklist.regenerate_filters = function () {
   Blacklist.filters = {};
 
   // Attempt to create filters from text
-  for (let entry of User.blacklist.tags) {
+  for (let entry of E621.CurrentUser.blacklist) {
     const line = Filter.create(entry);
     if (line) Blacklist.filters[line.text] = line;
   }
@@ -172,7 +171,7 @@ Blacklist.init_quick_blacklist = function () {
   for (const entry of $("li.tag-list-item"))
     Blacklist.tag_list_cache[decodeURIComponent(entry.dataset.name)] = $(entry);
 
-  for (const one of User.blacklist.tags) {
+  for (const one of E621.CurrentUser.blacklist) {
     if (one.includes(" ") || !Blacklist.tag_list_cache[one]) continue;
     Blacklist.tag_list_cache[one].addClass("blacklisted");
   }
@@ -182,13 +181,13 @@ Blacklist.init_quick_blacklist = function () {
     const tag = target.data("tag");
     if (!tag) return;
 
-    if (User.blacklist.tags.includes(tag)) {
+    if (E621.CurrentUser.blacklist.includes(tag)) {
       if (!confirm(`Are you sure you want to remove "${tag}" from your blacklist?`)) return;
-      User.removeBlacklistedTag(tag);
+      E621.CurrentUser.blacklist = E621.CurrentUser.blacklist.filter(n => n !== tag);
       target.parents(".tag-list-item").removeClass("blacklisted");
     } else {
       if (!confirm(`Are you sure you want to add "${tag}" to your blacklist?`)) return;
-      User.addBlacklistedTag(tag);
+      E621.CurrentUser.blacklist.push(tag);
       target.parents(".tag-list-item").addClass("blacklisted");
     }
   });
@@ -289,6 +288,20 @@ $(() => {
   Blacklist.init_comment_blacklist();
   Blacklist.init_blacklist_toggles();
   Blacklist.init_quick_blacklist();
+
+  // Listen for blacklist update events
+  document.addEventListener("e621:blacklistUpdated", () => {
+    Blacklist.regenerate_filters();
+    Blacklist.add_posts(PostCache.sample());
+    Blacklist.update_visibility();
+
+    // Regenerate sidebar toggles
+    $("li.tag-list-item.blacklisted").removeClass("blacklisted");
+    for (const one of E621.CurrentUser.blacklist) {
+      if (one.includes(" ") || !Blacklist.tag_list_cache[one]) continue;
+      Blacklist.tag_list_cache[one].addClass("blacklisted");
+    }
+  });
 
   // Pause videos when blacklisting
   // This seems extraordinarily uncommon, so it's here

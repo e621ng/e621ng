@@ -1,5 +1,4 @@
 import Hotkeys from "@/core/hotkeys";
-import User from "@/models/User";
 import Page from "@/utility/Page";
 
 export default class StaticShortcuts {
@@ -90,8 +89,8 @@ export default class StaticShortcuts {
     const resetIcon = $(".hotkey-reset-icon").clone().removeClass("hotkey-reset-icon");
 
     buildDefs(StaticShortcuts.Definitions);
-    if (User.is.privileged) buildDefs(StaticShortcuts.PrivilegedDefs);
-    if (User.is.janitor) buildDefs(StaticShortcuts.JanitorDefs);
+    if (E621.CurrentUser.is.privileged) buildDefs(StaticShortcuts.PrivilegedDefs);
+    if (E621.CurrentUser.is.janitor) buildDefs(StaticShortcuts.JanitorDefs);
 
     function buildDefs (list) {
       for (const [category, definitions] of Object.entries(list)) {

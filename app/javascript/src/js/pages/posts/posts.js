@@ -1,6 +1,5 @@
 import Hotkeys from "@/core/hotkeys";
 import PostVote from "@/models/PostVote";
-import User from "@/models/User";
 import Page from "@/utility/Page";
 import LStorage from "@/utility/Storage";
 import SVGIcon from "@/utility/SVGIcon";
@@ -541,7 +540,7 @@ Post.initialize_change_resize_mode_link = function () {
 
 Post._isEditing = false;
 Post.initialize_post_sections = function () {
-  if (User.is.anonymous) return;
+  if (E621.CurrentUser.is.anonymous) return;
 
   $("#side-edit-link, #post-edit-link, #menu-post-edit-link, #post-edit-close").on("click.danbooru", (event) => {
     event.preventDefault(); // Only one of these is a link
