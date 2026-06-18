@@ -40,32 +40,20 @@ module Moderator
 
     def hide_comments
       HideUserCommentsJob.perform_later(@user.id, CurrentUser.id)
-      StaffNote.create!(
-        user_id: @user.id,
-        body: "Scheduled bulk comment hide for #{@user.name}. Initiated by #{CurrentUser.user.name}.",
-      )
       ModAction.log(:user_comments_hide, { user_id: @user.id })
       redirect_to moderator_user_cleanup_path(@user), notice: "Comment hide job scheduled."
     end
 
     def hide_forum_posts
       HideUserForumPostsJob.perform_later(@user.id, CurrentUser.id)
-      StaffNote.create!(
-        user_id: @user.id,
-        body: "Scheduled bulk forum post/topic hide for #{@user.name}. Initiated by #{CurrentUser.user.name}.",
-      )
       ModAction.log(:user_forum_posts_hide, { user_id: @user.id })
       redirect_to moderator_user_cleanup_path(@user), notice: "Forum post hide job scheduled."
     end
 
     def hide_blips
       HideUserBlipsJob.perform_later(@user.id, CurrentUser.id)
-      StaffNote.create!(
-        user_id: @user.id,
-        body: "Scheduled bulk blip hide for #{@user.name}. Initiated by #{CurrentUser.user.name}.",
-      )
-      ModAction.log(:user_blips_hide, { user_id: @user.id })
-      redirect_to moderator_user_cleanup_path(@user), notice: "Blip hide job scheduled."
+      ModAction.log(:user_blips_delete, { user_id: @user.id })
+      redirect_to moderator_user_cleanup_path(@user), notice: "Blip delete job scheduled."
     end
 
     private

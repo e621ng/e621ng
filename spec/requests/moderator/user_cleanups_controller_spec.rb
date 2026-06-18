@@ -144,14 +144,6 @@ RSpec.describe Moderator::UserCleanupsController do
       end.to have_enqueued_job(HideUserCommentsJob).with(target.id, moderator.id)
     end
 
-    it "creates a staff note" do
-      expect do
-        post hide_comments_moderator_user_cleanup_path(target)
-      end.to change(StaffNote, :count).by(1)
-
-      expect(StaffNote.last.user_id).to eq(target.id)
-    end
-
     it "logs a user_comments_hide ModAction" do
       expect do
         post hide_comments_moderator_user_cleanup_path(target)
@@ -183,14 +175,6 @@ RSpec.describe Moderator::UserCleanupsController do
       end.to have_enqueued_job(HideUserForumPostsJob).with(target.id, moderator.id)
     end
 
-    it "creates a staff note" do
-      expect do
-        post hide_forum_posts_moderator_user_cleanup_path(target)
-      end.to change(StaffNote, :count).by(1)
-
-      expect(StaffNote.last.user_id).to eq(target.id)
-    end
-
     it "logs a user_forum_posts_hide ModAction" do
       expect do
         post hide_forum_posts_moderator_user_cleanup_path(target)
@@ -199,6 +183,37 @@ RSpec.describe Moderator::UserCleanupsController do
 
     it "redirects back to the cleanup page" do
       post hide_forum_posts_moderator_user_cleanup_path(target)
+      expect(response).to redirect_to(moderator_user_cleanup_path(target))
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # POST /moderator/user_cleanups/:user_id/hide_blips
+  # ---------------------------------------------------------------------------
+
+  describe "POST /moderator/user_cleanups/:user_id/hide_blips" do
+    before { sign_in_as moderator }
+
+    it "returns 403 for a member" do
+      sign_in_as member
+      post hide_blips_moderator_user_cleanup_path(target)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "enqueues HideUserBlipsJob" do
+      expect do
+        post hide_blips_moderator_user_cleanup_path(target)
+      end.to have_enqueued_job(HideUserBlipsJob).with(target.id, moderator.id)
+    end
+
+    it "logs a blip_delete ModAction" do
+      expect do
+        post hide_blips_moderator_user_cleanup_path(target)
+      end.to change { ModAction.where(action: "user_blips_delete").count }.by(1)
+    end
+
+    it "redirects back to the cleanup page" do
+      post hide_blips_moderator_user_cleanup_path(target)
       expect(response).to redirect_to(moderator_user_cleanup_path(target))
     end
   end

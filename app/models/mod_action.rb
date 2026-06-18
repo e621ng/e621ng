@@ -84,6 +84,7 @@ class ModAction < ApplicationRecord
     user_profile_clear: { user_id: :integer },
     user_comments_hide: { user_id: :integer },
     user_forum_posts_hide: { user_id: :integer },
+    user_blips_delete: { user_id: :integer },
     user_blacklist_changed: { user_id: :integer },
     user_text_change: { user_id: :integer },
     user_custom_title_change: { user_id: :integer, old_custom_title: :string, new_custom_title: :string },
