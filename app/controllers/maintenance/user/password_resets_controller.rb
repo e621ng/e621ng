@@ -39,11 +39,14 @@ module Maintenance
 
       private
 
+      USER_ID_MIN = 0
+      USER_ID_MAX = 2_147_483_647 # PostgreSQL max int
+
       def find_nonce_from_params
         # Some translator software keeps appending extra text to the end of the UID.
         # Just strip the non-numeric characters, ex: "1739850关闭网页" -> "1739850"
         sanitized_uid = params[:uid].to_s.gsub(/[^\d]/, "")
-        return nil if sanitized_uid.blank?
+        return nil if sanitized_uid.blank? || !sanitized_uid.to_i.between?(USER_ID_MIN, USER_ID_MAX)
 
         if params[:uid].to_s != sanitized_uid
           Rails.logger.warn("Password reset UID sanitized: original='#{params[:uid]}', sanitized='#{sanitized_uid}', key='#{params[:key]}', user_agent='#{request.user_agent}'")
