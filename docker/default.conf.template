@@ -21,6 +21,10 @@ server {
     return 403;
   }
 
+  location /data/download/staff_files/ {
+    return 403;
+  }
+
   location /data/download/ {
     alias /app/public/data/;
     add_header Content-Disposition 'attachment; filename="$arg_filename"';
@@ -49,7 +53,19 @@ server {
     if ($secure_link = "0") {
       return 403;
     }
-}
+  }
+
+  location /data/staff_files/ {
+    add_header Cache-Control "private";
+    secure_link $arg_auth,$arg_expires;
+    secure_link_md5 "$secure_link_expires $uri $arg_uid ${DANBOORU_STAFF_FILE_SECRET}";
+    if ($secure_link = "") {
+      return 403;
+    }
+    if ($secure_link = "0") {
+      return 403;
+    }
+  }
 
   location /tags/autocomplete.json {
     proxy_pass http://autocompleted:8118/;

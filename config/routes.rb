@@ -7,6 +7,10 @@ Rails.application.routes.draw do
 
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
+  namespace :staff do
+    resources :files, controller: "staff_files", only: %i[index show new create edit update destroy]
+  end
+
   namespace :admin do
     resources :automod_rules, only: %i[index new create edit update destroy]
     resources :users, only: %i[edit update] do

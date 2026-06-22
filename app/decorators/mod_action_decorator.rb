@@ -489,6 +489,14 @@ class ModActionDecorator < ApplicationDecorator
     when "post_replacement_delete"
       "Post replacement for post ##{vals['post_id']} was deleted"
 
+      ### Staff Files ###
+    when "staff_file_create"
+      "Uploaded staff file ##{vals['id']} (#{vals['filename']}) by #{user}"
+    when "staff_file_update"
+      "Edited staff file ##{vals['id']} (#{vals['filename']}) by #{user}"
+    when "staff_file_delete"
+      "Deleted staff file ##{vals['id']} (#{vals['filename']}) uploaded by #{user}"
+
     else
       CurrentUser.is_admin? ? "Unknown action #{object.action}: #{object.values.inspect}" : "Unknown action #{object.action}"
     end

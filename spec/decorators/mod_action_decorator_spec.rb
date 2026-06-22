@@ -28,6 +28,18 @@ RSpec.describe ModActionDecorator do
       end
     end
 
+    context "with staff file actions" do
+      it "staff_file_create includes the file id, filename, and uploader link" do
+        desc = decorate(:staff_file_create, { "id" => 3, "filename" => "evidence.zip", "file_size" => 1024, "user_id" => target_user.id }).format_description
+        expect(desc).to include("staff file #3", "evidence.zip", target_user.name)
+      end
+
+      it "staff_file_delete includes the file id and filename" do
+        desc = decorate(:staff_file_delete, { "id" => 3, "filename" => "evidence.zip", "user_id" => target_user.id }).format_description
+        expect(desc).to include("Deleted staff file #3", "evidence.zip")
+      end
+    end
+
     context "with takedown actions" do
       it "takedown_process includes takedown id" do
         desc = decorate(:takedown_process, { "takedown_id" => 7 }).format_description

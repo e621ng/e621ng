@@ -1,0 +1,34 @@
+#c-staff-files #a-show {
+  .staff-file-preview {
+    max-width: 50rem;
+    max-height: 50rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+
+    img, video {
+      max-width: 50rem;
+      max-height: 50rem;
+      border-radius: 0.25rem;
+    }
+
+    p.staff-file-download a {
+      display: flex;
+      flex-flow: column;
+      align-items: center;
+      width: 100%;
+      max-width: 20rem;
+      padding: 1rem;
+
+      box-shadow: inset 0 0 0.5rem themed("color-section-darken-5");
+      background: themed("color-section");
+      border-radius: 0.25rem;
+
+      &::before {
+        content: "Preview Unavailable";
+        color: themed("color-text");
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+      }
+    }
+  }
+}

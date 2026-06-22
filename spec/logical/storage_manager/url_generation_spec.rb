@@ -43,6 +43,26 @@ RSpec.describe StorageManager do
   end
 
   # -------------------------------------------------------------------------
+  # #staff_file_url
+  # -------------------------------------------------------------------------
+  describe "#staff_file_url" do
+    include_context "as member"
+
+    let(:staff_file) { instance_double(StaffFile, storage_id: "deadbeefdeadbeef", file_ext: "png") }
+
+    it "appends auth query params to the protected staff file URL" do
+      url = manager.staff_file_url(staff_file)
+      expect(url).to match(%r{\Ahttp://example\.com/data/staff_files/deadbeefdeadbeef\.png\?auth=.+&expires=\d+&uid=\d+\z})
+    end
+
+    it "includes the current user's id in the uid param" do
+      url = manager.staff_file_url(staff_file)
+      uid = url[/uid=(\d+)/, 1].to_i
+      expect(uid).to eq(CurrentUser.id)
+    end
+  end
+
+  # -------------------------------------------------------------------------
   # #file_url
   # -------------------------------------------------------------------------
   describe "#file_url" do

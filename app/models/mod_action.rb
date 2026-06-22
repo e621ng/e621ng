@@ -56,6 +56,9 @@ class ModAction < ApplicationRecord
     mascot_create: { id: :integer },
     mascot_update: { id: :integer },
     mascot_delete: { id: :integer },
+    staff_file_create: { id: :integer, filename: :string, file_size: :integer, user_id: :integer },
+    staff_file_update: { id: :integer, filename: :string, user_id: :integer },
+    staff_file_delete: { id: :integer, filename: :string, user_id: :integer },
     pool_delete: { pool_id: :integer, pool_name: :string, user_id: :integer },
     flag_reason_create: { reason: :string, text: :string },
     flag_reason_update: { reason: :string, reason_was: :string, text: :string, text_was: :string },
@@ -115,7 +118,12 @@ class ModAction < ApplicationRecord
     post_version_unhide: { version: :integer, post_id: :integer },
   }.freeze
 
-  ProtectedActionKeys = %w[staff_note_create staff_note_update staff_note_delete staff_note_undelete ip_ban_create ip_ban_delete post_version_hide post_version_unhide].freeze
+  ProtectedActionKeys = %w[
+    staff_note_create staff_note_update staff_note_delete staff_note_undelete
+    staff_file_create staff_file_update staff_file_delete
+    ip_ban_create ip_ban_delete
+    post_version_hide post_version_unhide
+  ].freeze
 
   KnownActionKeys = KnownActions.keys.freeze
 

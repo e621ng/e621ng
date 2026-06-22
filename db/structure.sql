@@ -2064,6 +2064,44 @@ ALTER SEQUENCE public.staff_audit_logs_id_seq OWNED BY public.staff_audit_logs.i
 
 
 --
+-- Name: staff_files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.staff_files (
+    id bigint NOT NULL,
+    creator_id integer NOT NULL,
+    storage_id character varying NOT NULL,
+    md5 character varying NOT NULL,
+    file_ext character varying NOT NULL,
+    file_size integer NOT NULL,
+    original_filename character varying NOT NULL,
+    title character varying,
+    description text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: staff_files_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.staff_files_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: staff_files_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.staff_files_id_seq OWNED BY public.staff_files.id;
+
+
+--
 -- Name: staff_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3226,6 +3264,13 @@ ALTER TABLE ONLY public.staff_audit_logs ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: staff_files id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_files ALTER COLUMN id SET DEFAULT nextval('public.staff_files_id_seq'::regclass);
+
+
+--
 -- Name: staff_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3805,6 +3850,14 @@ ALTER TABLE ONLY public.settings
 
 ALTER TABLE ONLY public.staff_audit_logs
     ADD CONSTRAINT staff_audit_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: staff_files staff_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_files
+    ADD CONSTRAINT staff_files_pkey PRIMARY KEY (id);
 
 
 --
@@ -5047,6 +5100,27 @@ CREATE INDEX index_staff_audit_logs_on_user_id ON public.staff_audit_logs USING 
 
 
 --
+-- Name: index_staff_files_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_staff_files_on_creator_id ON public.staff_files USING btree (creator_id);
+
+
+--
+-- Name: index_staff_files_on_md5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_staff_files_on_md5 ON public.staff_files USING btree (md5);
+
+
+--
+-- Name: index_staff_files_on_storage_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_staff_files_on_storage_id ON public.staff_files USING btree (storage_id);
+
+
+--
 -- Name: index_staff_notes_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5572,6 +5646,14 @@ ALTER TABLE ONLY public.staff_wikis
 
 
 --
+-- Name: staff_files fk_rails_804a297dc9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_files
+    ADD CONSTRAINT fk_rails_804a297dc9 FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
 -- Name: user_feedback fk_rails_9329a36823; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5698,6 +5780,7 @@ ALTER TABLE ONLY public.staff_notes
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260617120000'),
 ('20260615155147'),
 ('20260612160840'),
 ('20260608170029'),

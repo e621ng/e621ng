@@ -1,0 +1,10 @@
+<div id="form-content">
+  <%= error_messages_for("staff_file") %>
+
+  <%= custom_form_for(@staff_file) do |f| %>
+    <%= f.input :file, as: :file if @staff_file.new_record? %>
+    <%= f.input :title, hint: "Optional. Defaults to the uploaded filename." %>
+    <%= f.input :description %>
+    <%= f.button :submit, @staff_file.new_record? ? "Upload" : "Save" %>
+  <% end %>
+</div>
