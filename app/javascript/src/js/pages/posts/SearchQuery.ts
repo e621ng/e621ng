@@ -251,13 +251,13 @@ export default class SearchQuery {
   }
 
   private static parseIschildToken (text: string): string | null {
-    const match = text.match(/^ischild:(true|false)$/i);
+    const match = text.match(/^(?:ischild|hasparent):(true|false)$/i);
     if (!match) return null;
     return match[1].toLowerCase();
   }
 
   private static parseIsparentToken (text: string): string | null {
-    const match = text.match(/^isparent:(true|false)$/i);
+    const match = text.match(/^(?:isparent|haschild|haschildren):(true|false)$/i);
     if (!match) return null;
     return match[1].toLowerCase();
   }
