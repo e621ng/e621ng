@@ -97,6 +97,6 @@ class StaffWikisController < ApplicationController
   end
 
   def search_params
-    permit_search_params %i[title body_matches creator_id creator_name order]
+    permit_search_params %i[title body_matches creator_id creator_name editor_id order]
   end
 end

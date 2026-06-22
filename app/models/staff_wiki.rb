@@ -42,6 +42,10 @@ class StaffWiki < ApplicationRecord
       q = q.attribute_matches(:body, params[:body_matches])
       q = q.where_user(:creator_id, :creator, params)
 
+      if params[:editor_id].present?
+        q = q.where(id: StaffWikiVersion.where(updater_id: params[:editor_id]).select(:staff_wiki_id))
+      end
+
       case params[:order]
       when "title"
         q.order("title")
