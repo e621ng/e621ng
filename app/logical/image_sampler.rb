@@ -157,7 +157,7 @@ module ImageSampler
       "-select_streams", "v:0",
       "-show_entries", "stream=codec_name:stream_tags=alpha_mode",
       "-of", "default=noprint_wrappers=1",
-      file_path,
+      file_path
     )
     return [] unless status == 0
 
