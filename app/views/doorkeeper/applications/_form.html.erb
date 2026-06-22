@@ -65,8 +65,13 @@
     </ul>
   </div>
 
-  <%= f.input :confidential, as: :boolean, label: "Confidential client",
-              hint: "Whether your app can keep a client secret. Uncheck for browser-only or native apps." %>
+  <div class="field oauth-app-confidential">
+    <label>
+      <%= f.check_box :confidential %>
+      Confidential client
+    </label>
+    <div class="hint">Whether your app can keep a client secret. Uncheck for browser-only or native apps.</div>
+  </div>
 
   <% if application.errors.any? %>
     <div class="section report-errors">
