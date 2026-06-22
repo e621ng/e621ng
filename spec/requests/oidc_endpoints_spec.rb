@@ -505,6 +505,41 @@ RSpec.describe "OIDC endpoints" do
     end
   end
 
+  describe "userinfo email claim scope gating" do
+    let(:owner) { create(:user) }
+    let(:user) do
+      create(:user, email: "scoped@example.com").tap do |u|
+        u.update_columns(email_verification_key: nil)
+      end
+    end
+    let(:oauth_app) do
+      Doorkeeper::Application.create!(
+        name: "scope-test", redirect_uri: "http://localhost/cb",
+        scopes: "openid profile email", confidential: true, owner: owner
+      )
+    end
+
+    def userinfo_with(scopes)
+      token = Doorkeeper::AccessToken.create!(
+        application: oauth_app, resource_owner_id: user.id, scopes: scopes,
+      )
+      get "/oauth/userinfo", headers: { "Authorization" => "Bearer #{token.token}" }
+      response.parsed_body
+    end
+
+    it "includes email and email_verified when the email scope is granted" do
+      info = userinfo_with("openid email")
+      expect(info).to include("email" => user.email, "email_verified" => true)
+    end
+
+    it "omits email and email_verified when the email scope is not granted" do
+      info = userinfo_with("openid profile")
+      expect(info).not_to have_key("email")
+      expect(info).not_to have_key("email_verified")
+      expect(info).to include("preferred_username" => user.name)
+    end
+  end
+
   describe "PKCE enforcement for public clients" do
     let(:password) { "hexerade" }
     let(:user)     { create(:user) }
