@@ -38,6 +38,7 @@ services:
     volumes:
       - .:/app
       - node_modules:/app/node_modules
+      - ./.danbooru:/root/.danbooru
       - post_data:/app/public/data
       - ./docker/cron_tasks/daily:/etc/periodic/daily
     environment:
@@ -213,6 +214,7 @@ services:
       - .:/app
       - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
       - node_modules:/app/node_modules
+      - ./.danbooru:/root/.danbooru
     depends_on:
       <<: *common-depends-on
     entrypoint: bundle exec rails
