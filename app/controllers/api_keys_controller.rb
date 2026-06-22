@@ -3,6 +3,7 @@
 class ApiKeysController < ApplicationController
   before_action :member_only
   before_action :reject_api_key_auth
+  before_action :reject_bearer_auth
   before_action :requires_reauthentication
   before_action :load_api_key, except: %i[index new create]
   respond_to :html, :json
