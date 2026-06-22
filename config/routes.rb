@@ -11,7 +11,6 @@ Rails.application.routes.draw do
     resources :automod_rules, only: %i[index new create edit update destroy]
     resources :users, only: %i[edit update] do
       member do
-        post :clear_avatar
         get :edit_blacklist
         post :update_blacklist
         get :request_password_reset
@@ -59,6 +58,15 @@ Rails.application.routes.draw do
     resources :ip_addrs, only: %i[index] do
       collection do
         get :export
+      end
+    end
+    resources :user_cleanups, only: %i[show], param: :user_id do
+      member do
+        post :clear_avatar
+        post :clear_profile
+        post :hide_comments
+        post :hide_forum_posts
+        post :hide_blips
       end
     end
     namespace :post do
