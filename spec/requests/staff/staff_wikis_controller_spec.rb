@@ -11,10 +11,10 @@ RSpec.describe Staff::StaffWikisController do
   let(:admin)      { create(:admin_user) }
 
   # ---------------------------------------------------------------------------
-  # GET /staff_wikis — index
+  # GET /staff/wikis — index
   # ---------------------------------------------------------------------------
 
-  describe "GET /staff_wikis" do
+  describe "GET /staff/wikis" do
     it "redirects anonymous to the login page for HTML" do
       get staff_wikis_path
       expect(response).to redirect_to(new_session_path(url: staff_wikis_path))
@@ -53,10 +53,10 @@ RSpec.describe Staff::StaffWikisController do
   end
 
   # ---------------------------------------------------------------------------
-  # GET /staff_wikis/:id — show
+  # GET /staff/wikis/:id — show
   # ---------------------------------------------------------------------------
 
-  describe "GET /staff_wikis/:id" do
+  describe "GET /staff/wikis/:id" do
     it "redirects anonymous to the login page for HTML" do
       get staff_wiki_path(staff_wiki)
       expect(response).to redirect_to(new_session_path(url: staff_wiki_path(staff_wiki)))
@@ -88,10 +88,10 @@ RSpec.describe Staff::StaffWikisController do
   end
 
   # ---------------------------------------------------------------------------
-  # GET /staff_wikis/new — new
+  # GET /staff/wikis/new — new
   # ---------------------------------------------------------------------------
 
-  describe "GET /staff_wikis/new" do
+  describe "GET /staff/wikis/new" do
     it "redirects anonymous to the login page" do
       get new_staff_wiki_path
       expect(response).to redirect_to(new_session_path(url: new_staff_wiki_path))
@@ -111,10 +111,10 @@ RSpec.describe Staff::StaffWikisController do
   end
 
   # ---------------------------------------------------------------------------
-  # GET /staff_wikis/:id/edit — edit
+  # GET /staff/wikis/:id/edit — edit
   # ---------------------------------------------------------------------------
 
-  describe "GET /staff_wikis/:id/edit" do
+  describe "GET /staff/wikis/:id/edit" do
     it "redirects anonymous to the login page" do
       get edit_staff_wiki_path(staff_wiki)
       expect(response).to redirect_to(new_session_path(url: edit_staff_wiki_path(staff_wiki)))
@@ -134,10 +134,10 @@ RSpec.describe Staff::StaffWikisController do
   end
 
   # ---------------------------------------------------------------------------
-  # POST /staff_wikis — create
+  # POST /staff/wikis — create
   # ---------------------------------------------------------------------------
 
-  describe "POST /staff_wikis" do
+  describe "POST /staff/wikis" do
     let(:valid_params)   { { staff_wiki: { title: "New Staff Wiki", body: "Valid body content." } } }
     let(:invalid_params) { { staff_wiki: { title: "", body: "Valid body content." } } }
 
@@ -176,10 +176,10 @@ RSpec.describe Staff::StaffWikisController do
   end
 
   # ---------------------------------------------------------------------------
-  # PATCH /staff_wikis/:id — update
+  # PATCH /staff/wikis/:id — update
   # ---------------------------------------------------------------------------
 
-  describe "PATCH /staff_wikis/:id" do
+  describe "PATCH /staff/wikis/:id" do
     let(:update_params)  { { staff_wiki: { body: "Updated body content." } } }
     let(:invalid_params) { { staff_wiki: { title: "" } } }
 
@@ -220,10 +220,10 @@ RSpec.describe Staff::StaffWikisController do
   end
 
   # ---------------------------------------------------------------------------
-  # DELETE /staff_wikis/:id — destroy (admin only)
+  # DELETE /staff/wikis/:id — destroy (admin only)
   # ---------------------------------------------------------------------------
 
-  describe "DELETE /staff_wikis/:id" do
+  describe "DELETE /staff/wikis/:id" do
     it "redirects anonymous to the login page for HTML" do
       delete staff_wiki_path(staff_wiki)
       expect(response).to redirect_to(new_session_path)
@@ -260,10 +260,10 @@ RSpec.describe Staff::StaffWikisController do
   end
 
   # ---------------------------------------------------------------------------
-  # PUT /staff_wikis/:id/revert — revert
+  # PUT /staff/wikis/:id/revert — revert
   # ---------------------------------------------------------------------------
 
-  describe "PUT /staff_wikis/:id/revert" do
+  describe "PUT /staff/wikis/:id/revert" do
     let(:original_body) { staff_wiki.body }
     let(:version) { staff_wiki.versions.first }
 
@@ -302,10 +302,10 @@ RSpec.describe Staff::StaffWikisController do
   end
 
   # ---------------------------------------------------------------------------
-  # POST /staff_wikis/:id/claim — claim
+  # POST /staff/wikis/:id/claim — claim
   # ---------------------------------------------------------------------------
 
-  describe "POST /staff_wikis/:id/claim" do
+  describe "POST /staff/wikis/:id/claim" do
     it "redirects anonymous to the login page for HTML" do
       post claim_staff_wiki_path(staff_wiki)
       expect(response).to redirect_to(new_session_path)
@@ -325,10 +325,10 @@ RSpec.describe Staff::StaffWikisController do
   end
 
   # ---------------------------------------------------------------------------
-  # POST /staff_wikis/:id/unclaim — unclaim
+  # POST /staff/wikis/:id/unclaim — unclaim
   # ---------------------------------------------------------------------------
 
-  describe "POST /staff_wikis/:id/unclaim" do
+  describe "POST /staff/wikis/:id/unclaim" do
     before { staff_wiki.update_columns(claimant_id: staff.id) }
 
     it "redirects anonymous to the login page for HTML" do

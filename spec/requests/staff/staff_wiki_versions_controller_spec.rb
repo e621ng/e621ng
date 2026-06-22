@@ -12,10 +12,10 @@ RSpec.describe Staff::StaffWikiVersionsController do
   let(:version) { wiki.versions.first }
 
   # ---------------------------------------------------------------------------
-  # GET /staff_wiki_versions — index
+  # GET /staff/wiki_versions — index
   # ---------------------------------------------------------------------------
 
-  describe "GET /staff_wiki_versions" do
+  describe "GET /staff/wiki_versions" do
     it "redirects anonymous to the login page for HTML" do
       get staff_wiki_versions_path
       expect(response).to redirect_to(new_session_path(url: staff_wiki_versions_path))
@@ -150,10 +150,10 @@ RSpec.describe Staff::StaffWikiVersionsController do
   end
 
   # ---------------------------------------------------------------------------
-  # GET /staff_wiki_versions/:id — show
+  # GET /staff/wiki_versions/:id — show
   # ---------------------------------------------------------------------------
 
-  describe "GET /staff_wiki_versions/:id" do
+  describe "GET /staff/wiki_versions/:id" do
     it "redirects anonymous to the login page for HTML" do
       get staff_wiki_version_path(version)
       expect(response).to redirect_to(new_session_path(url: staff_wiki_version_path(version)))
@@ -179,10 +179,10 @@ RSpec.describe Staff::StaffWikiVersionsController do
   end
 
   # ---------------------------------------------------------------------------
-  # GET /staff_wiki_versions/diff — diff
+  # GET /staff/wiki_versions/diff — diff
   # ---------------------------------------------------------------------------
 
-  describe "GET /staff_wiki_versions/diff" do
+  describe "GET /staff/wiki_versions/diff" do
     let(:earlier_version) { wiki.versions.first }
     let(:later_version)   { wiki.versions.last }
 
