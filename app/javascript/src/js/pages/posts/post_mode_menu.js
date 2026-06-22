@@ -8,7 +8,6 @@ import Hotkeys from "@/core/hotkeys";
 import LStorage from "@/utility/Storage";
 import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
-import User from "@/models/User";
 import Autocomplete from "@/components/autocomplete";
 
 let PostModeMenu = {};
@@ -19,7 +18,7 @@ PostModeMenu.initialize = function () {
     this.initialize_preview_link();
     this.initialize_edit_form();
     this.initialize_tag_script_field();
-    if (User.is.privileged) this.initialize_shortcuts();
+    if (E621.CurrentUser.is.privileged) this.initialize_shortcuts();
     PostModeMenu.change();
   }
 };

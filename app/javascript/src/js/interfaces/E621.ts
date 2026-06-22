@@ -4,6 +4,7 @@ import ThumbnailEngine from "@/components/ThumbnailEngine";
 import Blacklist from "@/core/blacklists";
 import DeferredPostLoader from "@/core/DeferredPostLoader";
 import Hotkeys from "@/core/hotkeys";
+import CurrentUser from "@/models/CurrentUser";
 import PostCache from "@/models/PostCache";
 import Logger from "@/utility/Logger";
 import ModuleRegistry from "@/utility/ModuleRegistry";
@@ -21,6 +22,7 @@ export default interface E621Type {
   CStorage: typeof CStorage;
   LStorage: typeof LStorage;
   Settings: typeof Settings;
+  CurrentUser: CurrentUser;
 
   Hotkeys: typeof Hotkeys;
   Toast: typeof ToastManager;
@@ -58,6 +60,7 @@ export function getE621Instance (): E621Type {
     CStorage,
     LStorage,
     Settings,
+    CurrentUser: CurrentUser.user,
 
     Hotkeys,
     Toast: ToastManager,
