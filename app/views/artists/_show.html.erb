@@ -10,16 +10,29 @@
     <% if @artist.is_dnp? %>
       <div id="avoid-posting-label">
         <h3><%= link_to "Avoid Posting", avoid_posting_path(@artist.avoid_posting) %></h3>
-        <% if @artist.avoid_posting.pretty_details.present? %>
-          <div class="dtext-container">
+        <div class="dtext-container">
+          <% if @artist.avoid_posting.pretty_details.present? %>
             <%= format_text(@artist.avoid_posting.pretty_details, inline: true) %>
-          </div>
-        <% end %>
+          <% else %>
+            Do not upload artwork created by this artist.
+          <% end %>
+        </div>
         <% if CurrentUser.is_staff? && @artist.avoid_posting.staff_notes.present? %>
           <div class="dtext-container">
             <b>Note:</b> <%= format_text(@artist.avoid_posting.staff_notes, inline: true) %>
           </div>
         <% end %>
+      </div>
+    <% end %>
+
+    <% if CurrentUser.user.is_staff? && @staff_wikis.any? %>
+      <div id="staff-wiki-label">
+        <h3>Investigations</h3>
+        <ul>
+          <% @staff_wikis.each do |page| %>
+            <li><%= link_to page.title, staff_wiki_path(page) %></li>
+          <% end %>
+        </ul>
       </div>
     <% end %>
 
