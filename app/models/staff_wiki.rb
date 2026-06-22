@@ -9,6 +9,7 @@ class StaffWiki < ApplicationRecord
   normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
 
   validates :title, presence: true, length: { minimum: 1, maximum: 100 }
+  validate :validate_not_duplicate_title, on: :create
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
   validate :validate_claimant_id
 
@@ -26,6 +27,12 @@ class StaffWiki < ApplicationRecord
 
       unless User.exists?(claimant_id)
         errors.add(:claimant_id, "must refer to an existing user")
+      end
+    end
+
+    def validate_not_duplicate_title
+      if new_record? && self.class.where(title: title).exists?
+        errors.add(:title, "already exists")
       end
     end
   end
