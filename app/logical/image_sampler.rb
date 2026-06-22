@@ -196,8 +196,8 @@ module ImageSampler
   # Parameters:
   #   - hex_color: a string representing the hex color (e.g., "#000000")
   # Returns an array of RGB values (e.g., [0, 0, 0])
-  def calc_background_color(hex_color = "152f56")
-    hex_color = hex_color.blank? ? "152f56" : hex_color.delete("#")
+  def calc_background_color(hex_color = nil)
+    hex_color = hex_color.blank? ? Danbooru.config.default_bg_color : hex_color.delete("#")
     r = hex_color[0..1].to_i(16)
     g = hex_color[2..3].to_i(16)
     b = hex_color[4..5].to_i(16)
@@ -224,6 +224,15 @@ module ImageSampler
     # crop
     unless crop_area.nil?
       result = result.smartcrop(crop_area[0], crop_area[1], interesting: :entropy)
+    end
+
+    # Convert embedded colour spaces to sRGB for compatibility.
+    if result.get_typeof("icc-profile-data") != 0
+      begin
+        result = result.icc_transform("srgb", intent: :perceptual)
+      rescue Vips::Error => e
+        Rails.logger.warn("[ImageSampler] icc_transform failed, stripping profile: #{e.message}")
+      end
     end
 
     # save
