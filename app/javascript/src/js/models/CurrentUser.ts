@@ -192,14 +192,11 @@ export default class CurrentUser {
         if (!response.ok) {
           ToastManager.alert("Failed to save blacklist after modification.");
           console.error("Failed to save blacklist:", response.statusText);
-          return Promise.reject();
         }
-        return response.json();
       },
       (error) => {
         ToastManager.alert("Failed to save blacklist after modification.");
         console.error("Failed to save blacklist:", error);
-        return Promise.reject();
       },
     );
   }
