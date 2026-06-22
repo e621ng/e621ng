@@ -6,6 +6,7 @@ class StaffFile < ApplicationRecord
   attr_accessor :file
 
   before_validation :initialize_storage_id, on: :create
+  before_validation :default_title
 
   validates :file, presence: true, on: :create
   validate :set_file_properties
@@ -36,6 +37,12 @@ class StaffFile < ApplicationRecord
 
   def initialize_storage_id
     self.storage_id ||= SecureRandom.hex(16)
+  end
+
+  # On update the file is absent, so set_file_properties can't backfill a blank
+  # title. Fall back to the stored filename when the title is cleared.
+  def default_title
+    self.title = original_filename if title.blank? && original_filename.present?
   end
 
   def set_file_properties

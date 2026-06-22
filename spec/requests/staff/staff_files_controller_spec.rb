@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe StaffFilesController do
+RSpec.describe Staff::StaffFilesController do
   include_context "as admin"
 
   let(:member)      { create(:user) }
@@ -90,6 +90,58 @@ RSpec.describe StaffFilesController do
       expect do
         post staff_files_path, params: { staff_file: { file: png_upload } }
       end.to change { ModAction.where(action: "staff_file_create").count }.by(1)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # PATCH /staff_files/:id — update
+  # ---------------------------------------------------------------------------
+  describe "PATCH /staff_files/:id" do
+    it "lets the creator update the title and description" do
+      file = create(:staff_file, creator: staff)
+      sign_in_as staff
+      patch staff_file_path(file), params: { staff_file: { title: "New title", description: "New description" } }
+      file.reload
+      expect(file.title).to eq("New title")
+      expect(file.description).to eq("New description")
+    end
+
+    it "lets an admin update anyone's file" do
+      file = create(:staff_file, creator: other_staff)
+      sign_in_as admin
+      patch staff_file_path(file), params: { staff_file: { title: "Admin edit" } }
+      expect(file.reload.title).to eq("Admin edit")
+    end
+
+    it "forbids a non-creator, non-admin staff member from editing" do
+      file = create(:staff_file, creator: other_staff)
+      sign_in_as staff
+      patch staff_file_path(file, format: :json), params: { staff_file: { title: "Nope" } }
+      expect(response).to have_http_status(:forbidden)
+      expect(file.reload.title).not_to eq("Nope")
+    end
+
+    it "does not replace the file or its derived attributes" do
+      file = create(:staff_file, creator: staff)
+      original = file.slice(:md5, :file_ext, :file_size, :original_filename, :storage_id)
+      sign_in_as staff
+      patch staff_file_path(file), params: { staff_file: { title: "New title", file: txt_upload } }
+      expect(file.reload.slice(:md5, :file_ext, :file_size, :original_filename, :storage_id)).to eq(original)
+    end
+
+    it "resets a cleared title to the original filename" do
+      file = create(:staff_file, creator: staff)
+      sign_in_as staff
+      patch staff_file_path(file), params: { staff_file: { title: "" } }
+      expect(file.reload.title).to eq(file.original_filename)
+    end
+
+    it "logs a mod action on update" do
+      file = create(:staff_file, creator: staff)
+      sign_in_as staff
+      expect do
+        patch staff_file_path(file), params: { staff_file: { title: "New title" } }
+      end.to change { ModAction.where(action: "staff_file_update").count }.by(1)
     end
   end
 

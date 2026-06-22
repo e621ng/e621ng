@@ -4,7 +4,8 @@ module Staff
   class StaffFilesController < ApplicationController
     respond_to :html, :json
     before_action :staff_only
-    before_action :load_staff_file, only: %i[show destroy]
+    before_action :load_staff_file, only: %i[show edit update destroy]
+    before_action :check_update_permission, only: %i[edit update]
     before_action :check_delete_permission, only: %i[destroy]
 
     def index
@@ -24,12 +25,24 @@ module Staff
       respond_with(@staff_file)
     end
 
+    def edit
+      respond_with(@staff_file)
+    end
+
     def create
       @staff_file = StaffFileUploader.create!(staff_file_params)
       if @staff_file.valid?
         ModAction.log(:staff_file_create, { id: @staff_file.id, filename: @staff_file.original_filename, file_size: @staff_file.file_size, user_id: @staff_file.creator_id })
       end
       respond_with(@staff_file, location: staff_files_path)
+    end
+
+    def update
+      @staff_file.update(update_params)
+      if @staff_file.valid?
+        ModAction.log(:staff_file_update, { id: @staff_file.id, filename: @staff_file.original_filename, user_id: @staff_file.creator_id })
+      end
+      respond_with(@staff_file, location: staff_file_path(@staff_file))
     end
 
     def destroy
@@ -46,12 +59,20 @@ module Staff
       @staff_file = StaffFile.find(params[:id])
     end
 
+    def check_update_permission
+      raise User::PrivilegeError unless @staff_file.can_delete?(CurrentUser.user)
+    end
+
     def check_delete_permission
       raise User::PrivilegeError unless @staff_file.can_delete?(CurrentUser.user)
     end
 
     def staff_file_params
       params.fetch(:staff_file, {}).permit(%i[file title description])
+    end
+
+    def update_params
+      params.fetch(:staff_file, {}).permit(%i[title description])
     end
 
     def search_params
