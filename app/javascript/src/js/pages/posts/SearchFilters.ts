@@ -3,9 +3,9 @@ import SearchQuery, { ORDER_ASC, ORDER_CUSTOM, ORDER_DESC, ORDER_VALUES, RATINGS
 
 const SORT_CUSTOM_ID = "advanced-search-sort-custom";
 
-const INPOOL_STATES = ["unset", "yes", "no"];
-const INPOOL_VALUES: Record<string, string> = { unset: "", yes: "true", no: "false" };
-const INPOOL_STATE_MAP: Record<string, string> = { "": "unset", "true": "yes", "false": "no" };
+const TOGGLE_STATES = ["unset", "yes", "no"];
+const TOGGLE_VALUES: Record<string, string> = { unset: "", yes: "true", no: "false" };
+const TOGGLE_STATE_MAP: Record<string, string> = { "": "unset", "true": "yes", "false": "no" };
 
 
 export default class SearchFilters {
@@ -23,12 +23,16 @@ export default class SearchFilters {
 
   private $sortInputs: JQuery<HTMLInputElement>;
   private $inpoolToggle: JQuery<HTMLLabelElement>;
+  private $ischildToggle: JQuery<HTMLLabelElement>;
+  private $isparentToggle: JQuery<HTMLLabelElement>;
   private $ratingCheckboxes: JQuery<HTMLInputElement>;
   private ratingUpdateInProgress = false;
 
   constructor (private $textarea: JQuery<HTMLTextAreaElement>, private $controls: JQuery<HTMLDivElement>) {
     this.$sortInputs = this.$controls.find<HTMLInputElement>("[name='advanced-search-sort']");
     this.$inpoolToggle = this.$controls.find<HTMLLabelElement>("[data-advanced-search=inpool]").first();
+    this.$ischildToggle = this.$controls.find<HTMLLabelElement>("[data-advanced-search=ischild]").first();
+    this.$isparentToggle = this.$controls.find<HTMLLabelElement>("[data-advanced-search=isparent]").first();
     this.$ratingCheckboxes = this.$controls.find<HTMLInputElement>("[name='advanced-search-rating']");
 
     this.bindEvents();
@@ -50,6 +54,8 @@ export default class SearchFilters {
       this.toggleAsc();
     });
     this.$controls.on("click", "[data-advanced-search=inpool]", (event) => this.updateInpool(event));
+    this.$controls.on("click", "[data-advanced-search=ischild]", (event) => this.updateIschild(event));
+    this.$controls.on("click", "[data-advanced-search=isparent]", (event) => this.updateIsparent(event));
     this.$ratingCheckboxes.on("change", () => this.updateRatings());
   }
 
@@ -59,6 +65,8 @@ export default class SearchFilters {
     const q = this.query;
     if (this.$sortInputs.length) this.setSortValue(q.order, q.direction);
     if (this.$inpoolToggle.length) this.setInpoolState(q.inpool);
+    if (this.$ischildToggle.length) this.setIschildState(q.ischild);
+    if (this.$isparentToggle.length) this.setIsparentState(q.isparent);
     this.syncRatingControls(q.ratings);
   }
 
@@ -86,8 +94,18 @@ export default class SearchFilters {
   }
 
   private setInpoolState (value: string): void {
-    const state = INPOOL_STATE_MAP[value] || "unset";
+    const state = TOGGLE_STATE_MAP[value] || "unset";
     this.$inpoolToggle.attr("data-state", state).attr("aria-label", `In pool: ${state}`);
+  }
+
+  private setIschildState (value: string): void {
+    const state = TOGGLE_STATE_MAP[value] || "unset";
+    this.$ischildToggle.attr("data-state", state).attr("aria-label", `Has parent: ${state}`);
+  }
+
+  private setIsparentState (value: string): void {
+    const state = TOGGLE_STATE_MAP[value] || "unset";
+    this.$isparentToggle.attr("data-state", state).attr("aria-label", `Has child: ${state}`);
   }
 
   private syncRatingControls (ratings: string): void {
@@ -117,12 +135,38 @@ export default class SearchFilters {
     const spanIndex = $el.find(".sto-tri").toArray().indexOf(event.target);
     let next: string;
     if (spanIndex >= 0) {
-      next = INPOOL_STATES[spanIndex];
+      next = TOGGLE_STATES[spanIndex];
     } else {
-      const cur = INPOOL_STATES.indexOf($el.attr("data-state") || "");
-      next = INPOOL_STATES[(cur < 0 ? 1 : cur + 1) % INPOOL_STATES.length];
+      const cur = TOGGLE_STATES.indexOf($el.attr("data-state") || "");
+      next = TOGGLE_STATES[(cur < 0 ? 1 : cur + 1) % TOGGLE_STATES.length];
     }
-    this.query = this.query.withInpool(INPOOL_VALUES[next]);
+    this.query = this.query.withInpool(TOGGLE_VALUES[next]);
+  }
+
+  private updateIschild (event: JQuery.ClickEvent): void {
+    const $el = $(event.currentTarget);
+    const spanIndex = $el.find(".sto-tri").toArray().indexOf(event.target);
+    let next: string;
+    if (spanIndex >= 0) {
+      next = TOGGLE_STATES[spanIndex];
+    } else {
+      const cur = TOGGLE_STATES.indexOf($el.attr("data-state") || "");
+      next = TOGGLE_STATES[(cur < 0 ? 1 : cur + 1) % TOGGLE_STATES.length];
+    }
+    this.query = this.query.withIschild(TOGGLE_VALUES[next]);
+  }
+
+  private updateIsparent (event: JQuery.ClickEvent): void {
+    const $el = $(event.currentTarget);
+    const spanIndex = $el.find(".sto-tri").toArray().indexOf(event.target);
+    let next: string;
+    if (spanIndex >= 0) {
+      next = TOGGLE_STATES[spanIndex];
+    } else {
+      const cur = TOGGLE_STATES.indexOf($el.attr("data-state") || "");
+      next = TOGGLE_STATES[(cur < 0 ? 1 : cur + 1) % TOGGLE_STATES.length];
+    }
+    this.query = this.query.withIsparent(TOGGLE_VALUES[next]);
   }
 
   private updateRatings (): void {
@@ -157,6 +201,7 @@ export default class SearchFilters {
   private addAscButton (inputId: string | undefined, direction: string): void {
     if (!inputId) return;
     const $label = this.$controls.find(`label[for='${inputId}']`);
+    const iconEl = SVGIcon.render(direction === ORDER_ASC ? "arrow_up" : "arrow_down");
     $("<button>")
       .attr({
         "type": "button",
@@ -164,7 +209,7 @@ export default class SearchFilters {
       })
       .addClass("sort-asc-btn")
       .toggleClass("active", direction === ORDER_ASC)
-      .text(direction === ORDER_ASC ? "↑" : "↓")
+      .append(iconEl || "")
       .appendTo($label);
   }
 

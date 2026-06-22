@@ -80,6 +80,8 @@ interface ParsedState {
   order: string;
   direction: string;
   inpool: string;
+  ischild: string;
+  isparent: string;
   ratings: string;
 }
 
@@ -101,6 +103,8 @@ export default class SearchQuery {
   get order (): string { return this._state.order; }
   get direction (): string { return this._state.direction; }
   get inpool (): string { return this._state.inpool; }
+  get ischild (): string { return this._state.ischild; }
+  get isparent (): string { return this._state.isparent; }
   get ratings (): string { return this._state.ratings; }
 
   withOrder (value: string, direction: string): SearchQuery {
@@ -109,6 +113,14 @@ export default class SearchQuery {
 
   withInpool (value: string): SearchQuery {
     return new SearchQuery(SearchQuery.replaceInpoolMetatags(this._raw, value));
+  }
+
+  withIschild (value: string): SearchQuery {
+    return new SearchQuery(SearchQuery.replaceIschildMetatags(this._raw, value));
+  }
+
+  withIsparent (value: string): SearchQuery {
+    return new SearchQuery(SearchQuery.replaceIsparentMetatags(this._raw, value));
   }
 
   withRatings (ratings: string[]): SearchQuery {
@@ -124,6 +136,8 @@ export default class SearchQuery {
       order: "",
       direction: ORDER_DESC,
       inpool: "",
+      ischild: "",
+      isparent: "",
       ratings: RATING_ALL,
     };
 
@@ -136,6 +150,12 @@ export default class SearchQuery {
 
       const inpool = SearchQuery.parseInpoolToken(token.text);
       if (inpool !== null) state.inpool = inpool;
+
+      const ischild = SearchQuery.parseIschildToken(token.text);
+      if (ischild !== null) state.ischild = ischild;
+
+      const isparent = SearchQuery.parseIsparentToken(token.text);
+      if (isparent !== null) state.isparent = isparent;
 
       const rating = SearchQuery.parseRatingToken(token.text);
       if (rating) state.ratings = SearchQuery.applyRatingToken(state.ratings, rating);
@@ -230,6 +250,18 @@ export default class SearchQuery {
     return { value, negated: match[1] === "-" };
   }
 
+  private static parseIschildToken (text: string): string | null {
+    const match = text.match(/^(?:ischild|hasparent):(true|false)$/i);
+    if (!match) return null;
+    return match[1].toLowerCase();
+  }
+
+  private static parseIsparentToken (text: string): string | null {
+    const match = text.match(/^(?:isparent|haschild|haschildren):(true|false)$/i);
+    if (!match) return null;
+    return match[1].toLowerCase();
+  }
+
   /**
    * Updates the active rating set encoded as a sorted string of letters ("sqe", "sq", …).
    * A negated token removes one letter from the set; a positive token sets the entire set
@@ -260,6 +292,24 @@ export default class SearchQuery {
     return SearchQuery.replaceTopLevelMetatags(
       query,
       (token) => SearchQuery.parseInpoolToken(token) !== null,
+      newToken,
+    );
+  }
+
+  private static replaceIschildMetatags (query: string, value: string): string {
+    const newToken = value ? "ischild:" + value : "";
+    return SearchQuery.replaceTopLevelMetatags(
+      query,
+      (token) => SearchQuery.parseIschildToken(token) !== null,
+      newToken,
+    );
+  }
+
+  private static replaceIsparentMetatags (query: string, value: string): string {
+    const newToken = value ? "isparent:" + value : "";
+    return SearchQuery.replaceTopLevelMetatags(
+      query,
+      (token) => SearchQuery.parseIsparentToken(token) !== null,
       newToken,
     );
   }

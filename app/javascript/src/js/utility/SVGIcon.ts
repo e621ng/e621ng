@@ -49,6 +49,10 @@ export default class SVGIcon {
     "shuffle": '<path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.3 0 2.5.6 3.3 1.7l2.1 2.9"/><path d="m18 14 4 4-4 4"/><path d="M21.7 17.4h-.3c-1.3 0-2.5-.6-3.3-1.7L15 14.5"/>',
     "images": '<path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/>',
     "pencil": '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+
+    // Advanced Search Options
+    "arrow_up": '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+    "arrow_down": '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
   };
 
   static render (name: string): SVGElement | null {
