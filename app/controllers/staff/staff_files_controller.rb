@@ -5,8 +5,9 @@ module Staff
     respond_to :html, :json
     before_action :staff_only
     before_action :load_staff_file, only: %i[show edit update destroy]
-    before_action :check_update_permission, only: %i[edit update]
-    before_action :check_delete_permission, only: %i[destroy]
+
+    before_action :ensure_can_update, only: %i[edit update]
+    before_action :ensure_can_delete, only: %i[destroy]
 
     def index
       @staff_files = StaffFile
@@ -39,7 +40,9 @@ module Staff
 
     def update
       @staff_file.update(update_params)
-      if @staff_file.valid?
+
+      # Only log if either title or description were successfully changed.
+      if @staff_file.valid? && (@staff_file.saved_change_to_title? || @staff_file.saved_change_to_description?)
         ModAction.log(:staff_file_update, { id: @staff_file.id, filename: @staff_file.original_filename, user_id: @staff_file.creator_id })
       end
       respond_with(@staff_file, location: staff_file_path(@staff_file))
@@ -59,14 +62,6 @@ module Staff
       @staff_file = StaffFile.find(params[:id])
     end
 
-    def check_update_permission
-      raise User::PrivilegeError unless @staff_file.can_delete?(CurrentUser.user)
-    end
-
-    def check_delete_permission
-      raise User::PrivilegeError unless @staff_file.can_delete?(CurrentUser.user)
-    end
-
     def staff_file_params
       params.fetch(:staff_file, {}).permit(%i[file title description])
     end
@@ -77,6 +72,18 @@ module Staff
 
     def search_params
       permit_search_params %i[creator_id creator_name original_filename file_ext order]
+    end
+
+    #############################
+    ###     Access checks     ###
+    #############################
+
+    def ensure_can_update
+      raise User::PrivilegeError unless @staff_file.can_update?(CurrentUser.user)
+    end
+
+    def ensure_can_delete
+      raise User::PrivilegeError unless @staff_file.can_delete?(CurrentUser.user)
     end
   end
 end

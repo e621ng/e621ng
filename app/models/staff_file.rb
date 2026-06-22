@@ -13,6 +13,28 @@ class StaffFile < ApplicationRecord
   validate :validate_file
   validates :storage_id, uniqueness: true
 
+  module AccessMethods
+    def can_access?(user = CurrentUser.user)
+      return false if user.blank?
+      return true if user.is_staff?
+      false
+    end
+
+    def can_update?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_admin?
+      return true if creator_id == user.id
+      false
+    end
+
+    def can_delete?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_admin?
+      return true if creator_id == user.id
+      false
+    end
+  end
+
   module SearchMethods
     def search(params)
       q = super
@@ -33,6 +55,7 @@ class StaffFile < ApplicationRecord
   end
 
   extend SearchMethods
+  include AccessMethods
   include FileMethods
 
   def initialize_storage_id
@@ -76,10 +99,6 @@ class StaffFile < ApplicationRecord
       detected = file_header_to_file_ext(file.path)
       errors.add(:file, "contents do not match its '#{file_ext}' extension") if detected != file_ext
     end
-  end
-
-  def can_delete?(user)
-    user.is_admin? || creator_id == user.id
   end
 
   def file_url
