@@ -92,6 +92,13 @@ module Danbooru
       []
     end
 
+    # Autocomplete results matching these regular expressions will not be displayed.
+    def default_autocomplete_blacklist
+      [
+        "young",
+      ]
+    end
+
     def safeblocked_tags
       []
     end

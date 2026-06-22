@@ -31,6 +31,9 @@ const Settings = {} as {
       search_trend: boolean,
     }
   },
+  Autocomplete: {
+    blacklist: RegExp[],
+  },
   Posts: {
     webp_enabled: boolean,
   },
@@ -49,6 +52,18 @@ Object.defineProperty(Settings, "Analytics", {
       },
     };
     Object.defineProperty(Settings, "Analytics", { value, writable: false });
+    return value;
+  },
+});
+
+Object.defineProperty(Settings, "Autocomplete", {
+  configurable: true,
+  get () {
+    const obj = _get()["Autocomplete"] || {};
+    const value = {
+      blacklist: (obj.blacklist as string[] || []).map(pattern => new RegExp(pattern)),
+    };
+    Object.defineProperty(Settings, "Autocomplete", { value, writable: false });
     return value;
   },
 });
