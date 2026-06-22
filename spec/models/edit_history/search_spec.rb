@@ -106,6 +106,15 @@ RSpec.describe EditHistory do
     it "filters by the given versionable id" do
       result = EditHistory.search(versionable_id: blip_a.id.to_s)
       expect(result).to include(edit_alpha)
+      # versionable_id is a polymorphic id: filtering on it alone is type-agnostic,
+      # so edit_forum (a ForumPost) may share blip_a's id since they come from
+      # separate sequences. Only edit_beta (another Blip) is guaranteed to differ.
+      expect(result).not_to include(edit_beta)
+    end
+
+    it "filters by versionable id and type together" do
+      result = EditHistory.search(versionable_type: "Blip", versionable_id: blip_a.id.to_s)
+      expect(result).to include(edit_alpha)
       expect(result).not_to include(edit_beta, edit_forum)
     end
 
