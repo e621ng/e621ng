@@ -142,10 +142,7 @@ export default class CurrentUser {
   public set blacklist (newBlacklist: string[]) {
     this.rawBlacklist = newBlacklist;
     CurrentUser.patchBlacklistMethods(this.rawBlacklist);
-    CurrentUser.saveBlacklist(newBlacklist).catch((e) => {
-      ToastManager.alert("Failed to save blacklist after modification.");
-      console.error("Failed to save blacklist:", e);
-    });
+    CurrentUser.saveBlacklist(newBlacklist);
   }
 
 
@@ -190,7 +187,21 @@ export default class CurrentUser {
       },
       credentials: "include",
       body: formData,
-    });
+    }).then(
+      (response) => {
+        if (!response.ok) {
+          ToastManager.alert("Failed to save blacklist after modification.");
+          console.error("Failed to save blacklist:", response.statusText);
+          return Promise.reject();
+        }
+        return response.json();
+      },
+      (error) => {
+        ToastManager.alert("Failed to save blacklist after modification.");
+        console.error("Failed to save blacklist:", error);
+        return Promise.reject();
+      },
+    );
   }
 
   private static updateBlacklistMetatag (blacklist: string[]) {
@@ -216,10 +227,7 @@ export default class CurrentUser {
       Object.defineProperty(blacklist, method, {
         value: function (...args: any[]) {
           const result = original.apply(this, args);
-          CurrentUser.saveBlacklist(this).catch((e) => {
-            ToastManager.alert("Failed to save blacklist after modification.");
-            console.error("Failed to save blacklist after mutation:", e);
-          });
+          CurrentUser.saveBlacklist(this);
           return result;
         },
         writable: true,
