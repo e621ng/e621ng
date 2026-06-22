@@ -60,8 +60,18 @@ Object.defineProperty(Settings, "Autocomplete", {
   configurable: true,
   get () {
     const obj = _get()["Autocomplete"] || {};
+
+    const blacklistRegexes = [];
+    for (const pattern of (obj.blacklist as string[] || [])) {
+      try {
+        blacklistRegexes.push(new RegExp(pattern, "i"));
+      } catch (e) {
+        console.error(`Invalid regex pattern in Autocomplete.blacklist: ${pattern}`, e);
+      }
+    }
+
     const value = {
-      blacklist: (obj.blacklist as string[] || []).map(pattern => new RegExp(pattern)),
+      blacklist: blacklistRegexes,
     };
     Object.defineProperty(Settings, "Autocomplete", { value, writable: false });
     return value;
