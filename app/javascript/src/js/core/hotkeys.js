@@ -1,4 +1,3 @@
-import User from "@/models/User";
 import StorageUtils from "@/utility/storage_util";
 
 export default class Hotkeys {
@@ -140,7 +139,7 @@ export default class Hotkeys {
       $document.trigger("e6.hotkeys.keydown", [this._heldKeys]);
       if (Hotkeys.debug) console.log("Key Down:", key, keybindString);
 
-      if (!User.hotkeysEnabled) return; // User has disabled hotkeys
+      if (!E621.CurrentUser.settings.hotkeys) return; // User has disabled hotkeys
       if (!Hotkeys.enabled) return; // Global hotkey toggle
       if (isInputFocused()) return; // Input or Textarea focused
 

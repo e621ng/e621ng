@@ -1,6 +1,5 @@
 import Hotkeys from "@/core/hotkeys";
 import PostVote from "@/models/PostVote";
-import User from "@/models/User";
 import Page from "@/utility/Page";
 import LStorage from "@/utility/Storage";
 import SVGIcon from "@/utility/SVGIcon";
@@ -91,7 +90,7 @@ Post.has_prev_target = function () {
 };
 
 Post.nav_prev = function () {
-  var href = "";
+  var href;
 
   if ($(".search-seq-nav").length) {
     href = $(".search-seq-nav a[rel~=prev]").attr("href");
@@ -109,7 +108,7 @@ Post.nav_prev = function () {
 };
 
 Post.nav_next = function () {
-  var href = "";
+  var href;
 
   if ($(".search-seq-nav").length) {
     href = $(".search-seq-nav a[rel~=next]").attr("href");
@@ -406,7 +405,7 @@ Post.resize_image = function (post, target_size) {
     $percentage.text(`${scaled_percentage}%`);
   };
   $notice.hide();
-  let desired_url = "";
+  let desired_url;
   let desired_classes = [];
   switch (target_size) {
     case "original":
@@ -541,7 +540,7 @@ Post.initialize_change_resize_mode_link = function () {
 
 Post._isEditing = false;
 Post.initialize_post_sections = function () {
-  if (User.is.anonymous) return;
+  if (E621.CurrentUser.is.anonymous) return;
 
   $("#side-edit-link, #post-edit-link, #menu-post-edit-link, #post-edit-close").on("click.danbooru", (event) => {
     event.preventDefault(); // Only one of these is a link

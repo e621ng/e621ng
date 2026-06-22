@@ -1,0 +1,37 @@
+<%# locals: (references:, staff_wiki:) %>
+
+<section id="staff-wiki-references" data-editing="false">
+  <h2>References</h2>
+  <button id="staff-wiki-references-edit" class="st-toggle">Edit</button>
+
+  <% references.each do |reference| %>
+    <div
+      class="reference-item-label reference-<%= reference.related_type.downcase %>"
+      title="<%= reference.related_type %>"
+    ><%= reference.related_type[0].upcase %></div>
+    <div class="reference-item-content reference-<%= reference.related_type.downcase %>">
+      <% if reference.related_type == "User" %>
+        <%= link_to_user reference.related %>
+      <% elsif reference.related_type == "Artist" %>
+        <%= link_to reference.related.name, reference.related %>
+      <% elsif reference.related_type == "StaffWiki" %>
+        <%= link_to reference.related.title, reference.related %>
+      <% else %>
+        <%= link_to "#{reference.related_type} ##{reference.related_id}", reference.related %>
+      <% end %>
+    </div>
+    <div class="reference-item-remove">
+      <%= link_to(
+        svg_icon(:times, width: 16, height: 16), staff_wiki_reference_path(staff_wiki, reference),
+        method: :delete,
+        data: { confirm: "Are you certain that you want to remove this reference?\nTHIS IS IRREVERSIBLE." }
+      ) %>
+    </div>
+  <% end %>
+
+  <%= form_with url: staff_wiki_references_path(staff_wiki), class: "reference-form", method: :post do |f| %>
+    <%= select_tag "staff_wiki_ref[related_type]", options_for_select(StaffWikiRef::ALLOWED_TYPES) %>
+    <%= number_field_tag "staff_wiki_ref[related_id]", nil, placeholder: "ID", min: 1 %>
+    <%= f.submit "+" %>
+  <% end %>
+</section>

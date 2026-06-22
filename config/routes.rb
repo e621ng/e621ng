@@ -11,7 +11,6 @@ Rails.application.routes.draw do
     resources :automod_rules, only: %i[index new create edit update destroy]
     resources :users, only: %i[edit update] do
       member do
-        post :clear_avatar
         get :edit_blacklist
         post :update_blacklist
         get :request_password_reset
@@ -61,6 +60,15 @@ Rails.application.routes.draw do
         get :export
       end
     end
+    resources :user_cleanups, only: %i[show], param: :user_id do
+      member do
+        post :clear_avatar
+        post :clear_profile
+        post :hide_comments
+        post :hide_forum_posts
+        post :hide_blips
+      end
+    end
     namespace :post do
       resource :approval, only: %i[create destroy]
       resources :disapprovals, only: %i[create index]
@@ -78,6 +86,8 @@ Rails.application.routes.draw do
           post :regenerate_thumbnails
           post :regenerate_videos
           get :ai_check
+          get :previous_owners
+          post :reowner
         end
       end
     end
@@ -397,6 +407,22 @@ Rails.application.routes.draw do
     end
   end
   resources :wiki_page_versions, only: %i[index show] do
+    collection do
+      get :diff
+    end
+  end
+  resources :staff_wikis do
+    resources :references, only: %i[create destroy], controller: "staff_wiki_refs"
+    member do
+      put :revert
+      post :claim
+      post :unclaim
+    end
+    collection do
+      get :search
+    end
+  end
+  resources :staff_wiki_versions, only: %i[index show] do
     collection do
       get :diff
     end

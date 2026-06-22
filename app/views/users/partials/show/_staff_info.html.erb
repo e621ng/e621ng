@@ -47,10 +47,10 @@
       </span>
     <% end %>
 
-    <% if CurrentUser.is_moderator? && UserRevert.can_revert?(user) %>
-      <h4>Tag Changes</h4>
+    <% if CurrentUser.is_moderator? %>
+      <h4>Cleanup</h4>
       <span>
-        <%= link_to "Revert All", new_user_revert_path(user_id: user.id) %>
+        <%= link_to "Cleanup Page", moderator_user_cleanup_path(user) %>
       </span>
     <% end %>
 
@@ -77,13 +77,6 @@
       <h4>Delete User</h4>
       <span>
         <%= link_to "Delete", anonymize_admin_user_path(user) %>
-      </span>
-    <% end %>
-
-    <% if CurrentUser.is_admin? %>
-      <h4>Clear Avatar</h4>
-      <span>
-        <%= link_to "Clear", clear_avatar_admin_user_path(user), method: :post, data: { confirm: "Are you certain that you want to clear this user's avatar?\nTHIS IS IRREVERSIBLE." } %>
       </span>
     <% end %>
   </div>

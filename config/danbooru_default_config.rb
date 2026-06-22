@@ -106,6 +106,10 @@ module Danbooru
       "/usr/bin/ffprobe"
     end
 
+    def default_bg_color
+      "152f56"
+    end
+
     # Thumbnail size
     def small_image_width
       256

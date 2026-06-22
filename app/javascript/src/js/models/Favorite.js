@@ -1,5 +1,4 @@
 import TaskQueue, { TaskCancelled } from "@/utility/TaskQueue";
-import User from "@/models/User";
 
 export default class Favorite {
 
@@ -22,7 +21,7 @@ export default class Favorite {
         credentials: "include",
         body: JSON.stringify({
           post_id: post_id,
-          authenticity_token: encodeURIComponent(User._authToken),
+          authenticity_token: E621.CurrentUser.encodedAuthToken,
         }),
       });
     }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
@@ -48,7 +47,7 @@ export default class Favorite {
       } catch (error) {
         $(window).trigger("danbooru:error", "Error: " + error.message);
         console.error("Failed to parse response as JSON:", error);
-        throw new Error("Failed to parse response as JSON: " + error.message);
+        throw new Error("Failed to parse response as JSON: " + error.message, { cause: error });
       }
     }, (error) => {
       if (error instanceof TaskCancelled) return Promise.reject(error);
@@ -77,7 +76,7 @@ export default class Favorite {
         mode: "cors",
         body: JSON.stringify({
           post_id: post_id,
-          authenticity_token: encodeURIComponent(User._authToken),
+          authenticity_token: E621.CurrentUser.encodedAuthToken,
         }),
       });
     }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
@@ -100,7 +99,7 @@ export default class Favorite {
       } catch (error) {
         $(window).trigger("danbooru:error", "Error: " + error.message);
         console.error("Failed to parse response as JSON:", error);
-        throw new Error("Failed to parse response as JSON: " + error.message);
+        throw new Error("Failed to parse response as JSON: " + error.message, { cause: error });
       }
     }, (error) => {
       if (error instanceof TaskCancelled) return Promise.reject(error);

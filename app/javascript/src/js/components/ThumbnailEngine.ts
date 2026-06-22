@@ -1,6 +1,5 @@
 import E621Type from "@/interfaces/E621";
 import PostCache, { CachedPost } from "@/models/PostCache";
-import User from "@/models/User";
 import Settings from "@/utility/Settings";
 import SVGIcon from "@/utility/SVGIcon";
 
@@ -61,7 +60,7 @@ export default class ThumbnailEngine {
       })
       .appendTo(article);
 
-    if (!post.isUnavailable && (!post.isDeleted || User.is.staff))
+    if (!post.isUnavailable && (!post.isDeleted || E621.CurrentUser.is.staff))
       link.append(this.renderPicture(post));
 
     // Footer

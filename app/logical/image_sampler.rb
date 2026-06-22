@@ -133,8 +133,9 @@ module ImageSampler
   #   - file_path: the path to the video file
   # Returns the path to the generated snapshot file.
   def gen_video_snapshot(file_path)
-    output_file = Tempfile.new(["video-preview", ".jpg"], binmode: true)
-    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-y", "-i", file_path, "-vf", "thumbnail", "-frames:v", "1", output_file.path)
+    output_file = Tempfile.new(["video-preview", ".png"], binmode: true)
+    decoder_args = video_alpha_decoder_args(file_path)
+    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-y", *decoder_args, "-i", file_path, "-vf", "thumbnail", "-frames:v", "1", output_file.path)
 
     unless status == 0
       Rails.logger.warn("[FFMPEG PREVIEW STDOUT] #{stdout.chomp!}")
@@ -144,6 +145,32 @@ module ImageSampler
 
     output_file.close
     output_file
+  end
+
+  # Returns the ffmpeg input decoder arguments needed to preserve alpha for VP8/VP9
+  # WebM files. Both codecs store alpha as a secondary bitstream tagged with
+  # alpha_mode=1; the native FFmpeg decoders ignore it, only the libvpx variants
+  # decode it correctly.
+  def video_alpha_decoder_args(file_path)
+    stdout, _stderr, status = Open3.capture3(
+      Danbooru.config.ffprobe_path, "-v", "error",
+      "-select_streams", "v:0",
+      "-show_entries", "stream=codec_name:stream_tags=alpha_mode",
+      "-of", "default=noprint_wrappers=1",
+      file_path
+    )
+    return [] unless status == 0
+
+    has_alpha = stdout.include?("alpha_mode=1")
+    return [] unless has_alpha
+
+    if stdout.include?("codec_name=vp9")
+      ["-vcodec", "libvpx-vp9"]
+    elsif stdout.include?("codec_name=vp8")
+      ["-vcodec", "libvpx"]
+    else
+      []
+    end
   end
 
   # Calculates the dimensions of the generated image.
@@ -196,8 +223,8 @@ module ImageSampler
   # Parameters:
   #   - hex_color: a string representing the hex color (e.g., "#000000")
   # Returns an array of RGB values (e.g., [0, 0, 0])
-  def calc_background_color(hex_color = "152f56")
-    hex_color = hex_color.blank? ? "152f56" : hex_color.delete("#")
+  def calc_background_color(hex_color = nil)
+    hex_color = hex_color.blank? ? Danbooru.config.default_bg_color : hex_color.delete("#")
     r = hex_color[0..1].to_i(16)
     g = hex_color[2..3].to_i(16)
     b = hex_color[4..5].to_i(16)
@@ -224,6 +251,15 @@ module ImageSampler
     # crop
     unless crop_area.nil?
       result = result.smartcrop(crop_area[0], crop_area[1], interesting: :entropy)
+    end
+
+    # Convert embedded colour spaces to sRGB for compatibility.
+    if result.get_typeof("icc-profile-data") != 0
+      begin
+        result = result.icc_transform("srgb", intent: :perceptual)
+      rescue Vips::Error => e
+        Rails.logger.warn("[ImageSampler] icc_transform failed, stripping profile: #{e.message}")
+      end
     end
 
     # save

@@ -1303,6 +1303,43 @@ class Post < ApplicationRecord
       end
       User.id_to_name(uploader_id)
     end
+
+    def previous_version_uploaders
+      previous_uploader_ids = replacements
+                              .where(status: %w[original approved])
+                              .where.not(creator_id: uploader_id)
+                              .distinct
+                              .pluck(:creator_id)
+      User.where(id: previous_uploader_ids)
+    end
+
+    # Reowner the post and return the old owner id, or nil if the new owner is the current owner.
+    def reowner!(new_owner, reowner_versions: false, post_events: true)
+      raise ::User::PrivilegeError unless CurrentUser.is_janitor?
+      raise ::User::PrivilegeError if (reowner_versions || !post_events) && !CurrentUser.is_bd_staff?
+
+      new_owner_id = new_owner&.id
+      raise ::User::PrivilegeError, "Cannot assign a new owner that isn't a previous owner" unless
+        CurrentUser.is_admin? || previous_version_uploaders.any? { |uploader| uploader.id == new_owner_id }
+
+      old_owner_id = uploader_id
+      return nil if new_owner_id == old_owner_id # nothing to do
+
+      self.do_not_version_changes = true
+      update({ uploader_id: new_owner_id })
+      if reowner_versions
+        versions.where(updater_id: old_owner_id).find_each do |version|
+          version.update_column(:updater_id, new_owner_id)
+          version.update_index
+        end
+      end
+
+      if post_events
+        PostEvent.add(id, CurrentUser.user, :owner_changed, { old_owner: old_owner_id, new_owner: new_owner_id })
+      end
+
+      old_owner_id
+    end
   end
 
   module SetMethods

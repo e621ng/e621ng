@@ -304,4 +304,88 @@ RSpec.describe Moderator::Post::PostsController do
       expect(response).to have_http_status(:redirect)
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # GET /moderator/post/posts/:id/previous_owners
+  # ---------------------------------------------------------------------------
+
+  describe "GET /moderator/post/posts/:id/previous_owners" do
+    it "redirects anonymous to the login page" do
+      get previous_owners_moderator_post_post_path(post_record)
+      expect(response).to redirect_to(new_session_path(url: previous_owners_moderator_post_post_path(post_record)))
+    end
+
+    it "returns 403 for a member" do
+      sign_in_as member
+      get previous_owners_moderator_post_post_path(post_record)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 200 and the JSON array for an approver" do
+      sign_in_as approver
+      user1 = create(:user)
+      allow_any_instance_of(Post).to receive(:previous_version_uploaders).and_return([user1]) # rubocop:disable RSpec/AnyInstance
+      get previous_owners_moderator_post_post_path(post_record, format: :json)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body.first["id"]).to eq(user1.id)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # POST /moderator/post/posts/:id/reowner
+  # ---------------------------------------------------------------------------
+
+  describe "POST /moderator/post/posts/:id/reowner" do
+    let(:new_owner) { create(:user) }
+
+    it "redirects anonymous to the login page" do
+      post reowner_moderator_post_post_path(post_record)
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for a member" do
+      sign_in_as member
+      post reowner_moderator_post_post_path(post_record)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for an approver without janitor level" do
+      sign_in_as approver
+      post reowner_moderator_post_post_path(post_record)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a janitor without approver rights" do
+      sign_in_as janitor
+      post reowner_moderator_post_post_path(post_record)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    context "as a janitor with approver rights" do
+      before { sign_in_as janitor_approver }
+
+      it "sets a flash alert if the new owner could not be found" do
+        post reowner_moderator_post_post_path(post_record), params: { reowner: { new_owner: "I_AM_NOT_A_USER" } }
+        expect(flash[:alert]).to match(/New owner could not be found/)
+      end
+
+      it "calls reowner! and redirects if the user is found" do
+        allow_any_instance_of(Post).to receive(:reowner!).with(new_owner, post_events: true, reowner_versions: false).and_return(9999) # rubocop:disable RSpec/AnyInstance
+        expect do
+          post reowner_moderator_post_post_path(post_record), params: { reowner: { new_owner: new_owner.name } }
+        end.not_to change(StaffAuditLog, :count)
+        expect(response).to redirect_to(post_path(post_record))
+      end
+
+      it "creates a staff audit log entry when disabling reowner post events" do
+        allow_any_instance_of(Post).to receive(:reowner!).with(new_owner, post_events: false, reowner_versions: false).and_return(9999) # rubocop:disable RSpec/AnyInstance
+        expect do
+          post reowner_moderator_post_post_path(post_record), params: { reowner: { new_owner: new_owner.name, post_events: false } }
+        end.to change(StaffAuditLog, :count).by(1)
+        expect(response).to redirect_to(post_path(post_record))
+        expect(StaffAuditLog.last.action).to eq("post_owner_reassign")
+        expect(StaffAuditLog.last[:values]).to include("old_user_id" => 9999, "new_user_id" => new_owner.id, "query" => "", "post_ids" => [post_record.id])
+      end
+    end
+  end
 end

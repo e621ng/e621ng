@@ -62,7 +62,7 @@
                         <hr>
                         <div class="flex-wrap">
                             <image-checkbox :check="check" :checks="checkboxes.selected"
-                                            v-for="check in checkboxes.pairing" @set="setCheck"
+                                            v-for="check in filteredPairings" @set="setCheck"
                                             :key="check.name"></image-checkbox>
                         </div>
                         <textarea class="tag-textarea" rows="2" v-model="tagEntries.character" id="post_character"
@@ -247,24 +247,28 @@
   import artistTagInput from './artist_tag_input.vue';
   import Autocomplete from "@/components/autocomplete";
   import DTextFormatter from "@/components/DTextFormatter.ts";
-  
-  const sex_checks = [
-    {name: 'Male'},
-    {name: 'Female'},
-    {name: 'Andromorph'},
-    {name: 'Gynomorph'},
-    {name: 'Hermaphrodite', tag: 'herm'},
-    {name: 'Male-Herm', tag: 'maleherm'},
-    {name: 'Ambiguous', tag: 'ambiguous_gender'}];
 
-  const pairing_checks = [
-    {name: 'Male/Male'},
-    {name: 'Male/Female'},
-    {name: 'Female/Female'},
-    {name: 'Intersex/Male'},
-    {name: 'Intersex/Female'},
-    {name: 'Intersex/Intersex'}
-  ];
+  const sex_names = {
+    male: 'Male',
+    female: 'Female',
+    andromorph: 'Andromorph',
+    gynomorph: 'Gynomorph',
+    herm: 'Hermaphrodite',
+    maleherm: 'Male-Herm',
+    ambiguous_gender: 'Ambiguous'
+  };
+
+  const sex_checks = Object.entries(sex_names).map(([tag, name]) => ({ name, tag }));
+
+  const sex_tag_keys = Object.keys(sex_names);
+  const all_pairing_pairs = [];
+  for (let i = 0; i < sex_tag_keys.length; i++) {
+    for (let j = i; j < sex_tag_keys.length; j++) {
+      all_pairing_pairs.push({ tagA: sex_tag_keys[i], tagB: sex_tag_keys[j] });
+    }
+  }
+  const pairing_tag_name = tag => tag === 'ambiguous_gender' ? 'ambiguous' : tag;
+  const all_pairing_tag_set = new Set(all_pairing_pairs.map(p => pairing_tag_name(p.tagA) + "/" + pairing_tag_name(p.tagB)));
 
   const char_count_checks = [
     {name: 'Solo'},
@@ -312,7 +316,7 @@
         allChecks[check.name.toLowerCase().replace(' ', '_')] = true;
       };
       sex_checks.forEach(addChecks);
-      pairing_checks.forEach(addChecks);
+      all_pairing_tag_set.forEach(tag => { allChecks[tag] = true; });
       char_count_checks.forEach(addChecks);
       body_type_checks.forEach(addChecks);
 
@@ -337,7 +341,6 @@
 
         checkboxes: {
           sex: sex_checks,
-          pairing: pairing_checks,
           count: char_count_checks,
           body: body_type_checks,
           selected: {},
@@ -432,7 +435,7 @@
         fillField('lockedTags', 'locked_tags');
       if(this.allowUploadAsPending)
         fillFieldBool("uploadAsPending", "upload_as_pending")
-      
+
       this.initVerifiedArtistButtons();
 
       Autocomplete.initialize_autocomplete('tag-edit');
@@ -441,6 +444,12 @@
     methods: {
       setCheck(tag, value) {
         this.checkboxes.selected[tag] = value;
+        if (!value) {
+          for (const p of all_pairing_pairs) {
+            if (p.tagA === tag || p.tagB === tag)
+              this.checkboxes.selected[pairing_tag_name(p.tagA) + "/" + pairing_tag_name(p.tagB)] = false;
+          }
+        }
       },
       submit() {
         this.showErrors = true;
@@ -640,12 +649,24 @@
       },
     },
     computed: {
+      filteredPairings() {
+        const selected = this.checkboxes.selected;
+        return all_pairing_pairs
+          .filter(p => selected[p.tagA] && selected[p.tagB])
+          .map(p => ({
+            name: sex_names[p.tagA] + "/" + sex_names[p.tagB],
+            tag: pairing_tag_name(p.tagA) + "/" + pairing_tag_name(p.tagB),
+          }));
+      },
       tags() {
         const self = this;
         if (!this.normalMode)
           return this.tagEntries.other;
+        const validPairingTags = new Set(this.filteredPairings.map(p => p.tag));
         const checked = Object.keys(this.checkboxes.selected).filter(function (x) {
-          return self.checkboxes.selected[x] === true;
+          if (!self.checkboxes.selected[x]) return false;
+          if (all_pairing_tag_set.has(x)) return validPairingTags.has(x);
+          return true;
         });
         return checked.concat([this.tagEntries.other, this.tagEntries.artist, this.tagEntries.character,
           this.tagEntries.species, this.tagEntries.content]).join(' ').replace(',', ' ').trim().replace(/ +/g, ' ');

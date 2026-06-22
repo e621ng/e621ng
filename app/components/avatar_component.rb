@@ -2,6 +2,7 @@
 
 class AvatarComponent < ViewComponent::Base
   include DeferredPosts
+  with_collection_parameter :user
 
   def initialize(user:)
     super()

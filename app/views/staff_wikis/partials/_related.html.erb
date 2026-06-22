@@ -1,0 +1,13 @@
+<%# locals: related_pages %>
+
+<% if related_pages.any? %>
+  <section id="staff-wiki-related">
+    <h2>Related</h2>
+
+    <% related_pages.each do |wiki| %>
+      <div class="related-item">
+        <%= link_to wiki.title, wiki %>
+      </div>
+    <% end %>
+  </section>
+<% end %>
