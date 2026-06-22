@@ -4,7 +4,7 @@ module Moderator
   module Post
     class PostsController < ApplicationController
       before_action :approver_only, except: %i[regenerate_thumbnails regenerate_videos]
-      before_action :janitor_only, only: %i[regenerate_thumbnails regenerate_videos ai_check]
+      before_action :janitor_only, only: %i[regenerate_thumbnails regenerate_videos ai_check reowner]
       before_action :admin_only, only: [:expunge]
       skip_before_action :api_check
 
@@ -122,6 +122,44 @@ module Moderator
         @post = ::Post.find(params[:id])
         @ai_result = @post.check_for_ai_content
         redirect_back fallback_location: post_path(@post)
+      end
+
+      def previous_owners
+        @post = ::Post.find(params[:id])
+        @previous_owners = @post.previous_version_uploaders
+        respond_with(@previous_owners) do |format|
+          format.json { render json: @previous_owners.map { |owner| owner.slice(:id, :name) }.to_json }
+        end
+      end
+
+      def reowner
+        @post = ::Post.find(params[:id])
+
+        reowner_params = new_reowner_params
+        @new_owner = User.find_by_name_or_id(reowner_params[:new_owner]) # rubocop:disable Rails/DynamicFindBy
+        if @new_owner.blank?
+          flash[:alert] = "New owner could not be found. Try using !<userId> instead of a name."
+          return
+        end
+        reowner_versions = ActiveModel::Type::Boolean.new.cast(reowner_params[:reowner_versions])
+        post_events = ActiveModel::Type::Boolean.new.cast(reowner_params[:post_events])
+
+        old_owner_id = @post.reowner!(@new_owner, reowner_versions: reowner_versions, post_events: post_events)
+
+        if old_owner_id.present? && !post_events
+          # Always log the change somewhere
+          StaffAuditLog.log(:post_owner_reassign, CurrentUser.user, { old_user_id: old_owner_id, new_user_id: @new_owner.id, query: "", post_ids: [@post.id] })
+        end
+
+        respond_with(@post)
+      end
+
+      private
+
+      def new_reowner_params
+        params.require(:reowner)
+              .permit(%i[new_owner reowner_versions post_events])
+              .with_defaults(reowner_versions: false, post_events: true)
       end
     end
   end

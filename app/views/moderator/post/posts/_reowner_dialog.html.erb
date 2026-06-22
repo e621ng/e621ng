@@ -1,0 +1,25 @@
+<form class="simple_form" id="reowner-dialog" data-title="Reowner Post" data-width="250" data-position="center">
+  <div class="input">
+    <div id="reowner-dialog-status"></div>
+    <div id="reowner-dialog-labeled-input">
+      <select id="reowner-dialog-select" data-allow-other="<%= CurrentUser.is_admin? ? "true" : "false" %>">
+      </select>
+    </div>
+    <input type="text" id="reowner-dialog-input" placeholder="Name or ID prefixed with !">
+    <% if CurrentUser.is_bd_staff? %>
+      <label for="reowner-dialog-reowner-versions">
+        Reowner post versions
+        <input type="checkbox" id="reowner-dialog-reowner-versions">
+      </label>
+      <label for="reowner-dialog-post-events">
+        Create post events
+        <input type="checkbox" id="reowner-dialog-post-events" checked>
+      </label>
+    <% end %>
+  </div>
+
+  <div class="input reowner-dialog-submit">
+    <button type="button" class="st-button" id="reowner-dialog-cancel">Cancel</button>
+    <button type="submit" class="st-button submit" id="reowner-dialog-ok">OK</button>
+  </div>
+</form>
