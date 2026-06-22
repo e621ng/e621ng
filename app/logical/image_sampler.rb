@@ -153,7 +153,7 @@ module ImageSampler
   # decode it correctly.
   def video_alpha_decoder_args(file_path)
     stdout, _stderr, status = Open3.capture3(
-      "ffprobe", "-v", "error",
+      Danbooru.config.ffprobe_path, "-v", "error",
       "-select_streams", "v:0",
       "-show_entries", "stream=codec_name:stream_tags=alpha_mode",
       "-of", "default=noprint_wrappers=1",
