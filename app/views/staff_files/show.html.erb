@@ -8,7 +8,7 @@
       <% elsif @staff_file.is_video? %>
         <video controls src="<%= @staff_file.file_url %>"></video>
       <% else %>
-        <p><%= link_to "Download #{@staff_file.original_filename}", @staff_file.file_url %></p>
+        <p class="staff-file-download"><%= link_to "Download #{@staff_file.original_filename}", @staff_file.file_url %></p>
       <% end %>
     </div>
 
