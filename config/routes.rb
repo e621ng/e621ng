@@ -16,9 +16,6 @@ Rails.application.routes.draw do
         post :claim
         post :unclaim
       end
-      collection do
-        get :search
-      end
     end
     resources :wiki_versions, controller: "staff_wiki_versions", only: %i[index show] do
       collection do
