@@ -8,19 +8,20 @@ class StorageManager
   MASCOT_PREFIX = "mascots"
   AVATAR_PREFIX = "avatars"
   DB_EXPORT_PREFIX = "db_export"
-  STAFF_FILE_PREFIX = "staff_files"
 
-  attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix
+  attr_reader :base_url, :base_dir, :hierarchical, :large_image_prefix, :protected_prefix, :base_path, :replacement_prefix, :staff_file_prefix
 
   def initialize(base_url: default_base_url, base_path: default_base_path, base_dir: DEFAULT_BASE_DIR, hierarchical: false,
                  large_image_prefix: Danbooru.config.large_image_prefix,
                  protected_prefix: Danbooru.config.protected_path_prefix,
-                 replacement_prefix: Danbooru.config.replacement_path_prefix)
+                 replacement_prefix: Danbooru.config.replacement_path_prefix,
+                 staff_file_prefix: Danbooru.config.staff_file_path_prefix)
     @base_url = base_url.chomp("/")
     @base_dir = base_dir
     @base_path = base_path
     @protected_prefix = protected_prefix
     @replacement_prefix = replacement_prefix
+    @staff_file_prefix = staff_file_prefix
     @hierarchical = hierarchical
     @large_image_prefix = large_image_prefix
   end
@@ -149,12 +150,12 @@ class StorageManager
 
   def staff_file_path(staff_file)
     subdir = subdir_for(staff_file.storage_id)
-    "#{base_dir}/#{STAFF_FILE_PREFIX}/#{subdir}#{staff_file.storage_id}.#{staff_file.file_ext}"
+    "#{base_dir}/#{staff_file_prefix}/#{subdir}#{staff_file.storage_id}.#{staff_file.file_ext}"
   end
 
   def staff_file_url(staff_file)
     subdir = subdir_for(staff_file.storage_id)
-    path = "#{base_path}/#{STAFF_FILE_PREFIX}/#{subdir}#{staff_file.storage_id}.#{staff_file.file_ext}"
+    path = "#{base_path}/#{staff_file_prefix}/#{subdir}#{staff_file.storage_id}.#{staff_file.file_ext}"
     "#{base_url}#{path}#{protected_params(path, secret: Danbooru.config.staff_file_secret)}"
   end
 

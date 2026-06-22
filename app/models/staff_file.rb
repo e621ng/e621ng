@@ -18,7 +18,16 @@ class StaffFile < ApplicationRecord
       q = q.where_user(:creator_id, :creator, params)
       q = q.where_ilike(:original_filename, params[:original_filename]) if params[:original_filename].present?
       q = q.attribute_exact_matches(:file_ext, params[:file_ext]) if params[:file_ext].present?
-      q.apply_basic_order(params)
+
+      case params[:order]
+      when "original_filename"
+        q = q.order(Arel.sql("original_filename ASC"))
+      when "time"
+        q = q.order(created_at: :desc)
+      else
+        q = q.apply_basic_order(params)
+      end
+      q
     end
   end
 

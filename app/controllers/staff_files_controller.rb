@@ -7,7 +7,10 @@ class StaffFilesController < ApplicationController
   before_action :check_delete_permission, only: %i[destroy]
 
   def index
-    @staff_files = StaffFile.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
+    @staff_files = StaffFile
+                   .includes(:creator)
+                   .search(search_params)
+                   .paginate(params[:page], limit: params[:limit], search_count: params[:search])
     respond_with(@staff_files)
   end
 
