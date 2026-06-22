@@ -23,11 +23,12 @@
     </section>
   <% end %>
 
-  <% if @has_visible_comments %>
+  <% if @comment_count > 0 %>
     <section class="box-section">
       <h2>Hide All Comments</h2>
       <p>
-        Hide every visible comment by this user.<br />
+        Remove all <b><%= @comment_count %></b> comments by this user from public view.<br />
+        Some comments may already be hidden.<br />
         <span class="hint">Performed in a background job, may take some time.</span>
       </p>
       <%= button_to "Hide Comments",
@@ -37,11 +38,12 @@
     </section>
   <% end %>
 
-  <% if @has_visible_forum_posts %>
+  <% if @forum_post_count > 0 %>
     <section class="box-section">
       <h2>Hide All Forum Posts & Topics</h2>
       <p>
-        Hide all visible forum posts and topics by this user.<br />
+        Remove all <b><%= @forum_post_count %></b> forum posts and topics by this user.<br />
+        Some forum posts may already be hidden.<br />
         <span class="hint">Performed in a background job, may take some time.</span>
       </p>
       <%= button_to "Hide Forum Posts",
@@ -51,11 +53,12 @@
     </section>
   <% end %>
 
-  <% if @has_visible_blips %>
+  <% if @blips_count > 0 %>
     <section class="box-section">
       <h2>Hide All Blips</h2>
       <p>
-        Hide all visible blips by this user.<br />
+        Remove all <b><%= @blips_count %></b> blips by this user from public view.<br />
+        Some blips may already be hidden.<br />
         <span class="hint">Performed in a background job, may take some time.</span>
       </p>
       <%= button_to "Hide Blips",

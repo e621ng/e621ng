@@ -8,10 +8,14 @@ module Moderator
     def show
       @has_avatar = @user.avatar_id.present?
       @has_profile_info = @user.profile_about.present? || @user.profile_artinfo.present?
-      @has_visible_comments = Comment.where(creator_id: @user.id, is_hidden: false).exists?
-      @has_visible_forum_posts = ForumPost.where(creator_id: @user.id, is_hidden: false).exists?
-      @has_visible_blips = Blip.where(creator_id: @user.id, is_deleted: false).exists?
-      @has_revertable_changes = UserRevert.can_revert?(@user)
+
+      # Don't recount these, for performance reasons.
+      # Many of these may already be hidden, so the counts may not be exact.
+      @comment_count = @user.comment_count
+      @forum_post_count = @user.forum_post_count
+      @blips_count = @user.blip_count
+
+      @has_revertable_changes = @user.post_update_count > 0 && UserRevert.can_revert?(@user)
     end
 
     def clear_avatar
