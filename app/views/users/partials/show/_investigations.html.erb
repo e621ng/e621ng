@@ -14,7 +14,7 @@
         <% end %>
       </ul>
     <% end %>
-    <%= link_to "New Investigation", new_staff_wiki_path(staff_wiki: { related_type: "user", related_id: user.id, title: "User: #{user.name} #{Time.now.strftime('%Y-%m-%d')}" }) %>
+    <%= link_to "New Investigation", new_staff_wiki_path(staff_wiki: { related_type: "user", related_id: user.id, title: "User: #{user.name} #{Date.current}" }) %>
   </div>
 </div>
 <% end %>

@@ -1,4 +1,4 @@
-function bootstrapReferencesEdit() {
+function bootstrapReferencesEdit () {
   const wrapper = document.getElementById("staff-wiki-references");
   if (!wrapper) return;
 
