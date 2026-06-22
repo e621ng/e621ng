@@ -5,7 +5,7 @@ module Staff
     before_action :staff_only
 
     def create
-      @staff_wiki = StaffWiki.find(params[:staff_wiki_id])
+      @staff_wiki = StaffWiki.find(params[:wiki_id])
       @ref = @staff_wiki.references.create(staff_wiki_ref_params)
       if @ref.errors.none?
         flash[:notice] = "Reference added"
@@ -16,7 +16,7 @@ module Staff
     end
 
     def destroy
-      @staff_wiki = StaffWiki.find(params[:staff_wiki_id])
+      @staff_wiki = StaffWiki.find(params[:wiki_id])
       @ref = @staff_wiki.references.find(params[:id])
       @ref.destroy
       flash[:notice] = "Reference removed"

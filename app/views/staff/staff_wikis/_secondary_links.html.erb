@@ -1,6 +1,5 @@
 <% content_for(:secondary_links) do %>
   <%= subnav_link_to "Listing", staff_wikis_path %>
-  <%= subnav_link_to "Search", search_staff_wikis_path %>
   <%= subnav_link_to "New", new_staff_wiki_path %>
   <li class="divider"></li>
   <%= subnav_link_to "Mine", staff_wikis_path(search: { editor_id: CurrentUser.id }) %>
