@@ -3,17 +3,9 @@ import SearchQuery, { ORDER_ASC, ORDER_CUSTOM, ORDER_DESC, ORDER_VALUES, RATINGS
 
 const SORT_CUSTOM_ID = "advanced-search-sort-custom";
 
-const INPOOL_STATES = ["unset", "yes", "no"];
-const INPOOL_VALUES: Record<string, string> = { unset: "", yes: "true", no: "false" };
-const INPOOL_STATE_MAP: Record<string, string> = { "": "unset", "true": "yes", "false": "no" };
-
-const ISCHILD_STATES = ["unset", "yes", "no"];
-const ISCHILD_VALUES: Record<string, string> = { unset: "", yes: "true", no: "false" };
-const ISCHILD_STATE_MAP: Record<string, string> = { "": "unset", "true": "yes", "false": "no" };
-
-const ISPARENT_STATES = ["unset", "yes", "no"];
-const ISPARENT_VALUES: Record<string, string> = { unset: "", yes: "true", no: "false" };
-const ISPARENT_STATE_MAP: Record<string, string> = { "": "unset", "true": "yes", "false": "no" };
+const TOGGLE_STATES = ["unset", "yes", "no"];
+const TOGGLE_VALUES: Record<string, string> = { unset: "", yes: "true", no: "false" };
+const TOGGLE_STATE_MAP: Record<string, string> = { "": "unset", "true": "yes", "false": "no" };
 
 
 export default class SearchFilters {
@@ -102,17 +94,17 @@ export default class SearchFilters {
   }
 
   private setInpoolState (value: string): void {
-    const state = INPOOL_STATE_MAP[value] || "unset";
+    const state = TOGGLE_STATE_MAP[value] || "unset";
     this.$inpoolToggle.attr("data-state", state).attr("aria-label", `In pool: ${state}`);
   }
 
   private setIschildState (value: string): void {
-    const state = ISCHILD_STATE_MAP[value] || "unset";
+    const state = TOGGLE_STATE_MAP[value] || "unset";
     this.$ischildToggle.attr("data-state", state).attr("aria-label", `Has parent: ${state}`);
   }
 
   private setIsparentState (value: string): void {
-    const state = ISPARENT_STATE_MAP[value] || "unset";
+    const state = TOGGLE_STATE_MAP[value] || "unset";
     this.$isparentToggle.attr("data-state", state).attr("aria-label", `Has child: ${state}`);
   }
 
@@ -143,12 +135,12 @@ export default class SearchFilters {
     const spanIndex = $el.find(".sto-tri").toArray().indexOf(event.target);
     let next: string;
     if (spanIndex >= 0) {
-      next = INPOOL_STATES[spanIndex];
+      next = TOGGLE_STATES[spanIndex];
     } else {
-      const cur = INPOOL_STATES.indexOf($el.attr("data-state") || "");
-      next = INPOOL_STATES[(cur < 0 ? 1 : cur + 1) % INPOOL_STATES.length];
+      const cur = TOGGLE_STATES.indexOf($el.attr("data-state") || "");
+      next = TOGGLE_STATES[(cur < 0 ? 1 : cur + 1) % TOGGLE_STATES.length];
     }
-    this.query = this.query.withInpool(INPOOL_VALUES[next]);
+    this.query = this.query.withInpool(TOGGLE_VALUES[next]);
   }
 
   private updateIschild (event: JQuery.ClickEvent): void {
@@ -156,12 +148,12 @@ export default class SearchFilters {
     const spanIndex = $el.find(".sto-tri").toArray().indexOf(event.target);
     let next: string;
     if (spanIndex >= 0) {
-      next = ISCHILD_STATES[spanIndex];
+      next = TOGGLE_STATES[spanIndex];
     } else {
-      const cur = ISCHILD_STATES.indexOf($el.attr("data-state") || "");
-      next = ISCHILD_STATES[(cur < 0 ? 1 : cur + 1) % ISCHILD_STATES.length];
+      const cur = TOGGLE_STATES.indexOf($el.attr("data-state") || "");
+      next = TOGGLE_STATES[(cur < 0 ? 1 : cur + 1) % TOGGLE_STATES.length];
     }
-    this.query = this.query.withIschild(ISCHILD_VALUES[next]);
+    this.query = this.query.withIschild(TOGGLE_VALUES[next]);
   }
 
   private updateIsparent (event: JQuery.ClickEvent): void {
@@ -169,12 +161,12 @@ export default class SearchFilters {
     const spanIndex = $el.find(".sto-tri").toArray().indexOf(event.target);
     let next: string;
     if (spanIndex >= 0) {
-      next = ISPARENT_STATES[spanIndex];
+      next = TOGGLE_STATES[spanIndex];
     } else {
-      const cur = ISPARENT_STATES.indexOf($el.attr("data-state") || "");
-      next = ISPARENT_STATES[(cur < 0 ? 1 : cur + 1) % ISPARENT_STATES.length];
+      const cur = TOGGLE_STATES.indexOf($el.attr("data-state") || "");
+      next = TOGGLE_STATES[(cur < 0 ? 1 : cur + 1) % TOGGLE_STATES.length];
     }
-    this.query = this.query.withIsparent(ISPARENT_VALUES[next]);
+    this.query = this.query.withIsparent(TOGGLE_VALUES[next]);
   }
 
   private updateRatings (): void {
