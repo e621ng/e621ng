@@ -4,9 +4,11 @@ class HideUserForumPostsJob < ApplicationJob
   queue_as :default
   sidekiq_options lock: :until_executing
 
-  def perform(user_id, _initiator_id)
+  def perform(user_id, initiator_id)
     user = User.find(user_id)
-    CurrentUser.as_system do
+    initiator = User.find(initiator_id) || User.system
+
+    CurrentUser.scoped(initiator) do
       ForumTopic.without_timeout do
         ForumTopic.where(creator_id: user.id, is_hidden: false).find_each do |topic|
           topic.hide!

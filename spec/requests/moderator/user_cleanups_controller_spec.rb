@@ -120,7 +120,8 @@ RSpec.describe Moderator::UserCleanupsController do
 
       it "does not include archived content section in the note" do
         post clear_profile_moderator_user_cleanup_path(target)
-        expect(StaffNote.last.body).not_to include("Archived content")
+        expect(StaffNote.last.body).not_to include("[section=About]")
+        expect(StaffNote.last.body).not_to include("[section=Art Info]")
       end
     end
   end
@@ -206,7 +207,7 @@ RSpec.describe Moderator::UserCleanupsController do
       end.to have_enqueued_job(HideUserBlipsJob).with(target.id, moderator.id)
     end
 
-    it "logs a blip_delete ModAction" do
+    it "logs a user_blips_delete ModAction" do
       expect do
         post hide_blips_moderator_user_cleanup_path(target)
       end.to change { ModAction.where(action: "user_blips_delete").count }.by(1)
