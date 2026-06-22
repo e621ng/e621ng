@@ -25,6 +25,9 @@ module SiteSettingsHelper
           search_trend: Danbooru.config.visitor_metrics_events[:search_trend] || false,
         },
       },
+      Autocomplete: {
+        blacklist: Danbooru.config.default_autocomplete_blacklist,
+      },
       Posts: {
         webp_enabled: Danbooru.config.webp_previews_enabled?,
       },
