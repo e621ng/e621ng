@@ -9,6 +9,7 @@ class StaffWiki < ApplicationRecord
   normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
 
   validates :title, presence: true, length: { minimum: 1, maximum: 100 }
+  validates :title, uniqueness: { case_sensitive: false }, on: :create
   validates :body, length: { maximum: Danbooru.config.wiki_page_max_size }
   validate :validate_claimant_id
 
@@ -41,6 +42,10 @@ class StaffWiki < ApplicationRecord
       q = q.where_ilike(:title, params[:title]) if params[:title].present?
       q = q.attribute_matches(:body, params[:body_matches])
       q = q.where_user(:creator_id, :creator, params)
+
+      if params[:editor_id].present?
+        q = q.where(id: StaffWikiVersion.where(updater_id: params[:editor_id]).select(:staff_wiki_id))
+      end
 
       case params[:order]
       when "title"
