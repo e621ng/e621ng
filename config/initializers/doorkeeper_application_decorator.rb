@@ -1,7 +1,25 @@
 # frozen_string_literal: true
 
+module DoorkeeperApplicationSearch
+  def paginate(page, options = {})
+    extending(Danbooru::Paginator::ActiveRecordExtension).paginate(page, options)
+  end
+
+  def search(params = {})
+    q = all
+    q = q.where("lower(oauth_applications.name) LIKE ?", "%#{params[:name].to_s.downcase}%") if params[:name].present?
+    if params[:owner_name].present?
+      owner = User.find_by("lower(name) = ?", params[:owner_name].downcase)
+      q = q.where(owner_type: "User", owner_id: owner&.id)
+    end
+    q
+  end
+end
+
 # to_prepare runs after Doorkeeper has loaded its model in both dev and prod.
 Rails.application.config.to_prepare do
+  Doorkeeper::Application.extend(DoorkeeperApplicationSearch)
+
   Doorkeeper::Application.class_eval do
     attr_accessor :authorization_denial_reason
 

@@ -1,0 +1,4 @@
+<%= form_search(path: oauth_applications_path) do |f| %>
+  <%= f.input :name, label: "Name" %>
+  <%= f.user :owner %>
+<% end %>

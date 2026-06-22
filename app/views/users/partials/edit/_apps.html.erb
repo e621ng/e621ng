@@ -26,17 +26,17 @@
 <% end %>
 
 
-<% if CurrentUser.user.is_janitor? %>
+<% if CurrentUser.user.is_staff? %>
 <!-- Developer -->
 <tab-group name="developer">Developer</tab-group>
 
 <tab-entry tab="<%= tab_name %>" group="developer" class="with-button" search="oauth openid connect applications clients developer register">
   <tab-head>OAuth Applications</tab-head>
   <tab-body>
-    <%= link_to "Manage OAuth Applications", oauth_applications_path, class: "st-button" %>
+    <%= link_to "Manage OAuth Applications", mine_oauth_applications_path, class: "st-button" %>
   </tab-body>
   <tab-hint>
-    Your applications that connect to <%= Danbooru.config.app_name %>.
+    Your applications that connect to the site.
   </tab-hint>
 </tab-entry>
 <% end %>

@@ -374,7 +374,7 @@ RSpec.describe "OIDC endpoints" do
                           "expected auto-skip on prior superset grant"
 
       # Revoke via the authorized-applications controller
-      delete "/oauth/authorized_applications/#{oauth_app.id}"
+      delete "/applications/authorized/#{oauth_app.id}"
       expect(response).to have_http_status(:redirect)
       expect(
         Doorkeeper::AccessToken.where(

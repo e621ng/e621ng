@@ -7,14 +7,14 @@ RSpec.describe OauthAuthorizedApplicationsController do
 
   describe "access gating" do
     it "redirects anonymous users to login" do
-      get "/oauth/authorized_applications"
+      get "/applications/authorized"
       expect(response).to redirect_to(/session/)
     end
 
     it "rejects api_key auth (browser-only)" do
       api_user = create(:user)
       api_key = create(:api_key, user: api_user)
-      get "/oauth/authorized_applications", params: { login: api_user.name, api_key: api_key.key }
+      get "/applications/authorized", params: { login: api_user.name, api_key: api_key.key }
       expect(response).to have_http_status(:forbidden)
     end
 
@@ -25,18 +25,18 @@ RSpec.describe OauthAuthorizedApplicationsController do
         scopes: "openid full", owner: bearer_user
       )
       token = Doorkeeper::AccessToken.create!(application: app, resource_owner_id: bearer_user.id, scopes: "openid full")
-      get "/oauth/authorized_applications", headers: { "Authorization" => "Bearer #{token.token}" }
+      get "/applications/authorized", headers: { "Authorization" => "Bearer #{token.token}" }
       expect(response).to have_http_status(:forbidden)
     end
 
     it "allows logged-in browser users" do
       sign_in_as(user)
-      get "/oauth/authorized_applications"
+      get "/applications/authorized"
       expect(response).to have_http_status(:ok)
     end
   end
 
-  describe "DELETE /oauth/authorized_applications/:id with bearer auth" do
+  describe "DELETE /applications/authorized/:id with bearer auth" do
     let(:bearer_user) { create(:user) }
     let(:other_app) do
       Doorkeeper::Application.create!(
@@ -62,7 +62,7 @@ RSpec.describe OauthAuthorizedApplicationsController do
     end
 
     it "rejects so a malicious app cannot silently revoke another grant" do
-      delete "/oauth/authorized_applications/#{my_app.id}",
+      delete "/applications/authorized/#{my_app.id}",
              headers: { "Authorization" => "Bearer #{bearer_token.token}" }
       expect(response).to have_http_status(:forbidden)
       expect(victim_token.reload.revoked?).to be false

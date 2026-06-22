@@ -1,4 +1,5 @@
-body.c-oauth-applications.a-index {
+body.c-oauth-applications.a-index,
+body.c-oauth-applications.a-mine {
   .instructions {
     margin-bottom: 1em;
     max-width: 50rem;
@@ -11,10 +12,14 @@ body.c-oauth-applications.a-index {
   .button {
     margin-bottom: 1rem;
   }
+}
 
-  .api-keys-list {
-    grid-template-columns: 1.5fr 2fr 1fr 1fr 1.5fr;
-  }
+body.c-oauth-applications.a-mine .api-keys-list {
+  grid-template-columns: 1.5fr 2fr 1fr 1fr 1.5fr;
+}
+
+body.c-oauth-applications.a-index .api-keys-list {
+  grid-template-columns: 1.5fr 1fr 2fr 1fr 1fr 1.5fr;
 }
 
 body.c-oauth-authorized-applications.a-index {
@@ -141,6 +146,7 @@ body.c-oauth-authorized-applications {
   }
 }
 
+body.c-oauth-applications.a-show,
 body.c-oauth-applications.a-new,
 body.c-oauth-applications.a-create,
 body.c-oauth-applications.a-edit,
