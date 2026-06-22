@@ -228,7 +228,11 @@ module ImageSampler
 
     # Convert embedded colour spaces to sRGB for compatibility.
     if result.get_typeof("icc-profile-data") != 0
-      result = result.icc_transform("srgb", intent: :perceptual)
+      begin
+        result = result.icc_transform("srgb", intent: :perceptual)
+      rescue Vips::Error => e
+        Rails.logger.warn("[ImageSampler] icc_transform failed, stripping profile: #{e.message}")
+      end
     end
 
     # save
