@@ -15,10 +15,10 @@
     </div>
 
     <div class="staff-wiki-sidebar">
-      <%= render partial: "staff_wikis/partials/claimant", locals: { staff_wiki: @staff_wiki } %>
-      <%= render partial: "staff_wikis/partials/references", locals: { references: @staff_wiki.references, staff_wiki: @staff_wiki } %>
-      <%= render partial: "staff_wikis/partials/involved", locals: { users: @involved_users } %>
-      <%= render partial: "staff_wikis/partials/related", locals: { related_pages: @related_pages } %>
+      <%= render partial: "staff/staff_wikis/partials/claimant", locals: { staff_wiki: @staff_wiki } %>
+      <%= render partial: "staff/staff_wikis/partials/references", locals: { references: @staff_wiki.references, staff_wiki: @staff_wiki } %>
+      <%= render partial: "staff/staff_wikis/partials/involved", locals: { users: @involved_users } %>
+      <%= render partial: "staff/staff_wikis/partials/related", locals: { related_pages: @related_pages } %>
     </div>
 
   </div>

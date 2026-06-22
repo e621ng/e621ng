@@ -9,6 +9,19 @@ Rails.application.routes.draw do
 
   namespace :staff do
     resources :files, controller: "staff_files", only: %i[index show new create edit update destroy]
+    resources :wikis, controller: "staff_wikis" do
+      resources :references, only: %i[create destroy], controller: "staff_wiki_refs"
+      member do
+        put :revert
+        post :claim
+        post :unclaim
+      end
+    end
+    resources :wiki_versions, controller: "staff_wiki_versions", only: %i[index show] do
+      collection do
+        get :diff
+      end
+    end
   end
 
   namespace :admin do
@@ -411,22 +424,6 @@ Rails.application.routes.draw do
     end
   end
   resources :wiki_page_versions, only: %i[index show] do
-    collection do
-      get :diff
-    end
-  end
-  resources :staff_wikis do
-    resources :references, only: %i[create destroy], controller: "staff_wiki_refs"
-    member do
-      put :revert
-      post :claim
-      post :unclaim
-    end
-    collection do
-      get :search
-    end
-  end
-  resources :staff_wiki_versions, only: %i[index show] do
     collection do
       get :diff
     end
