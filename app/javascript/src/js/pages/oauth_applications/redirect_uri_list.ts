@@ -1,4 +1,4 @@
-function addRow (list, focus = true) {
+function addRow (list: HTMLElement, focus = true): void {
   const inputName = list.dataset.inputName;
   const row = document.createElement("div");
   row.className = "redirect-uri-row";
@@ -20,14 +20,14 @@ function addRow (list, focus = true) {
   if (focus) input.focus();
 }
 
-function removeRow (list, row) {
+function removeRow (list: HTMLElement, row: Element): void {
   row.remove();
   if (list.children.length === 0) addRow(list, false);
 }
 
-function wireList (list) {
+function wireList (list: HTMLElement): void {
   list.addEventListener("click", (event) => {
-    const button = event.target.closest(".redirect-uri-remove");
+    const button = (event.target as Element).closest(".redirect-uri-remove");
     if (!button) return;
     event.preventDefault();
     removeRow(list, button.closest(".redirect-uri-row"));
@@ -43,5 +43,5 @@ function wireList (list) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".redirect-uri-list").forEach(wireList);
+  document.querySelectorAll<HTMLElement>(".redirect-uri-list").forEach(wireList);
 });
