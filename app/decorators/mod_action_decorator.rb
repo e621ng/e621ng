@@ -484,6 +484,8 @@ class ModActionDecorator < ApplicationDecorator
       ### Staff Files ###
     when "staff_file_create"
       "Uploaded staff file ##{vals['id']} (#{vals['filename']}) by #{user}"
+    when "staff_file_update"
+      "Edited staff file ##{vals['id']} (#{vals['filename']}) by #{user}"
     when "staff_file_delete"
       "Deleted staff file ##{vals['id']} (#{vals['filename']}) uploaded by #{user}"
 
