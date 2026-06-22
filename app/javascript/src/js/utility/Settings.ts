@@ -61,7 +61,7 @@ Object.defineProperty(Settings, "Autocomplete", {
   get () {
     const obj = _get()["Autocomplete"] || {};
 
-    const blacklistRegexes = [];
+    const blacklistRegexes: RegExp[] = [];
     for (const pattern of (obj.blacklist as string[] || [])) {
       try {
         blacklistRegexes.push(new RegExp(pattern, "i"));
