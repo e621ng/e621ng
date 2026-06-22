@@ -1,7 +1,6 @@
 <% content_for(:secondary_links) do %>
   <%= subnav_link_to "Listing", staff_files_path %>
-  <%= subnav_link_to "Search", search_staff_files_path %>
-  <%= subnav_link_to "Upload", new_staff_file_path %>
+  <%= subnav_link_to "New", new_staff_file_path %>
 
   <% if @staff_file&.persisted? %>
     <li class="divider"></li>

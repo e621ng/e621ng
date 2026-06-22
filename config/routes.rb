@@ -7,6 +7,10 @@ Rails.application.routes.draw do
 
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
+  namespace :staff do
+    resources :files, controller: "staff_files", only: %i[index show new create destroy]
+  end
+
   namespace :admin do
     resources :automod_rules, only: %i[index new create edit update destroy]
     resources :users, only: %i[edit update] do
@@ -415,11 +419,6 @@ Rails.application.routes.draw do
   resources :staff_wiki_versions, only: %i[index show] do
     collection do
       get :diff
-    end
-  end
-  resources :staff_files, only: %i[index show new create destroy] do
-    collection do
-      get :search
     end
   end
   resources :blips do
