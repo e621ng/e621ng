@@ -8,7 +8,7 @@ Doorkeeper::OpenidConnect.configure do
     "#{scheme}://#{Danbooru.config.hostname}"
   end
 
-  signing_key OidcSigningKey.pem
+  signing_key -> { OidcSigningKey.pem }
 
   subject_types_supported [:public]
 
