@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe StaffWikiVersionsController do
+RSpec.describe Staff::StaffWikiVersionsController do
   include_context "as admin"
 
   let(:member)  { create(:user) }

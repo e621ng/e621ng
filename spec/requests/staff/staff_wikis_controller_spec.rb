@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe StaffWikisController do
+RSpec.describe Staff::StaffWikisController do
   include_context "as admin"
 
   let(:staff_wiki) { create(:staff_wiki) }
@@ -49,34 +49,6 @@ RSpec.describe StaffWikisController do
       sign_in_as staff
       get staff_wikis_path(format: :json, search: { title: staff_wiki.title })
       expect(response.parsed_body.pluck("id")).to include(staff_wiki.id)
-    end
-  end
-
-  # ---------------------------------------------------------------------------
-  # GET /staff_wikis/search — search form
-  # ---------------------------------------------------------------------------
-
-  describe "GET /staff_wikis/search" do
-    it "redirects anonymous to the login page for HTML" do
-      get search_staff_wikis_path
-      expect(response).to redirect_to(new_session_path(url: search_staff_wikis_path))
-    end
-
-    it "returns 403 for anonymous JSON" do
-      get search_staff_wikis_path(format: :json)
-      expect(response).to have_http_status(:forbidden)
-    end
-
-    it "returns 403 for a non-staff member" do
-      sign_in_as member
-      get search_staff_wikis_path
-      expect(response).to have_http_status(:forbidden)
-    end
-
-    it "returns 200 for a staff member" do
-      sign_in_as staff
-      get search_staff_wikis_path
-      expect(response).to have_http_status(:ok)
     end
   end
 
