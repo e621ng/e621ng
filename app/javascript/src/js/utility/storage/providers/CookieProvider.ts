@@ -44,9 +44,6 @@ export default class CookieProvider extends StorageProvider {
       return;
     }
 
-    console.log(`1 Setting ${this.name} key "${definition.key}" to value "${value}"`);
-    console.log("def", definition);
-
     if (definition.type == "boolean") {
       if (typeof value == "boolean") value = value ? "1" : "0";
       else value = value === "true" ? "1" : "0";
@@ -58,8 +55,6 @@ export default class CookieProvider extends StorageProvider {
       document.cookie = `${definition.key}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
       return;
     }
-
-    console.log(`2 Setting ${this.name} key "${definition.key}" to value "${value}"`);
 
     const cookieValue = encodeURIComponent(String(value));
     const expires = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString(); // 1 year
