@@ -104,7 +104,7 @@ class LStorage extends StorageObject {
 
   /** Backwards compatibility layer for AutocompleteInput */
   Raw = {
-    getObject: function (name: string) {
+    getObject: (name: string) => {
       if (!this.provider.isAvailable) return null;
       const value = localStorage[name];
       if (!value) return null;
@@ -116,7 +116,7 @@ class LStorage extends StorageObject {
         return null;
       }
     },
-    putObject: function (name: string, value: any) {
+    putObject: (name: string, value: any) => {
       if (!this.provider.isAvailable) return;
       localStorage[name] = JSON.stringify(value);
     },
