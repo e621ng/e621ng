@@ -1,4 +1,4 @@
-import LocalStorageProvider from "@/utility/storage/providers/SessionStorage";
+import LocalStorageProvider from "@/utility/storage/providers/LocalStorage";
 import StorageInitializer from "@/utility/storage/utilities/Initializer";
 import { StorageConfig, StorageObject } from "@/utility/storage/utilities/Types";
 
@@ -29,7 +29,7 @@ class HotkeyConfig extends StorageObject {
       throw new Error("HotkeyConfig is a singleton class. Use HotkeyConfig.instance to access the instance.");
 
     if (!this.provider.isAvailable) {
-      console.warn("SessionStorage is not available. Settings will not be persisted.");
+      console.warn("LocalStorage is not available. Settings will not be persisted.");
       return;
     }
 

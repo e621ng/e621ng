@@ -219,8 +219,7 @@ export default class StaticShortcuts {
    */
   handleReset (element: JQuery<HTMLElement>) {
     const action = element.attr("action") as Types.HotkeyAction;
-    if (!action) return;
-    if (!HotkeysConfig.Defaults[action]) return;
+    if (!(action in HotkeysConfig.Defaults)) return;
 
     HotkeysConfig.Keys[action] = HotkeysConfig.Defaults[action];
     Hotkeys.rebuildKeyIndexes();
