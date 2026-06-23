@@ -1,6 +1,6 @@
 import Post from "@/pages/posts/posts";
 import Page from "@/utility/Page";
-import LStorage from "@/utility/Storage";
+import LStorage from "@/utility/storage/Local";
 import Utility from "@/utility/utility";
 
 const EDGE_ZONE = 20; // px — ignore swipes starting this close to screen edge (browser back/forward gesture)

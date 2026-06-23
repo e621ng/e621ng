@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import LStorage from "@/utility/Storage";
+import LStorage from "@/utility/storage/Local";
 export default {
   props: ["listId", "addToList", "modelValue"],
   computed: {

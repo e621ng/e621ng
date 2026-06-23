@@ -1,5 +1,5 @@
 import State from "@/utility/StateUtils";
-import StorageC from "@/utility/StorageC";
+import CStorage from "@/utility/storage/Cookie";
 
 export default class MascotManager {
 
@@ -71,7 +71,7 @@ export default class MascotManager {
   private _current: number;
   private get current (): number {
     if (typeof this._current !== "number")
-      this._current = StorageC.mascotID;
+      this._current = CStorage.Site.MascotID;
     return this._current;
   }
 
@@ -82,8 +82,8 @@ export default class MascotManager {
       this._current = 0;
     }
 
-    if (!this._current) StorageC.mascotID = 0;
-    else StorageC.mascotID = this._current;
+    if (!this._current) CStorage.Site.MascotID = 0;
+    else CStorage.Site.MascotID = this._current;
   }
 
 

@@ -1,5 +1,5 @@
 import Dialog from "@/utility/dialog.js";
-import LStorage from "@/utility/Storage";
+import LStorage from "@/utility/storage/Local";
 import TaskQueue from "@/utility/TaskQueue.js";
 
 export default class NoteManager {

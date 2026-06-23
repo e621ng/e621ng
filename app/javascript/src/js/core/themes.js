@@ -1,6 +1,6 @@
 import Page from "@/utility/Page";
-import LStorage from "@/utility/Storage";
-import CStorage from "@/utility/StorageC";
+import LStorage from "@/utility/storage/Local";
+import CStorage from "@/utility/storage/Cookie";
 
 const Theme = {};
 
@@ -31,9 +31,8 @@ for (const [label, settings] of Object.entries(Theme.Values)) {
 }
 
 Theme.initialize_selector = function () {
-  if (!LStorage.isAvailable) {
-    // This is here purely because it was in the old code.
-    // All browsers made after 2008 should support this.
+  // Any modern browser should support localStorage.
+  if (!LStorage.provider.isAvailable) {
     $("#no_save_warning").show();
     return false;
   }
@@ -50,13 +49,13 @@ Theme.initialize_selector = function () {
 };
 
 Theme.initialize_buttons = function () {
-  if (!LStorage.isAvailable) return;
+  if (!LStorage.provider.isAvailable) return;
 
-  if (CStorage.mascotID !== 0) {
+  if (CStorage.Site.MascotID !== 0) {
     $("#mascot-state").show();
-    $("#mascot-value").text(CStorage.mascotID);
+    $("#mascot-value").text(CStorage.Site.MascotID);
     $("#mascot-reset").on("click", () => {
-      CStorage.mascotID = 0;
+      CStorage.Site.MascotID = 0;
       $("#mascot-state").hide();
     });
   }

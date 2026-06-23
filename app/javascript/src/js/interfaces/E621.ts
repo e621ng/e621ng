@@ -10,8 +10,9 @@ import Logger from "@/utility/Logger";
 import ModuleRegistry from "@/utility/ModuleRegistry";
 import PerformanceTracker from "@/utility/PerformanceTracker";
 import Settings from "@/utility/Settings";
-import LStorage from "@/utility/Storage";
-import CStorage from "@/utility/StorageC";
+import CStorage from "@/utility/storage/Cookie";
+import LStorage from "@/utility/storage/Local";
+import SStorage from "@/utility/storage/Session";
 import ToastManager from "@/utility/Toast";
 
 export default interface E621Type {
@@ -19,8 +20,7 @@ export default interface E621Type {
   Performance: PerformanceTracker;
   Logger: typeof Logger;
 
-  CStorage: typeof CStorage;
-  LStorage: typeof LStorage;
+  Storage: Storage;
   Settings: typeof Settings;
   CurrentUser: CurrentUser;
 
@@ -41,6 +41,10 @@ export default interface E621Type {
     notice: typeof ToastManager.notice;
     error: typeof ToastManager.alert;
   };
+
+  CStorage: typeof CStorage;
+  LStorage: typeof LStorage;
+  SStorage: typeof SStorage;
 }
 
 /**
@@ -57,8 +61,11 @@ export function getE621Instance (): E621Type {
     Performance: new PerformanceTracker("app"),
     Logger,
 
-    CStorage,
-    LStorage,
+    Storage: {
+      Cookie: CStorage,
+      Local: LStorage,
+      Session: SStorage,
+    },
     Settings,
     CurrentUser: CurrentUser.user,
 
@@ -80,6 +87,10 @@ export function getE621Instance (): E621Type {
       notice: deprecated(ToastManager.notice, "E621.Flash.notice is deprecated. Please use E621.Toast.notice instead."),
       error: deprecated(ToastManager.alert, "E621.Flash.error is deprecated. Please use E621.Toast.alert instead."),
     },
+
+    CStorage: CStorage,
+    LStorage: LStorage,
+    SStorage: SStorage,
   };
 
   window["Danbooru"] = window["E621"] = instance;
@@ -97,4 +108,10 @@ function deprecated<T extends (...args: any[]) => void> (method: T, warningMessa
     console.warn(warningMessage);
     return method(...args);
   } as unknown as T;
+}
+
+interface Storage {
+  Cookie: typeof CStorage;
+  Local: typeof LStorage;
+  Session: typeof SStorage;
 }

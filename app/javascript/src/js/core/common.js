@@ -1,4 +1,4 @@
-import CStorage from "@/utility/StorageC";
+import CStorage from "@/utility/storage/Cookie";
 
 function initSearch () {
   const $searchForm = $("#searchform");
@@ -25,7 +25,7 @@ $(function () {
   $(".dmail-notice-hide").on("click.danbooru", function (event) {
     event.preventDefault();
     $(".dmail-notice").hide();
-    CStorage.hideDMailNotice = true;
+    CStorage.Site.HideDMailNotice = true;
   });
 
   // Prevent link navigation on first tap of a spoiler tag on touch devices.

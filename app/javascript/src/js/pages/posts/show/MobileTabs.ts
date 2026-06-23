@@ -1,4 +1,4 @@
-import CStorage from "@/utility/StorageC";
+import CStorage from "@/utility/storage/Cookie";
 
 function bootstrapTabs () {
   const container = $(".post-display");
@@ -8,12 +8,12 @@ function bootstrapTabs () {
   container.find(".post-mobile-tab").on("click", (event) => {
     const action = $(event.currentTarget).data("action");
     if (!validActions.includes(action)) return;
-    CStorage.postMobileTabState = action;
+    CStorage.Posts.MobileTabState = action;
     switchToTab(container, action);
   });
 
   // Comment anchor links will not work on mobile unless the user has the comments tab open.
-  if (window.innerWidth > 800 || CStorage.postMobileTabState === "comments") return;
+  if (window.innerWidth > 800 || CStorage.Posts.MobileTabState === "comments") return;
   const commentID = window.location.hash.match(/^#?comment-(\d+)/)?.[1];
   if (!commentID) return;
   const comment = $(`article[data-comment-id="${commentID}"]`);

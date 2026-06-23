@@ -1,6 +1,6 @@
 import Post from "@/pages/posts/posts";
 import Dialog from "@/utility/dialog";
-import CStorage from "@/utility/StorageC";
+import CStorage from "@/utility/storage/Cookie";
 
 let ModQueue = {};
 
@@ -91,14 +91,14 @@ $(function () {
   if (!$("body").data("user-can-approve-posts")) return;
 
   // Toolbar visibility
-  let toolbarVisible = CStorage.janitorToolbarVisible;
+  let toolbarVisible = CStorage.Posts.JanitorToolbar;
   const toolbar = $("#pending-approval-notice");
 
   const toolbarToggle = $("#janitor-toolbar-toggle")
     .on("click", (event) => {
       event.preventDefault();
       toolbarVisible = !toolbarVisible;
-      CStorage.janitorToolbarVisible = toolbarVisible;
+      CStorage.Posts.JanitorToolbar = toolbarVisible;
 
       toolbar.toggleClass("enabled");
       toolbarToggle.text(toolbarVisible ? "Approvals: On" : "Approvals: Off");

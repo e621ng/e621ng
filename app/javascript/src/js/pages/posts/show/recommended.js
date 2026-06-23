@@ -1,10 +1,10 @@
 import Page from "@/utility/Page";
-import LStorage from "@/utility/Storage";
+import LStorage from "@/utility/storage/Local";
 import Blacklist from "@/core/blacklists";
 import Analytics from "@/core/analytics";
 import Logger from "@/utility/Logger";
 import PerformanceTracker from "@/utility/PerformanceTracker";
-import CStorage from "@/utility/StorageC";
+import CStorage from "@/utility/storage/Cookie";
 import PostCache from "@/models/PostCache";
 import ThumbnailEngine from "@/components/ThumbnailEngine";
 
@@ -149,10 +149,10 @@ Object.defineProperty(Recommended, "status", {
 
 Object.defineProperty(Recommended, "visible", {
   get: function () {
-    return !CStorage.postRecommenderHidden;
+    return !CStorage.Posts.SimilarHidden;
   },
   set: function (value) {
-    CStorage.postRecommenderHidden = !value;
+    CStorage.Posts.SimilarHidden = !value;
     this.$wrapper.attr("data-visible", value ? "true" : "false");
     this.$toggle.attr({
       "aria-expanded": value ? "true" : "false",

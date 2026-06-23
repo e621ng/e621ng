@@ -5,7 +5,8 @@ import PostSet from "@/pages/posts/show/PostSet";
 import TagScript from "@/models/tag_script";
 import Rails from "@rails/ujs";
 import Hotkeys from "@/core/hotkeys";
-import LStorage from "@/utility/Storage";
+import LStorage from "@/utility/storage/Local";
+import SStorage from "@/utility/storage/Session";
 import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
 import Autocomplete from "@/components/autocomplete";
@@ -48,7 +49,7 @@ PostModeMenu.change_tag_script = function (key) {
 };
 
 PostModeMenu.initialize_selector = function () {
-  $("#mode-box-mode").val(LStorage.Posts.Mode);
+  $("#mode-box-mode").val(SStorage.Posts.Mode);
 
   $("#mode-box-mode").on("change.danbooru", function () {
     PostModeMenu.change();
@@ -151,7 +152,7 @@ PostModeMenu.change = function () {
     return;
   }
   $("#page").attr("data-mode-menu", s);
-  LStorage.Posts.Mode = s;
+  SStorage.Posts.Mode = s;
   $("#set-id").hide();
   $("#tag-script-ui").hide();
   $("#quick-mode-reason").hide();
