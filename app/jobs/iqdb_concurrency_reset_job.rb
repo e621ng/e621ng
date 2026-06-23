@@ -6,5 +6,6 @@ class IqdbConcurrencyResetJob < ApplicationJob
   def perform
     keys = Cache.redis.smembers("iqdb:concurrent:keys")
     Cache.redis.del(*keys) if keys.any?
+    Cache.redis.del("iqdb:concurrent:keys")
   end
 end
