@@ -69,7 +69,6 @@ class LStorage extends StorageObject {
 
   // Values relevant to the posts pages
   Posts = {
-    Mode: "view", // Too many to list
     ShowPostChildren: false,
     Set: 0,
     WikiExcerpt: 1 as 0 | 1 | 2,
@@ -269,7 +268,6 @@ const StorageKeys: StorageConfig<LStorage> = {
   },
 
   "Posts": {
-    Mode: "mode", // legacy
     ShowPostChildren: "show-relationship-previews", // legacy
     Set: "set", // legacy
     WikiExcerpt: "e6.posts.wiki",
