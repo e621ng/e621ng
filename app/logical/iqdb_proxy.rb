@@ -183,6 +183,8 @@ module IqdbProxy
 
   def with_query_semaphore
     count = Cache.redis.incr(redis_key)
+    Cache.redis.sadd("iqdb:concurrent:keys", redis_key)
+
     if count > Danbooru.config.iqdb_max_concurrent_queries
       Cache.redis.eval(DECR_FLOOR_ZERO, keys: [redis_key])
       raise BusyError, "IQDB is temporarily busy. Please try again later."
