@@ -85,6 +85,7 @@ class Hotkeys {
    * This needs to be done every time the hotkeys are initialized or changed.
    */
   public rebuildKeyIndexes () {
+    this.actionIndex = {};
     for (const [action, keybinds] of Object.entries(HotkeysConfig.Keys)) {
       if (!keybinds || keybinds.length == 0 || keybinds === "|") {
         // No keys bound, but we still have to register the action
@@ -137,7 +138,7 @@ class Hotkeys {
    */
   private listen () {
     const $document = $(document);
-    $document.off("keydown.hotkeys, keyup.hotkeys");
+    $document.off("keydown.hotkeys keyup.hotkeys");
 
 
     /* == Key Press Down == */
