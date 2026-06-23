@@ -10,8 +10,10 @@ import Logger from "@/utility/Logger";
 import ModuleRegistry from "@/utility/ModuleRegistry";
 import PerformanceTracker from "@/utility/PerformanceTracker";
 import Settings from "@/utility/Settings";
-import LStorage from "@/utility/Storage";
-import CStorage from "@/utility/StorageC";
+import Storage from "@/utility/storage";
+import CStorage from "@/utility/storage/Cookie";
+import LStorage from "@/utility/storage/Local";
+import SStorage from "@/utility/storage/Session";
 import ToastManager from "@/utility/Toast";
 
 export default interface E621Type {
@@ -19,8 +21,7 @@ export default interface E621Type {
   Performance: PerformanceTracker;
   Logger: typeof Logger;
 
-  CStorage: typeof CStorage;
-  LStorage: typeof LStorage;
+  Storage: typeof Storage;
   Settings: typeof Settings;
   CurrentUser: CurrentUser;
 
@@ -41,6 +42,10 @@ export default interface E621Type {
     notice: typeof ToastManager.notice;
     error: typeof ToastManager.alert;
   };
+
+  CStorage: typeof CStorage;
+  LStorage: typeof LStorage;
+  SStorage: typeof SStorage;
 }
 
 /**
@@ -57,8 +62,7 @@ export function getE621Instance (): E621Type {
     Performance: new PerformanceTracker("app"),
     Logger,
 
-    CStorage,
-    LStorage,
+    Storage,
     Settings,
     CurrentUser: CurrentUser.user,
 
@@ -80,6 +84,10 @@ export function getE621Instance (): E621Type {
       notice: deprecated(ToastManager.notice, "E621.Flash.notice is deprecated. Please use E621.Toast.notice instead."),
       error: deprecated(ToastManager.alert, "E621.Flash.error is deprecated. Please use E621.Toast.alert instead."),
     },
+
+    CStorage: Storage.Cookie,
+    LStorage: Storage.Local,
+    SStorage: Storage.Session,
   };
 
   window["Danbooru"] = window["E621"] = instance;

@@ -1,5 +1,5 @@
 import Offclick, { OffclickEntry } from "../../utility/Offclick";
-import LStorage from "../../utility/Storage";
+import LStorage from "../../utility/storage/Local";
 
 export default class SearchControls {
 

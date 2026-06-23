@@ -1,5 +1,5 @@
 import Logger from "@/utility/Logger";
-import LStorage from "@/utility/Storage";
+import LStorage from "@/utility/storage/Local";
 import ToastManager from "@/utility/Toast";
 
 let _data: Record<string, any> = {},

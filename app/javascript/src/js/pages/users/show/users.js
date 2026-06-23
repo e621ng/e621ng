@@ -1,4 +1,4 @@
-import LStorage from "@/utility/Storage";
+import LStorage from "@/utility/storage/Local";
 import Page from "@/utility/Page";
 
 const Users = {};

@@ -2,7 +2,7 @@ import Constants from "@/components/autocomplete/Constants";
 import Provider from "@/components/autocomplete/Provider";
 import TagFrequencyCache from "@/components/autocomplete/TagFrequencyCache";
 import * as Types from "@/components/autocomplete/Types";
-import LStorage from "@/utility/Storage";
+import LStorage from "@/utility/storage/Local";
 import Utility from "@/utility/utility";
 
 import PoolProvider from "./PoolProvider";

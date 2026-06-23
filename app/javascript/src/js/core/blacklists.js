@@ -3,7 +3,7 @@ import PostCache from "@/models/PostCache";
 import Utility from "@/utility/utility";
 import Dialog from "@/utility/dialog";
 import Page from "@/utility/Page";
-import LStorage from "@/utility/Storage";
+import LStorage from "@/utility/storage/Local";
 
 let Blacklist = {};
 
