@@ -54,7 +54,7 @@ const sharedRules = {
   "@stylistic/no-floating-decimal": "warn",
   "@stylistic/no-mixed-operators": "error",
   "@stylistic/no-mixed-spaces-and-tabs": "error",
-  "@stylistic/no-multi-spaces": ["warn", { ignoreEOLComments: false }],
+  "@stylistic/no-multi-spaces": ["warn", { ignoreEOLComments: true }],
   "@stylistic/no-multiple-empty-lines": "warn",
   "@stylistic/no-tabs": "warn",
   "@stylistic/no-trailing-spaces": ["warn", { ignoreComments: true, }],

@@ -1,5 +1,9 @@
 import Hotkeys from "@/core/hotkeys";
-import Page from "@/utility/Page";
+import HotkeysConfig from "@/core/hotkeys/HotkeysConfig";
+import * as Types from "@/core/hotkeys/Types";
+import E621Type from "@/interfaces/E621";
+
+declare const E621: E621Type;
 
 export default class StaticShortcuts {
 
@@ -7,15 +11,15 @@ export default class StaticShortcuts {
 
   static Definitions = {
     "General": {
-      "Search":       "search",
-      "Edit":         "edit",
-      "Previous":     "prev",
-      "Next":         "next",
-      "Scroll Up":    "scroll-up",
-      "Scroll Down":  "scroll-down",
-      "Mark as Read": "mark-read",
-      "History":      "history",
-    },
+      "Search":           "search",
+      "Edit":             "edit",
+      "Previous":         "prev",
+      "Next":             "next",
+      "Scroll Up":        "scroll-up",
+      "Scroll Down":      "scroll-down",
+      "Mark as Read":     "mark-read",
+      "History":          "history",
+    } as Types.HotkeyBindingsList,
 
     "Posts": {
       "Vote Up":          "upvote",
@@ -32,34 +36,32 @@ export default class StaticShortcuts {
       "Download":         "download",
       "Add to Set":       "add-to-set",
       "Add to Pool":      "add-to-pool",
-    },
+    } as Types.HotkeyBindingsList,
   };
 
   static PrivilegedDefs = {
     "Tag Scripts": {
-      "Script 1":     "tag-script-1",
-      "Script 2":     "tag-script-2",
-      "Script 3":     "tag-script-3",
-      "Script 4":     "tag-script-4",
-      "Script 5":     "tag-script-5",
-      "Script 6":     "tag-script-6",
-      "Script 7":     "tag-script-7",
-      "Script 8":     "tag-script-8",
-      "Script 9":     "tag-script-9",
-    },
+      "Script 1":         "tag-script-1",
+      "Script 2":         "tag-script-2",
+      "Script 3":         "tag-script-3",
+      "Script 4":         "tag-script-4",
+      "Script 5":         "tag-script-5",
+      "Script 6":         "tag-script-6",
+      "Script 7":         "tag-script-7",
+      "Script 8":         "tag-script-8",
+      "Script 9":         "tag-script-9",
+    } as Types.HotkeyBindingsList,
   };
 
   static JanitorDefs = {
     "Approval": {
-      "Approve":        "approve",
-      "Approve & Prev": "approve-prev",
-      "Approve & Next": "approve-next",
-    },
+      "Approve":          "approve",
+      "Approve & Prev":   "approve-prev",
+      "Approve & Next":   "approve-next",
+    } as Types.HotkeyBindingsList,
   };
 
   init () {
-    if (!Page.matches("static", "keyboard-shortcuts")) return;
-
     this.build();
 
     // Rebinding
@@ -92,7 +94,7 @@ export default class StaticShortcuts {
     if (E621.CurrentUser.is.privileged) buildDefs(StaticShortcuts.PrivilegedDefs);
     if (E621.CurrentUser.is.janitor) buildDefs(StaticShortcuts.JanitorDefs);
 
-    function buildDefs (list) {
+    function buildDefs (list: Record<string, Types.HotkeyBindingsList>) {
       for (const [category, definitions] of Object.entries(list)) {
         $("<h3>").text(category).appendTo(wrapper);
 
@@ -104,7 +106,7 @@ export default class StaticShortcuts {
             .addClass("hotkey-keys")
             .attr({
               action: action,
-              default: Hotkeys.Definitions[action] === Hotkeys.Defaults[action],
+              default: HotkeysConfig.Keys[action] === HotkeysConfig.Defaults[action],
             })
             .appendTo(wrapper);
 
@@ -141,7 +143,7 @@ export default class StaticShortcuts {
    * Handle hotkey rebinding.
    * @param {JQuery<HTMLElement>} element
    */
-  handleInput (element) {
+  handleInput (element: JQuery<HTMLElement>) {
 
     // Clean up any other active rebinding inputs
     const $document = $(document);
@@ -166,7 +168,7 @@ export default class StaticShortcuts {
 
       resetInput(element, binding);
       $document.off("e6.hotkeys.keyup.bind e6.hotkeys.keydown.bind");
-      Hotkeys.Definitions[action] = collectBindings(action).join("|");
+      HotkeysConfig.Keys[action] = collectBindings(action).join("|");
       Hotkeys.rebuildKeyIndexes();
       toggleResetButton(action);
     });
@@ -178,18 +180,18 @@ export default class StaticShortcuts {
 
         resetInput(element, "");
         $document.off("e6.hotkeys.keyup.bind e6.hotkeys.keydown.bind");
-        Hotkeys.Definitions[action] = collectBindings(action).join("|");
+        HotkeysConfig.Keys[action] = collectBindings(action).join("|");
         Hotkeys.rebuildKeyIndexes();
         toggleResetButton(action);
 
         return;
       }
 
-      binding = Hotkeys.buildKeybindString([...data]);
+      binding = HotkeysConfig.toKeybindString([...data]);
       element.text(binding);
     });
 
-    function resetInput ($input, value = null) {
+    function resetInput ($input: JQuery<HTMLElement>, value: string | null = null) {
       if (value == null) value = $input.attr("old") || "";
       $input
         .text(value)
@@ -197,7 +199,7 @@ export default class StaticShortcuts {
         .removeAttr("old");
     }
 
-    function collectBindings (action) {
+    function collectBindings (action: string): string[] {
       let allBindings = [];
       for (const one of $("button[action='" + action + "']"))
         allBindings.push(one.innerText);
@@ -205,9 +207,9 @@ export default class StaticShortcuts {
       return allBindings;
     }
 
-    function toggleResetButton (action) {
-      const isDefault = Hotkeys.Definitions[action] === Hotkeys.Defaults[action];
-      $(`.hotkey-keys[action="${action}"]`).attr("default", isDefault);
+    function toggleResetButton (action: string) {
+      const isDefault = HotkeysConfig.Keys[action] === HotkeysConfig.Defaults[action];
+      $(`.hotkey-keys[action="${action}"]`).attr("default", isDefault + "");
     }
   }
 
@@ -215,9 +217,12 @@ export default class StaticShortcuts {
    * Handle resetting a hotkey to its default value.
    * @param {JQuery<HTMLElement>} element
    */
-  handleReset (element) {
-    const action = element.attr("action");
-    Hotkeys.Definitions[action] = Hotkeys.Defaults[action];
+  handleReset (element: JQuery<HTMLElement>) {
+    const action = element.attr("action") as Types.HotkeyAction;
+    if (!action) return;
+    if (!HotkeysConfig.Defaults[action]) return;
+
+    HotkeysConfig.Keys[action] = HotkeysConfig.Defaults[action];
     Hotkeys.rebuildKeyIndexes();
     $(`.hotkey-keys[action="${action}"]`).attr("default", "true");
 
