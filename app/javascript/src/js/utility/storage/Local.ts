@@ -227,18 +227,18 @@ class LStorage extends StorageObject {
       Set.prototype.add.apply(this, [value]);
       localStorage.setItem(
         "e6.blk.filters",
-        JSON.stringify([...this.filterStateCache]),
+        JSON.stringify([...this]),
       );
       return this;
     };
     this.filterStateCache.delete = function (value: string) {
       Set.prototype.delete.apply(this, [value]);
-      if (this.filterStateCache.size == 0)
+      if (this.size == 0)
         localStorage.removeItem("e6.blk.filters");
       else
         localStorage.setItem(
           "e6.blk.filters",
-          JSON.stringify([...this.filterStateCache]),
+          JSON.stringify([...this]),
         );
       return this;
     };
