@@ -142,8 +142,21 @@ class Hotkeys {
     $window.off("blur.hotkeys");
 
 
+    // Reconcile tracked modifiers with the OS truth on every event.
+    // Without this, heldKeys can desync if a modifier's keydown/keyup is never delivered.
+    const syncModifier = (down: boolean, name: string) => {
+      if (down) this.heldKeys.add(name);
+      else this.heldKeys.delete(name);
+    };
+
+
     /* == Key Press Down == */
     $document.on("keydown.hotkeys", (event) => {
+      syncModifier(event.shiftKey, "Shift");
+      syncModifier(event.ctrlKey, "Control");
+      syncModifier(event.altKey, "Alt");
+      syncModifier(event.metaKey, "Meta");
+
       const key = formatKey(event.key);
       if (this.heldKeys.has(key)) return;
       this.heldKeys.add(key);
@@ -180,6 +193,11 @@ class Hotkeys {
 
     /* == Key Press Up == */
     $document.on("keyup.hotkeys", (event) => {
+      syncModifier(event.shiftKey, "Shift");
+      syncModifier(event.ctrlKey, "Control");
+      syncModifier(event.altKey, "Alt");
+      syncModifier(event.metaKey, "Meta");
+
       const key = formatKey(event.key);
       this.heldKeys.delete(key);
 

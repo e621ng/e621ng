@@ -41,7 +41,7 @@ class HotkeyConfig extends StorageObject {
   /* ======= Helper Methods ======= */
   /* ============================== */
 
-  private static readonly ModifierKeys = ["Shift", "Control", "Alt"];
+  private static readonly ModifierKeys = ["Shift", "Control", "Alt", "Meta"];
 
   /**
    * Build a keybind string from an array of keys.
