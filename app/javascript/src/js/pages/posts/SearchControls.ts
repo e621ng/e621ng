@@ -125,6 +125,13 @@ export default class SearchControls {
       .prop("checked", true);
     updateHoverTextNodes();
 
+    $("#ssc-corner-ribbons")
+      .prop("checked", LStorage.Posts.CornerRibbons)
+      .on("change", (event: JQuery.ChangeEvent<HTMLInputElement>) => {
+        LStorage.Posts.CornerRibbons = event.target.checked;
+        $("body").attr("data-st-cornerribbons", event.target.checked);
+      });
+
     $("#ssc-sticky-searchbar")
       .prop("checked", LStorage.Posts.StickySearch)
       .on("change", (event: JQuery.ChangeEvent<HTMLInputElement>) => {
