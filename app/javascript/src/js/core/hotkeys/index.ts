@@ -137,8 +137,9 @@ class Hotkeys {
    * and erasing them from the record once they are released.
    */
   private listen () {
-    const $document = $(document);
+    const $document = $(document), $window = $(window);
     $document.off("keydown.hotkeys keyup.hotkeys");
+    $window.off("blur.hotkeys");
 
 
     /* == Key Press Down == */
@@ -188,7 +189,8 @@ class Hotkeys {
 
 
     /* == Reset == */
-    $document.on("blur", () => {
+    // Bound to window in order to catch event when the focus switches to the Find bar or other browser UI
+    $window.on("blur.hotkeys", () => {
       this.heldKeys.clear();
       $document.trigger("e6.hotkeys.keyup", [this.heldKeys]);
     });
