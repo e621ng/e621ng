@@ -443,6 +443,9 @@ body[data-st-contain="true"] article.thumbnail img {
 // ===== Thumbnail Ribbons ====== //
 // ============================== //
 
+body[data-st-cornerribbons="false"] {
+  article.thumbnail .ribbon { display: none; }
+}
 
 article.thumbnail {
   .ribbon {
