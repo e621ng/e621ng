@@ -49,7 +49,7 @@ class CStorage extends StorageObject {
 
   Posts = {
     MobileTabState: "tags" as "comments" | "tags",
-    Recommendations: true,
+    SimilarHidden: false,
     JanitorToolbar: false,
   };
 }
@@ -62,7 +62,7 @@ const StorageKeys: StorageConfig<CStorage> = {
 
   Posts: {
     MobileTabState: "post_tab",
-    Recommendations: "post_recs",
+    SimilarHidden: "post_recs",
     JanitorToolbar: "janitor_toolbar",
   },
 };

@@ -44,10 +44,7 @@ export default class CookieProvider extends StorageProvider {
       return;
     }
 
-    if (definition.type == "boolean") {
-      if (typeof value == "boolean") value = value ? "1" : "0";
-      else value = value === "true" ? "1" : "0";
-    }
+    if (definition.type == "boolean" && typeof value != "boolean") value = value === "true" || value === "1";
     if (definition.type == "number" && typeof value != "number") value = Number(value);
 
     if (value === definition.val) {
@@ -55,6 +52,8 @@ export default class CookieProvider extends StorageProvider {
       document.cookie = `${definition.key}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
       return;
     }
+
+    if (definition.type == "boolean") value = value ? "1" : "0";
 
     const cookieValue = encodeURIComponent(String(value));
     const expires = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString(); // 1 year
