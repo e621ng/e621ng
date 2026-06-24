@@ -25,7 +25,7 @@
       </div>
     <% end %>
 
-    <% if CurrentUser.user.is_staff? && @staff_wikis.any? %>
+    <% if CurrentUser.user.is_staff? && @staff_wikis&.any? %>
       <div id="staff-wiki-label">
         <h3>Investigations</h3>
         <ul>
