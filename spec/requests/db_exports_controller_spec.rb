@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe DbExportsController do
   before do
     allow(Danbooru.config.custom_configuration).to receive(:db_export_enabled?).and_return(true)
-    DbExport.create!(name: "posts", file_size: 2048)
+    DbExport.create!(name: "posts", file_size: 2048, checksum: "a" * 64)
     DbExport.create!(name: "tags", file_size: 512)
   end
 
@@ -33,7 +33,7 @@ RSpec.describe DbExportsController do
       body = response.parsed_body
       expect(body).to be_an(Array)
       entry = body.find { |export| export["name"] == "posts" }
-      expect(entry).to include("file_name" => "posts.csv.gz", "file_size" => 2048)
+      expect(entry).to include("file_name" => "posts.csv.gz", "file_size" => 2048, "checksum" => "a" * 64)
       expect(entry["url"]).to be_present
     end
   end

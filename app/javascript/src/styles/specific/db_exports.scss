@@ -15,8 +15,19 @@ body.c-db-exports.a-index {
 
   .exports-list {
     display: grid;
-    grid-template-columns: 1fr 0.75fr 1fr auto;
+    grid-template-columns: 1fr 0.75fr 1fr 1.5fr auto;
     margin-bottom: 1rem;
+
+    .export-checksum {
+      font-family: monospace;
+      font-size: 0.85em;
+      word-break: break-all;
+      min-width: 0;
+    }
+
+    .export-checksum-missing {
+      color: var(--color-text-muted);
+    }
 
     .header {
       font-weight: bold;

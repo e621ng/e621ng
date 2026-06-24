@@ -4,6 +4,7 @@
 
     <div class="exports-description">
       <p>Database exports in gzipped CSV format, updated daily.</p>
+      <p>Each export lists a SHA-256 checksum of its <code>.csv.gz</code> file. After downloading, verify it with <code>sha256sum &lt;file&gt;</code>.</p>
       <p>For programmatic access, use the <%= link_to "JSON endpoint", db_exports_path(format: :json) %>.</p>
     </div>
 
@@ -12,6 +13,7 @@
         <div class="header">Name</div>
         <div class="header">Size</div>
         <div class="header">Updated</div>
+        <div class="header">Checksum (SHA-256)</div>
         <div class="header"></div>
 
         <% @exports.each do |export| %>
@@ -19,6 +21,13 @@
             <div class="cell" data-label="Name"><strong><%= export.name %></strong></div>
             <div class="cell" data-label="Size"><%= number_to_human_size(export.file_size) %></div>
             <div class="cell" data-label="Updated"><%= time_ago_in_words_tagged(export.updated_at) %></div>
+            <div class="cell" data-label="Checksum">
+              <% if export.checksum.present? %>
+                <input type="text" class="export-checksum-input select-all" value="<%= export.checksum %>" readonly />
+              <% else %>
+                <span class="export-checksum-missing">&mdash;</span>
+              <% end %>
+            </div>
             <div class="cell" data-label="Actions">
               <%= link_to export.url, class: "export-download-link" do %>
                 <%= svg_icon(:download, width: 16, height: 16) %> Download

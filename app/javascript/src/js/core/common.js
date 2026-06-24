@@ -60,6 +60,10 @@ $(function () {
     });
   });
 
+  $("input[type='text'].select-all").on("click", e => {
+    e.target.select();
+  });
+
   initSearch();
 });
 

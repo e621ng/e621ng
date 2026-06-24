@@ -556,7 +556,8 @@ CREATE TABLE public.db_exports (
     name character varying NOT NULL,
     file_size bigint DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    checksum character varying
 );
 
 
@@ -6099,6 +6100,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260624213023'),
 ('20260622142717'),
 ('20260617120000'),
 ('20260615155147'),
