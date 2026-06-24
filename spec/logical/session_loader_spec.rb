@@ -13,10 +13,11 @@ RSpec.describe SessionLoader do
   around do |example|
     example.run
   ensure
-    CurrentUser.user      = nil
-    CurrentUser.api_key   = nil
-    CurrentUser.ip_addr   = nil
-    CurrentUser.safe_mode = nil
+    CurrentUser.user        = nil
+    CurrentUser.api_key     = nil
+    CurrentUser.oauth_token = nil
+    CurrentUser.ip_addr     = nil
+    CurrentUser.safe_mode   = nil
   end
 
   # ---------------------------------------------------------------------------
@@ -242,7 +243,177 @@ RSpec.describe SessionLoader do
   end
 
   # ---------------------------------------------------------------------------
-  # #load — remember token
+  # #load: OAuth bearer token
+  # ---------------------------------------------------------------------------
+  describe "#load OAuth bearer token" do
+    let(:user) { create(:user) }
+    let(:app) do
+      Doorkeeper::Application.create!(
+        name: "test-app",
+        redirect_uri: "http://localhost/cb",
+        scopes: "openid full",
+        confidential: true,
+        owner: user,
+      )
+    end
+
+    def mint_token(scopes)
+      Doorkeeper::AccessToken.create!(application: app, resource_owner_id: user.id, scopes: scopes)
+    end
+
+    context "with a valid `full`-scoped token" do
+      let(:token) { mint_token("openid full") }
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      it "sets CurrentUser.user from the token's resource_owner_id" do
+        loader.load
+        expect(CurrentUser.user).to eq(user)
+      end
+
+      it "clears CurrentUser.api_key" do
+        loader.load
+        expect(CurrentUser.api_key).to be_nil
+      end
+
+      it "marks the request as API-authenticated so CSRF is skipped" do
+        expect(loader.has_api_authentication?).to be true
+      end
+    end
+
+    context "with a token missing the `full` scope" do
+      let(:token) { mint_token("openid") }
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      it "raises InsufficientScope" do
+        expect { loader.load }.to raise_error(SessionLoader::InsufficientScope)
+      end
+    end
+
+    context "with a revoked token" do
+      let(:token) do
+        t = mint_token("openid full")
+        t.revoke
+        t
+      end
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+    end
+
+    context "with an expired token" do
+      let(:token) { mint_token("openid full").tap { |t| t.update_columns(expires_in: 1, created_at: 1.hour.ago) } }
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+    end
+
+    context "with an unknown bearer token" do
+      before { env["HTTP_AUTHORIZATION"] = "Bearer not-a-real-token" }
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+    end
+
+    context "with both a bearer header AND login/api_key params" do
+      let(:api_key) { create(:api_key, user: user) }
+      let(:token)   { mint_token("openid full") }
+
+      before do
+        env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}"
+        env["QUERY_STRING"] = Rack::Utils.build_query(login: user.name, api_key: api_key.key)
+      end
+
+      it "prefers the bearer token over the api_key" do
+        loader.load
+        expect(CurrentUser.user).to eq(user)
+        expect(CurrentUser.api_key).to be_nil
+      end
+    end
+
+    context "min-level re-check on bearer use" do
+      let(:app) do
+        Doorkeeper::Application.create!(
+          name: "level-gated", redirect_uri: "http://localhost/cb",
+          scopes: "openid full", confidential: true,
+          owner: user, minimum_user_level: UserLevel::PRIVILEGED
+        )
+      end
+      let(:token) { Doorkeeper::AccessToken.create!(application: app, resource_owner_id: user.id, scopes: "openid full") }
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      context "when the user still meets the minimum" do
+        let(:user) { create(:privileged_user) }
+
+        it "loads normally" do
+          loader.load
+          expect(CurrentUser.user).to eq(user)
+        end
+      end
+
+      context "when the user has been demoted below the minimum" do
+        let(:user) { create(:user) } # member-level, below privileged
+
+        it "raises LevelBelowMinimum" do
+          expect { loader.load }.to raise_error(SessionLoader::LevelBelowMinimum)
+        end
+      end
+    end
+
+    context "auth_time hygiene" do
+      let(:user) { create(:user) }
+      let(:token) { mint_token("openid full") }
+
+      before do
+        env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}"
+        user.update_columns(last_logged_in_at: 7.days.ago)
+      end
+
+      it "does not bump last_logged_in_at on bearer-only requests" do
+        Cache.redis.del("user_login_tracking:user:#{user.id}")
+        loader.load
+        expect(user.reload.last_logged_in_at).to be < 1.day.ago
+      ensure
+        Cache.redis.del("user_login_tracking:user:#{user.id}")
+      end
+    end
+
+    context "refresh-token rotation" do
+      let(:old_token) { mint_token("openid full") }
+      let(:new_token) do
+        Doorkeeper::AccessToken.create!(
+          application: app,
+          resource_owner_id: user.id,
+          scopes: "openid full",
+          use_refresh_token: true,
+          previous_refresh_token: old_token.refresh_token,
+        )
+      end
+
+      before do
+        old_token.update_columns(refresh_token: "old-refresh-#{SecureRandom.hex(8)}")
+        new_token
+        env["HTTP_AUTHORIZATION"] = "Bearer #{new_token.token}"
+      end
+
+      it "revokes the previous refresh token when the new access token is used" do
+        loader.load
+        expect(old_token.reload.revoked?).to be true
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #load: remember token
   # ---------------------------------------------------------------------------
   describe "#load remember token" do
     let(:user) { create(:user) }

@@ -1,0 +1,54 @@
+<h1>Your OAuth Applications</h1>
+
+<%= render "secondary_links" %>
+
+<div class="instructions">
+  <p>OAuth applications let other apps sign users in via OpenID Connect,
+    or act on their behalf through the API.</p>
+</div>
+
+<p>
+  <%= link_to "Create application", new_oauth_application_path, class: "st-button" %>
+</p>
+
+<% if @applications.any? %>
+  <div class="api-keys-container">
+    <div class="api-keys-list">
+      <div class="header">Name</div>
+      <div class="header">Client ID</div>
+      <div class="header">Confidential</div>
+      <div class="header">Created</div>
+      <div class="header">Actions</div>
+
+      <% @applications.each do |application| %>
+        <div class="row" id="oauth-application-<%= application.id %>">
+          <div class="cell" data-label="Name">
+            <%= link_to application.name, oauth_application_path(application) %>
+          </div>
+
+          <div class="cell" data-label="Client ID"><code><%= application.uid %></code></div>
+
+          <div class="cell" data-label="Confidential"><%= application.confidential? ? "Yes" : "No" %></div>
+
+          <div class="cell" data-label="Created"><%= time_ago_in_words_tagged(application.created_at) %></div>
+
+          <div class="cell" data-label="Actions">
+            <div>
+              <%= link_to "Edit", edit_oauth_application_path(application) %>
+              |
+              <%= link_to "Delete", oauth_application_path(application),
+                          data: { method: :delete,
+                                  confirm: "Delete #{application.name}? Any existing tokens it issued will stop working." } %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% else %>
+  <p>You don't have any OAuth applications yet.</p>
+<% end %>
+
+<% content_for(:page_title) do %>
+  Your OAuth Applications
+<% end %>

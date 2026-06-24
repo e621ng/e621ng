@@ -116,6 +116,7 @@ class User < ApplicationRecord
                       if: -> { saved_change_to_name? || saved_change_to_profile_about? || saved_change_to_profile_artinfo? }
 
   has_many :api_keys, dependent: :destroy
+  has_many :oauth_applications, class_name: "Doorkeeper::Application", as: :owner, dependent: :destroy
   has_one :dmail_filter
   has_one :user_status
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
@@ -771,12 +772,16 @@ class User < ApplicationRecord
 
     def api_key_limit
       if is_staff?
-        20
+        30
       elsif is_privileged?
-        10
+        15
       else
-        5
+        8
       end
+    end
+
+    def oauth_application_limit
+      api_key_limit
     end
   end
 

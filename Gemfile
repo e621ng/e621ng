@@ -56,6 +56,9 @@ gem "rack-cors"
 gem "rails-settings-cached", "~> 2.9"
 gem "sitemap_generator"
 
+gem "doorkeeper", "~> 5.8"
+gem "doorkeeper-openid_connect", "~> 1.10"
+
 group :production do
   gem "pitchfork"
 end
