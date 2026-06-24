@@ -9,6 +9,7 @@ SELECT
   tag_implications.reason,
   tag_implications.updated_at,
   tag_implications.approver_id,
+  tag_implications.creator_id,
   tag_implications.descendant_names,
   COALESCE(votes.down, 0) AS down_votes,
   COALESCE(votes.meh, 0)  AS meh_votes,
