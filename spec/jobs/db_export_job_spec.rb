@@ -8,6 +8,9 @@ RSpec.describe DbExportJob do
   # Captures the gzipped CSV handed to the storage manager, keyed by file name,
   # so contents can be asserted without touching the filesystem.
   let(:stored) { {} }
+  # Captures the raw (compressed) bytes handed to the storage manager, so the
+  # recorded checksum can be verified against the exact stored artifact.
+  let(:raw) { {} }
 
   before do
     CurrentUser.user = user
@@ -18,7 +21,9 @@ RSpec.describe DbExportJob do
     allow(Danbooru.config.custom_configuration).to receive_messages(db_export_enabled?: true, storage_manager: storage)
     allow(storage).to receive(:store_db_export) do |io, file_name|
       io.rewind
-      stored[file_name] = Zlib::GzipReader.new(io).read
+      bytes = io.read
+      raw[file_name] = bytes
+      stored[file_name] = Zlib::GzipReader.new(StringIO.new(bytes)).read
     end
   end
 
@@ -53,6 +58,12 @@ RSpec.describe DbExportJob do
       export = DbExport.find_by(name: "tags")
       expect(export.file_size).to be_positive
       expect(export.updated_at).to be_present
+    end
+
+    it "records a checksum matching the stored file" do
+      perform
+      export = DbExport.find_by(name: "tags")
+      expect(export.checksum).to eq(Digest::SHA256.hexdigest(raw["tags.csv.gz"]))
     end
 
     it "reuses the existing row on a subsequent run" do

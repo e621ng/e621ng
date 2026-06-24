@@ -60,8 +60,9 @@ class DbExportJob < ApplicationJob
     write_csv_gz(config[:query].call, file)
     file.rewind
 
+    checksum = Digest::SHA256.file(file.path).hexdigest
     Danbooru.config.storage_manager.store_db_export(file, "#{name}.csv.gz")
-    record_export(name, file.size)
+    record_export(name, file.size, checksum)
 
     Rails.logger.info("DbExportJob: Finished #{name} export (#{ActiveSupport::NumberHelper.number_to_human_size(file.size)})")
   rescue StandardError => e
@@ -85,8 +86,8 @@ class DbExportJob < ApplicationJob
     gz&.finish
   end
 
-  def record_export(name, file_size)
+  def record_export(name, file_size, checksum)
     export = DbExport.find_or_initialize_by(name: name)
-    export.update!(file_size: file_size, updated_at: Time.current)
+    export.update!(file_size: file_size, checksum: checksum, updated_at: Time.current)
   end
 end
