@@ -17,11 +17,15 @@ RUN npm ci
 
 FROM ruby:3.3.1-alpine3.20
 
-RUN apk --no-cache add ffmpeg vips \
+RUN apk --no-cache add vips \
   postgresql15-client \
   git jemalloc tzdata \
   sudo gcompat ragel build-base \
   tmux
+
+# Alpine's ffmpeg lags behind production (6.1.x vs 8.x). Pull a fully-static,
+# version-pinned ffmpeg/ffprobe instead so dev matches prod regardless of base image.
+COPY --from=mwader/static-ffmpeg:8.1.2 /ffmpeg /ffprobe /usr/bin/
 
 WORKDIR /app
 
