@@ -354,7 +354,7 @@ class Tag < ApplicationRecord
       end
 
       if params[:name].present?
-        q = q.where("tags.name": normalize_name(params[:name]).split(","))
+        q = q.where(name: normalize_name(params[:name]).split(","))
       end
 
       if params[:category].present?
@@ -367,32 +367,30 @@ class Tag < ApplicationRecord
       end
 
       if params[:has_wiki].to_s.truthy?
-        q = q.joins(:wiki_page).where("wiki_pages.is_deleted = false")
+        q = q.joins(:wiki_page) # INNER JOIN only returns rows where the joined table has a matching row
       elsif params[:has_wiki].to_s.falsy?
-        q = q.joins("LEFT JOIN wiki_pages ON tags.name = wiki_pages.title").where("wiki_pages.title IS NULL OR wiki_pages.is_deleted = true")
+        q = q.left_joins(:wiki_page).where("wiki_pages.id": nil)
       end
 
       if params[:has_artist].to_s.truthy?
-        q = q.joins("INNER JOIN artists ON tags.name = artists.name")
+        q = q.joins(:artist)
       elsif params[:has_artist].to_s.falsy?
-        q = q.joins("LEFT JOIN artists ON tags.name = artists.name").where("artists.name IS NULL")
+        q = q.left_joins(:artist).where("artists.id": nil)
       end
 
       q = q.attribute_matches(:is_locked, params[:is_locked])
 
       case params[:order]
       when "name"
-        q = q.order("name")
-      when "date"
-        q = q.order("id desc")
+        q = q.order(:name)
       when "similarity"
         q = q.order_similarity(params[:fuzzy_name_matches]) if params[:fuzzy_name_matches].present?
       when "id_asc"
         q = q.order(id: :asc)
-      when "id_desc"
+      when "id_desc", "date"
         q = q.order(id: :desc)
       else
-        q = q.order("post_count desc")
+        q = q.order(post_count: :desc, name: :asc)
       end
 
       q

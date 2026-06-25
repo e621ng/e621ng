@@ -55,6 +55,29 @@ RSpec.describe TagsController do
         expect(names).not_to include(matching_tag.name)
       end
     end
+
+    context "with order" do
+      let!(:tags) do
+        [
+          ["apple",  20],
+          ["banana", 20],
+          ["cherry", 20],
+          ["mango",  10],
+          ["orange", 10],
+          ["cat",     5],
+          ["dog",     5],
+          ["fox",     5],
+          ["ant",     1],
+        ].map { |k, v| create(:tag, name: k, post_count: v) }
+      end
+
+      it "orders secondary by name for post_count" do
+        get tags_path(format: :json, search: { order: "post_count", hide_empty: "no" })
+        expect(response).to(have_http_status(:ok))
+        names = response.parsed_body.pluck("name")
+        expect(names).to(eq(tags.map(&:name)))
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
