@@ -80,7 +80,6 @@ export default class Filter {
     if (this._enabled) LStorage.Blacklist.FilterState.delete(this.text);
     else LStorage.Blacklist.FilterState.add(this.text);
 
-    $(document).trigger("e621:blacklist:state-changed");
     E621.Blacklist.updatePostVisibility();
   }
 
