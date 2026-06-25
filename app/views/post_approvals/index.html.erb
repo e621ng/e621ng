@@ -1,7 +1,7 @@
 <div id="c-post-approvals">
   <div id="a-index">
     <h1>Approvals</h1>
-    <%= render "posts/partials/common/inline_blacklist" %>
+    <%= render partial: "application/blacklist_inline" %>
 
     <%= form_search(path: post_approvals_path) do |f| %>
       <%= f.user :user, label: "Approver" %>

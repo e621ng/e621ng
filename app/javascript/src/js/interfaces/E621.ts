@@ -1,7 +1,7 @@
 import Autocomplete from "@/components/autocomplete";
 import DTextFormatter from "@/components/DTextFormatter";
 import ThumbnailEngine from "@/components/ThumbnailEngine";
-import Blacklist from "@/core/blacklists";
+import Blacklist from "@/core/blacklist";
 import DeferredPostLoader from "@/core/DeferredPostLoader";
 import Hotkeys from "@/core/hotkeys";
 import CurrentUser from "@/models/CurrentUser";
@@ -22,7 +22,7 @@ export default interface E621Type {
 
   Storage: Storage;
   Settings: typeof Settings;
-  CurrentUser: CurrentUser;
+  CurrentUser: typeof CurrentUser;
 
   Hotkeys: typeof Hotkeys;
   Toast: typeof ToastManager;
@@ -67,13 +67,13 @@ export function getE621Instance (): E621Type {
       Session: SStorage,
     },
     Settings,
-    CurrentUser: CurrentUser.user,
+    CurrentUser: CurrentUser,
 
     Hotkeys,
     Toast: ToastManager,
 
     Autocomplete,
-    Blacklist,
+    Blacklist: Blacklist,
     DeferredPostLoader,
     DTextFormatter,
     PostCache,

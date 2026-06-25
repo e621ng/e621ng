@@ -1,6 +1,6 @@
 <div class="recent-posts">
   <h2>Posts (<%= link_to "view all", posts_path(tags: @wiki_page.title) %>)</h2>
-  <%= render "posts/partials/common/inline_blacklist" %>
+  <%= render partial: "application/blacklist_inline" %>
 
   <section class="posts-container" style="margin: 1em 0;">
     <% if @wiki_page.post_set.posts.any? %>

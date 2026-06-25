@@ -1,6 +1,6 @@
 import Page from "@/utility/Page";
 import LStorage from "@/utility/storage/Local";
-import Blacklist from "@/core/blacklists";
+import Blacklist from "@/core/blacklist";
 import Analytics from "@/core/analytics";
 import Logger from "@/utility/Logger";
 import PerformanceTracker from "@/utility/PerformanceTracker";
@@ -319,8 +319,8 @@ Recommended.loadState = async function (action = Recommended.action) {
 
   // 6. Apply blacklist
   if (renderedPosts.length > 0) {
-    Blacklist.add_posts(renderedPosts); // Automatically registers thumbnails with PostCache too
-    Blacklist.update_visibility();
+    Blacklist.addPosts(renderedPosts); // Automatically registers thumbnails with PostCache too
+    Blacklist.updatePostVisibility();
   }
   Recommended.Logger.log(`Rendered ${renderedPosts.length} posts`, renderedPosts);
   Recommended.Logger.log(" ⤷ Cache state:", PostCache.stats());

@@ -13,7 +13,7 @@
     <% end %>
 
     <!-- Blacklist -->
-    <%= render "posts/partials/common/inline_blacklist" %>
+    <%= render partial: "application/blacklist_inline" %>
 
     <!-- Central panel -->
     <% has_about = @user.profile_about.present? %>
