@@ -11,6 +11,7 @@ class ApplicationController < ActionController::Base
 
   before_action :reset_current_user
   before_action :sanitize_params
+  before_action :sanitize_cookies
   before_action :set_current_user
   around_action :set_time_zone
   before_action :validate_pagination_param_types
@@ -68,6 +69,22 @@ class ApplicationController < ActionController::Base
     end
 
     sanitize_hash.call(params)
+  end
+
+  # The ParameterSanitizer middleware scrubs the raw, still-URL-encoded Cookie header,
+  # but Rails percent-decodes cookie values afterwards. Decoding can reintroduce invalid
+  # UTF-8 bytes or null bytes (e.g. `nmm=%FF`), which then blow up later when something
+  # calls a string operation such as `blank?`/`present?` on the value while rendering.
+  # This mirrors sanitize_params for the decoded cookie jar.
+  def sanitize_cookies
+    scrubbed = {}
+    cookies.each do |key, value|
+      next unless value.is_a?(String)
+      next if value.valid_encoding? && value.exclude?("\u0000")
+
+      scrubbed[key] = value.scrub("").delete("\u0000")
+    end
+    cookies.update(scrubbed) if scrubbed.any?
   end
 
   def api_check
