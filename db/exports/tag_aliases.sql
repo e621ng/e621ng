@@ -8,6 +8,7 @@ SELECT
   tag_aliases.forum_topic_id,
   tag_aliases.reason,
   tag_aliases.updated_at,
+  tag_aliases.creator_id,
   tag_aliases.approver_id,
   tag_aliases.post_count,
   COALESCE(votes.down, 0) AS down_votes,
