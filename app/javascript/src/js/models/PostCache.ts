@@ -141,7 +141,8 @@ export default class PostCache {
    * Save post thumbnails so that they can be referred to later
    * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $elements Post elements
    */
-  static register ($elements: JQuery<HTMLElement> | JQuery<HTMLElement>[]) {
+  static register ($elements: JQuery<HTMLElement> | JQuery<HTMLElement>[]): JQuery<HTMLElement>[] {
+    const added: JQuery<HTMLElement>[] = [];
     for (let $post of $elements) {
       $post = $($post);
       $post.removeClass("blacklistable");
@@ -157,7 +158,9 @@ export default class PostCache {
 
       this._elements[postData.id].push($post);
       this._elementCount++;
+      added.push($post);
     }
+    return added;
   }
 
   /**

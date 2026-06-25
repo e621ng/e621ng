@@ -121,10 +121,18 @@ class Blacklist {
    * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Posts to register
    */
   public addPosts ($posts: JQuery<HTMLElement> | JQuery<HTMLElement>[]) {
-    PostCache.register($posts);
+    const newElements = PostCache.register($posts);
 
     for (const filter of Object.values(this.filters))
       filter.updateWithElements($posts);
+
+    // Immediately apply the blacklist class to any newly registered elements that are already hidden.
+    // updatePostVisibility() does not apply the class to posts whose status did not change.
+    for (const $element of newElements) {
+      const id = $element.data("id");
+      if (this.hiddenPosts.has(id))
+        $element.addClass("blacklisted").trigger("blk:hide");
+    }
   }
 
   /**
