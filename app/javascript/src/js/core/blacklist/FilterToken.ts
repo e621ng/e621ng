@@ -1,3 +1,4 @@
+import { CachedPost } from "@/models/PostCache";
 import Utility from "@/utility/utility";
 import FilterUtilities from "./FilterUtilities";
 
@@ -82,10 +83,10 @@ export default class FilterToken {
 
   /**
    * Checks if the filter token is applicable to the specified post
-   * @param {any} post Post to test
+   * @param {CachedPost} post Post to test
    * @returns true if the filter token matches
    */
-  test (post) {
+  public test (post: CachedPost): boolean {
     const val = FilterUtilities.FilterTests[this.type](this, post);
     return this.inverted ? !val : val;
   }

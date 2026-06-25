@@ -32,12 +32,12 @@ class Blacklist {
     if (Blacklist._instance)
       throw new Error("BlacklistManager is a singleton class. Use BlacklistManager.instance to access the instance.");
 
-    this.regenerate_filters();
+    this.regenerateFilters();
     $(() => this.onDOMLoad());
 
     document.addEventListener("e621:blacklistUpdated", () => {
-      this.regenerate_filters();
-      this.add_posts(PostCache.sample());
+      this.regenerateFilters();
+      this.addPosts(PostCache.sample());
       this.updatePostVisibility();
     });
   }
@@ -45,7 +45,7 @@ class Blacklist {
   private onDOMLoad () {
     this.isPostsShow = $("#image-container").length > 0;
 
-    this.add_posts($(".blacklistable"));
+    this.addPosts($(".blacklistable"));
     this.updateThumbnailStyles();
     this.updatePostVisibility();
     $("#blacklisted-hider").remove();
@@ -117,6 +117,17 @@ class Blacklist {
   }
 
   /**
+   * Register posts in the system, and calculate which filters apply to them
+   * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Posts to register
+   */
+  public addPosts ($posts: JQuery<HTMLElement> | JQuery<HTMLElement>[]) {
+    PostCache.register($posts);
+
+    for (const filter of Object.values(this.filters))
+      filter.updateWithElements($posts);
+  }
+
+  /**
    * Loads posts into the blacklist system, updating the filters with any new matches.
    * @param {CachedPost | CachedPost[]} posts Posts to load into the blacklist system
    */
@@ -148,7 +159,7 @@ class Blacklist {
   /* ============================== */
 
   /** Import the blacklist from the meta tag */
-  private regenerate_filters () {
+  private regenerateFilters () {
     this.filters = {};
 
     // Attempt to create filters from text
@@ -163,17 +174,6 @@ class Blacklist {
       if (keys.includes(filterState)) continue;
       LStorage.Blacklist.FilterState.delete(filterState);
     }
-  }
-
-  /**
-   * Register posts in the system, and calculate which filters apply to them
-   * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Posts to register
-   */
-  private add_posts ($posts: JQuery<HTMLElement> | JQuery<HTMLElement>[]) {
-    PostCache.register($posts);
-
-    for (const filter of Object.values(this.filters))
-      filter.updateWithElements($posts);
   }
 }
 

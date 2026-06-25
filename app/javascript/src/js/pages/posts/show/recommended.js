@@ -319,7 +319,7 @@ Recommended.loadState = async function (action = Recommended.action) {
 
   // 6. Apply blacklist
   if (renderedPosts.length > 0) {
-    Blacklist.add_posts(renderedPosts); // Automatically registers thumbnails with PostCache too
+    Blacklist.addPosts(renderedPosts); // Automatically registers thumbnails with PostCache too
     Blacklist.updatePostVisibility();
   }
   Recommended.Logger.log(`Rendered ${renderedPosts.length} posts`, renderedPosts);
