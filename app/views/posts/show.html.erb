@@ -9,7 +9,7 @@
     </div>
 
     <div class="sidebar">
-      <%= render "posts/partials/index/blacklist", post_id: @post.id %>
+      <%= render partial: "application/blacklist", post_id: @post.id %>
 
       <section id="tag-list">
         <%= render partial: "/posts/partials/show/sidebar/tag_list", locals: { post: @post, query: params[:q] } %>

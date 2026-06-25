@@ -20,14 +20,14 @@ const _get = function () {
   }
 };
 
-export default class CurrentUser {
+class CurrentUser {
 
   /* ============================== */
   /* ===== Singleton pattern ====== */
   /* ============================== */
 
   private static _instance: CurrentUser | null = null;
-  public static get user (): CurrentUser {
+  public static get instance (): CurrentUser {
     if (!CurrentUser._instance)
       CurrentUser._instance = new CurrentUser();
     return CurrentUser._instance;
@@ -59,7 +59,7 @@ export default class CurrentUser {
 
   private constructor () {
     if (CurrentUser._instance)
-      throw new Error("CurrentUser is a singleton class. Use CurrentUser.user to access the instance.");
+      throw new Error("CurrentUser is a singleton class. Use CurrentUser.instance to access the instance.");
 
     const obj = _get() || {};
 
@@ -165,7 +165,7 @@ export default class CurrentUser {
     document.dispatchEvent(event);
 
     // Save the anonymous blacklist
-    if (CurrentUser.user.is.anonymous) {
+    if (CurrentUser.instance.is.anonymous) {
       try {
         LStorage.Blacklist.AnonymousBlacklist = JSON.stringify(blacklist);
       } catch (e) {
@@ -177,13 +177,13 @@ export default class CurrentUser {
 
     // Save the authenticated user's blacklist to the server
     const formData: FormData = new FormData();
-    formData.append("authenticity_token", CurrentUser.user.authToken || "");
+    formData.append("authenticity_token", CurrentUser.instance.authToken || "");
     formData.append("user[blacklisted_tags]", blacklist.join("\n"));
 
-    return fetch("/users/" + CurrentUser.user.id + ".json", {
+    return fetch("/users/" + CurrentUser.instance.id + ".json", {
       method: "PUT",
       headers: {
-        "X-CSRF-Token": CurrentUser.user.authToken,
+        "X-CSRF-Token": CurrentUser.instance.authToken,
       },
       credentials: "include",
       body: formData,
@@ -233,6 +233,8 @@ export default class CurrentUser {
     }
   }
 }
+
+export default CurrentUser.instance;
 
 interface CurrentUserIs {
   anonymous: boolean,

@@ -1,11 +1,7 @@
-<%# locals: (post_id: nil) %>
-
-<section class="blacklist-ui"
+<section
+  class="blacklist-ui blacklist-inline staged"
   filters="0"
   collapsed="true"
-  <% if post_id.present? %>
-    post="<%= post_id %>"
-  <% end %>
 >
   <div class="blacklist-header">Blacklisted <span class="blacklisted-count"></span></div>
   <ul class="blacklist-filters"></ul>

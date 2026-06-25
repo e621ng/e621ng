@@ -1,6 +1,6 @@
 <div class="recent-posts">
   <h1>Recent Posts (<%= link_to "view all", posts_path(tags: @artist.name) %>)</h1>
-  <%= render "posts/partials/common/inline_blacklist" %>
+  <%= render partial: "application/blacklist_inline" %>
 
   <section class="posts-container" style="margin: 1em 0;">
     <% if @post_set.posts.any? %>

@@ -2,7 +2,7 @@
   <div id="a-index">
     <h1>Comments</h1>
 
-    <%= render "posts/partials/common/inline_blacklist" %>
+    <%= render partial: "application/blacklist_inline" %>
 
     <%= render "search" %>
     <% if params[:group_by] == "post" %>

@@ -3,7 +3,7 @@
     <h2>Order Pool: <%= @pool.pretty_name %></h2>
     <p>Drag and drop the list below to determine ordering.</p>
 
-    <%= render "posts/partials/common/inline_blacklist" %>
+    <%= render partial: "application/blacklist_inline" %>
 
     <ul class="sortable">
       <% @posts.each do |post| %>

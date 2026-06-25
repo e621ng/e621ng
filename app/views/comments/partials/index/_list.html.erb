@@ -8,7 +8,7 @@
   <% if !CurrentUser.user.is_moderator? && post.is_comment_disabled? %>
     <div class="row notices">
       <span class="blacklist-comments-notice" id="blacklist-comments-notice-for-<%= post.id %>">
-        <%= render "posts/partials/common/inline_blacklist" %>
+        <%= render partial: "application/blacklist_inline" %>
       </span>
     </div>
     <div class="list-of-comments">
@@ -24,7 +24,7 @@
       </span>
       <% end %>
       <span class="blacklist-comments-notice" id="blacklist-comments-notice-for-<%= post.id %>">
-        <%= render "posts/partials/common/inline_blacklist" %>
+        <%= render partial: "application/blacklist_inline" %>
       </span>
     </div>
 
