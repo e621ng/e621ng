@@ -175,7 +175,7 @@ label.st-toggle {
     top: 0.25rem;
     left: 0rem;
 
-    background: themed("color-link");
+    background: themed("color-button-inactive");
     border-radius: 0.25rem;
     transition: left 100ms, background-color 200ms;
   }
@@ -189,7 +189,7 @@ input[type="checkbox"].st-toggle:checked + label.st-toggle {
   &::after {
     content: "";
     left: 1.5rem;
-    background: themed("color-link-active");
+    background: themed("color-button-active");
   }
 }
 
