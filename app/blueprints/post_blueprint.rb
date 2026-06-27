@@ -14,11 +14,12 @@ class PostBlueprint < Blueprinter::Base
   ### File Information ###
 
   field :files do |post|
+    visible = post.visible?
     output = {}
 
     output[:meta] = {
-      md5: post.md5,
-      ext: post.file_ext,
+      md5: visible ? post.md5 : nil,
+      ext: visible ? post.file_ext : nil,
       size: post.file_size,
       duration: post.duration&.to_f,
 
@@ -45,7 +46,7 @@ class PostBlueprint < Blueprinter::Base
       webp: nil,
     }
 
-    if post.visible?
+    if visible
       output[:original][:url] = post.file_url
 
       preview = post.preview_file_url_pair
@@ -57,7 +58,7 @@ class PostBlueprint < Blueprinter::Base
       output[:sample][:jpg] = sample[1]
     end
 
-    if post.is_video?
+    if visible && post.is_video?
       output[:video] = post.video_sample_list
     end
 
