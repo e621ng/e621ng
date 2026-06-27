@@ -8,7 +8,7 @@
   <% if CurrentUser.is_admin? %>
     <%= f.input :ip_addr, label: "IP Address" %>
   <% end %>
-  <% if CurrentUser.is_moderator? %>
+  <% if CurrentUser.is_staff? %>
     <%= f.input :is_hidden, label: "Hidden?", collection: [["Yes", true], ["No", false]], include_blank: true %>
   <% end %>
   <%= f.input :is_sticky, label: "Sticky?", collection: [["Yes", true], ["No", false]], include_blank: true %>
