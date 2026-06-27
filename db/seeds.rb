@@ -138,6 +138,7 @@ unless Rails.env.test?
     import_mascots
     setup_upload_whitelist
     setup_report_reasons
+    setup_flag_reasons
   rescue Exception => e # rubocop:disable Lint/RescueException
     puts "--------"
     puts "#{e.class}: #{e.message}"
