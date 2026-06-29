@@ -1,4 +1,3 @@
-import Utility from "@/utility/utility";
 import Post from "@/pages/posts/posts";
 import Favorite from "@/models/Favorite";
 import PostSet from "@/pages/posts/show/PostSet";
