@@ -3,7 +3,8 @@ const _get = function () {
   if (loaded) return _data;
   try {
     const base64 = document.getElementById("site-settings").textContent;
-    const json = atob(base64);
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const json = new TextDecoder().decode(bytes);
     _data = JSON.parse(json);
     loaded = true;
     return _data;
