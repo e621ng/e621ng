@@ -9,9 +9,9 @@
     <%= f.input :ip_addr, label: "IP Address" %>
   <% end %>
   <% if CurrentUser.is_moderator? %>
-    <%= f.input :is_hidden, label: "Hidden?", collection: [["Yes", true], ["No", false]], include_blank: true %>
+    <%= f.input :is_hidden, label: "Hidden?", collection: [["Yes", true], ["No", false]], include_blank: "Any" %>
   <% end %>
-  <%= f.input :is_sticky, label: "Sticky?", collection: [["Yes", true], ["No", false]], include_blank: true %>
-  <%= f.input :do_not_bump_post, label: "Bumping?", collection: [["Yes", false], ["No", true]], include_blank: true %>
+  <%= f.input :is_sticky, label: "Sticky?", collection: [["Yes", true], ["No", false]], include_blank: "Any" %>
+  <%= f.input :do_not_bump_post, label: "Bumping?", collection: [["Yes", false], ["No", true]], include_blank: "Any" %>
   <%= f.input :order, include_blank: false, collection: [%w[Created id_desc], %w[Updated updated_at_desc], %w[Score score_desc], %w[Post post_id_desc]] %>
 <% end %>

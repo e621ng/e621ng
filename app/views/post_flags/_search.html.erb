@@ -5,8 +5,8 @@
   <%= f.input :type, collection: [
     ["Flag", "flag"],
     ["Deletion", "deletion"],
-  ], include_blank: true %>
-  <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: true %>
+  ], include_blank: "Any" %>
+  <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: "Any" %>
   <% if CurrentUser.is_staff? %>
     <%= f.input :note %>
     <%= f.user :creator %>
