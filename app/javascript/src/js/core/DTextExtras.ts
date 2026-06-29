@@ -22,7 +22,7 @@ $(() => {
   }
 });
 
-function bootstrapCodeBlocks(wrapper: JQuery<HTMLElement>) {
+function bootstrapCodeBlocks (wrapper: JQuery<HTMLElement>) {
   const button = $("<button class='copy-code' type='button'>copy</button>")
     .prependTo(wrapper);
   button.on("click", () => {

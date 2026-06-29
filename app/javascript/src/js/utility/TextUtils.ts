@@ -38,7 +38,7 @@ export default class TextUtils {
    * @param {Number} creatorId ID of the message creator
    * @returns {String} The formatted quote
    */
-  static formatQuote(message: string, creatorName: string, creatorId: number): string {
+  static formatQuote (message: string, creatorName: string, creatorId: number): string {
     return `[quote]"${creatorName}":/users/${creatorId} said:\n${TextUtils.stripQuotes(message)}\n[/quote]\n\n`;
   }
 
