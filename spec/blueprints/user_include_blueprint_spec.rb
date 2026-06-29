@@ -40,7 +40,7 @@ RSpec.describe UserIncludeBlueprint do
 
   describe "settings field" do
     it "has the expected keys" do
-      expect(result[:settings].keys).to match_array(%i[hotkeys per_page default_image_size comment_threshold blacklist_users])
+      expect(result[:settings].keys).to match_array(%i[hotkeys per_page default_image_size comment_threshold blacklist_users autocomplete])
     end
   end
 
