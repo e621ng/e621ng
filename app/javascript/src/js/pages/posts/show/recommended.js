@@ -1,7 +1,7 @@
 import Page from "@/utility/Page";
 import LStorage from "@/utility/storage/Local";
 import Blacklist from "@/core/blacklist";
-import Analytics from "@/core/analytics";
+import Analytics from "@/core/Analytics";
 import Logger from "@/utility/Logger";
 import PerformanceTracker from "@/utility/PerformanceTracker";
 import CStorage from "@/utility/storage/Cookie";
@@ -52,7 +52,7 @@ Recommended.init = function () {
       // multiple times. The links navigate away from the page regardless, so this is acceptable.
       const data = event.currentTarget.dataset;
       if (!data.target) return;
-      Analytics.track(Analytics.Event.Recommendation, {
+      Analytics.track("recommendation", {
         target: "/posts/" + data.target,
         action: Recommended.action,
       });
