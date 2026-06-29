@@ -35,7 +35,7 @@ Rails.application.routes.draw do
     end
 
     # Automod
-    resource :automod do
+    resource :automod, only: [] do
       resources :rules, controller: "automod_rules", only: %i[index new create edit update destroy]
       resources :dmails, controller: "automod_dmails", only: %i[index show] do
         member do
