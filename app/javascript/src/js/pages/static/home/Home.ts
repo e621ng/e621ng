@@ -1,3 +1,4 @@
+import Analytics from "@/core/Analytics";
 import State from "@/utility/StateUtils";
 
 class Home {
@@ -47,10 +48,24 @@ class Home {
     }
     window.setTimeout(() => trends.classList.add("animated"), 500); // Don't animate on page load
 
+    // Toggle trends visibility
     trendsToggle.addEventListener("click", () => {
       this.trends = !this.trends;
       trends.classList.toggle("hidden", !this.trends);
       trendsToggle.setAttribute("aria-expanded", this.trends ? "true" : "false");
+    });
+
+    // Trend analytics tracking
+    if (!Analytics.Events.search_trend) return;
+    $(".rising-list").one("click", "a", (event) => {
+      // Only track the first click to prevent multiple events from being fired if the user clicks
+      // multiple times. The links navigate away from the page regardless, so this is acceptable.
+      const data = event.currentTarget.dataset;
+      if (!data.tag || !data.category) return;
+      Analytics.track("search_trend", {
+        tag: data.tag,
+        category: data.category,
+      });
     });
   }
 
