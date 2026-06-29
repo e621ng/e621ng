@@ -154,7 +154,6 @@ module ApplicationHelper
         controller: controller_param,
         action: action_param,
         **data_attributes_for(user, "user", attributes),
-        hotkeys_enabled: CurrentUser.user.enable_keyboard_navigation?,
       },
     }
   end

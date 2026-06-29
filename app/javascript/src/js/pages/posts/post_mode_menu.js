@@ -10,6 +10,7 @@ import SStorage from "@/utility/storage/Session";
 import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
 import Autocomplete from "@/components/autocomplete";
+import CurrentUser from "@/models/CurrentUser";
 
 let PostModeMenu = {};
 
@@ -96,7 +97,7 @@ PostModeMenu.initialize_edit_form = function () {
 PostModeMenu.close_edit_form = function () {
   Hotkeys.enabled = true;
   $("#quick-edit-div").slideUp("fast");
-  if (Utility.meta("enable-auto-complete") === "true") {
+  if (CurrentUser.settings.autocomplete) {
     const field = document.getElementById("post_tag_string");
     const autocompleter = Autocomplete.instances.get(field);
     if (autocompleter) autocompleter.close();

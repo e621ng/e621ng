@@ -33,6 +33,7 @@ class UserIncludeBlueprint < Blueprinter::Base
       default_image_size: user.default_image_size,
       comment_threshold: user.comment_threshold,
       blacklist_users: user.blacklist_users?,
+      autocomplete: user.enable_auto_complete?,
     }
   end
 

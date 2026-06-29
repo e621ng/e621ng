@@ -18,8 +18,6 @@
   <meta name="blacklisted-tags" content="[]">
   <meta name="blacklist-users" content="false">
 <% end %>
-<meta name="enable-js-navigation" content="<%= CurrentUser.user.enable_keyboard_navigation %>">
-<meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
 <meta name="metatags" content="<%= TagQuery::METATAGS.to_json %>">
 <meta name="order-metatags" content="<%= TagQuery::ORDER_METATAGS_AUTOCOMPLETE.to_json %>">
 <meta name="tag-categories" content="<%= TagCategory::MAPPING.keys.to_json %>">
