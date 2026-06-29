@@ -55,7 +55,7 @@ PostDiff.initSearch = function () {
 };
 
 $(() => {
-  if (!Page.matches("moderator-post-diffs", "show")) return;
+  if (!Page.matches("staff-post-diffs", "show")) return;
   PostDiff.init();
   PostDiff.initSearch();
 });
