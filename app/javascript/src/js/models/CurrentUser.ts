@@ -95,6 +95,7 @@ class CurrentUser {
       defaultImageSize: settingsObj["default_image_size"] || "large",
       commentThreshold: settingsObj["comment_threshold"] || -10,
       blacklistUsers: !!settingsObj["blacklist_users"],
+      autocomplete: !!settingsObj["autocomplete"],
     };
 
     // Blacklist
@@ -260,4 +261,5 @@ interface CurrentUserSettings {
   defaultImageSize: string,
   commentThreshold: number,
   blacklistUsers: boolean,
+  autocomplete: boolean,
 }

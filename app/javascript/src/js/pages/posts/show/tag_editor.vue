@@ -27,7 +27,7 @@ import relatedTags from "@/pages/uploads/new/related.vue";
 import tagPreview from "@/pages/uploads/new/tag_preview.vue";
 import Post from '../posts';
 import Autocomplete from "@/components/autocomplete";
-import Utility from "@/utility/utility.js";
+import CurrentUser from "@/models/CurrentUser";
 
 function tagSorter(a, b) {
   return a.name > b.name ? 1 : -1;
@@ -58,7 +58,7 @@ export default {
       el.style.height = el.scrollHeight + "px";
       el.focus();
     }, 20);
-    if (Utility.meta("enable-auto-complete") !== "true")
+    if (!CurrentUser.settings.autocomplete)
       return;
     Autocomplete.initialize_autocomplete('tag-edit');
   },

@@ -6,6 +6,7 @@ import SVGIcon from "@/utility/SVGIcon";
 import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
 import Utility from "@/utility/utility";
+import CurrentUser from "@/models/CurrentUser";
 
 let Post = {};
 
@@ -922,7 +923,7 @@ Post.set_as_avatar = function (id) {
   TaskQueue.add(() => {
     $.ajax({
       method: "PATCH",
-      url: `/users/${Utility.meta("current-user-id")}.json`,
+      url: `/users/${CurrentUser.id}.json`,
       data: {
         "user[avatar_id]": id,
       },

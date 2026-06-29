@@ -82,7 +82,6 @@
   <% if @mascot_background_url.present? %>
     <%= tag.link(rel: "preload", as: "image", href: @mascot_background_url, fetchpriority: "high") %>
   <% end %>
-  <meta name="enable-auto-complete" content="<%= CurrentUser.user.enable_auto_complete %>">
   <%= tag.meta(name: "description", content: Danbooru.config.description) %>
   <%= tag.meta(property: "og:site_name", content: Danbooru.config.app_name) %>
   <%= tag.meta(property: "og:title", content: Danbooru.config.app_name) %>

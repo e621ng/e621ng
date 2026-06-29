@@ -50,7 +50,7 @@ import autocompletableInput from "@/components/autocompletable_input.vue";
 import filePreview from "@/pages/uploads/new/file_preview.vue";
 import fileInput from "@/pages/uploads/new/file_input.vue";
 import sources from "@/pages/uploads/new/sources.vue";
-import Utility from "@/utility/utility";
+import CurrentUser from "@/models/CurrentUser";
 
 export default {
   components: {
@@ -74,7 +74,7 @@ export default {
       nonUrlSourceWarning: false,
       submitting: false,
       submittedReason: undefined,
-      canApprove: Utility.meta("current-user-can-approve-posts") === "true",
+      canApprove: CurrentUser.can.approvePosts,
       uploadAsPending: false,
     };
   },

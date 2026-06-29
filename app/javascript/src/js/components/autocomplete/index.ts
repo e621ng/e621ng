@@ -1,6 +1,5 @@
 import AutocompleteWidget from "@/components/autocomplete/AutocompleteWidget";
 import Logger from "@/utility/Logger";
-import Utility from "@/utility/utility";
 
 import Provider from "@/components/autocomplete/Provider";
 import ArtistProvider from "@/components/autocomplete/providers/ArtistProvider";
@@ -9,6 +8,7 @@ import TagProvider from "@/components/autocomplete/providers/TagProvider";
 import TagQueryProvider from "@/components/autocomplete/providers/TagQueryProvider";
 import UserProvider from "@/components/autocomplete/providers/UserProvider";
 import WikiProvider from "@/components/autocomplete/providers/WikiProvider";
+import CurrentUser from "@/models/CurrentUser";
 
 const PROVIDERS: Record<string, new () => Provider> = {
   "tag-query": TagQueryProvider,
@@ -26,8 +26,7 @@ export default class Autocomplete {
   private static Logger = new Logger("Autocomplete");
 
   public static initialize_all () {
-    if (Utility.meta("enable-auto-complete") !== "true")
-      return;
+    if (!CurrentUser.settings.autocomplete) return;
 
     const match_counts: Record<string, number> = {};
     for (const type of Object.keys(PROVIDERS)) {
