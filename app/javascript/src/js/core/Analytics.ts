@@ -62,10 +62,12 @@ class Analytics {
    * @param event The name of the event to track.
    * @param attributes A key-value map of attributes to associate with the event.
    */
-  public track (event: string, attributes: Record<string, any> = {}) {
+  public track (event: keyof EventConfig, attributes: Record<string, any> = {}) {
     if (!this.enabled || !this.op) return;
-    if (!Object.keys(this.Events).includes(event))
-      throw new Error(`Event "${event}" is not a valid analytics event. Only events listed in Analytics.Event are supported.`);
+    if (!Object.keys(this.Events).includes(event)) {
+      console.warn(`Analytics event "${event}" is not defined in Settings.Analytics.events. Event will not be tracked.`);
+      return;
+    }
     if (!this.Events[event]) return;
 
     this.op.track(event, attributes);
