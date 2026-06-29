@@ -6,7 +6,7 @@
 
     <% if CurrentUser.can_approve_posts? %>
       <div data-reason="<%= post.pending_flag&.reason %>">
-        <%= link_to "Delete", confirm_delete_moderator_post_post_path(post, q: params[:q]), class: "button btn-neutral" %>
+        <%= link_to "Delete", confirm_delete_staff_post_post_path(post, q: params[:q]), class: "button btn-neutral" %>
          | <%= tag.a "Unflag", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "none" } %>
         <% if post.is_approvable? %>
            | <%= tag.a "Unflag+approve", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "approve" } %>
@@ -16,7 +16,7 @@
         <% end %>
         <% if !post.parent_id.nil? && PostFlagReason.needs_parent_id?(post.pending_flag&.reason_name) %>
            | <%= tag.a "Move flag to parent", href: "#", class: "move-flag-to-parent-link button btn-neutral", data: { "pid": post.id, "parent-id": post.parent_id, "reason-name": post.pending_flag.reason_name, "note": post.pending_flag.note } %>
-           | <%= tag.a "Compare", href: moderator_post_diff_path(post_a: post.id, post_b: post.parent_id), class: "button btn-neutral" %>
+           | <%= tag.a "Compare", href: staff_post_diff_path(post_a: post.id, post_b: post.parent_id), class: "button btn-neutral" %>
         <% end %>
       </div>
     <% end %>
@@ -57,7 +57,7 @@
       <div class="notice-pending-toolbar">
         <%= render "post_disapprovals/counts", disapprovals: post.disapprovals.includes(:user), post: post %>
 
-        <%= render "moderator/post/queues/quick_mod", post: post %>
+        <%= render "staff/post/queues/quick_mod", post: post %>
       </div>
     <% end %>
   </div>

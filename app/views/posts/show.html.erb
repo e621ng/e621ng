@@ -223,10 +223,10 @@
 
       <% if CurrentUser.can_approve_posts? %>
         <%= render "post_disapprovals/detailed_rejection_dialog" %>
-        <%= render "moderator/post/posts/delete_with_reason_dialog" %>
+        <%= render "staff/post/posts/delete_with_reason_dialog" %>
       <% end %>
       <% if CurrentUser.is_janitor? %>
-        <%= render "moderator/post/posts/reowner_dialog" %>
+        <%= render "staff/post/posts/reowner_dialog" %>
       <% end %>
     </div>
 

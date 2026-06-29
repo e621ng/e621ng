@@ -3,7 +3,7 @@
 module DiscordReport
   class ModeratorStats < Base
     def webhook_url
-      Danbooru.config.moderator_stats_discord_webhook_url
+      Danbooru.config.staff_stats_discord_webhook_url
     end
 
     def report(update_cache: true)

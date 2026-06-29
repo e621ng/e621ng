@@ -18,24 +18,34 @@ Rails.application.routes.draw do
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
   namespace :staff do
-    resources :files, controller: "staff_files", only: %i[index show new create edit update destroy]
-    resources :wikis, controller: "staff_wikis" do
-      resources :references, only: %i[create destroy], controller: "staff_wiki_refs"
+    # Staff wikis and files
+    resources :files, only: %i[index show new create edit update destroy]
+    resources :wikis do
+      resources :references, only: %i[create destroy], controller: "wiki_refs"
       member do
         put :revert
         post :claim
         post :unclaim
       end
     end
-    resources :wiki_versions, controller: "staff_wiki_versions", only: %i[index show] do
+    resources :wiki_versions, only: %i[index show] do
       collection do
         get :diff
       end
     end
-  end
 
-  namespace :admin do
-    resources :automod_rules, only: %i[index new create edit update destroy]
+    # Automod
+    resource :automod do
+      resources :rules, controller: "automod_rules", only: %i[index new create edit update destroy]
+      resources :dmails, controller: "automod_dmails", only: %i[index show] do
+        member do
+          put :mark_as_read
+          put :mark_as_unread
+        end
+      end
+    end
+
+    # Previously under /admin/
     resources :users, only: %i[edit update] do
       member do
         get :edit_blacklist
@@ -50,24 +60,15 @@ Rails.application.routes.draw do
       end
       resources :dmails, only: %i[index show]
     end
-    resource :dashboard, only: %i[show]
+    resource :admin_dashboard, only: %i[show], controller: "admin_dashboards"
     resources :discord_reports, only: %i[index]
     resources :exceptions, only: %i[index show]
     resource :reowner, controller: "reowner", only: %i[new create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
-    resources :automod_dmails, only: %i[index show] do
-      member do
-        put :mark_as_read
-        put :mark_as_unread
-      end
-    end
-  end
 
-  namespace :security do
-    root to: "dashboard#index"
-    resources :dashboard, only: %i[index]
-    resources :lockdown, only: %i[index] do
+    # Previously under /security/
+    resources :security, only: %i[index] do
       collection do
         put :panic
         put :enact
@@ -76,11 +77,9 @@ Rails.application.routes.draw do
         put :maintenance
       end
     end
-  end
 
-  resources :edit_histories
-  namespace :moderator do
-    resource :dashboard, only: %i[show]
+    # Previously under /moderator/
+    resource :moderator_dashboard, only: %i[show], controller: "moderator_dashboards"
     resource :post_diff, only: %i[show]
     resources :ip_addrs, only: %i[index] do
       collection do
@@ -119,6 +118,8 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  resources :edit_histories
   resources :popular, only: %i[index]
   resources :search_trends, only: %i[index] do
     collection do
@@ -608,6 +609,19 @@ Rails.application.routes.draw do
 
   # Path before [#2116](https://github.com/e621ng/e621ng/pull/2116)
   get "/db_export", to: redirect("/db_exports")
+
+  # Staff route consolidation.
+  # The admin/moderator/security namespaces were merged into /staff/.
+  # These GET redirects keep old bookmarks working; POST/PUT endpoints are intentionally skipped.
+  get "/admin/dashboard", to: redirect("/staff/admin_dashboard")
+  get "/admin/automod_rules", to: redirect("/staff/automod/rules")
+  get "/admin/automod_dmails", to: redirect("/staff/automod/dmails")
+  get "/admin/*path", to: redirect("/staff/%{path}")
+  get "/moderator/dashboard", to: redirect("/staff/moderator_dashboard")
+  get "/moderator/*path", to: redirect("/staff/%{path}")
+  get "/security", to: redirect("/staff/security")
+  get "/security/dashboard", to: redirect("/staff/security")
+  get "/security/*path", to: redirect("/staff/%{path}")
 
   root to: "static#home"
 

@@ -15,7 +15,7 @@ import "@/pages/posts/show/recommended";
 import "@/pages/posts/show/related_tag";
 import "@/pages/posts/show/SwipeGestureHandler";
 
-import PostReowner from "@/pages/moderator/post/posts/PostReowner";
+import PostReowner from "@/pages/staff/post/posts/PostReowner";
 
 import "@/pages/post_flags/post_flags"; // We only need expandable notes from here
 
