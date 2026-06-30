@@ -4,13 +4,15 @@ export default class TextUtils {
     return !!navigator.clipboard;
   }
 
-  static copyToClipboard (text: string): void {
+  /**
+   * Copy the given text to the clipboard using the Clipboard API.
+   * @param text The text to copy to the clipboard
+   * @returns Promise that resolves when the text has been copied, or rejects if the Clipboard API is not supported
+   */
+  static async copyToClipboard (text: string) {
     if (!TextUtils.clipboardSupported)
-      throw new Error("Clipboard API not supported");
-
-    navigator.clipboard.writeText(text)
-      .then(() => console.log("Copied to clipboard!"))
-      .catch(() => console.error("Failed to copy text to clipboard."));
+      return Promise.reject(new Error("Clipboard API not supported"));
+    return navigator.clipboard.writeText(text);
   }
 
 

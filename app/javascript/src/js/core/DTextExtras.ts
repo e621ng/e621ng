@@ -27,11 +27,8 @@ function bootstrapCodeBlocks (wrapper: JQuery<HTMLElement>) {
     .prependTo(wrapper);
   button.on("click", () => {
     const code = wrapper.text().replace(/^copy/, "");
-    try {
-      TextUtils.copyToClipboard(code);
-      Toast.create("Copied to clipboard!", { timeout: 1 });
-    } catch {
-      Toast.alert("Failed to copy code to clipboard.");
-    }
+    TextUtils.copyToClipboard(code)
+      .then(() => Toast.create("Copied to clipboard!", { timeout: 1 }))
+      .catch(() => Toast.alert("Failed to copy code to clipboard."));
   });
 }
