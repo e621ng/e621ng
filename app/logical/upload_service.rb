@@ -61,7 +61,9 @@ class UploadService
       p.uploader_id = upload.uploader_id
       p.uploader_ip_addr = upload.uploader_ip_addr
       p.parent_id = upload.parent_id
-      p.duration = upload.video_duration(upload.file.path)
+      animated = upload.is_animated_file?(upload.file.path)
+      p.is_animated = animated
+      p.duration = upload.video_duration(upload.file.path, animated: animated)
 
       if !upload.uploader.can_upload_free? || (!upload.uploader.can_approve_posts? && p.avoid_posting_tags.any?) || upload.upload_as_pending?
         p.is_pending = true
