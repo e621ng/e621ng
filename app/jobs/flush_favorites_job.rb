@@ -11,7 +11,7 @@ class FlushFavoritesJob < ApplicationJob
     Thread.current[:skip_post_index_update] = true
 
     Favorite.without_timeout do
-      Favorite.for_user(user.id).find_in_batches(batch_size: 10_000) do |batch|
+      Favorite.for_user(user.id).select(:id, :post_id).find_in_batches(batch_size: 10_000) do |batch|
         ids = batch.pluck(:post_id)
         Favorite.for_user(user.id).where("post_id in (?)", ids).delete_all
         Post.without_timeout do
