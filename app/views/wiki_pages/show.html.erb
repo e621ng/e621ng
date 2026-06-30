@@ -26,6 +26,8 @@
         <div class="wiki-page-redirect"><%= svg_icon(:corner_down_right, width: 12, height: 12) %> <%= @wiki_page.title %></div>
       <% end %>
 
+      <%= render partial: "automated_tag", locals: { tag: wiki_content.title } %>
+
       <div id="wiki-page-body" class="dtext-container">
         <% if wiki_content.body.present? %>
           <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>  

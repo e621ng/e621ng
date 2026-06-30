@@ -845,6 +845,10 @@ class Post < ApplicationRecord
         long_playtime short_playtime
       ] + FileMethods::FILE_TYPE.values
 
+      # NOTE: when adding, removing, or changing any of these values, make sure to also
+      # update the corresponding labels in Danbooru.config.automated_tag_notices.
+      # Otherwise, users may be confused by missing or incorrect help messages.
+
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
         tags << "absurd_res" if image_width >= 3200 || image_height >= 2400
