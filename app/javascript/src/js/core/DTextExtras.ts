@@ -23,10 +23,9 @@ $(() => {
 });
 
 function bootstrapCodeBlocks (wrapper: JQuery<HTMLElement>) {
-  const button = $("<button class='copy-code' type='button'>copy</button>")
-    .prependTo(wrapper);
+  const button = $("<button class='copy-code' type='button'>copy</button>").prependTo(wrapper);
   button.on("click", () => {
-    const code = wrapper.text().replace(/^copy/, "");
+    const code = wrapper.clone().children("button.copy-code").remove().end().text();
     TextUtils.copyToClipboard(code)
       .then(() => Toast.create("Copied to clipboard!", { timeout: 1 }))
       .catch(() => Toast.alert("Failed to copy code to clipboard."));
