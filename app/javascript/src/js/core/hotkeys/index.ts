@@ -225,10 +225,13 @@ class Hotkeys {
 
   /** Finds and imports all hotkeys that are defined using data-elements. */
   private importSimpleActions () {
+    let count = 0;
+
     for (const action of Object.keys(HotkeysConfig.Keys) as Types.HotkeyAction[]) {
       // Check if the action exists on the page
       const element = $(`[data-hotkey="${action}"]`);
       if (element.length == 0) continue;
+      count++;
 
       if (!this.listenerIndex[action]) this.listenerIndex[action] = [];
       if (element.is("input, textarea")) this.listenerIndex[action].push(() => simpleInputHandler(element));
@@ -237,6 +240,8 @@ class Hotkeys {
       if (!element.attr("title"))
         element.attr("title", `Shortcut: ${this.getKeyString(action)}`);
     }
+
+    if (this.debug) console.log(`Imported ${count} hotkey actions from data-hotkey attributes.`);
 
     function simpleClickHandler (element: JQuery<HTMLElement>) {
       if (element.is(":disabled")) return;

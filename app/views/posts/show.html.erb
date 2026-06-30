@@ -155,6 +155,7 @@
               aria-controls="post-recommendations"
               aria-expanded="<%= cookies[:post_recs] != "1" %>"
               aria-label="<%= cookies[:post_recs] == "1" ? "Show" : "Hide" %> Recommendations"
+              data-hotkey="postrec"
             >
               <span>Show Recommendations</span>
               <%= svg_icon(:eye_off) %>

@@ -19,6 +19,7 @@ export default class StaticShortcuts {
       "Scroll Down":      "scroll-down",
       "Mark as Read":     "mark-read",
       "History":          "history",
+      "Toggle Blacklist": "blacklist",
     } as Types.HotkeyBindingsList,
 
     "Posts": {
@@ -36,6 +37,20 @@ export default class StaticShortcuts {
       "Download":         "download",
       "Add to Set":       "add-to-set",
       "Add to Pool":      "add-to-pool",
+
+      "Toggle Related":   "postrel",
+      "Recommendations":  "postrec",
+    } as Types.HotkeyBindingsList,
+
+    "Reverse Image Search": {
+      "IQDB":             "iqdb",
+      "Google":           "ris-google",
+      "SauceNAO":         "ris-saucenao",
+      "Derpibooru":       "ris-derpi",
+      "Yandex":           "ris-yandex",
+      "FuzzySearch":      "ris-fzsearch",
+      "Fluffle":          "ris-fluffle",
+      "Inkbunny":         "ris-inkbunny",
     } as Types.HotkeyBindingsList,
   };
 
