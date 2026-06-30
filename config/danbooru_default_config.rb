@@ -879,6 +879,72 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
         tags: true,
       }
     end
+
+    # Onboarding flow configuration.
+    def allowed_onboarding_fields
+      %w[
+        enable_privacy_mode
+        disable_user_dmails
+        receive_email_notifications
+      ].freeze
+    end
+
+    def onboarding_steps
+      [
+        {
+          id: "blacklist",
+          title: "Initial Blacklist",
+          description: "#{app_name} contains a wide variety of content. Select any tags you'd like to hide immediately.",
+          type: "blacklist",
+          field: "blacklisted_tags",
+          options: %w[gore scat vore inflation hypnosis watersports transformation],
+        },
+        {
+          id: "privacy",
+          title: "Privacy & Safety",
+          description: "Control how you appear to others on the site.",
+          type: "settings",
+          fields: [
+            {
+              id: "enable_privacy_mode",
+              label: "Enable Privacy Mode",
+              help_text: "Prevents your profile and favorites from being publicly searchable.",
+              type: "checkbox",
+            },
+            {
+              id: "disable_user_dmails",
+              label: "Restrict DMs",
+              help_text: "Only allow staff members to send you direct messages.",
+              type: "checkbox",
+            },
+          ],
+        },
+        {
+          id: "notifications",
+          title: "Notifications",
+          description: "Configure how you receive notifications.",
+          type: "settings",
+          fields: [
+            {
+              id: "receive_email_notifications",
+              label: "Email Notifications",
+              help_text: "Receive emails when you get a DM or someone replies to your forum posts.",
+              type: "checkbox",
+            },
+          ],
+        },
+        {
+          id: "finale",
+          title: "Ready to go?",
+          description: "If you're new here, we highly recommend checking out our Wiki to learn about tagging and site rules.",
+          type: "info",
+          links: [
+            { label: "Wiki", href: "/help/wiki_pages", target: "_blank" },
+            { label: "Guidelines", href: "/help/guidelines", target: "_blank" },
+          ],
+        },
+      ]
+    end
   end
 
   class EnvironmentConfiguration
