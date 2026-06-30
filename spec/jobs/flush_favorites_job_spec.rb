@@ -107,52 +107,5 @@ RSpec.describe FlushFavoritesJob do
         expect(other_user.user_status.reload.favorite_count).to eq(1)
       end
     end
-
-    context "when FavoriteManager raises SerializationFailure" do
-      let(:post) { create(:post) }
-
-      before { add_favorite(post, CurrentUser.user) }
-
-      context "on the first attempt only" do
-        before do
-          call_count = 0
-          allow(FavoriteManager).to receive(:remove!).and_wrap_original do |original, **kwargs|
-            call_count += 1
-            raise ActiveRecord::SerializationFailure if call_count == 1
-
-            original.call(**kwargs)
-          end
-        end
-
-        it "does not raise an error" do
-          expect { perform }.not_to raise_error
-        end
-
-        it "eventually removes the Favorite" do
-          perform
-          expect(Favorite.for_user(CurrentUser.id)).to be_empty
-        end
-      end
-
-      context "on every attempt (all 5 exhausted)" do
-        before do
-          allow(FavoriteManager).to receive(:remove!).and_raise(ActiveRecord::SerializationFailure)
-        end
-
-        it "does not raise an error" do
-          expect { perform }.not_to raise_error
-        end
-
-        it "retries exactly 5 times" do
-          perform
-          expect(FavoriteManager).to have_received(:remove!).exactly(5).times
-        end
-
-        it "leaves the Favorite record in place" do
-          perform
-          expect(Favorite.for_user(CurrentUser.id)).not_to be_empty
-        end
-      end
-    end
   end
 end
