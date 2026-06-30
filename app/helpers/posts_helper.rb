@@ -75,7 +75,7 @@ module PostsHelper
 
     html << " (#{link_to("learn more", wiki_pages_path(:title => "e621:post_relationships"))}) "
 
-    html << link_to("show »", "#", id: "has-parent-relationship-preview-link")
+    html << link_to("show »", "#", id: "has-parent-relationship-preview-link", data: { hotkey: "postrel" })
 
     html.html_safe
   end
@@ -89,7 +89,7 @@ module PostsHelper
 
     html << " (#{link_to("learn more", wiki_pages_path(:title => "e621:post_relationships"))}) "
 
-    html << link_to("show »", "#", id: "has-children-relationship-preview-link")
+    html << link_to("show »", "#", id: "has-children-relationship-preview-link", data: { hotkey: "postrel" })
 
     html.html_safe
   end

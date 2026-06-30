@@ -67,6 +67,7 @@ class HotkeyConfig extends StorageObject {
     "mark-read":    "Shift+R",
     "scroll-down":  "S",
     "scroll-up":    "W",
+    "blacklist":    "Shift+B",
 
     "history":      "",
 
@@ -85,6 +86,19 @@ class HotkeyConfig extends StorageObject {
     "download":     "",
     "add-to-set":   "",
     "add-to-pool":  "",
+
+    "postrel":      "",
+    "postrec":      "",
+
+    // Reverse Image Search
+    "iqdb":         "",
+    "ris-google":   "",
+    "ris-saucenao": "",
+    "ris-derpi":    "",
+    "ris-yandex":   "",
+    "ris-fzsearch": "",
+    "ris-fluffle":  "",
+    "ris-inkbunny": "",
 
 
     // Tag Scripts
@@ -135,6 +149,19 @@ const StorageKeys: StorageConfig<HotkeyConfig> = {
     "download":     "e6.htk.download",
     "add-to-set":   "e6.htk.add-to-set",
     "add-to-pool":  "e6.htk.add-to-pool",
+
+    "postrel":      "e6.htk.postrel",
+    "postrec":      "e6.htk.postrec",
+
+    // Reverse Image Search
+    "iqdb":         "e6.htk.iqdb",
+    "ris-google":   "e6.htk.ris-google",
+    "ris-saucenao": "e6.htk.ris-saucenao",
+    "ris-derpi":    "e6.htk.ris-derpi",
+    "ris-yandex":   "e6.htk.ris-yandex",
+    "ris-fzsearch": "e6.htk.ris-fzsearch",
+    "ris-fluffle":  "e6.htk.ris-fluffle",
+    "ris-inkbunny": "e6.htk.ris-inkbunny",
 
 
     // Tag Scripts
