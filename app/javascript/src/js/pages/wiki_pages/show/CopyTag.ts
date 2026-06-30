@@ -15,6 +15,5 @@ $(() => {
     TextUtils.copyToClipboard(tag)
       .then(() => Toast.create("Copied to clipboard!", { timeout: 1 }))
       .catch(() => Toast.alert("Failed to copy tag to clipboard."));
-
   });
 });

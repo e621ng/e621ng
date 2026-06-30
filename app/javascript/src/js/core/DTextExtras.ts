@@ -24,13 +24,13 @@ $(() => {
 });
 
 function bootstrapCodeBlocks (wrapper: JQuery<HTMLElement>) {
-  const button = $("<button class='copy-code' type='button'>copy</button>")
+  const button = $("<button>")
     .addClass("copy-code")
     .attr({
       "type": "button",
       "title": "Copy code to clipboard",
     })
-    .html(SVGIcon.render("copy"))
+    .append(SVGIcon.render("copy"))
     .prependTo(wrapper);
 
   button.on("click", () => {
