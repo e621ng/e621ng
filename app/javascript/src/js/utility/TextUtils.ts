@@ -1,5 +1,8 @@
 export default class TextUtils {
 
+  /**
+   * @returns {boolean} True if the Clipboard API is supported, false otherwise
+   */
   static get clipboardSupported (): boolean {
     return !!navigator.clipboard;
   }
@@ -14,7 +17,6 @@ export default class TextUtils {
       return Promise.reject(new Error("Clipboard API not supported"));
     return navigator.clipboard.writeText(text);
   }
-
 
   // https://regex101.com/r/1kVuT1/
   private static quoteRegex = /\[quote\](?!\[quote\])(?:[\S\s](?!\[quote\]))*?\[\/quote\][\n\r]*/sg;
