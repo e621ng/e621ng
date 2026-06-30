@@ -20,46 +20,22 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          # Cutoff: PRs created more than 30 days ago.
-          cutoff=$(date -u -d '30 days ago' +%s)
+          # Cutoff: PRs with no activity in the last 30 days.
+          cutoff=$(date -u -d '30 days ago' +%Y-%m-%d)
 
-          gh pr list \
-            --state open \
-            --limit 200 \
-            --json number,title,createdAt,isDraft,statusCheckRollup \
-            > prs.json
+          draft=$(gh search prs --repo "$GH_REPO" --state open --draft \
+            --updated "<$cutoff" --limit 200 \
+            --json number,title --jq '.[] | {number, title, reason: "it is still a draft"}')
 
-          jq -c '.[]' prs.json | while read -r pr; do
-            number=$(jq -r '.number' <<< "$pr")
-            title=$(jq -r '.title' <<< "$pr")
-            created=$(jq -r '.createdAt' <<< "$pr")
-            is_draft=$(jq -r '.isDraft' <<< "$pr")
-            created_epoch=$(date -u -d "$created" +%s)
+          failing=$(gh search prs --repo "$GH_REPO" --state open --checks failure \
+            --updated "<$cutoff" --limit 200 \
+            --json number,title --jq '.[] | {number, title, reason: "its checks are failing"}')
 
-            # Skip PRs newer than the cutoff.
-            if [ "$created_epoch" -gt "$cutoff" ]; then
-              continue
-            fi
-
-            # A check is "failing" if its conclusion/state is one of the
-            # terminal failure values. Pending/successful checks don't count.
-            failing=$(jq -r '
-              [.statusCheckRollup[]?
-                | (.conclusion // .state // "")
-                | ascii_upcase
-                | select(. == "FAILURE" or . == "ERROR" or . == "TIMED_OUT" or . == "ACTION_REQUIRED")
-              ] | length' <<< "$pr")
-
-            reason=""
-            if [ "$is_draft" = "true" ]; then
-              reason="it is still a draft"
-            elif [ "$failing" -gt 0 ]; then
-              reason="its checks are failing"
-            fi
-
-            if [ -n "$reason" ]; then
-              echo "Closing PR #$number ($title) — over 30 days old and $reason."
-              gh pr close "$number" \
-                --comment "This pull request has been open for over a month and $reason, so it is being closed automatically. Please feel free to reopen it once it is ready for review."
-            fi
-          done
+          # Merge both sets; when a PR is both draft and failing, draft wins (it's listed first).
+          printf '%s\n%s\n' "$draft" "$failing" \
+            | jq -rs 'group_by(.number) | map(.[0])[] | [.number, .title, .reason] | @tsv' \
+            | while IFS=$'\t' read -r number title reason; do
+                echo "Closing PR #$number ($title) — no activity in over 30 days and $reason."
+                gh pr close "$number" \
+                  --comment "This pull request has had no activity for over a month and $reason, so it is being closed automatically. Feel free to reopen it once it is ready for review."
+              done
