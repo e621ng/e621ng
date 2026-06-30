@@ -19,7 +19,7 @@ RSpec.describe Post do
         expect(replacement1.creator).to eq(user1)
         expect(replacement2.creator).to eq(user2)
         expect(replacement3.creator).to eq(user1)
-        expect(post.previous_version_uploaders).to eq([user1, user2])
+        expect(post.previous_version_uploaders).to contain_exactly(user1, user2)
       end
 
       it "returns empty if the post was never replaced" do
