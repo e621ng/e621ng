@@ -232,8 +232,8 @@ module PostIndex
             flagger:                  flagger_ids[p.id]    || empty,
             flag_reason:              flag_reasons[p.id]   || empty,
             flag_note:                flag_notes[p.id]     || empty,
-            flagged_at:               flag_dates[p.id],
             fav_count:                fav_counts[p.id]     || 0,
+            flagged_at:               flag_dates[p.id],
             has_pending_replacements: pending_replacements[p.id],
             artverified:              p.tag_array.any? { |tag| verified_artists.key?(tag) && verified_artists[tag] == p.uploader_id },
           }
