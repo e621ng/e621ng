@@ -52,7 +52,6 @@ Layout/EmptyLines:
   Exclude:
     - 'app/controllers/emails_controller.rb'
     - 'app/controllers/post_report_reasons_controller.rb'
-    - 'app/logical/apng_inspector.rb'
     - 'app/models/post_approval.rb'
     - 'app/models/tag_alias.rb'
 
@@ -74,7 +73,6 @@ Layout/EmptyLinesAroundAttributeAccessor:
 Layout/EmptyLinesAroundClassBody:
   Exclude:
     - 'app/controllers/email_blacklists_controller.rb'
-    - 'app/logical/apng_inspector.rb'
     - 'app/logical/processing_error.rb'
 
 # Offense count: 2
@@ -164,7 +162,6 @@ Layout/HashAlignment:
 # SupportedStyles: normal, indented_internal_methods
 Layout/IndentationConsistency:
   Exclude:
-    - 'app/logical/apng_inspector.rb'
     - 'app/models/tag.rb'
 
 # Offense count: 3
@@ -172,7 +169,6 @@ Layout/IndentationConsistency:
 # Configuration parameters: Width, AllowedPatterns.
 Layout/IndentationWidth:
   Exclude:
-    - 'app/logical/apng_inspector.rb'
     - 'app/models/bulk_update_request.rb'
     - 'app/models/tag_implication.rb'
 
@@ -181,7 +177,6 @@ Layout/IndentationWidth:
 # Configuration parameters: AllowDoxygenCommentStyle, AllowGemfileRubyComment.
 Layout/LeadingCommentSpace:
   Exclude:
-    - 'app/logical/apng_inspector.rb'
     - 'app/models/post.rb'
     - 'app/views/users/home.html.erb'
 
@@ -222,7 +217,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
 Layout/SpaceAroundOperators:
   Exclude:
     - 'app/indexes/post_version_index.rb'
-    - 'app/logical/apng_inspector.rb'
     - 'app/logical/user_throttle.rb'
     - 'app/models/tag_alias.rb'
     - 'app/models/tag_implication.rb'
@@ -1172,7 +1166,6 @@ Style/NegatedIfElseCondition:
 # SupportedStyles: skip_modifier_ifs, always
 Style/Next:
   Exclude:
-    - 'app/logical/apng_inspector.rb'
     - 'app/logical/set_diff.rb'
 
 # Offense count: 5
@@ -1181,7 +1174,6 @@ Style/Next:
 # SupportedStyles: predicate, comparison
 Style/NilComparison:
   Exclude:
-    - 'app/logical/apng_inspector.rb'
     - 'app/models/ban.rb'
 
 # Offense count: 2
@@ -1206,7 +1198,6 @@ Style/NumericLiteralPrefix:
 Style/NumericLiterals:
   Exclude:
     - 'app/indexes/post_version_index.rb'
-    - 'app/logical/apng_inspector.rb'
     - 'app/logical/pbkdf2.rb'
     - 'app/views/ads/_leaderboard.html.erb'
     - 'app/views/takedowns/new.html.erb'
@@ -1306,7 +1297,6 @@ Style/RedundantParentheses:
 Style/RedundantReturn:
   Exclude:
     - 'app/helpers/forum_topics_helper.rb'
-    - 'app/logical/apng_inspector.rb'
     - 'app/logical/bulk_update_request_importer.rb'
     - 'app/logical/email_link_validator.rb'
     - 'app/logical/pbkdf2.rb'
@@ -1463,7 +1453,6 @@ Style/StringLiterals:
     - 'app/helpers/application_helper.rb'
     - 'app/helpers/bulk_update_requests_helper.rb'
     - 'app/helpers/posts_helper.rb'
-    - 'app/logical/apng_inspector.rb'
     - 'app/logical/bulk_update_request_importer.rb'
     - 'app/logical/pbkdf2.rb'
     - 'app/logical/user_email_change.rb'
