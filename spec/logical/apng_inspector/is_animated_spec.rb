@@ -3,9 +3,9 @@
 require "rails_helper"
 
 RSpec.describe ApngInspector do
-  describe ".animated_quick?" do
+  describe ".is_animated?" do
     def quick(filename)
-      described_class.animated_quick?(file_fixture("apng_inspector/#{filename}").to_s)
+      described_class.is_animated?(file_fixture("apng_inspector/#{filename}").to_s)
     end
 
     context "with a normal multi-frame APNG" do
@@ -80,7 +80,7 @@ RSpec.describe ApngInspector do
           end
         end
 
-        described_class.animated_quick?(file_fixture("apng_inspector/static_png.png").to_s)
+        described_class.is_animated?(file_fixture("apng_inspector/static_png.png").to_s)
         # IHDR + a couple of ancillary chunk headers, well under the whole file.
         expect(bytes_read).to be < File.size(file_fixture("apng_inspector/static_png.png"))
       end

@@ -62,7 +62,7 @@ module FileMethods
   end
 
   def is_animated_png?(file_path)
-    is_png? && ApngInspector.animated_quick?(file_path)
+    is_png? && ApngInspector.is_animated?(file_path)
   end
 
   def is_animated_gif?(file_path)

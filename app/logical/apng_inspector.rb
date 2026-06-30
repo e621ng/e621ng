@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
 class ApngInspector
-  attr_reader :frames
-
   PNG_MAGIC_NUMBER = ["89504E470D0A1A0A"].pack("H*")
 
   # Fast APNG animation probe.
   #
   # Returns true if the file is an animated APNG (has an acTL chunk declaring more than one frame),
-  # false otherwise. Matches #inspect!'s definition of "animated" (frame count > 1).
+  # false otherwise.
   #
   # Stops scanning as soon as it sees acTL (animated) or the first IDAT/IEND (not animated) — per
   # the APNG spec, acTL must appear before any IDAT. This avoids walking the (potentially large)
-  # IDAT chunk sequence that #inspect! seeks through all the way to IEND, which is the dominant
-  # cost on big PNGs.
+  # IDAT chunk sequence all the way to IEND, which is the dominant cost on big PNGs.
+  #
+  # PNG structure: an 8-byte magic number followed by chunks of the form
+  # <4-byte length><4-byte name><length-byte data><4-byte CRC>. The APNG frame count lives in the
+  # first 4 bytes of the acTL chunk's data.
   #
   # Does NOT validate the rest of the file. Corruption past the decision point is irrelevant to
-  # this question, and is checked separately on upload via FileMethods#is_corrupt?. Use #inspect!
-  # when full corruption detection and the exact frame count are required.
-  def self.animated_quick?(file_path, chunk_limit: 100_000, bytes_limit: 20 * 1024 * 1024)
+  # this question, and is checked separately on upload via FileMethods#is_corrupt?.
+  def self.is_animated?(file_path, chunk_limit: 100_000, bytes_limit: 20 * 1024 * 1024)
     File.open(file_path, "rb") do |file|
       return false unless file.read(8) == PNG_MAGIC_NUMBER
 
@@ -55,109 +55,5 @@ class ApngInspector
     end
 
     false
-  end
-
-  def initialize(file_path)
-    @file_path = file_path
-    @corrupted = false
-    @animated = false
-  end
-
-  # PNG file consists of 8-byte magic number, followed by arbitrary number of chunks
-  # Each chunk has the following structure:
-  # 4-byte length (unsigned int, can be zero)
-  # 4-byte name (ASCII string consisting of letters A-z)
-  # (length)-byte data
-  # 4-byte CRC
-  #
-  # Any data after chunk named IEND is irrelevant
-  # APNG frame count is inside a chunk named acTL, in first 4 bytes of data.
-  #
-  # This function calls associated block for each PNG chunk
-  # parameters passed are |chunk_name, chunk_length, file_descriptor|
-  # returns true if file is read succesfully from start to IEND,
-  # or if 100 000 chunks are read; returns false otherwise.
-  def each_chunk
-    iend_reached = false
-    File.open(@file_path, "rb") do |file|
-      # check if file is not PNG at all
-      return false if file.read(8) != PNG_MAGIC_NUMBER
-
-      chunks = 0
-
-      # We could be dealing with large number of chunks,
-      # so the code should be optimized to create as few objects as possible.
-      # All literal strings are frozen and read() function uses string buffer.
-      chunkheader = +""
-      while file.read(8, chunkheader)
-        # ensure that first 8 bytes from chunk were read properly
-        if chunkheader.nil? || chunkheader.bytesize < 8
-          return false
-        end
-
-        current_pos = file.tell
-
-        chunk_len, chunk_name = chunkheader.unpack("Na4")
-        return false if chunk_name =~ /[^A-Za-z]/
-        yield chunk_name, chunk_len, file
-
-        # no need to read further if IEND is reached
-        if chunk_name == "IEND"
-          iend_reached = true
-          break
-        end
-
-        # check if we processed too many chunks already
-        # if we did, file is probably maliciously formed
-        # fail gracefully without marking the file as corrupt
-        chunks += 1
-        if chunks > 100_000
-          iend_reached = true
-          break
-        end
-
-        # jump to the next chunk - go forward by chunk length + 4 bytes CRC
-        file.seek(current_pos + chunk_len + 4, IO::SEEK_SET)
-      end
-    end
-    iend_reached
-  end
-
-  def inspect!
-    actl_corrupted = false
-
-    read_success = each_chunk do |name, len, file|
-      next unless name == "acTL"
-      framecount = parse_actl(len, file)
-      if framecount < 1
-        actl_corrupted = true
-      else
-        @animated = framecount > 1
-        @frames = framecount
-      end
-    end
-
-    @corrupted = !read_success || actl_corrupted
-    self
-  end
-
-  def corrupted?
-    @corrupted
-  end
-
-  def animated?
-    !@corrupted && @animated
-  end
-
-  private
-
-  # return number of frames in acTL or -1 on failure
-  def parse_actl(len, file)
-    return -1 if len != 8
-    framedata = file.read(4)
-    if framedata.nil? || framedata.length != 4
-      return -1
-    end
-    framedata.unpack1("N")
   end
 end
