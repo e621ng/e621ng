@@ -1,11 +1,13 @@
 #c-wiki-pages {
   .automated-tag-notice {
     max-width: 50rem;
-    background: themed("color-section");
-    border-radius: 0.25rem;
-    padding: 0.5rem;
     box-sizing: border-box;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    
+    background: themed("color-section");
     border-left: 0.25rem solid palette("background-orange");
+    border-radius: 0.25rem;
 
     h3 {
       display: flex;
