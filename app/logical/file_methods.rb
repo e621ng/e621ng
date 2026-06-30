@@ -152,8 +152,11 @@ module FileMethods
     @video ||= FFMPEG::Movie.new(file_path)
   end
 
-  def video_duration(file_path)
-    return nil unless is_video? || (is_gif? && is_animated_gif?(file_path))
+  # Pass a precomputed +animated+ (e.g. from #is_animated_file?) to avoid a
+  # redundant GIF frame probe when the caller already knows the answer.
+  def video_duration(file_path, animated: nil)
+    animated = is_animated_gif?(file_path) if animated.nil?
+    return nil unless is_video? || (is_gif? && animated)
     video(file_path).duration
   end
 

@@ -45,12 +45,14 @@ class ApngInspector
           return false
         end
 
-        # Skip over the chunk data and its 4-byte CRC.
-        file.seek(len + 4, IO::SEEK_CUR)
-
+        # Enforce the scan limits before jumping, so an oversized declared length
+        # can't trigger a seek past the budget.
         chunks += 1
         bytes_scanned += 8 + len + 4
         return false if chunks > chunk_limit || bytes_scanned > bytes_limit
+
+        # Skip over the chunk data and its 4-byte CRC.
+        file.seek(len + 4, IO::SEEK_CUR)
       end
     end
 
