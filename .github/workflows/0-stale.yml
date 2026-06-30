@@ -1,4 +1,4 @@
-name: 4. Close Stale PRs
+name: 0. Close Stale PRs
 
 on:
   schedule:
@@ -47,7 +47,7 @@ jobs:
               [.statusCheckRollup[]?
                 | (.conclusion // .state // "")
                 | ascii_upcase
-                | select(. == "FAILURE" or . == "ERROR" or . == "TIMED_OUT" or . == "CANCELLED" or . == "ACTION_REQUIRED")
+                | select(. == "FAILURE" or . == "ERROR" or . == "TIMED_OUT" or . == "ACTION_REQUIRED")
               ] | length' <<< "$pr")
 
             reason=""
