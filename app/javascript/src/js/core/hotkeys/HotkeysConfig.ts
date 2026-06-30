@@ -159,7 +159,7 @@ const StorageKeys: StorageConfig<HotkeyConfig> = {
     "ris-saucenao": "e6.htk.ris-saucenao",
     "ris-derpi":    "e6.htk.ris-derpi",
     "ris-yandex":   "e6.htk.ris-yandex",
-    "ris-fzsearch": "e6.htk.ris-fuzzysearch",
+    "ris-fzsearch": "e6.htk.ris-fzsearch",
     "ris-fluffle":  "e6.htk.ris-fluffle",
     "ris-inkbunny": "e6.htk.ris-inkbunny",
 
