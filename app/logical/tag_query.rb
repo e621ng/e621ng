@@ -1555,10 +1555,20 @@ class TagQuery
   # Same as `TagQuery::REGEX_VALID_TAG_CHECK`, but disallows `*`
   REGEX_VALID_TAG_CHECK_2 = /[\*\,\#\$\%\\]/
 
+  # TODO: Add `FileMethods::FILE_TYPE` to this
+  # TODO: Add to autocomplete
+  METATAG_ALIASES = {
+    "long_playtime" => ->(tag, type) { [type, :duration, [:gte, 30.0]] },
+    "short_playtime" => ->(tag, type) { [type, :duration, [:lt, 30.0]] },
+  }.freeze
+
   # Checks if a certain tag should be transformed into a metatag, and adds it accordingly if so.
   def intercept_metatag_alias(tag, type)
     if FileMethods::FILE_TYPE.value?(tag)
       add_to_query(type, :filetype, tag)
+      return true
+    elsif (v = METATAG_ALIASES[tag])
+      add_to_query(*(v.call(tag, type)))
       return true
     end
     nil
