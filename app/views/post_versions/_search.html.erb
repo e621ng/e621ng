@@ -4,7 +4,7 @@
   <%= f.input :reason, label: "Reason" %>
   <%= f.input :description, label: "Description" %>
   <%= f.input :description_changed, label: "Description Changed", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
-  <%= f.input :rating_changed, label: "Rating Changed To", collection: rating_collection, include_blank: "Any" %>
+  <%= f.input :rating_changed, label: "Rating Changed To", collection: rating_collection + [["Any rating", "any"]], include_blank: "Any" %>
   <%= f.input :rating, label: "Final Rating", collection: rating_collection, include_blank: "Any" %>
   <%= f.input :parent_id, label: "Parent ID" %>
   <%= f.input :parent_id_changed, label: "Parent Changed To" %>
