@@ -51,6 +51,16 @@ module FileMethods
     is_webm? || is_mp4?
   end
 
+  # Returns whether the file at the given path is animated, dispatching to the
+  # type-specific probe based on file_ext. Videos are always animated.
+  def is_animated_file?(file_path)
+    return true if is_video?
+    return is_animated_gif?(file_path) if is_gif?
+    return is_animated_png?(file_path) if is_png?
+    return is_animated_webp?(file_path) if is_webp?
+    false
+  end
+
   def is_animated_png?(file_path)
     is_png? && ApngInspector.new(file_path).inspect!.animated?
   end

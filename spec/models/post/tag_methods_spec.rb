@@ -381,6 +381,34 @@ RSpec.describe Post do
         post = create(:post, tag_string: filetype_tags.join(" "))
         expect(post.tag_array).to be_empty
       end
+
+      describe "animated_* tags" do
+        it "adds animated_gif/png/webp when the file is animated" do
+          { "gif" => "animated_gif", "png" => "animated_png", "webp" => "animated_webp" }.each do |ext, tag|
+            post = create(:post, file_ext: ext, is_animated: true)
+            expect(post.tag_array).to include(tag)
+          end
+        end
+
+        it "does not add animated_png for a static png" do
+          post = create(:post, file_ext: "png", is_animated: false,
+                               tag_string: "#{TagCategory::REVERSE_MAPPING[1]}:artist_tag animated_png " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+          expect(post.tag_array).not_to include("animated_png")
+        end
+
+        # Regression for the reported bug: a user could remove animated_png and
+        # nothing re-added it, which let has_sample? falsely report a sample.
+        it "re-adds an animated_png a user removed, keeping has_sample? false" do
+          post = create(:post, file_ext: "png", is_animated: true, image_width: 2000, image_height: 2000)
+          expect(post.tag_array).to include("animated_png")
+
+          without_tag = post.tag_array.reject { |t| t == "animated_png" }.join(" ")
+          post.update!(tag_string: without_tag)
+
+          expect(post.reload.tag_array).to include("animated_png")
+          expect(post.has_sample?).to be false
+        end
+      end
     end
 
     describe "apply_casesensitive_metatags" do
