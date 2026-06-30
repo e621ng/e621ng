@@ -681,7 +681,7 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
     console.log(`Deleting post ${post_id} for reason: ${reason}`);
     $.ajax({
       type: "POST",
-      url: `/moderator/post/posts/${post_id}/delete.json`,
+      url: `/staff/post/posts/${post_id}/delete.json`,
       data: {commit: "Delete", reason: reason, from_flag: from_flag, move_favorites: move_favorites,
         dmail: dmail, dmail_title: dmail_title},
     }).fail(function (data) {
@@ -718,7 +718,7 @@ Post.undelete = function (post_id, callback) {
   TaskQueue.add(() => {
     $.ajax({
       type: "POST",
-      url: `/moderator/post/posts/${post_id}/undelete.json`,
+      url: `/staff/post/posts/${post_id}/undelete.json`,
     }).fail(function (data) {
       //      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
       const message = data.responseJSON.message;
@@ -785,7 +785,7 @@ Post.flag = function (post_id, reason_name, parent_id = null, note = null, reloa
 Post.move_flag_to_parent = function (post_id, parent_id, reason_name, note) {
   Post.unflag(post_id, false, false, function () {
     Post.flag(parent_id, reason_name, post_id, note, false, function () {
-      location.href = `/moderator/post/posts/${parent_id}/confirm_delete`;
+      location.href = `/staff/post/posts/${parent_id}/confirm_delete`;
     });
   });
 };
@@ -796,7 +796,7 @@ Post.unapprove = function (post_id) {
   TaskQueue.add(() => {
     $.ajax({
       type: "DELETE",
-      url: "/moderator/post/approval.json",
+      url: "/staff/post/approval.json",
       data: {post_id: post_id},
     }).fail(function (data) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
@@ -811,17 +811,17 @@ Post.unapprove = function (post_id) {
 };
 
 Post.destroy = function (post_id, reason) {
-  $.post(`/moderator/post/posts/${post_id}/expunge.json`, { reason },
+  $.post(`/staff/post/posts/${post_id}/expunge.json`, { reason },
   ).fail(data => {
     var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
     E621.Toast.alert("Error: " + message);
   }).done(() => {
-    location.href = `/admin/destroyed_posts/${post_id}`;
+    location.href = `/staff/destroyed_posts/${post_id}`;
   });
 };
 
 Post.regenerate_image_samples = function (post_id) {
-  $.post(`/moderator/post/posts/${post_id}/regenerate_thumbnails.json`, {},
+  $.post(`/staff/post/posts/${post_id}/regenerate_thumbnails.json`, {},
   ).fail(data => {
     E621.Toast.alert("Error: " + data.responseJSON.reason);
   }).done(() => {
@@ -834,7 +834,7 @@ Post.regenerate_image_samples = function (post_id) {
 };
 
 Post.regenerate_video_samples = function (post_id) {
-  $.post(`/moderator/post/posts/${post_id}/regenerate_videos.json`, {},
+  $.post(`/staff/post/posts/${post_id}/regenerate_videos.json`, {},
   ).fail(data => {
     E621.Toast.alert("Error: " + data.responseJSON.reason);
   }).done(() => {
@@ -846,7 +846,7 @@ Post.approve = function (post_id, callback) {
   Post.notice_update("inc");
   TaskQueue.add(() => {
     $.post(
-      "/moderator/post/approval.json",
+      "/staff/post/approval.json",
       { "post_id": post_id },
     ).fail(function (data) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
@@ -871,7 +871,7 @@ Post.disapprove = function (post_id, reason, message) {
   Post.notice_update("inc");
   TaskQueue.add(() => {
     $.post(
-      "/moderator/post/disapprovals.json",
+      "/staff/post/disapprovals.json",
       {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason, "post_disapproval[message]": message},
     ).fail(function (data) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");

@@ -123,7 +123,7 @@ module ApplicationHelper
 
   def link_to_ip(ip)
     return '(none)' unless ip
-    link_to ip, moderator_ip_addrs_path(:search => {:ip_addr => ip})
+    link_to ip, staff_ip_addrs_path(:search => {:ip_addr => ip})
   end
 
   def link_to_user(user, include_activation: false)
@@ -191,7 +191,7 @@ module ApplicationHelper
     return url == request.path if controller == "static"
 
     url =~ case controller
-    when "sessions", "users", "maintenance/user/login_reminders", "maintenance/user/password_resets", "admin/users", "dmails"
+    when "sessions", "users", "maintenance/user/login_reminders", "maintenance/user/password_resets", "staff/users", "dmails"
       /^\/(session|users)/
 
     when "post_sets"
@@ -209,7 +209,7 @@ module ApplicationHelper
     when "notes", "note_versions"
       /^\/notes/
 
-    when "posts", "uploads", "post_versions", "popular", "moderator/post/dashboards", "favorites", "post_favorites"
+    when "posts", "uploads", "post_versions", "popular", "staff/post/dashboards", "favorites", "post_favorites"
       /^\/posts/
 
     when "artists", "artist_versions"
@@ -221,8 +221,8 @@ module ApplicationHelper
     when "pools", "pool_versions"
       /^\/pools/
 
-    when "moderator/dashboards"
-      /^\/moderator/
+    when "staff/moderator_dashboards"
+      /^\/staff\/moderator_dashboard/
 
     when "wiki_pages", "wiki_page_versions"
       /^\/wiki_pages/
