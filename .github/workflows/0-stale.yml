@@ -37,5 +37,5 @@ jobs:
             | while IFS=$'\t' read -r number title reason; do
                 echo "Closing PR #$number ($title) — no activity in over 30 days and $reason."
                 gh pr close "$number" \
-                  --comment "This pull request has had no activity for over a month and $reason, so it is being closed automatically. Feel free to reopen it once it is ready for review."
+                  --comment "This pull request has had no activity for over a month and $reason, so it is being closed automatically. Feel free to re-open it once it is ready for review."
               done
