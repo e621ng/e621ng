@@ -1,3 +1,4 @@
+import SVGIcon from "@/utility/SVGIcon";
 import TextUtils from "@/utility/TextUtils";
 import Toast from "@/utility/Toast";
 
@@ -23,7 +24,15 @@ $(() => {
 });
 
 function bootstrapCodeBlocks (wrapper: JQuery<HTMLElement>) {
-  const button = $("<button class='copy-code' type='button'>copy</button>").prependTo(wrapper);
+  const button = $("<button class='copy-code' type='button'>copy</button>")
+    .addClass("copy-code")
+    .attr({
+      "type": "button",
+      "title": "Copy code to clipboard",
+    })
+    .html(SVGIcon.render("copy"))
+    .prependTo(wrapper);
+
   button.on("click", () => {
     const code = wrapper.clone().children("button.copy-code").remove().end().text();
     TextUtils.copyToClipboard(code)
