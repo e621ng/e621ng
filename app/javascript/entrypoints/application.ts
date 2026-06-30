@@ -10,6 +10,7 @@ import "@/core/Analytics";
 import "@/core/AuthOverlay";
 import "@/core/common";
 import "@/core/dtext_formatter_loader";
+import "@/core/DTextExtras";
 import "@/core/Navigation";
 import "@/core/news_updates";
 import "@/core/paginator";

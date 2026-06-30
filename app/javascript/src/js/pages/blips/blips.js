@@ -1,4 +1,4 @@
-import TextUtils from "../../utility/text_util.js";
+import TextUtils from "../../utility/TextUtils";
 
 let Blip = {};
 
