@@ -879,6 +879,38 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
         tags: true,
       }
     end
+
+    def automated_tag_notices
+      values = {
+        thumbnail: "This tag is added automatically when the content is smaller than 250 pixels in width and height.",
+        low_res: "This tag is added automatically when the content has a resolution lower than 500x500 pixels.",
+        hi_res: "This tag is added automatically when the content has a width over 1600 pixels or height over 1200 pixels.",
+        absurd_res: "This tag is added automatically when the content has a width over 3200 pixels or height over 2400 pixels.",
+        superabsurd_res: "This tag is added automatically when the content has a resolution over 10000x10000 pixels.",
+
+        wide_image: "This tag is added automatically when the content is wider than 1024 pixels and the aspect ratio is wider than 4:1.",
+        tall_image: "This tag is added automatically when the content is taller than 1024 pixels and the aspect ratio is taller than 1:4.",
+        long_image: "This tag is added automatically when the content is larger than 1024 pixels and the aspect ratio is larger than 4:1.",
+
+        huge_filesize: "This tag is added automatically when the content has a file size larger than 30 megabytes.",
+        long_playtime: "This tag is added automatically when the content has a video longer than 30 seconds.",
+        short_playtime: "This tag is added automatically when the content has a video shorter than 30 seconds.",
+
+        video: "This tag is added automatically to posts containing videos.",
+        flash: "This tag is added automatically to posts containing Flash files.",
+
+        animated: "This tag is added automatically to posts containing animated images.",
+        animated_gif: "This tag is added automatically to posts containing animated GIFs.",
+        animated_png: "This tag is added automatically to posts containing animated PNGs.",
+        animated_webp: "This tag is added automatically to posts containing animated WebPs.",
+      }.stringify_keys
+
+      FileMethods::FILE_TYPE.each_value do |file_type|
+        values[file_type] = "This tag does not exist. Searching for it is equivalent to {{type:#{file_type}}}."
+      end
+
+      values
+    end
   end
 
   class EnvironmentConfiguration

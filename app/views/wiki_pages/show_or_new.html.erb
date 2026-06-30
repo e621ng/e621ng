@@ -12,6 +12,9 @@
           </button>
         <% end %>
       </h1>
+
+      <%= render partial: "automated_tag", locals: { tag: @wiki_page.title } %>
+
       <div id="wiki-page-body" class="dtext-container">
         <p>This wiki page is empty. <%= link_to "Click here to add details", new_wiki_page_path(wiki_page: { title: params[:title] }) %>.</p>
       </div>
