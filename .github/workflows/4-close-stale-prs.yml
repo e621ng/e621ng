@@ -1,0 +1,65 @@
+name: 4. Close Stale PRs
+
+on:
+  schedule:
+    # Once a day at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+
+jobs:
+  close-stale-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close old draft or failing PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # Cutoff: PRs created more than 30 days ago.
+          cutoff=$(date -u -d '30 days ago' +%s)
+
+          gh pr list \
+            --state open \
+            --limit 200 \
+            --json number,title,createdAt,isDraft,statusCheckRollup \
+            > prs.json
+
+          jq -c '.[]' prs.json | while read -r pr; do
+            number=$(jq -r '.number' <<< "$pr")
+            title=$(jq -r '.title' <<< "$pr")
+            created=$(jq -r '.createdAt' <<< "$pr")
+            is_draft=$(jq -r '.isDraft' <<< "$pr")
+            created_epoch=$(date -u -d "$created" +%s)
+
+            # Skip PRs newer than the cutoff.
+            if [ "$created_epoch" -gt "$cutoff" ]; then
+              continue
+            fi
+
+            # A check is "failing" if its conclusion/state is one of the
+            # terminal failure values. Pending/successful checks don't count.
+            failing=$(jq -r '
+              [.statusCheckRollup[]?
+                | (.conclusion // .state // "")
+                | ascii_upcase
+                | select(. == "FAILURE" or . == "ERROR" or . == "TIMED_OUT" or . == "CANCELLED" or . == "ACTION_REQUIRED")
+              ] | length' <<< "$pr")
+
+            reason=""
+            if [ "$is_draft" = "true" ]; then
+              reason="it is still a draft"
+            elif [ "$failing" -gt 0 ]; then
+              reason="its checks are failing"
+            fi
+
+            if [ -n "$reason" ]; then
+              echo "Closing PR #$number ($title) — over 30 days old and $reason."
+              gh pr close "$number" \
+                --comment "This pull request has been open for over a month and $reason, so it is being closed automatically. Please feel free to reopen it once it is ready for review."
+            fi
+          done
