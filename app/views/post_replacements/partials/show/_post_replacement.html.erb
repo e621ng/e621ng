@@ -104,7 +104,7 @@
       <div class="pending-links">
         <% if post_replacement.status == "pending" %>
           <% if !post_replacement.post.is_deleted? %> <%= link_to "Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator } %> <% end %><br />
-          <%= link_to "Compare", moderator_post_diff_path(post_a: post_replacement.post_id, post_b: post_replacement.md5) %><br /><br />
+          <%= link_to "Compare", staff_post_diff_path(post_a: post_replacement.post_id, post_b: post_replacement.md5) %><br /><br />
           <%= link_to "Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id } %><br />
         <% end %>
       </div>

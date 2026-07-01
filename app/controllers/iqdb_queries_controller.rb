@@ -12,10 +12,12 @@ class IqdbQueriesController < ApplicationController
     search_params = params[:search].presence || params
     throttle(search_params)
 
+    v2_format = params[:v2] == "true" && request.format.json?
+
     @matches = []
     if search_params[:file].present?
       raise ProcessingError, "Invalid file parameter" unless search_params[:file].respond_to?(:tempfile)
-      @matches = IqdbProxy.query_file(search_params[:file].tempfile, search_params[:score_cutoff])
+      @matches = IqdbProxy.query_file(search_params[:file].tempfile, search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:url].present?
       raise ProcessingError, "Invalid URL parameter" unless search_params[:url].is_a?(String)
       parsed_url = begin
@@ -26,13 +28,13 @@ class IqdbQueriesController < ApplicationController
       raise ProcessingError, "Invalid URL" unless parsed_url
       whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
       raise ProcessingError, "Not allowed to request content from this URL" unless whitelist_result[0]
-      @matches = IqdbProxy.query_url(parsed_url.to_s, search_params[:score_cutoff])
+      @matches = IqdbProxy.query_url(parsed_url.to_s, search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:post_id].present?
       raise ProcessingError, "Invalid post_id parameter" unless search_params[:post_id].to_s =~ /\A\d+\z/
-      @matches = IqdbProxy.query_post(Post.find_by(id: search_params[:post_id]), search_params[:score_cutoff])
+      @matches = IqdbProxy.query_post(Post.find_by(id: search_params[:post_id]), search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:hash].present?
       raise ProcessingError, "Invalid hash parameter" unless search_params[:hash].is_a?(String) && search_params[:hash] =~ /\A[0-9a-fA-F]+\z/
-      @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff])
+      @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff], v2_format: v2_format)
     end
 
     respond_with(@matches) do |fmt|
@@ -40,8 +42,12 @@ class IqdbQueriesController < ApplicationController
         render json: @matches, root: "posts"
       end
     end
-  rescue Downloads::File::Error
-    render_expected_error(404, "File not found or too large")
+  rescue Downloads::File::Error => e
+    render_expected_error(404, e.message)
+  rescue IqdbProxy::CircuitOpenError => e
+    render_expected_error(503, e.message)
+  rescue IqdbProxy::BusyError => e
+    render_expected_error(429, e.message)
   rescue IqdbProxy::Error => e
     render_expected_error(500, e.message)
   end
@@ -52,10 +58,15 @@ class IqdbQueriesController < ApplicationController
     return if Danbooru.config.disable_throttles?
 
     if %i[file url post_id hash].any? { |key| search_params[key].present? }
-      if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds)
-        raise APIThrottled
+      if CurrentUser.user.is_anonymous?
+        raise APIThrottled if IqdbProxy.anon_lockdown?
+        raise APIThrottled if RateLimiter.check_limit("img:anon:#{CurrentUser.ip_addr}", 1, 60.seconds)
+        RateLimiter.hit("img:anon:#{CurrentUser.ip_addr}", 60.seconds)
       else
+        raise APIThrottled if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds)
+        raise APIThrottled if RateLimiter.check_limit("img:user:#{CurrentUser.user.id}", 1, 2.seconds)
         RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
+        RateLimiter.hit("img:user:#{CurrentUser.user.id}", 2.seconds)
       end
     end
   end

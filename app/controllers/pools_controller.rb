@@ -3,7 +3,7 @@
 class PoolsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show gallery]
-  before_action :janitor_only, only: %i[destroy]
+  before_action :staff_only, only: %i[destroy]
   before_action :ensure_lockdown_disabled, except: %i[index show gallery]
 
   def index
@@ -37,6 +37,10 @@ class PoolsController < ApplicationController
 
   def gallery
     @pools = Pool.search(search_params).paginate_posts(params[:page], limit: params[:limit], search_count: params[:search])
+    cover_ids = @pools.map(&:cover_post_id).compact
+    covers = Post.where(id: cover_ids).index_by(&:id)
+    Post.preload_stats!(covers.values)
+    @pools.each { |pool| pool.instance_variable_set(:@cover_post, covers[pool.cover_post_id]) }
   end
 
   def create

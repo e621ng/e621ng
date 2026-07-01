@@ -4,7 +4,11 @@ class RelatedTagQuery
   attr_reader :query, :category_id
 
   def initialize(query: nil, category_id: nil)
-    @query = TagAlias.to_aliased(query.to_s.downcase.strip).join(" ")
+    tags = TagQuery.normalize(query).split
+    counted_tags = tags.reject { |tag| Danbooru.config.is_unlimited_tag?(tag) }
+    raise TagQuery::CountExceededError if counted_tags.length > Danbooru.config.tag_query_limit
+
+    @query = tags.join(" ")
     @category_id = category_id
   end
 

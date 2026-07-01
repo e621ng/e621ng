@@ -195,7 +195,7 @@ class Pool < ApplicationRecord
   end
 
   def deletable_by?(user)
-    user.is_janitor?
+    user.is_staff?
   end
 
   def create_mod_action_for_delete
@@ -340,8 +340,14 @@ class Pool < ApplicationRecord
     post_ids[n]
   end
 
+  def cover_post_id
+    return @cover_post_id if instance_variable_defined?(:@cover_post_id)
+    @cover_post_id = post_ids.first
+  end
+
   def cover_post
-    Post.find_by(id: post_ids.first)
+    return @cover_post if instance_variable_defined?(:@cover_post)
+    @cover_post = Post.find_by(id: cover_post_id)
   end
 
   def last_page
@@ -353,7 +359,7 @@ class Pool < ApplicationRecord
   end
 
   def category_changeable_by?(user)
-    user.is_janitor? || (user.is_member? && post_count <= Danbooru.config.pool_category_change_limit)
+    user.is_staff? || (user.is_member? && post_count <= Danbooru.config.pool_category_change_limit)
   end
 
   def updater_can_change_category
@@ -384,5 +390,14 @@ class Pool < ApplicationRecord
     if removed.any? && !CurrentUser.user.can_remove_from_pools?
       errors.add(:base, "You cannot removes posts from pools within the first week of sign up")
     end
+  end
+
+  def reload(options = nil)
+    super
+
+    @cover_post = nil
+    @cover_post_id = nil
+
+    self
   end
 end

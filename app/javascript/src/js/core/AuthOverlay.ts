@@ -1,6 +1,8 @@
 import ImmersiveInput from "@/components/ImmersiveInput";
-import User from "@/models/User";
+import E621Type from "@/interfaces/E621";
 import Page from "@/utility/Page";
+
+declare const E621: E621Type;
 
 export default class AuthOverlay {
 
@@ -15,13 +17,25 @@ export default class AuthOverlay {
       });
 
     let isAlreadyRendered = false;
+    let isLoadingForm = false;
     $(".auth-login-link").on("click", async (event) => {
       // Only trigger on plain clicks (not modified with ctrl/cmd/shift/alt)
       if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
 
       if (!isAlreadyRendered) {
+        if (isLoadingForm) {
+          this.isOverlayHidden = false;
+          return;
+        }
+
+        isLoadingForm = true;
+        this.showLoadingState();
+        this.isOverlayHidden = false;
+
         const success = await this.loadLoginForm();
+        isLoadingForm = false;
+
         if (!success) {
           isAlreadyRendered = true;
           window.location.href = $(event.currentTarget).attr("href");
@@ -29,27 +43,25 @@ export default class AuthOverlay {
         }
 
         isAlreadyRendered = true;
+        this.focusFirstInput();
+        return;
       }
 
       this.isOverlayHidden = !this.isOverlayHidden;
 
       // Focus on first input if overlay is open
-      if (!this.isOverlayHidden) {
-        setTimeout(() => {
-          this.$overlay.find("input[type=text], input[type=password], input[type=email]").first().focus();
-        }, 100);
-      }
+      if (!this.isOverlayHidden)
+        this.focusFirstInput();
     });
   }
 
   private loadLoginForm (): Promise<boolean> {
-    this.$overlay.html("");
-
     return this.renderLoginForm().then(
       ($form) => {
         $form.prepend(this.renderCloseButton());
         $form.find("#session_url").val(this.getPathWithParams());
 
+        this.$overlay.html(""); // Clear loading state
         this.$overlay.append($form);
         this.bootstrapImmersiveInputs();
         this.bootstrapFormSubmission();
@@ -88,6 +100,20 @@ export default class AuthOverlay {
   // ============================== //
   // ======== Form Loading ======== //
   // ============================== //
+
+  private focusFirstInput () {
+    setTimeout(() => {
+      this.$overlay.find("input[type=text], input[type=password], input[type=email]").first().focus();
+    }, 100);
+  }
+
+  private showLoadingState () {
+    this.$overlay.html(`
+      <div class='auth-overlay-loading' role='status' aria-live='polite' aria-busy='true'>
+        <p>Loading...</p>
+      </div>
+    `);
+  }
 
   private renderLoginForm (): Promise<JQuery<HTMLElement>> {
     return new Promise((resolve, reject) => {
@@ -156,7 +182,7 @@ export default class AuthOverlay {
         method: $form.attr("method")!,
         data: $form.serialize(),
         dataType: "json",
-        timeout: 10000,
+        timeout: 3000,
         success: (response: { url: string }) => {
           window.location.href = response.url;
         },
@@ -182,7 +208,7 @@ export default class AuthOverlay {
 }
 
 $(() => {
-  if (!User.is.anonymous) return;
+  if (!E621.CurrentUser.is.anonymous) return;
   if (Page.matches("users", "new") || Page.matches("sessions")) return;
   new AuthOverlay();
 });

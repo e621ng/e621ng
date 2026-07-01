@@ -6,14 +6,12 @@ class PopularController < ApplicationController
   respond_to :html, :json
 
   def index
-    @post_set = PostSets::Popular.new(params[:date], params[:scale])
+    @post_set = PostSets::Popular.new(params[:date].to_s.presence, params[:scale].to_s.presence)
     @posts = @post_set.posts
     respond_with(@posts) do |format|
       format.json do
-        render_posts_json(PostBlueprint.render_as_hash(@post_set.api_posts), collection: true)
+        pick_json_format(@post_set.api_posts, legacy: params[:v2] != "true", mode: params[:mode], collection: true)
       end
     end
-  rescue ArgumentError => e
-    render_expected_error(422, e)
   end
 end

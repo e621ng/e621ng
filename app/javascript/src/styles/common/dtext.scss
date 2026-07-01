@@ -87,6 +87,18 @@
   pre {
     font-family: monospace;
     white-space: pre-wrap;
+
+    button.copy-code {
+      float: right;
+      background: transparent;
+      color: themed("color-link");
+      font-family: monospace;
+      font-size: 0.75rem;
+
+      &:hover {
+        color: themed("color-link-hover");
+      }
+    }
   }
 
   details {
@@ -155,15 +167,5 @@
     .dtext-color-#{$tag-category-name} {
       color: themed("color-tag-#{$tag-category-name}");
     }
-  }
-}
-
-div.post-thumbnail.dtext {
-  position: relative;
-  display: inline-block;
-
-  .post-thumbnail-img {
-    max-width: 150px;
-    max-height: 150px;
   }
 }

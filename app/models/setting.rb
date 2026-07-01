@@ -17,12 +17,12 @@ class Setting < RailsSettings::Base
   end
 
   scope :limits do
-    field :uploads_min_level,       type: :integer, default: User::Levels::MEMBER, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
+    field :uploads_min_level,       type: :integer, default: UserLevel::MEMBER, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
     field :hide_pending_posts_for,  type: :integer, default: 0, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
   end
 
   scope :tos do
-    field :tos_version, type: :numeric, default: 1, validates: { presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 } }
+    field :tos_version, type: :numeric, default: 1, validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
   end
 
   scope :maintenance do
@@ -41,8 +41,8 @@ class Setting < RailsSettings::Base
     field :trends_tag_window, type: :integer, default: 600, validates: { presence: true, numericality: { only_integer: true, greater_than: 0 } }
   end
 
-  scope :analytics do
-    field :collect_recommendation_events, type: :boolean, default: false
-    field :collect_search_trend_events, type: :boolean, default: false
+  scope :ai_flag do
+    field :automatic_ai_check, type: :boolean, default: true
+    field :ai_flag_reason, type: :string, default: "uploading_guidelines"
   end
 end

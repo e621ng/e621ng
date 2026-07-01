@@ -143,6 +143,8 @@ class BulkUpdateRequest < ApplicationRecord
     def forum_topic_id_not_invalid
       if forum_topic_id && !forum_topic
         errors.add(:base, "Forum topic ID is invalid")
+      elsif forum_topic && !forum_topic.can_reply?(CurrentUser.user)
+        errors.add(:base, "You cannot post to that forum topic")
       end
     end
 
@@ -206,6 +208,8 @@ class BulkUpdateRequest < ApplicationRecord
     @skip_forum = v.to_s.truthy?
   end
 
+  alias_attribute :creator_id, :user_id
+
   def is_pending?
     status == "pending"
   end
@@ -220,5 +224,9 @@ class BulkUpdateRequest < ApplicationRecord
 
   def estimate_update_count
     BulkUpdateRequestImporter.new(script, nil).estimate_update_count
+  end
+
+  def dtext_label
+    "[bur:#{id}]"
   end
 end

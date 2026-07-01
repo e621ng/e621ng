@@ -65,22 +65,9 @@ module Danbooru
       "Anonymous"
     end
 
-    # The path of the daily DB exports. Hidden from the site map if `nil`.
-    def db_export_path
-      "/db_export/"
-    end
-
-    def levels
-      {
-        "Anonymous" => 0,
-        "Blocked" => 10,
-        "Member" => 20,
-        "Privileged" => 30,
-        "Former Staff" => 34,
-        "Janitor" => 35,
-        "Moderator" => 40,
-        "Admin" => 50,
-      }
+    # Whether the daily database exports are enabled. Hidden from the site map if false.
+    def db_export_enabled?
+      false
     end
 
     # Prevent new users from going above 80k while allowing those currently above
@@ -105,6 +92,11 @@ module Danbooru
       []
     end
 
+    # Autocomplete results matching these regular expressions will not be displayed.
+    def default_autocomplete_blacklist
+      []
+    end
+
     def safeblocked_tags
       []
     end
@@ -113,6 +105,14 @@ module Danbooru
     # the codebase at this time.
     def ffmpeg_path
       "/usr/bin/ffmpeg"
+    end
+
+    def ffprobe_path
+      "/usr/bin/ffprobe"
+    end
+
+    def default_bg_color
+      "152f56"
     end
 
     # Thumbnail size
@@ -152,6 +152,24 @@ module Danbooru
 
     def replacement_file_secret
       "abc123"
+    end
+
+    def staff_file_path_prefix
+      "staff_files"
+    end
+
+    def staff_file_secret
+      "abc123"
+    end
+
+    # Maximum size of a file uploaded to the staff file store.
+    def staff_file_max_size
+      100.megabytes
+    end
+
+    # File extensions staff are allowed to upload to the staff file store.
+    def staff_file_allowed_extensions
+      %w[jpg png gif webp mp4 webm txt log csv json zip 7z]
     end
 
     def deleted_preview_url
@@ -505,68 +523,6 @@ module Danbooru
       :staff
     end
 
-    def flag_reasons
-      [
-        {
-          name: "uploading_guidelines",
-          reason: "Does not meet the [[uploading_guidelines|uploading guidelines]]",
-          text: "This post fails to meet the site's standards, be it for artistic worth, image quality, relevancy, or something else.\nKeep in mind that your personal preferences have no bearing on this. If you find the content of a post objectionable, simply [[e621:blacklist|blacklist]] it.",
-          require_explanation: true,
-        },
-        {
-          name: "young_human",
-          reason: "Young [[human]]-[[humanoid|like]] character in an explicit situation",
-          text: "Posts featuring human and human-like characters depicted in a sexual or explicit nude way, are not acceptable on this site.",
-        },
-        {
-          name: "dnp_artist",
-          reason: "The artist of this post is on the \"avoid posting list\":/static/avoid_posting",
-          text: "Certain artists have requested that their work is not to be published on this site, and were granted [[avoid_posting|Do Not Post]] status.\nSometimes, that status comes with conditions; see [[conditional_dnp]] for more information",
-        },
-        {
-          name: "pay_content",
-          reason: "Paysite, commercial, or subscription content",
-          text: "We do not host paysite or commercial content of any kind. This includes Patreon leaks, reposts from piracy websites, and so on.",
-        },
-        {
-          name: "trace",
-          reason: "Trace of another artist's work",
-          text: "Images traced from other artists' artwork are not accepted on this site. Referencing from something is fine, but outright copying someone else's work is not.\nPlease, leave more information in the comments, or simply add the original artwork as the posts's parent if it's hosted on this site.",
-          require_explanation: true,
-        },
-        {
-          name: "previously_deleted",
-          reason: "Previously deleted",
-          text: "Posts usually get removed for a good reason, and reuploading of deleted content is not acceptable.\nPlease, leave more information in the comments, or simply add the original post as this post's parent.",
-        },
-        {
-          name: "real_porn",
-          reason: "Real-life pornography",
-          text: "Posts featuring real-life pornography are not acceptable on this site. No exceptions.\nNote that images featuring non-erotic photographs are acceptable.",
-        },
-        {
-          name: "corrupt",
-          reason: "File is either corrupted, broken, or otherwise does not work",
-          text: "Something about this post does not work quite right. This may be a broken video, or a corrupted image.\nEither way, in order to avoid confusion, please explain the situation in the comments.",
-          require_explanation: true,
-        },
-        {
-          name: "inferior",
-          reason: "Duplicate or inferior version of another post",
-          text: "A superior version of this post already exists on the site.\nThis may include images with better visual quality (larger, less compressed), but may also feature \"fixed\" versions, with visual mistakes accounted for by the artist.\nNote that edits and alternate versions do not fall under this category.",
-          parent: true,
-        },
-      ]
-    end
-
-    def grandfathered_post_cutoff
-      Time.zone.local(2015, 1, 1)
-    end
-
-    def auto_flag_ai_posts?
-      true
-    end
-
     def deletion_reasons
       [
         "Inferior version/duplicate of post #%PARENT_ID%",
@@ -611,6 +567,12 @@ module Danbooru
       nil
     end
 
+    # Name of the default home page shown at /help.
+    # This should correspond to the `name` field of a HelpPage record.
+    def help_landing_page
+      "about"
+    end
+
     def flag_notice_wiki_page
       "help:flag_notice"
     end
@@ -622,13 +584,14 @@ module Danbooru
     # The template for the auto-dispatched notification DMail to uploaders of post auto-deletion.
     # Replaces the following strings with their values:
     # * `%POST_ID%`: The id of the deleted post
+    # * `%FLAG_ID%`: The id of the deletion flag
     # * `%UPLOADER_ID%`: The id of the uploader
     #
     # ## Example Value
     # ```ruby
     # {
     #     title: "Post #%POST_ID% has been deleted",
-    #     body: "Post #%POST_ID% has been automatically deleted, as it has not been approved within #{unapproved_post_deletion_window.inspect}.\n\nThis is a courtesy notification; you don't need to take further action if you don't want to. If you would like to request this post to be reviewed, you can ask one of \"our janitors\":[/users?commit=Search&search%5Blevel%5D=#{Danbooru.config.levels['Janitor']}].\n\nYou can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
+    #     body: "Post #%POST_ID% has been automatically deleted, as it has not been approved within #{unapproved_post_deletion_window.inspect}.\n\nThis is a courtesy notification; you don't need to take further action if you don't want to. If you would like to request this post to be reviewed, you can ask one of \"our janitors\":[/users?commit=Search&search%5Blevel%5D=#{UserLevel::JANITOR}].\n\nYou can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
     #   }
     # ```
     def post_pruned_dmail_template
@@ -637,6 +600,7 @@ module Danbooru
     # Strings used as templates for the optional notification DMail to uploaders on post deletion.
     # Replaces the following strings with their values:
     # * `%POST_ID%`: The id of the deleted post
+    # * `%FLAG_ID%`: The id of the deletion flag
     # * `%STAFF_NAME%`: The name of the deleting staff member
     # * `%STAFF_ID%`: The id of the deleting staff member
     # * `%UPLOADER_ID%`: The id of the uploader
@@ -652,7 +616,7 @@ module Danbooru
 
 This is a courtesy notification; you don't need to take further action if you don't want to.
 
-If you would like to contest the deletion, you can follow the procedure outlined \"here\":[/help/faq#deleted]
+If you would like to contest the deletion, click \"this link\":[/appeals/new?disp_id=%FLAG_ID%&qtype=flag].
 
 You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOADER_ID%]; you can access this at any time by going to \"your profile page\":[/users/%UPLOADER_ID%] & selecting the `deleted` tab on the `Upload` pane, or you can search {{user:!%UPLOADER_ID% status:deleted}}.",
         },
@@ -701,7 +665,7 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     end
 
     def can_user_see_post?(user, post)
-      return false if post.is_deleted? && !user.is_janitor?
+      return false if post.is_deleted? && !user.is_staff?
       !(is_user_restricted?(user) && is_post_restricted?(post))
     end
 
@@ -759,6 +723,31 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     end
 
     def iqdb_server
+    end
+
+    def iqdb_read_timeout
+      5
+    end
+
+    # This should be set to a value lower than half of the total number of pitchfork workers.
+    def iqdb_max_concurrent_queries
+      20
+    end
+
+    def iqdb_circuit_failure_threshold
+      10
+    end
+
+    def iqdb_circuit_failure_window
+      60
+    end
+
+    def iqdb_circuit_cooldown
+      30
+    end
+
+    def iqdb_anon_lockdown_duration
+      3600
     end
 
     def opensearch_host
@@ -820,10 +809,6 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       }
     end
 
-    def subscribestar_url
-      nil
-    end
-
     # Additional video samples will be generated in these dimensions if it makes sense to do so
     # They will be available as additional scale options on applicable posts in the order they appear here
     def video_rescales
@@ -861,6 +846,13 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       false
     end
 
+    def visitor_metrics_events
+      {
+        recommendation: false,
+        search_trend: false,
+      }
+    end
+
     def analytics_client_id
       nil
     end
@@ -881,8 +873,43 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       nil
     end
 
-    def recommender_enabled?
-      false
+    def post_recommendations_enabled?
+      {
+        artist: true,
+        tags: true,
+      }
+    end
+
+    def automated_tag_notices
+      values = {
+        thumbnail: "This tag is added automatically when the content is smaller than 250 pixels in width and height.",
+        low_res: "This tag is added automatically when the content has a resolution lower than 500x500 pixels.",
+        hi_res: "This tag is added automatically when the content has a width over 1600 pixels or height over 1200 pixels.",
+        absurd_res: "This tag is added automatically when the content has a width over 3200 pixels or height over 2400 pixels.",
+        superabsurd_res: "This tag is added automatically when the content has a resolution over 10000x10000 pixels.",
+
+        wide_image: "This tag is added automatically when the content is wider than 1024 pixels and the aspect ratio is wider than 4:1.",
+        tall_image: "This tag is added automatically when the content is taller than 1024 pixels and the aspect ratio is taller than 1:4.",
+        long_image: "This tag is added automatically when the content is larger than 1024 pixels and the aspect ratio is larger than 4:1.",
+
+        huge_filesize: "This tag is added automatically when the content has a file size larger than 30 megabytes.",
+        long_playtime: "This tag is added automatically when the content has a video longer than 30 seconds.",
+        short_playtime: "This tag is added automatically when the content has a video shorter than 30 seconds.",
+
+        video: "This tag is added automatically to posts containing videos.",
+        flash: "This tag is added automatically to posts containing Flash files.",
+
+        animated: "This tag is added automatically to posts containing animated images.",
+        animated_gif: "This tag is added automatically to posts containing animated GIFs.",
+        animated_png: "This tag is added automatically to posts containing animated PNGs.",
+        animated_webp: "This tag is added automatically to posts containing animated WebPs.",
+      }.stringify_keys
+
+      FileMethods::FILE_TYPE.each_value do |file_type|
+        values[file_type] = "This tag does not exist. Searching for it is equivalent to {{type:#{file_type}}}."
+      end
+
+      values
     end
   end
 

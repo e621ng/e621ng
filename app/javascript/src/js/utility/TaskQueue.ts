@@ -17,7 +17,7 @@ export default class TaskQueue {
    * @returns {Promise} Promise that resolves when the task is completed or rejects if the task fails.
    * @throws {Error} If the task is not a function or if the delay is not a non-negative number.
    */
-  static add (task: () => Promise<any>, options: TaskQueueOptions = {}): Promise<any> {
+  static add (task: TaskFn, options: TaskQueueOptions = {}): Promise<any> {
     if (typeof task !== "function") throw new Error("Task must be a function");
 
     let { delay = 1000 } = options;
@@ -150,6 +150,8 @@ export class TaskCancelled {
   }
 }
 
+type TaskFn = () => void | Promise<any>;
+
 interface TaskQueueOptions {
   delay?: number;
   priority?: boolean;
@@ -158,7 +160,7 @@ interface TaskQueueOptions {
 }
 
 interface TaskItem {
-  task: () => Promise<any>;
+  task: TaskFn;
   resolve: (value: any) => void;
   reject: (reason?: any) => void;
   delay: number;

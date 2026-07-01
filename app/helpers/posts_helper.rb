@@ -19,18 +19,41 @@ module PostsHelper
     end
   end
 
-  def post_source_tag(source)
-    # Only allow http:// and https:// links. Disallow javascript: links.
-    if source =~ %r{\Ahttps?://}i
-      source_link = decorated_link_to(source.sub(%r{\Ahttps?://(?:www\.)?}i, ""), source, target: "_blank", rel: "nofollow noreferrer noopener")
+  def try_parse_http_url(source)
+    # This will do a better job at handling technically invalid URLs like
+    # http:example.com, http:/example.com or just example.com
+    url = Addressable::URI.heuristic_parse(source)
 
-      if CurrentUser.is_janitor?
-        source_link += " ".html_safe + link_to("»", posts_path(tags: "source:#{source.sub(%r{[^/]*$}, '')}"), rel: "nofollow")
+    # Ensure the URL can be re-assembled and is valid
+    return nil if url.omit(:scheme).to_s.empty?
+
+    # Only allow http:// and https:// links. Disallow javascript: links.
+    if %w[http https].include?(url.scheme)
+      url
+    end
+  rescue Addressable::URI::InvalidURIError
+    nil
+  end
+
+  def post_source_tag(source)
+    if source.start_with?("-")
+      tag.s(source[1..])
+    elsif (url = try_parse_http_url(source)).present?
+      # remove http(s): and any leading and trailing slashes
+      short_url = url.omit(:scheme).to_s.sub(%r{^/+}, "").sub(%r{/+$}, "")
+      source_link = decorated_link_to(short_url, url.to_s, target: "_blank", rel: "nofollow noreferrer noopener")
+
+      if CurrentUser.is_staff?
+        # remove ?query=test#example
+        url_no_final_path = url.omit(:query, :fragment)
+        # remove last /part
+        url_no_final_path.path = url_no_final_path.path.sub(%r{[^/]*$}, "")
+        # remove any remaining trailing slashes
+        url_no_final_path = url_no_final_path.to_s.sub(%r{/+$}, "")
+        source_link += " ".html_safe + link_to("»", posts_path(tags: "source:#{url_no_final_path}"), rel: "nofollow")
       end
 
       source_link
-    elsif source.start_with?("-")
-      tag.s(source[1..])
     else
       tag.span(source, class: "source-invalid")
     end
@@ -52,7 +75,7 @@ module PostsHelper
 
     html << " (#{link_to("learn more", wiki_pages_path(:title => "e621:post_relationships"))}) "
 
-    html << link_to("show »", "#", id: "has-parent-relationship-preview-link")
+    html << link_to("show »", "#", id: "has-parent-relationship-preview-link", data: { hotkey: "postrel" })
 
     html.html_safe
   end
@@ -66,23 +89,23 @@ module PostsHelper
 
     html << " (#{link_to("learn more", wiki_pages_path(:title => "e621:post_relationships"))}) "
 
-    html << link_to("show »", "#", id: "has-children-relationship-preview-link")
+    html << link_to("show »", "#", id: "has-children-relationship-preview-link", data: { hotkey: "postrel" })
 
     html.html_safe
   end
 
-  def is_pool_selected?(pool)
-    return false if params.has_key?(:q)
-    return false if params.has_key?(:post_set_id)
-    return false unless params.has_key?(:pool_id)
-    return params[:pool_id].to_i == pool.id
+  def is_pool_selected?(pool, selected: nil)
+    return false if selected.blank?
+    return false if params.key?(:q)
+    return false if params.key?(:post_set_id)
+    selected == pool.id
   end
 
-  def is_post_set_selected?(post_set)
-    return false if params.has_key?(:q)
-    return false if params.has_key?(:pool_id)
-    return false unless params.has_key?(:post_set_id)
-    return params[:post_set_id].to_i == post_set.id
+  def is_post_set_selected?(post_set, selected: nil)
+    return false if selected.blank?
+    return false if params.key?(:q)
+    return false if params.key?(:pool_id)
+    selected == post_set.id
   end
 
   def post_stats_section(post)
@@ -99,17 +122,6 @@ module PostsHelper
     rating = tag.span(post.rating.upcase, class: "rating")
     # status = tag.span(status_flags.join, class: "extras")
     tag.div score + favs + comments + rating, class: "desc"
-  end
-
-  def user_record_meta(user)
-    feedback = user.feedback_pieces
-    return "" if feedback[:active] == 0
-
-    link_to(user_feedbacks_path(search: { user_id: user.id }), class: "user-feedback-list") do
-      concat tag.span(feedback[:positive], class: "user-feedback-positive") if feedback[:positive] > 0
-      concat tag.span(feedback[:neutral], class: "user-feedback-neutral") if feedback[:neutral] > 0
-      concat tag.span(feedback[:negative], class: "user-feedback-negative") if feedback[:negative] > 0
-    end
   end
 
   private

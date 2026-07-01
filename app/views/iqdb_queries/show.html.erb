@@ -8,7 +8,7 @@
       <%= f.input :score_cutoff, label: "Similarity", default: 60 %>
     <% end %>
 
-    <%= render "posts/partials/common/inline_blacklist" %>
+    <%= render partial: "application/blacklist_inline" %>
     <%= render "iqdb_queries/matches" %>
   </div>
 </div>

@@ -1,0 +1,98 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe FavoriteManager do
+  include_context "as member"
+
+  let(:user) { create(:user) }
+  let(:post) { create(:post) }
+
+  describe ".add!" do
+    it "creates a Favorite record" do
+      expect { FavoriteManager.add!(user: user, post: post) }
+        .to change(Favorite, :count).by(1)
+    end
+
+    it "increments post fav_count" do
+      expect { FavoriteManager.add!(user: user, post: post) }
+        .to change { post.reload.fav_count }.by(1)
+    end
+
+    it "increments user favorite_count" do
+      expect { FavoriteManager.add!(user: user, post: post) }
+        .to change { user.reload.favorite_count }.by(1)
+    end
+
+    describe "favorite limit" do
+      before do
+        allow(user).to receive_messages(favorite_limit: 0, favorite_count: 0)
+      end
+
+      it "raises Favorite::Error when the user is at their limit" do
+        expect { FavoriteManager.add!(user: user, post: post) }
+          .to raise_error(Favorite::Error, /only keep up to/)
+      end
+
+      it "bypasses the limit when force: true" do
+        expect { FavoriteManager.add!(user: user, post: post, force: true) }
+          .not_to raise_error
+      end
+    end
+
+    describe "duplicate favorite" do
+      before { FavoriteManager.add!(user: user, post: post) }
+
+      it "raises Favorite::Error when the user has already favorited the post" do
+        expect { FavoriteManager.add!(user: user, post: post) }
+          .to raise_error(Favorite::Error, "You have already favorited this post")
+      end
+
+      it "returns silently when force: true and the post is already favorited" do
+        expect { FavoriteManager.add!(user: user, post: post, force: true) }
+          .not_to raise_error
+      end
+    end
+
+    describe "post save failure" do
+      it "raises Favorite::Error when post.save returns false" do
+        allow(post).to receive(:save).and_return(false)
+        expect { FavoriteManager.add!(user: user, post: post) }
+          .to raise_error(Favorite::Error, /Failed to update post/)
+      end
+    end
+  end
+
+  describe ".remove!" do
+    before { FavoriteManager.add!(user: user, post: post) }
+
+    it "destroys the Favorite record" do
+      expect { FavoriteManager.remove!(user: user, post: post) }
+        .to change(Favorite, :count).by(-1)
+    end
+
+    it "decrements post fav_count" do
+      expect { FavoriteManager.remove!(user: user, post: post) }
+        .to change { post.reload.fav_count }.by(-1)
+    end
+
+    it "decrements user favorite_count" do
+      expect { FavoriteManager.remove!(user: user, post: post) }
+        .to change { user.reload.favorite_count }.by(-1)
+    end
+
+    it "is a no-op when the user has not favorited the post" do
+      other = create(:user)
+      expect { FavoriteManager.remove!(user: other, post: post) }
+        .not_to change(Favorite, :count)
+    end
+
+    describe "post save failure" do
+      it "raises Favorite::Error when post.save returns false" do
+        allow(post).to receive(:save).and_return(false)
+        expect { FavoriteManager.remove!(user: user, post: post) }
+          .to raise_error(Favorite::Error, /Failed to update post/)
+      end
+    end
+  end
+end

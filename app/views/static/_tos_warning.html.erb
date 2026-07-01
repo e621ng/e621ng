@@ -1,5 +1,5 @@
-<% if cookies.signed[:tos_accepted].blank? || cookies.signed[:tos_accepted].to_i != Setting.tos_version %>
-<div class="tos-modal-container">
+<% if cookies[:tos_accepted].to_i != Setting.tos_version %>
+<div class="tos-modal-container" data-nosnippet>
   <%= form_tag(
     accept_terms_of_use_path,
     method: :post,
@@ -9,16 +9,17 @@
     aria: {
       modal: "true",
       labelledby: "tos-modal-header",
-      describedby: "tos-modal-text"
-    }
+      describedby: "tos-modal-text",
+    },
+    data: { tos_version: Setting.tos_version }
   ) do %>
 
     <%# Header %>
-    <h1 class="tos-modal-header">Terms of Use</h1>
+    <h1 class="tos-modal-header" id="tos-modal-header">Terms of Use</h1>
 
     <%# Content %>
     <div class="tos-modal-content">
-      <div class="tos-modal-text"><%= tos_content %></div>
+      <div class="tos-modal-text" id="tos-modal-text"><%= tos_content %></div>
       <div class="tos-modal-checkboxes">
         <input type="checkbox" id="tos-age-checkbox" name="age" />
         <label for="tos-age-checkbox">I am 18 years of age or older.</label>
@@ -30,8 +31,8 @@
 
     <%# Footer %>
     <div class="tos-modal-footer">
-      <button type="submit" name="state" value="declined" id="tos-warning-decline" class="st-button">Decline</button>
       <button type="submit" name="state" value="accepted" id="tos-warning-accept" class="st-button submit disabled">Accept</button>
+      <button type="submit" name="state" value="declined" id="tos-warning-decline" class="st-button">Decline</button>
     </div>
 
   <% end %>

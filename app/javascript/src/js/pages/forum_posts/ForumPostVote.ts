@@ -1,5 +1,6 @@
-import User from "@/models/User";
-import Flash from "@/utility/Flash";
+import E621Type from "@/interfaces/E621";
+
+declare const E621: E621Type;
 
 interface VoteResponse {
   id: number;
@@ -34,7 +35,7 @@ export default class ForumPostVote {
     buttons.on("click", (event) => {
       event.preventDefault();
       if (this.state !== "ready") {
-        Flash.error("Please wait for the current vote to finish processing.");
+        E621.Toast.alert("Please wait for the current vote to finish processing.");
         return;
       }
       this.state = "loading";
@@ -94,7 +95,7 @@ export default class ForumPostVote {
       this.addVoteToDOM(data);
     }).fail((xhr) => {
       const message: string = xhr?.responseJSON?.reason ?? "Failed to vote on forum post.";
-      Flash.error(message);
+      E621.Toast.alert(message);
     });
   }
 
@@ -107,7 +108,7 @@ export default class ForumPostVote {
       this.removeVoteFromDOM();
     }).fail((xhr) => {
       const message: string = xhr?.responseJSON?.reason ?? "Failed to remove vote.";
-      Flash.error(message);
+      E621.Toast.alert(message);
     });
   }
 
@@ -125,7 +126,7 @@ export default class ForumPostVote {
         "href": `/users/${vote.creator_id}`,
         "rel": "nofollow",
       })
-      .addClass("with-style user-" + User.levelString.toLowerCase())
+      .addClass("with-style user-" + E621.CurrentUser.levelString.replace(/ /g, "-").toLowerCase())
       .text(vote.creator_name.replace(/_+/g, " "));
     const $li = $("<li>").addClass("forum-post-vote own-forum-vote").append($link);
     $votesList.append($li);

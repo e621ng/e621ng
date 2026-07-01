@@ -4,7 +4,7 @@ module Maintenance
   module User
     class LoginReminderMailer < ApplicationMailer
       def notice(user)
-        return if user.email.blank?
+        return unless deliverable_email?(user)
 
         @user = user
         mail(

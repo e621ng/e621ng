@@ -5,6 +5,7 @@ import NoteManager from "@/pages/posts/show/notes";
 import Post from "@/pages/posts/posts";
 import Offclick from "@/utility/Offclick";
 import Page from "@/utility/Page";
+import ToastManager from "@/utility/Toast";
 
 export default class PostsShowToolbar {
 
@@ -29,10 +30,16 @@ export default class PostsShowToolbar {
 
     // Initialize notes toggle
     const noteToggleButtons = $(".ptbr-notes-button")
-      .attr("enabled", NoteManager.enabled + "")
+      .attr({
+        "enabled": NoteManager.enabled + "",
+        "aria-pressed": NoteManager.enabled + "",
+      })
       .on("click", () => { NoteManager.enabled = !NoteManager.enabled; });
     $("#note-container").on("note:visible:true note:visible:false", () => {
-      noteToggleButtons.attr("enabled", NoteManager.enabled + "");
+      noteToggleButtons.attr({
+        "enabled": NoteManager.enabled + "",
+        "aria-pressed": NoteManager.enabled + "",
+      });
     });
 
     // Initialize fullscreen menu toggle
@@ -51,9 +58,9 @@ export default class PostsShowToolbar {
       const button = $(event.currentTarget);
       const value = button.data("value");
       navigator.clipboard.writeText(value).then(() => {
-        E621.Flash.notice("Link copied to clipboard.");
+        E621.Toast.notice("Link copied to clipboard.");
       }).catch((e) => {
-        E621.Flash.error("Failed to copy link to clipboard.", e);
+        E621.Toast.alert("Failed to copy link to clipboard.", e);
       });
     });
   }
@@ -62,7 +69,15 @@ export default class PostsShowToolbar {
   // Initialize voting buttons
   initVotingButtons () {
     const scoreBreakdown = $(".ptbr-breakdown").first();
+    let scoreOffclick = null;
     $(".ptbr-score").first().on("click", () => {
+      // Register offclick handler on the first use
+      if (scoreOffclick === null)
+        scoreOffclick = Offclick.register(".ptbr-score", ".ptbr-breakdown", () => {
+          scoreBreakdown.addClass("hidden");
+        });
+
+      scoreOffclick.disabled = !scoreOffclick.disabled;
       scoreBreakdown.toggleClass("hidden");
     });
 
@@ -85,15 +100,21 @@ export default class PostsShowToolbar {
 
   initVotingHotkeys () {
     Hotkeys.register("upvote", () => {
-      E621.Flash.notice("Updating post...");
+      ToastManager.dismiss("Post upvoted.", "Post downvoted.");
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.vote(1).then(() => {
-        E621.Flash.notice("Post upvoted.");
+        toast.type = "notice";
+        toast.message = "Post upvoted.";
+        toast.timeout = 1;
       });
     });
     Hotkeys.register("downvote", () => {
-      E621.Flash.notice("Updating post...");
+      ToastManager.dismiss("Post upvoted.", "Post downvoted.");
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.vote(-1).then(() => {
-        E621.Flash.notice("Post downvoted.");
+        toast.type = "notice";
+        toast.message = "Post downvoted.";
+        toast.timeout = 1;
       });
     });
   }
@@ -143,31 +164,57 @@ export default class PostsShowToolbar {
     const imageEl = $("#image-container");
 
     Hotkeys.register("favorite", () => {
-      E621.Flash.notice("Updating post...");
+      ToastManager.dismiss("Favorite added.", "Favorite removed.");
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
       if (imageEl.attr("data-is-favorited") == "true")
-        PostsShowToolbar.deleteFavorite().then(() => E621.Flash.notice("Favorite removed."));
-      else PostsShowToolbar.addFavorite().then(() => E621.Flash.notice("Favorite added."));
+        PostsShowToolbar.deleteFavorite().then(() => {
+          toast.type = "notice";
+          toast.message = "Favorite removed.";
+          toast.timeout = 1;
+        });
+      else PostsShowToolbar.addFavorite().then(() => {
+        toast.type = "notice";
+        toast.message = "Favorite added.";
+        toast.timeout = 1;
+      });
     });
 
     Hotkeys.register("favorite-add", () => {
+      ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "true") return;
-      E621.Flash.notice("Updating post...");
-      PostsShowToolbar.addFavorite().then(() => E621.Flash.notice("Favorite added."));
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      PostsShowToolbar.addFavorite().then(() => {
+        toast.type = "notice";
+        toast.message = "Favorite added.";
+        toast.timeout = 1;
+      });
     });
 
     Hotkeys.register("favorite-del", () => {
+      ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "false") return;
-      E621.Flash.notice("Updating post...");
-      PostsShowToolbar.deleteFavorite().then(() => E621.Flash.notice("Favorite removed."));
+      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      PostsShowToolbar.deleteFavorite().then(() => {
+        toast.type = "notice";
+        toast.message = "Favorite removed.";
+        toast.timeout = 1;
+      });
     });
   }
 
   static async addFavorite () {
     return Favorite.create(PostsShowToolbar.currentPost.id, 500)
-      .then(() => {
-        $(".ptbr-favorite-button").attr("favorited", "true");
-        $("#image-container").attr("data-is-favorited", "true");
-      });
+      .then(
+        () => {
+          $(".ptbr-favorite-button").attr("favorited", "true");
+          $("#image-container").attr("data-is-favorited", "true");
+        },
+        (error) => {
+          if (error.cause !== "You have already favorited this post") throw error;
+          $(".ptbr-favorite-button").attr("favorited", "true");
+          $("#image-container").attr("data-is-favorited", "true");
+        },
+      );
   }
 
   static async deleteFavorite () {
@@ -182,49 +229,20 @@ export default class PostsShowToolbar {
   initOverflowMenu () {
     const menu = $(".ptbr-etc-menu");
     let offclickHandler = null;
-    $(".ptbr-etc-toggle").on("click", () => {
+    const toggle = $(".ptbr-etc-toggle").on("click", () => {
       // Register offclick handler on the first use
       if (offclickHandler === null)
         offclickHandler = Offclick.register(".ptbr-etc-toggle", ".ptbr-etc-menu", () => {
           menu.addClass("hidden");
+          toggle.attr("aria-expanded", false);
         });
 
       offclickHandler.disabled = !offclickHandler.disabled;
       menu.toggleClass("hidden", offclickHandler.disabled);
+      toggle.attr("aria-expanded", !offclickHandler.disabled);
     });
 
-    const button = $(".ptbr-etc-download").on("click.e6.prepare", async (event) => {
-      event.preventDefault();
-
-      if (button.attr("pending") == "true") return;
-      button.attr("pending", "true");
-
-      const url = PostsShowToolbar.currentPost.file.url;
-      console.log("downloading", url);
-
-      fetch(url, {
-        mode: "cors",
-      })
-        .then(response => response.blob())
-        .then(blob => {
-          let blobUrl = window.URL.createObjectURL(blob);
-          button.attr({
-            href: blobUrl,
-            pending: "false",
-          }).off("click.e6.prepare");
-          button[0].click();
-        })
-        .catch(e => {
-          E621.Flash.error("Failed to download post file.", e);
-          button.attr("pending", "false");
-        })
-        .finally(() => {
-          offclickHandler.disabled = true;
-          menu.addClass("hidden");
-        });
-    });
-
-    $(".ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
+    $(".ptbr-etc-download, .ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
       offclickHandler.disabled = true;
       menu.addClass("hidden");
     });

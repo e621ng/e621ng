@@ -76,14 +76,6 @@ class PoolVersion < ApplicationRecord
     Pool.find(pool_id)
   end
 
-  def updater
-    User.find(updater_id)
-  end
-
-  def updater_name
-    User.id_to_name(updater_id)
-  end
-
   def pretty_name
     name&.tr("_", " ") || "(Unknown Name)"
   end

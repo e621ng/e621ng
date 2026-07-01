@@ -4,12 +4,12 @@
     <div id="blip-list">
       <%= render "search" %>
 
-      <%= render "posts/partials/common/inline_blacklist" %>
+      <%= render partial: "application/blacklist_inline" %>
       <% if @blips.empty? %>
         <h4>No blips</h4>
       <% else %>
         <% @blips.each do |blip| %>
-          <% if blip.visible_to?(CurrentUser.user) %>
+          <% if blip.can_access? %>
             <div class="response-list">
               <%= render partial: "blips/partials/show/blip", locals: {blip: blip} %>
             </div>

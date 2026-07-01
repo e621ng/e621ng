@@ -36,7 +36,7 @@ class UploadWhitelistsController < ApplicationController
 
   def is_allowed
     begin
-      raise Addressable::URI::InvalidURIError if params[:url].blank?
+      raise Addressable::URI::InvalidURIError unless params[:url].is_a?(String) && params[:url].present?
       url_parsed = Addressable::URI.heuristic_parse(params[:url])
       raise Addressable::URI::InvalidURIError if url_parsed.nil? || url_parsed.to_s.empty?
 

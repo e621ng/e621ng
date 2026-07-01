@@ -25,6 +25,7 @@ class PostReplacement < ApplicationRecord
     end
   end
   validate on: :create do |replacement|
+    next if replacement_file.nil?
     FileValidator.new(replacement, replacement_file.path, test_resolution: !is_backup).validate
     throw :abort if errors.any?
   end
@@ -96,7 +97,7 @@ class PostReplacement < ApplicationRecord
 
   def sequence_number
     return 0 if status == "original"
-    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").ids
+    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").order(:id).ids
     1 + siblings.index(id)
   end
 
@@ -108,8 +109,8 @@ class PostReplacement < ApplicationRecord
       throw :abort
     end
 
-    # Janitor bypass replacement limits
-    return true if creator.is_janitor?
+    # Staff bypass replacement limits
+    return true if creator.is_staff?
 
     if post.replacements.where(creator_id: creator.id).where("created_at > ?", 1.day.ago).count >= Danbooru.config.post_replacement_per_day_limit
       errors.add(:creator, "has already suggested too many replacements for this post today")
@@ -405,14 +406,22 @@ class PostReplacement < ApplicationRecord
           q = q.attribute_matches(:file_name, params[:file_name])
         end
 
-        direction = params[:order] == "id_asc" ? "ASC" : "DESC"
-
-        q.order(Arel.sql("
-          CASE status
-            WHEN 'original' THEN 0
-            ELSE #{table_name}.id
-          END #{direction}
-        "))
+        if params[:order].present?
+          q.apply_basic_order(params)
+        elsif params[:post_id].present?
+          # Backups are created before the first replacement, so id DESC already
+          # sorts them last. This pin only matters for legacy posts whose backup
+          # was created afterwards and thus has a higher id; it keeps the backup
+          # anchored below the replacements in that single-post view.
+          q.order(Arel.sql("
+            CASE status
+              WHEN 'original' THEN 0
+              ELSE #{table_name}.id
+            END DESC
+          "))
+        else
+          q.default_order
+        end
       end
 
       def pending
@@ -444,8 +453,8 @@ class PostReplacement < ApplicationRecord
       end
 
       def visible(user)
-        return where.not(status: "rejected") if user.is_anonymous?
-        return all if user.is_janitor?
+        return where.not(status: "rejected") if user.is_logged_out?
+        return all if user.is_staff?
         where("creator_id = ? or status != ?", user.id, "rejected")
       end
     end
@@ -461,7 +470,7 @@ class PostReplacement < ApplicationRecord
   end
 
   def original_file_visible_to?(user)
-    user.is_janitor?
+    user.is_staff?
   end
 
   def upload_as_pending?

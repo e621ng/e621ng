@@ -105,6 +105,7 @@ class Dmail < ApplicationRecord
       where("is_read = false AND is_deleted = false")
     end
 
+    # TODO: Rename to `owned` to avoid dissonance with `visible_to?`
     def visible
       where("owner_id = ?", CurrentUser.id)
     end
@@ -151,7 +152,7 @@ class Dmail < ApplicationRecord
     # System user must be able to send dmails at a very high rate, do not rate limit the system user.
     return true if bypass_limits == true
     return true if from_id == User.system.id
-    return true if from.is_janitor?
+    return true if from.is_staff?
 
     allowed = CurrentUser.can_dmail_with_reason
     if allowed != true
@@ -175,12 +176,12 @@ class Dmail < ApplicationRecord
       return false
     end
     return true if from_id == User.system.id
-    return true if from.is_janitor?
+    return true if from.is_staff?
     if to.disable_user_dmails
       errors.add(:to_name, "has disabled DMails")
       return false
     end
-    if from.disable_user_dmails && !to.is_janitor?
+    if from.disable_user_dmails && !to.is_staff?
       errors.add(:to_name, "is not a valid recipient while blocking DMails from others. You may only message janitors and above")
       return false
     end
@@ -239,9 +240,27 @@ class Dmail < ApplicationRecord
     to.update_columns(unread_dmail_count: to.unread_dmail_count + 1)
   end
 
-  def visible_to?(user)
-    return true if user.is_moderator? && (from_id == User.system.id || Ticket.where(qtype: "dmail", disp_id: id).exists?)
+  def visible_to?(user, key = nil)
+    return true if owner_id == user.id
+
+    # Staff overrides
+    return false unless user.is_staff?
+    return true if from_id == User.system.id || to_id == User.system.id
+    return true if user.is_moderator? && Ticket.where(qtype: "dmail", disp_id: id).exists?
     return true if user.is_admin? && (to.is_admin? || from.is_admin?)
-    owner_id == user.id
+
+    # Keyed access
+    return false if key.blank?
+    key_matches?(key)
+  end
+
+  def generate_key
+    OpenSSL::HMAC.hexdigest("SHA256", Rails.application.secret_key_base, "#{id}::#{from.id}::#{to.id}::#{body}")
+  end
+
+  private
+
+  def key_matches?(key)
+    ActiveSupport::SecurityUtils.secure_compare(key, generate_key)
   end
 end

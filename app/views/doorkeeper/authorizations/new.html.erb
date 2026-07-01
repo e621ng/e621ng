@@ -1,0 +1,106 @@
+<% app = @pre_auth.client.application
+   owner = app.owner
+   redirect_host = begin
+     URI.parse(@pre_auth.redirect_uri.to_s).host
+   rescue URI::InvalidURIError
+     nil
+   end %>
+
+<div class="auth-flow-wrapper oauth-consent">
+  <div class="oauth-consent-card">
+    <div class="oauth-consent-logos">
+      <div class="oauth-consent-logo oauth-consent-logo-app">
+        <span class="oauth-consent-logo-initial"><%= app.name.first.upcase %></span>
+      </div>
+      <div class="oauth-consent-logo-connector" aria-hidden="true"></div>
+      <div class="oauth-consent-logo oauth-consent-logo-user">
+        <% if CurrentUser.user.has_cropped_avatar? %>
+          <img src="<%= Danbooru.config.storage_manager.avatar_url(CurrentUser.id, "jpg") %>?t=<%= CurrentUser.user.updated_at.to_i %>" alt="" />
+        <% elsif CurrentUser.user.avatar_id.present? %>
+          <img src="<%= CurrentUser.user.avatar.preview_file_url %>" alt="" />
+        <% else %>
+          <span class="oauth-consent-logo-initial"><%= CurrentUser.user.name.first.upcase %></span>
+        <% end %>
+      </div>
+    </div>
+
+    <h1>Authorize <%= app.name %></h1>
+
+    <% if app.description.present? %>
+      <p class="oauth-consent-description"><%= app.description %></p>
+    <% end %>
+
+    <p class="oauth-consent-prompt">
+      <strong><%= app.name %></strong> wants to:
+    </p>
+
+    <ul class="oauth-consent-scopes">
+      <% @pre_auth.scopes.each do |scope| %>
+        <li>
+          <span class="oauth-consent-scope-title"><%= t("doorkeeper.scopes.#{scope}") %></span>
+          <% detail_key = "doorkeeper.scopes.#{scope}_detail" %>
+          <% if I18n.exists?(detail_key) %>
+            <span class="oauth-consent-scope-detail"><%= t(detail_key) %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+
+    <ul class="oauth-consent-footer">
+      <li>
+        <%= svg_icon(:user, width: 14, height: 14) %>
+        <% if owner %>
+          <span>Registered by <%= link_to_user(owner) %></span>
+        <% else %>
+          <span class="oauth-consent-owner-unknown">No registered owner</span>
+        <% end %>
+      </li>
+      <% if redirect_host.present? %>
+        <li>
+          <%= svg_icon(:corner_down_right, width: 14, height: 14) %>
+          <span>Redirecting to <strong><%= redirect_host %></strong></span>
+        </li>
+      <% end %>
+      <% if app.minimum_user_level.to_i > 0 %>
+        <li>
+          <%= svg_icon(:lock, width: 14, height: 14) %>
+          <span>Requires <strong><%= User.level_string(app.minimum_user_level) %></strong> or higher</span>
+        </li>
+      <% end %>
+      <% if app.homepage_url.present? %>
+        <li>
+          <%= svg_icon(:globe, width: 14, height: 14) %>
+          <span><%= link_to(app.homepage_url, app.homepage_url, rel: "noopener nofollow", target: "_blank") %></span>
+        </li>
+      <% end %>
+    </ul>
+
+    <div class="oauth-consent-actions">
+      <%= form_tag oauth_authorization_path, method: :delete, class: "oauth-consent-form oauth-consent-form-deny" do %>
+        <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
+        <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
+        <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
+        <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
+        <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
+        <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
+        <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
+        <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
+        <%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
+        <%= submit_tag "Deny", class: "st-button danger" %>
+      <% end %>
+      <%= form_tag oauth_authorization_path, method: :post, class: "oauth-consent-form oauth-consent-form-authorize" do %>
+        <%= hidden_field_tag :client_id, @pre_auth.client.uid, id: nil %>
+        <%= hidden_field_tag :redirect_uri, @pre_auth.redirect_uri, id: nil %>
+        <%= hidden_field_tag :state, @pre_auth.state, id: nil %>
+        <%= hidden_field_tag :response_type, @pre_auth.response_type, id: nil %>
+        <%= hidden_field_tag :response_mode, @pre_auth.response_mode, id: nil %>
+        <%= hidden_field_tag :scope, @pre_auth.scope, id: nil %>
+        <%= hidden_field_tag :code_challenge, @pre_auth.code_challenge, id: nil %>
+        <%= hidden_field_tag :code_challenge_method, @pre_auth.code_challenge_method, id: nil %>
+        <%= hidden_field_tag :nonce, @pre_auth.nonce, id: nil %>
+        <%= submit_tag "Authorize", class: "st-button submit" %>
+      <% end %>
+    </div>
+
+  </div>
+</div>

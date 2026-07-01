@@ -30,19 +30,15 @@ module Middleware
           begin
             JSON.parse(body)
           rescue JSON::ParserError
-            headers = {
-              "Content-Type" => "application/json",
-              "Access-Control-Allow-Origin" => "*",
-              "Access-Control-Allow-Headers" => "Authorization, User-Agent",
-              "Access-Control-Allow-Methods" => "POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS",
-            }
             body = { success: false, message: "Invalid JSON body", code: nil }.to_json
-            return [400, headers, [body]]
+            return [400, { "Content-Type" => "application/json" }, [body]]
           end
         end
       end
 
       @app.call(env)
+    rescue URI::InvalidURIError
+      [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
     end
 
     private

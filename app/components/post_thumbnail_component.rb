@@ -4,6 +4,16 @@ class PostThumbnailComponent < ViewComponent::Base
   include IconHelper
   with_collection_parameter :post
 
+  RIBBON_SIDE = %i[left right].freeze
+
+  # Preload favorite/vote status for the whole collection up front so rendering
+  # the thumbnails doesn't issue a query per post. Posts may be Draper-wrapped.
+  def self.with_collection(collection, **kwargs)
+    posts = Array.wrap(collection).map { |post| post.respond_to?(:object) ? post.object : post }
+    Post.preload_stats!(posts)
+    super
+  end
+
   def initialize(post:, post_counter: -1, **options)
     super()
 
@@ -37,7 +47,7 @@ class PostThumbnailComponent < ViewComponent::Base
   end
 
   def should_render_image?
-    !@post.is_deleted? || @user&.is_janitor? || @user&.can_approve_posts?
+    !@post.is_deleted? || @user&.is_staff? || @user&.can_approve_posts?
   end
 
   ##############################
@@ -47,7 +57,7 @@ class PostThumbnailComponent < ViewComponent::Base
   def article_attributes
     {
       class: preview_classes.join(" "),
-      data: post.thumbnail_attributes.merge(border_states: border_state_count),
+      data: post.thumbnail_attributes,
     }
   end
 
@@ -66,13 +76,28 @@ class PostThumbnailComponent < ViewComponent::Base
     klass
   end
 
-  def border_state_count
-    count = 0
-    count += 1 if post.has_visible_children?
-    count += 1 if post.parent_id.present?
-    count += 1 if post.is_pending?
-    count += 1 if post.is_flagged?
-    count
+  def ribbon_tooltip(side)
+    content = []
+
+    case side
+    when :left
+      content << "has child posts" if post.has_visible_children?
+      content << "has a parent post" if post.parent_id.present?
+    when :right
+      content << "flagged for deletion" if post.is_flagged?
+      content << "pending for approval" if post.is_pending?
+    end
+
+    content.join(" and ").capitalize << "."
+  end
+
+  def should_show_ribbon?(side)
+    case side
+    when :left
+      post.has_visible_children? || post.parent_id.present?
+    when :right
+      post.is_flagged? || post.is_pending?
+    end
   end
 
   ##############################
@@ -95,7 +120,7 @@ class PostThumbnailComponent < ViewComponent::Base
     @tooltip_text ||= begin
       tooltip = "Rating: #{@post.rating}\nID: #{@post.id}\nDate: #{@post.created_at}\nStatus: #{@post.status}\nScore: #{@post.score}"
 
-      if @user.present? && @user.is_janitor?
+      if @user.present? && @user.is_staff?
         tooltip += "\nUploader: #{@post.uploader_name}"
         if @post.is_flagged? || @post.is_deleted?
           flag = @post.flags.order(id: :desc).first

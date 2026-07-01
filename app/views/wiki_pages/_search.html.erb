@@ -4,7 +4,7 @@
   <%= f.user :creator %>
   <%= f.input :parent, label: "Redirects to", autocomplete: "wiki-page" %>
   <%= f.input :other_names_match, label: "Other names", hint: "Use * for wildcard searches" %>
-  <%= f.input :other_names_present, collection: %w[Yes No], include_blank: true %>
+  <%= f.input :other_names_present, collection: %w[Yes No], include_blank: "Any" %>
   <%= f.input :hide_deleted, collection: %w[Yes No] %>
   <%= f.input :order, collection: [%w[Name title], %w[Date time], %w[Posts post_count]] %>
 <% end %>

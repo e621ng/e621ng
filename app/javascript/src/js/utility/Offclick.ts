@@ -12,9 +12,9 @@ export default class Offclick {
   globalDisabled = true;
 
   constructor () {
-    $(window).on("mouseup", (event) => {
+    $(window).on("pointerup", (event) => {
       if (this.globalDisabled) return;
-      if (event.button !== 0) return; // Only left click
+      if ((event.originalEvent as PointerEvent).button !== 0) return;
 
       const target = $(event.target);
 
@@ -53,31 +53,34 @@ export default class Offclick {
    * @returns {Object} An object with a `disabled` property that can be toggled to enable/disable the offclick handler.
    */
   static register (buttonSelector: string, menuSelector: string, callback: () => void): OffclickEntry {
-    const entry: OffclickEntry = {
-      buttonSelector: buttonSelector,
-      menuSelector: menuSelector,
-      callback: callback,
-      disabled: true, // Unused, but without it the linter complains
-      _disabled: true, // Actual storage for the disabled state
-    };
-
-    Object.defineProperty(entry, "disabled", {
-      get () { return this._disabled; },
-      set (value) {
-        this._disabled = value;
-        Offclick.instance.recalculateGlobalDisabled();
-      },
-    });
-
+    const entry = new OffclickEntry(buttonSelector, menuSelector, callback);
     this.instance.registry.push(entry);
     return entry;
   }
 }
 
-interface OffclickEntry {
-  buttonSelector: string;
-  menuSelector: string;
-  callback: () => void;
-  disabled: boolean;
-  _disabled: boolean;
+export class OffclickEntry {
+
+  private _disabled = true;
+
+  constructor (
+    public readonly buttonSelector: string,
+    public readonly menuSelector: string,
+    public readonly callback: () => void,
+  ) {}
+
+  get disabled () {
+    return this._disabled;
+  }
+
+  set disabled (value: boolean) {
+    this._disabled = value;
+    Offclick.instance.recalculateGlobalDisabled();
+  }
+
+  public trigger () {
+    if (this.disabled) return;
+    this.callback();
+    this.disabled = true;
+  }
 }

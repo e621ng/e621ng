@@ -1,5 +1,5 @@
 x-environment: &common-env
-  DANBOORU_HOSTNAME: http://localhost:${EXPOSED_SERVER_PORT:-3000}
+  DANBOORU_HOSTNAME: localhost:${EXPOSED_SERVER_PORT:-3000}
   DANBOORU_REDIS_URL: redis://redis
   DANBOORU_OPENSEARCH_HOST: opensearch
   DANBOORU_MEMCACHED_SERVERS: memcached
@@ -9,6 +9,7 @@ x-environment: &common-env
   # These are just development secrets, do not use them in production
   DANBOORU_PROTECTED_FILE_SECRET: 6686a6413d90c43d5e82403ef271ec25d13cc24e3bfcdd094e73d1eff22a3567
   DANBOORU_REPLACEMENT_FILE_SECRET: b35bc54cdc0d0436fc5867c7ef88f9b10a37ae20a06b37e67614fe60019d7bb1
+  DANBOORU_STAFF_FILE_SECRET: 9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c
   SECRET_TOKEN: 1c58518a891eff4520cadc59afa9e378a9325f1247544ff258096e497f095f45
   SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
   # Hide annoying output from libvips on corrupt files
@@ -37,6 +38,7 @@ services:
     volumes:
       - .:/app
       - node_modules:/app/node_modules
+      - ./.danbooru:/root/.danbooru
       - post_data:/app/public/data
       - ./docker/cron_tasks/daily:/etc/periodic/daily
     environment:
@@ -54,7 +56,7 @@ services:
         condition: service_started
 
   autocompleted:
-    image: ghcr.io/e621ng/autocompleted:8807bc8658f594cd0de04de1c272c3a2f917fc48
+    image: ghcr.io/e621ng/autocompleted:0.1.5
     command: /app/autocompleted
     environment:
       SERVER_ADDR: autocompleted:8118
@@ -162,13 +164,14 @@ services:
     environment:
       <<: *common-env
       RAILS_ENV: test
+      # PARALLEL_TEST_PROCESSORS: ${PARALLEL_TEST_PROCESSORS:-4}
     volumes:
       - .:/app
       - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
       - node_modules:/app/node_modules
     depends_on:
       <<: *common-depends-on
-    entrypoint: bundle exec rails test
+    entrypoint: bundle exec parallel_rspec --serialize-stdout --runtime-log tmp/spec_runtime.log
     profiles:
       - tests
 
@@ -211,6 +214,7 @@ services:
       - .:/app
       - ./docker/danbooru_local_config.rb:/app/config/danbooru_local_config.rb
       - node_modules:/app/node_modules
+      - ./.danbooru:/root/.danbooru
     depends_on:
       <<: *common-depends-on
     entrypoint: bundle exec rails
@@ -231,7 +235,7 @@ services:
     volumes:
       - .:/app
       - node_modules:/app/node_modules
-    entrypoint: yarn run lint
+    entrypoint: npm run lint
     profiles: 
       - linter
 

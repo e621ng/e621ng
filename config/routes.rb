@@ -2,13 +2,50 @@
 
 id_name_constraint = { id: %r{[^/]+?}, format: /json|html/ }.freeze
 Rails.application.routes.draw do
+  use_doorkeeper_openid_connect
+  use_doorkeeper do
+    controllers authorizations: "oauth_authorizations"
+    skip_controllers :applications, :authorized_applications
+  end
+  resources :oauth_authorized_applications, path: "applications/authorized", controller: "oauth_authorized_applications", only: %i[index destroy]
+  resources :oauth_applications, only: %i[index new create show edit update destroy], path: "applications" do
+    collection { get :mine }
+    member { post :regenerate_secret }
+  end
   require "sidekiq/web"
   require "sidekiq_unique_jobs/web"
 
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
-  namespace :admin do
-    resources :automod_rules, only: %i[index new create edit update destroy]
+  namespace :staff do
+    # Staff wikis and files
+    resources :files, only: %i[index show new create edit update destroy]
+    resources :wikis do
+      resources :references, only: %i[create destroy], controller: "wiki_refs"
+      member do
+        put :revert
+        post :claim
+        post :unclaim
+      end
+    end
+    resources :wiki_versions, only: %i[index show] do
+      collection do
+        get :diff
+      end
+    end
+
+    # Automod
+    resource :automod, only: [] do
+      resources :rules, controller: "automod_rules", only: %i[index new create edit update destroy]
+      resources :dmails, controller: "automod_dmails", only: %i[index show] do
+        member do
+          put :mark_as_read
+          put :mark_as_unread
+        end
+      end
+    end
+
+    # Previously under /admin/
     resources :users, only: %i[edit update] do
       member do
         get :edit_blacklist
@@ -23,35 +60,39 @@ Rails.application.routes.draw do
       end
       resources :dmails, only: %i[index show]
     end
-    resource :dashboard, only: %i[show]
+    resource :admin_dashboard, only: %i[show], controller: "admin_dashboards"
+    resources :discord_reports, only: %i[index]
     resources :exceptions, only: %i[index show]
     resource :reowner, controller: "reowner", only: %i[new create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
-  end
 
-  namespace :security do
-    root to: "dashboard#index"
-    resources :dashboard, only: %i[index]
-    resources :lockdown, only: %i[index] do
+    # Previously under /security/
+    resources :security, only: %i[index] do
       collection do
         put :panic
         put :enact
         put :uploads_min_level
         put :uploads_hide_pending
         put :maintenance
-        put :analytics
       end
     end
-  end
 
-  resources :edit_histories
-  namespace :moderator do
-    resource :dashboard, only: %i[show]
+    # Previously under /moderator/
+    resource :moderator_dashboard, only: %i[show], controller: "moderator_dashboards"
     resource :post_diff, only: %i[show]
     resources :ip_addrs, only: %i[index] do
       collection do
         get :export
+      end
+    end
+    resources :user_cleanups, only: %i[show], param: :user_id do
+      member do
+        post :clear_avatar
+        post :clear_profile
+        post :hide_comments
+        post :hide_forum_posts
+        post :hide_blips
       end
     end
     namespace :post do
@@ -71,10 +112,14 @@ Rails.application.routes.draw do
           post :regenerate_thumbnails
           post :regenerate_videos
           get :ai_check
+          get :previous_owners
+          post :reowner
         end
       end
     end
   end
+
+  resources :edit_histories
   resources :popular, only: %i[index]
   resources :search_trends, only: %i[index] do
     collection do
@@ -96,10 +141,11 @@ Rails.application.routes.draw do
       resource :deletion, only: %i[show destroy]
       resource :email_change, only: %i[new create]
       resource :dmail_filter, only: %i[edit update]
+      resource :avatar, only: %i[edit update]
     end
   end
 
-  resources :api_keys, except: %i[edit update] do
+  resources :api_keys, except: %i[edit update show] do
     member do
       post :regenerate
     end
@@ -124,7 +170,14 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :tickets, except: %i[destroy] do
+  resources :tickets, except: %i[edit destroy] do
+    member do
+      post :claim
+      post :unclaim
+    end
+  end
+
+  resources :appeals, except: %i[edit destroy] do
     member do
       post :claim
       post :unclaim
@@ -189,6 +242,7 @@ Rails.application.routes.draw do
     end
   end
   resource :dtext_preview, only: %i[create]
+  resources :db_exports, only: %i[index]
   resources :favorites, only: %i[index create destroy]
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes"
@@ -214,7 +268,11 @@ Rails.application.routes.draw do
     resource :visit, controller: "forum_topic_visits"
   end
   resources :forum_categories
-  resources :help_pages, controller: "help", path: "help"
+  resources :help_pages, controller: "help", path: "help" do
+    collection do
+      get :list
+    end
+  end
   resources :ip_bans
   resources :upload_whitelists, except: %i[show] do
     collection do
@@ -284,8 +342,7 @@ Rails.application.routes.draw do
       get :comments, to: "comments#for_post"
       resource :similar, only: [], controller: "post_recommendations" do
         get :artist
-        get :remote
-        get :lookup
+        get :tags
         get "", to: redirect { |params, req| "/iqdb_queries#{req.format.json? ? '.json' : ''}?post_id=#{params[:id]}" }
       end
     end
@@ -338,7 +395,6 @@ Rails.application.routes.draw do
   resources :uploads
   resources :users do
     resource :password, only: %i[edit], controller: "maintenance/user/passwords"
-    resource :api_key, only: %i[show update destroy], controller: "maintenance/user/api_keys"
 
     member do
       get :upload_limit
@@ -346,6 +402,7 @@ Rails.application.routes.draw do
       post :disable_uploads
       post :flush_favorites
       get :fix_counts
+      get "/api_key", to: redirect("/api_keys")
     end
 
     collection do
@@ -391,6 +448,12 @@ Rails.application.routes.draw do
     end
   end
   resources :post_report_reasons
+  resources :post_flag_reasons do
+    collection do
+      post :clear_cache
+      post :set_ai_flag_reason
+    end
+  end
   resources :post_sets do
     collection do
       get :for_select
@@ -432,14 +495,12 @@ Rails.application.routes.draw do
     end
   end
 
-  options "*all", to: "application#enable_cors"
-
-  # aliases
+  # Resource Shorthand
   resources :wpages, controller: "wiki_pages"
   resources :ftopics, controller: "forum_topics"
   resources :fposts, controller: "forum_posts"
 
-  # legacy aliases
+  # Legacy aliases
   get "/artist" => redirect { |_params, req| "/artists?page=#{req.params[:page]}&search[name]=#{CGI.escape(req.params[:name].to_s)}" }
   get "/artist/index" => redirect { |_params, req| "/artists?page=#{req.params[:page]}" }
   get "/artist/show/:id" => redirect("/artists/%{id}")
@@ -526,6 +587,7 @@ Rails.application.routes.draw do
   get "/wiki/recent_changes" => redirect { |_params, req| "/wiki_page_versions?search[updater_id]=#{req.params[:user_id]}" }
   get "/wiki/history/:title" => redirect("/wiki_page_versions?title=%{title}")
 
+  # Static controller routes
   get "/static/keyboard_shortcuts" => "static#keyboard_shortcuts", :as => "keyboard_shortcuts"
   get "/static/site_map" => "static#site_map", :as => "site_map"
   get "/static/privacy" => "static#privacy", as: "privacy_policy"
@@ -538,10 +600,29 @@ Rails.application.routes.draw do
   get "/static/toggle_mobile_mode" => "static#disable_mobile_mode", as: "disable_mobile_mode"
   get "/static/theme" => "static#theme", as: "theme"
   get "/static/avoid_posting" => "static#avoid_posting", as: "avoid_posting_static"
-  get "/static/subscribestar" => "static#subscribestar", as: "subscribestar" if Danbooru.config.subscribestar_url.present?
   get "/static/furid" => "static#furid", as: "furid"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
+  get "/robots.txt" => "static#robots", as: :robots
+
+  # Load balancer health checks
   get "status" => "rails/health#show", as: :rails_health_check
+  get "health" => "health#index", as: :health_check
+
+  # Path before [#2116](https://github.com/e621ng/e621ng/pull/2116)
+  get "/db_export", to: redirect("/db_exports")
+
+  # Staff route consolidation.
+  # The admin/moderator/security namespaces were merged into /staff/.
+  # These GET redirects keep old bookmarks working; POST/PUT endpoints are intentionally skipped.
+  get "/admin/dashboard", to: redirect("/staff/admin_dashboard")
+  get "/admin/automod_rules", to: redirect("/staff/automod/rules")
+  get "/admin/automod_dmails", to: redirect("/staff/automod/dmails")
+  get "/admin/*path", to: redirect("/staff/%{path}")
+  get "/moderator/dashboard", to: redirect("/staff/moderator_dashboard")
+  get "/moderator/*path", to: redirect("/staff/%{path}")
+  get "/security", to: redirect("/staff/security")
+  get "/security/dashboard", to: redirect("/staff/security")
+  get "/security/*path", to: redirect("/staff/%{path}")
 
   root to: "static#home"
 

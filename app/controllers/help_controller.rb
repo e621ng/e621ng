@@ -5,6 +5,19 @@ class HelpController < ApplicationController
   helper :wiki_pages
   before_action :admin_only, except: %i[index show]
 
+  def index
+    @help = HelpPage.find_by(name: Danbooru.config.help_landing_page)
+
+    if @help.nil?
+      render_expected_error(404, "Help page not found")
+      return
+    end
+
+    respond_with(@help) do |format|
+      format.html { render :show }
+    end
+  end
+
   def show
     if params[:id] =~ /\A\d+\Z/
       @help = HelpPage.find(params[:id])
@@ -17,13 +30,6 @@ class HelpController < ApplicationController
           redirect_to help_pages_path
         end
       end
-    end
-  end
-
-  def index
-    @help_pages = HelpPage.help_index
-    respond_with(@help_pages) do |format|
-      format.json { render json: @help_pages.to_json }
     end
   end
 
@@ -54,6 +60,13 @@ class HelpController < ApplicationController
     @help = HelpPage.find(params[:id])
     @help.destroy
     respond_with(@help)
+  end
+
+  def list
+    @help_pages = HelpPage.help_index
+    respond_with(@help_pages) do |format|
+      format.json { render json: @help_pages.to_json }
+    end
   end
 
   private
