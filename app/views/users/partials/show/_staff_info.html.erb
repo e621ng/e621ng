@@ -50,7 +50,7 @@
     <% if CurrentUser.is_moderator? %>
       <h4>Cleanup</h4>
       <span>
-        <%= link_to "Cleanup Page", moderator_user_cleanup_path(user) %>
+        <%= link_to "Cleanup Page", staff_user_cleanup_path(user) %>
       </span>
     <% end %>
 
@@ -69,14 +69,14 @@
     <% if CurrentUser.is_bd_auditor? %>
       <h4>DMails</h4>
       <span>
-        <%= link_to "Audit", admin_user_dmails_path(user) %>
+        <%= link_to "Audit", staff_user_dmails_path(user) %>
       </span>
     <% end %>
 
     <% if CurrentUser.is_bd_staff? && !user.is_staff? && !user.name.match?(/\Auser_#{user.id}~*\z/) %>
       <h4>Delete User</h4>
       <span>
-        <%= link_to "Delete", anonymize_admin_user_path(user) %>
+        <%= link_to "Delete", anonymize_staff_user_path(user) %>
       </span>
     <% end %>
   </div>

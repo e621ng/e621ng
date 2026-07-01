@@ -4,10 +4,15 @@ class ApplicationController < ActionController::Base
   class APIThrottled < StandardError; end
   class FeatureUnavailable < StandardError; end
 
-  # NOTE: this gets flagged by CodeQL as a CSRF vulnerability, but it's a false positive.
-  # This check is only skipped for requests with API authentication, which are made by clients
-  # that don't support CSRF tokens. All browser-based actions still require CSRF protection.
-  skip_forgery_protection if: -> { SessionLoader.new(request).has_api_authentication? }
+  # CSRF is skipped only for API-authenticated requests (clients that don't support CSRF tokens),
+  # AND only when the request is not a cross-origin browser submission. A hidden cross-site <form>
+  # can supply login/api_key params, but browser always attaches a cross-origin Origin header to it.
+  # Requiring a same-origin (or origin-less, i.e. non-browser) request closes that forgery vector
+  # while leaving genuine API clients unaffected.
+  skip_forgery_protection if: -> do
+    loader = SessionLoader.new(request)
+    loader.has_api_authentication? && loader.same_origin_request?
+  end
 
   before_action :reset_current_user
   before_action :sanitize_params

@@ -41,7 +41,7 @@ class DestroyedPost < ApplicationRecord
 
   def notify_reupload(uploader, replacement_post_id: nil)
     return if notify == false
-    reason = "User tried to re-upload \"previously destroyed post ##{post_id}\":/admin/destroyed_posts/#{post_id}"
+    reason = "User tried to re-upload \"previously destroyed post ##{post_id}\":/staff/destroyed_posts/#{post_id}"
     reason += " as a replacement for post ##{replacement_post_id}" if replacement_post_id.present?
     Ticket.create!(
       creator_id: User.system.id,

@@ -1,3 +1,4 @@
+import Hotkeys from "@/core/hotkeys";
 import E621Type from "@/interfaces/E621";
 import LStorage from "@/utility/storage/Local";
 
@@ -8,6 +9,8 @@ declare const E621: E621Type;
  * Could be either in a sidebar or inline formats.
  */
 export default class BlacklistWidget {
+
+  private static isHotkeyRegistered = false;
 
   /* ============================== */
   /* === Static Manager Methods === */
@@ -84,6 +87,15 @@ export default class BlacklistWidget {
         $(document).trigger("e621:blacklist:state-changed");
         E621.Blacklist.updatePostVisibility();
       });
+
+    // Register hotkey for toggling the blacklist
+    // Only register it once - widgets synchronize their state automatically.
+    if (!BlacklistWidget.isHotkeyRegistered) {
+      BlacklistWidget.isHotkeyRegistered = true;
+      Hotkeys.register("blacklist", () => {
+        this.$toggle[0].click();
+      });
+    }
 
     // Filters
     this.$container = this.$wrapper.find(".blacklist-filters");

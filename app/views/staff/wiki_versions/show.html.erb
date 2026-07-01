@@ -1,0 +1,15 @@
+<div id="c-staff-wiki-versions">
+  <div id="a-show">
+    <h1 id="staff-wiki-title"><%= @staff_wiki_version.pretty_title %> <span class="version">(<%= time_ago_in_words_tagged(@staff_wiki_version.updated_at) %>)</span></h1>
+
+    <div id="staff-wiki-body" class="dtext dtext-container">
+      <%= format_text(@staff_wiki_version.body) %>
+    </div>
+  </div>
+</div>
+
+<%= render "staff/wikis/secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Staff Wiki Version
+<% end %>

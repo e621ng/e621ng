@@ -843,7 +843,12 @@ class Post < ApplicationRecord
         wide_image tall_image long_image
         flash video
         long_playtime short_playtime
+        animated_gif animated_png animated_webp
       ] + FileMethods::FILE_TYPE.values
+
+      # NOTE: when adding, removing, or changing any of these values, make sure to also
+      # update the corresponding labels in Danbooru.config.automated_tag_notices.
+      # Otherwise, users may be confused by missing or incorrect help messages.
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
@@ -866,10 +871,9 @@ class Post < ApplicationRecord
       tags << "flash" if is_flash?
       tags << "video" if is_video?
 
-      # TODO: Automatically add animated_* tags without re-testing them on every edit
-      tags -= ["animated_gif"] unless is_gif?
-      tags -= ["animated_png"] unless is_png?
-      tags -= ["animated_webp"] unless is_webp?
+      tags << "animated_gif" if is_gif? && is_animated?
+      tags << "animated_png" if is_png? && is_animated?
+      tags << "animated_webp" if is_webp? && is_animated?
 
       tags << "long_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration >= 30
       tags << "short_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration < 30
@@ -2191,6 +2195,7 @@ class Post < ApplicationRecord
     hide_from_search_engines
     favorites_transfer_in_progress
     hide_favorites_list
+    is_animated
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
