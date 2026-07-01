@@ -35,7 +35,7 @@ class UserPresenter
       permissions << "approve posts"
     end
 
-    if user.can_upload_free?
+    if user.upload_karma_free?
       permissions << "unrestricted uploads"
     end
 
@@ -47,23 +47,14 @@ class UserPresenter
   end
 
   def upload_limit(template)
-    if user.can_upload_free?
-      return "none"
-    end
-
-    upload_limit_pieces = user.upload_limit_pieces
-
-    %{<abbr title="Base Upload Limit">#{user.base_upload_limit}</abbr>
-    + (<abbr title="Approved Posts">#{upload_limit_pieces[:approved]}</abbr> / 10)
-    - (<abbr title="Deleted or Replaced Posts, Rejected Replacements\n#{upload_limit_pieces[:deleted_ignore]} of your Replaced Posts do not affect your upload limit">#{upload_limit_pieces[:deleted]}</abbr> / 4)
-    - <abbr title="Pending or Flagged Posts, Pending Replacements">#{upload_limit_pieces[:pending]}</abbr>
-    = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
+    return "unlimited" if user.upload_karma_free?
+    "#{user.upload_karma} / #{Danbooru.config.upload_karma_free_threshold} karma"
   end
 
   def upload_limit_short
     return "0 / 0" if user.no_uploading?
-    return "none" if user.can_upload_free?
-    "#{user.upload_limit} / #{user.upload_limit_max}"
+    return "unlimited" if user.upload_karma_free?
+    "#{user.upload_karma} / #{Danbooru.config.upload_karma_free_threshold}"
   end
 
   def uploads

@@ -32,6 +32,7 @@ class PostFlag < ApplicationRecord
   validate :validate_note_required_for_reason
   before_save :update_post
   after_create :create_post_event
+  after_create :apply_flag_karma
   after_commit :index_post
 
   scope :by_users, -> { where.not(creator: User.system) }
@@ -277,6 +278,11 @@ class PostFlag < ApplicationRecord
   end
 
   private
+
+  def apply_flag_karma
+    return if is_deletion
+    UserStatus.for_user(post.uploader_id).update_all("upload_karma = GREATEST(0, upload_karma - 3)")
+  end
 
   # This is only a basic permission check, ignoring current flag or appeal status.
   def appealable_by?(user)

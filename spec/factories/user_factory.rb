@@ -93,7 +93,9 @@ FactoryBot.define do
     #########################
 
     factory :unlimited_uploads_user do
-      can_upload_free { true }
+      after(:create) do |user|
+        user.user_status.update_columns(upload_karma: Danbooru.config.upload_karma_free_threshold)
+      end
     end
 
     factory :approver_user do

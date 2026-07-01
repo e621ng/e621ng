@@ -683,13 +683,13 @@ class User < ApplicationRecord
         :REJ_UPLOAD_DISABLED
       elsif hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_HOURLY
-      elsif can_upload_free? || is_admin?
+      elsif upload_karma_free? || is_admin?
         true
       elsif younger_than(7.days)
         :REJ_UPLOAD_NEWBIE
       elsif !is_privileged? && post_edit_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_EDIT
-      elsif upload_limit <= 0 && !Danbooru.config.disable_throttles?
+      elsif pending_post_count >= Danbooru.config.upload_karma_pending_limit && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_LIMIT
       else
         true
@@ -704,34 +704,16 @@ class User < ApplicationRecord
       end
     end
 
-    def upload_limit
-      return 0 if no_uploading
-
-      pieces = upload_limit_pieces
-      base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
+    def upload_karma
+      user_status&.upload_karma || 0
     end
 
-    def upload_limit_max
-      pieces = upload_limit_pieces
-      base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4)
+    def upload_karma_free?
+      upload_karma >= Danbooru.config.upload_karma_free_threshold
     end
 
-    def upload_limit_pieces
-      @upload_limit_pieces ||= begin
-        deleted_count = Post.deleted.for_user(id).count
-        rejected_replacement_count = post_replacement_rejected_count
-        replaced_penalize_count = own_post_replaced_penalize_count
-        unapproved_count = Post.pending_or_flagged.for_user(id).count
-        unapproved_replacements_count = post_replacements.pending.count
-        approved_count = Post.for_user(id).where(is_flagged: false, is_deleted: false, is_pending: false).count
-
-        {
-          deleted: deleted_count + replaced_penalize_count + rejected_replacement_count,
-          deleted_ignore: own_post_replaced_count - replaced_penalize_count,
-          approved: approved_count,
-          pending: unapproved_count + unapproved_replacements_count,
-        }
-      end
+    def pending_post_count
+      Post.pending_or_flagged.for_user(id).count + post_replacements.pending.count
     end
 
     def post_upload_throttle
@@ -793,7 +775,7 @@ class User < ApplicationRecord
 
     def method_attributes
       list = super + %i[
-        id created_at name level base_upload_limit
+        id created_at name level upload_karma
         post_upload_count post_update_count note_update_count
         is_banned can_approve_posts can_upload_free
         level_string avatar_id is_verified?
@@ -835,7 +817,7 @@ class User < ApplicationRecord
         wiki_page_version_count artist_version_count pool_version_count
         forum_post_count comment_count flag_count favorite_count
         positive_feedback_count neutral_feedback_count negative_feedback_count
-        upload_limit profile_about profile_artinfo
+        upload_karma profile_about profile_artinfo
       ]
     end
   end
@@ -1146,7 +1128,6 @@ class User < ApplicationRecord
 
   def reload(options = nil)
     super
-    @upload_limit_pieces = nil
     @feedback_pieces = nil
     @is_artist = nil
     self

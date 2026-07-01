@@ -278,8 +278,8 @@ RSpec.describe UploadService do
     end
 
     context "is_pending? logic" do
-      it "marks post as pending when uploader cannot upload free" do
-        allow(upload.uploader).to receive(:can_upload_free?).and_return(false)
+      it "marks post as pending when uploader has not reached karma threshold" do
+        allow(upload.uploader).to receive(:upload_karma_free?).and_return(false)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
@@ -287,18 +287,18 @@ RSpec.describe UploadService do
         artist = create(:artist)
         create(:avoid_posting, artist: artist)
         upload.tag_string = artist.name
-        allow(upload.uploader).to receive_messages(can_upload_free?: true, can_approve_posts?: false)
+        allow(upload.uploader).to receive_messages(upload_karma_free?: true, can_approve_posts?: false)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
       it "marks post as pending when upload_as_pending? is true" do
-        allow(upload.uploader).to receive_messages(can_upload_free?: true, can_approve_posts?: true)
+        allow(upload.uploader).to receive_messages(upload_karma_free?: true, can_approve_posts?: true)
         allow(upload).to receive(:upload_as_pending?).and_return(true)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
       it "does not mark post as pending when no pending conditions apply" do
-        allow(upload.uploader).to receive_messages(can_upload_free?: true, can_approve_posts?: true)
+        allow(upload.uploader).to receive_messages(upload_karma_free?: true, can_approve_posts?: true)
         allow(upload).to receive(:upload_as_pending?).and_return(false)
         # upload.tag_string is "tagme" which has no artist tags, so avoid_posting_tags is []
         expect(service.convert_to_post(upload).is_pending).to be false

@@ -239,8 +239,10 @@ class PostReplacement < ApplicationRecord
 
       if penalize_uploader_on_approve
         UserStatus.for_user(uploader_on_approve).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count - 1")
+        UserStatus.for_user(uploader_on_approve).update_all("upload_karma = upload_karma + 3")
       else
         UserStatus.for_user(uploader_on_approve).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
+        UserStatus.for_user(uploader_on_approve).update_all("upload_karma = GREATEST(0, upload_karma - 3)")
       end
       update_attribute(:penalize_uploader_on_approve, !penalize_uploader_on_approve)
     end

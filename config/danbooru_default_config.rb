@@ -308,6 +308,16 @@ module Danbooru
       30
     end
 
+    # Karma score at which a user's uploads bypass the approval queue
+    def upload_karma_free_threshold
+      100
+    end
+
+    # Maximum number of pending posts a user below the karma threshold may have at once
+    def upload_karma_pending_limit
+      10
+    end
+
     def ticket_hourly_limit
       5
     end

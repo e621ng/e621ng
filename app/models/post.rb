@@ -470,7 +470,12 @@ class Post < ApplicationRecord
     end
 
     def unflag!
-      flags.each(&:resolve!)
+      flags.where(is_resolved: false, is_deletion: false).find_each do |flag|
+        UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma + 3")
+        UserStatus.for_user(flag.creator_id).update_all("upload_karma = GREATEST(0, upload_karma - 3)")
+        flag.update_columns(is_resolved: true, resolution: "dismissed")
+      end
+      flags.where(is_resolved: false, is_deletion: true).find_each(&:resolve!)
       update(is_flagged: false)
       PostEvent.add(id, CurrentUser.user, :flag_removed)
     end
@@ -506,6 +511,7 @@ class Post < ApplicationRecord
         PostEvent.add(id, CurrentUser.user, :approved)
         approvals.create(user: approver)
         update(approver: approver, is_pending: false)
+        UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma + 1")
       end
     end
   end
@@ -1734,6 +1740,10 @@ class Post < ApplicationRecord
       # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
       # We don't care if these fail per-se so they are outside the transaction.
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
+      UserStatus.for_user(uploader_id).update_all("upload_karma = GREATEST(0, upload_karma - 3)")
+      upheld = flags.where(is_resolved: false, is_deletion: false)
+      upheld.each { |flag| UserStatus.for_user(flag.creator_id).update_all("upload_karma = upload_karma + 3") }
+      upheld.update_all(resolution: "upheld", is_resolved: true)
       give_favorites_to_parent if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
       reject_pending_replacements
@@ -1771,6 +1781,7 @@ class Post < ApplicationRecord
       move_files_on_undelete
       User.where(avatar_id: id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
+      UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma + 3")
     end
 
     def deletion_flag

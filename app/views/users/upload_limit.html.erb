@@ -1,18 +1,21 @@
 <div id="c-users"><div id="a-upload-limit">
 
-  <% pieces = @user.upload_limit_pieces %>
   <% is_current_user = @user.id == CurrentUser.id %>
+  <% karma = @user.upload_karma %>
+  <% threshold = Danbooru.config.upload_karma_free_threshold %>
+  <% pending_limit = Danbooru.config.upload_karma_pending_limit %>
+  <% pending_count = @user.pending_post_count %>
 
   <!-- Header -->
   <%= render "/users/partials/show/card", presenter: @presenter, user: @user %>
 
   <!-- Wiki -->
   <div class="profile-container dtext-container">
-    <h2>Upload Limit</h2>
+    <h2>Upload Karma</h2>
     <%= format_text(@page.body, allow_color: true) %>
   </div>
 
-  <!-- Formula -->
+  <!-- Status -->
   <div class="profile-container">
     <% if @user.no_uploading %>
       <p><%= is_current_user ? "You" : link_to_user(@user) %> cannot upload posts.</p>
@@ -23,79 +26,18 @@
           If you believe that this was done in error, <%= link_to "contact an admin", show_or_new_wiki_pages_path(title: "e621:staff") %> to have this situation resolved.
         </p>
       <% end %>
-    <% elsif @user.can_upload_free? %>
-      <p><%= is_current_user ? "You" : link_to_user(@user) %> can upload an <strong>unlimited</strong> number of posts.</p>
+    <% elsif @user.upload_karma_free? %>
+      <p><%= is_current_user ? "You" : link_to_user(@user) %> can upload posts <strong>without manual approval</strong>.</p>
+      <p>Upload karma: <strong><%= karma %></strong> (threshold: <%= threshold %>)</p>
     <% else %>
-      <p><%= is_current_user ? "You" : link_to_user(@user) %> can currently upload <strong><%= @user.upload_limit %></strong> posts.<br />This limit is based on the following formula:</p>
-
-      <span class="upload-limit-formula">
-        <span class="upl-element"><abbr class="upl-base" title="Base Upload Limit"><%= @user.base_upload_limit %></abbr></span>
-
-        <span class="upl-group">
-          <span class="upl-math"><%= svg_icon(:plus) %></span>
-          <span class="upl-element"><abbr class="upl-approved" title="Approved Posts"><%= pieces[:approved] %></abbr> / 10</span>
-        </span>
-
-        <span class="upl-group">
-          <span class="upl-math"><%= svg_icon(:minus) %></span>
-          <span class="upl-element">
-            <abbr class="upl-deleted" title="Deleted or Replaced Posts, Rejected Replacements&#013;<%= pieces[:deleted_ignore] %> of your Replaced Posts do not affect your upload limit">
-              <%= pieces[:deleted] %></abbr> / 4
-          </span>
-        </span>
-
-        <span class="upl-group">
-          <span class="upl-math"><%= svg_icon(:minus) %></span>
-          <span class="upl-element">
-            <abbr class="upl-pending" title="Pending or Flagged Posts, Pending Replacements"><%= pieces[:pending] %></abbr>
-          </span>
-        </span>
-
-        <span class="upl-group">
-          <span class="upl-math"><%= svg_icon(:equals) %></span>
-          <span class="upl-element">
-            <abbr class="upl-total" title="Remaining Upload Limit"><%= @user.upload_limit %></abbr>
-          </span>
-        </span>
-      </span>
-
-      <div class="upload-limit-explanation">
-        <abbr title="Base Upload Limit" class="ul-num upl-base"><%= @user.base_upload_limit %></abbr>
-        <div class="ul-exp">
-          <h5>Base Limit</h5>
-          <span>
-            <% if @user.base_upload_limit == 10 %>
-              Default number of posts that someone with a new account could upload.
-            <% else %>
-              Base number of uploads, manually adjusted by a staff member.
-            <% end %>
-          </span>
-        </div>
-
-        <abbr title="Approved Posts" class="ul-num upl-approved"><%= pieces[:approved] %></abbr>
-        <div class="ul-exp">
-          <h5>Approved</h5>
-          <span>Uploaded posts that had been reviewed by a staff member.</span>
-        </div>
-        
-        <abbr title="Deleted or Replaced Posts, Rejected Replacements" class="ul-num upl-deleted"><%= pieces[:deleted] %></abbr>
-        <div class="ul-exp">
-          <h5>Deleted / Replaced / Rejected</h5>
-          <span>Uploads that had been rejected, one way or another.</span>
-        </div>
-        
-        <abbr title="Pending or Flagged Posts, Pending Replacements" class="ul-num upl-pending"><%= pieces[:pending] %></abbr>
-        <div class="ul-exp">
-          <h5>Pending / Flagged</h5>
-          <span>Posts that are currently awaiting review.</span>
-        </div>
-        
-        <abbr title="Remaining Upload Limit " class="ul-num upl-total"><%= @user.upload_limit %></abbr>
-        <div class="ul-exp">
-          <h5>Upload Limit</h5>
-          <span>Remaining number of posts that can be uploaded.</span>
-        </div>
-      </div>
+      <p>
+        <%= is_current_user ? "You" : link_to_user(@user) %> can have at most
+        <strong><%= pending_limit %></strong> posts pending approval at a time
+        (<strong><%= pending_count %></strong> currently pending).
+      </p>
+      <p>
+        Upload karma: <strong><%= karma %></strong> / <%= threshold %> needed to unlock approval-free uploads.
+      </p>
     <% end %>
   </div>
 
@@ -103,11 +45,11 @@
     <!-- Throttle -->
     <div class="profile-container">
       <p>
-        You are limited to 30 uploads per hour.
+        You are limited to <%= Danbooru.config.hourly_upload_limit %> uploads per hour.
       </p>
       <ul>
         <li>Remaining hourly uploads: <%= CurrentUser.hourly_upload_limit %></li>
-        <% unless CurrentUser.can_upload_free? || CurrentUser.is_privileged? %>
+        <% unless CurrentUser.upload_karma_free? || CurrentUser.is_privileged? %>
           <li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li>
         <% end %>
       </ul>
@@ -119,5 +61,5 @@
 <%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Upload Limit
+  Upload Karma
 <% end %>
