@@ -79,10 +79,11 @@ module ApplicationHelper
   def error_messages_for(instance_name)
     instance = instance_variable_get("@#{instance_name}")
 
-    if instance && instance.errors.any?
-      %{<div class="error-messages ui-state-error ui-corner-all"><strong>Error</strong>: #{instance.__send__(:errors).full_messages.join(", ")}</div>}.html_safe
-    else
-      ""
+    return "" unless instance && instance.errors.any?
+
+    # full_messages is a plain (unsafe) String built from user input, safe_join HTML-escapes it
+    tag.div(class: "error-messages ui-state-error ui-corner-all") do
+      safe_join([tag.strong("Error"), ": ", instance.errors.full_messages.join(", ")])
     end
   end
 
