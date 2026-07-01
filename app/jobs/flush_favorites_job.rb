@@ -13,7 +13,7 @@ class FlushFavoritesJob < ApplicationJob
     Favorite.without_timeout do
       Favorite.for_user(user.id).select(:id, :post_id).find_in_batches(batch_size: 10_000) do |batch|
         ids = batch.pluck(:post_id)
-        Favorite.for_user(user.id).where("post_id in (?)", ids).delete_all
+        Favorite.for_user(user.id).where(post_id: ids).delete_all
         Post.without_timeout do
           Post.where(id: ids).update_all("fav_count = fav_count - 1")
         end
