@@ -26,6 +26,9 @@
       <%= subnav_link_to "Edit User", edit_staff_user_path(@user) %>
     <% end %>
     <% if CurrentUser.user.is_moderator? %>
+      <% if !CurrentUser.user.is_admin? %>
+        <%= subnav_link_to "View Blacklist", edit_blacklist_staff_user_path(@user) %>
+      <% end %>
       <% if @user.is_restricted? && @user.recent_ban.present? %>
         <%= subnav_link_to "Unban", ban_path(@user.recent_ban) %>
       <% else %>
