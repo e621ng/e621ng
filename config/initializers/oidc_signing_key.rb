@@ -2,4 +2,4 @@
 
 require Rails.root.join("app/logical/oidc_signing_key")
 
-OidcSigningKey.check! unless Rails.env.test?
+OidcSigningKey.check! if Danbooru.config.enable_oauth_provider? && !Rails.env.test?

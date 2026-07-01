@@ -393,6 +393,26 @@ RSpec.describe SessionLoader do
       end
     end
 
+    context "when the OAuth provider is disabled" do
+      let(:token) { mint_token("openid full") }
+
+      before do
+        env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}"
+        ENV["DANBOORU_ENABLE_OAUTH_PROVIDER"] = "false"
+      end
+
+      after { ENV["DANBOORU_ENABLE_OAUTH_PROVIDER"] = "true" }
+
+      it "does not authenticate an otherwise valid token" do
+        loader.load
+        expect(CurrentUser.user.is_logged_out?).to be true
+      end
+
+      it "does not mark the request as API-authenticated" do
+        expect(loader.has_api_authentication?).to be false
+      end
+    end
+
     context "with both a bearer header AND login/api_key params" do
       let(:api_key) { create(:api_key, user: user) }
       let(:token)   { mint_token("openid full") }

@@ -511,6 +511,11 @@ module Danbooru
       true
     end
 
+    # Whether the OAuth2 / OpenID Connect provider is enabled. Requires a signing key.
+    def enable_oauth_provider?
+      false
+    end
+
     # # Who can see the provided flag reason, in addition to the flagger/creator (who can always see
     # their own flag note) and staff.
     # ### Returns
