@@ -55,6 +55,13 @@ class SessionLoader
     has_bearer_token? || basic_auth_or_login_params?
   end
 
+  # A forged cross-site form submission always carries an Origin header pointing at the attacker's
+  # page, whereas non-browser API clients (curl, bots) send none. Mirror Rails' own same-origin
+  # comparison so CSRF is only skipped for genuine first-party or non-browser requests.
+  def same_origin_request?
+    request.origin.nil? || request.origin == request.base_url
+  end
+
   def has_bearer_token?
     bearer_token.present?
   end

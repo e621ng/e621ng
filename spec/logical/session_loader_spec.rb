@@ -50,6 +50,25 @@ RSpec.describe SessionLoader do
   end
 
   # ---------------------------------------------------------------------------
+  # #same_origin_request?
+  # ---------------------------------------------------------------------------
+  describe "#same_origin_request?" do
+    it "returns true when no Origin header is present (non-browser client)" do
+      expect(loader.same_origin_request?).to be true
+    end
+
+    it "returns true when the Origin matches the request's own origin" do
+      env["HTTP_ORIGIN"] = request.base_url
+      expect(loader.same_origin_request?).to be true
+    end
+
+    it "returns false when the Origin is cross-site (forged browser submission)" do
+      env["HTTP_ORIGIN"] = "https://attacker.example"
+      expect(loader.same_origin_request?).to be false
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # #has_remember_token?
   # ---------------------------------------------------------------------------
   describe "#has_remember_token?" do
