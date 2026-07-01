@@ -2,6 +2,9 @@
 
 require "active_support/core_ext/integer/time"
 
+# Keep the OAuth2 / OpenID Connect provider covered regardless of deployment config.
+ENV["DANBOORU_ENABLE_OAUTH_PROVIDER"] ||= "true"
+
 # The test environment is used exclusively to run your application's
 # test suite. You never need to work with it otherwise. Remember that
 # your test database is "scratch space" for the test suite and is wiped
