@@ -1,10 +1,12 @@
 div#c-static {
   div#a-site-map {
-    display: flex;
-    flex-flow: row wrap;
+    columns: 4 20em;
+    column-gap: 0;
     max-width: 80em;
 
     section {
+      break-inside: avoid;
+      display: inline-block;
       width: 20em;
       ul { margin-bottom: 1.5em; }
     }

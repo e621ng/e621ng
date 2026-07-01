@@ -1,19 +1,14 @@
 <div id="c-static">
   <div id="a-site-map">
-    <% sections = @sections || [] %>
-
-    <% sections.each do |group| %>
+    <% (@sections || []).each do |section| %>
+      <% next if section[:links].blank? %>
       <section>
-        <% group.each do |section| %>
-          <% links = section[:links] %>
-          <% next if links.blank? %>
-          <h3><%= section[:title] %></h3>
-          <ul>
-            <% links.each do |link| %>
-              <li><%= link_to link[:label], link[:path] %></li>
-            <% end %>
-          </ul>
-        <% end %>
+        <h3><%= section[:title] %></h3>
+        <ul>
+          <% section[:links].each do |link| %>
+            <li><%= link_to link[:label], link[:path] %></li>
+          <% end %>
+        </ul>
       </section>
     <% end %>
   </div>
