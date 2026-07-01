@@ -1,96 +1,116 @@
-.profile-header {
-  display: flex;
-  flex-flow: column;
-  gap: 0.25rem;
-}
+$avatar-height: 4.5rem;
 
-.profile-card {
+.user-card {
   display: grid;
-  grid-template-columns: min-content auto;
-  gap: 0.75rem;
+  grid-template-columns: $avatar-height auto min-content;
+  width: 22rem;
+  gap: 0.5rem;
 
-  background-color: themed("color-section");
-  max-width: 22rem;
+  background: themed("color-section");
   border-radius: 0.25rem;
-  padding: 0.5rem;
-  box-sizing: border-box;
+  padding: 0.5rem 0.5rem 0;
 
-  .profile-avatar {
-    --thumb-image-size: 5rem;
+  & &-avatar {
+    --thumb-image-size: #{$avatar-height};
+    position: relative;
+
+    article.thumbnail {
+      box-shadow: 0 0 0.5rem -0.25rem themed("color-background");
+    }
+
+    .user-card-level {
+      position: absolute;
+      background: themed("color-button-active");
+      color: palette("plain-black");
+      width: 1rem;
+      height: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      line-height: 0;
+      font-size: 0.75rem;
+      bottom: -0.25rem;
+      right: -0.25rem;
+      border: 0.125rem solid themed("color-section");
+      font-weight: bold;
+    }
   }
 
-  // Info block
-  .profile-info {
+  & &-feedback {
+    grid-column: 3;
+    grid-row: 1 / -1;
+
+    a.user-records-list {
+      height: $avatar-height;
+      flex-flow: column;
+      justify-content: space-evenly;
+
+      svg.user-record {
+        height: 1rem;
+        width: 1rem;
+      }
+    }
+  }
+
+
+  & &-info {
     display: flex;
     flex-flow: column;
-    justify-content: center;
-    gap: 0.25rem;
-  }
 
-  .profile-name {
-    display: flex;
-    flex-flow: row;
-    gap: 0.5rem;
-    align-items: center;
+    .user-card-name {
+      max-width: 14.5rem;
+      overflow: hidden;
 
-    a, a:link {
-      color: themed("color-text");
-      font-size: 1.25rem;
+      a {
+        display: block;
+        line-height: 1.5rem;
+        font-size: 1.25rem; // When adjusting this, also adjust the value in ProfileCard.ts
+        color: themed("color-text");
+      }
     }
-    a:hover, a:active { color: themed("color-link-hover"); }
+
+    .user-card-joined {
+      line-height: 1rem;
+      font-size: 0.75rem;
+      font-family: "Roboto";
+      color: themed("color-text-muted");
+    }
+
+    .user-card-rank {
+      height: 2rem;
+      display: flex;
+      align-items: self-end;
+      gap: 0.25rem;
+    }
   }
 
-  .profile-joined {
-    font-size: 0.75rem;
-    color: themed("color-text-muted");
-    margin-top: -0.25rem;
-  }
-}
+  & &-karma {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    position: relative;
 
-.profile-karma-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  max-width: 22rem;
+    &-percent {
+      position: absolute;
+      line-height: 1rem;
+      font-size: 0.75rem;
+      color: themed("color-text-muted");
+      top: -1rem;
+      right: 1.5rem;
+      font-family: monospace;
+    }
 
-  margin-top: 0.5rem;
+    &-progress {
+      height: 0.125rem;
+      background: themed("color-section-lighten-5");
+      margin: 0 -0.5rem;
+      border-radius: 0 0 0.25rem 0.25rem;
+      overflow: hidden;
 
-  h5 {
-    font-weight: normal;
-    font-size: 0.75rem;
-  }
-
-  a {
-    font-size: 0.75rem;
-    font-family: monospace;
-  }
-}
-
-.profile-karma {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.125rem 0.5rem;
-  font-family: monospace;
-  background-color: themed("color-section");
-  padding: 0.5rem;
-  max-width: 22rem;
-  box-sizing: border-box;
-  border-radius: 0.25rem;
-
-  & > div { white-space: nowrap; }
-
-  & &-percent {
-    margin-left: auto;
-  }
-
-  & &-progress {
-    width: 100%;
-    height: 0.125rem;
-    background: themed("color-section-lighten-5");
-
-    &-bar {
-      height: 100%;
-      background-color: palette("background-gold");
+      &-bar {
+        background: themed("color-button-active");
+        height: 100%;
+      }
     }
   }
 }

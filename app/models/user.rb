@@ -704,24 +704,6 @@ class User < ApplicationRecord
       end
     end
 
-    def upload_karma
-      user_status&.upload_karma || 0
-    end
-
-    def upload_karma_level
-      return "S" if upload_karma >= 1_000
-      (upload_karma / 100).floor
-    end
-
-    def upload_karma_till_next_level
-      return 0 if upload_karma >= 1_000
-      100 - (upload_karma % 100)
-    end
-
-    def upload_karma_free?
-      upload_karma >= Danbooru.config.upload_karma_free_threshold
-    end
-
     def pending_post_count
       Post.pending_or_flagged.for_user(id).count + post_replacements.pending.count
     end
@@ -774,6 +756,36 @@ class User < ApplicationRecord
 
     def oauth_application_limit
       api_key_limit
+    end
+  end
+
+  module KarmaMethods
+    def upload_karma
+      user_status&.upload_karma || 0
+    end
+
+    def upload_karma_level
+      # Calculated from the `upload_karma` column.
+      # Level 0 below 100 karma, level 1 at 100, level 10 at ~10,000, increasing logarithmically.
+      # Formula: floor(log10(karma / 100) * 4.5) + 1
+      return 0 if upload_karma < 100
+      (Math.log10(upload_karma / 100.0) * 4.5).floor + 1
+    end
+
+    def required_karma_for_level(level)
+      return 0 if level <= 0
+      ((10**((level - 1) / 4.5)) * 100).floor
+    end
+
+    def upload_karma_percent
+      return 0 if upload_karma_level >= 10
+      current_level_karma = required_karma_for_level(upload_karma_level)
+      next_level_karma = required_karma_for_level(upload_karma_level + 1)
+      ((upload_karma - current_level_karma) / (next_level_karma - current_level_karma).to_f * 100).round
+    end
+
+    def upload_karma_free?
+      upload_karma >= Danbooru.config.upload_karma_free_threshold
     end
   end
 
@@ -1082,6 +1094,7 @@ class User < ApplicationRecord
   include LimitMethods
   include ApiMethods
   include CountMethods
+  include KarmaMethods
   extend SearchMethods
   extend ThrottleMethods
 

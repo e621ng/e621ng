@@ -43,6 +43,14 @@ class UserPresenter
       permissions << "replacements beta"
     end
 
+    if CurrentUser.user.is_bd_staff? && user.is_bd_staff?
+      permissions << "bd staff"
+    end
+
+    if CurrentUser.user.is_staff? && user.is_restricted? && user.recent_ban&.prevent_login?
+      permissions << "cannot log in"
+    end
+
     permissions.join(", ")
   end
 
