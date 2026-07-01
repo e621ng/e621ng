@@ -1,23 +1,48 @@
-<div class="profile-card">
-  <div class="profile-avatar">
-    <%= render AvatarComponent.new(user: @user) %>
+<div class="profile-header">
+
+  <%# Card: basic user info %>
+  <div class="profile-card">
+    <div class="profile-avatar">
+      <%= render AvatarComponent.new(user: @user) %>
+    </div>
+    <div class="profile-info">
+      <span class="profile-name">
+        <%= link_to_user(@user) %>
+        <%= render(UserFeedbackComponent.new(user: @user, style: :badge)) %>
+      </span>
+      <span class="profile-joined">
+        Joined <%= compact_date @user.created_at %>
+      </span>
+      <span class="profile-rank">
+        <%= user_level_badge(@user) %>
+        <%= user_custom_title_badge(@user) %>
+        <%= user_banned_badge(@user) if CurrentUser.is_staff? %>
+        <%= user_bd_staff_badge(@user) if CurrentUser.is_bd_staff? %>
+        <% unless @user.is_verified? %>
+          <span class="level-badge level-unactivated">UNACTIVATED</span>
+        <% end %>
+      </span>
+    </div>
   </div>
-  <div class="profile-info">
-    <span class="profile-name">
-      <%= link_to_user(@user) %>
-      <%= render(UserFeedbackComponent.new(user: @user, style: :badge)) %>
-    </span>
-    <span class="profile-joined">
-      Joined <%= compact_date @user.created_at %>
-    </span>
-    <span class="profile-rank">
-      <%= user_level_badge(@user) %>
-      <%= user_custom_title_badge(@user) %>
-      <%= user_banned_badge(@user) if CurrentUser.is_staff? %>
-      <%= user_bd_staff_badge(@user) if CurrentUser.is_bd_staff? %>
-      <% unless @user.is_verified? %>
-        <span class="level-badge level-unactivated">UNACTIVATED</span>
-      <% end %>
-    </span>
+
+  <%# Karma: upload level %>
+  <% if @user.upload_karma > 0 %>
+  <div class="profile-karma-title">
+    <h5>Upload Karma</h5>
+    <%= link_to "What is this?", help_page_path(id: "upload_karma") %>
   </div>
+
+  <div class="profile-karma">
+    <div class="profile-karma-level">
+      Level <%= @user.upload_karma_level %>
+    </div>
+    <div class="profile-karma-percent">
+      <%= @user.upload_karma_till_next_level %>%
+    </div>
+    <div class="profile-karma-progress">
+      <div class="profile-karma-progress-bar" style="width: <%= @user.upload_karma_till_next_level %>%"></div>
+    </div>
+  </div>
+  <% end %>
+
 </div>

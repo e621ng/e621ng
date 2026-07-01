@@ -708,6 +708,16 @@ class User < ApplicationRecord
       user_status&.upload_karma || 0
     end
 
+    def upload_karma_level
+      return "S" if upload_karma >= 1_000
+      (upload_karma / 100).floor
+    end
+
+    def upload_karma_till_next_level
+      return 0 if upload_karma >= 1_000
+      100 - (upload_karma % 100)
+    end
+
     def upload_karma_free?
       upload_karma >= Danbooru.config.upload_karma_free_threshold
     end
