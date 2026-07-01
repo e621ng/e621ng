@@ -14,6 +14,7 @@
   </tab-hint>
 </tab-entry>
 
+<% if Danbooru.config.enable_oauth_provider? %>
 <tab-entry tab="<%= tab_name %>" group="access" class="with-button" search="oauth openid connect connected applications clients authorized grants tokens permissions revoke">
   <tab-head>Connected Applications</tab-head>
   <tab-body>
@@ -24,9 +25,10 @@
   </tab-hint>
 </tab-entry>
 <% end %>
+<% end %>
 
 
-<% if CurrentUser.user.is_staff? %>
+<% if Danbooru.config.enable_oauth_provider? && CurrentUser.user.is_staff? %>
 <!-- Developer -->
 <tab-group name="developer">Developer</tab-group>
 
