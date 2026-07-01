@@ -9,7 +9,10 @@
 Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self
-    policy.script_src  :self, "rv.e621.net", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/", "https://www.recaptcha.net/", "https://assets.freespeechcoalition.com", "https://op.dragonfru.it/"
+    # 'strict-dynamic' makes CSP3 browsers ignore the host/:self allowlist and trust only nonced
+    # scripts plus scripts those dynamically create. The host entries below remain as a fallback for
+    # legacy CSP2 browsers that ignore strict-dynamic.
+    policy.script_src :self, :strict_dynamic, "rv.e621.net", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/", "https://www.recaptcha.net/", "https://assets.freespeechcoalition.com", "https://op.dragonfru.it/"
     policy.script_src(*policy.script_src, :unsafe_eval) if Rails.env.development?
 
     policy.style_src :self, :unsafe_inline
