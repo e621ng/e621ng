@@ -2,7 +2,8 @@
 
 module Staff
   class UsersController < ApplicationController
-    before_action :admin_only
+    before_action :admin_only, except: %i[edit_blacklist]
+    before_action :moderator_only, only: %i[edit_blacklist]
     before_action :is_bd_staff_only, only: %i[anonymize anonymize_confirm]
     before_action :requires_reauthentication, only: %i[anonymize_confirm]
     respond_to :html, :json
@@ -74,7 +75,10 @@ module Staff
     def update_blacklist
       @user = User.find(params[:id])
       @user.update!(params[:user].permit([:blacklisted_tags]))
-      ModAction.log(:user_blacklist_changed, { user_id: @user.id })
+      # Sometimes staff uses the wrong UI to update their blacklist, no need to log it.
+      if CurrentUser.id != @user.id
+        ModAction.log(:user_blacklist_changed, { user_id: @user.id })
+      end
       redirect_to edit_blacklist_staff_user_path(@user), notice: "Blacklist updated"
     end
 
