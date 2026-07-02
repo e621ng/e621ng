@@ -52,12 +52,30 @@ class SessionLoader
   end
 
   def has_api_authentication?
-    has_bearer_token? || basic_auth_or_login_params?
+    has_header_authentication? || has_login_param_authentication?
+  end
+
+  # Authentication carried in a request header (Authorization: Basic/Bearer). A cross-site
+  # attacker cannot forge this: HTML forms can't set request headers, and a cross-origin
+  # fetch() that sets Authorization triggers a CORS preflight the attacker's origin can't
+  # satisfy. Header auth is therefore inherently immune to the CSRF forgery vector.
+  def has_header_authentication?
+    has_bearer_token? || has_basic_authorization?
+  end
+
+  # Authentication carried in request params (login + api_key). This IS forgeable: a hidden
+  # cross-site <form> can submit these fields, so it must be paired with a same-origin check.
+  def has_login_param_authentication?
+    params[:login].present? && params[:api_key].present?
   end
 
   # A forged cross-site form submission always carries an Origin header pointing at the attacker's
   # page, whereas non-browser API clients (curl, bots) send none. Mirror Rails' own same-origin
   # comparison so CSRF is only skipped for genuine first-party or non-browser requests.
+  #
+  # NOTE: an opaque-origin browser context (file://, sandboxed iframe, data: URL) sends the
+  # literal header `Origin: null`, which arrives as the string "null" — not nil — so it is
+  # correctly treated as NOT same-origin here.
   def same_origin_request?
     request.origin.nil? || request.origin == request.base_url
   end
@@ -78,10 +96,6 @@ class SessionLoader
   end
 
   private
-
-  def basic_auth_or_login_params?
-    has_basic_authorization? || (params[:login].present? && params[:api_key].present?)
-  end
 
   def has_basic_authorization?
     request.authorization.to_s.start_with?("Basic ")

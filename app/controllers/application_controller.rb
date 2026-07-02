@@ -4,14 +4,19 @@ class ApplicationController < ActionController::Base
   class APIThrottled < StandardError; end
   class FeatureUnavailable < StandardError; end
 
-  # CSRF is skipped only for API-authenticated requests (clients that don't support CSRF tokens),
-  # AND only when the request is not a cross-origin browser submission. A hidden cross-site <form>
-  # can supply login/api_key params, but browser always attaches a cross-origin Origin header to it.
-  # Requiring a same-origin (or origin-less, i.e. non-browser) request closes that forgery vector
-  # while leaving genuine API clients unaffected.
+  # CSRF is skipped only for API-authenticated requests (clients that don't support CSRF tokens).
+  #
+  # Header auth (Authorization: Basic/Bearer) can't be forged cross-site — a <form> can't set
+  # request headers, and a cross-origin fetch() that sets Authorization triggers a CORS preflight
+  # the attacker can't satisfy — so it is skipped unconditionally.
+  #
+  # Param auth (login/api_key) IS forgeable: a hidden cross-site <form> can submit those fields.
+  # A browser always attaches a cross-origin Origin header to such a submission, so we additionally
+  # require the request to be same-origin (or origin-less, i.e. non-browser) before skipping.
   skip_forgery_protection if: -> do
     loader = SessionLoader.new(request)
-    loader.has_api_authentication? && loader.same_origin_request?
+    loader.has_header_authentication? ||
+      (loader.has_login_param_authentication? && loader.same_origin_request?)
   end
 
   before_action :reset_current_user
