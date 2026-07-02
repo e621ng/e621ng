@@ -17,7 +17,7 @@ RSpec.describe PostIndex do
         category_count_keys = TagCategory::REVERSE_MAPPING.values.map { |name| :"tag_count_#{name}" }
         expected_keys = %i[
           created_at updated_at commented_at comment_bumped_at noted_at
-          id up_score down_score score fav_count tag_count change_seq
+          id up_score down_score score hotness fav_count tag_count change_seq
           comment_count file_size parent pools sets commenters noters
           faves upvotes downvotes children uploader approver deleter
           width height mpixels aspect_ratio duration
@@ -40,6 +40,7 @@ RSpec.describe PostIndex do
         expect(indexed[:up_score]).to eq(post.up_score)
         expect(indexed[:down_score]).to eq(post.down_score)
         expect(indexed[:score]).to eq(post.score)
+        expect(indexed[:hotness]).to eq(post.hotness)
         expect(indexed[:fav_count]).to eq(post.fav_count)
         expect(indexed[:file_size]).to eq(post.file_size)
         expect(indexed[:change_seq]).to eq(post.change_seq)
