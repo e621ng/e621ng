@@ -50,6 +50,50 @@ RSpec.describe SessionLoader do
   end
 
   # ---------------------------------------------------------------------------
+  # #has_header_authentication?
+  # ---------------------------------------------------------------------------
+  describe "#has_header_authentication?" do
+    it "returns false with no credentials" do
+      expect(loader.has_header_authentication?).to be false
+    end
+
+    it "returns true with a Basic Authorization header" do
+      env["HTTP_AUTHORIZATION"] = "Basic dXNlcjprZXk="
+      expect(loader.has_header_authentication?).to be true
+    end
+
+    it "returns true with a Bearer Authorization header" do
+      env["HTTP_AUTHORIZATION"] = "Bearer sometoken"
+      expect(loader.has_header_authentication?).to be true
+    end
+
+    it "returns false when credentials are only in params" do
+      env["QUERY_STRING"] = "login=user&api_key=key"
+      expect(loader.has_header_authentication?).to be false
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #has_login_param_authentication?
+  # ---------------------------------------------------------------------------
+  describe "#has_login_param_authentication?" do
+    it "returns true when both login and api_key params are present" do
+      env["QUERY_STRING"] = "login=user&api_key=key"
+      expect(loader.has_login_param_authentication?).to be true
+    end
+
+    it "returns false with only a login param" do
+      env["QUERY_STRING"] = "login=user"
+      expect(loader.has_login_param_authentication?).to be false
+    end
+
+    it "returns false when credentials are only in an Authorization header" do
+      env["HTTP_AUTHORIZATION"] = "Basic dXNlcjprZXk="
+      expect(loader.has_login_param_authentication?).to be false
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # #same_origin_request?
   # ---------------------------------------------------------------------------
   describe "#same_origin_request?" do
@@ -64,6 +108,13 @@ RSpec.describe SessionLoader do
 
     it "returns false when the Origin is cross-site (forged browser submission)" do
       env["HTTP_ORIGIN"] = "https://attacker.example"
+      expect(loader.same_origin_request?).to be false
+    end
+
+    it "returns false for an opaque-origin context (literal `Origin: null`)" do
+      # Browsers serialize an opaque origin (file://, sandboxed iframe, data: URL) as the
+      # literal header value "null", which arrives as the string "null", not nil.
+      env["HTTP_ORIGIN"] = "null"
       expect(loader.same_origin_request?).to be false
     end
   end
