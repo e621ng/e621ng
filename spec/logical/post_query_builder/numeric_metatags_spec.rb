@@ -122,7 +122,8 @@ RSpec.describe PostQueryBuilder do
     describe "change:" do
       it "includes posts whose change_seq is above the threshold" do
         high = create(:post)
-        high.update_columns(change_seq: 200)
+        # Pin change_seq to a very high value to avoid collisions on the current test run.
+        high.update_columns(change_seq: 2_000_000_000)
         low = create(:post)
         low.update_columns(change_seq: 1)
         result = run("change:>100")
