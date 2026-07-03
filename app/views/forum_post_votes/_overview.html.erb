@@ -1,10 +1,16 @@
 <%# locals: (votes:, forum_post:, votable: true) -%>
+<% votes_map = votes.group_by(&:score).transform_values(&:size) %>
 
-<% vote_counts = votes.group_by(&:score).transform_values(&:size).values_at(1, 0, -1).map(&:to_i) %>
+<div class="forum-post-votes-overview" id="forum-post-vote-overview-for-<%= forum_post.id %>">
+  <% iconable_scores = [1, 0, -1] %>
 
-<ul class="forum-post-votes-overview" id="forum-post-vote-overview-for-<%= forum_post.id %>">
-  <% { "fa-thumbs-up" => vote_counts[0], "fa-face-meh" => vote_counts[1], "fa-thumbs-down" => vote_counts[2] }.each do |icon, count| %>
-    <%= count %>
-    <%= tag.i(class: "fa-regular #{icon}") %>
+  <% iconable_scores.each do |score| %>
+    <% count = votes_map[score] || 0 %>
+    <% icon_type = ForumPostVote.score_to_icon(score) %>
+    <% score_name = ForumPostVote.score_to_str(score) %>
+    <%= content_tag(:div, data: { vote_score: score_name, vote_count: count }, class: "forum-post-vote-counter") do %>
+      <%= count %>
+      <%= svg_icon(icon_type, width: 16, height: 16, class: "vote-score-#{score_name}") %>
+    <% end %>
   <% end %>
-</ul>
+</div>

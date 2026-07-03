@@ -85,3 +85,20 @@ ul.forum-post-vote-list {
     &:hover { background: palette("background-red-d5"); }
   }
 }
+
+.forum-post-votes-overview {
+  display: flex;
+  gap: 0.5rem;
+
+  .forum-post-vote-counter {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+
+    svg {
+      height: 1rem;
+      width: 1rem;
+      margin: 0;
+    }
+  }
+}
