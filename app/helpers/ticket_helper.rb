@@ -14,7 +14,7 @@ module TicketHelper
 
   def generate_content_warnings(message)
     warnings = []
-    if message.creator.is_banned? && message.creator.recent_ban.expires_at.nil?
+    if message.creator&.is_restricted? && message.creator&.recent_ban&.expires_at.nil?
       warnings << "The creator of this message is already permanently banned."
     end
     warnings << "The creator of this message already received a #{message.warning_type} for its contents." if message.warning_type

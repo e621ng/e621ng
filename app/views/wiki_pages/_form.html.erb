@@ -4,7 +4,7 @@
   <%= custom_form_for(@wiki_page) do |f| %>
     <% if @wiki_page.new_record? %>
       <%= f.input :title, error: false, autocomplete: "tag" %>
-    <% elsif CurrentUser.is_janitor? %>
+    <% elsif CurrentUser.is_staff? %>
       <%= f.input :title, error: false, autocomplete: "tag", hint: "Change to rename this wiki page. Move the tag and update any wikis linking to this page first." %>
     <% else %>
       <h1 id="wiki-page-title"><%= @wiki_page.pretty_title %></h1>
@@ -26,11 +26,11 @@
 
     <%= f.input :parent, label: "Redirects to", autocomplete: "wiki-page", input_html: { disabled: !CurrentUser.is_privileged? } %>
 
-    <% if CurrentUser.is_janitor? %>
+    <% if CurrentUser.is_staff? %>
       <%= f.input :is_locked, :label => "Lock Page" %>
     <% end %>
 
-    <% if CurrentUser.is_janitor? && @wiki_page.errors[:title]&.any? { |error| error.include?("Move the posts and update any wikis linking to this page first.") }  %>
+    <% if CurrentUser.is_staff? && @wiki_page.errors[:title]&.any? { |error| error.include?("Move the posts and update any wikis linking to this page first.") } %>
       <%= f.input :skip_secondary_validations, as: :boolean, label: "Force rename", hint: "Ignore the renaming requirements" %>
     <% end %>
 

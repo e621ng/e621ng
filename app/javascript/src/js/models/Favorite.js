@@ -1,5 +1,4 @@
 import TaskQueue, { TaskCancelled } from "@/utility/TaskQueue";
-import User from "@/models/User";
 
 export default class Favorite {
 
@@ -22,19 +21,24 @@ export default class Favorite {
         credentials: "include",
         body: JSON.stringify({
           post_id: post_id,
-          authenticity_token: encodeURIComponent(User._authToken),
+          authenticity_token: E621.CurrentUser.encodedAuthToken,
         }),
       });
     }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
+        let backendErrorMessage = null;
         try {
           const errorData = await response.json();
-          $(window).trigger("danbooru:error", "Error: " + (errorData.message || "Unknown error"));
+          backendErrorMessage = errorData.message || "Unknown error";
+
+          // NOTE: the PostShowToolbar relies on this error message to reset the page's favorite state.
+          if (backendErrorMessage !== "You have already favorited this post")
+            $(window).trigger("danbooru:error", "Error: " + backendErrorMessage);
         } catch (_error) {
           $(window).trigger("danbooru:error", "Error: " + (response.status + " " + response.statusText));
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`, { cause: backendErrorMessage });
       }
 
       try {
@@ -43,7 +47,7 @@ export default class Favorite {
       } catch (error) {
         $(window).trigger("danbooru:error", "Error: " + error.message);
         console.error("Failed to parse response as JSON:", error);
-        throw new Error("Failed to parse response as JSON: " + error.message);
+        throw new Error("Failed to parse response as JSON: " + error.message, { cause: error });
       }
     }, (error) => {
       if (error instanceof TaskCancelled) return Promise.reject(error);
@@ -72,19 +76,21 @@ export default class Favorite {
         mode: "cors",
         body: JSON.stringify({
           post_id: post_id,
-          authenticity_token: encodeURIComponent(User._authToken),
+          authenticity_token: E621.CurrentUser.encodedAuthToken,
         }),
       });
     }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
       if (!response.ok) {
         console.log("Response not OK:", response.status, response.statusText);
+        let backendErrorMessage = null;
         try {
           const errorData = await response.json();
-          $(window).trigger("danbooru:error", "Error: " + (errorData.message || "Unknown error"));
+          backendErrorMessage = errorData.message || "Unknown error";
+          $(window).trigger("danbooru:error", "Error: " + backendErrorMessage);
         } catch (_error) {
           $(window).trigger("danbooru:error", "Error: " + (response.status + " " + response.statusText));
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`, { cause: backendErrorMessage });
       }
 
       try {
@@ -93,7 +99,7 @@ export default class Favorite {
       } catch (error) {
         $(window).trigger("danbooru:error", "Error: " + error.message);
         console.error("Failed to parse response as JSON:", error);
-        throw new Error("Failed to parse response as JSON: " + error.message);
+        throw new Error("Failed to parse response as JSON: " + error.message, { cause: error });
       }
     }, (error) => {
       if (error instanceof TaskCancelled) return Promise.reject(error);
@@ -103,5 +109,3 @@ export default class Favorite {
     });
   }
 }
-
-

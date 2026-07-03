@@ -19,8 +19,8 @@ class WikiPageVersionsController < ApplicationController
       return
     end
 
-    @thispage = WikiPageVersion.find(params[:thispage])
-    @otherpage = WikiPageVersion.find(params[:otherpage])
+    @thispage = WikiPageVersion.find(ParseValue.safe_id(params[:thispage].to_s))
+    @otherpage = WikiPageVersion.find(ParseValue.safe_id(params[:otherpage].to_s))
   end
 
   private

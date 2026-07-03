@@ -1,0 +1,21 @@
+#reowner-dialog {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+
+  & > .input { margin-bottom: 0; }
+  input[type="text"], select {
+    max-width: none;
+    width: 100%;
+    margin: 0.25rem 0 0.25rem 0;
+    box-sizing: border-box;
+    resize: none;
+  }
+
+  div.reowner-dialog-submit {
+    display: flex;
+    gap: 0.5rem;
+
+    button { width: 50%; }
+  }
+}

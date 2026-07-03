@@ -1,0 +1,24 @@
+<%= form_search path: appeals_path do |f| %>
+  <% if CurrentUser.is_staff? %>
+    <%= f.user :creator, label: "Appealer" %>
+    <%= f.user :accused %>
+    <%= f.user :claimant %>
+    <%= f.input :reason %>
+  <% end %>
+  <%#= f.input :qtype, label: "Type", collection: [
+      ["Post Flag appeal", "flag"],
+  ], include_blank: true %>
+  <%= f.input :status, as: :grouped_select, collection: {
+    "Pending" => [
+      ["Pending", "pending"],
+      ["Pending + Unclaimed", "pending_unclaimed"],
+      ["Pending + Claimed", "pending_claimed"],
+      ["Investigating", "partial"],
+    ],
+    "Handled" => [
+      %w[Handled handled],
+      %w[Approved approved],
+      %w[Rejected rejected],
+    ],
+  }.to_a, group_label_method: :first, group_method: :last, include_blank: "Any" %>
+<% end %>

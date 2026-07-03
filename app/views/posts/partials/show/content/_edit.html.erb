@@ -1,10 +1,17 @@
-<% unless CurrentUser.user.is_janitor? %>
-  <div style="margin-bottom: 1em;">
-    <p>Before editing, read the <%= link_to "how to tag guide", wiki_page_path(id: "e621:tags") %>.</p>
-  </div>
-<% end %>
+
 
 <%= custom_form_for(post, html: { id: "form" }) do |f| %>
+  <h3 class="post-edit-title">
+    Editing Post #<%= post.id %>
+    <button type="button" class="st-button" id="post-edit-close"><%= svg_icon(:times) %><span>Cancel</span></button>
+  </h3>
+
+  <% unless CurrentUser.user.is_staff? %>
+    <div style="margin-bottom: 0.5rem;">
+      <p>Before editing, read the <%= link_to "how to tag guide", wiki_page_path(id: "e621:tags") %>.</p>
+    </div>
+  <% end %>
+
   <%= hidden_field_tag :tags_query, params[:q] %>
   <%= hidden_field_tag :pool_id, params[:pool_id] %>
   <%= hidden_field_tag :post_set_id, params[:post_set_id] %>
@@ -23,7 +30,7 @@
       </span>
     </div>
 
-    <div id="tag-string-editor"></div>
+    <div id="tag-string-editor" class="pending">Loading...</div>
 
     <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: post.locked_tags || "", spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
   </div>
@@ -36,9 +43,13 @@
     <%= f.input :rating, as: :button_select, collection: rating_collection.reverse %>
   <% end %>
 
-
   <%= f.input :parent_id, as: :string, label: "Parent", input_html: { size: 10 } %>
-  <%= f.input :source, as: :text, label: "Sources", input_html: { size: "60x5", spellcheck: false } %>
+
+  <div>
+    <%= f.input :source, as: :text, label: "Sources", input_html: { size: "60x5", spellcheck: false } %>
+    <div id="post-edit-invalid-url-error">The source must be a URL, starting with "http" or "https".</div>
+    <div id="post-edit-invalid-url-warning">Some existing source URLs are invalid, please consider fixing or removing them.</div>
+  </div>
 
   <div class="input">
     <%= f.input :description, as: :dtext, limit: Danbooru.config.post_descr_max_size, allow_color: true %>
@@ -49,7 +60,7 @@
       <%= f.label :blank, "Lock" %>
 
       <fieldset class="locks">
-        <% if CurrentUser.is_janitor? %>
+        <% if CurrentUser.is_staff? %>
           <%= f.input :is_note_locked, label: "Notes" %>
         <% end %>
         <%= f.input :is_rating_locked, label: "Rating" %>
@@ -63,7 +74,7 @@
     </div>
   <% end %>
 
-  <% if CurrentUser.is_janitor? %>
+  <% if CurrentUser.is_staff? %>
     <%= f.input :bg_color, label: "Background Color", input_html: { size: 10 } %>
   <% end %>
 

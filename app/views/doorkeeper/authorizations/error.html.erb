@@ -1,0 +1,28 @@
+<% app = @pre_auth.client&.application
+   description = (local_assigns[:error_response] ? error_response : @pre_auth.error_response).body[:error_description] %>
+
+<div class="auth-flow-wrapper oauth-consent">
+  <div class="oauth-consent-card">
+    <% if app %>
+      <div class="oauth-consent-logos">
+        <div class="oauth-consent-logo oauth-consent-logo-app">
+          <span class="oauth-consent-logo-initial"><%= app.name.first.upcase %></span>
+        </div>
+        <div class="oauth-consent-logo-connector oauth-consent-logo-connector-denied" aria-hidden="true"></div>
+        <div class="oauth-consent-logo oauth-consent-logo-user">
+          <% if CurrentUser.user.has_cropped_avatar? %>
+            <img src="<%= Danbooru.config.storage_manager.avatar_url(CurrentUser.id, "jpg") %>?t=<%= CurrentUser.user.updated_at.to_i %>" alt="" />
+          <% elsif CurrentUser.user.avatar_id.present? %>
+            <img src="<%= CurrentUser.user.avatar.preview_file_url %>" alt="" />
+          <% else %>
+            <span class="oauth-consent-logo-initial"><%= CurrentUser.user.name.first.upcase %></span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <h1><%= t("doorkeeper.authorizations.error.title") %></h1>
+
+    <p class="oauth-consent-description"><%= description %></p>
+  </div>
+</div>

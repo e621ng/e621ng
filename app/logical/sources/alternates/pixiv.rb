@@ -23,6 +23,8 @@ module Sources
       def original_url
         id = id_from_submission
         return submission_url_from_id(id) if id
+        id = id_from_profile
+        return profile_url_from_id(id) if id
         @url
       end
 
@@ -30,6 +32,10 @@ module Sources
 
       def submission_url_from_id(id)
         "https://www.pixiv.net/artworks/#{id}"
+      end
+
+      def profile_url_from_id(id)
+        "https://www.pixiv.net/users/#{id}"
       end
 
       def id_from_submission
@@ -48,6 +54,21 @@ module Sources
         # https://www.pixiv.net/artworks/80169645
         elsif (match = parsed_url.path.match(%r{\A/(?:i|(?:en/)?artworks)/(?<illust_id>\d+)\z}i))
           id = match[:illust_id].to_i
+          return id if id > 0
+        end
+
+        nil
+      end
+
+      def id_from_profile
+        return nil unless parsed_url&.host == "www.pixiv.net"
+
+        if parsed_url.path == "/member.php" && parsed_url.query_values.present? && parsed_url.query_values["id"].present?
+          id = parsed_url.query_values["id"].to_i
+          return id if id > 0
+
+        elsif (match = parsed_url.path.match(%r{\A/(?:en/)?users/(?<user_id>\d+)/?\z}i))
+          id = match[:user_id].to_i
           return id if id > 0
         end
 

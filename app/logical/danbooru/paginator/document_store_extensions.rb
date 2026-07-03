@@ -26,13 +26,13 @@ module Danbooru
       def paginate_sequential_before
         search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page + 1)
         search.definition[:body].update(sort: [{ id: :desc }])
-        query_definition[:bool][:must].push({ range: { id: { lt: current_page } } })
+        query_definition[:bool]&.dig(:must)&.push({ range: { id: { lt: current_page } } })
       end
 
       def paginate_sequential_after
         search.definition.update(size: records_per_page + 1, track_total_hits: records_per_page + 1)
         search.definition[:body].update(sort: [{ id: :asc }])
-        query_definition[:bool][:must].push({ range: { id: { gt: current_page } } })
+        query_definition[:bool]&.dig(:must)&.push({ range: { id: { gt: current_page } } })
       end
 
       def query_definition

@@ -6,6 +6,7 @@
       <%= link_to("post ##{@ticket.content.post_id}", post_path(@ticket.content.post_id)) %>
     </td>
   </tr>
+  <%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "Comment" } %>
 <% else %>
   <tr>
     <td><span class="title">Reported Comment</span></td>

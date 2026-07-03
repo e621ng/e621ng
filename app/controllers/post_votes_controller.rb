@@ -18,12 +18,11 @@ class PostVotesController < ApplicationController
     )
 
     @post_votes = PostVote
-                  .includes(:user)
-                  .includes(post: [:uploader])
+                  .includes(:user, post: [:uploader])
                   .search(search_params)
                   .paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
 
-    if CurrentUser.is_staff?
+    if CurrentUser.is_staff? && request.format.html?
       ids = @post_votes&.map(&:id)
       @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
     end

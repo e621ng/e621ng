@@ -1,0 +1,1 @@
+Staff file fixture used for staff file store specs.

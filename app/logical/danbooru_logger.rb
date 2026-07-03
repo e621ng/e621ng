@@ -13,7 +13,7 @@ class DanbooruLogger
   end
 
   def self.initialize(user)
-    add_attributes("user.id" => user.id) unless user.is_anonymous?
+    add_attributes("user.id" => user.id) unless user.is_logged_out?
   end
 
   def self.add_attributes(**)

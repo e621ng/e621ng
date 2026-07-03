@@ -1,0 +1,88 @@
+<%available_scopes = %w[openid profile email full]
+  selected_scopes = application.scopes.to_a.presence || %w[openid profile]
+  scope_descriptions = {
+    "openid" => "Sign the user in (required for OIDC).",
+    "profile" => "See the user's username and profile.",
+    "email" => "See the user's email address.",
+    "full" => "Act on the user's behalf via the API.",
+  }
+  redirect_uris = application.redirect_uri.to_s.split.presence || [""]
+
+  level_choices = [["Any logged-in user", 0]] +
+                  User.level_hash
+                      .reject { |_name, level| level <= UserLevel::MEMBER }
+                      .map { |name, level| ["#{name} or higher", level] }
+%>
+
+<%= custom_form_for(application, url: doorkeeper_submit_path(application), as: :doorkeeper_application) do |f| %>
+  <%= f.input :name, required: true,
+              input_html: { size: nil },
+              hint: "The name of your application." %>
+
+  <%= f.input :description, as: :text,
+              input_html: { rows: 3, maxlength: 500 },
+              hint: "A short explanation of what your app does, up to 500 characters." %>
+
+  <%= f.input :homepage_url, label: "Homepage URL", as: :url,
+              input_html: { placeholder: "https://example.com", maxlength: 2048, size: nil },
+              hint: "Where users can learn more about your app." %>
+
+  <% if CurrentUser.user.is_janitor? %>
+    <%= f.input :minimum_user_level, label: "Minimum user level",
+                as: :select, collection: level_choices, include_blank: false,
+                input_html: { class: "minimum-user-level" },
+                hint: "Which users can log into your app." %>
+  <% end %>
+
+  <div class="field">
+    <div class="redirect-uri-header">
+      <label>Redirect URIs</label>
+      <button type="button" class="st-button redirect-uri-add">Add another</button>
+    </div>
+    <div class="redirect-uri-list" data-input-name="doorkeeper_application[redirect_uris][]">
+      <% redirect_uris.each do |uri| %>
+        <div class="redirect-uri-row">
+          <input type="url" name="doorkeeper_application[redirect_uris][]" value="<%= uri %>" placeholder="https://example.com/oauth/callback">
+          <button type="button" class="redirect-uri-remove" aria-label="Remove">&times;</button>
+        </div>
+      <% end %>
+    </div>
+    <div class="hint">Where users are sent back to after authorizing your app.</div>
+  </div>
+
+  <div class="field">
+    <label>Scopes</label>
+    <ul class="oauth-app-scope-choices">
+      <% available_scopes.each do |scope| %>
+        <li>
+          <label>
+            <%= check_box_tag "doorkeeper_application[scopes][]", scope, selected_scopes.include?(scope) %>
+            <code><%= scope %></code>
+            <span class="hint"><%= scope_descriptions[scope] %></span>
+          </label>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="field oauth-app-confidential">
+    <label>
+      <%= f.check_box :confidential %>
+      Confidential client
+    </label>
+    <div class="hint">Whether your app can keep a client secret. Uncheck for browser-only or native apps.</div>
+  </div>
+
+  <% if application.errors.any? %>
+    <div class="section report-errors">
+      <% application.errors.full_messages.each do |error| %>
+        <span><%= error %></span>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= f.submit(application.persisted? ? "Save" : "Create", class: "st-button submit") %>
+    <%= link_to "Cancel", oauth_applications_path, class: "st-button" %>
+  </div>
+<% end %>

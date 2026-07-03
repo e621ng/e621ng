@@ -7,3 +7,4 @@
     <%= link_to_user @dmail.to %>
   </td>
 </tr>
+<%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "DMail" } %>

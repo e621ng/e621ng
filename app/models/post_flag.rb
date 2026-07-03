@@ -4,7 +4,6 @@ class PostFlag < ApplicationRecord
   class Error < Exception; end
 
   COOLDOWN_PERIOD = 1.day
-  MAPPED_REASONS = Danbooru.config.flag_reasons.to_h { |i| [i[:name], i[:reason]] }
 
   # The options for who (in addition to the flagger) can see the provided flag reason.
   #
@@ -28,7 +27,7 @@ class PostFlag < ApplicationRecord
   validate :validate_post
   validate :validate_reason, on: :create
   validate :update_reason, on: :create
-  validates :reason, presence: true
+  validates :reason, presence: true, if: -> { reason_name == "deletion" }
   validates :note, length: { maximum: Danbooru.config.comment_max_size }
   validate :validate_note_required_for_reason
   before_save :update_post
@@ -39,7 +38,16 @@ class PostFlag < ApplicationRecord
   scope :by_system, -> { where(creator: User.system) }
   scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }
 
-  attr_accessor :parent_id, :reason_name, :force_flag
+  attr_accessor :parent_id, :force_flag
+
+  module AccessMethods
+    def can_appeal?(user = CurrentUser.user)
+      return false if is_resolved?
+      return false unless appealable_by?(user)
+      return false if has_user_appealed?(user)
+      true
+    end
+  end
 
   module SearchMethods
     def post_tags_match(query)
@@ -112,8 +120,9 @@ class PostFlag < ApplicationRecord
     end
   end
 
-  extend SearchMethods
+  include AccessMethods
   include ApiMethods
+  extend SearchMethods
 
   def type
     return :deletion if is_deletion
@@ -129,13 +138,14 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_creator_is_not_limited
+    return if post.nil?
     return if is_deletion
 
     if creator.no_flagging?
       errors.add(:creator, "cannot flag posts")
     end
 
-    return if creator.is_janitor?
+    return if creator.is_staff?
 
     allowed = creator.can_post_flag_with_reason
     if allowed != true
@@ -150,57 +160,73 @@ class PostFlag < ApplicationRecord
   end
 
   def validate_post
+    return errors.add(:post, "must exist") if post.nil?
     errors.add(:post, "is locked and cannot be flagged") if post.is_status_locked? && !(creator.is_admin? || force_flag)
     errors.add(:post, "is deleted") if post.is_deleted?
   end
 
   def validate_reason
-    case reason_name
-    when "deletion"
+    if reason_name == "deletion"
       # You're probably looking at this line as you get this validation failure
       errors.add(:reason, "is not one of the available choices") unless is_deletion
-    when "inferior"
+      return
+    end
+    flag_reason = PostFlagReason.by_name(reason_name)
+    unless flag_reason
+      errors.add(:reason, "is not one of the available choices")
+      return
+    end
+    if flag_reason.needs_parent_id?
       if parent_post.blank?
         errors.add(:parent_id, "must exist")
-        return false
+      elsif parent_post.id == post.id
+        errors.add(:parent_id, "cannot be set to the post being flagged")
       end
-      errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
-    when "uploading_guidelines"
-      errors.add(:reason, "cannot be used. The post is grandfathered") unless post.flaggable_for_guidelines?
-    else
-      errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
+    end
+    unless flag_reason.applies_to_post?(post)
+      errors.add(:reason, "cannot be used on this post, probably because the post is grandfathered")
     end
   end
 
   def validate_note_required_for_reason
     return if reason_name.blank?
-    reason = Danbooru.config.flag_reasons.find { |r| r[:name].to_s == reason_name.to_s }
-    if reason && reason[:require_explanation] && note.to_s.strip.blank?
+    if PostFlagReason.needs_explanation?(reason_name) && note.to_s.strip.blank?
       errors.add(:note, "is required for the selected reason")
     end
   end
 
   def update_reason
-    case reason_name
-    when "deletion"
-      # NOP
-    when "inferior"
-      return unless parent_post
-      old_parent_id = post.parent_id
-      post.update_column(:parent_id, parent_post.id)
-      # Fix handling when parent/child is currently inverted. See #258
-      if parent_post.parent_id == post.id
-        parent_post.update_column(:parent_id, nil)
-        post.update_has_children_flag
-      end
-      # Update parent flags on parent post
-      parent_post.update_has_children_flag
-      # Update parent flags on old parent post, if it exists
-      Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
-      self.reason = "Inferior version/duplicate of post ##{parent_post.id}"
-    else
-      self.reason = MAPPED_REASONS[reason_name]
+    return if reason_name == "deletion"
+
+    flag_reason = PostFlagReason.by_name(reason_name)
+    unless flag_reason
+      # no longer exists?
+      self.reason_name = "unknown"
+      self.reason = "Unknown."
+      return
     end
+
+    self.reason_name = flag_reason.name
+    self.reason = flag_reason.reason
+    self.needs_parent_id = flag_reason.needs_parent_id?
+    self.needs_staff_reason = flag_reason.needs_staff_reason?
+
+    return unless flag_reason.needs_parent_id? && parent_post
+
+    old_parent_id = post.parent_id
+    post.update_column(:parent_id, parent_post.id)
+    # Fix handling when parent/child is currently inverted. See #258
+    if parent_post.parent_id == post.id
+      parent_post.update_column(:parent_id, nil)
+      post.update_has_children_flag
+    end
+    # Update parent flags on parent post
+    parent_post.update_has_children_flag
+    # Update parent flags on old parent post, if it exists
+    Post.find(old_parent_id).update_has_children_flag if old_parent_id && parent_post.id != old_parent_id
+    # This is a bit jank, but we'd need another text field for the final flag message,
+    # and that sounds excessive.
+    self.reason = "#{flag_reason.reason} (post ##{parent_post.id})"
   end
 
   def resolve!
@@ -208,11 +234,26 @@ class PostFlag < ApplicationRecord
   end
 
   def parent_post
-    @parent_post ||= begin
-      Post.where("id = ?", parent_id).first
-    rescue
-      nil
+    @parent_post ||= Post.find_by(id: parent_id)
+  end
+
+  def user_appeal(user)
+    return nil unless appealable_by?(user)
+
+    @user_appeal ||= {}
+    unless @user_appeal.key?(user.id)
+      # Multiple appeals used to be possible, so return the latest
+      @user_appeal[user.id] = Appeal.where(
+        creator_id: user.id,
+        qtype: "flag",
+        disp_id: id,
+      ).order(id: :desc).limit(1).first
     end
+    @user_appeal[user.id]
+  end
+
+  def has_user_appealed?(user)
+    user_appeal(user).present?
   end
 
   # Creates an appropriate `PostEvent` unless this is a deletion.
@@ -227,11 +268,21 @@ class PostFlag < ApplicationRecord
     when :all, "all", FLAG_REASON_VISIBILITY_LEVEL_MAP[:all]
       true
     when :users, "users", FLAG_REASON_VISIBILITY_LEVEL_MAP[:users]
-      !user.is_anonymous?
+      !user.is_logged_out?
     when :uploader, "uploader", FLAG_REASON_VISIBILITY_LEVEL_MAP[:uploader]
       post.uploader_id == user.id
     else
       false
     end || user.is_staff? || creator_id == user.id
+  end
+
+  private
+
+  # This is only a basic permission check, ignoring current flag or appeal status.
+  def appealable_by?(user)
+    return false unless is_deletion?
+    # Uploaders can appeal except for takedowns, verified artists can appeal deletions of their own posts
+    return false unless (post.uploader_id == user.id && reason !~ /takedown #\d+/i) || post.linked_users.include?(user.id)
+    true
   end
 end

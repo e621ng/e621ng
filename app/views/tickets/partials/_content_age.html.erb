@@ -1,0 +1,12 @@
+<%# local: ticket, content: "Content" %>
+
+<% created_at = ticket.content.created_at %>
+<tr>
+  <td><%= content %> Age</td>
+  <td class="<%= created_at > 6.months.ago ? "text-green" : "text-red" %>">
+    <time
+      datetime="<%= created_at.iso8601 %>"
+      title="<%= created_at.strftime("%B %d, %Y %H:%M:%S") %>"
+    ><%= time_ago_in_words(created_at) %> ago</time>
+  </td>
+</tr>

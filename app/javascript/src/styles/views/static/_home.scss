@@ -1,13 +1,15 @@
 body.c-static.a-home {
   background: #012e57; // I am certain this was needed for something
   background-color: themed("bg-color", #012e57);
+  position: relative;
 
   #page {
+    display: grid;
+    place-items: center;
     background: none;
     margin: 0 auto;
+    padding: 0;
     width: 100%;
-    max-width: 480px;
-    padding: 0 0.5rem 0.5rem;
     box-sizing: border-box;
   }
 
@@ -16,6 +18,7 @@ body.c-static.a-home {
     flex-flow: column;
     align-items: center;
     gap: 0.5rem;
+    max-width: 470px;
   }
 
 
@@ -112,52 +115,20 @@ body.c-static.a-home {
 
     a {
       flex: 1;
-
-      display: flex;
-      justify-content: center;
-      gap: 0.25rem;
-
-      background: #25477b;
-      font-size: 0.9rem;
-      line-height: 1rem;
-      font-family: "Roboto", Verdana, Geneva, sans-serif;
-      font-weight: bold;
-      color: white;
-
-      padding: 0.5rem;
-      @include st-radius;
-      
-      &:hover { background: #2b538e; }
+      font-size: 0.85rem;
 
       svg {
         height: 1.25rem;
-        margin: -0.125rem 0;
+        width: 1.25rem;
+        padding: 0.375rem;
         color: #e8c446;
       }
+      span { flex: unset; }
     }
   }
 
   #home-search-form:not(.empty) .home-buttons a span::before {
     content: "Search ";
-  }
-
-  .home-subscribestar {
-    a {
-      display: flex;
-      flex-flow: column;
-      align-items: center;
-      color: palette("text-white");
-
-      .fake-link { color: themed("color-link"); }
-      &:hover .fake-link { color: themed("color-link-hover"); }
-      &:active .fake-link { color: themed("color-link-active"); }
-    }
-
-    img {
-      width: 100%;
-      max-width: 16rem;
-      margin-top: 0.5rem;
-    }
   }
 
 
@@ -178,22 +149,8 @@ body.c-static.a-home {
 
     @include st-radius-top;
 
-    a#mascot-swap {
-
-      display: flex;
-      justify-content: center;
-      gap: 0.25rem;
-
-      background: #25477b;
-      font-size: 0.85rem;
-      line-height: 1rem;
-      font-family: "Roboto", Verdana, Geneva, sans-serif;
-      color: white;
-
-      padding: 0.25rem 0.5rem;
-      @include st-radius;
-      
-      &:hover { background: #2b538e; }
+    button#mascot-swap {
+      margin: -0.5rem;
     }
   }
 
@@ -208,10 +165,6 @@ body.c-static.a-home {
     z-index: 1;
 
     @include st-radius-bottom;
-
-    .home-footer-counter img {
-      height: 4rem;
-    }
 
     .home-footer-links {
       margin-top: 0.5rem;

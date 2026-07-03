@@ -1,0 +1,42 @@
+<% tab_name = "apps" %>
+
+<!-- API access -->
+<tab-group name="access">API access</tab-group>
+
+<% if CurrentUser.user.is_member? %>
+<tab-entry tab="<%= tab_name %>" group="access" class="with-button" search="update change user profile account api key access">
+  <tab-head>API Keys</tab-head>
+  <tab-body>
+    <%= link_to "Manage API Keys", api_keys_path, class: "st-button" %>
+  </tab-body>
+  <tab-hint>
+    API access for automated processes.
+  </tab-hint>
+</tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="access" class="with-button" search="oauth openid connect connected applications clients authorized grants tokens permissions revoke">
+  <tab-head>Connected Applications</tab-head>
+  <tab-body>
+    <%= link_to "Manage Connected Applications", oauth_authorized_applications_path, class: "st-button" %>
+  </tab-body>
+  <tab-hint>
+    Third-party apps you have signed into.
+  </tab-hint>
+</tab-entry>
+<% end %>
+
+
+<% if CurrentUser.user.is_staff? %>
+<!-- Developer -->
+<tab-group name="developer">Developer</tab-group>
+
+<tab-entry tab="<%= tab_name %>" group="developer" class="with-button" search="oauth openid connect applications clients developer register">
+  <tab-head>OAuth Applications</tab-head>
+  <tab-body>
+    <%= link_to "Manage OAuth Applications", mine_oauth_applications_path, class: "st-button" %>
+  </tab-body>
+  <tab-hint>
+    Your applications that connect to the site.
+  </tab-hint>
+</tab-entry>
+<% end %>

@@ -1,0 +1,13 @@
+<div id="form-content">
+  <%= error_messages_for("staff_wiki") %>
+
+  <%= custom_form_for(@staff_wiki) do |f| %>
+    <% if @staff_wiki.new_record? %>
+      <%= f.hidden_field :related_type %>
+      <%= f.hidden_field :related_id %>
+    <% end %>
+    <%= f.input :title %>
+    <%= f.input :body, as: :dtext, limit: Danbooru.config.wiki_page_max_size, allow_color: true %>
+    <%= f.button :submit, "Submit" %>
+  <% end %>
+</div>

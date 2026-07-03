@@ -27,6 +27,7 @@ class Artist < ApplicationRecord
   has_many :members, class_name: "Artist", foreign_key: "group_name", primary_key: "name"
   has_many :urls, dependent: :destroy, class_name: "ArtistUrl", autosave: true
   has_many :versions, -> {order("artist_versions.id ASC")}, class_name: "ArtistVersion"
+  has_many :staff_wiki_refs, as: :related, dependent: :destroy, inverse_of: :related
   has_one :wiki_page, foreign_key: "title", primary_key: "name"
   has_one :tag_alias, foreign_key: "antecedent_name", primary_key: "name"
   has_one :tag, foreign_key: "name", primary_key: "name"
@@ -398,7 +399,7 @@ class Artist < ApplicationRecord
     end
 
     def validate_user_can_edit
-      return if CurrentUser.is_janitor?
+      return if CurrentUser.is_staff?
 
       if is_locked?
         errors.add(:base, "Artist is locked")
@@ -407,7 +408,7 @@ class Artist < ApplicationRecord
     end
 
     def wiki_page_not_locked
-      return if CurrentUser.is_janitor?
+      return if CurrentUser.is_staff?
 
       if @notes.present? && is_note_locked? && wiki_page&.body != @notes
         errors.add(:base, "Wiki page is locked")
@@ -546,7 +547,7 @@ class Artist < ApplicationRecord
   end
 
   def editable_by?(user)
-    return true if user.is_janitor?
+    return true if user.is_staff?
     !is_locked?
   end
 
@@ -564,7 +565,7 @@ class Artist < ApplicationRecord
   end
 
   def is_note_locked?
-    return false if CurrentUser.is_janitor?
+    return false if CurrentUser.is_staff?
     wiki_page&.is_locked? || false
   end
 

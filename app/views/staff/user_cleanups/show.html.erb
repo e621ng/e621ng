@@ -1,0 +1,86 @@
+<h1>User Cleanup: <%= link_to @user.name, user_path(@user) %></h1>
+
+<div class="cleanup-actions">
+  <% if @has_avatar %>
+    <section class="box-section">
+      <h2>Clear Avatar</h2>
+      <p>Remove the user's avatar, including the cropped version if present.</p>
+      <%= button_to "Clear Avatar",
+            clear_avatar_staff_user_cleanup_path(@user),
+            class: "st-button",
+            data: { confirm: "Clear this user's avatar?" } %>
+    </section>
+  <% end %>
+
+  <% if @has_profile_info %>
+    <section class="box-section">
+      <h2>Archive & Clear Profile Text</h2>
+      <p>Copy <code>profile_about</code> and <code>profile_artinfo</code> into a staff note, then clear both fields.</p>
+      <%= button_to "Archive & Clear",
+            clear_profile_staff_user_cleanup_path(@user),
+            class: "st-button",
+            data: { confirm: "Archive and clear this user's profile text?" } %>
+    </section>
+  <% end %>
+
+  <% if @comment_count > 0 %>
+    <section class="box-section">
+      <h2>Hide All Comments</h2>
+      <p>
+        Remove all <b><%= @comment_count %></b> comments by this user from public view.<br />
+        Some comments may already be hidden.<br />
+        <span class="hint">Performed in a background job, may take some time.</span>
+      </p>
+      <%= button_to "Hide Comments",
+            hide_comments_staff_user_cleanup_path(@user),
+            class: "st-button",
+            data: { confirm: "Schedule hiding all comments by #{@user.name}?" } %>
+    </section>
+  <% end %>
+
+  <% if @forum_post_count > 0 %>
+    <section class="box-section">
+      <h2>Hide All Forum Posts & Topics</h2>
+      <p>
+        Remove all <b><%= @forum_post_count %></b> forum posts and topics by this user.<br />
+        Some forum posts may already be hidden.<br />
+        <span class="hint">Performed in a background job, may take some time.</span>
+      </p>
+      <%= button_to "Hide Forum Posts",
+            hide_forum_posts_staff_user_cleanup_path(@user),
+            class: "st-button",
+            data: { confirm: "Schedule hiding all forum activity by #{@user.name}?" } %>
+    </section>
+  <% end %>
+
+  <% if @blips_count > 0 %>
+    <section class="box-section">
+      <h2>Hide All Blips</h2>
+      <p>
+        Remove all <b><%= @blips_count %></b> blips by this user from public view.<br />
+        Some blips may already be hidden.<br />
+        <span class="hint">Performed in a background job, may take some time.</span>
+      </p>
+      <%= button_to "Hide Blips",
+            hide_blips_staff_user_cleanup_path(@user),
+            class: "st-button",
+            data: { confirm: "Schedule hiding all blips by #{@user.name}?" } %>
+    </section>
+  <% end %>
+
+  <% if @has_revertable_changes %>
+    <section class="box-section">
+      <h2>Tag Changes</h2>
+      <p>
+        Undo all changes to post tags made by this user, except for uploads.
+      </p>
+      <%= link_to "Revert All", new_user_revert_path(user_id: @user.id), class: "st-button" %>
+    </section>
+  <% end %>
+</div>
+
+<%= render "users/secondary_links" %>
+
+<% content_for(:page_title) do %>
+  User Cleanup: <%= @user.name %>
+<% end %>
