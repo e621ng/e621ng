@@ -125,7 +125,7 @@ class ModAction < ApplicationRecord
     ip_ban_create ip_ban_delete
     post_version_hide post_version_unhide
     post_replacement_note_edit
-   ].freeze
+  ].freeze
 
   KnownActionKeys = KnownActions.keys.freeze
 
