@@ -88,21 +88,41 @@ RSpec.describe WikiPage do
   end
 
   # -------------------------------------------------------------------------
-  # .recent
+  # .recent_changes
   # -------------------------------------------------------------------------
-  describe ".recent" do
+  describe ".recent_changes" do
+    after { Cache.delete("wiki_page:recent_changes") }
+
     it "returns at most 25 records" do
       26.times { create(:wiki_page) }
-      expect(WikiPage.recent.count).to eq(25)
+      expect(WikiPage.recent_changes.count).to eq(25)
     end
 
     it "orders results by updated_at descending" do
       older = create(:wiki_page)
       newer = create(:wiki_page)
       newer.update_columns(updated_at: 1.minute.from_now)
-      results = WikiPage.recent
+      results = WikiPage.recent_changes
       expect(results.first).to eq(newer)
       expect(results).to include(older)
+    end
+
+    it "includes associated tags to avoid N+1 queries" do
+      tag = create(:high_post_count_tag)
+      page = create(:wiki_page, title: tag.name)
+      expect(WikiPage.recent_changes).to include(page)
+
+      result = WikiPage.recent_changes.find { |p| p == page }
+      expect(result.association(:tag)).to be_loaded
+    end
+
+    it "ensures that cache is properly invalidated when a wiki page is updated" do
+      page = create(:wiki_page)
+      expect(WikiPage.recent_changes).to include(page)
+
+      other = create(:wiki_page)
+      expect(WikiPage.recent_changes).to include(other)
+      expect(WikiPage.recent_changes).to include(page)
     end
   end
 

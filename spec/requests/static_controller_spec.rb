@@ -35,6 +35,20 @@ RSpec.describe StaticController do
     end
   end
 
+  describe "GET /robots.txt" do
+    it "returns 200" do
+      get "/robots.txt"
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "contains the correct content" do
+      get "/robots.txt"
+      expect(response.body).to include("User-agent: *")
+      expect(response.body).to include("Disallow: /posts.xml")
+      expect(response.body).to include("Disallow: /posts.json")
+    end
+  end
+
   # ---------------------------------------------------------------------------
   # not_found — the catch-all route renders static/404 with status 404
   # ---------------------------------------------------------------------------
@@ -191,19 +205,25 @@ RSpec.describe StaticController do
       end
     end
 
-    # NOTE: The /static/subscribestar route is only registered when Danbooru.config.subscribestar_url
-    # is present at boot time. Because the route (and its helper) don't exist in the test
-    # environment, testing the Subscribestar site_map link by stubbing subscribestar_url at
-    # runtime is not feasible — the navigation layout would raise an undefined route helper error.
-
-    context "when db_export_path is configured" do
+    context "when database exports are enabled" do
       before do
-        allow(Danbooru.config.custom_configuration).to receive(:db_export_path).and_return("/db_export/")
+        allow(Danbooru.config.custom_configuration).to receive(:db_export_enabled?).and_return(true)
       end
 
       it "shows the DB Export link" do
         get site_map_path
         expect(response.body).to include("DB Export")
+      end
+    end
+
+    context "when database exports are disabled" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive(:db_export_enabled?).and_return(false)
+      end
+
+      it "hides the DB Export link" do
+        get site_map_path
+        expect(response.body).not_to include("DB Export")
       end
     end
   end

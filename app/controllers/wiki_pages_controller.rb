@@ -112,7 +112,7 @@ class WikiPagesController < ApplicationController
   private
 
   def ensure_can_edit(page, user)
-    return if user.is_janitor?
+    return if user.is_staff?
     raise User::PrivilegeError, "Wiki page is locked." if page.is_locked
   end
 
@@ -126,9 +126,9 @@ class WikiPagesController < ApplicationController
   def wiki_page_params(context)
     permitted_params = %i[body category_id edit_reason]
     permitted_params += %i[parent] if CurrentUser.is_privileged?
-    permitted_params += %i[is_locked is_deleted skip_secondary_validations] if CurrentUser.is_janitor?
+    permitted_params += %i[is_locked is_deleted skip_secondary_validations] if CurrentUser.is_staff?
     permitted_params += %i[category_is_locked] if CurrentUser.is_admin?
-    permitted_params += %i[title] if context == :create || CurrentUser.is_janitor?
+    permitted_params += %i[title] if context == :create || CurrentUser.is_staff?
 
     params.fetch(:wiki_page, {}).permit(permitted_params)
   end

@@ -5,6 +5,7 @@
       <%= link_to("Post by #{@ticket.content.creator.name} in '#{@ticket.content.topic.title}'", forum_post_path(@ticket.content)) %>
     </td>
   </tr>
+  <%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "Forum Post" } %>
 <% else %>
   <tr>
     <td><span class="title">Reported Forum Post</span></td>

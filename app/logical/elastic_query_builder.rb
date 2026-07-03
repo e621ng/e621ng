@@ -41,7 +41,11 @@ class ElasticQueryBuilder
       },
     }
 
-    query[:bool][:minimum_should_match] = 1 if should.any?
+    if @minimum_should_match.present?
+      query[:bool][:minimum_should_match] = @minimum_should_match
+    elsif should.any?
+      query[:bool][:minimum_should_match] = 1
+    end
 
     if @function_score.present?
       @function_score[:query] = query

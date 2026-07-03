@@ -14,6 +14,11 @@ RSpec.describe HelpController do
   # ---------------------------------------------------------------------------
 
   describe "GET /help" do
+    before do
+      create(:wiki_page, title: Danbooru.config.help_landing_page, body: "This is the landing page for the help section.")
+      create(:help_page, name: Danbooru.config.help_landing_page, wiki_page: Danbooru.config.help_landing_page)
+    end
+
     it "returns 200 for anonymous" do
       get help_pages_path
       expect(response).to have_http_status(:ok)
@@ -25,10 +30,11 @@ RSpec.describe HelpController do
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns a JSON array" do
+    it "returns JSON data" do
       get help_pages_path(format: :json)
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to be_an(Array)
+      expect(response.parsed_body).to be_a(Hash)
+      expect(response.parsed_body["name"]).to eq(Danbooru.config.help_landing_page)
     end
   end
 
@@ -195,6 +201,35 @@ RSpec.describe HelpController do
       sign_in_as admin
       expect { delete help_page_path(help_page) }.to change(HelpPage, :count).by(-1)
       expect(HelpPage.find_by(id: page_id)).to be_nil
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # GET /help — list
+  # ---------------------------------------------------------------------------
+  describe "GET /help/list" do
+    it "returns 200 for an admin" do
+      sign_in_as admin
+      get list_help_pages_path
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "returns a JSON array" do
+      sign_in_as admin
+      get list_help_pages_path(format: :json)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to be_an(Array)
+    end
+
+    it "returns 403 for a regular member" do
+      sign_in_as member
+      get list_help_pages_path
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "redirects anonymous to the login page" do
+      get list_help_pages_path
+      expect(response).to redirect_to(new_session_path(url: list_help_pages_path))
     end
   end
 end

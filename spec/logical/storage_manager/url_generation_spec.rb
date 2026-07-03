@@ -43,6 +43,26 @@ RSpec.describe StorageManager do
   end
 
   # -------------------------------------------------------------------------
+  # #staff_file_url
+  # -------------------------------------------------------------------------
+  describe "#staff_file_url" do
+    include_context "as member"
+
+    let(:staff_file) { instance_double(StaffFile, storage_id: "deadbeefdeadbeef", file_ext: "png") }
+
+    it "appends auth query params to the protected staff file URL" do
+      url = manager.staff_file_url(staff_file)
+      expect(url).to match(%r{\Ahttp://example\.com/data/staff_files/deadbeefdeadbeef\.png\?auth=.+&expires=\d+&uid=\d+\z})
+    end
+
+    it "includes the current user's id in the uid param" do
+      url = manager.staff_file_url(staff_file)
+      uid = url[/uid=(\d+)/, 1].to_i
+      expect(uid).to eq(CurrentUser.id)
+    end
+  end
+
+  # -------------------------------------------------------------------------
   # #file_url
   # -------------------------------------------------------------------------
   describe "#file_url" do
@@ -112,6 +132,44 @@ RSpec.describe StorageManager do
         allow(post).to receive(:has_preview?).and_return(false)
         expect(manager.post_file_url(post, :preview)).to eq("/images/download-preview.png")
       end
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #download_url
+  # -------------------------------------------------------------------------
+  describe "#download_url" do
+    it "returns the download URL for the given md5 and extension" do
+      expect(manager.download_url(md5, "jpg")).to eq("http://example.com/data/download/#{md5}.jpg")
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #post_download_url
+  # -------------------------------------------------------------------------
+  describe "#post_download_url" do
+    it "returns the download URL for a non-deleted post" do
+      post = instance_double(Post, md5: md5, file_ext: "jpg", is_deleted?: false)
+      expect(manager.post_download_url(post)).to eq("http://example.com/data/download/#{md5}.jpg")
+    end
+
+    it "returns nil for a deleted post" do
+      post = instance_double(Post, md5: md5, file_ext: "jpg", is_deleted?: true)
+      expect(manager.post_download_url(post)).to be_nil
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #avatar_url
+  # -------------------------------------------------------------------------
+  describe "#avatar_url" do
+    it "returns the avatar URL for the given user ID and extension" do
+      expect(manager.avatar_url(123, "jpg")).to eq("http://example.com/data/avatars/123.jpg")
+    end
+
+    it "appends a timestamp query param if provided" do
+      url = manager.avatar_url(123, "jpg", timestamp: 1_000_000)
+      expect(url).to eq("http://example.com/data/avatars/123.jpg?t=1000000")
     end
   end
 end

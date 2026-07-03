@@ -17,9 +17,9 @@ RSpec.describe Ban do
 
   describe "methods" do
     # -------------------------------------------------------------------------
-    # #duration= / #duration
+    # #duration=
     # -------------------------------------------------------------------------
-    describe "#duration= and #duration" do
+    describe "#duration=" do
       it "stores a positive duration and sets expires_at to that many days from now" do
         b = Ban.new
         b.duration = 14
@@ -38,6 +38,23 @@ RSpec.describe Ban do
         b = Ban.new
         b.duration = 0
         expect(b.duration).to be_nil
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #duration
+    # -------------------------------------------------------------------------
+    describe "#duration" do
+      it "returns -1 for a persisted permanent ban" do
+        ban = create(:ban, user: subject_user, banner: moderator, duration: -1)
+        ban.reload
+        expect(ban.duration).to eq(-1)
+      end
+
+      it "returns remaining days for a persisted timed ban" do
+        ban = create(:ban, user: subject_user, banner: moderator, duration: 7)
+        ban.reload
+        expect(ban.duration).to be_between(1, 7)
       end
     end
 
@@ -124,20 +141,23 @@ RSpec.describe Ban do
     end
 
     # -------------------------------------------------------------------------
-    # #is_permaban= (initialize_permaban via before_validation)
+    # #prevent_login / #prevent_login= / #prevent_login? (via HasBitFlags)
     # -------------------------------------------------------------------------
-    describe "#is_permaban / initialize_permaban" do
-      it "sets duration to -1 and clears expires_at when is_permaban is '1'" do
-        b = build(:ban, user: subject_user, banner: moderator, is_permaban: "1")
-        b.valid?
-        expect(b.expires_at).to be_nil
-        expect(b.duration).to eq(-1)
+    describe "#prevent_login (HasBitFlags)" do
+      it "returns false by default" do
+        expect(ban.prevent_login?).to be(false)
+        expect(ban.prevent_login).to be(false)
       end
 
-      it "does not change duration when is_permaban is not '1'" do
-        b = build(:ban, user: subject_user, banner: moderator, duration: 7, is_permaban: "0")
-        b.valid?
-        expect(b.expires_at).to be_present
+      it "returns true after assigning '1'" do
+        ban.prevent_login = "1"
+        expect(ban.prevent_login?).to be(true)
+      end
+
+      it "clears the flag when assigned '0' after being set" do
+        ban.prevent_login = "1"
+        ban.prevent_login = "0"
+        expect(ban.prevent_login?).to be(false)
       end
     end
   end

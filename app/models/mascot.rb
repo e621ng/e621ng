@@ -44,6 +44,10 @@ class Mascot < ApplicationRecord
     end
   end
 
+  def self.active_for_browser_base64
+    Base64.strict_encode64(active_for_browser.to_json)
+  end
+
   def invalidate_cache
     Cache.delete("active_mascots")
   end

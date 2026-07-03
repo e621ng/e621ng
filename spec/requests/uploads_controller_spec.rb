@@ -43,7 +43,7 @@ RSpec.describe UploadsController do
     end
 
     context "when the uploads min level is set above member" do
-      before { allow(Security::Lockdown).to receive(:uploads_min_level).and_return(User::Levels::JANITOR) }
+      before { allow(Security::Lockdown).to receive(:uploads_min_level).and_return(UserLevel::JANITOR) }
 
       it "returns 403 for a member" do
         sign_in_as member
@@ -141,6 +141,17 @@ RSpec.describe UploadsController do
         expect(response).to redirect_to(post_path(post_record.id))
       end
     end
+
+    context "when the upload is completed but post_id is nil" do
+      before { upload.update_columns(status: "completed", post_id: nil) }
+
+      it "returns 200 instead of 500 for a janitor" do
+        sign_in_as janitor
+        get upload_path(upload)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("no longer exists")
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -198,7 +209,7 @@ RSpec.describe UploadsController do
     end
 
     context "when the uploads min level is set above member" do
-      before { allow(Security::Lockdown).to receive(:uploads_min_level).and_return(User::Levels::JANITOR) }
+      before { allow(Security::Lockdown).to receive(:uploads_min_level).and_return(UserLevel::JANITOR) }
 
       it "returns 403 for a member" do
         sign_in_as member

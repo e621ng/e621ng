@@ -1,0 +1,8 @@
+<%# locals: (tag:) %>
+
+<% if tag.present? && Danbooru.config.automated_tag_notices.key?(tag) %>
+  <div class="automated-tag-notice dtext-container">
+    <h3><%= svg_icon(:info) %> Automated Tag</h3>
+    <%= format_text "#{Danbooru.config.automated_tag_notices[tag]}\nIt should not be added or removed manually." %>
+  </div>
+<% end %>

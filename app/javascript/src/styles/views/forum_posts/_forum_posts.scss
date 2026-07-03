@@ -28,6 +28,29 @@ ul.forum-post-vote-list {
     border-radius: 0.25rem;
     max-width: 30rem;
 
+    position: relative;
+    margin-left: 2.25rem;
+
+    &::before {
+      content: attr(data-vote-count);
+
+      position: absolute;
+      left: -2.25rem;
+      top: 0;
+
+      display: flex;
+      width: 2rem;
+      height: 2rem;
+      justify-content: center;
+      align-items: center;
+
+      font-size: 0.85rem;
+      overflow: hidden;
+
+      background: themed("color-section-darken-5");
+      @include st-radius;
+    }
+
     li a {
       line-height: 1rem;
       display: block;

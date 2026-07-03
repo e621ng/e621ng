@@ -50,6 +50,22 @@ RSpec.describe FileValidator, type: :model do
       end
     end
 
+    context "with an AV1 WebM" do
+      it "is valid" do
+        v, video = validator_for_fixture("file_validator/animated-av1.webm", file_ext: "webm")
+        v.validate_container_format(video)
+        expect(v.record.errors[:base]).to be_empty
+      end
+    end
+
+    context "with an H.264 WebM (invalid container for H.264)" do
+      it "adds an error" do
+        v, video = validator_for_fixture("file_validator/animated-h264.webm", file_ext: "webm")
+        v.validate_container_format(video)
+        expect(v.record.errors[:base]).to include(include("video must be WebM with VP8/VP9/AV1 or MP4 with AV1/H.264"))
+      end
+    end
+
     context "with an AV1 MP4" do
       it "is valid" do
         v, video = validator_for_fixture("file_validator/animated-av1-opus.mp4", file_ext: "mp4")
@@ -58,19 +74,19 @@ RSpec.describe FileValidator, type: :model do
       end
     end
 
-    context "with an H.264 MP4 (not yet allowed)" do
-      it "adds an error" do
+    context "with an H.264 MP4" do
+      it "is valid" do
         v, video = validator_for_fixture("file_validator/animated-h264.mp4", file_ext: "mp4")
         v.validate_container_format(video)
-        expect(v.record.errors[:base]).to include(include("video must be WebM with VP8/VP9 or MP4 with AV1"))
+        expect(v.record.errors[:base]).to be_empty
       end
     end
 
-    context "with an AV1 WebM (wrong container for AV1)" do
+    context "with a HEVC MP4" do
       it "adds an error" do
-        v, video = validator_for_fixture("file_validator/animated-av1.webm", file_ext: "webm")
+        v, video = validator_for_fixture("file_validator/animated-hevc.mp4", file_ext: "mp4")
         v.validate_container_format(video)
-        expect(v.record.errors[:base]).to include(include("video must be WebM with VP8/VP9 or MP4 with AV1"))
+        expect(v.record.errors[:base]).to include(include("video must be WebM with VP8/VP9/AV1 or MP4 with AV1/H.264"))
       end
     end
 
@@ -85,7 +101,7 @@ RSpec.describe FileValidator, type: :model do
 
   # ------------------------------------------------------------------ #
   describe "#validate_audio_codec" do
-    context "with AV1 + Opus audio" do
+    context "with MP4 + AV1 + Opus audio" do
       it "is valid" do
         v, video = validator_for_fixture("file_validator/animated-av1-opus.mp4", file_ext: "mp4")
         v.validate_audio_codec(video)
@@ -93,9 +109,17 @@ RSpec.describe FileValidator, type: :model do
       end
     end
 
-    context "with AV1 + FLAC audio (not allowed)" do
+    context "with MP4 + AV1 + FLAC audio (not allowed)" do
       it "adds an error" do
         v, video = validator_for_fixture("file_validator/animated-av1-flac.mp4", file_ext: "mp4")
+        v.validate_audio_codec(video)
+        expect(v.record.errors[:base]).to include(include("video uses AV1 and must use Opus, AAC, or MP3 audio codec"))
+      end
+    end
+
+    context "with WebM + AV1 + Vorbis audio" do
+      it "adds an error" do
+        v, video = validator_for_fixture("file_validator/animated-av1-vorbis.webm", file_ext: "webm")
         v.validate_audio_codec(video)
         expect(v.record.errors[:base]).to include(include("video uses AV1 and must use Opus, AAC, or MP3 audio codec"))
       end
@@ -109,8 +133,32 @@ RSpec.describe FileValidator, type: :model do
       end
     end
 
+    context "with MP4 + H.264 + AAC audio" do
+      it "is valid" do
+        v, video = validator_for_fixture("file_validator/animated-h264-aac.mp4", file_ext: "mp4")
+        v.validate_audio_codec(video)
+        expect(v.record.errors[:base]).to be_empty
+      end
+    end
+
+    context "with MP4 + H.264 + Opus audio (not allowed)" do
+      it "adds an error" do
+        v, video = validator_for_fixture("file_validator/animated-h264-opus.mp4", file_ext: "mp4")
+        v.validate_audio_codec(video)
+        expect(v.record.errors[:base]).to include(include("video uses H.264 and must use AAC or MP3 audio codec"))
+      end
+    end
+
+    context "with MP4 + H.264 + no audio track" do
+      it "is valid" do
+        v, _upload, video = validator_with_video_double(file_ext: "mp4", video_codec: "h264", audio_codec: nil)
+        v.validate_audio_codec(video)
+        expect(v.record.errors[:base]).to be_empty
+      end
+    end
+
     context "with VP8 (non-AV1) regardless of audio codec" do
-      it "is valid because the restriction only applies to AV1" do
+      it "is valid because the restriction only applies to AV1 and H.264" do
         v, _upload, video = validator_with_video_double(file_ext: "webm", video_codec: "vp8", audio_codec: "vorbis")
         v.validate_audio_codec(video)
         expect(v.record.errors[:base]).to be_empty

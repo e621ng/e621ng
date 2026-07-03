@@ -26,11 +26,6 @@ class StaticController < ApplicationController
     @page = format_wiki_page(@page_name)
   end
 
-  def subscribestar
-    @page_name = "e621:subscribestar"
-    @page = format_wiki_page(@page_name)
-  end
-
   def furid
   end
 
@@ -45,7 +40,32 @@ class StaticController < ApplicationController
     @sections = build_site_map_sections
   end
 
+  def robots
+    render "static/robots", formats: [:text], layout: false
+  end
+
   def home
+    @mascot_id = cookies[:mascot].to_i
+    mascot_list = Mascot.active_for_browser
+    selected_mascot = @mascot_id > 0 ? mascot_list[@mascot_id] : nil
+    selected_mascot ||= mascot_list[mascot_list.keys.sample]
+
+    if selected_mascot.present?
+      @mascot_id = selected_mascot["id"]
+      @mascot_background_url = selected_mascot["background_url"]
+      @mascot_artist_name = selected_mascot["artist_name"]
+      @mascot_artist_url = selected_mascot["artist_url"]
+
+      @extra_body_args = {
+        style: [
+          "--bg-image: url('#{@mascot_background_url}')",
+          "--bg-color: #{selected_mascot['background_color']}",
+          "--fg-color: #{selected_mascot['foreground_color']}",
+        ].join(";"),
+        layered: ("true" if selected_mascot["is_layered"]),
+      }
+    end
+
     render layout: "blank", formats: [:html]
   end
 
@@ -53,14 +73,16 @@ class StaticController < ApplicationController
   end
 
   def disable_mobile_mode
-    if CurrentUser.is_member?
+    if CurrentUser.user.is_logged_out?
+      if cookies[:nmm]
+        cookies.delete(:nmm)
+      else
+        cookies.permanent[:nmm] = "1"
+      end
+    else
       user = CurrentUser.user
       user.disable_responsive_mode = !user.disable_responsive_mode
       user.save
-    elsif cookies[:nmm]
-      cookies.delete(:nmm)
-    else
-      cookies.permanent[:nmm] = "1"
     end
     redirect_back fallback_location: posts_path
   end
@@ -124,7 +146,7 @@ class StaticController < ApplicationController
     add_link = ->(section, label, path) { lookup[section][:links] << { label: label, path: path } }
 
     add_link[:posts, "Listing", posts_path]
-    add_link[:posts, "Upload", new_upload_path]
+    add_link[:posts, "Upload", new_upload_path] if CurrentUser.user.is_member?
     add_link[:posts, "Popular", popular_index_path]
     add_link[:posts, "Changes", post_versions_path]
     add_link[:posts, "Similar Images Search", iqdb_queries_path]
@@ -155,6 +177,7 @@ class StaticController < ApplicationController
 
     add_link[:tags, "Listing", tags_path]
     add_link[:tags, "Type Changes", tag_type_versions_path]
+    add_link[:tags, "Search Trends", search_trends_path]
     add_link[:tags, "MetaSearch", meta_searches_tags_path]
     add_link[:tags, "Aliases", tag_aliases_path]
     add_link[:tags, "Implications", tag_implications_path]
@@ -165,7 +188,7 @@ class StaticController < ApplicationController
     add_link[:notes, "Changes", note_versions_path]
 
     add_link[:pools, "Listing", gallery_pools_path]
-    add_link[:pools, "Changes", pool_versions_path]
+    add_link[:pools, "Changes", pool_versions_path] if CurrentUser.user.is_member?
 
     add_link[:wiki, "Listing", wiki_pages_path]
     add_link[:wiki, "Changes", wiki_page_versions_path]
@@ -183,25 +206,27 @@ class StaticController < ApplicationController
     add_link[:staff, "Mod Actions", mod_actions_path]
     add_link[:staff, "Takedowns", takedowns_path]
     add_link[:staff, "Tickets", tickets_path]
+    add_link[:staff, "Appeals", appeals_path]
 
-    add_link[:tools, "Subscribestar", Danbooru.config.subscribestar_url] if Danbooru.config.subscribestar_url.present?
-    add_link[:tools, "DB Export", Danbooru.config.db_export_path] if Danbooru.config.db_export_path.present?
+    add_link[:tools, "DB Export", db_exports_path] if Danbooru.config.db_export_enabled?
     add_link[:tools, "Discord", discord_post_path] if CurrentUser.can_discord?
-    add_link[:users, "Signup", new_user_path] if CurrentUser.is_anonymous?
+    add_link[:users, "Signup", new_user_path] if CurrentUser.user.is_logged_out?
 
-    unless CurrentUser.is_anonymous?
+    unless CurrentUser.user.is_logged_out?
       add_link[:users, "User Home", home_users_path]
       add_link[:users, "Profile", user_path(CurrentUser.user)]
       add_link[:users, "Settings", settings_users_path]
-      add_link[:users, "Refresh counts", new_maintenance_user_count_fixes_path]
+      add_link[:users, "Refresh counts", new_maintenance_user_count_fixes_path] if CurrentUser.user.is_member?
     end
 
     if CurrentUser.is_staff?
-      add_link[:staff, "Mod Dashboard", moderator_dashboard_path]
+      add_link[:admin, "AutoMod DMails", staff_automod_dmails_path]
+      add_link[:admin, "Exceptions", staff_exceptions_path]
+      add_link[:staff, "Mod Dashboard", staff_moderator_dashboard_path]
       add_link[:posts, "Upload Listing", uploads_path]
     end
 
-    add_link[:post_events, "Disapprovals", moderator_post_disapprovals_path] if CurrentUser.can_approve_posts?
+    add_link[:post_events, "Disapprovals", staff_post_disapprovals_path] if CurrentUser.can_approve_posts?
 
     if CurrentUser.is_moderator?
       add_link[:staff, "Edit Histories", edit_histories_path]
@@ -210,23 +235,22 @@ class StaticController < ApplicationController
     end
 
     if CurrentUser.is_admin?
-      add_link[:admin, "Admin Dashboard", admin_dashboard_path]
-      add_link[:admin, "AutoMod Rules", admin_automod_rules_path]
+      add_link[:admin, "Admin Dashboard", staff_admin_dashboard_path]
+      add_link[:admin, "AutoMod Rules", staff_automod_rules_path]
       add_link[:admin, "Forum Categories", forum_categories_path]
-      add_link[:admin, "IP Addresses", moderator_ip_addrs_path]
+      add_link[:admin, "IP Addresses", staff_ip_addrs_path]
       add_link[:admin, "IP Bans", ip_bans_path]
       add_link[:admin, "Post Report Reasons", post_report_reasons_path]
+      add_link[:admin, "Post Flag Reasons", post_flag_reasons_path]
       add_link[:admin, "Email Blacklist", email_blacklists_path]
-      add_link[:admin, "Destroyed Posts", admin_destroyed_posts_path]
-      add_link[:admin, "Exceptions", admin_exceptions_path]
-      add_link[:admin, "Search Trends", search_trends_path]
-      add_link[:admin, "Stuck DNP tags", new_admin_stuck_dnp_path]
-      add_link[:admin, "Security", security_root_path]
-      add_link[:admin, "Alt list", alt_list_admin_users_path]
+      add_link[:admin, "Destroyed Posts", staff_destroyed_posts_path]
+      add_link[:admin, "Stuck DNP tags", new_staff_stuck_dnp_path]
+      add_link[:admin, "Security", staff_security_index_path]
+      add_link[:admin, "Alt list", alt_list_staff_users_path]
       add_link[:admin, "SideKiq", sidekiq_path]
     end
 
-    add_link[:admin, "Reowner", new_admin_reowner_path] if CurrentUser.is_bd_staff?
+    add_link[:admin, "Reowner", new_staff_reowner_path] if CurrentUser.is_bd_staff?
     add_link[:users, "Staff Notes", staff_notes_path] if CurrentUser.can_view_staff_notes?
 
     add_link[:posts, "Help", help_page_path(id: "posts")]

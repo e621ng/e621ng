@@ -186,4 +186,13 @@ RSpec.describe StorageManager do
       end
     end
   end
+
+  # -------------------------------------------------------------------------
+  # #avatar_path
+  # -------------------------------------------------------------------------
+  describe "#avatar_path" do
+    it "returns the avatar path for the given user ID and extension" do
+      expect(manager.avatar_path(123, "jpg")).to eq("/data/avatars/123.jpg")
+    end
+  end
 end

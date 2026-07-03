@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe AvoidPostingsController do
+  before { skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:avoid_postings_path) }
+
   include_context "as admin"
 
   let(:bd_staff)  { create(:bd_staff_user) }

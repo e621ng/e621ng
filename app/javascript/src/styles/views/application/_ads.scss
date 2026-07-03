@@ -17,10 +17,10 @@
 
     &-horizontal {
       // Mobile ads are fixed in size
-      max-height: 50px;
+      max-height: 100px;
       max-width: 320px;
       width: 100%;
-      aspect-ratio: 320 / 50; // Prevent layout shift when the ad loads
+      aspect-ratio: 320 / 100; // Prevent layout shift when the ad loads
 
       @include window-larger-than(800px, true) {
         max-height: 90px;

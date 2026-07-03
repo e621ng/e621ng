@@ -10,19 +10,10 @@
     background-color: $spoiler-background;
   }
 
-  &:hover {
+  &:hover, &.spoiler-revealed {
     color: $spoiler-hover-color;
 
     a {
-      // Prevent accidentally opening a link when tapping to reveal it
-      animation: delay-pointer-events 50ms;
-
-      @keyframes delay-pointer-events {
-        0%, 99% {
-          pointer-events: none;
-        }
-      }
-
       color: themed('color-spoiler-link');
       &:hover {
         color: themed('color-spoiler-link-hover');

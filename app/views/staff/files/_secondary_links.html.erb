@@ -1,0 +1,15 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "Listing", staff_files_path %>
+  <%= subnav_link_to "New", new_staff_file_path %>
+
+  <% if @staff_file&.persisted? %>
+    <li class="divider"></li>
+
+    <%= subnav_link_to "Download", @staff_file.file_url %>
+
+    <% if @staff_file.can_delete?(CurrentUser.user) %>
+      <%= subnav_link_to "Edit", edit_staff_file_path(@staff_file) %>
+      <%= subnav_link_to "Delete", staff_file_path(@staff_file), method: :delete, data: { confirm: "Are you sure you want to delete this file?" } %>
+    <% end %>
+  <% end %>
+<% end %>

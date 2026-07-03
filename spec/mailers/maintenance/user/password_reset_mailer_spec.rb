@@ -19,5 +19,12 @@ RSpec.describe Maintenance::User::PasswordResetMailer do
       allow(user).to receive(:email).and_return("")
       expect(described_class.reset_request(user, nonce).to).to be_nil
     end
+
+    it "does not raise and delivers nothing for a malformed legacy email" do
+      allow(user).to receive(:email).and_return("Email- Something-Weird-Comes@hotmail.com")
+      ActionMailer::Base.deliveries.clear
+      expect { described_class.reset_request(user, nonce).deliver_now }.not_to raise_error
+      expect(ActionMailer::Base.deliveries).to be_empty
+    end
   end
 end

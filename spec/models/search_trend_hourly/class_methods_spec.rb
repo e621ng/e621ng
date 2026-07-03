@@ -177,6 +177,35 @@ RSpec.describe SearchTrendHourly do
   end
 
   # =========================================================================
+  # .warm_rising_tags_cache!
+  # =========================================================================
+  #
+  # warm_rising_tags_cache! unconditionally computes and writes the rising tags
+  # list to the cache with a 20-minute TTL (longer than rising_tags_list's
+  # 15-minute TTL so the job-scheduled writes never expire between runs).
+  # =========================================================================
+  describe ".warm_rising_tags_cache!" do
+    before do
+      allow(Cache).to receive(:write)
+      allow(Setting).to receive_messages(
+        trends_min_today: 1,
+        trends_min_delta: 1,
+        trends_min_ratio: 1.0,
+      )
+    end
+
+    it "writes to the rising_tags cache key with a 20-minute TTL" do
+      SearchTrendHourly.warm_rising_tags_cache!
+      expect(Cache).to have_received(:write).with("rising_tags", anything, expires_in: 20.minutes)
+    end
+
+    it "returns the computed list" do
+      result = SearchTrendHourly.warm_rising_tags_cache!
+      expect(result).to be_an(Array)
+    end
+  end
+
+  # =========================================================================
   # .prune!
   # =========================================================================
   #

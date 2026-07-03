@@ -1,5 +1,3 @@
-
-
 div.error-messages {
   margin: 1em 0;
   padding: $base-padding;
@@ -8,27 +6,4 @@ div.error-messages {
     font-size: 1em;
     color: $error-notice-color;
   }
-}
-
-div#notice {
-  padding: 0.25em;
-  position: fixed;
-  top: 1rem;
-  left: 25%;
-  width: 50%;
-  z-index: 1001; // Above the TOS modal (z-index: 1000)
-
-  color: themed("color-text");
-  background-color: themed("color-success");
-  border: 1px solid themed("color-foreground");
-
-  &.ui-state-error {
-    background-color: themed("color-danger");
-  }
-}
-
-a#close-notice-link {
-  display: flex;
-  float: right;
-  padding: 0 0.75em;
 }

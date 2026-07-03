@@ -1,31 +1,44 @@
-import LStorage from "@/utility/storage";
+import CStorage from "@/utility/storage/Cookie";
 
 function bootstrapTabs () {
   const container = $(".post-display");
-  if (!container.length || !container.data("comments-enabled")) return;
+  if (!container.length) return;
   const validActions = ["comments", "tags"];
-
-  const savedState = (LStorage.Posts.MobileTab as any) + "";
-  if (savedState === "comments") container.attr("data-tab-state", "comments");
 
   container.find(".post-mobile-tab").on("click", (event) => {
     const action = $(event.currentTarget).data("action");
     if (!validActions.includes(action)) return;
-    LStorage.Posts.MobileTab = action;
-
-    container.attr("data-tab-state", action);
+    CStorage.Posts.MobileTabState = action;
+    switchToTab(container, action);
   });
+
+  // Comment anchor links will not work on mobile unless the user has the comments tab open.
+  if (window.innerWidth > 800 || CStorage.Posts.MobileTabState === "comments") return;
+  const commentID = window.location.hash.match(/^#?comment-(\d+)/)?.[1];
+  if (!commentID) return;
+  const comment = $(`article[data-comment-id="${commentID}"]`);
+  if (!comment.length) return;
+
+  switchToTab(container, "comments");
+  // If the tabs get switched early enough, the browser will scroll to the content on its own.
+  window.setTimeout(() => {
+    const offset = comment.offset()?.top ?? 0;
+    if (offset) window.scrollTo({ top: offset, behavior: "smooth" });
+  }, 100);
+}
+
+function switchToTab (container: JQuery<HTMLElement>, tab: "comments" | "tags") {
+  container
+    .attr("data-tab-state", tab)
+    .find(".post-mobile-tab").each((_, el) => {
+      const $el = $(el);
+      $el.attr("aria-selected", String($el.data("action") === tab));
+    });
 }
 
 function bootstrapGoUpButton () {
   $(".go-up button").on("click", () => {
-    const tabs = $("#mobile-tabs");
-    if (tabs.length) {
-      let offset = tabs.offset()?.top ?? 0;
-      if (offset) offset -= window.innerHeight / 2;
-      window.scrollTo({ top: offset, behavior: "smooth" });
-    } else
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 }
 

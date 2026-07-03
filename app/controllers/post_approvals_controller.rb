@@ -5,6 +5,7 @@ class PostApprovalsController < ApplicationController
 
   def index
     @post_approvals = PostApproval.includes(:post, :user).search(search_params).paginate(params[:page], limit: params[:limit])
+    Post.preload_stats!(@post_approvals.map(&:post))
     respond_with(@post_approvals)
   end
 end

@@ -1,0 +1,36 @@
+<div id="c-staff-files">
+  <div id="a-show">
+    <h1><%= @staff_file.title %></h1>
+
+    <div class="staff-file-preview">
+      <% if @staff_file.is_image? %>
+        <%= link_to image_tag(@staff_file.file_url, alt: @staff_file.original_filename), @staff_file.file_url %>
+      <% elsif @staff_file.is_video? %>
+        <video controls src="<%= @staff_file.file_url %>"></video>
+      <% else %>
+        <p class="staff-file-download"><%= link_to "Download #{@staff_file.original_filename}", @staff_file.file_url %></p>
+      <% end %>
+    </div>
+
+    <% if @staff_file.description.present? %>
+      <div class="staff-file-description">
+        <%= format_text(@staff_file.description) %>
+      </div>
+    <% end %>
+
+    <table class="striped">
+      <tr><th>Filename</th><td><%= @staff_file.original_filename %></td></tr>
+      <tr><th>Type</th><td><%= @staff_file.file_ext %></td></tr>
+      <tr><th>Size</th><td><%= number_to_human_size(@staff_file.file_size) %></td></tr>
+      <tr><th>MD5</th><td><%= @staff_file.md5 %></td></tr>
+      <tr><th>Uploader</th><td><%= link_to_user @staff_file.creator %></td></tr>
+      <tr><th>Uploaded</th><td><%= compact_time @staff_file.created_at %></td></tr>
+    </table>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Staff File - <%= @staff_file.title %>
+<% end %>
+
+<%= render "secondary_links" %>

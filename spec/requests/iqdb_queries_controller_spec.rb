@@ -193,31 +193,117 @@ RSpec.describe IqdbQueriesController do
       expect(response).to have_http_status(:not_found)
     end
 
+    it "returns 503 when the IQDB circuit is open" do
+      allow(IqdbProxy).to receive(:query_hash).and_raise(IqdbProxy::CircuitOpenError, "IQDB temporarily unavailable")
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:service_unavailable)
+    end
+
     it "returns 500 on IqdbProxy::Error" do
       allow(IqdbProxy).to receive(:query_hash).and_raise(IqdbProxy::Error, "service unavailable")
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(response).to have_http_status(:internal_server_error)
     end
+
+    it "returns 429 when the IQDB semaphore is exhausted" do
+      allow(IqdbProxy).to receive(:query_hash).and_raise(IqdbProxy::BusyError, "IQDB is temporarily busy")
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:too_many_requests)
+    end
   end
 
   # ---------------------------------------------------------------------------
-  # Throttling
+  # Throttling — disabled
   # ---------------------------------------------------------------------------
 
-  describe "throttling" do
+  describe "throttling — disabled" do
     before do
+      allow(Danbooru.config.custom_configuration).to receive(:disable_throttles?).and_return(true)
       allow(IqdbProxy).to receive(:query_hash).and_return([])
-      allow(RateLimiter).to receive(:check_limit).and_return(true)
     end
 
-    it "returns 429 when the rate limit is exceeded" do
+    it "allows requests without hitting the RateLimiter" do
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:ok)
+      expect(RateLimiter).not_to have_received(:check_limit)
+      expect(RateLimiter).not_to have_received(:hit)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Throttling — authenticated user
+  # ---------------------------------------------------------------------------
+
+  describe "throttling - authenticated user" do
+    let(:user) { create(:user) }
+
+    before do
+      sign_in_as user
+      allow(IqdbProxy).to receive(:query_hash).and_return([])
+    end
+
+    it "returns 429 when the per-IP rate limit is exceeded" do
+      allow(RateLimiter).to receive(:check_limit).with("img:127.0.0.1", 1, 2.seconds).and_return(true)
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(response).to have_http_status(:too_many_requests)
     end
 
-    it "checks the rate limit keyed by IP address" do
+    it "returns 429 when the per-user rate limit is exceeded" do
+      allow(RateLimiter).to receive(:check_limit).with("img:user:#{user.id}", 1, 2.seconds).and_return(true)
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:too_many_requests)
+    end
+
+    it "checks the rate limit keyed by IP address and user ID" do
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(RateLimiter).to have_received(:check_limit).with("img:127.0.0.1", 1, 2.seconds)
+      expect(RateLimiter).to have_received(:check_limit).with("img:user:#{user.id}", 1, 2.seconds)
+    end
+
+    it "is not blocked by the anonymous lockdown" do
+      allow(IqdbProxy).to receive(:anon_lockdown?).and_return(true)
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Throttling — anonymous user
+  # ---------------------------------------------------------------------------
+
+  describe "throttling — anonymous user" do
+    before do
+      allow(IqdbProxy).to receive_messages(enabled?: true, query_hash: [], anon_lockdown?: false)
+      allow(RateLimiter).to receive(:check_limit).and_return(false)
+      allow(RateLimiter).to receive(:hit)
+    end
+
+    it "allows requests within the 1/min limit" do
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "checks the rate limit with the anon-specific key" do
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(RateLimiter).to have_received(:check_limit).with("img:anon:127.0.0.1", 1, 60.seconds)
+    end
+
+    it "returns 429 when the per-IP rate limit is exceeded" do
+      allow(RateLimiter).to receive(:check_limit).with("img:anon:127.0.0.1", 1, 60.seconds).and_return(true)
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:too_many_requests)
+    end
+
+    it "returns 429 when the anonymous lockdown is active" do
+      allow(IqdbProxy).to receive(:anon_lockdown?).and_return(true)
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(response).to have_http_status(:too_many_requests)
+    end
+
+    it "does not call RateLimiter when the lockdown is active" do
+      allow(IqdbProxy).to receive(:anon_lockdown?).and_return(true)
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(RateLimiter).not_to have_received(:check_limit)
     end
   end
 end

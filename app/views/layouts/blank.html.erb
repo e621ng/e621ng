@@ -3,24 +3,21 @@
 <head>
   <%= render "layouts/head" %>
 </head>
-<%= tag.body **body_attributes(CurrentUser.user) do %>
+<%= tag.body **body_attributes(CurrentUser.user).merge(@extra_body_args || {}) do %>
   <%= render "layouts/theme_include" %>
   <%= render "layouts/navigation/navigation" %>
 
   <div id="page" role="main">
-    <%# Notification Toasts %>
-    <div class="ui-corner-all ui-state-highlight" id="notice" style="<%= "display: none;" unless flash[:notice] %>">
-      <span><%= format_text(flash[:notice], inline: true) %>.</span>
-      <a href="#" id="close-notice-link">close</a>
-    </div>
 
     <%= yield :layout %>
   </div>
 
+  <%= render partial: "layouts/partials/toasts" %>
+
   <%= render "static/tos_warning" %>
 
   <% if Danbooru.config.fsc_modal_enabled? %>
-    <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js"></script>
+    <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js" nonce="<%= content_security_policy_nonce %>"></script>
   <% end %>
 
   <%= render "static/deferred_posts" %>

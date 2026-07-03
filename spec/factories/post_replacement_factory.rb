@@ -24,6 +24,10 @@ FactoryBot.define do
       association :approver, factory: :user
     end
 
+    factory :pending_post_replacement do
+      status { "pending" }
+    end
+
     factory :rejected_post_replacement do
       status { "rejected" }
       association :approver, factory: :user

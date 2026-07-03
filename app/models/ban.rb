@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
 class Ban < ApplicationRecord
-  attr_accessor :is_permaban
+  include Danbooru::HasBitFlags
+  has_bit_flags %w[prevent_login], field: "ban_flags"
+
   after_create :create_feedback
   after_create :update_user_on_create
+  after_create :revoke_oauth_credentials
   after_create :create_ban_mod_action
   after_create :push_pubsub_ban
+  after_update :update_user_on_update
   after_update :create_ban_update_mod_action
   after_update :push_pubsub_update
   after_destroy :update_user_on_destroy
@@ -16,7 +20,6 @@ class Ban < ApplicationRecord
   validate :user_is_inferior
   validates :user_id, :reason, :duration, presence: true
   before_validation :initialize_banner_id, :on => :create
-  before_validation :initialize_permaban, on: [:update, :create]
 
   scope :unexpired, -> { where("bans.expires_at > ? OR bans.expires_at IS NULL", Time.now) }
   scope :expired, -> { where("bans.expires_at IS NOT NULL").where("bans.expires_at <= ?", Time.now) }
@@ -56,12 +59,6 @@ class Ban < ApplicationRecord
     self.banner_id = CurrentUser.id if self.banner_id.blank?
   end
 
-  def initialize_permaban
-    if is_permaban == "1"
-      self.duration = -1
-    end
-  end
-
   def user_is_inferior
     if user
       if user.is_admin?
@@ -82,16 +79,29 @@ class Ban < ApplicationRecord
   end
 
   def update_user_on_create
-    user.is_banned = true
-    user.level = User::Levels::BLOCKED
+    user.level = UserLevel::BLOCKED
     # Don't validate in order for deleted users to be bannable
     user.save(validate: false)
   end
 
-  def update_user_on_destroy
-    user.is_banned = false
-    user.level = User::Levels::MEMBER
+  def update_user_on_update
+    user.level = UserLevel::BLOCKED
     user.save(validate: false)
+  end
+
+  def update_user_on_destroy
+    user.level = UserLevel::MEMBER
+    user.save(validate: false)
+  end
+
+  def revoke_oauth_credentials
+    Doorkeeper::AccessToken.where(resource_owner_id: user_id, revoked_at: nil).find_each(&:revoke)
+    Doorkeeper::AccessGrant.where(resource_owner_id: user_id, revoked_at: nil).find_each(&:revoke)
+
+    owned_app_ids = Doorkeeper::Application.where(owner: user).pluck(:id)
+    return if owned_app_ids.empty?
+    Doorkeeper::AccessToken.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
+    Doorkeeper::AccessGrant.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
   end
 
   def user_name
@@ -113,7 +123,10 @@ class Ban < ApplicationRecord
   end
 
   def duration
-    @duration
+    return @duration if @duration
+    return -1 if persisted? && expires_at.nil?
+    return nil unless persisted?
+    ((expires_at - Time.now) / 1.day).ceil
   end
 
   def humanized_duration
@@ -173,6 +186,7 @@ class Ban < ApplicationRecord
           banner_id: banner.id,
           expires_at: expires_at,
           reason: reason,
+          ban_flags: ban_flags,
         },
       }
     end

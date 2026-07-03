@@ -5,7 +5,7 @@ require "faker"
 FactoryBot.define do
   factory :user, aliases: [:member_user] do
     name { generate_username }
-    level { User::Levels::MEMBER }
+    level { UserLevel::MEMBER }
     created_at { Time.now - 2.weeks }
     email { "#{(name || '').downcase}@example.com" }
     password { "hexerade" }
@@ -28,51 +28,64 @@ FactoryBot.define do
     ###### User Levels ######
     #########################
 
+    factory :anonymous_user do
+      name { "Anonymous" }
+      level { UserLevel::ANONYMOUS }
+    end
+
     factory :banned_user do
-      is_banned { true }
+      level { UserLevel::BLOCKED }
     end
 
     factory :privileged_user do
-      level { User::Levels::PRIVILEGED }
+      level { UserLevel::PRIVILEGED }
+    end
+
+    factory :former_staff_user do
+      level { UserLevel::FORMER_STAFF }
+    end
+
+    factory :staff_user do
+      level { UserLevel::STAFF }
     end
 
     factory :janitor_user do
-      level { User::Levels::JANITOR }
+      level { UserLevel::JANITOR }
     end
 
     factory :moderator_user do
-      level { User::Levels::MODERATOR }
+      level { UserLevel::MODERATOR }
     end
 
     factory :admin_user do
-      level { User::Levels::ADMIN }
+      level { UserLevel::ADMIN }
     end
 
     # Legacy option
     factory(:bd_staff_user) do
       is_bd_staff { true }
-      level { User::Levels::ADMIN }
+      level { UserLevel::ADMIN }
       can_approve_posts { true }
     end
 
     factory(:bd_member_user) do
       is_bd_staff { true }
-      level { User::Levels::MEMBER }
+      level { UserLevel::MEMBER }
     end
 
     factory(:bd_janitor_user) do
       is_bd_staff { true }
-      level { User::Levels::JANITOR }
+      level { UserLevel::JANITOR }
     end
 
     factory(:bd_moderator_user) do
       is_bd_staff { true }
-      level { User::Levels::MODERATOR }
+      level { UserLevel::MODERATOR }
     end
 
     factory(:bd_admin_user) do
       is_bd_staff { true }
-      level { User::Levels::ADMIN }
+      level { UserLevel::ADMIN }
     end
 
     #########################
@@ -89,6 +102,10 @@ FactoryBot.define do
 
     factory :bd_auditor_user do
       is_bd_auditor { true }
+    end
+
+    factory :unverified_user do
+      email_verification_key { "1" }
     end
   end
 end

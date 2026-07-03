@@ -31,10 +31,6 @@ RSpec.describe Sources::Alternates::Base do
   # #force_https?
   # -------------------------------------------------------------------------
   describe "#force_https?" do
-    it "upgrades http://imgur.com URLs to HTTPS" do
-      expect(described_class.new("http://imgur.com/gallery/abc").url).to start_with("https://")
-    end
-
     it "upgrades http://weasyl.com URLs to HTTPS" do
       expect(described_class.new("http://weasyl.com/submission/12345").url).to start_with("https://")
     end

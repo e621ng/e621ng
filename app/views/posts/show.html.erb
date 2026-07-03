@@ -1,5 +1,7 @@
 <div id="c-posts"><div id="a-show">
-  <div class="post-display" data-tab-state="tags" data-comments-enabled="<%= !CurrentUser.hide_comments? %>">
+  <%# Cookie value set in MobileTabs.ts %>
+  <% selected_tab = !CurrentUser.hide_comments? && cookies[:post_tab] == "comments" ? "comments" : "tags" %>
+  <div class="post-display" id="post-show-display" data-tab-state="<%= selected_tab %>">
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>
@@ -7,7 +9,7 @@
     </div>
 
     <div class="sidebar">
-      <%= render "posts/partials/index/blacklist", post_id: @post.id %>
+      <%= render partial: "application/blacklist", post_id: @post.id %>
 
       <section id="tag-list">
         <%= render partial: "/posts/partials/show/sidebar/tag_list", locals: { post: @post, query: params[:q] } %>
@@ -18,14 +20,14 @@
         <%= render "posts/partials/show/sidebar/information", :post => @post %>
       </section>
 
-      <% if CurrentUser.is_member? %>
+      <% if CurrentUser.user.is_member? %>
         <section id="post-options">
           <h3>Options</h3>
           <%= render "posts/partials/show/sidebar/options", :post => @post %>
         </section>
       <% end %>
 
-      <% if CurrentUser.is_member? %>
+      <% if CurrentUser.user.is_logged_in? %>
         <section id="post-history">
           <h3>History</h3>
           <%= render "posts/partials/show/sidebar/history", :post => @post %>
@@ -36,7 +38,7 @@
         <h3>Related</h3>
         <%= render "posts/partials/show/sidebar/related", :post => @post %>
       </section>
-      
+
       <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top" aria-label="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
     </div>
 
@@ -56,7 +58,7 @@
             Adobe Flash has reached end of life, and no longer works in browsers. Please see <a href="/forum_topics/22535" rel="nofollow">this thread</a> on the forum for details on how you can continue to play this file.
             <br>Keyboard shortcuts are disabled on this page because it contains flash.
           </div>
-          <% if CurrentUser.is_janitor? %>
+          <% if CurrentUser.is_staff? %>
             <%= render "posts/partials/show/content/notices/notices", post: @post %>
           <% end %>
         </div>
@@ -88,7 +90,7 @@
           <%= render "posts/partials/show/content/children", post: @post %>
         </div>
 
-        <% if !CurrentUser.is_janitor? %>
+        <% if !CurrentUser.is_staff? %>
           <%= render "posts/partials/show/content/notices/notices", post: @post %>
         <% end %>
       </div>
@@ -109,24 +111,31 @@
         </div>
       <% end %>
 
-      <div
-        id="post-recommendations"
-        data-visible="true"
-        data-action="artist"
-        data-status="waiting"
-        data-post-id="<%= @post.id %>"
-      >
-        <div id="post-recommendations-tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            class="st-button"
-            id="post-recommendations-tab-artist"
-            data-action="artist"
-            aria-controls="post-recommendations-list"
-            aria-selected="true"
-          >From the Artist</button>
-          <% if Danbooru.config.recommender_enabled? && CurrentUser.user.is_staff? %>
+      <%# Determine which recommender tabs to show %>
+      <% artist_tab_available = @post.known_artist_tags.any? && Danbooru.config.post_recommendations_enabled?[:artist] %>
+      <% tags_tab_available = @post.tags_for_category("general").size > 1 && Danbooru.config.post_recommendations_enabled?[:tags] %>
+
+      <% if artist_tab_available || tags_tab_available %>
+        <div
+          id="post-recommendations"
+          data-visible="<%= cookies[:post_recs] != "1" %>"
+          data-action="artist"
+          data-status="waiting"
+          data-post-id="<%= @post.id %>"
+        >
+          <div id="post-recommendations-tabs" role="tablist">
+            <% if artist_tab_available %>
+            <button
+              type="button"
+              role="tab"
+              class="st-button"
+              id="post-recommendations-tab-artist"
+              data-action="artist"
+              aria-controls="post-recommendations-list"
+              aria-selected="true"
+            >From the Artist</button>
+            <% end %>
+            <% if tags_tab_available %>
             <button
               type="button"
               role="tab"
@@ -136,36 +145,29 @@
               aria-controls="post-recommendations-list"
               aria-selected="false"
             >Similar</button>
+            <% end %>
+          </div>
+          <div id="post-recommendations-toggle">
             <button
               type="button"
-              role="tab"
               class="st-button"
-              id="post-recommendations-tab-favorites"
-              data-action="favorites"
-              aria-controls="post-recommendations-list"
-              aria-selected="false"
-            ><span class="desktop-only">Others Also</span>Liked</button>
-          <% end %>
+              data-action="reveal"
+              aria-controls="post-recommendations"
+              aria-expanded="<%= cookies[:post_recs] != "1" %>"
+              aria-label="<%= cookies[:post_recs] == "1" ? "Show" : "Hide" %> Recommendations"
+              data-hotkey="postrec"
+            >
+              <span>Show Recommendations</span>
+              <%= svg_icon(:eye_off) %>
+            </button>
+          </div>
+          <div id="post-recommendations-list" role="tabpanel" aria-labelledby="post-recommendations-tab-artist" tabindex="0">
+            <% 6.times do %>
+              <article class="thumbnail placeholder"></article>
+            <% end %>
+          </div>
         </div>
-        <div id="post-recommendations-toggle">
-          <button
-            type="button"
-            class="st-button"
-            data-action="reveal"
-            aria-controls="post-recommendations"
-            aria-expanded="true"
-            aria-label="Hide Recommendations"
-          >
-            <span>Show Recommendations</span>
-            <%= svg_icon(:eye_off) %>
-          </button>
-        </div>
-        <div id="post-recommendations-list" role="tabpanel" aria-labelledby="post-recommendations-tab-artist" tabindex="0">
-          <% 6.times do %>
-            <article class="thumbnail placeholder"></article>
-          <% end %>
-        </div>
-      </div>
+      <% end %>
 
       <section id="note-staging" style="display: none;">
         <% if @post.can_have_notes? && @post.has_notes?  %>
@@ -176,10 +178,24 @@
       </section>
     </div>
 
-    <div class="tabs" id="mobile-tabs">
-      <button type="button" class="post-mobile-tab" data-action="tags">Tags</button>
+    <div class="tabs" id="mobile-tabs" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="post-mobile-tab"
+        data-action="tags"
+        aria-controls="post-show-display"
+        aria-selected="<%= selected_tab == "tags" %>"
+      >Tags</button>
       <% unless CurrentUser.hide_comments? %>
-        <button type="button" class="post-mobile-tab" data-action="comments">Comments</button>
+        <button
+          type="button"
+          role="tab"
+          class="post-mobile-tab"
+          data-action="comments"
+          aria-controls="post-show-display"
+          aria-selected="<%= selected_tab == "comments" %>"
+        ><%= "Comments (#{@post.comment_count})" %></button>
       <% end %>
     </div>
 
@@ -208,7 +224,10 @@
 
       <% if CurrentUser.can_approve_posts? %>
         <%= render "post_disapprovals/detailed_rejection_dialog" %>
-        <%= render "moderator/post/posts/delete_with_reason_dialog" %>
+        <%= render "staff/post/posts/delete_with_reason_dialog" %>
+      <% end %>
+      <% if CurrentUser.is_janitor? %>
+        <%= render "staff/post/posts/reowner_dialog" %>
       <% end %>
     </div>
 

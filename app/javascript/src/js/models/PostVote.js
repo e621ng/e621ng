@@ -1,5 +1,4 @@
 import TaskQueue, { TaskCancelled } from "@/utility/TaskQueue";
-import User from "@/models/User";
 import Post from "@/pages/posts/posts";
 
 export default class PostVote {
@@ -42,7 +41,7 @@ export default class PostVote {
         body: JSON.stringify({
           score: vote,
           no_unvote: prevent_unvote,
-          authenticity_token: encodeURIComponent(User._authToken),
+          authenticity_token: E621.CurrentUser.encodedAuthToken,
         }),
       });
     }, { name: `Post.vote.${post_id}`, unique: true, delay: 500 }).then(async (response) => {

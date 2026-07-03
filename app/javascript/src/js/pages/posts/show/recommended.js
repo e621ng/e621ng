@@ -1,45 +1,43 @@
 import Page from "@/utility/Page";
-import SVGIcon from "@/utility/SVGIcon";
-import LStorage from "@/utility/storage";
-import Blacklist from "@/core/blacklists";
-import Analytics from "@/core/analytics";
+import LStorage from "@/utility/storage/Local";
+import Blacklist from "@/core/blacklist";
+import Analytics from "@/core/Analytics";
 import Logger from "@/utility/Logger";
 import PerformanceTracker from "@/utility/PerformanceTracker";
-import Settings from "@/utility/Settings";
+import CStorage from "@/utility/storage/Cookie";
+import PostCache from "@/models/PostCache";
+import ThumbnailEngine from "@/components/ThumbnailEngine";
 
 const Recommended = {};
 
 Recommended.RESULT_COUNT = 6;
-Recommended.SHOW_ENGINE_RESULTS = false;
 Recommended.Logger = new Logger("Recommended");
-Recommended.allStates = ["artist", "favorites", "tags"];
-Recommended.validStates = ["artist"];
+Recommended.validStates = ["artist", "tags"];
 Recommended.requestID = 0;
-
-Recommended.remote_actions = ["favorites", "tags"];
 
 Recommended.init = function () {
   if (Recommended.$container.length === 0) return;
 
-  Recommended.SHOW_ENGINE_RESULTS = Settings.Recommender.remote;
-  if (Recommended.SHOW_ENGINE_RESULTS)
-    Recommended.validStates.push("favorites", "tags");
-  const initialAction = Recommended.action;
-  Recommended.Logger.log("Loaded", {
-    action: initialAction,
-    showEngineResults: Recommended.SHOW_ENGINE_RESULTS,
-    validStates: Recommended.validStates,
+  let initialAction = Recommended.action;
+  // Determine which states are actually available based on the presence of tabs in the DOM.
+  Recommended.validStates = Recommended.validStates.filter((state) => {
+    return $(`#post-recommendations-tab-${state}`).length > 0;
   });
-
-
-  // Set recommender UI state
-  if (!Recommended.visible) {
-    Recommended.$wrapper.attr("data-visible", "false");
-    Recommended.$toggle.attr({
-      "aria-expanded": "false",
-      "aria-label": "Show Recommendations",
-    });
+  if (Recommended.validStates.length === 0) {
+    Recommended.Logger.log("No valid recommendation states available.");
+    Recommended.$wrapper.hide();
+    return;
   }
+
+  if (!Recommended.validStates.includes(initialAction))
+    initialAction = Recommended.validStates[0];
+
+  Recommended.Logger.log(
+    "Loaded",
+    `\n ⤷ Initial Action: ${initialAction}`,
+    `\n ⤷ Valid Actions: ${Recommended.validStates.join(", ")}`,
+  );
+
 
   Recommended.$wrapper.attr("data-action", initialAction);
   Recommended.$wrapper.find("#post-recommendations-tabs button").attr("aria-selected", function () {
@@ -54,7 +52,7 @@ Recommended.init = function () {
       // multiple times. The links navigate away from the page regardless, so this is acceptable.
       const data = event.currentTarget.dataset;
       if (!data.target) return;
-      Analytics.track(Analytics.Event.Recommendation, {
+      Analytics.track("recommendation", {
         target: "/posts/" + data.target,
         action: Recommended.action,
       });
@@ -151,10 +149,10 @@ Object.defineProperty(Recommended, "status", {
 
 Object.defineProperty(Recommended, "visible", {
   get: function () {
-    return LStorage.Posts.RecommenderShown;
+    return !CStorage.Posts.SimilarHidden;
   },
   set: function (value) {
-    LStorage.Posts.RecommenderShown = value;
+    CStorage.Posts.SimilarHidden = !value;
     this.$wrapper.attr("data-visible", value ? "true" : "false");
     this.$toggle.attr({
       "aria-expanded": value ? "true" : "false",
@@ -169,6 +167,9 @@ Object.defineProperty(Recommended, "visible", {
 // ============================== //
 
 Recommended.loadState = async function (action = Recommended.action) {
+
+  // ===== UTILITY ===== //
+
   const requestId = ++Recommended.requestID;
   const requestExpired = function () {
     return requestId !== Recommended.requestID;
@@ -190,21 +191,36 @@ Recommended.loadState = async function (action = Recommended.action) {
     perf.clear();
   };
 
+  // ===== BEGIN ===== //
+
   Recommended.Logger.log(`Loading state: "${action}" (Req ID: ${requestId})`);
   const $container = Recommended.$container;
 
   if (!Recommended.validStates.includes(action)) {
-    Recommended.action = "artist";
-    action = "artist";
+    if (Recommended.validStates.length === 0) {
+      Recommended.Logger.log("No valid recommendation states available.");
+      Recommended.status = "error";
+      $container.html("<p class='error'>No recommendations available.</p>");
+      return;
+    }
+    action = Recommended.validStates[0];
+    Recommended.action = action;
   }
 
 
   // 1. Render skeleton placeholders
   if (Recommended.status !== "waiting") {
     Recommended.status = "waiting";
+
+    // Prune old thumbnails from PostCache before clearing the container
+    $container.find(".thumbnail").each((_, element) => {
+      PostCache.prune($(element));
+    });
+    Recommended.Logger.log("Thumbnails pruned", PostCache.stats());
     $container.empty();
+
     for (let i = 0; i < Recommended.RESULT_COUNT; i++)
-      $container.append(Recommended.render_placeholder());
+      $container.append(ThumbnailEngine.renderPlaceholder());
   }
 
 
@@ -226,6 +242,7 @@ Recommended.loadState = async function (action = Recommended.action) {
     if (data.post_data) {
       Recommended.Logger.log("Found included post data", data.post_data);
       Recommended.setCachedPosts(data.post_data);
+      Recommended.Logger.log("Cache state:", PostCache.stats());
       delete data.post_data; // Don't pollute main cache
     }
 
@@ -254,8 +271,9 @@ Recommended.loadState = async function (action = Recommended.action) {
   if (missingPostIds.length > 0) {
     const postLookup = await Recommended.getPosts(missingPostIds);
     if (postLookup) {
-      for (const post of postLookup) posts[post.id] = post;
       Recommended.setCachedPosts(postLookup);
+      posts = Recommended.getCachedPosts(data.order); // Get the updated cache state
+      Recommended.Logger.log("Cache state:", PostCache.stats());
     } else {
       measurePerformance();
       if (requestExpired()) return;
@@ -290,22 +308,23 @@ Recommended.loadState = async function (action = Recommended.action) {
     entry.post = post;
 
     // Prevent layout shifts by replacing placeholders
-    const rendered = Recommended.render(entry);
+    const rendered = ThumbnailEngine.render(post);
     if (!rendered) continue;
     $container
       .find(".thumbnail.placeholder").first()
       .replaceWith(rendered);
     renderedPosts.push(rendered);
   }
-  Recommended.Logger.log(`Rendered ${renderedPosts.length} posts`, renderedPosts);
-  perf.mark("rendered");
 
 
   // 6. Apply blacklist
   if (renderedPosts.length > 0) {
-    Blacklist.add_posts(renderedPosts);
-    Blacklist.update_visibility();
+    Blacklist.addPosts(renderedPosts); // Automatically registers thumbnails with PostCache too
+    Blacklist.updatePostVisibility();
   }
+  Recommended.Logger.log(`Rendered ${renderedPosts.length} posts`, renderedPosts);
+  Recommended.Logger.log(" ⤷ Cache state:", PostCache.stats());
+  perf.mark("rendered");
 
 
   // 7. Finalize
@@ -343,117 +362,19 @@ Recommended.waitUntilReady = function () {
   });
 };
 
-Recommended.render = function (data) {
-  // Login-blocked, Safe-blocked, or just missing preview = can't render thumbnail
-  if (!data || !data.post || !data.post.preview_url) return null;
-
-  // Flags are returned as an object with boolean values, but we need an array
-  let flagArray = [];
-  if (data.post.flags.deleted) flagArray.push("deleted");
-  if (data.post.flags.pending) flagArray.push("pending");
-  if (data.post.flags.flagged) flagArray.push("flagged");
-
-  const article = $("<article>")
-    .addClass("thumbnail")
-    .attr({
-      "data-tags": data.post.tags,
-
-      "data-id": data.post.id,
-      "data-flags": data.post.flags,
-      "data-rating": data.post.rating,
-      "data-file-ext": data.post.file_ext,
-
-      "data-width": data.post.width,
-      "data-height": data.post.height,
-      "data-size": data.post.size,
-
-      "data-score": data.post.score,
-      "data-fav-count": data.post.fav_count,
-      "data-is-favorited": data.post.is_favorited,
-
-      "data-uploader": data.post.uploader,
-      "data-uploader-id": data.post.uploader_id,
-
-      "data-pools": data.post.pools,
-
-      "data-md5": data.post.md5,
-      "data-preview-url": data.post.preview_url,
-      "data-sample-url": data.post.sample_url,
-      "data-file-url": data.post.file_url,
-    });
-
-  // Core
-  const link = $("<a>")
-    .addClass("thm-link")
-    .attr({
-      "href": `/posts/${data.post.id}`,
-      "data-target": data.post.id,
-    })
-    .appendTo(article);
-
-  $("<img>")
-    .attr({
-      "src": data.post.preview_url,
-      "alt": "post #" + data.post.id,
-    })
-    .appendTo(link);
-
-  // Footer
-  const footer = $("<div>")
-    .addClass(`thm-desc thm-rating-${data.post.rating}`)
-    .appendTo(article);
-
-  const descA = $("<span>")
-    .addClass("thm-desc-a")
-    .appendTo(footer);
-
-  const scoreIcon = data.post.score > 0 ? "arrow_up_dash" : (data.post.score < 0 ? "arrow_down_dash" : "score");
-
-  $("<span>")
-    .addClass("thm-desc-m thm-score")
-    .addClass(data.post.score > 0 ? "thm-score-positive" : data.post.score < 0 ? "thm-score-negative" : "thm-score-neutral")
-    .append(SVGIcon.render(scoreIcon))
-    .append(Math.abs(data.post.score))
-    .appendTo(descA);
-
-  $("<span>")
-    .addClass("thm-desc-m thm-favorites")
-    .append(SVGIcon.render("favorites"))
-    .append(data.post.fav_count)
-    .appendTo(descA);
-
-  $("<span>")
-    .addClass("thm-desc-m thm-comments")
-    .append(SVGIcon.render("comments"))
-    .append(data.post.comment_count)
-    .appendTo(descA);
-
-  $("<span>")
-    .addClass("thm-desc-b thm-rating")
-    .text(data.post.rating.toUpperCase())
-    .appendTo(footer);
-
-  return article;
-};
-
-Recommended.render_placeholder = function () {
-  const article = $("<article>")
-    .addClass("thumbnail placeholder");
-
-  return article;
-};
-
 
 // ============================== //
 // ======== API Queries ========= //
 // ============================== //
 
 // Fetches recommendation data from the server
-Recommended.getData = async function (postId, action = "favorites") {
-  const target = Recommended.remote_actions.includes(action) ? "remote" : "artist";
+Recommended.getData = async function (postId, action = "artist") {
+  let target;
+  if (Recommended.validStates.includes(action)) target = action;
+  else throw new Error(`Invalid recommendation action: ${action}`);
   Recommended.Logger.log(`Fetching data: "${postId}/${action}"`);
 
-  return fetch(`/posts/${postId}/similar/${target}.json?mode=${action}&limit=${Recommended.RESULT_COUNT}`)
+  return fetch(`/posts/${postId}/similar/${target}.json?limit=${Recommended.RESULT_COUNT}`)
     .then(
       (response) => {
         if (!response.ok) {
@@ -484,7 +405,7 @@ Recommended.getData = async function (postId, action = "favorites") {
 // Fetches post data for the given post IDs
 Recommended.getPosts = async function (postIds) {
   Recommended.Logger.log("Fetching posts:", postIds);
-  return fetch(`/posts/${Recommended.postId}/similar/lookup.json?post_ids=${postIds.join(",")}`)
+  return fetch(`/posts.json?v2=true&mode=thumbnail&tags=id:${postIds.join(",")}`)
     .then(
       (response) => {
         if (!response.ok) {
@@ -520,15 +441,8 @@ Recommended.setCachedRecommendations = function (action, data) {
   Recommended._recommendationCache[action] = {...data};
 };
 
-Recommended._postCache = {};
 Recommended.getCachedPosts = function (postIds) {
-  const posts = {};
-  for (const postId of postIds) {
-    if (Recommended._postCache[postId]) {
-      posts[postId] = Recommended._postCache[postId];
-    }
-  }
-
+  const posts = PostCache.getManyByID(postIds);
   const count = Object.keys(posts).length;
   Recommended.Logger.log(`Posts: ${count}/${postIds.length} cached`);
   if (count === 0) return {};
@@ -537,7 +451,7 @@ Recommended.getCachedPosts = function (postIds) {
 
 Recommended.setCachedPosts = function (posts) {
   posts.forEach(post => {
-    Recommended._postCache[post.id] = post;
+    PostCache.fromDeferredPosts(post.id, post);
   });
 };
 

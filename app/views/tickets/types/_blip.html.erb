@@ -1,13 +1,14 @@
 <% if @ticket.content %>
-    <tr>
-      <td><span class="title">Reported Blip</span></td>
-      <td>
-        <%= link_to "Blip by #{@ticket.content.creator_name}", blip_path(@ticket.content) %>
-      </td>
-    </tr>
+  <tr>
+    <td><span class="title">Reported Blip</span></td>
+    <td>
+      <%= link_to "Blip by #{@ticket.content.creator_name}", blip_path(@ticket.content) %>
+    </td>
+  </tr>
+  <%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "Blip" } %>
 <% else %>
-    <tr>
-      <td><span class="title">Reported Blip</span></td>
-      <td><span class="text-error">Blip has been deleted</span></td>
-    </tr>
+  <tr>
+    <td><span class="title">Reported Blip</span></td>
+    <td><span class="text-error">Blip has been deleted</span></td>
+  </tr>
 <% end %>

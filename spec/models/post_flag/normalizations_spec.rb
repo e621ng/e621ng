@@ -10,65 +10,31 @@ RSpec.describe PostFlag do
   include_context "as admin"
 
   describe "update_reason (on: :create)" do
-    describe "standard reason names" do
-      it "sets reason to the mapped text for 'young_human'" do
-        flag = create(:post_flag, reason_name: "young_human")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["young_human"])
-      end
-
-      it "sets reason to the mapped text for 'dnp_artist'" do
-        flag = create(:post_flag, reason_name: "dnp_artist")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["dnp_artist"])
-      end
-
-      it "sets reason to the mapped text for 'pay_content'" do
-        flag = create(:post_flag, reason_name: "pay_content")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["pay_content"])
-      end
-
-      it "sets reason to the mapped text for 'previously_deleted'" do
-        flag = create(:post_flag, reason_name: "previously_deleted")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["previously_deleted"])
-      end
-
-      it "sets reason to the mapped text for 'real_porn'" do
-        flag = create(:post_flag, reason_name: "real_porn")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["real_porn"])
-      end
-
-      it "sets reason to the mapped text for 'uploading_guidelines'" do
-        flag = create(:post_flag, reason_name: "uploading_guidelines", note: "Explanation.")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["uploading_guidelines"])
-      end
-
-      it "sets reason to the mapped text for 'trace'" do
-        flag = create(:post_flag, reason_name: "trace", note: "Explanation.")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["trace"])
-      end
-
-      it "sets reason to the mapped text for 'corrupt'" do
-        flag = create(:post_flag, reason_name: "corrupt", note: "Explanation.")
-        expect(flag.reason).to eq(PostFlag::MAPPED_REASONS["corrupt"])
-      end
+    it "sets flag's reason to the flag reason text" do
+      flag_reason = create(:post_flag_reason)
+      attrs = { reason_name: flag_reason.name }
+      attrs[:note] = "Explanation." if flag_reason.needs_explanation?
+      flag = create(:post_flag, **attrs)
+      expect(flag.reason).to eq(flag_reason.reason)
     end
 
-    describe "'inferior' reason" do
+    describe "'needs_parent_id' is set" do
       # parent_id is an attr_accessor consumed by validate_reason / update_reason
       # (both on: :create). It must be set on the instance *before* save so the
       # validation/callback hooks can read it.
       let(:parent_post) { create(:post) }
 
       def make_inferior_flag(child_post:, parent_id:)
-        flag = build(:post_flag, post: child_post, reason_name: "inferior")
+        flag = build(:needs_parent_id_post_flag, post: child_post)
         flag.parent_id = parent_id
         flag.save!
         flag
       end
 
-      it "sets reason to the inferior duplicate message" do
+      it "adds the post id to the reason message" do
         child_post = create(:post)
         flag = make_inferior_flag(child_post: child_post, parent_id: parent_post.id)
-        expect(flag.reason).to eq("Inferior version/duplicate of post ##{parent_post.id}")
+        expect(flag.reason).to eq("Duplicate or inferior version of another post (post ##{parent_post.id})")
       end
 
       it "updates post.parent_id to the given parent_id" do

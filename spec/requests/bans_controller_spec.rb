@@ -166,6 +166,18 @@ RSpec.describe BansController do
         end.not_to change(Ban, :count)
         expect(response).to have_http_status(:ok)
       end
+
+      it "creates a soft ban (level BLOCKED, login allowed) when prevent_login is not set" do
+        post bans_path, params: { ban: { user_id: ban_target.id, reason: "Violation.", duration: 7 } }
+        expect(Ban.last.prevent_login?).to be(false)
+        expect(ban_target.reload.level).to eq(UserLevel::BLOCKED)
+      end
+
+      it "creates a hard ban (level set to BLOCKED) when prevent_login is '1'" do
+        post bans_path, params: { ban: { user_id: ban_target.id, reason: "Violation.", duration: 7, prevent_login: "1" } }
+        expect(Ban.last.prevent_login?).to be(true)
+        expect(ban_target.reload.level).to eq(UserLevel::BLOCKED)
+      end
     end
   end
 

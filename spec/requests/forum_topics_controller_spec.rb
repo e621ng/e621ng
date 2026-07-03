@@ -17,6 +17,7 @@ require "rails_helper"
 RSpec.describe ForumTopicsController do
   let(:user) { RSpec::Mocks.with_temporary_scope { create(:user) } }
   let(:mod) { create(:moderator_user) }
+  let(:janitor) { create(:janitor_user) }
   let(:admin) { create(:admin_user) }
   let(:forum_topic) do
     CurrentUser.scoped(user) { create(:forum_topic, title: "my forum topic") }
@@ -43,7 +44,7 @@ RSpec.describe ForumTopicsController do
     end
 
     it "excludes topics in categories above the user's view level" do
-      hidden_category = create(:forum_category, can_view: User::Levels::MODERATOR)
+      hidden_category = create(:forum_category, can_view: UserLevel::MODERATOR)
       hidden_topic = CurrentUser.scoped(mod) { create(:forum_topic, category: hidden_category) }
 
       sign_in_as user
@@ -112,7 +113,7 @@ RSpec.describe ForumTopicsController do
       expect(response).to have_http_status(:success)
     end
 
-    it "returns 403 for a hidden topic when the user is not a moderator or creator" do
+    it "returns 403 for a hidden topic when the user is not staff or creator" do
       forum_topic.update_columns(is_hidden: true)
       other_user = create(:user)
       sign_in_as other_user
@@ -120,9 +121,9 @@ RSpec.describe ForumTopicsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "allows a moderator to view a hidden topic" do
+    it "allows staff to view a hidden topic" do
       forum_topic.update_columns(is_hidden: true)
-      sign_in_as mod
+      sign_in_as janitor
       get forum_topic_path(forum_topic)
       expect(response).to have_http_status(:success)
     end
@@ -219,6 +220,22 @@ RSpec.describe ForumTopicsController do
       sign_in_as user
       put forum_topic_path(forum_topic), params: { forum_topic: { title: "same", is_sticky: true } }
       expect(forum_topic.reload.is_sticky).to be(false)
+    end
+
+    it "updates updated_at when the creator edits the topic" do
+      forum_topic.update_columns(updated_at: 1.hour.ago)
+      old_updated_at = forum_topic.updated_at
+      sign_in_as user
+      put forum_topic_path(forum_topic), params: { forum_topic: { title: "new title" } }
+      expect(forum_topic.reload.updated_at).to be > old_updated_at
+    end
+
+    it "updates updated_at when a moderator edits the topic" do
+      forum_topic.update_columns(updated_at: 1.hour.ago)
+      old_updated_at = forum_topic.updated_at
+      sign_in_as mod
+      put forum_topic_path(forum_topic), params: { forum_topic: { title: "mod title" } }
+      expect(forum_topic.reload.updated_at).to be > old_updated_at
     end
   end
 

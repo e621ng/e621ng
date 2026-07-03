@@ -30,7 +30,7 @@ RSpec.describe Setting do
     # limits
     # -------------------------------------------------------------------------
     describe "limits" do
-      it { expect(Setting.uploads_min_level).to eq(User::Levels::MEMBER) }
+      it { expect(Setting.uploads_min_level).to eq(UserLevel::MEMBER) }
       it { expect(Setting.hide_pending_posts_for).to eq(0) }
     end
 

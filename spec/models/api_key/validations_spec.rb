@@ -90,59 +90,59 @@ RSpec.describe ApiKey do
     # This validator calls user.api_keys.size (live DB count), so all
     # pre-existing keys must be created (not built) in the DB.
 
-    describe "regular user (limit: 5)" do
+    describe "regular user (limit: 8)" do
       include_context "as member"
 
       it "is valid when the user is below their limit" do
-        create_list(:api_key, 4, user: CurrentUser.user)
+        create_list(:api_key, 7, user: CurrentUser.user)
         key = build(:api_key, user: CurrentUser.user)
         expect(key).to be_valid, key.errors.full_messages.join(", ")
       end
 
       it "is invalid on create when the user has reached their limit" do
-        create_list(:api_key, 5, user: CurrentUser.user)
+        create_list(:api_key, 8, user: CurrentUser.user)
         expect do
           ApiKey.generate!(CurrentUser.user, name: "over_limit")
         end.to raise_error(ActiveRecord::RecordInvalid, /API key limit reached/)
       end
 
       it "does not run on update (a key at-limit can still be saved)" do
-        create_list(:api_key, 5, user: CurrentUser.user)
+        create_list(:api_key, 8, user: CurrentUser.user)
         existing_key = ApiKey.for_user(CurrentUser.user.id).first
         existing_key.name = "Updated Name"
         expect(existing_key).to be_valid, existing_key.errors.full_messages.join(", ")
       end
     end
 
-    describe "privileged user (limit: 10)" do
+    describe "privileged user (limit: 15)" do
       include_context "as privileged"
 
-      it "is invalid on create when the privileged user has reached their limit of 10" do
-        create_list(:api_key, 10, user: CurrentUser.user)
+      it "is invalid on create when the privileged user has reached their limit of 15" do
+        create_list(:api_key, 15, user: CurrentUser.user)
         expect do
           ApiKey.generate!(CurrentUser.user, name: "over_limit")
         end.to raise_error(ActiveRecord::RecordInvalid, /API key limit reached/)
       end
 
-      it "is still valid when the privileged user has 9 keys (below limit)" do
-        create_list(:api_key, 9, user: CurrentUser.user)
+      it "is still valid when the privileged user has 14 keys (below limit)" do
+        create_list(:api_key, 14, user: CurrentUser.user)
         key = build(:api_key, user: CurrentUser.user)
         expect(key).to be_valid, key.errors.full_messages.join(", ")
       end
     end
 
-    describe "staff / janitor (limit: 20)" do
+    describe "staff / janitor (limit: 30)" do
       include_context "as janitor"
 
-      it "is invalid on create when the janitor has reached their limit of 20" do
-        create_list(:api_key, 20, user: CurrentUser.user)
+      it "is invalid on create when the janitor has reached their limit of 30" do
+        create_list(:api_key, 30, user: CurrentUser.user)
         expect do
           ApiKey.generate!(CurrentUser.user, name: "over_limit")
         end.to raise_error(ActiveRecord::RecordInvalid, /API key limit reached/)
       end
 
-      it "is still valid when the janitor has 19 keys (below limit)" do
-        create_list(:api_key, 19, user: CurrentUser.user)
+      it "is still valid when the janitor has 29 keys (below limit)" do
+        create_list(:api_key, 29, user: CurrentUser.user)
         key = build(:api_key, user: CurrentUser.user)
         expect(key).to be_valid, key.errors.full_messages.join(", ")
       end

@@ -1,0 +1,41 @@
+name: 0. Close Stale PRs
+
+on:
+  schedule:
+    # Once a day at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+
+jobs:
+  close-stale-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close old draft or failing PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # Cutoff: PRs with no activity in the last 30 days.
+          cutoff=$(date -u -d '30 days ago' +%Y-%m-%d)
+
+          draft=$(gh search prs --repo "$GH_REPO" --state open --draft \
+            --updated "<$cutoff" --limit 200 \
+            --json number,title --jq '.[] | {number, title, reason: "it is still a draft"}')
+
+          failing=$(gh search prs --repo "$GH_REPO" --state open --checks failure \
+            --updated "<$cutoff" --limit 200 \
+            --json number,title --jq '.[] | {number, title, reason: "its checks are failing"}')
+
+          # Merge both sets; when a PR is both draft and failing, draft wins (it's listed first).
+          printf '%s\n%s\n' "$draft" "$failing" \
+            | jq -rs 'group_by(.number) | map(.[0])[] | [.number, .title, .reason] | @tsv' \
+            | while IFS=$'\t' read -r number title reason; do
+                echo "Closing PR #$number ($title) — no activity in over 30 days and $reason."
+                gh pr close "$number" \
+                  --comment "This pull request has had no activity for over a month and $reason, so it is being closed automatically. Feel free to re-open it once it is ready for review."
+              done

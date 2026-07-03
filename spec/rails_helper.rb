@@ -39,6 +39,8 @@ require "spec_helper"
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 
+# require "webmock/rspec"
+
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
 require "factory_bot_rails"
@@ -92,7 +94,7 @@ RSpec.configure do |config|
       user.email = "admin@e621.local"
       user.can_upload_free = true
       user.can_approve_posts = true
-      user.level = User::Levels::ADMIN
+      user.level = UserLevel::ADMIN
 
       user.is_bd_staff = true
       user.is_bd_auditor = true
@@ -105,7 +107,7 @@ RSpec.configure do |config|
       user.email = "system@e621.local"
       user.can_upload_free = true
       user.can_approve_posts = true
-      user.level = User::Levels::JANITOR
+      user.level = UserLevel::JANITOR
     end
 
     ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") do |category|

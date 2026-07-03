@@ -8,29 +8,25 @@
 
   <%= render "layouts/navigation/navigation" %>
 
-  <% if CurrentUser.has_mail? && cookies[:hide_dmail_notice] != "true" %>
+  <% if CurrentUser.has_mail? && cookies[:hide_dmail_notice] != "1" %>
     <%= render "users/dmail_notice" %>
   <% end %>
 
   <div id="page" role="main">
     <%= render "news_updates/notice", news_update: NewsUpdate.recent %>
 
-    <% if CurrentUser.user.is_banned? %>
+    <% if CurrentUser.user.is_restricted? && CurrentUser.user.recent_ban&.prevent_login? %>
       <%= render "users/ban_notice" %>
     <% end %>
 
-    <% if !CurrentUser.is_anonymous? && !CurrentUser.is_verified? %>
+    <% if CurrentUser.user.is_logged_in? && !CurrentUser.is_verified? %>
       <%= render "users/validation_notice" %>
     <% end %>
 
-    <%# Notification Toasts %>
-    <div class="ui-corner-all ui-state-highlight" id="notice" style="<%= "display: none;" unless flash[:notice] %>">
-      <span><%= format_text(flash[:notice], inline: true) %>.</span>
-      <a href="#" id="close-notice-link">close</a>
-    </div>
-
     <%= yield :layout %>
   </div>
+
+  <%= render partial: "layouts/partials/toasts" %>
 
   <% unless content_for?(:skip_tos_warning) %>
     <%= render "static/tos_warning" %>
@@ -39,7 +35,7 @@
   <%= render "static/footer" %>
   <%= render "ads/revive" %>
   <% if Danbooru.config.fsc_modal_enabled? %>
-    <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js"></script>
+    <script src="https://assets.freespeechcoalition.com/code/avActionModal.min.js" nonce="<%= content_security_policy_nonce %>"></script>
   <% end %>
 
   <%= render "static/deferred_posts" %>

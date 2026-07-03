@@ -9,7 +9,7 @@
     <% if CurrentUser.is_member? %>
       <%= render "posts/partials/index/mode_menu" %>
     <% end %>
-    <%= render "posts/partials/index/blacklist" %>
+    <%= render partial: "application/blacklist" %>
 
     <% if @post_set.related_tags.any? %>
       <section id="tag-box">
