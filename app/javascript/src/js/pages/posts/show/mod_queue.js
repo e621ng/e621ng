@@ -1,6 +1,6 @@
 import Post from "@/pages/posts/posts";
-import LStorage from "@/utility/storage";
 import Dialog from "@/utility/dialog";
+import CStorage from "@/utility/storage/Cookie";
 
 let ModQueue = {};
 
@@ -53,9 +53,13 @@ ModQueue.delete_with_reason_dialog = function (event) {
   const hasReason = data.fromFlag !== "true";
   const reason = data.reason;
 
+  const reasonInputAndLabel = $("#delete-with-reason-dialog-labeled-input");
+  reasonInputAndLabel[0].style.display = hasReason ? "" : "none";
+
   const reasonInput = $("#delete-with-reason-dialog-input");
-  reasonInput.val(reason);
-  reasonInput[0].style.display = hasReason ? "" : "none";
+  if (hasReason) {
+    reasonInput.val(reason);
+  }
 
   form.off("submit").on("submit", (event) => {
     event.preventDefault();
@@ -84,25 +88,23 @@ ModQueue.delete_with_reason_dialog = function (event) {
 };
 
 $(function () {
-  if (!$("body").data("user-is-approver")) return;
+  if (!$("body").data("user-can-approve-posts")) return;
 
   // Toolbar visibility
-  let toolbarVisible = LStorage.Posts.JanitorToolbar;
+  let toolbarVisible = CStorage.Posts.JanitorToolbar;
   const toolbar = $("#pending-approval-notice");
-  if (toolbarVisible) toolbar.addClass("enabled");
 
   const toolbarToggle = $("#janitor-toolbar-toggle")
     .on("click", (event) => {
       event.preventDefault();
       toolbarVisible = !toolbarVisible;
-      LStorage.Posts.JanitorToolbar = toolbarVisible;
+      CStorage.Posts.JanitorToolbar = toolbarVisible;
 
       toolbar.toggleClass("enabled");
       toolbarToggle.text(toolbarVisible ? "Approvals: On" : "Approvals: Off");
 
       return false;
-    })
-    .text(toolbarVisible ? "Approvals: On" : "Approvals: Off");
+    });
 
   // Toolbar buttons
   $(document).on("click.danbooru", ".quick-mod .detailed-rejection-link", ModQueue.detailed_rejection_dialog);

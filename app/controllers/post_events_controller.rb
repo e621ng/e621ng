@@ -11,7 +11,7 @@ class PostEventsController < ApplicationController
     )
     respond_with(@events) do |format|
       format.json do
-        render_events_json(PostEventBlueprint.render_as_hash(Draper.undecorate(@events)))
+        render_events_json(PostEventBlueprint.render_as_hash(Draper.undecorate(@events)), legacy: params[:v2] != "true")
       end
     end
   end

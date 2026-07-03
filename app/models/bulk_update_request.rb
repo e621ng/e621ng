@@ -147,6 +147,8 @@ class BulkUpdateRequest < ApplicationRecord
     def forum_topic_id_not_invalid
       if forum_topic_id && !forum_topic
         errors.add(:base, "Forum topic ID is invalid")
+      elsif forum_topic && !forum_topic.can_reply?(CurrentUser.user)
+        errors.add(:base, "You cannot post to that forum topic")
       end
     end
 
@@ -226,5 +228,9 @@ class BulkUpdateRequest < ApplicationRecord
 
   def estimate_update_count
     BulkUpdateRequestImporter.new(script, nil).estimate_update_count
+  end
+
+  def dtext_label
+    "[bur:#{id}]"
   end
 end

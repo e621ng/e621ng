@@ -3,9 +3,9 @@
   <%= f.input :post_id, label: "Post #" %>
   <%= f.input :reason, label: "Reason" %>
   <%= f.input :description, label: "Description" %>
-  <%= f.input :description_changed, label: "Description Changed", collection: [%w[Yes true], %w[No false]], include_blank: true %>
-  <%= f.input :rating_changed, label: "Rating Changed To", collection: rating_collection + [%w[Any any]], include_blank: true %>
-  <%= f.input :rating, label: "Final Rating", collection: rating_collection, include_blank: true %>
+  <%= f.input :description_changed, label: "Description Changed", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
+  <%= f.input :rating_changed, label: "Rating Changed To", collection: rating_collection + [["Any rating", "any"]], include_blank: "Any" %>
+  <%= f.input :rating, label: "Final Rating", collection: rating_collection, include_blank: "Any" %>
   <%= f.input :parent_id, label: "Parent ID" %>
   <%= f.input :parent_id_changed, label: "Parent Changed To" %>
   <%= f.input :tags, label: "Final Tags" %>
@@ -14,6 +14,6 @@
   <%= f.input :locked_tags, label: "Final Locked Tags" %>
   <%= f.input :locked_tags_added, label: "Added Locked Tags" %>
   <%= f.input :locked_tags_removed, label: "Removed Locked Tags" %>
-  <%= f.input :source_changed, label: "Source Changed", collection: [%w[Yes true], %w[No false]], include_blank: true %>
-  <%= f.input :uploads, label: "Uploads", collection: [%w[Included included], %w[Excluded excluded], %w[Only only]], include_blank: true %>
+  <%= f.input :source_changed, label: "Source Changed", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
+  <%= f.input :uploads, label: "Uploads", collection: [%w[Included included], %w[Excluded excluded], %w[Only only]], include_blank: "Any" %>
 <% end %>

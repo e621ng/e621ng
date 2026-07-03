@@ -2,8 +2,8 @@
 // Rollout at 50rem
 .post-index {
   grid-template-areas:
-    "search  content" 
-    "sidebar content";
+    "search  content "
+    "sidebar content ";
   grid-template-columns: 16rem minmax(0, 1fr);
   grid-template-rows: min-content 1fr;
 
@@ -16,11 +16,11 @@
       bottom: -1.633rem;
       right: 0.5rem;
 
-      #search-fullscreen { display: flex; }
-      #search-settings {
-        height: inherit;
-        width: inherit;
-        svg { height: inherit;}
+      #toggle-fullscreen { display: flex; }
+
+      .sc-btn {
+        height: 1.5rem;
+        svg { height: 1.25rem; }
       }
     }
   }
@@ -35,4 +35,8 @@
     padding: 0.5rem 0.75rem themed("content-padding-bottom");
     max-width: 100%;
   }
+}
+
+.c-posts.a-index div#page div#news  {
+  margin: 0;
 }

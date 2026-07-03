@@ -55,19 +55,29 @@ class Upload < ApplicationRecord
 
   module DirectURLMethods
     def direct_url=(source)
-      source = source.unicode_normalize(:nfc)
+      unless source.nil?
+        source = source.unicode_normalize(:nfc)
 
-      # percent encode unicode characters in urls
-      if source =~ %r!\Ahttps?://!i
-        source = Addressable::URI.normalized_encode(source) rescue source
+        # percent encode unicode characters in urls
+        if source =~ %r{\Ahttps?://}i
+          source = begin
+            Addressable::URI.normalized_encode(source)
+          rescue StandardError
+            source
+          end
+        end
       end
 
       super(source)
     end
 
     def direct_url_parsed
-      return nil unless direct_url =~ %r!\Ahttps?://!i
-      Addressable::URI.heuristic_parse(direct_url) rescue nil
+      return nil unless direct_url =~ %r{\Ahttps?://}i
+      begin
+        Addressable::URI.heuristic_parse(direct_url)
+      rescue StandardError
+        nil
+      end
     end
   end
 
@@ -149,7 +159,7 @@ class Upload < ApplicationRecord
   include UploaderMethods
   extend SearchMethods
   include ApiMethods
-  include DirectURLMethods
+  prepend DirectURLMethods
 
   def uploader_is_not_limited
     # Uploads created when approving a replacemnet should always go through

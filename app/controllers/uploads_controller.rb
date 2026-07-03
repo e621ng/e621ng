@@ -2,7 +2,7 @@
 
 class UploadsController < ApplicationController
   before_action :member_only
-  before_action :janitor_only, only: [:index, :show]
+  before_action :staff_only, only: [:index, :show]
   before_action :ensure_uploads_enabled, only: %i[new create]
   respond_to :html, :json
   content_security_policy only: [:new] do |p|
@@ -20,6 +20,7 @@ class UploadsController < ApplicationController
 
   def index
     @uploads = Upload.search(search_params).includes(:post, :uploader).paginate(params[:page], :limit => params[:limit])
+    Post.preload_stats!(@uploads.map(&:post))
     respond_with(@uploads)
   end
 

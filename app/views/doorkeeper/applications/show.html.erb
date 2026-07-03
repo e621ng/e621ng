@@ -1,0 +1,58 @@
+<h1><%= @application.name %></h1>
+
+<%= render "secondary_links" %>
+
+<div class="oauth-app-readonly">
+  <div class="field">
+    <label>Owner</label>
+    <div><%= link_to_user @application.owner %></div>
+  </div>
+
+  <div class="field">
+    <label>Client ID</label>
+    <input type="text" value="<%= @application.uid %>" readonly>
+  </div>
+
+  <div class="field">
+    <label>Confidential</label>
+    <div><%= @application.confidential? ? "Yes" : "No" %></div>
+  </div>
+
+  <div class="field">
+    <label>Scopes</label>
+    <div><%= @application.scopes.to_a.join(", ") %></div>
+  </div>
+
+  <div class="field">
+    <label>Redirect URIs</label>
+    <div><%= safe_join(@application.redirect_uri.to_s.split, tag.br) %></div>
+  </div>
+
+  <% if @application.homepage_url.present? %>
+    <div class="field">
+      <label>Homepage URL</label>
+      <div><%= link_to @application.homepage_url, @application.homepage_url %></div>
+    </div>
+  <% end %>
+
+  <% if @application.description.present? %>
+    <div class="field">
+      <label>Description</label>
+      <div><%= @application.description %></div>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <label>Minimum user level</label>
+    <% min = @application.minimum_user_level.to_i %>
+    <div><%= min == 0 ? "Any logged-in user" : "#{User.level_hash.key(min)} or higher" %></div>
+  </div>
+
+  <p class="oauth-app-created">
+    Created <%= time_ago_in_words_tagged(@application.created_at) %>.
+  </p>
+</div>
+
+<% content_for(:page_title) do %>
+  <%= @application.name %>
+<% end %>

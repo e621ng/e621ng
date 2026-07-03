@@ -5,7 +5,7 @@ class Favorite < ApplicationRecord
   end
 
   class HiddenError < User::PrivilegeError
-    def initialize(msg = "This users favorites are hidden")
+    def initialize(msg = "This user's favorites are hidden")
       super
     end
   end

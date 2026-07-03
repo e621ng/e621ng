@@ -7,29 +7,32 @@ class ForumPost < ApplicationRecord
   belongs_to_creator
   belongs_to_updater
   user_status_counter :forum_post_count
-  belongs_to :topic, :class_name => "ForumTopic"
+  belongs_to :topic, class_name: "ForumTopic"
   belongs_to :warning_user, class_name: "User", optional: true
   has_many :votes, class_name: "ForumPostVote"
   has_one :tag_alias
   has_one :tag_implication
   has_one :bulk_update_request
-  before_validation :initialize_is_hidden, :on => :create
+  before_validation :initialize_is_hidden, on: :create
+  before_save :readd_tag_change_request_label, if: :will_save_change_to_body?
   after_create :update_topic_updated_at_on_create
   after_destroy :update_topic_updated_at_on_destroy
   normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
-  validates :body, :creator_id, presence: true
+
+  validates :body, presence: true
   validates :body, length: { minimum: 1, maximum: Danbooru.config.forum_post_max_size }
-  validate :validate_topic_is_unlocked
-  validate :topic_id_not_invalid
-  validate :topic_is_not_restricted, :on => :create
-  validate :category_allows_replies, on: :create
+  validates :creator_id, presence: true
+
+  validate :validate_topic_is_valid
+  validate :validate_topic_can_access, on: :create
+  validate :validate_topic_can_reply, if: -> { will_save_change_to_body? }
   validate :validate_creator_is_not_limited, on: :create
-  before_destroy :validate_topic_is_unlocked
+
   after_save :delete_topic_if_original_post
-  after_update(:if => ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
+  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && rec.updater_id != rec.creator_id }) do |rec|
     ModAction.log(:forum_post_update, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
-  after_update(:if => ->(rec) { rec.saved_change_to_is_hidden? }) do |rec|
+  after_update(if: ->(rec) { rec.saved_change_to_is_hidden? }) do |rec|
     ModAction.log(rec.is_hidden ? :forum_post_hide : :forum_post_unhide, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
   after_destroy do |rec|
@@ -37,6 +40,69 @@ class ForumPost < ApplicationRecord
   end
 
   attr_accessor :bypass_limits
+
+  module AccessMethods
+    ### Standard Permissions ###
+
+    def can_access?(user = CurrentUser.user)
+      return false if user.blank?
+      return false unless topic&.can_access?(user)
+      return true if user.is_staff?
+      return true if user.id == creator_id
+      return false if is_hidden?
+      true
+    end
+
+    def can_edit?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false unless user.is_member?
+      return true if user.is_admin?
+      return false if was_warned?
+      return false if topic.is_locked? && !topic.can_lock?(user)
+      return true if creator_id == user.id
+      false
+    end
+
+    def can_hide?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false unless user.is_member?
+      return true if user.is_moderator?
+      return false if was_warned?
+      return false if votable?
+      return true if user.id == creator_id
+      false
+    end
+
+    def can_unhide?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_moderator?
+      false
+    end
+
+    def can_destroy?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_admin?
+      false
+    end
+
+    ### Warnable ###
+
+    def can_warn?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return true if user.is_moderator?
+      false
+    end
+
+    ### Model Specific ###
+
+    def can_vote?(user = CurrentUser.user)
+      return false unless can_access?(user)
+      return false unless user.is_member?
+      # Note that this does not check whether there is a valid votable request here.
+      # Due to the explosive nature of queries involved, that check is done separately.
+      true
+    end
+  end
 
   module SearchMethods
     def topic_title_matches(title)
@@ -53,12 +119,12 @@ class ForumPost < ApplicationRecord
 
     def permitted(user)
       q = joins(topic: :category).where("forum_categories.can_view <= ?", user.level)
-      q = q.joins(:topic).where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_moderator?
+      q = q.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_staff?
       q
     end
 
     def active(user)
-      return all if user.is_moderator?
+      return all if user.is_staff?
       where("forum_posts.is_hidden = FALSE OR forum_posts.creator_id = ?", user.id)
     end
 
@@ -86,7 +152,43 @@ class ForumPost < ApplicationRecord
     end
   end
 
+  module ValidationMethods
+    def validate_topic_is_valid
+      return true unless topic_id.present? && topic.blank?
+
+      errors.add(:base, "Topic ID is invalid")
+      false
+    end
+
+    def validate_topic_can_access
+      return true if topic&.can_access?(creator)
+
+      errors.add(:topic, "is restricted")
+      false
+    end
+
+    def validate_topic_can_reply
+      return true if topic&.can_reply?(new_record? ? creator : (updater || creator))
+
+      errors.add(:topic, "does not allow replies")
+      false
+    end
+
+    def validate_creator_is_not_limited
+      return true if bypass_limits
+
+      allowed = creator.can_forum_post_with_reason
+      if allowed != true
+        errors.add(:creator, User.throttle_reason(allowed))
+        return false
+      end
+      true
+    end
+  end
+
   extend SearchMethods
+  include AccessMethods
+  include ValidationMethods
 
   def tag_change_request
     bulk_update_request || tag_alias || tag_implication
@@ -96,6 +198,12 @@ class ForumPost < ApplicationRecord
   # forum post is displayed. Otherwise, this results
   # in N+3 database queries for every forum post.
   def votable?
+    # Check if the association is already loaded.
+    return true if association(:tag_alias).loaded? && tag_alias.present?
+    return true if association(:tag_implication).loaded? && tag_implication.present?
+    return true if association(:bulk_update_request).loaded? && bulk_update_request.present?
+
+    # If it is not, look up tag change requests for this post.
     TagAlias.where(forum_post_id: id).exists? ||
       TagImplication.where(forum_post_id: id).exists? ||
       BulkUpdateRequest.where(forum_post_id: id).exists?
@@ -104,68 +212,6 @@ class ForumPost < ApplicationRecord
   def vote_score_calculation
     return 0.0 unless votable? && votes.count > 0
     ((votes.up.count - votes.down.count) / votes.count.to_d).to_d
-  end
-
-  def validate_topic_is_unlocked
-    return if CurrentUser.is_moderator?
-    return if topic.nil?
-
-    if topic.is_locked?
-      errors.add(:topic, "is locked")
-      throw :abort
-    end
-  end
-
-  def validate_creator_is_not_limited
-    return true if bypass_limits
-
-    allowed = creator.can_forum_post_with_reason
-    if allowed != true
-      errors.add(:creator, User.throttle_reason(allowed))
-      return false
-    end
-    true
-  end
-
-  def topic_id_not_invalid
-    if topic_id && !topic
-      errors.add(:base, "Topic ID is invalid")
-      return false
-    end
-  end
-
-  def topic_is_not_restricted
-    if topic && !topic.visible?(creator)
-      errors.add(:topic, "is restricted")
-      return false
-    end
-  end
-
-  def category_allows_replies
-    if topic && !topic.can_reply?(creator)
-      errors.add(:topic, "does not allow replies")
-      return false
-    end
-  end
-
-  def editable_by?(user)
-    return true if user.is_admin?
-    return false if was_warned?
-    creator_id == user.id && visible?(user)
-  end
-
-  def visible?(user)
-    user.is_moderator? || (topic.visible?(user) && (!is_hidden? || user.id == creator_id))
-  end
-
-  def can_hide?(user)
-    return true if user.is_moderator?
-    return false if was_warned?
-    user.id == creator_id
-  end
-
-  def can_delete?(user)
-    user.is_admin?
   end
 
   def update_topic_updated_at_on_create
@@ -189,14 +235,14 @@ class ForumPost < ApplicationRecord
   def update_topic_updated_at_on_hide
     max = ForumPost.where(:topic_id => topic.id, :is_hidden => false).order("updated_at desc").first
     if max
-      ForumTopic.where(:id => topic.id).update_all(["updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
+      ForumTopic.where(:id => topic.id).update_all(["updated_at = ?, updater_id = ?", max.updated_at, max.updater_id || CurrentUser.id])
     end
   end
 
   def update_topic_updated_at_on_destroy
     max = ForumPost.where(:topic_id => topic.id, :is_hidden => false).order("updated_at desc").first
     if max
-      ForumTopic.where(:id => topic.id).update_all(["response_count = response_count - 1, updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
+      ForumTopic.where(:id => topic.id).update_all(["response_count = response_count - 1, updated_at = ?, updater_id = ?", max.updated_at, max.updater_id || CurrentUser.id])
       topic.response_count -= 1
     else
       ForumTopic.where(:id => topic.id).update_all("response_count = response_count - 1")
@@ -226,6 +272,16 @@ class ForumPost < ApplicationRecord
     end
 
     true
+  end
+
+  def readd_tag_change_request_label
+    return if tag_change_request.blank?
+
+    label = tag_change_request.dtext_label
+    current_body = body.to_s
+    return if current_body.lstrip.start_with?(label)
+    normalized_body = current_body.sub(Regexp.new(Regexp.escape(label)), "").lstrip
+    self.body = normalized_body.present? ? "#{label}\n\n#{normalized_body}" : label
   end
 
   def update_vote_score

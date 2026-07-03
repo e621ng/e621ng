@@ -16,10 +16,10 @@ class TagRelationships {
       type: "POST",
       dataType: "json",
     }).done(function () {
-      E621.Flash.notice(`Accepted ${human}.`);
+      E621.Toast.notice(`Accepted ${human}.`);
       parent.slideUp("fast");
     }).fail(function () {
-      E621.Flash.error(`Failed to accept ${human}.`);
+      E621.Toast.alert(`Failed to accept ${human}.`);
     });
   }
 
@@ -40,10 +40,10 @@ class TagRelationships {
       type: "DELETE",
       dataType: "json",
     }).done(function () {
-      E621.Flash.notice(`Rejected ${human}.`);
+      E621.Toast.notice(`Rejected ${human}.`);
       parent.slideUp("fast");
     }).fail(function () {
-      E621.Flash.error(`Failed to reject ${human}.`);
+      E621.Toast.alert(`Failed to reject ${human}.`);
     });
   }
 }

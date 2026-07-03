@@ -1,0 +1,20 @@
+<%# local: presenter, user, staff_wikis %>
+
+<% if CurrentUser.user.is_staff? %>
+<div class="profile-section hidden pending" name="StaffWikis" role="button" aria-expanded="false">
+  <div class="profile-section-header">
+    <%= svg_icon(:chevron_down) %>
+    <span>Investigations (<%= staff_wikis.count %>)</span>
+  </div>
+  <div class="profile-section-body styled-dtext">
+    <% if staff_wikis.present? %>
+      <ul>
+        <% staff_wikis.each do |page| %>
+          <li><%= link_to page.title, staff_wiki_path(page) %></li>
+        <% end %>
+      </ul>
+    <% end %>
+    <%= link_to "New Investigation", new_staff_wiki_path(staff_wiki: { related_type: "user", related_id: user.id, title: "User: #{user.name} #{Date.current}" }) %>
+  </div>
+</div>
+<% end %>

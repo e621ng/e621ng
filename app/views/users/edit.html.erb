@@ -4,6 +4,7 @@
   <tabs-menu id="settings-tabs">
     <button role="tab" name="basic">Basic</button>
     <button role="tab" name="advanced">Advanced</button>
+    <button role="tab" name="apps">Apps</button>
     <button role="tab" name="blacklist">Blacklist</button>
     <span class="spacer"></span>
     <input type="text" name="search" placeholder="Search Settings" />
@@ -13,6 +14,7 @@
   <tabs-content for="settings-tabs">
     <%= render "users/partials/edit/basic", form: form %>
     <%= render "users/partials/edit/advanced", form: form %>
+    <%= render "users/partials/edit/apps", form: form %>
     <%= render "users/partials/edit/blacklist", form: form %>
     <tab-submit>
       <%= form.button :submit, "Save Settings" %>

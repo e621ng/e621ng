@@ -1,0 +1,32 @@
+<div id="p-global-listing">
+  <table class="striped">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Page</th>
+        <% if CurrentUser.is_admin? %>
+          <th>IP Address</th>
+        <% end %>
+        <th>Last edited</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @staff_wiki_versions.each do |version| %>
+        <tr>
+          <td><%= link_to version.title, staff_wiki_version_path(version) %></td>
+          <td><%= link_to "page", staff_wiki_path(version.staff_wiki_id) %></td>
+          <% if CurrentUser.is_admin? %>
+            <td><%= link_to_ip version.updater_ip_addr %></td>
+          <% end %>
+          <td>
+            <%= compact_time(version.updated_at) %>
+            <% if version.updater %>
+              by
+              <%= link_to_user version.updater %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

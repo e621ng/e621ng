@@ -1,0 +1,6 @@
+<%= form_search(path: staff_files_path) do |f| %>
+  <%= f.input :original_filename, label: "Filename", hint: "Use * for wildcard searches" %>
+  <%= f.input :file_ext, label: "Type" %>
+  <%= f.user :creator %>
+  <%= f.input :order, collection: [%w[Date time], %w[Filename original_filename]] %>
+<% end %>

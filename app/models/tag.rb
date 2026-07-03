@@ -10,6 +10,7 @@ class Tag < ApplicationRecord
 
   validates :name, uniqueness: true, tag_name: true, on: :create
   validates :name, length: { in: 1..100 }
+  validates :category, numericality: { only_integer: true }
   validates :category, inclusion: { in: TagCategory::CATEGORY_IDS }
   validate :user_can_create_tag?, on: :create
   validate :user_can_change_category?, if: :category_changed?
@@ -70,12 +71,20 @@ class Tag < ApplicationRecord
       end
     end
 
-    def real_post_count
-      @real_post_count ||= Post.tag_match(name, resolve_aliases: false).count_only
+    def post_count_from_opensearch
+      Post.tag_match(name, resolve_aliases: false).count_only
+    end
+
+    # Returns an authoritative post count from the database.
+    # NOTE: this query is extraordinarily expensive. It cannot be used in anything directly
+    # user-facing. The only reasonable use case is a background job that is fixing post counts
+    # for tags that have drifted out of sync.
+    def post_count_from_db
+      Post.undeleted.sql_raw_tag_match(name).count
     end
 
     def fix_post_count
-      update_column(:post_count, real_post_count)
+      update_column(:post_count, post_count_from_db)
     end
   end
 
@@ -274,8 +283,9 @@ class Tag < ApplicationRecord
 
       self.related_tags = RelatedTagCalculator.calculate_from_sample_to_array(name).join(" ")
       self.related_tags_updated_at = Time.now
-      fix_post_count if post_count > 20 && rand(post_count) <= 1
       save
+
+      TagPostCountJob.perform_later(id) if post_count > 20 && rand(post_count) <= 1
     rescue ActiveRecord::StatementInvalid
     end
 
@@ -344,7 +354,7 @@ class Tag < ApplicationRecord
       end
 
       if params[:name].present?
-        q = q.where("tags.name": normalize_name(params[:name]).split(","))
+        q = q.where(name: normalize_name(params[:name]).split(","))
       end
 
       if params[:category].present?
@@ -352,37 +362,35 @@ class Tag < ApplicationRecord
         q = q.where(category: category_ids)
       end
 
-      if params[:hide_empty].blank? || params[:hide_empty].to_s.truthy?
+      if params[:hide_empty].nil? || params[:hide_empty].to_s.truthy?
         q = q.where("post_count > 0")
       end
 
       if params[:has_wiki].to_s.truthy?
-        q = q.joins(:wiki_page).where("wiki_pages.is_deleted = false")
+        q = q.joins(:wiki_page) # INNER JOIN only returns rows where the joined table has a matching row
       elsif params[:has_wiki].to_s.falsy?
-        q = q.joins("LEFT JOIN wiki_pages ON tags.name = wiki_pages.title").where("wiki_pages.title IS NULL OR wiki_pages.is_deleted = true")
+        q = q.left_joins(:wiki_page).where("wiki_pages.id": nil)
       end
 
       if params[:has_artist].to_s.truthy?
-        q = q.joins("INNER JOIN artists ON tags.name = artists.name")
+        q = q.joins(:artist)
       elsif params[:has_artist].to_s.falsy?
-        q = q.joins("LEFT JOIN artists ON tags.name = artists.name").where("artists.name IS NULL")
+        q = q.left_joins(:artist).where("artists.id": nil)
       end
 
       q = q.attribute_matches(:is_locked, params[:is_locked])
 
       case params[:order]
       when "name"
-        q = q.order("name")
-      when "date"
-        q = q.order("id desc")
+        q = q.order(:name)
       when "similarity"
         q = q.order_similarity(params[:fuzzy_name_matches]) if params[:fuzzy_name_matches].present?
       when "id_asc"
         q = q.order(id: :asc)
-      when "id_desc"
+      when "id_desc", "date"
         q = q.order(id: :desc)
       else
-        q = q.order("post_count desc")
+        q = q.order(post_count: :desc, name: :asc)
       end
 
       q
@@ -390,7 +398,7 @@ class Tag < ApplicationRecord
   end
 
   def category_editable_by_implicit?(user)
-    return false unless user.is_janitor?
+    return false unless user.is_staff?
     return false if is_locked?
     return false if post_count >= Danbooru.config.tag_type_change_cutoff
     true

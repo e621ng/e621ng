@@ -13,6 +13,15 @@ FileUtils.chdir APP_ROOT do
   # This script is idempotent, so that you can run it at any time and get an expectable outcome.
   # Add necessary setup steps to this file.
 
+  puts "\n== Generating OIDC signing key =="
+  oidc_key_path = File.expand_path("~/.danbooru/oidc_signing_key")
+  unless File.exist?(oidc_key_path) || ENV["OIDC_SIGNING_KEY"].to_s != ""
+    require "openssl"
+    FileUtils.mkdir_p(File.dirname(oidc_key_path), mode: 0o700)
+    File.write(oidc_key_path, OpenSSL::PKey::RSA.new(2048).to_pem)
+    File.chmod(0o600, oidc_key_path)
+  end
+
   puts "\n== Copying sample files =="
   unless File.exist?('config/danbooru_local_config.rb')
     FileUtils.cp 'docker/danbooru_local_config.rb', 'config/danbooru_local_config.rb'

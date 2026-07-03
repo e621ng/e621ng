@@ -79,20 +79,24 @@ class FileValidator
       record.errors.add(:base, "video isn't valid")
       return
     end
-    valid_webm = video.container == "matroska,webm" && %w[vp8 vp9].include?(video.video_codec)
-    # In the future, we want to allow "h264".
-    valid_mp4  = video.container == "mov,mp4,m4a,3gp,3g2,mj2" && %w[av1].include?(video.video_codec)
+    valid_webm = video.container == "matroska,webm" && %w[vp8 vp9 av1].include?(video.video_codec)
+    valid_mp4  = video.container == "mov,mp4,m4a,3gp,3g2,mj2" && %w[av1 h264].include?(video.video_codec)
     unless valid_webm || valid_mp4
-      record.errors.add(:base, "video must be WebM with VP8/VP9 or MP4 with AV1, but found #{video.container} with #{video.video_codec}")
+      record.errors.add(:base, "video must be WebM with VP8/VP9/AV1 or MP4 with AV1/H.264, but found #{video.container} with #{video.video_codec}")
     end
   end
 
   def validate_audio_codec(video)
-    return unless video.video_codec == "av1"
-
-    allowed_audio_codecs = %w[opus aac mp3]
-    if video.audio_codec.present? && allowed_audio_codecs.exclude?(video.audio_codec)
-      record.errors.add(:base, "video uses AV1 and must use Opus, AAC, or MP3 audio codec, but found #{video.audio_codec}")
+    if video.video_codec == "av1"
+      allowed_audio_codecs = %w[opus aac mp3]
+      if video.audio_codec.present? && allowed_audio_codecs.exclude?(video.audio_codec)
+        record.errors.add(:base, "video uses AV1 and must use Opus, AAC, or MP3 audio codec, but found #{video.audio_codec}")
+      end
+    elsif video.video_codec == "h264"
+      allowed_audio_codecs = %w[aac mp3]
+      if video.audio_codec.present? && allowed_audio_codecs.exclude?(video.audio_codec)
+        record.errors.add(:base, "video uses H.264 and must use AAC or MP3 audio codec, but found #{video.audio_codec}")
+      end
     end
   end
 

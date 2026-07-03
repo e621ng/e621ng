@@ -6,7 +6,7 @@
   <div class="input">
     <label>
       Additional Source
-      <sources :maxSources="1" :showErrors="showErrors" @sourceWarning="sourceWarning = $event" v-model:sources="sources"></sources>
+      <sources :maxSources="1" :showErrors="showErrors" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:sources="sources"></sources>
     </label>
     <span class="hint">The submission page the replacement file came from</span>
   </div>
@@ -50,7 +50,7 @@ import autocompletableInput from "@/components/autocompletable_input.vue";
 import filePreview from "@/pages/uploads/new/file_preview.vue";
 import fileInput from "@/pages/uploads/new/file_input.vue";
 import sources from "@/pages/uploads/new/sources.vue";
-import Utility from "@/utility/utility";
+import CurrentUser from "@/models/CurrentUser";
 
 export default {
   components: {
@@ -70,10 +70,11 @@ export default {
       reason: "",
       errorMessage: undefined,
       showErrors: false,
-      sourceWarning: false,
+      missingSourceWarning: false,
+      nonUrlSourceWarning: false,
       submitting: false,
       submittedReason: undefined,
-      canApprove: Utility.meta("current-user-can-approve-posts") === "true",
+      canApprove: CurrentUser.can.approvePosts,
       uploadAsPending: false,
     };
   },
@@ -87,7 +88,7 @@ export default {
   },
   computed: {
     preventUpload() {
-      return this.sourceWarning;
+      return this.missingSourceWarning || this.nonUrlSourceWarning;
     }
   },
   methods: {

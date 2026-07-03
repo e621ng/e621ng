@@ -118,7 +118,12 @@ class ApplicationRecord < ActiveRecord::Base
           user_ids = [User.name_to_id(params[user_name_key]) || 0]
         end
         if params[user_id_key].present?
-          user_ids = params[user_id_key].to_s.split(",").first(Danbooru.config.max_per_page).map(&:to_i)
+          user_ids = params[user_id_key].to_s.split(",")
+                                        .first(Danbooru.config.max_per_page)
+                                        .filter_map do |x|
+                                          v = ParseValue.safe_id(x)
+                                          v if v > 0
+                                        end
         end
 
         yield(user_ids) if user_ids

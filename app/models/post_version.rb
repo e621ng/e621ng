@@ -79,6 +79,31 @@ class PostVersion < ApplicationRecord
     (locked_tags || "").split
   end
 
+  # Bulk-populate tag category lookups for a collection of post versions so
+  # subsequent #tag_categories calls reuse one round-trip instead of one per version.
+  def self.preload_tag_categories!(versions)
+    versions = Array.wrap(versions).compact
+    return if versions.empty?
+
+    names = versions.flat_map(&:diff_tag_names).uniq
+    categories = Tag.categories_for(names)
+    versions.each { |pv| pv.preset_tag_categories(categories) }
+  end
+
+  def preset_tag_categories(categories)
+    @tag_categories = categories
+  end
+
+  def tag_categories
+    @tag_categories ||= Tag.categories_for(diff_tag_names)
+  end
+
+  def diff_tag_names
+    d = diff(previous)
+    (d[:added_tags] + d[:removed_tags] + d[:unchanged_tags] +
+      (d[:added_locked_tags] + d[:removed_locked_tags] + d[:unchanged_locked_tags]).map { |t| t.start_with?("-") ? t[1..] : t }).uniq
+  end
+
   def presenter
     PostVersionPresenter.new(self)
   end

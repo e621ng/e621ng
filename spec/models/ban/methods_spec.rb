@@ -1,0 +1,164 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+# --------------------------------------------------------------------------- #
+#                          Ban Instance Methods                               #
+# --------------------------------------------------------------------------- #
+
+RSpec.describe Ban do
+  subject(:ban) { create(:ban, user: subject_user, banner: moderator, duration: 30) }
+
+  let(:moderator)    { create(:moderator_user) }
+  let(:subject_user) { create(:user) }
+
+  before { CurrentUser.user = moderator }
+  after  { CurrentUser.user = nil }
+
+  describe "methods" do
+    # -------------------------------------------------------------------------
+    # #duration=
+    # -------------------------------------------------------------------------
+    describe "#duration=" do
+      it "stores a positive duration and sets expires_at to that many days from now" do
+        b = Ban.new
+        b.duration = 14
+        expect(b.duration).to eq(14)
+        expect(b.expires_at).to be_within(1.second).of(14.days.from_now)
+      end
+
+      it "stores a negative duration and sets expires_at to nil (permanent)" do
+        b = Ban.new
+        b.duration = -1
+        expect(b.duration).to eq(-1)
+        expect(b.expires_at).to be_nil
+      end
+
+      it "does not set @duration when the value is 0" do
+        b = Ban.new
+        b.duration = 0
+        expect(b.duration).to be_nil
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #duration
+    # -------------------------------------------------------------------------
+    describe "#duration" do
+      it "returns -1 for a persisted permanent ban" do
+        ban = create(:ban, user: subject_user, banner: moderator, duration: -1)
+        ban.reload
+        expect(ban.duration).to eq(-1)
+      end
+
+      it "returns remaining days for a persisted timed ban" do
+        ban = create(:ban, user: subject_user, banner: moderator, duration: 7)
+        ban.reload
+        expect(ban.duration).to be_between(1, 7)
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #expired?
+    # -------------------------------------------------------------------------
+    describe "#expired?" do
+      it "returns false when expires_at is nil (permanent ban)" do
+        expect(create(:permaban, user: subject_user, banner: moderator).expired?).to be(false)
+      end
+
+      it "returns false when expires_at is in the future" do
+        expect(ban.expired?).to be(false)
+      end
+
+      it "returns true when expires_at is in the past" do
+        ban.update_column(:expires_at, 1.day.ago)
+        expect(ban.expired?).to be(true)
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #humanized_duration
+    # -------------------------------------------------------------------------
+    describe "#humanized_duration" do
+      it "returns 'permanent' for a permanent ban" do
+        b = create(:permaban, user: subject_user, banner: moderator)
+        expect(b.humanized_duration).to eq("permanent")
+      end
+
+      it "returns a non-empty string for a timed ban" do
+        expect(ban.humanized_duration).to be_a(String).and be_present
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #humanized_expiration
+    # -------------------------------------------------------------------------
+    describe "#humanized_expiration" do
+      it "returns 'never' for a permanent ban" do
+        b = create(:permaban, user: subject_user, banner: moderator)
+        expect(b.humanized_expiration).to eq("never")
+      end
+
+      it "returns a non-empty string for a timed ban" do
+        expect(ban.humanized_expiration).to be_a(String).and be_present
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #expire_days
+    # -------------------------------------------------------------------------
+    describe "#expire_days" do
+      it "returns 'never' for a permanent ban" do
+        b = create(:permaban, user: subject_user, banner: moderator)
+        expect(b.expire_days).to eq("never")
+      end
+
+      it "returns a non-empty string for a timed ban" do
+        expect(ban.expire_days).to be_a(String).and be_present
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #user_name / #user_name=
+    # -------------------------------------------------------------------------
+    describe "#user_name" do
+      it "returns the name of the banned user" do
+        expect(ban.user_name).to eq(subject_user.name)
+      end
+    end
+
+    describe "#user_name=" do
+      it "assigns user_id by looking up the name" do
+        other = create(:user)
+        ban.user_name = other.name
+        expect(ban.user_id).to eq(other.id)
+      end
+
+      it "sets user_id to nil when the name does not exist" do
+        ban.user_name = "no_such_user_xyz_123"
+        expect(ban.user_id).to be_nil
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # #prevent_login / #prevent_login= / #prevent_login? (via HasBitFlags)
+    # -------------------------------------------------------------------------
+    describe "#prevent_login (HasBitFlags)" do
+      it "returns false by default" do
+        expect(ban.prevent_login?).to be(false)
+        expect(ban.prevent_login).to be(false)
+      end
+
+      it "returns true after assigning '1'" do
+        ban.prevent_login = "1"
+        expect(ban.prevent_login?).to be(true)
+      end
+
+      it "clears the flag when assigned '0' after being set" do
+        ban.prevent_login = "1"
+        ban.prevent_login = "0"
+        expect(ban.prevent_login?).to be(false)
+      end
+    end
+  end
+end

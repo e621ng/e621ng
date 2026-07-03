@@ -29,13 +29,15 @@ body[data-th-main="hexagon"] {
 
   // Main Colors
   --color-text:                   #{$hexagon-color-text};
-  --color-text-muted:             #999999;
+  --color-text-muted:             #{$hexagon-color-text-muted};
   --color-text-white:             #{$hexagon-color-text};
   --color-text-table-header:      #{darken($hexagon-color-text, 10%)};
 
   --color-link:                   #{$hexagon-color-link};
   --color-link-hover:             #{$hexagon-color-link-hover};
   --color-link-active:            #e8c446;
+
+  --color-button-inactive:        #{$hexagon-color-text-muted};
   --color-button-active:          #e8c446;
 
   --color-link-last-page:         #666;
@@ -73,6 +75,9 @@ body[data-th-main="hexagon"] {
 
   --color-user-former-staff:      #78dca5;
   --color-user-former-staff-alt:  #4da073;
+
+  --color-user-staff:             #d82828;
+  --color-user-staff-alt:         #cc5151;
   --color-user-janitor:           #d82828;
   --color-user-janitor-alt:       #cc5151;
   --color-user-moderator:         #d82828;

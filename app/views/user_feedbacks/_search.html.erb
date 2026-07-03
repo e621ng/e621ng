@@ -3,7 +3,7 @@
   <%= f.user :creator %>
   <%= f.input :body_matches, label: "Message" %>
   <% if CurrentUser.is_staff? %>
-    <%= f.input :deleted, label: "Deleted?", collection: [%w[Excluded excluded], %w[Included included], %w[Only only]], include_blank: true %>
+    <%= f.input :deleted, label: "Deleted?", collection: [%w[Excluded excluded], %w[Included included], %w[Only only]], include_blank: "Any" %>
   <% end %>
-  <%= f.input :category, collection: %w[positive negative neutral], include_blank: true %>
+  <%= f.input :category, collection: %w[positive negative neutral], include_blank: "Any" %>
 <% end %>
