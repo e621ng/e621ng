@@ -105,10 +105,43 @@ RSpec.describe BulkUpdateRequest do
   # forum_topic_id_not_invalid
   # ---------------------------------------------------------------------------
   describe "#forum_topic_id_not_invalid" do
+    include_context "as member"
+
     it "is invalid when forum_topic_id references a non-existent topic" do
       bur = build_bur(forum_topic_id: 999_999_999)
       expect(bur).not_to be_valid
       expect(bur.errors[:base]).to include("Forum topic ID is invalid")
+    end
+
+    it "is invalid when the topic is locked" do
+      locked_topic = create(:forum_topic)
+      CurrentUser.scoped(create(:admin_user)) do
+        locked_topic.update(is_locked: true)
+      end
+      bur = build_bur(forum_topic_id: locked_topic.id)
+      expect(bur).not_to be_valid
+      expect(bur.errors[:base]).to include("You cannot post to that forum topic")
+    end
+
+    it "is invalid when the topic is hidden" do
+      hidden_topic = create(:forum_topic, creator: create(:user), creator_ip_addr: "127.0.0.1")
+      CurrentUser.scoped(create(:admin_user)) do
+        hidden_topic.update(is_hidden: true)
+      end
+      bur = build_bur(forum_topic_id: hidden_topic.id)
+      expect(bur).not_to be_valid
+      expect(bur.errors[:base]).to include("You cannot post to that forum topic")
+    end
+
+    it "is invalid when the topic is in a category the user cannot access" do
+      private_category = create(:forum_category, can_view: UserLevel::ADMIN)
+      topic = create(:forum_topic)
+      CurrentUser.scoped(create(:admin_user)) do
+        topic.update(category: private_category)
+      end
+      bur = build_bur(forum_topic_id: topic.id)
+      expect(bur).not_to be_valid
+      expect(bur.errors[:base]).to include("You cannot post to that forum topic")
     end
   end
 

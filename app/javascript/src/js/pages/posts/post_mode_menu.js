@@ -1,15 +1,15 @@
-import Utility from "@/utility/utility";
 import Post from "@/pages/posts/posts";
 import Favorite from "@/models/Favorite";
-import PostSet from "@/pages/posts/show/post_sets";
+import PostSet from "@/pages/posts/show/PostSet";
 import TagScript from "@/models/tag_script";
 import Rails from "@rails/ujs";
 import Hotkeys from "@/core/hotkeys";
-import LStorage from "@/utility/storage";
+import LStorage from "@/utility/storage/Local";
+import SStorage from "@/utility/storage/Session";
 import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
-import User from "@/models/User";
 import Autocomplete from "@/components/autocomplete";
+import CurrentUser from "@/models/CurrentUser";
 
 let PostModeMenu = {};
 
@@ -19,7 +19,7 @@ PostModeMenu.initialize = function () {
     this.initialize_preview_link();
     this.initialize_edit_form();
     this.initialize_tag_script_field();
-    if (User.is.privileged) this.initialize_shortcuts();
+    if (E621.CurrentUser.is.privileged) this.initialize_shortcuts();
     PostModeMenu.change();
   }
 };
@@ -29,8 +29,10 @@ PostModeMenu.initialize_shortcuts = function () {
     Hotkeys.register(`tag-script-${i}`, () => PostModeMenu.change_tag_script(i));
 };
 
+PostModeMenu.show_notice_toast = null;
 PostModeMenu.show_notice = function (i) {
-  E621.Flash.notice("Switched to tag script #" + i + ". To switch tag scripts, use the number keys.");
+  if (PostModeMenu.show_notice_toast) PostModeMenu.show_notice_toast.dismiss(true);
+  PostModeMenu.show_notice_toast = E621.Toast.create(`Switched to tag script #${i}. To switch tag scripts, use the number keys.`);
 };
 
 PostModeMenu.change_tag_script = function (key) {
@@ -47,7 +49,7 @@ PostModeMenu.change_tag_script = function (key) {
 };
 
 PostModeMenu.initialize_selector = function () {
-  $("#mode-box-mode").val(LStorage.Posts.Mode);
+  $("#mode-box-mode").val(SStorage.Posts.Mode);
 
   $("#mode-box-mode").on("change.danbooru", function () {
     PostModeMenu.change();
@@ -82,7 +84,7 @@ PostModeMenu.initialize_edit_form = function () {
       },
       success: function (data) {
         Post.update_data(data);
-        E621.Flash.notice("Post #" + data.post.id + " updated");
+        E621.Toast.notice("Post #" + data.post.id + " updated");
         PostModeMenu.close_edit_form();
       },
     });
@@ -94,7 +96,7 @@ PostModeMenu.initialize_edit_form = function () {
 PostModeMenu.close_edit_form = function () {
   Hotkeys.enabled = true;
   $("#quick-edit-div").slideUp("fast");
-  if (Utility.meta("enable-auto-complete") === "true") {
+  if (CurrentUser.settings.autocomplete) {
     const field = document.getElementById("post_tag_string");
     const autocompleter = Autocomplete.instances.get(field);
     if (autocompleter) autocompleter.close();
@@ -125,7 +127,7 @@ PostModeMenu.update_sets_menu = function () {
       type: "GET",
       url: "/post_sets/for_select.json",
     }).fail(function (data) {
-      $(window).trigger("danbooru:error", "Error getting sets list: " + data.message);
+      E621.Toast.alert("Error getting sets list: " + data.message);
     }).done(function (data) {
       target.on("change", function (e) {
         LStorage.Posts.Set = e.target.value;
@@ -150,7 +152,7 @@ PostModeMenu.change = function () {
     return;
   }
   $("#page").attr("data-mode-menu", s);
-  LStorage.Posts.Mode = s;
+  SStorage.Posts.Mode = s;
   $("#set-id").hide();
   $("#tag-script-ui").hide();
   $("#quick-mode-reason").hide();
@@ -188,24 +190,20 @@ PostModeMenu.click = function (e) {
   if (s === "add-fav") {
     Post.notice_update("inc");
     Favorite.create(post_id)
-      .then(() => { E621.Flash.notice("Favorite added"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "remove-fav") {
     Post.notice_update("inc");
     Favorite.destroy(post_id)
-      .then(() => { E621.Flash.notice("Favorite removed"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "edit") {
     PostModeMenu.open_edit(post_id);
   } else if (s === "vote-down") {
     Post.notice_update("inc");
     PostVote.vote(post_id, -1, true)
-      .then(() => { E621.Flash.notice("Vote saved"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "vote-up") {
     Post.notice_update("inc");
     PostVote.vote(post_id, 1, true)
-      .then(() => { E621.Flash.notice("Vote saved"); })
       .finally(() => { Post.notice_update("dec"); });
   } else if (s === "add-to-set") {
     PostSet.add_post($("#set-id").val(), post_id);

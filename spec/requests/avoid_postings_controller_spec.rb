@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe AvoidPostingsController do
-  before { skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.method_defined?(:avoid_postings_path) }
+  before { skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:avoid_postings_path) }
 
   include_context "as admin"
 

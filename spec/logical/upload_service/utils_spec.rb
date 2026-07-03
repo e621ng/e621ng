@@ -12,7 +12,9 @@ RSpec.describe UploadService::Utils do
     allow(Danbooru.config.custom_configuration).to receive_messages(
       storage_manager:        storage,
       backup_storage_manager: backup_storage,
-      auto_flag_ai_posts?:    false,
+    )
+    allow(Setting).to receive_messages(
+      automatic_ai_check: false,
     )
     # post_file_path must return a string so File.exist? in post callbacks doesn't raise.
     # A non-existent path causes generate_post_images to return early.

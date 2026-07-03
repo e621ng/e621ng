@@ -72,6 +72,19 @@ RSpec.describe Sources::Alternates::Pixiv do
   end
 
   # -------------------------------------------------------------------------
+  # #original_url — profile page canonicalization
+  # -------------------------------------------------------------------------
+  describe "#original_url — profile page canonicalization" do
+    it "canonicalizes /en/users/{id} to /users/{id}" do
+      expect(transform("https://www.pixiv.net/en/users/107143906")).to eq("https://www.pixiv.net/users/107143906")
+    end
+
+    it "canonicalizes member.php?id={id} to /users/{id}" do
+      expect(transform("https://www.pixiv.net/member.php?id=923628")).to eq("https://www.pixiv.net/users/923628")
+    end
+  end
+
+  # -------------------------------------------------------------------------
   # #submission_url — extracted from image URLs during parse
   # -------------------------------------------------------------------------
   describe "#submission_url — extracted from image URLs during parse" do

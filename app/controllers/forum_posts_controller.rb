@@ -3,11 +3,16 @@
 class ForumPostsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, except: %i[index show search]
-  before_action :moderator_only, only: %i[unhide warning]
-  before_action :admin_only, only: [:destroy]
   before_action :load_post, only: %i[edit show update destroy hide unhide warning]
-  before_action :check_min_level, only: %i[edit show update destroy hide unhide]
+
+  before_action :ensure_can_access, only: %i[edit show update destroy hide unhide warning]
+  before_action :ensure_can_edit, only: %i[edit update]
+  before_action :ensure_can_hide, only: %i[hide]
+  before_action :ensure_can_unhide, only: %i[unhide]
+  before_action :ensure_can_warn, only: %i[warning]
+  before_action :ensure_can_destroy, only: %i[destroy]
   before_action :ensure_lockdown_disabled, except: %i[index show search]
+
   skip_before_action :api_check
 
   def index
@@ -32,7 +37,6 @@ class ForumPostsController < ApplicationController
   end
 
   def edit
-    check_editable(@forum_post)
     respond_with(@forum_post)
   end
 
@@ -42,8 +46,6 @@ class ForumPostsController < ApplicationController
   def create
     @forum_post = ForumPost.new(forum_post_params(:create))
     if @forum_post.valid?
-      @forum_topic = @forum_post.topic
-      check_min_level
       @forum_post.save
       respond_with(@forum_post, location: forum_topic_path(@forum_post.topic, page: @forum_post.forum_topic_page, anchor: "forum_post_#{@forum_post.id}"))
     else
@@ -52,25 +54,21 @@ class ForumPostsController < ApplicationController
   end
 
   def update
-    check_editable(@forum_post)
     @forum_post.update(forum_post_params(:update))
     respond_with(@forum_post, location: forum_topic_path(@forum_post.topic, page: @forum_post.forum_topic_page, anchor: "forum_post_#{@forum_post.id}"))
   end
 
   def destroy
-    check_editable(@forum_post)
     @forum_post.destroy
     respond_with(@forum_post)
   end
 
   def hide
-    check_hidable(@forum_post)
     @forum_post.hide!
     respond_with(@forum_post)
   end
 
   def unhide
-    check_hidable(@forum_post)
     @forum_post.unhide!
     respond_with(@forum_post)
   end
@@ -81,7 +79,8 @@ class ForumPostsController < ApplicationController
     else
       @forum_post.user_warned!(params[:record_type], CurrentUser.user)
     end
-    html = render_to_string partial: "forum_posts/forum_post", locals: { forum_post: @forum_post, original_forum_post_id: @forum_post.topic.original_post.id }, formats: [:html]
+    @forum_topic = @forum_post.topic
+    html = render_to_string partial: "forum_posts/forum_post", locals: { forum_post: @forum_post, original_forum_post_id: @forum_topic.original_post.id }, formats: [:html]
     render json: { html: html, posts: deferred_posts }
   end
 
@@ -89,22 +88,7 @@ class ForumPostsController < ApplicationController
 
   def load_post
     @forum_post = ForumPost.includes(topic: [:category]).find(params[:id])
-    @forum_topic = @forum_post.topic
-    raise ActiveRecord::RecordNotFound, "Forum post has no associated topic" if @forum_topic.nil?
-  end
-
-  def check_min_level
-    raise User::PrivilegeError unless @forum_topic.visible?(CurrentUser.user)
-    raise User::PrivilegeError if @forum_topic.is_hidden? && !@forum_topic.can_hide?(CurrentUser.user)
-    raise User::PrivilegeError if @forum_post.is_hidden? && !@forum_post.can_hide?(CurrentUser.user)
-  end
-
-  def check_editable(forum_post)
-    raise User::PrivilegeError unless forum_post.editable_by?(CurrentUser.user)
-  end
-
-  def check_hidable(forum_post)
-    raise User::PrivilegeError unless forum_post.can_hide?(CurrentUser.user)
+    raise ActiveRecord::RecordNotFound, "Forum post has no associated topic" if @forum_post.topic.nil?
   end
 
   def forum_post_params(context)
@@ -114,7 +98,35 @@ class ForumPostsController < ApplicationController
     params.fetch(:forum_post, {}).permit(permitted_params)
   end
 
+  #############################
+  ###     Access checks     ###
+  #############################
+
+  def ensure_can_access
+    raise User::PrivilegeError unless @forum_post.can_access?
+  end
+
+  def ensure_can_edit
+    raise User::PrivilegeError unless @forum_post.can_edit?
+  end
+
+  def ensure_can_hide
+    raise User::PrivilegeError unless @forum_post.can_hide?
+  end
+
+  def ensure_can_unhide
+    raise User::PrivilegeError unless @forum_post.can_unhide?
+  end
+
+  def ensure_can_warn
+    raise User::PrivilegeError unless @forum_post.can_warn?
+  end
+
+  def ensure_can_destroy
+    raise User::PrivilegeError unless @forum_post.can_destroy?
+  end
+
   def ensure_lockdown_disabled
-    access_denied if Security::Lockdown.forums_disabled? && !CurrentUser.is_staff?
+    access_denied if Security::Lockdown.forums_disabled? && !CurrentUser.user.is_staff?
   end
 end

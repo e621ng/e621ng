@@ -1,7 +1,7 @@
 <div id="detailed-rejection-dialog" data-title="Detailed Rejection" data-width="700" data-height="228">
   <p>You can supply a short message to the uploader explaining why you rejected this upload.</p>
 
-  <%= custom_form_for(PostDisapproval.new, url: moderator_post_disapprovals_path, id: "detailed-rejection-form") do |f| %>
+  <%= custom_form_for(PostDisapproval.new, url: staff_post_disapprovals_path, id: "detailed-rejection-form") do |f| %>
     <%= f.hidden_field :post_id, value: "x" %>
 
     <div class="rejection-inputs">

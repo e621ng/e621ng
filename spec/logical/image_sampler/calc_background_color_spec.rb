@@ -25,16 +25,19 @@ RSpec.describe ImageSampler do
     end
 
     it "uses the default '152f56' when called with no argument" do
-      expect(described_class.calc_background_color).to eq([21, 47, 86])
+      allow(Danbooru.config.custom_configuration).to receive(:default_bg_color).and_return("0088ff")
+      expect(described_class.calc_background_color).to eq([0, 136, 255])
     end
 
     context "when hex_color is blank" do
       it "falls back to the default for an empty string" do
-        expect(described_class.calc_background_color("")).to eq([21, 47, 86])
+        allow(Danbooru.config.custom_configuration).to receive(:default_bg_color).and_return("0088ff")
+        expect(described_class.calc_background_color("")).to eq([0, 136, 255])
       end
 
       it "falls back to the default for nil" do
-        expect(described_class.calc_background_color(nil)).to eq([21, 47, 86])
+        allow(Danbooru.config.custom_configuration).to receive(:default_bg_color).and_return("0088ff")
+        expect(described_class.calc_background_color(nil)).to eq([0, 136, 255])
       end
     end
   end

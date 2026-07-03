@@ -54,8 +54,12 @@ RSpec.describe Setting do
         expect { Setting.tos_version = -1 }.to raise_error(ActiveRecord::RecordInvalid)
       end
 
-      it "accepts zero" do
-        expect { Setting.tos_version = 0 }.not_to raise_error
+      it "rejects zero" do
+        expect { Setting.tos_version = 0 }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+
+      it "accepts positive values" do
+        expect { Setting.tos_version = 1 }.not_to raise_error
       end
     end
 

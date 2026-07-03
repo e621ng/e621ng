@@ -1,0 +1,18 @@
+<%# Notification Toasts %>
+<% urgent_types = %i[alert error] %>
+<div id="toast-container" aria-live="polite" aria-atomic="false">
+  <% flash.each do |type, message| %>
+    <% if message.present? %>
+      <div class="toast toast-<%= type %>" role="<%= urgent_types.include?(type) ? "alert" : "status" %>" data-counter="1">
+        <span class="toast-message"><%= format_text(message, inline: true) %></span>
+        <span class="toast-counter">1</span>
+        <button
+          type="button"
+          class="toast-close"
+          aria-label="Close notification"
+          style="display: none;"
+        ><%= svg_icon(:times, width: 16, height: 16) %></button>
+      </div>
+    <% end %>
+  <% end %>
+</div>

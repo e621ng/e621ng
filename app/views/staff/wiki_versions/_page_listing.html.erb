@@ -1,0 +1,48 @@
+<div id="p-page-listing">
+  <%= form_tag(diff_staff_wiki_versions_path, method: :get) do %>
+    <table class="striped">
+      <thead>
+        <tr>
+          <th width="3%"></th>
+          <th width="2%"></th>
+          <th width="2%"></th>
+          <th>Title</th>
+          <th>View</th>
+          <% if CurrentUser.is_admin? %>
+            <th>IP Address</th>
+          <% end %>
+          <th>Last edited</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @staff_wiki_versions.each_with_index do |version, i| %>
+          <tr>
+            <td>
+              <% if i < @staff_wiki_versions.length - 1 %>
+                <%= link_to "diff", diff_staff_wiki_versions_path(otherpage: version.id, thispage: @staff_wiki_versions[i + 1].id) %>
+              <% else %>
+                diff
+              <% end %>
+            </td>
+            <td><%= radio_button_tag "thispage", version.id, (i == 1) %></td>
+            <td><%= radio_button_tag "otherpage", version.id, (i == 0) %></td>
+            <td><%= link_to version.title, staff_wiki_version_path(version) %></td>
+            <td><%= link_to "view version", staff_wiki_version_path(version) %></td>
+            <% if CurrentUser.is_admin? %>
+              <td><%= link_to_ip version.updater_ip_addr %></td>
+            <% end %>
+            <td>
+              <%= compact_time(version.updated_at) %>
+              <% if version.updater %>
+                by
+                <%= link_to_user version.updater %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= submit_tag "Diff" %>
+  <% end %>
+</div>

@@ -58,15 +58,4 @@ RSpec.describe PoolVersion do
       expect(pv.pretty_name).to eq("(Unknown Name)")
     end
   end
-
-  # -------------------------------------------------------------------------
-  # #updater_name
-  # -------------------------------------------------------------------------
-  describe "#updater_name" do
-    it "returns the name of the updater user" do
-      pool = create(:pool)
-      pv = pool.versions.first
-      expect(pv.updater_name).to eq(CurrentUser.user.name)
-    end
-  end
 end

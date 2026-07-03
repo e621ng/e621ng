@@ -19,7 +19,7 @@
         <tr>
           <td><label>Source</label></td>
           <td>
-            <% if !@takedown.reason_hidden  || CurrentUser.is_moderator? || @show_instructions %>
+            <% if !@takedown.reason_hidden  || CurrentUser.is_moderator? || CurrentUser.is_approver? || @show_instructions %>
               <% if @takedown.source.match(/^https?:\/\//i) %>
                 <%= link_to @takedown.source, @takedown.source, rel: "noopener noreferrer nofollow" %>
               <% else %>
@@ -33,7 +33,7 @@
 
         <tr>
           <td><label>Reason</label></td>
-          <% if !@takedown.reason_hidden || CurrentUser.is_moderator? || @show_instructions %>
+          <% if !@takedown.reason_hidden || CurrentUser.is_moderator? || CurrentUser.is_approver? || @show_instructions %>
             <td><%= h @takedown.reason %>
               <% if @takedown.reason_hidden %><span class="text-error">(HIDDEN)</span><% end %></td>
           <% else %>
@@ -60,7 +60,7 @@
           </tr>
         <% end %>
 
-        <% if CurrentUser.is_moderator? %>
+        <% if CurrentUser.is_moderator? || CurrentUser.is_approver? %>
           <tr>
             <td><label>User</label></td>
             <td>
@@ -106,7 +106,7 @@
     <% if !@takedown.notes.blank? && @takedown.notes.downcase != "none" %>
       <h3>Admin notes</h3>
       <div class="box-section dtext-container">
-        <% if !@takedown.reason_hidden || CurrentUser.is_moderator? %>
+        <% if CurrentUser.is_moderator? || CurrentUser.is_approver? || !@takedown.reason_hidden %>
           <%= format_text(@takedown.notes) %>
           <% if @takedown.reason_hidden %><span class="text-error">(HIDDEN)</span><% end %>
         <% else %>
@@ -115,7 +115,7 @@
       </div>
     <% end %>
 
-    <% if CurrentUser.is_moderator? %>
+    <% if CurrentUser.is_moderator? || CurrentUser.is_approver? %>
       <% if !@takedown.instructions.blank? %>
         <h3>Special instructions</h3>
         <div class="box-section">
@@ -184,7 +184,7 @@
           <% end %>
         </div>
       <% end %>
-    <% elsif !CurrentUser.is_moderator? %>
+    <% elsif !(CurrentUser.is_moderator? || CurrentUser.is_approver?) %>
       <div class="box-section">
         Post lists and special instructions are not visible to users.
       </div>

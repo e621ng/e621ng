@@ -6,7 +6,7 @@ require "rails_helper"
 #                       StaffNote Permissions                                 #
 # --------------------------------------------------------------------------- #
 #
-# is_staff? delegates to is_janitor?, so janitor/moderator/admin all pass.
+# is_staff? includes higher ranked users, so janitor/moderator/admin all pass.
 # A plain member does not.
 #
 # The note is created by `janitor` (the creator) in all tests below.

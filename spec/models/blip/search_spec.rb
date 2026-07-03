@@ -98,24 +98,24 @@ RSpec.describe Blip do
   end
 
   # -------------------------------------------------------------------------
-  # .visible scope
+  # .accessible scope
   # -------------------------------------------------------------------------
-  describe ".visible" do
-    it "returns all blips (including deleted) for a moderator" do
-      moderator = create(:moderator_user)
-      result = Blip.visible(moderator)
+  describe ".accessible" do
+    it "returns all blips (including deleted) for a janitor" do
+      janitor = create(:janitor_user)
+      result = Blip.accessible(janitor)
       expect(result).to include(blip_deleted)
     end
 
     it "excludes deleted blips for a regular member" do
       member = create(:user)
-      result = Blip.visible(member)
+      result = Blip.accessible(member)
       expect(result).not_to include(blip_deleted)
     end
 
     it "includes non-deleted blips for a regular member" do
       member = create(:user)
-      result = Blip.visible(member)
+      result = Blip.accessible(member)
       expect(result).to include(blip_alpha, blip_beta)
     end
   end

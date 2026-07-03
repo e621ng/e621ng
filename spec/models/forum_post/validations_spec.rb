@@ -50,7 +50,7 @@ RSpec.describe ForumPost do
   end
 
   # -------------------------------------------------------------------------
-  # topic existence
+  # topic is valid
   # -------------------------------------------------------------------------
   describe "topic" do
     it "is invalid when topic_id references a non-existent record" do
@@ -60,7 +60,7 @@ RSpec.describe ForumPost do
     end
 
     it "is invalid on create when the topic's category requires a higher view level" do
-      restricted = create(:forum_category, can_view: User::Levels::MODERATOR)
+      restricted = create(:forum_category, can_view: UserLevel::MODERATOR)
       restricted_topic = CurrentUser.scoped(create(:moderator_user)) { create(:forum_topic, category_id: restricted.id) }
       record = build(:forum_post, topic_id: restricted_topic.id)
       expect(record).not_to be_valid
@@ -68,7 +68,7 @@ RSpec.describe ForumPost do
     end
 
     it "is invalid on create when the topic's category does not allow replies at the user's level" do
-      restricted = create(:forum_category, can_reply: User::Levels::MODERATOR)
+      restricted = create(:forum_category, can_reply: UserLevel::MODERATOR)
       restricted_topic = CurrentUser.scoped(create(:moderator_user)) { create(:forum_topic, category_id: restricted.id) }
       record = build(:forum_post, topic_id: restricted_topic.id)
       expect(record).not_to be_valid
@@ -77,14 +77,14 @@ RSpec.describe ForumPost do
   end
 
   # -------------------------------------------------------------------------
-  # topic lock
+  # topic accepts replies
   # -------------------------------------------------------------------------
-  describe "validate_topic_is_unlocked" do
+  describe "validate_topic_can_reply" do
     it "is invalid when the topic is locked and the current user is not a moderator" do
       topic.update_columns(is_locked: true)
       record = build(:forum_post, topic_id: topic.id)
       expect(record).not_to be_valid
-      expect(record.errors[:topic]).to include("is locked")
+      expect(record.errors[:topic]).to include("does not allow replies")
     end
 
     it "is valid when the topic is locked but the current user is a moderator" do

@@ -39,4 +39,10 @@
       <% end %>
     </ul>
   <% end %>
+  <% if CurrentUser.user.is_staff? %>
+    <li><strong>Other</strong></li>
+    <ul>
+      <li><%= link_to "New Investigation", new_staff_wiki_path(staff_wiki: { related_type: "artist", related_id: artist.id, title: "Artist: #{artist.name} #{Date.current}" }) %></li>
+    </ul>
+  <% end %>
 </ul>

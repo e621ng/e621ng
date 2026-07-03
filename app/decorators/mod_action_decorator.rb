@@ -65,6 +65,28 @@ class ModActionDecorator < ApplicationDecorator
     when "ticket_unclaim"
       "Unclaimed ticket ##{vals['ticket_id']}"
 
+      ### Appeal ###
+    when "appeal_update"
+      text = "Modified appeal ##{vals['appeal_id']}"
+
+      if vals["status"].present? && vals["status"] != vals["status_was"]
+        text += "\nChanged status from #{vals['status_was']} to #{vals['status']}"
+      end
+
+      if vals["response"].present? && vals["response"] != vals["response_was"]
+        if vals["response_was"].present?
+          text += "\nChanged response: [section=Old]#{vals['response_was']}[/section] [section=New]#{vals['response']}[/section]"
+        else
+          text += "\nWith response: #{vals['response']}"
+        end
+      end
+
+      text
+    when "appeal_claim"
+      "Claimed appeal ##{vals['appeal_id']}"
+    when "appeal_unclaim"
+      "Unclaimed appeal ##{vals['appeal_id']}"
+
       ### Artist ###
     when "artist_delete"
       "Deleted artist ##{vals['artist_id']} (#{vals['artist_name']})"
@@ -138,10 +160,30 @@ class ModActionDecorator < ApplicationDecorator
       "Changed #{user} flags. Added: [#{vals['added']&.join(', ')}] Removed: [#{vals['removed']&.join(', ')}]"
     when "edited_user"
       "Edited #{user}"
+    when "user_avatar_clear"
+      "Cleared avatar of #{user}"
+    when "user_profile_clear"
+      "Cleared profile of #{user}"
+    when "user_comments_hide"
+      "Hid all comments by #{user}"
+    when "user_forum_posts_hide"
+      "Hid all forum posts by #{user}"
+    when "user_blips_delete"
+      "Hid all blips by #{user}"
     when "user_blacklist_changed"
       "Edited blacklist of #{user}"
     when "user_text_change"
       "Changed profile text of #{user}"
+    when "user_custom_title_change"
+      if vals["old_custom_title"].present?
+        if vals["new_custom_title"].present?
+          "Changed custom title of #{user} from \"#{vals['old_custom_title']}\" to \"#{vals['new_custom_title']}\""
+        else
+          "Removed custom title from #{user}: \"#{vals['old_custom_title']}\""
+        end
+      else
+        "Added custom title to #{user}: \"#{vals['new_custom_title']}\""
+      end
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
     when "user_uploads_toggle"
@@ -315,12 +357,23 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Flag Reason ###
 
-    when "created_flag_reason"
-      "Created flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
-    when "edited_flag_reason"
-      "Edited flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
-    when "deleted_flag_reason"
-      "Deleted flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
+    when "flag_reason_create"
+      text = "Created flag reason \"#{vals['reason']}\""
+      if vals["text"].present?
+        text += "\n\"#{vals['text']}\""
+      end
+      text
+    when "flag_reason_update"
+      text = "Edited flag reason \"#{vals['reason']}\""
+      if vals["reason"] != vals["reason_was"]
+        text += "\nChanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
+      end
+      if vals["text"] != vals["text_was"]
+        text += "\nChanged text from \"#{vals['text_was']}\" to \"#{vals['text']}\""
+      end
+      text
+    when "flag_reason_delete"
+      "Deleted flag reason \"#{vals['reason']}\""
 
       ### Post Report Reasons ###
 
@@ -435,6 +488,14 @@ class ModActionDecorator < ApplicationDecorator
       "Post replacement for post ##{vals['post_id']} was rejected"
     when "post_replacement_delete"
       "Post replacement for post ##{vals['post_id']} was deleted"
+
+      ### Staff Files ###
+    when "staff_file_create"
+      "Uploaded staff file ##{vals['id']} (#{vals['filename']}) by #{user}"
+    when "staff_file_update"
+      "Edited staff file ##{vals['id']} (#{vals['filename']}) by #{user}"
+    when "staff_file_delete"
+      "Deleted staff file ##{vals['id']} (#{vals['filename']}) uploaded by #{user}"
 
     else
       CurrentUser.is_admin? ? "Unknown action #{object.action}: #{object.values.inspect}" : "Unknown action #{object.action}"

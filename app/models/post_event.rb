@@ -28,6 +28,7 @@ class PostEvent < ApplicationRecord
     expunged: 17,
     changed_bg_color: 21,
     replacement_penalty_changed: 24,
+    owner_changed: 25,
   }
   MOD_ONLY_SEARCH_ACTIONS = [
     actions[:comment_locked],

@@ -38,7 +38,7 @@ $(() => {
     }).done(() => {
       window.location.reload();
     }).fail((data) => {
-      E621.Flash.error(`Error: ${data.status == 404 ? "Not Found" : data.responseText}`);
+      E621.Toast.alert(`Error: ${data.status == 404 ? "Not Found" : data.responseText}`);
     });
 
     return false;

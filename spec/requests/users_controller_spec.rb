@@ -248,7 +248,7 @@ RSpec.describe UsersController do
         get avatar_menu_users_path(format: :json)
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body.keys).to contain_exactly(
-          "has_uploads", "has_favorites", "has_sets", "has_comments", "has_forums"
+          "has_uploads", "has_favorites", "has_sets", "has_comments", "has_forums", "has_blips"
         )
       end
     end
@@ -372,7 +372,16 @@ RSpec.describe UsersController do
       end
     end
 
-    # is_staff? (i.e. is_janitor?) is required inside the action to show the form.
+    context "as a staff member" do
+      before { sign_in_as create(:staff_user) }
+
+      it "returns 403" do
+        get toggle_uploads_user_path(target)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    # is_janitor? is required inside the action to show the form.
     context "as a janitor when the target's uploads are enabled" do
       before { sign_in_as create(:janitor_user) }
 
@@ -405,6 +414,15 @@ RSpec.describe UsersController do
 
     context "as a member" do
       before { sign_in_as create(:user) }
+
+      it "returns 403" do
+        post disable_uploads_user_path(target), params: { staff_note: { body: "reason" } }
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a staff member" do
+      before { sign_in_as create(:staff_user) }
 
       it "returns 403" do
         post disable_uploads_user_path(target), params: { staff_note: { body: "reason" } }

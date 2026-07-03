@@ -1,0 +1,8 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "Connected", oauth_authorized_applications_path %>
+  <% if CurrentUser.user.is_staff? %>
+    <%= subnav_link_to "Your Apps", mine_oauth_applications_path %>
+    <%= subnav_link_to "New", new_oauth_application_path %>
+    <%= subnav_link_to "All Apps", oauth_applications_path %>
+  <% end %>
+<% end %>

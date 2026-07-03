@@ -55,7 +55,9 @@ class UploadService
         post.image_width = upload.image_width
         post.image_height = upload.image_height
         post.file_size = upload.file_size
-        post.duration = upload.video_duration(upload.file.path)
+        animated = upload.is_animated_file?(upload.file.path)
+        post.is_animated = animated
+        post.duration = upload.video_duration(upload.file.path, animated: animated)
         post.source = "#{replacement.source}\n" + post.source
         post.tag_string = upload.tag_string
         # Reset ownership information on post.
@@ -80,6 +82,9 @@ class UploadService
         if penalize_current_uploader.to_s.truthy?
           UserStatus.for_user(previous_uploader).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
         end
+
+        # Invalidate avatar cache
+        User.where(avatar_id: post.id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
 
         # Everything went through correctly, the old files can now be removed
         if md5_changed

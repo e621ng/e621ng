@@ -1,13 +1,16 @@
-import Utility from "@/utility/utility";
 import Hotkeys from "@/core/hotkeys";
-import LStorage from "@/utility/storage";
-import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
 import Page from "@/utility/Page";
+import LStorage from "@/utility/storage/Local";
 import SVGIcon from "@/utility/SVGIcon";
+import TaskQueue from "@/utility/TaskQueue";
+import ToastManager from "@/utility/Toast";
+import Utility from "@/utility/utility";
+import CurrentUser from "@/models/CurrentUser";
 
 let Post = {};
 
+Post.pending_update_toast = null;
 Post.pending_update_count = 0;
 Post.resizeMode = "unknown";
 
@@ -62,9 +65,11 @@ Post.initialize_moderation = function () {
     const $e = $(e.target);
     const post_id = $e.data("pid");
     const parent_id = $e.data("parent-id");
+    const reason_name = $e.data("reason-name");
+    const note = $e.data("note");
 
     if (confirm("Move flag to parent?"))
-      Post.move_flag_to_parent(post_id, parent_id);
+      Post.move_flag_to_parent(post_id, parent_id, reason_name, note);
   });
 };
 
@@ -86,7 +91,7 @@ Post.has_prev_target = function () {
 };
 
 Post.nav_prev = function () {
-  var href = "";
+  var href;
 
   if ($(".search-seq-nav").length) {
     href = $(".search-seq-nav a[rel~=prev]").attr("href");
@@ -104,7 +109,7 @@ Post.nav_prev = function () {
 };
 
 Post.nav_next = function () {
-  var href = "";
+  var href;
 
   if ($(".search-seq-nav").length) {
     href = $(".search-seq-nav a[rel~=next]").attr("href");
@@ -197,15 +202,15 @@ Post.initialize_links = function () {
           other_post_id: other_post_id,
         },
         success: function () {
-          E621.Flash.notice("Successfully copied notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
+          E621.Toast.notice("Successfully copied notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
         },
         error: function (data) {
           if (data.status === 404) {
-            E621.Flash.error("Error: Invalid destination post");
+            E621.Toast.alert("Error: Invalid destination post");
           } else if (data.responseJSON && data.responseJSON.reason) {
-            E621.Flash.error("Error: " + data.responseJSON.reason);
+            E621.Toast.alert("Error: " + data.responseJSON.reason);
           } else {
-            E621.Flash.error("There was an error copying notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
+            E621.Toast.alert("There was an error copying notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
           }
         },
       });
@@ -401,7 +406,7 @@ Post.resize_image = function (post, target_size) {
     $percentage.text(`${scaled_percentage}%`);
   };
   $notice.hide();
-  let desired_url = "";
+  let desired_url;
   let desired_classes = [];
   switch (target_size) {
     case "original":
@@ -536,6 +541,8 @@ Post.initialize_change_resize_mode_link = function () {
 
 Post._isEditing = false;
 Post.initialize_post_sections = function () {
+  if (E621.CurrentUser.is.anonymous) return;
+
   $("#side-edit-link, #post-edit-link, #menu-post-edit-link, #post-edit-close").on("click.danbooru", (event) => {
     event.preventDefault(); // Only one of these is a link
     Post._isEditing = !Post._isEditing;
@@ -549,35 +556,82 @@ Post.initialize_post_sections = function () {
       $("#edit").hide();
     }
   });
+
+  const isUrlValid = (url, ignoreUrls = []) => {
+    url = url.trim();
+    if (url.length <= 0) {
+      return true;
+    }
+    // So existing invalid source links are skipped
+    if (ignoreUrls.includes(url)) {
+      return true;
+    }
+    // Allow dead source links prefixed with `-`
+    if (url[0] === "-") {
+      url = url.substring(1);
+    }
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      // Exception occurs if the URL constructor fails to parse the string, which means it's not a valid URL
+      return false;
+    }
+  };
+
+  const allUrlsValid = (urls, ignoreUrls = []) => {
+    return urls.every(url => isUrlValid(url, ignoreUrls));
+  };
+
+  const splitUrls = urls => urls?.split(/\r?\n/) || [];
+
+  const oldSources = splitUrls($("input[name='post[old_source]']").val());
+  const invalidOldSources = oldSources.filter(url => !isUrlValid(url));
+
+  const updateForUrlChange = () => {
+    const newSources = splitUrls($("#post_source").val());
+    const newSourcesValid = allUrlsValid(newSources, oldSources);
+    $("#post-edit-invalid-url-error")[0].style.display = newSourcesValid ? "none" : "";
+    $("#edit #form input[type=\"submit\"]")[0].disabled = !newSourcesValid;
+    const hasOldInvalidSource = newSources.some(url => invalidOldSources.includes(url));
+    $("#post-edit-invalid-url-warning")[0].style.display = !hasOldInvalidSource ? "none" : "";
+  };
+
+  $(document).on("danbooru:open-post-edit-tab", updateForUrlChange);
+  $("#post_source").on("change.danbooru", updateForUrlChange);
 };
 
 Post.notice_update = function (x) {
+  if (!Post.pending_update_toast) {
+    Post.pending_update_toast = E621.Toast.create("Updating posts...", { timeout: 0 });
+  }
+  ToastManager.dismiss("Posts updated");
+
   if (x === "inc") {
     Post.pending_update_count += 1;
-    E621.Flash.notice("Updating posts (" + Post.pending_update_count + " pending)...", true);
+    Post.pending_update_toast.message = "Updating posts (" + Post.pending_update_count + " pending)...";
   } else {
     Post.pending_update_count -= 1;
 
     if (Post.pending_update_count < 1) {
-      E621.Flash.notice("Posts updated");
+      Post.pending_update_toast.message = "Posts updated";
+      Post.pending_update_toast.timeout = 3;
+      Post.pending_update_toast = null;
     } else {
-      E621.Flash.notice("Updating posts (" + Post.pending_update_count + " pending)...", true);
+      Post.pending_update_toast.message = "Updating posts (" + Post.pending_update_count + " pending)...";
     }
   }
 };
 
 Post.update_data = function (data) {
-  var $post = $(`article.thumbnail[data-id="${data.id}"]`).first();
+  var $post = Post.getMatchingThumbnails(data.id);
   $post.attr("data-tags", data.tag_string);
   $post.data("rating", data.rating);
 
-  $post.removeClass("has-parent has-children");
-  if (data.parent_id) $post.addClass("has-parent");
-  if (data.has_visible_children) $post.addClass("has-children");
-  $post.attr(
-    "data-border-states",
-    (data.is_pending ? 1 : 0) + (data.is_flagged ? 1 : 0) + (data.parent_id ? 1 : 0) + (data.has_visible_children ? 1 : 0),
-  );
+  $post.toggleClass("has-parent", data.parent_id);
+  $post.toggleClass("has-children", data.has_visible_children);
+  $post.toggleClass("flagged", data.is_flagged);
+  $post.toggleClass("pending", data.is_pending);
 };
 
 Post.tag = function (post_id, tags) {
@@ -588,6 +642,10 @@ Post.tag = function (post_id, tags) {
 Post.tagScript = function (post_id, tags) {
   const tag_string = (Array.isArray(tags) ? tags.join(" ") : String(tags));
   Post.update(post_id, { "post[tag_string_diff]": tag_string });
+};
+
+Post.getMatchingThumbnails = function (post_id) {
+  return $(`article.thumbnail[data-id="${post_id}"]`);
 };
 
 Post.update = function (post_id, params) {
@@ -623,30 +681,30 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
     console.log(`Deleting post ${post_id} for reason: ${reason}`);
     $.ajax({
       type: "POST",
-      url: `/moderator/post/posts/${post_id}/delete.json`,
+      url: `/staff/post/posts/${post_id}/delete.json`,
       data: {commit: "Delete", reason: reason, from_flag: from_flag, move_favorites: move_favorites,
         dmail: dmail, dmail_title: dmail_title},
     }).fail(function (data) {
       if (data.status === 409) {
-        E621.Flash.notice("Post already deleted.");
+        E621.Toast.alert("Post already deleted.");
         location.reload();
         return;
       }
       if (data.responseJSON && data.responseJSON.reason) {
-        E621.Flash.error("Error: " + data.responseJSON.reason);
+        E621.Toast.alert("Error: " + data.responseJSON.reason);
         error = true;
         return;
       }
 
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      E621.Flash.error("Error: " + message);
+      E621.Toast.alert("Error: " + message);
       error = true;
     }).done(function () {
-      E621.Flash.notice("Deleted post.");
+      E621.Toast.notice("Deleted post.");
       if (reload_after_delete) {
         location.reload();
       } else {
-        $(`article.thumbnail[data-id="${post_id}"]`).attr("data-flags", "deleted");
+        Post.getMatchingThumbnails(post_id).attr("data-flags", "deleted");
       }
     }).always(function () {
       if (!error)
@@ -660,14 +718,14 @@ Post.undelete = function (post_id, callback) {
   TaskQueue.add(() => {
     $.ajax({
       type: "POST",
-      url: `/moderator/post/posts/${post_id}/undelete.json`,
+      url: `/staff/post/posts/${post_id}/undelete.json`,
     }).fail(function (data) {
       //      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
       const message = data.responseJSON.message;
-      E621.Flash.error("Error: " + message);
+      E621.Toast.alert("Error: " + message);
     }).done(function () {
-      E621.Flash.notice("Undeleted post.");
-      $(`article.thumbnail[data-id="${post_id}"]`).attr("data-flags", "active");
+      Post.getMatchingThumbnails(post_id).attr("data-flags", "active");
+      E621.Toast.notice("Undeleted post.");
       if (callback) callback();
     }).always(function () {
       Post.notice_update("dec");
@@ -685,9 +743,10 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
       data: {approval: modApproval},
     }).fail(function (data) {
       const message = data.responseJSON.message;
-      E621.Flash.error("Error: " + message);
+      E621.Toast.alert("Error: " + message);
     }).done(function () {
-      E621.Flash.notice("Unflagged post");
+      Post.getMatchingThumbnails(post_id).removeClass("flagged");
+      E621.Toast.notice("Unflagged post");
       if (callback) callback();
       if (reload) location.reload();
     }).always(function () {
@@ -696,7 +755,7 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
   }, { name: "Post.unflag" });
 };
 
-Post.flag = function (post_id, reason_name, parent_id = null, reload = true, callback = null) {
+Post.flag = function (post_id, reason_name, parent_id = null, note = null, reload = true, callback = null) {
   Post.notice_update("inc");
   TaskQueue.add(() => {
     $.ajax({
@@ -707,13 +766,14 @@ Post.flag = function (post_id, reason_name, parent_id = null, reload = true, cal
           post_id: parseInt(post_id),
           reason_name,
           parent_id,
+          note,
         },
       },
     }).fail(function (data) {
       const message = data.responseJSON.message;
-      E621.Flash.error("Error: " + message);
+      E621.Toast.alert("Error: " + message);
     }).done(function () {
-      E621.Flash.notice("Flagged post");
+      E621.Toast.notice("Flagged post");
       if (callback) callback();
       if (reload) location.reload();
     }).always(function () {
@@ -722,10 +782,10 @@ Post.flag = function (post_id, reason_name, parent_id = null, reload = true, cal
   }, { name: "Post.flag" });
 };
 
-Post.move_flag_to_parent = function (post_id, parent_id) {
+Post.move_flag_to_parent = function (post_id, parent_id, reason_name, note) {
   Post.unflag(post_id, false, false, function () {
-    Post.flag(parent_id, "inferior", post_id, false, function () {
-      location.href = `/moderator/post/posts/${parent_id}/confirm_delete`;
+    Post.flag(parent_id, reason_name, post_id, note, false, function () {
+      location.href = `/staff/post/posts/${parent_id}/confirm_delete`;
     });
   });
 };
@@ -736,13 +796,13 @@ Post.unapprove = function (post_id) {
   TaskQueue.add(() => {
     $.ajax({
       type: "DELETE",
-      url: "/moderator/post/approval.json",
+      url: "/staff/post/approval.json",
       data: {post_id: post_id},
     }).fail(function (data) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      E621.Flash.error("Error: " + message);
+      E621.Toast.alert("Error: " + message);
     }).done(function () {
-      E621.Flash.notice("Unapproved post.");
+      E621.Toast.notice("Unapproved post.");
       location.reload();
     }).always(function () {
       Post.notice_update("dec");
@@ -751,34 +811,34 @@ Post.unapprove = function (post_id) {
 };
 
 Post.destroy = function (post_id, reason) {
-  $.post(`/moderator/post/posts/${post_id}/expunge.json`, { reason },
+  $.post(`/staff/post/posts/${post_id}/expunge.json`, { reason },
   ).fail(data => {
     var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-    $(window).trigger("danbooru:error", "Error: " + message);
+    E621.Toast.alert("Error: " + message);
   }).done(() => {
-    location.href = `/admin/destroyed_posts/${post_id}`;
+    location.href = `/staff/destroyed_posts/${post_id}`;
   });
 };
 
 Post.regenerate_image_samples = function (post_id) {
-  $.post(`/moderator/post/posts/${post_id}/regenerate_thumbnails.json`, {},
+  $.post(`/staff/post/posts/${post_id}/regenerate_thumbnails.json`, {},
   ).fail(data => {
-    E621.Flash.error("Error: " + data.responseJSON.reason);
+    E621.Toast.alert("Error: " + data.responseJSON.reason);
   }).done(() => {
     if ($("#image-container").data("size") >= 10 * 1024 * 1024) {
-      E621.Flash.notice("Large file: Image samples will be regenerated soon.");
+      E621.Toast.notice("Large file: Image samples will be regenerated soon.");
     } else {
-      E621.Flash.notice("Image samples regenerated successfully.");
+      E621.Toast.notice("Image samples regenerated successfully.");
     }
   });
 };
 
 Post.regenerate_video_samples = function (post_id) {
-  $.post(`/moderator/post/posts/${post_id}/regenerate_videos.json`, {},
+  $.post(`/staff/post/posts/${post_id}/regenerate_videos.json`, {},
   ).fail(data => {
-    E621.Flash.error("Error: " + data.responseJSON.reason);
+    E621.Toast.alert("Error: " + data.responseJSON.reason);
   }).done(() => {
-    E621.Flash.notice("Video samples will be regenerated in a few minutes.");
+    E621.Toast.notice("Video samples will be regenerated in a few minutes.");
   });
 };
 
@@ -786,18 +846,17 @@ Post.approve = function (post_id, callback) {
   Post.notice_update("inc");
   TaskQueue.add(() => {
     $.post(
-      "/moderator/post/approval.json",
+      "/staff/post/approval.json",
       { "post_id": post_id },
     ).fail(function (data) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      E621.Flash.error("Error: " + message);
+      E621.Toast.alert("Error: " + message);
     }).done(function () {
-      var $post = $(`article.thumbnail[data-id="${post_id}"]`).first();
-      if ($post.length) {
-        $post.data("flags", $post.data("flags").replace(/pending/, ""));
-        $post.removeClass("pending");
-        $post.attr("data-border-states", (parseInt($post.attr("data-border-states")) || 1) - 1);
-        E621.Flash.notice("Approved post #" + post_id);
+      const $thumbnails = Post.getMatchingThumbnails(post_id);
+      if ($thumbnails.length) {
+        $thumbnails.data("flags", $thumbnails.data("flags").replace(/pending/, ""));
+        $thumbnails.removeClass("pending");
+        E621.Toast.notice("Approved post #" + post_id);
       }
       if (callback) {
         callback();
@@ -812,11 +871,11 @@ Post.disapprove = function (post_id, reason, message) {
   Post.notice_update("inc");
   TaskQueue.add(() => {
     $.post(
-      "/moderator/post/disapprovals.json",
+      "/staff/post/disapprovals.json",
       {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason, "post_disapproval[message]": message},
     ).fail(function (data) {
       var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      $(window).trigger("danbooru:error", "Error: " + message);
+      E621.Toast.alert("Error: " + message);
     }).done(function () {
       if ($("#c-posts #a-show").length) {
         location.reload();
@@ -864,7 +923,7 @@ Post.set_as_avatar = function (id) {
   TaskQueue.add(() => {
     $.ajax({
       method: "PATCH",
-      url: `/users/${Utility.meta("current-user-id")}.json`,
+      url: `/users/${CurrentUser.id}.json`,
       data: {
         "user[avatar_id]": id,
       },
@@ -872,7 +931,7 @@ Post.set_as_avatar = function (id) {
         accept: "*/*;q=0.5,text/javascript",
       },
     }).done(function () {
-      E621.Flash.notice("Post set as avatar");
+      E621.Toast.notice("Post set as avatar. You can crop it further <a href='/maintenance/user/avatar/edit'>here</a>.");
     });
   }, { name: "Post.set_as_avatar" });
 };

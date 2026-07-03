@@ -1,0 +1,24 @@
+<div id="c-maintenance-user-avatars">
+  <div id="a-edit">
+    <h1>Crop Avatar</h1>
+
+    <% if @post.nil? %>
+      <p>You have not set an avatar post yet. <%= link_to "Set one in your settings", settings_users_path %>.</p>
+    <% else %>
+      <%= form_tag(maintenance_user_avatar_path, method: :patch) do %>
+        <div id="avatar-crop-widget"
+             data-image-url="<%= @post.sample_url %>"
+             data-natural-width="<%= @post.sample_width %>"
+             data-natural-height="<%= @post.sample_height %>">
+        </div>
+        <p class="image-crop-widget-hint">Drag to select the region to use as your avatar.</p>
+        <input type="hidden" name="avatar_crop_x" id="avatar_crop_x">
+        <input type="hidden" name="avatar_crop_y" id="avatar_crop_y">
+        <input type="hidden" name="avatar_crop_w" id="avatar_crop_w">
+        <%= submit_tag "Save crop", class: "st-button", id: "avatar-crop-submit" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) { "Crop Avatar" } %>

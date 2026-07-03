@@ -33,12 +33,13 @@ class Post < ApplicationRecord
   validate :updater_can_change_rating
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
-  after_create :check_for_ai_content, if: -> { Danbooru.config.auto_flag_ai_posts? }
+  after_create :check_for_ai_content, if: -> { Setting.automatic_ai_check? }
   after_save :create_post_events
   after_save :create_version
   after_save :update_parent_on_save
   after_save :apply_post_metatags
   after_commit :delete_files, on: :destroy
+  after_commit :delete_avatar_crops, on: :destroy
   after_commit :remove_iqdb_async, on: :destroy
   # after_commit :update_iqdb_async, :on => :create
   after_commit :handle_thumbnails_on_create, on: :create
@@ -85,6 +86,13 @@ class Post < ApplicationRecord
       Post.delete_files(id, md5, file_ext, force: true)
     end
 
+    def delete_avatar_crops
+      User.where(avatar_id: id).pluck(:id).each do |user_id|
+        AvatarCleanupJob.perform_later(user_id, force: true)
+        UserAvatarUrlCache.invalidate(user_id)
+      end
+    end
+
     def move_files_on_delete
       Danbooru.config.storage_manager.move_file_delete(self)
     end
@@ -109,6 +117,10 @@ class Post < ApplicationRecord
       storage_manager.post_file_url(self)
     end
 
+    def download_url
+      storage_manager.post_download_url(self)
+    end
+
     # TODO: Deprecate this method
     def file_url_ext(ext)
       storage_manager.post_file_url(self, ext: ext)
@@ -126,6 +138,11 @@ class Post < ApplicationRecord
     def sample_url(type = :sample_jpg)
       return file_url unless has_sample?
       storage_manager.post_file_url(self, type)
+    end
+
+    def sample_url_pair
+      return [file_url, file_url] unless has_sample?
+      [sample_url(:sample_webp), sample_url(:sample_jpg)]
     end
 
     def preview_file_url(type = :preview_jpg)
@@ -257,7 +274,7 @@ class Post < ApplicationRecord
           sample_data[:original] = video_samples["original"]
 
           sample_data[:variants] = {}
-          sample_data[:has] = true if video_samples["variants"].present?
+          sample_data[:has] = true if video_samples["original"]["codec"].present?
           video_samples["variants"].each do |name, video|
             sample_data[:variants][name] = video
             sample_data[:variants][name][:codec] = name == "mp4" ? "avc1.4D401E" : "vp9"
@@ -348,7 +365,7 @@ class Post < ApplicationRecord
       if ai_score[:score] >= 50
         PostFlag.create(
           post: self,
-          reason_name: "uploading_guidelines",
+          reason_name: Setting.ai_flag_reason,
           note: "AI score: #{ai_score[:score]}\n#{ai_score[:reason]}",
           creator_id: User.system.id,
           creator_ip_addr: "192.168.0.1",
@@ -820,7 +837,18 @@ class Post < ApplicationRecord
     def add_automatic_tags(tags)
       return tags unless Danbooru.config.enable_dimension_autotagging?
 
-      tags -= %w[thumbnail low_res hi_res absurd_res superabsurd_res huge_filesize wide_image tall_image long_image flash webm mp4 long_playtime short_playtime]
+      tags -= %w[
+        thumbnail low_res hi_res absurd_res superabsurd_res
+        huge_filesize
+        wide_image tall_image long_image
+        flash video
+        long_playtime short_playtime
+        animated_gif animated_png animated_webp
+      ] + FileMethods::FILE_TYPE.values
+
+      # NOTE: when adding, removing, or changing any of these values, make sure to also
+      # update the corresponding labels in Danbooru.config.automated_tag_notices.
+      # Otherwise, users may be confused by missing or incorrect help messages.
 
       if has_dimensions?
         tags << "superabsurd_res" if image_width >= 10_000 && image_height >= 10_000
@@ -841,12 +869,11 @@ class Post < ApplicationRecord
       tags << "huge_filesize" if file_size >= 30.megabytes
 
       tags << "flash" if is_flash?
-      tags << "webm" if is_webm?
+      tags << "video" if is_video?
 
-      # TODO: Automatically add animated_* tags without re-testing them on every edit
-      tags -= ["animated_gif"] unless is_gif?
-      tags -= ["animated_png"] unless is_png?
-      tags -= ["animated_webp"] unless is_webp?
+      tags << "animated_gif" if is_gif? && is_animated?
+      tags << "animated_png" if is_png? && is_animated?
+      tags << "animated_webp" if is_webp? && is_animated?
 
       tags << "long_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration >= 30
       tags << "short_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration < 30
@@ -855,24 +882,31 @@ class Post < ApplicationRecord
     end
 
     def apply_casesensitive_metatags(tags)
-      casesensitive_metatags, tags = tags.partition {|x| x =~ /\A(?:source):/i}
+      casesensitive_metatags, tags = tags.partition {|x| x =~ /\A(?:\+?source):/i}
       #Reuse the following metatags after the post has been saved
       casesensitive_metatags += tags.select {|x| x =~ /\A(?:newpool):/i}
       if casesensitive_metatags.length > 0
-        case casesensitive_metatags[-1]
-        when /^source:none$/i
-          self.source = ""
+        casesensitive_metatags.each do |metatag|
+          case metatag
+          when /^source:none$/i
+            self.source = ""
 
-        when /^source:"(.*)"$/i
-          self.source = $1
+          when /^\+source:none$/i
+            next
 
-        when /^source:(.*)$/i
-          self.source = $1
+          when /^source:("?)(.*)\1$/i
+            self.source = $2
 
-        when /^newpool:(.+)$/i
-          pool = Pool.find_by_name($1)
+          when /^\+source:("?)(.*)\1$/i
+            self.source = self.source.blank? ? $2 : "#{self.source}\n#{$2}"
+          end
+        end
+
+        if (newpool = casesensitive_metatags.grep(/^newpool:(.+)$/i).last)
+          pool_name = newpool.match(/^newpool:(.+)$/i)[1]
+          pool = Pool.find_by_name(pool_name)
           if pool.nil?
-            pool = Pool.create(name: $1, description: "")
+            pool = Pool.create(name: pool_name, description: "")
           end
         end
       end
@@ -1024,7 +1058,7 @@ class Post < ApplicationRecord
           self.rating = $1
 
         when /^(-?)locked:notes?$/i
-          self.is_note_locked = ($1 != "-") if CurrentUser.is_janitor?
+          self.is_note_locked = ($1 != "-") if CurrentUser.is_staff?
 
         when /^(-?)locked:rating$/i
           self.is_rating_locked = ($1 != "-") if CurrentUser.is_privileged?
@@ -1163,70 +1197,99 @@ class Post < ApplicationRecord
     end
 
     ## DB!
-    # Fetches the avoid posting data for the post's artist tags.
+    # Fetches the avoid posting data for all artist, copyright, and character tags on the post.
     # Sends a db request to lookup avoid posting data.
-    def avoid_posting_artists
-      @avoid_posting_artists ||= begin
-        artist_names = artist_tags.map(&:name)
-        return [] if artist_names.empty?
-        AvoidPosting.active.joins(:artist).where(artists: { name: artist_names }).includes(:artist).to_a
+    def avoid_posting_tags
+      @avoid_posting_tags ||= begin
+        # We only care about artist, copyright, and character tags.
+        if @categorized_tags.nil?
+          tags = Tag
+                 .where(name: tag_array, category: [Tag.categories.artist, Tag.categories.copyright, Tag.categories.character])
+                 .pluck(:name)
+                 .filter { |tag| NON_ARTIST_TAGS.exclude?(tag) }
+        else
+          tags = (
+            tags_for_category(Tag.categories.artist) +
+            tags_for_category(Tag.categories.copyright) +
+            tags_for_category(Tag.categories.character)
+          ).map(&:name).filter { |tag| NON_ARTIST_TAGS.exclude?(tag) }
+        end
+
+        if tags.empty?
+          []
+        else
+          # Despite the name, copyright and character tags can also have Artist and AvoidPosting entries
+          AvoidPosting.active.joins(:artist).where(artists: { name: tags }).includes(:artist).to_a
+        end
       end
     end
   end
 
   module FavoriteMethods
-    def clean_fav_string!
-      array = fav_string.split.uniq
-      self.fav_string = array.join(" ")
-      self.fav_count = array.size
+    extend ActiveSupport::Concern
+
+    module ClassMethods
+      # Bulk-populate the favorited-by status for a collection of posts so that
+      # subsequent `favorited_by?(user_id)` calls return without hitting the DB.
+      def preload_favorited_status!(posts, user_id)
+        posts = Array.wrap(posts).compact
+        return if posts.empty? || user_id.blank?
+
+        favorited_ids = Favorite.where(user_id: user_id, post_id: posts.map(&:id)).pluck(:post_id).to_set
+        posts.each { |post| post.preset_favorited_status(user_id, favorited_ids.include?(post.id)) }
+      end
+
+      # Bulk-populate both favorited-by and vote status for a collection of posts so
+      # that rendering thumbnails doesn't issue a query per post. Skips anonymous
+      # users, who never have favorites or votes.
+      def preload_stats!(posts, user = CurrentUser.user)
+        return if user.nil? || user.is_logged_out?
+        preload_favorited_status!(posts, user.id)
+        preload_vote_by!(posts, user.id)
+      end
+    end
+
+    def preset_favorited_status(user_id, value)
+      @favorited_status_cache ||= {}
+      @favorited_status_cache[user_id] = value
     end
 
     def favorited_by?(user_id = CurrentUser.id)
-      !!(fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/)
+      return false if user_id.blank?
+      cached = @favorited_status_cache&.[](user_id)
+      return cached unless cached.nil?
+
+      is_favorited = Favorite.exists?(user_id: user_id, post_id: id)
+      preset_favorited_status(user_id, is_favorited)
+      is_favorited
     end
 
     alias_method :is_favorited?, :favorited_by?
 
-    def append_user_to_fav_string(user_id)
-      # Regex is faster for large fav_strings, array include? is faster for small fav_strings.
-      # Checking for presence is faster than explicit deduplication for both approaches.
-      if fav_count > 1000
-        unless fav_string =~ /(?:\A| )fav:#{user_id}(?:\Z| )/
-          self.fav_string = (fav_string + " fav:#{user_id}").strip
-          self.fav_count = fav_string.split.size
-        end
-      else
-        fav_array = fav_string.split
-        fav_tag = "fav:#{user_id}"
-
-        unless fav_array.include?(fav_tag)
-          fav_array << fav_tag
-          self.fav_string = fav_array.join(" ")
-          self.fav_count = fav_array.size
-        end
-      end
+    def reload(*)
+      @favorited_status_cache = nil
+      @vote_by_cache = nil
+      super
     end
 
-    def delete_user_from_fav_string(user_id)
-      new_fav_string = fav_string.gsub(/(?:\A| )fav:#{user_id}(?:\Z| )/, " ").strip
-      if new_fav_string != fav_string
-        self.fav_string = new_fav_string
-        self.fav_count = new_fav_string.split.size
-      end
+    # Recompute fav_count from the favorites table, the source of truth. Leaves
+    # fav_count dirty so a following post.save runs an UPDATE and triggers the
+    # after_save reindex.
+    def refresh_fav_count
+      self.fav_count = Favorite.where(post_id: id).count
     end
 
-    # users who favorited this post, ordered by users who favorited it first
+    # users who favorited this post, ordered by when they favorited it
     def favorited_users
-      favorited_user_ids = fav_string.scan(/\d+/).map(&:to_i)
+      favorited_user_ids = Favorite.where(post_id: id).order(:id).pluck(:user_id)
       visible_users = User.find(favorited_user_ids).reject(&:hide_favorites?)
-      ordered_users = visible_users.index_by(&:id).slice(*favorited_user_ids).values
-      ordered_users
+      visible_users.index_by(&:id).slice(*favorited_user_ids).values
     end
 
     def remove_from_favorites
+      user_ids = Favorite.where(post_id: id).pluck(:user_id)
       Favorite.where(post_id: id).delete_all
-      user_ids = fav_string.scan(/\d+/)
-      UserStatus.where(:user_id => user_ids).update_all("favorite_count = favorite_count - 1")
+      UserStatus.where(user_id: user_ids).update_all("favorite_count = favorite_count - 1") if user_ids.any?
     end
   end
 
@@ -1243,6 +1306,43 @@ class Post < ApplicationRecord
         return uploader&.name || "Anonymous"
       end
       User.id_to_name(uploader_id)
+    end
+
+    def previous_version_uploaders
+      previous_uploader_ids = replacements
+                              .where(status: %w[original approved])
+                              .where.not(creator_id: uploader_id)
+                              .distinct
+                              .pluck(:creator_id)
+      User.where(id: previous_uploader_ids)
+    end
+
+    # Reowner the post and return the old owner id, or nil if the new owner is the current owner.
+    def reowner!(new_owner, reowner_versions: false, post_events: true)
+      raise ::User::PrivilegeError unless CurrentUser.is_janitor?
+      raise ::User::PrivilegeError if (reowner_versions || !post_events) && !CurrentUser.is_bd_staff?
+
+      new_owner_id = new_owner&.id
+      raise ::User::PrivilegeError, "Cannot assign a new owner that isn't a previous owner" unless
+        CurrentUser.is_admin? || previous_version_uploaders.any? { |uploader| uploader.id == new_owner_id }
+
+      old_owner_id = uploader_id
+      return nil if new_owner_id == old_owner_id # nothing to do
+
+      self.do_not_version_changes = true
+      update({ uploader_id: new_owner_id })
+      if reowner_versions
+        versions.where(updater_id: old_owner_id).find_each do |version|
+          version.update_column(:updater_id, new_owner_id)
+          version.update_index
+        end
+      end
+
+      if post_events
+        PostEvent.add(id, CurrentUser.user, :owner_changed, { old_owner: old_owner_id, new_owner: new_owner_id })
+      end
+
+      old_owner_id
     end
   end
 
@@ -1341,9 +1441,39 @@ class Post < ApplicationRecord
   end
 
   module VoteMethods
+    extend ActiveSupport::Concern
+
+    module ClassMethods
+      # Bulk-populate the user's vote score for a collection of posts so that
+      # subsequent `vote_by(user_id)` calls return without hitting the DB.
+      def preload_vote_by!(posts, user_id)
+        posts = Array.wrap(posts).compact
+        return if posts.empty? || user_id.blank?
+
+        scores = PostVote.where(user_id: user_id, post_id: posts.map(&:id)).pluck(:post_id, :score).to_h
+        posts.each { |post| post.preset_vote_by(user_id, scores.fetch(post.id, 0)) }
+      end
+    end
+
+    def preset_vote_by(user_id, score)
+      @vote_by_cache ||= {}
+      @vote_by_cache[user_id] = score
+    end
+
     def own_vote(user = CurrentUser.user)
       return nil unless user
       votes.where("user_id = ?", user.id).first
+    end
+
+    # Returns -1, 0, or 1. A missing or locked PostVote both yield 0.
+    def vote_by(user_id = CurrentUser.id)
+      return 0 if user_id.blank?
+      cached = @vote_by_cache&.[](user_id)
+      return cached unless cached.nil?
+
+      score = PostVote.where(user_id: user_id, post_id: id).pick(:score) || 0
+      preset_vote_by(user_id, score)
+      score
     end
   end
 
@@ -1558,8 +1688,8 @@ class Post < ApplicationRecord
           errors.add(:base, "Cannot delete with given reason when no active flag exists.")
           return
         end
-        if pending_flag.reason =~ /uploading_guidelines/
-          errors.add(:base, "Cannot delete with given reason when the flag is for uploading guidelines.")
+        if pending_flag.needs_staff_reason?
+          errors.add(:base, "Cannot \"delete with given reason\" for this flag reason.")
           return
         end
         reason = pending_flag.reason
@@ -1581,6 +1711,7 @@ class Post < ApplicationRecord
           )
           decrement_tag_post_counts
           move_files_on_delete
+          delete_avatar_crops
           PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
         end
       end
@@ -1623,21 +1754,25 @@ class Post < ApplicationRecord
         PostEvent.add(id, CurrentUser.user, :undeleted)
       end
       move_files_on_undelete
+      User.where(avatar_id: id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
     end
 
     def deletion_flag
-      flags.order(id: :desc).first
+      flags.unresolved.where(is_deletion: true).order(id: :desc).first
     end
 
     def pending_flag
-      flags.unresolved.order(id: :desc).first
+      flags.unresolved.where(is_deletion: false).order(id: :desc).first
     end
 
     def substitute_deletion_dmail_template(text, reason = nil)
       return nil if text.blank?
       if reason
         text = text.gsub("%REASON%", reason)
+      end
+      if (flag_id = deletion_flag&.id)
+        text = text.gsub("%FLAG_ID%", flag_id.to_s)
       end
       text.gsub("%POST_ID%", id.to_s)
           .gsub("%STAFF_NAME%", CurrentUser.name)
@@ -1730,7 +1865,7 @@ class Post < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      list = super + [:pool_string, :fav_string]
+      list = super + [:pool_string]
       if !visible?
         list += [:md5, :file_ext]
       end
@@ -1738,7 +1873,7 @@ class Post < ApplicationRecord
     end
 
     def method_attributes
-      list = super + %i[has_sample has_visible_children children_ids pool_ids is_favorited?]
+      list = super + %i[has_sample has_visible_children children_ids pool_ids is_favorited? vote_by]
       if visible?
         list += %i[file_url sample_url preview_file_url]
       end
@@ -1764,6 +1899,7 @@ class Post < ApplicationRecord
         score: score,
         fav_count: fav_count,
         is_favorited: favorited_by?(CurrentUser.user.id),
+        vote: vote_by(CurrentUser.user.id),
         comment_count: comment_count,
 
         pools: pool_ids.join(" "),
@@ -2059,6 +2195,7 @@ class Post < ApplicationRecord
     hide_from_search_engines
     favorites_transfer_in_progress
     hide_favorites_list
+    is_animated
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
@@ -2072,7 +2209,7 @@ class Post < ApplicationRecord
   end
 
   def loginblocked?
-    CurrentUser.is_anonymous? && (hide_from_anonymous? || Danbooru.config.user_needs_login_for_post?(self))
+    CurrentUser.user.is_logged_out? && (hide_from_anonymous? || Danbooru.config.user_needs_login_for_post?(self))
   end
 
   def visible?
@@ -2102,6 +2239,7 @@ class Post < ApplicationRecord
     @categorized_tags = nil
     @artist_tags = nil
     @uploader_linked_artists = nil
+    @avoid_posting_tags = nil
 
     @has_dimensions = nil
     @preview_dimensions = nil
@@ -2128,10 +2266,6 @@ class Post < ApplicationRecord
     end
 
     save
-  end
-
-  def flaggable_for_guidelines?
-    !has_tag?("grandfathered_content") && created_at.after?(Danbooru.config.grandfathered_post_cutoff)
   end
 
   def visible_comment_count(user)

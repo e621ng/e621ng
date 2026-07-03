@@ -45,8 +45,8 @@ RSpec.describe ForumTopic do
   # .visible
   # -------------------------------------------------------------------------
   describe ".visible" do
-    let(:public_category)     { create(:forum_category, can_view: User::Levels::ANONYMOUS) }
-    let(:moderator_category)  { create(:forum_category, can_view: User::Levels::MODERATOR) }
+    let(:public_category)     { create(:forum_category, can_view: UserLevel::ANONYMOUS) }
+    let(:moderator_category)  { create(:forum_category, can_view: UserLevel::MODERATOR) }
 
     it "includes topics in categories the user has access to" do
       topic = make_topic(category_id: public_category.id)

@@ -1,4 +1,4 @@
-import CStorage from "@/utility/StorageC";
+import CStorage from "@/utility/storage/Cookie";
 
 function initSearch () {
   const $searchForm = $("#searchform");
@@ -25,12 +25,7 @@ $(function () {
   $(".dmail-notice-hide").on("click.danbooru", function (event) {
     event.preventDefault();
     $(".dmail-notice").hide();
-    CStorage.hideDMailNotice = true;
-  });
-
-  $("#close-notice-link").on("click.danbooru", function (e) {
-    $("#notice").fadeOut("fast");
-    e.preventDefault();
+    CStorage.Site.HideDMailNotice = true;
   });
 
   $(".revert-item-link").on("click", e => {
@@ -47,8 +42,12 @@ $(function () {
     }).done(() => {
       location.reload();
     }).fail(() => {
-      E621.Flash.error("Failed to revert to specified version.");
+      E621.Toast.alert("Failed to revert to specified version.");
     });
+  });
+
+  $("input[type='text'].select-all").on("click", e => {
+    e.target.select();
   });
 
   initSearch();

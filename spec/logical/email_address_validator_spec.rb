@@ -166,4 +166,39 @@ RSpec.describe EmailAddressValidator do
       end
     end
   end
+
+  # The class-level predicate lets non-ActiveModel callers (e.g. ApplicationMailer)
+  # ask whether a stored string is a deliverable address without building a record.
+  # It must share the structural checks above so the two paths cannot drift.
+  describe ".valid?" do
+    it "returns true for a standard address" do
+      expect(described_class.valid?("user@example.com")).to be true
+    end
+
+    it "returns false for a malformed legacy address that the mail gem cannot parse" do
+      expect(described_class.valid?("Email- Something-Weird-Comes@hotmail.com")).to be false
+    end
+
+    it "returns false for a blank value" do
+      expect(described_class.valid?("")).to be false
+      expect(described_class.valid?(nil)).to be false
+    end
+
+    it "returns false for a display-name form" do
+      expect(described_class.valid?("Foo <a@b.com>")).to be false
+    end
+
+    it "returns false for an address with no @ sign" do
+      expect(described_class.valid?("notanemail")).to be false
+    end
+
+    it "returns false for a value with surrounding whitespace or newlines" do
+      expect(described_class.valid?("user@example.com\n")).to be false
+      expect(described_class.valid?(" user@example.com ")).to be false
+    end
+
+    it "returns false (without raising) for input that makes the mail parser raise a non-ParseError" do
+      expect(described_class.valid?("a@(b).com")).to be false
+    end
+  end
 end

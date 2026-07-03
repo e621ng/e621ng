@@ -1,0 +1,69 @@
+<div id="c-appeals">
+  <div id="a-new">
+
+    <%= custom_form_for(@appeal, html: { class: "appeal-new-form" }) do |f| %>
+      <% @found_item = true %>
+      <% if @appeal.qtype.nil? %>
+        <% @found_item = false %>
+        <div class="section">
+          To appeal a post deletion, click "Appeal" on the post itself.<br/>
+        </div>
+      <% else %>
+        <% if @appeal.content %>
+          <div class="section appeal-content appeal-<%= @appeal.qtype %>">
+            <%= render partial: "appeals/new_types/#{@appeal.qtype}" %>
+          </div>
+        <% else %>
+          <% @found_item = false %>
+          <div class="section">That <%= @appeal.model.name.underscore.tr("_", " ") %> does not exist.</div>
+        <% end %>
+      <% end %>
+
+      <% if @found_item %>
+        <%= f.hidden_field :disp_id %>
+        <%= f.hidden_field :qtype %>
+
+        <% if @appeal.errors.any? %>
+          <div class="section report-errors">
+            <% @appeal.errors.full_messages.each do |error| %>
+              <span><%= error %></span>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="section appeal-reason" id="report-reason-input">
+          <span class="ticket-warning">
+            <strong>Note:</strong> Abuse of this system will lead to disciplinary action
+          </span>
+
+          <%= f.input :reason, as: :dtext, limit: Danbooru.config.ticket_max_size %>
+
+        </div>
+
+        <% if @existing_similar.present? %>
+          <div class="section appeal-duplicate">
+            <div class="appeal-duplicate-title">
+              <b>Attention</b> You have multiple similar appeals pending.
+            </div>
+            <ul>
+              <% @existing_similar.each do |appeal| %>
+                <li><%= link_to truncate(strip_tags(format_text(appeal.reason)), length: 100), appeal_path(appeal) %></li>
+              <% end %>
+            </ul>
+            <p>
+              If you intend to report the same issue across multiple items, please simply report one item and include the others in the reason.
+            </p>
+          </div>
+        <% end %>
+
+        <%= submit_tag "Submit Appeal", class: "st-button submit", id: "appeal_submit" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<%= render partial: "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  New Appeal
+<% end %>

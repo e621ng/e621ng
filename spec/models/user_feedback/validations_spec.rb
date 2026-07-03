@@ -106,7 +106,7 @@ RSpec.describe UserFeedback do
       it "does not re-run on update" do
         feedback = create(:user_feedback, user: subject_user, creator: moderator)
         # Demote the creator to member — creator_is_moderator should not re-fire
-        moderator.update_columns(level: User::Levels::MEMBER)
+        moderator.update_columns(level: UserLevel::MEMBER)
         moderator.reload
         feedback.body = "updated body"
         expect(feedback).to be_valid

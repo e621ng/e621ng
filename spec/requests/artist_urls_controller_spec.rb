@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe ArtistUrlsController do
-  before { skip "Artist URLs routes not available in this fork" unless Rails.application.routes.url_helpers.method_defined?(:artist_urls_path) }
+  before { skip "Artist URLs routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:artist_urls_path) }
 
   include_context "as admin"
 

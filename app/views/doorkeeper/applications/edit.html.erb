@@ -1,0 +1,30 @@
+<h1><%= @application.name %></h1>
+
+<%= render "secondary_links" %>
+
+<div class="oauth-app-readonly">
+  <div class="field">
+    <label>Client ID</label>
+    <input type="text" value="<%= @application.uid %>" readonly>
+  </div>
+
+  <div class="field">
+    <label>Client secret</label>
+    <div class="oauth-app-secret-row">
+      <input type="text" value="<%= @application.plaintext_secret %>" readonly>
+      <%= button_to "Regenerate", regenerate_secret_oauth_application_path(@application),
+                    method: :post, class: "st-button",
+                    data: { confirm: "Regenerate the client secret? Clients using the old secret will need to be updated." } %>
+    </div>
+  </div>
+
+  <p class="oauth-app-created">
+    Created <%= time_ago_in_words_tagged(@application.created_at) %>.
+  </p>
+</div>
+
+<%= render "form", application: @application %>
+
+<% content_for(:page_title) do %>
+  <%= @application.name %>
+<% end %>

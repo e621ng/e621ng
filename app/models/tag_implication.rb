@@ -133,9 +133,10 @@ class TagImplication < TagRelationship
           update!(status: "processing")
           create_undo_information
           update_posts
-          update(status: "active")
           update_descendant_names_for_parents
           forum_updater.update(approval_message(approver), "APPROVED") if update_topic
+          update(status: "active")
+          TagImplicationFinalizeJob.perform_later(id, antecedent_name)
         end
       rescue Exception => e
         if tries < 5 && !Rails.env.test?
@@ -150,45 +151,38 @@ class TagImplication < TagRelationship
     end
 
     def update_posts
+      Thread.current[:skip_post_index_update] = true
       Post.without_timeout do
-        page = 1
-        loop do
-          posts = PostSets::Post.new("#{antecedent_name} -#{consequent_name} status:any", page, limit: POST_LIMIT).posts
-          posts.each do |post|
-            post.with_lock do
-              CurrentUser.scoped(creator, creator_ip_addr) do
-                post.do_not_version_changes = true
-                post.tag_string += " "
-                post.save!
-              end
+        Post.sql_raw_tag_match(antecedent_name).find_each do |post|
+          next if post.tag_array.include?(consequent_name)
+          post.with_lock do
+            CurrentUser.scoped(creator, creator_ip_addr) do
+              post.do_not_version_changes = true
+              post.tag_string += " "
+              post.save!
             end
           end
-
-          if posts.length < POST_LIMIT
-            return
-          end
-
-          page += 1
         end
       end
+    ensure
+      Thread.current[:skip_post_index_update] = false
     end
 
     def create_undo_information
       Post.without_timeout do
-        page = 1
-        loop do
-          posts = PostSets::Post.new("#{antecedent_name} -#{consequent_name} status:any", page, limit: POST_LIMIT).posts
-          post_info = Hash.new
-          posts.each do |post|
-            post_info[post.id] = post.tag_string
+        post_info = {}
+        Post.sql_raw_tag_match(antecedent_name).find_each do |post|
+          next if post.tag_array.include?(consequent_name)
+          post_info[post.id.to_s] = post.tag_string
+
+          if post_info.size >= POST_LIMIT
+            tag_rel_undos.create!(undo_data: post_info)
+            post_info = {}
           end
+        end
+
+        if post_info.any?
           tag_rel_undos.create!(undo_data: post_info)
-
-          if posts.length < POST_LIMIT
-            return
-          end
-
-          page += 1
         end
       end
     end
@@ -253,11 +247,12 @@ class TagImplication < TagRelationship
     end
 
     def update_posts_undo
+      Thread.current[:skip_post_index_update] = true
       Post.without_timeout do
         tag_rel_undos.where(applied: false).each do |tu|
           Post.where(id: tu.undo_data.keys).find_each do |post|
             post.do_not_version_changes = true
-            if TagQuery.scan(tu.undo_data[post.id]).include?(consequent_name)
+            if TagQuery.scan(tu.undo_data[post.id.to_s]).include?(consequent_name)
               Rails.logger.info("[TIU] Skipping post that already contains target tag.")
               next
             end
@@ -265,11 +260,10 @@ class TagImplication < TagRelationship
             post.save
           end
         end
-
-        # TODO: Race condition with indexing jobs here.
-        antecedent_tag.fix_post_count if antecedent_tag
-        consequent_tag.fix_post_count if consequent_tag
       end
+      TagImplicationFinalizeJob.perform_later(id, antecedent_name)
+    ensure
+      Thread.current[:skip_post_index_update] = false
     end
   end
 

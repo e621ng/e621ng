@@ -19,7 +19,7 @@ gem "responders"
 if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext")
   gem "dtext", path: "vendor/dtext", require: "dtext"
 else
-  gem "dtext", git: "https://github.com/e621ng/dtext.git", tag: "2.0.3", require: "dtext"
+  gem "dtext", git: "https://github.com/e621ng/dtext.git", tag: "2.0.4", require: "dtext"
 end
 
 gem "bootsnap"
@@ -52,7 +52,12 @@ gem "faraday"
 gem "faraday-follow_redirects"
 gem "faraday-retry"
 
+gem "rack-cors"
 gem "rails-settings-cached", "~> 2.9"
+gem "sitemap_generator"
+
+gem "doorkeeper", "~> 5.8"
+gem "doorkeeper-openid_connect", "~> 1.10"
 
 group :production do
   gem "pitchfork"
@@ -85,4 +90,5 @@ group :development do
   gem "ruby-lsp"
   gem "ruby-lsp-rails", "~> 0.4.8"
   gem "ruby-lsp-rspec", require: false
+  gem "rack-mini-profiler"
 end

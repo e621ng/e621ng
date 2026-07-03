@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe ArtistVersionsController do
-  before { skip "Artist versions routes not available in this fork" unless Rails.application.routes.url_helpers.method_defined?(:artist_versions_path) }
+  before { skip "Artist versions routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:artist_versions_path) }
 
   let(:user) { create(:user) }
   let(:user2) { create(:user) }

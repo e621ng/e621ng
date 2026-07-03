@@ -6,7 +6,7 @@ module Maintenance
       helper DtextHelper
 
       def feedback_notice(user, feedback)
-        return if user.email.blank?
+        return unless deliverable_email?(user)
 
         @user = user
         @feedback = feedback

@@ -11,8 +11,10 @@ class WikiPage < ApplicationRecord
   before_create :create_tag
   before_destroy :validate_not_used_as_help_page
   before_destroy :log_destroy
+  after_destroy :clear_recent_changes_cache
   after_save :create_version
   after_save :update_help_page, if: :saved_change_to_title?
+  after_save :clear_recent_changes_cache
 
   normalizes :body, with: ->(body) { body.gsub("\r\n", "\n") }
 
@@ -58,8 +60,10 @@ class WikiPage < ApplicationRecord
       where("is_deleted = false")
     end
 
-    def recent
-      order("updated_at DESC").limit(25)
+    def recent_changes
+      Cache.fetch("wiki_page:recent_changes", expires_in: 15.minutes) do
+        select(:id, :title, :updated_at).order(updated_at: :desc).includes(:tag).limit(25).to_a
+      end
     end
 
     def other_names_include(name)
@@ -245,7 +249,7 @@ class WikiPage < ApplicationRecord
   end
 
   def validate_not_locked
-    if is_locked? && !CurrentUser.is_janitor?
+    if is_locked? && !CurrentUser.is_staff?
       errors.add(:is_locked, "and cannot be updated")
       false
     end
@@ -369,5 +373,9 @@ class WikiPage < ApplicationRecord
         match
       end
     end.map { |x| x.downcase.tr(" ", "_").to_s }.uniq
+  end
+
+  def clear_recent_changes_cache
+    Cache.delete("wiki_page:recent_changes")
   end
 end

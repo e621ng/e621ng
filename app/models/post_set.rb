@@ -116,7 +116,7 @@ class PostSet < ApplicationRecord
     end
 
     def can_make_public
-      if is_public && creator.younger_than(3.days) && !creator.is_janitor?
+      if is_public && creator.younger_than(3.days) && !creator.is_staff?
         errors.add(:base, "Can't make a set public until your account is at least three days old")
         false
       else
@@ -133,7 +133,7 @@ class PostSet < ApplicationRecord
     end
 
     def set_per_hour_limit
-      if PostSet.where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).count > 6 && !creator.is_janitor?
+      if PostSet.where("created_at > ? AND creator_id = ?", 1.hour.ago, creator.id).count > 6 && !creator.is_staff?
         errors.add(:base, "You have already created 6 sets in the last hour.")
         false
       else
@@ -157,7 +157,10 @@ class PostSet < ApplicationRecord
 
   module AccessMethods
     def can_view?(user)
-      is_public || is_owner?(user) || user.is_moderator?
+      return true if is_public
+      return true if user.is_moderator?
+      return true if is_owner?(user)
+      false
     end
 
     def can_edit_settings?(user)
@@ -169,20 +172,32 @@ class PostSet < ApplicationRecord
     end
 
     def is_maintainer?(user)
-      return false if user.is_blocked?
-      post_set_maintainers.where(user_id: user.id, status: "approved").count > 0
+      return false if user.is_restricted?
+      if association(:post_set_maintainers).loaded?
+        post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "approved" }
+      else
+        post_set_maintainers.where(user_id: user.id, status: "approved").exists?
+      end
     end
 
     def is_invited?(user)
-      post_set_maintainers.where(user_id: user.id, status: "pending").count > 0
+      if association(:post_set_maintainers).loaded?
+        post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "pending" }
+      else
+        post_set_maintainers.where(user_id: user.id, status: "pending").exists?
+      end
     end
 
     def is_blocked?(user)
-      post_set_maintainers.where(user_id: user.id, status: "blocked").count > 0
+      if association(:post_set_maintainers).loaded?
+        post_set_maintainers.any? { |m| m.user_id == user.id && m.status == "blocked" }
+      else
+        post_set_maintainers.where(user_id: user.id, status: "blocked").exists?
+      end
     end
 
     def is_owner?(user)
-      return false if user.is_blocked?
+      return false if user.is_restricted?
       creator_id == user.id
     end
 
@@ -209,7 +224,7 @@ class PostSet < ApplicationRecord
       if added.size <= 1
         sync_posts_for_delta(added_ids: added) if added.any?
       else
-        PostSetPostsSyncJob.perform_later(id, added_ids: added)
+        PostSetPostsSyncJob.perform_later(id)
       end
       added
     end
@@ -332,7 +347,7 @@ class PostSet < ApplicationRecord
       if removed.size <= 1
         sync_posts_for_delta(removed_ids: removed) if removed.any?
       else
-        PostSetPostsSyncJob.perform_later(id, removed_ids: removed)
+        PostSetPostsSyncJob.perform_later(id)
       end
       removed
     end

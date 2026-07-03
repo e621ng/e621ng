@@ -16,12 +16,12 @@
       ["Set complaint", "set"],
       ["Post complaint", "post"],
       ["Replacement complaint", "replacement"]
-  ], include_blank: true %>
+  ], include_blank: "Any" %>
   <%= f.input :status, collection: [
       ["Pending + Unclaimed", "pending_unclaimed"],
       ["Pending + Claimed", "pending_claimed"],
       ["Approved/investigated", "approved"],
       ["Under investigation", "partial"],
       ["Pending", "pending"],
-  ], include_blank: true %>
+  ], include_blank: "Any" %>
 <% end %>

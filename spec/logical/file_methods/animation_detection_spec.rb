@@ -106,4 +106,29 @@ RSpec.describe FileMethods, type: :model do
       end
     end
   end
+
+  # ----------------------------------------------------------------------- #
+  describe "#is_animated_file?" do
+    it "returns true for animated gif/png/webp fixtures" do
+      expect(build(:upload, file_ext: "gif").is_animated_file?(file_fixture("animated.gif").to_s)).to be true
+      expect(build(:upload, file_ext: "png").is_animated_file?(file_fixture("animated.png").to_s)).to be true
+      expect(build(:upload, file_ext: "webp").is_animated_file?(file_fixture("animated.webp").to_s)).to be true
+    end
+
+    it "returns false for static image fixtures" do
+      expect(build(:upload, file_ext: "gif").is_animated_file?(file_fixture("static.gif").to_s)).to be false
+      expect(build(:upload, file_ext: "png").is_animated_file?(file_fixture("sample.png").to_s)).to be false
+      expect(build(:upload, file_ext: "webp").is_animated_file?(file_fixture("sample.webp").to_s)).to be false
+    end
+
+    it "returns true for video without reading the file" do
+      expect(build(:upload, file_ext: "webm").is_animated_file?("/nonexistent/path.webm")).to be true
+      expect(build(:upload, file_ext: "mp4").is_animated_file?("/nonexistent/path.mp4")).to be true
+    end
+
+    it "returns false for non-animatable types without reading the file" do
+      expect(build(:upload, file_ext: "jpg").is_animated_file?("/nonexistent/path.jpg")).to be false
+      expect(build(:upload, file_ext: "swf").is_animated_file?("/nonexistent/path.swf")).to be false
+    end
+  end
 end

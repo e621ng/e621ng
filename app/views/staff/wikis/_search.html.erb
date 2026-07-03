@@ -1,0 +1,7 @@
+<%= form_search(path: staff_wikis_path) do |f| %>
+  <%= f.input :title, label: "Title", hint: "Use * for wildcard searches" %>
+  <%= f.input :body_matches, label: "Body" %>
+  <%= f.user :creator %>
+  <%= f.input :editor_id, label: "Editor ID" if params.dig(:search, :editor_id).present? %>
+  <%= f.input :order, collection: [%w[Name title], %w[Date time]] %>
+<% end %>
