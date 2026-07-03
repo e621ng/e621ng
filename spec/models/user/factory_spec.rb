@@ -18,6 +18,10 @@ RSpec.describe User do
       expect(build(:banned_user)).to be_valid
     end
 
+    it "produces a valid staff user" do
+      expect(build(:staff_user)).to be_valid
+    end
+
     it "produces a valid janitor user" do
       expect(build(:janitor_user)).to be_valid
     end

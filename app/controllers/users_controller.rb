@@ -5,7 +5,7 @@ class UsersController < ApplicationController
   skip_before_action :api_check
   before_action :logged_in_only, only: %i[edit settings upload_limit update]
   before_action :member_only, only: %i[custom_style avatar_menu]
-  before_action :janitor_only, only: %i[toggle_uploads fix_counts]
+  before_action :janitor_only, only: %i[toggle_uploads disable_uploads fix_counts]
   before_action :admin_only, only: %i[flush_favorites]
   before_action :check_upload_disable_reason, only: %i[disable_uploads]
 
@@ -29,12 +29,16 @@ class UsersController < ApplicationController
     else
       @user = User.includes(:user_status, artists: [:tag]).find(User.name_or_id_to_id_forced(params[:id]))
       @presenter = UserPresenter.new(@user)
+
+      if CurrentUser.user.is_staff?
+        @staff_wikis = StaffWiki.joins(:references).where(references: { related_type: "User", related_id: @user.id }).distinct
+      end
     end
     respond_with(@user, methods: @user.full_attributes)
   end
 
   def new
-    unless CurrentUser.is_anonymous?
+    unless CurrentUser.user.is_logged_out?
       return access_denied("You are already signed in") unless request.format.html?
       redirect_back_or_to(posts_path, notice: "You are already signed in")
       return
@@ -56,7 +60,7 @@ class UsersController < ApplicationController
     user = CurrentUser.user
     respond_with(user, methods: user.full_attributes) do |format|
       format.html do
-        next render_404 if user.is_anonymous?
+        next render_404 if user.is_logged_out?
         redirect_to(user_path(user))
       end
     end
@@ -145,7 +149,7 @@ class UsersController < ApplicationController
   end
 
   def create
-    raise User::PrivilegeError, "Already signed in" unless CurrentUser.is_anonymous?
+    raise User::PrivilegeError, "Already signed in" unless CurrentUser.user.is_logged_out?
     raise User::PrivilegeError, "Signups are disabled" unless Danbooru.config.enable_signups?
     User.transaction do
       @user = User.new(user_params(:create).merge({ last_ip_addr: request.remote_ip }))
@@ -204,6 +208,7 @@ class UsersController < ApplicationController
           has_sets: user.set_count > 0,
           has_comments: user.comment_count > 0,
           has_forums: user.forum_post_count > 0,
+          has_blips: user.blip_count > 0,
         }
       end
     end
@@ -258,7 +263,7 @@ class UsersController < ApplicationController
     ]
 
     permitted_params += [dmail_filter_attributes: %i[id words]]
-    permitted_params += %i[profile_about profile_artinfo avatar_id] if CurrentUser.is_member? # Prevent editing when blocked
+    permitted_params += %i[profile_about profile_artinfo avatar_id] if CurrentUser.is_member?
     permitted_params += %i[enable_compact_uploader] if context != :create && CurrentUser.post_upload_count >= 10
     permitted_params += %i[name email] if context == :create
 

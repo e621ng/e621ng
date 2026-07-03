@@ -17,4 +17,23 @@
   #wiki-page-body {
     margin: 0.25em 0 0.5em;
   }
+
+  #copy-tag {
+    background: transparent;
+    display: inline-flex;
+    vertical-align: baseline;
+    border-radius: 0;
+    padding: 0.25rem;
+    color: themed("color-link");
+
+    &:hover, &:active {
+      color: themed("color-link-hover");
+    }
+
+    svg {
+      height: 1.25rem;
+      width: 1.25rem;
+      margin: -0.125rem;
+    }
+  }
 }

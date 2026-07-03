@@ -14,7 +14,7 @@ class Appeal < ApplicationRecord
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   validates :response, length: { minimum: 2, maximum: Danbooru.config.dmail_max_size }, on: :update
-  enum :status, %i[pending partial approved].index_with(&:to_s)
+  enum :status, %i[pending partial approved rejected].index_with(&:to_s)
   after_create :push_pubsub_create
   after_update :push_pubsub_update_notification
   after_update :log_update
@@ -41,10 +41,16 @@ class Appeal < ApplicationRecord
         ::PostFlag
       end
 
+      def find_duplicate_for(user)
+        return nil if content.blank?
+        return nil if content.post.blank?
+        content.user_appeal(user)
+      end
+
       def can_create_for?(user)
         return false if content.blank?
         return false if content.post.blank?
-        return false unless content.post.uploader_id == user.id
+        return false unless content.can_appeal?(user)
         true
       end
 
@@ -52,6 +58,23 @@ class Appeal < ApplicationRecord
         return true if user.is_staff?
         return true if user.id == creator_id
         false
+      end
+
+      def content_path
+        # For a post flag, send the user back to the post: either it's undeleted, it's been re-deleted
+        # (so they need to use the new flag's appeal button), or it's something they just can't appeal.
+        # Anyway it's more helpful for the user to see the current post status than the appeals index.
+        if content.present? && (post = content.post.presence)
+          return Rails.application.routes.url_helpers.post_path(post)
+        end
+        nil
+      end
+
+      def messages
+        {
+          duplicate: "This deletion has already been appealed.",
+          cannot_create: "This deletion can't be appealed or has already been resolved.",
+        }
       end
     end
   end
@@ -134,7 +157,7 @@ class Appeal < ApplicationRecord
     end
 
     def visible(user)
-      if user.is_janitor?
+      if user.is_staff?
         all
       else
         for_creator(user.id)
@@ -164,6 +187,8 @@ class Appeal < ApplicationRecord
           q = q.where("status = ? and claimant_id is not null", "pending")
         when "pending_unclaimed"
           q = q.where("status = ? and claimant_id is null", "pending")
+        when "handled"
+          q = q.where("status IN (?) and claimant_id is not null", %w[approved rejected])
         else
           q = q.where("status = ?", params[:status])
         end
@@ -198,7 +223,7 @@ class Appeal < ApplicationRecord
 
   def can_view?(user = CurrentUser.user)
     # Should not happen - individual ticket types override this method.
-    return true if user.is_janitor?
+    return true if user.is_staff?
     return true if user.id == creator_id
     false
   end
@@ -209,6 +234,22 @@ class Appeal < ApplicationRecord
 
   def can_claim?(user = CurrentUser.user)
     user.is_janitor?
+  end
+
+  def find_duplicate_for(_user)
+    nil
+  end
+
+  def content_path
+    nil
+  end
+
+  def messages
+    # Should not happen - individual ticket types override this method.
+    {
+      duplicate: "Already appealed",
+      cannot_create: "Cannot be appealed",
+    }
   end
 
   def can_create_for?(_user)
@@ -226,9 +267,11 @@ class Appeal < ApplicationRecord
   def pretty_status
     case status
     when "partial"
-      "Under Investigation"
+      "Investigating"
     when "approved"
-      "Investigated"
+      "Approved"
+    when "rejected"
+      "Rejected"
     else
       status.titleize
     end
@@ -255,7 +298,14 @@ class Appeal < ApplicationRecord
     @open_from_same_user ||= Appeal.where(
       creator_id: creator_id,
       status: %w[pending partial],
-    ).where.not(id: id)
+    ).where.not(id: id).to_a
+  end
+
+  def all_for_same_content
+    @all_for_same_content ||= Appeal.includes(:creator).where(
+      qtype: qtype,
+      disp_id: disp_id,
+    ).where.not(id: id).to_a
   end
 
   module ClaimMethods

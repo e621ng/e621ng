@@ -29,6 +29,16 @@ module UsersHelper
     end
   end
 
+  def user_banned_badge(user)
+    return if user.nil?
+    return unless user.is_restricted?
+    return unless user.recent_ban&.prevent_login?
+
+    tag.span(class: "level-badge user-blocked", title: "This user had been forcibly logged out.") do
+      "EXPUNGED"
+    end
+  end
+
   def user_level_plain(user)
     return if user.nil?
 

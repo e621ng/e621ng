@@ -192,6 +192,44 @@ RSpec.describe Post do
           post.update!(tag_string: "#{post.tag_string} source:https://example.com")
           expect(post.reload.source).to include("example.com")
         end
+
+        it "clears the source when 'source:none' is in the tag_string" do
+          post = create(:post, source: "https://example.com")
+          post.update!(tag_string: "#{post.tag_string} source:none") # equiv to :tag_string => "source:none"
+          expect(post.reload.source).to be_empty
+        end
+
+        it "add a source when '+source:url' is in the tag_string" do
+          post = create(:post, source: "foobar")
+          post.update!(tag_string: "#{post.tag_string} +source:baz_quux")
+          expect(post.reload.source).to eq("foobar\nbaz_quux")
+        end
+
+        it "set source when '+source:url' is in the tag_string" do
+          # shouldn't treat the empty source as an existing one, which would result in a newline before
+          post = create(:post, source: "")
+          post.update!(tag_string: "#{post.tag_string} +source:https://example.com")
+          expect(post.reload.source).to include("example.com")
+          expect(post.reload.source).not_to include("\n")
+        end
+
+        it "accepts quoted +source values" do
+          post = create(:post, source: "")
+          post.update!(tag_string: "#{post.tag_string} +source:\"https://example.com\"")
+          expect(post.reload.source).to eq("https://example.com")
+        end
+
+        it "skips +source:none" do
+          post = create(:post, source: "foobar")
+          post.update!(tag_string: "#{post.tag_string} +source:none")
+          expect(post.reload.source).to eq("foobar")
+        end
+
+        it "applies multiple +source values in order" do
+          post = create(:post, source: "foobar")
+          post.update!(tag_string: "#{post.tag_string} +source:baz_quux +source:qux_corge")
+          expect(post.reload.source).to eq("foobar\nbaz_quux\nqux_corge")
+        end
       end
     end
 
@@ -342,6 +380,34 @@ RSpec.describe Post do
         filetype_tags = %w[video animated_gif animated_png] + FileMethods::FILE_TYPE.values
         post = create(:post, tag_string: filetype_tags.join(" "))
         expect(post.tag_array).to be_empty
+      end
+
+      describe "animated_* tags" do
+        it "adds animated_gif/png/webp when the file is animated" do
+          { "gif" => "animated_gif", "png" => "animated_png", "webp" => "animated_webp" }.each do |ext, tag|
+            post = create(:post, file_ext: ext, is_animated: true)
+            expect(post.tag_array).to include(tag)
+          end
+        end
+
+        it "does not add animated_png for a static png" do
+          post = create(:post, file_ext: "png", is_animated: false,
+                               tag_string: "#{TagCategory::REVERSE_MAPPING[1]}:artist_tag animated_png " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+          expect(post.tag_array).not_to include("animated_png")
+        end
+
+        # Regression for the reported bug: a user could remove animated_png and
+        # nothing re-added it, which let has_sample? falsely report a sample.
+        it "re-adds an animated_png a user removed, keeping has_sample? false" do
+          post = create(:post, file_ext: "png", is_animated: true, image_width: 2000, image_height: 2000)
+          expect(post.tag_array).to include("animated_png")
+
+          without_tag = post.tag_array.reject { |t| t == "animated_png" }.join(" ")
+          post.update!(tag_string: without_tag)
+
+          expect(post.reload.tag_array).to include("animated_png")
+          expect(post.has_sample?).to be false
+        end
       end
     end
 
@@ -638,7 +704,7 @@ RSpec.describe Post do
       end
     end
 
-    describe "#avoid_posting_artists" do
+    describe "#avoid_posting_tags" do
       before { skip "Avoid postings routes not available in this fork" unless Rails.application.routes.url_helpers.respond_to?(:avoid_postings_path) }
 
       it "returns AvoidPosting records for artist tags on the post" do
@@ -646,12 +712,38 @@ RSpec.describe Post do
         avoid = create(:avoid_posting, artist: artist)
         # Use artist: prefix to create the tag with artist category
         post = create(:post, tag_string: "artist:#{artist.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
-        expect(post.avoid_posting_artists).to include(avoid)
+        expect(post.avoid_posting_tags).to include(avoid)
       end
 
-      it "returns an empty array when the post has no artist tags" do
+      it "returns AvoidPosting records with categorized_tags preloaded" do
+        artist = create(:artist)
+        avoid = create(:avoid_posting, artist: artist)
+        post = create(:post, tag_string: "artist:#{artist.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        post.categorized_tags # Force preload categorized_tags
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
+      it "returns AvoidPosting records for copyright tags on the post" do
+        copyright = create(:artist)
+        copyright.tag.update(category: Tag.categories.copyright)
+        avoid = create(:avoid_posting, artist: copyright)
+        # Use copyright: prefix to create the tag with copyright category
+        post = create(:post, tag_string: "copyright:#{copyright.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
+      it "returns AvoidPosting records for character tags on the post" do
+        character = create(:artist)
+        character.tag.update(category: Tag.categories.character)
+        avoid = create(:avoid_posting, artist: character)
+        # Use character: prefix to create the tag with character category
+        post = create(:post, tag_string: "character:#{character.name} " + (1..10).map { |i| "gen_#{i}" }.join(" "))
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
+      it "returns an empty array when the post has no artist, copyright, or character tags" do
         post = create(:post, tag_string: (1..10).map { |i| "gen_only_#{i}" }.join(" "))
-        expect(post.avoid_posting_artists).to eq([])
+        expect(post.avoid_posting_tags).to eq([])
       end
     end
   end

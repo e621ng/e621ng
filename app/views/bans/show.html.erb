@@ -8,8 +8,11 @@
         <div class="dtext-container"><%= format_text @ban.reason %>
         </div>
       </li>
+      <% if CurrentUser.user.is_moderator? %>
+        <li><strong>Prevent Login</strong>: <%= @ban.prevent_login? ? "Yes" : "No" %></li>
+      <% end %>
     </ul>
-    <% if CurrentUser.is_moderator? %>
+    <% if CurrentUser.user.is_moderator? %>
       <%= form_tag(ban_path(@ban), :method => :delete) do %>
         <%= submit_tag "Unban" %>
       <% end %>

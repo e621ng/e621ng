@@ -57,28 +57,6 @@ expect(tag.category).to eq(1)
 
 ---
 
-## Flag Reasons
-
-Flag reasons are defined in `Danbooru.config.flag_reasons`. The set of reasons differs
-between forks — e6AI does not have all the same reasons as e621ng.
-
-Known absences in e6AI:
-- `uploading_guidelines` — also referenced by a hardcoded regex in `Post#delete!`
-  (`/uploading_guidelines/`); that branch is effectively dead in e6AI.
-- `young_human`, `previously_deleted`, `real_porn` — may be absent or renamed.
-
-### How to write portable specs
-
-- Iterate over `Danbooru.config.flag_reasons` instead of listing specific reason names.
-- Use `skip` guards for tests that exercise behavior tied to a specific reason name:
-  ```ruby
-  skip "… not configured" unless Danbooru.config.flag_reasons.any? { |r| r[:name].to_s == "uploading_guidelines" }
-  ```
-- Use the `:post_flag` factory (which picks the first suitable reason from config) rather
-  than calling `PostFlag.create!` with a hardcoded `reason_name`.
-
----
-
 ## Missing Routes
 
 The following controllers exist in both forks (models and controller files are present) but are **not routed** in e6AI's `routes.rb`:

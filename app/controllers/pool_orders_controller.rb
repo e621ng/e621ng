@@ -6,6 +6,8 @@ class PoolOrdersController < ApplicationController
 
   def edit
     @pool = Pool.find(params[:pool_id])
+    @posts = @pool.posts.limit(Danbooru.config.pool_post_limit(nil)).to_a
+    Post.preload_stats!(@posts)
     respond_with(@pool)
   end
 end

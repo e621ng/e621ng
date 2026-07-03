@@ -136,6 +136,28 @@ RSpec.describe Appeal do
   end
 
   # -------------------------------------------------------------------------
+  # #all_for_same_content
+  # -------------------------------------------------------------------------
+  describe "#all_for_same_content" do
+    let(:flag)    { create(:post_flag) }
+    let!(:appeal) { create(:appeal, post_flag: flag) }
+    let!(:sibling_appeal) { create(:appeal, post_flag: flag) }
+    let!(:other_flag_appeal) { create(:appeal) }
+
+    it "finds all appeals for the same content" do
+      expect(appeal.all_for_same_content).to include(sibling_appeal)
+    end
+
+    it "excludes the appeal itself" do
+      expect(appeal.all_for_same_content).not_to include(appeal)
+    end
+
+    it "excludes appeals for different content" do
+      expect(appeal.all_for_same_content).not_to include(other_flag_appeal)
+    end
+  end
+
+  # -------------------------------------------------------------------------
   # Permission predicates
   # -------------------------------------------------------------------------
   describe "#can_view?" do

@@ -82,11 +82,6 @@ RSpec.configure do |config|
   config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:suite) do
-    # This is also invoked during `after_initialize` in test, but `maintain_test_schema!`
-    # or other schema rebuilds may recreate the test database afterward and remove partitions.
-    # Run it again here so the required partitions exist before the suite starts.
-    FavoriteEvent.ensure_upcoming_partitions!
-
     # Sometimes, a schema rebuild may run on test databases, which can clear seeded data.
     # Here, we make sure that the very basic records are present - without these, tests will fail.
     # See `/db/seeds.rb` for the full list of seeded data.
@@ -99,7 +94,7 @@ RSpec.configure do |config|
       user.email = "admin@e621.local"
       user.can_upload_free = true
       user.can_approve_posts = true
-      user.level = User::Levels::ADMIN
+      user.level = UserLevel::ADMIN
 
       user.is_bd_staff = true
       user.is_bd_auditor = true
@@ -112,7 +107,7 @@ RSpec.configure do |config|
       user.email = "system@e621.local"
       user.can_upload_free = true
       user.can_approve_posts = true
-      user.level = User::Levels::JANITOR
+      user.level = UserLevel::JANITOR
     end
 
     ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") do |category|

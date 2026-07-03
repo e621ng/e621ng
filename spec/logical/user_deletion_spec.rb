@@ -37,7 +37,7 @@ RSpec.describe UserDeletion do
         expect(user.profile_about).to eq("")
         expect(user.profile_artinfo).to eq("")
         expect(user.custom_style).to eq("")
-        expect(user.level).to eq(User::Levels::MEMBER)
+        expect(user.level).to eq(UserLevel::MEMBER)
       end
 
       it "invalidates the password hash" do
@@ -101,10 +101,18 @@ RSpec.describe UserDeletion do
     end
 
     context "validation" do
-      it "raises ValidationError for a banned user doing self-deletion" do
-        user = create(:banned_user)
+      it "raises ValidationError for a forcibly logged out banned user doing self-deletion" do
+        user = create(:user)
+        create(:hard_ban, user: user)
         expect { described_class.new(user, password).delete! }
           .to raise_error(UserDeletion::ValidationError, /Banned users/)
+      end
+
+      it "does not raise a ValidationError for a soft-banned user doing self-deletion" do
+        user = create(:user)
+        create(:ban, user: user, prevent_login: false)
+        expect { described_class.new(user, password).delete! }
+          .not_to raise_error
       end
 
       it "raises ValidationError when the account is less than one week old" do

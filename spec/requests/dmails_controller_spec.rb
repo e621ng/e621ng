@@ -94,32 +94,57 @@ RSpec.describe DmailsController do
         expect(response).to have_http_status(:ok)
       end
 
-      it "returns 200 for a janitor when the recipient is the system user" do
-        dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
-        sign_in_as janitor
-        get new_dmail_path, params: { respond_to_id: dmail_to_system.id }
-        expect(response).to have_http_status(:ok)
+      context "keyed access" do
+        it "returns 200 for a staff member with the correct key" do
+          dmail_from_staff = create(:dmail, from: moderator, to: recipient, owner_id: recipient.id)
+          sign_in_as janitor
+          get new_dmail_path, params: { respond_to_id: dmail_from_staff.id, key: dmail_from_staff.generate_key }
+          expect(response).to have_http_status(:ok)
+        end
+
+        it "returns 403 for a staff member with an incorrect key" do
+          dmail_from_staff = create(:dmail, from: moderator, to: recipient, owner_id: recipient.id)
+          sign_in_as janitor
+          get new_dmail_path, params: { respond_to_id: dmail_from_staff.id, key: "v1:YouGetNothing!GoodDaySir!" }
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it "returns 403 for a non-staff member with the correct key" do
+          dmail_from_staff = create(:dmail, from: moderator, to: recipient, owner_id: recipient.id)
+          sign_in_as other
+          get new_dmail_path, params: { respond_to_id: dmail_from_staff.id, key: dmail_from_staff.generate_key }
+          expect(response).to have_http_status(:forbidden)
+        end
       end
 
-      it "returns 403 for a different user when the recipient is the system user" do
-        dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
-        sign_in_as other
-        get new_dmail_path, params: { respond_to_id: dmail_to_system.id }
-        expect(response).to have_http_status(:forbidden)
-      end
+      context "staff system access" do
+        it "returns 200 for a janitor when the recipient is the system user" do
+          dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
+          sign_in_as janitor
+          get new_dmail_path, params: { respond_to_id: dmail_to_system.id }
+          expect(response).to have_http_status(:ok)
+        end
 
-      it "returns 200 for a forward for a janitor when the recipient is the system user" do
-        dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
-        sign_in_as janitor
-        get new_dmail_path, params: { respond_to_id: dmail_to_system.id, forward: true }
-        expect(response).to have_http_status(:ok)
-      end
+        it "returns 403 for a different user when the recipient is the system user" do
+          dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
+          sign_in_as other
+          get new_dmail_path, params: { respond_to_id: dmail_to_system.id }
+          expect(response).to have_http_status(:forbidden)
+        end
 
-      it "returns 403 for a forward for a different user when the recipient is the system user" do
-        dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
-        sign_in_as other
-        get new_dmail_path, params: { respond_to_id: dmail_to_system.id, forward: true }
-        expect(response).to have_http_status(:forbidden)
+        it "returns 200 for a forward for a janitor when the recipient is the system user" do
+          dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
+          sign_in_as janitor
+          get new_dmail_path, params: { respond_to_id: dmail_to_system.id, forward: true }
+          expect(response).to have_http_status(:ok)
+        end
+
+        it "returns 403 for a forward for a different user when the recipient is the system user" do
+          dmail_to_system = create(:dmail, from: sender, to: User.system, owner_id: User.system.id)
+          sign_in_as other
+          get new_dmail_path, params: { respond_to_id: dmail_to_system.id, forward: true }
+          expect(response).to have_http_status(:forbidden)
+        end
       end
     end
   end
@@ -210,25 +235,117 @@ RSpec.describe DmailsController do
       expect { get dmail_path(dmail) }.not_to(change { dmail.reload.is_read })
     end
 
-    it "returns 200 for a janitor viewing a system-received dmail" do
-      dmail_to_system = create(:dmail, from: recipient, to: User.system)
-      sign_in_as janitor
-      get dmail_path(dmail_to_system)
-      expect(response).to have_http_status(:ok)
+    context "keyed access" do
+      it "returns 200 for a staff member with the correct key" do
+        dmail_from_staff = create(:dmail, from: moderator, to: recipient, owner_id: recipient.id)
+        sign_in_as janitor
+        get dmail_path(dmail_from_staff), params: { key: dmail_from_staff.generate_key }
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 200 for a staff member with the correct key even if the other user is no longer staff" do
+        former_moderator = create(:moderator_user)
+        dmail_from_former_moderator = create(:dmail, from: former_moderator, to: recipient, owner_id: recipient.id)
+        key = dmail_from_former_moderator.generate_key
+        former_moderator.update_columns(level: UserLevel::MEMBER)
+
+        sign_in_as janitor
+        get dmail_path(dmail_from_former_moderator), params: { key: key }
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 403 for a staff member with an incorrect key" do
+        dmail_from_staff = create(:dmail, from: moderator, to: recipient, owner_id: recipient.id)
+        sign_in_as janitor
+        get dmail_path(dmail_from_staff), params: { key: "v1:YouGetNothing!GoodDaySir!" }
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "returns 403 for a non-staff member with the correct key" do
+        dmail_from_staff = create(:dmail, from: moderator, to: recipient, owner_id: recipient.id)
+        sign_in_as other
+        get dmail_path(dmail_from_staff), params: { key: dmail_from_staff.generate_key }
+        expect(response).to have_http_status(:forbidden)
+      end
     end
 
-    it "returns 200 for a moderator viewing a system-sent dmail" do
-      system_dmail = create(:dmail, from: User.system, to: recipient)
-      sign_in_as moderator
-      get dmail_path(system_dmail)
-      expect(response).to have_http_status(:ok)
+    context "staff system access" do
+      it "returns 200 for a janitor viewing a system-received dmail" do
+        dmail_to_system = create(:dmail, from: recipient, to: User.system)
+        sign_in_as janitor
+        get dmail_path(dmail_to_system)
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 200 for a janitor viewing a system-sent dmail" do
+        system_dmail = create(:dmail, from: User.system, to: recipient)
+        sign_in_as janitor
+        get dmail_path(system_dmail)
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 403 for a different user viewing a system-received dmail" do
+        dmail_to_system = create(:dmail, from: recipient, to: User.system)
+        sign_in_as other
+        get dmail_path(dmail_to_system)
+        expect(response).to have_http_status(:forbidden)
+      end
     end
 
-    it "returns 200 for an admin viewing a dmail where one party is an admin" do
-      admin_dmail = create(:dmail, from: admin, to: recipient)
-      sign_in_as admin
-      get dmail_path(admin_dmail)
-      expect(response).to have_http_status(:ok)
+    context "moderator ticket access" do
+      it "returns 200 for a moderator viewing a dmail with an associated ticket" do
+        ticket = create(:ticket, :dmail_type)
+        dmail = Dmail.find(ticket.disp_id)
+
+        sign_in_as moderator
+        get dmail_path(dmail)
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 403 for a moderator viewing a dmail without an associated ticket" do
+        dmail_without_ticket = create(:dmail, from: sender, to: recipient)
+        sign_in_as moderator
+        get dmail_path(dmail_without_ticket)
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "returns 403 for a different user viewing a dmail with an associated ticket" do
+        dmail_with_ticket = create(:dmail, from: sender, to: recipient)
+        create(:ticket, :dmail_type, disp_id: dmail_with_ticket.id)
+        sign_in_as other
+        get dmail_path(dmail_with_ticket)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "admin access" do
+      it "returns 200 for an admin viewing a dmail where the sender is an admin" do
+        admin_dmail = create(:dmail, from: admin, to: recipient)
+        sign_in_as admin
+        get dmail_path(admin_dmail)
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 200 for an admin viewing a dmail where the recipient is an admin" do
+        admin_dmail = create(:dmail, from: sender, to: admin)
+        sign_in_as admin
+        get dmail_path(admin_dmail)
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 403 for an admin viewing a dmail where neither party is an admin" do
+        non_admin_dmail = create(:dmail, from: sender, to: recipient)
+        sign_in_as admin
+        get dmail_path(non_admin_dmail)
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "returns 403 for a different user viewing a dmail where the recipient is an admin" do
+        admin_dmail = create(:dmail, from: sender, to: admin)
+        sign_in_as other
+        get dmail_path(admin_dmail)
+        expect(response).to have_http_status(:forbidden)
+      end
     end
   end
 

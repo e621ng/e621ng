@@ -59,7 +59,7 @@ RSpec.describe ForumPost do
   # .permitted
   # -------------------------------------------------------------------------
   describe ".permitted" do
-    let(:restricted_category) { create(:forum_category, can_view: User::Levels::MODERATOR) }
+    let(:restricted_category) { create(:forum_category, can_view: UserLevel::MODERATOR) }
     let(:restricted_topic) do
       CurrentUser.scoped(moderator) { create(:forum_topic, category_id: restricted_category.id) }
     end

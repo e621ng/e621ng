@@ -63,7 +63,7 @@ RSpec.describe ForumTopic do
   # category_allows_creation (create-only)
   # -------------------------------------------------------------------------
   describe "category_allows_creation" do
-    let(:restricted_category) { create(:forum_category, can_create: User::Levels::ADMIN) }
+    let(:restricted_category) { create(:forum_category, can_create: UserLevel::ADMIN) }
 
     it "is invalid when creating in a category that does not allow the user's level" do
       record = build(:forum_topic, category_id: restricted_category.id)

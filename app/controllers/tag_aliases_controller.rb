@@ -28,7 +28,8 @@ class TagAliasesController < ApplicationController
   end
 
   def index
-    @tag_aliases = TagAlias.includes(:antecedent_tag, :consequent_tag, :approver).search(search_params).paginate(params[:page], :limit => params[:limit])
+    @tag_aliases = TagAlias.includes(:antecedent_tag, :consequent_tag, :creator, :approver).search(search_params).paginate(params[:page], :limit => params[:limit])
+    TagAlias.preload_transitives(@tag_aliases) if CurrentUser.is_member?
     respond_with(@tag_aliases)
   end
 

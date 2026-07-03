@@ -5,7 +5,7 @@ require "sidekiq-cron"
 
 Sidekiq.logger.level = Logger::WARN if Rails.env.test?
 
-Sidekiq.configure_server do |config|
+Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
   config.redis = { url: Danbooru.config.redis_url }
 
   config.client_middleware do |chain|
@@ -28,7 +28,26 @@ Sidekiq.configure_server do |config|
     "SearchTrendCacheWarmJob" => {
       "cron" => "*/15 * * * *",
       "class" => "SearchTrendCacheWarmJob",
+      "queue" => "low_prio",
       "description" => "Pre-warm the rising tags cache every 15 minutes to avoid on-request timeouts",
+    },
+    "SitemapGeneratorJob" => {
+      "cron" => "30 0 * * *", # Every day at 30 minutes past midnight
+      "class" => "SitemapGeneratorJob",
+      "queue" => "low_prio",
+      "description" => "Generate the sitemap.xml file for search engines",
+    },
+    "DbExportJob" => {
+      "cron" => "0 4 * * *", # Every day at 4:00 AM
+      "class" => "DbExportJob",
+      "queue" => "low_prio",
+      "description" => "Generate the daily public database exports",
+    },
+    "IqdbConcurrencyResetJob" => {
+      "cron" => "0 * * * *",
+      "class" => "IqdbConcurrencyResetJob",
+      "queue" => "low_prio",
+      "description" => "Reset IQDB concurrent request counter to recover from worker crashes",
     },
   }
 

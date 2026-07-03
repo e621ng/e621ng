@@ -3,6 +3,8 @@
 import E621Type from "@/interfaces/E621";
 declare const E621: E621Type;
 
+import "@/pages/posts/BlacklistQuickEdit";
+import "@/pages/posts/BlacklistQuickToggle";
 import "@/pages/posts/post_mode_menu";
 import "@/pages/posts/post_search";
 

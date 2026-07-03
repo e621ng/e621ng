@@ -81,6 +81,14 @@ RSpec.describe FileMethods, type: :model do
         expect(upload.calculate_dimensions("/nonexistent/path.swf")).to eq([0, 0])
       end
     end
+
+    context "when ffprobe fails to retrieve video dimensions" do
+      it "raises an error" do
+        upload = build(:upload, file_ext: "mp4")
+        allow(Open3).to receive(:capture3).with(Danbooru.config.ffprobe_path, any_args).and_return(["", "ffprobe error", instance_double(Process::Status, success?: false)])
+        expect { upload.calculate_dimensions("/path/to/video.mp4") }.to raise_error(Upload::Error, "Could not retrieve video dimensions")
+      end
+    end
   end
 
   # ----------------------------------------------------------------------- #

@@ -14,17 +14,6 @@ class User < ApplicationRecord
     end
   end
 
-  module Levels
-    Danbooru.config.levels.each do |name, level|
-      const_set(name.upcase.tr(" ", "_"), level)
-    end
-  end
-
-  # Used for `before_action :<role>_only`. Must have a corresponding `is_<role>?` method.
-  Roles = Levels.constants.map(&:downcase) + [
-    :approver,
-  ]
-
   # ================================================================================================#
   # UNDER NO CIRCUMSTANCES should new boolean attributes be added or removed from the middle of the #
   # list. Deprecated / unused bitflags should be prefixed with an underscore, and left in place.    #
@@ -52,7 +41,7 @@ class User < ApplicationRecord
     hide_comments
     show_hidden_comments
     show_post_statistics
-    is_banned
+    _is_banned
     forum_notification_dot
     receive_email_notifications
     enable_keyboard_navigation
@@ -105,9 +94,11 @@ class User < ApplicationRecord
   validate :validate_ip_addr_is_not_banned, on: :create
   validate :validate_sock_puppets, on: :create, if: -> { Danbooru.config.enable_sock_puppet_validation? }
   before_validation :normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? }
+  before_validation :normalize_favorite_tags, if: ->(rec) { rec.favorite_tags_changed? }
   before_validation :staff_cant_disable_dmail
   before_validation :blank_out_nonexistent_avatars
   validates :blacklisted_tags, length: { maximum: 150_000 }
+  validate :validate_favorite_tags_count
   validates :custom_style, length: { maximum: 500_000 }
   validates :custom_title, length: { maximum: 100 }, allow_blank: true
   validates :profile_about, length: { maximum: Danbooru.config.user_about_max_size }
@@ -125,6 +116,7 @@ class User < ApplicationRecord
                       if: -> { saved_change_to_name? || saved_change_to_profile_about? || saved_change_to_profile_artinfo? }
 
   has_many :api_keys, dependent: :destroy
+  has_many :oauth_applications, class_name: "Doorkeeper::Application", as: :owner, dependent: :destroy
   has_one :dmail_filter
   has_one :user_status
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
@@ -145,6 +137,7 @@ class User < ApplicationRecord
   has_many :staff_notes, -> { active.order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
   has_many :artists, foreign_key: "linked_user_id"
+  has_many :staff_wiki_refs, foreign_key: "related_id", dependent: :destroy, inverse_of: :related
 
   belongs_to :avatar, class_name: "Post", optional: true
   accepts_nested_attributes_for :dmail_filter, update_only: true
@@ -158,13 +151,12 @@ class User < ApplicationRecord
     end
 
     def unban!
-      self.is_banned = false
       self.level = 20
       save
     end
 
     def ban_expired?
-      is_banned? && recent_ban.try(:expired?)
+      is_restricted? && recent_ban&.expired?
     end
   end
 
@@ -269,7 +261,7 @@ class User < ApplicationRecord
     end
 
     def password_is_secure
-      analysis = Zxcvbn.test(password, [name, email])
+      analysis = ZXCVBN_TESTER.test(password, [name, email])
       return unless analysis.score < 2
       if analysis.feedback.warning
         errors.add(:password, "is insecure: #{analysis.feedback.warning}")
@@ -325,19 +317,52 @@ class User < ApplicationRecord
 
       def anonymous
         user = User.new(name: "Anonymous", created_at: Time.now)
-        user.level = Levels::ANONYMOUS
+        user.level = UserLevel::ANONYMOUS
         user.freeze.readonly!
         user
       end
 
       def level_hash
-        Danbooru.config.levels
+        UserLevel::MAPPING
       end
 
       def level_string(value)
-        Danbooru.config.levels.invert[value] || ""
+        UserLevel::REVERSE_MAPPING[value] || ""
       end
     end
+
+    # Convenience methods for checking user levels
+    # Note that these method names are misleading. "is_janitor?" means "janitor and above can access this".
+    # This is a naming convention that would require a large refactor to change, so we are stuck with it.
+    UserLevel::MAPPING.each do |name, value|
+      normalized_name = UserLevel.normalize(name)
+
+      define_method("is_#{normalized_name}?") do
+        is_verified? && level >= value && id.present?
+      end
+    end
+
+    # Additional access check levels
+
+    def is_logged_in?
+      level > UserLevel::ANONYMOUS
+    end
+
+    def is_logged_out?
+      level == UserLevel::ANONYMOUS
+    end
+    alias is_anonymous? is_logged_out? # Otherwise it will return true for logged in users
+
+    def is_restricted?
+      level == UserLevel::BLOCKED
+    end
+    alias is_banned is_restricted? # Required for API backwards compatibility
+
+    def is_approver?
+      can_approve_posts?
+    end
+
+    ### Other ###
 
     def promote_to!(new_level, options = {})
       UserPromotion.new(self, CurrentUser.user, new_level, options).promote!
@@ -351,40 +376,8 @@ class User < ApplicationRecord
       User.level_string(value || level)
     end
 
-    def is_anonymous?
-      level == Levels::ANONYMOUS
-    end
-
-    def is_blocked?
-      is_banned? || level == Levels::BLOCKED
-    end
-
-    # Defines various convenience methods for finding out the user's level
-    Danbooru.config.levels.each do |name, value|
-      # TODO: HACK: Remove this and make the below logic better to work with the new setup.
-      next if [0, 10].include?(value)
-      normalized_name = name.downcase.tr(" ", "_")
-
-      # Changed from e6 to match new Danbooru semantics.
-      define_method("is_#{normalized_name}?") do
-        is_verified? && level >= value && id.present?
-      end
-    end
-
-    def is_authenticated?
-      level > Levels::ANONYMOUS
-    end
-
     def is_bd_staff?
       is_bd_staff
-    end
-
-    def is_staff?
-      is_janitor?
-    end
-
-    def is_approver?
-      can_approve_posts?
     end
 
     def is_artist?
@@ -399,6 +392,9 @@ class User < ApplicationRecord
 
     def clear_cropped_avatar_on_avatar_change
       return unless saved_change_to_avatar_id?
+
+      UserAvatarUrlCache.invalidate(id)
+
       return unless has_cropped_avatar?
 
       flag = User.flag_value_for("has_cropped_avatar")
@@ -408,7 +404,7 @@ class User < ApplicationRecord
     end
 
     def staff_cant_disable_dmail
-      self.disable_user_dmails = false if is_janitor?
+      self.disable_user_dmails = false if is_staff?
     end
 
     def level_css_class
@@ -469,6 +465,18 @@ class User < ApplicationRecord
       self.blacklisted_tags = TagAlias.to_aliased_query(blacklisted_tags, comments: true) if blacklisted_tags.present?
     end
 
+    def normalize_favorite_tags
+      tag_names = TagQuery.scan_recursive(favorite_tags.to_s, strip_prefixes: true)
+                          .grep_v(/\A[()]+\z/) # Strip parentheses. These have no meaning here.
+                          .uniq
+      self.favorite_tags = TagAlias.to_aliased(tag_names).join(" ")
+    end
+
+    def validate_favorite_tags_count
+      return if favorite_tags.blank?
+      errors.add(:favorite_tags, "has too many tags (maximum is 200)") if favorite_tags.split.size > 200
+    end
+
     def is_blacklisting_user?(user)
       return false if blacklisted_tags.blank?
       bltags = blacklisted_tags.split("\n").map(&:downcase)
@@ -479,7 +487,7 @@ class User < ApplicationRecord
 
   module ForumMethods
     def has_forum_been_updated?
-      return false unless is_authenticated? && forum_notification_dot
+      return false unless is_logged_in? && forum_notification_dot
       max_updated_at = ForumTopic.visible(self).order(updated_at: :desc).first&.updated_at
       return false if max_updated_at.nil?
       return true if last_forum_read_at.nil?
@@ -551,9 +559,9 @@ class User < ApplicationRecord
     create_user_throttle(:wiki_edit, -> { Danbooru.config.wiki_edit_limit - WikiPageVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
                          :general_bypass_throttle?, 7.days)
     create_user_throttle(:pool, -> { Danbooru.config.pool_limit - Pool.for_user(id).where("created_at > ?", 1.hour.ago).count },
-                         :is_janitor?, 7.days)
+                         :is_staff?, 7.days)
     create_user_throttle(:pool_edit, -> { Danbooru.config.pool_edit_limit - PoolVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
-                         :is_janitor?, 3.days)
+                         :is_staff?, 3.days)
     create_user_throttle(:pool_post_edit, -> { Danbooru.config.pool_post_edit_limit - PoolVersion.for_user(id).where("updated_at > ?", 1.hour.ago).group(:pool_id).count(:pool_id).length },
                          :general_bypass_throttle?, 7.days)
     create_user_throttle(:note_edit, -> { Danbooru.config.note_edit_limit - NoteVersion.for_user(id).where("updated_at > ?", 1.hour.ago).count },
@@ -626,9 +634,9 @@ class User < ApplicationRecord
     )
 
     create_user_throttle(:suggest_tag, -> { Danbooru.config.tag_suggestion_limit - (TagAlias.for_creator(id).where("created_at > ?", 1.hour.ago).count + TagImplication.for_creator(id).where("created_at > ?", 1.hour.ago).count + BulkUpdateRequest.for_creator(id).where("created_at > ?", 1.hour.ago).count) },
-                         :is_janitor?, 7.days)
+                         :is_staff?, 7.days)
     create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },
-                         :is_janitor?, 3.days)
+                         :is_staff?, 3.days)
 
     def can_remove_from_pools?
       is_member? && older_than(7.days)
@@ -639,15 +647,15 @@ class User < ApplicationRecord
     end
 
     def can_view_flagger?(flagger_id)
-      is_janitor? || flagger_id == id
+      is_staff? || flagger_id == id
     end
 
     def can_view_flagger_on_post?(flag)
-      is_janitor? || flag.creator_id == id || flag.is_deletion
+      is_staff? || flag.creator_id == id || flag.is_deletion
     end
 
     def can_replace?
-      is_janitor? || replacements_beta?
+      is_staff? || replacements_beta?
     end
 
     def can_view_staff_notes?
@@ -764,12 +772,16 @@ class User < ApplicationRecord
 
     def api_key_limit
       if is_staff?
-        20
+        30
       elsif is_privileged?
-        10
+        15
       else
-        5
+        8
       end
+    end
+
+    def oauth_application_limit
+      api_key_limit
     end
   end
 
@@ -785,6 +797,7 @@ class User < ApplicationRecord
         post_upload_count post_update_count note_update_count
         is_banned can_approve_posts can_upload_free
         level_string avatar_id is_verified?
+        has_cropped_avatar?
       ]
 
       if id == CurrentUser.user.id
@@ -967,7 +980,7 @@ class User < ApplicationRecord
 
   module SearchMethods
     def admins
-      where("level = ?", Levels::ADMIN)
+      where("level = ?", UserLevel::ADMIN)
     end
 
     def with_email(email)
@@ -1096,7 +1109,7 @@ class User < ApplicationRecord
   def hide_favorites?
     return false if CurrentUser.is_moderator?
     return false if CurrentUser.user.id == id
-    return true if is_blocked?
+    return true if is_restricted?
     enable_privacy_mode?
   end
 

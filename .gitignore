@@ -5,6 +5,7 @@
 config/danbooru_local_config.rb
 config/deploy/*.rb
 config/application.yml
+/.danbooru/
 
 # Ruby / Bundler
 .bundle
@@ -31,6 +32,7 @@ tmp/*
 tmp/*.jpg
 tmp/*.png
 public/data
+public/sitemap.*
 .overmind.sock
 
 # Test output

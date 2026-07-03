@@ -1,4 +1,3 @@
-/* eslint-disable comma-dangle */
 const TagScript = {
   parse (script) {
     return script.match(/\[.+?\]|\S+/g);
@@ -43,7 +42,7 @@ const TagScript = {
       }
     }
     return changes.join(" ");
-  }
+  },
 };
 
 export default TagScript;

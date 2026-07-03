@@ -1,0 +1,67 @@
+<h1>Connected applications</h1>
+
+<%= render "doorkeeper/secondary_links" %>
+
+<div class="instructions">
+  <p>These applications have been granted access to your account on the site.
+    Revoke any you no longer use or don't recognize.</p>
+</div>
+
+<% if @grants.any? %>
+  <div class="api-keys-container">
+    <div class="api-keys-list authorized-applications-list">
+      <div class="header">Application</div>
+      <div class="header">Owner</div>
+      <div class="header">Permissions</div>
+      <div class="header">First authorized</div>
+      <div class="header">Last used</div>
+      <div class="header">Actions</div>
+
+      <% @grants.each do |grant| %>
+        <% app = grant[:application] %>
+        <div class="row" id="oauth-authorized-application-<%= app.id %>">
+          <div class="cell" data-label="Application">
+            <strong><%= app.name %></strong>
+          </div>
+
+          <div class="cell" data-label="Owner">
+            <% if app.owner %>
+              <%= link_to app.owner.name, user_path(app.owner) %>
+            <% else %>
+              <span class="text-muted">(unknown)</span>
+            <% end %>
+          </div>
+
+          <div class="cell" data-label="Permissions">
+            <ul class="authorized-application-scopes">
+              <% grant[:scopes].each do |scope| %>
+                <li><code><%= scope %></code></li>
+              <% end %>
+            </ul>
+          </div>
+
+          <div class="cell" data-label="First authorized">
+            <%= grant[:granted_at] ? time_ago_in_words_tagged(grant[:granted_at]) : "n/a" %>
+          </div>
+
+          <div class="cell" data-label="Last used">
+            <%= grant[:last_used_at] ? time_ago_in_words_tagged(grant[:last_used_at]) : "never" %>
+          </div>
+
+          <div class="cell" data-label="Actions">
+            <%= form_tag oauth_authorized_application_path(app), method: :delete, class: "authorized-application-revoke" do %>
+              <%= submit_tag "Revoke", class: "st-button danger",
+                  data: { confirm: "Revoke #{app.name}? Active tokens and refresh tokens will stop working." } %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% else %>
+  <p>You haven't authorized any applications yet.</p>
+<% end %>
+
+<% content_for(:page_title) do %>
+  Connected applications
+<% end %>

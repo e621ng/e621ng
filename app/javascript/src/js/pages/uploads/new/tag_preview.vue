@@ -9,7 +9,7 @@
 
 <script>
 import tagPreviewTag from './tag_preview_tag.vue';
-import LStorage from '../../../utility/storage';
+import LStorage from '@/utility/storage/Local.js';
 
 export default {
   props: ['tags'],

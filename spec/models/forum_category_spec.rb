@@ -56,10 +56,10 @@ RSpec.describe ForumCategory do
       moderator = create(:moderator_user)
       admin = create(:admin_user)
 
-      member_category = create(:forum_category, name: "Member Category", can_view: User::Levels::MEMBER)
-      janitor_category = create(:forum_category, name: "Janitor Category", can_view: User::Levels::JANITOR)
-      moderator_category = create(:forum_category, name: "Moderator Category", can_view: User::Levels::MODERATOR)
-      admin_category = create(:forum_category, name: "Admin Category", can_view: User::Levels::ADMIN)
+      member_category = create(:forum_category, name: "Member Category", can_view: UserLevel::MEMBER)
+      janitor_category = create(:forum_category, name: "Janitor Category", can_view: UserLevel::JANITOR)
+      moderator_category = create(:forum_category, name: "Moderator Category", can_view: UserLevel::MODERATOR)
+      admin_category = create(:forum_category, name: "Admin Category", can_view: UserLevel::ADMIN)
 
       expect(ForumCategory.visible(member)).to eq([category0, member_category])
       expect(ForumCategory.visible(janitor)).to eq([category0, member_category, janitor_category])
@@ -75,10 +75,10 @@ RSpec.describe ForumCategory do
       moderator = create(:moderator_user)
       admin = create(:admin_user)
 
-      member_category = create(:forum_category, can_view: User::Levels::MEMBER)
-      janitor_category = create(:forum_category, can_view: User::Levels::JANITOR)
-      moderator_category = create(:forum_category, can_view: User::Levels::MODERATOR)
-      admin_category = create(:forum_category, can_view: User::Levels::ADMIN)
+      member_category = create(:forum_category, can_view: UserLevel::MEMBER)
+      janitor_category = create(:forum_category, can_view: UserLevel::JANITOR)
+      moderator_category = create(:forum_category, can_view: UserLevel::MODERATOR)
+      admin_category = create(:forum_category, can_view: UserLevel::ADMIN)
 
       expect(member_category.can_access?(member)).to be true
       expect(member_category.can_access?(janitor)).to be true
@@ -107,10 +107,10 @@ RSpec.describe ForumCategory do
       moderator = create(:moderator_user)
       admin = create(:admin_user)
 
-      member_category = create(:forum_category, can_create: User::Levels::MEMBER)
-      janitor_category = create(:forum_category, can_create: User::Levels::JANITOR)
-      moderator_category = create(:forum_category, can_create: User::Levels::MODERATOR)
-      admin_category = create(:forum_category, can_create: User::Levels::ADMIN)
+      member_category = create(:forum_category, can_create: UserLevel::MEMBER)
+      janitor_category = create(:forum_category, can_create: UserLevel::JANITOR)
+      moderator_category = create(:forum_category, can_create: UserLevel::MODERATOR)
+      admin_category = create(:forum_category, can_create: UserLevel::ADMIN)
 
       expect(member_category.can_create?(member)).to be true
       expect(member_category.can_create?(janitor)).to be true
@@ -139,10 +139,10 @@ RSpec.describe ForumCategory do
       moderator = create(:moderator_user)
       admin = create(:admin_user)
 
-      member_category = create(:forum_category, can_reply: User::Levels::MEMBER)
-      janitor_category = create(:forum_category, can_reply: User::Levels::JANITOR)
-      moderator_category = create(:forum_category, can_reply: User::Levels::MODERATOR)
-      admin_category = create(:forum_category, can_reply: User::Levels::ADMIN)
+      member_category = create(:forum_category, can_reply: UserLevel::MEMBER)
+      janitor_category = create(:forum_category, can_reply: UserLevel::JANITOR)
+      moderator_category = create(:forum_category, can_reply: UserLevel::MODERATOR)
+      admin_category = create(:forum_category, can_reply: UserLevel::ADMIN)
 
       expect(member_category.can_reply?(member)).to be true
       expect(member_category.can_reply?(janitor)).to be true

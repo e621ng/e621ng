@@ -13,10 +13,11 @@ RSpec.describe SessionLoader do
   around do |example|
     example.run
   ensure
-    CurrentUser.user      = nil
-    CurrentUser.api_key   = nil
-    CurrentUser.ip_addr   = nil
-    CurrentUser.safe_mode = nil
+    CurrentUser.user        = nil
+    CurrentUser.api_key     = nil
+    CurrentUser.oauth_token = nil
+    CurrentUser.ip_addr     = nil
+    CurrentUser.safe_mode   = nil
   end
 
   # ---------------------------------------------------------------------------
@@ -45,6 +46,76 @@ RSpec.describe SessionLoader do
     it "returns false with only an api_key param" do
       env["QUERY_STRING"] = "api_key=key"
       expect(loader.has_api_authentication?).to be false
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #has_header_authentication?
+  # ---------------------------------------------------------------------------
+  describe "#has_header_authentication?" do
+    it "returns false with no credentials" do
+      expect(loader.has_header_authentication?).to be false
+    end
+
+    it "returns true with a Basic Authorization header" do
+      env["HTTP_AUTHORIZATION"] = "Basic dXNlcjprZXk="
+      expect(loader.has_header_authentication?).to be true
+    end
+
+    it "returns true with a Bearer Authorization header" do
+      env["HTTP_AUTHORIZATION"] = "Bearer sometoken"
+      expect(loader.has_header_authentication?).to be true
+    end
+
+    it "returns false when credentials are only in params" do
+      env["QUERY_STRING"] = "login=user&api_key=key"
+      expect(loader.has_header_authentication?).to be false
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #has_login_param_authentication?
+  # ---------------------------------------------------------------------------
+  describe "#has_login_param_authentication?" do
+    it "returns true when both login and api_key params are present" do
+      env["QUERY_STRING"] = "login=user&api_key=key"
+      expect(loader.has_login_param_authentication?).to be true
+    end
+
+    it "returns false with only a login param" do
+      env["QUERY_STRING"] = "login=user"
+      expect(loader.has_login_param_authentication?).to be false
+    end
+
+    it "returns false when credentials are only in an Authorization header" do
+      env["HTTP_AUTHORIZATION"] = "Basic dXNlcjprZXk="
+      expect(loader.has_login_param_authentication?).to be false
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #same_origin_request?
+  # ---------------------------------------------------------------------------
+  describe "#same_origin_request?" do
+    it "returns true when no Origin header is present (non-browser client)" do
+      expect(loader.same_origin_request?).to be true
+    end
+
+    it "returns true when the Origin matches the request's own origin" do
+      env["HTTP_ORIGIN"] = request.base_url
+      expect(loader.same_origin_request?).to be true
+    end
+
+    it "returns false when the Origin is cross-site (forged browser submission)" do
+      env["HTTP_ORIGIN"] = "https://attacker.example"
+      expect(loader.same_origin_request?).to be false
+    end
+
+    it "returns false for an opaque-origin context (literal `Origin: null`)" do
+      # Browsers serialize an opaque origin (file://, sandboxed iframe, data: URL) as the
+      # literal header value "null", which arrives as the string "null", not nil.
+      env["HTTP_ORIGIN"] = "null"
+      expect(loader.same_origin_request?).to be false
     end
   end
 
@@ -82,7 +153,7 @@ RSpec.describe SessionLoader do
 
     it "sets CurrentUser.user to User.anonymous when no credentials are present" do
       loader.load
-      expect(CurrentUser.is_anonymous?).to be true
+      expect(CurrentUser.user.is_logged_out?).to be true
     end
   end
 
@@ -117,7 +188,7 @@ RSpec.describe SessionLoader do
 
       it "leaves CurrentUser as anonymous" do
         loader.load
-        expect(CurrentUser.is_anonymous?).to be true
+        expect(CurrentUser.user.is_logged_out?).to be true
       end
     end
 
@@ -242,7 +313,177 @@ RSpec.describe SessionLoader do
   end
 
   # ---------------------------------------------------------------------------
-  # #load — remember token
+  # #load: OAuth bearer token
+  # ---------------------------------------------------------------------------
+  describe "#load OAuth bearer token" do
+    let(:user) { create(:user) }
+    let(:app) do
+      Doorkeeper::Application.create!(
+        name: "test-app",
+        redirect_uri: "http://localhost/cb",
+        scopes: "openid full",
+        confidential: true,
+        owner: user,
+      )
+    end
+
+    def mint_token(scopes)
+      Doorkeeper::AccessToken.create!(application: app, resource_owner_id: user.id, scopes: scopes)
+    end
+
+    context "with a valid `full`-scoped token" do
+      let(:token) { mint_token("openid full") }
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      it "sets CurrentUser.user from the token's resource_owner_id" do
+        loader.load
+        expect(CurrentUser.user).to eq(user)
+      end
+
+      it "clears CurrentUser.api_key" do
+        loader.load
+        expect(CurrentUser.api_key).to be_nil
+      end
+
+      it "marks the request as API-authenticated so CSRF is skipped" do
+        expect(loader.has_api_authentication?).to be true
+      end
+    end
+
+    context "with a token missing the `full` scope" do
+      let(:token) { mint_token("openid") }
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      it "raises InsufficientScope" do
+        expect { loader.load }.to raise_error(SessionLoader::InsufficientScope)
+      end
+    end
+
+    context "with a revoked token" do
+      let(:token) do
+        t = mint_token("openid full")
+        t.revoke
+        t
+      end
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+    end
+
+    context "with an expired token" do
+      let(:token) { mint_token("openid full").tap { |t| t.update_columns(expires_in: 1, created_at: 1.hour.ago) } }
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+    end
+
+    context "with an unknown bearer token" do
+      before { env["HTTP_AUTHORIZATION"] = "Bearer not-a-real-token" }
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+    end
+
+    context "with both a bearer header AND login/api_key params" do
+      let(:api_key) { create(:api_key, user: user) }
+      let(:token)   { mint_token("openid full") }
+
+      before do
+        env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}"
+        env["QUERY_STRING"] = Rack::Utils.build_query(login: user.name, api_key: api_key.key)
+      end
+
+      it "prefers the bearer token over the api_key" do
+        loader.load
+        expect(CurrentUser.user).to eq(user)
+        expect(CurrentUser.api_key).to be_nil
+      end
+    end
+
+    context "min-level re-check on bearer use" do
+      let(:app) do
+        Doorkeeper::Application.create!(
+          name: "level-gated", redirect_uri: "http://localhost/cb",
+          scopes: "openid full", confidential: true,
+          owner: user, minimum_user_level: UserLevel::PRIVILEGED
+        )
+      end
+      let(:token) { Doorkeeper::AccessToken.create!(application: app, resource_owner_id: user.id, scopes: "openid full") }
+
+      before { env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}" }
+
+      context "when the user still meets the minimum" do
+        let(:user) { create(:privileged_user) }
+
+        it "loads normally" do
+          loader.load
+          expect(CurrentUser.user).to eq(user)
+        end
+      end
+
+      context "when the user has been demoted below the minimum" do
+        let(:user) { create(:user) } # member-level, below privileged
+
+        it "raises LevelBelowMinimum" do
+          expect { loader.load }.to raise_error(SessionLoader::LevelBelowMinimum)
+        end
+      end
+    end
+
+    context "auth_time hygiene" do
+      let(:user) { create(:user) }
+      let(:token) { mint_token("openid full") }
+
+      before do
+        env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}"
+        user.update_columns(last_logged_in_at: 7.days.ago)
+      end
+
+      it "does not bump last_logged_in_at on bearer-only requests" do
+        Cache.redis.del("user_login_tracking:user:#{user.id}")
+        loader.load
+        expect(user.reload.last_logged_in_at).to be < 1.day.ago
+      ensure
+        Cache.redis.del("user_login_tracking:user:#{user.id}")
+      end
+    end
+
+    context "refresh-token rotation" do
+      let(:old_token) { mint_token("openid full") }
+      let(:new_token) do
+        Doorkeeper::AccessToken.create!(
+          application: app,
+          resource_owner_id: user.id,
+          scopes: "openid full",
+          use_refresh_token: true,
+          previous_refresh_token: old_token.refresh_token,
+        )
+      end
+
+      before do
+        old_token.update_columns(refresh_token: "old-refresh-#{SecureRandom.hex(8)}")
+        new_token
+        env["HTTP_AUTHORIZATION"] = "Bearer #{new_token.token}"
+      end
+
+      it "revokes the previous refresh token when the new access token is used" do
+        loader.load
+        expect(old_token.reload.revoked?).to be true
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #load: remember token
   # ---------------------------------------------------------------------------
   describe "#load remember token" do
     let(:user) { create(:user) }
@@ -282,7 +523,7 @@ RSpec.describe SessionLoader do
 
       it "leaves CurrentUser as anonymous without raising" do
         expect { loader.load }.not_to raise_error
-        expect(CurrentUser.is_anonymous?).to be true
+        expect(CurrentUser.user.is_logged_out?).to be true
       end
     end
 
@@ -291,7 +532,7 @@ RSpec.describe SessionLoader do
 
       it "leaves CurrentUser as anonymous" do
         loader.load
-        expect(CurrentUser.is_anonymous?).to be true
+        expect(CurrentUser.user.is_logged_out?).to be true
       end
     end
   end
@@ -316,7 +557,7 @@ RSpec.describe SessionLoader do
     end
 
     context "with a time-limited ban" do
-      before { create(:ban, user: user, duration: 7) }
+      before { create(:ban, user: user, duration: 7, prevent_login: true) }
 
       it "raises AuthenticationFailure mentioning the suspension" do
         expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure, /suspended/)
@@ -324,13 +565,21 @@ RSpec.describe SessionLoader do
     end
 
     context "with an expired ban" do
-      let!(:ban) { create(:ban, user: user, duration: 7) }
+      let!(:ban) { create(:ban, user: user, duration: 7, prevent_login: true) }
 
       before { ban.update_columns(expires_at: 2.days.ago) }
 
       it "unbans the user and does not raise" do
         expect { loader.load }.not_to raise_error
-        expect(user.reload.is_banned?).to be false
+        expect(user.reload.is_restricted?).to be false
+      end
+    end
+
+    context "with a soft ban (prevent_login: false)" do
+      before { create(:ban, user: user, duration: 7, prevent_login: false) }
+
+      it "does not raise AuthenticationFailure" do
+        expect { loader.load }.not_to raise_error
       end
     end
   end

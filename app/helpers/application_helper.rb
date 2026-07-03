@@ -2,7 +2,7 @@
 
 module ApplicationHelper
   def disable_mobile_mode?
-    if CurrentUser.user.blank? || CurrentUser.is_anonymous?
+    if CurrentUser.user.blank? || CurrentUser.user.is_logged_out?
       return cookies[:nmm].present?
     end
 
@@ -79,10 +79,11 @@ module ApplicationHelper
   def error_messages_for(instance_name)
     instance = instance_variable_get("@#{instance_name}")
 
-    if instance && instance.errors.any?
-      %{<div class="error-messages ui-state-error ui-corner-all"><strong>Error</strong>: #{instance.__send__(:errors).full_messages.join(", ")}</div>}.html_safe
-    else
-      ""
+    return "" unless instance && instance.errors.any?
+
+    # full_messages is a plain (unsafe) String built from user input, safe_join HTML-escapes it
+    tag.div(class: "error-messages ui-state-error ui-corner-all") do
+      safe_join([tag.strong("Error"), ": ", instance.errors.full_messages.join(", ")])
     end
   end
 
@@ -123,7 +124,7 @@ module ApplicationHelper
 
   def link_to_ip(ip)
     return '(none)' unless ip
-    link_to ip, moderator_ip_addrs_path(:search => {:ip_addr => ip})
+    link_to ip, staff_ip_addrs_path(:search => {:ip_addr => ip})
   end
 
   def link_to_user(user, include_activation: false)
@@ -132,7 +133,7 @@ module ApplicationHelper
     user_class = user.level_css_class
     user_class += " user-post-approver" if user.can_approve_posts?
     user_class += " user-post-uploader" if user.can_upload_free?
-    user_class += " user-banned" if user.is_banned?
+    user_class += " user-banned" if user.is_restricted?
     user_class += " with-style" if CurrentUser.user.style_usernames?
     html = link_to(user.pretty_name.presence || "<blank>", user_path(user), class: user_class, rel: "nofollow")
     html << " (Unactivated)" if include_activation && !user.is_verified?
@@ -141,7 +142,8 @@ module ApplicationHelper
 
   def body_attributes(user = CurrentUser.user)
     attributes = %i[id name level level_string can_approve_posts? can_upload_free? per_page]
-    attributes += User::Roles.map { |role| :"is_#{role}?" }
+    attributes += UserLevel::BODY_ATTRIBUTE_ROLES.map { |role| :"is_#{role}?" }
+    attributes += %i[is_anonymous? is_restricted?]
 
     controller_param = params[:controller].parameterize.dasherize
     action_param = params[:action].parameterize.dasherize
@@ -153,7 +155,6 @@ module ApplicationHelper
         controller: controller_param,
         action: action_param,
         **data_attributes_for(user, "user", attributes),
-        hotkeys_enabled: CurrentUser.user.enable_keyboard_navigation?,
       },
     }
   end
@@ -191,7 +192,7 @@ module ApplicationHelper
     return url == request.path if controller == "static"
 
     url =~ case controller
-    when "sessions", "users", "maintenance/user/login_reminders", "maintenance/user/password_resets", "admin/users", "dmails"
+    when "sessions", "users", "maintenance/user/login_reminders", "maintenance/user/password_resets", "staff/users", "dmails"
       /^\/(session|users)/
 
     when "post_sets"
@@ -209,7 +210,7 @@ module ApplicationHelper
     when "notes", "note_versions"
       /^\/notes/
 
-    when "posts", "uploads", "post_versions", "popular", "moderator/post/dashboards", "favorites", "post_favorites"
+    when "posts", "uploads", "post_versions", "popular", "staff/post/dashboards", "favorites", "post_favorites"
       /^\/posts/
 
     when "artists", "artist_versions"
@@ -221,8 +222,8 @@ module ApplicationHelper
     when "pools", "pool_versions"
       /^\/pools/
 
-    when "moderator/dashboards"
-      /^\/moderator/
+    when "staff/moderator_dashboards"
+      /^\/staff\/moderator_dashboard/
 
     when "wiki_pages", "wiki_page_versions"
       /^\/wiki_pages/

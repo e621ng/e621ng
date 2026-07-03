@@ -1,6 +1,5 @@
-import User from "@/models/User.js";
 import Dialog from "@/utility/dialog.js";
-import LStorage from "@/utility/storage.js";
+import LStorage from "@/utility/storage/Local";
 import TaskQueue from "@/utility/TaskQueue.js";
 
 export default class NoteManager {
@@ -20,7 +19,7 @@ export default class NoteManager {
     this.highlightHashNotes();
     $(window).on("hashchange.e6.note", this.highlightHashNotes);
 
-    if (!User.is.member) return;
+    if (!E621.CurrentUser.is.member) return;
 
     // Open editor when a note is double-clicked
     NoteUtilities.container.on("dblclick.e6.note", ".note-box", (event) => {

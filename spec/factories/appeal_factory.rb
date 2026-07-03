@@ -9,7 +9,7 @@ FactoryBot.define do
     # (e.g. via include_context "as member") before using this factory.
 
     transient do
-      post_flag { create(:post_flag) }
+      post_flag { create(:deletion_post_flag) }
     end
 
     after(:build) do |appeal, evaluator|

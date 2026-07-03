@@ -1,31 +1,22 @@
 import Page from "@/utility/Page";
-import LStorage from "@/utility/storage";
-import Blacklist from "@/core/blacklists";
-import Analytics from "@/core/analytics";
+import LStorage from "@/utility/storage/Local";
+import Blacklist from "@/core/blacklist";
+import Analytics from "@/core/Analytics";
 import Logger from "@/utility/Logger";
 import PerformanceTracker from "@/utility/PerformanceTracker";
-import Settings from "@/utility/Settings";
-import CStorage from "@/utility/StorageC";
+import CStorage from "@/utility/storage/Cookie";
 import PostCache from "@/models/PostCache";
 import ThumbnailEngine from "@/components/ThumbnailEngine";
 
 const Recommended = {};
 
 Recommended.RESULT_COUNT = 6;
-Recommended.SHOW_ENGINE_RESULTS = false;
 Recommended.Logger = new Logger("Recommended");
-Recommended.allStates = ["artist", "tags", "favorites"];
 Recommended.validStates = ["artist", "tags"];
 Recommended.requestID = 0;
 
-Recommended.remote_actions = ["favorites"];
-
 Recommended.init = function () {
   if (Recommended.$container.length === 0) return;
-
-  Recommended.SHOW_ENGINE_RESULTS = Settings.Recommender.remote;
-  if (Recommended.SHOW_ENGINE_RESULTS)
-    Recommended.validStates = [...Recommended.validStates, ...Recommended.remote_actions];
 
   let initialAction = Recommended.action;
   // Determine which states are actually available based on the presence of tabs in the DOM.
@@ -45,7 +36,6 @@ Recommended.init = function () {
     "Loaded",
     `\n ⤷ Initial Action: ${initialAction}`,
     `\n ⤷ Valid Actions: ${Recommended.validStates.join(", ")}`,
-    `\n ⤷ Remote Engine Enabled: ${Recommended.SHOW_ENGINE_RESULTS}`,
   );
 
 
@@ -62,7 +52,7 @@ Recommended.init = function () {
       // multiple times. The links navigate away from the page regardless, so this is acceptable.
       const data = event.currentTarget.dataset;
       if (!data.target) return;
-      Analytics.track(Analytics.Event.Recommendation, {
+      Analytics.track("recommendation", {
         target: "/posts/" + data.target,
         action: Recommended.action,
       });
@@ -159,10 +149,10 @@ Object.defineProperty(Recommended, "status", {
 
 Object.defineProperty(Recommended, "visible", {
   get: function () {
-    return !CStorage.postRecommenderHidden;
+    return !CStorage.Posts.SimilarHidden;
   },
   set: function (value) {
-    CStorage.postRecommenderHidden = !value;
+    CStorage.Posts.SimilarHidden = !value;
     this.$wrapper.attr("data-visible", value ? "true" : "false");
     this.$toggle.attr({
       "aria-expanded": value ? "true" : "false",
@@ -329,8 +319,8 @@ Recommended.loadState = async function (action = Recommended.action) {
 
   // 6. Apply blacklist
   if (renderedPosts.length > 0) {
-    Blacklist.add_posts(renderedPosts); // Automatically registers thumbnails with PostCache too
-    Blacklist.update_visibility();
+    Blacklist.addPosts(renderedPosts); // Automatically registers thumbnails with PostCache too
+    Blacklist.updatePostVisibility();
   }
   Recommended.Logger.log(`Rendered ${renderedPosts.length} posts`, renderedPosts);
   Recommended.Logger.log(" ⤷ Cache state:", PostCache.stats());
@@ -378,10 +368,9 @@ Recommended.waitUntilReady = function () {
 // ============================== //
 
 // Fetches recommendation data from the server
-Recommended.getData = async function (postId, action = "favorites") {
+Recommended.getData = async function (postId, action = "artist") {
   let target;
-  if (Recommended.remote_actions.includes(action)) target = "remote";
-  else if (Recommended.validStates.includes(action)) target = action;
+  if (Recommended.validStates.includes(action)) target = action;
   else throw new Error(`Invalid recommendation action: ${action}`);
   Recommended.Logger.log(`Fetching data: "${postId}/${action}"`);
 

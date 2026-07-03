@@ -34,6 +34,19 @@ RSpec.describe ApiKeysController do
       end
     end
 
+    it "denies access when using a bearer token" do
+      bearer_user = create(:user, name: "bearerUser")
+      app = Doorkeeper::Application.create!(
+        name: "for-bearer-rejection", redirect_uri: "http://localhost/cb",
+        scopes: "openid full", owner: bearer_user
+      )
+      token = Doorkeeper::AccessToken.create!(application: app, resource_owner_id: bearer_user.id, scopes: "openid full")
+      [api_keys_path, new_api_key_path].each do |p|
+        get p, headers: { "Authorization" => "Bearer #{token.token}" }
+        expect(response).to have_http_status(:forbidden), "expected the response from #{p} to have status code :forbidden (403) but it was #{response.status}"
+      end
+    end
+
     it "requires reauthentication if last authenticated over an hour ago" do
       api_user = travel_to 2.hours.ago, &method(:make_session) # do
       CurrentUser.scoped(api_user) do

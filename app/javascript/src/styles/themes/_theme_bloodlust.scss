@@ -26,6 +26,8 @@ body[data-th-main="bloodlust"] {
   --color-link:                   #{$bloodlust-color-link};
   --color-link-hover:             #{$bloodlust-color-link-hover};
   --color-link-active:            #ffffff;
+
+  --color-button-inactive:        #{$bloodlust-color-text-muted};
   --color-button-active:          #e8c446;
 
   --color-link-last-page:         #{$bloodlust-color-text-muted};

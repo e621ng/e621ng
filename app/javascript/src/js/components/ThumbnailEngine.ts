@@ -1,6 +1,5 @@
 import E621Type from "@/interfaces/E621";
 import PostCache, { CachedPost } from "@/models/PostCache";
-import User from "@/models/User";
 import Settings from "@/utility/Settings";
 import SVGIcon from "@/utility/SVGIcon";
 
@@ -27,7 +26,7 @@ export default class ThumbnailEngine {
       .addClass("thumbnail rating-" + (post.ratingLong))
       .attr(post.toAttributes());
 
-    if (post.isDeleted) article.addClass("deleted");
+    if (post.isDeleted || post.isUnavailable) article.addClass("deleted");
 
     // Apply customization and blacklist classes
     if (E621.Blacklist.hiddenPosts.has(post.id)) article.addClass("blacklisted");
@@ -40,13 +39,15 @@ export default class ThumbnailEngine {
     if (classes) article.addClass(classes);
 
     // Substitute URLs if necessary
-    if (jpegUrl) {
-      if (post.preview_url) post.preview_url = post.preview_url.replace(/\/data\/.*$/, jpegUrl);
-      else post.preview_url = jpegUrl;
-    }
-    if (webpUrl) {
-      if (post.preview_webp) post.preview_webp = post.preview_webp.replace(/\/data\/.*$/, webpUrl);
-      else post.preview_webp = webpUrl;
+    if (!post.isUnavailable) {
+      if (jpegUrl) {
+        if (post.preview_url) post.preview_url = post.preview_url.replace(/\/data\/.*$/, jpegUrl);
+        else post.preview_url = jpegUrl;
+      }
+      if (webpUrl) {
+        if (post.preview_webp) post.preview_webp = post.preview_webp.replace(/\/data\/.*$/, webpUrl);
+        else post.preview_webp = webpUrl;
+      }
     }
 
     // Core
@@ -55,9 +56,11 @@ export default class ThumbnailEngine {
       .attr({
         "href": `/posts/${post.id}`,
         "data-target": post.id, // Used by Analytics
+        "data-file-ext": post.file_ext, // used by the badge pseudoelement
       })
       .appendTo(article);
-    if (!post.isDeleted || User.is.janitor)
+
+    if (!post.isUnavailable && (!post.isDeleted || E621.CurrentUser.is.staff))
       link.append(this.renderPicture(post));
 
     // Footer

@@ -1,0 +1,12 @@
+<%# locals: (users:) %>
+
+<section id="staff-wiki-involved">
+  <h2>Involved</h2>
+
+  <% claimant_id = @staff_wiki.claimant_id %>
+  <% users.each do |user| %>
+    <% klass = "#{user.level_css_class} with-style" %>
+    <% klass += " claimant" if user.id == claimant_id %>
+    <span><%= link_to user.pretty_name.presence || "<blank>", user, class: klass, rel: "nofollow" %></span>
+  <% end %>
+</section>

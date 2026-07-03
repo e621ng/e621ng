@@ -33,46 +33,13 @@ export default class DeferredPostLoader {
     // At this point, no thumbnails are rendered.
     // However, this lets us populate the Blacklist and render thumbnails with the correct
     // visibility on the first try, instead of rendering them and then updating their visibility.
-    E621.Blacklist.load_deferred_posts(processed);
-    E621.Blacklist.update_visibility();
-    E621.Blacklist.update_styles();
+    E621.Blacklist.loadDeferredPosts(processed);
+    E621.Blacklist.updatePostVisibility();
+    E621.Blacklist.updateThumbnailStyles();
 
     this.Logger.log("Loaded post data", "\n ⤷ Processed: " + processed.length + " / " + Object.keys(postsData).length, "\n ⤷ In cache: " + PostCache.stats().cachedPosts);
 
     window.___deferred_posts = {};
-  }
-
-  public static renderNavbarAvatar () {
-    const avatars = $(".savm-profile-icon.placeholder");
-    if (!avatars.length) return;
-    avatars.removeClass("placeholder");
-
-    // Determine avatar data from the first placeholder
-    const avatar = $(avatars[0]);
-    const postID = avatar.data("id");
-    if (!postID) return;
-    const post = PostCache.get(postID);
-    if (!post || !post.preview_url) return;
-
-    let path = post.preview_url;
-    if (!post.isDeleted && avatar.data("has-cropped-avatar")) {
-      const userID = avatar.data("user-id") || "0",
-        userHash = avatar.data("user-hash") || "0";
-      if (userID) path = post.preview_url.replace(/\/data\/.*$/, `/data/avatars/${userID}.jpg?t=${userHash}`);
-    }
-
-    // Avatars are rendered without accounting for blacklist.
-    // If someone blacklists their own avatar, it's their problem.
-
-    for (const placeholder of avatars) {
-      const $placeholder = $(placeholder);
-      $("<img>")
-        .attr({
-          "src": path,
-          "alt": "User avatar",
-        })
-        .appendTo($placeholder);
-    }
   }
 
   public static renderDTextThumbnails () {
@@ -139,7 +106,6 @@ export default class DeferredPostLoader {
 
 $(() => {
   DeferredPostLoader.loadPostData();
-  DeferredPostLoader.renderNavbarAvatar();
   DeferredPostLoader.renderDTextThumbnails();
   DeferredPostLoader.renderUserAvatars();
 

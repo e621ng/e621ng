@@ -6,24 +6,6 @@ class PostRecommendationsController < ApplicationController
   def artist = fetch_recommendations(:artist)
   def tags   = fetch_recommendations(:tags)
 
-  def remote
-    @original_post = Post.find(params[:id])
-    unless Security::Lockdown.post_visible?(@original_post, CurrentUser.user)
-      render json: {
-        post_id: @original_post.id,
-        model_version: "not_implemented",
-        results: [],
-      }
-      return
-    end
-
-    render json: {
-      post_id: @original_post.id,
-      model_version: "not_implemented",
-      results: [],
-    }
-  end
-
   private
 
   def fetch_recommendations(mode)
@@ -58,7 +40,8 @@ class PostRecommendationsController < ApplicationController
       }
     end
 
-    posts = Post.where(id: post_data[:order]).includes(:uploader)
+    posts = Post.where(id: post_data[:order]).includes(:uploader).to_a
+    Post.preload_stats!(posts)
     post_data[:post_data] = PostThumbnailBlueprint.render_as_hash(posts, collection: true)
     post_data.delete(:order) # Don't pollute the response with redundant data
 

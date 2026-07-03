@@ -9,7 +9,11 @@ module PostSets
       @date = if date.blank?
                 Time.zone.now
               else
-                parsed = Time.zone.parse(date)
+                begin
+                  parsed = Time.zone.parse(date)
+                rescue TypeError, ArgumentError
+                  raise ParseValue::InvalidDateError, "Invalid date: #{date}"
+                end
                 raise ParseValue::InvalidDateError, "Invalid date: #{date}" if parsed.nil? || parsed.year > 9999 || parsed.year < 1
                 parsed
               end
@@ -17,10 +21,13 @@ module PostSets
     end
 
     def posts
-      @posts ||= ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day)
-                       .includes(:uploader)
-                       .order("score desc")
-                       .paginate_posts(1)
+      @posts ||= begin
+        q = ::Post.where("created_at between ? and ?", min_date.beginning_of_day, max_date.end_of_day)
+                  .includes(:uploader)
+                  .order("score desc")
+        q = q.where(rating: "s") if CurrentUser.safe_mode?
+        q.paginate_posts(1)
+      end
     end
 
     def api_posts

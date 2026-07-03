@@ -81,6 +81,17 @@ RSpec.describe Maintenance::User::PasswordResetsController do
         expect(response).to have_http_status(:ok)
       end
     end
+
+    context "with an excessively large UID" do
+      it "returns 200 without raising and renders the invalid-reset message" do
+        expect do
+          get edit_maintenance_user_password_reset_path,
+              params: { uid: "212488730429208853042920885", key: "doesnotexist" }
+        end.not_to raise_error
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
   end
 
   describe "PATCH /maintenance/user/password_reset" do
@@ -137,6 +148,18 @@ RSpec.describe Maintenance::User::PasswordResetsController do
       it "redirects with an invalid token notice" do
         patch maintenance_user_password_reset_path,
               params: { uid: "0", key: "doesnotexist", password: "newpassword1", password_confirm: "newpassword1" }
+        expect(response).to redirect_to(new_maintenance_user_password_reset_path)
+        expect(flash[:notice]).to eq("Invalid reset token")
+      end
+    end
+
+    context "with an excessively large UID" do
+      it "redirects with an invalid token notice without raising" do
+        expect do
+          patch maintenance_user_password_reset_path,
+                params: { uid: "212488730429208853042920885", key: "doesnotexist", password: "newpassword1", password_confirm: "newpassword1" }
+        end.not_to raise_error
+
         expect(response).to redirect_to(new_maintenance_user_password_reset_path)
         expect(flash[:notice]).to eq("Invalid reset token")
       end

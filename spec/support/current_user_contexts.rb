@@ -3,6 +3,7 @@
 # Shared contexts for setting the current user in specs.
 #
 # Usage:
+#   include_context "as bd admin"
 #   include_context "as admin"
 #   include_context "as moderator"
 #   include_context "as janitor"
@@ -14,6 +15,7 @@
 # Both are cleared in an after hook.
 
 {
+  "bd admin"   => :bd_admin_user,
   "admin"      => :admin_user,
   "moderator"  => :moderator_user,
   "janitor"    => :janitor_user,

@@ -25,11 +25,17 @@ module JsonResponseHelper
     render_json_with_wrapper(posts_data, wrapper_key: wrapper_key)
   end
 
-  def render_events_json(events_data)
-    render_json_with_wrapper(events_data, wrapper_key: :post_events)
+  def render_events_json(events_data, legacy: true)
+    if legacy
+      render_json_with_wrapper(events_data, wrapper_key: :post_events)
+    else
+      render json: events_data
+    end
   end
 
   def pick_json_format(posts, collection: true, legacy: true, mode: "basic")
+    Post.preload_stats!(posts)
+
     # Legacy format
     if legacy
       render_posts_json(PostLegacyBlueprint.render_as_hash(posts), collection: collection)

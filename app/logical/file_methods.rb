@@ -51,8 +51,18 @@ module FileMethods
     is_webm? || is_mp4?
   end
 
+  # Returns whether the file at the given path is animated, dispatching to the
+  # type-specific probe based on file_ext. Videos are always animated.
+  def is_animated_file?(file_path)
+    return true if is_video?
+    return is_animated_gif?(file_path) if is_gif?
+    return is_animated_png?(file_path) if is_png?
+    return is_animated_webp?(file_path) if is_webp?
+    false
+  end
+
   def is_animated_png?(file_path)
-    is_png? && ApngInspector.new(file_path).inspect!.animated?
+    is_png? && ApngInspector.is_animated?(file_path)
   end
 
   def is_animated_gif?(file_path)
@@ -123,9 +133,12 @@ module FileMethods
 
   def calculate_dimensions(file_path)
     if is_video?
-      video = FFMPEG::Movie.new(file_path)
-      [video.width, video.height]
-
+      stdout, stderr, status = Open3.capture3(Danbooru.config.ffprobe_path, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", file_path)
+      unless status.success?
+        Rails.logger.warn("[FFPROBE STDERR] #{stderr.chomp}")
+        raise Upload::Error, "Could not retrieve video dimensions"
+      end
+      stdout.chomp.split("x").map(&:to_i)
     elsif is_image?
       image = Vips::Image.new_from_file(file_path)
       [image.width, image.height]
@@ -139,8 +152,11 @@ module FileMethods
     @video ||= FFMPEG::Movie.new(file_path)
   end
 
-  def video_duration(file_path)
-    return nil unless is_video? || (is_gif? && is_animated_gif?(file_path))
+  # Pass a precomputed +animated+ (e.g. from #is_animated_file?) to avoid a
+  # redundant GIF frame probe when the caller already knows the answer.
+  def video_duration(file_path, animated: nil)
+    animated = is_animated_gif?(file_path) if animated.nil?
+    return nil unless is_video? || (is_gif? && animated)
     video(file_path).duration
   end
 

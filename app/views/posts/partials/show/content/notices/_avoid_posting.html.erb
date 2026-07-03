@@ -1,9 +1,9 @@
-<% if post.avoid_posting_artists.any? %>
+<% if post.avoid_posting_tags.any? %>
   <div class="notice" id="avoid-posting-notice">
     <div class="avoid-posting" data-post-id="<%= post.id %>">
       <h3>Avoid Posting</h3>
       <ul>
-        <% post.avoid_posting_artists.each do |dnp| %>
+        <% post.avoid_posting_tags.each do |dnp| %>
           <li data-artist-id="<%= dnp.artist_id %>" data-avoid-posting-id="<%= dnp.id %>" data-artist-name="<%= dnp.artist_name %>">
           <% if dnp.pretty_details.blank? %>
             <span class="artist"><%= link_to dnp.artist_name, avoid_posting_path(dnp) %></span>

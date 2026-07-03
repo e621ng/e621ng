@@ -4,11 +4,13 @@ $user-levels: (
   "member"
   "privileged"
   "former-staff"
+  "staff"
   "janitor"
   "moderator"
   "admin"
 );
 $user-level-text: (
+  "staff": #ffffff,
   "moderator": #ffffff,
   "janitor": #ffffff,
 );

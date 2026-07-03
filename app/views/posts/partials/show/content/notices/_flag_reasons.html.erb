@@ -10,7 +10,7 @@
         <% if flag.creator_id == post.uploader_id && !flag.is_deletion %>
           <%= svg_icon(:octagon_alert, class: "text-inline", title: "Flag created by the current uploader") %>
         <% end %>
-        <% if CurrentUser.is_admin? %>
+        <% if CurrentUser.user.is_admin? %>
           (<%= link_to_ip(flag.creator_ip_addr) %>)
         <% end %>
       <% end %>
@@ -20,12 +20,12 @@
       <% if flag.is_resolved? %>
         <span class="resolved">RESOLVED</span>
       <% end %>
-      
+
       <% if flag.note.present? && flag.can_see_note? %>
         <div class="post-flag-note">
           <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
           <div class="dtext-container post-flag-note-body">
-            <% if CurrentUser.is_staff? %>
+            <% if CurrentUser.user.is_janitor? %>
               <%= link_to svg_icon(:trash), clear_note_post_flag_path(flag), method: :post, data: { confirm: "Are you sure you want to clear this note?" }, class: "post-flag-clear-note-link" %>
             <% end %>
             <%= format_text flag.note %>
@@ -33,13 +33,17 @@
         </div>
       <% end %>
 
-      <% if flag.is_deletion? && post.uploader_id == CurrentUser.user.id %>
+      <% if flag.can_appeal?(CurrentUser.user) %>
         <div class="post-flag-appeal">
           <%= link_to "Appeal Deletion", new_appeal_path(qtype: "flag", disp_id: flag.id), class: "st-button" %>
         </div>
+      <% elsif (existing_appeal = flag.user_appeal(CurrentUser.user)).present? %>
+        <div class="post-flag-appeal">
+          <%= link_to "View Appeal", appeal_path(existing_appeal), class: "st-button" %>
+        </div>
       <% end %>
     </li>
-    <% if post.is_deleted? && flag.is_deletion && !CurrentUser.is_janitor? %>
+    <% if post.is_deleted? && flag.is_deletion && !CurrentUser.user.is_staff? %>
       <% break %>
     <% end %>
   <% end %>

@@ -1,4 +1,4 @@
-import CStorage from "@/utility/StorageC";
+import CStorage from "@/utility/storage/Cookie";
 
 function initSearch () {
   const $searchForm = $("#searchform");
@@ -25,21 +25,7 @@ $(function () {
   $(".dmail-notice-hide").on("click.danbooru", function (event) {
     event.preventDefault();
     $(".dmail-notice").hide();
-    CStorage.hideDMailNotice = true;
-  });
-
-  // Prevent link navigation on first tap of a spoiler tag on touch devices.
-  $(document).on("touchend.danbooru", ".spoiler", function (e) {
-    if ($(e.target).closest("a", this).length && !$(this).hasClass("spoiler-revealed")) {
-      e.preventDefault();
-    }
-    $(this).addClass("spoiler-revealed");
-  });
-
-  $(document).on("touchstart.danbooru", function (e) {
-    if (!$(e.target).closest(".spoiler").length) {
-      $(".spoiler.spoiler-revealed").removeClass("spoiler-revealed");
-    }
+    CStorage.Site.HideDMailNotice = true;
   });
 
   $(".revert-item-link").on("click", e => {
@@ -58,6 +44,10 @@ $(function () {
     }).fail(() => {
       E621.Toast.alert("Failed to revert to specified version.");
     });
+  });
+
+  $("input[type='text'].select-all").on("click", e => {
+    e.target.select();
   });
 
   initSearch();

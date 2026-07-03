@@ -3,7 +3,7 @@
                                                       ["Inactive", "inactive"],
                                                       ["Denied", "denied"],
                                                       ["Partially Approved", "partial"],
-                                                      ["Approved", "approved"]], include_blank: true %>
+                                                      ["Approved", "approved"]], include_blank: "Any" %>
   <% if CurrentUser.is_moderator? || CurrentUser.is_approver? %>
     <br />
     <%= f.input :source, label: 'Source' %>
@@ -12,12 +12,12 @@
     <%= f.input :reason_hidden, label: 'Reason hidden?', collection: [
       ["Yes", true],
       ["No", false],
-    ], include_blank: true %>
+    ], include_blank: "Any" %>
     <%= f.input :instructions, label: "Instructions" %>
     <%= f.input :post_id, label: "Post ID" %>
     <br />
     <%= f.input :creator_name, label: "Creator" %>
-    <%= f.input :creator_logged_in, label: "Has Account?", collection: %w[yes no], include_blank: true %>
+    <%= f.input :creator_logged_in, label: "Has Account?", collection: %w[yes no], include_blank: "Any" %>
   <% end %>
   <% if CurrentUser.is_admin? %>
     <br />

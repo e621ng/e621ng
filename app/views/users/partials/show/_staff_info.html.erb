@@ -35,20 +35,22 @@
       | <%= link_to "Replacements", post_replacements_path(search: { creator_name: user.name, status: "pending" }) %>
     </span>
 
-    <h4>Uploads</h4>
-    <span>
-      <% if user.no_uploading %>
-        <%= link_to "Disabled", toggle_uploads_user_path(user), class: "text-red text-bold" %>
-      <% else %>
-        <%= link_to "Enabled", toggle_uploads_user_path(user) %>
-      <% end %>
-      | <%= link_to "Refresh counts", fix_counts_user_path(user) %>
-    </span>
-
-    <% if CurrentUser.is_moderator? && UserRevert.can_revert?(user) %>
-      <h4>Tag Changes</h4>
+    <% if CurrentUser.is_janitor? %>
+      <h4>Uploads</h4>
       <span>
-        <%= link_to "Revert All", new_user_revert_path(user_id: user.id) %>
+        <% if user.no_uploading %>
+          <%= link_to "Disabled", toggle_uploads_user_path(user), class: "text-red text-bold" %>
+        <% else %>
+          <%= link_to "Enabled", toggle_uploads_user_path(user) %>
+        <% end %>
+        | <%= link_to "Refresh counts", fix_counts_user_path(user) %>
+      </span>
+    <% end %>
+
+    <% if CurrentUser.is_moderator? %>
+      <h4>Cleanup</h4>
+      <span>
+        <%= link_to "Cleanup Page", staff_user_cleanup_path(user) %>
       </span>
     <% end %>
 
@@ -67,21 +69,14 @@
     <% if CurrentUser.is_bd_auditor? %>
       <h4>DMails</h4>
       <span>
-        <%= link_to "Audit", admin_user_dmails_path(user) %>
+        <%= link_to "Audit", staff_user_dmails_path(user) %>
       </span>
     <% end %>
 
     <% if CurrentUser.is_bd_staff? && !user.is_staff? && !user.name.match?(/\Auser_#{user.id}~*\z/) %>
       <h4>Delete User</h4>
       <span>
-        <%= link_to "Delete", anonymize_admin_user_path(user) %>
-      </span>
-    <% end %>
-
-    <% if CurrentUser.is_admin? %>
-      <h4>Clear Avatar</h4>
-      <span>
-        <%= link_to "Clear", clear_avatar_admin_user_path(user), method: :post, data: { confirm: "Are you certain that you want to clear this user's avatar?\nTHIS IS IRREVERSIBLE." } %>
+        <%= link_to "Delete", anonymize_staff_user_path(user) %>
       </span>
     <% end %>
   </div>

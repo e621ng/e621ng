@@ -1,0 +1,37 @@
+<div id="c-staff-wikis">
+  <div id="a-index">
+    <section>
+      <h1>Staff Wiki</h1>
+
+      <%= render "search" %>
+      <table class="striped">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Claimant</th>
+            <th>Last edited</th>
+            <th>History</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @staff_wikis.each do |staff_wiki| %>
+            <tr>
+              <td><%= link_to staff_wiki.title, staff_wiki_path(staff_wiki) %></td>
+              <td><% if staff_wiki.claimant_id %><%= link_to_user staff_wiki.claimant %><% end %></td>
+              <td><%= compact_time staff_wiki.updated_at %> by <%= link_to_user staff_wiki.updater %></td>
+              <td><%= link_to "History", staff_wiki_versions_path(search: { staff_wiki_id: staff_wiki.id }) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <%= render PaginatorComponent.new(records: @staff_wikis) %>
+    </section>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Staff Wiki
+<% end %>
+
+<%= render "secondary_links" %>

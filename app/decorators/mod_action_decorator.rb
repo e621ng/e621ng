@@ -162,6 +162,14 @@ class ModActionDecorator < ApplicationDecorator
       "Edited #{user}"
     when "user_avatar_clear"
       "Cleared avatar of #{user}"
+    when "user_profile_clear"
+      "Cleared profile of #{user}"
+    when "user_comments_hide"
+      "Hid all comments by #{user}"
+    when "user_forum_posts_hide"
+      "Hid all forum posts by #{user}"
+    when "user_blips_delete"
+      "Hid all blips by #{user}"
     when "user_blacklist_changed"
       "Edited blacklist of #{user}"
     when "user_text_change"
@@ -349,12 +357,23 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Flag Reason ###
 
-    when "created_flag_reason"
-      "Created flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
-    when "edited_flag_reason"
-      "Edited flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
-    when "deleted_flag_reason"
-      "Deleted flag reason ##{vals['flag_reason_id']} (#{vals['flag_reason']})"
+    when "flag_reason_create"
+      text = "Created flag reason \"#{vals['reason']}\""
+      if vals["text"].present?
+        text += "\n\"#{vals['text']}\""
+      end
+      text
+    when "flag_reason_update"
+      text = "Edited flag reason \"#{vals['reason']}\""
+      if vals["reason"] != vals["reason_was"]
+        text += "\nChanged reason from \"#{vals['reason_was']}\" to \"#{vals['reason']}\""
+      end
+      if vals["text"] != vals["text_was"]
+        text += "\nChanged text from \"#{vals['text_was']}\" to \"#{vals['text']}\""
+      end
+      text
+    when "flag_reason_delete"
+      "Deleted flag reason \"#{vals['reason']}\""
 
       ### Post Report Reasons ###
 
@@ -469,6 +488,14 @@ class ModActionDecorator < ApplicationDecorator
       "Post replacement for post ##{vals['post_id']} was rejected"
     when "post_replacement_delete"
       "Post replacement for post ##{vals['post_id']} was deleted"
+
+      ### Staff Files ###
+    when "staff_file_create"
+      "Uploaded staff file ##{vals['id']} (#{vals['filename']}) by #{user}"
+    when "staff_file_update"
+      "Edited staff file ##{vals['id']} (#{vals['filename']}) by #{user}"
+    when "staff_file_delete"
+      "Deleted staff file ##{vals['id']} (#{vals['filename']}) uploaded by #{user}"
 
     else
       CurrentUser.is_admin? ? "Unknown action #{object.action}: #{object.values.inspect}" : "Unknown action #{object.action}"

@@ -174,35 +174,34 @@ RSpec.describe PostReplacement do
   # order
   # --------------------------------------------------------------------------
   describe "order param" do
-    # The ORDER expression:
-    #   CASE status WHEN 'original' THEN 0 ELSE id END [ASC|DESC]
-    # DESC (default): non-originals sorted newest-first, original last (value 0)
-    # ASC  (id_asc):  original first (value 0), non-originals oldest-first
+    let!(:post)     { create(:post) }
+    let!(:older)    { make_replacement(post: post) }
+    let!(:original) { create(:original_post_replacement, post: post) }
+    let!(:newer)    { make_replacement(post: post) }
+    # creation order fixes the ids: older < original < newer
 
-    let!(:original) { create(:original_post_replacement) }
-    let!(:older)    { make_replacement }
-    let!(:newer)    { make_replacement }
+    context "without an explicit order" do
+      it "sorts globally by id desc, without special-casing the original" do
+        ids = PostReplacement.search({}).ids
+        expect(ids).to eq([newer.id, original.id, older.id])
+      end
 
-    it "defaults to DESC: places non-originals before the original" do
-      ids = PostReplacement.search({}).ids
-      expect(ids.index(newer.id)).to be < ids.index(original.id)
-      expect(ids.index(older.id)).to be < ids.index(original.id)
+      it "anchors the original below its replacements when scoped to a post" do
+        ids = PostReplacement.search(post_id: post.id.to_s).ids
+        expect(ids).to eq([newer.id, older.id, original.id])
+      end
     end
 
-    it "defaults to DESC: newest non-original appears before older one" do
-      ids = PostReplacement.search({}).ids
-      expect(ids.index(newer.id)).to be < ids.index(older.id)
-    end
+    context "with an explicit order" do
+      it "id_asc sorts purely by id, even when scoped to a post" do
+        ids = PostReplacement.search(order: "id_asc", post_id: post.id.to_s).ids
+        expect(ids).to eq([older.id, original.id, newer.id])
+      end
 
-    it "with id_asc: original appears first" do
-      ids = PostReplacement.search(order: "id_asc").ids
-      expect(ids.index(original.id)).to be < ids.index(older.id)
-      expect(ids.index(original.id)).to be < ids.index(newer.id)
-    end
-
-    it "with id_asc: older non-original appears before newer" do
-      ids = PostReplacement.search(order: "id_asc").ids
-      expect(ids.index(older.id)).to be < ids.index(newer.id)
+      it "id_desc sorts purely by id, even when scoped to a post" do
+        ids = PostReplacement.search(order: "id_desc", post_id: post.id.to_s).ids
+        expect(ids).to eq([newer.id, original.id, older.id])
+      end
     end
   end
 end

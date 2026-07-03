@@ -21,9 +21,9 @@ class ModAction < ApplicationRecord
     staff_note_update: { id: :integer, user_id: :integer, body: :string, old_body: :string },
     staff_note_delete: { id: :integer, user_id: :integer },
     staff_note_undelete: { id: :integer, user_id: :integer },
+    blip_destroy: { blip_id: :integer, user_id: :integer },
     blip_delete: { blip_id: :integer, user_id: :integer },
-    blip_hide: { blip_id: :integer, user_id: :integer },
-    blip_unhide: { blip_id: :integer, user_id: :integer },
+    blip_undelete: { blip_id: :integer, user_id: :integer },
     blip_update: { blip_id: :integer, user_id: :integer },
     comment_delete: { comment_id: :integer, user_id: :integer },
     comment_hide: { comment_id: :integer, user_id: :integer },
@@ -56,7 +56,13 @@ class ModAction < ApplicationRecord
     mascot_create: { id: :integer },
     mascot_update: { id: :integer },
     mascot_delete: { id: :integer },
+    staff_file_create: { id: :integer, filename: :string, file_size: :integer, user_id: :integer },
+    staff_file_update: { id: :integer, filename: :string, user_id: :integer },
+    staff_file_delete: { id: :integer, filename: :string, user_id: :integer },
     pool_delete: { pool_id: :integer, pool_name: :string, user_id: :integer },
+    flag_reason_create: { reason: :string, text: :string },
+    flag_reason_update: { reason: :string, reason_was: :string, text: :string, text_was: :string },
+    flag_reason_delete: { reason: :string },
     report_reason_create: { reason: :string },
     report_reason_delete: { reason: :string, user_id: :integer },
     report_reason_update: { reason: :string, reason_was: :string, description: :string, description_was: :string },
@@ -78,6 +84,10 @@ class ModAction < ApplicationRecord
     upload_whitelist_update: { domain: :string, path: :string, note: :string, old_domain: :string, old_path: :string, hidden: :boolean },
     upload_whitelist_delete: { domain: :string, path: :string, note: :string, hidden: :boolean },
     user_avatar_clear: { user_id: :integer },
+    user_profile_clear: { user_id: :integer },
+    user_comments_hide: { user_id: :integer },
+    user_forum_posts_hide: { user_id: :integer },
+    user_blips_delete: { user_id: :integer },
     user_blacklist_changed: { user_id: :integer },
     user_text_change: { user_id: :integer },
     user_custom_title_change: { user_id: :integer, old_custom_title: :string, new_custom_title: :string },
@@ -108,7 +118,12 @@ class ModAction < ApplicationRecord
     post_version_unhide: { version: :integer, post_id: :integer },
   }.freeze
 
-  ProtectedActionKeys = %w[staff_note_create staff_note_update staff_note_delete staff_note_undelete ip_ban_create ip_ban_delete post_version_hide post_version_unhide].freeze
+  ProtectedActionKeys = %w[
+    staff_note_create staff_note_update staff_note_delete staff_note_undelete
+    staff_file_create staff_file_update staff_file_delete
+    ip_ban_create ip_ban_delete
+    post_version_hide post_version_unhide
+  ].freeze
 
   KnownActionKeys = KnownActions.keys.freeze
 
@@ -233,7 +248,7 @@ class ModAction < ApplicationRecord
         sanitized_values = sanitized_values.slice("ticket_id")
       end
 
-      if !CurrentUser.is_janitor? && %i[appeal_update].include?(action.to_sym)
+      if !CurrentUser.is_staff? && %i[appeal_update].include?(action.to_sym)
         sanitized_values = sanitized_values.slice("appeal_id")
       end
 

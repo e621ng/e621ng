@@ -8,7 +8,7 @@ RSpec.describe PostEvent do
   # --------------------------------------------------------------------------- #
   #                         #is_creator_visible?                                #
   # --------------------------------------------------------------------------- #
-  # can_view_flagger?(flagger_id) => user.is_janitor? || user.id == flagger_id
+  # can_view_flagger?(flagger_id) => user.is_staff? || user.id == flagger_id
 
   describe "#is_creator_visible?" do
     let(:flagger) { create(:user) }

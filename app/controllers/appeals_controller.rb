@@ -23,6 +23,18 @@ class AppealsController < ApplicationController
 
   def new
     @appeal = Appeal.new(qtype: params[:qtype], disp_id: params[:disp_id])
+
+    if (existing_appeal = @appeal.find_duplicate_for(CurrentUser.user)).present?
+      redirect_to appeal_path(existing_appeal), alert: @appeal.messages[:duplicate]
+      return
+    end
+
+    unless @appeal.can_create_for?(CurrentUser.user)
+      redirect_path = @appeal.content_path || appeals_path
+      redirect_to redirect_path, alert: @appeal.messages[:cannot_create]
+      return
+    end
+
     @existing_similar = Appeal
                         .visible(CurrentUser.user)
                         .where({
@@ -33,8 +45,6 @@ class AppealsController < ApplicationController
                         })
                         .order(created_at: :desc)
                         .limit(5)
-
-    check_new_permission(@appeal)
   end
 
   def create

@@ -9,10 +9,11 @@
       <!-- Staff Info -->
       <%= render "/users/partials/show/staff_info", :presenter => @presenter, :user => @user %>
       <%= render "staff_notes/partials/for_user", user: @user %>
+      <%= render "users/partials/show/investigations", presenter: @presenter, user: @user, staff_wikis: @staff_wikis %>
     <% end %>
 
     <!-- Blacklist -->
-    <%= render "posts/partials/common/inline_blacklist" %>
+    <%= render partial: "application/blacklist_inline" %>
 
     <!-- Central panel -->
     <% has_about = @user.profile_about.present? %>

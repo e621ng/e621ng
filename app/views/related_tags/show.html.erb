@@ -4,7 +4,7 @@
     <section>
       <%= form_search(path: related_tag_path, always_display: true) do |f| %>
         <%= f.input :query, autocomplete: "tag" %>
-        <%= f.input :category_id, collection: TagCategory::CANONICAL_MAPPING.to_a, include_blank: true %>
+        <%= f.input :category_id, collection: TagCategory::CANONICAL_MAPPING.to_a, include_blank: "Any" %>
       <% end %>
     </section>
     <% if @related_tags.query.present? %>

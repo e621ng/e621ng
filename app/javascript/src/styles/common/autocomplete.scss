@@ -1,15 +1,20 @@
 .ui-autocomplete-dropdown {
   position: absolute;
+  z-index: 1000;
+
   max-height: 226px;
+  box-sizing: border-box;
   overflow-y: auto;
   margin: 0;
   padding: 0;
-  z-index: 1000;
-  list-style: none;
-  border: 1px solid var(--color-text-muted);
-  background-color: var(--color-section-lighten-10);
+
   font-size: 0.9em;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  list-style: none;
+  border: 1px solid themed("color-section-darken-5");
+  border-top: none;
+  background-color: themed("color-section-lighten-5");
+  box-shadow: 0 0.25rem 0.5rem -0.25rem themed("color-background");
+  border-radius: 0.25rem;
 
   > li {
     padding: 3px .5em 3px .4em;
