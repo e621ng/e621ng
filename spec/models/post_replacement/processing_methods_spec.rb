@@ -206,110 +206,114 @@ RSpec.describe PostReplacement do
   # #transfer
   # --------------------------------------------------------------------------
   describe "#transfer" do
-# LEGACY TEST VERSION: 
-#   context "Transfer: " do
-#   setup do
-#     @user_alt = create(:user, created_at: 2.weeks.ago)
-#     @upload_alt = UploadService.new(attributes_for(:large_jpg_upload).merge(uploader: @user_alt)).start!
-#     assert_not_nil @upload_alt, "UploadService did not create an alt upload"
-#     @post_alt = @upload_alt.post
-#     assert_not_nil(@post_alt, "UploadService did not create an alt post: #{@upload.status}")
+    let(:post_main) { create(:post) }
+    let(:post_alt) { create(:post) }
+    let(:replacement) { create(:post_replacement, post: post_main) }
 
-#     @post_alt.update_columns({ is_pending: false, approver_id: @mod_user.id })
-#     CurrentUser.user = @user
-#     @replacement = create(:png_replacement, creator: @user, post: @post, reason: "wrong alt replacement")
-#     assert @replacement
-#   end
+    before do
+      # If this isn't here, it doesn't work.
+      replacement.reload
+      post_main.reload
+    end
 
-#   should "fail if new post is deleted" do
-#     CurrentUser.user = @mod_user
-#     @post_alt.delete!("test")
-#     @replacement.transfer(@post_alt)
-#     assert_equal(["Post is deleted"], @replacement.errors.full_messages)
-#   end
+    it "fail if new post is deleted" do
+      post_alt.update_columns(is_deleted: true)
+      replacement.transfer(post_alt)
+      expect(replacement.errors.full_messages).to eq(["Post is deleted"])
+    end
 
-#   should "fail when the post is the same" do
-#     @replacement.transfer(@post)
-#     assert_equal(["Post must be a different post"], @replacement.errors.full_messages)
-#   end
+    it "fails when the post is the same" do
+      replacement.transfer(post_main)
+      expect(replacement.errors.full_messages).to eq(["Post must be a different post"])
+    end
 
-#   should "fail on replacements that are not pending or rejected" do
-#     @replacement.approve! penalize_current_uploader: false
-#     @replacement.transfer(@post_alt)
-#     assert_equal(["Status must be pending or rejected to transfer"], @replacement.errors.full_messages)
-#   end
+    it "fails on replacements that are not pending or rejected" do
+      replacement.update_columns(status: "approved")
+      replacement.transfer(post_alt)
+      expect(replacement.errors.full_messages).to eq(["Status must be pending or rejected to transfer"])
+    end
 
-#   should "create backup replacement if one doesn't exist" do
-#     assert_difference(-> { @post_alt.replacements.count }, 2) do
-#       assert_difference(-> { @post.replacements.count }, -1) do
-#         @replacement.transfer(@post_alt)
-#       end
-#     end
+    it "creates backup replacement if one doesn't exist" do
+      allow(replacement).to receive(:create_original_backup)
+      # What changes during the transfer
+      expect do
+        expect do
+          replacement.transfer(post_alt) # Transfer the replacement
+        end.to change { post_alt.replacements.count }.by(1) # 2 total, but backup is skipped
+      end.to change { post_main.replacements.count }.by(-1)
+      # Check that a call to create the original was made
+      expect(replacement).to have_received(:create_original_backup)
 
-#     statuses = @post_alt.replacements.map(&:status)
-#     assert_includes statuses, "original"
-#     assert_includes statuses, "pending"
-#   end
+      statuses = post_alt.replacements.map(&:status)
+      expect(statuses).to include("pending") # We don't expect an original status since it isn't actually created
+    end
 
-#   should "not allow duplicates" do
-#     @existing_replacement = @post_alt.replacements.create(attributes_for(:png_replacement).merge(creator: @user, reason: "existing replacement", md5: @replacement.md5))
-#     assert_not_nil @existing_replacement
-#     @existing_replacement.reject!
-#     @existing_replacement.save!
-#     @replacement.transfer(@post_alt)
-#     assert_equal(["Md5 duplicate of existing replacement on post ##{@post_alt.id}"], @replacement.errors.full_messages)
-#   end
+    it "Does not work on backups" do
+      backup = create(:original_post_replacement, post: post_main, md5: post_main.md5)
+      backup.transfer(post_alt)
+      expect(backup.errors.full_messages).to eq(["Status must be pending or rejected to transfer"])
+      expect(backup.post_id).to eq(post_main.id)
+    end
 
-#   should "work on pending replacements" do
-#     @existing_replacement = @post_alt.replacements.create(attributes_for(:apng_replacement).merge(creator: @user, reason: "existing replacement"))
-#     assert_not_nil @existing_replacement
-#     @existing_replacement.reject!
-#     assert_difference(-> { @post_alt.replacements.count }, 1) do
-#       assert_difference(-> { @post.replacements.count }, -1) do
-#         @replacement.transfer(@post_alt)
-#       end
-#     end
+    it "does not allow duplicates" do
+      existing_replacement = create(:post_replacement, post: post_alt, md5: replacement.md5)
+      existing_replacement.update_columns(status: "rejected")
 
-#     # The replacement should now belong to @post_alt and have status "pending"
-#     assert_equal @post_alt.id, @replacement.post_id
-#     assert_equal "pending", @replacement.status
+      replacement.transfer(post_alt)
+      expect(replacement.errors.full_messages).to eq(["Md5 duplicate of existing replacement on post ##{post_alt.id}"])
+      expect(replacement.post_id).to eq(post_main.id)
+    end
 
-#     # The previous uploader should be set correctly
-#     assert_equal @post_alt.uploader_id, @replacement.uploader_on_approve.id
+    it "work on pending replacements" do
+      # Fake a backup or the original since it isn't supported in tests.
+      existing_replacement = create(:post_replacement, post: post_alt, md5: post_alt.md5)
+      existing_replacement.update_columns(status: "original")
 
-#     # Both posts should have their indexes updated (simulate by checking timestamps)
-#     assert @post.reload.updated_at <= Time.now
-#     assert @post_alt.reload.updated_at <= Time.now
+      # What changes during the transfer
+      expect do
+        expect do
+          replacement.transfer(post_alt)
+        end.to change { post_alt.replacements.count }.by(1) # Post alt gains a replacement
+      end.to change { post_main.replacements.count }.by(-1) # Orignal post loses a replacement
 
-#     # The original backup should exist on the new post
-#     assert @post_alt.replacements.where(status: "original").exists?
-#   end
+      expect(replacement.post_id).to eq(post_alt.id)
+      expect(replacement.status).to eq("pending")
+      expect(replacement.uploader_on_approve).to eq(post_alt.uploader)
 
-#   should "work on rejected replacements without resetting status" do
-#     @replacement.reject!
+      expect(post_main.reload.updated_at).to be <= Time.now
+      expect(post_alt.reload.updated_at).to be <= Time.now
+      expect(post_alt.replacements.where(status: "original").exists?).to be true
+    end
 
-#     assert_difference(-> { @post_alt.replacements.count }, 2) do
-#       assert_difference(-> { @post.replacements.count }, -1) do
-#         @replacement.transfer(@post_alt)
-#       end
-#     end
+    it "work on rejected replacements without resetting status" do
+      # Fake a backup or the original since it isn't supported in tests.
+      existing_replacement = create(:post_replacement, post: post_alt)
+      existing_replacement.update_columns(status: "original")
+      replacement.update_columns(status: "rejected")
 
-#     @replacement.reload
+      # What changes during the transfer
+      expect do
+        expect do
+          replacement.transfer(post_alt)
+        end.to change { post_alt.replacements.count }.by(1) # The replacement is moved (backup creation skipped)
+      end.to change { post_main.replacements.count }.by(-1) # Orignal post loses a replacement
 
-#     assert_equal @post_alt.id, @replacement.post_id
-#     assert_equal "rejected", @replacement.status
-#     assert_equal @post_alt.uploader_id, @replacement.uploader_on_approve.id
-#     assert @post_alt.replacements.where(status: "original").exists?
-#   end
+      replacement.reload
 
-#   should "add an error if backup creation fails during transfer" do
-#     @replacement.stubs(:create_original_backup).raises(ProcessingError.new("boom"))
+      expect(replacement.post_id).to eq(post_alt.id)
+      expect(replacement.status).to eq("rejected")
+      expect(replacement.uploader_on_approve).to eq(post_alt.uploader)
+      expect(post_alt.replacements.where(status: "original").exists?).to be true
+    end
 
-#     assert_no_difference(-> { @post_alt.replacements.where(status: "original").count }) do
-#       @replacement.transfer(@post_alt)
-#     end
+    it "add an error if backup creation fails during transfer" do
+      allow(replacement).to receive(:create_original_backup).and_raise(ProcessingError.new("boom"))
 
-#     assert_includes @replacement.errors.full_messages, "Failed to create backup on new post: boom"
-#   end
+      expect do
+        replacement.transfer(post_alt)
+      end.not_to(change { post_alt.replacements.where(status: "original").count })
+
+      expect(replacement.errors.full_messages).to include("Failed to create backup on new post: boom")
+    end
   end
 end

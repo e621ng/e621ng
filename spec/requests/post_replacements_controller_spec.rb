@@ -395,50 +395,69 @@ RSpec.describe PostReplacementsController do
   # PUT /post_replacements/:id/transfer — transfer
   # ---------------------------------------------------------------------------
   describe "PUT /post_replacements/:id/transfer" do
-# LEGACY VERSION: 
-# context "transfer action" do
-#   setup do
-#     @upload2 = UploadService.new(attributes_for(:gif_upload).merge({ uploader: @regular_user })).start!
-#     @post2 = @upload2.post
-#   end
+    let(:post2) { create(:post) }
 
-#   should "transfer replacement to another post" do
-#     put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
-#     assert_response :success
-#     @replacement.reload
-#     assert_equal @post2.id, @replacement.post_id
-#     assert_equal @post2.uploader_id, @replacement.uploader_id_on_approve
-#   end
+    context "as anonymous" do
+      it "redirects to the login page" do
+        put transfer_post_replacement_path(replacement), params: { new_post_id: post2.id }
+        expect(response).to redirect_to(new_session_path)
+      end
+    end
 
-#   should "not transfer replacement to another post if not pending" do
-#     put_auth approve_post_replacement_path(@replacement), @user
-#     put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
-#     assert_response :precondition_failed
-#     @replacement.reload
-#     assert_not_equal @post2.id, @replacement.post_id
-#   end
+    context "as a member" do
+      it "returns 403" do
+        sign_in_as member
+        put transfer_post_replacement_path(replacement), params: { new_post_id: post2.id }
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
 
-#   should "not transfer if new post is nil" do
-#     put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: nil }
-#     assert_response :not_found
-#     @replacement.reload
-#     assert_not_nil @replacement.post_id
-#   end
+    context "as an approver" do
+      before do
+        sign_in_as approver
+        post2.reload
+      end
 
-#   should "not transfer if new post is the same as current post" do
-#     put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post.id }
-#     assert_response :precondition_failed
-#   end
+      it "transfers replacement to another post" do
+        # Prevent attempt to create a backup of post2 by creating a dummy backup
+        backup = create(:original_post_replacement, post: post2)
+        backup.reload
 
-#   should "not transfer if new post is deleted" do
-#     as(@user) do
-#       @post2.delete!("test deletion")
-#     end
-#     put_auth transfer_post_replacement_path(@replacement), @user, params: { new_post_id: @post2.id }
-#     assert_response :precondition_failed
-#     @replacement.reload
-#     assert_not_equal @post2.id, @replacement.post_id
-#   end
-# end
-   end
+        put transfer_post_replacement_path(replacement), params: { new_post_id: post2.id }
+        expect(response).to have_http_status(:ok)
+
+        replacement.reload
+        expect(replacement.post_id).to eq(post2.id)
+        expect(replacement.uploader_id_on_approve).to eq(post2.uploader_id)
+      end
+
+      it "does not transfer replacement to another post if not pending" do
+        replacement.update_columns(status: "approved")
+        put transfer_post_replacement_path(replacement), params: { new_post_id: post2.id }
+        expect(response).to have_http_status(:precondition_failed)
+        replacement.reload
+        expect(replacement.post_id).not_to eq(post2.id)
+      end
+
+      it "does not transfer if new post is nil" do
+        put transfer_post_replacement_path(replacement), params: { new_post_id: 0 }
+        expect(response).to have_http_status(:not_found)
+        replacement.reload
+        expect(replacement.post_id).not_to be_nil
+      end
+
+      it "does not transfer if new post is the same as current post" do
+        put transfer_post_replacement_path(replacement), params: { new_post_id: post_record.id }
+        expect(response).to have_http_status(:precondition_failed)
+      end
+
+      it "does not transfer if new post is deleted" do
+        post2.update_columns(is_deleted: true)
+        put transfer_post_replacement_path(replacement), params: { new_post_id: post2.id }
+        expect(response).to have_http_status(:precondition_failed)
+        replacement.reload
+        expect(replacement.post_id).not_to eq(post2.id)
+      end
+    end
+  end
 end
