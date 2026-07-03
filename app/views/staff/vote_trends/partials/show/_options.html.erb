@@ -1,4 +1,4 @@
-<%= form_search(path: admin_vote_trends_path, always_display: true, hideable: false, exclude_default_fields: %i[id created_at updated_at]) do %>
+<%= form_search(path: staff_vote_trends_path, always_display: true, hideable: false, exclude_default_fields: %i[id created_at updated_at]) do %>
   <%= text_field_tag "user", params[:user], placeholder: "User name or !ID", data: { autocomplete: "user" } %>
   <%= number_field_tag "limit", params[:limit], placeholder: "Last n votes", class: "form-control", min: 1, title: "Limit to last n post votes" %>
   <%= number_field_tag "threshold", params[:threshold], placeholder: "Threshold", class: "form-control", min: 0, step: "any", title: "Threshold for vote count" %>

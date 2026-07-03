@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-module Admin
+module Staff
   class VoteTrendsController < ApplicationController
     before_action :admin_only
     respond_to :html, :json
+
     def index
       permitted_params = params.permit(:user, :limit, :threshold, :duration, :disable_vote_normality, :id, :page, :commit, search: {})
       vote_abuse_args = {}

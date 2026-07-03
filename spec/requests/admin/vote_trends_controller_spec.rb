@@ -9,13 +9,13 @@ RSpec.describe "Admin::VoteTrendsController" do
     let(:admin_user) { create(:admin_user) }
 
     it "redirects anonymous users" do
-      get admin_vote_trends_path
-      expect(response).to redirect_to(new_session_path(url: admin_vote_trends_path))
+      get staff_vote_trends_path
+      expect(response).to redirect_to(new_session_path(url: staff_vote_trends_path))
     end
 
     it "returns 403 for a regular member" do
       sign_in_as member_user
-      get admin_vote_trends_path
+      get staff_vote_trends_path
       expect(response).to have_http_status(:forbidden)
     end
 
@@ -25,7 +25,7 @@ RSpec.describe "Admin::VoteTrendsController" do
 
         allow(VoteTrends).to receive(:vote_abuse_patterns)
 
-        get admin_vote_trends_path
+        get staff_vote_trends_path
 
         expect(response).to have_http_status(:ok)
         expect(VoteTrends).not_to have_received(:vote_abuse_patterns)
@@ -36,7 +36,7 @@ RSpec.describe "Admin::VoteTrendsController" do
 
         allow(VoteTrends).to receive(:vote_abuse_patterns)
 
-        get admin_vote_trends_path, params: { user: "" }
+        get staff_vote_trends_path, params: { user: "" }
 
         expect(response).to have_http_status(:ok)
         expect(VoteTrends).not_to have_received(:vote_abuse_patterns)
@@ -47,7 +47,7 @@ RSpec.describe "Admin::VoteTrendsController" do
 
         sign_in_as admin_user
 
-        get admin_vote_trends_path, params: {
+        get staff_vote_trends_path, params: {
           user: target_user.name,
           limit: "5",
           threshold: "0.2",
