@@ -33,7 +33,10 @@ Doorkeeper.configure do
     reason.nil?
   end
 
-  force_ssl_in_redirect_uri Rails.env.production?
+  # Require HTTPS redirect URIs in production, except loopback IPs for native apps (RFC 8252).
+  force_ssl_in_redirect_uri do |uri|
+    Rails.env.production? && %w[127.0.0.1 [::1]].exclude?(uri.host)
+  end
 
   skip_authorization do |resource_owner, client|
     requested = client.scopes.to_a
