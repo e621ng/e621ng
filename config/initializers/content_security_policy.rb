@@ -14,8 +14,7 @@ Rails.application.configure do
     # legacy CSP2 browsers that ignore strict-dynamic.
 
     # TODO: Temporarily disabled. Re-enable after resolving the issue with CF email obfuscation breaking upon the CSP.
-    # policy.script_src :self, :strict_dynamic, "rv.e621.net", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/", "https://www.recaptcha.net/", "https://assets.freespeechcoalition.com", "https://op.dragonfru.it/"
-    policy.script_src :self, "rv.e621.net", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/", "https://www.recaptcha.net/", "https://assets.freespeechcoalition.com", "https://op.dragonfru.it/"
+    policy.script_src :self, :strict_dynamic, "rv.e621.net", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/", "https://www.recaptcha.net/", "https://assets.freespeechcoalition.com", "https://op.dragonfru.it/"
     policy.script_src(*policy.script_src, :unsafe_eval) if Rails.env.development?
 
     policy.style_src :self, :unsafe_inline
