@@ -31,6 +31,10 @@ RSpec.describe FlushFavoritesJob do
       it "does not raise an error" do
         expect { perform }.not_to raise_error
       end
+
+      it "does not enqueue a BulkIndexUpdateJob" do
+        expect { perform }.not_to have_enqueued_job(BulkIndexUpdateJob)
+      end
     end
 
     context "when the user has one favorite" do
@@ -50,6 +54,10 @@ RSpec.describe FlushFavoritesJob do
       it "decrements the user favorite_count to 0" do
         perform
         expect(CurrentUser.user.user_status.reload.favorite_count).to eq(0)
+      end
+
+      it "enqueues a BulkIndexUpdateJob" do
+        expect { perform }.to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post.id])
       end
     end
 
@@ -80,6 +88,10 @@ RSpec.describe FlushFavoritesJob do
           expect(post.reload.fav_count).to eq(0)
         end
       end
+
+      it "enqueues a BulkIndexUpdateJob" do
+        expect { perform }.to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post_a.id, post_b.id, post_c.id])
+      end
     end
 
     context "when another user also has favorites on the same post" do
@@ -105,6 +117,10 @@ RSpec.describe FlushFavoritesJob do
       it "does not change the other user's favorite_count" do
         perform(target_user.id)
         expect(other_user.user_status.reload.favorite_count).to eq(1)
+      end
+
+      it "enqueues a BulkIndexUpdateJob" do
+        expect { perform }.to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post.id])
       end
     end
   end
