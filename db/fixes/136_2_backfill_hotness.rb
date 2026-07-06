@@ -41,9 +41,12 @@ module Fixes
             puts "  opensearch errors for #{failed.size} posts in batch through ##{batch.last.id}; left for a re-run"
           end
 
-          # Persist the column. On restart these rows (hotness != 0) are skipped.
-          Post.transaction do
-            values.each { |id, hotness| Post.where(id: id).update_all(hotness: hotness) unless failed.include?(id) }
+          # Persist the column in a single UPDATE per batch (one statement instead
+          # of one per post). On restart these rows (hotness != 0) are skipped.
+          persist = values.except(*failed)
+          unless persist.empty?
+            cases = persist.map { |id, hotness| "WHEN #{id.to_i} THEN #{Post.connection.quote(hotness)}" }.join(" ")
+            Post.where(id: persist.keys).update_all("hotness = CASE id #{cases} END")
           end
 
           done += batch.size
