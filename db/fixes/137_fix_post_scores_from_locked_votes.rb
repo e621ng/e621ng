@@ -12,7 +12,7 @@ module Fixes
 
         Post.joins(:votes).where(votes: { score: 0 }).distinct.find_each do |post|
           processed += 1
-          down_score = post.votes.where("score < 0").count
+          down_score = 0 - post.votes.where("score < 0").count
           puts "Processed #{processed} posts, fixed #{fixed} posts" if processed % 1000 == 0
 
           next if post.down_score == down_score
