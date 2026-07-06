@@ -41,19 +41,25 @@ RSpec.describe "SiteMap gate probe" do
                         "expected #{path} to be denied (403 or login redirect), got #{response.status}"
   end
 
-  # Help pages are public but render 404/redirect when the backing HelpPage
-  # record is absent. Seed the specific record the probed path needs.
+  # Some pages 500 on empty data because the backing record/cache the view
+  # assumes is only present after the app has run. Seed exactly what the
+  # probed path needs so the gate — not missing data — is what we measure.
   def seed_fixtures(entry)
-    name =
-      case entry.route
-      when :help_page then entry.params[:id]
-      when :help_pages then Danbooru.config.help_landing_page
+    case entry.route
+    when :help_page, :help_pages
+      name = entry.route == :help_page ? entry.params[:id] : Danbooru.config.help_landing_page
+      # Creating a HelpPage (and its wiki page) needs a non-limited current user.
+      CurrentUser.scoped(create(:admin_user)) do
+        create(:help_page, name: name)
       end
-    return if name.nil?
-
-    # Creating a HelpPage (and its wiki page) needs a non-limited current user.
-    CurrentUser.scoped(create(:admin_user)) do
-      create(:help_page, name: name)
+    when :stats
+      # StatsController reads the "e6stats" Redis key and the view assumes it is
+      # populated; an empty cache renders a 500. Generate the stats the way the
+      # daily job does (needs at least one post to derive the start date).
+      CurrentUser.scoped(create(:admin_user)) do
+        create(:post)
+        StatsUpdater.run!
+      end
     end
   end
 
