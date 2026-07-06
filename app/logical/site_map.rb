@@ -144,8 +144,8 @@ module SiteMap
   page :posts, :new_upload, "Upload", level: UserLevel::MEMBER
   page :posts, :popular_index, "Popular"
   page :posts, :favorites, "Favorites",
-     gate: { inline: "shows the current user's favorites; 404s without a user_id when logged out" },
-     visible: ->(u) { u.is_logged_in? }
+       gate: { inline: "shows the current user's favorites; 404s without a user_id when logged out" },
+       visible: ->(u) { u.is_logged_in? }
   page :posts, :post_versions, "Changes"
   page :posts, :iqdb_queries, "Similar Images Search"
   page :posts, :deleted_posts, "Deleted Index"
