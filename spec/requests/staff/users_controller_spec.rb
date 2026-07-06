@@ -276,6 +276,12 @@ RSpec.describe Staff::UsersController do
         expect(ModAction.last[:values]).to include("user_id" => user.id)
       end
 
+      it "doesn't log a user_blacklist_changed ModAction when it's the user's own blacklist" do
+        expect { post update_blacklist_staff_user_path(admin), params: { user: { blacklisted_tags: "tag1" } } }
+          .not_to change(ModAction, :count)
+        expect(admin.reload.blacklisted_tags).to eq("tag1")
+      end
+
       it "redirects to edit_blacklist with a notice" do
         post update_blacklist_staff_user_path(user), params: { user: { blacklisted_tags: "tag1" } }
         expect(response).to redirect_to(edit_blacklist_staff_user_path(user))

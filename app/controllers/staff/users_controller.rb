@@ -74,7 +74,10 @@ module Staff
     def update_blacklist
       @user = User.find(params[:id])
       @user.update!(params[:user].permit([:blacklisted_tags]))
-      ModAction.log(:user_blacklist_changed, { user_id: @user.id })
+      # Sometimes staff uses the wrong UI to update their blacklist, no need to log it.
+      if CurrentUser.id != @user.id
+        ModAction.log(:user_blacklist_changed, { user_id: @user.id })
+      end
       redirect_to edit_blacklist_staff_user_path(@user), notice: "Blacklist updated"
     end
 
