@@ -19,7 +19,6 @@ module Fixes
           fixed += 1
 
           post.update_columns(down_score: down_score)
-          post.update_hotness!
           post.update_index
         end
 
