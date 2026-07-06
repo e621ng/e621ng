@@ -10,6 +10,8 @@ Doorkeeper::OpenidConnect.configure do
 
   signing_key -> { OidcSigningKey.pem }
 
+  expiration Doorkeeper.config.access_token_expires_in
+
   subject_types_supported [:public]
 
   resource_owner_from_access_token do |access_token|

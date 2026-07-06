@@ -116,5 +116,55 @@ RSpec.describe Post do
         expect(post.vote_by(user.id)).to eq(1)
       end
     end
+
+    describe "#compute_hotness" do
+      let(:divisor) { Post::HOTNESS_TIME_DIVISOR }
+
+      it "adds exactly 1.0 for a 10x score increase" do
+        post = create(:post)
+        post.update_columns(score: 100)
+        base = post.compute_hotness
+        post.update_columns(score: 1000)
+        expect(post.compute_hotness - base).to be_within(1e-9).of(1.0)
+      end
+
+      it "advances by 86400 / HOTNESS_TIME_DIVISOR for one day of created_at" do
+        earlier = create(:post)
+        later = create(:post)
+        earlier.update_columns(score: 5, created_at: 2.days.ago)
+        later.update_columns(score: 5, created_at: 1.day.ago)
+        expect(later.compute_hotness - earlier.compute_hotness).to be_within(1e-6).of(86_400.0 / divisor)
+      end
+
+      it "yields the pure time term for score 0" do
+        post = create(:post)
+        post.update_columns(score: 0)
+        expect(post.compute_hotness).to be_within(1e-9).of(post.created_at.to_f / divisor)
+      end
+
+      it "subtracts log10(|score|) from the time term for a negative score" do
+        post = create(:post)
+        post.update_columns(score: -100)
+        expected = (post.created_at.to_f / divisor) - Math.log10(100)
+        expect(post.compute_hotness).to be_within(1e-9).of(expected)
+      end
+
+      it "ranks a years-old high-score post below a modest fresh post" do
+        old_great = create(:post)
+        fresh = create(:post)
+        old_great.update_columns(score: 30_000, created_at: 3.years.ago)
+        fresh.update_columns(score: 20, created_at: 1.hour.ago)
+        expect(fresh.compute_hotness).to be > old_great.compute_hotness
+      end
+    end
+
+    describe "#update_hotness!" do
+      it "persists the computed hotness to the column" do
+        post = create(:post)
+        post.update_columns(score: 42)
+        post.update_hotness!
+        expect(post.reload.hotness).to be_within(1e-9).of(post.compute_hotness)
+      end
+    end
   end
 end

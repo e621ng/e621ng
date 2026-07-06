@@ -645,4 +645,51 @@ RSpec.describe "OIDC endpoints" do
       expect(response.parsed_body["error"]).to eq("invalid_grant")
     end
   end
+
+  describe "minimum_user_level gate on refresh" do
+    let(:owner) { create(:user) }
+    let(:user)  { create(:privileged_user) }
+    let(:oauth_app) do
+      Doorkeeper::Application.create!(
+        name: "id-only-client", redirect_uri: "http://localhost/cb",
+        scopes: "openid", confidential: true, owner: owner,
+        minimum_user_level: UserLevel::PRIVILEGED
+      )
+    end
+    let(:token) do
+      Doorkeeper::AccessToken.create!(
+        application: oauth_app, resource_owner_id: user.id,
+        scopes: "openid", use_refresh_token: true
+      )
+    end
+
+    def refresh
+      post "/oauth/token", params: {
+        grant_type: "refresh_token",
+        refresh_token: token.refresh_token,
+        client_id: oauth_app.uid,
+        client_secret: oauth_app.plaintext_secret,
+      }
+    end
+
+    it "refreshes while the user still meets the minimum level" do
+      refresh
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["access_token"]).to be_present
+    end
+
+    it "rejects the refresh after the user is demoted below the minimum level" do
+      user.update_column(:level, UserLevel::MEMBER)
+      refresh
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["error"]).to eq("invalid_grant")
+    end
+
+    it "rejects the refresh after the app owner becomes restricted" do
+      owner.update_column(:level, UserLevel::BLOCKED)
+      refresh
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["error"]).to eq("invalid_grant")
+    end
+  end
 end

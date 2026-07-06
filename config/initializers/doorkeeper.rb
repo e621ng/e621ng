@@ -28,16 +28,15 @@ Doorkeeper.configure do
   enable_application_owner confirmation: true
 
   authorize_resource_owner_for_client do |app, resource_owner|
-    reason = if app.owner.is_a?(User) && app.owner.is_restricted?
-               "This application's owner is no longer in good standing."
-             elsif app.minimum_user_level.to_i > 0 && resource_owner&.level.to_i < app.minimum_user_level.to_i
-               "You do not have access to this application."
-             end
+    reason = app.authorization_denial_reason_for(resource_owner)
     app.authorization_denial_reason = reason if reason
     reason.nil?
   end
 
-  force_ssl_in_redirect_uri Rails.env.production?
+  # Require HTTPS redirect URIs in production, except loopback IPs for native apps (RFC 8252).
+  force_ssl_in_redirect_uri do |uri|
+    Rails.env.production? && %w[127.0.0.1 [::1]].exclude?(uri.host)
+  end
 
   skip_authorization do |resource_owner, client|
     requested = client.scopes.to_a

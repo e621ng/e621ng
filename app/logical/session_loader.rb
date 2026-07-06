@@ -23,7 +23,7 @@ class SessionLoader
     CurrentUser.user = User.anonymous
     CurrentUser.ip_addr = request.remote_ip
 
-    if has_bearer_token?
+    if oauth_bearer_auth?
       load_session_for_bearer
     elsif has_api_authentication?
       load_session_for_api
@@ -60,7 +60,7 @@ class SessionLoader
   # fetch() that sets Authorization triggers a CORS preflight the attacker's origin can't
   # satisfy. Header auth is therefore inherently immune to the CSRF forgery vector.
   def has_header_authentication?
-    has_bearer_token? || has_basic_authorization?
+    oauth_bearer_auth? || has_basic_authorization?
   end
 
   # Authentication carried in request params (login + api_key). This IS forgeable: a hidden
@@ -82,6 +82,10 @@ class SessionLoader
 
   def has_bearer_token?
     bearer_token.present?
+  end
+
+  def oauth_bearer_auth?
+    Danbooru.config.enable_oauth_provider? && has_bearer_token?
   end
 
   def bearer_token

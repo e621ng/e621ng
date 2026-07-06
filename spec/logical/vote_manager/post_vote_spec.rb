@@ -42,6 +42,13 @@ RSpec.describe VoteManager do
         expect { cast_upvote }.to change { post.reload.up_score }.by(1)
       end
 
+      it "recomputes post.hotness from the new score" do
+        # Seed a prior vote – otherwise, a 0 -> 1 vote will not change hotness
+        described_class.vote!(user: create(:user), post: post, score: 1)
+        expect { cast_upvote }.to(change { post.reload.hotness })
+        expect(post.reload.hotness).to be_within(1e-9).of(post.compute_hotness)
+      end
+
       it "returns the created PostVote" do
         expect(cast_upvote).to be_a(PostVote)
       end
@@ -212,12 +219,10 @@ RSpec.describe VoteManager do
           .to change { post.reload.score }.by(1)
       end
 
-      # FIXME: lock! uses `down_score = down_score - 1` for downvotes (vote_manager.rb:91) but
-      # should use `+ 1` to move down_score toward 0, mirroring what unvote! does (vote_manager.rb:68).
-      # it "increments post.down_score toward 0" do
-      #   expect { described_class.lock!(vote.id) }
-      #     .to change { post.reload.down_score }.by(1)
-      # end
+      it "increments post.down_score toward 0" do
+        expect { described_class.lock!(vote.id) }
+          .to change { post.reload.down_score }.by(1)
+      end
     end
 
     context "with a non-existent id" do

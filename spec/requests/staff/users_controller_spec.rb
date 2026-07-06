@@ -245,8 +245,8 @@ RSpec.describe Staff::UsersController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for an admin" do
-      sign_in_as admin
+    it "returns 200 for a moderator" do
+      sign_in_as moderator
       get edit_blacklist_staff_user_path(user)
       expect(response).to have_http_status(:ok)
     end
@@ -262,6 +262,12 @@ RSpec.describe Staff::UsersController do
       expect(response).to redirect_to(new_session_path)
     end
 
+    it "returns 403 for a moderator" do
+      sign_in_as moderator
+      post update_blacklist_staff_user_path(user), params: { user: { blacklisted_tags: "tag1" } }
+      expect(response).to have_http_status(:forbidden)
+    end
+
     context "as admin" do
       before { sign_in_as admin }
 
@@ -274,6 +280,12 @@ RSpec.describe Staff::UsersController do
         post update_blacklist_staff_user_path(user), params: { user: { blacklisted_tags: "tag1" } }
         expect(ModAction.last.action).to eq("user_blacklist_changed")
         expect(ModAction.last[:values]).to include("user_id" => user.id)
+      end
+
+      it "doesn't log a user_blacklist_changed ModAction when it's the user's own blacklist" do
+        expect { post update_blacklist_staff_user_path(admin), params: { user: { blacklisted_tags: "tag1" } } }
+          .not_to change(ModAction, :count)
+        expect(admin.reload.blacklisted_tags).to eq("tag1")
       end
 
       it "redirects to edit_blacklist with a notice" do

@@ -1,13 +1,19 @@
 <div>
-  <h4>View User Blacklist</h4>
+  <h4>Blacklist for user <%= @user.name %></h4>
   <div class='section' style='width:400px;'>
     <%= form_tag({ action: "update_blacklist" }, method: :post) do %>
-      <%= text_area "user", "blacklisted_tags", size: "60x20" %>
-      <%= submit_tag "Save", name: nil %>
+      <%= text_area "user", "blacklisted_tags", size: "60x20", readonly: !CurrentUser.user.is_admin? %>
+      <% if CurrentUser.user.is_admin? %>
+        <%= submit_tag "Save", name: nil %>
+      <% end %>
     <% end %>
   </div>
 </div>
 
 <% content_for(:page_title) do %>
-  Edit Blacklist - <%= @user.name %>
+  <% if CurrentUser.user.is_admin? %>
+    Edit Blacklist - <%= @user.name %>
+  <% else %>
+    View Blacklist - <%= @user.name %>
+  <% end %>
 <% end %>

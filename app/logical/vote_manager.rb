@@ -44,7 +44,10 @@ class VoteManager
       @vote
     end
 
-    post.update_index if result != :need_unvote
+    if result != :need_unvote
+      post.update_hotness!
+      post.update_index
+    end
     result
   rescue ActiveRecord::RecordNotUnique
     raise UserVote::Error, "You have already voted for this post"
@@ -73,7 +76,10 @@ class VoteManager
       true
     end
 
-    post.update_index if did_unvote
+    if did_unvote
+      post.update_hotness!
+      post.update_index
+    end
   end
 
   def self.lock!(id)
@@ -88,14 +94,17 @@ class VoteManager
       if vote.score > 0
         vote_cols << "up_score = up_score - 1"
       else
-        vote_cols << "down_score = down_score - 1"
+        vote_cols << "down_score = down_score + 1"
       end
       Post.where(id: post.id).update_all(vote_cols.join(", "))
 
       vote.update_column(:score, 0)
-      post
+      post.reload
     end
-    post&.update_index
+    if post
+      post.update_hotness!
+      post.update_index
+    end
   end
 
   def self.admin_unvote!(id)
