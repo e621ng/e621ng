@@ -3,24 +3,27 @@
 module Fixes
   class FixPostScoresFromLockedVotes
     def self.run
-      # Due to incorrect score calculations, all posts that had negative votes locked (set to score = 0)
-      # have incorrect total scores. This fix will recalculate the scores for all posts that have locked votes.
+      # Due to incorrect score calculations, all posts that had negative votes
+      # locked (set to score = 0) have incorrect `down_score` value.
 
       Post.without_timeout do
-        # Find posts with at least one locked vote (score = 0) and recalculate their scores
+        processed = 0
+        fixed = 0
+
         Post.joins(:votes).where(votes: { score: 0 }).distinct.find_each do |post|
-          # Recalculate the scores for the post
-          up_score = post.votes.where("score > 0").count
+          processed += 1
           down_score = post.votes.where("score < 0").count
-          total_score = up_score - down_score
+          puts "Processed #{processed} posts, fixed #{fixed} posts" if processed % 1000 == 0
 
-          # Update the post's scores
-          post.update_columns(score: total_score, up_score: up_score, down_score: down_score)
+          next if post.down_score == down_score
+          fixed += 1
 
-          # Update hotness and index for the post
+          post.update_columns(down_score: down_score)
           post.update_hotness!
           post.update_index
         end
+
+        puts "Processed #{processed} posts, fixed #{fixed} posts"
       end
     end
   end
