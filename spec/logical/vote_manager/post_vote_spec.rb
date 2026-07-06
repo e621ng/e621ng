@@ -219,12 +219,10 @@ RSpec.describe VoteManager do
           .to change { post.reload.score }.by(1)
       end
 
-      # FIXME: lock! uses `down_score = down_score - 1` for downvotes (vote_manager.rb:91) but
-      # should use `+ 1` to move down_score toward 0, mirroring what unvote! does (vote_manager.rb:68).
-      # it "increments post.down_score toward 0" do
-      #   expect { described_class.lock!(vote.id) }
-      #     .to change { post.reload.down_score }.by(1)
-      # end
+      it "increments post.down_score toward 0" do
+        expect { described_class.lock!(vote.id) }
+          .to change { post.reload.down_score }.by(1)
+      end
     end
 
     context "with a non-existent id" do
