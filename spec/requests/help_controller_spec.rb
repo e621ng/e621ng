@@ -208,28 +208,15 @@ RSpec.describe HelpController do
   # GET /help — list
   # ---------------------------------------------------------------------------
   describe "GET /help/list" do
-    it "returns 200 for an admin" do
-      sign_in_as admin
+    it "returns 200 for an anonymous" do
       get list_help_pages_path
       expect(response).to have_http_status(:ok)
     end
 
     it "returns a JSON array" do
-      sign_in_as admin
       get list_help_pages_path(format: :json)
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to be_an(Array)
-    end
-
-    it "returns 403 for a regular member" do
-      sign_in_as member
-      get list_help_pages_path
-      expect(response).to have_http_status(:forbidden)
-    end
-
-    it "redirects anonymous to the login page" do
-      get list_help_pages_path
-      expect(response).to redirect_to(new_session_path(url: list_help_pages_path))
     end
   end
 end

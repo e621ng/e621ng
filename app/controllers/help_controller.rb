@@ -3,7 +3,7 @@
 class HelpController < ApplicationController
   respond_to :html, :json
   helper :wiki_pages
-  before_action :admin_only, except: %i[index show]
+  before_action :admin_only, except: %i[index show list]
 
   def index
     @help = HelpPage.find_by(name: Danbooru.config.help_landing_page)
