@@ -11,9 +11,9 @@
 </div>
 
 <% content_for(:page_title) do %>
-  <% if !CurrentUser.user.is_admin? %>
-    View Blacklist - <%= @user.name %>
-  <% else %>
+  <% if CurrentUser.user.is_admin? %>
     Edit Blacklist - <%= @user.name %>
+  <% else %>
+    View Blacklist - <%= @user.name %>
   <% end %>
 <% end %>
