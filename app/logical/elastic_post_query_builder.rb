@@ -8,10 +8,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
   ERROR_ON_DEPTH_EXCEEDED = true
 
-  # Must be >= 0; 0 removes all impact of date on rank.
-  # The smaller the value, the more shallow the initial curve.
-  RANK_EXPONENT = 0.4
-
   def initialize( # rubocop:disable Metrics/ParameterLists
     query,
     resolve_aliases: true,
@@ -113,6 +109,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     "md5_asc" => [{ md5: :asc }],
     "score" => [{ score: :desc }, { id: :desc }],
     "score_asc" => [{ score: :asc }, { id: :asc }],
+    "hot" => [{ hotness: :desc }, { id: :desc }],
     "duration" => [{ duration: :desc }, { id: :desc }],
     "duration_asc" => [{ duration: :asc }, { id: :asc }],
     "favcount" => [{ fav_count: :desc }, { id: :desc }],
@@ -303,33 +300,6 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     # TODO: Add this to the `ElasticPostQueryBuilder::ORDER_TABLE` hash
     when /\A(#{TagCategory::SHORT_NAME_REGEX})tags(_asc)?\Z/
       order.push({ -"tag_count_#{TagCategory::SHORT_NAME_MAPPING[$1]}" => $2 ? :asc : :desc })
-
-    when "hot"
-      hot_from_time = q[:hot_from].is_a?(Date) ? q[:hot_from].to_time : q[:hot_from]
-      two_days_ago = 2.days.ago(hot_from_time || Time.current)
-      @function_score = {
-        script_score: {
-          script: {
-            params: { milliseconds_in_two_days: 172_800_000, two_days_ago: two_days_ago.to_i * 1000 },
-            # https://www.desmos.com/calculator/1hffttlyxp
-            # a = (doc['created_at'].value.millis - params.two_days_ago)
-            # b = (a / params.milliseconds_in_two_days)
-            # c = Math.abs(1.0 - b)
-            # d = Math.pow(c, #{RANK_EXPONENT})
-            # e = (d + 1.0)
-            # f = (e / 2.0)
-            # score = doc['score'].value * f
-            source: "doc['score'].value * ((Math.pow(Math.abs(1.0 - ((doc['created_at'].value.millis - params.two_days_ago) / params.milliseconds_in_two_days)), #{RANK_EXPONENT}) + 1.0) / 2.0)",
-          },
-        },
-      }
-      must.push({ range: { score: { gt: 0 } } })
-      must.push({ range: { created_at: if hot_from_time
-                                         { gte: two_days_ago, lte: hot_from_time }
-                                       else
-                                         { gte: two_days_ago }
-                                       end } })
-      order.push({ _score: :desc })
 
     when "random"
       order.push({ _score: :desc })

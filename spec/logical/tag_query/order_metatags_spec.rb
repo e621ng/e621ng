@@ -126,13 +126,6 @@ RSpec.describe TagQuery do
     end
   end
 
-  describe "hot_from: metatag" do
-    it "stores a parsed date in q[:hot_from]" do
-      tq = TagQuery.new("hot_from:2023-01-01")
-      expect(tq[:hot_from]).to be_present
-    end
-  end
-
   describe "limit: metatag" do
     it "is consumed by the controller and leaves no trace in q" do
       tq = TagQuery.new("limit:20 tag_a", resolve_aliases: false)

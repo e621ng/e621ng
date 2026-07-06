@@ -42,6 +42,13 @@ RSpec.describe VoteManager do
         expect { cast_upvote }.to change { post.reload.up_score }.by(1)
       end
 
+      it "recomputes post.hotness from the new score" do
+        # Seed a prior vote – otherwise, a 0 -> 1 vote will not change hotness
+        described_class.vote!(user: create(:user), post: post, score: 1)
+        expect { cast_upvote }.to(change { post.reload.hotness })
+        expect(post.reload.hotness).to be_within(1e-9).of(post.compute_hotness)
+      end
+
       it "returns the created PostVote" do
         expect(cast_upvote).to be_a(PostVote)
       end

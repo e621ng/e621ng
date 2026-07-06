@@ -10,6 +10,10 @@ class Post < ApplicationRecord
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
   NON_KNOWN_ARTIST_TAGS = %w[unknown_artist anonymous_artist third-party_edit].freeze
 
+  # Seconds of age worth one log10 unit of score in the `order:hot` ranking (~5 days).
+  # Smaller favours fresher posts; larger lets posts stay hot longer.
+  HOTNESS_TIME_DIVISOR = 432_000.0
+
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
   before_validation :apply_source_diff
@@ -34,6 +38,7 @@ class Post < ApplicationRecord
   before_save :update_tag_post_counts, if: :should_process_tags?
   before_save :set_tag_counts, if: :should_process_tags?
   after_create :check_for_ai_content, if: -> { Setting.automatic_ai_check? }
+  after_create :update_hotness!
   after_save :create_post_events
   after_save :create_version
   after_save :update_parent_on_save
@@ -1474,6 +1479,16 @@ class Post < ApplicationRecord
       score = PostVote.where(user_id: user_id, post_id: id).pick(:score) || 0
       preset_vote_by(user_id, score)
       score
+    end
+
+    def compute_hotness
+      sign = score <=> 0 # -1, 0, or 1
+      (sign * Math.log10([score.abs, 1].max)) + (created_at.to_f / HOTNESS_TIME_DIVISOR)
+    end
+
+    # Must be run on creation and after every score change.
+    def update_hotness!
+      update_column(:hotness, compute_hotness)
     end
   end
 
