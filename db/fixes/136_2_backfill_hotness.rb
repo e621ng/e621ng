@@ -31,11 +31,19 @@ module Fixes
           response = client.bulk(body: values.map do |id, hotness|
             { update: { _index: index, _id: id, data: { doc: { hotness: hotness } } } }
           end)
-          puts "  opensearch reported item errors in batch through ##{batch.last.id}" if response["errors"]
+
+          # Skip persisting any post whose index update failed, so it stays at
+          # hotness 0 and gets retried on a later run instead of being marked done
+          # with a stale index.
+          failed = Set.new
+          if response["errors"]
+            response["items"].each { |item| failed << item["update"]["_id"].to_i if item["update"]["error"] }
+            puts "  opensearch errors for #{failed.size} posts in batch through ##{batch.last.id}; left for a re-run"
+          end
 
           # Persist the column. On restart these rows (hotness != 0) are skipped.
           Post.transaction do
-            values.each { |id, hotness| Post.where(id: id).update_all(hotness: hotness) }
+            values.each { |id, hotness| Post.where(id: id).update_all(hotness: hotness) unless failed.include?(id) }
           end
 
           done += batch.size
