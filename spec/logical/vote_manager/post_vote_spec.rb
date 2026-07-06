@@ -43,10 +43,7 @@ RSpec.describe VoteManager do
       end
 
       it "recomputes post.hotness from the new score" do
-        # log10(max(|score|, 1)) is flat across score -1/0/1, so a 0 -> 1 vote does
-        # not move hotness. Seed a prior vote (via VoteManager, so the score column
-        # and hotness are set) to put the post at score 1; the measured vote then
-        # goes 1 -> 2, which shifts hotness by log10(2) and can be observed.
+        # Seed a prior vote – otherwise, a 0 -> 1 vote will not change hotness
         described_class.vote!(user: create(:user), post: post, score: 1)
         expect { cast_upvote }.to(change { post.reload.hotness })
         expect(post.reload.hotness).to be_within(1e-9).of(post.compute_hotness)
