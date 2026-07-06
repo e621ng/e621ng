@@ -200,6 +200,50 @@ RSpec.describe "OIDC endpoints" do
     end
   end
 
+  describe "consent page CSP form-action" do
+    let(:password) { "hexerade" }
+    let(:user)     { create(:user) }
+    let(:owner)    { create(:user) }
+    let(:redirect) { "https://client.example/callback" }
+    let(:oauth_app) do
+      Doorkeeper::Application.create!(
+        name: "csp-client", redirect_uri: redirect,
+        scopes: "openid full", confidential: true, owner: owner
+      )
+    end
+    let(:verifier)  { SecureRandom.urlsafe_base64(64).delete("=")[0, 64] }
+    let(:challenge) { Base64.urlsafe_encode64(Digest::SHA256.digest(verifier), padding: false) }
+
+    def authorize_url(redirect_uri: redirect)
+      "/oauth/authorize?" + {
+        response_type: "code", client_id: oauth_app.uid, redirect_uri: redirect_uri,
+        scope: "openid full", state: "csp",
+        code_challenge: challenge, code_challenge_method: "S256",
+      }.to_query
+    end
+
+    before { make_session(user, password) }
+
+    it "allows the app's redirect_uri origin as a form-action target" do
+      get authorize_url
+      expect(response).to have_http_status(:ok)
+      expect(response.headers["Content-Security-Policy"]).to include("form-action 'self' https://client.example")
+    end
+
+    it "keeps an ephemeral port in the origin" do
+      oauth_app.update!(redirect_uri: "http://localhost:3036/cb")
+      get authorize_url(redirect_uri: "http://localhost:3036/cb")
+      expect(response.headers["Content-Security-Policy"]).to include("form-action 'self' http://localhost:3036")
+    end
+
+    it "does not relax form-action on the non-authorizable error path" do
+      get authorize_url(redirect_uri: "https://evil.example/callback")
+      expect(response).not_to have_http_status(:ok)
+      expect(response.headers["Content-Security-Policy"]).to include("form-action 'self'")
+      expect(response.headers["Content-Security-Policy"]).not_to include("evil.example")
+    end
+  end
+
   describe "/oauth/authorize when the application's owner is banned" do
     let(:password) { "hexerade" }
     let(:user)     { create(:user) }
