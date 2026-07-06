@@ -2,7 +2,8 @@
 
 module Staff
   class UsersController < ApplicationController
-    before_action :admin_only
+    before_action :admin_only, except: %i[edit_blacklist]
+    before_action :moderator_only, only: %i[edit_blacklist]
     before_action :is_bd_staff_only, only: %i[anonymize anonymize_confirm]
     before_action :requires_reauthentication, only: %i[anonymize_confirm]
     respond_to :html, :json

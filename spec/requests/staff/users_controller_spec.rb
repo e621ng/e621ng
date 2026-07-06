@@ -245,8 +245,8 @@ RSpec.describe Staff::UsersController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for an admin" do
-      sign_in_as admin
+    it "returns 200 for a moderator" do
+      sign_in_as moderator
       get edit_blacklist_staff_user_path(user)
       expect(response).to have_http_status(:ok)
     end
@@ -260,6 +260,12 @@ RSpec.describe Staff::UsersController do
     it "redirects anonymous to the login page" do
       post update_blacklist_staff_user_path(user), params: { user: { blacklisted_tags: "tag1" } }
       expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for a moderator" do
+      sign_in_as moderator
+      post update_blacklist_staff_user_path(user), params: { user: { blacklisted_tags: "tag1" } }
+      expect(response).to have_http_status(:forbidden)
     end
 
     context "as admin" do
