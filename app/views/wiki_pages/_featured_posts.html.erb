@@ -1,3 +1,5 @@
+<%# locals: (wiki_content:) %>
+
 <% featured_ids = wiki_content.featured_posts %>
 <% if featured_ids.present? %>
   <% posts_by_id = Post.where(id: featured_ids).index_by(&:id) %>
