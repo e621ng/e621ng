@@ -231,20 +231,21 @@ export default class PostsShowToolbar {
     let offclickHandler = null;
     const toggle = $(".ptbr-etc-toggle").on("click", () => {
       // Register offclick handler on the first use
-      if (offclickHandler === null)
+      if (offclickHandler === null) {
         offclickHandler = Offclick.register(".ptbr-etc-toggle", ".ptbr-etc-menu", () => {
           menu.addClass("hidden");
           toggle.attr("aria-expanded", false);
         });
 
+        $(".ptbr-etc-download, .ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
+          offclickHandler.disabled = true;
+          menu.addClass("hidden");
+        });
+      }
+
       offclickHandler.disabled = !offclickHandler.disabled;
       menu.toggleClass("hidden", offclickHandler.disabled);
       toggle.attr("aria-expanded", !offclickHandler.disabled);
-    });
-
-    $(".ptbr-etc-download, .ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
-      offclickHandler.disabled = true;
-      menu.addClass("hidden");
     });
   }
 }
