@@ -27,6 +27,7 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
       results = await TagQueryProvider.findMetatags(parsed.metatag, parsed.term || "");
     else {
       results = await TagProvider.findTags(parsed.term);
+
       if (LStorage.Posts.AutocompleteCache) {
         const scores = new Map(results.map((item, index) => [
           item.name,
@@ -34,6 +35,8 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
         ]));
         results = results.sort((a, b) => (scores.get(b.name) ?? 0) - (scores.get(a.name) ?? 0));
       }
+
+      results = [...TagQueryProvider.findFiletypeAliases(parsed.term), ...results];
     }
 
     if (parsed.prefix)
@@ -192,5 +195,23 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
         }
         return [];
     }
+  }
+
+  /**
+   * Finds filetype aliases that match the given term.
+   * @param term The search term to match against filetype aliases
+   * @returns An array of StaticMetatagItem objects representing matching filetype aliases
+   */
+  private static findFiletypeAliases (term: string): Types.StaticMetatagItem[] {
+    term = term.trim().toLowerCase();
+    if (!term) return [];
+    return Constants.STATIC_METATAGS.type
+      .filter(option => option.startsWith(term))
+      .map(option => ({
+        type: "metatag" as const,
+        name: `type:${option}`,
+        label: `type:${option}`,
+        category: "metatag" as const,
+      }));
   }
 }
