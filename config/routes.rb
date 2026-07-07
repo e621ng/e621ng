@@ -593,6 +593,7 @@ Rails.application.routes.draw do
   get "/static/keyboard_shortcuts" => "static#keyboard_shortcuts", :as => "keyboard_shortcuts"
   get "/static/site_map" => "static#site_map", :as => "site_map"
   get "/static/privacy" => "static#privacy", as: "privacy_policy"
+  get "/static/privacy/discordbot" => "static#privacy_discordbot", as: "privacy_discordbot"
   get "/static/code_of_conduct" => "static#code_of_conduct", as: "code_of_conduct"
   get "/static/takedown" => "static#takedown", as: "takedown_static"
   get "/static/terms_of_service" => redirect("/terms_of_use")

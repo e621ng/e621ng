@@ -6,6 +6,11 @@ class StaticController < ApplicationController
     @page = format_wiki_page(@page_name)
   end
 
+  def privacy_discordbot
+    @page_name = "e621:privacy_discordbot"
+    @page = format_wiki_page(@page_name)
+  end
+
   def code_of_conduct
     @page_name = "e621:rules"
     @page = format_wiki_page(@page_name)
