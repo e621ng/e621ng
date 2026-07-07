@@ -315,5 +315,5 @@ module SiteMap
   exclude :avoid_posting_versions, :search_trend_blacklists, :search_trend_hourlies,
           :staff_wiki_versions, :post_set_maintainers, reason: :utility
   exclude :oauth_applications, :oauth_authorized_applications, :preview_view_components,
-          :staff_discord_reports, reason: :internal
+          :staff_discord_reports, :staff_vote_trends, reason: :internal
 end
