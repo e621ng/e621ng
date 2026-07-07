@@ -36,7 +36,7 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
         results = results.sort((a, b) => (scores.get(b.name) ?? 0) - (scores.get(a.name) ?? 0));
       }
 
-      results = [...TagQueryProvider.getStaticMetatags("type", parsed.term), ...results];
+      results = [...TagQueryProvider.getStaticMetatags("type", parsed.term), ...results].slice(0, 10);
     }
 
     if (parsed.prefix)
