@@ -1,4 +1,20 @@
 #c-wiki-pages {
+  .wiki-featured-posts {
+    margin: 0.5rem 0 1rem;
+
+    // Multiple featured posts: a wrapping thumbnail row.
+    &.wiki-featured-row {
+      display: flex;
+      flex-flow: row wrap;
+      gap: 0.5rem;
+    }
+
+    // Single featured post: an enlarged "hero" image.
+    &.wiki-featured-hero article.thumbnail {
+      --thumb-image-size: 380px;
+    }
+  }
+
   .automated-tag-notice {
     max-width: 50rem;
     box-sizing: border-box;

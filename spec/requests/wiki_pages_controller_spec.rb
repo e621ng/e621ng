@@ -128,6 +128,35 @@ RSpec.describe WikiPagesController do
   end
 
   # ---------------------------------------------------------------------------
+  # GET /wiki_pages/:id — featured posts rendering
+  # ---------------------------------------------------------------------------
+
+  describe "GET /wiki_pages/:id (featured posts)" do
+    it "renders a hero container for a single featured post" do
+      post = create(:post)
+      page = create(:wiki_page, featured_posts: [post.id])
+      get wiki_page_path(page)
+      expect(response.body).to include("wiki-featured-hero")
+    end
+
+    it "renders a thumbnail row for multiple featured posts" do
+      posts = create_list(:post, 3)
+      page = create(:wiki_page, featured_posts: posts.map(&:id))
+      get wiki_page_path(page)
+      expect(response.body).to include("wiki-featured-row")
+    end
+
+    it "still renders a featured post that has been deleted" do
+      post = create(:post)
+      post.update_column(:is_deleted, true)
+      page = create(:wiki_page, featured_posts: [post.id])
+      get wiki_page_path(page)
+      expect(response.body).to include("wiki-featured-hero")
+      expect(response.body).to include("/posts/#{post.id}")
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # GET /wiki_pages/new — new
   # ---------------------------------------------------------------------------
 
@@ -217,6 +246,12 @@ RSpec.describe WikiPagesController do
         end.not_to change(WikiPage, :count)
       end
 
+      it "allows setting featured posts" do
+        posts = create_list(:post, 2)
+        post wiki_pages_path, params: { wiki_page: { title: "featured_member_page", body: "body", featured_posts_string: posts.map(&:id).join(" ") } }
+        expect(WikiPage.titled("featured_member_page").featured_posts).to eq(posts.map(&:id))
+      end
+
       # FIXME: Cannot test that members cannot set is_locked or parent by passing
       # those params in the request body, because config/application.rb sets
       # `action_on_unpermitted_parameters = :raise`. Rails raises
@@ -287,6 +322,12 @@ RSpec.describe WikiPagesController do
       it "returns a successful JSON response on success" do
         patch wiki_page_path(wiki_page, format: :json), params: update_params
         expect(response).to be_successful
+      end
+
+      it "updates featured posts" do
+        posts = create_list(:post, 2)
+        patch wiki_page_path(wiki_page), params: { wiki_page: { featured_posts_string: posts.map(&:id).join(" ") } }
+        expect(wiki_page.reload.featured_posts).to eq(posts.map(&:id))
       end
 
       it "returns 403 when trying to update a locked page" do

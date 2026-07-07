@@ -396,6 +396,10 @@ module Danbooru
       250_000
     end
 
+    def wiki_page_max_featured_posts
+      6
+    end
+
     def user_feedback_max_size
       20_000
     end

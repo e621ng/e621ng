@@ -8,8 +8,9 @@ FactoryBot.define do
     body        { "Wiki page body." }
     is_locked   { false }
     is_deleted  { false }
-    parent      { nil }
-    other_names { [] }
+    parent         { nil }
+    other_names    { [] }
+    featured_posts { [] }
 
     factory :locked_wiki_page do
       is_locked { true }

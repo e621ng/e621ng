@@ -8,6 +8,7 @@ FactoryBot.define do
     is_locked       { false }
     is_deleted      { false }
     other_names     { [] }
+    featured_posts  { [] }
     updater_ip_addr { "127.0.0.1" }
     reason          { nil }
     parent          { nil }
