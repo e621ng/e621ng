@@ -147,7 +147,7 @@ module SiteMap
        gate: { inline: "shows the current user's favorites; 404s without a user_id when logged out" },
        visible: ->(u) { u.is_logged_in? }
   page :posts, :post_versions, "Changes"
-  page :posts, :iqdb_queries, "Similar Images Search"
+  page :posts, :iqdb_queries, "Similar Images Search", gate: { inline: "feature flag (iqdb_enabled?)" }, visible: ->(_u) { IqdbProxy.enabled? }
   page :posts, :deleted_posts, "Deleted Index"
   page :posts, :uploads, "Upload Listing", level: UserLevel::STAFF
   page :posts, :help_page, "Help", params: { id: "posts" }
