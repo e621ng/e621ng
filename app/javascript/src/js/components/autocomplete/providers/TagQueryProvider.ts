@@ -27,6 +27,7 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
       results = await TagQueryProvider.findMetatags(parsed.metatag, parsed.term || "");
     else {
       results = await TagProvider.findTags(parsed.term);
+
       if (LStorage.Posts.AutocompleteCache) {
         const scores = new Map(results.map((item, index) => [
           item.name,
@@ -34,6 +35,8 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
         ]));
         results = results.sort((a, b) => (scores.get(b.name) ?? 0) - (scores.get(a.name) ?? 0));
       }
+
+      results = [...TagQueryProvider.getStaticMetatags("type", parsed.term), ...results].slice(0, 10);
     }
 
     if (parsed.prefix)
