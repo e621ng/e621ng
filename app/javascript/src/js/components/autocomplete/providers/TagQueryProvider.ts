@@ -82,10 +82,16 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
     if (!bareName.includes(":") && LStorage.Posts.AutocompleteCache)
       TagFrequencyCache.record(bareName);
 
-    const beforeCaret = input.value.substring(0, input.selectionStart).trim();
+    const rawBeforeCaret = input.value.substring(0, input.selectionStart);
     const afterCaret = input.value.substring(input.selectionStart).trim();
 
-    const newBeforeCaret = beforeCaret.replace(/\S+$/, completion);
+    // Replace the partial tag directly before the caret.
+    // When the caret sits after whitespace (e.g. a tag was just inserted with the dropdown kept open),
+    // there is no partial tag, so append a new one instead of overwriting the previous complete tag.
+    const beforeCaret = rawBeforeCaret.trim();
+    const newBeforeCaret = /\S$/.test(rawBeforeCaret)
+      ? beforeCaret.replace(/\S+$/, completion)
+      : (beforeCaret.length ? beforeCaret + " " : "") + completion;
 
     const needsSpace = afterCaret.length === 0 || !afterCaret.startsWith(" ");
     const finalValue = newBeforeCaret + (needsSpace ? " " : "") + afterCaret;

@@ -194,7 +194,7 @@ export default class AutocompleteWidget {
           event.preventDefault();
           event.stopPropagation();
 
-          this.selectItem(this.results[this.selectedIndex]);
+          this.selectItem(this.results[this.selectedIndex], event.ctrlKey);
         }
         break;
       case "Escape":
@@ -206,8 +206,8 @@ export default class AutocompleteWidget {
           event.preventDefault();
 
           if (this.selectedIndex >= 0)
-            this.selectItem(this.results[this.selectedIndex]);
-          else this.selectItem(this.results[0]);
+            this.selectItem(this.results[this.selectedIndex], event.ctrlKey);
+          else this.selectItem(this.results[0], event.ctrlKey);
         }
         break;
     }
@@ -233,7 +233,8 @@ export default class AutocompleteWidget {
     if (item) {
       const index = Array.from(this.dropdown.children).indexOf(item);
       if (index >= 0 && this.results[index]) {
-        this.selectItem(this.results[index]);
+        // Holding the control key inserts the tag but leaves the dropdown open
+        this.selectItem(this.results[index], event.ctrlKey);
       }
     }
   }
@@ -322,11 +323,12 @@ export default class AutocompleteWidget {
   /**
    * Handles the selection of an autocomplete item, invoking the insert function and closing the dropdown.
    * @param item The autocomplete item that was selected.
+   * @param keepOpen When true, the dropdown is left open after inserting, so the user can pick more tags in a row.
    */
-  private selectItem (item: AutocompleteItem) {
+  private selectItem (item: AutocompleteItem, keepOpen = false) {
     this.justSelected = true;
     this.provider.insert(this.input, item.name);
-    this.isOpen = false;
+    if (!keepOpen) this.isOpen = false;
     this.input.focus();
   }
 }
