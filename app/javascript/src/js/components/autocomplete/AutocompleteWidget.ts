@@ -233,9 +233,7 @@ export default class AutocompleteWidget {
     if (item) {
       const index = Array.from(this.dropdown.children).indexOf(item);
       if (index >= 0 && this.results[index]) {
-        // Holding the meta key inserts the tag but leaves the dropdown open,
-        // allowing multiple tags to be picked in a row. The stale list is
-        // refreshed on the next keystroke.
+        // Holding the control key inserts the tag but leaves the dropdown open
         this.selectItem(this.results[index], event.ctrlKey);
       }
     }
