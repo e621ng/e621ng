@@ -97,6 +97,10 @@ RSpec.describe StaticController do
     include_examples "a wiki page action", "/static/privacy", "e621:privacy_policy"
   end
 
+  describe "GET /static/privacy_discordbot" do
+    include_examples "a wiki page action", "/static/privacy/discordbot", "e621:privacy_discordbot"
+  end
+
   describe "GET /static/code_of_conduct" do
     include_examples "a wiki page action", "/static/code_of_conduct", "e621:rules"
   end
