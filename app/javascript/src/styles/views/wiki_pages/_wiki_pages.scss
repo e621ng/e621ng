@@ -1,4 +1,9 @@
 #c-wiki-pages {
+  #a-show #content {
+    container-type: inline-size;
+    container-name: wiki-content;
+  }
+
   .wiki-featured-posts {
     margin: 0.5rem 0 1rem;
 
@@ -7,11 +12,19 @@
       display: flex;
       flex-flow: row wrap;
       gap: 0.5rem;
+
+      @container wiki-content (max-width: 940px) {
+        max-width: 466px;
+      }
     }
 
     // Single featured post: an enlarged "hero" image.
     &.wiki-featured-hero article.thumbnail {
       --thumb-image-size: 380px;
+
+      @include window-smaller-than(30rem) {
+        img { max-width: calc(100vw - 1rem); }
+      }
     }
   }
 
