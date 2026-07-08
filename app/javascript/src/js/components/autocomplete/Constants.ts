@@ -17,6 +17,10 @@ export default class Constants {
     type: ["jpg", "png", "gif", "swf", "webm", "mp4", "webp"], // Consider passing these from the back-end as well
   };
 
+  static readonly FILETYPE_ALIASES: Record<string, string> = {
+    flash: "swf",
+  };
+
   // Precompiled regexes for performance
 
   static readonly TAG_PREFIXES_REGEX = new RegExp("^([" + Constants.TAG_PREFIXES.join("") + "]*)(.*)", "i");
