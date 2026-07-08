@@ -17,7 +17,7 @@
         <div>
           Added featured posts:
           <% @featured_posts_added.each do |post| %>
-            <%= link_to post, "/posts/#{post}" %>
+            <%= link_to post, post_path(post) %>
           <% end %>
         </div>
       <% end %>
@@ -25,7 +25,7 @@
         <div>
           Removed featured posts:
           <% @featured_posts_removed.each do |post| %>
-            <%= link_to post, "/posts/#{post}" %>
+            <%= link_to post, post_path(post) %>
           <% end %>
         </div>
       <% end %>
