@@ -5,7 +5,9 @@ div#c-favorites {
     font-size: $h3-size;
   }
 
-  .post-search-help {
-    margin-right: unset;
+  @include window-larger-than(50rem) {
+    .post-index > .sidebar {
+      padding-top: 0.5rem;
+    }
   }
 }
