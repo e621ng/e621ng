@@ -1,0 +1,12 @@
+<%# locals: (post_set:, warning: nil) %>
+<% empty = post_set.posts.empty? %>
+<div class="posts-info-bar<%= " is-empty" if empty %>">
+  <% if empty %>
+    <span class="posts-info-empty">Nobody here but us chickens!</span>
+  <% end %>
+  <% if warning.present? %>
+    <hr class="posts-info-divider">
+    <p class="posts-info-warning"><%= warning %></p>
+  <% end %>
+  <span class="posts-info-count"><%= approximate_count(post_set.posts) %></span>
+</div>
