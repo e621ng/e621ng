@@ -12,7 +12,7 @@ module FileMethods
   }.freeze
 
   FILE_TYPE_ALIASES = {
-    flash: "swf",
+    "flash" => "swf",
   }.freeze
 
   def is_of_type?(type)
