@@ -145,6 +145,12 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
     if (!options) return [];
     term = term.trim().toLowerCase();
 
+    // Resolve filetype aliases
+    if (metatag === "filetype" || metatag === "type") {
+      const alias = Constants.FILETYPE_ALIASES[term];
+      if (alias) term = alias;
+    }
+
     return (options as string[])
       .filter(option => !term || option.startsWith(term))
       .map(option => ({

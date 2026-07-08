@@ -1555,8 +1555,11 @@ class TagQuery
 
   # Checks if a certain tag should be transformed into a metatag, and adds it accordingly if so.
   def intercept_metatag_alias(tag, type)
-    if FileMethods::FILE_TYPE.value?(tag)
-      add_to_query(type, :filetype, tag)
+    filetype = FileMethods::FILE_TYPE_ALIASES[tag]
+    filetype ||= tag if FileMethods::FILE_TYPE.value?(tag)
+
+    if filetype
+      add_to_query(type, :filetype, filetype)
       return true
     end
     nil
