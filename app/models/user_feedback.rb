@@ -133,4 +133,19 @@ class UserFeedback < ApplicationRecord
   def destroyable_by?(destroyer)
     deletable_by?(destroyer) && (destroyer.is_admin? || destroyer == creator)
   end
+
+  def is_expired?
+    return false if category == "positive"
+    return false if is_deleted?
+
+    return created_at < (Danbooru.config.user_feedback_expires_after * 2).ago if category == "negative"
+    created_at < Danbooru.config.user_feedback_expires_after.ago
+  end
+
+  def expired_on
+    return false unless is_expired?
+
+    return created_at + (Danbooru.config.user_feedback_expires_after * 2) if category == "negative"
+    created_at + Danbooru.config.user_feedback_expires_after
+  end
 end
