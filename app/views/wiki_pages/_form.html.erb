@@ -14,6 +14,11 @@
 
     <%= f.input :featured_posts_string, label: "Featured posts", hint: "Up to #{Danbooru.config.wiki_page_max_featured_posts} space-separated post IDs shown at the top of the page. A single ID displays as a large hero image; multiple display as a thumbnail row." %>
 
+    <div id="featured-posts-preview" data-max="<%= Danbooru.config.wiki_page_max_featured_posts %>">
+      <div class="featured-posts-preview-error" hidden></div>
+      <div class="featured-posts-preview-list"></div>
+    </div>
+
     <% if @wiki_page.new_record? || @wiki_page.tag.present? %>
       <%= f.input :category_id, 
         label: "Tag Category", 

@@ -53,3 +53,26 @@
     }
   }
 }
+
+#c-wiki-pages #a-new, #c-wiki-pages #a-edit {
+  #wiki_page_featured_posts_string {
+    width: 100%;
+    max-width: 50rem;
+    box-sizing: border-box;
+  }
+
+  #featured-posts-preview {
+    margin: 0.5rem 0 1rem;
+
+    .featured-posts-preview-error {
+      color: palette("text-red");
+      margin-bottom: 0.5rem;
+    }
+
+    .featured-posts-preview-list {
+      display: flex;
+      flex-flow: row wrap;
+      gap: 0.5rem;
+    }
+  }
+}
