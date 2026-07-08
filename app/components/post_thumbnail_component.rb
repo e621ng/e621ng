@@ -73,6 +73,7 @@ class PostThumbnailComponent < ViewComponent::Base
     klass << "rating-explicit" if post.rating == "e"
     klass << "blacklistable" unless options[:no_blacklist]
     klass << "no-stats" unless should_show_stats?
+    klass << "native" if options[:native]
     klass
   end
 
@@ -135,7 +136,11 @@ class PostThumbnailComponent < ViewComponent::Base
   end
 
   def preview_urls
-    @preview_urls ||= post.preview_file_url_pair
+    @preview_urls ||= if options[:show_samples]
+                        post.sample_url_pair
+                      else
+                        post.preview_file_url_pair
+                      end
   end
 
   def alt_text

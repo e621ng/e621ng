@@ -124,7 +124,7 @@ class WikiPagesController < ApplicationController
   end
 
   def wiki_page_params(context)
-    permitted_params = %i[body category_id edit_reason]
+    permitted_params = %i[body category_id edit_reason featured_posts_string]
     permitted_params += %i[parent] if CurrentUser.is_privileged?
     permitted_params += %i[is_locked is_deleted skip_secondary_validations] if CurrentUser.is_staff?
     permitted_params += %i[category_is_locked] if CurrentUser.is_admin?

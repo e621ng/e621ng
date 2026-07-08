@@ -27,10 +27,12 @@ class WikiPage < ApplicationRecord
   validate :validate_rename
   validate :validate_redirect
   validate :validate_not_locked
+  validate :validate_featured_posts
 
   attr_accessor :skip_secondary_validations, :edit_reason
 
   array_attribute :other_names
+  array_attribute :featured_posts, parse: /\d+/, cast: :to_i
   belongs_to_creator
   belongs_to_updater
   has_one :tag, foreign_key: "name", primary_key: "title"
@@ -269,6 +271,26 @@ class WikiPage < ApplicationRecord
     end
   end
 
+  def validate_featured_posts
+    return if featured_posts.blank?
+
+    max = Danbooru.config.wiki_page_max_featured_posts
+    if featured_posts.size > max
+      errors.add(:featured_posts, "cannot have more than #{max} posts")
+      return
+    end
+
+    if featured_posts.uniq.size != featured_posts.size
+      errors.add(:featured_posts, "cannot contain duplicate posts")
+      return
+    end
+
+    missing = featured_posts - Post.where(id: featured_posts).pluck(:id)
+    if missing.any?
+      errors.add(:featured_posts, "contains invalid post IDs: #{missing.join(', ')}")
+    end
+  end
+
   def validate_redirect
     return unless will_save_change_to_parent? && parent.present?
     if WikiPage.find_by(title: parent).blank?
@@ -290,6 +312,7 @@ class WikiPage < ApplicationRecord
     self.body = version.body
     self.parent = version.parent
     self.other_names = version.other_names
+    self.featured_posts = version.featured_posts
   end
 
   def revert_to!(version)
@@ -338,7 +361,7 @@ class WikiPage < ApplicationRecord
   end
 
   def wiki_page_changed?
-    saved_change_to_title? || saved_change_to_body? || saved_change_to_is_locked? || saved_change_to_is_deleted? || saved_change_to_other_names? || saved_change_to_parent?
+    saved_change_to_title? || saved_change_to_body? || saved_change_to_is_locked? || saved_change_to_is_deleted? || saved_change_to_other_names? || saved_change_to_parent? || saved_change_to_featured_posts?
   end
 
   def create_new_version
@@ -351,6 +374,7 @@ class WikiPage < ApplicationRecord
       is_deleted: is_deleted,
       other_names: other_names,
       parent: parent,
+      featured_posts: featured_posts,
       reason: edit_reason,
     )
   end
