@@ -1,3 +1,4 @@
+import { CachedPost } from "@/models/PostCache";
 import FilterToken from "./FilterToken";
 
 /** Various utilities for the blacklist filters */
@@ -137,15 +138,15 @@ export default class FilterUtilities {
 
   /**
    * Check if the post has the specified tag
-   * @param {any} post
+   * @param {CachedPost} post
    * @param {string} filter
    * @returns true the post has the tag
    */
-  static tagsMatchesFilter (post, filter) {
+  static tagsMatchesFilter (post: CachedPost, filter: string): boolean {
     return post.tags.indexOf(filter) >= 0;
   }
 
-  static wildcardTagMatchesFilter (post, filter) {
+  static wildcardTagMatchesFilter (post: CachedPost, filter: RegExp): boolean {
     for (const one of post.tags)
       if (filter.test(one)) return true;
     return false;
@@ -185,4 +186,4 @@ export default class FilterUtilities {
   }
 }
 
-type FilterTestFunction = (token: FilterToken, post: any) => boolean;
+type FilterTestFunction = (token: FilterToken, post: CachedPost) => boolean;
