@@ -23,8 +23,9 @@ export default class BlacklistWidget {
       this.registry.push(new BlacklistWidget(element as HTMLDivElement));
     });
 
-    $(document).off("e621:blacklist:state-changed")
-      .on("e621:blacklist:state-changed", () => {
+    $(document)
+      .off("e621:blacklist:state-changed.blacklistWidget")
+      .on("e621:blacklist:state-changed.blacklistWidget", () => {
         for (const widget of this.registry)
           widget.rebuildFilters();
       });
