@@ -136,9 +136,9 @@ export default class BlacklistWidget {
 
       const link = $("<a>")
         .attr("href", "/posts?tags=" + encodeURIComponent(name))
-        .html(name
-          .replace(/_/g, "&#8203;_") // Allow tags to linebreak on underscores
-          .replace(/ -/, " &#8209;"), // Prevent linebreaking on negated tags
+        .text(name
+          .replace(/_/g, "\u200b_")   // zero-width space: allow tags to linebreak on underscores
+          .replace(/ -/g, " \u2011"), // non-breaking hyphen: prevent linebreaking on negated tags
         )
         .on("click", (event) => {
           event.preventDefault();
