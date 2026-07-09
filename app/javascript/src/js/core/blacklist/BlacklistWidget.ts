@@ -29,6 +29,15 @@ export default class BlacklistWidget {
         for (const widget of this.registry)
           widget.rebuildFilters();
       });
+
+    // Register hotkey for toggling the blacklist
+    if (!BlacklistWidget.isHotkeyRegistered) {
+      BlacklistWidget.isHotkeyRegistered = true;
+      Hotkeys.register("blacklist", () => {
+        if (!this.registry.length) return;
+        this.registry[0].toggleAllFilters();
+      });
+    }
   }
 
   /* ============================== */
@@ -89,18 +98,18 @@ export default class BlacklistWidget {
         E621.Blacklist.updatePostVisibility();
       });
 
-    // Register hotkey for toggling the blacklist
-    // Only register it once - widgets synchronize their state automatically.
-    if (!BlacklistWidget.isHotkeyRegistered) {
-      BlacklistWidget.isHotkeyRegistered = true;
-      Hotkeys.register("blacklist", () => {
-        this.$toggle[0].click();
-      });
-    }
-
     // Filters
     this.$container = this.$wrapper.find(".blacklist-filters");
     this.rebuildFilters();
+  }
+
+  /* ============================== */
+  /* ========= Public API ========= */
+  /* ============================== */
+
+  public toggleAllFilters () {
+    if (!this.$toggle.length) return;
+    this.$toggle[0].click();
   }
 
   /* ============================== */
