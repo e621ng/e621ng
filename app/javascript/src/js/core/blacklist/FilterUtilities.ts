@@ -175,14 +175,26 @@ export default class FilterUtilities {
 
   /**
    * Takes in a formatted file size string (ex. 5MB) and converts it to bytes
-   * @param {string} input Formatted string, needs to be lower case
+   * @param {string} input Formatted string
    * @returns {number} Filesize, in bytes
    */
   static parseFilesize (input: string): number {
-    if (/^\d+b?$/.test(input)) return parseInt(input);
-    if (/^\d+kb$/.test(input)) return parseInt(input) * 1024;
-    if (/^\d+mb$/.test(input)) return parseInt(input) * 1048576;
-    return 0;
+    const floatMatch = /^([0-9]+(?:\.[0-9]+)?)\s*(b|kb|mb)?$/i;
+
+    const match = input.match(floatMatch);
+    if (!match) return NaN;
+
+    const value = parseFloat(match[1]);
+    switch (match[2]?.toLowerCase()) {
+      case "b":
+        return Math.floor(value);
+      case "kb":
+        return Math.floor(value * 1024);
+      case "mb":
+        return Math.floor(value * 1048576);
+      default:
+        return Math.floor(value);
+    }
   }
 }
 
