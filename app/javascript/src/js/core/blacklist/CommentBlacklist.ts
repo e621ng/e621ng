@@ -35,6 +35,11 @@ export default class CommentBlacklist {
     }
   }
 
+  /**
+   * Hides all comments from a given user.
+   * @param attr Data-attribute to match against
+   * @param value Value to match against
+   */
   private static hideComment (attr: "creator" | "creator-id", value: string) {
     value = CSS.escape(value);
     $(`article[data-${attr}="${value}"]`).hide();
