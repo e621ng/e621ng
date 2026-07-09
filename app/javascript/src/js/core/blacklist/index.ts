@@ -38,7 +38,9 @@ class Blacklist {
     document.addEventListener("e621:blacklistUpdated", () => {
       this.regenerateFilters();
       this.addPosts(PostCache.sample());
+      this.recalculateMatchedPosts();
       this.updatePostVisibility();
+      this.updateThumbnailStyles();
     });
   }
 
@@ -46,6 +48,7 @@ class Blacklist {
     this.isPostsShow = $("#image-container").length > 0;
 
     this.addPosts($(".blacklistable"));
+    this.recalculateMatchedPosts();
     this.updateThumbnailStyles();
     this.updatePostVisibility();
     $("#blacklisted-hider").remove();
@@ -143,15 +146,22 @@ class Blacklist {
   }
 
   /**
-   * Adds a `filter-matches` class to any thumbnails that match any of the filters,
-   * including disabled ones. Only needs to run after new posts get added to the page.
+   * Recalculates the list of posts that match any of the filters, including disabled ones.
+   * This is used for styling thumbnails that match any filter, even if the filter is disabled.
+   * Should be called after new posts are added to the system, or after filters are updated.
    */
-  public updateThumbnailStyles () {
+  public recalculateMatchedPosts () {
     let allPosts = [];
     for (const filter of Object.values(this.filters))
       allPosts = allPosts.concat(Array.from(filter.matchIDs));
     this.matchedPosts = new Set(allPosts);
+  }
 
+  /**
+   * Adds a `filter-matches` class to any thumbnails that match any of the filters,
+   * including disabled ones. Only needs to run after new posts get added to the page.
+   */
+  public updateThumbnailStyles () {
     $(".filter-matches").removeClass("filter-matches");
     for (const postID of this.matchedPosts)
       PostCache.apply(postID, ($element) => {
