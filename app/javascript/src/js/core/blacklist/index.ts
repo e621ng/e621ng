@@ -76,7 +76,7 @@ class Blacklist {
    * Also applies or removed `blacklist` class wherever necessary.
    */
   public updatePostVisibility () {
-    const oldPosts = [...this.hiddenPosts];
+    const oldPosts = this.hiddenPosts;
     let newPosts = [];
 
     // Tally up the new blacklisted posts
@@ -86,16 +86,14 @@ class Blacklist {
     }
 
     // Calculate diffs
-    // TODO I feel like this could be optimized.
     this.hiddenPosts = new Set(newPosts.filter(n => n));
-    const added = [...this.hiddenPosts].filter((n) => !oldPosts.includes(n));
-    const removed = oldPosts.filter((n) => !this.hiddenPosts.has(n));
+    const added = [...this.hiddenPosts].filter((n) => !oldPosts.has(n));
+    const removed = [...oldPosts].filter((n) => !this.hiddenPosts.has(n));
 
     // Update the UI
     $(document).trigger("e621:blacklist:state-changed");
 
     // Apply / remove classes
-    // TODO: Cache the post elements to avoid repeat lookups
     for (const postID of added)
       PostCache.apply(postID, ($element) => {
         $element.addClass("blacklisted").trigger("blk:hide");
