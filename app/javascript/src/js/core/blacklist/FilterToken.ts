@@ -22,15 +22,17 @@ export default class FilterToken {
   constructor (raw: string) {
     raw = raw.trim().toLowerCase();
 
-    // Token prefixes
-    // TODO: This REQUIRES the tokens to be formatted properly.
-    // -~ format is not accepted. This may cause issues with the the quick blacklist.
-    // Regular blacklist edits do get fixed server-side.
-    this.optional = raw.startsWith("~");
-    if (this.optional) raw = raw.slice(1);
-
-    this.inverted = raw.startsWith("-");
-    if (this.inverted) raw = raw.slice(1);
+    // Token prefixes: ~ for optional, - for inverted
+    const prefixMatch = raw.match(/^(~|-)+/);
+    if (prefixMatch) {
+      const prefix = prefixMatch[0];
+      this.optional = prefix.includes("~");
+      this.inverted = prefix.includes("-");
+      raw = raw.slice(prefix.length);
+    } else {
+      this.optional = false;
+      this.inverted = false;
+    }
 
     // Get filter type: tag, id, score, rating, etc.
     this.type = FilterUtilities.getFilterType(raw);
