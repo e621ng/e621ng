@@ -179,9 +179,7 @@ export default class FilterUtilities {
    * @returns {number} Filesize, in bytes
    */
   static parseFilesize (input: string): number {
-    const floatMatch = /^([0-9]+(?:\.[0-9]+)?)\s*(b|kb|mb)?$/i;
-
-    const match = input.match(floatMatch);
+    const match = input.match(/^([0-9]+(?:\.[0-9]+)?)\s*(b|kb|mb)?$/i);
     if (!match) return NaN;
 
     const value = parseFloat(match[1]);
