@@ -18,20 +18,25 @@ export default class CommentBlacklist {
       switch (token.type) {
         case "user": {
           if (token.value.startsWith("!")) {
-            $(`article[data-creator-id="${token.value.slice(1)}"]`).hide();
+            CommentBlacklist.hideComment("creator-id", token.value.slice(1));
             continue;
           }
           // falls through
         }
         case "username": {
-          $(`article[data-creator="${token.value}"]`).hide();
+          CommentBlacklist.hideComment("creator", token.value);
           continue;
         }
         case "userid": {
-          $(`article[data-creator-id="${token.value}"]`).hide();
+          CommentBlacklist.hideComment("creator-id", token.value);
           continue;
         }
       }
     }
+  }
+
+  private static hideComment (attr: "creator" | "creator-id", value: string) {
+    value = CSS.escape(value);
+    $(`article[data-${attr}="${value}"]`).hide();
   }
 }
