@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Admin::VoteTrendsController" do
-  describe "GET /admin/vote_trends" do
+  describe "GET /staff/vote_trends" do
     let(:target_user) { create(:user) }
     let(:member_user) { create(:user) }
     let(:admin_user) { create(:admin_user) }
