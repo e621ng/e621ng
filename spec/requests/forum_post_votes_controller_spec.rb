@@ -22,6 +22,12 @@ RSpec.describe ForumPostVotesController do
       post forum_post_votes_path(forum_post_id: forum_post.id, format: :json), params: { forum_post_vote: { score: 1 } }
       expect(response).to have_http_status(:forbidden)
     end
+
+    it "return 403 when trying to get votes" do
+      sign_in_as posting_user
+      get forum_post_votes_path(forum_post_id: forum_post.id, format: :json)
+      expect(response).to have_http_status(:forbidden)
+    end
   end
 
   context "with an already accepted tag change request" do
@@ -71,6 +77,17 @@ RSpec.describe ForumPostVotesController do
         end.to change(ForumPostVote, :count).by(-1)
         expect(ForumPostVote.count).to be(0)
       end
+    end
+
+    it "returns the votes" do
+      CurrentUser.scoped(user2) do
+        forum_post.votes.create(score: 1)
+      end
+
+      sign_in_as user2
+      get forum_post_votes_path(forum_post_id: forum_post.id, format: :json)
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body.first["score"]).to eq(1)
     end
   end
 end
