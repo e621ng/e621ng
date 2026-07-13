@@ -285,7 +285,8 @@ class ForumPost < ApplicationRecord
   end
 
   def update_vote_score
-    update_column(:vote_score, vote_score)
+    new_score = vote_score_calculation
+    update_column(:vote_score, new_score)
   end
 
   def method_attributes
