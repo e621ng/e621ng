@@ -1,3 +1,4 @@
+import { CachedPost } from "@/models/PostCache";
 import FilterToken from "./FilterToken";
 
 /** Various utilities for the blacklist filters */
@@ -137,15 +138,15 @@ export default class FilterUtilities {
 
   /**
    * Check if the post has the specified tag
-   * @param {any} post
+   * @param {CachedPost} post
    * @param {string} filter
    * @returns true the post has the tag
    */
-  static tagsMatchesFilter (post, filter) {
+  static tagsMatchesFilter (post: CachedPost, filter: string): boolean {
     return post.tags.indexOf(filter) >= 0;
   }
 
-  static wildcardTagMatchesFilter (post, filter) {
+  static wildcardTagMatchesFilter (post: CachedPost, filter: RegExp): boolean {
     for (const one of post.tags)
       if (filter.test(one)) return true;
     return false;
@@ -174,15 +175,25 @@ export default class FilterUtilities {
 
   /**
    * Takes in a formatted file size string (ex. 5MB) and converts it to bytes
-   * @param {string} input Formatted string, needs to be lower case
+   * @param {string} input Formatted string
    * @returns {number} Filesize, in bytes
    */
   static parseFilesize (input: string): number {
-    if (/^\d+b?$/.test(input)) return parseInt(input);
-    if (/^\d+kb$/.test(input)) return parseInt(input) * 1024;
-    if (/^\d+mb$/.test(input)) return parseInt(input) * 1048576;
-    return 0;
+    const match = input.match(/^([0-9]+(?:\.[0-9]+)?)\s*(b|kb|mb)?$/i);
+    if (!match) return NaN;
+
+    const value = parseFloat(match[1]);
+    switch (match[2]?.toLowerCase()) {
+      case "b":
+        return Math.floor(value);
+      case "kb":
+        return Math.floor(value * 1024);
+      case "mb":
+        return Math.floor(value * 1048576);
+      default:
+        return Math.floor(value);
+    }
   }
 }
 
-type FilterTestFunction = (token: FilterToken, post: any) => boolean;
+type FilterTestFunction = (token: FilterToken, post: CachedPost) => boolean;

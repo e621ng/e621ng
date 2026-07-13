@@ -38,7 +38,9 @@ class Blacklist {
     document.addEventListener("e621:blacklistUpdated", () => {
       this.regenerateFilters();
       this.addPosts(PostCache.sample());
+      this.recalculateMatchedPosts();
       this.updatePostVisibility();
+      this.updateThumbnailStyles();
     });
   }
 
@@ -46,6 +48,7 @@ class Blacklist {
     this.isPostsShow = $("#image-container").length > 0;
 
     this.addPosts($(".blacklistable"));
+    this.recalculateMatchedPosts();
     this.updateThumbnailStyles();
     this.updatePostVisibility();
     $("#blacklisted-hider").remove();
@@ -76,7 +79,7 @@ class Blacklist {
    * Also applies or removed `blacklist` class wherever necessary.
    */
   public updatePostVisibility () {
-    const oldPosts = [...this.hiddenPosts];
+    const oldPosts = this.hiddenPosts;
     let newPosts = [];
 
     // Tally up the new blacklisted posts
@@ -86,16 +89,14 @@ class Blacklist {
     }
 
     // Calculate diffs
-    // TODO I feel like this could be optimized.
     this.hiddenPosts = new Set(newPosts.filter(n => n));
-    const added = [...this.hiddenPosts].filter((n) => !oldPosts.includes(n));
-    const removed = oldPosts.filter((n) => !this.hiddenPosts.has(n));
+    const added = [...this.hiddenPosts].filter((n) => !oldPosts.has(n));
+    const removed = [...oldPosts].filter((n) => !this.hiddenPosts.has(n));
 
     // Update the UI
     $(document).trigger("e621:blacklist:state-changed");
 
     // Apply / remove classes
-    // TODO: Cache the post elements to avoid repeat lookups
     for (const postID of added)
       PostCache.apply(postID, ($element) => {
         $element.addClass("blacklisted").trigger("blk:hide");
@@ -145,15 +146,22 @@ class Blacklist {
   }
 
   /**
-   * Adds a `filter-matches` class to any thumbnails that match any of the filters,
-   * including disabled ones. Only needs to run after new posts get added to the page.
+   * Recalculates the list of posts that match any of the filters, including disabled ones.
+   * This is used for styling thumbnails that match any filter, even if the filter is disabled.
+   * Should be called after new posts are added to the system, or after filters are updated.
    */
-  public updateThumbnailStyles () {
+  public recalculateMatchedPosts () {
     let allPosts = [];
     for (const filter of Object.values(this.filters))
       allPosts = allPosts.concat(Array.from(filter.matchIDs));
     this.matchedPosts = new Set(allPosts);
+  }
 
+  /**
+   * Adds a `filter-matches` class to any thumbnails that match any of the filters,
+   * including disabled ones. Only needs to run after new posts get added to the page.
+   */
+  public updateThumbnailStyles () {
     $(".filter-matches").removeClass("filter-matches");
     for (const postID of this.matchedPosts)
       PostCache.apply(postID, ($element) => {

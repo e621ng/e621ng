@@ -34,6 +34,7 @@ export default class DeferredPostLoader {
     // However, this lets us populate the Blacklist and render thumbnails with the correct
     // visibility on the first try, instead of rendering them and then updating their visibility.
     E621.Blacklist.loadDeferredPosts(processed);
+    E621.Blacklist.recalculateMatchedPosts();
     E621.Blacklist.updatePostVisibility();
     E621.Blacklist.updateThumbnailStyles();
 
