@@ -396,6 +396,10 @@ module Danbooru
       250_000
     end
 
+    def wiki_page_max_featured_posts
+      6
+    end
+
     def user_feedback_max_size
       20_000
     end
@@ -406,6 +410,10 @@ module Danbooru
 
     def post_set_post_limit
       10_000
+    end
+
+    def user_feedback_expires_after
+      6.months
     end
 
     def discord_site
@@ -509,6 +517,11 @@ module Danbooru
 
     def enable_signups?
       true
+    end
+
+    # Whether the OAuth2 / OpenID Connect provider is enabled. Requires a signing key.
+    def enable_oauth_provider?
+      false
     end
 
     # # Who can see the provided flag reason, in addition to the flagger/creator (who can always see

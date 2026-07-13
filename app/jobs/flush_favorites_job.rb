@@ -8,16 +8,21 @@ class FlushFavoritesJob < ApplicationJob
   def perform(*args)
     user = User.find(args[0])
 
+    Thread.current[:skip_post_index_update] = true
+
     Favorite.without_timeout do
-      Favorite.for_user(user.id).includes(:post).find_each do |fav|
-        tries = 5
-        begin
-          FavoriteManager.remove!(user: user, post: fav.post)
-        rescue ActiveRecord::SerializationFailure
-          tries -= 1
-          retry if tries > 0
+      Favorite.for_user(user.id).select(:id, :post_id).find_in_batches(batch_size: 10_000) do |batch|
+        ids = batch.map(&:post_id)
+        Favorite.where(id: batch.map(&:id)).delete_all
+        Post.without_timeout do
+          Post.where(id: ids).update_all("fav_count = fav_count - 1")
         end
+        BulkIndexUpdateJob.perform_later("Post", ids)
       end
     end
+
+    UserStatus.for_user(user.id).update_all("favorite_count = 0")
+  ensure
+    Thread.current[:skip_post_index_update] = false
   end
 end

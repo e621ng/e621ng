@@ -28,6 +28,11 @@
               <div class="dtext-container">
                 <%= format_text(feedback.body) %>
               </div>
+              <% if CurrentUser.user.is_staff? && feedback.expires_at && feedback.expires_at < Time.current %>
+                <div class="user-feedback-expired">
+                  This feedback expired on <%= compact_time(feedback.expires_at) %> and may be deleted.
+                </div>
+              <% end %>
               <%= render "application/update_notice", record: feedback %>
             </td>
             <td>

@@ -2,15 +2,17 @@
 
 id_name_constraint = { id: %r{[^/]+?}, format: /json|html/ }.freeze
 Rails.application.routes.draw do
-  use_doorkeeper_openid_connect
-  use_doorkeeper do
-    controllers authorizations: "oauth_authorizations"
-    skip_controllers :applications, :authorized_applications
-  end
-  resources :oauth_authorized_applications, path: "applications/authorized", controller: "oauth_authorized_applications", only: %i[index destroy]
-  resources :oauth_applications, only: %i[index new create show edit update destroy], path: "applications" do
-    collection { get :mine }
-    member { post :regenerate_secret }
+  if Danbooru.config.enable_oauth_provider?
+    use_doorkeeper_openid_connect
+    use_doorkeeper do
+      controllers authorizations: "oauth_authorizations"
+      skip_controllers :applications, :authorized_applications
+    end
+    resources :oauth_authorized_applications, path: "applications/authorized", controller: "oauth_authorized_applications", only: %i[index destroy]
+    resources :oauth_applications, only: %i[index new create show edit update destroy], path: "applications" do
+      collection { get :mine }
+      member { post :regenerate_secret }
+    end
   end
   require "sidekiq/web"
   require "sidekiq_unique_jobs/web"
@@ -66,6 +68,7 @@ Rails.application.routes.draw do
     resource :reowner, controller: "reowner", only: %i[new create]
     resource :stuck_dnp, controller: "stuck_dnp", only: %i[new create]
     resources :destroyed_posts, only: %i[index show update]
+    resources :vote_trends, only: [:index]
 
     # Previously under /security/
     resources :security, only: %i[index] do
@@ -245,7 +248,7 @@ Rails.application.routes.draw do
   resources :db_exports, only: %i[index]
   resources :favorites, only: %i[index create destroy]
   resources :forum_posts do
-    resource :votes, controller: "forum_post_votes"
+    resource :votes, controller: "forum_post_votes", only: %i[show create destroy]
     member do
       post :hide
       post :unhide
@@ -590,6 +593,7 @@ Rails.application.routes.draw do
   get "/static/keyboard_shortcuts" => "static#keyboard_shortcuts", :as => "keyboard_shortcuts"
   get "/static/site_map" => "static#site_map", :as => "site_map"
   get "/static/privacy" => "static#privacy", as: "privacy_policy"
+  get "/static/privacy/discordbot" => "static#privacy_discordbot", as: "privacy_discordbot"
   get "/static/code_of_conduct" => "static#code_of_conduct", as: "code_of_conduct"
   get "/static/takedown" => "static#takedown", as: "takedown_static"
   get "/static/terms_of_service" => redirect("/terms_of_use")

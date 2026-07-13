@@ -23,11 +23,21 @@ export default class BlacklistWidget {
       this.registry.push(new BlacklistWidget(element as HTMLDivElement));
     });
 
-    $(document).off("e621:blacklist:state-changed")
-      .on("e621:blacklist:state-changed", () => {
+    $(document)
+      .off("e621:blacklist:state-changed.blacklistWidget")
+      .on("e621:blacklist:state-changed.blacklistWidget", () => {
         for (const widget of this.registry)
           widget.rebuildFilters();
       });
+
+    // Register hotkey for toggling the blacklist
+    if (!BlacklistWidget.isHotkeyRegistered) {
+      BlacklistWidget.isHotkeyRegistered = true;
+      Hotkeys.register("blacklist", () => {
+        if (!this.registry.length) return;
+        this.registry[0].toggleAllFilters();
+      });
+    }
   }
 
   /* ============================== */
@@ -88,18 +98,18 @@ export default class BlacklistWidget {
         E621.Blacklist.updatePostVisibility();
       });
 
-    // Register hotkey for toggling the blacklist
-    // Only register it once - widgets synchronize their state automatically.
-    if (!BlacklistWidget.isHotkeyRegistered) {
-      BlacklistWidget.isHotkeyRegistered = true;
-      Hotkeys.register("blacklist", () => {
-        this.$toggle[0].click();
-      });
-    }
-
     // Filters
     this.$container = this.$wrapper.find(".blacklist-filters");
     this.rebuildFilters();
+  }
+
+  /* ============================== */
+  /* ========= Public API ========= */
+  /* ============================== */
+
+  public toggleAllFilters () {
+    if (!this.$toggle.length) return;
+    this.$toggle[0].click();
   }
 
   /* ============================== */
@@ -136,9 +146,9 @@ export default class BlacklistWidget {
 
       const link = $("<a>")
         .attr("href", "/posts?tags=" + encodeURIComponent(name))
-        .html(name
-          .replace(/_/g, "&#8203;_") // Allow tags to linebreak on underscores
-          .replace(/ -/, " &#8209;"), // Prevent linebreaking on negated tags
+        .text(name
+          .replace(/_/g, "\u200b_")   // zero-width space: allow tags to linebreak on underscores
+          .replace(/ -/g, " \u2011"), // non-breaking hyphen: prevent linebreaking on negated tags
         )
         .on("click", (event) => {
           event.preventDefault();

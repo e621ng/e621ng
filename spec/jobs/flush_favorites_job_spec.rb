@@ -31,6 +31,10 @@ RSpec.describe FlushFavoritesJob do
       it "does not raise an error" do
         expect { perform }.not_to raise_error
       end
+
+      it "does not enqueue a BulkIndexUpdateJob" do
+        expect { perform }.not_to have_enqueued_job(BulkIndexUpdateJob)
+      end
     end
 
     context "when the user has one favorite" do
@@ -50,6 +54,10 @@ RSpec.describe FlushFavoritesJob do
       it "decrements the user favorite_count to 0" do
         perform
         expect(CurrentUser.user.user_status.reload.favorite_count).to eq(0)
+      end
+
+      it "enqueues a BulkIndexUpdateJob" do
+        expect { perform }.to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post.id])
       end
     end
 
@@ -80,6 +88,10 @@ RSpec.describe FlushFavoritesJob do
           expect(post.reload.fav_count).to eq(0)
         end
       end
+
+      it "enqueues a BulkIndexUpdateJob" do
+        expect { perform }.to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post_a.id, post_b.id, post_c.id])
+      end
     end
 
     context "when another user also has favorites on the same post" do
@@ -106,52 +118,9 @@ RSpec.describe FlushFavoritesJob do
         perform(target_user.id)
         expect(other_user.user_status.reload.favorite_count).to eq(1)
       end
-    end
 
-    context "when FavoriteManager raises SerializationFailure" do
-      let(:post) { create(:post) }
-
-      before { add_favorite(post, CurrentUser.user) }
-
-      context "on the first attempt only" do
-        before do
-          call_count = 0
-          allow(FavoriteManager).to receive(:remove!).and_wrap_original do |original, **kwargs|
-            call_count += 1
-            raise ActiveRecord::SerializationFailure if call_count == 1
-
-            original.call(**kwargs)
-          end
-        end
-
-        it "does not raise an error" do
-          expect { perform }.not_to raise_error
-        end
-
-        it "eventually removes the Favorite" do
-          perform
-          expect(Favorite.for_user(CurrentUser.id)).to be_empty
-        end
-      end
-
-      context "on every attempt (all 5 exhausted)" do
-        before do
-          allow(FavoriteManager).to receive(:remove!).and_raise(ActiveRecord::SerializationFailure)
-        end
-
-        it "does not raise an error" do
-          expect { perform }.not_to raise_error
-        end
-
-        it "retries exactly 5 times" do
-          perform
-          expect(FavoriteManager).to have_received(:remove!).exactly(5).times
-        end
-
-        it "leaves the Favorite record in place" do
-          perform
-          expect(Favorite.for_user(CurrentUser.id)).not_to be_empty
-        end
+      it "enqueues a BulkIndexUpdateJob" do
+        expect { perform }.to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post.id])
       end
     end
   end

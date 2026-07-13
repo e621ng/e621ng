@@ -27,6 +27,7 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
       results = await TagQueryProvider.findMetatags(parsed.metatag, parsed.term || "");
     else {
       results = await TagProvider.findTags(parsed.term);
+
       if (LStorage.Posts.AutocompleteCache) {
         const scores = new Map(results.map((item, index) => [
           item.name,
@@ -34,6 +35,8 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
         ]));
         results = results.sort((a, b) => (scores.get(b.name) ?? 0) - (scores.get(a.name) ?? 0));
       }
+
+      results = [...TagQueryProvider.getStaticMetatags("type", parsed.term), ...results].slice(0, 10);
     }
 
     if (parsed.prefix)
@@ -82,10 +85,16 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
     if (!bareName.includes(":") && LStorage.Posts.AutocompleteCache)
       TagFrequencyCache.record(bareName);
 
-    const beforeCaret = input.value.substring(0, input.selectionStart).trim();
+    const rawBeforeCaret = input.value.substring(0, input.selectionStart);
     const afterCaret = input.value.substring(input.selectionStart).trim();
 
-    const newBeforeCaret = beforeCaret.replace(/\S+$/, completion);
+    // Replace the partial tag directly before the caret.
+    // When the caret sits after whitespace (e.g. a tag was just inserted with the dropdown kept open),
+    // there is no partial tag, so append a new one instead of overwriting the previous complete tag.
+    const beforeCaret = rawBeforeCaret.trim();
+    const newBeforeCaret = /\S$/.test(rawBeforeCaret)
+      ? beforeCaret.replace(/\S+$/, completion)
+      : (beforeCaret.length ? beforeCaret + " " : "") + completion;
 
     const needsSpace = afterCaret.length === 0 || !afterCaret.startsWith(" ");
     const finalValue = newBeforeCaret + (needsSpace ? " " : "") + afterCaret;
@@ -135,6 +144,12 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
     const options = Constants.STATIC_METATAGS[metatag];
     if (!options) return [];
     term = term.trim().toLowerCase();
+
+    // Resolve filetype aliases
+    if (metatag === "filetype" || metatag === "type") {
+      const alias = Constants.FILETYPE_ALIASES[term];
+      if (alias) term = alias;
+    }
 
     return (options as string[])
       .filter(option => !term || option.startsWith(term))

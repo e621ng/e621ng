@@ -158,32 +158,23 @@ RSpec.describe ElasticPostQueryBuilder do
   end
 
   describe "order:hot" do
-    it "sets @function_score with a script_score component" do
+    it "sorts by hotness desc then id desc" do
+      expect(build_query("order:hot").order).to eq([{ hotness: :desc }, { id: :desc }])
+    end
+
+    it "does not filter by score or created_at" do
+      must = build_query("order:hot").must
+      expect(must).not_to include({ range: { score: { gt: 0 } } })
+      expect(must.find { |c| c.dig(:range, :created_at) }).to be_nil
+    end
+
+    it "does not build a function_score" do
       builder = build_query("order:hot")
-      fs = builder.instance_variable_get(:@function_score)
-      expect(fs).to be_present
-      expect(fs).to have_key(:script_score)
+      expect(builder.instance_variable_get(:@function_score)).to be_nil
     end
 
-    it "pushes a score > 0 range clause to must" do
-      expect(build_query("order:hot").must).to include({ range: { score: { gt: 0 } } })
-    end
-
-    it "pushes a created_at range clause to must" do
-      must = build_query("order:hot").must
-      range_clause = must.find { |c| c.dig(:range, :created_at) }
-      expect(range_clause).to be_present
-    end
-
-    it "pushes _score:desc onto order" do
-      expect(build_query("order:hot").order).to include({ _score: :desc })
-    end
-
-    it "includes gte and no lte when no hot_from is given" do
-      must = build_query("order:hot").must
-      range_clause = must.find { |c| c.dig(:range, :created_at) }
-      expect(range_clause.dig(:range, :created_at)).to have_key(:gte)
-      expect(range_clause.dig(:range, :created_at)).not_to have_key(:lte)
+    it "treats order:rank as an alias of order:hot" do
+      expect(build_query("order:rank").order).to eq([{ hotness: :desc }, { id: :desc }])
     end
   end
 

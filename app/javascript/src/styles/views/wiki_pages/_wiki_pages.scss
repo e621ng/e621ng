@@ -1,4 +1,33 @@
-#c-wiki-pages {
+#c-wiki-pages, #c-wiki-page-versions {
+  #a-show #content {
+    container-type: inline-size;
+    container-name: wiki-content;
+  }
+
+  .wiki-featured-posts {
+    margin: 0.5rem 0 1rem;
+
+    // Multiple featured posts: a wrapping thumbnail row.
+    &.wiki-featured-row {
+      display: flex;
+      flex-flow: row wrap;
+      gap: 0.5rem;
+
+      @container wiki-content (max-width: 940px) {
+        max-width: 466px;
+      }
+    }
+
+    // Single featured post: an enlarged "hero" image.
+    &.wiki-featured-hero article.thumbnail {
+      --thumb-image-size: 380px;
+
+      @include window-smaller-than(30rem) {
+        img { max-width: calc(100vw - 1rem); }
+      }
+    }
+  }
+
   .automated-tag-notice {
     max-width: 50rem;
     box-sizing: border-box;
@@ -21,6 +50,29 @@
         width: 1rem;
         height: 1rem;
       }
+    }
+  }
+}
+
+#c-wiki-pages #a-new, #c-wiki-pages #a-edit {
+  #wiki_page_featured_posts_string {
+    width: 100%;
+    max-width: 50rem;
+    box-sizing: border-box;
+  }
+
+  #featured-posts-preview {
+    margin: 0.5rem 0 1rem;
+
+    .featured-posts-preview-error {
+      color: palette("text-red");
+      margin-bottom: 0.5rem;
+    }
+
+    .featured-posts-preview-list {
+      display: flex;
+      flex-flow: row wrap;
+      gap: 0.5rem;
     }
   }
 }

@@ -69,6 +69,12 @@ RSpec.describe TagQuery do
         expect(TagQuery.new("-#{t}")[:filetype_must_not]).to include(t)
       end
     end
+
+    it "resolves filetype aliases" do
+      expect(TagQuery.new("flash")[:filetype]).to include("swf")
+      expect(TagQuery.new("-flash")[:filetype_must_not]).to include("swf")
+      expect(TagQuery.new("~flash")[:filetype_should]).to include("swf")
+    end
   end
 
   describe "source: metatag" do

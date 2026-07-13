@@ -1,0 +1,16 @@
+<%# locals: (wiki_content:) %>
+
+<% featured_ids = wiki_content.featured_posts %>
+<% if featured_ids.present? %>
+  <% posts_by_id = Post.where(id: featured_ids).index_by(&:id) %>
+  <% posts = featured_ids.filter_map { |id| posts_by_id[id] } %>
+  <% if posts.any? %>
+    <div id="wiki-featured-posts" class="wiki-featured-posts <%= posts.size == 1 ? "wiki-featured-hero" : "wiki-featured-row" %>">
+      <% if posts.size == 1 %>
+        <%= render(PostThumbnailComponent.new(post: posts.first, show_deleted: true, stats: false, show_samples: true, native: true)) %>
+      <% else %>
+        <%= render(PostThumbnailComponent.with_collection(posts, show_deleted: true, stats: false)) %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

@@ -1997,7 +1997,8 @@ CREATE TABLE public.posts (
     is_comment_disabled boolean DEFAULT false NOT NULL,
     is_comment_locked boolean DEFAULT false NOT NULL,
     tag_count_contributor integer DEFAULT 0 NOT NULL,
-    video_samples jsonb DEFAULT '{}'::jsonb NOT NULL
+    video_samples jsonb DEFAULT '{}'::jsonb NOT NULL,
+    hotness double precision DEFAULT 0.0 NOT NULL
 );
 
 
@@ -2980,7 +2981,8 @@ CREATE TABLE public.wiki_page_versions (
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL,
     reason character varying,
-    parent character varying
+    parent character varying,
+    featured_posts integer[] DEFAULT '{}'::integer[] NOT NULL
 );
 
 
@@ -3019,7 +3021,8 @@ CREATE TABLE public.wiki_pages (
     updater_id integer,
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
     is_deleted boolean DEFAULT false NOT NULL,
-    parent character varying
+    parent character varying,
+    featured_posts integer[] DEFAULT '{}'::integer[] NOT NULL
 );
 
 
@@ -6102,6 +6105,8 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250220212831'),
+('20260707182943'),
+('20260702120000'),
 ('20260624213023'),
 ('20260622142717'),
 ('20260617120000'),

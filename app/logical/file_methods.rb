@@ -11,6 +11,10 @@ module FileMethods
     webp: "webp",
   }.freeze
 
+  FILE_TYPE_ALIASES = {
+    "flash" => "swf",
+  }.freeze
+
   def is_of_type?(type)
     file_ext == FileMethods::FILE_TYPE[type]
   end

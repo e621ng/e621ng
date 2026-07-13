@@ -200,6 +200,50 @@ RSpec.describe "OIDC endpoints" do
     end
   end
 
+  describe "consent page CSP form-action" do
+    let(:password) { "hexerade" }
+    let(:user)     { create(:user) }
+    let(:owner)    { create(:user) }
+    let(:redirect) { "https://client.example/callback" }
+    let(:oauth_app) do
+      Doorkeeper::Application.create!(
+        name: "csp-client", redirect_uri: redirect,
+        scopes: "openid full", confidential: true, owner: owner
+      )
+    end
+    let(:verifier)  { SecureRandom.urlsafe_base64(64).delete("=")[0, 64] }
+    let(:challenge) { Base64.urlsafe_encode64(Digest::SHA256.digest(verifier), padding: false) }
+
+    def authorize_url(redirect_uri: redirect)
+      "/oauth/authorize?" + {
+        response_type: "code", client_id: oauth_app.uid, redirect_uri: redirect_uri,
+        scope: "openid full", state: "csp",
+        code_challenge: challenge, code_challenge_method: "S256",
+      }.to_query
+    end
+
+    before { make_session(user, password) }
+
+    it "allows the app's redirect_uri origin as a form-action target" do
+      get authorize_url
+      expect(response).to have_http_status(:ok)
+      expect(response.headers["Content-Security-Policy"]).to include("form-action 'self' https://client.example")
+    end
+
+    it "keeps an ephemeral port in the origin" do
+      oauth_app.update!(redirect_uri: "http://localhost:3036/cb")
+      get authorize_url(redirect_uri: "http://localhost:3036/cb")
+      expect(response.headers["Content-Security-Policy"]).to include("form-action 'self' http://localhost:3036")
+    end
+
+    it "does not relax form-action on the non-authorizable error path" do
+      get authorize_url(redirect_uri: "https://evil.example/callback")
+      expect(response).not_to have_http_status(:ok)
+      expect(response.headers["Content-Security-Policy"]).to include("form-action 'self'")
+      expect(response.headers["Content-Security-Policy"]).not_to include("evil.example")
+    end
+  end
+
   describe "/oauth/authorize when the application's owner is banned" do
     let(:password) { "hexerade" }
     let(:user)     { create(:user) }
@@ -640,6 +684,53 @@ RSpec.describe "OIDC endpoints" do
 
     it "rejects a refresh token idle past the window" do
       token.update_column(:created_at, 31.days.ago)
+      refresh
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["error"]).to eq("invalid_grant")
+    end
+  end
+
+  describe "minimum_user_level gate on refresh" do
+    let(:owner) { create(:user) }
+    let(:user)  { create(:privileged_user) }
+    let(:oauth_app) do
+      Doorkeeper::Application.create!(
+        name: "id-only-client", redirect_uri: "http://localhost/cb",
+        scopes: "openid", confidential: true, owner: owner,
+        minimum_user_level: UserLevel::PRIVILEGED
+      )
+    end
+    let(:token) do
+      Doorkeeper::AccessToken.create!(
+        application: oauth_app, resource_owner_id: user.id,
+        scopes: "openid", use_refresh_token: true
+      )
+    end
+
+    def refresh
+      post "/oauth/token", params: {
+        grant_type: "refresh_token",
+        refresh_token: token.refresh_token,
+        client_id: oauth_app.uid,
+        client_secret: oauth_app.plaintext_secret,
+      }
+    end
+
+    it "refreshes while the user still meets the minimum level" do
+      refresh
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["access_token"]).to be_present
+    end
+
+    it "rejects the refresh after the user is demoted below the minimum level" do
+      user.update_column(:level, UserLevel::MEMBER)
+      refresh
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["error"]).to eq("invalid_grant")
+    end
+
+    it "rejects the refresh after the app owner becomes restricted" do
+      owner.update_column(:level, UserLevel::BLOCKED)
       refresh
       expect(response).to have_http_status(:bad_request)
       expect(response.parsed_body["error"]).to eq("invalid_grant")

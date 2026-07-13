@@ -81,6 +81,7 @@ class PostBlueprint < Blueprinter::Base
       is_favorited: post.is_favorited?,
       vote: post.vote_by,
       comment_count: post.visible_comment_count(CurrentUser.user),
+      hotness: post.hotness,
     }
   end
 

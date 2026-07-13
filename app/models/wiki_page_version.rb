@@ -2,6 +2,7 @@
 
 class WikiPageVersion < ApplicationRecord
   array_attribute :other_names
+  array_attribute :featured_posts, parse: /\d+/, cast: :to_i
   belongs_to :wiki_page
   belongs_to_updater
   user_status_counter :wiki_edit_count, foreign_key: :updater_id

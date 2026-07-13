@@ -82,7 +82,7 @@ class TagQuery
     commenter comm noter noteupdater flagreason flagnote flaggedby
   ].concat(CATEGORY_METATAG_MAP.keys).freeze
 
-  METATAGS = %w[md5 order limit child randseed hot_from ratinglocked notelocked statuslocked].concat(
+  METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].concat(
     NEGATABLE_METATAGS, COUNT_METATAGS, BOOLEAN_METATAGS
   ).freeze
 
@@ -216,7 +216,7 @@ class TagQuery
   # Therefore, these are pulled out of groups and placed on the top level of searches.
   #
   # Note that this includes all valid prefixes.
-  GLOBAL_METATAGS = %w[order -order limit randseed hot_from].freeze
+  GLOBAL_METATAGS = %w[order -order limit randseed].freeze
 
   # The values for the `status` metatag that will override the automatic hiding of deleted posts
   # from search results. Other tags do also alter this behavior; specifically, a `deletedby` or
@@ -1450,8 +1450,6 @@ class TagQuery
 
       when "age", "-age", "~age" then add_to_query(type, :age, ParseValue.invert_range(ParseValue.range(g2, :age)))
 
-      when "hot_from" then q[:hot_from] = ParseValue.date_from(g2)
-
       when "tagcount", "-tagcount", "~tagcount" then add_to_query(type, :post_tag_count, ParseValue.range(g2))
 
       when /[-~]?(#{TagCategory::SHORT_NAME_REGEX})tags/
@@ -1557,8 +1555,11 @@ class TagQuery
 
   # Checks if a certain tag should be transformed into a metatag, and adds it accordingly if so.
   def intercept_metatag_alias(tag, type)
-    if FileMethods::FILE_TYPE.value?(tag)
-      add_to_query(type, :filetype, tag)
+    filetype = FileMethods::FILE_TYPE_ALIASES[tag]
+    filetype ||= tag if FileMethods::FILE_TYPE.value?(tag)
+
+    if filetype
+      add_to_query(type, :filetype, filetype)
       return true
     end
     nil

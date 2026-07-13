@@ -24,6 +24,7 @@ module PostIndex
           up_score: { type: "integer" },
           down_score: { type: "integer" },
           score: { type: "integer" },
+          hotness: { type: "double" },
           fav_count: { type: "integer" },
           tag_count: { type: "integer" },
           change_seq: { type: "long" },
@@ -102,7 +103,7 @@ module PostIndex
         [pid, array[1..-2].split(",")]
       end
 
-      relation.find_in_batches do |batch|
+      relation.find_in_batches(batch_size: batch_size) do |batch|
         post_ids = batch.map(&:id).join(",")
 
         comments_sql = <<-SQL
@@ -171,6 +172,11 @@ module PostIndex
         verified_artists_sql = <<-SQL.squish
           SELECT name, linked_user_id FROM artists WHERE linked_user_id IS NOT NULL
         SQL
+        fav_count_sql = <<-SQL
+          SELECT post_id, count(*) FROM favorites
+          WHERE post_id IN (#{post_ids})
+          GROUP BY post_id
+        SQL
 
         # Run queries
         conn = ApplicationRecord.connection
@@ -196,6 +202,7 @@ module PostIndex
         notes            = Hash.new { |h, k| h[k] = [] }
         conn.execute(note_sql).values.each { |p, b| notes[p] << b }
         pending_replacements = conn.execute(pending_replacements_sql).values.to_h
+        fav_counts = conn.execute(fav_count_sql).values.to_h
 
         # Special handling for votes to do it with one query
         vote_ids = conn.execute(votes_sql).values.map do |pid, uids, scores|
@@ -226,6 +233,7 @@ module PostIndex
             flagger:                  flagger_ids[p.id]    || empty,
             flag_reason:              flag_reasons[p.id]   || empty,
             flag_note:                flag_notes[p.id]     || empty,
+            fav_count:                fav_counts[p.id]     || 0,
             flagged_at:               flag_dates[p.id],
             has_pending_replacements: pending_replacements[p.id],
             artverified:              p.tag_array.any? { |tag| verified_artists.key?(tag) && verified_artists[tag] == p.uploader_id },
@@ -265,7 +273,8 @@ module PostIndex
       up_score:                 up_score,
       down_score:               down_score,
       score:                    score,
-      fav_count:                fav_count,
+      hotness:                  hotness,
+      fav_count:                options.key?(:fav_count) ? options[:fav_count] : fav_count,
       tag_count:                tag_count,
       change_seq:               change_seq,
 
