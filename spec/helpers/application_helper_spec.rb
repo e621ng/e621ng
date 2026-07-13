@@ -57,8 +57,8 @@ RSpec.describe ApplicationHelper do
 
     context "when the current path is the sign-in page" do
       before do
-        dpath = instance_double(ActionDispatch::Request, path: new_session_path, fullpath: new_session_path)
-        allow(helper).to receive(:request).and_return(dpath)
+        request = instance_double(ActionDispatch::Request, path: new_session_path, fullpath: new_session_path)
+        allow(helper).to receive(:request).and_return(request)
       end
 
       it { is_expected.to eq(new_session_path) }
@@ -66,11 +66,24 @@ RSpec.describe ApplicationHelper do
 
     context "when the current path is not the sign-in page" do
       before do
-        dpath = instance_double(ActionDispatch::Request, path: "/posts", fullpath: "/posts?search[tags]=test")
-        allow(helper).to receive(:request).and_return(dpath)
+        request = instance_double(ActionDispatch::Request, path: "/posts", fullpath: "/posts?search[tags]=test")
+        allow(helper).to receive(:request).and_return(request)
       end
 
       it { is_expected.to eq(new_session_path(url: "/posts?search[tags]=test")) }
+    end
+
+    context "when the current path is longer than 2000 characters" do
+      before do
+        long_path = "/posts?search[tags]=#{'a' * 3000}"
+        request = instance_double(ActionDispatch::Request, path: "/posts", fullpath: long_path)
+        allow(helper).to receive(:request).and_return(request)
+      end
+
+      it "truncates the URL parameter to 2000 characters" do
+        length = 2000 + new_session_path(url: "").length
+        expect(path.length).to be <= length
+      end
     end
   end
 end
