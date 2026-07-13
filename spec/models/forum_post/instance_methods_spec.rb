@@ -406,11 +406,17 @@ RSpec.describe ForumPost do
     context "when the post has a positive score (3 up, 1 down)" do
       before do
         # Setup votes: 3 Upvotes, 1 Downvote. Total = 4. Score = (3 - 1) / 4 = 0.5
-        create_list(:forum_post_vote, 3, forum_post: post, score: 1)
-        create(:forum_post_vote, forum_post: post, score: -1)
+        # We need to manually create votes from different users
+        create(:forum_post_vote, forum_post: post, score: 1, creator: janitor)
+        create(:forum_post_vote, forum_post: post, score: 1, creator: moderator)
+        create(:forum_post_vote, forum_post: post, score: 1, creator: other)
+        create(:forum_post_vote, forum_post: post, score: -1, creator: member)
+        allow(post).to receive(:votable?).and_return(true)
       end
 
       it "calculates the correct positive ratio" do
+        expect(post.votable?).to be true
+        expect(post.votes.count).to eq(4)
         expect(post.vote_score_calculation).to eq(0.5)
       end
     end
@@ -418,11 +424,17 @@ RSpec.describe ForumPost do
     context "when the post has a negative score (1 up, 3 down)" do
       before do
         # Setup votes: 1 Upvote, 3 Downvotes. Total = 4. Score = (1 - 3) / 4 = -0.5
-        create(:forum_post_vote, forum_post: post, score: 1)
-        create_list(:forum_post_vote, 3, forum_post: post, score: -1)
+        # We need to manually create votes from different users
+        create(:forum_post_vote, forum_post: post, score: -1, creator: janitor)
+        create(:forum_post_vote, forum_post: post, score: -1, creator: moderator)
+        create(:forum_post_vote, forum_post: post, score: -1, creator: other)
+        create(:forum_post_vote, forum_post: post, score: 1, creator: member)
+        allow(post).to receive(:votable?).and_return(true)
       end
 
       it "calculates the correct negative ratio" do
+        expect(post.votable?).to be true
+        expect(post.votes.count).to eq(4)
         expect(post.vote_score_calculation).to eq(-0.5)
       end
     end
