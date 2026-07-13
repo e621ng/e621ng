@@ -2,7 +2,7 @@
 
 module Staff
   class VoteTrendsController < ApplicationController
-    before_action :admin_only
+    before_action :staff_only
     respond_to :html, :json
 
     def index

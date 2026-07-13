@@ -6,7 +6,7 @@ RSpec.describe "Admin::VoteTrendsController" do
   describe "GET /admin/vote_trends" do
     let(:target_user) { create(:user) }
     let(:member_user) { create(:user) }
-    let(:admin_user) { create(:admin_user) }
+    let(:staff_user) { create(:staff_user) }
 
     it "redirects anonymous users" do
       get staff_vote_trends_path
@@ -19,9 +19,9 @@ RSpec.describe "Admin::VoteTrendsController" do
       expect(response).to have_http_status(:forbidden)
     end
 
-    context "as an admin" do
+    context "as a staff member" do
       it "returns an empty result when user is missing" do
-        sign_in_as admin_user
+        sign_in_as staff_user
 
         allow(VoteTrends).to receive(:vote_abuse_patterns)
 
@@ -32,7 +32,7 @@ RSpec.describe "Admin::VoteTrendsController" do
       end
 
       it "returns an empty result when user param is blank" do
-        sign_in_as admin_user
+        sign_in_as staff_user
 
         allow(VoteTrends).to receive(:vote_abuse_patterns)
 
@@ -45,7 +45,7 @@ RSpec.describe "Admin::VoteTrendsController" do
       it "calls VoteTrends with normalized params" do
         allow(VoteTrends).to receive(:vote_abuse_patterns).and_return([])
 
-        sign_in_as admin_user
+        sign_in_as staff_user
 
         get staff_vote_trends_path, params: {
           user: target_user.name,
