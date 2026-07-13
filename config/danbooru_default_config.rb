@@ -412,6 +412,10 @@ module Danbooru
       10_000
     end
 
+    def user_feedback_expires_after
+      6.months
+    end
+
     def discord_site
     end
 

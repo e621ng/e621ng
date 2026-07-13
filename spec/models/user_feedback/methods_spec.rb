@@ -117,5 +117,51 @@ RSpec.describe UserFeedback do
         expect(target.destroyable_by?(admin)).to be(false)
       end
     end
+
+    # -------------------------------------------------------------------------
+    # #expires_at
+    # -------------------------------------------------------------------------
+    describe "#expires_at" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive(:user_feedback_expires_after).and_return(3.days)
+      end
+
+      it "returns nil for positive feedback" do
+        feedback.update(category: "positive")
+        expect(feedback.expires_at).to be_nil
+      end
+
+      it "returns nil for deleted feedback" do
+        feedback.update(is_deleted: true)
+        expect(feedback.expires_at).to be_nil
+      end
+
+      it "returns nil for feedback with a body indicating permanent ban" do
+        feedback.update(body: "Banned permanently for violating rules")
+        expect(feedback.expires_at).to be_nil
+      end
+
+      it "returns a future expiration date for negative feedback" do
+        feedback.update(category: "negative", body: "User is a very naughty boy.")
+        expect(feedback.expires_at).to be > Time.current
+      end
+
+      it "returns a future expiration date for neutral feedback" do
+        feedback.update(category: "neutral", body: "Some neutral feedback")
+        expect(feedback.expires_at).to be > Time.current
+      end
+
+      it "returns an expiration date that is 3 times the default for ban feedback" do
+        feedback.update(category: "negative", body: "Banned for 7 days")
+        expected_expiration = feedback.created_at + (3.days * 3) # 3 times the default
+        expect(feedback.expires_at).to be_within(1.second).of(expected_expiration)
+      end
+
+      it "returns an expiration date that is 2 times the default for negative feedback" do
+        feedback.update(category: "negative", body: "Some negative feedback")
+        expected_expiration = feedback.created_at + (3.days * 2) # 2 times the default
+        expect(feedback.expires_at).to be_within(1.second).of(expected_expiration)
+      end
+    end
   end
 end

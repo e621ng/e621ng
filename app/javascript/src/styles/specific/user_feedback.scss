@@ -42,3 +42,10 @@ div#c-user-feedbacks, div#c-staff-moderator-dashboards .activity-container {
     padding: 0.5em 0;
   }
 }
+
+div#c-user-feedbacks #a-index {
+  .user-feedback-expired {
+    margin-top: 0.5rem;
+    font-weight: bold;
+  }
+}
