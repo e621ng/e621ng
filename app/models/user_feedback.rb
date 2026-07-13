@@ -60,7 +60,7 @@ class UserFeedback < ApplicationRecord
     end
 
     def default_order
-      order(created_at: :desc)
+      order(created_at: :desc, id: :desc)
     end
 
     def visible(user)
