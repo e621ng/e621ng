@@ -398,79 +398,36 @@ RSpec.describe ForumPost do
   end
 
   # -------------------------------------------------------------------------
-  # Vote score calculation
+  # #vote_score_calculation
   # -------------------------------------------------------------------------
   describe "#vote_score_calculation" do
-    # Use instance_double for better type safety and verification
-    let(:post) { instance_double(ForumPost, votes: nil) } # Initialize with a placeholder
+    let(:post) { make_post }
 
-    context "when the post has a positive score" do
+    context "when the post has a positive score (3 up, 1 down)" do
       before do
-        # 1. Mocking the Vote object (The association result)
-        mock_votes = instance_double(Votes)
-
-        # FIX: Use receive_messages for multiple stubs on mock_votes
-        allow(mock_votes).to receive_messages(
-          count: 4,
-          up: instance_double(Upvote, count: 3),
-          down: instance_double(Downvote, count: 1),
-        )
-
-        # FIX: Use receive_messages for multiple stubs on post
-        allow(post).to receive_messages(
-          votable?: true, # Combine the two allows into one block
-          votes: mock_votes,
-        )
+        # Setup votes: 3 Upvotes, 1 Downvote. Total = 4. Score = (3 - 1) / 4 = 0.5
+        create_list(:forum_post_vote, 3, forum_post: post, score: 1)
+        create(:forum_post_vote, forum_post: post, score: -1)
       end
 
       it "calculates the correct positive ratio" do
-        # Expected: (3 - 1) / 4 = 0.5
         expect(post.vote_score_calculation).to eq(0.5)
       end
     end
 
-    context "when the post has a negative score" do
+    context "when the post has a negative score (1 up, 3 down)" do
       before do
-        mock_votes = instance_double(Votes)
-
-        # Use receive_messages for clean stubbing (Already correct here, but kept for consistency)
-        allow(mock_votes).to receive_messages(
-          count: 4,
-          up: instance_double(Upvote, count: 1),
-          down: instance_double(Downvote, count: 3),
-        )
-
-        # FIX: Use receive_messages for multiple stubs on post
-        allow(post).to receive_messages(
-          votable?: true, # Combine the two allows into one block
-          votes: mock_votes,
-        )
+        # Setup votes: 1 Upvote, 3 Downvotes. Total = 4. Score = (1 - 3) / 4 = -0.5
+        create(:forum_post_vote, forum_post: post, score: 1)
+        create_list(:forum_post_vote, 3, forum_post: post, score: -1)
       end
 
       it "calculates the correct negative ratio" do
-        # Expected: (1 - 3) / 4 = -0.5
         expect(post.vote_score_calculation).to eq(-0.5)
       end
     end
 
     context "when the post has no votes (Total = 0)" do
-      before do
-        mock_votes = instance_double(Votes)
-
-        # FIX: Consolidate all stubs on mock_votes into receive_messages
-        allow(mock_votes).to receive_messages(
-          count: 0,
-          up: instance_double(Upvote, count: 0),
-          down: instance_double(Downvote, count: 0),
-        )
-
-        # FIX: Use receive_messages for multiple stubs on post
-        allow(post).to receive_messages(
-          votable?: true, # Combine the two allows into one block
-          votes: mock_votes,
-        )
-      end
-
       it "returns 0.0 if there are no votes" do
         expect(post.vote_score_calculation).to eq(0.0)
       end
@@ -478,11 +435,7 @@ RSpec.describe ForumPost do
 
     context "when the post is not votable" do
       before do
-        # FIX: Use receive_messages for multiple stubs on post
-        allow(post).to receive_messages(
-          votable?: false, # Set the guard clause to fail
-          votes: instance_double(Votes), # Still need to stub 'votes' so the method doesn't crash if it tries to access it.
-        )
+        allow(post).to receive(:votable?).and_return(false) # Simulate the check that prevents voting logic from running
       end
 
       it "returns 0.0 if votable? returns false" do
