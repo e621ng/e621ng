@@ -409,16 +409,18 @@ RSpec.describe ForumPost do
         # 1. Mocking the Vote object (The association result)
         mock_votes = instance_double(Votes)
 
-        # Use receive_messages to set up multiple return values on one double cleanly
+        # FIX: Use receive_messages for multiple stubs on mock_votes
         allow(mock_votes).to receive_messages(
           count: 4,
           up: instance_double(Upvote, count: 3),
           down: instance_double(Downvote, count: 1),
         )
 
-        # 2. Mocking the Post association
-        allow(post).to receive(:votable?).and_return(true)
-        allow(post).to receive(:votes).and_return(mock_votes)
+        # FIX: Use receive_messages for multiple stubs on post
+        allow(post).to receive_messages(
+          votable?: true, # Combine the two allows into one block
+          votes: mock_votes,
+        )
       end
 
       it "calculates the correct positive ratio" do
@@ -431,15 +433,18 @@ RSpec.describe ForumPost do
       before do
         mock_votes = instance_double(Votes)
 
-        # Use receive_messages for clean stubbing
+        # Use receive_messages for clean stubbing (Already correct here, but kept for consistency)
         allow(mock_votes).to receive_messages(
           count: 4,
           up: instance_double(Upvote, count: 1),
           down: instance_double(Downvote, count: 3),
         )
 
-        allow(post).to receive(:votable?).and_return(true)
-        allow(post).to receive(:votes).and_return(mock_votes)
+        # FIX: Use receive_messages for multiple stubs on post
+        allow(post).to receive_messages(
+          votable?: true, # Combine the two allows into one block
+          votes: mock_votes,
+        )
       end
 
       it "calculates the correct negative ratio" do
@@ -452,16 +457,18 @@ RSpec.describe ForumPost do
       before do
         mock_votes = instance_double(Votes)
 
-        # Setup mocks for zero count scenario
-        allow(mock_votes).to receive(:count).and_return(0)
+        # FIX: Consolidate all stubs on mock_votes into receive_messages
+        allow(mock_votes).to receive_messages(
+          count: 0,
+          up: instance_double(Upvote, count: 0),
+          down: instance_double(Downvote, count: 0),
+        )
 
-        # Use receive_messages if more methods were stubbed, but here we only need 'count'
-        # If the method under test calls up/down even when count is 0, we should stub them too.
-        allow(mock_votes).to receive(:up).and_return(instance_double(Upvote, count: 0))
-        allow(mock_votes).to receive(:down).and_return(instance_double(Downvote, count: 0))
-
-        allow(post).to receive(:votable?).and_return(true)
-        allow(post).to receive(:votes).and_return(mock_votes)
+        # FIX: Use receive_messages for multiple stubs on post
+        allow(post).to receive_messages(
+          votable?: true, # Combine the two allows into one block
+          votes: mock_votes,
+        )
       end
 
       it "returns 0.0 if there are no votes" do
@@ -471,12 +478,11 @@ RSpec.describe ForumPost do
 
     context "when the post is not votable" do
       before do
-        # We only need to mock the guard clause check
-        allow(post).to receive(:votable?).and_return(false)
-
-        # Mocking votes here just ensures the method call doesn't crash, but it should never be accessed.
-        mock_votes = instance_double(Votes)
-        allow(post).to receive(:votes).and_return(mock_votes)
+        # FIX: Use receive_messages for multiple stubs on post
+        allow(post).to receive_messages(
+          votable?: false, # Set the guard clause to fail
+          votes: instance_double(Votes), # Still need to stub 'votes' so the method doesn't crash if it tries to access it.
+        )
       end
 
       it "returns 0.0 if votable? returns false" do
