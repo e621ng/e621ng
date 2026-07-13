@@ -400,66 +400,67 @@ RSpec.describe ForumPost do
   # -------------------------------------------------------------------------
   # Vote score calculation
   # -------------------------------------------------------------------------
-  describe '#vote_score_calculation' do
-    let(:post) { instance_double(ForumPost, votes: double('votes')) }
+  describe "#vote_score_calculation" do
+    let(:post) { instance_double(ForumPost, votes: double("votes")) }
 
-    context 'when the post has a positive score' do
+    context "when the post has a positive score" do
       before do
         # Mocking 3 upvotes and 1 downvote (Total = 4)
         allow(post).to receive(:votable?).and_return(true)
-        mock_votes = double('votes')
+        mock_votes = double("votes")
         allow(mock_votes).to receive(:count).and_return(4)
         # Assuming up/down are accessible counts or associations
-        allow(mock_votes).to receive(:up).and_return(double('up', count: 3))
-        allow(mock_votes).to receive(:down).and_return(double('down', count: 1))
+        allow(mock_votes).to receive(:up).and_return(double("up", count: 3))
+        allow(mock_votes).to receive(:down).and_return(double("down", count: 1))
 
         allow(post).to receive(:votes).and_return(mock_votes)
       end
 
-      it 'calculates the correct positive ratio' do
+      it "calculates the correct positive ratio" do
         # Expected: (3 - 1) / 4 = 0.5
         expect(post.vote_score_calculation).to eq(0.5)
       end
     end
 
-    context 'when the post has a negative score' do
+    context "when the post has a negative score" do
       before do
         allow(post).to receive(:votable?).and_return(true)
-        mock_votes = double('votes')
+        mock_votes = double("votes")
         allow(mock_votes).to receive(:count).and_return(4)
-        allow(mock_votes).to receive(:up).and_return(double('up', count: 1))
-        allow(mock_votes).to receive(:down).and_return(double('down', count: 3))
+        allow(mock_votes).to receive(:up).and_return(double("up", count: 1))
+        allow(mock_votes).to receive(:down).and_return(double("down", count: 3))
 
         allow(post).to receive(:votes).and_return(mock_votes)
       end
 
-      it 'calculates the correct negative ratio' do
+      it "calculates the correct negative ratio" do
         # Expected: (1 - 3) / 4 = -0.5
         expect(post.vote_score_calculation).to eq(-0.5)
       end
     end
-    context 'when the post has no votes (Total = 0)' do
+
+    context "when the post has no votes (Total = 0)" do
       before do
         allow(post).to receive(:votable?).and_return(true)
-        mock_votes = double('votes')
+        mock_votes = double("votes")
         # Crucial test for zero count
-        allow(mock_votes).to receive(:count).and_return(0) 
+        allow(mock_votes).to receive(:count).and_return(0)
         allow(post).to receive(:votes).and_return(mock_votes)
       end
 
-      it 'returns 0.0 if there are no votes' do
+      it "returns 0.0 if there are no votes" do
         expect(post.vote_score_calculation).to eq(0.0)
       end
     end
 
-    context 'when the post is not votable' do
+    context "when the post is not votable" do
       before do
         allow(post).to receive(:votable?).and_return(false) # Simulate restriction
         # We don't even need to mock votes here, as the guard clause should catch it.
-        allow(post).to receive(:votes).and_return(double('votes', count: 5))
+        allow(post).to receive(:votes).and_return(double("votes", count: 5))
       end
 
-      it 'returns 0.0 if votable? returns false' do
+      it "returns 0.0 if votable? returns false" do
         expect(post.vote_score_calculation).to eq(0.0)
       end
     end
