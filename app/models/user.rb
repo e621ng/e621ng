@@ -704,8 +704,20 @@ class User < ApplicationRecord
       end
     end
 
+    def pending_upload_limit
+      return 0 if no_uploading?
+      return 100 if upload_karma_free?
+
+      @pending_upload_limit ||= pending_upload_max - pending_post_count
+    end
+
+    def pending_upload_max
+      return 100 if upload_karma_free?
+      @pending_upload_max ||= 100 - post_deleted_count - own_post_replaced_penalize_count
+    end
+
     def pending_post_count
-      Post.pending_or_flagged.for_user(id).count + post_replacements.pending.count
+      @pending_post_count ||= Post.pending_or_flagged.for_user(id).count + post_replacements.pending.count
     end
 
     def post_upload_throttle
@@ -1153,6 +1165,13 @@ class User < ApplicationRecord
     super
     @feedback_pieces = nil
     @is_artist = nil
+
+    @pending_upload_limit = nil
+    @pending_upload_max = nil
+    @pending_post_count = nil
+    @post_upload_throttle = nil
+    @hourly_upload_limit = nil
+
     self
   end
 
