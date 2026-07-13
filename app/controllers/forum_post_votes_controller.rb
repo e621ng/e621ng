@@ -10,6 +10,11 @@ class ForumPostVotesController < ApplicationController
   before_action :ensure_no_vote_on_own_post, only: [:create]
   before_action :ensure_lockdown_disabled
 
+  def show
+    @forum_post_votes = @forum_post.votes.includes(:creator)
+    respond_with(@forum_post_votes)
+  end
+
   def create
     @forum_post_vote = @forum_post.votes.create(forum_post_vote_params)
     raise User::PrivilegeError, @forum_post_vote.errors.full_messages.join("; ") unless @forum_post_vote.errors.empty?

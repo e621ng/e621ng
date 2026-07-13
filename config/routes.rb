@@ -248,7 +248,7 @@ Rails.application.routes.draw do
   resources :db_exports, only: %i[index]
   resources :favorites, only: %i[index create destroy]
   resources :forum_posts do
-    resource :votes, controller: "forum_post_votes"
+    resource :votes, controller: "forum_post_votes", only: %i[show create destroy]
     member do
       post :hide
       post :unhide
