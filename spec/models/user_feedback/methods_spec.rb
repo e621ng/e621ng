@@ -142,7 +142,7 @@ RSpec.describe UserFeedback do
       end
 
       it "returns a future expiration date for negative feedback" do
-        feedback.update(category: "negative", body: "Banned for 7 days")
+        feedback.update(category: "negative", body: "User is a very naughty boy.")
         expect(feedback.expires_at).to be > Time.current
       end
 
