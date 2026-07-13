@@ -137,7 +137,7 @@ class UserFeedback < ApplicationRecord
   def expires_at
     return nil if category == "positive" || is_deleted? || body =~ /^Banned permanently/
     @expires_at ||= begin
-      is_ban = body =~ /^Banned for \d+/
+      is_ban = body =~ /^Banned for /
       multiplier = if is_ban
                      3
                    elsif category == "negative"
