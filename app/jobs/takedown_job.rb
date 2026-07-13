@@ -23,10 +23,14 @@ class TakedownJob < ApplicationJob
       @takedown.actual_posts.find_each do |p|
         if @takedown.should_delete(p.id)
           next if p.is_deleted?
-          p.delete!("takedown ##{@takedown.id}: #{del_reason}", { force: true })
+          # skip_karma: a takedown reflects the artist's wishes, not the uploader's conduct.
+          p.delete!("takedown ##{@takedown.id}: #{del_reason}", { force: true, skip_karma: true })
         else
           next unless p.is_deleted?
-          p.undelete!({ force: true })
+          # Only suppress the karma reversal if this deletion was itself a takedown (which
+          # never applied a penalty). Posts deleted for unrelated reasons get their reversal.
+          from_takedown = p.deletion_flag&.reason.to_s.start_with?("takedown #")
+          p.undelete!({ force: true, skip_karma: from_takedown })
         end
       end
     end

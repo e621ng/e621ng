@@ -85,11 +85,6 @@ RSpec.describe Staff::UsersController do
         expect(user.reload.profile_artinfo).to eq("art info")
       end
 
-      it "updates base_upload_limit" do
-        patch staff_user_path(user), params: { user: { base_upload_limit: 42 } }
-        expect(user.reload.base_upload_limit).to eq(42)
-      end
-
       it "updates enable_privacy_mode" do
         patch staff_user_path(user), params: { user: { enable_privacy_mode: true } }
         expect(user.reload.enable_privacy_mode).to be true
@@ -138,19 +133,20 @@ RSpec.describe Staff::UsersController do
         end.not_to(change { ModAction.where(action: "user_custom_title_change").count })
       end
 
-      it "logs a user_upload_limit_change ModAction with old and new values" do
-        user.update_columns(base_upload_limit: 10)
-        patch staff_user_path(user), params: { user: { base_upload_limit: 20 } }
+      it "updates upload_karma and logs a user_karma_change ModAction" do
+        user.user_status.update_columns(upload_karma: 5)
+        patch staff_user_path(user), params: { user: { upload_karma: -20 } }
+        expect(user.user_status.reload.upload_karma).to eq(-20)
         mod = ModAction.last
-        expect(mod.action).to eq("user_upload_limit_change")
-        expect(mod[:values]).to include("user_id" => user.id, "old_upload_limit" => 10, "new_upload_limit" => 20)
+        expect(mod.action).to eq("user_karma_change")
+        expect(mod[:values]).to include("user_id" => user.id, "old_karma" => 5, "new_karma" => -20)
       end
 
-      it "does not log user_upload_limit_change when limit is unchanged" do
-        user.update_columns(base_upload_limit: 10)
+      it "does not log user_karma_change when karma is unchanged" do
+        user.user_status.update_columns(upload_karma: 5)
         expect do
-          patch staff_user_path(user), params: { user: { base_upload_limit: 10 } }
-        end.not_to(change { ModAction.where(action: "user_upload_limit_change").count })
+          patch staff_user_path(user), params: { user: { upload_karma: 5 } }
+        end.not_to(change { ModAction.where(action: "user_karma_change").count })
       end
 
       it "creates a UserNameChangeRequest when a new name is given" do

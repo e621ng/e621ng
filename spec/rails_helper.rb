@@ -92,23 +92,24 @@ RSpec.configure do |config|
       user.password_confirmation = "hexerade"
       user.password_hash = ""
       user.email = "admin@e621.local"
-      user.can_upload_free = true
       user.can_approve_posts = true
       user.level = UserLevel::ADMIN
 
       user.is_bd_staff = true
       user.is_bd_auditor = true
     end
+    # Karma above the free threshold so seeded staff uploads bypass the review queue.
+    admin.user_status.update_columns(upload_karma: admin.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) + 1000)
 
-    User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
+    system_user = User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
       user.password = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
       user.password_confirmation = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
       user.password_hash = ""
       user.email = "system@e621.local"
-      user.can_upload_free = true
       user.can_approve_posts = true
       user.level = UserLevel::JANITOR
     end
+    system_user.user_status.update_columns(upload_karma: system_user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) + 1000)
 
     ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") do |category|
       category.can_view = 0

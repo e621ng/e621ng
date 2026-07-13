@@ -1,6 +1,8 @@
 <div id="c-users"><div id="a-upload-limit">
 
-  <% pieces = @user.upload_limit_pieces %>
+  <% pieces = @user.upload_slots_pieces %>
+  <% karma_threshold_enabled = !Danbooru.config.upload_karma_free_threshold.nil? %>
+  <% karma_threshold = karma_threshold_enabled ? @user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) : nil %>
   <% is_current_user = @user.id == CurrentUser.id %>
 
   <!-- Header -->
@@ -23,79 +25,79 @@
           If you believe that this was done in error, <%= link_to "contact an admin", show_or_new_wiki_pages_path(title: "e621:staff") %> to have this situation resolved.
         </p>
       <% end %>
-    <% elsif @user.can_upload_free? %>
-      <p><%= is_current_user ? "You" : link_to_user(@user) %> can upload an <strong>unlimited</strong> number of posts.</p>
     <% else %>
-      <p><%= is_current_user ? "You" : link_to_user(@user) %> can currently upload <strong><%= @user.upload_limit %></strong> posts.<br />This limit is based on the following formula:</p>
+      <p>
+        <%= is_current_user ? "You have" : link_to_user(@user) + " has".html_safe %>
+        <strong><%= @user.upload_karma %></strong> upload karma.<br />
+        Each approved upload grants <strong>+1</strong> karma, while each rejected upload deducts <strong>-3</strong> karma.
+        <% if karma_threshold_enabled %>
+          <br />
+          At <strong><%= karma_threshold %></strong> karma, uploads bypass the queue entirely.
+        <% end %>
+      </p>
 
-      <span class="upload-limit-formula">
-        <span class="upl-element"><abbr class="upl-base" title="Base Upload Limit"><%= @user.base_upload_limit %></abbr></span>
+      <% if @user.upload_karma_free? %>
+        <p><%= is_current_user ? "Your" : "This user's" %> uploads bypass the review queue and are posted directly as approved.</p>
+      <% else %>
+        <p>
+          <%= is_current_user ? "You" : link_to_user(@user) %> currently
+          <%= is_current_user ? "have" : "has" %> <strong><%= @user.upload_slots %></strong>
+          upload slot<%= @user.upload_slots == 1 ? "" : "s" %> in the review queue,
+          based on the following formula:
+        </p>
 
-        <span class="upl-group">
-          <span class="upl-math"><%= svg_icon(:plus) %></span>
-          <span class="upl-element"><abbr class="upl-approved" title="Approved Posts"><%= pieces[:approved] %></abbr> / 10</span>
-        </span>
+        <span class="upload-limit-formula">
+          <span class="upl-element"><abbr class="upl-base" title="Base Upload Slots"><%= pieces[:base] %></abbr></span>
 
-        <span class="upl-group">
-          <span class="upl-math"><%= svg_icon(:minus) %></span>
-          <span class="upl-element">
-            <abbr class="upl-deleted" title="Deleted or Replaced Posts, Rejected Replacements&#013;<%= pieces[:deleted_ignore] %> of your Replaced Posts do not affect your upload limit">
-              <%= pieces[:deleted] %></abbr> / 4
+          <span class="upl-group">
+            <span class="upl-math"><%= svg_icon(:minus) %></span>
+            <span class="upl-element">
+              <abbr class="upl-pending" title="Pending or Flagged Posts, Pending Replacements"><%= pieces[:pending] %></abbr>
+            </span>
+          </span>
+
+          <span class="upl-group">
+            <span class="upl-math"><%= svg_icon(:minus) %></span>
+            <span class="upl-element">
+              <abbr class="upl-deleted" title="Deleted or Replaced Posts, Rejected Replacements&#013;<%= pieces[:deleted_ignore] %> of your Replaced Posts do not affect your upload slots">
+                <%= pieces[:deleted] %></abbr> / 4
+            </span>
+          </span>
+
+          <span class="upl-group">
+            <span class="upl-math"><%= svg_icon(:equals) %></span>
+            <span class="upl-element">
+              <abbr class="upl-total" title="Remaining Upload Slots"><%= @user.upload_slots %></abbr>
+            </span>
           </span>
         </span>
 
-        <span class="upl-group">
-          <span class="upl-math"><%= svg_icon(:minus) %></span>
-          <span class="upl-element">
-            <abbr class="upl-pending" title="Pending or Flagged Posts, Pending Replacements"><%= pieces[:pending] %></abbr>
-          </span>
-        </span>
+        <div class="upload-limit-explanation">
+          <abbr title="Base Upload Slots" class="ul-num upl-base"><%= pieces[:base] %></abbr>
+          <div class="ul-exp">
+            <h5>Base Slots</h5>
+            <span>Default number of concurrent queued uploads allowed.</span>
+          </div>
 
-        <span class="upl-group">
-          <span class="upl-math"><%= svg_icon(:equals) %></span>
-          <span class="upl-element">
-            <abbr class="upl-total" title="Remaining Upload Limit"><%= @user.upload_limit %></abbr>
-          </span>
-        </span>
-      </span>
+          <abbr title="Pending or Flagged Posts, Pending Replacements" class="ul-num upl-pending"><%= pieces[:pending] %></abbr>
+          <div class="ul-exp">
+            <h5>Pending / Flagged</h5>
+            <span>Posts that are currently awaiting review.</span>
+          </div>
 
-      <div class="upload-limit-explanation">
-        <abbr title="Base Upload Limit" class="ul-num upl-base"><%= @user.base_upload_limit %></abbr>
-        <div class="ul-exp">
-          <h5>Base Limit</h5>
-          <span>
-            <% if @user.base_upload_limit == 10 %>
-              Default number of posts that someone with a new account could upload.
-            <% else %>
-              Base number of uploads, manually adjusted by a staff member.
-            <% end %>
-          </span>
-        </div>
+          <abbr title="Deleted or Replaced Posts, Rejected Replacements" class="ul-num upl-deleted"><%= pieces[:deleted] %></abbr>
+          <div class="ul-exp">
+            <h5>Deleted / Replaced / Rejected</h5>
+            <span>Uploads that had been rejected, one way or another.</span>
+          </div>
 
-        <abbr title="Approved Posts" class="ul-num upl-approved"><%= pieces[:approved] %></abbr>
-        <div class="ul-exp">
-          <h5>Approved</h5>
-          <span>Uploaded posts that had been reviewed by a staff member.</span>
+          <abbr title="Remaining Upload Slots" class="ul-num upl-total"><%= @user.upload_slots %></abbr>
+          <div class="ul-exp">
+            <h5>Upload Slots</h5>
+            <span>Remaining number of posts that can be queued for review.</span>
+          </div>
         </div>
-        
-        <abbr title="Deleted or Replaced Posts, Rejected Replacements" class="ul-num upl-deleted"><%= pieces[:deleted] %></abbr>
-        <div class="ul-exp">
-          <h5>Deleted / Replaced / Rejected</h5>
-          <span>Uploads that had been rejected, one way or another.</span>
-        </div>
-        
-        <abbr title="Pending or Flagged Posts, Pending Replacements" class="ul-num upl-pending"><%= pieces[:pending] %></abbr>
-        <div class="ul-exp">
-          <h5>Pending / Flagged</h5>
-          <span>Posts that are currently awaiting review.</span>
-        </div>
-        
-        <abbr title="Remaining Upload Limit " class="ul-num upl-total"><%= @user.upload_limit %></abbr>
-        <div class="ul-exp">
-          <h5>Upload Limit</h5>
-          <span>Remaining number of posts that can be uploaded.</span>
-        </div>
-      </div>
+      <% end %>
     <% end %>
   </div>
 
@@ -107,7 +109,7 @@
       </p>
       <ul>
         <li>Remaining hourly uploads: <%= CurrentUser.hourly_upload_limit %></li>
-        <% unless CurrentUser.can_upload_free? || CurrentUser.is_privileged? %>
+        <% unless CurrentUser.upload_karma_free? || CurrentUser.is_privileged? %>
           <li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li>
         <% end %>
       </ul>

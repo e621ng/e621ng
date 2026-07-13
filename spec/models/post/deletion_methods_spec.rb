@@ -44,6 +44,18 @@ RSpec.describe Post do
         expect(post.errors[:is_status_locked]).to be_present
       end
 
+      it "penalizes the uploader's upload karma by 3" do
+        post = create(:post)
+        expect { post.delete!("Test reason") }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(-3)
+      end
+
+      it "does not touch upload karma when skip_karma is set (takedowns)" do
+        post = create(:post)
+        expect { post.delete!("takedown #1: reason", force: true, skip_karma: true) }
+          .not_to(change { post.uploader.user_status.reload.upload_karma })
+      end
+
       # FIXME: Rework after adding a PostReplacement factory
       # it "rejects pending replacements on deletion" do
       #   post = create(:post)
@@ -70,6 +82,34 @@ RSpec.describe Post do
         post = create(:deleted_post)
         post.undelete!
         expect(post.reload.is_pending).to be false
+      end
+
+      it "restores the uploader's upload karma by 3 if the post was previously approved" do
+        post = create(:deleted_post, approver: create(:admin_user))
+        expect { post.undelete! }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(3)
+      end
+
+      it "restores the uploader's upload karma by 4 if the post was not previously approved" do
+        member = create(:user)
+        post = create(:deleted_post, uploader: member, approver: nil)
+        expect { post.undelete! }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(4)
+      end
+
+      it "does not touch upload karma when skip_karma is set (takedown reversal)" do
+        post = create(:deleted_post, approver: create(:admin_user))
+        expect { post.undelete!(force: true, skip_karma: true) }
+          .not_to(change { post.uploader.user_status.reload.upload_karma })
+      end
+
+      it "nets zero upload karma across a delete then undelete, even when karma goes negative" do
+        member = create(:user)
+        post = create(:post, uploader: member, approver: create(:admin_user))
+        expect do
+          post.delete!("Test reason")
+          post.reload.undelete!
+        end.not_to(change { member.user_status.reload.upload_karma })
       end
 
       # FIXME: It definitely does not do this.

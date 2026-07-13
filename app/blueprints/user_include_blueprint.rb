@@ -22,7 +22,7 @@ class UserIncludeBlueprint < Blueprinter::Base
   field :can do |user|
     {
       approve_posts: user.can_approve_posts?,
-      upload_free: user.can_upload_free?,
+      upload_free: user.upload_karma_free?,
     }
   end
 

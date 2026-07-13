@@ -302,6 +302,11 @@ RSpec.describe ModActionDecorator do
         expect(desc).to include("10", "20")
       end
 
+      it "user_karma_change includes old and new karma" do
+        desc = decorate(:user_karma_change, { "user_id" => target_user.id, "old_karma" => 5, "new_karma" => -20 }).format_description
+        expect(desc).to include("karma", "5", "-20")
+      end
+
       it "user_custom_title_change includes old and new title" do
         desc = decorate(:user_custom_title_change, { "user_id" => target_user.id, "old_custom_title" => "Old", "new_custom_title" => "New" }).format_description
         expect(desc).to include(" from \"Old\"", " to \"New\"")
