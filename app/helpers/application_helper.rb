@@ -185,6 +185,11 @@ module ApplicationHelper
     end
   end
 
+  def safe_new_session_path
+    return new_session_path if request.path == new_session_path
+    new_session_path(url: request.fullpath[0, 2000])
+  end
+
   protected
 
   def nav_link_match(controller, url)

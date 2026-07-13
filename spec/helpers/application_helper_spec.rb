@@ -51,4 +51,26 @@ RSpec.describe ApplicationHelper do
       end
     end
   end
+
+  describe "#safe_new_session_path" do
+    subject(:path) { helper.safe_new_session_path }
+
+    context "when the current path is the sign-in page" do
+      before do
+        dpath = instance_double(ActionDispatch::Request, path: new_session_path, fullpath: new_session_path)
+        allow(helper).to receive(:request).and_return(dpath)
+      end
+
+      it { is_expected.to eq(new_session_path) }
+    end
+
+    context "when the current path is not the sign-in page" do
+      before do
+        dpath = instance_double(ActionDispatch::Request, path: "/posts", fullpath: "/posts?search[tags]=test")
+        allow(helper).to receive(:request).and_return(dpath)
+      end
+
+      it { is_expected.to eq(new_session_path(url: "/posts?search[tags]=test")) }
+    end
+  end
 end
