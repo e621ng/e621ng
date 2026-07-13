@@ -401,18 +401,23 @@ RSpec.describe ForumPost do
   # Vote score calculation
   # -------------------------------------------------------------------------
   describe "#vote_score_calculation" do
-    let(:post) { instance_double(ForumPost, votes: double("votes")) }
+    # Use instance_double for better type safety and verification
+    let(:post) { instance_double(ForumPost, votes: nil) } # Initialize with a placeholder
 
     context "when the post has a positive score" do
       before do
-        # Mocking 3 upvotes and 1 downvote (Total = 4)
-        allow(post).to receive(:votable?).and_return(true)
-        mock_votes = double("votes")
-        allow(mock_votes).to receive(:count).and_return(4)
-        # Assuming up/down are accessible counts or associations
-        allow(mock_votes).to receive(:up).and_return(double("up", count: 3))
-        allow(mock_votes).to receive(:down).and_return(double("down", count: 1))
+        # 1. Mocking the Vote object (The association result)
+        mock_votes = instance_double(Votes)
 
+        # Use receive_messages to set up multiple return values on one double cleanly
+        allow(mock_votes).to receive_messages(
+          count: 4,
+          up: instance_double(Upvote, count: 3),
+          down: instance_double(Downvote, count: 1),
+        )
+
+        # 2. Mocking the Post association
+        allow(post).to receive(:votable?).and_return(true)
         allow(post).to receive(:votes).and_return(mock_votes)
       end
 
@@ -424,12 +429,16 @@ RSpec.describe ForumPost do
 
     context "when the post has a negative score" do
       before do
-        allow(post).to receive(:votable?).and_return(true)
-        mock_votes = double("votes")
-        allow(mock_votes).to receive(:count).and_return(4)
-        allow(mock_votes).to receive(:up).and_return(double("up", count: 1))
-        allow(mock_votes).to receive(:down).and_return(double("down", count: 3))
+        mock_votes = instance_double(Votes)
 
+        # Use receive_messages for clean stubbing
+        allow(mock_votes).to receive_messages(
+          count: 4,
+          up: instance_double(Upvote, count: 1),
+          down: instance_double(Downvote, count: 3),
+        )
+
+        allow(post).to receive(:votable?).and_return(true)
         allow(post).to receive(:votes).and_return(mock_votes)
       end
 
@@ -441,10 +450,17 @@ RSpec.describe ForumPost do
 
     context "when the post has no votes (Total = 0)" do
       before do
-        allow(post).to receive(:votable?).and_return(true)
-        mock_votes = double("votes")
-        # Crucial test for zero count
+        mock_votes = instance_double(Votes)
+
+        # Setup mocks for zero count scenario
         allow(mock_votes).to receive(:count).and_return(0)
+
+        # Use receive_messages if more methods were stubbed, but here we only need 'count'
+        # If the method under test calls up/down even when count is 0, we should stub them too.
+        allow(mock_votes).to receive(:up).and_return(instance_double(Upvote, count: 0))
+        allow(mock_votes).to receive(:down).and_return(instance_double(Downvote, count: 0))
+
+        allow(post).to receive(:votable?).and_return(true)
         allow(post).to receive(:votes).and_return(mock_votes)
       end
 
@@ -455,9 +471,12 @@ RSpec.describe ForumPost do
 
     context "when the post is not votable" do
       before do
-        allow(post).to receive(:votable?).and_return(false) # Simulate restriction
-        # We don't even need to mock votes here, as the guard clause should catch it.
-        allow(post).to receive(:votes).and_return(double("votes", count: 5))
+        # We only need to mock the guard clause check
+        allow(post).to receive(:votable?).and_return(false)
+
+        # Mocking votes here just ensures the method call doesn't crash, but it should never be accessed.
+        mock_votes = instance_double(Votes)
+        allow(post).to receive(:votes).and_return(mock_votes)
       end
 
       it "returns 0.0 if votable? returns false" do
