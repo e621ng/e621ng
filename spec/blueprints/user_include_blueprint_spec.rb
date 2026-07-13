@@ -34,7 +34,7 @@ RSpec.describe UserIncludeBlueprint do
 
     it "reflects the user's permissions" do
       expect(result[:can][:approve_posts]).to eq(user.can_approve_posts?)
-      expect(result[:can][:upload_free]).to eq(user.can_upload_free?)
+      expect(result[:can][:upload_free]).to eq(user.upload_karma_free?)
     end
   end
 

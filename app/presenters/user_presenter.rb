@@ -47,27 +47,34 @@ class UserPresenter
       permissions << "tag warden"
     end
 
+    if CurrentUser.user.is_bd_staff? && user.is_bd_staff?
+      permissions << "bd staff"
+    end
+
+    if CurrentUser.user.is_staff? && user.is_restricted? && user.recent_ban&.prevent_login?
+      permissions << "cannot log in"
+    end
+
     permissions.join(", ")
   end
 
   def upload_limit(template)
-    if user.can_upload_free?
+    if user.upload_karma_free?
       return "none"
     end
 
-    upload_limit_pieces = user.upload_limit_pieces
+    pieces = user.upload_slots_pieces
 
-    %{<abbr title="Base Upload Limit">#{user.base_upload_limit}</abbr>
-    + (<abbr title="Approved Posts">#{upload_limit_pieces[:approved]}</abbr> / 10)
-    - (<abbr title="Deleted or Replaced Posts, Rejected Replacements\n#{upload_limit_pieces[:deleted_ignore]} of your Replaced Posts do not affect your upload limit">#{upload_limit_pieces[:deleted]}</abbr> / 4)
-    - <abbr title="Pending or Flagged Posts, Pending Replacements">#{upload_limit_pieces[:pending]}</abbr>
-    = <abbr title="User Upload Limit Remaining">#{user.upload_limit}</abbr>}.html_safe
+    %{<abbr title="Base Upload Slots">#{pieces[:base]}</abbr>
+    - <abbr title="Pending or Flagged Posts, Pending Replacements">#{pieces[:pending]}</abbr>
+    - (<abbr title="Deleted or Replaced Posts, Rejected Replacements\n#{pieces[:deleted_ignore]} of your Replaced Posts do not affect your upload slots">#{pieces[:deleted]}</abbr> / 4)
+    = <abbr title="Remaining Upload Slots">#{user.upload_slots}</abbr>}.html_safe
   end
 
   def upload_limit_short
     return "0 / 0" if user.no_uploading?
-    return "none" if user.can_upload_free?
-    "#{user.upload_limit} / #{user.upload_limit_max}"
+    return "none" if user.upload_karma_free?
+    "#{user.upload_slots} / #{user.upload_slots_max}"
   end
 
   def uploads

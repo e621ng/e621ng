@@ -314,6 +314,24 @@ module Danbooru
       30
     end
 
+    def upload_karma_l1_threshold
+      100
+    end
+
+    def upload_karma_l10_threshold
+      10_000
+    end
+
+    # User bypasses the approval queue once they reach this upload karma level. Set to nil to disable.
+    def upload_karma_free_threshold
+      1
+    end
+
+    # Base number of concurrent queued uploads a below-threshold user may have.
+    def upload_slots_base
+      10
+    end
+
     def ticket_hourly_limit
       5
     end
@@ -933,6 +951,8 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
   end
 
   class EnvironmentConfiguration
+    class ValidationError < StandardError; end
+
     def custom_configuration
       @custom_configuration ||= CustomConfiguration.new
     end
@@ -955,6 +975,19 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
         env_to_boolean(method, var)
       else
         custom_configuration.send(method, *)
+      end
+    end
+
+    def validate!
+      l1 = upload_karma_l1_threshold
+      l10 = upload_karma_l10_threshold
+      free = upload_karma_free_threshold
+
+      raise ValidationError, "upload_karma_l1_threshold must be positive" unless l1 > 0
+      raise ValidationError, "upload_karma_l10_threshold must be positive" unless l10 > 0
+      raise ValidationError, "upload_karma_l1_threshold must be less than upload_karma_l10_threshold" unless l1 < l10
+      unless free.nil? || (free >= 1 && free <= 10)
+        raise ValidationError, "upload_karma_free_threshold must be either nil, or an integer between 1 and 10"
       end
     end
   end

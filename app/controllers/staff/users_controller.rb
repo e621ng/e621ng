@@ -38,11 +38,17 @@ module Staff
       if @user.saved_change_to_profile_about || @user.saved_change_to_profile_artinfo
         ModAction.log(:user_text_change, { user_id: @user.id })
       end
-      if @user.saved_change_to_base_upload_limit
-        ModAction.log(:user_upload_limit_change, { user_id: @user.id, old_upload_limit: @user.base_upload_limit_before_last_save, new_upload_limit: @user.base_upload_limit })
-      end
       if @user.saved_change_to_custom_title
         ModAction.log(:user_custom_title_change, { user_id: @user.id, old_custom_title: @user.custom_title_before_last_save, new_custom_title: @user.custom_title })
+      end
+
+      if params[:user][:upload_karma].present?
+        new_karma = params[:user][:upload_karma].to_i
+        old_karma = @user.raw_upload_karma
+        if new_karma != old_karma
+          @user.user_status.update!(upload_karma: new_karma)
+          ModAction.log(:user_karma_change, { user_id: @user.id, old_karma: old_karma, new_karma: new_karma })
+        end
       end
 
       if CurrentUser.is_bd_staff?
@@ -143,7 +149,7 @@ module Staff
     private
 
     def user_params(user)
-      permitted_params = %i[profile_about profile_artinfo base_upload_limit enable_privacy_mode custom_title]
+      permitted_params = %i[profile_about profile_artinfo enable_privacy_mode custom_title]
       permitted_params << :email if user.is_bd_staff?
       params.require(:user).slice(*permitted_params).permit(permitted_params)
     end
