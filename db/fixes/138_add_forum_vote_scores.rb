@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config",
 ForumPost.in_batches(of: 100) do |batch|
   updates = []
 
-  # TODO: ensure this still works.
   batch.each do |fp|
     next unless fp.votable? # Skip if the post is not votable
     new_score = fp.send(:vote_score_calculation) # Use the calculation method, NOT update_vote_score
@@ -18,15 +17,15 @@ ForumPost.in_batches(of: 100) do |batch|
 
   # Bulk update only if there are changes
   unless updates.empty?
-    # 1. Extract all scores (the values for the SET clause)
-    score_values = updates.map { |_, score| score }.join(", ")
+    # Extract all IDs (the values for the WHERE IN clause)
+    # Build the CASE WHEN structure: "WHEN id = 1 THEN 0.5 WHEN id = 2 THEN -0.5 ..."
+    case_statements = updates.map do |id, score|
+      "WHEN id = #{id} THEN #{score}"
+    end.join(" ")
 
-    # 2. Extract all IDs (the values for the WHERE IN clause)
-    id_list = updates.map(&:first).join(", ")
-
-    # Construct the SQL: Set vote_score to a list of numbers, where id is in a list of IDs.
-    sql = "UPDATE forum_posts SET vote_score = #{score_values} WHERE id IN (#{id_list})"
-
+    # Construct the final SQL using CASE: Set vote_score to a list of numbers, where id is in a list of IDs.
+    # UPDATE table SET column = CASE WHEN ... END WHERE condition;
+    sql = "UPDATE forum_posts SET vote_score = CASE #{case_statements} END WHERE id IN (#{updates.map(&:first).join(', ')})"
     ForumPost.connection.execute(sql)
   end
 end
