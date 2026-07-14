@@ -20,7 +20,7 @@ export default class FilterUtilities {
     width: (token, post) => FilterUtilities.compare(post.width, token),
     height: (token, post) => FilterUtilities.compare(post.height, token),
     filesize: (token, post) => FilterUtilities.compare(post.size, token),
-    filesize: (token, post) => FilterUtilities.compare(post.duration ?? NaN, token),
+    duration: (token, post) => FilterUtilities.compare(post.duration ?? NaN, token),
 
     score: (token, post) => FilterUtilities.compare(post.score, token),
     favcount: (token, post) => FilterUtilities.compare(post.fav_count, token),
