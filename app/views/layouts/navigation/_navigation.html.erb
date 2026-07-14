@@ -19,7 +19,7 @@
       </span>
     </a>
     <% if CurrentUser.user.is_logged_out? %>
-      <a href="<%= new_session_path(url: request.fullpath) %>" class="simple-avatar nav-controls-profile auth-login-link">
+      <a href="<%= safe_new_session_path %>" class="simple-avatar nav-controls-profile auth-login-link">
         <span class="avatar-name">
           Sign In
         </span>
