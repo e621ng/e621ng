@@ -55,6 +55,10 @@ RSpec.describe User do
         RequestStore[:system_user] = nil
       end
 
+      after do
+        RequestStore[:system_user] = nil
+      end
+
       it "returns the system user" do
         system_user = User.find_by!(name: Danbooru.config.system_user)
         expect(User.system.id).to eq(system_user.id)
