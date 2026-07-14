@@ -51,6 +51,12 @@ module Danbooru
       "auto_moderator"
     end
 
+    # Canonical ID of the system account. When set, the account is resolved by primary key, so its
+    # display name can be changed freely. If absent, falls back to using the `system_user` value.
+    def system_user_id
+      nil
+    end
+
     def source_code_url
       "https://github.com/e621ng/e621ng"
     end

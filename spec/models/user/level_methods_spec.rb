@@ -49,9 +49,37 @@ RSpec.describe User do
     # .system
     # -------------------------------------------------------------------------
     describe ".system" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive_messages(system_user: "System", system_user_id: nil)
+        create(:user, name: "System", level: UserLevel::MODERATOR)
+        RequestStore[:system_user] = nil
+      end
+
+      after do
+        RequestStore[:system_user] = nil
+      end
+
       it "returns the system user" do
         system_user = User.find_by!(name: Danbooru.config.system_user)
+        expect(User.system.id).to eq(system_user.id)
+      end
+
+      it "returns the system user if ID is set" do
+        system_user = User.find_by!(name: Danbooru.config.system_user)
+        allow(Danbooru.config.custom_configuration).to receive(:system_user_id).and_return(system_user.id)
         expect(User.system).to eq(system_user)
+      end
+
+      it "raises an error if the system user does not exist" do
+        allow(Danbooru.config.custom_configuration).to receive(:system_user).and_return("Nonexistent")
+        expect { User.system }.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      it "returns the system user if the ID is set but the name is changed" do
+        system_user = User.find_by!(name: Danbooru.config.system_user)
+        allow(Danbooru.config.custom_configuration).to receive(:system_user_id).and_return(system_user.id)
+        system_user.update!(name: "NewName")
+        expect(User.system.id).to eq(system_user.id)
       end
     end
 
