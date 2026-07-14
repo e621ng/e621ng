@@ -312,7 +312,7 @@ class User < ApplicationRecord
 
     module ClassMethods
       def system
-        User.find_by!(name: Danbooru.config.system_user)
+        RequestStore[:system_user] ||= find_system_user
       end
 
       def anonymous
@@ -328,6 +328,13 @@ class User < ApplicationRecord
 
       def level_string(value)
         UserLevel::REVERSE_MAPPING[value] || ""
+      end
+
+      private
+
+      def find_system_user
+        id = Danbooru.config.system_user_id
+        id ? User.find(id) : User.find_by!(name: Danbooru.config.system_user)
       end
     end
 
@@ -382,6 +389,10 @@ class User < ApplicationRecord
 
     def is_artist?
       @is_artist ||= artists.any?
+    end
+
+    def is_system?
+      id == User.system.id
     end
 
     def blank_out_nonexistent_avatars
