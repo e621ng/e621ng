@@ -16,7 +16,7 @@ export default class DTextFormatter {
     spoiler: { dtext: "[spoiler]%selection%[/spoiler]", icon: "spoiler", title: "Spoiler" },
     code: { dtext: "[code]%selection%[/code]", icon: "code", title: "Code" },
     quote: { dtext: "[quote]%selection%[/quote]", icon: "quote", title: "Quote" },
-    section: { dtext: "[section]‰selection%[/section]", icon: "section", title: "Section" },
+    section: { dtext: "[section]‰selection%[/section]", icon: "arrow_down", title: "Section" },
   };
 
   static ButtonOrder = [
