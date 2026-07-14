@@ -455,4 +455,40 @@ RSpec.describe ForumPost do
       end
     end
   end
+
+  # -------------------------------------------------------------------------
+  # #update_vote_score
+  # -------------------------------------------------------------------------
+  describe "#update_vote_score" do
+    # We need a post instance to test the method on
+    let(:post) { make_post }
+
+    context "when vote_score_calculation returns a value" do
+      let(:expected_score) { rand(-5..6) }
+
+      before do
+        # The calculated vote score is some number, which can be random
+        allow(post).to receive(:vote_score_calculation).and_return(expected_score)
+      end
+
+      it "updates the database column with the calculated score" do
+        post.update!(vote_score: 0) # Set a known starting point
+        expect(ForumPost.find(post.id).vote_score).to eq(0)
+
+        post.update_vote_score
+
+        updated_post = ForumPost.find(post.id)
+        expect(updated_post.vote_score).to eq(expected_score)
+      end
+
+      it "updates the column even if the score hasn't changed" do
+        post.update!(vote_score: expected_score)
+
+        post.update_vote_score
+
+        updated_post = ForumPost.find(post.id)
+        expect(updated_post.vote_score).to eq(expected_score)
+      end
+    end
+  end
 end
