@@ -20,6 +20,7 @@ export default class FilterUtilities {
     width: (token, post) => FilterUtilities.compare(post.width, token),
     height: (token, post) => FilterUtilities.compare(post.height, token),
     filesize: (token, post) => FilterUtilities.compare(post.size, token),
+    filesize: (token, post) => FilterUtilities.compare(post.duration ?? NaN, token),
 
     score: (token, post) => FilterUtilities.compare(post.score, token),
     favcount: (token, post) => FilterUtilities.compare(post.fav_count, token),
@@ -113,7 +114,7 @@ export default class FilterUtilities {
   }
 
   /**
-   * Compare the provided value with the one listed in the token
+   * Compare the provided value with the one listed in the token; will always return `false` when given `NaN`.
    * @param {number} a Value to match against
    * @param {FilterToken} token Token to compare to
    * @returns true if the provided values pass the specified comparison type
