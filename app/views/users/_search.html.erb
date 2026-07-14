@@ -14,5 +14,5 @@
   <%= f.input :can_upload_free, label: "Unrestricted uploads?", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
   <%= f.input :can_approve_posts, label: "Approver?", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
 
-  <%= f.input :order, collection: [["Join date", "date"], ["Name", "name"], ["Upload count", "post_upload_count"], ["Note count", "note_count"], ["Post update count", "post_update_count"]] %>
+  <%= f.input :order, collection: [["Name", "name"], ["Upload count", "post_upload_count"], ["Note count", "note_count"], ["Post update count", "post_update_count"]], include_blank: "Join Date" %>
 <% end %>
