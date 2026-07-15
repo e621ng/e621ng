@@ -463,6 +463,47 @@ RSpec.describe UsersController do
   end
 
   # ---------------------------------------------------------------------------
+  # GET /users/:id/reset_karma — janitor_only
+  # ---------------------------------------------------------------------------
+  describe "POST /users/:id/reset_karma" do
+    let(:target) do
+      target = create(:user)
+      target.user_status.update!(upload_karma: 100)
+      target
+    end
+
+    context "as a member" do
+      before { sign_in_as create(:user) }
+
+      it "returns 403" do
+        post reset_karma_user_path(target)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a staff member" do
+      before { sign_in_as create(:staff_user) }
+
+      it "returns 403" do
+        post reset_karma_user_path(target)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a janitor" do
+      before { sign_in_as create(:janitor_user) }
+
+      it "resets the target's karma, logs a ModAction, and redirects" do
+        expect { post reset_karma_user_path(target) }
+          .to change { target.reload.upload_karma }.from(100).to(0)
+          .and change(ModAction, :count).by(1)
+        expect(ModAction.last[:values]).to include("user_id" => target.id)
+        expect(response).to redirect_to(user_path(target))
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # GET /users/:id/fix_counts — janitor_only
   # ---------------------------------------------------------------------------
 
