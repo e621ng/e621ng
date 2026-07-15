@@ -24,7 +24,7 @@ RSpec.describe PostIndex do
           tags md5 rating file_ext source description del_reason notes
           rating_locked note_locked status_locked flagged pending
           deleted has_children has_pending_replacements artverified
-          deleted_at flag_note flag_reason flagged_at flagger
+          deleted_at flag_note flag_reason flagged_at flagger appellant appealled_at
         ] + category_count_keys
         expect(indexed.keys).to match_array(expected_keys)
       end
@@ -539,6 +539,23 @@ RSpec.describe PostIndex do
 
         it "returns true when the uploader is the linked artist for one of the post's artist tags" do
           expect(verified_post.as_indexed_json[:artverified]).to be true
+        end
+      end
+    end
+
+    describe "has_pending_appeals" do
+      let(:post) { create(:post) }
+
+      context "via options (options.key? pattern)" do
+        it "returns true when options[:has_pending_appeals] is true" do
+          expect(post.as_indexed_json(has_pending_appeals: true)[:has_pending_appeals]).to be true
+        end
+
+        it "returns false when options[:has_pending_appeals] is false, even if a pending replacement exists" do
+          # TODO: mm12:feat/search/appeals-data
+          appeal = create(:appeal, post: post)
+          PostFlag.find(appeal.disp_id).update(post_id: post.id)
+          expect(post.as_indexed_json(has_pending_appeals: false)[:has_pending_appeals]).to be false
         end
       end
     end

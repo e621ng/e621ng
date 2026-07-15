@@ -44,6 +44,9 @@ RSpec.describe ElasticPostQueryBuilder do
       end
     end
 
+    describe "appeal_status" do # TODO: mm12:feat/search/appeals-data
+    end
+
     describe "source (wildcard)" do
       it "adds a wildcard clause for source:*example.com*" do
         expect(build_query("source:*example.com*").must).to include({ wildcard: { source: "*example.com*" } })
@@ -149,6 +152,9 @@ RSpec.describe ElasticPostQueryBuilder do
       it "adds an exists clause to must for noter:any" do
         expect(build_query("noter:any").must).to include({ exists: { field: :noters } })
       end
+    end
+
+    describe "appealer any/none" do # TODO: mm12:feat/search/appeals-data
     end
 
     describe "source any/none" do

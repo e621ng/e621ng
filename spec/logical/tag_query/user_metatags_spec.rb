@@ -288,6 +288,9 @@ RSpec.describe TagQuery do
     end
   end
 
+  describe "appellant: metatag" do # TODO: mm12:feat/search/appeals-data
+  end
+
   describe "deleted filter helpers with order metatags" do
     it "does not hide deleted posts when order:deleted is present" do
       expect(TagQuery.should_hide_deleted_posts?("aaa bbb order:deleted")).to be(false)

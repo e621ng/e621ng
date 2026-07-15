@@ -3,7 +3,8 @@
 require "rails_helper"
 
 # Tests content-filtering metatags: rating:, filetype: (type: alias), source:,
-# md5:, description:, note:, delreason:, deletedby:, flagreason:, and flagnote:.
+# md5:, description:, note:, delreason:, deletedby:, flagreason:, flagnote:,
+# has_pending_appeals:, appeal_status:.
 
 RSpec.describe TagQuery do
   include_context "as member"
@@ -242,5 +243,11 @@ RSpec.describe TagQuery do
         expect(TagQuery.new("~flagnote:Needs*More***Details")[:flagnote_should]).to include("needs*more*details")
       end
     end
+  end
+
+  describe "has_pending_appeals" do # TODO: mm12:feat/search/appeals-data
+  end
+
+  describe "appeal_status" do # TODO: mm12:feat/search/appeals-data
   end
 end

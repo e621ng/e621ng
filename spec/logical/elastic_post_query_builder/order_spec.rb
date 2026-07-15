@@ -93,6 +93,9 @@ RSpec.describe ElasticPostQueryBuilder do
     end
   end
 
+  describe "appealed order" do # TODO: mm12:feat/search/appeals-data
+  end
+
   describe "COUNT_METATAG order pattern" do
     it "orders by comment_count desc for order:comment_count" do
       builder = build_query("order:comment_count")
