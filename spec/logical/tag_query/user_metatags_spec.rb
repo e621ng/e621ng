@@ -288,7 +288,7 @@ RSpec.describe TagQuery do
     end
   end
 
-  describe "appellant: metatag" do # TODO: mm12:feat/search/appeals-data
+  describe "appealedby: metatag" do # TODO: mm12:feat/search/appeals-data
   end
 
   describe "deleted filter helpers with order metatags" do

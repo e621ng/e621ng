@@ -171,6 +171,9 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
     switch (metatag) {
       case "user":
       case "approver":
+      case "appealedby":
+      case "appellant":
+      case "appealer":
       case "commenter":
       case "comm":
       case "noter":

@@ -137,6 +137,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     "flagged_asc" => [{ flagged_at: { order: :asc, missing: :_last } }, { id: :asc }],
     "deleted" => [{ deleted_at: { order: :desc, missing: :_last } }, { id: :desc }],
     "deleted_asc" => [{ deleted_at: { order: :asc, missing: :_last } }, { id: :asc }],
+    "appealed" => [{ appealed_at: { order: :desc, missing: :_last } }, { id: :desc }],
+    "appealed_asc" => [{ appealed_at: { order: :asc, missing: :_last } }, { id: :asc }],
   }).freeze.each_value(&:freeze)
 
   def build
@@ -278,6 +280,11 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     if q.include?(:artverified)
       must.push({ term: { artverified: q[:artverified] } })
+    end
+
+    if q.include?(:pending_appeals)
+      # TODO: mm12:feat/search/appeals-data
+      # need staff check!
     end
 
     add_tag_string_search_relation(q[:tags])

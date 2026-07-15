@@ -63,7 +63,7 @@ class TagQuery
 
   # Tags with parsed values of `true` or `false`. See `TagQuery#parse_boolean` for details.
   BOOLEAN_METATAGS = %w[
-    hassource hasdescription isparent ischild hasparent haschild haschildren inpool pending_replacements artverified
+    hassource hasdescription isparent ischild hasparent haschild haschildren inpool pending_replacements artverified has_pending_appeals
   ].freeze
 
   BOOLEAN_METATAG_ALIASES = {
@@ -79,7 +79,7 @@ class TagQuery
     source status pool set fav favoritedby note locked
     upvote votedup upvoted voteup downvote voteddown downvoted votedown voted vote
     width height mpixels ratio filesize duration score favcount date age change tagcount
-    commenter comm noter noteupdater flagreason flagnote flaggedby
+    commenter comm noter noteupdater flagreason flagnote flaggedby appealedby appeal_status
   ].concat(CATEGORY_METATAG_MAP.keys).freeze
 
   METATAGS = %w[md5 order limit child randseed ratinglocked notelocked statuslocked].concat(
@@ -139,7 +139,7 @@ class TagQuery
   # NOTE: The first element (`id`) is the only one whose value is equivalent to the `_asc`-suffixed variant.
   ORDER_INVERTIBLE_ROOTS = %w[
     id score md5 favcount note mpixels filesize tagcount change duration
-    created updated comment comment_bumped aspect_ratio deleted flagged
+    created updated comment comment_bumped aspect_ratio deleted flagged appealed
   ].concat(COUNT_METATAGS, CATEGORY_METATAG_MAP.keys).freeze
 
   # All possible valid values for `order` metatags; used for autocomplete.
@@ -237,10 +237,15 @@ class TagQuery
     flagger -flagger ~flagger
     flagnote -flagnote ~flagnote
     flagreason -flagreason ~flagreason
+    appealedby -appealedby ~appealedby
+    appellant -appellant ~appellant
+    appealer -appealer ~appealer
+    appeal_status -appeal_status ~appeal_status
   ].freeze
 
   OVERRIDE_DELETED_FILTER_ORDERS = %w[
     deleted deleted_desc deleted_asc
+    appealed appealed_desc appealed_desc
   ].freeze
 
   STATUS_VALUES = %w[all any pending modqueue deleted flagged active].freeze
@@ -1484,6 +1489,10 @@ class TagQuery
 
       when "note", "-note", "~note" then add_to_query(type, :note, g2)
 
+      when "appeal_status", "-appeal_status", "~appeal_status"
+        next unless CurrentUser.is_staff?
+        add_to_query(type, :appeal_status, g2) # TODO: mm12:feat/search/appeals-data
+
       when "delreason", "-delreason", "~delreason"
         q[:status] ||= "any" unless q[:status_must_not]
         q[:show_deleted] ||= true
@@ -1504,6 +1513,12 @@ class TagQuery
       when "flagnote", "-flagnote", "~flagnote"
         next unless CurrentUser.is_staff?
         add_to_query(type, :flagnote, g2.downcase, wildcard: true)
+
+      when "appealer", "-appealer", "~appealser",
+           "appellant", "-appellant", "~appellant",
+           "appealedby", "-appealedby", "~appealedby"
+        next unless CurrentUser.is_staff? # TODO: mm12:feat/search/appeals-data
+        add_to_query(type, :appealer, g2.downcase, wildcard: true)
 
       when "upvote", "-upvote", "~upvote",
            "votedup", "-votedup", "~votedup",

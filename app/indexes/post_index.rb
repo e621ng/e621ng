@@ -20,6 +20,8 @@ module PostIndex
           noted_at: { type: "date" },
           flagged_at: { type: "date" },
           deleted_at: { type: "date" },
+          appealed_at: { type: "date" },
+
           id: { type: "integer" },
           up_score: { type: "integer" },
           down_score: { type: "integer" },
@@ -44,6 +46,7 @@ module PostIndex
           parent: { type: "integer" },
           pools: { type: "integer" },
           sets: { type: "integer" },
+
           commenters: { type: "integer" },
           noters: { type: "integer" },
           faves: { type: "integer" },
@@ -54,6 +57,8 @@ module PostIndex
           approver: { type: "integer" },
           deleter: { type: "integer" },
           flagger: { type: "integer" },
+          appealer: { type: "integer" },
+
           width: { type: "integer" },
           height: { type: "integer" },
           mpixels: { type: "float" },
@@ -70,6 +75,7 @@ module PostIndex
           del_reason: { type: "keyword" },
           flag_reason: { type: "keyword" },
           flag_note: { type: "keyword" },
+          appeal_status: { type: "keyword" },
 
           rating_locked: { type: "boolean" },
           note_locked: { type: "boolean" },
@@ -80,6 +86,7 @@ module PostIndex
           has_children: { type: "boolean" },
           has_pending_replacements: { type: "boolean" },
           artverified: { type: "boolean" },
+          has_pending_appeals: { type: "boolean" },
         },
       },
     }
@@ -177,6 +184,7 @@ module PostIndex
           WHERE post_id IN (#{post_ids})
           GROUP BY post_id
         SQL
+        appeal_sql = none # TODO: mm12:feat/search/appeals-data
 
         # Run queries
         conn = ApplicationRecord.connection
@@ -191,6 +199,9 @@ module PostIndex
         flag_reasons     = flags.values.map { |p, fid, fr, fn, fca| [p, fr] }.to_h
         flag_notes       = flags.values.map { |p, fid, fr, fn, fca| [p, fn] }.to_h
         flag_dates       = flags.values.map { |p, fid, fr, fn, fca| [p, fca] }.to_h
+        appealer_ids     = none # TODO: mm12:feat/search/appeals-data
+        appeal_dates     = none # TODO: mm12:feat/search/appeals-data
+        appeal_statuses  = none # TODO: mm12:feat/search/appeals-data
         comment_counts   = conn.execute(comments_sql).values.to_h
         pool_ids         = conn.execute(pools_sql).values.map(&array_parse).to_h
         set_ids          = conn.execute(sets_sql).values.map(&array_parse).to_h
@@ -230,12 +241,16 @@ module PostIndex
             deleter:                  deleter_ids[p.id]    || empty,
             del_reason:               del_reasons[p.id]    || empty,
             deleted_at:               del_dates[p.id],
+            flagged_at:               flag_dates[p.id],
             flagger:                  flagger_ids[p.id]    || empty,
             flag_reason:              flag_reasons[p.id]   || empty,
             flag_note:                flag_notes[p.id]     || empty,
             fav_count:                fav_counts[p.id]     || 0,
-            flagged_at:               flag_dates[p.id],
+            appealer:                 appealer_ids[p.id]   || empty,
+            appeal_statuses:          appeal_statuses[p.id], # TODO: mm12:feat/search/appeals-data
+            appealed_at:              appeal_dates[p.id],
             has_pending_replacements: pending_replacements[p.id],
+            has_pending_appeals:      empty, # TODO: mm12:feat/search/appeals-data
             artverified:              p.tag_array.any? { |tag| verified_artists.key?(tag) && verified_artists[tag] == p.uploader_id },
           }
 
@@ -262,6 +277,9 @@ module PostIndex
     deletion = unless options.key?(:deleter) && options.key?(:del_reason) && options.key?(:deleted_at)
                  ::PostFlag.where(post_id: id, is_resolved: false, is_deletion: true).order(id: :desc).first
                end
+    appeal = unless options.key?(:appealer) && options.key?(:appealed_at)
+               ::Appeal.first # TODO: mm12:feat/search/appeals-data
+             end
 
     {
       created_at:               created_at,
@@ -307,6 +325,7 @@ module PostIndex
       flagger:                  options[:flagger]       || flag&.creator_id,
       flag_reason:              options[:flag_reason]   || flag&.reason&.downcase,
       flag_note:                options[:flag_note]     || flag&.note&.downcase,
+      appealer:                 options[:appealer]      || appealer&.creator_id,
       width:                    image_width,
       height:                   image_height,
       mpixels:                  image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
@@ -319,6 +338,7 @@ module PostIndex
       file_ext:                 file_ext,
       source:                   source_array,
       description:              description.presence,
+      appeal_status:            none, # TODO: mm12:feat/search/appeals-data
 
       rating_locked:            is_rating_locked,
       note_locked:              is_note_locked,
@@ -328,10 +348,12 @@ module PostIndex
       deleted:                  is_deleted,
       has_children:             has_children,
       has_pending_replacements: options.key?(:has_pending_replacements) ? options[:has_pending_replacements] : replacements.pending.any?,
+      has_pending_appeals:      none, # TODO: mm12:feat/search/appeals-data
       artverified:              options.key?(:artverified) ? options[:artverified] : uploader_linked_artists.any?,
 
       flagged_at:               options.key?(:flagged_at) ? options[:flagged_at] : flag&.created_at,
       deleted_at:               options.key?(:deleted_at) ? options[:deleted_at] : deletion&.created_at,
+      appealed_at:              options.key?(:appealed_at) ? options[:appealed_at] : appeal&.created_at,
     }
   end
 end
