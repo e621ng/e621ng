@@ -23,7 +23,9 @@ Rails.application.routes.draw do
     # Staff wikis and files
     resources :files, only: %i[index show new create edit update destroy]
     resources :wikis do
-      resources :references, only: %i[create destroy], controller: "wiki_refs"
+      resources :references, only: %i[create destroy], controller: "wiki_refs" do
+        collection { post :bulk_create }
+      end
       member do
         put :revert
         post :claim
