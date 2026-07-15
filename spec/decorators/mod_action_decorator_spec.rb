@@ -308,7 +308,7 @@ RSpec.describe ModActionDecorator do
       end
 
       it "user_karma_reset includes user link" do
-        desc = decorate(:user_karma_reset, { "user_id" => target_user.id }).format_description
+        desc = decorate(:user_karma_reset, { "user_id" => target_user.id, "previous_karma" => 100 }).format_description
         expect(desc).to include(target_user.name)
       end
 

@@ -133,8 +133,9 @@ class UsersController < ApplicationController
 
   def reset_karma
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    previous_karma = @user.raw_upload_karma
     @user.user_status.update!(upload_karma: 0)
-    ModAction.log(:user_karma_reset, { user_id: @user.id })
+    ModAction.log(:user_karma_reset, { user_id: @user.id, previous_karma: previous_karma })
 
     redirect_to user_path(@user)
   end
