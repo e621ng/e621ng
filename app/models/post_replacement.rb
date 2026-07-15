@@ -336,7 +336,10 @@ class PostReplacement < ApplicationRecord
 
         q = q.attribute_exact_matches(:file_ext, params[:file_ext])
         q = q.attribute_exact_matches(:md5, params[:md5])
-        q = q.attribute_exact_matches(:status, params[:status])
+
+        if params[:status].present?
+          q = params[:status].to_s == ("submitted") ? q.where.not(status: "original") : q.attribute_exact_matches(:status, params[:status])
+        end
 
         q = q.where_user(:creator_id, :creator, params)
         q = q.where_user(:approver_id, :approver, params)
@@ -399,6 +402,10 @@ class PostReplacement < ApplicationRecord
 
       def for_user(id)
         where(creator_id: id.to_i)
+      end
+
+      def submitted
+        where.not(status: "original")
       end
 
       def for_uploader_on_approve(id)

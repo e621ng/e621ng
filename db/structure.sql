@@ -2882,7 +2882,8 @@ CREATE TABLE public.user_statuses (
     own_post_replaced_penalize_count integer DEFAULT 0,
     post_replacement_rejected_count integer DEFAULT 0,
     ticket_count integer DEFAULT 0 NOT NULL,
-    appeal_count integer DEFAULT 0 NOT NULL
+    appeal_count integer DEFAULT 0 NOT NULL,
+    post_replacement_submitted_count integer
 );
 
 
@@ -6103,6 +6104,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260715181809'),
 ('20260707182943'),
 ('20260702120000'),
 ('20260624213023'),

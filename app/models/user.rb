@@ -962,6 +962,10 @@ class User < ApplicationRecord
       user_status&.own_post_replaced_penalize_count || 0
     end
 
+    def post_replacement_submitted_count
+      user_status&.post_replacement_submitted_count || 0
+    end
+
     def refresh_counts!
       self.class.without_timeout do
         UserStatus.where(user_id: id).update_all(
@@ -973,6 +977,7 @@ class User < ApplicationRecord
           own_post_replaced_count: PostReplacement.for_uploader_on_approve(id).count,
           own_post_replaced_penalize_count: PostReplacement.penalized.for_uploader_on_approve(id).count,
           post_replacement_rejected_count: post_replacements.rejected.count,
+          post_replacement_submitted_count: PostReplacement.for_user(id).submitted.count,
         )
       end
     end
