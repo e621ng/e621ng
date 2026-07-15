@@ -5,7 +5,7 @@ class UsersController < ApplicationController
   skip_before_action :api_check
   before_action :logged_in_only, only: %i[edit settings upload_limit update]
   before_action :member_only, only: %i[custom_style avatar_menu]
-  before_action :janitor_only, only: %i[toggle_uploads disable_uploads fix_counts]
+  before_action :janitor_only, only: %i[toggle_uploads disable_uploads fix_counts reset_karma]
   before_action :admin_only, only: %i[flush_favorites]
   before_action :check_upload_disable_reason, only: %i[disable_uploads]
 
@@ -127,6 +127,14 @@ class UsersController < ApplicationController
     @user.no_uploading = true
     ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
     @user.save
+
+    redirect_to user_path(@user)
+  end
+
+  def reset_karma
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    @user.user_status.update!(upload_karma: 0)
+    ModAction.log(:user_karma_reset, { user_id: @user.id })
 
     redirect_to user_path(@user)
   end

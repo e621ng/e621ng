@@ -45,6 +45,11 @@
         <% end %>
         | <%= link_to "Refresh counts", fix_counts_user_path(user) %>
       </span>
+
+      <h4>Karma</h4>
+      <span>
+        <%= link_to "Reset karma", reset_karma_user_path(user), method: :post, data: { confirm: "Are you certain that you want to reset this user's karma?\nTHIS IS IRREVERSIBLE." } %>
+      </span>
     <% end %>
 
     <% if CurrentUser.is_moderator? %>

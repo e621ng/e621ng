@@ -188,6 +188,8 @@ class ModActionDecorator < ApplicationDecorator
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
     when "user_karma_change"
       "Changed upload karma of #{user} from #{vals['old_karma']} to #{vals['new_karma']}"
+    when "user_karma_reset"
+      "Reset karma of #{user}"
     when "user_uploads_toggle"
       "#{vals['disabled'] ? 'Disabled' : 'Enabled'} uploading for #{user}"
     when "user_name_change"
