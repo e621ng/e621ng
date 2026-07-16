@@ -28,6 +28,10 @@ class UserPromotion
       user.can_upload_free = options[:can_upload_free]
     end
 
+    if options.key?(:aibur_warden)
+      user.aibur_warden = options[:aibur_warden]
+    end
+
     if options.key?(:no_flagging)
       user.no_flagging = options[:no_flagging]
     end

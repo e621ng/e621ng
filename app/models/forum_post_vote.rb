@@ -4,7 +4,7 @@ class ForumPostVote < ApplicationRecord
   belongs_to_creator
   belongs_to :forum_post
   validates :creator_id, uniqueness: { scope: :forum_post_id }
-  validates :score, inclusion: { in: [-1, 0, 1] }
+  validates :score, inclusion: { in: [-1, 0, 1, 2] }
   validate :validate_creator_is_not_limited, on: :create
   scope :up, -> { where(score: 1) }
   scope :down, -> { where(score: -1) }
@@ -52,6 +52,8 @@ class ForumPostVote < ApplicationRecord
       :thumbs_down
     when 0
       :face_meh
+    when 2
+      :refresh
     else
       :flame
     end
@@ -65,6 +67,8 @@ class ForumPostVote < ApplicationRecord
       "down"
     when 0
       "meh"
+    when 2
+      "flip"
     else
       "unknown"
     end

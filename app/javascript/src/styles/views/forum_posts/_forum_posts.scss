@@ -70,6 +70,38 @@ ul.forum-post-vote-list {
   }
 }
 
+.forum-warden-vote-header {
+  margin-bottom: 0.5rem;
+}
+
+.forum-warden-vote-list {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+
+  .forum-warden-vote {
+    display: flex;
+    gap: 0.5rem;
+
+    & > svg {
+      background: themed("color-section-darken-5");
+      padding: 0.5rem;
+      border-radius: 50%;
+    }
+
+    & > span {
+      background: themed("color-section-darken-5");
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+    }
+
+    &-up svg { color: palette("text-green"); }
+    &-meh svg { color: palette("text-yellow"); }
+    &-down svg { color: palette("text-red"); }
+    &-flip svg { color: palette("plain-blue"); }
+  }
+}
+
 // Vote button styles
 ul.forum-post-vote-list {
   &[data-user-vote="up"] li.forum-post-vote-category[data-vote="up"] button.forum-vote {
