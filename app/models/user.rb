@@ -70,6 +70,14 @@ class User < ApplicationRecord
   include Danbooru::HasBitFlags
   has_bit_flags BOOLEAN_ATTRIBUTES, field: "bit_prefs"
 
+  # Combined bitmask of every deprecated (underscore-prefixed) boolean attribute.
+  # Derived from the naming convention so it stays correct as flags are deprecated.
+  def self.deprecated_bit_prefs_mask
+    BOOLEAN_ATTRIBUTES.each_index.sum do |i|
+      BOOLEAN_ATTRIBUTES[i].start_with?("_") ? (1 << i) : 0
+    end
+  end
+
   attr_accessor :password, :old_password, :validate_email_format, :is_admin_edit
 
   after_initialize :initialize_attributes, if: :new_record?
