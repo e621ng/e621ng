@@ -165,6 +165,10 @@ class TagRelationship < ApplicationRecord
         q = q.order("antecedent_name asc, consequent_name asc")
       when "tag_count"
         q = q.join_consequent.order("consequent_tag.post_count desc, antecedent_name asc, consequent_name asc")
+      when "score_desc"
+        q = q.left_joins(:forum_post).order("forum_posts.vote_score DESC NULLS LAST")
+      when "score_asc"
+        q = q.left_joins(:forum_post).order("forum_posts.vote_score ASC NULLS LAST")
       else
         q = q.apply_basic_order(params)
       end
