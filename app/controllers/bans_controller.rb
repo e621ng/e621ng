@@ -47,8 +47,9 @@ class BansController < ApplicationController
 
   def destroy
     @ban = Ban.find(params[:id])
+    @user = @ban.user
     @ban.destroy
-    redirect_to bans_path, :notice => "Ban destroyed"
+    redirect_to user_path(@user), :notice => "Ban destroyed"
   end
 
   private
