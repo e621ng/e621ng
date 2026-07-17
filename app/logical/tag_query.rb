@@ -1517,7 +1517,7 @@ class TagQuery
       when "appealer", "-appealer", "~appealser",
            "appellant", "-appellant", "~appellant",
            "appealedby", "-appealedby", "~appealedby"
-        next unless CurrentUser.is_staff? # TODO: mm12:feat/search/appeals-data
+        next unless CurrentUser.is_staff? # CHECK: mm12:feat/search/appeals-data
         add_to_query(type, :appealer, g2.downcase, wildcard: true)
 
       when "upvote", "-upvote", "~upvote",
