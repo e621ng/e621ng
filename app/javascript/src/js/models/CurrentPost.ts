@@ -76,6 +76,9 @@ class CurrentPost {
 
     const obj = _get() || {};
 
+    if (!obj || !obj["id"] || typeof obj["id"] !== "number")
+      CurrentPost.Logger.error("Malformed post data.");
+
     // Properties from the PostBlueprint payload
     this.id = obj["id"] || 0;
     this.created_at = obj["created_at"] || "";
@@ -106,10 +109,10 @@ class CurrentPost {
 
     // Derived properties
     this.is = {
-      flash: this.files.meta.ext === "swf",
-      video: ["webm", "mp4"].includes(this.files.meta.ext),
-      image: !["swf", "webm", "mp4"].includes(this.files.meta.ext),
-      visible: !!this.files.original.url,
+      flash: this.files?.meta?.ext === "swf",
+      video: ["webm", "mp4"].includes(this.files?.meta?.ext),
+      image: !["swf", "webm", "mp4"].includes(this.files?.meta?.ext),
+      visible: !!this.files?.original?.url,
     };
 
     CurrentPost.Logger.log(`Loaded: ${this.id}`);
