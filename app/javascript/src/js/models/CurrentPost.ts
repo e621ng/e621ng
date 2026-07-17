@@ -111,6 +111,8 @@ class CurrentPost {
       image: !["swf", "webm", "mp4"].includes(this.files.meta.ext),
       visible: !!this.files.original.url,
     };
+
+    CurrentPost.Logger.log(`Loaded: ${this.id}`);
   }
 
 

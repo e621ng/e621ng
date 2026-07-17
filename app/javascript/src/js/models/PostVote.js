@@ -1,5 +1,6 @@
 import TaskQueue, { TaskCancelled } from "@/utility/TaskQueue";
 import Post from "@/pages/posts/posts";
+import CurrentPost from "@/models/CurrentPost";
 
 export default class PostVote {
 
@@ -8,7 +9,7 @@ export default class PostVote {
    * @param {number} postID ID of the post to upvote.
    */
   static up (postID = null) {
-    if (!postID) postID = Post.currentPost().id;
+    if (!postID) postID = CurrentPost.id;
     this.vote(postID, 1);
   }
 
@@ -17,7 +18,7 @@ export default class PostVote {
    * @param {number} postID ID of the post to downvote.
    */
   static down (postID = null) {
-    if (!postID) postID = Post.currentPost().id;
+    if (!postID) postID = CurrentPost.id;
     this.vote(postID, -1);
   }
 
