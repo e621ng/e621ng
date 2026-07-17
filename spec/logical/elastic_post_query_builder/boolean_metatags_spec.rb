@@ -70,6 +70,16 @@ RSpec.describe ElasticPostQueryBuilder do
       end
     end
 
+    describe "has_pending_appeals" do # CHECK: mm12:feat/search/appeals-data
+      it "adds a has_pending_appeals:true term for pending_appeals:true" do
+        expect(build_query("pending_appeals:true").must).to include({ term: { has_pending_appeals: true } })
+      end
+
+      it "adds a has_pending_appeals:false term for pending_appeals:false" do
+        expect(build_query("pending_appeals:false").must).to include({ term: { has_pending_appeals: false } })
+      end
+    end
+
     describe "artverified" do
       it "adds an artverified:true term for artverified:true" do
         expect(build_query("artverified:true").must).to include({ term: { artverified: true } })

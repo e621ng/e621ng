@@ -288,7 +288,43 @@ RSpec.describe TagQuery do
     end
   end
 
-  describe "appealedby: metatag" do # TODO: mm12:feat/search/appeals-data
+  describe "appealedby: metatag" do # CHECK: mm12:feat/search/appeals-data
+    let!(:appealed_user) { create(:user) }
+
+    it "is ignored for non-staff users" do
+      tq = TagQuery.new("appealedby:#{appealed_user.name}")
+      expect(tq[:appealer]).to be_nil
+      expect(tq[:appealer_must_not]).to be_nil
+      expect(tq[:appealer_should]).to be_nil
+    end
+
+    it "parses username and id forms for staff users" do
+      staff = create(:admin_user)
+
+      CurrentUser.scoped(staff) do
+        expect(TagQuery.new("appealedby:#{appealed_user.name}")[:appealedby]).to include(appealed_user.id)
+        expect(TagQuery.new("appealedby:!#{appealed_user.id}")[:appealedby]).to include(appealed_user.id)
+        expect(TagQuery.new("-appealedby:#{appealed_user.name}")[:appealedby_must_not]).to include(appealed_user.id)
+        expect(TagQuery.new("~appealedby:#{appealed_user.name}")[:appealedby_should]).to include(appealed_user.id)
+      end
+    end
+
+    it "stores -1 for unknown users when staff" do
+      staff = create(:admin_user)
+
+      CurrentUser.scoped(staff) do
+        expect(TagQuery.new("appealedby:missing_user")[:flagger]).to include(-1)
+      end
+    end
+
+    it "stores the current user's ID for appealedby:me when staff" do
+      staff = create(:admin_user)
+
+      CurrentUser.scoped(staff) do
+        tq = TagQuery.new("appealedby:me")
+        expect(tq[:appealedby]).to include(CurrentUser.id)
+      end
+    end
   end
 
   describe "deleted filter helpers with order metatags" do

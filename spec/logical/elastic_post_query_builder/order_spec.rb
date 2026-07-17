@@ -93,7 +93,16 @@ RSpec.describe ElasticPostQueryBuilder do
     end
   end
 
-  describe "appealed order" do # TODO: mm12:feat/search/appeals-data
+  describe "appealed order" do # CHECK: mm12:feat/search/appeals-data
+    it "sets order from ORDER_TABLE for `order:appealed`" do
+      builder = build_query("order:appealed")
+      expect(builder.order).to eq([{ appealed_at: { order: :desc, missing: :_last } }, { id: :desc }])
+    end
+
+    it "sets order from ORDER_TABLE for `order:appealed_asc`" do
+      builder = build_query("order:appealed_asc")
+      expect(builder.order).to eq([{ appealed_at: { order: :asc, missing: :_last } }, { id: :asc }])
+    end
   end
 
   describe "COUNT_METATAG order pattern" do

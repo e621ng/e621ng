@@ -552,7 +552,7 @@ RSpec.describe PostIndex do
         end
 
         it "returns false when options[:has_pending_appeals] is false, even if a pending replacement exists" do
-          # TODO: mm12:feat/search/appeals-data
+          # CHECK: mm12:feat/search/appeals-data
           appeal = create(:appeal, post: post)
           PostFlag.find(appeal.disp_id).update(post_id: post.id)
           expect(post.as_indexed_json(has_pending_appeals: false)[:has_pending_appeals]).to be false

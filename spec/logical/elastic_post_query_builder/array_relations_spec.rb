@@ -44,7 +44,26 @@ RSpec.describe ElasticPostQueryBuilder do
       end
     end
 
-    describe "appeal_status" do # TODO: mm12:feat/search/appeals-data
+    describe "appeal_status" do # CHECK: mm12:feat/search/appeals-data
+      context "a member user" do
+        it "does not add a term clause for `appeal_staus:pending`" do
+          expect(build_query("appeal_staus:pending").must).to eq(build_query(""))
+        end
+
+        it "does not add a term clause for `-appeal_staus:pending`" do
+          expect(build_query("-appeal_staus:pending").must_not).to eq(build_query(""))
+        end
+      end
+
+      context "a staff user" do # Do we need this? If so, still need to add role context
+        it "adds a `must` term clause for `appeal_staus:pending`" do
+          expect(build_query("appeal_staus:pending").must).to include({ term: { appeal_status: "pending" } })
+        end
+
+        it "adds a `must_not` term clause for `-appeal_staus:pending`" do
+          expect(build_query("-appeal_staus:pending").must_not).to include({ term: { appeal_status: "pending" } })
+        end
+      end
     end
 
     describe "source (wildcard)" do
@@ -154,7 +173,14 @@ RSpec.describe ElasticPostQueryBuilder do
       end
     end
 
-    describe "appealer any/none" do # TODO: mm12:feat/search/appeals-data
+    describe "appealer any/none" do # CHECK: mm12:feat/search/appeals-data - do we need role context here?
+      it "adds an exists clause to must for `appealedby:any`" do
+        expect(build_query("appealedby:any").must).to include({ exists: { field: :appealers } })
+      end
+
+      it "adds an exists clause to must_not for `appealedby:none`" do
+        expect(build_query("appealedby:none").must_not).to include({ exists: { field: :appealers } })
+      end
     end
 
     describe "source any/none" do

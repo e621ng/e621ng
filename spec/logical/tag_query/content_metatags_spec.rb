@@ -245,9 +245,22 @@ RSpec.describe TagQuery do
     end
   end
 
-  describe "has_pending_appeals" do # TODO: mm12:feat/search/appeals-data
-  end
+  describe "appeal_status" do
+    it "is ignored for non-staff users" do # CHECK: mm12:feat/search/appeals-data
+      tq = TagQuery.new("appeal_status:*")
+      expect(tq[:appeal_status]).to be_nil
+      expect(tq[:appeal_status_must_not]).to be_nil
+      expect(tq[:appeal_status_should]).to be_nil
+    end
 
-  describe "appeal_status" do # TODO: mm12:feat/search/appeals-data
+    it "is parsed for staff users ...." do # CHECK: mm12:feat/search/appeals-data
+      staff = create(:admin_user)
+
+      CurrentUser.scoped(staff) do
+        expect(TagQuery.new("appeal_status:pending")[:appeal_status]).to include("pending")
+        expect(TagQuery.new("-appeal_status:rejected")[:appeal_status]).to include("rejected")
+        expect(TagQuery.new("~appeal_status:approved")[:appeal_status]).to include("approved")
+      end
+    end
   end
 end

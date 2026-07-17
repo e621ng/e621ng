@@ -107,7 +107,8 @@ RSpec.describe TagQuery do
       expect(TagQuery.new("-order:flagged")[:order]).to eq("flagged_asc")
     end
 
-    it "-order:appealed inverts to appealed_asc" do # TODO: mm12:feat/search/appeals-data
+    it "-order:appealed inverts to appealed_asc" do
+      expect(TagQuery.new("-order:appealed")[:order]).to eq("appealed_asc")
     end
   end
 

@@ -176,6 +176,12 @@ RSpec.describe TagQuery, type: :model do
                        input: "pending_replacements", expected_key: :pending_replacements,
                        true_value: true, false_value: false
     end
+
+    describe "pending_appeals:" do
+      include_examples "a boolean metatag",
+                       input: "pending_appeals", expected_key: :pending_appeal,
+                       true_value: true, false_value: false
+    end
   end
 
   describe "boolean metatag aliases" do
