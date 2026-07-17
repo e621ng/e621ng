@@ -5,8 +5,13 @@ let _data: Record<string, any> = {},
 const _get = function () {
   if (loaded) return _data;
   try {
-    const base64 = document.getElementById("post-data").textContent;
-    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const el = document.getElementById("post-data");
+    if (!el) {
+      // Can't find the element - likely on the posts#index page
+      return {};
+    }
+
+    const bytes = Uint8Array.from(atob(el.textContent), (c) => c.charCodeAt(0));
     const json = new TextDecoder().decode(bytes);
     _data = JSON.parse(json);
     loaded = true;
@@ -75,8 +80,9 @@ class CurrentPost {
       throw new Error("CurrentPost is a singleton class. Use CurrentPost.instance to access the instance.");
 
     const obj = _get() || {};
+    if (!Object.keys(obj).length) return;
 
-    if (!obj || !obj["id"] || typeof obj["id"] !== "number")
+    if (!obj["id"] || typeof obj["id"] !== "number")
       CurrentPost.Logger.error("Malformed post data.");
 
     // Properties from the PostBlueprint payload
