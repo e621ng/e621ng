@@ -278,6 +278,30 @@ RSpec.describe PostReplacementsController do
   end
 
   # ---------------------------------------------------------------------------
+  # PUT /post_replacements/:id/note — note
+  # ---------------------------------------------------------------------------
+
+  describe "PUT /post_replacements/:id/note" do
+    it "creates a note for a moderator" do
+      sign_in_as moderator
+
+      put note_post_replacement_path(replacement), params: { note_content: "This is a test note" }
+
+      expect(response).to have_http_status(:ok)
+      expect(replacement.reload.note&.note).to eq("This is a test note")
+    end
+
+    it "returns 403 for a regular member" do
+      sign_in_as member
+
+      put note_post_replacement_path(replacement), params: { note_content: "This is a test note" }
+
+      expect(response).to have_http_status(:forbidden)
+      expect(replacement.reload.note).to be_nil
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # POST /post_replacements/:id/promote — promote
   # promote! calls UploadService.new.start! — always stub to avoid file I/O.
   # ---------------------------------------------------------------------------

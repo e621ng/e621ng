@@ -116,6 +116,7 @@ class ModAction < ApplicationRecord
     takedown_process: { takedown_id: :integer },
     post_version_hide: { version: :integer, post_id: :integer },
     post_version_unhide: { version: :integer, post_id: :integer },
+    post_replacement_note_edit: { replacement_id: :integer, note: :string },
   }.freeze
 
   ProtectedActionKeys = %w[
@@ -123,6 +124,7 @@ class ModAction < ApplicationRecord
     staff_file_create staff_file_update staff_file_delete
     ip_ban_create ip_ban_delete
     post_version_hide post_version_unhide
+    post_replacement_note_edit
   ].freeze
 
   KnownActionKeys = KnownActions.keys.freeze

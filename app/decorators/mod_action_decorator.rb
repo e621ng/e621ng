@@ -488,7 +488,12 @@ class ModActionDecorator < ApplicationDecorator
       "Post replacement for post ##{vals['post_id']} was rejected"
     when "post_replacement_delete"
       "Post replacement for post ##{vals['post_id']} was deleted"
-
+    when "post_replacement_note_edit"
+      msg = "Edited post replacement note for replacement ##{vals['replacement_id']}"
+      if CurrentUser.is_staff?
+        msg += " with note: #{vals['note']}"
+      end
+      msg
       ### Staff Files ###
     when "staff_file_create"
       "Uploaded staff file ##{vals['id']} (#{vals['filename']}) by #{user}"
