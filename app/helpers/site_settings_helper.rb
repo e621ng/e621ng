@@ -10,6 +10,15 @@ module SiteSettingsHelper
     Base64.strict_encode64(site_user_data.to_json)
   end
 
+  # Page-scoped post payload for the posts#show media/resize system.
+  def post_show_base64(post)
+    Base64.strict_encode64(
+      PostBlueprint.render_as_hash(post, view: :extended)
+        .merge({ initial_size: post.presenter.default_image_size(CurrentUser.user) })
+        .to_json,
+    )
+  end
+
   private
 
   def site_settings_data

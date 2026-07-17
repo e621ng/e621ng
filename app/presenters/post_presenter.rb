@@ -10,70 +10,24 @@ class PostPresenter < Presenter
     @post = post
   end
 
-  def self.data_attributes(post, include_post: false)
-    attributes = post.thumbnail_attributes
-    attributes[:post] = post_attribute_attribute(post).to_json if include_post
-    { data: attributes }
-  end
+  # CSS class applied to the media element for each initial size token.
+  # The show-page media JS (Resizer.ts) uses the same mapping, so the server can
+  # render the final class up-front and avoid an on-load reflow.
+  INITIAL_SIZE_CLASSES = {
+    "original" => "",
+    "fit" => "fit-window",
+    "fitv" => "fit-window-vertical",
+    "large" => "fit-window",
+  }.freeze
 
-  def self.post_attribute_attribute(post)
-    {
-      id: post.id,
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-      fav_count: post.fav_count,
-      comment_count: post.visible_comment_count(CurrentUser),
-      change_seq: post.change_seq,
-      uploader_id: post.uploader_id,
-      description: post.description,
-      flags: {
-        pending: post.is_pending,
-        flagged: post.is_flagged,
-        note_locked: post.is_note_locked,
-        status_locked: post.is_status_locked,
-        rating_locked: post.is_rating_locked,
-        deleted: post.is_deleted,
-        has_notes: post.has_notes?,
-      },
-      score: {
-        up: post.up_score,
-        down: post.down_score,
-        total: post.score,
-      },
-      relationships: {
-        parent_id: post.parent_id,
-        has_children: post.has_children,
-        has_active_children: post.has_active_children,
-        children: [],
-      },
-      pools: post.pool_ids,
-      file: {
-        width: post.image_width,
-        height: post.image_height,
-        ext: post.file_ext,
-        size: post.file_size,
-        md5: post.md5,
-        url: post.visible? ? post.file_url : nil,
-      },
-      sample: {
-        has: post.has_sample?,
-        height: post.sample_height,
-        width: post.sample_width,
-        url: post.visible? ? post.sample_url : nil,
-        alternates: post.video_sample_list,
-      },
-      sources: post.source&.split('\n'),
-      tags: post.tag_string.split,
-      locked_tags: post.locked_tags&.split || [],
-      is_favorited: post.is_favorited?,
-      vote: post.vote_by,
-    }
+  def self.data_attributes(post)
+    { data: post.thumbnail_attributes }
   end
 
   def image_attributes
     attributes = {
       :id => "image",
-      class: @post.display_class_for(CurrentUser.user),
+      class: initial_image_class(CurrentUser.user),
       :alt => humanized_essential_tag_string,
       "itemprop" => "contentUrl",
     }
@@ -83,6 +37,18 @@ class PostPresenter < Presenter
     end
 
     attributes
+  end
+
+  # Final CSS class for the initial render, matching the Resizer's mapping.
+  def initial_image_class(user = CurrentUser.user)
+    INITIAL_SIZE_CLASSES.fetch(default_image_size(user), "fit-window")
+  end
+
+  # Initial image URL, matching what the Resizer would pick for `default_image_size`.
+  # "large" uses the JPG sample (WebP is offered via a <picture><source>);
+  # everything else uses the original file.
+  def initial_image_url(user = CurrentUser.user)
+    default_image_size(user) == "large" ? @post.sample_url : @post.file_url
   end
 
   def tag_set_presenter

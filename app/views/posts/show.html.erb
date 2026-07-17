@@ -63,7 +63,7 @@
           <% end %>
         </div>
 
-        <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post, include_post: true)) do -%>
+        <%= tag.section(id: "image-container", class: "blacklistable", **PostPresenter.data_attributes(@post)) do -%>
           <div id="note-container" enabled="false"></div>
           <div id="note-preview"></div>
           <%= render "posts/partials/show/content/embedded/embedded", post: @post %>
@@ -253,8 +253,7 @@
 
 <% content_for(:html_header) do %>
   <% if @post.hide_from_search_engines? %><meta name="robots" content="noindex" /><% end %>
-  <% if @post.force_original_size? %><meta name="image-override-size" content="original"/><% end %>
-  <meta name="default-image-size" content="<%= @post.presenter.default_image_size(CurrentUser.user) %>"/>
+  <script type="text/plain" id="post-data" data-encoding="base64"><%= post_show_base64(@post) %></script>
 <% end %>
 <% render(partial: "static/embed", locals: { record: @post, name: @post.presenter.humanized_essential_tag_string, description: "View this #{@post.image_width}x#{@post.image_height} #{number_to_human_size(@post.file_size)} image", post: @post }) %>
 
