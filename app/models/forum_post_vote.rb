@@ -36,6 +36,10 @@ class ForumPostVote < ApplicationRecord
     score == 0
   end
 
+  def flip?
+    score == 2
+  end
+
   def icon
     ForumPostVote.score_to_icon(score)
   end
