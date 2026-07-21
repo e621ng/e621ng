@@ -70,5 +70,16 @@ RSpec.describe PostApprovalsController do
       get post_approvals_path(format: :json, limit: 2)
       expect(response.parsed_body.length).to eq(2)
     end
+
+    it "redirects anonymous users to login if post_tags_match is used" do
+      get post_approvals_path(search: { post_tags_match: "tag" })
+      expect(response).to redirect_to(new_session_path(url: post_approvals_path(search: { post_tags_match: "tag" })))
+    end
+
+    it "accepts the post_tags_match search param as a member without error" do
+      sign_in_as member
+      get post_approvals_path(search: { post_tags_match: "tag" })
+      expect(response).to have_http_status(:ok)
+    end
   end
 end
