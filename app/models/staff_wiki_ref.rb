@@ -7,6 +7,7 @@ class StaffWikiRef < ApplicationRecord
   belongs_to :related, polymorphic: true
 
   validates :related_type, presence: true, inclusion: { in: ALLOWED_TYPES }
+  validates :related_id, uniqueness: { scope: %i[staff_wiki_id related_type], message: "is already referenced" }
   validate :validate_related_exists
 
   def validate_related_exists

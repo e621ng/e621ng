@@ -34,4 +34,15 @@
     <%= number_field_tag "staff_wiki_ref[related_id]", nil, placeholder: "ID", min: 1 %>
     <%= f.submit "+" %>
   <% end %>
+
+  <button type="button" id="staff-wiki-references-bulk" class="st-button">Bulk import</button>
+
+  <div class="dialog-staging" style="display: none;">
+    <%= form_with url: bulk_create_staff_wiki_references_path(staff_wiki), method: :post,
+                  id: "bulk-import-dialog", data: { title: "Bulk import references", width: "400" } do |f| %>
+      <p>Paste user, artist, or staff wiki URLs.</p>
+      <%= text_area_tag "urls", nil, rows: 8, placeholder: "https://#{Danbooru.config.domain}/users/admin\nhttps://#{Danbooru.config.domain}/artists/example" %>
+      <%= f.submit "Import", class: "st-button" %>
+    <% end %>
+  </div>
 </section>

@@ -1,4 +1,4 @@
-body.c-staff-staff-wikis.a-show #page {
+body.c-staff-wikis.a-show #page {
   padding: 0;
   display: flex;
   flex-flow: column;
@@ -10,6 +10,15 @@ body.c-staff-staff-wikis.a-show #page {
     flex: 1;
     display: flex;
   }
+}
+
+body.c-staff-wikis.a-show #bulk-import-dialog {
+  display: flex;
+  flex-flow: column;
+  padding: 0.5rem;
+  gap: 0.5rem;
+
+  p { margin-bottom: 0; }
 }
 
 #c-staff-wikis #a-show {
@@ -164,12 +173,17 @@ body.c-staff-staff-wikis.a-show #page {
         box-sizing: border-box;
       }
     }
+    #staff-wiki-references-bulk {
+      grid-column: 1 / -1;
+      display: none;
+    }
 
     // Display state
     &[data-editing="true"] {
       grid-template-columns: 1rem auto 1rem;
       .reference-item-remove { display: block; }
       .reference-form { display: flex; }
+      #staff-wiki-references-bulk { display: inline-flex; }
     }
   }
 
