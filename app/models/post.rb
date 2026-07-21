@@ -199,14 +199,6 @@ class Post < ApplicationRecord
       end
     end
 
-    def file_url_for(user)
-      if user.default_image_size == "large" && image_width > Danbooru.config.large_image_width
-        sample_url
-      else
-        file_url
-      end
-    end
-
     # Initial video URLs for the post
     # Should only be relevant if the user has javascript disabled
     # Otherwise, the sources provided here will be overwritten

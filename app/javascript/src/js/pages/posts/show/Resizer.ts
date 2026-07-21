@@ -64,7 +64,7 @@ class PostResizer {
 
     this.isAvailable = true;
 
-    if (CurrentPost.is.image) // TODO what is this
+    if (CurrentPost.is.image)
       $("img#image").on("load.resizer", () => $("#image-container").removeClass("image-loading"));
 
     // "Resize to original" link"
