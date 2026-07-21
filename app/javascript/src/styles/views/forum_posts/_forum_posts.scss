@@ -96,9 +96,9 @@ ul.forum-post-vote-list {
     }
 
     &-up svg { color: palette("text-green"); }
-    &-meh svg { color: palette("text-yellow"); }
+    &-meh svg { color: palette("text-grey"); }
     &-down svg { color: palette("text-red"); }
-    &-flip svg { color: palette("plain-blue"); }
+    &-flip svg { color: palette("text-yellow"); }
   }
 }
 
@@ -109,11 +109,15 @@ ul.forum-post-vote-list {
     &:hover { background: palette("background-green-d5"); }
   }
   &[data-user-vote="meh"] li.forum-post-vote-category[data-vote="meh"] button.forum-vote {
-    background: palette("background-yellow");
-    &:hover { background: palette("background-yellow-d5"); }
+    background: palette("background-grey");
+    &:hover { background: palette("background-grey-d5"); }
   }
   &[data-user-vote="down"] li.forum-post-vote-category[data-vote="down"] button.forum-vote {
     background: palette("background-red");
     &:hover { background: palette("background-red-d5"); }
+  }
+  &[data-user-vote="flip"] li.forum-post-vote-category[data-vote="flip"] button.forum-vote {
+    background: palette("background-yellow");
+    &:hover { background: palette("background-yellow-d5"); }
   }
 }
