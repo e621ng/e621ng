@@ -6,7 +6,7 @@ module Staff
     respond_to :html, :json
 
     def index
-      permitted_params = params.permit(:user, :limit, :threshold, :duration, :disable_vote_normality, :id, :page, :commit, search: {})
+      permitted_params = params.except(:format).permit(:user, :limit, :threshold, :duration, :disable_vote_normality, :id, :page, :commit, search: {})
       vote_abuse_args = {}
       vote_abuse_args[:user] = User.find_by_name_or_id(permitted_params[:user]) if permitted_params[:user].present? # rubocop:disable Rails/DynamicFindBy
       vote_abuse_args[:vote_normality] = permitted_params[:disable_vote_normality].to_i == 0
