@@ -207,11 +207,11 @@ RSpec.describe AppealsController do
         expect(appeal.reload.response).to eq("Approved, the flag was incorrect.")
       end
 
-      it "updates the appeal response only if the status is empty" do
+      it "fails gracefully if the status is empty" do
         patch appeal_path(appeal), params: { appeal: { response: "Still pending.", status: "" } }
-        expect(response).not_to have_http_status(:internal_server_error)
+        expect(response).to have_http_status(:not_acceptable)
         expect(appeal.reload.status).to eq("pending")
-        expect(appeal.reload.response).to eq("Still pending.")
+        expect(appeal.reload.response).to eq("")
       end
 
       it "fails gracefully if the status is invalid" do

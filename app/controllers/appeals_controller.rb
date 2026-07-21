@@ -134,9 +134,7 @@ class AppealsController < ApplicationController
   end
 
   def update_appeal_params
-    permitted = params.require(:appeal).permit(%i[response status send_update_dmail])
-    permitted.delete(:status) if permitted[:status].blank?
-    permitted
+    params.require(:appeal).permit(%i[response status send_update_dmail])
   end
 
   def search_params
