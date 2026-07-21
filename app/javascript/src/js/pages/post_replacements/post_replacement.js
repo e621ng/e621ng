@@ -31,6 +31,56 @@ PostReplacement.initialize_all = function () {
     e.preventDefault();
     PostReplacement.destroy(id);
   });
+
+  $(".replacement-transfer-action").on("click", (e) => {
+    const $target = $(e.target);
+    e.preventDefault();
+    PostReplacement.transfer($target.data("replacement-id"));
+  });
+};
+
+PostReplacement.transfer = function (id) {
+  const $row = $(`#replacement-${id}`);
+  const rawNewPostId = prompt("Enter the new post ID to transfer this replacement to:");
+  if (rawNewPostId === null) {
+    E621.Toast.notice("No post ID specified. Transfer cancelled.");
+    return;
+  }
+  const newPostId = rawNewPostId.trim();
+  if (!newPostId || isNaN(Number(newPostId))) { // ensure it's a valid number
+    E621.Toast.notice("Invalid post ID. Transfer cancelled.");
+    return;
+  }
+  const confirmed = confirm(
+    `Are you sure you want to transfer this replacement to post ID ${newPostId}?`,
+  );
+  if (!confirmed) {
+    E621.Toast.notice("Transfer cancelled.");
+    return;
+  }
+  make_processing($row);
+  $.ajax({
+    type: "PUT",
+    url: `/post_replacements/${id}/transfer`,
+    data: {
+      new_post_id: newPostId,
+    },
+    dataType: "html",
+  })
+    .done((html) => {
+      $row.replaceWith(
+        (() => {
+          const $el = $(html);
+          return $el;
+        })(),
+      );
+      E621.Toast.notice("Replacement transferred.");
+    })
+    .fail((data) => {
+      const msg = data.responseText?.trim() || "Failed to transfer the replacement.";
+      E621.Toast.alert(msg);
+      revert_processing($row);
+    });
 };
 
 PostReplacement.approve = function (id, penalize_current_uploader) {
