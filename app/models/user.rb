@@ -31,7 +31,7 @@ class User < ApplicationRecord
   # Renaming history (in order):                                                                    #
   # * _has_mail -> forum_notification_dot                                                           #
   # * _no_feedback -> no_uploading                                                                  #
-  # * _is_banned -> aibur_warden                                                                    #
+  # * _is_banned -> tag_warden                                                                      #
   # ================================================================================================#
 
   BOOLEAN_ATTRIBUTES = %w[
@@ -42,7 +42,7 @@ class User < ApplicationRecord
     hide_comments
     show_hidden_comments
     show_post_statistics
-    aibur_warden
+    tag_warden
     forum_notification_dot
     receive_email_notifications
     enable_keyboard_navigation

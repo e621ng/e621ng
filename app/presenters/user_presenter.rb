@@ -43,7 +43,7 @@ class UserPresenter
       permissions << "replacements beta"
     end
 
-    if user.aibur_warden?
+    if user.tag_warden?
       permissions << "tag warden"
     end
 

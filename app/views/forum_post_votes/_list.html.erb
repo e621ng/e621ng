@@ -4,7 +4,7 @@
 <% is_votable = forum_post.can_vote? && forum_post.tag_change_request&.is_pending? && votable && forum_post.tag_change_request&.creator_id != CurrentUser.user.id %>
 <% categorized_votes = { 1 => [], 0 => [], -1 => [], 2 => [] }.merge(votes.group_by(&:score)) %>
 
-<% warden_votes = votes.select { |vote| vote.creator&.aibur_warden? } %>
+<% warden_votes = votes.select { |vote| vote.creator&.tag_warden? } %>
 
 <ul
   class="forum-post-vote-list"
