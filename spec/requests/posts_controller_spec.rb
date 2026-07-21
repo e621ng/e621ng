@@ -110,6 +110,42 @@ RSpec.describe PostsController do
   end
 
   # ---------------------------------------------------------------------------
+  # GET /posts/count — approximate result count
+  # ---------------------------------------------------------------------------
+
+  describe "GET /posts/count" do
+    # Post.tag_match hits OpenSearch. Stub it so these examples are self-contained
+    # without requiring an indexed search engine.
+    it "returns an approximate count as an anonymous user" do
+      allow(Post).to receive(:tag_match).and_return(double(count_only: 42, count_capped?: false)) # rubocop:disable RSpec/VerifiedDoubles
+
+      get count_posts_path(format: :json), params: { tags: "tagme" }
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq("count" => 42, "capped" => false)
+    end
+
+    it "flags capped results" do
+      allow(Post).to receive(:tag_match).and_return(double(count_only: 240_001, count_capped?: true)) # rubocop:disable RSpec/VerifiedDoubles
+
+      get count_posts_path(format: :json), params: { tags: "canid" }
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq("count" => 240_001, "capped" => true)
+    end
+
+    it "returns 400 for a non-string tags param" do
+      get count_posts_path(format: :json), params: { tags: { "$eq" => "" } }
+      expect(response).to have_http_status(:bad_request)
+    end
+
+    it "returns 422 when the tag limit is exceeded" do
+      allow(Post).to receive(:tag_match).and_raise(TagQuery::CountExceededError)
+
+      get count_posts_path(format: :json), params: { tags: "a b c" }
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # GET /posts/:id — show
   # ---------------------------------------------------------------------------
 
