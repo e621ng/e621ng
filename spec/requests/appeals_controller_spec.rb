@@ -207,6 +207,20 @@ RSpec.describe AppealsController do
         expect(appeal.reload.response).to eq("Approved, the flag was incorrect.")
       end
 
+      it "fails gracefully if the status is empty" do
+        patch appeal_path(appeal), params: { appeal: { response: "Still pending.", status: "" } }
+        expect(response).to have_http_status(:not_acceptable)
+        expect(appeal.reload.status).to eq("pending")
+        expect(appeal.reload.response).to eq("")
+      end
+
+      it "fails gracefully if the status is invalid" do
+        patch appeal_path(appeal), params: { appeal: { response: "Favourite animal?", status: "leopard" } }
+        expect(response).to have_http_status(:not_acceptable)
+        expect(appeal.reload.status).to eq("pending")
+        expect(appeal.reload.response).to eq("")
+      end
+
       context "when the appeal is already claimed by another janitor" do
         let(:other_janitor) { create(:janitor_user) }
 
