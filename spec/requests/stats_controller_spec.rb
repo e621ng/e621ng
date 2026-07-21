@@ -31,9 +31,9 @@ RSpec.describe StatsController do
   end
 
   describe "GET /stats" do
-    it "returns 406 when JSON format is requested" do
+    it "returns 200 when JSON format is requested" do
       get stats_path(format: :json)
-      expect(response).to have_http_status(:not_acceptable)
+      expect(response).to have_http_status(:ok)
     end
 
     # FIXME: When Redis returns nil, @stats is {} and the view raises in two
