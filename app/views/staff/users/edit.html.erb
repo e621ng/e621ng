@@ -40,6 +40,11 @@
       </div>
 
       <div class="input">
+        <label for="user_tag_warden" class="optional">Tag Warden</label>
+        <%= select(:user, :tag_warden, [["Yes", true], ["No", false]]) %>
+      </div>
+
+      <div class="input">
         <label for="user_can_approve_posts" class="optional">Approve Posts</label>
         <%= select(:user, :can_approve_posts, [["Yes", true], ["No", false]]) %>
       </div>

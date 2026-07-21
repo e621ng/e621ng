@@ -70,6 +70,38 @@ ul.forum-post-vote-list {
   }
 }
 
+.forum-warden-vote-header {
+  margin-bottom: 0.5rem;
+}
+
+.forum-warden-vote-list {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+
+  .forum-warden-vote {
+    display: flex;
+    gap: 0.5rem;
+
+    & > svg {
+      background: themed("color-section-darken-5");
+      padding: 0.5rem;
+      border-radius: 50%;
+    }
+
+    & > span {
+      background: themed("color-section-darken-5");
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+    }
+
+    &-up svg { color: palette("text-green"); }
+    &-meh svg { color: palette("text-grey"); }
+    &-down svg { color: palette("text-red"); }
+    &-flip svg { color: palette("text-yellow"); }
+  }
+}
+
 // Vote button styles
 ul.forum-post-vote-list {
   &[data-user-vote="up"] li.forum-post-vote-category[data-vote="up"] button.forum-vote {
@@ -77,11 +109,15 @@ ul.forum-post-vote-list {
     &:hover { background: palette("background-green-d5"); }
   }
   &[data-user-vote="meh"] li.forum-post-vote-category[data-vote="meh"] button.forum-vote {
-    background: palette("background-yellow");
-    &:hover { background: palette("background-yellow-d5"); }
+    background: palette("background-grey");
+    &:hover { background: palette("background-grey-d5"); }
   }
   &[data-user-vote="down"] li.forum-post-vote-category[data-vote="down"] button.forum-vote {
     background: palette("background-red");
     &:hover { background: palette("background-red-d5"); }
+  }
+  &[data-user-vote="flip"] li.forum-post-vote-category[data-vote="flip"] button.forum-vote {
+    background: palette("background-yellow");
+    &:hover { background: palette("background-yellow-d5"); }
   }
 }

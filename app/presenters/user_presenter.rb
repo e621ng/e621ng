@@ -43,6 +43,10 @@ class UserPresenter
       permissions << "replacements beta"
     end
 
+    if user.tag_warden?
+      permissions << "tag warden"
+    end
+
     permissions.join(", ")
   end
 

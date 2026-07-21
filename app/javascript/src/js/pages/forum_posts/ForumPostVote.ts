@@ -15,6 +15,7 @@ function scoreToStr (score: number): string {
     case 1: return "up";
     case 0: return "meh";
     case -1: return "down";
+    case 2: return "flip";
     default: throw new Error(`Unknown score: ${score}`);
   }
 }

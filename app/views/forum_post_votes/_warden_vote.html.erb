@@ -1,0 +1,31 @@
+<%# locals: (warden_vote:, forum_post:, votable:) -%>
+
+<li class="forum-warden-vote forum-warden-vote-<%= warden_vote.vote_type %>">
+  <% case warden_vote.vote_type %>
+  <% when "up" %>
+    <%= svg_icon(:thumbs_up, width: 16, height: 16) %>
+    <span>
+      <%= link_to_user warden_vote.creator %> endorsed this tag change request.
+    </span>
+  <% when "down" %>
+    <%= svg_icon(:thumbs_down, width: 16, height: 16) %>
+    <span>
+      <%= link_to_user warden_vote.creator %> rejected this tag change request.
+    </span>
+  <% when "meh" %>
+    <%= svg_icon(:face_meh, width: 16, height: 16) %>
+    <span>
+      <%= link_to_user warden_vote.creator %> has no opinion on this tag change request.
+    </span>
+  <% when "flip" %>
+    <%= svg_icon(:refresh, width: 16, height: 16) %>
+    <span>
+      <%= link_to_user warden_vote.creator %> wants to see this tag change request flipped.
+    </span>
+  <% else %>
+    <%= svg_icon(:face_frown, width: 16, height: 16) %>
+    <span>
+      <%= link_to_user warden_vote.creator %> has an unknown vote type: <%= warden_vote.vote_type %>
+    </span>
+  <% end %>
+</li>
