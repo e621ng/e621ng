@@ -14,7 +14,7 @@ class Appeal < ApplicationRecord
   validates :reason, presence: true
   validates :reason, length: { minimum: 2, maximum: Danbooru.config.ticket_max_size }
   validates :response, length: { minimum: 2, maximum: Danbooru.config.dmail_max_size }, on: :update
-  enum :status, %i[pending partial approved rejected].index_with(&:to_s)
+  enum :status, %i[pending partial approved rejected].index_with(&:to_s), validate: true
   after_create :push_pubsub_create
   after_update :push_pubsub_update_notification
   after_update :log_update
