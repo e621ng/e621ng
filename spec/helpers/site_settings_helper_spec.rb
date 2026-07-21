@@ -23,8 +23,7 @@ RSpec.describe SiteSettingsHelper do
 
     context "when visitor metrics are enabled and a client id is set" do
       before do
-        allow(Danbooru.config.custom_configuration).to receive(:enable_visitor_metrics?).and_return(true)
-        allow(Danbooru.config.custom_configuration).to receive(:analytics_client_id).and_return("G-ABC123")
+        allow(Danbooru.config.custom_configuration).to receive_messages(enable_visitor_metrics?: true, analytics_client_id: "G-ABC123")
       end
 
       it "enables analytics and exposes the client id" do
@@ -34,8 +33,7 @@ RSpec.describe SiteSettingsHelper do
 
     context "when visitor metrics are disabled" do
       before do
-        allow(Danbooru.config.custom_configuration).to receive(:enable_visitor_metrics?).and_return(false)
-        allow(Danbooru.config.custom_configuration).to receive(:analytics_client_id).and_return("G-ABC123")
+        allow(Danbooru.config.custom_configuration).to receive_messages(enable_visitor_metrics?: false, analytics_client_id: "G-ABC123")
       end
 
       it "disables analytics and withholds the client id" do
@@ -45,8 +43,7 @@ RSpec.describe SiteSettingsHelper do
 
     context "when a client id is missing" do
       before do
-        allow(Danbooru.config.custom_configuration).to receive(:enable_visitor_metrics?).and_return(true)
-        allow(Danbooru.config.custom_configuration).to receive(:analytics_client_id).and_return(nil)
+        allow(Danbooru.config.custom_configuration).to receive_messages(enable_visitor_metrics?: true, analytics_client_id: nil)
       end
 
       it "does not enable analytics" do
