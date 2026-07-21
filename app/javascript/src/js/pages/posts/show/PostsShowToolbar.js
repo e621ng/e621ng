@@ -1,20 +1,12 @@
 import Hotkeys from "@/core/hotkeys";
 import Favorite from "@/models/Favorite";
-import PostVote from "@/models/PostVote";
 import NoteManager from "@/pages/posts/show/notes";
-import Post from "@/pages/posts/posts";
 import Offclick from "@/utility/Offclick";
 import Page from "@/utility/Page";
 import ToastManager from "@/utility/Toast";
+import CurrentPost from "@/models/CurrentPost";
 
 export default class PostsShowToolbar {
-
-  static _currentPost = null;
-  static get currentPost () {
-    if (!this._currentPost) this._currentPost = Post.currentPost();
-    if (!PostsShowToolbar._currentPost) PostsShowToolbar._currentPost = Post.currentPost();
-    return PostsShowToolbar._currentPost;
-  }
 
 
   init () {
@@ -120,7 +112,7 @@ export default class PostsShowToolbar {
   }
 
   static async vote (direction) {
-    return PostVote.vote(PostsShowToolbar.currentPost.id, direction).then((data) => {
+    return CurrentPost.vote(direction).then((data) => {
       // Update Score in Information
       $(".post-score").text(data.score)
         .removeClass("score-negative score-neutral score-positive")
@@ -203,7 +195,10 @@ export default class PostsShowToolbar {
   }
 
   static async addFavorite () {
-    return Favorite.create(PostsShowToolbar.currentPost.id, 500)
+    if (!CurrentPost.exists)
+      throw new Error("No current post available for favoriting.");
+
+    return Favorite.create(CurrentPost.id, 500)
       .then(
         () => {
           $(".ptbr-favorite-button").attr("favorited", "true");
@@ -218,7 +213,10 @@ export default class PostsShowToolbar {
   }
 
   static async deleteFavorite () {
-    return Favorite.destroy(PostsShowToolbar.currentPost.id, 500)
+    if (!CurrentPost.exists)
+      throw new Error("No current post available for favoriting.");
+
+    return Favorite.destroy(CurrentPost.id, 500)
       .then(() => {
         $(".ptbr-favorite-button").attr("favorited", "false");
         $("#image-container").attr("data-is-favorited", "false");

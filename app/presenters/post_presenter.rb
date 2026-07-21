@@ -10,70 +10,28 @@ class PostPresenter < Presenter
     @post = post
   end
 
-  def self.data_attributes(post, include_post: false)
-    attributes = post.thumbnail_attributes
-    attributes[:post] = post_attribute_attribute(post).to_json if include_post
-    { data: attributes }
+  # CSS class applied to the media element for each initial size token.
+  # The show-page media JS (Resizer.ts) uses the same mapping, so the server can
+  # render the final class up-front and avoid an on-load reflow.
+  INITIAL_SIZE_CLASSES = {
+    "original" => "",
+    "fit" => "fit-window",
+    "fitv" => "fit-window-vertical",
+    "large" => "fit-window",
+  }.freeze
+
+  def self.data_attributes(post)
+    { data: post.thumbnail_attributes }
   end
 
-  def self.post_attribute_attribute(post)
-    {
-      id: post.id,
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-      fav_count: post.fav_count,
-      comment_count: post.visible_comment_count(CurrentUser),
-      change_seq: post.change_seq,
-      uploader_id: post.uploader_id,
-      description: post.description,
-      flags: {
-        pending: post.is_pending,
-        flagged: post.is_flagged,
-        note_locked: post.is_note_locked,
-        status_locked: post.is_status_locked,
-        rating_locked: post.is_rating_locked,
-        deleted: post.is_deleted,
-        has_notes: post.has_notes?,
-      },
-      score: {
-        up: post.up_score,
-        down: post.down_score,
-        total: post.score,
-      },
-      relationships: {
-        parent_id: post.parent_id,
-        has_children: post.has_children,
-        has_active_children: post.has_active_children,
-        children: [],
-      },
-      pools: post.pool_ids,
-      file: {
-        width: post.image_width,
-        height: post.image_height,
-        ext: post.file_ext,
-        size: post.file_size,
-        md5: post.md5,
-        url: post.visible? ? post.file_url : nil,
-      },
-      sample: {
-        has: post.has_sample?,
-        height: post.sample_height,
-        width: post.sample_width,
-        url: post.visible? ? post.sample_url : nil,
-        alternates: post.video_sample_list,
-      },
-      sources: post.source&.split('\n'),
-      tags: post.tag_string.split,
-      locked_tags: post.locked_tags&.split || [],
-      is_favorited: post.is_favorited?,
-      vote: post.vote_by,
-    }
-  end
+  ########################################
+  #           Image Attributes           #
+  ########################################
 
   def image_attributes
     attributes = {
       :id => "image",
-      class: @post.display_class_for(CurrentUser.user),
+      class: initial_image_class(CurrentUser.user),
       :alt => humanized_essential_tag_string,
       "itemprop" => "contentUrl",
     }
@@ -84,6 +42,79 @@ class PostPresenter < Presenter
 
     attributes
   end
+
+  # Final CSS class for the initial render, matching the Resizer's mapping.
+  def initial_image_class(user = CurrentUser.user)
+    INITIAL_SIZE_CLASSES.fetch(default_image_size(user), "fit-window")
+  end
+
+  # Initial image URL, matching what the Resizer would pick for `default_image_size`.
+  # "large" uses the JPG sample (WebP is offered via a <picture><source>);
+  # everything else uses the original file.
+  def initial_image_url(user = CurrentUser.user)
+    default_image_size(user) == "large" ? @post.sample_url : @post.file_url
+  end
+
+  ########################################
+  #           Video Attributes           #
+  ########################################
+
+  def video_attributes
+    {
+      id: "image",
+      class: initial_video_class(CurrentUser.user),
+      loop: "true",
+      controls: "controls",
+      controlslist: "nodownload",
+    }
+  end
+
+  def initial_video_class(user = CurrentUser.user)
+    INITIAL_SIZE_CLASSES.fetch(default_image_size(user), "fit-window")
+  end
+
+  # Initial video URLs for the post
+  # Should only be relevant if the user has javascript disabled
+  # Otherwise, the sources provided here will be overwritten
+  def initial_video_urls(user = CurrentUser.user)
+    return [] unless @post.is_video? || !@post.visible?
+
+    if @post.video_sample_list.blank?
+      # likely to happen while new samples are being generated
+      [{
+        codec: "video/#{@post.file_ext}",
+        url: @post.file_url,
+      }]
+    elsif user.default_image_size == "large" && @post.video_sample_list[:samples].any?
+      # sample videos
+      sample = @post.video_sample_list[:samples].values.last
+      [{
+        codec: "video/mp4#{sample.key?(:codec) ? "; codec=#{sample[:codec]}" : ''}",
+        url: sample[:url],
+      }]
+    else
+      # original / fit videos
+      output = []
+      @post.video_sample_list[:variants].each do |ext, data|
+        output.push({
+          codec: "video/#{ext}" + (data.key?(:codec) ? "; codec=#{data[:codec]}" : ""),
+          url: data[:url],
+        })
+      end
+
+      original = @post.video_sample_list[:original]
+      output.push({
+        codec: "video/#{@post.file_ext}" + (original.key?(:codec) ? "; codec=#{original[:codec]}" : ""),
+        url: original[:url],
+      })
+
+      output
+    end
+  end
+
+  ########################################
+  #                Other                 #
+  ########################################
 
   def tag_set_presenter
     @tag_set_presenter ||= TagSetPresenter.new(@post.tag_array)

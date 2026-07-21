@@ -1,3 +1,22 @@
 <% if post.visible? %>
-  <%= image_tag(post.file_url_for(CurrentUser.user), post.presenter.image_attributes) %>
+  <% user = CurrentUser.user %>
+  <% initial_size = post.presenter.default_image_size(user) %>
+  <% webp = Danbooru.config.webp_previews_enabled? && post.has_sample? %>
+  <picture>
+    <% if post.has_sample? && initial_size != "original" %>
+      <% if initial_size == "large" %>
+        <%# Sample view: serve the WebP encoding of the sample when available. %>
+        <% if webp %>
+          <source type="image/webp" srcset="<%= post.sample_url(:sample_webp) %>">
+        <% end %>
+      <% else %>
+        <%# fit / fitv: the full original by default, but show sample if the viewport is small enough for it not to matter. %>
+        <% if webp %>
+          <source type="image/webp" media="(max-width: <%= post.sample_width - 1 %>px)" srcset="<%= post.sample_url(:sample_webp) %>">
+        <% end %>
+        <source media="(max-width: <%= post.sample_width - 1 %>px)" srcset="<%= post.sample_url(:sample_jpg) %>">
+      <% end %>
+    <% end %>
+    <%= image_tag(post.presenter.initial_image_url(user), post.presenter.image_attributes) %>
+  </picture>
 <% end %>

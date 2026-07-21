@@ -199,61 +199,6 @@ class Post < ApplicationRecord
       end
     end
 
-    def file_url_for(user)
-      if user.default_image_size == "large" && image_width > Danbooru.config.large_image_width
-        sample_url
-      else
-        file_url
-      end
-    end
-
-    # Initial video URLs for the post
-    # Should only be relevant if the user has javascript disabled
-    # Otherwise, the sources provided here will be overwritten
-    def initial_video_urls(user = CurrentUser.user)
-      return [] unless is_video? || !visible?
-
-      if video_sample_list.blank?
-        # likely to happen while new samples are being generated
-        [{
-          codec: "video/#{file_ext}",
-          url: file_url,
-        }]
-      elsif user.default_image_size == "large" && video_sample_list[:samples].any?
-        # sample videos
-        sample = video_sample_list[:samples].values.last
-        [{
-          codec: "video/mp4#{sample.key?(:codec) ? "; codec=#{sample[:codec]}" : ''}",
-          url: sample[:url],
-        }]
-      else
-        # original / fit videos
-        output = []
-        video_sample_list[:variants].each do |ext, data|
-          output.push({
-            codec: "video/#{ext}" + (data.key?(:codec) ? "; codec=#{data[:codec]}" : ""),
-            url: data[:url],
-          })
-        end
-
-        original = video_sample_list[:original]
-        output.push({
-          codec: "video/#{file_ext}" + (original.key?(:codec) ? "; codec=#{original[:codec]}" : ""),
-          url: original[:url],
-        })
-
-        output
-      end
-    end
-
-    def display_class_for(user = CurrentUser.user)
-      if user.default_image_size == "original"
-        ""
-      else
-        "fit-window"
-      end
-    end
-
     def has_sample_size?(scale)
       return false if video_sample_list.blank?
       return false if video_sample_list[:samples].blank?
