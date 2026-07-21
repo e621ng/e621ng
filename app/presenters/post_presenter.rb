@@ -24,6 +24,10 @@ class PostPresenter < Presenter
     { data: post.thumbnail_attributes }
   end
 
+  ########################################
+  #           Image Attributes           #
+  ########################################
+
   def image_attributes
     attributes = {
       :id => "image",
@@ -50,6 +54,67 @@ class PostPresenter < Presenter
   def initial_image_url(user = CurrentUser.user)
     default_image_size(user) == "large" ? @post.sample_url : @post.file_url
   end
+
+  ########################################
+  #           Video Attributes           #
+  ########################################
+
+  def video_attributes
+    {
+      id: "image",
+      class: initial_video_class(CurrentUser.user),
+      loop: "true",
+      controls: "controls",
+      controlslist: "nodownload",
+    }
+  end
+
+  def initial_video_class(user = CurrentUser.user)
+    INITIAL_SIZE_CLASSES.fetch(default_image_size(user), "fit-window")
+  end
+
+  # Initial video URLs for the post
+  # Should only be relevant if the user has javascript disabled
+  # Otherwise, the sources provided here will be overwritten
+  def initial_video_urls(user = CurrentUser.user)
+    return [] unless @post.is_video? || !@post.visible?
+
+    if @post.video_sample_list.blank?
+      # likely to happen while new samples are being generated
+      [{
+        codec: "video/#{@post.file_ext}",
+        url: @post.file_url,
+      }]
+    elsif user.default_image_size == "large" && @post.video_sample_list[:samples].any?
+      # sample videos
+      sample = @post.video_sample_list[:samples].values.last
+      [{
+        codec: "video/mp4#{sample.key?(:codec) ? "; codec=#{sample[:codec]}" : ''}",
+        url: sample[:url],
+      }]
+    else
+      # original / fit videos
+      output = []
+      @post.video_sample_list[:variants].each do |ext, data|
+        output.push({
+          codec: "video/#{ext}" + (data.key?(:codec) ? "; codec=#{data[:codec]}" : ""),
+          url: data[:url],
+        })
+      end
+
+      original = @post.video_sample_list[:original]
+      output.push({
+        codec: "video/#{@post.file_ext}" + (original.key?(:codec) ? "; codec=#{original[:codec]}" : ""),
+        url: original[:url],
+      })
+
+      output
+    end
+  end
+
+  ########################################
+  #                Other                 #
+  ########################################
 
   def tag_set_presenter
     @tag_set_presenter ||= TagSetPresenter.new(@post.tag_array)

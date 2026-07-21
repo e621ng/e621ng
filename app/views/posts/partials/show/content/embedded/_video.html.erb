@@ -1,5 +1,5 @@
-<%= tag.video(id: "image", class: post.display_class_for, loop: "true", controls: "controls", controlslist: "nodownload") do %>
-  <% post.initial_video_urls.each do |video| %>
+<%= tag.video(**post.presenter.video_attributes) do %>
+  <% post.presenter.initial_video_urls.each do |video| %>
     <%= tag.source(src: video[:url], type: video[:codec]) %>
   <% end %>
   Playback not available in your browser.
