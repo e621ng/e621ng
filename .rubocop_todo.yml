@@ -1471,7 +1471,6 @@ Style/StringLiterals:
     - 'app/views/post_sets/_form.html.erb'
     - 'app/views/post_sets/_search.html.erb'
     - 'app/views/post_sets/index.html.erb'
-    - 'app/views/post_sets/post_list.erb'
     - 'app/views/posts/partials/index/_posts.html.erb'
     - 'app/views/tag_type_versions/index.html.erb'
     - 'app/views/takedowns/_editor.html.erb'
