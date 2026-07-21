@@ -24,7 +24,7 @@
 
             <td>
               <%= link_to_user post_approval.user %>
-              <%= link_to "»", post_approvals_path(search: params[:search].merge(user_name: post_approval.user.name)) %>
+              <%= link_to "»", post_approvals_path(search: @search_params.merge(user_name: post_approval.user.name)) %>
               <br><%= time_ago_in_words_tagged  post_approval.created_at %>
             </td>
           </tr>

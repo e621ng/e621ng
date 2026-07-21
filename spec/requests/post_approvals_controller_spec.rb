@@ -36,6 +36,12 @@ RSpec.describe PostApprovalsController do
       expect(response.parsed_body).to be_an(Array)
     end
 
+    it "renders the HTML index with a search param and existing approvals" do
+      create(:post_approval)
+      get post_approvals_path(search: { post_id: "1" })
+      expect(response).to have_http_status(:ok)
+    end
+
     it "orders results newest first by default" do
       older = create(:post_approval)
       newer = create(:post_approval)

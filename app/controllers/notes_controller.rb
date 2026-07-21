@@ -66,7 +66,7 @@ class NotesController < ApplicationController
   def search_params
     # creator_id/creator_name and post_note_updater_id/post_note_updater_name
     # are special cased in the model search function
-    permitted_params = %i[body_matches is_active post_id creator_id creator_name post_note_updater_id post_note_updater_name]
+    permitted_params = %i[body_matches is_active post_id creator_id creator_name post_note_updater_id post_note_updater_name order]
     permitted_params += %i[post_tags_match] if CurrentUser.is_member?
     permit_search_params permitted_params
   end
