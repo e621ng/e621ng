@@ -36,6 +36,12 @@ RSpec.describe PostApprovalsController do
       expect(response.parsed_body).to be_an(Array)
     end
 
+    it "renders the HTML index with a search param and existing approvals" do
+      create(:post_approval)
+      get post_approvals_path(search: { post_id: "1" })
+      expect(response).to have_http_status(:ok)
+    end
+
     it "orders results newest first by default" do
       older = create(:post_approval)
       newer = create(:post_approval)
@@ -69,6 +75,17 @@ RSpec.describe PostApprovalsController do
       create_list(:post_approval, 3)
       get post_approvals_path(format: :json, limit: 2)
       expect(response.parsed_body.length).to eq(2)
+    end
+
+    it "redirects anonymous users to login if post_tags_match is used" do
+      get post_approvals_path(search: { post_tags_match: "tag" })
+      expect(response).to redirect_to(new_session_path(url: post_approvals_path(search: { post_tags_match: "tag" })))
+    end
+
+    it "accepts the post_tags_match search param as a member without error" do
+      sign_in_as member
+      get post_approvals_path(search: { post_tags_match: "tag" })
+      expect(response).to have_http_status(:ok)
     end
   end
 end

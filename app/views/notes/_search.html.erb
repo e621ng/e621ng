@@ -3,6 +3,6 @@
   <%= f.user :creator, label: "Author" %>
   <%= f.user :post_note_updater, label: "Post Note Updater" %>
   <%= f.input :post_id, label: "Post #"%>
-  <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
+  <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" if CurrentUser.user.is_member? %>
   <%= f.input :is_active, label: "Status", collection: [["Active", "true"], ["Deleted", "false"]], :include_blank => true %>
 <% end %>
