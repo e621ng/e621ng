@@ -78,6 +78,19 @@ RSpec.describe CommentsController do
         expect(response).to have_http_status(:unprocessable_content)
       end
     end
+
+    describe "post_tags_match search param" do
+      it "returns 403 for anonymous — param is not permitted" do
+        get comments_path(format: :json, search: { post_tags_match: "tag1 tag2" })
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "is accepted for members without raising an error" do
+        sign_in_as member
+        get comments_path(format: :json, search: { post_tags_match: "tag1 tag2" })
+        expect(response).to have_http_status(:ok)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
