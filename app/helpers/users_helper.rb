@@ -6,7 +6,7 @@ module UsersHelper
   end
 
   def email_domain_search(email)
-    return unless email.include?("@")
+    return unless email.present? && email.include?("@")
 
     domain = email.split("@").last
     link_to "»", users_path(search: { email_matches: "*@#{domain}" })
