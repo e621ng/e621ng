@@ -10,7 +10,7 @@
           <source type="image/webp" srcset="<%= post.sample_url(:sample_webp) %>">
         <% end %>
       <% else %>
-        <%# fit / fitv: the full original by default, but downgrade to the sample on viewports narrower than the original to save bandwidth. %>
+        <%# fit / fitv: the full original by default, but show sample if the viewport is small enough for it not to matter. %>
         <% if webp %>
           <source type="image/webp" media="(max-width: <%= post.sample_width - 1 %>px)" srcset="<%= post.sample_url(:sample_webp) %>">
         <% end %>
