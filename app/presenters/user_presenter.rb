@@ -44,7 +44,7 @@ class UserPresenter
     end
 
     if user.aibur_warden?
-      permissions << "Tag Warden"
+      permissions << "tag warden"
     end
 
     permissions.join(", ")
