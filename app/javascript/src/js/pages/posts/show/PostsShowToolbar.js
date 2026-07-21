@@ -195,6 +195,9 @@ export default class PostsShowToolbar {
   }
 
   static async addFavorite () {
+    if (!CurrentPost.exists)
+      throw new Error("No current post available for favoriting.");
+
     return Favorite.create(CurrentPost.id, 500)
       .then(
         () => {
@@ -210,6 +213,9 @@ export default class PostsShowToolbar {
   }
 
   static async deleteFavorite () {
+    if (!CurrentPost.exists)
+      throw new Error("No current post available for favoriting.");
+
     return Favorite.destroy(CurrentPost.id, 500)
       .then(() => {
         $(".ptbr-favorite-button").attr("favorited", "false");
