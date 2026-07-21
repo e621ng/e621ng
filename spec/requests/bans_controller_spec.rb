@@ -242,11 +242,11 @@ RSpec.describe BansController do
     context "as a moderator" do
       before { sign_in_as moderator }
 
-      it "destroys the ban and redirects with a success flash" do
+      it "destroys the ban and redirects back to the user page with a success flash" do
         ban_id = ban.id
         expect { delete ban_path(ban) }.to change(Ban, :count).by(-1)
         expect(Ban.find_by(id: ban_id)).to be_nil
-        expect(response).to redirect_to(bans_path)
+        expect(response).to redirect_to(user_path(ban_target))
         expect(flash[:notice]).to eq("Ban destroyed")
       end
     end
