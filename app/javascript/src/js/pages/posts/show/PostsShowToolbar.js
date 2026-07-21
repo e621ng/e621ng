@@ -1,6 +1,5 @@
 import Hotkeys from "@/core/hotkeys";
 import Favorite from "@/models/Favorite";
-import PostVote from "@/models/PostVote";
 import NoteManager from "@/pages/posts/show/notes";
 import Offclick from "@/utility/Offclick";
 import Page from "@/utility/Page";
@@ -113,7 +112,7 @@ export default class PostsShowToolbar {
   }
 
   static async vote (direction) {
-    return PostVote.vote(CurrentPost.id, direction).then((data) => {
+    return CurrentPost.vote(direction).then((data) => {
       // Update Score in Information
       $(".post-score").text(data.score)
         .removeClass("score-negative score-neutral score-positive")

@@ -1,34 +1,9 @@
 import E621Type from "@/interfaces/E621";
-import CurrentPost from "@/models/CurrentPost";
 import TaskQueue, { TaskCancelled } from "@/utility/TaskQueue";
 
 declare const E621: E621Type;
 
 export default class PostVote {
-
-  /**
-   * Upvote a post.
-   * @param {number} postID ID of the post to upvote.
-   */
-  static up (postID: number = null) {
-    if (!postID) {
-      if (!CurrentPost.exists) throw new Error("No current post available for voting.");
-      postID = CurrentPost.id;
-    }
-    this.vote(postID, 1);
-  }
-
-  /**
-   * Downvote a post.
-   * @param {number} postID ID of the post to downvote.
-   */
-  static down (postID: number = null) {
-    if (!postID) {
-      if (!CurrentPost.exists) throw new Error("No current post available for voting.");
-      postID = CurrentPost.id;
-    }
-    this.vote(postID, -1);
-  }
 
   /**
    * Cast a vote on a post.
@@ -37,7 +12,7 @@ export default class PostVote {
    * @param {boolean} prevent_unvote If true, prevents unvoting.
    * @returns {Promise<Object>} The response from the server.
    */
-  static async vote (post_id: number, vote: number, prevent_unvote: boolean = false): Promise<object> {
+  static async vote (post_id: number, vote: number, prevent_unvote: boolean = false): Promise<PostVoteResponse> {
     return TaskQueue.add(() => {
       return fetch(`/posts/${post_id}/votes.json`, {
         method: "POST",
@@ -76,4 +51,11 @@ export default class PostVote {
     });
   }
 
+}
+
+export interface PostVoteResponse {
+  score: number,
+  up: number,
+  down: number,
+  our_score: number,
 }

@@ -1,4 +1,6 @@
 import Logger from "@/utility/Logger";
+import Favorite from "./Favorite";
+import PostVote, { PostVoteResponse } from "./PostVote";
 
 let _data: Record<string, any> = {},
   loaded = false;
@@ -80,7 +82,8 @@ class CurrentPost {
       throw new Error("CurrentPost is a singleton class. Use CurrentPost.instance to access the instance.");
 
     const obj = _get() || {};
-    if (!Object.keys(obj).length) return;
+    if (!Object.keys(obj).length)
+      throw new Error("No embedded post data found.");
 
     if (!obj["id"] || typeof obj["id"] !== "number")
       CurrentPost.Logger.error("Malformed post data.");
@@ -131,6 +134,37 @@ class CurrentPost {
 
   public get exists (): boolean {
     return typeof this.id === "number" && this.id > 0;
+  }
+
+
+  /* ============================== */
+  /* ======== Public API ========== */
+  /* ============================== */
+
+  public vote (vote: number, prevent_unvote: boolean = false): Promise<PostVoteResponse> {
+    if (!this.exists)
+      throw new Error("No current post available for voting.");
+    return PostVote.vote(this.id, vote, prevent_unvote);
+  }
+
+  public voteUp (): Promise<PostVoteResponse> {
+    return this.vote(1, true);
+  }
+
+  public voteDown (): Promise<PostVoteResponse> {
+    return this.vote(-1, true);
+  }
+
+  public favorite (): Promise<object> { // TODO: Update return type when Favorite class is ported to TypeScript
+    if (!this.exists)
+      throw new Error("No current post available for favoriting.");
+    return Favorite.create(this.id);
+  }
+
+  public unfavorite (): Promise<object> {
+    if (!this.exists)
+      throw new Error("No current post available for unfavoriting.");
+    return Favorite.destroy(this.id);
   }
 }
 
