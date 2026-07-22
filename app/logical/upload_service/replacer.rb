@@ -76,6 +76,7 @@ class UploadService
           penalize_uploader_on_approve: penalize_current_uploader.to_s.truthy?,
         })
 
+        UserStatus.for_user(CurrentUser.id).update_all("post_replacement_submitted_count = post_replacement_submitted_count + 1")
         UserStatus.for_user(previous_uploader).update_all("own_post_replaced_count = own_post_replaced_count + 1")
         if penalize_current_uploader.to_s.truthy?
           UserStatus.for_user(previous_uploader).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
