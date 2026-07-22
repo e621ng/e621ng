@@ -1,10 +1,28 @@
 # frozen_string_literal: true
 
 module GitHelper
+  # Eagerly capture the version at boot so forked workers inherit it via
+  # copy-on-write instead of each shelling out to git on their first request.
   def self.init
-    if Rails.root.join("REVISION").exist?
-      @hash = @tag = Rails.root.join("REVISION").read.strip
-    elsif Open3.capture3("git rev-parse --show-toplevel")[2].success?
+    load!
+  end
+
+  def self.tag
+    load!
+    @tag
+  end
+
+  def self.hash
+    load!
+    @hash
+  end
+
+  # Populate @hash/@tag exactly once, deriving both from a single git inspection.
+  def self.load!
+    return if @loaded
+    @loaded = true
+
+    if Open3.capture3("git rev-parse --show-toplevel")[2].success?
       @hash = Open3.capture3("git rev-parse HEAD")[0].strip
       @tag = Open3.capture3("git describe --abbrev=0")[0].strip
     else
@@ -12,20 +30,12 @@ module GitHelper
     end
   end
 
-  def self.tag
-    @tag
-  end
-
-  def self.hash
-    @hash
-  end
-
   def self.version
-    @tag.presence || short_hash
+    tag.presence || short_hash
   end
 
   def self.short_hash
-    @hash[0..8]
+    hash[0..8]
   end
 
   def self.commit_url(commit_hash)
