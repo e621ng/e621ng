@@ -109,7 +109,7 @@
             <h5>Upload Slots</h5>
             <span>
               Remaining number of posts that can be queued for review.<br />
-              This number is capped at <strong><%= Danbooru.config.upload_slots_base %></strong> slots.
+              This number is capped at <strong><%= user.upload_slot_ceiling %></strong> slots.
             </span>
           </div>
         </div>
