@@ -50,6 +50,13 @@
           <span class="upl-element"><abbr class="upl-base" title="Base Upload Slots"><%= pieces[:base] %></abbr></span>
 
           <span class="upl-group">
+            <span class="upl-math"><%= svg_icon(:plus) %></span>
+            <span class="upl-element">
+              <abbr class="upl-approved" title="Approved Posts and Replacements"><%= pieces[:approved] %></abbr> / 10
+            </span>
+          </span>
+
+          <span class="upl-group">
             <span class="upl-math"><%= svg_icon(:minus) %></span>
             <span class="upl-element">
               <abbr class="upl-pending" title="Pending or Flagged Posts, Pending Replacements"><%= pieces[:pending] %></abbr>
@@ -79,6 +86,12 @@
             <span>Default number of concurrent queued uploads allowed.</span>
           </div>
 
+          <abbr title="Approved Posts and Replacements" class="ul-num upl-approved"><%= pieces[:approved] %></abbr>
+          <div class="ul-exp">
+            <h5>Approved Posts and Replacements</h5>
+            <span>Uploads that had been manually approved.</span>
+          </div>
+
           <abbr title="Pending or Flagged Posts, Pending Replacements" class="ul-num upl-pending"><%= pieces[:pending] %></abbr>
           <div class="ul-exp">
             <h5>Pending / Flagged</h5>
@@ -94,7 +107,10 @@
           <abbr title="Remaining Upload Slots" class="ul-num upl-total"><%= @user.upload_slots %></abbr>
           <div class="ul-exp">
             <h5>Upload Slots</h5>
-            <span>Remaining number of posts that can be queued for review.</span>
+            <span>
+              Remaining number of posts that can be queued for review.<br />
+              This number is capped at <strong><%= Danbooru.config.upload_slots_base %></strong> slots.
+            </span>
           </div>
         </div>
       <% end %>
