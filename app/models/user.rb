@@ -835,6 +835,7 @@ class User < ApplicationRecord
     end
 
     def required_karma_for_level(level)
+      level = level.to_i
       return 0 if level <= 0
       (upload_karma_l1 * (10**((level - 1) / upload_karma_scale))).ceil
     end

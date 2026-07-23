@@ -21,7 +21,7 @@ admin = User.find_or_create_by!(name: "admin") do |user|
 end
 
 required_karma = admin.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
-if admin.upload_karma < required_karma
+if !required_karma.nil? && admin.upload_karma < required_karma
   admin.upload_karma = required_karma
   admin.save!
 end
@@ -35,7 +35,7 @@ system = User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.level = UserLevel::JANITOR
 end
 
-if system.upload_karma < required_karma
+if !required_karma.nil? && system.upload_karma < required_karma
   system.upload_karma = required_karma
   system.save!
 end
