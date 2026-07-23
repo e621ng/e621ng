@@ -42,6 +42,7 @@ RSpec.describe UserDeletion do
 
       it "does not change the user's level if they are blocked" do
         user.update_columns(level: UserLevel::BLOCKED)
+        create(:ban, user: user, prevent_login: false) 
         deletion.delete!
         expect(user.reload.level).to eq(UserLevel::BLOCKED)
       end
