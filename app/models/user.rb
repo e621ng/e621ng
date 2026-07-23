@@ -725,16 +725,15 @@ class User < ApplicationRecord
       return 0 if no_uploading?
 
       pieces = upload_slots_pieces
-      slots = Danbooru.config.upload_slots_base - pieces[:pending] - (pieces[:deleted] / 4)
-      [slots, 0].max
+      [upload_slots_max - pieces[:pending], 0].max
     end
 
     def upload_slots_max
       return 0 if no_uploading?
 
       pieces = upload_slots_pieces
-      slots = Danbooru.config.upload_slots_base - (pieces[:deleted] / 4)
-      [slots, 0].max
+      slots = pieces[:base] + (pieces[:approved] / 10) - (pieces[:deleted] / 4)
+      slots.clamp(0, Danbooru.config.upload_slots_base)
     end
 
     def upload_slots_pieces
@@ -744,12 +743,14 @@ class User < ApplicationRecord
         replaced_penalize_count = own_post_replaced_penalize_count
         unapproved_count = Post.pending_or_flagged.for_user(id).count
         unapproved_replacements_count = post_replacements.pending.count
+        approved_count = Post.for_user(id).where(is_flagged: false, is_deleted: false, is_pending: false).count
 
         {
-          base: Danbooru.config.upload_slots_base,
+          base: base_upload_limit,
           deleted: deleted_count + replaced_penalize_count + rejected_replacement_count,
           deleted_ignore: own_post_replaced_count - replaced_penalize_count,
           pending: unapproved_count + unapproved_replacements_count,
+          approved: approved_count,
         }
       end
     end

@@ -85,6 +85,11 @@ RSpec.describe Staff::UsersController do
         expect(user.reload.profile_artinfo).to eq("art info")
       end
 
+      it "updates base_upload_limit" do
+        patch staff_user_path(user), params: { user: { base_upload_limit: 42 } }
+        expect(user.reload.base_upload_limit).to eq(42)
+      end
+
       it "updates enable_privacy_mode" do
         patch staff_user_path(user), params: { user: { enable_privacy_mode: true } }
         expect(user.reload.enable_privacy_mode).to be true
