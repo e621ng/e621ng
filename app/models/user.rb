@@ -818,6 +818,12 @@ class User < ApplicationRecord
       [raw_upload_karma, 0].max
     end
 
+    def upload_karma=(value)
+      value = value.to_i
+      value = 0 if value < 0
+      user_status&.update(upload_karma: value)
+    end
+
     def upload_karma_level
       # Calculated from the `upload_karma` column. Threshold values pulled from the config file.
       return 0 if upload_karma < Danbooru.config.upload_karma_l1_threshold

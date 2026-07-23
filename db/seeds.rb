@@ -13,7 +13,6 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.password_confirmation = "hexerade"
   user.password_hash = ""
   user.email = "admin@e621.local"
-  user.upload_karma = user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
   user.can_approve_posts = true
   user.level = UserLevel::ADMIN
 
@@ -21,14 +20,44 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.is_bd_auditor = true
 end
 
-User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
+required_karma = admin.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
+if admin.upload_karma < required_karma
+  admin.upload_karma = required_karma
+  admin.save!
+end
+
+system = User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.password = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
   user.password_confirmation = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
   user.password_hash = ""
   user.email = "system@e621.local"
-  user.upload_karma = user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
   user.can_approve_posts = true
   user.level = UserLevel::JANITOR
+end
+
+if system.upload_karma < required_karma
+  system.upload_karma = required_karma
+  system.save!
+end
+
+ForumCategory.find_or_create_by!(name: "Suggestions") do |category|
+  category.can_view = 0
+end
+
+ForumCategory.find_or_create_by!(name: "Bug Reports") do |category|
+  category.can_view = 0
+end
+
+ForumCategory.find_or_create_by!(name: "Feature Requests") do |category|
+  category.can_view = 0
+end
+
+ForumCategory.find_or_create_by!(name: "Support") do |category|
+  category.can_view = 0
+end
+
+ForumCategory.find_or_create_by!(name: "Off Topic") do |category|
+  category.can_view = 0
 end
 
 ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") do |category|
