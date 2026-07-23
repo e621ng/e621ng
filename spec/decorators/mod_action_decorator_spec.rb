@@ -307,9 +307,9 @@ RSpec.describe ModActionDecorator do
         expect(desc).to include("karma", "5", "-20")
       end
 
-      it "user_karma_reset includes user link" do
-        desc = decorate(:user_karma_reset, { "user_id" => target_user.id, "previous_karma" => 100 }).format_description
-        expect(desc).to include(target_user.name)
+      it "user_karma_free_toggle includes disabled state" do
+        desc = decorate(:user_karma_free_toggle, { "user_id" => target_user.id, "disabled" => true }).format_description
+        expect(desc).to include("Disabled", target_user.name)
       end
 
       it "user_custom_title_change includes old and new title" do

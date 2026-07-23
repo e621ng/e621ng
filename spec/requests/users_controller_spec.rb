@@ -463,20 +463,17 @@ RSpec.describe UsersController do
   end
 
   # ---------------------------------------------------------------------------
-  # GET /users/:id/reset_karma — janitor_only
+  # GET /users/:id/toggle_karma_free — janitor_only
   # ---------------------------------------------------------------------------
-  describe "POST /users/:id/reset_karma" do
-    let(:target) do
-      target = create(:user)
-      target.user_status.update!(upload_karma: 100)
-      target
-    end
+
+  describe "GET /users/:id/toggle_karma_free" do
+    let(:target) { create(:user) }
 
     context "as a member" do
       before { sign_in_as create(:user) }
 
       it "returns 403" do
-        post reset_karma_user_path(target)
+        get toggle_karma_free_user_path(target)
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -485,7 +482,71 @@ RSpec.describe UsersController do
       before { sign_in_as create(:staff_user) }
 
       it "returns 403" do
-        post reset_karma_user_path(target)
+        get toggle_karma_free_user_path(target)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    # is_janitor? is required inside the action to show the form.
+    context "as a janitor when the target's uploads are enabled" do
+      before do
+        target.user_status.update!(upload_karma: 100)
+        sign_in_as create(:janitor_user)
+      end
+
+      it "renders the disable-karma-free form with status 200" do
+        get toggle_karma_free_user_path(target)
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "as a janitor when the target's karma-free is disabled" do
+      let(:target) { create(:user, no_karma_free: true) }
+
+      before do
+        target.user_status.update!(upload_karma: 100)
+        sign_in_as create(:janitor_user)
+      end
+
+      it "re-enables karma-free and redirects" do
+        expect { get toggle_karma_free_user_path(target) }
+          .to change { target.reload.no_karma_free }.from(true).to(false)
+        expect(response).to redirect_to(user_path(target))
+      end
+    end
+
+    context "as a janitor when the target is below the karma-free threshold" do
+      before { sign_in_as create(:janitor_user) }
+
+      it "redirects with a 'not enough upload karma' notice" do
+        get toggle_karma_free_user_path(target)
+        expect(response).to redirect_to(user_path(target))
+        expect(flash[:notice]).to include("not have enough upload karma")
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # POST /users/:id/disable_karma_free
+  # ---------------------------------------------------------------------------
+
+  describe "POST /users/:id/disable_karma_free" do
+    let(:target) { create(:user) }
+
+    context "as a member" do
+      before { sign_in_as create(:user) }
+
+      it "returns 403" do
+        post disable_karma_free_user_path(target), params: { staff_note: { body: "reason" } }
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a staff member" do
+      before { sign_in_as create(:staff_user) }
+
+      it "returns 403" do
+        post disable_karma_free_user_path(target), params: { staff_note: { body: "reason" } }
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -493,12 +554,31 @@ RSpec.describe UsersController do
     context "as a janitor" do
       before { sign_in_as create(:janitor_user) }
 
-      it "resets the target's karma, logs a ModAction, and redirects" do
-        expect { post reset_karma_user_path(target) }
-          .to change { target.reload.upload_karma }.from(100).to(0)
-          .and change(ModAction, :count).by(1)
-        expect(ModAction.last[:values]).to include("user_id" => target.id)
-        expect(response).to redirect_to(user_path(target))
+      context "when the target's karma-free is already disabled" do
+        let(:target) { create(:user, no_karma_free: true) }
+
+        it "redirects with an 'already disabled' notice" do
+          post disable_karma_free_user_path(target), params: { staff_note: { body: "reason" } }
+          expect(response).to redirect_to(user_path(target))
+          expect(flash[:notice]).to include("already disabled")
+        end
+      end
+
+      context "when no reason is provided" do
+        it "redirects back with a 'must include a reason' notice" do
+          post disable_karma_free_user_path(target), params: { staff_note: { body: "" } }
+          expect(response).to redirect_to(toggle_karma_free_user_path(target))
+          expect(flash[:notice]).to include("must include a reason")
+        end
+      end
+
+      context "with a valid reason" do
+        it "disables karma-free, creates a StaffNote, and redirects" do
+          expect { post disable_karma_free_user_path(target), params: { staff_note: { body: "Spamming uploads." } } }
+            .to change(StaffNote, :count).by(1)
+          expect(target.reload.no_karma_free).to be true
+          expect(response).to redirect_to(user_path(target))
+        end
       end
     end
   end

@@ -5,9 +5,10 @@ class UsersController < ApplicationController
   skip_before_action :api_check
   before_action :logged_in_only, only: %i[edit settings upload_limit update]
   before_action :member_only, only: %i[custom_style avatar_menu]
-  before_action :janitor_only, only: %i[toggle_uploads disable_uploads fix_counts reset_karma]
+  before_action :janitor_only, only: %i[toggle_uploads disable_uploads fix_counts toggle_karma_free disable_karma_free]
   before_action :admin_only, only: %i[flush_favorites]
   before_action :check_upload_disable_reason, only: %i[disable_uploads]
+  before_action :check_karma_free_disable_reason, only: %i[disable_karma_free]
 
   def index
     if params[:name].present?
@@ -131,11 +132,35 @@ class UsersController < ApplicationController
     redirect_to user_path(@user)
   end
 
-  def reset_karma
+  def toggle_karma_free
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
-    previous_karma = @user.raw_upload_karma
-    @user.user_status.update!(upload_karma: 0)
-    ModAction.log(:user_karma_reset, { user_id: @user.id, previous_karma: previous_karma })
+
+    unless !Danbooru.config.upload_karma_free_threshold.nil? && @user.upload_karma_level >= Danbooru.config.upload_karma_free_threshold
+      flash[:notice] = "Error: This user does not have enough upload karma to be eligible for unlimited uploads"
+      redirect_to user_path(@user)
+      return
+    end
+
+    # If the user's karma-free status is being turned off, then require a reason.
+    unless @user.no_karma_free
+      return access_denied unless CurrentUser.can_view_staff_notes?
+      @presenter = UserPresenter.new(@user)
+      respond_with(@user)
+      return
+    end
+
+    @user.no_karma_free = !@user.no_karma_free
+    ModAction.log(:user_karma_free_toggle, { user_id: @user.id, disabled: @user.no_karma_free })
+    @user.save
+
+    redirect_back_or_to user_path(@user)
+  end
+
+  def disable_karma_free
+    @user = User.find(User.name_or_id_to_id_forced(params[:id]))
+    @user.no_karma_free = true
+    ModAction.log(:user_karma_free_toggle, { user_id: @user.id, disabled: @user.no_karma_free })
+    @user.save
 
     redirect_to user_path(@user)
   end
@@ -230,25 +255,33 @@ class UsersController < ApplicationController
   # IDEA: Get errors showing up correctly (the green banner & empty error message box)
   # TODO: Gracefully handle API requests (& failures).
   def check_upload_disable_reason
+    check_disable_reason(flag: :no_uploading, retry_path: :toggle_uploads_user_path, already_disabled_message: "Error: Their uploads are already disabled")
+  end
+
+  def check_karma_free_disable_reason
+    check_disable_reason(flag: :no_karma_free, retry_path: :toggle_karma_free_user_path, already_disabled_message: "Error: Their unlimited uploads are already disabled")
+  end
+
+  def check_disable_reason(flag:, retry_path:, already_disabled_message:)
     return access_denied unless CurrentUser.can_view_staff_notes?
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
-    # If their uploads are already disabled, then this shouldn't be called.
-    if @user.no_uploading
-      flash[:notice] = "Error: Their uploads are already disabled"
+    # If the flag is already set, then this shouldn't be called.
+    if @user.public_send(flag)
+      flash[:notice] = already_disabled_message
       redirect_to user_path(@user)
       return
     end
-    # If the user's uploads are being turned off, then require a reason.
+    # If the flag is being turned on, then require a reason.
     if params.dig(:staff_note, :body).blank?
       flash[:notice] = "Error: You must include a reason to put in a staff note"
-      redirect_to toggle_uploads_user_path(@user)
+      redirect_to send(retry_path, @user)
     else
       @staff_note = StaffNote.create(params.fetch(:staff_note, {}).permit(%i[body]).merge({ user_id: @user.id }))
       if @staff_note.valid?
         flash[:notice] = "Staff Note added"
       else
         flash[:notice] = "Error: #{@staff_note.errors.full_messages.join('; ')}"
-        redirect_back_or_to toggle_uploads_user_path(@user)
+        redirect_back_or_to send(retry_path, @user)
       end
     end
   end

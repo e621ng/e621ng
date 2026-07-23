@@ -32,6 +32,7 @@ class User < ApplicationRecord
   # * _has_mail -> forum_notification_dot                                                           #
   # * _no_feedback -> no_uploading                                                                  #
   # * _is_banned -> tag_warden                                                                      #
+  # * _disable_post_tooltips -> no_karma_free                                                       #
   # ================================================================================================#
 
   BOOLEAN_ATTRIBUTES = %w[
@@ -56,7 +57,7 @@ class User < ApplicationRecord
     _disable_mobile_gestures
     enable_safe_mode
     disable_responsive_mode
-    _disable_post_tooltips
+    no_karma_free
     no_flagging
     no_uploading
     disable_user_dmails
@@ -840,6 +841,7 @@ class User < ApplicationRecord
     # Once the upload karma level reaches the free threshold, uploads bypass the review queue.
     def upload_karma_free?
       return false if Danbooru.config.upload_karma_free_threshold.nil?
+      return false if no_karma_free?
       upload_karma_level >= Danbooru.config.upload_karma_free_threshold
     end
 
