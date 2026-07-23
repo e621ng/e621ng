@@ -141,7 +141,7 @@ module ApplicationHelper
   end
 
   def body_attributes(user = CurrentUser.user)
-    attributes = %i[id name level level_string can_approve_posts? can_upload_free? per_page]
+    attributes = %i[id name level level_string can_approve_posts? per_page]
     attributes += UserLevel::BODY_ATTRIBUTE_ROLES.map { |role| :"is_#{role}?" }
     attributes += %i[is_anonymous? is_restricted?]
 

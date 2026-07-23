@@ -77,7 +77,7 @@ Doorkeeper::OpenidConnect.configure do
 
     normal_claim :e621_permissions do |resource_owner|
       flags = %w[
-        can_approve_posts can_upload_free
+        can_approve_posts
         is_bd_staff is_bd_auditor
         can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries
       ] + UserLevel::ROLES.map { |role| "is_#{role}" }
