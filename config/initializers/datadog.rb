@@ -19,3 +19,13 @@ Datadog.configure do |c|
     end
   end
 end
+
+# GitHelper is autoloaded from app/logical, so it isn't available while the
+# initializer body runs. Defer setting the version tag until autoloading is
+# ready. Tags traces with the deployed git version for Datadog deployment
+# tracking.
+Rails.application.config.after_initialize do
+  Datadog.configure do |c|
+    c.version = GitHelper.version.presence
+  end
+end
