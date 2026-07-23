@@ -139,5 +139,11 @@ RSpec.describe User do
       set_karma(user, Danbooru.config.upload_karma_l10_threshold)
       expect(user.upload_karma_free?).to be false
     end
+
+    it "returns false when the user has disabled unlimited uploads" do
+      set_karma(user, upload_free_karma_threshold + 1000)
+      user.no_karma_free = true
+      expect(user.upload_karma_free?).to be false
+    end
   end
 end
