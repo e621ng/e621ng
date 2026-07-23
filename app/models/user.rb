@@ -733,7 +733,11 @@ class User < ApplicationRecord
 
       pieces = upload_slots_pieces
       slots = pieces[:base] + (pieces[:approved] / 10) - (pieces[:deleted] / 4)
-      slots.clamp(0, Danbooru.config.upload_slots_base)
+      slots.clamp(0, upload_slot_ceiling)
+    end
+
+    def upload_slot_ceiling
+      Danbooru.config.upload_slots_base * 2
     end
 
     def upload_slots_pieces
