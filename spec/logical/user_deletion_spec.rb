@@ -40,6 +40,12 @@ RSpec.describe UserDeletion do
         expect(user.level).to eq(UserLevel::MEMBER)
       end
 
+      it "does not change the user's level if they are blocked" do
+        user.update_columns(level: UserLevel::BLOCKED)
+        deletion.delete!
+        expect(user.reload.level).to eq(UserLevel::BLOCKED)
+      end
+
       it "invalidates the password hash" do
         deletion.delete!
         user.reload
