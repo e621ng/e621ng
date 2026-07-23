@@ -871,7 +871,7 @@ class User < ApplicationRecord
 
     def method_attributes
       list = super + %i[
-        id created_at name level upload_karma upload_karma_free?
+        id created_at name level base_upload_limit upload_karma upload_karma_free?
         post_upload_count post_update_count note_update_count
         is_banned can_approve_posts
         level_string avatar_id is_verified?
