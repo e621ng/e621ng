@@ -40,26 +40,6 @@ if !required_karma.nil? && system.upload_karma < required_karma
   system.save!
 end
 
-ForumCategory.find_or_create_by!(name: "Suggestions") do |category|
-  category.can_view = 0
-end
-
-ForumCategory.find_or_create_by!(name: "Bug Reports") do |category|
-  category.can_view = 0
-end
-
-ForumCategory.find_or_create_by!(name: "Feature Requests") do |category|
-  category.can_view = 0
-end
-
-ForumCategory.find_or_create_by!(name: "Support") do |category|
-  category.can_view = 0
-end
-
-ForumCategory.find_or_create_by!(name: "Off Topic") do |category|
-  category.can_view = 0
-end
-
 ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") do |category|
   category.can_view = 0
 end
