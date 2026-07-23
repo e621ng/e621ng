@@ -153,7 +153,7 @@ class User < ApplicationRecord
 
     def unban!
       self.level = 20
-      save
+      save(validate: false) # Banned users may have malformed data
     end
 
     def ban_expired?

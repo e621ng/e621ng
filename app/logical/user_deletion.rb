@@ -58,7 +58,7 @@ class UserDeletion
       profile_about: "",
       profile_artinfo: "",
       custom_style: "",
-      level: UserLevel::MEMBER,
+      level: [user.level, UserLevel::MEMBER].min, # Keep banned users banned
     )
     AvatarCleanupJob.perform_later(user.id, force: true)
   end
