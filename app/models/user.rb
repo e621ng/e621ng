@@ -824,7 +824,6 @@ class User < ApplicationRecord
 
     def upload_karma=(value)
       value = value.to_i
-      value = 0 if value < 0
       user_status&.update(upload_karma: value)
     end
 
