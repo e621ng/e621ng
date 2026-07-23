@@ -718,9 +718,8 @@ class User < ApplicationRecord
       end
     end
 
-    # Concurrent queued-upload budget for below-threshold users. Replaces the old
-    # upload_limit formula; accumulating approvals now raises upload_karma instead
-    # of widening this window (no approved/10 growth term).
+    # Concurrent queued-upload budget for below-threshold users.
+    # Increases with approved uploads, decreases with pending and deleted uploads.
     def upload_slots
       return 0 if no_uploading?
 

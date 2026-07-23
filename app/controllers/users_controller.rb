@@ -143,7 +143,7 @@ class UsersController < ApplicationController
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
 
     # Prevent disabling unlimited uploads for users who don't have enough upload karma to be eligible for it.
-    unless @user.no_karma_free && !Danbooru.config.upload_karma_free_threshold.nil? && @user.upload_karma_level >= Danbooru.config.upload_karma_free_threshold
+    if Danbooru.config.upload_karma_free_threshold.nil? || (!@user.no_karma_free && @user.upload_karma_level < Danbooru.config.upload_karma_free_threshold)
       flash[:notice] = "Error: This user does not have enough upload karma to be eligible for unlimited uploads"
       redirect_to user_path(@user)
       return
