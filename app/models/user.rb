@@ -845,6 +845,10 @@ class User < ApplicationRecord
       return 0 if level >= max_karma_level
       current_level_karma = required_karma_for_level(level)
       next_level_karma = required_karma_for_level(level + 1)
+
+      # Ensure we don't divide by zero
+      return 100 if next_level_karma == current_level_karma
+
       ((upload_karma - current_level_karma) / (next_level_karma - current_level_karma).to_f * 100).round
     end
 
