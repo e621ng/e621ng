@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class UserPromotion
-  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_replacements_beta, :old_tag_warden
+  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_no_flagging, :old_replacements_beta, :old_tag_warden
 
   def initialize(user, promoter, new_level, options = {})
     @user = user
@@ -14,7 +14,6 @@ class UserPromotion
     validate
 
     @old_can_approve_posts = user.can_approve_posts?
-    @old_can_upload_free = user.can_upload_free?
     @old_no_flagging = user.no_flagging?
     @old_replacements_beta = user.replacements_beta?
     @old_tag_warden = user.tag_warden?
@@ -23,10 +22,6 @@ class UserPromotion
 
     if options.key?(:can_approve_posts)
       user.can_approve_posts = options[:can_approve_posts]
-    end
-
-    if options.key?(:can_upload_free)
-      user.can_upload_free = options[:can_upload_free]
     end
 
     if options.key?(:tag_warden)
@@ -64,7 +59,6 @@ class UserPromotion
     removed = []
 
     flag_check(added, removed, "can_approve_posts", "approve posts")
-    flag_check(added, removed, "can_upload_free", "unlimited upload slots")
     flag_check(added, removed, "no_flagging", "flag ban")
     flag_check(added, removed, "replacements_beta", "replacements beta")
     flag_check(added, removed, "tag_warden", "tag warden")

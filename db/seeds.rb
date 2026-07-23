@@ -13,7 +13,7 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.password_confirmation = "hexerade"
   user.password_hash = ""
   user.email = "admin@e621.local"
-  user.can_upload_free = true
+  user.upload_karma = user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
   user.can_approve_posts = true
   user.level = UserLevel::ADMIN
 
@@ -26,7 +26,7 @@ User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.password_confirmation = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
   user.password_hash = ""
   user.email = "system@e621.local"
-  user.can_upload_free = true
+  user.upload_karma = user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
   user.can_approve_posts = true
   user.level = UserLevel::JANITOR
 end

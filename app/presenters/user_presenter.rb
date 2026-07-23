@@ -35,10 +35,6 @@ class UserPresenter
       permissions << "approve posts"
     end
 
-    if user.can_upload_free?
-      permissions << "unrestricted uploads"
-    end
-
     if user.replacements_beta?
       permissions << "replacements beta"
     end

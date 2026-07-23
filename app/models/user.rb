@@ -24,7 +24,6 @@ class User < ApplicationRecord
   # ================================================================================================#
   # The following flags have corresponding database indexes:                                        #
   # * can_approve_posts                                                                             #
-  # * can_upload_free                                                                               #
   # ================================================================================================#
 
   # ================================================================================================#
@@ -52,7 +51,7 @@ class User < ApplicationRecord
     enable_auto_complete
     _has_saved_searches
     can_approve_posts
-    can_upload_free
+    _can_upload_free
     _disable_cropped_thumbnails
     _disable_mobile_gestures
     enable_safe_mode
@@ -1097,7 +1096,7 @@ class User < ApplicationRecord
       include_mask = 0
       exclude_mask = 0
 
-      %i[can_approve_posts can_upload_free].each do |x|
+      %i[can_approve_posts].each do |x|
         next if params[x].blank?
         attr_idx = BOOLEAN_ATTRIBUTES.index(x.to_s)
         next if attr_idx.nil?
