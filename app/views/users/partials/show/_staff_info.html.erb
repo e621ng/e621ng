@@ -43,14 +43,18 @@
         <% else %>
           <%= link_to "Enabled", toggle_uploads_user_path(user) %>
         <% end %>
+        <% if !Danbooru.config.upload_karma_free_threshold.nil? && user.upload_karma_level >= Danbooru.config.upload_karma_free_threshold %>
+          | 
+          <% if user.no_karma_free %>
+            <%= link_to "Limited", toggle_karma_free_user_path(user), class: "text-red text-bold" %>
+          <% else %>
+            <%= link_to "Unlimited", toggle_karma_free_user_path(user) %>
+          <% end %>
+        <% end %>
+      <% end %>
         | <%= link_to "Refresh counts", fix_counts_user_path(user) %>
       </span>
 
-      <h4>Karma</h4>
-      <span>
-        <%= link_to "Reset karma", reset_karma_user_path(user), method: :post, data: { confirm: "Are you certain that you want to reset this user's karma?\nTHIS IS IRREVERSIBLE." } %>
-      </span>
-    <% end %>
 
     <% if CurrentUser.is_moderator? %>
       <h4>Cleanup</h4>

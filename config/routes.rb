@@ -404,8 +404,9 @@ Rails.application.routes.draw do
     member do
       get :upload_limit
       get :toggle_uploads
-      post :reset_karma
+      get :toggle_karma_free
       post :disable_uploads
+      post :disable_karma_free
       post :flush_favorites
       get :fix_counts
       get "/api_key", to: redirect("/api_keys")
