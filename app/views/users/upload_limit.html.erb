@@ -29,7 +29,7 @@
       <p>
         <%= is_current_user ? "You have" : link_to_user(@user) + " has".html_safe %>
         <strong><%= @user.upload_karma %></strong> upload karma.<br />
-        Each approved upload grants <strong>+1</strong> karma, while each rejected upload deducts <strong>-3</strong> karma.
+        Each approved upload grants <strong>+1</strong> karma, while each deleted upload deducts <strong>-3</strong> karma.
         <% if karma_threshold_enabled %>
           <br />
           At <strong><%= karma_threshold %></strong> karma, uploads bypass the queue entirely.
