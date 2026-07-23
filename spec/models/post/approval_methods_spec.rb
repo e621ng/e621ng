@@ -63,6 +63,13 @@ RSpec.describe Post do
 
         expect { post.reload.approve!(other) }.not_to change(PostApproval, :count)
       end
+
+      it "grants +1 upload karma to the uploader" do
+        approver = create(:admin_user)
+        post = create(:pending_post)
+        expect { post.approve!(approver) }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(1)
+      end
     end
 
     describe "#unapprove!" do
@@ -78,6 +85,13 @@ RSpec.describe Post do
         post.update_columns(approver_id: approver.id)
         post.reload.unapprove!
         expect(post.reload.approver).to be_nil
+      end
+
+      it "rolls back the uploader's upload karma" do
+        approver = create(:admin_user)
+        post = create(:pending_post)
+        post.approve!(approver)
+        expect { post.unapprove! }.to change { post.uploader.user_status.reload.upload_karma }.by(-1)
       end
     end
 

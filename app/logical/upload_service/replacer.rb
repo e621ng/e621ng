@@ -79,6 +79,12 @@ class UploadService
         UserStatus.for_user(previous_uploader).update_all("own_post_replaced_count = own_post_replaced_count + 1")
         if penalize_current_uploader.to_s.truthy?
           UserStatus.for_user(previous_uploader).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
+          # Karma penalty for the previous uploader, in step with the penalize counter.
+          UserStatus.for_user(previous_uploader).update_all("upload_karma = upload_karma - 3")
+        end
+        # The replacer earns karma only when replacing another user's post.
+        if replacement.creator_id != previous_uploader
+          UserStatus.for_user(replacement.creator_id).update_all("upload_karma = upload_karma + 1")
         end
 
         # Invalidate avatar cache

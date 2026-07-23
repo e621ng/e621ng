@@ -427,6 +427,9 @@ class Post < ApplicationRecord
     def unapprove!
       PostEvent.add(id, CurrentUser.user, :unapproved)
       update(approver: nil, is_pending: true)
+
+      # Roll back previous karma changes for the uploader
+      UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma - 1")
     end
 
     def is_unapprovable?(user)
@@ -439,7 +442,7 @@ class Post < ApplicationRecord
     end
 
     def approve!(approver = CurrentUser.user)
-      return if self.approver != nil
+      return unless is_approvable?
 
       # Not ideal, but does the job
       orig = self.replacements.find_by(status: "original")
@@ -452,6 +455,9 @@ class Post < ApplicationRecord
         approvals.create(user: approver)
         update(approver: approver, is_pending: false)
       end
+
+      # Reward the uploader for a post that cleared the review queue.
+      UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma + 1")
     end
   end
 
@@ -1679,6 +1685,11 @@ class Post < ApplicationRecord
       # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
       # We don't care if these fail per-se so they are outside the transaction.
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
+      # Penalize the uploader for a deleted post (includes auto-deletions). Takedowns
+      # pass skip_karma: the removal reflects the artist's wishes, not the uploader's conduct.
+      unless options[:skip_karma]
+        UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma - 3")
+      end
       give_favorites_to_parent if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
       reject_pending_replacements
@@ -1703,6 +1714,8 @@ class Post < ApplicationRecord
         return
       end
 
+      was_approved = approver_id.present?
+
       transaction do
         self.is_deleted = false
         self.is_pending = false
@@ -1716,6 +1729,13 @@ class Post < ApplicationRecord
       move_files_on_undelete
       User.where(avatar_id: id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
+
+      # Reverse the deletion penalty when the post is restored (symmetric with delete!).
+      # skip_karma restores from a takedown, which never applied the penalty in the first place.
+      unless options[:skip_karma]
+        delta = was_approved ? 3 : 4
+        UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma + #{delta}")
+      end
     end
 
     def deletion_flag

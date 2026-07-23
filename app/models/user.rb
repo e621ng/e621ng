@@ -24,7 +24,6 @@ class User < ApplicationRecord
   # ================================================================================================#
   # The following flags have corresponding database indexes:                                        #
   # * can_approve_posts                                                                             #
-  # * can_upload_free                                                                               #
   # ================================================================================================#
 
   # ================================================================================================#
@@ -32,6 +31,7 @@ class User < ApplicationRecord
   # * _has_mail -> forum_notification_dot                                                           #
   # * _no_feedback -> no_uploading                                                                  #
   # * _is_banned -> tag_warden                                                                      #
+  # * _disable_post_tooltips -> no_karma_free                                                       #
   # ================================================================================================#
 
   BOOLEAN_ATTRIBUTES = %w[
@@ -51,12 +51,12 @@ class User < ApplicationRecord
     enable_auto_complete
     _has_saved_searches
     can_approve_posts
-    can_upload_free
+    _can_upload_free
     _disable_cropped_thumbnails
     _disable_mobile_gestures
     enable_safe_mode
     disable_responsive_mode
-    _disable_post_tooltips
+    no_karma_free
     no_flagging
     no_uploading
     disable_user_dmails
@@ -695,13 +695,15 @@ class User < ApplicationRecord
         :REJ_UPLOAD_DISABLED
       elsif hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_HOURLY
-      elsif can_upload_free? || is_admin?
+      elsif upload_karma_free?
+        true
+      elsif can_approve_posts?
         true
       elsif younger_than(7.days)
         :REJ_UPLOAD_NEWBIE
       elsif !is_privileged? && post_edit_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_EDIT
-      elsif upload_limit <= 0 && !Danbooru.config.disable_throttles?
+      elsif upload_slots <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_LIMIT
       else
         true
@@ -716,20 +718,29 @@ class User < ApplicationRecord
       end
     end
 
-    def upload_limit
-      return 0 if no_uploading
+    # Concurrent queued-upload budget for below-threshold users.
+    # Increases with approved uploads, decreases with pending and deleted uploads.
+    def upload_slots
+      return 0 if no_uploading?
 
-      pieces = upload_limit_pieces
-      base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
+      pieces = upload_slots_pieces
+      [upload_slots_max - pieces[:pending], 0].max
     end
 
-    def upload_limit_max
-      pieces = upload_limit_pieces
-      base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4)
+    def upload_slots_max
+      return 0 if no_uploading?
+
+      pieces = upload_slots_pieces
+      slots = pieces[:base] + (pieces[:approved] / 10) - (pieces[:deleted] / 4)
+      slots.clamp(0, upload_slot_ceiling)
     end
 
-    def upload_limit_pieces
-      @upload_limit_pieces ||= begin
+    def upload_slot_ceiling
+      Danbooru.config.upload_slots_base * 2
+    end
+
+    def upload_slots_pieces
+      @upload_slots_pieces ||= begin
         deleted_count = Post.deleted.for_user(id).count
         rejected_replacement_count = post_replacement_rejected_count
         replaced_penalize_count = own_post_replaced_penalize_count
@@ -738,10 +749,11 @@ class User < ApplicationRecord
         approved_count = Post.for_user(id).where(is_flagged: false, is_deleted: false, is_pending: false).count
 
         {
+          base: base_upload_limit,
           deleted: deleted_count + replaced_penalize_count + rejected_replacement_count,
           deleted_ignore: own_post_replaced_count - replaced_penalize_count,
-          approved: approved_count,
           pending: unapproved_count + unapproved_replacements_count,
+          approved: approved_count,
         }
       end
     end
@@ -797,6 +809,64 @@ class User < ApplicationRecord
     end
   end
 
+  module KarmaMethods
+    # Raw stored karma, may be negative.
+    def raw_upload_karma
+      user_status&.upload_karma || 0
+    end
+
+    # Display/API value: karma is never shown below 0 ([raw, 0].max). The clamp is
+    # presentation-only; no write ever floors the stored value.
+    def upload_karma
+      [raw_upload_karma, 0].max
+    end
+
+    def upload_karma=(value)
+      value = value.to_i
+      user_status&.update(upload_karma: value)
+    end
+
+    def upload_karma_level
+      # Calculated from the `upload_karma` column. Threshold values pulled from the config file.
+      return 0 if upload_karma < Danbooru.config.upload_karma_l1_threshold
+      level = (Math.log10(upload_karma / upload_karma_l1) * upload_karma_scale).floor + 1
+      [level, max_karma_level].min
+    end
+
+    def required_karma_for_level(level)
+      level = level.to_i
+      return 0 if level <= 0
+      (upload_karma_l1 * (10**((level - 1) / upload_karma_scale))).ceil
+    end
+
+    def upload_karma_percent
+      level = upload_karma_level
+      return 0 if level >= max_karma_level
+      current_level_karma = required_karma_for_level(level)
+      next_level_karma = required_karma_for_level(level + 1)
+
+      # Ensure we don't divide by zero
+      return 100 if next_level_karma == current_level_karma
+
+      ((upload_karma - current_level_karma) / (next_level_karma - current_level_karma).to_f * 100).round
+    end
+
+    # Once the upload karma level reaches the free threshold, uploads bypass the review queue.
+    def upload_karma_free?
+      return false if Danbooru.config.upload_karma_free_threshold.nil?
+      return false if no_karma_free?
+      upload_karma_level >= Danbooru.config.upload_karma_free_threshold
+    end
+
+    private
+
+    def max_karma_level = 10
+
+    def upload_karma_l1 = Danbooru.config.upload_karma_l1_threshold.to_f
+    def upload_karma_l10 = Danbooru.config.upload_karma_l10_threshold.to_f
+    def upload_karma_scale = (max_karma_level - 1) / Math.log10(upload_karma_l10 / upload_karma_l1)
+  end
+
   module ApiMethods
     # blacklist all attributes by default. whitelist only safe attributes.
     def hidden_attributes
@@ -805,9 +875,9 @@ class User < ApplicationRecord
 
     def method_attributes
       list = super + %i[
-        id created_at name level base_upload_limit
+        id created_at name level base_upload_limit upload_karma upload_karma_free?
         post_upload_count post_update_count note_update_count
-        is_banned can_approve_posts can_upload_free
+        is_banned can_approve_posts
         level_string avatar_id is_verified?
         has_cropped_avatar?
       ]
@@ -819,7 +889,7 @@ class User < ApplicationRecord
           is_banned receive_email_notifications
           enable_keyboard_navigation enable_privacy_mode
           style_usernames enable_auto_complete
-          can_approve_posts can_upload_free
+          can_approve_posts
           enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
           enable_compact_uploader replacements_beta forum_notification_dot
@@ -847,7 +917,7 @@ class User < ApplicationRecord
         wiki_page_version_count artist_version_count pool_version_count
         forum_post_count comment_count flag_count favorite_count
         positive_feedback_count neutral_feedback_count negative_feedback_count
-        upload_limit profile_about profile_artinfo
+        upload_slots profile_about profile_artinfo
       ]
     end
   end
@@ -1040,7 +1110,7 @@ class User < ApplicationRecord
       include_mask = 0
       exclude_mask = 0
 
-      %i[can_approve_posts can_upload_free].each do |x|
+      %i[can_approve_posts].each do |x|
         next if params[x].blank?
         attr_idx = BOOLEAN_ATTRIBUTES.index(x.to_s)
         next if attr_idx.nil?
@@ -1100,6 +1170,7 @@ class User < ApplicationRecord
   include BlacklistMethods
   include ForumMethods
   include LimitMethods
+  include KarmaMethods
   include ApiMethods
   include CountMethods
   extend SearchMethods
@@ -1158,7 +1229,7 @@ class User < ApplicationRecord
 
   def reload(options = nil)
     super
-    @upload_limit_pieces = nil
+    @upload_slots_pieces = nil
     @feedback_pieces = nil
     @is_artist = nil
     self
