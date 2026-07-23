@@ -104,9 +104,16 @@ class UsersController < ApplicationController
       respond_with(@user)
       return
     end
+
     @user.no_uploading = !@user.no_uploading
-    ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
     @user.save
+
+    if @user.errors.any?
+      flash[:notice] = @user.errors.full_messages.join("; ")
+    else
+      ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
+      flash[:notice] = "User uploads have been #{@user.no_uploading ? 'disabled' : 'enabled'}"
+    end
 
     redirect_back_or_to user_path(@user)
   end
@@ -135,7 +142,8 @@ class UsersController < ApplicationController
   def toggle_karma_free
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
 
-    unless !Danbooru.config.upload_karma_free_threshold.nil? && @user.upload_karma_level >= Danbooru.config.upload_karma_free_threshold
+    # Prevent disabling unlimited uploads for users who don't have enough upload karma to be eligible for it.
+    unless @user.no_karma_free && !Danbooru.config.upload_karma_free_threshold.nil? && @user.upload_karma_level >= Danbooru.config.upload_karma_free_threshold
       flash[:notice] = "Error: This user does not have enough upload karma to be eligible for unlimited uploads"
       redirect_to user_path(@user)
       return
@@ -150,8 +158,14 @@ class UsersController < ApplicationController
     end
 
     @user.no_karma_free = !@user.no_karma_free
-    ModAction.log(:user_karma_free_toggle, { user_id: @user.id, disabled: @user.no_karma_free })
     @user.save
+
+    if @user.errors.any?
+      flash[:notice] = @user.errors.full_messages.join("; ")
+    else
+      ModAction.log(:user_karma_free_toggle, { user_id: @user.id, disabled: @user.no_karma_free })
+      flash[:notice] = "User unlimited uploads have been #{@user.no_karma_free ? 'disabled' : 'enabled'}"
+    end
 
     redirect_back_or_to user_path(@user)
   end
