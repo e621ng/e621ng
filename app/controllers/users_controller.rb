@@ -133,8 +133,14 @@ class UsersController < ApplicationController
   def disable_uploads
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
     @user.no_uploading = true
-    ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
     @user.save
+
+    if @user.errors.any?
+      flash[:notice] = @user.errors.full_messages.join("; ")
+    else
+      ModAction.log(:user_uploads_toggle, { user_id: @user.id, disabled: @user.no_uploading })
+      flash[:notice] = "User uploads have been disabled"
+    end
 
     redirect_to user_path(@user)
   end
@@ -173,8 +179,14 @@ class UsersController < ApplicationController
   def disable_karma_free
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
     @user.no_karma_free = true
-    ModAction.log(:user_karma_free_toggle, { user_id: @user.id, disabled: @user.no_karma_free })
     @user.save
+
+    if @user.errors.any?
+      flash[:notice] = @user.errors.full_messages.join("; ")
+    else
+      ModAction.log(:user_karma_free_toggle, { user_id: @user.id, disabled: @user.no_karma_free })
+      flash[:notice] = "User unlimited uploads have been disabled"
+    end
 
     redirect_to user_path(@user)
   end
