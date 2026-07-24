@@ -186,6 +186,25 @@ body.c-posts.a-show-seq {
       font-family: $base_font_family;
       font-size: 1.05em;
     }
+
+    #tag-script-ui {
+      margin-top: 0.5em;
+
+      #tag-script-field {
+        width: 100%;
+      }
+
+      .tag-script-actions {
+        display: flex;
+        gap: 0.5em;
+        margin-top: 0.5em;
+
+        #tag-script-reason {
+          min-width: 0;
+          width: 100%;
+        }
+      }
+    }
   }
 
   & > .adscape {
