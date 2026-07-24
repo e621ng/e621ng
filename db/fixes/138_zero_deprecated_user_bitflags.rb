@@ -9,13 +9,13 @@ module Fixes
         User.where("bit_prefs & ? != 0", mask).in_batches(of: 10_000) do |batch|
           processed += batch.size
           batch.update_all(["bit_prefs = bit_prefs & ~?::bigint", mask])
-          sleep(0.1) # bound replica lag / let autovacuum breathe; ~140 batches
+          sleep(0.1) # bound replica lag / let autovacuum breathe
 
-          puts "Processed #{processed} users"
+          puts "Processed #{processed} users" unless Rails.env.test?
         end
       end
     end
   end
 end
 
-Fixes::ZeroDeprecatedUserBitflags.run
+Fixes::ZeroDeprecatedUserBitflags.run unless Rails.env.test?
