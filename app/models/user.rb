@@ -35,7 +35,7 @@ class User < ApplicationRecord
   # ================================================================================================#
 
   BOOLEAN_ATTRIBUTES = %w[
-    _show_avatars
+    raised_favorite_limit
     _blacklist_avatars
     blacklist_users
     description_collapsed_initially
@@ -755,7 +755,8 @@ class User < ApplicationRecord
     end
 
     def favorite_limit
-      Danbooru.config.legacy_favorite_limit.fetch(id, 80_000)
+      return (Danbooru.config.default_favorite_limit * 2) if raised_favorite_limit?
+      Danbooru.config.default_favorite_limit
     end
 
     def api_regen_multiplier
