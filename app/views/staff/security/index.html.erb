@@ -11,6 +11,7 @@
 
       <%= custom_form_for(:lockdown, url: enact_staff_security_index_path, method: :put, html: { class: "lockdown-form" }) do |f| %>
         <%= f.input :uploads, as: :boolean, label: "Uploads", input_html: { checked: Security::Lockdown.uploads_disabled? ? "checked" : "" } %>
+        <%= f.input :post_replacements, as: :boolean, label: "Post Replacements", input_html: { checked: Security::Lockdown.post_replacements_disabled? ? "checked" : "" } %>
         <%= f.input :pools, as: :boolean, label: "Pools", input_html: { checked: Security::Lockdown.pools_disabled? ? "checked" : "" } %>
         <%= f.input :post_sets, as: :boolean, label: "Post Sets", input_html: { checked: Security::Lockdown.post_sets_disabled? ? "checked" : "" } %>
         <br />

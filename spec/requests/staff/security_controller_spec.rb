@@ -63,6 +63,11 @@ RSpec.describe Staff::SecurityController do
         expect(Security::Lockdown.uploads_disabled?).to be true
       end
 
+      it "disables post replacements" do
+        put panic_staff_security_index_path
+        expect(Security::Lockdown.post_replacements_disabled?).to be true
+      end
+
       it "disables pools" do
         put panic_staff_security_index_path
         expect(Security::Lockdown.pools_disabled?).to be true
@@ -148,6 +153,17 @@ RSpec.describe Staff::SecurityController do
         Security::Lockdown.uploads_disabled = "1"
         put enact_staff_security_index_path, params: { lockdown: { uploads: "0" } }
         expect(Security::Lockdown.uploads_disabled?).to be false
+      end
+
+      it "enables post replacements lockdown when the post_replacements param is '1'" do
+        put enact_staff_security_index_path, params: { lockdown: { post_replacements: "1" } }
+        expect(Security::Lockdown.post_replacements_disabled?).to be true
+      end
+
+      it "disables post replacements lockdown when the post_replacements param is '0'" do
+        Security::Lockdown.post_replacements_disabled = "1"
+        put enact_staff_security_index_path, params: { lockdown: { post_replacements: "0" } }
+        expect(Security::Lockdown.post_replacements_disabled?).to be false
       end
 
       it "does not change pools lockdown when pools param is absent" do

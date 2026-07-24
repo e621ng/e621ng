@@ -11,6 +11,14 @@ module Security
       Setting.uploads_disabled = state == "1"
     end
 
+    def self.post_replacements_disabled?
+      Setting.post_replacements_disabled?
+    end
+
+    def self.post_replacements_disabled=(state)
+      Setting.post_replacements_disabled = state == "1"
+    end
+
     def self.pools_disabled?
       Setting.pools_disabled?
     end

@@ -5,7 +5,7 @@ class PostReplacementsController < ApplicationController
   before_action :member_only, only: %i[create new]
   before_action :approver_only, only: %i[approve reject promote toggle_penalize]
   before_action :admin_only, only: [:destroy]
-  before_action :ensure_uploads_enabled, only: %i[new create]
+  before_action :ensure_replacements_enabled, only: %i[new create]
 
   content_security_policy only: [:new] do |p|
     p.img_src :self, :data, :blob, "*"
@@ -146,7 +146,7 @@ class PostReplacementsController < ApplicationController
     params.require(:post_replacement).permit(:replacement_url, :replacement_file, :reason, :source, :as_pending)
   end
 
-  def ensure_uploads_enabled
-    access_denied if Security::Lockdown.uploads_disabled? || CurrentUser.user.level < Security::Lockdown.uploads_min_level
+  def ensure_replacements_enabled
+    access_denied if Security::Lockdown.post_replacements_disabled? || CurrentUser.user.level < Security::Lockdown.uploads_min_level
   end
 end
