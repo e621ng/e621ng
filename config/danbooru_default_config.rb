@@ -76,11 +76,8 @@ module Danbooru
       false
     end
 
-    # Prevent new users from going above 80k while allowing those currently above
-    # it to continue adding new favorites with the old limit.
-    # { 123 => 200_000 }
-    def legacy_favorite_limit
-      {}
+    def default_favorite_limit
+      100_000
     end
 
     # Set the default level, permissions, and other settings for new users here.

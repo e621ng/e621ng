@@ -26,16 +26,29 @@ RSpec.describe FavoriteManager do
 
     describe "favorite limit" do
       before do
-        allow(user).to receive_messages(favorite_limit: 0, favorite_count: 0)
+        allow(Danbooru.config.custom_configuration).to receive_messages(default_favorite_limit: 1)
+        allow(user).to receive_messages(favorite_count: 0)
+      end
+
+      it "does not raise an error when the user is below their limit" do
+        expect { FavoriteManager.add!(user: user, post: post) }.not_to raise_error
       end
 
       it "raises Favorite::Error when the user is at their limit" do
+        allow(user).to receive_messages(favorite_count: 1)
         expect { FavoriteManager.add!(user: user, post: post) }
           .to raise_error(Favorite::Error, /only keep up to/)
       end
 
       it "bypasses the limit when force: true" do
         expect { FavoriteManager.add!(user: user, post: post, force: true) }
+          .not_to raise_error
+      end
+
+      it "respects the raised favorite limit flag" do
+        allow(user).to receive_messages(raised_favorite_limit?: true, favorite_count: 1)
+        expect(user.favorite_limit).to eq(2)
+        expect { FavoriteManager.add!(user: user, post: post) }
           .not_to raise_error
       end
     end

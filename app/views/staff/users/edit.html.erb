@@ -58,6 +58,12 @@
         <label for="user_replacements_beta" class="optional">Replacements Beta</label>
         <%= select(:user, :replacements_beta, [["Yes", true], ["No", false]]) %>
       </div>
+
+      <div class="input">
+        <label for="user_raised_favorite_limit" class="optional">Raised Favorite Limit</label>
+        <%= select(:user, :raised_favorite_limit, [["Yes", true], ["No", false]]) %>
+      </div>
+
       <%= f.button :submit, value: "Update" %>
     <% end %>
   </div>

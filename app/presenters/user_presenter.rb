@@ -47,6 +47,10 @@ class UserPresenter
       permissions << "tag warden"
     end
 
+    if user.raised_favorite_limit?
+      permissions << "raised favorite limit"
+    end
+
     permissions.join(", ")
   end
 
