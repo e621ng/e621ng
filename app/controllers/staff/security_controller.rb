@@ -9,19 +9,20 @@ module Staff
     end
 
     def panic
-      Security::Lockdown.uploads_disabled   = "1"
-      Security::Lockdown.pools_disabled     = "1"
-      Security::Lockdown.post_sets_disabled = "1"
+      Security::Lockdown.uploads_disabled           = "1"
+      Security::Lockdown.post_replacements_disabled = "1"
+      Security::Lockdown.pools_disabled             = "1"
+      Security::Lockdown.post_sets_disabled         = "1"
 
-      Security::Lockdown.comments_disabled  = "1"
-      Security::Lockdown.forums_disabled    = "1"
-      Security::Lockdown.blips_disabled     = "1"
+      Security::Lockdown.comments_disabled          = "1"
+      Security::Lockdown.forums_disabled            = "1"
+      Security::Lockdown.blips_disabled             = "1"
 
-      Security::Lockdown.aiburs_disabled    = "1"
-      Security::Lockdown.favorites_disabled = "1"
-      Security::Lockdown.votes_disabled     = "1"
+      Security::Lockdown.aiburs_disabled            = "1"
+      Security::Lockdown.favorites_disabled         = "1"
+      Security::Lockdown.votes_disabled             = "1"
 
-      Security::Lockdown.takedowns_disabled = "1"
+      Security::Lockdown.takedowns_disabled         = "1"
 
       StaffAuditLog.log(:lockdown_panic, CurrentUser.user)
       redirect_to staff_security_index_path
@@ -31,6 +32,7 @@ module Staff
       params = lockdown_params
 
       Security::Lockdown.uploads_disabled = params[:uploads] if params[:uploads].present?
+      Security::Lockdown.post_replacements_disabled = params[:post_replacements] if params[:post_replacements].present?
       Security::Lockdown.pools_disabled = params[:pools] if params[:pools].present?
       Security::Lockdown.post_sets_disabled = params[:post_sets] if params[:post_sets].present?
 
@@ -78,7 +80,7 @@ module Staff
     end
 
     def lockdown_params
-      permitted_params = %i[uploads pools post_sets comments forums blips aiburs favorites votes takedowns]
+      permitted_params = %i[uploads post_replacements pools post_sets comments forums blips aiburs favorites votes takedowns]
       params.fetch(:lockdown, {}).permit(permitted_params)
     end
 

@@ -61,8 +61,8 @@ RSpec.describe PostReplacementsController do
       expect(response).to have_http_status(:ok)
     end
 
-    context "when uploads are disabled" do
-      before { allow(Security::Lockdown).to receive(:uploads_disabled?).and_return(true) }
+    context "when post replacements are disabled" do
+      before { allow(Security::Lockdown).to receive(:post_replacements_disabled?).and_return(true) }
 
       it "returns 403 for a janitor" do
         sign_in_as replacer
@@ -110,8 +110,8 @@ RSpec.describe PostReplacementsController do
       expect(response.parsed_body["message"]).to be_present
     end
 
-    context "when uploads are disabled" do
-      before { allow(Security::Lockdown).to receive(:uploads_disabled?).and_return(true) }
+    context "when post replacements are disabled" do
+      before { allow(Security::Lockdown).to receive(:post_replacements_disabled?).and_return(true) }
 
       it "returns 403 for a replacer" do
         sign_in_as replacer
@@ -367,11 +367,11 @@ RSpec.describe PostReplacementsController do
   end
 
   # ---------------------------------------------------------------------------
-  # Upload lockdown behaviour — cross-cutting
+  # Replacement lockdown behaviour — cross-cutting
   # ---------------------------------------------------------------------------
 
-  describe "upload lockdown behaviour" do
-    before { allow(Security::Lockdown).to receive(:uploads_disabled?).and_return(true) }
+  describe "replacement lockdown behaviour" do
+    before { allow(Security::Lockdown).to receive(:post_replacements_disabled?).and_return(true) }
 
     it "returns 403 for GET /post_replacements/new even for a janitor" do
       sign_in_as replacer
@@ -385,8 +385,15 @@ RSpec.describe PostReplacementsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "still serves GET /post_replacements (index) when uploads are disabled" do
+    it "still serves GET /post_replacements (index) when replacements are disabled" do
       get post_replacements_path
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "does not gate replacements on the uploads toggle" do
+      allow(Security::Lockdown).to receive_messages(post_replacements_disabled?: false, uploads_disabled?: true)
+      sign_in_as replacer
+      get new_post_replacement_path(post_id: post_record.id)
       expect(response).to have_http_status(:ok)
     end
   end
