@@ -82,7 +82,7 @@ export default class FilterUtilities {
   static getComparison (input: string): string {
     if (input.indexOf("..") != -1) return "..";
     const val = input.match(/^[<>=]{1,2}/);
-    if (!val) return "=";
+    if (!val) return input.includes(",") ? "," : "=";
     return FilterUtilities.ComparisonTable[val[0]] || "=";
   }
 
@@ -132,6 +132,8 @@ export default class FilterUtilities {
         return a >= token.value;
       case "..":
         return a >= token.value[0] && a <= token.value[1];
+      case ",":
+        return token.value.includes(a);
     }
     return false;
   }
