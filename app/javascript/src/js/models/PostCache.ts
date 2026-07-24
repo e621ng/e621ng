@@ -53,6 +53,8 @@ export default class PostCache {
       height: parseInt(data.height) || -1,
       size: parseInt(data.size) || -1,
 
+      duration: parseFloat(data.duration ?? "-1"),
+
       score: parseInt(data.score) || 0,
       fav_count: parseInt(data.favCount) || 0,
       is_favorited: data.isFavorited === "true",
@@ -70,6 +72,8 @@ export default class PostCache {
       file_url: data.fileUrl || "",
     };
 
+    // This stupid-looking condition correctly catches NaN.
+    if (!(value.duration >= 0)) delete value.duration;
     this._cache[id] = value;
     this._index.add(id);
     return new CachedPost(value);
@@ -268,6 +272,8 @@ export class CachedPost implements CachedPostData {
   public height: number;
   public size: number;
 
+  public duration?: number;
+
   public score: number;
   public fav_count: number;
   public is_favorited: boolean;
@@ -346,6 +352,8 @@ interface BasicPostData {
   height: number,
   size: number,
   file_ext: string,
+
+  duration?: number,
 
   uploader: string,
   uploader_id: number,
