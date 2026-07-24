@@ -65,6 +65,7 @@ PostVersion.tag_script_selected = function (event) {
   PostVersion.updated = 0;
   let selected_rows = $(".post-version-select:checked").parents(".post-version");
   const script = $("#update-tag-script").val();
+  const reason = $("#update-edit-reason").val();
   if (!script)
     return;
 
@@ -74,7 +75,7 @@ PostVersion.tag_script_selected = function (event) {
     let id = $(row).data("post-id");
 
     promises.push(TaskQueue.add(() => {
-      Post.tagScript(id, script);
+      Post.tagScript(id, script, reason);
 
       toast.message = `${++PostVersion.updated} / ${selected_rows.length} changes applied.`;
     }, { name: "PostVersion.tag_script_selected" }));

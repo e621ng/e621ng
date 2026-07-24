@@ -354,9 +354,9 @@ Post.tag = function (post_id, tags) {
   Post.update(post_id, { "post[old_tag_string]": "", "post[tag_string]": tag_string });
 };
 
-Post.tagScript = function (post_id, tags) {
+Post.tagScript = function (post_id, tags, reason = "") {
   const tag_string = (Array.isArray(tags) ? tags.join(" ") : String(tags));
-  Post.update(post_id, { "post[tag_string_diff]": tag_string });
+  Post.update(post_id, { "post[tag_string_diff]": tag_string, "post[edit_reason]": reason });
 };
 
 Post.getMatchingThumbnails = function (post_id) {
