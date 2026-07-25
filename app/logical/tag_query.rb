@@ -1259,6 +1259,7 @@ class TagQuery
     end
   end
 
+  BOOLEAN_METATAG_REGEX = /\A-?(?:#{BOOLEAN_METATAGS.join("|")})\z/
   # ### Parameters
   # * `query`
   # * `process_groups` [`false`]: Recursively handle groups?
@@ -1523,9 +1524,9 @@ class TagQuery
 
       when *COUNT_METATAGS then q[metatag_name.downcase.to_sym] = ParseValue.range(g2)
 
-      when *BOOLEAN_METATAGS
+      when BOOLEAN_METATAG_REGEX
         canonical = BOOLEAN_METATAG_ALIASES.fetch(metatag_name.downcase, metatag_name.downcase)
-        q[canonical.to_sym] = parse_boolean(g2)
+        q[canonical.to_sym] = type != :must_not ? parse_boolean(g2) : !parse_boolean(g2)
 
       else
         add_tag(token)
