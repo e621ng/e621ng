@@ -1,0 +1,22 @@
+require 'spec_helper'
+
+describe AvatarComponent do
+    let(:user) { User.new(profile_picture_tags: ["nsfw"]) }
+
+    it "renders NSFW label for NSFW profile picture" do
+        component = AvatarComponent.new(user)
+        expect(component.render).to eq("NSFW")
+    end
+
+    it "renders deleted label for deleted user" do
+        user.is_deleted = true
+        component = AvatarComponent.new(user)
+        expect(component.render).to eq("deleted")
+    end
+
+    it "renders profile picture URL for SFW profile picture" do
+        user.profile_picture_tags = []
+        component = AvatarComponent.new(user)
+        expect(component.render).to eq(user.profile_picture_url)
+    end
+end
