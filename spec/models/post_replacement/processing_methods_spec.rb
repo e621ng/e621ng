@@ -313,6 +313,11 @@ RSpec.describe PostReplacement do
         replacement.transfer(post_alt)
       end.not_to(change { post_alt.replacements.where(status: "original").count })
 
+      # 2 seperate since we don't have `avoid_changing`
+      expect do
+        replacement.transfer(post_alt)
+      end.not_to(change { replacement.reload.post_id })
+
       expect(replacement.errors.full_messages).to include("Failed to create backup on new post: boom")
     end
   end

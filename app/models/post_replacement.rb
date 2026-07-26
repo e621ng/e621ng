@@ -297,8 +297,8 @@ class PostReplacement < ApplicationRecord
         return
       end
 
+      prev = post
       Post.transaction do # wrap in transaction to ensure atomicity of the transfer
-        prev = post
         update(post: new_post, uploader_id_on_approve: nil)
         set_previous_uploader
         update_column(:uploader_id_on_approve, uploader_on_approve&.id)
@@ -311,10 +311,9 @@ class PostReplacement < ApplicationRecord
 
         PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
         PostEvent.add(prev.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
-
-        post.update_index
-        prev.update_index
       end
+      post.update_index
+      prev.update_index
     end
 
     def create_original_backup
