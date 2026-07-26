@@ -307,6 +307,7 @@ class PostReplacement < ApplicationRecord
           create_original_backup
         rescue ProcessingError => e
           errors.add(:base, "Failed to create backup on new post: #{e.message}")
+          raise ActiveRecord::Rollback
         end
 
         PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
