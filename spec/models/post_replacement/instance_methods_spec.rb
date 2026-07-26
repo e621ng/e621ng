@@ -166,4 +166,87 @@ RSpec.describe PostReplacement do
       expect(replacement.promoted_id).to eq(promoted_post.id)
     end
   end
+
+  # --------------------------------------------------------------------------
+  # #increment_user_replacement_count
+  # --------------------------------------------------------------------------
+  describe "#increment_user_replacement_count" do
+    let(:user_status_relation) { instance_double(ActiveRecord::Relation) }
+
+    before do
+      allow(CurrentUser).to receive(:id).and_return(123)
+      allow(UserStatus).to receive(:for_user).with(123).and_return(user_status_relation)
+      allow(user_status_relation).to receive(:update_all)
+    end
+
+    it "increments UserStatus item 'post_replacement_submitted_count'" do
+      post_replacement = build(:post_replacement, status: "pending")
+
+      post_replacement.increment_user_replacement_count
+
+      expect(UserStatus).to have_received(:for_user).with(123)
+      expect(user_status_relation).to have_received(:update_all)
+    end
+
+    it "is called on create of pending" do
+      post_replacement = build(:post_replacement, status: "pending")
+
+      # Skip validations so we don't trigger external URL fetching during callback tests
+      post_replacement.save(validate: false)
+
+      expect(user_status_relation).to have_received(:update_all).once
+    end
+
+    it "is not called on create of original" do
+      post_replacement = build(:post_replacement, status: "original")
+
+      post_replacement.save(validate: false)
+
+      expect(UserStatus).not_to have_received(:for_user)
+      expect(user_status_relation).not_to have_received(:update_all)
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # #decrement_user_replacement_count
+  # --------------------------------------------------------------------------
+  describe "#decrement_user_replacement_count" do
+    let(:user_status_relation) { instance_double(ActiveRecord::Relation) }
+
+    before do
+      allow(CurrentUser).to receive(:id).and_return(123)
+      allow(UserStatus).to receive(:for_user).with(123).and_return(user_status_relation)
+      allow(user_status_relation).to receive(:update_all)
+    end
+
+    it "decrements UserStatus item 'post_replacement_submitted_count'" do
+      post_replacement = build(:post_replacement, status: "pending")
+
+      post_replacement.decrement_user_replacement_count
+
+      expect(UserStatus).to have_received(:for_user).with(123)
+      expect(user_status_relation).to have_received(:update_all)
+    end
+
+    it "is called on destroy of non-original" do
+      post_replacement = build(:post_replacement, status: "pending")
+
+      # Prevent the creation callback from hitting update_all
+      allow(post_replacement).to receive(:decrement_user_replacement_count)
+      post_replacement.save(validate: false)
+
+      post_replacement.destroy!
+
+      expect(user_status_relation).to have_received(:update_all).once
+    end
+
+    it "is not called on destroy of original" do
+      post_replacement = build(:post_replacement, status: "original")
+      post_replacement.save(validate: false)
+
+      post_replacement.destroy!
+
+      expect(user_status_relation).not_to have_received(:update_all)
+    end
+  end
 end
