@@ -87,6 +87,75 @@ RSpec.describe TagQuery, type: :model do
     end
   end
 
+  # Regression: a malformed search of deeply-nested, unbalanced group parentheses
+  # (e.g. "( ( ( ... ( a ) )") drove REGEX_TOKENIZE into catastrophic backtracking,
+  # producing Regexp::TimeoutError 500s in production. scan_search / match_tokens now
+  # reject over-deep nesting with a cheap linear pre-check before the regex runs.
+  describe "deeply-nested group parenthesis guard (ReDoS)" do
+    # The reported abusive query: many unbalanced opening parens.
+    let(:redos_query) { "#{'( ' * 28}a ) )" }
+
+    describe ".group_depth_exceeded?" do
+      it "flags unbalanced deeply-nested parentheses" do
+        expect(TagQuery.group_depth_exceeded?(redos_query)).to be(true)
+      end
+
+      it "flags balanced nesting past DEPTH_LIMIT" do
+        expect(TagQuery.group_depth_exceeded?("#{'( ' * 11}tag#{' )' * 11}")).to be(true)
+      end
+
+      it "does not flag nesting within DEPTH_LIMIT" do
+        expect(TagQuery.group_depth_exceeded?("#{'( ' * 10}tag#{' )' * 10}")).to be(false)
+      end
+
+      it "does not flag many balanced sibling groups" do
+        many_siblings = Array.new(100) { |i| "( tag#{i} )" }.join(" ")
+        expect(TagQuery.group_depth_exceeded?(many_siblings)).to be(false)
+      end
+
+      it "does not flag parentheses inside tags or quoted metatags" do
+        expect(TagQuery.group_depth_exceeded?("boris_(noborhood) cat")).to be(false)
+        expect(TagQuery.group_depth_exceeded?('source:"http://x/( ( ( ( ( ( ( ( ( ( ( (" cat')).to be(false)
+      end
+    end
+
+    it "raises DepthExceededError instead of hanging on the abusive query" do
+      # error_on_depth_exceeded mirrors the PostSets::Post call path.
+      expect do
+        TagQuery.scan_search(redos_query, error_on_depth_exceeded: true)
+      end.to raise_error(TagQuery::DepthExceededError)
+    end
+
+    it "returns quickly rather than backtracking, even under a strict Regexp timeout" do
+      # Without the pre-check this backtracks for ~1s and raises Regexp::TimeoutError;
+      # with it, the query is rejected up front and no timeout is hit.
+      previous = Regexp.timeout
+      Regexp.timeout = 0.5
+      begin
+        expect do
+          TagQuery.scan_search(redos_query, error_on_depth_exceeded: true)
+        end.to raise_error(TagQuery::DepthExceededError)
+      ensure
+        Regexp.timeout = previous
+      end
+    end
+
+    it "does not blow up the regex on the full TagQuery.new parse path" do
+      # TagQuery.new's default path degrades gracefully (error_on_depth_exceeded: false),
+      # so it must not raise Regexp::TimeoutError under a strict timeout — the abusive query
+      # is dropped up front rather than driving the tokenizer into catastrophic backtracking.
+      previous = Regexp.timeout
+      Regexp.timeout = 0.5
+      begin
+        expect do
+          TagQuery.new(redos_query, resolve_aliases: false)
+        end.not_to raise_error
+      ensure
+        Regexp.timeout = previous
+      end
+    end
+  end
+
   describe TagQuery::InvalidTagError do
     it "is a StandardError" do
       expect(TagQuery::InvalidTagError.new).to be_a(StandardError)

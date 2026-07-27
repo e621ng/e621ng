@@ -597,6 +597,23 @@ class TagQuery
     end
   end
 
+  # Cheap, linear guard against catastrophic backtracking in `REGEX_TOKENIZE`.
+  def self.group_depth_exceeded?(tag_str)
+    str = tag_str.to_s
+    # Reaching depth `DEPTH_LIMIT + 1` needs at least that many `(` + whitespace pairs.
+    return false if str.length < (DEPTH_LIMIT + 1) * 2
+    str = str.gsub(TagQuery::REGEX_ANY_QUOTED_METATAG, "") if str.include?(':"')
+    depth = 0
+    str.scan(/\((?=\s)|(?<=\s)\)/) do |paren|
+      if paren == "("
+        return true if (depth += 1) > DEPTH_LIMIT
+      elsif depth > 0
+        depth -= 1
+      end
+    end
+    false
+  end
+
   # Iterates through tokens, returning each tokens' `MatchData` in accordance with
   # `TagQuery::REGEX_TOKENIZE`.
   # ### Parameters
@@ -621,6 +638,13 @@ class TagQuery
       return []
     end
     tag_str = tag_str.to_s.unicode_normalize(:nfc).strip
+    # Reject pathologically-nested group parentheses before they reach `REGEX_TOKENIZE`, where
+    # they'd cause catastrophic backtracking. Only checked at the top level; sub-strings passed to
+    # recursive calls are already one level shallower.
+    if depth == 0 && TagQuery.group_depth_exceeded?(tag_str)
+      raise DepthExceededError if kwargs[:error_on_depth_exceeded]
+      return []
+    end
     results = []
     # OPTIMIZE: Candidate for early exit
     # return results if tag_str.blank?
@@ -687,6 +711,12 @@ class TagQuery
     return [] if tag_str.blank? || /\A[-~]?\(\s+\)\z/.match?(tag_str)
     # Quick and dirty optimization: If it can't contain any groups, use a simpler tokenizer.
     return TagQuery.send(kwargs[:segregate_metatags] ? :scan_light : :scan, tag_str, **kwargs) unless REGEX_HAS_GROUP.match?(tag_str)
+    # Reject pathologically-nested group parentheses before they reach `REGEX_TOKENIZE` below,
+    # where they'd cause catastrophic backtracking. Only checked at the top level; recursive calls
+    # receive sub-strings that are already one level shallower.
+    if depth == 0 && TagQuery.group_depth_exceeded?(tag_str)
+      return error_on_depth_exceeded ? (raise DepthExceededError) : []
+    end
     # If this query is composed of 1 top-level group with no modifiers, convert to ungrouped.
     # TODO: Check if regex catches nested groups & quoted metatag groups
     if SETTINGS[:EARLY_SCAN_SEARCH_CHECK] && tag_str.start_with?("(") && tag_str.end_with?(")")

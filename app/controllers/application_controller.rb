@@ -152,6 +152,10 @@ class ApplicationController < ActionController::Base
       render_expected_error(410, exception.message)
     when TagQuery::CountExceededError, TagQuery::DepthExceededError, TagQuery::InvalidTagError, ParseValue::InvalidDateError
       render_expected_error(422, exception.message)
+    when Regexp::TimeoutError
+      # See TagQuery.group_depth_exceeded?
+      # Show a cheap 422 for a malformed/abusive search that blows up a regex.
+      render_expected_error(422, "Your query was too complex to process. Try simplifying it.")
     when FeatureUnavailable
       render_expected_error(400, "This feature isn't available")
     when PG::ConnectionBad
