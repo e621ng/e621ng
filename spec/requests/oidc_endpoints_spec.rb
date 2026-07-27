@@ -459,9 +459,9 @@ RSpec.describe "OIDC endpoints" do
 
     it "lists capability bitflags the user holds" do
       uploader = create(:user)
-      uploader.update!(can_upload_free: true)
+      uploader.update!(can_approve_posts: true)
       perms = claims_for(uploader)["e621_permissions"]
-      expect(perms).to include("can_upload_free")
+      expect(perms).to include("can_approve_posts")
     end
 
     it "is advertised in the discovery doc" do

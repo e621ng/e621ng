@@ -13,7 +13,6 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.password_confirmation = "hexerade"
   user.password_hash = ""
   user.email = "admin@e621.local"
-  user.can_upload_free = true
   user.can_approve_posts = true
   user.level = UserLevel::ADMIN
 
@@ -21,14 +20,24 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.is_bd_auditor = true
 end
 
-User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
+required_karma = admin.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
+if !required_karma.nil? && admin.upload_karma < required_karma
+  admin.upload_karma = required_karma
+  admin.save!
+end
+
+system = User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.password = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
   user.password_confirmation = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
   user.password_hash = ""
   user.email = "system@e621.local"
-  user.can_upload_free = true
   user.can_approve_posts = true
   user.level = UserLevel::JANITOR
+end
+
+if !required_karma.nil? && system.upload_karma < required_karma
+  system.upload_karma = required_karma
+  system.save!
 end
 
 ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") do |category|

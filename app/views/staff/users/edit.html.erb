@@ -23,6 +23,12 @@
       <%= f.input :custom_title, input_html: { size: 50 }, hint: "Replaces the level badge text. Leave blank to show level." %>
       <%= f.input :base_upload_limit %>
 
+      <div class="input">
+        <label for="user_upload_karma">Upload Karma</label>
+        <%= number_field_tag "user[upload_karma]", @user.raw_upload_karma %>
+        <span class="hint">Raw stored karma; may be negative. Adjustments are logged.</span>
+      </div>
+
       <% if CurrentUser.is_bd_staff? || !@user.is_bd_staff? %>
         <div class="input integer optional">
           <label for="user_level" class="optional">Level</label>
@@ -33,11 +39,6 @@
           <% end %>
         </div>
       <% end %>
-
-      <div class="input">
-        <label for="user_can_upload_free" class="optional">Unrestricted Uploads</label>
-        <%= select(:user, :can_upload_free, [["Yes", true], ["No", false]]) %>
-      </div>
 
       <div class="input">
         <label for="user_tag_warden" class="optional">Tag Warden</label>

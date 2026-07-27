@@ -45,6 +45,15 @@ module Staff
         ModAction.log(:user_custom_title_change, { user_id: @user.id, old_custom_title: @user.custom_title_before_last_save, new_custom_title: @user.custom_title })
       end
 
+      if params[:user][:upload_karma].present?
+        new_karma = params[:user][:upload_karma].to_i
+        old_karma = @user.raw_upload_karma
+        if new_karma != old_karma
+          @user.user_status.update!(upload_karma: new_karma)
+          ModAction.log(:user_karma_change, { user_id: @user.id, old_karma: old_karma, new_karma: new_karma })
+        end
+      end
+
       if CurrentUser.is_bd_staff?
         @user.mark_verified! if params[:user][:verified].to_s.truthy?
         @user.mark_unverified! if params[:user][:verified].to_s.falsy?
