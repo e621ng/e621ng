@@ -249,6 +249,39 @@ ALTER SEQUENCE public.artists_id_seq OWNED BY public.artists.id;
 
 
 --
+-- Name: asn_ranges; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.asn_ranges (
+    id bigint NOT NULL,
+    first_ip inet NOT NULL,
+    last_ip inet NOT NULL,
+    asn bigint NOT NULL,
+    name character varying NOT NULL,
+    country character varying DEFAULT ''::character varying NOT NULL
+);
+
+
+--
+-- Name: asn_ranges_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.asn_ranges_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: asn_ranges_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.asn_ranges_id_seq OWNED BY public.asn_ranges.id;
+
+
+--
 -- Name: automod_rules; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3081,6 +3114,13 @@ ALTER TABLE ONLY public.artists ALTER COLUMN id SET DEFAULT nextval('public.arti
 
 
 --
+-- Name: asn_ranges id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.asn_ranges ALTER COLUMN id SET DEFAULT nextval('public.asn_ranges_id_seq'::regclass);
+
+
+--
 -- Name: automod_rules id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3637,6 +3677,14 @@ ALTER TABLE ONLY public.artist_versions
 
 ALTER TABLE ONLY public.artists
     ADD CONSTRAINT artists_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: asn_ranges asn_ranges_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.asn_ranges
+    ADD CONSTRAINT asn_ranges_pkey PRIMARY KEY (id);
 
 
 --
@@ -4378,6 +4426,13 @@ CREATE INDEX index_artists_on_name_trgm ON public.artists USING gin (name public
 --
 
 CREATE INDEX index_artists_on_other_names ON public.artists USING gin (other_names);
+
+
+--
+-- Name: index_asn_ranges_on_first_ip; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_asn_ranges_on_first_ip ON public.asn_ranges USING btree (first_ip);
 
 
 --
@@ -6103,6 +6158,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260727160104'),
 ('20260707182943'),
 ('20260702120000'),
 ('20260624213023'),
