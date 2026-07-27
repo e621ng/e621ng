@@ -716,6 +716,11 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       }
     end
 
+    # The iptoasn.com dataset used to resolve IP addresses to ASNs on the admin IP search page.
+    def ip_to_asn_data_url
+      "https://iptoasn.com/data/ip2asn-combined.tsv.gz"
+    end
+
     # you should override this
     def email_key
       "zDMSATq0W3hmA5p3rKTgD"

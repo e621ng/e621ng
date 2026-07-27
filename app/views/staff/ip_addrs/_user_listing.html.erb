@@ -1,5 +1,13 @@
 <p><%= link_to "Search for IP addresses with these users", staff_ip_addrs_path(search: { user_id: @results[:users].map { |user_id, _| user_id }.join(","), with_history: params[:search][:with_history] }) %></p>
 
+<% if @results[:asns]&.values&.any? %>
+  <ul>
+    <% @results[:asns].each do |ip, info| %>
+      <li><%= ip %>: <%= format_asn info %></li>
+    <% end %>
+  </ul>
+<% end %>
+
 <table class="striped">
   <thead>
   <tr>
