@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+# Important:
+#
+# 139_backfill_replacement_sequence_number.rb MUST be run before this migration,
+# or the NOT NULL constraint will fail.
+
 class EnforcePostReplacementSequenceNumber < ActiveRecord::Migration[8.1]
   def change
     PostReplacement.without_timeout do
