@@ -34,6 +34,7 @@ class PostReplacement < ApplicationRecord
   validates :reason, length: { in: 5..150 }, presence: true, on: :create
 
   before_create :create_original_backup
+  before_create :fill_sequence_number
   before_create :set_previous_uploader
   after_create -> { post.update_index }
   before_destroy :remove_files
@@ -95,10 +96,16 @@ class PostReplacement < ApplicationRecord
     @uploader_linked_artists ||= post.artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == creator.id }.map(&:name)
   end
 
-  def sequence_number
-    return 0 if status == "original"
-    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").order(:id).ids
-    1 + siblings.index(id)
+  def self.calculate_sequence_number(post_id)
+    1 + where(post_id: post_id).maximum(:sequence_number).to_i
+  end
+
+  # Runs before_create (after create_original_backup, so the backup already holds
+  # 0) rather than before_validation, so it also fires on the factory's
+  # save!(validate: false) path. The original is numbered by its status marker,
+  # which keeps it in lockstep with the check constraint (status 'original' <=> 0).
+  def fill_sequence_number
+    self.sequence_number = status == "original" ? 0 : self.class.calculate_sequence_number(post_id)
   end
 
   def user_is_not_limited
@@ -374,16 +381,10 @@ class PostReplacement < ApplicationRecord
         if params[:order].present?
           q.apply_basic_order(params)
         elsif params[:post_id].present?
-          # Backups are created before the first replacement, so id DESC already
-          # sorts them last. This pin only matters for legacy posts whose backup
-          # was created afterwards and thus has a higher id; it keeps the backup
-          # anchored below the replacements in that single-post view.
-          q.order(Arel.sql("
-            CASE status
-              WHEN 'original' THEN 0
-              ELSE #{table_name}.id
-            END DESC
-          "))
+          # Legacy backups can have a higher ID than the replacement it backed up.
+          # sequence_number is 0 for the original backup and 1..N for replacements in creation
+          # order, so this always anchors the original below its replacements.
+          q.order(sequence_number: :desc)
         else
           q.default_order
         end
