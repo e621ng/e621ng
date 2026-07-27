@@ -127,6 +127,11 @@ RSpec.describe TagQuery, type: :model do
       it "flags prefixed group openers (-( / ~()" do
         expect(TagQuery.group_depth_exceeded?("#{'-( ' * 11}a")).to be(true)
       end
+
+      it "flags prefixed group openers past DEPTH_LIMIT" do
+        expect(TagQuery.group_depth_exceeded?("#{'-( ' * 15}a")).to be(true)
+        expect(TagQuery.group_depth_exceeded?("#{'~( ' * 15}a")).to be(true)
+      end
     end
 
     it "processes the emoticon query without error (not a false positive)" do
