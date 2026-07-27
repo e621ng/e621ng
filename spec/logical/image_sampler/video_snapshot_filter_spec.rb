@@ -36,6 +36,22 @@ RSpec.describe ImageSampler do
   end
 
   # -------------------------------------------------------------------------
+  # .colorspace_relabel_filter
+  #
+  # Shared with PostVideoConversionJob, whose `scale` filter fails on the
+  # same mistagged colour spaces as the snapshot path.
+  # -------------------------------------------------------------------------
+  describe ".colorspace_relabel_filter" do
+    it "returns nil for a normally tagged video" do
+      expect(described_class.colorspace_relabel_filter(file_fixture("animated.mp4").to_s)).to be_nil
+    end
+
+    it "returns a setparams filter for an unsupported colour space" do
+      expect(described_class.colorspace_relabel_filter(file_fixture("mislabeled-ictcp.mp4").to_s)).to eq("setparams=colorspace=bt709")
+    end
+  end
+
+  # -------------------------------------------------------------------------
   # .image_from_path
   #
   # End-to-end regression: without the colour-space relabel, ffmpeg aborts

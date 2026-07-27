@@ -232,6 +232,59 @@ RSpec.describe PostVideoConversionJob do
     end
   end
 
+  describe "#generate_video" do
+    subject(:job) { job_instance }
+
+    let(:captured_args) { [] }
+
+    before do
+      post # Force eager creation before mocks so callbacks use real storage
+      allow(Open3).to receive(:capture3) do |*args|
+        captured_args.replace(args)
+        ["", "", ok_status]
+      end
+    end
+
+    def vf_argument
+      captured_args[captured_args.index("-vf") + 1]
+    end
+
+    context "when the source has a colour space swscale can't convert from" do
+      before { allow(ImageSampler).to receive(:colorspace_relabel_filter).with(post.file_path).and_return("setparams=colorspace=bt709") }
+
+      it "prepends the relabel filter to the -vf chain" do
+        file = job.generate_mp4_video(post)
+        expect(vf_argument).to start_with("setparams=colorspace=bt709,fps=")
+        file.close!
+      end
+    end
+
+    context "when the source colour space is supported" do
+      before { allow(ImageSampler).to receive(:colorspace_relabel_filter).with(post.file_path).and_return(nil) }
+
+      it "does not include a setparams filter" do
+        file = job.generate_mp4_video(post)
+        expect(vf_argument).to start_with("fps=")
+        expect(vf_argument).not_to include("setparams")
+        file.close!
+      end
+    end
+
+    # End-to-end regression with a real ffmpeg run: without the colour-space
+    # relabel, the scale filter graph fails to build on ffmpeg 8.x and the
+    # transcode aborts with "unable to transcode files".
+    context "with a video mistagged as ICtCp" do
+      before { allow(Open3).to receive(:capture3).and_call_original }
+
+      it "still transcodes successfully" do
+        allow(post).to receive(:file_path).and_return(file_fixture("mislabeled-ictcp.mp4").to_s)
+        file = job.generate_mp4_video(post, clamp: 240)
+        expect(File.size(file.path)).to be > 0
+        file.close!
+      end
+    end
+  end
+
   describe "#calculate_scale" do
     subject(:job) { job_instance }
 

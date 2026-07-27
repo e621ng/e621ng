@@ -177,18 +177,23 @@ module ImageSampler
   # Anything else makes it refuse to build the snapshot filter graph.
   SWSCALE_SUPPORTED_MATRICES = %w[unknown gbr bt709 fcc bt470bg smpte170m smpte240m bt2020nc].freeze
 
-  # Returns the `-vf` filter chain for the snapshot. Some files are mistagged
-  # with an exotic colour space (e.g. ICtCp, which cannot pair with 8-bit
-  # yuv420p) that swscale can't convert from; it then aborts with "Impossible
-  # to convert between the formats supported by the filter". Relabelling the
-  # matrix to bt709 — without touching the pixel data — lets the snapshot be
-  # generated. The colours may be slightly off, but a poster frame is produced.
-  def video_snapshot_filter(file_path)
+  # Returns a `setparams` filter that relabels the video's YCbCr matrix to bt709, or nil when no
+  # relabelling is needed. Some files are mistagged with an exotic colour space (e.g. ICtCp, which
+  # cannot pair with 8-bit yuv420p) that swscale can't convert from; it then aborts with "Impossible
+  # to convert between the formats supported by the filter". Relabelling the matrix — without
+  # touching the pixel data — lets the filter graph be built.
+  # The colours may be slightly off, but this is preferable to no snapshot at all.
+  def colorspace_relabel_filter(file_path)
     colorspace = video_colorspace(file_path)
-    return "thumbnail" if colorspace.blank? || SWSCALE_SUPPORTED_MATRICES.include?(colorspace)
+    return nil if colorspace.blank? || SWSCALE_SUPPORTED_MATRICES.include?(colorspace)
 
-    Rails.logger.warn("[ImageSampler] unsupported colour space #{colorspace.inspect} in #{file_path}, relabelling to bt709 for snapshot")
-    "setparams=colorspace=bt709,thumbnail"
+    Rails.logger.warn("[ImageSampler] unsupported colour space #{colorspace.inspect} in #{file_path}, relabelling to bt709")
+    "setparams=colorspace=bt709"
+  end
+
+  # Returns the `-vf` filter chain for the snapshot.
+  def video_snapshot_filter(file_path)
+    [colorspace_relabel_filter(file_path), "thumbnail"].compact.join(",")
   end
 
   # Returns the video stream's tagged YCbCr matrix (e.g. "bt709", "ictcp"),
