@@ -340,7 +340,7 @@ class PostReplacement < ApplicationRecord
         q = q.attribute_exact_matches(:md5, params[:md5])
 
         if params[:status].present?
-          q = params[:status].to_s == ("submitted") ? q.where.not(status: "original") : q.attribute_exact_matches(:status, params[:status])
+          q = params[:status].to_s == ("submitted") ? q.submitted : q.attribute_exact_matches(:status, params[:status])
         end
 
         q = q.where_user(:creator_id, :creator, params)
