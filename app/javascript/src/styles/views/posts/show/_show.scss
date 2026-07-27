@@ -191,6 +191,7 @@ body.c-posts.a-show-seq {
       margin-top: 0.5em;
 
       #tag-script-field {
+        box-sizing: border-box;
         width: 100%;
       }
 
@@ -200,8 +201,9 @@ body.c-posts.a-show-seq {
         margin-top: 0.5em;
 
         #tag-script-reason {
+          box-sizing: border-box;
+          flex: 1;
           min-width: 0;
-          width: 100%;
         }
       }
     }
