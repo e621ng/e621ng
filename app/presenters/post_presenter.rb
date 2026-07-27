@@ -95,18 +95,19 @@ class PostPresenter < Presenter
     else
       # original / fit videos
       output = []
+
+      original = @post.video_sample_list[:original]
+      output.push({ # Original first: don't show 1080 variant unless the device can't play it
+        codec: "video/#{@post.file_ext}" + (original.key?(:codec) ? "; codec=#{original[:codec]}" : ""),
+        url: original[:url],
+      })
+
       @post.video_sample_list[:variants].each do |ext, data|
-        output.push({
+        output.push({ # 1080p variant: for compatibility with devices that can't play VP8 / VP9
           codec: "video/#{ext}" + (data.key?(:codec) ? "; codec=#{data[:codec]}" : ""),
           url: data[:url],
         })
       end
-
-      original = @post.video_sample_list[:original]
-      output.push({
-        codec: "video/#{@post.file_ext}" + (original.key?(:codec) ? "; codec=#{original[:codec]}" : ""),
-        url: original[:url],
-      })
 
       output
     end
