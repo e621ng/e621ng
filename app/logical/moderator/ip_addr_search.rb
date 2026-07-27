@@ -54,7 +54,7 @@ module Moderator
 
       user_ids = sums.map { |_, v| v.map { |k, _| k } }.reduce([]) { |ids, id| ids + id }.uniq
       users = ::User.where(id: user_ids).map { |u| [u.id, u] }.to_h
-      {sums: sums, users: users}
+      {sums: sums, users: users, asns: AsnRange.lookup(ip_addrs.reject { |ip| ip.include?("/") })}
     end
 
     def search_by_user_name(user_names, with_history)
@@ -80,7 +80,7 @@ module Moderator
       end
 
       ip_addrs = sums.map { |_, v| v.map { |k, _| k } }.reduce([]) { |ids, id| ids + id }.uniq
-      {sums: sums, ip_addrs: ip_addrs}
+      {sums: sums, ip_addrs: ip_addrs, asns: AsnRange.lookup(ip_addrs)}
     end
 
     def add_by_user_id(target, name, ids, klass, ip_field, id_field)

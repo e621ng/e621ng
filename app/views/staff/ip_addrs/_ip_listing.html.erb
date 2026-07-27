@@ -5,6 +5,7 @@
   <thead>
     <tr>
       <th>IP Address</th>
+      <th>ASN</th>
       <th>Type</th>
       <th>Number of Occurrences</th>
     </tr>
@@ -14,6 +15,7 @@
     <% counts.each do |ip_addr, count| %>
       <tr>
         <td><%= link_to_ip ip_addr %></td>
+        <td><%= format_asn @results[:asns][ip_addr.to_s] %></td>
         <td><%= name.to_s.tr "_", " " %></td>
         <td><%= link_to_ip_search name, ip_addr, count %></td>
       </tr>

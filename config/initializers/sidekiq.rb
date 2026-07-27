@@ -43,6 +43,12 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
       "queue" => "low_prio",
       "description" => "Generate the daily public database exports",
     },
+    "AsnRangesUpdateJob" => {
+      "cron" => "0 3 2 * *", # Monthly on the 2nd at 3:00 AM
+      "class" => "AsnRangesUpdateJob",
+      "queue" => "low_prio",
+      "description" => "Refresh the IP-to-ASN dataset from iptoasn.com",
+    },
     "IqdbConcurrencyResetJob" => {
       "cron" => "0 * * * *",
       "class" => "IqdbConcurrencyResetJob",
