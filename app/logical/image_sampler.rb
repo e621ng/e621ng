@@ -135,7 +135,7 @@ module ImageSampler
   def gen_video_snapshot(file_path)
     output_file = Tempfile.new(["video-preview", ".png"], binmode: true)
     decoder_args = video_alpha_decoder_args(file_path)
-    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-y", *decoder_args, "-i", file_path, "-vf", "thumbnail", "-frames:v", "1", output_file.path)
+    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-y", *decoder_args, "-i", file_path, "-vf", video_snapshot_filter(file_path), "-frames:v", "1", output_file.path)
 
     unless status == 0
       Rails.logger.warn("[FFMPEG PREVIEW STDOUT] #{stdout.chomp!}")
@@ -171,6 +171,39 @@ module ImageSampler
     else
       []
     end
+  end
+
+  # YCbCr matrices that FFmpeg's automatic scaler (swscale) can convert from.
+  # Anything else makes it refuse to build the snapshot filter graph.
+  SWSCALE_SUPPORTED_MATRICES = %w[unknown gbr bt709 fcc bt470bg smpte170m smpte240m bt2020nc].freeze
+
+  # Returns the `-vf` filter chain for the snapshot. Some files are mistagged
+  # with an exotic colour space (e.g. ICtCp, which cannot pair with 8-bit
+  # yuv420p) that swscale can't convert from; it then aborts with "Impossible
+  # to convert between the formats supported by the filter". Relabelling the
+  # matrix to bt709 — without touching the pixel data — lets the snapshot be
+  # generated. The colours may be slightly off, but a poster frame is produced.
+  def video_snapshot_filter(file_path)
+    colorspace = video_colorspace(file_path)
+    return "thumbnail" if colorspace.blank? || SWSCALE_SUPPORTED_MATRICES.include?(colorspace)
+
+    Rails.logger.warn("[ImageSampler] unsupported colour space #{colorspace.inspect} in #{file_path}, relabelling to bt709 for snapshot")
+    "setparams=colorspace=bt709,thumbnail"
+  end
+
+  # Returns the video stream's tagged YCbCr matrix (e.g. "bt709", "ictcp"),
+  # or an empty string if it can't be determined.
+  def video_colorspace(file_path)
+    stdout, _stderr, status = Open3.capture3(
+      Danbooru.config.ffprobe_path, "-v", "error",
+      "-select_streams", "v:0",
+      "-show_entries", "stream=color_space",
+      "-of", "default=noprint_wrappers=1:nokey=1",
+      file_path
+    )
+    return "" unless status == 0
+
+    stdout.strip
   end
 
   # Calculates the dimensions of the generated image.
