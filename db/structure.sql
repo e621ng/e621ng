@@ -1763,7 +1763,8 @@ CREATE TABLE public.post_replacements2 (
     protected boolean DEFAULT false NOT NULL,
     uploader_id_on_approve integer,
     penalize_uploader_on_approve boolean,
-    sequence_number integer
+    sequence_number integer NOT NULL,
+    CONSTRAINT post_replacements2_status_original_seq0 CHECK ((((status)::text = 'original'::text) = (sequence_number = 0)))
 );
 
 
@@ -5201,6 +5202,13 @@ CREATE INDEX index_post_replacements2_on_post_id ON public.post_replacements2 US
 
 
 --
+-- Name: index_post_replacements2_on_post_id_and_sequence_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_replacements2_on_post_id_and_sequence_number ON public.post_replacements2 USING btree (post_id, sequence_number);
+
+
+--
 -- Name: index_post_sets_on_post_ids; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6160,6 +6168,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260727195335'),
 ('20260727191219'),
 ('20260727160104'),
 ('20260713192035'),
