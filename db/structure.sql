@@ -1762,7 +1762,8 @@ CREATE TABLE public.post_replacements2 (
     reason character varying NOT NULL,
     protected boolean DEFAULT false NOT NULL,
     uploader_id_on_approve integer,
-    penalize_uploader_on_approve boolean
+    penalize_uploader_on_approve boolean,
+    sequence_number integer
 );
 
 
@@ -6159,6 +6160,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260727191219'),
 ('20260727160104'),
 ('20260713192035'),
 ('20260707182943'),
