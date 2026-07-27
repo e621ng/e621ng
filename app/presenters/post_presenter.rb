@@ -89,24 +89,25 @@ class PostPresenter < Presenter
       # sample videos
       sample = @post.video_sample_list[:samples].values.last
       [{
-        codec: "video/mp4#{sample.key?(:codec) ? "; codec=#{sample[:codec]}" : ''}",
+        codec: "video/mp4#{sample.key?(:codec) ? "; codecs=#{sample[:codec]}" : ''}",
         url: sample[:url],
       }]
     else
       # original / fit videos
       output = []
+
+      original = @post.video_sample_list[:original]
+      output.push({ # Original first: don't show 1080 variant unless the device can't play it
+        codec: "video/#{@post.file_ext}" + (original.key?(:codec) ? "; codecs=#{original[:codec]}" : ""),
+        url: original[:url],
+      })
+
       @post.video_sample_list[:variants].each do |ext, data|
-        output.push({
-          codec: "video/#{ext}" + (data.key?(:codec) ? "; codec=#{data[:codec]}" : ""),
+        output.push({ # 1080p variant: for compatibility with devices that can't play VP8 / VP9
+          codec: "video/#{ext}" + (data.key?(:codec) ? "; codecs=#{data[:codec]}" : ""),
           url: data[:url],
         })
       end
-
-      original = @post.video_sample_list[:original]
-      output.push({
-        codec: "video/#{@post.file_ext}" + (original.key?(:codec) ? "; codec=#{original[:codec]}" : ""),
-        url: original[:url],
-      })
 
       output
     end
