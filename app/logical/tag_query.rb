@@ -519,6 +519,8 @@ class TagQuery
   # * `prefix`: -/~, if present
   # * `body`: the tag w/o the leading `prefix` and the trailing whitespace
   #   * `metatag`: if present, the metatag, quoted & unquoted
+  #   * `invalid`: if present, an invalid group exceeding the depth limit to prevent catastrophic
+  # backtracking; throw a `DepthExceededError`, short-circuit execution, or adjust input
   #   * `group`: if present, the group, enclosed w/ `(\s+` & `\s)`
   #     * If this is not empty, `metatag` & `tag` may contain matches from inside this group. Only
   # assume a (meta)tag on the top level was matched if this is `nil`.
@@ -538,6 +540,7 @@ class TagQuery
   (?<prefix>[-~])?
   (?<body>
     (?<metatag>(?>\w+:(?>"[^\"]+"(?=\s|\z)|#{R_FRAG_TK})))| # Match a metatag (quoted or not)
+    (?<invalid>(\(\s+){#{DEPTH_LIMIT + 1},})| # Match a ill-formed group of more than DEPTH_LIMIT group openings; prevents catastrophic backtracking
     (?<group>(?> #                Match a single group atomically by:
       (?>\(\s+) #                  1. atomically matching a `(` & at least 1 whitespace character
       (?<subquery>(?> #           Greedily find one of the following 2 options
