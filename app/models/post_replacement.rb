@@ -384,7 +384,7 @@ class PostReplacement < ApplicationRecord
           # Legacy backups can have a higher ID than the replacement it backed up.
           # sequence_number is 0 for the original backup and 1..N for replacements in creation
           # order, so this always anchors the original below its replacements.
-          q.order(sequence_number: :desc)
+          q.order(sequence_number: :desc, id: :desc)
         else
           q.default_order
         end
