@@ -36,8 +36,10 @@ class PostReplacement < ApplicationRecord
   before_create :create_original_backup
   before_create :set_previous_uploader
   after_create -> { post.update_index }
+  after_create :increment_user_replacement_count
   before_destroy :remove_files
   after_destroy -> { post.update_index }
+  after_destroy :decrement_user_replacement_count
 
   TAGS_TO_REMOVE_AFTER_ACCEPT = ["better_version_at_source"].freeze
   HIGHLIGHTED_TAGS = %w[better_version_at_source avoid_posting conditional_dnp].freeze
@@ -336,7 +338,10 @@ class PostReplacement < ApplicationRecord
 
         q = q.attribute_exact_matches(:file_ext, params[:file_ext])
         q = q.attribute_exact_matches(:md5, params[:md5])
-        q = q.attribute_exact_matches(:status, params[:status])
+
+        if params[:status].present?
+          q = params[:status].to_s == ("submitted") ? q.where.not(status: "original") : q.attribute_exact_matches(:status, params[:status])
+        end
 
         q = q.where_user(:creator_id, :creator, params)
         q = q.where_user(:approver_id, :approver, params)
@@ -401,6 +406,10 @@ class PostReplacement < ApplicationRecord
         where(creator_id: id.to_i)
       end
 
+      def submitted
+        where.not(status: "original")
+      end
+
       def for_uploader_on_approve(id)
         where(uploader_id_on_approve: id.to_i)
       end
@@ -428,6 +437,16 @@ class PostReplacement < ApplicationRecord
       self.penalize_uploader_on_approve = false
     end
     self.uploader_on_approve = User.find_by(id: uploader)
+  end
+
+  def increment_user_replacement_count
+    return if status == "original"
+    UserStatus.for_user(CurrentUser.id).update_all("post_replacement_submitted_count = post_replacement_submitted_count + 1")
+  end
+
+  def decrement_user_replacement_count
+    return if status == "original"
+    UserStatus.for_user(CurrentUser.id).update_all("post_replacement_submitted_count = post_replacement_submitted_count - 1")
   end
 
   def original_file_visible_to?(user)

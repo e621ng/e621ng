@@ -81,13 +81,19 @@
         </a>
       <% end %>
 
+      <% if user.post_replacement_submitted_count != 0 %>
+        <a href="<%= post_replacements_path(search: { creator_id: user.id, status: "submitted" }) %>" class="entry">
+          <h5><%= user.post_replacement_submitted_count %></h5>
+          <span>Image</span>
+        </a>
+      <% end %>
+
       <% if user.note_version_count != 0 %>
         <a href="<%= note_versions_path(search: { updater_id: user.id }) %>" class="entry">
           <h5><%= user.note_version_count %></h5>
           <span>Note</span>
         </a>
       <% end %>
-
     </span>
   </div>
 
