@@ -9,8 +9,11 @@ module AsnRangeImporter
   MINIMUM_ROW_COUNT = 100_000
 
   def self.import!
+    url = Danbooru.config.ip_to_asn_data_url
+    return if url.blank?
+
     options = Danbooru.config.faraday_options.deep_merge(request: { timeout: 60 })
-    response = Faraday.new(options).get(Danbooru.config.ip_to_asn_data_url)
+    response = Faraday.new(options).get(url)
     raise Error, "Failed to download ip2asn data: HTTP #{response.status}" unless response.success?
 
     rows = parse(response.body)

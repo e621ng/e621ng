@@ -50,6 +50,19 @@ RSpec.describe AsnRangeImporter do
       expect(AsnRange.pluck(:asn)).to eq([1])
     end
 
+    context "when the data URL is not configured" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive(:ip_to_asn_data_url).and_return(nil)
+      end
+
+      it "does nothing" do
+        create(:asn_range, asn: 1)
+        described_class.import!
+        expect(conn).not_to have_received(:get)
+        expect(AsnRange.pluck(:asn)).to eq([1])
+      end
+    end
+
     context "when the download fails" do
       before do
         allow(conn).to receive(:get).and_return(instance_double(Faraday::Response, body: "", status: 503, success?: false))
