@@ -25,7 +25,7 @@ module AsnRangeImporter
   # TSV columns: range_start, range_end, AS_number, country_code, AS_description.
   # AS 0 marks unrouted space and is skipped; the literal country "None" means
   # unknown and is normalized to an empty string.
-  # Returns a lazy enumerator so the ~500k rows are never all in memory at once.
+  # Returns an enumerator so the ~500k rows are never all in memory at once.
   def self.parse(gz_data)
     Enumerator.new do |yielder|
       Zlib::GzipReader.new(StringIO.new(gz_data)).each_line do |line|
