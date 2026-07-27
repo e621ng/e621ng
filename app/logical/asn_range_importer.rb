@@ -23,7 +23,8 @@ module AsnRangeImporter
   end
 
   # TSV columns: range_start, range_end, AS_number, country_code, AS_description.
-  # AS 0 marks unrouted space and is skipped.
+  # AS 0 marks unrouted space and is skipped; the literal country "None" means
+  # unknown and is normalized to an empty string.
   # Returns a lazy enumerator so the ~500k rows are never all in memory at once.
   def self.parse(gz_data)
     Enumerator.new do |yielder|
@@ -31,6 +32,7 @@ module AsnRangeImporter
         first_ip, last_ip, asn, country, name = line.chomp.split("\t", 5)
         next if asn.to_i == 0
 
+        country = "" if country == "None"
         yielder << { first_ip: first_ip, last_ip: last_ip, asn: asn.to_i, country: country, name: name }
       end
     end

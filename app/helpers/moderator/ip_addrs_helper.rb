@@ -15,8 +15,7 @@ module Moderator
       return "—" if info.nil?
 
       text = "AS#{info[:asn]} #{info[:name]}"
-      # iptoasn uses the literal string "None" for unknown countries
-      text += " (#{info[:country]})" unless info[:country].blank? || info[:country] == "None"
+      text += " (#{info[:country]})" if info[:country].present?
       text
     end
 

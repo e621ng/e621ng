@@ -31,6 +31,11 @@ RSpec.describe AsnRangeImporter do
         expect(range.country).to eq("US")
       end
 
+      it "normalizes the literal country \"None\" to an empty string" do
+        described_class.import!
+        expect(AsnRange.find_by(asn: 64_496).country).to eq("")
+      end
+
       it "skips AS0 (unrouted) rows" do
         described_class.import!
         expect(AsnRange.where(first_ip: "192.0.2.0")).not_to exist

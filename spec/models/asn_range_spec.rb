@@ -6,7 +6,7 @@ RSpec.describe AsnRange do
   describe ".lookup" do
     context "with ranges loaded" do
       before do
-        create(:asn_range, first_ip: "198.51.100.0", last_ip: "198.51.100.127", asn: 64_496, name: "EXAMPLE-NET-2", country: "None")
+        create(:asn_range, first_ip: "198.51.100.0", last_ip: "198.51.100.127", asn: 64_496, name: "EXAMPLE-NET-2", country: "")
         create(:asn_range, first_ip: "203.0.113.0", last_ip: "203.0.113.255", asn: 64_500, name: "EXAMPLE-NET-3", country: "US")
         create(:asn_range, first_ip: "2001:db8::", last_ip: "2001:db8::ffff", asn: 64_501, name: "EXAMPLE-V6", country: "FR")
       end
