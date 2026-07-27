@@ -93,5 +93,24 @@ RSpec.describe AsnRange do
       expect { described_class.replace_all!(rows) }.to raise_error(ActiveRecord::StatementInvalid)
       expect(described_class.pluck(:asn)).to eq([1])
     end
+
+    it "yields the inserted row count inside the transaction" do
+      yielded = nil
+      rows = [
+        { first_ip: "203.0.113.0", last_ip: "203.0.113.255", asn: 2, name: "A", country: "" },
+        { first_ip: "198.51.100.0", last_ip: "198.51.100.255", asn: 3, name: "B", country: "" },
+      ]
+      described_class.replace_all!(rows) { |count| yielded = count }
+      expect(yielded).to eq(2)
+    end
+
+    it "rolls back the swap when the block raises" do
+      create(:asn_range, asn: 1)
+      rows = [{ first_ip: "203.0.113.0", last_ip: "203.0.113.255", asn: 2, name: "A", country: "" }]
+      expect do
+        described_class.replace_all!(rows) { raise "dataset too small" }
+      end.to raise_error(RuntimeError, "dataset too small")
+      expect(described_class.pluck(:asn)).to eq([1])
+    end
   end
 end

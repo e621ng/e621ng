@@ -11,6 +11,12 @@ RSpec.describe AsnRangeImporter do
     allow(conn).to receive(:get).and_return(instance_double(Faraday::Response, body: body, status: 200, success?: true))
   end
 
+  describe ".parse" do
+    it "returns a lazy enumerator rather than materializing all rows" do
+      expect(described_class.parse(body)).to be_a(Enumerator)
+    end
+  end
+
   describe ".import!" do
     context "with the row count guard lowered" do
       before { stub_const("AsnRangeImporter::MINIMUM_ROW_COUNT", 3) }

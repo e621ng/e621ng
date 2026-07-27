@@ -42,11 +42,19 @@ class AsnRange < ApplicationRecord
   end
 
   # Replaces the whole dataset atomically; concurrent lookups keep seeing the
-  # old rows until the transaction commits.
+  # old rows until the transaction commits. Accepts any enumerable (including
+  # a lazy enumerator) and inserts it in slices, so the full dataset never has
+  # to be materialized. Yields the inserted row count while still inside the
+  # transaction, letting callers validate the dataset and abort by raising.
   def self.replace_all!(rows)
     transaction do
       delete_all
-      rows.each_slice(INSERT_BATCH_SIZE) { |slice| insert_all(slice) }
+      count = 0
+      rows.each_slice(INSERT_BATCH_SIZE) do |slice|
+        insert_all(slice)
+        count += slice.size
+      end
+      yield count if block_given?
     end
   end
 end
