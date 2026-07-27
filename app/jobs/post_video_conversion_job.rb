@@ -135,6 +135,8 @@ class PostVideoConversionJob < ApplicationJob
 
   def generate_video(post, format_args: [], fps_limited: false, clamp: 1080)
     vf_params = []
+    # The scale filter fails on mistagged colour spaces; relabel them first.
+    vf_params << ImageSampler.colorspace_relabel_filter(post.file_path)
     vf_params << (fps_limited ? "fps='if(gt(source_fps,30),source_fps/2,source_fps)'" : "fps=source_fps")
     vf_params << "scale=#{calculate_scale(post, clamp)}"
 
@@ -146,7 +148,7 @@ class PostVideoConversionJob < ApplicationJob
 
       "-fps_mode", "cfr", # Deal with some uploads having a variable frame rate
       *format_args,
-      "-vf", vf_params.join(","),
+      "-vf", vf_params.compact.join(","),
 
       "-threads", "4",
       "-max_muxing_queue_size", "4096",
