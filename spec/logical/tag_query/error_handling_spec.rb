@@ -117,6 +117,23 @@ RSpec.describe TagQuery, type: :model do
         expect(TagQuery.group_depth_exceeded?("boris_(noborhood) cat")).to be(false)
         expect(TagQuery.group_depth_exceeded?('source:"http://x/( ( ( ( ( ( ( ( ( ( ( (" cat')).to be(false)
       end
+
+      it "does not flag tags that merely end in '(' (e.g. emoticons)" do
+        # A `(` embedded in a tag is not a group opener, so 11+ such tags must not trip the guard.
+        expect(TagQuery.group_depth_exceeded?("#{':( ' * 11}a )")).to be(false)
+        expect(TagQuery.group_depth_exceeded?(Array.new(12) { |i| "foo#{i}(" }.join(" "))).to be(false)
+      end
+
+      it "flags prefixed group openers (-( / ~()" do
+        expect(TagQuery.group_depth_exceeded?("#{'-( ' * 11}a")).to be(true)
+      end
+    end
+
+    it "processes the emoticon query without error (not a false positive)" do
+      # ":( :( ... a )" is not deeply-nested groups; it must scan normally, not raise.
+      expect do
+        TagQuery.scan_search("#{':( ' * 11}a )", error_on_depth_exceeded: true)
+      end.not_to raise_error
     end
 
     it "raises DepthExceededError instead of hanging on the abusive query" do

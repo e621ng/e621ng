@@ -597,15 +597,27 @@ class TagQuery
     end
   end
 
-  # Cheap, linear guard against catastrophic backtracking in `REGEX_TOKENIZE`.
+  # Cheap, linear guard against catastrophic backtracking in `REGEX_TOKENIZE`, whose recursive
+  # group subpattern blows up on deeply-nested group parentheses (especially unbalanced ones like
+  # `( ( ( ( a ) )`) before `Regexp.timeout` aborts the match. The `DEPTH_LIMIT` recursion guards
+  # run too late — the blowup is inside a single regex match.
+  #
+  # Walks the string once, tracking net group nesting depth, and returns `true` once it passes
+  # `DEPTH_LIMIT` so callers can reject the query before running the regex. Only genuine group
+  # delimiters count (see `REGEX_GROUP_DELIMITER`): a `(` embedded in a tag (`:(`, `foo(`) is
+  # ignored, and quoted metatags are stripped first since the tokenizer matches those atomically.
+  # A group opener (whitespace-delimited `(`, optional `-`/`~` prefix, followed by whitespace —
+  # matching the tokenizer's `\(\s+`) or a group closer (`)` preceded by whitespace).
+  REGEX_GROUP_DELIMITER = /(?<=\s|\A)[-~]?\((?=\s)|(?<=\s)\)(?=\s|\z)/
+
   def self.group_depth_exceeded?(tag_str)
     str = tag_str.to_s
     # Reaching depth `DEPTH_LIMIT + 1` needs at least that many `(` + whitespace pairs.
     return false if str.length < (DEPTH_LIMIT + 1) * 2
     str = str.gsub(TagQuery::REGEX_ANY_QUOTED_METATAG, "") if str.include?(':"')
     depth = 0
-    str.scan(/\((?=\s)|(?<=\s)\)/) do |paren|
-      if paren == "("
+    str.scan(REGEX_GROUP_DELIMITER) do |delimiter|
+      if delimiter.end_with?("(")
         return true if (depth += 1) > DEPTH_LIMIT
       elsif depth > 0
         depth -= 1
