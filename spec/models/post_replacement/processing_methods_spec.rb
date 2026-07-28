@@ -285,6 +285,12 @@ RSpec.describe PostReplacement do
         expect(replacement.errors).to be_empty
       end
 
+      it "does not add a second original when the destination already has one" do
+        replacement.is_backup = false # so the skip is the existing-original guard, not the flag
+        expect { replacement.transfer(post_alt) }
+          .not_to(change { post_alt.replacements.where(status: "original").count })
+      end
+
       it "recomputes the sequence number for the destination, avoiding a collision" do
         # post_alt already has an original (seq 0) plus a replacement at seq 1 — the same
         # number the record carries. Without a recompute this collides on the UNIQUE
@@ -331,10 +337,28 @@ RSpec.describe PostReplacement do
     end
 
     context "when the destination has no original backup" do
-      it "invokes create_original_backup on the destination" do
-        allow(replacement).to receive(:create_original_backup)
-        replacement.transfer(post_alt)
-        expect(replacement).to have_received(:create_original_backup)
+      # Exercise the real create_original_backup; stub only the file I/O it performs
+      # (the post factory stores no real file on disk). storage_manager is rebuilt on
+      # every call, so pin one instance and route the config through it.
+      before do
+        storage = Danbooru.config.storage_manager
+        allow(Danbooru.config.custom_configuration).to receive(:storage_manager).and_return(storage)
+        allow(storage).to receive(:open).and_return(File.open(file_fixture("sample.jpg")))
+        allow(storage).to receive(:store_replacement)
+        allow(ImageSampler).to receive(:generate_replacement_images)
+        allow(FileValidator).to receive(:new).and_return(instance_double(FileValidator, validate: nil))
+        # The factory sets is_backup: true, which short-circuits create_original_backup;
+        # a real transfer runs on a record found fresh, with the flag unset.
+        replacement.is_backup = false
+      end
+
+      it "creates an original (seq 0) backup on the destination" do
+        expect { replacement.transfer(post_alt) }
+          .to change { post_alt.replacements.where(status: "original").count }.from(0).to(1)
+
+        backup = post_alt.replacements.find_by(status: "original")
+        expect(backup.sequence_number).to eq(0)
+        expect(backup.md5).to be_present
         expect(replacement.reload.post_id).to eq(post_alt.id)
       end
     end
