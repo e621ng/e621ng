@@ -55,6 +55,12 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
       "queue" => "low_prio",
       "description" => "Reset IQDB concurrent request counter to recover from worker crashes",
     },
+    "UserIpAddressPruneJob" => {
+      "cron" => "0 2 * * *", # Every day at 2:00 AM
+      "class" => "UserIpAddressPruneJob",
+      "queue" => "low_prio",
+      "description" => "Prune user IP address rows unseen for the retention period",
+    },
   }
 
   Sidekiq::Cron::Job.load_from_hash schedule

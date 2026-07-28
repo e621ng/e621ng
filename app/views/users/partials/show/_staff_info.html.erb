@@ -60,6 +60,11 @@
       <span>
         <%= link_to "Cleanup Page", staff_user_cleanup_path(user) %>
       </span>
+
+      <h4>Alt Accounts</h4>
+      <span>
+        <%= link_to "Find Alts", staff_user_alts_path(user_id: user.id) %>
+      </span>
     <% end %>
 
     <% if CurrentUser.is_admin? %>
