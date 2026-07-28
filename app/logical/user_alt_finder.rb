@@ -165,6 +165,9 @@ class UserAltFinder
     data[:exact_rows].each do |r|
       next if data[:crowded_ips].include?(r[:value])
       e = evidence(r[:value], data[:target_ips][r[:value]], r, data[:users_per_ip][r[:value]], weight_exact)
+      # The subnet this exact IP sits in, so the subnet loop below can dedupe
+      # against it (a candidate's own row always matches its containing subnet).
+      e[:subnet] = subnet_cidr_for_ip(r[:value])
       e[:asn_group] = asn_group_for(r[:value], asn_map)
       e[:asn] = asn_map[r[:value]]
       by_user[r[:user_id]][:exact] << e
@@ -173,7 +176,8 @@ class UserAltFinder
     data[:subnet_rows].each do |r|
       subnet = r[:value]
       next if data[:crowded_subnets].include?(subnet)
-      # Skip if this candidate already matched an exact IP inside the subnet.
+      # Skip if this candidate already matched an exact IP inside the subnet:
+      # that network is already counted, more strongly, as exact evidence.
       next if by_user.key?(r[:user_id]) && by_user[r[:user_id]][:exact].any? { |e| e[:subnet] == subnet }
       e = evidence(subnet, data[:target_subnets][subnet], r, data[:users_per_subnet][subnet], subnet_weight(subnet))
       e[:subnet] = subnet

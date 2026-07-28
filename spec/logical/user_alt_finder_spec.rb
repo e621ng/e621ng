@@ -62,6 +62,20 @@ RSpec.describe UserAltFinder do
       expect(candidate[:deleted]).to be(true)
     end
 
+    it "does not double-count an exact match's own subnet as subnet-only evidence" do
+      target = create(:user)
+      alt = create(:user)
+
+      # The two accounts share exactly one IP and nothing else. Its /24 is not
+      # separate evidence — the exact match already covers that network.
+      seen(target, "203.0.113.80")
+      seen(alt, "203.0.113.80")
+
+      candidate = described_class.new(target).candidates.find { |c| c[:user_id] == alt.id }
+      expect(candidate[:shared_exact]).to eq(1)
+      expect(candidate[:shared_subnet]).to eq(0)
+    end
+
     it "flags the handoff pattern" do
       target = create(:user, created_at: 90.days.ago)
       # A fresh account that took over the IP right after the target left it.
