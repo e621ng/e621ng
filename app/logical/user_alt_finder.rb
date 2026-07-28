@@ -95,12 +95,18 @@ class UserAltFinder
 
   # --- data collection (all against user_ip_addresses) ----------------------
 
+  # Every candidate-side query is scoped to the same window as the target
+  # footprint, so the ratio's numerator and denominator (and rarity) stay
+  # consistent even when unpruned stale rows exist or `window:` is narrowed.
+  def within_window
+    UserIpAddress.where(last_seen_at: @cutoff..)
+  end
+
   # { ip_string => { first:, last:, hits:, subnet: <cidr string> } }, capped to
   # the most-recently-seen rows.
   def collect_target_ips(user_id)
-    rows = UserIpAddress
+    rows = within_window
            .where(user_id: user_id)
-           .where(last_seen_at: @cutoff..)
            .order(last_seen_at: :desc)
            .limit(target_ip_cap)
            .pluck(:ip_addr, :subnet, :first_seen_at, :last_seen_at, :hit_count)
@@ -123,7 +129,7 @@ class UserAltFinder
   # (value, user_id) indexes. Keyed by canonical string.
   def distinct_user_counts(column, values)
     return {} if values.empty?
-    UserIpAddress.where(column => values)
+    within_window.where(column => values)
                  .group(column).distinct.count(:user_id)
                  .transform_keys { |k| canonical(column, k) }
   end
@@ -132,7 +138,7 @@ class UserAltFinder
   # value). Keyed by canonical string.
   def match_rows(column, values, target_id)
     return {} if values.empty?
-    rows = UserIpAddress.where(column => values).where.not(user_id: target_id)
+    rows = within_window.where(column => values).where.not(user_id: target_id)
                         .pluck(:user_id, column, :first_seen_at, :last_seen_at, :hit_count)
     result = Hash.new { |h, k| h[k] = [] }
     rows.each do |uid, value, first, last, hits|
@@ -200,7 +206,7 @@ class UserAltFinder
   # Overlap ratio + handoff check for the shortlist, then the final score.
   def finalize(shortlist, target)
     users = User.where(id: shortlist.pluck(:user_id)).index_by(&:id)
-    totals = shortlist.any? ? UserIpAddress.where(user_id: shortlist.pluck(:user_id)).group(:user_id).count : {}
+    totals = shortlist.any? ? within_window.where(user_id: shortlist.pluck(:user_id)).group(:user_id).count : {}
 
     shortlist.each do |c|
       c[:user] = users[c[:user_id]]

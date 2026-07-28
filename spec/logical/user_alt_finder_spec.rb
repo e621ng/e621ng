@@ -88,6 +88,20 @@ RSpec.describe UserAltFinder do
       expect(candidate[:shared_subnet]).to eq(0)
     end
 
+    it "measures the candidate's IP total within the same window as the target" do
+      target = create(:user)
+      alt = create(:user)
+      seen(target, "203.0.113.90")
+      seen(alt, "203.0.113.90") # recent shared IP, inside the window
+      # A stale row beyond the retention window that the prune job hasn't reached
+      # yet must not inflate the ratio denominator.
+      create(:user_ip_address, user: alt, ip_addr: "198.51.100.90",
+                               first_seen_at: 4.years.ago, last_seen_at: 3.years.ago)
+
+      candidate = described_class.new(target).candidates.find { |c| c[:user_id] == alt.id }
+      expect(candidate[:total_ips]).to eq(1)
+    end
+
     it "flags the handoff pattern" do
       target = create(:user, created_at: 90.days.ago)
       # A fresh account that took over the IP right after the target left it.
