@@ -1,0 +1,62 @@
+<div id="c-staff-user-alts">
+  <div id="a-show">
+    <h1>Alt candidates for <%= link_to_user @user %></h1>
+
+    <div class="user-alt-disclaimer notice notice-info">
+      A high score is <strong>shared-network evidence, not proof</strong>.<br />
+      Households, dorms, and shared computers produce genuine high scores for distinct people.<br />
+      A score justifies opening an investigation / escalation to an admin &ndash; it does not justify a ban by itself.
+    </div>
+
+    <% if @candidates.empty? %>
+      <p>No candidates found for this user within the retention window.</p>
+    <% else %>
+      <table class="striped">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Score</th>
+            <th>Handoff</th>
+            <th>Shared IPs</th>
+            <th>Overlap ratio</th>
+            <th>Rarity</th>
+            <th>Overlap</th>
+            <th>Last co-seen</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%= render partial: "candidate", collection: @candidates, as: :candidate %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <% if @chains.any? %>
+      <h2>Chain expansion</h2>
+      <p class="user-alt-meta">
+        Potential evasion chains.<br />
+        Each new alt shares an IP only with its immediate predecessor, so the ends have no direct edge.<br />
+        These are the strong matches of the top direct candidates.
+      </p>
+      <% @chains.each do |chain| %>
+        <h3><%= link_to_user chain[:via][:user] %> &rarr; via &rarr; <%= @user.name %> <span class="user-alt-meta">(<%= chain[:via][:score] %>)</span></h3>
+        <table class="striped">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Score</th>
+              <th>Handoff</th>
+              <th>Shared IPs</th>
+              <th>Overlap ratio</th>
+              <th>Rarity</th>
+              <th>Overlap</th>
+              <th>Last co-seen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= render partial: "candidate", collection: chain[:candidates], as: :candidate %>
+          </tbody>
+        </table>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -761,6 +761,73 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       true
     end
 
+    # Kill switch for the per-request IP tracking that feeds the alt-account
+    # finder (UserIpTracker). Turning this off stops the write path without a
+    # revert deploy; existing rows are untouched.
+    def enable_user_ip_tracking?
+      true
+    end
+
+    # Rows in user_ip_addresses unseen for this long are pruned daily. Also the
+    # window the one-time backfill imports from. The sole expiry mechanism for
+    # that table (account deletion deliberately leaves rows behind).
+    def user_ip_retention_period
+      2.years
+    end
+
+    # UserAltFinder tuning. These are informed starting values and MUST be
+    # validated/tuned against the real aggregate table before moderators rely
+    # on the scores.
+    #
+    # Exact IPs shared by more distinct users than this are dropped as
+    # institutional/CGNAT noise before joining; likewise subnets past
+    # alt_finder_max_users_per_subnet.
+    def alt_finder_max_users_per_ip
+      50
+    end
+
+    def alt_finder_max_users_per_subnet
+      200
+    end
+
+    # Relative weight of each kind of shared value. An IPv6 /64 is delegated
+    # per-customer (near-exact signal); an IPv4 /24 is a whole ISP neighborhood
+    # (should only ever nudge a score).
+    def alt_finder_weight_exact
+      1.0
+    end
+
+    def alt_finder_weight_subnet_v6
+      0.8
+    end
+
+    def alt_finder_weight_subnet_v4
+      0.2
+    end
+
+    # Half-life (in days) of the proximity decay applied to the gap between the
+    # two users' usage windows on a shared value. Concurrent use scores full.
+    def alt_finder_proximity_half_life_days
+      120
+    end
+
+    # Raw score that maps to a displayed 100 (values above saturate at 100).
+    # Mirrors the validated prototype (script/alt_finder_prototype.rb): a lone
+    # handoff bonus of 1.5 lands ~75, strong real alts ~82-85.
+    def alt_finder_score_saturation
+      2.0
+    end
+
+    # Cap on how many of the target's most-recently-seen IPs are considered,
+    # and how many candidates advance to the (per-candidate) shortlist pass.
+    def alt_finder_target_ip_cap
+      500
+    end
+
+    def alt_finder_candidate_cap
+      50
+    end
+
     def iqdb_server
     end
 

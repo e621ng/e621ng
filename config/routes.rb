@@ -86,6 +86,7 @@ Rails.application.routes.draw do
     # Previously under /moderator/
     resource :moderator_dashboard, only: %i[show], controller: "moderator_dashboards"
     resource :post_diff, only: %i[show]
+    resource :user_alts, only: %i[show]
     resources :ip_addrs, only: %i[index] do
       collection do
         get :export

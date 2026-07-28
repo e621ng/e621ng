@@ -2821,6 +2821,44 @@ ALTER SEQUENCE public.user_feedback_id_seq OWNED BY public.user_feedback.id;
 
 
 --
+-- Name: user_ip_addresses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_ip_addresses (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    ip_addr inet NOT NULL,
+    subnet inet GENERATED ALWAYS AS (
+CASE
+    WHEN (family(ip_addr) = 4) THEN network(set_masklen(ip_addr, 24))
+    ELSE network(set_masklen(ip_addr, 64))
+END) STORED NOT NULL,
+    first_seen_at timestamp(6) without time zone NOT NULL,
+    last_seen_at timestamp(6) without time zone NOT NULL,
+    hit_count integer DEFAULT 1 NOT NULL
+);
+
+
+--
+-- Name: user_ip_addresses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_ip_addresses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_ip_addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_ip_addresses_id_seq OWNED BY public.user_ip_addresses.id;
+
+
+--
 -- Name: user_name_change_requests; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3593,6 +3631,13 @@ ALTER TABLE ONLY public.user_feedback ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: user_ip_addresses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_addresses ALTER COLUMN id SET DEFAULT nextval('public.user_ip_addresses_id_seq'::regclass);
+
+
+--
 -- Name: user_name_change_requests id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4234,6 +4279,14 @@ ALTER TABLE ONLY public.uploads
 
 ALTER TABLE ONLY public.user_feedback
     ADD CONSTRAINT user_feedback_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_ip_addresses user_ip_addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_addresses
+    ADD CONSTRAINT user_ip_addresses_pkey PRIMARY KEY (id);
 
 
 --
@@ -5700,6 +5753,41 @@ CREATE INDEX index_user_feedback_on_user_id ON public.user_feedback USING btree 
 
 
 --
+-- Name: index_user_ip_addresses_on_ip_addr_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_ip_addresses_on_ip_addr_and_user_id ON public.user_ip_addresses USING btree (ip_addr, user_id);
+
+
+--
+-- Name: index_user_ip_addresses_on_last_seen_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_ip_addresses_on_last_seen_at ON public.user_ip_addresses USING btree (last_seen_at);
+
+
+--
+-- Name: index_user_ip_addresses_on_subnet_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_ip_addresses_on_subnet_and_user_id ON public.user_ip_addresses USING btree (subnet, user_id);
+
+
+--
+-- Name: index_user_ip_addresses_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_ip_addresses_on_user_id ON public.user_ip_addresses USING btree (user_id);
+
+
+--
+-- Name: index_user_ip_addresses_on_user_id_and_ip_addr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_ip_addresses_on_user_id_and_ip_addr ON public.user_ip_addresses USING btree (user_id, ip_addr);
+
+
+--
 -- Name: index_user_lower_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5994,6 +6082,14 @@ ALTER TABLE ONLY public.appeals
 
 
 --
+-- Name: user_ip_addresses fk_rails_5ea8388355; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_addresses
+    ADD CONSTRAINT fk_rails_5ea8388355 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: oauth_access_tokens fk_rails_732cb83ab7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6168,6 +6264,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260728160704'),
 ('20260727195335'),
 ('20260727191219'),
 ('20260727160104'),

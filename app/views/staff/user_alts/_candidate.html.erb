@@ -1,0 +1,25 @@
+<tr class="<%= "user-deleted" if candidate[:deleted] %>">
+  <td>
+    <%= link_to_user candidate[:user] %>
+    <span class="user-alt-meta">(<%= candidate[:user].level_string %>, joined <%= compact_date candidate[:user].created_at %>)</span>
+    <% if candidate[:deleted] %><span class="text-red text-bold">[DELETED]</span><% end %>
+  </td>
+  <td class="user-alt-score"><%= candidate[:score] %></td>
+  <td>
+    <% if candidate[:handoff] %>
+      <span class="text-red text-bold" title="A fresh account took over a shared IP within days of the other's last use there.">
+        yes
+      </span>
+    <% end %>
+  </td>
+  <td><%= candidate[:shared_exact] %> exact, <%= candidate[:shared_subnet] %> subnet-only</td>
+  <td>shares <%= candidate[:shared_exact] %> of their <%= candidate[:total_ips] %></td>
+  <td>least-shared: <%= candidate[:rarest_users] %> users</td>
+  <td>
+    <% if candidate[:overlap_first] && candidate[:overlap_last] %>
+      <%= compact_date candidate[:overlap_first] %> &ndash; <%= compact_date candidate[:overlap_last] %>
+    <% end %>
+    <%= candidate[:concurrent] ? "concurrent" : "sequential" %>
+  </td>
+  <td><%= time_ago_in_words_tagged candidate[:last_co_seen], compact: true %></td>
+</tr>
