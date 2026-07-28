@@ -2,6 +2,11 @@
 
 class PostReplacement < ApplicationRecord
   self.table_name = "post_replacements2"
+
+  # Raised inside #transfer when ensuring the destination's original backup fails, so the
+  # transfer transaction rolls back and the controller reports the failure instead of 500ing.
+  class TransferError < StandardError; end
+
   belongs_to :post
   belongs_to :creator, class_name: "User"
   belongs_to :approver, class_name: "User", optional: true
@@ -287,6 +292,79 @@ class PostReplacement < ApplicationRecord
       update_attribute(:approver_id, CurrentUser.user.id)
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index
+    end
+
+    # Moves this replacement to another post, preserving its status (a rejected replacement
+    # stays rejected). Only pending/rejected replacements move; the destination must be a
+    # different, non-deleted post that doesn't already hold this file.
+    def transfer(new_post)
+      unless is_pending? || is_rejected?
+        errors.add(:status, "must be pending or rejected to transfer")
+        return
+      end
+      if new_post.nil? || new_post.id == post_id
+        errors.add(:post, "must be a different post")
+        return
+      end
+      if new_post.is_deleted?
+        errors.add(:post, "is deleted")
+        return
+      end
+      if new_post.md5 == md5
+        errors.add(:md5, "identical to the destination post's current file")
+        return
+      end
+      if new_post.replacements.where(md5: md5).exists?
+        errors.add(:md5, "duplicate of existing replacement on post ##{new_post.id}")
+        return
+      end
+
+      source_post = post
+
+      transaction do
+        # Reassign the post AND recompute the sequence number in one write: the record's
+        # number is unique-per-old-post and would collide on the destination.
+        update_columns(
+          post_id: new_post.id,
+          sequence_number: self.class.calculate_sequence_number(new_post.id),
+          uploader_id_on_approve: nil,
+        )
+        reload # so `post` and the callbacks below resolve to the destination
+        set_previous_uploader
+        update_columns(
+          uploader_id_on_approve: uploader_on_approve&.id,
+          penalize_uploader_on_approve: penalize_uploader_on_approve,
+        )
+
+        ensure_destination_backup! # raises TransferError on failure -> rolls back
+
+        PostEvent.add(new_post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: source_post.id, new_post: new_post.id })
+        PostEvent.add(source_post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: source_post.id, new_post: new_post.id })
+      end
+
+      # OpenSearch, not the DB — run after the transaction commits, like promote!.
+      source_post.update_index
+      new_post.update_index
+    rescue ActiveRecord::RecordNotUnique
+      errors.add(:base, "Another replacement was transferred to that post at the same time; please retry") if errors.none?
+    rescue TransferError => e
+      errors.add(:base, e.message) if errors.none?
+    end
+
+    # Imperative wrapper around create_original_backup for #transfer. That callback signals
+    # failure two ways that are hostile outside a before_create chain -- `throw :abort` (which
+    # would escape as UncaughtThrowError) and a raised ProcessingError -- so translate both
+    # into a TransferError that rolls the transfer transaction back.
+    def ensure_destination_backup!
+      outcome = catch(:abort) do
+        create_original_backup # no-op if the destination already has an `original`
+        :ok
+      end
+      return if outcome == :ok && errors.none?
+
+      raise TransferError, errors.full_messages.to_sentence.presence || "Failed to create backup on the destination post"
+    rescue ProcessingError => e
+      raise TransferError, "Failed to create backup on the destination post: #{e.message}"
     end
 
     def create_original_backup

@@ -391,6 +391,69 @@ RSpec.describe PostReplacementsController do
   end
 
   # ---------------------------------------------------------------------------
+  # PUT /post_replacements/:id/transfer — transfer
+  # ---------------------------------------------------------------------------
+
+  describe "PUT /post_replacements/:id/transfer" do
+    let(:destination) { create(:post) }
+
+    # Seed the destination with an original so the transfer's backup step is a no-op.
+    before { create(:original_post_replacement, post: destination) }
+
+    it "redirects anonymous to the login page" do
+      put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for a regular member" do
+      sign_in_as member
+      put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    context "as an approver" do
+      before { sign_in_as approver }
+
+      it "transfers the replacement and returns the card fragment" do
+        put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("id=\"replacement-#{replacement.id}\"")
+        expect(replacement.reload.post_id).to eq(destination.id)
+      end
+
+      it "returns 412 when the replacement is not pending or rejected" do
+        replacement.update_columns(status: "approved")
+        put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+        expect(response).to have_http_status(:precondition_failed)
+        expect(replacement.reload.post_id).to eq(post_record.id)
+      end
+
+      it "returns 412 when the destination is the same post" do
+        put transfer_post_replacement_path(replacement), params: { new_post_id: post_record.id }
+        expect(response).to have_http_status(:precondition_failed)
+      end
+
+      it "returns 412 when the destination is deleted" do
+        destination.update_columns(is_deleted: true)
+        put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+        expect(response).to have_http_status(:precondition_failed)
+        expect(replacement.reload.post_id).to eq(post_record.id)
+      end
+
+      it "returns 412 when the replacement is identical to the destination's current file" do
+        replacement.update_columns(md5: destination.md5)
+        put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+        expect(response).to have_http_status(:precondition_failed)
+      end
+
+      it "returns 404 when the destination post does not exist" do
+        put transfer_post_replacement_path(replacement), params: { new_post_id: 0 }
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # HTML fragment responses — the AJAX swap contract
   # The mutating actions re-render the replacement card; the client swaps it in
   # keyed on #replacement-<id>. The fragment must keep that root id.

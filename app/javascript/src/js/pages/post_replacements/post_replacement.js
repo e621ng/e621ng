@@ -42,6 +42,12 @@ PostReplacement.initialize_all = function () {
     e.preventDefault();
     PostReplacement.destroy($target.data("replacement-id"));
   });
+
+  $root.on("click", ".replacement-transfer-action", (e) => {
+    const $target = $(e.currentTarget);
+    e.preventDefault();
+    PostReplacement.transfer($target.data("replacement-id"));
+  });
 };
 
 PostReplacement.approve = function (id, penalize_current_uploader) {
@@ -142,6 +148,40 @@ PostReplacement.destroy = function (id) {
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to destroy the replacement.";
+      E621.Toast.alert(msg);
+      revert_processing($row);
+    });
+};
+
+PostReplacement.transfer = function (id) {
+  const $row = $(`#replacement-${id}`);
+  const raw = prompt("Enter the destination post ID to transfer this replacement to:");
+  if (raw === null) return; // cancelled — no toast
+  const newPostId = raw.trim();
+  if (!newPostId || isNaN(Number(newPostId))) {
+    E621.Toast.alert("Please enter a valid post ID.");
+    return;
+  }
+  if (!confirm(`Transfer this replacement to post #${newPostId}?`)) return;
+
+  make_processing($row);
+  $.ajax({
+    type: "PUT",
+    url: `/post_replacements/${id}/transfer`,
+    data: { new_post_id: newPostId, timeline: $row.hasClass("has-timeline") },
+    dataType: "html",
+  })
+    .done((html) => {
+      // E621.Toast renders HTML, so link straight to the destination post.
+      E621.Toast.notice(`Replacement transferred to <a href="/posts/${newPostId}">post #${newPostId}</a>.`);
+      if ($row.hasClass("has-timeline")) {
+        $row.remove(); // it left this post's timeline — drop it, like destroy
+      } else {
+        replace_row($row, html); // global list — re-render in place with the new post link
+      }
+    })
+    .fail((data) => {
+      const msg = data.responseText?.trim() || "Failed to transfer the replacement.";
       E621.Toast.alert(msg);
       revert_processing($row);
     });
