@@ -320,8 +320,10 @@ class UserAltFinder
     IPAddr.new(subnet_cidr).ipv4? ? weight_subnet_v4 : weight_subnet_v6
   end
 
+  # Soft-deleted accounts are renamed by UserDeletion#calculate_final_name to
+  # "user_{id}", or "user_{id}_{n}" when that base name collides.
   def deleted?(user)
-    user&.name&.match?(/\Auser_#{user.id}~*\z/)
+    user&.name&.match?(/\Auser_#{user.id}(_\d+)?\z/)
   end
 
   # --- config accessors -----------------------------------------------------

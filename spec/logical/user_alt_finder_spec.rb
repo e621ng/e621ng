@@ -62,6 +62,18 @@ RSpec.describe UserAltFinder do
       expect(candidate[:deleted]).to be(true)
     end
 
+    it "flags collision-renamed deleted accounts (user_{id}_{n})" do
+      target = create(:user)
+      alt = create(:user)
+      alt.update_columns(name: "user_#{alt.id}_1")
+
+      seen(target, "203.0.113.65")
+      seen(alt, "203.0.113.65")
+
+      candidate = described_class.new(target).candidates.find { |c| c[:user_id] == alt.id }
+      expect(candidate[:deleted]).to be(true)
+    end
+
     it "does not double-count an exact match's own subnet as subnet-only evidence" do
       target = create(:user)
       alt = create(:user)
