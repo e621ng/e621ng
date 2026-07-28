@@ -2,6 +2,8 @@
   id="replacement-<%= replacement.id %>"
   class="replacement-card is-<%= status_variant %><%= " is-expanded" if @expanded %><%= " has-timeline" if @timeline %>"
   data-replacement-id="<%= replacement.id %>"
+  role="group"
+  aria-labelledby="replacement-<%= replacement.id %>-title"
 >
   <% if @timeline %><span class="replacement-dot<%= " is-current" if replacement.is_current? %>" aria-hidden="true"></span><% end %>
 
@@ -10,7 +12,7 @@
   <div class="replacement-card-header">
 
     <div class="replacement-card-heading">
-      <div class="replacement-card-title">
+      <div class="replacement-card-title" id="replacement-<%= replacement.id %>-title">
         <span class="replacement-status-link">
           <%= link_to(replacement.post_id, post_path(replacement.post_id), class: "replacement-version") %>:<%= replacement.sequence_number %>
         </span>
@@ -39,12 +41,18 @@
       </div>
     </div>
 
-    <button type="button" class="replacement-card-toggle" aria-label="Toggle details">
-      <%= svg_icon(:chevron_down, class: "replacement-chevron") %>
+    <button
+      type="button"
+      class="replacement-card-toggle"
+      aria-label="Toggle details"
+      aria-expanded="<%= @expanded ? "true" : "false" %>"
+      aria-controls="replacement-<%= replacement.id %>-body"
+    >
+      <span aria-hidden="true"><%= svg_icon(:chevron_down, class: "replacement-chevron") %></span>
     </button>
   </div>
 
-  <div class="replacement-card-body">
+  <div class="replacement-card-body" id="replacement-<%= replacement.id %>-body">
     <div class="replacement-fields">
       <div class="replacement-field">
         <div class="replacement-field-label">Image info</div>

@@ -55,4 +55,36 @@ RSpec.describe PostReplacementCardComponent, type: :component do
       expect(doc.at_css(".replacement-card.is-expanded")).to be_present
     end
   end
+
+  describe "accessibility (disclosure pattern)" do
+    it "labels the card group by its title" do
+      doc = render_card(replacement)
+      card = doc.at_css(".replacement-card")
+      title_id = "replacement-#{replacement.id}-title"
+      expect(card["role"]).to eq("group")
+      expect(card["aria-labelledby"]).to eq(title_id)
+      expect(doc.at_css("##{title_id}.replacement-card-title")).to be_present
+    end
+
+    it "wires the toggle button to the body via aria-controls" do
+      doc = render_card(replacement)
+      body_id = "replacement-#{replacement.id}-body"
+      toggle = doc.at_css(".replacement-card-toggle")
+      expect(toggle["aria-controls"]).to eq(body_id)
+      expect(doc.at_css("##{body_id}.replacement-card-body")).to be_present
+    end
+
+    it "reflects the expanded state in aria-expanded" do
+      open_doc = render_card(create(:pending_post_replacement, post: post_record))
+      expect(open_doc.at_css(".replacement-card-toggle")["aria-expanded"]).to eq("true")
+
+      closed_doc = render_card(create(:approved_post_replacement, post: post_record))
+      expect(closed_doc.at_css(".replacement-card-toggle")["aria-expanded"]).to eq("false")
+    end
+
+    it "hides the decorative chevron from assistive tech" do
+      doc = render_card(replacement)
+      expect(doc.at_css(".replacement-card-toggle [aria-hidden='true'] svg.replacement-chevron")).to be_present
+    end
+  end
 end

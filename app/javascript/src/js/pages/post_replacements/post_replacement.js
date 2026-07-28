@@ -6,7 +6,9 @@ PostReplacement.initialize_all = function () {
   // Expand / collapse a card by clicking its header (but let links navigate).
   $root.on("click", ".replacement-card-header", (e) => {
     if ($(e.target).closest("a").length) return;
-    $(e.currentTarget).closest(".replacement-card").toggleClass("is-expanded");
+    const $card = $(e.currentTarget).closest(".replacement-card");
+    const expanded = $card.toggleClass("is-expanded").hasClass("is-expanded");
+    $card.find(".replacement-card-toggle").attr("aria-expanded", String(expanded));
   });
 
   // Actions are delegated from the container so they survive the replaceWith
@@ -151,6 +153,7 @@ function replace_row ($row, html) {
   const wasExpanded = $row.hasClass("is-expanded");
   const $new = $(html);
   if (wasExpanded) $new.addClass("is-expanded");
+  $new.find(".replacement-card-toggle").attr("aria-expanded", String($new.hasClass("is-expanded")));
   $row.replaceWith($new);
 }
 
