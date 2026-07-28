@@ -7,6 +7,7 @@ class ModAction < ApplicationRecord
 
   KnownActions = {
     admin_user_delete: { user_id: :integer },
+    artist_delete: { artist_id: :integer, artist_name: :string },
     artist_page_rename: { old_name: :string, new_name: :string },
     artist_page_lock: { artist_page: :string },
     artist_page_unlock: { artist_page: :string },
