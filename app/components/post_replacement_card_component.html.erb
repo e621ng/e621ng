@@ -1,0 +1,147 @@
+<div
+  id="replacement-<%= replacement.id %>"
+  class="replacement-card is-<%= status_variant %><%= " is-expanded" if @expanded %><%= " has-timeline" if @timeline %>"
+  data-replacement-id="<%= replacement.id %>"
+>
+  <% if @timeline %><span class="replacement-dot<%= " is-current" if replacement.is_current? %>" aria-hidden="true"></span><% end %>
+
+  <div class="replacement-card-thumb"><%= replacement_thumbnail(replacement) %></div>
+
+  <div class="replacement-card-header">
+
+    <div class="replacement-card-heading">
+      <div class="replacement-card-title">
+        <span class="replacement-status-link">
+          <%= link_to(replacement.post_id, post_path(replacement.post_id), class: "replacement-version") %>:<%= replacement.sequence_number %>
+        </span>
+        <span class="replacement-status-label">
+          <% highlighted_tags.each do |tag| %>
+            <%= svg_icon(status_tag_icon(tag), title: tag, height: 13.5, width: 13.5, class: "inline-icons") if status_tag_icon(tag) %>
+          <% end %>
+          <span class="replacement-status"><%= replacement.status %></span>
+          <% if replacement.is_current? %>
+            <span class="replacement-annotation">(current)</span>
+          <% elsif replacement.is_approved? %>
+            <span class="replacement-annotation">(retired)</span>
+          <% elsif replacement.is_promoted? && replacement.promoted_id.present? %>
+            <span class="replacement-annotation">(#<%= link_to(replacement.promoted_id.to_s, post_path(replacement.promoted_id)) %>)</span>
+          <% end %>
+        </span>
+      </div>
+
+      <div class="replacement-card-meta">
+        <%= helpers.link_to_user(replacement.creator) %><% if replacement.uploader_linked_artists.any? %> <%= svg_icon(:chexagon, class: "chexagon", title: "The uploader is linked to one of the artist tags") %><% end %>
+        <span class="replacement-meta-sep">·</span><%= helpers.compact_time(replacement.created_at) %>
+        <% if replacement.approver.present? %>
+          <span class="replacement-meta-sep">·</span>
+          <span class="replacement-meta-handled">handled by <%= helpers.link_to_user(replacement.approver) %></span>
+        <% end %>
+      </div>
+    </div>
+
+    <button type="button" class="replacement-card-toggle" aria-label="Toggle details">
+      <%= svg_icon(:chevron_down, class: "replacement-chevron") %>
+    </button>
+  </div>
+
+  <div class="replacement-card-body">
+    <div class="replacement-fields">
+      <div class="replacement-field">
+        <div class="replacement-field-label">Image info</div>
+        <div class="replacement-field-value">
+          <%= svg_icon(:circle_check_small, title: "This is the current version", height: 13.5, width: 13.5, class: "inline-icons") if replacement.is_current? %>
+          <% if replacement.is_pending? %>New: <% end %><%= replacement.image_width %>x<%= replacement.image_height %> <%= replacement.file_ext %> (<%= replacement.file_size.to_fs(:human_size, precision: 5) %><% if replacement.is_video? %>, <%= post.duration %>s<% end %>)
+          <% if replacement.is_pending? %>
+            <br>Old: <%= post.image_width %>x<%= post.image_height %> <%= post.file_ext %> (<%= post.file_size.to_fs(:human_size, precision: 5) %><% if post.is_video? %>, <%= post.duration %>s<% end %>)
+          <% end %>
+        </div>
+      </div>
+
+      <div class="replacement-field">
+        <div class="replacement-field-label">File name</div>
+        <div class="replacement-field-value"><%= truncate replacement.file_name, length: 64 %></div>
+      </div>
+
+      <% if replacement.md5.present? %>
+        <div class="replacement-field">
+          <div class="replacement-field-label">MD5</div>
+          <div class="replacement-field-value is-mono"><%= replacement.md5 %></div>
+        </div>
+      <% end %>
+
+      <div class="replacement-field">
+        <div class="replacement-field-label"><%= created_at_label %></div>
+        <div class="replacement-field-value"><%= helpers.compact_time replacement.created_at %></div>
+      </div>
+
+      <% if show_status_changed_at? %>
+        <div class="replacement-field">
+          <div class="replacement-field-label">Status changed at</div>
+          <div class="replacement-field-value"><%= helpers.compact_time replacement.updated_at %></div>
+        </div>
+      <% end %>
+
+      <% if show_previous_uploader? %>
+        <div class="replacement-field">
+          <div class="replacement-field-label">Previous uploader</div>
+          <div class="replacement-field-value">
+            <%= helpers.link_to_user replacement.uploader_on_approve %>
+            <% if show_penalize_toggle? %>
+              | penalized: <span class="penalized-status"><%= replacement.penalize_uploader_on_approve ? "yes" : "no" %></span>
+              <%= link_to "toggle", "#toggle", class: "replacement-toggle-penalize-action", data: { replacement_id: replacement.id } %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="replacement-field replacement-field-full-width">
+        <div class="replacement-field-label">Reason</div>
+        <div class="replacement-field-value replacement-reason"><%= replacement.reason.presence || "None provided" %></div>
+      </div>
+
+      <div class="replacement-field replacement-field-full-width">
+        <div class="replacement-field-label">Sources</div>
+        <div class="replacement-field-value">
+          <% if sources.any? %>
+            <div class="replacement-sources">
+              <% sources.each do |source| %>
+                <div class="source-link"><%= helpers.post_source_tag(source) %></div>
+              <% end %>
+            </div>
+          <% else %>
+            <em>None provided</em>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="replacement-card-actions">
+      <% if show_staff_actions? %>
+        <div class="pending-links">
+          <% if show_approve? %>
+            <%= link_to "Approve", "#approve", class: "replacement-approve-action st-button success", data: { replacement_id: replacement.id, penalize: approve_penalizes? } %>
+          <% end %>
+          <% if show_reject? %>
+            <%= link_to "Reject", "#reject", class: "replacement-reject-action st-button danger", data: { replacement_id: replacement.id } %>
+          <% end %>
+        </div>
+        <% if show_promote? %>
+          <%= link_to "As New Post", "#promote", class: "replacement-promote-action st-button", data: { replacement_id: replacement.id } %>
+        <% end %>
+        <% if show_reset_to? %>
+          <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action st-button", data: { replacement_id: replacement.id, penalize: false } %>
+        <% end %>
+      <% end %>
+
+      <% if show_admin_actions? %>
+        <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action st-button danger", data: { replacement_id: replacement.id } %>
+      <% end %>
+
+      <span class="replacement-action-spacer"></span>
+      <% if show_compare? %>
+        <%= link_to "Compare", staff_post_diff_path(post_a: replacement.post_id, post_b: replacement.md5), class: "st-button" %>
+      <% end %>
+      <%= link_to("⚑ Report", new_ticket_path(disp_id: replacement.id, qtype: "replacement"), class: "replacement-report-action st-button") %>
+    </div>
+  </div>
+</div>

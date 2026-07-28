@@ -76,7 +76,7 @@ class PostReplacementsController < ApplicationController
     end
 
     respond_with(@post_replacement) do |format|
-      format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
+      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: true)) }
       format.json
     end
   end
@@ -86,7 +86,7 @@ class PostReplacementsController < ApplicationController
     @post_replacement.toggle_penalize!
 
     respond_with(@post_replacement) do |format|
-      format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
+      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: true)) }
       format.json
     end
   end
@@ -96,7 +96,7 @@ class PostReplacementsController < ApplicationController
     @post_replacement.reject!
 
     respond_with(@post_replacement) do |format|
-      format.html { render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement) }
+      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: true)) }
       format.json
     end
   end
@@ -126,7 +126,7 @@ class PostReplacementsController < ApplicationController
         if @post_replacement.errors.any? || @upload.errors.any?
           head 422
         else
-          render_partial_safely("post_replacements/partials/show/post_replacement", post_replacement: @post_replacement)
+          render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: true))
         end
       end
 

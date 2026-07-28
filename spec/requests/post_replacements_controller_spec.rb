@@ -367,6 +367,31 @@ RSpec.describe PostReplacementsController do
   end
 
   # ---------------------------------------------------------------------------
+  # HTML fragment responses — the AJAX swap contract
+  # The mutating actions re-render the replacement card; the client swaps it in
+  # keyed on #replacement-<id>. The fragment must keep that root id.
+  # ---------------------------------------------------------------------------
+
+  describe "HTML card fragment (swap contract)" do
+    it "reject returns a card fragment rooted at #replacement-<id>" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("id=\"replacement-#{replacement.id}\"")
+      expect(response.body).to include("replacement-card")
+    end
+
+    it "approve returns a card fragment rooted at #replacement-<id>" do
+      allow(PostReplacement).to receive(:find).and_return(replacement)
+      allow(replacement).to receive(:approve!)
+      sign_in_as approver
+      put approve_post_replacement_path(replacement)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("id=\"replacement-#{replacement.id}\"")
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Replacement lockdown behaviour — cross-cutting
   # ---------------------------------------------------------------------------
 

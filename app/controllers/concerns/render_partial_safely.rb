@@ -8,11 +8,21 @@ module RenderPartialSafely
   def render_partial_safely(path, locals = {})
     render partial: path, locals: locals
   rescue StandardError => e
-    logger.error("Partial render failed: #{e.class} - #{e.message}")
-    logger.error(e.backtrace.join("\n")) if Rails.env.development?
+    render_safe_failure(e)
+  end
+
+  def render_component_safely(component)
+    render(component)
+  rescue StandardError => e
+    render_safe_failure(e)
+  end
+
+  def render_safe_failure(error)
+    logger.error("Partial render failed: #{error.class} - #{error.message}")
+    logger.error(error.backtrace.join("\n")) if Rails.env.development?
 
     message = if request.local? || CurrentUser.user&.is_staff?
-                "#{e.class}: #{e.message}"
+                "#{error.class}: #{error.message}"
               else
                 "An unexpected error occurred while updating the page."
               end

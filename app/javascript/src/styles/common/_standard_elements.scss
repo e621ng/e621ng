@@ -117,6 +117,12 @@
     background: palette("background-red-d5")
   }
 }
+.st-button.success {
+  background: palette("background-green");
+  &:hover, &:active {
+    background: palette("background-green-d5")
+  }
+}
 .st-button.submit {
   background: themed("color-tag-artist");
   color: palette("plain-black");

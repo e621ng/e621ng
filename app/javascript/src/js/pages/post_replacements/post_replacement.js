@@ -1,35 +1,44 @@
 let PostReplacement = {};
 
 PostReplacement.initialize_all = function () {
-  $(".replacement-approve-action").on("click", (e) => {
-    const $target = $(e.target);
+  const $root = $("#c-post-replacements");
+
+  // Expand / collapse a card by clicking its header (but let links navigate).
+  $root.on("click", ".replacement-card-header", (e) => {
+    if ($(e.target).closest("a").length) return;
+    $(e.currentTarget).closest(".replacement-card").toggleClass("is-expanded");
+  });
+
+  // Actions are delegated from the container so they survive the replaceWith
+  // swaps below (freshly rendered cards are bound without re-initializing).
+  $root.on("click", ".replacement-approve-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
     PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"));
   });
 
-  $(".replacement-reject-action").on("click", (e) => {
-    const $target = $(e.target);
+  $root.on("click", ".replacement-reject-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
     PostReplacement.reject($target.data("replacement-id"));
   });
 
-  $(".replacement-promote-action").on("click", (e) => {
-    const $target = $(e.target);
+  $root.on("click", ".replacement-promote-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
     PostReplacement.promote($target.data("replacement-id"));
   });
 
-  $(".replacement-toggle-penalize-action").on("click", (e) => {
-    const $target = $(e.target);
+  $root.on("click", ".replacement-toggle-penalize-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
     PostReplacement.toggle_penalize($target);
   });
 
-  $(".replacement-destroy-action").on("click", (e) => {
-    const $target = $(e.target);
-    const id = $target.data("replacement-id");
+  $root.on("click", ".replacement-destroy-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
-    PostReplacement.destroy(id);
+    PostReplacement.destroy($target.data("replacement-id"));
   });
 };
 
@@ -44,7 +53,7 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
   })
     .done((html) => {
       E621.Toast.notice("Replacement approved.");
-      $row.replaceWith(html);
+      replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to approve the replacement.";
@@ -64,7 +73,7 @@ PostReplacement.reject = function (id) {
   })
     .done((html) => {
       E621.Toast.notice("Replacement rejected.");
-      $row.replaceWith(html);
+      replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to reject the replacement.";
@@ -84,7 +93,7 @@ PostReplacement.promote = function (id) {
   })
     .done((html) => {
       E621.Toast.notice("Replacement promoted to a new post.");
-      $row.replaceWith(html);
+      replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to promote the replacement.";
@@ -95,6 +104,7 @@ PostReplacement.promote = function (id) {
 
 PostReplacement.toggle_penalize = function ($target) {
   const id = $target.data("replacement-id");
+  const $row = $(`#replacement-${id}`);
   $target.addClass("disabled-link");
   $.ajax({
     type: "PUT",
@@ -103,7 +113,7 @@ PostReplacement.toggle_penalize = function ($target) {
   })
     .done((html) => {
       E621.Toast.notice("Penalization toggled.");
-      $(`#replacement-${id}`).replaceWith(html);
+      replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to toggle penalization.";
@@ -132,17 +142,25 @@ PostReplacement.destroy = function (id) {
     });
 };
 
+// Swap a card for its freshly rendered version, preserving whether the user had
+// it expanded (the server defaults to expanded only for pending replacements).
+function replace_row ($row, html) {
+  const wasExpanded = $row.hasClass("is-expanded");
+  const $new = $(html);
+  if (wasExpanded) $new.addClass("is-expanded");
+  $row.replaceWith($new);
+}
 
 function make_processing ($row) {
-  $row.removeClass("replacement-pending-row").addClass("replacement-processing-row");
+  $row.removeClass("is-pending").addClass("is-processing");
   $row.find(".replacement-status").text("processing");
-  $row.find(".pending-links a").addClass("disabled-link");
+  $row.find(".replacement-card-actions a").addClass("disabled-link");
 }
 
 function revert_processing ($row) {
-  $row.removeClass("replacement-processing-row");
+  $row.removeClass("is-processing");
   $row.find(".replacement-status").text("error");
-  $row.find(".pending-links a").removeClass("disabled-link");
+  $row.find(".replacement-card-actions a").removeClass("disabled-link");
 }
 
 $(function () {
