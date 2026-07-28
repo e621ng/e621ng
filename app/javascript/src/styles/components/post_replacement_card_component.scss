@@ -1,0 +1,312 @@
+// Post replacement cards — a collapsible timeline of status-colored cards.
+// Rendered by PostReplacementCardComponent; used on the replacements index
+// (timeline mode) and embedded in ticket views (no rail).
+
+$replacement-variants: (
+  "pending": "color-warning",
+  "approved": "color-success",
+  "rejected": "color-danger",
+  "promoted": "color-success",
+  "original": "color-text-muted",
+);
+
+.replacement-timeline {
+  position: relative;
+  padding-left: 0.5rem;
+
+  // The vertical rail the status dots sit on.
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0.9rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background: themed("color-section");
+  }
+}
+
+.replacement-card {
+  display: grid;
+  grid-template-areas: "repl-dot repl-thumb repl-head"
+                       "repl-dot repl-body  repl-body";
+  grid-template-columns: min-content 4rem auto;
+
+  position: relative;
+  background: themed("color-foreground");
+  border: 1px solid themed("color-section");
+  border-radius: $border-radius-full;
+  margin-bottom: 0.75rem;
+
+  &.has-timeline {
+    margin-left: 1.5rem;
+  }
+
+  .replacement-dot {
+    grid-area: repl-dot;
+
+    position: absolute;
+    left: -1.75rem;
+    top: 1rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    border: 0.25rem solid themed("color-foreground");
+    box-sizing: border-box;
+    background: themed("color-text-muted");
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &.is-current{
+      outline: 2px solid themed("color-section");
+
+      &::before {
+        content: "✓";
+        font-size: 0.5rem;
+        font-weight: bold;
+        color: themed("color-foreground");
+      }
+    }
+  }
+
+  &.is-processing {
+    background: themed("color-warning-darken-5");
+  }
+}
+
+.replacement-card.is-expanded {
+  grid-template-columns: min-content auto;
+  grid-template-areas: "repl-dot repl-head"
+                       "repl-dot repl-thumb"
+                       "repl-dot repl-body";
+
+  @include window-larger-than(50rem) {
+    grid-template-areas: "repl-dot repl-head  repl-head"
+                        "repl-dot repl-thumb repl-body";
+    grid-template-columns: min-content 256px auto;
+  }
+}
+
+// Status accent: dot fill + status text color, keyed by variant.
+@each $variant, $token in $replacement-variants {
+  .replacement-card.is-#{$variant} {
+    .replacement-dot { background: themed($token); }
+    .replacement-status { color: themed($token); font-weight: bold; }
+  }
+}
+
+//////////////////////
+////////  Thumb  /////
+//////////////////////
+
+.replacement-card .replacement-card-thumb {
+  grid-area: repl-thumb;
+
+  flex: none;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: themed("color-section");
+
+  // Override the global 256px cap for the compact header thumbnail.
+  img {
+    max-width: 4rem;
+    max-height: 4rem;
+    width: auto;
+    height: auto;
+  }
+}
+
+.replacement-card.is-expanded .replacement-card-thumb {
+  width: 256px;
+  height: 100%;
+  border-top: 1px solid themed("color-section");
+  background-color: transparent;
+  padding: 0.5rem 0;
+
+  img {
+    max-width: 256px;
+    max-height: 256px;
+    padding: 0.5rem 0;
+  }
+}
+
+//////////////////////
+////////  Header  ////
+//////////////////////
+
+.replacement-card-header {
+  grid-area: repl-head;
+
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.75rem;
+  cursor: pointer;
+  background: themed("color-section");
+
+  height: 4rem;
+}
+
+.replacement-card.is-expanded .replacement-card-header {
+  padding-left: 4.75rem;
+}
+
+.replacement-card-heading {
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+
+  // Line height shenanigans
+  .replacement-card-title, .replacement-card-meta {
+    font-size: 0.85rem;
+    line-height: 1rem;
+    a {
+      line-height: 1rem;
+      display: inline-block;
+    }
+  }
+
+  .replacement-card-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+
+    .replacement-status-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+  }
+
+  .replacement-card-meta {
+    color: themed("color-text-muted");
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    .replacement-meta-sep {
+      margin: 0 0.25rem;
+    }
+  }
+}
+
+.replacement-annotation {
+  color: themed("color-text-muted");
+  font-weight: normal;
+}
+
+.replacement-card-toggle {
+  flex: none;
+  background: none;
+  border: none;
+  color: themed("color-text-muted");
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+}
+
+.replacement-chevron {
+  transition: transform 0.15s ease;
+}
+
+.replacement-card.is-expanded .replacement-chevron {
+  transform: rotate(180deg);
+}
+
+//////////////////////
+////////  Body  //////
+//////////////////////
+
+.replacement-card-body {
+  grid-area: repl-body;
+
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-top: 1px solid themed("color-section");
+  padding: 0.75rem;
+}
+
+.replacement-card.is-expanded .replacement-card-body {
+  display: flex;
+}
+
+.replacement-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(256px, 1fr));
+  gap: 0.5rem 1.1rem;
+}
+
+.replacement-field {
+  &.replacement-field-full-width { grid-column: 1 / -1; }
+}
+
+.replacement-field-label {
+  color: themed("color-text-muted");
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.15rem;
+}
+
+.replacement-field-value {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  word-break: break-all;
+
+  &.is-mono { font-family: ui-monospace, Consolas, monospace; }
+}
+
+.replacement-reason {
+  white-space: pre-wrap;
+}
+
+.replacement-sources {
+  max-width: 16rem;
+}
+
+.inline-icons {
+  vertical-align: text-bottom;
+}
+
+//////////////////////
+///////  Actions  ////
+//////////////////////
+
+.replacement-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  border-top: 1px solid themed("color-section");
+  padding-top: 0.5rem;
+  margin-top: auto;
+
+  // Let the pending Approve/Reject/Compare buttons flow inline with the rest.
+  .pending-links { display: contents; }
+
+  // Report is a low-priority action; keep it pushed to the trailing edge.
+  .replacement-action-spacer { margin-left: auto; }
+}
+
+@include window-smaller-than(35rem) {
+  .replacement-card-actions .replacement-approve-action,
+  .replacement-card-actions .replacement-reject-action {
+    flex: 1;
+  }
+}

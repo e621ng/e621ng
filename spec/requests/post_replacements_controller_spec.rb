@@ -37,6 +37,30 @@ RSpec.describe PostReplacementsController do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to be_an(Array)
     end
+
+    context "timeline vs. list rendering" do
+      let(:other_post) { create(:post) }
+
+      before { replacement } # ensure a card exists to carry the timeline class
+
+      it "uses the timeline when scoped to a single post id" do
+        get post_replacements_path(search: { post_id: post_record.id })
+        expect(response.body).to include("replacement-timeline")
+        expect(response.body).to include("has-timeline")
+      end
+
+      it "uses a plain list when unscoped" do
+        get post_replacements_path
+        expect(response.body).to include("replacement-list")
+        expect(response.body).not_to include("has-timeline")
+      end
+
+      it "uses a plain list when scoped to multiple post ids" do
+        get post_replacements_path(search: { post_id: "#{post_record.id},#{other_post.id}" })
+        expect(response.body).to include("replacement-list")
+        expect(response.body).not_to include("has-timeline")
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -363,6 +387,50 @@ RSpec.describe PostReplacementsController do
       sign_in_as admin
       expect { delete post_replacement_path(replacement) }.to change(PostReplacement, :count).by(-1)
       expect(PostReplacement.find_by(id: replacement_id)).to be_nil
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # HTML fragment responses — the AJAX swap contract
+  # The mutating actions re-render the replacement card; the client swaps it in
+  # keyed on #replacement-<id>. The fragment must keep that root id.
+  # ---------------------------------------------------------------------------
+
+  describe "HTML card fragment (swap contract)" do
+    it "reject returns a card fragment rooted at #replacement-<id>" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("id=\"replacement-#{replacement.id}\"")
+      expect(response.body).to include("replacement-card")
+    end
+
+    it "reject returns a bare fragment without the application layout" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement)
+      expect(response.body).not_to include("<html")
+      expect(response.body).not_to include("<body")
+    end
+
+    it "echoes the timeline context into the fragment when requested" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement), params: { timeline: true }
+      expect(response.body).to include("has-timeline")
+    end
+
+    it "omits timeline chrome when the swap is not in timeline context" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement), params: { timeline: false }
+      expect(response.body).not_to include("has-timeline")
+    end
+
+    it "approve returns a card fragment rooted at #replacement-<id>" do
+      allow(PostReplacement).to receive(:find).and_return(replacement)
+      allow(replacement).to receive(:approve!)
+      sign_in_as approver
+      put approve_post_replacement_path(replacement)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("id=\"replacement-#{replacement.id}\"")
     end
   end
 
