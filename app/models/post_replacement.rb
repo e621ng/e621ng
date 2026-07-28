@@ -301,7 +301,7 @@ class PostReplacement < ApplicationRecord
       Post.transaction do # wrap in transaction to ensure atomicity of the transfer
         update(post: new_post, uploader_id_on_approve: nil)
         set_previous_uploader
-        update_column(:uploader_id_on_approve, uploader_on_approve&.id)
+        update_columns(uploader_id_on_approve: uploader_on_approve&.id, penalize_uploader_on_approve: penalize_uploader_on_approve)
 
         # create_original_backup normally runs as a before_create callback, so on a failed
         # backup save it halts the chain via `throw :abort` rather than returning a value.

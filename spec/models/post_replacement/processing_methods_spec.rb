@@ -285,6 +285,21 @@ RSpec.describe PostReplacement do
       expect(post_alt.replacements.where(status: "original").exists?).to be true
     end
 
+    it "persists the penalize reset when transferring to a post uploaded by the creator" do
+      # Fake a backup on the target so create_original_backup is skipped.
+      existing_replacement = create(:post_replacement, post: post_alt)
+      existing_replacement.update_columns(status: "original")
+
+      # New post is owned by the replacement creator, so penalize must be cleared.
+      post_alt.update_columns(uploader_id: replacement.creator_id)
+      replacement.update_columns(penalize_uploader_on_approve: true)
+
+      replacement.transfer(post_alt)
+
+      expect(replacement.reload.penalize_uploader_on_approve).to be false
+      expect(replacement.uploader_on_approve).to eq(replacement.creator)
+    end
+
     it "work on rejected replacements without resetting status" do
       # Fake a backup or the original since it isn't supported in tests.
       existing_replacement = create(:post_replacement, post: post_alt)
