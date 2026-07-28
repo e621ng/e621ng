@@ -320,5 +320,18 @@ RSpec.describe PostReplacement do
 
       expect(replacement.errors.full_messages).to include("Failed to create backup on new post: boom")
     end
+
+    it "rolls back gracefully when the backup save aborts during transfer" do
+      # create_original_backup halts via `throw :abort` when the backup fails to save;
+      # transfer must catch it rather than let it escape as an UncaughtThrowError.
+      allow(replacement).to receive(:create_original_backup) do
+        replacement.errors.add(:base, "Failed to create backup: boom")
+        throw :abort
+      end
+
+      expect { replacement.transfer(post_alt) }.not_to raise_error
+      expect(replacement.errors.full_messages).to include("Failed to create backup: boom")
+      expect(replacement.reload.post_id).to eq(post_main.id)
+    end
   end
 end

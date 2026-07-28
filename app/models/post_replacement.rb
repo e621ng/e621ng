@@ -303,12 +303,19 @@ class PostReplacement < ApplicationRecord
         set_previous_uploader
         update_column(:uploader_id_on_approve, uploader_on_approve&.id)
 
-        begin
-          create_original_backup
-        rescue ProcessingError => e
-          errors.add(:base, "Failed to create backup on new post: #{e.message}")
-          raise ActiveRecord::Rollback
+        # create_original_backup normally runs as a before_create callback, so on a failed
+        # backup save it halts the chain via `throw :abort` rather than returning a value.
+        # Here, this would result in an UncaughtThrowError (a 500), so we handle it gracefully.
+        result = catch(:abort) do
+          begin
+            create_original_backup
+          rescue ProcessingError => e
+            errors.add(:base, "Failed to create backup on new post: #{e.message}")
+          end
+          :ok
         end
+
+        raise ActiveRecord::Rollback if result != :ok || errors.any?
 
         PostEvent.add(post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
         PostEvent.add(prev.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: prev.id, new_post: post.id })
