@@ -115,33 +115,35 @@
       </div>
     </div>
 
-    <div class="replacement-card-actions">
-      <% if show_staff_actions? %>
-        <div class="pending-links">
-          <% if show_approve? %>
-            <%= link_to "Approve", "#approve", class: "replacement-approve-action st-button success", data: { replacement_id: replacement.id, penalize: approve_penalizes? } %>
+    <% if actions %>
+      <div class="replacement-card-actions">
+        <% if show_staff_actions? %>
+          <div class="pending-links">
+            <% if show_approve? %>
+              <%= link_to "Approve", "#approve", class: "replacement-approve-action st-button success", data: { replacement_id: replacement.id, penalize: approve_penalizes? } %>
+            <% end %>
+            <% if show_reject? %>
+              <%= link_to "Reject", "#reject", class: "replacement-reject-action st-button danger", data: { replacement_id: replacement.id } %>
+            <% end %>
+          </div>
+          <% if show_promote? %>
+            <%= link_to "As New Post", "#promote", class: "replacement-promote-action st-button", data: { replacement_id: replacement.id } %>
           <% end %>
-          <% if show_reject? %>
-            <%= link_to "Reject", "#reject", class: "replacement-reject-action st-button danger", data: { replacement_id: replacement.id } %>
+          <% if show_reset_to? %>
+            <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action st-button", data: { replacement_id: replacement.id, penalize: false } %>
           <% end %>
-        </div>
-        <% if show_promote? %>
-          <%= link_to "As New Post", "#promote", class: "replacement-promote-action st-button", data: { replacement_id: replacement.id } %>
         <% end %>
-        <% if show_reset_to? %>
-          <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action st-button", data: { replacement_id: replacement.id, penalize: false } %>
+
+        <% if show_admin_actions? %>
+          <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action st-button danger", data: { replacement_id: replacement.id } %>
         <% end %>
-      <% end %>
 
-      <% if show_admin_actions? %>
-        <%= link_to "Destroy", "#destroy", class: "replacement-destroy-action st-button danger", data: { replacement_id: replacement.id } %>
-      <% end %>
-
-      <span class="replacement-action-spacer"></span>
-      <% if show_compare? %>
-        <%= link_to "Compare", staff_post_diff_path(post_a: replacement.post_id, post_b: replacement.md5), class: "st-button" %>
-      <% end %>
-      <%= link_to("⚑ Report", new_ticket_path(disp_id: replacement.id, qtype: "replacement"), class: "replacement-report-action st-button") %>
-    </div>
+        <span class="replacement-action-spacer"></span>
+        <% if show_compare? %>
+          <%= link_to "Compare", staff_post_diff_path(post_a: replacement.post_id, post_b: replacement.md5), class: "st-button" %>
+        <% end %>
+        <%= link_to("⚑ Report", new_ticket_path(disp_id: replacement.id, qtype: "replacement"), class: "replacement-report-action st-button") %>
+      </div>
+    <% end %>
   </div>
 </div>
