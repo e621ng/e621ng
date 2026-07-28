@@ -12,7 +12,7 @@ module RenderPartialSafely
   end
 
   def render_component_safely(component)
-    render(component)
+    render(component, layout: false)
   rescue StandardError => e
     render_safe_failure(e)
   end

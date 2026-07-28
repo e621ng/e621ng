@@ -381,6 +381,13 @@ RSpec.describe PostReplacementsController do
       expect(response.body).to include("replacement-card")
     end
 
+    it "reject returns a bare fragment without the application layout" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement)
+      expect(response.body).not_to include("<html")
+      expect(response.body).not_to include("<body")
+    end
+
     it "approve returns a card fragment rooted at #replacement-<id>" do
       allow(PostReplacement).to receive(:find).and_return(replacement)
       allow(replacement).to receive(:approve!)
