@@ -266,8 +266,7 @@ RSpec.describe PostReplacement do
 
     it "work on pending replacements" do
       # Fake a backup or the original since it isn't supported in tests.
-      existing_replacement = create(:post_replacement, post: post_alt, md5: post_alt.md5)
-      existing_replacement.update_columns(status: "original")
+      create(:original_post_replacement, post: post_alt, md5: post_alt.md5)
 
       # What changes during the transfer
       expect do
@@ -287,8 +286,7 @@ RSpec.describe PostReplacement do
 
     it "persists the penalize reset when transferring to a post uploaded by the creator" do
       # Fake a backup on the target so create_original_backup is skipped.
-      existing_replacement = create(:post_replacement, post: post_alt)
-      existing_replacement.update_columns(status: "original")
+      create(:original_post_replacement, post: post_alt)
 
       # New post is owned by the replacement creator, so penalize must be cleared.
       post_alt.update_columns(uploader_id: replacement.creator_id)
@@ -302,8 +300,7 @@ RSpec.describe PostReplacement do
 
     it "work on rejected replacements without resetting status" do
       # Fake a backup or the original since it isn't supported in tests.
-      existing_replacement = create(:post_replacement, post: post_alt)
-      existing_replacement.update_columns(status: "original")
+      create(:original_post_replacement, post: post_alt)
       replacement.update_columns(status: "rejected")
 
       # What changes during the transfer
