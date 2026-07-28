@@ -25,6 +25,8 @@ class PostEventDecorator < ApplicationDecorator
       old_owner = "\"#{User.id_to_name(vals['old_owner'])}\":/users/#{vals['old_owner']}"
       new_owner = "\"#{User.id_to_name(vals['new_owner'])}\":/users/#{vals['new_owner']}"
       "#{old_owner} → #{new_owner}"
+    when "replacement_moved"
+      "From post ##{vals['old_post']} to post ##{vals['new_post']}"
     end
   end
 end

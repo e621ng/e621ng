@@ -140,6 +140,9 @@
           <% if show_reset_to? %>
             <%= link_to "Reset To", "#reset-to", class: "replacement-approve-action st-button", data: { replacement_id: replacement.id, penalize: false } %>
           <% end %>
+          <% if show_transfer? %>
+            <%= link_to "Transfer", "#transfer", class: "replacement-transfer-action st-button", data: { replacement_id: replacement.id } %>
+          <% end %>
         <% end %>
 
         <% if show_admin_actions? %>

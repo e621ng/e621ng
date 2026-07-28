@@ -117,4 +117,10 @@ class PostReplacementCardComponent < ViewComponent::Base
   def show_reset_to?
     show_staff_actions? && !replacement.is_current? && !replacement.is_promoted? && !replacement.is_pending? && !post.is_deleted?
   end
+
+  # Transferring off a deleted source post is allowed, so this is not gated on the post's
+  # deletion state; the model only guards the destination.
+  def show_transfer?
+    show_staff_actions? && (replacement.is_pending? || replacement.is_rejected?)
+  end
 end

@@ -3,7 +3,7 @@
 class PostReplacementsController < ApplicationController
   respond_to :html, :json
   before_action :member_only, only: %i[create new]
-  before_action :approver_only, only: %i[approve reject promote toggle_penalize]
+  before_action :approver_only, only: %i[approve reject promote toggle_penalize transfer]
   before_action :admin_only, only: [:destroy]
   before_action :ensure_replacements_enabled, only: %i[new create]
 
@@ -97,6 +97,25 @@ class PostReplacementsController < ApplicationController
   def reject
     @post_replacement = PostReplacement.find(params[:id])
     @post_replacement.reject!
+
+    respond_with(@post_replacement) do |format|
+      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: card_timeline?)) }
+      format.json
+    end
+  end
+
+  def transfer
+    @post_replacement = PostReplacement.find(params[:id])
+    @post_replacement.transfer(Post.find(params[:new_post_id]))
+
+    if @post_replacement.errors.any?
+      message = @post_replacement.errors.full_messages.join("; ")
+      respond_to do |format|
+        format.html { render plain: message, status: 412 }
+        format.json { render json: { success: false, message: message }, status: 412 }
+      end
+      return
+    end
 
     respond_with(@post_replacement) do |format|
       format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: card_timeline?)) }

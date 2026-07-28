@@ -6,6 +6,9 @@ RSpec.describe PostReplacementCardComponent, type: :component do
   let(:post_record) { create(:post) }
   let(:pending)     { create(:pending_post_replacement, post: post_record) }
   let(:retired)     { create(:approved_post_replacement, post: post_record) }
+  let(:rejected)    { create(:rejected_post_replacement, post: post_record) }
+  let(:promoted)    { create(:promoted_post_replacement, post: post_record) }
+  let(:original)    { create(:original_post_replacement, post: post_record) }
 
   def as(factory)
     CurrentUser.user = create(factory)
@@ -33,7 +36,7 @@ RSpec.describe PostReplacementCardComponent, type: :component do
     it "shows only Report — no staff or admin actions" do
       texts = action_texts(render_card(pending))
       expect(texts).to include("⚑ Report")
-      expect(texts).not_to include("Approve", "Reject", "Compare", "As New Post", "Destroy")
+      expect(texts).not_to include("Approve", "Reject", "Compare", "As New Post", "Destroy", "Transfer")
     end
   end
 
@@ -58,6 +61,21 @@ RSpec.describe PostReplacementCardComponent, type: :component do
     it "hides Approve when the target post is deleted" do
       allow(pending.post).to receive(:is_deleted?).and_return(true)
       expect(action_texts(render_card(pending))).not_to include("Approve")
+    end
+
+    it "shows Transfer on pending and rejected replacements" do
+      expect(action_texts(render_card(pending))).to include("Transfer")
+      expect(action_texts(render_card(rejected))).to include("Transfer")
+    end
+
+    it "does not show Transfer on retired, promoted, or original replacements" do
+      expect(action_texts(render_card(retired))).not_to include("Transfer")
+      expect(action_texts(render_card(promoted))).not_to include("Transfer")
+      expect(action_texts(render_card(original))).not_to include("Transfer")
+    end
+
+    it "does not show Transfer when actions are disabled (ticket embed)" do
+      expect(action_texts(render_card(pending, actions: false))).not_to include("Transfer")
     end
   end
 
