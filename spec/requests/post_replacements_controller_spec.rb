@@ -37,6 +37,30 @@ RSpec.describe PostReplacementsController do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to be_an(Array)
     end
+
+    context "timeline vs. list rendering" do
+      let(:other_post) { create(:post) }
+
+      before { replacement } # ensure a card exists to carry the timeline class
+
+      it "uses the timeline when scoped to a single post id" do
+        get post_replacements_path(search: { post_id: post_record.id })
+        expect(response.body).to include("replacement-timeline")
+        expect(response.body).to include("has-timeline")
+      end
+
+      it "uses a plain list when unscoped" do
+        get post_replacements_path
+        expect(response.body).to include("replacement-list")
+        expect(response.body).not_to include("has-timeline")
+      end
+
+      it "uses a plain list when scoped to multiple post ids" do
+        get post_replacements_path(search: { post_id: "#{post_record.id},#{other_post.id}" })
+        expect(response.body).to include("replacement-list")
+        expect(response.body).not_to include("has-timeline")
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -386,6 +410,18 @@ RSpec.describe PostReplacementsController do
       put reject_post_replacement_path(replacement)
       expect(response.body).not_to include("<html")
       expect(response.body).not_to include("<body")
+    end
+
+    it "echoes the timeline context into the fragment when requested" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement), params: { timeline: true }
+      expect(response.body).to include("has-timeline")
+    end
+
+    it "omits timeline chrome when the swap is not in timeline context" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement), params: { timeline: false }
+      expect(response.body).not_to include("has-timeline")
     end
 
     it "approve returns a card fragment rooted at #replacement-<id>" do

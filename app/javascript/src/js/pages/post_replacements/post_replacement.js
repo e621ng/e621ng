@@ -48,7 +48,7 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/approve`,
-    data: { penalize_current_uploader },
+    data: { penalize_current_uploader, timeline: $row.hasClass("has-timeline") },
     dataType: "html",
   })
     .done((html) => {
@@ -69,6 +69,7 @@ PostReplacement.reject = function (id) {
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/reject`,
+    data: { timeline: $row.hasClass("has-timeline") },
     dataType: "html",
   })
     .done((html) => {
@@ -89,6 +90,7 @@ PostReplacement.promote = function (id) {
   $.ajax({
     type: "POST",
     url: `/post_replacements/${id}/promote`,
+    data: { timeline: $row.hasClass("has-timeline") },
     dataType: "html",
   })
     .done((html) => {
@@ -109,6 +111,7 @@ PostReplacement.toggle_penalize = function ($target) {
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/toggle_penalize`,
+    data: { timeline: $row.hasClass("has-timeline") },
     dataType: "html",
   })
     .done((html) => {

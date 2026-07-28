@@ -5,8 +5,8 @@
     <%= render "search" %>
     <%= render partial: "application/blacklist_inline" %>
 
-    <div class="replacement-timeline">
-      <%= render(PostReplacementCardComponent.with_collection(@post_replacements, timeline: true)) %>
+    <div class="<%= @timeline ? "replacement-timeline" : "replacement-list" %>">
+      <%= render(PostReplacementCardComponent.with_collection(@post_replacements, timeline: @timeline)) %>
     </div>
 
     <%= render PaginatorComponent.new(records: @post_replacements) %>

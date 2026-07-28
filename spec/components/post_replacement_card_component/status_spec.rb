@@ -47,10 +47,11 @@ RSpec.describe PostReplacementCardComponent, type: :component do
       expect(doc.at_css(".replacement-status").text.strip).to eq("rejected")
     end
 
-    it "renders the version as post_id:sequence_number" do
+    it "links the post id and shows the sequence number" do
       record = create(:pending_post_replacement, post: post_record)
       doc = render_card(record)
-      expect(doc.at_css(".replacement-version").text).to eq("#{record.post_id}:#{record.sequence_number}")
+      expect(doc.at_css(".replacement-version").text.strip).to eq(record.post_id.to_s)
+      expect(doc.at_css(".replacement-status-link").text.gsub(/\s+/, "")).to eq("#{record.post_id}:#{record.sequence_number}")
     end
   end
 

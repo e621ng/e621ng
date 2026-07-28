@@ -17,9 +17,9 @@ RSpec.describe PostReplacementCardComponent, type: :component do
     doc.css(".replacement-field-label").map { |n| n.text.strip }
   end
 
-  it "always renders the ID and MD5 fields" do
+  it "always renders the MD5 field" do
     doc = render_card(create(:pending_post_replacement, post: post_record))
-    expect(field_labels(doc)).to include("ID", "MD5")
+    expect(field_labels(doc)).to include("MD5")
   end
 
   it "labels the created-at field 'Backup created at' for a backup" do
@@ -34,18 +34,18 @@ RSpec.describe PostReplacementCardComponent, type: :component do
   end
 
   describe "pending dual image info" do
-    it "shows both the replacement and current image info" do
+    it "shows both the new and old image info" do
       doc = render_card(create(:pending_post_replacement, post: post_record))
       value = doc.at_css(".replacement-field-value").text
-      expect(value).to include("Replacement:")
-      expect(value).to include("Current:")
+      expect(value).to include("New:")
+      expect(value).to include("Old:")
     end
 
     it "shows a single image info line for non-pending replacements" do
       doc = render_card(create(:approved_post_replacement, post: post_record))
       value = doc.at_css(".replacement-field-value").text
-      expect(value).not_to include("Replacement:")
-      expect(value).not_to include("Current:")
+      expect(value).not_to include("New:")
+      expect(value).not_to include("Old:")
     end
   end
 

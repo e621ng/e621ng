@@ -15,6 +15,9 @@ class PostReplacementsController < ApplicationController
   def index
     params[:search][:post_id] = params.delete(:post_id) if params.key?(:post_id)
     @post_replacements = PostReplacement.includes(:post).visible(CurrentUser.user).search(search_params).paginate(params[:page], limit: params[:limit])
+    # The timeline (shared rail + version dots) only reads correctly for a single
+    # post's version history; a mixed list would jumble unrelated posts together.
+    @timeline = single_post_search?
 
     respond_with(@post_replacements)
   end
@@ -76,7 +79,7 @@ class PostReplacementsController < ApplicationController
     end
 
     respond_with(@post_replacement) do |format|
-      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: true)) }
+      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: card_timeline?)) }
       format.json
     end
   end
@@ -86,7 +89,7 @@ class PostReplacementsController < ApplicationController
     @post_replacement.toggle_penalize!
 
     respond_with(@post_replacement) do |format|
-      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: true)) }
+      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: card_timeline?)) }
       format.json
     end
   end
@@ -96,7 +99,7 @@ class PostReplacementsController < ApplicationController
     @post_replacement.reject!
 
     respond_with(@post_replacement) do |format|
-      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: true)) }
+      format.html { render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: card_timeline?)) }
       format.json
     end
   end
@@ -126,7 +129,7 @@ class PostReplacementsController < ApplicationController
         if @post_replacement.errors.any? || @upload.errors.any?
           head 422
         else
-          render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: true))
+          render_component_safely(PostReplacementCardComponent.new(post_replacement: @post_replacement, timeline: card_timeline?))
         end
       end
 
@@ -135,6 +138,18 @@ class PostReplacementsController < ApplicationController
   end
 
   private
+
+  # Timeline mode only makes sense scoped to one post's version history, i.e. when
+  # search[post_id] holds a single id (the search supports a comma-separated list).
+  def single_post_search?
+    search_params[:post_id].to_s.match?(/\A\d+\z/)
+  end
+
+  # AJAX card re-renders carry the timeline context of the page they'll be swapped
+  # into, so the fragment matches its neighbours (dot + rail, or a plain card).
+  def card_timeline?
+    ActiveModel::Type::Boolean.new.cast(params[:timeline])
+  end
 
   def check_allow_create
     return if CurrentUser.can_replace?
