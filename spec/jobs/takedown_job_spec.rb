@@ -119,11 +119,12 @@ RSpec.describe TakedownJob do
 
       it "restores karma when reversing a deletion that was not a takedown" do
         post = create(:post, approver: create(:admin_user))
-        # Deleted for an unrelated reason: the -3 penalty was applied and should be reversed.
+        # Deleted for an unrelated reason: the deletion penalty was applied (-4 for this
+        # credited post) and undeletion reverses it with a flat +4.
         post.delete!("inferior quality", force: true)
         takedown = create(:takedown_with_post, post: post)
         expect { perform(takedown) }
-          .to change { post.uploader.user_status.reload.upload_karma }.by(3)
+          .to change { post.uploader.user_status.reload.upload_karma }.by(4)
         expect(post.reload.is_deleted?).to be false
       end
     end

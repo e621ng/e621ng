@@ -44,8 +44,17 @@ RSpec.describe Post do
         expect(post.errors[:is_status_locked]).to be_present
       end
 
-      it "penalizes the uploader's upload karma by 3" do
+      it "penalizes a credited (non-pending) post's uploader by 4" do
+        # A default post has is_pending == false, so it held a +1 credit: deletion reverses
+        # that credit (-1) on top of the -3 penalty.
         post = create(:post)
+        expect { post.delete!("Test reason") }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(-4)
+      end
+
+      it "penalizes a still-pending post's uploader by only 3" do
+        # A pending post never earned the +1 credit, so only the -3 penalty applies.
+        post = create(:pending_post)
         expect { post.delete!("Test reason") }
           .to change { post.uploader.user_status.reload.upload_karma }.by(-3)
       end
@@ -84,13 +93,15 @@ RSpec.describe Post do
         expect(post.reload.is_pending).to be false
       end
 
-      it "restores the uploader's upload karma by 3 if the post was previously approved" do
+      it "restores the uploader's upload karma by 4 when the deleted post had an approver" do
         post = create(:deleted_post, approver: create(:admin_user))
         expect { post.undelete! }
-          .to change { post.uploader.user_status.reload.upload_karma }.by(3)
+          .to change { post.uploader.user_status.reload.upload_karma }.by(4)
       end
 
-      it "restores the uploader's upload karma by 4 if the post was not previously approved" do
+      it "restores the uploader's upload karma by 4 when the deleted post had no approver" do
+        # Restoring always approves the post (worth +1), and delete! already drove every
+        # deleted post down to -3, so the reversal is a flat +4 regardless of prior state.
         member = create(:user)
         post = create(:deleted_post, uploader: member, approver: nil)
         expect { post.undelete! }
@@ -103,13 +114,22 @@ RSpec.describe Post do
           .not_to(change { post.uploader.user_status.reload.upload_karma })
       end
 
-      it "nets zero upload karma across a delete then undelete, even when karma goes negative" do
+      it "nets zero upload karma across a delete then undelete of a credited post, even when karma goes negative" do
         member = create(:user)
         post = create(:post, uploader: member, approver: create(:admin_user))
         expect do
-          post.delete!("Test reason")
-          post.reload.undelete!
+          post.delete!("Test reason")   # -4
+          post.reload.undelete!         # +4
         end.not_to(change { member.user_status.reload.upload_karma })
+      end
+
+      it "nets +1 across a pending post's delete then undelete (undelete approves it)" do
+        member = create(:user)
+        post = create(:pending_post, uploader: member)
+        expect do
+          post.delete!("Test reason")   # -3 (never earned the +1 credit)
+          post.reload.undelete!         # +4 (restored → approved)
+        end.to change { member.user_status.reload.upload_karma }.by(1)
       end
 
       # FIXME: It definitely does not do this.
