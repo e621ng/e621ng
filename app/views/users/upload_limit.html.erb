@@ -42,27 +42,25 @@
           <p>This ability was manually granted by a staff member<%= karma_threshold_enabled ? ", independent of upload karma" : "" %>.</p>
         <% end %>
       <% else %>
+        <br />
         <p>
           <%= is_current_user ? "You" : link_to_user(@user) %> currently
-          <%= is_current_user ? "have" : "has" %> <strong><%= @user.upload_slots %></strong>
-          upload slot<%= @user.upload_slots == 1 ? "" : "s" %> in the review queue,
-          based on the following formula:
+          <%= is_current_user ? "have" : "has" %> <strong><%= @user.upload_slot_ceiling %></strong>
+          maximum upload slot<%= @user.upload_slot_ceiling == 1 ? "" : "s" %> in the review queue.
         </p>
 
+        <%# Max Slots Formula %>
         <span class="upload-limit-formula">
-          <span class="upl-element"><abbr class="upl-base" title="Base Upload Slots"><%= pieces[:base] %></abbr></span>
+          <span class="upl-group">
+            <span class="upl-element">
+              <abbr class="upl-base" title="Base Upload Slots"><%= pieces[:base] %></abbr>
+            </span>
+          </span>
 
           <span class="upl-group">
             <span class="upl-math"><%= svg_icon(:plus) %></span>
             <span class="upl-element">
               <abbr class="upl-approved" title="Approved Posts and Replacements"><%= pieces[:approved] %></abbr> / 10
-            </span>
-          </span>
-
-          <span class="upl-group">
-            <span class="upl-math"><%= svg_icon(:minus) %></span>
-            <span class="upl-element">
-              <abbr class="upl-pending" title="Pending or Flagged Posts, Pending Replacements"><%= pieces[:pending] %></abbr>
             </span>
           </span>
 
@@ -77,7 +75,7 @@
           <span class="upl-group">
             <span class="upl-math"><%= svg_icon(:equals) %></span>
             <span class="upl-element">
-              <abbr class="upl-total" title="Remaining Upload Slots"><%= @user.upload_slots %></abbr>
+              <abbr class="upl-max" title="Maximum Upload Slots&#013;Capped at <%= @user.upload_slot_ceiling %> slots"><%= @user.upload_slots_max %></abbr>
             </span>
           </span>
         </span>
@@ -95,25 +93,71 @@
             <span>Uploads that had been manually approved.</span>
           </div>
 
-          <abbr title="Pending or Flagged Posts, Pending Replacements" class="ul-num upl-pending"><%= pieces[:pending] %></abbr>
-          <div class="ul-exp">
-            <h5>Pending / Flagged</h5>
-            <span>Posts that are currently awaiting review.</span>
-          </div>
-
           <abbr title="Deleted or Replaced Posts, Rejected Replacements" class="ul-num upl-deleted"><%= pieces[:deleted] %></abbr>
           <div class="ul-exp">
             <h5>Deleted / Replaced / Rejected</h5>
             <span>Uploads that had been rejected, one way or another.</span>
           </div>
 
+          <abbr title="Maximum Upload Slots" class="ul-num upl-max"><%= @user.upload_slots_max %></abbr>
+          <div class="ul-exp">
+            <h5>Maximum Slots</h5>
+            <span>
+              Total number of concurrent queued uploads allowed.<br />
+              This number is capped at <strong><%= @user.upload_slot_ceiling %></strong> slots.
+            </span>
+          </div>
+        </div>
+
+        <%# Pending Slots Formula %>
+        <br />
+        <p>
+          <%= is_current_user ? "You" : link_to_user(@user) %> currently
+          <%= is_current_user ? "have" : "has" %> <strong><%= @user.upload_slots %></strong>
+          available slot<%= @user.upload_slots == 1 ? "" : "s" %> in the review queue.
+        </p>
+
+        <span class="upload-limit-formula">
+          <span class="upl-group">
+            <span class="upl-element">
+              <abbr class="upl-max" title="Maximum Upload Slots&#013;Capped at <%= @user.upload_slot_ceiling %> slots"><%= @user.upload_slots_max %></abbr>
+            </span>
+          </span>
+
+          <span class="upl-group">
+            <span class="upl-math"><%= svg_icon(:minus) %></span>
+            <span class="upl-element">
+              <abbr class="upl-pending" title="Pending or Flagged Posts, Pending Replacements"><%= pieces[:pending] %></abbr>
+            </span>
+          </span>
+
+          <span class="upl-math"><%= svg_icon(:equals) %></span>
+          <span class="upl-group">
+            <span class="upl-element">
+              <abbr class="upl-total" title="Remaining Upload Slots&#013;Cannot go below 0"><%= @user.upload_slots %></abbr>
+            </span>
+          </span>
+        </span>
+        
+        <div class="upload-limit-explanation">
+          <abbr title="Maximum Upload Slots" class="ul-num upl-max"><%= @user.upload_slots_max %></abbr>
+          <div class="ul-exp">
+            <h5>Maximum Slots</h5>
+            <span>
+              Total number of concurrent queued uploads allowed.<br />
+            </span>
+          </div>
+
+          <abbr title="Pending or Flagged Posts, Pending Replacements" class="ul-num upl-pending"><%= pieces[:pending] %></abbr>
+          <div class="ul-exp">
+            <h5>Pending / Flagged</h5>
+            <span>Posts that are currently awaiting review.</span>
+          </div>
+
           <abbr title="Remaining Upload Slots" class="ul-num upl-total"><%= @user.upload_slots %></abbr>
           <div class="ul-exp">
             <h5>Upload Slots</h5>
-            <span>
-              Remaining number of posts that can be queued for review.<br />
-              This number is capped at <strong><%= @user.upload_slot_ceiling %></strong> slots.
-            </span>
+            <span>Remaining number of posts that can be queued for review.</span>
           </div>
         </div>
       <% end %>
