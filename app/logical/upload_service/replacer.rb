@@ -50,7 +50,8 @@ class UploadService
         previous_md5 = post.md5
         previous_file_ext = post.file_ext
 
-        previous_pending = post.is_pending? # Drives the replacer's +1 credit (see below).
+        previous_pending = post.is_pending? # Drives the replacer's +1 credit
+        reverting = replacement.status.in?(%w[approved original]) # Drives revert logic
 
         post.md5 = upload.md5
         post.file_ext = upload.file_ext
@@ -85,12 +86,17 @@ class UploadService
           UserStatus.for_user(previous_uploader).update_all("upload_karma = upload_karma - 3")
         end
 
-        # The replacer earns karma only when replacing another user's post, and only once the
-        # post is live: a pending post is worth 0 to its uploader until approval (which pays the
-        # +1 itself), so crediting here as well would double-count. Mirrors the not-pending guard
-        # in UploadService#create_post_from_upload.
+        # The live post's +1 credit follows ownership: previous owner loses it, new one gets it.
+        # Skipped when the post is still pending.
         if replacement.creator_id != previous_uploader && !previous_pending
+          UserStatus.for_user(previous_uploader).update_all("upload_karma = upload_karma - 1")
           UserStatus.for_user(replacement.creator_id).update_all("upload_karma = upload_karma + 1")
+        end
+
+        # Reset-to must revert any penalty that the previous version carried.
+        if reverting
+          retiring = post.replacements.approved.find_by(md5: previous_md5)
+          retiring.toggle_penalize! if retiring&.penalize_uploader_on_approve? && retiring.id != replacement.id
         end
 
         # Invalidate avatar cache
