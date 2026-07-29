@@ -61,7 +61,7 @@ $replacement-variants: (
   }
 
   &.is-current {
-    border-color: palette("background-gold");
+    border-color: themed("color-success");
 
     .replacement-dot {
       outline: 2px solid themed("color-section");

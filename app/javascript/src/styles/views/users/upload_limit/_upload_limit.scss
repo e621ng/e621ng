@@ -74,7 +74,7 @@ body.c-users.a-upload-limit {
     &.upl-base { background: palette("background-grey"); }
     &.upl-approved { background: palette("background-green"); }
     &.upl-deleted { background: palette("background-red"); }
-    &.upl-max { background: palette("background-blue"); }
+    &.upl-max { background: palette("background-orange-d10"); }
     &.upl-pending { background: palette("background-yellow"); }
     &.upl-total { background: themed("color-section-lighten-5"); }
   }
