@@ -50,6 +50,8 @@ class UploadService
         previous_md5 = post.md5
         previous_file_ext = post.file_ext
 
+        previous_pending = post.is_pending? # Drives the replacer's +1 credit (see below).
+
         post.md5 = upload.md5
         post.file_ext = upload.file_ext
         post.image_width = upload.image_width
@@ -82,8 +84,12 @@ class UploadService
           # Karma penalty for the previous uploader, in step with the penalize counter.
           UserStatus.for_user(previous_uploader).update_all("upload_karma = upload_karma - 3")
         end
-        # The replacer earns karma only when replacing another user's post.
-        if replacement.creator_id != previous_uploader
+
+        # The replacer earns karma only when replacing another user's post, and only once the
+        # post is live: a pending post is worth 0 to its uploader until approval (which pays the
+        # +1 itself), so crediting here as well would double-count. Mirrors the not-pending guard
+        # in UploadService#create_post_from_upload.
+        if replacement.creator_id != previous_uploader && !previous_pending
           UserStatus.for_user(replacement.creator_id).update_all("upload_karma = upload_karma + 1")
         end
 
