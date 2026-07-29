@@ -44,6 +44,17 @@ class PostReplacementCardComponent < ViewComponent::Base
     end
   end
 
+  def card_classes
+    classes = ["replacement-card"]
+
+    classes << "is-#{status_variant}" if status_variant.present?
+    classes << "is-current" if replacement.is_current?
+    classes << "is-expanded" if @expanded
+    classes << "has-timeline" if @timeline
+
+    classes.join(" ")
+  end
+
   def highlighted_tags
     return [] unless replacement.is_pending?
 

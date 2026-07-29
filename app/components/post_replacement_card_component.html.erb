@@ -1,6 +1,6 @@
 <div
   id="replacement-<%= replacement.id %>"
-  class="replacement-card is-<%= status_variant %><%= " is-expanded" if @expanded %><%= " has-timeline" if @timeline %>"
+  class="<%= card_classes %>"
   data-replacement-id="<%= replacement.id %>"
   role="group"
   aria-labelledby="replacement-<%= replacement.id %>-title"
