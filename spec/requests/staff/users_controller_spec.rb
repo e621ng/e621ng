@@ -154,6 +154,27 @@ RSpec.describe Staff::UsersController do
         end.not_to(change { ModAction.where(action: "user_karma_change").count })
       end
 
+      it "grants can_upload_free and logs a user_flags_change ModAction" do
+        patch staff_user_path(user), params: { user: { level: user.level, can_upload_free: "true" } }
+        expect(user.reload.can_upload_free?).to be true
+        mod = ModAction.where(action: "user_flags_change").last
+        expect(mod[:values]).to include("user_id" => user.id, "added" => ["unlimited uploads"], "removed" => [])
+      end
+
+      it "revokes can_upload_free and logs a user_flags_change ModAction" do
+        target = create(:user, can_upload_free: true)
+        patch staff_user_path(target), params: { user: { level: target.level, can_upload_free: "false" } }
+        expect(target.reload.can_upload_free?).to be false
+        mod = ModAction.where(action: "user_flags_change").last
+        expect(mod[:values]).to include("user_id" => target.id, "added" => [], "removed" => ["unlimited uploads"])
+      end
+
+      it "does not log user_flags_change when can_upload_free is unchanged" do
+        expect do
+          patch staff_user_path(user), params: { user: { level: user.level, can_upload_free: "false" } }
+        end.not_to(change { ModAction.where(action: "user_flags_change").count })
+      end
+
       it "creates a UserNameChangeRequest when a new name is given" do
         expect do
           patch staff_user_path(user), params: { user: { profile_about: "x", name: "brand_new_name_abc" } }

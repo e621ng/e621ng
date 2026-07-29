@@ -43,6 +43,9 @@
         <% else %>
           <%= link_to "Enabled", toggle_uploads_user_path(user) %>
         <% end %>
+        <% if user.can_upload_free? %>
+          | <span class="text-bold" title="Unrestricted uploads manually granted by an admin. Change via the staff edit page.">Unrestricted</span>
+        <% end %>
         <% if !Danbooru.config.upload_karma_free_threshold.nil? && (user.upload_karma_level >= Danbooru.config.upload_karma_free_threshold || user.no_karma_free) %>
           | 
           <% if user.no_karma_free %>

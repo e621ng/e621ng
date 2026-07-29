@@ -145,5 +145,43 @@ RSpec.describe User do
       user.no_karma_free = true
       expect(user.upload_karma_free?).to be false
     end
+
+    it "is not affected by the manual can_upload_free grant" do
+      user.can_upload_free = true
+      expect(user.upload_karma_free?).to be false
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #upload_free?
+  # -------------------------------------------------------------------------
+  describe "#upload_free?" do
+    let(:upload_free_karma_threshold) { user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) }
+
+    it "is false for a user with no karma and no grant" do
+      expect(user.upload_free?).to be false
+    end
+
+    it "is true with the manual grant and zero karma" do
+      user.can_upload_free = true
+      expect(user.upload_free?).to be true
+    end
+
+    it "is true with the manual grant when the threshold is nil" do
+      allow(Danbooru.config.custom_configuration).to receive(:upload_karma_free_threshold).and_return(nil)
+      user.can_upload_free = true
+      expect(user.upload_free?).to be true
+    end
+
+    it "is false when no_karma_free is set even with the manual grant" do
+      user.can_upload_free = true
+      user.no_karma_free = true
+      expect(user.upload_free?).to be false
+    end
+
+    it "is true via earned karma without the manual grant" do
+      set_karma(user, upload_free_karma_threshold)
+      expect(user.upload_free?).to be true
+    end
   end
 end
