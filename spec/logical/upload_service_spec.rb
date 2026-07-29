@@ -279,7 +279,7 @@ RSpec.describe UploadService do
 
     context "is_pending? logic" do
       it "marks post as pending when uploader is below the karma free threshold" do
-        allow(upload.uploader).to receive(:upload_karma_free?).and_return(false)
+        allow(upload.uploader).to receive(:upload_free?).and_return(false)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
@@ -287,21 +287,35 @@ RSpec.describe UploadService do
         artist = create(:artist)
         create(:avoid_posting, artist: artist)
         upload.tag_string = artist.name
-        allow(upload.uploader).to receive_messages(upload_karma_free?: true, can_approve_posts?: false)
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: false)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
       it "marks post as pending when upload_as_pending? is true" do
-        allow(upload.uploader).to receive_messages(upload_karma_free?: true, can_approve_posts?: true)
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: true)
         allow(upload).to receive(:upload_as_pending?).and_return(true)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
       it "does not mark post as pending when no pending conditions apply" do
-        allow(upload.uploader).to receive_messages(upload_karma_free?: true, can_approve_posts?: true)
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: true)
         allow(upload).to receive(:upload_as_pending?).and_return(false)
         # upload.tag_string is "tagme" which has no artist tags, so avoid_posting_tags is []
         expect(service.convert_to_post(upload).is_pending).to be false
+      end
+
+      it "does not mark post as pending for a manual grantee even when karma bypass is disabled" do
+        allow(Danbooru.config.custom_configuration).to receive(:upload_karma_free_threshold).and_return(nil)
+        upload.uploader.update(can_upload_free: true)
+        expect(service.convert_to_post(upload).is_pending).to be false
+      end
+
+      it "marks post as pending for a manual grantee with avoid_posting tags who cannot approve" do
+        artist = create(:artist)
+        create(:avoid_posting, artist: artist)
+        upload.tag_string = artist.name
+        upload.uploader.update(can_upload_free: true)
+        expect(service.convert_to_post(upload).is_pending).to be true
       end
     end
 

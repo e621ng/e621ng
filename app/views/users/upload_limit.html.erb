@@ -36,8 +36,11 @@
         <% end %>
       </p>
 
-      <% if @user.upload_karma_free? %>
+      <% if @user.upload_free? %>
         <p><%= is_current_user ? "Your" : "This user's" %> uploads bypass the review queue and are posted directly as approved.</p>
+        <% if @user.can_upload_free? && !@user.upload_karma_free? %>
+          <p>This ability was manually granted by a staff member<%= karma_threshold_enabled ? ", independent of upload karma" : "" %>.</p>
+        <% end %>
       <% else %>
         <p>
           <%= is_current_user ? "You" : link_to_user(@user) %> currently
@@ -125,7 +128,7 @@
       </p>
       <ul>
         <li>Remaining hourly uploads: <%= CurrentUser.hourly_upload_limit %></li>
-        <% unless CurrentUser.upload_karma_free? || CurrentUser.is_privileged? %>
+        <% unless CurrentUser.upload_free? || CurrentUser.is_privileged? %>
           <li>Remaining hourly tag edits: <%= CurrentUser.post_edit_limit %></li>
         <% end %>
       </ul>

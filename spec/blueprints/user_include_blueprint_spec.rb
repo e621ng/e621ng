@@ -34,7 +34,23 @@ RSpec.describe UserIncludeBlueprint do
 
     it "reflects the user's permissions" do
       expect(result[:can][:approve_posts]).to eq(user.can_approve_posts?)
-      expect(result[:can][:upload_free]).to eq(user.upload_karma_free?)
+      expect(result[:can][:upload_free]).to eq(user.upload_free?)
+    end
+
+    context "when the user has a manual unlimited-uploads grant" do
+      let(:user) { create(:user, can_upload_free: true) }
+
+      it "serializes upload_free as true" do
+        expect(result[:can][:upload_free]).to be true
+      end
+    end
+
+    context "when a manual grantee is bypass-banned" do
+      let(:user) { create(:user, can_upload_free: true, no_karma_free: true) }
+
+      it "serializes upload_free as false" do
+        expect(result[:can][:upload_free]).to be false
+      end
     end
   end
 

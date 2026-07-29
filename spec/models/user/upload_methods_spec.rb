@@ -76,5 +76,27 @@ RSpec.describe User do
       member.reload
       expect(member.can_upload_with_reason).to eq(:REJ_UPLOAD_LIMIT)
     end
+
+    it "allows a manual grantee to bypass the queue with zero slots" do
+      member = create(:user, can_upload_free: true)
+      member.user_status.update_columns(post_replacement_rejected_count: 100)
+      member.reload
+      expect(member.can_upload_with_reason).to be true
+    end
+
+    it "allows a manual grantee when the karma threshold is nil" do
+      allow(Danbooru.config.custom_configuration).to receive(:upload_karma_free_threshold).and_return(nil)
+      member = create(:user, can_upload_free: true)
+      member.user_status.update_columns(post_replacement_rejected_count: 100)
+      member.reload
+      expect(member.can_upload_with_reason).to be true
+    end
+
+    it "returns :REJ_UPLOAD_LIMIT for a granted-but-banned user who is out of slots" do
+      member = create(:user, can_upload_free: true, no_karma_free: true)
+      member.user_status.update_columns(post_replacement_rejected_count: 100)
+      member.reload
+      expect(member.can_upload_with_reason).to eq(:REJ_UPLOAD_LIMIT)
+    end
   end
 end

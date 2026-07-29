@@ -24,6 +24,7 @@ class User < ApplicationRecord
   # ================================================================================================#
   # The following flags have corresponding database indexes:                                        #
   # * can_approve_posts                                                                             #
+  # * can_upload_free                                                                               #
   # ================================================================================================#
 
   # ================================================================================================#
@@ -32,6 +33,7 @@ class User < ApplicationRecord
   # * _no_feedback -> no_uploading                                                                  #
   # * _is_banned -> tag_warden                                                                      #
   # * _disable_post_tooltips -> no_karma_free                                                       #
+  # * _can_upload_free -> can_upload_free (reinstated, same meaning)                                #
   # ================================================================================================#
 
   BOOLEAN_ATTRIBUTES = %w[
@@ -51,7 +53,7 @@ class User < ApplicationRecord
     enable_auto_complete
     _has_saved_searches
     can_approve_posts
-    _can_upload_free
+    can_upload_free
     _disable_cropped_thumbnails
     _disable_mobile_gestures
     enable_safe_mode
@@ -703,7 +705,7 @@ class User < ApplicationRecord
         :REJ_UPLOAD_DISABLED
       elsif hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_HOURLY
-      elsif upload_karma_free?
+      elsif upload_free?
         true
       elsif can_approve_posts?
         true
@@ -867,6 +869,14 @@ class User < ApplicationRecord
       upload_karma_level >= Danbooru.config.upload_karma_free_threshold
     end
 
+    # Effective queue bypass. The staff bypass-ban (no_karma_free) beats the manual
+    # staff grant (can_upload_free), which works even when
+    # upload_karma_free_threshold is nil (karma auto-bypass disabled site-wide).
+    def upload_free?
+      return false if no_karma_free?
+      can_upload_free? || upload_karma_free?
+    end
+
     private
 
     def max_karma_level = 10
@@ -886,7 +896,7 @@ class User < ApplicationRecord
       list = super + %i[
         id created_at name level base_upload_limit upload_karma upload_karma_free?
         post_upload_count post_update_count note_update_count
-        is_banned can_approve_posts
+        is_banned can_approve_posts can_upload_free
         level_string avatar_id is_verified?
         has_cropped_avatar?
       ]
@@ -898,7 +908,7 @@ class User < ApplicationRecord
           is_banned receive_email_notifications
           enable_keyboard_navigation enable_privacy_mode
           style_usernames enable_auto_complete
-          can_approve_posts
+          can_approve_posts can_upload_free
           enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
           enable_compact_uploader replacements_beta forum_notification_dot
@@ -1119,7 +1129,7 @@ class User < ApplicationRecord
       include_mask = 0
       exclude_mask = 0
 
-      %i[can_approve_posts].each do |x|
+      %i[can_approve_posts can_upload_free].each do |x|
         next if params[x].blank?
         attr_idx = BOOLEAN_ATTRIBUTES.index(x.to_s)
         next if attr_idx.nil?

@@ -35,6 +35,10 @@ class UserPresenter
       permissions << "approve posts"
     end
 
+    if user.can_upload_free?
+      permissions << "unrestricted uploads"
+    end
+
     if user.replacements_beta?
       permissions << "replacements beta"
     end
@@ -59,7 +63,7 @@ class UserPresenter
   end
 
   def upload_limit(template)
-    if user.upload_karma_free?
+    if user.upload_free?
       return "none"
     end
 
@@ -73,7 +77,7 @@ class UserPresenter
 
   def upload_limit_short
     return "0 / 0" if user.no_uploading?
-    return "none" if user.upload_karma_free?
+    return "none" if user.upload_free?
     "#{user.upload_slots} / #{user.upload_slots_max}"
   end
 
