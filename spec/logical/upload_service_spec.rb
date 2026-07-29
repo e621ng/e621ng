@@ -198,6 +198,39 @@ RSpec.describe UploadService do
       post = service.create_post_from_upload(upload)
       expect(upload.reload.post_id).to eq(post.id)
     end
+
+    context "upload karma" do
+      it "grants +1 karma when the post bypasses the review queue" do
+        allow(uploader).to receive(:upload_free?).and_return(true)
+        expect { service.create_post_from_upload(upload) }
+          .to change { uploader.user_status.reload.upload_karma }.by(1)
+      end
+
+      it "does not grant karma when the post enters the review queue" do
+        allow(uploader).to receive(:upload_free?).and_return(false)
+        expect { service.create_post_from_upload(upload) }
+          .not_to(change { uploader.user_status.reload.upload_karma })
+      end
+
+      it "does not grant karma when upload_as_pending forces the post into the queue" do
+        allow(uploader).to receive(:upload_free?).and_return(true)
+        allow(upload).to receive(:upload_as_pending?).and_return(true)
+        expect { service.create_post_from_upload(upload) }
+          .not_to(change { uploader.user_status.reload.upload_karma })
+      end
+
+      it "nets +1 across an unlimited-upload user's upload, deletion, and undeletion" do
+        allow(uploader).to receive(:upload_free?).and_return(true)
+        admin = create(:admin_user)
+        expect do
+          post = service.create_post_from_upload(upload)  # +1: bypasses the queue on upload
+          CurrentUser.scoped(admin) do
+            post.delete!("Test reason")                   # -4: deleting a credited post reverses the +1 (-1) plus the -3 penalty
+            post.reload.undelete!                         # +4: a restored post is approved and worth +1 again
+          end
+        end.to change { uploader.user_status.reload.upload_karma }.by(1)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
