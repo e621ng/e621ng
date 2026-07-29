@@ -45,6 +45,11 @@ RSpec.describe PostReplacementCardComponent, type: :component do
       expect(doc.at_css(".replacement-card.is-expanded")).to be_present
     end
 
+    it "expands the current (md5 matches the post) replacement" do
+      doc = render_card(create(:approved_post_replacement, post: post_record, md5: post_record.md5))
+      expect(doc.at_css(".replacement-card.is-expanded")).to be_present
+    end
+
     it "collapses non-pending replacements" do
       doc = render_card(create(:approved_post_replacement, post: post_record))
       expect(doc.at_css(".replacement-card.is-expanded")).to be_nil

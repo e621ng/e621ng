@@ -13,12 +13,12 @@ class PostReplacementCardComponent < ViewComponent::Base
   }.freeze
 
   # timeline: draw the status dot + rail affordance (index). false for ticket embeds.
-  # expanded: override the open/closed default. nil => open iff pending.
+  # expanded: override the open/closed default. nil => open iff pending or current.
   def initialize(post_replacement:, timeline: false, expanded: nil, actions: true)
     super()
     @replacement = post_replacement
     @timeline = timeline
-    @expanded = expanded.nil? ? post_replacement.is_pending? : expanded
+    @expanded = expanded.nil? ? (post_replacement.is_pending? || post_replacement.is_current?) : expanded
     @actions = actions
     @user = CurrentUser.user
   end
