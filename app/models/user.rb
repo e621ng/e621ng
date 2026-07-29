@@ -746,7 +746,7 @@ class User < ApplicationRecord
     end
 
     def upload_slot_ceiling
-      Danbooru.config.upload_slots_base * 2
+      Danbooru.config.upload_slots_base * 5
     end
 
     def upload_slots_pieces
