@@ -58,8 +58,12 @@ $replacement-variants: (
     display: flex;
     justify-content: center;
     align-items: center;
+  }
 
-    &.is-current{
+  &.is-current {
+    border-color: palette("background-gold");
+
+    .replacement-dot {
       outline: 2px solid themed("color-section");
 
       &::before {
@@ -127,12 +131,12 @@ $replacement-variants: (
   height: 100%;
   border-top: 1px solid themed("color-section");
   background-color: transparent;
-  padding: 0.5rem 0;
 
   img {
     max-width: 256px;
     max-height: 256px;
-    padding: 0.5rem 0;
+    padding: 0.5rem;
+    box-sizing: border-box;
   }
 }
 

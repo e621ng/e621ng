@@ -61,6 +61,7 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
   })
     .done((html) => {
       E621.Toast.notice("Replacement approved.");
+      $(".is-current").removeClass("is-current");
       replace_row($row, html);
     })
     .fail((data) => {
