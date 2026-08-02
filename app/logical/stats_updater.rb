@@ -24,8 +24,8 @@ class StatsUpdater
     stats[:private_sets] = PostSet.where(is_public: false).count
     stats[:total_sets] = stats[:public_sets] + stats[:private_sets]
 
-    stats[:average_posts_per_pool] = Pool.average(Arel.sql("cardinality(post_ids)")) || 0
-    stats[:average_posts_per_set] = PostSet.average(Arel.sql("cardinality(post_ids)")) || 0
+    stats[:average_posts_per_pool] = Pool.average(Arel.sql("cardinality(post_ids)")).to_f
+    stats[:average_posts_per_set] = PostSet.average(Arel.sql("cardinality(post_ids)")).to_f
 
     stats[:safe_posts] = Post.tag_match("rating:s", always_show_deleted: true).count_only
     stats[:questionable_posts] = Post.tag_match("rating:q", always_show_deleted: true).count_only
@@ -37,7 +37,7 @@ class StatsUpdater
     stats[:swf_posts] = Post.tag_match("type:swf", always_show_deleted: true).count_only
     stats[:webm_posts] = Post.tag_match("type:webm", always_show_deleted: true).count_only
     stats[:mp4_posts] = Post.tag_match("type:mp4", always_show_deleted: true).count_only
-    stats[:average_file_size] = Post.average("file_size")
+    stats[:average_file_size] = Post.average("file_size").to_f
     stats[:total_file_size] = Post.sum("file_size")
     stats[:average_posts_per_day] = daily_average.call(stats[:total_posts])
 
