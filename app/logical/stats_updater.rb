@@ -3,7 +3,7 @@
 class StatsUpdater
   def self.run!
     stats = {}
-    stats[:started] = Post.find(Post.minimum("id")).created_at
+    stats[:started] = Post.find_by(id: Post.minimum("id"))&.created_at || Time.now
 
     daily_average = ->(total) do
       (total / ((Time.now - stats[:started]) / (60 * 60 * 24))).round
@@ -11,7 +11,7 @@ class StatsUpdater
 
     ### Posts ###
 
-    stats[:total_posts] = Post.maximum("id") || 0
+    stats[:total_posts] = Post.maximum("id").to_i
     stats[:active_posts] = Post.tag_match("status:active").count_only
     stats[:deleted_posts] = Post.tag_match("status:deleted").count_only
     stats[:existing_posts] = stats[:active_posts] + stats[:deleted_posts]
@@ -24,8 +24,8 @@ class StatsUpdater
     stats[:private_sets] = PostSet.where(is_public: false).count
     stats[:total_sets] = stats[:public_sets] + stats[:private_sets]
 
-    stats[:average_posts_per_pool] = Pool.average(Arel.sql("cardinality(post_ids)")).to_f
-    stats[:average_posts_per_set] = PostSet.average(Arel.sql("cardinality(post_ids)")).to_f
+    stats[:average_posts_per_pool] = Pool.average("cardinality(post_ids)").to_f
+    stats[:average_posts_per_set] = PostSet.average("cardinality(post_ids)").to_f
 
     stats[:safe_posts] = Post.tag_match("rating:s", always_show_deleted: true).count_only
     stats[:questionable_posts] = Post.tag_match("rating:q", always_show_deleted: true).count_only
@@ -48,13 +48,13 @@ class StatsUpdater
       stats[:"#{name.downcase}_users"] = User.where(level: level).count
     end
     stats[:unactivated_users] = User.where.not(email_verification_key: nil).count
-    stats[:total_dmails] = (Dmail.maximum("id") || 0) / 2
+    stats[:total_dmails] = Dmail.maximum("id").to_i / 2
     stats[:average_registrations_per_day] = daily_average.call(stats[:total_users])
     stats[:active_users] = User.where("last_logged_in_at >= ?", 3.months.ago).count
 
     ### Comments ###
 
-    stats[:total_comments] = Comment.maximum("id") || 0
+    stats[:total_comments] = Comment.maximum("id").to_i
     stats[:active_comments] = Comment.where(is_hidden: false).count
     stats[:hidden_comments] = Comment.where(is_hidden: true).count
     stats[:deleted_comments] = stats[:total_comments] - (stats[:active_comments] + stats[:hidden_comments])
@@ -63,14 +63,14 @@ class StatsUpdater
     ### Forum posts ###
 
     stats[:total_forum_threads] = ForumTopic.count
-    stats[:total_forum_posts] = ForumPost.maximum("id") || 0
+    stats[:total_forum_posts] = ForumPost.maximum("id").to_i
     stats[:average_posts_per_thread] = 0
     stats[:average_posts_per_thread] = (stats[:total_forum_posts] / stats[:total_forum_threads]).round if stats[:total_forum_threads] > 0
     stats[:average_forum_posts_per_day] = daily_average.call(stats[:total_forum_posts])
 
     ### Blips ###
 
-    stats[:total_blips] = Blip.maximum("id") || 0
+    stats[:total_blips] = Blip.maximum("id").to_i
     stats[:active_blips] = Blip.where(is_deleted: false).count
     stats[:deleted_blips] = Blip.where(is_deleted: true).count
     stats[:destroyed_blips] = stats[:total_blips] - (stats[:active_blips] + stats[:deleted_blips])
@@ -83,7 +83,7 @@ class StatsUpdater
       stats[:"#{cat}_tags"] = Tag.where(category: TagCategory::MAPPING[cat]).count
     end
 
-    stats[:updated_at] = Time.zone.now
+    stats[:updated_at] = Time.now
     Cache.redis.set("e6stats", stats.to_json)
   end
 end
