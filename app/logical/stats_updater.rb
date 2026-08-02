@@ -83,6 +83,7 @@ class StatsUpdater
       stats[:"#{cat}_tags"] = Tag.where(category: TagCategory::MAPPING[cat]).count
     end
 
+    stats[:updated_at] = Time.zone.now
     Cache.redis.set("e6stats", stats.to_json)
   end
 end
