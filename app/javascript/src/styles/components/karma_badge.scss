@@ -1,0 +1,53 @@
+.karma-badge {
+  display: flex;
+  flex-flow: column;
+  height: 5.5rem;
+  width: 3rem;
+  align-items: center;
+  overflow: hidden;
+  justify-content: space-between;
+
+  & &-title {
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+  }
+
+  & &-progress {
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    color: var(--color-text-muted);
+    font-family: monospace;
+  }
+
+  & &-outer {
+    display: flex;
+    flex-flow: column;
+    width: 3rem;
+    height: 3rem;
+    background: var(--color-section);
+    border-radius: 0.25rem;
+  }
+
+  & &-inner {
+    display: flex;
+    flex-flow: column;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0.125rem;
+    background: var(--color-section-lighten-5);
+    border-radius: 0.25rem;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 0 0 0.5rem var(--color-section-lighten-10);
+  }
+
+  & &-level {
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-link);
+
+    &.karma-badge-level-max {
+      color: var(--color-button-active);
+    }
+  }
+}
