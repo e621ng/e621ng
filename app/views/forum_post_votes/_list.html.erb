@@ -45,7 +45,7 @@
   <% end %>
 </ul>
 
-<% if warden_votes.present? %>
+<% if CurrentUser.user.is_staff? && warden_votes.present? %>
   <h4 class="forum-warden-vote-header">Endorsements</h4>
   <ul class="forum-warden-vote-list">
     <%= render partial: "forum_post_votes/warden_vote", collection: warden_votes, locals: { forum_post: forum_post, votable: votable } %>
