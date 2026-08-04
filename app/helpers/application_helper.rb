@@ -89,7 +89,7 @@ module ApplicationHelper
 
   def time_tag(content, time)
     datetime = time.strftime("%Y-%m-%dT%H:%M%:z")
-    tag.time(content || datetime, datetime: datetime, title: time.to_fs)
+    tag.time(content || datetime, datetime: datetime, title: time.to_fs, class: "time-waiting")
   end
 
   def time_ago_in_words_tagged(time, compact: false)

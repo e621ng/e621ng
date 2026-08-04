@@ -48,6 +48,7 @@ Comment.show_all = function (e) {
     const current_comment_section = $(`div.comments-for-post[data-post-id=${post_id}] div.list-of-comments`);
     current_comment_section.html(data.html);
     Comment.reinitialize_all();
+    E621.TimestampSwitch.load();
     $(window).trigger("e621:add_deferred_posts", data.posts);
   }).fail(function () {
     E621.Toast.alert("Failed to fetch all comments for this post.");
