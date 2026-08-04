@@ -12,8 +12,9 @@ export default class NoteManager {
     if (container.length == 0) return;
     if (!NoteManager.PermittedFileTypes.includes((container.data("file-ext") + ""))) return;
 
-    // Load notes from the staging area
-    $("#note-staging article").each((_, note) => { Note.fromStaged(note); });
+    // Load notes from the staging area.
+    // Note bodies may contain rendered DText thumbnails, so selector has to be precise
+    $("#note-staging > article.staged-note").each((_, note) => { Note.fromStaged(note); });
 
     // Highlight notes based on URL hash
     this.highlightHashNotes();
@@ -803,6 +804,11 @@ class Note {
     const $staged = $(stagedElement);
     const noteData = stagedElement.dataset;
     const html = $staged.html();
+
+    // Guard against elements that aren't staged notes
+    for (const field of ["id", "x", "y", "width", "height", "body"]) {
+      if (typeof noteData[field] === "undefined") return null;
+    }
 
     return new Note({
       id: noteData.id,
