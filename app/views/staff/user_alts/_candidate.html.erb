@@ -10,6 +10,9 @@
       <span class="text-red text-bold" title="A fresh account took over a shared IP within days of the other's last use there.">
         yes
       </span>
+      <span class="user-alt-meta" title="Via IP shared by <%= candidate[:handoff_users] %> user<%= candidate[:handoff_users] > 1 ? "s" : "" %>">
+        x<%= candidate[:handoff_users] %>
+      </span>
     <% end %>
   </td>
   <td><%= candidate[:shared_exact] %> exact, <%= candidate[:shared_subnet] %> subnet-only</td>

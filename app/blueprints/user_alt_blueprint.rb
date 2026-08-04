@@ -8,6 +8,7 @@ class UserAltBlueprint < Blueprinter::Base
   field :user_id
   field :score
   field :handoff
+  field :handoff_users
   field :shared_exact
   field :shared_subnet
   field :total_ips

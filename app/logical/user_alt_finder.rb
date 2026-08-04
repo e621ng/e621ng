@@ -9,8 +9,10 @@
 #
 # contributions are grouped per ASN (siblings add log2 weight, crowded pools are
 # sqrt-discounted), the top-5 groups summed into evidence, then
-#   score = evidence × (0.3 + 0.7·√ratio) + handoff_bonus
-# normalized to 0-100 against a configured saturation point.
+#   score = evidence × (0.3 + 0.7·√ratio) + handoff bonus
+# normalized to 0-100 against a configured saturation point. The handoff bonus
+# is scaled by the triggering IP's quality and capped at the organic evidence,
+# so the flag can never dominate a score on its own.
 class UserAltFinder
   DWELL_FULL_DAYS    = 14.0
   ASN_SIBLING_WEIGHT = 0.15
@@ -19,6 +21,7 @@ class UserAltFinder
   RATIO_FLOOR        = 0.3
   HANDOFF_DAYS       = 14.0
   HANDOFF_BONUS      = 1.5
+  HANDOFF_MAX_USERS  = 3 # only near-exclusive IPs can anchor a handoff
   CHAIN_MIN_SCORE    = 2.0   # displayed-score threshold for chain expansion
   CHAIN_FANOUT       = 3     # at most this many direct candidates expanded
   CHAIN_RESULTS      = 3     # indirect candidates surfaced per expanded base
@@ -214,8 +217,10 @@ class UserAltFinder
       c[:total_ips] = [totals[c[:user_id]] || shared, shared].max
       ratio = shared > 0 ? shared.to_f / c[:total_ips] : 0.0
       ratio_factor = RATIO_FLOOR + ((1 - RATIO_FLOOR) * Math.sqrt([ratio, 1.0].min))
-      c[:handoff] = c[:user] ? handoff?(target, c[:user], c[:exact]) : false
-      raw = (c[:evidence_sum] * ratio_factor) + (c[:handoff] ? HANDOFF_BONUS : 0)
+      trigger = c[:user] ? handoff_trigger(target, c[:user], c[:exact]) : nil
+      c[:handoff] = !trigger.nil?
+      c[:handoff_users] = trigger && trigger[:n_users]
+      raw = (c[:evidence_sum] * ratio_factor) + handoff_bonus(trigger, c)
       c[:score] = [100.0 * raw / saturation, 100.0].min.round(1)
       annotate_display!(c)
     end
@@ -271,15 +276,32 @@ class UserAltFinder
   # A fresh account taking over a shared IP: the later usage window starts within
   # HANDOFF_DAYS of the earlier one ending, AND that later account was itself
   # created within HANDOFF_DAYS of the handoff. Symmetric in the two accounts.
-  def handoff?(target_user, cand_user, shared_exact)
-    shared_exact.any? do |e|
-      a = e[:mine]
-      b = e[:theirs]
-      early, late, late_user = a[:first] <= b[:first] ? [a, b, cand_user] : [b, a, target_user]
-      gap_days = (late[:first] - early[:last]) / 1.day
-      next false unless gap_days.between?(-1.0, HANDOFF_DAYS)
-      ((late_user.created_at - early[:last]).abs / 1.day) <= HANDOFF_DAYS
-    end
+  # Only IPs shared by at most HANDOFF_MAX_USERS distinct users qualify — on
+  # pool infrastructure (Tor/VPN exits) sequential reuse between strangers is
+  # routine, so a busy IP changing hands says nothing. Returns the strongest
+  # qualifying evidence item, or nil.
+  def handoff_trigger(target_user, cand_user, shared_exact)
+    shared_exact.select { |e| e[:n_users] <= HANDOFF_MAX_USERS && handoff_timing?(target_user, cand_user, e) }
+                .max_by { |e| e[:contribution] }
+  end
+
+  def handoff_timing?(target_user, cand_user, evidence)
+    a = evidence[:mine]
+    b = evidence[:theirs]
+    early, late, late_user = a[:first] <= b[:first] ? [a, b, cand_user] : [b, a, target_user]
+    gap_days = (late[:first] - early[:last]) / 1.day
+    return false unless gap_days.between?(-1.0, HANDOFF_DAYS)
+    ((late_user.created_at - early[:last]).abs / 1.day) <= HANDOFF_DAYS
+  end
+
+  # Scaled by the triggering IP's own quality (its rarity and its ASN group's
+  # crowd factor) and capped at the organic evidence, so the flag highlights a
+  # candidate but can at most double their raw score.
+  def handoff_bonus(trigger, candidate)
+    return 0.0 unless trigger
+    rarity = 1.0 / Math.log2(1 + trigger[:n_users])
+    crowd = candidate[:groups].find { |g| g[:group] == trigger[:asn_group] }&.fetch(:crowd_factor) || 1.0
+    [HANDOFF_BONUS * rarity * crowd, candidate[:evidence_sum]].min
   end
 
   # --- ASN helpers ----------------------------------------------------------
