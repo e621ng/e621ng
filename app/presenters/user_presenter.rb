@@ -43,7 +43,7 @@ class UserPresenter
       permissions << "replacements beta"
     end
 
-    if user.tag_warden?
+    if CurrentUser.user.is_staff? && user.tag_warden?
       permissions << "tag warden"
     end
 
