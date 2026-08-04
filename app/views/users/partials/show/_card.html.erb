@@ -2,11 +2,6 @@
   <div class="user-card">
     <div class="user-card-avatar">
       <%= render AvatarComponent.new(user: @user) %>
-      <% if @user.upload_karma_level > 0 %>
-        <div class="user-card-level">
-          <%= @user.upload_karma_level >= 10 ? "S" : @user.upload_karma_level %>
-        </div>
-      <% end %>
     </div>
     <div class="user-card-info">
       <div class="user-card-name">
@@ -26,18 +21,9 @@
     <div class="user-card-feedback">
       <%= render(UserFeedbackComponent.new(user: @user, style: :badge)) %>
     </div>
-    <div class="user-card-karma">
-      <% if @user.upload_karma > 0 %>
-        <div class="user-card-karma-percent">
-          <%= @user.upload_karma %>
-          <% if @user.upload_karma_level < 10 %>
-            / <%= @user.required_karma_for_level(@user.upload_karma_level + 1) %>
-          <% end %>
-        </div>
-      <% end %>
-      <div class="user-card-karma-progress">
-        <div class="user-card-karma-progress-bar" style="width: <%= @user.upload_karma_percent %>%"></div>
-      </div>
-    </div>
+  </div>
+
+  <div class="user-badges">
+    <%= render KarmaBadge.new(user: @user) %>
   </div>
 </div>

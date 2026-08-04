@@ -1,5 +1,15 @@
 $avatar-height: 4.5rem;
 
+.user-header {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+
+  @include window-larger-than(30rem) {
+    flex-flow: row;
+  }
+}
+
 .user-card {
   display: grid;
   grid-template-columns: $avatar-height auto min-content;
@@ -8,7 +18,7 @@ $avatar-height: 4.5rem;
 
   background: themed("color-section");
   border-radius: 0.25rem;
-  padding: 0.5rem 0.5rem 0;
+  padding: 0.5rem 0.5rem;
 
   & &-avatar {
     --thumb-image-size: #{$avatar-height};
@@ -16,24 +26,6 @@ $avatar-height: 4.5rem;
 
     article.thumbnail {
       box-shadow: 0 0 0.5rem -0.25rem themed("color-background");
-    }
-
-    .user-card-level {
-      position: absolute;
-      background: themed("color-button-active");
-      color: palette("plain-black");
-      width: 1rem;
-      height: 1rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 50%;
-      line-height: 0;
-      font-size: 0.75rem;
-      bottom: -0.25rem;
-      right: -0.25rem;
-      border: 0.125rem solid themed("color-section");
-      font-weight: bold;
     }
   }
 
@@ -84,33 +76,9 @@ $avatar-height: 4.5rem;
       gap: 0.25rem;
     }
   }
+}
 
-  & &-karma {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    position: relative;
-
-    &-percent {
-      position: absolute;
-      line-height: 1rem;
-      font-size: 0.75rem;
-      color: themed("color-text-muted");
-      top: -1rem;
-      right: 1.5rem;
-      font-family: monospace;
-    }
-
-    &-progress {
-      height: 0.125rem;
-      background: themed("color-section-lighten-5");
-      margin: 0 -0.5rem;
-      border-radius: 0 0 0.25rem 0.25rem;
-      overflow: hidden;
-
-      &-bar {
-        background: themed("color-button-active");
-        height: 100%;
-      }
-    }
-  }
+.user-badges {
+  display: flex;
+  justify-content: center;
 }

@@ -877,9 +877,9 @@ class User < ApplicationRecord
       can_upload_free? || upload_karma_free?
     end
 
-    private
-
     def max_karma_level = 10
+
+    private
 
     def upload_karma_l1 = Danbooru.config.upload_karma_l1_threshold.to_f
     def upload_karma_l10 = Danbooru.config.upload_karma_l10_threshold.to_f
