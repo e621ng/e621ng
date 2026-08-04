@@ -112,6 +112,45 @@ RSpec.describe UserAltFinder do
 
       candidate = described_class.new(target).candidates.find { |c| c[:user_id] == alt.id }
       expect(candidate[:handoff]).to be(true)
+      expect(candidate[:handoff_users]).to eq(2)
+    end
+
+    it "does not anchor a handoff on an IP shared by several users" do
+      target = create(:user, created_at: 90.days.ago)
+      alt = create(:user, created_at: 6.days.ago)
+      bystanders = create_list(:user, 3)
+
+      seen(target, "203.0.113.70", first: 40.days.ago, last: 8.days.ago)
+      seen(alt, "203.0.113.70", first: 5.days.ago, last: 1.day.ago)
+      # 5 distinct users on the IP (> HANDOFF_MAX_USERS): pool infrastructure
+      # changing hands, not a household IP being handed off.
+      bystanders.each { |u| seen(u, "203.0.113.70") }
+
+      candidate = described_class.new(target).candidates.find { |c| c[:user_id] == alt.id }
+      expect(candidate[:handoff]).to be(false)
+      expect(candidate[:handoff_users]).to be_nil
+    end
+
+    it "caps the handoff bonus at the organic evidence instead of adding a flat jump" do
+      target = create(:user, created_at: 90.days.ago)
+      handoff_alt = create(:user, created_at: 6.days.ago)
+      plain_alt = create(:user, created_at: 2.years.ago)
+
+      # Identical single-IP evidence; only the account ages differ.
+      seen(target, "203.0.113.70", first: 40.days.ago, last: 8.days.ago)
+      seen(handoff_alt, "203.0.113.70", first: 5.days.ago, last: 1.day.ago)
+      seen(target, "198.51.100.70", first: 40.days.ago, last: 8.days.ago)
+      seen(plain_alt, "198.51.100.70", first: 5.days.ago, last: 1.day.ago)
+
+      candidates = described_class.new(target).candidates
+      flagged = candidates.find { |c| c[:user_id] == handoff_alt.id }
+      plain = candidates.find { |c| c[:user_id] == plain_alt.id }
+
+      expect(flagged[:handoff]).to be(true)
+      expect(plain[:handoff]).to be(false)
+      expect(flagged[:score]).to be > plain[:score]
+      # A lone weak handoff used to land ~75-90; it must no longer dominate.
+      expect(flagged[:score]).to be < 50
     end
   end
 
