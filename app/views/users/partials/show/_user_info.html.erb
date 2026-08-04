@@ -39,7 +39,7 @@
     </div>
   <% end %>
 
-  <% unless user.upload_karma_free? %>
+  <% unless user.upload_free? %>
     <div class="profile-line">
       <h4><%= svg_icon(:upload) %> Upload Limit</h4>
       <span class="profile-line-number">
