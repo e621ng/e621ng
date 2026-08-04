@@ -24,7 +24,7 @@ class KarmaBadge < ViewComponent::Base
 
   def badge_title
     if user.upload_karma_level >= 10
-      return "Upload Karma: #{user.upload_karma} / #{user.upload_karma_level * 100} (Level S)"
+      return "Upload Karma: #{user.upload_karma} (Level S)"
     end
 
     next_level = user.upload_karma_level + 1
