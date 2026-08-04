@@ -105,7 +105,7 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
     },
   }
 
-  Sidekiq::Cron::Job.load_from_hash schedule
+  Sidekiq::Cron::Job.load_from_hash! schedule, source: "schedule"
 end
 
 Sidekiq.configure_client do |config|
