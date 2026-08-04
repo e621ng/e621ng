@@ -39,15 +39,17 @@
     </div>
   <% end %>
 
-  <div class="profile-line">
-    <h4><%= svg_icon(:upload) %> Upload Limit</h4>
-    <span class="profile-line-number">
-      <%= link_to presenter.upload_limit_short, upload_limit_user_path(user) %>
-    </span>
-    <span class="profile-line-extra">
-      Max number of unapproved posts at a time.
-    </span>
-  </div>
+  <% unless user.upload_karma_free? %>
+    <div class="profile-line">
+      <h4><%= svg_icon(:upload) %> Upload Limit</h4>
+      <span class="profile-line-number">
+        <%= link_to presenter.upload_limit_short, upload_limit_user_path(user) %>
+      </span>
+      <span class="profile-line-extra">
+        Max number of unapproved posts at a time.
+      </span>
+    </div>
+  <% end %>
 
   <div class="profile-line">
     <h4><%= svg_icon(:replace) %> Changes</h4>

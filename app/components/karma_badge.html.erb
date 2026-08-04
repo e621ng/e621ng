@@ -1,15 +1,19 @@
-<div class="karma-badge">
+<a
+  href="<%= upload_limit_user_path(user) %>"
+  class="karma-badge"
+  title="<%= badge_title %>"
+>
   <div class="karma-badge-title">
-    Karma
+    Level
   </div>
   <div class="karma-badge-outer" style="<%= progress_degree_style %>">
     <div class="karma-badge-inner">
       <div class="karma-badge-level<%= ' karma-badge-level-max' if user.upload_karma_level >= 10 %>">
-        <%= user.upload_karma_level >= 10 ? "S" : user.upload_karma_level %>
+        <%= karma_level %>
       </div>
     </div>
   </div>
   <div class="karma-badge-progress">
-    <%= @user.upload_karma %>
+    <%= user.upload_karma %>
   </div>
-</div>
+</a>
