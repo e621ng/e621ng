@@ -311,3 +311,15 @@ label.sto-toggle--tri {
     @include st-radius;
   }
 }
+
+time.time-switchable.not-link {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 0.125rem;
+}
+
+.time-switchable-icon {
+  cursor: help;
+  font-style: normal;
+  margin-left: 0.25rem;
+}

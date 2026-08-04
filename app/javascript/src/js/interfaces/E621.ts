@@ -1,7 +1,7 @@
 import Autocomplete from "@/components/autocomplete";
 import DTextFormatter from "@/components/DTextFormatter";
 import ThumbnailEngine from "@/components/ThumbnailEngine";
-import { TimestampSwitch } from "@/components/TimestampSwitch";
+import TimestampSwitch from "@/components/TimestampSwitch";
 import Blacklist from "@/core/blacklist";
 import DeferredPostLoader from "@/core/DeferredPostLoader";
 import Hotkeys from "@/core/hotkeys";
