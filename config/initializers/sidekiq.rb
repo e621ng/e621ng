@@ -55,6 +55,48 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
       "queue" => "low_prio",
       "description" => "Reset IQDB concurrent request counter to recover from worker crashes",
     },
+    "DailyPruneJob" => {
+      "cron" => "0 1 * * *", # Every day at 1:00 AM
+      "class" => "DailyPruneJob",
+      "queue" => "low_prio",
+      "description" => "Prune expired uploads, bans, nonces, and exception logs; fix stale counts and flags",
+    },
+    "StatsUpdateJob" => {
+      "cron" => "0 1 * * *", # Every day at 1:00 AM
+      "class" => "StatsUpdateJob",
+      "queue" => "low_prio",
+      "description" => "Recalculate and cache the site-wide statistics",
+    },
+    "PostPruneJob" => {
+      "cron" => "10 1 * * *", # Every day at 1:10 AM
+      "class" => "PostPruneJob",
+      "queue" => "low_prio",
+      "description" => "Delete pending posts that were not approved within the moderation window",
+    },
+    "ForumSubscriptionMailJob" => {
+      "cron" => "20 1 * * *", # Every day at 1:20 AM
+      "class" => "ForumSubscriptionMailJob",
+      "queue" => "low_prio",
+      "description" => "Send forum topic digest emails to subscribed users",
+    },
+    "DiscordReportsJob" => {
+      "cron" => "30 1 * * *", # Every day at 1:30 AM
+      "class" => "DiscordReportsJob",
+      "queue" => "low_prio",
+      "description" => "Post the daily janitor/moderator/AIBUR queue reports to Discord",
+    },
+    "ApiKeyExpirationWarningJob" => {
+      "cron" => "40 1 * * *", # Every day at 1:40 AM
+      "class" => "ApiKeyExpirationWarningJob",
+      "queue" => "low_prio",
+      "description" => "Warn users about API keys that are about to expire",
+    },
+    "SearchTrendPruneJob" => {
+      "cron" => "50 1 * * *", # Every day at 1:50 AM
+      "class" => "SearchTrendPruneJob",
+      "queue" => "low_prio",
+      "description" => "Prune old hourly and daily search trend records",
+    },
     "UserIpAddressPruneJob" => {
       "cron" => "0 2 * * *", # Every day at 2:00 AM
       "class" => "UserIpAddressPruneJob",
