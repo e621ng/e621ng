@@ -1,6 +1,11 @@
 <div id="c-stats">
   <div id="a-index">
-    <p>Refreshed once a day.</p>
+    <p>
+      Refreshed once a day.
+      <% if @stats["updated_at"].present? %>
+        Last updated at <%= compact_time(DateTime.parse(@stats["updated_at"])) %>.
+      <% end %>
+    </p>
     <div class="stats-column">
       <%= render "stats_table", header_title: "Site", data: [
           ["Started", compact_time(DateTime.parse(@stats["started"]))],
