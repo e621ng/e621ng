@@ -42,10 +42,20 @@ module Downloads
     end
 
     def download!(max_size: Danbooru.config.max_file_size)
+      # Validate the actual URL we're about to fetch (which can differ from the source
+      # url via the strategy's image_url) before opening any socket.
+      validate_uri_allowed!(uncached_url)
+
       file = Tempfile.new(binmode: true)
       conn = Faraday.new(Danbooru.config.faraday_options) do |f|
         f.response :follow_redirects, callback: ->(_old_env, new_env) { validate_uri_allowed!(new_env.url) }
         f.request :retry, max: 3, retry_block: ->(*) { file = Tempfile.new(binmode: true) }
+        # Pin the connection to a validated IP. The adapter block runs per request —
+        # including every redirect and retry — so the exact address checked against
+        # BLOCKED_IP_RANGES is the exact address connected to (no DNS-rebind window).
+        f.adapter :net_http do |http|
+          pin_connection!(http)
+        end
       end
 
       res = conn.get(uncached_url, nil, strategy.headers) do |req|
@@ -106,15 +116,57 @@ module Downloads
     def validate_uri_allowed!(uri)
       return if uri.hostname.blank?
 
-      ip_addr = IPAddr.new(Resolv.getaddress(uri.hostname))
-      if BLOCKED_IP_RANGES.any? { |range| range.include?(ip_addr) }
-        raise Downloads::File::Error, "Downloads from this address are not allowed"
-      end
+      resolve_and_validate_addresses!(uri.hostname)
 
       valid, _reason = UploadWhitelist.is_whitelisted?(uri)
       unless valid
         raise Downloads::File::Error, "'#{uri}' is not whitelisted and can't be direct downloaded"
       end
+    end
+
+    # Pin the underlying Net::HTTP connection to a validated IP so it can't be re-resolved
+    # to a blocked address between validation and connect. Keeps the hostname as #address
+    # (preserving TLS SNI and the Host header) while overriding only the socket target.
+    def pin_connection!(http)
+      return if http.address.blank?
+
+      http.ipaddr = resolve_and_validate_addresses!(http.address)
+    end
+
+    # Resolve a host to its addresses and reject if ANY of them falls in a blocked range.
+    # Fails closed on empty/failed resolution. Returns the address to connect to.
+    def resolve_and_validate_addresses!(host)
+      host = normalize_host(host)
+      raise Downloads::File::Error, "Downloads from this address are not allowed" if host.blank?
+
+      addresses = ip_literal?(host) ? [host] : Resolv.getaddresses(host)
+      raise Downloads::File::Error, "Could not resolve '#{host}'" if addresses.blank?
+
+      ip_addrs = addresses.map { |address| IPAddr.new(normalize_host(address)) }
+      if ip_addrs.any? { |ip_addr| BLOCKED_IP_RANGES.any? { |range| range.include?(ip_addr) } }
+        raise Downloads::File::Error, "Downloads from this address are not allowed"
+      end
+
+      # Pinning to a single IP loses the OS-level fallback across A/AAAA records that
+      # connecting by hostname provided. Prefer an IPv4 record when both families are
+      # present so an IPv6-only pin can't break downloads on hosts without a v6 route.
+      (ip_addrs.find(&:ipv4?) || ip_addrs.first).to_s
+    rescue Resolv::ResolvError, IPAddr::InvalidAddressError
+      raise Downloads::File::Error, "Could not resolve '#{host}'"
+    end
+
+    # Strip the brackets Addressable/URI wrap around IPv6 literals so IPAddr and
+    # Net::HTTP#ipaddr= (which both want a bare address) accept them.
+    def normalize_host(host)
+      host = host.to_s
+      host.start_with?("[") && host.end_with?("]") ? host[1..-2] : host
+    end
+
+    def ip_literal?(host)
+      IPAddr.new(host)
+      true
+    rescue IPAddr::InvalidAddressError
+      false
     end
   end
 end

@@ -6,7 +6,9 @@ RSpec.describe Downloads::File do
   include_context "as member"
 
   before do
-    allow(Resolv).to receive(:getaddress).and_return("1.2.3.4")
+    # #validate_uri_allowed! / #pin_connection! resolve via Resolv.getaddresses (plural);
+    # #is_cloudflare? still uses Resolv.getaddress (singular).
+    allow(Resolv).to receive_messages(getaddresses: ["1.2.3.4"], getaddress: "1.2.3.4")
     allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, nil])
     allow(CloudflareService).to receive(:ips).and_return([])
   end
@@ -62,19 +64,19 @@ RSpec.describe Downloads::File do
 
     describe "IP address validation" do
       it "raises Downloads::File::Error for a private IP (10.x.x.x)" do
-        allow(Resolv).to receive(:getaddress).and_return("10.0.0.1")
+        allow(Resolv).to receive(:getaddresses).and_return(["10.0.0.1"])
         expect { described_class.new("https://example.com/image.jpg") }
           .to raise_error(Downloads::File::Error, /not allowed/)
       end
 
       it "raises Downloads::File::Error for a loopback IP (127.0.0.1)" do
-        allow(Resolv).to receive(:getaddress).and_return("127.0.0.1")
+        allow(Resolv).to receive(:getaddresses).and_return(["127.0.0.1"])
         expect { described_class.new("https://example.com/image.jpg") }
           .to raise_error(Downloads::File::Error, /not allowed/)
       end
 
       it "raises Downloads::File::Error for a link-local IP (169.254.x.x)" do
-        allow(Resolv).to receive(:getaddress).and_return("169.254.1.1")
+        allow(Resolv).to receive(:getaddresses).and_return(["169.254.1.1"])
         expect { described_class.new("https://example.com/image.jpg") }
           .to raise_error(Downloads::File::Error, /not allowed/)
       end
@@ -163,21 +165,52 @@ RSpec.describe Downloads::File do
     end
 
     it "raises Downloads::File::Error for a private IP (10.x.x.x)" do
-      allow(Resolv).to receive(:getaddress).and_return("10.0.0.1")
+      allow(Resolv).to receive(:getaddresses).and_return(["10.0.0.1"])
       expect { call("https://example.com/image.jpg") }
         .to raise_error(Downloads::File::Error, /not allowed/)
     end
 
     it "raises Downloads::File::Error for a loopback IP (127.0.0.1)" do
-      allow(Resolv).to receive(:getaddress).and_return("127.0.0.1")
+      allow(Resolv).to receive(:getaddresses).and_return(["127.0.0.1"])
       expect { call("https://example.com/image.jpg") }
         .to raise_error(Downloads::File::Error, /not allowed/)
     end
 
     it "raises Downloads::File::Error for a link-local IP (169.254.x.x)" do
-      allow(Resolv).to receive(:getaddress).and_return("169.254.1.1")
+      allow(Resolv).to receive(:getaddresses).and_return(["169.254.1.1"])
       expect { call("https://example.com/image.jpg") }
         .to raise_error(Downloads::File::Error, /not allowed/)
+    end
+
+    it "raises when ANY resolved record is blocked, even if the first is public" do
+      # Multi-record bypass: getaddress would only inspect the first (public) record.
+      allow(Resolv).to receive(:getaddresses).and_return(["1.2.3.4", "10.0.0.1"])
+      expect { call("https://example.com/image.jpg") }
+        .to raise_error(Downloads::File::Error, /not allowed/)
+    end
+
+    it "raises when the host resolves to no addresses (fail closed)" do
+      allow(Resolv).to receive(:getaddresses).and_return([])
+      expect { call("https://example.com/image.jpg") }
+        .to raise_error(Downloads::File::Error, /could not resolve/i)
+    end
+
+    it "raises when resolution fails (fail closed)" do
+      allow(Resolv).to receive(:getaddresses).and_raise(Resolv::ResolvError)
+      expect { call("https://example.com/image.jpg") }
+        .to raise_error(Downloads::File::Error, /could not resolve/i)
+    end
+
+    it "raises a clean error (not a 500) when a resolved record is unparseable by IPAddr" do
+      allow(Resolv).to receive(:getaddresses).and_return(["not-an-ip-address"])
+      expect { call("https://example.com/image.jpg") }
+        .to raise_error(Downloads::File::Error, /could not resolve/i)
+    end
+
+    it "validates an IP-literal host directly without DNS resolution" do
+      expect { call("https://127.0.0.1/image.jpg") }
+        .to raise_error(Downloads::File::Error, /not allowed/)
+      expect(Resolv).not_to have_received(:getaddresses).with("127.0.0.1")
     end
 
     # IPv6 transition and IPv4-mapped addresses embed a blocked IPv4 target but are
@@ -193,7 +226,7 @@ RSpec.describe Downloads::File do
       "unspecified IPv6 address (::)" => "::",
     }.each do |description, address|
       it "raises Downloads::File::Error for #{description}" do
-        allow(Resolv).to receive(:getaddress).and_return(address)
+        allow(Resolv).to receive(:getaddresses).and_return([address])
         expect { call("https://example.com/image.jpg") }
           .to raise_error(Downloads::File::Error, /not allowed/)
       end
@@ -207,6 +240,51 @@ RSpec.describe Downloads::File do
 
     it "returns nil for a public IP with a whitelisted URL" do
       expect(call("https://example.com/image.jpg")).to be_nil
+    end
+  end
+
+  describe "#pin_connection!" do
+    let(:downloader) { make_downloader }
+
+    def pin(host, port = 443)
+      http = Net::HTTP.new(host, port)
+      downloader.send(:pin_connection!, http)
+      http
+    end
+
+    it "pins the connection to the validated IP while preserving the hostname" do
+      allow(Resolv).to receive(:getaddresses).and_return(["1.2.3.4"])
+      http = pin("example.com")
+      expect(http.ipaddr).to eq("1.2.3.4")
+      expect(http.address).to eq("example.com") # Host header / TLS SNI unchanged
+    end
+
+    it "refuses to pin when the host rebinds to a blocked address" do
+      allow(Resolv).to receive(:getaddresses).and_return(["1.2.3.4", "10.0.0.1"])
+      expect { pin("example.com") }.to raise_error(Downloads::File::Error, /not allowed/)
+    end
+
+    it "prefers an IPv4 record when both families resolve (keeps v6-only pins from breaking downloads)" do
+      allow(Resolv).to receive(:getaddresses).and_return(["2606:4700::1111", "1.2.3.4"])
+      expect(pin("example.com").ipaddr).to eq("1.2.3.4")
+    end
+
+    it "pins a resolved IPv6 address in unbracketed form" do
+      allow(Resolv).to receive(:getaddresses).and_return(["2606:4700::1111"])
+      http = pin("example.com")
+      expect(http.ipaddr).to eq("2606:4700::1111")
+    end
+
+    it "refuses a blocked IPv6 literal host" do
+      expect { pin("[::1]") }.to raise_error(Downloads::File::Error, /not allowed/)
+    end
+
+    it "re-validates on every call (covers redirects and retries)" do
+      allow(Resolv).to receive(:getaddresses).and_return(["1.2.3.4"])
+      expect { pin("example.com") }.not_to raise_error
+
+      allow(Resolv).to receive(:getaddresses).and_return(["169.254.169.254"])
+      expect { pin("example.com") }.to raise_error(Downloads::File::Error, /not allowed/)
     end
   end
 
