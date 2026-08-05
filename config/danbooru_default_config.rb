@@ -358,6 +358,19 @@ module Danbooru
       "abc123"
     end
 
+    # Encrypts TOTP secrets at rest. Must be a 64-character hex string (32 bytes once
+    # unpacked); generate with `SecureRandom.hex(32)` and override in production BEFORE
+    # deploying 2FA — enrolled secrets cannot be recovered if this key changes.
+    def totp_encryption_key
+      raise "Danbooru.config.totp_encryption_key is not set" if Rails.env.production?
+      "0" * 64
+    end
+
+    # Issuer label shown in authenticator apps.
+    def totp_issuer
+      app_name
+    end
+
     def tag_type_change_cutoff
       100
     end

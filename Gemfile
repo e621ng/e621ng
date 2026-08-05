@@ -36,6 +36,8 @@ gem "redis"
 gem "request_store"
 gem "zxcvbn-ruby", require: "zxcvbn"
 gem "view_component"
+gem "rotp", "~> 6.3"
+gem "rqrcode", "~> 3.0"
 
 gem "diffy"
 gem "rugged"

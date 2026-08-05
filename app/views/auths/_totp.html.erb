@@ -1,0 +1,18 @@
+<div class="auth-flow-wrapper">
+  <%= simple_form_for(:totp, url: verify_totp_session_path, html: { id: "auth-totp-form", class: "auth-form auth-totp" }) do |form| %>
+    <h1>Two-factor authentication</h1>
+    <p>Enter the code from your authenticator app, or one of your backup codes.</p>
+
+    <div class="auth-input">
+      <%= form.label :code, class: "st-immersive-input" do %>
+        <span class="label-text">Code</span>
+        <%# No inputmode: backup codes are alphanumeric, and a numeric keyboard would block them on mobile. %>
+        <%= form.input_field :code, required: true, autocomplete: "one-time-code" %>
+      <% end %>
+    </div>
+
+    <%= form.submit("Continue", class: "st-button submit") %>
+
+    <div class="auth-spacer" id="auth-error"></div>
+  <% end %>
+</div>

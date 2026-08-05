@@ -129,6 +129,7 @@ class User < ApplicationRecord
   has_many :api_keys, dependent: :destroy
   has_many :oauth_applications, class_name: "Doorkeeper::Application", as: :owner, dependent: :destroy
   has_one :dmail_filter
+  has_one :totp, class_name: "UserTotp", dependent: :destroy
   has_one :user_status
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
   has_many :bans, -> { order("bans.id desc") }
@@ -241,8 +242,16 @@ class User < ApplicationRecord
   end
 
   module PasswordMethods
+    # Validates sessions (session[:ph]) and remember cookies; changing its value logs
+    # out every existing session for the user. Folding in the TOTP ciphertext makes
+    # enabling/disabling/resetting 2FA do exactly that. The totp-less branch must keep
+    # the historical formula, or deploying this would log out the entire site.
     def password_token
-      Zlib.crc32(bcrypt_password_hash)
+      if totp.present?
+        Zlib.crc32("#{bcrypt_password_hash}:#{totp.secret_ciphertext}")
+      else
+        Zlib.crc32(bcrypt_password_hash)
+      end
     end
 
     def bcrypt_password
@@ -315,6 +324,10 @@ class User < ApplicationRecord
       def bcrypt(pass)
         BCrypt::Password.create(pass)
       end
+    end
+
+    def totp_enabled?
+      totp.present?
     end
   end
 

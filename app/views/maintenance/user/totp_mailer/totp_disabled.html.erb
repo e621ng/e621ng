@@ -1,0 +1,19 @@
+<mj-section mj-class="container hex-bg">
+  <mj-column>
+
+    <mj-text mj-class="text">
+      <h2>Hi, <%= @user.name %>!</h2>
+      <p>
+        Two-factor authentication was just <strong>disabled</strong> on your <%= Danbooru.config.app_name %> account.
+        Logging in now requires only your password.
+      </p>
+      <p>
+        All other sessions have been logged out.
+      </p>
+      <p>
+        If you did not do this, your account may be compromised — reset your password immediately and contact staff.
+      </p>
+    </mj-text>
+
+  </mj-column>
+</mj-section>

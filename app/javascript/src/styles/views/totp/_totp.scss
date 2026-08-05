@@ -1,0 +1,57 @@
+#c-totps #a-new {
+  max-width: 40rem;
+
+  .totp-qr-code, .totp-secret-code {
+    max-width: 20rem;
+    max-height: 20rem;
+    padding: 0.5rem;
+    margin: 1rem auto;
+
+    background: white;
+    color: black;
+    text-align: center;
+    @include st-radius;
+  }
+
+  .totp-explanation {
+    max-width: 21rem;
+    margin: 0 auto;
+  }
+
+  .totp-confirm-form {
+    max-width: 20rem;
+    margin: 0.5rem auto;
+
+    input#totp_code {
+      max-width: unset;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 0.25rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      text-align: center;
+    }
+  }
+}
+
+#c-totps #a-backup-codes {
+  max-width: 40rem;
+
+  .totp-backup-codes {
+    max-width: 20rem;
+    padding: 0.5rem;
+    font-size: 1rem;
+    margin: 0 auto;
+
+    background: white;
+    color: black;
+    font-family: monospace;
+    text-align: center;
+    @include st-radius;
+  }
+
+  .totp-backup-codes-actions {
+    text-align: center;
+    margin-top: 1rem;
+  }
+}

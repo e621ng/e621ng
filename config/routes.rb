@@ -57,6 +57,8 @@ Rails.application.routes.draw do
         post :update_blacklist
         get :request_password_reset
         post :password_reset
+        get :remove_totp
+        post :totp_reset
         get :anonymize
         post :anonymize, action: :anonymize_confirm
       end
@@ -156,6 +158,9 @@ Rails.application.routes.draw do
     member do
       post :regenerate
     end
+  end
+  resource :totp, only: %i[new create destroy], controller: "totps" do
+    post :regenerate_backup_codes, on: :collection
   end
 
   resources :avoid_postings, constraints: id_name_constraint do
@@ -378,7 +383,11 @@ Rails.application.routes.draw do
   resource :related_tag, only: %i[show update]
   match "related_tag/bulk", to: "related_tags#bulk", via: %i[get post]
   resource :session, only: %i[new create destroy] do
-    get :confirm_password, on: :collection
+    collection do
+      get :confirm_password
+      get :totp
+      post :verify_totp
+    end
   end
   resources :stats, only: %i[index]
   resources :tags, constraints: id_name_constraint do
@@ -502,6 +511,7 @@ Rails.application.routes.draw do
   resource :auth, only: [] do
     collection do
       get :login
+      get :totp
     end
   end
 
