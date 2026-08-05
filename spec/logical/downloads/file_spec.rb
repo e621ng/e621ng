@@ -188,7 +188,9 @@ RSpec.describe Downloads::File do
       "6to4 loopback (2002:7f00:0001::)" => "2002:7f00:0001::",
       "6to4 cloud metadata (2002:a9fe:a9fe::)" => "2002:a9fe:a9fe::",
       "IPv4-mapped loopback (::ffff:127.0.0.1)" => "::ffff:127.0.0.1",
+      "IPv4-compatible loopback (::7f00:1)" => "::7f00:1",
       "unspecified address (0.0.0.0)" => "0.0.0.0",
+      "unspecified IPv6 address (::)" => "::",
     }.each do |description, address|
       it "raises Downloads::File::Error for #{description}" do
         allow(Resolv).to receive(:getaddress).and_return(address)
