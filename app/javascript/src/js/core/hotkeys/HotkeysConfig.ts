@@ -131,6 +131,7 @@ const StorageKeys: StorageConfig<HotkeyConfig> = {
     "mark-read":    "e6.htk.m-read",
     "scroll-down":  "e6.htk.scroll-d",
     "scroll-up":    "e6.htk.scroll-u",
+    "blacklist":    "e6.htk.blacklist",
 
     "history":      "e6.htk.history",
 
