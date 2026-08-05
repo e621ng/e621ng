@@ -52,6 +52,7 @@ class LStorage extends StorageObject {
   Site = {
     NewsID: 0,
     Events: true,
+    TimeSwitch: false,
   };
 
   // Site themes and other visual options
@@ -254,6 +255,7 @@ const StorageKeys: StorageConfig<LStorage> = {
   "Site": {
     NewsID: "hide_news_notice",
     Events: "e6.events",
+    TimeSwitch: "e6.timeswitch",
   },
 
   "Theme": {
