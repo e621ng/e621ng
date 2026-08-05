@@ -172,6 +172,8 @@ class ModActionDecorator < ApplicationDecorator
       "Hid all blips by #{user}"
     when "user_blacklist_changed"
       "Edited blacklist of #{user}"
+    when "totp_reset"
+      "Removed two-factor authentication from #{user}"
     when "user_text_change"
       "Changed profile text of #{user}"
     when "user_custom_title_change"

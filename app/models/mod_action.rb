@@ -99,6 +99,7 @@ class ModAction < ApplicationRecord
     user_flags_change: { user_id: :integer, added: :string, removed: :string },
     user_level_change: { user_id: :integer, level: :string, level_was: :string },
     user_name_change: { user_id: :integer },
+    totp_reset: { user_id: :integer },
     user_delete: { user_id: :integer },
     user_ban: { user_id: :integer, duration: :integer, reason: :string },
     user_ban_update: { user_id: :integer, ban_id: :integer, expires_at: :datetime, expires_at_was: :datetime, reason: :string, reason_was: :string },

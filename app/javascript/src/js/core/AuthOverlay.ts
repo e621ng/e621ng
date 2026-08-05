@@ -56,7 +56,11 @@ export default class AuthOverlay {
   }
 
   private loadLoginForm (): Promise<boolean> {
-    return this.renderLoginForm().then(
+    return this.loadForm("/auth/login");
+  }
+
+  private loadForm (url: string): Promise<boolean> {
+    return this.fetchForm(url).then(
       ($form) => {
         $form.prepend(this.renderCloseButton());
         $form.find("#session_url").val(this.getPathWithParams());
@@ -72,6 +76,36 @@ export default class AuthOverlay {
         return false;
       },
     );
+  }
+
+  /**
+   * Swaps the overlay content for the 2FA challenge form after the password step
+   * reported `totp_required`. Falls back to the full-page challenge if the form
+   * cannot be loaded.
+   */
+  private async showTotpChallenge (fallbackUrl: string) {
+    this.showLoadingState();
+    const success = await this.loadForm("/auth/totp");
+    if (!success) {
+      window.location.href = fallbackUrl;
+      return;
+    }
+    this.focusFirstInput();
+  }
+
+  /**
+   * The 2FA challenge timed out; swap back to the login form so the user can
+   * restart instead of hitting a dead end.
+   */
+  private async restartExpiredLogin (message: string) {
+    this.showLoadingState();
+    const success = await this.loadForm("/auth/login");
+    if (!success) {
+      window.location.href = "/session/new";
+      return;
+    }
+    this.focusFirstInput();
+    this.showError(message);
   }
 
 
@@ -115,10 +149,10 @@ export default class AuthOverlay {
     `);
   }
 
-  private renderLoginForm (): Promise<JQuery<HTMLElement>> {
+  private fetchForm (url: string): Promise<JQuery<HTMLElement>> {
     return new Promise((resolve, reject) => {
       $.ajax({
-        url: "/auth/login",
+        url: url,
         dataType: "html",
         timeout: 10000,
         success: (html) => {
@@ -188,6 +222,19 @@ export default class AuthOverlay {
         },
         error: (xhr) => {
           submitButton.prop("disabled", false);
+
+          // Password accepted, but the account has 2FA: swap in the challenge form.
+          if (xhr.responseJSON?.code === "totp_required") {
+            void this.showTotpChallenge(xhr.responseJSON?.url ?? "/session/totp");
+            return;
+          }
+
+          // The 2FA challenge timed out: restart from the login form.
+          if (xhr.responseJSON?.code === "challenge_expired") {
+            void this.restartExpiredLogin(xhr.responseJSON?.error ?? "Your login attempt has expired. Please log in again.");
+            return;
+          }
+
           const message = xhr.responseJSON?.error ?? "Login failed. Please try again.";
           this.showError(message);
         },

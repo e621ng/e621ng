@@ -2980,6 +2980,40 @@ ALTER SEQUENCE public.user_statuses_id_seq OWNED BY public.user_statuses.id;
 
 
 --
+-- Name: user_totps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_totps (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    secret_ciphertext text NOT NULL,
+    backup_code_digests text[] DEFAULT '{}'::text[] NOT NULL,
+    last_used_step bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: user_totps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_totps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_totps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_totps_id_seq OWNED BY public.user_totps.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3659,6 +3693,13 @@ ALTER TABLE ONLY public.user_statuses ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: user_totps id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_totps ALTER COLUMN id SET DEFAULT nextval('public.user_totps_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4311,6 +4352,14 @@ ALTER TABLE ONLY public.user_password_reset_nonces
 
 ALTER TABLE ONLY public.user_statuses
     ADD CONSTRAINT user_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_totps user_totps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_totps
+    ADD CONSTRAINT user_totps_pkey PRIMARY KEY (id);
 
 
 --
@@ -5816,6 +5865,13 @@ CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING
 
 
 --
+-- Name: index_user_totps_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_totps_on_user_id ON public.user_totps USING btree (user_id);
+
+
+--
 -- Name: index_users_on_bitprefs_both; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6074,6 +6130,14 @@ ALTER TABLE ONLY public.appeals
 
 
 --
+-- Name: user_totps fk_rails_55471fbc5f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_totps
+    ADD CONSTRAINT fk_rails_55471fbc5f FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: appeals fk_rails_570415b15f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6264,6 +6328,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260805155544'),
 ('20260728160704'),
 ('20260727195335'),
 ('20260727191219'),

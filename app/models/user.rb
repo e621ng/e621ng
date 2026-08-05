@@ -17,8 +17,9 @@ class User < ApplicationRecord
   # ================================================================================================#
   # UNDER NO CIRCUMSTANCES should new boolean attributes be added or removed from the middle of the #
   # list. Deprecated / unused bitflags should be prefixed with an underscore, and left in place.    #
-  # Note: some users may still have the unused flags, so repurposing them can lead to unintended    #
-  # consequences. Proceed with extreme caution.                                                     #
+  #                                                                                                 #
+  # When deprecating a flag, make sure to run 138_zero_deprecated_user_bitflags.rb to clear them.   #
+  # Note: As of 2026-08-05, all currently deprecated flags were removed from users in production.   #
   # ================================================================================================#
 
   # ================================================================================================#
@@ -38,7 +39,7 @@ class User < ApplicationRecord
 
   BOOLEAN_ATTRIBUTES = %w[
     raised_favorite_limit
-    _blacklist_avatars
+    totp_enabled
     blacklist_users
     description_collapsed_initially
     hide_comments
@@ -129,6 +130,7 @@ class User < ApplicationRecord
   has_many :api_keys, dependent: :destroy
   has_many :oauth_applications, class_name: "Doorkeeper::Application", as: :owner, dependent: :destroy
   has_one :dmail_filter
+  has_one :totp, class_name: "UserTotp", dependent: :destroy
   has_one :user_status
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
   has_many :bans, -> { order("bans.id desc") }
@@ -241,8 +243,19 @@ class User < ApplicationRecord
   end
 
   module PasswordMethods
+    # Validates sessions (session[:ph]) and remember cookies; changing its value logs
+    # out every existing session for the user. Folding in the TOTP ciphertext makes
+    # enabling/disabling/resetting 2FA do exactly that. The totp-less branch must keep
+    # the historical formula, or deploying this would log out the entire site.
+    #
+    # Gated on the totp_enabled bit pref (kept in sync by UserTotp callbacks) so the
+    # per-request session check doesn't query user_totps for users without 2FA.
     def password_token
-      Zlib.crc32(bcrypt_password_hash)
+      if totp_enabled?
+        Zlib.crc32("#{bcrypt_password_hash}:#{totp&.secret_ciphertext}")
+      else
+        Zlib.crc32(bcrypt_password_hash)
+      end
     end
 
     def bcrypt_password
