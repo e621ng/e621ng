@@ -25,8 +25,7 @@ Doorkeeper::OpenidConnect.configure do
   end
 
   reauthenticate_resource_owner do |_resource_owner, return_to|
-    session[:url] = return_to
-    redirect_to(new_session_path)
+    redirect_to(new_session_path(url: return_to))
   end
 
   subject do |resource_owner, _application|

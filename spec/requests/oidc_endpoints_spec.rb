@@ -77,10 +77,40 @@ RSpec.describe "OIDC endpoints" do
     # cookie-backed session.
     before { make_session(user, password) }
 
-    it "anonymous user gets redirected to login" do
+    it "anonymous user gets redirected to login with a return url" do
       reset!
-      get authorize_url(scope: "openid full")
-      expect(response).to redirect_to(new_session_path)
+      url = authorize_url(scope: "openid full")
+      get url
+      expect(response).to redirect_to(new_session_path(url: url))
+    end
+
+    def login_from_redirect
+      make_session(user, password, url: Rack::Utils.parse_query(URI.parse(response.location).query)["url"])
+    end
+
+    it "returns an anonymous user to the grant screen after logging in" do
+      reset!
+      url = authorize_url(scope: "openid profile email full")
+      get url
+      login_from_redirect
+      expect(response).to redirect_to(url)
+
+      follow_redirect!
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("oauth-consent")
+    end
+
+    it "returns the user to the grant screen after prompt=login reauthentication" do
+      return_to = authorize_url(scope: "openid profile email full")
+      get "#{return_to}&prompt=login"
+      expect(response).to redirect_to(new_session_path(url: return_to))
+
+      login_from_redirect
+      expect(response).to redirect_to(return_to)
+
+      follow_redirect!
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("oauth-consent")
     end
 
     it "renders the styled consent page on first authorize" do

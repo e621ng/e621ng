@@ -36,14 +36,14 @@ module RequestHelpers
     # rubocop:enable RSpec/AnyInstance
   end
 
-  def make_session(user = nil, password = "hexerade", remember: true)
+  def make_session(user = nil, password = "hexerade", remember: true, url: nil)
     user = create(:user, password: password) if user.blank?
     unless user.is_a?(String)
       ret = user
       password = user.password.presence || password
       user = user.name
     end
-    post session_path(session: { name: user, password: password, remember: remember })
+    post session_path(session: { name: user, password: password, remember: remember, url: url }.compact)
     expect(response).to have_http_status(:found)
     ret || user
   end
