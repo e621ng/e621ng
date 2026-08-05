@@ -180,6 +180,23 @@ RSpec.describe Downloads::File do
         .to raise_error(Downloads::File::Error, /not allowed/)
     end
 
+    # IPv6 transition and IPv4-mapped addresses embed a blocked IPv4 target but are
+    # invisible to IPAddr#private?/#loopback?/#link_local? (SSRF guard bypass).
+    {
+      "NAT64 loopback (64:ff9b::7f00:1)" => "64:ff9b::7f00:1",
+      "NAT64 cloud metadata (64:ff9b::a9fe:a9fe)" => "64:ff9b::a9fe:a9fe",
+      "6to4 loopback (2002:7f00:0001::)" => "2002:7f00:0001::",
+      "6to4 cloud metadata (2002:a9fe:a9fe::)" => "2002:a9fe:a9fe::",
+      "IPv4-mapped loopback (::ffff:127.0.0.1)" => "::ffff:127.0.0.1",
+      "unspecified address (0.0.0.0)" => "0.0.0.0",
+    }.each do |description, address|
+      it "raises Downloads::File::Error for #{description}" do
+        allow(Resolv).to receive(:getaddress).and_return(address)
+        expect { call("https://example.com/image.jpg") }
+          .to raise_error(Downloads::File::Error, /not allowed/)
+      end
+    end
+
     it "raises Downloads::File::Error when the URL is not whitelisted" do
       allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([false, "blocked"])
       expect { call("https://example.com/image.jpg") }

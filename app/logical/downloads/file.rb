@@ -5,6 +5,27 @@ module Downloads
     include ActiveModel::Validations
     class Error < StandardError; end
 
+    # Internal/non-public address ranges that downloads must never reach. Includes
+    # IPv6 transition and IPv4-mapped ranges, which IPAddr#private?/#loopback?/
+    # #link_local? do not recognize even when they embed a blocked IPv4 target.
+    BLOCKED_IP_RANGES = %w[
+      0.0.0.0/8
+      10.0.0.0/8
+      100.64.0.0/10
+      127.0.0.0/8
+      169.254.0.0/16
+      172.16.0.0/12
+      192.168.0.0/16
+      ::1/128
+      fc00::/7
+      fe80::/10
+      ::ffff:0:0/96
+      64:ff9b::/96
+      64:ff9b:1::/48
+      2002::/16
+      2001::/32
+    ].map { |range| IPAddr.new(range) }.freeze
+
     attr_reader :url
 
     validate :validate_url
@@ -85,7 +106,7 @@ module Downloads
       return if uri.hostname.blank?
 
       ip_addr = IPAddr.new(Resolv.getaddress(uri.hostname))
-      if ip_addr.private? || ip_addr.loopback? || ip_addr.link_local?
+      if BLOCKED_IP_RANGES.any? { |range| range.include?(ip_addr) }
         raise Downloads::File::Error, "Downloads from this address are not allowed"
       end
 
