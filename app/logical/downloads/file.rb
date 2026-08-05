@@ -147,7 +147,10 @@ module Downloads
         raise Downloads::File::Error, "Downloads from this address are not allowed"
       end
 
-      ip_addrs.first.to_s
+      # Pinning to a single IP loses the OS-level fallback across A/AAAA records that
+      # connecting by hostname provided. Prefer an IPv4 record when both families are
+      # present so an IPv6-only pin can't break downloads on hosts without a v6 route.
+      (ip_addrs.find(&:ipv4?) || ip_addrs.first).to_s
     rescue Resolv::ResolvError
       raise Downloads::File::Error, "Could not resolve '#{host}'"
     end

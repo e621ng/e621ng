@@ -258,6 +258,11 @@ RSpec.describe Downloads::File do
       expect { pin("example.com") }.to raise_error(Downloads::File::Error, /not allowed/)
     end
 
+    it "prefers an IPv4 record when both families resolve (keeps v6-only pins from breaking downloads)" do
+      allow(Resolv).to receive(:getaddresses).and_return(["2606:4700::1111", "1.2.3.4"])
+      expect(pin("example.com").ipaddr).to eq("1.2.3.4")
+    end
+
     it "pins a resolved IPv6 address in unbracketed form" do
       allow(Resolv).to receive(:getaddresses).and_return(["2606:4700::1111"])
       http = pin("example.com")
