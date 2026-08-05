@@ -103,6 +103,14 @@ RSpec.describe TotpsController do
       expect(session[:user_id]).to be_nil
     end
 
+    it "accepts a code from a slightly fast device clock (+30s step)" do
+      get new_totp_path
+      secret = session[:pending_totp_secret]
+      post totp_path, params: { totp: { code: code_for(secret, 30.seconds.from_now) } }
+      expect(response).to have_http_status(:ok)
+      expect(user.reload.totp).to be_present
+    end
+
     it "rejects a wrong code, keeping the pending secret and creating nothing" do
       get new_totp_path
       secret = session[:pending_totp_secret]

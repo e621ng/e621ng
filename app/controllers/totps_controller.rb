@@ -24,7 +24,7 @@ class TotpsController < ApplicationController
     end
 
     build_pending_totp
-    timestamp = @pending_totp.totp.verify(params.dig(:totp, :code).to_s.gsub(/\s/, ""), drift_behind: UserTotp::DRIFT)
+    timestamp = @pending_totp.totp.verify(params.dig(:totp, :code).to_s.gsub(/\s/, ""), drift_behind: UserTotp::DRIFT, drift_ahead: UserTotp::DRIFT)
     if timestamp.nil?
       flash.now[:notice] = "Verification code was incorrect. Scan the same QR code and try again."
       render :new
