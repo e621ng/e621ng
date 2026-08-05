@@ -1,4 +1,5 @@
 import StateUtils from "@/utility/StateUtils";
+import Local from "@/utility/storage/Local";
 
 /** Adds a toggle for the time display. Uses 2 elements & switches which is visible. */
 class TimestampSwitch {
@@ -33,6 +34,7 @@ class TimestampSwitch {
   /* ============================== */
 
   public load () {
+    if (!Local.Site.TimeSwitch) return;
     document.querySelectorAll("time.time-waiting").forEach((e) => this.initElement(e as HTMLTimeElement));
   }
 
