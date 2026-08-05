@@ -35,15 +35,20 @@ class SessionCreator
     :succeeded
   end
 
-  # Returns the challenged user if a live challenge exists, clearing it if expired.
   def challenge_user
     return nil if session[:totp_user_id].blank?
     expires_at = Time.zone.parse(session[:totp_expires_at].to_s)
+
+    # Clear if the challenge expired
     if expires_at.nil? || expires_at < Time.now.utc
       clear_challenge
       return nil
     end
-    User.find_by(id: session[:totp_user_id])
+
+    # Clear if the user no longer exists
+    user = User.find_by(id: session[:totp_user_id])
+    clear_challenge if user.nil?
+    user
   end
 
   def complete_challenge(user)
