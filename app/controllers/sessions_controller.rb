@@ -57,6 +57,18 @@ class SessionsController < ApplicationController
       return
     end
 
+    # 2FA was removed mid-challenge (staff reset, or self-disable in another session).
+    # Checked before the rate limiter: nothing to guess here.
+    if user.totp.nil?
+      url = creator.complete_challenge(user)
+      DanbooruLogger.add_attributes("user.login" => "totp_removed")
+      respond_to do |fmt|
+        fmt.html { redirect_to(url || posts_path) }
+        fmt.json { render(json: { url: url || posts_path }) }
+      end
+      return
+    end
+
     if RateLimiter.check_limit("totp:#{user.id}", 10, 1.hour)
       DanbooruLogger.add_attributes("user.login" => "totp_rate_limited")
       respond_to do |fmt|

@@ -128,6 +128,26 @@ RSpec.describe "TOTP login challenge" do
       expect(session[:user_id]).to be_nil
     end
 
+    context "when 2FA is removed mid-challenge" do
+      it "completes the login, honoring the stashed url" do
+        login!(url: "/artists")
+        user_totp.destroy
+        post verify_totp_session_path, params: { totp: { code: "irrelevant" } }
+        expect(response).to redirect_to("/artists")
+        expect(session[:user_id]).to eq(user.id)
+        expect(session[:totp_user_id]).to be_nil
+      end
+
+      it "completes the login via JSON" do
+        login!
+        user_totp.destroy
+        post verify_totp_session_path(format: :json), params: { totp: { code: "irrelevant" } }
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["url"]).to eq(posts_path)
+        expect(session[:user_id]).to eq(user.id)
+      end
+    end
+
     context "with JSON format (login overlay)" do
       it "returns the redirect url on success" do
         login!(url: "/artists")
