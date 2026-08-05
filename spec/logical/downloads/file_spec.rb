@@ -201,6 +201,12 @@ RSpec.describe Downloads::File do
         .to raise_error(Downloads::File::Error, /could not resolve/i)
     end
 
+    it "raises a clean error (not a 500) when a resolved record is unparseable by IPAddr" do
+      allow(Resolv).to receive(:getaddresses).and_return(["not-an-ip-address"])
+      expect { call("https://example.com/image.jpg") }
+        .to raise_error(Downloads::File::Error, /could not resolve/i)
+    end
+
     it "validates an IP-literal host directly without DNS resolution" do
       expect { call("https://127.0.0.1/image.jpg") }
         .to raise_error(Downloads::File::Error, /not allowed/)
