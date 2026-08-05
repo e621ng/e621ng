@@ -122,7 +122,7 @@ module Staff
         return redirect_to user_path(@user), alert: "Only BD staff can remove 2FA from staff accounts"
       end
 
-      unless @user.totp_enabled?
+      unless @user.totp_enabled? || @user.totp.present?
         redirect_to user_path(@user), notice: "User does not have two-factor authentication enabled"
       end
     end
@@ -134,13 +134,20 @@ module Staff
         return redirect_to user_path(@user), alert: "Only BD staff can remove 2FA from staff accounts"
       end
 
-      unless @user.totp_enabled?
+      # The totp_enabled bit and the row should never drift apart.
+      # If they do, this action is the recovery tool.
+      unless @user.totp_enabled? || @user.totp.present?
         return redirect_to user_path(@user), notice: "User does not have two-factor authentication enabled"
       end
 
-      # Destroying the totp row changes the user's password_token, which logs out all
-      # of their existing sessions and remember cookies as a side effect.
-      @user.totp.destroy
+      if @user.totp.present?
+        # Destroying the totp row syncs the bit pref and changes the user's password_token
+        @user.totp.destroy
+      else
+        # Stale flag with no backing row: clear it so the account stops rendering
+        # 2FA UI and challenging logins.
+        UserTotp.set_user_flag(@user.id, false)
+      end
       ModAction.log(:totp_reset, { user_id: @user.id })
       Maintenance::User::TotpMailer.totp_disabled(@user).deliver_now
       redirect_to user_path(@user), notice: "Two-factor authentication removed from '#{@user.name}'"

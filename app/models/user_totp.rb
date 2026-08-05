@@ -6,14 +6,19 @@ class UserTotp < ApplicationRecord
 
   belongs_to :user
 
-  # The totp_enabled bit pref gates the per-request password_token check, so it must
-  # never drift from row existence. Callbacks run inside the same transaction as the
-  # row change, covering every path (enrollment, disable, staff reset, user deletion).
+  # The totp_enabled bit pref gates the per-request password_token check, so it must never drift.
   after_create { sync_user_flag(true) }
   after_destroy { sync_user_flag(false) }
 
   def self.generate_secret
     ROTP::Base32.random
+  end
+
+  # Atomic bit flip so a concurrent write to another bit_prefs flag can't be clobbered.
+  def self.set_user_flag(user_id, enabled)
+    mask = User.flag_value_for("totp_enabled")
+    operation = enabled ? "bit_prefs | #{mask}" : "bit_prefs & ~#{mask}"
+    User.where(id: user_id).update_all("bit_prefs = #{operation}")
   end
 
   def self.encryptor
@@ -63,12 +68,8 @@ class UserTotp < ApplicationRecord
 
   private
 
-  # Atomic bit flip so a concurrent write to another bit_prefs flag can't be clobbered
-  # by a stale read-modify-write.
   def sync_user_flag(enabled)
-    mask = User.flag_value_for("totp_enabled")
-    operation = enabled ? "bit_prefs | #{mask}" : "bit_prefs & ~#{mask}"
-    User.where(id: user_id).update_all("bit_prefs = #{operation}")
+    self.class.set_user_flag(user_id, enabled)
     user.totp_enabled = enabled
   end
 

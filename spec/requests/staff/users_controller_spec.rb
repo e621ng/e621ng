@@ -511,6 +511,32 @@ RSpec.describe Staff::UsersController do
       expect(response).to redirect_to(user_path(staff_user))
       expect(staff_user.reload.totp).to be_present
     end
+
+    context "when the bit pref has drifted from row existence" do
+      it "clears a stale flag that has no backing row" do
+        totp_user.totp.delete # skips callbacks, leaving the flag set
+        expect(totp_user.reload.totp_enabled?).to be(true)
+
+        sign_in_as admin, reauthenticated: true
+        post totp_reset_staff_user_path(totp_user)
+
+        expect(response).to redirect_to(user_path(totp_user))
+        expect(totp_user.reload.totp_enabled?).to be(false)
+        expect(ModAction.where(action: "totp_reset").count).to eq(1)
+      end
+
+      it "destroys an orphaned row whose flag is unset" do
+        UserTotp.set_user_flag(totp_user.id, false)
+        expect(totp_user.reload.totp_enabled?).to be(false)
+
+        sign_in_as admin, reauthenticated: true
+        post totp_reset_staff_user_path(totp_user)
+
+        expect(response).to redirect_to(user_path(totp_user))
+        expect(totp_user.reload.totp).to be_nil
+        expect(totp_user.totp_enabled?).to be(false)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
