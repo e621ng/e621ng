@@ -106,10 +106,32 @@ RSpec.describe UserTotp do
   end
 
   describe "User#totp_enabled?" do
-    it "reflects the presence of a totp row" do
+    it "keeps the bit pref in sync with row existence" do
       expect(user.totp_enabled?).to be(false)
       user_totp
       expect(user.reload.totp_enabled?).to be(true)
+      expect(user.bit_prefs & User.flag_value_for("totp_enabled")).to be > 0
+
+      user_totp.destroy
+      expect(user.reload.totp_enabled?).to be(false)
+      expect(user.bit_prefs & User.flag_value_for("totp_enabled")).to eq(0)
+    end
+
+    it "syncs the in-memory user instance without a reload" do
+      totp = create(:user_totp, user: user, secret: secret)
+      expect(user.totp_enabled?).to be(true)
+      totp.destroy
+      expect(user.totp_enabled?).to be(false)
+    end
+
+    it "does not query user_totps for password_token when 2FA is disabled" do
+      user.reload
+      queries = []
+      callback = ->(*, payload) { queries << payload[:sql] if payload[:sql]&.include?("user_totps") }
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        user.password_token
+      end
+      expect(queries).to be_empty
     end
   end
 end

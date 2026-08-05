@@ -17,8 +17,9 @@ class User < ApplicationRecord
   # ================================================================================================#
   # UNDER NO CIRCUMSTANCES should new boolean attributes be added or removed from the middle of the #
   # list. Deprecated / unused bitflags should be prefixed with an underscore, and left in place.    #
-  # Note: some users may still have the unused flags, so repurposing them can lead to unintended    #
-  # consequences. Proceed with extreme caution.                                                     #
+  #                                                                                                 #
+  # When deprecating a flag, make sure to run 138_zero_deprecated_user_bitflags.rb to clear them.   #
+  # Note: As of 2026-08-05, all currently deprecated flags were removed from users in production.   #
   # ================================================================================================#
 
   # ================================================================================================#
@@ -38,7 +39,7 @@ class User < ApplicationRecord
 
   BOOLEAN_ATTRIBUTES = %w[
     raised_favorite_limit
-    _blacklist_avatars
+    totp_enabled
     blacklist_users
     description_collapsed_initially
     hide_comments
@@ -246,9 +247,12 @@ class User < ApplicationRecord
     # out every existing session for the user. Folding in the TOTP ciphertext makes
     # enabling/disabling/resetting 2FA do exactly that. The totp-less branch must keep
     # the historical formula, or deploying this would log out the entire site.
+    #
+    # Gated on the totp_enabled bit pref (kept in sync by UserTotp callbacks) so the
+    # per-request session check doesn't query user_totps for users without 2FA.
     def password_token
-      if totp.present?
-        Zlib.crc32("#{bcrypt_password_hash}:#{totp.secret_ciphertext}")
+      if totp_enabled?
+        Zlib.crc32("#{bcrypt_password_hash}:#{totp&.secret_ciphertext}")
       else
         Zlib.crc32(bcrypt_password_hash)
       end
@@ -324,10 +328,6 @@ class User < ApplicationRecord
       def bcrypt(pass)
         BCrypt::Password.create(pass)
       end
-    end
-
-    def totp_enabled?
-      totp.present?
     end
   end
 
