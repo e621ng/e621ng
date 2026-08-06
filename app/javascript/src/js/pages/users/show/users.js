@@ -22,15 +22,45 @@ Users.init_section = function ($wrapper) {
 };
 
 Users.init_readmore = function (wrapper) {
-  if (wrapper.clientHeight >= wrapper.scrollHeight) return;
-  const $wrapper = $(wrapper).addClass("expandable");
+  const $wrapper = $(wrapper);
+  const button = $wrapper.find(".content-readmore");
+
+  const showMoreText = "Show More";
+  const showLessText = "Show Less";
 
   let expanded = false;
-  const button = $wrapper.find(".content-readmore").on("click", () => {
+  const updateShowMore = () => {
+    if (expanded) {
+      $wrapper.removeClass("expanded");
+    }
+
+    if (wrapper.scrollHeight > wrapper.clientHeight) {
+      $wrapper.addClass("expandable");
+      if (expanded) {
+        $wrapper.addClass("expanded");
+      }
+    } else {
+      $wrapper.removeClass("expandable expanded");
+      expanded = false;
+      button.text(showMoreText);
+    }
+  };
+
+  button.on("click", () => {
     expanded = !expanded;
     $wrapper.toggleClass("expanded", expanded);
-    button.text(expanded ? "Show Less" : "Show More");
+    button.text(expanded ? showLessText : showMoreText);
   });
+
+  // Update the "Show More" button visibility when DText sections (details tags)
+  // are opened and closed.
+  wrapper.addEventListener("toggle", (event) => {
+    if (event.target.tagName.toLowerCase() === "details") {
+      updateShowMore();
+    }
+  }, true);
+
+  updateShowMore();
 };
 
 $(() => {
