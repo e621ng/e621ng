@@ -15,10 +15,12 @@ class DiscordReportsJob < ApplicationJob
   ].freeze
 
   def perform
-    REPORTS.each do |report|
-      report.new.run!
-    rescue StandardError => e
-      DanbooruLogger.log(e)
+    User.without_timeout do
+      REPORTS.each do |report|
+        report.new.run!
+      rescue StandardError => e
+        DanbooruLogger.log(e)
+      end
     end
   end
 end
