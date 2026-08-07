@@ -893,7 +893,7 @@ class User < ApplicationRecord
       # Calculated from the `upload_karma` column. Threshold values pulled from the config file.
       return 0 if karma < upload_karma_l1
       level = (Math.log10(karma / upload_karma_l1) * upload_karma_scale).floor + 1
-      [level, User.max_karma_level].min
+      [level, max_karma_level].min
     end
 
     def max_karma_level = 10

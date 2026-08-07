@@ -85,7 +85,7 @@ RSpec.describe User do
   end
 
   # -------------------------------------------------------------------------
-  # #required_karma_for_level
+  # .required_karma_for_level
   # -------------------------------------------------------------------------
   describe "#required_karma_for_level" do
     it "returns the required karma for a given level" do
