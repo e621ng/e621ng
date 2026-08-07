@@ -59,6 +59,10 @@ class UserPresenter
       permissions << "cannot log in"
     end
 
+    if CurrentUser.user.is_staff? && user.totp_enabled?
+      permissions << "2FA enabled"
+    end
+
     permissions.join(", ")
   end
 
