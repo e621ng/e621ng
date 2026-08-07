@@ -566,6 +566,11 @@ RSpec.describe Staff::UsersController do
         post anonymize_staff_user_path(user), headers: { "HTTP_REFERER" => user_path(user) }
         expect(response).to redirect_to(confirm_password_session_path(url: user_path(user)))
       end
+
+      it "redirects to the confirm_password page when the referrer is malformed" do
+        post anonymize_staff_user_path(user), headers: { "HTTP_REFERER" => "http://exa mple.com/foo" }
+        expect(response).to redirect_to(confirm_password_session_path)
+      end
     end
 
     context "as bd_staff with reauthentication" do
