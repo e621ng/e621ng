@@ -397,6 +397,15 @@ RSpec.describe DmailsController do
       delete dmail_path(dmail, format: :json)
       expect(response).to have_http_status(:no_content)
     end
+
+    it "returns 403 for a moderator with ticket access" do
+      ticket = create(:ticket, :dmail_type)
+      dmail = Dmail.find(ticket.disp_id)
+      sign_in_as moderator
+      delete dmail_path(dmail, format: :json)
+      expect(response).to have_http_status(:forbidden)
+      expect(dmail.reload.is_deleted).to be false
+    end
   end
 
   # ---------------------------------------------------------------------------

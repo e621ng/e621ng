@@ -46,6 +46,7 @@ class DmailsController < ApplicationController
   def destroy
     @dmail = Dmail.find(params[:id])
     check_privilege(@dmail)
+    check_is_owner(@dmail)
     @dmail.mark_as_read!
     @dmail.update_column(:is_deleted, true)
     respond_to do |format|
