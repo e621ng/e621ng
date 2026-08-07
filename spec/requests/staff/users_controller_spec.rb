@@ -380,7 +380,7 @@ RSpec.describe Staff::UsersController do
 
     it "redirects to the confirm_password page when reauthentication is missing" do
       sign_in_as admin
-      post password_reset_staff_user_path(user)
+      post password_reset_staff_user_path(user), headers: { "HTTP_REFERER" => password_reset_staff_user_path(user) }
       expect(response).to redirect_to(confirm_password_session_path(url: password_reset_staff_user_path(user)))
     end
 
@@ -393,7 +393,7 @@ RSpec.describe Staff::UsersController do
     it "returns 302 with an alert for a non-BD-staff admin when the target is staff" do
       staff_user = create(:janitor_user)
       sign_in_as admin, reauthenticated: true
-      post password_reset_staff_user_path(staff_user)
+      post password_reset_staff_user_path(staff_user), params: { admin: { password: "hexerade" } }, headers: { "HTTP_REFERER" => user_path(staff_user) }
       expect(response).to redirect_to(user_path(staff_user))
       expect(flash[:alert]).to eq("Only BD staff can request password resets for staff accounts")
     end
@@ -554,10 +554,23 @@ RSpec.describe Staff::UsersController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "redirects to the confirm_password page when reauthentication is missing" do
-      sign_in_as bd_staff
-      post anonymize_staff_user_path(user)
-      expect(response).to redirect_to(confirm_password_session_path(url: anonymize_staff_user_path(user)))
+    context "as bd staff without reauthentication" do
+      before { sign_in_as bd_staff }
+
+      it "redirects to the confirm_password page" do
+        post anonymize_staff_user_path(user)
+        expect(response).to redirect_to(confirm_password_session_path)
+      end
+
+      it "redirects to the confirm_password page with the referrer URL" do
+        post anonymize_staff_user_path(user), headers: { "HTTP_REFERER" => user_path(user) }
+        expect(response).to redirect_to(confirm_password_session_path(url: user_path(user)))
+      end
+
+      it "redirects to the confirm_password page when the referrer is malformed" do
+        post anonymize_staff_user_path(user), headers: { "HTTP_REFERER" => "http://exa mple.com/foo" }
+        expect(response).to redirect_to(confirm_password_session_path)
+      end
     end
 
     context "as bd_staff with reauthentication" do
