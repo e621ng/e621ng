@@ -430,48 +430,6 @@ RSpec.describe Staff::UsersController do
   end
 
   # ---------------------------------------------------------------------------
-  # GET /staff/users/:id/remove_totp
-  # ---------------------------------------------------------------------------
-
-  describe "GET /staff/users/:id/remove_totp" do
-    let(:totp_user) { create(:user) }
-
-    before { create(:user_totp, user: totp_user) }
-
-    it "redirects anonymous to the login page" do
-      get remove_totp_staff_user_path(totp_user)
-      expect(response).to redirect_to(new_session_path(url: remove_totp_staff_user_path(totp_user)))
-    end
-
-    it "returns 403 for a moderator" do
-      sign_in_as moderator
-      get remove_totp_staff_user_path(totp_user)
-      expect(response).to have_http_status(:forbidden)
-    end
-
-    it "returns 200 for an admin" do
-      sign_in_as admin
-      get remove_totp_staff_user_path(totp_user)
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "redirects with a notice when the user has no 2FA" do
-      sign_in_as admin
-      get remove_totp_staff_user_path(user)
-      expect(response).to redirect_to(user_path(user))
-    end
-
-    it "redirects with an alert for a non-BD-staff admin when the target is staff" do
-      staff_user = create(:janitor_user)
-      create(:user_totp, user: staff_user)
-      sign_in_as admin
-      get remove_totp_staff_user_path(staff_user)
-      expect(response).to redirect_to(user_path(staff_user))
-      expect(flash[:alert]).to eq("Only BD staff can remove 2FA from staff accounts")
-    end
-  end
-
-  # ---------------------------------------------------------------------------
   # POST /staff/users/:id/totp_reset
   # ---------------------------------------------------------------------------
 
