@@ -83,14 +83,14 @@ class UploadService
         if penalize_current_uploader.to_s.truthy?
           UserStatus.for_user(previous_uploader).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
           # Karma penalty for the previous uploader, in step with the penalize counter.
-          UserStatus.for_user(previous_uploader).update_all("upload_karma = upload_karma - 3")
+          UserStatus.adjust_karma(previous_uploader, -UserStatus::KARMA_REPLACEMENT_PENALTY)
         end
 
-        # The live post's +1 credit follows ownership: previous owner loses it, new one gets it.
+        # The live post's approved credit follows ownership: previous owner loses it, new one gets it.
         # Skipped when the post is still pending.
         if replacement.creator_id != previous_uploader && !previous_pending
-          UserStatus.for_user(previous_uploader).update_all("upload_karma = upload_karma - 1")
-          UserStatus.for_user(replacement.creator_id).update_all("upload_karma = upload_karma + 1")
+          UserStatus.adjust_karma(previous_uploader, -UserStatus::KARMA_APPROVED_CREDIT)
+          UserStatus.adjust_karma(replacement.creator_id, UserStatus::KARMA_APPROVED_CREDIT)
         end
 
         # Reset-to must revert any penalty that the previous version carried.

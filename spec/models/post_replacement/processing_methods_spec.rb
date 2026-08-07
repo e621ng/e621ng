@@ -143,13 +143,13 @@ RSpec.describe PostReplacement do
       )
     end
 
-    it "penalizes the previous uploader's karma by 3 when turning the penalty on" do
+    it "penalizes the previous uploader's karma when turning the penalty on" do
       prev_uploader = create(:user)
       replacement = create(:approved_post_replacement)
                     .tap { |r| r.update_columns(penalize_uploader_on_approve: false, uploader_id_on_approve: prev_uploader.id) }
       allow(PostEvent).to receive(:add)
       expect { replacement.toggle_penalize! }
-        .to change { prev_uploader.user_status.reload.upload_karma }.by(-3)
+        .to change { prev_uploader.user_status.reload.upload_karma }.by(-UserStatus::KARMA_REPLACEMENT_PENALTY)
     end
 
     it "reverses the previous uploader's karma penalty when turning the penalty off" do
@@ -158,7 +158,7 @@ RSpec.describe PostReplacement do
                     .tap { |r| r.update_columns(penalize_uploader_on_approve: true, uploader_id_on_approve: prev_uploader.id) }
       allow(PostEvent).to receive(:add)
       expect { replacement.toggle_penalize! }
-        .to change { prev_uploader.user_status.reload.upload_karma }.by(3)
+        .to change { prev_uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_REPLACEMENT_PENALTY)
     end
   end
 
