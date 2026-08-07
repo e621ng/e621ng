@@ -5,7 +5,7 @@ module Staff
     before_action :admin_only, except: %i[edit_blacklist]
     before_action :moderator_only, only: %i[edit_blacklist]
     before_action :is_bd_staff_only, only: %i[anonymize anonymize_confirm]
-    before_action :requires_reauthentication, only: %i[anonymize_confirm totp_reset]
+    before_action :requires_reauthentication, only: %i[anonymize_confirm totp_reset request_password_reset password_reset]
     respond_to :html, :json
 
     def alt_list
@@ -106,25 +106,9 @@ module Staff
         return redirect_to user_path(@user), alert: "Only BD staff can request password resets for staff accounts"
       end
 
-      unless User.authenticate(CurrentUser.name, params[:admin][:password])
-        return redirect_to request_password_reset_staff_user_path(@user), notice: "Password wrong"
-      end
-
-      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params[:admin][:invalidate_old_password]&.truthy?
+      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params.dig(:admin, :invalidate_old_password)&.truthy?
 
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
-    end
-
-    def remove_totp
-      @user = User.find(params[:id])
-
-      if @user.is_staff? && !CurrentUser.user.is_bd_staff?
-        return redirect_to user_path(@user), alert: "Only BD staff can remove 2FA from staff accounts"
-      end
-
-      unless @user.totp_enabled? || @user.totp.present?
-        redirect_to user_path(@user), notice: "User does not have two-factor authentication enabled"
-      end
     end
 
     def totp_reset
