@@ -2,6 +2,7 @@
   max-width: 40rem;
 
   .totp-qr-code, .totp-secret-code {
+    width: 100%;
     max-width: 20rem;
     max-height: 20rem;
     padding: 0.5rem;
@@ -14,11 +15,13 @@
   }
 
   .totp-explanation {
+    width: 100%;
     max-width: 21rem;
     margin: 0 auto;
   }
 
   .totp-confirm-form {
+    width: 100%;
     max-width: 20rem;
     margin: 0.5rem auto;
 
@@ -38,6 +41,7 @@
   max-width: 40rem;
 
   .totp-backup-codes {
+    width: 100%;
     max-width: 20rem;
     padding: 0.5rem;
     font-size: 1rem;
