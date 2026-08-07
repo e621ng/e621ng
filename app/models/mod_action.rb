@@ -100,6 +100,7 @@ class ModAction < ApplicationRecord
     user_level_change: { user_id: :integer, level: :string, level_was: :string },
     user_name_change: { user_id: :integer },
     totp_reset: { user_id: :integer },
+    password_reset: { user_id: :integer, invalidated: :boolean },
     user_delete: { user_id: :integer },
     user_ban: { user_id: :integer, duration: :integer, reason: :string },
     user_ban_update: { user_id: :integer, ban_id: :integer, expires_at: :datetime, expires_at_was: :datetime, reason: :string, reason_was: :string },
@@ -127,6 +128,7 @@ class ModAction < ApplicationRecord
     staff_file_create staff_file_update staff_file_delete
     ip_ban_create ip_ban_delete
     post_version_hide post_version_unhide
+    totp_reset password_reset
   ].freeze
 
   KnownActionKeys = KnownActions.keys.freeze

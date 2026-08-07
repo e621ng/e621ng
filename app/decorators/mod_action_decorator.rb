@@ -174,6 +174,12 @@ class ModActionDecorator < ApplicationDecorator
       "Edited blacklist of #{user}"
     when "totp_reset"
       "Removed two-factor authentication from #{user}"
+    when "password_reset"
+      if vals["invalidated"]
+        "Reset password for #{user} and invalidated their old password"
+      else
+        "Reset password for #{user}"
+      end
     when "user_text_change"
       "Changed profile text of #{user}"
     when "user_custom_title_change"

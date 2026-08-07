@@ -106,9 +106,10 @@ module Staff
         return redirect_to user_path(@user), alert: "Only BD staff can request password resets for staff accounts"
       end
 
-      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params.dig(:admin, :invalidate_old_password)&.truthy?
-
+      invalidate_old_password = params.dig(:admin, :invalidate_old_password)&.truthy? || false
+      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if invalidate_old_password
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
+      ModAction.log(:password_reset, { user_id: @user.id, invalidated: invalidate_old_password })
     end
 
     def totp_reset
