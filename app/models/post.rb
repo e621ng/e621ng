@@ -429,7 +429,7 @@ class Post < ApplicationRecord
       update(approver: nil, is_pending: true)
 
       # Roll back previous karma changes for the uploader
-      UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma - 1")
+      UserStatus.adjust_karma(uploader_id, -UserStatus::KARMA_APPROVED_CREDIT)
     end
 
     def is_unapprovable?(user)
@@ -457,7 +457,7 @@ class Post < ApplicationRecord
       end
 
       # Reward the uploader for a post that cleared the review queue.
-      UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma + 1")
+      UserStatus.adjust_karma(uploader_id, UserStatus::KARMA_APPROVED_CREDIT)
     end
   end
 
@@ -1690,13 +1690,13 @@ class Post < ApplicationRecord
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count + 1")
 
       # Penalize the uploader for a deleted post (includes auto-deletions).
-      # A post that had cleared the queue also carried a +1 credit, so deleting it reverses that
-      # credit on top of the -3 penalty (-4 total); a still-pending post never earned the credit,
-      # so it is only the -3 penalty.
+      # A post that had cleared the queue also carried the approved credit, so deleting it
+      # reverses that credit on top of the deletion penalty; a still-pending post never earned
+      # the credit, so it is only the penalty.
       # Takedowns pass skip_karma: removal reflects the artist's wishes, not the uploader's conduct.
       unless options[:skip_karma]
-        penalty = was_credited ? 4 : 3
-        UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma - #{penalty}")
+        penalty = UserStatus::KARMA_DELETION_PENALTY + (was_credited ? UserStatus::KARMA_APPROVED_CREDIT : 0)
+        UserStatus.adjust_karma(uploader_id, -penalty)
       end
       give_favorites_to_parent if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
@@ -1737,11 +1737,12 @@ class Post < ApplicationRecord
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
 
       # A restored post is always approved (undelete clears is_pending and sets an approver),
-      # so it is always worth +1. delete! drove every deleted post down to -3 (reversing the
-      # +1 credit for posts that had one), so a flat +4 here lands the post back at +1 in every
-      # case. skip_karma restores from a takedown, which never applied the penalty to begin with.
+      # so it is always worth the approved credit. delete! drove every deleted post down to the
+      # deletion penalty (reversing the credit for posts that had one), so restoring penalty +
+      # credit lands the post back at the credit in every case. skip_karma restores from a
+      # takedown, which never applied the penalty to begin with.
       unless options[:skip_karma]
-        UserStatus.for_user(uploader_id).update_all("upload_karma = upload_karma + 4")
+        UserStatus.adjust_karma(uploader_id, UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT)
       end
     end
 

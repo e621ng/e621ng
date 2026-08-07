@@ -41,8 +41,8 @@ class UploadService
     @post.reload
 
     # Posts that bypass the review queue never pass through approve!, so karma is credited here instead.
-    # Mirrors the +1 awarded by approve! for queued posts.
-    UserStatus.for_user(@post.uploader_id).update_all("upload_karma = upload_karma + 1") unless @post.is_pending?
+    # Mirrors the credit awarded by approve! for queued posts.
+    UserStatus.adjust_karma(@post.uploader_id, UserStatus::KARMA_APPROVED_CREDIT) unless @post.is_pending?
 
     upload.update(status: "completed", post_id: @post.id)
 

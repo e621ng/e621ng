@@ -44,19 +44,19 @@ RSpec.describe Post do
         expect(post.errors[:is_status_locked]).to be_present
       end
 
-      it "penalizes a credited (non-pending) post's uploader by 4" do
-        # A default post has is_pending == false, so it held a +1 credit: deletion reverses
-        # that credit (-1) on top of the -3 penalty.
+      it "penalizes a credited (non-pending) post's uploader by penalty plus credit" do
+        # A default post has is_pending == false, so it held the approved credit: deletion
+        # reverses that credit on top of the deletion penalty.
         post = create(:post)
         expect { post.delete!("Test reason") }
-          .to change { post.uploader.user_status.reload.upload_karma }.by(-4)
+          .to change { post.uploader.user_status.reload.upload_karma }.by(-(UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT))
       end
 
-      it "penalizes a still-pending post's uploader by only 3" do
-        # A pending post never earned the +1 credit, so only the -3 penalty applies.
+      it "penalizes a still-pending post's uploader by only the deletion penalty" do
+        # A pending post never earned the approved credit, so only the penalty applies.
         post = create(:pending_post)
         expect { post.delete!("Test reason") }
-          .to change { post.uploader.user_status.reload.upload_karma }.by(-3)
+          .to change { post.uploader.user_status.reload.upload_karma }.by(-UserStatus::KARMA_DELETION_PENALTY)
       end
 
       it "does not touch upload karma when skip_karma is set (takedowns)" do
@@ -93,19 +93,20 @@ RSpec.describe Post do
         expect(post.reload.is_pending).to be false
       end
 
-      it "restores the uploader's upload karma by 4 when the deleted post had an approver" do
+      it "restores the uploader's upload karma when the deleted post had an approver" do
         post = create(:deleted_post, approver: create(:admin_user))
         expect { post.undelete! }
-          .to change { post.uploader.user_status.reload.upload_karma }.by(4)
+          .to change { post.uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT)
       end
 
-      it "restores the uploader's upload karma by 4 when the deleted post had no approver" do
-        # Restoring always approves the post (worth +1), and delete! already drove every
-        # deleted post down to -3, so the reversal is a flat +4 regardless of prior state.
+      it "restores the uploader's upload karma when the deleted post had no approver" do
+        # Restoring always approves the post (worth the credit), and delete! already drove
+        # every deleted post down to the penalty, so the reversal is a flat penalty + credit
+        # regardless of prior state.
         member = create(:user)
         post = create(:deleted_post, uploader: member, approver: nil)
         expect { post.undelete! }
-          .to change { post.uploader.user_status.reload.upload_karma }.by(4)
+          .to change { post.uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT)
       end
 
       it "does not touch upload karma when skip_karma is set (takedown reversal)" do
@@ -118,18 +119,18 @@ RSpec.describe Post do
         member = create(:user)
         post = create(:post, uploader: member, approver: create(:admin_user))
         expect do
-          post.delete!("Test reason")   # -4
-          post.reload.undelete!         # +4
+          post.delete!("Test reason")   # -(penalty + credit)
+          post.reload.undelete!         # +(penalty + credit)
         end.not_to(change { member.user_status.reload.upload_karma })
       end
 
-      it "nets +1 across a pending post's delete then undelete (undelete approves it)" do
+      it "nets the approved credit across a pending post's delete then undelete (undelete approves it)" do
         member = create(:user)
         post = create(:pending_post, uploader: member)
         expect do
-          post.delete!("Test reason")   # -3 (never earned the +1 credit)
-          post.reload.undelete!         # +4 (restored → approved)
-        end.to change { member.user_status.reload.upload_karma }.by(1)
+          post.delete!("Test reason")   # -penalty (never earned the credit)
+          post.reload.undelete!         # +(penalty + credit) (restored → approved)
+        end.to change { member.user_status.reload.upload_karma }.by(UserStatus::KARMA_APPROVED_CREDIT)
       end
 
       # FIXME: It definitely does not do this.
