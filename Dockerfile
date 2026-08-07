@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM ruby:3.3.1-alpine3.20
+FROM ruby:3.3.1-alpine3.20 AS development
 
 RUN apk --no-cache add vips \
   postgresql15-client \
@@ -56,3 +56,65 @@ RUN git config --global --add safe.directory $(pwd)
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["overmind", "start"]
+
+# --- Production stages ---------------------------------------------------
+# The development stage relies on the compose bind mount for source and runs
+# everything as root with sudo available. The production image instead bakes
+# the source and precompiled assets in, and runs as an unprivileged user.
+
+FROM development AS asset-builder
+
+COPY . .
+
+# application.rb requires this file unconditionally; the real one is gitignored
+# and per-machine (prod hosts bind-mount theirs over it), so bake the empty one.
+RUN cp docker/danbooru_local_config.rb config/danbooru_local_config.rb
+
+# assets:precompile boots the full app, so every ENV.fetch without a default
+# needs a value; none of these influence the built assets. vite_ruby runs
+# `npm ci` itself before building (vite:install_dependencies).
+RUN RAILS_ENV=production \
+  SECRET_TOKEN=build \
+  SESSION_SECRET_KEY=build \
+  DB_HOST=build DB_PORT=5432 DB_PASSWORD=build \
+  DB_POOL_SIZE=1 DB_WORKER_POOL_SIZE=1 \
+  DANBOORU_TOTP_ENCRYPTION_KEY=build \
+  bundle exec rails assets:precompile \
+  && rm -rf node_modules tmp log \
+  && mkdir -p tmp log public/data
+
+FROM ruby:3.3.1-alpine3.20 AS production
+
+# Runtime dependencies only: no node, no build toolchain, no sudo.
+# git stays because bundler resolves the git-sourced dtext gem at boot.
+RUN apk --no-cache add vips \
+  postgresql15-client \
+  git jemalloc tzdata gcompat
+
+COPY --from=mwader/static-ffmpeg:8.1.2 /ffmpeg /ffprobe /usr/bin/
+
+WORKDIR /app
+
+ENV RAILS_ENV=production
+ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
+ENV RUBY_YJIT_ENABLE=1
+ENV RAILS_LOG_TO_STDOUT=1
+
+# The image carries no .git; /health and version links read the tag from here.
+ARG GIT_TAG=""
+ENV DANBOORU_IMAGE_TAG=$GIT_TAG
+
+COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
+# The shared bundle includes overmind (dev-only process manager); drop it.
+RUN gem uninstall -Ix overmind
+COPY --from=asset-builder /app /app
+
+# Fixed-UID unprivileged user; override with `docker run --user` to match the
+# ownership of the NFS export mounted at public/data.
+RUN addgroup --gid 1000 e621ng \
+  && adduser -S --shell /bin/sh --uid 1000 -G e621ng e621ng \
+  && chown -R e621ng:e621ng /app/tmp /app/log /app/public/data
+USER e621ng
+
+# Web mode. Jobs mode overrides with: bundle exec sidekiq
+CMD ["bundle", "exec", "pitchfork", "-c", "config/pitchfork.rb"]
