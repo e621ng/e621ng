@@ -15,6 +15,12 @@ module UsersHelper
   def user_level_badge(user)
     return if user.nil?
 
+    if CurrentUser.user.is_staff? && user.is_restricted? && user.recent_ban&.prevent_login?
+      return tag.span(class: "level-badge user-blocked", title: "This user had been forcibly logged out.") do
+        "EXPUNGED"
+      end
+    end
+
     tag.span(class: "level-badge #{user.level_css_class}") do
       user.level_string.upcase
     end
@@ -26,16 +32,6 @@ module UsersHelper
 
     tag.span(class: "level-badge #{user.level_css_class}") do
       user.custom_title.upcase
-    end
-  end
-
-  def user_banned_badge(user)
-    return if user.nil?
-    return unless user.is_restricted?
-    return unless user.recent_ban&.prevent_login?
-
-    tag.span(class: "level-badge user-blocked", title: "This user had been forcibly logged out.") do
-      "EXPUNGED"
     end
   end
 

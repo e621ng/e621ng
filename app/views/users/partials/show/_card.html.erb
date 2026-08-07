@@ -16,6 +16,7 @@
         <% unless @user.is_verified? %>
           <span class="level-badge level-unactivated">UNACTIVATED</span>
         <% end %>
+        <%= user_bd_staff_badge(@user) if CurrentUser.user.is_bd_staff? %>
       </div>
     </div>
     <div class="user-card-feedback">

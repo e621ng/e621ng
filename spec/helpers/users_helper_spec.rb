@@ -9,6 +9,8 @@ RSpec.describe UsersHelper do
   let(:admin) { build(:admin_user) }
 
   describe "#user_level_badge" do
+    include_context "as member"
+
     it "returns nil if the user is nil" do
       expect(helper.user_level_badge(nil)).to be_nil
     end
@@ -23,6 +25,28 @@ RSpec.describe UsersHelper do
       expect(helper.user_level_badge(former_staff)).to include("user-former-staff")
       expect(helper.user_level_badge(moderator)).to include("user-moderator")
       expect(helper.user_level_badge(admin)).to include("user-admin")
+    end
+
+    describe "banned user badge" do
+      let(:restricted_user) do
+        restricted_user = create(:user)
+        CurrentUser.scoped(create(:admin_user)) do
+          create(:ban, user: restricted_user, prevent_login: true)
+        end
+        restricted_user
+      end
+
+      it "displays the BLOCKED badge for regular users" do
+        badge_html = helper.user_level_badge(restricted_user)
+        expect(badge_html).to include("BLOCKED")
+      end
+
+      it "displays the EXPUNGED badge for staff users" do
+        CurrentUser.scoped(create(:staff_user)) do
+          badge_html = helper.user_level_badge(restricted_user)
+          expect(badge_html).to include("EXPUNGED")
+        end
+      end
     end
   end
 
