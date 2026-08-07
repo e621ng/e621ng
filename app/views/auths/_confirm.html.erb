@@ -1,0 +1,23 @@
+<div class="auth-flow-wrapper">
+  <h1>Confirm password</h1>
+  <p>You must re-enter your password to continue.</p>
+  <%= simple_form_for(:session, url: session_path) do |f| %>
+    <%= f.input(:url, as: :hidden, input_html: { value: params[:url] }) %>
+    <%= f.input(:name, as: :hidden, input_html: { value: CurrentUser.user.name }) %>
+
+    <div class="auth-input">
+      <%= f.label :password, class: "st-immersive-input" do %>
+        <span class="label-text">Password</span>
+        <%= f.password_field :password, required: true, autocomplete: "current-password" %>
+      <% end %>
+    </div>
+
+    <div class="auth-spacer" id="auth-error"></div>
+    <div class="auth-reminder">
+      <%= link_to("Forgot username?", new_maintenance_user_login_reminder_path, class: "hint-link") %>
+      <%= link_to("Reset Password", new_maintenance_user_password_reset_path, class: "hint-link") %>
+    </div>
+
+    <%= f.submit("Continue", class: "st-button submit") %>
+  <% end %>
+</div>

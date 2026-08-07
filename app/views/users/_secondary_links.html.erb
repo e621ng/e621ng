@@ -21,9 +21,6 @@
     <% if CurrentUser.user.is_admin? %>
       <% if !@user.is_staff? || CurrentUser.user.is_bd_staff? %>
         <%= subnav_link_to "Reset Password", request_password_reset_staff_user_path(@user) %>
-        <% if @user.totp_enabled? %>
-          <%= subnav_link_to "Remove 2FA", remove_totp_staff_user_path(@user) %>
-        <% end %>
       <% end %>
       <%= subnav_link_to "Edit Blacklist", edit_blacklist_staff_user_path(@user) %>
       <%= subnav_link_to "Edit User", edit_staff_user_path(@user) %>

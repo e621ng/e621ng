@@ -334,15 +334,21 @@ RSpec.describe Staff::UsersController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for an admin" do
+    it "redirects to the confirm_password page when reauthentication is missing" do
       sign_in_as admin
+      get request_password_reset_staff_user_path(user)
+      expect(response).to redirect_to(confirm_password_session_path(url: request_password_reset_staff_user_path(user)))
+    end
+
+    it "returns 200 for an admin" do
+      sign_in_as admin, reauthenticated: true
       get request_password_reset_staff_user_path(user)
       expect(response).to have_http_status(:ok)
     end
 
     it "returns 302 with an alert for a non-BD-staff admin when the target is staff" do
       staff_user = create(:janitor_user)
-      sign_in_as admin
+      sign_in_as admin, reauthenticated: true
       get request_password_reset_staff_user_path(staff_user)
       expect(response).to redirect_to(user_path(staff_user))
       expect(flash[:alert]).to eq("Only BD staff can request password resets for staff accounts")
@@ -350,7 +356,7 @@ RSpec.describe Staff::UsersController do
 
     it "returns 200 for a BD-staff admin when the target is staff" do
       staff_user = create(:janitor_user)
-      sign_in_as bd_staff
+      sign_in_as bd_staff, reauthenticated: true
       get request_password_reset_staff_user_path(staff_user)
       expect(response).to have_http_status(:ok)
     end
@@ -362,111 +368,64 @@ RSpec.describe Staff::UsersController do
 
   describe "POST /staff/users/:id/password_reset" do
     it "redirects anonymous to the login page" do
-      post password_reset_staff_user_path(user), params: { admin: { password: "hexerade" } }
+      post password_reset_staff_user_path(user)
       expect(response).to redirect_to(new_session_path)
     end
 
     it "returns 403 for a moderator" do
       sign_in_as moderator
-      post password_reset_staff_user_path(user), params: { admin: { password: "hexerade" } }
+      post password_reset_staff_user_path(user)
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 200 for an admin" do
+    it "redirects to the confirm_password page when reauthentication is missing" do
       sign_in_as admin
-      post password_reset_staff_user_path(user), params: { admin: { password: "hexerade" } }
+      post password_reset_staff_user_path(user)
+      expect(response).to redirect_to(confirm_password_session_path(url: password_reset_staff_user_path(user)))
+    end
+
+    it "returns 200 for an admin" do
+      sign_in_as admin, reauthenticated: true
+      post password_reset_staff_user_path(user)
       expect(response).to have_http_status(:ok)
     end
 
     it "returns 302 with an alert for a non-BD-staff admin when the target is staff" do
       staff_user = create(:janitor_user)
-      sign_in_as admin
-      post password_reset_staff_user_path(staff_user), params: { admin: { password: "hexerade" } }
+      sign_in_as admin, reauthenticated: true
+      post password_reset_staff_user_path(staff_user)
       expect(response).to redirect_to(user_path(staff_user))
       expect(flash[:alert]).to eq("Only BD staff can request password resets for staff accounts")
     end
 
     it "returns 200 for a BD-staff admin when the target is staff" do
       staff_user = create(:janitor_user)
-      sign_in_as bd_staff
-      post password_reset_staff_user_path(staff_user), params: { admin: { password: "hexerade" } }
+      sign_in_as bd_staff, reauthenticated: true
+      post password_reset_staff_user_path(staff_user)
       expect(response).to have_http_status(:ok)
     end
 
     context "as an admin" do
-      before { sign_in_as admin }
+      before { sign_in_as admin, reauthenticated: true }
 
-      it "redirects back with a notice when the password is wrong" do
-        post password_reset_staff_user_path(user), params: { admin: { password: "wrongpassword" } }
-        expect(response).to redirect_to(request_password_reset_staff_user_path(user))
-        expect(flash[:notice]).to eq("Password wrong")
-      end
-
-      it "creates a UserPasswordResetNonce when the password is correct" do
+      it "creates a UserPasswordResetNonce" do
         expect do
-          post password_reset_staff_user_path(user), params: { admin: { password: "hexerade" } }
+          post password_reset_staff_user_path(user)
         end.to change(UserPasswordResetNonce, :count).by(1)
-      end
-
-      it "renders the password_reset template when the password is correct" do
-        post password_reset_staff_user_path(user), params: { admin: { password: "hexerade" } }
-        expect(response).to have_http_status(:ok)
       end
 
       it "invalidates the old password when invalidate_old_password is truthy" do
         post password_reset_staff_user_path(user), params: {
-          admin: { password: "hexerade", invalidate_old_password: "1" },
+          admin: { invalidate_old_password: "1" },
         }
         expect(user.reload.bcrypt_password_hash).to eq("*AC*")
       end
 
       it "preserves the old password hash when invalidate_old_password is not set" do
         original_hash = user.bcrypt_password_hash
-        post password_reset_staff_user_path(user), params: { admin: { password: "hexerade" } }
+        post password_reset_staff_user_path(user)
         expect(user.reload.bcrypt_password_hash).to eq(original_hash)
       end
-    end
-  end
-
-  # ---------------------------------------------------------------------------
-  # GET /staff/users/:id/remove_totp
-  # ---------------------------------------------------------------------------
-
-  describe "GET /staff/users/:id/remove_totp" do
-    let(:totp_user) { create(:user) }
-
-    before { create(:user_totp, user: totp_user) }
-
-    it "redirects anonymous to the login page" do
-      get remove_totp_staff_user_path(totp_user)
-      expect(response).to redirect_to(new_session_path(url: remove_totp_staff_user_path(totp_user)))
-    end
-
-    it "returns 403 for a moderator" do
-      sign_in_as moderator
-      get remove_totp_staff_user_path(totp_user)
-      expect(response).to have_http_status(:forbidden)
-    end
-
-    it "returns 200 for an admin" do
-      sign_in_as admin
-      get remove_totp_staff_user_path(totp_user)
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "redirects with a notice when the user has no 2FA" do
-      sign_in_as admin
-      get remove_totp_staff_user_path(user)
-      expect(response).to redirect_to(user_path(user))
-    end
-
-    it "redirects with an alert for a non-BD-staff admin when the target is staff" do
-      staff_user = create(:janitor_user)
-      create(:user_totp, user: staff_user)
-      sign_in_as admin
-      get remove_totp_staff_user_path(staff_user)
-      expect(response).to redirect_to(user_path(staff_user))
-      expect(flash[:alert]).to eq("Only BD staff can remove 2FA from staff accounts")
     end
   end
 

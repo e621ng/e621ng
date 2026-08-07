@@ -1,8 +1,9 @@
-<% content_for(:page_title) do %>
-  Two-Factor Authentication
-<% end %>
-
-<%= render "secondary_links" %>
 <div id="c-sessions"><div id="a-totp">
   <%= render "auths/totp" %>
 </div></div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Two-Factor Authentication
+<% end %>

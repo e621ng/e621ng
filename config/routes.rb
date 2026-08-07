@@ -57,7 +57,6 @@ Rails.application.routes.draw do
         post :update_blacklist
         get :request_password_reset
         post :password_reset
-        get :remove_totp
         post :totp_reset
         get :anonymize
         post :anonymize, action: :anonymize_confirm
