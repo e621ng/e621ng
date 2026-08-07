@@ -51,7 +51,7 @@ class ModActionDecorator < ApplicationDecorator
     when "search_trend_blacklist_delete"
       "Deleted search trend blacklist entry for \"#{vals['tag']}\""
     when "search_trend_blacklist_purge"
-      "Purged search trend blacklist entry for \"#{vals['tag']}\""
+      "Purged #{vals['deleted_count']} search trend entries matching \"#{vals['tag']}\""
 
       ### Ticket ###
     when "ticket_update"
