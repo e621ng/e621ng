@@ -52,6 +52,35 @@ RSpec.describe WikiTableOfContents do
       it "falls back to the full text when dropping parentheticals empties the slug" do
         expect(entries("<h2>(Vaelor)</h2>").first).to include(slug: "vaelor", text: "(Vaelor)")
       end
+
+      it "suffixes a colliding slug so each entry stays linkable" do
+        expect(entries("<h2>Vaelor</h2><h2>Vaelor</h2>").pluck(:slug)).to eq(%w[vaelor vaelor-1])
+      end
+
+      it "increments the suffix past an existing numbered slug" do
+        result = entries("<h2>Vaelor</h2><h2>Vaelor 1</h2><h2>Vaelor</h2>")
+        expect(result.pluck(:slug)).to eq(%w[vaelor vaelor-1 vaelor-2])
+      end
+
+      it "suffixes a generated slug that collides with an author anchor" do
+        result = entries(%(<h2>Vaelor <a id="vaelor"></a></h2><h2>Vaelor</h2>))
+        expect(result.pluck(:slug)).to eq(%w[vaelor vaelor-1])
+      end
+
+      it "suffixes a generated slug that collides with a later author anchor" do
+        result = entries(%(<h2>Vaelor</h2><h2>Draketh <a id="vaelor"></a></h2>))
+        expect(result.pluck(:slug)).to eq(%w[vaelor-1 vaelor])
+      end
+
+      it "reserves an explicit id attribute so a generated slug avoids it" do
+        result = entries(%(<h2 id="vaelor">Draketh</h2><h2>Vaelor</h2>))
+        expect(result.pluck(:slug)).to eq(%w[vaelor vaelor-1])
+      end
+
+      it "suffixes a section slug that collides with a header" do
+        result = entries("<h2>Vaelor</h2><h3>Draketh</h3>#{section('Vaelor')}")
+        expect(result.pluck(:slug)).to eq(%w[vaelor draketh vaelor-1])
+      end
     end
 
     describe "labels" do
@@ -118,6 +147,10 @@ RSpec.describe WikiTableOfContents do
     it "leaves a header untouched when it already carries an author anchor" do
       html = %(<h2>Vaelor <a id="wyrmroost"></a></h2>)
       expect(rendered(html)).to eq(html)
+    end
+
+    it "injects a suffixed id onto a colliding header" do
+      expect(rendered("<h2>Vaelor</h2><h2>Vaelor</h2>")).to eq(%(<h2 id="vaelor">Vaelor</h2><h2 id="vaelor-1">Vaelor</h2>))
     end
 
     it "leaves the body byte-identical except for injected ids" do
