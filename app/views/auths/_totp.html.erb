@@ -7,7 +7,7 @@
       <%= form.label :code, class: "st-immersive-input" do %>
         <span class="label-text">Code</span>
         <%# No inputmode: backup codes are alphanumeric, and a numeric keyboard would block them on mobile. %>
-        <%= form.input_field :code, required: true, autocomplete: "one-time-code" %>
+        <%= form.input_field :code, required: true, autocomplete: "one-time-code", autofocus: true %>
       <% end %>
     </div>
 
