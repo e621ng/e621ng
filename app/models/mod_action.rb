@@ -129,6 +129,7 @@ class ModAction < ApplicationRecord
     ip_ban_create ip_ban_delete
     post_version_hide post_version_unhide
     totp_reset password_reset
+    search_trend_blacklist_create search_trend_blacklist_update search_trend_blacklist_delete search_trend_blacklist_purge
   ].freeze
 
   KnownActionKeys = KnownActions.keys.freeze

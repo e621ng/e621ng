@@ -82,6 +82,28 @@ RSpec.describe ModActionDecorator do
       end
     end
 
+    context "with search trend actions" do
+      it "search_trend_blacklist_create includes tag" do
+        desc = decorate(:search_trend_blacklist_create, { "tag" => "testtag" }).format_description
+        expect(desc).to include("testtag")
+      end
+
+      it "search_trend_blacklist_update includes tag" do
+        desc = decorate(:search_trend_blacklist_update, { "tag" => "testtag" }).format_description
+        expect(desc).to include("testtag")
+      end
+
+      it "search_trend_blacklist_delete includes tag" do
+        desc = decorate(:search_trend_blacklist_delete, { "tag" => "testtag" }).format_description
+        expect(desc).to include("testtag")
+      end
+
+      it "search_trend_blacklist_purge includes tag and deleted count" do
+        desc = decorate(:search_trend_blacklist_purge, { "tag" => "testtag", "deleted_count" => 5 }).format_description
+        expect(desc).to include("testtag", "5")
+      end
+    end
+
     context "with ticket actions" do
       it "ticket_claim includes ticket id" do
         desc = decorate(:ticket_claim, { "ticket_id" => 12 }).format_description
