@@ -16,7 +16,7 @@ class SessionsController < ApplicationController
       return
     end
     session_creator = SessionCreator.new(request, session, cookies, sparams[:name], sparams[:password], sparams[:remember].to_s.truthy?)
-    url = sparams[:url] if sparams[:url]&.start_with?("/") && !sparams[:url].start_with?("//")
+    url = url_from(sparams[:url])
 
     case session_creator.authenticate(url: url)
     when :succeeded
