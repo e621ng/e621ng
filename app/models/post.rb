@@ -1880,6 +1880,8 @@ class Post < ApplicationRecord
         height: image_height,
         size: file_size,
 
+        duration: duration,
+
         created_at: created_at,
         uploader: uploader_name,
         uploader_id: uploader_id,
