@@ -38,7 +38,7 @@ RSpec.describe KarmaBadge do
   describe "#badge_title" do
     it "shows progress toward the next level below the maximum" do
       set_karma(user, Danbooru.config.upload_karma_l1_threshold)
-      required_for_next = user.required_karma_for_level(2)
+      required_for_next = User.required_karma_for_level(2)
       expect(component.send(:badge_title)).to eq("Upload Karma: #{user.upload_karma} / #{required_for_next} (Level 1)")
     end
 

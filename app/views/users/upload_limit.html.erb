@@ -2,7 +2,7 @@
 
   <% pieces = @user.upload_slots_pieces %>
   <% karma_threshold_enabled = !Danbooru.config.upload_karma_free_threshold.nil? %>
-  <% karma_threshold = karma_threshold_enabled ? @user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) : nil %>
+  <% karma_threshold = karma_threshold_enabled ? User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) : nil %>
   <% is_current_user = @user.id == CurrentUser.id %>
 
   <!-- Header -->
