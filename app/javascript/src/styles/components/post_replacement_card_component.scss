@@ -35,8 +35,9 @@ $replacement-variants: (
   position: relative;
   background: themed("color-foreground");
   border: 1px solid themed("color-section");
-  border-radius: $border-radius-full;
+  @include st-radius;
   margin-bottom: 0.75rem;
+  box-shadow: 0 0 0.125rem themed("color-background");
 
   &.has-timeline {
     margin-left: 1.5rem;
@@ -278,10 +279,6 @@ $replacement-variants: (
 
 .replacement-reason {
   white-space: pre-wrap;
-}
-
-.replacement-sources {
-  max-width: 16rem;
 }
 
 .inline-icons {
