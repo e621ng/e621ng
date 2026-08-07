@@ -107,6 +107,7 @@ module Staff
       end
 
       @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params.dig(:admin, :invalidate_old_password)&.truthy?
+      ModAction.log(:password_reset, { user_id: @user.id, invalidated: params.dig(:admin, :invalidate_old_password)&.truthy? || false })
 
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
     end

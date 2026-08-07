@@ -414,6 +414,18 @@ RSpec.describe Staff::UsersController do
         end.to change(UserPasswordResetNonce, :count).by(1)
       end
 
+      it "logs a password_reset ModAction" do
+        expect do
+          post password_reset_staff_user_path(user)
+        end.to change(ModAction.where(action: "password_reset"), :count).by(1)
+        expect(ModAction.last[:values]).to include("user_id" => user.id, "invalidated" => false)
+
+        expect do
+          post password_reset_staff_user_path(user), params: { admin: { invalidate_old_password: "1" } }
+        end.to change(ModAction.where(action: "password_reset"), :count).by(1)
+        expect(ModAction.last[:values]).to include("user_id" => user.id, "invalidated" => true)
+      end
+
       it "invalidates the old password when invalidate_old_password is truthy" do
         post password_reset_staff_user_path(user), params: {
           admin: { invalidate_old_password: "1" },
