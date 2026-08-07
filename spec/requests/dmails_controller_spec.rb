@@ -429,13 +429,14 @@ RSpec.describe DmailsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 403 for staff member accessing DMail via a key" do
-      dmail_from_staff = create(:dmail, from: moderator, to: recipient, owner_id: recipient.id)
-      dmail_from_staff.update_columns(is_read: false)
-      sign_in_as janitor
-      put mark_as_read_dmail_path(dmail_from_staff, format: :json)
+    it "returns 403 for a moderator with ticket access" do
+      ticket = create(:ticket, :dmail_type)
+      dmail = Dmail.find(ticket.disp_id)
+      dmail.update_columns(is_read: false)
+      sign_in_as moderator
+      put mark_as_read_dmail_path(dmail, format: :json)
       expect(response).to have_http_status(:forbidden)
-      expect(dmail_from_staff.reload.is_read).to be false
+      expect(dmail.reload.is_read).to be false
     end
   end
 
@@ -471,13 +472,14 @@ RSpec.describe DmailsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns 403 for staff member accessing DMail via a key" do
-      dmail_from_staff = create(:dmail, from: moderator, to: recipient, owner_id: recipient.id)
-      dmail_from_staff.update_columns(is_read: true)
-      sign_in_as janitor
-      put mark_as_unread_dmail_path(dmail_from_staff, format: :json)
+    it "returns 403 for a moderator with ticket access" do
+      ticket = create(:ticket, :dmail_type)
+      dmail = Dmail.find(ticket.disp_id)
+      dmail.update_columns(is_read: false)
+      sign_in_as moderator
+      put mark_as_unread_dmail_path(dmail, format: :json)
       expect(response).to have_http_status(:forbidden)
-      expect(dmail_from_staff.reload.is_read).to be true
+      expect(dmail.reload.is_read).to be false
     end
   end
 
