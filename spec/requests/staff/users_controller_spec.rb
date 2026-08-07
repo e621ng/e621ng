@@ -380,7 +380,7 @@ RSpec.describe Staff::UsersController do
 
     it "redirects to the confirm_password page when reauthentication is missing" do
       sign_in_as admin
-      post password_reset_staff_user_path(user)
+      post password_reset_staff_user_path(user), headers: { "HTTP_REFERER" => password_reset_staff_user_path(user) }
       expect(response).to redirect_to(confirm_password_session_path(url: password_reset_staff_user_path(user)))
     end
 
