@@ -18,12 +18,15 @@ class BansController < ApplicationController
     @bans = Ban.search(search_params).paginate(params[:page], :limit => params[:limit])
     respond_with(@bans) do |format|
       format.html { @bans = @bans.includes(:user, :banner) }
+      format.json { render json: BanBlueprint.render(@bans) }
     end
   end
 
   def show
     @ban = Ban.find(params[:id])
-    respond_with(@ban)
+    respond_with(@ban) do |format|
+      format.json { render json: BanBlueprint.render(@ban) }
+    end
   end
 
   def create
