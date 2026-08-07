@@ -1163,8 +1163,16 @@ class User < ApplicationRecord
         q = q.where("(bit_prefs & :mask) = 0", mask: exclude_mask)
       end
 
+      if params[:can_karma_free].present?
+        if params[:can_karma_free].to_s.truthy?
+          q = q.joins(:user_status).where("user_statuses.upload_karma >= ?", Danbooru.config.upload_karma_free_threshold)
+        elsif params[:can_karma_free].to_s.falsy?
+          q = q.joins(:user_status).where("user_statuses.upload_karma < ?", Danbooru.config.upload_karma_free_threshold)
+        end
+      end
+
       # Check if the join is necessary
-      if params[:order].present? && %w[post_upload_count note_count post_update_count].include?(params[:order])
+      if params[:order].present? && %w[post_upload_count note_count post_update_count upload_karma].include?(params[:order])
         q = q.joins(:user_status)
       end
 
@@ -1177,6 +1185,8 @@ class User < ApplicationRecord
         q = q.order("user_statuses.note_count desc")
       when "post_update_count"
         q = q.order("user_statuses.post_update_count desc")
+      when "upload_karma"
+        q = q.order("user_statuses.upload_karma desc")
       else
         q = q.apply_basic_order(params)
       end

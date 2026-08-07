@@ -14,5 +14,9 @@
   <%= f.input :can_approve_posts, label: "Approver?", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
   <%= f.input :can_upload_free, label: "Unrestricted uploads?", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
 
-  <%= f.input :order, collection: [["Name", "name"], ["Upload count", "post_upload_count"], ["Note count", "note_count"], ["Post update count", "post_update_count"]], include_blank: "Join Date" %>
+  <% unless Danbooru.config.upload_karma_free_threshold.nil? %>
+    <%= f.input :can_karma_free, label: "Karma approval bypass?", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
+  <% end %>
+
+  <%= f.input :order, collection: [["Name", "name"], ["Upload count", "post_upload_count"], ["Note count", "note_count"], ["Post update count", "post_update_count"], ["Upload karma", "upload_karma"]], include_blank: "Join Date" %>
 <% end %>
