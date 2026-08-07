@@ -393,7 +393,7 @@ RSpec.describe Staff::UsersController do
     it "returns 302 with an alert for a non-BD-staff admin when the target is staff" do
       staff_user = create(:janitor_user)
       sign_in_as admin, reauthenticated: true
-      post password_reset_staff_user_path(staff_user)
+      post password_reset_staff_user_path(staff_user), params: { admin: { password: "hexerade" } }, headers: { "HTTP_REFERER" => user_path(staff_user) }
       expect(response).to redirect_to(user_path(staff_user))
       expect(flash[:alert]).to eq("Only BD staff can request password resets for staff accounts")
     end
