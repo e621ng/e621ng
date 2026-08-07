@@ -20,7 +20,7 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.is_bd_auditor = true
 end
 
-required_karma = admin.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
+required_karma = User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
 if !required_karma.nil? && admin.upload_karma < required_karma
   admin.upload_karma = required_karma
   admin.save!

@@ -851,23 +851,14 @@ class User < ApplicationRecord
     end
 
     def upload_karma_level
-      # Calculated from the `upload_karma` column. Threshold values pulled from the config file.
-      return 0 if upload_karma < Danbooru.config.upload_karma_l1_threshold
-      level = (Math.log10(upload_karma / upload_karma_l1) * upload_karma_scale).floor + 1
-      [level, max_karma_level].min
-    end
-
-    def required_karma_for_level(level)
-      level = level.to_i
-      return 0 if level <= 0
-      (upload_karma_l1 * (10**((level - 1) / upload_karma_scale))).ceil
+      User.level_from_karma(upload_karma)
     end
 
     def upload_karma_percent
       level = upload_karma_level
-      return 0 if level >= max_karma_level
-      current_level_karma = required_karma_for_level(level)
-      next_level_karma = required_karma_for_level(level + 1)
+      return 0 if level >= User.max_karma_level
+      current_level_karma = User.required_karma_for_level(level)
+      next_level_karma = User.required_karma_for_level(level + 1)
 
       # Ensure we don't divide by zero
       return 100 if next_level_karma == current_level_karma
@@ -889,6 +880,21 @@ class User < ApplicationRecord
       return false if no_karma_free?
       can_upload_free? || upload_karma_free?
     end
+  end
+
+  module GlobalKarmaMethods
+    def required_karma_for_level(level)
+      level = level.to_i
+      return 0 if level <= 0
+      (upload_karma_l1 * (10**((level - 1) / upload_karma_scale))).ceil
+    end
+
+    def level_from_karma(karma)
+      # Calculated from the `upload_karma` column. Threshold values pulled from the config file.
+      return 0 if karma < upload_karma_l1
+      level = (Math.log10(karma / upload_karma_l1) * upload_karma_scale).floor + 1
+      [level, User.max_karma_level].min
+    end
 
     def max_karma_level = 10
 
@@ -896,7 +902,7 @@ class User < ApplicationRecord
 
     def upload_karma_l1 = Danbooru.config.upload_karma_l1_threshold.to_f
     def upload_karma_l10 = Danbooru.config.upload_karma_l10_threshold.to_f
-    def upload_karma_scale = (max_karma_level - 1) / Math.log10(upload_karma_l10 / upload_karma_l1)
+    def upload_karma_scale = (User.max_karma_level - 1) / Math.log10(upload_karma_l10 / upload_karma_l1)
   end
 
   module ApiMethods
@@ -1163,11 +1169,12 @@ class User < ApplicationRecord
         q = q.where("(bit_prefs & :mask) = 0", mask: exclude_mask)
       end
 
-      if params[:can_karma_free].present?
+      if params[:can_karma_free].present? && Danbooru.config.upload_karma_free_threshold.present?
+        required_karma = User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
         if params[:can_karma_free].to_s.truthy?
-          q = q.joins(:user_status).where("user_statuses.upload_karma >= ?", Danbooru.config.upload_karma_free_threshold)
+          q = q.joins(:user_status).where("user_statuses.upload_karma >= ?", required_karma)
         elsif params[:can_karma_free].to_s.falsy?
-          q = q.joins(:user_status).where("user_statuses.upload_karma < ?", Danbooru.config.upload_karma_free_threshold)
+          q = q.joins(:user_status).where("user_statuses.upload_karma < ?", required_karma)
         end
       end
 
@@ -1217,6 +1224,7 @@ class User < ApplicationRecord
   include CountMethods
   extend SearchMethods
   extend ThrottleMethods
+  extend GlobalKarmaMethods
 
   def has_mail?
     unread_dmail_count > 0

@@ -99,7 +99,7 @@ RSpec.configure do |config|
       user.is_bd_auditor = true
     end
     # Karma above the free threshold so seeded staff uploads bypass the review queue.
-    admin.user_status.update_columns(upload_karma: admin.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) + 1000)
+    admin.user_status.update_columns(upload_karma: User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) + 1000)
 
     system_user = User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
       user.password = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
@@ -109,7 +109,7 @@ RSpec.configure do |config|
       user.can_approve_posts = true
       user.level = UserLevel::JANITOR
     end
-    system_user.user_status.update_columns(upload_karma: system_user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) + 1000)
+    system_user.user_status.update_columns(upload_karma: User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) + 1000)
 
     ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") do |category|
       category.can_view = 0

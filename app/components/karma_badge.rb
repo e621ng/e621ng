@@ -18,21 +18,21 @@ class KarmaBadge < ViewComponent::Base
   attr_reader :user
 
   def karma_level
-    return "S" if user.upload_karma_level >= user.max_karma_level
+    return "S" if user.upload_karma_level >= User.max_karma_level
     user.upload_karma_level
   end
 
   def badge_title
-    if user.upload_karma_level >= user.max_karma_level
+    if user.upload_karma_level >= User.max_karma_level
       return "Upload Karma: #{user.upload_karma} (Level S)"
     end
 
     next_level = user.upload_karma_level + 1
-    "Upload Karma: #{user.upload_karma} / #{user.required_karma_for_level(next_level)} (Level #{karma_level})"
+    "Upload Karma: #{user.upload_karma} / #{User.required_karma_for_level(next_level)} (Level #{karma_level})"
   end
 
   def progress_degree
-    return 0 if user.upload_karma_level >= user.max_karma_level
+    return 0 if user.upload_karma_level >= User.max_karma_level
     (user.upload_karma_percent * 3.6).round
   end
 

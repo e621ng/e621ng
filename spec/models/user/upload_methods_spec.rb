@@ -61,7 +61,7 @@ RSpec.describe User do
       # zero out the user's upload slots so that the only reason they can upload is their karma level
       member.user_status.update_columns(post_replacement_rejected_count: 100)
 
-      set_karma(member, user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold))
+      set_karma(member, User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold))
       expect(member.can_upload_with_reason).to be true
     end
 

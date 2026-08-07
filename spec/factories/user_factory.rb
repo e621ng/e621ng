@@ -95,7 +95,7 @@ FactoryBot.define do
     factory :unlimited_uploads_user do
       # Karma above the free threshold bypasses the review queue.
       after(:create) do |user|
-        threshold = user.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
+        threshold = User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
         user.user_status.update_columns(upload_karma: threshold + 1)
       end
     end
