@@ -22,6 +22,14 @@ RSpec.describe User do
     target.reload
   end
 
+  describe "karma constants" do
+    it "have the expected values" do
+      expect(UserStatus::KARMA_APPROVED_CREDIT).to eq(1)
+      expect(UserStatus::KARMA_DELETION_PENALTY).to eq(3)
+      expect(UserStatus::KARMA_REPLACEMENT_PENALTY).to eq(3)
+    end
+  end
+
   # -------------------------------------------------------------------------
   # #raw_upload_karma
   # -------------------------------------------------------------------------
