@@ -30,7 +30,7 @@ class WikiTableOfContents
   end
 
   def entries
-    @entries ||= [].tap { |list| flatten(@root, -1, list) }
+    @entries ||= [].tap { |list| flatten(@root, 0, list) }
   end
 
   private
@@ -150,7 +150,8 @@ class WikiTableOfContents
 
   def flatten(node, depth, list)
     list << { depth: depth, slug: node.slug, text: node.text } if node.text
-    node.children.each { |child| flatten(child, depth + 1, list) }
+    child_depth = node.text ? depth + 1 : depth
+    node.children.each { |child| flatten(child, child_depth, list) }
   end
 
   def clean_label(inner)
