@@ -20,7 +20,7 @@ class DmailsController < ApplicationController
     check_privilege(@dmail, params[:key])
     respond_with(@dmail) do |format|
       format.html do
-        @dmail.mark_as_read! unless @dmail.is_read
+        @dmail.mark_as_read! unless @dmail.is_read || CurrentUser.id != @dmail.owner_id
       end
     end
   end
