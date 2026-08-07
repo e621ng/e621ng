@@ -6,7 +6,6 @@ class BanBlueprint < Blueprinter::Base
   field :user_id
   field :banner_id
   field :reason
-  field :duration
 
   field :expires_at
   field :created_at
