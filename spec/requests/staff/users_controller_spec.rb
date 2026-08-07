@@ -554,10 +554,18 @@ RSpec.describe Staff::UsersController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "redirects to the confirm_password page when reauthentication is missing" do
-      sign_in_as bd_staff
-      post anonymize_staff_user_path(user)
-      expect(response).to redirect_to(confirm_password_session_path(url: anonymize_staff_user_path(user)))
+    context "as bd staff without reauthentication" do
+      before { sign_in_as bd_staff }
+
+      it "redirects to the confirm_password page" do
+        post anonymize_staff_user_path(user)
+        expect(response).to redirect_to(confirm_password_session_path)
+      end
+
+      it "redirects to the confirm_password page with the referrer URL" do
+        post anonymize_staff_user_path(user), headers: { "HTTP_REFERER" => user_path(user) }
+        expect(response).to redirect_to(confirm_password_session_path(url: user_path(user)))
+      end
     end
 
     context "as bd_staff with reauthentication" do
