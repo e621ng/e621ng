@@ -261,8 +261,18 @@ class ApplicationController < ActionController::Base
     return redirect_to(new_session_path(url: request.fullpath)) if CurrentUser.user.is_logged_out?
     last_authenticated_at = session[:last_authenticated_at]
     if last_authenticated_at.blank? || Time.zone.parse(last_authenticated_at) < 1.hour.ago
-      # Redirect back to the referrer if the request is not a GET.
-      return_to = request.get? ? request.fullpath : URI.parse(request.referer.to_s).path.presence
+      if request.get?
+        return_to = request.fullpath
+      else
+        # If the request is not a GET, we can't redirect back to it after reauthentication.
+        # Redirecting back to the referer is the next best option, although that would lose
+        # any form data and query params.
+        begin
+          return_to = URI.parse(request.referer.to_s).path.presence
+        rescue URI::InvalidURIError
+          return_to = nil
+        end
+      end
       redirect_to(confirm_password_session_path(url: return_to))
     end
   end
