@@ -15,9 +15,9 @@ RSpec.describe PostFlag do
       expect(post.reload.is_flagged).to be true
     end
 
-    it "does not raise an error when the post is already flagged" do
+    it "does not raise an error when a deletion flag is created on an already-flagged post" do
       post = create(:flagged_post)
-      expect { create(:post_flag, post: post) }.not_to raise_error
+      expect { create(:deletion_post_flag, post: post) }.not_to raise_error
     end
   end
 

@@ -25,6 +25,7 @@ class PostFlag < ApplicationRecord
   belongs_to :post
   validate :validate_creator_is_not_limited, on: :create
   validate :validate_post
+  validate :validate_post_is_not_flagged, on: :create
   validate :validate_reason, on: :create
   validate :update_reason, on: :create
   validates :reason, presence: true, if: -> { reason_name == "deletion" }
@@ -163,6 +164,13 @@ class PostFlag < ApplicationRecord
     return errors.add(:post, "must exist") if post.nil?
     errors.add(:post, "is locked and cannot be flagged") if post.is_status_locked? && !(creator.is_admin? || force_flag)
     errors.add(:post, "is deleted") if post.is_deleted?
+  end
+
+  # Deletions are exempt: deleting an already-flagged post creates a deletion flag.
+  def validate_post_is_not_flagged
+    return if post.nil? || is_deletion
+
+    errors.add(:post, "is already flagged") if post.is_flagged?
   end
 
   def validate_reason
