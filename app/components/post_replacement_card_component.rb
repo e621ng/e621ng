@@ -73,6 +73,16 @@ class PostReplacementCardComponent < ViewComponent::Base
     replacement.is_backup? ? "Backup created at" : "Created at"
   end
 
+  # "WIDTHxHEIGHT ext (size, DURATIONs)" for either the replacement or the post.
+  # Replacements don't store a duration; the post's only describes a replacement's
+  # file when that replacement is current, so it's omitted otherwise.
+  def file_details(record)
+    details = "#{record.image_width}x#{record.image_height} #{record.file_ext} "
+    details += "(#{record.file_size.to_fs(:human_size, precision: 5)}"
+    details += ", #{post.duration}s" if record.is_video? && (record == post || replacement.is_current?)
+    "#{details})"
+  end
+
   def show_status_changed_at?
     replacement.updated_at != replacement.created_at
   end
