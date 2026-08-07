@@ -10,7 +10,7 @@ RSpec.describe BansController do
   let(:admin)      { create(:admin_user) }
   let(:ban_target) { create(:user) }
   # The factory sets an explicit banner (moderator_user) so no CurrentUser swap is needed.
-  let(:ban) { create(:ban, user: ban_target) }
+  let(:ban)        { create(:ban, user: ban_target) }
 
   # ---------------------------------------------------------------------------
   # GET /bans — index
@@ -32,6 +32,16 @@ RSpec.describe BansController do
       sign_in_as member
       get bans_path
       expect(response).to have_http_status(:ok)
+    end
+
+    it "does not include ban_flags in the JSON response" do
+      ban
+      sign_in_as member
+      get bans_path(format: :json)
+      expect(response).to have_http_status(:ok)
+      first_ban = response.parsed_body.first
+      expect(first_ban).to include("id", "user_id", "banner_id", "reason", "expires_at", "created_at", "updated_at")
+      expect(first_ban).not_to include("ban_flags")
     end
 
     context "with expired and active bans" do
@@ -70,6 +80,12 @@ RSpec.describe BansController do
       get ban_path(ban, format: :json)
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to include("id" => ban.id)
+    end
+
+    it "does not include ban_flags in the JSON response" do
+      get ban_path(ban, format: :json)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).not_to include("ban_flags")
     end
   end
 
