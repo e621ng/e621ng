@@ -68,6 +68,9 @@ export default class FilterToken {
           ];
         }
       }
+    } else if (this.comparison === ",") {
+      this.value = raw.split(",").map(e => FilterUtilities.normalizeData(e, this.type));
+      // TODO: Add fudging for filesize?
     } else {
       this.value = FilterUtilities.normalizeData(raw, this.type);
       if (this.comparison === "=" && this.type === "filesize") {
