@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "ruby_lsp",
+      "name": "Attach debugger",
+      "request": "attach",
+      "debugHost": "e621",
+      "debugPort": 12345,
+      "localfsMap": "/app:${workspaceFolder}"
+    }
+  ]
+}
