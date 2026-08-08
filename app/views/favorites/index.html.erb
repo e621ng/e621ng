@@ -2,13 +2,10 @@
 
   <div class="search">
     <%= render "posts/partials/common/search", title: "Favorites", tags: "fav:#{@user.name} " %>
-    <div style="color: darkorange;">Searching favorites does not preserve the order in which they were added.<br/></div>
+    <%= render "posts/partials/index/controls" %>
   </div>
 
   <div class="sidebar">
-    <% if CurrentUser.is_member? %>
-      <%= render "posts/partials/index/mode_menu" %>
-    <% end %>
     <%= render partial: "application/blacklist" %>
 
     <% if @post_set.related_tags.any? %>
@@ -28,6 +25,7 @@
   <div class="content">
     <%= render "ads/leaderboard", area: :top, tag_string: @post_set.ad_tag_string %>
     <%= render "posts/partials/index/edit" %>
+    <%= render "posts/partials/index/info_bar", post_set: @post_set, warning: "Searching favorites doesn't preserve added order" %>
     <%= render "posts/partials/index/posts", post_set: @post_set %>
     <%= render "ads/leaderboard", area: :bottom, tag_string: @post_set.ad_tag_string %>
   </div>
