@@ -25,7 +25,7 @@ export default class Offclick {
             || target.is(entry.buttonSelector) // Click the button itself
             || target.parents(entry.buttonSelector).length > 0 // Click inside one of the button's children
             || target.parents("ul.ui-autocomplete-dropdown").length > 0 // Click inside an autocomplete dropdown
-          )
+        )
           continue;
 
         entry.callback();
