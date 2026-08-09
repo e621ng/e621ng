@@ -158,7 +158,7 @@ Rails.application.routes.draw do
       post :regenerate
     end
   end
-  resource :totp, only: %i[new create destroy], controller: "totps" do
+  resource :totp, only: %i[show new create destroy], controller: "totps" do
     post :regenerate_backup_codes, on: :collection
   end
 

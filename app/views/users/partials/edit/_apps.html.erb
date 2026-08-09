@@ -5,14 +5,15 @@
 
 <% if CurrentUser.user.is_member? %>
 <tab-entry tab="<%= tab_name %>" group="security" class="with-button" search="two factor authentication 2fa totp authenticator app security code backup">
+  <% has_totp = CurrentUser.user.totp_enabled? %>
   <tab-head>Two-Factor Authentication</tab-head>
   <tab-body>
-    <%= link_to "Manage 2FA", new_totp_path, class: "st-button" %>
+    <%= link_to "Manage 2FA", has_totp ? totp_path : new_totp_path, class: "st-button" %>
   </tab-body>
   <tab-hint>
-    <% if CurrentUser.user.totp_enabled? %>
+    <% if has_totp %>
       Enabled — a code from your authenticator app is required to log in.
-      <% if CurrentUser.user.totp.backup_code_digests.empty? %>
+      <% if CurrentUser.user.totp&.backup_code_digests&.empty? %>
         You have no backup codes left; generate new ones.
       <% end %>
     <% else %>
