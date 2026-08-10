@@ -1,3 +1,10 @@
+# --- Builder stages ------------------------------------------------------
+# Neither of these ends up running; later stages COPY --from them. Isolating
+# the installs here keeps the compilers out of the runtime images, and since
+# only the lockfiles are copied in, source edits don't invalidate the cached
+# gem/npm layers.
+
+# Compiles the gem bundle (native extensions need build-base and the -dev libs).
 FROM ruby:3.3.1-alpine3.20 AS ruby-builder
 
 RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat ragel
@@ -9,11 +16,19 @@ RUN gem i overmind && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
  && find /usr/local/bundle/gems/ -name "*.o" -delete
 
+# Installs node_modules, and doubles as the donor for the node runtime itself
+# (the development stage copies node/npm binaries out of /usr/local).
 FROM node:20-alpine3.20 AS node-builder
 RUN apk --no-cache add git
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
+
+
+# --- Development stage ----------------------------------------------------
+# What docker-compose builds (target: development). Contains no app source:
+# compose bind-mounts the working tree over /app, so this image only provides
+# the runtime (ruby, node, gems, node_modules) plus dev conveniences.
 
 FROM ruby:3.3.1-alpine3.20 AS development
 
@@ -57,11 +72,14 @@ RUN git config --global --add safe.directory $(pwd)
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["overmind", "start"]
 
+
 # --- Production stages ---------------------------------------------------
 # The development stage relies on the compose bind mount for source and runs
 # everything as root with sudo available. The production image instead bakes
 # the source and precompiled assets in, and runs as an unprivileged user.
 
+# Bakes the source in and precompiles assets. Extends development because the
+# asset build needs the full toolchain; the result is only COPY'd from.
 FROM development AS asset-builder
 
 COPY . .
@@ -83,6 +101,9 @@ RUN RAILS_ENV=production \
   && rm -rf node_modules tmp log \
   && mkdir -p tmp log public/data
 
+# The shipped image. Starts from a fresh base rather than development so none
+# of the build toolchain carries over; pulls gems from ruby-builder and the
+# compiled app from asset-builder.
 FROM ruby:3.3.1-alpine3.20 AS production
 
 # Runtime dependencies only: no node, no build toolchain, no sudo.
