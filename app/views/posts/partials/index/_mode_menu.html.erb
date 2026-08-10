@@ -33,10 +33,8 @@
   <% if CurrentUser.is_privileged? %>
     <div id="tag-script-ui" style="display: none;">
       <input id="tag-script-field" data-autocomplete="tag-edit" placeholder="Enter tag script" style="display: none;"/>
-      <div class="tag-script-actions">
-        <input id="tag-script-reason" placeholder="Reason" maxlength="250"/>
-        <button id="tag-script-all">All</button>
-      </div>
+      <button id="tag-script-all">All</button>
+      <input id="tag-script-reason" placeholder="Reason" maxlength="250"/>
     </div>
     <input id="quick-mode-reason" placeholder="Reason" style="display: none;"/>
   <% end %>

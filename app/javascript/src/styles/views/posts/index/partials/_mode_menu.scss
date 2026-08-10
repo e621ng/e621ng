@@ -26,10 +26,14 @@ $modes: (
 }
 
 #tag-script-ui {
-  display: flex;
-  margin-top: 0.5em;
-  gap: 0.5em;
-
-  input { flex: 1; }
-  button { padding: 0 0.25em; }
+  display: grid;
+  grid-template-columns: 1fr min-content;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  
+  #tag-script-field { padding: 0.25rem; }
+  #tag-script-all {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
 }
