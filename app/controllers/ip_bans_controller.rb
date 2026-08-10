@@ -4,6 +4,11 @@ class IpBansController < ApplicationController
   respond_to :html, :json
   before_action :admin_only
 
+  def index
+    @ip_bans = IpBan.includes(:creator).search(search_params).paginate(params[:page], limit: params[:limit])
+    respond_with(@ip_bans)
+  end
+
   def new
     @ip_ban = IpBan.new
   end
@@ -11,11 +16,6 @@ class IpBansController < ApplicationController
   def create
     @ip_ban = IpBan.create(ip_ban_params)
     respond_with(@ip_ban, location: ip_bans_path)
-  end
-
-  def index
-    @ip_bans = IpBan.includes(:creator).search(search_params).paginate(params[:page], limit: params[:limit])
-    respond_with(@ip_bans)
   end
 
   def destroy

@@ -5,23 +5,10 @@ class TagsController < ApplicationController
   before_action :is_bd_staff_only, only: %i[destroy]
   respond_to :html, :json
 
-  def edit
-    @from_wiki = request.referer.try(:include?, "wiki_pages") || false
-    @tag = Tag.find(params[:id])
-    check_privilege(@tag)
-    respond_with(@tag)
-  end
-
   def index
     @tags = Tag.search(search_params).paginate(params[:page], limit: params[:limit], search_count: params[:search])
 
     respond_with(@tags)
-  end
-
-  def preview
-    # This endpoint needs to be a POST request, because long tag strings will exceed the browser URL length limit.
-    @preview = TagsPreview.new(tags: params[:tags])
-    render plain: @preview.serializable_hash.to_json, content_type: "application/json"
   end
 
   def show
@@ -31,6 +18,19 @@ class TagsController < ApplicationController
       @tag = Tag.find_by!(name: params[:id])
     end
     respond_with(@tag)
+  end
+
+  def edit
+    @from_wiki = request.referer.try(:include?, "wiki_pages") || false
+    @tag = Tag.find(params[:id])
+    check_privilege(@tag)
+    respond_with(@tag)
+  end
+
+  def preview
+    # This endpoint needs to be a POST request, because long tag strings will exceed the browser URL length limit.
+    @preview = TagsPreview.new(tags: params[:tags])
+    render plain: @preview.serializable_hash.to_json, content_type: "application/json"
   end
 
   def update

@@ -655,15 +655,6 @@ Rails/ActionControllerFlashBeforeRender:
 # Include: app/controllers/**/*.rb
 Rails/ActionOrder:
   Exclude:
-    - 'app/controllers/bans_controller.rb'
-    - 'app/controllers/bulk_update_requests_controller.rb'
-    - 'app/controllers/forum_categories_controller.rb'
-    - 'app/controllers/ip_bans_controller.rb'
-    - 'app/controllers/post_report_reasons_controller.rb'
-    - 'app/controllers/tag_aliases_controller.rb'
-    - 'app/controllers/tag_implications_controller.rb'
-    - 'app/controllers/tags_controller.rb'
-    - 'app/controllers/uploads_controller.rb'
 
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).
