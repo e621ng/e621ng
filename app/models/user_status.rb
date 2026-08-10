@@ -7,7 +7,7 @@ class UserStatus < ApplicationRecord
   # Penalty applied to the uploader when their post is deleted (reversed on undelete).
   KARMA_DELETION_PENALTY = 3
   # Penalty applied to the previous uploader when their post is replaced with penalize enabled.
-  KARMA_REPLACEMENT_PENALTY = 3
+  KARMA_REPLACEMENT_PENALTY = 1
 
   belongs_to :user
 
