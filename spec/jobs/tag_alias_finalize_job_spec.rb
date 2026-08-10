@@ -29,6 +29,27 @@ RSpec.describe TagAliasFinalizeJob do
       expect(Post.document_store).to have_received(:import).with(query: { id: [101, 102, 103, 104] })
     end
 
+    it "reads post IDs from v2 posts chunks and ignores side effects records" do
+      ta.tag_rel_undos.destroy_all
+      ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [201], "without_consequent" => [202] })
+      ta.tag_rel_undos.create!(undo_data: {
+        "version" => 2,
+        "kind" => "side_effects",
+        "alias" => { "antecedent_name" => ta.antecedent_name, "consequent_name" => ta.consequent_name },
+        "relationships" => [],
+        "category_change" => nil,
+        "artist_change" => nil,
+      })
+      described_class.perform_now(ta.id)
+      expect(Post.document_store).to have_received(:import).with(query: { id: [201, 202] })
+    end
+
+    it "handles a mix of legacy and v2 undo data" do
+      ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [103], "without_consequent" => [301] })
+      described_class.perform_now(ta.id)
+      expect(Post.document_store).to have_received(:import).with(query: { id: [101, 102, 103, 301] })
+    end
+
     it "skips the bulk reindex when no posts were affected" do
       ta.tag_rel_undos.destroy_all
       described_class.perform_now(ta.id)

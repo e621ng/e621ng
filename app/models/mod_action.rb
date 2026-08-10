@@ -73,6 +73,7 @@ class ModAction < ApplicationRecord
     tag_destroy: { name: :string },
     tag_alias_create: { alias_id: :integer, alias_desc: :string },
     tag_alias_update: { alias_id: :integer, alias_desc: :string, change_desc: :string },
+    tag_alias_undo: { alias_id: :integer, alias_desc: :string },
     tag_implication_create: { implication_id: :integer, implication_desc: :string },
     tag_implication_update: { implication_id: :integer, implication_desc: :string, change_desc: :string },
     ticket_claim: { ticket_id: :integer },

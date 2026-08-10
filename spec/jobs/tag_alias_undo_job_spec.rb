@@ -15,4 +15,10 @@ RSpec.describe TagAliasUndoJob do
       expect(tag_alias).to have_received(:process_undo!).with(update_topic: false)
     end
   end
+
+  describe ".lock_args" do
+    it "locks on the tag alias id only" do
+      expect(described_class.lock_args([123, true])).to eq([123])
+    end
+  end
 end

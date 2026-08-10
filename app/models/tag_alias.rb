@@ -16,10 +16,8 @@ class TagAlias < TagRelationship
       end
     end
 
-    def undo!(approver: CurrentUser.user)
-      CurrentUser.scoped(approver) do
-        TagAliaseUndoJob.perform_later(id, true)
-      end
+    def undo!(update_topic: true)
+      TagAliasUndoJob.perform_later(id, update_topic)
     end
   end
 
@@ -205,72 +203,155 @@ class TagAlias < TagRelationship
     output.uniq.join("\n")
   end
 
+  # Locked tags and user blacklists are deliberately not undone. Once the
+  # alias has rewritten them, an occurrence of the consequent tag can no longer
+  # be told apart from one the user put there on purpose. As a consequence,
+  # posts with the consequent tag in their locked_tags will have it re-added
+  # by apply_locked_tags when they are next saved.
   def process_undo!(update_topic: true)
-    raise NotImplementedError, "Tag aliases cannot be undone."
+    validate_undoable!
+    side_effects = tag_rel_undos.where(applied: false).find(&:side_effects?).undo_data
 
-    # unless valid?
-    #   raise errors.full_messages.join("; ")
-    # end
-    #
-    # CurrentUser.scoped(approver) do
-    #   update(status: "pending")
-    #   update_posts_locked_tags_undo
-    #   update_blacklists_undo
-    #   update_posts_undo
-    #   rename_artist_undo
-    #   forum_updater.update(retirement_message, "UNDONE") if update_topic
-    # end
-    # tag_rel_undos.update_all(applied: true)
+    CurrentUser.scoped(approver) do
+      update!(status: "pending")
+      update_posts_undo
+      restore_relationships_undo(side_effects["relationships"])
+      restore_category_undo(side_effects["category_change"])
+      restore_artist_undo(side_effects["artist_change"])
+      forum_updater.update(retirement_message, "UNDONE") if update_topic
+      ModAction.log(:tag_alias_undo, { alias_id: id, alias_desc: mod_action_description })
+    end
+    tag_rel_undos.where(applied: false).update_all(applied: true)
   end
 
-  def update_posts_locked_tags_undo
-    raise NotImplementedError, "Tag aliases cannot be undone."
+  def validate_undoable!
+    unless valid?
+      raise errors.full_messages.join("; ")
+    end
+    unless is_active? || is_errored?
+      raise "Only active or errored tag aliases can be undone. This one is \"#{status}\"; if a processing job died, set the status to an error first."
+    end
 
-    # Post.without_timeout do
-    #   Post.where_ilike(:locked_tags, "*#{consequent_name}*").find_each(batch_size: 50) do |post|
-    #     fixed_tags = TagAlias.to_aliased_query(post.locked_tags, overrides: { consequent_name => antecedent_name })
-    #     post.update_column(:locked_tags, fixed_tags)
-    #   end
-    # end
-  end
+    undos = tag_rel_undos.where(applied: false).to_a
+    raise "No unapplied undo information exists for this tag alias." if undos.empty?
+    raise "This tag alias cannot be undone: its undo data predates undo support." if undos.any?(&:legacy?)
 
-  def update_blacklists_undo
-    raise NotImplementedError, "Tag aliases cannot be undone."
+    side_effects = undos.find(&:side_effects?)
+    raise "This tag alias cannot be undone: the side effects record is missing from its undo data." if side_effects.nil?
 
-    # User.without_timeout do
-    #   User.where_ilike(:blacklisted_tags, "*#{consequent_name}*").find_each(batch_size: 50) do |user|
-    #     fixed_blacklist = TagAlias.to_aliased_query(user.blacklisted_tags, overrides: { consequent_name => antecedent_name }, comments: true)
-    #     user.update_column(:blacklisted_tags, fixed_blacklist)
-    #   end
-    # end
+    recorded = side_effects.undo_data["alias"]
+    if recorded["antecedent_name"] != antecedent_name || recorded["consequent_name"] != consequent_name
+      raise "This tag alias cannot be undone: it was #{recorded['antecedent_name']} -> #{recorded['consequent_name']} when processed, but is now #{antecedent_name} -> #{consequent_name}."
+    end
+
+    if TagAlias.active.where(antecedent_name: consequent_name).exists?
+      raise "This tag alias cannot be undone: #{consequent_name} is itself aliased to another tag."
+    end
   end
 
   def update_posts_undo
-    raise NotImplementedError, "Tag aliases cannot be undone."
-
-    # Thread.current[:skip_post_index_update] = true
-    # Post.without_timeout do
-    #   tag_rel_undos.where(applied: false).each do |tu|
-    #     Post.where(id: tu.undo_data).find_each do |post|
-    #       post.do_not_version_changes = true
-    #       post.tag_string_diff = "-#{consequent_name} #{antecedent_name}"
-    #       post.save
-    #     end
-    #   end
-    # end
-    # TagAliasFinalizeJob.perform_later(id, antecedent_name)
+    Thread.current[:skip_post_index_update] = true
+    Post.without_timeout do
+      tag_rel_undos.where(applied: false).select(&:posts_chunk?).each do |tu|
+        had_consequent = tu.undo_data["with_consequent"].to_set
+        Post.where(id: tu.post_ids).find_each do |post|
+          post.with_lock do
+            # The post was edited since the alias was processed and no longer
+            # carries the consequent tag; don't fight that decision.
+            next unless post.tag_array.include?(consequent_name)
+            post.do_not_version_changes = true
+            post.tag_string_diff = if had_consequent.include?(post.id)
+                                     antecedent_name
+                                   else
+                                     "-#{consequent_name} #{antecedent_name}"
+                                   end
+            post.save
+          end
+        end
+        tu.update!(applied: true)
+      end
+    end
+    TagAliasFinalizeJob.perform_later(id)
   ensure
     Thread.current[:skip_post_index_update] = false
   end
 
-  def rename_artist_undo
-    raise NotImplementedError, "Tag aliases cannot be undone."
+  def restore_relationships_undo(relationships)
+    (relationships || []).each do |data|
+      next unless data["class"].in?(%w[TagAlias TagImplication])
 
-    # if consequent_tag.category == Tag.categories.artist
-    #   if consequent_tag.artist.present? && antecedent_tag.artist.blank?
-    #     consequent_tag.artist.update!(name: antecedent_name)
-    #   end
-    # end
+      rel = data["class"].constantize.find_by(id: data["id"])
+      # process! rewrote whichever side matched our antecedent to point at our consequent.
+      moved_antecedent = data["antecedent_name"] == antecedent_name ? consequent_name : data["antecedent_name"]
+      moved_consequent = data["consequent_name"] == antecedent_name ? consequent_name : data["consequent_name"]
+
+      if rel.nil?
+        recreate_relationship_undo(data)
+      elsif rel.antecedent_name == moved_antecedent && rel.consequent_name == moved_consequent
+        move_relationship_back_undo(rel, data)
+      else
+        Rails.logger.info("[TAU] Skipping #{data['class']} ##{data['id']}: modified since the alias was processed.")
+      end
+    end
+  end
+
+  # Destroyed during process! for becoming self-referential; recreate it.
+  def recreate_relationship_undo(data)
+    rel = data["class"].constantize.new(
+      antecedent_name: data["antecedent_name"],
+      consequent_name: data["consequent_name"],
+      status: data["status"],
+      approver_id: data["approver_id"],
+      forum_topic_id: data["forum_topic_id"],
+      forum_post_id: data["forum_post_id"],
+      reason: data["reason"],
+    )
+    unless rel.save
+      rel.status = "error: could not be restored by tag alias ##{id} undo: #{rel.errors.full_messages.join('; ')}"
+      rel.save(validate: false)
+    end
+    rel.update_columns(creator_id: data["creator_id"]) if rel.persisted?
+  end
+
+  def move_relationship_back_undo(rel, data)
+    rel.antecedent_name = data["antecedent_name"]
+    rel.consequent_name = data["consequent_name"]
+    return if rel.save
+
+    rel.update_columns(
+      antecedent_name: data["antecedent_name"],
+      consequent_name: data["consequent_name"],
+      status: "error: restored by tag alias ##{id} undo, but failed validation: #{rel.errors.full_messages.join('; ')}",
+    )
+  end
+
+  def restore_category_undo(category_change)
+    return if category_change.nil?
+    tag = Tag.find_by(name: category_change["tag_name"])
+    return if tag.nil? || tag.category != category_change["new_category"]
+    tag.update(category: category_change["old_category"])
+  end
+
+  def restore_artist_undo(artist_change)
+    return if artist_change.nil?
+
+    case artist_change["action"]
+    when "rename"
+      artist = Artist.find_by(id: artist_change["artist_id"])
+      return if artist.nil? || artist.name != artist_change["new_name"]
+      return if Artist.exists?(name: artist_change["old_name"])
+      artist.update(name: artist_change["old_name"])
+    when "transfer_linked_user"
+      antecedent_artist = Artist.find_by(id: artist_change["antecedent_artist_id"])
+      consequent_artist = Artist.find_by(id: artist_change["consequent_artist_id"])
+      return if antecedent_artist.nil? || consequent_artist.nil?
+      return if consequent_artist.linked_user_id != artist_change["linked_user_id"]
+      return if antecedent_artist.linked_user_id.present?
+      ActiveRecord::Base.transaction do
+        consequent_artist.update!(linked_user_id: nil)
+        antecedent_artist.update!(linked_user_id: artist_change["linked_user_id"])
+      end
+    end
   end
 
   def process!(update_topic: true)
@@ -345,11 +426,16 @@ class TagAlias < TagRelationship
     end
   end
 
+  def should_change_consequent_category?
+    return false if consequent_tag.post_count > 10_000 # Don't change category of large established tags.
+    return false if consequent_tag.is_locked? # Prevent accidentally changing tag type if category locked.
+    return false if consequent_tag.category != Tag.categories.general # Don't change the already existing category of the target tag
+    return false if antecedent_tag.category == Tag.categories.general # Don't set the target tag to general
+    true
+  end
+
   def ensure_category_consistency
-    return if consequent_tag.post_count > 10_000 # Don't change category of large established tags.
-    return if consequent_tag.is_locked? # Prevent accidentally changing tag type if category locked.
-    return if consequent_tag.category != Tag.categories.general # Don't change the already existing category of the target tag
-    return if antecedent_tag.category == Tag.categories.general # Don't set the target tag to general
+    return unless should_change_consequent_category?
 
     consequent_tag.update_attribute(:category, antecedent_tag.category)
   end
@@ -373,22 +459,110 @@ class TagAlias < TagRelationship
   end
 
   def create_undo_information
-    post_ids = []
-    Post.transaction do
-      Post.without_timeout do
-        Post.sql_raw_tag_match(antecedent_name).find_each do |post|
-          post_ids << post.id
+    Post.without_timeout do
+      with_ids = []
+      without_ids = []
+      Post.sql_raw_tag_match(antecedent_name).find_each do |post|
+        if post.tag_array.include?(consequent_name)
+          with_ids << post.id
+        else
+          without_ids << post.id
         end
-        tag_rel_undos.create!(undo_data: post_ids)
+
+        if with_ids.size + without_ids.size >= POST_LIMIT
+          create_undo_posts_chunk(with_ids, without_ids)
+          with_ids = []
+          without_ids = []
+        end
       end
+      create_undo_posts_chunk(with_ids, without_ids) if with_ids.any? || without_ids.any?
+      tag_rel_undos.create!(undo_data: undo_side_effects_snapshot)
+    end
+  end
+
+  def create_undo_posts_chunk(with_ids, without_ids)
+    tag_rel_undos.create!(undo_data: {
+      "version" => 2,
+      "kind" => "posts",
+      "with_consequent" => with_ids,
+      "without_consequent" => without_ids,
+    })
+  end
+
+  # Records everything process! is about to change besides post tags, so that
+  # process_undo! can put it back. Must be captured before the mutating steps run.
+  def undo_side_effects_snapshot
+    relationships =
+      TagAlias.where(consequent_name: antecedent_name).map { |ta| serialize_relationship(ta) } +
+      TagImplication.where(antecedent_name: antecedent_name).map { |ti| serialize_relationship(ti) } +
+      TagImplication.where(consequent_name: antecedent_name).map { |ti| serialize_relationship(ti) }
+
+    category_change = if should_change_consequent_category?
+                        {
+                          "tag_name" => consequent_name,
+                          "old_category" => consequent_tag.category,
+                          "new_category" => antecedent_tag.category,
+                        }
+                      end
+
+    {
+      "version" => 2,
+      "kind" => "side_effects",
+      "alias" => { "antecedent_name" => antecedent_name, "consequent_name" => consequent_name },
+      "relationships" => relationships,
+      "category_change" => category_change,
+      "artist_change" => artist_change_snapshot,
+    }
+  end
+
+  def serialize_relationship(rel)
+    {
+      "class" => rel.class.name,
+      "id" => rel.id,
+      "antecedent_name" => rel.antecedent_name,
+      "consequent_name" => rel.consequent_name,
+      "status" => rel.status,
+      "creator_id" => rel.creator_id,
+      "approver_id" => rel.approver_id,
+      "forum_topic_id" => rel.forum_topic_id,
+      "forum_post_id" => rel.forum_post_id,
+      "reason" => rel.reason,
+    }
+  end
+
+  def artist_change_snapshot
+    case artist_rename_action
+    when :rename
+      {
+        "action" => "rename",
+        "artist_id" => antecedent_tag.artist.id,
+        "old_name" => antecedent_tag.artist.name,
+        "new_name" => consequent_name,
+      }
+    when :transfer_linked_user
+      {
+        "action" => "transfer_linked_user",
+        "antecedent_artist_id" => antecedent_tag.artist.id,
+        "consequent_artist_id" => consequent_tag.artist.id,
+        "linked_user_id" => antecedent_tag.artist.linked_user_id,
+      }
+    end
+  end
+
+  def artist_rename_action
+    return unless antecedent_tag.category == Tag.categories.artist && antecedent_tag.artist.present?
+    if consequent_tag.artist.blank?
+      :rename
+    elsif antecedent_tag.artist.linked_user_id.present? && consequent_tag.artist.linked_user_id.blank?
+      :transfer_linked_user
     end
   end
 
   def rename_artist
-    return unless antecedent_tag.category == Tag.categories.artist && antecedent_tag.artist.present?
-    if consequent_tag.artist.blank?
+    case artist_rename_action
+    when :rename
       antecedent_tag.artist.update!(name: consequent_name)
-    elsif antecedent_tag&.artist&.linked_user_id.present? && consequent_tag&.artist&.linked_user_id.blank?
+    when :transfer_linked_user
       ActiveRecord::Base.transaction do
         consequent_tag.artist.update!(linked_user_id: antecedent_tag.artist.linked_user_id)
         antecedent_tag.artist.update!(linked_user_id: nil)
@@ -407,8 +581,12 @@ class TagAlias < TagRelationship
     end
   end
 
+  def mod_action_description
+    %Q("tag alias ##{id}":[#{Rails.application.routes.url_helpers.tag_alias_path(self)}]: [[#{antecedent_name}]] -> [[#{consequent_name}]])
+  end
+
   def create_mod_action
-    alias_desc = %Q("tag alias ##{id}":[#{Rails.application.routes.url_helpers.tag_alias_path(self)}]: [[#{antecedent_name}]] -> [[#{consequent_name}]])
+    alias_desc = mod_action_description
 
     if previously_new_record?
       ModAction.log(:tag_alias_create, {alias_id: id, alias_desc: alias_desc})
