@@ -13,7 +13,7 @@ import Note from "@/pages/posts/show/notes";
 import PostSet from "@/pages/posts/show/PostSet";
 import "@/pages/posts/show/PostsShowToolbar";
 import "@/pages/posts/show/recommended";
-import "@/pages/posts/show/related_tag";
+import "@/pages/posts/show/RelatedTag";
 import PostResizer from "@/pages/posts/show/Resizer";
 import "@/pages/posts/show/SwipeGestureHandler";
 import PostReowner from "@/pages/staff/post/posts/PostReowner";
