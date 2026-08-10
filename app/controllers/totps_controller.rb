@@ -8,13 +8,13 @@ class TotpsController < ApplicationController
   respond_to :html
 
   def show
-    redirect_to(new_totp_path) unless CurrentUser.user.totp_enabled?
+    return redirect_to(new_totp_path) unless CurrentUser.user.totp_enabled?
 
     @user_totp = CurrentUser.user.totp
   end
 
   def new
-    redirect_to(totp_path) if CurrentUser.user.totp_enabled?
+    return redirect_to(totp_path) if CurrentUser.user.totp_enabled?
 
     session[:pending_totp_secret] = UserTotp.generate_secret
     build_pending_totp
