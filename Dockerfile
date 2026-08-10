@@ -111,11 +111,11 @@ RUN RAILS_ENV=production \
 # compiled app from asset-builder.
 FROM ruby:3.3.1-alpine3.20 AS production
 
-# Runtime dependencies only: no node, no build toolchain, no sudo.
-# git stays because bundler resolves the git-sourced dtext gem at boot.
+# Runtime dependencies only: no node, no build toolchain, no sudo, no git
+# (all gems come from rubygems; GitHelper reads DANBOORU_IMAGE_TAG instead).
 RUN apk --no-cache add vips \
   postgresql15-client \
-  git jemalloc tzdata gcompat
+  jemalloc tzdata gcompat
 
 COPY --from=mwader/static-ffmpeg:8.1.2 /ffmpeg /ffprobe /usr/bin/
 

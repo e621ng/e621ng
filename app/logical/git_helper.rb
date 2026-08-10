@@ -33,6 +33,8 @@ module GitHelper
     else
       @hash = @tag = ""
     end
+  rescue Errno::ENOENT # no git binary (container without DANBOORU_IMAGE_TAG set)
+    @hash = @tag = ""
   end
 
   def self.version
