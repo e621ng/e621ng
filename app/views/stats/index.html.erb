@@ -57,7 +57,7 @@
           ["Active users (3 months)", "active_users", "total_users"],
           ["Unactivated users", "unactivated_users", "total_users"],
           *UserLevel::MAPPING.keys.map do |level|
-            ["#{level} users", "#{level.downcase.gsub(' ', '_')}_users", "total_users"]
+            ["#{level} users", "#{UserLevel.normalize(level)}_users", "total_users"]
           end,
           ["Dmails sent", "total_dmails"],
         ]
