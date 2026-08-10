@@ -31,7 +31,13 @@
     </div>
   <% end %>
 
-  <% unless post_set.is_random? %>
+  <% if post_set.is_random? %>
+    <a
+      href="<%= posts_path(tags: post_set.tag_string) %>"
+      class="st-button kinetic posts-next-random"
+      title="Click to load a new random page of posts"
+    >Esix, Take the Wheel!</a>
+  <% else %>
     <%= render PaginatorComponent.new(records: post_set.posts) %>
   <% end %>
 </div>
