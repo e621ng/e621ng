@@ -431,6 +431,7 @@ Rails.application.routes.draw do
       get :me
 
       get :avatar_menu
+      get :upload_tags
     end
   end
   resources :user_feedbacks do

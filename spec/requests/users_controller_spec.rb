@@ -255,6 +255,48 @@ RSpec.describe UsersController do
   end
 
   # ---------------------------------------------------------------------------
+  # GET /users/upload_tags — logged_in_only (JSON only)
+  # ---------------------------------------------------------------------------
+
+  describe "GET /users/upload_tags" do
+    context "as anonymous" do
+      it "returns 403 for JSON requests" do
+        get upload_tags_users_path(format: :json)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a member" do
+      let(:user) { create(:user) }
+
+      before do
+        CurrentUser.user = user
+        CurrentUser.ip_addr = "127.0.0.1"
+        sign_in_as user
+      end
+
+      it "returns the user's favorite tags with types" do
+        tag = create(:artist_tag, post_count: 5)
+        user.update_column(:favorite_tags, tag.name)
+
+        get upload_tags_users_path(format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["upload_tags"]).to eq([{ "name" => tag.name, "count" => 5, "category_id" => 1 }])
+        expect(response.parsed_body["recent_tags"]).to eq([])
+      end
+
+      it "returns tags the user recently added" do
+        tag = create(:tag)
+        create(:post_version, tags: tag.name)
+
+        get upload_tags_users_path(format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["recent_tags"].pluck("name")).to include(tag.name)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # POST /users — create
   # ---------------------------------------------------------------------------
 

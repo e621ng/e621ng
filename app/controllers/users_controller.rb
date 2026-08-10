@@ -3,7 +3,7 @@
 class UsersController < ApplicationController
   respond_to :html, :json
   skip_before_action :api_check
-  before_action :logged_in_only, only: %i[edit settings upload_limit update avatar_menu]
+  before_action :logged_in_only, only: %i[edit settings upload_limit update avatar_menu upload_tags]
   before_action :member_only, only: %i[custom_style]
   before_action :janitor_only, only: %i[toggle_uploads disable_uploads fix_counts toggle_karma_free disable_karma_free]
   before_action :admin_only, only: %i[flush_favorites]
@@ -269,6 +269,18 @@ class UsersController < ApplicationController
           has_comments: user.comment_count > 0,
           has_forums: user.forum_post_count > 0,
           has_blips: user.blip_count > 0,
+        }
+      end
+    end
+  end
+
+  def upload_tags
+    respond_to do |format|
+      format.json do
+        presenter = CurrentUser.presenter
+        render json: {
+          upload_tags: presenter.favorite_tags_with_types,
+          recent_tags: presenter.recent_tags_with_types,
         }
       end
     end
