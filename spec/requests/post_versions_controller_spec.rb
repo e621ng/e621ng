@@ -140,6 +140,23 @@ RSpec.describe PostVersionsController do
         expect(bv.reload.is_hidden).to be true
       end
 
+      it "does not change updater_id or updated_at" do
+        bv = base_version
+        old_updater_id = bv.updater_id
+        old_updated_at = bv.updated_at
+        put hide_post_version_path(bv)
+        bv.reload
+        expect(bv.updater_id).to eq(old_updater_id)
+        expect(bv.updated_at).to eq(old_updated_at)
+      end
+
+      it "returns a flash notice if the post version is already hidden" do
+        bv = base_version
+        bv.update_columns(is_hidden: true)
+        put hide_post_version_path(bv)
+        expect(flash[:notice]).to eq("Post version #{bv.id} is already hidden.")
+      end
+
       it "logs a post_version_hide ModAction" do
         bv = base_version
         expect { put hide_post_version_path(bv) }.to change(ModAction, :count).by(1)
@@ -179,6 +196,23 @@ RSpec.describe PostVersionsController do
         bv = base_version
         put unhide_post_version_path(bv)
         expect(bv.reload.is_hidden).to be false
+      end
+
+      it "does not change updater_id or updated_at" do
+        bv = base_version
+        old_updater_id = bv.updater_id
+        old_updated_at = bv.updated_at
+        put unhide_post_version_path(bv)
+        bv.reload
+        expect(bv.updater_id).to eq(old_updater_id)
+        expect(bv.updated_at).to eq(old_updated_at)
+      end
+
+      it "returns a flash notice if the post version is not hidden" do
+        bv = base_version
+        bv.update_columns(is_hidden: false)
+        put unhide_post_version_path(bv)
+        expect(flash[:notice]).to eq("Post version #{bv.id} is not hidden.")
       end
 
       it "logs a post_version_unhide ModAction" do
