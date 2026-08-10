@@ -18,16 +18,23 @@ module GitHelper
   end
 
   # Populate @hash/@tag exactly once, deriving both from a single git inspection.
+  # Container images carry no .git; they stamp their release tag into
+  # DANBOORU_IMAGE_TAG at build time instead.
   def self.load!
     return if @loaded
     @loaded = true
 
-    if Open3.capture3("git rev-parse --show-toplevel")[2].success?
+    if ENV["DANBOORU_IMAGE_TAG"].present?
+      @tag = ENV["DANBOORU_IMAGE_TAG"]
+      @hash = ""
+    elsif Open3.capture3("git rev-parse --show-toplevel")[2].success?
       @hash = Open3.capture3("git rev-parse HEAD")[0].strip
       @tag = Open3.capture3("git describe --abbrev=0")[0].strip
     else
       @hash = @tag = ""
     end
+  rescue Errno::ENOENT # no git binary (container without DANBOORU_IMAGE_TAG set)
+    @hash = @tag = ""
   end
 
   def self.version

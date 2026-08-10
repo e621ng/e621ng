@@ -8,3 +8,30 @@
 !/Gemfile.lock
 !/vendor/
 !/docker-entrypoint.sh
+
+# App source for the production image's COPY . . (the development image still
+# copies only the manifests above; allowing more here does not change its layers)
+!/app
+!/bin
+!/config
+!/config.ru
+!/db
+!/lib
+!/public
+!/Rakefile
+!/.ruby-version
+!/.npmrc
+!/jsconfig.json
+!/tsconfig.json
+!/vite.config.mts
+
+# The canonical empty local config, baked into the production image so a CI
+# checkout (which has no gitignored config/danbooru_local_config.rb) builds
+!/docker/danbooru_local_config.rb
+
+# Never in any image: runtime state, per-machine config, build output
+public/data
+public/vite
+config/danbooru_local_config.rb
+vendor/dtext/tmp
+vendor/dtext/lib/dtext/dtext.so
