@@ -99,6 +99,7 @@ class LStorage extends StorageObject {
   Users = {
     StaffStats: false,
     StaffNotes: false,
+    StaffWikis: false,
   };
 
   /** Backwards compatibility layer for AutocompleteInput */
@@ -298,6 +299,7 @@ const StorageKeys: StorageConfig<LStorage> = {
   "Users": {
     StaffStats: "e6.users.staffstats",
     StaffNotes: "e6.users.staffnotes",
+    StaffWikis: "e6.users.staffwikis",
   },
 
   "Raw": null, // Custom getObject and putObject functions that bypass the proxies
