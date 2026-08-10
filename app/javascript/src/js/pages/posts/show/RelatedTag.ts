@@ -1,3 +1,5 @@
+import Toast from "@/utility/Toast";
+
 export default class RelatedTag {
   private static tag_editor_setup = false;
 
@@ -9,7 +11,9 @@ export default class RelatedTag {
     const [{ createApp }, { default: TagEditor }, uploadTagsData] = await Promise.all([
       import("vue"),
       import("./tag_editor.vue"),
-      $.getJSON("/users/upload_tags.json").catch(() => null),
+      $.getJSON("/users/upload_tags.json").catch(() => {
+        Toast.alert("Failed to load upload tags. Please refresh the page.");
+      }),
     ]);
 
     window["uploaderSettings"].uploadTags = uploadTagsData?.upload_tags || [];
