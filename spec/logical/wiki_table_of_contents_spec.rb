@@ -97,6 +97,10 @@ RSpec.describe WikiTableOfContents do
       it "strips inner markup from the label" do
         expect(entries("<h2>Vaelor <b>Draketh</b></h2>").first[:text]).to eq("Vaelor Draketh")
       end
+
+      it "strips inner markup carrying a bracket in an attribute" do
+        expect(entries(%(<h2><span title="Vaelor > Draketh">Ignyr</span></h2>)).first[:text]).to eq("Ignyr")
+      end
     end
 
     describe "author anchors" do
