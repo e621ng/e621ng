@@ -130,10 +130,15 @@ COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
 RUN gem uninstall -Ix overmind
 COPY --from=asset-builder /app /app
 
-# Fixed-UID unprivileged user; override with `docker run --user` to match the
-# ownership of the NFS export mounted at public/data.
-RUN addgroup --gid 1000 e621ng \
-  && adduser -S --shell /bin/sh --uid 1000 -G e621ng e621ng \
+# Unprivileged user whose UID must match the ownership of the NFS export
+# mounted at public/data (NFS authorizes by number; names never leave the
+# machine). e621/e926 use 1000; the e6ai fork builds with APP_UID=1002.
+# Baked at build time because the chowned tmp/log dirs must agree with the
+# runtime UID — a `docker run --user` override would leave them unwritable.
+ARG APP_UID=1000
+ARG APP_GID=1000
+RUN addgroup --gid ${APP_GID} e621ng \
+  && adduser -S --shell /bin/sh --uid ${APP_UID} -G e621ng e621ng \
   && chown -R e621ng:e621ng /app/tmp /app/log /app/public/data
 USER e621ng
 
