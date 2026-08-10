@@ -238,7 +238,7 @@ PostModeMenu.click = function (e) {
     const postTags = $(`article.thumbnail[data-id="${post_id}"]`).first().data("tags").split(" ");
     const tags = new Set(postTags);
     const changes = TagScript.run(tags, tag_script);
-    Post.tagScript(post_id, changes);
+    Post.tagScript(post_id, changes, $("#tag-script-reason").val());
   } else {
     return;
   }
