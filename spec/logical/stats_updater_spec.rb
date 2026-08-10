@@ -30,5 +30,16 @@ RSpec.describe StatsUpdater do
       expect(raw).to be_present
       expect(JSON.parse(raw, symbolize_names: true)[:started]).to be_present
     end
+
+    it "correctly normalizes user level names" do
+      described_class.run!
+      raw = Cache.redis.get("e6stats")
+      expect(raw).to be_present
+      stats = JSON.parse(raw, symbolize_names: true)
+      UserLevel::MAPPING.each do |name, level|
+        normalized_name = UserLevel.normalize(name)
+        expect(stats[:"#{normalized_name}_users"]).to eq(User.where(level: level).count)
+      end
+    end
   end
 end

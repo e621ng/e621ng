@@ -45,7 +45,7 @@ class StatsUpdater
 
     stats[:total_users] = User.count
     UserLevel::MAPPING.each do |name, level|
-      stats[:"#{name.downcase}_users"] = User.where(level: level).count
+      stats[:"#{UserLevel.normalize(name)}_users"] = User.where(level: level).count
     end
     stats[:unactivated_users] = User.where.not(email_verification_key: nil).count
     stats[:total_dmails] = Dmail.maximum("id").to_i / 2
