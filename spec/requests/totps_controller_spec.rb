@@ -47,6 +47,22 @@ RSpec.describe TotpsController do
     end
   end
 
+  describe "GET /totp" do
+    before { make_session(user) }
+
+    it "renders the management page when enrolled" do
+      enroll!
+      get totp_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Disable two-factor authentication")
+    end
+
+    it "redirects to enrollment when not enrolled" do
+      get totp_path
+      expect(response).to redirect_to(new_totp_path)
+    end
+  end
+
   describe "GET /totp/new" do
     before { make_session(user) }
 
@@ -60,9 +76,7 @@ RSpec.describe TotpsController do
     it "renders the management page instead when already enrolled" do
       enroll!
       get new_totp_path
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Disable two-factor authentication")
-      expect(session[:pending_totp_secret]).to be_nil
+      expect(response).to redirect_to(totp_path)
     end
   end
 
