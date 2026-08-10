@@ -155,7 +155,7 @@ class WikiTableOfContents
   end
 
   def clean_label(inner)
-    text = CGI.unescapeHTML(inner.gsub(BACK_TO_TOP, "").gsub(/<[^>]+>/, ""))
+    text = CGI.unescapeHTML(ApplicationController.helpers.strip_tags(inner.gsub(BACK_TO_TOP, "")))
     text.gsub(/\A(?:\s|#{NAV_GLYPHS})+|(?:\s|#{NAV_GLYPHS})+\z/, "").sub(/:\s*\z/, "")
   end
 
