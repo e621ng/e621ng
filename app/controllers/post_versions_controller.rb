@@ -27,8 +27,7 @@ class PostVersionsController < ApplicationController
     raise User::PrivilegeError unless CurrentUser.is_bd_staff?
 
     @post_version = PostVersion.find(params[:id])
-    @post_version.is_hidden = true
-    @post_version.save!
+    @post_version.update_columns(is_hidden: true)
     ModAction.log(:post_version_hide, { version: @post_version.version, post_id: @post_version.post_id })
 
     redirect_back fallback_location: post_versions_path(search: { post_id: @post_version.post_id })
@@ -38,8 +37,7 @@ class PostVersionsController < ApplicationController
     raise User::PrivilegeError unless CurrentUser.is_bd_staff?
 
     @post_version = PostVersion.find(params[:id])
-    @post_version.is_hidden = false
-    @post_version.save!
+    @post_version.update_columns(is_hidden: false)
     ModAction.log(:post_version_unhide, { version: @post_version.version, post_id: @post_version.post_id })
 
     redirect_back fallback_location: post_versions_path(search: { post_id: @post_version.post_id })
