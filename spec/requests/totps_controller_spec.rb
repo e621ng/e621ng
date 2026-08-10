@@ -47,6 +47,22 @@ RSpec.describe TotpsController do
     end
   end
 
+  describe "GET /totp" do
+    before { make_session(user) }
+
+    it "renders the management page when enrolled" do
+      enroll!
+      get totp_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Disable two-factor authentication")
+    end
+
+    it "redirects to enrollment when not enrolled" do
+      get totp_path
+      expect(response).to redirect_to(new_totp_path)
+    end
+  end
+
   describe "GET /totp/new" do
     before { make_session(user) }
 
@@ -57,12 +73,11 @@ RSpec.describe TotpsController do
       expect(response.body).to include(session[:pending_totp_secret])
     end
 
-    it "renders the management page instead when already enrolled" do
+    it "redirects to management page when already enrolled" do
       enroll!
       get new_totp_path
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Disable two-factor authentication")
       expect(session[:pending_totp_secret]).to be_nil
+      expect(response).to redirect_to(totp_path)
     end
   end
 
@@ -165,7 +180,8 @@ RSpec.describe TotpsController do
 
     it "refuses without a valid code" do
       delete totp_path, params: { totp: { code: "000000" } }
-      expect(response).to redirect_to(new_totp_path)
+      expect(response).to redirect_to(totp_path)
+      expect(flash[:notice]).to eq("Verification code was incorrect.")
       expect(user.reload.totp).to be_present
     end
   end
@@ -191,7 +207,8 @@ RSpec.describe TotpsController do
     it "refuses without a valid code" do
       old_digests = user.reload.totp.backup_code_digests
       post regenerate_backup_codes_totp_path, params: { totp: { code: "000000" } }
-      expect(response).to redirect_to(new_totp_path)
+      expect(response).to redirect_to(totp_path)
+      expect(flash[:notice]).to eq("Verification code was incorrect.")
       expect(user.reload.totp.backup_code_digests).to eq(old_digests)
     end
   end

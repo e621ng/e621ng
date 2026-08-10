@@ -7,12 +7,14 @@ class TotpsController < ApplicationController
   before_action :requires_reauthentication
   respond_to :html
 
+  def show
+    return redirect_to(new_totp_path) unless CurrentUser.user.totp_enabled?
+
+    @user_totp = CurrentUser.user.totp
+  end
+
   def new
-    if CurrentUser.user.totp_enabled?
-      @user_totp = CurrentUser.user.totp
-      render :show
-      return
-    end
+    return redirect_to(totp_path) if CurrentUser.user.totp_enabled?
 
     session[:pending_totp_secret] = UserTotp.generate_secret
     build_pending_totp
@@ -51,9 +53,9 @@ class TotpsController < ApplicationController
 
     case verify_code_with_rate_limit(user_totp)
     when :rate_limited
-      redirect_to(new_totp_path, notice: "Too many attempts. Try again later.")
+      redirect_to(totp_path, notice: "Too many attempts. Try again later.")
     when :incorrect
-      redirect_to(new_totp_path, notice: "Verification code was incorrect.")
+      redirect_to(totp_path, notice: "Verification code was incorrect.")
     else
       user_totp.destroy
       refresh_session_password_token
@@ -68,9 +70,9 @@ class TotpsController < ApplicationController
 
     case verify_code_with_rate_limit(@user_totp)
     when :rate_limited
-      redirect_to(new_totp_path, notice: "Too many attempts. Try again later.")
+      redirect_to(totp_path, notice: "Too many attempts. Try again later.")
     when :incorrect
-      redirect_to(new_totp_path, notice: "Verification code was incorrect.")
+      redirect_to(totp_path, notice: "Verification code was incorrect.")
     else
       @backup_codes = @user_totp.regenerate_backup_codes!
       render :backup_codes
