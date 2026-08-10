@@ -24,14 +24,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push development image to GHCR
-        uses: docker/build-push-action@v7
-        with:
-          push: true
-          target: development
-          cache-from: type=gha
-          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-
       - name: Push production image to GHCR
         uses: docker/build-push-action@v7
         with:
@@ -40,4 +32,4 @@ jobs:
           build-args: |
             GIT_TAG=${{ github.ref_name }}
           cache-from: type=gha
-          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}-prod
+          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
