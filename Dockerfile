@@ -11,7 +11,7 @@ RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat ra
 
 COPY Gemfile Gemfile.lock ./
 
-RUN gem i overmind && BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
+RUN BUNDLE_IGNORE_CONFIG=true bundle install -j$(nproc) \
  && rm -rf /usr/local/bundle/cache/*.gem \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
  && find /usr/local/bundle/gems/ -name "*.o" -delete
@@ -57,6 +57,11 @@ COPY --from=node-builder /usr/local/bin /usr/local/bin
 # Copy gems and js packages
 COPY --from=node-builder /app/node_modules node_modules
 COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
+
+# Dev-only process manager (runs the Procfile under tmux). Installed here
+# rather than in ruby-builder so its Go binary never reaches the production
+# image, which copies the bundle from that stage.
+RUN gem i overmind
 
 # Create a user with (potentially) the same id as on the host
 ARG HOST_UID=1000
@@ -126,8 +131,6 @@ ARG GIT_TAG=""
 ENV DANBOORU_IMAGE_TAG=$GIT_TAG
 
 COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
-# The shared bundle includes overmind (dev-only process manager); drop it.
-RUN gem uninstall -Ix overmind
 COPY --from=asset-builder /app /app
 
 # Unprivileged user whose UID must match the ownership of the NFS export
