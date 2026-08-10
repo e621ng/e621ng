@@ -7,14 +7,9 @@ class BulkUpdateRequestsController < ApplicationController
   before_action :load_bulk_update_request, except: %i[new create index]
   before_action :ensure_lockdown_disabled, except: %i[index show]
 
-  def new
-    @bulk_update_request = BulkUpdateRequest.new
-    respond_with(@bulk_update_request)
-  end
-
-  def create
-    @bulk_update_request = BulkUpdateRequest.create(bur_params(:create))
-    respond_with(@bulk_update_request)
+  def index
+    @bulk_update_requests = BulkUpdateRequest.search(search_params).includes(:forum_post, :user, :approver).paginate(params[:page], limit: params[:limit])
+    respond_with(@bulk_update_requests)
   end
 
   def show
@@ -22,7 +17,17 @@ class BulkUpdateRequestsController < ApplicationController
     respond_with(@bulk_update_request)
   end
 
+  def new
+    @bulk_update_request = BulkUpdateRequest.new
+    respond_with(@bulk_update_request)
+  end
+
   def edit
+  end
+
+  def create
+    @bulk_update_request = BulkUpdateRequest.create(bur_params(:create))
+    respond_with(@bulk_update_request)
   end
 
   def update
@@ -54,11 +59,6 @@ class BulkUpdateRequestsController < ApplicationController
     else
       access_denied
     end
-  end
-
-  def index
-    @bulk_update_requests = BulkUpdateRequest.search(search_params).includes(:forum_post, :user, :approver).paginate(params[:page], limit: params[:limit])
-    respond_with(@bulk_update_requests)
   end
 
   private

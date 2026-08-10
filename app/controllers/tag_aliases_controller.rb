@@ -4,6 +4,12 @@ class TagAliasesController < ApplicationController
   before_action :admin_only, except: [:index, :show, :destroy]
   respond_to :html, :json, :js
 
+  def index
+    @tag_aliases = TagAlias.includes(:antecedent_tag, :consequent_tag, :creator, :approver).search(search_params).paginate(params[:page], :limit => params[:limit])
+    TagAlias.preload_transitives(@tag_aliases) if CurrentUser.is_member?
+    respond_with(@tag_aliases)
+  end
+
   def show
     @tag_alias = TagAlias.find(params[:id])
     respond_with(@tag_alias)
@@ -25,12 +31,6 @@ class TagAliasesController < ApplicationController
     end
 
     respond_with(@tag_alias)
-  end
-
-  def index
-    @tag_aliases = TagAlias.includes(:antecedent_tag, :consequent_tag, :creator, :approver).search(search_params).paginate(params[:page], :limit => params[:limit])
-    TagAlias.preload_transitives(@tag_aliases) if CurrentUser.is_member?
-    respond_with(@tag_aliases)
   end
 
   def destroy

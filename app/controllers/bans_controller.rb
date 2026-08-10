@@ -6,14 +6,6 @@ class BansController < ApplicationController
   respond_to :json, only: %i[index show]
   helper_method :search_params
 
-  def new
-    @ban = Ban.new(ban_params(:create))
-  end
-
-  def edit
-    @ban = Ban.find(params[:id])
-  end
-
   def index
     @bans = Ban.search(search_params).paginate(params[:page], :limit => params[:limit])
     respond_with(@bans) do |format|
@@ -27,6 +19,14 @@ class BansController < ApplicationController
     respond_with(@ban) do |format|
       format.json { render json: BanBlueprint.render(@ban) }
     end
+  end
+
+  def new
+    @ban = Ban.new(ban_params(:create))
+  end
+
+  def edit
+    @ban = Ban.find(params[:id])
   end
 
   def create
