@@ -26,6 +26,24 @@ jobs:
           cache-to: type=gha,mode=max
           tags: e621
 
+  # Proves the production stages build before a release tag exists.
+  # Runs after docker-build so the shared development layers come from cache.
+  docker-build-production:
+    runs-on: ubuntu-22.04
+    needs: docker-build
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build
+        uses: docker/build-push-action@v7
+        with:
+          target: production
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: e621-prod
+
   rubocop:
     runs-on: ubuntu-22.04
     needs: docker-build
