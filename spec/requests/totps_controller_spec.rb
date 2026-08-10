@@ -179,7 +179,7 @@ RSpec.describe TotpsController do
 
     it "refuses without a valid code" do
       delete totp_path, params: { totp: { code: "000000" } }
-      expect(response).to redirect_to(new_totp_path)
+      expect(response).to redirect_to(totp_path)
       expect(user.reload.totp).to be_present
     end
   end
@@ -205,7 +205,7 @@ RSpec.describe TotpsController do
     it "refuses without a valid code" do
       old_digests = user.reload.totp.backup_code_digests
       post regenerate_backup_codes_totp_path, params: { totp: { code: "000000" } }
-      expect(response).to redirect_to(new_totp_path)
+      expect(response).to redirect_to(totp_path)
       expect(user.reload.totp.backup_code_digests).to eq(old_digests)
     end
   end

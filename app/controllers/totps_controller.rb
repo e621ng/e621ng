@@ -53,9 +53,9 @@ class TotpsController < ApplicationController
 
     case verify_code_with_rate_limit(user_totp)
     when :rate_limited
-      redirect_to(new_totp_path, notice: "Too many attempts. Try again later.")
+      redirect_to(totp_path, notice: "Too many attempts. Try again later.")
     when :incorrect
-      redirect_to(new_totp_path, notice: "Verification code was incorrect.")
+      redirect_to(totp_path, notice: "Verification code was incorrect.")
     else
       user_totp.destroy
       refresh_session_password_token
@@ -70,9 +70,9 @@ class TotpsController < ApplicationController
 
     case verify_code_with_rate_limit(@user_totp)
     when :rate_limited
-      redirect_to(new_totp_path, notice: "Too many attempts. Try again later.")
+      redirect_to(totp_path, notice: "Too many attempts. Try again later.")
     when :incorrect
-      redirect_to(new_totp_path, notice: "Verification code was incorrect.")
+      redirect_to(totp_path, notice: "Verification code was incorrect.")
     else
       @backup_codes = @user_totp.regenerate_backup_codes!
       render :backup_codes
