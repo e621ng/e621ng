@@ -20,8 +20,8 @@ class TagAlias < TagRelationship
       end
     end
 
-    def undo!(approver: CurrentUser.user, update_topic: true)
-      TagAliasUndoJob.perform_later(id, update_topic, approver.id)
+    def undo!(undoer: CurrentUser.user, update_topic: true)
+      TagAliasUndoJob.perform_later(id, update_topic, undoer.id)
     end
   end
 
