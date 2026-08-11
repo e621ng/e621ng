@@ -168,22 +168,44 @@ class TagImplication < TagRelationship
     end
 
     def create_undo_information
+      # process! retries from the top on failure, so this can run more than once.
+      # A completed snapshot (the side effects record is created last) must be
+      # kept, not rebuilt: it describes the pre-implication state, which the
+      # failed attempt's mutations may have already partially destroyed. An
+      # incomplete snapshot means no mutations have happened yet, so rebuilding
+      # is safe.
+      unapplied = tag_rel_undos.where(applied: false)
+      return if unapplied.any?(&:side_effects?)
+      unapplied.destroy_all
+
       Post.without_timeout do
-        post_info = {}
+        added = {}
         Post.sql_raw_tag_match(antecedent_name).find_each do |post|
           next if post.tag_array.include?(consequent_name)
-          post_info[post.id.to_s] = post.tag_string
+          # descendant_names is the consequent plus its full active implication
+          # chain — the set the post-save pipeline is about to add.
+          added[post.id.to_s] = descendant_names - post.tag_array
 
-          if post_info.size >= TagRelationship::POST_LIMIT
-            tag_rel_undos.create!(undo_data: post_info)
-            post_info = {}
+          if added.size >= TagRelationship::POST_LIMIT
+            create_undo_posts_chunk(added)
+            added = {}
           end
         end
-
-        if post_info.any?
-          tag_rel_undos.create!(undo_data: post_info)
-        end
+        create_undo_posts_chunk(added) if added.any?
+        tag_rel_undos.create!(undo_data: {
+          "version" => 2,
+          "kind" => "side_effects",
+          "implication" => { "antecedent_name" => antecedent_name, "consequent_name" => consequent_name },
+        })
       end
+    end
+
+    def create_undo_posts_chunk(added)
+      tag_rel_undos.create!(undo_data: {
+        "version" => 2,
+        "kind" => "posts",
+        "added" => added,
+      })
     end
 
     def approve!(approver: CurrentUser.user, update_topic: true)
@@ -192,14 +214,22 @@ class TagImplication < TagRelationship
       TagImplicationJob.perform_later(id, update_topic)
     end
 
+    def undo!(undoer: CurrentUser.user, update_topic: true)
+      TagImplicationUndoJob.perform_later(id, update_topic, undoer.id)
+    end
+
     def reject!(update_topic: true)
       update(status: "deleted")
       invalidate_cached_descendants
       forum_updater.update(reject_message(CurrentUser.user), "REJECTED") if update_topic
     end
 
+    def mod_action_description
+      %Q("tag implication ##{id}":[#{Rails.application.routes.url_helpers.tag_implication_path(self)}]: [[#{antecedent_name}]] -> [[#{consequent_name}]])
+    end
+
     def create_mod_action
-      implication = %Q("tag implication ##{id}":[#{Rails.application.routes.url_helpers.tag_implication_path(self)}]: [[#{antecedent_name}]] -> [[#{consequent_name}]])
+      implication = mod_action_description
 
       if previously_new_record?
         ModAction.log(:tag_implication_create, {implication_id: id, implication_desc: implication})
@@ -232,35 +262,69 @@ class TagImplication < TagRelationship
       )
     end
 
-    def process_undo!(update_topic: true)
-      unless valid?
-        raise errors.full_messages.join("; ")
-      end
+    def process_undo!(update_topic: true, undoer: nil)
+      validate_undoable!
 
-      CurrentUser.scoped(approver) do
-        update(status: "pending")
+      CurrentUser.scoped(undoer || approver) do
+        update!(status: "pending")
+        invalidate_cached_descendants
         update_posts_undo
         forum_updater.update(retirement_message, "UNDONE") if update_topic
+        ModAction.log(:tag_implication_undo, { implication_id: id, implication_desc: mod_action_description })
       end
-      tag_rel_undos.update_all(applied: true)
+      tag_rel_undos.where(applied: false).update_all(applied: true)
+    end
+
+    # Returns the side effects record on success.
+    def validate_undoable!
+      unless valid?
+        raise TagRelationship::UndoError, errors.full_messages.join("; ")
+      end
+      # "pending" is allowed so a retried job can resume an undo that failed
+      # partway through; a never-processed pending implication has no unapplied
+      # undo rows and is refused below.
+      unless is_active? || is_errored? || is_pending?
+        raise TagRelationship::UndoError, "This tag implication cannot be undone while it is \"#{status}\"; if a processing job died, set the status to an error first."
+      end
+
+      undos = tag_rel_undos.where(applied: false).order(:id).to_a
+      raise TagRelationship::UndoError, "No unapplied undo information exists for this tag implication." if undos.empty?
+      raise TagRelationship::UndoError, "This tag implication cannot be undone: its undo data predates undo support." if undos.any?(&:legacy?)
+
+      side_effects = undos.find(&:side_effects?)
+      raise TagRelationship::UndoError, "This tag implication cannot be undone: the side effects record is missing from its undo data." if side_effects.nil?
+
+      recorded = side_effects.undo_data["implication"]
+      if recorded["antecedent_name"] != antecedent_name || recorded["consequent_name"] != consequent_name
+        raise TagRelationship::UndoError, "This tag implication cannot be undone: it was #{recorded['antecedent_name']} -> #{recorded['consequent_name']} when processed, but is now #{antecedent_name} -> #{consequent_name}."
+      end
+
+      side_effects
     end
 
     def update_posts_undo
       Thread.current[:skip_post_index_update] = true
       Post.without_timeout do
-        tag_rel_undos.where(applied: false).each do |tu|
-          Post.where(id: tu.undo_data.keys).find_each do |post|
-            post.do_not_version_changes = true
-            if TagQuery.scan(tu.undo_data[post.id.to_s]).include?(consequent_name)
-              Rails.logger.info("[TIU] Skipping post that already contains target tag.")
-              next
+        tag_rel_undos.where(applied: false).select(&:posts_chunk?).each do |tu|
+          added = tu.undo_data["added"]
+          Post.where(id: tu.post_ids).find_each do |post|
+            post.with_lock do
+              # Only remove what is still there; a tag removed since was a
+              # deliberate edit, and one that is still implied by another
+              # active implication (or locked) gets re-added by normalize_tags
+              # during this same save. This implication is already pending, so
+              # its own tags stay removed.
+              to_remove = added[post.id.to_s] & post.tag_array
+              next if to_remove.empty?
+              post.do_not_version_changes = true
+              post.tag_string_diff = to_remove.map { |tag| "-#{tag}" }.join(" ")
+              post.save
             end
-            post.tag_string_diff = "-#{consequent_name}"
-            post.save
           end
+          tu.update!(applied: true)
         end
       end
-      TagImplicationFinalizeJob.perform_later(id, antecedent_name)
+      TagImplicationFinalizeJob.perform_later(id, antecedent_name, undo: true)
     ensure
       Thread.current[:skip_post_index_update] = false
     end

@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
 class TagAlias < TagRelationship
-  # Raised when an undo is refused for a reason that will not go away on its
-  # own; TagAliasUndoJob discards instead of retrying when it sees this.
-  class UndoError < StandardError; end
-
   has_many :tag_rel_undos, as: :tag_rel
 
   after_save :create_mod_action

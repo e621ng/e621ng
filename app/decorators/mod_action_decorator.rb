@@ -371,6 +371,8 @@ class ModActionDecorator < ApplicationDecorator
       else
         "Updated tag implication #{vals['implication_desc']}\n#{vals['change_desc']}"
       end
+    when "tag_implication_undo"
+      "Undid tag implication #{vals['implication_desc']}"
 
       ### BURs ###
 

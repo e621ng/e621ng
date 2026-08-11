@@ -76,6 +76,7 @@ class ModAction < ApplicationRecord
     tag_alias_undo: { alias_id: :integer, alias_desc: :string },
     tag_implication_create: { implication_id: :integer, implication_desc: :string },
     tag_implication_update: { implication_id: :integer, implication_desc: :string, change_desc: :string },
+    tag_implication_undo: { implication_id: :integer, implication_desc: :string },
     ticket_claim: { ticket_id: :integer },
     ticket_unclaim: { ticket_id: :integer },
     ticket_update: { ticket_id: :integer, status: :string, response: :string, status_was: :string, response_was: :string },

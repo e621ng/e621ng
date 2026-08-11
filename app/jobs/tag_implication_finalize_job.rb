@@ -8,13 +8,21 @@ class TagImplicationFinalizeJob < ApplicationJob
     [args[0]]
   end
 
-  def perform(implication_id, reindex_tag_name)
+  def perform(implication_id, reindex_tag_name, undo: false)
     ti = TagImplication.find_by(id: implication_id)
     return unless ti
+
+    # Posts edited since processing may no longer match the tag query but
+    # still need reindexing after an undo; the undo rows enumerate them. On
+    # the approval path they all still match the tag query, so this would
+    # only reimport the same documents.
+    post_ids = undo ? ti.tag_rel_undos.flat_map(&:post_ids).uniq : []
+
     Post.without_timeout do
       Post.document_store.import(
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", reindex_tag_name],
       )
+      Post.document_store.import(query: { id: post_ids }) if post_ids.any?
 
       # Post counts may have drifted out of sync, or may have been inaccurate
       # due to legacy data. Recalculate them to ensure they are correct.
