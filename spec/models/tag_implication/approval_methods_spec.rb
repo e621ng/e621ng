@@ -387,12 +387,12 @@ RSpec.describe TagImplication do
       expect(chunk.reload.applied).to be(true)
     end
 
-    it "enqueues TagImplicationFinalizeJob with antecedent_name" do
+    it "enqueues TagImplicationFinalizeJob with antecedent_name and the undo flag" do
       ti = create(:tag_implication)
       ti.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "added" => {} })
 
       expect { ti.update_posts_undo }
-        .to have_enqueued_job(TagImplicationFinalizeJob).with(ti.id, ti.antecedent_name)
+        .to have_enqueued_job(TagImplicationFinalizeJob).with(ti.id, ti.antecedent_name, undo: true)
     end
   end
 

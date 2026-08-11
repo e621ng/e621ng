@@ -324,7 +324,7 @@ class TagImplication < TagRelationship
           tu.update!(applied: true)
         end
       end
-      TagImplicationFinalizeJob.perform_later(id, antecedent_name)
+      TagImplicationFinalizeJob.perform_later(id, antecedent_name, undo: true)
     ensure
       Thread.current[:skip_post_index_update] = false
     end
