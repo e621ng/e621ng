@@ -232,8 +232,11 @@ class TagAlias < TagRelationship
     unless valid?
       raise UndoError, errors.full_messages.join("; ")
     end
-    unless is_active? || is_errored?
-      raise UndoError, "Only active or errored tag aliases can be undone. This one is \"#{status}\"; if a processing job died, set the status to an error first."
+    # "pending" is allowed so a retried job can resume an undo that failed
+    # partway through; a never-processed pending alias has no unapplied undo
+    # rows and is refused below.
+    unless is_active? || is_errored? || is_pending?
+      raise UndoError, "This tag alias cannot be undone while it is \"#{status}\"; if a processing job died, set the status to an error first."
     end
 
     undos = tag_rel_undos.where(applied: false).order(:id).to_a

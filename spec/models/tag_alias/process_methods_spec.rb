@@ -130,11 +130,21 @@ RSpec.describe TagAlias do
       expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /something is wrong/)
     end
 
-    it "raises when the alias is neither active nor errored" do
+    it "raises when the alias is queued or processing" do
+      ta = create_undoable_alias
+      ta.update_columns(status: "queued")
+
+      expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /cannot be undone while it is/)
+    end
+
+    it "resumes an undo that was interrupted after the status was set to pending" do
       ta = create_undoable_alias
       ta.update_columns(status: "pending")
 
-      expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /Only active or errored/)
+      ta.process_undo!(update_topic: false)
+
+      expect(ta.reload.status).to eq("pending")
+      expect(ta.tag_rel_undos.where(applied: false).count).to eq(0)
     end
 
     it "raises when no unapplied undo information exists" do
