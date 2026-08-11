@@ -3,9 +3,10 @@
 class TagRelUndo < ApplicationRecord
   belongs_to :tag_rel, polymorphic: true
 
-  # Original TagAlias / TagNukeJob format: a flat array of post ids.
+  # Formats that predate undo support: the TagAlias / TagNukeJob flat array of
+  # post ids, and the TagImplication { post_id => tag_string } hash.
   def legacy?
-    undo_data.is_a?(Array)
+    undo_data.is_a?(Array) || (undo_data.is_a?(Hash) && !undo_data.key?("kind"))
   end
 
   def posts_chunk?
@@ -17,14 +18,18 @@ class TagRelUndo < ApplicationRecord
   end
 
   def post_ids
-    if legacy?
+    if undo_data.is_a?(Array)
       undo_data
     elsif posts_chunk?
-      undo_data["with_consequent"] + undo_data["without_consequent"]
+      if undo_data.key?("added")
+        undo_data["added"].keys.map(&:to_i)
+      else
+        undo_data["with_consequent"] + undo_data["without_consequent"]
+      end
     elsif side_effects?
       []
     else
-      # TagImplication format: { post_id => tag_string }
+      # Legacy TagImplication format: { post_id => tag_string }
       undo_data.keys.map(&:to_i)
     end
   end

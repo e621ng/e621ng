@@ -3,6 +3,10 @@
 class TagRelationship < ApplicationRecord
   self.abstract_class = true
 
+  # Raised when an undo is refused for a reason that will not go away on its
+  # own; the undo jobs discard instead of retrying when they see this.
+  class UndoError < StandardError; end
+
   POST_LIMIT = 10_000
   SUPPORT_HARD_CODED = true
 

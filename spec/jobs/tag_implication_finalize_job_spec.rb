@@ -35,5 +35,19 @@ RSpec.describe TagImplicationFinalizeJob do
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", ti.antecedent_name],
       )
     end
+
+    it "also reindexes the posts enumerated by the undo rows" do
+      ti.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "added" => { "101" => ["species_b"] } })
+      ti.tag_rel_undos.create!(undo_data: { "102" => "char_a species_b" })
+
+      described_class.perform_now(ti.id, ti.antecedent_name)
+
+      expect(Post.document_store).to have_received(:import).with(query: { id: [101, 102] })
+    end
+
+    it "does not reindex by id when no undo rows exist" do
+      described_class.perform_now(ti.id, ti.antecedent_name)
+      expect(Post.document_store).not_to have_received(:import).with(query: hash_including(:id))
+    end
   end
 end
