@@ -407,8 +407,6 @@ class TagAlias < TagRelationship
     if TagAlias.active.exists?(antecedent_name: consequent_name)
       errors.add(:base, "A tag alias for #{consequent_name} already exists")
     end
-
-
   end
 
   def move_aliases_and_implications
