@@ -127,21 +127,21 @@ RSpec.describe TagAlias do
         errors: instance_double(ActiveModel::Errors, full_messages: ["something is wrong"]),
       )
 
-      expect { ta.process_undo!(update_topic: false) }.to raise_error(RuntimeError, /something is wrong/)
+      expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /something is wrong/)
     end
 
     it "raises when the alias is neither active nor errored" do
       ta = create_undoable_alias
       ta.update_columns(status: "pending")
 
-      expect { ta.process_undo!(update_topic: false) }.to raise_error(RuntimeError, /Only active or errored/)
+      expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /Only active or errored/)
     end
 
     it "raises when no unapplied undo information exists" do
       ta = create(:active_tag_alias)
       ta.update_columns(approver_id: create(:admin_user).id)
 
-      expect { ta.process_undo!(update_topic: false) }.to raise_error(RuntimeError, /No unapplied undo information/)
+      expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /No unapplied undo information/)
     end
 
     it "raises when the undo data is in the legacy format" do
@@ -149,7 +149,7 @@ RSpec.describe TagAlias do
       ta.update_columns(approver_id: create(:admin_user).id)
       ta.tag_rel_undos.create!(undo_data: [123, 456])
 
-      expect { ta.process_undo!(update_topic: false) }.to raise_error(RuntimeError, /predates undo support/)
+      expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /predates undo support/)
     end
 
     it "raises when the side effects record is missing" do
@@ -157,7 +157,7 @@ RSpec.describe TagAlias do
       ta.update_columns(approver_id: create(:admin_user).id)
       ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [], "without_consequent" => [] })
 
-      expect { ta.process_undo!(update_topic: false) }.to raise_error(RuntimeError, /side effects record is missing/)
+      expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /side effects record is missing/)
     end
 
     it "raises when the alias was rewritten by a later alias after being processed" do
@@ -165,7 +165,7 @@ RSpec.describe TagAlias do
       # Simulate a later alias b -> c moving this one from a -> b to a -> c.
       ta.update_columns(consequent_name: "moved_con_#{SecureRandom.hex(4)}")
 
-      expect { ta.process_undo!(update_topic: false) }.to raise_error(RuntimeError, /is now #{ta.antecedent_name} -> #{ta.consequent_name}/)
+      expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /is now #{ta.antecedent_name} -> #{ta.consequent_name}/)
     end
 
     it "raises when the consequent tag is itself actively aliased away" do
@@ -174,7 +174,7 @@ RSpec.describe TagAlias do
       later.update_columns(status: "active")
 
       # Caught by the alias's own absence_of_transitive_relation validation.
-      expect { ta.process_undo!(update_topic: false) }.to raise_error(RuntimeError, /already exists/)
+      expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /already exists/)
     end
 
     it "enqueues TagAliasFinalizeJob" do

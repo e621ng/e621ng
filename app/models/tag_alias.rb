@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class TagAlias < TagRelationship
+  # Raised when an undo is refused for a reason that will not go away on its
+  # own; TagAliasUndoJob discards instead of retrying when it sees this.
+  class UndoError < StandardError; end
+
   has_many :tag_rel_undos, as: :tag_rel
 
   after_save :create_mod_action
@@ -226,26 +230,26 @@ class TagAlias < TagRelationship
 
   def validate_undoable!
     unless valid?
-      raise errors.full_messages.join("; ")
+      raise UndoError, errors.full_messages.join("; ")
     end
     unless is_active? || is_errored?
-      raise "Only active or errored tag aliases can be undone. This one is \"#{status}\"; if a processing job died, set the status to an error first."
+      raise UndoError, "Only active or errored tag aliases can be undone. This one is \"#{status}\"; if a processing job died, set the status to an error first."
     end
 
     undos = tag_rel_undos.where(applied: false).order(:id).to_a
-    raise "No unapplied undo information exists for this tag alias." if undos.empty?
-    raise "This tag alias cannot be undone: its undo data predates undo support." if undos.any?(&:legacy?)
+    raise UndoError, "No unapplied undo information exists for this tag alias." if undos.empty?
+    raise UndoError, "This tag alias cannot be undone: its undo data predates undo support." if undos.any?(&:legacy?)
 
     side_effects = undos.find(&:side_effects?)
-    raise "This tag alias cannot be undone: the side effects record is missing from its undo data." if side_effects.nil?
+    raise UndoError, "This tag alias cannot be undone: the side effects record is missing from its undo data." if side_effects.nil?
 
     recorded = side_effects.undo_data["alias"]
     if recorded["antecedent_name"] != antecedent_name || recorded["consequent_name"] != consequent_name
-      raise "This tag alias cannot be undone: it was #{recorded['antecedent_name']} -> #{recorded['consequent_name']} when processed, but is now #{antecedent_name} -> #{consequent_name}."
+      raise UndoError, "This tag alias cannot be undone: it was #{recorded['antecedent_name']} -> #{recorded['consequent_name']} when processed, but is now #{antecedent_name} -> #{consequent_name}."
     end
 
     if TagAlias.active.where(antecedent_name: consequent_name).exists?
-      raise "This tag alias cannot be undone: #{consequent_name} is itself aliased to another tag."
+      raise UndoError, "This tag alias cannot be undone: #{consequent_name} is itself aliased to another tag."
     end
   end
 
