@@ -373,6 +373,17 @@ RSpec.describe TagAlias do
       expect(restored.creator_id).to eq(original_creator_id)
     end
 
+    it "does not recreate a relationship that was deleted for reasons other than becoming self-referential" do
+      other = create(:tag_alias,
+                     antecedent_name: "rr_del_#{SecureRandom.hex(4)}",
+                     consequent_name: ta.antecedent_name)
+      data = [ta.serialize_relationship(other)]
+      other.update_columns(consequent_name: ta.consequent_name) # simulate the move
+      other.destroy # deleted by an admin afterwards
+
+      expect { ta.restore_relationships_undo(data) }.not_to change(TagAlias, :count)
+    end
+
     it "skips relationships that were modified since the alias was processed" do
       other = create(:tag_alias,
                      antecedent_name: "rr_z_#{SecureRandom.hex(4)}",

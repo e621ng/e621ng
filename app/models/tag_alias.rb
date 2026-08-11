@@ -291,7 +291,14 @@ class TagAlias < TagRelationship
       moved_consequent = data["consequent_name"] == antecedent_name ? consequent_name : data["consequent_name"]
 
       if rel.nil?
-        recreate_relationship_undo(data)
+        # Only recreate rows process! itself destroyed, which happens exactly
+        # when the move would have made them self-referential; a row that is
+        # gone for any other reason was deleted deliberately since.
+        if moved_antecedent == moved_consequent
+          recreate_relationship_undo(data)
+        else
+          Rails.logger.info("[TAU] Skipping #{data['class']} ##{data['id']}: deleted since the alias was processed.")
+        end
       elsif rel.antecedent_name == moved_antecedent && rel.consequent_name == moved_consequent
         move_relationship_back_undo(rel, data)
       else
