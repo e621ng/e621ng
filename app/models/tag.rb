@@ -21,7 +21,7 @@ class Tag < ApplicationRecord
   attr_accessor :from_wiki
 
   class CategoryMapping
-    TagCategory::REVERSE_MAPPING.each do |value, category|
+    TagCategory::ENUM_MAPPING.each do |value, category|
       define_method(category) do
         value
       end

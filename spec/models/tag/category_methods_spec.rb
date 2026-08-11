@@ -17,7 +17,7 @@ RSpec.describe Tag do
     subject(:mapping) { Tag.categories }
 
     it "exposes a method for each category returning the correct ID" do
-      TagCategory::REVERSE_MAPPING.each do |id, name|
+      TagCategory::ENUM_MAPPING.each do |id, name|
         expect(mapping.public_send(name)).to eq(id),
                                              "expected Tag.categories.#{name} to return #{id}"
       end
