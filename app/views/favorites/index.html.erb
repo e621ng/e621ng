@@ -9,6 +9,9 @@
   </div>
 
   <div class="sidebar">
+    <% if CurrentUser.is_member? %>
+      <%= render "posts/partials/index/mode_menu" %>
+    <% end %>
     <%= render partial: "application/blacklist" %>
 
     <% if @post_set.related_tags.any? %>
