@@ -208,6 +208,11 @@ class TagAlias < TagRelationship
   # be told apart from one the user put there on purpose. As a consequence,
   # posts with the consequent tag in their locked_tags will have it re-added
   # by apply_locked_tags when they are next saved.
+  #
+  # Tags that processing pulled in through the consequent's implications are
+  # removed along with it (unless another tag on the post still implies them).
+  # A user manually re-adding such a tag between approval and undo is
+  # indistinguishable from the auto-add and gets reverted too.
   def process_undo!(update_topic: true, undoer: nil)
     side_effects = validate_undoable!.undo_data
 
@@ -254,18 +259,19 @@ class TagAlias < TagRelationship
     Thread.current[:skip_post_index_update] = true
     Post.without_timeout do
       tag_rel_undos.where(applied: false).select(&:posts_chunk?).each do |tu|
-        had_consequent = tu.undo_data["with_consequent"].to_set
+        added = tu.undo_data["added"]
         Post.where(id: tu.post_ids).find_each do |post|
           post.with_lock do
             # The post was edited since the alias was processed and no longer
             # carries the consequent tag; don't fight that decision.
             next unless post.tag_array.include?(consequent_name)
+            # Remove whatever of the recorded added set (the consequent plus
+            # the tags its implications pulled in) is still present; a tag
+            # still implied by another tag on the post gets re-added by
+            # normalize_tags during this same save.
+            to_remove = added[post.id.to_s] & post.tag_array
             post.do_not_version_changes = true
-            post.tag_string_diff = if had_consequent.include?(post.id)
-                                     antecedent_name
-                                   else
-                                     "-#{consequent_name} #{antecedent_name}"
-                                   end
+            post.tag_string_diff = (to_remove.map { |tag| "-#{tag}" } << antecedent_name).join(" ")
             post.save
           end
         end
@@ -485,32 +491,52 @@ class TagAlias < TagRelationship
     unapplied.destroy_all
 
     Post.without_timeout do
-      with_ids = []
-      without_ids = []
+      implied = implied_tag_closure
+      added = {}
       Post.sql_raw_tag_match(antecedent_name).find_each do |post|
-        if post.tag_array.include?(consequent_name)
-          with_ids << post.id
-        else
-          without_ids << post.id
-        end
+        # The set the post-save pipeline is about to add: the consequent plus
+        # its implication chain. A post that already carries the consequent
+        # gains nothing — its implications were enforced on an earlier save.
+        added[post.id.to_s] = if post.tag_array.include?(consequent_name)
+                                []
+                              else
+                                ([consequent_name] + implied) - post.tag_array
+                              end
 
-        if with_ids.size + without_ids.size >= POST_LIMIT
-          create_undo_posts_chunk(with_ids, without_ids)
-          with_ids = []
-          without_ids = []
+        if added.size >= POST_LIMIT
+          create_undo_posts_chunk(added)
+          added = {}
         end
       end
-      create_undo_posts_chunk(with_ids, without_ids) if with_ids.any? || without_ids.any?
+      create_undo_posts_chunk(added) if added.any?
       tag_rel_undos.create!(undo_data: undo_side_effects_snapshot)
     end
   end
 
-  def create_undo_posts_chunk(with_ids, without_ids)
+  # Every tag the active implication chain hangs off the consequent, i.e. what
+  # update_posts will auto-add alongside it. Also seeded with the antecedent:
+  # move_aliases_and_implications is about to rewrite its implications onto
+  # the consequent, so they will be live by the time the posts are saved.
+  # Neither seed appears in the result.
+  def implied_tag_closure
+    seen = Set[antecedent_name, consequent_name]
+    result = []
+    children = seen.to_a
+
+    until children.empty?
+      children = TagImplication.active.where(antecedent_name: children).distinct.pluck(:consequent_name) - seen.to_a
+      seen.merge(children)
+      result.concat(children)
+    end
+
+    result
+  end
+
+  def create_undo_posts_chunk(added)
     tag_rel_undos.create!(undo_data: {
-      "version" => 2,
+      "version" => 3,
       "kind" => "posts",
-      "with_consequent" => with_ids,
-      "without_consequent" => without_ids,
+      "added" => added,
     })
   end
 

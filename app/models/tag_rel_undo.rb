@@ -21,11 +21,7 @@ class TagRelUndo < ApplicationRecord
     if undo_data.is_a?(Array)
       undo_data
     elsif posts_chunk?
-      if undo_data.key?("added")
-        undo_data["added"].keys.map(&:to_i)
-      else
-        undo_data["with_consequent"] + undo_data["without_consequent"]
-      end
+      undo_data["added"].keys.map(&:to_i)
     elsif side_effects?
       []
     else

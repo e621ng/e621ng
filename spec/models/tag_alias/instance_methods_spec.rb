@@ -73,7 +73,7 @@ RSpec.describe TagAlias do
       expect(side_effects.undo_data["alias"]).to eq("antecedent_name" => ta.antecedent_name, "consequent_name" => ta.consequent_name)
     end
 
-    it "classifies affected posts by whether they already have the consequent tag" do
+    it "records the consequent as added for posts that lacked it and nothing for posts that had it" do
       ta = create(:tag_alias,
                   antecedent_name: "undo_ant_#{SecureRandom.hex(4)}",
                   consequent_name: "undo_con_#{SecureRandom.hex(4)}")
@@ -82,9 +82,58 @@ RSpec.describe TagAlias do
 
       ta.create_undo_information
 
-      chunk = ta.tag_rel_undos.find(&:posts_chunk?)
-      expect(chunk.undo_data["with_consequent"]).to contain_exactly(with_post.id)
-      expect(chunk.undo_data["without_consequent"]).to contain_exactly(without_post.id)
+      added = ta.tag_rel_undos.find(&:posts_chunk?).undo_data["added"]
+      expect(added.keys).to contain_exactly(with_post.id.to_s, without_post.id.to_s)
+      expect(added[with_post.id.to_s]).to eq([])
+      expect(added[without_post.id.to_s]).to eq([ta.consequent_name])
+    end
+
+    it "includes the consequent's active implication chain in the added set" do
+      ta = create(:tag_alias,
+                  antecedent_name: "chain_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "chain_con_#{SecureRandom.hex(4)}")
+      b = "chain_b_#{SecureRandom.hex(4)}"
+      d = "chain_d_#{SecureRandom.hex(4)}"
+      create(:active_tag_implication, antecedent_name: ta.consequent_name, consequent_name: b)
+      create(:active_tag_implication, antecedent_name: b, consequent_name: d)
+      create(:tag_implication, antecedent_name: d, consequent_name: "chain_pending_#{SecureRandom.hex(4)}")
+      post = create(:post, tag_string: "#{ta.antecedent_name} other_tag")
+
+      ta.create_undo_information
+
+      added = ta.tag_rel_undos.find(&:posts_chunk?).undo_data["added"]
+      expect(added[post.id.to_s]).to contain_exactly(ta.consequent_name, b, d)
+    end
+
+    it "excludes implied tags the post already carries from the added set" do
+      ta = create(:tag_alias,
+                  antecedent_name: "have_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "have_con_#{SecureRandom.hex(4)}")
+      b = "have_b_#{SecureRandom.hex(4)}"
+      create(:active_tag_implication, antecedent_name: ta.consequent_name, consequent_name: b)
+      post = create(:post, tag_string: "#{ta.antecedent_name} #{b}")
+
+      ta.create_undo_information
+
+      added = ta.tag_rel_undos.find(&:posts_chunk?).undo_data["added"]
+      expect(added[post.id.to_s]).to eq([ta.consequent_name])
+    end
+
+    it "treats the antecedent's active implications as already moved onto the consequent" do
+      ta = create(:tag_alias,
+                  antecedent_name: "moved_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "moved_con_#{SecureRandom.hex(4)}")
+      x = "moved_x_#{SecureRandom.hex(4)}"
+      # Created after the post so the post doesn't pick it up on save; by the
+      # time update_posts runs, move_aliases_and_implications will have
+      # rewritten it onto the consequent.
+      post = create(:post, tag_string: "#{ta.antecedent_name} other_tag")
+      create(:active_tag_implication, antecedent_name: ta.antecedent_name, consequent_name: x)
+
+      ta.create_undo_information
+
+      added = ta.tag_rel_undos.find(&:posts_chunk?).undo_data["added"]
+      expect(added[post.id.to_s]).to contain_exactly(ta.consequent_name, x)
     end
 
     it "records the relationships that will be moved" do
@@ -137,7 +186,7 @@ RSpec.describe TagAlias do
                   consequent_name: "retry2_con_#{SecureRandom.hex(4)}")
       # A posts chunk without the side effects record means the previous
       # snapshot attempt died partway through.
-      stale = ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [], "without_consequent" => [999] })
+      stale = ta.tag_rel_undos.create!(undo_data: { "version" => 3, "kind" => "posts", "added" => { "999" => [ta.consequent_name] } })
 
       ta.create_undo_information
 
@@ -216,19 +265,18 @@ RSpec.describe TagAlias do
       ta
     end
 
-    def create_posts_chunk(rel, with_ids: [], without_ids: [])
+    def create_posts_chunk(rel, added: {})
       rel.tag_rel_undos.create!(undo_data: {
-        "version" => 2,
+        "version" => 3,
         "kind" => "posts",
-        "with_consequent" => with_ids,
-        "without_consequent" => without_ids,
+        "added" => added,
       })
     end
 
     it "restores the antecedent and removes the consequent from posts that gained it from the alias" do
       ta = create_pending_undoable_alias
       post = create(:post, tag_string: "#{ta.consequent_name} other_tag")
-      create_posts_chunk(ta, without_ids: [post.id])
+      create_posts_chunk(ta, added: { post.id.to_s => [ta.consequent_name] })
 
       ta.update_posts_undo
 
@@ -239,17 +287,54 @@ RSpec.describe TagAlias do
     it "restores the antecedent but keeps the consequent on posts that had it before the alias" do
       ta = create_pending_undoable_alias
       post = create(:post, tag_string: "#{ta.consequent_name} other_tag")
-      create_posts_chunk(ta, with_ids: [post.id])
+      create_posts_chunk(ta, added: { post.id.to_s => [] })
 
       ta.update_posts_undo
 
       expect(post.reload.tag_string.split).to include(ta.antecedent_name, ta.consequent_name)
     end
 
+    it "removes tags the alias pulled in through implications" do
+      ta = create_pending_undoable_alias
+      b = "undo_imp_#{SecureRandom.hex(4)}"
+      post = create(:post, tag_string: "#{ta.consequent_name} #{b} other_tag")
+      create_posts_chunk(ta, added: { post.id.to_s => [ta.consequent_name, b] })
+
+      ta.update_posts_undo
+
+      expect(post.reload.tag_string.split).to include(ta.antecedent_name, "other_tag")
+      expect(post.reload.tag_string.split).not_to include(ta.consequent_name, b)
+    end
+
+    it "keeps a recorded tag that another tag on the post still implies" do
+      ta = create_pending_undoable_alias
+      b = "undo_keep_#{SecureRandom.hex(4)}"
+      other_src = "undo_src_#{SecureRandom.hex(4)}"
+      create(:active_tag_implication, antecedent_name: other_src, consequent_name: b)
+      post = create(:post, tag_string: "#{ta.consequent_name} #{other_src}")
+      create_posts_chunk(ta, added: { post.id.to_s => [ta.consequent_name, b] })
+
+      ta.update_posts_undo
+
+      expect(post.reload.tag_string.split).to include(ta.antecedent_name, other_src, b)
+      expect(post.reload.tag_string.split).not_to include(ta.consequent_name)
+    end
+
+    it "ignores recorded tags the post no longer carries" do
+      ta = create_pending_undoable_alias
+      post = create(:post, tag_string: "#{ta.consequent_name} other_tag")
+      create_posts_chunk(ta, added: { post.id.to_s => [ta.consequent_name, "undo_gone_#{SecureRandom.hex(4)}"] })
+
+      ta.update_posts_undo
+
+      expect(post.reload.tag_string.split).to include(ta.antecedent_name, "other_tag")
+      expect(post.reload.tag_string.split).not_to include(ta.consequent_name)
+    end
+
     it "leaves posts alone when the consequent tag was removed since the alias was processed" do
       ta = create_pending_undoable_alias
       post = create(:post, tag_string: "other_tag")
-      create_posts_chunk(ta, without_ids: [post.id])
+      create_posts_chunk(ta, added: { post.id.to_s => [ta.consequent_name] })
 
       original_tag_string = post.reload.tag_string
       ta.update_posts_undo
