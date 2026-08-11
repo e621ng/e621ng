@@ -103,6 +103,23 @@ RSpec.describe TagAlias do
         .to change { ModAction.where(action: "tag_alias_undo").count }.by(1)
     end
 
+    it "attributes the undo to the undoer, not the original approver" do
+      ta = create_undoable_alias
+      undoer = create(:admin_user)
+
+      ta.process_undo!(update_topic: false, undoer: undoer)
+
+      expect(ModAction.where(action: "tag_alias_undo").last.creator_id).to eq(undoer.id)
+    end
+
+    it "falls back to the original approver when no undoer is given" do
+      ta = create_undoable_alias
+
+      ta.process_undo!(update_topic: false)
+
+      expect(ModAction.where(action: "tag_alias_undo").last.creator_id).to eq(ta.approver_id)
+    end
+
     it "raises when the alias is invalid" do
       ta = create_undoable_alias
       allow(ta).to receive_messages(
@@ -184,10 +201,10 @@ RSpec.describe TagAlias do
   # ---------------------------------------------------------------------------
 
   describe "#undo!" do
-    it "enqueues TagAliasUndoJob" do
+    it "enqueues TagAliasUndoJob with the undoing user" do
       ta = create(:active_tag_alias)
 
-      expect { ta.undo! }.to have_enqueued_job(TagAliasUndoJob).with(ta.id, true)
+      expect { ta.undo! }.to have_enqueued_job(TagAliasUndoJob).with(ta.id, true, CurrentUser.user.id)
     end
   end
 end

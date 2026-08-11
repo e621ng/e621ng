@@ -16,8 +16,8 @@ class TagAlias < TagRelationship
       end
     end
 
-    def undo!(update_topic: true)
-      TagAliasUndoJob.perform_later(id, update_topic)
+    def undo!(approver: CurrentUser.user, update_topic: true)
+      TagAliasUndoJob.perform_later(id, update_topic, approver.id)
     end
   end
 
@@ -208,11 +208,11 @@ class TagAlias < TagRelationship
   # be told apart from one the user put there on purpose. As a consequence,
   # posts with the consequent tag in their locked_tags will have it re-added
   # by apply_locked_tags when they are next saved.
-  def process_undo!(update_topic: true)
+  def process_undo!(update_topic: true, undoer: nil)
     validate_undoable!
     side_effects = tag_rel_undos.where(applied: false).order(:id).find(&:side_effects?).undo_data
 
-    CurrentUser.scoped(approver) do
+    CurrentUser.scoped(undoer || approver) do
       update!(status: "pending")
       update_posts_undo
       restore_relationships_undo(side_effects["relationships"])
