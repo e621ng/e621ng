@@ -343,7 +343,9 @@ class TagAlias < TagRelationship
     return if category_change.nil?
     tag = Tag.find_by(name: category_change["tag_name"])
     return if tag.nil? || tag.category != category_change["new_category"]
-    tag.update(category: category_change["old_category"])
+    unless tag.update(category: category_change["old_category"])
+      Rails.logger.info("[TAU] Could not restore the category of #{tag.name}: #{tag.errors.full_messages.join('; ')}")
+    end
   end
 
   def restore_artist_undo(artist_change)
@@ -354,16 +356,22 @@ class TagAlias < TagRelationship
       artist = Artist.find_by(id: artist_change["artist_id"])
       return if artist.nil? || artist.name != artist_change["new_name"]
       return if Artist.exists?(name: artist_change["old_name"])
-      artist.update(name: artist_change["old_name"])
+      unless artist.update(name: artist_change["old_name"])
+        Rails.logger.info("[TAU] Could not restore the name of artist ##{artist.id}: #{artist.errors.full_messages.join('; ')}")
+      end
     when "transfer_linked_user"
       antecedent_artist = Artist.find_by(id: artist_change["antecedent_artist_id"])
       consequent_artist = Artist.find_by(id: artist_change["consequent_artist_id"])
       return if antecedent_artist.nil? || consequent_artist.nil?
       return if consequent_artist.linked_user_id != artist_change["linked_user_id"]
       return if antecedent_artist.linked_user_id.present?
-      ActiveRecord::Base.transaction do
-        consequent_artist.update!(linked_user_id: nil)
-        antecedent_artist.update!(linked_user_id: artist_change["linked_user_id"])
+      begin
+        ActiveRecord::Base.transaction do
+          consequent_artist.update!(linked_user_id: nil)
+          antecedent_artist.update!(linked_user_id: artist_change["linked_user_id"])
+        end
+      rescue ActiveRecord::RecordInvalid => e
+        Rails.logger.info("[TAU] Could not restore the linked user of artist ##{antecedent_artist.id}: #{e.message}")
       end
     end
   end
