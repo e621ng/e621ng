@@ -57,7 +57,7 @@ DEFAULT_PASSWORD = ENV.fetch("PASSWORD", "hexerade")
 CurrentUser.user = User.system
 
 def api_request(path)
-  response = Faraday.get("https://e621.net#{path}", nil, user_agent: "e621ng/seeding")
+  response = Faraday.get("https://#{Danbooru.config.domain}#{path}", nil, user_agent: "e621ng/seeding")
   JSON.parse(response.body)
 end
 
@@ -93,7 +93,7 @@ def populate_users(number, password: DEFAULT_PASSWORD)
         name: user_name,
         password_hash: "", # Required NOT NULL, but should be empty for bcrypt
         bcrypt_password_hash: encrypted_password,
-        email: "#{user_name}@e621.local",
+        email: tm("%<user_name>s@{{e621}}.local", user_name: user_name),
         created_at: created_at,
         updated_at: created_at,
         last_ip_addr: "127.0.0.1",

@@ -5,7 +5,7 @@ class TermsOfUsesController < ApplicationController
   before_action :admin_only, only: %i[clear_cache bump_version]
 
   def show
-    @page_name = "e621:terms_of_service"
+    @page_name = tm("{{e621}}:terms_of_service")
     @content = helpers.tos_content
     @version = Setting.tos_version
   end

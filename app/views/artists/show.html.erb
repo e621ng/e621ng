@@ -4,7 +4,7 @@
       <%= render "summary", artist: @artist %>
     </div>
   <% else %>
-    <p>The artist requested removal of this page.</p>
+    <p><%= tm("The {{artist}} requested removal of this page.") %></p>
   <% end %>
 <% end %>
 

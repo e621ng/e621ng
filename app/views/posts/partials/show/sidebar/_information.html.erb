@@ -81,7 +81,7 @@
     <li>
       Uploader: <%= link_to_user(post.uploader) %> <%= render(UserFeedbackComponent.new(user: post.uploader, style: :inline)) if CurrentUser.is_staff? %>
       <% if post.uploader_linked_artists.any? %>
-        <%= svg_icon(:chexagon, class: "chexagon", title: "The uploader is linked to one of the artist tags") %>
+        <%= svg_icon(:chexagon, class: "chexagon", title: tm("The uploader is linked to one of the {{artist}} tags")) %>
       <% end %>
     </li>
   <% end %>

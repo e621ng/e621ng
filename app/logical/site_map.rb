@@ -179,13 +179,13 @@ module SiteMap
   page :tools, :help_pages, "Help Index"
 
   # --- Artists ---
-  group :artists, "Artists"
+  group :artists, tm("{{Artists}}")
   page :artists, :artists, "Listing"
   page :artists, :artist_urls, "URLs"
   page :artists, :avoid_postings, "Avoid Posting Entries"
   page :artists, :avoid_posting_static, "Avoid Posting List"
   page :artists, :artist_versions, "Changes"
-  page :artists, :help_page, "Help", params: { id: "artists" }
+  page :artists, :help_page, "Help", params: { id: tm("{{artists}}") }
 
   # --- Tags ---
   group :tags, "Tags"

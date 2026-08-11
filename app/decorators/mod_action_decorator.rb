@@ -99,17 +99,17 @@ class ModActionDecorator < ApplicationDecorator
 
       ### Artist ###
     when "artist_delete"
-      "Deleted artist ##{vals['artist_id']} (#{vals['artist_name']})"
+      tm("Deleted {{artist}} #%<artist_id>s (%<artist_name>s)", **vals.symbolize_keys)
     when "artist_page_rename"
-      "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} → \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
+      tm("Renamed {{artist}} page (\"%<old_name>s\":/{{artists}}/show_or_new?name=%<old_name>s → \"%<new_name>s\":/{{artists}}/show_or_new?name=%<new_name>s)", **vals.symbolize_keys)
     when "artist_page_lock"
-      "Locked artist page artist ##{vals['artist_page']}"
+      tm("Locked {{artist}} page {{artist}} #%<artist_page>s", **vals.symbolize_keys)
     when "artist_page_unlock"
-      "Unlocked artist page artist ##{vals['artist_page']}"
+      tm("Unlocked {{artist}} page {{artist}} #%<artist_page>s", **vals.symbolize_keys)
     when "artist_user_linked"
-      "Linked #{user} to artist ##{vals['artist_page']}"
+      tm("Linked %<user>s to {{artist}} #%<artist_page>s", user: user, **vals.symbolize_keys)
     when "artist_user_unlinked"
-      "Unlinked #{user} from artist ##{vals['artist_page']}"
+      tm("Unlinked %<user>s from {{artist}} #%<artist_page>s", user: user, **vals.symbolize_keys)
 
       ### Avoid Posting ###
     when "avoid_posting_create"

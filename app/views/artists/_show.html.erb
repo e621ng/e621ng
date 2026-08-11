@@ -1,7 +1,7 @@
 <div id="c-artists">
   <div id="a-show">
     <h1>
-      Artist: <%= link_to @artist.pretty_name, posts_path(:tags => @artist.name), :class => "tag-type-#{@artist.category_id}" %>
+      <%= tm("{{Artist}}: ") %> <%= link_to @artist.pretty_name, posts_path(:tags => @artist.name), :class => "tag-type-#{@artist.category_id}" %>
       <% if @artist.is_locked? %>
         (locked)
       <% end %>
@@ -14,7 +14,7 @@
           <% if @artist.avoid_posting.pretty_details.present? %>
             <%= format_text(@artist.avoid_posting.pretty_details, inline: true) %>
           <% else %>
-            Do not upload artwork created by this artist.
+            <%= tm("Do not upload artwork created by this {{artist}}.") %>
           <% end %>
         </div>
         <% if CurrentUser.is_staff? && @artist.avoid_posting.staff_notes.present? %>
@@ -56,5 +56,5 @@
 <%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Artist - <%= @artist.name %>
+  <%= tm("{{Artist}} - %<name>s", name: @artist.name) %>
 <% end %>

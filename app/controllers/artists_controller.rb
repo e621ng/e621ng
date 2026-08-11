@@ -73,7 +73,7 @@ class ArtistsController < ApplicationController
   def update
     ensure_can_edit(CurrentUser.user)
     @artist.update(artist_params)
-    flash[:notice] = @artist.valid? ? "Artist updated" : @artist.errors.full_messages.join("; ")
+    flash[:notice] = @artist.valid? ? tm("{{Artist}} updated") : @artist.errors.full_messages.join("; ")
     respond_with(@artist)
   end
 
@@ -82,7 +82,7 @@ class ArtistsController < ApplicationController
     @artist.destroy
     respond_with(@artist) do |format|
       format.html do
-        redirect_to(artists_path, notice: @artist.valid? ? "Artist deleted" : @artist.errors.full_messages.join("; "))
+        redirect_to(artists_path, notice: @artist.valid? ? tm("{{Artist}} deleted") : @artist.errors.full_messages.join("; "))
       end
     end
   end
@@ -124,7 +124,7 @@ class ArtistsController < ApplicationController
   end
 
   def ensure_can_edit(user)
-    raise(User::PrivilegeError, "Artist is locked.") unless @artist.editable_by?(user)
+    raise(User::PrivilegeError, tm("{{Artist}} is locked.")) unless @artist.editable_by?(user)
   end
 
   def artist_params

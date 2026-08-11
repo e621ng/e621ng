@@ -8,7 +8,7 @@
 
   <% unless CurrentUser.user.is_staff? %>
     <div style="margin-bottom: 0.5rem;">
-      <p>Before editing, read the <%= link_to "how to tag guide", wiki_page_path(id: "e621:tags") %>.</p>
+      <p>Before editing, read the <%= link_to "how to tag guide", wiki_page_path(id: tm("{{e621}}:tags")) %>.</p>
     </div>
   <% end %>
 

@@ -8,7 +8,11 @@ class Post < ApplicationRecord
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
-  NON_KNOWN_ARTIST_TAGS = %w[unknown_artist anonymous_artist third-party_edit].freeze
+  NON_KNOWN_ARTIST_TAGS = [
+    tm("unknown_{{artist}}"),
+    tm("anonymous_{{artist}}"),
+    "third-party_edit",
+  ].freeze
 
   # Seconds of age worth one log10 unit of score in the `order:hot` ranking (~5 days).
   # Smaller favours fresher posts; larger lets posts stay hot longer.
@@ -2145,7 +2149,7 @@ class Post < ApplicationRecord
 
       new_artist_tags.each do |tag|
         if tag.artist.blank?
-          warnings.add(:base, "Artist [[#{tag.name}]] requires an artist entry. \"Create new artist entry\":[/artists/new?artist%5Bname%5D=#{CGI.escape(tag.name)}]")
+          warnings.add(:base, tm("{{Artist}} [[%<tag_name>s]] requires {{an artist}} entry. \"Create new {{artist}} entry\":[/{{artists}}/new?artist%%5Bname%%5D=%<escaped_tag_name>s]", tag_name: tag.name, escaped_tag_name: CGI.escape(tag.name)))
         end
       end
     end
@@ -2166,14 +2170,14 @@ class Post < ApplicationRecord
       return if !new_record?
       return if tags.any? { |t| t.category == Tag.categories.artist }
 
-      self.warnings.add(:base, 'Artist tag is required. "Click here":/help/tags#catchange if you need help changing the category of an tag. Ask on the forum if you need naming help')
+      self.warnings.add(:base, tm("{{Artist}} tag is required. \"Click here\":/help/tags#catchange if you need help changing the category of an tag. Ask on the forum if you need naming help"))
     end
 
     def has_enough_tags
       return if !new_record?
 
       if tags.count {|t| t.category == Tag.categories.general} < 10
-        self.warnings.add(:base, "Uploads must have at least 10 general tags. Read [[e621:tags]] for guidelines on tagging your uploads")
+        self.warnings.add(:base, tm("Uploads must have at least 10 general tags. Read [[{{e621}}:tags]] for guidelines on tagging your uploads"))
       end
     end
   end

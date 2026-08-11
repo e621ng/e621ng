@@ -41,7 +41,7 @@
     <input type="radio" name="ticket[report_reason]" value="takedown" class="report-reason-radio" id="post_report_reason_takedown" />
     <span class="report-reason-description">
       <b>Deletion Request</b>
-      <span>You are the artist of this post, and would like to request its removal.</span>
+      <span><%= tm("You are the {{artist}} of this post, and would like to request its removal.") %></span>
     </span>
   </label>
 </div>
@@ -59,7 +59,7 @@
 
 <div class="report-reason report-unusual" id="report-reason-takedown" style="display: none;">
   <p>
-    Artists and character owners may request the permanent removal of their artwork by submitting a takedown request.<br />
+    <%= tm("{{Artists}} and character owners may request the permanent removal of their artwork by submitting a takedown request.") %><br />
     If you would like to replace this post with a better version, please upload the new version separately, and <a href="<%= new_post_flag_path(post_flag: { post_id: @post.id }) %>">flag this one as inferior</a>.
   </p>
 

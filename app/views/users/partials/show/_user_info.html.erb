@@ -82,7 +82,7 @@
       <% if user.artist_version_count != 0 %>
         <a href="<%= artist_versions_path(search: { updater_id: user.id }) %>" class="entry">
           <h5><%= user.artist_version_count %></h5>
-          <span>Artist</span>
+          <span><%= tm("{{Arist}}") %></span>
         </a>
       <% end %>
 

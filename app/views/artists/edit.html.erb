@@ -1,12 +1,12 @@
 <div id="c-artists">
   <div id="a-edit">
-    <h1>Edit Artist</h1>
+    <h1><%= tm("Edit {{Artist}}") %></h1>
 
     <% if @artist.editable_by?(CurrentUser.user) %>
       <%= render "form" %>
 
     <% elsif @artist.is_locked? %>
-      <p>This artist entry is locked and cannot be edited.</p>
+      <p><%= tm("This {{artist}} entry is locked and cannot be edited.") %></p>
 
     <% end %>
   </div>
@@ -15,5 +15,5 @@
 <%= render "secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Edit Artist - <%= @artist.name %>
+  <%= tm("Edit {{Artist}} - %<name>s", name: @artist.name) %>
 <% end %>

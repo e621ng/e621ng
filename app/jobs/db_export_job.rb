@@ -11,7 +11,7 @@ class DbExportJob < ApplicationJob
   end
 
   EXPORTS = {
-    "artists" => {
+    tm("{{artists}}") => {
       query: read_export_sql("artists"),
     },
     "bulk_update_requests" => {

@@ -176,7 +176,7 @@ module ApplicationHelper
 
   def tos_content
     Cache.fetch("tos_content", expires_in: 1.day) do
-      wiki = WikiPage.titled("e621:terms_of_service")
+      wiki = WikiPage.titled(tm("{{e621}}:terms_of_service"))
       return "Terms of use not found." if wiki.nil?
       processed_body = replace_cross_domain_links(wiki.body)
       format_text(processed_body, allow_color: true)

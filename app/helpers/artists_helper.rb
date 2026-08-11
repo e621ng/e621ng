@@ -9,7 +9,7 @@ module ArtistsHelper
     else
       link = link_to(name, new_artist_path(artist: { name: name }))
       return link.html_safe if hide_new_notice
-      notice = tag.span("*", class: "new-artist", title: "No artist with this name currently exists.")
+      notice = tag.span("*", class: "new-artist", title: tm("No {{artist}} with this name currently exists."))
       "#{link} #{notice}".html_safe
     end
   end
