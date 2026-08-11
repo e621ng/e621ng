@@ -13,11 +13,7 @@
     </section>
   <% end %>
   <section class="posts-container">
-    <% if @posts.empty? %>
-      <%= render "posts/blank" %>
-    <% else %>
-      <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string)) %>
-    <% end %>
+    <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string)) %>
   </section>
 
   <% if post_set.hidden_posts.present? %>

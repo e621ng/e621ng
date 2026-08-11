@@ -1,0 +1,26 @@
+.posts-info-bar {
+  color: themed("color-text-muted");
+  font-family: monospace;
+  font-size: .75rem;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem 0.5rem;
+
+  .posts-info-count {
+    margin-left: auto;
+
+    .approximate-count {
+      cursor: help;
+    }
+  }
+}
+
+@include window-larger-than(50rem) {
+  @include with-setting("fullscreen", "true") {
+    .posts-info-bar .posts-info-count {
+      margin-right: 7.5rem;
+    }
+  }
+}

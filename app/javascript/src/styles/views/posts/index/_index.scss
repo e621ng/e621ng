@@ -83,6 +83,16 @@ body.c-favorites.a-index {
         }
       }
     }
+
+    .favorites-order-warning {
+      background: themed("color-section");
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 0.25rem;
+      padding: 0.25rem;
+      @include st-radius;
+      text-align: center;
+    }
   }
 
   // 2. Content
