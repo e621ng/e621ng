@@ -363,6 +363,7 @@ RSpec.describe TagAlias do
       self_ref.update_columns(status: "deleted")
       data = [ta.serialize_relationship(self_ref)]
       original_creator_id = self_ref.creator_id
+      original_creator_ip_addr = self_ref.creator_ip_addr
       self_ref.destroy # simulate the destruction during process!
 
       ta.restore_relationships_undo(data)
@@ -371,6 +372,7 @@ RSpec.describe TagAlias do
       expect(restored).to be_present
       expect(restored.status).to eq("deleted")
       expect(restored.creator_id).to eq(original_creator_id)
+      expect(restored.creator_ip_addr).to eq(original_creator_ip_addr)
     end
 
     it "does not recreate a relationship that was deleted for reasons other than becoming self-referential" do

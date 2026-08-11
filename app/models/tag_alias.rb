@@ -322,7 +322,9 @@ class TagAlias < TagRelationship
       rel.status = "error: could not be restored by tag alias ##{id} undo: #{rel.errors.full_messages.join('; ')}"
       rel.save(validate: false)
     end
-    rel.update_columns(creator_id: data["creator_id"]) if rel.persisted?
+    return unless rel.persisted?
+    # initialize_creator stamped the undoer and their IP; restore the original.
+    rel.update_columns({ creator_id: data["creator_id"], creator_ip_addr: data["creator_ip_addr"] }.compact)
   end
 
   def move_relationship_back_undo(rel, data)
@@ -544,6 +546,7 @@ class TagAlias < TagRelationship
       "consequent_name" => rel.consequent_name,
       "status" => rel.status,
       "creator_id" => rel.creator_id,
+      "creator_ip_addr" => rel.creator_ip_addr.to_s,
       "approver_id" => rel.approver_id,
       "forum_topic_id" => rel.forum_topic_id,
       "forum_post_id" => rel.forum_post_id,
