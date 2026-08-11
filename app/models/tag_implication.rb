@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class TagImplication < TagRelationship
-  POST_LIMIT = 10_000
   has_many :tag_rel_undos, as: :tag_rel
 
   array_attribute :descendant_names
@@ -175,7 +174,7 @@ class TagImplication < TagRelationship
           next if post.tag_array.include?(consequent_name)
           post_info[post.id.to_s] = post.tag_string
 
-          if post_info.size >= POST_LIMIT
+          if post_info.size >= TagRelationship::POST_LIMIT
             tag_rel_undos.create!(undo_data: post_info)
             post_info = {}
           end

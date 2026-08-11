@@ -3,6 +3,7 @@
 class TagRelationship < ApplicationRecord
   self.abstract_class = true
 
+  POST_LIMIT = 10_000
   SUPPORT_HARD_CODED = true
 
   belongs_to_creator

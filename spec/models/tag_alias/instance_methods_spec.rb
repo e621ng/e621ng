@@ -64,21 +64,98 @@ RSpec.describe TagAlias do
   # ---------------------------------------------------------------------------
 
   describe "#create_undo_information" do
-    it "creates a TagRelUndo record" do
+    it "always creates a side effects record, even with no affected posts" do
       ta = create(:tag_alias)
+
       expect { ta.create_undo_information }.to change(TagRelUndo, :count).by(1)
+
+      side_effects = ta.tag_rel_undos.find(&:side_effects?)
+      expect(side_effects.undo_data["alias"]).to eq("antecedent_name" => ta.antecedent_name, "consequent_name" => ta.consequent_name)
     end
 
-    it "records the IDs of posts that have the antecedent tag" do
+    it "classifies affected posts by whether they already have the consequent tag" do
       ta = create(:tag_alias,
                   antecedent_name: "undo_ant_#{SecureRandom.hex(4)}",
                   consequent_name: "undo_con_#{SecureRandom.hex(4)}")
-      post = create(:post)
-      post.update_column(:tag_string, "#{ta.antecedent_name} other_tag")
+      with_post = create(:post, tag_string: "#{ta.antecedent_name} #{ta.consequent_name}")
+      without_post = create(:post, tag_string: "#{ta.antecedent_name} other_tag")
 
       ta.create_undo_information
 
-      expect(ta.tag_rel_undos.first.undo_data).to include(post.id)
+      chunk = ta.tag_rel_undos.find(&:posts_chunk?)
+      expect(chunk.undo_data["with_consequent"]).to contain_exactly(with_post.id)
+      expect(chunk.undo_data["without_consequent"]).to contain_exactly(without_post.id)
+    end
+
+    it "records the relationships that will be moved" do
+      ta = create(:tag_alias,
+                  antecedent_name: "rel_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "rel_con_#{SecureRandom.hex(4)}")
+      other = create(:tag_alias,
+                     antecedent_name: "rel_x_#{SecureRandom.hex(4)}",
+                     consequent_name: ta.antecedent_name)
+      ti = create(:tag_implication,
+                  antecedent_name: ta.antecedent_name,
+                  consequent_name: "rel_y_#{SecureRandom.hex(4)}")
+
+      ta.create_undo_information
+
+      relationships = ta.tag_rel_undos.find(&:side_effects?).undo_data["relationships"]
+      expect(relationships).to contain_exactly(
+        a_hash_including("class" => "TagAlias", "id" => other.id, "antecedent_name" => other.antecedent_name, "consequent_name" => other.consequent_name),
+        a_hash_including("class" => "TagImplication", "id" => ti.id, "antecedent_name" => ti.antecedent_name, "consequent_name" => ti.consequent_name),
+      )
+    end
+
+    it "records the category change when one will occur" do
+      ta = create(:tag_alias,
+                  antecedent_name: "cat_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "cat_con_#{SecureRandom.hex(4)}")
+      ta.antecedent_tag.update_columns(category: 1)
+      ta.consequent_tag.update_columns(category: Tag.categories.general)
+
+      ta.create_undo_information
+
+      category_change = ta.tag_rel_undos.find(&:side_effects?).undo_data["category_change"]
+      expect(category_change).to eq("tag_name" => ta.consequent_name, "old_category" => Tag.categories.general, "new_category" => 1)
+    end
+
+    it "keeps a complete snapshot from a failed previous process! attempt instead of rebuilding it" do
+      ta = create(:tag_alias,
+                  antecedent_name: "retry_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "retry_con_#{SecureRandom.hex(4)}")
+      ta.create_undo_information
+      original_row_ids = ta.tag_rel_undos.pluck(:id)
+
+      expect { ta.create_undo_information }.not_to change(TagRelUndo, :count)
+      expect(ta.tag_rel_undos.pluck(:id)).to eq(original_row_ids)
+    end
+
+    it "rebuilds an incomplete snapshot from a failed previous process! attempt" do
+      ta = create(:tag_alias,
+                  antecedent_name: "retry2_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "retry2_con_#{SecureRandom.hex(4)}")
+      # A posts chunk without the side effects record means the previous
+      # snapshot attempt died partway through.
+      stale = ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [], "without_consequent" => [999] })
+
+      ta.create_undo_information
+
+      expect(TagRelUndo.exists?(stale.id)).to be false
+      expect(ta.tag_rel_undos.reload.find(&:side_effects?)).to be_present
+    end
+
+    it "records the artist rename when one will occur" do
+      ta = create(:tag_alias,
+                  antecedent_name: "cua_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "cua_con_#{SecureRandom.hex(4)}")
+      ta.antecedent_tag.update_columns(category: 1)
+      artist = create(:artist, name: ta.antecedent_name)
+
+      ta.create_undo_information
+
+      artist_change = ta.tag_rel_undos.find(&:side_effects?).undo_data["artist_change"]
+      expect(artist_change).to eq("action" => "rename", "artist_id" => artist.id, "old_name" => ta.antecedent_name, "new_name" => ta.consequent_name)
     end
   end
 
@@ -125,75 +202,78 @@ RSpec.describe TagAlias do
   end
 
   # ---------------------------------------------------------------------------
-  # #update_posts_locked_tags_undo
-  # ---------------------------------------------------------------------------
-
-  # describe "#update_posts_locked_tags_undo" do
-  #   it "replaces the consequent tag with the antecedent tag in post locked_tags" do
-  #     ta = create(:active_tag_alias,
-  #                 antecedent_name: "lock_undo_ant_#{SecureRandom.hex(4)}",
-  #                 consequent_name: "lock_undo_con_#{SecureRandom.hex(4)}")
-  #
-  #     post = create(:post)
-  #     post.update_column(:locked_tags, ta.consequent_name)
-  #
-  #     ta.update_posts_locked_tags_undo
-  #
-  #     expect(post.reload.locked_tags).to include(ta.antecedent_name)
-  #     expect(post.reload.locked_tags).not_to include(ta.consequent_name)
-  #   end
-  # end
-
-  # ---------------------------------------------------------------------------
-  # #update_blacklists_undo
-  # ---------------------------------------------------------------------------
-
-  # describe "#update_blacklists_undo" do
-  #   it "replaces the consequent tag with the antecedent tag in user blacklists" do
-  #     ta = create(:active_tag_alias,
-  #                 antecedent_name: "bl_undo_ant_#{SecureRandom.hex(4)}",
-  #                 consequent_name: "bl_undo_con_#{SecureRandom.hex(4)}")
-  #
-  #     user = create(:user)
-  #     user.update_column(:blacklisted_tags, ta.consequent_name)
-  #
-  #     ta.update_blacklists_undo
-  #
-  #     expect(user.reload.blacklisted_tags).to include(ta.antecedent_name)
-  #     expect(user.reload.blacklisted_tags).not_to include(ta.consequent_name)
-  #   end
-  # end
-
-  # ---------------------------------------------------------------------------
   # #update_posts_undo
   # ---------------------------------------------------------------------------
 
-  # describe "#update_posts_undo" do
-  #   it "applies tag diffs from unapplied TagRelUndo records to matching posts" do
-  #     ta = create(:active_tag_alias,
-  #                 antecedent_name: "undo_post_ant_#{SecureRandom.hex(4)}",
-  #                 consequent_name: "undo_post_con_#{SecureRandom.hex(4)}")
-  #     # Set to pending so normalize_tags doesn't re-alias the antecedent back to the
-  #     # consequent during the post save (mirrors what process_undo! does before calling this).
-  #     ta.update_columns(status: "pending")
-  #
-  #     post = create(:post)
-  #     post.update_column(:tag_string, "#{ta.consequent_name} other_tag")
-  #     ta.tag_rel_undos.create!(undo_data: [post.id])
-  #
-  #     ta.update_posts_undo
-  #
-  #     expect(post.reload.tag_string).to include(ta.antecedent_name)
-  #   end
-  #
-  #   it "enqueues TagAliasFinalizeJob with antecedent_name" do
-  #     ta = create(:active_tag_alias)
-  #     ta.tag_rel_undos.create!(undo_data: [])
-  #
-  #     expect { ta.update_posts_undo }
-  #       .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id, ta.antecedent_name)
-  #   end
-  # end
+  describe "#update_posts_undo" do
+    def create_pending_undoable_alias
+      ta = create(:active_tag_alias,
+                  antecedent_name: "undo_post_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "undo_post_con_#{SecureRandom.hex(4)}")
+      # Set to pending so normalize_tags doesn't re-alias the antecedent back to the
+      # consequent during the post save (mirrors what process_undo! does before calling this).
+      ta.update_columns(status: "pending")
+      ta
+    end
+
+    def create_posts_chunk(rel, with_ids: [], without_ids: [])
+      rel.tag_rel_undos.create!(undo_data: {
+        "version" => 2,
+        "kind" => "posts",
+        "with_consequent" => with_ids,
+        "without_consequent" => without_ids,
+      })
+    end
+
+    it "restores the antecedent and removes the consequent from posts that gained it from the alias" do
+      ta = create_pending_undoable_alias
+      post = create(:post, tag_string: "#{ta.consequent_name} other_tag")
+      create_posts_chunk(ta, without_ids: [post.id])
+
+      ta.update_posts_undo
+
+      expect(post.reload.tag_string.split).to include(ta.antecedent_name)
+      expect(post.reload.tag_string.split).not_to include(ta.consequent_name)
+    end
+
+    it "restores the antecedent but keeps the consequent on posts that had it before the alias" do
+      ta = create_pending_undoable_alias
+      post = create(:post, tag_string: "#{ta.consequent_name} other_tag")
+      create_posts_chunk(ta, with_ids: [post.id])
+
+      ta.update_posts_undo
+
+      expect(post.reload.tag_string.split).to include(ta.antecedent_name, ta.consequent_name)
+    end
+
+    it "leaves posts alone when the consequent tag was removed since the alias was processed" do
+      ta = create_pending_undoable_alias
+      post = create(:post, tag_string: "other_tag")
+      create_posts_chunk(ta, without_ids: [post.id])
+
+      original_tag_string = post.reload.tag_string
+      ta.update_posts_undo
+
+      expect(post.reload.tag_string).to eq(original_tag_string)
+    end
+
+    it "marks processed chunks as applied" do
+      ta = create_pending_undoable_alias
+      chunk = create_posts_chunk(ta)
+
+      ta.update_posts_undo
+
+      expect(chunk.reload.applied).to be true
+    end
+
+    it "enqueues TagAliasFinalizeJob" do
+      ta = create_pending_undoable_alias
+      create_posts_chunk(ta)
+
+      expect { ta.update_posts_undo }
+        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id)
+    end
+  end
 
   # ---------------------------------------------------------------------------
   # #rename_artist
@@ -238,32 +318,190 @@ RSpec.describe TagAlias do
   end
 
   # ---------------------------------------------------------------------------
-  # #rename_artist_undo
+  # #restore_relationships_undo
   # ---------------------------------------------------------------------------
 
-  # describe "#rename_artist_undo" do
-  #   it "renames the consequent artist back to the antecedent name" do
-  #     ta = create(:active_tag_alias,
-  #                 antecedent_name: "art_undo_ant_#{SecureRandom.hex(4)}",
-  #                 consequent_name: "art_undo_con_#{SecureRandom.hex(4)}")
-  #     ta.consequent_tag.update_columns(category: 1)
-  #     create(:artist, name: ta.consequent_name)
-  #
-  #     ta.rename_artist_undo
-  #
-  #     expect(Artist.find_by(name: ta.antecedent_name)).to be_present
-  #   end
-  #
-  #   it "does nothing when the consequent tag is not in the artist category" do
-  #     ta = create(:active_tag_alias,
-  #                 antecedent_name: "gen_undo_ant_#{SecureRandom.hex(4)}",
-  #                 consequent_name: "gen_undo_con_#{SecureRandom.hex(4)}")
-  #     ta.consequent_tag.update_columns(category: Tag.categories.general)
-  #     create(:artist, name: ta.consequent_name)
-  #
-  #     expect { ta.rename_artist_undo }.not_to(change(Artist, :count))
-  #   end
-  # end
+  describe "#restore_relationships_undo" do
+    subject(:ta) do
+      ta = create(:active_tag_alias,
+                  antecedent_name: "rr_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "rr_con_#{SecureRandom.hex(4)}")
+      # Mirrors process_undo!, which resets the status before restoring relationships;
+      # while the alias is active, the restored rows would fail their own validations.
+      ta.update_columns(status: "pending")
+      ta
+    end
+
+    it "moves a rewritten alias back to its original names" do
+      other = create(:tag_alias,
+                     antecedent_name: "rr_x_#{SecureRandom.hex(4)}",
+                     consequent_name: ta.antecedent_name)
+      data = [ta.serialize_relationship(other)]
+      other.update_columns(consequent_name: ta.consequent_name) # simulate the move
+
+      ta.restore_relationships_undo(data)
+
+      expect(other.reload.consequent_name).to eq(ta.antecedent_name)
+    end
+
+    it "moves a rewritten implication back to its original names" do
+      ti = create(:tag_implication,
+                  antecedent_name: ta.antecedent_name,
+                  consequent_name: "rr_y_#{SecureRandom.hex(4)}")
+      data = [ta.serialize_relationship(ti)]
+      ti.update_columns(antecedent_name: ta.consequent_name) # simulate the move
+
+      ta.restore_relationships_undo(data)
+
+      expect(ti.reload.antecedent_name).to eq(ta.antecedent_name)
+    end
+
+    it "recreates a relationship that was destroyed for becoming self-referential" do
+      self_ref = create(:tag_alias,
+                        antecedent_name: ta.consequent_name,
+                        consequent_name: ta.antecedent_name)
+      self_ref.update_columns(status: "deleted")
+      data = [ta.serialize_relationship(self_ref)]
+      original_creator_id = self_ref.creator_id
+      original_creator_ip_addr = self_ref.creator_ip_addr
+      self_ref.destroy # simulate the destruction during process!
+
+      ta.restore_relationships_undo(data)
+
+      restored = TagAlias.find_by(antecedent_name: ta.consequent_name, consequent_name: ta.antecedent_name)
+      expect(restored).to be_present
+      expect(restored.status).to eq("deleted")
+      expect(restored.creator_id).to eq(original_creator_id)
+      expect(restored.creator_ip_addr).to eq(original_creator_ip_addr)
+    end
+
+    it "does not recreate a relationship that was deleted for reasons other than becoming self-referential" do
+      other = create(:tag_alias,
+                     antecedent_name: "rr_del_#{SecureRandom.hex(4)}",
+                     consequent_name: ta.antecedent_name)
+      data = [ta.serialize_relationship(other)]
+      other.update_columns(consequent_name: ta.consequent_name) # simulate the move
+      other.destroy # deleted by an admin afterwards
+
+      expect { ta.restore_relationships_undo(data) }.not_to change(TagAlias, :count)
+    end
+
+    it "skips relationships that were modified since the alias was processed" do
+      other = create(:tag_alias,
+                     antecedent_name: "rr_z_#{SecureRandom.hex(4)}",
+                     consequent_name: ta.antecedent_name)
+      data = [ta.serialize_relationship(other)]
+      other.update_columns(consequent_name: "rr_manual_#{SecureRandom.hex(4)}") # edited by hand, not by the move
+
+      ta.restore_relationships_undo(data)
+
+      expect(other.reload.consequent_name).not_to eq(ta.antecedent_name)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #restore_category_undo
+  # ---------------------------------------------------------------------------
+
+  describe "#restore_category_undo" do
+    subject(:ta) do
+      create(:active_tag_alias,
+             antecedent_name: "rc_ant_#{SecureRandom.hex(4)}",
+             consequent_name: "rc_con_#{SecureRandom.hex(4)}")
+    end
+
+    it "reverts the consequent tag category" do
+      ta.consequent_tag.update_columns(category: 1)
+
+      ta.restore_category_undo("tag_name" => ta.consequent_name, "old_category" => 0, "new_category" => 1)
+
+      expect(ta.consequent_tag.reload.category).to eq(0)
+    end
+
+    it "does nothing when the category was changed again since the alias was processed" do
+      ta.consequent_tag.update_columns(category: 3)
+
+      ta.restore_category_undo("tag_name" => ta.consequent_name, "old_category" => 0, "new_category" => 1)
+
+      expect(ta.consequent_tag.reload.category).to eq(3)
+    end
+
+    it "does nothing when no category change was recorded" do
+      expect { ta.restore_category_undo(nil) }.not_to(change { ta.consequent_tag.reload.category })
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #restore_artist_undo
+  # ---------------------------------------------------------------------------
+
+  describe "#restore_artist_undo" do
+    subject(:ta) do
+      create(:active_tag_alias,
+             antecedent_name: "ra_ant_#{SecureRandom.hex(4)}",
+             consequent_name: "ra_con_#{SecureRandom.hex(4)}")
+    end
+
+    it "renames the artist back to the antecedent name" do
+      artist = create(:artist, name: ta.consequent_name)
+
+      ta.restore_artist_undo("action" => "rename", "artist_id" => artist.id, "old_name" => ta.antecedent_name, "new_name" => ta.consequent_name)
+
+      expect(artist.reload.name).to eq(ta.antecedent_name)
+    end
+
+    it "does not rename when the artist was renamed again since" do
+      artist = create(:artist, name: "ra_other_#{SecureRandom.hex(4)}")
+
+      ta.restore_artist_undo("action" => "rename", "artist_id" => artist.id, "old_name" => ta.antecedent_name, "new_name" => ta.consequent_name)
+
+      expect(artist.reload.name).not_to eq(ta.antecedent_name)
+    end
+
+    it "does not rename when another artist now uses the original name" do
+      artist = create(:artist, name: ta.consequent_name)
+      create(:artist, name: ta.antecedent_name)
+
+      ta.restore_artist_undo("action" => "rename", "artist_id" => artist.id, "old_name" => ta.antecedent_name, "new_name" => ta.consequent_name)
+
+      expect(artist.reload.name).to eq(ta.consequent_name)
+    end
+
+    it "transfers the linked user back to the antecedent artist" do
+      linked_user = create(:user)
+      ant_artist = create(:artist, name: ta.antecedent_name)
+      con_artist = create(:artist, name: ta.consequent_name, linked_user_id: linked_user.id)
+
+      ta.restore_artist_undo(
+        "action" => "transfer_linked_user",
+        "antecedent_artist_id" => ant_artist.id,
+        "consequent_artist_id" => con_artist.id,
+        "linked_user_id" => linked_user.id,
+      )
+
+      expect(ant_artist.reload.linked_user_id).to eq(linked_user.id)
+      expect(con_artist.reload.linked_user_id).to be_nil
+    end
+
+    it "does not transfer when the linked user was changed since" do
+      ant_artist = create(:artist, name: ta.antecedent_name)
+      con_artist = create(:artist, name: ta.consequent_name, linked_user_id: create(:user).id)
+
+      ta.restore_artist_undo(
+        "action" => "transfer_linked_user",
+        "antecedent_artist_id" => ant_artist.id,
+        "consequent_artist_id" => con_artist.id,
+        "linked_user_id" => create(:user).id,
+      )
+
+      expect(ant_artist.reload.linked_user_id).to be_nil
+      expect(con_artist.reload.linked_user_id).not_to be_nil
+    end
+
+    it "does nothing when no artist change was recorded" do
+      expect { ta.restore_artist_undo(nil) }.not_to raise_error
+    end
+  end
 
   # ---------------------------------------------------------------------------
   # #move_aliases_and_implications

@@ -12,7 +12,7 @@ class TagAliasFinalizeJob < ApplicationJob
     ta = TagAlias.find_by(id: alias_id)
     return unless ta
 
-    post_ids = ta.tag_rel_undos.flat_map(&:undo_data).uniq
+    post_ids = ta.tag_rel_undos.flat_map(&:post_ids).uniq
 
     Post.without_timeout do
       Post.document_store.import(query: { id: post_ids }) if post_ids.any?
