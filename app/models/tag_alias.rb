@@ -213,8 +213,7 @@ class TagAlias < TagRelationship
   # posts with the consequent tag in their locked_tags will have it re-added
   # by apply_locked_tags when they are next saved.
   def process_undo!(update_topic: true, undoer: nil)
-    validate_undoable!
-    side_effects = tag_rel_undos.where(applied: false).order(:id).find(&:side_effects?).undo_data
+    side_effects = validate_undoable!.undo_data
 
     CurrentUser.scoped(undoer || approver) do
       update!(status: "pending")
@@ -228,6 +227,7 @@ class TagAlias < TagRelationship
     tag_rel_undos.where(applied: false).update_all(applied: true)
   end
 
+  # Returns the side effects record on success.
   def validate_undoable!
     unless valid?
       raise UndoError, errors.full_messages.join("; ")
@@ -251,6 +251,8 @@ class TagAlias < TagRelationship
     if TagAlias.active.where(antecedent_name: consequent_name).exists?
       raise UndoError, "This tag alias cannot be undone: #{consequent_name} is itself aliased to another tag."
     end
+
+    side_effects
   end
 
   def update_posts_undo
