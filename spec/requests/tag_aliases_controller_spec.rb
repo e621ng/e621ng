@@ -272,4 +272,73 @@ RSpec.describe TagAliasesController do
       end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # POST /tag_aliases/:id/undo — undo (admin_only)
+  # ---------------------------------------------------------------------------
+
+  describe "POST /tag_aliases/:id/undo" do
+    let(:undoable_alias) do
+      ta = create(:active_tag_alias)
+      ta.tag_rel_undos.create!(undo_data: { "version" => 3, "kind" => "posts", "added" => {} })
+      ta.tag_rel_undos.create!(undo_data: {
+        "version" => 2,
+        "kind" => "side_effects",
+        "alias" => { "antecedent_name" => ta.antecedent_name, "consequent_name" => ta.consequent_name },
+        "relationships" => [],
+        "category_change" => nil,
+        "artist_change" => nil,
+      })
+      ta
+    end
+
+    context "as anonymous" do
+      it "redirects HTML to the login page" do
+        post undo_tag_alias_path(undoable_alias)
+        expect(response).to redirect_to(new_session_path)
+      end
+
+      it "returns 403 for JSON" do
+        post undo_tag_alias_path(undoable_alias, format: :json)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    it "returns 403 for a member" do
+      sign_in_as member
+      post undo_tag_alias_path(undoable_alias)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    context "as admin undoing an undoable alias" do
+      before { sign_in_as admin }
+
+      it "enqueues TagAliasUndoJob attributed to the admin" do
+        expect { post undo_tag_alias_path(undoable_alias) }
+          .to have_enqueued_job(TagAliasUndoJob).with(undoable_alias.id, true, admin.id)
+      end
+
+      it "redirects to the tag alias page" do
+        post undo_tag_alias_path(undoable_alias)
+        expect(response).to redirect_to(tag_alias_path(undoable_alias))
+      end
+
+      it "returns 2xx for JSON" do
+        post undo_tag_alias_path(undoable_alias, format: :json)
+        expect(response).to have_http_status(:created)
+      end
+    end
+
+    context "as admin undoing a non-undoable alias" do
+      let(:active_alias) { create(:active_tag_alias) }
+
+      before { sign_in_as admin }
+
+      it "returns 403 and enqueues no job" do
+        expect { post undo_tag_alias_path(active_alias) }
+          .not_to have_enqueued_job(TagAliasUndoJob)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
 end

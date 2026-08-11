@@ -240,11 +240,13 @@ class TagAlias < TagRelationship
       raise UndoError, "This tag alias cannot be undone while it is \"#{status}\"; if a processing job died, set the status to an error first."
     end
 
-    undos = tag_rel_undos.where(applied: false).order(:id).to_a
-    raise UndoError, "No unapplied undo information exists for this tag alias." if undos.empty?
-    raise UndoError, "This tag alias cannot be undone: its undo data predates undo support." if undos.any?(&:legacy?)
+    # Filtered in SQL so the posts chunks are never loaded into Ruby; only the
+    # small side effects record is materialized.
+    undos = tag_rel_undos.unapplied
+    raise UndoError, "No unapplied undo information exists for this tag alias." unless undos.exists?
+    raise UndoError, "This tag alias cannot be undone: its undo data predates undo support." if undos.legacy_format.exists?
 
-    side_effects = undos.find(&:side_effects?)
+    side_effects = undos.side_effects_records.order(:id).first
     raise UndoError, "This tag alias cannot be undone: the side effects record is missing from its undo data." if side_effects.nil?
 
     recorded = side_effects.undo_data["alias"]

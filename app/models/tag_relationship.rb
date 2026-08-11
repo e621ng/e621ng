@@ -90,6 +90,23 @@ class TagRelationship < ApplicationRecord
     is_pending? && user.is_admin?
   end
 
+  # Non-raising mirror of validate_undoable! for UI gating.
+  def undoable_by?(user)
+    return false unless user.is_admin?
+    validate_undoable!
+    true
+  rescue UndoError
+    false
+  end
+
+  # Posts affected by an undo, for the confirmation prompt. Counted in SQL
+  # so the potentially large posts chunks are never loaded into Ruby.
+  def undo_post_count
+    tag_rel_undos.unapplied.posts_chunks
+                 .sum(Arel.sql("(SELECT count(*) FROM json_object_keys(undo_data -> 'added'))"))
+                 .to_i
+  end
+
   module SearchMethods
     def name_matches(name)
       name = name.downcase.strip.to_escaped_for_sql_like

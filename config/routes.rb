@@ -399,12 +399,14 @@ Rails.application.routes.draw do
   resources :tag_aliases do
     member do
       post :approve
+      post :undo
     end
   end
   resource :tag_alias_request, only: %i[new create]
   resources :tag_implications do
     member do
       post :approve
+      post :undo
     end
   end
   resource :tag_implication_request, only: %i[new create]

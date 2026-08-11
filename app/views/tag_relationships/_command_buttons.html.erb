@@ -11,6 +11,9 @@
   <% if tag_relation.deletable_by?(CurrentUser.user) %>
     <% links.push link_to("Reject", "#", class: "tag-relationship-reject") %>
   <% end %>
+  <% if local_assigns.fetch(:show_undo, false) && tag_relation.undoable_by?(CurrentUser.user) %>
+    <% links.push link_to("Undo", "#", class: "tag-relationship-undo", data: { undo_post_count: tag_relation.undo_post_count }) %>
+  <% end %>
   <% if tag_relation.editable_by?(CurrentUser.user) %>
     <% links.push link_to("Edit", action: "edit", controller: "/#{tag_relation.model_name.route_key}", id: tag_relation.id) %>
     <% links.push link_to("Flip", send("#{tag_relation.model_name.route_key.singularize}_path", id: tag_relation.id, "#{tag_relation.model_name.route_key.singularize}": { antecedent_name: tag_relation.consequent_name, consequent_name: tag_relation.antecedent_name }), method: :patch) %>
