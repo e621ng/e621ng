@@ -5,6 +5,7 @@
     @include st-radius;
     @include st-padding(050);
     width: 100%;
+    box-sizing: border-box;
 
     &.unmargined {
       margin-top: 0;
