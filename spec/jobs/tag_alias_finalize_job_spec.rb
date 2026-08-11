@@ -29,9 +29,9 @@ RSpec.describe TagAliasFinalizeJob do
       expect(Post.document_store).to have_received(:import).with(query: { id: [101, 102, 103, 104] })
     end
 
-    it "reads post IDs from v2 posts chunks and ignores side effects records" do
+    it "reads post IDs from posts chunks and ignores side effects records" do
       ta.tag_rel_undos.destroy_all
-      ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [201], "without_consequent" => [202] })
+      ta.tag_rel_undos.create!(undo_data: { "version" => 3, "kind" => "posts", "added" => { "201" => [], "202" => [ta.consequent_name] } })
       ta.tag_rel_undos.create!(undo_data: {
         "version" => 2,
         "kind" => "side_effects",
@@ -44,8 +44,8 @@ RSpec.describe TagAliasFinalizeJob do
       expect(Post.document_store).to have_received(:import).with(query: { id: [201, 202] })
     end
 
-    it "handles a mix of legacy and v2 undo data" do
-      ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [103], "without_consequent" => [301] })
+    it "handles a mix of legacy and current undo data" do
+      ta.tag_rel_undos.create!(undo_data: { "version" => 3, "kind" => "posts", "added" => { "103" => [], "301" => [ta.consequent_name] } })
       described_class.perform_now(ta.id)
       expect(Post.document_store).to have_received(:import).with(query: { id: [101, 102, 103, 301] })
     end

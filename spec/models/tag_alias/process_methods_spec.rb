@@ -68,7 +68,7 @@ RSpec.describe TagAlias do
     def create_undoable_alias
       ta = create(:active_tag_alias)
       ta.update_columns(approver_id: create(:admin_user).id)
-      ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [], "without_consequent" => [] })
+      ta.tag_rel_undos.create!(undo_data: { "version" => 3, "kind" => "posts", "added" => {} })
       ta.tag_rel_undos.create!(undo_data: {
         "version" => 2,
         "kind" => "side_effects",
@@ -165,7 +165,7 @@ RSpec.describe TagAlias do
     it "raises when the side effects record is missing" do
       ta = create(:active_tag_alias)
       ta.update_columns(approver_id: create(:admin_user).id)
-      ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [], "without_consequent" => [] })
+      ta.tag_rel_undos.create!(undo_data: { "version" => 3, "kind" => "posts", "added" => {} })
 
       expect { ta.process_undo!(update_topic: false) }.to raise_error(TagAlias::UndoError, /side effects record is missing/)
     end
@@ -192,6 +192,64 @@ RSpec.describe TagAlias do
 
       expect { ta.process_undo!(update_topic: false) }
         .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id)
+    end
+
+    it "removes tags the consequent's implications added during processing" do
+      ta = create(:tag_alias,
+                  antecedent_name: "e2e_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "e2e_con_#{SecureRandom.hex(4)}")
+      b = "e2e_b_#{SecureRandom.hex(4)}"
+      create(:active_tag_implication, antecedent_name: ta.consequent_name, consequent_name: b)
+      post = create(:post, tag_string: "#{ta.antecedent_name} other_tag")
+      ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
+
+      ta.process!(update_topic: false)
+      expect(post.reload.tag_string.split).to include(ta.consequent_name, b)
+
+      ta.process_undo!(update_topic: false)
+
+      expect(post.reload.tag_string.split).to include(ta.antecedent_name, "other_tag")
+      expect(post.reload.tag_string.split).not_to include(ta.consequent_name, b)
+    end
+
+    it "keeps an implication-added tag that another tag on the post still implies" do
+      ta = create(:tag_alias,
+                  antecedent_name: "e2e_keep_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "e2e_keep_con_#{SecureRandom.hex(4)}")
+      b = "e2e_keep_b_#{SecureRandom.hex(4)}"
+      other_src = "e2e_keep_src_#{SecureRandom.hex(4)}"
+      # Both implications are created after the post so it lacks b at snapshot
+      # time and b lands in the recorded added set.
+      post = create(:post, tag_string: "#{ta.antecedent_name} #{other_src}")
+      create(:active_tag_implication, antecedent_name: ta.consequent_name, consequent_name: b)
+      create(:active_tag_implication, antecedent_name: other_src, consequent_name: b)
+      ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
+
+      ta.process!(update_topic: false)
+      expect(post.reload.tag_string.split).to include(ta.consequent_name, b)
+
+      ta.process_undo!(update_topic: false)
+
+      expect(post.reload.tag_string.split).to include(ta.antecedent_name, other_src, b)
+      expect(post.reload.tag_string.split).not_to include(ta.consequent_name)
+    end
+
+    it "leaves implication-added tags alone on posts edited to drop the consequent since processing" do
+      ta = create(:tag_alias,
+                  antecedent_name: "e2e_skip_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "e2e_skip_con_#{SecureRandom.hex(4)}")
+      b = "e2e_skip_b_#{SecureRandom.hex(4)}"
+      create(:active_tag_implication, antecedent_name: ta.consequent_name, consequent_name: b)
+      post = create(:post, tag_string: "#{ta.antecedent_name} other_tag")
+      ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
+      ta.process!(update_topic: false)
+
+      post.reload.update(tag_string: "other_tag")
+      edited_tag_string = post.reload.tag_string
+
+      ta.process_undo!(update_topic: false)
+
+      expect(post.reload.tag_string).to eq(edited_tag_string)
     end
 
     it "does not call fix_post_count directly" do
