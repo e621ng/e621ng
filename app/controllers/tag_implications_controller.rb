@@ -47,6 +47,13 @@ class TagImplicationsController < ApplicationController
     respond_with(@tag_implication, location: tag_implication_path(@tag_implication))
   end
 
+  def undo
+    @tag_implication = TagImplication.find(params[:id])
+    return access_denied unless @tag_implication.undoable_by?(CurrentUser.user)
+    @tag_implication.undo!(undoer: CurrentUser.user)
+    respond_with(@tag_implication, location: tag_implication_path(@tag_implication))
+  end
+
   private
 
   def tag_implication_params

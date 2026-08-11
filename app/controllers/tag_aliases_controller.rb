@@ -47,6 +47,13 @@ class TagAliasesController < ApplicationController
     respond_with(@tag_alias, location: tag_alias_path(@tag_alias))
   end
 
+  def undo
+    @tag_alias = TagAlias.find(params[:id])
+    return access_denied unless @tag_alias.undoable_by?(CurrentUser.user)
+    @tag_alias.undo!(undoer: CurrentUser.user)
+    respond_with(@tag_alias, location: tag_alias_path(@tag_alias))
+  end
+
   private
 
   def tag_alias_params

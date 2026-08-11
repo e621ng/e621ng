@@ -206,4 +206,48 @@ RSpec.describe TagImplicationsController do
       end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # POST /tag_implications/:id/undo — undo (admin_only)
+  # ---------------------------------------------------------------------------
+
+  describe "POST /tag_implications/:id/undo" do
+    let(:undoable_implication) do
+      ti = create(:active_tag_implication)
+      ti.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "added" => {} })
+      ti.tag_rel_undos.create!(undo_data: {
+        "version" => 2,
+        "kind" => "side_effects",
+        "implication" => { "antecedent_name" => ti.antecedent_name, "consequent_name" => ti.consequent_name },
+      })
+      ti
+    end
+
+    it "redirects anonymous to the login page" do
+      post undo_tag_implication_path(undoable_implication)
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for a member" do
+      sign_in_as member
+      post undo_tag_implication_path(undoable_implication)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    context "as an admin" do
+      before { sign_in_as admin }
+
+      it "enqueues TagImplicationUndoJob attributed to the admin and redirects to show" do
+        expect { post undo_tag_implication_path(undoable_implication) }
+          .to have_enqueued_job(TagImplicationUndoJob).with(undoable_implication.id, true, admin.id)
+        expect(response).to redirect_to(tag_implication_path(undoable_implication))
+      end
+
+      it "returns 403 and enqueues no job when the implication is not undoable" do
+        expect { post undo_tag_implication_path(active_implication) }
+          .not_to have_enqueued_job(TagImplicationUndoJob)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
 end
