@@ -1,6 +1,6 @@
-<%# locals: (post_set:, warning: nil) %>
+<%# locals: (post_set:) %>
 <% empty = post_set.posts.empty? %>
-<div class="posts-info-bar<%= " is-empty" if empty %>">
+<div class="posts-info-bar">
   <% if empty %>
     <span class="posts-info-empty">Nobody here but us chickens!</span>
   <% end %>
