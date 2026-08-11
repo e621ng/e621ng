@@ -120,6 +120,31 @@ RSpec.describe TagAlias do
       expect(category_change).to eq("tag_name" => ta.consequent_name, "old_category" => Tag.categories.general, "new_category" => 1)
     end
 
+    it "keeps a complete snapshot from a failed previous process! attempt instead of rebuilding it" do
+      ta = create(:tag_alias,
+                  antecedent_name: "retry_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "retry_con_#{SecureRandom.hex(4)}")
+      ta.create_undo_information
+      original_row_ids = ta.tag_rel_undos.pluck(:id)
+
+      expect { ta.create_undo_information }.not_to change(TagRelUndo, :count)
+      expect(ta.tag_rel_undos.pluck(:id)).to eq(original_row_ids)
+    end
+
+    it "rebuilds an incomplete snapshot from a failed previous process! attempt" do
+      ta = create(:tag_alias,
+                  antecedent_name: "retry2_ant_#{SecureRandom.hex(4)}",
+                  consequent_name: "retry2_con_#{SecureRandom.hex(4)}")
+      # A posts chunk without the side effects record means the previous
+      # snapshot attempt died partway through.
+      stale = ta.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "with_consequent" => [], "without_consequent" => [999] })
+
+      ta.create_undo_information
+
+      expect(TagRelUndo.exists?(stale.id)).to be false
+      expect(ta.tag_rel_undos.reload.find(&:side_effects?)).to be_present
+    end
+
     it "records the artist rename when one will occur" do
       ta = create(:tag_alias,
                   antecedent_name: "cua_ant_#{SecureRandom.hex(4)}",

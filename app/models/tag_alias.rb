@@ -210,7 +210,7 @@ class TagAlias < TagRelationship
   # by apply_locked_tags when they are next saved.
   def process_undo!(update_topic: true)
     validate_undoable!
-    side_effects = tag_rel_undos.where(applied: false).find(&:side_effects?).undo_data
+    side_effects = tag_rel_undos.where(applied: false).order(:id).find(&:side_effects?).undo_data
 
     CurrentUser.scoped(approver) do
       update!(status: "pending")
@@ -232,7 +232,7 @@ class TagAlias < TagRelationship
       raise "Only active or errored tag aliases can be undone. This one is \"#{status}\"; if a processing job died, set the status to an error first."
     end
 
-    undos = tag_rel_undos.where(applied: false).to_a
+    undos = tag_rel_undos.where(applied: false).order(:id).to_a
     raise "No unapplied undo information exists for this tag alias." if undos.empty?
     raise "This tag alias cannot be undone: its undo data predates undo support." if undos.any?(&:legacy?)
 
@@ -459,6 +459,15 @@ class TagAlias < TagRelationship
   end
 
   def create_undo_information
+    # process! retries from the top on failure, so this can run more than once.
+    # A completed snapshot (the side effects record is created last) must be
+    # kept, not rebuilt: it describes the pre-alias state, which the failed
+    # attempt's mutations may have already partially destroyed. An incomplete
+    # snapshot means no mutations have happened yet, so rebuilding is safe.
+    unapplied = tag_rel_undos.where(applied: false)
+    return if unapplied.any?(&:side_effects?)
+    unapplied.destroy_all
+
     Post.without_timeout do
       with_ids = []
       without_ids = []
