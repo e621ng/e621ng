@@ -102,8 +102,7 @@ class TagRelationship < ApplicationRecord
   # Posts affected by an undo, for the confirmation prompt. Counted in SQL
   # so the potentially large posts chunks are never loaded into Ruby.
   def undo_post_count
-    tag_rel_undos.where(applied: false)
-                 .where("json_typeof(undo_data) = 'object' AND undo_data->>'kind' = 'posts'")
+    tag_rel_undos.unapplied.posts_chunks
                  .sum(Arel.sql("(SELECT count(*) FROM json_object_keys(undo_data -> 'added'))"))
                  .to_i
   end
