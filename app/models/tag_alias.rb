@@ -251,10 +251,6 @@ class TagAlias < TagRelationship
       raise UndoError, "This tag alias cannot be undone: it was #{recorded['antecedent_name']} -> #{recorded['consequent_name']} when processed, but is now #{antecedent_name} -> #{consequent_name}."
     end
 
-    if TagAlias.active.where(antecedent_name: consequent_name).exists?
-      raise UndoError, "This tag alias cannot be undone: #{consequent_name} is itself aliased to another tag."
-    end
-
     side_effects
   end
 
