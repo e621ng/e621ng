@@ -19,7 +19,7 @@ gem "responders"
 if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext")
   gem "dtext", path: "vendor/dtext", require: "dtext"
 else
-  gem "dtext", "2.0.5", require: "dtext"
+  gem "dtext", "2.0.6", require: "dtext"
 end
 
 gem "bootsnap"
