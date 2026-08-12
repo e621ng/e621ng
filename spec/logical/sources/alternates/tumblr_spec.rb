@@ -42,7 +42,42 @@ RSpec.describe Sources::Alternates::Tumblr do
         eq("https://www.tumblr.com/unsafescapewolf/785066139893022720/raoul-in-boxers-kofi-underwear-doodles-2025")
     end
 
+    it "removes ?source=blog_view_login_wall from the end of a URL." do
+      expect(transform("https://www.tumblr.com/unsafescapewolf/785066139893022720/raoul-in-boxers-kofi-underwear-doodles-2025?source=blog_view_login_wall")).to \
+        eq("https://www.tumblr.com/unsafescapewolf/785066139893022720/raoul-in-boxers-kofi-underwear-doodles-2025")
+    end
+
     it "does not alter non-source-containing URLs" do
+      url = "https://www.tumblr.com/unsafescapewolf/785066139893022720/raoul-in-boxers-kofi-underwear-doodles-2025?a=b"
+      expect(transform(url)).to eq(url)
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #original_url — remove redirect_to
+  # -------------------------------------------------------------------------
+  describe "#original_url — remove redirect_to" do
+    it "removes ?source=share from the end of a URL." do
+      expect(transform("https://www.tumblr.com/drvoidiguana/819383429689950208/i-really-like-to-turn-characters-into-animals-as?redirect_to=%2Fdrvoidiguana%2F819383429689950208%2Fi-really-like-to-turn-characters-into-animals-as&source=blog_view_login_wall")).to \
+        eq("https://www.tumblr.com/drvoidiguana/819383429689950208/i-really-like-to-turn-characters-into-animals-as")
+    end
+
+    it "does not alter non-source-containing URLs" do
+      url = "https://www.tumblr.com/drvoidiguana/819383429689950208/i-really-like-to-turn-characters-into-animals-as"
+      expect(transform(url)).to eq(url)
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #original_url — drop trailing query parameter
+  # -------------------------------------------------------------------------
+  describe "#original_url — drop trailing query parameter" do
+    it "removes ? from the end of a URL." do
+      expect(transform("https://www.tumblr.com/unsafescapewolf/785066139893022720/raoul-in-boxers-kofi-underwear-doodles-2025?")).to \
+        eq("https://www.tumblr.com/unsafescapewolf/785066139893022720/raoul-in-boxers-kofi-underwear-doodles-2025")
+    end
+
+    it "does not alter URLs with no query parameters" do
       url = "https://www.tumblr.com/unsafescapewolf/785066139893022720/raoul-in-boxers-kofi-underwear-doodles-2025"
       expect(transform(url)).to eq(url)
     end

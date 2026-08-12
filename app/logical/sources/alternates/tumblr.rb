@@ -13,9 +13,11 @@ module Sources
 
       def original_url
         # Eagerly remove the unnecessary source parameter
-        if @parsed_url.query_values.present?
+        unless @parsed_url.query_values.nil?
           query_values = @parsed_url.query_values
           query_values.delete("source")
+          # redirect_to seems to be a client-side no-op on both firefox & chrome.
+          query_values.delete("redirect_to")
 
           @parsed_url.query_values = query_values.empty? ? nil : query_values
         end
