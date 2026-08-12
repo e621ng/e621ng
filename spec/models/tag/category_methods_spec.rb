@@ -23,6 +23,10 @@ RSpec.describe Tag do
       end
     end
 
+    it "ensures that ENUM_MAPPING and REVERSE_MAPPING keys match" do
+      expect(TagCategory::ENUM_MAPPING.keys).to match_array(TagCategory::REVERSE_MAPPING.keys)
+    end
+
     describe "#value_for" do
       let(:sample_id)   { TagCategory::REVERSE_MAPPING.keys.first }
       let(:sample_name) { TagCategory::REVERSE_MAPPING.values.first }
