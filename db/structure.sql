@@ -431,7 +431,7 @@ ALTER SEQUENCE public.bans_id_seq OWNED BY public.bans.id;
 --
 
 CREATE TABLE public.blips (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     creator_ip_addr inet NOT NULL,
     creator_id integer NOT NULL,
     body character varying NOT NULL,
@@ -691,7 +691,7 @@ ALTER SEQUENCE public.dmail_filters_id_seq OWNED BY public.dmail_filters.id;
 --
 
 CREATE TABLE public.dmails (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     owner_id integer NOT NULL,
     from_id integer NOT NULL,
     to_id integer NOT NULL,
@@ -800,7 +800,7 @@ ALTER SEQUENCE public.email_blacklists_id_seq OWNED BY public.email_blacklists.i
 --
 
 CREATE TABLE public.exception_logs (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     class_name character varying NOT NULL,
@@ -869,7 +869,7 @@ ALTER SEQUENCE public.favorites_id_seq OWNED BY public.favorites.id;
 --
 
 CREATE TABLE public.forum_categories (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     name character varying NOT NULL,
     description text,
     cat_order integer,
@@ -1082,7 +1082,7 @@ ALTER SEQUENCE public.forum_topics_id_seq OWNED BY public.forum_topics.id;
 --
 
 CREATE TABLE public.help_pages (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     name character varying NOT NULL,
@@ -1304,7 +1304,8 @@ CREATE TABLE public.notes (
     body text NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    version integer DEFAULT 0 NOT NULL
+    version integer DEFAULT 0 NOT NULL,
+    creator_ip_addr inet NOT NULL
 );
 
 
@@ -1792,7 +1793,7 @@ ALTER SEQUENCE public.post_replacements2_id_seq OWNED BY public.post_replacement
 --
 
 CREATE TABLE public.post_report_reasons (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     reason character varying NOT NULL,
@@ -1826,7 +1827,7 @@ ALTER SEQUENCE public.post_report_reasons_id_seq OWNED BY public.post_report_rea
 --
 
 CREATE TABLE public.post_set_maintainers (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     post_set_id integer NOT NULL,
     user_id integer NOT NULL,
     status character varying DEFAULT 'pending'::character varying NOT NULL,
@@ -1859,7 +1860,7 @@ ALTER SEQUENCE public.post_set_maintainers_id_seq OWNED BY public.post_set_maint
 --
 
 CREATE TABLE public.post_sets (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     name character varying NOT NULL,
     shortname character varying NOT NULL,
     description text DEFAULT ''::text NOT NULL,
@@ -2547,7 +2548,7 @@ ALTER SEQUENCE public.tag_rel_undos_id_seq OWNED BY public.tag_rel_undos.id;
 --
 
 CREATE TABLE public.tag_type_versions (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     old_type integer NOT NULL,
@@ -2619,7 +2620,7 @@ ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
 --
 
 CREATE TABLE public.takedowns (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     creator_id integer,
@@ -2663,7 +2664,7 @@ ALTER SEQUENCE public.takedowns_id_seq OWNED BY public.takedowns.id;
 --
 
 CREATE TABLE public.tickets (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     creator_id integer NOT NULL,
     creator_ip_addr inet NOT NULL,
     disp_id integer NOT NULL,
@@ -2704,7 +2705,7 @@ ALTER SEQUENCE public.tickets_id_seq OWNED BY public.tickets.id;
 --
 
 CREATE TABLE public.upload_whitelists (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     note character varying,
     reason character varying,
     allowed boolean DEFAULT true NOT NULL,
@@ -2740,7 +2741,7 @@ ALTER SEQUENCE public.upload_whitelists_id_seq OWNED BY public.upload_whitelists
 --
 
 CREATE TABLE public.uploads (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     source text,
     rating character(1) NOT NULL,
     uploader_id integer NOT NULL,
@@ -2934,7 +2935,7 @@ ALTER SEQUENCE public.user_password_reset_nonces_id_seq OWNED BY public.user_pas
 --
 
 CREATE TABLE public.user_statuses (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     user_id integer NOT NULL,
@@ -6328,6 +6329,9 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260812223301'),
+('20260812223255'),
+('20260812223229'),
 ('20260805155544'),
 ('20260728160704'),
 ('20260727195335'),
