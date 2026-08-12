@@ -28,23 +28,6 @@ RSpec.describe Post do
         expect(post.pool_string).to include("set:#{set.id}")
       end
 
-      it "adds the set id to the raw set_ids column" do
-        set  = create(:post_set)
-        post = create(:post)
-        post.add_set!(set)
-        expect(post[:set_ids]).to include(set.id)
-      end
-
-      it "rebuilds the raw set_ids column from pool_string" do
-        existing_set = create(:post_set)
-        added_set = create(:post_set)
-        post = create(:post, pool_string: "set:#{existing_set.id}", set_ids: nil)
-
-        post.add_set!(added_set)
-
-        expect(post[:set_ids]).to contain_exactly(existing_set.id, added_set.id)
-      end
-
       it "does not add the same set twice" do
         set  = create(:post_set)
         post = create(:post)
@@ -57,37 +40,36 @@ RSpec.describe Post do
     describe "#remove_set!" do
       it "removes set:<id> from pool_string" do
         set  = create(:post_set)
-        post = create(:post, pool_string: "set:#{set.id}", set_ids: [set.id])
+        post = create(:post, pool_string: "set:#{set.id}")
         post.remove_set!(set)
         expect(post.pool_string).not_to include("set:#{set.id}")
       end
-
-      it "removes the set id from the raw set_ids column" do
-        set  = create(:post_set)
-        post = create(:post, pool_string: "set:#{set.id}", set_ids: [set.id])
-        post.remove_set!(set)
-        expect(post[:set_ids]).not_to include(set.id)
-      end
     end
 
-    describe "#set_ids" do
-      it "returns an array of set ids from pool_string" do
+    describe "#post_sets" do
+      it "finds sets whose post_ids contain the post" do
         set1 = create(:post_set)
         set2 = create(:post_set)
-        post = build(:post, pool_string: "set:#{set1.id} set:#{set2.id}")
-        expect(post.set_ids).to include(set1.id, set2.id)
+        other_set = create(:post_set)
+        post = create(:post)
+        set1.update_column(:post_ids, [post.id])
+        set2.update_column(:post_ids, [post.id, post.id + 1])
+
+        expect(post.post_sets).to contain_exactly(set1, set2)
+        expect(post.post_sets).not_to include(other_set)
       end
 
-      it "returns an empty array when no sets are in pool_string" do
-        post = build(:post, pool_string: "")
-        expect(post.set_ids).to eq([])
+      it "returns no sets for a new record" do
+        post = build(:post)
+        expect(post.post_sets).to be_empty
       end
     end
 
     describe "#give_post_sets_to_parent" do
       it "removes the post from its sets when expunged without a parent" do
         set  = create(:post_set)
-        post = create(:post, pool_string: "set:#{set.id}")
+        post = create(:post)
+        set.update_column(:post_ids, [post.id])
         post.expunge!
         expect(set.reload.post_ids).not_to include(post.id)
       end

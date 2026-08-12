@@ -12,17 +12,12 @@ RSpec.describe PostSetCleanupJob do
   describe "#perform" do
     context "with type :set" do
       let(:set_id) { 42 }
-      let!(:post_in_set) { create(:post).tap { |p| p.update_columns(pool_string: "set:#{set_id}", set_ids: [set_id]) } }
+      let!(:post_in_set) { create(:post).tap { |p| p.update_columns(pool_string: "set:#{set_id}") } }
       let!(:post_not_in_set) { create(:post) }
 
       it "removes the set token from posts belonging to the set" do
         perform(:set, set_id)
         expect(post_in_set.reload.pool_string).not_to include("set:#{set_id}")
-      end
-
-      it "removes the set id from the raw set_ids column" do
-        perform(:set, set_id)
-        expect(post_in_set.reload[:set_ids]).not_to include(set_id)
       end
 
       it "does not modify posts that do not belong to the set" do

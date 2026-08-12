@@ -2034,8 +2034,7 @@ CREATE TABLE public.posts (
     tag_count_contributor integer DEFAULT 0 NOT NULL,
     video_samples jsonb DEFAULT '{}'::jsonb NOT NULL,
     hotness double precision DEFAULT 0.0 NOT NULL,
-    pool_ids integer[],
-    set_ids bigint[]
+    pool_ids integer[] DEFAULT '{}'::integer[]
 );
 
 
@@ -5451,13 +5450,6 @@ CREATE INDEX index_posts_on_pool_ids ON public.posts USING gin (pool_ids);
 --
 
 CREATE INDEX index_posts_on_pool_string_tokens ON public.posts USING gin (string_to_array(pool_string, ' '::text));
-
-
---
--- Name: index_posts_on_set_ids; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_posts_on_set_ids ON public.posts USING gin (set_ids);
 
 
 --
