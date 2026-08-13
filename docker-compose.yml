@@ -100,6 +100,8 @@ services:
     command: redis-server --save 10 1 --loglevel warning
     volumes:
       - redis_data_v2:/data
+    ports:
+      - "${EXPOSED_REDIS_PORT:-6379}:6379"
 
   memcached:
     image: memcached:1.5.22-alpine
