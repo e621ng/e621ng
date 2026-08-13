@@ -58,7 +58,7 @@ module Fixes
       end
     end
 
-    def self.batched_update(conn, table, predicate, assignment, from: nil, join: nil)
+    def self.batched_update(conn, table, predicate, assignment, from: nil, join: nil) # rubocop:disable Metrics/ParameterLists
       total = 0
       loop do
         sql = <<~SQL.squish
@@ -72,7 +72,7 @@ module Fixes
         SQL
         updated = conn.execute(sql).cmd_tuples
         total += updated
-        break if updated.zero?
+        break if updated == 0
 
         puts "#{table}: #{total} rows" unless Rails.env.test?
         sleep(0.1) # bound replica lag / let autovacuum breathe
