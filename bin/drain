@@ -1,22 +1,26 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-require 'fileutils'
+require "fileutils"
 APP_PATH = File.expand_path("..", __dir__)
 
-# The `tmp/out_of_rotation` file is used to instruct the load balancer to stop sending traffic to this instance.
+# The drain file is used to instruct the load balancer to stop sending traffic to this instance.
 # This is used during deployments to ensure that the instance is not receiving traffic while it is being updated.
+# DANBOORU_DRAIN_FILE overrides its location (containerized hosts keep drain state on a host mount).
+
+DRAIN_FILE = ENV["DANBOORU_DRAIN_FILE"] || "#{APP_PATH}/tmp/out_of_rotation"
 
 arg = ARGV[0]
-unless ["true", "false"].include?(arg)
+unless %w[true false].include?(arg)
   puts "Usage: #{File.basename(__FILE__)} [true|false]"
-  puts "Draining: #{File.exist?("#{APP_PATH}/tmp/out_of_rotation") ? "true" : "false"}"
+  puts "Draining: #{File.exist?(DRAIN_FILE) ? 'true' : 'false'}"
   exit 1
 end
 
 if arg == "true"
-  FileUtils.touch("#{APP_PATH}/tmp/out_of_rotation")
+  FileUtils.touch(DRAIN_FILE)
   puts "drain:true"
 elsif arg == "false"
-  File.delete("#{APP_PATH}/tmp/out_of_rotation") if File.exist?("#{APP_PATH}/tmp/out_of_rotation")
+  FileUtils.rm_f(DRAIN_FILE)
   puts "drain:false"
 end
