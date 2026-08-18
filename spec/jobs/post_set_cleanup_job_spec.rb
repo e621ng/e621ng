@@ -39,7 +39,7 @@ RSpec.describe PostSetCleanupJob do
 
     context "with type :pool" do
       let(:pool_id) { 42 }
-      let!(:post_in_pool) { create(:post).tap { |p| p.update_columns(pool_string: "pool:#{pool_id}") } }
+      let!(:post_in_pool) { create(:post).tap { |p| p.update_columns(pool_string: "pool:#{pool_id}", pool_ids: [pool_id]) } }
       let!(:post_not_in_pool) { create(:post) }
 
       before do
@@ -52,6 +52,11 @@ RSpec.describe PostSetCleanupJob do
       it "removes the pool token from posts belonging to the pool" do
         perform(:pool, pool_id)
         expect(post_in_pool.reload.pool_string).not_to include("pool:#{pool_id}")
+      end
+
+      it "removes the pool id from the raw pool_ids column" do
+        perform(:pool, pool_id)
+        expect(post_in_pool.reload[:pool_ids]).not_to include(pool_id)
       end
 
       it "does not modify posts that do not belong to the pool" do

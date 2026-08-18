@@ -501,7 +501,7 @@ RSpec.describe Post do
           post_set = create(:post_set, creator: CurrentUser.user)
           post = create(:post)
           post.update!(tag_string: "#{post.tag_string} set:#{post_set.id}")
-          expect(post.reload.set_ids).to include(post_set.id)
+          expect(post.reload.post_sets).to include(post_set)
         end
       end
 
@@ -511,7 +511,7 @@ RSpec.describe Post do
           post = create(:post)
           post_set.add!(post)
           post.update!(tag_string: "#{post.tag_string} -set:#{post_set.id}")
-          expect(post.reload.set_ids).not_to include(post_set.id)
+          expect(post.reload.post_sets).not_to include(post_set)
         end
       end
 
@@ -520,7 +520,7 @@ RSpec.describe Post do
           post_set = create(:post_set, creator: CurrentUser.user)
           post = create(:post)
           post.update!(tag_string: "#{post.tag_string} set:#{post_set.shortname}")
-          expect(post.reload.set_ids).to include(post_set.id)
+          expect(post.reload.post_sets).to include(post_set)
         end
       end
 
@@ -530,7 +530,7 @@ RSpec.describe Post do
           post = create(:post)
           post_set.add!(post)
           post.update!(tag_string: "#{post.tag_string} -set:#{post_set.shortname}")
-          expect(post.reload.set_ids).not_to include(post_set.id)
+          expect(post.reload.post_sets).not_to include(post_set)
         end
       end
 

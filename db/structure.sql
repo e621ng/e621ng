@@ -2033,7 +2033,8 @@ CREATE TABLE public.posts (
     is_comment_locked boolean DEFAULT false NOT NULL,
     tag_count_contributor integer DEFAULT 0 NOT NULL,
     video_samples jsonb DEFAULT '{}'::jsonb NOT NULL,
-    hotness double precision DEFAULT 0.0 NOT NULL
+    hotness double precision DEFAULT 0.0 NOT NULL,
+    pool_ids integer[] DEFAULT '{}'::integer[]
 );
 
 
@@ -5438,6 +5439,13 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 
 
 --
+-- Name: index_posts_on_pool_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_pool_ids ON public.posts USING gin (pool_ids);
+
+
+--
 -- Name: index_posts_on_pool_string_tokens; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6329,6 +6337,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260818231537'),
 ('20260812223301'),
 ('20260812223255'),
 ('20260812223229'),

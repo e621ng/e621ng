@@ -28,6 +28,23 @@ RSpec.describe Post do
         expect(post.pool_string).to include("pool:#{pool.id}")
       end
 
+      it "adds the pool id to the raw pool_ids column" do
+        pool = create(:pool)
+        post = create(:post)
+        post.add_pool!(pool)
+        expect(post[:pool_ids]).to include(pool.id)
+      end
+
+      it "rebuilds the raw pool_ids column from pool_string" do
+        existing_pool = create(:pool)
+        added_pool = create(:pool)
+        post = create(:post, pool_string: "pool:#{existing_pool.id}", pool_ids: nil)
+
+        post.add_pool!(added_pool)
+
+        expect(post[:pool_ids]).to contain_exactly(existing_pool.id, added_pool.id)
+      end
+
       it "does not add the pool a second time if already present" do
         pool = create(:pool)
         post = create(:post)
@@ -40,9 +57,16 @@ RSpec.describe Post do
     describe "#remove_pool!" do
       it "removes pool:<id> from pool_string" do
         pool = create(:pool)
-        post = create(:post, pool_string: "pool:#{pool.id}")
+        post = create(:post, pool_string: "pool:#{pool.id}", pool_ids: [pool.id])
         post.remove_pool!(pool)
         expect(post.pool_string).not_to include("pool:#{pool.id}")
+      end
+
+      it "removes the pool id from the raw pool_ids column" do
+        pool = create(:pool)
+        post = create(:post, pool_string: "pool:#{pool.id}", pool_ids: [pool.id])
+        post.remove_pool!(pool)
+        expect(post[:pool_ids]).not_to include(pool.id)
       end
 
       it "does nothing when the pool is not in pool_string" do
@@ -62,21 +86,27 @@ RSpec.describe Post do
 
       it "returns true when pool_string contains an active pool" do
         pool = create(:pool, is_active: true)
-        post = create(:post, pool_string: "pool:#{pool.id}")
+        post = create(:post, pool_string: "pool:#{pool.id}", pool_ids: nil)
         expect(post.has_active_pools?).to be true
       end
     end
 
     describe "#pool_ids" do
-      it "returns an array of pool ids from pool_string" do
+      it "returns the raw column value when present" do
+        pool = create(:pool)
+        post = build(:post, pool_string: "pool:#{pool.id}", pool_ids: [42])
+        expect(post.pool_ids).to eq([42])
+      end
+
+      it "falls back to parsing pool_string when the column has not been backfilled" do
         pool1 = create(:pool)
         pool2 = create(:pool)
-        post = build(:post, pool_string: "pool:#{pool1.id} pool:#{pool2.id}")
+        post = build(:post, pool_string: "pool:#{pool1.id} pool:#{pool2.id}", pool_ids: nil)
         expect(post.pool_ids).to include(pool1.id, pool2.id)
       end
 
-      it "returns an empty array when pool_string has no pools" do
-        post = build(:post, pool_string: "")
+      it "ignores set tokens when falling back to pool_string" do
+        post = build(:post, pool_string: "set:123", pool_ids: nil)
         expect(post.pool_ids).to eq([])
       end
     end
