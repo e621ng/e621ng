@@ -15,6 +15,7 @@ module Sources
         Alternates::Webtoons,
         Alternates::Tapas,
         Alternates::Imgur,
+        Alternates::Tumblr,
       ]
     end
 
