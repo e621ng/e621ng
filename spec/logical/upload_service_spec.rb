@@ -341,6 +341,14 @@ RSpec.describe UploadService do
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
+      it "marks post as pending when a DNP artist tag has a category prefix" do
+        artist = create(:artist)
+        create(:avoid_posting, artist: artist)
+        upload.tag_string = "artist:#{artist.name}"
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: false)
+        expect(service.convert_to_post(upload).is_pending).to be true
+      end
+
       it "marks post as pending when upload_as_pending? is true" do
         allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: true)
         allow(upload).to receive(:upload_as_pending?).and_return(true)

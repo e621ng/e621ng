@@ -763,6 +763,13 @@ RSpec.describe Post do
         expect(post.avoid_posting_tags).to include(avoid)
       end
 
+      it "matches tags with a category prefix on an unsaved post" do
+        artist = create(:artist)
+        avoid = create(:avoid_posting, artist: artist)
+        post = build(:post, tag_string: "artist:#{artist.name}")
+        expect(post.avoid_posting_tags).to include(avoid)
+      end
+
       # Persisted tag strings are always normalized, so the alias lookup would be
       # a wasted query on every render of the avoid-posting notice.
       it "does not resolve aliases for a persisted post with a clean tag string" do
