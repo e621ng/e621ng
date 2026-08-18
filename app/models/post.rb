@@ -1163,7 +1163,7 @@ class Post < ApplicationRecord
           if new_record? || tag_string_changed?
             # Apply canonicalization if the raw tag string had not gone through normalize_tags yet.
             candidate_names = candidate_names.map { |name| name.downcase.sub(/\A(#{Tag.categories.regexp}):/, "") }
-            candidate_names = TagAlias.to_aliased(candidate_names.map(&:downcase))
+            candidate_names = TagAlias.to_aliased(candidate_names)
           end
           tags = Tag
                  .where(name: candidate_names, category: [Tag.categories.artist, Tag.categories.copyright, Tag.categories.character])
