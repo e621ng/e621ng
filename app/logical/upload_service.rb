@@ -69,9 +69,14 @@ class UploadService
       p.is_animated = animated
       p.duration = upload.video_duration(upload.file.path, animated: animated)
 
-      if !upload.uploader.upload_free? || (!upload.uploader.can_approve_posts? && p.avoid_posting_tags.any?) || upload.upload_as_pending?
-        p.is_pending = true
-      end
+      p.is_pending = true if should_set_pending?(upload, p)
     end
+  end
+
+  def should_set_pending?(upload, post)
+    return true unless upload.uploader.upload_free? || upload.uploader.can_approve_posts?
+    return true if upload.upload_as_pending?
+    return true if post.avoid_posting_tags.any? && !upload.uploader.can_approve_posts?
+    false
   end
 end
