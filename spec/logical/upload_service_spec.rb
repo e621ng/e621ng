@@ -324,6 +324,31 @@ RSpec.describe UploadService do
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
+      it "marks post as pending when a DNP artist is tagged with different casing" do
+        artist = create(:artist)
+        create(:avoid_posting, artist: artist)
+        upload.tag_string = artist.name.upcase
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: false)
+        expect(service.convert_to_post(upload).is_pending).to be true
+      end
+
+      it "marks post as pending when a DNP artist is tagged through an alias" do
+        artist = create(:artist)
+        create(:avoid_posting, artist: artist)
+        create(:active_tag_alias, antecedent_name: "#{artist.name}_(artist)", consequent_name: artist.name)
+        upload.tag_string = "#{artist.name}_(artist)"
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: false)
+        expect(service.convert_to_post(upload).is_pending).to be true
+      end
+
+      it "marks post as pending when a DNP artist tag has a category prefix" do
+        artist = create(:artist)
+        create(:avoid_posting, artist: artist)
+        upload.tag_string = "artist:#{artist.name}"
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: false)
+        expect(service.convert_to_post(upload).is_pending).to be true
+      end
+
       it "marks post as pending when upload_as_pending? is true" do
         allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: true)
         allow(upload).to receive(:upload_as_pending?).and_return(true)
