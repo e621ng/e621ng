@@ -17,10 +17,14 @@ RSpec.describe Tag do
     subject(:mapping) { Tag.categories }
 
     it "exposes a method for each category returning the correct ID" do
-      TagCategory::REVERSE_MAPPING.each do |id, name|
+      TagCategory::ENUM_MAPPING.each do |id, name|
         expect(mapping.public_send(name)).to eq(id),
                                              "expected Tag.categories.#{name} to return #{id}"
       end
+    end
+
+    it "ensures that ENUM_MAPPING and REVERSE_MAPPING keys match" do
+      expect(TagCategory::ENUM_MAPPING.keys).to match_array(TagCategory::REVERSE_MAPPING.keys)
     end
 
     describe "#value_for" do
