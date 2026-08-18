@@ -350,6 +350,11 @@ RSpec.describe UploadService do
         upload.uploader.update(can_upload_free: true)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
+
+      it "does not mark post as pending when uploader can approve but is below the karma threshold" do
+        allow(upload.uploader).to receive_messages(upload_free?: false, can_approve_posts?: true)
+        expect(service.convert_to_post(upload).is_pending).to be false
+      end
     end
 
     context "locked_rating" do
