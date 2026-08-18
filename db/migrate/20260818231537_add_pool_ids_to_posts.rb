@@ -6,7 +6,7 @@ class AddPoolIdsToPosts < ActiveRecord::Migration[8.1]
   def up
     Post.without_timeout do
       # The column must be added without a default: existing rows stay NULL,
-      # which marks them as not yet backfilled (see db/fixes/140).
+      # which marks them as not yet backfilled (see db/fixes/141).
       add_column :posts, :pool_ids, :integer, array: true
       change_column_default :posts, :pool_ids, "{}"
 

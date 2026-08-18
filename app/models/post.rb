@@ -1352,7 +1352,7 @@ class Post < ApplicationRecord
   end
 
   module PoolMethods
-    # Falls back to pool_string for rows that haven't been backfilled yet (see db/fixes/140).
+    # Falls back to pool_string for rows that haven't been backfilled yet (see db/fixes/141).
     def pool_ids
       self[:pool_ids] || pool_ids_from_string
     end
