@@ -107,7 +107,7 @@ RSpec.describe UserNameValidator, type: :model do
   end
 
   describe "reserved staff names" do
-    let(:name_set) { %w[system automod admin moderator _mod mod_ janitor staff support] }
+    let(:name_set) { UserNameValidator::RESERVED_STAFF_NAMES }
 
     it "is invalid with reserved staff names" do
       name_set.each do |name|
