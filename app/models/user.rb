@@ -398,6 +398,7 @@ class User < ApplicationRecord
 
     def requires_totp?
       return false unless Danbooru.config.require_totp_for_staff?
+      return false if is_system?
       level >= UserLevel::STAFF
     end
 

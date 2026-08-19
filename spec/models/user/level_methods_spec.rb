@@ -216,6 +216,11 @@ RSpec.describe User do
         user = create(:staff_user, totp_enabled: true)
         expect(user.is_staff?).to be(true)
       end
+
+      it "returns true for the system user without TOTP" do
+        system_user = User.system
+        expect(system_user.is_staff?).to be(true)
+      end
     end
 
     # -------------------------------------------------------------------------
