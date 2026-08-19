@@ -106,6 +106,24 @@ RSpec.describe UserNameValidator, type: :model do
     end
   end
 
+  describe "reserved staff names" do
+    it "is invalid with reserved staff names" do
+      %w[system automod moderator _mod mod_ staff support].each do |name|
+        user = build(:user, name: "some#{name}user")
+        expect(user).not_to be_valid
+        expect(user.errors[:name]).to include("cannot contain \"#{name}\""), "expected '#{name}' to be invalid"
+      end
+    end
+
+    it "is valid with reserved staff names when the user is actually staff" do
+      staff_user = create(:staff_user)
+      %w[system automod moderator _mod mod_ staff support].each do |name|
+        staff_user.name = "some#{name}user"
+        expect(staff_user).to be_valid, "expected '#{name}' to be valid for staff user"
+      end
+    end
+  end
+
   describe "on: :create only" do
     it "does not revalidate name format on update" do
       user = create(:user)

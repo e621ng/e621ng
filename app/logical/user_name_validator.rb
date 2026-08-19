@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class UserNameValidator < ActiveModel::EachValidator
+  RESERVED_STAFF_NAMES = %w[system automod moderator _mod mod_ staff support].freeze
+
   def validate_each(rec, attr, value)
     name = value
 
@@ -19,6 +21,7 @@ class UserNameValidator < ActiveModel::EachValidator
     # For User model, check against rec.id
     # For other models (like UserNameChangeRequest), check against the user_id option
     user_id = rec.is_a?(User) ? rec.id : options[:user_id]&.call(rec)
+    is_actually_staff = user_id.present? && User.find_by(id: user_id)&.is_staff?
 
     lookup = User.find_by_name(name) # rubocop:disable Rails/DynamicFindBy
     if lookup.present?
@@ -35,5 +38,10 @@ class UserNameValidator < ActiveModel::EachValidator
     rec.errors.add(attr, "cannot begin or end with an underscore") if name =~ /\A_|_\z/
     rec.errors.add(attr, "cannot consist of numbers only") if name =~ /\A[0-9]+\z/
     rec.errors.add(attr, "cannot be one of the reserved words") if %w[me home settings].include?(name.downcase)
+
+    unless is_actually_staff
+      reserved_staff_matches = RESERVED_STAFF_NAMES.select { |reserved| name.downcase.include?(reserved) }
+      rec.errors.add(attr, "cannot contain \"#{reserved_staff_matches.join(', ')}\"") if reserved_staff_matches.any?
+    end
   end
 end
