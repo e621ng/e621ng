@@ -482,7 +482,13 @@ class Artist < ApplicationRecord
       q = q.where_user(:linked_user_id, :linked_user, params)
 
       if params[:has_tag].to_s.truthy?
-        q = q.joins(:tag).where("tags.post_count > 0")
+        # Deliberate hack: an equality join here makes the planner use the trigram GIN index
+        # (index_tags_on_name_trgm), whose equality support degenerates into a recheck-heavy bitmap
+        # scan (~27s on prod). gin_trgm_ops has no range operators, so >= AND <= forces the unique
+        # btree index instead (~0.3s).
+        # Note this ruins the planner's row estimates for anything built on top of this join.
+        q = q.joins("INNER JOIN tags ON tags.name >= artists.name AND tags.name <= artists.name")
+             .where("tags.post_count > 0")
       elsif params[:has_tag].to_s.falsy?
         q = q.includes(:tag).where("tags.name IS NULL OR tags.post_count <= 0").references(:tags)
       end
