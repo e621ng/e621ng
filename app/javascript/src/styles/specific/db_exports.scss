@@ -23,6 +23,7 @@ body.c-db-exports.a-index {
       font-size: 0.85em;
       word-break: break-all;
       min-width: 0;
+      cursor: text;
     }
 
     .export-checksum-missing {
@@ -48,7 +49,8 @@ body.c-db-exports.a-index {
     .row {
       display: contents;
 
-      &:last-child .cell {
+      &:last-child .cell,
+      &:last-child .row-columns {
         border-bottom: none;
       }
 
@@ -56,6 +58,79 @@ body.c-db-exports.a-index {
         &:hover .cell {
           background-color: var(--color-section-lighten-10);
         }
+      }
+
+      &:has(.row-toggle[open]) {
+        .cell,
+        .row-columns {
+          background-color: var(--color-section-darken-5);
+        }
+
+        .row-columns {
+          display: block;
+        }
+      }
+
+      &:has(.row-toggle) {
+        .cell,
+        .row-columns {
+          cursor: pointer;
+        }
+      }
+    }
+
+    .row-toggle {
+      summary {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        cursor: pointer;
+        list-style: none;
+
+        &::-webkit-details-marker {
+          display: none;
+        }
+      }
+
+      .row-toggle-icon {
+        flex-shrink: 0;
+        color: var(--color-text-muted);
+        transition: transform 0.15s ease;
+      }
+
+      &[open] .row-toggle-icon {
+        transform: rotate(90deg);
+      }
+    }
+
+    .row-columns {
+      display: none;
+      grid-column: 1 / -1;
+      background-color: var(--color-section);
+      border-bottom: 1px solid var(--color-table-border);
+      padding: 0 $padding-025 $padding-050;
+    }
+
+    .export-columns-table {
+      width: 100%;
+      max-width: 30rem;
+      border-collapse: collapse;
+      margin-bottom: $padding-050;
+      font-size: 0.9em;
+
+      th,
+      td {
+        text-align: left;
+        padding: 0.25rem 0.5rem;
+        border-bottom: 1px solid var(--color-table-border);
+      }
+
+      th {
+        color: var(--color-text-table-header);
+      }
+
+      code {
+        font-size: 0.95em;
       }
     }
 

@@ -18,7 +18,15 @@
 
         <% @exports.each do |export| %>
           <div class="row">
-            <div class="cell" data-label="Name"><strong><%= export.name %></strong></div>
+            <div class="cell" data-label="Name">
+              <% if export.columns.present? %>
+                <details class="row-toggle">
+                  <summary><%= svg_icon(:chevron_right, width: 12, height: 12, class: "row-toggle-icon") %> <strong><%= export.name %></strong></summary>
+                </details>
+              <% else %>
+                <strong><%= export.name %></strong>
+              <% end %>
+            </div>
             <div class="cell" data-label="Size"><%= number_to_human_size(export.file_size) %></div>
             <div class="cell" data-label="Updated"><%= time_ago_in_words_tagged(export.updated_at) %></div>
             <div class="cell" data-label="Checksum">
@@ -33,6 +41,27 @@
                 <%= svg_icon(:download, width: 16, height: 16) %> Download
               <% end %>
             </div>
+
+            <% if export.columns.present? %>
+              <div class="row-columns">
+                <table class="export-columns-table">
+                  <thead>
+                    <tr>
+                      <th>Column</th>
+                      <th>Postgres type</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% export.columns.each do |column_name, column_type| %>
+                      <tr>
+                        <td><code><%= column_name %></code></td>
+                        <td><code><%= column_type %></code></td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% end %>
           </div>
         <% end %>
       </div>
