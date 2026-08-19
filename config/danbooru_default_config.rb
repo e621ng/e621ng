@@ -372,7 +372,7 @@ module Danbooru
     end
 
     def require_totp_for_staff?
-      true
+      false
     end
 
     def tag_type_change_cutoff
