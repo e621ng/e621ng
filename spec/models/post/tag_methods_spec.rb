@@ -346,6 +346,20 @@ RSpec.describe Post do
           expect(child.parent_id).to eq(parent_b.id)
         end
       end
+
+      describe "when old_description matches submitted description (user did not intend to change it)" do
+        it "reverts description to the previous value in memory after validation" do
+          post = create(:post, description: "Old description")
+          post.update_columns(description: "New description")
+          post.reload
+
+          post.old_description = "Old description"
+          post.description = "Old description"
+          post.valid?
+
+          expect(post.description).to eq("New description")
+        end
+      end
     end
 
     describe "normalize_tags — locked_tags blank string → nil" do

@@ -67,7 +67,7 @@ class Post < ApplicationRecord
   has_many :favorites
   has_many :replacements, class_name: "PostReplacement", :dependent => :destroy
 
-  attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating,
+  attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :old_description,
                 :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason
 
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostVersion", :dependent => :destroy
@@ -656,6 +656,10 @@ class Post < ApplicationRecord
 
       if old_rating == rating
         self.rating = rating_before_last_save || rating_was
+      end
+
+      if old_description == description.to_s
+        self.description = description_before_last_save || description_was
       end
     end
 
