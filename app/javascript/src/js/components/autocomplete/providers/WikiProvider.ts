@@ -18,8 +18,11 @@ export default class WikiProvider extends Provider<WikiItem> {
   }
 
   public static async findWikis (term: string): Promise<WikiItem[]> {
+    term = term?.trim() || "";
+    if (!term) return [];
+
     const params = new URLSearchParams({
-      "search[title]": term + "*",
+      "search[title]": term + (term.endsWith("*") ? "" : "*"),
       "search[hide_deleted]": "Yes",
       "search[order]": "post_count",
       "limit": "10",
