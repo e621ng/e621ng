@@ -41,7 +41,7 @@ RSpec.describe PostSet do
       posts = create_list(:post, 2)
 
       expect { set.add(posts.map(&:id)) }
-        .to have_enqueued_job(BulkIndexUpdateJob).with("Post", posts.map(&:id))
+        .to have_enqueued_job(BulkIndexUpdateJob).with("Post", match_array(posts.map(&:id)))
     end
   end
 
@@ -51,7 +51,7 @@ RSpec.describe PostSet do
       set.update_columns(post_ids: posts.map(&:id), post_count: posts.size)
 
       expect { set.remove(posts.map(&:id)) }
-        .to have_enqueued_job(BulkIndexUpdateJob).with("Post", posts.map(&:id))
+        .to have_enqueued_job(BulkIndexUpdateJob).with("Post", match_array(posts.map(&:id)))
     end
   end
 
