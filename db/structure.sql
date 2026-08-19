@@ -4690,6 +4690,13 @@ CREATE INDEX index_comments_on_creator_id ON public.comments USING btree (creato
 
 
 --
+-- Name: index_comments_on_creator_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_creator_id_and_created_at ON public.comments USING btree (creator_id, created_at DESC);
+
+
+--
 -- Name: index_comments_on_creator_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6337,6 +6344,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260819154314'),
 ('20260818231537'),
 ('20260812223301'),
 ('20260812223255'),
