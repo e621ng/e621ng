@@ -3,7 +3,7 @@
 <!-- Security -->
 <tab-group name="security">Security</tab-group>
 
-<% if CurrentUser.user.is_member? %>
+<% if CurrentUser.user.is_logged_in? %>
 <tab-entry tab="<%= tab_name %>" group="security" class="with-button" search="two factor authentication 2fa totp authenticator app security code backup">
   <% has_totp = CurrentUser.user.totp_enabled? %>
   <tab-head>Two-Factor Authentication</tab-head>

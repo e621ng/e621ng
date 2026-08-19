@@ -369,7 +369,10 @@ class User < ApplicationRecord
       normalized_name = UserLevel.normalize(name)
 
       define_method("is_#{normalized_name}?") do
-        is_verified? && level >= value && id.present?
+        return false unless is_verified?
+        return false if id.blank?
+        return false if Danbooru.config.require_totp_for_staff? && (level >= UserLevel::STAFF && !totp_enabled?)
+        level >= value
       end
     end
 

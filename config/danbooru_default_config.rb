@@ -371,6 +371,10 @@ module Danbooru
       app_name
     end
 
+    def require_totp_for_staff?
+      true
+    end
+
     def tag_type_change_cutoff
       100
     end
