@@ -103,13 +103,7 @@ class PostSetsController < ApplicationController
         actually_removed = remove_ids.empty? ? [] : @post_set.process_posts_remove!(remove_ids)
         actually_added   = add_ids.empty?    ? [] : @post_set.process_posts_add!(add_ids)
 
-        # Sync posts inline for tiny changes, otherwise enqueue background sync
-        total_changes = actually_added.size + actually_removed.size
-        if total_changes <= 1
-          @post_set.sync_posts_for_delta(added_ids: actually_added, removed_ids: actually_removed)
-        else
-          PostSetPostsSyncJob.perform_later(@post_set.id)
-        end
+        @post_set.reindex_posts(actually_removed + actually_added)
       end
 
       @post_set.reload
