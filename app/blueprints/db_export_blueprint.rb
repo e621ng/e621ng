@@ -5,6 +5,7 @@ class DbExportBlueprint < Blueprinter::Base
   field :file_name
   field :file_size
   field :checksum
+  field :columns
   field :updated_at
   field :url
 end

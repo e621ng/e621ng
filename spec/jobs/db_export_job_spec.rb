@@ -66,6 +66,26 @@ RSpec.describe DbExportJob do
       expect(export.checksum).to eq(Digest::SHA256.hexdigest(raw["tags.csv.gz"]))
     end
 
+    it "records each column mapped to its Postgres type" do
+      perform
+      export = DbExport.find_by(name: "tags")
+      expect(export.columns).to eq(
+        "id" => "integer",
+        "name" => "character varying",
+        "category" => "smallint",
+        "post_count" => "integer",
+        "created_at" => "timestamp without time zone",
+        "updated_at" => "timestamp without time zone",
+        "is_locked" => "boolean",
+      )
+    end
+
+    it "records the actual output type of computed and array columns" do
+      perform
+      expect(DbExport.find_by(name: "pools").columns["post_ids"]).to eq("integer[]")
+      expect(DbExport.find_by(name: "artists").columns["active_urls"]).to eq("text")
+    end
+
     it "reuses the existing row on a subsequent run" do
       perform
       expect { perform }.not_to change(DbExport, :count)

@@ -590,7 +590,8 @@ CREATE TABLE public.db_exports (
     file_size bigint DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    checksum character varying
+    checksum character varying,
+    columns jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -6337,6 +6338,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260818231600'),
 ('20260818231537'),
 ('20260812223301'),
 ('20260812223255'),

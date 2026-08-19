@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe DbExportsController do
   before do
     allow(Danbooru.config.custom_configuration).to receive(:db_export_enabled?).and_return(true)
-    DbExport.create!(name: "posts", file_size: 2048, checksum: "a" * 64)
+    DbExport.create!(name: "posts", file_size: 2048, checksum: "a" * 64, columns: { "id" => "integer", "md5" => "character varying" })
     DbExport.create!(name: "tags", file_size: 512)
   end
 
@@ -21,6 +21,11 @@ RSpec.describe DbExportsController do
       expect(response.body).to include("tags")
     end
 
+    it "lists the columns and Postgres types for an export with recorded column metadata" do
+      get db_exports_path
+      expect(response.body).to include("id", "integer", "md5", "character varying")
+    end
+
     it "returns 404 when exports are disabled" do
       allow(Danbooru.config.custom_configuration).to receive(:db_export_enabled?).and_return(false)
       get db_exports_path
@@ -34,6 +39,7 @@ RSpec.describe DbExportsController do
       expect(body).to be_an(Array)
       entry = body.find { |export| export["name"] == "posts" }
       expect(entry).to include("file_name" => "posts.csv.gz", "file_size" => 2048, "checksum" => "a" * 64)
+      expect(entry["columns"]).to eq("id" => "integer", "md5" => "character varying")
       expect(entry["url"]).to be_present
     end
   end

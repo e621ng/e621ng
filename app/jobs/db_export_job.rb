@@ -56,13 +56,16 @@ class DbExportJob < ApplicationJob
   def generate_export(name, config)
     Rails.logger.info("DbExportJob: Generating #{name} export")
 
+    query = config[:query].call
+    columns = export_columns(query)
+
     file = Tempfile.new(["#{name}-export", ".csv.gz"], binmode: true)
-    write_csv_gz(config[:query].call, file)
+    write_csv_gz(query, file)
     file.rewind
 
     checksum = Digest::SHA256.file(file.path).hexdigest
     Danbooru.config.storage_manager.store_db_export(file, "#{name}.csv.gz")
-    record_export(name, file.size, checksum)
+    record_export(name, file.size, checksum, columns)
 
     Rails.logger.info("DbExportJob: Finished #{name} export (#{ActiveSupport::NumberHelper.number_to_human_size(file.size)})")
   rescue StandardError => e
@@ -70,6 +73,25 @@ class DbExportJob < ApplicationJob
     ActiveRecord::Base.connection.reconnect!
   ensure
     file&.close!
+  end
+
+  def export_columns(query)
+    conn = ActiveRecord::Base.connection.raw_connection
+    result = conn.exec("SELECT * FROM (#{query}) db_export_columns LIMIT 0")
+    oids = result.nfields.times.map { |i| result.ftype(i) }
+    type_names = resolve_type_names(conn, oids)
+    result.fields.each_with_index.to_h { |field, i| [field, type_names[oids[i]]] }
+  ensure
+    result&.clear
+  end
+
+  def resolve_type_names(conn, oids)
+    return {} if oids.empty?
+
+    types = conn.exec_params("SELECT oid, format_type(oid, NULL) AS type_name FROM pg_type WHERE oid = ANY($1::oid[])", ["{#{oids.uniq.join(',')}}"])
+    types.each_with_object({}) { |row, hash| hash[row["oid"].to_i] = row["type_name"] }
+  ensure
+    types&.clear
   end
 
   def write_csv_gz(query, file)
@@ -86,8 +108,8 @@ class DbExportJob < ApplicationJob
     gz&.finish
   end
 
-  def record_export(name, file_size, checksum)
+  def record_export(name, file_size, checksum, columns)
     export = DbExport.find_or_initialize_by(name: name)
-    export.update!(file_size: file_size, checksum: checksum, updated_at: Time.current)
+    export.update!(file_size: file_size, checksum: checksum, columns: columns, updated_at: Time.current)
   end
 end
