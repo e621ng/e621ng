@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class UserNameValidator < ActiveModel::EachValidator
-  RESERVED_STAFF_NAMES = %w[system automod moderator _mod mod_ staff support].freeze
+  RESERVED_STAFF_NAMES = %w[system automod admin moderator _mod mod_ janitor staff support].freeze
 
   def validate_each(rec, attr, value)
     name = value
