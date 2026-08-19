@@ -482,7 +482,10 @@ class Artist < ApplicationRecord
       q = q.where_user(:linked_user_id, :linked_user, params)
 
       if params[:has_tag].to_s.truthy?
-        q = q.joins(:tag).where("tags.post_count > 0")
+        # This horrifying query is necessary to force the database to use the btree index.
+        # Without it, the query planner will use the GIN index, which is somehow 1000x slower.
+        q = q.joins("INNER JOIN tags ON tags.name >= artists.name AND tags.name <= artists.name")
+             .where("tags.post_count > 0")
       elsif params[:has_tag].to_s.falsy?
         q = q.includes(:tag).where("tags.name IS NULL OR tags.post_count <= 0").references(:tags)
       end
