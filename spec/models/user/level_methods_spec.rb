@@ -197,6 +197,32 @@ RSpec.describe User do
       end
     end
 
+    describe "dynamic is_<level>? methods with TOTP requirement" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive(:require_totp_for_staff?).and_return(true)
+      end
+
+      it "returns true for a member without TOTP" do
+        user = create(:user)
+        expect(user.is_member?).to be(true)
+      end
+
+      it "returns false for a staff member without TOTP" do
+        user = create(:staff_user, totp_enabled: false)
+        expect(user.is_staff?).to be(false)
+      end
+
+      it "returns true for a staff member with TOTP" do
+        user = create(:staff_user, totp_enabled: true)
+        expect(user.is_staff?).to be(true)
+      end
+
+      it "returns true for the system user without TOTP" do
+        system_user = User.system
+        expect(system_user.is_staff?).to be(true)
+      end
+    end
+
     # -------------------------------------------------------------------------
     # #is_approver?
     # -------------------------------------------------------------------------

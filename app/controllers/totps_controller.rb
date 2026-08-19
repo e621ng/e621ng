@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TotpsController < ApplicationController
-  before_action :member_only
+  before_action :logged_in_only
   before_action :reject_api_key_auth
   before_action :reject_bearer_auth
   before_action :requires_reauthentication

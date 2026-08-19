@@ -8,8 +8,12 @@
 
   <%= render "layouts/navigation/navigation" %>
 
-  <% if CurrentUser.has_mail? && cookies[:hide_dmail_notice] != "1" %>
+  <% if CurrentUser.user.has_mail? && cookies[:hide_dmail_notice] != "1" %>
     <%= render "users/dmail_notice" %>
+  <% end %>
+
+  <% if CurrentUser.user.requires_totp? && !CurrentUser.user.totp_enabled? %>
+    <%= render "users/2fa_notice" %>
   <% end %>
 
   <div id="page" role="main">
@@ -19,7 +23,7 @@
       <%= render "users/ban_notice" %>
     <% end %>
 
-    <% if CurrentUser.user.is_logged_in? && !CurrentUser.is_verified? %>
+    <% if CurrentUser.user.is_logged_in? && !CurrentUser.user.is_verified? %>
       <%= render "users/validation_notice" %>
     <% end %>
 

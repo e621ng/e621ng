@@ -61,12 +61,13 @@ class Ban < ApplicationRecord
 
   def user_is_inferior
     if user
-      if user.is_admin?
+      # Explicit level checks are necessary here to avoid inversion over `is_verified?` and `requires_totp?`
+      if user.level >= UserLevel::ADMIN
         errors.add(:base, "You can never ban an admin.")
         false
-      elsif user.is_moderator? && banner.is_admin?
+      elsif user.level >= UserLevel::MODERATOR && banner.is_admin?
         true
-      elsif user.is_moderator?
+      elsif user.level >= UserLevel::MODERATOR
         errors.add(:base, "Only admins can ban moderators.")
         false
       elsif banner.is_admin? || banner.is_moderator?
