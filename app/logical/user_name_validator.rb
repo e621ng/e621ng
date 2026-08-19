@@ -40,8 +40,14 @@ class UserNameValidator < ActiveModel::EachValidator
 
     reserved_staff_matches = RESERVED_STAFF_NAMES.select { |reserved| name.downcase.include?(reserved) }
     if reserved_staff_matches.any?
-      is_actually_staff = user_id.present? && User.find_by(id: user_id)&.is_staff?
-      rec.errors.add(attr, "cannot contain \"#{reserved_staff_matches.join(', ')}\"") unless is_actually_staff
+      staff_exempt =
+        if rec.is_a?(User)
+          rec.level.to_i >= UserLevel::STAFF
+        else
+          user = User.find_by(id: options[:user_id]&.call(rec))
+          user.present? && user.level >= UserLevel::STAFF
+        end
+      rec.errors.add(attr, "cannot contain \"#{reserved_staff_matches.join(', ')}\"") unless staff_exempt
     end
   end
 end
