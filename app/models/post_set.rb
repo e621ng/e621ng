@@ -221,7 +221,7 @@ class PostSet < ApplicationRecord
     def add(ids)
       ids = Array(ids)
       added = process_posts_add!(ids)
-      sync_posts_for_delta(added_ids: added)
+      reindex_posts(added)
       added
     end
 
@@ -339,7 +339,7 @@ class PostSet < ApplicationRecord
     def remove(ids)
       ids = Array(ids)
       removed = process_posts_remove!(ids)
-      sync_posts_for_delta(removed_ids: removed)
+      reindex_posts(removed)
       removed
     end
 
@@ -425,9 +425,13 @@ class PostSet < ApplicationRecord
     # ========= Post Synchronization ========= #
     # ======================================== #
 
-    # Refresh the search index of posts affected by a known membership delta.
-    def sync_posts_for_delta(added_ids: [], removed_ids: [])
-      reindex_posts(added_ids + removed_ids)
+    # Posts store no set membership in the DB; only their OpenSearch docs
+    # (the sets field is sourced from post_sets.post_ids at import time)
+    # need refreshing when membership changes.
+    def reindex_posts(ids)
+      ids = Array(ids)
+      return if ids.empty?
+      ids.each_slice(5_000) { |slice| BulkIndexUpdateJob.perform_later("Post", slice) }
     end
 
     def synchronize
@@ -457,15 +461,6 @@ class PostSet < ApplicationRecord
 
     def enqueue_destroy_cleanup
       reindex_posts(post_ids)
-    end
-
-    # Posts store no set membership in the DB; only their OpenSearch docs
-    # (the sets field is sourced from post_sets.post_ids at import time)
-    # need refreshing when membership changes.
-    def reindex_posts(ids)
-      ids = Array(ids)
-      return if ids.empty?
-      ids.each_slice(5_000) { |slice| BulkIndexUpdateJob.perform_later("Post", slice) }
     end
   end
 
