@@ -397,21 +397,13 @@ RSpec.describe PostSetsController do
         expect(response).to redirect_to(post_list_post_set_path(private_set))
       end
 
-      it "performs inline sync and does not enqueue a job when only one post changes" do
-        new_post = create(:post)
-        expect do
-          post update_posts_post_set_path(private_set),
-               params: { post_set: { post_ids_string: new_post.id.to_s } }
-        end.not_to have_enqueued_job(PostSetPostsSyncJob)
-        expect(private_set.reload.post_ids).to include(new_post.id)
-      end
-
-      it "enqueues PostSetPostsSyncJob when more than one post changes" do
+      it "applies the change and enqueues a reindex for the delta" do
         posts = create_list(:post, 2)
         expect do
           post update_posts_post_set_path(private_set),
                params: { post_set: { post_ids_string: posts.map(&:id).join(" ") } }
-        end.to have_enqueued_job(PostSetPostsSyncJob)
+        end.to have_enqueued_job(BulkIndexUpdateJob).with("Post", posts.map(&:id))
+        expect(private_set.reload.post_ids).to match_array(posts.map(&:id))
       end
     end
   end

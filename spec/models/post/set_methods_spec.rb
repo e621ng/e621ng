@@ -6,46 +6,6 @@ RSpec.describe Post do
   include_context "as admin"
 
   describe "SetMethods" do
-    describe "#belongs_to_post_set" do
-      it "returns truthy when the set id is present in pool_string" do
-        set  = create(:post_set)
-        post = build(:post, pool_string: "set:#{set.id}")
-        expect(post.belongs_to_post_set(set)).to be_truthy
-      end
-
-      it "returns falsy when the set id is absent" do
-        set  = create(:post_set)
-        post = build(:post, pool_string: "")
-        expect(post.belongs_to_post_set(set)).to be_falsy
-      end
-    end
-
-    describe "#add_set!" do
-      it "adds set:<id> to pool_string" do
-        set  = create(:post_set)
-        post = create(:post)
-        post.add_set!(set)
-        expect(post.pool_string).to include("set:#{set.id}")
-      end
-
-      it "does not add the same set twice" do
-        set  = create(:post_set)
-        post = create(:post)
-        post.add_set!(set)
-        post.add_set!(set)
-        expect(post.pool_string.scan("set:#{set.id}").size).to eq(1)
-      end
-    end
-
-    describe "#remove_set!" do
-      it "removes set:<id> from pool_string" do
-        set  = create(:post_set)
-        post = create(:post, pool_string: "set:#{set.id}")
-        post.remove_set!(set)
-        expect(post.pool_string).not_to include("set:#{set.id}")
-      end
-    end
-
     describe "#post_sets" do
       it "finds sets whose post_ids contain the post" do
         set1 = create(:post_set)

@@ -15,7 +15,7 @@ RSpec.describe PoolsController, ".create" do
     expect(pool.post_ids).to eq(posts.map(&:id))
 
     posts.each(&:reload)
-    expect(posts.map(&:pool_string)).to eq(["pool:#{pool.id}"] * posts.size)
+    expect(posts.pluck(:pool_ids)).to eq([[pool.id]] * posts.size)
   end
 
   it "error when post ids are invalid" do

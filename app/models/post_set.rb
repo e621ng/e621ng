@@ -221,11 +221,7 @@ class PostSet < ApplicationRecord
     def add(ids)
       ids = Array(ids)
       added = process_posts_add!(ids)
-      if added.size <= 1
-        sync_posts_for_delta(added_ids: added) if added.any?
-      else
-        PostSetPostsSyncJob.perform_later(id)
-      end
+      sync_posts_for_delta(added_ids: added)
       added
     end
 
@@ -242,8 +238,7 @@ class PostSet < ApplicationRecord
         return
       end
 
-      post.add_set!(self, true)
-      post.save
+      post.update_index
     end
 
     # Add specified post IDs to the set using SQL functions.
@@ -344,11 +339,7 @@ class PostSet < ApplicationRecord
     def remove(ids)
       ids = Array(ids)
       removed = process_posts_remove!(ids)
-      if removed.size <= 1
-        sync_posts_for_delta(removed_ids: removed) if removed.any?
-      else
-        PostSetPostsSyncJob.perform_later(id)
-      end
+      sync_posts_for_delta(removed_ids: removed)
       removed
     end
 
@@ -358,8 +349,7 @@ class PostSet < ApplicationRecord
       removed = process_posts_remove!([post.id])
       return if removed.empty?
 
-      post.remove_set!(self)
-      post.save
+      post.update_index
     end
 
     # Remove specified post IDs from the set using SQL functions.
@@ -435,17 +425,9 @@ class PostSet < ApplicationRecord
     # ========= Post Synchronization ========= #
     # ======================================== #
 
-    # Synchronize Post side for a known delta to avoid computing large diffs.
+    # Refresh the search index of posts affected by a known membership delta.
     def sync_posts_for_delta(added_ids: [], removed_ids: [])
-      Post.where(id: added_ids).find_each do |post|
-        post.add_set!(self, true)
-        post.save
-      end
-
-      Post.where(id: removed_ids).find_each do |post|
-        post.remove_set!(self)
-        post.save
-      end
+      reindex_posts(added_ids + removed_ids)
     end
 
     def synchronize
@@ -453,17 +435,7 @@ class PostSet < ApplicationRecord
       added = post_ids - post_ids_before
       removed = post_ids_before - post_ids
 
-      added_posts = Post.where(id: added)
-      added_posts.find_each do |post|
-        post.add_set!(self, true)
-        post.save
-      end
-
-      removed_posts = Post.where(id: removed)
-      removed_posts.find_each do |post|
-        post.remove_set!(self)
-        post.save
-      end
+      reindex_posts(added + removed)
     end
 
     def synchronize!
@@ -484,7 +456,16 @@ class PostSet < ApplicationRecord
     end
 
     def enqueue_destroy_cleanup
-      PostSetCleanupJob.perform_later(:set, id)
+      reindex_posts(post_ids)
+    end
+
+    # Posts store no set membership in the DB; only their OpenSearch docs
+    # (the sets field is sourced from post_sets.post_ids at import time)
+    # need refreshing when membership changes.
+    def reindex_posts(ids)
+      ids = Array(ids)
+      return if ids.empty?
+      ids.each_slice(5_000) { |slice| BulkIndexUpdateJob.perform_later("Post", slice) }
     end
   end
 

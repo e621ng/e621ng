@@ -14,6 +14,10 @@ class Post < ApplicationRecord
   # Smaller favours fresher posts; larger lets posts stay hot longer.
   HOTNESS_TIME_DIVISOR = 432_000.0
 
+  # Replaced by pool_ids for pools; sets keep no post-side state (queried via
+  # post_sets.post_ids). Dropped in a follow-up migration after the rollback window.
+  self.ignored_columns += %w[pool_string]
+
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
   before_validation :apply_source_diff
@@ -1317,23 +1321,6 @@ class Post < ApplicationRecord
       @post_sets ||= new_record? ? PostSet.none : PostSet.where("post_ids @> ARRAY[?]::int[]", id)
     end
 
-    def belongs_to_post_set(set)
-      pool_string =~ /(?:\A| )set:#{set.id}(?:\z| )/
-    end
-
-    def add_set!(set, force = false)
-      return if belongs_to_post_set(set) && !force
-      with_lock do
-        self.pool_string = "#{pool_string} set:#{set.id}".strip
-      end
-    end
-
-    def remove_set!(set)
-      with_lock do
-        self.pool_string = (pool_string.split(' ') - ["set:#{set.id}"]).join(' ').strip
-      end
-    end
-
     def give_post_sets_to_parent
       transaction do
         post_sets.find_each do |set|
@@ -1356,19 +1343,15 @@ class Post < ApplicationRecord
   end
 
   module PoolMethods
-    # Falls back to pool_string for rows that haven't been backfilled yet (see db/fixes/141).
+    # Denormalizes pools.post_ids, which remains the source of truth
+    # (db/fixes/141 reconciles). NULL-safe until the column gains NOT NULL.
     def pool_ids
-      self[:pool_ids] || pool_ids_from_string
+      self[:pool_ids] || []
     end
-
-    def pool_ids_from_string
-      pool_string.scan(/pool:(\d+)/).map { |pool| ParseValue.safe_id(pool[0]) }
-    end
-    private :pool_ids_from_string
 
     def pools
       @pools ||= begin
-        return Pool.none if pool_string.blank?
+        return Pool.none if pool_ids.empty?
         Pool.where(id: pool_ids).series_first
       end
     end
@@ -1378,15 +1361,18 @@ class Post < ApplicationRecord
     end
 
     def belongs_to_pool?(pool)
-      pool_string =~ /(?:\A| )pool:#{pool.id}(?:\Z| )/
+      pool_ids.include?(pool.id)
     end
 
+    # Mutates pool_ids under a row lock; the caller must save inside the same
+    # transaction that holds the lock (Pool#add!/remove! via pool.with_lock,
+    # Pool#synchronize inside after_save, PostSetCleanupJob's batch transaction).
     def add_pool!(pool)
       return if belongs_to_pool?(pool)
 
       with_lock do
-        self.pool_string = "#{pool_string} pool:#{pool.id}".strip
-        self[:pool_ids] = pool_ids_from_string
+        # Sorted to match the canonical order produced by db/fixes/141.
+        self[:pool_ids] = (pool_ids | [pool.id]).sort
       end
     end
 
@@ -1395,8 +1381,7 @@ class Post < ApplicationRecord
       return unless CurrentUser.user.can_remove_from_pools?
 
       with_lock do
-        self.pool_string = pool_string.gsub(/(?:\A| )pool:#{pool.id}(?:\Z| )/, " ").strip
-        self[:pool_ids] = pool_ids_from_string
+        self[:pool_ids] = pool_ids - [pool.id]
       end
     end
 
@@ -1864,7 +1849,7 @@ class Post < ApplicationRecord
 
   module ApiMethods
     def hidden_attributes
-      list = super + [:pool_string, :pool_ids]
+      list = super + [:pool_ids]
       if !visible?
         list += [:md5, :file_ext]
       end
