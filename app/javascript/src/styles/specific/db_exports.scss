@@ -18,12 +18,13 @@ body.c-db-exports.a-index {
     grid-template-columns: 1fr 0.75fr 1fr 1.5fr auto;
     margin-bottom: 1rem;
 
-    .export-checksum {
-      font-family: monospace;
-      font-size: 0.85em;
-      word-break: break-all;
+    .export-checksum-input {
+      width: 100%;
+      max-width: 25rem;
       min-width: 0;
-      cursor: text;
+      font-family: monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .export-checksum-missing {
