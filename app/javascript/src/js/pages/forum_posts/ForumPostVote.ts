@@ -127,7 +127,7 @@ export default class ForumPostVote {
         "href": `/users/${vote.creator_id}`,
         "rel": "nofollow",
       })
-      .addClass("with-style user-" + E621.CurrentUser.levelString.replace(/ /g, "-").toLowerCase())
+      .addClass("user-" + E621.CurrentUser.levelString.replace(/ /g, "-").toLowerCase())
       .text(vote.creator_name.replace(/_+/g, " "));
     const $li = $("<li>").addClass("forum-post-vote own-forum-vote").append($link);
     $votesList.append($li);
