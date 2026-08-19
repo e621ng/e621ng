@@ -50,7 +50,7 @@ class User < ApplicationRecord
     receive_email_notifications
     enable_keyboard_navigation
     enable_privacy_mode
-    style_usernames
+    _style_usernames
     enable_auto_complete
     _has_saved_searches
     can_approve_posts
@@ -935,7 +935,7 @@ class User < ApplicationRecord
           hide_comments show_hidden_comments show_post_statistics
           is_banned receive_email_notifications
           enable_keyboard_navigation enable_privacy_mode
-          style_usernames enable_auto_complete
+          enable_auto_complete
           can_approve_posts can_upload_free
           enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails

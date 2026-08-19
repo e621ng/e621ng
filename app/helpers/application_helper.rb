@@ -133,7 +133,6 @@ module ApplicationHelper
     user_class = user.level_css_class
     user_class += " user-post-approver" if user.can_approve_posts?
     user_class += " user-banned" if user.is_restricted?
-    user_class += " with-style" if CurrentUser.user.style_usernames?
     html = link_to(user.pretty_name.presence || "<blank>", user_path(user), class: user_class, rel: "nofollow")
     html << " (Unactivated)" if include_activation && !user.is_verified?
     html

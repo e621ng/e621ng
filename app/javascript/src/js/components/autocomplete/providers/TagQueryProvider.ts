@@ -3,7 +3,6 @@ import Provider from "@/components/autocomplete/Provider";
 import TagFrequencyCache from "@/components/autocomplete/TagFrequencyCache";
 import * as Types from "@/components/autocomplete/Types";
 import LStorage from "@/utility/storage/Local";
-import Utility from "@/utility/utility";
 
 import PoolProvider from "./PoolProvider";
 import TagProvider from "./TagProvider";
@@ -60,8 +59,6 @@ export default class TagQueryProvider extends Provider<Types.AutocompleteItem> {
     if ("level" in item && item.level) {
       const levelClass = `user-${item.level.replace(/ /g, "-").toLowerCase()}`;
       link.classList.add(levelClass);
-      if (Utility.meta("style-usernames") === "true")
-        link.classList.add("with-style");
     }
 
     // Add alias information
