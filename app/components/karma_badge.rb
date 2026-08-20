@@ -21,13 +21,17 @@ class KarmaBadge < ViewComponent::Base
     user.upload_karma_level
   end
 
+  def karma_value
+    should_show_raw_karma? ? user.raw_upload_karma : user.upload_karma
+  end
+
   def badge_title
     if user.upload_karma_level >= User.max_karma_level
       return "Upload Karma: #{user.upload_karma} (Level S)"
     end
 
     next_level = user.upload_karma_level + 1
-    "Upload Karma: #{user.upload_karma} / #{User.required_karma_for_level(next_level)} (Level #{karma_level})"
+    "Upload Karma: #{karma_value} / #{User.required_karma_for_level(next_level)} (Level #{karma_level})"
   end
 
   def progress_degree
