@@ -14,6 +14,7 @@ module Staff
       query = @reowner_params[:search]
       reowner_versions = ActiveModel::Type::Boolean.new.cast(@reowner_params[:reowner_versions])
       post_events = ActiveModel::Type::Boolean.new.cast(@reowner_params[:post_events])
+      karma = ActiveModel::Type::Boolean.new.cast(@reowner_params[:karma])
 
       unless @old_user && @new_user
         flash[:notice] = "Old or new user failed to look up. Use !id for name to use an id"
@@ -24,7 +25,7 @@ module Staff
       moved_post_ids = []
       ::Post.tag_match("user:!#{@old_user.id} #{query}").limit(300).each do |p|
         moved_post_ids << p.id
-        p.reowner!(@new_user, reowner_versions: reowner_versions, post_events: post_events)
+        p.reowner!(@new_user, reowner_versions: reowner_versions, post_events: post_events, karma: karma)
       end
 
       StaffAuditLog.log(:post_owner_reassign, CurrentUser.user, { old_user_id: @old_user.id, new_user_id: @new_user.id, query: query, post_ids: moved_post_ids })
@@ -36,8 +37,8 @@ module Staff
 
     def new_params
       params.require(:reowner)
-            .permit(%i[old_owner search new_owner reowner_versions post_events])
-            .with_defaults(reowner_versions: true)
+            .permit(%i[old_owner search new_owner reowner_versions post_events karma])
+            .with_defaults(reowner_versions: true, karma: true)
     end
   end
 end

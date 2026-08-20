@@ -1287,10 +1287,11 @@ class Post < ApplicationRecord
       User.where(id: previous_uploader_ids)
     end
 
-    # Reowner the post and return the old owner id, or nil if the new owner is the current owner.
-    def reowner!(new_owner, reowner_versions: false, post_events: true)
+    # Reowner the post and return the old owner id, or nil if nothing changed.
+    # Transfers the post's upload karma between the owners unless karma: false.
+    def reowner!(new_owner, reowner_versions: false, post_events: true, karma: true)
       raise ::User::PrivilegeError unless CurrentUser.is_janitor?
-      raise ::User::PrivilegeError if (reowner_versions || !post_events) && !CurrentUser.is_bd_staff?
+      raise ::User::PrivilegeError if (reowner_versions || !post_events || !karma) && !CurrentUser.is_bd_staff?
 
       new_owner_id = new_owner&.id
       raise ::User::PrivilegeError, "Cannot assign a new owner that isn't a previous owner" unless
@@ -1300,7 +1301,34 @@ class Post < ApplicationRecord
       return nil if new_owner_id == old_owner_id # nothing to do
 
       self.do_not_version_changes = true
-      update({ uploader_id: new_owner_id })
+      return nil unless update({ uploader_id: new_owner_id })
+
+      if karma
+        # Takedown-deleted posts never had a penalty applied (delete! ran with
+        # skip_karma), so there is nothing to transfer. Same detection as TakedownJob.
+        from_takedown = deleted_by_takedown?
+        # delta = the net karma the owner currently holds for this post:
+        # - Deleted: a flat -KARMA_DELETION_PENALTY regardless of history. A
+        #   pending->deleted post only ever took the penalty; an approved->deleted
+        #   post took the credit and then penalty + credit reversal - the credit
+        #   and its reversal cancel, landing at the bare penalty either way.
+        # - Approved (not pending, not deleted - includes flagged and
+        #   self-approved posts): the approved credit.
+        # - Pending: nothing awarded yet.
+        delta =
+          if is_deleted?
+            -UserStatus::KARMA_DELETION_PENALTY
+          elsif !is_pending?
+            UserStatus::KARMA_APPROVED_CREDIT
+          else
+            0
+          end
+        if delta != 0 && !from_takedown
+          UserStatus.adjust_karma(old_owner_id, -delta)
+          UserStatus.adjust_karma(new_owner_id, delta)
+        end
+      end
+
       if reowner_versions
         versions.where(updater_id: old_owner_id).find_each do |version|
           version.update_column(:updater_id, new_owner_id)
@@ -1762,6 +1790,10 @@ class Post < ApplicationRecord
           .gsub("%STAFF_NAME%", CurrentUser.name)
           .gsub("%STAFF_ID%", CurrentUser.id.to_s)
           .gsub("%UPLOADER_ID%", uploader_id.to_s)
+    end
+
+    def deleted_by_takedown?
+      is_deleted? && deletion_flag&.reason.to_s.start_with?("takedown #")
     end
   end
 
