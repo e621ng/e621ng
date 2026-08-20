@@ -1306,7 +1306,7 @@ class Post < ApplicationRecord
       if karma
         # Takedown-deleted posts never had a penalty applied (delete! ran with
         # skip_karma), so there is nothing to transfer. Same detection as TakedownJob.
-        from_takedown = is_deleted? && deletion_flag&.reason.to_s.start_with?("takedown #")
+        from_takedown = deleted_by_takedown?
         # delta = the net karma the owner currently holds for this post:
         # - Deleted: a flat -KARMA_DELETION_PENALTY regardless of history. A
         #   pending->deleted post only ever took the penalty; an approved->deleted
@@ -1790,6 +1790,10 @@ class Post < ApplicationRecord
           .gsub("%STAFF_NAME%", CurrentUser.name)
           .gsub("%STAFF_ID%", CurrentUser.id.to_s)
           .gsub("%UPLOADER_ID%", uploader_id.to_s)
+    end
+
+    def deleted_by_takedown?
+      is_deleted? && deletion_flag&.reason.to_s.start_with?("takedown #")
     end
   end
 

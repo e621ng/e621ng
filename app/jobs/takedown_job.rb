@@ -29,7 +29,7 @@ class TakedownJob < ApplicationJob
           next unless p.is_deleted?
           # Only suppress the karma reversal if this deletion was itself a takedown (which
           # never applied a penalty). Posts deleted for unrelated reasons get their reversal.
-          from_takedown = p.deletion_flag&.reason.to_s.start_with?("takedown #")
+          from_takedown = p.deleted_by_takedown?
           p.undelete!({ force: true, skip_karma: from_takedown })
         end
       end

@@ -331,5 +331,24 @@ RSpec.describe Post do
         expect(result).to include(CurrentUser.name)
       end
     end
+
+    describe "#deleted_by_takedown?" do
+      it "returns true when the post is deleted by a takedown" do
+        post = create(:post)
+        post.delete!("takedown #1: reason")
+        expect(post.deleted_by_takedown?).to be true
+      end
+
+      it "returns false when the post is deleted for another reason" do
+        post = create(:post)
+        post.delete!("other reason")
+        expect(post.deleted_by_takedown?).to be false
+      end
+
+      it "returns false when the post is not deleted" do
+        post = create(:post)
+        expect(post.deleted_by_takedown?).to be false
+      end
+    end
   end
 end
