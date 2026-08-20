@@ -143,8 +143,9 @@ module Staff
         end
         reowner_versions = ActiveModel::Type::Boolean.new.cast(reowner_params[:reowner_versions])
         post_events = ActiveModel::Type::Boolean.new.cast(reowner_params[:post_events])
+        karma = ActiveModel::Type::Boolean.new.cast(reowner_params[:karma])
 
-        old_owner_id = @post.reowner!(@new_owner, reowner_versions: reowner_versions, post_events: post_events)
+        old_owner_id = @post.reowner!(@new_owner, reowner_versions: reowner_versions, post_events: post_events, karma: karma)
 
         if old_owner_id.present? && !post_events
           # Always log the change somewhere
@@ -158,8 +159,8 @@ module Staff
 
       def new_reowner_params
         params.require(:reowner)
-              .permit(%i[new_owner reowner_versions post_events])
-              .with_defaults(reowner_versions: false, post_events: true)
+              .permit(%i[new_owner reowner_versions post_events karma])
+              .with_defaults(reowner_versions: false, post_events: true, karma: true)
       end
     end
   end

@@ -159,6 +159,76 @@ RSpec.describe Post do
             post.reowner!(new_owner, post_events: false)
           end.not_to(change { post.versions.count })
         end
+
+        describe "karma parameter" do
+          it "does not transfer karma when false" do
+            expect { post.reowner!(new_owner, karma: false) }
+              .not_to(change { [old_owner.user_status.reload.upload_karma, new_owner.user_status.reload.upload_karma] })
+            expect(post.reload.uploader_id).to eq(new_owner.id)
+          end
+        end
+      end
+
+      describe "karma transfer" do
+        it "raises a PrivilegeError when disabling karma as a non-BD admin" do
+          expect do
+            post.reowner!(new_owner, karma: false)
+          end.to raise_error(User::PrivilegeError)
+        end
+
+        it "moves the approved credit for an approved post" do
+          expect { post.reowner!(new_owner) }
+            .to change { old_owner.user_status.reload.upload_karma }.by(-UserStatus::KARMA_APPROVED_CREDIT)
+            .and change { new_owner.user_status.reload.upload_karma }.by(UserStatus::KARMA_APPROVED_CREDIT)
+        end
+
+        it "moves the deletion penalty for a deleted post that had been approved" do
+          post.delete!("Test deletion reason")
+          expect { post.reowner!(new_owner) }
+            .to change { old_owner.user_status.reload.upload_karma }.by(UserStatus::KARMA_DELETION_PENALTY)
+            .and change { new_owner.user_status.reload.upload_karma }.by(-UserStatus::KARMA_DELETION_PENALTY)
+        end
+
+        it "moves the same deletion penalty for a post deleted while still pending" do
+          # The approved credit and its reversal at deletion cancel out, so the
+          # transfer is the bare penalty regardless of the post's history.
+          pending = create(:pending_post)
+          pending_owner = pending.uploader
+          pending.delete!("Test deletion reason")
+          expect { pending.reowner!(new_owner) }
+            .to change { pending_owner.user_status.reload.upload_karma }.by(UserStatus::KARMA_DELETION_PENALTY)
+            .and change { new_owner.user_status.reload.upload_karma }.by(-UserStatus::KARMA_DELETION_PENALTY)
+        end
+
+        it "does not transfer karma for a pending post" do
+          pending = create(:pending_post)
+          pending_owner = pending.uploader
+          expect { pending.reowner!(new_owner) }
+            .not_to(change { [pending_owner.user_status.reload.upload_karma, new_owner.user_status.reload.upload_karma] })
+          expect(pending.reload.uploader_id).to eq(new_owner.id)
+        end
+
+        it "does not transfer karma for a takedown-deleted post" do
+          # Takedowns delete with skip_karma, so no penalty was ever applied.
+          post.delete!("takedown #1: artist request", force: true, skip_karma: true)
+          expect { post.reowner!(new_owner) }
+            .not_to(change { [old_owner.user_status.reload.upload_karma, new_owner.user_status.reload.upload_karma] })
+          expect(post.reload.uploader_id).to eq(new_owner.id)
+        end
+
+        it "does not transfer karma when the old and new owners are the same" do
+          expect { post.reowner!(old_owner) }
+            .not_to(change { old_owner.user_status.reload.upload_karma })
+        end
+
+        it "does not transfer karma or create an event when the update fails" do
+          post.parent_id = post.id
+          result = :unset
+          expect { result = post.reowner!(new_owner) }
+            .not_to(change { [old_owner.user_status.reload.upload_karma, new_owner.user_status.reload.upload_karma, PostEvent.count] })
+          expect(result).to be_nil
+          expect(post.reload.uploader_id).to eq(old_owner.id)
+        end
       end
     end
   end
