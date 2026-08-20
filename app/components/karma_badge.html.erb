@@ -14,6 +14,6 @@
     </div>
   </div>
   <div class="karma-badge-progress">
-    <%= user.upload_karma %>
+    <%= should_show_raw_karma? ? user.raw_upload_karma : user.upload_karma %>
   </div>
 </a>

@@ -8,8 +8,7 @@ class KarmaBadge < ViewComponent::Base
 
   def render?
     return false if user.blank?
-    return false if user.upload_karma <= 0
-
+    return false if user.upload_karma <= 0 && !should_show_raw_karma?
     true
   end
 
@@ -38,5 +37,9 @@ class KarmaBadge < ViewComponent::Base
 
   def progress_degree_style
     "background: conic-gradient(var(--color-button-active) #{progress_degree}deg, var(--color-section) 0deg);"
+  end
+
+  def should_show_raw_karma?
+    CurrentUser.user.is_staff? || CurrentUser.user.id == user.id
   end
 end
