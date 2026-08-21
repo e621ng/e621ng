@@ -57,17 +57,37 @@ class IqdbQueriesController < ApplicationController
   def throttle(search_params)
     return if Danbooru.config.disable_throttles?
 
-    if %i[file url post_id hash].any? { |key| search_params[key].present? }
-      if CurrentUser.user.is_anonymous?
-        raise APIThrottled if IqdbProxy.anon_lockdown?
-        raise APIThrottled if RateLimiter.throttle!("img:anon:#{CurrentUser.ip_addr}", limit: 1, period: 60.seconds)
-      else
-        ip_limiter = RateLimiter.new("img:#{CurrentUser.ip_addr}", limit: 1, period: 2.seconds)
-        user_limiter = RateLimiter.new("img:user:#{CurrentUser.user.id}", limit: 1, period: 2.seconds)
-        raise APIThrottled if ip_limiter.throttled? || user_limiter.throttled?
-        ip_limiter.hit!
-        user_limiter.hit!
-      end
+    if %i[file url].any? { |key| search_params[key].present? }
+      # Heavy throttles for file and URL queries
+      enforce_throttle!(
+        type: "heavy",
+        anon_limit: 1,
+        anon_period: 60.seconds,
+        user_limit: 6,
+        user_period: 10.seconds,
+      )
+    elsif %i[post_id hash].any? { |key| search_params[key].present? }
+      # Lighter throttles for post_id and hash queries
+      enforce_throttle!(
+        type: "light",
+        anon_limit: 10,
+        anon_period: 10.seconds,
+        user_limit: 10,
+        user_period: 10.seconds,
+      )
+    end
+  end
+
+  def enforce_throttle!(type:, anon_limit:, anon_period:, user_limit:, user_period:)
+    if CurrentUser.user.is_anonymous?
+      raise APIThrottled if IqdbProxy.anon_lockdown?
+      raise APIThrottled if RateLimiter.throttle!("eris:#{type}:anon:#{CurrentUser.ip_addr}", limit: anon_limit, period: anon_period)
+    else
+      ip_limiter = RateLimiter.new("eris:#{type}:#{CurrentUser.ip_addr}", limit: user_limit, period: user_period)
+      user_limiter = RateLimiter.new("eris:#{type}:user:#{CurrentUser.user.id}", limit: user_limit, period: user_period)
+      raise APIThrottled if ip_limiter.throttled? || user_limiter.throttled?
+      ip_limiter.hit!
+      user_limiter.hit!
     end
   end
 
