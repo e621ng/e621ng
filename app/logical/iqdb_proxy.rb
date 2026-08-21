@@ -31,7 +31,13 @@ module IqdbProxy
   def make_request(path, request_type, body = nil)
     opts = Danbooru.config.faraday_options.deep_merge(request: { timeout: Danbooru.config.iqdb_read_timeout })
     conn = Faraday.new(opts)
-    conn.send(request_type, endpoint + path, body&.to_json, { content_type: "application/json" })
+
+    headers = { content_type: "application/json" }
+    if Danbooru.config.iqdb_secret.present?
+      headers[:authorization] = "Bearer #{Danbooru.config.iqdb_secret}"
+    end
+
+    conn.send(request_type, endpoint + path, body&.to_json, headers)
   rescue Faraday::Error
     raise Error, "This service is temporarily unavailable. Please try again later."
   end
