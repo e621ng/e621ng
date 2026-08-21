@@ -145,7 +145,7 @@ module IqdbProxy
 
   def record_circuit_outcome
     response = yield
-    record_circuit_failure unless response.status == 200
+    record_circuit_failure if response.status >= 500
     response
   rescue IqdbProxy::Error
     record_circuit_failure
