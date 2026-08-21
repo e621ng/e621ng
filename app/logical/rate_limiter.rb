@@ -41,7 +41,7 @@ class RateLimiter
   # Read-only: never increments, never trips or extends a lockout.
   def throttled?
     return true if lockout && Cache.fetch(lockout_key)
-    Cache.fetch(@key).to_i >= limit
+    Cache.fetch(@key, raw: true).to_i >= limit
   end
 
   # Returns the count within the current window. Exactly one concurrent hit

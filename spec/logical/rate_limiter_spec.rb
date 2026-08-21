@@ -98,4 +98,35 @@ RSpec.describe RateLimiter do
       expect(lock).not_to be_throttled
     end
   end
+
+  # MemoryStore doesn't distinguish raw from serialized values, so it can't
+  # catch reads that fail against production's MemCacheStore, where incr
+  # stores raw strings that a non-raw read silently returns nil for. Cover the
+  # counter round-trip against the real store. No expiry tests here: memcached
+  # TTLs are wall-clock and ignore travel.
+  context "with the production cache store (memcached)" do
+    around do |example|
+      original = Rails.cache
+      Rails.cache = ActiveSupport::Cache::MemCacheStore.new(
+        Danbooru.config.memcached_servers,
+        namespace: "rl_spec_#{SecureRandom.hex(8)}",
+      )
+      example.run
+    ensure
+      Rails.cache = original
+    end
+
+    it "reads back counters created by hit!" do
+      2.times { limiter.hit! }
+      expect(limiter).not_to be_throttled
+      limiter.hit!
+      expect(limiter).to be_throttled
+    end
+
+    it "reads back a tripped lockout" do
+      lock = described_class.new("spec", limit: 1, period: 1.minute, lockout: 1.hour)
+      lock.hit!
+      expect(lock).to be_throttled
+    end
+  end
 end

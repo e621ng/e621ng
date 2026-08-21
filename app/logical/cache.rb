@@ -10,8 +10,11 @@ class Cache
     sanitized_key_to_value_hash.transform_keys(&sanitized_key_to_key_hash)
   end
 
-  def self.fetch(key, expires_in: nil, &)
-    Rails.cache.fetch(key, expires_in: expires_in, &)
+  # raw: true is required to read counters created by Cache.increment — on
+  # memcached they are stored as raw strings that a regular read cannot
+  # deserialize (it returns nil instead).
+  def self.fetch(key, expires_in: nil, raw: false, &)
+    Rails.cache.fetch(key, expires_in: expires_in, raw: raw, &)
   end
 
   def self.write(key, value, expires_in: nil)
