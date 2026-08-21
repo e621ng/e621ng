@@ -7,8 +7,7 @@ RSpec.describe IqdbQueriesController do
 
   before do
     allow(IqdbProxy).to receive(:enabled?).and_return(true)
-    allow(RateLimiter).to receive(:throttle!).and_return(false)
-    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
+    allow(RateLimiter).to receive_messages(throttle!: false, new: instance_double(RateLimiter, throttled?: false, hit!: 1))
   end
 
   # ---------------------------------------------------------------------------

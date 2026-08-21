@@ -13,8 +13,7 @@ RSpec.describe PostSetsController do
   let(:public_set)   { create(:public_post_set, creator: owner) }
 
   before do
-    allow(RateLimiter).to receive(:throttle!).and_return(false)
-    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
+    allow(RateLimiter).to receive_messages(throttle!: false, new: instance_double(RateLimiter, throttled?: false, hit!: 1))
   end
 
   # ---------------------------------------------------------------------------
