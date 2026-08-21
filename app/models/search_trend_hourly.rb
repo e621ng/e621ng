@@ -73,10 +73,8 @@ class SearchTrendHourly < ApplicationRecord
     return unless Setting.trends_enabled
 
     # Rate limiting check for IP (once per bulk operation)
-    if ip.present?
-      ip_key = "trends:ip:#{ip}"
-      return if RateLimiter.check_limit(ip_key, Setting.trends_ip_limit, Setting.trends_ip_window.seconds)
-    end
+    ip_limiter = ip_rate_limiter(ip) if ip.present?
+    return if ip_limiter&.throttled?
 
     # Group by tag-hour pairs and sum counts
     grouped = data.group_by { |item| [item[:tag].to_s.downcase.strip, item[:hour].utc.beginning_of_hour] }
@@ -91,8 +89,7 @@ class SearchTrendHourly < ApplicationRecord
       next if SearchTrendBlacklist.blacklisted?(tag)
 
       # Rate limiting check for tag
-      tag_key = "trends:tag:#{tag}"
-      next if RateLimiter.check_limit(tag_key, Setting.trends_tag_limit, Setting.trends_tag_window.seconds)
+      next if tag_rate_limiter(tag).throttled?
 
       count = items.length
       values << "(#{connection.quote(tag)}, #{connection.quote(hour_time)}, #{count}, false, #{connection.quote(now)}, #{connection.quote(now)})"
@@ -111,15 +108,19 @@ class SearchTrendHourly < ApplicationRecord
     connection.execute(sql)
 
     # Increment rate limit counters after successful database operation
-    if ip.present?
-      ip_key = "trends:ip:#{ip}"
-      RateLimiter.hit(ip_key, Setting.trends_ip_window.seconds)
-    end
+    ip_limiter&.hit!
 
     processed_tags.each do |tag|
-      tag_key = "trends:tag:#{tag}"
-      RateLimiter.hit(tag_key, Setting.trends_tag_window.seconds)
+      tag_rate_limiter(tag).hit!
     end
+  end
+
+  def self.ip_rate_limiter(ip)
+    RateLimiter.new("trends:ip:#{ip}", limit: Setting.trends_ip_limit, period: Setting.trends_ip_window.seconds)
+  end
+
+  def self.tag_rate_limiter(tag)
+    RateLimiter.new("trends:tag:#{tag}", limit: Setting.trends_tag_limit, period: Setting.trends_tag_window.seconds)
   end
 
   # Find tags that are trending upward compared to the previous equivalent time window

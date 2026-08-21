@@ -218,11 +218,8 @@ class PostSetsController < ApplicationController
   end
 
   def check_set_modify_rate_limit
-    key = "post_set.modify.#{CurrentUser.id}"
-    if RateLimiter.check_limit(key, 30, 1.minute)
+    if RateLimiter.throttle!("post_set.modify.#{CurrentUser.id}", limit: 30, period: 1.minute)
       render_expected_error(429, "You are modifying sets too quickly. Wait a bit and try again.")
-    else
-      RateLimiter.hit(key, 1.minute)
     end
   end
 end

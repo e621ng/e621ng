@@ -92,12 +92,13 @@ class TotpsController < ApplicationController
   # Disable and backup-code regeneration are code-guessing surfaces just like the login
   # challenge, so they share its per-user rate limit.
   def verify_code_with_rate_limit(user_totp)
-    return :rate_limited if RateLimiter.check_limit("totp:#{CurrentUser.user.id}", 10, 1.hour)
+    limiter = UserTotp.rate_limiter(CurrentUser.user)
+    return :rate_limited if limiter.throttled?
 
     result = user_totp.verify_code!(params.dig(:totp, :code))
     return :ok if result
 
-    RateLimiter.hit("totp:#{CurrentUser.user.id}", 1.hour)
+    limiter.hit!
     :incorrect
   end
 end
