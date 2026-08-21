@@ -60,9 +60,9 @@ RSpec.describe IqdbQueriesController do
       expect(response).to have_http_status(:ok)
     end
 
-    it "delegates to IqdbProxy.query_post" do
+    it "delegates to IqdbProxy.query_post with the raw post_id param" do
       get iqdb_queries_path, params: { post_id: post.id }
-      expect(IqdbProxy).to have_received(:query_post)
+      expect(IqdbProxy).to have_received(:query_post).with(post.id.to_s, any_args)
     end
 
     it "returns 400 for a non-numeric post_id" do
