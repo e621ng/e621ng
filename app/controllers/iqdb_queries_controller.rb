@@ -70,10 +70,10 @@ class IqdbQueriesController < ApplicationController
       # Lighter throttles for post_id and hash queries
       enforce_throttle!(
         type: "light",
-        anon_limit: 60,
-        anon_period: 60.seconds,
-        user_limit: 60,
-        user_period: 60.seconds,
+        anon_limit: 10,
+        anon_period: 10.seconds,
+        user_limit: 10,
+        user_period: 10.seconds,
       )
     end
   end
