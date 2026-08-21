@@ -3,7 +3,7 @@ x-environment: &common-env
   DANBOORU_REDIS_URL: redis://redis:${EXPOSED_REDIS_PORT:-6379}/0
   DANBOORU_OPENSEARCH_HOST: opensearch
   DANBOORU_MEMCACHED_SERVERS: memcached
-  DANBOORU_IQDB_SERVER: http://eris:5588
+  DANBOORU_IQDB_SERVER: http://iqdb:5588
   DANBOORU_DISCORD_SITE: http://localhost:8000
   DANBOORU_DISCORD_SECRET: super_secret_for_url_discord
   # These are just development secrets, do not use them in production
@@ -52,7 +52,7 @@ services:
       <<: *common-depends-on
       autocompleted:
         condition: service_started
-      eris:
+      iqdb:
         condition: service_started
 
   autocompleted:
@@ -122,7 +122,7 @@ services:
       retries: 12
       test: curl "opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=2s"
 
-  eris:
+  iqdb:
     image: ghcr.io/e621ng/eris:1.0.0
     environment:
       ERIS_DATABASE_URL: postgres://e621@postgres:5432/e621_development
