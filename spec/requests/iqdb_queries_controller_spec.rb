@@ -243,21 +243,35 @@ RSpec.describe IqdbQueriesController do
     end
 
     it "returns 429 when the per-IP rate limit is exceeded" do
-      allow(RateLimiter).to receive(:new).with("img:127.0.0.1", any_args).and_return(instance_double(RateLimiter, throttled?: true))
+      allow(RateLimiter).to receive(:new).with("eris:light:127.0.0.1", any_args).and_return(instance_double(RateLimiter, throttled?: true))
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(response).to have_http_status(:too_many_requests)
     end
 
     it "returns 429 when the per-user rate limit is exceeded" do
-      allow(RateLimiter).to receive(:new).with("img:user:#{user.id}", any_args).and_return(instance_double(RateLimiter, throttled?: true))
+      allow(RateLimiter).to receive(:new).with("eris:light:user:#{user.id}", any_args).and_return(instance_double(RateLimiter, throttled?: true))
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(response).to have_http_status(:too_many_requests)
     end
 
-    it "checks the rate limit keyed by IP address and user ID" do
+    it "applies the light limits to hash queries, keyed by IP address and user ID" do
       get iqdb_queries_path, params: { hash: "deadbeef" }
-      expect(RateLimiter).to have_received(:new).with("img:127.0.0.1", limit: 1, period: 2.seconds)
-      expect(RateLimiter).to have_received(:new).with("img:user:#{user.id}", limit: 1, period: 2.seconds)
+      expect(RateLimiter).to have_received(:new).with("eris:light:127.0.0.1", limit: 60, period: 60.seconds)
+      expect(RateLimiter).to have_received(:new).with("eris:light:user:#{user.id}", limit: 60, period: 60.seconds)
+    end
+
+    it "does not consume the heavy budget for hash queries" do
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(RateLimiter).not_to have_received(:new).with(/heavy/, any_args)
+    end
+
+    it "applies the heavy limits to url queries" do
+      allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, "ok"])
+      allow(IqdbProxy).to receive(:query_url).and_return([])
+      get iqdb_queries_path, params: { url: "https://example.com/image.jpg" }
+      expect(RateLimiter).to have_received(:new).with("eris:heavy:127.0.0.1", limit: 6, period: 10.seconds)
+      expect(RateLimiter).to have_received(:new).with("eris:heavy:user:#{user.id}", limit: 6, period: 10.seconds)
+      expect(RateLimiter).not_to have_received(:new).with(/light/, any_args)
     end
 
     it "is not blocked by the anonymous lockdown" do
@@ -277,18 +291,25 @@ RSpec.describe IqdbQueriesController do
       allow(RateLimiter).to receive(:throttle!).and_return(false)
     end
 
-    it "allows requests within the 1/min limit" do
+    it "allows requests within the limit" do
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(response).to have_http_status(:ok)
     end
 
-    it "checks the rate limit with the anon-specific key" do
+    it "applies the light limits to hash queries with the anon-specific key" do
       get iqdb_queries_path, params: { hash: "deadbeef" }
-      expect(RateLimiter).to have_received(:throttle!).with("img:anon:127.0.0.1", limit: 1, period: 60.seconds)
+      expect(RateLimiter).to have_received(:throttle!).with("eris:light:anon:127.0.0.1", limit: 60, period: 60.seconds)
+    end
+
+    it "applies the heavy limits to url queries with the anon-specific key" do
+      allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, "ok"])
+      allow(IqdbProxy).to receive(:query_url).and_return([])
+      get iqdb_queries_path, params: { url: "https://example.com/image.jpg" }
+      expect(RateLimiter).to have_received(:throttle!).with("eris:heavy:anon:127.0.0.1", limit: 1, period: 60.seconds)
     end
 
     it "returns 429 when the per-IP rate limit is exceeded" do
-      allow(RateLimiter).to receive(:throttle!).with("img:anon:127.0.0.1", any_args).and_return(true)
+      allow(RateLimiter).to receive(:throttle!).with("eris:light:anon:127.0.0.1", any_args).and_return(true)
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(response).to have_http_status(:too_many_requests)
     end

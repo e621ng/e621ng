@@ -58,22 +58,26 @@ class IqdbQueriesController < ApplicationController
     return if Danbooru.config.disable_throttles?
 
     # Heavy throttles for file and URL queries
-    create_throttle(
-      type: "heavy",
-      anon_limit: 1,
-      anon_period: 60.seconds,
-      user_limit: 6,
-      user_period: 10.seconds
-    ) if %i[file url].any? { |key| search_params[key].present? }
+    if %i[file url].any? { |key| search_params[key].present? }
+      create_throttle(
+        type: "heavy",
+        anon_limit: 1,
+        anon_period: 60.seconds,
+        user_limit: 6,
+        user_period: 10.seconds,
+      )
+    end
 
     # Lighter throttles for post_id and hash queries
-    create_throttle(
-      type: "light",
-      anon_limit: 60,
-      anon_period: 60.seconds,
-      user_limit: 60,
-      user_period: 60.seconds
-    ) if %i[post_id hash].any? { |key| search_params[key].present? }
+    if %i[post_id hash].any? { |key| search_params[key].present? }
+      create_throttle(
+        type: "light",
+        anon_limit: 60,
+        anon_period: 60.seconds,
+        user_limit: 60,
+        user_period: 60.seconds,
+      )
+    end
   end
 
   def create_throttle(type:, anon_limit:, anon_period:, user_limit:, user_period:)
