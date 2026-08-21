@@ -274,6 +274,15 @@ RSpec.describe IqdbQueriesController do
       expect(RateLimiter).not_to have_received(:new).with(/light/, any_args)
     end
 
+    it "does not apply the light limits when both hash and url params are present" do
+      allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, "ok"])
+      allow(IqdbProxy).to receive(:query_url).and_return([])
+      get iqdb_queries_path, params: { hash: "deadbeef", url: "https://example.com/image.jpg" }
+      expect(RateLimiter).to have_received(:new).with("eris:heavy:127.0.0.1", limit: 6, period: 10.seconds)
+      expect(RateLimiter).to have_received(:new).with("eris:heavy:user:#{user.id}", limit: 6, period: 10.seconds)
+      expect(RateLimiter).not_to have_received(:new).with(/light/, any_args)
+    end
+
     it "is not blocked by the anonymous lockdown" do
       allow(IqdbProxy).to receive(:anon_lockdown?).and_return(true)
       get iqdb_queries_path, params: { hash: "deadbeef" }
@@ -306,6 +315,14 @@ RSpec.describe IqdbQueriesController do
       allow(IqdbProxy).to receive(:query_url).and_return([])
       get iqdb_queries_path, params: { url: "https://example.com/image.jpg" }
       expect(RateLimiter).to have_received(:throttle!).with("eris:heavy:anon:127.0.0.1", limit: 1, period: 60.seconds)
+    end
+
+    it "does not apply the light limits when both hash and url params are present" do
+      allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, "ok"])
+      allow(IqdbProxy).to receive(:query_url).and_return([])
+      get iqdb_queries_path, params: { hash: "deadbeef", url: "https://example.com/image.jpg" }
+      expect(RateLimiter).to have_received(:throttle!).with("eris:heavy:anon:127.0.0.1", limit: 1, period: 60.seconds)
+      expect(RateLimiter).not_to have_received(:throttle!).with("eris:light:anon:127.0.0.1", any_args)
     end
 
     it "returns 429 when the per-IP rate limit is exceeded" do

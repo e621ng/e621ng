@@ -57,20 +57,18 @@ class IqdbQueriesController < ApplicationController
   def throttle(search_params)
     return if Danbooru.config.disable_throttles?
 
-    # Heavy throttles for file and URL queries
     if %i[file url].any? { |key| search_params[key].present? }
-      create_throttle(
+      # Heavy throttles for file and URL queries
+      enforce_throttle!(
         type: "heavy",
         anon_limit: 1,
         anon_period: 60.seconds,
         user_limit: 6,
         user_period: 10.seconds,
       )
-    end
-
-    # Lighter throttles for post_id and hash queries
-    if %i[post_id hash].any? { |key| search_params[key].present? }
-      create_throttle(
+    elsif %i[post_id hash].any? { |key| search_params[key].present? }
+      # Lighter throttles for post_id and hash queries
+      enforce_throttle!(
         type: "light",
         anon_limit: 60,
         anon_period: 60.seconds,
@@ -80,7 +78,7 @@ class IqdbQueriesController < ApplicationController
     end
   end
 
-  def create_throttle(type:, anon_limit:, anon_period:, user_limit:, user_period:)
+  def enforce_throttle!(type:, anon_limit:, anon_period:, user_limit:, user_period:)
     if CurrentUser.user.is_anonymous?
       raise APIThrottled if IqdbProxy.anon_lockdown?
       raise APIThrottled if RateLimiter.throttle!("eris:#{type}:anon:#{CurrentUser.ip_addr}", limit: anon_limit, period: anon_period)
