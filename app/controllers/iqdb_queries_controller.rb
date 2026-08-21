@@ -31,7 +31,7 @@ class IqdbQueriesController < ApplicationController
       @matches = IqdbProxy.query_url(parsed_url.to_s, search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:post_id].present?
       raise ProcessingError, "Invalid post_id parameter" unless search_params[:post_id].to_s =~ /\A\d+\z/
-      @matches = IqdbProxy.query_post(search_params[:post_id], search_params[:score_cutoff], v2_format: v2_format)
+      @matches = IqdbProxy.query_post(Post.find_by(id: search_params[:post_id]), search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:hash].present?
       raise ProcessingError, "Invalid hash parameter" unless search_params[:hash].is_a?(String) && search_params[:hash] =~ /\A[0-9a-fA-F]+\z/
       @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff], v2_format: v2_format)
