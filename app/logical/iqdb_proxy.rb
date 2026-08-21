@@ -57,7 +57,7 @@ module IqdbProxy
 
     check_circuit!
     with_query_semaphore do
-      response = record_circuit_outcome { make_request("/query/", :post, { post_id: post_id }) }
+      response = record_circuit_outcome { make_request("/query", :post, { post_id: post_id }) }
       return [] if response.status != 200
 
       process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
