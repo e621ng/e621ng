@@ -13,7 +13,8 @@ RSpec.describe PostSetsController do
   let(:public_set)   { create(:public_post_set, creator: owner) }
 
   before do
-    allow(RateLimiter).to receive(:check_limit).and_return(false)
+    allow(RateLimiter).to receive(:throttle!).and_return(false)
+    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
   end
 
   # ---------------------------------------------------------------------------
@@ -577,7 +578,7 @@ RSpec.describe PostSetsController do
 
     before do
       sign_in_as owner
-      allow(RateLimiter).to receive(:check_limit).and_return(true)
+      allow(RateLimiter).to receive(:throttle!).and_return(true)
     end
 
     it "returns 429 when the rate limit is exceeded while adding posts" do

@@ -27,15 +27,18 @@ class PostSetMaintainersController < ApplicationController
       return
     end
 
-    if RateLimiter.check_limit("set.invite.#{CurrentUser.id}", 5, 1.hours)
+    invite_limiter = RateLimiter.new("set.invite.#{CurrentUser.id}", limit: 5, period: 1.hour)
+    if invite_limiter.throttled?
       flash[:notice] = "You must wait an hour before inviting more set maintainers"
+      redirect_to maintainers_post_set_path(@set)
+      return
     end
 
     PostSetMaintainer.where(user_id: @user.id, post_set_id: @set.id).destroy_all
     @invite.save
 
     if @invite.valid?
-      RateLimiter.hit("set.invite.#{CurrentUser.id}", 1.hours)
+      invite_limiter.hit!
       flash[:notice] = "#{@user.pretty_name} invited to be a maintainer"
     else
       flash[:notice] = @invite.errors.full_messages.join('; ')

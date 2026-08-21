@@ -14,6 +14,13 @@ class UserTotp < ApplicationRecord
     ROTP::Base32.random
   end
 
+  # Shared by the login challenge and the settings-page code-guessing surfaces
+  # (disable, backup-code regeneration) so they draw from one failure budget.
+  # Only incorrect codes count against it.
+  def self.rate_limiter(user)
+    RateLimiter.new("totp:#{user.id}", limit: 10, period: 1.hour, lockout: 1.hour)
+  end
+
   # Atomic bit flip so a concurrent write to another bit_prefs flag can't be clobbered.
   def self.set_user_flag(user_id, enabled)
     mask = User.flag_value_for("totp_enabled")

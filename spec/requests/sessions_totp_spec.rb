@@ -10,8 +10,7 @@ RSpec.describe "TOTP login challenge" do
   let!(:user_totp) { create(:user_totp, user: user, secret: secret) }
 
   before do
-    allow(RateLimiter).to receive(:check_limit).and_return(false)
-    allow(RateLimiter).to receive(:hit)
+    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
   end
 
   # Step-aligned instant so code validity doesn't depend on where inside the
@@ -174,7 +173,7 @@ RSpec.describe "TOTP login challenge" do
       end
 
       it "returns 429 while rate limited" do
-        allow(RateLimiter).to receive(:check_limit).with("totp:#{user.id}", 10, 1.hour).and_return(true)
+        allow(RateLimiter).to receive(:new).with("totp:#{user.id}", any_args).and_return(instance_double(RateLimiter, throttled?: true))
         login!
         post verify_totp_session_path(format: :json), params: { totp: { code: current_code } }
         expect(response).to have_http_status(:too_many_requests)
@@ -182,7 +181,7 @@ RSpec.describe "TOTP login challenge" do
     end
 
     it "rejects even a correct code while rate limited" do
-      allow(RateLimiter).to receive(:check_limit).with("totp:#{user.id}", 10, 1.hour).and_return(true)
+      allow(RateLimiter).to receive(:new).with("totp:#{user.id}", any_args).and_return(instance_double(RateLimiter, throttled?: true))
       login!
       post verify_totp_session_path, params: { totp: { code: current_code } }
       expect(response).to redirect_to(totp_session_path)

@@ -18,6 +18,10 @@ class Cache
     Rails.cache.write(key, value, expires_in: expires_in)
   end
 
+  def self.increment(key, amount = 1, expires_in: nil)
+    Rails.cache.increment(key, amount, expires_in: expires_in)
+  end
+
   def self.delete(key)
     Rails.cache.delete(key)
   end

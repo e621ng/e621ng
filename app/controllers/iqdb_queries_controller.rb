@@ -31,7 +31,7 @@ class IqdbQueriesController < ApplicationController
       @matches = IqdbProxy.query_url(parsed_url.to_s, search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:post_id].present?
       raise ProcessingError, "Invalid post_id parameter" unless search_params[:post_id].to_s =~ /\A\d+\z/
-      @matches = IqdbProxy.query_post(search_params[:post_id], search_params[:score_cutoff], v2_format: v2_format)
+      @matches = IqdbProxy.query_post(Post.find_by(id: search_params[:post_id]), search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:hash].present?
       raise ProcessingError, "Invalid hash parameter" unless search_params[:hash].is_a?(String) && search_params[:hash] =~ /\A[0-9a-fA-F]+\z/
       @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff], v2_format: v2_format)
@@ -60,13 +60,13 @@ class IqdbQueriesController < ApplicationController
     if %i[file url post_id hash].any? { |key| search_params[key].present? }
       if CurrentUser.user.is_anonymous?
         raise APIThrottled if IqdbProxy.anon_lockdown?
-        raise APIThrottled if RateLimiter.check_limit("img:anon:#{CurrentUser.ip_addr}", 1, 60.seconds)
-        RateLimiter.hit("img:anon:#{CurrentUser.ip_addr}", 60.seconds)
+        raise APIThrottled if RateLimiter.throttle!("img:anon:#{CurrentUser.ip_addr}", limit: 1, period: 60.seconds)
       else
-        raise APIThrottled if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds)
-        raise APIThrottled if RateLimiter.check_limit("img:user:#{CurrentUser.user.id}", 1, 2.seconds)
-        RateLimiter.hit("img:#{CurrentUser.ip_addr}", 2.seconds)
-        RateLimiter.hit("img:user:#{CurrentUser.user.id}", 2.seconds)
+        ip_limiter = RateLimiter.new("img:#{CurrentUser.ip_addr}", limit: 1, period: 2.seconds)
+        user_limiter = RateLimiter.new("img:user:#{CurrentUser.user.id}", limit: 1, period: 2.seconds)
+        raise APIThrottled if ip_limiter.throttled? || user_limiter.throttled?
+        ip_limiter.hit!
+        user_limiter.hit!
       end
     end
   end

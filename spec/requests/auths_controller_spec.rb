@@ -43,8 +43,7 @@ RSpec.describe AuthsController do
 
     before do
       create(:user_totp, user: totp_user)
-      allow(RateLimiter).to receive(:check_limit).and_return(false)
-      allow(RateLimiter).to receive(:hit)
+      allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
     end
 
     it "returns 404 without a live challenge" do

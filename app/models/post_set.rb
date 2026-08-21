@@ -87,11 +87,11 @@ class PostSet < ApplicationRecord
     end
 
     def send_maintainer_public_dmails
-      if RateLimiter.check_limit("set.public.#{id}", 1, 24.hours)
-        return
-      end
+      dmail_limiter = RateLimiter.new("set.public.#{id}", limit: 1, period: 24.hours)
+      return if dmail_limiter.throttled?
+
       if is_public_changed? && !is_public # If set was made private
-        RateLimiter.hit("set.public.#{id}", 24.hours)
+        dmail_limiter.hit!
         PostSetMaintainer.active.where(post_set_id: id).find_each do |maintainer|
           Dmail.create_automated(to_id: maintainer.user_id, title: "A set you maintain was made private",
                                  body: "The set \"#{name}\":#{post_set_path(self)} by \"#{creator.name}\":#{user_path(creator)} that you maintain was set to private. You will not be able to view, add posts, or remove posts from the set until the owner makes it public again.")
@@ -99,7 +99,7 @@ class PostSet < ApplicationRecord
 
         PostSetMaintainer.pending.where(post_set_id: id).delete
       elsif is_public_changed? && is_public # If set was made public
-        RateLimiter.hit("set.public.#{id}", 24.hours)
+        dmail_limiter.hit!
         PostSetMaintainer.active.where(post_set_id: id).find_each do |maintainer|
           Dmail.create_automated(to_id: maintainer.user_id, title: "A private set you had maintained was made public again",
                                  body: "The set \"#{name}\":#{post_set_path(self)} by \"#{creator.name}\":#{user_path(creator)} that you previously maintained was made public again. You are now able to view the set and add/remove posts.")
