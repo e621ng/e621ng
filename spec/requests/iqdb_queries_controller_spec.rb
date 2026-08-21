@@ -256,8 +256,8 @@ RSpec.describe IqdbQueriesController do
 
     it "applies the light limits to hash queries, keyed by IP address and user ID" do
       get iqdb_queries_path, params: { hash: "deadbeef" }
-      expect(RateLimiter).to have_received(:new).with("eris:light:127.0.0.1", limit: 60, period: 60.seconds)
-      expect(RateLimiter).to have_received(:new).with("eris:light:user:#{user.id}", limit: 60, period: 60.seconds)
+      expect(RateLimiter).to have_received(:new).with("eris:light:127.0.0.1", limit: 10, period: 10.seconds)
+      expect(RateLimiter).to have_received(:new).with("eris:light:user:#{user.id}", limit: 10, period: 10.seconds)
     end
 
     it "does not consume the heavy budget for hash queries" do
@@ -307,7 +307,7 @@ RSpec.describe IqdbQueriesController do
 
     it "applies the light limits to hash queries with the anon-specific key" do
       get iqdb_queries_path, params: { hash: "deadbeef" }
-      expect(RateLimiter).to have_received(:throttle!).with("eris:light:anon:127.0.0.1", limit: 60, period: 60.seconds)
+      expect(RateLimiter).to have_received(:throttle!).with("eris:light:anon:127.0.0.1", limit: 10, period: 10.seconds)
     end
 
     it "applies the heavy limits to url queries with the anon-specific key" do
