@@ -51,19 +51,22 @@ module IqdbProxy
     raise Error, "iqdb request failed" if response.status != 200
   end
 
+  def query_post(post_id, score_cutoff, v2_format: false)
+    post_id = post_id.to_i
+    return [] if post_id <= 0
+
+    check_circuit!
+    with_query_semaphore do
+      response = record_circuit_outcome { make_request("/query/", :post, { post_id: post_id }) }
+      return [] if response.status != 200
+
+      process_iqdb_result(JSON.parse(response.body), score_cutoff, v2_format: v2_format)
+    end
+  end
+
   def query_url(image_url, score_cutoff, v2_format: false)
     file, _strategy = Downloads::File.new(image_url).download!
     query_file(file, score_cutoff, v2_format: v2_format)
-  end
-
-  def query_post(post, score_cutoff, v2_format: false)
-    return [] unless post&.has_preview?
-
-    File.open(post.preview_file_path) do |f|
-      query_file(f, score_cutoff, v2_format: v2_format)
-    end
-  rescue Errno::ENOENT # Preview file not found
-    []
   end
 
   def query_file(file, score_cutoff, v2_format: false)
