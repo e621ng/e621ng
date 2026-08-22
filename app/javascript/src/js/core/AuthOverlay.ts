@@ -1,4 +1,5 @@
 import ImmersiveInput from "@/components/ImmersiveInput";
+import OtpCodeInput from "@/components/OtpCodeInput";
 import E621Type from "@/interfaces/E621";
 import Page from "@/utility/Page";
 
@@ -68,6 +69,7 @@ export default class AuthOverlay {
         this.$overlay.html(""); // Clear loading state
         this.$overlay.append($form);
         this.bootstrapImmersiveInputs();
+        this.bootstrapOtpCodeInputs();
         this.bootstrapFormSubmission();
         return true;
       },
@@ -137,7 +139,10 @@ export default class AuthOverlay {
 
   private focusFirstInput () {
     setTimeout(() => {
-      this.$overlay.find("input[type=text], input[type=password], input[type=email]").first().focus();
+      // :enabled — a disabled-but-first-in-DOM-order field (e.g. the TOTP input
+      // when OtpCodeInput starts in backup mode) must not steal focus from the
+      // control that's actually usable.
+      this.$overlay.find("input[type=text]:enabled, input[type=password]:enabled, input[type=email]:enabled").first().focus();
     }, 100);
   }
 
@@ -178,8 +183,15 @@ export default class AuthOverlay {
   }
 
   private bootstrapImmersiveInputs () {
+    // The TOTP/backup-code field doesn't use .st-immersive-input at all (it manages
+    // its own focus styling via OtpCodeInput), so it's naturally excluded here.
     for (const input of this.$overlay.find(".st-immersive-input > input"))
       new ImmersiveInput($(input as HTMLInputElement));
+  }
+
+  private bootstrapOtpCodeInputs () {
+    for (const el of this.$overlay.find("[data-otp-code-input]"))
+      new OtpCodeInput($(el as HTMLElement));
   }
 
 
@@ -201,8 +213,10 @@ export default class AuthOverlay {
       const errorMessage = this.$overlay.find("#auth-error");
       if (errorMessage.text().length > 0) errorMessage.html("&nbsp;");
 
-      // Check for empty fields before submitting
-      const emptyFields = $form.find("input[required]").filter((_, input) => !$(input).val());
+      // Check for empty fields before submitting. :enabled — a disabled required
+      // field (e.g. the inactive TOTP/backup-code input) never participates in
+      // native constraint validation or submission, so it shouldn't here either.
+      const emptyFields = $form.find("input[required]:enabled").filter((_, input) => !$(input).val());
       if (emptyFields.length > 0) {
         this.showError("Please fill in all required fields.");
         submitButton.prop("disabled", false);
