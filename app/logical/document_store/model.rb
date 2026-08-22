@@ -20,6 +20,13 @@ module DocumentStore
       end
     end
 
+    # Version to stamp on the record's document, for optimistic concurrency control on index writes.
+    # Models without a monotonic change counter opt out by leaving this nil.
+    # See PostIndex#index_version.
+    def index_version
+      nil
+    end
+
     def update_index(queue: :high_prio)
       return if Thread.current[:skip_post_index_update]
       return document_store.update_index refresh: "true" if Rails.env.test?
