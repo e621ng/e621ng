@@ -152,8 +152,8 @@
 
 
 @keyframes otp-caret-blink {
-  0%, 50% { opacity: 1; }
-  50.01%, 100% { opacity: 0; }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 @keyframes otp-shake {
@@ -163,9 +163,7 @@
   40%, 60% { transform: translateX(4px); }
 }
 
-// One-shot "digit landed" pop for a single cell during a bulk-fill (autofill/
-// paste) reveal — see startBulkReveal()/restartCellPop() in OtpCodeInput.
-// transform-only, so it never affects layout or neighboring cells.
+// One-shot pop when a digit changes.
 @keyframes otp-cell-pop {
   0% { transform: scale(1); }
   45% { transform: scale(1.25); }
@@ -219,10 +217,7 @@
     width: 100% !important;
   }
 
-  // Fallback-only focus glow. Scoped away from .is-enhanced: once enhanced, TOTP
-  // mode has its own per-cell active highlight and backup mode has its own field
-  // focus style (below) — an outer glow here would otherwise still fire around the
-  // whole six-cell row whenever the transparent TOTP overlay input is focused.
+  // No-JS field keeps the standard focus glow; enhanced modes handle focus themselves.
   &:not(.is-enhanced) .otp-code-input-box:focus-within {
     box-shadow: 0 0 0.25rem themed("color-link-active") inset;
   }
@@ -300,10 +295,7 @@
       border: 1px solid rgba(0, 0, 0, 0.2);
     }
 
-    // One-shot pop when a digit lands during a bulk-fill reveal. The box
-    // itself is never hidden/faded — only toggled briefly per cell as its
-    // digit arrives, see restartCellPop() in OtpCodeInput.
-    .otp-code-input-cell.bulk-pop {
+    .otp-code-input-cell.digit-pop {
       animation: otp-cell-pop 160ms ease-out;
 
       @media (prefers-reduced-motion: reduce) {
@@ -311,14 +303,7 @@
       }
     }
 
-    // Synthetic blinking text caret, authoritative for "where you are" — the
-    // real input's own caret stays suppressed (caret-color: transparent,
-    // below). Only shown while actually focused. Shape depends on whether the
-    // active slot is empty or already has a digit (render() toggles .empty/
-    // .occupied alongside .active): a centered vertical bar reads naturally in
-    // an empty slot, but sitting directly on top of a digit glyph in an
-    // occupied slot reads as a collision — a low underscore stays legible
-    // alongside the character there instead.
+    // Draw the visible caret in the presentation cells while the real input stays hidden.
     .otp-code-input-field:focus-within .otp-code-input-cell.active::after {
       content: "";
       position: absolute;
@@ -346,17 +331,11 @@
       transform: translateX(-50%);
     }
 
-    // The real input covers the cell row (for native focus/click/paste/autofill)
-    // but paints no visible text of its own — the cells are authoritative for
-    // what's displayed, so this never depends on text metrics lining up with them.
-    // Its own focus indication is the per-cell .active highlight, not an outer glow.
+    // Transparent overlay preserves native focus, selection, paste, and autofill.
     .otp-code-input-real {
       position: absolute;
       inset: 0;
-      // Cells are position:relative too (for the ::after caret below) and come
-      // later in DOM order, so without an explicit z-index they'd win the
-      // default same-stacking-order tiebreak and start intercepting clicks
-      // instead of letting them reach this input.
+      // Keep the overlay above the presentational cells so it receives pointer input.
       z-index: 1;
       height: 100% !important;
       color: transparent !important;
@@ -380,23 +359,18 @@
       box-sizing: border-box;
       background: white !important;
       color: black;
-      border: 1px solid rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(0, 0, 0, 0.2) !important;
       border-radius: 0.25rem;
       padding: 0 0.5rem;
 
       &:focus {
         outline: none;
-        border-color: transparent;
         box-shadow: 0 0 0.25rem themed("color-link-active") inset;
       }
     }
   }
 
-  // Applied briefly (2s, self-clearing) whenever #auth-error gets a message —
-  // a rejected code from the server, or a malformed backup code caught
-  // client-side before submission. Shakes whichever control is visible (both
-  // live inside .otp-code-input-field) and red-borders it, matching
-  // #auth-error's own text color.
+  // Briefly marks the active OTP control after an inline auth error.
   &.otp-code-input-error {
     .otp-code-input-field {
       animation: otp-shake 0.4s ease-in-out;
@@ -406,8 +380,8 @@
       }
     }
 
-    .otp-code-input-cell, .otp-code-input-backup {
-      border-color: palette("text-red") !important;
+    .otp-code-input-cell, &[data-mode="backup"] .otp-code-input-backup {
+      border: 2px solid palette("text-red") !important;
     }
   }
 }

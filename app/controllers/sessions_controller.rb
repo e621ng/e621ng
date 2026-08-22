@@ -27,8 +27,7 @@ class SessionsController < ApplicationController
       end
     when :totp_required
       DanbooruLogger.add_attributes("user.login" => "totp_challenge")
-      # A stale error from an interrupted/abandoned earlier PRG cycle must not
-      # leak into a brand-new challenge for this (or a different) login.
+      # Don't carry an error from an abandoned challenge into a new one.
       session.delete(:totp_error)
       respond_to do |fmt|
         fmt.html { redirect_to(totp_session_path) }
@@ -47,17 +46,11 @@ class SessionsController < ApplicationController
   def totp
     @user = session_creator.challenge_user
     if @user.nil?
-      # No live challenge to attach a "wrong code" error to — drop any leftover
-      # from an earlier PRG cycle too, so it can't resurface on a later challenge.
       session.delete(:totp_error)
       redirect_to(new_session_path, notice: "Your login attempt has expired. Please log in again.")
       return
     end
-    # session, not flash: _toasts.html.erb renders every flash key generically
-    # (flash.each), so a flash-based transport here would also duplicate this
-    # as a top-of-page toast alongside the intended inline #auth-error message.
-    # session.delete reads and clears it in one step, so it can't replay on a
-    # later plain refresh either.
+    # Flash would also render this as a toast; keep the error inline only.
     @totp_error = session.delete(:totp_error)
   end
 

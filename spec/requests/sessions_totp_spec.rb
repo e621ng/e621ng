@@ -108,10 +108,22 @@ RSpec.describe "TOTP login challenge" do
 
       follow_redirect!
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Verification code was incorrect.")
+      assert_select "#auth-error", text: "Verification code was incorrect.", count: 1
+      expect(response.body.scan("Verification code was incorrect.").length).to eq(1)
 
-      # The session-transported error must not replay on a later plain refresh.
       get totp_session_path
+      expect(response.body).not_to include("Verification code was incorrect.")
+    end
+
+    it "does not carry an old error into a new challenge" do
+      login!
+      post verify_totp_session_path, params: { totp: { code: "000000" } }
+
+      delete session_path
+      login!
+      get totp_session_path
+
+      expect(response).to have_http_status(:ok)
       expect(response.body).not_to include("Verification code was incorrect.")
     end
 
