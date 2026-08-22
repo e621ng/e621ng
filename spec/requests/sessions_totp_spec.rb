@@ -63,6 +63,23 @@ RSpec.describe "TOTP login challenge" do
       get totp_session_path
       expect(response).to redirect_to(new_session_path)
     end
+
+    it "server-renders a single plain totp[code] field, with no JS-only restrictions baked in" do
+      login!
+      get totp_session_path
+
+      # Progressive-enhancement contract: OtpCodeInput applies inputmode/pattern itself
+      # once it enhances the field (maxlength is never applied at all, even by JS - see
+      # OtpCodeInput). If inputmode/pattern/maxlength ever end up server-rendered, a JS
+      # failure would block backup-code entry. autocomplete stays server-rendered since
+      # it's safe/correct in the no-JS baseline and is the password-manager/browser OTP
+      # autofill contract.
+      assert_select "input[name='totp[code]'][type='text']", 1
+      assert_select "input[name='totp[code]'][autocomplete='one-time-code']", 1
+      assert_select "input[name='totp[code]'][maxlength]", false
+      assert_select "input[name='totp[code]'][pattern]", false
+      assert_select "input[name='totp[code]'][inputmode]", false
+    end
   end
 
   describe "POST /session/verify_totp" do
@@ -85,9 +102,17 @@ RSpec.describe "TOTP login challenge" do
     it "rejects a wrong code and keeps the challenge alive" do
       login!
       post verify_totp_session_path, params: { totp: { code: "000000" } }
-      expect(response).to have_http_status(:ok)
+      expect(response).to redirect_to(totp_session_path)
       expect(session[:user_id]).to be_nil
       expect(session[:totp_user_id]).to eq(user.id)
+
+      follow_redirect!
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Verification code was incorrect.")
+
+      # The session-transported error must not replay on a later plain refresh.
+      get totp_session_path
+      expect(response.body).not_to include("Verification code was incorrect.")
     end
 
     it "rejects a replayed code" do

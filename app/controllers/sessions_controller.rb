@@ -27,6 +27,9 @@ class SessionsController < ApplicationController
       end
     when :totp_required
       DanbooruLogger.add_attributes("user.login" => "totp_challenge")
+      # A stale error from an interrupted/abandoned earlier PRG cycle must not
+      # leak into a brand-new challenge for this (or a different) login.
+      session.delete(:totp_error)
       respond_to do |fmt|
         fmt.html { redirect_to(totp_session_path) }
         fmt.json { render(json: { error: "Two-factor authentication required. Log in through the website, or use an API key for scripts.", code: "totp_required", url: totp_session_path }, status: 401) }
@@ -43,7 +46,19 @@ class SessionsController < ApplicationController
 
   def totp
     @user = session_creator.challenge_user
-    redirect_to(new_session_path, notice: "Your login attempt has expired. Please log in again.") if @user.nil?
+    if @user.nil?
+      # No live challenge to attach a "wrong code" error to — drop any leftover
+      # from an earlier PRG cycle too, so it can't resurface on a later challenge.
+      session.delete(:totp_error)
+      redirect_to(new_session_path, notice: "Your login attempt has expired. Please log in again.")
+      return
+    end
+    # session, not flash: _toasts.html.erb renders every flash key generically
+    # (flash.each), so a flash-based transport here would also duplicate this
+    # as a top-of-page toast alongside the intended inline #auth-error message.
+    # session.delete reads and clears it in one step, so it can't replay on a
+    # later plain refresh either.
+    @totp_error = session.delete(:totp_error)
   end
 
   def verify_totp
@@ -95,9 +110,8 @@ class SessionsController < ApplicationController
       DanbooruLogger.add_attributes("user.login" => "totp_fail")
       respond_to do |fmt|
         fmt.html do
-          @user = user
-          flash.now[:notice] = "Verification code was incorrect."
-          render(:totp)
+          session[:totp_error] = "Verification code was incorrect."
+          redirect_to(totp_session_path)
         end
         fmt.json { render(json: { error: "Verification code was incorrect." }, status: 401) }
       end
