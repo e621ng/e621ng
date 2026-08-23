@@ -54,7 +54,7 @@ class PostEvent < ApplicationRecord
     comment_enabled: {},
     replacement_accepted: { replacement_id: :integer, old_md5: :string, new_md5: :string },
     replacement_rejected: { replacement_id: :integer },
-    replacement_promoted: { source_post_id: :integer },
+    replacement_promoted: { replacement_id: :integer, source_post_id: :integer },
     replacement_deleted: { replacement_id: :integer, md5: :string, storage_id: :string },
     expunged: {},
     changed_bg_color: { bg_color: :string },
