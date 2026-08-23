@@ -109,6 +109,8 @@ module PostIndex
         [pid, array[1..-2].split(",")]
       end
 
+      failures = []
+
       relation.find_in_batches(batch_size: batch_size) do |batch|
         post_ids = batch.map(&:id).join(",")
 
@@ -261,17 +263,17 @@ module PostIndex
 
         next unless response["errors"]
 
-        # A 409 means the document has been written more recently than the
-        # snapshot this batch read, so the newer document correctly stands.
-        # Anything else dropped a post from the index and must not pass quietly.
-        failures = response["items"].filter_map do |item|
+        # A 409 means a newer document already won. Collect anything else and keep
+        # going, so one bad document can't cost every later batch, then fail loudly.
+        failures.concat(response["items"].filter_map do |item|
           result = item["index"]
           next if result["error"].nil? || result["status"] == 409
 
           "#{result['_id']}: #{result['error']['type']} (#{result['error']['reason']})"
-        end
-        raise ImportError, "Failed to index #{failures.size} post(s): #{failures.first(5).join('; ')}" if failures.any?
+        end)
       end
+
+      raise ImportError, "Failed to index #{failures.size} post(s): #{failures.first(5).join('; ')}" if failures.any?
     end
   end
 

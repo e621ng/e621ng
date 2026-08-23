@@ -11,7 +11,7 @@ RSpec.describe DocumentStore::InstanceMethodProxy do
     # Created before the client is stubbed so the double only ever sees the
     # explicit write below, not the one the create callback performs.
     let!(:post) { create(:post) }
-    let(:client) { instance_double(OpenSearch::Client, index: true) }
+    let(:client) { instance_double(OpenSearch::Client, index: { "result" => "updated" }) }
 
     before { allow(Post.document_store).to receive(:client).and_return(client) }
 
@@ -26,6 +26,20 @@ RSpec.describe DocumentStore::InstanceMethodProxy do
       it "tolerates the resulting conflict rather than raising" do
         update_index
         expect(client).to have_received(:index).with(hash_including(ignore: 409))
+      end
+
+      context "when the write is rejected" do
+        let(:client) { instance_double(OpenSearch::Client, index: { "status" => 409, "error" => { "type" => "version_conflict_engine_exception" } }) }
+
+        it "does not raise" do
+          expect { update_index }.not_to raise_error
+        end
+
+        it "logs the rejection, which the transport itself swallows" do
+          allow(Rails.logger).to receive(:warn)
+          update_index
+          expect(Rails.logger).to have_received(:warn).with(/version conflict indexing .*#{post.id}/)
+        end
       end
     end
 

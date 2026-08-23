@@ -579,6 +579,7 @@ RSpec.describe PostIndex do
 
   describe ".import" do
     let!(:post) { create(:post) }
+    let!(:other_post) { create(:post) }
     let(:client) { instance_double(OpenSearch::Client) }
 
     before { allow(Post.document_store).to receive(:client).and_return(client) }
@@ -607,6 +608,14 @@ RSpec.describe PostIndex do
       allow(client).to receive(:bulk).and_return({ "errors" => false, "items" => [] })
 
       expect { Post.document_store.import(query: { id: post.id }) }.not_to raise_error
+    end
+
+    it "keeps importing later batches after one fails, then raises once" do
+      allow(client).to receive(:bulk).and_return(bulk_response(400, "mapper_parsing_exception"), { "errors" => false, "items" => [] })
+
+      expect { Post.document_store.import(query: { id: [post.id, other_post.id] }, batch_size: 1) }
+        .to raise_error(PostIndex::ImportError)
+      expect(client).to have_received(:bulk).twice
     end
   end
 end

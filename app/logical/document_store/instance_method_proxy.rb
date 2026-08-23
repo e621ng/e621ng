@@ -22,7 +22,13 @@ module DocumentStore
         params[:ignore] = 409
       end
 
-      client.index(**params)
+      response = client.index(**params)
+      # `ignore` suppresses the transport's own logging, leaving rejections silent.
+      if response.is_a?(Hash) && response["status"] == 409
+        Rails.logger.warn("[DocumentStore] version conflict indexing #{index_name}/#{id}: indexed document is at or above version #{params[:version]}")
+      end
+
+      response
     end
 
     def delete_document(refresh: "false")
