@@ -112,4 +112,75 @@ RSpec.describe TagBatchJob do
       end
     end
   end
+
+  describe "index reconciliation" do
+    let!(:post) { create(:post, tag_string: "old_tag other_tag") }
+
+    it "enqueues the finalize job with the consequent and no stragglers" do
+      expect { perform }.to have_enqueued_job(TagBatchFinalizeJob).with("new_tag", [])
+    end
+
+    it "does not enqueue the finalize job when the arguments are rejected" do
+      expect { perform("old_tag extra_tag", "new_tag") }.to raise_error(ApplicationJob::JobError)
+      expect(TagBatchFinalizeJob).not_to have_been_enqueued
+    end
+
+    it "still enqueues the finalize job when a post cannot be saved" do
+      post.update_columns(rating: "x")
+      expect { perform }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(TagBatchFinalizeJob).to have_been_enqueued
+    end
+
+    it "resolves the consequent through an active alias" do
+      create(:tag_alias, antecedent_name: "new_tag", consequent_name: "final_tag", status: "active")
+      expect { perform }.to have_enqueued_job(TagBatchFinalizeJob).with("final_tag", [])
+      expect(post.reload.tag_array).to include("final_tag")
+    end
+
+    it "records posts the consequent did not survive on as stragglers" do
+      post.update_columns(locked_tags: "-new_tag")
+      expect { perform }.to have_enqueued_job(TagBatchFinalizeJob).with("new_tag", [post.id])
+    end
+
+    context "while migrating" do
+      # Created before the client is stubbed so the double only sees writes from the loop.
+      let(:client) { instance_double(OpenSearch::Client, index: { "result" => "updated" }) }
+
+      before { allow(Post.document_store).to receive(:client).and_return(client) }
+
+      it "does not write posts to the index one at a time" do
+        described_class.new.migrate_posts("old_tag", "new_tag")
+        expect(client).not_to have_received(:index)
+      end
+    end
+
+    it "clears the suppression flag once migration succeeds" do
+      described_class.new.migrate_posts("old_tag", "new_tag")
+      expect(Thread.current[:skip_post_index_update]).to be false
+    end
+
+    it "clears the suppression flag when migration raises" do
+      post.update_columns(rating: "x")
+      expect { described_class.new.migrate_posts("old_tag", "new_tag") }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(Thread.current[:skip_post_index_update]).to be false
+    end
+  end
+
+  describe "#migrate_posts failures" do
+    it "raises rather than silently leaving a post on the old tag" do
+      broken = create(:post, tag_string: "old_tag")
+      broken.update_columns(rating: "x")
+
+      expect { described_class.new.migrate_posts("old_tag", "new_tag") }.to raise_error(ActiveRecord::RecordInvalid)
+    end
+
+    it "keeps the progress it made before the failure" do
+      migrated = create(:post, tag_string: "old_tag")
+      broken = create(:post, tag_string: "old_tag")
+      broken.update_columns(rating: "x")
+
+      expect { described_class.new.migrate_posts("old_tag", "new_tag") }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(migrated.reload.tag_array).to include("new_tag")
+    end
+  end
 end

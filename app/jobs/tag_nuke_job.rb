@@ -3,6 +3,7 @@
 class TagNukeJob < ApplicationJob
   queue_as :tags
   sidekiq_options lock: :until_executed, lock_args_method: :lock_args
+  self.enqueue_after_transaction_commit = true
 
   def self.lock_args(args)
     [args[0]]
@@ -15,6 +16,7 @@ class TagNukeJob < ApplicationJob
     updater_ip_addr = args[2]
     return if tag.nil?
 
+    finalize_tag_id = tag.id
     updater = User.find(updater_id)
 
     CurrentUser.scoped(updater, updater_ip_addr) do
@@ -22,28 +24,31 @@ class TagNukeJob < ApplicationJob
       migrate_posts(tag.name)
       ModAction.log(:nuke_tag, { tag_name: tag_name })
     end
+  ensure
+    # In `ensure` so a job that dies or exhausts its retries still reindexes what it changed.
+    TagNukeFinalizeJob.perform_later(finalize_tag_id) if finalize_tag_id
   end
 
   def migrate_posts(tag_name)
+    Thread.current[:skip_post_index_update] = true
     Post.sql_raw_tag_match(tag_name).find_each do |post|
       post.with_lock do
         post.do_not_version_changes = true
         post.remove_tag(tag_name)
-        post.save
+        post.save!
       end
     end
+  ensure
+    Thread.current[:skip_post_index_update] = false
   end
 
   def create_undo_information(tag)
-    Post.transaction do
-      Post.without_timeout do
-        post_ids = []
-        Post.sql_raw_tag_match(tag.name).find_each do |post|
-          post_ids << post.id
-        end
-        TagRelUndo.create!(tag_rel: tag, undo_data: post_ids)
-      end
-    end
+    post_ids = Post.without_timeout { Post.sql_raw_tag_match(tag.name).pluck(:id) }
+    recorded = TagRelUndo.where(tag_rel: tag).unapplied.flat_map(&:post_ids)
+    # A retry re-runs this with a shrinking set; a later nuke of the same tag brings new posts.
+    return if (post_ids - recorded).empty?
+
+    TagRelUndo.create!(tag_rel: tag, undo_data: post_ids)
   end
 
   def self.process_undo!(tag)
