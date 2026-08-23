@@ -1,5 +1,16 @@
 <%= form_search path: post_events_path do |f| %>
   <%= f.input :post_id, label: "Post #" %>
   <%= f.user :creator %>
-  <%= f.input :action, label: "Action", collection: PostEvent.search_options_for(CurrentUser.user).map { |k| [k.to_s.capitalize.tr("_"," "), k.to_s] }, include_blank: "Any" %>
+
+  <%= f.input :action,
+              collection: (
+                            PostEvent.search_options_for(CurrentUser.user).map do |key|
+                              [
+                                key.to_s.capitalize.tr("_", " "),
+                                key.to_s,
+                                { data: { fields: PostEvent::KnownActions[key.to_sym]&.keys&.join(",") } }
+                              ]
+                            end
+                          ),
+              include_blank: "Any" %>
 <% end %>
