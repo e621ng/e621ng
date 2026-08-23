@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 module PostIndex
+  class ImportError < StandardError; end
+
+  # Offset `change_seq` past any old internal OpenSearch version so the first
+  # external write always wins without a reindex.
+  INDEX_VERSION_OFFSET = 2_000_000_000
+
   def self.included(base)
     base.document_store.index = {
       settings: {
@@ -102,6 +108,8 @@ module PostIndex
       array_parse = proc do |pid, array|
         [pid, array[1..-2].split(",")]
       end
+
+      failures = []
 
       relation.find_in_batches(batch_size: batch_size) do |batch|
         post_ids = batch.map(&:id).join(",")
@@ -239,20 +247,42 @@ module PostIndex
             artverified:              p.tag_array.any? { |tag| verified_artists.key?(tag) && verified_artists[tag] == p.uploader_id },
           }
 
-          {
-            index: {
-              _id:  p.id,
-              data: p.as_indexed_json(index_options),
-            },
-          }
+          meta = { _id: p.id, data: p.as_indexed_json(index_options) }
+          if (version = p.index_version)
+            meta[:version] = version
+            meta[:version_type] = "external_gte"
+          end
+
+          { index: meta }
         end
 
-        client.bulk({
+        response = client.bulk({
           index: index_name,
           body:  batch,
         })
+
+        next unless response["errors"]
+
+        # A 409 means a newer document already won. Collect anything else and keep
+        # going, so one bad document can't cost every later batch, then fail loudly.
+        failures.concat(response["items"].filter_map do |item|
+          result = item["index"]
+          next if result["error"].nil? || result["status"] == 409
+
+          "#{result['_id']}: #{result['error']['type']} (#{result['error']['reason']})"
+        end)
       end
+
+      raise ImportError, "Failed to index #{failures.size} post(s): #{failures.first(5).join('; ')}" if failures.any?
     end
+  end
+
+  def index_version
+    # All parallel test workers share one `posts_test` index while keeping separate databases,
+    # so their post ids and change_seqs collide with no ordering between them.
+    return nil if Rails.env.test?
+
+    change_seq + INDEX_VERSION_OFFSET
   end
 
   def as_indexed_json(options = {})
