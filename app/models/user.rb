@@ -843,15 +843,9 @@ class User < ApplicationRecord
   end
 
   module KarmaMethods
-    # Raw stored karma, may be negative.
-    def raw_upload_karma
-      user_status&.upload_karma || 0
-    end
-
-    # Display/API value: karma is never shown below 0 ([raw, 0].max). The clamp is
-    # presentation-only; no write ever floors the stored value.
+    # Stored karma, may be negative.
     def upload_karma
-      [raw_upload_karma, 0].max
+      user_status&.upload_karma || 0
     end
 
     def upload_karma=(value)
@@ -872,7 +866,7 @@ class User < ApplicationRecord
       # Ensure we don't divide by zero
       return 100 if next_level_karma == current_level_karma
 
-      ((upload_karma - current_level_karma) / (next_level_karma - current_level_karma).to_f * 100).round
+      ((upload_karma - current_level_karma) / (next_level_karma - current_level_karma).to_f * 100).round.clamp(0, 100)
     end
 
     # Once the upload karma level reaches the free threshold, uploads bypass the review queue.
