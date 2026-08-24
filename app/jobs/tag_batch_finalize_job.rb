@@ -2,11 +2,9 @@
 
 class TagBatchFinalizeJob < ApplicationJob
   queue_as :tags
-  sidekiq_options lock: :until_executed, lock_args_method: :lock_args
-
-  def self.lock_args(args)
-    [args[0]]
-  end
+  # Keyed on full args: an enqueue carrying stragglers must never dedup away against a pending one.
+  # Currently inert either way — sidekiq-unique-jobs cannot see through the ActiveJob wrapper.
+  sidekiq_options lock: :until_executed
 
   def perform(consequent, straggler_ids = [])
     Post.without_timeout do
