@@ -212,6 +212,17 @@ RSpec.describe UploadService do
           .not_to(change { uploader.user_status.reload.upload_karma })
       end
 
+      it "records a queue_bypass ledger row for the credit" do
+        allow(uploader).to receive(:upload_free?).and_return(true)
+        post = service.create_post_from_upload(upload)
+        expect(UploadKarmaEvent.last).to have_attributes(
+          user_id: uploader.id,
+          post_id: post.id,
+          reason: "queue_bypass",
+          delta: UserStatus::KARMA_APPROVED_CREDIT,
+        )
+      end
+
       it "does not grant karma when upload_as_pending forces the post into the queue" do
         allow(uploader).to receive(:upload_free?).and_return(true)
         allow(upload).to receive(:upload_as_pending?).and_return(true)

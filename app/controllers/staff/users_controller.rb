@@ -50,7 +50,7 @@ module Staff
         old_karma = @user.upload_karma
         if new_karma != old_karma
           karma_delta = new_karma - old_karma
-          UserStatus.adjust_karma(@user.id, karma_delta)
+          UserStatus.adjust_karma(@user.id, karma_delta, :staff_override, data: { old_karma: old_karma, new_karma: new_karma })
           ModAction.log(:user_karma_change, { user_id: @user.id, old_karma: old_karma, new_karma: new_karma })
         end
       end

@@ -182,6 +182,16 @@ RSpec.describe Post do
             .and change { new_owner.user_status.reload.upload_karma }.by(UserStatus::KARMA_APPROVED_CREDIT)
         end
 
+        it "records an owner_change ledger row for each side of the transfer" do
+          post.reowner!(new_owner)
+          events = UploadKarmaEvent.where(reason: :owner_change, post_id: post.id)
+          expect(events.pluck(:user_id, :delta)).to contain_exactly(
+            [old_owner.id, -UserStatus::KARMA_APPROVED_CREDIT],
+            [new_owner.id, UserStatus::KARMA_APPROVED_CREDIT],
+          )
+          expect(events.pluck(:extra_data).uniq).to eq([{ "old_owner" => old_owner.id, "new_owner" => new_owner.id }])
+        end
+
         it "moves the deletion penalty for a deleted post that had been approved" do
           post.delete!("Test deletion reason")
           expect { post.reowner!(new_owner) }
@@ -214,6 +224,11 @@ RSpec.describe Post do
           expect { post.reowner!(new_owner) }
             .not_to(change { [old_owner.user_status.reload.upload_karma, new_owner.user_status.reload.upload_karma] })
           expect(post.reload.uploader_id).to eq(new_owner.id)
+        end
+
+        it "records no ledger rows when nothing is transferred" do
+          pending = create(:pending_post)
+          expect { pending.reowner!(new_owner) }.not_to change(UploadKarmaEvent, :count)
         end
 
         it "does not transfer karma when the old and new owners are the same" do

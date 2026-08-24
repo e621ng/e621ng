@@ -74,6 +74,28 @@ RSpec.describe UploadService::Replacer do
       expect(replacement.reload.penalize_uploader_on_approve).to be true
       expect(replacement.uploader_id_on_approve).to eq(uploader.id)
     end
+
+    it "records a replacement_transfer ledger row for each side of the credit move" do
+      process!(replacement, penalize: false)
+      events = UploadKarmaEvent.where(reason: :replacement_transfer, post_id: post.id)
+      expect(events.pluck(:user_id, :delta)).to contain_exactly(
+        [uploader.id, -UserStatus::KARMA_APPROVED_CREDIT],
+        [replacer_user.id, UserStatus::KARMA_APPROVED_CREDIT],
+      )
+      expect(events.pluck(:extra_data).uniq).to eq(
+        [{ "replacement_id" => replacement.id, "from" => uploader.id, "to" => replacer_user.id }],
+      )
+    end
+
+    it "records a replacement_penalty ledger row when penalized" do
+      process!(replacement, penalize: true)
+      expect(UploadKarmaEvent.find_by(reason: :replacement_penalty)).to have_attributes(
+        user_id: uploader.id,
+        post_id: post.id,
+        delta: -UserStatus::KARMA_REPLACEMENT_PENALTY,
+        extra_data: { "replacement_id" => replacement.id },
+      )
+    end
   end
 
   context "reset-to (handing ownership back to a previous version)" do

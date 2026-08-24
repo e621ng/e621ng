@@ -26,7 +26,8 @@
       <div class="input">
         <label for="user_upload_karma">Upload Karma</label>
         <%= number_field_tag "user[upload_karma]", @user.upload_karma %>
-        <span class="hint">Stored karma; may be negative. Adjustments are logged.</span>
+        <span class="hint">Stored karma; may be negative. Adjustments are logged.
+          <%= link_to "History", upload_karma_events_path(search: { user_id: @user.id }) %></span>
       </div>
 
       <% if CurrentUser.is_bd_staff? || !@user.is_bd_staff? %>

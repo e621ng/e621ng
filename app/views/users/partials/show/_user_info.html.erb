@@ -52,6 +52,16 @@
   <% end %>
 
   <div class="profile-line">
+    <h4><%= svg_icon(:upload) %> Upload Karma</h4>
+    <span class="profile-line-number">
+      <%= link_to user.upload_karma, upload_karma_events_path(search: { user_id: user.id }) %>
+    </span>
+    <span class="profile-line-extra">
+      Earned from approved uploads. Click for the full history.
+    </span>
+  </div>
+
+  <div class="profile-line">
     <h4><%= svg_icon(:replace) %> Changes</h4>
     <span class="profile-line-extra profile-line-show">
 

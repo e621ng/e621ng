@@ -850,10 +850,11 @@ class User < ApplicationRecord
 
     def upload_karma=(value)
       value = value.to_i
-      delta = value - upload_karma
+      old = upload_karma
+      delta = value - old
       return if delta == 0
 
-      UserStatus.adjust_karma(id, delta)
+      UserStatus.adjust_karma(id, delta, :staff_override, data: { old_karma: old, new_karma: value })
       user_status&.reload
     end
 

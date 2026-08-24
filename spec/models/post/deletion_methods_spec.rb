@@ -65,6 +65,31 @@ RSpec.describe Post do
           .not_to(change { post.uploader.user_status.reload.upload_karma })
       end
 
+      it "records a deleted ledger row noting whether the credit was reversed" do
+        credited = create(:post)
+        pending = create(:pending_post)
+        credited.delete!("Test reason")
+        pending.delete!("Test reason")
+
+        expect(UploadKarmaEvent.find_by(post_id: credited.id)).to have_attributes(
+          user_id: credited.uploader_id,
+          reason: "deleted",
+          delta: -(UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT),
+          extra_data: { "credit_reversed" => true },
+        )
+        expect(UploadKarmaEvent.find_by(post_id: pending.id)).to have_attributes(
+          reason: "deleted",
+          delta: -UserStatus::KARMA_DELETION_PENALTY,
+          extra_data: { "credit_reversed" => false },
+        )
+      end
+
+      it "records no ledger row when skip_karma is set" do
+        post = create(:post)
+        expect { post.delete!("takedown #1: reason", force: true, skip_karma: true) }
+          .not_to change(UploadKarmaEvent, :count)
+      end
+
       # FIXME: Rework after adding a PostReplacement factory
       # it "rejects pending replacements on deletion" do
       #   post = create(:post)
@@ -113,6 +138,17 @@ RSpec.describe Post do
         post = create(:deleted_post, approver: create(:admin_user))
         expect { post.undelete!(force: true, skip_karma: true) }
           .not_to(change { post.uploader.user_status.reload.upload_karma })
+      end
+
+      it "records an undeleted ledger row" do
+        post = create(:deleted_post, approver: create(:admin_user))
+        post.undelete!
+        expect(UploadKarmaEvent.last).to have_attributes(
+          user_id: post.uploader_id,
+          post_id: post.id,
+          reason: "undeleted",
+          delta: UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT,
+        )
       end
 
       it "nets zero upload karma across a delete then undelete of a credited post, even when karma goes negative" do

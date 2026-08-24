@@ -2702,6 +2702,42 @@ ALTER SEQUENCE public.tickets_id_seq OWNED BY public.tickets.id;
 
 
 --
+-- Name: upload_karma_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.upload_karma_events (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    post_id bigint,
+    reason integer NOT NULL,
+    delta integer NOT NULL,
+    balance integer NOT NULL,
+    extra_data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: upload_karma_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.upload_karma_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: upload_karma_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.upload_karma_events_id_seq OWNED BY public.upload_karma_events.id;
+
+
+--
 -- Name: upload_whitelists; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3646,6 +3682,13 @@ ALTER TABLE ONLY public.tickets ALTER COLUMN id SET DEFAULT nextval('public.tick
 
 
 --
+-- Name: upload_karma_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_karma_events ALTER COLUMN id SET DEFAULT nextval('public.upload_karma_events_id_seq'::regclass);
+
+
+--
 -- Name: upload_whitelists id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4298,6 +4341,14 @@ ALTER TABLE ONLY public.takedowns
 
 ALTER TABLE ONLY public.tickets
     ADD CONSTRAINT tickets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: upload_karma_events upload_karma_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_karma_events
+    ADD CONSTRAINT upload_karma_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -5755,6 +5806,20 @@ CREATE INDEX index_tags_on_name_trgm ON public.tags USING gin (name public.gin_t
 
 
 --
+-- Name: index_upload_karma_events_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_upload_karma_events_on_post_id ON public.upload_karma_events USING btree (post_id) WHERE (post_id IS NOT NULL);
+
+
+--
+-- Name: index_upload_karma_events_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_upload_karma_events_on_user_id_and_id ON public.upload_karma_events USING btree (user_id, id);
+
+
+--
 -- Name: index_uploads_on_source; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6344,6 +6409,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260824220908'),
 ('20260819154314'),
 ('20260818231537'),
 ('20260812223301'),
