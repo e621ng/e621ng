@@ -4,6 +4,9 @@ class TagBatchJob < ApplicationJob
   queue_as :tags
   self.enqueue_after_transaction_commit = true
 
+  # This many failed posts means something systemic, not scattered bad data.
+  FAILURE_LIMIT = 100
+
   def perform(*args)
     antecedent = args[0]
     consequent = args[1]
@@ -12,6 +15,7 @@ class TagBatchJob < ApplicationJob
 
     resolved = nil
     stragglers = []
+    failures = []
 
     from, *from_remaining = TagQuery.scan(antecedent.downcase)
     to, *to_remaining = TagQuery.scan(consequent.downcase)
@@ -21,8 +25,11 @@ class TagBatchJob < ApplicationJob
 
     CurrentUser.scoped(updater, updater_ip_addr) do
       resolved = TagAlias.to_aliased([to]).first
-      migrate_posts(from, to, resolved, stragglers)
+      migrate_posts(from, to, resolved, stragglers, failures)
       migrate_blacklists(from, to)
+      # Raised after the other steps so they complete, but before the ModAction
+      # so retries (which reattempt only the failed posts) don't duplicate it.
+      raise_failure_summary(failures) if failures.any?
       ModAction.log(:mass_update, { antecedent: antecedent, consequent: consequent })
     end
   ensure
@@ -30,7 +37,7 @@ class TagBatchJob < ApplicationJob
     TagBatchFinalizeJob.perform_later(resolved, stragglers) if resolved
   end
 
-  def migrate_posts(from, to, resolved = TagAlias.to_aliased([to]).first, stragglers = [])
+  def migrate_posts(from, to, resolved = TagAlias.to_aliased([to]).first, stragglers = [], failures = [])
     Thread.current[:skip_post_index_update] = true
     Post.sql_raw_tag_match(from).find_each do |post|
       post.with_lock do
@@ -41,10 +48,20 @@ class TagBatchJob < ApplicationJob
       end
       # normalize_tags can alias, lock or invalidate the consequent away.
       stragglers << post.id if post.tag_array.exclude?(resolved)
+    rescue ActiveRecord::RecordInvalid => e
+      # Skip so one invalid post can't wedge every post after it across retries.
+      failures << "##{post.id} (#{e.record.errors.full_messages.join(', ')})"
+      raise if failures.size >= FAILURE_LIMIT
     end
     stragglers
   ensure
     Thread.current[:skip_post_index_update] = false
+  end
+
+  def raise_failure_summary(failures)
+    shown = failures.first(10).join("; ")
+    shown += "; and #{failures.size - 10} more" if failures.size > 10
+    raise JobError, "skipped #{failures.size} invalid posts: #{shown}"
   end
 
   def migrate_blacklists(from, to)

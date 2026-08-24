@@ -5,6 +5,9 @@ class TagNukeJob < ApplicationJob
   sidekiq_options lock: :until_executed, lock_args_method: :lock_args
   self.enqueue_after_transaction_commit = true
 
+  # This many failed posts means something systemic, not scattered bad data.
+  FAILURE_LIMIT = 100
+
   def self.lock_args(args)
     [args[0]]
   end
@@ -18,13 +21,17 @@ class TagNukeJob < ApplicationJob
 
     finalize_tag_id = tag.id
     stragglers = []
+    failures = []
     updater = User.find(updater_id)
 
     CurrentUser.scoped(updater, updater_ip_addr) do
       snapshot = create_undo_information(tag)
-      migrate_posts(tag.name, snapshot, stragglers)
+      migrate_posts(tag.name, snapshot, stragglers, failures)
       # Stragglers are in no snapshot row; give them one so they can be restored.
       TagRelUndo.create!(tag_rel: tag, undo_data: stragglers) if stragglers.any?
+      # Raised after the other steps so they complete, but before the ModAction
+      # so retries (which reattempt only the failed posts) don't duplicate it.
+      raise_failure_summary(failures) if failures.any?
       ModAction.log(:nuke_tag, { tag_name: tag_name })
     end
   ensure
@@ -32,7 +39,7 @@ class TagNukeJob < ApplicationJob
     TagNukeFinalizeJob.perform_later(finalize_tag_id, stragglers) if finalize_tag_id
   end
 
-  def migrate_posts(tag_name, snapshot = nil, stragglers = [])
+  def migrate_posts(tag_name, snapshot = nil, stragglers = [], failures = [])
     Thread.current[:skip_post_index_update] = true
     Post.sql_raw_tag_match(tag_name).find_each do |post|
       post.with_lock do
@@ -42,10 +49,20 @@ class TagNukeJob < ApplicationJob
       end
       # Posts that gained the tag after the undo snapshot.
       stragglers << post.id if snapshot&.exclude?(post.id)
+    rescue ActiveRecord::RecordInvalid => e
+      # Skip so one invalid post can't wedge every post after it across retries.
+      failures << "##{post.id} (#{e.record.errors.full_messages.join(', ')})"
+      raise if failures.size >= FAILURE_LIMIT
     end
     stragglers
   ensure
     Thread.current[:skip_post_index_update] = false
+  end
+
+  def raise_failure_summary(failures)
+    shown = failures.first(10).join("; ")
+    shown += "; and #{failures.size - 10} more" if failures.size > 10
+    raise JobError, "skipped #{failures.size} invalid posts: #{shown}"
   end
 
   # Returns every id the undo rows now cover, so migration can spot unsnapshotted posts.

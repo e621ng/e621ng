@@ -127,7 +127,7 @@ RSpec.describe TagBatchJob do
 
     it "still enqueues the finalize job when a post cannot be saved" do
       post.update_columns(rating: "x")
-      expect { perform }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { perform }.to raise_error(ApplicationJob::JobError)
       expect(TagBatchFinalizeJob).to have_been_enqueued
     end
 
@@ -160,27 +160,44 @@ RSpec.describe TagBatchJob do
     end
 
     it "clears the suppression flag when migration raises" do
-      post.update_columns(rating: "x")
-      expect { described_class.new.migrate_posts("old_tag", "new_tag") }.to raise_error(ActiveRecord::RecordInvalid)
+      allow(Post).to receive(:sql_raw_tag_match).and_raise(RuntimeError, "boom")
+      expect { described_class.new.migrate_posts("old_tag", "new_tag") }.to raise_error(RuntimeError, "boom")
       expect(Thread.current[:skip_post_index_update]).to be false
     end
   end
 
-  describe "#migrate_posts failures" do
-    it "raises rather than silently leaving a post on the old tag" do
-      broken = create(:post, tag_string: "old_tag")
-      broken.update_columns(rating: "x")
+  describe "failure handling" do
+    let!(:broken) { create(:post, tag_string: "old_tag").tap { |p| p.update_columns(rating: "x") } }
 
-      expect { described_class.new.migrate_posts("old_tag", "new_tag") }.to raise_error(ActiveRecord::RecordInvalid)
+    it "migrates the posts after a failed one" do
+      migrated = create(:post, tag_string: "old_tag")
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(migrated.reload.tag_array).to include("new_tag")
     end
 
-    it "keeps the progress it made before the failure" do
-      migrated = create(:post, tag_string: "old_tag")
-      broken = create(:post, tag_string: "old_tag")
-      broken.update_columns(rating: "x")
+    it "leaves the failed post on the old tag so a retry can reattempt it" do
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(broken.reload.tag_array).to include("old_tag")
+    end
 
-      expect { described_class.new.migrate_posts("old_tag", "new_tag") }.to raise_error(ActiveRecord::RecordInvalid)
-      expect(migrated.reload.tag_array).to include("new_tag")
+    it "raises a summary naming the skipped posts" do
+      expect { perform }.to raise_error(ApplicationJob::JobError, /##{broken.id}/)
+    end
+
+    it "still migrates blacklists" do
+      user = create(:user, blacklisted_tags: "old_tag")
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(user.reload.blacklisted_tags).to include("new_tag")
+    end
+
+    it "does not log a ModAction while posts are failing" do
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(ModAction.where(action: "mass_update")).not_to exist
+    end
+
+    it "fails fast once the failure limit is reached" do
+      stub_const("TagBatchJob::FAILURE_LIMIT", 1)
+      expect { perform }.to raise_error(ActiveRecord::RecordInvalid)
     end
   end
 end

@@ -129,13 +129,13 @@ RSpec.describe TagNukeJob do
 
     it "still enqueues the finalize job when a post cannot be saved" do
       tagged_post.update_columns(rating: "x")
-      expect { perform }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { perform }.to raise_error(ApplicationJob::JobError)
       expect(TagNukeFinalizeJob).to have_been_enqueued
     end
 
     it "records the undo row even when a post cannot be saved" do
       tagged_post.update_columns(rating: "x")
-      expect { perform }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { perform }.to raise_error(ApplicationJob::JobError)
       expect(TagRelUndo.last.undo_data).to include(tagged_post.id)
     end
 
@@ -157,9 +157,38 @@ RSpec.describe TagNukeJob do
     end
 
     it "clears the suppression flag when migration raises" do
-      tagged_post.update_columns(rating: "x")
-      expect { described_class.new.migrate_posts(tag_name) }.to raise_error(ActiveRecord::RecordInvalid)
+      allow(Post).to receive(:sql_raw_tag_match).and_raise(RuntimeError, "boom")
+      expect { described_class.new.migrate_posts(tag_name) }.to raise_error(RuntimeError, "boom")
       expect(Thread.current[:skip_post_index_update]).to be false
+    end
+  end
+
+  describe "failure handling" do
+    let!(:broken) { create(:post, tag_string: tag_name).tap { |p| p.update_columns(rating: "x") } }
+
+    it "migrates the posts after a failed one" do
+      migrated = create(:post, tag_string: tag_name)
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(migrated.reload.tag_array).not_to include(tag_name)
+    end
+
+    it "leaves the failed post on the tag so a retry can reattempt it" do
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(broken.reload.tag_array).to include(tag_name)
+    end
+
+    it "raises a summary naming the skipped posts" do
+      expect { perform }.to raise_error(ApplicationJob::JobError, /##{broken.id}/)
+    end
+
+    it "does not log a ModAction while posts are failing" do
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(ModAction.where(action: "nuke_tag")).not_to exist
+    end
+
+    it "fails fast once the failure limit is reached" do
+      stub_const("TagNukeJob::FAILURE_LIMIT", 1)
+      expect { perform }.to raise_error(ActiveRecord::RecordInvalid)
     end
   end
 
