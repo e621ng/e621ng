@@ -2,6 +2,11 @@
 
 class TagNukeFinalizeJob < ApplicationJob
   queue_as :tags
+  sidekiq_options lock: :until_executed, lock_args_method: :lock_args
+
+  def self.lock_args(args)
+    [args[0]]
+  end
 
   def perform(tag_id, straggler_ids = [])
     # The tag is gone from every post by now, so the set only survives in the nuke's undo rows.
