@@ -850,7 +850,10 @@ class User < ApplicationRecord
 
     def upload_karma=(value)
       value = value.to_i
-      user_status&.update(upload_karma: value)
+      delta = value - upload_karma
+      return if delta == 0
+
+      UserStatus.adjust_karma(id, delta)
     end
 
     def upload_karma_level
