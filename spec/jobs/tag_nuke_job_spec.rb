@@ -119,7 +119,7 @@ RSpec.describe TagNukeJob do
     let!(:tagged_post) { create(:post, tag_string: "#{tag_name} extra_tag") }
 
     it "enqueues the finalize job with the tag id" do
-      expect { perform }.to have_enqueued_job(TagNukeFinalizeJob).with(tag.id)
+      expect { perform }.to have_enqueued_job(TagNukeFinalizeJob).with(tag.id, [])
     end
 
     it "does not enqueue the finalize job when the tag does not resolve" do
@@ -163,6 +163,35 @@ RSpec.describe TagNukeJob do
     end
   end
 
+  describe "straggler handling" do
+    let!(:tagged_post) { create(:post, tag_string: "#{tag_name} extra_tag") }
+
+    it "collects posts missing from the snapshot as stragglers" do
+      stragglers = described_class.new.migrate_posts(tag_name, Set.new)
+      expect(stragglers).to eq([tagged_post.id])
+    end
+
+    it "does not collect posts the snapshot covers" do
+      stragglers = described_class.new.migrate_posts(tag_name, Set[tagged_post.id])
+      expect(stragglers).to be_empty
+    end
+
+    context "when a post gained the tag after the undo snapshot" do
+      let(:job) { described_class.new }
+
+      before { allow(job).to receive(:create_undo_information).and_return(Set.new) }
+
+      it "records an undo row for the stragglers" do
+        job.perform(tag_name, CurrentUser.id, "127.0.0.1")
+        expect(TagRelUndo.last.undo_data).to eq([tagged_post.id])
+      end
+
+      it "passes the stragglers to the finalize job" do
+        expect { job.perform(tag_name, CurrentUser.id, "127.0.0.1") }.to have_enqueued_job(TagNukeFinalizeJob).with(tag.id, [tagged_post.id])
+      end
+    end
+  end
+
   describe "#create_undo_information" do
     let(:job) { described_class.new }
     let!(:tagged_post) { create(:post, tag_string: tag_name) }
@@ -188,6 +217,15 @@ RSpec.describe TagNukeJob do
     it "ignores rows from a nuke that has already been undone" do
       TagRelUndo.create!(tag_rel: tag, undo_data: [tagged_post.id], applied: true)
       expect { job.create_undo_information(tag) }.to change(TagRelUndo, :count).by(1)
+    end
+
+    it "returns the snapshotted ids" do
+      expect(job.create_undo_information(tag)).to eq(Set[tagged_post.id])
+    end
+
+    it "includes ids an earlier attempt recorded in the returned snapshot" do
+      TagRelUndo.create!(tag_rel: tag, undo_data: [tagged_post.id, 999])
+      expect(job.create_undo_information(tag)).to eq(Set[tagged_post.id, 999])
     end
   end
 end

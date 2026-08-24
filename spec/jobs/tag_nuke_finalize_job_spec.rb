@@ -30,5 +30,17 @@ RSpec.describe TagNukeFinalizeJob do
       described_class.perform_now(tag.id)
       expect(Post.document_store).not_to have_received(:import)
     end
+
+    it "unions straggler ids with the undo row ids" do
+      TagRelUndo.create!(tag_rel: tag, undo_data: [101, 102])
+
+      described_class.perform_now(tag.id, [102, 103])
+      expect(Post.document_store).to have_received(:import).with(query: { id: [101, 102, 103] })
+    end
+
+    it "imports stragglers even when no undo rows exist" do
+      described_class.perform_now(tag.id, [101])
+      expect(Post.document_store).to have_received(:import).with(query: { id: [101] })
+    end
   end
 end

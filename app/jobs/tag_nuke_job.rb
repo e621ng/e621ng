@@ -17,19 +17,22 @@ class TagNukeJob < ApplicationJob
     return if tag.nil?
 
     finalize_tag_id = tag.id
+    stragglers = []
     updater = User.find(updater_id)
 
     CurrentUser.scoped(updater, updater_ip_addr) do
-      create_undo_information(tag)
-      migrate_posts(tag.name)
+      snapshot = create_undo_information(tag)
+      migrate_posts(tag.name, snapshot, stragglers)
+      # Stragglers are in no snapshot row; give them one so they can be restored.
+      TagRelUndo.create!(tag_rel: tag, undo_data: stragglers) if stragglers.any?
       ModAction.log(:nuke_tag, { tag_name: tag_name })
     end
   ensure
-    # In `ensure` so a job that dies or exhausts its retries still reindexes what it changed.
-    TagNukeFinalizeJob.perform_later(finalize_tag_id) if finalize_tag_id
+    # A job that dies or exhausts its retries still reindexes what it changed, including stragglers.
+    TagNukeFinalizeJob.perform_later(finalize_tag_id, stragglers) if finalize_tag_id
   end
 
-  def migrate_posts(tag_name)
+  def migrate_posts(tag_name, snapshot = nil, stragglers = [])
     Thread.current[:skip_post_index_update] = true
     Post.sql_raw_tag_match(tag_name).find_each do |post|
       post.with_lock do
@@ -37,18 +40,21 @@ class TagNukeJob < ApplicationJob
         post.remove_tag(tag_name)
         post.save!
       end
+      # Posts that gained the tag after the undo snapshot.
+      stragglers << post.id if snapshot&.exclude?(post.id)
     end
+    stragglers
   ensure
     Thread.current[:skip_post_index_update] = false
   end
 
+  # Returns every id the undo rows now cover, so migration can spot unsnapshotted posts.
   def create_undo_information(tag)
     post_ids = Post.without_timeout { Post.sql_raw_tag_match(tag.name).pluck(:id) }
     recorded = TagRelUndo.where(tag_rel: tag).unapplied.flat_map(&:post_ids)
     # A retry re-runs this with a shrinking set; a later nuke of the same tag brings new posts.
-    return if (post_ids - recorded).empty?
-
-    TagRelUndo.create!(tag_rel: tag, undo_data: post_ids)
+    TagRelUndo.create!(tag_rel: tag, undo_data: post_ids) if (post_ids - recorded).any?
+    (post_ids + recorded).to_set
   end
 
   def self.process_undo!(tag)
