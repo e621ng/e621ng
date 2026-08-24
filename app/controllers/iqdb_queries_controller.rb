@@ -16,24 +16,33 @@ class IqdbQueriesController < ApplicationController
 
     @matches = []
     if search_params[:file].present?
-      raise ProcessingError, "Invalid file parameter" unless search_params[:file].respond_to?(:tempfile)
+      unless search_params[:file].respond_to?(:tempfile)
+        return render_iqdb_error(400, "The uploaded file could not be processed. Please try a different file.")
+      end
       @matches = IqdbProxy.query_file(search_params[:file].tempfile, search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:url].present?
-      raise ProcessingError, "Invalid URL parameter" unless search_params[:url].is_a?(String)
+      return render_iqdb_error(400, "The URL must begin with http:// or https://.") unless search_params[:url].is_a?(String)
       parsed_url = begin
-        Addressable::URI.heuristic_parse(search_params[:url])
+        # Scheme-less input gets https prepended; explicit schemes pass through untouched.
+        Addressable::URI.heuristic_parse(search_params[:url], scheme: "https")
       rescue StandardError
         nil
       end
-      raise ProcessingError, "Invalid URL" unless parsed_url
+      unless parsed_url&.scheme.in?(%w[http https]) && parsed_url.host.present?
+        return render_iqdb_error(400, "The URL must begin with http:// or https://.")
+      end
       whitelist_result = UploadWhitelist.is_whitelisted?(parsed_url)
-      raise ProcessingError, "Not allowed to request content from this URL" unless whitelist_result[0]
+      return render_iqdb_error(400, "Not allowed to request content from this URL") unless whitelist_result[0]
       @matches = IqdbProxy.query_url(parsed_url.to_s, search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:post_id].present?
-      raise ProcessingError, "Invalid post_id parameter" unless search_params[:post_id].to_s =~ /\A\d+\z/
+      unless search_params[:post_id].to_s =~ /\A\d+\z/
+        return render_iqdb_error(400, "Please enter a valid post ID.")
+      end
       @matches = IqdbProxy.query_post(search_params[:post_id], search_params[:score_cutoff], v2_format: v2_format)
     elsif search_params[:hash].present?
-      raise ProcessingError, "Invalid hash parameter" unless search_params[:hash].is_a?(String) && search_params[:hash] =~ /\A[0-9a-fA-F]+\z/
+      unless search_params[:hash].is_a?(String) && search_params[:hash] =~ /\A[0-9a-fA-F]+\z/
+        return render_iqdb_error(400, "Please enter a valid MD5 hash.")
+      end
       @matches = IqdbProxy.query_hash(search_params[:hash], search_params[:score_cutoff], v2_format: v2_format)
     end
 
@@ -43,16 +52,27 @@ class IqdbQueriesController < ApplicationController
       end
     end
   rescue Downloads::File::Error => e
-    render_expected_error(404, e.message)
-  rescue IqdbProxy::CircuitOpenError => e
-    render_expected_error(503, e.message)
+    render_iqdb_error(422, e.message)
   rescue IqdbProxy::BusyError => e
-    render_expected_error(429, e.message)
+    render_iqdb_error(429, e.message)
   rescue IqdbProxy::Error => e
-    render_expected_error(500, e.message)
+    # Covers CircuitOpenError too — both are availability problems.
+    render_iqdb_error(503, e.message)
   end
 
   private
+
+  # Expected failures re-render the search form with an inline error instead of
+  # the dead-end static error page. Non-HTML formats keep the standard error shape.
+  def render_iqdb_error(status, message)
+    if request.format.html?
+      @error = message
+      @matches ||= []
+      render :show, status: status
+    else
+      render_expected_error(status, message)
+    end
+  end
 
   def throttle(search_params)
     return if Danbooru.config.disable_throttles?

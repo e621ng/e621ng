@@ -186,11 +186,12 @@ RSpec.describe IqdbQueriesController do
   # ---------------------------------------------------------------------------
 
   describe "error handling" do
-    it "returns 404 on Downloads::File::Error" do
+    it "returns 422 on Downloads::File::Error with the message in the page" do
       allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, "ok"])
-      allow(IqdbProxy).to receive(:query_url).and_raise(Downloads::File::Error, "not found")
+      allow(IqdbProxy).to receive(:query_url).and_raise(Downloads::File::Error, "Couldn't download the file")
       get iqdb_queries_path, params: { url: "https://example.com/image.jpg" }
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.body).to include("Couldn&#39;t download the file")
     end
 
     it "returns 503 when the IQDB circuit is open" do
@@ -199,16 +200,62 @@ RSpec.describe IqdbQueriesController do
       expect(response).to have_http_status(:service_unavailable)
     end
 
-    it "returns 500 on IqdbProxy::Error" do
+    it "returns 503 on IqdbProxy::Error" do
       allow(IqdbProxy).to receive(:query_hash).and_raise(IqdbProxy::Error, "service unavailable")
       get iqdb_queries_path, params: { hash: "deadbeef" }
-      expect(response).to have_http_status(:internal_server_error)
+      expect(response).to have_http_status(:service_unavailable)
     end
 
     it "returns 429 when the IQDB semaphore is exhausted" do
       allow(IqdbProxy).to receive(:query_hash).and_raise(IqdbProxy::BusyError, "IQDB is temporarily busy")
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(response).to have_http_status(:too_many_requests)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Friendly error rendering (bug-report regressions)
+  # ---------------------------------------------------------------------------
+
+  describe "friendly error rendering" do
+    it "re-renders the search form with an inline error for an invalid post ID" do
+      get iqdb_queries_path, params: { post_id: "-1" }
+      expect(response).to have_http_status(:bad_request)
+      expect(response.body).to include("Please enter a valid post ID.")
+      expect(response.body).to include("Similar Images Search")
+      expect(response.body).to include("error-messages")
+      expect(response.body).not_to include("No similar posts found.")
+    end
+
+    it "renders the inline error for an invalid post ID in the search[] namespace" do
+      get iqdb_queries_path, params: { search: { post_id: "-1" } }
+      expect(response).to have_http_status(:bad_request)
+      expect(response.body).to include("Please enter a valid post ID.")
+    end
+
+    it "returns the standard JSON error shape for an invalid post ID" do
+      get iqdb_queries_path(format: :json), params: { post_id: "-1" }
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body).to eq({ "success" => false, "message" => "Please enter a valid post ID.", "code" => nil })
+    end
+
+    it "rejects a URL with a bogus scheme without querying or logging an exception" do
+      allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, "ok"])
+      allow(IqdbProxy).to receive(:query_url)
+      expect do
+        get iqdb_queries_path, params: { url: "a://example.com/image.jpg" }
+      end.not_to change(ExceptionLog, :count)
+      expect(response).to have_http_status(:bad_request)
+      expect(response.body).to include("The URL must begin with http:// or https://.")
+      expect(IqdbProxy).not_to have_received(:query_url)
+    end
+
+    it "defaults scheme-less URLs to https" do
+      allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, "ok"])
+      allow(IqdbProxy).to receive(:query_url).and_return([])
+      get iqdb_queries_path, params: { url: "example.com/image.jpg" }
+      expect(response).to have_http_status(:ok)
+      expect(IqdbProxy).to have_received(:query_url).with("https://example.com/image.jpg", any_args)
     end
   end
 
