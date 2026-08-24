@@ -35,36 +35,6 @@ RSpec.describe KarmaBadge do
     end
   end
 
-  describe "#karma_value" do
-    describe "with positive karma" do
-      it "returns the upload karma" do
-        set_karma(user, Danbooru.config.upload_karma_l1_threshold)
-        expect(component.send(:karma_value)).to eq(user.upload_karma)
-      end
-    end
-
-    describe "with negative karma" do
-      before do
-        set_karma(user, -100)
-      end
-
-      it "returns the upload karma for staff" do
-        allow(CurrentUser).to receive(:user).and_return(create(:admin_user))
-        expect(component.send(:karma_value)).to eq(user.raw_upload_karma)
-      end
-
-      it "returns the upload karma for the user themselves" do
-        allow(CurrentUser).to receive(:user).and_return(user)
-        expect(component.send(:karma_value)).to eq(user.raw_upload_karma)
-      end
-
-      it "returns 0 for other users" do
-        allow(CurrentUser).to receive(:user).and_return(create(:user))
-        expect(component.send(:karma_value)).to eq(0)
-      end
-    end
-  end
-
   describe "#badge_title" do
     it "shows progress toward the next level below the maximum" do
       set_karma(user, Danbooru.config.upload_karma_l1_threshold)
@@ -75,6 +45,12 @@ RSpec.describe KarmaBadge do
     it "shows the S level at the maximum" do
       set_karma(user, Danbooru.config.upload_karma_l10_threshold)
       expect(component.send(:badge_title)).to eq("Upload Karma: #{user.upload_karma} (Level S)")
+    end
+
+    it "shows negative karma" do
+      set_karma(user, -7)
+      required_for_next = User.required_karma_for_level(1)
+      expect(component.send(:badge_title)).to eq("Upload Karma: -7 / #{required_for_next} (Level 0)")
     end
   end
 
@@ -94,6 +70,11 @@ RSpec.describe KarmaBadge do
       set_karma(user, Danbooru.config.upload_karma_l10_threshold)
       expect(component.send(:progress_degree)).to eq(0)
     end
+
+    it "returns 0 for negative karma" do
+      set_karma(user, -7)
+      expect(component.send(:progress_degree)).to eq(0)
+    end
   end
 
   describe "#progress_degree_style" do
@@ -105,20 +86,20 @@ RSpec.describe KarmaBadge do
     end
   end
 
-  describe "#should_show_raw_karma?" do
+  describe "#force_visible?" do
     it "returns true for staff users" do
       allow(CurrentUser).to receive(:user).and_return(create(:admin_user))
-      expect(component.send(:should_show_raw_karma?)).to be_truthy
+      expect(component.send(:force_visible?)).to be_truthy
     end
 
     it "returns true for the user themselves" do
       allow(CurrentUser).to receive(:user).and_return(user)
-      expect(component.send(:should_show_raw_karma?)).to be_truthy
+      expect(component.send(:force_visible?)).to be_truthy
     end
 
     it "returns false for other users" do
       allow(CurrentUser).to receive(:user).and_return(create(:user))
-      expect(component.send(:should_show_raw_karma?)).to be_falsey
+      expect(component.send(:force_visible?)).to be_falsey
     end
   end
 end

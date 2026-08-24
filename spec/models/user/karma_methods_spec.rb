@@ -31,31 +31,21 @@ RSpec.describe User do
   end
 
   # -------------------------------------------------------------------------
-  # #raw_upload_karma
-  # -------------------------------------------------------------------------
-  describe "#raw_upload_karma" do
-    it "defaults to 0 for a new user" do
-      expect(user.raw_upload_karma).to eq(0)
-    end
-
-    it "returns the raw stored value, including negatives" do
-      set_karma(user, -7)
-      expect(user.raw_upload_karma).to eq(-7)
-    end
-  end
-
-  # -------------------------------------------------------------------------
   # #upload_karma
   # -------------------------------------------------------------------------
   describe "#upload_karma" do
-    it "returns the raw value when positive" do
+    it "defaults to 0 for a new user" do
+      expect(user.upload_karma).to eq(0)
+    end
+
+    it "returns the stored value" do
       set_karma(user, 42)
       expect(user.upload_karma).to eq(42)
     end
 
-    it "clamps negative karma to 0 for display" do
+    it "returns the stored value, including negatives" do
       set_karma(user, -7)
-      expect(user.upload_karma).to eq(0)
+      expect(user.upload_karma).to eq(-7)
     end
   end
 

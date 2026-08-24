@@ -34,5 +34,17 @@ RSpec.describe KarmaBadge do
       set_karma(user, 1)
       expect(component.render?).to be true
     end
+
+    it "returns true for the user themselves with negative karma" do
+      allow(CurrentUser).to receive(:user).and_return(user)
+      set_karma(user, -7)
+      expect(component.render?).to be true
+    end
+
+    it "returns true for staff with negative karma" do
+      allow(CurrentUser).to receive(:user).and_return(create(:admin_user))
+      set_karma(user, -7)
+      expect(component.render?).to be true
+    end
   end
 end

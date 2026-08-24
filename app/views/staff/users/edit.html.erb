@@ -25,8 +25,8 @@
 
       <div class="input">
         <label for="user_upload_karma">Upload Karma</label>
-        <%= number_field_tag "user[upload_karma]", @user.raw_upload_karma %>
-        <span class="hint">Raw stored karma; may be negative. Adjustments are logged.</span>
+        <%= number_field_tag "user[upload_karma]", @user.upload_karma %>
+        <span class="hint">Stored karma; may be negative. Adjustments are logged.</span>
       </div>
 
       <% if CurrentUser.is_bd_staff? || !@user.is_bd_staff? %>
