@@ -2,16 +2,19 @@
 
 require "rails_helper"
 
+# --------------------------------------------------------------------------- #
+#                          PostEvent Class Methods                            #
+# --------------------------------------------------------------------------- #
+
 RSpec.describe PostEvent do
   include_context "as admin"
 
   let(:post)    { create(:post) }
   let(:creator) { create(:user) }
 
-  # --------------------------------------------------------------------------- #
-  #                             PostEvent.add                                   #
-  # --------------------------------------------------------------------------- #
-
+  # -------------------------------------------------------------------------
+  # .add
+  # -------------------------------------------------------------------------
   describe ".add" do
     it "creates a persisted record" do
       expect { PostEvent.add(post.id, creator, :deleted) }.to change(PostEvent, :count).by(1)
@@ -36,31 +39,35 @@ RSpec.describe PostEvent do
     end
   end
 
-  # --------------------------------------------------------------------------- #
-  #                        PostEvent.search_options_for                         #
-  # --------------------------------------------------------------------------- #
-
+  # -------------------------------------------------------------------------
+  # .search_options_for
+  # -------------------------------------------------------------------------
   describe ".search_options_for" do
-    let(:mod_only_actions) { %w[comment_locked comment_unlocked comment_disabled comment_enabled] }
-
     it "returns all action keys for a moderator" do
       moderator = create(:moderator_user)
-      options   = PostEvent.search_options_for(moderator)
-      expect(options).to include(*mod_only_actions)
-      expect(options.length).to eq(PostEvent.actions.length)
+      expect(PostEvent.search_options_for(moderator)).to eq(PostEvent.actions.keys)
     end
 
     it "excludes mod-only actions for a regular member" do
       member  = create(:user)
       options = PostEvent.search_options_for(member)
-      expect(options).not_to include(*mod_only_actions)
+      PostEvent::MOD_ONLY_SEARCH_ACTIONS.each do |mod_only_action|
+        expect(options).not_to include(mod_only_action)
+      end
     end
 
-    it "includes all non-mod-only actions for a regular member" do
-      member           = create(:user)
-      expected_actions = PostEvent.actions.keys - mod_only_actions
-      options          = PostEvent.search_options_for(member)
-      expect(options).to include(*expected_actions)
+    it "excludes ProtectedActionKeys for a regular member" do
+      member  = create(:user)
+      options = PostEvent.search_options_for(member)
+      PostEvent::ProtectedActionKeys.each do |protected_key|
+        expect(options).not_to include(protected_key)
+      end
+    end
+
+    it "includes non-protected, non-mod-only actions for a regular member" do
+      member  = create(:user)
+      options = PostEvent.search_options_for(member)
+      expect(options).to include("deleted", "approved", "flag_created")
     end
   end
 end
