@@ -112,4 +112,95 @@ RSpec.describe TagBatchJob do
       end
     end
   end
+
+  describe "index reconciliation" do
+    let!(:post) { create(:post, tag_string: "old_tag other_tag") }
+
+    it "enqueues the finalize job with the consequent and no stragglers" do
+      expect { perform }.to have_enqueued_job(TagBatchFinalizeJob).with("new_tag", [])
+    end
+
+    it "does not enqueue the finalize job when the arguments are rejected" do
+      expect { perform("old_tag extra_tag", "new_tag") }.to raise_error(ApplicationJob::JobError)
+      expect(TagBatchFinalizeJob).not_to have_been_enqueued
+    end
+
+    it "still enqueues the finalize job when a post cannot be saved" do
+      post.update_columns(rating: "x")
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(TagBatchFinalizeJob).to have_been_enqueued
+    end
+
+    it "resolves the consequent through an active alias" do
+      create(:tag_alias, antecedent_name: "new_tag", consequent_name: "final_tag", status: "active")
+      expect { perform }.to have_enqueued_job(TagBatchFinalizeJob).with("final_tag", [])
+      expect(post.reload.tag_array).to include("final_tag")
+    end
+
+    it "records posts the consequent did not survive on as stragglers" do
+      post.update_columns(locked_tags: "-new_tag")
+      expect { perform }.to have_enqueued_job(TagBatchFinalizeJob).with("new_tag", [post.id])
+    end
+
+    context "while migrating" do
+      # Created before the client is stubbed so the double only sees writes from the loop.
+      let(:client) { instance_double(OpenSearch::Client, index: { "result" => "updated" }) }
+
+      before { allow(Post.document_store).to receive(:client).and_return(client) }
+
+      it "does not write posts to the index one at a time" do
+        described_class.new.migrate_posts("old_tag", "new_tag")
+        expect(client).not_to have_received(:index)
+      end
+    end
+
+    it "clears the suppression flag once migration succeeds" do
+      described_class.new.migrate_posts("old_tag", "new_tag")
+      expect(Thread.current[:skip_post_index_update]).to be false
+    end
+
+    it "clears the suppression flag when migration raises" do
+      allow(Post).to receive(:sql_raw_tag_match).and_raise(RuntimeError, "boom")
+      expect { described_class.new.migrate_posts("old_tag", "new_tag") }.to raise_error(RuntimeError, "boom")
+      expect(Thread.current[:skip_post_index_update]).to be false
+    end
+  end
+
+  describe "failure handling" do
+    let!(:broken) { create(:post, tag_string: "old_tag").tap { |p| p.update_columns(rating: "x") } }
+
+    it "migrates the posts after a failed one" do
+      migrated = create(:post, tag_string: "old_tag")
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(migrated.reload.tag_array).to include("new_tag")
+    end
+
+    it "leaves the failed post on the old tag so a retry can reattempt it" do
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(broken.reload.tag_array).to include("old_tag")
+    end
+
+    it "raises a summary naming the skipped posts" do
+      expect { perform }.to raise_error(ApplicationJob::JobError, /##{broken.id}/)
+    end
+
+    it "still migrates blacklists" do
+      user = create(:user, blacklisted_tags: "old_tag")
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(user.reload.blacklisted_tags).to include("new_tag")
+    end
+
+    it "does not log a ModAction while posts are failing" do
+      expect { perform }.to raise_error(ApplicationJob::JobError)
+      expect(ModAction.where(action: "mass_update")).not_to exist
+    end
+
+    it "fails fast once the failure limit is reached" do
+      untouched = create(:post, tag_string: "old_tag")
+      stub_const("TagBatchJob::FAILURE_LIMIT", 1)
+
+      expect { perform }.to raise_error(ApplicationJob::JobError, /##{broken.id}/)
+      expect(untouched.reload.tag_array).to include("old_tag")
+    end
+  end
 end

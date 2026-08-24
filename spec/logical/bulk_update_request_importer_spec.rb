@@ -637,12 +637,24 @@ RSpec.describe BulkUpdateRequestImporter do
         expect { importer("update proc_mu_src -> proc_mu_dst").process!(approver) }
           .to have_enqueued_job(TagBatchJob).with("proc_mu_src", "proc_mu_dst", anything, anything)
       end
+
+      it "does not enqueue a TagBatchJob when a later line rolls the transaction back" do
+        script = "update proc_mu_rb_src -> proc_mu_rb_dst\nunalias proc_mu_rb_missing_ant -> proc_mu_rb_missing_con"
+        expect { importer(script).process!(approver) }.to raise_error(BulkUpdateRequestImporter::Error)
+        expect(TagBatchJob).not_to have_been_enqueued
+      end
     end
 
     describe "nuke_tag" do
       it "enqueues a TagNukeJob with the tag name" do
         expect { importer("nuke proc_nuke_target").process!(approver) }
           .to have_enqueued_job(TagNukeJob).with("proc_nuke_target", anything, anything)
+      end
+
+      it "does not enqueue a TagNukeJob when a later line rolls the transaction back" do
+        script = "nuke proc_nuke_rb_target\nunalias proc_nuke_rb_missing_ant -> proc_nuke_rb_missing_con"
+        expect { importer(script).process!(approver) }.to raise_error(BulkUpdateRequestImporter::Error)
+        expect(TagNukeJob).not_to have_been_enqueued
       end
     end
 
