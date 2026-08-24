@@ -196,8 +196,11 @@ RSpec.describe TagBatchJob do
     end
 
     it "fails fast once the failure limit is reached" do
+      untouched = create(:post, tag_string: "old_tag")
       stub_const("TagBatchJob::FAILURE_LIMIT", 1)
-      expect { perform }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect { perform }.to raise_error(ApplicationJob::JobError, /##{broken.id}/)
+      expect(untouched.reload.tag_array).to include("old_tag")
     end
   end
 end

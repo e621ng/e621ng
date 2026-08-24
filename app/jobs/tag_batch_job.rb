@@ -51,7 +51,7 @@ class TagBatchJob < ApplicationJob
     rescue ActiveRecord::RecordInvalid => e
       # Skip so one invalid post can't wedge every post after it across retries.
       failures << "##{post.id} (#{e.record.errors.full_messages.join(', ')})"
-      raise if failures.size >= FAILURE_LIMIT
+      raise_failure_summary(failures) if failures.size >= FAILURE_LIMIT
     end
     stragglers
   ensure

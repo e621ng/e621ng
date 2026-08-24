@@ -187,8 +187,11 @@ RSpec.describe TagNukeJob do
     end
 
     it "fails fast once the failure limit is reached" do
+      untouched = create(:post, tag_string: tag_name)
       stub_const("TagNukeJob::FAILURE_LIMIT", 1)
-      expect { perform }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect { perform }.to raise_error(ApplicationJob::JobError, /##{broken.id}/)
+      expect(untouched.reload.tag_array).to include(tag_name)
     end
   end
 
