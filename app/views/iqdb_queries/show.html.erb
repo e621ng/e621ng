@@ -8,8 +8,14 @@
       <%= f.input :score_cutoff, label: "Similarity", default: 60 %>
     <% end %>
 
+    <% if @error.present? %>
+      <div class="error-messages ui-state-error ui-corner-all">
+        <strong>Error</strong>: <%= @error %>
+      </div>
+    <% end %>
+
     <%= render partial: "application/blacklist_inline" %>
-    <%= render "iqdb_queries/matches" %>
+    <%= render "iqdb_queries/matches" unless @error %>
   </div>
 </div>
 

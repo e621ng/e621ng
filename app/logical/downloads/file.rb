@@ -38,10 +38,10 @@ module Downloads
       rescue Addressable::URI::InvalidURIError
         @url = nil
       end
-      validate!
+      raise Error, errors.full_messages.join("; ") unless valid?
     end
 
-    def download!(max_size: Danbooru.config.max_file_size)
+    def download!(max_size: Danbooru.config.max_file_size, retries: 3)
       # Validate the actual URL we're about to fetch (which can differ from the source
       # url via the strategy's image_url) before opening any socket.
       validate_uri_allowed!(uncached_url)
@@ -49,7 +49,7 @@ module Downloads
       file = Tempfile.new(binmode: true)
       conn = Faraday.new(Danbooru.config.faraday_options) do |f|
         f.response :follow_redirects, callback: ->(_old_env, new_env) { validate_uri_allowed!(new_env.url) }
-        f.request :retry, max: 3, retry_block: ->(*) { file = Tempfile.new(binmode: true) }
+        f.request :retry, max: retries, retry_block: ->(*) { file = Tempfile.new(binmode: true) }
         # Pin the connection to a validated IP. The adapter block runs per request —
         # including every redirect and retry — so the exact address checked against
         # BLOCKED_IP_RANGES is the exact address connected to (no DNS-rebind window).
@@ -73,6 +73,10 @@ module Downloads
     rescue Faraday::FollowRedirects::RedirectLimitReached
       file&.close!
       raise Error, "Could not download file: too many redirects"
+    # Must come after the RedirectLimitReached clause, which is a Faraday::Error subclass.
+    rescue Faraday::Error
+      file&.close!
+      raise Error, "Couldn't download the file. The remote server may be down or unreachable."
     end
 
     def validate_url
@@ -82,9 +86,11 @@ module Downloads
       end
 
       if url.scheme.in?(%w[http https])
-        errors.add(:base, "'#{url}' is not a valid url") if url.host.blank?
+        errors.add(:base, "'#{url}' is not a valid URL") if url.host.blank?
+      elsif url.scheme.blank?
+        errors.add(:base, "'#{url}' is not a valid URL. Did you mean 'http://#{url}'?")
       else
-        errors.add(:base, "'#{url}' is not a valid url. Did you mean 'http://#{url}'?")
+        errors.add(:base, "'#{url}' is not a valid URL. Only http and https are supported.")
       end
       validate_uri_allowed!(url)
     end

@@ -71,7 +71,8 @@ module IqdbProxy
   end
 
   def query_url(image_url, score_cutoff, v2_format: false)
-    file, _strategy = Downloads::File.new(image_url).download!
+    # No retries: a dead host should cost one timeout, not three, while the user holds a throttle slot.
+    file = Downloads::File.new(image_url).download!(retries: 0)
     query_file(file, score_cutoff, v2_format: v2_format)
   end
 
