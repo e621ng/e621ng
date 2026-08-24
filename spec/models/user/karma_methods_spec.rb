@@ -55,19 +55,19 @@ RSpec.describe User do
   describe "#upload_karma=" do
     it "updates the stored value" do
       user.upload_karma = 42
-      expect(user.reload.upload_karma).to eq(42)
+      expect(user.upload_karma).to eq(42)
     end
 
     it "accepts negative values" do
       user.upload_karma = -7
-      expect(user.reload.upload_karma).to eq(-7)
+      expect(user.upload_karma).to eq(-7)
     end
 
     it "ignores no-op updates" do
-      allow(UserStatus).to receive(:adjust_karma)
       set_karma(user, 42)
+      allow(UserStatus).to receive(:adjust_karma)
+      user.upload_karma = 42
       expect(UserStatus).not_to have_received(:adjust_karma)
-      user.reload.upload_karma = 42
     end
   end
 

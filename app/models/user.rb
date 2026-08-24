@@ -854,6 +854,7 @@ class User < ApplicationRecord
       return if delta == 0
 
       UserStatus.adjust_karma(id, delta)
+      user_status&.reload
     end
 
     def upload_karma_level
