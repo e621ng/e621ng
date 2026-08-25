@@ -32,15 +32,15 @@ export default class DTextFormatter {
 
   public isVueComponent = false;
 
-  private $wrapper: JQuery<HTMLElement>;
+  private $wrapper: JQuery<HTMLDivElement>;
   private $textarea: JQuery<HTMLTextAreaElement>;
-  private $preview: JQuery<HTMLElement>;
+  private $preview: JQuery<HTMLDivElement>;
   private allowColor: boolean;
   private characterLimit: number | null;
 
   private Logger: Logger;
 
-  constructor ($element: JQuery<HTMLElement>) {
+  constructor ($element: JQuery<HTMLDivElement>) {
     this.Logger = new Logger("DText");
 
     this.$wrapper = $element;
@@ -199,7 +199,7 @@ export default class DTextFormatter {
   }
 
   buildPreviewArea () {
-    this.$preview = $("<div>")
+    this.$preview = $<HTMLDivElement>("<div>")
       .addClass("dtext-formatter-preview");
     return this.$preview;
   }
@@ -314,8 +314,8 @@ export default class DTextFormatter {
   // ==== Static Constructor ==== //
   // =========================== //
 
-  static buildFromTextarea ($textarea) {
-    const $wrapper = $("<div>")
+  static buildFromTextarea ($textarea: JQuery<HTMLTextAreaElement>) {
+    const $wrapper = $<HTMLDivElement>("<div>")
       .addClass("dtext-formatter pending")
       .attr({
         "data-color": $textarea.data("color") || false,
