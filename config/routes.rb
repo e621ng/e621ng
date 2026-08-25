@@ -410,6 +410,7 @@ Rails.application.routes.draw do
     end
   end
   resource :tag_implication_request, only: %i[new create]
+  resources :upload_karma_events, only: :index
   resources :uploads
   resources :users do
     resource :password, only: %i[edit], controller: "maintenance/user/passwords"

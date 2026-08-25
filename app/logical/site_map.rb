@@ -159,6 +159,7 @@ module SiteMap
   page :post_events, :post_approvals, "Approvals"
   page :post_events, :post_flags, "Flags"
   page :post_events, :post_replacements, "Replacements"
+  page :post_events, :upload_karma_events, "Upload Karma"
   page :post_events, :staff_post_disapprovals, "Disapprovals",
        gate: { inline: "approver flag, not a level boundary" }, visible: ->(u) { u.can_approve_posts? }
 

@@ -433,7 +433,7 @@ class Post < ApplicationRecord
       update(approver: nil, is_pending: true)
 
       # Roll back previous karma changes for the uploader
-      UserStatus.adjust_karma(uploader_id, -UserStatus::KARMA_APPROVED_CREDIT)
+      UserStatus.adjust_karma(uploader_id, -UserStatus::KARMA_APPROVED_CREDIT, :unapproved, post_id: id)
     end
 
     def is_unapprovable?(user)
@@ -461,7 +461,7 @@ class Post < ApplicationRecord
       end
 
       # Reward the uploader for a post that cleared the review queue.
-      UserStatus.adjust_karma(uploader_id, UserStatus::KARMA_APPROVED_CREDIT)
+      UserStatus.adjust_karma(uploader_id, UserStatus::KARMA_APPROVED_CREDIT, :approved, post_id: id)
     end
   end
 
@@ -1324,8 +1324,9 @@ class Post < ApplicationRecord
             0
           end
         if delta != 0 && !from_takedown
-          UserStatus.adjust_karma(old_owner_id, -delta)
-          UserStatus.adjust_karma(new_owner_id, delta)
+          transfer_data = { old_owner: old_owner_id, new_owner: new_owner_id }
+          UserStatus.adjust_karma(old_owner_id, -delta, :owner_change, post_id: id, data: transfer_data)
+          UserStatus.adjust_karma(new_owner_id, delta, :owner_change, post_id: id, data: transfer_data)
         end
       end
 
@@ -1720,7 +1721,7 @@ class Post < ApplicationRecord
       # Takedowns pass skip_karma: removal reflects the artist's wishes, not the uploader's conduct.
       unless options[:skip_karma]
         penalty = UserStatus::KARMA_DELETION_PENALTY + (was_credited ? UserStatus::KARMA_APPROVED_CREDIT : 0)
-        UserStatus.adjust_karma(uploader_id, -penalty)
+        UserStatus.adjust_karma(uploader_id, -penalty, :deleted, post_id: id, data: { credit_reversed: was_credited })
       end
       give_favorites_to_parent if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
@@ -1766,7 +1767,7 @@ class Post < ApplicationRecord
       # credit lands the post back at the credit in every case. skip_karma restores from a
       # takedown, which never applied the penalty to begin with.
       unless options[:skip_karma]
-        UserStatus.adjust_karma(uploader_id, UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT)
+        UserStatus.adjust_karma(uploader_id, UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT, :undeleted, post_id: id)
       end
     end
 

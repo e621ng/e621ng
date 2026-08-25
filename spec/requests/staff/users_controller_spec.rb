@@ -154,6 +154,26 @@ RSpec.describe Staff::UsersController do
         end.not_to(change { ModAction.where(action: "user_karma_change").count })
       end
 
+      it "records a staff_override ledger row for the karma change" do
+        user.user_status.update_columns(upload_karma: 5)
+        patch staff_user_path(user), params: { user: { upload_karma: -20 } }
+        expect(UploadKarmaEvent.last).to have_attributes(
+          user_id: user.id,
+          post_id: nil,
+          reason: "staff_override",
+          delta: -25,
+          balance: -20,
+          extra_data: { "old_karma" => 5, "new_karma" => -20 },
+        )
+      end
+
+      it "records no ledger row when karma is unchanged" do
+        user.user_status.update_columns(upload_karma: 5)
+        expect do
+          patch staff_user_path(user), params: { user: { upload_karma: 5 } }
+        end.not_to change(UploadKarmaEvent, :count)
+      end
+
       it "grants can_upload_free and logs a user_flags_change ModAction" do
         patch staff_user_path(user), params: { user: { level: user.level, can_upload_free: "true" } }
         expect(user.reload.can_upload_free?).to be true

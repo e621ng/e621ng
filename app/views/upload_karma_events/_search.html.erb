@@ -1,0 +1,6 @@
+<%= form_search path: upload_karma_events_path do |f| %>
+  <%= f.user :user %>
+  <%= f.user :creator %>
+  <%= f.input :post_id, label: "Post #" %>
+  <%= f.input :reason, label: "Reason", collection: UploadKarmaEvent.reasons.keys.map { |k| [k.capitalize.tr("_", " "), k] }, include_blank: "Any" %>
+<% end %>

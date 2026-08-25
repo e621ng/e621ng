@@ -20,6 +20,10 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.is_bd_auditor = true
 end
 
+# The karma setter below writes an upload_karma_events row attributed to CurrentUser.
+CurrentUser.user = admin
+CurrentUser.ip_addr = "127.0.0.1"
+
 required_karma = User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
 if !required_karma.nil? && admin.upload_karma < required_karma
   admin.upload_karma = required_karma
@@ -142,8 +146,6 @@ end
 
 unless Rails.env.test?
   begin
-    CurrentUser.user = admin
-    CurrentUser.ip_addr = "127.0.0.1"
     import_mascots
     setup_upload_whitelist
     setup_report_reasons

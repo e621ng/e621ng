@@ -7,6 +7,9 @@ require "rails_helper"
 # --------------------------------------------------------------------------- #
 
 RSpec.describe User do
+  # The upload_karma= setter writes a ledger row attributed to CurrentUser.
+  include_context "as admin"
+
   let(:user) { create(:user) }
 
   before do
@@ -68,6 +71,20 @@ RSpec.describe User do
       allow(UserStatus).to receive(:adjust_karma)
       user.upload_karma = 42
       expect(UserStatus).not_to have_received(:adjust_karma)
+    end
+
+    it "records a staff_override ledger row" do
+      set_karma(user, 5)
+      user.upload_karma = 42
+      expect(UploadKarmaEvent.last).to have_attributes(
+        user_id: user.id,
+        creator_id: CurrentUser.id,
+        post_id: nil,
+        reason: "staff_override",
+        delta: 37,
+        balance: 42,
+        extra_data: { "old_karma" => 5, "new_karma" => 42 },
+      )
     end
   end
 

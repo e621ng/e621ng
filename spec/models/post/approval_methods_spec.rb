@@ -70,6 +70,13 @@ RSpec.describe Post do
         expect { post.approve!(approver) }
           .to change { post.uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_APPROVED_CREDIT)
       end
+
+      it "records an approved ledger row" do
+        approver = create(:admin_user)
+        post = create(:pending_post)
+        post.approve!(approver)
+        expect(UploadKarmaEvent.last).to have_attributes(user_id: post.uploader_id, post_id: post.id, reason: "approved", delta: UserStatus::KARMA_APPROVED_CREDIT)
+      end
     end
 
     describe "#unapprove!" do
@@ -92,6 +99,14 @@ RSpec.describe Post do
         post = create(:pending_post)
         post.approve!(approver)
         expect { post.unapprove! }.to change { post.uploader.user_status.reload.upload_karma }.by(-UserStatus::KARMA_APPROVED_CREDIT)
+      end
+
+      it "records an unapproved ledger row" do
+        approver = create(:admin_user)
+        post = create(:pending_post)
+        post.approve!(approver)
+        post.unapprove!
+        expect(UploadKarmaEvent.last).to have_attributes(user_id: post.uploader_id, post_id: post.id, reason: "unapproved", delta: -UserStatus::KARMA_APPROVED_CREDIT)
       end
     end
 

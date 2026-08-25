@@ -160,6 +160,29 @@ RSpec.describe PostReplacement do
       expect { replacement.toggle_penalize! }
         .to change { prev_uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_REPLACEMENT_PENALTY)
     end
+
+    it "records replacement_penalty and replacement_penalty_reversed ledger rows across a toggle cycle" do
+      prev_uploader = create(:user)
+      replacement = create(:approved_post_replacement)
+                    .tap { |r| r.update_columns(penalize_uploader_on_approve: false, uploader_id_on_approve: prev_uploader.id) }
+      allow(PostEvent).to receive(:add)
+
+      replacement.toggle_penalize!
+      expect(UploadKarmaEvent.last).to have_attributes(
+        user_id: prev_uploader.id,
+        post_id: replacement.post_id,
+        reason: "replacement_penalty",
+        delta: -UserStatus::KARMA_REPLACEMENT_PENALTY,
+        extra_data: { "replacement_id" => replacement.id },
+      )
+
+      replacement.toggle_penalize!
+      expect(UploadKarmaEvent.last).to have_attributes(
+        user_id: prev_uploader.id,
+        reason: "replacement_penalty_reversed",
+        delta: UserStatus::KARMA_REPLACEMENT_PENALTY,
+      )
+    end
   end
 
   # --------------------------------------------------------------------------
