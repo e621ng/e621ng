@@ -14,6 +14,7 @@ class CreateUploadKarmaEvents < ActiveRecord::Migration[8.1]
 
       t.index %i[user_id id]
       t.index :post_id, where: "post_id IS NOT NULL"
+      t.index :creator_id
     end
   end
 end

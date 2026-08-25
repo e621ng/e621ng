@@ -5806,6 +5806,13 @@ CREATE INDEX index_tags_on_name_trgm ON public.tags USING gin (name public.gin_t
 
 
 --
+-- Name: index_upload_karma_events_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_upload_karma_events_on_creator_id ON public.upload_karma_events USING btree (creator_id);
+
+
+--
 -- Name: index_upload_karma_events_on_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
