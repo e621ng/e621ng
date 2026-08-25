@@ -124,12 +124,14 @@ class WikiPagesController < ApplicationController
   end
 
   def wiki_page_params(context)
+    # category_id and category_is_locked are deprecated: still permitted so API
+    # clients don't get rejected, but ignored. Category changes go through tags#update.
     permitted_params = %i[body category_id edit_reason featured_posts_string]
     permitted_params += %i[parent] if CurrentUser.is_privileged?
     permitted_params += %i[is_locked is_deleted skip_secondary_validations] if CurrentUser.is_staff?
     permitted_params += %i[category_is_locked] if CurrentUser.is_admin?
     permitted_params += %i[title] if context == :create || CurrentUser.is_staff?
 
-    params.fetch(:wiki_page, {}).permit(permitted_params)
+    params.fetch(:wiki_page, {}).permit(permitted_params).except(:category_id, :category_is_locked)
   end
 end
