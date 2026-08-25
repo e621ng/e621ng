@@ -32,7 +32,7 @@ RSpec.describe UserStatus do
       described_class.adjust_karma(user.id, 5, :approved)
       described_class.adjust_karma(user.id, -3, :deleted)
 
-      expect(UploadKarmaEvent.order(:id).pluck(:balance)).to eq([5, 2])
+      expect(UploadKarmaEvent.where(user_id: user.id).order(:id).pluck(:balance)).to eq([5, 2])
       expect(user.user_status.reload.upload_karma).to eq(2)
     end
 

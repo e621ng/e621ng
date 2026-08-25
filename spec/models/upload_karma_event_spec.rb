@@ -65,7 +65,11 @@ RSpec.describe UploadKarmaEvent do
     end
 
     it "orders by id desc by default" do
-      expect(described_class.search({})).to eq([event_b, event_a])
+      # The seeded test DB already carries ledger rows, so assert the ordering
+      # property rather than the exact result set.
+      ids = described_class.search({}).ids
+      expect(ids).to include(event_a.id, event_b.id)
+      expect(ids).to eq(ids.sort.reverse)
     end
   end
 end

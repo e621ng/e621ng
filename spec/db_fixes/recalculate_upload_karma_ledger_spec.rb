@@ -9,6 +9,10 @@ RSpec.describe Fixes::RecalculateUploadKarmaLedger do
   let(:uploader) { create(:user) }
   let(:approver) { create(:moderator_user) }
 
+  # db/seeds.rb writes staff_override rows for the admin/system users, which would
+  # trip the script's must-run-first guard. Cleared per example (transactional).
+  before { UploadKarmaEvent.delete_all }
+
   def run!
     described_class.run
   end
