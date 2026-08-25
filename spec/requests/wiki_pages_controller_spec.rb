@@ -179,6 +179,14 @@ RSpec.describe WikiPagesController do
       expect(response.body).to include(tag_path(tag))
       expect(response.body).to include("tag[from_wiki]")
     end
+
+    it "normalizes the prefilled title before looking up the tag" do
+      tag = create(:tag, name: "wikiless_tag")
+      sign_in_as user
+      get new_wiki_page_path, params: { wiki_page: { title: "Species:Wikiless Tag" } }
+      expect(response.body).to include(tag_path(tag))
+      expect(response.body).to include("tag[from_wiki]")
+    end
   end
 
   # ---------------------------------------------------------------------------

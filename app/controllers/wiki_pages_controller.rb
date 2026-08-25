@@ -46,6 +46,8 @@ class WikiPagesController < ApplicationController
 
   def new
     @wiki_page = WikiPage.new(wiki_page_params(:create))
+    # normalize eagerly so the has_one :tag lookup matches for prefilled titles
+    @wiki_page.title = WikiPage.normalize_title(@wiki_page.title) if @wiki_page.title.present?
     respond_with(@wiki_page)
   end
 

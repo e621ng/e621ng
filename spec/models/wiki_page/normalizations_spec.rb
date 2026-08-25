@@ -62,6 +62,19 @@ RSpec.describe WikiPage do
   end
 
   # -------------------------------------------------------------------------
+  # .normalize_title (class method)
+  # -------------------------------------------------------------------------
+  describe ".normalize_title" do
+    it "downcases, underscores, and strips a category prefix" do
+      expect(WikiPage.normalize_title("Species:Some Tag")).to eq("some_tag")
+    end
+
+    it "leaves unprefixed titles unchanged apart from casing and spaces" do
+      expect(WikiPage.normalize_title("Plain Title")).to eq("plain_title")
+    end
+  end
+
+  # -------------------------------------------------------------------------
   # normalize_other_names (before_validation)
   # -------------------------------------------------------------------------
   describe "normalize_other_names" do

@@ -241,11 +241,15 @@ class WikiPage < ApplicationRecord
   def normalize_title
     return if title.nil?
 
-    title = self.title.downcase.tr(" ", "_")
+    self.title = WikiPage.normalize_title(title)
+  end
+
+  def self.normalize_title(title)
+    title = normalize_name(title)
     if title =~ /\A(#{Tag.categories.regexp}):(.+)\Z/
       title = $2
     end
-    self.title = title
+    title
   end
 
   def normalize_other_names
