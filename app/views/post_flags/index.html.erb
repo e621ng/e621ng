@@ -57,7 +57,9 @@
             <td>
               <%= compact_time post_flag.post.created_at %>
               <br> by <%= link_to_user post_flag.post.uploader %>
-              <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} user:#{post_flag.post.uploader.name}".strip)) %>
+              <% if CurrentUser.is_member? %>
+                <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} user:#{post_flag.post.uploader.name}".strip)) %>
+              <% end %>
             </td>
             <td>
               <%= compact_time post_flag.created_at %>
@@ -72,10 +74,14 @@
             <td>
               <% if post_flag.post.approver %>
                 <%= link_to_user post_flag.post.approver %>
-                <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} approver:#{post_flag.post.approver.name}".strip)) %>
+                <% if CurrentUser.is_member? %>
+                  <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} approver:#{post_flag.post.approver.name}".strip)) %>
+                <% end %>
               <% else %>
                 <em>none</em>
-                <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} approver:none".strip)) %>
+                <% if CurrentUser.is_member? %>
+                  <%= link_to "»", post_flags_path(search: @search_params.merge(post_tags_match: "#{@search_params[:post_tags_match]} approver:none".strip)) %>
+                <% end %>
               <% end %>
             </td>
           </tr>
