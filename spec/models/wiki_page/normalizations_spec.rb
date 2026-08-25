@@ -23,26 +23,29 @@ RSpec.describe WikiPage do
       expect(page.title).to eq("a_page_title")
     end
 
-    it "strips the category-1 prefix and sets category_id to 1" do
+    it "strips the category-1 prefix from the title" do
       cat1 = TagCategory::REVERSE_MAPPING[1]
       page = build(:wiki_page, title: "#{cat1}:some_tag")
       page.valid?
       expect(page.title).to eq("some_tag")
-      expect(page.category_id).to eq(1)
     end
 
-    it "strips the species: prefix and sets category_id to species" do
+    it "strips the species: prefix from the title" do
       page = build(:wiki_page, title: "species:some_species")
       page.valid?
       expect(page.title).to eq("some_species")
-      expect(page.category_id).to eq(5) # species
     end
 
-    it "strips the character: prefix and sets category_id to character" do
+    it "strips the character: prefix from the title" do
       page = build(:wiki_page, title: "character:some_character")
       page.valid?
       expect(page.title).to eq("some_character")
-      expect(page.category_id).to eq(4) # character
+    end
+
+    it "does not create a tag for a category-prefixed title" do
+      expect do
+        create(:wiki_page, title: "species:prefix_no_tag")
+      end.not_to change(Tag, :count)
     end
 
     it "leaves titles without a category prefix unchanged" do
@@ -55,7 +58,19 @@ RSpec.describe WikiPage do
       page = build(:wiki_page, title: "#{cat1.upcase}:foo_artist")
       page.valid?
       expect(page.title).to eq("foo_artist")
-      expect(page.category_id).to eq(1) # artist
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # .normalize_title (class method)
+  # -------------------------------------------------------------------------
+  describe ".normalize_title" do
+    it "downcases, underscores, and strips a category prefix" do
+      expect(WikiPage.normalize_title("Species:Some Tag")).to eq("some_tag")
+    end
+
+    it "leaves unprefixed titles unchanged apart from casing and spaces" do
+      expect(WikiPage.normalize_title("Plain Title")).to eq("plain_title")
     end
   end
 
