@@ -93,7 +93,7 @@ module Fixes
                  p.id,
                  #{reasons[:deleted]},
                  #{-UserStatus::KARMA_DELETION_PENALTY},
-                 COALESCE(lde.created_at, df.created_at, p.updated_at)
+                 COALESCE(lde.created_at, df.created_at, p.updated_at, p.created_at)
           FROM posts p
           LEFT JOIN latest_deletion_event lde ON lde.post_id = p.id
           LEFT JOIN deletion_flag df ON df.post_id = p.id

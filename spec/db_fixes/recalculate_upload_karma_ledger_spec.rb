@@ -93,6 +93,17 @@ RSpec.describe Fixes::RecalculateUploadKarmaLedger do
       expect(event.created_at).to be_within(1.second).of(2.days.ago)
     end
 
+    it "falls back to created_at for ancient posts with no deletion trace and a NULL updated_at" do
+      post = create(:deleted_post, uploader: uploader)
+      post.update_columns(created_at: 10.years.ago, updated_at: nil)
+
+      run!
+
+      event = UploadKarmaEvent.find_by(post_id: post.id)
+      expect(event.reason).to eq("deleted")
+      expect(event.created_at).to be_within(1.second).of(10.years.ago)
+    end
+
     it "skips takedown-deleted posts" do
       post = create(:post, uploader: uploader)
       create(:deletion_post_flag, post: post, reason: "takedown #123: artist request")
