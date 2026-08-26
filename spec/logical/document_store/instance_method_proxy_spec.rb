@@ -29,16 +29,53 @@ RSpec.describe DocumentStore::InstanceMethodProxy do
       end
 
       context "when the write is rejected" do
-        let(:client) { instance_double(OpenSearch::Client, index: { "status" => 409, "error" => { "type" => "version_conflict_engine_exception" } }) }
+        let(:conflict) { { "status" => 409, "error" => { "type" => "version_conflict_engine_exception" } } }
+        let(:success) { { "result" => "updated" } }
+        let(:client) { instance_double(OpenSearch::Client, get: { "_version" => 23_456 }) }
 
-        it "does not raise" do
-          expect { update_index }.not_to raise_error
+        before { allow(Rails.logger).to receive(:warn) }
+
+        context "when the document has moved ahead" do
+          before { allow(client).to receive(:index).and_return(conflict, success) }
+
+          it "rewrites the same content at the document's version" do
+            update_index
+            expect(client).to have_received(:index).with(hash_including(version: 23_456, version_type: "external_gte")).once
+          end
+
+          it "logs the retry, which the transport itself swallows" do
+            update_index
+            expect(Rails.logger).to have_received(:warn).with(/version conflict indexing .*#{post.id}/)
+          end
         end
 
-        it "logs the rejection, which the transport itself swallows" do
-          allow(Rails.logger).to receive(:warn)
-          update_index
-          expect(Rails.logger).to have_received(:warn).with(/version conflict indexing .*#{post.id}/)
+        context "when the document was deleted in the meantime" do
+          before do
+            allow(client).to receive(:get).and_return({ "found" => false })
+            allow(client).to receive(:index).and_return(conflict, success)
+          end
+
+          it "retries at the record's own version" do
+            update_index
+            expect(client).to have_received(:index).with(hash_including(version: 12_345)).twice
+          end
+        end
+
+        context "when the conflict persists" do
+          before { allow(client).to receive(:index).and_return(conflict) }
+
+          it "raises after bounded retries instead of dropping the update" do
+            expect { update_index }.to raise_error(DocumentStore::VersionConflictError, /#{post.id}/)
+          end
+
+          it "stops writing after the retry budget" do
+            begin
+              update_index
+            rescue DocumentStore::VersionConflictError
+              nil
+            end
+            expect(client).to have_received(:index).exactly(3).times
+          end
         end
       end
     end
