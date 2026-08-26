@@ -33,7 +33,7 @@ class PostEvent < ApplicationRecord
   }
   MOD_ONLY_SEARCH_ACTIONS = %w[comment_locked comment_unlocked comment_disabled comment_enabled].freeze
 
-  KnownActions = { # rubocop:disable Naming/ConstantName
+  KNOWN_ACTIONS = {
     deleted: { reason: :string },
     undeleted: {},
     approved: {},
@@ -63,8 +63,8 @@ class PostEvent < ApplicationRecord
     replacement_moved: { replacement_id: :integer, old_post: :integer, new_post: :integer },
   }.freeze
 
-  KnownActionKeys = KnownActions.keys.freeze
-  ProtectedActionKeys = %w[replacement_penalty_changed].freeze
+  KNOWN_ACTION_KEYS = KNOWN_ACTIONS.keys.freeze
+  PROTECTED_ACTION_KEYS = %w[replacement_penalty_changed].freeze
 
   def self.add(post_id, creator, action, data = {})
     create!(post_id: post_id, creator: creator, action: action.to_s, extra_data: data)
@@ -84,7 +84,7 @@ class PostEvent < ApplicationRecord
     return {} unless original_data.is_a?(Hash)
     return original_data if CurrentUser.is_admin?
 
-    valid_keys = KnownActions[action.to_sym]&.keys&.map(&:to_s) || []
+    valid_keys = KNOWN_ACTIONS[action.to_sym]&.keys&.map(&:to_s) || []
     sanitized_values = original_data.slice(*valid_keys)
 
     if %w[replacement_deleted].include?(action)
@@ -97,7 +97,7 @@ class PostEvent < ApplicationRecord
   module SearchMethods
     def visible(user)
       return all if user.is_staff?
-      where.not(action: ProtectedActionKeys)
+      where.not(action: PROTECTED_ACTION_KEYS)
     end
 
     def jsonb_boolean_attribute_matches(attribute, value)
@@ -143,13 +143,13 @@ class PostEvent < ApplicationRecord
         )
       end
 
-      if params[:action].present? && KnownActionKeys.include?(params[:action].to_sym)
+      if params[:action].present? && KNOWN_ACTION_KEYS.include?(params[:action].to_sym)
         if !CurrentUser.user.is_moderator? && MOD_ONLY_SEARCH_ACTIONS.include?(params[:action])
           raise(User::PrivilegeError)
         end
         q = q.where(action: params[:action])
 
-        field_types = KnownActions[params[:action].to_sym]
+        field_types = KNOWN_ACTIONS[params[:action].to_sym]
         valid_params = params.slice(*field_types.keys.map(&:to_s))
 
         field_types.each do |key, type|
@@ -176,7 +176,7 @@ class PostEvent < ApplicationRecord
     def search_options_for(user)
       options = actions.keys.map(&:to_s)
       options -= MOD_ONLY_SEARCH_ACTIONS unless user.is_moderator?
-      options -= ProtectedActionKeys unless user.is_staff?
+      options -= PROTECTED_ACTION_KEYS unless user.is_staff?
       options
     end
   end

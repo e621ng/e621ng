@@ -56,10 +56,10 @@ RSpec.describe PostEvent do
       end
     end
 
-    it "excludes ProtectedActionKeys for a regular member" do
+    it "excludes PROTECTED_ACTION_KEYS for a regular member" do
       member  = create(:user)
       options = PostEvent.search_options_for(member)
-      PostEvent::ProtectedActionKeys.each do |protected_key|
+      PostEvent::PROTECTED_ACTION_KEYS.each do |protected_key|
         expect(options).not_to include(protected_key)
       end
     end

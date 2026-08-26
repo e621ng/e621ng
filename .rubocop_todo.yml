@@ -581,11 +581,6 @@ Naming/AccessorMethodName:
     - 'app/models/post.rb'
     - 'config/initializers/cache_store.rb'
 
-# Offense count: 2
-Naming/ConstantName:
-  Exclude:
-    - 'app/models/mod_action.rb'
-
 # Offense count: 3
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: EnforcedStyleForLeadingUnderscores.
