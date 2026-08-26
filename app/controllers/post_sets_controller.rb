@@ -185,7 +185,7 @@ class PostSetsController < ApplicationController
 
   def check_set_post_limit(set)
     if set.is_over_limit?
-      raise "This set contains too many posts and can no longer be edited."
+      raise PostSet::PostLimitError, "This set contains too many posts and can no longer be edited."
     end
   end
 
