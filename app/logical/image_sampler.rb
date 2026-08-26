@@ -7,7 +7,8 @@ module ImageSampler
     return unless File.exist?(post.file_path)
     return if post.is_flash? # Cannot generate any kind of thumbnail
     image = image_from_path(post.file_path, is_video: post.is_video?)
-    dimensions = [post.image_width, post.image_height]
+    # Use the loaded image's dimensions – stored post dimensions may predate EXIF autorotation and be swapped.
+    dimensions = [image.width, image.height]
 
     sm = Danbooru.config.storage_manager
 
@@ -35,7 +36,8 @@ module ImageSampler
   def generate_avatar_crop(post, user_id, pos_x:, pos_y:, width:)
     sm = Danbooru.config.storage_manager
     source_path = post.has_sample? ? sm.post_file_path(post, :sample_jpg) : post.file_path
-    image = Vips::Image.new_from_file(source_path)
+    # Crop coordinates come from the browser, which displays the original with EXIF orientation applied.
+    image = Vips::Image.new_from_file(source_path).autorot
 
     cropped = image.crop(pos_x, pos_y, width, width)
     target = Danbooru.config.small_image_width
@@ -73,7 +75,7 @@ module ImageSampler
     return unless File.exist?(replacement.replacement_file_path)
     return if replacement.file_ext == "swf" # Cannot generate any kind of thumbnail
     image = image_from_path(replacement.replacement_file_path, is_video: replacement.is_video?)
-    dimensions = [replacement.image_width, replacement.image_height]
+    dimensions = [image.width, image.height]
 
     # Generate thumbnails
     thumb = thumbnail(image, dimensions)[:jpg]
@@ -92,7 +94,9 @@ module ImageSampler
       snapshot.close!
       image
     else
-      Vips::Image.new_from_file(file_path)
+      # autorot applies the EXIF orientation tag (and removes it), so
+      # generated images match what browsers display for the original.
+      Vips::Image.new_from_file(file_path).autorot
     end
   end
 
