@@ -34,6 +34,9 @@ module DocumentStore
         # so retry at the document's own version (external_gte accepts equal) rather than
         # dropping the update.
         version = [version, current_document_version].compact.max
+        @target.reload
+        body = as_indexed_json
+        version = [version, index_version].compact.max
         Rails.logger.warn("[DocumentStore] version conflict indexing #{index_name}/#{id}: retrying at version #{version}")
       end
 
