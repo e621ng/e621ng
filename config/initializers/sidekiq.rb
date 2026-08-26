@@ -2,6 +2,7 @@
 
 require "sidekiq-unique-jobs"
 require "sidekiq-cron"
+require_relative "../../lib/sidekiq_capsules"
 
 Sidekiq.logger.level = Logger::WARN if Rails.env.test?
 
@@ -17,6 +18,23 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
   end
 
   SidekiqUniqueJobs::Server.configure(config)
+
+  # Extra capsules with their own thread pools, capping per-queue concurrency
+  # (e.g. concurrent video transcodes) without a dedicated host per queue.
+  SidekiqCapsules.parse(ENV.fetch("SIDEKIQ_CAPSULES", nil)).each do |spec|
+    config.capsule(spec[:name]) do |cap|
+      cap.concurrency = spec[:concurrency]
+      cap.queues = spec[:queues]
+    end
+  end
+
+  config.on(:startup) do
+    pool = ActiveRecord::Base.connection_pool.size
+    total = config.total_concurrency
+    if pool < total
+      Sidekiq.logger.warn("Database pool (#{pool}) is smaller than total Sidekiq concurrency (#{total}); raise DB_WORKER_POOL_SIZE or busy threads will wait on connections")
+    end
+  end
 
   # Schedule recurring jobs
   schedule = {
