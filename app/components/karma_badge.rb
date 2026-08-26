@@ -8,7 +8,7 @@ class KarmaBadge < ViewComponent::Base
 
   def render?
     return false if user.blank?
-    return false if user.upload_karma <= 0 && !should_show_raw_karma?
+    return false if user.upload_karma <= 0 && !force_visible?
     true
   end
 
@@ -21,17 +21,13 @@ class KarmaBadge < ViewComponent::Base
     user.upload_karma_level
   end
 
-  def karma_value
-    should_show_raw_karma? ? user.raw_upload_karma : user.upload_karma
-  end
-
   def badge_title
     if user.upload_karma_level >= User.max_karma_level
       return "Upload Karma: #{user.upload_karma} (Level S)"
     end
 
     next_level = user.upload_karma_level + 1
-    "Upload Karma: #{karma_value} / #{User.required_karma_for_level(next_level)} (Level #{karma_level})"
+    "Upload Karma: #{user.upload_karma} / #{User.required_karma_for_level(next_level)} (Level #{karma_level})"
   end
 
   def progress_degree
@@ -43,7 +39,8 @@ class KarmaBadge < ViewComponent::Base
     "background: conic-gradient(var(--color-button-active) #{progress_degree}deg, var(--color-section) 0deg);"
   end
 
-  def should_show_raw_karma?
+  # Staff and the user themselves see the badge even at zero or negative karma.
+  def force_visible?
     CurrentUser.user.is_staff? || CurrentUser.user.id == user.id
   end
 end

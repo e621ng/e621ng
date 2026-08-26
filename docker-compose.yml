@@ -92,6 +92,7 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./docker/create_eris_db.sql:/docker-entrypoint-initdb.d/create_eris_db.sql
     ports:
       - "${EXPOSED_POSTGRES_PORT:-34517}:5432"
   
@@ -125,7 +126,7 @@ services:
   iqdb:
     image: ghcr.io/e621ng/eris:1.0.0
     environment:
-      ERIS_DATABASE_URL: postgres://e621@postgres:5432/e621_development
+      ERIS_DATABASE_URL: postgres://e621@postgres:5432/eris
     depends_on:
       postgres:
         condition: service_started

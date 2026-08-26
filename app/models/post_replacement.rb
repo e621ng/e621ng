@@ -252,11 +252,11 @@ class PostReplacement < ApplicationRecord
       if penalize_uploader_on_approve
         UserStatus.for_user(uploader_on_approve).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count - 1")
         # Reverse the karma penalty when the penalty is toggled off.
-        UserStatus.adjust_karma(uploader_on_approve, UserStatus::KARMA_REPLACEMENT_PENALTY)
+        UserStatus.adjust_karma(uploader_id_on_approve, UserStatus::KARMA_REPLACEMENT_PENALTY, :replacement_penalty_reversed, post_id: post_id, data: { replacement_id: id })
       else
         UserStatus.for_user(uploader_on_approve).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
         # Apply the karma penalty when the penalty is toggled on.
-        UserStatus.adjust_karma(uploader_on_approve, -UserStatus::KARMA_REPLACEMENT_PENALTY)
+        UserStatus.adjust_karma(uploader_id_on_approve, -UserStatus::KARMA_REPLACEMENT_PENALTY, :replacement_penalty, post_id: post_id, data: { replacement_id: id })
       end
       update_attribute(:penalize_uploader_on_approve, !penalize_uploader_on_approve)
     end

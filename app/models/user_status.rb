@@ -15,7 +15,26 @@ class UserStatus < ApplicationRecord
     where("user_statuses.user_id = ?", user_id)
   end
 
-  def self.adjust_karma(user_id, delta)
-    for_user(user_id).update_all(["upload_karma = upload_karma + ?", delta])
+  # Applies the karma delta and records it in the upload_karma_events ledger,
+  # atomically. RETURNING captures the post-change balance race-free.
+  def self.adjust_karma(user_id, delta, reason, post_id: nil, data: {})
+    return if delta == 0
+    transaction do
+      result = connection.exec_query(
+        sanitize_sql(["UPDATE user_statuses SET upload_karma = upload_karma + ? WHERE user_id = ? RETURNING upload_karma", delta, user_id]),
+      )
+      # No user_statuses row — the same silent no-op update_all used to be.
+      next if result.rows.empty?
+
+      UploadKarmaEvent.create!(
+        user_id: user_id,
+        creator_id: CurrentUser.id,
+        post_id: post_id,
+        reason: reason,
+        delta: delta,
+        balance: result.rows[0][0],
+        extra_data: data,
+      )
+    end
   end
 end

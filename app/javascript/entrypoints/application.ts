@@ -9,11 +9,11 @@ Rails.start();
 import "@/core/Analytics";
 import "@/core/AuthOverlay";
 import "@/core/common";
-import "@/core/dtext_formatter_loader";
 import "@/core/DTextExtras";
+import "@/core/DTextFormatterLoader";
 import "@/core/Navigation";
 import "@/core/news_updates";
-import "@/core/paginator";
+import "@/core/PaginatorFastTravel";
 import "@/core/themes";
 import "@/core/tos_warning";
 import "@/core/user_warning"; // Realistically, should only be on specific pages

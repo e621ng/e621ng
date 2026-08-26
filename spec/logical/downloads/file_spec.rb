@@ -37,28 +37,35 @@ RSpec.describe Downloads::File do
     end
 
     describe "blank URL" do
-      it "raises ActiveModel::ValidationError for nil" do
+      it "raises Downloads::File::Error for nil" do
         expect { described_class.new(nil) }
-          .to raise_error(ActiveModel::ValidationError, /URL must not be blank/)
+          .to raise_error(Downloads::File::Error, /URL must not be blank/)
       end
 
-      it "raises ActiveModel::ValidationError for empty string" do
+      it "raises Downloads::File::Error for empty string" do
         expect { described_class.new("") }
-          .to raise_error(ActiveModel::ValidationError, /URL must not be blank/)
+          .to raise_error(Downloads::File::Error, /URL must not be blank/)
       end
     end
 
     describe "invalid scheme" do
-      it "raises ActiveModel::ValidationError for ftp:// scheme with hint" do
-        expect { described_class.new("ftp://example.com/file") }
-          .to raise_error(ActiveModel::ValidationError, /Did you mean/)
+      it "raises Downloads::File::Error for ftp:// scheme without the http hint" do
+        expect { described_class.new("ftp://example.com/file") }.to raise_error(Downloads::File::Error) do |e|
+          expect(e.message).to include("Only http and https are supported")
+          expect(e.message).not_to include("Did you mean")
+        end
+      end
+
+      it "raises Downloads::File::Error with the http hint when the scheme is absent" do
+        expect { described_class.new("example.com/file.jpg") }
+          .to raise_error(Downloads::File::Error, %r{Did you mean 'http://})
       end
     end
 
     describe "blank host" do
-      it "raises ActiveModel::ValidationError when host is missing" do
+      it "raises Downloads::File::Error when host is missing" do
         expect { described_class.new("http:///path/to/file") }
-          .to raise_error(ActiveModel::ValidationError, /not a valid url/)
+          .to raise_error(Downloads::File::Error, /not a valid URL/)
       end
     end
 
@@ -321,6 +328,18 @@ RSpec.describe Downloads::File do
         .and_raise(Faraday::FollowRedirects::RedirectLimitReached.new({ url: "https://example.com/" }))
       expect { downloader.download! }
         .to raise_error(Downloads::File::Error, /too many redirects/)
+    end
+
+    it "raises Downloads::File::Error when the connection fails" do
+      allow(conn).to receive(:get).and_raise(Faraday::ConnectionFailed, "boom")
+      expect { downloader.download! }
+        .to raise_error(Downloads::File::Error, /Couldn't download the file/)
+    end
+
+    it "raises Downloads::File::Error when the request times out" do
+      allow(conn).to receive(:get).and_raise(Faraday::TimeoutError)
+      expect { downloader.download! }
+        .to raise_error(Downloads::File::Error, /Couldn't download the file/)
     end
 
     # FIXME: The on_data streaming callback (which enforces max_size) is never invoked

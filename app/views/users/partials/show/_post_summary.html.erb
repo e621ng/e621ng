@@ -11,8 +11,10 @@
 
       <div class="profile-sample-links">
         <%= link_to(sanitize("<b>#{artist.tag&.post_count || 0}</b> total"), posts_path(tags: artist.name)) %>
-        <span class="spacer"></span>
-        <%= link_to("Comments", comments_path(group_by: "comment", search: { post_tags_match: artist.name }), class: "profile-comments-link") %>
+        <% if CurrentUser.is_member? %>
+          <span class="spacer"></span>
+          <%= link_to("Comments", comments_path(group_by: "comment", search: { post_tags_match: artist.name }), class: "profile-comments-link") %>
+        <% end %>
       </div>
 
       <div class="profile-sample-posts">
