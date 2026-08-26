@@ -455,6 +455,17 @@ RSpec.describe PostSetsController do
         expect(response.parsed_body["message"]).to match(/only add up to/)
       end
     end
+
+    context "when the set is over the post limit" do
+      before { sign_in_as owner }
+
+      it "returns a 422 error" do
+        public_set.update_columns(post_count: Danbooru.config.post_set_post_limit.to_i + 101)
+        post add_posts_post_set_path(public_set, format: :json), params: { post_ids: [new_post.id] }
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["message"]).to match(/too many posts/i)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -508,6 +519,17 @@ RSpec.describe PostSetsController do
         post remove_posts_post_set_path(public_set, format: :json), params: { post_ids: post_ids }
         expect(response).to have_http_status(:bad_request)
         expect(response.parsed_body["message"]).to match(/only remove up to/)
+      end
+    end
+
+    context "when the set is over the post limit" do
+      before { sign_in_as owner }
+
+      it "returns a 422 error" do
+        public_set.update_columns(post_count: Danbooru.config.post_set_post_limit.to_i + 101)
+        post remove_posts_post_set_path(public_set, format: :json), params: { post_ids: [existing_post.id] }
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["message"]).to match(/too many posts/i)
       end
     end
   end

@@ -150,7 +150,7 @@ class ApplicationController < ActionController::Base
       render_unsupported_format
     when Danbooru::Paginator::PaginationError
       render_expected_error(410, exception.message)
-    when TagQuery::CountExceededError, TagQuery::DepthExceededError, TagQuery::InvalidTagError, ParseValue::InvalidDateError
+    when TagQuery::CountExceededError, TagQuery::DepthExceededError, TagQuery::InvalidTagError, ParseValue::InvalidDateError, PostSet::PostLimitError
       render_expected_error(422, exception.message)
     when Regexp::TimeoutError
       # See TagQuery.group_depth_exceeded?
