@@ -144,7 +144,8 @@ module FileMethods
       end
       stdout.chomp.split("x").map(&:to_i)
     elsif is_image?
-      image = Vips::Image.new_from_file(file_path)
+      # autorot swaps width/height for EXIF-rotated images, matching how browsers display them.
+      image = Vips::Image.new_from_file(file_path).autorot
       [image.width, image.height]
 
     else
