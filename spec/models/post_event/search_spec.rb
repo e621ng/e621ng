@@ -39,7 +39,7 @@ RSpec.describe PostEvent do
     let!(:event_b) { make_event(post: post_b) }
 
     it "returns only events for the given post" do
-      results = PostEvent.search(post_id: post_a.id.to_s)
+      results = PostEvent.search(post_id: post_a.id)
       expect(results).to include(event_a)
       expect(results).not_to include(event_b)
     end

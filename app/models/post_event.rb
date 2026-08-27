@@ -64,7 +64,6 @@ class PostEvent < ApplicationRecord
   }.freeze
 
   KNOWN_ACTION_KEYS = KNOWN_ACTIONS.keys.freeze
-  PROTECTED_ACTION_KEYS = %w[].freeze
 
   def self.add(post_id, creator, action, data = {})
     create!(post_id: post_id, creator: creator, action: action.to_s, extra_data: data)
@@ -95,11 +94,6 @@ class PostEvent < ApplicationRecord
   end
 
   module SearchMethods
-    def visible(user)
-      return all if user.is_staff?
-      where.not(action: PROTECTED_ACTION_KEYS)
-    end
-
     def jsonb_boolean_attribute_matches(attribute, value)
       bool_value = ActiveRecord::Type::Boolean.new.cast(value)
 
@@ -134,7 +128,9 @@ class PostEvent < ApplicationRecord
     def search(params)
       q = super
 
-      q = q.attribute_matches(:post_id, params[:post_id])
+      if params[:post_id].present?
+        q = q.where(post_id: params[:post_id])
+      end
 
       q = q.where_user(:creator_id, :creator, params) do |condition, user_ids|
         condition.where.not(
@@ -176,7 +172,6 @@ class PostEvent < ApplicationRecord
     def search_options_for(user)
       options = actions.keys.map(&:to_s)
       options -= MOD_ONLY_SEARCH_ACTIONS unless user.is_moderator?
-      options -= PROTECTED_ACTION_KEYS unless user.is_staff?
       options
     end
   end
