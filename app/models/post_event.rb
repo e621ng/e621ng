@@ -64,7 +64,7 @@ class PostEvent < ApplicationRecord
   }.freeze
 
   KNOWN_ACTION_KEYS = KNOWN_ACTIONS.keys.freeze
-  PROTECTED_ACTION_KEYS = %w[replacement_penalty_changed].freeze
+  PROTECTED_ACTION_KEYS = %w[].freeze
 
   def self.add(post_id, creator, action, data = {})
     create!(post_id: post_id, creator: creator, action: action.to_s, extra_data: data)
