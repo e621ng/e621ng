@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 class TagImplicationFinalizeJob < ApplicationJob
-  sidekiq_options queue: "tags", lock: :until_executed, lock_args_method: :lock_args, lock_ttl: 24.hours.to_i
-
-  def self.lock_args(args)
-    [args[0]]
-  end
+  # Keyed on full args: an undo-finalize (id, name, true) must never dedup away
+  # against a queued approve-finalize (id, name) for the same implication — they
+  # differ only by the undo flag, and the survivor would skip reindexing the
+  # undo rows' posts.
+  sidekiq_options queue: "tags", lock: :until_executed, lock_ttl: 24.hours.to_i
 
   # Sidekiq args are positional JSON; keywords are not an option here.
   def perform(implication_id, reindex_tag_name, undo = false) # rubocop:disable Style/OptionalBooleanParameter
