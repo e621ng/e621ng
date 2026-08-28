@@ -580,6 +580,6 @@ class Artist < ApplicationRecord
   end
 
   def update_posts_index
-    Post.tag_match_system(name).each(&:update_index)
+    Post.sql_raw_tag_match(name).find_each(&:update_index)
   end
 end
