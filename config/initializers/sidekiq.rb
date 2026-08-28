@@ -6,10 +6,17 @@ require_relative "../../lib/sidekiq_capsules"
 
 Sidekiq.logger.level = Logger::WARN if Rails.env.test?
 
-# Defer in-transaction enqueues to commit (and drop them on rollback), matching
-# ActiveJob's behavior before the native-Sidekiq migration. Not in tests:
-# transactional fixtures never commit, so every enqueue would vanish.
-Sidekiq.transactional_push! unless Rails.env.test?
+# With ActiveJob, enqueue_after_transaction_commit defaulted to false; only these four jobs opted in.
+# Route just those through the transaction-aware client and leave every other job as is.
+# Skipped in tests.
+unless Rails.env.test?
+  require "sidekiq/transaction_aware_client"
+  Rails.application.config.to_prepare do
+    [TagAliasJob, TagBatchJob, TagImplicationJob, TagNukeJob].each do |klass|
+      klass.sidekiq_options(client_class: Sidekiq::TransactionAwareClient)
+    end
+  end
+end
 
 # Specs push through the real client middleware (even in fake mode); without
 # this, parallel workers would take real locks in the shared test Redis.
