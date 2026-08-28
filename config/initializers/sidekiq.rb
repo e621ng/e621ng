@@ -11,6 +11,9 @@ Sidekiq.logger.level = Logger::WARN if Rails.env.test?
 # Skipped in tests.
 unless Rails.env.test?
   require "sidekiq/transaction_aware_client"
+  # transactional_push! would register this for us; setting client_class per class does not,
+  # so strip it here or it rides along in every payload these jobs push to Redis.
+  Sidekiq::JobUtil::TRANSIENT_ATTRIBUTES << "client_class"
   Rails.application.config.to_prepare do
     [TagAliasJob, TagBatchJob, TagImplicationJob, TagNukeJob].each do |klass|
       klass.sidekiq_options(client_class: Sidekiq::TransactionAwareClient)
