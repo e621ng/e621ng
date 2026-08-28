@@ -41,6 +41,29 @@ RSpec.describe SidekiqActiveJobWrapperShim do
     expect(instance).to have_received(:perform).with(:pool, 42)
   end
 
+  it "remaps a legacy keyword payload for a job that is now positional" do
+    instance = instance_double(AutomodUserCheckJob)
+    allow(AutomodUserCheckJob).to receive(:new).and_return(instance)
+    allow(instance).to receive(:perform)
+
+    # Serialized shape of perform_later(5, check_username: true, check_profile: false).
+    kwargs = { "check_username" => true, "check_profile" => false, "_aj_ruby2_keywords" => %w[check_username check_profile] }
+    Sidekiq::ActiveJob::Wrapper.new.perform(wrapper_job_data("AutomodUserCheckJob", [5, kwargs]))
+
+    expect(instance).to have_received(:perform).with(5, true, false)
+  end
+
+  it "defaults the option when a legacy payload omitted the keyword" do
+    instance = instance_double(TagImplicationFinalizeJob)
+    allow(TagImplicationFinalizeJob).to receive(:new).and_return(instance)
+    allow(instance).to receive(:perform)
+
+    # perform_later(7, "some_tag") — the undo: keyword was never supplied.
+    Sidekiq::ActiveJob::Wrapper.new.perform(wrapper_job_data("TagImplicationFinalizeJob", [7, "some_tag"]))
+
+    expect(instance).to have_received(:perform).with(7, "some_tag", false)
+  end
+
   it "delegates payloads for classes that are still ActiveJobs" do
     # Deliberately a raw ActiveJob: ApplicationJob is a native Sidekiq job now.
     stub_const("ShimSpecActiveJob", Class.new(ActiveJob::Base)) # rubocop:disable Rails/ApplicationJob
