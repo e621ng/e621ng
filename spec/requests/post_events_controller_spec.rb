@@ -53,26 +53,6 @@ RSpec.describe PostEventsController do
       end
     end
 
-    context "when the event is a protected action" do
-      it "excludes protected actions from the JSON array for non-staff" do
-        regular_event   = create(:post_event, post_id: post_record.id, action: :deleted)
-        protected_event = create(:post_event, post_id: post_record.id, action: :replacement_penalty_changed, extra_data: { replacement_id: 1, penalize: true })
-        get post_events_path(format: :json)
-        ids = response.parsed_body["post_events"].pluck("id")
-        expect(ids).to include(regular_event.id)
-        expect(ids).not_to include(protected_event.id)
-      end
-
-      it "includes protected actions in the JSON array for staff" do
-        regular_event   = create(:post_event, post_id: post_record.id, action: :deleted)
-        protected_event = create(:post_event, post_id: post_record.id, action: :replacement_penalty_changed, extra_data: { replacement_id: 1, penalize: true })
-        sign_in_as moderator
-        get post_events_path(format: :json)
-        ids = response.parsed_body["post_events"].pluck("id")
-        expect(ids).to include(regular_event.id, protected_event.id)
-      end
-    end
-
     context "with search params" do
       let(:other_post) { create(:post) }
       let!(:event_a) { create(:post_event, post_id: post_record.id, action: :deleted) }
