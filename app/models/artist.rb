@@ -22,7 +22,7 @@ class Artist < ApplicationRecord
   after_save :update_wiki
   after_save :propagate_locked, if: :should_propagate_locked
   after_save :clear_url_string_changed
-  after_save :update_posts_index, if: :saved_change_to_linked_user_id?
+  after_commit :update_posts_index, if: :saved_change_to_linked_user_id?
 
   has_many :members, class_name: "Artist", foreign_key: "group_name", primary_key: "name"
   has_many :urls, dependent: :destroy, class_name: "ArtistUrl", autosave: true
@@ -580,6 +580,6 @@ class Artist < ApplicationRecord
   end
 
   def update_posts_index
-    Post.sql_raw_tag_match(name).find_each(&:update_index)
+    ArtistReindexJob.perform_later(name)
   end
 end
