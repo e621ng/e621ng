@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
 class TagImplicationFinalizeJob < ApplicationJob
-  # Keyed on full args: an undo-finalize (id, name, true) must never dedup away
-  # against a queued approve-finalize (id, name) for the same implication — they
-  # differ only by the undo flag, and the survivor would skip reindexing the
-  # undo rows' posts.
+  # Keyed on full args: an undo-finalize (id, name, true) must not dedup against a
+  # queued approve-finalize (id, name), or the survivor skips the undo reindex.
   sidekiq_options queue: "tags", lock: :until_executed, lock_ttl: 24.hours.to_i
 
   # Sidekiq args are positional JSON; keywords are not an option here.
