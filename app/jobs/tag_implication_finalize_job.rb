@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 class TagImplicationFinalizeJob < ApplicationJob
-  queue_as :tags
-  sidekiq_options lock: :until_executed, lock_args_method: :lock_args
+  sidekiq_options queue: "tags", lock: :until_executed, lock_args_method: :lock_args, lock_ttl: 24.hours.to_i
 
   def self.lock_args(args)
     [args[0]]
   end
 
-  def perform(implication_id, reindex_tag_name, undo: false)
+  # Sidekiq args are positional JSON; keywords are not an option here.
+  def perform(implication_id, reindex_tag_name, undo = false) # rubocop:disable Style/OptionalBooleanParameter
     ti = TagImplication.find_by(id: implication_id)
     return unless ti
 

@@ -71,6 +71,7 @@ group :development, :test do
 
   # Testing suite
   gem "rspec-rails", "~> 8.0.0", require: false
+  gem "rspec-sidekiq", "~> 5.3", require: false
   gem "parallel_tests", ">= 4.0"
   gem "factory_bot_rails", require: false
   gem "simplecov", require: false

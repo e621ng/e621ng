@@ -9,7 +9,7 @@ RSpec.describe HideUserForumPostsJob do
   let(:other_user)  { create(:user) }
 
   def perform(user_id = target_user.id)
-    described_class.perform_now(user_id, CurrentUser.id)
+    described_class.new.perform(user_id, CurrentUser.id)
   end
 
   describe "#perform" do

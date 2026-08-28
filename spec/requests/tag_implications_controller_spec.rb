@@ -239,13 +239,13 @@ RSpec.describe TagImplicationsController do
 
       it "enqueues TagImplicationUndoJob attributed to the admin and redirects to show" do
         expect { post undo_tag_implication_path(undoable_implication) }
-          .to have_enqueued_job(TagImplicationUndoJob).with(undoable_implication.id, true, admin.id)
+          .to enqueue_sidekiq_job(TagImplicationUndoJob).with(undoable_implication.id, true, admin.id)
         expect(response).to redirect_to(tag_implication_path(undoable_implication))
       end
 
       it "returns 403 and enqueues no job when the implication is not undoable" do
         expect { post undo_tag_implication_path(active_implication) }
-          .not_to have_enqueued_job(TagImplicationUndoJob)
+          .not_to enqueue_sidekiq_job(TagImplicationUndoJob)
         expect(response).to have_http_status(:forbidden)
       end
     end

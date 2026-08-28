@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class PostVideoConversionJob < ApplicationJob
-  queue_as :video
-  sidekiq_options lock: :until_executed, lock_args_method: :lock_args, retry: 3
+  # until_executing: a replacement arriving while a conversion runs must not be
+  # dropped; the lock only dedupes queued duplicates.
+  sidekiq_options queue: "video", lock: :until_executing, lock_args_method: :lock_args, lock_ttl: 6.hours.to_i, retry: 3
 
   def self.lock_args(args)
     [args[0]]

@@ -20,20 +20,20 @@ RSpec.describe TagImplication do
 
     it "changes status to queued" do
       expect { ti.approve!(update_topic: false) }
-        .to have_enqueued_job(TagImplicationJob)
+        .to enqueue_sidekiq_job(TagImplicationJob)
         .and(change { ti.reload.status }.to("queued"))
     end
 
     it "sets approver_id to the given approver" do
       approver = create(:admin_user)
       expect { ti.approve!(approver: approver, update_topic: false) }
-        .to have_enqueued_job(TagImplicationJob)
+        .to enqueue_sidekiq_job(TagImplicationJob)
         .and(change { ti.reload.approver_id }.to(approver.id))
     end
 
     it "enqueues TagImplicationJob with the implication id and update_topic flag" do
       expect { ti.approve!(update_topic: false) }
-        .to have_enqueued_job(TagImplicationJob).with(ti.id, false)
+        .to enqueue_sidekiq_job(TagImplicationJob).with(ti.id, false)
     end
 
     it "calls invalidate_cached_descendants" do
@@ -81,7 +81,7 @@ RSpec.describe TagImplication do
       )
 
       expect { ti.process!(update_topic: false) }
-        .to have_enqueued_job(TagImplicationFinalizeJob).with(ti.id, ti.antecedent_name)
+        .to enqueue_sidekiq_job(TagImplicationFinalizeJob).with(ti.id, ti.antecedent_name)
     end
   end
 
@@ -392,7 +392,7 @@ RSpec.describe TagImplication do
       ti.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "added" => {} })
 
       expect { ti.update_posts_undo }
-        .to have_enqueued_job(TagImplicationFinalizeJob).with(ti.id, ti.antecedent_name, undo: true)
+        .to enqueue_sidekiq_job(TagImplicationFinalizeJob).with(ti.id, ti.antecedent_name, true)
     end
   end
 
@@ -403,7 +403,7 @@ RSpec.describe TagImplication do
     it "enqueues TagImplicationUndoJob with the undoing user" do
       ti = create(:active_tag_implication)
 
-      expect { ti.undo! }.to have_enqueued_job(TagImplicationUndoJob).with(ti.id, true, CurrentUser.user.id)
+      expect { ti.undo! }.to enqueue_sidekiq_job(TagImplicationUndoJob).with(ti.id, true, CurrentUser.user.id)
     end
   end
 

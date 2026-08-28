@@ -13,7 +13,7 @@ RSpec.describe UserIpAddressPruneJob do
     fresh = create(:user_ip_address, user: user, ip_addr: "203.0.113.2",
                                      last_seen_at: 1.day.ago, first_seen_at: 1.day.ago)
 
-    expect { described_class.perform_now }.to change(UserIpAddress, :count).by(-1)
+    expect { described_class.new.perform }.to change(UserIpAddress, :count).by(-1)
     expect(UserIpAddress.exists?(fresh.id)).to be(true)
     expect(UserIpAddress.exists?(stale.id)).to be(false)
   end
@@ -23,6 +23,6 @@ RSpec.describe UserIpAddressPruneJob do
     old = create(:user_ip_address, user: user, ip_addr: "203.0.113.3",
                                    last_seen_at: 60.days.ago, first_seen_at: 60.days.ago)
 
-    expect { described_class.perform_now }.to change { UserIpAddress.exists?(old.id) }.from(true).to(false)
+    expect { described_class.new.perform }.to change { UserIpAddress.exists?(old.id) }.from(true).to(false)
   end
 end

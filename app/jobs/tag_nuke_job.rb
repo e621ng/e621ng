@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 class TagNukeJob < ApplicationJob
-  queue_as :tags
-  sidekiq_options lock: :until_executed, lock_args_method: :lock_args
-  self.enqueue_after_transaction_commit = true
+  sidekiq_options queue: "tags", lock: :until_executed, lock_args_method: :lock_args, lock_ttl: 24.hours.to_i
 
   # This many failed posts means something systemic, not scattered bad data.
   FAILURE_LIMIT = 100
@@ -12,11 +10,8 @@ class TagNukeJob < ApplicationJob
     [args[0]]
   end
 
-  def perform(*args)
-    tag_name = args[0]
+  def perform(tag_name, updater_id, updater_ip_addr)
     tag = Tag.find_by_normalized_name(tag_name)
-    updater_id = args[1]
-    updater_ip_addr = args[2]
     return if tag.nil?
 
     finalize_tag_id = tag.id
@@ -36,7 +31,7 @@ class TagNukeJob < ApplicationJob
     end
   ensure
     # A job that dies or exhausts its retries still reindexes what it changed, including stragglers.
-    TagNukeFinalizeJob.perform_later(finalize_tag_id, stragglers) if finalize_tag_id
+    TagNukeFinalizeJob.perform_async(finalize_tag_id, stragglers) if finalize_tag_id
   end
 
   def migrate_posts(tag_name, snapshot = nil, stragglers = [], failures = [])

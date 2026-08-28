@@ -6,7 +6,7 @@ RSpec.describe FlushFavoritesJob do
   include_context "as admin"
 
   def perform(user_id = CurrentUser.id)
-    described_class.perform_now(user_id)
+    described_class.new.perform(user_id)
   end
 
   # Creates a Favorite and keeps post.fav_count consistent.
@@ -33,7 +33,7 @@ RSpec.describe FlushFavoritesJob do
       end
 
       it "does not enqueue a BulkIndexUpdateJob" do
-        expect { perform }.not_to have_enqueued_job(BulkIndexUpdateJob)
+        expect { perform }.not_to enqueue_sidekiq_job(BulkIndexUpdateJob)
       end
     end
 
@@ -57,7 +57,7 @@ RSpec.describe FlushFavoritesJob do
       end
 
       it "enqueues a BulkIndexUpdateJob" do
-        expect { perform }.to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post.id])
+        expect { perform }.to enqueue_sidekiq_job(BulkIndexUpdateJob).with("Post", [post.id])
       end
     end
 
@@ -90,7 +90,7 @@ RSpec.describe FlushFavoritesJob do
       end
 
       it "enqueues a BulkIndexUpdateJob" do
-        expect { perform }.to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post_a.id, post_b.id, post_c.id])
+        expect { perform }.to enqueue_sidekiq_job(BulkIndexUpdateJob).with("Post", [post_a.id, post_b.id, post_c.id])
       end
     end
 
@@ -120,7 +120,7 @@ RSpec.describe FlushFavoritesJob do
       end
 
       it "enqueues a BulkIndexUpdateJob" do
-        expect { perform }.to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post.id])
+        expect { perform }.to enqueue_sidekiq_job(BulkIndexUpdateJob).with("Post", [post.id])
       end
     end
   end

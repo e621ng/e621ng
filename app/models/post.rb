@@ -97,7 +97,7 @@ class Post < ApplicationRecord
 
     def delete_avatar_crops
       User.where(avatar_id: id).pluck(:id).each do |user_id|
-        AvatarCleanupJob.perform_later(user_id, force: true)
+        AvatarCleanupJob.perform_async(user_id, true)
         UserAvatarUrlCache.invalidate(user_id)
       end
     end
@@ -266,9 +266,9 @@ class Post < ApplicationRecord
 
     def generate_video_samples(later: false)
       if later
-        PostVideoConversionJob.set(wait: 1.minute).perform_later(id)
+        PostVideoConversionJob.perform_in(1.minute, id)
       else
-        PostVideoConversionJob.perform_later(id)
+        PostVideoConversionJob.perform_async(id)
       end
     end
 
@@ -295,7 +295,7 @@ class Post < ApplicationRecord
 
     def generate_image_samples(later: false)
       if later
-        PostImageSamplerJob.set(wait: 1.minute).perform_later(id)
+        PostImageSamplerJob.perform_in(1.minute, id)
       else
         ImageSampler.generate_post_images(self)
       end
@@ -1569,7 +1569,7 @@ class Post < ApplicationRecord
     end
 
     def give_favorites_to_parent
-      TransferFavoritesJob.perform_later(id, CurrentUser.id)
+      TransferFavoritesJob.perform_async(id, CurrentUser.id)
     end
 
     def parent_exists?
@@ -2046,14 +2046,14 @@ class Post < ApplicationRecord
     module ClassMethods
       def remove_iqdb(post_id)
         if IqdbProxy.enabled?
-          IqdbRemoveJob.perform_later(post_id)
+          IqdbRemoveJob.perform_async(post_id)
         end
       end
     end
 
     def update_iqdb_async
       if IqdbProxy.enabled? && has_preview?
-        IqdbUpdateJob.perform_later(id)
+        IqdbUpdateJob.perform_async(id)
       end
     end
 

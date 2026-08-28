@@ -9,7 +9,7 @@ RSpec.describe TagNukeJob do
   let!(:tag) { create(:tag, name: tag_name) }
 
   def perform(name = tag_name, updater_id = CurrentUser.id, ip = "127.0.0.1")
-    described_class.perform_now(name, updater_id, ip)
+    described_class.new.perform(name, updater_id, ip)
   end
 
   describe "#perform" do
@@ -119,18 +119,18 @@ RSpec.describe TagNukeJob do
     let!(:tagged_post) { create(:post, tag_string: "#{tag_name} extra_tag") }
 
     it "enqueues the finalize job with the tag id" do
-      expect { perform }.to have_enqueued_job(TagNukeFinalizeJob).with(tag.id, [])
+      expect { perform }.to enqueue_sidekiq_job(TagNukeFinalizeJob).with(tag.id, [])
     end
 
     it "does not enqueue the finalize job when the tag does not resolve" do
       perform("nonexistent_tag")
-      expect(TagNukeFinalizeJob).not_to have_been_enqueued
+      expect(TagNukeFinalizeJob).not_to have_enqueued_sidekiq_job
     end
 
     it "still enqueues the finalize job when a post cannot be saved" do
       tagged_post.update_columns(rating: "x")
       expect { perform }.to raise_error(ApplicationJob::JobError)
-      expect(TagNukeFinalizeJob).to have_been_enqueued
+      expect(TagNukeFinalizeJob).to have_enqueued_sidekiq_job
     end
 
     it "records the undo row even when a post cannot be saved" do
@@ -219,7 +219,7 @@ RSpec.describe TagNukeJob do
       end
 
       it "passes the stragglers to the finalize job" do
-        expect { job.perform(tag_name, CurrentUser.id, "127.0.0.1") }.to have_enqueued_job(TagNukeFinalizeJob).with(tag.id, [tagged_post.id])
+        expect { job.perform(tag_name, CurrentUser.id, "127.0.0.1") }.to enqueue_sidekiq_job(TagNukeFinalizeJob).with(tag.id, [tagged_post.id])
       end
     end
   end

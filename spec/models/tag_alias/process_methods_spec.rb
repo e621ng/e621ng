@@ -34,7 +34,7 @@ RSpec.describe TagAlias do
       ta.update_columns(status: "queued", approver_id: create(:admin_user).id)
 
       expect { ta.process!(update_topic: false) }
-        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id)
+        .to enqueue_sidekiq_job(TagAliasFinalizeJob).with(ta.id)
     end
 
     it "enqueues TagAliasFinalizeJob even when processing fails so partially-modified posts get reindexed" do
@@ -43,7 +43,7 @@ RSpec.describe TagAlias do
       allow(ta).to receive(:update_posts).and_raise(RuntimeError, "simulated failure")
 
       expect { ta.process!(update_topic: false) }
-        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id)
+        .to enqueue_sidekiq_job(TagAliasFinalizeJob).with(ta.id)
       expect(ta.reload.status).to start_with("error:")
     end
 
@@ -191,7 +191,7 @@ RSpec.describe TagAlias do
       ta = create_undoable_alias
 
       expect { ta.process_undo!(update_topic: false) }
-        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id)
+        .to enqueue_sidekiq_job(TagAliasFinalizeJob).with(ta.id)
     end
 
     it "removes tags the consequent's implications added during processing" do
@@ -272,7 +272,7 @@ RSpec.describe TagAlias do
     it "enqueues TagAliasUndoJob with the undoing user" do
       ta = create(:active_tag_alias)
 
-      expect { ta.undo! }.to have_enqueued_job(TagAliasUndoJob).with(ta.id, true, CurrentUser.user.id)
+      expect { ta.undo! }.to enqueue_sidekiq_job(TagAliasUndoJob).with(ta.id, true, CurrentUser.user.id)
     end
   end
 end

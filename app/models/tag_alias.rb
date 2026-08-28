@@ -12,12 +12,12 @@ class TagAlias < TagRelationship
     def approve!(update_topic: true, approver: CurrentUser.user)
       CurrentUser.scoped(approver) do
         update(status: "queued", approver_id: approver.id)
-        TagAliasJob.perform_later(id, update_topic)
+        TagAliasJob.perform_async(id, update_topic)
       end
     end
 
     def undo!(undoer: CurrentUser.user, update_topic: true)
-      TagAliasUndoJob.perform_later(id, update_topic, undoer.id)
+      TagAliasUndoJob.perform_async(id, update_topic, undoer.id)
     end
   end
 
@@ -280,7 +280,7 @@ class TagAlias < TagRelationship
         tu.update!(applied: true)
       end
     end
-    TagAliasFinalizeJob.perform_later(id)
+    TagAliasFinalizeJob.perform_async(id)
   ensure
     Thread.current[:skip_post_index_update] = false
   end
@@ -395,7 +395,7 @@ class TagAlias < TagRelationship
         rename_artist
         forum_updater.update(approval_message(approver), "APPROVED") if update_topic
         update(status: "active", post_count: consequent_tag&.post_count || 0)
-        TagAliasFinalizeJob.perform_later(id)
+        TagAliasFinalizeJob.perform_async(id)
       end
     rescue Exception => e
       Rails.logger.error("[TA] #{e.message}\n#{e.backtrace}")
@@ -409,7 +409,7 @@ class TagAlias < TagRelationship
         forum_updater.update(failure_message(e), "FAILED") if update_topic
         update_columns(status: "error: #{e}")
       end
-      TagAliasFinalizeJob.perform_later(id)
+      TagAliasFinalizeJob.perform_async(id)
     end
   end
 

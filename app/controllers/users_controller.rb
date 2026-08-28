@@ -193,7 +193,7 @@ class UsersController < ApplicationController
 
   def flush_favorites
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
-    FlushFavoritesJob.perform_later(@user.id)
+    FlushFavoritesJob.perform_async(@user.id)
     ModAction.log(:user_flush_favorites, { user_id: @user.id })
 
     redirect_to user_path(@user)

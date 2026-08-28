@@ -13,7 +13,7 @@ RSpec.describe DailyPruneJob do
       allow(ExceptionLog).to receive(:prune!)
       allow(Post).to receive(:cleanup_stuck_favorite_transfer_flags!)
 
-      described_class.perform_now
+      described_class.new.perform
 
       expect(TagAlias).to have_received(:update_cached_post_counts_for_all)
       expect(Tag).to have_received(:clean_up_negative_post_counts!)
@@ -27,7 +27,7 @@ RSpec.describe DailyPruneJob do
       old_upload = create(:upload, created_at: (Danbooru.config.upload_deletion_window + 1.day).ago)
       new_upload = create(:upload)
 
-      described_class.perform_now
+      described_class.new.perform
 
       expect(Upload.exists?(old_upload.id)).to be(false)
       expect(Upload.exists?(new_upload.id)).to be(true)
@@ -37,7 +37,7 @@ RSpec.describe DailyPruneJob do
       allow(Setting).to receive(:disable_exception_prune?).and_return(true)
       allow(ExceptionLog).to receive(:prune!)
 
-      described_class.perform_now
+      described_class.new.perform
 
       expect(ExceptionLog).not_to have_received(:prune!)
     end
@@ -48,7 +48,7 @@ RSpec.describe DailyPruneJob do
       allow(DanbooruLogger).to receive(:log)
       allow(Post).to receive(:cleanup_stuck_favorite_transfer_flags!)
 
-      described_class.perform_now
+      described_class.new.perform
 
       expect(DanbooruLogger).to have_received(:log).with(error)
       expect(Post).to have_received(:cleanup_stuck_favorite_transfer_flags!)

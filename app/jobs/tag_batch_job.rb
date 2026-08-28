@@ -1,18 +1,12 @@
 # frozen_string_literal: true
 
 class TagBatchJob < ApplicationJob
-  queue_as :tags
-  self.enqueue_after_transaction_commit = true
+  sidekiq_options queue: "tags"
 
   # This many failed posts means something systemic, not scattered bad data.
   FAILURE_LIMIT = 100
 
-  def perform(*args)
-    antecedent = args[0]
-    consequent = args[1]
-    updater_id = args[2]
-    updater_ip_addr = args[3]
-
+  def perform(antecedent, consequent, updater_id, updater_ip_addr)
     resolved = nil
     stragglers = []
     failures = []
@@ -34,7 +28,7 @@ class TagBatchJob < ApplicationJob
     end
   ensure
     # In `ensure` so a job that dies or exhausts its retries still reindexes what it changed.
-    TagBatchFinalizeJob.perform_later(resolved, stragglers) if resolved
+    TagBatchFinalizeJob.perform_async(resolved, stragglers) if resolved
   end
 
   def migrate_posts(from, to, resolved = TagAlias.to_aliased([to]).first, stragglers = [], failures = [])

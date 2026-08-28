@@ -17,20 +17,20 @@ RSpec.describe TagImplicationFinalizeJob do
     end
 
     it "bulk-reindexes posts matching the given tag name" do
-      described_class.perform_now(ti.id, ti.consequent_name)
+      described_class.new.perform(ti.id, ti.consequent_name)
       expect(Post.document_store).to have_received(:import).with(
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", ti.consequent_name],
       )
     end
 
     it "fixes post counts on both tags after reindexing" do
-      described_class.perform_now(ti.id, ti.consequent_name)
+      described_class.new.perform(ti.id, ti.consequent_name)
       expect(ti.antecedent_tag).to have_received(:fix_post_count)
       expect(ti.consequent_tag).to have_received(:fix_post_count)
     end
 
     it "uses antecedent_name as the reindex target when called for an undo" do
-      described_class.perform_now(ti.id, ti.antecedent_name)
+      described_class.new.perform(ti.id, ti.antecedent_name)
       expect(Post.document_store).to have_received(:import).with(
         query: ["string_to_array(tag_string, ' ') @> ARRAY[?]::text[]", ti.antecedent_name],
       )
@@ -40,7 +40,7 @@ RSpec.describe TagImplicationFinalizeJob do
       ti.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "added" => { "101" => ["species_b"] } })
       ti.tag_rel_undos.create!(undo_data: { "102" => "char_a species_b" })
 
-      described_class.perform_now(ti.id, ti.antecedent_name, undo: true)
+      described_class.new.perform(ti.id, ti.antecedent_name, true)
 
       expect(Post.document_store).to have_received(:import).with(query: { id: [101, 102] })
     end
@@ -48,13 +48,13 @@ RSpec.describe TagImplicationFinalizeJob do
     it "does not reindex by id on the approval path even when undo rows exist" do
       ti.tag_rel_undos.create!(undo_data: { "version" => 2, "kind" => "posts", "added" => { "101" => ["species_b"] } })
 
-      described_class.perform_now(ti.id, ti.consequent_name)
+      described_class.new.perform(ti.id, ti.consequent_name)
 
       expect(Post.document_store).not_to have_received(:import).with(query: hash_including(:id))
     end
 
     it "does not reindex by id when no undo rows exist" do
-      described_class.perform_now(ti.id, ti.antecedent_name, undo: true)
+      described_class.new.perform(ti.id, ti.antecedent_name, true)
       expect(Post.document_store).not_to have_received(:import).with(query: hash_including(:id))
     end
   end

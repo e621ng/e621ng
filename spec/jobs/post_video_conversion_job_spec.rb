@@ -36,7 +36,7 @@ RSpec.describe PostVideoConversionJob do
   end
 
   def perform(id = post.id)
-    described_class.perform_now(id)
+    described_class.new.perform(id)
   end
 
   def job_instance

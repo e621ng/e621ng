@@ -5,7 +5,7 @@
 # rows behind (the delete-and-re-register evasion pattern depends on them), so
 # the prune applies uniformly to active and deleted accounts.
 class UserIpAddressPruneJob < ApplicationJob
-  queue_as :low_prio
+  sidekiq_options queue: "low_prio"
 
   def perform
     UserIpAddress.without_timeout do

@@ -28,7 +28,7 @@ RSpec.describe BulkUpdateRequest do
     end
 
     it "enqueues a TagAliasJob" do
-      expect { bur.approve!(approver) }.to have_enqueued_job(TagAliasJob)
+      expect { bur.approve!(approver) }.to enqueue_sidekiq_job(TagAliasJob)
     end
   end
 
@@ -48,7 +48,7 @@ RSpec.describe BulkUpdateRequest do
     end
 
     it "enqueues a TagImplicationJob" do
-      expect { bur.approve!(approver) }.to have_enqueued_job(TagImplicationJob)
+      expect { bur.approve!(approver) }.to enqueue_sidekiq_job(TagImplicationJob)
     end
   end
 

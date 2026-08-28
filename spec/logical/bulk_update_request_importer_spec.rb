@@ -11,6 +11,18 @@ RSpec.describe BulkUpdateRequestImporter do
     BulkUpdateRequestImporter.new(script, forum_id, CurrentUser.id, CurrentUser.ip_addr)
   end
 
+  # Production defers in-transaction enqueues via Sidekiq.transactional_push!,
+  # which is off in tests (transactional fixtures never commit). Opt back in for
+  # examples that assert a rollback discards the enqueue. The client_class must
+  # go on the job classes themselves: they captured default_job_options at load.
+  def with_transactional_push(*job_classes)
+    require "sidekiq/transaction_aware_client"
+    job_classes.each { |klass| klass.sidekiq_options client_class: Sidekiq::TransactionAwareClient }
+    yield
+  ensure
+    job_classes.each { |klass| klass.sidekiq_options_hash = klass.get_sidekiq_options.except("client_class") }
+  end
+
   # ---------------------------------------------------------------------------
   # .tokenize
   # ---------------------------------------------------------------------------
@@ -508,7 +520,7 @@ RSpec.describe BulkUpdateRequestImporter do
 
       it "enqueues a TagAliasJob" do
         expect { importer("alias proc_ca_ant -> proc_ca_con").process!(approver) }
-          .to have_enqueued_job(TagAliasJob)
+          .to enqueue_sidekiq_job(TagAliasJob)
       end
 
       context "when a pending alias already exists for the pair" do
@@ -521,7 +533,7 @@ RSpec.describe BulkUpdateRequestImporter do
 
         it "enqueues a TagAliasJob for the reused alias" do
           expect { importer("alias proc_ca_reuse_ant -> proc_ca_reuse_con").process!(approver) }
-            .to have_enqueued_job(TagAliasJob)
+            .to enqueue_sidekiq_job(TagAliasJob)
         end
       end
 
@@ -563,7 +575,7 @@ RSpec.describe BulkUpdateRequestImporter do
 
       it "enqueues a TagImplicationJob" do
         expect { importer("implicate proc_ci_ant -> proc_ci_con").process!(approver) }
-          .to have_enqueued_job(TagImplicationJob)
+          .to enqueue_sidekiq_job(TagImplicationJob)
       end
 
       context "when a pending implication already exists for the pair" do
@@ -635,26 +647,30 @@ RSpec.describe BulkUpdateRequestImporter do
     describe "mass_update" do
       it "enqueues a TagBatchJob with the source and destination tag names" do
         expect { importer("update proc_mu_src -> proc_mu_dst").process!(approver) }
-          .to have_enqueued_job(TagBatchJob).with("proc_mu_src", "proc_mu_dst", anything, anything)
+          .to enqueue_sidekiq_job(TagBatchJob).with("proc_mu_src", "proc_mu_dst", anything, anything)
       end
 
       it "does not enqueue a TagBatchJob when a later line rolls the transaction back" do
         script = "update proc_mu_rb_src -> proc_mu_rb_dst\nunalias proc_mu_rb_missing_ant -> proc_mu_rb_missing_con"
-        expect { importer(script).process!(approver) }.to raise_error(BulkUpdateRequestImporter::Error)
-        expect(TagBatchJob).not_to have_been_enqueued
+        with_transactional_push(TagBatchJob) do
+          expect { importer(script).process!(approver) }.to raise_error(BulkUpdateRequestImporter::Error)
+        end
+        expect(TagBatchJob).not_to have_enqueued_sidekiq_job
       end
     end
 
     describe "nuke_tag" do
       it "enqueues a TagNukeJob with the tag name" do
         expect { importer("nuke proc_nuke_target").process!(approver) }
-          .to have_enqueued_job(TagNukeJob).with("proc_nuke_target", anything, anything)
+          .to enqueue_sidekiq_job(TagNukeJob).with("proc_nuke_target", anything, anything)
       end
 
       it "does not enqueue a TagNukeJob when a later line rolls the transaction back" do
         script = "nuke proc_nuke_rb_target\nunalias proc_nuke_rb_missing_ant -> proc_nuke_rb_missing_con"
-        expect { importer(script).process!(approver) }.to raise_error(BulkUpdateRequestImporter::Error)
-        expect(TagNukeJob).not_to have_been_enqueued
+        with_transactional_push(TagNukeJob) do
+          expect { importer(script).process!(approver) }.to raise_error(BulkUpdateRequestImporter::Error)
+        end
+        expect(TagNukeJob).not_to have_enqueued_sidekiq_job
       end
     end
 

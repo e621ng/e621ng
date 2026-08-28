@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SearchTrendPruneJob < ApplicationJob
-  queue_as :low_prio
+  sidekiq_options queue: "low_prio"
 
   def perform
     SearchTrend.without_timeout do

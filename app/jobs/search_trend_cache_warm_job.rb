@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class SearchTrendCacheWarmJob < ApplicationJob
-  queue_as :low_prio
-  sidekiq_options lock: :until_executing
+  sidekiq_options queue: "low_prio", lock: :until_executing, lock_ttl: 12.hours.to_i
 
   def perform
     SearchTrendHourly.without_timeout do

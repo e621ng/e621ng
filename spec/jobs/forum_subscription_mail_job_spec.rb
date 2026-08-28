@@ -7,7 +7,7 @@ RSpec.describe ForumSubscriptionMailJob do
     it "processes all forum subscriptions" do
       allow(ForumSubscription).to receive(:process_all!)
 
-      described_class.perform_now
+      described_class.new.perform
 
       expect(ForumSubscription).to have_received(:process_all!)
     end

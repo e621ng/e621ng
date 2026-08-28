@@ -7,7 +7,7 @@ RSpec.describe StatsUpdateJob do
     it "updates the cached site statistics" do
       allow(StatsUpdater).to receive(:run!)
 
-      described_class.perform_now
+      described_class.new.perform
 
       expect(StatsUpdater).to have_received(:run!)
     end

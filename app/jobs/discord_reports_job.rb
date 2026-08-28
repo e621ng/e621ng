@@ -5,8 +5,7 @@
 # isolated so one failed webhook doesn't skip the others, and each no-ops
 # when its webhook URL is unconfigured.
 class DiscordReportsJob < ApplicationJob
-  queue_as :low_prio
-  sidekiq_options retry: false, lock: :until_executed
+  sidekiq_options queue: "low_prio", retry: false, lock: :until_executed, lock_ttl: 12.hours.to_i
 
   REPORTS = [
     DiscordReport::JanitorStats,

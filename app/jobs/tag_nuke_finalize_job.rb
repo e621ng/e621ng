@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
 class TagNukeFinalizeJob < ApplicationJob
-  queue_as :tags
   # Keyed on full args: an enqueue carrying stragglers must never dedup away against a pending one.
-  # Currently inert either way — sidekiq-unique-jobs cannot see through the ActiveJob wrapper.
-  sidekiq_options lock: :until_executed
+  sidekiq_options queue: "tags", lock: :until_executed, lock_ttl: 24.hours.to_i
 
   def perform(tag_id, straggler_ids = [])
     # The tag is gone from every post by now, so the set only survives in the nuke's undo rows.

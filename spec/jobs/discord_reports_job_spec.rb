@@ -19,7 +19,7 @@ RSpec.describe DiscordReportsJob do
       allow(moderator).to receive(:run!)
       allow(aibur).to receive(:run!)
 
-      described_class.perform_now
+      described_class.new.perform
 
       expect(janitor).to have_received(:run!)
       expect(moderator).to have_received(:run!)
@@ -33,7 +33,7 @@ RSpec.describe DiscordReportsJob do
       allow(aibur).to receive(:run!)
       allow(DanbooruLogger).to receive(:log)
 
-      described_class.perform_now
+      described_class.new.perform
 
       expect(DanbooruLogger).to have_received(:log).with(error)
       expect(moderator).to have_received(:run!)

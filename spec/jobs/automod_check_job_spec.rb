@@ -8,7 +8,7 @@ RSpec.describe AutomodCheckJob do
   let(:comment) { create(:comment) }
 
   def perform(comment_id = comment.id)
-    described_class.perform_now(comment_id)
+    described_class.new.perform(comment_id)
   end
 
   describe "comment body checks" do

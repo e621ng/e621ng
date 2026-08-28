@@ -6,11 +6,11 @@ RSpec.describe PostSetCleanupJob do
   include_context "as admin"
 
   def perform(type, obj_id)
-    described_class.perform_now(type, obj_id)
+    described_class.new.perform(type, obj_id)
   end
 
   describe "#perform" do
-    context "with type :pool" do
+    context "with type pool" do
       let(:pool_id) { 42 }
       let!(:post_in_pool) { create(:post).tap { |p| p.update_columns(pool_ids: [pool_id]) } }
       let!(:post_not_in_pool) { create(:post) }
@@ -23,12 +23,12 @@ RSpec.describe PostSetCleanupJob do
       end
 
       it "removes the pool id from the raw pool_ids column" do
-        perform(:pool, pool_id)
+        perform("pool", pool_id)
         expect(post_in_pool.reload[:pool_ids]).not_to include(pool_id)
       end
 
       it "does not modify posts that do not belong to the pool" do
-        perform(:pool, pool_id)
+        perform("pool", pool_id)
         expect(post_not_in_pool.reload[:pool_ids]).to eq([])
       end
 
@@ -37,7 +37,7 @@ RSpec.describe PostSetCleanupJob do
         let!(:post_in_both) { create(:post).tap { |p| p.update_columns(pool_ids: [pool_id, other_pool_id]) } }
 
         it "preserves the other pool ids" do
-          perform(:pool, pool_id)
+          perform("pool", pool_id)
           expect(post_in_both.reload[:pool_ids]).to eq([other_pool_id])
         end
       end
@@ -49,7 +49,7 @@ RSpec.describe PostSetCleanupJob do
         let!(:drifted_post) { create(:post).tap { |p| p.update_columns(pool_ids: [pool_id]) } }
 
         it "clears the stale membership anyway" do
-          perform(:pool, pool_id)
+          perform("pool", pool_id)
           expect(drifted_post.reload[:pool_ids]).to eq([])
         end
       end
@@ -63,11 +63,11 @@ RSpec.describe PostSetCleanupJob do
 
       it "enqueues a reindex for posts that carried the set token" do
         expect { perform(:set, set_id) }
-          .to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post_in_set.id])
+          .to enqueue_sidekiq_job(BulkIndexUpdateJob).with("Post", [post_in_set.id])
       end
 
       it "does not enqueue anything when no posts carry the token" do
-        expect { perform(:set, 999_999) }.not_to have_enqueued_job(BulkIndexUpdateJob)
+        expect { perform(:set, 999_999) }.not_to enqueue_sidekiq_job(BulkIndexUpdateJob)
       end
     end
 
@@ -91,7 +91,7 @@ RSpec.describe PostSetCleanupJob do
 
     context "when no posts contain the pool" do
       it "does not raise an error" do
-        expect { perform(:pool, 999_999) }.not_to raise_error
+        expect { perform("pool", 999_999) }.not_to raise_error
       end
     end
   end

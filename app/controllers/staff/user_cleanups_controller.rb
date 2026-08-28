@@ -43,19 +43,19 @@ module Staff
     end
 
     def hide_comments
-      HideUserCommentsJob.perform_later(@user.id, CurrentUser.id)
+      HideUserCommentsJob.perform_async(@user.id, CurrentUser.id)
       ModAction.log(:user_comments_hide, { user_id: @user.id })
       redirect_to staff_user_cleanup_path(@user), notice: "Comment hide job scheduled."
     end
 
     def hide_forum_posts
-      HideUserForumPostsJob.perform_later(@user.id, CurrentUser.id)
+      HideUserForumPostsJob.perform_async(@user.id, CurrentUser.id)
       ModAction.log(:user_forum_posts_hide, { user_id: @user.id })
       redirect_to staff_user_cleanup_path(@user), notice: "Forum post hide job scheduled."
     end
 
     def hide_blips
-      HideUserBlipsJob.perform_later(@user.id, CurrentUser.id)
+      HideUserBlipsJob.perform_async(@user.id, CurrentUser.id)
       ModAction.log(:user_blips_delete, { user_id: @user.id })
       redirect_to staff_user_cleanup_path(@user), notice: "Blip delete job scheduled."
     end
