@@ -29,6 +29,10 @@ RSpec.describe SidekiqCapsules do
       ])
     end
 
+    it "rejects capsules with empty names" do
+      expect { described_class.parse("  2 video") }.to raise_error(ArgumentError, /expected "<name> <concurrency> <queues>", got "2 video"/)
+    end
+
     it "rejects the reserved default capsule name" do
       expect { described_class.parse("default 5 low_prio") }.to raise_error(ArgumentError, /reserved/)
     end
@@ -52,6 +56,10 @@ RSpec.describe SidekiqCapsules do
     it "rejects invalid queue weights" do
       expect { described_class.parse("media 2 video:x") }.to raise_error(ArgumentError, /queue entry/)
       expect { described_class.parse("media 2 video:0") }.to raise_error(ArgumentError, /queue entry/)
+    end
+
+    it "rejects empty queue names" do
+      expect { described_class.parse("media 2 :1") }.to raise_error(ArgumentError, /queue name cannot be empty/)
     end
   end
 end

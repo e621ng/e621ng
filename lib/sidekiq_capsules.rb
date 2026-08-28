@@ -8,7 +8,10 @@
 #   SIDEKIQ_CAPSULES="media 2 video:1,thumb:1;iqdb 1 iqdb"
 module SidekiqCapsules
   def self.parse(raw)
-    capsules = raw.to_s.split(";").map(&:strip).reject(&:empty?).map { |spec| parse_capsule(spec) }
+    capsules = raw.to_s.split(";")
+                  .map(&:strip)
+                  .reject(&:empty?)
+                  .map { |spec| parse_capsule(spec) }
 
     duplicates = capsules.pluck(:name).tally.select { |_, count| count > 1 }.keys
     raise ArgumentError, "SIDEKIQ_CAPSULES: duplicate capsule name(s): #{duplicates.join(', ')}" if duplicates.any?
@@ -39,6 +42,7 @@ module SidekiqCapsules
     value.split(",").map(&:strip).reject(&:empty?).map do |entry|
       queue, weight = entry.split(":", 2)
       weight ||= "1"
+      raise ArgumentError, "SIDEKIQ_CAPSULES: capsule #{name}: queue name cannot be empty" if queue.nil? || queue.strip.empty?
       raise ArgumentError, "SIDEKIQ_CAPSULES: capsule #{name}: invalid queue entry #{entry.inspect}" unless weight.match?(/\A[1-9]\d*\z/)
 
       [queue, Integer(weight)]
