@@ -11,6 +11,13 @@ development:
   host: postgres
   pool: 5
 
+eris:
+  <<: *default
+  database: eris
+  password: <%= ENV["ERIS_DB_PASSWORD"] %>
+  host: <%= ENV.fetch("ERIS_DB_HOST", "postgres") %>
+  port: <%= ENV.fetch("ERIS_DB_PORT", "5432") %>
+
 test:
   <<: *default
   database: e621_test<%= ENV["TEST_ENV_NUMBER"] %>
