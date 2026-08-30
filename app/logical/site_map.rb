@@ -148,7 +148,6 @@ module SiteMap
        visible: ->(u) { u.is_logged_in? }
   page :posts, :post_versions, "Changes"
   page :posts, :iqdb_queries, "Similar Images Search", gate: { inline: "feature flag (iqdb_enabled?)" }, visible: ->(_u) { IqdbProxy.enabled? }
-  page :posts, :deleted_posts, "Deleted Index"
   page :posts, :uploads, "Upload Listing", level: UserLevel::STAFF
   page :posts, :help_page, "Help", params: { id: "posts" }
 
@@ -158,6 +157,7 @@ module SiteMap
   page :post_events, :post_versions, "Tag Changes"
   page :post_events, :post_approvals, "Approvals"
   page :post_events, :post_flags, "Flags"
+  page :post_events, :post_deletions, "Deletions"
   page :post_events, :post_replacements, "Replacements"
   page :post_events, :upload_karma_events, "Upload Karma"
   page :post_events, :staff_post_disapprovals, "Disapprovals",

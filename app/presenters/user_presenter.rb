@@ -117,7 +117,7 @@ class UserPresenter
   end
 
   def deleted_upload_count(template)
-    template.link_to(user.post_deleted_count, template.deleted_posts_path(user_id: user.id))
+    template.link_to(user.post_deleted_count, template.post_deletions_path(search: { uploader_id: user.id }))
   end
 
   def replaced_upload_count(template)

@@ -9,8 +9,54 @@ class PostDeletion < ApplicationRecord
 
   after_create :log_deletion_event
 
+  scope :active, -> { where(is_undeleted: false) }
+  scope :undeleted, -> { where(is_undeleted: true) }
+
+  module SearchMethods
+    def post_tags_match(query)
+      where(post_id: Post.tag_match_sql(query))
+    end
+
+    def search(params)
+      q = super
+
+      q = q.attribute_matches(:reason, params[:reason_matches])
+      q = q.where_user(:deleter_id, :deleter, params)
+
+      with_resolved_user_ids(:uploader, params) do |user_ids|
+        q = q.where(post_id: Post.select(:id).where(uploader_id: user_ids))
+      end
+
+      if params[:post_id].present?
+        q = q.where(post_id: params[:post_id].split(",").map(&:to_i))
+      end
+
+      if params[:post_tags_match].present?
+        q = q.post_tags_match(params[:post_tags_match])
+      end
+
+      if params[:ip_addr].present?
+        q = q.where("creator_ip_addr <<= ?", params[:ip_addr])
+      end
+
+      q = if params[:undeleted_at].present?
+            q.undeleted.attribute_matches(:undeleted_at, params[:undeleted_at])
+          elsif params[:is_undeleted].present?
+            params[:is_undeleted] == "any" ? q : q.attribute_matches(:is_undeleted, params[:is_undeleted])
+          elsif params[:id].present? || params[:post_id].present?
+            q
+          else
+            q.active
+          end
+
+      q.apply_basic_order(params)
+    end
+  end
+
+  extend SearchMethods
+
   def self.current_for(post)
-    find_by(post_id: post.id, is_undeleted: false)
+    active.find_by(post_id: post.id)
   end
 
   def stamp_undeleted!(undeleter)

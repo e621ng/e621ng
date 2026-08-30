@@ -1783,6 +1783,7 @@ class Post < ApplicationRecord
     end
 
     def current_deletion
+      return post_deletions.detect { |deletion| !deletion.is_undeleted? } if post_deletions.loaded?
       PostDeletion.current_for(self)
     end
 

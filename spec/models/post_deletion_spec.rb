@@ -100,4 +100,39 @@ RSpec.describe PostDeletion do
       end
     end
   end
+
+  describe ".search" do
+    let(:uploader) { create(:user) }
+    let(:post) { create(:post, uploader: uploader) }
+    let!(:deletion) { build_deletion(post: post, reason: "inferior version").tap(&:save!) }
+
+    it "returns every active deletion without params" do
+      expect(described_class.search({})).to eq([deletion])
+    end
+
+    it "excludes undeleted rows without params" do
+      deletion.update!(is_undeleted: true)
+      expect(described_class.search({})).to be_empty
+    end
+
+    it "includes undeleted rows for is_undeleted=any" do
+      deletion.update!(is_undeleted: true)
+      expect(described_class.search({ is_undeleted: "any" })).to eq([deletion])
+    end
+
+    it "matches on the reason" do
+      expect(described_class.search({ reason_matches: "inferior" })).to eq([deletion])
+      expect(described_class.search({ reason_matches: "unrelated" })).to be_empty
+    end
+
+    it "matches on the deleter" do
+      expect(described_class.search({ deleter_id: CurrentUser.id })).to eq([deletion])
+      expect(described_class.search({ deleter_id: create(:user).id })).to be_empty
+    end
+
+    it "matches on the post's uploader" do
+      expect(described_class.search({ uploader_name: uploader.name })).to eq([deletion])
+      expect(described_class.search({ uploader_name: create(:user).name })).to be_empty
+    end
+  end
 end

@@ -1,0 +1,12 @@
+<%= form_search(path: post_deletions_path, exclude_default_fields: %i[updated_at]) do |f| %>
+  <%= f.input :reason_matches, label: "Reason", hint: "Use * for wildcard searches" %>
+  <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" if CurrentUser.user.is_member? %>
+  <%= f.input :post_id, label: "Post ID" %>
+  <%= f.user :deleter %>
+  <%= f.user :uploader %>
+  <%= f.input :is_undeleted, label: "Undeleted?", collection: [["No", false], ["Yes", true], %w[Any any]], include_blank: false, default: false %>
+  <%= f.input :undeleted_at, label: "Undeleted At" %>
+  <% if CurrentUser.is_admin? %>
+    <%= f.input :ip_addr, label: "Ip Address" %>
+  <% end %>
+<% end %>

@@ -2093,17 +2093,6 @@ ALTER SEQUENCE public.posts_change_seq_seq OWNED BY public.posts.change_seq;
 
 
 --
--- Name: posts_export; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.posts_export (
-    id integer NOT NULL,
-    is_deleted boolean NOT NULL,
-    updated_at timestamp without time zone
-);
-
-
---
 -- Name: posts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -4253,14 +4242,6 @@ ALTER TABLE ONLY public.post_votes
 
 
 --
--- Name: posts_export posts_export_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.posts_export
-    ADD CONSTRAINT posts_export_pkey PRIMARY KEY (id);
-
-
---
 -- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5346,13 +5327,6 @@ CREATE INDEX index_post_approvals_on_post_id ON public.post_approvals USING btre
 --
 
 CREATE INDEX index_post_approvals_on_user_id ON public.post_approvals USING btree (user_id);
-
-
---
--- Name: index_post_deletions_active_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_deletions_active_created_at ON public.post_deletions USING btree (created_at) WHERE (is_undeleted = false);
 
 
 --
