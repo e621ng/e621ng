@@ -334,7 +334,10 @@ Rails.application.routes.draw do
       put :transfer
     end
   end
-  resources :deleted_posts, only: %i[index]
+  get "deleted_posts", to: redirect { |_params, request|
+    user_id = request.params[:user_id]
+    user_id.present? ? "/post_deletions?#{{ search: { uploader_id: user_id } }.to_query}" : "/post_deletions"
+  }
   resources :p, only: %i[show], controller: "posts_short"
   resources :posts, only: %i[index show update] do
     resources :replacements, only: %i[index new create], controller: "post_replacements"
@@ -371,6 +374,7 @@ Rails.application.routes.draw do
       post :clear_note
     end
   end
+  resources :post_deletions, only: %i[index show]
   resources :post_approvals, only: %i[index]
   resources :post_versions, only: %i[index] do
     member do

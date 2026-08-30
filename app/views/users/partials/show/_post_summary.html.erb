@@ -34,7 +34,7 @@
 
     <div class="profile-sample-links">
       <%= link_to(sanitize("<b>#{user.post_upload_count - user.post_deleted_count}</b> total"), posts_path(tags: "user:#{user.name}")) %>
-      <%= link_to(sanitize("<b>#{user.post_deleted_count}</b> deleted"), deleted_posts_path(user_id: user.id)) %>
+      <%= link_to(sanitize("<b>#{user.post_deleted_count}</b> deleted"), post_deletions_path(search: { uploader_id: user.id })) %>
       <%= link_to(sanitize("<b>#{user.own_post_replaced_count}</b> replaced"), post_replacements_path(search: { uploader_id_on_approve: user.id })) %>
       <%= link_to(sanitize("<b>#{user.post_replacement_rejected_count}</b> rejected"), post_replacements_path(search: { creator_id: user.id, status: "rejected" })) %>
       <span class="spacer"></span>

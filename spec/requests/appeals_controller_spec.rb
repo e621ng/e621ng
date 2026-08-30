@@ -11,10 +11,10 @@ RSpec.describe AppealsController do
   let(:admin)        { create(:admin_user) }
   # uploader must be passed explicitly — the :post factory always creates its own uploader user.
   let(:flagged_post)       { create(:post, uploader: uploader) }
-  let(:post_flag)          { CurrentUser.scoped(other_member) { create(:deletion_post_flag, post: flagged_post) } }
-  let(:post_flag_resolved) { CurrentUser.scoped(other_member) { create(:deletion_post_flag, post: flagged_post, is_resolved: true) } }
-  let(:appeal)             { CurrentUser.scoped(uploader) { create(:appeal, post_flag: post_flag) } }
-  let(:valid_params) { { appeal: { qtype: "flag", disp_id: post_flag.id, reason: "The flag is wrong." } } }
+  let(:deletion)           { CurrentUser.scoped(other_member) { create(:post_deletion, post: flagged_post) } }
+  let(:deletion_undeleted) { CurrentUser.scoped(other_member) { create(:post_deletion, post: flagged_post, is_undeleted: true) } }
+  let(:appeal)             { CurrentUser.scoped(uploader) { create(:appeal, post_deletion: deletion) } }
+  let(:valid_params) { { appeal: { qtype: "post_deletion", disp_id: deletion.id, reason: "The flag is wrong." } } }
 
   # ---------------------------------------------------------------------------
   # GET /appeals — index
@@ -97,14 +97,14 @@ RSpec.describe AppealsController do
 
     it "redirects to the flag's post for a member who is not the post uploader" do
       sign_in_as other_member
-      get new_appeal_path(qtype: "flag", disp_id: post_flag.id)
-      expect(response).to redirect_to(post_path(post_flag.post))
+      get new_appeal_path(qtype: "post_deletion", disp_id: deletion.id)
+      expect(response).to redirect_to(post_path(deletion.post))
       expect(flash[:alert]).to eq("This deletion can't be appealed or has already been resolved.")
     end
 
     it "returns 200 for the post uploader" do
       sign_in_as uploader
-      get new_appeal_path(qtype: "flag", disp_id: post_flag.id)
+      get new_appeal_path(qtype: "post_deletion", disp_id: deletion.id)
       expect(response).to have_http_status(:ok)
     end
 
@@ -113,7 +113,7 @@ RSpec.describe AppealsController do
       expect { post appeals_path, params: valid_params }.to change(Appeal, :count).by(1)
       appeal = Appeal.last
       expect(response).to redirect_to(appeal_path(appeal))
-      get new_appeal_path(qtype: "flag", disp_id: post_flag.id)
+      get new_appeal_path(qtype: "post_deletion", disp_id: deletion.id)
       expect(response).to redirect_to(appeal_path(appeal))
       expect(flash[:alert]).to eq("This deletion has already been appealed.")
     end
@@ -124,7 +124,7 @@ RSpec.describe AppealsController do
   # ---------------------------------------------------------------------------
 
   describe "POST /appeals" do
-    let(:valid_params_resolved) { { appeal: { qtype: "flag", disp_id: post_flag_resolved.id, reason: "The flag is wrong." } } }
+    let(:valid_params_undeleted) { { appeal: { qtype: "post_deletion", disp_id: deletion_undeleted.id, reason: "The flag is wrong." } } }
 
     context "as anonymous" do
       it "redirects HTML to the login page" do
@@ -148,7 +148,7 @@ RSpec.describe AppealsController do
       before { sign_in_as uploader }
 
       it "returns 403 for a resolved flag" do
-        post appeals_path, params: valid_params_resolved
+        post appeals_path, params: valid_params_undeleted
         expect(response).to have_http_status(:forbidden)
       end
 
@@ -166,7 +166,7 @@ RSpec.describe AppealsController do
 
       it "re-renders new when the reason is blank" do
         expect do
-          post appeals_path, params: { appeal: { qtype: "flag", disp_id: post_flag.id, reason: "" } }
+          post appeals_path, params: { appeal: { qtype: "post_deletion", disp_id: deletion.id, reason: "" } }
         end.not_to change(Appeal, :count)
         expect(response).to have_http_status(:ok)
       end

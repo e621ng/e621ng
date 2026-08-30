@@ -25,7 +25,7 @@
 
 <% if post.is_deleted? %>
   <div class="notice notice-deleted">
-    <% if post.flags.any? %>
+    <% if post.flags.any? || post.post_deletions.any? %>
       <p>This post was deleted or flagged for the following reasons: </p>
       <%= render "posts/partials/show/content/notices/flag_reasons", post: post %>
     <% else %>

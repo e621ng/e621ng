@@ -2,10 +2,6 @@
   <%= f.input :reason_matches, label: "Reason", hint: "Use * for wildcard searches" %>
   <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" if CurrentUser.user.is_member? %>
   <%= f.input :post_id, label: "Post ID" %>
-  <%= f.input :type, collection: [
-    ["Flag", "flag"],
-    ["Deletion", "deletion"],
-  ], include_blank: "Any" %>
   <%= f.input :is_resolved, label: "Resolved?", collection: [["Yes", true], ["No", false]], include_blank: "Any" %>
   <% if CurrentUser.is_staff? %>
     <%= f.input :note %>

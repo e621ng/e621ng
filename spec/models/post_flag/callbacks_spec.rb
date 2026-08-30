@@ -14,11 +14,6 @@ RSpec.describe PostFlag do
       create(:post_flag, post: post)
       expect(post.reload.is_flagged).to be true
     end
-
-    it "does not raise an error when a deletion flag is created on an already-flagged post" do
-      post = create(:flagged_post)
-      expect { create(:deletion_post_flag, post: post) }.not_to raise_error
-    end
   end
 
   # -------------------------------------------------------------------------
@@ -34,10 +29,6 @@ RSpec.describe PostFlag do
       flag = create(:post_flag)
       event = PostEvent.where(post_id: flag.post_id).last
       expect(event.extra_data["reason"]).to be_present
-    end
-
-    it "does not create a PostEvent for deletion flags" do
-      expect { create(:deletion_post_flag) }.not_to change(PostEvent, :count)
     end
   end
 

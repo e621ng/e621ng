@@ -62,6 +62,7 @@ class Post < ApplicationRecord
   belongs_to :parent, class_name: "Post", optional: true
   has_one :upload, dependent: :destroy
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
+  has_many :post_deletions
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
   has_many :comments, -> { accessible.order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
@@ -1674,6 +1675,11 @@ class Post < ApplicationRecord
         return false
       end
 
+      if is_deleted?
+        self.errors.add(:base, "Post is already deleted")
+        return false
+      end
+
       if reason.blank?
         if pending_flag.blank?
           errors.add(:base, "Cannot delete with given reason when no active flag exists.")
@@ -1689,24 +1695,21 @@ class Post < ApplicationRecord
       # Capture whether the post held a +1 upload-karma credit *before* the update below clears it.
       was_credited = !is_pending?
 
-      force_flag = options.fetch(:force, false)
       Post.with_timeout(30_000) do
         transaction do
-          flag = flags.create(reason: reason, reason_name: 'deletion', is_resolved: false, is_deletion: true, force_flag: force_flag)
-
-          if flag.errors.any?
-            raise PostFlag::Error.new(flag.errors.full_messages.join("; "))
-          end
-
-          update(
+          update!(
             is_deleted: true,
             is_pending: false,
             is_flagged: false
           )
+          post_deletions.create!(
+            deleter_id: CurrentUser.id,
+            creator_ip_addr: CurrentUser.ip_addr,
+            reason: reason,
+          )
           decrement_tag_post_counts
           move_files_on_delete
           delete_avatar_crops
-          PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
         end
       end
 
@@ -1753,9 +1756,13 @@ class Post < ApplicationRecord
         self.approver_id = CurrentUser.id
         flags.each { |x| x.resolve! }
         increment_tag_post_counts
-        save
+        save!
         approvals.create(user: CurrentUser.user)
-        PostEvent.add(id, CurrentUser.user, :undeleted)
+        if (deletion = current_deletion)
+          deletion.stamp_undeleted!(CurrentUser.user)
+        else
+          PostEvent.add(id, CurrentUser.user, :undeleted)
+        end
       end
       move_files_on_undelete
       User.where(avatar_id: id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
@@ -1771,12 +1778,13 @@ class Post < ApplicationRecord
       end
     end
 
-    def deletion_flag
-      flags.unresolved.where(is_deletion: true).order(id: :desc).first
+    def pending_flag
+      flags.unresolved.order(id: :desc).first
     end
 
-    def pending_flag
-      flags.unresolved.where(is_deletion: false).order(id: :desc).first
+    def current_deletion
+      return post_deletions.detect { |deletion| !deletion.is_undeleted? } if post_deletions.loaded?
+      PostDeletion.current_for(self)
     end
 
     def substitute_deletion_dmail_template(text, reason = nil)
@@ -1784,8 +1792,8 @@ class Post < ApplicationRecord
       if reason
         text = text.gsub("%REASON%", reason)
       end
-      if (flag_id = deletion_flag&.id)
-        text = text.gsub("%FLAG_ID%", flag_id.to_s)
+      if (deletion_id = current_deletion&.id)
+        text = text.gsub("%DELETION_ID%", deletion_id.to_s)
       end
       text.gsub("%POST_ID%", id.to_s)
           .gsub("%STAFF_NAME%", CurrentUser.name)
@@ -1794,7 +1802,7 @@ class Post < ApplicationRecord
     end
 
     def deleted_by_takedown?
-      is_deleted? && deletion_flag&.reason.to_s.start_with?("takedown #")
+      is_deleted? && current_deletion&.reason.to_s.start_with?("takedown #")
     end
   end
 

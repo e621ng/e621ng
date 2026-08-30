@@ -106,7 +106,7 @@ RSpec.describe Fixes::RecalculateUploadKarmaLedger do
 
     it "skips takedown-deleted posts" do
       post = create(:post, uploader: uploader)
-      create(:deletion_post_flag, post: post, reason: "takedown #123: artist request")
+      create(:post_deletion, post: post, reason: "takedown #123: artist request")
       post.update_columns(is_deleted: true, is_pending: false)
 
       run!
