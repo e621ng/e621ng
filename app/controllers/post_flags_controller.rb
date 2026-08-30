@@ -9,6 +9,12 @@ class PostFlagsController < ApplicationController
     @search_params = search_params
     @post_flags = PostFlag.includes(:creator, post: %i[flags uploader approver]).search(@search_params).paginate(params[:page], limit: params[:limit])
     Post.preload_stats!(@post_flags.map(&:post))
+
+    if CurrentUser.is_staff? && request.format.html?
+      ids = @post_flags&.map(&:id)
+      @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
+    end
+
     respond_with(@post_flags)
   end
 

@@ -1,0 +1,5 @@
+div#c-post-deletions {
+  tr.deletion-undeleted-true {
+    background: $positive-record-background !important;
+  }
+}
