@@ -580,6 +580,6 @@ class Artist < ApplicationRecord
   end
 
   def update_posts_index
-    ArtistReindexJob.perform_later(name)
+    ArtistReindexJob.perform_async(name)
   end
 end

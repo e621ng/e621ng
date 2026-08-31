@@ -12,12 +12,12 @@ RSpec.describe ArtistReindexJob do
   it "reindexes every post tagged with the artist name" do
     reindexed = []
     allow_any_instance_of(Post).to receive(:update_index) { |post, **| reindexed << post.id } # rubocop:disable RSpec/AnyInstance
-    described_class.perform_now(artist_name)
+    described_class.new.perform(artist_name)
     expect(reindexed).to include(tagged.id)
     expect(reindexed).not_to include(untagged.id)
   end
 
   it "returns without error when no posts match" do
-    expect { described_class.perform_now("no_such_artist") }.not_to raise_error
+    expect { described_class.new.perform("no_such_artist") }.not_to raise_error
   end
 end

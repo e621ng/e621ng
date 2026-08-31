@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 class ArtistReindexJob < ApplicationJob
-  queue_as :low_prio
-  sidekiq_options lock: :until_executed, lock_args_method: :lock_args
-  self.enqueue_after_transaction_commit = true
+  include TransactionalEnqueue
+  sidekiq_options queue: "low_prio", lock: :until_executed, lock_args_method: :lock_args, lock_ttl: 24.hours.to_i
 
   def self.lock_args(args)
     [args[0]]
