@@ -42,6 +42,12 @@ RSpec.describe AvoidPosting do
       expect(result).to include(dnp_alpha, dnp_beta)
       expect(result).not_to include(dnp_deleted)
     end
+
+    it "returns all entries when is_active is 'any'" do
+      # Technically, any input is allowed here.
+      result = AvoidPosting.search(is_active: "any")
+      expect(result).to include(dnp_alpha, dnp_beta, dnp_deleted)
+    end
   end
 
   # -------------------------------------------------------------------------

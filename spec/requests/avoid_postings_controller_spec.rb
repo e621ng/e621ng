@@ -55,6 +55,14 @@ RSpec.describe AvoidPostingsController do
       expect(ids).to include(ap.id)
     end
 
+    it "returns all entries when is_active='any' is requested" do
+      ap_active   = avoid_posting
+      ap_inactive = inactive_avoid_posting
+      get avoid_postings_path(format: :json, search: { is_active: "any" })
+      ids = response.parsed_body.pluck("id")
+      expect(ids).to include(ap_active.id, ap_inactive.id)
+    end
+
     it "filters by artist_name" do
       matching    = avoid_posting
       nonmatching = create(:avoid_posting)
