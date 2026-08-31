@@ -190,6 +190,8 @@ nav.navigation {
     &.anonymous li.nav-tools-themes {
       grid-column: 1 / -1;
     }
+
+    .nav-tools-notifications { display: none; }
   }
 
   .nav-help {
@@ -259,6 +261,46 @@ li.notification {
       top: 0.2rem;
     }
   }
+}
+
+
+// Saved Search Notifications
+a.nav-controls-notifications span, #nav-notifications-link {
+  position: relative;
+
+  &::after {
+    content: attr(data-notif-count);
+
+    position: absolute;
+    top: -0.125rem;
+    right: -0.125rem;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: .75rem;
+    height: .75rem;
+
+    font-size: .5rem;
+    line-height: .5rem;
+    font-weight: bold;
+
+    background: palette("plain-red");
+    color: palette("plain-white");
+    border-radius: 50%;
+  }
+
+  &[data-notif-count="0"]::after {
+    display: none;
+  }
+  &[data-notif-count="100"]::after {
+    content: ">";
+  }
+}
+
+#nav-notifications-link::after {
+  top: 0;
+  right: 0.25rem;
 }
 
 
@@ -429,9 +471,10 @@ nav.navigation, html.nav-toggled nav.navigation {
           &:hover svg { color: themed("color-link-hover"); }
         }
 
-        &.nav-tools-themes, &.nav-tools-settings {
+        &.nav-tools-themes, &.nav-tools-settings, &.nav-tools-notifications {
           a span { display: none; }
         }
+        &.nav-tools-notifications { display: block; }
       }
     }
 
@@ -459,6 +502,8 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       #nav-toggle { display: none; }
       a { padding: 0; }
+
+      .nav-controls-notifications { display: none; }
     }
   }
 }
