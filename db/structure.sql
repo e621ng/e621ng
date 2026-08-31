@@ -4916,6 +4916,13 @@ CREATE INDEX index_favorites_on_user_id_and_created_at ON public.favorites USING
 
 
 --
+-- Name: index_favorites_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_user_id_and_id ON public.favorites USING btree (user_id, id);
+
+
+--
 -- Name: index_favorites_on_user_id_and_post_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6416,6 +6423,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260827214903'),
 ('20260824220908'),
 ('20260819154314'),
 ('20260818231537'),
