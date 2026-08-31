@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class TagBatchJob < ApplicationJob
+  include TransactionalEnqueue
   sidekiq_options queue: "tags"
 
   # This many failed posts means something systemic, not scattered bad data.

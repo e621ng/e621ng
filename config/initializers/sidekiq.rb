@@ -6,20 +6,10 @@ require_relative "../../lib/sidekiq_capsules"
 
 Sidekiq.logger.level = Logger::WARN if Rails.env.test?
 
-# With ActiveJob, enqueue_after_transaction_commit defaulted to false; only these four jobs opted in.
-# Route just those through the transaction-aware client and leave every other job as is.
-# Skipped in tests.
-unless Rails.env.test?
-  require "sidekiq/transaction_aware_client"
-  # transactional_push! would register this for us; setting client_class per class does not,
-  # so strip it here or it rides along in every payload these jobs push to Redis.
-  Sidekiq::JobUtil::TRANSIENT_ATTRIBUTES << "client_class"
-  Rails.application.config.to_prepare do
-    [TagAliasJob, TagBatchJob, TagImplicationJob, TagNukeJob].each do |klass|
-      klass.sidekiq_options(client_class: Sidekiq::TransactionAwareClient)
-    end
-  end
-end
+# The four tag jobs defer enqueue to transaction commit via TransactionalEnqueue
+# (client_class: TransactionAwareClient). transactional_push! would strip client_class
+# for us; setting it per class does not, so do it here or the Class rides along in every payload.
+Sidekiq::JobUtil::TRANSIENT_ATTRIBUTES << "client_class"
 
 # Specs push through the real client middleware (even in fake mode); without
 # this, parallel workers would take real locks in the shared test Redis.

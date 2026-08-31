@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class TagAliasJob < ApplicationJob
+  include TransactionalEnqueue
   sidekiq_options queue: "tags", lock: :until_executed, lock_args_method: :lock_args, lock_ttl: 24.hours.to_i
 
   def self.lock_args(args)
