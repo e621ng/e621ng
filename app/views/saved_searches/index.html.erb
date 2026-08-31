@@ -1,0 +1,56 @@
+<div id="c-saved-searches">
+  <div id="a-index">
+    <h2>Saved Searches</h2>
+
+    <div class="section">
+      <%= link_to "New saved search", new_saved_search_path, class: "button btn-success" %>
+      <% if CurrentUser.user.has_tracked_saved_searches %>
+        <%= button_to "Mark all as seen", mark_all_seen_saved_searches_path, method: :post, class: "button btn-neutral" %>
+      <% end %>
+    </div>
+
+    <% if @saved_searches.empty? %>
+      <p>You have no saved searches. Save one from the posts page, or create one here.</p>
+    <% else %>
+      <table class="striped">
+        <thead>
+        <tr>
+          <th width="15%">Name</th>
+          <th width="40%">Query</th>
+          <th width="10%">Tracked</th>
+          <th width="10%">New Posts</th>
+          <th width="15%">Created</th>
+          <th width="10%"></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <% @saved_searches.each do |ss| %>
+          <tr>
+            <td><%= ss.name %></td>
+            <td><%= link_to ss.query, visit_saved_search_path(ss) %></td>
+            <td><%= ss.is_tracked? ? "Yes" : "No" %></td>
+            <td>
+              <% count = @counts[ss.id] %>
+              <% if ss.is_tracked? && count.to_i > 0 %>
+                <span class="saved-search-new-count"><%= count >= SavedSearch::BADGE_COUNT_CAP ? "#{SavedSearch::BADGE_COUNT_CAP - 1}+" : count %></span>
+              <% elsif ss.is_tracked? %>
+                0
+              <% end %>
+            </td>
+            <td><%= time_ago_in_words_tagged ss.created_at, compact: true %></td>
+            <td>
+              <%= link_to "Edit", edit_saved_search_path(ss) %>
+              | <%= link_to "Delete", saved_search_path(ss), data: { confirm: "Are you sure you want to delete this saved search?" }, method: :delete %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Saved Searches
+<% end %>

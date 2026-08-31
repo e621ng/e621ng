@@ -2098,6 +2098,41 @@ ALTER SEQUENCE public.posts_id_seq OWNED BY public.posts.id;
 
 
 --
+-- Name: saved_searches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.saved_searches (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    query text NOT NULL,
+    name text,
+    is_tracked boolean DEFAULT false NOT NULL,
+    last_seen_post_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: saved_searches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.saved_searches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: saved_searches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.saved_searches_id_seq OWNED BY public.saved_searches.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3583,6 +3618,13 @@ ALTER TABLE ONLY public.posts ALTER COLUMN change_seq SET DEFAULT nextval('publi
 
 
 --
+-- Name: saved_searches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.saved_searches ALTER COLUMN id SET DEFAULT nextval('public.saved_searches_id_seq'::regclass);
+
+
+--
 -- Name: search_trend_blacklists id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4217,6 +4259,14 @@ ALTER TABLE ONLY public.post_votes
 
 ALTER TABLE ONLY public.posts
     ADD CONSTRAINT posts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: saved_searches saved_searches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.saved_searches
+    ADD CONSTRAINT saved_searches_pkey PRIMARY KEY (id);
 
 
 --
@@ -5560,6 +5610,27 @@ CREATE INDEX index_posts_on_uploader_ip_addr ON public.posts USING btree (upload
 
 
 --
+-- Name: index_saved_searches_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_saved_searches_on_user_id ON public.saved_searches USING btree (user_id);
+
+
+--
+-- Name: index_saved_searches_on_user_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_saved_searches_on_user_id_and_name ON public.saved_searches USING btree (user_id, name) WHERE (name IS NOT NULL);
+
+
+--
+-- Name: index_saved_searches_on_user_id_and_query; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_saved_searches_on_user_id_and_query ON public.saved_searches USING btree (user_id, query);
+
+
+--
 -- Name: index_search_trend_blacklists_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6269,6 +6340,14 @@ ALTER TABLE ONLY public.user_ip_addresses
 
 
 --
+-- Name: saved_searches fk_rails_63c5382842; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.saved_searches
+    ADD CONSTRAINT fk_rails_63c5382842 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: oauth_access_tokens fk_rails_732cb83ab7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6444,6 +6523,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260907205015'),
+('20260831170950'),
 ('20260827214903'),
 ('20260824220908'),
 ('20260819154314'),

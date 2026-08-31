@@ -383,6 +383,21 @@ module Danbooru
       40
     end
 
+    # Maximum saved searches per user.
+    def saved_search_limit
+      250
+    end
+
+    # Maximum saved searches with tracking enabled per user; bounds badge-refresh cost.
+    def tracked_saved_search_limit
+      50
+    end
+
+    # How long cached saved-search badge counts stay fresh.
+    def saved_search_badge_ttl
+      15.minutes
+    end
+
     # Return true if the given tag shouldn't count against the user's tag search limit.
     def is_unlimited_tag?(tag)
       !!(tag =~ /\A(-?status:deleted|rating:s.*|limit:.+)\z/i)

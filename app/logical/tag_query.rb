@@ -76,7 +76,7 @@ class TagQuery
 
   NEGATABLE_METATAGS = %w[
     id filetype type rating description parent user user_id approver flagger deletedby delreason
-    source status pool set fav favoritedby note locked
+    source status pool set search fav favoritedby note locked
     upvote votedup upvoted voteup downvote voteddown downvoted votedown voted vote
     width height mpixels ratio filesize duration score favcount date age change tagcount
     commenter comm noter noteupdater flagreason flagnote flaggedby
@@ -293,15 +293,20 @@ class TagQuery
   end
 
   delegate :[], :include?, to: :@q
-  attr_reader :q, :resolve_aliases, :tag_count
+  attr_reader :q, :resolve_aliases, :tag_count, :allow_wildcard_tags, :allow_saved_search_metatag
 
   # ### Parameters
   # * `query`
   # * `resolve_aliases` [`true`]
   # * `free_tags_count` [`0`]
+  # * `allow_wildcard_tags` [`true`]: expand `tag*` wildcards? Saved-search contexts disable
+  # this — the expansion is a snapshot of the current top matches, so stored queries would
+  # silently change meaning between evaluations.
+  # * `allow_saved_search_metatag` [`true`]: permit `search:`? Disabled inside saved-search
+  # queries themselves to forbid nesting/reference cycles.
   # * `error_on_depth_exceeded` [`false`]
   # * `depth` [`0`]
-  def initialize(query, resolve_aliases: true, free_tags_count: 0, **)
+  def initialize(query, resolve_aliases: true, free_tags_count: 0, allow_wildcard_tags: true, allow_saved_search_metatag: true, **) # rubocop:disable Metrics/ParameterLists
     @q = {
       tags: {
         must: [],
@@ -313,6 +318,8 @@ class TagQuery
     @resolve_aliases = resolve_aliases
     @tag_count = 0
     @free_tags_count = free_tags_count
+    @allow_wildcard_tags = allow_wildcard_tags
+    @allow_saved_search_metatag = allow_saved_search_metatag
 
     if SETTINGS[:CHECK_TAG_VALIDITY] && SETTINGS[:CATCH_INVALID_TAG]
       begin
@@ -1342,6 +1349,9 @@ class TagQuery
                                     **kwargs,
                                     free_tags_count: @tag_count + @free_tags_count,
                                     resolve_aliases: @resolve_aliases,
+                                    # Explicit kwargs don't ride the **kwargs splat; forward them
+                                    allow_wildcard_tags: @allow_wildcard_tags,
+                                    allow_saved_search_metatag: @allow_saved_search_metatag,
                                     hoisted_metatags: nil, depth: depth + 1
                                   )
                                 # rubocop:disable Metrics/BlockNesting
@@ -1431,6 +1441,9 @@ class TagQuery
 
           post_set_id
         end
+
+      when "search", "-search", "~search"
+        add_saved_search_to_query(type, g2, depth, **kwargs)
 
       # NOTE: The favorite case is the only case where `user_id_or_invalid` isn't used, because it needs to check for the `hide_favorites` user setting.
       # As a result, to avoid an extra lookup in the common case of a valid user, the logic is duplicated here instead of using `user_id_or_invalid` with an `invalid_user_id` of `-1` and then checking for that in the caller.
@@ -1624,6 +1637,7 @@ class TagQuery
         raise InvalidTagError.new(tag: tag_name, prefix: "-", query_obj: self)
       end
       if tag_name.include?("*")
+        check_wildcard_tags_allowed(tag_name, "-")
         q[:tags][:must_not] += pull_wildcard_tags(tag_name)
         check_opensearch_clause_count
       else
@@ -1641,6 +1655,7 @@ class TagQuery
         raise InvalidTagError.new(tag: tag_name, query_obj: self)
       end
       if tag_name.include?("*")
+        check_wildcard_tags_allowed(tag_name, nil)
         q[:tags][:should] += pull_wildcard_tags(tag_name)
         check_opensearch_clause_count
       else
@@ -1686,6 +1701,62 @@ class TagQuery
     when :must_not then q[key] = value == "none" ? "any" : "none"
     when :should then q[:"#{key}_should"] = value
     end
+  end
+
+  # Splices the current user's referenced saved search into the query as a group, equivalent to
+  # wrapping its stored query in `( )` / `-( )` / `~( )` per the metatag's prefix. The metatag
+  # itself costs 1 toward `tag_query_limit`; the spliced subtree carries its own validation-time
+  # budget (`free_tags_count: 1`) and is bounded by `check_opensearch_clause_count` + `DEPTH_LIMIT`.
+  def add_saved_search_to_query(type, value, depth, **)
+    unless @allow_saved_search_metatag
+      raise InvalidTagError.new("saved searches cannot reference other saved searches", tag: "search:#{value}", query_obj: self)
+    end
+
+    saved_search_id = SavedSearch.name_or_id_to_id(value, CurrentUser.user)
+    saved_search = saved_search_id && SavedSearch.find_by(id: saved_search_id)
+    if saved_search.nil?
+      # Resolution failure matches nothing rather than erroring, like set:/fav: resolving to -1.
+      q[:tags][type] << "~~not_found~~"
+      return
+    end
+
+    sub = begin
+      TagQuery.new(
+        saved_search.query,
+        **,
+        resolve_aliases: @resolve_aliases,
+        # The reserved watermark slot; matches the budget enforced when the query was saved
+        free_tags_count: 1,
+        can_have_groups: true,
+        process_groups: true,
+        allow_wildcard_tags: false,
+        allow_saved_search_metatag: false,
+        hoisted_metatags: nil,
+        depth: depth + 1,
+      )
+    rescue CountExceededError
+      raise CountExceededError.new(query_obj: self)
+    rescue DepthExceededError
+      raise DepthExceededError.new(query_obj: self)
+    rescue InvalidTagError
+      raise InvalidTagError.new(query_obj: self)
+    end
+
+    q[:children_show_deleted] ||= !sub.hide_deleted_posts?(at_any_level: true)
+    q[:groups] ||= {}
+    q[:groups][type] ||= []
+    q[:groups][type] << sub
+  end
+
+  # Wildcard expansion snapshots the current top-40 matching tags, so a stored query containing
+  # one would silently change meaning between evaluations. Saved-search contexts parse with
+  # `allow_wildcard_tags: false` to reject them up front.
+  #
+  # NOTE: This must keep propagating out of `initialize`; the `InvalidTagError` swallowing there
+  # is gated behind `SETTINGS[:CHECK_TAG_VALIDITY]` (currently false). Revisit if that changes.
+  def check_wildcard_tags_allowed(tag_name, prefix)
+    return if @allow_wildcard_tags
+    raise InvalidTagError.new("wildcard tags cannot be used here", tag: tag_name, prefix: prefix, has_wildcard: true, query_obj: self)
   end
 
   def check_opensearch_clause_count

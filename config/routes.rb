@@ -488,6 +488,14 @@ Rails.application.routes.draw do
       post :remove_posts
     end
   end
+  resources :saved_searches do
+    collection do
+      post :mark_all_seen
+    end
+    member do
+      get :visit
+    end
+  end
   resources :post_set_maintainers do
     member do
       get :approve

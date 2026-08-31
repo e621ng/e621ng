@@ -639,11 +639,13 @@ RSpec/MessageSpies:
   Exclude:
     - 'spec/logical/oidc_signing_key_spec.rb'
 
-# Offense count: 1
+# Offense count: 3
 # This cop supports unsafe autocorrection (--autocorrect-all).
+# saved_searches_controller: false positive — flash is only set on the respond_with redirect path.
 Rails/ActionControllerFlashBeforeRender:
   Exclude:
     - 'app/controllers/uploads_controller.rb'
+    - 'app/controllers/saved_searches_controller.rb'
 
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).
