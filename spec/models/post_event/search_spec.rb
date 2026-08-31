@@ -29,10 +29,9 @@ RSpec.describe PostEvent do
     PostEvent.add(post.id, creator, action, data)
   end
 
-  # --------------------------------------------------------------------------- #
-  #                           post_id parameter                                 #
-  # --------------------------------------------------------------------------- #
-
+  # -------------------------------------------------------------------------
+  # post_id parameter
+  # -------------------------------------------------------------------------
   describe "post_id parameter" do
     let(:post_a) { create(:post) }
     let(:post_b) { create(:post) }
@@ -51,10 +50,9 @@ RSpec.describe PostEvent do
     end
   end
 
-  # --------------------------------------------------------------------------- #
-  #                           creator filter                                    #
-  # --------------------------------------------------------------------------- #
-
+  # -------------------------------------------------------------------------
+  # creator filter
+  # -------------------------------------------------------------------------
   describe "creator filter" do
     let(:creator_a) { create(:user) }
     let(:creator_b) { create(:user) }
@@ -74,10 +72,9 @@ RSpec.describe PostEvent do
     end
   end
 
-  # --------------------------------------------------------------------------- #
-  #                           action parameter                                  #
-  # --------------------------------------------------------------------------- #
-
+  # -------------------------------------------------------------------------
+  # action parameter
+  # -------------------------------------------------------------------------
   describe "action parameter" do
     let!(:deleted_event)   { make_event(action: :deleted) }
     let!(:approved_event)  { make_event(action: :approved) }
@@ -111,10 +108,9 @@ RSpec.describe PostEvent do
     end
   end
 
-  # --------------------------------------------------------------------------- #
-  #                   flag_created visibility in creator search                 #
-  # --------------------------------------------------------------------------- #
-
+  # -------------------------------------------------------------------------
+  # flag_created visibility in creator search
+  # -------------------------------------------------------------------------
   describe "flag_created visibility" do
     let(:flagger)      { create(:user) }
     let!(:flag_event)  { make_event(creator: flagger, action: :flag_created) }
@@ -136,6 +132,84 @@ RSpec.describe PostEvent do
       CurrentUser.user = member
       results = PostEvent.search(creator_name: flagger.name)
       expect(results).to include(other_event)
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # JSONB integer field
+  # -------------------------------------------------------------------------
+  # PostEvent.search applies JSONB sub-filters using string-keyed params
+  # (params.slice(*field_types.keys.map(&:to_s))). Pass JSONB field names
+  # as string keys to ensure they are picked up by the slice operation.
+  describe "JSONB integer field (parent_id on favorites_moved)" do
+    it "filters records by an integer JSONB attribute" do
+      event_a = make_event(action: :favorites_moved, extra_data: { parent_id: 100 })
+      event_b = make_event(action: :favorites_moved, extra_data: { parent_id: 200 })
+
+      result = PostEvent.search(action: "favorites_moved", "parent_id" => "100")
+      expect(result).to include(event_a)
+      expect(result).not_to include(event_b)
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # JSONB string field — exact (full-text search)
+  # -------------------------------------------------------------------------
+  describe "JSONB string field exact match (reason on deleted)" do
+    it "returns records whose reason matches the query term" do
+      matching     = make_event(action: :deleted, extra_data: { reason: "spam content" })
+      non_matching = make_event(action: :deleted, extra_data: { reason: "garbage upload" })
+
+      result = PostEvent.search(action: "deleted", "reason" => "spam")
+      expect(result).to include(matching)
+      expect(result).not_to include(non_matching)
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # JSONB string field — wildcard (LIKE search)
+  # -------------------------------------------------------------------------
+  describe "JSONB string field wildcard match" do
+    it "returns records whose reason matches the wildcard pattern" do
+      matching     = make_event(action: :deleted, extra_data: { reason: "rule violation" })
+      non_matching = make_event(action: :deleted, extra_data: { reason: "spam content" })
+
+      result = PostEvent.search(action: "deleted", "reason" => "rule*")
+      expect(result).to include(matching)
+      expect(result).not_to include(non_matching)
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # JSONB boolean field
+  # -------------------------------------------------------------------------
+  describe "JSONB boolean field (penalize on replacement_penalty_changed)" do
+    it "returns records where penalize is true when searching for true" do
+      penalized     = make_event(action: :replacement_penalty_changed, extra_data: { replacement_id: 1, penalize: true })
+      not_penalized = make_event(action: :replacement_penalty_changed, extra_data: { replacement_id: 1, penalize: false })
+
+      result = PostEvent.search(action: "replacement_penalty_changed", "penalize" => "true")
+      expect(result).to include(penalized)
+      expect(result).not_to include(not_penalized)
+    end
+
+    it "returns records where penalize is false when searching for false" do
+      penalized     = make_event(action: :replacement_penalty_changed, extra_data: { replacement_id: 1, penalize: true })
+      not_penalized = make_event(action: :replacement_penalty_changed, extra_data: { replacement_id: 1, penalize: false })
+
+      result = PostEvent.search(action: "replacement_penalty_changed", "penalize" => "false")
+      expect(result).to include(not_penalized)
+      expect(result).not_to include(penalized)
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # Unknown action — no JSONB sub-filters applied
+  # -------------------------------------------------------------------------
+  describe "unknown action param" do
+    it "does not raise an error for an unknown action" do
+      make_event(action: :deleted)
+      expect { PostEvent.search(action: "nonexistent_action").to_a }.not_to raise_error
     end
   end
 

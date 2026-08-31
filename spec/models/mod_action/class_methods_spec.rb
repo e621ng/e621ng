@@ -39,15 +39,15 @@ RSpec.describe ModAction do
   # .available_action_keys
   # -------------------------------------------------------------------------
   describe ".available_action_keys" do
-    it "returns all KnownActionKeys for a staff user" do
+    it "returns all KNOWN_ACTION_KEYS for a staff user" do
       staff = create(:moderator_user)
-      expect(ModAction.available_action_keys(staff)).to eq(ModAction::KnownActionKeys)
+      expect(ModAction.available_action_keys(staff)).to eq(ModAction::KNOWN_ACTION_KEYS)
     end
 
-    it "excludes ProtectedActionKeys for a regular member" do
+    it "excludes PROTECTED_ACTION_KEYS for a regular member" do
       member = create(:user)
       keys = ModAction.available_action_keys(member)
-      ModAction::ProtectedActionKeys.each do |protected_key|
+      ModAction::PROTECTED_ACTION_KEYS.each do |protected_key|
         expect(keys).not_to include(protected_key.to_sym)
       end
     end
