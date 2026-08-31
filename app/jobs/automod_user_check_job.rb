@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class AutomodUserCheckJob < ApplicationJob
-  queue_as :default
+  sidekiq_options queue: "default"
 
-  def perform(user_id, check_username:, check_profile:)
+  def perform(user_id, check_username, check_profile)
     user = User.find(user_id)
     return if Ticket.active.where(qtype: "user", disp_id: user.id).exists?
 

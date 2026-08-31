@@ -6,7 +6,7 @@
 # contributions. If a run fails partway, clear user_ip_addresses and start over
 # (the table is fully reconstructible from these sources plus the live writes).
 class UserIpAddressBackfillJob < ApplicationJob
-  queue_as :low_prio
+  sidekiq_options queue: "low_prio"
 
   BATCH_SIZE = 100_000
 

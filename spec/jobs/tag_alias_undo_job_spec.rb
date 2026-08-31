@@ -12,14 +12,14 @@ RSpec.describe TagAliasUndoJob do
       undoer = create(:admin_user)
       allow(TagAlias).to receive(:find).with(tag_alias.id).and_return(tag_alias)
       allow(tag_alias).to receive(:process_undo!)
-      described_class.perform_now(tag_alias.id, false, undoer.id)
+      described_class.new.perform(tag_alias.id, false, undoer.id)
       expect(tag_alias).to have_received(:process_undo!).with(update_topic: false, undoer: undoer)
     end
 
     it "passes a nil undoer when none was recorded" do
       allow(TagAlias).to receive(:find).with(tag_alias.id).and_return(tag_alias)
       allow(tag_alias).to receive(:process_undo!)
-      described_class.perform_now(tag_alias.id, false)
+      described_class.new.perform(tag_alias.id, false)
       expect(tag_alias).to have_received(:process_undo!).with(update_topic: false, undoer: nil)
     end
 
@@ -28,7 +28,7 @@ RSpec.describe TagAliasUndoJob do
       allow(TagAlias).to receive(:find).with(tag_alias.id).and_return(tag_alias)
       allow(tag_alias).to receive(:process_undo!).and_raise(TagAlias::UndoError, "some permanent problem")
 
-      expect { described_class.perform_now(tag_alias.id, false, undoer.id) }
+      expect { described_class.new.perform(tag_alias.id, false, undoer.id) }
         .to change { Dmail.where(to_id: undoer.id, owner_id: undoer.id).count }.by(1)
 
       dmail = Dmail.where(to_id: undoer.id, owner_id: undoer.id).last
@@ -39,7 +39,7 @@ RSpec.describe TagAliasUndoJob do
       allow(TagAlias).to receive(:find).with(tag_alias.id).and_return(tag_alias)
       allow(tag_alias).to receive(:process_undo!).and_raise(TagAlias::UndoError, "some permanent problem")
 
-      expect { described_class.perform_now(tag_alias.id, false) }.not_to change(Dmail, :count)
+      expect { described_class.new.perform(tag_alias.id, false) }.not_to change(Dmail, :count)
     end
   end
 

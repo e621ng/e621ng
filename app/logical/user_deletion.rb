@@ -26,7 +26,7 @@ class UserDeletion
     clear_user_settings
     reset_password
     create_mod_action
-    FlushFavoritesJob.perform_later(user.id)
+    FlushFavoritesJob.perform_async(user.id)
   end
 
   private
@@ -60,7 +60,7 @@ class UserDeletion
       custom_style: "",
       level: [user.level, UserLevel::MEMBER].min, # Keep banned users banned
     )
-    AvatarCleanupJob.perform_later(user.id, force: true)
+    AvatarCleanupJob.perform_async(user.id, true)
   end
 
   def reset_password

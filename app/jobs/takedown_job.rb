@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class TakedownJob < ApplicationJob
-  queue_as :high_prio
-  sidekiq_options lock: :until_executing, lock_args_method: :lock_args
+  sidekiq_options queue: "high_prio", lock: :until_executing, lock_args_method: :lock_args, lock_ttl: 1.hour.to_i
 
   def self.lock_args(args)
     [args[0]]

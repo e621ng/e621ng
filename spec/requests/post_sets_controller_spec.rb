@@ -402,7 +402,7 @@ RSpec.describe PostSetsController do
         expect do
           post update_posts_post_set_path(private_set),
                params: { post_set: { post_ids_string: posts.map(&:id).join(" ") } }
-        end.to have_enqueued_job(BulkIndexUpdateJob).with("Post", match_array(posts.map(&:id)))
+        end.to enqueue_sidekiq_job(BulkIndexUpdateJob).with("Post", match_array(posts.map(&:id)))
         expect(private_set.reload.post_ids).to match_array(posts.map(&:id))
       end
     end

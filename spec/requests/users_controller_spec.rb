@@ -673,7 +673,7 @@ RSpec.describe UsersController do
 
       it "enqueues FlushFavoritesJob, logs a ModAction, and redirects" do
         expect { post flush_favorites_user_path(user) }
-          .to have_enqueued_job(FlushFavoritesJob).with(user.id)
+          .to enqueue_sidekiq_job(FlushFavoritesJob).with(user.id)
           .and change(ModAction, :count).by(1)
         expect(ModAction.last[:values]).to include("user_id" => user.id)
         expect(response).to redirect_to(user_path(user))

@@ -356,7 +356,7 @@ RSpec.describe TagAlias do
       create_posts_chunk(ta)
 
       expect { ta.update_posts_undo }
-        .to have_enqueued_job(TagAliasFinalizeJob).with(ta.id)
+        .to enqueue_sidekiq_job(TagAliasFinalizeJob).with(ta.id)
     end
   end
 

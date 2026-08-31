@@ -6,7 +6,7 @@ RSpec.describe TagBatchJob do
   include_context "as admin"
 
   def perform(antecedent = "old_tag", consequent = "new_tag")
-    described_class.perform_now(antecedent, consequent, CurrentUser.id, CurrentUser.ip_addr)
+    described_class.new.perform(antecedent, consequent, CurrentUser.id, CurrentUser.ip_addr)
   end
 
   describe "#perform" do
@@ -117,29 +117,29 @@ RSpec.describe TagBatchJob do
     let!(:post) { create(:post, tag_string: "old_tag other_tag") }
 
     it "enqueues the finalize job with the consequent and no stragglers" do
-      expect { perform }.to have_enqueued_job(TagBatchFinalizeJob).with("new_tag", [])
+      expect { perform }.to enqueue_sidekiq_job(TagBatchFinalizeJob).with("new_tag", [])
     end
 
     it "does not enqueue the finalize job when the arguments are rejected" do
       expect { perform("old_tag extra_tag", "new_tag") }.to raise_error(ApplicationJob::JobError)
-      expect(TagBatchFinalizeJob).not_to have_been_enqueued
+      expect(TagBatchFinalizeJob).not_to have_enqueued_sidekiq_job
     end
 
     it "still enqueues the finalize job when a post cannot be saved" do
       post.update_columns(rating: "x")
       expect { perform }.to raise_error(ApplicationJob::JobError)
-      expect(TagBatchFinalizeJob).to have_been_enqueued
+      expect(TagBatchFinalizeJob).to have_enqueued_sidekiq_job
     end
 
     it "resolves the consequent through an active alias" do
       create(:tag_alias, antecedent_name: "new_tag", consequent_name: "final_tag", status: "active")
-      expect { perform }.to have_enqueued_job(TagBatchFinalizeJob).with("final_tag", [])
+      expect { perform }.to enqueue_sidekiq_job(TagBatchFinalizeJob).with("final_tag", [])
       expect(post.reload.tag_array).to include("final_tag")
     end
 
     it "records posts the consequent did not survive on as stragglers" do
       post.update_columns(locked_tags: "-new_tag")
-      expect { perform }.to have_enqueued_job(TagBatchFinalizeJob).with("new_tag", [post.id])
+      expect { perform }.to enqueue_sidekiq_job(TagBatchFinalizeJob).with("new_tag", [post.id])
     end
 
     context "while migrating" do

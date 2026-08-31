@@ -228,13 +228,13 @@ RSpec.describe Post do
       it "enqueues PostVideoConversionJob immediately when later is false" do
         post = create(:post, file_ext: "webm")
         expect { post.generate_video_samples(later: false) }
-          .to have_enqueued_job(PostVideoConversionJob)
+          .to enqueue_sidekiq_job(PostVideoConversionJob)
       end
 
       it "enqueues PostVideoConversionJob with a delay when later is true" do
         post = create(:post, file_ext: "webm")
         expect { post.generate_video_samples(later: true) }
-          .to have_enqueued_job(PostVideoConversionJob)
+          .to enqueue_sidekiq_job(PostVideoConversionJob)
       end
     end
 

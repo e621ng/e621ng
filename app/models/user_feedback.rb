@@ -111,7 +111,7 @@ class UserFeedback < ApplicationRecord
   end
 
   def create_email
-    Maintenance::User::UserFeedbackMailer.feedback_notice(user, self).deliver_later
+    UserFeedbackMailJob.perform_async(user_id, id)
   end
 
   def creator_is_moderator

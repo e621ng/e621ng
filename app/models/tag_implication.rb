@@ -135,7 +135,7 @@ class TagImplication < TagRelationship
           update_descendant_names_for_parents
           forum_updater.update(approval_message(approver), "APPROVED") if update_topic
           update(status: "active")
-          TagImplicationFinalizeJob.perform_later(id, antecedent_name)
+          TagImplicationFinalizeJob.perform_async(id, antecedent_name)
         end
       rescue Exception => e
         if tries < 5 && !Rails.env.test?
@@ -211,11 +211,11 @@ class TagImplication < TagRelationship
     def approve!(approver: CurrentUser.user, update_topic: true)
       update(status: "queued", approver_id: approver.id)
       invalidate_cached_descendants
-      TagImplicationJob.perform_later(id, update_topic)
+      TagImplicationJob.perform_async(id, update_topic)
     end
 
     def undo!(undoer: CurrentUser.user, update_topic: true)
-      TagImplicationUndoJob.perform_later(id, update_topic, undoer.id)
+      TagImplicationUndoJob.perform_async(id, update_topic, undoer.id)
     end
 
     def reject!(update_topic: true)
@@ -326,7 +326,7 @@ class TagImplication < TagRelationship
           tu.update!(applied: true)
         end
       end
-      TagImplicationFinalizeJob.perform_later(id, antecedent_name, undo: true)
+      TagImplicationFinalizeJob.perform_async(id, antecedent_name, true)
     ensure
       Thread.current[:skip_post_index_update] = false
     end

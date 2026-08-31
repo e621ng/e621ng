@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SearchTrendAggregateJob < ApplicationJob
-  queue_as :default
+  sidekiq_options queue: "default"
 
   def perform
     aggregate_unprocessed_records!

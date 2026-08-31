@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ApiKeyExpirationWarningJob < ApplicationJob
-  queue_as :low_prio
+  sidekiq_options queue: "low_prio"
 
   def perform
     ApiKey.expiring_soon.find_each do |api_key|

@@ -191,7 +191,7 @@ RSpec.describe TakedownsController do
 
       it "enqueues a TakedownJob when process_takedown is truthy" do
         patch takedown_path(takedown), params: update_params.merge(process_takedown: "1", delete_reason: "DMCA")
-        expect(TakedownJob).to have_been_enqueued
+        expect(TakedownJob).to have_enqueued_sidekiq_job
       end
     end
   end

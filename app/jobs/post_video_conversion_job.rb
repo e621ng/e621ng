@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 class PostVideoConversionJob < ApplicationJob
-  queue_as :video
-  sidekiq_options lock: :until_executed, lock_args_method: :lock_args, retry: 3
+  # perform is destructive, so same-post runs must not overlap: until_and_while_executing
+  # serializes per post, and reschedule re-queues a concurrent arrival instead of dropping it.
+  sidekiq_options queue: "video", lock: :until_and_while_executing, lock_args_method: :lock_args,
+                  lock_ttl: 6.hours.to_i, on_conflict: { server: :reschedule }, schedule_in: 30, retry: 3
 
   def self.lock_args(args)
     [args[0]]

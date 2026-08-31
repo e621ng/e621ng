@@ -315,7 +315,7 @@ RSpec.describe TagAliasesController do
 
       it "enqueues TagAliasUndoJob attributed to the admin" do
         expect { post undo_tag_alias_path(undoable_alias) }
-          .to have_enqueued_job(TagAliasUndoJob).with(undoable_alias.id, true, admin.id)
+          .to enqueue_sidekiq_job(TagAliasUndoJob).with(undoable_alias.id, true, admin.id)
       end
 
       it "redirects to the tag alias page" do
@@ -336,7 +336,7 @@ RSpec.describe TagAliasesController do
 
       it "returns 403 and enqueues no job" do
         expect { post undo_tag_alias_path(active_alias) }
-          .not_to have_enqueued_job(TagAliasUndoJob)
+          .not_to enqueue_sidekiq_job(TagAliasUndoJob)
         expect(response).to have_http_status(:forbidden)
       end
     end

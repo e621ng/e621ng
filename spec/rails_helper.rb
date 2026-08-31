@@ -43,8 +43,13 @@ require_relative "../config/environment"
 
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
+require "rspec-sidekiq" # sets Sidekiq.testing!(:fake) and clears the in-memory queues before each example
 require "factory_bot_rails"
 require "view_component/test_helpers"
+
+RSpec::Sidekiq.configure do |config|
+  config.warn_when_jobs_not_processed_by_sidekiq = false
+end
 
 # Ensures that the test database schema matches the current schema file.
 begin
@@ -67,10 +72,6 @@ RSpec.configure do |config|
   config.use_transactional_fixtures = true
   config.filter_rails_from_backtrace!
   config.infer_spec_type_from_file_location!
-
-  config.before do
-    ActiveJob::Base.queue_adapter = :test
-  end
 
   # rails-settings-cached caches all settings in Rails.cache. With transactional fixtures,
   # after_commit never fires, so the cache is never cleared after a test that writes a setting.

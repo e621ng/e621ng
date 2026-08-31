@@ -79,7 +79,7 @@ RSpec.describe UploadService do
       end
 
       it "enqueues UploadDeleteFilesJob" do
-        expect { service.start! }.to have_enqueued_job(UploadDeleteFilesJob)
+        expect { service.start! }.to enqueue_sidekiq_job(UploadDeleteFilesJob)
       end
 
       it "defaults tag_string to 'tagme' when not provided" do

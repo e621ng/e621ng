@@ -12,7 +12,7 @@ RSpec.describe SitemapGeneratorJob do
     before { allow(Post).to receive(:tag_match).and_return(Post.none) }
 
     it "generates the sitemap without error" do
-      expect { described_class.perform_now }.not_to raise_error
+      expect { described_class.new.perform }.not_to raise_error
     end
   end
 end

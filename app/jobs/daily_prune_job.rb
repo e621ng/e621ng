@@ -4,8 +4,7 @@
 # idempotent, so default retries are safe. Each task is isolated so that one
 # failure doesn't skip the rest.
 class DailyPruneJob < ApplicationJob
-  queue_as :low_prio
-  sidekiq_options lock: :until_executed
+  sidekiq_options queue: "low_prio", lock: :until_executed, lock_ttl: 12.hours.to_i
 
   def perform
     ApplicationRecord.without_timeout do

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class AvatarCropJob < ApplicationJob
-  queue_as :default
+  sidekiq_options queue: "default"
 
   def perform(user_id, post_id, pos_x, pos_y, width)
     user = User.find(user_id)

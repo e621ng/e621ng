@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class BulkIndexUpdateJob < ApplicationJob
-  queue_as :default
+  sidekiq_options queue: "default"
 
   def perform(klass_name, ids)
     klass = klass_name.constantize

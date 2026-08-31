@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class AutomodCheckJob < ApplicationJob
-  queue_as :default
+  sidekiq_options queue: "default"
 
   def perform(comment_id)
     comment = Comment.find(comment_id)

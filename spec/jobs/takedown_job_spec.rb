@@ -8,7 +8,7 @@ RSpec.describe TakedownJob do
   let(:approver) { create(:admin_user) }
 
   def perform(takedown, reason = "copyright infringement")
-    described_class.perform_now(takedown.id, approver.id, reason)
+    described_class.new.perform(takedown.id, approver.id, reason)
   end
 
   describe "#perform" do

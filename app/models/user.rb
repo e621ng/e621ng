@@ -444,7 +444,7 @@ class User < ApplicationRecord
       flag = User.flag_value_for("has_cropped_avatar")
       update_columns(bit_prefs: bit_prefs & ~flag)
 
-      AvatarCleanupJob.perform_later(id)
+      AvatarCleanupJob.perform_async(id)
     end
 
     def staff_cant_disable_dmail
@@ -1296,14 +1296,12 @@ class User < ApplicationRecord
   private
 
   def enqueue_automod_user_check
-    AutomodUserCheckJob.perform_later(id, check_username: true, check_profile: false)
+    AutomodUserCheckJob.perform_async(id, true, false)
   end
 
   def enqueue_automod_user_update_check
-    AutomodUserCheckJob.perform_later(
-      id,
-      check_username: saved_change_to_name?,
-      check_profile:  saved_change_to_profile_about? || saved_change_to_profile_artinfo?,
-    )
+    check_username = saved_change_to_name?
+    check_profile = saved_change_to_profile_about? || saved_change_to_profile_artinfo?
+    AutomodUserCheckJob.perform_async(id, check_username, check_profile)
   end
 end

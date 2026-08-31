@@ -3,7 +3,7 @@
 require "sitemap_generator"
 
 class SitemapGeneratorJob < ApplicationJob
-  queue_as :low_prio
+  sidekiq_options queue: "low_prio"
 
   module SitemapMethods
     def include_static_page(path, wiki_page_title)

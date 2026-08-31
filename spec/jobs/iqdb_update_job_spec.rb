@@ -11,7 +11,7 @@ RSpec.describe IqdbUpdateJob do
 
       it "calls IqdbProxy.update_post with the post" do
         allow(IqdbProxy).to receive(:update_post)
-        described_class.perform_now(post.id)
+        described_class.new.perform(post.id)
         expect(IqdbProxy).to have_received(:update_post).with(post)
       end
     end
@@ -19,7 +19,7 @@ RSpec.describe IqdbUpdateJob do
     context "when the post does not exist" do
       it "does not call IqdbProxy.update_post" do
         allow(IqdbProxy).to receive(:update_post)
-        described_class.perform_now(-1)
+        described_class.new.perform(-1)
         expect(IqdbProxy).not_to have_received(:update_post)
       end
     end

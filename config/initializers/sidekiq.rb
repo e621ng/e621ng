@@ -6,6 +6,22 @@ require_relative "../../lib/sidekiq_capsules"
 
 Sidekiq.logger.level = Logger::WARN if Rails.env.test?
 
+# The four tag jobs defer enqueue to transaction commit via TransactionalEnqueue
+# (client_class: TransactionAwareClient). transactional_push! would strip client_class
+# for us; setting it per class does not, so do it here or the Class rides along in every payload.
+Sidekiq::JobUtil::TRANSIENT_ATTRIBUTES << "client_class"
+
+# Specs push through the real client middleware (even in fake mode); without
+# this, parallel workers would take real locks in the shared test Redis.
+SidekiqUniqueJobs.config.enabled = false if Rails.env.test?
+
+# The reflection registry holds a single block per event; this is the only subscriber.
+SidekiqUniqueJobs.reflect do |on|
+  on.lock_failed do |item|
+    Rails.logger.warn("SidekiqUniqueJobs: dropped duplicate #{item['class']} args=#{item['args'].inspect} digest=#{item['lock_digest']}")
+  end
+end
+
 Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
   config.redis = { url: Danbooru.config.redis_url }
 
@@ -18,6 +34,8 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
   end
 
   SidekiqUniqueJobs::Server.configure(config)
+
+  require_relative "../../lib/sidekiq_active_job_wrapper_shim"
 
   # Extra capsules with their own thread pools, capping per-queue concurrency
   # (e.g. concurrent video transcodes) without a dedicated host per queue.

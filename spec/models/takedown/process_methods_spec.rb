@@ -65,7 +65,7 @@ RSpec.describe Takedown do
 
     it "enqueues a TakedownJob with the takedown id and approver id" do
       expect { takedown.process!(approver, "takedown reason") }
-        .to have_enqueued_job(TakedownJob)
+        .to enqueue_sidekiq_job(TakedownJob)
         .with(takedown.id, approver.id, "takedown reason")
     end
 

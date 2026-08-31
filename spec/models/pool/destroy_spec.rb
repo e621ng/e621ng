@@ -9,7 +9,7 @@ RSpec.describe Pool, "#destroy" do
     pool = create(:pool)
 
     expect { pool.destroy }
-      .to have_enqueued_job(PostSetCleanupJob).with(:pool, pool.id)
+      .to enqueue_sidekiq_job(PostSetCleanupJob).with("pool", pool.id)
   end
 
   it "clears the members' pool_ids once the cleanup job runs" do
@@ -19,7 +19,7 @@ RSpec.describe Pool, "#destroy" do
     expect(post.reload[:pool_ids]).to eq([pool.id])
 
     pool.destroy
-    PostSetCleanupJob.perform_now(:pool, pool.id)
+    PostSetCleanupJob.new.perform("pool", pool.id)
 
     expect(post.reload[:pool_ids]).to eq([])
   end

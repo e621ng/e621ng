@@ -142,7 +142,7 @@ RSpec.describe Staff::UserCleanupsController do
     it "enqueues HideUserCommentsJob" do
       expect do
         post hide_comments_staff_user_cleanup_path(target)
-      end.to have_enqueued_job(HideUserCommentsJob).with(target.id, moderator.id)
+      end.to enqueue_sidekiq_job(HideUserCommentsJob).with(target.id, moderator.id)
     end
 
     it "logs a user_comments_hide ModAction" do
@@ -173,7 +173,7 @@ RSpec.describe Staff::UserCleanupsController do
     it "enqueues HideUserForumPostsJob" do
       expect do
         post hide_forum_posts_staff_user_cleanup_path(target)
-      end.to have_enqueued_job(HideUserForumPostsJob).with(target.id, moderator.id)
+      end.to enqueue_sidekiq_job(HideUserForumPostsJob).with(target.id, moderator.id)
     end
 
     it "logs a user_forum_posts_hide ModAction" do
@@ -204,7 +204,7 @@ RSpec.describe Staff::UserCleanupsController do
     it "enqueues HideUserBlipsJob" do
       expect do
         post hide_blips_staff_user_cleanup_path(target)
-      end.to have_enqueued_job(HideUserBlipsJob).with(target.id, moderator.id)
+      end.to enqueue_sidekiq_job(HideUserBlipsJob).with(target.id, moderator.id)
     end
 
     it "logs a user_blips_delete ModAction" do

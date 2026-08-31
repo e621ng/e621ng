@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class UploadDeleteFilesJob < ApplicationJob
-  queue_as :default
+  sidekiq_options queue: "default"
 
-  def perform(*args)
-    UploadService::Utils::delete_file(args[0], args[1], args[2])
+  def perform(md5, file_ext, upload_id)
+    UploadService::Utils.delete_file(md5, file_ext, upload_id)
   end
 end

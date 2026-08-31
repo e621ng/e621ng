@@ -20,7 +20,7 @@ RSpec.describe UserIpAddressBackfillJob do
       create(:comment, post: post)
     end
 
-    described_class.perform_now
+    described_class.new.perform
     row = UserIpAddress.find_by(user_id: user.id, ip_addr: "203.0.113.10")
     expect(row).to be_present
     expect(row.hit_count).to eq(2)
@@ -36,20 +36,20 @@ RSpec.describe UserIpAddressBackfillJob do
     # Sanity: the split really did create both mailbox copies.
     expect(Dmail.where(from_id: user.id).count).to eq(2)
 
-    described_class.perform_now
+    described_class.new.perform
     row = UserIpAddress.find_by(user_id: user.id, ip_addr: "203.0.113.20")
     expect(row.hit_count).to eq(1)
   end
 
   it "excludes loopback addresses" do
     create(:user, last_ip_addr: "127.0.0.1", last_logged_in_at: 1.day.ago)
-    described_class.perform_now
+    described_class.new.perform
     expect(UserIpAddress.where(ip_addr: "127.0.0.1")).to be_empty
   end
 
   it "ignores rows outside the retention window" do
     create(:user, last_ip_addr: "203.0.113.30", last_logged_in_at: 3.years.ago)
-    described_class.perform_now
+    described_class.new.perform
     expect(UserIpAddress.find_by(ip_addr: "203.0.113.30")).to be_nil
   end
 end

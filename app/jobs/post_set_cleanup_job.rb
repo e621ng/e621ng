@@ -2,8 +2,7 @@
 
 # Cleans up denormalized post state after a pool is destroyed.
 class PostSetCleanupJob < ApplicationJob
-  queue_as :default
-  sidekiq_options lock: :until_executing
+  sidekiq_options queue: "default", lock: :until_executing, lock_ttl: 1.hour.to_i
 
   def perform(type, obj_id)
     case type.to_sym
@@ -46,6 +45,6 @@ class PostSetCleanupJob < ApplicationJob
   # destroyed set's members for reindexing.
   def reindex_legacy_set_members(set_id)
     ids = Post.where("string_to_array(pool_string, ' ') @> ARRAY[?]::text[]", "set:#{set_id}").pluck(:id)
-    ids.each_slice(5_000) { |slice| BulkIndexUpdateJob.perform_later("Post", slice) }
+    ids.each_slice(5_000) { |slice| BulkIndexUpdateJob.perform_async("Post", slice) }
   end
 end

@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe SearchTrendAggregateJob do
   def perform
-    described_class.perform_now
+    described_class.new.perform
   end
 
   let(:past_hour)    { 1.day.ago.utc.beginning_of_day + 12.hours }

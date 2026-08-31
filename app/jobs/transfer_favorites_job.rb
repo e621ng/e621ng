@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 class TransferFavoritesJob < ApplicationJob
-  queue_as :low_prio
-  sidekiq_options lock: :until_executing
+  sidekiq_options queue: "low_prio", lock: :until_executing, lock_ttl: 1.hour.to_i
 
-  def perform(*args)
-    @post = Post.find_by(id: args[0])
-    @user = User.find_by(id: args[1])
+  def perform(post_id, user_id)
+    @post = Post.find_by(id: post_id)
+    @user = User.find_by(id: user_id)
     return unless @post && @user
 
     CurrentUser.scoped(@user) do

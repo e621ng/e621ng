@@ -56,7 +56,7 @@ class UploadService
 
       # in case this upload never finishes processing, we need to delete the
       # distributed files in the future
-      UploadDeleteFilesJob.set(wait: 24.hours).perform_later(upload.md5, upload.file_ext, upload.id)
+      UploadDeleteFilesJob.perform_in(24.hours, upload.md5, upload.file_ext, upload.id)
     end
 
     def automatic_tags(upload, file)

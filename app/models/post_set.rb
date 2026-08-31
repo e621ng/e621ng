@@ -436,7 +436,7 @@ class PostSet < ApplicationRecord
       # Deferred to commit so the job cannot import pre-commit membership state
       # when called inside a transaction; runs immediately when none is open.
       ActiveRecord.after_all_transactions_commit do
-        ids.each_slice(5_000) { |slice| BulkIndexUpdateJob.perform_later("Post", slice) }
+        ids.each_slice(5_000) { |slice| BulkIndexUpdateJob.perform_async("Post", slice) }
       end
     end
 

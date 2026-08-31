@@ -7,7 +7,7 @@ RSpec.describe SearchTrendPruneJob do
     it "prunes hourly and daily search trend records" do
       allow(SearchTrendHourly).to receive(:prune!)
       allow(SearchTrend).to receive(:prune!)
-      described_class.perform_now
+      described_class.new.perform
       expect(SearchTrendHourly).to have_received(:prune!)
       expect(SearchTrend).to have_received(:prune!)
     end

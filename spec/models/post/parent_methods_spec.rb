@@ -121,7 +121,7 @@ RSpec.describe Post do
       it "enqueues a TransferFavoritesJob" do
         parent = create(:post)
         child  = create(:post, parent: parent)
-        expect { child.give_favorites_to_parent }.to have_enqueued_job(TransferFavoritesJob)
+        expect { child.give_favorites_to_parent }.to enqueue_sidekiq_job(TransferFavoritesJob)
       end
     end
 

@@ -20,7 +20,7 @@ RSpec.describe PostSetPostsSyncJob do
 
     context "when the set does not exist" do
       it "does not raise an error" do
-        expect { job.perform_now(-1) }.not_to raise_error
+        expect { job.new.perform(-1) }.not_to raise_error
       end
     end
 
@@ -29,8 +29,8 @@ RSpec.describe PostSetPostsSyncJob do
 
       it "enqueues a BulkIndexUpdateJob for them" do
         post_set.update_column(:post_ids, [post.id])
-        expect { job.perform_now(post_set.id) }
-          .to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post.id])
+        expect { job.new.perform(post_set.id) }
+          .to enqueue_sidekiq_job(BulkIndexUpdateJob).with("Post", [post.id])
       end
     end
 
@@ -41,16 +41,16 @@ RSpec.describe PostSetPostsSyncJob do
 
       it "enqueues a BulkIndexUpdateJob for it" do
         post_set.update_column(:post_ids, [])
-        expect { job.perform_now(post_set.id) }
-          .to have_enqueued_job(BulkIndexUpdateJob).with("Post", [post.id])
+        expect { job.new.perform(post_set.id) }
+          .to enqueue_sidekiq_job(BulkIndexUpdateJob).with("Post", [post.id])
       end
     end
 
     context "when the set is empty and no posts carry its token" do
       it "does not enqueue a BulkIndexUpdateJob" do
         post_set.update_column(:post_ids, [])
-        expect { job.perform_now(post_set.id) }
-          .not_to have_enqueued_job(BulkIndexUpdateJob)
+        expect { job.new.perform(post_set.id) }
+          .not_to enqueue_sidekiq_job(BulkIndexUpdateJob)
       end
     end
   end

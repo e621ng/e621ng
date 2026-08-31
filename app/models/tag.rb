@@ -150,7 +150,7 @@ class Tag < ApplicationRecord
     end
 
     def update_category_post_counts
-      UpdateTagCategoryJob.perform_later(id)
+      UpdateTagCategoryJob.perform_async(id)
     end
 
     def update_category_cache
@@ -285,13 +285,13 @@ class Tag < ApplicationRecord
       self.related_tags_updated_at = Time.now
       save
 
-      TagPostCountJob.perform_later(id) if post_count > 20 && rand(post_count) <= 1
+      TagPostCountJob.perform_async(id) if post_count > 20 && rand(post_count) <= 1
     rescue ActiveRecord::StatementInvalid
     end
 
     def update_related_if_outdated
       if Cache.fetch("urt:#{name}").nil? && should_update_related?
-        TagUpdateRelatedJob.perform_later(id)
+        TagUpdateRelatedJob.perform_async(id)
         Cache.write("urt:#{name}", true, expires_in: 10.minutes) # mutex to prevent redundant updates
       end
     end
