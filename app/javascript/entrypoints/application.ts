@@ -17,7 +17,7 @@ import "@/core/PaginatorFastTravel";
 import "@/core/themes";
 import "@/core/tos_warning";
 import "@/core/user_warning"; // Realistically, should only be on specific pages
-import { getE621Instance } from "@/interfaces/E621";
+import { getE621Instance } from "@/core/E621Global";
 import Logger from "@/utility/Logger";
 import ToastManager from "@/utility/Toast";
 
