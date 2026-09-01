@@ -1,7 +1,5 @@
-import E621Type from "@/interfaces/E621";
+import CurrentUser from "@/models/CurrentUser";
 import TaskQueue, { TaskCancelled } from "@/utility/TaskQueue";
-
-declare const E621: E621Type;
 
 export default class PostVote {
 
@@ -25,7 +23,7 @@ export default class PostVote {
         body: JSON.stringify({
           score: vote,
           no_unvote: prevent_unvote,
-          authenticity_token: E621.CurrentUser.encodedAuthToken,
+          authenticity_token: CurrentUser.encodedAuthToken,
         }),
       });
     }, { name: `Post.vote.${post_id}`, unique: true, delay: 500 }).then(async (response) => {

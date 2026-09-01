@@ -1,14 +1,13 @@
-import E621Type from "@/interfaces/E621";
-
-declare const E621: E621Type;
+import CurrentUser from "@/models/CurrentUser";
+import Blacklist from "@/core/blacklist";
 
 export default class CommentBlacklist {
   public static initializeAll () {
-    if (!E621.CurrentUser.settings.blacklistUsers) return;
+    if (!CurrentUser.settings.blacklistUsers) return;
 
     // This is extraordinarily silly
     // We need a proper user ignoring system
-    for (const filter of Object.values(E621.Blacklist.filters)) {
+    for (const filter of Object.values(Blacklist.filters)) {
 
       // Only the first token is accepted
       // If the user is trying something wackier, that's their fault

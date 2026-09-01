@@ -1,11 +1,9 @@
+import Blacklist from "@/core/blacklist";
 import ThumbnailEngine from "@/components/ThumbnailEngine";
-import E621Type from "@/interfaces/E621";
 import PostCache, { DeferredPostData } from "@/models/PostCache";
 import Logger from "@/utility/Logger";
 
 // Cursed way to pass post data from Rails to the frontend.
-
-declare const E621: E621Type;
 
 // Same format as Post.thumbnail_attributes
 declare global {
@@ -33,10 +31,10 @@ export default class DeferredPostLoader {
     // At this point, no thumbnails are rendered.
     // However, this lets us populate the Blacklist and render thumbnails with the correct
     // visibility on the first try, instead of rendering them and then updating their visibility.
-    E621.Blacklist.loadDeferredPosts(processed);
-    E621.Blacklist.recalculateMatchedPosts();
-    E621.Blacklist.updatePostVisibility();
-    E621.Blacklist.updateThumbnailStyles();
+    Blacklist.loadDeferredPosts(processed);
+    Blacklist.recalculateMatchedPosts();
+    Blacklist.updatePostVisibility();
+    Blacklist.updateThumbnailStyles();
 
     this.Logger.log("Loaded post data", "\n ⤷ Processed: " + processed.length + " / " + Object.keys(postsData).length, "\n ⤷ In cache: " + PostCache.stats().cachedPosts);
 

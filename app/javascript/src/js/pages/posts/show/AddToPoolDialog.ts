@@ -1,7 +1,5 @@
-import E621Type from "@/interfaces/E621";
+import ToastManager from "@/utility/Toast";
 import Dialog from "@/utility/dialog";
-
-declare const E621: E621Type;
 
 $(() => {
   let poolDialog = null;
@@ -38,7 +36,7 @@ $(() => {
     }).done(() => {
       window.location.reload();
     }).fail((data) => {
-      E621.Toast.alert(`Error: ${data.status == 404 ? "Not Found" : data.responseText}`);
+      ToastManager.alert(`Error: ${data.status == 404 ? "Not Found" : data.responseText}`);
     });
 
     return false;

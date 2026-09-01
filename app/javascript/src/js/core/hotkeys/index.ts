@@ -1,8 +1,6 @@
+import CurrentUser from "@/models/CurrentUser";
 import HotkeysConfig from "@/core/hotkeys/HotkeysConfig";
 import * as Types from "@/core/hotkeys/Types";
-import E621Type from "@/interfaces/E621";
-
-declare const E621: E621Type;
 
 class Hotkeys {
 
@@ -165,7 +163,7 @@ class Hotkeys {
       $document.trigger("e6.hotkeys.keydown", [this.heldKeys]);
       if (this.debug) console.log("Key Down:", key, keybindString);
 
-      if (!E621.CurrentUser.settings.hotkeys) return; // User has disabled hotkeys
+      if (!CurrentUser.settings.hotkeys) return; // User has disabled hotkeys
       if (!this.enabled) return; // Global hotkey toggle
       if (isInputFocused()) return; // Input or Textarea focused
 

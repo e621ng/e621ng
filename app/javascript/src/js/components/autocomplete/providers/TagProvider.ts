@@ -1,8 +1,7 @@
+import CurrentUser from "@/models/CurrentUser";
+import Settings from "@/utility/Settings";
 import Provider from "@/components/autocomplete/Provider";
 import { TagItem } from "@/components/autocomplete/Types";
-import E621Type from "@/interfaces/E621";
-
-declare const E621: E621Type;
 
 export default class TagProvider extends Provider<TagItem> {
   public async search (query: string) {
@@ -44,9 +43,9 @@ export default class TagProvider extends Provider<TagItem> {
       const response = await fetch(`/tags/autocomplete.json?${params}`);
       let data: TagAPIResponse[] = await response.json();
 
-      if (E621.CurrentUser.is.anonymous) {
+      if (CurrentUser.is.anonymous) {
         // Filter out any tags that match any of the blacklist regular expressions, including antecedent
-        const blacklist = E621.Settings.Autocomplete.blacklist;
+        const blacklist = Settings.Autocomplete.blacklist;
         data = data.filter(tag => {
           return !blacklist.some(regex => regex.test(tag.name) || (tag.antecedent_name && regex.test(tag.antecedent_name)));
         });

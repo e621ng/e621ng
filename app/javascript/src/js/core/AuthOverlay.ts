@@ -1,8 +1,6 @@
+import CurrentUser from "@/models/CurrentUser";
 import ImmersiveInput from "@/components/ImmersiveInput";
-import E621Type from "@/interfaces/E621";
 import Page from "@/utility/Page";
-
-declare const E621: E621Type;
 
 export default class AuthOverlay {
 
@@ -255,7 +253,7 @@ export default class AuthOverlay {
 }
 
 $(() => {
-  if (!E621.CurrentUser.is.anonymous) return;
+  if (!CurrentUser.is.anonymous) return;
   if (Page.matches("users", "new") || Page.matches("sessions")) return;
   new AuthOverlay();
 });

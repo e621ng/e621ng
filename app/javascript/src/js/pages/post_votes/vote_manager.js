@@ -1,3 +1,4 @@
+import ToastManager from "@/utility/Toast";
 import Page from "@/utility/Page";
 
 class VoteManager {
@@ -60,7 +61,7 @@ class VoteManager {
         ids: votes.join(","),
       },
     }).done(() => {
-      E621.Toast.notice(`${this.displayType} votes locked.`);
+      ToastManager.notice(`${this.displayType} votes locked.`);
     });
   }
 
@@ -76,7 +77,7 @@ class VoteManager {
         ids: votes.join(","),
       },
     }).done(() => {
-      E621.Toast.notice(`${this.displayType} votes deleted.`);
+      ToastManager.notice(`${this.displayType} votes deleted.`);
     });
   }
 }

@@ -1,9 +1,7 @@
-import E621Type from "@/interfaces/E621";
+import ToastManager from "@/utility/Toast";
 import Post from "@/pages/posts/posts";
 import TaskQueue from "@/utility/TaskQueue";
 import Dialog from "@/utility/dialog";
-
-declare const E621: E621Type;
 
 interface PreviousOwner {
   id: number;
@@ -133,7 +131,7 @@ export default class PostReowner {
       const apiError = error as ApiResponseError;
       const errors = apiError?.responseJSON?.errors || [apiError?.responseJSON?.reason] || ["Unknown error"];
       const message = $.map(errors, (msg: string) => msg).join("; ");
-      E621.Toast.alert("Error: " + message);
+      ToastManager.alert("Error: " + message);
       return [];
     }
   }
@@ -155,13 +153,13 @@ export default class PostReowner {
             },
           },
         });
-        E621.Toast.notice("Reownered post.");
+        ToastManager.notice("Reownered post.");
         location.reload();
       } catch (error: any) {
         const apiError = error as ApiResponseError;
         const errors = apiError?.responseJSON?.errors || [apiError?.responseJSON?.reason] || ["Unknown error"];
         const message = $.map(errors, (msg: string) => msg).join("; ");
-        E621.Toast.alert("Error: " + message);
+        ToastManager.alert("Error: " + message);
         hasError = true;
       } finally {
         if (!hasError) {

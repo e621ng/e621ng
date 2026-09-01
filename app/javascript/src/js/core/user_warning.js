@@ -1,3 +1,5 @@
+import ToastManager from "@/utility/Toast";
+
 class UserWarnable {
   static initialize_click_handlers () {
     $(".item-mark-user-warned").on("click", evt => {
@@ -28,7 +30,7 @@ class UserWarnable {
         this.reinitialize_click_handlers();
         $(window).trigger("e621:warnable:reinitialize");
       }).fail(() => {
-        E621.Toast.alert("Failed to mark as warned.");
+        ToastManager.alert("Failed to mark as warned.");
       });
     });
   }
