@@ -311,7 +311,7 @@ class Artist < ApplicationRecord
 
     def revert_to!(version)
       if id != version.artist_id
-        raise RevertError.new("You cannot revert to a previous version of another artist.")
+        raise RevertError.new(tm("You cannot revert to a previous version of another {{artist}}."))
       end
 
       self.name = version.name
@@ -382,7 +382,7 @@ class Artist < ApplicationRecord
 
     def categorize_tag
       if new_record? || saved_change_to_name?
-        Tag.find_or_create_by_name("artist:#{name}")
+        Tag.find_or_create_by_name(tm("{{artist}}:%<name>s", name: name))
       end
     end
   end
@@ -402,7 +402,7 @@ class Artist < ApplicationRecord
       return if CurrentUser.is_staff?
 
       if is_locked?
-        errors.add(:base, "Artist is locked")
+        errors.add(:base, tm("{{Artist}} is locked"))
         throw :abort
       end
     end
@@ -516,9 +516,9 @@ class Artist < ApplicationRecord
 
   module AvoidPostingMethods
     def validate_protected_properties_not_changed
-      errors.add(:name, "cannot be changed while the artist is on the avoid posting list") if will_save_change_to_name?
-      errors.add(:group_name, "cannot be changed while the artist is on the avoid posting list") if will_save_change_to_group_name?
-      errors.add(:other_names, "cannot be changed while the artist is on the avoid posting list") if will_save_change_to_other_names?
+      errors.add(:name, tm("cannot be changed while the {{artist}} is on the avoid posting list")) if will_save_change_to_name?
+      errors.add(:group_name, tm("cannot be changed while the {{artist}} is on the avoid posting list")) if will_save_change_to_group_name?
+      errors.add(:other_names, tm("cannot be changed while the {{artist}} is on the avoid posting list")) if will_save_change_to_other_names?
       throw(:abort) if errors.any?
     end
 

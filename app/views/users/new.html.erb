@@ -18,7 +18,7 @@
     <h3>
       Already have an account? <%= link_to "Sign In.", new_session_path %>
     </h3>
-    <p>Please, read the <a href="/wiki_pages/e621:rules">site rules</a> before making an account.</p>
+    <p>Please, read the <a href=<%= tm("/wiki_pages/{{e621}}:rules") %>>site rules</a> before making an account.</p>
     <p>You must confirm your email address, so you should only use one that you have access to.</p>
     <p>This site is open to web crawlers, meaning that almost everything is public.</p>
     <p>This includes your account name, favorites, uploads, and comments. Do not choose a name you don't want to be associated with.</p>

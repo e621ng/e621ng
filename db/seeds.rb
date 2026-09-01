@@ -12,7 +12,7 @@ admin = User.find_or_create_by!(name: "admin") do |user|
   user.password = "hexerade"
   user.password_confirmation = "hexerade"
   user.password_hash = ""
-  user.email = "admin@e621.local"
+  user.email = tm("admin@{{e621}}.local")
   user.can_approve_posts = true
   user.level = UserLevel::ADMIN
 
@@ -34,7 +34,7 @@ system = User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
   user.password = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
   user.password_confirmation = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
   user.password_hash = ""
-  user.email = "system@e621.local"
+  user.email = tm("system@{{e621}}.local")
   user.can_approve_posts = true
   user.level = UserLevel::JANITOR
 end
@@ -49,7 +49,7 @@ ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") 
 end
 
 def api_request(path)
-  response = Faraday.get("https://e621.net#{path}", nil, user_agent: "e621ng/seeding")
+  response = Faraday.get("https://#{Danbooru.config.domain}#{path}", nil, user_agent: "e621ng/seeding")
   JSON.parse(response.body)
 end
 
@@ -71,7 +71,7 @@ end
 
 def setup_upload_whitelist
   UploadWhitelist.create do |entry|
-    entry.domain = "static1\.e621\.net" # rubocop:disable Style/RedundantStringEscape
+    entry.domain = Regexp.escape("static1.#{Danbooru.config.domain}")
   end
 end
 
@@ -83,7 +83,7 @@ def setup_flag_reasons
   PostFlagReason.create!(
     name: "uploading_guidelines",
     reason: "Does not meet the [[uploading_guidelines|uploading guidelines]]",
-    text: "This post fails to meet the site's standards, be it for artistic worth, image quality, relevancy, or something else.\nKeep in mind that your personal preferences have no bearing on this. If you find the content of a post objectionable, simply [[e621:blacklist|blacklist]] it.",
+    text: tm("This post fails to meet the site's standards, be it for artistic worth, image quality, relevancy, or something else.\nKeep in mind that your personal preferences have no bearing on this. If you find the content of a post objectionable, simply [[{{e621}}:blacklist|blacklist]] it."),
     needs_explanation: true,
     needs_staff_reason: true,
     target_date: Time.zone.local(2015, 1, 1),

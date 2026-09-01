@@ -7,7 +7,7 @@
   <% end %>
   <%= subnav_link_to "Recent changes", artist_versions_path %>
   <%= subnav_link_to "URLs", artist_urls_path %>
-  <%= subnav_link_to "Help", help_page_path(id: "artists") %>
+  <%= subnav_link_to "Help", help_page_path(id: tm("{{artists}}")) %>
   <% if @artist && !@artist.new_record? %>
     <li class="divider"></li>
     <%= subnav_link_to "Posts (#{@artist.tag.try(:post_count).to_i})", posts_path(tags: @artist.name) %>
@@ -17,7 +17,7 @@
     <% end %>
     <%= subnav_link_to "History", artist_versions_path(search: { artist_id: @artist.id }), data: { hotkey: "history" } %>
     <% if @artist.deletable_by?(CurrentUser.user) %>
-      <%= subnav_link_to "Delete", artist_path(@artist), method: :delete, data: { confirm: "Are you sure you want to delete this artist? This cannot be undone." } %>
+      <%= subnav_link_to "Delete", artist_path(@artist), method: :delete, data: { confirm: tm("Are you sure you want to delete this {{artist}}? This cannot be undone.") } %>
     <% end %>
     <% if @artist.is_dnp? %>
       <li class="divider"></li>

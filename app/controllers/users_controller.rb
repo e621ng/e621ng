@@ -85,7 +85,7 @@ class UsersController < ApplicationController
     @user = User.find(User.name_or_id_to_id_forced(params[:id]))
     @presenter = UserPresenter.new(@user)
 
-    @page = WikiPage.titled("e621:upload_limit").presence || WikiPage.new(body: "Wiki page \"e621:upload_limit\" not found.")
+    @page = WikiPage.titled(tm("{{e621}}:upload_limit")).presence || WikiPage.new(body: tm("Wiki page \"{{e621}}:upload_limit\" not found."))
     respond_with(@user, methods: @user.full_attributes)
   end
 

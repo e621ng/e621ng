@@ -24,7 +24,7 @@
     <span class="tag-list-name">
       <%= tag.name.tr("_", " ") %>
       <% if post.present? && post.uploader_linked_artists.include?(tag.name) %>
-        <%= svg_icon(:chexagon, class: "chexagon", title: "Uploaded by the artist") %>
+        <%= svg_icon(:chexagon, class: "chexagon", title: tm("Uploaded by the {{artist}}")) %>
       <% end %>
     </span>
 

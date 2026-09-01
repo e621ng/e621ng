@@ -64,6 +64,8 @@ module Danbooru
     config.i18n.enforce_available_locales = false
     config.active_model.i18n_customize_full_message = true
 
+    config.action_view.frozen_string_literal = true
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

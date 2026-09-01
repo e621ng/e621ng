@@ -1,7 +1,7 @@
 <div id="c-artist-urls">
   <div id="a-index">
     <%= form_search(path: artist_urls_path) do |f| %>
-      <%= f.input :artist_name, label: "Artist Name", autocomplete: "artist" %>
+      <%= f.input :artist_name, label: tm("{{Artist}} Name"), autocomplete: "artist" %>
       <%= f.input :url_matches, label: "URL" %>
       <%= f.input :normalized_url_matches, label: "Normalized URL" %>
       <%= f.input :is_active, label: "Active?", collection: [["Yes", true], ["No", false]], include_blank: "Any" %>
@@ -12,7 +12,7 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Artist Name</th>
+          <th><%= tm("{{Artist}} Name") %></th>
           <th>URL</th>
           <th>Normalized URL</th>
           <th>Active?</th>
@@ -42,5 +42,5 @@
 <%= render "artists/secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Artist URLs
+  <%= tm("{{Artist}} URLs") %>
 <% end %>

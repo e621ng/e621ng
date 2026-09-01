@@ -3,6 +3,6 @@
   <%= f.input :category, label: "Category", collection: TagCategory::CANONICAL_MAPPING.to_a, include_blank: "Any" %>
   <%= f.input :order, collection: [%w[Count count], %w[Name name], %w[Newest date]], include_blank: false %>
   <%= f.input :has_wiki, label: "Has wiki?", collection: %w[yes no], include_blank: "Any" %>
-  <%= f.input :has_artist, label: "Has artist?", collection: %w[yes no], include_blank: "Any" %>
+  <%= f.input :has_artist, label: tm("Has {{artist}}?"), collection: %w[yes no], include_blank: "Any" %>
   <%= f.input :hide_empty, label: "Hide empty?", as: :boolean, default: true %>
 <% end %>

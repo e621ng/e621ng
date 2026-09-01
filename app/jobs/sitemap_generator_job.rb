@@ -78,7 +78,7 @@ class SitemapGeneratorJob < ApplicationJob
         # Generate media sitemaps for the included posts.
         included_posts.each do |post|
           post.inject_tag_categories(types)
-          artist_names = post.artist_tags.map(&:name).join(", ").presence || "unknown artist"
+          artist_names = post.artist_tags.map(&:name).join(", ").presence || tm("unknown {{artist}}")
 
           if post.is_video?
             add "/posts/#{post.id}", lastmod: post.updated_at, videos: [{
