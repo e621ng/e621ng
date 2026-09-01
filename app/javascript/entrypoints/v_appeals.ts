@@ -1,8 +1,7 @@
 // appeals
 
-import E621Type from "@/interfaces/E621";
-declare const E621: E621Type;
+import ModuleRegistry from "@/utility/ModuleRegistry";
 
 import "@/pages/appeals/Appeals";
 
-E621.Registry.register("v_appeals");
+ModuleRegistry.register("v_appeals");

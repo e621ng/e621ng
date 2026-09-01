@@ -1,27 +1,43 @@
-import E621Type from "@/interfaces/E621";
-declare const E621: E621Type;
+import Logger from "@/utility/Logger";
+import Performance from "@/utility/Performance";
 
-export default class ModuleRegistry {
+class ModuleRegistry {
 
-  private modules: string[];
-  private exports = 0;
+  /* ============================== */
+  /* ===== Singleton Pattern ====== */
+  /* ============================== */
 
-  constructor () {
-    this.modules = [];
+  private static _instance: ModuleRegistry = null;
+  public static get instance (): ModuleRegistry {
+    if (!this._instance) this._instance = new ModuleRegistry();
+    return this._instance;
   }
+
+  private constructor () {
+    if (ModuleRegistry._instance)
+      throw new Error("ModuleRegistry is a singleton class. Use ModuleRegistry.instance to access the instance.");
+  }
+
+
+  /* ============================== */
+  /* ========== Registry ========== */
+  /* ============================== */
+
+  private modules: string[] = [];
+  private exports = 0;
 
   public register (name: string, exported: ExportedModule = {}): void {
     this.modules.push(name);
 
     let exportCount = 0;
-    for (const [name, object] of Object.entries(exported)) {
-      E621[name] = object;
+    for (const [key, object] of Object.entries(exported)) {
+      window["E621"][key] = object; // Expose the export on the global for external tools
       exportCount++;
     }
     this.exports += exportCount;
 
-    E621.Logger.loaded(name, exportCount);
-    E621.Performance.mark(`module-${name}`);
+    Logger.loaded(name, exportCount);
+    Performance.mark(`module-${name}`);
   }
 
   public get list (): string[] {
@@ -37,3 +53,5 @@ export default class ModuleRegistry {
 interface ExportedModule {
   [name: string]: any;
 }
+
+export default ModuleRegistry.instance;
