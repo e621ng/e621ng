@@ -22,14 +22,19 @@
     "@stylistic/eslint-plugin": "5.10.0",
     "@types/jquery": "4.0.0",
     "@vitejs/plugin-vue": "6.0.7",
+    "@vitest/coverage-v8": "4.1.11",
     "eslint": "10.8.0",
     "globals": "17.6.0",
+    "jsdom": "27.0.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.60.0",
     "vite": "8.0.16",
-    "vite-plugin-ruby": "5.2.2"
+    "vite-plugin-ruby": "5.2.2",
+    "vitest": "4.1.11"
   },
   "scripts": {
-    "lint": "eslint './app/javascript/**/*.{js,ts}' --no-fix --max-warnings 0"
+    "lint": "eslint './app/javascript/**/*.{js,ts}' --no-fix --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }
