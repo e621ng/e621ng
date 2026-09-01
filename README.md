@@ -101,11 +101,11 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 `git config core.fileMode false`
 
 
-#### Truenas / Local Server Installation
+#### TrueNAS / Local Server Installation
 
 If you decide to deploy this docker image to an external / local server, you do need to remember to change the DANBOORU_HOST variable in the docker-compose.yml file to the IP of your server. Otherwise, you will not be able to access it, or the image links will be broken. 
 
-Specifically for Truenas/NAS boxes users: you need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
+Specifically for TrueNAS/NAS boxes users: you need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
 
 
 ### <a id="development-tools"></a>Testing and Linting
@@ -115,46 +115,88 @@ Specifically for Truenas/NAS boxes users: you need to use the shell itself to se
 The test suite runs in parallel using `parallel_tests`. Before running tests for the first time (or after a schema change), set up the parallel test databases:
 
 ```shell
-docker compose run --rm --entrypoint bin/rake tests parallel:create
-docker compose run --rm --entrypoint bin/rake tests parallel:load_schema
-docker compose run --rm --entrypoint bin/rake tests parallel:seed
+docker compose run --rm --entrypoint bin/rake rspec parallel:create
+docker compose run --rm --entrypoint bin/rake rspec parallel:load_schema
+docker compose run --rm --entrypoint bin/rake rspec parallel:seed
 ```
 
 Then run the suite:
 
 ```shell
-docker compose run --rm tests
+docker compose run --rm rspec
 ```
 
 This defaults to 4 parallel workers. Override with `PARALLEL_TEST_PROCESSORS`:
 
 ```shell
-PARALLEL_TEST_PROCESSORS=8 docker compose run --rm tests
+PARALLEL_TEST_PROCESSORS=8 docker compose run --rm rspec
 ```
 
 #### Linters
 
-`docker compose run --rm rubocop` to lint the ruby code
-`docker compose run --rm linter` to lint javascript
+`docker compose run --rm rubocop` to lint the Ruby code
+`docker compose run --rm eslint` to lint JavaScript/TypeScript code
 
 #### Database
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 
+## Contributing
+
+### Follow the PR naming conventions
+Prefix your PR with the primary subsystem being changed in square brackets, and use the imperative present tense.
+
+Good: `[Posts] Tweak post search UI`
+
+Bad:
+- `Tweak post search UI`: no subsystem prefix
+- `[Users] Tweak post search UI`: unrelated subsystem prefix
+- `[Posts] Tweaked post search UI`: wrong tense
+
+### Run the required checks locally prior to submission
+Ensuring our checks pass prior to submission greatly increases the chances that your PR will be reviewed in a timely manner. There are 4 checks run on PRs; their local equivalents are:
+* `docker compose run --rm rspec`: test suite for Ruby/Rails
+* `docker compose run --rm rubocop`: linter for Ruby/Rails
+* `docker compose run --rm vitest`: test suite for JavaScript/TypeScript
+* `docker compose run --rm eslint`: linter for JavaScript/TypeScript
+
+### If addressing a preexisting issue, please reference it
+For issues already submitted to GitHub, use [closing keywords](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests) in the PR description to let GitHub automatically link the two. This will allow us to both see the full context of the problem and close the issue as solved automatically upon merging.
+
+If the issue is not on GitHub, linking to discussion about the issue lets our maintainers gauge the interest in the feature and the likelihood the PR sufficiently addresses the demands.
+
+### Limit the scope of your changes
+If you are undertaking a large project, please submit/reference an issue describing the overall project, and break it down into smaller logical units that are submitted separately. This makes for dramatically easier and faster review (and, if need be, iteration). Plus, it reduces the burden of dealing with merge conflicts for other contributors.
+
+### Add or update relevant tests
+If you create a new public class or function, or alter the behavior of preexisting ones, adding or updating the relevant tests allows maintainers to have far more confidence in your code with far less review, increasing the chances at a speedy turnaround.
+
+We currently have [RSpec](https://rspec.info/) suite for our Ruby/Rails code, and [Vitest](https://vitest.dev/) for JS/TS. We do have code coverage analytics, and while we don't strictly require that the overall coverage never decreases, that is an ideal we'd like to strive for.
+
+### Do not commit changes to `rubocop_todo.yml`, nor excessively use inline comments to silence lint errors/warnings
+We have [a workflow](.github/workflows/rubocop.yml) to properly update the to-do file without causing frustrating conflicts. You should not be hiding lint errors/warnings with this file.
+
+We ask that you avoid using in-line config comments to bypass the linter, although it is permissible in cases where the code's structure makes it impossible to do so without a substantial or needlessly convoluted refactoring effort (i.e. `TagQuery`'s `parse_query` method).
+
+Similarly to test coverage, while we don't strictly require that the overall number of lints ignored – through both inline comments and `rubocop_todo.yml` – never increases, that is an ideal we'd like to strive for.
+
+### Check for and review prior discussion regarding the goal of your PR, and any attempts to fix the same issues
+This ensures you have a solid idea of the requirements for acceptance and the overall desire for the PR before starting work on it and submitting for approval.
+
 ## Production Setup
 
 Installation follows the same steps as the docker compose file. Ubuntu 20.04 is the current installation target.
 There is no script that performs these steps for you, as you need to split them up to match your infrastructure.
-Running a single machine install in production is possible, but is likely to be somewhat sluggish due to contention in disk between postgresql and opensearch.
+Running a single machine install in production is possible, but is likely to be somewhat sluggish due to contention in disk between PostgreSQL and OpenSearch.
 Minimum RAM is 4GB. You will need to adjust values in config files to match how much RAM is available.
-If you are targeting more than a hundred thousand posts and reasonable user volumes, you probably want to procure yourself a database server. See tuning guides for postgresql and opensearch for help planning these requirements.
+If you are targeting more than a hundred thousand posts and reasonable user volumes, you probably want to procure yourself a database server. See tuning guides for PostgreSQL and OpenSearch for help planning these requirements.
 
 ### Production Troubleshooting
 
 These instructions won't work for everyone. If your setup is not
 working, here are the steps I usually recommend to people:
 
-1) Test the database. Make sure you can connect to it using psql. Make
+1) Test the database. Make sure you can connect to it using `psql`. Make
 sure the tables exist. If this fails, you need to work on correctly
 installing PostgreSQL, importing the initial schema, and running the
 migrations.
