@@ -1,10 +1,12 @@
-import { afterEach, beforeEach, vi } from "vitest";
 import jquery from "jquery";
+import { afterEach, beforeEach, vi } from "vitest";
 
 // The real app injects `$` / `jQuery` as globals via @rollup/plugin-inject
 // (vite.config.mts). That plugin does not run under Vitest, so a few source
 // files (e.g. storage/Local.ts) would see `$` as undefined without this.
-globalThis.$ = globalThis.jQuery = jquery;
+// Object.assign sidesteps the fact that @types/jquery declares $/jQuery as
+// ambient globals but not as members of `typeof globalThis`.
+Object.assign(globalThis, { $: jquery, jQuery: jquery });
 
 // Web Storage shim.
 // jsdom's own localStorage/sessionStorage is unreliable across the Node/jsdom
