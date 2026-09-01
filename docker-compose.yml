@@ -164,7 +164,7 @@ services:
 
   # Useful for development
 
-  tests:
+  rspec: &rspec
     image: e621
     environment:
       <<: *common-env
@@ -177,6 +177,12 @@ services:
     depends_on:
       <<: *common-depends-on
     entrypoint: bundle exec parallel_rspec --serialize-stdout --runtime-log tmp/spec_runtime.log
+    profiles:
+      - rspec
+
+  # Deprecated alias for `rspec`, kept for existing muscle memory and CI
+  tests:
+    <<: *rspec
     profiles:
       - tests
 
@@ -235,21 +241,33 @@ services:
     profiles: 
       - rubocop
 
-  linter:
+  eslint: &eslint
     image: e621
     volumes:
       - .:/app
       - node_modules:/app/node_modules
     entrypoint: npm run lint
     profiles:
+      - eslint
+
+  # Deprecated alias for `eslint`, kept for existing muscle memory and CI
+  linter:
+    <<: *eslint
+    profiles:
       - linter
 
-  jstests:
+  vitest: &vitest
     image: e621
     volumes:
       - .:/app
       - node_modules:/app/node_modules
     entrypoint: npm test
+    profiles:
+      - vitest
+
+  # Deprecated alias for `vitest`, kept for existing muscle memory and CI
+  jstests:
+    <<: *vitest
     profiles:
       - jstests
 

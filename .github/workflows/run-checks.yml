@@ -64,9 +64,9 @@ jobs:
       - uses: ./.github/prepare-docker-image
 
       - name: Run ESLint
-        run: $DOCKER_RUN linter
+        run: $DOCKER_RUN eslint
 
-  jstests:
+  vitest:
     runs-on: ubuntu-22.04
     needs: docker-build
 
@@ -75,14 +75,14 @@ jobs:
       - uses: ./.github/prepare-docker-image
 
       - name: Run JS tests
-        run: $DOCKER_RUN jstests
+        run: $DOCKER_RUN vitest
 
-  test-runner:
+  rspec-runner:
     runs-on: ubuntu-22.04
     needs:
       - rubocop
       - eslint
-      - jstests
+      - vitest
     if: inputs.run_tests
     strategy:
       fail-fast: false
@@ -100,20 +100,20 @@ jobs:
           key: spec-runtime-log
 
       - name: Create parallel DBs
-        run: $DOCKER_RUN --entrypoint bin/rake tests parallel:create
+        run: $DOCKER_RUN --entrypoint bin/rake rspec parallel:create
 
       - name: Load DB Schema into parallel DBs
-        run: $DOCKER_RUN --entrypoint bin/rake tests parallel:load_schema
+        run: $DOCKER_RUN --entrypoint bin/rake rspec parallel:load_schema
 
       - name: Seed parallel DBs
-        run: $DOCKER_RUN --entrypoint bin/rake tests parallel:seed
+        run: $DOCKER_RUN --entrypoint bin/rake rspec parallel:seed
 
       - name: Create OpenSearch indexes
-        run: $DOCKER_RUN --entrypoint bin/rails tests runner \
+        run: $DOCKER_RUN --entrypoint bin/rails rspec runner \
           "[Post, PostVersion].each { |m| m.document_store.create_index! }"
 
       - name: Build Vite assets
-        run: $DOCKER_RUN --entrypoint bin/vite tests build
+        run: $DOCKER_RUN --entrypoint bin/vite rspec build
 
       - name: Compute test groups
         run: |
@@ -125,7 +125,7 @@ jobs:
           echo "TEST_GROUP_TOTAL=${TOTAL}" >> "$GITHUB_ENV"
 
       - name: Run Tests
-        run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 tests -n $TEST_GROUP_TOTAL --only-group $TEST_GROUPS
+        run: $DOCKER_RUN -e PARALLEL_TEST_PROCESSORS=2 rspec -n $TEST_GROUP_TOTAL --only-group $TEST_GROUPS
 
       - name: Upload coverage
         uses: actions/upload-artifact@v7
@@ -149,16 +149,16 @@ jobs:
           path: tmp/spec_runtime.log
           key: spec-runtime-log-${{ matrix.index }}-${{ github.run_id }}
 
-  tests:
+  rspec:
     runs-on: ubuntu-22.04
-    needs: test-runner
+    needs: rspec-runner
     # Tests are skipped on draft PRs to save on actions usage.
     # Skipping this job keeps draft PRs from being marked as failing:
     # a skipped job reports "success" to branch protection.
-    if: always() && needs.test-runner.result != 'skipped'
+    if: always() && needs.rspec-runner.result != 'skipped'
     steps:
       - name: Check test results
-        if: needs.test-runner.result != 'success'
+        if: needs.rspec-runner.result != 'success'
         run: exit 1
 
       - uses: actions/checkout@v6
@@ -203,7 +203,7 @@ jobs:
 
   coverage-report:
     runs-on: ubuntu-22.04
-    needs: tests
+    needs: rspec
     permissions:
       contents: read
       pull-requests: write
