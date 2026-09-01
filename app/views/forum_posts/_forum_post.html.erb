@@ -69,6 +69,9 @@
             <li><%= link_to "Parent", forum_topic_path(forum_post.topic, :page => forum_post.forum_topic_page, :anchor => "forum_post_#{forum_post.id}") %></li>
           <% end %>
           <% if CurrentUser.user.is_member? %>
+            <% if forum_post.tag_change_request&.tag_relation.deletable_by?(CurrentUser.user) %>
+              <%= link_to("Reject", "#", class: "tag-relationship-reject") %>
+            <% end %>
             <li><%= link_to "Report", new_ticket_path(disp_id: forum_post.id, qtype: 'forum') %></li>
           <% end %>
 
