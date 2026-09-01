@@ -211,6 +211,15 @@ RSpec.describe TicketsController do
           expect(flash[:notice]).to eq("Not sending update, no changes")
         end
       end
+
+      context "when the updated ticket is not valid" do
+        before { ticket.update_columns(response: "Old response.", status: "pending") }
+
+        it "sets a flash notice about the error" do
+          patch ticket_path(ticket), params: { ticket: { response: "", status: "approved", send_update_dmail: "true" } }
+          expect(flash[:notice]).to match(/Error:/)
+        end
+      end
     end
   end
 
