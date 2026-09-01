@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { setMeta } from "../../helpers";
 import type { StorageDefinition } from "@/utility/storage/utilities/Types";
 
 // LStorage is an import-time singleton (see plan); the global beforeEach in
@@ -124,6 +125,12 @@ describe("LStorage", () => {
     expect(localStorage.getItem("e6.debug")).toBe("true");
   });
 
+  it("reads the Debug flag back through the provider", async () => {
+    localStorage.setItem("e6.debug", "true");
+    const LStorage = await freshStorage();
+    expect(LStorage.Debug).toBe(true);
+  });
+
   describe("Posts.TagScript.Content", () => {
     it("stores content under the key derived from the active script ID", async () => {
       const LStorage = await freshStorage();
@@ -171,6 +178,27 @@ describe("LStorage", () => {
       expect(localStorage.getItem("e6.blk.filters")).toBeNull();
     });
 
+    it("persists the remaining entries when one of several is deleted", async () => {
+      const LStorage = await freshStorage();
+      LStorage.Blacklist.FilterState.add("cat");
+      LStorage.Blacklist.FilterState.add("dog");
+      LStorage.Blacklist.FilterState.delete("cat");
+      expect(JSON.parse(localStorage.getItem("e6.blk.filters") || "[]")).toEqual(["dog"]);
+    });
+
+    it("persists a wholesale assignment of a populated set", async () => {
+      const LStorage = await freshStorage();
+      LStorage.Blacklist.FilterState = new Set(["cat", "dog"]);
+      expect(JSON.parse(localStorage.getItem("e6.blk.filters") || "[]")).toEqual(["cat", "dog"]);
+    });
+
+    it("clears the key when assigned an empty set", async () => {
+      const LStorage = await freshStorage();
+      LStorage.Blacklist.FilterState.add("cat"); // create the key first
+      LStorage.Blacklist.FilterState = new Set();
+      expect(localStorage.getItem("e6.blk.filters")).toBeNull();
+    });
+
     it("removes the key on clear", async () => {
       const LStorage = await freshStorage();
       LStorage.Blacklist.FilterState.add("cat");
@@ -185,6 +213,22 @@ describe("LStorage", () => {
 
       expect(LStorage.Blacklist.FilterState.size).toBe(0);
       expect(localStorage.getItem("e6.blk.filters")).toBeNull();
+    });
+  });
+
+  describe("Blacklist.AnonymousBlacklist", () => {
+    it("falls back to the blacklisted-tags metatag when unset, persists it, then caches", async () => {
+      setMeta("blacklisted-tags", JSON.stringify(["foo", "bar"]));
+      const LStorage = await freshStorage();
+
+      expect(LStorage.Blacklist.AnonymousBlacklist).toBe(JSON.stringify(["foo", "bar"]));
+      // The fallback is written through to localStorage so it isn't recomputed.
+      expect(localStorage.getItem("anonymous-blacklist")).toBe(JSON.stringify(["foo", "bar"]));
+
+      // Cached: later changes to the metatag and storage have no effect.
+      setMeta("blacklisted-tags", "[]");
+      localStorage.setItem("anonymous-blacklist", "[]");
+      expect(LStorage.Blacklist.AnonymousBlacklist).toBe(JSON.stringify(["foo", "bar"]));
     });
   });
 
