@@ -237,7 +237,7 @@
 </template>
 
 <script>
-import ToastManager from "@/utility/Toast";
+  import ToastManager from "@/utility/Toast";
   import sources from './sources.vue';
   import checkbox from './checkbox.vue';
   import relatedTags from './related.vue';

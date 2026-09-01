@@ -1,5 +1,5 @@
-import CurrentUser from "@/models/CurrentUser";
 import ImmersiveInput from "@/components/ImmersiveInput";
+import CurrentUser from "@/models/CurrentUser";
 import Page from "@/utility/Page";
 
 export default class AuthOverlay {

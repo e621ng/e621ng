@@ -1,8 +1,7 @@
-import ToastManager from "@/utility/Toast";
 import Dialog from "@/utility/dialog";
 import LStorage from "@/utility/storage/Local";
 import TaskQueue from "@/utility/TaskQueue";
-import { Toast } from "@/utility/Toast";
+import ToastManager, { Toast } from "@/utility/Toast";
 
 export default class PostSet {
 

@@ -1,7 +1,7 @@
-import CurrentUser from "@/models/CurrentUser";
-import Settings from "@/utility/Settings";
 import Provider from "@/components/autocomplete/Provider";
 import { TagItem } from "@/components/autocomplete/Types";
+import CurrentUser from "@/models/CurrentUser";
+import Settings from "@/utility/Settings";
 
 export default class TagProvider extends Provider<TagItem> {
   public async search (query: string) {

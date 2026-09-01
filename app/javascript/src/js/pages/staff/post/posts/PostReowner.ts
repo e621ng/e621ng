@@ -1,6 +1,6 @@
-import ToastManager from "@/utility/Toast";
 import Post from "@/pages/posts/posts";
 import TaskQueue from "@/utility/TaskQueue";
+import ToastManager from "@/utility/Toast";
 import Dialog from "@/utility/dialog";
 
 interface PreviousOwner {

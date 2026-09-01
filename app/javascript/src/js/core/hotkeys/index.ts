@@ -1,6 +1,6 @@
-import CurrentUser from "@/models/CurrentUser";
 import HotkeysConfig from "@/core/hotkeys/HotkeysConfig";
 import * as Types from "@/core/hotkeys/Types";
+import CurrentUser from "@/models/CurrentUser";
 
 class Hotkeys {
 

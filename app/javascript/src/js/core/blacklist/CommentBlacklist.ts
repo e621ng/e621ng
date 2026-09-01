@@ -1,5 +1,5 @@
-import CurrentUser from "@/models/CurrentUser";
 import Blacklist from "@/core/blacklist";
+import CurrentUser from "@/models/CurrentUser";
 
 export default class CommentBlacklist {
   public static initializeAll () {

@@ -1,7 +1,7 @@
-import CurrentUser from "@/models/CurrentUser";
 import Hotkeys from "@/core/hotkeys";
 import HotkeysConfig from "@/core/hotkeys/HotkeysConfig";
 import * as Types from "@/core/hotkeys/Types";
+import CurrentUser from "@/models/CurrentUser";
 
 export default class StaticShortcuts {
 
