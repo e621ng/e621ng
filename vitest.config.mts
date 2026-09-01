@@ -16,5 +16,9 @@ export default defineConfig({
     globals: false,
     setupFiles: ["./app/javascript/test/setup.ts"],
     include: ["app/javascript/test/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["app/javascript/src/js/**/*.js", "app/javascript/src/js/**/*.ts"]
+    },
   },
 });
