@@ -15,7 +15,10 @@ beforeEach(() => {
 
 describe("CurrentUser", () => {
   it("falls back to anonymous defaults when #site-user is absent", async () => {
+    // A missing #site-user tag is caught and logged before falling back.
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
     const user = await freshUser();
+    expect(error).toHaveBeenCalled();
 
     expect(user.id).toBe(0);
     expect(user.name).toBe("Anonymous");
@@ -69,6 +72,7 @@ describe("CurrentUser", () => {
 
   describe("authToken", () => {
     it("reads the CSRF token from the meta tag and caches it", async () => {
+      vi.spyOn(console, "error").mockImplementation(() => {}); // no #site-user; ignore fallback log
       setMeta("csrf-token", "ab/cd+ef");
       const user = await freshUser();
 
@@ -81,6 +85,7 @@ describe("CurrentUser", () => {
     });
 
     it("is null when no CSRF meta tag is present", async () => {
+      vi.spyOn(console, "error").mockImplementation(() => {}); // no #site-user; ignore fallback log
       const user = await freshUser();
       expect(user.authToken).toBeNull();
       expect(user.encodedAuthToken).toBeNull();
