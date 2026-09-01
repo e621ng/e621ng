@@ -66,11 +66,23 @@ jobs:
       - name: Run ESLint
         run: $DOCKER_RUN linter
 
+  jstests:
+    runs-on: ubuntu-22.04
+    needs: docker-build
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/prepare-docker-image
+
+      - name: Run JS tests
+        run: $DOCKER_RUN jstests
+
   test-runner:
     runs-on: ubuntu-22.04
     needs:
       - rubocop
       - eslint
+      - jstests
     if: inputs.run_tests
     strategy:
       fail-fast: false

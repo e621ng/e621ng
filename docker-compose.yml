@@ -241,8 +241,17 @@ services:
       - .:/app
       - node_modules:/app/node_modules
     entrypoint: npm run lint
-    profiles: 
+    profiles:
       - linter
+
+  jstests:
+    image: e621
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    entrypoint: npm test
+    profiles:
+      - jstests
 
 volumes:
   post_data:
