@@ -45,7 +45,7 @@ class PostReplacement < ApplicationRecord
   before_destroy :remove_files
   after_destroy -> { post.update_index }
 
-  TAGS_TO_REMOVE_AFTER_ACCEPT = ["better_version_at_source"].freeze
+  TAGS_TO_REMOVE_AFTER_ACCEPT = %w[better_version_at_source fake_png].freeze
   HIGHLIGHTED_TAGS = %w[better_version_at_source avoid_posting conditional_dnp].freeze
 
   def replacement_url_parsed

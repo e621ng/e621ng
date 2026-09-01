@@ -42,7 +42,9 @@ RSpec.describe UploadService::Replacer do
       file: file_stub, is_animated_file?: false, video_duration: nil
     )
     allow(upload).to receive(:file=)
-    allow(Upload).to receive(:create).and_return(upload)
+    allow(Upload).to receive(:create) do |**attrs|
+      upload.tap { |u| u.tag_string = attrs[:tag_string] }
+    end
     allow(UploadService::Utils).to receive(:get_file_for_upload).and_return(file_stub)
     allow(UploadService::Utils).to receive(:process_file)
     allow(post).to receive(:update_iqdb_async)
@@ -95,6 +97,12 @@ RSpec.describe UploadService::Replacer do
         delta: -UserStatus::KARMA_REPLACEMENT_PENALTY,
         extra_data: { "replacement_id" => replacement.id },
       )
+    end
+
+    it "strips tags that should be removed after acceptance" do
+      post.update!(tag_string: "better_version_at_source fake_png keep_this_tag")
+      expect { process!(replacement, penalize: false) }
+        .to change { post.reload.tag_string }.from("better_version_at_source fake_png keep_this_tag").to("keep_this_tag")
     end
   end
 
