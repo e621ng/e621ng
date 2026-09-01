@@ -83,6 +83,12 @@ RSpec.configure do |config|
   config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:suite) do
+    # Ensure the OpenSearch indices exist for this process. Under parallel_test each
+    # process resolves a distinct, TEST_ENV_NUMBER-suffixed index name (see
+    # DocumentStore::Model), so this creates the per-process index with the correct
+    # mappings. Idempotent: create_index! is a no-op when the index already exists.
+    [Post, PostVersion].each { |model| model.document_store.create_index! }
+
     # Sometimes, a schema rebuild may run on test databases, which can clear seeded data.
     # Here, we make sure that the very basic records are present - without these, tests will fail.
     # See `/db/seeds.rb` for the full list of seeded data.
