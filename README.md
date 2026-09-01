@@ -143,30 +143,45 @@ The postgres server accepts outside connections which you can use to access it w
 
 ## Contributing
 
-### Please follow the PR naming conventions
-Prefix your PR with the primary subsystem being changed in square brackets (e.g. `[Posts] Tweak post search UI`), & use the imperative present tense (e.g. use `[Posts] Tweak the post search UI` instead of `[Posts] Tweaked the post search UI`).
+### Follow the PR naming conventions
+Prefix your PR with the primary subsystem being changed in square brackets, and use the imperative present tense.
 
-### Please run the required checks locally prior to submission
+Good: `[Posts] Tweak post search UI`
+
+Bad:
+- `Tweak post search UI`: no subsystem prefix
+- `[Users] Tweak post search UI`: unrelated subsystem prefix
+- `[Posts] Tweaked post search UI`: wrong tense
+
+### Run the required checks locally prior to submission
 Ensuring our checks pass prior to submission greatly increases the chances that your PR will be reviewed in a timely manner. There are 4 checks run on PRs; their local equivalents are:
-* `docker compose run --rm rspec`: test suite for the Ruby/Rails code
-* `docker compose run --rm rubocop`: linter for the Ruby/Rails code
-* `docker compose run --rm vitest`: test suite for the JavaScript/TypeScript code
-* `docker compose run --rm eslint`: linter for the JavaScript/TypeScript code
+* `docker compose run --rm rspec`: test suite for Ruby/Rails
+* `docker compose run --rm rubocop`: linter for Ruby/Rails
+* `docker compose run --rm vitest`: test suite for JavaScript/TypeScript
+* `docker compose run --rm eslint`: linter for JavaScript/TypeScript
 
 ### If addressing a preexisting issue, please reference it
-For issues already submitted to GitHub, including the issue number in your PR title with the proper formatting (e.g. `[Posts] Tweak post search UI (#123)`) lets GitHub automatically link the two, allowing us to both see the full context of the problem & close the issue as solved automatically upon merging. If the issue is not on GitHub, linking to discussion about the issue lets our maintainers gauge the interest in the feature and the likelihood the PR sufficiently addresses the demands.
+For issues already submitted to GitHub, use [closing keywords](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests) in the PR description to let GitHub automatically link the two. This will allow us to both see the full context of the problem and close the issue as solved automatically upon merging.
 
-### Please limit the scope of your changes
-If you are undertaking a large project, please submit/reference an issue describing the overall project, & break it down into smaller logical units that are submitted separately; this makes for dramatically easier & faster review (&, if need be, iteration), & reduces the merging burden for other contributors upon merging.
+If the issue is not on GitHub, linking to discussion about the issue lets our maintainers gauge the interest in the feature and the likelihood the PR sufficiently addresses the demands.
 
-### Please add/update relevant tests
-If you create a new public class or function, or alter the behavior of preexisting ones, adding and/or updating the relevant tests allows maintainers to have far more confidence in your code with far less review, increasing the chances at a speedy turnaround. We currently have [RSpec](https://rspec.info/) tests for our Ruby/Rails code, but until a test suite is configured for our JavaScript/TypeScript code, you don't need to worry about testing JavaScript/TypeScript code. We do have code coverage analytics, & while we don't strictly require that the overall coverage never decreases, that is an ideal we'd like to strive for.
+### Limit the scope of your changes
+If you are undertaking a large project, please submit/reference an issue describing the overall project, and break it down into smaller logical units that are submitted separately. This makes for dramatically easier and faster review (and, if need be, iteration). Plus, it reduces the burden of dealing with merge conflicts for other contributors.
 
-### Please do not commit changes to `rubocop_todo.yml`, nor excessively use inline comments to silence lint errors/warnings
-We have mechanisms to properly update the to-do file without causing frustrating conflicts, and you should not be hiding lint errors/warnings with this file. We ask that you avoid using in-line config comments to bypass the linter, although it is permissible in cases where the code's structure makes it impossible to do so without a substantial or needlessly convoluted refactoring effort (i.e. `TagQuery`'s `parse_query` method). Similarly to test coverage, while we don't strictly require that the overall number of lints ignored - through both inline comments & `rubocop_todo.yml` - never increases, that is an ideal we'd like to strive for.
+### Add or update relevant tests
+If you create a new public class or function, or alter the behavior of preexisting ones, adding or updating the relevant tests allows maintainers to have far more confidence in your code with far less review, increasing the chances at a speedy turnaround.
 
-### Please check for & review prior discussion regarding the goal of your PR, and any attempts to fix the same issues
-This ensures you have a solid idea of the requirements for acceptance and the overall desire for the PR before starting work on it & submitting for approval.
+We currently have [RSpec](https://rspec.info/) suite for our Ruby/Rails code, and [Vitest](https://vitest.dev/) for JS/TS. We do have code coverage analytics, and while we don't strictly require that the overall coverage never decreases, that is an ideal we'd like to strive for.
+
+### Do not commit changes to `rubocop_todo.yml`, nor excessively use inline comments to silence lint errors/warnings
+We have [a workflow](.github/workflows/rubocop.yml) to properly update the to-do file without causing frustrating conflicts. You should not be hiding lint errors/warnings with this file.
+
+We ask that you avoid using in-line config comments to bypass the linter, although it is permissible in cases where the code's structure makes it impossible to do so without a substantial or needlessly convoluted refactoring effort (i.e. `TagQuery`'s `parse_query` method).
+
+Similarly to test coverage, while we don't strictly require that the overall number of lints ignored – through both inline comments and `rubocop_todo.yml` – never increases, that is an ideal we'd like to strive for.
+
+### Check for and review prior discussion regarding the goal of your PR, and any attempts to fix the same issues
+This ensures you have a solid idea of the requirements for acceptance and the overall desire for the PR before starting work on it and submitting for approval.
 
 ## Production Setup
 
