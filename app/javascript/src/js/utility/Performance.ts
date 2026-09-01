@@ -13,10 +13,10 @@ class AppPerformance extends PerformanceTracker {
   }
 
   private constructor () {
-    super("app");
-
     if (AppPerformance._instance)
       throw new Error("AppPerformance is a singleton class. Use AppPerformance.instance to access the instance.");
+
+    super("app");
   }
 }
 
