@@ -237,6 +237,7 @@
 </template>
 
 <script>
+  import ToastManager from "@/utility/Toast";
   import sources from './sources.vue';
   import checkbox from './checkbox.vue';
   import relatedTags from './related.vue';
@@ -484,7 +485,7 @@
           success(data) {
             self.submitting = false;
             self.allowNavigate = true;
-            E621.Toast.notice('Post uploaded successfully.');
+            ToastManager.notice('Post uploaded successfully.');
             location.assign(data.location);
           },
           error(response, textStatus, errorThrown) {

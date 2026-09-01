@@ -1,3 +1,5 @@
+import ToastManager from "@/utility/Toast";
+
 class TagRelationships {
   static approve (e) {
     e.preventDefault();
@@ -16,10 +18,10 @@ class TagRelationships {
       type: "POST",
       dataType: "json",
     }).done(function () {
-      E621.Toast.notice(`Accepted ${human}.`);
+      ToastManager.notice(`Accepted ${human}.`);
       parent.slideUp("fast");
     }).fail(function () {
-      E621.Toast.alert(`Failed to accept ${human}.`);
+      ToastManager.alert(`Failed to accept ${human}.`);
     });
   }
 
@@ -40,10 +42,10 @@ class TagRelationships {
       type: "DELETE",
       dataType: "json",
     }).done(function () {
-      E621.Toast.notice(`Rejected ${human}.`);
+      ToastManager.notice(`Rejected ${human}.`);
       parent.slideUp("fast");
     }).fail(function () {
-      E621.Toast.alert(`Failed to reject ${human}.`);
+      ToastManager.alert(`Failed to reject ${human}.`);
     });
   }
 
@@ -65,9 +67,9 @@ class TagRelationships {
       type: "POST",
       dataType: "json",
     }).done(function () {
-      E621.Toast.notice(`Undo of ${human} queued.`);
+      ToastManager.notice(`Undo of ${human} queued.`);
     }).fail(function () {
-      E621.Toast.alert(`Failed to undo ${human}.`);
+      ToastManager.alert(`Failed to undo ${human}.`);
     });
   }
 }

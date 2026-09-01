@@ -1,3 +1,5 @@
+import ToastManager from "@/utility/Toast";
+
 let PostReplacement = {};
 
 PostReplacement.initialize_all = function () {
@@ -60,13 +62,13 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
     dataType: "html",
   })
     .done((html) => {
-      E621.Toast.notice("Replacement approved.");
+      ToastManager.notice("Replacement approved.");
       $(".is-current").removeClass("is-current");
       replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to approve the replacement.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       revert_processing($row);
     });
 };
@@ -82,12 +84,12 @@ PostReplacement.reject = function (id) {
     dataType: "html",
   })
     .done((html) => {
-      E621.Toast.notice("Replacement rejected.");
+      ToastManager.notice("Replacement rejected.");
       replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to reject the replacement.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       revert_processing($row);
     });
 };
@@ -103,12 +105,12 @@ PostReplacement.promote = function (id) {
     dataType: "html",
   })
     .done((html) => {
-      E621.Toast.notice("Replacement promoted to a new post.");
+      ToastManager.notice("Replacement promoted to a new post.");
       replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to promote the replacement.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       revert_processing($row);
     });
 };
@@ -124,12 +126,12 @@ PostReplacement.toggle_penalize = function ($target) {
     dataType: "html",
   })
     .done((html) => {
-      E621.Toast.notice("Penalization toggled.");
+      ToastManager.notice("Penalization toggled.");
       replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to toggle penalization.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       $target.removeClass("disabled-link");
     });
 };
@@ -144,12 +146,12 @@ PostReplacement.destroy = function (id) {
     dataType: "html",
   })
     .done(() => {
-      E621.Toast.notice("Replacement destroyed.");
+      ToastManager.notice("Replacement destroyed.");
       $row.remove();
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to destroy the replacement.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       revert_processing($row);
     });
 };
@@ -160,7 +162,7 @@ PostReplacement.transfer = function (id) {
   if (raw === null) return; // cancelled — no toast
   const newPostId = raw.trim();
   if (!newPostId || isNaN(Number(newPostId))) {
-    E621.Toast.alert("Please enter a valid post ID.");
+    ToastManager.alert("Please enter a valid post ID.");
     return;
   }
   if (!confirm(`Transfer this replacement to post #${newPostId}?`)) return;
@@ -173,8 +175,8 @@ PostReplacement.transfer = function (id) {
     dataType: "html",
   })
     .done((html) => {
-      // E621.Toast renders HTML, so link straight to the destination post.
-      E621.Toast.notice(`Replacement transferred to <a href="/posts/${newPostId}">post #${newPostId}</a>.`);
+      // ToastManager renders HTML, so link straight to the destination post.
+      ToastManager.notice(`Replacement transferred to <a href="/posts/${newPostId}">post #${newPostId}</a>.`);
       if ($row.hasClass("has-timeline")) {
         $row.remove(); // it left this post's timeline — drop it, like destroy
       } else {
@@ -183,7 +185,7 @@ PostReplacement.transfer = function (id) {
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to transfer the replacement.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       revert_processing($row);
     });
 };

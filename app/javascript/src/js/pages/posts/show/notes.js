@@ -1,3 +1,5 @@
+import ToastManager from "@/utility/Toast";
+import CurrentUser from "@/models/CurrentUser";
 import Dialog from "@/utility/dialog.js";
 import LStorage from "@/utility/storage/Local";
 import TaskQueue from "@/utility/TaskQueue.js";
@@ -20,7 +22,7 @@ export default class NoteManager {
     this.highlightHashNotes();
     $(window).on("hashchange.e6.note", this.highlightHashNotes);
 
-    if (!E621.CurrentUser.is.member) return;
+    if (!CurrentUser.is.member) return;
 
     // Open editor when a note is double-clicked
     NoteUtilities.container.on("dblclick.e6.note", ".note-box", (event) => {
@@ -864,12 +866,12 @@ class NoteEditor {
       event.preventDefault();
 
       if (!this.id) {
-        E621.Toast.alert("Error: No note is currently being edited.");
+        ToastManager.alert("Error: No note is currently being edited.");
         return false;
       }
 
       if (this.getInputText().length == 0) {
-        E621.Toast.alert("Error: Note content cannot be empty.");
+        ToastManager.alert("Error: Note content cannot be empty.");
         return false;
       }
 
@@ -888,7 +890,7 @@ class NoteEditor {
     // Delete note
     this.form.find("button[name='note-delete']").on("click.e6.note", () => {
       if (!this.id) {
-        E621.Toast.alert("Error: No note is currently being edited.");
+        ToastManager.alert("Error: No note is currently being edited.");
         return false;
       }
 
@@ -903,7 +905,7 @@ class NoteEditor {
     // Note history
     this.form.find("button[name='note-history']").on("click.e6.note", () => {
       if (!this.id) {
-        E621.Toast.alert("Error: No note is currently being edited.");
+        ToastManager.alert("Error: No note is currently being edited.");
         return false;
       }
 
@@ -998,7 +1000,7 @@ class NoteEditor {
     if (note.isTemporary) {
       const postId = $("#image-container").data("id");
       if (!postId) {
-        E621.Toast.alert("Error: Could not determine post ID.");
+        ToastManager.alert("Error: Could not determine post ID.");
         this.saving = false;
         return;
       }
@@ -1011,11 +1013,11 @@ class NoteEditor {
       error: (xhr) => {
         this.saving = false;
         const errorMessage = xhr.responseJSON?.reasons?.join("; ") || xhr.responseJSON?.reason || "Unknown error";
-        E621.Toast.alert("Error saving note: " + errorMessage);
+        ToastManager.alert("Error saving note: " + errorMessage);
       },
       success: (data) => {
         if (!data || !data.note || !data.dtext) {
-          E621.Toast.alert("Error: Invalid response from server.");
+          ToastManager.alert("Error: Invalid response from server.");
           this.saving = false;
           return;
         }
@@ -1075,7 +1077,7 @@ class NoteEditor {
       error: (xhr) => {
         this.saving = false;
         const errorMessage = xhr.responseJSON?.reasons?.join("; ") || xhr.responseJSON?.reason || "Unknown error";
-        E621.Toast.alert("Error deleting note: " + errorMessage);
+        ToastManager.alert("Error deleting note: " + errorMessage);
       },
     });
   }

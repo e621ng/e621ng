@@ -1,3 +1,5 @@
+import ToastManager from "@/utility/Toast";
+import TimestampSwitch from "@/components/TimestampSwitch";
 import DTextFormatter from "@/components/DTextFormatter";
 import TextUtils from "@/utility/TextUtils";
 
@@ -48,10 +50,10 @@ Comment.show_all = function (e) {
     const current_comment_section = $(`div.comments-for-post[data-post-id=${post_id}] div.list-of-comments`);
     current_comment_section.html(data.html);
     Comment.reinitialize_all();
-    E621.TimestampSwitch.load();
+    TimestampSwitch.load();
     $(window).trigger("e621:add_deferred_posts", data.posts);
   }).fail(function () {
-    E621.Toast.alert("Failed to fetch all comments for this post.");
+    ToastManager.alert("Failed to fetch all comments for this post.");
   });
 };
 
@@ -69,7 +71,7 @@ Comment.hide = function (e) {
     $(`.comment[data-comment-id="${cid}"] div.author h1`).append(" (hidden)");
     $(`.comment[data-comment-id="${cid}"]`).attr("data-is-deleted", "true");
   }).fail(function () {
-    E621.Toast.alert("Failed to hide comment.");
+    ToastManager.alert("Failed to hide comment.");
   });
 };
 
@@ -88,7 +90,7 @@ Comment.unhide = function (e) {
     $author.text($author.text().replace(" (hidden)", ""));
     $(`.comment[data-comment-id="${cid}"]`).attr("data-is-deleted", "false");
   }).fail(function () {
-    E621.Toast.alert("Failed to unhide comment.");
+    ToastManager.alert("Failed to unhide comment.");
   });
 };
 
@@ -105,7 +107,7 @@ Comment.delete = function (e) {
   }).done(function () {
     parent.remove();
   }).fail(function () {
-    E621.Toast.alert("Failed to delete comment.");
+    ToastManager.alert("Failed to delete comment.");
   });
 };
 
@@ -127,7 +129,7 @@ Comment.quote = function (e) {
     TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
     $textarea.selectEnd();
   }).fail(function (data) {
-    E621.Toast.alert(data.responseText);
+    ToastManager.alert(data.responseText);
   });
 };
 
@@ -197,9 +199,9 @@ Comment.vote = function (id, score) {
     $("#comment-score-" + commentID).addClass(scoreToClass(commentScore));
     $("#comment-vote-up-" + commentID).addClass(ourScore > 0 ? "score-positive" : "score-neutral");
     $("#comment-vote-down-" + commentID).addClass(ourScore < 0 ? "score-negative" : "score-neutral");
-    E621.Toast.notice("Vote saved");
+    ToastManager.notice("Vote saved");
   }).fail(function (data) {
-    E621.Toast.alert(data.responseJSON.message);
+    ToastManager.alert(data.responseJSON.message);
   });
 };
 

@@ -1,3 +1,4 @@
+import ToastManager from "@/utility/Toast";
 import CStorage from "@/utility/storage/Cookie";
 
 function initSearch () {
@@ -42,7 +43,7 @@ $(function () {
     }).done(() => {
       location.reload();
     }).fail(() => {
-      E621.Toast.alert("Failed to revert to specified version.");
+      ToastManager.alert("Failed to revert to specified version.");
     });
   });
 

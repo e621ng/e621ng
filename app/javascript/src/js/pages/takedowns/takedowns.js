@@ -1,7 +1,9 @@
+import ToastManager from "@/utility/Toast";
+
 let Takedown = {};
 
 Takedown.destroy = function (id) {
-  const toast = E621.Toast.create(`Deleting takedown #${id}...`, { timeout: 10 });
+  const toast = ToastManager.create(`Deleting takedown #${id}...`, { timeout: 10 });
 
   $.ajax({
     url: "/takedown/destroy.json",
@@ -40,7 +42,7 @@ Takedown.add_posts_by_tags_preview = function (id) {
     $("#takedown-add-posts-tags-confirm").css("display", "inline-block");
     $("#takedown-add-posts-tags-cancel").css("display", "inline-block");
   }).fail(function (data) {
-    E621.Toast.create("Failed to add posts with tags '" + tags + "' to takedown: " + data.responseText, { type: "error", timeout: 0 });
+    ToastManager.create("Failed to add posts with tags '" + tags + "' to takedown: " + data.responseText, { type: "error", timeout: 0 });
   });
 };
 
@@ -55,7 +57,7 @@ Takedown.add_posts_by_tags_cancel = function () {
 Takedown.add_posts_by_tags = function (id) {
   event.preventDefault();
   const tags = $("#takedown-add-posts-tags").val();
-  const toast = E621.Toast.create(`Adding posts with tags '${tags}' to takedown...`, { timeout: 10 });
+  const toast = ToastManager.create(`Adding posts with tags '${tags}' to takedown...`, { timeout: 10 });
 
   $.ajax({
     url: `/takedowns/${id}/add_by_tags.json`,
@@ -87,7 +89,7 @@ Takedown.add_posts_by_tags = function (id) {
 Takedown.add_posts_by_ids = function (id) {
   event.preventDefault();
   const post_ids = $("#takedown-add-posts-ids").val();
-  const toast = E621.Toast.create("Adding posts to takedown...", { timeout: 10 });
+  const toast = ToastManager.create("Adding posts to takedown...", { timeout: 10 });
 
   $.ajax({
     url: `/takedowns/${id}/add_by_ids.json`,
@@ -115,7 +117,7 @@ Takedown.add_posts_by_ids = function (id) {
 };
 
 Takedown.remove_post = function (id, post_id) {
-  const toast = E621.Toast.create("Removing post #" + post_id + " from takedown...", { timeout: 10 });
+  const toast = ToastManager.create("Removing post #" + post_id + " from takedown...", { timeout: 10 });
 
   $.ajax({
     url: `/takedowns/${id}/remove_by_ids.json`,

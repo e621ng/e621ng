@@ -50,9 +50,9 @@ export default class PostsShowToolbar {
       const button = $(event.currentTarget);
       const value = button.data("value");
       navigator.clipboard.writeText(value).then(() => {
-        E621.Toast.notice("Link copied to clipboard.");
+        ToastManager.notice("Link copied to clipboard.");
       }).catch((e) => {
-        E621.Toast.alert("Failed to copy link to clipboard.", e);
+        ToastManager.alert("Failed to copy link to clipboard.", e);
       });
     });
   }
@@ -93,7 +93,7 @@ export default class PostsShowToolbar {
   initVotingHotkeys () {
     Hotkeys.register("upvote", () => {
       ToastManager.dismiss("Post upvoted.", "Post downvoted.");
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.vote(1).then(() => {
         toast.type = "notice";
         toast.message = "Post upvoted.";
@@ -102,7 +102,7 @@ export default class PostsShowToolbar {
     });
     Hotkeys.register("downvote", () => {
       ToastManager.dismiss("Post upvoted.", "Post downvoted.");
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.vote(-1).then(() => {
         toast.type = "notice";
         toast.message = "Post downvoted.";
@@ -157,7 +157,7 @@ export default class PostsShowToolbar {
 
     Hotkeys.register("favorite", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
       if (imageEl.attr("data-is-favorited") == "true")
         PostsShowToolbar.deleteFavorite().then(() => {
           toast.type = "notice";
@@ -174,7 +174,7 @@ export default class PostsShowToolbar {
     Hotkeys.register("favorite-add", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "true") return;
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.addFavorite().then(() => {
         toast.type = "notice";
         toast.message = "Favorite added.";
@@ -185,7 +185,7 @@ export default class PostsShowToolbar {
     Hotkeys.register("favorite-del", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "false") return;
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.deleteFavorite().then(() => {
         toast.type = "notice";
         toast.message = "Favorite removed.";

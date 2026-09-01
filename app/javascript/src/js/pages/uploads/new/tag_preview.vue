@@ -8,6 +8,7 @@
 </template>
 
 <script>
+import ToastManager from "@/utility/Toast";
 import tagPreviewTag from './tag_preview_tag.vue';
 import LStorage from '@/utility/storage/Local.js';
 
@@ -120,7 +121,7 @@ export default {
         error: (result) => {
           this.loading = false;
           let details = result.responseText || "Unknown error";
-          E621.Toast.alert("Error loading tag preview: " + details);
+          ToastManager.alert("Error loading tag preview: " + details);
           console.error("Tag preview error:", result);
         },
       });
