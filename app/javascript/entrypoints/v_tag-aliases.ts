@@ -1,8 +1,7 @@
 // tag_aliases
 
-import E621Type from "@/interfaces/E621";
-declare const E621: E621Type;
+import ModuleRegistry from "@/utility/ModuleRegistry";
 
 import "@/pages/tag_aliases/tag_relationships";
 
-E621.Registry.register("v_tag-aliases");
+ModuleRegistry.register("v_tag-aliases");

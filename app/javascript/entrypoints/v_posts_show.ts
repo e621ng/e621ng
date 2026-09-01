@@ -1,7 +1,6 @@
 // posts # show
 
-import E621Type from "@/interfaces/E621";
-declare const E621: E621Type;
+import ModuleRegistry from "@/utility/ModuleRegistry";
 
 import CurrentPost from "@/models/CurrentPost";
 import "@/pages/comments/comments";
@@ -20,7 +19,7 @@ import PostReowner from "@/pages/staff/post/posts/PostReowner";
 
 import "@/pages/post_flags/post_flags"; // We only need expandable notes from here
 
-E621.Registry.register("v_posts_show", { Note, CurrentPost, PostResizer });
+ModuleRegistry.register("v_posts_show", { Note, CurrentPost, PostResizer });
 
 $(() => {
   PostSet.initialize_add_to_set_link();

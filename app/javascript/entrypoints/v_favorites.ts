@@ -1,7 +1,6 @@
 // favorites
 
-import E621Type from "@/interfaces/E621";
-declare const E621: E621Type;
+import ModuleRegistry from "@/utility/ModuleRegistry";
 
 import "@/pages/posts/BlacklistQuickEdit";
 import "@/pages/posts/BlacklistQuickToggle";
@@ -11,4 +10,4 @@ import Post from "@/pages/posts/posts";
 import "@/pages/posts/SearchControls";
 import "@/pages/posts/SearchFilters";
 
-E621.Registry.register("v_favorites", { Post, PostModeMenu });
+ModuleRegistry.register("v_favorites", { Post, PostModeMenu });
