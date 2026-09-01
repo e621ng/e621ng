@@ -5,7 +5,10 @@ module DocumentStore
     def self.included(klass)
       klass.include(Proxy)
 
-      klass.document_store.index_name = "#{klass.model_name.plural}_#{Rails.env}"
+      # In the test env, parallel_test runs multiple processes against separate databases that share
+      # one OpenSearch instance. Primary keys overlap across those databases, causing flaky behavior.
+      test_suffix = Rails.env.test? ? ENV["TEST_ENV_NUMBER"].presence : nil
+      klass.document_store.index_name = "#{klass.model_name.plural}_#{Rails.env}#{test_suffix}"
 
       klass.after_commit on: [:create] do
         document_store.update_index(refresh: Rails.env.test?.to_s)
