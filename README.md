@@ -101,11 +101,11 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 `git config core.fileMode false`
 
 
-#### Truenas / Local Server Installation
+#### TrueNAS / Local Server Installation
 
 If you decide to deploy this docker image to an external / local server, you do need to remember to change the DANBOORU_HOST variable in the docker-compose.yml file to the IP of your server. Otherwise, you will not be able to access it, or the image links will be broken. 
 
-Specifically for Truenas/NAS boxes users: you need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
+Specifically for TrueNAS/NAS boxes users: you need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
 
 
 ### <a id="development-tools"></a>Testing and Linting
@@ -134,27 +134,53 @@ PARALLEL_TEST_PROCESSORS=8 docker compose run --rm tests
 
 #### Linters
 
-`docker compose run --rm rubocop` to lint the ruby code
-`docker compose run --rm linter` to lint javascript
+`docker compose run --rm rubocop` to lint the Ruby code
+`docker compose run --rm linter` to lint JavaScript/TypeScript code
 
 #### Database
 
 The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34517` to connect to a database named `e621_development` with the user `e621`. Leave the password blank, anything will work.
 
+## Contributing
+
+### Please follow the PR naming conventions
+Prefix your PR with the primary subsystem being changed in square brackets (e.g. `[Posts] Tweak post search UI`), & use the imperative present tense (e.g. use `[Posts] Tweak the post search UI` instead of `[Posts] Tweaked the post search UI`).
+
+### Please run the required checks locally prior to submission
+Ensuring our checks pass prior to submission greatly increases the chances that your PR will be reviewed in a timely manner. There are 3 checks run on PRs; their local equivalents are:
+* `docker compose run --rm tests`: Runs the test suite for the Ruby/Rails code
+* `docker compose run --rm rubocop`: Runs the linter for the Ruby/Rails code
+* `docker compose run --rm linter`: Runs the linter for the JavaScript/TypeScript code
+
+### If addressing a preexisting issue, please reference it
+For issues already submitted to GitHub, including the issue number in your PR title with the proper formatting (e.g. `[Posts] Tweak post search UI (#123)`) lets GitHub automatically link the two, allowing us to both see the full context of the problem & close the issue as solved automatically upon merging. If the issue is not on GitHub, linking to discussion about the issue lets our maintainers gauge the interest in the feature and the likelihood the PR sufficiently addresses the demands.
+
+### Please limit the scope of your changes
+If you are undertaking a large project, please submit/reference an issue describing the overall project, & break it down into smaller logical units that are submitted separately; this makes for dramatically easier & faster review (&, if need be, iteration), & reduces the merging burden for other contributors upon merging.
+
+### Please add/update relevant tests
+If you create a new public class or function, or alter the behavior of preexisting ones, adding and/or updating the relevant tests allows maintainers to have far more confidence in your code with far less review, increasing the chances at a speedy turnaround. We currently have [RSpec](https://rspec.info/) tests for our Ruby/Rails code, but until a test suite is configured for our JavaScript/TypeScript code, you don't need to worry about testing JavaScript/TypeScript code. We do have code coverage analytics, & while we don't strictly require that the overall coverage never decreases, that is an ideal we'd like to strive for.
+
+### Please do not commit changes to `rubocop_todo.yml`, nor excessively use inline comments to silence lint errors/warnings
+We have mechanisms to properly update the to-do file without causing frustrating conflicts, and you should not be hiding lint errors/warnings with this file. We ask that you avoid using in-line config comments to bypass the linter, although it is permissible in cases where the code's structure makes it impossible to do so without a substantial or needlessly convoluted refactoring effort (i.e. `TagQuery`'s `parse_query` method). Similarly to test coverage, while we don't strictly require that the overall number of lints ignored - through both inline comments & `rubocop_todo.yml` - never increases, that is an ideal we'd like to strive for.
+
+### Please check for & review prior discussion regarding the goal of your PR, and any attempts to fix the same issues
+This ensures you have a solid idea of the requirements for acceptance and the overall desire for the PR before starting work on it & submitting for approval.
+
 ## Production Setup
 
 Installation follows the same steps as the docker compose file. Ubuntu 20.04 is the current installation target.
 There is no script that performs these steps for you, as you need to split them up to match your infrastructure.
-Running a single machine install in production is possible, but is likely to be somewhat sluggish due to contention in disk between postgresql and opensearch.
+Running a single machine install in production is possible, but is likely to be somewhat sluggish due to contention in disk between PostgreSQL and OpenSearch.
 Minimum RAM is 4GB. You will need to adjust values in config files to match how much RAM is available.
-If you are targeting more than a hundred thousand posts and reasonable user volumes, you probably want to procure yourself a database server. See tuning guides for postgresql and opensearch for help planning these requirements.
+If you are targeting more than a hundred thousand posts and reasonable user volumes, you probably want to procure yourself a database server. See tuning guides for PostgreSQL and OpenSearch for help planning these requirements.
 
 ### Production Troubleshooting
 
 These instructions won't work for everyone. If your setup is not
 working, here are the steps I usually recommend to people:
 
-1) Test the database. Make sure you can connect to it using psql. Make
+1) Test the database. Make sure you can connect to it using `psql`. Make
 sure the tables exist. If this fails, you need to work on correctly
 installing PostgreSQL, importing the initial schema, and running the
 migrations.
