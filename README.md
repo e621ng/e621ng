@@ -115,27 +115,27 @@ Specifically for TrueNAS/NAS boxes users: you need to use the shell itself to se
 The test suite runs in parallel using `parallel_tests`. Before running tests for the first time (or after a schema change), set up the parallel test databases:
 
 ```shell
-docker compose run --rm --entrypoint bin/rake tests parallel:create
-docker compose run --rm --entrypoint bin/rake tests parallel:load_schema
-docker compose run --rm --entrypoint bin/rake tests parallel:seed
+docker compose run --rm --entrypoint bin/rake rspec parallel:create
+docker compose run --rm --entrypoint bin/rake rspec parallel:load_schema
+docker compose run --rm --entrypoint bin/rake rspec parallel:seed
 ```
 
 Then run the suite:
 
 ```shell
-docker compose run --rm tests
+docker compose run --rm rspec
 ```
 
 This defaults to 4 parallel workers. Override with `PARALLEL_TEST_PROCESSORS`:
 
 ```shell
-PARALLEL_TEST_PROCESSORS=8 docker compose run --rm tests
+PARALLEL_TEST_PROCESSORS=8 docker compose run --rm rspec
 ```
 
 #### Linters
 
 `docker compose run --rm rubocop` to lint the Ruby code
-`docker compose run --rm linter` to lint JavaScript/TypeScript code
+`docker compose run --rm eslint` to lint JavaScript/TypeScript code
 
 #### Database
 
@@ -147,10 +147,11 @@ The postgres server accepts outside connections which you can use to access it w
 Prefix your PR with the primary subsystem being changed in square brackets (e.g. `[Posts] Tweak post search UI`), & use the imperative present tense (e.g. use `[Posts] Tweak the post search UI` instead of `[Posts] Tweaked the post search UI`).
 
 ### Please run the required checks locally prior to submission
-Ensuring our checks pass prior to submission greatly increases the chances that your PR will be reviewed in a timely manner. There are 3 checks run on PRs; their local equivalents are:
-* `docker compose run --rm tests`: Runs the test suite for the Ruby/Rails code
-* `docker compose run --rm rubocop`: Runs the linter for the Ruby/Rails code
-* `docker compose run --rm linter`: Runs the linter for the JavaScript/TypeScript code
+Ensuring our checks pass prior to submission greatly increases the chances that your PR will be reviewed in a timely manner. There are 4 checks run on PRs; their local equivalents are:
+* `docker compose run --rm rspec`: test suite for the Ruby/Rails code
+* `docker compose run --rm rubocop`: linter for the Ruby/Rails code
+* `docker compose run --rm vitest`: test suite for the JavaScript/TypeScript code
+* `docker compose run --rm eslint`: linter for the JavaScript/TypeScript code
 
 ### If addressing a preexisting issue, please reference it
 For issues already submitted to GitHub, including the issue number in your PR title with the proper formatting (e.g. `[Posts] Tweak post search UI (#123)`) lets GitHub automatically link the two, allowing us to both see the full context of the problem & close the issue as solved automatically upon merging. If the issue is not on GitHub, linking to discussion about the issue lets our maintainers gauge the interest in the feature and the likelihood the PR sufficiently addresses the demands.
