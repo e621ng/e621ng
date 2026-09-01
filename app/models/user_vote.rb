@@ -49,23 +49,27 @@ class UserVote < ApplicationRecord
 
       q = q.where_user(:user_id, :user, params)
 
-      allow_complex_params = (params.keys & ["#{model_type}_id", "user_name", "user_id"]).any?
+      # Plain single-column filters on this table. Cheap to apply on top of the
+      # default id-ordered pagination, so they don't need a narrowing param.
+      if params[:score].present?
+        q = q.where("#{table_name}.score = ?", params[:score])
+      end
 
-      if allow_complex_params
+      if params[:timeframe].present?
+        q = q.where("#{table_name}.updated_at >= ?", params[:timeframe].to_i.days.ago)
+      end
+
+      if params[:user_ip_addr].present?
+        q = q.where("user_ip_addr <<= ?", params[:user_ip_addr])
+      end
+
+      # Whether the query is already narrowed to a specific subject or voter.
+      # Gates operations that would otherwise scan/join/aggregate the whole table.
+      narrowed = (params.keys & ["#{model_type}_id", "user_name", "user_id"]).any?
+
+      if narrowed
         q = q.where_user({ model_type => :"#{model_creator_column}_id" }, :"#{model_type}_creator", params) do |q, _user_ids|
           q.joins(model_type)
-        end
-
-        if params[:timeframe].present?
-          q = q.where("#{table_name}.updated_at >= ?", params[:timeframe].to_i.days.ago)
-        end
-
-        if params[:user_ip_addr].present?
-          q = q.where("user_ip_addr <<= ?", params[:user_ip_addr])
-        end
-
-        if params[:score].present?
-          q = q.where("#{table_name}.score = ?", params[:score])
         end
 
         if params[:duplicates_only].to_s.truthy?
@@ -74,7 +78,7 @@ class UserVote < ApplicationRecord
         end
       end
 
-      if params[:order] == "ip_addr" && allow_complex_params
+      if params[:order] == "ip_addr" && narrowed
         q = q.order(:user_ip_addr)
       else
         q = q.apply_basic_order(params)

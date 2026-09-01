@@ -14,7 +14,7 @@ class PostVotesController < ApplicationController
   def index
     # Only enable COUNT for searches that actually narrow results to avoid expensive queries
     search_params_for_count = search_count_params(
-      narrowing: %i[id post_id user_name user_id post_creator_id post_creator_name timeframe user_ip_addr],
+      narrowing: %i[id post_id user_name user_id user_ip_addr],
     )
 
     @post_votes = PostVote
