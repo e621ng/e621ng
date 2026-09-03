@@ -1,0 +1,93 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mount, VueWrapper } from "@vue/test-utils";
+import $ from "jquery";
+import { setSiteData } from "../../helpers";
+
+const wrappers: VueWrapper[] = [];
+
+beforeEach(() => {
+  // jsdom lacks createObjectURL; file selection calls it.
+  (URL as any).createObjectURL = vi.fn(() => "blob:mock");
+});
+afterEach(() => {
+  for (const w of wrappers.splice(0)) w.unmount();
+});
+
+async function mountFileInput (opts: { maxFileSize?: number, maxFileSizes?: Record<string, number> } = {}) {
+  setSiteData("site-settings", {
+    Posts: { max_file_size: opts.maxFileSize ?? 100, max_file_sizes: opts.maxFileSizes ?? {} },
+  });
+  vi.resetModules();
+  const FileInput = (await import("@/pages/uploads/new/file_input.vue")).default;
+  const wrapper = mount(FileInput, { attachTo: document.body });
+  wrappers.push(wrapper);
+  return wrapper;
+}
+
+const urlInput = (w: VueWrapper) => w.find("input[placeholder='Paste image URL']");
+const lastEmit = (w: VueWrapper, name: string) => w.emitted(name)?.at(-1)?.[0];
+
+async function selectFile (w: VueWrapper, file: File) {
+  const input = w.find("#file-input");
+  Object.defineProperty(input.element, "files", { value: [file], configurable: true });
+  await input.trigger("change");
+}
+
+describe("uploads/file_input — direct URL checks", () => {
+  it.each([
+    ["https://a.furaffinity.net/1/x.jpg", "Thumbnail URL"],
+    ["https://pbs.twimg.com/media/AbC123.jpg", "Sample URL"],
+  ])("flags %s as a problem", async (url, reason) => {
+    vi.spyOn($, "getJSON").mockReturnValue(undefined as any);
+    const w = await mountFileInput();
+    await urlInput(w).setValue(url);
+    const box = w.find(".linkinput-wrapper .background-red");
+    expect(box.exists()).toBe(true);
+    expect(box.text()).toContain(reason);
+    expect(lastEmit(w, "invalidUploadValueChanged")).toBe(true);
+  });
+
+  it("accepts a plain image URL and emits a preview", async () => {
+    vi.spyOn($, "getJSON").mockReturnValue(undefined as any);
+    const w = await mountFileInput();
+    await urlInput(w).setValue("https://example.com/art.png");
+    expect(w.find(".linkinput-wrapper .background-red").exists()).toBe(false);
+    expect(lastEmit(w, "uploadValueChanged")).toBe("https://example.com/art.png");
+    expect(lastEmit(w, "previewChanged")).toEqual({ url: "https://example.com/art.png", isVideo: false });
+  });
+
+  it("shows the whitelist verdict returned by the server", async () => {
+    vi.spyOn($, "getJSON").mockImplementation(((_url: string, _params: unknown, cb: (d: unknown) => void) => {
+      cb({ domain: "example.com", is_allowed: true });
+      return undefined;
+    }) as any);
+    const w = await mountFileInput();
+    await urlInput(w).setValue("https://example.com/art.png");
+    const warning = w.find("#whitelist-warning");
+    expect(warning.isVisible()).toBe(true);
+    expect(warning.text()).toContain("permitted");
+  });
+});
+
+describe("uploads/file_input — file size", () => {
+  it("rejects a file larger than the per-extension limit", async () => {
+    const w = await mountFileInput({ maxFileSizes: { png: 10 } });
+    await selectFile(w, new File([new ArrayBuffer(200)], "big.png", { type: "image/png" }));
+    expect(w.find(".fileinput-wrapper .background-red").text()).toContain("too large");
+    expect(lastEmit(w, "invalidUploadValueChanged")).toBe(true);
+    expect(lastEmit(w, "uploadValueChanged")).toBeInstanceOf(File);
+  });
+
+  it("falls back to the global limit when the extension is unmapped", async () => {
+    const w = await mountFileInput({ maxFileSize: 100, maxFileSizes: {} });
+    await selectFile(w, new File([new ArrayBuffer(200)], "big.png", { type: "image/png" }));
+    expect(w.find(".fileinput-wrapper .background-red").exists()).toBe(true);
+  });
+
+  it("accepts a file within the limit", async () => {
+    const w = await mountFileInput({ maxFileSizes: { png: 1000 } });
+    await selectFile(w, new File([new ArrayBuffer(200)], "ok.png", { type: "image/png" }));
+    expect(w.find(".fileinput-wrapper .background-red").exists()).toBe(false);
+    expect(lastEmit(w, "previewChanged")).toEqual({ url: "blob:mock", isVideo: false });
+  });
+});
