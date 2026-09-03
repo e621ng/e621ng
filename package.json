@@ -23,6 +23,7 @@
     "@types/jquery": "4.0.0",
     "@vitejs/plugin-vue": "6.0.7",
     "@vitest/coverage-v8": "4.1.11",
+    "@vue/test-utils": "^2.5.0",
     "eslint": "10.8.0",
     "globals": "17.6.0",
     "jsdom": "27.0.0",
