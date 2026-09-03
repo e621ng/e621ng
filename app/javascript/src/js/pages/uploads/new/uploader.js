@@ -13,20 +13,6 @@ const UploaderModule = {
       import("./uploader.vue"),
     ]);
 
-    const dataset = uploaderElement.dataset;
-    window.uploaderSettings = {
-      compactMode: dataset.compactMode === "true",
-      safeSite: dataset.safeSite === "true",
-      uploadTags: JSON.parse(dataset.uploadTags || "[]"),
-      recentTags: JSON.parse(dataset.recentTags || "[]"),
-      allowLockedTags: dataset.allowLockedTags === "true",
-      allowRatingLock: dataset.allowRatingLock === "true",
-      allowUploadAsPending: dataset.allowUploadAsPending === "true",
-      maxFileSize: parseInt(dataset.maxFileSize || "0"),
-      maxFileSizeMap: JSON.parse(dataset.maxFileSizeMap || "{}"),
-      verifiedArtistTags: JSON.parse(dataset.verifiedArtistTags || "[]"),
-    };
-
     const app = createApp(Uploader);
     app.mount("#uploader");
   },

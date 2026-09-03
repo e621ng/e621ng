@@ -13,12 +13,6 @@ const ReplacerModule = {
       import("./replacement_uploader.vue"),
     ]);
 
-    const dataset = replacerElement.dataset;
-    window.uploaderSettings = {
-      maxFileSize: parseInt(dataset.maxFileSize || "0"),
-      maxFileSizeMap: JSON.parse(dataset.maxFileSizeMap || "{}"),
-    };
-
     const app = createApp(Replacer);
     app.mount("#replacement-uploader");
   },
