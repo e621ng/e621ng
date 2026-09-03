@@ -215,6 +215,7 @@
 </template>
 
 <script>
+  import { markRaw } from "vue";
   import ToastManager from "@/utility/Toast";
   import sources from './sources.vue';
   import checkboxSource from './checkbox_source.vue';
@@ -374,8 +375,11 @@
     },
     methods: {
       // ===== Tag-source coordinator =====
+      // markRaw keeps descriptors out of the reactive proxy so `unregisterSource`
+      // can match them by identity (a proxied element would never === the raw
+      // object the child holds, and the filter would remove nothing).
       registerSource(descriptor) {
-        this.registry.sources.push(descriptor);
+        this.registry.sources.push(markRaw(descriptor));
       },
       unregisterSource(descriptor) {
         this.registry.sources = this.registry.sources.filter(s => s !== descriptor);
