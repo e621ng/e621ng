@@ -25,7 +25,7 @@
                     <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event"></sources>
                 </div>
             </div>
-            <template v-if="normalMode">
+            <template v-if="!compactMode">
                 <div class="flex-grid border-bottom">
                     <div class="col">
                         <label class="section-label" for="names">Artists and Contributors</label>
@@ -48,26 +48,9 @@
                         </a></div>
                     </div>
                     <div class="col2">
-                        <div class="flex-wrap">
-                            <image-checkbox :check="check" :checks="checkboxes.selected" v-for="check in checkboxes.sex"
-                                            @set="setCheck"
-                                            :key="check.name"></image-checkbox>
-                        </div>
-                        <hr>
-                        <div class="flex-wrap">
-                            <image-checkbox :check="check" :checks="checkboxes.selected"
-                                            v-for="check in checkboxes.count" @set="setCheck"
-                                            :key="check.name"></image-checkbox>
-                        </div>
-                        <hr>
-                        <div class="flex-wrap">
-                            <image-checkbox :check="check" :checks="checkboxes.selected"
-                                            v-for="check in filteredPairings" @set="setCheck"
-                                            :key="check.name"></image-checkbox>
-                        </div>
-                        <textarea class="tag-textarea" rows="2" v-model="tagEntries.character" id="post_character"
-                                  placeholder="Ex: character_name"
-                                  data-autocomplete="tag-edit"></textarea>
+                        <checkbox-source kind="characters"></checkbox-source>
+                        <tag-textarea role="character" field-id="post_character"
+                                      placeholder="Ex: character_name"></tag-textarea>
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
@@ -76,14 +59,9 @@
                         <div>One listed body type per visible character, listed options are mutually exclusive.</div>
                     </div>
                     <div class="col2">
-                        <div class="flex-wrap">
-                            <image-checkbox :check="check" :checks="checkboxes.selected"
-                                            v-for="check in checkboxes.body" @set="setCheck"
-                                            :key="check.name"></image-checkbox>
-                        </div>
-                        <textarea class="tag-textarea" rows="2" v-model="tagEntries.species" id="post_species"
-                                  placeholder="Ex: bear dragon hyena rat newt etc."
-                                  data-autocomplete="tag-edit"></textarea>
+                        <checkbox-source kind="body"></checkbox-source>
+                        <tag-textarea role="species" field-id="post_species"
+                                      placeholder="Ex: bear dragon hyena rat newt etc."></tag-textarea>
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
@@ -96,9 +74,8 @@
                         </div>
                     </div>
                     <div class="col2">
-          <textarea class="tag-textarea" v-model="tagEntries.content" id="post_content" rows="2"
-                    data-autocomplete="tag-edit"
-                    placeholder="Ex: young gore scat watersports diaper my_little_pony vore not_furry rape hyper etc."></textarea>
+                        <tag-textarea role="content" field-id="post_content"
+                                      placeholder="Ex: young gore scat watersports diaper my_little_pony vore not_furry rape hyper etc."></tag-textarea>
                     </div>
                 </div>
             </template>
@@ -240,7 +217,8 @@
 <script>
   import ToastManager from "@/utility/Toast";
   import sources from './sources.vue';
-  import checkbox from './checkbox.vue';
+  import checkboxSource from './checkbox_source.vue';
+  import tagTextarea from './tag_textarea.vue';
   import relatedTags from './related.vue';
   import tagPreview from './tag_preview.vue';
   import filePreview from './file_preview.vue';
@@ -251,42 +229,6 @@
   import DTextFormatter from "@/components/DTextFormatter.ts";
   import CurrentUser from "@/models/CurrentUser";
   import UploadData from "@/models/UploadData";
-
-  const sex_names = {
-    male: 'Male',
-    female: 'Female',
-    andromorph: 'Andromorph',
-    gynomorph: 'Gynomorph',
-    herm: 'Hermaphrodite',
-    maleherm: 'Male-Herm',
-    ambiguous_gender: 'Ambiguous'
-  };
-
-  const sex_checks = Object.entries(sex_names).map(([tag, name]) => ({ name, tag }));
-
-  const sex_tag_keys = Object.keys(sex_names);
-  const all_pairing_pairs = [];
-  for (let i = 0; i < sex_tag_keys.length; i++) {
-    for (let j = i; j < sex_tag_keys.length; j++) {
-      all_pairing_pairs.push({ tagA: sex_tag_keys[i], tagB: sex_tag_keys[j] });
-    }
-  }
-  const pairing_tag_name = tag => tag === 'ambiguous_gender' ? 'ambiguous' : tag;
-  const all_pairing_tag_set = new Set(all_pairing_pairs.map(p => pairing_tag_name(p.tagA) + "/" + pairing_tag_name(p.tagB)));
-
-  const char_count_checks = [
-    {name: 'Solo'},
-    {name: 'Duo'},
-    {name: 'Trio'},
-    {name: 'Group'},
-    {name: 'Zero Pictured'}];
-
-  const body_type_checks = [
-    {name: 'Anthro'},
-    {name: 'Feral'},
-    {name: 'Humanoid'},
-    {name: 'Human'},
-    {name: 'Taur'}];
 
   function tagSorter(a, b) {
     return a.name > b.name ? 1 : -1;
@@ -302,7 +244,8 @@
   export default {
     components: {
       'sources': sources,
-      'image-checkbox': checkbox,
+      'checkbox-source': checkboxSource,
+      'tag-textarea': tagTextarea,
       'related-tags': relatedTags,
       'tag-preview': tagPreview,
       'file-preview': filePreview,
@@ -310,21 +253,15 @@
       'parent-post-input': parentPostInput,
       'artist-tag-input': artistTagInput,
     },
-    data() {
-      const allChecks = {};
-      const addChecks = function (check) {
-        if (typeof check['tag'] !== "undefined") {
-          allChecks[check.tag] = true;
-          return
-        }
-        allChecks[check.name.toLowerCase().replace(' ', '_')] = true;
+    provide() {
+      return {
+        tagRegistry: {
+          register: this.registerSource,
+          unregister: this.unregisterSource,
+        },
       };
-      sex_checks.forEach(addChecks);
-      all_pairing_tag_set.forEach(tag => { allChecks[tag] = true; });
-      char_count_checks.forEach(addChecks);
-      body_type_checks.forEach(addChecks);
-
-
+    },
+    data() {
       return {
         safe: UploadData.safeSite,
         showErrors: false,
@@ -341,23 +278,15 @@
         missingSourceWarning: false,
         nonUrlSourceWarning: false,
         sources: [''],
-        normalMode: !UploadData.compactMode,
+        compactMode: UploadData.compactMode,
 
-        checkboxes: {
-          sex: sex_checks,
-          count: char_count_checks,
-          body: body_type_checks,
-          selected: {},
-          all: allChecks
-        },
+        // Tag sources register here; `tags` aggregates their contributions.
+        registry: { sources: [] },
+        // Artist + free-text ("other") remain inline on the root — the sink is
+        // always present, and the verified-artist DOM fossil writes tagEntries.artist.
         tagEntries: {
-          // These had a bizarre naming pattern
-          // Old names are listed below VVV
-          artist: "",     // character: '',
-          character: "",  // sex: '',
-          species: "",    // bodyType: '',
-          content: "",    // theme: '',
-          other: "",      // other: '',
+          artist: "",
+          other: "",
         },
 
         allowLockedTags: CurrentUser.is.admin,
@@ -380,6 +309,27 @@
         duplicateId: 0,
       };
     },
+    created() {
+      // The free-text "Other Tags" field is the always-present sink.
+      this.sinkDescriptor = {
+        isSink: true,
+        currentTags: () => this.fieldCurrentTags('other'),
+        addTags: tags => this.fieldAddTags('other', tags),
+        removeTag: tag => this.fieldRemoveTag('other', tag),
+      };
+      this.registerSource(this.sinkDescriptor);
+
+      // The artist field is a source only when its input is on screen (normal mode).
+      if (!this.compactMode) {
+        this.artistDescriptor = {
+          role: 'artist',
+          currentTags: () => this.fieldCurrentTags('artist'),
+          addTags: tags => this.fieldAddTags('artist', tags),
+          removeTag: tag => this.fieldRemoveTag('artist', tag),
+        };
+        this.registerSource(this.artistDescriptor);
+      }
+    },
     mounted() {
       const self = this;
       window.onbeforeunload = unloadWarning.bind(self);
@@ -395,28 +345,17 @@
         }
       };
 
-      // Import tags from query parameters
+      // Import tags from query parameters. Routing handles mode: params whose
+      // role source isn't mounted (compact) fall through to the sink.
       const fillTags = function() {
         const queryList = ["tags-artist", "tags-character", "tags-species", "tags-content"];
 
         if(params.has("tags"))
           self.importTags(params.get("tags"), "other");
 
-        if(self.normalMode) {
-          for(const name of queryList) {
-            if(!params.has(name)) continue;
-            self.importTags(params.get(name), name.replace("tags-", ""));
-          }
-        } else {
-          // No other inputs in advanced mode, so we can avoid
-          // recalculating duplicates every time in importTags
-          const tags = [];
-          for(const name of queryList) {
-            if(!params.has(name)) continue;
-            tags.push(params.get(name));
-          }
-          if(tags.length > 0)
-            self.importTags(tags.join(" "), "other");
+        for(const name of queryList) {
+          if(!params.has(name)) continue;
+          self.importTags(params.get(name), name.replace("tags-", ""));
         }
       };
 
@@ -448,14 +387,38 @@
       new DTextFormatter($(".dtext-formatter.pending"));
     },
     methods: {
-      setCheck(tag, value) {
-        this.checkboxes.selected[tag] = value;
-        if (!value) {
-          for (const p of all_pairing_pairs) {
-            if (p.tagA === tag || p.tagB === tag)
-              this.checkboxes.selected[pairing_tag_name(p.tagA) + "/" + pairing_tag_name(p.tagB)] = false;
-          }
-        }
+      // ===== Tag-source coordinator =====
+      registerSource(descriptor) {
+        this.registry.sources.push(descriptor);
+      },
+      unregisterSource(descriptor) {
+        this.registry.sources = this.registry.sources.filter(s => s !== descriptor);
+      },
+      // Inbound routing: by value (a source that owns the tag) then the sink.
+      route(tag) {
+        return this.registry.sources.find(s => s.ownsTag && s.ownsTag(tag))
+          || this.registry.sources.find(s => s.isSink);
+      },
+      // Inbound routing by role (query import), falling back to the sink.
+      routeByRole(role) {
+        return this.registry.sources.find(s => s.role === role)
+          || this.registry.sources.find(s => s.isSink);
+      },
+      // Inline sink/artist source helpers over tagEntries fields.
+      fieldCurrentTags(field) {
+        return this.tagEntries[field].trim().split(/\s+/).filter(Boolean);
+      },
+      fieldAddTags(field, tags) {
+        const existing = this.tagEntries[field] ? this.tagEntries[field].trim().split(/\s+/).filter(Boolean) : [];
+        for (const tag of tags) if (!existing.includes(tag)) existing.push(tag);
+        this.tagEntries[field] = existing.join(" ") + " ";
+      },
+      fieldRemoveTag(field, tag) {
+        const tags = this.tagEntries[field] ? this.tagEntries[field].trim().split(/\s+/).filter(Boolean) : [];
+        const idx = tags.indexOf(tag);
+        if (idx === -1) return;
+        tags.splice(idx, 1);
+        this.tagEntries[field] = tags.join(" ") + " ";
       },
       submit() {
         this.showErrors = true;
@@ -539,47 +502,32 @@
           }
         });
       },
+      // Related-tag toggle: route the tag to its owning source, else the sink.
       pushTag(tag, add) {
-        const isCheck = typeof this.checkboxes.all[tag] !== "undefined";
-        // In advanced mode we need to push these into the tags area because there are no checkboxes or other
-        // tag fields so we can't see them otherwise.
-        if (isCheck && this.normalMode) {
-          this.setCheck(tag, add);
-          return;
-        }
-        const tags = this.tagEntries.other ? this.tagEntries.other.trim().split(' ') : [];
-        const tagIdx = tags.indexOf(tag);
-        if (add) {
-          if (tagIdx === -1)
-            tags.push(tag);
-        } else {
-          if (tagIdx === -1)
-            return;
-          tags.splice(tagIdx, 1);
-        }
-        this.tagEntries.other = tags.join(' ') + ' ';
+        const source = this.route(tag);
+        if (!source) return;
+        if (add) source.addTags([tag]);
+        else source.removeTag(tag);
       },
 
       /**
-       * Used to import tags from the query parameters
+       * Import tags from a query parameter into the given role's field.
        * @param {string} tags Raw tag string
-       * @param {string} input Which of the tagEntries the tags should be added to
+       * @param {string} role Target role ("other" for the sink, "artist"/"character"/…)
        */
-      importTags(tags, input) {
-        const tagsA = (tags + "").trim().split(" ").filter(n => n);
+      importTags(tags, role) {
+        const incoming = (tags + "").trim().split(" ").filter(n => n);
+        const deduped = [];
+        for (const tag of incoming) if (!deduped.includes(tag)) deduped.push(tag);
 
-        // Dedupe
-        let tagsB = this.normalMode ? [] : (this.tagEntries.other || "").trim().split(" ");
-        tagsA.forEach((tag) => {
-          if(tagsB.indexOf(tag) >= 0) return;
-          // In advanced mode, checkboxes are not available
-          if(this.normalMode && typeof this.checkboxes.all[tag] !== "undefined")
-            this.setCheck(tag, true);
-          tagsB.push(tag);
-        });
-
-        // Without a space at the end, vue panics
-        this.tagEntries[this.normalMode ? input : "other"] = tagsB.join(" ") + " ";
+        // Value-route: a checkbox-owned tag flips its checkbox (in either param).
+        for (const tag of deduped) {
+          const owner = this.registry.sources.find(s => s.ownsTag && s.ownsTag(tag));
+          if (owner) owner.addTags([tag]);
+        }
+        // Textual home: the role's field, or the sink if that source isn't mounted.
+        const target = this.routeByRole(role);
+        if (target) target.addTags(deduped);
       },
       findRelated(categoryId) {
         const self = this;
@@ -655,27 +603,12 @@
       },
     },
     computed: {
-      filteredPairings() {
-        const selected = this.checkboxes.selected;
-        return all_pairing_pairs
-          .filter(p => selected[p.tagA] && selected[p.tagB])
-          .map(p => ({
-            name: sex_names[p.tagA] + "/" + sex_names[p.tagB],
-            tag: pairing_tag_name(p.tagA) + "/" + pairing_tag_name(p.tagB),
-          }));
-      },
+      // Aggregate every registered source. Serialization matches the old computed
+      // exactly (first-comma replace + whitespace collapse); no cross-source dedupe.
       tags() {
-        const self = this;
-        if (!this.normalMode)
-          return this.tagEntries.other;
-        const validPairingTags = new Set(this.filteredPairings.map(p => p.tag));
-        const checked = Object.keys(this.checkboxes.selected).filter(function (x) {
-          if (!self.checkboxes.selected[x]) return false;
-          if (all_pairing_tag_set.has(x)) return validPairingTags.has(x);
-          return true;
-        });
-        return checked.concat([this.tagEntries.other, this.tagEntries.artist, this.tagEntries.character,
-          this.tagEntries.species, this.tagEntries.content]).join(' ').replace(',', ' ').trim().replace(/ +/g, ' ');
+        return this.registry.sources
+          .flatMap(s => s.currentTags())
+          .join(' ').replace(',', ' ').trim().replace(/ +/g, ' ');
       },
       tagsArray() {
         return this.tags.toLowerCase().split(' ');
