@@ -10,7 +10,7 @@
       Unsure what to tag your post
       with? <%= link_to "Tagging Checklist", help_page_path(id: "tagging_checklist") %></p>
   </div>
-  <script type="text/plain" id="upload-data" data-encoding="base64"><%= upload_data_base64(CurrentUser.user) %></script>
+  <script type="text/plain" id="upload-data" data-encoding="base64"><%= upload_data_base64 %></script>
   <div id="uploader"></div>
   <% if CurrentUser.no_uploading? %>
     <div id="post-uploads-remaining" class="box-section section background-red">

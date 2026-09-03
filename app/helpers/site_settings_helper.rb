@@ -20,11 +20,13 @@ module SiteSettingsHelper
   end
 
   # Page-scoped payload for the uploads#new uploader.
-  def upload_data_base64(user)
+  def upload_data_base64
+    user = CurrentUser.user
     Base64.strict_encode64(
       {
+        # Request-scoped (domain/session), not a user attribute.
         safe_site: CurrentUser.safe_mode?,
-        compact_mode: CurrentUser.compact_uploader?,
+        compact_mode: user.compact_uploader?,
         verified_artist_tags: user.artists.pluck(:name),
         upload_tags: user.presenter.favorite_tags_with_types,
         recent_tags: user.presenter.recent_tags_with_types,
