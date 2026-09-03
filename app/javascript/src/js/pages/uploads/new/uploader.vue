@@ -33,7 +33,7 @@
                         <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
                     </div>
                     <div class="col2">
-                        <artist-source></artist-source>
+                        <artist-source :order="2"></artist-source>
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
@@ -48,8 +48,8 @@
                         </a></div>
                     </div>
                     <div class="col2">
-                        <checkbox-source kind="characters"></checkbox-source>
-                        <tag-textarea role="character" field-id="post_character"
+                        <checkbox-source kind="characters" :order="0"></checkbox-source>
+                        <tag-textarea role="character" field-id="post_character" :order="3"
                                       placeholder="Ex: character_name"></tag-textarea>
                     </div>
                 </div>
@@ -59,8 +59,8 @@
                         <div>One listed body type per visible character, listed options are mutually exclusive.</div>
                     </div>
                     <div class="col2">
-                        <checkbox-source kind="body"></checkbox-source>
-                        <tag-textarea role="species" field-id="post_species"
+                        <checkbox-source kind="body" :order="0"></checkbox-source>
+                        <tag-textarea role="species" field-id="post_species" :order="4"
                                       placeholder="Ex: bear dragon hyena rat newt etc."></tag-textarea>
                     </div>
                 </div>
@@ -74,7 +74,7 @@
                         </div>
                     </div>
                     <div class="col2">
-                        <tag-textarea role="content" field-id="post_content"
+                        <tag-textarea role="content" field-id="post_content" :order="5"
                                       placeholder="Ex: young gore scat watersports diaper my_little_pony vore not_furry rape hyper etc."></tag-textarea>
                     </div>
                 </div>
@@ -313,6 +313,7 @@
       // source (artist, checkboxes, textareas) is a self-registering child.
       this.sinkDescriptor = {
         isSink: true,
+        order: 1, // checkboxes (0) then other (1) then artist/character/species/content
         currentTags: () => TagField.splitTags(this.otherTags),
         addTags: tags => { this.otherTags = TagField.addTags(this.otherTags, tags); },
         removeTag: tag => { this.otherTags = TagField.removeTag(this.otherTags, tag); },
@@ -547,10 +548,12 @@
       },
     },
     computed: {
-      // Aggregate every registered source. Serialization matches the old computed
-      // exactly (first-comma replace + whitespace collapse); no cross-source dedupe.
+      // Aggregate every registered source, in declared `order` (not registration
+      // order) so the preview matches the pre-registry sequence. Serialization is
+      // identical (first-comma replace + whitespace collapse); no cross-source dedupe.
       tags() {
-        return this.registry.sources
+        return [...this.registry.sources]
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
           .flatMap(s => s.currentTags())
           .join(' ').replace(',', ' ').trim().replace(/ +/g, ' ');
       },

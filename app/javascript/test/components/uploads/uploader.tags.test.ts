@@ -96,6 +96,17 @@ describe("uploads/uploader — tag assembly", () => {
     });
   });
 
+  describe("source ordering", () => {
+    // Checkbox (button) tags precede free-text "Other Tags", matching the layout
+    // (buttons sit above the input) and the pre-registry order.
+    it("emits checkbox tags before Other Tags regardless of entry order", async () => {
+      const { wrapper } = await mountUploader();
+      await wrapper.find("#post_tags").setValue("mammal");
+      await checkButton(wrapper, "Male").trigger("click");
+      expect(tagsOf(wrapper)).toBe("male mammal");
+    });
+  });
+
   describe("whitespace / comma sanitisation (as-is)", () => {
     it("collapses runs of whitespace to single spaces and trims", async () => {
       const { wrapper } = await mountUploader();

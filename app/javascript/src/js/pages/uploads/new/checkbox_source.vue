@@ -51,7 +51,10 @@
     components: { 'image-checkbox': checkbox },
     inject: ['tagRegistry'],
     // "characters" = sex + count + sex-pairings; "body" = body types.
-    props: { kind: { type: String, required: true } },
+    props: {
+      kind: { type: String, required: true },
+      order: { type: Number, default: 0 },
+    },
     data() {
       return { selected: {} };
     },
@@ -119,6 +122,7 @@
     },
     mounted() {
       this.descriptor = {
+        order: this.order,
         ownsTag: tag => this.ownsTag(tag),
         currentTags: () => this.currentTags(),
         addTags: tags => this.addTags(tags),

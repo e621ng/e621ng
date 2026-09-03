@@ -14,6 +14,7 @@
       role: { type: String, required: true },
       fieldId: { type: String, default: '' },
       placeholder: { type: String, default: '' },
+      order: { type: Number, default: 0 },
     },
     data() {
       return { model: '' };
@@ -32,6 +33,7 @@
     mounted() {
       this.descriptor = {
         role: this.role,
+        order: this.order,
         currentTags: () => this.currentTags(),
         addTags: tags => this.addTags(tags),
         removeTag: tag => this.removeTag(tag),

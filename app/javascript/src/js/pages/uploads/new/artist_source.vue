@@ -20,6 +20,9 @@
   export default {
     components: { 'artist-tag-input': artistTagInput },
     inject: ['tagRegistry'],
+    props: {
+      order: { type: Number, default: 0 },
+    },
     data() {
       return { model: '', verifiedArtistTags: UploadData.verifiedArtistTags };
     },
@@ -42,6 +45,7 @@
     mounted() {
       this.descriptor = {
         role: 'artist',
+        order: this.order,
         currentTags: () => this.currentTags(),
         addTags: tags => this.addTags(tags),
         removeTag: tag => this.removeTag(tag),
