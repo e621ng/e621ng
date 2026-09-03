@@ -4,10 +4,18 @@ vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete
 vi.mock("@/components/DTextFormatter.ts", () => ({ default: vi.fn() }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 import type { VueWrapper } from "@vue/test-utils";
 import { mountUploader, MountUploaderOptions, unmountAll } from "./mountUploader";
+
+// submit()'s error handler logs verbosely on every branch (status, headers, the
+// caught JSON-parse error). That output is expected here; silence it so the run
+// stays quiet. Restored by setup.ts's vi.restoreAllMocks() afterEach.
+beforeEach(() => {
+  vi.spyOn(console, "log").mockImplementation(() => {});
+  vi.spyOn(console, "error").mockImplementation(() => {});
+});
 
 afterEach(unmountAll);
 
