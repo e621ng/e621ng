@@ -14,6 +14,8 @@ describe("Settings", () => {
     expect(Settings.Analytics.client_id).toBeNull();
     expect(Settings.Analytics.events).toEqual({ recommendation: false, search_trend: false });
     expect(Settings.Posts.webp_enabled).toBe(false);
+    expect(Settings.Posts.max_file_size).toBe(0);
+    expect(Settings.Posts.max_file_sizes).toEqual({});
     expect(Settings.Autocomplete.blacklist).toEqual([]);
     expect(error).toHaveBeenCalled();
   });
@@ -39,7 +41,11 @@ describe("Settings", () => {
         client_id: "G-XYZ",
         events: { recommendation: true, search_trend: false },
       },
-      Posts: { webp_enabled: true },
+      Posts: {
+        webp_enabled: true,
+        max_file_size: 104857600,
+        max_file_sizes: { jpg: 104857600, gif: 20971520 },
+      },
     });
     const Settings = await freshSettings();
 
@@ -49,6 +55,8 @@ describe("Settings", () => {
       events: { recommendation: true, search_trend: false },
     });
     expect(Settings.Posts.webp_enabled).toBe(true);
+    expect(Settings.Posts.max_file_size).toBe(104857600);
+    expect(Settings.Posts.max_file_sizes).toEqual({ jpg: 104857600, gif: 20971520 });
   });
 
   it("falls back per-field when nested keys are missing", async () => {

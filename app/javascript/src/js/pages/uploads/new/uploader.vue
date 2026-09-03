@@ -164,6 +164,7 @@
             <div class="flex-grid border-bottom over-me">
                 <related-tags v-if="relatedTags.length" :tags="tagsArray" :related="relatedTags"
                               :loading="loadingRelated"
+                              :uploaded-tags="uploadTags" :recent-tags="recentTags"
                               @tag-active="pushTag"></related-tags>
             </div>
             <div class="flex-grid border-bottom">
@@ -248,6 +249,8 @@
   import artistTagInput from './artist_tag_input.vue';
   import Autocomplete from "@/components/autocomplete";
   import DTextFormatter from "@/components/DTextFormatter.ts";
+  import CurrentUser from "@/models/CurrentUser";
+  import UploadData from "@/models/UploadData";
 
   const sex_names = {
     male: 'Male',
@@ -323,7 +326,7 @@
 
 
       return {
-        safe: window.uploaderSettings.safeSite,
+        safe: UploadData.safeSite,
         showErrors: false,
         allowNavigate: false,
         submitting: false,
@@ -338,7 +341,7 @@
         missingSourceWarning: false,
         nonUrlSourceWarning: false,
         sources: [''],
-        normalMode: !window.uploaderSettings.compactMode,
+        normalMode: !UploadData.compactMode,
 
         checkboxes: {
           sex: sex_checks,
@@ -357,13 +360,15 @@
           other: "",      // other: '',
         },
 
-        allowLockedTags: window.uploaderSettings.allowLockedTags,
+        allowLockedTags: CurrentUser.is.admin,
         lockedTags: '',
-        allowRatingLock: window.uploaderSettings.allowRatingLock,
+        allowRatingLock: CurrentUser.is.privileged,
         ratingLocked: false,
-        allowUploadAsPending: window.uploaderSettings.allowUploadAsPending,
+        allowUploadAsPending: CurrentUser.can.uploadFree,
         uploadAsPending: false,
 
+        uploadTags: UploadData.uploadTags,
+        recentTags: UploadData.recentTags,
         relatedTags: [],
         lastRelatedCategoryId: undefined,
         loadingRelated: false,
@@ -620,7 +625,7 @@
       },
 
       initVerifiedArtistButtons () {
-        if (window.uploaderSettings.verifiedArtistTags.length == 0) return;
+        if (UploadData.verifiedArtistTags.length == 0) return;
 
         // Compact uploader
         const artistTextBox = document.querySelector("#post_artist");
@@ -634,7 +639,7 @@
         hint.innerHTML = "Linked artist tags:";
         buttonRow.appendChild(hint);
 
-        for (const artistName of window.uploaderSettings.verifiedArtistTags) {
+        for (const artistName of UploadData.verifiedArtistTags) {
           const newButton = document.createElement("button");
           newButton.classList.add("toggle-button");
           newButton.innerHTML = artistName;

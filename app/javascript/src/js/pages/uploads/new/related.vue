@@ -17,11 +17,14 @@
     return a.name > b.name ? 1 : -1;
   }
   export default {
-    props: ['tags', 'related', 'loading'],
+    props: ['tags', 'related', 'loading', 'uploadedTags', 'recentTags'],
     data: function () {
+      // uploads#new passes these as props (from the UploadData model). On posts#show the
+      // component is mounted without them and falls back to the legacy global, which
+      // RelatedTag.ts populates before mount. Sort a copy so the source array is untouched.
       return {
-        uploaded: (window.uploaderSettings.uploadTags || []),
-        recent: (window.uploaderSettings.recentTags || []).sort(tagSorter),
+        uploaded: this.uploadedTags ?? (window.uploaderSettings?.uploadTags || []),
+        recent: (this.recentTags ?? (window.uploaderSettings?.recentTags || [])).slice().sort(tagSorter),
       };
     },
     methods: {

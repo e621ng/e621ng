@@ -70,6 +70,8 @@
 </template>
 
 <script>
+import Settings from "@/utility/Settings";
+
 export default {
   data() {
     return {
@@ -86,8 +88,8 @@ export default {
       uploadURL: new URLSearchParams(window.location.search).get("upload_url") || "",
       fileTooLarge: false,
       exceededFileSize: 0,
-      maxFileSize: window.uploaderSettings.maxFileSize,
-      maxFileSizeMap: window.uploaderSettings.maxFileSizeMap,
+      maxFileSize: Settings.Posts.max_file_size,
+      maxFileSizeMap: Settings.Posts.max_file_sizes,
       disableFileUpload: false,
       disableURLUpload: false,
     }

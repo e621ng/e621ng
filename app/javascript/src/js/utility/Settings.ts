@@ -37,6 +37,8 @@ const Settings = {} as {
   },
   Posts: {
     webp_enabled: boolean,
+    max_file_size: number,
+    max_file_sizes: Record<string, number>,
   },
 };
 
@@ -85,6 +87,8 @@ Object.defineProperty(Settings, "Posts", {
     const obj = _get()["Posts"] || {};
     const value = {
       webp_enabled: obj.webp_enabled || false,
+      max_file_size: obj.max_file_size || 0,
+      max_file_sizes: obj.max_file_sizes || {},
     };
     Object.defineProperty(Settings, "Posts", { value, writable: false });
     return value;
