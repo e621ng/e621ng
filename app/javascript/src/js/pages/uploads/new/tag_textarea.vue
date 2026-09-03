@@ -4,6 +4,8 @@
 </template>
 
 <script>
+  import * as TagField from './tag_field.js';
+
   // A role-tagged free-text tag source (character / species / content). Registers
   // with the coordinator; contributes its tokens and accepts role-routed imports.
   export default {
@@ -18,20 +20,13 @@
     },
     methods: {
       currentTags() {
-        return this.model.trim().split(/\s+/).filter(Boolean);
+        return TagField.splitTags(this.model);
       },
       addTags(tags) {
-        const existing = this.model ? this.model.trim().split(/\s+/).filter(Boolean) : [];
-        for (const tag of tags) if (!existing.includes(tag)) existing.push(tag);
-        // Trailing space kept deliberately (vue chokes without it on some inputs).
-        this.model = existing.join(" ") + " ";
+        this.model = TagField.addTags(this.model, tags);
       },
       removeTag(tag) {
-        const tags = this.model ? this.model.trim().split(/\s+/).filter(Boolean) : [];
-        const idx = tags.indexOf(tag);
-        if (idx === -1) return;
-        tags.splice(idx, 1);
-        this.model = tags.join(" ") + " ";
+        this.model = TagField.removeTag(this.model, tag);
       },
     },
     mounted() {

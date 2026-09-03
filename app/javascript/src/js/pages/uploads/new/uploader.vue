@@ -33,7 +33,7 @@
                         <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
                     </div>
                     <div class="col2">
-                        <artist-tag-input v-model="tagEntries.artist" />
+                        <artist-source></artist-source>
                     </div>
                 </div>
                 <div class="flex-grid border-bottom">
@@ -122,7 +122,7 @@
                         You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
                         towards this total.
                     </div>
-                    <textarea class="tag-textarea" id="post_tags" v-model="tagEntries.other" rows="5"
+                    <textarea class="tag-textarea" id="post_tags" v-model="otherTags" rows="5"
                               placeholder="Ex: standing orange_fur white_shirt outside smile 4_toes etc."
                               ref="otherTags" data-autocomplete="tag-edit"></textarea>
                     <tag-preview :tags="tags" />
@@ -224,7 +224,8 @@
   import filePreview from './file_preview.vue';
   import fileInput from './file_input.vue';
   import parentPostInput from './parent_post_input.vue';
-  import artistTagInput from './artist_tag_input.vue';
+  import artistSource from './artist_source.vue';
+  import * as TagField from './tag_field.js';
   import Autocomplete from "@/components/autocomplete";
   import DTextFormatter from "@/components/DTextFormatter.ts";
   import CurrentUser from "@/models/CurrentUser";
@@ -251,7 +252,7 @@
       'file-preview': filePreview,
       'file-input': fileInput,
       'parent-post-input': parentPostInput,
-      'artist-tag-input': artistTagInput,
+      'artist-source': artistSource,
     },
     provide() {
       return {
@@ -282,12 +283,9 @@
 
         // Tag sources register here; `tags` aggregates their contributions.
         registry: { sources: [] },
-        // Artist + free-text ("other") remain inline on the root — the sink is
-        // always present, and the verified-artist DOM fossil writes tagEntries.artist.
-        tagEntries: {
-          artist: "",
-          other: "",
-        },
+        // The free-text "Other Tags" field is the always-present sink (inline on
+        // the root so findRelated can reach its textarea via $refs.otherTags).
+        otherTags: "",
 
         allowLockedTags: CurrentUser.is.admin,
         lockedTags: '',
@@ -310,25 +308,15 @@
       };
     },
     created() {
-      // The free-text "Other Tags" field is the always-present sink.
+      // The free-text "Other Tags" field is the always-present sink. Every other
+      // source (artist, checkboxes, textareas) is a self-registering child.
       this.sinkDescriptor = {
         isSink: true,
-        currentTags: () => this.fieldCurrentTags('other'),
-        addTags: tags => this.fieldAddTags('other', tags),
-        removeTag: tag => this.fieldRemoveTag('other', tag),
+        currentTags: () => TagField.splitTags(this.otherTags),
+        addTags: tags => { this.otherTags = TagField.addTags(this.otherTags, tags); },
+        removeTag: tag => { this.otherTags = TagField.removeTag(this.otherTags, tag); },
       };
       this.registerSource(this.sinkDescriptor);
-
-      // The artist field is a source only when its input is on screen (normal mode).
-      if (!this.compactMode) {
-        this.artistDescriptor = {
-          role: 'artist',
-          currentTags: () => this.fieldCurrentTags('artist'),
-          addTags: tags => this.fieldAddTags('artist', tags),
-          removeTag: tag => this.fieldRemoveTag('artist', tag),
-        };
-        this.registerSource(this.artistDescriptor);
-      }
     },
     mounted() {
       const self = this;
@@ -381,8 +369,6 @@
       if(this.allowUploadAsPending)
         fillFieldBool("uploadAsPending", "upload_as_pending")
 
-      this.initVerifiedArtistButtons();
-
       Autocomplete.initialize_autocomplete('tag-edit');
       new DTextFormatter($(".dtext-formatter.pending"));
     },
@@ -403,22 +389,6 @@
       routeByRole(role) {
         return this.registry.sources.find(s => s.role === role)
           || this.registry.sources.find(s => s.isSink);
-      },
-      // Inline sink/artist source helpers over tagEntries fields.
-      fieldCurrentTags(field) {
-        return this.tagEntries[field].trim().split(/\s+/).filter(Boolean);
-      },
-      fieldAddTags(field, tags) {
-        const existing = this.tagEntries[field] ? this.tagEntries[field].trim().split(/\s+/).filter(Boolean) : [];
-        for (const tag of tags) if (!existing.includes(tag)) existing.push(tag);
-        this.tagEntries[field] = existing.join(" ") + " ";
-      },
-      fieldRemoveTag(field, tag) {
-        const tags = this.tagEntries[field] ? this.tagEntries[field].trim().split(/\s+/).filter(Boolean) : [];
-        const idx = tags.indexOf(tag);
-        if (idx === -1) return;
-        tags.splice(idx, 1);
-        this.tagEntries[field] = tags.join(" ") + " ";
       },
       submit() {
         this.showErrors = true;
@@ -570,36 +540,6 @@
         }).always(function () {
           self.loadingRelated = false;
         });
-      },
-
-      initVerifiedArtistButtons () {
-        if (UploadData.verifiedArtistTags.length == 0) return;
-
-        // Compact uploader
-        const artistTextBox = document.querySelector("#post_artist");
-        if (artistTextBox === null) return;
-
-        const artistTextBoxParent = artistTextBox.parentElement;
-        const buttonRow = document.createElement("div");
-        buttonRow.classList.add("upload-artist-tags");
-
-        const hint = document.createElement("div");
-        hint.innerHTML = "Linked artist tags:";
-        buttonRow.appendChild(hint);
-
-        for (const artistName of UploadData.verifiedArtistTags) {
-          const newButton = document.createElement("button");
-          newButton.classList.add("toggle-button");
-          newButton.innerHTML = artistName;
-          newButton.onclick = () => {
-            let val = (this.tagEntries.artist ?? "").trim().split(" ").filter(n => n);
-            if (val.includes(artistName)) val = val.filter(n => n !== artistName);
-            else val.push(artistName);
-            this.tagEntries.artist = val.join(" ") + " ";
-          };
-          buttonRow.appendChild(newButton);
-        }
-        artistTextBoxParent.appendChild(buttonRow);
       },
     },
     computed: {
