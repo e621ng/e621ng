@@ -41,11 +41,15 @@ class PostFlagsController < ApplicationController
 
   def destroy
     @post = Post.find(params[:post_id])
-    @post.unflag!
+    if @post.is_flagged
+      @post.unflag!
+    else
+      flash[:notice] = "Post ##{@post.id} is already unflagged"
+    end
     if params[:approval] == "approve" && @post.is_approvable?
       @post.approve!
     end
-    respond_with(nil)
+    respond_with(@post)
   end
 
   def clear_note
