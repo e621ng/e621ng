@@ -6,7 +6,6 @@ const UploaderModule = {
   init () {
     const uploaderElement = document.getElementById("uploader");
     if (!uploaderElement) return;
-    window.Danbooru.Uploader = UploaderModule;
 
     const app = createApp(Uploader);
     app.mount("#uploader");

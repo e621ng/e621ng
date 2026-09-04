@@ -36,7 +36,6 @@ export default {
     return {
       error: '',
       postData: null,
-      loading: false,
       debounceTimer: null
     };
   },
@@ -68,9 +67,8 @@ export default {
     },
     
     async fetchPostData(postId) {
-      this.loading = true;
       this.error = '';
-      
+
       try {
         const response = await fetch(`/posts/${postId}.json`);
         
@@ -101,8 +99,6 @@ export default {
       } catch (error) {
         console.error('Error fetching post data:', error);
         this.error = `Failed to load post #${postId}. Please check your connection.`;
-      } finally {
-        this.loading = false;
       }
     }
   },

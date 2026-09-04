@@ -20,7 +20,6 @@ export default {
   },
   data() {
     return {
-      loading: false,
       tagCache: {},
       _tagPreviewDebounce: null,
       enabled: LStorage.Posts.TagPreview,
@@ -109,7 +108,6 @@ export default {
       const missing = this.tagsArray.filter(t => !this.tagCache[t]);
       if (missing.length === 0) return;
 
-      this.loading = true;
       try {
         // Form-urlencoded so Rails reads params[:tags]; CSRF added by HTTP.post.
         const response = await HTTP.post('/tags/preview.json', new URLSearchParams({ tags: missing.join(' ') }));
@@ -120,8 +118,6 @@ export default {
       } catch (error) {
         ToastManager.alert("Error loading tag preview: " + (error.message || "Unknown error"));
         console.error("Tag preview error:", error);
-      } finally {
-        this.loading = false;
       }
     },
   },
