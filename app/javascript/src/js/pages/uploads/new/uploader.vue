@@ -532,6 +532,8 @@
           const data = await HTTP.getJSON("/related_tag/bulk.json", params);
           self.relatedTags = convertResponse(data);
           self.lastRelatedCategoryId = categoryId;
+        } catch {
+          // A failed lookup just shows no related tags (relatedTags stays []).
         } finally {
           self.loadingRelated = false;
         }

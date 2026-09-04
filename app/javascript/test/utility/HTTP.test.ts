@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { setMeta } from "../helpers";
+import { jsonResponse, setMeta } from "../helpers";
 
 async function freshHTTP () {
   return (await import("@/utility/HTTP")).default;
@@ -33,5 +33,11 @@ describe("HTTP", () => {
     await HTTP.get("/y");
     const getInit = fetchSpy.mock.calls[1][1] as RequestInit;
     expect((getInit.headers as Record<string, string>)["X-CSRF-Token"]).toBeUndefined();
+  });
+
+  it("getJSON rejects on a non-2xx response even when the body is valid JSON", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ error: "boom" }, { status: 500 }) as Response);
+    const HTTP = await freshHTTP();
+    await expect(HTTP.getJSON("/x")).rejects.toThrow();
   });
 });

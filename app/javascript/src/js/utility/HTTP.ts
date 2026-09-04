@@ -31,7 +31,7 @@ export default class HTTP {
   }
 
   static async getJSON<T = any> (url: string, params?: HTTPOptions["params"]): Promise<T> {
-    return (await HTTP.get(url, params)).json();
+    return HTTP.json(await HTTP.get(url, params));
   }
 
   static post (url: string, body?: HTTPOptions["body"], opts: HTTPOptions = {}): Promise<Response> {
@@ -39,7 +39,15 @@ export default class HTTP {
   }
 
   static async postJSON<T = any> (url: string, body?: HTTPOptions["body"], opts: HTTPOptions = {}): Promise<T> {
-    return (await HTTP.post(url, body, opts)).json();
+    return HTTP.json(await HTTP.post(url, body, opts));
+  }
+
+  // The JSON sugar only resolves on 2xx (an error body could still be valid JSON,
+  // which callers must not mistake for success); use `request`/`get`/`post` for
+  // non-ok handling.
+  private static json<T> (response: Response): Promise<T> {
+    if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+    return response.json();
   }
 
   private static csrfToken (): string {

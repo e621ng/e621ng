@@ -46,6 +46,16 @@ describe("uploads/uploader — related tags", () => {
     expect(wrapper.findAll(".related-item a").map((a) => a.text())).toEqual(["abe", "zed"]);
   });
 
+  it("shows no results when the lookup fails, even if the body is JSON", async () => {
+    const { wrapper, fetchSpy } = await mountUploader();
+    await wrapper.find("#post_tags").setValue("seed");
+    // A 500 whose body is valid JSON must NOT be rendered as related tags.
+    fetchSpy.mockResolvedValue(jsonResponse({ artist: [{ name: "abe", category_id: 1 }] }, { status: 500 }));
+    await loadRelated(wrapper, "Artists");
+    expect(wrapper.find(".related-section").exists()).toBe(false);
+    expect((wrapper.vm as any).loadingRelated).toBe(false);
+  });
+
   it("toggles the panel off when the same category is clicked twice", async () => {
     const { wrapper, fetchSpy } = await mountUploader();
     await wrapper.find("#post_tags").setValue("seed");
