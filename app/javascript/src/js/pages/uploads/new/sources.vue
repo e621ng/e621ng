@@ -97,6 +97,9 @@
         next.splice(index, urls.length, ...urls);
         this.rowIds.splice(index, urls.length, ...urls.map(() => this.nextRowId++));
         this.$emit("update:sources", next);
+
+        // Focus the last pasted row.
+        this.$nextTick(() => this.focusRow(index + urls.length - 1));
       },
       navigate($event) {
         let targetIndex = $event;

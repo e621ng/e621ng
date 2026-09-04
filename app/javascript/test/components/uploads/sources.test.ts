@@ -210,6 +210,15 @@ describe("uploads/sources", () => {
       expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://keep", "https://a", "https://b"]);
     });
 
+    it("focuses the last pasted row after a multi-line paste", async () => {
+      const { wrapper } = make({ sources: ["https://keep", ""] });
+      await paste(wrapper, 1, "https://a\nhttps://b\nhttps://c"); // → ["https://keep", a, b, c]
+      await flushPromises();
+      const rows = rowInputs(wrapper);
+      expect(document.activeElement).toBe(rows[rows.length - 1].element);
+      expect((rows[rows.length - 1].element as HTMLInputElement).value).toBe("https://c");
+    });
+
     it("leaves single-line pastes to vanilla input behaviour (no emit)", async () => {
       const { wrapper } = make();
       await paste(wrapper, 0, "https://only-one");
