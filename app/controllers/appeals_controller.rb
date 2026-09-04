@@ -79,6 +79,9 @@ class AppealsController < ApplicationController
     if @appeal.valid?
       not_changed = appeal_params[:send_update_dmail].to_s.truthy? && (!@appeal.saved_change_to_response? && !@appeal.saved_change_to_status?)
       flash[:notice] = "Not sending update, no changes" if not_changed
+    else
+      flash[:notice] = "Error: #{@appeal.errors.full_messages.join(', ')}"
+      return redirect_to(appeal_path(@appeal))
     end
 
     respond_with(@appeal)
