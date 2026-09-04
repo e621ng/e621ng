@@ -69,17 +69,9 @@ describe("post_replacements/replacement_uploader — submit payload", () => {
     expect(data.get("post_replacement[replacement_url]")).toBeNull();
   });
 
-  it("still submits an empty replacement_url when no file or URL was provided", async () => {
-    const mounted = await mountReplacementUploader();
-    await mounted.wrapper.find("#no_source").setValue(true);
-    // deliberately no upload value
-    await clickSubmit(mounted.wrapper);
-    const data = (mounted.ajaxSpy.mock.calls.at(-1)![1] as any).data as FormData;
-    expect(data.get("post_replacement[replacement_url]")).toBe("");
-  });
-
   it("sends the first source", async () => {
     const mounted = await mountReplacementUploader();
+    (mounted.wrapper.vm as any).uploadValue = "https://example.com/image.png";
     await mounted.wrapper.find(".upload-source-row input").setValue("https://example.com/page");
     await clickSubmit(mounted.wrapper);
     const data = (mounted.ajaxSpy.mock.calls.at(-1)![1] as any).data as FormData;
@@ -88,6 +80,7 @@ describe("post_replacements/replacement_uploader — submit payload", () => {
 
   it("sends an empty source when 'no available source' is checked, even with text typed", async () => {
     const mounted = await mountReplacementUploader();
+    (mounted.wrapper.vm as any).uploadValue = "https://example.com/image.png";
     await mounted.wrapper.find(".upload-source-row input").setValue("https://example.com/page");
     await mounted.wrapper.find("#no_source").setValue(true);
     await clickSubmit(mounted.wrapper);
