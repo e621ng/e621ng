@@ -70,3 +70,16 @@ export function jsonResponse (
     text: async () => (typeof body === "string" ? body : JSON.stringify(body)),
   };
 }
+
+/**
+ * A duck-typed non-JSON response (e.g. a Cloudflare HTML block page): same
+ * surface as jsonResponse, but json() rejects the way fetch's would on HTML.
+ */
+export function htmlResponse (
+  status: number,
+  { headers = {}, body = "<html></html>" }: { headers?: Record<string, string>, body?: string } = {},
+): any {
+  const response = jsonResponse(body, { status, headers });
+  response.json = async () => { throw new SyntaxError("Unexpected token '<'"); };
+  return response;
+}

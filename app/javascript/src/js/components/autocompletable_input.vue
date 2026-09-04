@@ -31,6 +31,7 @@ export default {
   },
   watch: {
     addToList(value) {
+      if (!value || !value.trim()) return;
       const maxEntries = 50;
       const entries = new Set([value.trim(), ...this.currentEntries()]);
       LStorage.Raw.putObject(`autocomplete-${this.listId}`, [...entries].slice(0, maxEntries));

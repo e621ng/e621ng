@@ -5,9 +5,9 @@ import { setSiteData } from "../../helpers";
 
 // Unlike the uploads mountUploader, no hoisted `vi.mock` header is needed in the
 // spec files: this component tree pulls in no Autocomplete, DTextFormatter, or
-// Toast. The transport seam also differs — submit still goes through jQuery's
-// $.ajax (not fetch), so the helper spies on $.ajax with an inert default and
-// tests drive outcomes by invoking the captured success/error callbacks.
+// Toast. The transport seam is the same as the uploads harness: fetchSpy carries
+// submit() (via the HTTP helper) and file-input's whitelist lookup; tests drive
+// outcomes with mockResolvedValue(jsonResponse(...)) / mockRejectedValue.
 
 export interface MountReplacementUploaderOptions {
   // CurrentUser (#site-user) → canApprove (renders the as-pending checkbox)
@@ -24,7 +24,6 @@ export interface MountReplacementUploaderOptions {
 
 export interface MountedReplacementUploader {
   wrapper: VueWrapper;
-  ajaxSpy: ReturnType<typeof vi.spyOn>;
   fetchSpy: ReturnType<typeof vi.spyOn>;
   locationAssign: ReturnType<typeof vi.fn>;
   restore: () => void;
@@ -85,12 +84,11 @@ export async function mountReplacementUploader (
   fakeLocation.assign = locationAssign;
   Object.defineProperty(window, "location", { configurable: true, writable: true, value: fakeLocation });
 
-  // Inert-by-default transport spies. $.ajax carries submit(); fetch carries
-  // file-input's whitelist lookup. Tests override / inspect as needed.
-  const ajaxSpy = vi.spyOn($ as any, "ajax").mockImplementation(() => ({}));
+  // Inert-by-default transport spy: carries submit() and file-input's whitelist
+  // lookup. Tests override / inspect as needed.
   const fetchSpy = vi
     .spyOn(globalThis, "fetch")
-    .mockResolvedValue({ ok: true, status: 200, json: async () => ({}) } as unknown as Response);
+    .mockResolvedValue({ ok: true, status: 200, headers: { get: () => null }, json: async () => ({}) } as unknown as Response);
 
   // Reset the module cache so the singletons (CurrentUser/Settings) re-read the
   // freshly-seeded blobs — even on a second mount within one test.
@@ -104,5 +102,5 @@ export async function mountReplacementUploader (
     Object.defineProperty(window, "location", { configurable: true, writable: true, value: originalLocation });
   };
 
-  return { wrapper, ajaxSpy, fetchSpy, locationAssign, restore };
+  return { wrapper, fetchSpy, locationAssign, restore };
 }

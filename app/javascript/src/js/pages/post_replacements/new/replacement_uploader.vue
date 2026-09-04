@@ -53,6 +53,7 @@ import filePreview from "@/pages/uploads/new/file_preview.vue";
 import fileInput from "@/pages/uploads/new/file_input.vue";
 import sources from "@/pages/uploads/new/sources.vue";
 import CurrentUser from "@/models/CurrentUser";
+import { submitUploadForm } from "@/utility/UploadSubmission";
 
 export default {
   components: {
@@ -105,9 +106,10 @@ export default {
       this.previewData = preview;
       this.invalidUploadValue = invalid;
     },
-    submit: function() {
+    async submit() {
       this.showErrors = true;
-      if(this.preventUpload || this.submitting) {
+      this.errorMessage = undefined;
+      if (this.preventUpload || this.submitting) {
         return;
       }
       this.submitting = true;
@@ -121,23 +123,22 @@ export default {
       formData.append("post_replacement[reason]", this.reason);
       formData.append("post_replacement[as_pending]", this.uploadAsPending);
 
-      this.submittedReason = this.reason;
-
       const postId = new URLSearchParams(window.location.search).get("post_id");
-      const self = this;
-      $.ajax("/post_replacements.json?post_id=" + postId, {
-        method: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        success(data) {
-          location.assign(data.location);
-        },
-        error(data) {
-          self.submitting = false;
-          self.errorMessage = data.responseJSON.reason || data.responseJSON.message;
-        }
-      });
+      const outcome = await submitUploadForm("/post_replacements.json?post_id=" + postId, formData);
+
+      if (outcome.kind === "success") {
+        // Only a successful submission earns the reason a datalist entry.
+        this.submittedReason = this.reason;
+        location.assign(outcome.body.location);
+        return;
+      }
+
+      this.submitting = false;
+      if (outcome.kind === "blocked" || outcome.kind === "failed") {
+        this.errorMessage = outcome.message;
+        return;
+      }
+      this.errorMessage = outcome.json.reason || outcome.json.message;
     }
   }
 };
