@@ -23,9 +23,9 @@ async function toggleTag (wrapper: VueWrapper, tag: string, add: boolean) {
 
 describe("posts/tag_editor — pushTag", () => {
   it("adds a clicked related tag to the textarea (full click round-trip)", async () => {
-    const { wrapper, ajaxCalls } = await mountTagEditor({ postTags: "wolf " });
+    const { wrapper, fetchCalls } = await mountTagEditor({ postTags: "wolf " });
     await wrapper.find(".related-tag-functions a").trigger("click"); // "Tags"
-    await ajaxCalls[0].resolve({ related: [{ name: "feral", category_id: 0 }] });
+    await fetchCalls[0].resolve({ related: [{ name: "feral", category_id: 0 }] });
 
     await relatedItem(wrapper, "feral")!.trigger("click");
     expect(textareaValue(wrapper)).toBe("wolf feral ");
@@ -68,9 +68,9 @@ describe("posts/tag_editor — pushTag", () => {
   });
 
   it("reflects toggles back into the related item's active state", async () => {
-    const { wrapper, ajaxCalls } = await mountTagEditor({ postTags: "wolf canine " });
+    const { wrapper, fetchCalls } = await mountTagEditor({ postTags: "wolf canine " });
     await wrapper.find(".related-tag-functions a").trigger("click");
-    await ajaxCalls[0].resolve({ related: [{ name: "canine", category_id: 0 }] });
+    await fetchCalls[0].resolve({ related: [{ name: "canine", category_id: 0 }] });
 
     const item = relatedItem(wrapper, "canine")!;
     expect(item.classes()).toContain("tag-active");

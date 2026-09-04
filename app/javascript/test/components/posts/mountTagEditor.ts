@@ -1,7 +1,7 @@
-import { mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { vi } from "vitest";
 import { nextTick } from "vue";
-import { setSiteData } from "../../helpers";
+import { jsonResponse, setSiteData } from "../../helpers";
 
 // IMPORTANT: `vi.mock` is file-scoped and hoisted, so it cannot live in this helper.
 // Every test file that mounts the tag editor must include this header block itself,
@@ -14,11 +14,10 @@ import { setSiteData } from "../../helpers";
 // posts.js MUST be mocked — the real module drags in Hotkeys/PostVote side effects.
 // Toast is in the tree via tag_preview.vue. No DTextFormatter here.
 //
-// The transport seam differs from the other mount helpers: findRelated posts via
-// $.ajax (not fetch), so the harness spies on jQuery and returns controllable
-// per-call records that tests settle manually — and out of order, which is what
-// makes the loading states and the B3 race pinnable. An inert fetch spy still
-// covers tag_preview's HTTP path.
+// Transport: everything is on fetch (via the HTTP helper). Related-tag lookups
+// are captured as controllable per-call records that tests settle manually —
+// which is what makes the loading states and the in-flight guard pinnable.
+// All other fetches (tag_preview) auto-resolve inert.
 
 export interface RelatedTagRecord {
   name: string;
@@ -36,20 +35,20 @@ export interface MountTagEditorOptions {
   autocomplete?: boolean;
 }
 
-/** One captured $.ajax invocation, settled manually by the test. */
-export interface AjaxCall {
+/** One captured related-tags fetch, settled manually by the test. */
+export interface RelatedCall {
+  /** The full request URL, including the serialized query string. */
   url: string;
-  opts: Record<string, any>;
-  /** Fire the success callback with `data`, then the always-callbacks. */
+  /** Settle the request successfully with a JSON body. */
   resolve: (data: unknown) => Promise<void>;
-  /** Fire only the always-callbacks (a failed request — no success). */
+  /** Settle the request as a failure (500 — the helper rejects on non-2xx). */
   fail: () => Promise<void>;
 }
 
 export interface MountedTagEditor {
   wrapper: VueWrapper;
-  /** Every $.ajax call made so far, in order. */
-  ajaxCalls: AjaxCall[];
+  /** Every /related_tag/ fetch made so far, in order. */
+  fetchCalls: RelatedCall[];
   /** The mocked Post.update_tag_count (same instance the component calls). */
   updateTagCount: ReturnType<typeof vi.fn>;
   /** The mocked Autocomplete.initialize_autocomplete. */
@@ -92,36 +91,28 @@ export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise
   // component unmounts. (LStorage serializes booleans as JSON.)
   window.localStorage.setItem("e6.posts.tagpreview", "false");
 
-  // Inert fetch spy for tag_preview's HTTP path (nothing in the editor itself
-  // uses fetch — findRelated is still on $.ajax, see below).
-  vi.spyOn(globalThis, "fetch")
-    .mockResolvedValue({ ok: true, status: 200, headers: { get: () => null }, json: async () => ([]) } as unknown as Response);
-
-  // Controllable $.ajax seam. jqXHR surface is only what the component chains:
-  // $.ajax(url, opts).always(fn); success arrives via opts.success.
-  const ajaxCalls: AjaxCall[] = [];
-  vi.spyOn(globalThis.$ as any, "ajax").mockImplementation(((url: string, opts: Record<string, any>) => {
-    const alwaysCbs: Array<() => void> = [];
-    ajaxCalls.push({
-      url,
-      opts,
-      resolve: async (data: unknown) => {
-        opts.success?.(data);
-        for (const cb of alwaysCbs) cb();
-        await nextTick();
-      },
-      fail: async () => {
-        for (const cb of alwaysCbs) cb();
-        await nextTick();
-      },
+  // Controllable fetch seam. Related-tag lookups become manually-settled
+  // deferreds (so tests can observe in-flight state and settle in any order);
+  // everything else (tag_preview) auto-resolves inert.
+  const fetchCalls: RelatedCall[] = [];
+  vi.spyOn(globalThis, "fetch").mockImplementation(((url: string) => {
+    if (!String(url).includes("/related_tag/"))
+      return Promise.resolve(jsonResponse([]) as Response);
+    return new Promise((settle) => {
+      fetchCalls.push({
+        url: String(url),
+        resolve: async (data: unknown) => {
+          settle(jsonResponse(data));
+          await flushPromises();
+          await nextTick();
+        },
+        fail: async () => {
+          settle(jsonResponse({}, { status: 500 }));
+          await flushPromises();
+          await nextTick();
+        },
+      });
     });
-    const jqxhr = {
-      always (fn: () => void) {
-        alwaysCbs.push(fn);
-        return jqxhr;
-      },
-    };
-    return jqxhr;
   }) as any);
 
   // Reset the module cache so CurrentUser re-reads the freshly-seeded blob —
@@ -151,5 +142,5 @@ export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise
     delete (window as any).uploaderSettings;
   };
 
-  return { wrapper, ajaxCalls, updateTagCount, initializeAutocomplete, restore };
+  return { wrapper, fetchCalls, updateTagCount, initializeAutocomplete, restore };
 }

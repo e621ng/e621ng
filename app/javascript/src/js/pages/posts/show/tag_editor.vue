@@ -6,12 +6,12 @@
     <div class="related-tag-functions">
       Related:
       <a href="#" @click.prevent="findRelated()">Tags</a> |
-      <a href="#" @click.prevent="findRelated(1)">Artists</a> |
-      <a href="#" @click.prevent="findRelated(2)">Contributors</a> |
-      <a href="#" @click.prevent="findRelated(3)">Copyrights</a> |
-      <a href="#" @click.prevent="findRelated(4)">Characters</a> |
-      <a href="#" @click.prevent="findRelated(5)">Species</a> |
-      <a href="#" @click.prevent="findRelated(7)">Metatags</a>
+      <a href="#" @click.prevent="findRelated('artist')">Artists</a> |
+      <a href="#" @click.prevent="findRelated('contributor')">Contributors</a> |
+      <a href="#" @click.prevent="findRelated('copyright')">Copyrights</a> |
+      <a href="#" @click.prevent="findRelated('character')">Characters</a> |
+      <a href="#" @click.prevent="findRelated('species')">Species</a> |
+      <a href="#" @click.prevent="findRelated('meta')">Metatags</a>
     </div>
     <div>
       <h3>Related Tags <a href="#" @click.prevent="toggleRelated">{{ relatedText }}</a></h3>
@@ -28,10 +28,8 @@ import tagPreview from "@/pages/uploads/new/tag_preview.vue";
 import Post from '../posts';
 import Autocomplete from "@/components/autocomplete";
 import CurrentUser from "@/models/CurrentUser";
-
-function tagSorter(a, b) {
-  return a.name > b.name ? 1 : -1;
-}
+import TagCategories from "@/utility/TagCategories";
+import { fetchRelatedTags, selectedText } from "@/utility/RelatedTags";
 
 export default {
   components: {
@@ -48,6 +46,7 @@ export default {
       expandRelated: true,
       tags: window.uploaderSettings.postTags,
       relatedTags: [],
+      lastRelatedCategoryId: undefined,
       loadingRelated: false,
     };
   },
@@ -110,47 +109,26 @@ export default {
         Post.update_tag_count();
       })
     },
-    findRelated(categoryId) {
-      const self = this;
-      self.expandRelated = true;
-      const convertResponse = function (respData) {
-        const sortedRelated = [];
-        for (const key in respData) {
-          if (!respData.hasOwnProperty(key))
-            continue;
-          if (!respData[key].length)
-            continue;
-          sortedRelated.push({ title: 'Related: ' + key, tags: respData[key].sort(tagSorter) });
-        }
-        return sortedRelated;
-      };
-      const getSelectedTags = function () {
-        const field = self.$refs.otherTags;
-        if (typeof field['selectionStart'] === 'undefined')
-          return null;
-        const length = field.selectionEnd - field.selectionStart;
-        if (length)
-          return field.value.substr(field.selectionStart, length);
-        return null;
-      };
+    async findRelated(categoryName) {
+      const categoryId = categoryName ? TagCategories.idFor(categoryName) : undefined;
+      if (this.loadingRelated)
+        return;
+      if (this.relatedTags.length > 0 && this.lastRelatedCategoryId === categoryId) {
+        this.relatedTags = [];
+        return;
+      }
+      this.expandRelated = true;
       this.loadingRelated = true;
       this.relatedTags = [];
-      const selectedTags = getSelectedTags();
-      const params = selectedTags ? { query: selectedTags } : { query: this.tags };
-
-      if (categoryId)
-        params['category_id'] = categoryId;
-      $.ajax("/related_tag/bulk.json", {
-        method: 'POST',
-        type: 'POST',
-        data: params,
-        dataType: 'json',
-        success: function (data) {
-          self.relatedTags = convertResponse(data);
-        }
-      }).always(function () {
-        self.loadingRelated = false;
-      });
+      const query = selectedText(this.$refs.otherTags) ?? this.tags;
+      try {
+        this.relatedTags = await fetchRelatedTags(query, categoryId);
+        this.lastRelatedCategoryId = categoryId;
+      } catch {
+        // A failed lookup just shows no related tags (relatedTags stays []).
+      } finally {
+        this.loadingRelated = false;
+      }
     }
   }
 };
