@@ -21,3 +21,8 @@ export function removeTag (value, tag) {
   tags.splice(idx, 1);
   return tags.join(" ") + " ";
 }
+
+// Order tag objects by name, for the related-tags display.
+export function tagSorter (a, b) {
+  return a.name > b.name ? 1 : -1;
+}

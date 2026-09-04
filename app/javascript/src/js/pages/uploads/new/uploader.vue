@@ -127,12 +127,12 @@
                     <div class="related-tag-functions">
                         Related:
                         <a href="#" @click.prevent="findRelated()">Tags</a> |
-                        <a href="#" @click.prevent="findRelated(1)">Artists</a> |
-                        <a href="#" @click.prevent="findRelated(2)">Contributors</a> |
-                        <a href="#" @click.prevent="findRelated(3)">Copyrights</a> |
-                        <a href="#" @click.prevent="findRelated(4)">Characters</a> |
-                        <a href="#" @click.prevent="findRelated(5)">Species</a> |
-                        <a href="#" @click.prevent="findRelated(7)">Metatags</a>
+                        <a href="#" @click.prevent="findRelated('artist')">Artists</a> |
+                        <a href="#" @click.prevent="findRelated('contributor')">Contributors</a> |
+                        <a href="#" @click.prevent="findRelated('copyright')">Copyrights</a> |
+                        <a href="#" @click.prevent="findRelated('character')">Characters</a> |
+                        <a href="#" @click.prevent="findRelated('species')">Species</a> |
+                        <a href="#" @click.prevent="findRelated('meta')">Metatags</a>
                     </div>
                 </div>
             </div>
@@ -230,10 +230,7 @@
   import DTextFormatter from "@/components/DTextFormatter.ts";
   import CurrentUser from "@/models/CurrentUser";
   import UploadData from "@/models/UploadData";
-
-  function tagSorter(a, b) {
-    return a.name > b.name ? 1 : -1;
-  }
+  import TagCategories from "@/utility/TagCategories";
 
   function unloadWarning() {
     if (this.allowNavigate || (this.uploadValue === "" && this.tags === "")) {
@@ -321,7 +318,8 @@
     },
     mounted() {
       const self = this;
-      window.onbeforeunload = unloadWarning.bind(self);
+      this.unloadHandler = unloadWarning.bind(self);
+      window.onbeforeunload = this.unloadHandler;
       const params = new URLSearchParams(window.location.search);
       const fillField = function(field, key) {
         if(params.has(key)) {
@@ -372,6 +370,11 @@
 
       Autocomplete.initialize_autocomplete('tag-edit');
       new DTextFormatter($(".dtext-formatter.pending"));
+    },
+    beforeUnmount() {
+      // Release the unload guard, but only if it's still ours.
+      if (window.onbeforeunload === this.unloadHandler)
+        window.onbeforeunload = null;
     },
     methods: {
       onFileChange({ value, preview, invalid }) {
@@ -493,8 +496,9 @@
         const target = this.routeByRole(role);
         if (target) target.addTags(deduped);
       },
-      async findRelated(categoryId) {
+      async findRelated(categoryName) {
         const self = this;
+        const categoryId = categoryName ? TagCategories.idFor(categoryName) : undefined;
         if (self.loadingRelated)
           return;
         if (self.relatedTags.length > 0 && self.lastRelatedCategoryId === categoryId) {
@@ -508,7 +512,7 @@
               continue;
             if (!respData[key].length)
               continue;
-            sortedRelated.push({title: 'Related: ' + key, tags: respData[key].sort(tagSorter)});
+            sortedRelated.push({title: 'Related: ' + key, tags: respData[key].sort(TagField.tagSorter)});
           }
           return sortedRelated;
         };
@@ -526,7 +530,7 @@
         const selectedTags = getSelectedTags();
         const params = selectedTags ? {query: selectedTags} : {query: this.tags};
 
-        if (categoryId)
+        if (categoryId != null)
           params['category_id'] = categoryId;
         try {
           const data = await HTTP.getJSON("/related_tag/bulk.json", params);

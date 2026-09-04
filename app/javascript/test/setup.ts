@@ -1,5 +1,6 @@
 import jquery from "jquery";
 import { afterEach, beforeEach, vi } from "vitest";
+import { setTagCategoryMeta } from "./helpers";
 
 // The real app injects `$` / `jQuery` as globals via @rollup/plugin-inject
 // (vite.config.mts). That plugin does not run under Vitest, so a few source
@@ -55,11 +56,19 @@ for (const target of [globalThis, window]) {
   Object.defineProperty(target, "sessionStorage", { value: sessionStorageShim, configurable: true, writable: true });
 }
 
+// Seed at module scope too (setup runs before each test file's static imports), so
+// components that read the meta eagerly at import — via a statically-imported
+// TagCategories — freeze with the real map, not an empty one.
+setTagCategoryMeta();
+
 // Every target module is an import-time singleton that freezes its state on
 // first access. Resetting the registry before each test lets specs re-import
 // and get a fresh instance reading fresh DOM/storage.
 beforeEach(() => {
   vi.resetModules();
+  // The `tag-category-ids` meta is ambient page data (_head.html.erb emits it on
+  // every page); seed it so category-consuming components resolve ids.
+  setTagCategoryMeta();
 });
 
 afterEach(() => {

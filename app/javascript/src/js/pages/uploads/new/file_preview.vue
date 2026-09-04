@@ -32,7 +32,7 @@ export default {
   },
   data() {
     return {
-      heigth: 0,
+      height: 0,
       width: 0,
       overDims: false,
       failed: false,

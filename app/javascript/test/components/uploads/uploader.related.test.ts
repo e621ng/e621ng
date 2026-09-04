@@ -36,6 +36,15 @@ describe("uploads/uploader — related tags", () => {
     expect(url).toContain("category_id=1");
   });
 
+  it("sends category_id=0 for the general category (not treated as 'no filter')", async () => {
+    const { wrapper, fetchSpy } = await mountUploader();
+    await wrapper.find("#post_tags").setValue("seed");
+    stubRelated(fetchSpy, {});
+    await (wrapper.vm as any).findRelated("general"); // idFor('general') === 0
+    await flushPromises();
+    expect(fetchSpy.mock.calls.at(-1)![0] as string).toContain("category_id=0");
+  });
+
   it("renders returned groups, sorted by tag name", async () => {
     const { wrapper, fetchSpy } = await mountUploader();
     await wrapper.find("#post_tags").setValue("seed");
