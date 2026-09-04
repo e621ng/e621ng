@@ -1,6 +1,5 @@
-import { mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick, reactive } from "vue";
 import Sources from "@/pages/uploads/new/sources.vue";
 
 const wrappers: VueWrapper[] = [];
@@ -8,17 +7,22 @@ afterEach(() => {
   for (const wrapper of wrappers.splice(0)) wrapper.unmount();
 });
 
-// The real parent passes a reactive data() array that the component mutates
-// in place; a plain array would not track splices.
+// The component is a well-behaved v-model child: it emits `update:sources` with a
+// fresh array and never mutates the prop. The harness feeds those emits back into
+// props (as the real parent's `v-model:sources` does), so downstream computeds and
+// re-renders react; the list contract itself is asserted via the emitted array.
 function make (overrides: { sources?: string[], maxSources?: number, showErrors?: boolean } = {}) {
-  const props = {
-    sources: reactive(overrides.sources ?? [""]),
-    maxSources: overrides.maxSources ?? 10,
-    showErrors: overrides.showErrors ?? true,
-  };
-  const wrapper = mount(Sources, { props, attachTo: document.body });
+  const wrapper: VueWrapper = mount(Sources, {
+    props: {
+      "sources": overrides.sources ?? [""],
+      "maxSources": overrides.maxSources ?? 10,
+      "showErrors": overrides.showErrors ?? true,
+      "onUpdate:sources": (v: string[]) => wrapper.setProps({ sources: v }),
+    },
+    attachTo: document.body,
+  });
   wrappers.push(wrapper);
-  return { wrapper, sources: props.sources };
+  return { wrapper };
 }
 
 function lastEmitted (wrapper: VueWrapper, name: string): unknown {
@@ -41,6 +45,8 @@ describe("uploads/sources", () => {
     it("emits false once a source is entered", async () => {
       const { wrapper } = make();
       await rowInputs(wrapper)[0].setValue("https://example.com/post/1");
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://example.com/post/1"]);
       expect(lastEmitted(wrapper, "missingSourceWarning")).toBe(false);
     });
 
@@ -98,11 +104,11 @@ describe("uploads/sources", () => {
   });
 
   describe("adding sources", () => {
-    it("appends an empty source and focuses it", async () => {
-      const { wrapper, sources } = make();
+    it("emits an appended empty source and focuses it", async () => {
+      const { wrapper } = make();
       await wrapper.find(".upload-source-add").trigger("click");
-      await nextTick();
-      expect(sources).toEqual(["", ""]);
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:sources")).toEqual(["", ""]);
       expect(document.activeElement).toBe(rowInputs(wrapper)[1].element);
     });
 
@@ -118,23 +124,26 @@ describe("uploads/sources", () => {
     });
 
     it("inserts after the current row on Enter", async () => {
-      const { wrapper, sources } = make({ sources: ["https://a", "https://b"] });
+      const { wrapper } = make({ sources: ["https://a", "https://b"] });
       await rowInputs(wrapper)[0].trigger("keyup.enter");
-      expect(sources).toEqual(["https://a", "", "https://b"]);
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://a", "", "https://b"]);
     });
   });
 
   describe("removing sources", () => {
     it("removes the clicked row", async () => {
-      const { wrapper, sources } = make({ sources: ["https://a", "https://b"] });
+      const { wrapper } = make({ sources: ["https://a", "https://b"] });
       await wrapper.findAll(".upload-source-row button")[0].trigger("click");
-      expect(sources).toEqual(["https://b"]);
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://b"]);
     });
 
     it("refills with a single empty source when the last row is removed", async () => {
-      const { wrapper, sources } = make({ sources: ["https://a"] });
+      const { wrapper } = make({ sources: ["https://a"] });
       await wrapper.find(".upload-source-row button").trigger("click");
-      expect(sources).toEqual([""]);
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:sources")).toEqual([""]);
     });
   });
 
@@ -146,27 +155,31 @@ describe("uploads/sources", () => {
     }
 
     it("splits multi-line pastes into one source per line, trimming blanks", async () => {
-      const { wrapper, sources } = make();
+      const { wrapper } = make();
       await paste(wrapper, 0, "https://a\n  https://b  \n\nhttps://c");
-      expect(sources).toEqual(["https://a", "https://b", "https://c"]);
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://a", "https://b", "https://c"]);
     });
 
     it("caps multi-line pastes at maxSources", async () => {
-      const { wrapper, sources } = make({ maxSources: 2 });
+      const { wrapper } = make({ maxSources: 2 });
       await paste(wrapper, 0, "https://a\nhttps://b\nhttps://c");
-      expect(sources).toEqual(["https://a", "https://b"]);
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://a", "https://b"]);
     });
 
     it("replaces entries starting at the pasted row", async () => {
-      const { wrapper, sources } = make({ sources: ["https://keep", "https://old"] });
+      const { wrapper } = make({ sources: ["https://keep", "https://old"] });
       await paste(wrapper, 1, "https://a\nhttps://b");
-      expect(sources).toEqual(["https://keep", "https://a", "https://b"]);
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://keep", "https://a", "https://b"]);
     });
 
-    it("leaves single-line pastes to vanilla input behaviour", async () => {
-      const { wrapper, sources } = make();
+    it("leaves single-line pastes to vanilla input behaviour (no emit)", async () => {
+      const { wrapper } = make();
       await paste(wrapper, 0, "https://only-one");
-      expect(sources).toEqual([""]);
+      await flushPromises();
+      expect(wrapper.emitted("update:sources")).toBeUndefined();
     });
   });
 
@@ -183,9 +196,10 @@ describe("uploads/sources", () => {
     });
   });
 
-  it("writes typed values back into the sources array", async () => {
-    const { wrapper, sources } = make();
+  it("emits typed values back through update:sources", async () => {
+    const { wrapper } = make();
     await rowInputs(wrapper)[0].setValue("https://example.com/typed");
-    expect(sources[0]).toBe("https://example.com/typed");
+    await flushPromises();
+    expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://example.com/typed"]);
   });
 });
