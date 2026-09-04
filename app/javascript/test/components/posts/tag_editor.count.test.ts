@@ -16,20 +16,19 @@ describe("posts/tag_editor — tag count wiring", () => {
     expect(updateTagCount).not.toHaveBeenCalled();
   });
 
-  it("updates the count on keyup", async () => {
-    const { wrapper, updateTagCount } = await mountTagEditor();
-    updateTagCount.mockClear();
-    await wrapper.find("textarea").trigger("keyup");
-    expect(updateTagCount).toHaveBeenCalled();
-  });
-
-  // B1 pin: autocomplete's insert() and context-menu paste dispatch `input`
-  // (which v-model consumes) but no keyup — and today the count does NOT
-  // refresh. The fix (watching `tags` instead of @keyup) flips this pin.
-  it("does not update the count on input events alone (B1 pin)", async () => {
+  // B1 fixed: the count follows the tag string itself (a watch), so every input
+  // method — typing, mouse-driven autocomplete inserts, paste — updates it.
+  it("updates the count on any value change (B1 fixed)", async () => {
     const { wrapper, updateTagCount } = await mountTagEditor();
     updateTagCount.mockClear();
     await wrapper.find("textarea").setValue("wolf canine feral");
+    expect(updateTagCount).toHaveBeenCalled();
+  });
+
+  it("does not update the count on a keyup without a value change", async () => {
+    const { wrapper, updateTagCount } = await mountTagEditor();
+    updateTagCount.mockClear();
+    await wrapper.find("textarea").trigger("keyup");
     expect(updateTagCount).not.toHaveBeenCalled();
   });
 

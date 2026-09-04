@@ -49,22 +49,24 @@ describe("posts/tag_editor — pushTag", () => {
     expect(textareaValue(wrapper)).toBe("Wolf ");
   });
 
-  // B2 pin: the remove branch rebuilds the value from this.tags.toLowerCase(),
-  // so one removal lowercases the WHOLE textarea, collapses whitespace on the
-  // matched line, and appends an extra trailing space. The fix (edit the
-  // original-case string) flips this pin.
-  it("lowercases and reflows the entire value on remove (B2 pin)", async () => {
+  // B2 fixed: a removal only rewrites the line that held the tag; casing and
+  // untouched lines are preserved verbatim, with a single trailing space.
+  it("preserves casing and untouched lines on remove (B2 fixed)", async () => {
     const { wrapper } = await mountTagEditor({ postTags: "Wolf   Canine\nForest Tree " });
     await toggleTag(wrapper, "canine", false);
-    // Matched line collapsed + lowercased; untouched line lowercased but keeps
-    // its trailing space; an extra " " is appended after the join.
-    expect(textareaValue(wrapper)).toBe("wolf\nforest tree  ");
+    expect(textareaValue(wrapper)).toBe("Wolf\nForest Tree ");
   });
 
-  it("removes the tag from its own line, leaving other groups' content alone (B2 pin)", async () => {
+  it("removes the tag from its own line, leaving other groups' content alone", async () => {
     const { wrapper } = await mountTagEditor({ postTags: "wolf canine\nforest tree " });
     await toggleTag(wrapper, "tree", false);
     expect(textareaValue(wrapper)).toBe("wolf canine\nforest ");
+  });
+
+  it("removes a mid-edit uppercase variant case-insensitively", async () => {
+    const { wrapper } = await mountTagEditor({ postTags: "Wolf feral " });
+    await toggleTag(wrapper, "wolf", false);
+    expect(textareaValue(wrapper)).toBe("feral ");
   });
 
   it("reflects toggles back into the related item's active state", async () => {

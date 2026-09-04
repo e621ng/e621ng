@@ -1,7 +1,7 @@
 <template>
   <div>
     <textarea class="tag-textarea" id="post_tag_string" v-model="tags" rows="5" data-autocomplete="tag-edit"
-      ref="otherTags" name="post[tag_string]" :spellcheck="false" @keyup="updateTagCount"></textarea>
+      ref="otherTags" name="post[tag_string]" :spellcheck="false"></textarea>
     <tag-preview :tags="tags" />
     <div class="related-tag-functions">
       Related:
@@ -22,9 +22,9 @@
 </template>
 
 <script>
-import { nextTick } from 'vue';
 import relatedTags from "@/pages/uploads/new/related.vue";
 import tagPreview from "@/pages/uploads/new/tag_preview.vue";
+import { addTagGrouped, removeTagGrouped } from "@/pages/uploads/new/tag_field.js";
 import Post from '../posts';
 import Autocomplete from "@/components/autocomplete";
 import CurrentUser from "@/models/CurrentUser";
@@ -38,11 +38,6 @@ export default {
   },
   data() {
     return {
-      preview: {
-        loading: false,
-        show: false,
-        tags: []
-      },
       expandRelated: true,
       tags: window.uploaderSettings.postTags,
       relatedTags: [],
@@ -69,45 +64,20 @@ export default {
       return this.expandRelated ? "<<" : ">>";
     }
   },
-  methods: {
-    updateTagCount() {
+  watch: {
+    // Covers typing, autocomplete inserts (mouse included), paste, and pushTag.
+    // Not immediate: the initial count is triggered by the e6ng:vue-mounted
+    // handshake in posts.js.
+    tags() {
       Post.update_tag_count();
-    },
+    }
+  },
+  methods: {
     toggleRelated() {
       this.expandRelated = !this.expandRelated;
     },
     pushTag(tag, add) {
-      this.preview.show = false;
-      if (add) {
-        const tags = this.tags.toLowerCase().trim().replace(/\r?\n|\r/g, ' ').split(' ');
-        if (tags.indexOf(tag) === -1) {
-          // Ensure that input ends with a space, and if not, add one.
-          if (this.tags.length && (this.tags[this.tags.length - 1] !== ' '))
-            this.tags += ' ';
-          this.tags += tag + ' ';
-        }
-      } else {
-        const groups = this.tags.toLowerCase().split(/\r?\n|\r/g);
-        for (let i = 0; i < groups.length; ++i) {
-          const tags = groups[i].trim().split(' ').filter(function (e) {
-            return e.trim().length
-          });
-          const tagIdx = tags.indexOf(tag);
-          if (add) {
-            if (tagIdx === -1)
-              tags.push(tag);
-          } else {
-            if (tagIdx === -1)
-              continue;
-            tags.splice(tagIdx, 1);
-          }
-          groups[i] = tags.join(' ');
-        }
-        this.tags = groups.join('\n') + ' ';
-      }
-      nextTick(function () {
-        Post.update_tag_count();
-      })
+      this.tags = add ? addTagGrouped(this.tags, tag) : removeTagGrouped(this.tags, tag);
     },
     async findRelated(categoryName) {
       const categoryId = categoryName ? TagCategories.idFor(categoryName) : undefined;
