@@ -3,7 +3,7 @@ import { setMeta } from "../helpers";
 
 // The helper reads the meta eagerly at import, so seed the meta first, then import fresh.
 async function freshTC () {
-  return (await import("@/components/autocomplete/TagCategories")).default;
+  return (await import("@/utility/TagCategories")).default;
 }
 
 describe("TagCategories", () => {
