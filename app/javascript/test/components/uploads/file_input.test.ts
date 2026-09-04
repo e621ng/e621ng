@@ -25,7 +25,8 @@ async function mountFileInput (opts: { maxFileSize?: number, maxFileSizes?: Reco
 }
 
 const urlInput = (w: VueWrapper) => w.find("input[placeholder='Paste image URL']");
-const lastEmit = (w: VueWrapper, name: string) => w.emitted(name)?.at(-1)?.[0];
+// Single contract: { value, preview, invalid } on each `change`.
+const lastChange = (w: VueWrapper) => w.emitted("change")?.at(-1)?.[0] as any;
 
 async function selectFile (w: VueWrapper, file: File) {
   const input = w.find("#file-input");
@@ -44,7 +45,13 @@ describe("uploads/file_input — direct URL checks", () => {
     const box = w.find(".linkinput-wrapper .background-red");
     expect(box.exists()).toBe(true);
     expect(box.text()).toContain(reason);
-    expect(lastEmit(w, "invalidUploadValueChanged")).toBe(true);
+    expect(lastChange(w).invalid).toBe(true);
+  });
+
+  it("emits a valid file state on a fresh mount", async () => {
+    vi.spyOn($, "getJSON").mockReturnValue(undefined as any);
+    const w = await mountFileInput();
+    expect(lastChange(w)).toEqual({ value: "", preview: { url: "", isVideo: false }, invalid: false });
   });
 
   it("accepts a plain image URL and emits a preview", async () => {
@@ -52,8 +59,8 @@ describe("uploads/file_input — direct URL checks", () => {
     const w = await mountFileInput();
     await urlInput(w).setValue("https://example.com/art.png");
     expect(w.find(".linkinput-wrapper .background-red").exists()).toBe(false);
-    expect(lastEmit(w, "uploadValueChanged")).toBe("https://example.com/art.png");
-    expect(lastEmit(w, "previewChanged")).toEqual({ url: "https://example.com/art.png", isVideo: false });
+    expect(lastChange(w).value).toBe("https://example.com/art.png");
+    expect(lastChange(w).preview).toEqual({ url: "https://example.com/art.png", isVideo: false });
   });
 
   it("shows the whitelist verdict returned by the server", async () => {
@@ -74,8 +81,8 @@ describe("uploads/file_input — file size", () => {
     const w = await mountFileInput({ maxFileSizes: { png: 10 } });
     await selectFile(w, new File([new ArrayBuffer(200)], "big.png", { type: "image/png" }));
     expect(w.find(".fileinput-wrapper .background-red").text()).toContain("too large");
-    expect(lastEmit(w, "invalidUploadValueChanged")).toBe(true);
-    expect(lastEmit(w, "uploadValueChanged")).toBeInstanceOf(File);
+    expect(lastChange(w).invalid).toBe(true);
+    expect(lastChange(w).value).toBeInstanceOf(File);
   });
 
   it("falls back to the global limit when the extension is unmapped", async () => {
@@ -88,6 +95,6 @@ describe("uploads/file_input — file size", () => {
     const w = await mountFileInput({ maxFileSizes: { png: 1000 } });
     await selectFile(w, new File([new ArrayBuffer(200)], "ok.png", { type: "image/png" }));
     expect(w.find(".fileinput-wrapper .background-red").exists()).toBe(false);
-    expect(lastEmit(w, "previewChanged")).toEqual({ url: "blob:mock", isVideo: false });
+    expect(lastChange(w).preview).toEqual({ url: "blob:mock", isVideo: false });
   });
 });

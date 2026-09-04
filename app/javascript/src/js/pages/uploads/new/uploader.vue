@@ -7,9 +7,7 @@
                     <div class="hint"><a href="/help/supported_filetypes">Supported Formats</a></div>
                 </div>
                 <div class="col2">
-                  <file-input @uploadValueChanged="uploadValue = $event"
-                    @previewChanged="previewData = $event"
-                    @invalidUploadValueChanged="invalidUploadValue = $event"></file-input>
+                  <file-input @change="onFileChange"></file-input>
                 </div>
             </div>
             <file-preview classes="box-section in-editor below-upload" :data="previewData"></file-preview>
@@ -375,6 +373,11 @@
       new DTextFormatter($(".dtext-formatter.pending"));
     },
     methods: {
+      onFileChange({ value, preview, invalid }) {
+        this.uploadValue = value;
+        this.previewData = preview;
+        this.invalidUploadValue = invalid;
+      },
       // ===== Tag-source coordinator =====
       // markRaw keeps descriptors out of the reactive proxy so `unregisterSource`
       // can match them by identity (a proxied element would never === the raw

@@ -1,6 +1,5 @@
 <template>
-  <file-input @previewChanged="previewData = $event"
-    @uploadValueChanged="uploadValue = $event"></file-input>
+  <file-input @change="onFileChange"></file-input>
   <br>
 
   <div class="input">
@@ -92,6 +91,10 @@ export default {
     }
   },
   methods: {
+    onFileChange({ value, preview }) {
+      this.uploadValue = value;
+      this.previewData = preview;
+    },
     submit: function() {
       this.showErrors = true;
       if(this.preventUpload || this.submitting) {
