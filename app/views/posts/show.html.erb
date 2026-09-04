@@ -230,12 +230,6 @@
         <%= render "staff/post/posts/reowner_dialog" %>
       <% end %>
     </div>
-
-    <%= javascript_tag nonce: true do -%>
-      var uploaderSettings = {
-        postTags: <%= (@post.presenter.categorized_tag_list_text + " ").to_json.html_safe %>
-      };
-      <% end -%>
   <% end %>
   <% if @fixup_post_url %>
     <%= javascript_tag nonce: true do -%>

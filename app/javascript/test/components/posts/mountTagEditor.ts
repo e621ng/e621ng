@@ -25,10 +25,10 @@ export interface RelatedTagRecord {
 }
 
 export interface MountTagEditorOptions {
-  // window.uploaderSettings.postTags — the initial textarea value. The server
-  // ships categorized_tag_list_text + " " (newline-grouped, trailing space).
+  // Root props, normally provided by the RelatedTag.ts bootstrap.
+  // postTags = the initial textarea value; the server ships
+  // categorized_tag_list_text + " " (newline-grouped, trailing space).
   postTags?: string;
-  // window.uploaderSettings side-channel consumed by related.vue's fallback
   uploadTags?: RelatedTagRecord[];
   recentTags?: RelatedTagRecord[];
   // CurrentUser.settings.autocomplete — gates the autocomplete init in mounted()
@@ -63,7 +63,6 @@ const wrappers: VueWrapper[] = [];
 /** Call in each test file's afterEach to tear down mounted editors. */
 export function unmountAll (): void {
   for (const wrapper of wrappers.splice(0)) wrapper.unmount();
-  delete (window as any).uploaderSettings;
 }
 
 export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise<MountedTagEditor> {
@@ -80,15 +79,6 @@ export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise
     can: {},
     settings: { autocomplete: opts.autocomplete ?? true },
   });
-
-  // The inline-script global posts/show.html.erb emits (postTags) plus the two
-  // arrays RelatedTag.ts stuffs in for related.vue's fallback. This is the exact
-  // surface the G1 globals cleanup will delete — the pins live on it on purpose.
-  (window as any).uploaderSettings = {
-    postTags: opts.postTags ?? "wolf canine\nforest tree ",
-    uploadTags: opts.uploadTags ?? [],
-    recentTags: opts.recentTags ?? [],
-  };
 
   // Disable the tag-preview auto-fetch so its 1s debounce can't fire after the
   // component unmounts. (LStorage serializes booleans as JSON.)
@@ -133,7 +123,14 @@ export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise
   initializeAutocomplete.mockClear();
 
   const TagEditor = (await import("@/pages/posts/show/tag_editor.vue")).default;
-  const wrapper = mount(TagEditor, { attachTo: document.body });
+  const wrapper = mount(TagEditor, {
+    attachTo: document.body,
+    props: {
+      postTags: opts.postTags ?? "wolf canine\nforest tree ",
+      uploadTags: opts.uploadTags ?? [],
+      recentTags: opts.recentTags ?? [],
+    },
+  });
   wrappers.push(wrapper);
 
   // Settle the 20ms focus/auto-height timer from mounted() while the component
@@ -144,7 +141,6 @@ export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise
 
   const restore = () => {
     wrapper.unmount();
-    delete (window as any).uploaderSettings;
   };
 
   return { wrapper, fetchCalls, updateTagCount, initializeAutocomplete, restore };

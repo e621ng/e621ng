@@ -16,7 +16,7 @@
     <div>
       <h3>Related Tags <a href="#" @click.prevent="toggleRelated">{{ relatedText }}</a></h3>
       <related-tags v-show="expandRelated" :tags="tagsArray" :related="relatedTags" :loading="loadingRelated"
-        @tag-active="pushTag"></related-tags>
+        :uploaded-tags="uploadTags" :recent-tags="recentTags" @tag-active="pushTag"></related-tags>
     </div>
   </div>
 </template>
@@ -36,10 +36,17 @@ export default {
     'related-tags': relatedTags,
     'tag-preview': tagPreview
   },
+  // Root props, provided by the RelatedTag.ts bootstrap (postTags from the
+  // mount div's data attribute, the tag lists from /users/upload_tags.json).
+  props: {
+    postTags: { type: String, default: "" },
+    uploadTags: { type: Array, default: () => [] },
+    recentTags: { type: Array, default: () => [] },
+  },
   data() {
     return {
       expandRelated: true,
-      tags: window.uploaderSettings.postTags,
+      tags: this.postTags,
       relatedTags: [],
       lastRelatedCategoryId: undefined,
       loadingRelated: false,

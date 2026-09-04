@@ -1,3 +1,4 @@
+import HTTP from "@/utility/HTTP";
 import Toast from "@/utility/Toast";
 
 export default class RelatedTag {
@@ -11,15 +12,17 @@ export default class RelatedTag {
     const [{ createApp }, { default: TagEditor }, uploadTagsData] = await Promise.all([
       import("vue"),
       import("./tag_editor.vue"),
-      $.getJSON("/users/upload_tags.json").catch(() => {
+      HTTP.getJSON("/users/upload_tags.json").catch(() => {
         Toast.alert("Failed to load upload tags. Please refresh the page.");
       }),
     ]);
 
-    window["uploaderSettings"].uploadTags = uploadTagsData?.upload_tags || [];
-    window["uploaderSettings"].recentTags = uploadTagsData?.recent_tags || [];
-
-    const app = createApp(TagEditor);
+    const mountPoint = document.getElementById("tag-string-editor");
+    const app = createApp(TagEditor, {
+      postTags: mountPoint?.dataset.tags ?? "",
+      uploadTags: uploadTagsData?.upload_tags ?? [],
+      recentTags: uploadTagsData?.recent_tags ?? [],
+    });
     app.mount("#tag-string-editor");
     $("#tag-string-editor")
       .removeClass("pending")
@@ -32,4 +35,3 @@ $(function () {
     RelatedTag.init_post_show_editor().catch(console.error);
   });
 });
-

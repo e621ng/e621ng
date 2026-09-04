@@ -17,12 +17,12 @@
   export default {
     props: ['tags', 'related', 'loading', 'uploadedTags', 'recentTags'],
     data: function () {
-      // uploads#new passes these as props (from the UploadData model). On posts#show the
-      // component is mounted without them and falls back to the legacy global, which
-      // RelatedTag.ts populates before mount. Sort a copy so the source array is untouched.
+      // Both consumers pass these as props (uploads#new from the UploadData
+      // model, posts#show from the bootstrap). Sort a copy so the source array
+      // is untouched.
       return {
-        uploaded: this.uploadedTags ?? (window.uploaderSettings?.uploadTags || []),
-        recent: (this.recentTags ?? (window.uploaderSettings?.recentTags || [])).slice().sort(tagSorter),
+        uploaded: this.uploadedTags ?? [],
+        recent: (this.recentTags ?? []).slice().sort(tagSorter),
       };
     },
     methods: {
