@@ -29,6 +29,7 @@
 
 <script>
 import TagCategories from "@/utility/TagCategories";
+import HTTP from "@/utility/HTTP";
 
 export default {
   name: 'ArtistTagInput',
@@ -63,10 +64,7 @@ export default {
 
     async fetchTagsByName(tagNames) {
       try {
-        const params = new URLSearchParams({ 'search[name]': tagNames.join(','), 'search[hide_empty]': 'false' });
-        const response = await fetch(`/tags.json?${params}`);
-        if (!response.ok) return {};
-        const data = await response.json();
+        const data = await HTTP.getJSON('/tags.json', { 'search[name]': tagNames.join(','), 'search[hide_empty]': 'false' });
         const map = Object.create(null);
         for (const tag of data) map[tag.name] = tag;
         return map;
@@ -77,10 +75,7 @@ export default {
 
     async fetchAliases(tagNames) {
       try {
-        const params = new URLSearchParams({ 'search[status]': 'active', 'search[antecedent_name]': tagNames.join(',') });
-        const response = await fetch(`/tag_aliases.json?${params}`);
-        if (!response.ok) return {};
-        const data = await response.json();
+        const data = await HTTP.getJSON('/tag_aliases.json', { 'search[status]': 'active', 'search[antecedent_name]': tagNames.join(',') });
         const map = Object.create(null);
         for (const alias of data) map[alias.antecedent_name] = alias.consequent_name;
         return map;
