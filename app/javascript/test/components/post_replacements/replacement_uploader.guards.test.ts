@@ -100,6 +100,13 @@ describe("post_replacements/replacement_uploader — guards", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
+  it("does not toggle 'no available source' when the section caption is clicked", async () => {
+    const { wrapper } = await mountReplacementUploader();
+    const caption = wrapper.findAll("label").find((l) => l.text().startsWith("Additional Source"))!;
+    await caption.trigger("click");
+    expect((wrapper.find("#no_source").element as HTMLInputElement).checked).toBe(false);
+  });
+
   it("shows no error box before a submission has failed", async () => {
     const { wrapper } = await mountReplacementUploader();
     expect(wrapper.find(".error_message").exists()).toBe(false);

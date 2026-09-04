@@ -53,9 +53,9 @@ describe("post_replacements/replacement_uploader — submit payload", () => {
     expect("X-CSRF-Token" in (init.headers as object)).toBe(true);
   });
 
-  it("sends a literal 'null' post_id when the page URL has none", async () => {
+  it("omits post_id from the request when the page URL has none", async () => {
     const { url } = await submitAndCapture({ postId: null });
-    expect(url).toBe("/post_replacements.json?post_id=null");
+    expect(url).toBe("/post_replacements.json");
   });
 
   it("sends a direct URL (string upload value) rather than a file", async () => {

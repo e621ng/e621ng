@@ -12,7 +12,7 @@ import { setSiteData } from "../../helpers";
 export interface MountReplacementUploaderOptions {
   // CurrentUser (#site-user) → canApprove (renders the as-pending checkbox)
   approver?: boolean;
-  // ?post_id= in the page URL; submit() re-reads it from location.search.
+  // ?post_id= in the page URL, read once at mount.
   // Defaults to "123"; pass null to omit the parameter entirely.
   postId?: string | null;
   // Additional query parameters (additional_source, reason)

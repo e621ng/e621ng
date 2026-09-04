@@ -6,10 +6,8 @@
   <br>
 
   <div class="input">
-    <label>
-      Additional Source
-      <sources :maxSources="1" :showErrors="showErrors" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:noSource="noSource" v-model:sources="sources"></sources>
-    </label>
+    <label>Additional Source</label>
+    <sources :maxSources="1" :showErrors="showErrors" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:noSource="noSource" v-model:sources="sources"></sources>
     <span class="hint">The submission page the replacement file came from</span>
   </div>
 
@@ -36,7 +34,7 @@
     </label>
   </div>
 
-  <div class="background-red error_message" v-if="showErrors && errorMessage !== undefined">
+  <div class="background-red error_message" v-if="errorMessage">
     {{ errorMessage }}
   </div>
 
@@ -70,6 +68,7 @@ export default {
       },
       sources: [""],
       noSource: false,
+      postId: null,
       uploadValue: "",
       invalidUploadValue: false,
       reason: "",
@@ -85,6 +84,8 @@ export default {
   },
   mounted() {
     const params = new URLSearchParams(window.location.search);
+    this.postId = params.get("post_id");
+
     if (params.has("additional_source"))
       this.sources = [params.get("additional_source")];
 
@@ -123,8 +124,8 @@ export default {
       formData.append("post_replacement[reason]", this.reason);
       formData.append("post_replacement[as_pending]", this.uploadAsPending);
 
-      const postId = new URLSearchParams(window.location.search).get("post_id");
-      const outcome = await submitUploadForm("/post_replacements.json?post_id=" + postId, formData);
+      const url = this.postId ? `/post_replacements.json?post_id=${this.postId}` : "/post_replacements.json";
+      const outcome = await submitUploadForm(url, formData);
 
       if (outcome.kind === "success") {
         // Only a successful submission earns the reason a datalist entry.
