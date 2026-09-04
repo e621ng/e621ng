@@ -20,7 +20,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" @noSource="noSource = $event"></sources>
+                    <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:noSource="noSource"></sources>
                 </div>
             </div>
             <template v-if="!compactMode">

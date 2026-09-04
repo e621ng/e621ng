@@ -11,13 +11,15 @@ afterEach(() => {
 // fresh array and never mutates the prop. The harness feeds those emits back into
 // props (as the real parent's `v-model:sources` does), so downstream computeds and
 // re-renders react; the list contract itself is asserted via the emitted array.
-function make (overrides: { sources?: string[], maxSources?: number, showErrors?: boolean } = {}) {
+function make (overrides: { sources?: string[], maxSources?: number, showErrors?: boolean, noSource?: boolean } = {}) {
   const wrapper: VueWrapper = mount(Sources, {
     props: {
       "sources": overrides.sources ?? [""],
       "maxSources": overrides.maxSources ?? 10,
       "showErrors": overrides.showErrors ?? true,
+      "noSource": overrides.noSource ?? false,
       "onUpdate:sources": (v: string[]) => wrapper.setProps({ sources: v }),
+      "onUpdate:noSource": (v: boolean) => wrapper.setProps({ noSource: v }),
     },
     attachTo: document.body,
   });
@@ -53,16 +55,19 @@ describe("uploads/sources", () => {
     it("is suppressed by the no-source checkbox, which also hides the source list", async () => {
       const { wrapper } = make();
       await wrapper.find("#no_source").setValue(true);
+      await flushPromises();
       expect(lastEmitted(wrapper, "missingSourceWarning")).toBe(false);
       expect(wrapper.find(".upload-source-list").exists()).toBe(false);
     });
 
-    it("emits the no-source flag when the checkbox toggles", async () => {
+    it("emits the no-source flag (v-model) when the checkbox toggles", async () => {
       const { wrapper } = make();
       await wrapper.find("#no_source").setValue(true);
-      expect(lastEmitted(wrapper, "noSource")).toBe(true);
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:noSource")).toBe(true);
       await wrapper.find("#no_source").setValue(false);
-      expect(lastEmitted(wrapper, "noSource")).toBe(false);
+      await flushPromises();
+      expect(lastEmitted(wrapper, "update:noSource")).toBe(false);
     });
 
     it("shows the warning box only when showErrors is set", async () => {
@@ -107,6 +112,7 @@ describe("uploads/sources", () => {
       const { wrapper } = make({ sources: ["not a url"] });
       expect(lastEmitted(wrapper, "nonUrlSourceWarning")).toBe(true);
       await wrapper.find("#no_source").setValue(true);
+      await flushPromises();
       expect(lastEmitted(wrapper, "nonUrlSourceWarning")).toBe(false);
     });
   });
