@@ -37,7 +37,8 @@ export default {
       for (const input of this.tagsArray) {
         const tag = this.tagCache[input];
         if (tag) {
-          result.push(tag);
+          // Copy so the duplicate/impliedBy flags below never write through to the cache.
+          result.push({ ...tag });
 
           if (tag.implies && Array.isArray(tag.implies)) {
             for (const implication of tag.implies) {
