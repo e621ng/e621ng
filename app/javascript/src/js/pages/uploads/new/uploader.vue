@@ -530,7 +530,7 @@
         const selectedTags = getSelectedTags();
         const params = selectedTags ? {query: selectedTags} : {query: this.tags};
 
-        if (categoryId)
+        if (categoryId != null)
           params['category_id'] = categoryId;
         try {
           const data = await HTTP.getJSON("/related_tag/bulk.json", params);
