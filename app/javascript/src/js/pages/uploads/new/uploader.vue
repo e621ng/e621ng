@@ -214,6 +214,7 @@
 
 <script>
   import { markRaw } from "vue";
+  import HTTP from "@/utility/HTTP";
   import ToastManager from "@/utility/Toast";
   import sources from './sources.vue';
   import checkboxSource from './checkbox_source.vue';
@@ -398,7 +399,7 @@
         return this.registry.sources.find(s => s.role === role)
           || this.registry.sources.find(s => s.isSink);
       },
-      submit() {
+      async submit() {
         this.showErrors = true;
         this.error = '';
         if (this.preventUpload || this.submitting)
@@ -422,63 +423,48 @@
           data.append('upload[locked_rating]', this.ratingLocked);
         if (this.allowUploadAsPending)
           data.append('upload[as_pending]', this.uploadAsPending);
-        jQuery.ajax('/uploads.json', {
-          contentType: false,
-          processData: false,
-          method: 'POST',
-          type: 'POST',
-          data: data,
-          success(data) {
+        try {
+          const response = await HTTP.request('/uploads.json', { method: 'POST', body: data });
+
+          if (response.ok) {
+            const body = await response.json();
             self.submitting = false;
             self.allowNavigate = true;
             ToastManager.notice('Post uploaded successfully.');
-            location.assign(data.location);
-          },
-          error(response, textStatus, errorThrown) {
-            console.log('Error uploading post:', textStatus, errorThrown);
-            if (textStatus === "error") textStatus = "unknown";
-
-            console.log(`Status: ${response.status} ${response.statusText}`);
-            console.log("Response:", response.responseText);
-            console.log(response);
-
-            self.submitting = false;
-
-            // Cloudflare
-            const cfRay = response.getResponseHeader('cf-ray');
-            if (cfRay) console.log(`Cloudflare Ray ID: ${cfRay}`);
-
-            const cfMitigated = (response.getResponseHeader('cf-mitigated') || '').trim().toLowerCase();
-            const serverHeader = (response.getResponseHeader('server') || '').trim().toLowerCase();
-            if (cfMitigated.includes('challenge')) {
-              self.error = 'Error: The upload was blocked by a security challenge. Please try again in a moment.';
-              return;
-            }
-            if (response.status === 403 && (serverHeader.includes('cloudflare') || !!cfRay)) {
-              self.error = 'Error: The upload was blocked by Cloudflare (403). Please try again in a moment.';
-              return;
-            }
-
-            // Try to extract useful info from the JSON response
-            try {
-              const jsonData = response.responseJSON;
-              if (!jsonData) throw new Error("No JSON data returned from server.");
-              else console.log(jsonData);
-
-              if (jsonData && jsonData.reason === 'duplicate') self.duplicateId = jsonData.post_id;
-              if (jsonData && ['duplicate', 'invalid'].indexOf(jsonData.reason) !== -1) {
-                self.error = jsonData.message;
-              } else if (jsonData && jsonData.message) {
-                self.error = 'Error: ' + jsonData.message;
-              } else {
-                self.error = 'Error: ' + jsonData.reason;
-              }
-            } catch (error) {
-              console.log("An error occurred:", error);
-              self.error = `Error: ${[textStatus, errorThrown].filter(n => n).join(" ")}. Check the browser console for details.`;
-            }
+            location.assign(body.location);
+            return;
           }
-        });
+
+          self.submitting = false;
+
+          // Cloudflare
+          const cfRay = response.headers.get('cf-ray');
+          const cfMitigated = (response.headers.get('cf-mitigated') || '').trim().toLowerCase();
+          const serverHeader = (response.headers.get('server') || '').trim().toLowerCase();
+          if (cfMitigated.includes('challenge')) {
+            self.error = 'Error: The upload was blocked by a security challenge. Please try again in a moment.';
+            return;
+          }
+          if (response.status === 403 && (serverHeader.includes('cloudflare') || !!cfRay)) {
+            self.error = 'Error: The upload was blocked by Cloudflare (403). Please try again in a moment.';
+            return;
+          }
+
+          // A non-JSON error body rejects here → generic fallback (matches the old `if(!jsonData) throw`).
+          const jsonData = await response.json();
+          if (jsonData.reason === 'duplicate') self.duplicateId = jsonData.post_id;
+          if (['duplicate', 'invalid'].indexOf(jsonData.reason) !== -1) {
+            self.error = jsonData.message;
+          } else if (jsonData.message) {
+            self.error = 'Error: ' + jsonData.message;
+          } else {
+            self.error = 'Error: ' + jsonData.reason;
+          }
+        } catch (error) {
+          self.submitting = false;
+          console.error('Error uploading post:', error);
+          self.error = 'Error: The upload could not be completed. Check the browser console for details.';
+        }
       },
       // Related-tag toggle: route the tag to its owning source, else the sink.
       pushTag(tag, add) {
@@ -507,7 +493,7 @@
         const target = this.routeByRole(role);
         if (target) target.addTags(deduped);
       },
-      findRelated(categoryId) {
+      async findRelated(categoryId) {
         const self = this;
         if (self.loadingRelated)
           return;
@@ -542,12 +528,15 @@
 
         if (categoryId)
           params['category_id'] = categoryId;
-        $.getJSON("/related_tag/bulk.json", params, function (data) {
+        try {
+          const data = await HTTP.getJSON("/related_tag/bulk.json", params);
           self.relatedTags = convertResponse(data);
           self.lastRelatedCategoryId = categoryId;
-        }).always(function () {
+        } catch {
+          // A failed lookup just shows no related tags (relatedTags stays []).
+        } finally {
           self.loadingRelated = false;
-        });
+        }
       },
     },
     computed: {

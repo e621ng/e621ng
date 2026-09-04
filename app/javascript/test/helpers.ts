@@ -35,3 +35,21 @@ export function setMeta (name: string, content: string): void {
   }
   meta.setAttribute("content", content);
 }
+
+/**
+ * A duck-typed fetch Response for mocking `globalThis.fetch`. Only the surface the
+ * uploader consumes: ok/status, case-insensitive headers.get, json(), text().
+ */
+export function jsonResponse (
+  body: unknown,
+  { status = 200, headers = {} }: { status?: number, headers?: Record<string, string> } = {},
+): any {
+  const lower = new Map(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    headers: { get: (name: string) => lower.get(String(name).toLowerCase()) ?? null },
+    json: async () => body,
+    text: async () => (typeof body === "string" ? body : JSON.stringify(body)),
+  };
+}

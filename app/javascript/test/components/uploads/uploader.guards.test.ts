@@ -54,13 +54,13 @@ describe("uploads/uploader — validation guards", () => {
   });
 
   it("lets a fully-satisfied form submit (preventUpload clears)", async () => {
-    const { wrapper, ajax } = await mountUploader();
+    const { wrapper, fetchSpy } = await mountUploader();
     await wrapper.find("#post_tags").setValue("a b c d");
     await wrapper.find(".rating-s").trigger("click");
     await wrapper.find("#no_source").setValue(true); // suppresses the missing-source warning
     await clickSubmit(wrapper);
     // Reached the network layer → all guards passed.
-    expect(ajax).toHaveBeenCalledWith("/uploads.json", expect.anything());
+    expect(fetchSpy).toHaveBeenCalledWith("/uploads.json", expect.anything());
   });
 
   describe("beforeunload warning", () => {

@@ -71,6 +71,7 @@
 
 <script>
 import Settings from "@/utility/Settings";
+import HTTP from "@/utility/HTTP";
 
 export default {
   data() {
@@ -192,14 +193,15 @@ export default {
       catch { domain = ""; }
 
       if (domain && domain !== this.whitelist.oldDomain) {
-        $.getJSON("/upload_whitelists/is_allowed.json", {url: this.uploadURL}, data => {
+        // Non-blocking: the synchronous preview tail below must run regardless.
+        HTTP.getJSON("/upload_whitelists/is_allowed.json", { url: this.uploadURL }).then(data => {
           if (data.domain) {
             this.whitelistWarning(data.is_allowed, data.domain, data.reason);
             if (!data.is_allowed) {
               this.setEmptyThumb();
             }
           }
-        });
+        }).catch(() => {});
       } else if (!domain) {
         this.clearWhitelistWarning();
         this.setEmptyThumb();
