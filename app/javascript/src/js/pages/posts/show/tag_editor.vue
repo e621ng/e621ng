@@ -24,7 +24,7 @@
 <script>
 import relatedTags from "@/pages/uploads/new/related.vue";
 import tagPreview from "@/pages/uploads/new/tag_preview.vue";
-import { addTagGrouped, removeTagGrouped } from "@/pages/uploads/new/tag_field.js";
+import { addTagGrouped, removeTagGrouped, splitTags } from "@/pages/uploads/new/tag_field.js";
 import Post from '../posts';
 import Autocomplete from "@/components/autocomplete";
 import CurrentUser from "@/models/CurrentUser";
@@ -65,7 +65,7 @@ export default {
   },
   computed: {
     tagsArray() {
-      return this.tags.toLowerCase().replace(/\r?\n|\r/g, ' ').split(' ');
+      return splitTags(this.tags.toLowerCase());
     },
     relatedText() {
       return this.expandRelated ? "<<" : ">>";
