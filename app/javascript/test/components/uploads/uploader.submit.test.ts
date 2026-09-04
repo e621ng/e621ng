@@ -146,6 +146,21 @@ describe("uploads/uploader — submit outcomes", () => {
     expect(errorBox(wrapper, "Already uploaded.")?.isVisible()).toBe(true);
   });
 
+  it("clears a stale duplicate banner on the next submit", async () => {
+    const mounted = await mountUploader();
+    await fillValidForm(mounted.wrapper);
+    const dupBanner = () => mounted.wrapper.findAll(".box-section.background-red").find((b) => b.text().includes("is a duplicate of"));
+
+    mounted.fetchSpy.mockResolvedValueOnce(jsonResponse({ reason: "duplicate", post_id: 42, message: "Already uploaded." }, { status: 409 }));
+    await clickSubmit(mounted.wrapper);
+    expect(dupBanner()?.isVisible()).toBe(true);
+
+    // A subsequent non-duplicate failure must clear the duplicate banner.
+    mounted.fetchSpy.mockResolvedValueOnce(jsonResponse({ reason: "invalid", message: "Bad tags." }, { status: 422 }));
+    await clickSubmit(mounted.wrapper);
+    expect(dupBanner()?.isVisible()).toBe(false);
+  });
+
   it("shows the server message for an invalid upload", async () => {
     const { wrapper } = await submitOutcome(jsonResponse({ reason: "invalid", message: "Bad tags." }, { status: 422 }));
     expect(errorBox(wrapper, "Bad tags.")?.isVisible()).toBe(true);
