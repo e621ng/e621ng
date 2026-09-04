@@ -114,13 +114,9 @@
       },
     },
     created() {
-      // Static ownership lookup for this instance's checkbox tags (non-reactive).
+      // Static ownership lookup (non-reactive).
       const allChecks = {};
-      const add = function (check) {
-        if (typeof check['tag'] !== "undefined") allChecks[check.tag] = true;
-        else allChecks[check.name.toLowerCase().replace(' ', '_')] = true;
-      };
-      this.baseGroups.forEach(group => group.forEach(add));
+      this.baseGroups.forEach(group => group.forEach(check => { allChecks[this.tagNameOf(check)] = true; }));
       if (this.pairing) all_pairing_tag_set.forEach(tag => { allChecks[tag] = true; });
       this.allChecks = allChecks;
     },
