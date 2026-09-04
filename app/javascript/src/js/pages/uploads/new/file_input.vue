@@ -92,8 +92,12 @@ export default {
       maxFileSizeMap: Settings.Posts.max_file_sizes,
       disableFileUpload: false,
       disableURLUpload: false,
+      // Retained so `change` can carry the full current selection each time.
+      currentValue: "",
+      currentPreview: { url: "", isVideo: false },
     }
   },
+  emits: ["change"],
   computed: {
     directURLProblem: function () {
       return this.directURLCheck(this.uploadURL);
@@ -117,7 +121,7 @@ export default {
       }
     },
     invalidUploadValue() {
-      this.$emit("invalidUploadValueChanged", this.invalidUploadValue);
+      this.emitChange();
     }
   },
   methods: {
@@ -233,13 +237,23 @@ export default {
       );
     },
     uploadValueChanged(value) {
-      this.$emit("uploadValueChanged", value);
+      this.currentValue = value;
+      this.emitChange();
     },
     setEmptyThumb()  {
       this.previewChanged("", false);
     },
     previewChanged(url, isVideo) {
-      this.$emit("previewChanged", { url: url, isVideo: isVideo });
+      this.currentPreview = { url: url, isVideo: isVideo };
+      this.emitChange();
+    },
+    // Single contract: the current value + preview + validity, emitted whenever any changes.
+    emitChange() {
+      this.$emit("change", {
+        value: this.currentValue,
+        preview: this.currentPreview,
+        invalid: this.invalidUploadValue,
+      });
     },
   }
 }

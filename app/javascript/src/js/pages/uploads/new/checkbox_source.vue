@@ -2,8 +2,8 @@
   <template v-for="(group, gi) in renderGroups" :key="gi">
     <hr v-if="gi > 0">
     <div class="flex-wrap">
-      <image-checkbox :check="check" :checks="selected" v-for="check in group"
-                      @set="setCheck" :key="check.name"></image-checkbox>
+      <image-checkbox :check="check" :model-value="!!selected[tagNameOf(check)]" v-for="check in group"
+                      @update:model-value="setCheck(tagNameOf(check), $event)" :key="check.name"></image-checkbox>
     </div>
   </template>
 </template>
@@ -80,6 +80,10 @@
       },
     },
     methods: {
+      // Tag name for a checkbox (derivation formerly lived in checkbox.vue).
+      tagNameOf(check) {
+        return check.tag || check.name.toLowerCase().replace(/ /g, "_");
+      },
       setCheck(tag, value) {
         this.selected[tag] = value;
         if (!value && this.pairing) {
