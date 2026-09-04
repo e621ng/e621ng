@@ -16,20 +16,19 @@ describe("posts/tag_editor — tag count wiring", () => {
     expect(updateTagCount).not.toHaveBeenCalled();
   });
 
-  it("updates the count on keyup", async () => {
-    const { wrapper, updateTagCount } = await mountTagEditor();
-    updateTagCount.mockClear();
-    await wrapper.find("textarea").trigger("keyup");
-    expect(updateTagCount).toHaveBeenCalled();
-  });
-
-  // B1 pin: autocomplete's insert() and context-menu paste dispatch `input`
-  // (which v-model consumes) but no keyup — and today the count does NOT
-  // refresh. The fix (watching `tags` instead of @keyup) flips this pin.
-  it("does not update the count on input events alone (B1 pin)", async () => {
+  // B1 fixed: the count follows the tag string itself (a watch), so every input
+  // method — typing, mouse-driven autocomplete inserts, paste — updates it.
+  it("updates the count on any value change (B1 fixed)", async () => {
     const { wrapper, updateTagCount } = await mountTagEditor();
     updateTagCount.mockClear();
     await wrapper.find("textarea").setValue("wolf canine feral");
+    expect(updateTagCount).toHaveBeenCalled();
+  });
+
+  it("does not update the count on a keyup without a value change", async () => {
+    const { wrapper, updateTagCount } = await mountTagEditor();
+    updateTagCount.mockClear();
+    await wrapper.find("textarea").trigger("keyup");
     expect(updateTagCount).not.toHaveBeenCalled();
   });
 
@@ -39,5 +38,27 @@ describe("posts/tag_editor — tag count wiring", () => {
     (wrapper.findComponent(".related-tags") as any).vm.$emit("tag-active", "feral", true);
     await flushPromises();
     expect(updateTagCount).toHaveBeenCalled();
+  });
+
+  // Post-flush pin: update_tag_count reads the textarea DOM (posts.js), so the
+  // watcher must run AFTER the re-render. A pre-flush watcher fires between the
+  // data change and the DOM patch, counting the stale value on programmatic
+  // changes like pushTag. The suite's mock is otherwise blind to this — so this
+  // pin captures what the DOM held at call time.
+  it("runs the count only after the textarea DOM has updated (post-flush pin)", async () => {
+    const { wrapper, updateTagCount } = await mountTagEditor({ postTags: "wolf " });
+    updateTagCount.mockClear();
+    let seenAtCallTime: string | undefined;
+    updateTagCount.mockImplementation(() => {
+      seenAtCallTime = (wrapper.find("textarea").element as HTMLTextAreaElement).value;
+    });
+
+    (wrapper.findComponent(".related-tags") as any).vm.$emit("tag-active", "feral", true);
+    await flushPromises();
+    expect(seenAtCallTime).toBe("wolf feral ");
+
+    // The mocked fn is file-shared (memoized vi.mock factory) — drop the
+    // implementation so it can't leak into other tests.
+    updateTagCount.mockReset();
   });
 });
