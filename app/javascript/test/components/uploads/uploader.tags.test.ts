@@ -114,12 +114,10 @@ describe("uploads/uploader — tag assembly", () => {
       expect(tagsOf(wrapper)).toBe("a b c");
     });
 
-    // Pins the current .replace(',', ' ') behaviour: only the FIRST comma is
-    // replaced. This is a known quirk — characterised, not endorsed.
-    it("replaces only the first comma with a space", async () => {
+    it("replaces every comma with a space", async () => {
       const { wrapper } = await mountUploader();
       await wrapper.find("#post_tags").setValue("a,b,c");
-      expect(tagsOf(wrapper)).toBe("a b,c");
+      expect(tagsOf(wrapper)).toBe("a b c");
     });
   });
 
