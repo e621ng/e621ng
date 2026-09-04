@@ -1,4 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { vi } from "vitest";
+
+vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
+
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { htmlResponse, jsonResponse } from "../../helpers";
 import { MountReplacementUploaderOptions, mountReplacementUploader, provideUploadValue, unmountAll } from "./mountReplacementUploader";
@@ -127,6 +131,12 @@ describe("post_replacements/replacement_uploader — submit outcomes", () => {
     const { wrapper } = await submitOutcome(jsonResponse({ location: "/x" }));
     expect(submitButton(wrapper).text()).toBe("Uploading...");
     expect(submitButton(wrapper).attributes("disabled")).toBeDefined();
+  });
+
+  it("toasts on success", async () => {
+    await submitOutcome(jsonResponse({ location: "/x" }));
+    const Toast = (await import("@/utility/Toast")).default;
+    expect(Toast.notice).toHaveBeenCalledWith("Replacement submitted successfully.");
   });
 
   it("persists the reason to the autocomplete datalist storage on success", async () => {

@@ -51,7 +51,15 @@ import filePreview from "@/pages/uploads/new/file_preview.vue";
 import fileInput from "@/pages/uploads/new/file_input.vue";
 import sources from "@/pages/uploads/new/sources.vue";
 import CurrentUser from "@/models/CurrentUser";
+import ToastManager from "@/utility/Toast";
 import { submitUploadForm } from "@/utility/UploadSubmission";
+
+function unloadWarning () {
+  if (this.allowNavigate || (this.uploadValue === "" && this.reason === "")) {
+    return;
+  }
+  return true;
+}
 
 export default {
   components: {
@@ -77,12 +85,16 @@ export default {
       missingSourceWarning: false,
       nonUrlSourceWarning: false,
       submitting: false,
+      allowNavigate: false,
       submittedReason: undefined,
       canApprove: CurrentUser.can.approvePosts,
       uploadAsPending: false,
     };
   },
   mounted() {
+    this.unloadHandler = unloadWarning.bind(this);
+    window.onbeforeunload = this.unloadHandler;
+
     const params = new URLSearchParams(window.location.search);
     this.postId = params.get("post_id");
 
@@ -91,6 +103,11 @@ export default {
 
     if (params.has("reason"))
       this.reason = params.get("reason");
+  },
+  beforeUnmount() {
+    // Release the unload guard, but only if it's still ours.
+    if (window.onbeforeunload === this.unloadHandler)
+      window.onbeforeunload = null;
   },
   computed: {
     noUpload() {
@@ -130,6 +147,8 @@ export default {
       if (outcome.kind === "success") {
         // Only a successful submission earns the reason a datalist entry.
         this.submittedReason = this.reason;
+        this.allowNavigate = true;
+        ToastManager.notice("Replacement submitted successfully.");
         location.assign(outcome.body.location);
         return;
       }
