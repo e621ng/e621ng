@@ -1,4 +1,7 @@
 <template>
+  <div class="box-section background-red" v-if="showErrors && noUpload">
+    You must provide a file or a URL to upload.
+  </div>
   <file-input @change="onFileChange"></file-input>
   <br>
 
@@ -67,6 +70,7 @@ export default {
       sources: [""],
       noSource: false,
       uploadValue: "",
+      invalidUploadValue: false,
       reason: "",
       errorMessage: undefined,
       showErrors: false,
@@ -87,14 +91,19 @@ export default {
       this.reason = params.get("reason");
   },
   computed: {
+    noUpload() {
+      // Empty string = nothing provided; a URL string or a File is truthy.
+      return !this.uploadValue;
+    },
     preventUpload() {
-      return this.missingSourceWarning || this.nonUrlSourceWarning;
+      return this.missingSourceWarning || this.nonUrlSourceWarning || this.invalidUploadValue || this.noUpload;
     }
   },
   methods: {
-    onFileChange({ value, preview }) {
+    onFileChange({ value, preview, invalid }) {
       this.uploadValue = value;
       this.previewData = preview;
+      this.invalidUploadValue = invalid;
     },
     submit: function() {
       this.showErrors = true;
