@@ -217,8 +217,8 @@
 
 <script>
   import { markRaw } from "vue";
-  import HTTP from "@/utility/HTTP";
   import { submitUploadForm } from "@/utility/UploadSubmission";
+  import { fetchRelatedTags, selectedText } from "@/utility/RelatedTags";
   import ToastManager from "@/utility/Toast";
   import sources from './sources.vue';
   import checkboxSource from './checkbox_source.vue';
@@ -484,49 +484,23 @@
         if (target) target.addTags(deduped);
       },
       async findRelated(categoryName) {
-        const self = this;
         const categoryId = categoryName ? TagCategories.idFor(categoryName) : undefined;
-        if (self.loadingRelated)
+        if (this.loadingRelated)
           return;
-        if (self.relatedTags.length > 0 && self.lastRelatedCategoryId === categoryId) {
-          self.relatedTags = [];
+        if (this.relatedTags.length > 0 && this.lastRelatedCategoryId === categoryId) {
+          this.relatedTags = [];
           return;
         }
-        const convertResponse = function (respData) {
-          const sortedRelated = [];
-          for (const key in respData) {
-            if (!respData.hasOwnProperty(key))
-              continue;
-            if (!respData[key].length)
-              continue;
-            sortedRelated.push({title: 'Related: ' + key, tags: respData[key].sort(TagField.tagSorter)});
-          }
-          return sortedRelated;
-        };
-        const getSelectedTags = function () {
-          const field = self.$refs['otherTags'];
-          if (!field.hasOwnProperty('selectionStart'))
-            return null;
-          const length = field.selectionEnd - field.selectionStart;
-          if (length)
-            return field.value.substr(field.selectionStart, length);
-          return null;
-        };
         this.loadingRelated = true;
         this.relatedTags = [];
-        const selectedTags = getSelectedTags();
-        const params = selectedTags ? {query: selectedTags} : {query: this.tags};
-
-        if (categoryId != null)
-          params['category_id'] = categoryId;
+        const query = selectedText(this.$refs.otherTags) ?? this.tags;
         try {
-          const data = await HTTP.getJSON("/related_tag/bulk.json", params);
-          self.relatedTags = convertResponse(data);
-          self.lastRelatedCategoryId = categoryId;
+          this.relatedTags = await fetchRelatedTags(query, categoryId);
+          this.lastRelatedCategoryId = categoryId;
         } catch {
           // A failed lookup just shows no related tags (relatedTags stays []).
         } finally {
-          self.loadingRelated = false;
+          this.loadingRelated = false;
         }
       },
     },
