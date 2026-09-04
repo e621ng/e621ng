@@ -14,14 +14,11 @@
   </div>
   <div class="upload-source-list" v-if="!noSource">
     <file-source
-      :maxSources="maxSources"
-      :last="i === (sources.length-1)"
       :index="i"
       :model-value="sources[i]"
       @update:model-value="updateSource(i, $event)"
       v-for="s, i in sources"
       @delete="removeSource(i)"
-      @add="addSource"
       @fadd="addSource(i + 1)"
       @madd="pasteSource($event, i)"
       @navigate="navigate($event)"

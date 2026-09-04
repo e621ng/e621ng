@@ -17,7 +17,7 @@
 
 <script>
   export default {
-    props: ['modelValue', 'index', 'last', 'maxSources'],
+    props: ['modelValue', 'index'],
     data() {
       return {
         backendValue: this.modelValue
@@ -41,7 +41,6 @@
           this.$refs.inputEl.focus();
         }
       },
-      add() { this.$emit("add"); },
       fadd() { this.$emit("fadd") },
       remove() { this.$emit("delete"); },
       paste($event) { this.$emit("madd", $event); },
