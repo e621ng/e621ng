@@ -17,7 +17,8 @@
       :maxSources="maxSources"
       :last="i === (sources.length-1)"
       :index="i"
-      v-model="sources[i]"
+      :model-value="sources[i]"
+      @update:model-value="updateSource(i, $event)"
       v-for="s, i in sources"
       @delete="removeSource(i)"
       @add="addSource"
@@ -42,30 +43,41 @@
         noSource: false,
       };
     },
-    emits: ["missingSourceWarning", "nonUrlSourceWarning"],
+    emits: ["missingSourceWarning", "nonUrlSourceWarning", "update:sources"],
     methods: {
+      // The list is owned by the parent (v-model:sources). Every mutation builds a
+      // new array and emits it; the prop is never written in place.
+      updateSource(i, value) {
+        const next = this.sources.slice();
+        next[i] = value;
+        this.$emit("update:sources", next);
+      },
       removeSource(i) {
-        this.sources.splice(i, 1);
-        if (this.sources.length === 0)
-          this.sources.push("");
+        const next = this.sources.slice();
+        next.splice(i, 1);
+        if (next.length === 0)
+          next.push("");
+        this.$emit("update:sources", next);
       },
       addSource(i) {
         if (this.sources.length >= this.maxSources) return;
 
+        const next = this.sources.slice();
         let targetIndex;
         // Insert a new source at the requested index (e.g. after current row)
-        if (typeof i === "number" && i >= 0 && i <= this.sources.length) {
-          this.sources.splice(i, 0, "");
+        if (typeof i === "number" && i >= 0 && i <= next.length) {
+          next.splice(i, 0, "");
           targetIndex = i;
         } else {
-          this.sources.push("");
-          targetIndex = this.sources.length - 1;
+          next.push("");
+          targetIndex = next.length - 1;
         }
+        this.$emit("update:sources", next);
 
-        // Focus the newly created source after DOM updates
+        // Focus the newly created source after the parent round-trips the array back.
         this.$nextTick(() => {
           const refs = this.$refs.fileSources;
-          if (refs[targetIndex])
+          if (refs && refs[targetIndex])
             refs[targetIndex].focus();
         });
       },
@@ -84,7 +96,9 @@
           urls.splice(this.maxSources - index);
 
         // Insert the pasted URLs starting at the current index
-        this.sources.splice(index, urls.length, ...urls);
+        const next = this.sources.slice();
+        next.splice(index, urls.length, ...urls);
+        this.$emit("update:sources", next);
       },
       navigate($event) {
         let targetIndex = $event;
