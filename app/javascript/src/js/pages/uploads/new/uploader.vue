@@ -308,9 +308,11 @@
         duplicateId: 0,
       };
     },
-    created() {
-      // The free-text "Other Tags" field is the always-present sink. Every other
-      // source (artist, checkboxes, textareas) is a self-registering child.
+    mounted() {
+      const self = this;
+      // The free-text "Other Tags" field is the always-present sink. Register it
+      // before the query-param import below (importTags routes through it), so all
+      // sources register in the same hook as the self-registering children.
       this.sinkDescriptor = {
         isSink: true,
         order: 1, // checkboxes (0) then other (1) then artist/character/species/content
@@ -319,9 +321,7 @@
         removeTag: tag => { this.otherTags = TagField.removeTag(this.otherTags, tag); },
       };
       this.registerSource(this.sinkDescriptor);
-    },
-    mounted() {
-      const self = this;
+
       this.unloadHandler = unloadWarning.bind(self);
       window.onbeforeunload = this.unloadHandler;
       const params = new URLSearchParams(window.location.search);
