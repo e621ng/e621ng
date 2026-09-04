@@ -75,6 +75,26 @@ describe("uploads/file_input — direct URL checks", () => {
     expect(warning.isVisible()).toBe(true);
     expect(warning.text()).toContain("permitted");
   });
+
+  it("ignores a stale whitelist response when the URL has since changed (latest wins)", async () => {
+    // Defer each lookup so responses can be resolved out of order.
+    const resolvers: ((v: unknown) => void)[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation((() => new Promise((resolve) => { resolvers.push(resolve); })) as any);
+    const w = await mountFileInput();
+
+    await urlInput(w).setValue("https://first.com/a.png");  // resolvers[0]
+    await urlInput(w).setValue("https://second.com/b.png"); // resolvers[1]
+
+    // Newer lookup resolves first, then the stale older one.
+    resolvers[1](jsonResponse({ domain: "second.com", is_allowed: true }));
+    await flushPromises();
+    resolvers[0](jsonResponse({ domain: "first.com", is_allowed: false }));
+    await flushPromises();
+
+    const warning = w.find("#whitelist-warning");
+    expect(warning.text()).toContain("second.com");
+    expect(warning.text()).not.toContain("first.com");
+  });
 });
 
 describe("uploads/file_input — file size", () => {
