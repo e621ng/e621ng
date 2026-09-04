@@ -134,7 +134,7 @@
         immediate: true,
         handler() {
           this.$emit("missingSourceWarning", this.missingSourceWarning);
-        }  
+        }
       },
       nonUrlSourceWarning: {
         immediate: true,
