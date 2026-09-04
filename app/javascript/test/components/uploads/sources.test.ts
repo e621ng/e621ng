@@ -159,6 +159,17 @@ describe("uploads/sources", () => {
       await flushPromises();
       expect(lastEmitted(wrapper, "update:sources")).toEqual([""]);
     });
+
+    it("preserves a surviving row's DOM node across a removal (stable keys)", async () => {
+      const { wrapper } = make({ sources: ["https://a", "https://b", "https://c"] });
+      const bNode = rowInputs(wrapper)[1].element; // the "b" input
+      await wrapper.findAll(".upload-source-row button")[0].trigger("click"); // remove row a
+      await flushPromises();
+      // b is now index 0; with stable keys it is the SAME node (index keys would
+      // rebind the position-0 node to "b" instead of moving b's node up).
+      expect(rowInputs(wrapper)[0].element).toBe(bNode);
+      expect((rowInputs(wrapper)[0].element as HTMLInputElement).value).toBe("https://b");
+    });
   });
 
   describe("pasting", () => {

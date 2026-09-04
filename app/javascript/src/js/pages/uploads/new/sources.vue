@@ -22,7 +22,7 @@
       @fadd="addSource(i + 1)"
       @madd="pasteSource($event, i)"
       @navigate="navigate($event)"
-      :key="i"
+      :key="rowIds[i]"
       ref="fileSources"
     ></file-source>
   </div>
@@ -36,6 +36,11 @@
     },
     props: ["showErrors", "sources", "maxSources", "noSource"],
     emits: ["missingSourceWarning", "nonUrlSourceWarning", "update:sources", "update:noSource"],
+    data() {
+      // Stable per-row ids so Vue keys rows by identity (not index), preserving a
+      // row's DOM node — and its focus/caret — across a splice/reorder.
+      return { rowIds: [], nextRowId: 0 };
+    },
     methods: {
       // The list is owned by the parent (v-model:sources). Every mutation builds a
       // new array and emits it; the prop is never written in place.
@@ -47,8 +52,11 @@
       removeSource(i) {
         const next = this.sources.slice();
         next.splice(i, 1);
-        if (next.length === 0)
+        this.rowIds.splice(i, 1);
+        if (next.length === 0) {
           next.push("");
+          this.rowIds.push(this.nextRowId++);
+        }
         this.$emit("update:sources", next);
       },
       addSource(i) {
@@ -59,9 +67,11 @@
         // Insert a new source at the requested index (e.g. after current row)
         if (typeof i === "number" && i >= 0 && i <= next.length) {
           next.splice(i, 0, "");
+          this.rowIds.splice(i, 0, this.nextRowId++);
           targetIndex = i;
         } else {
           next.push("");
+          this.rowIds.push(this.nextRowId++);
           targetIndex = next.length - 1;
         }
         this.$emit("update:sources", next);
@@ -90,6 +100,7 @@
         // Insert the pasted URLs starting at the current index
         const next = this.sources.slice();
         next.splice(index, urls.length, ...urls);
+        this.rowIds.splice(index, urls.length, ...urls.map(() => this.nextRowId++));
         this.$emit("update:sources", next);
       },
       navigate($event) {
@@ -125,6 +136,16 @@
       },
     },
     watch: {
+      // Seed on mount and reconcile length when the parent replaces the list
+      // wholesale (query-param import). The structural mutators keep rowIds in
+      // lockstep, so those changes land here as no-ops.
+      sources: {
+        immediate: true,
+        handler() {
+          while (this.rowIds.length < this.sources.length) this.rowIds.push(this.nextRowId++);
+          if (this.rowIds.length > this.sources.length) this.rowIds.splice(this.sources.length);
+        }
+      },
       missingSourceWarning: {
         immediate: true,
         handler() {
