@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mount, VueWrapper } from "@vue/test-utils";
-import $ from "jquery";
-import { setSiteData } from "../../helpers";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { jsonResponse, setSiteData } from "../../helpers";
 
 const wrappers: VueWrapper[] = [];
 
@@ -39,9 +38,10 @@ describe("uploads/file_input — direct URL checks", () => {
     ["https://a.furaffinity.net/1/x.jpg", "Thumbnail URL"],
     ["https://pbs.twimg.com/media/AbC123.jpg", "Sample URL"],
   ])("flags %s as a problem", async (url, reason) => {
-    vi.spyOn($, "getJSON").mockReturnValue(undefined as any);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({}) as Response);
     const w = await mountFileInput();
     await urlInput(w).setValue(url);
+    await flushPromises();
     const box = w.find(".linkinput-wrapper .background-red");
     expect(box.exists()).toBe(true);
     expect(box.text()).toContain(reason);
@@ -49,27 +49,28 @@ describe("uploads/file_input — direct URL checks", () => {
   });
 
   it("emits a valid file state on a fresh mount", async () => {
-    vi.spyOn($, "getJSON").mockReturnValue(undefined as any);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({}) as Response);
     const w = await mountFileInput();
     expect(lastChange(w)).toEqual({ value: "", preview: { url: "", isVideo: false }, invalid: false });
   });
 
   it("accepts a plain image URL and emits a preview", async () => {
-    vi.spyOn($, "getJSON").mockReturnValue(undefined as any);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({}) as Response);
     const w = await mountFileInput();
     await urlInput(w).setValue("https://example.com/art.png");
+    await flushPromises();
     expect(w.find(".linkinput-wrapper .background-red").exists()).toBe(false);
     expect(lastChange(w).value).toBe("https://example.com/art.png");
     expect(lastChange(w).preview).toEqual({ url: "https://example.com/art.png", isVideo: false });
   });
 
   it("shows the whitelist verdict returned by the server", async () => {
-    vi.spyOn($, "getJSON").mockImplementation(((_url: string, _params: unknown, cb: (d: unknown) => void) => {
-      cb({ domain: "example.com", is_allowed: true });
-      return undefined;
-    }) as any);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({ domain: "example.com", is_allowed: true }) as Response,
+    );
     const w = await mountFileInput();
     await urlInput(w).setValue("https://example.com/art.png");
+    await flushPromises();
     const warning = w.find("#whitelist-warning");
     expect(warning.isVisible()).toBe(true);
     expect(warning.text()).toContain("permitted");

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import $ from "jquery";
+import { jsonResponse } from "../../helpers";
 import TagPreview from "@/pages/uploads/new/tag_preview.vue";
 
 const wrappers: VueWrapper[] = [];
@@ -11,12 +11,15 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-// $.ajax POST /tags/preview.json → immediately invoke success with the given rows.
-function stubAjax (response: any[]) {
-  return vi.spyOn($, "ajax").mockImplementation(((_url: string, opts: any) => {
-    opts.success(response);
-    return undefined;
-  }) as any);
+// fetch POST /tags/preview.json → resolve with the given rows.
+function stubFetch (response: any[]) {
+  return vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(response) as Response);
+}
+
+// The body of the last fetch call, as posted form fields.
+function lastBody (fetchSpy: ReturnType<typeof stubFetch>) {
+  const init = fetchSpy.mock.calls.at(-1)![1] as RequestInit;
+  return init.body as URLSearchParams;
 }
 
 function make (tags: string) {
@@ -28,33 +31,35 @@ function make (tags: string) {
 async function settle () {
   await vi.advanceTimersByTimeAsync(1000); // debounce
   await flushPromises();
+  await flushPromises(); // fetch → json() microtasks
 }
 
 describe("uploads/tag_preview", () => {
-  it("requests preview data for the current tags (enabled by default)", async () => {
-    const ajax = stubAjax([{ name: "foo", post_count: 5, category: 0 }]);
+  it("requests preview data for the current tags as a form POST with CSRF", async () => {
+    const fetchSpy = stubFetch([{ name: "foo", post_count: 5, category: 0 }]);
     make("foo");
     await settle();
-    expect(ajax).toHaveBeenCalledWith("/tags/preview.json", expect.objectContaining({
-      method: "POST",
-      data: { tags: "foo" },
-    }));
+    const [url, init] = fetchSpy.mock.calls.at(-1)! as [string, RequestInit];
+    expect(url).toBe("/tags/preview.json");
+    expect(init.method).toBe("POST");
+    expect(lastBody(fetchSpy).get("tags")).toBe("foo"); // form-urlencoded, not JSON
+    expect("X-CSRF-Token" in (init.headers as object)).toBe(true);
     expect(wrappers[0].findAll(".tag-preview-tag").length).toBeGreaterThan(0);
   });
 
   it("only fetches tags missing from the cache", async () => {
-    const ajax = stubAjax([{ name: "foo", post_count: 5, category: 0 }]);
+    const fetchSpy = stubFetch([{ name: "foo", post_count: 5, category: 0 }]);
     const w = make("foo");
     await settle();
 
-    ajax.mockClear();
+    fetchSpy.mockClear();
     await w.setProps({ tags: "foo bar" });
     await settle();
-    expect(ajax).toHaveBeenCalledWith("/tags/preview.json", expect.objectContaining({ data: { tags: "bar" } }));
+    expect(lastBody(fetchSpy).get("tags")).toBe("bar");
   });
 
   it("persists the enabled flag and hides the preview when toggled off", async () => {
-    stubAjax([{ name: "foo", post_count: 5, category: 0 }]);
+    stubFetch([{ name: "foo", post_count: 5, category: 0 }]);
     const w = make("foo");
     await settle();
 
@@ -68,7 +73,7 @@ describe("uploads/tag_preview", () => {
   });
 
   it("marks a tag implied by another as implied", async () => {
-    stubAjax([
+    stubFetch([
       { id: 1, name: "foo", post_count: 5, category: 0, implies: ["bar"] },
       { id: 2, name: "bar", post_count: 9, category: 0 },
     ]);

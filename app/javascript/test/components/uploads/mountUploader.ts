@@ -1,6 +1,5 @@
 import { mount, VueWrapper } from "@vue/test-utils";
 import { vi } from "vitest";
-import $ from "jquery";
 import { setSiteData } from "../../helpers";
 
 // IMPORTANT: `vi.mock` is file-scoped and hoisted, so it cannot live in this helper.
@@ -40,8 +39,6 @@ export interface MountUploaderOptions {
 
 export interface MountedUploader {
   wrapper: VueWrapper;
-  ajax: ReturnType<typeof vi.spyOn>;
-  getJSON: ReturnType<typeof vi.spyOn>;
   fetchSpy: ReturnType<typeof vi.spyOn>;
   locationAssign: ReturnType<typeof vi.fn>;
   restore: () => void;
@@ -51,20 +48,6 @@ const wrappers: VueWrapper[] = [];
 /** Call in each test file's afterEach to tear down mounted uploaders. */
 export function unmountAll (): void {
   for (const wrapper of wrappers.splice(0)) wrapper.unmount();
-}
-
-// jqXHR-ish chainable so `$.getJSON(...).always(cb)` and friends don't throw
-// when the spy is left inert (individual tests override to drive callbacks).
-function chainable (): any {
-  const stub: any = {
-    done: () => stub,
-    fail: () => stub,
-    always: (cb?: () => void) => {
-      cb?.();
-      return stub;
-    },
-  };
-  return stub;
 }
 
 export async function mountUploader (opts: MountUploaderOptions = {}): Promise<MountedUploader> {
@@ -105,16 +88,14 @@ export async function mountUploader (opts: MountUploaderOptions = {}): Promise<M
   fakeLocation.assign = locationAssign;
   Object.defineProperty(window, "location", { configurable: true, writable: true, value: fakeLocation });
 
-  // 3. Inert-by-default network spies. jQuery === $ (same singleton the app calls).
-  const ajax = vi.spyOn($, "ajax").mockReturnValue(chainable());
-  const getJSON = vi.spyOn($, "getJSON").mockReturnValue(chainable());
+  // 3. Inert-by-default network spy (the single transport seam). Tests override it.
   const fetchSpy = vi
     .spyOn(globalThis, "fetch")
     .mockResolvedValue({ ok: true, status: 200, json: async () => ([]) } as unknown as Response);
 
   // 5. Reset the module cache so the singletons (CurrentUser/UploadData/Settings)
   //    re-read the freshly-seeded blobs — even on a second mount within one test.
-  //    (The $/fetch spies are on stable globals and survive the reset.)
+  //    (The fetch spy is on a stable global and survives the reset.)
   vi.resetModules();
   const Uploader = (await import("@/pages/uploads/new/uploader.vue")).default;
   const wrapper = mount(Uploader, { attachTo: document.body });
@@ -125,5 +106,5 @@ export async function mountUploader (opts: MountUploaderOptions = {}): Promise<M
     Object.defineProperty(window, "location", { configurable: true, writable: true, value: originalLocation });
   };
 
-  return { wrapper, ajax, getJSON, fetchSpy, locationAssign, restore };
+  return { wrapper, fetchSpy, locationAssign, restore };
 }

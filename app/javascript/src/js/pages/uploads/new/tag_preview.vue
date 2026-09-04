@@ -9,6 +9,7 @@
 
 <script>
 import ToastManager from "@/utility/Toast";
+import HTTP from "@/utility/HTTP";
 import tagPreviewTag from './tag_preview_tag.vue';
 import LStorage from '@/utility/storage/Local.js';
 
@@ -104,27 +105,24 @@ export default {
         this.fetchTagPreview();
       }
     },
-    fetchTagPreview() {
+    async fetchTagPreview() {
       const missing = this.tagsArray.filter(t => !this.tagCache[t]);
       if (missing.length === 0) return;
 
       this.loading = true;
-      $.ajax('/tags/preview.json', {
-        method: 'POST',
-        data: { tags: missing.join(' ') },
-        success: (result) => {
-          for (const tag of result) {
-            this.tagCache[tag.name] = tag;
-          }
-          this.loading = false;
-        },
-        error: (result) => {
-          this.loading = false;
-          let details = result.responseText || "Unknown error";
-          ToastManager.alert("Error loading tag preview: " + details);
-          console.error("Tag preview error:", result);
-        },
-      });
+      try {
+        // Form-urlencoded so Rails reads params[:tags]; CSRF added by HTTP.post.
+        const response = await HTTP.post('/tags/preview.json', new URLSearchParams({ tags: missing.join(' ') }));
+        if (!response.ok) throw new Error(await response.text().catch(() => ""));
+        const result = await response.json();
+        for (const tag of result)
+          this.tagCache[tag.name] = tag;
+      } catch (error) {
+        ToastManager.alert("Error loading tag preview: " + (error.message || "Unknown error"));
+        console.error("Tag preview error:", error);
+      } finally {
+        this.loading = false;
+      }
     },
   },
 };
