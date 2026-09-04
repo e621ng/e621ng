@@ -83,6 +83,8 @@ export default {
         domain: "",
         oldDomain: "",
       },
+      // Sequencing token so out-of-order whitelist responses can't show a stale verdict.
+      whitelistRequestId: 0,
       uploader: {
         dragging: false,
       },
@@ -181,6 +183,7 @@ export default {
     },
     updatePreviewURL() {
       if (this.uploadURL.length === 0 || this.$refs["post_file"]?.files?.[0]) {
+        this.whitelistRequestId++; // invalidate any in-flight lookup
         this.disableFileUpload = false;
         this.whitelist.oldDomain = "";
         this.clearWhitelistWarning();
@@ -193,8 +196,12 @@ export default {
       catch { domain = ""; }
 
       if (domain && domain !== this.whitelist.oldDomain) {
-        // Non-blocking: the synchronous preview tail below must run regardless.
+        // Non-blocking (the synchronous preview tail below must run regardless) and
+        // latest-wins: a newer URL change supersedes this lookup so a slow, out-of-order
+        // response can't overwrite the current verdict.
+        const requestId = ++this.whitelistRequestId;
         HTTP.getJSON("/upload_whitelists/is_allowed.json", { url: this.uploadURL }).then(data => {
+          if (requestId !== this.whitelistRequestId) return;
           if (data.domain) {
             this.whitelistWarning(data.is_allowed, data.domain, data.reason);
             if (!data.is_allowed) {
@@ -203,6 +210,7 @@ export default {
           }
         }).catch(() => {});
       } else if (!domain) {
+        this.whitelistRequestId++; // invalidate any in-flight lookup
         this.clearWhitelistWarning();
         this.setEmptyThumb();
       }
