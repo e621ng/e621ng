@@ -63,6 +63,16 @@ describe("uploads/uploader — tag assembly", () => {
   });
 
   describe("sex pairings", () => {
+    it("does not render an empty pairings group (no stray divider)", async () => {
+      const { wrapper } = await mountUploader();
+      const emptyGroups = () => wrapper.findAll(".flex-wrap").filter((g) => g.findAll("button").length === 0);
+      expect(emptyGroups().length).toBe(0);
+
+      // One sex selected still yields no pairing (needs both) → still no empty group.
+      await checkButton(wrapper, "Male").trigger("click");
+      expect(emptyGroups().length).toBe(0);
+    });
+
     it("offers a pairing only once BOTH constituent sexes are selected", async () => {
       const { wrapper } = await mountUploader();
       expect(wrapper.findAll("button.toggle-button").some((b) => b.text() === "Male/Female")).toBe(false);

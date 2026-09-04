@@ -76,7 +76,11 @@
           }));
       },
       renderGroups() {
-        return this.pairing ? [...this.baseGroups, this.filteredPairings] : this.baseGroups;
+        // Only append the pairings group when it has entries, so an empty pairings
+        // set doesn't render a stray <hr> + empty row.
+        if (this.pairing && this.filteredPairings.length)
+          return [...this.baseGroups, this.filteredPairings];
+        return this.baseGroups;
       },
     },
     methods: {
