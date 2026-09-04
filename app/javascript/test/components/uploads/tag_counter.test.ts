@@ -14,7 +14,7 @@ function make (tags: string) {
 }
 
 const countText = (w: VueWrapper) => w.find(".count").text();
-const faceClass = (w: VueWrapper) => w.find("#face").classes().find((c) => c.startsWith("face-"));
+const faceClass = (w: VueWrapper) => w.find("svg.face").classes().find((c) => c.startsWith("face-"));
 const tagList = (n: number) => Array.from({ length: n }, (_, i) => `tag${i}`).join(" ");
 
 describe("uploads/tag_counter", () => {
@@ -47,7 +47,7 @@ describe("uploads/tag_counter", () => {
 
   it("renders the matching face icon paths", () => {
     // The frown and smile mouths are distinct path data.
-    expect(make(tagList(3)).find("#face").html()).toContain("M16 16s-1.5-2-4-2-4 2-4 2");
-    expect(make(tagList(30)).find("#face").html()).toContain("M8 14s1.5 2 4 2 4-2 4-2");
+    expect(make(tagList(3)).find("svg.face").html()).toContain("M16 16s-1.5-2-4-2-4 2-4 2");
+    expect(make(tagList(30)).find("svg.face").html()).toContain("M8 14s1.5 2 4 2 4-2 4-2");
   });
 });

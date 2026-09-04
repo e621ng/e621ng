@@ -10,7 +10,7 @@ import { mountTagEditor, unmountAll } from "./mountTagEditor";
 afterEach(unmountAll);
 
 const countText = (w: VueWrapper) => w.find(".header .count").text();
-const faceClass = (w: VueWrapper) => w.find(".header #face").classes().find((c) => c.startsWith("face-"));
+const faceClass = (w: VueWrapper) => w.find(".header svg.face").classes().find((c) => c.startsWith("face-"));
 const tagList = (n: number) => Array.from({ length: n }, (_, i) => `tag${i}`).join(" ");
 
 // The counter is a pure computed over the tag string (tag_counter.vue) — no

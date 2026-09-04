@@ -22,7 +22,7 @@ describe("posts/tag_editor — mount", () => {
     expect(label.attributes("for")).toBe("post_tag_string");
     expect(label.text()).toBe("Tags");
     expect(wrapper.find(".header .count").text()).toBe("2 tags");
-    expect(wrapper.find(".header #face").exists()).toBe(true);
+    expect(wrapper.find(".header svg.face").exists()).toBe(true);
   });
 
   it("participates in the server-rendered form via id/name, with autocomplete markup", async () => {
