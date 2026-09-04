@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, VueWrapper } from "@vue/test-utils";
-import { jsonResponse } from "../../helpers";
+import { htmlResponse, jsonResponse } from "../../helpers";
 import { MountReplacementUploaderOptions, mountReplacementUploader, provideUploadValue, unmountAll } from "./mountReplacementUploader";
 
 // submit()'s catch logs via console.error; silence the expected noise.
@@ -177,9 +177,19 @@ describe("post_replacements/replacement_uploader — submit outcomes", () => {
     expect(submitButton(wrapper).attributes("disabled")).toBeUndefined();
   });
 
-  it("reports a Cloudflare 403", async () => {
-    const { wrapper } = await submitOutcome(jsonResponse({}, { status: 403, headers: { server: "cloudflare" } }));
+  it("reports a Cloudflare 403 (non-JSON block page)", async () => {
+    const { wrapper } = await submitOutcome(htmlResponse(403, { headers: { server: "cloudflare" } }));
     expect(errorMessage(wrapper).text()).toContain("Cloudflare (403)");
+  });
+
+  it("shows the origin's reason for a JSON 403, not the Cloudflare one", async () => {
+    // Behind CF, origin 403s (privilege/lockdown errors) also carry the CF
+    // headers — the JSON body is what identifies them as origin responses.
+    const { wrapper } = await submitOutcome(
+      jsonResponse({ reason: "You are not part of the replacements beta" }, { status: 403, headers: { "server": "cloudflare", "cf-ray": "abc123" } }),
+    );
+    expect(errorMessage(wrapper).text()).toContain("not part of the replacements beta");
+    expect(errorMessage(wrapper).text()).not.toContain("Cloudflare");
   });
 
   it("falls back to a generic message when the error body is not JSON", async () => {

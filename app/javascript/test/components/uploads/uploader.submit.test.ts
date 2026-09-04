@@ -7,7 +7,7 @@ vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() }
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 import { flushPromises, VueWrapper } from "@vue/test-utils";
-import { jsonResponse } from "../../helpers";
+import { htmlResponse, jsonResponse } from "../../helpers";
 import { mountUploader, MountUploaderOptions, unmountAll } from "./mountUploader";
 
 // submit()'s catch logs via console.error; silence the expected noise.
@@ -150,9 +150,19 @@ describe("uploads/uploader — submit outcomes", () => {
     expect(errorBox(wrapper, "security challenge")?.isVisible()).toBe(true);
   });
 
-  it("reports a Cloudflare 403", async () => {
-    const { wrapper } = await submitOutcome(jsonResponse({}, { status: 403, headers: { server: "cloudflare" } }));
+  it("reports a Cloudflare 403 (non-JSON block page)", async () => {
+    const { wrapper } = await submitOutcome(htmlResponse(403, { headers: { server: "cloudflare" } }));
     expect(errorBox(wrapper, "Cloudflare (403)")?.isVisible()).toBe(true);
+  });
+
+  it("shows the origin's message for a JSON 403, not the Cloudflare one", async () => {
+    // Behind CF, origin 403s (privilege/lockdown errors) also carry the CF
+    // headers — the JSON body is what identifies them as origin responses.
+    const { wrapper } = await submitOutcome(
+      jsonResponse({ reason: "Access Denied: not allowed" }, { status: 403, headers: { "server": "cloudflare", "cf-ray": "abc123" } }),
+    );
+    expect(errorBox(wrapper, "Access Denied: not allowed")?.isVisible()).toBe(true);
+    expect(errorBox(wrapper, "Cloudflare (403)")).toBeUndefined();
   });
 
   it("flags a duplicate with a link to the existing post", async () => {

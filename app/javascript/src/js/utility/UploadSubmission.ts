@@ -13,6 +13,8 @@ export type SubmitOutcome
   | { kind: "error", json: any }
   | { kind: "failed", message: string };
 
+const GENERIC_FAILURE = "Error: The upload could not be completed. Check the browser console for details.";
+
 /**
  * POST a FormData payload and classify the response. Shared by the uploader and
  * the replacement uploader so their transport/error handling can't drift apart.
@@ -24,19 +26,29 @@ export async function submitUploadForm (url: string, formData: FormData): Promis
     if (response.ok)
       return { kind: "success", body: await response.json() };
 
-    // Cloudflare
-    const cfRay = response.headers.get("cf-ray");
+    // A Cloudflare-mitigated challenge is the one header signal only CF itself
+    // produces — safe to trust before looking at the body.
     const cfMitigated = (response.headers.get("cf-mitigated") || "").trim().toLowerCase();
-    const serverHeader = (response.headers.get("server") || "").trim().toLowerCase();
     if (cfMitigated.includes("challenge"))
       return { kind: "blocked", message: "Error: The upload was blocked by a security challenge. Please try again in a moment." };
-    if (response.status === 403 && (serverHeader.includes("cloudflare") || !!cfRay))
-      return { kind: "blocked", message: "Error: The upload was blocked by Cloudflare (403). Please try again in a moment." };
 
-    // A non-JSON error body rejects here → the generic fallback below.
-    return { kind: "error", json: await response.json() };
+    // Parse before blaming Cloudflare: behind CF every response — origin 403s
+    // included — carries server:cloudflare + cf-ray, so those headers alone prove
+    // nothing. An origin error on a .json endpoint always ships a JSON body; a
+    // CF-generated block page is HTML.
+    let json: any;
+    try {
+      json = await response.json();
+    } catch {
+      const cfRay = response.headers.get("cf-ray");
+      const serverHeader = (response.headers.get("server") || "").trim().toLowerCase();
+      if (response.status === 403 && (serverHeader.includes("cloudflare") || !!cfRay))
+        return { kind: "blocked", message: "Error: The upload was blocked by Cloudflare (403). Please try again in a moment." };
+      return { kind: "failed", message: GENERIC_FAILURE };
+    }
+    return { kind: "error", json };
   } catch (error) {
     console.error("Error submitting upload:", error);
-    return { kind: "failed", message: "Error: The upload could not be completed. Check the browser console for details." };
+    return { kind: "failed", message: GENERIC_FAILURE };
   }
 }
