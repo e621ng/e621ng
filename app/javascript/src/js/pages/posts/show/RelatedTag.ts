@@ -24,9 +24,7 @@ export default class RelatedTag {
       recentTags: uploadTagsData?.recent_tags ?? [],
     });
     app.mount("#tag-string-editor");
-    $("#tag-string-editor")
-      .removeClass("pending")
-      .trigger("e6ng:vue-mounted");
+    $("#tag-string-editor").removeClass("pending");
   }
 }
 

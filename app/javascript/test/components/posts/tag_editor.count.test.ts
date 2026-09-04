@@ -1,64 +1,45 @@
 import { vi } from "vitest";
 
-vi.mock("@/pages/posts/posts", () => ({ default: { update_tag_count: vi.fn() } }));
 vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete: vi.fn() } }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
 import { afterEach, describe, expect, it } from "vitest";
-import { flushPromises } from "@vue/test-utils";
+import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { mountTagEditor, unmountAll } from "./mountTagEditor";
 
 afterEach(unmountAll);
 
-describe("posts/tag_editor — tag count wiring", () => {
-  it("does not update the count on mount (the bootstrap handshake owns that)", async () => {
-    const { updateTagCount } = await mountTagEditor();
-    expect(updateTagCount).not.toHaveBeenCalled();
+const countText = (w: VueWrapper) => w.find(".header .count").text();
+const faceClass = (w: VueWrapper) => w.find(".header #face").classes().find((c) => c.startsWith("face-"));
+const tagList = (n: number) => Array.from({ length: n }, (_, i) => `tag${i}`).join(" ");
+
+// The counter is a pure computed over the tag string (tag_counter.vue) — no
+// DOM reads, no event wiring, no flush timing. Semantics are unit-tested in
+// test/components/uploads/tag_counter.test.ts; this spec covers the editor
+// integration.
+describe("posts/tag_editor — tag counter", () => {
+  it("renders the correct count immediately at mount", async () => {
+    const { wrapper } = await mountTagEditor({ postTags: "wolf canine\nforest tree " });
+    expect(countText(wrapper)).toBe("4 tags");
   });
 
-  // B1 fixed: the count follows the tag string itself (a watch), so every input
-  // method — typing, mouse-driven autocomplete inserts, paste — updates it.
-  it("updates the count on any value change (B1 fixed)", async () => {
-    const { wrapper, updateTagCount } = await mountTagEditor();
-    updateTagCount.mockClear();
+  it("updates the count as the value changes", async () => {
+    const { wrapper } = await mountTagEditor({ postTags: "wolf " });
     await wrapper.find("textarea").setValue("wolf canine feral");
-    expect(updateTagCount).toHaveBeenCalled();
-  });
-
-  it("does not update the count on a keyup without a value change", async () => {
-    const { wrapper, updateTagCount } = await mountTagEditor();
-    updateTagCount.mockClear();
-    await wrapper.find("textarea").trigger("keyup");
-    expect(updateTagCount).not.toHaveBeenCalled();
+    expect(countText(wrapper)).toBe("3 tags");
   });
 
   it("updates the count after a related tag is toggled in", async () => {
-    const { wrapper, updateTagCount } = await mountTagEditor();
-    updateTagCount.mockClear();
+    const { wrapper } = await mountTagEditor({ postTags: "wolf " });
     (wrapper.findComponent(".related-tags") as any).vm.$emit("tag-active", "feral", true);
     await flushPromises();
-    expect(updateTagCount).toHaveBeenCalled();
+    expect(countText(wrapper)).toBe("2 tags");
   });
 
-  // Post-flush pin: update_tag_count reads the textarea DOM (posts.js), so the
-  // watcher must run AFTER the re-render. A pre-flush watcher fires between the
-  // data change and the DOM patch, counting the stale value on programmatic
-  // changes like pushTag. The suite's mock is otherwise blind to this — so this
-  // pin captures what the DOM held at call time.
-  it("runs the count only after the textarea DOM has updated (post-flush pin)", async () => {
-    const { wrapper, updateTagCount } = await mountTagEditor({ postTags: "wolf " });
-    updateTagCount.mockClear();
-    let seenAtCallTime: string | undefined;
-    updateTagCount.mockImplementation(() => {
-      seenAtCallTime = (wrapper.find("textarea").element as HTMLTextAreaElement).value;
-    });
-
-    (wrapper.findComponent(".related-tags") as any).vm.$emit("tag-active", "feral", true);
-    await flushPromises();
-    expect(seenAtCallTime).toBe("wolf feral ");
-
-    // The mocked fn is file-shared (memoized vi.mock factory) — drop the
-    // implementation so it can't leak into other tests.
-    updateTagCount.mockReset();
+  it("flips the face when the count crosses a threshold", async () => {
+    const { wrapper } = await mountTagEditor({ postTags: tagList(14) });
+    expect(faceClass(wrapper)).toBe("face-frown");
+    await wrapper.find("textarea").setValue(tagList(15));
+    expect(faceClass(wrapper)).toBe("face-meh");
   });
 });

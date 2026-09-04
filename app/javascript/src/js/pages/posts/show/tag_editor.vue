@@ -1,5 +1,9 @@
 <template>
   <div>
+    <div class="header">
+      <label for="post_tag_string">Tags</label>
+      <tag-counter :tags="tags" />
+    </div>
     <textarea class="tag-textarea" id="post_tag_string" v-model="tags" rows="5" data-autocomplete="tag-edit"
       ref="otherTags" name="post[tag_string]" :spellcheck="false"></textarea>
     <tag-preview :tags="tags" />
@@ -24,8 +28,8 @@
 <script>
 import relatedTags from "@/pages/uploads/new/related.vue";
 import tagPreview from "@/pages/uploads/new/tag_preview.vue";
+import tagCounter from "@/pages/uploads/new/tag_counter.vue";
 import { addTagGrouped, removeTagGrouped, splitTags } from "@/pages/uploads/new/tag_field.js";
-import Post from '../posts';
 import Autocomplete from "@/components/autocomplete";
 import CurrentUser from "@/models/CurrentUser";
 import TagCategories from "@/utility/TagCategories";
@@ -34,7 +38,8 @@ import { fetchRelatedTags, selectedText } from "@/utility/RelatedTags";
 export default {
   components: {
     'related-tags': relatedTags,
-    'tag-preview': tagPreview
+    'tag-preview': tagPreview,
+    'tag-counter': tagCounter
   },
   // Root props, provided by the RelatedTag.ts bootstrap (postTags from the
   // mount div's data attribute, the tag lists from /users/upload_tags.json).
@@ -69,19 +74,6 @@ export default {
     },
     relatedText() {
       return this.expandRelated ? "<<" : ">>";
-    }
-  },
-  watch: {
-    // Covers typing, autocomplete inserts (mouse included), paste, and pushTag.
-    // Not immediate: the initial count is triggered by the e6ng:vue-mounted
-    // handshake in posts.js. Post-flush because update_tag_count reads the
-    // textarea DOM, which a pre-flush run would see stale on programmatic
-    // changes (pushTag).
-    tags: {
-      handler() {
-        Post.update_tag_count();
-      },
-      flush: "post",
     }
   },
   methods: {

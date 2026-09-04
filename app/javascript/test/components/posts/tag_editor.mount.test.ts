@@ -1,6 +1,5 @@
 import { vi } from "vitest";
 
-vi.mock("@/pages/posts/posts", () => ({ default: { update_tag_count: vi.fn() } }));
 vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete: vi.fn() } }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
@@ -15,6 +14,15 @@ describe("posts/tag_editor — mount", () => {
     const { wrapper } = await mountTagEditor({ postTags });
     const textarea = wrapper.find("textarea").element as HTMLTextAreaElement;
     expect(textarea.value).toBe(postTags);
+  });
+
+  it("renders the header row: a label wired to the textarea, and the tag counter", async () => {
+    const { wrapper } = await mountTagEditor({ postTags: "wolf canine " });
+    const label = wrapper.find(".header label");
+    expect(label.attributes("for")).toBe("post_tag_string");
+    expect(label.text()).toBe("Tags");
+    expect(wrapper.find(".header .count").text()).toBe("2 tags");
+    expect(wrapper.find(".header #face").exists()).toBe(true);
   });
 
   it("participates in the server-rendered form via id/name, with autocomplete markup", async () => {
