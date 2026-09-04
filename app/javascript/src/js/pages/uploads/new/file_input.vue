@@ -6,7 +6,7 @@
   >
     <div class="fileinput-wrapper" v-if="!disableFileUpload">
       <div class="box-section background-red" v-if="fileTooLarge">
-        The file you are trying to upload is too large. Maximum allowed is {{this.exceededFileSize / (1024*1024) }} MiB.<br>
+        The file you are trying to upload is too large. Maximum allowed is {{ exceededFileSize / (1024*1024) }} MiB.<br>
         Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
       </div>
       <label
@@ -31,7 +31,7 @@
         </span>
         <span class="subtitle">
           <div v-if="disableURLUpload">
-            {{ this.getFileURL().name }}
+            {{ getFileURL().name }}
           </div>
           <div v-else><u>Browse for file</u> or drag and drop</div>
         </span>
