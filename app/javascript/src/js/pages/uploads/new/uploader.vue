@@ -406,6 +406,7 @@
       async submit() {
         this.showErrors = true;
         this.error = '';
+        this.duplicateId = 0;
         if (this.preventUpload || this.submitting)
           return;
         const self = this;
