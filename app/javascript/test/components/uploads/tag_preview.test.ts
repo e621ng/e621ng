@@ -79,6 +79,20 @@ describe("uploads/tag_preview", () => {
     expect(w.find(".tag-preview-tag .invalid").exists()).toBe(true);
   });
 
+  it("clears the duplicate badge when the colliding tag is removed (no cache mutation)", async () => {
+    stubFetch([
+      { id: 1, name: "wolf", post_count: 5, category: 0 },
+      { id: 2, name: "wolves", post_count: 3, category: 0, alias: "wolf" }, // resolves to "wolf"
+    ]);
+    const w = make("wolf wolves");
+    await settle();
+    expect(w.findAll(".tag-preview-tag .duplicate").length).toBeGreaterThan(0);
+
+    await w.setProps({ tags: "wolves" }); // drop the collision; "wolves" is already cached
+    await settle();
+    expect(w.find(".tag-preview-tag .duplicate").exists()).toBe(false);
+  });
+
   it("marks a tag implied by another as implied", async () => {
     stubFetch([
       { id: 1, name: "foo", post_count: 5, category: 0, implies: ["bar"] },
