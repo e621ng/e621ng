@@ -7,6 +7,9 @@
                     <div class="hint"><a href="/help/supported_filetypes">Supported Formats</a></div>
                 </div>
                 <div class="col2">
+                  <div class="box-section background-red" v-if="showErrors && noUpload">
+                    You must provide a file or a URL to upload.
+                  </div>
                   <file-input @change="onFileChange"></file-input>
                 </div>
             </div>
@@ -569,9 +572,13 @@
       invalidRating: function () {
         return !this.rating;
       },
+      noUpload: function () {
+        // Empty string = nothing provided; a URL string or a File is truthy.
+        return !this.uploadValue;
+      },
       preventUpload: function () {
         return this.missingSourceWarning || this.nonUrlSourceWarning || this.notEnoughTags
-          || this.invalidRating || this.invalidUploadValue;
+          || this.invalidRating || this.invalidUploadValue || this.noUpload;
       },
       duplicatePath: function () {
         return `/posts/${this.duplicateId}`;

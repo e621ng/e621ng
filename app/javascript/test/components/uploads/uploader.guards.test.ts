@@ -5,6 +5,7 @@ vi.mock("@/components/DTextFormatter.ts", () => ({ default: vi.fn() }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
 import { afterEach, describe, expect, it } from "vitest";
+import { nextTick } from "vue";
 import type { VueWrapper } from "@vue/test-utils";
 import { mountUploader, unmountAll } from "./mountUploader";
 
@@ -58,6 +59,8 @@ describe("uploads/uploader — validation guards", () => {
     await wrapper.find("#post_tags").setValue("a b c d");
     await wrapper.find(".rating-s").trigger("click");
     await wrapper.find("#no_source").setValue(true); // suppresses the missing-source warning
+    (wrapper.vm as any).uploadValue = "https://example.com/image.png"; // an upload must be provided
+    await nextTick();
     await clickSubmit(wrapper);
     // Reached the network layer → all guards passed.
     expect(fetchSpy).toHaveBeenCalledWith("/uploads.json", expect.anything());

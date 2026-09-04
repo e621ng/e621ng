@@ -20,6 +20,8 @@ async function fillValidForm (wrapper: VueWrapper): Promise<void> {
   await wrapper.find("#post_tags").setValue("a b c d");
   await wrapper.find(".rating-s").trigger("click");
   await wrapper.find("#no_source").setValue(true); // suppresses the missing-source warning
+  (wrapper.vm as any).uploadValue = "https://example.com/image.png"; // an upload must be provided
+  await nextTick();
 }
 
 async function clickSubmit (wrapper: VueWrapper): Promise<void> {
@@ -61,14 +63,28 @@ describe("uploads/uploader — submit payload", () => {
 
   it("sends a direct URL (string upload value) rather than a file", async () => {
     const { data } = await submitAndCapture();
-    expect(data.get("upload[direct_url]")).toBe("");
+    expect(data.get("upload[direct_url]")).toBe("https://example.com/image.png");
     expect(data.get("upload[file]")).toBeNull();
+  });
+
+  it("blocks submission and warns when no file or URL is provided", async () => {
+    const mounted = await mountUploader();
+    await mounted.wrapper.find("#post_tags").setValue("a b c d");
+    await mounted.wrapper.find(".rating-s").trigger("click");
+    await mounted.wrapper.find("#no_source").setValue(true);
+    // deliberately no upload value
+    mounted.fetchSpy.mockClear();
+    await clickSubmit(mounted.wrapper);
+
+    expect(mounted.fetchSpy).not.toHaveBeenCalled();
+    expect(errorBox(mounted.wrapper, "provide a file")?.isVisible()).toBe(true);
   });
 
   it("sends the file when the upload value is a File", async () => {
     const mounted = await mountUploader();
-    (mounted.wrapper.vm as any).uploadValue = new File(["x"], "art.png", { type: "image/png" });
     await fillValidForm(mounted.wrapper);
+    (mounted.wrapper.vm as any).uploadValue = new File(["x"], "art.png", { type: "image/png" });
+    await nextTick();
     await clickSubmit(mounted.wrapper);
     const data = mounted.fetchSpy.mock.calls.at(-1)![1].body as FormData;
     expect(data.get("upload[file]")).toBeInstanceOf(File);
@@ -82,6 +98,7 @@ describe("uploads/uploader — submit payload", () => {
     await mounted.wrapper.find("#post_description").setValue("a description");
     (mounted.wrapper.vm as any).sources = ["https://example.com/a", "https://example.com/b"];
     (mounted.wrapper.vm as any).parentID = "12345";
+    (mounted.wrapper.vm as any).uploadValue = "https://example.com/image.png";
     await nextTick();
     await clickSubmit(mounted.wrapper);
 
