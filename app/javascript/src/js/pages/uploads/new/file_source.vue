@@ -4,7 +4,6 @@
           type="text"
           size="50"
           placeholder="Ex: https://example.com/artist/post/12345"
-          ref="inputEl"
           v-model="realValue"
           @keyup.enter="fadd"
           @keyup.up="focusPrev"
@@ -35,12 +34,6 @@
       }
     },
     methods: {
-      // Focus the input element for this source row
-      focus() {
-        if (this.$refs && this.$refs.inputEl) {
-          this.$refs.inputEl.focus();
-        }
-      },
       fadd() { this.$emit("fadd") },
       remove() { this.$emit("delete"); },
       paste($event) { this.$emit("madd", $event); },

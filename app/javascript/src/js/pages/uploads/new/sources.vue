@@ -12,7 +12,7 @@
     </label>
     <button @click="addSource" v-if="sources.length < maxSources && !noSource" class="upload-source-add">Add another source</button>
   </div>
-  <div class="upload-source-list" v-if="!noSource">
+  <div class="upload-source-list" v-if="!noSource" ref="sourceList">
     <file-source
       :index="i"
       :model-value="sources[i]"
@@ -23,7 +23,6 @@
       @madd="pasteSource($event, i)"
       @navigate="navigate($event)"
       :key="rowIds[i]"
-      ref="fileSources"
     ></file-source>
   </div>
 </template>
@@ -77,11 +76,7 @@
         this.$emit("update:sources", next);
 
         // Focus the newly created source after the parent round-trips the array back.
-        this.$nextTick(() => {
-          const refs = this.$refs.fileSources;
-          if (refs && refs[targetIndex])
-            refs[targetIndex].focus();
-        });
+        this.$nextTick(() => this.focusRow(targetIndex));
       },
       pasteSource(event, index) {
         if (!event.clipboardData) return;
@@ -108,8 +103,14 @@
         if (targetIndex >= this.sources.length) targetIndex = 0;
         else if (targetIndex < 0) targetIndex = this.sources.length - 1;
 
-        const refs = this.$refs.fileSources;
-        if (refs[targetIndex]) refs[targetIndex].focus();
+        this.focusRow(targetIndex);
+      },
+      // Focus the row input at a VISUAL position. Query the DOM (ordered) rather
+      // than $refs — a v-for ref array isn't guaranteed to match DOM order after
+      // a keyed insert/move.
+      focusRow(index) {
+        const inputs = this.$refs.sourceList?.querySelectorAll(".upload-source-row input");
+        if (inputs && inputs[index]) inputs[index].focus();
       },
     },
     computed: {

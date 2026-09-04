@@ -143,6 +143,16 @@ describe("uploads/sources", () => {
       await flushPromises();
       expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://a", "", "https://b"]);
     });
+
+    it("focuses the newly inserted row on Enter, not a shifted one", async () => {
+      const { wrapper } = make({ sources: ["https://a", "https://b", "https://c"] });
+      rowInputs(wrapper)[0].element.focus();
+      await rowInputs(wrapper)[0].trigger("keyup.enter"); // insert an empty row after row 0
+      await flushPromises();
+      // The new empty row is at index 1; focus must land there (not the shifted-down old rows).
+      expect(document.activeElement).toBe(rowInputs(wrapper)[1].element);
+      expect((rowInputs(wrapper)[1].element as HTMLInputElement).value).toBe("");
+    });
   });
 
   describe("removing sources", () => {
