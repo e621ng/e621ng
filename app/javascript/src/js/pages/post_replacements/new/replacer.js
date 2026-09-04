@@ -1,26 +1,17 @@
-import Page from "@/utility/Page.js";
 import $ from "jquery";
+import { createApp } from "vue";
+import Replacer from "./replacement_uploader.vue";
 
 const ReplacerModule = {
-  async init () {
+  init () {
     const replacerElement = document.getElementById("replacement-uploader");
     if (!replacerElement) return;
-    window.Danbooru.Replacer = ReplacerModule;
-
-    // Import Vue as needed
-    const [{ createApp }, { default: Replacer }] = await Promise.all([
-      import("vue"),
-      import("./replacement_uploader.vue"),
-    ]);
 
     const app = createApp(Replacer);
     app.mount("#replacement-uploader");
   },
 };
 
-$(() => {
-  if (!Page.matches("post-replacements", "new")) return;
-  ReplacerModule.init().catch(console.error);
-});
+$(() => { ReplacerModule.init(); });
 
 export default ReplacerModule;
