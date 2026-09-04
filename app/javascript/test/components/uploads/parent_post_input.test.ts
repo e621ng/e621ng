@@ -50,7 +50,7 @@ describe("uploads/parent_post_input", () => {
     );
     const w = make();
     await type(w, "123");
-    expect(globalThis.fetch).toHaveBeenCalledWith("/posts/123.json");
+    expect(globalThis.fetch).toHaveBeenCalledWith("/posts/123.json", expect.anything());
     const img = w.find(".upload-parent-preview img");
     expect(img.exists()).toBe(true);
     expect(img.attributes("src")).toBe("/data/preview/123.jpg");

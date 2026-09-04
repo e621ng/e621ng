@@ -23,6 +23,8 @@
 </template>
 
 <script>
+import HTTP from "@/utility/HTTP";
+
 export default {
   name: 'ParentPostInput',
   props: {
@@ -70,7 +72,7 @@ export default {
       this.error = '';
 
       try {
-        const response = await fetch(`/posts/${postId}.json`);
+        const response = await HTTP.get(`/posts/${postId}.json`);
         
         if (!response.ok) {
           if (response.status === 404) {
