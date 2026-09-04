@@ -20,6 +20,7 @@
 <meta name="metatags" content="<%= TagQuery::METATAGS.to_json %>">
 <meta name="order-metatags" content="<%= TagQuery::ORDER_METATAGS_AUTOCOMPLETE.to_json %>">
 <meta name="tag-categories" content="<%= TagCategory::MAPPING.keys.to_json %>">
+<meta name="tag-category-ids" content="<%= TagCategory::CANONICAL_MAPPING.to_json %>">
 
 <%# Site configuration for JavaScript %>
 <script type="text/plain" id="site-settings" data-encoding="base64"><%= site_settings_base64 %></script>
