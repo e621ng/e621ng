@@ -53,7 +53,7 @@ import filePreview from "@/pages/uploads/new/file_preview.vue";
 import fileInput from "@/pages/uploads/new/file_input.vue";
 import sources from "@/pages/uploads/new/sources.vue";
 import CurrentUser from "@/models/CurrentUser";
-import HTTP from "@/utility/HTTP";
+import { submitUploadForm } from "@/utility/UploadSubmission";
 
 export default {
   components: {
@@ -124,40 +124,21 @@ export default {
       formData.append("post_replacement[as_pending]", this.uploadAsPending);
 
       const postId = new URLSearchParams(window.location.search).get("post_id");
-      try {
-        const response = await HTTP.request("/post_replacements.json?post_id=" + postId, { method: "POST", body: formData });
+      const outcome = await submitUploadForm("/post_replacements.json?post_id=" + postId, formData);
 
-        if (response.ok) {
-          const body = await response.json();
-          // Only a successful submission earns the reason a datalist entry.
-          this.submittedReason = this.reason;
-          location.assign(body.location);
-          return;
-        }
-
-        this.submitting = false;
-
-        // Cloudflare
-        const cfRay = response.headers.get("cf-ray");
-        const cfMitigated = (response.headers.get("cf-mitigated") || "").trim().toLowerCase();
-        const serverHeader = (response.headers.get("server") || "").trim().toLowerCase();
-        if (cfMitigated.includes("challenge")) {
-          this.errorMessage = "Error: The upload was blocked by a security challenge. Please try again in a moment.";
-          return;
-        }
-        if (response.status === 403 && (serverHeader.includes("cloudflare") || !!cfRay)) {
-          this.errorMessage = "Error: The upload was blocked by Cloudflare (403). Please try again in a moment.";
-          return;
-        }
-
-        // A non-JSON error body rejects here → generic fallback below.
-        const jsonData = await response.json();
-        this.errorMessage = jsonData.reason || jsonData.message;
-      } catch (error) {
-        this.submitting = false;
-        console.error("Error submitting replacement:", error);
-        this.errorMessage = "Error: The upload could not be completed. Check the browser console for details.";
+      if (outcome.kind === "success") {
+        // Only a successful submission earns the reason a datalist entry.
+        this.submittedReason = this.reason;
+        location.assign(outcome.body.location);
+        return;
       }
+
+      this.submitting = false;
+      if (outcome.kind === "blocked" || outcome.kind === "failed") {
+        this.errorMessage = outcome.message;
+        return;
+      }
+      this.errorMessage = outcome.json.reason || outcome.json.message;
     }
   }
 };

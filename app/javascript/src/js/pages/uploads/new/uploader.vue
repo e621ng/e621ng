@@ -218,6 +218,7 @@
 <script>
   import { markRaw } from "vue";
   import HTTP from "@/utility/HTTP";
+  import { submitUploadForm } from "@/utility/UploadSubmission";
   import ToastManager from "@/utility/Toast";
   import sources from './sources.vue';
   import checkboxSource from './checkbox_source.vue';
@@ -431,47 +432,28 @@
           data.append('upload[locked_rating]', this.ratingLocked);
         if (this.allowUploadAsPending)
           data.append('upload[as_pending]', this.uploadAsPending);
-        try {
-          const response = await HTTP.request('/uploads.json', { method: 'POST', body: data });
+        const outcome = await submitUploadForm('/uploads.json', data);
+        self.submitting = false;
 
-          if (response.ok) {
-            const body = await response.json();
-            self.submitting = false;
-            self.allowNavigate = true;
-            ToastManager.notice('Post uploaded successfully.');
-            location.assign(body.location);
-            return;
-          }
+        if (outcome.kind === 'success') {
+          self.allowNavigate = true;
+          ToastManager.notice('Post uploaded successfully.');
+          location.assign(outcome.body.location);
+          return;
+        }
+        if (outcome.kind === 'blocked' || outcome.kind === 'failed') {
+          self.error = outcome.message;
+          return;
+        }
 
-          self.submitting = false;
-
-          // Cloudflare
-          const cfRay = response.headers.get('cf-ray');
-          const cfMitigated = (response.headers.get('cf-mitigated') || '').trim().toLowerCase();
-          const serverHeader = (response.headers.get('server') || '').trim().toLowerCase();
-          if (cfMitigated.includes('challenge')) {
-            self.error = 'Error: The upload was blocked by a security challenge. Please try again in a moment.';
-            return;
-          }
-          if (response.status === 403 && (serverHeader.includes('cloudflare') || !!cfRay)) {
-            self.error = 'Error: The upload was blocked by Cloudflare (403). Please try again in a moment.';
-            return;
-          }
-
-          // A non-JSON error body rejects here → generic fallback (matches the old `if(!jsonData) throw`).
-          const jsonData = await response.json();
-          if (jsonData.reason === 'duplicate') self.duplicateId = jsonData.post_id;
-          if (['duplicate', 'invalid'].indexOf(jsonData.reason) !== -1) {
-            self.error = jsonData.message;
-          } else if (jsonData.message) {
-            self.error = 'Error: ' + jsonData.message;
-          } else {
-            self.error = 'Error: ' + jsonData.reason;
-          }
-        } catch (error) {
-          self.submitting = false;
-          console.error('Error uploading post:', error);
-          self.error = 'Error: The upload could not be completed. Check the browser console for details.';
+        const jsonData = outcome.json;
+        if (jsonData.reason === 'duplicate') self.duplicateId = jsonData.post_id;
+        if (['duplicate', 'invalid'].indexOf(jsonData.reason) !== -1) {
+          self.error = jsonData.message;
+        } else if (jsonData.message) {
+          self.error = 'Error: ' + jsonData.message;
+        } else {
+          self.error = 'Error: ' + jsonData.reason;
         }
       },
       // Related-tag toggle: route the tag to its owning source, else the sink.
