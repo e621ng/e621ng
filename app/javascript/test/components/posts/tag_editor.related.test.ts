@@ -12,31 +12,32 @@ afterEach(unmountAll);
 
 const relatedLink = (w: VueWrapper, label: string) => w.findAll(".related-tag-functions a").find((a) => a.text() === label)!;
 const groupTitles = (w: VueWrapper) => w.findAll(".related-title").map((t) => t.text());
-const queryParams = (url: string) => new URL(url, "http://localhost").searchParams;
 
 describe("posts/tag_editor — findRelated", () => {
-  it("GETs the full tag string from the bulk endpoint via the HTTP helper", async () => {
+  // POST, not GET: the query is the full tag string, and a prod post can carry
+  // 20k+ characters of tags — far past URL length limits.
+  it("POSTs the full tag string to the bulk endpoint via the HTTP helper", async () => {
     const postTags = "wolf canine ";
     const { wrapper, fetchCalls } = await mountTagEditor({ postTags });
     await relatedLink(wrapper, "Tags").trigger("click");
 
     expect(fetchCalls).toHaveLength(1);
-    const url = new URL(fetchCalls[0].url, "http://localhost");
-    expect(url.pathname).toBe("/related_tag/bulk.json");
-    expect(url.searchParams.get("query")).toBe(postTags);
-    expect(url.searchParams.has("category_id")).toBe(false);
+    expect(fetchCalls[0].url).toBe("/related_tag/bulk.json");
+    expect(fetchCalls[0].method).toBe("POST");
+    expect(fetchCalls[0].params.get("query")).toBe(postTags);
+    expect(fetchCalls[0].params.has("category_id")).toBe(false);
   });
 
   it("sends the artist category id resolved from its name", async () => {
     const { wrapper, fetchCalls } = await mountTagEditor();
     await relatedLink(wrapper, "Artists").trigger("click");
-    expect(queryParams(fetchCalls[0].url).get("category_id")).toBe("1");
+    expect(fetchCalls[0].params.get("category_id")).toBe("1");
   });
 
   it("sends the meta category id resolved from its name", async () => {
     const { wrapper, fetchCalls } = await mountTagEditor();
     await relatedLink(wrapper, "Metatags").trigger("click");
-    expect(queryParams(fetchCalls[0].url).get("category_id")).toBe("7");
+    expect(fetchCalls[0].params.get("category_id")).toBe("7");
   });
 
   it("maps every category link to its canonical id", async () => {
@@ -47,7 +48,7 @@ describe("posts/tag_editor — findRelated", () => {
     for (const [label, id] of Object.entries(expected)) {
       const { wrapper, fetchCalls, restore } = await mountTagEditor();
       await relatedLink(wrapper, label).trigger("click");
-      expect(queryParams(fetchCalls[0].url).get("category_id"), label).toBe(id);
+      expect(fetchCalls[0].params.get("category_id"), label).toBe(id);
       restore();
     }
   });
@@ -58,7 +59,7 @@ describe("posts/tag_editor — findRelated", () => {
     textarea.selectionStart = 5;
     textarea.selectionEnd = 8;
     await relatedLink(wrapper, "Tags").trigger("click");
-    expect(queryParams(fetchCalls[0].url).get("query")).toBe("dog");
+    expect(fetchCalls[0].params.get("query")).toBe("dog");
   });
 
   it("shows the loading row while in flight and clears it on success", async () => {
@@ -135,6 +136,6 @@ describe("posts/tag_editor — findRelated", () => {
 
     await relatedLink(wrapper, "Species").trigger("click");
     expect(fetchCalls).toHaveLength(2);
-    expect(queryParams(fetchCalls[1].url).get("category_id")).toBe("5");
+    expect(fetchCalls[1].params.get("category_id")).toBe("5");
   });
 });

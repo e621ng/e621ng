@@ -37,8 +37,11 @@ export interface MountTagEditorOptions {
 
 /** One captured related-tags fetch, settled manually by the test. */
 export interface RelatedCall {
-  /** The full request URL, including the serialized query string. */
   url: string;
+  /** The request method (the lookup POSTs — huge tag strings exceed URL limits). */
+  method: string;
+  /** The parsed form-urlencoded request body. */
+  params: URLSearchParams;
   /** Settle the request successfully with a JSON body. */
   resolve: (data: unknown) => Promise<void>;
   /** Settle the request as a failure (500 — the helper rejects on non-2xx). */
@@ -95,12 +98,14 @@ export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise
   // deferreds (so tests can observe in-flight state and settle in any order);
   // everything else (tag_preview) auto-resolves inert.
   const fetchCalls: RelatedCall[] = [];
-  vi.spyOn(globalThis, "fetch").mockImplementation(((url: string) => {
+  vi.spyOn(globalThis, "fetch").mockImplementation(((url: string, init?: RequestInit) => {
     if (!String(url).includes("/related_tag/"))
       return Promise.resolve(jsonResponse([]) as Response);
     return new Promise((settle) => {
       fetchCalls.push({
         url: String(url),
+        method: init?.method ?? "GET",
+        params: new URLSearchParams(String(init?.body ?? "")),
         resolve: async (data: unknown) => {
           settle(jsonResponse(data));
           await flushPromises();

@@ -26,13 +26,17 @@ export function selectedText (field: HTMLTextAreaElement | HTMLInputElement): st
 /**
  * Query the bulk related-tags endpoint and shape the response for display:
  * empty groups are dropped, tags sort by name, titles become "Related: <key>".
- * Rejects on failure (HTTP.getJSON throws on non-2xx) — callers decide.
+ * Rejects on failure (HTTP.postJSON throws on non-2xx) — callers decide.
+ *
+ * POST, not GET: the query is the full tag string, and a well-tagged post can
+ * carry thousands of tags (20k+ characters) — far past URL/header limits.
+ * Form-urlencoded so Rails reads params[:query]; CSRF added by the helper.
  */
 export async function fetchRelatedTags (query: string, categoryId?: number): Promise<RelatedTagGroup[]> {
-  const params: Record<string, string | number> = { query };
+  const body = new URLSearchParams({ query });
   // != null keeps category 0 (general) while omitting the param for undefined.
-  if (categoryId != null) params["category_id"] = categoryId;
-  const data = await HTTP.getJSON<Record<string, RelatedTag[]>>("/related_tag/bulk.json", params);
+  if (categoryId != null) body.set("category_id", String(categoryId));
+  const data = await HTTP.postJSON<Record<string, RelatedTag[]>>("/related_tag/bulk.json", body);
 
   const groups: RelatedTagGroup[] = [];
   for (const [key, tags] of Object.entries(data)) {

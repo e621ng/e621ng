@@ -25,15 +25,19 @@ async function loadRelated (w: VueWrapper, label: string) {
 }
 
 describe("uploads/uploader — related tags", () => {
-  it("queries the endpoint with the current tags and category id", async () => {
+  // POSTed, not GETed: the query is the full tag string, which can far exceed
+  // URL length limits on a heavily-tagged post.
+  it("POSTs the current tags and category id to the endpoint", async () => {
     const { wrapper, fetchSpy } = await mountUploader();
     await wrapper.find("#post_tags").setValue("wolf outside");
     stubRelated(fetchSpy, {});
     await loadRelated(wrapper, "Artists");
-    const url = fetchSpy.mock.calls.at(-1)![0] as string;
-    expect(url).toContain("/related_tag/bulk.json?");
-    expect(url).toContain("query=wolf+outside");
-    expect(url).toContain("category_id=1");
+    const [url, init] = fetchSpy.mock.calls.at(-1)! as [string, RequestInit];
+    expect(url).toBe("/related_tag/bulk.json");
+    expect(init.method).toBe("POST");
+    const params = new URLSearchParams(String(init.body));
+    expect(params.get("query")).toBe("wolf outside");
+    expect(params.get("category_id")).toBe("1");
   });
 
   it("sends category_id=0 for the general category (not treated as 'no filter')", async () => {
@@ -42,7 +46,8 @@ describe("uploads/uploader — related tags", () => {
     stubRelated(fetchSpy, {});
     await (wrapper.vm as any).findRelated("general"); // idFor('general') === 0
     await flushPromises();
-    expect(fetchSpy.mock.calls.at(-1)![0] as string).toContain("category_id=0");
+    const init = fetchSpy.mock.calls.at(-1)![1] as RequestInit;
+    expect(new URLSearchParams(String(init.body)).get("category_id")).toBe("0");
   });
 
   it("renders returned groups, sorted by tag name", async () => {
