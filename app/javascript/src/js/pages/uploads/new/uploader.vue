@@ -553,7 +553,7 @@
         return [...this.registry.sources]
           .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
           .flatMap(s => s.currentTags())
-          .join(' ').replace(',', ' ').trim().replace(/ +/g, ' ');
+          .join(' ').replace(/,/g, ' ').trim().replace(/ +/g, ' ');
       },
       tagsArray() {
         return this.tags.toLowerCase().split(' ');
