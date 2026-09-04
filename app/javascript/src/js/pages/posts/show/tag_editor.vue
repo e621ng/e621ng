@@ -67,9 +67,14 @@ export default {
   watch: {
     // Covers typing, autocomplete inserts (mouse included), paste, and pushTag.
     // Not immediate: the initial count is triggered by the e6ng:vue-mounted
-    // handshake in posts.js.
-    tags() {
-      Post.update_tag_count();
+    // handshake in posts.js. Post-flush because update_tag_count reads the
+    // textarea DOM, which a pre-flush run would see stale on programmatic
+    // changes (pushTag).
+    tags: {
+      handler() {
+        Post.update_tag_count();
+      },
+      flush: "post",
     }
   },
   methods: {

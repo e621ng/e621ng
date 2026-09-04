@@ -39,4 +39,26 @@ describe("posts/tag_editor — tag count wiring", () => {
     await flushPromises();
     expect(updateTagCount).toHaveBeenCalled();
   });
+
+  // Post-flush pin: update_tag_count reads the textarea DOM (posts.js), so the
+  // watcher must run AFTER the re-render. A pre-flush watcher fires between the
+  // data change and the DOM patch, counting the stale value on programmatic
+  // changes like pushTag. The suite's mock is otherwise blind to this — so this
+  // pin captures what the DOM held at call time.
+  it("runs the count only after the textarea DOM has updated (post-flush pin)", async () => {
+    const { wrapper, updateTagCount } = await mountTagEditor({ postTags: "wolf " });
+    updateTagCount.mockClear();
+    let seenAtCallTime: string | undefined;
+    updateTagCount.mockImplementation(() => {
+      seenAtCallTime = (wrapper.find("textarea").element as HTMLTextAreaElement).value;
+    });
+
+    (wrapper.findComponent(".related-tags") as any).vm.$emit("tag-active", "feral", true);
+    await flushPromises();
+    expect(seenAtCallTime).toBe("wolf feral ");
+
+    // The mocked fn is file-shared (memoized vi.mock factory) — drop the
+    // implementation so it can't leak into other tests.
+    updateTagCount.mockReset();
+  });
 });
