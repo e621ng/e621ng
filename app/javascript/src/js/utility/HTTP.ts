@@ -7,7 +7,7 @@ interface HTTPOptions {
 
 /**
  * Thin fetch wrapper: query-string serialization, CSRF on non-GET requests, and
- * `credentials: "include"`. Returns the raw Response so callers keep full control
+ * same-origin credentials. Returns the raw Response so callers keep full control
  * over status/header/body handling (jQuery.ajax used to add CSRF via @rails/ujs;
  * fetch does not, so this is where the token is attached).
  */
@@ -21,7 +21,7 @@ export default class HTTP {
     return fetch(HTTP.withParams(url, opts.params), {
       method,
       headers,
-      credentials: "include",
+      credentials: "same-origin", // Match jQuery XHR (withCredentials:false)
       body: opts.body,
     });
   }

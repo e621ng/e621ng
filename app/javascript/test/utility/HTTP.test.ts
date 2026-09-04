@@ -28,7 +28,7 @@ describe("HTTP", () => {
     await HTTP.post("/x", new URLSearchParams({ a: "1" }));
     const postInit = fetchSpy.mock.calls[0][1] as RequestInit;
     expect((postInit.headers as Record<string, string>)["X-CSRF-Token"]).toBe("tok123");
-    expect(postInit.credentials).toBe("include");
+    expect(postInit.credentials).toBe("same-origin");
 
     await HTTP.get("/y");
     const getInit = fetchSpy.mock.calls[1][1] as RequestInit;
