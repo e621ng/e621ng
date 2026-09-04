@@ -57,6 +57,14 @@ describe("uploads/sources", () => {
       expect(wrapper.find(".upload-source-list").exists()).toBe(false);
     });
 
+    it("emits the no-source flag when the checkbox toggles", async () => {
+      const { wrapper } = make();
+      await wrapper.find("#no_source").setValue(true);
+      expect(lastEmitted(wrapper, "noSource")).toBe(true);
+      await wrapper.find("#no_source").setValue(false);
+      expect(lastEmitted(wrapper, "noSource")).toBe(false);
+    });
+
     it("shows the warning box only when showErrors is set", async () => {
       const shown = make().wrapper;
       expect(shown.findAll(".source_warning")[0].isVisible()).toBe(true);

@@ -40,7 +40,7 @@
         noSource: false,
       };
     },
-    emits: ["missingSourceWarning", "nonUrlSourceWarning", "update:sources"],
+    emits: ["missingSourceWarning", "nonUrlSourceWarning", "update:sources", "noSource"],
     methods: {
       // The list is owned by the parent (v-model:sources). Every mutation builds a
       // new array and emits it; the prop is never written in place.
@@ -140,7 +140,14 @@
         immediate: true,
         handler() {
           this.$emit("nonUrlSourceWarning", this.nonUrlSourceWarning);
-        }  
+        }
+      },
+      // Surface the checkbox so the parent can omit the source at submit time.
+      noSource: {
+        immediate: true,
+        handler() {
+          this.$emit("noSource", this.noSource);
+        }
       },
     },
   }

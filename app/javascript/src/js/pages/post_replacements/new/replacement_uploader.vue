@@ -5,7 +5,7 @@
   <div class="input">
     <label>
       Additional Source
-      <sources :maxSources="1" :showErrors="showErrors" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:sources="sources"></sources>
+      <sources :maxSources="1" :showErrors="showErrors" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" @noSource="noSource = $event" v-model:sources="sources"></sources>
     </label>
     <span class="hint">The submission page the replacement file came from</span>
   </div>
@@ -65,6 +65,7 @@ export default {
         isVideo: false,
       },
       sources: [""],
+      noSource: false,
       uploadValue: "",
       reason: "",
       errorMessage: undefined,
@@ -107,7 +108,7 @@ export default {
       } else {
         formData.append("post_replacement[replacement_file]", this.uploadValue);
       }
-      formData.append("post_replacement[source]", this.sources[0]);
+      formData.append("post_replacement[source]", this.noSource ? "" : this.sources[0]);
       formData.append("post_replacement[reason]", this.reason);
       formData.append("post_replacement[as_pending]", this.uploadAsPending);
 
