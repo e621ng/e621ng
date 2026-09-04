@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 import { VueWrapper } from "@vue/test-utils";
-import { MountReplacementUploaderOptions, mountReplacementUploader, unmountAll } from "./mountReplacementUploader";
+import { MountReplacementUploaderOptions, mountReplacementUploader, provideUploadValue, unmountAll } from "./mountReplacementUploader";
 
 afterEach(unmountAll);
 
@@ -9,8 +9,7 @@ const submitButton = (wrapper: VueWrapper) => wrapper.findAll("button").find((b)
 
 async function fillValidForm (wrapper: VueWrapper): Promise<void> {
   await wrapper.find("#no_source").setValue(true); // suppresses the missing-source warning
-  (wrapper.vm as any).uploadValue = "https://example.com/image.png";
-  await nextTick();
+  await provideUploadValue(wrapper);
 }
 
 async function clickSubmit (wrapper: VueWrapper): Promise<void> {
@@ -61,8 +60,7 @@ describe("post_replacements/replacement_uploader — submit payload", () => {
   it("sends the file when the upload value is a File", async () => {
     const mounted = await mountReplacementUploader();
     await fillValidForm(mounted.wrapper);
-    (mounted.wrapper.vm as any).uploadValue = new File(["x"], "art.png", { type: "image/png" });
-    await nextTick();
+    await provideUploadValue(mounted.wrapper, { value: new File(["x"], "art.png", { type: "image/png" }) });
     await clickSubmit(mounted.wrapper);
     const data = (mounted.ajaxSpy.mock.calls.at(-1)![1] as any).data as FormData;
     expect(data.get("post_replacement[replacement_file]")).toBeInstanceOf(File);
@@ -71,7 +69,7 @@ describe("post_replacements/replacement_uploader — submit payload", () => {
 
   it("sends the first source", async () => {
     const mounted = await mountReplacementUploader();
-    (mounted.wrapper.vm as any).uploadValue = "https://example.com/image.png";
+    await provideUploadValue(mounted.wrapper);
     await mounted.wrapper.find(".upload-source-row input").setValue("https://example.com/page");
     await clickSubmit(mounted.wrapper);
     const data = (mounted.ajaxSpy.mock.calls.at(-1)![1] as any).data as FormData;
@@ -80,7 +78,7 @@ describe("post_replacements/replacement_uploader — submit payload", () => {
 
   it("sends an empty source when 'no available source' is checked, even with text typed", async () => {
     const mounted = await mountReplacementUploader();
-    (mounted.wrapper.vm as any).uploadValue = "https://example.com/image.png";
+    await provideUploadValue(mounted.wrapper);
     await mounted.wrapper.find(".upload-source-row input").setValue("https://example.com/page");
     await mounted.wrapper.find("#no_source").setValue(true);
     await clickSubmit(mounted.wrapper);

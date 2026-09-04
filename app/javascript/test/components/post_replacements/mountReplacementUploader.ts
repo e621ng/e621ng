@@ -1,5 +1,6 @@
 import { mount, VueWrapper } from "@vue/test-utils";
 import { vi } from "vitest";
+import { nextTick } from "vue";
 import { setSiteData } from "../../helpers";
 
 // Unlike the uploads mountUploader, no hoisted `vi.mock` header is needed in the
@@ -33,6 +34,23 @@ const wrappers: VueWrapper[] = [];
 /** Call in each test file's afterEach to tear down mounted uploaders. */
 export function unmountAll (): void {
   for (const wrapper of wrappers.splice(0)) wrapper.unmount();
+}
+
+/**
+ * Provide an upload value through the observable boundary: the file-input's
+ * single `change` emit carrying { value, preview, invalid }.
+ */
+export async function provideUploadValue (
+  wrapper: VueWrapper,
+  opts: { value?: string | File, invalid?: boolean } = {},
+): Promise<void> {
+  const fileInput = wrapper.findComponent(".uploader-file-input") as VueWrapper;
+  fileInput.vm.$emit("change", {
+    value: opts.value ?? "https://example.com/image.png",
+    preview: { url: "", isVideo: false },
+    invalid: opts.invalid ?? false,
+  });
+  await nextTick();
 }
 
 export async function mountReplacementUploader (

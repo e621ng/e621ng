@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 import { VueWrapper } from "@vue/test-utils";
-import { mountReplacementUploader, unmountAll } from "./mountReplacementUploader";
+import { mountReplacementUploader, provideUploadValue, unmountAll } from "./mountReplacementUploader";
 
 afterEach(unmountAll);
 
@@ -12,19 +12,6 @@ async function clickSubmit (wrapper: VueWrapper): Promise<void> {
   await submitButton(wrapper).trigger("click");
   await nextTick();
 }
-
-// Provide an upload value through the observable boundary: the file-input's
-// single `change` emit carrying { value, preview, invalid }.
-async function provideUploadValue (wrapper: VueWrapper, invalid = false): Promise<void> {
-  const fileInput = wrapper.findComponent(".uploader-file-input") as VueWrapper;
-  fileInput.vm.$emit("change", {
-    value: "https://example.com/file.png",
-    preview: { url: "", isVideo: false },
-    invalid,
-  });
-  await nextTick();
-}
-
 describe("post_replacements/replacement_uploader — guards", () => {
   it("hides the source warnings until the first submit attempt", async () => {
     const { wrapper } = await mountReplacementUploader();
@@ -87,7 +74,7 @@ describe("post_replacements/replacement_uploader — guards", () => {
   it("blocks submission when the file input reports an invalid value", async () => {
     const { wrapper, ajaxSpy } = await mountReplacementUploader();
     await wrapper.find("#no_source").setValue(true);
-    await provideUploadValue(wrapper, true);
+    await provideUploadValue(wrapper, { invalid: true });
     await clickSubmit(wrapper);
     expect(ajaxSpy).not.toHaveBeenCalled();
     expect(submitButton(wrapper).attributes("disabled")).toBeDefined();
@@ -96,10 +83,10 @@ describe("post_replacements/replacement_uploader — guards", () => {
   it("unblocks when the file input reports a valid value again", async () => {
     const { wrapper, ajaxSpy } = await mountReplacementUploader();
     await wrapper.find("#no_source").setValue(true);
-    await provideUploadValue(wrapper, true);
+    await provideUploadValue(wrapper, { invalid: true });
     await clickSubmit(wrapper);
     expect(ajaxSpy).not.toHaveBeenCalled();
-    await provideUploadValue(wrapper, false);
+    await provideUploadValue(wrapper);
     await clickSubmit(wrapper);
     expect(ajaxSpy).toHaveBeenCalledTimes(1);
   });
