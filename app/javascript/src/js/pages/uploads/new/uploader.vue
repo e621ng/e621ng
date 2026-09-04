@@ -20,7 +20,7 @@
                     </div>
                 </div>
                 <div class="col2">
-                    <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event"></sources>
+                    <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:noSource="noSource"></sources>
                 </div>
             </div>
             <template v-if="!compactMode">
@@ -275,6 +275,7 @@
 
         missingSourceWarning: false,
         nonUrlSourceWarning: false,
+        noSource: false,
         sources: [''],
         compactMode: UploadData.compactMode,
 
@@ -417,7 +418,7 @@
         }
         data.append('upload[tag_string]', this.tags);
         data.append('upload[rating]', this.rating);
-        data.append('upload[source]', this.sources.join('\n'));
+        data.append('upload[source]', this.noSource ? '' : this.sources.join('\n'));
         data.append('upload[description]', this.description);
         data.append('upload[parent_id]', this.parentID);
         if (this.allowLockedTags)

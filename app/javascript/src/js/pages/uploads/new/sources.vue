@@ -7,7 +7,7 @@
   </div>
   <div class="upload-source-more">
     <label class="section-label upload-source-none">
-      <input type="checkbox" id="no_source" v-model="noSource"/>
+      <input type="checkbox" id="no_source" :checked="noSource" @change="$emit('update:noSource', $event.target.checked)"/>
       No available source.
     </label>
     <button @click="addSource" v-if="sources.length < maxSources && !noSource" class="upload-source-add">Add another source</button>
@@ -34,13 +34,8 @@
     components: {
       "file-source": fileSource,
     },
-    props: ["showErrors", "sources", "maxSources"],
-    data() {
-      return {
-        noSource: false,
-      };
-    },
-    emits: ["missingSourceWarning", "nonUrlSourceWarning", "update:sources"],
+    props: ["showErrors", "sources", "maxSources", "noSource"],
+    emits: ["missingSourceWarning", "nonUrlSourceWarning", "update:sources", "update:noSource"],
     methods: {
       // The list is owned by the parent (v-model:sources). Every mutation builds a
       // new array and emits it; the prop is never written in place.
@@ -134,13 +129,13 @@
         immediate: true,
         handler() {
           this.$emit("missingSourceWarning", this.missingSourceWarning);
-        }  
+        }
       },
       nonUrlSourceWarning: {
         immediate: true,
         handler() {
           this.$emit("nonUrlSourceWarning", this.nonUrlSourceWarning);
-        }  
+        }
       },
     },
   }

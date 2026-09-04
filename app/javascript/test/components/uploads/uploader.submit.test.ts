@@ -93,6 +93,17 @@ describe("uploads/uploader — submit payload", () => {
     expect(data.get("upload[parent_id]")).toBe("12345");
   });
 
+  it("submits an empty source when 'no available source' is checked", async () => {
+    const mounted = await mountUploader();
+    (mounted.wrapper.vm as any).sources = ["https://example.com/typed"];
+    await nextTick();
+    await fillValidForm(mounted.wrapper); // checks #no_source
+    await clickSubmit(mounted.wrapper);
+
+    const data = mounted.fetchSpy.mock.calls.at(-1)![1].body as FormData;
+    expect(data.get("upload[source]")).toBe("");
+  });
+
   it("omits privileged fields for a regular member", async () => {
     const { data } = await submitAndCapture();
     expect(data.get("upload[locked_tags]")).toBeNull();
