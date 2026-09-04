@@ -12,10 +12,8 @@
 </template>
 
 <script>
+  import { tagSorter } from './tag_field.js';
 
-  function tagSorter(a, b) {
-    return a.name > b.name ? 1 : -1;
-  }
   export default {
     props: ['tags', 'related', 'loading', 'uploadedTags', 'recentTags'],
     data: function () {

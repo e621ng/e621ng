@@ -9,21 +9,30 @@
        :data-count="tag.post_count">
     <tag-link :name="tag.alias || tag.resolved || tag.name" :tagType="tag.category" :wrap="true"></tag-link>
     <span v-if="tag.id == null" class="new">new</span>
-    <span v-else-if="tag.category === 6" class="invalid">invalid</span>
+    <span v-else-if="isInvalid" class="invalid">invalid</span>
     <span v-else-if="tag.duplicate" class="duplicate">duplicate</span>
     <span v-else-if="tag.impliedBy && tag.impliedBy.length > 0" class="implied" :title="getImpliedTooltip(tag)">implied</span>
     <span v-else-if="tag.post_count === 0" class="empty">empty</span>
-    <span v-else-if="tag.post_count != null" :class="{'post-count': true, 'underused': tag.post_count === 1 && tag.category === 0}">{{ formatTagCount(tag.post_count) }}</span>
+    <span v-else-if="tag.post_count != null" :class="{'post-count': true, 'underused': tag.post_count === 1 && isGeneral}">{{ formatTagCount(tag.post_count) }}</span>
   </div>
 </template>
 
 <script>
 import tagLink from "./tag_link.vue";
+import TagCategories from "@/utility/TagCategories";
 
 export default {
   props: ["tag"],
   components: {
     "tag-link": tagLink,
+  },
+  computed: {
+    isInvalid() {
+      return this.tag.category === TagCategories.idFor("invalid");
+    },
+    isGeneral() {
+      return this.tag.category === TagCategories.idFor("general");
+    },
   },
   methods: {
     formatTagCount(count) {

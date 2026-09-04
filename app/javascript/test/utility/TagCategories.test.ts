@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setMeta } from "../helpers";
+import { removeMeta, setMeta } from "../helpers";
 
 // The helper reads the meta eagerly at import, so seed the meta first, then import fresh.
 async function freshTC () {
@@ -36,6 +36,7 @@ describe("TagCategories", () => {
   });
 
   it("degrades to empty maps when the meta is absent", async () => {
+    removeMeta("tag-category-ids"); // the harness seeds this globally; drop it here
     const TagCategories = await freshTC();
     expect(TagCategories.nameFor(0)).toBe("unknown");
     expect(TagCategories.idFor("artist")).toBeUndefined();

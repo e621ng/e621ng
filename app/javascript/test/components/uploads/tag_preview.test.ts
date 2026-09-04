@@ -72,6 +72,13 @@ describe("uploads/tag_preview", () => {
     expect(toggle().text()).toContain("Show");
   });
 
+  it("marks an invalid-category tag as invalid", async () => {
+    stubFetch([{ id: 1, name: "foo", post_count: 5, category: 6 }]); // 6 = invalid
+    const w = make("foo");
+    await settle();
+    expect(w.find(".tag-preview-tag .invalid").exists()).toBe(true);
+  });
+
   it("marks a tag implied by another as implied", async () => {
     stubFetch([
       { id: 1, name: "foo", post_count: 5, category: 0, implies: ["bar"] },

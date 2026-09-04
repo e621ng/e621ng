@@ -28,7 +28,7 @@
 </template>
 
 <script>
-const CATEGORY_NAMES = ['general', 'artist', 'contributor', 'copyright', 'character', 'species', 'invalid', 'meta', 'lore'];
+import TagCategories from "@/utility/TagCategories";
 
 export default {
   name: 'ArtistTagInput',
@@ -122,17 +122,19 @@ export default {
         }
       }
 
+      const general = TagCategories.idFor("general");
+      const artist = TagCategories.idFor("artist");
       const notices = [];
       for (const tagName of tags) {
         const tag = tagMap[tagName.toLowerCase()];
-        if (!tag || (tag.category === 0 && tag.post_count === 0)) {
+        if (!tag || (tag.category === general && tag.post_count === 0)) {
           notices.push({ tag: tagName, type: 'make_artist' });
-        } else if (tag.category === 1) {
+        } else if (tag.category === artist) {
           // Already an artist tag — nothing to show
-        } else if (tag.category === 0) {
+        } else if (tag.category === general) {
           notices.push({ tag: tagName, type: 'wrong', detail: `a populated general tag` });
         } else {
-          const categoryName = CATEGORY_NAMES[tag.category] || 'unknown';
+          const categoryName = TagCategories.nameFor(tag.category);
           notices.push({ tag: tagName, type: 'wrong', detail: `a ${categoryName} tag` });
         }
       }
