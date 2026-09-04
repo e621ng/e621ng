@@ -68,6 +68,7 @@ export default {
       },
       sources: [""],
       noSource: false,
+      postId: null,
       uploadValue: "",
       invalidUploadValue: false,
       reason: "",
@@ -83,6 +84,8 @@ export default {
   },
   mounted() {
     const params = new URLSearchParams(window.location.search);
+    this.postId = params.get("post_id");
+
     if (params.has("additional_source"))
       this.sources = [params.get("additional_source")];
 
@@ -121,8 +124,8 @@ export default {
       formData.append("post_replacement[reason]", this.reason);
       formData.append("post_replacement[as_pending]", this.uploadAsPending);
 
-      const postId = new URLSearchParams(window.location.search).get("post_id");
-      const outcome = await submitUploadForm("/post_replacements.json?post_id=" + postId, formData);
+      const url = this.postId ? `/post_replacements.json?post_id=${this.postId}` : "/post_replacements.json";
+      const outcome = await submitUploadForm(url, formData);
 
       if (outcome.kind === "success") {
         // Only a successful submission earns the reason a datalist entry.
