@@ -1,6 +1,5 @@
 import { vi } from "vitest";
 
-vi.mock("@/pages/posts/posts", () => ({ default: { update_tag_count: vi.fn() } }));
 vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete: vi.fn() } }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 

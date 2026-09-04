@@ -22,15 +22,7 @@
   <%= f.hidden_field :old_description, value: post.description %>
 
   <div class="input" id="tags-container">
-    <div class="header">
-      <%= f.label :tag_string, "Tags" %>
-
-      <span class="options">
-        <%= svg_icon(:face_smile, id: "face", width: 16, height: 16) %>
-        <span class="count"></span>
-      </span>
-    </div>
-
+    <%# The header (label + tag counter) is rendered by the Vue editor. %>
     <%# data-tags feeds the Vue editor its initial value; newlines in the
         attribute survive HTML5 parsing, preserving the category grouping. %>
     <div id="tag-string-editor" class="pending" data-tags="<%= post.presenter.categorized_tag_list_text %> ">Loading...</div>

@@ -2,7 +2,6 @@ import Hotkeys from "@/core/hotkeys";
 import PostVote from "@/models/PostVote";
 import Page from "@/utility/Page";
 import LStorage from "@/utility/storage/Local";
-import SVGIcon from "@/utility/SVGIcon";
 import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
 import CurrentUser from "@/models/CurrentUser";
@@ -38,13 +37,6 @@ Post.initialize_all = function () {
     window.scrollTo({ top: $("#edit").offset().top - 80, behavior: "smooth" });
   });
   $(document).on("danbooru:close-post-edit-tab", () => Hotkeys.enabled = true);
-  $("#tag-string-editor").on("e6ng:vue-mounted", () => {
-    Post.update_tag_count();
-  });
-
-  var $fields_multiple = $("[data-autocomplete=\"tag-edit\"]");
-  $fields_multiple.on("keypress.danbooru", Post.update_tag_count);
-  $fields_multiple.on("click", Post.update_tag_count);
 };
 
 Post.initialize_moderation = function () {
@@ -263,7 +255,6 @@ Post.initialize_post_sections = function () {
     Post._isEditing = !Post._isEditing;
 
     if (Post._isEditing) {
-      Post.update_tag_count();
       $("#edit").show();
       $(document).trigger("danbooru:open-post-edit-tab");
     } else {
@@ -599,34 +590,6 @@ Post.disapprove = function (post_id, reason, message) {
       Post.notice_update("dec");
     });
   }, { name: "Post.disapprove" });
-};
-
-Post.update_tag_count = function () {
-  let string = "0 tags";
-  let count = 0;
-  // let count2 = 1;
-
-  const input = $("#post_tag_string");
-  if (input.length) {
-    let tags = [...new Set(input.val().match(/\S+/g))];
-    if (tags) {
-      count = tags.length;
-      string = (count == 1) ? (count + " tag") : (count + " tags");
-    }
-  }
-  $("#tags-container .count").html(string);
-
-  let klass = "smile";
-  if (count < 15) {
-    klass = "frown";
-  } else if (count < 25) {
-    klass = "meh";
-  }
-
-  $("#tags-container .options #face")
-    .html(SVGIcon.ICONS["face_" + klass])
-    .removeClass("face-smile face-frown face-meh")
-    .addClass("face-" + klass);
 };
 
 Post.vote = function (id, score, prevent_unvote) {

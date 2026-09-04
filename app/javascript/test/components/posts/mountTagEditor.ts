@@ -7,12 +7,10 @@ import { jsonResponse, setSiteData } from "../../helpers";
 // Every test file that mounts the tag editor must include this header block itself,
 // BEFORE any imports:
 //
-//   vi.mock("@/pages/posts/posts", () => ({ default: { update_tag_count: vi.fn() } }));
 //   vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete: vi.fn() } }));
 //   vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 //
-// posts.js MUST be mocked — the real module drags in Hotkeys/PostVote side effects.
-// Toast is in the tree via tag_preview.vue. No DTextFormatter here.
+// Toast is in the tree via tag_preview.vue. No DTextFormatter or posts.js here.
 //
 // Transport: everything is on fetch (via the HTTP helper). Related-tag lookups
 // are captured as controllable per-call records that tests settle manually —
@@ -52,8 +50,6 @@ export interface MountedTagEditor {
   wrapper: VueWrapper;
   /** Every /related_tag/ fetch made so far, in order. */
   fetchCalls: RelatedCall[];
-  /** The mocked Post.update_tag_count (same instance the component calls). */
-  updateTagCount: ReturnType<typeof vi.fn>;
   /** The mocked Autocomplete.initialize_autocomplete. */
   initializeAutocomplete: ReturnType<typeof vi.fn>;
   restore: () => void;
@@ -117,9 +113,7 @@ export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise
   // vi.mock factory results are memoized across resetModules, so the mocked fns
   // are shared by every mount in a test file and accumulate calls. Grab them
   // before mounting and clear, so each mount records only its own calls.
-  const updateTagCount = (await import("@/pages/posts/posts")).default.update_tag_count;
   const initializeAutocomplete = (await import("@/components/autocomplete")).default.initialize_autocomplete;
-  updateTagCount.mockClear();
   initializeAutocomplete.mockClear();
 
   const TagEditor = (await import("@/pages/posts/show/tag_editor.vue")).default;
@@ -143,5 +137,5 @@ export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise
     wrapper.unmount();
   };
 
-  return { wrapper, fetchCalls, updateTagCount, initializeAutocomplete, restore };
+  return { wrapper, fetchCalls, initializeAutocomplete, restore };
 }
