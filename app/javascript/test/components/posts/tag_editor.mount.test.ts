@@ -10,7 +10,7 @@ import { mountTagEditor, unmountAll } from "./mountTagEditor";
 afterEach(unmountAll);
 
 describe("posts/tag_editor — mount", () => {
-  it("renders the textarea with the uploaderSettings tag string verbatim", async () => {
+  it("renders the textarea with the postTags prop verbatim", async () => {
     const postTags = "Wolf canine\nforest tree ";
     const { wrapper } = await mountTagEditor({ postTags });
     const textarea = wrapper.find("textarea").element as HTMLTextAreaElement;
@@ -47,11 +47,9 @@ describe("posts/tag_editor — mount", () => {
     expect(headerLink.text()).toBe(">>");
   });
 
-  // G1 pin: related.vue has no props here, so Quick Tags / Recent come from the
-  // window.uploaderSettings side-channel that RelatedTag.ts populates. The
-  // globals cleanup replaces this with real props — these tests keep the groups
-  // rendering through that change.
-  it("renders Quick Tags and Recent groups from the uploaderSettings global (G1 pin)", async () => {
+  // G1 fixed: Quick Tags / Recent flow in as root props (bootstrap → tag_editor
+  // → related.vue), with no global side-channel left.
+  it("renders Quick Tags and Recent groups from the root props (G1 fixed)", async () => {
     const { wrapper } = await mountTagEditor({
       uploadTags: [{ name: "signature", category_id: 0 }],
       recentTags: [{ name: "sky", category_id: 0 }],

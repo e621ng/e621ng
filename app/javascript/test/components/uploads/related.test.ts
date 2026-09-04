@@ -5,7 +5,6 @@ import Related from "@/pages/uploads/new/related.vue";
 const wrappers: VueWrapper[] = [];
 afterEach(() => {
   for (const w of wrappers.splice(0)) w.unmount();
-  delete (window as any).uploaderSettings;
 });
 
 function make (props: Record<string, unknown> = {}) {
@@ -30,11 +29,10 @@ describe("uploads/related", () => {
     expect(itemText(w)).toEqual(["fav", "aaa", "zzz"]);
   });
 
-  it("falls back to window.uploaderSettings when the props are absent", async () => {
-    (window as any).uploaderSettings = { uploadTags: [{ name: "legacy", category_id: 0 }], recentTags: [] };
+  it("renders no Quick Tags or Recent groups when the props are absent", async () => {
     const w = make(); // no uploadedTags/recentTags props
-    expect(titles(w)).toContain("Quick Tags");
-    expect(itemText(w)).toContain("legacy");
+    expect(titles(w)).not.toContain("Quick Tags");
+    expect(titles(w)).not.toContain("Recent");
   });
 
   it("renders server-provided related groups", () => {
