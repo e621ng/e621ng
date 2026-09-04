@@ -120,9 +120,6 @@ export default {
           this.setEmptyThumb();
       }
     },
-    invalidUploadValue() {
-      this.emitChange();
-    }
   },
   methods: {
     fileDragover(event) {
