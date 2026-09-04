@@ -12,7 +12,7 @@
     </label>
     <button @click="addSource" v-if="sources.length < maxSources && !noSource" class="upload-source-add">Add another source</button>
   </div>
-  <div class="upload-source-list" v-if="!noSource">
+  <div class="upload-source-list" v-if="!noSource" ref="sourceList">
     <file-source
       :index="i"
       :model-value="sources[i]"
@@ -22,8 +22,7 @@
       @fadd="addSource(i + 1)"
       @madd="pasteSource($event, i)"
       @navigate="navigate($event)"
-      :key="i"
-      ref="fileSources"
+      :key="rowIds[i]"
     ></file-source>
   </div>
 </template>
@@ -36,6 +35,11 @@
     },
     props: ["showErrors", "sources", "maxSources", "noSource"],
     emits: ["missingSourceWarning", "nonUrlSourceWarning", "update:sources", "update:noSource"],
+    data() {
+      // Stable per-row ids so Vue keys rows by identity (not index), preserving a
+      // row's DOM node — and its focus/caret — across a splice/reorder.
+      return { rowIds: [], nextRowId: 0 };
+    },
     methods: {
       // The list is owned by the parent (v-model:sources). Every mutation builds a
       // new array and emits it; the prop is never written in place.
@@ -47,8 +51,11 @@
       removeSource(i) {
         const next = this.sources.slice();
         next.splice(i, 1);
-        if (next.length === 0)
+        this.rowIds.splice(i, 1);
+        if (next.length === 0) {
           next.push("");
+          this.rowIds.push(this.nextRowId++);
+        }
         this.$emit("update:sources", next);
       },
       addSource(i) {
@@ -59,19 +66,17 @@
         // Insert a new source at the requested index (e.g. after current row)
         if (typeof i === "number" && i >= 0 && i <= next.length) {
           next.splice(i, 0, "");
+          this.rowIds.splice(i, 0, this.nextRowId++);
           targetIndex = i;
         } else {
           next.push("");
+          this.rowIds.push(this.nextRowId++);
           targetIndex = next.length - 1;
         }
         this.$emit("update:sources", next);
 
         // Focus the newly created source after the parent round-trips the array back.
-        this.$nextTick(() => {
-          const refs = this.$refs.fileSources;
-          if (refs && refs[targetIndex])
-            refs[targetIndex].focus();
-        });
+        this.$nextTick(() => this.focusRow(targetIndex));
       },
       pasteSource(event, index) {
         if (!event.clipboardData) return;
@@ -90,15 +95,25 @@
         // Insert the pasted URLs starting at the current index
         const next = this.sources.slice();
         next.splice(index, urls.length, ...urls);
+        this.rowIds.splice(index, urls.length, ...urls.map(() => this.nextRowId++));
         this.$emit("update:sources", next);
+
+        // Focus the last pasted row.
+        this.$nextTick(() => this.focusRow(index + urls.length - 1));
       },
       navigate($event) {
         let targetIndex = $event;
         if (targetIndex >= this.sources.length) targetIndex = 0;
         else if (targetIndex < 0) targetIndex = this.sources.length - 1;
 
-        const refs = this.$refs.fileSources;
-        if (refs[targetIndex]) refs[targetIndex].focus();
+        this.focusRow(targetIndex);
+      },
+      // Focus the row input at a VISUAL position. Query the DOM (ordered) rather
+      // than $refs — a v-for ref array isn't guaranteed to match DOM order after
+      // a keyed insert/move.
+      focusRow(index) {
+        const inputs = this.$refs.sourceList?.querySelectorAll(".upload-source-row input");
+        if (inputs && inputs[index]) inputs[index].focus();
       },
     },
     computed: {
@@ -125,6 +140,16 @@
       },
     },
     watch: {
+      // Seed on mount and reconcile length when the parent replaces the list
+      // wholesale (query-param import). The structural mutators keep rowIds in
+      // lockstep, so those changes land here as no-ops.
+      sources: {
+        immediate: true,
+        handler() {
+          while (this.rowIds.length < this.sources.length) this.rowIds.push(this.nextRowId++);
+          if (this.rowIds.length > this.sources.length) this.rowIds.splice(this.sources.length);
+        }
+      },
       missingSourceWarning: {
         immediate: true,
         handler() {

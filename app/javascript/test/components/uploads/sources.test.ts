@@ -143,6 +143,16 @@ describe("uploads/sources", () => {
       await flushPromises();
       expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://a", "", "https://b"]);
     });
+
+    it("focuses the newly inserted row on Enter, not a shifted one", async () => {
+      const { wrapper } = make({ sources: ["https://a", "https://b", "https://c"] });
+      rowInputs(wrapper)[0].element.focus();
+      await rowInputs(wrapper)[0].trigger("keyup.enter"); // insert an empty row after row 0
+      await flushPromises();
+      // The new empty row is at index 1; focus must land there (not the shifted-down old rows).
+      expect(document.activeElement).toBe(rowInputs(wrapper)[1].element);
+      expect((rowInputs(wrapper)[1].element as HTMLInputElement).value).toBe("");
+    });
   });
 
   describe("removing sources", () => {
@@ -158,6 +168,17 @@ describe("uploads/sources", () => {
       await wrapper.find(".upload-source-row button").trigger("click");
       await flushPromises();
       expect(lastEmitted(wrapper, "update:sources")).toEqual([""]);
+    });
+
+    it("preserves a surviving row's DOM node across a removal (stable keys)", async () => {
+      const { wrapper } = make({ sources: ["https://a", "https://b", "https://c"] });
+      const bNode = rowInputs(wrapper)[1].element; // the "b" input
+      await wrapper.findAll(".upload-source-row button")[0].trigger("click"); // remove row a
+      await flushPromises();
+      // b is now index 0; with stable keys it is the SAME node (index keys would
+      // rebind the position-0 node to "b" instead of moving b's node up).
+      expect(rowInputs(wrapper)[0].element).toBe(bNode);
+      expect((rowInputs(wrapper)[0].element as HTMLInputElement).value).toBe("https://b");
     });
   });
 
@@ -187,6 +208,15 @@ describe("uploads/sources", () => {
       await paste(wrapper, 1, "https://a\nhttps://b");
       await flushPromises();
       expect(lastEmitted(wrapper, "update:sources")).toEqual(["https://keep", "https://a", "https://b"]);
+    });
+
+    it("focuses the last pasted row after a multi-line paste", async () => {
+      const { wrapper } = make({ sources: ["https://keep", ""] });
+      await paste(wrapper, 1, "https://a\nhttps://b\nhttps://c"); // → ["https://keep", a, b, c]
+      await flushPromises();
+      const rows = rowInputs(wrapper);
+      expect(document.activeElement).toBe(rows[rows.length - 1].element);
+      expect((rows[rows.length - 1].element as HTMLInputElement).value).toBe("https://c");
     });
 
     it("leaves single-line pastes to vanilla input behaviour (no emit)", async () => {
