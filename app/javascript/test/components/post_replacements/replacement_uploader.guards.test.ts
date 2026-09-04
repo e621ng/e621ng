@@ -1,3 +1,7 @@
+import { vi } from "vitest";
+
+vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
+
 import { afterEach, describe, expect, it } from "vitest";
 import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { mountReplacementUploader, provideUploadValue, unmountAll } from "./mountReplacementUploader";
