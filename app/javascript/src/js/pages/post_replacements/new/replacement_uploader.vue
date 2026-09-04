@@ -53,6 +53,7 @@ import filePreview from "@/pages/uploads/new/file_preview.vue";
 import fileInput from "@/pages/uploads/new/file_input.vue";
 import sources from "@/pages/uploads/new/sources.vue";
 import CurrentUser from "@/models/CurrentUser";
+import HTTP from "@/utility/HTTP";
 
 export default {
   components: {
@@ -105,9 +106,10 @@ export default {
       this.previewData = preview;
       this.invalidUploadValue = invalid;
     },
-    submit: function() {
+    async submit() {
       this.showErrors = true;
-      if(this.preventUpload || this.submitting) {
+      this.errorMessage = undefined;
+      if (this.preventUpload || this.submitting) {
         return;
       }
       this.submitting = true;
@@ -121,23 +123,41 @@ export default {
       formData.append("post_replacement[reason]", this.reason);
       formData.append("post_replacement[as_pending]", this.uploadAsPending);
 
-      this.submittedReason = this.reason;
-
       const postId = new URLSearchParams(window.location.search).get("post_id");
-      const self = this;
-      $.ajax("/post_replacements.json?post_id=" + postId, {
-        method: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        success(data) {
-          location.assign(data.location);
-        },
-        error(data) {
-          self.submitting = false;
-          self.errorMessage = data.responseJSON.reason || data.responseJSON.message;
+      try {
+        const response = await HTTP.request("/post_replacements.json?post_id=" + postId, { method: "POST", body: formData });
+
+        if (response.ok) {
+          const body = await response.json();
+          // Only a successful submission earns the reason a datalist entry.
+          this.submittedReason = this.reason;
+          location.assign(body.location);
+          return;
         }
-      });
+
+        this.submitting = false;
+
+        // Cloudflare
+        const cfRay = response.headers.get("cf-ray");
+        const cfMitigated = (response.headers.get("cf-mitigated") || "").trim().toLowerCase();
+        const serverHeader = (response.headers.get("server") || "").trim().toLowerCase();
+        if (cfMitigated.includes("challenge")) {
+          this.errorMessage = "Error: The upload was blocked by a security challenge. Please try again in a moment.";
+          return;
+        }
+        if (response.status === 403 && (serverHeader.includes("cloudflare") || !!cfRay)) {
+          this.errorMessage = "Error: The upload was blocked by Cloudflare (403). Please try again in a moment.";
+          return;
+        }
+
+        // A non-JSON error body rejects here → generic fallback below.
+        const jsonData = await response.json();
+        this.errorMessage = jsonData.reason || jsonData.message;
+      } catch (error) {
+        this.submitting = false;
+        console.error("Error submitting replacement:", error);
+        this.errorMessage = "Error: The upload could not be completed. Check the browser console for details.";
+      }
     }
   }
 };
