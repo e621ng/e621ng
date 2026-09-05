@@ -13,33 +13,47 @@ class DbExportJob < ApplicationJob
   EXPORTS = {
     "artists" => {
       query: read_export_sql("artists"),
+      connection: nil,
     },
     "bulk_update_requests" => {
       query: read_export_sql("bulk_update_requests"),
+      connection: nil,
+    },
+    "eris" => {
+      query: read_export_sql("eris"),
+      connection: "eris",
     },
     "pools" => {
       query: read_export_sql("pools"),
+      connection: nil,
     },
     "post_replacements" => {
       query: read_export_sql("post_replacements"),
+      connection: nil,
     },
     "post_versions" => {
       query: read_export_sql("post_versions"),
+      connection: nil,
     },
     "posts" => {
       query: read_export_sql("posts"),
+      connection: nil,
     },
     "tag_aliases" => {
       query: read_export_sql("tag_aliases"),
+      connection: nil,
     },
     "tag_implications" => {
       query: read_export_sql("tag_implications"),
+      connection: nil,
     },
     "tags" => {
       query: read_export_sql("tags"),
+      connection: nil,
     },
     "wiki_pages" => {
       query: read_export_sql("wiki_pages"),
+      connection: nil,
     },
   }.freeze
 
@@ -53,11 +67,35 @@ class DbExportJob < ApplicationJob
 
   private
 
+  def with_connection(name)
+    raise(LocalJumpError, "block required") unless block_given?
+    case name
+    when nil
+      conn = ActiveRecord::Base.connection.raw_connection
+      conn.exec("SET statement_timeout = 0")
+      begin
+        yield(conn)
+      ensure
+        conn&.exec("RESET statement_timeout")
+      end
+    else
+      config = ActiveRecord::Base.configurations.configs_for(env_name: name).first&.configuration_hash
+      raise(ArgumentError, "unknown connection: #{name}") if config.blank?
+      conn = PG.connect(host: config[:host], port: config[:port], user: config[:username], password: config[:password], dbname: config[:database])
+      conn.exec("SET statement_timeout = 0")
+      begin
+        yield(conn)
+      ensure
+        conn&.close
+      end
+    end
+  end
+
   def generate_export(name, config)
     Rails.logger.info("DbExportJob: Generating #{name} export")
 
     file = Tempfile.new(["#{name}-export", ".csv.gz"], binmode: true)
-    write_csv_gz(config[:query].call, file)
+    with_connection(config[:connection]) { |conn| write_csv_gz(conn, config[:query].call, file) }
     file.rewind
 
     checksum = Digest::SHA256.file(file.path).hexdigest
@@ -72,17 +110,14 @@ class DbExportJob < ApplicationJob
     file&.close!
   end
 
-  def write_csv_gz(query, file)
+  def write_csv_gz(conn, query, file)
     gz = Zlib::GzipWriter.new(file)
-    conn = ActiveRecord::Base.connection.raw_connection
-    conn.exec("SET statement_timeout = 0")
     conn.copy_data("COPY (#{query}) TO STDOUT WITH CSV HEADER") do
       while (row = conn.get_copy_data)
         gz.write(row)
       end
     end
   ensure
-    conn&.exec("RESET statement_timeout")
     gz&.finish
   end
 
