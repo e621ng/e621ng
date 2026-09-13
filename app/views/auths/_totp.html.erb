@@ -3,16 +3,30 @@
     <h1>Two-factor authentication</h1>
     <p>Enter the code from your authenticator app, or one of your backup codes.</p>
 
-    <div class="auth-input">
-      <%= form.label :code, class: "st-immersive-input" do %>
-        <span class="label-text">Code</span>
-        <%# No inputmode: backup codes are alphanumeric, and a numeric keyboard would block them on mobile. %>
-        <%= form.input_field :code, required: true, autocomplete: "one-time-code", autofocus: true %>
-      <% end %>
+    <div class="auth-input otp-code-input"
+         data-otp-code-input
+         data-label-totp="Authentication code"
+         data-label-backup="Backup code"
+         data-toggle-to-backup="Use a backup code"
+         data-toggle-to-totp="Use an authentication code">
+      <div class="otp-code-input-box">
+        <%= form.label :code, "Code", class: "otp-code-input-label" %>
+        <div class="otp-code-input-field">
+          <%# No inputmode/pattern here, and never a maxlength: this must stay the
+              plain dual-purpose field (TOTP or backup code) when JS is unavailable.
+              OtpCodeInput applies those restrictions itself once it has enhanced
+              the field. %>
+          <%= form.input_field :code, required: true, autocomplete: "one-time-code", autofocus: true, class: "otp-code-input-real", aria: { describedby: "auth-error" } %>
+          <div class="otp-code-input-cells" aria-hidden="true">
+            <% 6.times do %><span class="otp-code-input-cell"></span><% end %>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="otp-code-input-toggle hint-link">Use a backup code</button>
     </div>
 
     <%= form.submit("Continue", class: "st-button submit") %>
 
-    <div class="auth-spacer" id="auth-error"></div>
+    <div class="auth-spacer" id="auth-error" role="alert" aria-atomic="true"><%= @totp_error %></div>
   <% end %>
 </div>
