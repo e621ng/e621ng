@@ -5,7 +5,7 @@ class ModAction < ApplicationRecord
   before_validation :initialize_creator, on: :create
   validates :creator_id, presence: true
 
-  KnownActions = {
+  KNOWN_ACTIONS = {
     admin_user_delete: { user_id: :integer },
     artist_delete: { artist_id: :integer, artist_name: :string },
     artist_page_rename: { old_name: :string, new_name: :string },
@@ -125,7 +125,7 @@ class ModAction < ApplicationRecord
     post_version_unhide: { version: :integer, post_id: :integer },
   }.freeze
 
-  ProtectedActionKeys = %w[
+  PROTECTED_ACTION_KEYS = %w[
     staff_note_create staff_note_update staff_note_delete staff_note_undelete
     staff_file_create staff_file_update staff_file_delete
     ip_ban_create ip_ban_delete
@@ -134,12 +134,12 @@ class ModAction < ApplicationRecord
     search_trend_blacklist_create search_trend_blacklist_update search_trend_blacklist_delete search_trend_blacklist_purge
   ].freeze
 
-  KnownActionKeys = KnownActions.keys.freeze
+  KNOWN_ACTION_KEYS = KNOWN_ACTIONS.keys.freeze
 
   def self.available_action_keys(user = CurrentUser)
-    return KnownActionKeys if user.is_staff?
+    return KNOWN_ACTION_KEYS if user.is_staff?
 
-    KnownActionKeys - ProtectedActionKeys.map(&:to_sym)
+    KNOWN_ACTION_KEYS - PROTECTED_ACTION_KEYS.map(&:to_sym)
   end
 
   module SearchMethods
@@ -147,7 +147,7 @@ class ModAction < ApplicationRecord
       if user.is_staff?
         all
       else
-        where.not(action: ProtectedActionKeys)
+        where.not(action: PROTECTED_ACTION_KEYS)
       end
     end
 
@@ -197,8 +197,8 @@ class ModAction < ApplicationRecord
       q = q.where_user(:creator_id, :creator, params)
       q = q.where(action: params[:action]) if params[:action].present?
 
-      if params[:action].present? && KnownActions.key?(params[:action].to_sym)
-        field_types = KnownActions[params[:action].to_sym]
+      if params[:action].present? && KNOWN_ACTIONS.key?(params[:action].to_sym)
+        field_types = KNOWN_ACTIONS[params[:action].to_sym]
         valid_params = params.slice(*field_types.keys.map(&:to_s))
 
         field_types.each do |key, type|
@@ -227,7 +227,7 @@ class ModAction < ApplicationRecord
     if user.is_staff?
       true
     else
-      ProtectedActionKeys.exclude?(action)
+      PROTECTED_ACTION_KEYS.exclude?(action)
     end
   end
 
@@ -238,7 +238,7 @@ class ModAction < ApplicationRecord
     if CurrentUser.is_admin?
       original_values
     else
-      valid_keys = KnownActions[action.to_sym]&.keys&.map(&:to_s) || []
+      valid_keys = KNOWN_ACTIONS[action.to_sym]&.keys&.map(&:to_s) || []
       sanitized_values = original_values.slice(*valid_keys)
 
       if %i[ip_ban_create ip_ban_delete].include?(action.to_sym)

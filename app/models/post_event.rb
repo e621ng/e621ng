@@ -31,12 +31,39 @@ class PostEvent < ApplicationRecord
     owner_changed: 25,
     replacement_moved: 26,
   }
-  MOD_ONLY_SEARCH_ACTIONS = [
-    actions[:comment_locked],
-    actions[:comment_unlocked],
-    actions[:comment_disabled],
-    actions[:comment_enabled],
-  ].freeze
+  MOD_ONLY_SEARCH_ACTIONS = %w[comment_locked comment_unlocked comment_disabled comment_enabled].freeze
+
+  KNOWN_ACTIONS = {
+    deleted: { reason: :string },
+    undeleted: {},
+    approved: {},
+    unapproved: {},
+    flag_created: { reason: :string },
+    flag_removed: {},
+    favorites_moved: { parent_id: :integer },
+    favorites_received: { child_id: :integer },
+    rating_locked: {},
+    rating_unlocked: {},
+    status_locked: {},
+    status_unlocked: {},
+    note_locked: {},
+    note_unlocked: {},
+    comment_locked: {},
+    comment_unlocked: {},
+    comment_disabled: {},
+    comment_enabled: {},
+    replacement_accepted: { replacement_id: :integer, old_md5: :string, new_md5: :string },
+    replacement_rejected: { replacement_id: :integer },
+    replacement_promoted: { replacement_id: :integer, source_post_id: :integer },
+    replacement_deleted: { replacement_id: :integer, md5: :string, storage_id: :string },
+    expunged: {},
+    changed_bg_color: { bg_color: :string },
+    replacement_penalty_changed: { replacement_id: :integer, penalize: :boolean },
+    owner_changed: { old_owner: :integer, new_owner: :integer },
+    replacement_moved: { replacement_id: :integer, old_post: :integer, new_post: :integer },
+  }.freeze
+
+  KNOWN_ACTION_KEYS = KNOWN_ACTIONS.keys.freeze
 
   def self.add(post_id, creator, action, data = {})
     create!(post_id: post_id, creator: creator, action: action.to_s, extra_data: data)
@@ -51,33 +78,103 @@ class PostEvent < ApplicationRecord
     end
   end
 
-  def self.search(params)
-    q = super
+  def extra_data
+    original_data = self[:extra_data] || {}
+    return {} unless original_data.is_a?(Hash)
+    return original_data if CurrentUser.is_admin?
 
-    if params[:post_id].present?
-      q = q.where(post_id: params[:post_id])
+    valid_keys = KNOWN_ACTIONS[action.to_sym]&.keys&.map(&:to_s) || []
+    sanitized_values = original_data.slice(*valid_keys)
+
+    if %w[replacement_deleted].include?(action)
+      sanitized_values = sanitized_values.except("storage_id")
     end
 
-    q = q.where_user(:creator_id, :creator, params) do |condition, user_ids|
-      condition.where.not(
-        action: actions[:flag_created],
-        creator_id: user_ids.reject { |user_id| CurrentUser.can_view_flagger?(user_id) },
-      )
-    end
+    sanitized_values
+  end
 
-    if params[:action].present?
-      if !CurrentUser.user.is_moderator? && MOD_ONLY_SEARCH_ACTIONS.include?(actions[params[:action]])
-        raise(User::PrivilegeError)
+  module SearchMethods
+    def jsonb_boolean_attribute_matches(attribute, value)
+      bool_value = ActiveRecord::Type::Boolean.new.cast(value)
+
+      case bool_value
+      when true
+        where(Arel.sql("(extra_data ->> '#{attribute}')::BOOLEAN IS TRUE"))
+      when false
+        where(Arel.sql("(extra_data ->> '#{attribute}')::BOOLEAN IS FALSE"))
+      else
+        raise ArgumentError, "Value must be truthy or falsy"
       end
-      q = q.where(action: actions[params[:action]])
     end
 
-    q.apply_basic_order(params)
+    def jsonb_numeric_attribute_matches(attribute, range)
+      qualified_column = Arel.sql("extra_data ->> '#{attribute}'")
+      parsed_range = ParseValue.range(range, :integer)
+
+      add_range_relation(parsed_range, qualified_column)
+    end
+
+    def jsonb_text_attribute_matches(attribute, value, convert_to_wildcard: false)
+      qualified_column = Arel.sql("extra_data ->> '#{attribute}'")
+      value = "*#{value}*" if convert_to_wildcard && value.exclude?("*")
+
+      if value.include?("*")
+        where("lower(#{qualified_column}) LIKE :value ESCAPE E'\\\\'", value: value.downcase.to_escaped_for_sql_like)
+      else
+        where("to_tsvector(:ts_config, #{qualified_column}) @@ plainto_tsquery(:ts_config, :value)", ts_config: "english", value: value)
+      end
+    end
+
+    def search(params)
+      q = super
+
+      if params[:post_id].present?
+        q = q.where(post_id: params[:post_id])
+      end
+
+      q = q.where_user(:creator_id, :creator, params) do |condition, user_ids|
+        condition.where.not(
+          action: actions[:flag_created],
+          creator_id: user_ids.reject { |user_id| CurrentUser.can_view_flagger?(user_id) },
+        )
+      end
+
+      if params[:action].present? && KNOWN_ACTION_KEYS.include?(params[:action].to_sym)
+        if !CurrentUser.user.is_moderator? && MOD_ONLY_SEARCH_ACTIONS.include?(params[:action])
+          raise(User::PrivilegeError)
+        end
+        q = q.where(action: params[:action])
+
+        field_types = KNOWN_ACTIONS[params[:action].to_sym]
+        valid_params = params.slice(*field_types.keys.map(&:to_s))
+
+        field_types.each do |key, type|
+          next if valid_params[key.to_s].blank?
+
+          case type
+          when :integer, :datetime
+            q = q.jsonb_numeric_attribute_matches(key, valid_params[key.to_s])
+          when :boolean
+            q = q.jsonb_boolean_attribute_matches(key, valid_params[key.to_s])
+          when :string
+            if valid_params[key.to_s].include?("*")
+              q = q.jsonb_text_attribute_matches(key, valid_params[key.to_s], convert_to_wildcard: true)
+            else
+              q = q.jsonb_text_attribute_matches(key, valid_params[key.to_s])
+            end
+          end
+        end
+      end
+
+      q.apply_basic_order(params)
+    end
+
+    def search_options_for(user)
+      options = actions.keys.map(&:to_s)
+      options -= MOD_ONLY_SEARCH_ACTIONS unless user.is_moderator?
+      options
+    end
   end
 
-  def self.search_options_for(user)
-    options = actions.keys
-    return options if user.is_moderator?
-    options.reject { |action| MOD_ONLY_SEARCH_ACTIONS.any?(actions[action]) }
-  end
+  extend(SearchMethods)
 end

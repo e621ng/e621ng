@@ -273,7 +273,7 @@ class PostReplacement < ApplicationRecord
         if new_upload.valid? && new_upload.post&.valid?
           update_attribute(:status, "promoted")
           update_attribute(:approver_id, CurrentUser.user.id)
-          PostEvent.add(new_upload.post.id, CurrentUser.user, :replacement_promoted, { source_post_id: post.id })
+          PostEvent.add(new_upload.post.id, CurrentUser.user, :replacement_promoted, { replacement_id: id, source_post_id: post.id })
         end
         new_upload
       end
