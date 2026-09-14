@@ -23,14 +23,14 @@
           </div>
         </div>
         <div class="col2">
-          <sources
+          <SourcesInput
             :maxSources="10"
             :showErrors="showErrors"
             v-model:sources="sources"
             @missingSourceWarning="missingSourceWarning = $event"
             @nonUrlSourceWarning="nonUrlSourceWarning = $event"
             v-model:noSource="noSource"
-          ></sources>
+          ></SourcesInput>
         </div>
       </div>
       <template v-if="!compactMode">
@@ -153,7 +153,7 @@
             v-model="otherTags"
             rows="5"
             placeholder="Ex: standing orange_fur white_shirt outside smile 4_toes etc."
-            ref="otherTags"
+            ref="otherTagsField"
             data-autocomplete="tag-edit"
           ></textarea>
           <tag-preview :tags="tags" />
@@ -260,15 +260,15 @@
   </div>
 </template>
 
-<script>
-  import { markRaw } from "vue";
+<script setup lang="ts">
+  import { ref, reactive, computed, provide, onMounted, onBeforeUnmount, markRaw, type Ref } from "vue";
   import { submitUploadForm } from "@/utility/UploadSubmission";
-  import { fetchRelatedTags, selectedText } from "@/utility/RelatedTags";
+  import { fetchRelatedTags, selectedText, type RelatedTagGroup } from "@/utility/RelatedTags";
   import ToastManager from "@/utility/Toast";
-  import sources from '@/components/uploads/sources.vue';
+  import SourcesInput from '@/components/uploads/sources.vue';
   import checkboxSource from './checkbox_source.vue';
   import tagTextarea from './tag_textarea.vue';
-  import relatedTags from '@/components/tags/related.vue';
+  import RelatedTags from '@/components/tags/related.vue';
   import tagPreview from '@/components/tags/tag_preview.vue';
   import filePreview from '@/components/uploads/file_preview.vue';
   import fileInput from '@/components/uploads/file_input.vue';
@@ -276,315 +276,278 @@
   import artistSource from './artist_source.vue';
   import * as TagField from '@/components/tags/tag_field';
   import Autocomplete from "@/components/autocomplete";
-  import DTextFormatter from "@/components/DTextFormatter.ts";
+  import DTextFormatter from "@/components/DTextFormatter";
   import CurrentUser from "@/models/CurrentUser";
   import UploadData from "@/models/UploadData";
   import TagCategories from "@/utility/TagCategories";
-  import { tagRegistryKey } from "./registry";
+  import { tagRegistryKey, type TagSource } from "./registry";
+  import type { PreviewData, UploadChange } from "@/components/uploads/types";
 
-  function unloadWarning() {
-    if (this.allowNavigate || (this.uploadValue === "" && this.tags === "")) {
+  provide(tagRegistryKey, {
+    register: registerSource,
+    unregister: unregisterSource,
+  });
+
+  // Immutable per-session config (read in the template).
+  const safe = UploadData.safeSite;
+  const compactMode = UploadData.compactMode;
+  const uploadTags = UploadData.uploadTags;
+  const recentTags = UploadData.recentTags;
+  const allowLockedTags = CurrentUser.is.admin;
+  const allowRatingLock = CurrentUser.is.privileged;
+  const allowUploadAsPending = CurrentUser.can.uploadFree;
+
+  const showErrors = ref(false);
+  const submitting = ref(false);
+
+  const previewData = ref<PreviewData>({ url: '', isVideo: false });
+  const uploadValue = ref<string | File>('');
+  const invalidUploadValue = ref(false);
+
+  const missingSourceWarning = ref(false);
+  const nonUrlSourceWarning = ref(false);
+  const noSource = ref(false);
+  const sources = ref<string[]>(['']);
+
+  // Tag sources register here; `tags` aggregates their contributions.
+  const registry = reactive<{ sources: TagSource[] }>({ sources: [] });
+  // The free-text "Other Tags" field is the always-present sink (inline on the
+  // root so findRelated can reach its textarea via the otherTagsField ref).
+  const otherTags = ref("");
+  const otherTagsField = ref<HTMLTextAreaElement | null>(null);
+
+  const lockedTags = ref('');
+  const ratingLocked = ref(false);
+  const uploadAsPending = ref(false);
+
+  const relatedTags = ref<RelatedTagGroup[]>([]);
+  let lastRelatedCategoryId: number | undefined;
+  const loadingRelated = ref(false);
+
+  const parentID = ref('');
+  const description = ref('');
+  const rating = ref('');
+  const error = ref('');
+  const duplicateId = ref(0);
+
+  // Not reactive: read only by the unload guard.
+  let allowNavigate = false;
+
+  // The free-text "Other Tags" field is the always-present sink. Created here so
+  // it stays a stable setup binding, registered in onMounted (before the
+  // query-param import, which routes through it).
+  const sinkDescriptor: TagSource = {
+    isSink: true,
+    order: 1, // checkboxes (0) then other (1) then artist/character/species/content
+    currentTags: () => TagField.splitTags(otherTags.value),
+    addTags: tags => { otherTags.value = TagField.addTags(otherTags.value, tags); },
+    removeTag: tag => { otherTags.value = TagField.removeTag(otherTags.value, tag); },
+  };
+
+  function unloadHandler() {
+    if (allowNavigate || (uploadValue.value === "" && tags.value === "")) {
       return;
     }
     return true;
   }
 
-  export default {
-    components: {
-      'sources': sources,
-      'checkbox-source': checkboxSource,
-      'tag-textarea': tagTextarea,
-      'related-tags': relatedTags,
-      'tag-preview': tagPreview,
-      'file-preview': filePreview,
-      'file-input': fileInput,
-      'parent-post-input': parentPostInput,
-      'artist-source': artistSource,
-    },
-    provide() {
-      return {
-        [tagRegistryKey]: {
-          register: this.registerSource,
-          unregister: this.unregisterSource,
-        },
-      };
-    },
-    data() {
-      return {
-        safe: UploadData.safeSite,
-        showErrors: false,
-        allowNavigate: false,
-        submitting: false,
+  onMounted(() => {
+    registerSource(sinkDescriptor);
 
-        previewData: {
-          url: '',
-          isVideo: false,
-        },
-        uploadValue: '',
-        invalidUploadValue: false,
+    window.onbeforeunload = unloadHandler;
+    const params = new URLSearchParams(window.location.search);
+    const fillField = function(target: Ref<string>, key: string) {
+      if (params.has(key)) target.value = params.get(key)!;
+    };
+    const fillFieldBool = function(target: Ref<boolean>, key: string) {
+      if (params.has(key)) target.value = (params.get(key) === 'true');
+    };
 
-        missingSourceWarning: false,
-        nonUrlSourceWarning: false,
-        noSource: false,
-        sources: [''],
-        compactMode: UploadData.compactMode,
+    // Import tags from query parameters. Routing handles mode: params whose
+    // role source isn't mounted (compact) fall through to the sink.
+    const fillTags = function() {
+      const queryList = ["tags-artist", "tags-character", "tags-species", "tags-content"];
 
-        // Tag sources register here; `tags` aggregates their contributions.
-        registry: { sources: [] },
-        // The free-text "Other Tags" field is the always-present sink (inline on
-        // the root so findRelated can reach its textarea via $refs.otherTags).
-        otherTags: "",
+      if (params.has("tags"))
+        importTags(params.get("tags")!, "other");
 
-        allowLockedTags: CurrentUser.is.admin,
-        lockedTags: '',
-        allowRatingLock: CurrentUser.is.privileged,
-        ratingLocked: false,
-        allowUploadAsPending: CurrentUser.can.uploadFree,
-        uploadAsPending: false,
-
-        uploadTags: UploadData.uploadTags,
-        recentTags: UploadData.recentTags,
-        relatedTags: [],
-        lastRelatedCategoryId: undefined,
-        loadingRelated: false,
-
-        parentID: '',
-        description: '',
-        rating: '',
-        error: '',
-        duplicateId: 0,
-      };
-    },
-    mounted() {
-      const self = this;
-      // The free-text "Other Tags" field is the always-present sink. Register it
-      // before the query-param import below (importTags routes through it), so all
-      // sources register in the same hook as the self-registering children.
-      this.sinkDescriptor = {
-        isSink: true,
-        order: 1, // checkboxes (0) then other (1) then artist/character/species/content
-        currentTags: () => TagField.splitTags(this.otherTags),
-        addTags: tags => { this.otherTags = TagField.addTags(this.otherTags, tags); },
-        removeTag: tag => { this.otherTags = TagField.removeTag(this.otherTags, tag); },
-      };
-      this.registerSource(this.sinkDescriptor);
-
-      this.unloadHandler = unloadWarning.bind(self);
-      window.onbeforeunload = this.unloadHandler;
-      const params = new URLSearchParams(window.location.search);
-      const fillField = function(field, key) {
-        if(params.has(key)) {
-          self[field] = params.get(key);
-        }
-      };
-      const fillFieldBool = function(field, key) {
-        if(params.has(key)) {
-          self[field] = (params.get(key) === 'true');
-        }
-      };
-
-      // Import tags from query parameters. Routing handles mode: params whose
-      // role source isn't mounted (compact) fall through to the sink.
-      const fillTags = function() {
-        const queryList = ["tags-artist", "tags-character", "tags-species", "tags-content"];
-
-        if(params.has("tags"))
-          self.importTags(params.get("tags"), "other");
-
-        for(const name of queryList) {
-          if(!params.has(name)) continue;
-          self.importTags(params.get(name), name.replace("tags-", ""));
-        }
-      };
-
-      // Import the post rating from a query parameter
-      const fillRating = function() {
-        if(!params.has("rating")) return;
-        const rating = params.get("rating")[0].toLowerCase();
-        if(!/[sqe]/.test(rating)) return;
-        self.rating = rating;
-      };
-
-      fillField('parentID', 'parent');
-      fillField('description', 'description');
-      fillTags();
-      fillRating();
-      if(params.has('sources')) {
-        self.sources = params.get('sources').split(',');
+      for (const name of queryList) {
+        if (!params.has(name)) continue;
+        importTags(params.get(name)!, name.replace("tags-", ""));
       }
-      if(this.allowRatingLock)
-        fillFieldBool('ratingLocked', 'rating_locked');
-      if(this.allowLockedTags)
-        fillField('lockedTags', 'locked_tags');
-      if(this.allowUploadAsPending)
-        fillFieldBool("uploadAsPending", "upload_as_pending")
+    };
 
-      Autocomplete.initialize_autocomplete('tag-edit');
-      new DTextFormatter($(".dtext-formatter.pending"));
-    },
-    beforeUnmount() {
-      // Release the unload guard, but only if it's still ours.
-      if (window.onbeforeunload === this.unloadHandler)
-        window.onbeforeunload = null;
-    },
-    methods: {
-      onFileChange({ value, preview, invalid }) {
-        this.uploadValue = value;
-        this.previewData = preview;
-        this.invalidUploadValue = invalid;
-      },
-      // ===== Tag-source coordinator =====
-      // markRaw keeps descriptors out of the reactive proxy so `unregisterSource`
-      // can match them by identity (a proxied element would never === the raw
-      // object the child holds, and the filter would remove nothing).
-      registerSource(descriptor) {
-        this.registry.sources.push(markRaw(descriptor));
-      },
-      unregisterSource(descriptor) {
-        this.registry.sources = this.registry.sources.filter(s => s !== descriptor);
-      },
-      // Inbound routing: by value (a source that owns the tag) then the sink.
-      route(tag) {
-        return this.registry.sources.find(s => s.ownsTag && s.ownsTag(tag))
-          || this.registry.sources.find(s => s.isSink);
-      },
-      // Inbound routing by role (query import), falling back to the sink.
-      routeByRole(role) {
-        return this.registry.sources.find(s => s.role === role)
-          || this.registry.sources.find(s => s.isSink);
-      },
-      async submit() {
-        this.showErrors = true;
-        this.error = '';
-        this.duplicateId = 0;
-        if (this.preventUpload || this.submitting)
-          return;
-        const self = this;
-        this.submitting = true;
-        const data = new FormData();
-        if (typeof this.uploadValue === "string") {
-          data.append('upload[direct_url]', this.uploadValue);
-        } else {
-          data.append('upload[file]', this.uploadValue);
-        }
-        data.append('upload[tag_string]', this.tags);
-        data.append('upload[rating]', this.rating);
-        data.append('upload[source]', this.noSource ? '' : this.sources.join('\n'));
-        data.append('upload[description]', this.description);
-        data.append('upload[parent_id]', this.parentID);
-        if (this.allowLockedTags)
-          data.append('upload[locked_tags]', this.lockedTags);
-        if (this.allowRatingLock)
-          data.append('upload[locked_rating]', this.ratingLocked);
-        if (this.allowUploadAsPending)
-          data.append('upload[as_pending]', this.uploadAsPending);
-        const outcome = await submitUploadForm('/uploads.json', data);
-        self.submitting = false;
+    // Import the post rating from a query parameter
+    const fillRating = function() {
+      if (!params.has("rating")) return;
+      const value = params.get("rating")![0].toLowerCase();
+      if (!/[sqe]/.test(value)) return;
+      rating.value = value;
+    };
 
-        if (outcome.kind === 'success') {
-          self.allowNavigate = true;
-          ToastManager.notice('Post uploaded successfully.');
-          location.assign(outcome.body.location);
-          return;
-        }
-        if (outcome.kind === 'blocked' || outcome.kind === 'failed') {
-          self.error = outcome.message;
-          return;
-        }
+    fillField(parentID, 'parent');
+    fillField(description, 'description');
+    fillTags();
+    fillRating();
+    if (params.has('sources')) {
+      sources.value = params.get('sources')!.split(',');
+    }
+    if (allowRatingLock)
+      fillFieldBool(ratingLocked, 'rating_locked');
+    if (allowLockedTags)
+      fillField(lockedTags, 'locked_tags');
+    if (allowUploadAsPending)
+      fillFieldBool(uploadAsPending, "upload_as_pending");
 
-        const jsonData = outcome.json;
-        if (jsonData.reason === 'duplicate') self.duplicateId = jsonData.post_id;
-        if (['duplicate', 'invalid'].indexOf(jsonData.reason) !== -1) {
-          self.error = jsonData.message;
-        } else if (jsonData.message) {
-          self.error = 'Error: ' + jsonData.message;
-        } else {
-          self.error = 'Error: ' + jsonData.reason;
-        }
-      },
-      // Related-tag toggle: route the tag to its owning source, else the sink.
-      pushTag(tag, add) {
-        const source = this.route(tag);
-        if (!source) return;
-        if (add) source.addTags([tag]);
-        else source.removeTag(tag);
-      },
+    Autocomplete.initialize_autocomplete('tag-edit');
+    new DTextFormatter($<HTMLDivElement>(".dtext-formatter.pending"));
+  });
 
-      /**
-       * Import tags from a query parameter into the given role's field.
-       * @param {string} tags Raw tag string
-       * @param {string} role Target role ("other" for the sink, "artist"/"character"/…)
-       */
-      importTags(tags, role) {
-        const incoming = (tags + "").trim().split(" ").filter(n => n);
-        const deduped = [];
-        for (const tag of incoming) if (!deduped.includes(tag)) deduped.push(tag);
+  onBeforeUnmount(() => {
+    // Release the unload guard, but only if it's still ours.
+    if (window.onbeforeunload === unloadHandler)
+      window.onbeforeunload = null;
+  });
 
-        // Value-route: a checkbox-owned tag flips its checkbox (in either param).
-        for (const tag of deduped) {
-          const owner = this.registry.sources.find(s => s.ownsTag && s.ownsTag(tag));
-          if (owner) owner.addTags([tag]);
-        }
-        // Textual home: the role's field, or the sink if that source isn't mounted.
-        const target = this.routeByRole(role);
-        if (target) target.addTags(deduped);
-      },
-      async findRelated(categoryName) {
-        const categoryId = categoryName ? TagCategories.idFor(categoryName) : undefined;
-        if (this.loadingRelated)
-          return;
-        if (this.relatedTags.length > 0 && this.lastRelatedCategoryId === categoryId) {
-          this.relatedTags = [];
-          return;
-        }
-        this.loadingRelated = true;
-        this.relatedTags = [];
-        const query = selectedText(this.$refs.otherTags) ?? this.tags;
-        try {
-          this.relatedTags = await fetchRelatedTags(query, categoryId);
-          this.lastRelatedCategoryId = categoryId;
-        } catch {
-          // A failed lookup just shows no related tags (relatedTags stays []).
-        } finally {
-          this.loadingRelated = false;
-        }
-      },
-    },
-    computed: {
-      // Aggregate every registered source, in declared `order` (not registration
-      // order) so the preview matches the pre-registry sequence. Serialization is
-      // identical (first-comma replace + whitespace collapse); no cross-source dedupe.
-      tags() {
-        return [...this.registry.sources]
-          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-          .flatMap(s => s.currentTags())
-          .join(' ').replace(/,/g, ' ').trim().replace(/ +/g, ' ');
-      },
-      tagsArray() {
-        return this.tags.toLowerCase().split(' ');
-      },
-      tagCount: function () {
-        return this.tags.split(' ').filter(function (x) {
-          return x;
-        }).length;
-      },
-      notEnoughTags: function () {
-        return this.tagCount < 4;
-      },
-      invalidRating: function () {
-        return !this.rating;
-      },
-      noUpload: function () {
-        // Empty string = nothing provided; a URL string or a File is truthy.
-        return !this.uploadValue;
-      },
-      preventUpload: function () {
-        return this.missingSourceWarning || this.nonUrlSourceWarning || this.notEnoughTags
-          || this.invalidRating || this.invalidUploadValue || this.noUpload;
-      },
-      duplicatePath: function () {
-        return `/posts/${this.duplicateId}`;
-      }
-    },
+  function onFileChange({ value, preview, invalid }: UploadChange) {
+    uploadValue.value = value;
+    previewData.value = preview;
+    invalidUploadValue.value = invalid;
   }
+
+  // ===== Tag-source coordinator =====
+  // markRaw keeps descriptors out of the reactive proxy so `unregisterSource`
+  // can match them by identity (a proxied element would never === the raw
+  // object the child holds, and the filter would remove nothing).
+  function registerSource(descriptor: TagSource) {
+    registry.sources.push(markRaw(descriptor));
+  }
+  function unregisterSource(descriptor: TagSource) {
+    registry.sources = registry.sources.filter(s => s !== descriptor);
+  }
+  // Inbound routing: by value (a source that owns the tag) then the sink.
+  function route(tag: string) {
+    return registry.sources.find(s => s.ownsTag && s.ownsTag(tag))
+      || registry.sources.find(s => s.isSink);
+  }
+  // Inbound routing by role (query import), falling back to the sink.
+  function routeByRole(role: string) {
+    return registry.sources.find(s => s.role === role)
+      || registry.sources.find(s => s.isSink);
+  }
+  async function submit() {
+    showErrors.value = true;
+    error.value = '';
+    duplicateId.value = 0;
+    if (preventUpload.value || submitting.value)
+      return;
+    submitting.value = true;
+    const data = new FormData();
+    if (typeof uploadValue.value === "string") {
+      data.append('upload[direct_url]', uploadValue.value);
+    } else {
+      data.append('upload[file]', uploadValue.value);
+    }
+    data.append('upload[tag_string]', tags.value);
+    data.append('upload[rating]', rating.value);
+    data.append('upload[source]', noSource.value ? '' : sources.value.join('\n'));
+    data.append('upload[description]', description.value);
+    data.append('upload[parent_id]', parentID.value);
+    if (allowLockedTags)
+      data.append('upload[locked_tags]', lockedTags.value);
+    if (allowRatingLock)
+      data.append('upload[locked_rating]', String(ratingLocked.value));
+    if (allowUploadAsPending)
+      data.append('upload[as_pending]', String(uploadAsPending.value));
+    const outcome = await submitUploadForm('/uploads.json', data);
+    submitting.value = false;
+
+    if (outcome.kind === 'success') {
+      allowNavigate = true;
+      ToastManager.notice('Post uploaded successfully.');
+      location.assign(outcome.body.location);
+      return;
+    }
+    if (outcome.kind === 'blocked' || outcome.kind === 'failed') {
+      error.value = outcome.message;
+      return;
+    }
+
+    const jsonData = outcome.json;
+    if (jsonData.reason === 'duplicate') duplicateId.value = jsonData.post_id;
+    if (['duplicate', 'invalid'].indexOf(jsonData.reason) !== -1) {
+      error.value = jsonData.message;
+    } else if (jsonData.message) {
+      error.value = 'Error: ' + jsonData.message;
+    } else {
+      error.value = 'Error: ' + jsonData.reason;
+    }
+  }
+  // Related-tag toggle: route the tag to its owning source, else the sink.
+  function pushTag(tag: string, add: boolean) {
+    const source = route(tag);
+    if (!source) return;
+    if (add) source.addTags([tag]);
+    else source.removeTag(tag);
+  }
+
+  /**
+   * Import tags from a query parameter into the given role's field.
+   * @param tags Raw tag string
+   * @param role Target role ("other" for the sink, "artist"/"character"/…)
+   */
+  function importTags(tags: string, role: string) {
+    const incoming = (tags + "").trim().split(" ").filter(n => n);
+    const deduped: string[] = [];
+    for (const tag of incoming) if (!deduped.includes(tag)) deduped.push(tag);
+
+    // Value-route: a checkbox-owned tag flips its checkbox (in either param).
+    for (const tag of deduped) {
+      const owner = registry.sources.find(s => s.ownsTag && s.ownsTag(tag));
+      if (owner) owner.addTags([tag]);
+    }
+    // Textual home: the role's field, or the sink if that source isn't mounted.
+    const target = routeByRole(role);
+    if (target) target.addTags(deduped);
+  }
+  async function findRelated(categoryName?: string) {
+    const categoryId = categoryName ? TagCategories.idFor(categoryName) : undefined;
+    if (loadingRelated.value)
+      return;
+    if (relatedTags.value.length > 0 && lastRelatedCategoryId === categoryId) {
+      relatedTags.value = [];
+      return;
+    }
+    loadingRelated.value = true;
+    relatedTags.value = [];
+    const query = selectedText(otherTagsField.value!) ?? tags.value;
+    try {
+      relatedTags.value = await fetchRelatedTags(query, categoryId);
+      lastRelatedCategoryId = categoryId;
+    } catch {
+      // A failed lookup just shows no related tags (relatedTags stays []).
+    } finally {
+      loadingRelated.value = false;
+    }
+  }
+
+  // Aggregate every registered source, in declared `order` (not registration
+  // order) so the preview matches the pre-registry sequence. Serialization is
+  // identical (first-comma replace + whitespace collapse); no cross-source dedupe.
+  const tags = computed(() => {
+    return [...registry.sources]
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .flatMap(s => s.currentTags())
+      .join(' ').replace(/,/g, ' ').trim().replace(/ +/g, ' ');
+  });
+  const tagsArray = computed(() => tags.value.toLowerCase().split(' '));
+  const tagCount = computed(() => tags.value.split(' ').filter(x => x).length);
+  const notEnoughTags = computed(() => tagCount.value < 4);
+  const invalidRating = computed(() => !rating.value);
+  // Empty string = nothing provided; a URL string or a File is truthy.
+  const noUpload = computed(() => !uploadValue.value);
+  const preventUpload = computed(() =>
+    missingSourceWarning.value || nonUrlSourceWarning.value || notEnoughTags.value
+    || invalidRating.value || invalidUploadValue.value || noUpload.value);
+  const duplicatePath = computed(() => `/posts/${duplicateId.value}`);
 </script>
