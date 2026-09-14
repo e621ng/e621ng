@@ -11,6 +11,11 @@
             You must provide a file or a URL to upload.
           </div>
           <file-input @change="onFileChange"></file-input>
+          <similar-posts
+            :upload-value="uploadValue"
+            :invalid-upload-value="invalidUploadValue"
+            :whitelist-allowed="whitelistAllowed"
+          ></similar-posts>
         </div>
       </div>
       <file-preview classes="box-section in-editor below-upload" :data="previewData"></file-preview>
@@ -276,6 +281,7 @@
   import TagCounter from '@/components/tags/tag_counter.vue';
   import FilePreview from '@/components/uploads/file_preview.vue';
   import FileInput from '@/components/uploads/file_input.vue';
+  import SimilarPosts from '@/components/uploads/similar_posts.vue';
   import ParentPostInput from './parent_post_input.vue';
   import ArtistSource from './artist_source.vue';
   import * as TagField from '@/components/tags/tag_field';
@@ -312,6 +318,7 @@
   const previewData = ref<PreviewData>({ url: '', isVideo: false });
   const uploadValue = ref<string | File>('');
   const invalidUploadValue = ref(false);
+  const whitelistAllowed = ref<boolean | undefined>(undefined);
 
   const missingSourceWarning = ref(false);
   const nonUrlSourceWarning = ref(false);
@@ -421,10 +428,11 @@
     window.removeEventListener("beforeunload", unloadHandler);
   });
 
-  function onFileChange({ value, preview, invalid }: UploadChange) {
+  function onFileChange({ value, preview, invalid, whitelistAllowed: allowed }: UploadChange) {
     uploadValue.value = value;
     previewData.value = preview;
     invalidUploadValue.value = invalid;
+    whitelistAllowed.value = allowed;
   }
 
   // ===== Tag-source coordinator =====

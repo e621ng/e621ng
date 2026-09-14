@@ -100,6 +100,7 @@ const disableFileUpload = ref(false);
 const disableURLUpload = ref(false);
 // Retained so `change` can carry the full current selection each time.
 let currentValue: string | File = "";
+let currentWhitelistAllowed: boolean | undefined = undefined;
 const currentPreview = ref<PreviewData>({ url: "", isVideo: false });
 
 const post_file = ref<HTMLInputElement | null>(null);
@@ -117,6 +118,8 @@ let urlPreviewTimer: ReturnType<typeof setTimeout> | undefined;
 
 watch(uploadURL, () => {
   fileTooLarge.value = false;
+  // Any edit stales the verdict; updatePreviewURL re-establishes it.
+  currentWhitelistAllowed = undefined;
   uploadValueChanged(uploadURL.value);
   clearTimeout(urlPreviewTimer);
   if (uploadURL.value.length === 0) {
@@ -181,6 +184,7 @@ function clearFileUpload() {
   disableFileUpload.value = false;
   fileTooLarge.value = false;
   exceededFileSize.value = 0;
+  currentWhitelistAllowed = undefined;
   setEmptyThumb();
   uploadValueChanged("");
 
@@ -188,6 +192,7 @@ function clearFileUpload() {
 function updatePreviewURL() {
   if (uploadURL.value.length === 0 || post_file.value?.files?.[0]) {
     whitelistRequestId++; // invalidate any in-flight lookup
+    currentWhitelistAllowed = undefined;
     disableFileUpload.value = false;
     whitelist.oldDomain = "";
     clearWhitelistWarning();
@@ -208,13 +213,22 @@ function updatePreviewURL() {
       if (requestId !== whitelistRequestId) return;
       if (data.domain) {
         whitelistWarning(!!data.is_allowed, data.domain, data.reason ?? "");
+        currentWhitelistAllowed = !!data.is_allowed;
         if (!data.is_allowed) {
-          setEmptyThumb();
+          setEmptyThumb(); // emits, carrying the verdict
+        } else {
+          emitChange();
         }
       }
-    }).catch(() => {});
+    }).catch(() => {}); // lookup failure: verdict stays undefined (hold, not deny)
+  } else if (domain && whitelist.visible) {
+    // Same-domain edit: no new lookup fires, so restore the displayed verdict
+    // (the URL watch cleared it).
+    currentWhitelistAllowed = whitelist.allowed;
+    emitChange();
   } else if (!domain) {
     whitelistRequestId++; // invalidate any in-flight lookup
+    currentWhitelistAllowed = undefined;
     clearWhitelistWarning();
     setEmptyThumb();
   }
@@ -242,6 +256,7 @@ function updatePreviewFile() {
   }
   const objectUrl = URL.createObjectURL(file);
   disableURLUpload.value = true;
+  currentWhitelistAllowed = undefined; // files never have a whitelist verdict
   uploadValueChanged(file);
   previewChanged(
     objectUrl,
@@ -265,6 +280,7 @@ function emitChange() {
     value: currentValue,
     preview: currentPreview.value,
     invalid: invalidUploadValue.value,
+    whitelistAllowed: currentWhitelistAllowed,
   });
 }
 </script>
