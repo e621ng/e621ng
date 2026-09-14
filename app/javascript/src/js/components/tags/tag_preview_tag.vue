@@ -1,12 +1,14 @@
 <template>
-  <div class="tag-preview-tag" 
-       :data-id="tag.id" 
-       :data-category="tag.category" 
-       :data-name="tag.name" 
-       :data-resolved="tag.resolved"
-       :data-alias="tag.alias"
-       :data-implied="tag.impliedBy?.join(' ')"
-       :data-count="tag.post_count">
+  <div
+    class="tag-preview-tag" 
+    :data-id="tag.id" 
+    :data-category="tag.category" 
+    :data-name="tag.name" 
+    :data-resolved="tag.resolved"
+    :data-alias="tag.alias"
+    :data-implied="tag.impliedBy?.join(' ')"
+    :data-count="tag.post_count"
+  >
     <tag-link :name="tag.alias || tag.resolved || tag.name" :tagType="tag.category" :wrap="true"></tag-link>
     <span v-if="tag.id == null" class="new">new</span>
     <span v-else-if="isInvalid" class="invalid">invalid</span>

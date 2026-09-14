@@ -11,7 +11,12 @@
     ></textarea>
     <div v-if="notices.length" class="artist-tag-notices">
       <div class="artist-tag-label">Click to select an option:</div>
-      <div v-for="(notice, index) in notices" :key="`${notice.type}:${notice.tag}:${index}`" class="artist-tag-notice" :data-type="notice.type">
+      <div
+        v-for="(notice, index) in notices"
+        :key="`${notice.type}:${notice.tag}:${index}`"
+        class="artist-tag-notice"
+        :data-type="notice.type"
+      >
         <template v-if="notice.type === 'make_artist'">
           <a href="#" @click.prevent="makeArtistTag(notice.tag)">
             <div><b>{{ notice.tag }}</b> can be made into an artist tag</div>

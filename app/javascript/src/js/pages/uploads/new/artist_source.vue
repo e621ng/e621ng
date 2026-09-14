@@ -3,8 +3,13 @@
     <artist-tag-input v-model="model"></artist-tag-input>
     <div v-if="verifiedArtistTags.length" class="upload-artist-tags">
       <div>Linked artist tags:</div>
-      <button v-for="name in verifiedArtistTags" :key="name" type="button" class="toggle-button"
-              @click="toggle(name)">{{ name }}</button>
+      <button
+        v-for="name in verifiedArtistTags"
+        :key="name"
+        type="button"
+        class="toggle-button"
+        @click="toggle(name)"
+      >{{ name }}</button>
     </div>
   </div>
 </template>

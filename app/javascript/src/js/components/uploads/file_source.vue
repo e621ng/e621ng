@@ -1,17 +1,17 @@
 <template>
-    <div class="upload-source-row" v-bind:index="index">
-        <input
-          type="text"
-          size="50"
-          placeholder="Ex: https://example.com/artist/post/12345"
-          v-model="realValue"
-          @keyup.enter="fadd"
-          @keyup.up="focusPrev"
-          @keyup.down="focusNext"
-          @paste="paste"
-        />
-        <button @click="remove">&times;</button>
-    </div>
+  <div class="upload-source-row" v-bind:index="index">
+    <input
+      type="text"
+      size="50"
+      placeholder="Ex: https://example.com/artist/post/12345"
+      v-model="realValue"
+      @keyup.enter="fadd"
+      @keyup.up="focusPrev"
+      @keyup.down="focusNext"
+      @paste="paste"
+    />
+    <button @click="remove">&times;</button>
+  </div>
 </template>
 
 <script>

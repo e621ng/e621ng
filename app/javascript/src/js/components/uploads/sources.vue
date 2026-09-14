@@ -7,10 +7,17 @@
   </div>
   <div class="upload-source-more">
     <label class="section-label upload-source-none">
-      <input type="checkbox" id="no_source" :checked="noSource" @change="$emit('update:noSource', $event.target.checked)"/>
+      <input
+        type="checkbox"
+        id="no_source"
+        :checked="noSource"
+        @change="$emit('update:noSource', $event.target.checked)"
+      />
       No available source.
     </label>
-    <button @click="addSource" v-if="sources.length < maxSources && !noSource" class="upload-source-add">Add another source</button>
+    <button @click="addSource" v-if="sources.length < maxSources && !noSource" class="upload-source-add">
+      Add another source
+    </button>
   </div>
   <div class="upload-source-list" v-if="!noSource" ref="sourceList">
     <file-source

@@ -2,8 +2,13 @@
   <template v-for="(group, gi) in renderGroups" :key="gi">
     <hr v-if="gi > 0">
     <div class="flex-wrap">
-      <image-checkbox :check="check" :model-value="!!selected[tagNameOf(check)]" v-for="check in group"
-                      @update:model-value="setCheck(tagNameOf(check), $event)" :key="check.name"></image-checkbox>
+      <image-checkbox
+        :check="check"
+        :model-value="!!selected[tagNameOf(check)]"
+        v-for="check in group"
+        @update:model-value="setCheck(tagNameOf(check), $event)"
+        :key="check.name"
+      ></image-checkbox>
     </div>
   </template>
 </template>

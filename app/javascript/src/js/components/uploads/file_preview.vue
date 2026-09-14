@@ -13,7 +13,9 @@
         v-on:load="updateDimensions($event)" v-on:error="previewFailed()"/>
     </div>
     <div v-else class="preview-fail box-section background-yellow">
-      <p>The preview for this file failed to load. Please, double check that the URL you provided is correct.</p>
+      <p>
+        The preview for this file failed to load. Please, double check that the URL you provided is correct.
+      </p>
       Note that some sites intentionally prevent images they host from being displayed on other sites. The file can still be uploaded despite that.
     </div>
   </div>
