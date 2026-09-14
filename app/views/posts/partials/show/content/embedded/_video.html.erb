@@ -25,7 +25,7 @@
 
 <video-player>
   <video-skin>
-    <video playsinline>
+    <video playsinline id="image">
       <% post.presenter.initial_video_urls.each do |video| %>
         <%= tag.source(src: video[:url], type: video[:codec]) %>
       <% end %>
