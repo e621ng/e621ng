@@ -1,5 +1,3 @@
-// No jquery import: $ is an injected global (see jquery-shims.d.ts) — an
-// explicit import would resolve @types/jquery's broken ESM declarations.
 import { createApp } from "vue";
 import Replacer from "./replacement_uploader.vue";
 

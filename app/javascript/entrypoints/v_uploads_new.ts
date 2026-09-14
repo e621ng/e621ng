@@ -3,6 +3,6 @@
 import ModuleRegistry from "@/utility/ModuleRegistry";
 
 import "@/pages/posts/BlacklistQuickEdit";
-import "@/pages/uploads/new/uploader";
+import "@/pages/uploads/new";
 
 ModuleRegistry.register("v_uploads_new");
