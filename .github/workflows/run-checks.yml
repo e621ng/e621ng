@@ -86,7 +86,7 @@ jobs:
       - uses: ./.github/prepare-docker-image
 
       - name: Run vue-tsc typecheck
-        run: $DOCKER_RUN --entrypoint npm eslint run typecheck
+        run: $DOCKER_RUN typecheck
 
   rspec-runner:
     runs-on: ubuntu-22.04

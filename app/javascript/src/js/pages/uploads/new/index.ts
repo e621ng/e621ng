@@ -1,4 +1,3 @@
-import $ from "jquery";
 import { createApp } from "vue";
 import Uploader from "./uploader.vue";
 

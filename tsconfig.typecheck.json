@@ -1,30 +1,14 @@
 {
   "extends": "./tsconfig.json",
+  // Scoped type-check for the migrated Vue/TS surface. Whole directories are
+  // globbed only where every file is already TS / `<script setup lang="ts">`;
+  // files elsewhere stay explicit until their directory is fully migrated.
   "include": [
     "app/javascript/src/js/jquery-shims.d.ts",
     "app/javascript/src/js/components/autocompletable_input.vue",
-    "app/javascript/src/js/components/tags/types.ts",
-    "app/javascript/src/js/components/tags/tag_field.ts",
-    "app/javascript/src/js/components/tags/tag_link.vue",
-    "app/javascript/src/js/components/tags/tag_counter.vue",
-    "app/javascript/src/js/components/tags/tag_preview_tag.vue",
-    "app/javascript/src/js/components/tags/tag_preview.vue",
-    "app/javascript/src/js/components/tags/related.vue",
-    "app/javascript/src/js/components/uploads/types.ts",
-    "app/javascript/src/js/components/uploads/file_source.vue",
-    "app/javascript/src/js/components/uploads/file_preview.vue",
-    "app/javascript/src/js/components/uploads/file_input.vue",
-    "app/javascript/src/js/components/uploads/sources.vue",
-    "app/javascript/src/js/pages/post_replacements/new/replacement_uploader.vue",
-    "app/javascript/src/js/pages/post_replacements/new/replacer.ts",
-    "app/javascript/src/js/pages/uploads/new/parent_post_input.vue",
-    "app/javascript/src/js/pages/uploads/new/artist_tag_input.vue",
-    "app/javascript/src/js/pages/uploads/new/uploader.vue",
-    "app/javascript/src/js/pages/uploads/new/uploader.ts",
-    "app/javascript/src/js/pages/uploads/new/checkbox.vue",
-    "app/javascript/src/js/pages/uploads/new/registry.ts",
-    "app/javascript/src/js/pages/uploads/new/checkbox_source.vue",
-    "app/javascript/src/js/pages/uploads/new/tag_textarea.vue",
-    "app/javascript/src/js/pages/uploads/new/artist_source.vue"
+    "app/javascript/src/js/components/tags/**/*",
+    "app/javascript/src/js/components/uploads/**/*",
+    "app/javascript/src/js/pages/uploads/new/**/*",
+    "app/javascript/src/js/pages/post_replacements/new/**/*"
   ]
 }
