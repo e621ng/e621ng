@@ -47,9 +47,9 @@
 
 <script>
 import autocompletableInput from "@/components/autocompletable_input.vue";
-import filePreview from "@/pages/uploads/new/file_preview.vue";
-import fileInput from "@/pages/uploads/new/file_input.vue";
-import sources from "@/pages/uploads/new/sources.vue";
+import filePreview from "@/components/uploads/file_preview.vue";
+import fileInput from "@/components/uploads/file_input.vue";
+import sources from "@/components/uploads/sources.vue";
 import CurrentUser from "@/models/CurrentUser";
 import ToastManager from "@/utility/Toast";
 import { submitUploadForm } from "@/utility/UploadSubmission";

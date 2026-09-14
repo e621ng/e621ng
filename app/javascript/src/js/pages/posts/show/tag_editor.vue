@@ -26,10 +26,10 @@
 </template>
 
 <script>
-import relatedTags from "@/pages/uploads/new/related.vue";
-import tagPreview from "@/pages/uploads/new/tag_preview.vue";
-import tagCounter from "@/pages/uploads/new/tag_counter.vue";
-import { addTagGrouped, removeTagGrouped, splitTags } from "@/pages/uploads/new/tag_field.js";
+import relatedTags from "@/components/tags/related.vue";
+import tagPreview from "@/components/tags/tag_preview.vue";
+import tagCounter from "@/components/tags/tag_counter.vue";
+import { addTagGrouped, removeTagGrouped, splitTags } from "@/components/tags/tag_field.js";
 import Autocomplete from "@/components/autocomplete";
 import CurrentUser from "@/models/CurrentUser";
 import TagCategories from "@/utility/TagCategories";

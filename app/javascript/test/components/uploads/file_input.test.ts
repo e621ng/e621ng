@@ -17,7 +17,7 @@ async function mountFileInput (opts: { maxFileSize?: number, maxFileSizes?: Reco
     Posts: { max_file_size: opts.maxFileSize ?? 100, max_file_sizes: opts.maxFileSizes ?? {} },
   });
   vi.resetModules();
-  const FileInput = (await import("@/pages/uploads/new/file_input.vue")).default;
+  const FileInput = (await import("@/components/uploads/file_input.vue")).default;
   const wrapper = mount(FileInput, { attachTo: document.body });
   wrappers.push(wrapper);
   return wrapper;

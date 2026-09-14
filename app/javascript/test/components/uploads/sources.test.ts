@@ -1,6 +1,6 @@
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import Sources from "@/pages/uploads/new/sources.vue";
+import Sources from "@/components/uploads/sources.vue";
 
 const wrappers: VueWrapper[] = [];
 afterEach(() => {
