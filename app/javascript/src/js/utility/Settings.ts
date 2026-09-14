@@ -39,6 +39,7 @@ const Settings = {} as {
     webp_enabled: boolean,
     max_file_size: number,
     max_file_sizes: Record<string, number>,
+    video_extensions: string[],
   },
 };
 
@@ -89,6 +90,8 @@ Object.defineProperty(Settings, "Posts", {
       webp_enabled: obj.webp_enabled || false,
       max_file_size: obj.max_file_size || 0,
       max_file_sizes: obj.max_file_sizes || {},
+      // Degrade to the known set rather than treating every video URL as an image.
+      video_extensions: obj.video_extensions || ["webm", "mp4"],
     };
     Object.defineProperty(Settings, "Posts", { value, writable: false });
     return value;

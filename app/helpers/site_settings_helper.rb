@@ -56,6 +56,7 @@ module SiteSettingsHelper
         webp_enabled: Danbooru.config.webp_previews_enabled?,
         max_file_size: Danbooru.config.max_file_size,
         max_file_sizes: Danbooru.config.max_file_sizes,
+        video_extensions: FileMethods::VIDEO_FILE_TYPES,
       },
     }
   end
