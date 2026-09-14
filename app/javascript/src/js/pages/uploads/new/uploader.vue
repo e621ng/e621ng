@@ -425,15 +425,21 @@
   function unregisterSource(descriptor: TagSource) {
     registry.sources = registry.sources.filter(s => s !== descriptor);
   }
+  // Shared routing lookups so every inbound path (route / routeByRole / importTags)
+  // applies the same rule and can't drift apart.
+  function findOwner(tag: string) {
+    return registry.sources.find(s => s.ownsTag && s.ownsTag(tag));
+  }
+  function findSink() {
+    return registry.sources.find(s => s.isSink);
+  }
   // Inbound routing: by value (a source that owns the tag) then the sink.
   function route(tag: string) {
-    return registry.sources.find(s => s.ownsTag && s.ownsTag(tag))
-      || registry.sources.find(s => s.isSink);
+    return findOwner(tag) || findSink();
   }
   // Inbound routing by role (query import), falling back to the sink.
   function routeByRole(role: string) {
-    return registry.sources.find(s => s.role === role)
-      || registry.sources.find(s => s.isSink);
+    return registry.sources.find(s => s.role === role) || findSink();
   }
   async function submit() {
     showErrors.value = true;
@@ -501,14 +507,19 @@
     const deduped: string[] = [];
     for (const tag of incoming) if (!deduped.includes(tag)) deduped.push(tag);
 
-    // Value-route: a checkbox-owned tag flips its checkbox (in either param).
+    // Each tag routes to exactly one place: its owning source (a checkbox flip)
+    // if owned, otherwise the role's field — or the sink if that source isn't
+    // mounted. Owned tags are NOT also added to the field (that duplicated them).
+    const unrouted: string[] = [];
     for (const tag of deduped) {
-      const owner = registry.sources.find(s => s.ownsTag && s.ownsTag(tag));
+      const owner = findOwner(tag);
       if (owner) owner.addTags([tag]);
+      else unrouted.push(tag);
     }
-    // Textual home: the role's field, or the sink if that source isn't mounted.
-    const target = routeByRole(role);
-    if (target) target.addTags(deduped);
+    if (unrouted.length) {
+      const target = routeByRole(role);
+      if (target) target.addTags(unrouted);
+    }
   }
   async function findRelated(categoryName?: string) {
     const categoryId = categoryName ? TagCategories.idFor(categoryName) : undefined;
