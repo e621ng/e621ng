@@ -3,45 +3,31 @@
             :placeholder="placeholder" data-autocomplete="tag-edit"></textarea>
 </template>
 
-<script>
-  import * as TagField from '@/components/tags/tag_field.js';
-
+<script setup lang="ts">
   // A role-tagged free-text tag source (character / species / content). Registers
   // with the coordinator; contributes its tokens and accepts role-routed imports.
-  export default {
-    inject: ['tagRegistry'],
-    props: {
-      role: { type: String, required: true },
-      fieldId: { type: String, default: '' },
-      placeholder: { type: String, default: '' },
-      order: { type: Number, default: 0 },
-    },
-    data() {
-      return { model: '' };
-    },
-    methods: {
-      currentTags() {
-        return TagField.splitTags(this.model);
-      },
-      addTags(tags) {
-        this.model = TagField.addTags(this.model, tags);
-      },
-      removeTag(tag) {
-        this.model = TagField.removeTag(this.model, tag);
-      },
-    },
-    mounted() {
-      this.descriptor = {
-        role: this.role,
-        order: this.order,
-        currentTags: () => this.currentTags(),
-        addTags: tags => this.addTags(tags),
-        removeTag: tag => this.removeTag(tag),
-      };
-      this.tagRegistry.register(this.descriptor);
-    },
-    beforeUnmount() {
-      this.tagRegistry.unregister(this.descriptor);
-    },
+  import { ref, inject, onMounted, onBeforeUnmount } from "vue";
+  import * as TagField from "@/components/tags/tag_field.js";
+  import { tagRegistryKey, type TagSource } from "./registry";
+
+  const props = withDefaults(defineProps<{
+    role: string;
+    fieldId?: string;
+    placeholder?: string;
+    order?: number;
+  }>(), { fieldId: "", placeholder: "", order: 0 });
+
+  const model = ref("");
+  const registry = inject(tagRegistryKey)!;
+
+  const descriptor: TagSource = {
+    role: props.role,
+    order: props.order,
+    currentTags: () => TagField.splitTags(model.value),
+    addTags: (tags) => { model.value = TagField.addTags(model.value, tags); },
+    removeTag: (tag) => { model.value = TagField.removeTag(model.value, tag); },
   };
+
+  onMounted(() => registry.register(descriptor));
+  onBeforeUnmount(() => registry.unregister(descriptor));
 </script>

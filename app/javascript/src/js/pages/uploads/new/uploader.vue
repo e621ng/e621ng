@@ -235,6 +235,7 @@
   import CurrentUser from "@/models/CurrentUser";
   import UploadData from "@/models/UploadData";
   import TagCategories from "@/utility/TagCategories";
+  import { tagRegistryKey } from "./registry";
 
   function unloadWarning() {
     if (this.allowNavigate || (this.uploadValue === "" && this.tags === "")) {
@@ -257,7 +258,7 @@
     },
     provide() {
       return {
-        tagRegistry: {
+        [tagRegistryKey]: {
           register: this.registerSource,
           unregister: this.unregisterSource,
         },

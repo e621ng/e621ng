@@ -77,12 +77,24 @@ jobs:
       - name: Run JS tests
         run: $DOCKER_RUN vitest
 
+  typecheck:
+    runs-on: ubuntu-22.04
+    needs: docker-build
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/prepare-docker-image
+
+      - name: Run vue-tsc typecheck
+        run: $DOCKER_RUN --entrypoint npm eslint run typecheck
+
   rspec-runner:
     runs-on: ubuntu-22.04
     needs:
       - rubocop
       - eslint
       - vitest
+      - typecheck
     if: inputs.run_tests
     strategy:
       fail-fast: false

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "app/javascript/src/js/pages/uploads/new/registry.ts",
+    "app/javascript/src/js/pages/uploads/new/checkbox_source.vue",
+    "app/javascript/src/js/pages/uploads/new/tag_textarea.vue",
+    "app/javascript/src/js/pages/uploads/new/artist_source.vue"
+  ]
+}
