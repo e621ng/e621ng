@@ -23,8 +23,8 @@
 
   <div class="input" id="tags-container">
     <%# The header (label + tag counter) is rendered by the Vue editor. %>
-    <%# data-tags feeds the Vue editor its initial value; newlines in the
-        attribute survive HTML5 parsing, preserving the category grouping. %>
+    <%# data-tags feeds the Vue editor its initial value %>
+    <%# newlines in the attribute survive HTML5 parsing, preserving the category grouping. %>
     <div id="tag-string-editor" class="pending" data-tags="<%= post.presenter.categorized_tag_list_text %> ">
       <label for="post_tag_string">Tags</label>
       <textarea disabled>Loading...</textarea>
