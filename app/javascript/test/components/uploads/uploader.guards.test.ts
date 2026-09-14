@@ -77,15 +77,21 @@ describe("uploads/uploader — validation guards", () => {
   });
 
   describe("beforeunload warning", () => {
+    const fireBeforeUnload = () => {
+      const event = new Event("beforeunload", { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+
     it("does not warn on a pristine form", async () => {
       await mountUploader();
-      expect((window.onbeforeunload as () => unknown)()).toBeUndefined();
+      expect(fireBeforeUnload()).toBe(false);
     });
 
     it("warns once the form has tags", async () => {
       const { wrapper } = await mountUploader();
       await wrapper.find("#post_tags").setValue("wolf");
-      expect((window.onbeforeunload as () => unknown)()).toBe(true);
+      expect(fireBeforeUnload()).toBe(true);
     });
   });
 });
