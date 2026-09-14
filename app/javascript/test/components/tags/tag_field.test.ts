@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addTagGrouped, removeTagGrouped } from "@/pages/uploads/new/tag_field.js";
+import { addTagGrouped, removeTagGrouped } from "@/components/tags/tag_field.js";
 
 // The grouped variants serve the post-show tag editor, whose value keeps the
 // newline-per-category grouping. Component-level behaviour is pinned in

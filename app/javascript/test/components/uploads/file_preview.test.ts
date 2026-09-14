@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { mount, VueWrapper } from "@vue/test-utils";
-import FilePreview from "@/pages/uploads/new/file_preview.vue";
+import FilePreview from "@/components/uploads/file_preview.vue";
 
 const wrappers: VueWrapper[] = [];
 afterEach(() => {

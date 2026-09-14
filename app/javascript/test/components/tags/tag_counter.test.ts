@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { mount, VueWrapper } from "@vue/test-utils";
-import TagCounter from "@/pages/uploads/new/tag_counter.vue";
+import TagCounter from "@/components/tags/tag_counter.vue";
 
 const wrappers: VueWrapper[] = [];
 afterEach(() => {
