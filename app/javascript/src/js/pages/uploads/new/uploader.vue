@@ -23,14 +23,14 @@
           </div>
         </div>
         <div class="col2">
-          <SourcesInput
+          <sources-input
             :maxSources="10"
             :showErrors="showErrors"
             v-model:sources="sources"
             @missingSourceWarning="missingSourceWarning = $event"
             @nonUrlSourceWarning="nonUrlSourceWarning = $event"
             v-model:noSource="noSource"
-          ></SourcesInput>
+          ></sources-input>
         </div>
       </div>
       <template v-if="!compactMode">
@@ -266,14 +266,14 @@
   import { fetchRelatedTags, selectedText, type RelatedTagGroup } from "@/utility/RelatedTags";
   import ToastManager from "@/utility/Toast";
   import SourcesInput from '@/components/uploads/sources.vue';
-  import checkboxSource from './checkbox_source.vue';
-  import tagTextarea from './tag_textarea.vue';
+  import CheckboxSource from './checkbox_source.vue';
+  import TagTextarea from './tag_textarea.vue';
   import RelatedTags from '@/components/tags/related.vue';
-  import tagPreview from '@/components/tags/tag_preview.vue';
-  import filePreview from '@/components/uploads/file_preview.vue';
-  import fileInput from '@/components/uploads/file_input.vue';
-  import parentPostInput from './parent_post_input.vue';
-  import artistSource from './artist_source.vue';
+  import TagPreview from '@/components/tags/tag_preview.vue';
+  import FilePreview from '@/components/uploads/file_preview.vue';
+  import FileInput from '@/components/uploads/file_input.vue';
+  import ParentPostInput from './parent_post_input.vue';
+  import ArtistSource from './artist_source.vue';
   import * as TagField from '@/components/tags/tag_field';
   import Autocomplete from "@/components/autocomplete";
   import DTextFormatter from "@/components/DTextFormatter";
