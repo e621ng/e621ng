@@ -2,7 +2,7 @@ import { vi } from "vitest";
 
 // vi.mock is file-scoped + hoisted — every uploader test file needs this header.
 vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete: vi.fn() } }));
-vi.mock("@/components/DTextFormatter.ts", () => ({ default: vi.fn() }));
+vi.mock("@/components/DTextFormatter", () => ({ default: vi.fn() }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
 import { afterEach, describe, expect, it } from "vitest";
@@ -21,7 +21,7 @@ describe("uploads/uploader — mount smoke", () => {
     await mountUploader();
     // Resolve the mocked modules the component actually used (post-reset instance).
     const Autocomplete = (await import("@/components/autocomplete")).default;
-    const DTextFormatter = (await import("@/components/DTextFormatter.ts")).default;
+    const DTextFormatter = (await import("@/components/DTextFormatter")).default;
     expect(Autocomplete.initialize_autocomplete).toHaveBeenCalledWith("tag-edit");
     expect(DTextFormatter).toHaveBeenCalled();
   });
