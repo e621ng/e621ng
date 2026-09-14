@@ -1,218 +1,218 @@
 <template>
-    <div class="flex-grid-outer">
-        <div class="col box-section">
-            <div class="flex-grid border-bottom">
-                <div class="col">
-                    <label class="section-label" for="post_file">File</label>
-                    <div class="hint"><a href="/help/supported_filetypes">Supported Formats</a></div>
-                </div>
-                <div class="col2">
-                  <div class="box-section background-red" v-if="showErrors && noUpload">
-                    You must provide a file or a URL to upload.
-                  </div>
-                  <file-input @change="onFileChange"></file-input>
-                </div>
+  <div class="flex-grid-outer">
+    <div class="col box-section">
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label" for="post_file">File</label>
+          <div class="hint"><a href="/help/supported_filetypes">Supported Formats</a></div>
+        </div>
+        <div class="col2">
+          <div class="box-section background-red" v-if="showErrors && noUpload">
+            You must provide a file or a URL to upload.
+          </div>
+          <file-input @change="onFileChange"></file-input>
+        </div>
+      </div>
+      <file-preview classes="box-section in-editor below-upload" :data="previewData"></file-preview>
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label" for="post_sources">Sources</label>
+          <div>You should include: A link to the artists page where this was obtained, and a link to the
+            submission page where this image was obtained. No available source should ONLY be used if the
+            content has never been posted online anywhere else.
+          </div>
+        </div>
+        <div class="col2">
+          <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:noSource="noSource"></sources>
+        </div>
+      </div>
+      <template v-if="!compactMode">
+        <div class="flex-grid border-bottom">
+          <div class="col">
+            <label class="section-label" for="names">Artists and Contributors</label>
+            <div><a href="/forum_topics/23553">How do I tag an artist?</a></div>
+            <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
+          </div>
+          <div class="col2">
+            <artist-source :order="2"></artist-source>
+          </div>
+        </div>
+        <div class="flex-grid border-bottom">
+          <div class="col">
+            <label class="section-label" for="post_sex_tags">Characters</label>
+            <div>
+              Select (and write in) all that apply. Character sex is based only on what is visible in the
+              image.
             </div>
-            <file-preview classes="box-section in-editor below-upload" :data="previewData"></file-preview>
-            <div class="flex-grid border-bottom">
-                <div class="col">
-                    <label class="section-label" for="post_sources">Sources</label>
-                    <div>You should include: A link to the artists page where this was obtained, and a link to the
-                        submission page where this image was obtained. No available source should ONLY be used if the
-                        content has never been posted online anywhere else.
-                    </div>
-                </div>
-                <div class="col2">
-                    <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:noSource="noSource"></sources>
-                </div>
+            <div><a href="/wiki_pages/tag_what_you_see">
+              Outside information or other images should not be used when deciding what tags are used.
+            </a></div>
+          </div>
+          <div class="col2">
+            <checkbox-source kind="characters" :order="0"></checkbox-source>
+            <tag-textarea role="character" field-id="post_character" :order="3"
+                          placeholder="Ex: character_name"></tag-textarea>
+          </div>
+        </div>
+        <div class="flex-grid border-bottom">
+          <div class="col">
+            <label class="section-label">Body Types and Species</label>
+            <div>One listed body type per visible character, listed options are mutually exclusive.</div>
+          </div>
+          <div class="col2">
+            <checkbox-source kind="body" :order="0"></checkbox-source>
+            <tag-textarea role="species" field-id="post_species" :order="4"
+                          placeholder="Ex: bear dragon hyena rat newt etc."></tag-textarea>
+          </div>
+        </div>
+        <div class="flex-grid border-bottom">
+          <div class="col">
+            <label class="section-label">Contentious Content</label>
+            <div>
+              Fetishes or subjects that other users may find extreme or objectionable.
+              These allow users to find or blacklist content with ease. Make sure that you are tagging
+              these upon initial upload.
             </div>
-            <template v-if="!compactMode">
-                <div class="flex-grid border-bottom">
-                    <div class="col">
-                        <label class="section-label" for="names">Artists and Contributors</label>
-                        <div><a href="/forum_topics/23553">How do I tag an artist?</a></div>
-                        <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
-                    </div>
-                    <div class="col2">
-                        <artist-source :order="2"></artist-source>
-                    </div>
-                </div>
-                <div class="flex-grid border-bottom">
-                    <div class="col">
-                        <label class="section-label" for="post_sex_tags">Characters</label>
-                        <div>
-                            Select (and write in) all that apply. Character sex is based only on what is visible in the
-                            image.
-                        </div>
-                        <div><a href="/wiki_pages/tag_what_you_see">
-                            Outside information or other images should not be used when deciding what tags are used.
-                        </a></div>
-                    </div>
-                    <div class="col2">
-                        <checkbox-source kind="characters" :order="0"></checkbox-source>
-                        <tag-textarea role="character" field-id="post_character" :order="3"
-                                      placeholder="Ex: character_name"></tag-textarea>
-                    </div>
-                </div>
-                <div class="flex-grid border-bottom">
-                    <div class="col">
-                        <label class="section-label">Body Types and Species</label>
-                        <div>One listed body type per visible character, listed options are mutually exclusive.</div>
-                    </div>
-                    <div class="col2">
-                        <checkbox-source kind="body" :order="0"></checkbox-source>
-                        <tag-textarea role="species" field-id="post_species" :order="4"
-                                      placeholder="Ex: bear dragon hyena rat newt etc."></tag-textarea>
-                    </div>
-                </div>
-                <div class="flex-grid border-bottom">
-                    <div class="col">
-                        <label class="section-label">Contentious Content</label>
-                        <div>
-                            Fetishes or subjects that other users may find extreme or objectionable.
-                            These allow users to find or blacklist content with ease. Make sure that you are tagging
-                            these upon initial upload.
-                        </div>
-                    </div>
-                    <div class="col2">
-                        <tag-textarea role="content" field-id="post_content" :order="5"
-                                      placeholder="Ex: young gore scat watersports diaper my_little_pony vore not_furry rape hyper etc."></tag-textarea>
-                    </div>
-                </div>
+          </div>
+          <div class="col2">
+            <tag-textarea role="content" field-id="post_content" :order="5"
+                          placeholder="Ex: young gore scat watersports diaper my_little_pony vore not_furry rape hyper etc."></tag-textarea>
+          </div>
+        </div>
+      </template>
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label">Rating</label>
+          <div>Explicit tags include sex, pussy, penis, masturbation, fellatio, etc.
+            (<a href="/help/ratings" target="_blank">help</a>)
+          </div>
+        </div>
+        <div class="col2">
+          <div class="box-section background-red" v-if="showErrors && invalidRating">
+            You must select an appropriate rating for this image.
+          </div>
+          <div>
+            <template v-if="!safe">
+              <button class="toggle-button rating-e" :class="{active: rating==='e'}" @click="rating = 'e'">
+                Explicit
+              </button>
+              <button class="toggle-button rating-q" :class="{active: rating==='q'}" @click="rating = 'q'">
+                Questionable
+              </button>
             </template>
-            <div class="flex-grid border-bottom">
-                <div class="col">
-                    <label class="section-label">Rating</label>
-                    <div>Explicit tags include sex, pussy, penis, masturbation, fellatio, etc.
-                        (<a href="/help/ratings" target="_blank">help</a>)
-                    </div>
-                </div>
-                <div class="col2">
-                    <div class="box-section background-red" v-if="showErrors && invalidRating">
-                        You must select an appropriate rating for this image.
-                    </div>
-                    <div>
-                        <template v-if="!safe">
-                            <button class="toggle-button rating-e" :class="{active: rating==='e'}" @click="rating = 'e'">
-                                Explicit
-                            </button>
-                            <button class="toggle-button rating-q" :class="{active: rating==='q'}" @click="rating = 'q'">
-                                Questionable
-                            </button>
-                        </template>
-                        <button class="toggle-button rating-s" :class="{active: rating==='s'}" @click="rating = 's'">Safe
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="flex-grid come-together-now">
-                <div class="col">
-                    <label class="section-label" for="post_tags">Other Tags</label>
-                    <div>
-                        Separate tags with spaces. (<a href="/help/tags" target="_blank">help</a>)
-                    </div>
-                    <div>
-                      <a href="/wiki_pages/tag_what_you_see">
-                        Outside information or other images should not be used when deciding what tags are used.
-                      </a>
-                    </div>
-                </div>
-                <div class="col2">
-                  <file-preview classes="box-section in-editor" :data="previewData"></file-preview>
-                    <div class="box-section background-red" v-show="showErrors && notEnoughTags">
-                        You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
-                        towards this total.
-                    </div>
-                    <textarea class="tag-textarea" id="post_tags" v-model="otherTags" rows="5"
-                              placeholder="Ex: standing orange_fur white_shirt outside smile 4_toes etc."
-                              ref="otherTags" data-autocomplete="tag-edit"></textarea>
-                    <tag-preview :tags="tags" />
-                    <div class="related-tag-functions">
-                        Related:
-                        <a href="#" @click.prevent="findRelated()">Tags</a> |
-                        <a href="#" @click.prevent="findRelated('artist')">Artists</a> |
-                        <a href="#" @click.prevent="findRelated('contributor')">Contributors</a> |
-                        <a href="#" @click.prevent="findRelated('copyright')">Copyrights</a> |
-                        <a href="#" @click.prevent="findRelated('character')">Characters</a> |
-                        <a href="#" @click.prevent="findRelated('species')">Species</a> |
-                        <a href="#" @click.prevent="findRelated('meta')">Metatags</a>
-                    </div>
-                </div>
-            </div>
-            <div class="flex-grid border-bottom over-me">
-                <related-tags v-if="relatedTags.length" :tags="tagsArray" :related="relatedTags"
-                              :loading="loadingRelated"
-                              :uploaded-tags="uploadTags" :recent-tags="recentTags"
-                              @tag-active="pushTag"></related-tags>
-            </div>
-            <div class="flex-grid border-bottom">
-                <div class="col">
-                    <label class="section-label">Parent Post ID</label>
-                </div>
-                <div class="col2">
-                    <parent-post-input v-model="parentID" />
-                </div>
-            </div>
-            <div v-if="allowLockedTags" class="flex-grid border-bottom">
-                <div class="col">
-                    <label class="section-label">Locked Tags</label>
-                </div>
-                <div class="col2">
-                    <input type="text" v-model="lockedTags" data-autocomplete="tag-query"/>
-                </div>
-            </div>
-            <div v-if="allowRatingLock" class="flex-grid border-bottom">
-                <div class="col">
-                    <label class="section-label">Lock Rating</label>
-                </div>
-                <div class="col2">
-                    <label><input type="checkbox" v-model="ratingLocked"/> Lock Rating</label>
-                </div>
-            </div>
-            <div class="flex-grid border-bottom">
-                <div class="col">
-                    <label class="section-label" for="post_description">Description</label>
-                </div>
-                <div class="col2">
-                  <div class="dtext-formatter pending" data-state="write" data-allow-color="false" data-limit="50000">
-                    <textarea class="dtext required dtext-formatter-input dtext-vue" id="post_description" rows="10" v-model="description"></textarea>
-                  </div>
-                </div>
-            </div>
-            <div v-if="allowUploadAsPending" class="flex-grid border-bottom">
-                <div class="col">
-                    <label class="section-label">Upload as Pending</label>
-                    <div>If you aren't sure if this particular post is up to the standards, checking this box will put it into the moderation queue.</div>
-                </div>
-                <div class="col2">
-                    <label><input type="checkbox" v-model="uploadAsPending"/> Upload as Pending</label>
-                </div>
-            </div>
-            <div class="flex-grid">
-                <div class="col"></div>
-                <div class="col2">
-                    <div class="box-section background-red" v-show="preventUpload && showErrors">
-                        Unmet requirements above prevent the submission of the post.
-                    </div>
-                    <div class="box-section background-green" v-show="submitting">
-                        Submitting your post, please wait.
-                    </div>
-                    <div class="box-section background-red" v-show="error">
-                        {{ error }}
-                    </div>
-                    <div class="box-section background-red" v-show="duplicateId">
-                        Post is a duplicate of <a :href="duplicatePath">post #{{duplicateId}}.</a>
-                    </div>
-                    <button @click="submit" :disabled="(showErrors && preventUpload) || submitting" accesskey="s">
-                        {{ submitting ? 'Uploading...' : 'Upload' }}
-                    </button>
-                </div>
-            </div>
+            <button class="toggle-button rating-s" :class="{active: rating==='s'}" @click="rating = 's'">Safe
+            </button>
+          </div>
         </div>
-        <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
-            <file-preview classes="in-sidebar" :data="previewData"></file-preview>
+      </div>
+      <div class="flex-grid come-together-now">
+        <div class="col">
+          <label class="section-label" for="post_tags">Other Tags</label>
+          <div>
+            Separate tags with spaces. (<a href="/help/tags" target="_blank">help</a>)
+          </div>
+          <div>
+            <a href="/wiki_pages/tag_what_you_see">
+              Outside information or other images should not be used when deciding what tags are used.
+            </a>
+          </div>
         </div>
+        <div class="col2">
+          <file-preview classes="box-section in-editor" :data="previewData"></file-preview>
+          <div class="box-section background-red" v-show="showErrors && notEnoughTags">
+            You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
+            towards this total.
+          </div>
+          <textarea class="tag-textarea" id="post_tags" v-model="otherTags" rows="5"
+                    placeholder="Ex: standing orange_fur white_shirt outside smile 4_toes etc."
+                    ref="otherTags" data-autocomplete="tag-edit"></textarea>
+          <tag-preview :tags="tags" />
+          <div class="related-tag-functions">
+            Related:
+            <a href="#" @click.prevent="findRelated()">Tags</a> |
+            <a href="#" @click.prevent="findRelated('artist')">Artists</a> |
+            <a href="#" @click.prevent="findRelated('contributor')">Contributors</a> |
+            <a href="#" @click.prevent="findRelated('copyright')">Copyrights</a> |
+            <a href="#" @click.prevent="findRelated('character')">Characters</a> |
+            <a href="#" @click.prevent="findRelated('species')">Species</a> |
+            <a href="#" @click.prevent="findRelated('meta')">Metatags</a>
+          </div>
+        </div>
+      </div>
+      <div class="flex-grid border-bottom over-me">
+        <related-tags v-if="relatedTags.length" :tags="tagsArray" :related="relatedTags"
+                      :loading="loadingRelated"
+                      :uploaded-tags="uploadTags" :recent-tags="recentTags"
+                      @tag-active="pushTag"></related-tags>
+      </div>
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label">Parent Post ID</label>
+        </div>
+        <div class="col2">
+          <parent-post-input v-model="parentID" />
+        </div>
+      </div>
+      <div v-if="allowLockedTags" class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label">Locked Tags</label>
+        </div>
+        <div class="col2">
+          <input type="text" v-model="lockedTags" data-autocomplete="tag-query"/>
+        </div>
+      </div>
+      <div v-if="allowRatingLock" class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label">Lock Rating</label>
+        </div>
+        <div class="col2">
+          <label><input type="checkbox" v-model="ratingLocked"/> Lock Rating</label>
+        </div>
+      </div>
+      <div class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label" for="post_description">Description</label>
+        </div>
+        <div class="col2">
+          <div class="dtext-formatter pending" data-state="write" data-allow-color="false" data-limit="50000">
+            <textarea class="dtext required dtext-formatter-input dtext-vue" id="post_description" rows="10" v-model="description"></textarea>
+          </div>
+        </div>
+      </div>
+      <div v-if="allowUploadAsPending" class="flex-grid border-bottom">
+        <div class="col">
+          <label class="section-label">Upload as Pending</label>
+          <div>If you aren't sure if this particular post is up to the standards, checking this box will put it into the moderation queue.</div>
+        </div>
+        <div class="col2">
+          <label><input type="checkbox" v-model="uploadAsPending"/> Upload as Pending</label>
+        </div>
+      </div>
+      <div class="flex-grid">
+        <div class="col"></div>
+        <div class="col2">
+          <div class="box-section background-red" v-show="preventUpload && showErrors">
+            Unmet requirements above prevent the submission of the post.
+          </div>
+          <div class="box-section background-green" v-show="submitting">
+            Submitting your post, please wait.
+          </div>
+          <div class="box-section background-red" v-show="error">
+            {{ error }}
+          </div>
+          <div class="box-section background-red" v-show="duplicateId">
+            Post is a duplicate of <a :href="duplicatePath">post #{{duplicateId}}.</a>
+          </div>
+          <button @click="submit" :disabled="(showErrors && preventUpload) || submitting" accesskey="s">
+            {{ submitting ? 'Uploading...' : 'Upload' }}
+          </button>
+        </div>
+      </div>
     </div>
+    <div id="preview-sidebar" class="col box-section" style="margin-left: 10px; padding: 10px;">
+      <file-preview classes="in-sidebar" :data="previewData"></file-preview>
+    </div>
+  </div>
 </template>
 
 <script>
