@@ -61,6 +61,11 @@
   }
 
   .ssc-desktop-only { display: none;}
+
+  // Mobile/narrow default: the column wrappers are purely a desktop grouping device,
+  // so they contribute no layout of their own here — entries flow directly into the
+  // container's existing single-column flex stack.
+  .ssc-columns, .ssc-column { display: contents; }
 }
 
 #advanced-search-container {
@@ -73,6 +78,63 @@
     input[type="checkbox"]:checked + label              { border-radius: 0; }
     input[type="checkbox"]:checked + label:first-of-type { @include st-radius-top; }
     input[type="checkbox"]:checked + label:last-of-type  { @include st-radius-bottom; }
+
+    // Media type: a checkbox left in the browser's native indeterminate state
+    // represents a custom query the checkboxes can't cleanly attribute to a selection.
+    input:indeterminate + label { opacity: 0.5; outline: 1px dashed currentColor; outline-offset: -1px; }
+  }
+
+  // Media type: a recognized selection is still shown checked normally even when the
+  // query also contains an unrepresentable custom expression — this marks the group
+  // itself, distinct from the per-checkbox indeterminate look above.
+  .ssc-body.ssc-media-custom { outline: 1px dashed currentColor; outline-offset: 2px; }
+
+  // Sound: geometry matches .sto-toggle / .sto-toggle--tri exactly (same height, same
+  // full-body width) rather than a bespoke taller fixed-size button — 100% width plus
+  // `flex: 1` on each visible label means "2 visible -> 50% each" and "3 visible ->
+  // 33% each" fall out of ordinary flex distribution with no extra math, and the
+  // container's own width never changes when the third segment appears. Kept as its
+  // own class rather than reusing `.stm-toggle`/`.sto-toggle` directly: those are
+  // vertical-stack or single-element-cycle components respectively, neither of which
+  // fits three independently-toggleable checkboxes without their own modifier variant
+  // — but the geometry (below) and coloring (Rating's palette tokens) are copied
+  // directly rather than invented separately.
+  //
+  // `overflow: hidden` on the rounded capsule clips whichever child is currently
+  // last/first, so the rounding always follows the *visible* edges without needing
+  // first/last-of-type bookkeeping — this also means the hidden Sound warning segment
+  // can never affect the capsule's radius.
+  .ssc-sound-toggle {
+    display: flex;
+    width: 100%;
+    height: 1.5rem;
+    overflow: hidden;
+    @include st-radius;
+
+    input[type="checkbox"] { display: none; }
+
+    label {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+
+      &[hidden] { display: none; }
+
+      svg { width: 1rem; height: 1rem; }
+    }
+
+    // Same category colors as Rating (Safe/Questionable/Explicit), reusing the same
+    // palette tokens: No sound = green, Sound = yellow, Sound warning = red. Selected
+    // and unselected both keep the category color — only opacity communicates checked
+    // state, matching Rating's existing pattern — rather than falling back to a
+    // generic dark-blue toggle look when unselected.
+    input[value="no_sound"] + label { background-color: palette("background-green"); }
+    input[value="sound"] + label { background-color: palette("background-yellow"); }
+    input[value="sound_warning"] + label { background-color: palette("background-red"); }
+    input:not(:checked) + label { opacity: 0.5; }
   }
 
   label:has(.sort-asc-btn) {
@@ -117,5 +179,41 @@
     left: 16.5rem;
 
     .ssc-desktop-only { display: grid; }
+  }
+
+  // Two-column grouping for Advanced Options once Media type + Sound made the
+  // single-column panel too tall. Each column is sized to match Layout Settings'
+  // own resolved label/body geometry exactly (124px / 124px, i.e. 7.75rem each,
+  // inside a 16rem-wide panel) rather than re-deriving proportions independently.
+  //
+  // Each `.ssc-entry` normally lays out its own `1fr 1fr` grid (see the shared rule
+  // above) — fine for a single column, but that makes every entry's label/body split
+  // independently based on its own content, so rows drift out of alignment with each
+  // other. Making `.ssc-column` itself the grid, with every `.ssc-entry` unwrapped via
+  // `display: contents`, puts every label and every body directly on the column's own
+  // two fixed tracks, so they're always identical — no per-entry overrides needed.
+  #advanced-search-container {
+    width: fit-content;
+    min-width: 0;
+
+    .ssc-columns {
+      display: grid;
+      grid-template-columns: repeat(2, 16rem);
+      column-gap: 0.5rem;
+      align-items: start;
+    }
+
+    .ssc-column {
+      display: grid;
+      grid-template-columns: 7.75rem 7.75rem;
+      column-gap: 0.5rem;
+      row-gap: 0.5rem;
+      align-content: start;
+
+      .ssc-entry { display: contents; }
+      // Full-width row content (the "Post relationships" divider) must span both
+      // label/body tracks rather than being auto-placed into just the first one.
+      .ssc-header { grid-column: 1 / -1; }
+    }
   }
 }
