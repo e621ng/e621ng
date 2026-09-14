@@ -287,6 +287,11 @@
   import { tagRegistryKey, type TagSource } from "./registry";
   import type { PreviewData, UploadChange } from "@/components/uploads/types";
 
+  defineOptions({ name: "Uploader" });
+
+  // Shape of submitUploadForm's `error` JSON body (the `outcome.json` branch).
+  interface UploadErrorBody { reason?: string; post_id?: number; message?: string }
+
   provide(tagRegistryKey, {
     register: registerSource,
     unregister: unregisterSource,
@@ -348,17 +353,20 @@
     removeTag: tag => { otherTags.value = TagField.removeTag(otherTags.value, tag); },
   };
 
-  function unloadHandler() {
+  function unloadHandler(event: BeforeUnloadEvent) {
     if (allowNavigate || (uploadValue.value === "" && tags.value === "")) {
       return;
     }
-    return true;
+    // preventDefault (+ legacy returnValue) is what triggers the leave-site prompt
+    // for an addEventListener handler; a truthy return only works for onbeforeunload.
+    event.preventDefault();
+    event.returnValue = "";
   }
 
   onMounted(() => {
     registerSource(sinkDescriptor);
 
-    window.onbeforeunload = unloadHandler;
+    window.addEventListener("beforeunload", unloadHandler);
     const params = new URLSearchParams(window.location.search);
     const fillField = function(target: Ref<string>, key: string) {
       if (params.has(key)) target.value = params.get(key)!;
@@ -410,9 +418,7 @@
   });
 
   onBeforeUnmount(() => {
-    // Release the unload guard, but only if it's still ours.
-    if (window.onbeforeunload === unloadHandler)
-      window.onbeforeunload = null;
+    window.removeEventListener("beforeunload", unloadHandler);
   });
 
   function onFileChange({ value, preview, invalid }: UploadChange) {
@@ -464,7 +470,8 @@
     data.append('upload[rating]', rating.value);
     data.append('upload[source]', noSource.value ? '' : sources.value.join('\n'));
     data.append('upload[description]', description.value);
-    data.append('upload[parent_id]', parentID.value);
+    if (parentID.value)
+      data.append('upload[parent_id]', parentID.value);
     if (allowLockedTags)
       data.append('upload[locked_tags]', lockedTags.value);
     if (allowRatingLock)
@@ -485,8 +492,8 @@
       return;
     }
 
-    const jsonData = outcome.json;
-    if (jsonData.reason === 'duplicate') duplicateId.value = jsonData.post_id;
+    const jsonData = outcome.json as UploadErrorBody;
+    if (jsonData.reason === 'duplicate') duplicateId.value = jsonData.post_id ?? 0;
     if (['duplicate', 'invalid'].indexOf(jsonData.reason) !== -1) {
       error.value = jsonData.message;
     } else if (jsonData.message) {
