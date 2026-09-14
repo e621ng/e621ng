@@ -23,7 +23,14 @@
           </div>
         </div>
         <div class="col2">
-          <sources :maxSources="10" :showErrors="showErrors" v-model:sources="sources" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:noSource="noSource"></sources>
+          <sources
+            :maxSources="10"
+            :showErrors="showErrors"
+            v-model:sources="sources"
+            @missingSourceWarning="missingSourceWarning = $event"
+            @nonUrlSourceWarning="nonUrlSourceWarning = $event"
+            v-model:noSource="noSource"
+          ></sources>
         </div>
       </div>
       <template v-if="!compactMode">
@@ -31,7 +38,11 @@
           <div class="col">
             <label class="section-label" for="names">Artists and Contributors</label>
             <div><a href="/forum_topics/23553">How do I tag an artist?</a></div>
-            <div>Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under those definitions on the wiki.</div>
+            <div>
+              Please don't use <a href="/wiki_pages/anonymous_artist">anonymous_artist</a> or
+              <a href="/wiki_pages/unknown_artist">unknown_artist</a> tags unless they fall under
+              those definitions on the wiki.
+            </div>
           </div>
           <div class="col2">
             <artist-source :order="2"></artist-source>
@@ -50,8 +61,12 @@
           </div>
           <div class="col2">
             <checkbox-source kind="characters" :order="0"></checkbox-source>
-            <tag-textarea role="character" field-id="post_character" :order="3"
-                          placeholder="Ex: character_name"></tag-textarea>
+            <tag-textarea
+              role="character"
+              field-id="post_character"
+              :order="3"
+              placeholder="Ex: character_name"
+            ></tag-textarea>
           </div>
         </div>
         <div class="flex-grid border-bottom">
@@ -61,8 +76,12 @@
           </div>
           <div class="col2">
             <checkbox-source kind="body" :order="0"></checkbox-source>
-            <tag-textarea role="species" field-id="post_species" :order="4"
-                          placeholder="Ex: bear dragon hyena rat newt etc."></tag-textarea>
+            <tag-textarea
+              role="species"
+              field-id="post_species"
+              :order="4"
+              placeholder="Ex: bear dragon hyena rat newt etc."
+            ></tag-textarea>
           </div>
         </div>
         <div class="flex-grid border-bottom">
@@ -75,8 +94,12 @@
             </div>
           </div>
           <div class="col2">
-            <tag-textarea role="content" field-id="post_content" :order="5"
-                          placeholder="Ex: young gore scat watersports diaper my_little_pony vore not_furry rape hyper etc."></tag-textarea>
+            <tag-textarea
+              role="content"
+              field-id="post_content"
+              :order="5"
+              placeholder="Ex: young gore scat watersports diaper my_little_pony vore not_furry rape hyper etc."
+            ></tag-textarea>
           </div>
         </div>
       </template>
@@ -100,7 +123,8 @@
                 Questionable
               </button>
             </template>
-            <button class="toggle-button rating-s" :class="{active: rating==='s'}" @click="rating = 's'">Safe
+            <button class="toggle-button rating-s" :class="{active: rating==='s'}" @click="rating = 's'">
+              Safe
             </button>
           </div>
         </div>
@@ -123,9 +147,15 @@
             You must provide at least <b>{{4 - tagCount}}</b> more tags. Tags in other sections count
             towards this total.
           </div>
-          <textarea class="tag-textarea" id="post_tags" v-model="otherTags" rows="5"
-                    placeholder="Ex: standing orange_fur white_shirt outside smile 4_toes etc."
-                    ref="otherTags" data-autocomplete="tag-edit"></textarea>
+          <textarea
+            class="tag-textarea"
+            id="post_tags"
+            v-model="otherTags"
+            rows="5"
+            placeholder="Ex: standing orange_fur white_shirt outside smile 4_toes etc."
+            ref="otherTags"
+            data-autocomplete="tag-edit"
+          ></textarea>
           <tag-preview :tags="tags" />
           <div class="related-tag-functions">
             Related:
@@ -140,10 +170,15 @@
         </div>
       </div>
       <div class="flex-grid border-bottom over-me">
-        <related-tags v-if="relatedTags.length" :tags="tagsArray" :related="relatedTags"
-                      :loading="loadingRelated"
-                      :uploaded-tags="uploadTags" :recent-tags="recentTags"
-                      @tag-active="pushTag"></related-tags>
+        <related-tags
+          v-if="relatedTags.length"
+          :tags="tagsArray"
+          :related="relatedTags"
+          :loading="loadingRelated"
+          :uploaded-tags="uploadTags"
+          :recent-tags="recentTags"
+          @tag-active="pushTag"
+        ></related-tags>
       </div>
       <div class="flex-grid border-bottom">
         <div class="col">
@@ -174,8 +209,18 @@
           <label class="section-label" for="post_description">Description</label>
         </div>
         <div class="col2">
-          <div class="dtext-formatter pending" data-state="write" data-allow-color="false" data-limit="50000">
-            <textarea class="dtext required dtext-formatter-input dtext-vue" id="post_description" rows="10" v-model="description"></textarea>
+          <div
+            class="dtext-formatter pending"
+            data-state="write"
+            data-allow-color="false"
+            data-limit="50000"
+          >
+            <textarea
+              class="dtext required dtext-formatter-input dtext-vue"
+              id="post_description"
+              rows="10"
+              v-model="description"
+            ></textarea>
           </div>
         </div>
       </div>

@@ -7,7 +7,14 @@
 
   <div class="input">
     <label>Additional Source</label>
-    <sources :maxSources="1" :showErrors="showErrors" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:noSource="noSource" v-model:sources="sources"></sources>
+    <sources
+      :maxSources="1"
+      :showErrors="showErrors"
+      @missingSourceWarning="missingSourceWarning = $event"
+      @nonUrlSourceWarning="nonUrlSourceWarning = $event"
+      v-model:noSource="noSource"
+      v-model:sources="sources"
+    ></sources>
     <span class="hint">The submission page the replacement file came from</span>
   </div>
 

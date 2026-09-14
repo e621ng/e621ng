@@ -1,14 +1,14 @@
 <template>
-    <div class="related-tags flex-wrap">
-        <div class="related-section" v-for="group in tagGroups" :key="group.title">
-            <div class="related-items" v-for="tags, i in chunkTags(group.tags)" :key="i">
-                <div class="related-title" v-if="i === 0">{{group.title}}</div>
-                <div class="related-item" v-for="tag in tags" :key="tag.name">
-                    <a :class="tagClasses(tag)" :href="tagLink(tag)" @click.prevent="toggle(tag)">{{tag.name}}</a>
-                </div>
-            </div>
+  <div class="related-tags flex-wrap">
+    <div class="related-section" v-for="group in tagGroups" :key="group.title">
+      <div class="related-items" v-for="tags, i in chunkTags(group.tags)" :key="i">
+        <div class="related-title" v-if="i === 0">{{group.title}}</div>
+        <div class="related-item" v-for="tag in tags" :key="tag.name">
+          <a :class="tagClasses(tag)" :href="tagLink(tag)" @click.prevent="toggle(tag)">{{tag.name}}</a>
         </div>
+      </div>
     </div>
+  </div>
 </template>
 
 <script>

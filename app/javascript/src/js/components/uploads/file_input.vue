@@ -6,7 +6,7 @@
   >
     <div class="fileinput-wrapper" v-if="!disableFileUpload">
       <div class="box-section background-red" v-if="fileTooLarge">
-        The file you are trying to upload is too large. Maximum allowed is {{ exceededFileSize / (1024*1024) }} MiB.<br>
+        The file you are trying to upload is too large. Maximum allowed is {{ exceededFileSize / (1024*1024) }} MiB.<br />
         Check out <a href="/help/supported_filetypes">the Supported Formats</a> for more information.
       </div>
       <label
@@ -58,8 +58,11 @@
           :disabled="disableURLUpload"
         />
       </label>
-      <div id="whitelist-warning" v-show="whitelist.visible"
-            :class="{'whitelist-warning-allowed': whitelist.allowed, 'whitelist-warning-disallowed': !whitelist.allowed}">
+      <div
+        id="whitelist-warning"
+        v-show="whitelist.visible"
+        :class="{'whitelist-warning-allowed': whitelist.allowed, 'whitelist-warning-disallowed': !whitelist.allowed}"
+      >
         <span v-if="whitelist.allowed">Uploads from <b>{{whitelist.domain}}</b> are permitted.</span>
         <span v-if="!whitelist.allowed">Uploads from <b>{{whitelist.domain}}</b> are not permitted.
         <span v-if="whitelist.reason">Reason given: {{whitelist.reason}}</span>

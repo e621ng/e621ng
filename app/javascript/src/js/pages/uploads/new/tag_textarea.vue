@@ -1,6 +1,12 @@
 <template>
-  <textarea class="tag-textarea" rows="2" v-model="model" :id="fieldId"
-            :placeholder="placeholder" data-autocomplete="tag-edit"></textarea>
+  <textarea
+    class="tag-textarea"
+    rows="2"
+    v-model="model"
+    :id="fieldId"
+    :placeholder="placeholder"
+    data-autocomplete="tag-edit"
+  ></textarea>
 </template>
 
 <script setup lang="ts">
