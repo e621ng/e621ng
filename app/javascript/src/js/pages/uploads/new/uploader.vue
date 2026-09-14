@@ -400,6 +400,8 @@
       fillFieldBool(uploadAsPending, "upload_as_pending");
 
     Autocomplete.initialize_autocomplete('tag-edit');
+    if (allowLockedTags)
+      Autocomplete.initialize_autocomplete('tag-query');
     new DTextFormatter($<HTMLDivElement>(".dtext-formatter.pending"));
   });
 
