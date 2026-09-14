@@ -1,8 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "include": [
+    "app/javascript/src/js/jquery-shims.d.ts",
+    "app/javascript/src/js/components/tags/types.ts",
     "app/javascript/src/js/components/tags/tag_field.ts",
     "app/javascript/src/js/components/tags/tag_link.vue",
+    "app/javascript/src/js/components/tags/tag_counter.vue",
+    "app/javascript/src/js/components/tags/tag_preview_tag.vue",
+    "app/javascript/src/js/components/tags/tag_preview.vue",
+    "app/javascript/src/js/components/tags/related.vue",
     "app/javascript/src/js/pages/uploads/new/checkbox.vue",
     "app/javascript/src/js/pages/uploads/new/registry.ts",
     "app/javascript/src/js/pages/uploads/new/checkbox_source.vue",
