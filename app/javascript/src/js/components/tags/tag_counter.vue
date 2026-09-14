@@ -20,7 +20,7 @@
 
 <script>
 import SVGIcon from "@/utility/SVGIcon";
-import { splitTags } from "./tag_field.js";
+import { splitTags } from "./tag_field";
 
 // The tag counter (count + mood face) for a tag-string input, styled by
 // specific/tags.scss (.options / .face / .count).

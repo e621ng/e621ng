@@ -13,7 +13,7 @@
   // A role-tagged free-text tag source (character / species / content). Registers
   // with the coordinator; contributes its tokens and accepts role-routed imports.
   import { ref, inject, onMounted, onBeforeUnmount } from "vue";
-  import * as TagField from "@/components/tags/tag_field.js";
+  import * as TagField from "@/components/tags/tag_field";
   import { tagRegistryKey, type TagSource } from "./registry";
 
   const props = withDefaults(defineProps<{

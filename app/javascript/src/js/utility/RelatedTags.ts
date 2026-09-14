@@ -1,5 +1,5 @@
 import HTTP from "@/utility/HTTP";
-import { tagSorter } from "@/components/tags/tag_field.js";
+import { tagSorter } from "@/components/tags/tag_field";
 
 // Shared transport + response shaping for the related-tags lookup, consumed by
 // both uploads#new (uploader.vue) and posts#show (tag_editor.vue). Orchestration
