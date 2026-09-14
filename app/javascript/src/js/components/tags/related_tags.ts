@@ -1,20 +1,11 @@
 import HTTP from "@/utility/HTTP";
-import { tagSorter } from "@/components/tags/tag_field";
+import { tagSorter } from "./tag_field";
+import type { RelatedTag, RelatedTagGroup } from "./types";
 
 // Shared transport + response shaping for the related-tags lookup, consumed by
 // both uploads#new (uploader.vue) and posts#show (tag_editor.vue). Orchestration
 // state (loading flag, re-entry guard, toggle-off, panel expansion) stays in the
 // components — this module only fetches and shapes.
-
-export interface RelatedTag {
-  name: string;
-  category_id: number;
-}
-
-export interface RelatedTagGroup {
-  title: string;
-  tags: RelatedTag[];
-}
 
 /** The selected substring of a text field, or null when nothing is selected. */
 export function selectedText (field: HTMLTextAreaElement | HTMLInputElement): string | null {

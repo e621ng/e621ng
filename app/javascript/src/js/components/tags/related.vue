@@ -21,7 +21,7 @@
 <script setup lang="ts">
   import { computed } from "vue";
   import { tagSorter } from './tag_field';
-  import type { RelatedTag, RelatedTagGroup } from "@/utility/RelatedTags";
+  import type { RelatedTag, RelatedTagGroup } from "./types";
 
   const props = withDefaults(defineProps<{
     tags: string[];

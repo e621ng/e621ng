@@ -30,7 +30,9 @@
       <textarea disabled>Loading...</textarea>
     </div>
 
-    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: post.locked_tags || "", spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
+    <%# tag-query (not tag-edit) matches the uploader's Locked Tags field; being
+        server-rendered, this one is initialized by the global autocomplete pass. %>
+    <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-query", input_html: { value: post.locked_tags || "", spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
   </div>
 
   <% if post.is_rating_locked? %>

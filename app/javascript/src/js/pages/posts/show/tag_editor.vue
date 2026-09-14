@@ -40,86 +40,77 @@
   </div>
 </template>
 
-<script>
-import relatedTags from "@/components/tags/related.vue";
-import tagPreview from "@/components/tags/tag_preview.vue";
-import tagCounter from "@/components/tags/tag_counter.vue";
-import { addTagGrouped, removeTagGrouped, splitTags } from "@/components/tags/tag_field";
-import Autocomplete from "@/components/autocomplete";
-import CurrentUser from "@/models/CurrentUser";
-import TagCategories from "@/utility/TagCategories";
-import { fetchRelatedTags, selectedText } from "@/utility/RelatedTags";
+<script setup lang="ts">
+  import { computed, onMounted, ref } from "vue";
+  import RelatedTags from "@/components/tags/related.vue";
+  import TagPreview from "@/components/tags/tag_preview.vue";
+  import TagCounter from "@/components/tags/tag_counter.vue";
+  import { addTagGrouped, removeTagGrouped, splitTags } from "@/components/tags/tag_field";
+  import { fetchRelatedTags, selectedText } from "@/components/tags/related_tags";
+  import type { RelatedTag, RelatedTagGroup } from "@/components/tags/types";
+  import Autocomplete from "@/components/autocomplete";
+  import CurrentUser from "@/models/CurrentUser";
+  import TagCategories from "@/utility/TagCategories";
 
-export default {
-  components: {
-    'related-tags': relatedTags,
-    'tag-preview': tagPreview,
-    'tag-counter': tagCounter
-  },
-  // Root props, provided by the RelatedTag.ts bootstrap (postTags from the
+  // Root props, provided by the TagEditor.ts bootstrap (postTags from the
   // mount div's data attribute, the tag lists from /users/upload_tags.json).
-  props: {
-    postTags: { type: String, default: "" },
-    uploadTags: { type: Array, default: () => [] },
-    recentTags: { type: Array, default: () => [] },
-  },
-  data() {
-    return {
-      expandRelated: true,
-      tags: this.postTags,
-      relatedTags: [],
-      lastRelatedCategoryId: undefined,
-      loadingRelated: false,
-    };
-  },
-  mounted() {
+  const props = withDefaults(defineProps<{
+    postTags?: string;
+    uploadTags?: RelatedTag[];
+    recentTags?: RelatedTag[];
+  }>(), { postTags: "", uploadTags: () => [], recentTags: () => [] });
+
+  const tags = ref(props.postTags);
+  const expandRelated = ref(true);
+  const relatedTags = ref<RelatedTagGroup[]>([]);
+  const loadingRelated = ref(false);
+  let lastRelatedCategoryId: number | undefined;
+
+  const otherTags = ref<HTMLTextAreaElement>();
+
+  onMounted(() => {
     setTimeout(() => {
       // Work around that browsers seem to take a few frames to acknowledge that the element is there before it can be focused.
-      const el = this.$refs.otherTags;
+      const el = otherTags.value;
       if (!el) return; // unmounted before the timer fired
       el.style.height = el.scrollHeight + "px";
       el.focus();
     }, 20);
     if (!CurrentUser.settings.autocomplete)
       return;
-    Autocomplete.initialize_autocomplete('tag-edit');
-  },
-  computed: {
-    tagsArray() {
-      return splitTags(this.tags.toLowerCase());
-    },
-    relatedText() {
-      return this.expandRelated ? "<<" : ">>";
+    Autocomplete.initialize_autocomplete("tag-edit");
+  });
+
+  const tagsArray = computed(() => splitTags(tags.value.toLowerCase()));
+  const relatedText = computed(() => expandRelated.value ? "<<" : ">>");
+
+  function toggleRelated () {
+    expandRelated.value = !expandRelated.value;
+  }
+
+  function pushTag (tag: string, add: boolean) {
+    tags.value = add ? addTagGrouped(tags.value, tag) : removeTagGrouped(tags.value, tag);
+  }
+
+  async function findRelated (categoryName?: string) {
+    const categoryId = categoryName ? TagCategories.idFor(categoryName) : undefined;
+    if (loadingRelated.value)
+      return;
+    if (relatedTags.value.length > 0 && lastRelatedCategoryId === categoryId) {
+      relatedTags.value = [];
+      return;
     }
-  },
-  methods: {
-    toggleRelated() {
-      this.expandRelated = !this.expandRelated;
-    },
-    pushTag(tag, add) {
-      this.tags = add ? addTagGrouped(this.tags, tag) : removeTagGrouped(this.tags, tag);
-    },
-    async findRelated(categoryName) {
-      const categoryId = categoryName ? TagCategories.idFor(categoryName) : undefined;
-      if (this.loadingRelated)
-        return;
-      if (this.relatedTags.length > 0 && this.lastRelatedCategoryId === categoryId) {
-        this.relatedTags = [];
-        return;
-      }
-      this.expandRelated = true;
-      this.loadingRelated = true;
-      this.relatedTags = [];
-      const query = selectedText(this.$refs.otherTags) ?? this.tags;
-      try {
-        this.relatedTags = await fetchRelatedTags(query, categoryId);
-        this.lastRelatedCategoryId = categoryId;
-      } catch {
-        // A failed lookup just shows no related tags (relatedTags stays []).
-      } finally {
-        this.loadingRelated = false;
-      }
+    expandRelated.value = true;
+    loadingRelated.value = true;
+    relatedTags.value = [];
+    const query = selectedText(otherTags.value!) ?? tags.value;
+    try {
+      relatedTags.value = await fetchRelatedTags(query, categoryId);
+      lastRelatedCategoryId = categoryId;
+    } catch {
+      // A failed lookup just shows no related tags (relatedTags stays []).
+    } finally {
+      loadingRelated.value = false;
     }
   }
-};
 </script>
