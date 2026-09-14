@@ -1,10 +1,11 @@
 import { vi } from "vitest";
 
 vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete: vi.fn() } }));
-vi.mock("@/components/DTextFormatter.ts", () => ({ default: vi.fn() }));
+vi.mock("@/components/DTextFormatter", () => ({ default: vi.fn() }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
 import { afterEach, describe, expect, it } from "vitest";
+import { nextTick } from "vue";
 import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { jsonResponse } from "../../helpers";
 import { mountUploader, unmountAll } from "./mountUploader";
@@ -58,6 +59,24 @@ describe("uploads/uploader — related tags", () => {
 
     expect(wrapper.find(".related-title").text()).toBe("Related: artist");
     expect(wrapper.findAll(".related-item a").map((a) => a.text())).toEqual(["abe", "zed"]);
+  });
+
+  it("shows the loading row while a related lookup is in flight (I1)", async () => {
+    const { wrapper, fetchSpy } = await mountUploader();
+    await wrapper.find("#post_tags").setValue("seed");
+    let resolveFetch!: () => void;
+    fetchSpy.mockReturnValue(
+      new Promise((res) => { resolveFetch = () => res(jsonResponse({ artist: [{ name: "abe", category_id: 1 }] })); }) as any,
+    );
+    await relatedLink(wrapper, "Tags").trigger("click");
+    await nextTick();
+    // Was dead before the fix: the component was v-if'd out while loading.
+    expect(wrapper.findAll(".related-title").map((t) => t.text())).toContain("Loading Related Tags");
+
+    resolveFetch();
+    await flushPromises();
+    expect(wrapper.findAll(".related-title").map((t) => t.text())).not.toContain("Loading Related Tags");
+    expect(relatedItem(wrapper, "abe")).toBeTruthy();
   });
 
   it("shows no results when the lookup fails, even if the body is JSON", async () => {

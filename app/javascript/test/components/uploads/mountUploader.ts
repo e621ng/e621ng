@@ -7,7 +7,7 @@ import { setSiteData } from "../../helpers";
 // BEFORE any imports:
 //
 //   vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete: vi.fn() } }));
-//   vi.mock("@/components/DTextFormatter.ts", () => ({ default: vi.fn() }));
+//   vi.mock("@/components/DTextFormatter", () => ({ default: vi.fn() }));
 //   vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 //
 // The helper only performs the runtime setup (blob seeding, URL, network spies,
@@ -72,6 +72,7 @@ export async function mountUploader (opts: MountUploaderOptions = {}): Promise<M
     Posts: {
       max_file_size: opts.maxFileSize ?? 1048576,
       max_file_sizes: opts.maxFileSizes ?? {},
+      video_extensions: ["webm", "mp4"],
     },
   });
 

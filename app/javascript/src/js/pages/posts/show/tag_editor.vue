@@ -4,8 +4,16 @@
       <label for="post_tag_string">Tags</label>
       <tag-counter :tags="tags" />
     </div>
-    <textarea class="tag-textarea" id="post_tag_string" v-model="tags" rows="5" data-autocomplete="tag-edit"
-      ref="otherTags" name="post[tag_string]" :spellcheck="false"></textarea>
+    <textarea
+      class="tag-textarea"
+      id="post_tag_string"
+      v-model="tags"
+      rows="5"
+      data-autocomplete="tag-edit"
+      ref="otherTags"
+      name="post[tag_string]"
+      :spellcheck="false"
+    ></textarea>
     <tag-preview :tags="tags" />
     <div class="related-tag-functions">
       Related:
@@ -19,17 +27,24 @@
     </div>
     <div>
       <h3>Related Tags <a href="#" @click.prevent="toggleRelated">{{ relatedText }}</a></h3>
-      <related-tags v-show="expandRelated" :tags="tagsArray" :related="relatedTags" :loading="loadingRelated"
-        :uploaded-tags="uploadTags" :recent-tags="recentTags" @tag-active="pushTag"></related-tags>
+      <related-tags
+        v-show="expandRelated"
+        :tags="tagsArray"
+        :related="relatedTags"
+        :loading="loadingRelated"
+        :uploaded-tags="uploadTags"
+        :recent-tags="recentTags"
+        @tag-active="pushTag"
+      ></related-tags>
     </div>
   </div>
 </template>
 
 <script>
-import relatedTags from "@/pages/uploads/new/related.vue";
-import tagPreview from "@/pages/uploads/new/tag_preview.vue";
-import tagCounter from "@/pages/uploads/new/tag_counter.vue";
-import { addTagGrouped, removeTagGrouped, splitTags } from "@/pages/uploads/new/tag_field.js";
+import relatedTags from "@/components/tags/related.vue";
+import tagPreview from "@/components/tags/tag_preview.vue";
+import tagCounter from "@/components/tags/tag_counter.vue";
+import { addTagGrouped, removeTagGrouped, splitTags } from "@/components/tags/tag_field";
 import Autocomplete from "@/components/autocomplete";
 import CurrentUser from "@/models/CurrentUser";
 import TagCategories from "@/utility/TagCategories";

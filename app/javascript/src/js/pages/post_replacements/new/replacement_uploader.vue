@@ -7,7 +7,14 @@
 
   <div class="input">
     <label>Additional Source</label>
-    <sources :maxSources="1" :showErrors="showErrors" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:noSource="noSource" v-model:sources="sources"></sources>
+    <SourcesInput
+      :maxSources="1"
+      :showErrors="showErrors"
+      @missingSourceWarning="missingSourceWarning = $event"
+      @nonUrlSourceWarning="nonUrlSourceWarning = $event"
+      v-model:noSource="noSource"
+      v-model:sources="sources"
+    ></SourcesInput>
     <span class="hint">The submission page the replacement file came from</span>
   </div>
 
@@ -45,121 +52,112 @@
   <file-preview :data="previewData"></file-preview>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import autocompletableInput from "@/components/autocompletable_input.vue";
-import filePreview from "@/pages/uploads/new/file_preview.vue";
-import fileInput from "@/pages/uploads/new/file_input.vue";
-import sources from "@/pages/uploads/new/sources.vue";
+import filePreview from "@/components/uploads/file_preview.vue";
+import fileInput from "@/components/uploads/file_input.vue";
+import SourcesInput from "@/components/uploads/sources.vue";
 import CurrentUser from "@/models/CurrentUser";
 import ToastManager from "@/utility/Toast";
 import { submitUploadForm } from "@/utility/UploadSubmission";
+import type { PreviewData, UploadChange } from "@/components/uploads/types";
 
-function unloadWarning () {
-  if (this.allowNavigate || (this.uploadValue === "" && this.reason === "")) {
+// Immutable per-session config (read in the template).
+const canApprove = CurrentUser.can.approvePosts;
+
+const previewData = ref<PreviewData>({ url: "", isVideo: false });
+const uploadValue = ref<string | File>("");
+const invalidUploadValue = ref(false);
+
+const missingSourceWarning = ref(false);
+const nonUrlSourceWarning = ref(false);
+const noSource = ref(false);
+const sources = ref<string[]>([""]);
+
+const reason = ref("");
+const submittedReason = ref<string | undefined>();
+const uploadAsPending = ref(false);
+
+const showErrors = ref(false);
+const submitting = ref(false);
+const errorMessage = ref<string | undefined>();
+
+// Not reactive: read only by the unload guard and submit.
+let allowNavigate = false;
+let postId: string | null = null;
+
+function unloadHandler () {
+  if (allowNavigate || (uploadValue.value === "" && reason.value === "")) {
     return;
   }
   return true;
 }
 
-export default {
-  components: {
-    "autocompletable-input": autocompletableInput,
-    "file-preview": filePreview,
-    "file-input": fileInput,
-    "sources": sources,
-  },
-  data() {
-    return {
-      previewData: {
-        url: "",
-        isVideo: false,
-      },
-      sources: [""],
-      noSource: false,
-      postId: null,
-      uploadValue: "",
-      invalidUploadValue: false,
-      reason: "",
-      errorMessage: undefined,
-      showErrors: false,
-      missingSourceWarning: false,
-      nonUrlSourceWarning: false,
-      submitting: false,
-      allowNavigate: false,
-      submittedReason: undefined,
-      canApprove: CurrentUser.can.approvePosts,
-      uploadAsPending: false,
-    };
-  },
-  mounted() {
-    this.unloadHandler = unloadWarning.bind(this);
-    window.onbeforeunload = this.unloadHandler;
+onMounted(() => {
+  window.onbeforeunload = unloadHandler;
 
-    const params = new URLSearchParams(window.location.search);
-    this.postId = params.get("post_id");
+  const params = new URLSearchParams(window.location.search);
+  postId = params.get("post_id");
 
-    if (params.has("additional_source"))
-      this.sources = [params.get("additional_source")];
+  if (params.has("additional_source"))
+    sources.value = [params.get("additional_source")!];
 
-    if (params.has("reason"))
-      this.reason = params.get("reason");
-  },
-  beforeUnmount() {
-    // Release the unload guard, but only if it's still ours.
-    if (window.onbeforeunload === this.unloadHandler)
-      window.onbeforeunload = null;
-  },
-  computed: {
-    noUpload() {
-      // Empty string = nothing provided; a URL string or a File is truthy.
-      return !this.uploadValue;
-    },
-    preventUpload() {
-      return this.missingSourceWarning || this.nonUrlSourceWarning || this.invalidUploadValue || this.noUpload;
-    }
-  },
-  methods: {
-    onFileChange({ value, preview, invalid }) {
-      this.uploadValue = value;
-      this.previewData = preview;
-      this.invalidUploadValue = invalid;
-    },
-    async submit() {
-      this.showErrors = true;
-      this.errorMessage = undefined;
-      if (this.preventUpload || this.submitting) {
-        return;
-      }
-      this.submitting = true;
-      const formData = new FormData();
-      if (typeof this.uploadValue === "string") {
-        formData.append("post_replacement[replacement_url]", this.uploadValue);
-      } else {
-        formData.append("post_replacement[replacement_file]", this.uploadValue);
-      }
-      formData.append("post_replacement[source]", this.noSource ? "" : this.sources[0]);
-      formData.append("post_replacement[reason]", this.reason);
-      formData.append("post_replacement[as_pending]", this.uploadAsPending);
+  if (params.has("reason"))
+    reason.value = params.get("reason")!;
+});
 
-      const url = this.postId ? `/post_replacements.json?post_id=${this.postId}` : "/post_replacements.json";
-      const outcome = await submitUploadForm(url, formData);
+onBeforeUnmount(() => {
+  // Release the unload guard, but only if it's still ours.
+  if (window.onbeforeunload === unloadHandler)
+    window.onbeforeunload = null;
+});
 
-      if (outcome.kind === "success") {
-        // Only a successful submission earns the reason a datalist entry.
-        this.submittedReason = this.reason;
-        this.allowNavigate = true;
-        ToastManager.notice("Replacement submitted successfully.");
-        location.assign(outcome.body.location);
-        return;
-      }
+// Empty string = nothing provided; a URL string or a File is truthy.
+const noUpload = computed(() => !uploadValue.value);
+const preventUpload = computed(() =>
+  missingSourceWarning.value || nonUrlSourceWarning.value || invalidUploadValue.value || noUpload.value);
 
-      this.submitting = false;
-      if (outcome.kind === "blocked" || outcome.kind === "failed") {
-        this.errorMessage = outcome.message;
-        return;
-      }
-      this.errorMessage = outcome.json.reason || outcome.json.message;
-    }
+function onFileChange ({ value, preview, invalid }: UploadChange) {
+  uploadValue.value = value;
+  previewData.value = preview;
+  invalidUploadValue.value = invalid;
+}
+
+async function submit () {
+  showErrors.value = true;
+  errorMessage.value = undefined;
+  if (preventUpload.value || submitting.value) {
+    return;
   }
-};
+  submitting.value = true;
+  const formData = new FormData();
+  if (typeof uploadValue.value === "string") {
+    formData.append("post_replacement[replacement_url]", uploadValue.value);
+  } else {
+    formData.append("post_replacement[replacement_file]", uploadValue.value);
+  }
+  formData.append("post_replacement[source]", noSource.value ? "" : sources.value[0]);
+  formData.append("post_replacement[reason]", reason.value);
+  formData.append("post_replacement[as_pending]", String(uploadAsPending.value));
+
+  const url = postId ? `/post_replacements.json?post_id=${postId}` : "/post_replacements.json";
+  const outcome = await submitUploadForm(url, formData);
+
+  if (outcome.kind === "success") {
+    // Only a successful submission earns the reason a datalist entry.
+    submittedReason.value = reason.value;
+    allowNavigate = true;
+    ToastManager.notice("Replacement submitted successfully.");
+    location.assign(outcome.body.location);
+    return;
+  }
+
+  submitting.value = false;
+  if (outcome.kind === "blocked" || outcome.kind === "failed") {
+    errorMessage.value = outcome.message;
+    return;
+  }
+  errorMessage.value = outcome.json.reason || outcome.json.message;
+}
 </script>

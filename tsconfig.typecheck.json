@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  // Scoped type-check for the migrated Vue/TS surface. Whole directories are
+  // globbed only where every file is already TS / `<script setup lang="ts">`;
+  // files elsewhere stay explicit until their directory is fully migrated.
+  "include": [
+    "app/javascript/src/js/jquery-shims.d.ts",
+    "app/javascript/src/js/components/autocompletable_input.vue",
+    "app/javascript/src/js/components/tags/**/*",
+    "app/javascript/src/js/components/uploads/**/*",
+    "app/javascript/src/js/pages/uploads/new/**/*",
+    "app/javascript/src/js/pages/post_replacements/new/**/*"
+  ]
+}

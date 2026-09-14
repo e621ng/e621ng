@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 
 vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete: vi.fn() } }));
-vi.mock("@/components/DTextFormatter.ts", () => ({ default: vi.fn() }));
+vi.mock("@/components/DTextFormatter", () => ({ default: vi.fn() }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
 import { afterEach, describe, expect, it } from "vitest";
@@ -26,9 +26,25 @@ describe("uploads/uploader — query-param import", () => {
     // Route-by-value: checkbox-owned tags flip their checkbox on...
     expect(checkActive(wrapper, "Male")).toBe(true);
     expect(checkActive(wrapper, "Solo")).toBe(true);
-    // ...and every imported tag still ends up in the assembled tag string.
+    // ...and every imported tag ends up in the assembled tag string exactly once.
     const tags = tagsOf(wrapper).split(" ");
     expect(tags).toEqual(expect.arrayContaining(["male", "solo", "standing"]));
+    // Owned tags route ONLY to their checkbox — not also into Other Tags (B1).
+    expect(tags).toHaveLength(new Set(tags).size);
+    expect(value(wrapper, "#post_tags")).not.toContain("male");
+    expect(value(wrapper, "#post_tags")).not.toContain("solo");
+    expect(value(wrapper, "#post_tags")).toContain("standing");
+  });
+
+  it("does not duplicate an owned tag arriving via a role param (B1)", async () => {
+    const { wrapper } = await mountUploader({ search: "?tags-character=male+pikachu" });
+    // `male` is owned by the characters checkbox → flips it, and is NOT also
+    // written into the character field; `pikachu` (unowned) lands in the field.
+    expect(checkActive(wrapper, "Male")).toBe(true);
+    expect(value(wrapper, "#post_character")).toContain("pikachu");
+    expect(value(wrapper, "#post_character")).not.toContain("male");
+    const tags = tagsOf(wrapper).split(" ");
+    expect(tags.filter((t) => t === "male")).toHaveLength(1);
   });
 
   it("folds a checkbox-owned tag into Other Tags in compact mode (no checkboxes exist)", async () => {

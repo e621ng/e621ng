@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { jsonResponse } from "../../helpers";
-import TagPreview from "@/pages/uploads/new/tag_preview.vue";
+import TagPreview from "@/components/tags/tag_preview.vue";
 
 const wrappers: VueWrapper[] = [];
 
