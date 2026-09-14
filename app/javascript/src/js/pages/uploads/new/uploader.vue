@@ -171,7 +171,7 @@
       </div>
       <div class="flex-grid border-bottom over-me">
         <related-tags
-          v-if="relatedTags.length"
+          v-if="relatedTags.length || loadingRelated"
           :tags="tagsArray"
           :related="relatedTags"
           :loading="loadingRelated"
