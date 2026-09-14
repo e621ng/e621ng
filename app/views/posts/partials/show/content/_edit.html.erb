@@ -25,7 +25,10 @@
     <%# The header (label + tag counter) is rendered by the Vue editor. %>
     <%# data-tags feeds the Vue editor its initial value; newlines in the
         attribute survive HTML5 parsing, preserving the category grouping. %>
-    <div id="tag-string-editor" class="pending" data-tags="<%= post.presenter.categorized_tag_list_text %> ">Loading...</div>
+    <div id="tag-string-editor" class="pending" data-tags="<%= post.presenter.categorized_tag_list_text %> ">
+      <label for="post_tag_string">Tags</label>
+      <textarea disabled>Loading...</textarea>
+    </div>
 
     <%= f.input :locked_tags, label: "Locked Tags", autocomplete: "tag-edit", input_html: { value: post.locked_tags || "", spellcheck: false, size: "60x2", disabled: !CurrentUser.is_admin? } %>
   </div>
