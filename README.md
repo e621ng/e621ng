@@ -26,7 +26,7 @@
  * Latest version of Docker ([download](https://docs.docker.com/get-docker)).
  * Latest version of Docker Compose ([download](https://docs.docker.com/compose/install))
  * Git ([download](https://git-scm.com/downloads))
-
+ 
  If you are on Windows Docker Compose is already included, you do not need to install it yourself.
  If you are on Linux/MacOS you can probably use your package manager.
 
@@ -41,7 +41,7 @@
     git config core.fileMode false
     cp -ru hooks/ .git
     ```
-    This will resolve permission issues, and set up a hook that will reset file permissions to what they are supposed to be in the future.
+    This will resolve permission issues, and set up a hook that will reset file permissions to what they are supposed to be in the future.  
     If you are not using WSL, this is likely not a problem for you.
 1. Run the following commands:
     ```
@@ -54,7 +54,7 @@
     ```
     docker exec -it e621ng-e621-1 /app/bin/populate
     ```
-    The command can be run multiple times to generate more content.
+    The command can be run multiple times to generate more content.  
     \
     [Environmental variables](/db/populate.rb#L9-L22) are available to customize what kind of content is generated.
 
@@ -74,7 +74,7 @@ If you are sure that you want to do this, follow these steps.
 2. Rebuild the container
    1. `cd ~/e621ng`
    2. `docker compose build --no-cache`
-3. Reset the Gemfile.lock: `git checkout HEAD -- Gemfile.lock`
+3. Reset the Gemfile.lock: `git checkout HEAD -- Gemfile.lock`  
   This is not required, but it will prevent you from accidentally committing bad changes.
 4. Set `LOCAL_DTEXT=true` in the `.env` file.
 
@@ -104,7 +104,7 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 
 #### TrueNAS / Local Server Installation
 
-If you decide to deploy this docker image to an external / local server, you do need to remember to change the DANBOORU_HOST variable in the docker-compose.yml file to the IP of your server. Otherwise, you will not be able to access it, or the image links will be broken.
+If you decide to deploy this docker image to an external / local server, you do need to remember to change the DANBOORU_HOST variable in the docker-compose.yml file to the IP of your server. Otherwise, you will not be able to access it, or the image links will be broken. 
 
 Specifically for TrueNAS/NAS boxes users: you need to use the shell itself to set the repo up, you can then manage the images/variable/config with Portainer/Dockge after it's set up.
 
