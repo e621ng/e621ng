@@ -5,37 +5,32 @@
   </datalist>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
 import LStorage from "@/utility/storage/Local";
-export default {
-  props: ["listId", "addToList", "modelValue"],
-  computed: {
-    value: {
-      get() {
-        return this.modelValue;
-      },
-      set(value) {
-        this.$emit("update:modelValue", value);
-      }
-    }
-  },
-  data() {
-    return {
-      entries: this.currentEntries(),
-    }
-  },
-  methods: {
-    currentEntries() {
-      return LStorage.Raw.getObject(`autocomplete-${this.listId}`) || [];
-    },
-  },
-  watch: {
-    addToList(value) {
-      if (!value || !value.trim()) return;
-      const maxEntries = 50;
-      const entries = new Set([value.trim(), ...this.currentEntries()]);
-      LStorage.Raw.putObject(`autocomplete-${this.listId}`, [...entries].slice(0, maxEntries));
-    }
-  },
+
+const props = defineProps<{
+  listId: string;
+  addToList?: string;
+  modelValue?: string;
+}>();
+const emit = defineEmits<{ "update:modelValue": [value: string] }>();
+
+const value = computed({
+  get: () => props.modelValue,
+  set: (newValue: string) => emit("update:modelValue", newValue),
+});
+
+function currentEntries (): string[] {
+  return (LStorage.Raw.getObject(`autocomplete-${props.listId}`) as string[]) || [];
 }
+
+const entries = ref<string[]>(currentEntries());
+
+watch(() => props.addToList, (newValue) => {
+  if (!newValue || !newValue.trim()) return;
+  const maxEntries = 50;
+  const updated = new Set([newValue.trim(), ...currentEntries()]);
+  LStorage.Raw.putObject(`autocomplete-${props.listId}`, [...updated].slice(0, maxEntries));
+});
 </script>

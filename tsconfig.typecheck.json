@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "include": [
     "app/javascript/src/js/jquery-shims.d.ts",
+    "app/javascript/src/js/components/autocompletable_input.vue",
     "app/javascript/src/js/components/tags/types.ts",
     "app/javascript/src/js/components/tags/tag_field.ts",
     "app/javascript/src/js/components/tags/tag_link.vue",
@@ -14,6 +15,8 @@
     "app/javascript/src/js/components/uploads/file_preview.vue",
     "app/javascript/src/js/components/uploads/file_input.vue",
     "app/javascript/src/js/components/uploads/sources.vue",
+    "app/javascript/src/js/pages/post_replacements/new/replacement_uploader.vue",
+    "app/javascript/src/js/pages/post_replacements/new/replacer.ts",
     "app/javascript/src/js/pages/uploads/new/parent_post_input.vue",
     "app/javascript/src/js/pages/uploads/new/artist_tag_input.vue",
     "app/javascript/src/js/pages/uploads/new/uploader.vue",
