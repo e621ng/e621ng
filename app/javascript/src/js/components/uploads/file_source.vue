@@ -4,7 +4,7 @@
       type="text"
       size="50"
       placeholder="Ex: https://example.com/artist/post/12345"
-      v-model="realValue"
+      v-model="model"
       @keyup.enter="fadd"
       @keyup.up="focusPrev"
       @keyup.down="focusNext"
@@ -14,36 +14,19 @@
   </div>
 </template>
 
-<script>
-  export default {
-    props: ['modelValue', 'index'],
-    data() {
-      return {
-        backendValue: this.modelValue
-      };
-    },
-    computed: {
-      'realValue': {
-        get: function () {
-          return this.backendValue;
-        },
-        set: function (v) {
-          this.backendValue = v;
-          this.$emit('update:modelValue', v);
-        }
-      }
-    },
-    methods: {
-      fadd() { this.$emit("fadd") },
-      remove() { this.$emit("delete"); },
-      paste($event) { this.$emit("madd", $event); },
-      focusNext() { this.$emit("navigate", this.index + 1); },
-      focusPrev() { this.$emit("navigate", this.index - 1); },
-    },
-    watch: {
-      modelValue(v) {
-        this.backendValue = v;
-      }
-    }
-  }
+<script setup lang="ts">
+  const model = defineModel<string>();
+  const props = defineProps<{ index: number }>();
+  const emit = defineEmits<{
+    fadd: [];
+    delete: [];
+    madd: [event: ClipboardEvent];
+    navigate: [index: number];
+  }>();
+
+  function fadd() { emit("fadd"); }
+  function remove() { emit("delete"); }
+  function paste($event: ClipboardEvent) { emit("madd", $event); }
+  function focusNext() { emit("navigate", props.index + 1); }
+  function focusPrev() { emit("navigate", props.index - 1); }
 </script>

@@ -21,56 +21,41 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
+import type { PreviewData } from "./types";
+
 const thumbNone = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
-export default {
-  props: {
-    classes: String,
-    data: {
-      validator: function(obj) {
-        return typeof obj.isVideo === "boolean" && typeof obj.url === "string";
-      }
-    },
-  },
-  data() {
-    return {
-      height: 0,
-      width: 0,
-      overDims: false,
-      failed: false,
-    }
-  },
-  computed: {
-    previewDimensions() {
-      if (this.width > 1 && this.height > 1)
-        return this.width + "×" + this.height;
-      return "";
-    },
-    finalPreviewUrl() {
-      return this.data.url === "" ? thumbNone : this.data.url;
-    },
-  },
-  watch: {
-    data: function() {
-      this.resetFilePreview();
-    }
-  },
-  methods: {
-   updateDimensions(e) {
-      const target = e.target;
-      this.height = target.naturalHeight || target.videoHeight;
-      this.width = target.naturalWidth || target.videoWidth;
-      this.overDims = (this.height > 15000 || this.width > 15000);
-    },
-    resetFilePreview() {
-      this.overDims = false;
-      this.width = 0;
-      this.height = 0;
-      this.failed = false;
-    },
-    previewFailed() {
-      this.failed = true;
-    },
-  }
-};
+
+const props = defineProps<{ classes?: string; data: PreviewData }>();
+
+const height = ref(0);
+const width = ref(0);
+const overDims = ref(false);
+const failed = ref(false);
+
+const previewDimensions = computed(() => {
+  if (width.value > 1 && height.value > 1)
+    return width.value + "×" + height.value;
+  return "";
+});
+const finalPreviewUrl = computed(() => props.data.url === "" ? thumbNone : props.data.url);
+
+watch(() => props.data, () => resetFilePreview());
+
+function updateDimensions(e: Event) {
+  const target = e.target as HTMLImageElement & HTMLVideoElement;
+  height.value = target.naturalHeight || target.videoHeight;
+  width.value = target.naturalWidth || target.videoWidth;
+  overDims.value = (height.value > 15000 || width.value > 15000);
+}
+function resetFilePreview() {
+  overDims.value = false;
+  width.value = 0;
+  height.value = 0;
+  failed.value = false;
+}
+function previewFailed() {
+  failed.value = true;
+}
 </script>
