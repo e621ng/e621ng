@@ -10,7 +10,7 @@ class PostVersionsController < ApplicationController
     PostVersion.preload_tag_categories!(@post_versions)
     if CurrentUser.is_staff?
       ids = @post_versions&.map(&:id)
-      @latest = { params: request.query_parameters.merge(page: "b#{ids[0] + 1}") } if ids.present?
+      @latest = { params: request.query_parameters.merge("page" => "b#{ids[0] + 1}") } if ids.present?
     end
     respond_with(@post_versions)
   end
