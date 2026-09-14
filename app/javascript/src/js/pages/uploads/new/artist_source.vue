@@ -11,7 +11,7 @@
 
 <script>
   import artistTagInput from './artist_tag_input.vue';
-  import * as TagField from './tag_field.js';
+  import * as TagField from '@/components/tags/tag_field.js';
   import UploadData from "@/models/UploadData";
 
   // The artist field as a self-registering tag source. Wraps the (untouched)

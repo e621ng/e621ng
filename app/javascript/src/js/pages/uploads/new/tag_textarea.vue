@@ -4,7 +4,7 @@
 </template>
 
 <script>
-  import * as TagField from './tag_field.js';
+  import * as TagField from '@/components/tags/tag_field.js';
 
   // A role-tagged free-text tag source (character / species / content). Registers
   // with the coordinator; contributes its tokens and accepts role-routed imports.

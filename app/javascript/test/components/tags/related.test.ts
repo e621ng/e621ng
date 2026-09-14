@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { mount, VueWrapper } from "@vue/test-utils";
-import Related from "@/pages/uploads/new/related.vue";
+import Related from "@/components/tags/related.vue";
 
 const wrappers: VueWrapper[] = [];
 afterEach(() => {
