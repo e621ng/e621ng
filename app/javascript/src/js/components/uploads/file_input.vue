@@ -95,6 +95,7 @@ const fileTooLarge = ref(false);
 const exceededFileSize = ref(0);
 const maxFileSize = Settings.Posts.max_file_size;
 const maxFileSizeMap = Settings.Posts.max_file_sizes;
+const videoExtensions = Settings.Posts.video_extensions;
 const disableFileUpload = ref(false);
 const disableURLUpload = ref(false);
 // Retained so `change` can carry the full current selection each time.
@@ -206,8 +207,9 @@ function updatePreviewURL() {
   }
   whitelist.oldDomain = domain;
   if(/^(https?\:\/\/|www).*?$/.test(uploadURL.value)) {
-    const isVideo = /^(https?\:\/\/|www).*?\.(webm)$/.test(uploadURL.value);
-    previewChanged(uploadURL.value, isVideo);
+    // Trailing extension, tolerating a ?query / #hash suffix.
+    const ext = (uploadURL.value.toLowerCase().match(/\.([a-z0-9]+)(?:[?#].*)?$/) || [])[1] || "";
+    previewChanged(uploadURL.value, videoExtensions.includes(ext));
   } else {
     setEmptyThumb();
   }
@@ -230,7 +232,7 @@ function updatePreviewFile() {
   uploadValueChanged(file);
   previewChanged(
     objectUrl,
-    ["video/webm", "video/mp4"].includes(file.type),
+    videoExtensions.some((ext) => file.type === "video/" + ext),
   );
 }
 function uploadValueChanged(value: string | File) {

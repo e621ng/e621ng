@@ -15,6 +15,8 @@ module FileMethods
     "flash" => "swf",
   }.freeze
 
+  VIDEO_FILE_TYPES = %w[webm mp4].freeze
+
   def is_of_type?(type)
     file_ext == FileMethods::FILE_TYPE[type]
   end
@@ -52,7 +54,7 @@ module FileMethods
   end
 
   def is_video?
-    is_webm? || is_mp4?
+    VIDEO_FILE_TYPES.include?(file_ext)
   end
 
   # Returns whether the file at the given path is animated, dispatching to the
