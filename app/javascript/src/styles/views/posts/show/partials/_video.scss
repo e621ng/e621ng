@@ -1,0 +1,43 @@
+.video-player {
+	media-container {
+	  position: relative;
+	  display: block;
+
+		video {
+			width: 100%;
+		}
+	}
+
+	.media-controls {
+	  position: absolute;
+	  inset: 0;
+	  display: flex;
+	  align-items: flex-end;
+	  pointer-events: none;
+	}
+
+	.controls-backdrop {
+	  position: absolute;
+	  inset: 0;
+	  pointer-events: none;
+	}
+
+	.controls-group {
+	  display: flex;
+	  align-items: center;
+	  justify-content: space-between;
+	  width: 100%;
+	}
+
+	.play-button .pause-icon {
+	  display: none;
+	}
+
+	.play-button:defined:not([data-paused]) .play-icon {
+	  display: none;
+	}
+
+	.play-button:defined:not([data-paused]) .pause-icon {
+	  display: inline-flex;
+	}
+}
