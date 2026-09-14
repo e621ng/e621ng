@@ -265,7 +265,8 @@
 <script setup lang="ts">
   import { ref, reactive, computed, provide, onMounted, onBeforeUnmount, markRaw, type Ref } from "vue";
   import { submitUploadForm } from "@/utility/UploadSubmission";
-  import { fetchRelatedTags, selectedText, type RelatedTagGroup } from "@/utility/RelatedTags";
+  import { fetchRelatedTags, selectedText } from "@/components/tags/related_tags";
+  import type { RelatedTagGroup } from "@/components/tags/types";
   import ToastManager from "@/utility/Toast";
   import SourcesInput from '@/components/uploads/sources.vue';
   import CheckboxSource from './checkbox_source.vue';

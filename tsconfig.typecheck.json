@@ -9,6 +9,8 @@
     "app/javascript/src/js/components/tags/**/*",
     "app/javascript/src/js/components/uploads/**/*",
     "app/javascript/src/js/pages/uploads/new/**/*",
-    "app/javascript/src/js/pages/post_replacements/new/**/*"
+    "app/javascript/src/js/pages/post_replacements/new/**/*",
+    "app/javascript/src/js/pages/posts/show/tag_editor.vue",
+    "app/javascript/src/js/pages/posts/show/TagEditor.ts"
   ]
 }
