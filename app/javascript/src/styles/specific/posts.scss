@@ -205,7 +205,7 @@ div#c-posts {
         min-height: 5rem;
         box-sizing: border-box;
       }
-      div#tag-string-editor.pending {
+      div#tag-string-editor.pending textarea {
         min-height: 5rem;
         background: themed("color-text-muted");
         border-radius: 2px;

@@ -140,6 +140,8 @@
               Outside information or other images should not be used when deciding what tags are used.
             </a>
           </div>
+          <br />
+          <tag-counter :tags="tags" />
         </div>
         <div class="col2">
           <file-preview classes="box-section in-editor" :data="previewData"></file-preview>
@@ -270,6 +272,7 @@
   import TagTextarea from './tag_textarea.vue';
   import RelatedTags from '@/components/tags/related.vue';
   import TagPreview from '@/components/tags/tag_preview.vue';
+  import TagCounter from '@/components/tags/tag_counter.vue';
   import FilePreview from '@/components/uploads/file_preview.vue';
   import FileInput from '@/components/uploads/file_input.vue';
   import ParentPostInput from './parent_post_input.vue';
@@ -554,7 +557,7 @@
       .join(' ').replace(/,/g, ' ').trim().replace(/ +/g, ' ');
   });
   const tagsArray = computed(() => tags.value.toLowerCase().split(' '));
-  const tagCount = computed(() => tags.value.split(' ').filter(x => x).length);
+  const tagCount = computed(() => new Set(TagField.splitTags(tags.value)).size);
   const notEnoughTags = computed(() => tagCount.value < 4);
   const invalidRating = computed(() => !rating.value);
   // Empty string = nothing provided; a URL string or a File is truthy.

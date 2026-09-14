@@ -27,25 +27,30 @@ div#c-tags {
       grid-column: 1;
     }
 
-    .options {
+    // posts#show header positioning; the counter's own look is in .tag-counter below.
+    .tag-counter {
       grid-column: 2;
       justify-self: end;
-
-      .count {
-        text-decoration: italic;
-        margin-left: 0.25em;
-        padding-bottom: 0.2em;
-      }
-
-      .face {
-        height: 1em;
-        width: 1em;
-        margin: -0.125em;
-
-        &.face-frown { color: palette("text-red"); }
-        &.face-meh { color: palette("text-yellow"); }
-        &.face-smile { color: palette("text-green"); }
-      }
     }
+  }
+}
+
+// Component-intrinsic styling for tag_counter.vue — kept out of any page scope so
+// it applies wherever <tag-counter> is used (posts#show, uploads#new).
+.tag-counter {
+  .count {
+    text-decoration: italic;
+    margin-left: 0.25em;
+    padding-bottom: 0.2em;
+  }
+
+  .face {
+    height: 1em;
+    width: 1em;
+    margin: -0.125em;
+
+    &.face-frown { color: palette("text-red"); }
+    &.face-meh { color: palette("text-yellow"); }
+    &.face-smile { color: palette("text-green"); }
   }
 }

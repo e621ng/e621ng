@@ -44,6 +44,16 @@ describe("uploads/uploader — validation guards", () => {
     expect(tagBox()?.isVisible() ?? false).toBe(false);
   });
 
+  it("counts unique tags for the requirement (four of the same tag is not enough)", async () => {
+    const { wrapper } = await mountUploader();
+    await clickSubmit(wrapper);
+    const tagBox = () => wrapper.findAll(".box-section.background-red").find((b) => b.text().includes("more tags"));
+
+    await wrapper.find("#post_tags").setValue("a a a a");
+    expect(tagBox()!.isVisible()).toBe(true);
+    expect(tagBox()!.text()).toContain("3"); // 4 − 1 unique
+  });
+
   it("requires a rating", async () => {
     const { wrapper } = await mountUploader();
     await clickSubmit(wrapper);

@@ -139,4 +139,22 @@ describe("uploads/uploader — tag assembly", () => {
       expect(tagsOf(wrapper)).toBe("solo male");
     });
   });
+
+  describe("tag counter", () => {
+    const countText = (w: VueWrapper) => w.find(".tag-counter .count").text();
+
+    it("reflects the aggregate count across sources", async () => {
+      const { wrapper } = await mountUploader();
+      await wrapper.find("#post_tags").setValue("a b");
+      expect(countText(wrapper)).toBe("2 tags");
+      await wrapper.find("#post_character").setValue("c");
+      expect(countText(wrapper)).toBe("3 tags");
+    });
+
+    it("counts unique tags only (no dupe inflation)", async () => {
+      const { wrapper } = await mountUploader();
+      await wrapper.find("#post_tags").setValue("a a a a");
+      expect(countText(wrapper)).toBe("1 tag");
+    });
+  });
 });
