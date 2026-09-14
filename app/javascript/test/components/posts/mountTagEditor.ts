@@ -127,12 +127,6 @@ export async function mountTagEditor (opts: MountTagEditorOptions = {}): Promise
   });
   wrappers.push(wrapper);
 
-  // Settle the 20ms focus/auto-height timer from mounted() while the component
-  // is still mounted — otherwise it fires after an early unmount and its
-  // $refs.otherTags dereference throws into the unhandled-error channel. Doing
-  // it here also makes focus assertable immediately.
-  await new Promise((r) => setTimeout(r, 25));
-
   const restore = () => {
     wrapper.unmount();
   };

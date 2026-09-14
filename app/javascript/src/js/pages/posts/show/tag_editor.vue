@@ -76,6 +76,7 @@ export default {
     setTimeout(() => {
       // Work around that browsers seem to take a few frames to acknowledge that the element is there before it can be focused.
       const el = this.$refs.otherTags;
+      if (!el) return; // unmounted before the timer fired
       el.style.height = el.scrollHeight + "px";
       el.focus();
     }, 20);
