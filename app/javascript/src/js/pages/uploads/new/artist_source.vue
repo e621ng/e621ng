@@ -19,7 +19,7 @@
   // artist_tag_input and renders the linked-artist buttons declaratively.
   import { ref, inject, onMounted, onBeforeUnmount } from "vue";
   import artistTagInput from "./artist_tag_input.vue";
-  import * as TagField from "@/components/tags/tag_field.js";
+  import * as TagField from "@/components/tags/tag_field";
   import UploadData from "@/models/UploadData";
   import { tagRegistryKey, type TagSource } from "./registry";
 

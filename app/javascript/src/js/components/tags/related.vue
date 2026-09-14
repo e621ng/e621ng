@@ -12,7 +12,7 @@
 </template>
 
 <script>
-  import { tagSorter } from './tag_field.js';
+  import { tagSorter } from './tag_field';
 
   export default {
     props: ['tags', 'related', 'loading', 'uploadedTags', 'recentTags'],

@@ -44,7 +44,7 @@
 import relatedTags from "@/components/tags/related.vue";
 import tagPreview from "@/components/tags/tag_preview.vue";
 import tagCounter from "@/components/tags/tag_counter.vue";
-import { addTagGrouped, removeTagGrouped, splitTags } from "@/components/tags/tag_field.js";
+import { addTagGrouped, removeTagGrouped, splitTags } from "@/components/tags/tag_field";
 import Autocomplete from "@/components/autocomplete";
 import CurrentUser from "@/models/CurrentUser";
 import TagCategories from "@/utility/TagCategories";

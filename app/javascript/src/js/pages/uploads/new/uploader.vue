@@ -274,7 +274,7 @@
   import fileInput from '@/components/uploads/file_input.vue';
   import parentPostInput from './parent_post_input.vue';
   import artistSource from './artist_source.vue';
-  import * as TagField from '@/components/tags/tag_field.js';
+  import * as TagField from '@/components/tags/tag_field';
   import Autocomplete from "@/components/autocomplete";
   import DTextFormatter from "@/components/DTextFormatter.ts";
   import CurrentUser from "@/models/CurrentUser";
