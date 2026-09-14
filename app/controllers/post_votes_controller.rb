@@ -24,7 +24,7 @@ class PostVotesController < ApplicationController
 
     if CurrentUser.is_staff? && request.format.html?
       ids = @post_votes&.map(&:id)
-      @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
+      @latest = { params: request.query_parameters.merge(page: "b#{ids[0] + 1}") } if ids.present?
     end
 
     respond_with(@post_votes)

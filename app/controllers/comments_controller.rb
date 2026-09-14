@@ -132,7 +132,7 @@ class CommentsController < ApplicationController
 
     if CurrentUser.is_staff?
       ids = @comments&.map(&:id)
-      @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
+      @latest = { params: request.query_parameters.merge(page: "b#{ids[0] + 1}") } if ids.present?
     end
 
     respond_with(@comments) do |format|

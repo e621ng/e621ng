@@ -88,7 +88,8 @@ class PaginatorComponent < ViewComponent::Base
   end
 
   def nav_params_for(page)
-    query_params = params.except(:id).merge(page: page).permit!
-    url_for(query_params)
+    query_params = params.except(:controller, :action, :id).merge(page: page).permit!
+    # Nested under :params so reserved url_for keys (host, protocol, ...) can't be injected from the query string
+    url_for(params: query_params)
   end
 end
