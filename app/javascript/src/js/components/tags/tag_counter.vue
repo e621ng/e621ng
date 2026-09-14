@@ -18,32 +18,22 @@
   </span>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed } from "vue";
 import SVGIcon from "@/utility/SVGIcon";
 import { splitTags } from "./tag_field";
 
 // The tag counter (count + mood face) for a tag-string input, styled by
 // specific/tags.scss (.options / .face / .count).
-export default {
-  props: {
-    tags: { type: String, default: "" },
-  },
-  computed: {
-    // Unique raw tokens, no case folding — matches the retired Post.update_tag_count.
-    count() {
-      return new Set(splitTags(this.tags)).size;
-    },
-    countLabel() {
-      return this.count === 1 ? "1 tag" : this.count + " tags";
-    },
-    face() {
-      if (this.count < 15) return "frown";
-      if (this.count < 25) return "meh";
-      return "smile";
-    },
-    faceIcon() {
-      return SVGIcon.ICONS["face_" + this.face];
-    },
-  },
-};
+const props = withDefaults(defineProps<{ tags?: string }>(), { tags: "" });
+
+// Unique raw tokens, no case folding — matches the retired Post.update_tag_count.
+const count = computed(() => new Set(splitTags(props.tags)).size);
+const countLabel = computed(() => count.value === 1 ? "1 tag" : count.value + " tags");
+const face = computed(() => {
+  if (count.value < 15) return "frown";
+  if (count.value < 25) return "meh";
+  return "smile";
+});
+const faceIcon = computed(() => SVGIcon.ICONS["face_" + face.value]);
 </script>
