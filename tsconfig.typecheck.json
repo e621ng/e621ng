@@ -17,6 +17,7 @@
     "app/javascript/src/js/pages/uploads/new/parent_post_input.vue",
     "app/javascript/src/js/pages/uploads/new/artist_tag_input.vue",
     "app/javascript/src/js/pages/uploads/new/uploader.vue",
+    "app/javascript/src/js/pages/uploads/new/uploader.ts",
     "app/javascript/src/js/pages/uploads/new/checkbox.vue",
     "app/javascript/src/js/pages/uploads/new/registry.ts",
     "app/javascript/src/js/pages/uploads/new/checkbox_source.vue",
