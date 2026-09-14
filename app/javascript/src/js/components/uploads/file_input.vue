@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from "vue";
+import { ref, reactive, computed, watch, onBeforeUnmount } from "vue";
 import Settings from "@/utility/Settings";
 import HTTP from "@/utility/HTTP";
 import type { PreviewData, UploadChange } from "./types";
@@ -108,13 +108,26 @@ const directURLProblem = computed(() => directURLCheck(uploadURL.value));
 const badDirectURL = computed(() => !!directURLProblem.value);
 const invalidUploadValue = computed(() => badDirectURL.value || fileTooLarge.value);
 
+// Debounce the network/preview work (whitelist lookup + preview src) so typing a
+// URL doesn't fire a request per keystroke; the value/validity emit stays
+// immediate so submit-gating is never delayed. (Also the seam the future IQDB
+// URL dup-check will hang off of.)
+const URL_PREVIEW_DEBOUNCE = 300; // ms
+let urlPreviewTimer: ReturnType<typeof setTimeout> | undefined;
+
 watch(uploadURL, () => {
   fileTooLarge.value = false;
   uploadValueChanged(uploadURL.value);
-  updatePreviewURL();
-  if (uploadURL.value.length === 0)
+  clearTimeout(urlPreviewTimer);
+  if (uploadURL.value.length === 0) {
+    updatePreviewURL();   // immediate: clear whitelist warning + reset disableFileUpload
     setEmptyThumb();
+    return;
+  }
+  urlPreviewTimer = setTimeout(updatePreviewURL, URL_PREVIEW_DEBOUNCE);
 }, { immediate: true });
+
+onBeforeUnmount(() => clearTimeout(urlPreviewTimer));
 
 function fileDragover(event: DragEvent) {
   event.preventDefault();
