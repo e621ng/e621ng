@@ -32,8 +32,8 @@ module Staff
 
       note_body = "Cleared profile fields for #{@user.name}."
       if about || artinfo
-        note_body += "\n\n[section=About]\n#{about}[/section]" if about
-        note_body += "\n\n[section=Art Info]\n#{artinfo}[/section]" if artinfo
+        note_body += "\n\n[section=About]\n#{about}\n[/section]" if about
+        note_body += "\n\n[section=Art Info]\n#{artinfo}\n[/section]" if artinfo
       end
 
       StaffNote.create!(user_id: @user.id, body: note_body)
