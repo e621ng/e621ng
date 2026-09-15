@@ -207,20 +207,6 @@ RSpec.describe AppealsController do
         expect(appeal.reload.response).to eq("Approved, the flag was incorrect.")
       end
 
-      it "fails gracefully if the status is empty" do
-        patch appeal_path(appeal), params: { appeal: { response: "Still pending.", status: "" } }
-        expect(response).to have_http_status(:not_acceptable)
-        expect(appeal.reload.status).to eq("pending")
-        expect(appeal.reload.response).to eq("")
-      end
-
-      it "fails gracefully if the status is invalid" do
-        patch appeal_path(appeal), params: { appeal: { response: "Favourite animal?", status: "leopard" } }
-        expect(response).to have_http_status(:not_acceptable)
-        expect(appeal.reload.status).to eq("pending")
-        expect(appeal.reload.response).to eq("")
-      end
-
       context "when the appeal is already claimed by another janitor" do
         let(:other_janitor) { create(:janitor_user) }
 
@@ -244,6 +230,31 @@ RSpec.describe AppealsController do
         it "sets a flash notice about not sending update" do
           patch appeal_path(appeal), params: { appeal: { status: "approved", response: "Already handled.", send_update_dmail: "1" } }
           expect(flash[:notice]).to eq("Not sending update, no changes")
+        end
+      end
+
+      context "when the updated appeal is not valid" do
+        before { appeal.update_columns(response: "Old response.", status: "pending") }
+
+        it "sets a flash notice if the response is empty" do
+          patch appeal_path(appeal), params: { appeal: { status: "approved", response: "", send_update_dmail: "1" } }
+          expect(flash[:notice]).to match(/Error:/)
+          expect(appeal.reload.status).to eq("pending")
+          expect(appeal.reload.response).to eq("Old response.")
+        end
+
+        it "sets a flash notice if the status is empty" do
+          patch appeal_path(appeal), params: { appeal: { response: "Still pending.", status: "" } }
+          expect(flash[:notice]).to match(/Error:/)
+          expect(appeal.reload.status).to eq("pending")
+          expect(appeal.reload.response).to eq("Old response.")
+        end
+
+        it "sets a flash notice if the status is invalid" do
+          patch appeal_path(appeal), params: { appeal: { response: "Favourite animal?", status: "leopard" } }
+          expect(flash[:notice]).to match(/Error:/)
+          expect(appeal.reload.status).to eq("pending")
+          expect(appeal.reload.response).to eq("Old response.")
         end
       end
     end
