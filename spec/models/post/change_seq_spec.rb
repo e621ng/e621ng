@@ -44,6 +44,10 @@ RSpec.describe Post do
         end
       end
 
+      it "found the trigger function" do
+        expect(Post.change_seq_tracked_columns).not_to be_empty
+      end
+
       Post.change_seq_tracked_columns.sort.each do |column|
         it "bumps change_seq when #{column} changes" do
           old_value = post.read_attribute(column)
