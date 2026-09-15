@@ -50,6 +50,10 @@ module MigrationHelpers
   # @param remove [Array<String, Symbol>] columns to drop from `columns`
   # @return [void]
   def update_change_seq(columns = nil, add: [], remove: [])
+    if columns.present? && (add.present? || remove.present?)
+      raise(ArgumentError, "columns cannot be provided alongside add: or remove:")
+    end
+
     if add.blank? && remove.blank?
       execute(update_change_seq_sql(columns, add: [], remove: []))
     else
