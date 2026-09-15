@@ -24,7 +24,9 @@
         No similar posts found.
       </div>
       <div class="similar-posts-more" v-if="hiddenCount > 0">
-        <a href="/iqdb_queries">{{ hiddenCount }} more on the full search page</a>
+        <a :href="`/iqdb_queries${typeof props.uploadValue === 'string' ? `?url=${encodeURIComponent(props.uploadValue)}` : ''}`">
+          {{ hiddenCount }} more on the full search page
+        </a>
       </div>
     </template>
   </div>
