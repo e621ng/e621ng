@@ -232,6 +232,7 @@ body[data-th-stickyheader="true"] nav.navigation {
   }
 }
 body.c-static.a-home[data-th-stickyheader="true"] nav.navigation {
+  // do not alter background on home page
   @include window-larger-than(50rem) {
     background: transparent;
   }
