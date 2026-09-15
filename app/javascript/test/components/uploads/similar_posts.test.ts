@@ -253,7 +253,8 @@ describe("uploads/similar_posts — rendering", () => {
     const { wrapper } = await withResponse(posts(1, 2, 3, 4, 5, 6, 7));
     expect(wrapper.findAll(".similar-posts-strip a")).toHaveLength(5);
     const more = wrapper.find(".similar-posts-more a");
-    expect(more.attributes("href")).toBe("/iqdb_queries");
+    // URL inputs pre-fill the standalone search page.
+    expect(more.attributes("href")).toBe(`/iqdb_queries?url=${encodeURIComponent("https://example.com/art.png")}`);
     expect(more.text()).toContain("2 more");
     expect(wrapper.find(".similar-posts-score").text()).toBe("90%");
   });

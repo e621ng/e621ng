@@ -8,6 +8,8 @@
  * try/catch.
  */
 
+import Settings from "@/utility/Settings";
+
 export async function downscaleImage (file: File, maxDim = 300): Promise<Blob> {
   try {
     const source = await decode(file);
@@ -21,6 +23,9 @@ export async function downscaleImage (file: File, maxDim = 300): Promise<Blob> {
       source.close();
       return file;
     }
+    // Flatten transparency onto the site background color, matching ERIS behavior.
+    ctx.fillStyle = "#" + Settings.Posts.default_bg_color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(source.image, 0, 0, canvas.width, canvas.height);
     source.close();
 

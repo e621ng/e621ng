@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setSiteData } from "../helpers";
 import { downscaleImage } from "@/utility/ImageDownscale";
+
+// Seed before the first Settings access (the singleton caches on first read).
+setSiteData("site-settings", { Posts: { default_bg_color: "152f56" } });
 
 // jsdom implements neither createImageBitmap nor canvas; both are stubbed.
 // What matters here is the contract: a JPEG blob on success, the ORIGINAL
@@ -10,9 +14,12 @@ const jpeg = new Blob(["jpeg"], { type: "image/jpeg" });
 
 const bitmap = { width: 1000, height: 500, close: vi.fn() };
 
+let ctx: { drawImage: ReturnType<typeof vi.fn>, fillRect: ReturnType<typeof vi.fn>, fillStyle: string };
+
 beforeEach(() => {
   (globalThis as any).createImageBitmap = vi.fn().mockResolvedValue(bitmap);
-  HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({ drawImage: vi.fn() }) as any;
+  ctx = { drawImage: vi.fn(), fillRect: vi.fn(), fillStyle: "" };
+  HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(ctx) as any;
   HTMLCanvasElement.prototype.toBlob = function (cb) { cb(jpeg); };
 });
 afterEach(() => {
@@ -24,6 +31,15 @@ describe("utility/ImageDownscale", () => {
   it("returns the encoded blob and closes the bitmap", async () => {
     expect(await downscaleImage(file)).toBe(jpeg);
     expect(bitmap.close).toHaveBeenCalled();
+  });
+
+  it("flattens transparency onto the site background before drawing", async () => {
+    await downscaleImage(file, 300);
+    // Matches the flatten the indexed previews got (Settings.Posts.default_bg_color).
+    expect(ctx.fillStyle).toBe("#152f56");
+    expect(ctx.fillRect).toHaveBeenCalledWith(0, 0, 300, 150);
+    // Background first, image on top.
+    expect(ctx.fillRect.mock.invocationCallOrder[0]).toBeLessThan(ctx.drawImage.mock.invocationCallOrder[0]);
   });
 
   // Captures the canvas the helper creates, to assert its dimensions.
