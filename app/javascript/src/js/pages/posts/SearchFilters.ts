@@ -1,5 +1,8 @@
 import SVGIcon from "../../utility/SVGIcon";
-import SearchQuery, { ORDER_ASC, ORDER_CUSTOM, ORDER_DESC, ORDER_VALUES, RATINGS } from "./SearchQuery";
+import SearchQuery, {
+  MEDIA_ALL, MEDIA_LETTERS, ORDER_ASC, ORDER_CUSTOM, ORDER_DESC, ORDER_VALUES, RATINGS,
+  SOUND_BOTH, SOUND_NO_SOUND, SOUND_ONLY, SOUND_WARNING_ONLY,
+} from "./SearchQuery";
 
 const SORT_CUSTOM_ID = "advanced-search-sort-custom";
 
@@ -26,7 +29,11 @@ export default class SearchFilters {
   private $ischildToggle: JQuery<HTMLLabelElement>;
   private $isparentToggle: JQuery<HTMLLabelElement>;
   private $ratingCheckboxes: JQuery<HTMLInputElement>;
+  private $mediaCheckboxes: JQuery<HTMLInputElement>;
+  private $soundCheckboxes: JQuery<HTMLInputElement>;
   private ratingUpdateInProgress = false;
+  private mediaUpdateInProgress = false;
+  private soundUpdateInProgress = false;
 
   constructor (private $textarea: JQuery<HTMLTextAreaElement>, private $controls: JQuery<HTMLDivElement>) {
     this.$sortInputs = this.$controls.find<HTMLInputElement>("[name='advanced-search-sort']");
@@ -34,6 +41,8 @@ export default class SearchFilters {
     this.$ischildToggle = this.$controls.find<HTMLLabelElement>("[data-advanced-search=ischild]").first();
     this.$isparentToggle = this.$controls.find<HTMLLabelElement>("[data-advanced-search=isparent]").first();
     this.$ratingCheckboxes = this.$controls.find<HTMLInputElement>("[name='advanced-search-rating']");
+    this.$mediaCheckboxes = this.$controls.find<HTMLInputElement>("[name='advanced-search-media']");
+    this.$soundCheckboxes = this.$controls.find<HTMLInputElement>("[name='advanced-search-sound']");
 
     this.bindEvents();
     this.syncControls();
@@ -57,6 +66,8 @@ export default class SearchFilters {
     this.$controls.on("click", "[data-advanced-search=ischild]", (event) => this.updateIschild(event));
     this.$controls.on("click", "[data-advanced-search=isparent]", (event) => this.updateIsparent(event));
     this.$ratingCheckboxes.on("change", () => this.updateRatings());
+    this.$mediaCheckboxes.on("change", () => this.updateMediaTypes());
+    this.$soundCheckboxes.on("change", (event) => this.updateSound(event));
   }
 
   // Query - UI
@@ -68,6 +79,8 @@ export default class SearchFilters {
     if (this.$ischildToggle.length) this.setIschildState(q.ischild);
     if (this.$isparentToggle.length) this.setIsparentState(q.isparent);
     this.syncRatingControls(q.ratings);
+    this.syncMediaControls(q.media, q.mediaCustom);
+    this.syncSoundControls(q.sound);
   }
 
   private setSortValue (value: string, direction: string): void {
@@ -115,6 +128,46 @@ export default class SearchFilters {
       const $rating = $(element);
       $rating.prop("checked", selected.includes($rating.val() as string));
     });
+  }
+
+  private syncMediaControls (media: string, isCustom: boolean): void {
+    if (!this.$mediaCheckboxes.length || this.mediaUpdateInProgress) return;
+    const hasOwnedSelection = media !== MEDIA_ALL;
+    const showIndeterminate = isCustom && !hasOwnedSelection;
+
+    this.$mediaCheckboxes.each((_index, element) => {
+      const $media = $(element);
+      $media.prop("indeterminate", showIndeterminate);
+      $media.prop("checked", !showIndeterminate && (!hasOwnedSelection || media.includes($media.val() as string)));
+    });
+    this.$mediaCheckboxes.first().closest(".ssc-body").toggleClass("ssc-media-custom", isCustom);
+  }
+
+  private soundCheckbox (value: string): JQuery<HTMLInputElement> {
+    return this.$soundCheckboxes.filter(`[value='${value}']`);
+  }
+
+  /**
+   * Sound warning is only ever shown for a sound-bearing state (Sound + Warning,
+   * Sound only, or Warning only) — collapsed otherwise. Hiding via the native
+   * `hidden` property (rather than a CSS class) keeps it out of layout entirely, so
+   * collapsing/expanding never reflows the sibling Media type column.
+   */
+  private syncSoundControls (sound: string): void {
+    if (!this.$soundCheckboxes.length || this.soundUpdateInProgress) return;
+
+    const noSound = sound === SOUND_NO_SOUND;
+    const hasSound = sound === SOUND_BOTH || sound === SOUND_ONLY;
+    const hasWarning = sound === SOUND_BOTH || sound === SOUND_WARNING_ONLY;
+    const expanded = hasSound || hasWarning;
+
+    this.soundCheckbox("no_sound").prop("checked", noSound);
+    this.soundCheckbox("sound").prop("checked", hasSound);
+
+    const $warning = this.soundCheckbox("sound_warning");
+    $warning.prop("checked", hasWarning);
+    $warning.prop("hidden", !expanded);
+    $warning.next("label").prop("hidden", !expanded);
   }
 
   // UI - query
@@ -181,6 +234,74 @@ export default class SearchFilters {
     } finally {
       this.ratingUpdateInProgress = false;
     }
+  }
+
+  private updateMediaTypes (): void {
+    const checked = this.$mediaCheckboxes
+      .filter(":checked")
+      .map((_index, element) => element.value)
+      .get()
+      .sort((a, b) => MEDIA_LETTERS.indexOf(a) - MEDIA_LETTERS.indexOf(b));
+
+    this.mediaUpdateInProgress = true;
+    let query: SearchQuery;
+    try {
+      query = this.query.withMediaTypes(checked);
+      this.query = query;
+    } finally {
+      this.mediaUpdateInProgress = false;
+    }
+
+    // Mirrors Rating: don't fight the user's own action. All four unchecked and all
+    // four checked both serialize to the same (empty) query, so a normal resync here
+    // would immediately re-check boxes the user just unchecked. Only skip the resync
+    // when the result is genuinely unrestricted (mediaCustom false) — if custom media
+    // content still remains, we still need to sync to that custom-only representation.
+    if (checked.length === 0 && !query.mediaCustom) {
+      this.$mediaCheckboxes.prop("indeterminate", false);
+      this.$mediaCheckboxes.first().closest(".ssc-body").removeClass("ssc-media-custom");
+      return;
+    }
+
+    this.syncMediaControls(query.media, query.mediaCustom);
+  }
+
+  /**
+   * Applies the mutual-exclusion / default-warning-on rules from a single change
+   * event before reading the final tri-state and writing the query:
+   * - checking No sound clears Sound and Sound warning;
+   * - checking Sound clears No sound, and defaults Sound warning on if it wasn't
+   *   already checked (Sound warning keeps its own state otherwise — e.g. checking
+   *   Sound from "Sound warning only" leaves Warning checked, landing on "both").
+   * Unchecking either Sound or Sound warning needs no forced side effect: reading
+   * the resulting tri-state as-is already reproduces every documented transition
+   * (see the interaction table in the Sound plan).
+   */
+  private updateSound (event: JQuery.ChangeEvent): void {
+    const target = event.target as HTMLInputElement;
+    const $noSound = this.soundCheckbox("no_sound");
+    const $sound = this.soundCheckbox("sound");
+    const $warning = this.soundCheckbox("sound_warning");
+
+    if (target === $noSound.get(0) && target.checked) {
+      $sound.prop("checked", false);
+      $warning.prop("checked", false);
+    } else if (target === $sound.get(0) && target.checked) {
+      $noSound.prop("checked", false);
+      if (!$warning.prop("checked")) $warning.prop("checked", true);
+    }
+
+    const noSound = $noSound.prop("checked");
+    const hasSound = $sound.prop("checked");
+    const hasWarning = $warning.prop("checked");
+
+    this.soundUpdateInProgress = true;
+    try {
+      this.query = this.query.withSound(noSound, hasSound, hasWarning);
+    } finally {
+      this.soundUpdateInProgress = false;
+    }
+    this.syncSoundControls(this.query.sound);
   }
 
   // DOM helpers
