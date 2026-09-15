@@ -171,7 +171,7 @@
 
 
 // Source List
-#uploader .upload-source-list {
+.upload-source-list {
   display: flex;
   flex-flow: column;
   gap: 0.25rem;
@@ -205,7 +205,7 @@
   }
 }
 
-#uploader .upload-source-more {
+.upload-source-more {
   display: flex;
   align-items: center;
 
