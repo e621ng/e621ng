@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class CommentVotesController < ApplicationController
+  include ConditionalSearchCount
+
   respond_to :json
   respond_to :html, only: [:index]
   before_action :member_only
@@ -10,10 +12,15 @@ class CommentVotesController < ApplicationController
   skip_before_action :api_check
 
   def index
+    # Only enable COUNT for searches that actually narrow results to avoid expensive queries
+    search_params_for_count = search_count_params(
+      narrowing: %i[id comment_id user_name user_id user_ip_addr],
+    )
+
     @comment_votes = CommentVote
                      .includes(:user, comment: [:creator])
                      .search(search_params)
-                     .paginate(params[:page], limit: 100)
+                     .paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
 
     if CurrentUser.is_staff? && request.format.html?
       ids = @comment_votes&.map(&:id)
