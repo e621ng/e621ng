@@ -4,7 +4,8 @@ module Sources
   module Strategies
     def self.all
       [
-        Strategies::PixivSlim
+        Strategies::PixivSlim,
+        Strategies::InkbunnySlim,
       ]
     end
 
