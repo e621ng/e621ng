@@ -6,7 +6,7 @@ module AiMethods
     "novelai", "nai", "stable diffusion", "sdxl", "automatic1111", "a1111",
     "comfyui", "invokeai", "midjourney", "dall·e", "dall-e", "openai",
     "bing image creator", "firefly", "adobe generative fill", "adobe firefly",
-    "leonardo", "playground",
+    "leonardo", "playground", "google generative ai", "synthid",
   ].freeze
 
   # Parameter/telltale tokens commonly embedded in PNG/JPEG comments or EXIF
@@ -36,6 +36,62 @@ module AiMethods
   AI_GENERATORS_REGEX = build_token_regex(AI_GENERATORS)
   SD_TOKENS_REGEX = build_token_regex(SD_TOKENS)
   C2PA_TOKENS_REGEX = build_token_regex(C2PA_TOKENS)
+
+  # IPTC digitalSourceType values that declare AI generation in a C2PA manifest
+  C2PA_AI_SOURCE_REGEX = /trainedalgorithmicmedia/i
+
+  C2PA_BLOB_LIMIT = 4.megabytes
+
+  # C2PA manifests live in containers libvips never exposes: a caBX chunk in
+  # PNG, APP11/JUMBF segments in JPEG. Read them straight off the file.
+  def self.raw_c2pa_blob(file_path, file_ext)
+    case file_ext
+    when "png" then png_c2pa_blob(file_path)
+    when "jpg", "jpeg" then jpeg_c2pa_blob(file_path)
+    else ""
+    end
+  rescue StandardError
+    ""
+  end
+
+  def self.png_c2pa_blob(file_path)
+    File.open(file_path, "rb") do |file|
+      return "" unless file.read(8) == "\x89PNG\r\n\x1a\n".b
+      blob = +""
+      while (header = file.read(8)) && header.bytesize == 8
+        length, type = header.unpack("Na4")
+        break if %w[IEND IDAT].include?(type)
+        if type == "caBX" && blob.bytesize + length <= C2PA_BLOB_LIMIT
+          blob << file.read(length).to_s
+          file.seek(4, IO::SEEK_CUR) # CRC
+        else
+          file.seek(length + 4, IO::SEEK_CUR)
+        end
+      end
+      blob
+    end
+  end
+
+  def self.jpeg_c2pa_blob(file_path)
+    File.open(file_path, "rb") do |file|
+      return "" unless file.read(2) == "\xFF\xD8".b
+      blob = +""
+      while (marker = file.read(2)) && marker.bytesize == 2
+        break unless marker.getbyte(0) == 0xFF
+        code = marker.getbyte(1)
+        break if [0xDA, 0xD9].include?(code) # SOS / EOI
+        length = file.read(2).to_s.unpack1("n").to_i - 2
+        break if length < 0
+        if code == 0xEB && blob.bytesize + length <= C2PA_BLOB_LIMIT # APP11
+          data = file.read(length).to_s
+          blob << data if data.start_with?("JP")
+        else
+          file.seek(length, IO::SEEK_CUR)
+        end
+      end
+      blob
+    end
+  end
 
   # Checks if the file at the specified path is AI-generated.
   # Uses metadata analysis to determine likelihood of AI generation.
@@ -73,9 +129,13 @@ module AiMethods
     png_text_blob = is_png ? fields.grep(/^png-comment-/).map { |k| fetch.call(k) }.join("\n") : ""
     jpeg_comment = is_jpeg ? [fetch.call("jpeg-comment"), fetch.call("jpeg-com")].compact_blank.join("\n") : ""
 
+    c2pa_text = AiMethods.raw_c2pa_blob(file_path, file_ext)
+                         .encode("ASCII", invalid: :replace, undef: :replace, replace: " ")
+                         .downcase
+
     combined_text = [
       png_text_blob, exif_data, exif_software, exif_image_desc,
-      exif_user_comment, xmp_data, jpeg_comment,
+      exif_user_comment, xmp_data, jpeg_comment, c2pa_text,
     ].join("\n").downcase
 
     # === Calculate score based on various heuristics === #
@@ -83,9 +143,15 @@ module AiMethods
     reasons = []
 
     # C2PA
-    if xmp_data.match?(C2PA_TOKENS_REGEX)
+    if xmp_data.match?(C2PA_TOKENS_REGEX) || c2pa_text.match?(C2PA_TOKENS_REGEX)
       score += 80
       reasons << "c2pa manifest present"
+    end
+
+    # Manifest explicitly declares an AI digitalSourceType
+    if c2pa_text.match?(C2PA_AI_SOURCE_REGEX)
+      score += 60
+      reasons << "c2pa declares ai source"
     end
 
     # Known generators
