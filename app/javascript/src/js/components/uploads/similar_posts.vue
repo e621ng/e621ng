@@ -16,7 +16,11 @@
           :href="`/posts/${match.post_id}`"
           target="_blank"
         >
-          <img :src="previewUrl(match)!" :alt="`Post #${match.post_id}`" />
+          <img v-if="previewUrl(match)" :src="previewUrl(match)!" :alt="`Post #${match.post_id}`" />
+          <span v-else class="similar-posts-placeholder">
+            <b>Post #{{ match.post_id }}</b>
+            <span>{{ match.post.flags?.deleted ? "Deleted" : "Not visible" }}</span>
+          </span>
           <span class="similar-posts-score">{{ Math.round(match.score) }}%</span>
         </a>
       </div>
@@ -59,6 +63,7 @@ interface IqdbMatch {
   post_id: number;
   post: {
     files?: { preview?: { webp?: string | null, jpg?: string | null } };
+    flags?: { deleted?: boolean };
   };
 }
 
@@ -239,8 +244,11 @@ function previewUrl (match: IqdbMatch): string | null {
   return match.post.files?.preview?.webp ?? match.post.files?.preview?.jpg ?? null;
 }
 
-// Posts hidden from the viewer have null preview URLs; nothing to show.
-const shownMatches = computed(() => (matches.value ?? []).filter(m => previewUrl(m)).slice(0, MAX_SHOWN));
+// Every match renders — a viewer-hidden one (deleted for non-staff, safe-mode
+// blocked; null preview URLs) gets a placeholder card instead of a thumbnail.
+// "This already exists but was deleted" is the strongest warning the component
+// can give; suppressing it would defeat the feature's purpose.
+const shownMatches = computed(() => (matches.value ?? []).slice(0, MAX_SHOWN));
 const hiddenCount = computed(() => (matches.value?.length ?? 0) - shownMatches.value.length);
 
 const showWrapper = computed(() =>

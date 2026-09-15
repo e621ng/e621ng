@@ -264,10 +264,26 @@ describe("uploads/similar_posts — rendering", () => {
     expect(wrapper.find(".similar-posts-none").text()).toContain("No similar posts found");
   });
 
-  it("omits matches the viewer cannot see (null preview URLs)", async () => {
+  it("renders a viewer-hidden match as a placeholder card, not a thumbnail", async () => {
     const { wrapper } = await withResponse(jsonResponse([match(1), match(2, 80, false)]));
-    expect(wrapper.findAll(".similar-posts-strip a")).toHaveLength(1);
-    expect(wrapper.find(".similar-posts-more a").text()).toContain("1 more");
+    const links = wrapper.findAll(".similar-posts-strip a");
+    expect(links).toHaveLength(2);
+    expect(links[0].find("img").exists()).toBe(true);
+
+    const placeholder = links[1].find(".similar-posts-placeholder");
+    expect(links[1].attributes("href")).toBe("/posts/2");
+    expect(links[1].find("img").exists()).toBe(false);
+    expect(placeholder.text()).toContain("Post #2");
+    expect(placeholder.text()).toContain("Not visible");
+    expect(wrapper.find(".similar-posts-more").exists()).toBe(false);
+  });
+
+  it("labels a deleted hidden match as Deleted — the strongest duplicate warning", async () => {
+    const deleted = { ...match(3, 95, false), post: { files: { preview: { webp: null, jpg: null } }, flags: { deleted: true } } };
+    const { wrapper } = await withResponse(jsonResponse([deleted]));
+    const placeholder = wrapper.find(".similar-posts-placeholder");
+    expect(placeholder.text()).toContain("Deleted");
+    expect(wrapper.find(".similar-posts-score").text()).toBe("95%");
   });
 
 });

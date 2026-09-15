@@ -111,6 +111,22 @@ body.c-uploads.a-new {
         @include st-radius;
       }
 
+      // Viewer-hidden match (deleted / safe-mode blocked): no thumbnail to show.
+      .similar-posts-placeholder {
+        width: 8rem;
+        height: 8rem;
+        display: flex;
+        flex-flow: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.25rem;
+        text-align: center;
+        font-size: 0.85rem;
+        background: themed("color-section-darken-5");
+        @include st-radius;
+        box-sizing: border-box;
+      }
+
       .similar-posts-score {
         position: absolute;
         bottom: 0;
