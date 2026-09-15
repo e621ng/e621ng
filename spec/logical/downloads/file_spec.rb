@@ -107,6 +107,16 @@ RSpec.describe Downloads::File do
       expect(make_downloader("https://www.pixiv.net/artworks/12345678").strategy)
         .to be_a(Sources::Strategies::PixivSlim)
     end
+
+    it "returns Sources::Strategies::InkbunnySlim for an Inkbunny image URL" do
+      expect(make_downloader("https://us.ib.metapix.net/files/screen/5604/5604180_ColdBloodedTwilight_2025_474.png").strategy)
+        .to be_a(Sources::Strategies::InkbunnySlim)
+    end
+
+    it "sends the Inkbunny referer for metapix.net downloads" do
+      strategy = make_downloader("https://us.ib.metapix.net/files/full/5604/5604180_ColdBloodedTwilight_2025.png").strategy
+      expect(strategy.headers).to eq(referer: "https://inkbunny.net")
+    end
   end
 
   describe "#file_url" do
