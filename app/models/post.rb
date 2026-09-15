@@ -2106,10 +2106,7 @@ class Post < ApplicationRecord
     # Postgres, so this can't drift out of sync with the migration that defines it.
     # @return [Array<Symbol>] the posts columns the trigger currently compares
     def change_seq_tracked_columns
-      source = connection.select_one("SELECT prosrc FROM pg_proc WHERE proname = $1", nil, ["posts_trigger_change_seq"])&.[]("prosrc")
-
-      return [] if source.nil?
-      source.scan(/NEW\.(\w+) IS DISTINCT FROM OLD\.\1\b/).flatten.map(&:to_sym)
+      ActiveRecord::Migration.existing_change_seq_columns.map(&:to_sym)
     end
 
     # Columns tracked by neither the trigger nor CHANGE_SEQ_IGNORED - should always be empty.
