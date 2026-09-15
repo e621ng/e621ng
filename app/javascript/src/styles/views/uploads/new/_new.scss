@@ -329,6 +329,6 @@
 
 
 // Upload limit warning
-#uploader #post-uploads-remaining {
+body.c-uploads.a-new #post-uploads-remaining {
   @include st-max-width;
 }
