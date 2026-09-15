@@ -14,6 +14,16 @@ class Post < ApplicationRecord
   # Smaller favours fresher posts; larger lets posts stay hot longer.
   HOTNESS_TIME_DIVISOR = 432_000.0
 
+  # Columns the posts_trigger_change_seq() DB trigger does not bump change_seq for.
+  # Every posts column must appear either in the trigger (db/migrate/*_update_posts_trigger_change_seq.rb) or here
+  # ChangeSeqSpec fails otherwise, so a newly added column can't silently go uncategorized.
+  CHANGE_SEQ_IGNORED = [
+    :id, :created_at, :updated_at, :change_seq, :uploader_ip_addr, :has_children, # not relevant
+    :up_score, :down_score, :score, :hotness, :fav_count, :comment_count, :tag_count, *TagCategory::CATEGORIES.map { |n| :"tag_count_#{n}" }, # transient counters
+    :file_ext, :file_size, :image_width, :image_height, :duration, # handled by md5
+    :last_comment_bumped_at, :last_commented_at, :is_comment_disabled, :is_comment_locked, # comments
+  ].freeze
+
   # Replaced by pool_ids for pools; sets keep no post-side state (queried via
   # post_sets.post_ids). Dropped in a follow-up migration after the rollback window.
   self.ignored_columns += %w[pool_string]
@@ -2091,6 +2101,21 @@ class Post < ApplicationRecord
     end
   end
 
+  module ChangeSeqMethods
+    # Reads the columns the live posts_trigger_change_seq() trigger checks, straight from
+    # Postgres, so this can't drift out of sync with the migration that defines it.
+    # @return [Array<Symbol>] the posts columns the trigger currently compares
+    def change_seq_tracked_columns
+      ActiveRecord::Migration.existing_change_seq_columns.map(&:to_sym)
+    end
+
+    # Columns tracked by neither the trigger nor CHANGE_SEQ_IGNORED - should always be empty.
+    # @return [Array<Symbol>] posts columns nobody has categorized yet
+    def change_seq_untracked_columns
+      column_names.map(&:to_sym) - change_seq_tracked_columns - CHANGE_SEQ_IGNORED
+    end
+  end
+
   module ValidationMethods
     def fix_bg_color
       if bg_color.blank?
@@ -2201,6 +2226,7 @@ class Post < ApplicationRecord
   include IqdbMethods
   include ValidationMethods
   include PostEventMethods
+  extend ChangeSeqMethods
   include Danbooru::HasBitFlags
   include DocumentStore::Model
   include PostIndex

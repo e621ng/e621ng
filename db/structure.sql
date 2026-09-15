@@ -31,11 +31,31 @@ CREATE FUNCTION public.posts_trigger_change_seq() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  IF NEW.tag_string != OLD.tag_string OR NEW.parent_id != OLD.parent_id OR NEW.source != OLD.source OR NEW.approver_id != OLD.approver_id OR NEW.rating != OLD.rating OR NEW.description != OLD.description OR NEW.md5 != OLD.md5 OR NEW.is_deleted != OLD.is_deleted OR NEW.is_pending != OLD.is_pending OR NEW.is_flagged != OLD.is_flagged OR NEW.is_rating_locked != OLD.is_rating_locked OR NEW.is_status_locked != OLD.is_status_locked OR NEW.is_note_locked != OLD.is_note_locked OR NEW.bit_flags != OLD.bit_flags OR NEW.has_active_children != OLD.has_active_children OR NEW.last_noted_at != OLD.last_noted_at
-  THEN
-     NEW.change_seq = nextval('public.posts_change_seq_seq');
-  END IF;
-  RETURN NEW;
+    IF NEW.source IS DISTINCT FROM OLD.source
+        OR NEW.md5 IS DISTINCT FROM OLD.md5
+        OR NEW.rating IS DISTINCT FROM OLD.rating
+        OR NEW.is_note_locked IS DISTINCT FROM OLD.is_note_locked
+        OR NEW.is_rating_locked IS DISTINCT FROM OLD.is_rating_locked
+        OR NEW.is_status_locked IS DISTINCT FROM OLD.is_status_locked
+        OR NEW.is_pending IS DISTINCT FROM OLD.is_pending
+        OR NEW.is_flagged IS DISTINCT FROM OLD.is_flagged
+        OR NEW.is_deleted IS DISTINCT FROM OLD.is_deleted
+        OR NEW.uploader_id IS DISTINCT FROM OLD.uploader_id
+        OR NEW.approver_id IS DISTINCT FROM OLD.approver_id
+        OR NEW.parent_id IS DISTINCT FROM OLD.parent_id
+        OR NEW.tag_string IS DISTINCT FROM OLD.tag_string
+        OR NEW.locked_tags IS DISTINCT FROM OLD.locked_tags
+        OR NEW.description IS DISTINCT FROM OLD.description
+        OR NEW.bg_color IS DISTINCT FROM OLD.bg_color
+        OR NEW.last_noted_at IS DISTINCT FROM OLD.last_noted_at
+        OR NEW.has_active_children IS DISTINCT FROM OLD.has_active_children
+        OR NEW.bit_flags IS DISTINCT FROM OLD.bit_flags
+        OR NEW.video_samples IS DISTINCT FROM OLD.video_samples
+        OR NEW.pool_ids IS DISTINCT FROM OLD.pool_ids
+    THEN
+        NEW.change_seq = nextval('public.posts_change_seq_seq');
+    END IF;
+    RETURN NEW;
 END;
 $$;
 
@@ -6423,6 +6443,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260907205015'),
 ('20260827214903'),
 ('20260824220908'),
 ('20260819154314'),

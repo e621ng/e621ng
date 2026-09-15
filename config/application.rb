@@ -23,6 +23,7 @@ Bundler.require(*Rails.groups)
 require_relative "danbooru_default_config"
 require_relative "danbooru_local_config"
 require_relative "../lib/middleware/parameter_sanitizer"
+require_relative "../lib/migration_helpers"
 
 module Danbooru
   class Application < Rails::Application
