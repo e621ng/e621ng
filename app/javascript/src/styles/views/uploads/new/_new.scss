@@ -287,7 +287,6 @@
     user-select: none;
     @include st-radius;
 
-    &:last-child { margin-right: 0; }
     &.active {
       background-color: themed("color-button-active");
       &.rating-e { background-color: themed("color-rating-explicit"); }
@@ -314,14 +313,14 @@
 
 
 // Miscellaneous
-.tag-textarea {
+#uploader .tag-textarea {
   display: inline-block;
   font-size: 1rem;
   width: 100%;
   resize: vertical;
 }
 
-#whitelist-warning {
+#uploader #whitelist-warning {
   /* Need to override this so it shows up at all. */
   display: block;
   float: none;
