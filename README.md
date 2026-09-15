@@ -55,7 +55,8 @@
     docker exec -it e621ng-e621-1 /app/bin/populate
     ```
     The command can be run multiple times to generate more content.  
-    Environmental variables are available to customize what kind of content is generated.
+    \
+    [Environmental variables](/db/populate.rb#L9-L22) are available to customize what kind of content is generated.
 
 Note: When gems or js packages are updated you need to execute `docker compose build` to reflect them in the container.
 
