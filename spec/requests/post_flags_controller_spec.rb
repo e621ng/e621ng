@@ -207,6 +207,25 @@ RSpec.describe PostFlagsController do
         expect(post_record.reload.is_pending).to be false
       end
     end
+
+    context "when a post is not flagged" do
+      let(:pending_not_flagged) { create(:pending_post) }
+
+      it "flashes a notice" do
+        sign_in_as janitor
+        delete "/posts/#{pending_not_flagged.id}/flag"
+        expect(response).to redirect_to(post_path(pending_not_flagged))
+        expect(flash[:notice]).to match(/is already unflagged/)
+      end
+
+      it "also approves with approval=approve" do
+        sign_in_as janitor
+        delete "/posts/#{pending_not_flagged.id}/flag", params: { approval: "approve" }
+        expect(flash[:notice]).to match(/is already unflagged/)
+        expect(response).to redirect_to(post_path(pending_not_flagged))
+        expect(pending_not_flagged.reload.is_pending).to be false
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
