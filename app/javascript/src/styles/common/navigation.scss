@@ -231,6 +231,12 @@ body[data-th-stickyheader="true"] nav.navigation {
     background-size: themed("image-background-size");
   }
 }
+body.c-static.a-home[data-th-stickyheader="true"] nav.navigation {
+  // do not alter background on home page
+  @include window-larger-than(50rem) {
+    background: transparent;
+  }
+}
 
 
 // Forum notification
