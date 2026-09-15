@@ -146,15 +146,17 @@ RSpec.describe PostReplacement do
     it "runs FileValidator for regular replacements" do
       record = build_with_file(is_backup: false)
       validator = instance_double(FileValidator, "validator", validate: nil)
-      expect(FileValidator).to receive(:new).with(record, record.replacement_file.path).and_return(validator)
+      allow(FileValidator).to receive(:new).and_return(validator)
       record.valid?
+      expect(FileValidator).to have_received(:new).with(record, record.replacement_file.path)
     end
 
     it "skips FileValidator for backups, so originals predating current rules can still be backed up" do
       record = build_with_file(status: "original", reason: "Backup of original file")
       record.is_backup = true
-      expect(FileValidator).not_to receive(:new)
+      allow(FileValidator).to receive(:new)
       record.valid?
+      expect(FileValidator).not_to have_received(:new)
     end
   end
 
