@@ -172,6 +172,85 @@ describe("uploads/file_input — video detection (B3)", () => {
   });
 });
 
+describe("uploads/file_input — whitelistAllowed payload", () => {
+  it("emits undefined while typing, then the verdict once the lookup resolves", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({ domain: "example.com", is_allowed: true }) as Response,
+    );
+    const w = await mountFileInput();
+    await urlInput(w).setValue("https://example.com/art.png");
+    expect(lastChange(w).whitelistAllowed).toBeUndefined();
+
+    await vi.advanceTimersByTimeAsync(300);
+    await flushPromises();
+    expect(lastChange(w).whitelistAllowed).toBe(true);
+  });
+
+  it("emits false for a disallowed domain", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({ domain: "example.com", is_allowed: false }) as Response,
+    );
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/art.png");
+    expect(lastChange(w).whitelistAllowed).toBe(false);
+  });
+
+  it("stales the verdict back to undefined on the next edit", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({ domain: "example.com", is_allowed: true }) as Response,
+    );
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/art.png");
+    expect(lastChange(w).whitelistAllowed).toBe(true);
+
+    // No timer advance: the immediate value emit must already be staled.
+    await urlInput(w).setValue("https://other.com/art.png");
+    expect(lastChange(w).whitelistAllowed).toBeUndefined();
+  });
+
+  it("re-emits the cached verdict on a same-domain edit without a second lookup", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({ domain: "example.com", is_allowed: true }) as Response,
+    );
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/art.png");
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    await setUrl(w, "https://example.com/other.png");
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(lastChange(w).whitelistAllowed).toBe(true);
+  });
+
+  it("re-emits the cached verdict when the host has a subdomain (server returns the registered domain)", async () => {
+    // The server's `domain` is Addressable's registered domain ("example.com"),
+    // NOT the hostname ("static1.example.com") the same-domain skip tracks —
+    // the cached re-emit must not compare the two.
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({ domain: "example.com", is_allowed: true }) as Response,
+    );
+    const w = await mountFileInput();
+    await setUrl(w, "https://static1.example.com/art.png");
+    expect(lastChange(w).whitelistAllowed).toBe(true);
+
+    await setUrl(w, "https://static1.example.com/other.png");
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(lastChange(w).whitelistAllowed).toBe(true);
+  });
+
+  it("stays undefined when the lookup fails (hold, not deny)", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network"));
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/art.png");
+    expect(lastChange(w).whitelistAllowed).toBeUndefined();
+  });
+
+  it("emits undefined for a picked file", async () => {
+    const w = await mountFileInput();
+    await selectFile(w, new File([new ArrayBuffer(8)], "ok.png", { type: "image/png" }));
+    expect(lastChange(w).whitelistAllowed).toBeUndefined();
+  });
+});
+
 describe("uploads/file_input — URL debounce (#9)", () => {
   it("does not fire the whitelist lookup until the debounce elapses", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({}) as Response);

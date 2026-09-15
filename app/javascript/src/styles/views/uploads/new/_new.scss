@@ -67,6 +67,85 @@ body.c-uploads.a-new {
   }
 }
 
+/** Similar posts (IQDB duplicate check) */
+.similar-posts {
+  min-height: 10.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  @include st-radius;
+  background: themed("color-section-lighten-5");
+  box-sizing: border-box;
+
+  .similar-posts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+
+    font-size: 0.85rem;
+    line-height: 1rem;
+  }
+
+  .similar-posts-error {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .similar-posts-strip {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+
+    a {
+      position: relative;
+      flex: 0 0 auto;
+
+      img {
+        width: 8rem;
+        height: 8rem;
+        object-fit: cover;
+        @include st-radius;
+      }
+
+      // Viewer-hidden match (deleted / safe-mode blocked): no thumbnail to show.
+      .similar-posts-placeholder {
+        width: 8rem;
+        height: 8rem;
+        display: flex;
+        flex-flow: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.25rem;
+        text-align: center;
+        font-size: 0.85rem;
+        background: themed("color-section-darken-5");
+        @include st-radius;
+        box-sizing: border-box;
+      }
+
+      .similar-posts-score {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        padding: 0 0.25rem;
+        font-size: 0.85rem;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        border-bottom-right-radius: 0.25rem;
+      }
+    }
+  }
+
+  .similar-posts-more {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+  }
+}
+
 /** Artist tag input */
 .artist-tag-notices {
   .artist-tag-label { padding: 0.25rem; }
