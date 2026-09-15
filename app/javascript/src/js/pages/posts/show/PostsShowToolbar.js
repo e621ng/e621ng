@@ -94,18 +94,39 @@ export default class PostsShowToolbar {
     Hotkeys.register("upvote", () => {
       ToastManager.dismiss("Post upvoted.", "Post downvoted.");
       const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
-      PostsShowToolbar.vote(1).then(() => {
+      PostsShowToolbar.vote(1).then((data) => {
         toast.type = "notice";
-        toast.message = "Post upvoted.";
+
+        // If the user has already upvoted, we want to show a different message.
+        switch (data.our_score) {
+          case 1:
+            toast.message = "Post upvoted.";
+            break;
+          case 0:
+            toast.message = "Upvote removed.";
+            break;
+          default:
+            toast.message = "This should not happen.";
+        }
         toast.timeout = 1;
       });
     });
     Hotkeys.register("downvote", () => {
       ToastManager.dismiss("Post upvoted.", "Post downvoted.");
       const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
-      PostsShowToolbar.vote(-1).then(() => {
+      PostsShowToolbar.vote(-1).then((data) => {
         toast.type = "notice";
-        toast.message = "Post downvoted.";
+        // If the user has already downvoted, we want to show a different message.
+        switch (data.our_score) {
+          case -1:
+            toast.message = "Post downvoted.";
+            break;
+          case 0:
+            toast.message = "Downvote removed.";
+            break;
+          default:
+            toast.message = "This should not happen.";
+        }
         toast.timeout = 1;
       });
     });
