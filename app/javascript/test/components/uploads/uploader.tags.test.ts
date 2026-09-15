@@ -4,8 +4,8 @@ vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete
 vi.mock("@/components/DTextFormatter", () => ({ default: vi.fn() }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
-import { afterEach, describe, expect, it } from "vitest";
 import type { VueWrapper } from "@vue/test-utils";
+import { afterEach, describe, expect, it } from "vitest";
 import { mountUploader, unmountAll } from "./mountUploader";
 
 afterEach(unmountAll);
@@ -65,7 +65,7 @@ describe("uploads/uploader — tag assembly", () => {
   describe("sex pairings", () => {
     it("does not render an empty pairings group (no stray divider)", async () => {
       const { wrapper } = await mountUploader();
-      const emptyGroups = () => wrapper.findAll(".flex-wrap").filter((g) => g.findAll("button").length === 0);
+      const emptyGroups = () => wrapper.findAll(".toggle-button-group").filter((g) => g.findAll("button").length === 0);
       expect(emptyGroups().length).toBe(0);
 
       // One sex selected still yields no pairing (needs both) → still no empty group.

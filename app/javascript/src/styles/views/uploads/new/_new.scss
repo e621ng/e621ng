@@ -1,74 +1,97 @@
-body.c-uploads.a-new {
-  #post-uploads-remaining {
-    max-width: 40rem;
-  }
-}
+// ===== Main Uploader Layout ===== //
 
-/** Source URL list */
-.upload-source-list {
+#uploader {
   display: flex;
-  flex-flow: column;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
+  gap: 1rem;
 
-  max-width: 50rem; // Overflows on the replacements page
+  .uploader-column {
+    flex: 1 0 0;
 
-  .upload-source-row {
+    background-color: themed("color-section");
+    @include st-radius;
+    padding: 1rem;
+  }
+
+  // Basic flex layout for the uploader form
+  .uploader-row {
     display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 
-    input {
-      width: 100%;
-      font-size: 1rem;
-      line-height: 1rem;
-      padding: 0.25rem;
-      border-radius: 0.25rem 0 0 0.25rem;
-      flex: 1;
-      height: 1.5rem;
-      box-sizing: border-box;
+    @include st-max-width;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid themed("color-section-darken-5");
+
+    @include window-larger-than(1100px) {
+      flex-direction: row;
     }
 
-    button {
-      font-size: 1rem;
-      line-height: 1rem;
-      width: 1.5rem;
-      padding: 0.25rem;
-      border-radius: 0 0.25rem 0.25rem 0;
-      box-sizing: border-box;
-      font-family: monospace;
+    &:last-child, &.no-border { border-bottom: none; }
+
+    &-label {
+      flex: 1 0 0;
+      margin-right: 5px;
+    }
+
+    &-input {
+      flex: 2 1 0;
+    }
+  }
+
+  .section-label {
+    white-space: normal;
+    font-weight: bold;
+  }
+}
+
+// ===== Upload Preview ===== //
+#uploader .upload_preview_container {
+  &.in-editor {
+    display: flex;
+    flex-direction: column-reverse;
+    @include window-larger-than(1100px) {
+      display: none;
+    }
+  }
+
+  &.in-sidebar {
+    position: sticky;
+    top: 20px;
+  }
+
+  .upload_preview_dims {
+    text-align: center;
+
+    @include window-larger-than(1100px) {
+      text-align: left;
+    }
+  }
+
+  .upload_preview_img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    max-height: 500px;
+    max-width: 100%;
+
+    @include window-larger-than(1100px) {
+      max-height: unset;
     }
   }
 }
 
-.upload-source-more {
-  display: flex;
-  align-items: center;
-
-  .upload-source-none {
-    height: 1.5rem;
-    line-height: 1rem;
-    padding: 0.25rem 0;
-    width: 100%;
-    flex: 1;
-    display: flex;
-    gap: 0.25rem;
-    align-items: center;
-    box-sizing: border-box;
-  }
-
-  .upload-source-add {
-    width: max-content;
-    align-self: flex-end;
-
-    height: 1.5rem;
-    font-size: 0.85rem;
-    line-height: 1rem;
-    padding: 0.25rem;
-    box-sizing: border-box;
+#uploader #preview-sidebar {
+  display: none;
+  @include window-larger-than(1100px) {
+    display: block;
   }
 }
 
-/** Similar posts (IQDB duplicate check) */
-.similar-posts {
+
+// ===== Upload Form Elements ===== //
+
+// Similar posts
+#uploader .similar-posts {
   min-height: 10.5rem;
   margin-top: 0.5rem;
   padding: 0.5rem;
@@ -146,8 +169,73 @@ body.c-uploads.a-new {
   }
 }
 
-/** Artist tag input */
-.artist-tag-notices {
+
+// Source List
+.upload-source-list {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+
+  max-width: 50rem; // Overflows on the replacements page
+
+  .upload-source-row {
+    display: flex;
+
+    input {
+      width: 100%;
+      font-size: 1rem;
+      line-height: 1rem;
+      padding: 0.25rem;
+      border-radius: 0.25rem 0 0 0.25rem;
+      flex: 1;
+      height: 1.5rem;
+      box-sizing: border-box;
+    }
+
+    button {
+      font-size: 1rem;
+      line-height: 1rem;
+      width: 1.5rem;
+      padding: 0.25rem;
+      border-radius: 0 0.25rem 0.25rem 0;
+      box-sizing: border-box;
+      font-family: monospace;
+    }
+  }
+}
+
+.upload-source-more {
+  display: flex;
+  align-items: center;
+
+  .upload-source-none {
+    height: 1.5rem;
+    line-height: 1rem;
+    padding: 0.25rem 0;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .upload-source-add {
+    width: max-content;
+    align-self: flex-end;
+
+    height: 1.5rem;
+    font-size: 0.85rem;
+    line-height: 1rem;
+    padding: 0.25rem;
+    box-sizing: border-box;
+  }
+}
+
+
+// Artist tag input
+#uploader .artist-tag-notices {
   .artist-tag-label { padding: 0.25rem; }
   .artist-tag-notice {
     display: flex;
@@ -169,4 +257,77 @@ body.c-uploads.a-new {
       border-left-color: palette("background-green");
     }
   }
+}
+
+#uploader .upload-artist-tags {
+  margin-top: 0.5rem;
+  .upload-artist-title {
+    width: 100%;
+  }
+}
+
+
+// Toggle buttons
+#uploader .toggle-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  .toggle-button {
+    display: inline-block;
+    box-sizing: border-box;
+    padding: .175em .5rem;
+
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    user-select: none;
+    @include st-radius;
+
+    &.active {
+      background-color: themed("color-button-active");
+      &.rating-e { background-color: themed("color-rating-explicit"); }
+      &.rating-q { background-color: themed("color-rating-questionable"); }
+      &.rating-s { background-color: themed("color-rating-safe"); }
+    }
+  }
+}
+
+
+// Parent preview
+.upload-parent {
+  & &-error, & &-preview {
+    margin-top: 10px;
+
+    img {
+      width: 8rem;
+      height: 8rem;
+      object-fit: cover;
+      @include st-radius;
+    }
+  }
+}
+
+
+// Miscellaneous
+#uploader .tag-textarea {
+  display: inline-block;
+  font-size: 1rem;
+  width: 100%;
+  resize: vertical;
+}
+
+#uploader #whitelist-warning {
+  /* Need to override this so it shows up at all. */
+  display: block;
+  float: none;
+}
+
+
+// Upload limit warning
+body.c-uploads.a-new #post-uploads-remaining {
+  @include st-max-width;
 }
