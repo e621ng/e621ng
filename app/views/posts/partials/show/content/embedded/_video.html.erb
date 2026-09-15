@@ -1,28 +1,3 @@
-<% if false %>
-	<%= tag.video(**post.presenter.video_attributes) do %>
-	 <% post.presenter.initial_video_urls.each do |video| %>
-		<%= tag.source(src: video[:url], type: video[:codec]) %>
-	 <% end %>
-	 Playback not available in your browser.
-	<% end %>
-
-	<%= javascript_tag nonce: true do -%>
-	 (function () {
-		var videoEl = document.getElementById('image');
-		var savedVolume = parseFloat(localStorage.getItem('video_volume') || '1.0');
-		if (videoEl) {
-			videoEl.volume = savedVolume;
-			videoEl.addEventListener('volumechange', function (evt) {
-			if (evt.target) {
-			 localStorage.setItem('video_volume', evt.target.volume);
-			}
-		});
-	 }
-	 })();
-	<% end -%>
-<% end %>
-
-
 <video-player class="video-player">
 	<media-container>
 		<video playsinline id="image">
@@ -34,23 +9,36 @@
 		<media-controls>
 			<media-controls-backdrop class="controls-backdrop"></media-controls-backdrop>
 			<media-controls-content class="media-controls">
-				<media-controls-group class="controls-group" aria-label="Playback controls">
-					<media-play-button class="play-button">
-						<media-icon class="play-icon" name="play"></media-icon>
-						<media-icon class="pause-icon" name="pause"></media-icon>
-					</media-play-button>
-					<media-time class="time" type="current"></media-time>
-				</media-controls-group>
-				</media-controls-content>
-			</media-controls>
+        <media-play-button class="play-button">
+          <media-icon class="play-icon" name="play"></media-icon>
+          <media-icon class="pause-icon" name="pause"></media-icon>
+        </media-play-button>
+        <media-mute-button commandfor="volume-popup"></media-mute-button>
+        <media-volume-popover id="volume-popup">
+          <media-volume-slider></media-volume-slider>
+        </media-volume-popover>
+        <media-time-slider>
+          <media-slider-track>
+            <media-slider-buffer></media-slider-buffer>
+            <media-slider-fill></media-slider-fill>
+          </media-slider-track>
+          <media-slider-thumb></media-slider-thumb>
+          <media-slider-preview>
+            <media-time-slider-chapter-title></media-time-slider-chapter-title>
+            <media-slider-value type="pointer"></media-slider-value>
+          </media-slider-preview>
+        </media-time-slider>
+        <media-time class="time" type="current"></media-time>
+      </media-controls-content>
+    </media-controls>
 
-			<!-- desktop gestures -->
-			<media-gesture type="tap" action="togglePaused" pointer="mouse"></media-gesture>
-			<media-gesture type="doubletap" action="toggleFullscreen" region="center" pointer="mouse"></media-gesture>
+    <!-- desktop gestures -->
+    <media-gesture type="tap" action="togglePaused" pointer="mouse"></media-gesture>
+    <media-gesture type="doubletap" action="toggleFullscreen" region="center" pointer="mouse"></media-gesture>
 
-			<!-- mobile gestures -->
-			<media-gesture type="tap" action="togglePaused" pointer="touch"></media-gesture>
-			<media-gesture type="doubletap" action="seekStep" value="-10" pointer="touch" region="left"></media-gesture>
-			<media-gesture type="doubletap" action="seekStep" value="10" pointer="touch" region="right"></media-gesture>
+    <!-- mobile gestures -->
+    <media-gesture type="tap" action="togglePaused" pointer="touch"></media-gesture>
+    <media-gesture type="doubletap" action="seekStep" value="-10" pointer="touch" region="left"></media-gesture>
+    <media-gesture type="doubletap" action="seekStep" value="10" pointer="touch" region="right"></media-gesture>
 	</media-container>
 </video-player>
