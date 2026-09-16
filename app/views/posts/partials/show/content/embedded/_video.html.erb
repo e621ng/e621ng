@@ -1,10 +1,10 @@
 <video-player class="video-player">
 	<media-container>
-		<video playsinline id="image">
+    <%= tag.video(**post.presenter.video_attributes) do %>
 			<% post.presenter.initial_video_urls.each do |video| %>
 				<%= tag.source(src: video[:url], type: video[:codec]) %>
 			<% end %>
-		</video>
+		<% end %>
 
 		<media-controls>
 			<media-controls-backdrop class="controls-backdrop"></media-controls-backdrop>

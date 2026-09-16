@@ -20,7 +20,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background: linear-gradient(to bottom, transparent 75%, black 100%);
+      background: linear-gradient(to bottom, transparent 75%, var(--color-background) 100%);
     }
 
     media-controls-content {
