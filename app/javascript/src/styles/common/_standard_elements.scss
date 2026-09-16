@@ -86,11 +86,11 @@
     $kinetic-shadow: 0.25rem;
     $kinetic-active: calc($kinetic-shadow / 2);
 
-    box-shadow: 0 $kinetic-shadow themed("color-section");
+    box-shadow: 0 $kinetic-shadow var(--kinetic-color, themed("color-section"));
     position: relative;
     &:active, &[processing="true"].anim {
       translate: 0 $kinetic-active;
-      box-shadow: 0 $kinetic-active themed("color-section");
+      box-shadow: 0 $kinetic-active var(--kinetic-color, themed("color-section"));
 
       // Cursed solution for a cursed problem.
       // Moving the button down when active caused the javascript event to not trigger if the
