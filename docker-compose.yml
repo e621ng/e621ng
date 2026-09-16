@@ -271,6 +271,12 @@ services:
     profiles:
       - jstests
 
+  typecheck:
+    <<: *eslint
+    entrypoint: npm run typecheck
+    profiles:
+      - typecheck
+
 volumes:
   post_data:
   opensearch_data:

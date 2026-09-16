@@ -11,7 +11,12 @@
     ></textarea>
     <div v-if="notices.length" class="artist-tag-notices">
       <div class="artist-tag-label">Click to select an option:</div>
-      <div v-for="(notice, index) in notices" :key="`${notice.type}:${notice.tag}:${index}`" class="artist-tag-notice" :data-type="notice.type">
+      <div
+        v-for="(notice, index) in notices"
+        :key="`${notice.type}:${notice.tag}:${index}`"
+        class="artist-tag-notice"
+        :data-type="notice.type"
+      >
         <template v-if="notice.type === 'make_artist'">
           <a href="#" @click.prevent="makeArtistTag(notice.tag)">
             <div><b>{{ notice.tag }}</b> can be made into an artist tag</div>
@@ -27,128 +32,129 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, watch, onBeforeUnmount } from "vue";
 import TagCategories from "@/utility/TagCategories";
 import HTTP from "@/utility/HTTP";
 
-export default {
-  name: 'ArtistTagInput',
-  props: {
-    modelValue: {
-      type: String,
-      default: '',
-    },
-  },
-  emits: ['update:modelValue'],
-  data() {
-    return {
-      notices: [],
-      debounceTimer: null,
-      checkId: 0,
-    };
-  },
-  watch: {
-    modelValue() {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = setTimeout(() => this.checkTags(), 1000);
-    },
-  },
-  beforeUnmount() {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = null;
-  },
-  methods: {
-    handleInput(event) {
-      this.$emit('update:modelValue', event.target.value);
-    },
+interface Notice {
+  tag: string;
+  type: "make_artist" | "wrong";
+  detail?: string;
+}
 
-    async fetchTagsByName(tagNames) {
-      try {
-        const data = await HTTP.getJSON('/tags.json', { 'search[name]': tagNames.join(','), 'search[hide_empty]': 'false' });
-        const map = Object.create(null);
-        for (const tag of data) map[tag.name] = tag;
-        return map;
-      } catch (_) {
-        return {};
+interface TagRecord {
+  name: string;
+  category: number;
+  post_count: number;
+}
+
+const props = defineProps<{ modelValue?: string }>();
+const emit = defineEmits<{ "update:modelValue": [value: string] }>();
+
+const notices = ref<Notice[]>([]);
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+let checkId = 0;
+
+watch(() => props.modelValue, () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => checkTags(), 1000);
+});
+
+onBeforeUnmount(() => {
+  clearTimeout(debounceTimer);
+  debounceTimer = undefined;
+});
+
+function handleInput(event: Event) {
+  emit("update:modelValue", (event.target as HTMLTextAreaElement).value);
+}
+
+async function fetchTagsByName(tagNames: string[]): Promise<Record<string, TagRecord>> {
+  try {
+    const data = await HTTP.getJSON<TagRecord[]>('/tags.json', { 'search[name]': tagNames.join(','), 'search[hide_empty]': 'false' });
+    const map: Record<string, TagRecord> = Object.create(null);
+    for (const tag of data) map[tag.name] = tag;
+    return map;
+  } catch (_) {
+    return {};
+  }
+}
+
+async function fetchAliases(tagNames: string[]): Promise<Record<string, string>> {
+  try {
+    const data = await HTTP.getJSON<{ antecedent_name: string; consequent_name: string }[]>('/tag_aliases.json', { 'search[status]': 'active', 'search[antecedent_name]': tagNames.join(',') });
+    const map: Record<string, string> = Object.create(null);
+    for (const alias of data) map[alias.antecedent_name] = alias.consequent_name;
+    return map;
+  } catch (_) {
+    return {};
+  }
+}
+
+async function checkTags() {
+  const id = ++checkId;
+
+  const tags = (props.modelValue || '')
+    .trim()
+    .split(/\s+/)
+    .filter((t) => {
+      t = t.toLowerCase();
+      return t && !(t.startsWith("artist:") || t.startsWith("art:"))
+    });
+  if (tags.length === 0) {
+    notices.value = [];
+    return;
+  }
+
+  const tagMap = await fetchTagsByName(tags);
+  if (id !== checkId) return;
+
+  // For zero-post tags, check if they're aliased away and use the consequent's data instead
+  const zeroPostTags = tags.filter(t => { const tag = tagMap[t.toLowerCase()]; return !tag || tag.post_count === 0; });
+  if (zeroPostTags.length > 0) {
+    const aliasMap = await fetchAliases(zeroPostTags);
+    if (id !== checkId) return;
+    const consequentNames = Object.values(aliasMap);
+    if (consequentNames.length > 0) {
+      const consequentTagMap = await fetchTagsByName(consequentNames);
+      if (id !== checkId) return;
+      for (const [antecedent, consequent] of Object.entries(aliasMap)) {
+        if (consequentTagMap[consequent]) tagMap[antecedent.toLowerCase()] = consequentTagMap[consequent];
       }
-    },
+    }
+  }
 
-    async fetchAliases(tagNames) {
-      try {
-        const data = await HTTP.getJSON('/tag_aliases.json', { 'search[status]': 'active', 'search[antecedent_name]': tagNames.join(',') });
-        const map = Object.create(null);
-        for (const alias of data) map[alias.antecedent_name] = alias.consequent_name;
-        return map;
-      } catch (_) {
-        return {};
-      }
-    },
+  const general = TagCategories.idFor("general");
+  const artist = TagCategories.idFor("artist");
+  const result: Notice[] = [];
+  for (const tagName of tags) {
+    const tag = tagMap[tagName.toLowerCase()];
+    if (!tag || (tag.category === general && tag.post_count === 0)) {
+      result.push({ tag: tagName, type: 'make_artist' });
+    } else if (tag.category === artist) {
+      // Already an artist tag — nothing to show
+    } else if (tag.category === general) {
+      result.push({ tag: tagName, type: 'wrong', detail: `a populated general tag` });
+    } else {
+      const categoryName = TagCategories.nameFor(tag.category);
+      result.push({ tag: tagName, type: 'wrong', detail: `a ${categoryName} tag` });
+    }
+  }
+  notices.value = result;
+}
 
-    async checkTags() {
-      const id = ++this.checkId;
+function makeArtistTag(tagName: string) {
+  const parts = (props.modelValue || '').trim().split(/\s+/).filter(t => t);
+  const idx = parts.indexOf(tagName);
+  if (idx !== -1) {
+    parts[idx] = `artist:${tagName}`;
+  }
+  emit('update:modelValue', parts.join(' ') + ' ');
+}
 
-      const tags = (this.modelValue || '')
-        .trim()
-        .split(/\s+/)
-        .filter((t) => {
-          t = t.toLowerCase();
-          return t && !(t.startsWith("artist:") || t.startsWith("art:"))
-        });
-      if (tags.length === 0) {
-        this.notices = [];
-        return;
-      }
-
-      const tagMap = await this.fetchTagsByName(tags);
-      if (id !== this.checkId) return;
-
-      // For zero-post tags, check if they're aliased away and use the consequent's data instead
-      const zeroPostTags = tags.filter(t => { const tag = tagMap[t.toLowerCase()]; return !tag || tag.post_count === 0; });
-      if (zeroPostTags.length > 0) {
-        const aliasMap = await this.fetchAliases(zeroPostTags);
-        if (id !== this.checkId) return;
-        const consequentNames = Object.values(aliasMap);
-        if (consequentNames.length > 0) {
-          const consequentTagMap = await this.fetchTagsByName(consequentNames);
-          if (id !== this.checkId) return;
-          for (const [antecedent, consequent] of Object.entries(aliasMap)) {
-            if (consequentTagMap[consequent]) tagMap[antecedent.toLowerCase()] = consequentTagMap[consequent];
-          }
-        }
-      }
-
-      const general = TagCategories.idFor("general");
-      const artist = TagCategories.idFor("artist");
-      const notices = [];
-      for (const tagName of tags) {
-        const tag = tagMap[tagName.toLowerCase()];
-        if (!tag || (tag.category === general && tag.post_count === 0)) {
-          notices.push({ tag: tagName, type: 'make_artist' });
-        } else if (tag.category === artist) {
-          // Already an artist tag — nothing to show
-        } else if (tag.category === general) {
-          notices.push({ tag: tagName, type: 'wrong', detail: `a populated general tag` });
-        } else {
-          const categoryName = TagCategories.nameFor(tag.category);
-          notices.push({ tag: tagName, type: 'wrong', detail: `a ${categoryName} tag` });
-        }
-      }
-      this.notices = notices;
-    },
-
-    makeArtistTag(tagName) {
-      const parts = (this.modelValue || '').trim().split(/\s+/).filter(t => t);
-      const idx = parts.indexOf(tagName);
-      if (idx !== -1) {
-        parts[idx] = `artist:${tagName}`;
-      }
-      this.$emit('update:modelValue', parts.join(' ') + ' ');
-    },
-
-    removeWrongTag(tagName) {
-      const parts = (this.modelValue || '').trim().split(/\s+/).filter(t => t && t !== tagName);
-      this.$emit('update:modelValue', parts.join(' ') + ' ');
-    },
-  },
-};
+function removeWrongTag(tagName: string) {
+  const parts = (props.modelValue || '').trim().split(/\s+/).filter(t => t && t !== tagName);
+  emit('update:modelValue', parts.join(' ') + ' ');
+}
 </script>

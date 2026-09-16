@@ -1,12 +1,14 @@
 <template>
-  <div class="tag-preview-tag" 
-       :data-id="tag.id" 
-       :data-category="tag.category" 
-       :data-name="tag.name" 
-       :data-resolved="tag.resolved"
-       :data-alias="tag.alias"
-       :data-implied="tag.impliedBy?.join(' ')"
-       :data-count="tag.post_count">
+  <div
+    class="tag-preview-tag" 
+    :data-id="tag.id" 
+    :data-category="tag.category" 
+    :data-name="tag.name" 
+    :data-resolved="tag.resolved"
+    :data-alias="tag.alias"
+    :data-implied="tag.impliedBy?.join(' ')"
+    :data-count="tag.post_count"
+  >
     <tag-link :name="tag.alias || tag.resolved || tag.name" :tagType="tag.category" :wrap="true"></tag-link>
     <span v-if="tag.id == null" class="new">new</span>
     <span v-else-if="isInvalid" class="invalid">invalid</span>
@@ -17,30 +19,21 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed } from "vue";
 import tagLink from "./tag_link.vue";
 import TagCategories from "@/utility/TagCategories";
+import type { PreviewTag } from "./types";
 
-export default {
-  props: ["tag"],
-  components: {
-    "tag-link": tagLink,
-  },
-  computed: {
-    isInvalid() {
-      return this.tag.category === TagCategories.idFor("invalid");
-    },
-    isGeneral() {
-      return this.tag.category === TagCategories.idFor("general");
-    },
-  },
-  methods: {
-    formatTagCount(count) {
-      return new Intl.NumberFormat('en', { notation: 'compact', compactDisplay: 'short' }).format(count).toLowerCase();
-    },
-    getImpliedTooltip(tag) {
-      return `Implied by ${tag.impliedBy.join(", ")}`;
-    },
-  },
-};
+const props = defineProps<{ tag: PreviewTag }>();
+
+const isInvalid = computed(() => props.tag.category === TagCategories.idFor("invalid"));
+const isGeneral = computed(() => props.tag.category === TagCategories.idFor("general"));
+
+function formatTagCount(count: number) {
+  return new Intl.NumberFormat('en', { notation: 'compact', compactDisplay: 'short' }).format(count).toLowerCase();
+}
+function getImpliedTooltip(tag: PreviewTag) {
+  return `Implied by ${tag.impliedBy.join(", ")}`;
+}
 </script>

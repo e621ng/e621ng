@@ -1,4 +1,3 @@
-import $ from "jquery";
 import { createApp } from "vue";
 import Replacer from "./replacement_uploader.vue";
 

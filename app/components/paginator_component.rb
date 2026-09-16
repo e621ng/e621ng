@@ -88,7 +88,6 @@ class PaginatorComponent < ViewComponent::Base
   end
 
   def nav_params_for(page)
-    query_params = params.except(:id).merge(page: page).permit!
-    url_for(query_params)
+    url_for(params: request.query_parameters.merge("page" => page))
   end
 end

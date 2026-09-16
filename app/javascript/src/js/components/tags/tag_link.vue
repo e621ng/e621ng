@@ -4,16 +4,11 @@
   </a>
 </template>
 
-<script>
-  export default {
-    props: ["tagType", "name", "wrap"],
-    computed: {
-      displayName() {
-        if (this.wrap) {
-          return this.name.replace(/_/g, '_\u200B');
-        }
-        return this.name;
-      }
-    }
-  }
+<script setup lang="ts">
+  import { computed } from "vue";
+
+  const props = defineProps<{ tagType: number; name: string; wrap?: boolean }>();
+
+  const displayName = computed(() =>
+    props.wrap ? props.name.replace(/_/g, "_\u200B") : props.name);
 </script>

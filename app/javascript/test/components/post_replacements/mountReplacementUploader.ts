@@ -69,6 +69,7 @@ export async function mountReplacementUploader (
     Posts: {
       max_file_size: opts.maxFileSize ?? 1048576,
       max_file_sizes: opts.maxFileSizes ?? {},
+      video_extensions: ["webm", "mp4"],
     },
   });
 
