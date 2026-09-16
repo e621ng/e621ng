@@ -1,15 +1,15 @@
 <video-player class="video-player">
-	<media-container>
+  <media-container>
     <%= tag.video(**post.presenter.video_attributes) do %>
-			<% post.presenter.initial_video_urls.each do |video| %>
-				<%= tag.source(src: video[:url], type: video[:codec]) %>
-			<% end %>
-		<% end %>
+      <% post.presenter.initial_video_urls.each do |video| %>
+        <%= tag.source(src: video[:url], type: video[:codec]) %>
+      <% end %>
+    <% end %>
 
-		<media-controls>
-			<media-controls-backdrop class="controls-backdrop"></media-controls-backdrop>
+    <media-controls>
+      <media-controls-backdrop class="controls-backdrop"></media-controls-backdrop>
 
-			<media-controls-content>
+      <media-controls-content>
         <media-controls-group class="media-group-basic">
           <media-play-button class="play-button st-button kinetic">
             <%= svg_icon(:play, class: "icon play") %>
@@ -54,5 +54,5 @@
     <media-gesture type="tap" action="togglePaused" pointer="touch"></media-gesture>
     <media-gesture type="doubletap" action="seekStep" value="-10" pointer="touch" region="left"></media-gesture>
     <media-gesture type="doubletap" action="seekStep" value="10" pointer="touch" region="right"></media-gesture>
-	</media-container>
+  </media-container>
 </video-player>
