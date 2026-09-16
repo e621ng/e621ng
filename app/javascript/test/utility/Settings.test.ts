@@ -18,6 +18,7 @@ describe("Settings", () => {
     expect(Settings.Posts.max_file_sizes).toEqual({});
     expect(Settings.Posts.video_extensions).toEqual(["webm", "mp4"]);
     expect(Settings.Autocomplete.blacklist).toEqual([]);
+    expect(Settings.Iqdb.enabled).toBe(false);
     expect(error).toHaveBeenCalled();
   });
 
@@ -48,6 +49,7 @@ describe("Settings", () => {
         max_file_sizes: { jpg: 104857600, gif: 20971520 },
         video_extensions: ["webm", "mp4", "ogv"],
       },
+      Iqdb: { enabled: true },
     });
     const Settings = await freshSettings();
 
@@ -60,6 +62,7 @@ describe("Settings", () => {
     expect(Settings.Posts.max_file_size).toBe(104857600);
     expect(Settings.Posts.max_file_sizes).toEqual({ jpg: 104857600, gif: 20971520 });
     expect(Settings.Posts.video_extensions).toEqual(["webm", "mp4", "ogv"]);
+    expect(Settings.Iqdb.enabled).toBe(true);
   });
 
   it("falls back per-field when nested keys are missing", async () => {

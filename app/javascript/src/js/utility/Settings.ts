@@ -35,6 +35,9 @@ const Settings = {} as {
   Autocomplete: {
     blacklist: RegExp[],
   },
+  Iqdb: {
+    enabled: boolean,
+  },
   Posts: {
     webp_enabled: boolean,
     max_file_size: number,
@@ -79,6 +82,18 @@ Object.defineProperty(Settings, "Autocomplete", {
       blacklist: blacklistRegexes,
     };
     Object.defineProperty(Settings, "Autocomplete", { value, writable: false });
+    return value;
+  },
+});
+
+Object.defineProperty(Settings, "Iqdb", {
+  configurable: true,
+  get () {
+    const obj = _get()["Iqdb"] || {};
+    const value = {
+      enabled: obj.enabled || false,
+    };
+    Object.defineProperty(Settings, "Iqdb", { value, writable: false });
     return value;
   },
 });

@@ -52,6 +52,9 @@ module SiteSettingsHelper
       Autocomplete: {
         blacklist: Danbooru.config.default_autocomplete_blacklist,
       },
+      Iqdb: {
+        enabled: IqdbProxy.enabled?,
+      },
       Posts: {
         webp_enabled: Danbooru.config.webp_previews_enabled?,
         max_file_size: Danbooru.config.max_file_size,
