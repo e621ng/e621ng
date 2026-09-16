@@ -18,7 +18,7 @@ RSpec.describe SiteSettingsHelper do
     subject(:settings) { decode(helper.site_settings_base64) }
 
     it "round-trips to a parseable JSON structure with the expected keys" do
-      expect(settings.keys).to match_array(%w[Analytics Autocomplete Posts])
+      expect(settings.keys).to match_array(%w[Analytics Autocomplete Iqdb Posts])
     end
 
     context "when visitor metrics are enabled and a client id is set" do
@@ -68,6 +68,18 @@ RSpec.describe SiteSettingsHelper do
       allow(Danbooru.config.custom_configuration).to receive(:default_autocomplete_blacklist).and_return(%w[foo bar])
 
       expect(settings["Autocomplete"]["blacklist"]).to eq(%w[foo bar])
+    end
+
+    it "enables iqdb when a server is configured" do
+      allow(IqdbProxy).to receive(:enabled?).and_return(true)
+
+      expect(settings["Iqdb"]["enabled"]).to be true
+    end
+
+    it "disables iqdb when no server is configured" do
+      allow(IqdbProxy).to receive(:enabled?).and_return(false)
+
+      expect(settings["Iqdb"]["enabled"]).to be false
     end
 
     it "reflects the webp preview flag" do

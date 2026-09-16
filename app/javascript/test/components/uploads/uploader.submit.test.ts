@@ -110,6 +110,11 @@ describe("uploads/uploader — submit payload", () => {
     expect(data.get("upload[parent_id]")).toBe("12345");
   });
 
+  it("omits parent_id when no parent is set", async () => {
+    const { data } = await submitAndCapture();
+    expect(data.get("upload[parent_id]")).toBeNull();
+  });
+
   it("submits an empty source when 'no available source' is checked", async () => {
     const mounted = await mountUploader();
     (mounted.wrapper.vm as any).sources = ["https://example.com/typed"];
@@ -142,7 +147,10 @@ describe("uploads/uploader — submit outcomes", () => {
     const Toast = (await import("@/utility/Toast")).default;
     expect(Toast.notice).toHaveBeenCalledWith("Post uploaded successfully.");
     expect(locationAssign).toHaveBeenCalledWith("/posts/999");
-    expect((window.onbeforeunload as () => unknown)()).toBeUndefined(); // guard released
+    // Guard released (allowNavigate): a beforeunload after success isn't prevented.
+    const unload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(unload);
+    expect(unload.defaultPrevented).toBe(false);
   });
 
   it("reports a Cloudflare challenge", async () => {

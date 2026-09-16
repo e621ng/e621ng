@@ -81,6 +81,17 @@ RSpec.describe AiMethods do
       end
     end
 
+    context "with a C2PA-manifest PNG (ai/c2pa.png)" do
+      it "returns score 100 from the caBX manifest despite empty vips metadata" do
+        path = file_fixture("ai/c2pa.png").to_s
+        result = upload.is_ai_generated?(path)
+        expect(result[:score]).to eq(100)
+        expect(result[:reason]).to include("c2pa manifest present")
+        expect(result[:reason]).to include("c2pa declares ai source")
+        expect(result[:reason]).to include("ai generator: google generative ai")
+      end
+    end
+
     context "with a clean PNG without AI metadata (sample.png)" do
       it "returns score 0 and reason 'no ai signals'" do
         path = file_fixture("sample.png").to_s

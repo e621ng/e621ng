@@ -1,5 +1,5 @@
 <template>
-  <div class="related-tags flex-wrap">
+  <div class="related-tags">
     <div class="related-section" v-for="group in tagGroups" :key="group.title">
       <div class="related-items" v-for="tags, i in chunkTags(group.tags)" :key="i">
         <div class="related-title" v-if="i === 0">{{group.title}}</div>
@@ -8,13 +8,20 @@
         </div>
       </div>
     </div>
+    <!-- Inert skeleton row: same shape as a group, but no anchor to click. -->
+    <div class="related-section" v-if="loading">
+      <div class="related-items">
+        <div class="related-title">Loading Related Tags</div>
+        <div class="related-item"></div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
   import { computed } from "vue";
   import { tagSorter } from './tag_field';
-  import type { RelatedTag, RelatedTagGroup } from "@/utility/RelatedTags";
+  import type { RelatedTag, RelatedTagGroup } from "./types";
 
   const props = withDefaults(defineProps<{
     tags: string[];
@@ -28,8 +35,8 @@
 
   // Both consumers pass these as props (uploads#new from the UploadData model,
   // posts#show from the bootstrap). Sort a copy so the source array is untouched.
-  const uploaded = props.uploadedTags ?? [];
-  const recent = (props.recentTags ?? []).slice().sort(tagSorter);
+  const uploaded = computed(() => props.uploadedTags);
+  const recent = computed(() => props.recentTags.slice().sort(tagSorter));
 
   function tagActive(tag: RelatedTag) {
     return props.tags.indexOf(tag.name) !== -1;
@@ -55,21 +62,13 @@
 
   const tagGroups = computed<RelatedTagGroup[]>(() => {
     const groups: RelatedTagGroup[] = [];
-    if (uploaded && uploaded.length) {
-      groups.push({ title: "Quick Tags", tags: uploaded });
+    if (uploaded.value.length) {
+      groups.push({ title: "Quick Tags", tags: uploaded.value });
     }
-    if (recent && recent.length) {
-      groups.push({ title: "Recent", tags: recent });
+    if (recent.value.length) {
+      groups.push({ title: "Recent", tags: recent.value });
     }
-    if (props.related && props.related.length) {
-      for (let i = 0; i < props.related.length; i++) {
-        groups.push(props.related[i]);
-      }
-    }
-    if (props.loading) {
-      // Legacy skeleton row: one empty related-item under the loading title.
-      groups.push({ title: 'Loading Related Tags', tags: [['', '', '']] as unknown as RelatedTag[] });
-    }
+    groups.push(...props.related);
     return groups;
   });
 </script>

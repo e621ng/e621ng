@@ -35,7 +35,16 @@ describe("posts/tag_editor — mount", () => {
 
   it("focuses the textarea after the mount timer", async () => {
     const { wrapper } = await mountTagEditor();
+    // The focus/auto-height timer in mounted() fires after 20ms.
+    await new Promise((r) => setTimeout(r, 25));
     expect(document.activeElement).toBe(wrapper.find("textarea").element);
+  });
+
+  it("does not throw when unmounted before the focus timer fires", async () => {
+    const { restore } = await mountTagEditor();
+    restore(); // unmount inside the 20ms window
+    // Let the timer fire; without the guard this surfaces as an unhandled error.
+    await new Promise((r) => setTimeout(r, 30));
   });
 
   it("renders the seven related-category links", async () => {

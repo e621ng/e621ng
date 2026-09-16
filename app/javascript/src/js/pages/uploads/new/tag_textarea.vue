@@ -1,7 +1,7 @@
 <template>
   <textarea
     class="tag-textarea"
-    rows="2"
+    rows="3"
     v-model="model"
     :id="fieldId"
     :placeholder="placeholder"

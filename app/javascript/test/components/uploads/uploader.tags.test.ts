@@ -4,8 +4,8 @@ vi.mock("@/components/autocomplete", () => ({ default: { initialize_autocomplete
 vi.mock("@/components/DTextFormatter", () => ({ default: vi.fn() }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
-import { afterEach, describe, expect, it } from "vitest";
 import type { VueWrapper } from "@vue/test-utils";
+import { afterEach, describe, expect, it } from "vitest";
 import { mountUploader, unmountAll } from "./mountUploader";
 
 afterEach(unmountAll);
@@ -65,7 +65,7 @@ describe("uploads/uploader — tag assembly", () => {
   describe("sex pairings", () => {
     it("does not render an empty pairings group (no stray divider)", async () => {
       const { wrapper } = await mountUploader();
-      const emptyGroups = () => wrapper.findAll(".flex-wrap").filter((g) => g.findAll("button").length === 0);
+      const emptyGroups = () => wrapper.findAll(".toggle-button-group").filter((g) => g.findAll("button").length === 0);
       expect(emptyGroups().length).toBe(0);
 
       // One sex selected still yields no pairing (needs both) → still no empty group.
@@ -137,6 +137,24 @@ describe("uploads/uploader — tag assembly", () => {
       expect(wrapper.find("#post_character").exists()).toBe(false);
       await wrapper.find("#post_tags").setValue("solo male");
       expect(tagsOf(wrapper)).toBe("solo male");
+    });
+  });
+
+  describe("tag counter", () => {
+    const countText = (w: VueWrapper) => w.find(".tag-counter .count").text();
+
+    it("reflects the aggregate count across sources", async () => {
+      const { wrapper } = await mountUploader();
+      await wrapper.find("#post_tags").setValue("a b");
+      expect(countText(wrapper)).toBe("2 tags");
+      await wrapper.find("#post_character").setValue("c");
+      expect(countText(wrapper)).toBe("3 tags");
+    });
+
+    it("counts unique tags only (no dupe inflation)", async () => {
+      const { wrapper } = await mountUploader();
+      await wrapper.find("#post_tags").setValue("a a a a");
+      expect(countText(wrapper)).toBe("1 tag");
     });
   });
 });

@@ -5,6 +5,7 @@ vi.mock("@/components/DTextFormatter", () => ({ default: vi.fn() }));
 vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() } }));
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { nextTick } from "vue";
 import { mountUploader, unmountAll } from "./mountUploader";
 
 // The autocomplete mock is module-scoped, so its call history accumulates across
@@ -12,13 +13,27 @@ import { mountUploader, unmountAll } from "./mountUploader";
 beforeEach(() => vi.clearAllMocks());
 afterEach(unmountAll);
 
+const fireBeforeUnload = () => {
+  const event = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(event);
+  return event.defaultPrevented;
+};
+
 describe("uploads/uploader — lifecycle", () => {
-  it("installs the unload guard on mount and releases it on unmount", async () => {
+  it("guards navigation only while dirty, and releases the listener on unmount", async () => {
+    const removeSpy = vi.spyOn(window, "removeEventListener");
     const { wrapper } = await mountUploader();
-    expect(typeof window.onbeforeunload).toBe("function");
+
+    // Clean form → navigation allowed.
+    expect(fireBeforeUnload()).toBe(false);
+
+    // Dirty form → the browser prompt is triggered (preventDefault).
+    (wrapper.vm as any).uploadValue = "https://example.com/a.png";
+    await nextTick();
+    expect(fireBeforeUnload()).toBe(true);
 
     wrapper.unmount();
-    expect(window.onbeforeunload).toBeNull();
+    expect(removeSpy).toHaveBeenCalledWith("beforeunload", expect.any(Function));
   });
 
   it("initializes tag-query autocomplete for the Locked Tags field (admin)", async () => {

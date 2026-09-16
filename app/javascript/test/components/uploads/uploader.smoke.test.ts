@@ -13,7 +13,7 @@ afterEach(unmountAll);
 describe("uploads/uploader — mount smoke", () => {
   it("mounts the full tree without throwing", async () => {
     const { wrapper } = await mountUploader();
-    expect(wrapper.find(".flex-grid-outer").exists()).toBe(true);
+    expect(wrapper.find("#preview-sidebar").exists()).toBe(true);
     expect(wrapper.find("button[accesskey='s']").text()).toBe("Upload");
   });
 

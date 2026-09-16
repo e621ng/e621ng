@@ -1,7 +1,7 @@
 <template>
   <template v-for="(group, gi) in renderGroups" :key="gi">
     <hr v-if="gi > 0">
-    <div class="flex-wrap">
+    <div class="toggle-button-group">
       <image-checkbox
         :check="check"
         :model-value="!!selected[tagNameOf(check)]"
