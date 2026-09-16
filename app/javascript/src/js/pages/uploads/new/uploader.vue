@@ -13,6 +13,7 @@
         </div>
         <file-input @change="onFileChange"></file-input>
         <similar-posts
+          v-if="iqdbEnabled"
           :upload-value="uploadValue"
           :invalid-upload-value="invalidUploadValue"
           :whitelist-allowed="whitelistAllowed"
@@ -329,6 +330,7 @@
   import CurrentUser from "@/models/CurrentUser";
   import UploadData from "@/models/UploadData";
   import TagCategories from "@/utility/TagCategories";
+  import Settings from "@/utility/Settings";
   import { tagRegistryKey, type TagSource } from "./registry";
   import type { PreviewData, UploadChange } from "@/components/uploads/types";
 
@@ -350,6 +352,7 @@
   const allowLockedTags = CurrentUser.is.admin;
   const allowRatingLock = CurrentUser.is.privileged;
   const allowUploadAsPending = CurrentUser.can.uploadFree;
+  const iqdbEnabled = Settings.Iqdb.enabled;
 
   const showErrors = ref(false);
   const submitting = ref(false);
