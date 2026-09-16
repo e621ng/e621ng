@@ -1,6 +1,6 @@
 import type { VideoPlayerElement } from "@videojs/html/video";
 
-async function importVideoJS() {
+async function importVideoJS () {
   // player must be loaded first
   await import("@videojs/html/video/player");
 
@@ -21,7 +21,7 @@ class VideoPlayer {
   private videoElement: HTMLVideoElement;
   private muteButton: HTMLElement;
 
-  public constructor(private container: VideoPlayerElement) {
+  public constructor (private container: VideoPlayerElement) {
     this.videoElement = container.querySelector("video");
     this.muteButton = container.querySelector(".mute-button");
     this.videoElement.addEventListener("volumechange", this.volumeChange);
@@ -31,7 +31,7 @@ class VideoPlayer {
   private volumeChange = () => {
     const value = this.videoElement.muted ? 0 : this.videoElement.volume;
     this.muteButton
-      .querySelectorAll(".icon")
+      .querySelectorAll(".icon.show")
       .forEach((e) => e.classList.remove("show"));
     this.muteButton
       .querySelector(`.icon.${VideoPlayer.getVolumeIconFromValue(value)}`)
@@ -39,7 +39,7 @@ class VideoPlayer {
     this.storeVolume();
   };
 
-  public storeVolume() {
+  public storeVolume () {
     // muted != volume set to 0. so if we find it being muted, just store it as 0
     localStorage.setItem(
       "video_volume",
@@ -47,13 +47,13 @@ class VideoPlayer {
     );
   }
 
-  public loadVolume() {
+  public loadVolume () {
     this.videoElement.volume = parseFloat(
       localStorage.getItem("video_volume") || "1.0",
     );
   }
 
-  public static getVolumeIconFromValue(value: number) {
+  public static getVolumeIconFromValue (value: number) {
     if (value == 0) return "muted";
     if (value <= 0.5) return "low";
     return "high";
