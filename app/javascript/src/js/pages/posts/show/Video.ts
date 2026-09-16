@@ -13,7 +13,7 @@ async function importVideoJS() {
     import("@videojs/html/ui/volume-popover"),
     import("@videojs/html/ui/mute-button"),
     import("@videojs/html/ui/time-slider"),
-    import("@videojs/html/ui/fullscreen-button")
+    import("@videojs/html/ui/fullscreen-button"),
   ]);
 }
 
@@ -24,30 +24,39 @@ class VideoPlayer {
   public constructor(private container: VideoPlayerElement) {
     this.videoElement = container.querySelector("video");
     this.muteButton = container.querySelector(".mute-button");
-    this.videoElement.addEventListener("volumechange", this.volumeChange)
-    this.loadVolume()
+    this.videoElement.addEventListener("volumechange", this.volumeChange);
+    this.loadVolume();
   }
 
   private volumeChange = () => {
     const value = this.videoElement.muted ? 0 : this.videoElement.volume;
-    this.muteButton.querySelectorAll(".icon").forEach(e => e.classList.remove("show"))
-    this.muteButton.querySelector(`.icon.${VideoPlayer.getVolumeIconFromValue(value)}`).classList.add("show")
-    this.storeVolume()
-  }
+    this.muteButton
+      .querySelectorAll(".icon")
+      .forEach((e) => e.classList.remove("show"));
+    this.muteButton
+      .querySelector(`.icon.${VideoPlayer.getVolumeIconFromValue(value)}`)
+      .classList.add("show");
+    this.storeVolume();
+  };
 
   public storeVolume() {
     // muted != volume set to 0. so if we find it being muted, just store it as 0
-    localStorage.setItem('video_volume', this.videoElement.muted ? "0" : this.videoElement.volume.toString());
+    localStorage.setItem(
+      "video_volume",
+      this.videoElement.muted ? "0" : this.videoElement.volume.toString(),
+    );
   }
 
   public loadVolume() {
-    this.videoElement.volume = parseFloat(localStorage.getItem("video_volume") || "1.0")
+    this.videoElement.volume = parseFloat(
+      localStorage.getItem("video_volume") || "1.0",
+    );
   }
 
   public static getVolumeIconFromValue(value: number) {
     if (value == 0) return "muted";
-    if (value <= .5) return "low"
-    return "high"
+    if (value <= 0.5) return "low";
+    return "high";
   }
 }
 
