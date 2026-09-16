@@ -110,6 +110,27 @@
 }
 
 
+// style for a variable number of grouped st-buttons
+.compound-button {
+   display: flex;
+
+   > * {
+      border-radius: 0;
+      border-right: 1px var(--color-foreground) solid;
+   }
+
+   > :first-child {
+      @include st-radius-left;
+   }
+
+   > :last-child {
+      border-radius: 0 .25rem .25rem 0;
+      border-right: unset;
+      @include st-radius-right;
+   }
+}
+
+
 // Colored buttons
 .st-button.danger {
   background: palette("background-red");

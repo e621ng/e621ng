@@ -38,10 +38,18 @@
         </media-controls-group>
 
         <media-controls-group class="media-group-extra">
-          <media-fullscreen-button class="fullscreen-button st-button kinetic">
-            <%= svg_icon(:fullscreen_enter, class: "icon enter") %>
-            <%= svg_icon(:fullscreen_exit, class: "icon exit") %>
-          </media-fullscreen-button>
+          <div class="compound-button">
+            <media-fullscreen-button class="fullscreen-button st-button kinetic">
+              <%= svg_icon(:fullscreen_enter, class: "icon enter") %>
+              <%= svg_icon(:fullscreen_exit, class: "icon exit") %>
+            </media-fullscreen-button>
+            <button class="st-button kinetic" commandfor="options-popover">
+              <%= svg_icon(:ellipsis, class: "icon show") %>
+            </button>
+          </div>
+          <media-popover id="options-popover">
+
+          </media-popover>
         </media-controls-group>
       </media-controls-content>
     </media-controls>
