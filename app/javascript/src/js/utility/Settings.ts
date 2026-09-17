@@ -35,11 +35,15 @@ const Settings = {} as {
   Autocomplete: {
     blacklist: RegExp[],
   },
+  Iqdb: {
+    enabled: boolean,
+  },
   Posts: {
     webp_enabled: boolean,
     max_file_size: number,
     max_file_sizes: Record<string, number>,
     video_extensions: string[],
+    default_bg_color: string,
   },
 };
 
@@ -82,6 +86,18 @@ Object.defineProperty(Settings, "Autocomplete", {
   },
 });
 
+Object.defineProperty(Settings, "Iqdb", {
+  configurable: true,
+  get () {
+    const obj = _get()["Iqdb"] || {};
+    const value = {
+      enabled: obj.enabled || false,
+    };
+    Object.defineProperty(Settings, "Iqdb", { value, writable: false });
+    return value;
+  },
+});
+
 Object.defineProperty(Settings, "Posts", {
   configurable: true,
   get () {
@@ -92,6 +108,8 @@ Object.defineProperty(Settings, "Posts", {
       max_file_sizes: obj.max_file_sizes || {},
       // Degrade to the known set rather than treating every video URL as an image.
       video_extensions: obj.video_extensions || ["webm", "mp4"],
+      // Bare hex, no "#" — same format Danbooru.config.default_bg_color uses.
+      default_bg_color: obj.default_bg_color || "152f56",
     };
     Object.defineProperty(Settings, "Posts", { value, writable: false });
     return value;

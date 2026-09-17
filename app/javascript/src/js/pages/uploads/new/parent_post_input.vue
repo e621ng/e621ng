@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="upload-parent">
     <input 
       :value="modelValue" 
       @input="handleInput"

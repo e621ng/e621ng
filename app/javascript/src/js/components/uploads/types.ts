@@ -9,4 +9,7 @@ export interface UploadChange {
   value: string | File;
   preview: PreviewData;
   invalid: boolean;
+  // Whitelist verdict for a URL value. undefined = lookup in flight, no URL,
+  // or a File is selected — "hold", not "denied".
+  whitelistAllowed?: boolean;
 }

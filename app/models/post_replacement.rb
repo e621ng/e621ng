@@ -30,8 +30,9 @@ class PostReplacement < ApplicationRecord
     end
   end
   validate on: :create do |replacement|
-    next if replacement_file.nil?
-    FileValidator.new(replacement, replacement_file.path, test_resolution: !is_backup).validate
+    # The backup holds the post's current file, which may predate newer validation rules.
+    next if replacement_file.nil? || is_backup
+    FileValidator.new(replacement, replacement_file.path).validate
     throw :abort if errors.any?
   end
   validate :no_pending_duplicates, on: :create

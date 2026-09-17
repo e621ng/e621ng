@@ -46,6 +46,25 @@ describe("uploads/related", () => {
     expect(titles(w)).toContain("Loading Related Tags");
   });
 
+  it("renders the loading row inert: no anchor, no emit on click", async () => {
+    const w = make({ loading: true });
+    const section = w.findAll(".related-section")
+      .find((s) => s.find(".related-title").text() === "Loading Related Tags")!;
+    expect(section.find("a").exists()).toBe(false);
+
+    await section.find(".related-item").trigger("click");
+    expect(w.emitted("tag-active")).toBeUndefined();
+  });
+
+  it("follows prop updates to the group sources after mount", async () => {
+    const w = make(); // no uploadedTags/recentTags
+    expect(titles(w)).toEqual([]);
+
+    await w.setProps({ recentTags: [{ name: "zzz", category_id: 0 }, { name: "aaa", category_id: 0 }] });
+    expect(titles(w)).toContain("Recent");
+    expect(itemText(w)).toEqual(["aaa", "zzz"]);
+  });
+
   it("splits a group into rows of 15", () => {
     const tags = Array.from({ length: 20 }, (_, i) => ({ name: `t${i}`, category_id: 0 }));
     const w = make({ related: [{ title: "Big", tags }] });

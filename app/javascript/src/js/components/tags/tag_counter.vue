@@ -1,5 +1,5 @@
 <template>
-  <span class="options">
+  <span class="tag-counter">
     <!-- eslint-disable-next-line vue/no-v-html -->
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -23,8 +23,7 @@ import { computed } from "vue";
 import SVGIcon from "@/utility/SVGIcon";
 import { splitTags } from "./tag_field";
 
-// The tag counter (count + mood face) for a tag-string input, styled by
-// specific/tags.scss (.options / .face / .count).
+// The tag counter for a tag-string input, styled by specific/tags.scss (.tag-counter / .face / .count).
 const props = withDefaults(defineProps<{ tags?: string }>(), { tags: "" });
 
 // Unique raw tokens, no case folding — matches the retired Post.update_tag_count.
