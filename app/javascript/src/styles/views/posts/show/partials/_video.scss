@@ -23,63 +23,125 @@
       background: linear-gradient(to bottom, transparent 75%, var(--color-background) 100%);
     }
 
-    media-controls-content {
-      margin: 1.5rem;
-      z-index: 1;
-      width: 100%;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 1rem;
-
-      .icon {
-        display: none;
-        margin: -0.5rem;
-
-        &.show {
-          display: block;
-        }
-      }
-
-      .media-group-basic, .media-group-extra {
-        display: flex;
-        gap: .5rem;
-      }
-
-      .media-group-playback {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: .25rem;
-      }
-
-      .fullscreen-button {
-        &[data-fullscreen] .icon.exit {
-          display: block;
-        }
-
-        &:not([data-fullscreen]) .icon.enter {
-          display: block;
-        }
-      }
-
-      .play-button {
-        background-color: palette("background-gold-d10");
-        --kinetic-color: #{palette("background-gold-d30")};
-        color: black;
-
-        &[data-paused] .icon.play {
-          display: block;
-        }
-
-        &:not([data-paused]) .icon.pause {
-          display: block;
-        }
-      }
-    }
-
     &[data-user-active] {
       opacity: 1;
       pointer-events: unset;
+    }
+  }
+
+  media-controls-content {
+    margin: 1.5rem;
+    z-index: 1;
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+
+    .icon {
+      display: none;
+      margin: -0.5rem;
+      scale: .75;
+
+      &.show {
+        display: block;
+      }
+    }
+
+    .media-group-basic, .media-group-extra {
+      display: flex;
+      gap: .5rem;
+    }
+
+    .media-group-playback {
+      display: flex;
+      flex-direction: column;
+      justify-content: end;
+      gap: .25rem;
+    }
+
+    .media-time-wrapper {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .media-time-slider {
+      position: relative;
+      // to make it easier to grab
+      margin-block: -.25rem;
+      padding-block: .25rem;
+
+      .media-slider-track {
+        height: .5rem;
+        background-color: var(--color-foreground);
+        display: block;
+
+        > * {
+          position: absolute;
+          background-color: var(--color-link);
+          inset-block: 0;
+          width: var(--media-slider-fill);
+        }
+
+        .media-slider-buffer {
+          opacity: .15;
+          width: var(--media-slider-buffer);
+        }
+      }
+
+      .media-slider-thumb {
+        $size: 1rem;
+        --pos: var(--media-slider-fill);
+        position: absolute;
+        width: $size;
+        height: $size;
+        left: max(calc(var(--pos) - $size), 0%);
+        top: 0;
+        aspect-ratio: 1;
+        background-color: var(--color-link);
+        transform-origin: top;
+        scale: 1 0;
+        cursor: pointer;
+        transition: scale .25s;
+
+        &:hover {
+          background: white;
+        }
+      }
+
+      &[data-pointing] .media-slider-thumb {
+        scale: 1;
+      }
+
+      &[data-dragging] .media-slider-thumb {
+        background: none;
+        box-sizing: border-box;
+        border: 3px dashed palette("background-gold-d10");
+        --pos: var(--media-slider-pointer);
+      }
+    }
+  }
+
+  .fullscreen-button {
+    &[data-fullscreen] .icon.exit {
+      display: block;
+    }
+
+    &:not([data-fullscreen]) .icon.enter {
+      display: block;
+    }
+  }
+
+  .play-button {
+    background-color: palette("background-gold-d10");
+    --kinetic-color: #{palette("background-gold-d30")};
+    color: black;
+
+    &[data-paused] .icon.play {
+      display: block;
+    }
+
+    &:not([data-paused]) .icon.pause {
+      display: block;
     }
   }
 }
