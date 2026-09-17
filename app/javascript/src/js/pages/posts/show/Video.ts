@@ -1,5 +1,7 @@
 import type { VideoPlayerElement } from "@videojs/html/video";
 
+const defaultVolume = "0.25";
+
 async function importVideoJS () {
   // player must be loaded first
   await import("@videojs/html/video/player");
@@ -48,7 +50,7 @@ class VideoPlayer {
   }
 
   public loadVolume () {
-    this.videoElement.volume = parseFloat(localStorage.getItem("video_volume") || "1.0");
+    this.videoElement.volume = parseFloat(localStorage.getItem("video_volume") || defaultVolume);
     this.videoElement.muted = localStorage.getItem("video_muted") === "true";
     this.volumeChange();
   }
