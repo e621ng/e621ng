@@ -14,7 +14,7 @@
     align-items: flex-end;
     opacity: 0;
     pointer-events: none;
-    transition: opacity .5s 1s;
+    transition: opacity .25s 1s;
 
     .controls-backdrop {
       position: absolute;
@@ -100,9 +100,9 @@
         top: 0;
         aspect-ratio: 1;
         background-color: var(--color-link);
-        scale: 1 0;
+        scale: 1 0.5;
         cursor: pointer;
-        transition: scale .25s;
+        transition: scale .15s;
 
         &:hover {
           background: white;
