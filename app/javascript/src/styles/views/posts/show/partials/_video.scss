@@ -14,7 +14,7 @@
     align-items: flex-end;
     opacity: 0;
     pointer-events: none;
-    transition: opacity .5s;
+    transition: opacity .5s 1s;
 
     .controls-backdrop {
       position: absolute;
@@ -26,6 +26,7 @@
     &[data-user-active] {
       opacity: 1;
       pointer-events: unset;
+      transition-delay: 0s;
     }
   }
 
@@ -74,6 +75,7 @@
         height: .5rem;
         background-color: var(--color-foreground);
         display: block;
+        position: relative;
 
         > * {
           position: absolute;
@@ -98,7 +100,6 @@
         top: 0;
         aspect-ratio: 1;
         background-color: var(--color-link);
-        transform-origin: top;
         scale: 1 0;
         cursor: pointer;
         transition: scale .25s;
@@ -113,9 +114,7 @@
       }
 
       &[data-dragging] .media-slider-thumb {
-        background: none;
-        box-sizing: border-box;
-        border: 3px dashed palette("background-gold-d10");
+        background: white;
         --pos: var(--media-slider-pointer);
       }
     }
