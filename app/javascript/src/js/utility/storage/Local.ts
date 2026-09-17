@@ -85,6 +85,11 @@ class LStorage extends StorageObject {
     Recommendations: "artist" as "artist" | "tags",
     AutocompleteCache: true,
 
+    Video: {
+      Volume: 0.25,
+      Muted: false,
+    },
+
     TagScript: {
       ID: 1,
       Content: "",
@@ -285,6 +290,11 @@ const StorageKeys: StorageConfig<LStorage> = {
     TagPreview: "e6.posts.tagpreview",
     Recommendations: "e6.posts.recommended.type",
     AutocompleteCache: "e6.posts.acache",
+
+    Video: {
+      Volume: "e6.posts.video.volume",
+      Muted: "e6.posts.video.muted",
+    },
 
     TagScript: {
       ID: "current_tag_script_id",

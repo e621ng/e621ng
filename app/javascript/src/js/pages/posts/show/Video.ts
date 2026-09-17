@@ -1,6 +1,5 @@
+import LStorage from "@/utility/storage/Local";
 import type { VideoPlayerElement } from "@videojs/html/video";
-
-const defaultVolume = "0.25";
 
 async function importVideoJS () {
   // player must be loaded first
@@ -45,13 +44,13 @@ class VideoPlayer {
 
   public storeVolume () {
     // muted != volume set to 0. we store both states to allow muting and unmuting while retaining vol.
-    localStorage.setItem("video_volume", this.videoElement.volume.toString());
-    localStorage.setItem("video_muted", this.videoElement.muted.toString());
+    LStorage.Posts.Video.Volume = this.videoElement.volume;
+    LStorage.Posts.Video.Muted = this.videoElement.muted;
   }
 
   public loadVolume () {
-    this.videoElement.volume = parseFloat(localStorage.getItem("video_volume") || defaultVolume);
-    this.videoElement.muted = localStorage.getItem("video_muted") === "true";
+    this.videoElement.volume = LStorage.Posts.Video.Volume;
+    this.videoElement.muted = LStorage.Posts.Video.Muted;
     this.volumeChange();
   }
 
