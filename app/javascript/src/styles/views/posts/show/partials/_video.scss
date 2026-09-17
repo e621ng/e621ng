@@ -98,11 +98,19 @@
         height: $size;
         left: max(calc(var(--pos) - $size), 0%);
         top: 0;
-        aspect-ratio: 1;
         background-color: var(--color-link);
-        scale: 1 0.5;
         cursor: pointer;
-        transition: scale .15s;
+        transform-origin: left center;
+        animation: scale-out .15s linear forwards;
+
+        @keyframes scale-out {
+          50% {
+            scale: 1 0.5;
+          }
+          100% {
+            scale: .25 0.5;
+          }
+        }
 
         &:hover {
           background: white;
@@ -110,6 +118,7 @@
       }
 
       &[data-pointing] .media-slider-thumb {
+        animation: none;
         scale: 1;
       }
 
