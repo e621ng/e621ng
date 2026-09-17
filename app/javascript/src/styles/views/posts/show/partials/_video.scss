@@ -51,6 +51,11 @@
     .media-group-basic, .media-group-extra {
       display: flex;
       gap: .5rem;
+
+      // immediate children are buttons
+      & > * {
+        cursor: pointer;
+      }
     }
 
     .media-group-playback {
