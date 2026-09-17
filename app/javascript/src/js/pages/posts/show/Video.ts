@@ -31,28 +31,25 @@ class VideoPlayer {
   }
 
   private volumeChange = () => {
-    const value = this.videoElement.muted ? 0 : this.videoElement.volume;
+    const actualValue = this.videoElement.muted ? 0 : this.videoElement.volume;
     this.muteButton
       .querySelectorAll(".icon.show")
       .forEach((e) => e.classList.remove("show"));
     this.muteButton
-      .querySelector(`.icon.${VideoPlayer.getVolumeIconFromValue(value)}`)
+      .querySelector(`.icon.${VideoPlayer.getVolumeIconFromValue(actualValue)}`)
       .classList.add("show");
     this.storeVolume();
   };
 
   public storeVolume () {
-    // muted != volume set to 0. so if we find it being muted, just store it as 0
-    localStorage.setItem(
-      "video_volume",
-      this.videoElement.muted ? "0" : this.videoElement.volume.toString(),
-    );
+    // muted != volume set to 0. we store both states to allow muting and unmuting while retaining vol.
+    localStorage.setItem("video_volume", this.videoElement.volume.toString());
+    localStorage.setItem("video_muted", this.videoElement.muted.toString());
   }
 
   public loadVolume () {
-    this.videoElement.volume = parseFloat(
-      localStorage.getItem("video_volume") || "1.0",
-    );
+    this.videoElement.volume = parseFloat(localStorage.getItem("video_volume") || "1.0");
+    this.videoElement.muted = localStorage.getItem("video_muted") === "true";
     this.volumeChange();
   }
 
