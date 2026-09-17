@@ -14,6 +14,8 @@ async function importVideoJS () {
     import("@videojs/html/ui/mute-button"),
     import("@videojs/html/ui/time-slider"),
     import("@videojs/html/ui/fullscreen-button"),
+    // @ts-expect-error this thing doesn't have any d.ts file defined.
+    import("@videojs/html/ui/popover"),
   ]);
 }
 
@@ -51,6 +53,7 @@ class VideoPlayer {
     this.videoElement.volume = parseFloat(
       localStorage.getItem("video_volume") || "1.0",
     );
+    this.volumeChange();
   }
 
   public static getVolumeIconFromValue (value: number) {
