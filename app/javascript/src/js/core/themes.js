@@ -1,12 +1,12 @@
 import Page from "@/utility/Page";
-import LStorage from "@/utility/storage/Local";
 import CStorage from "@/utility/storage/Cookie";
+import LStorage from "@/utility/storage/Local";
 
 const Theme = {};
 
 Theme.Values = {
   "Theme": ["Main", "Extra", "Palette", "Font", "StickyHeader", "Navbar", "Gestures", "Logo"],
-  "Posts": ["WikiExcerpt", "StickySearch", "AutocompleteCache"],
+  "Posts": ["WikiExcerpt", "StickySearch", "AutocompleteCache", "VideoPlayer"],
   "Site": ["Events", "TimeSwitch"],
 };
 

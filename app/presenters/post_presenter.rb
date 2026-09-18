@@ -65,7 +65,8 @@ class PostPresenter < Presenter
       class: initial_video_class(CurrentUser.user),
       loop: "true",
       controlslist: "nodownload",
-      playsinline: "playsinline"
+      playsinline: "playsinline",
+      controls: "controls"
     }
   end
 

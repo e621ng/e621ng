@@ -22,11 +22,9 @@ async function importVideoJS () {
 
 class VideoPlayer {
   private videoElement: HTMLVideoElement;
-  private muteButton: HTMLElement;
 
   public constructor (private container: VideoPlayerElement) {
     this.videoElement = container.querySelector("video");
-    this.muteButton = container.querySelector(".mute-button");
     this.videoElement.addEventListener("volumechange", this.volumeChange);
     this.loadVolume();
   }
@@ -34,6 +32,11 @@ class VideoPlayer {
   private volumeChange = () => {
     this.storeVolume();
   };
+
+  public async useCustom () {
+    await importVideoJS();
+    this.videoElement.controls = false;
+  }
 
   public storeVolume () {
     // muted != volume set to 0. we store both states to allow muting and unmuting while retaining vol.
@@ -52,7 +55,8 @@ class VideoPlayer {
   const videoPlayerContainer = $<VideoPlayerElement>(".video-player");
   if (!videoPlayerContainer.length) return;
 
-  await importVideoJS();
+  const player = new VideoPlayer(videoPlayerContainer[0]);
 
-  new VideoPlayer(videoPlayerContainer[0]);
+  if (LStorage.Posts.VideoPlayer === "custom")
+    await player.useCustom();
 })();
