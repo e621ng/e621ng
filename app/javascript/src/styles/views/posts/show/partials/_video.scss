@@ -14,7 +14,7 @@
     align-items: flex-end;
     opacity: 0;
     pointer-events: none;
-    transition: opacity .25s 1s;
+    transition: opacity .25s;
 
     .controls-backdrop {
       position: absolute;
@@ -154,6 +154,13 @@
     }
 
     &:not([data-paused]) .icon.pause {
+      display: block;
+    }
+  }
+
+  // handle display of different volume icons
+  @each $icon in ("off", "low", "medium", "high") {
+    .volume-button[data-volume-level=#{$icon}] .icon.#{$icon} {
       display: block;
     }
   }

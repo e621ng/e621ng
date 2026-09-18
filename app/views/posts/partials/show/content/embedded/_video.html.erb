@@ -15,10 +15,10 @@
             <%= svg_icon(:play, class: "icon play") %>
             <%= svg_icon(:pause, class: "icon pause") %>
           </media-play-button>
-          <media-mute-button class="st-button kinetic mute-button" commandfor="volume-popup">
+          <media-mute-button class="st-button kinetic volume-button" commandfor="volume-popup">
             <%= svg_icon(:volume_low, class: "icon low") %>
-            <%= svg_icon(:volume_high, class: "icon high") %>
-            <%= svg_icon(:volume_muted, class: "icon muted") %>
+            <%= svg_icon(:volume_high, class: "icon high medium") %>
+            <%= svg_icon(:volume_muted, class: "icon off") %>
           </media-mute-button>
           <media-volume-popover id="volume-popup" open-on-hover>
             <media-volume-slider></media-volume-slider>

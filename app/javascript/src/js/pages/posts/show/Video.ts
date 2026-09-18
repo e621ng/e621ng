@@ -32,13 +32,6 @@ class VideoPlayer {
   }
 
   private volumeChange = () => {
-    const actualValue = this.videoElement.muted ? 0 : this.videoElement.volume;
-    this.muteButton
-      .querySelectorAll(".icon.show")
-      .forEach((e) => e.classList.remove("show"));
-    this.muteButton
-      .querySelector(`.icon.${VideoPlayer.getVolumeIconFromValue(actualValue)}`)
-      .classList.add("show");
     this.storeVolume();
   };
 
@@ -52,12 +45,6 @@ class VideoPlayer {
     this.videoElement.volume = LStorage.Posts.Video.Volume;
     this.videoElement.muted = LStorage.Posts.Video.Muted;
     this.volumeChange();
-  }
-
-  public static getVolumeIconFromValue (value: number) {
-    if (value == 0) return "muted";
-    if (value <= 0.5) return "low";
-    return "high";
   }
 }
 
