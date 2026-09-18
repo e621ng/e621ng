@@ -20,8 +20,11 @@
             <%= svg_icon(:volume_high, class: "icon high medium") %>
             <%= svg_icon(:volume_muted, class: "icon off") %>
           </media-mute-button>
-          <media-volume-popover id="volume-popup" open-on-hover>
-            <media-volume-slider></media-volume-slider>
+          <media-volume-popover class="media-volume-popup" id="volume-popup" open-on-hover>
+            <media-volume-slider class="media-volume-slider" orientation="vertical">
+              <media-slider-fill class="media-slider-fill"></media-slider-fill>
+              <media-slider-thumb class="media-slider-thumb"></media-slider-thumb>
+            </media-volume-slider>
           </media-volume-popover>
         </media-controls-group>
 
@@ -50,7 +53,7 @@
               <%= svg_icon(:ellipsis, class: "icon show") %>
             </button>
           </div>
-          <media-popover id="options-popover">
+          <media-popover id="options-popover" class="media-options-popup">
 
           </media-popover>
         </media-controls-group>

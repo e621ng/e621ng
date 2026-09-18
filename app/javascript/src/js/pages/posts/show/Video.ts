@@ -12,6 +12,7 @@ async function importVideoJS () {
     import("@videojs/html/ui/play-button"),
     import("@videojs/html/ui/time"),
     import("@videojs/html/ui/volume-popover"),
+    import("@videojs/html/ui/volume-slider"),
     import("@videojs/html/ui/mute-button"),
     import("@videojs/html/ui/time-slider"),
     import("@videojs/html/ui/fullscreen-button"),

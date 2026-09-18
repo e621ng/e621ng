@@ -106,9 +106,9 @@
         background-color: var(--color-link);
         cursor: pointer;
         transform-origin: left center;
-        animation: scale-out .15s linear forwards;
+        animation: seekbar-thumb-scale .15s linear forwards;
 
-        @keyframes scale-out {
+        @keyframes seekbar-thumb-scale {
           50% {
             scale: 1 0.5;
           }
@@ -162,6 +162,75 @@
   @each $icon in ("off", "low", "medium", "high") {
     .volume-button[data-volume-level=#{$icon}] .icon.#{$icon} {
       display: block;
+    }
+  }
+
+  [data-popup] {
+    border: none;
+    background: var(--color-section-lighten-10);
+    display: none;
+    padding: 0;
+    @include st-radius-top;
+
+    &[data-open] {
+      display: grid;
+    }
+  }
+
+  .volume-button[aria-expanded="true"] {
+    // remove top border radius
+    @include st-radius-bottom;
+    background: var(--color-section-lighten-10);
+  }
+
+  .media-volume-popup {
+    width: 32px; // same as button size
+
+    @keyframes volume-slider-open {
+      from {
+        height: 0rem;
+      }
+      to {
+        height: 7rem;
+      }
+    }
+
+    &[data-open] {
+      animation: volume-slider-open .25s forwards;
+    }
+
+    .media-volume-slider {
+      position: relative;
+      margin: .25rem;
+      margin-bottom: 0;
+      @include st-radius;
+      background: var(--color-foreground);
+      overflow: hidden;
+
+      .media-slider-fill {
+        position: absolute;
+        inset-inline: 0;
+        bottom: 0;
+        background: var(--color-link);
+        height: var(--media-slider-fill);
+      }
+
+      .media-slider-thumb {
+        position: absolute;
+        inset-inline: 0;
+        height: .25rem;
+        background: white;
+        bottom: var(--media-slider-fill);
+        transform-origin: top;
+        translate: 0 50%;
+        transition: scale .15s;
+      }
+
+      &[data-pointing] {
+        .media-slider-thumb {
+          scale: 1 2;
+        }
+      }
     }
   }
 }
