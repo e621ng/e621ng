@@ -23,7 +23,7 @@
       background: linear-gradient(to bottom, transparent 75%, var(--color-background) 100%);
     }
 
-    &.loaded[data-user-active] {
+    &.loaded[data-visible] {
       opacity: 1;
       pointer-events: unset;
       transition-delay: 0s;
@@ -160,31 +160,23 @@
 
   // handle display of different volume icons
   @each $icon in ("off", "low", "medium", "high") {
-    .volume-button[data-volume-level=#{$icon}] .icon.#{$icon} {
+    .volume-button[data-volume-level="#{$icon}"] .icon.#{$icon} {
       display: block;
     }
   }
 
   [data-popup] {
+    width: 32px; // same as button size
     border: none;
     background: var(--color-section-lighten-10);
     display: none;
     padding: 0;
     @include st-radius-top;
-
-    &[data-open] {
-      display: grid;
-    }
-  }
-
-  .volume-button[aria-expanded="true"] {
-    // remove top border radius
-    @include st-radius-bottom;
-    background: var(--color-section-lighten-10);
   }
 
   .media-volume-popup {
-    width: 32px; // same as button size
+    position: relative;
+    overflow: hidden;
 
     @keyframes volume-slider-open {
       from {
@@ -197,16 +189,15 @@
 
     &[data-open] {
       animation: volume-slider-open .25s forwards;
+      display: grid;
     }
   }
 
   .media-volume-slider {
-    position: relative;
     margin: .25rem;
     margin-bottom: 0;
     @include st-radius;
     background: var(--color-foreground);
-    overflow: hidden;
 
     .media-slider-fill {
       position: absolute;
@@ -232,5 +223,51 @@
         scale: 1 2;
       }
     }
+  }
+
+  .media-options-popup {
+    flex-direction: column;
+    align-items: center;
+    color: var(--color-text);
+
+    & > * {
+      width: 100%;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .rate-button {
+      position: relative;
+
+      &::after {
+        position: absolute;
+        content: attr(data-rate);
+        background-color: var(--palette-background-gold-d10);
+        color: black;
+        border-radius: 50%;
+        font-size: .5rem;
+        font-weight: 700;
+        bottom: 0;
+        right: 0;
+        width: 1rem;
+        text-align: center;
+      }
+
+      // just dont show the label if its already set to one
+      &[data-rate="1"]::after {
+        content: none;
+      }
+    }
+
+    &[data-open] {
+      display: flex;
+    }
+  }
+
+  [aria-expanded="true"] {
+    // remove top border radius for expander buttons
+    @include st-radius-bottom;
+    background: var(--color-section-lighten-10);
   }
 }

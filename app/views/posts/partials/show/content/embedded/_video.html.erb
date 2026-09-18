@@ -54,7 +54,12 @@
             </button>
           </div>
           <media-popover id="options-popover" class="media-options-popup">
-
+            <media-pip-button>
+              <%= svg_icon(:picture_in_picture, class: "icon show") %>
+            </media-pip-button>
+            <media-playback-rate-button class="rate-button">
+              <%= svg_icon(:playback_rate, class: "icon show") %>
+            </media-playback-rate-button>
           </media-popover>
         </media-controls-group>
       </media-controls-content>
