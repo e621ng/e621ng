@@ -198,38 +198,38 @@
     &[data-open] {
       animation: volume-slider-open .25s forwards;
     }
+  }
 
-    .media-volume-slider {
-      position: relative;
-      margin: .25rem;
-      margin-bottom: 0;
-      @include st-radius;
-      background: var(--color-foreground);
-      overflow: hidden;
+  .media-volume-slider {
+    position: relative;
+    margin: .25rem;
+    margin-bottom: 0;
+    @include st-radius;
+    background: var(--color-foreground);
+    overflow: hidden;
 
-      .media-slider-fill {
-        position: absolute;
-        inset-inline: 0;
-        bottom: 0;
-        background: var(--color-link);
-        height: var(--media-slider-fill);
-      }
+    .media-slider-fill {
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      background: var(--color-link);
+      height: var(--media-slider-fill);
+    }
 
+    .media-slider-thumb {
+      position: absolute;
+      inset-inline: 0;
+      height: .25rem;
+      background: white;
+      bottom: var(--media-slider-fill);
+      transform-origin: top;
+      translate: 0 50%;
+      transition: scale .15s;
+    }
+
+    &[data-pointing] {
       .media-slider-thumb {
-        position: absolute;
-        inset-inline: 0;
-        height: .25rem;
-        background: white;
-        bottom: var(--media-slider-fill);
-        transform-origin: top;
-        translate: 0 50%;
-        transition: scale .15s;
-      }
-
-      &[data-pointing] {
-        .media-slider-thumb {
-          scale: 1 2;
-        }
+        scale: 1 2;
       }
     }
   }
