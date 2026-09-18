@@ -35,7 +35,10 @@ class VideoPlayer {
 
   public async useCustom () {
     await importVideoJS();
+
+    // only do these after videojs has completely finished importing
     this.videoElement.controls = false;
+    this.container.querySelector("media-controls").classList.add("loaded");
   }
 
   public storeVolume () {

@@ -23,7 +23,7 @@
       background: linear-gradient(to bottom, transparent 75%, var(--color-background) 100%);
     }
 
-    &[data-user-active] {
+    &.loaded[data-user-active] {
       opacity: 1;
       pointer-events: unset;
       transition-delay: 0s;
