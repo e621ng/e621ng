@@ -66,7 +66,7 @@ class PostPresenter < Presenter
       loop: "true",
       controlslist: "nodownload",
       playsinline: "playsinline",
-      controls: "controls"
+      controls: "controls",
     }
   end
 
