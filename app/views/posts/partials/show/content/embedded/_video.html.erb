@@ -8,6 +8,10 @@
 
     <media-controls>
       <media-controls-backdrop class="controls-backdrop"></media-controls-backdrop>
+      <media-seek-indicator class="seek-indicator" aria-hidden="true">
+        <%= svg_icon(:chevron_double_right, class: "icon show") %>
+        <media-seek-indicator-value></media-seek-indicator-value>
+      </media-seek-indicator>
 
       <media-controls-content>
         <media-controls-group class="group-basic">
@@ -33,7 +37,7 @@
             <media-time class="time" type="current"></media-time>
             <media-time class="time" toggle type="duration"></media-time>
           </div>
-          <media-time-slider class="time-slider">
+          <media-time-slider class="time-slider" pause-on-drag>
             <media-slider-track class="slider-track">
               <media-slider-buffer class="slider-buffer"></media-slider-buffer>
               <media-slider-fill class="slider-fill"></media-slider-fill>

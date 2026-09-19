@@ -1,5 +1,9 @@
 import LStorage from "@/utility/storage/Local";
+import { TimeSliderElement } from "@videojs/html";
 import type { VideoPlayerElement } from "@videojs/html/video";
+
+const seekingUpdateDelay = 150;
+
 
 async function importVideoJS () {
   // player must be loaded first
@@ -18,31 +22,24 @@ async function importVideoJS () {
     import("@videojs/html/ui/fullscreen-button"),
     import("@videojs/html/ui/pip-button"),
     import("@videojs/html/ui/playback-rate-button"),
+    import("@videojs/html/ui/seek-indicator"),
     // @ts-expect-error this thing doesn't have any d.ts file defined.
     import("@videojs/html/ui/popover"),
   ]);
 }
 
 class VideoPlayer {
-  private videoElement: HTMLVideoElement;
+  protected videoElement: HTMLVideoElement;
 
-  public constructor (private container: VideoPlayerElement) {
-    this.videoElement = container.querySelector("video");
-    this.videoElement.addEventListener("volumechange", this.onChange);
-    this.videoElement.addEventListener("ratechange", this.onChange);
+  public constructor (protected containerElement: VideoPlayerElement) {
+    this.videoElement = containerElement.querySelector("video");
+    this.videoElement.addEventListener("volumechange", this.onSettingChange);
+    this.videoElement.addEventListener("ratechange", this.onSettingChange);
   }
 
-  private onChange = () => {
+  protected onSettingChange = () => {
     this.storeSettings();
   };
-
-  public async useCustom () {
-    await importVideoJS();
-
-    // only do these after videojs has completely finished importing
-    this.videoElement.controls = false;
-    this.container.querySelector("media-controls").classList.add("loaded");
-  }
 
   public storeSettings () {
     // muted != volume set to 0. we store both states to allow muting and unmuting while retaining vol.
@@ -55,19 +52,60 @@ class VideoPlayer {
     this.videoElement.volume = LStorage.Posts.Video.Volume;
     this.videoElement.muted = LStorage.Posts.Video.Muted;
     this.videoElement.playbackRate = LStorage.Posts.Video.PlaybackRate;
-    this.onChange();
+    this.onSettingChange();
   }
 }
 
+class CustomVideoPlayer extends VideoPlayer {
+  private timeSliderElement: TimeSliderElement;
+  private slidingInterval: number;
+  private isLoopable: boolean;
+
+  public constructor (protected containerElement: VideoPlayerElement) {
+    super(containerElement);
+    this.isLoopable = this.videoElement.loop;
+    this.loadVideoJS();
+    this.timeSliderElement = containerElement.querySelector(".time-slider");
+    this.timeSliderElement.addEventListener("drag-start", () => this.handleDragging("start"));
+    this.timeSliderElement.addEventListener("drag-end", () => this.handleDragging("stop"));
+  }
+
+  // seeks the actual video element when the user drags on the time slider
+  private handleDragging (status: "start" | "stop") {
+    if (status === "stop") {
+      clearInterval(this.slidingInterval);
+      this.videoElement.loop = this.isLoopable;
+      return;
+    }
+
+    this.videoElement.loop = false; // this is to temporarily the player from constantly seeking to the start if the pointer is at the end
+    this.slidingInterval = setInterval(() => {
+      const seekingPercentage = parseFloat(this.timeSliderElement.style.getPropertyValue("--media-slider-pointer"));
+      this.videoElement.currentTime = this.videoElement.duration * seekingPercentage / 100;
+    }, seekingUpdateDelay);
+  }
+
+  private async loadVideoJS () {
+    await importVideoJS();
+
+    // only do these after videojs has completely finished importing
+    this.videoElement.controls = false;
+    this.containerElement.querySelector("media-controls").classList.add("loaded");
+  }
+}
+
+function getPlayer (isCustom: boolean): (...a: ConstructorParameters<typeof VideoPlayer>) => VideoPlayer {
+  if (isCustom) return (a) => new CustomVideoPlayer(a);
+  return (a) => new VideoPlayer(a);
+}
+
+
 (async () => {
   // only do anything here if there's a video in the page
-  const videoPlayerContainer = $<VideoPlayerElement>(".video-player");
-  if (!videoPlayerContainer.length) return;
+  const videoPlayerContainer = $<VideoPlayerElement>(".video-player")[0];
+  if (videoPlayerContainer === undefined) return;
 
-  const player = new VideoPlayer(videoPlayerContainer[0]);
-
-  if (LStorage.Posts.VideoPlayer === "custom")
-    await player.useCustom();
+  const player = getPlayer(LStorage.Posts.VideoPlayer === "custom")(videoPlayerContainer);
 
   // load settings after initializing videojs since it does override some previously set stuff
   player.loadSettings();

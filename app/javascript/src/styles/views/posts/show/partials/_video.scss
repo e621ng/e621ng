@@ -47,90 +47,92 @@
         display: block;
       }
     }
+  }
 
-    .group-basic, .group-extra {
-      display: flex;
-      gap: .5rem;
 
-      // immediate children are buttons
-      & > * {
-        cursor: pointer;
-      }
+
+  .group-basic, .group-extra {
+    display: flex;
+    gap: .5rem;
+
+    // immediate children are buttons
+    & > * {
+      cursor: pointer;
     }
+  }
 
-    .group-playback {
-      display: flex;
-      flex-direction: column;
-      justify-content: end;
-      gap: .25rem;
-    }
+  .group-playback {
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    gap: .25rem;
+  }
 
-    .time-wrapper {
-      display: flex;
-      justify-content: space-between;
-    }
+  .time-wrapper {
+    display: flex;
+    justify-content: space-between;
+  }
 
-    .time-slider {
+  .time-slider {
+    position: relative;
+    // to make it easier to grab
+    margin-block: -.25rem;
+    padding-block: .25rem;
+
+    .slider-track {
+      height: .5rem;
+      background-color: var(--color-foreground);
+      display: block;
       position: relative;
-      // to make it easier to grab
-      margin-block: -.25rem;
-      padding-block: .25rem;
 
-      .slider-track {
-        height: .5rem;
-        background-color: var(--color-foreground);
-        display: block;
-        position: relative;
-
-        > * {
-          position: absolute;
-          background-color: var(--color-link);
-          inset-block: 0;
-          width: var(--media-slider-fill);
-        }
-
-        .slider-buffer {
-          opacity: .15;
-          width: var(--media-slider-buffer);
-        }
-      }
-
-      .slider-thumb {
-        $size: 1rem;
-        --pos: var(--media-slider-fill);
+      > * {
         position: absolute;
-        width: $size;
-        height: $size;
-        left: max(calc(var(--pos) - $size), 0%);
-        top: 0;
         background-color: var(--color-link);
-        cursor: pointer;
-        transform-origin: left center;
-        animation: seekbar-thumb-scale .15s linear forwards;
+        inset-block: 0;
+        width: var(--media-slider-fill);
+      }
 
-        @keyframes seekbar-thumb-scale {
-          50% {
-            scale: 1 0.5;
-          }
-          100% {
-            scale: .25 0.5;
-          }
+      .slider-buffer {
+        opacity: .15;
+        width: var(--media-slider-buffer);
+      }
+    }
+
+    .slider-thumb {
+      $size: 1rem;
+      --pos: var(--media-slider-fill);
+      position: absolute;
+      width: $size;
+      height: $size;
+      left: max(calc(var(--pos) - $size), 0%);
+      top: 0;
+      background-color: var(--color-link);
+      cursor: pointer;
+      transform-origin: left center;
+      animation: seekbar-thumb-scale .15s linear forwards;
+
+      @keyframes seekbar-thumb-scale {
+        50% {
+          scale: 1 0.5;
         }
-
-        &:hover {
-          background: white;
+        100% {
+          scale: .25 0.5;
         }
       }
 
-      &[data-pointing] .slider-thumb {
-        animation: none;
-        scale: 1;
-      }
-
-      &[data-dragging] .slider-thumb {
+      &:hover {
         background: white;
-        --pos: var(--media-slider-pointer);
       }
+    }
+
+    &[data-pointing] .slider-thumb {
+      animation: none;
+      scale: 1;
+    }
+
+    &[data-dragging] .slider-thumb {
+      background: white;
+      --pos: var(--media-slider-pointer);
     }
   }
 
@@ -245,12 +247,12 @@
 
     .rate-button {
       position: relative;
-      color: var(--palette-background-gold-d10);
+      color: palette("background-gold-d10");
 
       &::after {
         position: absolute;
         content: attr(data-rate);
-        background-color: var(--palette-background-gold-d10);
+        background-color: palette("background-gold-d10");
         color: black;
         border-radius: 50%;
         font-size: .5rem;
@@ -272,11 +274,46 @@
     }
 
     .pip-button[data-pip] {
-      color: var(--palette-background-gold-d10);
+      color: palette("background-gold-d10");
     }
 
     &[data-open] {
       display: flex;
+    }
+  }
+
+  .seek-indicator {
+    $offset: 1rem;
+    position: absolute;
+    top: 50%;
+    right: $offset;
+    background: var(--color-foreground);
+    @include st-radius;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    font-size: 1rem;
+    padding: 1rem;
+    gap: .5rem;
+    opacity: 0;
+    translate: 0 -50%;
+    transition: opacity .25s;
+
+    .icon {
+      scale: 2;
+    }
+
+    &[data-direction="backward"] {
+      left: $offset;
+      right: unset;
+
+      .icon {
+        scale: -2 2;
+      }
+    }
+
+    &[data-open] {
+      opacity: 1;
     }
   }
 
