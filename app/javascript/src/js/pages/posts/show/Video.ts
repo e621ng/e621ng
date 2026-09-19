@@ -60,14 +60,15 @@ class CustomVideoPlayer extends VideoPlayer {
   private timeSliderElement: TimeSliderElement;
   private slidingInterval: number;
   private isLoopable: boolean;
+  private loadingVideoJsPromise: Promise<void>;
 
   public constructor (protected containerElement: VideoPlayerElement) {
     super(containerElement);
     this.isLoopable = this.videoElement.loop;
-    this.loadVideoJS();
     this.timeSliderElement = containerElement.querySelector(".time-slider");
     this.timeSliderElement.addEventListener("drag-start", () => this.handleDragging("start"));
     this.timeSliderElement.addEventListener("drag-end", () => this.handleDragging("stop"));
+    this.loadingVideoJsPromise = this.loadVideoJS();
   }
 
   // seeks the actual video element when the user drags on the time slider
@@ -92,6 +93,11 @@ class CustomVideoPlayer extends VideoPlayer {
     this.videoElement.controls = false;
     this.containerElement.querySelector("media-controls").classList.add("loaded");
   }
+
+  public loadSettings (): void {
+    // load settings after initializing videojs since it does override some previously set stuff
+    this.loadingVideoJsPromise.then(() => super.loadSettings());
+  }
 }
 
 function getPlayer (isCustom: boolean): (...a: ConstructorParameters<typeof VideoPlayer>) => VideoPlayer {
@@ -107,6 +113,5 @@ function getPlayer (isCustom: boolean): (...a: ConstructorParameters<typeof Vide
 
   const player = getPlayer(LStorage.Posts.VideoPlayer === "custom")(videoPlayerContainer);
 
-  // load settings after initializing videojs since it does override some previously set stuff
   player.loadSettings();
 })();
