@@ -85,7 +85,7 @@
       display: block;
       position: relative;
 
-      > * {
+      .slider-fill, .slider-buffer {
         position: absolute;
         background-color: var(--color-link);
         inset-block: 0;
@@ -130,9 +130,15 @@
       scale: 1;
     }
 
-    &[data-dragging] .slider-thumb {
-      background: white;
-      --pos: var(--media-slider-pointer);
+    &[data-dragging] {
+      .slider-thumb {
+        background: white;
+        --pos: var(--media-slider-pointer);
+      }
+
+      .slider-fill {
+        width: var(--media-slider-pointer); // make seekbar look smoother while dragging
+      }
     }
   }
 
