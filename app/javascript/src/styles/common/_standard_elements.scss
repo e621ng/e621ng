@@ -114,19 +114,19 @@
 .compound-button {
    display: flex;
 
-   > * {
+   > .st-button {
       border-radius: 0;
       border-right: 1px var(--color-foreground) solid;
-   }
 
-   > :first-child {
-      @include st-radius-left;
-   }
+      &:first-child {
+         @include st-radius-left;
+      }
 
-   > :last-child {
-      border-radius: 0 .25rem .25rem 0;
-      border-right: unset;
-      @include st-radius-right;
+      &:last-child {
+         border-radius: 0 .25rem .25rem 0;
+         border-right: unset;
+         @include st-radius-right;
+      }
    }
 }
 
