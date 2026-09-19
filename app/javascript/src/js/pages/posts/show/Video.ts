@@ -28,12 +28,12 @@ class VideoPlayer {
 
   public constructor (private container: VideoPlayerElement) {
     this.videoElement = container.querySelector("video");
-    this.videoElement.addEventListener("volumechange", this.volumeChange);
-    this.loadVolume();
+    this.videoElement.addEventListener("volumechange", this.onChange);
+    this.videoElement.addEventListener("ratechange", this.onChange);
   }
 
-  private volumeChange = () => {
-    this.storeVolume();
+  private onChange = () => {
+    this.storeSettings();
   };
 
   public async useCustom () {
@@ -44,20 +44,23 @@ class VideoPlayer {
     this.container.querySelector("media-controls").classList.add("loaded");
   }
 
-  public storeVolume () {
+  public storeSettings () {
     // muted != volume set to 0. we store both states to allow muting and unmuting while retaining vol.
     LStorage.Posts.Video.Volume = this.videoElement.volume;
     LStorage.Posts.Video.Muted = this.videoElement.muted;
+    LStorage.Posts.Video.PlaybackRate = this.videoElement.playbackRate;
   }
 
-  public loadVolume () {
+  public loadSettings () {
     this.videoElement.volume = LStorage.Posts.Video.Volume;
     this.videoElement.muted = LStorage.Posts.Video.Muted;
-    this.volumeChange();
+    this.videoElement.playbackRate = LStorage.Posts.Video.PlaybackRate;
+    this.onChange();
   }
 }
 
 (async () => {
+  // only do anything here if there's a video in the page
   const videoPlayerContainer = $<VideoPlayerElement>(".video-player");
   if (!videoPlayerContainer.length) return;
 
@@ -65,4 +68,7 @@ class VideoPlayer {
 
   if (LStorage.Posts.VideoPlayer === "custom")
     await player.useCustom();
+
+  // load settings after initializing videojs since it does override some previously set stuff
+  player.loadSettings();
 })();

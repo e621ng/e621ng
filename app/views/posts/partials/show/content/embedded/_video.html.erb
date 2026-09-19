@@ -10,7 +10,7 @@
       <media-controls-backdrop class="controls-backdrop"></media-controls-backdrop>
 
       <media-controls-content>
-        <media-controls-group class="media-group-basic">
+        <media-controls-group class="group-basic">
           <media-play-button class="play-button st-button kinetic">
             <%= svg_icon(:play, class: "icon play") %>
             <%= svg_icon(:pause, class: "icon pause") %>
@@ -20,30 +20,30 @@
             <%= svg_icon(:volume_high, class: "icon high medium") %>
             <%= svg_icon(:volume_muted, class: "icon off") %>
           </media-mute-button>
-          <media-volume-popover class="media-volume-popup" id="volume-popup" open-on-hover>
-            <media-volume-slider class="media-volume-slider" orientation="vertical">
-              <media-slider-fill class="media-slider-fill"></media-slider-fill>
-              <media-slider-thumb class="media-slider-thumb"></media-slider-thumb>
+          <media-volume-popover class="volume-popup" id="volume-popup" open-on-hover>
+            <media-volume-slider class="volume-slider" orientation="vertical">
+              <media-slider-fill class="slider-fill"></media-slider-fill>
+              <media-slider-thumb class="slider-thumb"></media-slider-thumb>
             </media-volume-slider>
           </media-volume-popover>
         </media-controls-group>
 
-        <media-controls-group class="media-group-playback">
-          <div class="media-time-wrapper">
+        <media-controls-group class="group-playback">
+          <div class="time-wrapper">
             <media-time class="time" type="current"></media-time>
             <media-time class="time" toggle type="duration"></media-time>
           </div>
-          <media-time-slider class="media-time-slider">
-            <media-slider-track class="media-slider-track">
-              <media-slider-buffer class="media-slider-buffer"></media-slider-buffer>
-              <media-slider-fill class="media-slider-fill"></media-slider-fill>
+          <media-time-slider class="time-slider">
+            <media-slider-track class="slider-track">
+              <media-slider-buffer class="slider-buffer"></media-slider-buffer>
+              <media-slider-fill class="slider-fill"></media-slider-fill>
             </media-slider-track>
-            <media-slider-thumb class="media-slider-thumb"></media-slider-thumb>
-            <media-slider-value class="media-slider-value" type="pointer"></media-slider-value>
+            <media-slider-thumb class="slider-thumb"></media-slider-thumb>
+            <media-slider-value class="slider-value" type="pointer"></media-slider-value>
           </media-time-slider>
         </media-controls-group>
 
-        <media-controls-group class="media-group-extra">
+        <media-controls-group class="group-extra">
           <div class="compound-button">
             <media-fullscreen-button class="fullscreen-button st-button kinetic">
               <%= svg_icon(:fullscreen_enter, class: "icon enter") %>
@@ -53,8 +53,8 @@
               <%= svg_icon(:ellipsis, class: "icon show") %>
             </button>
           </div>
-          <media-popover id="options-popover" class="media-options-popup">
-            <media-pip-button>
+          <media-popover id="options-popover" class="options-popup">
+            <media-pip-button class="pip-button">
               <%= svg_icon(:picture_in_picture, class: "icon show") %>
             </media-pip-button>
             <media-playback-rate-button class="rate-button">

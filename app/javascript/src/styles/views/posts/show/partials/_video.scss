@@ -48,7 +48,7 @@
       }
     }
 
-    .media-group-basic, .media-group-extra {
+    .group-basic, .group-extra {
       display: flex;
       gap: .5rem;
 
@@ -58,25 +58,25 @@
       }
     }
 
-    .media-group-playback {
+    .group-playback {
       display: flex;
       flex-direction: column;
       justify-content: end;
       gap: .25rem;
     }
 
-    .media-time-wrapper {
+    .time-wrapper {
       display: flex;
       justify-content: space-between;
     }
 
-    .media-time-slider {
+    .time-slider {
       position: relative;
       // to make it easier to grab
       margin-block: -.25rem;
       padding-block: .25rem;
 
-      .media-slider-track {
+      .slider-track {
         height: .5rem;
         background-color: var(--color-foreground);
         display: block;
@@ -89,13 +89,13 @@
           width: var(--media-slider-fill);
         }
 
-        .media-slider-buffer {
+        .slider-buffer {
           opacity: .15;
           width: var(--media-slider-buffer);
         }
       }
 
-      .media-slider-thumb {
+      .slider-thumb {
         $size: 1rem;
         --pos: var(--media-slider-fill);
         position: absolute;
@@ -122,12 +122,12 @@
         }
       }
 
-      &[data-pointing] .media-slider-thumb {
+      &[data-pointing] .slider-thumb {
         animation: none;
         scale: 1;
       }
 
-      &[data-dragging] .media-slider-thumb {
+      &[data-dragging] .slider-thumb {
         background: white;
         --pos: var(--media-slider-pointer);
       }
@@ -153,6 +153,11 @@
       display: block;
     }
 
+    &:hover {
+      background-color: palette("background-gold");
+      --kinetic-color: #{palette("background-gold-d20")};
+    }
+
     &:not([data-paused]) .icon.pause {
       display: block;
     }
@@ -174,7 +179,7 @@
     @include st-radius-top;
   }
 
-  .media-volume-popup {
+  .volume-popup {
     position: relative;
     overflow: hidden;
 
@@ -193,13 +198,14 @@
     }
   }
 
-  .media-volume-slider {
+  .volume-slider {
     margin: .25rem;
     margin-bottom: 0;
     @include st-radius;
     background: var(--color-foreground);
+    position: relative;
 
-    .media-slider-fill {
+    .slider-fill {
       position: absolute;
       inset-inline: 0;
       bottom: 0;
@@ -207,7 +213,7 @@
       height: var(--media-slider-fill);
     }
 
-    .media-slider-thumb {
+    .slider-thumb {
       position: absolute;
       inset-inline: 0;
       height: .25rem;
@@ -219,13 +225,13 @@
     }
 
     &[data-pointing] {
-      .media-slider-thumb {
+      .slider-thumb {
         scale: 1 2;
       }
     }
   }
 
-  .media-options-popup {
+  .options-popup {
     flex-direction: column;
     align-items: center;
     color: var(--color-text);
@@ -239,6 +245,7 @@
 
     .rate-button {
       position: relative;
+      color: var(--palette-background-gold-d10);
 
       &::after {
         position: absolute;
@@ -255,9 +262,17 @@
       }
 
       // just dont show the label if its already set to one
-      &[data-rate="1"]::after {
-        content: none;
+      &[data-rate="1"] {
+        color: unset;
+
+        &::after {
+          content: none;
+        }
       }
+    }
+
+    .pip-button[data-pip] {
+      color: var(--palette-background-gold-d10);
     }
 
     &[data-open] {
