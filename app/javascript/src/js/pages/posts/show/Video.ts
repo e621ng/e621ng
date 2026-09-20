@@ -1,5 +1,5 @@
 import LStorage from "@/utility/storage/Local";
-import { TimeSliderElement } from "@videojs/html";
+import { TimeSliderElement, VolumePopoverElement } from "@videojs/html";
 import type { VideoPlayerElement } from "@videojs/html/video";
 
 const seekingUpdateDelay = 150;
@@ -57,18 +57,27 @@ class VideoPlayer {
 }
 
 class CustomVideoPlayer extends VideoPlayer {
-  private timeSliderElement: TimeSliderElement;
   private slidingInterval: number;
   private isLoopable: boolean;
   private loadingVideoJsPromise: Promise<void>;
 
+  private timeSliderElement: TimeSliderElement;
+
+
   public constructor (protected containerElement: VideoPlayerElement) {
     super(containerElement);
+    this.loadingVideoJsPromise = this.loadVideoJS();
     this.isLoopable = this.videoElement.loop;
+
     this.timeSliderElement = containerElement.querySelector(".time-slider");
     this.timeSliderElement.addEventListener("drag-start", () => this.handleDragging("start"));
     this.timeSliderElement.addEventListener("drag-end", () => this.handleDragging("stop"));
-    this.loadingVideoJsPromise = this.loadVideoJS();
+
+    // fixes the volume popup not opening on mobile
+    const volumePopup = containerElement.querySelector<VolumePopoverElement>(".volume-popup");
+    containerElement.querySelector(".volume-button").addEventListener("touchstart", () => {
+      volumePopup.open = !volumePopup.open;
+    });
   }
 
   // seeks the actual video element when the user drags on the time slider
@@ -100,18 +109,17 @@ class CustomVideoPlayer extends VideoPlayer {
   }
 }
 
-function getPlayer (isCustom: boolean): (...a: ConstructorParameters<typeof VideoPlayer>) => VideoPlayer {
-  if (isCustom) return (a) => new CustomVideoPlayer(a);
-  return (a) => new VideoPlayer(a);
+function getPlayerType (): typeof VideoPlayer {
+  return LStorage.Posts.VideoPlayer === "custom" ? CustomVideoPlayer : VideoPlayer;
 }
 
 
 (async () => {
   // only do anything here if there's a video in the page
-  const videoPlayerContainer = $<VideoPlayerElement>(".video-player")[0];
-  if (videoPlayerContainer === undefined) return;
+  const videoContainer = $<VideoPlayerElement>(".video-player")[0];
+  if (videoContainer === undefined) return;
 
-  const player = getPlayer(LStorage.Posts.VideoPlayer === "custom")(videoPlayerContainer);
+  const player = new (getPlayerType())(videoContainer);
 
   player.loadSettings();
 })();

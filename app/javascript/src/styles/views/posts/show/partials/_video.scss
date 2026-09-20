@@ -1,11 +1,15 @@
 .video-player media-container {
   position: relative;
   display: grid;
+  place-items: center;
   user-select: none;
   background-color: var(--color-background);
 
-  video {
+  &:fullscreen video {
+    max-width: 100vw;
+    max-height: 100vh;
     width: 100%;
+    height: 100%;
   }
 
   media-controls {
