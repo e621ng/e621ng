@@ -52,7 +52,6 @@ class VideoPlayer {
     this.videoElement.volume = LStorage.Posts.Video.Volume;
     this.videoElement.muted = LStorage.Posts.Video.Muted;
     this.videoElement.playbackRate = LStorage.Posts.Video.PlaybackRate;
-    this.onSettingChange();
   }
 }
 
