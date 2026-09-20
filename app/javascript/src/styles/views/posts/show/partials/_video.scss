@@ -112,15 +112,22 @@
       background-color: var(--color-link);
       cursor: pointer;
       transform-origin: left center;
-      animation: seekbar-thumb-scale .15s linear forwards;
+      animation: seekbar-thumb-shrink .15s linear forwards;
 
-      @keyframes seekbar-thumb-scale {
-        50% {
-          scale: 1 0.5;
-        }
-        100% {
-          scale: .25 0.5;
-        }
+      $anim-scale-step0: .25 .5;
+      $anim-scale-step1: 1 .5;
+      $anim-scale-step2: 1;
+
+      @keyframes seekbar-thumb-expand {
+        0% { scale: $anim-scale-step0; }
+        50% { scale: $anim-scale-step1; }
+        100% { scale: $anim-scale-step2; }
+      }
+
+      @keyframes seekbar-thumb-shrink {
+        0% { scale: $anim-scale-step2; }
+        50% { scale: $anim-scale-step1; }
+        100% { scale: $anim-scale-step0; }
       }
 
       &:hover {
@@ -129,8 +136,7 @@
     }
 
     &[data-pointing] .slider-thumb {
-      animation: none;
-      scale: 1;
+      animation-name: seekbar-thumb-expand;
     }
 
     &[data-dragging] {
@@ -146,10 +152,7 @@
   }
 
   .fullscreen-button {
-    &[data-fullscreen] .icon.exit {
-      display: block;
-    }
-
+    &[data-fullscreen] .icon.exit,
     &:not([data-fullscreen]) .icon.enter {
       display: block;
     }
@@ -165,10 +168,7 @@
       --kinetic-color: #{palette("background-gold-d20")};
     }
 
-    &[data-paused] .icon.play {
-      display: block;
-    }
-
+    &[data-paused] .icon.play,
     &:not([data-paused]) .icon.pause {
       display: block;
     }
@@ -191,21 +191,15 @@
   }
 
   .volume-popup {
-    position: relative;
     overflow: hidden;
-
-    @keyframes volume-slider-open {
-      from {
-        height: 0rem;
-      }
-      to {
-        height: 7rem;
-      }
-    }
+    display: grid;
+    visibility: hidden;
+    height: 0rem;
 
     &[data-open] {
-      animation: volume-slider-open .25s forwards;
-      display: grid;
+      visibility: visible;
+      height: 7rem;
+      transition: height .25s;
     }
   }
 
