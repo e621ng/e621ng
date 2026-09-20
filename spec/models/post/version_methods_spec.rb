@@ -29,6 +29,74 @@ RSpec.describe Post do
       end
     end
 
+    describe "original tags" do
+      it "stores the submitted tags on the first version" do
+        post = create(:post, tag_string: "tagme foo")
+        expect(post.versions.last.original_tags_array).to match_array(%w[tagme foo])
+      end
+
+      it "stores only the tags that were added on a tag_string edit" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(tag_string: "tagme foo bar")
+        expect(post.versions.last.original_tags).to eq("bar")
+      end
+
+      it "stores the raw tag_string_diff on a diff edit" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "bar -foo"
+        post.save!
+        expect(post.versions.last.original_tags).to eq("bar -foo")
+      end
+
+      it "strips post metatags and category prefixes" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "fav:me pool:1 artist:bar_artist baz"
+        post.save!
+        expect(post.versions.last.original_tags_array).to match_array(%w[bar_artist baz])
+      end
+
+      it "keeps aliased tags as typed instead of resolving them" do
+        create(:active_tag_alias, antecedent_name: "old_name", consequent_name: "new_name")
+        post = create(:post, tag_string: "tagme old_name")
+        version = post.versions.last
+        expect(post.tag_array).to include("new_name")
+        expect(version.original_tags_array).to include("old_name")
+        expect(version.original_tags_array).not_to include("new_name")
+      end
+
+      it "keeps aliased tags as typed on a tag_string_diff edit" do
+        create(:active_tag_alias, antecedent_name: "old_name", consequent_name: "new_name")
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "old_name"
+        post.save!
+        expect(post.tag_array).to include("new_name")
+        expect(post.versions.last.original_tags).to eq("old_name")
+      end
+
+      it "does not include tags added by implications" do
+        create(:active_tag_implication, antecedent_name: "child_tag", consequent_name: "parent_tag")
+        post = create(:post, tag_string: "tagme child_tag")
+        version = post.versions.last
+        expect(post.tag_array).to include("child_tag", "parent_tag")
+        expect(version.original_tags_array).to include("child_tag")
+        expect(version.original_tags_array).not_to include("parent_tag")
+      end
+
+      it "does not include tags added by implications on an edit" do
+        create(:active_tag_implication, antecedent_name: "child_tag", consequent_name: "parent_tag")
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(tag_string: "tagme foo child_tag")
+        expect(post.tag_array).to include("parent_tag")
+        expect(post.versions.last.original_tags).to eq("child_tag")
+      end
+
+      it "is empty when the tags did not change" do
+        post = Post.find(create(:post).id)
+        post.update!(rating: "e")
+        expect(post.versions.last.original_tags).to eq("")
+      end
+    end
+
     describe "#saved_change_to_watched_attributes?" do
       it "returns true after a rating change" do
         post = create(:post, rating: "s")

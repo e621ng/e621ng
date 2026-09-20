@@ -19,7 +19,8 @@ SELECT
   post_versions.description_changed,
   post_versions.updater_id,
   post_versions.updated_at,
-  post_versions.reason
+  post_versions.reason,
+  post_versions.original_tags
 FROM post_versions
 WHERE post_versions.is_hidden = false
 ORDER BY post_versions.id
