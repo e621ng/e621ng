@@ -322,8 +322,9 @@
   }
 
   [aria-expanded="true"] {
-    // remove top border radius for expander buttons
-    @include st-radius-bottom;
+    // remove top border radius for expanded buttons
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
     background: var(--color-section-lighten-10);
   }
 }
