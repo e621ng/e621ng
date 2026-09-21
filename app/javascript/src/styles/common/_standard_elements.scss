@@ -85,7 +85,7 @@
   &.kinetic {
     $kinetic-shadow-size: 0.25rem;
     $kinetic-active: calc($kinetic-shadow-size / 2);
-    --kinetic-shadow-color: themed("color-section");
+    --kinetic-shadow-color: #{themed("color-section")};
 
     box-shadow: 0 $kinetic-shadow-size var(--kinetic-shadow-color);
     position: relative;
@@ -124,7 +124,6 @@
     }
 
     &:last-child {
-      border-radius: 0 .25rem .25rem 0;
       border-right: unset;
       @include st-radius-right;
     }
