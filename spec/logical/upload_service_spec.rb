@@ -204,7 +204,7 @@ RSpec.describe UploadService do
       upload.update!(tag_string: "tagme old_name")
       post = service.create_post_from_upload(upload)
       expect(post.tag_array).to include("new_name")
-      expect(post.versions.first.original_tags_array).to match_array(%w[tagme old_name])
+      expect(post.versions.first.original_tags).to match_array(%w[tagme old_name])
     end
 
     context "upload karma" do

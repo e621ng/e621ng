@@ -82,7 +82,7 @@ class Post < ApplicationRecord
   has_many :replacements, class_name: "PostReplacement", :dependent => :destroy
 
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :old_description,
-                :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason, :tag_string_before_parse
+                :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason, :tags_before_parse
 
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostVersion", :dependent => :destroy
 
@@ -679,7 +679,7 @@ class Post < ApplicationRecord
 
     def apply_tag_diff
       return unless tag_string_diff.present?
-      @tag_string_before_parse = remove_metatags(tag_string_diff.split).join(" ")
+      @tags_before_parse = remove_metatags(tag_string_diff.split)
 
       current_tags = tag_array
       diff = TagQuery.scan(tag_string_diff)
@@ -717,7 +717,7 @@ class Post < ApplicationRecord
     end
 
     def normalize_tags
-      @tag_string_before_parse = remove_metatags(tag_array - tag_array_was).join(" ") if tag_string_diff.blank?
+      @tags_before_parse = remove_metatags(tag_array - tag_array_was) if tag_string_diff.blank?
       if !locked_tags.nil? && locked_tags.strip.blank?
         self.locked_tags = nil
       elsif locked_tags.present?

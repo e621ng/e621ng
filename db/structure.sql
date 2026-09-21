@@ -1941,7 +1941,7 @@ CREATE TABLE public.post_versions (
     version integer DEFAULT 1 NOT NULL,
     reason character varying,
     is_hidden boolean DEFAULT false NOT NULL,
-    original_tags text DEFAULT ''::text NOT NULL
+    original_tags text[] DEFAULT '{}'::text[] NOT NULL
 );
 
 

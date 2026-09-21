@@ -32,27 +32,27 @@ RSpec.describe Post do
     describe "original tags" do
       it "stores the submitted tags on the first version" do
         post = create(:post, tag_string: "tagme foo")
-        expect(post.versions.last.original_tags_array).to match_array(%w[tagme foo])
+        expect(post.versions.last.original_tags).to match_array(%w[tagme foo])
       end
 
       it "stores only the tags that were added on a tag_string edit" do
         post = Post.find(create(:post, tag_string: "tagme foo").id)
         post.update!(tag_string: "tagme foo bar")
-        expect(post.versions.last.original_tags).to eq("bar")
+        expect(post.versions.last.original_tags).to eq(%w[bar])
       end
 
       it "stores the raw tag_string_diff on a diff edit" do
         post = Post.find(create(:post, tag_string: "tagme foo").id)
         post.tag_string_diff = "bar -foo"
         post.save!
-        expect(post.versions.last.original_tags).to eq("bar -foo")
+        expect(post.versions.last.original_tags).to eq(%w[bar -foo])
       end
 
       it "strips post metatags and category prefixes" do
         post = Post.find(create(:post, tag_string: "tagme foo").id)
         post.tag_string_diff = "fav:me pool:1 artist:bar_artist baz"
         post.save!
-        expect(post.versions.last.original_tags_array).to match_array(%w[bar_artist baz])
+        expect(post.versions.last.original_tags).to match_array(%w[bar_artist baz])
       end
 
       it "keeps aliased tags as typed instead of resolving them" do
@@ -60,8 +60,8 @@ RSpec.describe Post do
         post = create(:post, tag_string: "tagme old_name")
         version = post.versions.last
         expect(post.tag_array).to include("new_name")
-        expect(version.original_tags_array).to include("old_name")
-        expect(version.original_tags_array).not_to include("new_name")
+        expect(version.original_tags).to include("old_name")
+        expect(version.original_tags).not_to include("new_name")
       end
 
       it "keeps aliased tags as typed on a tag_string_diff edit" do
@@ -70,7 +70,7 @@ RSpec.describe Post do
         post.tag_string_diff = "old_name"
         post.save!
         expect(post.tag_array).to include("new_name")
-        expect(post.versions.last.original_tags).to eq("old_name")
+        expect(post.versions.last.original_tags).to eq(%w[old_name])
       end
 
       it "does not include tags added by implications" do
@@ -78,8 +78,8 @@ RSpec.describe Post do
         post = create(:post, tag_string: "tagme child_tag")
         version = post.versions.last
         expect(post.tag_array).to include("child_tag", "parent_tag")
-        expect(version.original_tags_array).to include("child_tag")
-        expect(version.original_tags_array).not_to include("parent_tag")
+        expect(version.original_tags).to include("child_tag")
+        expect(version.original_tags).not_to include("parent_tag")
       end
 
       it "does not include tags added by implications on an edit" do
@@ -87,13 +87,13 @@ RSpec.describe Post do
         post = Post.find(create(:post, tag_string: "tagme foo").id)
         post.update!(tag_string: "tagme foo child_tag")
         expect(post.tag_array).to include("parent_tag")
-        expect(post.versions.last.original_tags).to eq("child_tag")
+        expect(post.versions.last.original_tags).to eq(%w[child_tag])
       end
 
       it "is empty when the tags did not change" do
         post = Post.find(create(:post).id)
         post.update!(rating: "e")
-        expect(post.versions.last.original_tags).to eq("")
+        expect(post.versions.last.original_tags).to eq([])
       end
     end
 

@@ -9,6 +9,6 @@ class PostVersionPresenter < Presenter
   end
 
   def tag_set_presenter
-    @tag_set_presenter ||= TagSetPresenter.new(@post_version.original_tags_array)
+    @tag_set_presenter ||= TagSetPresenter.new(@post_version.original_tags)
   end
 end

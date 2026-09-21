@@ -36,7 +36,7 @@ class PostVersion < ApplicationRecord
                     updater_id: CurrentUser.id,
                     updater_ip_addr: CurrentUser.ip_addr,
                     tags: post.tag_string,
-                    original_tags: post.tag_string_before_parse || "",
+                    original_tags: post.tags_before_parse || [],
                     locked_tags: post.locked_tags,
                     description: post.description,
                     reason: post.edit_reason
@@ -107,10 +107,6 @@ class PostVersion < ApplicationRecord
 
   def presenter
     PostVersionPresenter.new(self)
-  end
-
-  def original_tags_array
-    @original_tags_array ||= original_tags.split
   end
 
   def previous
