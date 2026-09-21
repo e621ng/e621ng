@@ -84,7 +84,7 @@ class LStorage extends StorageObject {
     TagPreview: true,
     Recommendations: "artist" as "artist" | "tags",
     AutocompleteCache: true,
-    VideoPlayer: "custom",
+    VideoPlayer: "custom" as "custom" | "native",
 
     Video: {
       Volume: 0.25,
