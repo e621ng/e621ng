@@ -160,12 +160,12 @@
 
   .play-button {
     background-color: palette("background-gold-d10");
-    --kinetic-color: #{palette("background-gold-d30")};
+    --kinetic-shadow-color: #{palette("background-gold-d30")};
     color: black;
 
     &:hover {
       background-color: palette("background-gold");
-      --kinetic-color: #{palette("background-gold-d20")};
+      --kinetic-shadow-color: #{palette("background-gold-d20")};
     }
 
     &[data-paused] .icon.play,
