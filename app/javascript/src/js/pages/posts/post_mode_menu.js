@@ -64,7 +64,7 @@ PostModeMenu.initialize_preview_link = function () {
 
 PostModeMenu.initialize_edit_form = function () {
   $("#quick-edit-div").hide();
-  $("#quick-edit-form input[value=Cancel]").on("click.danbooru", function (e) {
+  $("#quick-edit-form #quick-edit-cancel").on("click.danbooru", function (e) {
     PostModeMenu.close_edit_form();
     e.preventDefault();
   });
