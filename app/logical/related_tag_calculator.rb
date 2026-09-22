@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class RelatedTagCalculator
-  MAX_RESULTS = 25
+  MAX_RESULTS = 24
 
   def self.calculate_from_sample_to_array(tags, category_constraint = nil)
     convert_hash_to_array(calculate_from_sample(tags, Danbooru.config.post_sample_size, category_constraint))
