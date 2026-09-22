@@ -1,21 +1,81 @@
-<%= tag.video(**post.presenter.video_attributes) do %>
-  <% post.presenter.initial_video_urls.each do |video| %>
-    <%= tag.source(src: video[:url], type: video[:codec]) %>
-  <% end %>
-  Playback not available in your browser.
-<% end %>
+<video-player class="video-player">
+  <media-container>
+    <%= tag.video(**post.presenter.video_attributes) do %>
+      <% post.presenter.initial_video_urls.each do |video| %>
+        <%= tag.source(src: video[:url], type: video[:codec]) %>
+      <% end %>
+    <% end %>
 
-<%= javascript_tag nonce: true do -%>
-  (function () {
-    var videoEl = document.getElementById('image');
-    var savedVolume = parseFloat(localStorage.getItem('video_volume') || '1.0');
-    if (videoEl) {
-      videoEl.volume = savedVolume;
-      videoEl.addEventListener('volumechange', function (evt) {
-      if (evt.target) {
-        localStorage.setItem('video_volume', evt.target.volume);
-      }
-    });
-  }
-  })();
-<% end -%>
+    <media-controls>
+      <media-controls-backdrop class="controls-backdrop"></media-controls-backdrop>
+      <media-seek-indicator class="seek-indicator" aria-hidden="true">
+        <%= svg_icon(:chevron_double_right, class: "icon show") %>
+        <media-seek-indicator-value></media-seek-indicator-value>
+      </media-seek-indicator>
+
+      <media-controls-content>
+        <media-controls-group class="group-basic">
+          <media-play-button class="play-button st-button kinetic">
+            <%= svg_icon(:play, class: "icon play") %>
+            <%= svg_icon(:pause, class: "icon pause") %>
+          </media-play-button>
+          <media-mute-button class="st-button kinetic volume-button" commandfor="volume-popup">
+            <%= svg_icon(:volume_low, class: "icon low") %>
+            <%= svg_icon(:volume_high, class: "icon high medium") %>
+            <%= svg_icon(:volume_muted, class: "icon off") %>
+          </media-mute-button>
+          <media-volume-popover class="volume-popup" id="volume-popup" open-on-hover>
+            <media-volume-slider class="volume-slider" orientation="vertical">
+              <media-slider-fill class="slider-fill"></media-slider-fill>
+              <media-slider-thumb class="slider-thumb"></media-slider-thumb>
+            </media-volume-slider>
+          </media-volume-popover>
+        </media-controls-group>
+
+        <media-controls-group class="group-playback">
+          <div class="time-wrapper">
+            <media-time class="time" type="current"></media-time>
+            <media-time class="time" toggle type="duration"></media-time>
+          </div>
+          <media-time-slider class="time-slider" pause-on-drag>
+            <media-slider-track class="slider-track">
+              <media-slider-buffer class="slider-buffer"></media-slider-buffer>
+              <media-slider-fill class="slider-fill"></media-slider-fill>
+            </media-slider-track>
+            <media-slider-thumb class="slider-thumb"></media-slider-thumb>
+            <media-slider-value class="slider-value" type="pointer"></media-slider-value>
+          </media-time-slider>
+        </media-controls-group>
+
+        <media-controls-group class="group-extra">
+          <div class="compound-button">
+            <media-fullscreen-button class="fullscreen-button st-button kinetic">
+              <%= svg_icon(:fullscreen_enter, class: "icon enter") %>
+              <%= svg_icon(:fullscreen_exit, class: "icon exit") %>
+            </media-fullscreen-button>
+            <button class="st-button kinetic" commandfor="options-popover">
+              <%= svg_icon(:ellipsis, class: "icon show") %>
+            </button>
+          </div>
+          <media-popover id="options-popover" class="options-popup">
+            <media-pip-button class="pip-button">
+              <%= svg_icon(:picture_in_picture, class: "icon show") %>
+            </media-pip-button>
+            <media-playback-rate-button class="rate-button">
+              <%= svg_icon(:playback_rate, class: "icon show") %>
+            </media-playback-rate-button>
+          </media-popover>
+        </media-controls-group>
+      </media-controls-content>
+    </media-controls>
+
+    <!-- desktop gestures -->
+    <media-gesture type="tap" action="togglePaused" pointer="mouse"></media-gesture>
+    <media-gesture type="doubletap" action="toggleFullscreen" region="center" pointer="mouse"></media-gesture>
+
+    <!-- mobile gestures -->
+    <media-gesture type="tap" action="togglePaused" pointer="touch"></media-gesture>
+    <media-gesture type="doubletap" action="seekStep" value="-10" pointer="touch" region="left"></media-gesture>
+    <media-gesture type="doubletap" action="seekStep" value="10" pointer="touch" region="right"></media-gesture>
+  </media-container>
+</video-player>

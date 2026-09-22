@@ -1,0 +1,330 @@
+.video-player media-container {
+  position: relative;
+  display: grid;
+  place-items: center;
+  user-select: none;
+  background-color: var(--color-background);
+
+  &:fullscreen video {
+    max-width: 100vw;
+    max-height: 100vh;
+    width: 100%;
+    height: 100%;
+  }
+
+  media-controls {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+
+    .controls-backdrop {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(to top, var(--color-background), transparent 10rem);
+    }
+
+    &.loaded[data-visible] {
+      opacity: 1;
+      pointer-events: unset;
+      transition-delay: 0s;
+    }
+  }
+
+  media-controls-content {
+    margin: 1.5rem;
+    z-index: 1;
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+
+    .icon {
+      display: none;
+      margin: -0.5rem;
+      scale: .75;
+
+      &.show {
+        display: block;
+      }
+    }
+  }
+
+  .group-basic, .group-extra {
+    display: flex;
+    gap: .5rem;
+
+    // immediate children are buttons
+    & > * {
+      cursor: pointer;
+    }
+  }
+
+  .group-playback {
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    gap: .25rem;
+  }
+
+  .time-wrapper {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .time-slider {
+    position: relative;
+    // to make it easier to grab
+    margin-block: -.25rem;
+    padding-block: .25rem;
+
+    .slider-track {
+      height: .5rem;
+      background-color: var(--color-foreground);
+      display: block;
+      position: relative;
+
+      .slider-fill, .slider-buffer {
+        position: absolute;
+        background-color: var(--color-link);
+        inset-block: 0;
+        width: var(--media-slider-fill);
+      }
+
+      .slider-buffer {
+        opacity: .15;
+        width: var(--media-slider-buffer);
+      }
+    }
+
+    .slider-thumb {
+      $size: 1rem;
+      --pos: var(--media-slider-fill);
+      position: absolute;
+      width: $size;
+      height: $size;
+      left: max(calc(var(--pos) - $size), 0%);
+      top: 0;
+      background-color: var(--color-link);
+      cursor: pointer;
+      transform-origin: left center;
+      animation: seekbar-thumb-shrink .15s linear forwards;
+
+      $anim-scale-step0: .25 .5;
+      $anim-scale-step1: 1 .5;
+      $anim-scale-step2: 1;
+
+      @keyframes seekbar-thumb-expand {
+        0% { scale: $anim-scale-step0; }
+        50% { scale: $anim-scale-step1; }
+        100% { scale: $anim-scale-step2; }
+      }
+
+      @keyframes seekbar-thumb-shrink {
+        0% { scale: $anim-scale-step2; }
+        50% { scale: $anim-scale-step1; }
+        100% { scale: $anim-scale-step0; }
+      }
+
+      &:hover {
+        background: white;
+      }
+    }
+
+    &[data-pointing] .slider-thumb {
+      animation-name: seekbar-thumb-expand;
+    }
+
+    &[data-dragging] {
+      .slider-thumb {
+        background: white;
+        --pos: var(--media-slider-pointer);
+      }
+
+      .slider-fill {
+        width: var(--media-slider-pointer); // make seekbar look smoother while dragging
+      }
+    }
+  }
+
+  .fullscreen-button {
+    &[data-fullscreen] .icon.exit,
+    &:not([data-fullscreen]) .icon.enter {
+      display: block;
+    }
+  }
+
+  .play-button {
+    background-color: palette("background-gold-d10");
+    --kinetic-shadow-color: #{palette("background-gold-d30")};
+    color: black;
+
+    &:hover {
+      background-color: palette("background-gold");
+      --kinetic-shadow-color: #{palette("background-gold-d20")};
+    }
+
+    &[data-paused] .icon.play,
+    &:not([data-paused]) .icon.pause {
+      display: block;
+    }
+  }
+
+  // handle display of different volume icons
+  @each $icon in ("off", "low", "medium", "high") {
+    .volume-button[data-volume-level="#{$icon}"] .icon.#{$icon} {
+      display: block;
+    }
+  }
+
+  [data-popup] {
+    width: 32px; // same as button size
+    border: none;
+    background: var(--color-section-lighten-10);
+    display: none;
+    padding: 0;
+    @include st-radius-top;
+  }
+
+  .volume-popup {
+    overflow: hidden;
+    display: grid;
+    visibility: hidden;
+    height: 0rem;
+
+    &[data-open] {
+      visibility: visible;
+      height: 7rem;
+      transition: height .25s;
+    }
+  }
+
+  .volume-slider {
+    margin: .25rem;
+    margin-bottom: 0;
+    @include st-radius;
+    background: var(--color-foreground);
+    position: relative;
+
+    .slider-fill {
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      background: var(--color-link);
+      height: var(--media-slider-fill);
+    }
+
+    .slider-thumb {
+      position: absolute;
+      inset-inline: 0;
+      height: .25rem;
+      background: white;
+      bottom: var(--media-slider-fill);
+      transform-origin: top;
+      translate: 0 50%;
+      transition: scale .15s;
+    }
+
+    &[data-pointing] {
+      .slider-thumb {
+        scale: 1 2;
+      }
+    }
+  }
+
+  .options-popup {
+    flex-direction: column;
+    align-items: center;
+    color: var(--color-text);
+
+    & > * {
+      width: 100%;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .rate-button {
+      position: relative;
+      color: palette("background-gold-d10");
+
+      &::after {
+        position: absolute;
+        content: attr(data-rate);
+        background-color: palette("background-gold-d10");
+        color: black;
+        border-radius: 50%;
+        font-size: .5rem;
+        font-weight: 700;
+        bottom: 0;
+        right: 0;
+        width: 1rem;
+        text-align: center;
+      }
+
+      // just dont show the label if its already set to one
+      &[data-rate="1"] {
+        color: unset;
+
+        &::after {
+          content: none;
+        }
+      }
+    }
+
+    .pip-button[data-pip] {
+      color: palette("background-gold-d10");
+    }
+
+    &[data-open] {
+      display: flex;
+    }
+  }
+
+  // popup showing up at the right/left when seeking (double tapping)
+  .seek-indicator {
+    $offset: 1rem;
+    position: absolute;
+    top: 50%;
+    right: $offset;
+    background: var(--color-foreground);
+    @include st-radius;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    font-size: 1rem;
+    padding: 1rem;
+    gap: .5rem;
+    opacity: 0;
+    translate: 0 -50%;
+    transition: opacity .25s;
+
+    .icon {
+      scale: 2;
+    }
+
+    &[data-direction="backward"] {
+      left: $offset;
+      right: unset;
+
+      .icon {
+        scale: -2 2;
+      }
+    }
+
+    &[data-open] {
+      opacity: 1;
+    }
+  }
+
+  [aria-expanded="true"] {
+    // remove top border radius for expanded buttons
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+    background: var(--color-section-lighten-10);
+  }
+}

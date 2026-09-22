@@ -83,14 +83,15 @@
 
   // Elements that look like physical buttons and animate on click.
   &.kinetic {
-    $kinetic-shadow: 0.25rem;
-    $kinetic-active: calc($kinetic-shadow / 2);
+    $kinetic-shadow-size: 0.25rem;
+    $kinetic-active: calc($kinetic-shadow-size / 2);
+    --kinetic-shadow-color: #{themed("color-section")};
 
-    box-shadow: 0 $kinetic-shadow themed("color-section");
+    box-shadow: 0 $kinetic-shadow-size var(--kinetic-shadow-color);
     position: relative;
     &:active, &[processing="true"].anim {
       translate: 0 $kinetic-active;
-      box-shadow: 0 $kinetic-active themed("color-section");
+      box-shadow: 0 $kinetic-active var(--kinetic-shadow-color);
 
       // Cursed solution for a cursed problem.
       // Moving the button down when active caused the javascript event to not trigger if the
@@ -100,11 +101,31 @@
         content: "";
         position: absolute;
         background: transparent;
-        height: $kinetic-shadow;
+        height: $kinetic-shadow-size;
         top: -$kinetic-active;
         left: 0;
         right: 0;
       }
+    }
+  }
+}
+
+
+// style for a variable number of grouped st-buttons
+.compound-button {
+  display: flex;
+
+  > .st-button {
+    border-radius: 0;
+    border-right: 1px var(--color-foreground) solid;
+
+    &:first-child {
+      @include st-radius-left;
+    }
+
+    &:last-child {
+      border-right: unset;
+      @include st-radius-right;
     }
   }
 }
