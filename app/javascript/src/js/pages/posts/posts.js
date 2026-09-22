@@ -426,9 +426,8 @@ Post.undelete = function (post_id, callback) {
       type: "POST",
       url: `/staff/post/posts/${post_id}/undelete.json`,
     }).fail(function (data) {
-      //      var message = $.map(data.responseJSON.errors, function(msg, attr) { return msg; }).join('; ');
-      const message = data.responseJSON.message;
-      ToastManager.alert("Error: " + message);
+      const response = data.responseJSON;
+      ToastManager.alert("Error: " + (response.reason || response.message));
     }).done(function () {
       Post.getMatchingThumbnails(post_id).attr("data-flags", "active");
       ToastManager.notice("Undeleted post.");
@@ -448,8 +447,8 @@ Post.unflag = function (post_id, approval, reload = true, callback = null) {
       url: `/posts/${post_id}/flag.json`,
       data: {approval: modApproval},
     }).fail(function (data) {
-      const message = data.responseJSON.message;
-      ToastManager.alert("Error: " + message);
+      const response = data.responseJSON;
+      ToastManager.alert("Error: " + (response.reason || response.message));
     }).done(function () {
       Post.getMatchingThumbnails(post_id).removeClass("flagged");
       ToastManager.notice("Unflagged post");
