@@ -77,9 +77,13 @@ div#c-post-versions {
 
     .pv-check {
       grid-row-start: 1;
-      grid-row-end: 5;
+      grid-row-end: 7;
       grid-column: 1;
       background-color: themed("color-section-lighten-5");
+    }
+
+    .pv-check.without-original {
+      grid-row-end: 5;
     }
 
     .pv-post-label {
@@ -151,6 +155,16 @@ div#c-post-versions {
     .pv-sources-label {
       grid-row: 3;
       @include grid-col(10, 14);
+    }
+
+    .pv-original-tag-string-label {
+      grid-row: 5;
+      @include grid-col(2, 14);
+    }
+
+    .pv-original-tag-string {
+      grid-row: 6;
+      @include grid-col(2, 14);
     }
 
     .pv-sources {

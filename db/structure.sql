@@ -1940,7 +1940,8 @@ CREATE TABLE public.post_versions (
     description_changed boolean DEFAULT false NOT NULL,
     version integer DEFAULT 1 NOT NULL,
     reason character varying,
-    is_hidden boolean DEFAULT false NOT NULL
+    is_hidden boolean DEFAULT false NOT NULL,
+    original_tags text[] DEFAULT '{}'::text[] NOT NULL
 );
 
 
@@ -6443,6 +6444,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260920120000'),
 ('20260907205015'),
 ('20260827214903'),
 ('20260824220908'),

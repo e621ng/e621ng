@@ -36,6 +36,7 @@ class PostVersion < ApplicationRecord
                     updater_id: CurrentUser.id,
                     updater_ip_addr: CurrentUser.ip_addr,
                     tags: post.tag_string,
+                    original_tags: post.tags_before_parse || [],
                     locked_tags: post.locked_tags,
                     description: post.description,
                     reason: post.edit_reason
