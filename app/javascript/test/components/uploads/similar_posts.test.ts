@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { jsonResponse, setSiteData } from "../../helpers";
 
 // jsdom has no canvas; the component always goes through the mocked helper.
@@ -139,7 +139,7 @@ describe("uploads/similar_posts — gating", () => {
     const { wrapper } = await mountSimilar({ value: aFile("clip.webm", "video/webm") });
     await vi.advanceTimersByTimeAsync(10_000);
     expect(fetchSpy).not.toHaveBeenCalled();
-    expect(wrapper.find(".similar-posts").exists()).toBe(false);
+    expect(wrapper.find(".similar-posts-strip").exists()).toBe(false);
   });
 
   it("skips video URLs (extension with query suffix)", async () => {
@@ -166,18 +166,20 @@ describe("uploads/similar_posts — gating", () => {
     const { wrapper } = await mountSimilar({ value: "https://example.com/art.png", whitelist: false });
     await vi.advanceTimersByTimeAsync(10_000);
     expect(fetchSpy).not.toHaveBeenCalled();
-    expect(wrapper.find(".similar-posts").exists()).toBe(false);
+    expect(wrapper.find(".similar-posts-strip").exists()).toBe(false);
   });
 
-  it("ignores invalid input and renders nothing for an empty value", async () => {
+  it("ignores invalid input and renders an empty section", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(posts(1) as Response);
     const { wrapper } = await mountSimilar({ value: "https://example.com/art.png", invalid: true, whitelist: true });
     await vi.advanceTimersByTimeAsync(10_000);
     expect(fetchSpy).not.toHaveBeenCalled();
-    expect(wrapper.find(".similar-posts").exists()).toBe(false);
+    expect(wrapper.find(".similar-posts").exists()).toBe(true);
+    expect(wrapper.find(".similar-posts-strip").exists()).toBe(false);
 
     const { wrapper: empty } = await mountSimilar({ value: "" });
-    expect(empty.find(".similar-posts").exists()).toBe(false);
+    expect(empty.find(".similar-posts").exists()).toBe(true);
+    expect(wrapper.find(".similar-posts-strip").exists()).toBe(false);
   });
 
   it("queries a picked file after the dwell only, with the downscaled blob", async () => {
