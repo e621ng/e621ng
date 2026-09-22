@@ -10,6 +10,13 @@
     background-color: themed("color-section");
     @include st-radius;
     padding: 1rem;
+    box-sizing: border-box;
+
+    @include window-larger-than(1100px) {
+      &.column-left {
+        max-width: 52rem;
+      }
+    }
   }
 
   // Basic flex layout for the uploader form
@@ -93,11 +100,12 @@
 // Similar posts
 #uploader .similar-posts {
   min-height: 10.5rem;
-  margin-top: 0.5rem;
   padding: 0.5rem;
   @include st-radius;
   background: themed("color-section-lighten-5");
   box-sizing: border-box;
+
+  width: 100%;
 
   .similar-posts-header {
     display: flex;
@@ -122,6 +130,7 @@
     flex-flow: row nowrap;
     gap: 0.5rem;
     overflow-x: auto;
+    flex-wrap: wrap;
 
     a {
       position: relative;

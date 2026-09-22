@@ -1,5 +1,5 @@
 <template>
-  <div class="uploader-column">
+  <div class="uploader-column column-left">
 
     <!-- File Upload -->
     <div class="uploader-row">
@@ -12,13 +12,16 @@
           You must provide a file or a URL to upload.
         </div>
         <file-input @change="onFileChange"></file-input>
-        <similar-posts
-          v-if="iqdbEnabled"
-          :upload-value="uploadValue"
-          :invalid-upload-value="invalidUploadValue"
-          :whitelist-allowed="whitelistAllowed"
-        ></similar-posts>
       </div>
+    </div>
+
+    <div class="uploader-row">
+      <similar-posts
+        v-if="iqdbEnabled"
+        :upload-value="uploadValue"
+        :invalid-upload-value="invalidUploadValue"
+        :whitelist-allowed="whitelistAllowed"
+      ></similar-posts>
     </div>
 
     <!-- Mobile-only Preview (top) -->
@@ -302,7 +305,7 @@
   </div>
 
   <!-- Desktop Preview (sidebar) -->
-  <div class="uploader-column" id="preview-sidebar">
+  <div class="uploader-column column-right" id="preview-sidebar">
     <file-preview classes="in-sidebar" :data="previewData"></file-preview>
   </div>
 </template>
