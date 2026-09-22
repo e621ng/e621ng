@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { mount, VueWrapper } from "@vue/test-utils";
 import Related from "@/components/tags/related.vue";
+import { mount, VueWrapper } from "@vue/test-utils";
+import { afterEach, describe, expect, it } from "vitest";
 
 const wrappers: VueWrapper[] = [];
 afterEach(() => {
@@ -65,8 +65,8 @@ describe("uploads/related", () => {
     expect(itemText(w)).toEqual(["aaa", "zzz"]);
   });
 
-  it("splits a group into rows of 15", () => {
-    const tags = Array.from({ length: 20 }, (_, i) => ({ name: `t${i}`, category_id: 0 }));
+  it("splits a group into rows of 25", () => {
+    const tags = Array.from({ length: 30 }, (_, i) => ({ name: `t${i}`, category_id: 0 }));
     const w = make({ related: [{ title: "Big", tags }] });
     expect(w.findAll(".related-section .related-items").length).toBe(2);
   });
