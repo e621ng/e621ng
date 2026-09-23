@@ -4,6 +4,7 @@ import type { VideoPlayerElement } from "@videojs/html/video";
 
 const seekingUpdateDelay = 150;
 
+// lambdas are used here to prevent the imports from being resolved immediately when importing this module
 const videoJSImportModules = {
   base: () => [
     import("@videojs/html/ui/container"),
