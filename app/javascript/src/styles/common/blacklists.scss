@@ -73,7 +73,7 @@
     .blacklist-filters {
       // Hide scrollbars when unrolling
       @keyframes hide-scroll {
-        from, to { overflow: hidden; } 
+        from, to { overflow: hidden; }
       }
       animation: hide-scroll 0.1s backwards;
       overflow-x: hidden;
@@ -185,7 +185,7 @@
 
     li {
       &::before {
-        display: none; 
+        display: none;
       }
       a {
         line-height: 1rem;
@@ -201,7 +201,7 @@
       margin-left: 0.75rem;
     }
   }
-  
+
   .blacklist-footer {
     button.blacklist-toggle-all {
       font-size: 0.75rem;
@@ -250,8 +250,16 @@
   }
 
   // Without this, the video player intercepts clicks but
-  // does no tpass them on to the container element
-  video { pointer-events: none; }
+  // does not pass them on to the container element
+  video, .video-player { pointer-events: none; }
+
+  media-container {
+    background: none !important;
+
+    media-controls {
+      display: none !important;
+    }
+  }
 
   #note-container {
     display: none;
