@@ -328,14 +328,3 @@
     background: var(--color-section-lighten-10);
   }
 }
-
-// fix for blacklisted post
-section#image-container.blacklisted {
-  .video-player {
-    pointer-events: none; // prevents the video from playing when removing the blacklist state
-  }
-
-  media-container media-controls {
-    display: none;
-  }
-}
