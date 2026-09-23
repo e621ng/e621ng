@@ -248,6 +248,10 @@
       place-items: center;
     }
 
+    button {
+      background: none; // remove ugly default white background
+    }
+
     .rate-button {
       position: relative;
       color: palette("background-gold-d10");
