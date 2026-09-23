@@ -174,10 +174,16 @@
     }
   }
 
-  // handle display of different volume icons
-  @each $icon in ("off", "low", "medium", "high") {
-    .volume-button[data-volume-level="#{$icon}"] .icon.#{$icon} {
-      display: block;
+  .volume-button {
+    // handle display of different volume icons
+    @each $icon in ("off", "low", "medium", "high") {
+      &[data-volume-level="#{$icon}"] .icon.#{$icon} {
+        display: block;
+      }
+    }
+
+    .icon.missing {
+      opacity: .4;
     }
   }
 
