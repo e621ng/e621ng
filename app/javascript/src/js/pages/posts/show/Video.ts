@@ -94,7 +94,7 @@ class CustomVideoPlayer extends VideoPlayer {
     }
 
     this.videoElement.loop = false; // this is to temporarily the player from constantly seeking to the start if the pointer is at the end
-    this.timeSliderElement.addEventListener("pointermove", this.handleDraggingMove);
+    this.timeSliderElement.addEventListener("pointermove", this.handleDraggingMove); // only fire when pointer moves
   }
 
   private async loadVideoJS () {

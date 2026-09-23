@@ -30,14 +30,17 @@
 
     &.loaded[data-visible] {
       opacity: 1;
-      pointer-events: unset;
       transition-delay: 0s;
+
+      media-controls-content {
+        pointer-events: all;
+      }
     }
   }
 
   media-controls-content {
+    position: relative;
     margin: 1.5rem;
-    z-index: 1;
     width: 100%;
     display: grid;
     grid-template-columns: auto 1fr auto;
@@ -248,8 +251,10 @@
       place-items: center;
     }
 
+    // remove ugly default styles
     button {
-      background: none; // remove ugly default white background
+      background: none;
+      color: inherit;
     }
 
     .rate-button {
