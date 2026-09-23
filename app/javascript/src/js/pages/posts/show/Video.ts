@@ -1,8 +1,9 @@
 import LStorage from "@/utility/storage/Local";
+import TimingUtils from "@/utility/TimingUtils";
 import { TimeSliderElement, VolumePopoverElement } from "@videojs/html";
 import type { VideoPlayerElement } from "@videojs/html/video";
 
-const seekingUpdateDelay = 150;
+const seekingUpdateDelay = 50;
 
 
 async function importVideoJS () {
@@ -56,7 +57,6 @@ class VideoPlayer {
 }
 
 class CustomVideoPlayer extends VideoPlayer {
-  private slidingInterval: number;
   private isLoopable: boolean;
   private loadingVideoJsPromise: Promise<void>;
 
@@ -69,8 +69,8 @@ class CustomVideoPlayer extends VideoPlayer {
     this.isLoopable = this.videoElement.loop;
 
     this.timeSliderElement = containerElement.querySelector(".time-slider");
-    this.timeSliderElement.addEventListener("drag-start", () => this.handleDragging("start"));
-    this.timeSliderElement.addEventListener("drag-end", () => this.handleDragging("stop"));
+    this.timeSliderElement.addEventListener("drag-start", () => this.handleDraggingChange("start"));
+    this.timeSliderElement.addEventListener("drag-end", () => this.handleDraggingChange("stop"));
 
     // fixes the volume popup not opening on mobile
     const volumePopup = containerElement.querySelector<VolumePopoverElement>(".volume-popup");
@@ -79,19 +79,22 @@ class CustomVideoPlayer extends VideoPlayer {
     });
   }
 
+  // throttled to prevent exhausting the player
+  private handleDraggingMove = TimingUtils.throttle(() => {
+    const seekingPercentage = parseFloat(this.timeSliderElement.style.getPropertyValue("--media-slider-pointer"));
+    this.videoElement.currentTime = this.videoElement.duration * seekingPercentage / 100;
+  }, seekingUpdateDelay);
+
   // seeks the actual video element when the user drags on the time slider
-  private handleDragging (status: "start" | "stop") {
+  private handleDraggingChange (status: "start" | "stop") {
     if (status === "stop") {
-      clearInterval(this.slidingInterval);
+      this.timeSliderElement.removeEventListener("pointermove", this.handleDraggingMove);
       this.videoElement.loop = this.isLoopable;
       return;
     }
 
     this.videoElement.loop = false; // this is to temporarily the player from constantly seeking to the start if the pointer is at the end
-    this.slidingInterval = setInterval(() => {
-      const seekingPercentage = parseFloat(this.timeSliderElement.style.getPropertyValue("--media-slider-pointer"));
-      this.videoElement.currentTime = this.videoElement.duration * seekingPercentage / 100;
-    }, seekingUpdateDelay);
+    this.timeSliderElement.addEventListener("pointermove", this.handleDraggingMove);
   }
 
   private async loadVideoJS () {
