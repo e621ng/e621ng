@@ -92,13 +92,14 @@ class CustomVideoPlayer extends VideoPlayer {
     if (save) this.storeSettings();
   };
 
+  // seeks the actual video element when the user drags on the time slider
   // throttled to prevent exhausting the player
   private handleDraggingMove = TimingUtils.throttle(() => {
     const seekingPercentage = parseFloat(this.timeSliderElement.style.getPropertyValue("--media-slider-pointer"));
     this.videoElement.currentTime = this.videoElement.duration * seekingPercentage / 100;
   }, seekingUpdateDelay);
 
-  // seeks the actual video element when the user drags on the time slider
+  // starts or stops listening to changes to seeking
   private handleDraggingChange (status: "start" | "stop") {
     if (status === "stop") {
       this.timeSliderElement.removeEventListener("pointermove", this.handleDraggingMove);
