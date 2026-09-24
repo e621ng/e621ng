@@ -80,13 +80,14 @@
   .time-wrapper {
     display: flex;
     justify-content: space-between;
+
+    .toggleable-time {
+      z-index: 1; // this is to let the user click on it, since the seekbar "hitbox" is in the way
+    }
   }
 
   .time-slider {
     position: relative;
-    // to make it easier to grab
-    margin-block: -.25rem;
-    padding-block: .25rem;
 
     .slider-track {
       height: .5rem;
@@ -114,7 +115,8 @@
       width: $size;
       height: $size;
       left: max(calc(var(--pos) - $size), 0%);
-      top: 0;
+      top: 50%;
+      translate: 0 -50%;
       background-color: var(--color-link);
       cursor: pointer;
       transform-origin: left center;
@@ -139,6 +141,14 @@
       &:hover {
         background: white;
       }
+    }
+
+    // extra "hitbox" to make the seekbar easier to grab
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      inset-block: -1.25rem;
     }
 
     &[data-pointing] .slider-thumb {
