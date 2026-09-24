@@ -2,6 +2,7 @@
   position: relative;
   display: grid;
   place-items: center;
+  pointer-events: none;
   user-select: none;
   background-color: var(--color-background);
 
@@ -18,7 +19,6 @@
     display: flex;
     align-items: flex-end;
     opacity: 0;
-    pointer-events: none;
     transition: opacity .25s;
 
     .controls-backdrop {
