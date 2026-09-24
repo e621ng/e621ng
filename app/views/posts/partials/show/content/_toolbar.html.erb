@@ -107,9 +107,17 @@
       Fullscreen
     </a>
   </div>
-<% end %>
 
-<% if @post.visible? %>
+  <% unless @post.is_deleted? %>
+    <a
+      href="<%= @post.download_url %>"
+      class="st-button ptbr-etc-download kinetic"
+      data-hotkey="download"
+    >
+      Download
+    </a>
+  <% end %>
+
   <%# ===== NOTES ===== #%>
   <div class="<%= @post.has_notes? ? "ptbr-notes" : "ptbr-notes hidden" %>">
     <button
@@ -121,10 +129,7 @@
       aria-pressed="false"
     ></button>
   </div>
-<% end %>
 
-
-<% if @post.visible? %>
   <%# ===== OVERFLOW ===== #%>
   <div class="ptbr-etc">
     <button
@@ -137,15 +142,6 @@
       <%= svg_icon(:ellipsis_v) %>
     </button>
     <div class="ptbr-etc-menu hidden" id="ptbr-etc-menu" role="menu">
-      <% unless @post.is_deleted? %>
-        <a
-          href="<%= @post.download_url %>"
-          class="st-button ptbr-etc-download"
-          data-hotkey="download"
-        >
-          Download
-        </a>
-      <% end %>
       <button class="st-button ptbr-share-button" data-hotkey="share">Share</button>
       <% if CurrentUser.is_member? %>
         <button class="st-button ptbr-etc-pool add-to-pool" data-hotkey="add-to-pool">Add to Pool</button>
