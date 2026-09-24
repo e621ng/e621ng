@@ -47,30 +47,37 @@ class VideoPlayer {
     LStorage.Posts.Video.Volume = this.videoElement.volume;
     LStorage.Posts.Video.Muted = this.videoElement.muted;
     LStorage.Posts.Video.PlaybackRate = this.videoElement.playbackRate;
+    LStorage.Posts.Video.Loop = this.videoElement.loop;
   }
 
   public loadSettings () {
     this.videoElement.volume = LStorage.Posts.Video.Volume;
     this.videoElement.muted = LStorage.Posts.Video.Muted;
     this.videoElement.playbackRate = LStorage.Posts.Video.PlaybackRate;
+    this.videoElement.loop = LStorage.Posts.Video.Loop;
   }
 }
 
 class CustomVideoPlayer extends VideoPlayer {
-  private isLoopable: boolean;
   private loadingVideoJsPromise: Promise<void>;
 
   private timeSliderElement: TimeSliderElement;
+  private loopButton: HTMLButtonElement;
 
 
   public constructor (protected containerElement: VideoPlayerElement) {
     super(containerElement);
     this.loadingVideoJsPromise = this.loadVideoJS();
-    this.isLoopable = this.videoElement.loop;
 
     this.timeSliderElement = containerElement.querySelector(".time-slider");
     this.timeSliderElement.addEventListener("drag-start", () => this.handleDraggingChange("start"));
     this.timeSliderElement.addEventListener("drag-end", () => this.handleDraggingChange("stop"));
+
+    this.loopButton = containerElement.querySelector(".loop-button");
+    this.loopButton.addEventListener("click", () => {
+      this.videoElement.loop = !this.videoElement.loop;
+      this.updateLoopState(true);
+    });
 
     // fixes the volume popup not opening on mobile
     const volumePopup = containerElement.querySelector<VolumePopoverElement>(".volume-popup");
@@ -78,6 +85,12 @@ class CustomVideoPlayer extends VideoPlayer {
       volumePopup.open = !volumePopup.open;
     });
   }
+
+
+  private updateLoopState = (save: boolean = false) => {
+    this.loopButton.classList.toggle("enabled", this.videoElement.loop);
+    if (save) this.storeSettings();
+  };
 
   // throttled to prevent exhausting the player
   private handleDraggingMove = TimingUtils.throttle(() => {
@@ -89,7 +102,7 @@ class CustomVideoPlayer extends VideoPlayer {
   private handleDraggingChange (status: "start" | "stop") {
     if (status === "stop") {
       this.timeSliderElement.removeEventListener("pointermove", this.handleDraggingMove);
-      this.videoElement.loop = this.isLoopable;
+      this.videoElement.loop = LStorage.Posts.Video.Loop;
       return;
     }
 
@@ -107,7 +120,10 @@ class CustomVideoPlayer extends VideoPlayer {
 
   public loadSettings (): void {
     // load settings after initializing videojs since it does override some previously set stuff
-    this.loadingVideoJsPromise.then(() => super.loadSettings());
+    this.loadingVideoJsPromise.then(() => {
+      super.loadSettings();
+      this.updateLoopState();
+    });
   }
 }
 

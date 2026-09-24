@@ -294,6 +294,10 @@
       color: palette("background-gold-d10");
     }
 
+    .loop-button.enabled {
+      color: palette("background-gold-d10");
+    }
+
     &[data-open] {
       display: flex;
     }

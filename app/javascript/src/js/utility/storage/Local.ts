@@ -90,6 +90,7 @@ class LStorage extends StorageObject {
       Volume: 0.25,
       Muted: false,
       PlaybackRate: 1,
+      Loop: true,
     },
 
     TagScript: {
@@ -298,6 +299,7 @@ const StorageKeys: StorageConfig<LStorage> = {
       Volume: "e6.posts.video.volume",
       Muted: "e6.posts.video.muted",
       PlaybackRate: "e6.posts.video.playback_rate",
+      Loop: "e6.posts.video.loop",
     },
 
     TagScript: {
