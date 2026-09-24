@@ -2,9 +2,12 @@
   position: relative;
   display: grid;
   place-items: center;
-  pointer-events: none;
   user-select: none;
   background-color: var(--color-background);
+
+  video {
+    pointer-events: none;
+  }
 
   &:fullscreen video {
     max-width: 100vw;
@@ -191,6 +194,8 @@
     display: none;
     padding: 0;
     @include st-radius-top;
+    margin-bottom: -.13rem !important;
+    padding-bottom: .13rem !important;
   }
 
   .volume-popup {
@@ -202,7 +207,7 @@
     &[data-open] {
       visibility: visible;
       height: 7rem;
-      transition: height .25s;
+      transition: height .2s;
     }
   }
 
