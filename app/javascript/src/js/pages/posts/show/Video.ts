@@ -68,6 +68,8 @@ class CustomVideoPlayer extends VideoPlayer {
 
   public constructor (protected containerElement: VideoPlayerElement) {
     super(containerElement);
+    containerElement.classList.add("custom-player");
+
     this.loadingVideoJsPromise = this.loadVideoJS();
 
     this.timeSliderElement = containerElement.querySelector(".time-slider");
