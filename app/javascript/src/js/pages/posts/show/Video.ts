@@ -1,5 +1,6 @@
 import LStorage from "@/utility/storage/Local";
 import TimingUtils from "@/utility/TimingUtils";
+import { createTapGesture } from "@videojs/core/dom";
 import { TimeSliderElement, VolumePopoverElement } from "@videojs/html";
 import type { VideoPlayerElement } from "@videojs/html/video";
 
@@ -117,6 +118,20 @@ class CustomVideoPlayer extends VideoPlayer {
     // only do these after videojs has completely finished importing
     this.videoElement.controls = false;
     this.containerElement.querySelector("media-controls").classList.add("loaded");
+    this.setupTouchTap();
+  }
+
+  // Reveal the controls when hidden, toggle playback when they're already visible.
+  private setupTouchTap () {
+    const container = this.containerElement.querySelector<HTMLElement>("media-container");
+    if (!container) return;
+
+    // store.state is a fresh immutable snapshot on each access, so read it inside the handler
+    const { store } = this.containerElement;
+    createTapGesture(container, () => {
+      if (store.state.controlsVisible) store.state.togglePaused();
+      else store.state.toggleControls();
+    }, { pointer: "touch", action: "toggleControls" });
   }
 
   public loadSettings (): void {
