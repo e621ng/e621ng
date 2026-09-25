@@ -204,8 +204,11 @@
     display: none;
     padding: 0;
     @include st-radius-top;
-    margin-bottom: -.13rem !important;
-    padding-bottom: .13rem !important;
+    // The mute button below is .kinetic: on :active it translates down by $kinetic-active
+    // (0.125rem), opening a gap the open-on-hover popup would fall through and close.
+    // Extend the popup's hit area down by that exact amount to bridge it.
+    margin-bottom: -.125rem !important;
+    padding-bottom: .125rem !important;
   }
 
   .volume-popup {
