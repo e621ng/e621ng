@@ -34,8 +34,8 @@
 
         <media-controls-group class="group-playback">
           <div class="time-wrapper">
-            <media-time class="time" type="current"></media-time>
-            <media-time class="time" toggle type="duration"></media-time>
+            <media-time type="current"></media-time>
+            <media-time class="toggleable-time" toggle type="duration"></media-time>
           </div>
           <media-time-slider class="time-slider" pause-on-drag>
             <media-slider-track class="slider-track">
@@ -43,7 +43,6 @@
               <media-slider-fill class="slider-fill"></media-slider-fill>
             </media-slider-track>
             <media-slider-thumb class="slider-thumb"></media-slider-thumb>
-            <media-slider-value class="slider-value" type="pointer"></media-slider-value>
           </media-time-slider>
         </media-controls-group>
 
@@ -64,6 +63,9 @@
             <media-playback-rate-button class="rate-button">
               <%= svg_icon(:playback_rate, class: "icon show") %>
             </media-playback-rate-button>
+            <button class="loop-button">
+              <%= svg_icon(:loop, class: "icon show") %>
+            </button>
           </media-popover>
         </media-controls-group>
       </media-controls-content>
@@ -74,7 +76,6 @@
     <media-gesture type="doubletap" action="toggleFullscreen" region="center" pointer="mouse"></media-gesture>
 
     <!-- mobile gestures -->
-    <media-gesture type="tap" action="togglePaused" pointer="touch"></media-gesture>
     <media-gesture type="doubletap" action="seekStep" value="-10" pointer="touch" region="left"></media-gesture>
     <media-gesture type="doubletap" action="seekStep" value="10" pointer="touch" region="right"></media-gesture>
   </media-container>

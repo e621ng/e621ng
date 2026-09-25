@@ -1,8 +1,10 @@
 import LStorage from "@/utility/storage/Local";
+import TimingUtils from "@/utility/TimingUtils";
+import { createTapGesture } from "@videojs/core/dom";
 import { TimeSliderElement, VolumePopoverElement } from "@videojs/html";
 import type { VideoPlayerElement } from "@videojs/html/video";
 
-const seekingUpdateDelay = 150;
+const seekingUpdateDelay = 50;
 
 
 async function importVideoJS () {
@@ -46,31 +48,37 @@ class VideoPlayer {
     LStorage.Posts.Video.Volume = this.videoElement.volume;
     LStorage.Posts.Video.Muted = this.videoElement.muted;
     LStorage.Posts.Video.PlaybackRate = this.videoElement.playbackRate;
+    LStorage.Posts.Video.Loop = this.videoElement.loop;
   }
 
   public loadSettings () {
     this.videoElement.volume = LStorage.Posts.Video.Volume;
     this.videoElement.muted = LStorage.Posts.Video.Muted;
     this.videoElement.playbackRate = LStorage.Posts.Video.PlaybackRate;
+    this.videoElement.loop = LStorage.Posts.Video.Loop;
   }
 }
 
 class CustomVideoPlayer extends VideoPlayer {
-  private slidingInterval: number;
-  private isLoopable: boolean;
   private loadingVideoJsPromise: Promise<void>;
 
   private timeSliderElement: TimeSliderElement;
+  private loopButton: HTMLButtonElement;
 
 
   public constructor (protected containerElement: VideoPlayerElement) {
     super(containerElement);
     this.loadingVideoJsPromise = this.loadVideoJS();
-    this.isLoopable = this.videoElement.loop;
 
     this.timeSliderElement = containerElement.querySelector(".time-slider");
-    this.timeSliderElement.addEventListener("drag-start", () => this.handleDragging("start"));
-    this.timeSliderElement.addEventListener("drag-end", () => this.handleDragging("stop"));
+    this.timeSliderElement.addEventListener("drag-start", () => this.handleDraggingChange("start"));
+    this.timeSliderElement.addEventListener("drag-end", () => this.handleDraggingChange("stop"));
+
+    this.loopButton = containerElement.querySelector(".loop-button");
+    this.loopButton.addEventListener("click", () => {
+      this.videoElement.loop = !this.videoElement.loop;
+      this.updateLoopState(true);
+    });
 
     // fixes the volume popup not opening on mobile
     const volumePopup = containerElement.querySelector<VolumePopoverElement>(".volume-popup");
@@ -79,19 +87,29 @@ class CustomVideoPlayer extends VideoPlayer {
     });
   }
 
+
+  private updateLoopState = (save: boolean = false) => {
+    this.loopButton.classList.toggle("enabled", this.videoElement.loop);
+    if (save) this.storeSettings();
+  };
+
   // seeks the actual video element when the user drags on the time slider
-  private handleDragging (status: "start" | "stop") {
+  // throttled to prevent exhausting the player
+  private handleDraggingMove = TimingUtils.throttle(() => {
+    const seekingPercentage = parseFloat(this.timeSliderElement.style.getPropertyValue("--media-slider-pointer"));
+    this.videoElement.currentTime = this.videoElement.duration * seekingPercentage / 100;
+  }, seekingUpdateDelay);
+
+  // starts or stops listening to changes to seeking
+  private handleDraggingChange (status: "start" | "stop") {
     if (status === "stop") {
-      clearInterval(this.slidingInterval);
-      this.videoElement.loop = this.isLoopable;
+      this.timeSliderElement.removeEventListener("pointermove", this.handleDraggingMove);
+      this.videoElement.loop = LStorage.Posts.Video.Loop;
       return;
     }
 
     this.videoElement.loop = false; // this is to temporarily the player from constantly seeking to the start if the pointer is at the end
-    this.slidingInterval = setInterval(() => {
-      const seekingPercentage = parseFloat(this.timeSliderElement.style.getPropertyValue("--media-slider-pointer"));
-      this.videoElement.currentTime = this.videoElement.duration * seekingPercentage / 100;
-    }, seekingUpdateDelay);
+    this.timeSliderElement.addEventListener("pointermove", this.handleDraggingMove); // only fire when pointer moves
   }
 
   private async loadVideoJS () {
@@ -100,11 +118,28 @@ class CustomVideoPlayer extends VideoPlayer {
     // only do these after videojs has completely finished importing
     this.videoElement.controls = false;
     this.containerElement.querySelector("media-controls").classList.add("loaded");
+    this.setupTouchTap();
+  }
+
+  // Reveal the controls when hidden, toggle playback when they're already visible.
+  private setupTouchTap () {
+    const container = this.containerElement.querySelector<HTMLElement>("media-container");
+    if (!container) return;
+
+    // store.state is a fresh immutable snapshot on each access, so read it inside the handler
+    const { store } = this.containerElement;
+    createTapGesture(container, () => {
+      if (store.state.controlsVisible) store.state.togglePaused();
+      else store.state.toggleControls();
+    }, { pointer: "touch", action: "toggleControls" });
   }
 
   public loadSettings (): void {
     // load settings after initializing videojs since it does override some previously set stuff
-    this.loadingVideoJsPromise.then(() => super.loadSettings());
+    this.loadingVideoJsPromise.then(() => {
+      super.loadSettings();
+      this.updateLoopState();
+    });
   }
 }
 
