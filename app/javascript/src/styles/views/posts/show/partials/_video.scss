@@ -1,4 +1,10 @@
 .video-player media-container {
+  media-controls {
+    display: none;
+  }
+}
+
+.video-player.custom-player media-container {
   position: relative;
   display: grid;
   place-items: center;
