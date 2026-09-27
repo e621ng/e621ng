@@ -1,4 +1,4 @@
-import { StorageConfig, StorageObject, StorageProvider } from "./Types";
+import { StorageConfig, StorageMetadata, StorageObject, StorageProvider } from "./Types";
 
 export default class StorageInitializer {
 
@@ -7,18 +7,14 @@ export default class StorageInitializer {
       if (!(name in root)) continue; // Keys that don't exist on the target object
       if (contents === null) continue; // Keys with null values (custom getters/setters)
 
-      // Nested storage objects
-      if (typeof contents !== "string") {
+      // A nested StorageConfig groups further settings; a metadata leaf (has "key") does not.
+      if (typeof contents === "object" && !("key" in contents)) {
         StorageInitializer.perform(root[name] as StorageObject, contents, provider);
         continue;
       }
 
-      // Initialize properties
-      const definition = {
-        key: contents as string,
-        val: root[name],
-        type: typeof root[name],
-      };
+      const storageKey = typeof contents === "string" ? contents : (contents as StorageMetadata).key;
+      const definition = { key: storageKey, val: root[name], type: typeof root[name] };
       Object.defineProperty(root, name, {
         get: function () { return provider.get(definition); },
         set: function (newValue) { provider.set(definition, newValue); },

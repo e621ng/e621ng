@@ -55,6 +55,17 @@ class LStorage extends StorageObject {
     TimeSwitch: false,
   };
 
+  // Account settings sync metadata -- see core/SettingsSync.ts. Revision/UserID
+  // are established only by a full GET; DirtyToken lets a GET detect whether a
+  // concurrent mutation (this tab or another sharing this localStorage)
+  // happened during its flight, so it knows not to clear Dirty.
+  Sync = {
+    UserID: 0, // -1 forces a re-sync regardless of revision (used for guest edits)
+    Revision: 0,
+    Dirty: false,
+    DirtyToken: "",
+  };
+
   // Site themes and other visual options
   // NOTE: these are HARD-CODED in theme_include.html.erb. Any changes must be reflected there as well.
   Theme = {
@@ -62,7 +73,7 @@ class LStorage extends StorageObject {
     Extra: "hexagon" as "aurora" | "autumn" | "fennec" | "hexagon" | "none" | "scales" | "space" | "spring" | "stars" | "winter",
     Palette: "default" as "default" | "deut" | "trit",
     Font: "Verdana" as "Verdana" | "Lato" | "Lexend" | "Monospace" | "OpenDyslexic" | "OpenSans" | "ComicSans",
-    Navbar: "top" as "top" | "bottom" | "none",
+    Navbar: "top" as "top" | "bottom" | "both" | "none",
     Gestures: false,
     StickyHeader: false,
     Logo: "pride", // Too many to list
@@ -260,31 +271,38 @@ class LStorage extends StorageObject {
 }
 
 
-const StorageKeys: StorageConfig<LStorage> = {
+export const StorageKeys: StorageConfig<LStorage> = {
   "Site": {
     NewsID: "hide_news_notice",
-    Events: "e6.events",
-    TimeSwitch: "e6.timeswitch",
+    Events: { key: "e6.events", sync: true },
+    TimeSwitch: { key: "e6.timeswitch", sync: true },
+  },
+
+  "Sync": {
+    UserID: "e6.sync.uid",
+    Revision: "e6.sync.rev",
+    Dirty: "e6.sync.dirty",
+    DirtyToken: "e6.sync.dtoken",
   },
 
   "Theme": {
-    Main: "theme",
-    Extra: "theme-extra",
-    Palette: "theme-palette",
-    Font: "theme-font",
-    Navbar: "theme-nav",
-    Gestures: "emg",
-    StickyHeader: "theme-sheader",
-    Logo: "theme-logo",
+    Main: { key: "theme", sync: true },
+    Extra: { key: "theme-extra", sync: true },
+    Palette: { key: "theme-palette", sync: true },
+    Font: { key: "theme-font", sync: true },
+    Navbar: { key: "theme-nav", sync: true },
+    Gestures: { key: "emg", sync: true },
+    StickyHeader: { key: "theme-sheader", sync: true },
+    Logo: { key: "theme-logo", sync: true },
   },
 
   "Posts": {
     ShowPostChildren: "show-relationship-previews", // legacy
     Set: "set", // legacy
-    WikiExcerpt: "e6.posts.wiki",
+    WikiExcerpt: { key: "e6.posts.wiki", sync: true },
     Fullscreen: "e6.posts.fusk",
     CornerRibbons: "e6.posts.cribbons",
-    StickySearch: "e6.posts.ssearch",
+    StickySearch: { key: "e6.posts.ssearch", sync: true },
     SkipVariants: "e6.posts.scvideos",
     Contain: "e6.posts.contain",
     Size: "e6.posts.size",
@@ -292,8 +310,8 @@ const StorageKeys: StorageConfig<LStorage> = {
     HoverText: "e6.posts.hovertext",
     TagPreview: "e6.posts.tagpreview",
     Recommendations: "e6.posts.recommended.type",
-    AutocompleteCache: "e6.posts.acache",
-    VideoPlayer: "e6.posts.video_player",
+    AutocompleteCache: { key: "e6.posts.acache", sync: true },
+    VideoPlayer: { key: "e6.posts.video_player", sync: true },
 
     Video: {
       Volume: "e6.posts.video.volume",

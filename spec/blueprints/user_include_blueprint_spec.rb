@@ -8,7 +8,12 @@ RSpec.describe UserIncludeBlueprint do
   let(:user) { create(:user) }
 
   it "includes the expected top-level keys" do
-    expect(result.keys).to match_array(%i[id name level level_string is can settings blacklist])
+    expect(result.keys).to match_array(%i[id name level level_string settings_revision is can settings blacklist])
+  end
+
+  it "serializes the user's settings_revision" do
+    user.update!(settings_revision: 7)
+    expect(result[:settings_revision]).to eq(7)
   end
 
   it "serializes basic attributes" do

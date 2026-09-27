@@ -132,6 +132,7 @@ class User < ApplicationRecord
   has_one :dmail_filter
   has_one :totp, class_name: "UserTotp", dependent: :destroy
   has_one :user_status
+  has_one :user_setting, dependent: :destroy
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
   has_many :bans, -> { order("bans.id desc") }
   has_many :dmails, -> { order("dmails.id desc") }, foreign_key: "owner_id"
