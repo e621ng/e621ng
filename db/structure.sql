@@ -2988,6 +2988,37 @@ ALTER SEQUENCE public.user_password_reset_nonces_id_seq OWNED BY public.user_pas
 
 
 --
+-- Name: user_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_settings (
+    user_id bigint NOT NULL,
+    settings jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: user_settings_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_settings_user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_settings_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_settings_user_id_seq OWNED BY public.user_settings.user_id;
+
+
+--
 -- Name: user_statuses; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3105,7 +3136,8 @@ furry -rating:s'::text,
     profile_about text DEFAULT ''::text NOT NULL,
     profile_artinfo text DEFAULT ''::text NOT NULL,
     avatar_id integer,
-    custom_title character varying DEFAULT ''::character varying NOT NULL
+    custom_title character varying DEFAULT ''::character varying NOT NULL,
+    settings_revision integer DEFAULT 0 NOT NULL
 );
 
 
@@ -3748,6 +3780,13 @@ ALTER TABLE ONLY public.user_name_change_requests ALTER COLUMN id SET DEFAULT ne
 --
 
 ALTER TABLE ONLY public.user_password_reset_nonces ALTER COLUMN id SET DEFAULT nextval('public.user_password_reset_nonces_id_seq'::regclass);
+
+
+--
+-- Name: user_settings user_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_settings ALTER COLUMN user_id SET DEFAULT nextval('public.user_settings_user_id_seq'::regclass);
 
 
 --
@@ -4417,6 +4456,14 @@ ALTER TABLE ONLY public.user_name_change_requests
 
 ALTER TABLE ONLY public.user_password_reset_nonces
     ADD CONSTRAINT user_password_reset_nonces_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_settings user_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_settings
+    ADD CONSTRAINT user_settings_pkey PRIMARY KEY (user_id);
 
 
 --
@@ -6405,6 +6452,14 @@ ALTER TABLE ONLY public.staff_wikis
 
 
 --
+-- Name: user_settings fk_rails_d1371c6356; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_settings
+    ADD CONSTRAINT fk_rails_d1371c6356 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: favorites fk_rails_d20e53bb68; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6443,6 +6498,8 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260927120100'),
+('20260927120000'),
 ('20260907205015'),
 ('20260827214903'),
 ('20260824220908'),

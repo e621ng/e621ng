@@ -6,6 +6,7 @@ class UserIncludeBlueprint < Blueprinter::Base
   field :name
   field :level
   field :level_string
+  field :settings_revision
 
   field :is do |user|
     output = {}

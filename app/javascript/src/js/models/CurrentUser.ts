@@ -46,6 +46,7 @@ class CurrentUser {
   public readonly name: string;
   public readonly level: number;
   public readonly levelString: string;
+  public readonly settingsRevision: number;
 
   public readonly is: CurrentUserIs;
   public readonly can: CurrentUserCan;
@@ -68,6 +69,7 @@ class CurrentUser {
     this.name = obj["name"] || "Anonymous";
     this.level = obj["level"] || 0;
     this.levelString = obj["level_string"] || "";
+    this.settingsRevision = obj["settings_revision"] || 0;
 
     const isObj = obj["is"] || {};
     this.is = { // Fallback to false for any missing properties

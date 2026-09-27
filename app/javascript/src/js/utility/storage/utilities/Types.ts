@@ -6,8 +6,14 @@ export interface StorageDefinition {
   type: string;
 }
 
+/** A leaf that also declares whether it syncs to the backend (see core/SettingsSync.ts). */
+export interface StorageMetadata {
+  key: string;
+  sync?: boolean;
+}
+
 export type StorageConfig<T> = {
-  [key in keyof T]?: T[key] extends object ? StorageConfig<T[key]> : string;
+  [key in keyof T]?: T[key] extends object ? StorageConfig<T[key]> : string | StorageMetadata;
 };
 
 export abstract class StorageObject {

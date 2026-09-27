@@ -1,3 +1,4 @@
+import SettingsSync from "@/core/SettingsSync";
 import Page from "@/utility/Page";
 import CStorage from "@/utility/storage/Cookie";
 import LStorage from "@/utility/storage/Local";
@@ -15,9 +16,14 @@ for (const [label, settings] of Object.entries(Theme.Values)) {
     Object.defineProperty(Theme, one, {
       get () { return LStorage.Theme[one]; },
       set (value) {
+        const previous = LStorage[label][one];
         // This has the unintended side effect of setting
         // attribute values that don't exist on the body.
         LStorage[label][one] = value;
+        // Re-read through the getter so the sync module receives the properly
+        // typed value (e.g. a number for WikiExcerpt) rather than the raw
+        // string from the <select> element.
+        SettingsSync.notifyLocalChange(label, one, LStorage[label][one], previous);
         // If we're on the static homepage, don't apply the main or extra theme
         // attributes; leave those unset so the default (hexagon) is used.
         if ($("body").is(".c-static.a-home") && (one === "Main" || one === "Extra")) return;

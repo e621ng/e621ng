@@ -448,6 +448,7 @@ Rails.application.routes.draw do
   end
   resources :user_name_change_requests
   resource :user_revert, only: %i[new create]
+  resource :user_settings, only: %i[show update]
   resources :wiki_pages, constraints: id_name_constraint do
     member do
       put :revert
