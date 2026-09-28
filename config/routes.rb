@@ -254,7 +254,12 @@ Rails.application.routes.draw do
   end
   resource :dtext_preview, only: %i[create]
   resources :db_exports, only: %i[index]
-  resources :favorites, only: %i[index create destroy]
+  resources :favorites, only: %i[index create destroy] do
+    member do
+      post :move
+    end
+  end
+  resources :favorite_folders, only: %i[create update destroy]
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes", only: %i[show create destroy]
     member do

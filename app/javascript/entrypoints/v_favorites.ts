@@ -9,5 +9,7 @@ import "@/pages/posts/post_search";
 import Post from "@/pages/posts/posts";
 import "@/pages/posts/SearchControls";
 import "@/pages/posts/SearchFilters";
+import "@/pages/favorites/FavoriteFolderDrag";
+import "@/pages/favorites/FavoriteFolderManageDialog";
 
 ModuleRegistry.register("v_favorites", { Post, PostModeMenu });

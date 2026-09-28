@@ -5,7 +5,17 @@ module PaginationHelper
     return "" if records.pagination_mode != :numbered
 
     should_round = true
-    if records.is_last_page?
+    if records.capped? && records.is_last_page?
+      # The pagination ceiling itself was reached, not the true end of the data (a folder
+      # whose real membership count exceeds what numbered pagination can ever reach) -
+      # records.is_last_page? alone can't tell the two apart, since it's computed from the
+      # capped total_count pagination deliberately uses. real_total_count is the true
+      # count PostSets::Favorites already had in hand; no extra COUNT query here.
+      pages = records.max_numbered_pages
+      schar = "over "
+      count = records.real_total_count
+      title = "Over #{number_with_delimiter(count)} results found.\nActual result count may be much larger."
+    elsif records.is_last_page?
       records_on_current_page = records.size
       count = ((records.current_page - 1) * records.records_per_page) + records_on_current_page
       pages = records.current_page

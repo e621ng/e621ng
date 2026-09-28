@@ -59,7 +59,11 @@ PostModeMenu.initialize_selector = function () {
 };
 
 PostModeMenu.initialize_preview_link = function () {
-  $(".thumbnail").on("click.danbooru", PostModeMenu.click);
+  // [data-id] required: this also runs on the Favorites page (#c-favorites), which since
+  // the nested-folders feature can render non-post "article.thumbnail"-shell elements
+  // (folder/Go Up cards) that intentionally carry no post data - without this guard they'd
+  // pick up PostModeMenu.click too and get treated as a post with an undefined id.
+  $("article.thumbnail[data-id]").on("click.danbooru", PostModeMenu.click);
 };
 
 PostModeMenu.initialize_edit_form = function () {
@@ -115,7 +119,8 @@ PostModeMenu.initialize_tag_script_field = function () {
 
 PostModeMenu.tag_script_apply_all = function (event) {
   event.preventDefault();
-  const posts = $("article.thumbnail");
+  // [data-id] required - see initialize_preview_link for why.
+  const posts = $("article.thumbnail[data-id]");
   if (!confirm(`Apply the tag script to ${posts.length} posts?`)) return;
   posts.trigger("click");
 };

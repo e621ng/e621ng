@@ -109,4 +109,42 @@ export default class Favorite {
       throw error;
     });
   }
+
+  /**
+   * Moves an already-favorited post into a destination folder (or root).
+   * @param {number} post_id The ID of the favorited post to move.
+   * @param {number|null} favorite_folder_id The destination folder's ID, or null/undefined for root.
+   * @returns {Promise<Object>} The parsed JSON response from the server.
+   */
+  static async move (post_id, favorite_folder_id) {
+    if (!post_id) return Promise.reject(new Error("Post ID is required"));
+
+    const response = await fetch(`/favorites/${post_id}/move.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "accept": "*/*;q=0.5,text/javascript",
+      },
+      credentials: "include",
+      mode: "cors",
+      body: JSON.stringify({
+        favorite_folder_id: favorite_folder_id || null,
+        authenticity_token: CurrentUser.encodedAuthToken,
+      }),
+    });
+
+    if (!response.ok) {
+      let backendErrorMessage;
+      try {
+        const errorData = await response.json();
+        backendErrorMessage = errorData.message || "Unknown error";
+      } catch (_error) {
+        backendErrorMessage = response.status + " " + response.statusText;
+      }
+      $(window).trigger("danbooru:error", "Error: " + backendErrorMessage);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`, { cause: backendErrorMessage });
+    }
+
+    return response.json();
+  }
 }

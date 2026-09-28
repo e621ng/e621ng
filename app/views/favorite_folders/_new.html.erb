@@ -1,0 +1,13 @@
+<%= form_tag(favorite_folders_path, class: "simple_form", id: "favorite-folder-dialog", data: { title: "New Folder", width: "250" }) do %>
+  <%= hidden_field_tag "parent_id", @current_folder&.id, id: "favorite-folder-parent-id" %>
+  <%= hidden_field_tag "folder_id", "", id: "favorite-folder-id" %>
+
+  <div class="input">
+    <label for="favorite-folder-name">Folder Name</label>
+    <%= text_field_tag "name", "", size: 30, id: "favorite-folder-name", maxlength: 100 %>
+  </div>
+
+  <div class="input favorite-folder-dialog-submit">
+    <%= submit_tag "Save", class: "st-button" %>
+  </div>
+<% end %>

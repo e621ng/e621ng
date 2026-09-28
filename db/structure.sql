@@ -854,6 +854,74 @@ ALTER SEQUENCE public.exception_logs_id_seq OWNED BY public.exception_logs.id;
 
 
 --
+-- Name: favorite_folder_memberships; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.favorite_folder_memberships (
+    id bigint NOT NULL,
+    user_id integer NOT NULL,
+    folder_id bigint NOT NULL,
+    favorite_id bigint NOT NULL,
+    post_id integer NOT NULL,
+    favorite_created_at timestamp(6) without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: favorite_folder_memberships_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.favorite_folder_memberships_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: favorite_folder_memberships_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.favorite_folder_memberships_id_seq OWNED BY public.favorite_folder_memberships.id;
+
+
+--
+-- Name: favorite_folders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.favorite_folders (
+    id bigint NOT NULL,
+    user_id integer NOT NULL,
+    parent_id bigint,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: favorite_folders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.favorite_folders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: favorite_folders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.favorite_folders_id_seq OWNED BY public.favorite_folders.id;
+
+
+--
 -- Name: favorites; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3359,6 +3427,20 @@ ALTER TABLE ONLY public.exception_logs ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: favorite_folder_memberships id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_folder_memberships ALTER COLUMN id SET DEFAULT nextval('public.favorite_folder_memberships_id_seq'::regclass);
+
+
+--
+-- Name: favorite_folders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_folders ALTER COLUMN id SET DEFAULT nextval('public.favorite_folders_id_seq'::regclass);
+
+
+--
 -- Name: favorites id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3959,6 +4041,22 @@ ALTER TABLE ONLY public.email_blacklists
 
 ALTER TABLE ONLY public.exception_logs
     ADD CONSTRAINT exception_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: favorite_folder_memberships favorite_folder_memberships_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_folder_memberships
+    ADD CONSTRAINT favorite_folder_memberships_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: favorite_folders favorite_folders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_folders
+    ADD CONSTRAINT favorite_folders_pkey PRIMARY KEY (id);
 
 
 --
@@ -4912,6 +5010,55 @@ CREATE INDEX index_exception_logs_on_created_at ON public.exception_logs USING b
 --
 
 CREATE INDEX index_exception_logs_on_user_id ON public.exception_logs USING btree (user_id);
+
+
+--
+-- Name: index_favorite_folder_memberships_on_favorite_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_favorite_folder_memberships_on_favorite_id ON public.favorite_folder_memberships USING btree (favorite_id);
+
+
+--
+-- Name: index_favorite_folder_memberships_on_folder_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorite_folder_memberships_on_folder_id ON public.favorite_folder_memberships USING btree (folder_id);
+
+
+--
+-- Name: index_favorite_folder_memberships_user_folder_created_favorite; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorite_folder_memberships_user_folder_created_favorite ON public.favorite_folder_memberships USING btree (user_id, folder_id, favorite_created_at, favorite_id);
+
+
+--
+-- Name: index_favorite_folders_on_parent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorite_folders_on_parent_id ON public.favorite_folders USING btree (parent_id);
+
+
+--
+-- Name: index_favorite_folders_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorite_folders_on_user_id ON public.favorite_folders USING btree (user_id);
+
+
+--
+-- Name: index_favorite_folders_on_user_lower_name_root; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_favorite_folders_on_user_lower_name_root ON public.favorite_folders USING btree (user_id, lower((name)::text)) WHERE (parent_id IS NULL);
+
+
+--
+-- Name: index_favorite_folders_on_user_parent_lower_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_favorite_folders_on_user_parent_lower_name ON public.favorite_folders USING btree (user_id, parent_id, lower((name)::text)) WHERE (parent_id IS NOT NULL);
 
 
 --
@@ -6134,6 +6281,13 @@ CREATE INDEX index_wiki_pages_on_updated_at ON public.wiki_pages USING btree (up
 
 
 --
+-- Name: statistics_ffm_user_folder; Type: STATISTICS; Schema: public; Owner: -
+--
+
+CREATE STATISTICS public.statistics_ffm_user_folder (ndistinct, dependencies) ON user_id, folder_id FROM public.favorite_folder_memberships;
+
+
+--
 -- Name: posts posts_update_change_seq; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6154,6 +6308,14 @@ ALTER TABLE ONLY public.search_trend_blacklists
 
 ALTER TABLE ONLY public.staff_audit_logs
     ADD CONSTRAINT fk_rails_02329e5ef9 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: favorite_folder_memberships fk_rails_04eeb1c269; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_folder_memberships
+    ADD CONSTRAINT fk_rails_04eeb1c269 FOREIGN KEY (favorite_id) REFERENCES public.favorites(id) ON DELETE CASCADE;
 
 
 --
@@ -6269,6 +6431,14 @@ ALTER TABLE ONLY public.user_ip_addresses
 
 
 --
+-- Name: favorite_folder_memberships fk_rails_697bb9c5ea; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_folder_memberships
+    ADD CONSTRAINT fk_rails_697bb9c5ea FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: oauth_access_tokens fk_rails_732cb83ab7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6325,11 +6495,27 @@ ALTER TABLE ONLY public.mascots
 
 
 --
+-- Name: favorite_folders fk_rails_99f480355e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_folders
+    ADD CONSTRAINT fk_rails_99f480355e FOREIGN KEY (parent_id) REFERENCES public.favorite_folders(id);
+
+
+--
 -- Name: favorites fk_rails_a7668ef613; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.favorites
     ADD CONSTRAINT fk_rails_a7668ef613 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: favorite_folders fk_rails_aa1ef7be5c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_folders
+    ADD CONSTRAINT fk_rails_aa1ef7be5c FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -6437,12 +6623,22 @@ ALTER TABLE ONLY public.oauth_access_tokens
 
 
 --
+-- Name: favorite_folder_memberships fk_rails_f002b848b8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_folder_memberships
+    ADD CONSTRAINT fk_rails_f002b848b8 FOREIGN KEY (folder_id) REFERENCES public.favorite_folders(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260920030001'),
+('20260919210701'),
 ('20260907205015'),
 ('20260827214903'),
 ('20260824220908'),
