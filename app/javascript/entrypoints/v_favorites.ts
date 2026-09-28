@@ -13,7 +13,7 @@ import SearchControls from "@/pages/posts/common/SearchControls";
 import SearchFilters from "@/pages/posts/common/SearchFilters";
 import TagListCollapse from "@/pages/posts/common/TagListCollapse";
 import "@/pages/favorites/FavoriteFolderDrag";
-import "@/pages/favorites/FavoriteFolderManageDialog";
+import "@/pages/favorites/FavoriteFolderOverlay";
 
 // Shares the posts startup list with v_posts.ts; keep the two in sync
 State.onReady(() => {

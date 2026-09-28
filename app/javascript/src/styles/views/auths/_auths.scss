@@ -1,64 +1,16 @@
-@use "colors/palette";
 @use "colors/theme";
 
+// Generic overlay/card/error box shapes live in common/overlay_modal.scss (shared with
+// the Favorites folder create/rename overlay) - extended here rather than duplicated, so
+// this file only carries what's actually login-specific.
 #auth-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 201;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--fg-color, rgba(15, 15, 15, .5019607843));
-  backdrop-filter: blur(8px);
-
-  &.hidden { display: none; }
-
-  button.close-button {
-    position: absolute;
-    top: -3rem;
-    right: 0;
-
-    width: 2rem;
-    font-size: 1.5rem;
-    padding: 0.25rem;
-    box-shadow: 0 0 0.75rem -0.25rem theme.color("background");
-  }
+  @extend .st-overlay;
 }
 
 .auth-flow-wrapper {
-  display: grid;
-  grid-template-columns: minmax(0, 350px);
-  width: max-content;
-  position: relative;
-  margin: 0;
+  @extend .st-overlay-wrapper;
 
   form.simple_form {
-    // Revert changes from .simple_form
-    background: unset;
-    margin: 0;
-    padding: 1rem;
-    border-radius: unset;
-
-    // Layout
-    display: flex;
-    flex-flow: column;
-    gap: 0.5rem;
-
-    // Theme
-    background-color: theme.color("section");
-    background-image: theme.image("foreground");
-    background-position: theme.image("foreground-position");
-    background-repeat: theme.image("foreground-repeat");
-    background-size: theme.image("foreground-size");
-    box-shadow: 0 0 0.75rem -0.25rem theme.color("background");
-    border-radius: 0.25rem;
-
-    h1 {
-      margin: 1rem 0 0.25rem;
-      text-align: center;
-    }
-
     .auth-input {
       display: flex;
       flex-flow: column;
@@ -78,12 +30,6 @@
       margin-top: auto;
     }
 
-    // Override for default styles
-    div.input {
-      margin-bottom: unset;
-      &.hidden { display: none; }
-    }
-
     hr {
       width: 100%;
       border-color: theme.color("section-lighten-10");
@@ -96,9 +42,7 @@
     }
 
     #auth-error {
-      text-align: center;
-      font-weight: bold;
-      color: palette.color("text-red");
+      @extend .st-overlay-error;
     }
   }
 }
