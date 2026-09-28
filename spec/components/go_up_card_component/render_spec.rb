@@ -31,6 +31,11 @@ RSpec.describe GoUpCardComponent, type: :component do
     expect(doc.at_css("[data-id]")).to be_nil
   end
 
+  it "is a valid drop target but never a drag source - folder cards are draggable, Go Up isn't" do
+    doc = render_inline(described_class.new(parent_folder_id: 42))
+    expect(doc.at_css("[data-folder-drag-source]")).to be_nil
+  end
+
   it "renders the corner-up-left icon large and centered in the square body" do
     doc = render_inline(described_class.new(parent_folder_id: nil))
     expect(doc.at_css("a.thm-link svg")).to be_present
@@ -46,5 +51,12 @@ RSpec.describe GoUpCardComponent, type: :component do
   it "has no rename or delete management actions" do
     doc = render_inline(described_class.new(parent_folder_id: nil))
     expect(doc.at_css("button, form")).to be_nil
+  end
+
+  it "carries no inline grid-column/style of its own" do
+    doc = render_inline(described_class.new(parent_folder_id: nil))
+    card = doc.at_css("article.thumbnail")
+    expect(card["style"]).to be_nil
+    expect(doc.at_css("a.thm-link")["style"]).to be_nil
   end
 end

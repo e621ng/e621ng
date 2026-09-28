@@ -259,7 +259,11 @@ Rails.application.routes.draw do
       post :move
     end
   end
-  resources :favorite_folders, only: %i[create update destroy]
+  resources :favorite_folders, only: %i[create update destroy] do
+    member do
+      post :move
+    end
+  end
   resources :forum_posts do
     resource :votes, controller: "forum_post_votes", only: %i[show create destroy]
     member do
