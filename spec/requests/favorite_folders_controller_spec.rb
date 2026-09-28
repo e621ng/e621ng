@@ -1,0 +1,337 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe FavoriteFoldersController do
+  include_context "as admin"
+
+  let(:member) { create(:user) }
+  let(:other_member) { create(:user) }
+  let(:moderator) { create(:moderator_user) }
+
+  # ---------------------------------------------------------------------------
+  # POST /favorite_folders — create
+  # ---------------------------------------------------------------------------
+
+  describe "POST /favorite_folders" do
+    context "as anonymous" do
+      it "returns 403 for JSON" do
+        post favorite_folders_path(format: :json), params: { name: "Memes" }
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a member" do
+      before { sign_in_as member }
+
+      it "creates a root-level folder" do
+        expect do
+          post favorite_folders_path(format: :json), params: { name: "Memes" }
+        end.to change(FavoriteFolder, :count).by(1)
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["name"]).to eq("Memes")
+        expect(response.parsed_body["parent_id"]).to be_nil
+      end
+
+      it "creates a nested folder under the given parent" do
+        parent = create(:favorite_folder, user: member)
+        post favorite_folders_path(format: :json), params: { name: "Memes", parent_id: parent.id }
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["parent_id"]).to eq(parent.id)
+      end
+
+      it "returns 422 when the parent belongs to another user" do
+        other_folder = create(:favorite_folder, user: other_member)
+        post favorite_folders_path(format: :json), params: { name: "Memes", parent_id: other_folder.id }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(FavoriteFolder.count).to eq(1) # only the other member's seed folder
+      end
+
+      it "returns 422 on a case-insensitive name collision" do
+        create(:favorite_folder, user: member, name: "Memes")
+        post favorite_folders_path(format: :json), params: { name: "memes" }
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "returns 400 for a malformed parent_id (array)" do
+        post "#{favorite_folders_path(format: :json)}?name=Memes&parent_id[]=1&parent_id[]=2"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed parent_id (hash)" do
+        post "#{favorite_folders_path(format: :json)}?name=Memes&parent_id[x]=1"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed parent_id (one-element blank array)" do
+        post "#{favorite_folders_path(format: :json)}?name=Memes&parent_id[]="
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 403 when favorites are locked down" do
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+        post favorite_folders_path(format: :json), params: { name: "Memes" }
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a staff member when favorites are locked down" do
+      before do
+        sign_in_as moderator
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+      end
+
+      it "still allows creating a folder" do
+        post favorite_folders_path(format: :json), params: { name: "Memes" }
+        expect(response).to have_http_status(:ok)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # PATCH /favorite_folders/:id — update
+  # ---------------------------------------------------------------------------
+
+  describe "PATCH /favorite_folders/:id" do
+    let(:folder) { create(:favorite_folder, user: member, name: "Old") }
+
+    context "as a member" do
+      before { sign_in_as member }
+
+      it "renames the folder" do
+        patch favorite_folder_path(folder, format: :json), params: { name: "New" }
+        expect(response).to have_http_status(:ok)
+        expect(folder.reload.name).to eq("New")
+      end
+
+      it "returns 422 on a conflicting rename" do
+        create(:favorite_folder, user: member, name: "Taken")
+        patch favorite_folder_path(folder, format: :json), params: { name: "taken" }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(folder.reload.name).to eq("Old")
+      end
+
+      it "returns 403 when favorites are locked down" do
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+        patch favorite_folder_path(folder, format: :json), params: { name: "New" }
+        expect(response).to have_http_status(:forbidden)
+        expect(folder.reload.name).to eq("Old")
+      end
+    end
+
+    context "as another member" do
+      before { sign_in_as other_member }
+
+      it "returns 422 and does not rename another user's folder" do
+        patch favorite_folder_path(folder, format: :json), params: { name: "Hijacked" }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(folder.reload.name).to eq("Old")
+      end
+    end
+
+    context "as a staff member when favorites are locked down" do
+      let(:staff_folder) { create(:favorite_folder, user: moderator, name: "Old") }
+
+      before do
+        sign_in_as moderator
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+      end
+
+      it "still allows renaming their own folder" do
+        patch favorite_folder_path(staff_folder, format: :json), params: { name: "New" }
+        expect(response).to have_http_status(:ok)
+        expect(staff_folder.reload.name).to eq("New")
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # POST /favorite_folders/:id/move — hierarchy move
+  # ---------------------------------------------------------------------------
+
+  describe "POST /favorite_folders/:id/move" do
+    context "as anonymous" do
+      it "returns 403" do
+        folder = create(:favorite_folder, user: member)
+        post move_favorite_folder_path(folder, format: :json)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a member" do
+      before { sign_in_as member }
+
+      it "moves a root folder under another root folder and returns the new parent_id" do
+        a = create(:favorite_folder, user: member, name: "a")
+        b = create(:favorite_folder, user: member, name: "b")
+        post move_favorite_folder_path(a, format: :json), params: { parent_id: b.id }
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["id"]).to eq(a.id)
+        expect(response.parsed_body["parent_id"]).to eq(b.id)
+        expect(a.reload.parent_id).to eq(b.id)
+      end
+
+      it "moves a folder to root when parent_id is blank" do
+        parent = create(:favorite_folder, user: member, name: "parent")
+        child = create(:favorite_folder, user: member, name: "child", parent: parent)
+        post move_favorite_folder_path(child, format: :json), params: { parent_id: "" }
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["parent_id"]).to be_nil
+        expect(child.reload.parent_id).to be_nil
+      end
+
+      it "returns 422 and does not move when the destination belongs to another user" do
+        folder = create(:favorite_folder, user: member)
+        other_folder = create(:favorite_folder, user: other_member)
+        post move_favorite_folder_path(folder, format: :json), params: { parent_id: other_folder.id }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(folder.reload.parent_id).to be_nil
+      end
+
+      it "returns 422 when the destination does not exist" do
+        folder = create(:favorite_folder, user: member)
+        post move_favorite_folder_path(folder, format: :json), params: { parent_id: 0 }
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "returns 422 and does not move on a cycle (moving a folder into its own child)" do
+        parent = create(:favorite_folder, user: member, name: "parent")
+        child = create(:favorite_folder, user: member, name: "child", parent: parent)
+        post move_favorite_folder_path(parent, format: :json), params: { parent_id: child.id }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(parent.reload.parent_id).to be_nil
+      end
+
+      it "returns 422 and does not move on a sibling-name collision at the destination" do
+        create(:favorite_folder, user: member, name: "Memes")
+        folder = create(:favorite_folder, user: member, name: "memes", parent: create(:favorite_folder, user: member, name: "parent"))
+        post move_favorite_folder_path(folder, format: :json), params: { parent_id: "" }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(folder.reload.parent_id).not_to be_nil
+      end
+
+      it "returns 400 for a malformed parent_id (array)" do
+        folder = create(:favorite_folder, user: member)
+        post "#{move_favorite_folder_path(folder, format: :json)}?parent_id[]=1&parent_id[]=2"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed parent_id (hash)" do
+        folder = create(:favorite_folder, user: member)
+        post "#{move_favorite_folder_path(folder, format: :json)}?parent_id[x]=1"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed parent_id (one-element blank array)" do
+        folder = create(:favorite_folder, user: member)
+        post "#{move_favorite_folder_path(folder, format: :json)}?parent_id[]="
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 403 when favorites are locked down" do
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+        a = create(:favorite_folder, user: member, name: "a")
+        b = create(:favorite_folder, user: member, name: "b")
+        post move_favorite_folder_path(a, format: :json), params: { parent_id: b.id }
+        expect(response).to have_http_status(:forbidden)
+        expect(a.reload.parent_id).to be_nil
+      end
+    end
+
+    context "as another member" do
+      before { sign_in_as other_member }
+
+      it "returns 422 and does not move another user's folder" do
+        folder = create(:favorite_folder, user: member)
+        post move_favorite_folder_path(folder, format: :json), params: { parent_id: "" }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(folder.reload.parent_id).to be_nil
+      end
+    end
+
+    context "as a staff member when favorites are locked down" do
+      before do
+        sign_in_as moderator
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+      end
+
+      it "still allows moving their own folder" do
+        a = create(:favorite_folder, user: moderator, name: "a")
+        b = create(:favorite_folder, user: moderator, name: "b")
+        post move_favorite_folder_path(a, format: :json), params: { parent_id: b.id }
+        expect(response).to have_http_status(:ok)
+        expect(a.reload.parent_id).to eq(b.id)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # DELETE /favorite_folders/:id — destroy
+  # ---------------------------------------------------------------------------
+
+  describe "DELETE /favorite_folders/:id" do
+    context "as a member" do
+      before { sign_in_as member }
+
+      it "deletes the folder and redirects to its former parent's listing" do
+        parent = create(:favorite_folder, user: member, name: "parent")
+        folder = create(:favorite_folder, user: member, name: "child", parent: parent)
+
+        delete favorite_folder_path(folder)
+        expect(response).to redirect_to(favorites_path(folder_id: parent.id))
+        expect(FavoriteFolder.exists?(folder.id)).to be false
+      end
+
+      it "redirects to root when the deleted folder was top-level" do
+        folder = create(:favorite_folder, user: member)
+        delete favorite_folder_path(folder)
+        expect(response).to redirect_to(favorites_path(folder_id: nil))
+      end
+
+      it "redirects back with an error and does not delete on a collision" do
+        parent = create(:favorite_folder, user: member, name: "parent")
+        create(:favorite_folder, user: member, name: "Memes", parent: parent)
+        folder = create(:favorite_folder, user: member, name: "child", parent: parent)
+        create(:favorite_folder, user: member, name: "memes", parent: folder)
+
+        delete favorite_folder_path(folder)
+        expect(response).to redirect_to(favorites_path(folder_id: parent.id))
+        expect(flash[:alert]).to match(/already exists/)
+        expect(FavoriteFolder.exists?(folder.id)).to be true
+      end
+
+      it "returns 403 and does not delete when favorites are locked down" do
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+        folder = create(:favorite_folder, user: member)
+        delete favorite_folder_path(folder)
+        expect(response).to have_http_status(:forbidden)
+        expect(FavoriteFolder.exists?(folder.id)).to be true
+      end
+    end
+
+    context "as another member" do
+      before { sign_in_as other_member }
+
+      it "returns 404 and does not delete another user's folder" do
+        folder = create(:favorite_folder, user: member)
+        delete favorite_folder_path(folder)
+        expect(response).to have_http_status(:not_found)
+        expect(FavoriteFolder.exists?(folder.id)).to be true
+      end
+    end
+
+    context "as a staff member when favorites are locked down" do
+      before do
+        sign_in_as moderator
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+      end
+
+      it "still allows deleting their own folder" do
+        folder = create(:favorite_folder, user: moderator)
+        delete favorite_folder_path(folder)
+        expect(response).to have_http_status(:found)
+        expect(FavoriteFolder.exists?(folder.id)).to be false
+      end
+    end
+  end
+end

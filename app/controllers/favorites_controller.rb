@@ -5,6 +5,8 @@ class FavoritesController < ApplicationController
 
   before_action :member_only, except: [:index]
   before_action :ensure_lockdown_disabled, except: %i[index]
+  before_action :reject_malformed_folder_id, only: %i[index]
+  before_action :reject_malformed_favorite_folder_id, only: %i[move]
   respond_to :json
   respond_to :html, only: [:index]
   skip_before_action :api_check
@@ -24,8 +26,12 @@ class FavoritesController < ApplicationController
 
     if @user.hide_favorites?
       @post_set = PostSets::Post.new("limit:0")
-    else
+    elsif request.format.json? || @user.id != CurrentUser.user.id
       @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
+    else
+      folder_id = params[:folder_id].presence
+      @current_folder = folder_id ? CurrentUser.user.favorite_folders.find(folder_id) : nil
+      @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit], folder_scoped: true, folder: @current_folder)
     end
 
     @posts = @post_set.posts
@@ -66,9 +72,36 @@ class FavoritesController < ApplicationController
     render_expected_error(422, e.message)
   end
 
+  def move
+    @post = Post.find(params[:id])
+
+    if @post.favorites_transfer_in_progress?
+      render_expected_error(423, "Post favorites are being transferred, please try again later")
+      return
+    end
+
+    destination = FavoriteFolderManager.move!(user: CurrentUser.user, post: @post, destination_folder_id: params[:favorite_folder_id])
+
+    render json: { post_id: @post.id, favorite_folder_id: destination&.id }
+  rescue FavoriteFolderManager::Error => e
+    render_expected_error(422, e.message)
+  end
+
   private
 
   def ensure_lockdown_disabled
     render_expected_error(403, "Favorites are disabled") if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
+  end
+
+  def reject_malformed_folder_id
+    render_expected_error(400, "Invalid folder_id parameter") unless scalar_or_blank?(params[:folder_id])
+  end
+
+  def reject_malformed_favorite_folder_id
+    render_expected_error(400, "Invalid favorite_folder_id parameter") unless scalar_or_blank?(params[:favorite_folder_id])
+  end
+
+  def scalar_or_blank?(value)
+    value.nil? || value.is_a?(String) || value.is_a?(Numeric)
   end
 end

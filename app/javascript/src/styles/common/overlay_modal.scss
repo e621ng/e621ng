@@ -1,0 +1,82 @@
+// Generic full-viewport modal overlay: dimmed/blurred backdrop + a centered, themed
+// card. Extracted from the login overlay's own styling (previously duplicated under
+// #auth-overlay/.auth-flow-wrapper only) so any other feature that wants the same
+// look - the Favorites folder create/rename overlay, currently - can reuse it via these
+// class names instead of cloning the rule block. AuthOverlay.ts's markup is untouched;
+// _auths.scss instead @extends these classes onto its own existing selectors, so the
+// login overlay's appearance and behavior are unchanged.
+.st-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 201;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--fg-color, rgba(15, 15, 15, .5019607843));
+  backdrop-filter: blur(8px);
+
+  &.hidden { display: none; }
+
+  button.close-button {
+    position: absolute;
+    top: -3rem;
+    right: 0;
+
+    width: 2rem;
+    font-size: 1.5rem;
+    padding: 0.25rem;
+    box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+  }
+}
+
+// Positioning wrapper only (grid/width/position:relative) - it carries no visible panel
+// styling of its own. The close button is a direct child, absolutely positioned against
+// it; the actual themed "card" look (background/shadow/radius/padding) lives on the
+// nested form.simple_form selector below, so anything meant to render inside the visible
+// panel (a heading, inputs, ...) must be inside that form, not just inside this wrapper.
+.st-overlay-wrapper {
+  display: grid;
+  grid-template-columns: minmax(0, 350px);
+  width: max-content;
+  position: relative;
+  margin: 0;
+
+  form.simple_form {
+    // Revert changes from .simple_form
+    background: unset;
+    margin: 0;
+    padding: 1rem;
+    border-radius: unset;
+
+    // Layout
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
+
+    // Theme
+    background-color: themed("color-section");
+    background-image: themed("image-foreground");
+    background-position: themed("image-foreground-position");
+    background-repeat: themed("image-foreground-repeat");
+    background-size: themed("image-foreground-size");
+    box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+    @include st-radius;
+
+    h1 {
+      margin: 1rem 0 0.25rem;
+      text-align: center;
+    }
+
+    div.input {
+      margin-bottom: unset;
+      &.hidden { display: none; }
+    }
+  }
+}
+
+.st-overlay-error {
+  text-align: center;
+  font-weight: bold;
+  color: palette("text-red");
+}

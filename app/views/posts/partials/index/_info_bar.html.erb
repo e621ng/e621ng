@@ -1,5 +1,5 @@
 <%# locals: (post_set:) %>
-<% empty = post_set.posts.empty? %>
+<% empty = post_set.respond_to?(:empty_for_display?) ? post_set.empty_for_display? : post_set.posts.empty? %>
 <div class="posts-info-bar">
   <% if empty %>
     <span class="posts-info-empty">Nobody here but us chickens!</span>

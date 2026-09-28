@@ -135,6 +135,112 @@ RSpec.describe TransferFavoritesJob do
       end
     end
 
+    describe "folder placement carry-over" do
+      let(:user_a) { create(:user) }
+      let(:user_b) { create(:user) }
+
+      def parent_favorite_for(user)
+        Favorite.for_user(user.id).find_by(post_id: parent_post.id)
+      end
+
+      def membership_for(favorite)
+        FavoriteFolderMembership.find_by(favorite_id: favorite.id)
+      end
+
+      it "carries a filed child favorite's folder onto the new parent favorite" do
+        folder = create(:favorite_folder, user: user_a)
+        add_favorite(child_post, user_a)
+        child_favorite = Favorite.for_user(user_a.id).find_by(post_id: child_post.id)
+        create(:favorite_folder_membership, user: user_a, folder: folder, favorite: child_favorite)
+
+        perform(child_post.id, user_a.id)
+
+        favorite = parent_favorite_for(user_a)
+        membership = membership_for(favorite)
+        expect(membership).to be_present
+        expect(membership.folder_id).to eq(folder.id)
+        expect(membership.post_id).to eq(parent_post.id)
+        expect(membership.favorite_created_at).to eq(favorite.created_at)
+      end
+
+      it "leaves the new parent favorite unfiled when the child was unfiled" do
+        add_favorite(child_post, user_a)
+        perform(child_post.id, user_a.id)
+        expect(membership_for(parent_favorite_for(user_a))).to be_nil
+      end
+
+      it "does not touch an existing parent favorite's existing membership, regardless of the child's own filing" do
+        folder = create(:favorite_folder, user: user_a)
+        add_favorite(parent_post, user_a)
+        parent_favorite = parent_favorite_for(user_a)
+        membership = create(:favorite_folder_membership, user: user_a, folder: folder, favorite: parent_favorite)
+        add_favorite(child_post, user_a) # user_a favorited both child and parent already
+
+        perform(child_post.id, user_a.id)
+
+        expect(membership.reload.folder_id).to eq(folder.id)
+        expect(membership.reload.favorite_id).to eq(parent_favorite.id)
+      end
+
+      it "does not file an existing parent favorite that has no membership, even if the child was filed" do
+        folder = create(:favorite_folder, user: user_a)
+        add_favorite(parent_post, user_a)
+        add_favorite(child_post, user_a)
+        child_favorite = Favorite.for_user(user_a.id).find_by(post_id: child_post.id)
+        create(:favorite_folder_membership, user: user_a, folder: folder, favorite: child_favorite)
+
+        perform(child_post.id, user_a.id)
+
+        expect(membership_for(parent_favorite_for(user_a))).to be_nil
+      end
+
+      it "creates no membership, and does not raise, when the folder no longer exists by the live_folder_ids pre-check" do
+        add_favorite(parent_post, user_a)
+        favorite = parent_favorite_for(user_a)
+        row = { "id" => favorite.id, "user_id" => user_a.id, "created_at" => favorite.created_at }
+
+        expect do
+          described_class.new.send(:carry_over_folder_placements, parent_post, [row], { user_a.id => 0 })
+        end.not_to raise_error
+        expect(membership_for(favorite)).to be_nil
+      end
+
+      it "isolates an insert-time race (folder deleted after the pre-check) to just that folder, proving transaction/savepoint recovery rather than merely Ruby exception recovery" do
+        folder_a = create(:favorite_folder, user: user_a, name: "folder_a")
+        folder_b = create(:favorite_folder, user: user_b, name: "folder_b")
+        add_favorite(child_post, user_a)
+        add_favorite(child_post, user_b)
+        favorite_a = Favorite.for_user(user_a.id).find_by(post_id: child_post.id)
+        favorite_b = Favorite.for_user(user_b.id).find_by(post_id: child_post.id)
+        create(:favorite_folder_membership, user: user_a, folder: folder_a, favorite: favorite_a)
+        create(:favorite_folder_membership, user: user_b, folder: folder_b, favorite: favorite_b)
+
+        # Deletes folder_b BEFORE the fast-path savepoint opens (not inside it), so the
+        # delete survives that savepoint's own rollback - exactly like a genuinely
+        # concurrent, already-committed FavoriteFolderManager.delete! would. Stubbing
+        # insert_all itself instead would nest the delete inside the same savepoint as the
+        # failing insert, and rolling that savepoint back would silently undo the delete
+        # too - looking like isolation worked without actually proving it against a real
+        # independently-committed race.
+        raced = false
+        allow(FavoriteFolderMembership).to receive(:transaction).and_wrap_original do |original, *args, **kwargs, &block|
+          unless raced
+            raced = true
+            FavoriteFolder.where(id: folder_b.id).delete_all
+          end
+          original.call(*args, **kwargs, &block)
+        end
+
+        # One perform call transfers every favoriter of child_post at once (user_a and
+        # user_b both), so both rows land in the same bulk insert_all attempt.
+        expect { perform(child_post.id, user_a.id) }.not_to raise_error
+
+        expect(membership_for(parent_favorite_for(user_a))&.folder_id).to eq(folder_a.id)
+        expect(parent_favorite_for(user_b)).to be_present
+        expect(membership_for(parent_favorite_for(user_b))).to be_nil
+      end
+    end
+
     # cleanup_orphaned_child_favorites is a race-condition safety net: the main delete_all
     # removes all child favorites before this method runs, so the only way it can find records
     # is if a new favorite was inserted concurrently. We call the private method directly to
