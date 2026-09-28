@@ -10,6 +10,6 @@ import Post from "@/pages/posts/posts";
 import "@/pages/posts/SearchControls";
 import "@/pages/posts/SearchFilters";
 import "@/pages/favorites/FavoriteFolderDrag";
-import "@/pages/favorites/FavoriteFolderManageDialog";
+import "@/pages/favorites/FavoriteFolderOverlay";
 
 ModuleRegistry.register("v_favorites", { Post, PostModeMenu });

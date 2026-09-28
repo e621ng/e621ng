@@ -151,6 +151,78 @@ RSpec.describe FavoritesController do
         expect(response.body).to include("data-destination-folder-id=\"#{parent.id}\"")
       end
 
+      it "renders the New Folder card first at root, with no Go Up card" do
+        create(:favorite_folder, user: member, name: "Folder A")
+        get favorites_path
+        expect(response.body).not_to include("favorite-go-up-card")
+        new_folder_index = response.body.index("favorite-new-folder-card")
+        folder_card_index = response.body.index("favorite-folder-card\"")
+        expect(new_folder_index).to be_present
+        expect(folder_card_index).to be_present
+        expect(new_folder_index).to be < folder_card_index
+      end
+
+      it "renders Go Up before New Folder before child folders/posts, inside a folder" do
+        parent = create(:favorite_folder, user: member, name: "parent")
+        folder = create(:favorite_folder, user: member, name: "child", parent: parent)
+        create(:favorite_folder, user: member, name: "grandchild", parent: folder)
+        post = create(:post)
+        FavoriteManager.add!(user: member, post: post)
+        favorite = Favorite.for_user(member.id).find_by(post_id: post.id)
+        create(:favorite_folder_membership, user: member, folder: folder, favorite: favorite)
+
+        get favorites_path(folder_id: folder.id)
+        go_up_index = response.body.index("favorite-go-up-card")
+        new_folder_index = response.body.index("favorite-new-folder-card")
+        folder_card_index = response.body.index("favorite-folder-card\"")
+        post_index = response.body.index(%(data-id="#{post.id}"))
+
+        expect([go_up_index, new_folder_index, folder_card_index, post_index]).to all(be_present)
+        expect(go_up_index).to be < new_folder_index
+        expect(new_folder_index).to be < folder_card_index
+        expect(folder_card_index).to be < post_index
+      end
+
+      it "renders Go Up, New Folder, and every child folder as direct, unstyled children of the same posts-container grid" do
+        parent = create(:favorite_folder, user: member, name: "parent")
+        create(:favorite_folder, user: member, name: "child-a", parent: parent)
+        create(:favorite_folder, user: member, name: "child-b", parent: parent)
+
+        get favorites_path(folder_id: parent.id)
+        doc = Nokogiri::HTML.fragment(response.body)
+        container = doc.at_css("section.posts-container")
+        expect(container).to be_present
+
+        special_cards = container.css("article.favorite-go-up-card, article.favorite-new-folder-card, article.favorite-folder-card")
+        expect(special_cards.size).to eq(4) # Go Up + New Folder + 2 child folders
+
+        special_cards.each do |card|
+          expect(card.parent).to eq(container) # direct child, not nested in another card
+          expect(card["style"]).to be_nil
+          expect(card["data-grid-column"]).to be_nil
+        end
+      end
+
+      it "carries the favorite-folder-new-trigger id on the New Folder card, not in the info bar" do
+        get favorites_path
+        doc = Nokogiri::HTML.fragment(response.body)
+        trigger = doc.at_css("#favorite-folder-new-trigger")
+        expect(trigger).to be_present
+        expect(trigger.ancestors(".favorite-new-folder-card").first).to be_present
+        expect(doc.at_css(".posts-info-bar button")).to be_nil
+      end
+
+      it "carries an empty data-parent-id on the New Folder trigger at root, and the current folder's id inside a folder" do
+        get favorites_path
+        root_trigger = Nokogiri::HTML.fragment(response.body).at_css("#favorite-folder-new-trigger")
+        expect(root_trigger["data-parent-id"]).to eq("")
+
+        folder = create(:favorite_folder, user: member)
+        get favorites_path(folder_id: folder.id)
+        nested_trigger = Nokogiri::HTML.fragment(response.body).at_css("#favorite-folder-new-trigger")
+        expect(nested_trigger["data-parent-id"]).to eq(folder.id.to_s)
+      end
+
       it "preserves folder_id across paginator links" do
         folder = create(:favorite_folder, user: member)
         14.times do
@@ -332,6 +404,17 @@ RSpec.describe FavoritesController do
 
         get favorites_path(user_id: member.id)
         expect(response.body).to include(%(data-id="#{post_record.id}"))
+      end
+
+      it "does not render the New Folder card when a non-owner views this member's favorites page" do
+        folder = create(:favorite_folder, user: member)
+        FavoriteManager.add!(user: member, post: post_record)
+        favorite = Favorite.for_user(member.id).find_by(post_id: post_record.id)
+        create(:favorite_folder_membership, user: member, folder: folder, favorite: favorite)
+        sign_in_as other_member
+
+        get favorites_path(user_id: member.id)
+        expect(response.body).not_to include("favorite-new-folder-card")
       end
     end
   end

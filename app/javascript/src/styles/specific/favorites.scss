@@ -11,20 +11,12 @@ div#c-favorites {
     }
   }
 
-  // Folder / Go Up cards are genuine article.thumbnail shells (same outer element, same
-  // .thm-link square body, same .thm-desc footer) so every existing sizing/grid/spacing
-  // rule in post_thumbnail_component.scss - standalone width, the posts-container grid's
-  // width:100%/max-width:$image-max override, responsive --thumb-image-size, etc. -
-  // applies to them automatically and identically to a real post thumbnail. They are
-  // deliberately never given data-id or any post metadata attribute (see
-  // FavoriteFolderDrag.ts's article.thumbnail[data-id] drag-source selector, and
-  // post_mode_menu.js's matching [data-id] guards) so they can look like a post
-  // thumbnail without ever being treated as one.
+  // Folder / Go Up / New Folder cards are article.thumbnail shells reusing
+  // post_thumbnail_component.scss's sizing/grid rules. They never carry data-id, so they
+  // can't be mistaken for a real post (see FavoriteFolderDrag.ts).
 
-  // Square body: same box as a.thm-link (including its existing background treatment,
-  // unmodified), just centering a large icon instead of an <img>. Only the icon
-  // sizing/color pieces are Favorites-specific.
-  .favorite-folder-card-link, .favorite-go-up-card-link {
+  // Square body: same box as a.thm-link, centering an icon instead of an <img>.
+  .favorite-folder-card-link, .favorite-go-up-card-link, .favorite-new-folder-card-link {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -32,21 +24,39 @@ div#c-favorites {
     svg {
       width: 45%;
       height: 45%;
-      // Accent color: the same background color .thm-desc-a uses on real post
-      // thumbnails, reused here for the icon and (below) the folder-name cell.
       color: themed("color-section-lighten-5");
     }
+  }
+
+  // a.thm-link's box-shape rule is tag-scoped and doesn't apply to New Folder's <button>.
+  button.favorite-new-folder-card-link {
+    width: $image-size;
+    max-width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+    background: #0003;
+    overflow: hidden;
+    box-sizing: border-box;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    @include st-radius-top;
+  }
+
+  // Mirrors post_thumbnail_component.scss's grid-context override for a.thm-link.
+  section.posts-container button.favorite-new-folder-card-link {
+    width: 100%;
+    max-width: $image-max;
   }
 
   .favorite-folder-card-link {
     .folder-icon-open { display: none; }
   }
 
-  // Open-folder icon swap: closed normally; open on hover, on keyboard focus, and when
-  // the outer card (the actual [data-drop-target] drag target) has .drag-hover. The
-  // drag-hover case has to be a descendant selector from the outer article, not a
-  // modifier on the link itself, since FavoriteFolderDrag.ts toggles .drag-hover on the
-  // outer card (the element it hit-tests as the drop target), not on the inner link.
+  // .drag-hover is toggled on the outer card (the actual drop target), not the link.
   .favorite-folder-card-link:hover,
   .favorite-folder-card-link:focus-within,
   .favorite-folder-card.drag-hover .favorite-folder-card-link {
@@ -54,20 +64,9 @@ div#c-favorites {
     .folder-icon-open { display: block; }
   }
 
-  // Footer: reuses .thm-desc/.thm-desc-a/.thm-desc-b wholesale (same height, radius,
-  // font, spacing as a real post footer). The column layout is the one override - three
-  // cells (rename | name | delete) instead of .thm-desc's normal two (score/favs/comments
-  // | rating letter).
-  //
-  // The green/red split lives on .thm-desc itself (this element), not on the action
-  // cells - exactly mirroring how a real post footer works: .thm-rating-s/.thm-rating-e
-  // color the *whole* .thm-desc, and .thm-desc-a then sits on top as its own opaque,
-  // independently-rounded chip (see .favorite-folder-card-name below, unchanged), which
-  // is what produces the familiar spiked/angled corner where the chip's rounding cuts
-  // into the flat color peeking out on either side. Splitting 0-50% green / 50-100% red
-  // here reproduces that same mechanic with two colors instead of one: the name chip
-  // covers the actual seam in the middle, so from the outside it just reads as "green
-  // belongs to rename, red belongs to delete."
+  // Footer reuses .thm-desc/-a/-b; three cells (rename | name | delete) instead of two.
+  // Green/red split lives on .thm-desc itself so .thm-desc-a's independently-rounded chip
+  // covers the seam, same mechanic as the rating-colored post footer.
   .favorite-folder-card-desc {
     grid-template-columns: 1.25rem auto 1.25rem;
     background: linear-gradient(
@@ -79,34 +78,18 @@ div#c-favorites {
     );
   }
 
-  // Go Up has no rename/delete meaning to color, so it keeps the plain neutral footer.
-  .favorite-go-up-card-desc {
+  .favorite-go-up-card-desc, .favorite-new-folder-card-desc {
     grid-template-columns: 1fr;
     background-color: themed("color-section-lighten-5");
   }
 
-  // Action cells reuse .thm-desc-b's box as their grid-cell sizing (same width, centered
-  // content), but drop its own padding: the row's height is meant to be driven by the
-  // center name cell (.thm-desc-a, ~1.25rem of text + padding), same as a real post
-  // footer's height is driven by its score/favs/comments column. Stacking .thm-desc-b's
-  // 0.25rem top+bottom padding on top of a 16px icon here would make the action cells
-  // taller than that (0.5rem + 1rem = 1.5rem), forcing the whole grid row - and so the
-  // whole card - taller than a real post thumbnail. With no padding of its own, the
-  // action cell/button's minimum content height is just the 16px icon (1rem), shorter
-  // than the name cell, so the name cell still decides the row height and the icon
-  // simply centers (via flex) within whatever that height turns out to be - no hardcoded
-  // padding number to keep in sync with icon size or thumbnail size.
+  // No padding of its own: the name cell's height drives the row, keeping the card the
+  // same height as a real post thumbnail.
   .favorite-folder-action-cell {
     padding: 0;
   }
 
-  // No background of their own at rest - deliberately: a solid per-cell background here
-  // would sit on top of and hide the .thm-desc-level green/red split above, which is
-  // where the color is now meant to live. Left transparent, the cell simply shows
-  // whichever half of that split is directly behind it. White icons (via currentColor,
-  // same as every other svg_icon usage - no raw SVG rewrite) read clearly against either
-  // the green or the red, matching how the existing rating/footer controls render white
-  // against their own colored background.
+  // Transparent so the .thm-desc-level green/red split shows through.
   .favorite-folder-action-btn {
     width: 100%;
     height: 100%;
@@ -121,28 +104,20 @@ div#c-favorites {
     color: palette("text-white");
   }
 
-  // Hover/focus: a solid tint of the same side's color, not a full-footer change - the
-  // rest of the split (and the name chip) stays exactly as it is.
   .favorite-folder-rename-trigger:hover,
   .favorite-folder-rename-trigger:focus-visible {
     background-color: palette("background-green-d10");
   }
 
-  // :focus-within, not :focus-visible: this cell is the <form>, not the focusable
-  // element itself (that's the <button> button_to renders inside it), so the form never
-  // receives focus directly - :hover already applies correctly here since hovering a
-  // descendant also counts as hovering its ancestors.
+  // :focus-within because this cell is the <form>, not the focusable button itself.
   .favorite-folder-delete-cell:hover,
   .favorite-folder-delete-cell:focus-within {
     background-color: palette("background-red-d10");
   }
 
-  // Long folder names truncate instead of wrapping, so the footer never grows taller
-  // than a real post's and the action cells on either side stay reachable. The
-  // truncation lives on an inner span, not directly on .thm-desc-a: that outer element
-  // is a flex container (for centering), and a flex item needs min-width: 0 before
-  // overflow/text-overflow can actually engage - setting it directly wouldn't shrink.
-  .favorite-folder-card-name-text, .favorite-go-up-card-name-text {
+  // min-width: 0 on the inner span, not .thm-desc-a itself, since a flex item needs it
+  // directly to let overflow/text-overflow engage.
+  .favorite-folder-card-name-text, .favorite-go-up-card-name-text, .favorite-new-folder-card-name-text {
     display: block;
     min-width: 0;
     overflow: hidden;
@@ -150,29 +125,61 @@ div#c-favorites {
     white-space: nowrap;
   }
 
-  // Drop-target highlight, driven by FavoriteFolderDrag.ts toggling .drag-hover on
-  // whichever [data-drop-target] element is currently under the pointer.
   [data-drop-target].drag-hover {
     outline: 2px solid themed("color-link");
   }
 
-  // Dim the dragged source thumbnail in place while its ghost follows the pointer.
-  // Deliberately NOT display: none (unlike _sortable.scss's .dragging, which reorders
-  // within a single list): removing the source from layout here would reflow every later
-  // thumbnail into its grid slot before the drop result is known, then jump them all back
-  // if the drag is cancelled or fails. The card stays in its slot for the whole gesture;
-  // FavoriteFolderDrag.ts only actually removes it from the DOM after a confirmed,
-  // successful move (and only when that removal is correct - see commitMove).
+  // Not display:none: the card stays in its grid slot for the whole gesture so cancelling
+  // never reflows sibling thumbnails. FavoriteFolderDrag.ts removes it only on success.
   article.thumbnail.favorite-dragging {
     opacity: 0.4;
   }
 }
 
-// Not nested under div#c-favorites: FavoriteFolderDrag.ts appends the ghost directly to
-// document.body (so it can track the pointer via position: fixed unconstrained by any
-// container's overflow/stacking), which puts it outside #c-favorites in the DOM. A
-// selector scoped to #c-favorites would simply never match it.
+// Ghosts/overlay are appended to document.body (position:fixed, unconstrained stacking),
+// so these are intentionally outside #c-favorites.
 .favorite-drag-ghost {
   opacity: 0.85;
   cursor: grabbing;
+}
+
+// Minimal icon+name ghost, not a clone: the real folder card's styling is scoped under
+// #c-favorites and wouldn't apply here.
+.favorite-folder-drag-ghost {
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+  background: #0003;
+  @include st-radius;
+
+  .favorite-folder-drag-ghost-icon {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 45%;
+      height: 45%;
+      color: themed("color-section-lighten-5");
+    }
+  }
+
+  .favorite-folder-drag-ghost-desc {
+    flex: 0 0 auto;
+    padding: 0.25rem 0.5rem;
+    background-color: themed("color-section-lighten-5");
+    color: palette("text-white");
+    font-size: 0.75rem;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Narrower than the login modal (single field); everything else comes from the shared
+// .st-overlay/.st-overlay-wrapper classes in common/overlay_modal.scss.
+.favorite-folder-overlay-wrapper {
+  width: min(300px, calc(100vw - 2rem));
 }

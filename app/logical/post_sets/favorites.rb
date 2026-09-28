@@ -2,7 +2,7 @@
 
 module PostSets
   class Favorites < PostSets::Base
-    attr_reader :page, :limit
+    attr_reader :page, :limit, :folder
 
     def initialize(user, page, limit:, post_count: nil, folder_scoped: false, folder: nil) # rubocop:disable Metrics/ParameterLists
       super()

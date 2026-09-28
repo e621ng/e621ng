@@ -1,9 +1,6 @@
 <%# locals: (post_set:) %>
 <% empty = post_set.respond_to?(:empty_for_display?) ? post_set.empty_for_display? : post_set.posts.empty? %>
 <div class="posts-info-bar">
-  <% if post_set.respond_to?(:folder_scoped?) && post_set.folder_scoped? %>
-    <button type="button" id="favorite-folder-new-trigger" class="st-button">New Folder</button>
-  <% end %>
   <% if empty %>
     <span class="posts-info-empty">Nobody here but us chickens!</span>
   <% end %>

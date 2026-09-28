@@ -6,6 +6,7 @@
       <% if post_set.go_up_target != :none %>
         <%= render GoUpCardComponent.new(parent_folder_id: post_set.go_up_target) %>
       <% end %>
+      <%= render NewFolderCardComponent.new(current_folder_id: post_set.folder&.id) %>
       <%= render(FolderCardComponent.with_collection(post_set.child_folders)) %>
     <% end %>
     <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string)) %>
@@ -24,14 +25,3 @@
 
   <%= render PaginatorComponent.new(records: post_set.posts) %>
 </div>
-
-<% if folder_scoped %>
-  <%# Matches the repo's established convention for Dialog-backed forms (see
-      posts/show.html.erb's #dialog-staging wrapper around pool_elements/_new etc.):
-      hidden via inline style before any JS runs, so it never renders as a big visible
-      form in the page flow. Dialog moves this element out into #dialog-container on
-      init; until then, or if JS never runs, it simply stays hidden. %>
-  <div class="dialog-staging" style="display: none;">
-    <%= render "favorite_folders/new" %>
-  </div>
-<% end %>
