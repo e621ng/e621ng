@@ -23,6 +23,28 @@ export default class Favorite {
     return Favorite.request(post_id, delay, "DELETE", `/favorites/${post_id}.json`);
   }
 
+  /**
+   * Moves an already-favorited post into a destination folder (or root).
+   * @param post_id The ID of the favorited post to move.
+   * @param favorite_folder_id The destination folder's ID, or null for root.
+   * @returns The parsed response from the server.
+   */
+  static async move (post_id: number, favorite_folder_id: number | null): Promise<any> {
+    if (!post_id) throw new Error("Post ID is required");
+
+    const response = await HTTP.post(`/favorites/${post_id}/move.json`, JSON.stringify({
+      favorite_folder_id: favorite_folder_id || null,
+    }), { headers: { "Content-Type": "application/json" } });
+
+    if (!response.ok) {
+      const error = new FavoriteError(response.status, await HTTP.errorMessage(response));
+      $(window).trigger("danbooru:error", "Error: " + error.message);
+      throw error;
+    }
+
+    return response.json();
+  }
+
   private static request (post_id: number, delay: number, method: string, url: string): Promise<FavoriteResponse> {
     // Create and destroy share a queue name on purpose: the latest request wins
     return TaskQueue.add(() => {

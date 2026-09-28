@@ -1,24 +1,37 @@
-<div id="posts">
+<%# locals: (post_set:) %>
+<% folder_scoped = post_set.respond_to?(:folder_scoped?) && post_set.folder_scoped? %>
+<div id="posts" class="post-index-gallery">
   <section class="posts-container">
-    <% if @posts.empty? %>
-      <%= render "posts/blank" %>
-    <% else %>
-      <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string)) %>
+    <% if folder_scoped %>
+      <% if post_set.go_up_target != :none %>
+        <%= render GoUpCardComponent.new(parent_folder_id: post_set.go_up_target) %>
+      <% end %>
+      <%= render(FolderCardComponent.with_collection(post_set.child_folders)) %>
     <% end %>
+    <%= render(PostThumbnailComponent.with_collection(@posts, tags: @post_set.tag_string)) %>
   </section>
 
-  <% if @post_set.hidden_posts.present? %>
+  <% if post_set.hidden_posts.present? %>
     <div class="info hidden-posts-notice">
-      <% if @post_set.safe_posts.present? %>
-        <%= @post_set.safe_posts.size %> post(s) on this page were hidden by safe mode (<%= Danbooru.config.app_name %>). Go to <%= link_to "e621", "https://e621.net/" %> or disable safe mode to view (<%= link_to "learn more", help_page_path(id: "user_settings") %>).<br>
+      <% if post_set.safe_posts.present? %>
+        <%= post_set.safe_posts.size %> post(s) on this page were hidden by safe mode (<%= Danbooru.config.app_name %>). Go to <%= link_to "e621", "https://e621.net/" %> or disable safe mode to view (<%= link_to "learn more", help_page_path(id: "user_settings") %>).<br>
       <% end %>
-      <% if @post_set.login_blocked_posts.present? %>
-        <%= @post_set.login_blocked_posts.size %> post(s) on this page were hidden because you need to be logged in to view them. <%= link_to "(learn more)", help_page_path(id: "global_blacklist") %>
+      <% if post_set.login_blocked_posts.present? %>
+        <%= post_set.login_blocked_posts.size %> post(s) on this page were hidden because you need to be logged in to view them. <%= link_to "(learn more)", help_page_path(id: 'global_blacklist') %>
       <% end %>
     </div>
   <% end %>
 
-  <% unless @post_set.is_random? %>
-    <%= render PaginatorComponent.new(records: @post_set.posts) %>
-  <% end %>
+  <%= render PaginatorComponent.new(records: post_set.posts) %>
 </div>
+
+<% if folder_scoped %>
+  <%# Matches the repo's established convention for Dialog-backed forms (see
+      posts/show.html.erb's #dialog-staging wrapper around pool_elements/_new etc.):
+      hidden via inline style before any JS runs, so it never renders as a big visible
+      form in the page flow. Dialog moves this element out into #dialog-container on
+      init; until then, or if JS never runs, it simply stays hidden. %>
+  <div class="dialog-staging" style="display: none;">
+    <%= render "favorite_folders/new" %>
+  </div>
+<% end %>

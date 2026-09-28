@@ -24,8 +24,12 @@ class FavoritesController < ApplicationController
 
     if @user.hide_favorites?
       @post_set = PostSets::Post.new("limit:0")
-    else
+    elsif request.format.json? || @user.id != CurrentUser.user.id
       @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit])
+    else
+      folder_id = params[:folder_id].presence
+      @current_folder = folder_id ? CurrentUser.user.favorite_folders.find(folder_id) : nil
+      @post_set = PostSets::Favorites.new(@user, params[:page], limit: params[:limit], folder_scoped: true, folder: @current_folder)
     end
 
     @posts = @post_set.posts
@@ -63,6 +67,21 @@ class FavoritesController < ApplicationController
 
     render json: { post_id: @post.id, favorite_count: @post.fav_count }
   rescue Favorite::Error => e
+    render_expected_error(422, e.message)
+  end
+
+  def move
+    @post = Post.find(params[:id])
+
+    if @post.favorites_transfer_in_progress?
+      render_expected_error(423, "Post favorites are being transferred, please try again later")
+      return
+    end
+
+    destination = FavoriteFolderManager.move!(user: CurrentUser.user, post: @post, destination_folder_id: params[:favorite_folder_id])
+
+    render json: { post_id: @post.id, favorite_folder_id: destination&.id }
+  rescue FavoriteFolderManager::Error => e
     render_expected_error(422, e.message)
   end
 

@@ -1,0 +1,29 @@
+<article class="thumbnail favorite-folder-card" data-drop-target="folder" data-folder-id="<%= folder.id %>" data-folder-name="<%= folder.name %>">
+  <a href="<%= favorites_path(folder_id: folder.id) %>" class="thm-link favorite-folder-card-link" aria-label="Open folder <%= folder.name %>">
+    <%= svg_icon(:folder, class: "folder-icon-closed") %>
+    <%= svg_icon(:folder_open, class: "folder-icon-open") %>
+  </a>
+  <div class="thm-desc favorite-folder-card-desc">
+    <button
+      type="button"
+      class="thm-desc-b favorite-folder-action-cell favorite-folder-action-btn favorite-folder-rename-trigger"
+      data-folder-id="<%= folder.id %>"
+      data-folder-name="<%= folder.name %>"
+      title="Rename folder"
+      aria-label="Rename folder <%= folder.name %>"
+    >
+      <%= svg_icon(:pencil, width: 16, height: 16) %>
+    </button>
+    <span class="thm-desc-a favorite-folder-card-name">
+      <span class="favorite-folder-card-name-text"><%= folder.name %></span>
+    </span>
+    <%= button_to favorite_folder_path(folder),
+                   method: :delete,
+                   data: { confirm: "Delete '#{folder.name}'? Its contents will move up one level." },
+                   class: "favorite-folder-action-btn favorite-folder-delete-trigger",
+                   title: "Delete folder",
+                   form: { "class": "thm-desc-b favorite-folder-action-cell favorite-folder-delete-cell", "aria-label": "Delete folder #{folder.name}" } do %>
+      <%= svg_icon(:trash, width: 16, height: 16) %>
+    <% end %>
+  </div>
+</article>
