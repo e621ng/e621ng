@@ -31,6 +31,12 @@ class TransferFavoritesJob < ApplicationJob
       existing_parent_user_ids = Favorite.where(post_id: parent.id).pluck(:user_id)
       new_user_ids = user_ids - existing_parent_user_ids
 
+      # Captured before the delete below, scoped to exactly the users who will get a
+      # brand-new parent favorite - existing_parent_user_ids are never touched.
+      child_folder_by_user = FavoriteFolderMembership
+                             .where(post_id: post.id, user_id: new_user_ids)
+                             .pluck(:user_id, :folder_id).to_h
+
       # 1. Delete all child favorites
       Favorite.without_timeout do
         Favorite.where(post_id: post.id).delete_all
@@ -45,9 +51,10 @@ class TransferFavoritesJob < ApplicationJob
             created_at: Time.current,
           }
         end
-        Favorite.without_timeout do
-          Favorite.insert_all(new_favorites)
+        result = Favorite.without_timeout do
+          Favorite.insert_all(new_favorites, returning: %i[id user_id created_at])
         end
+        carry_over_folder_placements(parent, result, child_folder_by_user)
       end
 
       # 3. Update post and user data
@@ -146,6 +153,51 @@ class TransferFavoritesJob < ApplicationJob
       UserStatus.without_timeout do
         UserStatus.where(user_id: orphaned_user_ids).update_all("favorite_count = (SELECT COUNT(*) FROM favorites WHERE favorites.user_id = user_statuses.user_id)")
       end
+    end
+  end
+
+  # Best-effort: re-files newly-created parent favorites into whichever folder their
+  # child favorite was already in. Never affects the favorite transfer itself - this
+  # runs after the parent Favorite rows have already been inserted.
+  def carry_over_folder_placements(parent, inserted_favorites, child_folder_by_user)
+    return if child_folder_by_user.empty?
+
+    live_folder_ids = FavoriteFolder.where(id: child_folder_by_user.values.uniq).pluck(:id).to_set
+    new_memberships = inserted_favorites.to_a.filter_map do |row|
+      folder_id = child_folder_by_user[row["user_id"]]
+      next unless folder_id && live_folder_ids.include?(folder_id)
+      membership_attrs(parent, row, folder_id)
+    end
+    return if new_memberships.empty?
+
+    begin
+      FavoriteFolderMembership.transaction(requires_new: true) do
+        FavoriteFolderMembership.insert_all(new_memberships)
+      end
+    rescue ActiveRecord::InvalidForeignKey, ActiveRecord::RecordNotUnique => e
+      Rails.logger.warn("TransferFavoritesJob: bulk membership carry-over failed for post #{parent.id}, retrying per folder: #{e.message}")
+      insert_memberships_per_folder(new_memberships)
+    end
+  end
+
+  def membership_attrs(parent, favorite_row, folder_id)
+    {
+      user_id: favorite_row["user_id"], folder_id: folder_id, favorite_id: favorite_row["id"], post_id: parent.id,
+      favorite_created_at: favorite_row["created_at"], created_at: Time.current, updated_at: Time.current,
+    }
+  end
+
+  # Only reached when the bulk attempt above raced against a folder deleted after the
+  # live_folder_ids check. Each group gets its own savepoint (requires_new: true), so one
+  # folder's constraint failure rolls back only that group's insert - not the whole
+  # (possibly nested) surrounding transaction - and later groups can still write normally.
+  def insert_memberships_per_folder(memberships)
+    memberships.group_by { |m| m[:folder_id] }.each do |folder_id, group|
+      FavoriteFolderMembership.transaction(requires_new: true) do
+        FavoriteFolderMembership.insert_all(group)
+      end
+    rescue ActiveRecord::InvalidForeignKey, ActiveRecord::RecordNotUnique => e
+      Rails.logger.warn("TransferFavoritesJob: could not carry over folder placement for folder #{folder_id}: #{e.message}")
     end
   end
 end

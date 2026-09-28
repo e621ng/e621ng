@@ -96,13 +96,9 @@ module PostSets
 
     private
 
-    # The base Favorites query, byte-identical to how it worked before folders existed:
-    # no join, no anti-join, no NOT EXISTS, no folder predicate of any kind. This backs
-    # every request that isn't the owner's own folder-scoped HTML view - `/favorites.json`
-    # and any other user's `/favorites` (HTML or JSON) - which stay entirely unaware that
-    # folder membership exists as a concept. The owner's own HTML `/favorites` is NOT
-    # universally flat: see `posts` above - it's folder-scoped (root_unfiled_posts /
-    # folder_membership_posts) precisely because it's the owner viewing their own folders.
+    # No join, no anti-join, no folder predicate of any kind - backs every request that
+    # isn't the owner's own folder-scoped HTML view (`/favorites.json`, any other user's
+    # `/favorites`), which stay entirely unaware that folder membership exists.
     def legacy_flat_posts
       @post_count ||= ::Post.tag_match("fav:#{@user.name} status:any").count_only
       @posts ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName -- shared memo backing the public `posts` method for both code paths
@@ -115,34 +111,16 @@ module PostSets
       end
     end
 
-    # The owner-HTML root view: true folder semantics, so this shows only favorites not
-    # currently filed into any folder - never a raw favorite_folder_id column/index on
-    # favorites (there is none), just an anti-membership check against the sidecar table,
-    # keyed by favorite_id and served entirely by that table's own existing unique index
-    # (index_favorite_folder_memberships_on_favorite_id) - no new column or index on
-    # favorites, and no new index on favorite_folder_memberships either.
+    # True folder semantics: shows only favorites not currently filed into any folder, via
+    # an anti-membership check against the sidecar table (keyed by favorite_id, served by
+    # its own existing unique index) - no new column or index needed on either table.
     #
-    # Plan choice for this NOT EXISTS shape is data/statistics dependent, not fixed: at
-    # smaller sidecar sizes Postgres may choose a Hash Anti Join that scans
-    # favorite_folder_memberships in full to build its hash table; at larger sidecar sizes
-    # it has been observed to switch to a Nested Loop Anti Join using
-    # favorite_folder_memberships' own unique favorite_id index instead. Don't assume
-    # either strategy holds at a size/shape not yet measured.
-    #
-    # Strongest evidence so far is Phase 5/5.5 (see PR notes), tested up to 50,000,000
-    # favorites / ~20,000,000 memberships: a Nested Loop Anti Join page-1 lookup ran
-    # ~16ms, and a full anti-join COUNT over an 80,000-row probe set ran ~110ms - both
-    # against favorite_ids deliberately scattered across the full id range (not a
-    # synthetic user's own tightly-clustered ids), which Phase 5.5 showed can make
-    # contiguous/local synthetic data look roughly 1.3-2.1x more optimistic than a real,
-    # dispersed access pattern depending on the operation. These numbers are all
-    # comfortably acceptable for this page, but should not be read as a universal
-    # sub-millisecond guarantee - measure again if the access pattern or scale changes
-    # materially. Either way, the query as a whole is still bounded by this user's own
-    # favorite count (it only ever scans this user's rows via
-    # index_favorites_on_user_id_and_created_at, never the whole favorites table), and is
-    # paid only once per owner-HTML root page load (never for JSON, non-owner, or folder
-    # pages).
+    # The query is bounded by this user's own favorite count (scans only this user's rows
+    # via index_favorites_on_user_id_and_created_at, never the whole favorites table) and
+    # runs once per owner-HTML root page load only - never for JSON, non-owner, or folder
+    # pages. Postgres's chosen join strategy for the anti-check (hash vs. nested loop) is
+    # data/statistics dependent and not fixed by this code; re-verify if scale/shape
+    # changes materially rather than assuming either holds indefinitely.
     def root_unfiled_posts
       @posts ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName -- shared memo backing the public `posts` method for both code paths
         scope = ::Favorite.for_user(@user.id)
@@ -205,49 +183,34 @@ module PostSets
 
         new_opts = {
           pagination_mode: :numbered, records_per_page: records_per_page, current_page: current_page,
-          # Capped, not the raw scope.count - see capped_total_count. This is what keeps
-          # PaginatorComponent's own last_page/has_next? (computed from total_pages, which
-          # derives from total_count) from ever advertising a page beyond what
-          # validate_numbered_page! actually allows.
+          # Capped, not the raw scope.count - see capped_total_count - so
+          # PaginatorComponent never advertises a page validate_numbered_page! would reject.
           total_count: capped_total_count(count, records_per_page),
-          # The real, uncapped membership count - already computed above via `count`, no
-          # second COUNT query. Lets PaginationHelper#approximate_count show a true "over
-          # N results" once a folder outgrows the numbered-page ceiling, instead of
-          # reading the capped total_count above and mistaking it for the real, exact
-          # total. Never affects pagination math itself - only total_count (above) does.
+          # The real, uncapped count, for display only (PaginationHelper#approximate_count).
+          # Never affects pagination math - only total_count above does.
           real_total_count: count,
-          # Kept strictly above Danbooru.config.max_numbered_pages (the real, unmodified
-          # validation ceiling parse_page/validate_numbered_page! enforce above) so
-          # PaginatorComponent's own `current_page >= max_numbered_pages` switch - shared,
-          # global, deliberately untouched - never fires for this PostSet: it always renders
-          # plain "?page=N" links, never "aXX"/"bXX" cursor links, for any folder page a
-          # numbered request can actually reach. This is a per-instance PaginatedArray
-          # option already designed for this purpose; no shared paginator code changes.
+          # Inflated by one so PaginatorComponent's cursor-mode switch never fires for a
+          # folder page - see folder_max_numbered_pages. Not the value shown to users.
           max_numbered_pages: folder_max_numbered_pages,
+          # The true, un-inflated reachable page ceiling, for display only (see
+          # PaginationHelper#approximate_count) - never read by pagination math itself.
+          real_max_numbered_pages: Danbooru.config.max_numbered_pages,
         }
         ::Danbooru::Paginator::PaginatedArray.new(ordered_posts, new_opts)
       end
     end
 
-    # One page past Danbooru.config.max_numbered_pages (the real, global, unmodified
-    # validation ceiling that parse_page/validate_numbered_page! enforce above). Computed
-    # per-call, not memoized/frozen at load time, so it stays correct if a spec ever swaps
-    # Danbooru.config. Only ever used as a PaginatedArray#max_numbered_pages override - it
-    # does not raise the true, global page-count ceiling itself.
+    # Deliberately one past the real ceiling, purely to keep PaginatorComponent's
+    # `current_page >= max_numbered_pages` cursor-mode switch from ever firing for a
+    # folder page. Not the real ceiling itself - see real_max_numbered_pages above.
     def folder_max_numbered_pages
       Danbooru.config.max_numbered_pages + 1
     end
 
-    # PaginatorComponent computes last_page/has_next? purely from
-    # [total_pages, max_numbered_pages].min, and total_pages derives from total_count. Left
-    # uncapped, a folder whose real content exceeds the real ceiling would report a
-    # total_pages one past it (since max_numbered_pages here is deliberately inflated by 1
-    # - see folder_max_numbered_pages) - advertising a "Next" link to a page number
-    # validate_numbered_page! then rejects. Capping total_count itself (not
-    # max_numbered_pages, which still needs its +1 to suppress cursor-mode rendering) keeps
-    # total_pages, and so last_page/has_next?/the numbered page-number list, from ever
-    # exceeding the real, reachable ceiling. The actual per-page query above is untouched -
-    # this only affects pagination metadata, never which posts a given page shows.
+    # Caps total_count (and so total_pages/last_page/has_next?) at the real, un-inflated
+    # ceiling, so a folder whose real content exceeds it never advertises a "Next" page
+    # validate_numbered_page! would reject. Only affects pagination metadata, never which
+    # posts a given page shows.
     def capped_total_count(count, records_per_page)
       return count unless records_per_page > 0
       [count, Danbooru.config.max_numbered_pages * records_per_page].min

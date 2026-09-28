@@ -7,6 +7,7 @@ RSpec.describe FavoriteFoldersController do
 
   let(:member) { create(:user) }
   let(:other_member) { create(:user) }
+  let(:moderator) { create(:moderator_user) }
 
   # ---------------------------------------------------------------------------
   # POST /favorite_folders — create
@@ -51,6 +52,39 @@ RSpec.describe FavoriteFoldersController do
         post favorite_folders_path(format: :json), params: { name: "memes" }
         expect(response).to have_http_status(:unprocessable_content)
       end
+
+      it "returns 400 for a malformed parent_id (array)" do
+        post "#{favorite_folders_path(format: :json)}?name=Memes&parent_id[]=1&parent_id[]=2"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed parent_id (hash)" do
+        post "#{favorite_folders_path(format: :json)}?name=Memes&parent_id[x]=1"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed parent_id (one-element blank array)" do
+        post "#{favorite_folders_path(format: :json)}?name=Memes&parent_id[]="
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 403 when favorites are locked down" do
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+        post favorite_folders_path(format: :json), params: { name: "Memes" }
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a staff member when favorites are locked down" do
+      before do
+        sign_in_as moderator
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+      end
+
+      it "still allows creating a folder" do
+        post favorite_folders_path(format: :json), params: { name: "Memes" }
+        expect(response).to have_http_status(:ok)
+      end
     end
   end
 
@@ -76,6 +110,13 @@ RSpec.describe FavoriteFoldersController do
         expect(response).to have_http_status(:unprocessable_content)
         expect(folder.reload.name).to eq("Old")
       end
+
+      it "returns 403 when favorites are locked down" do
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+        patch favorite_folder_path(folder, format: :json), params: { name: "New" }
+        expect(response).to have_http_status(:forbidden)
+        expect(folder.reload.name).to eq("Old")
+      end
     end
 
     context "as another member" do
@@ -85,6 +126,21 @@ RSpec.describe FavoriteFoldersController do
         patch favorite_folder_path(folder, format: :json), params: { name: "Hijacked" }
         expect(response).to have_http_status(:unprocessable_content)
         expect(folder.reload.name).to eq("Old")
+      end
+    end
+
+    context "as a staff member when favorites are locked down" do
+      let(:staff_folder) { create(:favorite_folder, user: moderator, name: "Old") }
+
+      before do
+        sign_in_as moderator
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+      end
+
+      it "still allows renaming their own folder" do
+        patch favorite_folder_path(staff_folder, format: :json), params: { name: "New" }
+        expect(response).to have_http_status(:ok)
+        expect(staff_folder.reload.name).to eq("New")
       end
     end
   end
@@ -153,6 +209,33 @@ RSpec.describe FavoriteFoldersController do
         expect(response).to have_http_status(:unprocessable_content)
         expect(folder.reload.parent_id).not_to be_nil
       end
+
+      it "returns 400 for a malformed parent_id (array)" do
+        folder = create(:favorite_folder, user: member)
+        post "#{move_favorite_folder_path(folder, format: :json)}?parent_id[]=1&parent_id[]=2"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed parent_id (hash)" do
+        folder = create(:favorite_folder, user: member)
+        post "#{move_favorite_folder_path(folder, format: :json)}?parent_id[x]=1"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed parent_id (one-element blank array)" do
+        folder = create(:favorite_folder, user: member)
+        post "#{move_favorite_folder_path(folder, format: :json)}?parent_id[]="
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 403 when favorites are locked down" do
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+        a = create(:favorite_folder, user: member, name: "a")
+        b = create(:favorite_folder, user: member, name: "b")
+        post move_favorite_folder_path(a, format: :json), params: { parent_id: b.id }
+        expect(response).to have_http_status(:forbidden)
+        expect(a.reload.parent_id).to be_nil
+      end
     end
 
     context "as another member" do
@@ -163,6 +246,21 @@ RSpec.describe FavoriteFoldersController do
         post move_favorite_folder_path(folder, format: :json), params: { parent_id: "" }
         expect(response).to have_http_status(:unprocessable_content)
         expect(folder.reload.parent_id).to be_nil
+      end
+    end
+
+    context "as a staff member when favorites are locked down" do
+      before do
+        sign_in_as moderator
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+      end
+
+      it "still allows moving their own folder" do
+        a = create(:favorite_folder, user: moderator, name: "a")
+        b = create(:favorite_folder, user: moderator, name: "b")
+        post move_favorite_folder_path(a, format: :json), params: { parent_id: b.id }
+        expect(response).to have_http_status(:ok)
+        expect(a.reload.parent_id).to eq(b.id)
       end
     end
   end
@@ -201,6 +299,14 @@ RSpec.describe FavoriteFoldersController do
         expect(flash[:alert]).to match(/already exists/)
         expect(FavoriteFolder.exists?(folder.id)).to be true
       end
+
+      it "returns 403 and does not delete when favorites are locked down" do
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+        folder = create(:favorite_folder, user: member)
+        delete favorite_folder_path(folder)
+        expect(response).to have_http_status(:forbidden)
+        expect(FavoriteFolder.exists?(folder.id)).to be true
+      end
     end
 
     context "as another member" do
@@ -211,6 +317,20 @@ RSpec.describe FavoriteFoldersController do
         delete favorite_folder_path(folder)
         expect(response).to have_http_status(:not_found)
         expect(FavoriteFolder.exists?(folder.id)).to be true
+      end
+    end
+
+    context "as a staff member when favorites are locked down" do
+      before do
+        sign_in_as moderator
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+      end
+
+      it "still allows deleting their own folder" do
+        folder = create(:favorite_folder, user: moderator)
+        delete favorite_folder_path(folder)
+        expect(response).to have_http_status(:found)
+        expect(FavoriteFolder.exists?(folder.id)).to be false
       end
     end
   end

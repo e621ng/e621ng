@@ -143,6 +143,7 @@ RSpec.describe PostSets::Favorites do
 
       set = PostSets::Favorites.new(user, "1", limit: 2, folder_scoped: true, folder: folder)
       expect(set.posts.max_numbered_pages).to eq(6)
+      expect(set.posts.real_max_numbered_pages).to eq(5)
       expect(set.posts.pagination_mode).to eq(:numbered)
     end
 

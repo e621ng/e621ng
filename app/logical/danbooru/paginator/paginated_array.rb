@@ -3,7 +3,7 @@
 module Danbooru
   module Paginator
     class PaginatedArray < Array
-      attr_reader :pagination_mode, :max_numbered_pages, :orig_size, :current_page, :records_per_page, :total_count, :real_total_count
+      attr_reader :pagination_mode, :max_numbered_pages, :real_max_numbered_pages, :orig_size, :current_page, :records_per_page, :total_count, :real_total_count
 
       def initialize(orig_array, options = {})
         @current_page = options[:current_page]
@@ -18,6 +18,12 @@ module Danbooru
         # an extra query of its own.
         @real_total_count = options[:real_total_count]
         @max_numbered_pages = options[:max_numbered_pages] || Danbooru.config.max_numbered_pages
+        # The true reachable page ceiling for display (PaginationHelper#approximate_count),
+        # as opposed to max_numbered_pages above, which PostSets::Favorites deliberately
+        # inflates by one to suppress PaginatorComponent's cursor-mode switch. Defaults to
+        # the (already-resolved) max_numbered_pages, so every caller that doesn't pass this
+        # explicitly is unaffected.
+        @real_max_numbered_pages = options[:real_max_numbered_pages] || @max_numbered_pages
         @pagination_mode = options[:pagination_mode]
         real_array = orig_array || []
         @orig_size = real_array.size
