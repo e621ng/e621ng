@@ -36,6 +36,34 @@ RSpec.describe FavoritesController do
       expect(response).to have_http_status(:bad_request)
     end
 
+    context "with a malformed folder_id" do
+      before { sign_in_as member }
+
+      it "returns 400 for a multi-element array" do
+        get "#{favorites_path}?folder_id[]=1&folder_id[]=2"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a one-element array (the reachable 'empty' shape)" do
+        get "#{favorites_path}?folder_id[]="
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a non-empty hash" do
+        get "#{favorites_path}?folder_id[x]=1"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "still treats a normal scalar folder_id, and a blank folder_id (root), as before" do
+        folder = create(:favorite_folder, user: member)
+        get favorites_path(folder_id: folder.id)
+        expect(response).to have_http_status(:ok)
+
+        get favorites_path(folder_id: "")
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
     it "shows another user's favorites when user_id is given" do
       FavoriteManager.add!(user: other_member, post: post_record)
       sign_in_as member
@@ -620,6 +648,42 @@ RSpec.describe FavoritesController do
         folder = create(:favorite_folder, user: member)
         expect { post move_favorite_path(post_record, format: :json), params: { favorite_folder_id: folder.id } }
           .not_to(change { member.reload.favorite_count })
+      end
+
+      it "returns 400 for a malformed favorite_folder_id (array)" do
+        post "#{move_favorite_path(post_record, format: :json)}?favorite_folder_id[]=1&favorite_folder_id[]=2"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed favorite_folder_id (hash)" do
+        post "#{move_favorite_path(post_record, format: :json)}?favorite_folder_id[x]=1"
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 for a malformed favorite_folder_id (one-element blank array)" do
+        post "#{move_favorite_path(post_record, format: :json)}?favorite_folder_id[]="
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 403 when favorites are locked down" do
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+        folder = create(:favorite_folder, user: member)
+        post move_favorite_path(post_record, format: :json), params: { favorite_folder_id: folder.id }
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a staff member when favorites are locked down" do
+      before do
+        sign_in_as moderator
+        FavoriteManager.add!(user: moderator, post: post_record)
+        allow(Security::Lockdown).to receive(:favorites_disabled?).and_return(true)
+      end
+
+      it "still allows moving a favorite" do
+        folder = create(:favorite_folder, user: moderator)
+        post move_favorite_path(post_record, format: :json), params: { favorite_folder_id: folder.id }
+        expect(response).to have_http_status(:ok)
       end
     end
   end

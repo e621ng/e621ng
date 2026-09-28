@@ -5,6 +5,8 @@ class FavoritesController < ApplicationController
 
   before_action :member_only, except: [:index]
   before_action :ensure_lockdown_disabled, except: %i[index]
+  before_action :reject_malformed_folder_id, only: %i[index]
+  before_action :reject_malformed_favorite_folder_id, only: %i[move]
   respond_to :json
   respond_to :html, only: [:index]
   skip_before_action :api_check
@@ -89,5 +91,17 @@ class FavoritesController < ApplicationController
 
   def ensure_lockdown_disabled
     render_expected_error(403, "Favorites are disabled") if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
+  end
+
+  def reject_malformed_folder_id
+    render_expected_error(400, "Invalid folder_id parameter") unless scalar_or_blank?(params[:folder_id])
+  end
+
+  def reject_malformed_favorite_folder_id
+    render_expected_error(400, "Invalid favorite_folder_id parameter") unless scalar_or_blank?(params[:favorite_folder_id])
+  end
+
+  def scalar_or_blank?(value)
+    value.nil? || value.is_a?(String) || value.is_a?(Numeric)
   end
 end

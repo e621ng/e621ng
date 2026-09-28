@@ -12,17 +12,19 @@ RSpec.describe PaginationHelper do
       # all: capped? is false, so approximate_count's normal branches are unaffected.
       capped: false, real_total_count: nil,
     }.merge(opts)
+    opts[:real_max_numbered_pages] ||= opts[:max_numbered_pages]
     instance_double(
       Danbooru::Paginator::PaginatedArray,
-      pagination_mode:    opts[:pagination_mode],
-      current_page:       opts[:current_page],
-      records_per_page:   opts[:records_per_page],
-      total_pages:        opts[:total_pages],
-      max_numbered_pages: opts[:max_numbered_pages],
-      is_last_page?:      opts[:is_last_page],
-      size:               opts[:size],
-      capped?:            opts[:capped],
-      real_total_count:   opts[:real_total_count],
+      pagination_mode:         opts[:pagination_mode],
+      current_page:            opts[:current_page],
+      records_per_page:        opts[:records_per_page],
+      total_pages:             opts[:total_pages],
+      max_numbered_pages:      opts[:max_numbered_pages],
+      real_max_numbered_pages: opts[:real_max_numbered_pages],
+      is_last_page?:           opts[:is_last_page],
+      size:                    opts[:size],
+      capped?:                 opts[:capped],
+      real_total_count:        opts[:real_total_count],
     )
   end
 
@@ -89,30 +91,58 @@ RSpec.describe PaginationHelper do
       end
     end
 
-    context "when the pagination ceiling was reached but the real count is larger (a capped folder)" do
+    context "when the pagination ceiling was reached but the real count is larger (a capped folder, on the last reachable page)" do
       let(:records) do
-        make_records(current_page: 750, total_pages: 750, max_numbered_pages: 750, records_per_page: 40,
-                     is_last_page: true, size: 40, capped: true, real_total_count: 50_000)
+        make_records(current_page: 750, total_pages: 750, max_numbered_pages: 751, real_max_numbered_pages: 750,
+                     records_per_page: 40, is_last_page: true, size: 40, capped: true, real_total_count: 50_000)
       end
 
       it "renders the approximate-count span" do
         expect(span).not_to be_nil
       end
 
-      it "prefixes the count with 'over ', not treating the pagination cap as the exact total" do
-        expect(span.text).to start_with("over ")
+      it "shows the count with no 'over '/estimate prefix, since real_total_count is an exact COUNT" do
+        expect(span.text).to eq("50,000 results")
       end
 
-      it "never claims an exact count" do
+      it "never claims an exact count (the exact-count phrasing is reserved for the ordinary last-page branch)" do
         expect(span["title"]).not_to include("Exactly")
       end
 
-      it "shows the real, uncapped total in the title" do
-        expect(span["title"]).to include("Over 50,000 results found.")
+      it "states the exact total plainly and notes the page ceiling, using the real (un-inflated) page count" do
+        expect(span["title"]).to include("50,000 results found.\nOnly the first 750 pages are browsable.")
       end
 
-      it "sets data-count to the real total, not max_numbered_pages * records_per_page (which would be 30,000 here)" do
+      it "sets data-count to the real total, not max_numbered_pages * records_per_page (which would be 30,040 here)" do
         expect(span["data-count"]).to eq("50000")
+      end
+
+      it "sets data-pages to the real max_numbered_pages, never the +1 cursor-suppression sentinel" do
+        expect(span["data-pages"]).to eq("750")
+      end
+
+      it "sets data-per to the real max_numbered_pages, never the +1 cursor-suppression sentinel" do
+        expect(span["data-per"]).to eq("750")
+      end
+    end
+
+    context "when a folder is capped but the current page is an early, non-last page" do
+      let(:records) do
+        make_records(current_page: 1, total_pages: 750, max_numbered_pages: 751, real_max_numbered_pages: 750,
+                     records_per_page: 40, is_last_page: false, size: 40, capped: true, real_total_count: 50_000)
+      end
+
+      it "still shows the exact real count, not an approximation derived from the capped total_pages" do
+        expect(span.text).to eq("50,000 results")
+      end
+
+      it "still states the exact total plainly with the real page ceiling in the title" do
+        expect(span["title"]).to include("50,000 results found.\nOnly the first 750 pages are browsable.")
+      end
+
+      it "still sets data-pages/data-per to the real max_numbered_pages" do
+        expect(span["data-pages"]).to eq("750")
+        expect(span["data-per"]).to eq("750")
       end
     end
 

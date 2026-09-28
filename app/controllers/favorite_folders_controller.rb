@@ -2,6 +2,8 @@
 
 class FavoriteFoldersController < ApplicationController
   before_action :member_only
+  before_action :ensure_lockdown_disabled
+  before_action :reject_malformed_folder_id_params
   respond_to :json, only: %i[create update move]
   respond_to :html, only: [:destroy]
 
@@ -46,5 +48,18 @@ class FavoriteFoldersController < ApplicationController
   def parent_folder
     return nil if params[:parent_id].blank?
     CurrentUser.user.favorite_folders.find(params[:parent_id])
+  end
+
+  def ensure_lockdown_disabled
+    render_expected_error(403, "Favorites are disabled") if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
+  end
+
+  def reject_malformed_folder_id_params
+    return if scalar_or_blank?(params[:id]) && scalar_or_blank?(params[:parent_id])
+    render_expected_error(400, "Invalid folder id parameter")
+  end
+
+  def scalar_or_blank?(value)
+    value.nil? || value.is_a?(String) || value.is_a?(Numeric)
   end
 end
