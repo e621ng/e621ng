@@ -2,7 +2,7 @@
 
 class FavoriteFoldersController < ApplicationController
   before_action :member_only
-  respond_to :json, only: %i[create update]
+  respond_to :json, only: %i[create update move]
   respond_to :html, only: [:destroy]
 
   def create
@@ -16,6 +16,15 @@ class FavoriteFoldersController < ApplicationController
     folder = CurrentUser.user.favorite_folders.find(params[:id])
     FavoriteFolderManager.rename!(user: CurrentUser.user, folder: folder, name: params[:name])
     render json: folder
+  rescue FavoriteFolderManager::Error, ActiveRecord::RecordNotFound => e
+    render_expected_error(422, e.message)
+  end
+
+  def move
+    folder = CurrentUser.user.favorite_folders.find(params[:id])
+    destination_parent_id = params[:parent_id].presence&.to_i
+    moved = FavoriteFolderManager.move_folder!(user: CurrentUser.user, folder: folder, destination_parent_id: destination_parent_id)
+    render json: { id: moved.id, parent_id: moved.parent_id }
   rescue FavoriteFolderManager::Error, ActiveRecord::RecordNotFound => e
     render_expected_error(422, e.message)
   end

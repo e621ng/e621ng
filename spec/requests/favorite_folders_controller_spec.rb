@@ -90,6 +90,84 @@ RSpec.describe FavoriteFoldersController do
   end
 
   # ---------------------------------------------------------------------------
+  # POST /favorite_folders/:id/move — hierarchy move
+  # ---------------------------------------------------------------------------
+
+  describe "POST /favorite_folders/:id/move" do
+    context "as anonymous" do
+      it "returns 403" do
+        folder = create(:favorite_folder, user: member)
+        post move_favorite_folder_path(folder, format: :json)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as a member" do
+      before { sign_in_as member }
+
+      it "moves a root folder under another root folder and returns the new parent_id" do
+        a = create(:favorite_folder, user: member, name: "a")
+        b = create(:favorite_folder, user: member, name: "b")
+        post move_favorite_folder_path(a, format: :json), params: { parent_id: b.id }
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["id"]).to eq(a.id)
+        expect(response.parsed_body["parent_id"]).to eq(b.id)
+        expect(a.reload.parent_id).to eq(b.id)
+      end
+
+      it "moves a folder to root when parent_id is blank" do
+        parent = create(:favorite_folder, user: member, name: "parent")
+        child = create(:favorite_folder, user: member, name: "child", parent: parent)
+        post move_favorite_folder_path(child, format: :json), params: { parent_id: "" }
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["parent_id"]).to be_nil
+        expect(child.reload.parent_id).to be_nil
+      end
+
+      it "returns 422 and does not move when the destination belongs to another user" do
+        folder = create(:favorite_folder, user: member)
+        other_folder = create(:favorite_folder, user: other_member)
+        post move_favorite_folder_path(folder, format: :json), params: { parent_id: other_folder.id }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(folder.reload.parent_id).to be_nil
+      end
+
+      it "returns 422 when the destination does not exist" do
+        folder = create(:favorite_folder, user: member)
+        post move_favorite_folder_path(folder, format: :json), params: { parent_id: 0 }
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "returns 422 and does not move on a cycle (moving a folder into its own child)" do
+        parent = create(:favorite_folder, user: member, name: "parent")
+        child = create(:favorite_folder, user: member, name: "child", parent: parent)
+        post move_favorite_folder_path(parent, format: :json), params: { parent_id: child.id }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(parent.reload.parent_id).to be_nil
+      end
+
+      it "returns 422 and does not move on a sibling-name collision at the destination" do
+        create(:favorite_folder, user: member, name: "Memes")
+        folder = create(:favorite_folder, user: member, name: "memes", parent: create(:favorite_folder, user: member, name: "parent"))
+        post move_favorite_folder_path(folder, format: :json), params: { parent_id: "" }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(folder.reload.parent_id).not_to be_nil
+      end
+    end
+
+    context "as another member" do
+      before { sign_in_as other_member }
+
+      it "returns 422 and does not move another user's folder" do
+        folder = create(:favorite_folder, user: member)
+        post move_favorite_folder_path(folder, format: :json), params: { parent_id: "" }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(folder.reload.parent_id).to be_nil
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # DELETE /favorite_folders/:id — destroy
   # ---------------------------------------------------------------------------
 

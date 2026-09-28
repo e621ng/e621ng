@@ -363,4 +363,198 @@ RSpec.describe FavoriteFolderManager do
       end.to raise_error(ActiveRecord::RecordNotUnique)
     end
   end
+
+  describe ".move_folder!" do
+    it "moves a root folder to become a child of another root folder" do
+      a = create(:favorite_folder, user: user, name: "a")
+      b = create(:favorite_folder, user: user, name: "b")
+      moved = FavoriteFolderManager.move_folder!(user: user, folder: a, destination_parent_id: b.id)
+      expect(moved.parent_id).to eq(b.id)
+      expect(a.reload.parent_id).to eq(b.id)
+    end
+
+    it "moves a nested folder to become a sibling folder (child of a different parent at the same level)" do
+      parent1 = create(:favorite_folder, user: user, name: "parent1")
+      parent2 = create(:favorite_folder, user: user, name: "parent2")
+      a = create(:favorite_folder, user: user, name: "a", parent: parent1)
+      FavoriteFolderManager.move_folder!(user: user, folder: a, destination_parent_id: parent2.id)
+      expect(a.reload.parent_id).to eq(parent2.id)
+    end
+
+    it "moves a nested folder one level up (simulating a drag onto Go Up)" do
+      grandparent = create(:favorite_folder, user: user, name: "grandparent")
+      parent = create(:favorite_folder, user: user, name: "parent", parent: grandparent)
+      child = create(:favorite_folder, user: user, name: "child", parent: parent)
+      FavoriteFolderManager.move_folder!(user: user, folder: child, destination_parent_id: parent.parent_id)
+      expect(child.reload.parent_id).to eq(grandparent.id)
+    end
+
+    it "moves a nested folder to root (simulating a drag onto a top-level Go Up)" do
+      parent = create(:favorite_folder, user: user, name: "parent")
+      child = create(:favorite_folder, user: user, name: "child", parent: parent)
+      FavoriteFolderManager.move_folder!(user: user, folder: child, destination_parent_id: nil)
+      expect(child.reload.parent_id).to be_nil
+    end
+
+    it "treats moving to the folder's current parent as a successful no-op" do
+      parent = create(:favorite_folder, user: user, name: "parent")
+      child = create(:favorite_folder, user: user, name: "child", parent: parent)
+      moved = FavoriteFolderManager.move_folder!(user: user, folder: child, destination_parent_id: parent.id)
+      expect(moved.parent_id).to eq(parent.id)
+      expect(child.reload.parent_id).to eq(parent.id)
+    end
+
+    it "treats moving a root folder to root as a successful no-op" do
+      a = create(:favorite_folder, user: user, name: "a")
+      moved = FavoriteFolderManager.move_folder!(user: user, folder: a, destination_parent_id: nil)
+      expect(moved.parent_id).to be_nil
+    end
+
+    it "raises when the source folder belongs to another user" do
+      folder = create(:favorite_folder, user: other_user)
+      destination = create(:favorite_folder, user: user)
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: folder, destination_parent_id: destination.id) }
+        .to raise_error(FavoriteFolderManager::Error, "Access denied")
+      expect(folder.reload.parent_id).to be_nil
+    end
+
+    it "raises when the destination folder belongs to another user" do
+      folder = create(:favorite_folder, user: user)
+      other_folder = create(:favorite_folder, user: other_user)
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: folder, destination_parent_id: other_folder.id) }
+        .to raise_error(FavoriteFolderManager::Error, /does not belong to you/)
+      expect(folder.reload.parent_id).to be_nil
+    end
+
+    it "raises cleanly when the destination folder does not exist" do
+      folder = create(:favorite_folder, user: user)
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: folder, destination_parent_id: 0) }
+        .to raise_error(FavoriteFolderManager::Error, "Folder not found")
+    end
+
+    it "rejects moving a folder into itself" do
+      folder = create(:favorite_folder, user: user)
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: folder, destination_parent_id: folder.id) }
+        .to raise_error(FavoriteFolderManager::Error, /itself or one of its descendants/)
+    end
+
+    it "rejects moving a folder into its direct child" do
+      parent = create(:favorite_folder, user: user, name: "parent")
+      child = create(:favorite_folder, user: user, name: "child", parent: parent)
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: parent, destination_parent_id: child.id) }
+        .to raise_error(FavoriteFolderManager::Error, /itself or one of its descendants/)
+      expect(parent.reload.parent_id).to be_nil
+    end
+
+    it "rejects moving a folder into a deep descendant" do
+      a = create(:favorite_folder, user: user, name: "a")
+      b = create(:favorite_folder, user: user, name: "b", parent: a)
+      c = create(:favorite_folder, user: user, name: "c", parent: b)
+      grandchild = create(:favorite_folder, user: user, name: "grandchild", parent: c)
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: a, destination_parent_id: grandchild.id) }
+        .to raise_error(FavoriteFolderManager::Error, /itself or one of its descendants/)
+      expect(a.reload.parent_id).to be_nil
+    end
+
+    it "rejects a case-insensitive destination sibling-name collision" do
+      create(:favorite_folder, user: user, name: "Memes")
+      parent = create(:favorite_folder, user: user, name: "parent")
+      nested = create(:favorite_folder, user: user, name: "memes", parent: parent)
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: nested, destination_parent_id: nil) }
+        .to raise_error(FavoriteFolderManager::Error, /already exists/)
+    end
+
+    it "leaves the hierarchy unchanged when a collision blocks the move" do
+      create(:favorite_folder, user: user, name: "Memes")
+      parent = create(:favorite_folder, user: user, name: "parent")
+      nested = create(:favorite_folder, user: user, name: "memes", parent: parent)
+
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: nested, destination_parent_id: nil) }
+        .to raise_error(FavoriteFolderManager::Error)
+      expect(nested.reload.parent_id).to eq(parent.id)
+    end
+
+    it "leaves the hierarchy unchanged when a cycle blocks the move" do
+      parent = create(:favorite_folder, user: user, name: "parent")
+      child = create(:favorite_folder, user: user, name: "child", parent: parent)
+
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: parent, destination_parent_id: child.id) }
+        .to raise_error(FavoriteFolderManager::Error)
+      expect(parent.reload.parent_id).to be_nil
+      expect(child.reload.parent_id).to eq(parent.id)
+    end
+
+    it "keeps the moved folder's descendant subtree attached, changing only the moved folder's own parent_id" do
+      a = create(:favorite_folder, user: user, name: "a")
+      b = create(:favorite_folder, user: user, name: "b")
+      child = create(:favorite_folder, user: user, name: "child", parent: a)
+      grandchild = create(:favorite_folder, user: user, name: "grandchild", parent: child)
+
+      FavoriteFolderManager.move_folder!(user: user, folder: a, destination_parent_id: b.id)
+
+      expect(a.reload.parent_id).to eq(b.id)
+      expect(child.reload.parent_id).to eq(a.id)
+      expect(grandchild.reload.parent_id).to eq(child.id)
+    end
+
+    it "does not affect memberships, favorites, or favorite counts" do
+      parent = create(:favorite_folder, user: user, name: "parent")
+      destination = create(:favorite_folder, user: user, name: "destination")
+      post = create(:post)
+      FavoriteManager.add!(user: user, post: post)
+      favorite = Favorite.for_user(user.id).find_by(post_id: post.id)
+      membership = create(:favorite_folder_membership, user: user, folder: parent, favorite: favorite)
+      favorite_count_before = user.reload.favorite_count
+
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: parent, destination_parent_id: destination.id) }
+        .not_to(change { post.reload.fav_count })
+      expect(user.reload.favorite_count).to eq(favorite_count_before)
+      expect(membership.reload.folder_id).to eq(parent.id)
+      expect(Favorite.exists?(favorite.id)).to be true
+    end
+
+    it "translates a concurrent unique-index collision into a clean manager error" do
+      a = create(:favorite_folder, user: user, name: "a")
+      destination = create(:favorite_folder, user: user, name: "destination")
+      allow_any_instance_of(FavoriteFolder).to receive(:save).and_raise(ActiveRecord::RecordNotUnique) # rubocop:disable RSpec/AnyInstance
+      expect { FavoriteFolderManager.move_folder!(user: user, folder: a, destination_parent_id: destination.id) }
+        .to raise_error(FavoriteFolderManager::Error, /already exists/)
+    end
+
+    describe "locking and deadlock hardening" do
+      it "locks source and destination together in one id-ordered query" do
+        a = create(:favorite_folder, user: user, name: "a")
+        b = create(:favorite_folder, user: user, name: "b")
+
+        allow(FavoriteFolder).to receive(:where).and_call_original
+        FavoriteFolderManager.move_folder!(user: user, folder: a, destination_parent_id: b.id)
+
+        expect(FavoriteFolder).to have_received(:where).with(id: contain_exactly(a.id, b.id))
+      end
+
+      it "retries and succeeds after a transient ActiveRecord::Deadlocked" do
+        a = create(:favorite_folder, user: user, name: "a")
+        b = create(:favorite_folder, user: user, name: "b")
+        call_count = 0
+        allow(FavoriteFolderManager).to receive(:move_folder_locked!).and_wrap_original do |original, **kwargs|
+          call_count += 1
+          raise ActiveRecord::Deadlocked, "deadlock detected" if call_count < 3
+          original.call(**kwargs)
+        end
+
+        expect { FavoriteFolderManager.move_folder!(user: user, folder: a, destination_parent_id: b.id) }.not_to raise_error
+        expect(call_count).to eq(3)
+        expect(a.reload.parent_id).to eq(b.id)
+      end
+
+      it "re-raises after exhausting retries on a persistent deadlock" do
+        a = create(:favorite_folder, user: user, name: "a")
+        b = create(:favorite_folder, user: user, name: "b")
+        allow(FavoriteFolderManager).to receive(:move_folder_locked!).and_raise(ActiveRecord::Deadlocked, "deadlock detected")
+
+        expect { FavoriteFolderManager.move_folder!(user: user, folder: a, destination_parent_id: b.id) }.to raise_error(ActiveRecord::Deadlocked)
+        expect(a.reload.parent_id).to be_nil
+      end
+    end
+  end
 end

@@ -13,10 +13,8 @@ class FavoriteFolderManager
     return create_root!(user: user, name: name) if parent.nil?
 
     FavoriteFolder.transaction do
-      # A locked, fresh lookup by id (not parent.lock! on the passed-in object) so that
-      # if delete!(parent) already committed and removed the row, this simply returns nil
-      # instead of racing an insert into a folder that no longer exists. If delete! is
-      # mid-transaction, this blocks until it finishes, serializing the two operations.
+      # Locked fresh lookup, not parent.lock! on the passed-in object: blocks if delete!
+      # holds this row, and returns nil (not an exception) if it already removed it.
       locked_parent = FavoriteFolder.lock.find_by(id: parent.id)
       raise Error, "Folder not found" if locked_parent.nil?
       raise Error, "Folder does not belong to you" if locked_parent.user_id != user.id
@@ -67,11 +65,8 @@ class FavoriteFolderManager
       attempts += 1
       delete_locked!(user: user, folder: folder)
     rescue ActiveRecord::Deadlocked
-      # The locking in delete_locked! is deliberately ordered (own sibling-level group,
-      # id-ascending, before the child-level group) specifically so concurrent deletes
-      # can never form a lock cycle - see the comment there. This retry is defense-in-depth
-      # against any residual contention that reasoning didn't foresee, not the primary
-      # safety mechanism, so it stays small.
+      # delete_locked!'s level-then-id lock order should prevent this; retry is defense
+      # in depth for any residual contention.
       retry if attempts < 3
       raise
     end
@@ -81,30 +76,17 @@ class FavoriteFolderManager
     FavoriteFolder.transaction do
       new_parent_id = folder.parent_id
 
-      # Lock the folder being deleted together with ALL of its existing destination-level
-      # siblings in one query, ordered by id. This is what makes concurrent deletes
-      # deadlock-safe: two transactions deleting sibling folders A and B previously each
-      # locked their own folder first (`folder.lock!`) and only then reached for the
-      # other as a sibling - tx1 locks A then wants B, tx2 locks B then wants A, a classic
-      # deadlock cycle. Locking the *entire* sibling group (which always includes `folder`
-      # itself, since a folder shares its own parent_id with its siblings by definition)
-      # in one ordered query means every transaction touching this group acquires locks
-      # in the same order, so the second transaction simply blocks on the first row it
-      # can't get instead of forming a cycle. Combined with locking the child-level group
-      # strictly afterward (below) - never before - every transaction acquires locks in a
-      # level-then-id order, which cannot cycle even across nested parent/child deletes.
+      # Locks folder + its whole sibling group (one id-ordered query) before the child
+      # group below - a consistent level-then-id lock order across concurrent deletes,
+      # so two deletes can never form a lock cycle.
       sibling_group = FavoriteFolder.where(user_id: user.id, parent_id: new_parent_id).order(:id).lock.to_a
-      raise Error, "Folder not found" unless sibling_group.any? { |f| f.id == folder.id } # deleted concurrently since this call started
+      raise Error, "Folder not found" unless sibling_group.any? { |f| f.id == folder.id } # deleted concurrently
 
       existing_sibling_names = sibling_group.reject { |f| f.id == folder.id }.map { |f| f.name.downcase }
 
-      # Deliberately independent relations, not folder.children/folder.favorites: loading
-      # those association readers here would cache their pre-promotion result on this
-      # `folder` instance, and folder.destroy! below runs a dependent: :restrict_with_exception
-      # check against those same associations. If they were already loaded/cached from
-      # before the update_all calls, that check could see stale (non-empty) rows and
-      # falsely reject the destroy. Using bare scopes means the associations are never
-      # populated, so destroy!'s restrict check queries fresh and correctly sees zero rows.
+      # Bare scopes, not folder.children/folder.favorites: loading those would cache
+      # pre-promotion results and make destroy!'s restrict_with_exception check below see
+      # stale, non-empty associations.
       child_folders_scope = FavoriteFolder.where(parent_id: folder.id)
       colliding_names = child_folders_scope.order(:id).lock.pluck(Arel.sql("lower(name)")) & existing_sibling_names
       if colliding_names.any?
@@ -124,22 +106,95 @@ class FavoriteFolderManager
         end
         folder.destroy!
       rescue ActiveRecord::RecordNotUnique
-        # A brand-new sibling could still be INSERTed by a concurrent request between our
-        # check above and this update, since row locks can't lock rows that don't exist
-        # yet - the partial unique indexes are the true final guarantee. Translate it to
-        # the same collision error instead of leaking a raw DB exception.
+        # A new sibling can still be inserted between the check above and this update;
+        # the partial unique indexes are the final guarantee.
         raise Error, "Cannot delete: a folder with the same name already exists at the destination level"
       rescue ActiveRecord::DeleteRestrictionError, ActiveRecord::InvalidForeignKey
-        # Should be unreachable now that create!/move! lock this folder's row before
-        # attaching anything new to it - last-resort translation in case some future path
-        # attaches content without going through that locking discipline, so a raw
-        # ActiveRecord/PG error never reaches the controller. Unrelated DB errors are not
-        # rescued here and still propagate.
+        # Last-resort translation so a raw AR/PG error never reaches the controller.
         raise Error, "Cannot delete this folder: it still has contents. Please try again."
       end
     end
   end
   private_class_method :delete_locked!
+
+  # Move a folder to a new parent (or to root) - hierarchy only, never sibling order:
+  # folders are always displayed lower(name), id, which this never touches.
+  # @param user [User] The user performing the move
+  # @param folder [FavoriteFolder] The folder being moved
+  # @param destination_parent_id [Integer, nil] The new parent folder's id, or nil for root
+  # @return [FavoriteFolder] The moved folder (unchanged, if the move was a no-op)
+  # @raises [Error] Ownership, missing-destination, cycle, or sibling-name-collision errors
+  def self.move_folder!(user:, folder:, destination_parent_id:)
+    raise Error, "Access denied" unless folder.user_id == user.id
+
+    attempts = 0
+    begin
+      attempts += 1
+      move_folder_locked!(user: user, folder: folder, destination_parent_id: destination_parent_id)
+    rescue ActiveRecord::Deadlocked
+      # Defense in depth: the combined lock below prevents move-vs-move deadlocks, but a
+      # cross-type conflict with a concurrent delete!/create! on a shared ancestor is
+      # still theoretically possible if ids don't correlate with tree depth.
+      retry if attempts < 3
+      raise
+    end
+  end
+
+  def self.move_folder_locked!(user:, folder:, destination_parent_id:)
+    FavoriteFolder.transaction do
+      # Source and destination locked together in one id-ordered query, not as two
+      # sequential locks - otherwise two folders swapped concurrently (A into B while B
+      # into A) could each hold one and wait on the other.
+      ids = destination_parent_id ? [folder.id, destination_parent_id].uniq : [folder.id]
+      locked = FavoriteFolder.where(id: ids).order(:id).lock.index_by(&:id)
+
+      locked_source = locked[folder.id]
+      raise Error, "Folder not found" if locked_source.nil? # deleted concurrently since this call started
+      raise Error, "Access denied" unless locked_source.user_id == user.id
+
+      # Wraps the rest instead of an early `return`/`break` (Rails/TransactionExitStatement
+      # disallows exiting a transaction block that way). No-op if already at this parent.
+      if locked_source.parent_id != destination_parent_id
+        if destination_parent_id
+          locked_destination = locked[destination_parent_id]
+          raise Error, "Folder not found" if locked_destination.nil?
+          raise Error, "Folder does not belong to you" if locked_destination.user_id != user.id
+          reject_if_moving_into_own_descendant!(locked_destination, locked_source.id)
+        end
+
+        # Lock destination siblings in id order for a stable collision check, matching
+        # delete!'s sibling-group locking; the unique index remains the final guarantee.
+        # The old sibling group source is leaving isn't locked - nothing about leaving it
+        # needs to change.
+        destination_siblings = FavoriteFolder.where(user_id: user.id, parent_id: destination_parent_id).order(:id).lock.to_a
+        existing_names = destination_siblings.reject { |f| f.id == locked_source.id }.map { |f| f.name.downcase }
+        if existing_names.include?(locked_source.name.downcase)
+          raise Error, "A folder with that name already exists at the destination level"
+        end
+
+        locked_source.parent_id = destination_parent_id
+        raise Error, locked_source.errors.full_messages.join(", ") unless locked_source.save
+      end
+
+      locked_source
+    end
+  rescue ActiveRecord::RecordNotUnique
+    # Final race-safe guarantee, same as create!/rename!/delete!.
+    raise Error, "A folder with that name already exists at the destination level"
+  end
+  private_class_method :move_folder_locked!
+
+  # Walks up from destination toward root, locking each ancestor as it goes, so a
+  # concurrent reparent can't invalidate the chain mid-check.
+  def self.reject_if_moving_into_own_descendant!(destination, source_id)
+    node = destination
+    while node
+      raise Error, "Cannot move a folder into itself or one of its descendants" if node.id == source_id
+      return if node.parent_id.nil?
+      node = FavoriteFolder.lock.find_by(id: node.parent_id)
+    end
+  end
+  private_class_method :reject_if_moving_into_own_descendant!
 
   # Move a favorited post to a destination folder (or back to root, i.e. unfiled).
   # @param user [User] The user performing the move
@@ -149,38 +204,20 @@ class FavoriteFolderManager
   # @raises [Error] When the post isn't favorited by the user, or the destination is invalid
   def self.move!(user:, post:, destination_folder_id:)
     Favorite.transaction do
-      # Locked, fresh lookup - not just the read used to decide whether to raise below -
-      # so a concurrent unfavorite (FavoriteManager.remove!) or TransferFavoritesJob
-      # (which deletes/replaces Favorite rows outside any lock this call previously took)
-      # can no longer delete this row between the lookup and the upsert below. Either this
-      # blocks until that concurrent transaction finishes (then re-reads a still-valid
-      # row), or - if it already committed and removed the favorite - this simply finds no
-      # row and raises the normal domain error, never a raw ActiveRecord::InvalidForeignKey
-      # from upserting a membership against a favorite_id that no longer exists.
-      #
-      # Locked FIRST, before the destination folder below: this preserves the existing
-      # error precedence (a missing favorite was already reported before an invalid
-      # destination, even when both are true), and fixes the lock order for good - no
-      # other code path ever locks a Favorite row and then wants a FavoriteFolder row (or
-      # vice versa): create!/delete! only ever lock FavoriteFolder rows, and
-      # FavoriteManager.remove!/TransferFavoritesJob only ever lock Post then Favorite
-      # rows, never touching FavoriteFolder. With no other transaction ever holding one of
-      # these two lock types while waiting on the other, this pair can't form a cycle
-      # regardless of which order was picked - Favorite-then-Folder here is chosen only to
-      # match the pre-existing validation order, not because the alternative would deadlock.
+      # Locked fresh lookup, not just the earlier read: a concurrent unfavorite/
+      # TransferFavoritesJob can no longer delete this row out from under the upsert
+      # below. Locked before the destination folder to preserve existing error precedence;
+      # no other path locks Favorite then FavoriteFolder or vice versa, so this ordering
+      # can't deadlock against create!/delete!.
       favorite = Favorite.lock.for_user(user.id).find_by(post_id: post.id)
       raise Error, "You have not favorited this post" if favorite.nil?
 
       if destination_folder_id.blank?
-        # Root (unfiled) is not a physical folder - "moved to root" means the membership
-        # row is removed entirely, never a synthetic folder_id.
+        # Root is not a physical folder - moving there removes the membership row.
         FavoriteFolderMembership.where(favorite_id: favorite.id).delete_all
         next nil
       end
 
-      # Same locked, fresh-lookup contract as create!'s parent lock: blocks if delete!
-      # holds this folder's lock, and returns nil (not an exception) if it already
-      # committed and removed the row.
       destination = FavoriteFolder.lock.find_by(id: destination_folder_id)
       raise Error, "Folder not found" if destination.nil?
       raise Error, "Folder does not belong to you" if destination.user_id != user.id
