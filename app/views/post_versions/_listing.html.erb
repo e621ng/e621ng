@@ -1,7 +1,7 @@
 <div id="p-revert-listing">
   <% @post_versions.each do |post_version| %>
     <div id="post-version-<%= post_version.id %>" data-post-version-id="<%= post_version.id %>" data-post-id="<%= post_version.post_id %>" class="post-version">
-      <div class="post-version-row-select pv-check pv-label">
+      <div class="post-version-row-select pv-check pv-label<% if post_version.original_tags.blank? || !post_version.details_visible? %> without-original<% end %>">
         <% if CurrentUser.is_privileged? %>
           <input type="checkbox" class="post-version-select" <%= "disabled" if !CurrentUser.can_undo_post_versions? || !post_version.undoable? %> >
         <% end %>
@@ -99,6 +99,14 @@
         <div class="pv-sources pv-content">
           <%= post_source_diff(post_version) %>
         </div>
+        <% if post_version.original_tags.present? %>
+          <div class="pv-original-tag-string-label pv-label">
+            Original Tag String
+          </div>
+          <div class="pv-original-tag-string pv-content">
+            <%= post_version.presenter.inline_tag_list_html(:wiki_page) %>
+          </div>
+        <% end %>
       <% end %>
 
     </div>
