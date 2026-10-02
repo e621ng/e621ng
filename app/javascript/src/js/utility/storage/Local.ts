@@ -61,7 +61,7 @@ class LStorage extends StorageObject {
     Main: "hexagon" as "bloodlust" | "hexagon" | "hotdog" | "pony" | "serpent",
     Extra: "hexagon" as "aurora" | "autumn" | "fennec" | "hexagon" | "none" | "scales" | "space" | "spring" | "stars" | "winter",
     Palette: "default" as "default" | "deut" | "trit",
-    Font: "Verdana" as "Verdana" | "Lato" | "Lexend" | "Monospace" | "OpenDyslexic" | "OpenSans" | "ComicSans",
+    Font: "Verdana" as "Verdana" | "Lato" | "Lexend" | "Monospace" | "OpenDyslexic" | "OpenSans" | "ComicSans" | "Papyrus",
     Navbar: "top" as "top" | "bottom" | "none",
     Gestures: false,
     StickyHeader: false,
