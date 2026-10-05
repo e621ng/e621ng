@@ -1,0 +1,22 @@
+body[data-th-main="forest"] {
+  // Layout Colors
+  --color-background: #1F1300;
+  --color-foreground: #002e12;
+  --color-section: #134b27;
+  --color-section-lighten-5: #175c30;
+  --color-section-lighten-10: #1b6c38;
+  --color-section-darken-5: #124725;
+  --color-table-border: #1b6c38;
+
+  // Main Colors
+  --color-link: #DEBD95;
+  --color-link-hover: #FFFFD1;
+
+  // User Groups
+  --color-user-member: #DEBD95;
+  --color-user-member-alt: #ACDB93;
+  --color-user-blocked: #DEBD95;
+  --color-user-blocked-alt: #ACDB93;
+  --color-user-privileged: #DEBD95;
+  --color-user-privileged-alt: #ACDB93;
+}
