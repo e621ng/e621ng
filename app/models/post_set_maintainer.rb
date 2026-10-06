@@ -21,7 +21,7 @@ class PostSetMaintainer < ApplicationRecord
 \"Click here\":/post_set_maintainers/#{id}/block to deny the request and prevent yourself from being invited to this set again in the future."
     Dmail.create_automated(
         to_id: user_id,
-        title: "You were invite to be a maintainer of #{post_set.name}",
+        title: "You were invited to be a maintainer of #{post_set.name}",
         body: body
     )
   end
