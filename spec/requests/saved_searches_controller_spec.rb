@@ -151,7 +151,7 @@ RSpec.describe SavedSearchesController do
 
     it "zeroes the cached badge entry" do
       ss = create(:saved_search, user: owner, is_tracked: true)
-      Cache.write(SavedSearch.badge_cache_key(owner.id), { ss.id => 7 })
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(owner.id), { ss.id => 7 })
       get visit_saved_search_path(ss)
       expect(SavedSearch.badge_counts(owner)).to eq({ ss.id => 0 })
     end

@@ -102,12 +102,12 @@ RSpec.describe SavedSearchBadgeJob do
       end
     end
 
-    it "writes the cache with the configured TTL" do
+    it "writes a fresh entry that outlives the freshness window" do
       create(:saved_search, user: user, query: "badge_target", is_tracked: true)
-      allow(Danbooru.config.custom_configuration).to receive(:saved_search_badge_ttl).and_return(3.minutes)
       allow(Cache).to receive(:write).and_call_original
       run_job
-      expect(Cache).to have_received(:write).with(SavedSearch.badge_cache_key(user.id), anything, expires_in: 3.minutes)
+      expect(Cache).to have_received(:write).with(SavedSearch.badge_cache_key(user.id), anything, expires_in: SavedSearch::BADGE_RETENTION)
+      expect(SavedSearch.badge_entry_fresh?(SavedSearch.badge_entry(user))).to be(true)
     end
 
     it "evaluates as the owning user" do
@@ -120,14 +120,31 @@ RSpec.describe SavedSearchBadgeJob do
   describe "request-path gate" do
     it "returns the cached sum for flagged users" do
       ss = create(:saved_search, user: user, is_tracked: true)
-      Cache.write(SavedSearch.badge_cache_key(user.id), { ss.id => 4 })
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 4 })
       expect(user.reload.saved_search_new_count).to eq(4)
+    end
+
+    it "does not enqueue a refresh while the entry is fresh" do
+      ss = create(:saved_search, user: user, is_tracked: true)
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 4 })
+      user.reload
+      expect { user.saved_search_new_count }.not_to enqueue_sidekiq_job(described_class)
+    end
+
+    it "keeps serving a stale entry while enqueueing a refresh" do
+      ss = create(:saved_search, user: user, is_tracked: true)
+      allow(Danbooru.config.custom_configuration).to receive(:saved_search_badge_ttl).and_return(3.minutes)
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 4 }, at: 4.minutes.ago.to_i)
+      user.reload
+      expect do
+        expect(user.saved_search_new_count).to eq(4)
+      end.to enqueue_sidekiq_job(described_class).with(user.id, false)
     end
 
     it "skips unevaluable searches in the sum" do
       ss = create(:saved_search, user: user, is_tracked: true)
       broken = create(:saved_search, user: user, is_tracked: true)
-      Cache.write(SavedSearch.badge_cache_key(user.id), { ss.id => 4, broken.id => nil })
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 4, broken.id => nil })
       expect(user.reload.saved_search_new_count).to eq(4)
     end
 
@@ -142,7 +159,7 @@ RSpec.describe SavedSearchBadgeJob do
 
     it "reads and refreshes the safe-mode variant under safe mode" do
       ss = create(:saved_search, user: user, is_tracked: true)
-      Cache.write(SavedSearch.badge_cache_key(user.id, false), { ss.id => 4 })
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id, false), { ss.id => 4 })
       user.reload
       CurrentUser.safe_mode = true
       expect do

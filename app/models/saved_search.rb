@@ -4,6 +4,9 @@ class SavedSearch < ApplicationRecord
   QUERY_LENGTH_LIMIT = 500
   # count_only caps track_total_hits here; the badge never needs exact large numbers.
   BADGE_COUNT_CAP = 100
+  # How long a badge entry outlives its freshness window (saved_search_badge_ttl), so the
+  # header can keep showing the last known value while a refresh is pending.
+  BADGE_RETENTION = 1.day
   # Everything query parsing can raise. User::PrivilegeError (set:/fav: the user can't view)
   # is an Exception, not a StandardError, so it has to be named explicitly.
   QUERY_ERRORS = [
@@ -92,14 +95,33 @@ class SavedSearch < ApplicationRecord
             counts[saved_search.id] = new_post_count(saved_search, safe_mode: safe_mode)
           end
         end
-        Cache.write(badge_cache_key(user.id, safe_mode), counts, expires_in: Danbooru.config.saved_search_badge_ttl)
+        write_badge_entry(badge_cache_key(user.id, safe_mode), counts)
         counts
       end
 
-      # Cached counts map ({id => count}) or nil when stale/absent.
+      # Cached entry ({ counts: {id => count}, at: epoch }) or nil when absent.
+      # May be stale; see badge_entry_fresh?.
+      def badge_entry(user, safe_mode: CurrentUser.safe_mode?)
+        read_badge_entry(badge_cache_key(user.id, safe_mode))
+      end
+
+      def badge_entry_fresh?(entry)
+        entry.present? && entry[:at] > Danbooru.config.saved_search_badge_ttl.ago.to_i
+      end
+
+      # Last known counts map ({id => count}), fresh or not; nil when absent.
       # A nil count means the search could not be evaluated.
       def badge_counts(user, safe_mode: CurrentUser.safe_mode?)
-        Cache.fetch(badge_cache_key(user.id, safe_mode))
+        badge_entry(user, safe_mode: safe_mode)&.fetch(:counts)
+      end
+
+      def read_badge_entry(key)
+        entry = Cache.fetch(key)
+        entry if entry.is_a?(Hash) && entry[:counts].is_a?(Hash)
+      end
+
+      def write_badge_entry(key, counts, at: Time.now.to_i)
+        Cache.write(key, { counts: counts, at: at }, expires_in: BADGE_RETENTION)
       end
 
       def mark_all_seen!(user)
@@ -107,9 +129,7 @@ class SavedSearch < ApplicationRecord
         tracked_ids = user.saved_searches.tracked.pluck(:id)
         user.saved_searches.tracked.update_all(last_seen_post_id: watermark)
         # Watermarks are shared across safe-mode variants
-        badge_cache_keys(user.id).each do |key|
-          Cache.write(key, tracked_ids.index_with { 0 }, expires_in: Danbooru.config.saved_search_badge_ttl)
-        end
+        badge_cache_keys(user.id).each { |key| write_badge_entry(key, tracked_ids.index_with { 0 }) }
       end
     end
 
@@ -120,11 +140,12 @@ class SavedSearch < ApplicationRecord
       old_watermark = last_seen_post_id
       update_column(:last_seen_post_id, Post.maximum(:id))
       self.class.badge_cache_keys(user_id).each do |key|
-        counts = Cache.fetch(key)
-        next unless counts.is_a?(Hash)
+        entry = self.class.read_badge_entry(key)
+        next unless entry
         # Leaves an unevaluable (nil) entry alone
-        counts[id] &&= 0
-        Cache.write(key, counts, expires_in: Danbooru.config.saved_search_badge_ttl)
+        entry[:counts][id] &&= 0
+        # Keeps the original timestamp so visits don't postpone the next refresh
+        self.class.write_badge_entry(key, entry[:counts], at: entry[:at])
       end
       old_watermark
     end

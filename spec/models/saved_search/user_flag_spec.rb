@@ -52,7 +52,7 @@ RSpec.describe SavedSearch do
 
     it "drops the cached badge map on any tracking change" do
       ss = create(:saved_search, user: user, is_tracked: true)
-      SavedSearch.badge_cache_keys(user.id).each { |key| Cache.write(key, { ss.id => 5 }) }
+      SavedSearch.badge_cache_keys(user.id).each { |key| SavedSearch.write_badge_entry(key, { ss.id => 5 }) }
       ss.update!(is_tracked: false)
       expect(SavedSearch.badge_counts(user, safe_mode: false)).to be_nil
       expect(SavedSearch.badge_counts(user, safe_mode: true)).to be_nil

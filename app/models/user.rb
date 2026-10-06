@@ -533,16 +533,14 @@ class User < ApplicationRecord
 
   module SavedSearchMethods
     # Total new-post count across tracked saved searches, from cache only — the request
-    # path never queries OpenSearch. A cold cache kicks off a background refresh and
-    # returns nil (stale-while-revalidate); the sidekiq lock dedups concurrent kicks.
+    # path never queries OpenSearch. A stale or missing entry kicks off a background refresh
+    # (the sidekiq lock dedups concurrent kicks); a stale one keeps serving its last known
+    # value until the job lands. Returns nil only when nothing is cached.
     def saved_search_new_count
       return nil unless is_logged_in? && has_tracked_saved_searches
-      counts = SavedSearch.badge_counts(self)
-      if counts.nil?
-        SavedSearchBadgeJob.perform_async(id, CurrentUser.safe_mode? || false)
-        return nil
-      end
-      counts.values.compact.sum
+      entry = SavedSearch.badge_entry(self)
+      SavedSearchBadgeJob.perform_async(id, CurrentUser.safe_mode? || false) unless SavedSearch.badge_entry_fresh?(entry)
+      entry && entry[:counts].values.compact.sum
     end
   end
 

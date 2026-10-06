@@ -46,14 +46,22 @@ RSpec.describe SavedSearch do
     it "zeroes only this search's cached badge entry" do
       ss = create(:saved_search, user: user, is_tracked: true)
       other = create(:saved_search, user: user, is_tracked: true)
-      Cache.write(SavedSearch.badge_cache_key(user.id), { ss.id => 5, other.id => 3 })
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 5, other.id => 3 })
       ss.mark_seen!
       expect(SavedSearch.badge_counts(user)).to eq({ ss.id => 0, other.id => 3 })
     end
 
+    it "keeps the entry's timestamp so visits don't postpone the refresh" do
+      ss = create(:saved_search, user: user, is_tracked: true)
+      stamp = 10.minutes.ago.to_i
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 5 }, at: stamp)
+      ss.mark_seen!
+      expect(SavedSearch.badge_entry(user)).to eq({ counts: { ss.id => 0 }, at: stamp })
+    end
+
     it "zeroes the entry in both safe-mode variants" do
       ss = create(:saved_search, user: user, is_tracked: true)
-      SavedSearch.badge_cache_keys(user.id).each { |key| Cache.write(key, { ss.id => 5 }) }
+      SavedSearch.badge_cache_keys(user.id).each { |key| SavedSearch.write_badge_entry(key, { ss.id => 5 }) }
       ss.mark_seen!
       expect(SavedSearch.badge_counts(user, safe_mode: false)).to eq({ ss.id => 0 })
       expect(SavedSearch.badge_counts(user, safe_mode: true)).to eq({ ss.id => 0 })
