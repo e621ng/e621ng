@@ -15,9 +15,109 @@
     gap: 0.5rem;
   }
 
+  .saved-search-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .saved-search-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "name    status"
+      "query   query"
+      "created actions";
+    align-items: center;
+    gap: 0.5rem 1rem;
+
+    padding: $padding-050;
+    background: themed("color-section");
+    border-radius: $border-radius-full;
+  }
+
+  .ss-name {
+    grid-area: name;
+    font-weight: bold;
+    overflow-wrap: anywhere;
+  }
+
+  .ss-query {
+    grid-area: query;
+    min-width: 0;
+    overflow-wrap: anywhere;
+
+    // Queries can be up to 500 characters long
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+
+  .ss-status {
+    grid-area: status;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .ss-created {
+    grid-area: created;
+    font-size: 0.85rem;
+    color: themed("color-text-muted");
+  }
+
+  .ss-actions {
+    grid-area: actions;
+    display: flex;
+    gap: 0.75rem;
+    justify-self: end;
+  }
+
+  .ss-muted {
+    font-weight: normal;
+    color: themed("color-text-muted");
+  }
+
+  .saved-search-new-count {
+    padding: 0 0.5em;
+    font-weight: bold;
+    background: palette("plain-red");
+    color: palette("plain-white");
+    border-radius: 1rem;
+  }
+
   @include window-larger-than(50rem) {
     .saved-search-header {
       flex-direction: row;
+    }
+
+    .saved-search-list {
+      gap: 1px;
+    }
+
+    .saved-search-item {
+      grid-template-columns: 12rem minmax(0, 1fr) 9rem 7rem 7rem;
+      grid-template-areas: "name query status created actions";
+      border-radius: 0;
+
+      &:first-child { border-radius: $border-radius-full $border-radius-full 0 0; }
+      &:last-child { border-radius: 0 0 $border-radius-full $border-radius-full; }
+      &:only-child { border-radius: $border-radius-full; }
+
+      &:hover { background: themed("color-section-lighten-5"); }
+    }
+
+    .ss-query {
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
     }
   }
 }

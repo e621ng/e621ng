@@ -17,6 +17,16 @@ RSpec.describe SavedSearchesController do
       expect(response).to have_http_status(:ok)
     end
 
+    it "renders each search as a list item linking to its query" do
+      ss = create(:saved_search, user: owner, is_tracked: true, query: Array.new(30) { |i| "long_tag_name_#{i}" }.join(" "))
+      get saved_searches_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(%(id="saved-search-#{ss.id}"))
+      expect(response.body).to include(visit_saved_search_path(ss))
+      expect(response.body).to include("long_tag_name_29")
+      expect(response.body).not_to include("<table")
+    end
+
     it "returns the owner's searches with new_count in JSON" do
       ss = create(:saved_search, user: owner, is_tracked: true)
       create(:saved_search, user: other_member)
