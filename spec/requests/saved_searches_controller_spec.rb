@@ -183,5 +183,60 @@ RSpec.describe SavedSearchesController do
         get posts_path
       end.not_to enqueue_sidekiq_job(SavedSearchBadgeJob)
     end
+
+    it "flags a stale count in the navigation so the page re-reads it" do
+      ss = create(:saved_search, user: owner, is_tracked: true)
+      owner.reload
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(owner.id), { ss.id => 4 }, at: 1.hour.ago.to_i)
+      get posts_path
+      expect(response.body).to include('data-notif-count="4"')
+      expect(response.body).to include("data-notif-stale")
+    end
+
+    it "does not flag a fresh count" do
+      ss = create(:saved_search, user: owner, is_tracked: true)
+      owner.reload
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(owner.id), { ss.id => 4 })
+      get posts_path
+      expect(response.body).to include('data-notif-count="4"')
+      expect(response.body).not_to include("data-notif-stale")
+    end
+  end
+
+  describe "GET /saved_searches/badge.json" do
+    let!(:saved_search) { create(:saved_search, user: owner, is_tracked: true) }
+    let(:cache_key) { SavedSearch.badge_cache_key(owner.id) }
+
+    it "returns a fresh count" do
+      SavedSearch.write_badge_entry(cache_key, { saved_search.id => 4 })
+      get badge_saved_searches_path(format: :json)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq({ "count" => 4, "fresh" => true })
+    end
+
+    it "returns the last known count for a stale entry" do
+      SavedSearch.write_badge_entry(cache_key, { saved_search.id => 4 }, at: 1.hour.ago.to_i)
+      get badge_saved_searches_path(format: :json)
+      expect(response.parsed_body).to eq({ "count" => 4, "fresh" => false })
+    end
+
+    it "returns a null count when nothing is cached" do
+      Cache.delete(cache_key)
+      get badge_saved_searches_path(format: :json)
+      expect(response.parsed_body).to eq({ "count" => nil, "fresh" => false })
+    end
+
+    it "never enqueues a refresh" do
+      Cache.delete(cache_key)
+      expect do
+        get badge_saved_searches_path(format: :json)
+      end.not_to enqueue_sidekiq_job(SavedSearchBadgeJob)
+    end
+
+    it "denies anonymous users" do
+      sign_in_as nil
+      get badge_saved_searches_path(format: :json)
+      expect(response).not_to have_http_status(:ok)
+    end
   end
 end

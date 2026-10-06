@@ -109,6 +109,12 @@ class SavedSearch < ApplicationRecord
         entry.present? && entry[:at] > Danbooru.config.saved_search_badge_ttl.ago.to_i
       end
 
+      # { count: Integer or nil (nothing cached), fresh: Boolean }. Cache read only.
+      def badge_summary(user, safe_mode: CurrentUser.safe_mode?)
+        entry = badge_entry(user, safe_mode: safe_mode)
+        { count: entry && entry[:counts].values.compact.sum, fresh: badge_entry_fresh?(entry) }
+      end
+
       # Last known counts map ({id => count}), fresh or not; nil when absent.
       # A nil count means the search could not be evaluated.
       def badge_counts(user, safe_mode: CurrentUser.safe_mode?)

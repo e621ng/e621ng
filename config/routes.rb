@@ -490,6 +490,7 @@ Rails.application.routes.draw do
   end
   resources :saved_searches do
     collection do
+      get :badge
       post :mark_all_seen
     end
     member do

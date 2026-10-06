@@ -84,6 +84,13 @@ class SavedSearchesController < ApplicationController
     end
   end
 
+  # Cache-only re-read for the nav badge; never queries OpenSearch or enqueues.
+  def badge
+    respond_to do |format|
+      format.json { render json: SavedSearch.badge_summary(CurrentUser.user) }
+    end
+  end
+
   private
 
   def permitted_params

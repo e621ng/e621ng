@@ -121,14 +121,14 @@ RSpec.describe SavedSearchBadgeJob do
     it "returns the cached sum for flagged users" do
       ss = create(:saved_search, user: user, is_tracked: true)
       SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 4 })
-      expect(user.reload.saved_search_new_count).to eq(4)
+      expect(user.reload.saved_search_badge).to eq({ count: 4, fresh: true })
     end
 
     it "does not enqueue a refresh while the entry is fresh" do
       ss = create(:saved_search, user: user, is_tracked: true)
       SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 4 })
       user.reload
-      expect { user.saved_search_new_count }.not_to enqueue_sidekiq_job(described_class)
+      expect { user.saved_search_badge }.not_to enqueue_sidekiq_job(described_class)
     end
 
     it "keeps serving a stale entry while enqueueing a refresh" do
@@ -137,7 +137,7 @@ RSpec.describe SavedSearchBadgeJob do
       SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 4 }, at: 4.minutes.ago.to_i)
       user.reload
       expect do
-        expect(user.saved_search_new_count).to eq(4)
+        expect(user.saved_search_badge).to eq({ count: 4, fresh: false })
       end.to enqueue_sidekiq_job(described_class).with(user.id, false)
     end
 
@@ -145,15 +145,15 @@ RSpec.describe SavedSearchBadgeJob do
       ss = create(:saved_search, user: user, is_tracked: true)
       broken = create(:saved_search, user: user, is_tracked: true)
       SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 4, broken.id => nil })
-      expect(user.reload.saved_search_new_count).to eq(4)
+      expect(user.reload.saved_search_badge[:count]).to eq(4)
     end
 
-    it "enqueues a refresh and returns nil on cache miss" do
+    it "enqueues a refresh and reports no count on cache miss" do
       create(:saved_search, user: user, is_tracked: true)
       Cache.delete(SavedSearch.badge_cache_key(user.id))
       user.reload
       expect do
-        expect(user.saved_search_new_count).to be_nil
+        expect(user.saved_search_badge).to eq({ count: nil, fresh: false })
       end.to enqueue_sidekiq_job(described_class).with(user.id, false)
     end
 
@@ -163,7 +163,7 @@ RSpec.describe SavedSearchBadgeJob do
       user.reload
       CurrentUser.safe_mode = true
       expect do
-        expect(user.saved_search_new_count).to be_nil
+        expect(user.saved_search_badge).to eq({ count: nil, fresh: false })
       end.to enqueue_sidekiq_job(described_class).with(user.id, true)
     ensure
       CurrentUser.safe_mode = nil
@@ -172,7 +172,7 @@ RSpec.describe SavedSearchBadgeJob do
     it "returns nil without touching cache or jobs for unflagged users" do
       allow(Cache).to receive(:fetch)
       expect do
-        expect(user.saved_search_new_count).to be_nil
+        expect(user.saved_search_badge).to be_nil
       end.not_to enqueue_sidekiq_job(described_class)
       expect(Cache).not_to have_received(:fetch)
     end
