@@ -1,5 +1,4 @@
-<%
-  notif_badge = CurrentUser.user.saved_search_badge
+<% notif_badge = CurrentUser.user.saved_search_badge
   notif_count = [notif_badge&.dig(:count).to_i, 100].min
   # Tells SavedSearchBadge.ts to re-read the count once the background refresh lands
   notif_stale = (true if notif_badge && !notif_badge[:fresh])
