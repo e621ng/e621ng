@@ -379,10 +379,11 @@ class TagQuery
   #   * `q[:delreason]`/`q[:delreason_must_not]`/`q[:delreason_should]`, or
   # * If `at_any_level`,
   #   * `q[:children_show_deleted]` is `true`, or
-  #   * any of the subsearches in `q[:groups]` return `false` from `TagQuery.should_hide_deleted_posts?`
-  #     * This is overridden to return `true` if the subsearches in `q[:groups]` are type `TagQuery`,
-  # as preprocessed queries should have had their resultant value elevated to this instance's
-  # `q[:children_show_deleted]` during group processing.
+  #   * any of the unprocessed (string) subsearches in `q[:groups]` return `false` from
+  #     `TagQuery.should_hide_deleted_posts?`
+  #     * Subsearches of type `TagQuery` are skipped, as preprocessed queries should have had their
+  # resultant value elevated to this instance's `q[:children_show_deleted]` during group processing.
+  #     * Both kinds can sit side by side: `search:` splices a `TagQuery` in among string groups.
   # ### Raises
   # * `RuntimeError`: when `q[:children_show_deleted]` is `nil` & any element in `q[:groups]` is a
   # `TagQuery`, as `q[:children_show_deleted]` shouldn't be `nil` if subsearches were processed.
@@ -390,12 +391,15 @@ class TagQuery
     if always_show_deleted || q[:show_deleted]
       false
     elsif at_any_level
-      if q[:children_show_deleted].nil? &&
-         q[:groups].present? &&
-         [*(q[:groups][:must] || []), *(q[:groups][:must_not] || []), *(q[:groups][:should] || [])].any? { |e| e.is_a?(TagQuery) ? (raise "Invalid State: q[:children_show_deleted] shouldn't be nil if subsearches were processed.") : !TagQuery.should_hide_deleted_posts?(e, at_any_level: true) }
-        false
-      else
-        !q[:children_show_deleted]
+      return false if q[:children_show_deleted]
+      return true if q[:groups].blank?
+      [*q[:groups][:must], *q[:groups][:must_not], *q[:groups][:should]].none? do |e|
+        if e.is_a?(TagQuery)
+          raise "Invalid State: q[:children_show_deleted] shouldn't be nil if subsearches were processed." if q[:children_show_deleted].nil?
+          false
+        else
+          !TagQuery.should_hide_deleted_posts?(e, at_any_level: true)
+        end
       end
     else
       true

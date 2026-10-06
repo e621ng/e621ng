@@ -122,5 +122,29 @@ RSpec.describe TagQuery do
       tq = TagQuery.new("search:my_search")
       expect(tq.hide_deleted_posts?(at_any_level: true)).to be(false)
     end
+
+    it "keeps the default filter when nothing overrides it" do
+      expect(TagQuery.new("search:my_search ( bar )").hide_deleted_posts?(at_any_level: true)).to be(true)
+    end
+
+    # The spliced TagQuery sits beside unprocessed string groups, which still need scanning.
+    [
+      "search:my_search ( status:deleted bar )",
+      "( status:deleted bar ) search:my_search",
+      "-search:my_search ( status:any bar )",
+      "search:my_search ( delreason:*spam* bar )",
+      "search:my_search ( deletedby:someone bar )",
+      "search:my_search ~( status:deleted ) ~( bar )",
+    ].each do |query|
+      it "honors show-deleted overrides in a sibling group: #{query}" do
+        expect(TagQuery.new(query).hide_deleted_posts?(at_any_level: true)).to be(false)
+      end
+    end
+
+    it "returns deleted posts matched by a sibling group" do
+      create(:post, tag_string: "fox cat bar")
+      deleted = create(:deleted_post, tag_string: "fox cat bar")
+      expect(Post.tag_match("search:my_search ( status:deleted bar )").records).to contain_exactly(deleted)
+    end
   end
 end
