@@ -542,7 +542,7 @@ class User < ApplicationRecord
         SavedSearchBadgeJob.perform_async(id)
         return nil
       end
-      counts.values.sum
+      counts.values.compact.sum
     end
   end
 

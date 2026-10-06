@@ -37,6 +37,28 @@ RSpec.describe SavedSearchesController do
       expect(body.first).to have_key("new_count")
     end
 
+    context "with a search that can no longer be evaluated" do
+      let(:post_set) { create(:public_post_set) }
+      let!(:broken) do
+        CurrentUser.scoped(owner) { create(:saved_search, user: owner, is_tracked: true, query: "set:#{post_set.shortname}") }
+      end
+
+      before { post_set.update_columns(is_public: false) }
+
+      it "still renders, marking the search unavailable" do
+        get saved_searches_path
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include(%(id="saved-search-#{broken.id}"))
+        expect(response.body).to include("Unavailable")
+      end
+
+      it "returns a null new_count in JSON" do
+        get saved_searches_path(format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body.first).to include("id" => broken.id, "new_count" => nil)
+      end
+    end
+
     it "denies anonymous users" do
       sign_in_as nil
       get saved_searches_path
@@ -49,6 +71,13 @@ RSpec.describe SavedSearchesController do
       expect do
         post saved_searches_path, params: { saved_search: { query: "fox cat", name: "foxes" } }
       end.to change { owner.saved_searches.count }.by(1)
+    end
+
+    it "reports a set the user can't view as a validation error" do
+      post_set = create(:post_set)
+      post saved_searches_path(format: :json), params: { saved_search: { query: "set:#{post_set.shortname}" } }
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(owner.saved_searches.count).to eq(0)
     end
 
     it "creates a tracked search with a seeded watermark" do

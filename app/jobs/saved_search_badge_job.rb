@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class SavedSearchBadgeJob < ApplicationJob
-  sidekiq_options queue: "low_prio", lock: :until_executing, lock_ttl: 15.minutes.to_i
+  # No retries: the next page load with a cold cache enqueues a fresh run anyway
+  sidekiq_options queue: "low_prio", retry: false, lock: :until_executing, lock_ttl: 15.minutes.to_i
 
   def perform(user_id)
     user = User.find_by(id: user_id)

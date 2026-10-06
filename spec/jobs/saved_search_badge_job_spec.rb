@@ -45,11 +45,37 @@ RSpec.describe SavedSearchBadgeJob do
       expect(counts).not_to have_key(untracked.id)
     end
 
-    it "fails closed to zero for a poisoned stored query" do
+    it "fails closed to nil for a poisoned stored query" do
       ss = create(:saved_search, user: user, query: "badge_target", is_tracked: true)
       ss.update_column(:query, "wildcard_*")
       run_job
-      expect(SavedSearch.badge_counts(user)[ss.id]).to eq(0)
+      expect(SavedSearch.badge_counts(user)).to include(ss.id => nil)
+    end
+
+    it "reports nil for a set that went private, without failing the other searches" do
+      create(:post, tag_string: "badge_target")
+      post_set = create(:public_post_set)
+      broken = create(:saved_search, user: user, query: "set:#{post_set.shortname}", is_tracked: true)
+      healthy = create(:saved_search, user: user, query: "badge_target", is_tracked: true)
+      post_set.update_columns(is_public: false)
+      create(:post, tag_string: "badge_target")
+      run_job
+      expect(SavedSearch.badge_counts(user)).to include(broken.id => nil, healthy.id => 1)
+    end
+
+    it "reports nil for a user who hid their favorites" do
+      other = create(:user)
+      ss = create(:saved_search, user: user, query: "fav:#{other.name}", is_tracked: true)
+      other.update!(enable_privacy_mode: true)
+      run_job
+      expect(SavedSearch.badge_counts(user)).to include(ss.id => nil)
+    end
+
+    it "reports nil when OpenSearch rejects the query" do
+      create(:post)
+      ss = create(:saved_search, user: user, query: "age:<99999999999999y", is_tracked: true)
+      run_job
+      expect(SavedSearch.badge_counts(user)).to include(ss.id => nil)
     end
 
     it "writes the cache with the configured TTL" do
@@ -71,6 +97,13 @@ RSpec.describe SavedSearchBadgeJob do
     it "returns the cached sum for flagged users" do
       ss = create(:saved_search, user: user, is_tracked: true)
       Cache.write(SavedSearch.badge_cache_key(user.id), { ss.id => 4 })
+      expect(user.reload.saved_search_new_count).to eq(4)
+    end
+
+    it "skips unevaluable searches in the sum" do
+      ss = create(:saved_search, user: user, is_tracked: true)
+      broken = create(:saved_search, user: user, is_tracked: true)
+      Cache.write(SavedSearch.badge_cache_key(user.id), { ss.id => 4, broken.id => nil })
       expect(user.reload.saved_search_new_count).to eq(4)
     end
 

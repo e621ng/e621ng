@@ -46,6 +46,26 @@ RSpec.describe SavedSearch do
       expect(build(:saved_search, user: user, query: query)).to be_valid
     end
 
+    it "rejects a set the user can't view" do
+      post_set = create(:post_set)
+      ss = build(:saved_search, user: user, query: "set:#{post_set.shortname}")
+      expect(ss).not_to be_valid
+      expect(ss.errors[:query]).to include("references a set or favorites you can't view")
+    end
+
+    it "rejects hidden favorites" do
+      other = create(:user, enable_privacy_mode: true)
+      ss = build(:saved_search, user: user, query: "fav:#{other.name}")
+      expect(ss).not_to be_valid
+      expect(ss.errors[:query]).to include("references a set or favorites you can't view")
+    end
+
+    it "rejects out-of-range dates" do
+      ss = build(:saved_search, user: user, query: "date:1_day_ago..99999999_years_ago")
+      expect(ss).not_to be_valid
+      expect(ss.errors[:query]).to be_present
+    end
+
     it "rejects blank queries" do
       expect(build(:saved_search, user: user, query: "")).not_to be_valid
     end

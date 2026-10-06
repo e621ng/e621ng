@@ -27,8 +27,10 @@
             <div class="ss-status">
               <% if ss.is_tracked? %>
                 <%= svg_icon(:bell, width: 16, height: 16) %>
-                <% count = @counts[ss.id].to_i %>
-                <% if count > 0 %>
+                <% count = @counts[ss.id] %>
+                <% if count.nil? %>
+                  <span class="ss-muted" title="This search could not be evaluated. Try editing it.">Unavailable</span>
+                <% elsif count > 0 %>
                   <span class="saved-search-new-count"><%= count >= SavedSearch::BADGE_COUNT_CAP ? "#{SavedSearch::BADGE_COUNT_CAP - 1}+" : count %> new</span>
                 <% else %>
                   <span>Tracked</span>

@@ -4,6 +4,15 @@ class SavedSearch < ApplicationRecord
   QUERY_LENGTH_LIMIT = 500
   # count_only caps track_total_hits here; the badge never needs exact large numbers.
   BADGE_COUNT_CAP = 100
+  # Everything query parsing can raise. User::PrivilegeError (set:/fav: the user can't view)
+  # is an Exception, not a StandardError, so it has to be named explicitly.
+  QUERY_ERRORS = [
+    TagQuery::CountExceededError,
+    TagQuery::InvalidTagError,
+    TagQuery::DepthExceededError,
+    ParseValue::InvalidDateError,
+    User::PrivilegeError,
+  ].freeze
 
   belongs_to :user
 
@@ -48,6 +57,7 @@ class SavedSearch < ApplicationRecord
       # Posts newer than the watermark that currently match the stored query. Never round-trips
       # through `search:` syntax; parses with the saved-search restrictions so a row that slipped
       # past validation fails closed instead of expanding wildcards.
+      # Returns nil when the query can't be evaluated, so one bad search never takes down the rest.
       def new_post_count(saved_search)
         ElasticPostQueryBuilder.new(
           "#{saved_search.query} id:>#{saved_search.last_seen_post_id.to_i}",
@@ -57,8 +67,11 @@ class SavedSearch < ApplicationRecord
           allow_wildcard_tags: false,
           allow_saved_search_metatag: false,
         ).search.count_only(max_count: BADGE_COUNT_CAP)
-      rescue TagQuery::CountExceededError, TagQuery::InvalidTagError, TagQuery::DepthExceededError
-        0
+      rescue *QUERY_ERRORS
+        nil
+      rescue OpenSearch::Transport::Transport::Error => e
+        Rails.logger.warn("SavedSearch ##{saved_search.id} count failed: #{e.class}: #{e.message.truncate(200)}")
+        nil
       end
 
       # Recomputes and caches the per-search new-post counts for all of the user's tracked
@@ -77,6 +90,7 @@ class SavedSearch < ApplicationRecord
       end
 
       # Cached counts map ({id => count}) or nil when stale/absent.
+      # A nil count means the search could not be evaluated.
       def badge_counts(user)
         Cache.fetch(badge_cache_key(user.id))
       end
@@ -97,7 +111,8 @@ class SavedSearch < ApplicationRecord
       update_column(:last_seen_post_id, Post.maximum(:id))
       counts = Cache.fetch(self.class.badge_cache_key(user_id))
       if counts.is_a?(Hash)
-        counts[id] = 0
+        # Leaves an unevaluable (nil) entry alone
+        counts[id] &&= 0
         Cache.write(self.class.badge_cache_key(user_id), counts, expires_in: Danbooru.config.saved_search_badge_ttl)
       end
       old_watermark
@@ -128,7 +143,9 @@ class SavedSearch < ApplicationRecord
       allow_wildcard_tags: false,
       allow_saved_search_metatag: false,
     )
-  rescue TagQuery::CountExceededError, TagQuery::InvalidTagError, TagQuery::DepthExceededError => e
+  rescue User::PrivilegeError
+    errors.add(:query, "references a set or favorites you can't view")
+  rescue *QUERY_ERRORS => e
     errors.add(:query, e.message)
   end
 
