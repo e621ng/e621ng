@@ -1,0 +1,23 @@
+#c-saved-searches #a-index {
+  .saved-search-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+
+    margin-bottom: 1rem;
+  }
+
+  .saved-search-controls {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  @include window-larger-than(50rem) {
+    .saved-search-header {
+      flex-direction: row;
+    }
+  }
+}

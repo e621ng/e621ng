@@ -1,12 +1,13 @@
 <div id="c-saved-searches">
   <div id="a-index">
-    <h2>Saved Searches</h2>
-
-    <div class="section">
-      <%= link_to "New saved search", new_saved_search_path, class: "button btn-success" %>
-      <% if CurrentUser.user.has_tracked_saved_searches %>
-        <%= button_to "Mark all as seen", mark_all_seen_saved_searches_path, method: :post, class: "button btn-neutral" %>
-      <% end %>
+    <div class="saved-search-header">
+      <h2>Saved Searches</h2>
+      <div class="saved-search-controls">
+        <%= link_to "New saved search", new_saved_search_path, class: "button btn-success" %>
+        <% if CurrentUser.user.has_tracked_saved_searches %>
+          <%= button_to "Mark all as seen", mark_all_seen_saved_searches_path, method: :post, class: "button btn-neutral" %>
+        <% end %>
+      </div>
     </div>
 
     <% if @saved_searches.empty? %>
