@@ -35,6 +35,7 @@ class User < ApplicationRecord
   # * _is_banned -> tag_warden                                                                      #
   # * _disable_post_tooltips -> no_karma_free                                                       #
   # * _can_upload_free -> can_upload_free (reinstated, same meaning)                                #
+  # * _has_saved_searches -> has_tracked_saved_searches                                             #
   # ================================================================================================#
 
   BOOLEAN_ATTRIBUTES = %w[
@@ -52,7 +53,7 @@ class User < ApplicationRecord
     enable_privacy_mode
     _style_usernames
     enable_auto_complete
-    _has_saved_searches
+    has_tracked_saved_searches
     can_approve_posts
     can_upload_free
     _disable_cropped_thumbnails
@@ -146,6 +147,7 @@ class User < ApplicationRecord
   has_many :post_replacements, foreign_key: :creator_id
   has_many :post_sets, -> { order(name: :asc) }, foreign_key: :creator_id
   has_many :post_versions
+  has_many :saved_searches, -> { order(id: :asc) }, dependent: :destroy
   has_many :post_votes
   has_many :staff_notes, -> { active.order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
@@ -526,6 +528,20 @@ class User < ApplicationRecord
       bltags = blacklisted_tags.split("\n").map(&:downcase)
       strings = %W[user:#{user.name.downcase} user:!#{user.id} username:#{user.name.downcase} userid:#{user.id}]
       strings.any? { |str| bltags.include?(str) }
+    end
+  end
+
+  module SavedSearchMethods
+    # Total new-post count across tracked saved searches ({ count:, fresh: }), from cache
+    # only — the request path never queries OpenSearch. A stale or missing entry kicks off a
+    # background refresh (the sidekiq lock dedups concurrent kicks) while its last known count
+    # keeps being served; the page re-reads it via saved_searches#badge. Returns nil for
+    # users without tracked searches.
+    def saved_search_badge
+      return nil unless is_logged_in? && has_tracked_saved_searches
+      summary = SavedSearch.badge_summary(self)
+      SavedSearchBadgeJob.perform_async(id, CurrentUser.safe_mode? || false) unless summary[:fresh]
+      summary
     end
   end
 
@@ -1226,6 +1242,7 @@ class User < ApplicationRecord
   include EmailMethods
   include BlacklistMethods
   include ForumMethods
+  include SavedSearchMethods
   include LimitMethods
   include KarmaMethods
   include ApiMethods

@@ -35,6 +35,9 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @always_show_deleted ||= !query.hide_deleted_posts?(at_any_level: true) if GLOBAL_DELETED_FILTER && @depth <= 0
     @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ERROR_ON_DEPTH_EXCEEDED)
     @downstream_free_tags_count = @free_tags_count + (kwargs[:process_groups] || TagQuery.will_count_group_tags? ? 0 : query.tag_count)
+    # Saved-search context flags must survive the string-group re-parses in
+    # `add_group_search_relation`, whose nested calls use fixed kwarg lists.
+    @saved_search_parse_kwargs = kwargs.slice(:allow_wildcard_tags, :allow_saved_search_metatag)
     super(query)
   end
 
@@ -69,6 +72,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
           depth: @depth + 1,
           hoisted_metatags: nil,
           process_groups: true,
+          **@saved_search_parse_kwargs,
         )
       end
       temp = ElasticPostQueryBuilder.new(
@@ -80,6 +84,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         error_on_depth_exceeded: @error_on_depth_exceeded,
         depth: @depth + 1,
         hoisted_metatags: nil,
+        **@saved_search_parse_kwargs,
       )
       @always_show_deleted ||= !temp.innate_hide_deleted_posts? unless GLOBAL_DELETED_FILTER
       temp.create_query_obj(return_nil_if_empty: false)
