@@ -539,7 +539,7 @@ class User < ApplicationRecord
       return nil unless is_logged_in? && has_tracked_saved_searches
       counts = SavedSearch.badge_counts(self)
       if counts.nil?
-        SavedSearchBadgeJob.perform_async(id)
+        SavedSearchBadgeJob.perform_async(id, CurrentUser.safe_mode? || false)
         return nil
       end
       counts.values.compact.sum

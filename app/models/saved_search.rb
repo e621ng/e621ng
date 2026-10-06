@@ -50,17 +50,24 @@ class SavedSearch < ApplicationRecord
 
   concerning :BadgeMethods do
     class_methods do
-      def badge_cache_key(user_id)
-        "ssb:#{user_id}"
+      # Safe mode depends on the site and request as well as the user, so each variant gets its
+      # own entry. The defaults suit the request path; off-request callers must pass it.
+      def badge_cache_key(user_id, safe_mode = CurrentUser.safe_mode?)
+        safe_mode ? "ssb:#{user_id}:s" : "ssb:#{user_id}"
+      end
+
+      def badge_cache_keys(user_id)
+        [false, true].map { |safe_mode| badge_cache_key(user_id, safe_mode) }
       end
 
       # Posts newer than the watermark that currently match the stored query. Never round-trips
       # through `search:` syntax; parses with the saved-search restrictions so a row that slipped
       # past validation fails closed instead of expanding wildcards.
       # Returns nil when the query can't be evaluated, so one bad search never takes down the rest.
-      def new_post_count(saved_search)
+      def new_post_count(saved_search, safe_mode: CurrentUser.safe_mode?)
         ElasticPostQueryBuilder.new(
           "#{saved_search.query} id:>#{saved_search.last_seen_post_id.to_i}",
+          enable_safe_mode: safe_mode,
           # The reserved slot is consumed by the appended id:> term
           free_tags_count: 0,
           process_groups: true,
@@ -78,42 +85,46 @@ class SavedSearch < ApplicationRecord
       # searches. Evaluated as the owning user: nothing is shared, so self-referential
       # metatags (fav:me) work and nothing leaks. A future shared per-query cache would
       # have to switch to anonymous evaluation.
-      def refresh_badge_counts!(user)
+      def refresh_badge_counts!(user, safe_mode: CurrentUser.safe_mode?)
         counts = {}
         CurrentUser.scoped(user) do
           user.saved_searches.tracked.each do |saved_search|
-            counts[saved_search.id] = new_post_count(saved_search)
+            counts[saved_search.id] = new_post_count(saved_search, safe_mode: safe_mode)
           end
         end
-        Cache.write(badge_cache_key(user.id), counts, expires_in: Danbooru.config.saved_search_badge_ttl)
+        Cache.write(badge_cache_key(user.id, safe_mode), counts, expires_in: Danbooru.config.saved_search_badge_ttl)
         counts
       end
 
       # Cached counts map ({id => count}) or nil when stale/absent.
       # A nil count means the search could not be evaluated.
-      def badge_counts(user)
-        Cache.fetch(badge_cache_key(user.id))
+      def badge_counts(user, safe_mode: CurrentUser.safe_mode?)
+        Cache.fetch(badge_cache_key(user.id, safe_mode))
       end
 
       def mark_all_seen!(user)
         watermark = Post.maximum(:id)
         tracked_ids = user.saved_searches.tracked.pluck(:id)
         user.saved_searches.tracked.update_all(last_seen_post_id: watermark)
-        Cache.write(badge_cache_key(user.id), tracked_ids.index_with { 0 }, expires_in: Danbooru.config.saved_search_badge_ttl)
+        # Watermarks are shared across safe-mode variants
+        badge_cache_keys(user.id).each do |key|
+          Cache.write(key, tracked_ids.index_with { 0 }, expires_in: Danbooru.config.saved_search_badge_ttl)
+        end
       end
     end
 
-    # Advances the watermark and zeroes this search's cached badge entry.
+    # Advances the watermark and zeroes this search's cached badge entries.
     # Returns the old watermark for the "only new posts" redirect.
     def mark_seen!
       return nil unless is_tracked?
       old_watermark = last_seen_post_id
       update_column(:last_seen_post_id, Post.maximum(:id))
-      counts = Cache.fetch(self.class.badge_cache_key(user_id))
-      if counts.is_a?(Hash)
+      self.class.badge_cache_keys(user_id).each do |key|
+        counts = Cache.fetch(key)
+        next unless counts.is_a?(Hash)
         # Leaves an unevaluable (nil) entry alone
         counts[id] &&= 0
-        Cache.write(self.class.badge_cache_key(user_id), counts, expires_in: Danbooru.config.saved_search_badge_ttl)
+        Cache.write(key, counts, expires_in: Danbooru.config.saved_search_badge_ttl)
       end
       old_watermark
     end
@@ -172,6 +183,6 @@ class SavedSearch < ApplicationRecord
     mask = User.flag_value_for("has_tracked_saved_searches")
     operation = tracked ? "bit_prefs | #{mask}" : "bit_prefs & ~#{mask}"
     User.where(id: user_id).update_all("bit_prefs = #{operation}")
-    Cache.delete(self.class.badge_cache_key(user_id))
+    self.class.badge_cache_keys(user_id).each { |key| Cache.delete(key) }
   end
 end

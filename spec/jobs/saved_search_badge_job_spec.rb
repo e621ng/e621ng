@@ -7,8 +7,8 @@ RSpec.describe SavedSearchBadgeJob do
 
   let(:user) { CurrentUser.user }
 
-  def run_job
-    described_class.new.perform(user.id)
+  def run_job(safe_mode: false)
+    described_class.new.perform(user.id, safe_mode)
   end
 
   it "does nothing for users without the tracked-searches flag" do
@@ -78,6 +78,30 @@ RSpec.describe SavedSearchBadgeJob do
       expect(SavedSearch.badge_counts(user)).to include(ss.id => nil)
     end
 
+    context "with safe and explicit new posts" do
+      let!(:saved_search) do
+        create(:post, tag_string: "badge_target", rating: "s")
+        create(:saved_search, user: user, query: "badge_target", is_tracked: true)
+      end
+
+      before do
+        create(:post, tag_string: "badge_target", rating: "s")
+        create(:post, tag_string: "badge_target", rating: "e")
+      end
+
+      it "counts only safe posts in safe mode" do
+        run_job(safe_mode: true)
+        expect(SavedSearch.badge_counts(user, safe_mode: true)).to eq({ saved_search.id => 1 })
+      end
+
+      it "keeps the two variants in separate cache entries" do
+        run_job(safe_mode: true)
+        run_job(safe_mode: false)
+        expect(SavedSearch.badge_counts(user, safe_mode: true)).to eq({ saved_search.id => 1 })
+        expect(SavedSearch.badge_counts(user, safe_mode: false)).to eq({ saved_search.id => 2 })
+      end
+    end
+
     it "writes the cache with the configured TTL" do
       create(:saved_search, user: user, query: "badge_target", is_tracked: true)
       allow(Danbooru.config.custom_configuration).to receive(:saved_search_badge_ttl).and_return(3.minutes)
@@ -113,7 +137,19 @@ RSpec.describe SavedSearchBadgeJob do
       user.reload
       expect do
         expect(user.saved_search_new_count).to be_nil
-      end.to enqueue_sidekiq_job(described_class).with(user.id)
+      end.to enqueue_sidekiq_job(described_class).with(user.id, false)
+    end
+
+    it "reads and refreshes the safe-mode variant under safe mode" do
+      ss = create(:saved_search, user: user, is_tracked: true)
+      Cache.write(SavedSearch.badge_cache_key(user.id, false), { ss.id => 4 })
+      user.reload
+      CurrentUser.safe_mode = true
+      expect do
+        expect(user.saved_search_new_count).to be_nil
+      end.to enqueue_sidekiq_job(described_class).with(user.id, true)
+    ensure
+      CurrentUser.safe_mode = nil
     end
 
     it "returns nil without touching cache or jobs for unflagged users" do

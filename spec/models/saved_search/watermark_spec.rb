@@ -51,6 +51,14 @@ RSpec.describe SavedSearch do
       expect(SavedSearch.badge_counts(user)).to eq({ ss.id => 0, other.id => 3 })
     end
 
+    it "zeroes the entry in both safe-mode variants" do
+      ss = create(:saved_search, user: user, is_tracked: true)
+      SavedSearch.badge_cache_keys(user.id).each { |key| Cache.write(key, { ss.id => 5 }) }
+      ss.mark_seen!
+      expect(SavedSearch.badge_counts(user, safe_mode: false)).to eq({ ss.id => 0 })
+      expect(SavedSearch.badge_counts(user, safe_mode: true)).to eq({ ss.id => 0 })
+    end
+
     it "is a no-op for untracked searches" do
       ss = create(:saved_search, user: user)
       expect(ss.mark_seen!).to be_nil
@@ -66,7 +74,8 @@ RSpec.describe SavedSearch do
       SavedSearch.mark_all_seen!(user)
       expect(ss1.reload.last_seen_post_id).to eq(newer.id)
       expect(ss2.reload.last_seen_post_id).to eq(newer.id)
-      expect(SavedSearch.badge_counts(user)).to eq({ ss1.id => 0, ss2.id => 0 })
+      expect(SavedSearch.badge_counts(user, safe_mode: false)).to eq({ ss1.id => 0, ss2.id => 0 })
+      expect(SavedSearch.badge_counts(user, safe_mode: true)).to eq({ ss1.id => 0, ss2.id => 0 })
     end
   end
 end

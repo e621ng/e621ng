@@ -175,7 +175,7 @@ RSpec.describe SavedSearchesController do
       Cache.delete(SavedSearch.badge_cache_key(owner.id))
       expect do
         get posts_path
-      end.to enqueue_sidekiq_job(SavedSearchBadgeJob).with(owner.id)
+      end.to enqueue_sidekiq_job(SavedSearchBadgeJob).with(owner.id, false)
     end
 
     it "does not enqueue for users without tracked searches" do
