@@ -69,16 +69,15 @@ Theme.initialize_buttons = function () {
   }
 };
 
-Theme.initialize_meta_theme_color = function () {
-  let metaTag = document.querySelector('meta[name="theme-color"]');
-  if (metaTag) {
-    metaTag.content = getComputedStyle(document.documentElement)
-      .getPropertyValue("--color-background").trim();
-  }
+Theme.update_meta_theme_color = function () {
+  const metaTag = document.querySelector('meta[name="theme-color"]');
+  if (!metaTag) return;
+  const color = getComputedStyle(document.body).backgroundColor;
+  if (color) metaTag.content = color;
 };
 
 $(() => {
-  Theme.initialize_meta_theme_color();
+  Theme.update_meta_theme_color();
   if (Page.matches("static", "theme")) {
     Theme.initialize_selector();
     Theme.initialize_buttons();
