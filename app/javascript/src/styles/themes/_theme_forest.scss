@@ -3,10 +3,10 @@ body[data-th-main="forest"] {
   --color-background: #1F1300;
   --color-foreground: #002e12;
   --color-section: #134b27;
-  --color-section-lighten-5: #175c30;
-  --color-section-lighten-10: #1b6c38;
-  --color-section-darken-5: #124725;
-  --color-table-border: #1b6c38;
+  --color-section-lighten-5: #185F32;
+  --color-section-lighten-10: #1D743C;
+  --color-section-darken-5: #0E371C;
+  --color-table-border: #1D743C;
 
   // Main Colors
   --color-link: #DEBD95;
@@ -19,4 +19,21 @@ body[data-th-main="forest"] {
   --color-user-blocked-alt: #ACDB93;
   --color-user-privileged: #DEBD95;
   --color-user-privileged-alt: #ACDB93;
+
+  // Palette Colors
+  --palette-background-green: #21738A;
+  --palette-background-green-d5: #1C6275;
+  --palette-background-green-d10: #175161;
+
+  &[data-th-palette="deut"] {
+    --palette-background-green: #794eb1;
+    --palette-background-green-d5: #{darken(#794eb1, 5%)};
+    --palette-background-green-d10: #{darken(#794eb1, 10%)};
+  }
+
+  &[data-th-palette="trit"] {
+    --palette-background-green: #8529c9;
+    --palette-background-green-d5: #{darken(#8529c9, 5%)};
+    --palette-background-green-d10: #{darken(#8529c9, 10%)};
+  }
 }
