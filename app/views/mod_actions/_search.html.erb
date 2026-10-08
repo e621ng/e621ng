@@ -6,7 +6,7 @@
           [
             key.to_s.capitalize.tr("_", " "),
             key.to_s,
-            { data: { fields: ModAction::KnownActions[key].keys.join(",") } }
+            { data: { fields: ModAction::KNOWN_ACTIONS[key].keys.join(",") } }
           ]
         end
       ),
