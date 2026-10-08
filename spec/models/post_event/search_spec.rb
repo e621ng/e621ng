@@ -150,6 +150,29 @@ RSpec.describe PostEvent do
       expect(result).to include(event_a)
       expect(result).not_to include(event_b)
     end
+
+    it "filters records by a range on an integer JSONB attribute" do
+      event_a = make_event(action: :favorites_moved, extra_data: { parent_id: 50 })
+      event_b = make_event(action: :favorites_moved, extra_data: { parent_id: 150 })
+      event_c = make_event(action: :favorites_moved, extra_data: { parent_id: 1000 })
+
+      result = PostEvent.search(action: "favorites_moved", "parent_id" => "100..200")
+      expect(result).to include(event_b)
+      expect(result).not_to include(event_a, event_c)
+
+      result = PostEvent.search(action: "favorites_moved", "parent_id" => ">100")
+      expect(result).to include(event_b, event_c)
+      expect(result).not_to include(event_a)
+    end
+
+    it "skips rows with non-integer values" do
+      event_a = make_event(action: :favorites_moved, extra_data: { parent_id: 150 })
+      event_b = make_event(action: :favorites_moved, extra_data: { parent_id: "invalid" })
+
+      result = PostEvent.search(action: "favorites_moved", "parent_id" => ">100")
+      expect(result).to include(event_a)
+      expect(result).not_to include(event_b)
+    end
   end
 
   # -------------------------------------------------------------------------
@@ -207,9 +230,34 @@ RSpec.describe PostEvent do
   # Unknown action — no JSONB sub-filters applied
   # -------------------------------------------------------------------------
   describe "unknown action param" do
-    it "does not raise an error for an unknown action" do
+    it "does not raise an error" do
       make_event(action: :deleted)
       expect { PostEvent.search(action: "nonexistent_action").to_a }.not_to raise_error
+    end
+
+    it "returns no records" do
+      make_event(action: :deleted)
+      expect(PostEvent.search(action: "nonexistent_action")).to be_empty
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # Admin-only JSONB fields
+  # -------------------------------------------------------------------------
+  describe "admin-only JSONB field (storage_id on replacement_deleted)" do
+    let!(:matching)     { make_event(action: :replacement_deleted, extra_data: { replacement_id: 1, storage_id: "abc" }) }
+    let!(:non_matching) { make_event(action: :replacement_deleted, extra_data: { replacement_id: 2, storage_id: "xyz" }) }
+
+    it "filters by storage_id for admins" do
+      CurrentUser.user = create(:admin_user)
+      result = PostEvent.search(action: "replacement_deleted", "storage_id" => "abc")
+      expect(result).to include(matching)
+      expect(result).not_to include(non_matching)
+    end
+
+    it "ignores storage_id for non-admins" do
+      result = PostEvent.search(action: "replacement_deleted", "storage_id" => "abc")
+      expect(result).to include(matching, non_matching)
     end
   end
 

@@ -65,6 +65,17 @@ class PostEvent < ApplicationRecord
 
   KNOWN_ACTION_KEYS = KNOWN_ACTIONS.keys.freeze
 
+  ADMIN_ONLY_FIELDS = {
+    replacement_deleted: %i[storage_id],
+  }.freeze
+
+  def self.searchable_fields_for(action, user)
+    fields = KNOWN_ACTIONS[action.to_sym] || {}
+    return fields if user.is_admin?
+
+    fields.except(*ADMIN_ONLY_FIELDS.fetch(action.to_sym, []))
+  end
+
   def self.add(post_id, creator, action, data = {})
     create!(post_id: post_id, creator: creator, action: action.to_s, extra_data: data)
   end
@@ -83,14 +94,8 @@ class PostEvent < ApplicationRecord
     return {} unless original_data.is_a?(Hash)
     return original_data if CurrentUser.is_admin?
 
-    valid_keys = KNOWN_ACTIONS[action.to_sym]&.keys&.map(&:to_s) || []
-    sanitized_values = original_data.slice(*valid_keys)
-
-    if %w[replacement_deleted].include?(action)
-      sanitized_values = sanitized_values.except("storage_id")
-    end
-
-    sanitized_values
+    valid_keys = PostEvent.searchable_fields_for(action, CurrentUser.user).keys.map(&:to_s)
+    original_data.slice(*valid_keys)
   end
 
   module SearchMethods
@@ -108,7 +113,10 @@ class PostEvent < ApplicationRecord
     end
 
     def jsonb_numeric_attribute_matches(attribute, range)
-      qualified_column = Arel.sql("extra_data ->> '#{attribute}'")
+      qualified_column = Arel.sql(
+        "CASE WHEN (extra_data ->> '#{attribute}') ~ '^-{0,1}[0-9]+$' " \
+        "THEN (extra_data ->> '#{attribute}')::INTEGER END",
+      )
       parsed_range = ParseValue.range(range, :integer)
 
       add_range_relation(parsed_range, qualified_column)
@@ -139,13 +147,15 @@ class PostEvent < ApplicationRecord
         )
       end
 
-      if params[:action].present? && KNOWN_ACTION_KEYS.include?(params[:action].to_sym)
+      if params[:action].present?
+        return none unless KNOWN_ACTION_KEYS.include?(params[:action].to_sym)
+
         if !CurrentUser.user.is_moderator? && MOD_ONLY_SEARCH_ACTIONS.include?(params[:action])
           raise(User::PrivilegeError)
         end
         q = q.where(action: params[:action])
 
-        field_types = KNOWN_ACTIONS[params[:action].to_sym]
+        field_types = searchable_fields_for(params[:action], CurrentUser.user)
         valid_params = params.slice(*field_types.keys.map(&:to_s))
 
         field_types.each do |key, type|
