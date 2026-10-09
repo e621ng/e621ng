@@ -25,6 +25,10 @@ body[data-th-main="forest"] {
   --palette-background-green-d5: #1C6275;
   --palette-background-green-d10: #175161;
 
+  // Tag Categories
+  --color-tag-general: #DEBD95;
+  --color-tag-general-alt: #A68055;
+
   &[data-th-palette="deut"] {
     --palette-background-green: #794eb1;
     --palette-background-green-d5: #{darken(#794eb1, 5%)};
