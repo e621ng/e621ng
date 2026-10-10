@@ -60,10 +60,150 @@ export const RATING_TOKEN: Record<string, string> = {
   e: "rating:e",
 };
 
+export const MEDIA_LETTERS = ["i", "a", "v", "f"];
+export const MEDIA_ALL = MEDIA_LETTERS.join("");
+
+/**
+ * Maps a sorted concatenation of active media-type letters to the corresponding query
+ * expression. Every entry is built exclusively from tags that are force-recomputed on
+ * every post save (`video`, `flash`, `animated_gif`, `animated_png`, `animated_webp`),
+ * never the generic `animated` tag — which is only ever set once at upload time and can
+ * go stale in either direction. An empty string means all four categories are active
+ * (no expression needed).
+ */
+export const MEDIA_TOKEN: Record<string, string> = {
+  iavf: "",
+  iav: "-flash",
+  iaf: "-video",
+  ivf: "-animated_gif -animated_png -animated_webp",
+  avf: "( ~animated_gif ~animated_png ~animated_webp ~video ~flash )",
+  ia: "-video -flash",
+  iv: "-animated_gif -animated_png -animated_webp -flash",
+  if: "-animated_gif -animated_png -animated_webp -video",
+  av: "( ~animated_gif ~animated_png ~animated_webp ~video )",
+  af: "( ~animated_gif ~animated_png ~animated_webp ~flash )",
+  vf: "( ~video ~flash )",
+  i: "-animated_gif -animated_png -animated_webp -video -flash",
+  a: "( ~animated_gif ~animated_png ~animated_webp )",
+  v: "video",
+  f: "flash",
+};
+
+const MEDIA_VOCABULARY = ["animated", "animated_gif", "animated_png", "animated_webp", "video", "flash"];
+
+/**
+ * Recognized OR-group word-sets, in the `( ~a ~b ~c )` shape: an unprefixed (`must`)
+ * outer group whose every member carries its own `~` (`should`) prefix — this is what
+ * actually means "at least one of a/b/c" to the backend (`app/logical/tag_query.rb`).
+ * An *outer*-prefixed group like `~( a b )` means something different (the whole group
+ * is optional, but its unprefixed members are individually required within it), so it
+ * is never treated as one of these shapes — see `classifyMediaToken`.
+ * `authoritative: false` marks the one legacy shape built on the generic `animated`
+ * tag — still recognized/ownable for reading and replacing a hand-typed query, but
+ * never emitted by `MEDIA_TOKEN`.
+ */
+const MEDIA_GROUP_SHAPES: { key: string; authoritative: boolean; words: string[] }[] = [
+  { key: "a", authoritative: true, words: ["animated_gif", "animated_png", "animated_webp"] },
+  { key: "av", authoritative: true, words: ["animated_gif", "animated_png", "animated_webp", "video"] },
+  { key: "avf", authoritative: true, words: ["animated_gif", "animated_png", "animated_webp", "video", "flash"] },
+  { key: "af", authoritative: true, words: ["animated_gif", "animated_png", "animated_webp", "flash"] },
+  { key: "vf", authoritative: true, words: ["video", "flash"] },
+  { key: "avf", authoritative: false, words: ["animated", "flash"] },
+];
+
+/**
+ * Recognized simple positive/negative token sets. `authoritative: false` marks the
+ * legacy shapes built on the generic `animated` tag (see `MEDIA_GROUP_SHAPES`).
+ */
+const MEDIA_SIMPLE_SHAPES: { key: string; authoritative: boolean; pos: string[]; neg: string[] }[] = [
+  { key: "ivf", authoritative: true, pos: [], neg: ["animated_gif", "animated_png", "animated_webp"] },
+  { key: "iv", authoritative: true, pos: [], neg: ["animated_gif", "animated_png", "animated_webp", "flash"] },
+  { key: "ia", authoritative: true, pos: [], neg: ["video", "flash"] },
+  { key: "iav", authoritative: true, pos: [], neg: ["flash"] },
+  { key: "iaf", authoritative: true, pos: [], neg: ["video"] },
+  { key: "if", authoritative: true, pos: [], neg: ["animated_gif", "animated_png", "animated_webp", "video"] },
+  { key: "i", authoritative: true, pos: [], neg: ["animated_gif", "animated_png", "animated_webp", "video", "flash"] },
+  { key: "v", authoritative: true, pos: ["video"], neg: [] },
+  { key: "f", authoritative: true, pos: ["flash"], neg: [] },
+  { key: "if", authoritative: false, pos: [], neg: ["animated"] },
+  { key: "i", authoritative: false, pos: [], neg: ["animated", "video", "flash"] },
+  { key: "av", authoritative: false, pos: ["animated"], neg: [] },
+  { key: "a", authoritative: false, pos: ["animated"], neg: ["video"] },
+];
+
+export const SOUND_NONE = "none";
+export const SOUND_NO_SOUND = "no_sound";
+export const SOUND_BOTH = "both";
+export const SOUND_ONLY = "sound_only";
+export const SOUND_WARNING_ONLY = "warning_only";
+
+/**
+ * Maps each of the five canonical Sound states to its query expression. Unlike Media
+ * type, Sound has no OR-group needs — every state is either no token, a single bare
+ * tag, or a bare tag plus one negation — so it deliberately uses a much smaller
+ * exact-match parser below instead of reusing the Media type group machinery.
+ * `sound` intentionally already covers both ordinary sound and `sound_warning`
+ * posts (a real e621 tag relationship), so "Sound only" must explicitly exclude
+ * `sound_warning` rather than the control ever emitting some other "sound-only" tag.
+ */
+const SOUND_TOKEN: Record<string, string> = {
+  [SOUND_NONE]: "",
+  [SOUND_NO_SOUND]: "no_sound",
+  [SOUND_BOTH]: "sound",
+  [SOUND_ONLY]: "sound -sound_warning",
+  [SOUND_WARNING_ONLY]: "sound_warning",
+};
+
+/** Recognized exact positive/negative word-sets for the five Sound states. */
+const SOUND_SHAPES: { key: string; pos: string[]; neg: string[] }[] = [
+  { key: SOUND_NO_SOUND, pos: ["no_sound"], neg: [] },
+  { key: SOUND_BOTH, pos: ["sound"], neg: [] },
+  { key: SOUND_ONLY, pos: ["sound"], neg: ["sound_warning"] },
+  { key: SOUND_WARNING_ONLY, pos: ["sound_warning"], neg: [] },
+];
+
 interface Token {
   text: string;
   start: number;
   end: number;
+}
+
+interface SoundSignals {
+  pos: { word: string; token: Token }[];
+  neg: { word: string; token: Token }[];
+}
+
+interface SoundState {
+  sound: string;
+  soundCustom: boolean;
+  ownedTokens: Token[];
+}
+
+type MediaSignal
+  = | { kind: "pos"; word: string; token: Token }
+  | { kind: "neg"; word: string; token: Token }
+  | { kind: "customPos"; token: Token }
+  | { kind: "canonicalGroup"; key: string; authoritative: boolean; token: Token }
+  | { kind: "customGroup"; token: Token };
+
+interface MediaSignals {
+  pos: { word: string; token: Token }[];
+  neg: { word: string; token: Token }[];
+  canonicalGroups: { key: string; authoritative: boolean; token: Token }[];
+  customGroups: Token[];
+  customPos: Token[];
+}
+
+interface OwnableMediaCombo {
+  key: string | null;
+  tokens: Token[];
+  authoritative: boolean;
+}
+
+interface MediaState {
+  media: string;
+  mediaCustom: boolean;
+  ownedTokens: Token[];
 }
 
 interface OrderState {
@@ -83,6 +223,10 @@ interface ParsedState {
   ischild: string;
   isparent: string;
   ratings: string;
+  media: string;
+  mediaCustom: boolean;
+  sound: string;
+  soundCustom: boolean;
 }
 
 /**
@@ -106,6 +250,10 @@ export default class SearchQuery {
   get ischild (): string { return this._state.ischild; }
   get isparent (): string { return this._state.isparent; }
   get ratings (): string { return this._state.ratings; }
+  get media (): string { return this._state.media; }
+  get mediaCustom (): boolean { return this._state.mediaCustom; }
+  get sound (): string { return this._state.sound; }
+  get soundCustom (): boolean { return this._state.soundCustom; }
 
   withOrder (value: string, direction: string): SearchQuery {
     return new SearchQuery(SearchQuery.replaceOrderMetatags(this._raw, value, direction));
@@ -127,6 +275,14 @@ export default class SearchQuery {
     return new SearchQuery(SearchQuery.replaceRatingMetatags(this._raw, ratings));
   }
 
+  withMediaTypes (selected: string[]): SearchQuery {
+    return new SearchQuery(SearchQuery.replaceMediaMetatags(this._raw, selected));
+  }
+
+  withSound (noSound: boolean, hasSound: boolean, hasWarning: boolean): SearchQuery {
+    return new SearchQuery(SearchQuery.replaceSoundMetatags(this._raw, noSound, hasSound, hasWarning));
+  }
+
   toString (): string {
     return this._raw;
   }
@@ -139,9 +295,15 @@ export default class SearchQuery {
       ischild: "",
       isparent: "",
       ratings: RATING_ALL,
+      media: MEDIA_ALL,
+      mediaCustom: false,
+      sound: SOUND_NONE,
+      soundCustom: false,
     };
 
-    for (const token of SearchQuery.scanTopLevelTokens(raw)) {
+    const tokens = SearchQuery.scanTopLevelTokens(raw);
+
+    for (const token of tokens) {
       const order = SearchQuery.parseOrderToken(token.text);
       if (order) {
         state.order = order.value;
@@ -162,13 +324,24 @@ export default class SearchQuery {
     }
 
     if (!state.ratings) state.ratings = RATING_ALL;
+
+    const media = SearchQuery.resolveMediaState(SearchQuery.collectMediaSignals(tokens));
+    state.media = media.media;
+    state.mediaCustom = media.mediaCustom;
+
+    const sound = SearchQuery.resolveSoundState(SearchQuery.collectSoundSignals(tokens));
+    state.sound = sound.sound;
+    state.soundCustom = sound.soundCustom;
+
     return state;
   }
 
   /**
    * Splits `query` into whitespace-delimited tokens, skipping anything inside
    * parentheses or double-quoted strings. Only top-level tokens (depth 0) are returned,
-   * so grouped sub-expressions like `(order:score ~order:id)` are treated as one opaque token.
+   * so a grouped sub-expression like `(order:score ~order:id)` is treated as one opaque
+   * token even though it contains internal whitespace — a token only ends at whitespace
+   * encountered while `depth === 0`, so an unclosed group's internal spaces don't split it.
    */
   private static scanTopLevelTokens (query: string): Token[] {
     const tokens: Token[] = [];
@@ -187,7 +360,7 @@ export default class SearchQuery {
         startDepth = depth;
       }
 
-      if (whitespace && start !== null && (atEnd || !quoted)) {
+      if (whitespace && start !== null && depth === 0 && (atEnd || !quoted)) {
         const text = query.slice(start, i);
         if (startDepth === 0) tokens.push({ text, start, end: i });
         start = null;
@@ -320,6 +493,263 @@ export default class SearchQuery {
       (token) => SearchQuery.parseRatingToken(token) !== null,
       SearchQuery.ratingMetatagToken(ratings),
     );
+  }
+
+  /**
+   * Classifies a single top-level token into one of the media-type signal kinds, or
+   * `null` if it's not media-related at all (e.g. an unrelated tag, or a `(...)` group
+   * containing a foreign, non-vocabulary word).
+   *
+   * Group handling distinguishes the *shape* of a `(...)` expression, not just its
+   * word content: only an unprefixed outer group whose every member carries its own
+   * `~` prefix (e.g. `( ~video ~flash )`) means "at least one of" to the backend, so
+   * only that exact shape is ever treated as a canonical/alias group. Any other
+   * prefix arrangement built from the same vocabulary — including the outer-`~`
+   * form `~( video flash )`, which means something else entirely (see
+   * `MEDIA_GROUP_SHAPES`) — is classified as an unowned custom group instead.
+   */
+  private static classifyMediaToken (token: Token): MediaSignal | null {
+    const pos = token.text.match(/^(video|flash|animated)$/i);
+    if (pos) return { kind: "pos", word: pos[1].toLowerCase(), token };
+
+    const customPos = token.text.match(/^(animated_gif|animated_png|animated_webp)$/i);
+    if (customPos) return { kind: "customPos", token };
+
+    const neg = token.text.match(/^-(video|flash|animated|animated_gif|animated_png|animated_webp)$/i);
+    if (neg) return { kind: "neg", word: neg[1].toLowerCase(), token };
+
+    const group = token.text.match(/^([-~]?)\((.+)\)$/i);
+    if (group) {
+      const outerPrefix = group[1];
+      const innerWords = group[2].trim().split(/\s+/).filter((w) => w.length > 0);
+      if (innerWords.length === 0) return null;
+
+      const members = innerWords.map((w) => {
+        const memberMatch = w.match(/^([-~]?)(.+)$/i);
+        return { prefix: memberMatch ? memberMatch[1] : "", word: (memberMatch ? memberMatch[2] : w).toLowerCase() };
+      });
+      if (!members.every((m) => MEDIA_VOCABULARY.includes(m.word))) return null;
+
+      const isOrGroupShape = outerPrefix === "" && members.every((m) => m.prefix === "~");
+      if (isOrGroupShape) {
+        const shape = SearchQuery.matchMediaGroupShape(members.map((m) => m.word));
+        if (shape) return { kind: "canonicalGroup", key: shape.key, authoritative: shape.authoritative, token };
+      }
+
+      return { kind: "customGroup", token };
+    }
+
+    return null;
+  }
+
+  private static matchMediaGroupShape (words: string[]): { key: string; authoritative: boolean } | null {
+    const shape = MEDIA_GROUP_SHAPES.find((s) => SearchQuery.sameWordSet(s.words, words));
+    return shape ? { key: shape.key, authoritative: shape.authoritative } : null;
+  }
+
+  private static sameWordSet (a: string[], b: string[]): boolean {
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+    return sortedA.every((word, index) => word === sortedB[index]);
+  }
+
+  /** Classifies every top-level token into the media-type signal buckets. */
+  private static collectMediaSignals (tokens: Token[]): MediaSignals {
+    const signals: MediaSignals = { pos: [], neg: [], canonicalGroups: [], customGroups: [], customPos: [] };
+
+    for (const token of tokens) {
+      const signal = SearchQuery.classifyMediaToken(token);
+      if (!signal) continue;
+
+      switch (signal.kind) {
+        case "pos": signals.pos.push({ word: signal.word, token: signal.token }); break;
+        case "neg": signals.neg.push({ word: signal.word, token: signal.token }); break;
+        case "customPos": signals.customPos.push(signal.token); break;
+        case "canonicalGroup":
+          signals.canonicalGroups.push({ key: signal.key, authoritative: signal.authoritative, token: signal.token });
+          break;
+        case "customGroup": signals.customGroups.push(signal.token); break;
+      }
+    }
+
+    return signals;
+  }
+
+  /**
+   * Resolves the "ownable" portion of the media signals (ignoring custom/unownable
+   * signals entirely) to a checkbox-state key. Returns `key: null` when the ownable
+   * portion is itself ambiguous (more than one canonical group, or a canonical group
+   * mixed with stray simple tokens, or a simple-token set that doesn't exactly match
+   * a recognized combination) — the only case where media-related content is present
+   * but nothing is safe to own/replace.
+   */
+  private static resolveOwnableMediaCombo (
+    pos: { word: string; token: Token }[],
+    neg: { word: string; token: Token }[],
+    canonicalGroups: { key: string; authoritative: boolean; token: Token }[],
+  ): OwnableMediaCombo {
+    if (canonicalGroups.length === 1 && pos.length === 0 && neg.length === 0) {
+      const group = canonicalGroups[0];
+      return { key: group.key, tokens: [group.token], authoritative: group.authoritative };
+    }
+
+    if (canonicalGroups.length === 0) {
+      const posWords = pos.map((p) => p.word);
+      const negWords = neg.map((n) => n.word);
+      const shape = MEDIA_SIMPLE_SHAPES.find((s) => SearchQuery.sameWordSet(s.pos, posWords) && SearchQuery.sameWordSet(s.neg, negWords));
+
+      if (shape) {
+        return {
+          key: shape.key,
+          tokens: [...pos.map((p) => p.token), ...neg.map((n) => n.token)],
+          authoritative: shape.authoritative,
+        };
+      }
+    }
+
+    return { key: null, tokens: [], authoritative: true };
+  }
+
+  /**
+   * Resolves the full media-type display state from the classified signals: the
+   * currently owned/recognized selection (`media`, defaulting to `MEDIA_ALL`), whether
+   * additional unrepresentable content coexists (`mediaCustom`), and exactly which
+   * tokens are safe to remove on the next write (`ownedTokens`). `media` and
+   * `mediaCustom` are independent — a query can have a cleanly owned selection while
+   * still being flagged custom, either because of separate unownable content or
+   * because the owned match itself depends on the non-authoritative generic
+   * `animated` tag.
+   */
+  private static resolveMediaState (signals: MediaSignals): MediaState {
+    const { pos, neg, canonicalGroups, customGroups, customPos } = signals;
+    const hasCustomSignal = customPos.length > 0 || customGroups.length > 0;
+    const hasAnySignal = hasCustomSignal || pos.length > 0 || neg.length > 0 || canonicalGroups.length > 0;
+
+    if (!hasAnySignal) return { media: MEDIA_ALL, mediaCustom: false, ownedTokens: [] };
+
+    const { key, tokens: ownedTokens, authoritative } = SearchQuery.resolveOwnableMediaCombo(pos, neg, canonicalGroups);
+    const ownableAmbiguous = key === null && (pos.length > 0 || neg.length > 0 || canonicalGroups.length > 0);
+    const nonAuthoritativeMatch = key !== null && !authoritative;
+
+    return {
+      media: key ?? MEDIA_ALL,
+      mediaCustom: hasCustomSignal || ownableAmbiguous || nonAuthoritativeMatch,
+      ownedTokens,
+    };
+  }
+
+  private static mediaMetatagToken (key: string): string {
+    return MEDIA_TOKEN[key] || "";
+  }
+
+  /**
+   * Replaces the currently owned media-type expression (if any) with the canonical
+   * expression for `selected`. Never deletes media-related content it doesn't own
+   * (see `resolveOwnableMediaCombo`) — an unrepresentable custom expression is left
+   * untouched and the new selection is simply appended alongside it.
+   */
+  private static replaceMediaMetatags (query: string, selected: string[]): string {
+    const key = selected.length
+      ? [...selected].sort((a, b) => MEDIA_LETTERS.indexOf(a) - MEDIA_LETTERS.indexOf(b)).join("")
+      : MEDIA_ALL;
+    const newToken = SearchQuery.mediaMetatagToken(key);
+
+    const tokens = SearchQuery.scanTopLevelTokens(query);
+    const { ownedTokens } = SearchQuery.resolveMediaState(SearchQuery.collectMediaSignals(tokens));
+
+    let result = query;
+    for (const token of [...ownedTokens].sort((a, b) => a.start - b.start).reverse()) {
+      result = SearchQuery.removeTokenRange(result, token.start, token.end);
+    }
+
+    result = result.trim();
+    if (newToken) result = [result, newToken].filter((n) => n).join(" ");
+
+    return result;
+  }
+
+  private static classifySoundToken (token: Token): { kind: "pos" | "neg"; word: string; token: Token } | null {
+    const pos = token.text.match(/^(no_sound|sound|sound_warning)$/i);
+    if (pos) return { kind: "pos", word: pos[1].toLowerCase(), token };
+
+    const neg = token.text.match(/^-(no_sound|sound|sound_warning)$/i);
+    if (neg) return { kind: "neg", word: neg[1].toLowerCase(), token };
+
+    return null;
+  }
+
+  /** Classifies every top-level token into the sound signal buckets. */
+  private static collectSoundSignals (tokens: Token[]): SoundSignals {
+    const signals: SoundSignals = { pos: [], neg: [] };
+
+    for (const token of tokens) {
+      const signal = SearchQuery.classifySoundToken(token);
+      if (!signal) continue;
+      signals[signal.kind].push({ word: signal.word, token: signal.token });
+    }
+
+    return signals;
+  }
+
+  /**
+   * Resolves the Sound state from exactly the five canonical signal combinations in
+   * `SOUND_SHAPES`. Anything else — a lone negation like `-sound`/`-no_sound`, a
+   * contradictory `no_sound sound`, a redundant `sound sound_warning`, or any other
+   * combination — is left as `SOUND_NONE` with `soundCustom: true` and no owned
+   * tokens, so it's recognized as present but never silently equated with one of the
+   * five UI states or deleted.
+   */
+  private static resolveSoundState (signals: SoundSignals): SoundState {
+    const { pos, neg } = signals;
+    if (pos.length === 0 && neg.length === 0) {
+      return { sound: SOUND_NONE, soundCustom: false, ownedTokens: [] };
+    }
+
+    const posWords = pos.map((p) => p.word);
+    const negWords = neg.map((n) => n.word);
+    const shape = SOUND_SHAPES.find((s) => SearchQuery.sameWordSet(s.pos, posWords) && SearchQuery.sameWordSet(s.neg, negWords));
+
+    if (!shape) return { sound: SOUND_NONE, soundCustom: true, ownedTokens: [] };
+
+    return {
+      sound: shape.key,
+      soundCustom: false,
+      ownedTokens: [...pos.map((p) => p.token), ...neg.map((n) => n.token)],
+    };
+  }
+
+  private static soundMetatagToken (key: string): string {
+    return SOUND_TOKEN[key] || "";
+  }
+
+  /**
+   * Replaces the currently owned sound expression (if any) with the canonical
+   * expression for the given checkbox state. Mirrors `replaceMediaMetatags`'s
+   * conservatism: an unrecognized/ambiguous existing sound expression is never
+   * deleted, only ever added alongside.
+   */
+  private static replaceSoundMetatags (query: string, noSound: boolean, hasSound: boolean, hasWarning: boolean): string {
+    let key = SOUND_NONE;
+    if (noSound) key = SOUND_NO_SOUND;
+    else if (hasSound && hasWarning) key = SOUND_BOTH;
+    else if (hasSound) key = SOUND_ONLY;
+    else if (hasWarning) key = SOUND_WARNING_ONLY;
+
+    const newToken = SearchQuery.soundMetatagToken(key);
+
+    const tokens = SearchQuery.scanTopLevelTokens(query);
+    const { ownedTokens } = SearchQuery.resolveSoundState(SearchQuery.collectSoundSignals(tokens));
+
+    let result = query;
+    for (const token of [...ownedTokens].sort((a, b) => a.start - b.start).reverse()) {
+      result = SearchQuery.removeTokenRange(result, token.start, token.end);
+    }
+
+    result = result.trim();
+    if (newToken) result = [result, newToken].filter((n) => n).join(" ");
+
+    return result;
   }
 
   /**

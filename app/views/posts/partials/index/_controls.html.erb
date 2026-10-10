@@ -18,116 +18,187 @@
     </button>
   </h3>
 
-  <div class="ssc-entry">
+  <div class="ssc-columns">
 
-    <div class="ssc-label">
-      <label for="ssc-rating">Rating</label>
+    <div class="ssc-column">
+
+      <div class="ssc-entry">
+
+        <div class="ssc-label">
+          <label for="ssc-rating">Rating</label>
+        </div>
+
+        <div class="ssc-body stm-toggle">
+          <input type="checkbox" id="ssc-rating-s" name="advanced-search-rating" value="s">
+          <label for="ssc-rating-s">
+            <%= svg_icon(:rating_s) %>
+            Safe
+          </label>
+
+          <input type="checkbox" id="ssc-rating-q" name="advanced-search-rating" value="q">
+          <label for="ssc-rating-q">
+            <%= svg_icon(:rating_q) %>
+            Questionable
+          </label>
+
+          <input type="checkbox" id="ssc-rating-e" name="advanced-search-rating" value="e">
+          <label for="ssc-rating-e">
+            <%= svg_icon(:rating_e) %>
+            Explicit
+          </label>
+        </div>
+
+      </div>
+
+      <div class="ssc-entry">
+
+        <div class="ssc-label">
+          <label for="ssc-order">Order</label>
+        </div>
+
+        <div class="ssc-body stm-toggle">
+          <input type="radio" id="advanced-search-sort-default" name="advanced-search-sort" value="">
+          <label for="advanced-search-sort-default">
+            <%= svg_icon(:sparkles) %>
+            Default
+          </label>
+
+          <input type="radio" id="advanced-search-sort-score" name="advanced-search-sort" value="score">
+          <label for="advanced-search-sort-score">
+            <%= svg_icon(:trending_up) %>
+            Score
+          </label>
+
+          <input type="radio" id="advanced-search-sort-hot" name="advanced-search-sort" value="hot">
+          <label for="advanced-search-sort-hot">
+            <%= svg_icon(:flame) %>
+            Hot
+          </label>
+
+          <input type="radio" id="advanced-search-sort-favcount" name="advanced-search-sort" value="favcount">
+          <label for="advanced-search-sort-favcount">
+            <%= svg_icon(:star) %>
+            Favorites
+          </label>
+
+        </div>
+      </div>
+
+      <div class="ssc-entry">
+
+        <div class="ssc-label">
+          <label for="ssc-in-pool">In pool</label>
+        </div>
+
+        <div class="ssc-body">
+          <%= tag.label(class: "sto-toggle sto-toggle--tri", id: "ssc-in-pool", data: { advanced_search: "inpool", state: "unset" }) do %>
+            <%= tag.span("Any", class: "sto-tri") %>
+            <%= tag.span("Yes", class: "sto-tri") %>
+            <%= tag.span("No", class: "sto-tri") %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="ssc-header">Post relationships</div>
+
+      <div class="ssc-entry">
+
+        <div class="ssc-label">
+          <label for="ssc-has-parent">Has parent</label>
+        </div>
+
+        <div class="ssc-body">
+          <%= tag.label(class: "sto-toggle sto-toggle--tri", id: "ssc-has-parent", data: { advanced_search: "ischild", state: "unset" }) do %>
+            <%= tag.span("Any", class: "sto-tri") %>
+            <%= tag.span("Yes", class: "sto-tri") %>
+            <%= tag.span("No", class: "sto-tri") %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="ssc-entry">
+
+        <div class="ssc-label">
+          <label for="ssc-has-child">Has child</label>
+        </div>
+
+        <div class="ssc-body">
+          <%= tag.label(class: "sto-toggle sto-toggle--tri", id: "ssc-has-child", data: { advanced_search: "isparent", state: "unset" }) do %>
+            <%= tag.span("Any", class: "sto-tri") %>
+            <%= tag.span("Yes", class: "sto-tri") %>
+            <%= tag.span("No", class: "sto-tri") %>
+          <% end %>
+        </div>
+      </div>
+
     </div>
 
+    <div class="ssc-column">
 
-    <div class="ssc-body stm-toggle">
-      <input type="checkbox" id="ssc-rating-s" name="advanced-search-rating" value="s">
-      <label for="ssc-rating-s">
-        <%= svg_icon(:rating_s) %>
-        Safe
-      </label>
+      <div class="ssc-entry">
 
-      <input type="checkbox" id="ssc-rating-q" name="advanced-search-rating" value="q">
-      <label for="ssc-rating-q">
-        <%= svg_icon(:rating_q) %>
-        Questionable
-      </label>
+        <div class="ssc-label">
+          <label for="ssc-media-image">Media type</label>
+        </div>
 
-      <input type="checkbox" id="ssc-rating-e" name="advanced-search-rating" value="e">
-      <label for="ssc-rating-e">
-        <%= svg_icon(:rating_e) %>
-        Explicit
-      </label>
+        <div class="ssc-body stm-toggle">
+          <input type="checkbox" id="ssc-media-image" name="advanced-search-media" value="i">
+          <label for="ssc-media-image">
+            <%= svg_icon(:images) %>
+            Image
+          </label>
+
+          <input type="checkbox" id="ssc-media-animation" name="advanced-search-media" value="a">
+          <label for="ssc-media-animation">
+            <%= svg_icon(:media_animation) %>
+            Animation
+          </label>
+
+          <input type="checkbox" id="ssc-media-video" name="advanced-search-media" value="v">
+          <label for="ssc-media-video">
+            <%= svg_icon(:media_video) %>
+            Video
+          </label>
+
+          <input type="checkbox" id="ssc-media-flash" name="advanced-search-media" value="f">
+          <label for="ssc-media-flash">
+            <%= svg_icon(:media_flash) %>
+            Flash
+          </label>
+        </div>
+
+      </div>
+
+      <div class="ssc-entry">
+
+        <div class="ssc-label">
+          <label for="ssc-sound-no">Sound</label>
+        </div>
+
+        <div class="ssc-body">
+          <div class="ssc-sound-toggle">
+            <input type="checkbox" id="ssc-sound-no" name="advanced-search-sound" value="no_sound">
+            <label for="ssc-sound-no" title="No sound" aria-label="No sound">
+              <%= svg_icon(:no_sound) %>
+            </label>
+
+            <input type="checkbox" id="ssc-sound-yes" name="advanced-search-sound" value="sound">
+            <label for="ssc-sound-yes" title="Sound" aria-label="Sound">
+              <%= svg_icon(:sound) %>
+            </label>
+
+            <input type="checkbox" id="ssc-sound-warning" name="advanced-search-sound" value="sound_warning" hidden>
+            <label for="ssc-sound-warning" title="Sound warning" aria-label="Sound warning" hidden>
+              <%= svg_icon(:sound_warning) %>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
   </div>
-
-  <div class="ssc-entry">
-
-    <div class="ssc-label">
-      <label for="ssc-order">Order</label>
-    </div>
-
-    <div class="ssc-body stm-toggle">
-      <input type="radio" id="advanced-search-sort-default" name="advanced-search-sort" value="">
-      <label for="advanced-search-sort-default">
-        <%= svg_icon(:sparkles) %>
-        Default
-      </label>
-
-      <input type="radio" id="advanced-search-sort-score" name="advanced-search-sort" value="score">
-      <label for="advanced-search-sort-score">
-        <%= svg_icon(:trending_up) %>
-        Score
-      </label>
-
-      <input type="radio" id="advanced-search-sort-hot" name="advanced-search-sort" value="hot">
-      <label for="advanced-search-sort-hot">
-        <%= svg_icon(:flame) %>
-        Hot
-      </label>
-
-      <input type="radio" id="advanced-search-sort-favcount" name="advanced-search-sort" value="favcount">
-      <label for="advanced-search-sort-favcount">
-        <%= svg_icon(:star) %>
-        Favorites
-      </label>
-
-    </div>
-  </div>
-
-  <div class="ssc-entry">
-
-    <div class="ssc-label">
-      <label for="ssc-in-pool">In pool</label>
-    </div>
-
-    <div class="ssc-body">
-      <%= tag.label(class: "sto-toggle sto-toggle--tri", id: "ssc-in-pool", data: { advanced_search: "inpool", state: "unset" }) do %>
-        <%= tag.span("Any", class: "sto-tri") %>
-        <%= tag.span("Yes", class: "sto-tri") %>
-        <%= tag.span("No", class: "sto-tri") %>
-      <% end %>
-    </div>
-  </div>
-
-  <div class="ssc-header">Post relationships</div>
-
-  <div class="ssc-entry">
-
-    <div class="ssc-label">
-      <label for="ssc-has-parent">Has parent</label>
-    </div>
-
-    <div class="ssc-body">
-      <%= tag.label(class: "sto-toggle sto-toggle--tri", id: "ssc-has-parent", data: { advanced_search: "ischild", state: "unset" }) do %>
-        <%= tag.span("Any", class: "sto-tri") %>
-        <%= tag.span("Yes", class: "sto-tri") %>
-        <%= tag.span("No", class: "sto-tri") %>
-      <% end %>
-    </div>
-  </div>
-
-  <div class="ssc-entry">
-
-    <div class="ssc-label">
-      <label for="ssc-has-child">Has child</label>
-    </div>
-
-    <div class="ssc-body">
-      <%= tag.label(class: "sto-toggle sto-toggle--tri", id: "ssc-has-child", data: { advanced_search: "isparent", state: "unset" }) do %>
-        <%= tag.span("Any", class: "sto-tri") %>
-        <%= tag.span("Yes", class: "sto-tri") %>
-        <%= tag.span("No", class: "sto-tri") %>
-      <% end %>
-    </div>
-  </div>
-
 </div>
 
 <div id="layout-settings-container">
