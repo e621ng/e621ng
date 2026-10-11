@@ -108,6 +108,10 @@
   }
 }
 
+// Fix for #2573.
+tab-entry[tab="blacklist"] textarea {
+  resize: vertical;
+}
 
 // Desktop Only
 @include window-larger-than(50rem) {
