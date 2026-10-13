@@ -2,10 +2,9 @@
   <h1>Edit</h1>
 
   <%= form_tag("/posts", :class => "simple_form", :method => :put, :id => "quick-edit-form") do %>
-    <div class="input">
-      <%= text_area_tag "post[tag_string]", "", :id => "post_tag_string", :data => { :autocomplete => "tag-edit" } %>
-      <%= submit_tag "Submit" %>
-      <%= submit_tag "Cancel" %>
-    </div>
+    <%= text_area_tag "post[tag_string]", "", :id => "post_tag_string", :data => { :autocomplete => "tag-edit" } %>
+    <br />
+    <%= submit_tag "Submit", class: "st-button submit" %>
+    <%= button_tag "Cancel", type: :button, class: "st-button", id: "quick-edit-cancel" %>
   <% end %>
 </div>

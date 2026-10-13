@@ -1,5 +1,5 @@
 <template>
-  <div class="similar-posts" v-if="showWrapper">
+  <div class="similar-posts">
     <div class="similar-posts-header">
       <span class="similar-posts-title">Similar posts</span>
     </div>
@@ -250,8 +250,4 @@ function previewUrl (match: IqdbMatch): string | null {
 // can give; suppressing it would defeat the feature's purpose.
 const shownMatches = computed(() => (matches.value ?? []).slice(0, MAX_SHOWN));
 const hiddenCount = computed(() => (matches.value?.length ?? 0) - shownMatches.value.length);
-
-const showWrapper = computed(() =>
-  !!props.uploadValue && (eligible.value || pending.value || matches.value !== null || !!error.value),
-);
 </script>

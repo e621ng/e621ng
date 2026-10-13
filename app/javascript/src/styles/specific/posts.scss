@@ -280,8 +280,9 @@ div#c-posts {
   }
 
   div#quick-edit-div {
+    @include st-max-width;
     textarea {
-      width: 70%;
+      width: 100%;
       height: 4em;
       display: block;
     }

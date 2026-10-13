@@ -21,6 +21,7 @@
       <option value="hexagon">Hexagon</option>
       <option value="bloodlust">Bloodlust</option>
       <option value="pony">Pony</option>
+      <option value="forest">Forest</option>
       <option value="serpent">Serpent</option>
       <option value="hotdog">Hotdog</option>
     </select>
@@ -97,6 +98,7 @@
       <option value="OpenDyslexic">Open Dyslexic</option>
       <option value="OpenSans">Open Sans</option>
       <option value="ComicSans">Comic Sans</option>
+      <option value="Papyrus">Papyrus</option>
     </select>
 
 
@@ -159,6 +161,13 @@
       <option value="true">Enabled</option>
     </select>
     <div class="hint">Opt out of site events, like April Fool's Day.</div>
+
+    <label for="Posts_VideoPlayer">Video player</label>
+    <select id="Posts_VideoPlayer">
+      <option value="custom">Custom (Themed)</option>
+      <option value="native">Native (Unthemed)</option>
+    </select>
+    <div class="hint">Video player used for video posts. Select "Native" to use the default browser player.</div>
 </div>
 
 
@@ -170,7 +179,7 @@
     <span id="mascot-value"></span>
     <button class="st-button" id="mascot-reset">
       <%= svg_icon(:reset) %>
-      Randomize 
+      Randomize
     </button>
   </div>
 

@@ -10,6 +10,7 @@
   "dependencies": {
     "@openpanel/web": "1.4.1",
     "@rails/ujs": "7.1.600",
+    "@videojs/html": "^10.0.0-rc.2",
     "chart.js": "4.5.1",
     "jquery": "3.7.1",
     "sass": "1.102.0",

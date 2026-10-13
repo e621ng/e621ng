@@ -40,6 +40,7 @@ body {
     a.nav-logo-link { background-image: url("~/images/logo/default.svg"); }
     &[data-th-main="bloodlust"] a.nav-logo-link { background-image: url("~/images/logo/default_bloodlust.svg"); }
     &[data-th-main="pony"] a.nav-logo-link { background-image: url("~/images/logo/default_pony.svg"); }
+    &[data-th-main="forest"] a.nav-logo-link { background-image: url("~/images/logo/default_forest.svg"); }
   }
 
   &[data-th-logo="default_blue"] {

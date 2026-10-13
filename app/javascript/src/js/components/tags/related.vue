@@ -1,8 +1,8 @@
 <template>
   <div class="related-tags">
     <div class="related-section" v-for="group in tagGroups" :key="group.title">
+      <div class="related-title">{{group.title}}</div>
       <div class="related-items" v-for="tags, i in chunkTags(group.tags)" :key="i">
-        <div class="related-title" v-if="i === 0">{{group.title}}</div>
         <div class="related-item" v-for="tag in tags" :key="tag.name">
           <a :class="tagClasses(tag)" :href="tagLink(tag)" @click.prevent="toggle(tag)">{{tag.name}}</a>
         </div>
@@ -54,8 +54,8 @@
   }
   function chunkTags(tags: RelatedTag[]) {
     const chunks: RelatedTag[][] = [];
-    for (let i = 0; i < tags.length; i += 15) {
-      chunks.push(tags.slice(i, i + 15));
+    for (let i = 0; i < tags.length; i += 25) {
+      chunks.push(tags.slice(i, i + 25));
     }
     return chunks;
   }

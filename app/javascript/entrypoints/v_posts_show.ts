@@ -15,7 +15,9 @@ import "@/pages/posts/show/recommended";
 import "@/pages/posts/show/TagEditor";
 import PostResizer from "@/pages/posts/show/Resizer";
 import "@/pages/posts/show/SwipeGestureHandler";
+import "@/pages/posts/show/Video";
 import PostReowner from "@/pages/staff/post/posts/PostReowner";
+
 
 import "@/pages/post_flags/post_flags"; // We only need expandable notes from here
 
