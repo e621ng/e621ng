@@ -561,6 +561,10 @@ class Post < ApplicationRecord
   end
 
   module TagMethods
+    # Metatags kept in a version's original tags, all other metatags are removed
+    ORIGINAL_TAGS_METATAG_WHITELIST = /\A(?:rating|pool|newpool|child|parent|locked|source|description|\w+locked)\z/i
+    ORIGINAL_TAGS_REMOVED_METATAGS = /\A[-+~]?(?:#{TagQuery::METATAGS.grep_v(ORIGINAL_TAGS_METATAG_WHITELIST).join('|')}):/i
+
     def should_process_tags?
       # Memoize based on current dirty state to handle multiple save cycles
       current_state = [
@@ -679,10 +683,10 @@ class Post < ApplicationRecord
 
     def apply_tag_diff
       return unless tag_string_diff.present?
-      @tags_before_parse = remove_metatags(tag_string_diff.split)
 
       current_tags = tag_array
       diff = TagQuery.scan(tag_string_diff)
+      @tags_before_parse = remove_metatags(diff)
       to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
       to_remove = to_remove.map {|x| x[1..-1]}
       to_remove = TagAlias.to_aliased(to_remove)
@@ -890,9 +894,10 @@ class Post < ApplicationRecord
     end
 
     def remove_metatags(tags)
-      tags = tags.grep_v(/\A(?:-pool|pool|newpool|-set|set|fav|-fav|child|-child|upvote|downvote):/i)
-      prefixed, unprefixed = tags.partition { |x| x =~ Tag.categories.regexp }
-      prefixed.map! { |tag| tag.sub(/\A#{Tag.categories.regexp}:/, "") }
+      tags = tags.grep_v(ORIGINAL_TAGS_REMOVED_METATAGS)
+      category_prefix = /\A(?:#{Tag.categories.regexp}):/
+      prefixed, unprefixed = tags.partition { |x| x =~ category_prefix }
+      prefixed.map! { |tag| tag.sub(category_prefix, "") }
       prefixed + unprefixed
     end
 

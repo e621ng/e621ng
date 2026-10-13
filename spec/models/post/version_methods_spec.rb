@@ -50,9 +50,30 @@ RSpec.describe Post do
 
       it "strips post metatags and category prefixes" do
         post = Post.find(create(:post, tag_string: "tagme foo").id)
-        post.tag_string_diff = "fav:me pool:1 artist:bar_artist baz"
+        post.tag_string_diff = "fav:me artist:bar_artist baz"
         post.save!
         expect(post.versions.last.original_tags).to match_array(%w[bar_artist baz])
+      end
+
+      it "keeps whitelisted metatags" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = 'rating:e -parent:none locked:rating source:"a b" +source:c baz'
+        post.save!
+        expect(post.versions.last.original_tags).to contain_exactly("rating:e", "-parent:none", "locked:rating", 'source:"a b"', "+source:c", "baz")
+      end
+
+      it "strips non-whitelisted metatags" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "set:1 -fav:me upvote:me downvote:me baz"
+        post.save!
+        expect(post.versions.last.original_tags).to eq(%w[baz])
+      end
+
+      it "does not strip tags that only start with a category name" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "general_store"
+        post.save!
+        expect(post.versions.last.original_tags).to eq(%w[general_store])
       end
 
       it "keeps aliased tags as typed instead of resolving them" do
