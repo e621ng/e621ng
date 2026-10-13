@@ -82,7 +82,7 @@ class Post < ApplicationRecord
   has_many :replacements, class_name: "PostReplacement", :dependent => :destroy
 
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :old_description,
-                :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason
+                :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason, :tags_before_parse
 
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostVersion", :dependent => :destroy
 
@@ -561,6 +561,10 @@ class Post < ApplicationRecord
   end
 
   module TagMethods
+    # Metatags kept in a version's original tags, all other metatags are removed
+    ORIGINAL_TAGS_METATAG_WHITELIST = /\A(?:rating|pool|newpool|child|parent|locked|source|description|\w+locked)\z/i
+    ORIGINAL_TAGS_REMOVED_METATAGS = /\A[-+~]?(?:#{TagQuery::METATAGS.grep_v(ORIGINAL_TAGS_METATAG_WHITELIST).join('|')}):/i
+
     def should_process_tags?
       # Memoize based on current dirty state to handle multiple save cycles
       current_state = [
@@ -682,6 +686,7 @@ class Post < ApplicationRecord
 
       current_tags = tag_array
       diff = TagQuery.scan(tag_string_diff)
+      @tags_before_parse = remove_metatags(diff)
       to_remove, to_add = diff.partition {|x| x =~ /\A-/i}
       to_remove = to_remove.map {|x| x[1..-1]}
       to_remove = TagAlias.to_aliased(to_remove)
@@ -716,6 +721,7 @@ class Post < ApplicationRecord
     end
 
     def normalize_tags
+      @tags_before_parse = remove_metatags(tag_array - tag_array_was) if tag_string_diff.blank?
       if !locked_tags.nil? && locked_tags.strip.blank?
         self.locked_tags = nil
       elsif locked_tags.present?
@@ -885,6 +891,14 @@ class Post < ApplicationRecord
         end
       end
       return tags
+    end
+
+    def remove_metatags(tags)
+      tags = tags.grep_v(ORIGINAL_TAGS_REMOVED_METATAGS)
+      category_prefix = /\A(?:#{Tag.categories.regexp}):/
+      prefixed, unprefixed = tags.partition { |x| x =~ category_prefix }
+      prefixed.map! { |tag| tag.sub(category_prefix, "") }
+      prefixed + unprefixed
     end
 
     def filter_metatags(tags)

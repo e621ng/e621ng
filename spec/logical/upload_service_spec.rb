@@ -199,6 +199,14 @@ RSpec.describe UploadService do
       expect(upload.reload.post_id).to eq(post.id)
     end
 
+    it "saves the submitted tags as the first version's original tags" do
+      create(:active_tag_alias, antecedent_name: "old_name", consequent_name: "new_name")
+      upload.update!(tag_string: "tagme old_name")
+      post = service.create_post_from_upload(upload)
+      expect(post.tag_array).to include("new_name")
+      expect(post.versions.first.original_tags).to match_array(%w[tagme old_name])
+    end
+
     context "upload karma" do
       it "grants the approved credit when the post bypasses the review queue" do
         allow(uploader).to receive(:upload_free?).and_return(true)
