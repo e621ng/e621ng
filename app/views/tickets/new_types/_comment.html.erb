@@ -1,10 +1,12 @@
 <% @comment = @ticket.content %>
-<h4>You are reporting the following comment:</h4>
+<h2>You are <u>reporting</u> the following comment:</h2>
 <div class="author"><%= link_to_user @comment.creator %></div>
 <span class="date"><%= time_ago_in_words_tagged(@comment.created_at) %></span>
 <br><br>
 <div class="dtext-container">
   <%= format_text(@comment.body) %>
 </div>
-
+<h4 class="ticket-warning" style="font-weight: normal;">
+  ⚠️ This form is to <strong>report</strong> a comment. If you're looking to <i>reply</i> to a comment, you've selected the wrong option!
+</h4>
 <%= render "tickets/partials/create_notice", message: @comment %>
